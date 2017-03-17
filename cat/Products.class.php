@@ -89,6 +89,24 @@ class cat_Products extends embed_Manager {
     
     
     /**
+     * Кой може да редактира в частния сингъл
+     */
+    public $canEditpsingle = 'user';
+    
+    
+    /**
+     * Кой може да редактира активен документ в частния сингъл
+     */
+    public $canEditactivatedpsingle  = 'user';
+    
+    
+    /**
+     * Кой може да вижда частния сингъл
+     */
+    public $canViewpsingle = 'user';
+    
+    
+    /**
      * По кой итнерфейс ще се групират сметките 
      */
     public $balanceRefGroupBy = 'cat_ProductAccRegIntf';
@@ -200,12 +218,6 @@ class cat_Products extends embed_Manager {
 	 *  Полета по които ще се търси
 	 */
 	public $searchFields = 'name, code, info';
-	
-	
-	/**
-	 * Кой има достъп до часния изглед на артикула
-	 */
-	public $canPrivatesingle = 'user';
 
 
     /**
@@ -1850,23 +1862,6 @@ class cat_Products extends embed_Manager {
     			}
     		}
     	}
-    	
-    	// За да има достъп до орязания сингъл, трябва да не може да отвори обикновения
-    	if($action == 'privatesingle' && isset($rec)){
-    		if($mvc->haveRightFor('single', $rec)){
-    			$res = 'no_one';
-    		}
-    	}
-    	
-    	// Ако потребителя няма достъп до папката, той няма достъп и до сингъла
-    	// така дори създателя на артикула няма достъп до сингъла му, ако няма достъп до папката
-    	if($action == 'single' && isset($rec->threadId)){
-    		if(!doc_Threads::haveRightFor('single', $rec->threadId)){
-    		    if (!core_Users::haveRole('partner', $userId)) {
-    		        $res = 'no_one';
-    		    }
-    		}
-    	}
     }
     
     
@@ -2024,64 +2019,19 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Орязан екшън за единичен изглед на артикула, ако потребителя няма достъп до папката му
+     * Прави стандартна 'обвивка' на изгледа
+     * @todo: да се отдели като плъгин
      */
-    function act_PrivateSingle()
+    function renderWrapping_($tpl, $data = NULL)
     {
-    	$this->requireRightFor('privateSingle');
-    	expect($id = Request::get('id', 'int'));
-    	
-    	expect($rec = $this->fetchRec($id));
-    	$this->requireRightFor('privateSingle', $rec);
-    	
-    	// Показваме съдържанието на документа
-    	$tpl = $this->getInlineDocumentBody($id, 'xhtml');
-    	
-    	// Ако е инсталиран пакета за партньори и потребителя е партньор
-    	// Слагаме за обвивка тази за партньорите
     	if(core_Packs::isInstalled('colab')){
     		if(core_Users::haveRole('partner')){
     			$this->load('cms_ExternalWrapper');
     			$this->currentTab = 'Нишка';
-    			
-    			$tpl = $this->renderWrapping($tpl);
     		}
     	}
     	
-    	if (!Request::get('ajax_mode')) {
-    		// Записваме, че потребителя е разглеждал този списък
-    		$this->logRead('Показване на ограничения сингъл', $id);
-    	}
-    	
-    	return $tpl;
-    }
-    
-    
-    /**
-     * Връща урл-то към единичния изглед на обекта, ако потребителя има
-     * права за сингъла. Ако няма права връща празен масив
-     *
-     * @param int|stdCLass $id - ид на запис
-     * @return array $url - масив с урл-то на единичния изглед
-     */
-    public static function getSingleUrlArray_($id)
-    {
-        if (is_object($id)) {
-            $id = $id->id;
-        }
-        
-    	$me = cls::get(get_called_class());
-    	 
-    	$url = array();
-    	 
-    	// Ако потребителя има права за единичния изглед, подготвяме линка
-    	if ($me->haveRightFor('single', $id)) {
-    		$url = array($me, 'single', $id, 'ret_url' => TRUE);
-    	} elseif($me->haveRightFor('privateSingle', $id)){
-    		$url = array($me, 'privateSingle', $id, 'ret_url' => TRUE);
-    	}
-    	 
-    	return $url;
+    	return parent::renderWrapping_($tpl, $data);
     }
     
     
