@@ -15,7 +15,8 @@
 class doc_Comments extends core_Master
 {
     
-    
+    public $canEditpsingle = 'user';
+    public $canAddpsingle = 'user';
     /**
      * Шаблон (ET) за заглавие на перо
      */

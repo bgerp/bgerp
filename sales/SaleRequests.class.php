@@ -182,7 +182,7 @@ class sales_SaleRequests extends core_Master
 	/**
      * След проверка на ролите
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
     	if(($action == 'add') && isset($rec)){
     		if(!$rec->originId){

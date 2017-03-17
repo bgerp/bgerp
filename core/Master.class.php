@@ -552,27 +552,40 @@ class core_Master extends core_Manager
             }
         } else { 
             $requiredRoles = parent::getRequiredRoles_($action, $rec, $userId);
-            
-            $pSingleSuffix = 'psingle'; 
-            
-            if ($action != 'admin' && $action != 'psingle' && !(stripos($action, $pSingleSuffix))) {
-                // Ако няма достъп до някое действие, но има достъо то частния сингъл
-                // Проверяваме правата за частните действия
-                if ((($userId && !haveRole($requiredRoles, $userId) || ($requiredRoles == 'no_one'))) && $this->haveRightFor('psingle', $rec)) {
-                
-                    $pAction = strtolower($action);
-                    $pAction = $pAction . $pSingleSuffix;
-                
-                    $canPAction = 'can' . ucfirst($pAction);
-                
-                    if (isset($this->{$canPAction})) {
-                        $requiredRoles = parent::getRequiredRoles($pAction, $rec, $userId);
-                    }
-                }
-            }
         }
         
         return $requiredRoles;
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * Забранява изтриването на вече използвани сметки
+     *
+     * @param core_Manager $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass|NULL $rec
+     * @param int|NULL $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        if ($action != 'admin' && $action != 'psingle' && !(stripos($action, 'psingle'))) {
+            // Ако няма достъп до някое действие, но има достъп до частния сингъл
+            // Проверяваме правата за частните действия
+            if ((($userId && !haveRole($requiredRoles, $userId) || ($requiredRoles == 'no_one'))) && $mvc->haveRightFor('psingle', $rec)) {
+        
+                $pAction = strtolower($action);
+                $pAction = $pAction . 'psingle';
+        
+                $canPAction = 'can' . ucfirst($pAction);
+        
+                if (isset($mvc->{$canPAction})) {
+                    $requiredRoles = $mvc->getRequiredRoles($pAction, $rec, $userId);
+                }
+            }
+        }
     }
     
     

@@ -2118,7 +2118,7 @@ class doc_Threads extends core_Manager
     /**
      * Извиква се след изчисляване на ролите необходими за дадено действие
      */
-    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
         if($action == 'open') {
             if($rec->state == 'closed') {

@@ -210,7 +210,7 @@ class survey_Surveys extends core_Master {
     /**
 	 * Модификация на ролите, които могат да видят избраната тема
 	 */
-    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{  
    		//  Кой може да обобщава резултатите
 		if($action == 'summarise' && isset($rec->id) ) {

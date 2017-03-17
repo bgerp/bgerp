@@ -224,7 +224,7 @@ class hr_ContractTypes extends core_Master
      * @param stdClass $rec
      * @param int $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Ако методът е редакция и вече имаме rec
         if($action == 'edit' && isset($rec)){

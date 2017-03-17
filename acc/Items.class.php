@@ -370,7 +370,7 @@ class acc_Items extends core_Manager
     /**
      * След подготовка на ролите
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
         if(($action == 'add' || $action == 'edit') && isset($rec->classId)){
             if(cls::load($rec->classId, TRUE)){

@@ -272,7 +272,7 @@ class sens2_Scripts extends core_Master
     /**
 	 * За да не могат да се изтриват активните скриптове
 	 */
-    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{  
    		if($action == 'delete') {
 	    	if($rec->state != 'closed'){

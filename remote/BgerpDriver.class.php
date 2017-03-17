@@ -112,7 +112,7 @@ class remote_BgerpDriver extends core_Mvc
     /**
      * За да не могат да се редактират оторизациите с получен ключ
      */
-    static function on_AfterGetRequiredRoles($driver, $mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($driver, $mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{
         if($action == 'edit' && is_object($rec)) {
             if($rec->data->lKeyCC) {
