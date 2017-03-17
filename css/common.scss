@@ -2547,13 +2547,38 @@ div.tab-control.deal-history-tab, .single-thread .document .tab-top div.alphabet
  	.tab {
 	    font-size: 0.7em;
 	    margin: 0 4px 0 0;
-	    padding: 5px;
+		padding: 5px 8px;
+		margin: 0 4px 0 0 !important;
+		cursor: pointer;
+		border: 1px solid #bbb !important;
+		font-size: 0.7em;
+		text-decoration: none;
+		white-space: nowrap;
+		color: #555 !important;
+		background-color: #ddd !important;
+		background-image: linear-gradient(top, rgba(255,255,255,1),
+						rgba(255,255,255,0)),
+		url(data:image/png;base64,iVBORw0KGg[...]QmCC) !important;
+		transition: background-color .2s ease-out !important;
+		background-clip: padding-box; /* Fix bleeding */
+		border-radius: 5px !important;
+		box-shadow: 0 1px 0 rgba(0, 0, 0, .3),
+		0 1px 0 rgba(255, 255, 255, .3) inset !important;
+		text-shadow: 0 1px 0 rgba(255,255,255, .9) !important;
+		a {
+			color: #333 !important;
+		}
 	    &:hover , &.selected {
-	        margin: 0 4px 0 0;
-	        padding: 5px !important;
-	    }
-	    &.selected {
-	        top: -4px;
+			margin: 0 4px 0 0 !important;
+			background: #ffffe9 !important;
+			padding: 5px 8px !important;
+			position: relative;
+			top: 1px;
+			top: -4px;
+			text-shadow: none;
+			a {
+				color: #444 !important;
+			}
 	    }
 	 }
 }
