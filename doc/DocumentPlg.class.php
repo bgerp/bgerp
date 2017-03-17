@@ -126,7 +126,6 @@ class doc_DocumentPlg extends core_Plugin
         
         setIfNot($mvc->canExportdoc, 'user');
         setIfNot($mvc->canForceexpenseitem, 'ceo,acc,purchase');
-        setIfNot($mvc->canViewpsingle, 'no_one');
         setIfNot($mvc->canPsingle, 'user');
         
         $mvc->setDbIndex('state');
@@ -2110,6 +2109,13 @@ class doc_DocumentPlg extends core_Plugin
         			}
         		}
         	}
+        }
+        
+        // Ако не е зададено, да не е admin по подразбиране
+        if ($action == 'viewpsingle') {
+            if (!isset($mvc->canViewpsingle)) {
+                $requiredRoles = 'no_one';
+            }
         }
         
         if ($action == 'psingle' && $rec) {
