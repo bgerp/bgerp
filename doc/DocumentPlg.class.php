@@ -2068,7 +2068,6 @@ class doc_DocumentPlg extends core_Plugin
                 }
                 if($userId && $userId != $rec->createdBy) {
                     $requiredRoles = 'officer';
-//                     bp($requiredRoles);
                 }
             }
         }
