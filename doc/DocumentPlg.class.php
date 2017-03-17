@@ -759,6 +759,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_BeforeAction($mvc, &$res, $action)
     {
+        $notAccessStatusMsg = "|Предишната страница не може да бъде показана, поради липса на права за достъп";
         if ($action == 'single' && !(Request::get('Printing')) && !Mode::is('dataType', 'php')) {
         	expect($id = Request::get('id', 'int'));
             
@@ -895,9 +896,9 @@ class doc_DocumentPlg extends core_Plugin
             if (!$res = getRetUrl()) {
             	$res = $mvc->getSingleUrlArray($id);
             	
-            	if(empty($res)){
+            	if (empty($res)) {
             		$res = array('bgerp_Portal', 'show');
-            		core_Statuses::newStatus('Предишната страница не може да бъде показана, поради липса на права за достъп', 'warning');
+            		core_Statuses::newStatus($notAccessStatusMsg, 'warning');
             	}
             }
             
@@ -979,16 +980,28 @@ class doc_DocumentPlg extends core_Plugin
         	// Ако документа е станал чакащ, генерира се събитие
         	if($newState == 'pending'){
         		$mvc->invoke('AfterSavePendingDocument', array($rec));
+        	} else {
+        	    doc_ThreadUsers::removeContainer($rec->containerId);
+        	    
+        	    $threadRec = doc_Threads::fetch($rec->threadId);
+        	    $threadRec->shared = keylist::fromArray(doc_ThreadUsers::getShared($rec->threadId));
+        	    doc_Threads::save($threadRec, 'shared');
+        	    
+//         	    bgerp_Recently::setHidden('document', $rec->containerId, 'no');
         	}
         	
         	$mvc->logInAct($log, $rec);
         	
         	if (!$res = getRetUrl()) {
-        	    
-        	    $res = $mvc->$mvc->getSingleUrlArray($rec->id);
+        	    $res = $mvc->getSingleUrlArray($rec->id);
         	}
         	
-        	 
+        	if (empty($res)) {
+        	    
+        	    $res = array('bgerp_Portal', 'show');
+        	    core_Statuses::newStatus($notAccessStatusMsg, 'warning');
+        	}
+        	
         	$res = new Redirect($res);
         	 
         	return FALSE;
