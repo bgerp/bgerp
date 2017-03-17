@@ -159,7 +159,7 @@ class cat_products_SharedInFolders extends core_Manager
    /**
     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
     */
-    public static function on_AfterGetRequiredRoles111($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if(($action == 'add' || $action == 'delete') && isset($rec)){
     		$productRec = cat_Products::fetch($rec->productId);
