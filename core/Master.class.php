@@ -555,7 +555,7 @@ class core_Master extends core_Manager
             
             // Ако няма достъп до някое действие, но има достъо то частния сингъл
             // Проверяваме правата за частните действия
-            if (!haveRole($requiredRoles, $userId) && $this->haveRightFor('psingle', $rec)) {
+            if ((($userId && !haveRole($requiredRoles, $userId) || ($requiredRoles == 'no_one'))) && $this->haveRightFor('psingle', $rec)) {
                 
                 $pAction = strtolower($action);
                 $pAction = $pAction . 'psingle';
