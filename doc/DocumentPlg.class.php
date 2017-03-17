@@ -532,6 +532,32 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
+     * 
+     * 
+     * @param core_Master $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    function on_BeforePrepareListRows($mvc, &$res, $data)
+    {
+        Mode::push('forListRows', TRUE);
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Master $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    function on_AfterPrepareListRows($mvc, &$res, $data)
+    {
+        Mode::pop('forListRows');
+    }
+    
+    
+    /**
      * Изпълнява се преди запис
      */
     function on_BeforeSave($mvc, $id, $rec, $fields = NULL)
@@ -1039,7 +1065,7 @@ class doc_DocumentPlg extends core_Plugin
             
             expect($pSingle = Request::get('pUrl'));
             
-            list($clsId, $recId, $docId) = explode('_', $pSingle);
+            list($clsId, $recId, $docId, $fromList) = explode('_', $pSingle);
             
             expect(cls::load($clsId, TRUE));
             
@@ -1050,11 +1076,13 @@ class doc_DocumentPlg extends core_Plugin
                 // Трябва да има съответните права
                 $mvc->requireRightFor('viewpsingle', $docId);
                 
-                // Трябва да може да се вижда документа
-                $nQuery = $mvc->getQuery();
-                $nQuery->where($docId);
-                doc_Threads::restrictAccess($nQuery, NULL, TRUE);
-                expect($nQuery->fetch());
+                if ($fromList) {
+                    // Трябва да може да се вижда документа
+                    $nQuery = $mvc->getQuery();
+                    $nQuery->where($docId);
+                    doc_Threads::restrictAccess($nQuery, NULL, TRUE);
+                    expect($nQuery->fetch());
+                }
             } else {
                 
                 // Ако линка сочи към документа, който е използва в другия документ, трябва да има права за сингъла
@@ -2154,7 +2182,9 @@ class doc_DocumentPlg extends core_Plugin
             $clsId = $mInst->getClassId();
         }
         
-        $res = array($mvc, 'pSingle', $docId, 'pUrl' => $clsId . '_' . $dId . '_' . $docId, 'ret_url' => TRUE);
+        $isFromList = (int)Mode::is('forListRows');
+        
+        $res = array($mvc, 'pSingle', $docId, 'pUrl' => $clsId . '_' . $dId . '_' . $docId . '_' . $isFromList, 'ret_url' => TRUE);
     }
     
     
