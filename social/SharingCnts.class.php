@@ -120,7 +120,7 @@ class social_SharingCnts extends core_Master
      * @param stdClass $rec
      * @param int $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId=NULL)
     {
     	
     	if ($action == 'edit' || $action == 'add') {
