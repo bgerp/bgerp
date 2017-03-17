@@ -564,7 +564,7 @@ class core_Master extends core_Manager
                     $canPAction = 'can' . ucfirst($pAction);
                 
                     if (isset($this->{$canPAction})) {
-                        $requiredRoles = parent::getRequiredRoles_($pAction, $rec, $userId);
+                        $requiredRoles = parent::getRequiredRoles($pAction, $rec, $userId);
                     }
                 }
             }
