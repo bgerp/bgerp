@@ -72,6 +72,12 @@ class embed_Manager extends core_Master
 		// Извличаме позволените за избор опции
 		$interfaces = static::getAvailableDriverOptions();
 		
+		// Ако има избран вече склад, но го няма в опциите добавя се
+		if($rec->{$this->driverClassField} && !array_key_exists($rec->{$this->driverClassField}, $interfaces)) {
+			$name = core_Classes::fetchField($rec->{$this->driverClassField}, 'name');
+			$interfaces[$rec->{$this->driverClassField}] = core_Classes::translateClassName($name);
+		}
+		
 		// Ако няма достъпни драйвери редирект със съобщение
 		if(!count($interfaces)) {
 			redirect(array($this), FALSE, '|Липсват възможни видове|* ' . $mvc->title);
