@@ -571,10 +571,12 @@ class core_Master extends core_Manager
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        if ($action != 'admin' && $action != 'psingle' && !(stripos($action, 'psingle'))) {
+        $pSingleSuffix = 'psingle';
+        
+        if ($action != 'admin' && $action != 'psingle' && !(stripos($action, $pSingleSuffix))) {
             // Ако няма достъп до някое действие, но има достъп до частния сингъл
             // Проверяваме правата за частните действия
-            if ((($userId && !haveRole($requiredRoles, $userId) || ($requiredRoles == 'no_one'))) && $mvc->haveRightFor('psingle', $rec)) {
+            if ((($userId && !haveRole($requiredRoles, $userId) || ($requiredRoles == 'no_one'))) && $mvc->haveRightFor($pSingleSuffix, $rec)) {
         
                 $pAction = strtolower($action);
                 $pAction = $pAction . 'psingle';

@@ -13,8 +13,8 @@
  */
 class doc_Notes extends core_Master
 {
-    public $canViewpsingle = 'user';
-    public $canEditpsingle = 'user';
+    
+    
     /**
      * Шаблон (ET) за заглавие на перо
      */
