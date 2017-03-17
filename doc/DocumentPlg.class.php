@@ -1022,17 +1022,14 @@ class doc_DocumentPlg extends core_Plugin
                 $mvc->requireRightFor('Psingle');
             }
             
-            $data->details = arr::make($this->details);
+            $linkToSingle = array($mvc, 'single', $data->rec->id);
             
             expect($data->rec, $data, $id, Request::get('id', 'int'));
-            
-            // Проверяваме дали потребителя може да вижда списък с тези записи
-            $mvc->requireRightFor('Psingle', $data->rec);
             
             // Ако има права за сингъла, редиректваме директно там
             if ($mvc->haveRightFor('single', $data->rec)) {
                 
-                $res = new Redirect(array($mvc, 'single', $data->rec->id));
+                $res = new Redirect($linkToSingle);
                 
                 return FALSE;
             }
@@ -1074,26 +1071,19 @@ class doc_DocumentPlg extends core_Plugin
                 expect($clsInst->checkDocExist($recId, $data->rec->containerId));
             }
             
-            // Подготвяме данните за единичния изглед
-            $mvc->prepareSingle($data);
+            $modeAllowedContainerIdName = $mvc->getAllowedContainerName();
             
-            // Рендираме изгледа
-            $tpl = $mvc->renderSingle($data);
+            $allowedCidArr = Mode::get($modeAllowedContainerIdName);
             
-            // Опаковаме изгледа
-            $tpl = $mvc->renderWrapping($tpl, $data);
-            
-            if (!Request::get('ajax_mode')) {
-                if (Mode::is('printing')) {
-                    $mvc->logRead('Отпечатване', $id);
-                } elseif(Mode::is('pdf')) {
-                    $mvc->logRead('PDF', $id);
-                } else {
-                    $mvc->logRead('Виждане на ограничения сингъл', $id);
-                }
+            if (!isset($allowedCidArr)) {
+                $allowedCidArr = array();
             }
             
-            $res = $tpl;
+            $allowedCidArr[$data->rec->containerId] = $data->rec->containerId;
+            
+            Mode::setPermanent($modeAllowedContainerIdName, $allowedCidArr);
+            
+            $res = new Redirect($linkToSingle);
             
             return FALSE;
     	}
@@ -1359,7 +1349,10 @@ class doc_DocumentPlg extends core_Plugin
             if(core_Packs::isInstalled('colab') && core_Users::haveRole('partner')){
             	colab_Threads::requireRightFor('single', doc_Threads::fetch($mvc->threadId));
             } else {
-            	doc_Threads::requireRightFor('single', $mvc->threadId);
+                
+                if (!$mvc->haveRightFor('psingle', $rec)) {
+                    doc_Threads::requireRightFor('single', $mvc->threadId);
+                }
             }
           
         } elseif ($rec->originId) {
@@ -1373,7 +1366,9 @@ class doc_DocumentPlg extends core_Plugin
                 $tRec = doc_Threads::fetch($oRec->threadId);
                 colab_Threads::requireRightFor('single', $tRec);
             } else {
-                doc_Threads::requireRightFor('single', $oRec->threadId);
+                if (!$mvc->haveRightFor('psingle', $rec)) {
+                    doc_Threads::requireRightFor('single', $oRec->threadId);
+                }
             }
             
             $rec->threadId = $oRec->threadId;
@@ -1398,7 +1393,9 @@ class doc_DocumentPlg extends core_Plugin
         	if (core_Packs::isInstalled('colab') && core_Users::haveRole('partner')){
         		colab_Threads::requireRightFor('single', $threadRec);
         	} else {
-        		doc_Threads::requireRightFor('single', $rec->threadId);
+        	    if (!$mvc->haveRightFor('psingle', $rec)) {
+        	        doc_Threads::requireRightFor('single', $rec->threadId);
+        	    }
         	}
             
             $rec->folderId = $threadRec->folderId;
@@ -1927,6 +1924,15 @@ class doc_DocumentPlg extends core_Plugin
                 	} else {
                 		$requiredRoles = 'no_one';
                 	}
+                	
+                	if ($requiredRoles == 'no_one' && $rec) {
+                	    $modeAllowedContainerIdName = $mvc->getAllowedContainerName();
+                	    $allowedCidArr = Mode::get($modeAllowedContainerIdName);
+                	    
+                	    if ($rec->containerId && $allowedCidArr[$rec->containerId]) {
+                	        $requiredRoles = $mvc->getRequiredRoles('psingle', $rec, $userId);
+                	    }
+                	}
                 } else {
                     if (($requiredRoles != 'every_one') || ($requiredRoles != 'user')) {
                         $requiredRoles = 'powerUser';
@@ -2108,6 +2114,15 @@ class doc_DocumentPlg extends core_Plugin
         // Ако не е зададено, да не е admin по подразбиране
         if ($action == 'viewpsingle') {
             if (!isset($mvc->canViewpsingle)) {
+                $requiredRoles = 'no_one';
+            }
+        }
+        
+        if ($action == 'psingle' && $rec) {
+            $modeAllowedContainerIdName = $mvc->getAllowedContainerName();
+            $allowedCidArr = Mode::get($modeAllowedContainerIdName);
+             
+            if (!$allowedCidArr[$rec->containerId]) {
                 $requiredRoles = 'no_one';
             }
         }

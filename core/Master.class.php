@@ -552,9 +552,35 @@ class core_Master extends core_Manager
             }
         } else { 
             $requiredRoles = parent::getRequiredRoles_($action, $rec, $userId);
+            
+            // Ако няма достъп до някое действие, но има достъо то частния сингъл
+            // Проверяваме правата за частните действия
+            if ($requiredRoles == 'no_one' && $this->haveRightFor('psingle', $rec)) {
+                
+                $pAction = strtolower($action);
+                $pAction = $pAction . 'psingle';
+                
+                $canPAction = 'can' . ucfirst($pAction);
+                
+                if (isset($this->{$canPAction})) {
+                    $requiredRoles = parent::getRequiredRoles_($pAction, $rec, $userId);
+                }
+            }
         }
         
         return $requiredRoles;
+    }
+    
+    
+    /**
+     * Връща името на полето, в което ще се записват достъпните сингъли в сесията
+     * 
+     * @return string
+     */
+    public static function getAllowedContainerName_()
+    {
+        
+        return 'AllowedContainerIdArr';
     }
     
     
