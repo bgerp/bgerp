@@ -2122,7 +2122,7 @@ class doc_DocumentPlg extends core_Plugin
             $modeAllowedContainerIdName = $mvc->getAllowedContainerName();
             $allowedCidArr = Mode::get($modeAllowedContainerIdName);
              
-            if (!$allowedCidArr[$rec->containerId]) {
+            if (!$rec->containerId || !$allowedCidArr[$rec->containerId]) {
                 $requiredRoles = 'no_one';
             }
         }
