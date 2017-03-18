@@ -203,16 +203,17 @@ class expert_Dataset extends core_BaseClass {
         $rule->trust = $trust/$div;
         $rule->maxTrust = $maxTrust/$div;
 
-        if($rule->trust > 0) {
+        if($rule->trust > 0 && !isset($rule->value)) {
             $rule->condVal = empty($rule->cond) ? TRUE : $this->calc($rule->cond, $rule->condVars);
             if(!$rule->condVal) {
                 $rule->state = 'fail';
-
                 return;
             }
             $rule->value = $this->calc($rule->expr, $rule->exprVars);
-        }
+            
+        //    if(strpos($rule->cond, 'Cost')) bp($rule);
 
+        }
 
     }
 
