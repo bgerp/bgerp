@@ -162,43 +162,35 @@ class drdata_Phones extends core_Manager {
              
             $tel = str_replace(array('(0)', '[0]', '++'), array('', '', '+') , $tel);
             
-            $sepArr = array(';', ',', ' ', '.');      // възможни сепаратори
-            foreach($sepArr as $sep) {
-                $test[] = explode($sep, $tel);
-            }
+            $tel = preg_replace("/ +\- +/", '-', $tel);
             
-            $tel1 = $tel;
-            
-            // Добавяме сепаратор по код на държавата
-            $tel = str_replace('+', ';+', $tel);
-            
+            $from = array(' fax', ' факс', ' f.', ' ф.', ' Fax',  ' Факс',  ' F.', ' Ф.', ' FAX', ' ФАКС',
+                          ' Mob', ' mob', ' m.', ' m ', ' моб', ' Моб', ' Тел.', ' тел.', '+');
+
             if($defaultCountryCode) {
-                $tel = str_replace(' 00' . $defaultCountryCode, ';00' . $defaultCountryCode, $tel);
+                $from[] = ' 00' . $defaultCountryCode;
+                $from[] = ' 00 ' . $defaultCountryCode;
             }
-            
             if($defaultAreaCode) {
-                $tel = str_replace(' 0' . $defaultAreaCode, ';,0' . $defaultAreaCode, $tel);
+                $from[] = ' 0' . $defaultAreaCode;
             }
-            
-            $tel = str_replace('fax', ';fax' , $tel);
-            $tel = str_replace('факс', ';факс' , $tel);
-            $tel = str_replace('f.', ';f.' , $tel);
-            $tel = str_replace('ф.', ';ф.' , $tel);
-            $tel = str_replace('Fax', ';Fax' , $tel);
-            $tel = str_replace('Факс', ';Факс' , $tel);
-            $tel = str_replace('F.', ';F.' , $tel);
-            $tel = str_replace('Ф.', ';Ф.' , $tel);
-            $tel = str_replace('FAX', ';FAX' , $tel);
-            $tel = str_replace('ФАКС', ';ФАКС' , $tel);
-            
-            $test[] = explode(';', $tel);
-            $test[] = explode(';', str_replace(',' , ';', $tel));
-            $test[] = explode(';', str_replace(' ' , ';', $tel));
-            $test[] = explode(';', str_replace('.' , ';', $tel));
-            
-            $test[] = explode('/', $tel1);
-            $test[] = explode("\\", $tel1);
-            
+   
+            $sepArr = array(';', ',', ' ', '.', '/', "\\");      // възможни сепаратори
+
+            foreach($sepArr as $sep) {
+                
+                $to = array();
+                foreach($from as $c) {
+                    $to[] = $sep . $c;
+                }
+                $tel = str_replace($from, $to, $tel);
+
+                $test[] = explode($sep, $tel);
+                if($sep != ';' && strpos($tel, ';')) {
+                    $test[] = explode($sep, str_replace(';', $sep, $tel));
+                }
+            }
+ 
             foreach($test as $telArr) {
                 
                 $error = FALSE;
@@ -209,14 +201,14 @@ class drdata_Phones extends core_Manager {
                 
                 foreach($telArr as $t) {
                     
+                    // Имаме ли нещо?
+                    $t = trim($t, ',;\\/ ');
+                    
+                    if(!$t || !preg_match("/[0-9]/", $t)) continue;
+                    
                     // Нулираме обекта
                     $obj = new stdClass();
                     $obj->original = $t;
-                    
-                    // Имаме ли нещо?
-                    $t = trim($t);
-                    
-                    if(!$t) continue;
                     
                     // правим го с малки букви, на латиница
                     $t1 = trim(strtolower(str::utf2ascii($t)));
@@ -486,7 +478,7 @@ class drdata_Phones extends core_Manager {
                 drdata_PhoneCache::set($telSave, $dCCSave, $dACSave, $res);
             }
         }
-        
+   
         return $res;
     }
     
