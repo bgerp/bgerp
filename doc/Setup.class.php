@@ -201,7 +201,8 @@ class doc_Setup extends core_ProtoSetup
         'migrate::repairLikeThread',
         'migrate::repairFoldersKeywords',
     	'migrate::migratePending1',
-        'migrate::showFiles'
+        'migrate::showFiles',
+        'migrate::addCountryIn2LgFolders',
     );
 	
     
@@ -580,4 +581,34 @@ class doc_Setup extends core_ProtoSetup
             doc_Files::recalcFiles($rec->containerId);
         }
     }
+
+
+	/**
+     * Добавя държавата на два езика в папките
+     */
+    public static function addCountryIn2LgFolders()
+    {
+        $companiesId = core_Classes::getId('crm_Companies');
+        $personsId = core_Classes::getId('crm_Persons');
+
+        $mvcInst = cls::get('doc_Folders');
+        $query = $mvcInst->getQuery();
+                    
+        Mode::push('text', 'plain');
+        Mode::push('htmlEntity', 'none');
+        
+        while($rec = $query->fetchAndCache()) {
+
+            if($rec->coverClass != $companiesId && $rec->coverClass != $companiesId )  continue;
+ 
+            if (strpos($rec->searchKeywords, 'bulgaria')) continue;
+
+            $rec->searchKeywords = $mvcInst->getSearchKeywords($rec);
+            $mvcInst->save_($rec, 'searchKeywords');
+        }
+
+        Mode::pop('htmlEntity');
+        Mode::pop('text');
+    }
+
 }

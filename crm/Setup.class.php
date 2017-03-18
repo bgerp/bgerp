@@ -99,7 +99,8 @@ class crm_Setup extends core_ProtoSetup
             'migrate::updateSettingsKey',
             'migrate::updateGroupFoldersToUnsorted',
             'migrate::updateLocationType',
-            'migrate::fixContragentSearchKeywords2'
+            'migrate::addCountryIn2LgPersons',
+            'migrate::addCountryIn2LgCompanies'
         );
     
 
@@ -359,25 +360,56 @@ class crm_Setup extends core_ProtoSetup
 
         return "Обновени са {$upd} типа на локации";
     }
-    
-	
-    /**
-     * Оправя ключовите думи
+
+	/**
+     * Добавя държавата на два езика в лицата
      */
-    public static function fixContragentSearchKeywords2()
+    public static function addCountryIn2LgPersons()
     {
         $countryId = drdata_Countries::getIdByName('България');
         
-        foreach (array('crm_Persons', 'crm_Companies') as $mvcName) {
-            $mvcInst = cls::get($mvcName);
-            $query = $mvcInst->getQuery();
-             
-            while($rec = $query->fetch()) {
-                // Прескачаме българия, защото в ключовите думи ще е по-един и същи начин
-                if ($rec->country == $countryId) continue;
-                
-                $mvcInst->save($rec, 'searchKeywords');
-            }
+        $mvcInst = cls::get('crm_Persons');
+        $query = $mvcInst->getQuery();
+                    
+        Mode::push('text', 'plain');
+        Mode::push('htmlEntity', 'none');
+        
+        while($rec = $query->fetchAndCache()) {
+            // Прескачаме България, защото в ключовите думи ще е по-един и същи начин
+            if ($rec->country == $countryId || !$rec->country) continue;
+            $rec->searchKeywords = $mvcInst->getSearchKeywords($rec);
+            $mvcInst->save_($rec, 'searchKeywords');
         }
+
+        Mode::pop('htmlEntity');
+        Mode::pop('text');
     }
+
+
+	/**
+     * Добавя държавата на два езика в лицата
+     */
+    public static function addCountryIn2LgCompanies()
+    {
+        $countryId = drdata_Countries::getIdByName('България');
+        
+        $mvcInst = cls::get('crm_Companies');
+        $query = $mvcInst->getQuery();
+                    
+        Mode::push('text', 'plain');
+        Mode::push('htmlEntity', 'none');
+        
+        while($rec = $query->fetchAndCache()) {
+            // Прескачаме България, защото в ключовите думи ще е по-един и същи начин
+            if ($rec->country == $countryId || !$rec->country) continue;
+            $rec->searchKeywords = $mvcInst->getSearchKeywords($rec);
+            $mvcInst->save_($rec, 'searchKeywords');
+        }
+
+        Mode::pop('htmlEntity');
+        Mode::pop('text');
+    }
+
+
+
 }

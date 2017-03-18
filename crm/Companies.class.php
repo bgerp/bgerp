@@ -47,7 +47,7 @@ class crm_Companies extends core_Master
     	'cat_ProductFolderCoverIntf',
     );
     
-    
+ 
     /**
      * Заглавие
      */
@@ -2249,4 +2249,15 @@ class crm_Companies extends core_Master
     {
     	return 'private';
     }
+
+
+    /**
+     * Добавя ключовио думи за държавата и на bg и на en
+     */
+    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+        $res = drdata_Countries::addCountryInBothLg($rec->country, $res);
+    }
+
+
 }
