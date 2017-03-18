@@ -2567,7 +2567,7 @@ class cal_Tasks extends core_Master
                 
                 if ($sSel == 'postPonned') {
                     $form->FNC('date', 'date', 'caption=Дата,class=w100, input=input, silent');
-                    $form->setDefault('date', dt::addDays(1));
+                    $form->setDefault('date', dt::nextWorkingDay());
                     $mvcName = 'doc_Folders';
                     
                     $form->setDefault('folderId', doc_Folders::getDefaultFolder($cu));
