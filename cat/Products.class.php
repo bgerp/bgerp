@@ -315,7 +315,7 @@ class cat_Products extends embed_Manager {
     {
         $this->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Шаблон,input=hidden,silent,refreshForm,placeholder=Популярни продукти,groupByDiv=»");
 		
-        $this->FLD('code', 'varchar(32,ci)', 'caption=Код,remember=info,width=15em');
+        $this->FLD('code', 'varchar(32)', 'caption=Код,remember=info,width=15em');
         $this->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%');
         $this->FLD('info', 'richtext(rows=4, bucket=Notes)', 'caption=Описание');
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,smartCenter');
@@ -1046,7 +1046,7 @@ class cat_Products extends embed_Manager {
     	} else {
     		
     		// Проверяваме имали продукт с такъв код
-    		if($rec = self::fetch(array("#code = '[#1#]'", $code))) {
+    		if($rec = self::fetch(array("#code = '[#1#]' COLLATE utf8_general_ci", $code))) {
     			
     			$res->productId = $rec->id;
     			$res->packagingId = NULL;
