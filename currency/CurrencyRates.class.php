@@ -481,7 +481,7 @@ class currency_CurrencyRates extends core_Detail
     /**
      * Модификации по ролите
      */
-    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
     	if($action== 'add' && !isset($rec->currencyId)) {
 			

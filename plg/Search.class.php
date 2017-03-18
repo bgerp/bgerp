@@ -103,6 +103,7 @@ class plg_Search extends core_Plugin
                 } else {
                     Mode::push('text', 'plain');
                     Mode::push('htmlEntity', 'none');
+                    Mode::push('forSearch', TRUE);
                     
                     $verbalVal = $mvc->getVerbal($cRec, $field);
                     
@@ -111,6 +112,8 @@ class plg_Search extends core_Plugin
                     }
             
                     $searchKeywords .= ' ' . static::normalizeText($verbalVal);
+                    
+                    Mode::pop('forSearch');
                     Mode::pop('htmlEntity');
                     Mode::pop('text');
                 }

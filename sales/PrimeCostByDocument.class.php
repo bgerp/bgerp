@@ -258,9 +258,10 @@ class sales_PrimeCostByDocument extends core_Manager
 			// За дилъра и инициатора, ако има ще се подават делтите
 			foreach (array('dealerId', 'initiatorId') as $personFld){
 				if(isset($persons[$personFld])){
+					$indicatorId = ($personFld == 'dealerId') ? 1 : 2;
 					
 					// Ключа по който ще събираме е лицето, документа и вальора
-					$key = "{$persons[$personFld]}|{$master[0]}|{$master[1]}|{$rec->valior}";
+					$key = "{$persons[$personFld]}|{$master[0]}|{$master[1]}|{$rec->valior}|{$indicatorId}";
 					
 					// Ако документа е обратен 
 					$sign = ($master[3] == 'yes') ? -1 : 1;
@@ -272,7 +273,7 @@ class sales_PrimeCostByDocument extends core_Manager
 								                      'personId'    => $persons[$personFld],
 								                      'docId'       => $master[1],
 								                      'docClass'    => $master[0],
-								                      'indicatorId' => ($personFld == 'dealerId') ? 1 : 2,
+								                      'indicatorId' => $indicatorId,
 								                      'value'       => $delta,
 								                      'isRejected'  => ($master[2] == 'rejected'),
 						);

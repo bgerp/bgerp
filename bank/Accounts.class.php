@@ -158,7 +158,7 @@ class bank_Accounts extends core_Master {
     /**
      * След проверка на ролите
      */
-    protected static function on_AfterGetRequiredRoles(core_Mvc $mvc, &$requiredRoles, $action, $rec)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if (($action == 'edit' || $action == 'delete') && isset($rec->contragentCls)) {
             $productState = cls::get($rec->contragentCls)->fetchField($rec->contragentId, 'state');

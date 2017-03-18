@@ -128,7 +128,7 @@ class hr_Positions extends core_Master
      * @param stdClass $rec
      * @param int $userId
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Ако методък е "изтриване"       
         if($action == 'delete' && isset($rec)){

@@ -198,7 +198,7 @@ class crm_ext_Employees extends core_Manager
     /**
      * Изпълнява се след подготовката на ролите
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
     	if(($action == 'add' || $action == 'delete' || $action == 'edit') && isset($rec->personId)){
     		if(!crm_Persons::haveRightFor('edit', $rec->personId)){

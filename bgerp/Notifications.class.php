@@ -121,9 +121,8 @@ class bgerp_Notifications extends core_Manager
         if (!isset($userId)) return ;
         
         // Потребителя не може да си прави нотификации сам на себе си
-        // Ако искаме да тестваме нотификациите - дава си роля 'debug'
         // Режима 'preventNotifications' спира задаването на всякакви нотификации
-        if ((!haveRole('debug') && $userId == core_Users::getCurrent()) || Mode::is('preventNotifications')) return ;
+        if (($userId == core_Users::getCurrent()) || Mode::is('preventNotifications')) return ;
         
         // Да не се нотифицира контрактора
         if (core_Users::haveRole('partner', $userId)) return ;

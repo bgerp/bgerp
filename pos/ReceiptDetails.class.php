@@ -624,7 +624,7 @@ class pos_ReceiptDetails extends core_Detail {
 	/**
 	 * Модификация на ролите, които могат да видят избраната тема
 	 */
-    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{ 
 		if(($action == 'add' || $action == 'delete') && isset($rec->receiptId)) {
 			$masterRec = $mvc->Master->fetch($rec->receiptId);

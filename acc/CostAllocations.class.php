@@ -322,9 +322,10 @@ class acc_CostAllocations extends core_Manager
 		
 		// Линк към обекта на перото
 		$eItem = acc_Items::getVerbal($rec->expenseItemId, 'titleNum');
+		
 		$iRec = acc_Items::fetch($rec->expenseItemId);
 		$Register = new core_ObjectReference($iRec->classId, $iRec->objectId);
-		if(method_exists($Register->getInstance(), 'getSingleUrlArray') && !Mode::isReadOnly()){
+		if(method_exists($Register->getInstance(), 'getSingleUrlArray_') && !Mode::isReadOnly()){
 			$singleUrl = $Register->getSingleUrlArray();
 			$singleUrl['Sid'] = $Register->fetchField('containerId');
 			$eItem = ht::createLink($eItem, $singleUrl);

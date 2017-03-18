@@ -591,7 +591,7 @@ class pos_Reports extends core_Master {
     /**
      * След обработка на ролите
      */
-	protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+	public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{
 		// Никой не може да редактира бележка
 		if($action == 'activate' && !$rec) {

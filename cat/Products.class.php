@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
  */
@@ -86,6 +86,24 @@ class cat_Products extends embed_Manager {
      * Да се показват ли в репортите нулевите редове
      */
     public $balanceRefShowZeroRows = TRUE;
+    
+    
+    /**
+     * Кой може да редактира в частния сингъл
+     */
+    public $canEditpsingle = 'user';
+    
+    
+    /**
+     * Кой може да редактира активен документ в частния сингъл
+     */
+    public $canEditactivatedpsingle  = 'user';
+    
+    
+    /**
+     * Кой може да вижда частния сингъл
+     */
+    public $canViewpsingle = 'user';
     
     
     /**
@@ -200,12 +218,6 @@ class cat_Products extends embed_Manager {
 	 *  Полета по които ще се търси
 	 */
 	public $searchFields = 'name, code, info';
-	
-	
-	/**
-	 * Кой има достъп до часния изглед на артикула
-	 */
-	public $canPrivatesingle = 'user';
 
 
     /**
@@ -281,7 +293,7 @@ class cat_Products extends embed_Manager {
 	 *
 	 * @see plg_Clone
 	 */
-	public $fieldsNotToClone = 'originId,code, name';
+	public $fieldsNotToClone = 'originId, code, name';
 	
 	
 	/**
@@ -313,7 +325,6 @@ class cat_Products extends embed_Manager {
         $this->FNC('quantity', 'double(decimals=2)', 'input=none,caption=Наличност,smartCenter');
         $this->FNC('price', 'double(minDecimals=2,maxDecimals=6)', 'input=none,caption=Цена,smartCenter');
 
-        // Разбивки на свойствата за по-бързо индексиране и търсене
         $this->FLD('canSell', 'enum(yes=Да,no=Не)', 'input=none');
         $this->FLD('canBuy', 'enum(yes=Да,no=Не)', 'input=none');
         $this->FLD('canStore', 'enum(yes=Да,no=Не)', 'input=none');
@@ -355,17 +366,15 @@ class cat_Products extends embed_Manager {
     			$defMetas = $mvc->fetchField($rec->proto, 'meta');
     			$defMetas = type_Set::toArray($defMetas);
     		} else {
-                $defMetas = array();
-
                 if($Driver = $mvc->getDriver($rec)){
-                    $defMetas = $Driver->getDefaultMetas($defMetas);
+                    $defMetas = $Driver->getDefaultMetas();
                     if(count($defMetas)) {
                         $form->setField('meta', 'autohide=any');
                     }
                 }
-
+               
                 if(!$defMetas || !count($defMetas)) {
-    			    $defMetas = $cover->getDefaultMeta();
+                	$defMetas = $cover->getDefaultMeta();
                 }
     		}
     		
@@ -576,9 +585,13 @@ class cat_Products extends embed_Manager {
 			$this->route($rec);
 		}
 		
-		$defMetas = cls::get('cat_Categories')->getDefaultMeta($categoryId);
+		$defMetas = array();
 		if($Driver = $this->getDriver($rec)){
-			$defMetas = $Driver->getDefaultMetas($defMetas);
+			$defMetas = $Driver->getDefaultMetas();
+		}
+		
+		if(!count($defMetas)){
+			$defMetas = cls::get('cat_Categories')->getDefaultMeta($categoryId);
 		}
 		
 		$rec->meta = ($rec->meta) ? $rec->meta : $this->getFieldType('meta')->fromVerbal($defMetas);
@@ -1746,7 +1759,7 @@ class cat_Products extends embed_Manager {
     	$data->toolbar->removeBtn('btnAdd');
     	
     	// Бутона 'Нов запис' в листовия изглед, добавя винаги универсален артикул
-    	if($mvc->haveRightFor('add')){
+    	if($mvc->haveRightFor('add') && haveRole('cat')){
     		 $data->toolbar->addBtn('Нов запис', array($mvc, 'add', 'innerClass' => cat_GeneralProductDriver::getClassId()), 'order=1,id=btnAdd', 'ef_icon = img/16/shopping.png,title=Създаване на нова стока');
     	}
     }
@@ -1820,7 +1833,7 @@ class cat_Products extends embed_Manager {
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'add'){
     		if(isset($rec)){
@@ -1835,30 +1848,16 @@ class cat_Products extends embed_Manager {
     	
     	// Ако потребителя няма определени роли не може да добавя или променя записи в папка на категория
     	if(($action == 'add' || $action == 'edit' || $action == 'write' || $action == 'clonerec') && isset($rec)){
-			if(isset($rec->folderId)){
-    			$Cover = doc_Folders::getCover($rec->folderId);
+			
+    		if(isset($rec->folderId) || isset($rec->threadId)){
+    			$folderId = isset($rec->folderId) ? $rec->folderId : doc_Threads::fetchField($rec->threadId, 'folderId');
+    			$Cover = doc_Folders::getCover($folderId);
+    			
     			if(!$Cover->haveInterface('crm_ContragentAccRegIntf')){
     				if(!haveRole('ceo,cat')){
     					$res = 'no_one';
     				}
     			}
-    		}
-    	}
-    	
-    	// За да има достъп до орязания сингъл, трябва да не може да отвори обикновения
-    	if($action == 'privatesingle' && isset($rec)){
-    		if($mvc->haveRightFor('single', $rec)){
-    			$res = 'no_one';
-    		}
-    	}
-    	
-    	// Ако потребителя няма достъп до папката, той няма достъп и до сингъла
-    	// така дори създателя на артикула няма достъп до сингъла му, ако няма достъп до папката
-    	if($action == 'single' && isset($rec->threadId)){
-    		if(!doc_Threads::haveRightFor('single', $rec->threadId)){
-    		    if (!core_Users::haveRole('partner', $userId)) {
-    		        $res = 'no_one';
-    		    }
     		}
     	}
     }
@@ -2018,60 +2017,19 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Орязан екшън за единичен изглед на артикула, ако потребителя няма достъп до папката му
+     * Прави стандартна 'обвивка' на изгледа
+     * @todo: да се отдели като плъгин
      */
-    function act_PrivateSingle()
+    function renderWrapping_($tpl, $data = NULL)
     {
-    	$this->requireRightFor('privateSingle');
-    	expect($id = Request::get('id', 'int'));
-    	
-    	expect($rec = $this->fetchRec($id));
-    	$this->requireRightFor('privateSingle', $rec);
-    	
-    	// Показваме съдържанието на документа
-    	$tpl = $this->getInlineDocumentBody($id, 'xhtml');
-    	
-    	// Ако е инсталиран пакета за партньори и потребителя е партньор
-    	// Слагаме за обвивка тази за партньорите
     	if(core_Packs::isInstalled('colab')){
     		if(core_Users::haveRole('partner')){
     			$this->load('cms_ExternalWrapper');
     			$this->currentTab = 'Нишка';
-    			
-    			$tpl = $this->renderWrapping($tpl);
     		}
     	}
     	
-    	if (!Request::get('ajax_mode')) {
-    		// Записваме, че потребителя е разглеждал този списък
-    		$this->logRead('Показване на ограничения сингъл', $id);
-    	}
-    	
-    	return $tpl;
-    }
-    
-    
-    /**
-     * Връща урл-то към единичния изглед на обекта, ако потребителя има
-     * права за сингъла. Ако няма права връща празен масив
-     *
-     * @param int $id - ид на запис
-     * @return array $url - масив с урл-то на единичния изглед
-     */
-    public static function getSingleUrlArray($id)
-    {
-    	$me = cls::get(get_called_class());
-    	 
-    	$url = array();
-    	 
-    	// Ако потребителя има права за единичния изглед, подготвяме линка
-    	if ($me->haveRightFor('single', $id)) {
-    		$url = array($me, 'single', $id, 'ret_url' => TRUE);
-    	} elseif($me->haveRightFor('privateSingle', $id)){
-    		$url = array($me, 'privateSingle', $id, 'ret_url' => TRUE);
-    	}
-    	 
-    	return $url;
+    	return parent::renderWrapping_($tpl, $data);
     }
     
     

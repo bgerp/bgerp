@@ -171,7 +171,7 @@ class cat_Listings extends core_Master
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'activate'){
     		if(empty($rec->id)){
@@ -202,13 +202,29 @@ class cat_Listings extends core_Master
     
     /**
      * Кешира и връща всички листвани артикули за клиента
-     *
-     * @param int|stdClass $listId
+     * 
+     * @param int|stdClass $listId  - ид на лист
+     * @param int|NULL     $storeId - ид на склад
+     * @param int|NULL     $limit   - ограничение
+     * @return array
      */
-    public static function getAll($listId)
+    public static function getAll($listId, $storeId = NULL, $limit = NULL)
     {
     	expect($listRec = cat_Listings::fetchRec($listId));
     
+    	$instock = NULL;
+    	
+    	// Ако е зададен склад
+    	if(isset($storeId)){
+    		
+    		// Намиране на всички налични артикули в склада
+    		$pQuery = store_Products::getQuery();
+    		$pQuery->where("#storeId = {$storeId}");
+    		$pQuery->where("#quantity > 0");
+    		$pQuery->show('productId');
+    		$instock = arr::extractValuesFromArray($pQuery->fetchAll(), 'productId');
+    	}
+    	
     	// Ако няма наличен кеш за контрагента, извлича се наново
     	if(!isset(self::$cache[$listRec->id])){
     		self::$cache[$listRec->id] =  array();
@@ -216,8 +232,22 @@ class cat_Listings extends core_Master
     		// Кои са листваните артикули за контрагента
     		$query = cat_ListingDetails::getQuery();
     		$query->where("#listId = {$listRec->id}");
-    		$query->orderBy('id', 'ASC');
+    		
+    		if(isset($instock) && is_array($instock)){
     			
+    			// Артикулите се подреждат така че наличните в склада да са по-напред
+    			$instock = implode(',', $instock);
+    			$query->XPR('instock', 'int', "(CASE WHEN #productId IN ($instock) THEN 0 ELSE 1 END)");
+    			$query->orderBy('instock,id', 'ASC');
+    		} else {
+    			$query->orderBy('id', 'ASC');
+    		}
+    			
+    		// Ако има зададен лимит
+    		if(isset($limit)){
+    			$query->limit($limit);
+    		}
+    		
     		// Добавя се всеки запис, групиран според типа
     		while($rec = $query->fetch()){
     			$obj = (object)array('productId' => $rec->productId, 'packagingId' => $rec->packagingId, 'reff' => $rec->reff, 'moq' => $rec->moq, 'multiplicity' => $rec->multiplicity);

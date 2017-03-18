@@ -524,7 +524,7 @@ class cms_Articles extends core_Master
     /**
      * Какви са необходимите роли за съотвентото действие?
      */
-    static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec = NULL, $userId = NULL)
     {
         if($rec->state == 'active' && $action == 'delete') {
             $roles = 'no_one';

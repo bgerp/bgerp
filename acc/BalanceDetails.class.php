@@ -1278,7 +1278,7 @@ class acc_BalanceDetails extends core_Detail
      * @param stdClass|NULL $rec
      * @param int|NULL $userId
      */
-    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if (!in_array($action, array('list', 'read', 'history'))){
             $requiredRoles = 'no_one';

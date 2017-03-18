@@ -295,7 +295,13 @@ class cal_Tasks extends core_Master
         
         $cu = core_Users::getCurrent();
         $data->form->setDefault('priority', 'normal');
-
+        
+        if ($defUsers = Request::get('DefUsers')) {
+            if (type_Keylist::isKeylist($defUsers) && $mvc->fields['sharedUsers']->type->toVerbal($defUsers)) {
+                $data->form->setDefault('sharedUsers', $defUsers);
+            }
+        }
+        
         if (Mode::is('screenMode', 'narrow')) {
             $data->form->fields[priority]->maxRadio = 2;
         }
@@ -447,8 +453,8 @@ class cal_Tasks extends core_Master
 
         return $tpl;
     }
-
-
+    
+    
     /**
      * Проверява и допълва въведените данни от 'edit' формата
      */
@@ -463,10 +469,6 @@ class cal_Tasks extends core_Master
             
             if ($form->cmd == 'active') {
                 $sharedUsersArr = type_UserList::toArray($form->rec->sharedUsers);
-                
-                if (empty($sharedUsersArr)) {
-                    $form->setError('sharedUsers', 'Трябва да има поне един отговорник');
-                }
             }
             
             if ($rec->timeStart && $rec->timeEnd && ($rec->timeStart > $rec->timeEnd)) {
@@ -644,7 +646,7 @@ class cal_Tasks extends core_Master
      * @param stdClass $rec
      * @param int $userId
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($action == 'postpone') {
             if ($rec->id) {
@@ -671,8 +673,12 @@ class cal_Tasks extends core_Master
         }
         
         // Ако няма потребители, да не може да се активира - ще се промени състоянието на заявка
-        if ($action == 'activate' && $rec->id && !$rec->assign) {
+        if ($action == 'activate' && $rec->id) {
             $sharedUsersArr = keylist::toArray($rec->sharedUsers);
+            
+            if ($rec->assign) {
+                $sharedUsersArr[$rec->assign] = $rec->assign;
+            }
             
             if (empty($sharedUsersArr)) {
                 $requiredRoles = 'no_one';
@@ -1949,10 +1955,20 @@ class cal_Tasks extends core_Master
      * Може ли една задача да стане в състояние 'active'?
      * 
      * @param stdClass $rec
-     * @return date
+     * @return date|NULL|FALSE
      */
     static public function canActivateTask($rec)
     {
+        // Без отговорник да не може да се активират
+        $sharedUsersArr = keylist::toArray($rec->sharedUsers);
+        if ($rec->assign) {
+            $sharedUsersArr[$rec->assign] = $rec->assign;
+        }
+        if (empty($sharedUsersArr)) {
+            
+            return ;
+        }
+        
     	// сега
     	$now = dt::verbal2mysql(); 
     	$nowTimeStamp = dt::mysql2timestamp($now);
@@ -2675,6 +2691,13 @@ class cal_Tasks extends core_Master
                 
                 // Ако задачата съществува, добавяме документа към нея
                 if ($rec = $query->fetch()) {
+                    
+                    // Ако ще се добавя към същата задача
+                    if ($rec->containerId == $originId) {
+                        
+                        return new Redirect($retUrl, '|Задачата не може да бъде добавена към себе си|* ' . cal_Tasks::getLinkToSingle($rec->id), 'warning');
+                    }
+                    
                     if (cal_TaskDocuments::fetch(array("#taskId = '[#1#]' AND #containerId = '[#2#]'", $rec->id, $originId))) {
                         
                         return new Redirect($retUrl, '|Документът вече е бил добавен към|* ' . cal_Tasks::getLinkToSingle($rec->id), 'warning');
@@ -2695,6 +2718,8 @@ class cal_Tasks extends core_Master
             if (!$haveFolder) {
                 $redirectUrl['folderId'] = doc_Folders::getDefaultFolder($cu);
             }
+            
+            $redirectUrl['DefUsers'] = '|' . $cu . '|';
         }
         
         // Ако се стигне до тук и няма грешки във формата

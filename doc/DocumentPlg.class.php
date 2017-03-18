@@ -425,7 +425,35 @@ class doc_DocumentPlg extends core_Plugin
      */
     static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        doc_Threads::restrictAccess($data->query);
+        $viewAccess = FALSE;
+        
+        if ($mvc->haveRightFor('viewpsingle')) {
+            $viewAccess = TRUE;
+        }
+        
+        doc_Threads::restrictAccess($data->query, NULL, $viewAccess);
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param integer|stdClass $id
+     */
+    public static function on_AfterGetSingleUrlArray($mvc, &$res, $id)
+    {
+        if (!isset($res) || (is_array($res) && empty($res))) {
+            if ($mvc->haveRightFor('viewpsingle', $id)) {
+                
+                if (is_object($id)) {
+                    $id = $id->id;
+                }
+                
+                $res = $mvc->GetUrlWithAccess($id);
+            }
+        }
     }
     
     
@@ -500,6 +528,32 @@ class doc_DocumentPlg extends core_Plugin
             $data->query->orderBy('#createdOn', 'DESC');
        }
         
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Master $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    function on_BeforePrepareListRows($mvc, &$res, $data)
+    {
+        Mode::push('forListRows', TRUE);
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Master $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    function on_AfterPrepareListRows($mvc, &$res, $data)
+    {
+        Mode::pop('forListRows');
     }
     
     
@@ -731,6 +785,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_BeforeAction($mvc, &$res, $action)
     {
+        $notAccessStatusMsg = "|Предишната страница не може да бъде показана, поради липса на права за достъп";
         if ($action == 'single' && !(Request::get('Printing')) && !Mode::is('dataType', 'php')) {
         	expect($id = Request::get('id', 'int'));
             
@@ -865,19 +920,11 @@ class doc_DocumentPlg extends core_Plugin
            
             // Пренасочваме контрола
             if (!$res = getRetUrl()) {
-            	if($mvc->haveRightFor('single', $rec)){
-            		$res = array($mvc, 'single', $id);
-            	}
+            	$res = $mvc->getSingleUrlArray($id);
             	
-            	if(core_Packs::isInstalled('colab')){
-            		if(empty($res) && colab_Threads::haveRightFor('single', doc_Threads::fetch($rec->threadId))){
-            			$res = array($mvc, 'single', $id);
-            		}
-            	}
-            	
-            	if(empty($res)){
+            	if (empty($res)) {
             		$res = array('bgerp_Portal', 'show');
-            		core_Statuses::newStatus('Предишната страница не може да бъде показана, поради липса на права за достъп', 'warning');
+            		core_Statuses::newStatus($notAccessStatusMsg, 'warning');
             	}
             }
             
@@ -909,7 +956,7 @@ class doc_DocumentPlg extends core_Plugin
             
             // Пренасочваме контрола
             if (!$res = getRetUrl()) {
-            	$res = array($mvc, 'single', $id);
+            	$res = $mvc->getSingleUrlArray($id);
             }
             
             $res = new Redirect($res); //'OK';
@@ -959,14 +1006,28 @@ class doc_DocumentPlg extends core_Plugin
         	// Ако документа е станал чакащ, генерира се събитие
         	if($newState == 'pending'){
         		$mvc->invoke('AfterSavePendingDocument', array($rec));
+        	} else {
+        	    doc_ThreadUsers::removeContainer($rec->containerId);
+        	    
+        	    $threadRec = doc_Threads::fetch($rec->threadId);
+        	    $threadRec->shared = keylist::fromArray(doc_ThreadUsers::getShared($rec->threadId));
+        	    doc_Threads::save($threadRec, 'shared');
+        	    
+//         	    bgerp_Recently::setHidden('document', $rec->containerId, 'no');
         	}
         	
         	$mvc->logInAct($log, $rec);
         	
         	if (!$res = getRetUrl()) {
-        		$res = array($mvc, 'single', $id);
+        	    $res = $mvc->getSingleUrlArray($rec->id);
         	}
-        	 
+        	
+        	if (empty($res)) {
+        	    
+        	    $res = array('bgerp_Portal', 'show');
+        	    core_Statuses::newStatus($notAccessStatusMsg, 'warning');
+        	}
+        	
         	$res = new Redirect($res);
         	 
         	return FALSE;
@@ -987,17 +1048,14 @@ class doc_DocumentPlg extends core_Plugin
                 $mvc->requireRightFor('Psingle');
             }
             
-            $data->details = arr::make($this->details);
+            $linkToSingle = array($mvc, 'single', $data->rec->id);
             
             expect($data->rec, $data, $id, Request::get('id', 'int'));
-            
-            // Проверяваме дали потребителя може да вижда списък с тези записи
-            $mvc->requireRightFor('Psingle', $data->rec);
             
             // Ако има права за сингъла, редиректваме директно там
             if ($mvc->haveRightFor('single', $data->rec)) {
                 
-                $res = new Redirect(array($mvc, 'single', $data->rec->id));
+                $res = new Redirect($linkToSingle);
                 
                 return FALSE;
             }
@@ -1007,41 +1065,53 @@ class doc_DocumentPlg extends core_Plugin
             
             expect($pSingle = Request::get('pUrl'));
             
-            list($clsId, $recId, $docId) = explode('_', $pSingle);
+            list($clsId, $recId, $docId, $fromList) = explode('_', $pSingle);
             
             expect(cls::load($clsId, TRUE));
             
-            $clsInst = cls::get($clsId);
-            if ($clsInst instanceof core_Master) {
-                $clsInst->requireRightFor('single', $recId);
-            } elseif ($clsInst instanceof core_Detail) {
-                $clsRec = $clsInst->fetch($recId);
-                $clsInst->Master->requireRightFor('single', $clsRec->{$clsInst->masterKey});
-            }
-            
-            // Очакваме документа да съществува в източника
-            expect($clsInst->checkDocExist($recId, $data->rec->containerId));
-            
-            // Подготвяме данните за единичния изглед
-            $mvc->prepareSingle($data);
-            
-            // Рендираме изгледа
-            $tpl = $mvc->renderSingle($data);
-            
-            // Опаковаме изгледа
-            $tpl = $mvc->renderWrapping($tpl, $data);
-            
-            if (!Request::get('ajax_mode')) {
-                if (Mode::is('printing')) {
-                    $mvc->logRead('Отпечатване', $id);
-                } elseif(Mode::is('pdf')) {
-                    $mvc->logRead('PDF', $id);
-                } else {
-                    $mvc->logRead('Виждане', $id);
+            if ($clsId == $mvc->getClassId() && ($docId == $recId)) {
+                
+                expect(is_numeric($docId));
+                
+                // Трябва да има съответните права
+                $mvc->requireRightFor('viewpsingle', $docId);
+                
+                if ($fromList) {
+                    // Трябва да може да се вижда документа
+                    $nQuery = $mvc->getQuery();
+                    $nQuery->where($docId);
+                    doc_Threads::restrictAccess($nQuery, NULL, TRUE);
+                    expect($nQuery->fetch());
                 }
+            } else {
+                
+                // Ако линка сочи към документа, който е използва в другия документ, трябва да има права за сингъла
+                
+                $clsInst = cls::get($clsId);
+                if ($clsInst instanceof core_Master) {
+                    $clsInst->requireRightFor('single', $recId);
+                } elseif ($clsInst instanceof core_Detail) {
+                    $clsRec = $clsInst->fetch($recId);
+                    $clsInst->Master->requireRightFor('single', $clsRec->{$clsInst->masterKey});
+                }
+                
+                // Очакваме документа да съществува в източника
+                expect($clsInst->checkDocExist($recId, $data->rec->containerId));
             }
             
-            $res = $tpl;
+            $modeAllowedContainerIdName = $mvc->getAllowedContainerName();
+            
+            $allowedCidArr = Mode::get($modeAllowedContainerIdName);
+            
+            if (!isset($allowedCidArr)) {
+                $allowedCidArr = array();
+            }
+            
+            $allowedCidArr[$data->rec->containerId] = $data->rec->containerId;
+            
+            Mode::setPermanent($modeAllowedContainerIdName, $allowedCidArr);
+            
+            $res = new Redirect($linkToSingle);
             
             return FALSE;
     	}
@@ -1215,7 +1285,7 @@ class doc_DocumentPlg extends core_Plugin
     function on_AfterGetLink($mvc, &$link, $id, $maxLength = FALSE, $attr = array())
     {
         $iconStyle = 'background-image:url(' . sbf($mvc->getIcon($id), '') . ');';
-        $url       = array($mvc, 'single', $id);
+        $url       = $mvc->getSingleUrlArray($id);
         if($attr['Q']) {
             $url['Q'] = $attr['Q'];
             unset($attr['Q']);
@@ -1238,7 +1308,7 @@ class doc_DocumentPlg extends core_Plugin
         	$attr['class'] .= ' state-rejected';
         }
         
-        if(!doc_Threads::haveRightFor('single', $rec->threadId) && !$mvc->haveRightFor('single', $rec)) {
+        if(!doc_Threads::haveRightFor('single', $rec->threadId) && !$mvc->haveRightFor('single', $rec) && !$mvc->haveRightFor('viewpsingle', $rec)) {
             $url =  array();
         } else {
         	if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')){
@@ -1307,7 +1377,10 @@ class doc_DocumentPlg extends core_Plugin
             if(core_Packs::isInstalled('colab') && core_Users::haveRole('partner')){
             	colab_Threads::requireRightFor('single', doc_Threads::fetch($mvc->threadId));
             } else {
-            	doc_Threads::requireRightFor('single', $mvc->threadId);
+                
+                if (!$mvc->haveRightFor('psingle', $rec)) {
+                    doc_Threads::requireRightFor('single', $mvc->threadId);
+                }
             }
           
         } elseif ($rec->originId) {
@@ -1321,7 +1394,9 @@ class doc_DocumentPlg extends core_Plugin
                 $tRec = doc_Threads::fetch($oRec->threadId);
                 colab_Threads::requireRightFor('single', $tRec);
             } else {
-                doc_Threads::requireRightFor('single', $oRec->threadId);
+                if (!$mvc->haveRightFor('psingle', $rec)) {
+                    doc_Threads::requireRightFor('single', $oRec->threadId);
+                }
             }
             
             $rec->threadId = $oRec->threadId;
@@ -1346,7 +1421,9 @@ class doc_DocumentPlg extends core_Plugin
         	if (core_Packs::isInstalled('colab') && core_Users::haveRole('partner')){
         		colab_Threads::requireRightFor('single', $threadRec);
         	} else {
-        		doc_Threads::requireRightFor('single', $rec->threadId);
+        	    if (!$mvc->haveRightFor('psingle', $rec)) {
+        	        doc_Threads::requireRightFor('single', $rec->threadId);
+        	    }
         	}
             
             $rec->folderId = $threadRec->folderId;
@@ -1749,9 +1826,8 @@ class doc_DocumentPlg extends core_Plugin
      * @param stdClass|NULL $rec
      * @param int|NULL $userId
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-
         if($requiredRoles == 'no_one') return;
 
         // Ако добавяме
@@ -1875,6 +1951,15 @@ class doc_DocumentPlg extends core_Plugin
                 		}
                 	} else {
                 		$requiredRoles = 'no_one';
+                	}
+                	
+                	if ($requiredRoles == 'no_one' && $rec) {
+                	    $modeAllowedContainerIdName = $mvc->getAllowedContainerName();
+                	    $allowedCidArr = Mode::get($modeAllowedContainerIdName);
+                	    
+                	    if ($rec->containerId && $allowedCidArr[$rec->containerId]) {
+                	        $requiredRoles = $mvc->getRequiredRoles('psingle', $rec, $userId);
+                	    }
                 	}
                 } else {
                     if (($requiredRoles != 'every_one') || ($requiredRoles != 'user')) {
@@ -2053,6 +2138,22 @@ class doc_DocumentPlg extends core_Plugin
         		}
         	}
         }
+        
+        // Ако не е зададено, да не е admin по подразбиране
+        if ($action == 'viewpsingle') {
+            if (!isset($mvc->canViewpsingle)) {
+                $requiredRoles = 'no_one';
+            }
+        }
+        
+        if ($action == 'psingle' && $rec) {
+            $modeAllowedContainerIdName = $mvc->getAllowedContainerName();
+            $allowedCidArr = Mode::get($modeAllowedContainerIdName);
+             
+            if (!$rec->containerId || !$allowedCidArr[$rec->containerId]) {
+                $requiredRoles = 'no_one';
+            }
+        }
     }
     
     
@@ -2061,14 +2162,29 @@ class doc_DocumentPlg extends core_Plugin
      * @param core_Manager $mvc
      * @param NULL|array $res
      * @param integer $docId
-     * @param core_Manager $mInst
-     * @param integer $dId
+     * @param core_Manager|NULL $mInst
+     * @param integer $dId|NULL
      */
-    function on_AfterGetUrlWithAccess($mvc, &$res, $docId, $mInst, $dId)
+    function on_AfterGetUrlWithAccess($mvc, &$res, $docId, $mInst=NULL, $dId=NULL)
     {
         Request::setProtected('pUrl');
         
-        $res = array($mvc, 'pSingle', $docId, 'pUrl' => $mInst->getClassId() . '_' . $dId . '_' . $docId, 'ret_url' => TRUE);
+        if (!isset($mInst)) {
+            $mInst = $mvc;
+            expect(!$dId);
+            $dId = $docId;
+        } else {
+            expect($dId);
+        }
+        
+        $clsId = NULL;
+        if ($mInst instanceof core_BaseClass) {
+            $clsId = $mInst->getClassId();
+        }
+        
+        $isFromList = (int)Mode::is('forListRows');
+        
+        $res = array($mvc, 'pSingle', $docId, 'pUrl' => $clsId . '_' . $dId . '_' . $docId . '_' . $isFromList, 'ret_url' => TRUE);
     }
     
     
@@ -3017,6 +3133,12 @@ class doc_DocumentPlg extends core_Plugin
             
             return ;
         }
+		
+        if ($id) {
+            $rec = $mvc->fetchRec($id);
+        } else {
+            $rec = new stdClass();
+        }
         
         // Потребител
         $userId = core_Users::getCurrent();
@@ -3037,12 +3159,15 @@ class doc_DocumentPlg extends core_Plugin
         // Отворен горен таб
         $tabTop = Request::get('TabTop');
         
+        // Отворен таб с друго име
+        $tabTop2 = Request::get('TabTop' . $rec->containerId);
+        
         // Отворен таб на историята
         $tab = Request::get('Tab');
 
         $lang = core_Lg::getCurrent();
 
-        $cacheStr = $userId . "|" . $containerId . "|" . $modifiedOn . "|" . $pages . "|" . $screenMode . "|" . $tabTop . "|" . $tab . '|' . $lang;
+        $cacheStr = $userId . "|" . $containerId . "|" . $modifiedOn . "|" . $pages . "|" . $screenMode . "|" . $tabTop  . "|" . $tabTop2 . "|" . $tab . '|' . $lang;
         
         // Добавка за да работи сортирането на детайли
         $dHnd = $mvc->getHandle($id);

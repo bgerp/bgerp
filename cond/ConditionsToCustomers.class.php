@@ -347,7 +347,7 @@ class cond_ConditionsToCustomers extends core_Manager
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
        if(($action == 'edit' || $action == 'delete' || $action == 'add') && isset($rec)){
        		if(empty($rec->cClass) || empty($rec->cId)){

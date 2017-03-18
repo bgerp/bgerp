@@ -264,7 +264,7 @@ class acc_ReportDetails extends core_Manager
     	if(isset($data->balanceRec->periodId)){
     		$link = acc_Periods::getVerbal($data->balanceRec->periodId, 'title');
     		if(!Mode::isReadOnly()){
-    			$link = ht::createLink($link, array('acc_Balances', 'single', $data->balanceRec->id), FALSE, array('title' => "Оборотна ведомост за|* \"{$link}\""));
+    			$link = ht::createLink($link, acc_Balances::getSingleUrlArray($data->balanceRec->id), FALSE, array('title' => "Оборотна ведомост за|* \"{$link}\""));
     		}
     		 
     		$tpl->replace($link, 'periodId');

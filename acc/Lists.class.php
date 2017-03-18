@@ -206,7 +206,7 @@ class acc_Lists extends core_Manager {
     /**
      * Извиква се след изчисляването на необходимите роли за това действие
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL)
     {
         if (($action == 'delete')) {
             
