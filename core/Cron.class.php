@@ -82,7 +82,19 @@ class core_Cron extends core_Manager
      */
     var $refreshRowsTime = 5000;
     
-    
+
+    /**
+     * Максимално време в Unix time, до което може да се изпълнява процеса
+     */
+     static $timeDeadline = 0;
+
+
+    /**
+     * $systemId na последния стартиран процес
+     */
+    static $lastSystemId;
+
+
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
@@ -121,12 +133,34 @@ class core_Cron extends core_Manager
      */
     public static function getTimeLimit($systemId = NULL)
     {
-    	$rec = self::getRecForSystemId($systemId);
+        if(!$systemId) {
+            $systemId = self::$lastSystemId;
+        }
+        
+        if($systemId) {
+    	    $rec = self::getRecForSystemId($systemId);
     	
-    	return $rec->timeLimit;
+    	    return $rec->timeLimit;
+        }
+
+        return FALSE;
     }
     
-    
+
+    /**
+     * Връща секундите, които оставят до края на прозореца за изпълнение
+     */
+    public static function getTimeLeft()
+    {
+        if(self::$timeDeadline) {
+
+            return max(self::$timeDeadline - time(), 0);
+        }
+
+        return FALSE;
+    }
+
+
     /**
      * Връща времето на последно стартиране на процес
      * 
@@ -379,6 +413,7 @@ class core_Cron extends core_Manager
         
         // Изчакваме преди началото на процеса, ако е зададено 
         if ($rec->delay > 0) {
+            core_App::setTimeLimit(30 + $rec->delay);
             sleep($rec->delay);
             Debug::log("Sleep {$rec->delay} sec. in" . __CLASS__);
         }
@@ -397,7 +432,9 @@ class core_Cron extends core_Manager
                 // Ако е зададено максимално време за изпълнение, 
                 // задаваме го към PHP , като добавяме 5 секунди
                 if ($rec->timeLimit) {
-                    set_time_limit($rec->timeLimit + 5);
+                    core_App::setTimeLimit($rec->timeLimit + 5);
+                    self::$timeDeadline =time() + $rec->timeLimit;
+                    self::$lastSystemId = $rec->systemId;
                 }
                 
                 $startingMicroTime = $this->getMicrotime();
