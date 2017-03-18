@@ -1780,7 +1780,7 @@ class blast_Emails extends core_Master
      * @param string $action
      * @param object $rec
      */
-    static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec)
+    public static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec = NULL, $userId = NULL)
     {
         // Трябва да има права за сингъла на документа, за да може да активира, спира и/или обновява
         if ((($action == 'activate') || ($action == 'stop') || ($action == 'update')) && $rec) {

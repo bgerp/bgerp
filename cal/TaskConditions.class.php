@@ -241,7 +241,7 @@ class cal_TaskConditions extends core_Detail
      * @param stdClass $rec
      * @param int $userId
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec->baseId)){
     		$taskRec = cal_Tasks::fetch($rec->baseId);

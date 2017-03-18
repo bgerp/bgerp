@@ -199,6 +199,8 @@ class email_Outgoings extends core_Master
         $this->FLD('pcode', 'varchar', 'caption=Адресат->П. код,class=pCode');
         $this->FLD('place', 'varchar', 'caption=Адресат->Град/с,class=contactData');
         $this->FLD('address', 'varchar', 'caption=Адресат->Адрес,class=contactData');
+
+        $this->setDbIndex('createdOn');
     }
     
     

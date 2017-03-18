@@ -401,7 +401,7 @@ class pos_Receipts extends core_Master {
     /**
 	 * Модификация на ролите
 	 */
-    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{ 
 		// Само черновите бележки могат да се редактират в терминала
 		if($action == 'terminal' && isset($rec)) {

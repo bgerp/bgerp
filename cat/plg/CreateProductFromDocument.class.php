@@ -75,7 +75,6 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 		
 		if($action == 'clonerec' && isset($rec)){
 			$requiredRoles = $mvc->getRequiredRoles('add', (object)array("{$mvc->masterKey}" => $rec->{$mvc->masterKey}));
-			//bp($requiredRoles);
 		}
 	}
 	
@@ -108,7 +107,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 			unset($fieldPack->removeAndRefreshForm);
 			
 			// Поле за прототип
-			$form->FLD('innerClass', "class(interface=cat_ProductDriverIntf, allowEmpty, select=title)", "caption=Вид,mandatory,silent,before=proto,removeAndRefreshForm=proto|packPrice|discount|packagingId|tolerance,mandatory");
+			$form->FLD('innerClass', "class(interface=cat_ProductDriverIntf, allowEmpty, select=title)", "caption=Вид,mandatory,silent,before=proto,removeAndRefreshForm=proto|packPrice|discount|packagingId|tolerance|meta,mandatory");
 			$form->setOptions('innerClass', cat_Products::getAvailableDriverOptions());
 			
 			$form->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Шаблон,input=hidden,silent,refreshForm,placeholder=Популярни продукти,before=packagingId");
@@ -215,8 +214,11 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				} else {
 					$Driver = cls::get($form->rec->innerClass);
 					$cover = doc_Folders::getCover($form->rec->folderId);
-					$defMetas = $cover->getDefaultMeta();
-					$defMetas = $Driver->getDefaultMetas($defMetas);
+					
+					$defMetas = $Driver->getDefaultMetas();
+					if(!count($defMetas)){
+						$defMetas = $cover->getDefaultMeta();
+					}
 					
 					if(count($defMetas)){
 						$form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));

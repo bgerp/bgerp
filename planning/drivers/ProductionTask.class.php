@@ -507,7 +507,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
      * @param stdClass $rec
      * @param int $userId
      */
-    public static function on_AfterGetRequiredRoles(tasks_BaseDriver $Driver, embed_Manager $Embedder, &$requiredRoles, $action, $rec, $userId = NULL)
+    public static function on_AfterGetRequiredRoles(tasks_BaseDriver $Driver, embed_Manager $Embedder, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'reject' && isset($rec)){
     		

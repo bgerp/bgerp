@@ -1529,6 +1529,14 @@ class doc_Folders extends core_Master
         }
         
         $searchKeywords .= " " . plg_Search::normalizeText($title);
+        
+        // Добавя ключовии думи за държавата и на bg и на en
+        if(($class->className == 'crm_Companies' || $class->className == 'crm_Persons') && $rec->coverId) {
+            $countryId = $class->fetchField($rec->coverId, 'country');
+            if($countryId) {
+                $searchKeywords = drdata_Countries::addCountryInBothLg($countryId, $searchKeywords);
+            }
+        } 
     }
     
     
@@ -1783,4 +1791,5 @@ class doc_Folders extends core_Master
         // Премахваме color стилове
         $status = preg_replace('/style\s*=\s*(\'|")color:\#[a-z0-9]{3,6}(\'|")/i', '', $status);
     }
+
 }

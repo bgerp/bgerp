@@ -85,6 +85,7 @@ class unit_MinkPbgERP extends core_Manager {
         $res = '';
         $res .= 'MinkPbgERP ';
         $res .= " 0.".$this->act_DeinstallSelect2();
+        $res .= " 1.".$this->act_AddRoleCat();
         $res .= " 1.".$this->act_CreateUser1();
         $res .= "  2.".$this->act_CreateUser2();
         $res .= "  3.".$this->act_CreateStore();
@@ -155,7 +156,7 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->setValue('email', 'bgerp@experta.bg');
             $browser->setValue('country', 'България');
             $browser->press('Запис');
-            //return $browser->getHtml();
+            
         }    
         //Потребител DEFAULT_USER (bgerp)
         $browser->click('Вход');
@@ -182,6 +183,22 @@ class unit_MinkPbgERP extends core_Manager {
         //return $browser->getHtml();
     }
     
+    /**
+     * 1. Добавяне на роля cat на потребител bgerp
+     */
+    //http://localhost/unit_MinkPbgERP/AddRoleCat/
+    function act_AddRoleCat()
+    {
+        // Логване
+        $browser = $this->SetUp();
+        // Създаване на потребител
+        $browser->click('Админ');
+        $browser->click('Потребители');
+        $browser->click('Редактиране');
+        $browser->setValue('cat', True);
+        $browser->press('Запис');
+        
+    }
     /**
      * 1. Създаване на потребител от Админ
      */

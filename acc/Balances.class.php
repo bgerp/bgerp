@@ -152,7 +152,7 @@ class acc_Balances extends core_Master
     /**
      * Извиква се след изчисляването на необходимите роли за това действие
      */
-    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $user = NULL)
     {
         if ($mvc->accountRec) {
             if ($action == 'edit' || $action == 'delete') {

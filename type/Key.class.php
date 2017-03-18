@@ -343,7 +343,7 @@ class type_Key extends type_Int
             $this->handler = md5(implode(',', array_keys($this->options)) . '|' . core_Lg::getCurrent());
         }
         
-        if($optSz = core_Cache::get($this->selectOpt, $this->handler, 20, array($this->params['mvc']))) {
+        if($optSz = core_Cache::get($this->selectOpt, $this->handler, 60, array($this->params['mvc']))) {
             $cacheOpt = unserialize($optSz);
             $options = array();
             foreach($cacheOpt as $id => $obj) {
@@ -427,7 +427,7 @@ class type_Key extends type_Int
             $cacheOpt[$key]['id'] = $vNorm;
         }
 
-        core_Cache::set($this->selectOpt, $this->handler, serialize($cacheOpt), 20, array($this->params['mvc']));
+        core_Cache::set($this->selectOpt, $this->handler, serialize($cacheOpt), 60, array($this->params['mvc']));
     }
     
     

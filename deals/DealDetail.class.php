@@ -190,14 +190,34 @@ abstract class deals_DealDetail extends doc_Detail
        	$form->fields['packPrice']->unit = "|*" . $masterRec->currencyId . ", ";
         $form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? "|с ДДС|*" : "|без ДДС|*";
        
-        $products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts);
-        expect(count($products));
-        
         $form->setSuggestions('discount', array('' => '') + arr::make('5 %,10 %,15 %,20 %,25 %,30 %', TRUE));
         
         if (empty($rec->id)) {
-        	$form->setOptions('productId', array('' => ' ') + $products);
+        	$products = array();
         	
+        	// Ако потребителя е партньор
+        	if(haveRole('partner')){
+        		
+        		// И има листвани артикули за контрагента
+        		$listSysId = ($mvc instanceof sales_SalesDetails) ? 'salesList' : 'purchaseList';
+        		$listId = cond_Parameters::getParameter($masterRec->contragentClassId, $masterRec->contragentId, $listSysId);
+        		
+        		// Взимат се само артикулите от тях
+        		if(isset($listId)){
+        			$allProducts = cat_Listings::getAll($listId);
+        			foreach ($allProducts as $o){
+        				$pRec = cat_Products::fetch($o->productId, 'name,isPublic,code,createdOn');
+        				$products[$o->productId] = cat_Products::getRecTitle($pRec, FALSE);
+        			}
+        		}
+        	}
+        	 
+        	if(!count($products)){
+        		$products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts);
+        	}
+        	expect(count($products));
+        	
+        	$form->setOptions('productId', array('' => ' ') + $products);
         } else {
             // Нямаме зададена ценова политика. В този случай задъжително трябва да имаме
             // напълно определен продукт (клас и ид), който да не може да се променя във формата
@@ -453,6 +473,7 @@ abstract class deals_DealDetail extends doc_Detail
 	 * 					->code - код/баркод на артикула
 	 * 					->quantity - К-во на опаковката или в основна мярка
 	 * 					->price - цената във валутата на мастъра, ако няма се изчислява директно
+	 * 					->pack - Опаковката
 	 * @return  mixed - резултата от експорта
 	 */
     function import($masterId, $row)
@@ -460,7 +481,7 @@ abstract class deals_DealDetail extends doc_Detail
     	$Master = $this->Master;
     	
     	$pRec = cat_Products::getByCode($row->code);
-    	
+    	$pRec->packagingId = (isset($pRec->packagingId)) ? $pRec->packagingId : $row->pack;
     	$price = NULL;
     	
     	// Ако има цена я обръщаме в основна валута без ддс, спрямо мастъра на детайла

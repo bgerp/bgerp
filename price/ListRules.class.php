@@ -617,7 +617,7 @@ class price_ListRules extends core_Detail
      * @param stdClass $rec
      * @param int $userId
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'delete' && isset($rec->validFrom)) {
     		if($rec->validFrom <= dt::verbal2mysql()) {

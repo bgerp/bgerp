@@ -153,7 +153,7 @@ class store_InventoryNoteDetails extends doc_Detail
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec)){
     		$state = store_InventoryNotes::fetchField($rec->noteId, 'state');

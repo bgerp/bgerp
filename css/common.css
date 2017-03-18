@@ -2333,13 +2333,38 @@ div.alphabet div.tab-page {
   .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab {
     font-size: 0.7em;
     margin: 0 4px 0 0;
-    padding: 5px; }
+    padding: 5px 8px;
+    margin: 0 4px 0 0 !important;
+    cursor: pointer;
+    border: 1px solid #bbbbbb !important;
+    font-size: 0.7em;
+    text-decoration: none;
+    white-space: nowrap;
+    color: #555555 !important;
+    background-color: #dddddd !important;
+    background-image: linear-gradient(top, white, rgba(255, 255, 255, 0)), ();
+    transition: background-color 0.2s ease-out !important;
+    background-clip: padding-box;
+        /*
+     * Fix bleeding
+     */
+    border-radius: 5px !important;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.3) inset !important;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) !important; }
+    .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab a {
+      color: #333333 !important; }
     .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab:hover,
     .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab.selected {
-      margin: 0 4px 0 0;
-      padding: 5px !important; }
-    .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab.selected {
-      top: -4px; }
+      margin: 0 4px 0 0 !important;
+      background: #ffffe9 !important;
+      padding: 5px 8px !important;
+      position: relative;
+      top: 1px;
+      top: -4px;
+      text-shadow: none; }
+      .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab:hover a,
+      .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab.selected a {
+        color: #444444 !important; }
 
   .narrow div.tab-control.deal-history-tab .tab-row,
   .narrow .single-thread .document .tab-top div.alphabet .tab-row {

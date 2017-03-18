@@ -39,6 +39,7 @@ class acc_plg_Contable extends core_Plugin
         setIfNot($mvc->lockBalances, FALSE);
         setIfNot($mvc->fieldsNotToClone, $mvc->valiorFld);
         setIfNot($mvc->canPending, 'no_one');
+        setIfNot($mvc->canViewpsingle, 'powerUser');
         
         // Зареждаме плъгина, който проверява може ли да се оттегли/възстанови докумена
         $mvc->load('acc_plg_RejectContoDocuments');
@@ -310,23 +311,24 @@ class acc_plg_Contable extends core_Plugin
                     
                     // Ако потребителя не може да контира документа, не може и да го оттегля
                     if(!(core_Packs::isInstalled('colab') && core_Users::haveRole('partner', $userId) && $rec->createdBy == $userId && ($rec->state == 'draft' || $rec->state == 'pending'))){
-                    	if(!haveRole($mvc->getRequiredRoles('conto'))){
-                    		$requiredRoles = 'no_one';
-                    	}
+                    	
+                    	$clone = clone $rec;
+                    	$clone->state = 'draft';
+                    	$requiredRoles = $mvc->getRequiredRoles('conto', $clone);
                     }
                 }
             }
         } elseif ($action == 'restore') {
-        	
-        	// Ако потребителя не може да контира документа, не може и да го възстановява
-        	if(!(core_Packs::isInstalled('colab') && core_Users::haveRole('partner', $userId) && $rec->createdBy == $userId)){
-        		if(!haveRole($mvc->getRequiredRoles('conto'))){
-        			$requiredRoles = 'no_one';
+        	if(isset($rec)){
+        		
+        		// Ако потребителя не може да контира документа, не може и да го възстановява
+        		if(!(core_Packs::isInstalled('colab') && core_Users::haveRole('partner', $userId) && $rec->createdBy == $userId)){
+        		
+        			$clone = clone $rec;
+        			$clone->state = 'draft';
+        			$requiredRoles = $mvc->getRequiredRoles('conto', $clone);
         		}
-        	}
-            
-            if(isset($rec)){
-            	
+        		
             	// Ако сч. период на записа е затворен, документа не може да се възстановява
             	$periodRec = acc_Periods::fetchByDate($mvc->getValiorValue($rec));
             	if ($periodRec->state == 'closed') {
@@ -375,6 +377,24 @@ class acc_plg_Contable extends core_Plugin
             	$requiredRoles = 'no_one';
             }
         }
+        
+        if ($action == 'viewpsingle') {
+            $allowedClsArr = type_Keylist::toArray(acc_Setup::get('CLASSES_FOR_VIEW_ACCESS'));
+            
+            // Ако не е позволено в класа, да не може да се използва
+            if (!$allowedClsArr[$mvc->getClassId()]) {
+                $requiredRoles = 'no_one';
+            } else {
+                // Заобиколяване за вземане на правата
+                $cRec = NULL;
+                if (is_object($rec)) {
+                    $cRec = clone $rec;
+                    $cRec->state = 'draft';
+                }
+                 
+                $requiredRoles = $mvc->getRequiredRoles('conto', $cRec, $userId);
+            }
+        }
     }
     
     
@@ -413,7 +433,8 @@ class acc_plg_Contable extends core_Plugin
        		$cRes = acc_Journal::saveTransaction($mvc->getClassId(), $rec);
         } catch (acc_journal_RejectRedirect $e){
         	
-        	redirect(array($mvc, 'single', $rec->id), FALSE, '|' . $e->getMessage(), 'error');
+        	$url = $mvc->getSingleUrlArray($rec->id);
+        	redirect($url, FALSE, '|' . $e->getMessage(), 'error');
         }
         
         if(empty($cRes)){

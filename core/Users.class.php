@@ -1087,7 +1087,7 @@ class core_Users extends core_Manager
     /**
      * Изпълнява се след получаването на необходимите роли
      */
-    static function on_AfterGetRequiredRoles(&$invoker, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles(&$invoker, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         $query = $invoker->getQuery();
         
@@ -1747,23 +1747,26 @@ class core_Users extends core_Manager
      */
     static function getByRole($roleId)
     {
-        $users = array();
+        static $users = array();
         
         expect($roleId);
         
         if(!is_numeric($roleId)) {
             $roleId   = core_Roles::fetchByName($roleId);
         }
+
+        if(!$users[$roleId]) {
         
-        $query = static::getQuery();
-        $query->where("#state = 'active'");
-        $query->like('roles', "|{$roleId}|");
-        
-        while ($rec = $query->fetch()) {
-            $users[$rec->id] = $rec->id;
+            $query = static::getQuery();
+            $query->where("#state = 'active'");
+            $query->like('roles', "|{$roleId}|");
+            
+            while ($rec = $query->fetch()) {
+                $users[$roleId][$rec->id] = $rec->id;
+            }
         }
         
-        return $users;
+        return $users[$roleId];
     }
     
     

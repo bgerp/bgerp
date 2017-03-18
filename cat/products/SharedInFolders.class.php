@@ -172,7 +172,8 @@ class cat_products_SharedInFolders extends core_Manager
     	}
     	
     	if($action == 'changepublicstate'){
-    		$requiredRoles = cat_Products::getRequiredRoles('edit', $rec, $userId);
+    		$pRec = (isset($rec->productId)) ? cat_Products::fetch($rec->productId) : NULL;
+    		$requiredRoles = cat_Products::getRequiredRoles('edit', $pRec, $userId);
     		
     		if($requiredRoles != 'no_one' && isset($rec->productId)){
     			$pRec = cat_Products::fetch($rec->productId, 'state,folderId');

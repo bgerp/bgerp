@@ -198,12 +198,12 @@ class drdata_Countries extends core_Manager {
         }
 
         if(is_numeric($mix)) {
-            $country = drdata_Countries::fetchField($mix, $field);
+            $country = drdata_Countries::fetch($mix)->{$field};
         } elseif(strlen($mix) == 2) {
-            $country = drdata_Countries::fetchField(array("#letterCode2 = '[#1#]'", $mix), $field);
+            $country = drdata_Countries::fetch(array("#letterCode2 = '[#1#]'", $mix))->{$field};
         } else {
             expect(strlen($mix) == 3, $mix);
-            $country = drdata_Countries::fetchField(array("#letterCode3 = '[#1#]'", $mix), $field);
+            $country = drdata_Countries::fetch(array("#letterCode3 = '[#1#]'", $mix))->{$field};
         }
 
         return $country;
@@ -412,6 +412,24 @@ class drdata_Countries extends core_Manager {
         }
 
         return FALSE;
+    }
+
+
+    /**
+     * Добавя към даден стринг за търсене, посоченото име на държава на езика, на който не се среща
+     */
+    public static function addCountryInBothLg($countryId, $text)
+    {
+        $cBg = ' ' . plg_Search::normalizeText(self::getCountryName($countryId, 'bg'));
+        $cEn = ' ' . plg_Search::normalizeText(self::getCountryName($countryId, 'en'));
+
+        if(strpos(' ' . $text, $cBg) === FALSE) {
+            $text .= $cBg;
+        } elseif(strpos(' ' . $text, $cEn) === FALSE) {
+            $text .= $cEn;
+        }
+
+        return $text;
     }
     
     

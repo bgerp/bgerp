@@ -218,7 +218,7 @@ class hr_WorkingCycleDetails extends core_Detail
     /**
      * @todo Чака за документация...
      */
-    function on_AfterGetRequiredRoles($mvc, &$roles, $act, $rec, $user = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$roles, $act, $rec = NULL, $user = NULL)
     {
         if($act == 'add') {
             if($rec->cycleId) {

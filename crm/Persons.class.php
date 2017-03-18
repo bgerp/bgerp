@@ -2517,7 +2517,7 @@ class crm_Persons extends core_Master
      * @param stdClass|NULL $rec
      * @param int|NULL $userId
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Никой да не може да изтрива
         if ($action == 'delete') {
@@ -2987,4 +2987,14 @@ class crm_Persons extends core_Master
  		
         return $res;
     }
+
+
+    /**
+     * Добавя ключовио думи за държавата и на bg и на en
+     */
+    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+        $res = drdata_Countries::addCountryInBothLg($rec->country, $res);
+    }
+
 }

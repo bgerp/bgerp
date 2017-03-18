@@ -57,7 +57,7 @@ class transsrv_TransportModes extends core_Manager
     /**
      * Динамично изчисляване на необходимите роли за дадения потребител, за извършване на определено действие към даден запис
      */
-    static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec = NULL, $userId = NULL)
     {
         if(isset($rec) && is_int($rec)) {
             $rec = $mvc->fetch($rec);

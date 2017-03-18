@@ -438,7 +438,7 @@ class sales_Routes extends core_Manager {
     /**
      * Модификация на ролите
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{
 		if ($action == 'edit' && $rec->id) {
 			if ($rec->state != 'active') {
