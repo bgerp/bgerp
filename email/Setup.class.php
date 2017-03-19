@@ -183,6 +183,12 @@ defIfNot('EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING_EN', "Please read the f
 
 
 /**
+ * Имейл домейни за подменяне
+ */
+defIfNot('EMAIL_REPLACE_DOMAINS', '');
+
+
+/**
  * class email_Setup
  *
  * Инсталиране/Деинсталиране на
