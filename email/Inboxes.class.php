@@ -463,7 +463,7 @@ class email_Inboxes extends core_Master
     {
         static $replaceDomainArr;
         if(!isset($replaceDomainArr)) {
-            $replaceDomainArr = strtolower(email_Setup::get('REPLACE_DOMAINS'));
+            $replaceDomainArr = strtolower(trim(email_Setup::get('REPLACE_DOMAINS')));
             if($replaceDomainArr) {
                 $replaceDomainArr = arr::make($replaceDomainArr, TRUE);
             } else {
@@ -471,7 +471,7 @@ class email_Inboxes extends core_Master
             }
         }
 
-        if(count($replaceDomainArr)) {
+        if($replaceDomainArr && count($replaceDomainArr)) {
             list($toNick, $toDomain) = explode('@', $toEmail);
             foreach($replaceDomainArr as $fromReplace => $toReplace) {
                 if(strtolower($toDomain) == $fromReplace) {
