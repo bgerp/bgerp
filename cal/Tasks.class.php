@@ -2698,9 +2698,10 @@ class cal_Tasks extends core_Master
                         return new Redirect($retUrl, '|Задачата не може да бъде добавена към себе си|* ' . cal_Tasks::getLinkToSingle($rec->id), 'warning');
                     }
                     
+                    // Ако документа е бил добавен към задачата
                     if (cal_TaskDocuments::fetch(array("#taskId = '[#1#]' AND #containerId = '[#2#]'", $rec->id, $originId))) {
-                        
-                        return new Redirect($retUrl, '|Документът вече е бил добавен към|* ' . cal_Tasks::getLinkToSingle($rec->id), 'warning');
+                            
+                        return new Redirect(cal_Tasks::getSingleUrlArray($rec->id), 'Документът вече е бил добавен');
                     } elseif (cal_TaskDocuments::add($rec->id, $originId)) {
                         
                         return new Redirect($retUrl, '|Успешно добавихте документа към|* ' . cal_Tasks::getLinkToSingle($rec->id));
