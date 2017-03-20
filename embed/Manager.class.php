@@ -74,7 +74,7 @@ class embed_Manager extends core_Master
 		
 		// Ако има избран вече склад, но го няма в опциите добавя се
 		if($rec->{$this->driverClassField} && !array_key_exists($rec->{$this->driverClassField}, $interfaces)) {
-			$name = core_Classes::fetchField($rec->{$this->driverClassField}, 'name');
+			$name = core_Classes::fetchField($rec->{$this->driverClassField}, 'title');
 			$interfaces[$rec->{$this->driverClassField}] = core_Classes::translateClassName($name);
 		}
 		
