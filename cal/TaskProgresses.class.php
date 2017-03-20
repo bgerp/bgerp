@@ -248,7 +248,7 @@ class cal_TaskProgresses extends core_Detail
      */
     static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
-        $tRec = cal_Tasks::fetch($rec->taskId, 'workingTime, progress, state, title, expectationTimeEnd, threadId, createdBy');
+        $tRec = cal_Tasks::fetch($rec->taskId);
         $now = dt::now();
         // Определяне на прогреса
         if(isset($rec->progress)) {
@@ -273,8 +273,22 @@ class cal_TaskProgresses extends core_Detail
             $rec = $query->fetch();
             $tRec->workingTime = $rec->workingTimeSum;
         }
-
-       
+        
+        $sharedUsersArr = rtac_Plugin::getNicksArr($rec->message);
+        
+        // Ако има споделяния
+        if ($sharedUsersArr && !empty($sharedUsersArr)) {
+            
+            // Добавяме id-тата на споделените потребители
+            foreach ((array)$sharedUsersArr as $nick) {
+                $nick = strtolower($nick);
+                $id = core_Users::fetchField(array("LOWER(#nick) = '[#1#]'", $nick), 'id');
+                $tRec->sharedUsers = type_Keylist::addKey($tRec->sharedUsers, $id);
+            }
+            
+            doc_Containers::changeNotifications($tRec, NULL, $tRec->sharedUsers);
+        }
+        
         cal_Tasks::save($tRec);
     }
     
