@@ -91,13 +91,13 @@ class cat_Products extends embed_Manager {
     /**
      * Кой може да редактира в частния сингъл
      */
-    public $canEditpsingle = 'user';
+    public $canEditpsingle = 'powerUser';
     
     
     /**
      * Кой може да редактира активен документ в частния сингъл
      */
-    public $canEditactivatedpsingle  = 'user';
+    public $canEditactivatedpsingle  = 'powerUser';
     
     
     /**
