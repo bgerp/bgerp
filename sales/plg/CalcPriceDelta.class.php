@@ -69,6 +69,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
 		
 		$valior =  $rec->{$mvc->valiorFld};
 		while($dRec = $query->fetch()){
+			
 			$isPublic = cat_Products::fetchField($dRec->{$mvc->detailProductFld}, 'isPublic');
 			if($isPublic == 'yes'){
 				$primeCost = price_ListRules::getPrice($primeCostListId, $dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $valior);
@@ -98,6 +99,11 @@ class sales_plg_CalcPriceDelta extends core_Plugin
 					           'sellCost'      => $dRec->{$mvc->detailSellPriceFld},
 					           'primeCost'     => $primeCost);
 				
+			$id = sales_PrimeCostByDocument::fetchField("#detailClassId = {$detailClassId} AND #detailRecId = {$dRec->id}");
+			if(!empty($id)){
+				$r->id = $id;
+			}
+			
 			$save[] = $r;
 		}
 		
