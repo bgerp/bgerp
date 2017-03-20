@@ -122,6 +122,11 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 				}
 			}
 			
+			if(core_Users::haveRole('partner')){
+				$mvc->currentTab = 'Нишка';
+				plg_ProtoWrapper::changeWrapper($mvc, 'cms_ExternalWrapper');
+			}
+			
 			// Рендиране на опаковката
 			$tpl = $mvc->renderWrapping($form->renderHtml());
 	
