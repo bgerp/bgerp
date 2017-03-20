@@ -126,17 +126,64 @@ class cal_TaskDocuments extends core_Detail
         $sId = self::save($rec);
         
         if ($sId) {
-            $document = doc_Containers::getDocument($cId);
-            
-            // Записваме в лога
-            cal_Tasks::logWrite('Добавяне на документ', $taskId);
-            $document->instance->logInAct('Добавяне към задача', $document->that);
-            
             // Обновяване на мастъра
             cal_Tasks::touchRec($taskId);
         }
         
         return $sId; 
+    }
+    
+
+    /**
+     * Изпълнява се след създаване на нов запис
+     *
+     * @param cal_TaskDocuments $mvc
+     * @param stdObject $rec
+     */
+	public static function on_AfterCreate($mvc, $rec)
+	{
+        if ($rec->containerId) {
+            $document = doc_Containers::getDocument($rec->containerId);
+
+            // Записваме в лога
+            cal_Tasks::logWrite('Добавяне на документ', $rec->taskId);
+            $document->instance->logInAct('Добавяне към задача', $document->that);
+        }
+    }
+    
+    
+    /**
+     * 
+     * @param cal_TaskDocuments $mvc
+     * @param integer $id
+     * @param stdObject $rec
+     * @param NULL|string $fields
+     */
+    static function on_AfterSave($mvc, &$id, $rec, $fields = NULL)
+    {
+        if ($rec->taskId) {
+            $cId = cal_Tasks::fetchField($rec->taskId, 'containerId');
+            if ($rec->state == 'rejected') {
+                doclog_Used::remove($cId, $rec->containerId);
+            } else {
+                doclog_Used::add($cId, $rec->containerId);
+            }
+        }
+    }
+    
+    
+    /**
+     * Логва действието
+     * 
+     * @param string $msg
+     * @param NULL|stdClass|integer $rec
+     * @param string $type
+     */
+    function logInAct($msg, $rec = NULL, $type = 'write')
+    {
+        if ($msg == 'Създаване') return ;
+        
+        return parent::logInAct($msg, $rec, $type);
     }
     
     
