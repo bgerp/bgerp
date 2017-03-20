@@ -381,7 +381,7 @@ class planning_Tasks extends tasks_Tasks
 		$res['MEASURE_ID'] = cat_UoM::getShortName($measureId);
 		$res['QUANTITY'] = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($tInfo->quantityInPack);
 		if(isset($jobRec->saleId)){
-			$res['ORDER'] = sales_Sales::getLink($jobRec->saleId, 0);
+			$res['ORDER'] =  sales_Sales::getHandle($jobRec->saleId);
 		}
 		
 		// Извличане на всички параметри на артикула
