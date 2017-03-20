@@ -526,7 +526,7 @@ class hr_EmployeeContracts extends core_Master
         if($query->fetchAll() == FALSE){
             
             // Ако няма, изискваме от потребителя да въведе
-            redirect(array('hr_Departments', 'list'), FALSE, "|Не сте въвели позиция");
+            redirect(array('hr_Departments', 'list'), FALSE, "|Не сте въвели длъжност");
         }
         
         // трудовият договор, не може да се създаде без да е обявено работното време в него

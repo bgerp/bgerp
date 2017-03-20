@@ -172,7 +172,7 @@ class hr_Positions extends core_Master
     	$tpl->append(tr('Позиции'), 'title');
     	
     	if ($data->addUrl) {
-    		$addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: bottom; margin-left:5px;'>", $data->addUrl, FALSE, 'title=Добавяне на нова позиция');
+    		$addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: bottom; margin-left:5px;'>", $data->addUrl, FALSE, 'title=Добавяне на нова длъжност');
     		$tpl->append($addBtn, 'title');
     	}
     	
