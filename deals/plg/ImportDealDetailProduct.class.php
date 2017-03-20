@@ -135,6 +135,8 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 		$err = array();
 		$msg = FALSE;
 		
+		$isPartner = core_Users::haveRole('partner');
+		
 		foreach ($rows as $i => &$row){
 			$hasError = FALSE;
 			
@@ -157,9 +159,11 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 			}
 			
 			if($obj->price){
-				$obj->price = cls::get('type_Varchar')->fromVerbal($obj->price);
-				if(!$obj->price){
-					$err[$i][] = "|Грешна цена|*";
+				if($isPartner === FALSE){
+					$obj->price = cls::get('type_Varchar')->fromVerbal($obj->price);
+					if(!$obj->price){
+						$err[$i][] = "|Грешна цена|*";
+					}
 				}
 			}
 			
@@ -191,6 +195,10 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 						$err[$i][] = $warning;
 					}
 				}
+			}
+			
+			if($isPartner === TRUE){
+				unset($obj->price);
 			}
 			
 			$row = clone $obj;
@@ -286,9 +294,14 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 		$form->FLD('codecol', 'int', 'caption=Съответствие в данните->Код,unit=колона,mandatory');
 		$form->FLD('quantitycol', 'int', 'caption=Съответствие в данните->К-во,unit=колона,mandatory');
 		$form->FLD('packcol', 'int', 'caption=Съответствие в данните->Мярка/Опаковка,unit=колона');
-		$form->FLD('pricecol', 'int', 'caption=Съответствие в данните->Цена,unit=колона');
 		
-		foreach (array('codecol', 'quantitycol', 'packcol', 'pricecol') as $i => $fld){
+		$fields = array('codecol', 'quantitycol', 'packcol');
+		if(!core_Users::haveRole('partner')){
+			$form->FLD('pricecol', 'int', 'caption=Съответствие в данните->Цена,unit=колона');
+			$fields[] = 'pricecol';
+		}
+		
+		foreach ($fields as $i => $fld){
 			$form->setSuggestions($fld, array(1,2,3,4,5,6,7));
 			$form->setDefault($fld, $i + 1);
 		}
