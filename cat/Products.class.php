@@ -345,6 +345,41 @@ class cat_Products extends embed_Manager {
     
     
     /**
+     * Извиква се преди изпълняването на екшън
+     *
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param string $action
+     */
+    public static function on_BeforeAction($mvc, &$res, $action)
+    {
+    	if($action == 'add'){
+    		
+    		// При добавяне, ако има папка и не е избран драйвер
+    		$innerClass = Request::get('innerClass', 'int');
+    		$folderId = Request::get('folderId', 'int');
+    		if(empty($innerClass) && isset($folderId)){
+    			
+    			// Намира се последния избиран драйвер в папката
+    			$lastDriver = cond_plg_DefaultValues::getFromLastDocument($mvc, $folderId, 'innerClass');
+    			if(!$lastDriver){
+    				$lastDriver = cat_GeneralProductDriver::getClassId();
+    			}
+    			
+    			// Ако може да бъде избран редирект към формата с него да е избран
+    			if(!empty($lastDriver)){
+    				if(cls::load($lastDriver, TRUE)){
+    					if(cls::get($lastDriver)->canSelectDriver()){
+    						return redirect(array($mvc, 'add', 'folderId' => $folderId, 'innerClass' => $lastDriver));
+    					}
+    				}
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
      * Изпълнява се след подготовка на Едит Формата
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
@@ -1764,7 +1799,9 @@ class cat_Products extends embed_Manager {
     	
     	// Бутона 'Нов запис' в листовия изглед, добавя винаги универсален артикул
     	if($mvc->haveRightFor('add')){
-    		 $data->toolbar->addBtn('Нов запис', array($mvc, 'add', 'innerClass' => cat_GeneralProductDriver::getClassId()), 'order=1,id=btnAdd', 'ef_icon = img/16/shopping.png,title=Създаване на нова стока');
+    		
+    		//, 'innerClass' => cat_GeneralProductDriver::getClassId())
+    		 $data->toolbar->addBtn('Нов запис', array($mvc, 'add'), 'order=1,id=btnAdd', 'ef_icon = img/16/shopping.png,title=Създаване на нова стока');
     	}
     }
     
