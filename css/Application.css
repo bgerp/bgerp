@@ -680,7 +680,8 @@ div.productImage {
   border-radius: 4px;
   margin-top: 5px;
   padding: 1px 5px;
-  cursor: pointer; }
+  cursor: pointer;
+  white-space: nowrap; }
   .group-link:hover {
     background-color: #f1f1f1; }
 
