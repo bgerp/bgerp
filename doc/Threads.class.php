@@ -870,7 +870,7 @@ class doc_Threads extends core_Manager
                         $lQuery->groupBy('threadId');
                         $lQuery->where(array("#createdBy = '[#1#]'", $cu));
                         if (!empty($tList)) {
-                            $lQuery->in("id", $tList, TRUE); // Това е за бързодействие
+                            $lQuery->in("threadId", $tList, TRUE); // Това е за бързодействие
                         }
                         if ($filter->folderId) {
                             $lQuery->where(array("#folderId = '[#1#]'", $filter->folderId));
