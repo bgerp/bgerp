@@ -324,7 +324,7 @@ class cat_products_Params extends doc_Detail
 	/**
      * След проверка на ролите
      */
-    public static function on_AfterGetRequiredRoles(core_Mvc $mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Ако потрбителя няма достъп до сингъла на артикула, не може да модифицира параметрите
         if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec)){
