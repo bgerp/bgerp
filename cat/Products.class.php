@@ -483,6 +483,10 @@ class cat_Products extends embed_Manager {
     		$form->setField('groups', 'input=hidden');
     		$form->setField('meta', 'input=hidden');
     		$form->setField('measureId', 'input=hidden');
+    		$form->setField('code', 'input=hidden');
+    		$form->setField('name', 'input=hidden');
+    		$form->setField('measureId', 'input=hidden');
+    		$form->setField('info', 'input=hidden');
     	}
 		
 		// Проверяваме за недопустими символи
@@ -1759,7 +1763,7 @@ class cat_Products extends embed_Manager {
     	$data->toolbar->removeBtn('btnAdd');
     	
     	// Бутона 'Нов запис' в листовия изглед, добавя винаги универсален артикул
-    	if($mvc->haveRightFor('add') && haveRole('cat')){
+    	if($mvc->haveRightFor('add')){
     		 $data->toolbar->addBtn('Нов запис', array($mvc, 'add', 'innerClass' => cat_GeneralProductDriver::getClassId()), 'order=1,id=btnAdd', 'ef_icon = img/16/shopping.png,title=Създаване на нова стока');
     	}
     }
