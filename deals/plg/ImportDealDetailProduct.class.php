@@ -58,6 +58,9 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 			$form->FLD($mvc->masterKey, "key(mvc={$mvc->Master->className})", 'input=hidden,silent');
 			$form->input(NULL, 'silent');
 			$form->title = 'Импортиране на артикули към|*' . " <b>" . $mvc->Master->getRecTitle($form->rec->{$mvc->masterKey}) . "</b>";
+			$form->FLD('folderId', "int", 'input=hidden');
+			$form->setDefault('folderId', $mvc->Master->fetchField($form->rec->{$mvc->masterKey}, 'folderId'));
+			
 			self::prepareForm($form);
 			
 			if($cacheRec){
@@ -100,7 +103,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 					if($mvc->haveRightFor('import')){
 						
 						// Обработваме и проверяваме данните
-						if($msg = self::checkRows($rows, $fields)){
+						if($msg = self::checkRows($rows, $fields, $rec->folderId)){
 							$form->setError('csvData', $msg);
 						}
 						
@@ -130,7 +133,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 	/**
 	 * Проверява и обработва записите за грешки
 	 */
-	private static function checkRows(&$rows, $fields)
+	private static function checkRows(&$rows, $fields, $folderId)
 	{
 		$err = array();
 		$msg = FALSE;
@@ -158,6 +161,8 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 				}
 			}
 			
+			$pRec = cat_Products::getByCode($obj->code);
+			
 			if($obj->price){
 				if($isPartner === FALSE){
 					$obj->price = cls::get('type_Varchar')->fromVerbal($obj->price);
@@ -167,7 +172,15 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 				}
 			}
 			
-			$pRec = cat_Products::getByCode($obj->code);
+			if(!isset($obj->price)){
+				$Cover = doc_Folders::getCover($folderId);
+				$policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($Cover->getInstance()->getClassId(), $Cover->that, $pRec->productId, NULL, 1);
+				
+				if(empty($policyInfo->price)){
+					$err[$i][] = "|Артикулът няма цена|*";
+				}
+			}
+			
 			if(!$obj->code || (isset($obj->code) && !cat_Products::getByCode($obj->code))){
 				$err[$i][] = '|Грешен или липсващ код|*';
 			}
@@ -237,7 +250,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 			}
 		}
 	
-		$msg = "|Импортирани са|* {$added} |артикула|*";
+		$msg = ($added == 1) ? "|Импортиран е|* 1 |артикул|*" : "|Импортирани са|* {$added} |артикула|*";
 		if($failed != 0){
 			$msg .= ". |Не са импортирани|* {$failed} |артикула";
 		}
