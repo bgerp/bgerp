@@ -3162,12 +3162,14 @@ class doc_DocumentPlg extends core_Plugin
         // Отворен таб с друго име
         $tabTop2 = Request::get('TabTop' . $rec->containerId);
         
+        $rejected = Request::get('Rejected');
+        
         // Отворен таб на историята
         $tab = Request::get('Tab');
 
         $lang = core_Lg::getCurrent();
 
-        $cacheStr = $userId . "|" . $containerId . "|" . $modifiedOn . "|" . $pages . "|" . $screenMode . "|" . $tabTop  . "|" . $tabTop2 . "|" . $tab . '|' . $lang;
+        $cacheStr = $userId . "|" . $containerId . "|" . $modifiedOn . "|" . $pages . "|" . $screenMode . "|" . $tabTop  . "|" . $tabTop2 . "|" . $tab . '|' . $lang . '|' . $rejected;
         
         // Добавка за да работи сортирането на детайли
         $dHnd = $mvc->getHandle($id);
