@@ -24,7 +24,7 @@ class hyphen_Plugin extends core_Plugin
 	/**
      * Минималната дължина след която ще се добавя знак за хифенация
      */
-    const MIN_LENGTH_HYPHEN = 24;
+    const MIN_LENGTH_HYPHEN = 12;
     
     
     /**
