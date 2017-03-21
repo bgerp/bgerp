@@ -1075,15 +1075,9 @@ class core_String
      * 
      * @return string
      */
-    private static function hyphenWord($matches, $minLen = 10, $maxLen = 64)
-    {
-        if (Mode::is('screenMode', 'narrow')) {
-            $maxLen /= 2;
-            $maxLen = floor($maxLen);
-        }
-        
+    private static function hyphenWord($matches, $minLen = 8, $maxLen = 32)
+    {      
+	
     	return hyphen_Plugin::getHyphenWord($matches[0], $minLen, $maxLen);
     }
-
-
 }
