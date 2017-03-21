@@ -3237,7 +3237,7 @@ class doc_Containers extends core_Manager
     	// Игнориране на партньорите от списъка, ако е указано
     	if($ignorePartners === TRUE){
     		foreach ($subscribed as $userId => $v){
-    			if(!core_Users::haveRole('partner', $userId)){
+    			if(core_Users::haveRole('partner', $userId)){
     				unset($subscribed[$userId]);
     			}
     		}
