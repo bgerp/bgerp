@@ -1153,6 +1153,9 @@ class cat_Products extends embed_Manager {
         		$mvc->save_($rec, 'isPublic');
         	}
         }
+        
+        // Синхронизиране на дефолтните опаковки
+        cat_products_Packagings::sync($rec);
     }
     
     
