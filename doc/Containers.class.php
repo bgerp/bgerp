@@ -3200,10 +3200,11 @@ class doc_Containers extends core_Manager
      * Връща всички потребители абонирани за документа.
      * Споделените в документа + създателя + активаторът + харесалите документа
      * 
-     * @param int $containerId   - ид на контейнер на документ
-     * @return array $subscribed - масив с абонираните потребители
+     * @param int $containerId        - ид на контейнер на документ
+     * @param boolean $ignorePartners - да се игнорират ли потребителите с роля партньор или не
+     * @return array $subscribed      - масив с абонираните потребители
      */
-    public static function getSubscribedUsers($containerId)
+    public static function getSubscribedUsers($containerId, $ignorePartners = TRUE)
     {
     	// Кои са абонираните потребители
     	$subscribed = array();
@@ -3231,6 +3232,15 @@ class doc_Containers extends core_Manager
     	$likedArray = arr::extractValuesFromArray($likeQuery->fetchAll(), 'createdBy');
     	if(count($likedArray)){
     		$subscribed = $subscribed + $likedArray;
+    	}
+    	
+    	// Игнориране на партньорите от списъка, ако е указано
+    	if($ignorePartners === TRUE){
+    		foreach ($subscribed as $userId => $v){
+    			if(!core_Users::haveRole('partner', $userId)){
+    				unset($subscribed[$userId]);
+    			}
+    		}
     	}
     	
     	// Връщане на абонираните потребители
