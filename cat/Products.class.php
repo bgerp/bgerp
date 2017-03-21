@@ -1613,10 +1613,7 @@ class cat_Products extends embed_Manager {
             $meta = arr::make($rec->meta, TRUE);
      
            if($meta['canStore']) {  
-                $spQuery = store_Products::getQuery();
-                while($spRec = $spQuery->fetch("#productId = {$rec->id}")) {
-                    $rec->quantity  += $spRec->quantity;
-                }
+           		$rec->quantity = store_Products::getQuantity($rec->id);
             }
             
             if($rec->quantity) {
