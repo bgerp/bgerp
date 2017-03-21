@@ -185,7 +185,7 @@ class cat_products_Packagings extends core_Detail
         
         // Ако потребителя не е създал записа, трябва да има cat или ceo за да го промени
         if(($action == 'edit' || $action == 'delete') && isset($rec)){
-        	if($rec->createdBy != $userId && !haveRole('ceo,cat')){
+        	if($rec->createdBy != $userId && !haveRole('ceo,cat', $userId)){
         		$requiredRoles = 'no_one';
         	}
         }
