@@ -1054,7 +1054,7 @@ class core_String
      * Хифинира текст, така че да няма много дължи, не-пренодими думи
      * 
      * @param string $text
-     * @param integer $maxWordLen
+     * @param integer $minWordLenForHyphen
      * 
      * @return string
      */
