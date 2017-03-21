@@ -487,4 +487,35 @@ class cat_products_Packagings extends core_Detail
     	// Връщаме резултат
     	return $isUsed;
     }
+    
+    
+    /**
+     * Синхронизиране на дефолтните опаковки
+     * 
+     * @param mixed $productRec
+     */
+    public static function sync($productRec)
+    {
+    	// Имали драйвер?
+    	$Driver = cat_Products::getDriver($productRec);
+    	if(!$Driver) return;
+    	
+    	// Имали дефолтни опаковки от драйвера
+    	$defaultPacks = $Driver->getDefaultPackagings($productRec);
+    	if(!count($defaultPacks) || !is_array($defaultPacks)) return;
+    	
+    	foreach ($defaultPacks as $obj)
+    	{
+    		// Дефолтната опаковка ще се добавя/обновява ако е вече добавена
+    		$r = (object)array('productId' => $productRec->id, 'packagingId' => $obj->packagingId, 'quantity' => $obj->quantity);
+    		if($id = self::getPack($productRec->id, $obj->packagingId)->id){
+    			$r->id = $id;
+    		}
+    		
+    		// и ще се запише промяната ако не е използвана
+    		if(!self::isUsed($productRec->id, $obj->packagingId, TRUE)){
+    			self::save($r);
+    		}
+    	}
+    }
 }
