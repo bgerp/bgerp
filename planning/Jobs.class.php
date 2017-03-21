@@ -47,7 +47,7 @@ class planning_Jobs extends core_Master
      * 
      * @see planning_plg_StateManager
      */
-    public $demandReasonChangeState = 'stop,wakeup,activateAgain';
+    public $demandReasonChangeState = 'stop,wakeup';
     
     
     /**
