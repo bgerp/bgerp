@@ -16,7 +16,11 @@
  */
 class bgerp_Notifications extends core_Manager
 {
-    
+
+    /**
+     * Максимална дължина на показваните заглавия
+     */
+    const maxLenTitle = 120;
     
     /**
      * Необходими мениджъри
@@ -320,7 +324,7 @@ class bgerp_Notifications extends core_Manager
         // Превеждаме съобщението
         // Спираме преовада и въте, ако има за превеждане, тогава се превежда
         $row->msg = tr("|*{$row->msg}");
-        
+        $row->msg = str::limitLen($row->msg, self::maxLenTitle, 20, " ... ", TRUE);
         $row->msg = ht::createLink($row->msg, $url, NULL, $attr);
     }
     

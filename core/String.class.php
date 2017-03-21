@@ -517,10 +517,10 @@ class core_String
                 $remain = (int) ($maxLen - 3);
                 $str = mb_substr($str, 0, $remain) . $dots;
             }
-        } elseif($hyphen && (mb_strlen($str) > $maxLen/2)) {
+        }
+        if($hyphen && (mb_strlen($str) > $maxLen/2)) {
             $str = str::hyphenText($str);
         }
-        
         return $str;
     }
 	
@@ -1075,7 +1075,7 @@ class core_String
      * 
      * @return string
      */
-    private static function hyphenWord($matches, $minLen = 20, $maxLen = 64)
+    private static function hyphenWord($matches, $minLen = 10, $maxLen = 64)
     {
         if (Mode::is('screenMode', 'narrow')) {
             $maxLen /= 2;
