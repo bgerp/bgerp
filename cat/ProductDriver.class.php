@@ -482,4 +482,18 @@ abstract class cat_ProductDriver extends core_BaseClass
 	{
 		return NULL;
 	}
+	
+	
+	/**
+	 * Връща дефолтните опаковки за артикула
+	 *
+	 * @param mixed $rec - запис на артикула
+	 * @return array     - масив с дефолтни опаковки
+	 * 		o packagingId - ид на мярка/опаковка
+	 * 		o quantity    - к-во в опаковката
+	 */
+	public static function getDefaultPackagings($rec)
+	{
+		return array();
+	}
 }
