@@ -51,7 +51,7 @@ class cat_products_Packagings extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'cat_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_AlignDecimals2';
+    var $loadList = 'cat_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_AlignDecimals2, plg_Created';
     
     
     /**
@@ -63,19 +63,19 @@ class cat_products_Packagings extends core_Detail
     /**
      * Кой може да качва файлове
      */
-    var $canAdd = 'ceo,cat';
+    var $canAdd = 'powerUser';
     
     
     /**
      * Кой може да качва файлове
      */
-    var $canEdit = 'ceo,cat';
+    var $canEdit = 'powerUser';
     
     
     /**
      * Кой може да качва файлове
      */
-    var $canDelete = 'ceo,cat';
+    var $canDelete = 'powerUser';
     
 
     /**  
@@ -179,6 +179,13 @@ class cat_products_Packagings extends core_Detail
         // Ако опаковката вече е използвана не може да се изтрива
         if($action == 'delete' && isset($rec)){
         	if(self::isUsed($rec->productId, $rec->packagingId, TRUE)){
+        		$requiredRoles = 'no_one';
+        	}
+        }
+        
+        // Ако потребителя не е създал записа, трябва да има cat или ceo за да го промени
+        if(($action == 'edit' || $action == 'delete') && isset($rec)){
+        	if($rec->createdBy != $userId && !haveRole('ceo,cat')){
         		$requiredRoles = 'no_one';
         	}
         }
