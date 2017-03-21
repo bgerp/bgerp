@@ -674,11 +674,12 @@ class planning_Jobs extends core_Master
 	    		$res = 'no_one';
     		}
     	}
-    	 
-    	if(($action == 'activate' || $action == 'restore' || $action == 'conto' || $action == 'write' || $action == 'add') && isset($rec->productId) && $res != 'no_one'){
+    	
+    	if(($action == 'activate' || $action == 'restore' || $action == 'conto' || $action == 'write' || $action == 'add' || $action == 'wakeup') && isset($rec->productId) && $res != 'no_one'){
     		
     		// Ако има активно задание, да не може друга да се възстановява,контира,създава или активира
     		$where = "#productId = {$rec->productId}" . ((isset($rec->saleId)) ? " AND #saleId = {$rec->saleId}" : " AND #saleId IS NULL");
+    		//bp("{$where} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')");
     		if($mvc->fetchField("{$where} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')", 'id')){
     			$res = 'no_one';
     		}
