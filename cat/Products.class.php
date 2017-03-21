@@ -1085,7 +1085,7 @@ class cat_Products extends embed_Manager {
     	} else {
     		
     		// Проверяваме имали продукт с такъв код
-    		if($rec = self::fetch(array("#code = '[#1#]' COLLATE utf8_general_ci", $code))) {
+    		if($rec = self::fetch(array("#code = '[#1#]'", $code))) {
     			
     			$res->productId = $rec->id;
     			$res->packagingId = NULL;
