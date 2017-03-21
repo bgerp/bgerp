@@ -871,6 +871,14 @@ class planning_Jobs extends core_Master
     	}
     	
     	doc_Containers::touchDocumentsByOrigin($rec->containerId);
+    	
+    	// Нотификация на абонираните потребители
+    	if(in_array($action, array('active', 'closed', 'wakeup', 'stopped', 'rejected'))){
+    		$caption = self::$actionNames[$action];
+    		$jobName = $mvc->getRecTitle($rec);
+    		$msg = "{$caption} на|* \"{$jobName}\"";
+    		doc_Containers::notifyToSubscribedUsers($rec->containerId, $msg);
+    	}
     }
     
     
