@@ -1058,11 +1058,11 @@ class core_String
      * 
      * @return string
      */
-    public static function hyphenText($text, $maxWordLen = 20)
+    public static function hyphenText($text, $minWordLenForHyphen = 20)
     {
         $hyphSign = html_entity_decode('&#45;');
-
-        $text = preg_replace_callback("/[^ \r\t\n{$hyphSign}]{" . $maxWordLen . ",}/s", array('core_String', 'hyphenWord'), $text);
+        
+        $text = preg_replace_callback("/[^ \r\t\n{$hyphSign}]{" . $minWordLenForHyphen . ",}/s", array('core_String', 'hyphenWord'), $text);
 
         return $text;
     }
@@ -1075,10 +1075,14 @@ class core_String
      * 
      * @return string
      */
-    private static function hyphenWord($matches)
+    private static function hyphenWord($matches, $minLen = 20, $maxLen = 64)
     {
-     	
-    	return hyphen_Plugin::getHyphenWord($matches[0]);
+        if (Mode::is('screenMode', 'narrow')) {
+            $maxLen /= 2;
+            $maxLen = floor($maxLen);
+        }
+        
+    	return hyphen_Plugin::getHyphenWord($matches[0], $minLen, $maxLen);
     }
 
 
