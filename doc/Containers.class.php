@@ -3246,4 +3246,27 @@ class doc_Containers extends core_Manager
     	// Връщане на абонираните потребители
     	return $subscribed;
     }
+    
+    
+    /**
+     * Нотифициране на абонираните потребители за документа
+     * 
+     * @param int $containerId - ид на контейнера
+     * @param string $msg      - съобщение за нотифициране
+     * @return void
+     */
+    public static function notifyToSubscribedUsers($containerId, $msg)
+    {
+    	// Намиране на споделените потребители в документа
+    	$sharedUsers = doc_Containers::getSubscribedUsers($containerId);
+    	if(!count($sharedUsers)) return;
+    	
+    	$doc = doc_Containers::getDocument($containerId);
+    	$url = $doc->getSingleUrlArray();
+    	
+    	// На всеки от абонираните потребители се изпраща нотификацията
+    	foreach ($sharedUsers as $userId){
+    		bgerp_Notifications::add($msg, $url, $userId);
+    	}
+    }
 }
