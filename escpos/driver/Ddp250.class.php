@@ -110,8 +110,30 @@ class escpos_driver_Ddp250 extends core_BaseClass
      */
     public function encode($text)
     {
+        
         return $text;
-         //return iconv('utf-8', 'windows-1251', htmlspecialchars_decode($text));
     }
     
+    
+    /**
+     * 
+     * 
+     * @param core_Et $tpl
+     * 
+     * @return core_Et
+     */
+    public function placePrintData($tpl)
+    {
+        $dataArr = array();
+        $dataArr['printerSelectCodetable'] = 17;
+        $dataArr['printerPrintTaggedTextEncoding'] = 'cp1251';
+        $dataArr['printerFeedPaper'] = 110;
+        $dataArr['printerInputTextEncoding'] = 'UTF-8';
+        $dataArr['printerTextAppendBegin'] = '{reset}';
+        $dataArr['printerTextAppendEnd'] = '{br}';
+        
+        $tpl->placeArray($dataArr);
+        
+        return $tpl;
+    }
 }
