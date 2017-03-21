@@ -405,6 +405,8 @@ class cal_Calendar extends core_Master
                     $row->event .= ' (' . crm_Profiles::createLink($pRec->inCharge) . ')';
                 }
             }
+            $row->event = "<div title='{$row->title}' style='margin-bottom: 5px;font-style=normal;'>" . $row->event . "</div>";
+
         }
         
         // TODO
