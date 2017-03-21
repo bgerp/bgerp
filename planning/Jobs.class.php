@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Задания за производство
@@ -178,6 +178,7 @@ class planning_Jobs extends core_Master
     function description()
     {
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул');
+    	$this->FNC('oldJobId', 'int', 'silent,after=productId,caption=Предишни задания,removeAndRefreshForm=notes|department|sharedUsers');
     	$this->FLD('dueDate', 'date(smartTime)', 'caption=Падеж,mandatory');
     	$this->FLD('quantity', 'double(decimals=2)', 'caption=Количество->Планирано,mandatory,silent');
     	$this->FLD('quantityFromTasks', 'double(decimals=2)', 'input=none,caption=Количество->Произведено,notNull,value=0');
@@ -197,10 +198,35 @@ class planning_Jobs extends core_Master
     	);
     	$this->FLD('saleId', 'key(mvc=sales_Sales)', 'input=hidden,silent,caption=Продажба');
     	
-    	$this->FLD('sharedUsers', 'userList(roles=planning|ceo)', 'caption=Споделяне->Потребители');
+    	$this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители');
     	$this->FLD('history', 'blob(serialize, compress)', 'caption=Данни,input=none');
     	
     	$this->setDbIndex('productId');
+    }
+    
+    
+    /**
+     * Връща последните валидни задания за артикула
+     * 
+     * @param int $productId    - ид на артикул
+     * @param string $saleId    - ид на продажба, NULL ако няма
+     * @return array $res       - масив с предишните задания
+     */
+    public static function getOldJobs($productId, $saleId = NULL)
+    {
+    	$res = array();
+    	$query = self::getQuery();
+    	$query->show('id,productId,state');
+    	$where = "#productId = {$productId} AND (#state = 'active' || #state = 'wakeup' || #state = 'stopped' || #state = 'closed') AND ";
+    	$where .= ($saleId) ? "#saleId = {$saleId}" : "#saleId IS NULL";
+    	$query->where($where);
+    	$query->orderBy('id', 'DESC');
+    	
+    	while($rec = $query->fetch()){
+    		$res[$rec->id] = self::getRecTitle($rec);
+    	}
+    	
+    	return $res;
     }
     
     
@@ -214,6 +240,13 @@ class planning_Jobs extends core_Master
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
+    	
+    	// Ако има предишни задания зареждат се за избор
+    	$oldJobs = self::getOldJobs($form->rec->productId);
+    	if(count($oldJobs)){
+    		$form->setField('oldJobId', 'input');
+    		$form->setOptions('oldJobId', array('' => '') + $oldJobs);
+    	}
     	
     	$form->setReadOnly('productId');
     	$pInfo = cat_Products::getProductInfo($rec->productId);
@@ -250,9 +283,17 @@ class planning_Jobs extends core_Master
     		$form->setField('deliveryPlace', 'input=none');
     	}
     	
-    	// При ново задание, ако текущия потребител има права го добавяме като споделен
-    	if(haveRole('planning,ceo') && empty($rec->id)){
-    		$form->setDefault('sharedUsers', keylist::addKey($rec->sharedUsers, core_Users::getCurrent()));
+    	// Ако е избрано предишно задание зареждат се данните от него
+    	if(isset($rec->oldJobId)){
+    		$oRec = self::fetch($rec->oldJobId, 'notes,sharedUsers,department');
+    		$form->setDefault('notes', $oRec->notes);
+    		$form->setDefault('sharedUsers', $oRec->sharedUsers);
+    		$form->setDefault('department', $oRec->department);
+    	} else {
+    		// При ново задание, ако текущия потребител има права го добавяме като споделен
+    		if(haveRole('planning,ceo') && empty($rec->id)){
+    			$form->setDefault('sharedUsers', keylist::addKey($rec->sharedUsers, core_Users::getCurrent()));
+    		}
     	}
     }
     
@@ -426,9 +467,10 @@ class planning_Jobs extends core_Master
      */
     public static function on_AfterInputEditForm($mvc, &$form)
     {
+    	$rec = &$form->rec;
+    	
+    	
     	if($form->isSubmitted()){
-    		$rec = &$form->rec;
-    		
     		$weight = cat_Products::getWeight($rec->productId, NULL, $rec->quantity);
     		$rec->brutoWeight = ($weight) ? $weight : NULL;
     		
@@ -679,7 +721,6 @@ class planning_Jobs extends core_Master
     		
     		// Ако има активно задание, да не може друга да се възстановява,контира,създава или активира
     		$where = "#productId = {$rec->productId}" . ((isset($rec->saleId)) ? " AND #saleId = {$rec->saleId}" : " AND #saleId IS NULL");
-    		//bp("{$where} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')");
     		if($mvc->fetchField("{$where} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')", 'id')){
     			$res = 'no_one';
     		}
@@ -947,21 +988,6 @@ class planning_Jobs extends core_Master
     {
     	$rec = static::fetchRec($id);
     	$producedQuantity = 0;
-    	
-    	// Взимаме к-та на произведените артикули по заданието в протокола за производство
-    	$db = new core_Db();
-    	
-    	//if ($db->tableExists("planning_production_note_details") && ($db->tableExists("planning_production_note"))) {
-    		//$prodQuery = planning_ProductionNoteDetails::getQuery();
-    		
-    		//$prodQuery->EXT('state', 'planning_ProductionNotes', 'externalName=state,externalKey=noteId');
-    		//$prodQuery->XPR('totalQuantity', 'double', 'SUM(#quantity)');
-    		//$prodQuery->where("#jobId = {$rec->id}");
-    		//$prodQuery->where("#state = 'active'");
-    		//$prodQuery->show('totalQuantity');
-    		
-    		//$producedQuantity += $prodQuery->fetch()->totalQuantity;
-    	//}
     	
     	// Взимаме к-та на произведените артикули по заданието в протокола за производство
     	$directProdQuery = planning_DirectProductionNote::getQuery();
