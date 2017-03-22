@@ -1085,8 +1085,11 @@ class cat_Products extends embed_Manager {
     	} else {
     		
     		// Проверяваме имали продукт с такъв код
-    		if($rec = self::fetch(array("#code = '[#1#]'", $code))) {
-    			
+            $rec = self::fetch(array("#code = '[#1#]'", $code));
+            if(!$rec) {
+                $rec = self::fetch(array("LOWER(#code) = LOWER('[#1#]')", $code));
+            }
+    		if($rec) {
     			$res->productId = $rec->id;
     			$res->packagingId = NULL;
     		} else {
