@@ -220,8 +220,8 @@ class fileman_Buckets extends core_Manager {
         if(trim($rec->extensions)) {
             $extensions = arr::make($rec->extensions, TRUE);
 
-            if(($dotPos = strrpos($fileName, '.')) !== FALSE) {
-                $ext = strtolower(mb_substr($fileName, $dotPos + 1));
+            if(($dotPos = mb_strrpos($fileName, '.')) !== FALSE) {
+                $ext = mb_strtolower(mb_substr($fileName, $dotPos + 1));
 
                 if($ext && !$extensions[$ext]) {
                     $err[] = "Разширението на файла |* <b>{$ext}</b> | не е в допустимите|*: {$row->extensions}";
