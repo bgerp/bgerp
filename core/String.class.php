@@ -518,7 +518,7 @@ class core_String
                 $str = mb_substr($str, 0, $remain) . $dots;
             }
         }
-        if($hyphen && (mb_strlen($str) > $maxLen/2)) {
+        if ($hyphen && (mb_strlen($str) > $maxLen/4)) {
             $str = str::hyphenText($str);
         }
         return $str;
