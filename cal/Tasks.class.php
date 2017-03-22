@@ -2601,7 +2601,7 @@ class cal_Tasks extends core_Master
                     
                     // Ако е зададена папка за шаблонните задачи по-подразбиране да е там - ако не в папката на документа
                     $defFolderId = doc_Prototypes::getProtoRec(get_called_class(), $sSel, 'sharedFolders');
-                    wp($defFolderId);
+                    
                     if (!$defFolderId || !doc_Folders::haveRightFor('single', $defFolderId)) {
                         $defFolderId = cal_Tasks::fetchField($sSel, 'folderId');
                     }
