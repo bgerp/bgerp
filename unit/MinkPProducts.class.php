@@ -34,6 +34,7 @@ class unit_MinkPProducts extends core_Manager {
         $res .= "  5.".$this->act_CreatePlanningJob();
         $res .= "  6.".$this->act_CreateCloning();
         $res .= "  7.".$this->act_CreateTemplate();
+        $res .= "  8.".$this->act_CreateSaleBaseMeasure();
         return $res;
     }
     
@@ -408,33 +409,21 @@ class unit_MinkPProducts extends core_Manager {
         $browser->press('Активиране');
         $browser->press('Активиране/Контиране');
          
-        if(strpos($browser->gettext(), 'Седемдесет и три BGN и 0,60')) {
+        if(strpos($browser->gettext(), 'Шест BGN')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
-         
-        // експедиционно нареждане
-        //$browser->press('Експедиране');
-        //$browser->setValue('storeId', 'Склад 1');
-        //$browser->press('Чернова');
-        //$browser->press('Контиране');
-    
+       
         // Фактура
         $browser->press('Фактура');
         $browser->press('Чернова');
         $browser->press('Контиране');
     
-        if(strpos($browser->gettext(), '73,60 73,60 71,14 73,60')) {
+        if(strpos($browser->gettext(), '6,00 6,00 0,00 6,00')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешни суми в мастера', 'warning');
         }
-    
-        if(strpos($browser->gettext(), 'BGN 0,00 BGN 2,46')) {
-        } else {
-            return unit_MinkPbgERP::reportErr('Грешна сума извънреден разход', 'warning');
-        }
-    
+     
     }
-    
-    
+   
 }
