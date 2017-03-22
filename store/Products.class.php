@@ -260,6 +260,31 @@ class store_Products extends core_Manager
     
     
     /**
+     * Колко е количеството на артикула в складовете
+     * 
+     * @param int $productId    - ид на артикул
+     * @param int|NULL $storeId - конкретен склад, NULL ако е във всички
+     * @return double $sum      - наличното количество
+     */
+    public static function getQuantity($productId, $storeId = NULL)
+    {
+    	$sum = 0;
+    	$query = self::getQuery();
+    	$query->where("#productId = {$productId}");
+    	$query->show('quantity');
+    	if(isset($storeId)){
+    		$query->where("#storeId = {$storeId}");
+    	}
+    	
+    	while($r = $query->fetch()){
+    		$sum += $r->quantity;
+    	}
+    	
+    	return $sum;
+    }
+    
+    
+    /**
      * Връща всички продукти в склада
      * 
      * @param NULL|int $storeId - ид на склад, ако е NULL взима текущия активен склад

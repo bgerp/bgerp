@@ -517,10 +517,10 @@ class core_String
                 $remain = (int) ($maxLen - 3);
                 $str = mb_substr($str, 0, $remain) . $dots;
             }
-        } elseif($hyphen && (mb_strlen($str) > $maxLen/2)) {
+        }
+        if ($hyphen && (mb_strlen($str) > $maxLen/4)) {
             $str = str::hyphenText($str);
         }
-        
         return $str;
     }
 	
@@ -1054,15 +1054,15 @@ class core_String
      * Хифинира текст, така че да няма много дължи, не-пренодими думи
      * 
      * @param string $text
-     * @param integer $maxWordLen
+     * @param integer $minWordLenForHyphen
      * 
      * @return string
      */
-    public static function hyphenText($text, $maxWordLen = 20)
+    public static function hyphenText($text, $minWordLenForHyphen = 20)
     {
         $hyphSign = html_entity_decode('&#45;');
-
-        $text = preg_replace_callback("/[^ \r\t\n{$hyphSign}]{" . $maxWordLen . ",}/s", array('core_String', 'hyphenWord'), $text);
+        
+        $text = preg_replace_callback("/[^ \r\t\n{$hyphSign}]{" . $minWordLenForHyphen . ",}/s", array('core_String', 'hyphenWord'), $text);
 
         return $text;
     }
@@ -1075,11 +1075,9 @@ class core_String
      * 
      * @return string
      */
-    private static function hyphenWord($matches)
-    {
-     	
-    	return hyphen_Plugin::getHyphenWord($matches[0]);
+    private static function hyphenWord($matches, $minLen = 8, $maxLen = 32)
+    {      
+	
+    	return hyphen_Plugin::getHyphenWord($matches[0], $minLen, $maxLen);
     }
-
-
 }

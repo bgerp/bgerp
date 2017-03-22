@@ -36,7 +36,9 @@ class escpos_Helper
         
         $res->replace(base64_encode($dataContent), 'data');
         
-        return $res->getContent();
+        $content = escpos_Convert::getContent($res, $drvName);
+        
+        return $content;
     }
     
     
@@ -278,11 +280,7 @@ class escpos_Helper
      */
     public static function getTpl()
     {
-        $tpl = '<?xml version="1.0" encoding="utf-8"?>
-                <btpDriver Command="DirectIO">
-                    <title>[#title#]</title>
-                    <data>[#data#]</data>
-                </btpDriver>';
+        $tpl = getTplFromFile('/escpos/tpl/XmlResTpl.shtml');
         
         // TODO #Eml2803 - тестове и ще се премахне
         if (Request::get('nt')) {
@@ -310,9 +308,10 @@ class escpos_Helper
                     <data>[#data#]</data>
                 </btpDriver>';
         }
+        if (!($tpl instanceof core_ET)) {
+            $tpl = new ET(tr('|*' . $tpl));
+        }
         
-        $res = new ET(tr('|*' . $tpl));
-        
-        return $res;
+        return $tpl;
     }
 }

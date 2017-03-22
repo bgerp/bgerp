@@ -21,6 +21,12 @@ class cal_Tasks extends core_Master
      * Ако стойноста е 'FALSE', нови документи от този тип се създават в основната папка на потребителя
      */
     public $defaultFolder = FALSE;
+    
+    
+    /**
+     * 
+     */
+    const maxLenTitle = 120;
 
 
     /**
@@ -422,10 +428,16 @@ class cal_Tasks extends core_Master
 
         // Подготвяме редовете на таблицата
         self::prepareListRows($data);
-
+        
         if (is_array($data->recs)) {
+            $me = cls::get(get_called_class());
             foreach ($data->recs as $id => $rec) {
-                $row = $data->rows[$id];
+                $row = &$data->rows[$id];
+                $title = str::limitLen(type_Varchar::escape($rec->title), self::maxLenTitle, 20, " ... ", TRUE);
+                
+                // Документа да е линк към single' а на документа
+                $row->title = ht::createLink($title, self::getSingleUrlArray($rec->id), NULL, array('ef_icon' => $me->getIcon($rec->id)));
+                
                 if ($rec->savedState == 'waiting') {
                     $row->title = "<div class='state-pending-link'>{$row->title}</div>";
                 }

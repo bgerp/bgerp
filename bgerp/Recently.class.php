@@ -21,7 +21,7 @@ class bgerp_Recently extends core_Manager
     /**
      * Максимална дължина на показваните заглавия
      */
-    const maxLenTitle = 70;
+    const maxLenTitle = 120;
     
     
     /**
@@ -178,7 +178,7 @@ class bgerp_Recently extends core_Manager
                         'id' => $docRec->id);
                 }
 
-                $row->title = ht::createLink(str::limitLen($docRow->title, self::maxLenTitle),
+                $row->title = ht::createLink(str::limitLen($docRow->title, self::maxLenTitle, 20, " ... ", TRUE),
                     $linkUrl,
                     NULL, $attr);
                 
