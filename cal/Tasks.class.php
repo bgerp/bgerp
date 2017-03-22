@@ -422,7 +422,6 @@ class cal_Tasks extends core_Master
             foreach ($data->recs as &$rec) {
                 $rec->savedState = $rec->state;
                 $rec->state = '';
-
             }
         }
 
@@ -431,8 +430,9 @@ class cal_Tasks extends core_Master
         
         if (is_array($data->recs)) {
             $me = cls::get(get_called_class());
-            foreach ($data->recs as $id => $rec) {
+            foreach ($data->recs as $id => &$rec) {
                 $row = &$data->rows[$id];
+                
                 $title = str::limitLen(type_Varchar::escape($rec->title), self::maxLenTitle, 20, " ... ", TRUE);
                 
                 // Документа да е линк към single' а на документа
@@ -443,7 +443,7 @@ class cal_Tasks extends core_Master
                 }
             }
         }
-
+        
         $tpl = new ET("
             [#PortalPagerTop#]
             [#PortalTable#]
@@ -2660,7 +2660,7 @@ class cal_Tasks extends core_Master
                     
                     // Ако е зададена папка за шаблонните задачи по-подразбиране да е там - ако не в папката на документа
                     $defFolderId = doc_Prototypes::getProtoRec(get_called_class(), $sSel, 'sharedFolders');
-                    wp($defFolderId);
+                    
                     if (!$defFolderId || !doc_Folders::haveRightFor('single', $defFolderId)) {
                         $defFolderId = cal_Tasks::fetchField($sSel, 'folderId');
                     }

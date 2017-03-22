@@ -97,6 +97,25 @@ class bgerp_plg_Export extends core_Plugin
     {
         if($action == 'export'){
             
+            if ($selected = Request::get('Selected')) {
+                
+                $selectedArr = type_Set::toArray($selected);
+                foreach ($selectedArr as &$selId) {
+                    $selId = (int) $selId;
+                    expect(is_int($selId));
+                }
+                if (!empty($selectedArr)) {
+                    $selected = implode(',', $selectedArr);
+                    $query = $mvc->getQuery();
+                    $query->in("id", $selected);
+                    
+                    $recs = $query->fetchAll();
+                }
+                
+                $cu = core_Users::getCurrent();
+                core_Cache::set($mvc->className, "exportRecs{$cu}", $recs, 20);
+            }
+            
             // Проверка за права
             $mvc->requireRightFor('export');
             
@@ -142,7 +161,9 @@ class bgerp_plg_Export extends core_Plugin
                 $content = $Driver->export($form->rec);
                 
                 if(!$content){
-                	redirect(array($mvc, 'list'), FALSE, '|Няма налични данни за експорт', 'warning');
+                	$tpl = new Redirect(array($mvc, 'list'), '|Няма налични данни за експорт', 'warning');
+                	
+                	return FALSE;
                 }
                 
                 $name = $Driver->getExportedFileName();
@@ -151,7 +172,9 @@ class bgerp_plg_Export extends core_Plugin
                 $fh = fileman::absorbStr($content, 'exportCsv', $name);
                 	
                 // Редирект към лист изгледа,  ако не е зададено друго урл за редирект
-                redirect(array('fileman_Files', 'single', $fh), FALSE, '|Файлът е експортиран успешно');
+                $tpl = new Redirect(array('fileman_Files', 'single', $fh), '|Файлът е експортиран успешно');
+                
+                return FALSE;
             }
             
             $form->toolbar->addSbBtn('Експорт', 'default', array('class' => 'btn-next'), 'ef_icon = img/16/export.png');
