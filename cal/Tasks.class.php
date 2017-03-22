@@ -631,7 +631,7 @@ class cal_Tasks extends core_Master
         if ($rec->foreignId) {
             cal_TaskDocuments::add($rec->id, $rec->foreignId);
         }
-        
+ 
         $mvc->updateTaskToCalendar($rec->id);
     }
 
@@ -1028,81 +1028,140 @@ class cal_Tasks extends core_Master
         $prefix = "TSK-{$id}";
         
         // Подготвяме запис за началната дата
-        if($rec->timeStart && $rec->timeStart >= $fromDate && $rec->timeStart <= $toDate && ($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'draft'|| $rec->state == 'waiting') ||
-           $rec->timeCalc && $rec->timeCalc >= $fromDate && $rec->timeCalc <= $toDate && ($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'draft'|| $rec->state == 'waiting') ||
-           $rec->expectationTimeStart && $rec->expectationTimeStart >= $fromDate && $rec->expectationTimeStart <= $toDate && ($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'draft'|| $rec->state == 'waiting')) {
-            
+        if($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'pending' || $rec->state == 'waiting') {
+             
             $calRec = new stdClass();
-                
-            // Ключ на събитието
-            $calRec->key = $prefix . '-Start';
-            
-            if ($rec->timeStart) {
-	            // Начало на задачата
-	            $calRec->time = $rec->timeStart;
-            } else {
-            	$calRec->time = $rec->timeCalc;
-            }
-            
-            // Дали е цял ден?
-            $calRec->allDay = $rec->allDay;
-            
-            // Икона на записа
-            $calRec->type  = 'task';
 
-            // Заглавие за записа в календара
-            $calRec->title = "{$rec->title}";
-
+            setIfNot($calRec->time, $rec->timeStart, $rec->timeCalc, $rec->expectationTimeStart);
+            
             // В чии календари да влезе?
-            $calRec->users = $rec->sharedUsers;
-            
-            // Статус на задачата
-            $calRec->state = $rec->state;
+            $calRec->users = keylist::merge($rec->sharedUsers, $rec->assign);
 
-            // Какъв да е приоритета в числово изражение
-            $calRec->priority = self::getNumbPriority($rec);
+            if($calRec->time && $calRec->time >= $fromDate && $calRec->time <= $toDate && $calRec->users) {
+                // Ключ на събитието
+                $calRec->key = $prefix . '-Start';
+                
+                if ($rec->timeStart) {
+                    // Начало на задачата
+                    $calRec->time = $rec->timeStart;
+                } else {
+                    $calRec->time = $rec->timeCalc;
+                }
+                
+                // Дали е цял ден?
+                $calRec->allDay = $rec->allDay;
+                
+                // Икона на записа
+                $calRec->type  = 'task';
 
-            // Url на задачата
-            $calRec->url = array('cal_Tasks', 'Single', $id); 
-            
-            $events[] = $calRec;
+                // Заглавие за записа в календара
+                $calRec->title = "{$rec->title}";
+
+                
+                // Статус на задачата
+                $calRec->state = $rec->state;
+
+                // Какъв да е приоритета в числово изражение
+                $calRec->priority = self::getNumbPriority($rec);
+
+                // Url на задачата
+                $calRec->url = array('cal_Tasks', 'Single', $id); 
+                
+                $events[] = $calRec;
+
+                list($startDate, ) = explode(' ', $calRec->time);
+            }
         }
         
         // Подготвяме запис за Крайния срок
-        if($rec->timeEnd && $rec->timeEnd >= $fromDate && $rec->timeEnd <= $toDate && ($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'waiting') ) {
+        if($rec->state == 'active' || $rec->state == 'waiting' || $rec->state == 'closed'  || $rec->state == 'pending') {
             
             $calRec = new stdClass();
-                
-            // Ключ на събитието
-            $calRec->key = $prefix . '-End';
             
-            // Начало на задачата
-            $calRec->time = $rec->timeEnd;
+            // Време за край на задачата
+            setIfNot($calRec->time, $rec->timeEnd, $rec->expectationTimeEnd);
             
-            // Дали е цял ден?
-            $calRec->allDay = $rec->allDay;
-            
-            // Икона на записа
-            $calRec->type  = 'end-date';
-
-            // Заглавие за записа в календара
-            $calRec->title = "Краен срок за \"{$rec->title}\"";
-
             // В чии календари да влезе?
-            $calRec->users = $rec->sharedUsers;
-            
-            // Статус на задачата
-            $calRec->state = $rec->state;
-            
-            // Какъв да е приоритета в числово изражение
-            $calRec->priority = self::getNumbPriority($rec) - 1;
+            $calRec->users = keylist::merge($rec->sharedUsers, $rec->assign);
+          
+            if($calRec->time && $calRec->time >= $fromDate && $calRec->time <= $toDate && $calRec->users && (!$startDate || strpos($calRec->time, $startDate) === FALSE)) {
 
-            // Url на задачата
-            $calRec->url = array('cal_Tasks', 'Single', $id); 
-            
-            $events[] = $calRec;
+                // Ключ на събитието
+                $calRec->key = $prefix . '-End';
+                
+                // Начало на задачата
+                $calRec->time = $rec->timeEnd;
+                
+                // Дали е цял ден?
+                $calRec->allDay = $rec->allDay;
+                
+                // Икона на записа
+                $calRec->type  = 'end-date';
+
+                // Заглавие за записа в календара
+                $calRec->title = "Краен срок за \"{$rec->title}\"";
+
+                // В чии календари да влезе?
+                $calRec->users = keylist::merge($rec->sharedUsers, $rec->assign);
+                
+                // Статус на задачата
+                $calRec->state = $rec->state;
+                
+                // Какъв да е приоритета в числово изражение
+                $calRec->priority = self::getNumbPriority($rec) - 1;
+
+                // Url на задачата
+                $calRec->url = array('cal_Tasks', 'Single', $id); 
+                
+                $events[] = $calRec;
+            }
         }
-  
+
+
+        // Подготвяме запис за Крайния срок
+        if($rec->state == 'closed' ) {
+            
+            $calRec = new stdClass();
+            
+            // Време за край на задачата
+            setIfNot($calRec->time, $rec->timeClosed);
+            
+            // В чии календари да влезе?
+            $calRec->users = keylist::merge($rec->sharedUsers, $rec->assign);
+          
+            if($calRec->time && $calRec->time >= $fromDate && $calRec->time <= $toDate && $calRec->users && (!$startDate || strpos($calRec->time, $startDate) === FALSE)) {
+
+                // Ключ на събитието
+                $calRec->key = $prefix . '-End';
+                
+                // Начало на задачата
+                $calRec->time = $rec->timeEnd;
+                
+                // Дали е цял ден?
+                $calRec->allDay = $rec->allDay;
+                
+                // Икона на записа
+                $calRec->type  = 'end-date';
+
+                // Заглавие за записа в календара
+                $calRec->title = "Приключена задача \"{$rec->title}\"";
+
+                // В чии календари да влезе?
+                $calRec->users = keylist::merge($rec->sharedUsers, $rec->assign);
+                
+                // Статус на задачата
+                $calRec->state = $rec->state;
+                
+                // Какъв да е приоритета в числово изражение
+                $calRec->priority = self::getNumbPriority($rec) - 1;
+
+                // Url на задачата
+                $calRec->url = array('cal_Tasks', 'Single', $id); 
+                
+                $events[] = $calRec;
+            }
+        }
+
         return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
     }
 
