@@ -1436,7 +1436,7 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         if(!$rec->threadId && $rec->folderId && !doc_Folders::haveRightToFolder($rec->folderId)) {
-        	if (core_Packs::isInstalled('colab') && core_Users::isContractor()) {
+        	if (core_Packs::isInstalled('colab') && haveRole('partner')) {
         		$userId = core_Users::getCurrent();
         		$colabFolders = colab_Folders::getSharedFolders($userId);
         		if(!in_array($rec->folderId, $colabFolders)){
