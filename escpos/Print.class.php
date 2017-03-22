@@ -60,7 +60,7 @@ class escpos_Print extends core_Manager
     /**
      * Масив с `id` от приложението и драйвер, на който отговарят
      */
-    public static $drvMapArr = array(1 => 'escpos_driver_Ddp250');
+    public static $drvMapArr = array(1 => 'escpos_driver_Ddp250', 2 => 'escpos_driver_P300');
     
     
     /**

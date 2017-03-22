@@ -24,7 +24,7 @@ class hyphen_Plugin extends core_Plugin
 	/**
      * Минималната дължина след която ще се добавя знак за хифенация
      */
-    const MIN_LENGTH_HYPHEN = 24;
+    const MIN_LENGTH_HYPHEN = 12;
     
     
     /**
@@ -163,8 +163,10 @@ class hyphen_Plugin extends core_Plugin
                 $addHyphen = TRUE;
             }
             
-            // Ако предишния символ не е съгласна и не гласна - не е буква
-            if ((!core_String::isConsonent($prevChar)) && (!core_String::isVowel($prevChar))) {
+            // Ако предишния символ не е съгласна и не е гласна - не е буква
+            // Текущия символ трябва също да е буква
+            if ((!core_String::isConsonent($prevChar)) && (!core_String::isVowel($prevChar))
+                            && ((core_String::isConsonent($char)) || (core_String::isVowel($char)))) {
                 
                 // Вдигаме влага за добавяне на хифенация
                 $addHyphen = TRUE;

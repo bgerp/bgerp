@@ -373,7 +373,7 @@ class email_Inboxes extends core_Master
         // Ако сметката е частна, то $toBox е нейния имейл
         if($accRec->type == 'single') {
 
-            return $accRec->email;
+            return self::replaceDomains($accRec->email);
         }
         
         // Вземаме всички имейли
@@ -386,7 +386,7 @@ class email_Inboxes extends core_Master
         // Ако няма никакви имейли, към които е изпратено писмото, $toBox е имейла на сметката
         if (!is_array($emailsArr) || !count($emailsArr)) {
 
-            return $accRec->email;
+            return self::replaceDomains($accRec->email);
         }
 
         // Всички вътрешни кутии към тази сметка
@@ -398,7 +398,7 @@ class email_Inboxes extends core_Master
             // Първия имейл, който отговаря на кутия е $toBox
             if ($allBoxes[$eml]) {
                     
-                return $eml;
+                return self::replaceDomains($eml);
             }
         }
         
@@ -437,18 +437,51 @@ class email_Inboxes extends core_Master
                     
                     self::save($rec);
 
-                    return $rec->email;
+                    return self::replaceDomains($rec->email);
                 }
             }            
         }
         
         if ($bestEmail = self::getClosest($emailsArr)) {
             
-            return $bestEmail;
+            return self::replaceDomains($bestEmail);
         }
         
         // По подразбиране, $toBox е емейла на кутията от където се тегли писмото
-        return $accRec->email;
+        return self::replaceDomains($accRec->email);
+    }
+
+
+    /**
+     * В дадения имейл, замества alias-ите на домейните, които са посочени за замяна във web-конфигурацията
+     * 
+     * @param string $toEmail
+     * 
+     * @return string
+     */
+    public static function replaceDomains($toEmail)
+    {
+        static $replaceDomainArr;
+        if(!isset($replaceDomainArr)) {
+            $replaceDomainArr = strtolower(trim(email_Setup::get('REPLACE_DOMAINS')));
+            if($replaceDomainArr) {
+                $replaceDomainArr = arr::make($replaceDomainArr, TRUE);
+            } else {
+                $replaceDomainArr = FALSE;
+            }
+        }
+
+        if($replaceDomainArr && count($replaceDomainArr)) {
+            list($toNick, $toDomain) = explode('@', $toEmail);
+            foreach($replaceDomainArr as $fromReplace => $toReplace) {
+                if(strtolower($toDomain) == $fromReplace) {
+                    $toEmail = "{$toNick}@{$toReplace}";
+                    break;
+                }
+            }
+        }
+        
+        return $toEmail;
     }
     
     

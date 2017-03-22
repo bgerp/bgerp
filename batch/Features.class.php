@@ -76,6 +76,7 @@ class batch_Features extends core_Manager {
     	// Кое е перото и партидната дефиниция
     	$itemRec = batch_Items::fetch($itemId);
     	$Def = batch_Defs::getBatchDef($itemRec->productId);
+    	if(!is_object($Def)) return;
     	
     	// Какви са свойствата
     	$features = $Def->getFeatures($itemRec->batch);

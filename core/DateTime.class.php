@@ -666,6 +666,10 @@ class core_DateTime
      */
     static function nextWorkingDay($date = NULL, $direction = 1)
     {
+        if (!$date) {
+            $date = dt::addDays($direction);
+        }
+        
         while (dt::isHoliday($date)) {
             $date = dt::addDays($direction, $date);
         }

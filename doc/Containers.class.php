@@ -3194,4 +3194,79 @@ class doc_Containers extends core_Manager
     		}
     	}
     }
+    
+    
+    /**
+     * Връща всички потребители абонирани за документа.
+     * Споделените в документа + създателя + активаторът + харесалите документа
+     * 
+     * @param int $containerId        - ид на контейнер на документ
+     * @param boolean $ignorePartners - да се игнорират ли потребителите с роля партньор или не
+     * @return array $subscribed      - масив с абонираните потребители
+     */
+    public static function getSubscribedUsers($containerId, $ignorePartners = TRUE)
+    {
+    	// Кои са абонираните потребители
+    	$subscribed = array();
+    	
+    	// Намират се експлицитно споделените потребители в документа
+    	expect($doc = doc_Containers::getDocument($containerId));
+    	$shared = keylist::toArray($doc->getShared());
+    	$subscribed = $subscribed + $shared;
+    	
+    	// Към тях се добавя създателя на документа
+    	$createdBy = $doc->fetchField('createdBy');
+    	$subscribed += array($createdBy => $createdBy);
+    	
+    	// Ако има активатор на документа, добавя се и той
+    	if($doc->getInstance()->getField('activatedBy', FALSE)){
+    		if($activatedBy = $doc->fetchField('activatedBy')){
+    			$subscribed += array($activatedBy => $activatedBy);
+    		}
+    	}
+    	
+    	// Намират се и потребителите харесали документа
+    	$likeQuery = doc_Likes::getQuery();
+    	$likeQuery->where("#containerId = {$containerId}");
+    	$likeQuery->show('createdBy');
+    	$likedArray = arr::extractValuesFromArray($likeQuery->fetchAll(), 'createdBy');
+    	if(count($likedArray)){
+    		$subscribed = $subscribed + $likedArray;
+    	}
+    	
+    	// Игнориране на партньорите от списъка, ако е указано
+    	if($ignorePartners === TRUE){
+    		foreach ($subscribed as $userId => $v){
+    			if(core_Users::haveRole('partner', $userId)){
+    				unset($subscribed[$userId]);
+    			}
+    		}
+    	}
+    	
+    	// Връщане на абонираните потребители
+    	return $subscribed;
+    }
+    
+    
+    /**
+     * Нотифициране на абонираните потребители за документа
+     * 
+     * @param int $containerId - ид на контейнера
+     * @param string $msg      - съобщение за нотифициране
+     * @return void
+     */
+    public static function notifyToSubscribedUsers($containerId, $msg)
+    {
+    	// Намиране на споделените потребители в документа
+    	$sharedUsers = doc_Containers::getSubscribedUsers($containerId);
+    	if(!count($sharedUsers)) return;
+    	
+    	$doc = doc_Containers::getDocument($containerId);
+    	$url = $doc->getSingleUrlArray();
+    	
+    	// На всеки от абонираните потребители се изпраща нотификацията
+    	foreach ($sharedUsers as $userId){
+    		bgerp_Notifications::add($msg, $url, $userId);
+    	}
+    }
 }

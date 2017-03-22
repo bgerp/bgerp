@@ -91,13 +91,13 @@ class cat_Products extends embed_Manager {
     /**
      * Кой може да редактира в частния сингъл
      */
-    public $canEditpsingle = 'user';
+    public $canEditpsingle = 'powerUser';
     
     
     /**
      * Кой може да редактира активен документ в частния сингъл
      */
-    public $canEditactivatedpsingle  = 'user';
+    public $canEditactivatedpsingle  = 'powerUser';
     
     
     /**
@@ -345,6 +345,41 @@ class cat_Products extends embed_Manager {
     
     
     /**
+     * Извиква се преди изпълняването на екшън
+     *
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param string $action
+     */
+    public static function on_BeforeAction($mvc, &$res, $action)
+    {
+    	if($action == 'add'){
+    		
+    		// При добавяне, ако има папка и не е избран драйвер
+    		$innerClass = Request::get('innerClass', 'int');
+    		$folderId = Request::get('folderId', 'int');
+    		if(empty($innerClass) && isset($folderId)){
+    			
+    			// Намира се последния избиран драйвер в папката
+    			$lastDriver = cond_plg_DefaultValues::getFromLastDocument($mvc, $folderId, 'innerClass');
+    			if(!$lastDriver){
+    				$lastDriver = cat_GeneralProductDriver::getClassId();
+    			}
+    			
+    			// Ако може да бъде избран редирект към формата с него да е избран
+    			if(!empty($lastDriver)){
+    				if(cls::load($lastDriver, TRUE)){
+    					if(cls::get($lastDriver)->canSelectDriver()){
+    						return redirect(array($mvc, 'add', 'folderId' => $folderId, 'innerClass' => $lastDriver));
+    					}
+    				}
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
      * Изпълнява се след подготовка на Едит Формата
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
@@ -483,6 +518,10 @@ class cat_Products extends embed_Manager {
     		$form->setField('groups', 'input=hidden');
     		$form->setField('meta', 'input=hidden');
     		$form->setField('measureId', 'input=hidden');
+    		$form->setField('code', 'input=hidden');
+    		$form->setField('name', 'input=hidden');
+    		$form->setField('measureId', 'input=hidden');
+    		$form->setField('info', 'input=hidden');
     	}
 		
 		// Проверяваме за недопустими символи
@@ -1046,8 +1085,11 @@ class cat_Products extends embed_Manager {
     	} else {
     		
     		// Проверяваме имали продукт с такъв код
-    		if($rec = self::fetch(array("#code = '[#1#]' COLLATE utf8_general_ci", $code))) {
-    			
+            $rec = self::fetch(array("#code = '[#1#]'", $code));
+            if(!$rec) {
+                $rec = self::fetch(array("LOWER(#code) = LOWER('[#1#]')", $code));
+            }
+    		if($rec) {
     			$res->productId = $rec->id;
     			$res->packagingId = NULL;
     		} else {
@@ -1114,6 +1156,9 @@ class cat_Products extends embed_Manager {
         		$mvc->save_($rec, 'isPublic');
         	}
         }
+        
+        // Синхронизиране на дефолтните опаковки
+        cat_products_Packagings::sync($rec);
     }
     
     
@@ -1571,10 +1616,7 @@ class cat_Products extends embed_Manager {
             $meta = arr::make($rec->meta, TRUE);
      
            if($meta['canStore']) {  
-                $spQuery = store_Products::getQuery();
-                while($spRec = $spQuery->fetch("#productId = {$rec->id}")) {
-                    $rec->quantity  += $spRec->quantity;
-                }
+           		$rec->quantity = store_Products::getQuantity($rec->id);
             }
             
             if($rec->quantity) {
@@ -1759,8 +1801,10 @@ class cat_Products extends embed_Manager {
     	$data->toolbar->removeBtn('btnAdd');
     	
     	// Бутона 'Нов запис' в листовия изглед, добавя винаги универсален артикул
-    	if($mvc->haveRightFor('add') && haveRole('cat')){
-    		 $data->toolbar->addBtn('Нов запис', array($mvc, 'add', 'innerClass' => cat_GeneralProductDriver::getClassId()), 'order=1,id=btnAdd', 'ef_icon = img/16/shopping.png,title=Създаване на нова стока');
+    	if($mvc->haveRightFor('add')){
+    		
+    		//, 'innerClass' => cat_GeneralProductDriver::getClassId())
+    		 $data->toolbar->addBtn('Нов запис', array($mvc, 'add'), 'order=1,id=btnAdd', 'ef_icon = img/16/shopping.png,title=Създаване на нова стока');
     	}
     }
     

@@ -36,7 +36,7 @@ class hr_WorkingCycles extends core_Master
     /**
      * @todo Чака за документация...
      */
-    public $details = 'hr_WorkingCycleDetails';
+    public $details = 'hr_WorkingCycleDetails,hr_WorkingShiftsDetails';
     
     
     /**

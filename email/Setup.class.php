@@ -183,6 +183,12 @@ defIfNot('EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING_EN', "Please read the f
 
 
 /**
+ * Имейл домейни за подменяне
+ */
+defIfNot('EMAIL_REPLACE_DOMAINS', '');
+
+
+/**
  * class email_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -273,6 +279,9 @@ class email_Setup extends core_ProtoSetup
             // Позиция на манипулатора в събджекта
             'EMAIL_THREAD_HANDLE_LEGACY_TYPES' => array ('set(type0=Тип 0 <1234>,type1=Тип 1 #EML123DEW,type2=Тип 2 #123498,type3=Тип 3 <aftepod>)', 'caption=Манипулатор на нишка в събджект на имейл->Наследени,columns=1'),
             
+            // Домейни за заменяне
+            'EMAIL_REPLACE_DOMAINS' => array ('varchar', 'caption=Домеийни за заменяне->Списък,columns=1', array('hint' => 'OldDomain1=NewDomain1,OldDomain2=NewDomain2,...')),
+
             // Максимален размер на прикачените файлове и документи
             'EMAIL_MAX_ATTACHED_FILE_LIMIT' => array ('fileman_FileSize', 'caption=Максимален размер на прикачените файлове/документи в имейла->Размер, suggestions=10 MB|20 MB|30 MB'),
             

@@ -846,17 +846,19 @@ class doc_Threads extends core_Manager
                 $query->orderBy('#isOpened,#state=ASC,#last=DESC,#id=DESC');
                 if($filter->order == 'mine') {
                     if($cu = core_Users::getCurrent()) {
-
+                        
+                        $tList = array();
+                        
                         // Извличаме тредовете, където има добавени от потребителя документи;
                         $cQuery = doc_Containers::getQuery();
                         $cQuery->show('threadId');
                         $cQuery->groupBy('threadId');
-                        $tList = array();
-                        $cond = "#createdBy = {$cu}";
-                        if($filter->folderId) {
-                            $cond .= " AND #folderId = $filter->folderId";
+                        $cQuery->where(array("#createdBy = '[#1#]'", $cu));
+                        if ($filter->folderId) {
+                            $cQuery->where(array("#folderId = '[#1#]'", $filter->folderId));
                         }
-                        while($cRec = $cQuery->fetch($cond)) {
+                        
+                        while($cRec = $cQuery->fetch()) {
                             $tList[$cRec->threadId] = $cRec->threadId;
                         }
 
@@ -866,8 +868,29 @@ class doc_Threads extends core_Manager
                         $lQuery->EXT('folderId', 'doc_Containers', 'externalKey=containerId');
                         $lQuery->show('threadId');
                         $lQuery->groupBy('threadId');
-                        while($lRec = $lQuery->fetch($cond)) {
+                        $lQuery->where(array("#createdBy = '[#1#]'", $cu));
+                        if (!empty($tList)) {
+                            $lQuery->in("threadId", $tList, TRUE); // Това е за бързодействие
+                        }
+                        if ($filter->folderId) {
+                            $lQuery->where(array("#folderId = '[#1#]'", $filter->folderId));
+                        }
+                        while($lRec = $lQuery->fetch()) {
                             $tList[$lRec->threadId] = $lRec->threadId;
+                        }
+                        
+                        // Извличаме тредовете, където потребителя е споделен
+                        $tQuery = doc_Threads::getQuery();
+                        $tQuery->like("shared", "|{$cu}|");
+                        if (!empty($tList)) {
+                            $tQuery->in("id", $tList, TRUE); // Това е за бързодействие
+                        }
+                        if ($filter->folderId) {
+                            $tQuery->where(array("#folderId = '[#1#]'", $filter->folderId));
+                        }
+                        
+                        while($tRec = $tQuery->fetch()) {
+                            $tList[$tRec->id] = $tRec->id;
                         }
                         
                         // Добавяме нишките, в които има входящи имейли към съответния потребител

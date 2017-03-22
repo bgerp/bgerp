@@ -573,7 +573,7 @@ class core_Master extends core_Manager
     {
         $pSingleSuffix = 'psingle';
         
-        if ($action != 'admin' && $action != 'psingle' && !(stripos($action, $pSingleSuffix))) {
+        if ($action != 'admin' && $action != 'view' && $action != 'psingle' && !(stripos($action, $pSingleSuffix))) {
             // Ако няма достъп до някое действие, но има достъп до частния сингъл
             // Проверяваме правата за частните действия
             if ((($userId && !haveRole($requiredRoles, $userId) || ($requiredRoles == 'no_one'))) && $mvc->haveRightFor($pSingleSuffix, $rec)) {

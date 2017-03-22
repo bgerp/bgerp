@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<btpDriver Command="DirectIO">
+    <title>[#title#]</title>
+    <data>[#data#]</data>
+    
+    <!--ET_BEGIN printerSelectCodetable-->
+	<printerSelectCodetable>[#printerSelectCodetable#]</printerSelectCodetable>
+	<!--ET_END printerSelectCodetable-->
+	
+    <!--ET_BEGIN printerPrintTaggedTextEncoding-->
+    <printerPrintTaggedTextEncoding>[#printerPrintTaggedTextEncoding#]</printerPrintTaggedTextEncoding>
+    <!--ET_END printerPrintTaggedTextEncoding-->
+    
+    <!--ET_BEGIN printerFeedPaper-->
+    <printerFeedPaper>[#printerFeedPaper#]</printerFeedPaper>
+    <!--ET_END printerFeedPaper-->
+    
+    <!--ET_BEGIN printerInputTextEncoding-->
+    <printerInputTextEncoding>[#printerInputTextEncoding#]</printerInputTextEncoding>
+    <!--ET_END printerInputTextEncoding-->
+    
+    <!--ET_BEGIN printerTextAppendBegin-->
+    <printerTextAppendBegin>[#printerTextAppendBegin#]</printerTextAppendBegin>
+    <!--ET_END printerTextAppendBegin-->
+    
+    <!--ET_BEGIN printerTextAppendEnd-->
+    <printerTextAppendEnd>[#printerTextAppendEnd#]</printerTextAppendEnd>
+    <!--ET_END printerTextAppendEnd-->    
+</btpDriver>

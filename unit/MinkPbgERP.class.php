@@ -912,7 +912,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Чернова');
         // Създаване на нов артикул по запитването
         $browser->press('Артикул');
-        $browser->setValue('name', 'Артикул по запитване');
+        $browser->setValue('name', 'Артикул по запитване1');
         $browser->press('Запис');
         $browser->press('Оферта');
         
@@ -956,7 +956,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('productId', 'Чувал голям 50 L');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', 100);
-        $browser->setValue('packPrice', 2);
+        $browser->setValue('packPrice', 0,06);
         // Записваме артикула
         $browser->press('Запис');
         // Записване на артикула и добавяне на опционален - услуга

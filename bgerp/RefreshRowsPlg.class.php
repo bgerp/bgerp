@@ -189,6 +189,8 @@ class bgerp_RefreshRowsPlg extends core_Plugin
         // Вземаме съсъджанието
         $status = $cTpl->getContent();
         
+        $status = preg_replace('/\<\!\-\-.+?\-\-\>/', '', $status);
+        
         return $status;
     }
     

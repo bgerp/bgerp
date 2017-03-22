@@ -767,6 +767,7 @@ div.productImage {
 	margin-top: 5px;
 	padding: 1px 5px;
 	cursor: pointer;
+	white-space: nowrap;
 	&:hover {
 		background-color: #f1f1f1;
 	}

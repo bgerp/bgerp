@@ -55,7 +55,7 @@ class hr_EmployeeContracts extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, hr_Wrapper, doc_ActivatePlg, bgerp_plg_Blank, plg_Printing, acc_plg_DocumentSummary,
-                     acc_plg_Registry, doc_DocumentPlg, plg_Search,
+                     acc_plg_Registry, doc_DocumentPlg, plg_Search,plg_Clone,
                      doc_plg_SelectFolder, doc_SharablePlg, bgerp_plg_Blank';
     
     
@@ -99,6 +99,12 @@ class hr_EmployeeContracts extends core_Master
      * Кой може да пише?
      */
     public $canEdit = 'ceo,hr';
+    
+
+    /**
+     * Кой има право да клонира?
+     */
+    public $canClonerec = 'ceo,hr';
     
     
     /**
@@ -520,7 +526,7 @@ class hr_EmployeeContracts extends core_Master
         if($query->fetchAll() == FALSE){
             
             // Ако няма, изискваме от потребителя да въведе
-            redirect(array('hr_Departments', 'list'), FALSE, "|Не сте въвели позиция");
+            redirect(array('hr_Departments', 'list'), FALSE, "|Не сте въвели длъжност");
         }
         
         // трудовият договор, не може да се създаде без да е обявено работното време в него
