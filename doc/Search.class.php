@@ -48,6 +48,13 @@ class doc_Search extends core_Manager
     
     
     /**
+     * @see plg_Search
+     */
+    public $searchId = FALSE;
+    
+    
+    
+    /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      *
      * Задаваме NULL за да избегнем обновяването на ключовите думи на контейнера след всеки

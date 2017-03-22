@@ -143,7 +143,7 @@ class plg_Search extends core_Plugin
             static::applySearch($filterRec->{$mvc->searchInputField}, $data->query);
             
             // Ако ключовата дума е число, търсим и по ид
-            if (type_Int::isInt($filterRec->{$mvc->searchInputField})) {
+            if (type_Int::isInt($filterRec->{$mvc->searchInputField}) && ($mvc->searchId !== FALSE)) {
             	$data->query->orWhere($filterRec->{$mvc->searchInputField});
             }
         }
@@ -272,6 +272,7 @@ class plg_Search extends core_Plugin
                 }
             }
         }
+//         bp($query->where);
     }
     
     
