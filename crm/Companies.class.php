@@ -73,6 +73,13 @@ class crm_Companies extends core_Master
     
     
     /**
+     * 
+     * @see plg_Select
+     */
+    var $doWithSelected = 'export=Експортиране';
+    
+    
+    /**
      * Полета за експорт
      */
     var $exportableCsvFields = 'name,country,pCode,place,address,email,tel,fax,website,vatId,info,uicId';
