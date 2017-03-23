@@ -36,6 +36,12 @@ class cal_Tasks extends core_Master
     
     
     /**
+     * Период на показване на чакащи и активни задачи в портала
+     */
+    protected static $taskShowPeriod = 3;
+    
+    
+    /**
      * Поддържани интерфейси
      */
     public $interfaces = 'doc_DocumentIntf';
@@ -407,9 +413,15 @@ class cal_Tasks extends core_Master
         } else {
             $data->query->where("#sharedUsers LIKE '%|{$userId}|%'");
         }
-
+        
+        $now = dt::now();
+        $before = dt::addDays(-1 * self::$taskShowPeriod, $now);
+        $after = dt::addDays(self::$taskShowPeriod, $now);
+        
         $data->query->where("#state = 'active'");
-
+        $data->query->orWhere(array("#state = 'waiting' AND #expectationTimeStart >= '[#1#]'", $before));
+        $data->query->orWhere(array("#state = 'closed' AND #timeClosed <= '[#1#]' AND #timeClosed >= '[#2#]'", $after, $before));
+        
         // Време за подредба на записите в портала
         $data->query->orderBy("modifiedOn", "DESC");
         $data->query->orderBy("createdOn", "DESC");
@@ -446,6 +458,8 @@ class cal_Tasks extends core_Master
                 
                 if ($rec->savedState == 'waiting') {
                     $row->title = "<div class='state-pending-link'>{$row->title}</div>";
+                } elseif ($rec->savedState == 'closed') {
+                    $row->title = "<div class='state-closed-link'>{$row->title}</div>";
                 }
             }
         }
