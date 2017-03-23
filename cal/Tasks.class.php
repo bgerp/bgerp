@@ -27,8 +27,14 @@ class cal_Tasks extends core_Master
      * 
      */
     const maxLenTitle = 120;
-
-
+    
+    
+    /**
+     * 
+     */
+    protected $limitShowMonths = 6;
+    
+    
     /**
      * Поддържани интерфейси
      */
@@ -2568,9 +2574,23 @@ class cal_Tasks extends core_Master
         $query->where("#state = 'waiting'");
         $query->orWhere("#state = 'active'");
         
-        $query->orderBy('modifiedOn', 'DESC');
+        $query->EXT('recentlyLast', 'bgerp_Recently', 'externalName=last, externalKey=threadId, externalFieldName=threadId');
+        $query->EXT('recentlyUserId', 'bgerp_Recently', 'externalName=userId, externalKey=threadId, externalFieldName=threadId');
+        
+        $query->where(array("#recentlyUserId = '[#1#]'", $cu));
+        
+        $limitShowMonths = $this->limitShowMonths;
+        if ($limitShowMonths > 0) {
+            $limitShowMonths *= -1;
+        }
+        
+        $before = dt::addMonths($limitShowMonths);
+        $query->where(array("#recentlyLast > '[#1#]'", $before));
         
         doc_Threads::restrictAccess($query);
+        
+        $query->orderBy("recentlyLast", "DESC");
+        $query->orderBy('modifiedOn', 'DESC');
         
         $tArr = array();
         
