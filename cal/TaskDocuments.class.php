@@ -67,6 +67,12 @@ class cal_TaskDocuments extends core_Detail
      * Кой има право да оттегле?
      */
     public $canReject = 'powerUser';
+	
+    
+    /**
+     * Кой има право да възстановява?
+     */
+    public $canRestore = 'powerUser';
     
     
     /**
