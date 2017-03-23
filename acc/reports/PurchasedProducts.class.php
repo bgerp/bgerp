@@ -153,6 +153,18 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
                 }
             }
         }
+        $data->summBottom = new stdClass();
+        $data->summBottomVer = new stdClass();
+        
+        foreach ($data->recs as $r){
+            $data->summBottom->quantity += $r->debitQuantity;
+            $data->summBottom->amount += $r->debitAmount;
+        }
+
+        $Double = cls::get('type_Double');
+        $Double->params['decimals'] = 2;
+        $data->summBottomVer->quantity = $Double->toVerbal($r->debitQuantity);
+        $data->summBottomVer->amount = $Double->toVerbal($r->debitAmount);
     }
     
     
@@ -260,5 +272,59 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
         }
          
         unset($data->listFields['debitQuantity'],$data->listFields['debitAmount'],$data->listFields['creditQuantity'],$data->listFields['creditAmount']);
+    }
+    
+    
+    /**
+     * Рендира вградения обект
+     *
+     * @param stdClass $data
+     */
+    public function renderEmbeddedData(&$embedderTpl, $data)
+    {
+        $tpl = $this->getReportLayout();
+    
+        $explodeTitle = explode(" » ", $this->title);
+    
+        $title = tr("|{$explodeTitle[1]}|*");
+    
+        $tpl->replace($title, 'TITLE');
+        $this->prependStaticForm($tpl, 'FORM');
+        
+        $tpl->replace(acc_Periods::getBaseCurrencyCode(), 'baseCurrencyCode');
+        
+        $tpl->placeObject($data->row);
+    
+        $tableMvc = new core_Mvc;
+
+        $tableMvc->FLD('item2', 'int', 'tdClass=accCell');
+        $tableMvc->FLD('item3', 'int', 'tdClass=accCell');
+        $tableMvc->FLD('blQuantity', 'double', 'tdClass=accCell');
+        $tableMvc->FLD('blAmount', 'double', 'tdClass=accCell');
+        $tableMvc->FLD('delta', 'percent', 'tdClass=accCell');
+    
+        $table = cls::get('core_TableView', array('mvc' => $tableMvc));
+
+        $tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
+
+        $data->summBottomVer->colspan = count($data->listFields);
+        if($data->summBottom ){ 
+            $data->summBottomVer->colspan -= 3;
+            if($data->summBottomVer->colspan != 0 && count($data->rows)){
+                $afterRow = new core_ET("<tr style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><b>[#quantity#]</b></td><td style='text-align:right'><b>[#amount#]</b></td><td style='text-align:right'></td></tr>");
+            }
+        }
+    
+        if($afterRow){
+            $afterRow->placeObject($data->summBottomVer);
+            $tpl->append($afterRow, 'ROW_AFTER');
+        }
+    
+        if($data->pager){
+            $tpl->append($data->pager->getHtml(), 'PAGER_BOTTOM');
+            $tpl->append($data->pager->getHtml(), 'PAGER_TOP');
+        }
+    
+        $embedderTpl->append($tpl, 'data');
     }
 }
