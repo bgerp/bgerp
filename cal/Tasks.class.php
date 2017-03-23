@@ -1268,26 +1268,10 @@ class cal_Tasks extends core_Master
     {
         $rec = self::fetch($id);
 
-        $currentUser = core_Users::getCurrent();
-
-        if($currentUser == $rec->assign) {
-            if($currentUser ==  $rec->assignedBy) {
-                $iconType = "red-blue";
-            } else {
-                $iconType = "red";
-            }
-        } else {
-            if($currentUser ==  $rec->assignedBy) {
-                $iconType = "blue";
-            } else {
-                $iconType = "normal";
-            }
-        }
-
-        $icon =  "img/16/task-" . $iconType . ".png";
+        $icon =  "img/16/task-" . $rec->priority . ".png";
 
         if(log_Browsers::isRetina()) {
-            $tempIcon = "img/32/task-" . $iconType . ".png";
+            $tempIcon = "img/32/task-" . $rec->priority . ".png";
             if(getFullPath($tempIcon)) {
                 $icon =  $tempIcon;
             }
