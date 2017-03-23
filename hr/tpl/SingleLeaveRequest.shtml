@@ -24,8 +24,8 @@
     </tr>
 </table>
 <br>
-<p>|Уважаеми г-н / г-жо Управител|*,</p>
-<p>|Моля, да ми бъде разрешен|* <b>[#leaveDays#]</b> |дневен|* <b>[#paid#]</b> |отпуск|*<!--ET_BEGIN useDaysFromYear--> |за|* [#useDaysFromYear#] |г|*.<!--ET_END useDaysFromYear-->, |считано от|* <b>[#leaveFrom#]</b> |г|. |до|* <b>[#leaveTo#]</b> |г. включително|*.</p>
+<p>|До Управителя на|* [#myCompany#],</p>
+<p>|Моля, да ми бъде разрешен|* <b>[#leaveDays#]</b> |дневен|* <b>[#paid#]</b> |отпуск|*<!--ET_BEGIN useDaysFromYear--> |за|* [#useDaysFromYear#] |г|*.<!--ET_END useDaysFromYear-->, |считано от|* <b>[#leaveFrom#] |г|.<!--ET_BEGIN fromHour--> [#fromHour#]|ч|.<!--ET_END fromHour--></b> |до|* <b>[#leaveTo#]|г.|*<!--ET_BEGIN toHour--> [#toHour#] |ч.|*<!--ET_END toHour--></b>| включително|*.</p>
 <br>
 <!--ET_BEGIN note-->
 <div class="richtext-holder indent">|Бележки|*: [#note#] </div>

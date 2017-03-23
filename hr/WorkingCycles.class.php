@@ -152,7 +152,7 @@ class hr_WorkingCycles extends core_Master
     {
         $maxNight = 0;
         $rec = $data->rec;
-        $tTime = core_Type::getByName("time(format=H:M)");
+        $tTime = core_Type::getByName("time(format=H:i)");
         
         for($i = 1; $i <= $rec->cycleDuration; $i++) {
             $night = 0;
