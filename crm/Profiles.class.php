@@ -501,12 +501,16 @@ class crm_Profiles extends core_Master
                     $state = static::$map[$data->rec->stateInfo] . " на ". dt::mysql2verbal($data->rec->stateDateTo, 'd M')  . " до ". dt::mysql2verbal($data->rec->stateDateTo, 'H:i');
                 }
                 
-                if($hoursFrom != "00:00:00" && $hoursTo != "23:59:59") {
+                if($hoursFrom != "00:00:00" && $hoursTo != "23:59:59") { 
                     $state = static::$map[$data->rec->stateInfo] . " от ". dt::mysql2verbal($data->rec->stateDateFrom, 'smartTime') . " до ". dt::mysql2verbal($data->rec->stateDateTo, 'H:i');
                 }
             } else { 
-                $state = static::$map[$data->rec->stateInfo] . " от ". dt::mysql2verbal($data->rec->stateDateFrom, 'd M') . " до ". dt::mysql2verbal($data->rec->stateDateTo, 'd M');
-                 
+                if($hoursFrom != "00:00:00" && $hoursTo != "23:59:59") {
+                    $state = static::$map[$data->rec->stateInfo] . " от ". dt::mysql2verbal($data->rec->stateDateFrom, 'd M H:i') . " до ". dt::mysql2verbal($data->rec->stateDateTo, 'd M H:i');
+                } else {
+                    $state = static::$map[$data->rec->stateInfo] . " от ". dt::mysql2verbal($data->rec->stateDateFrom, 'd M') . " до ". dt::mysql2verbal($data->rec->stateDateTo, 'd M');
+                }
+                
                 if($hoursFrom == "00:00:00") {
                     $state = static::$map[$data->rec->stateInfo] . " от ". dt::mysql2verbal($data->rec->stateDateFrom, 'd M')  . " до ". dt::mysql2verbal($data->rec->stateDateTo, 'smartTime');
                 }
