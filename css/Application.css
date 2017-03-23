@@ -1439,6 +1439,15 @@ a.tOld {
   padding: 1px 2px 0px 2px !important;
   border-radius: 3px; }
 
+.approved {
+  margin-top: 3px;
+  padding: 10px 10px 5px !important; }
+
+.wide .approved {
+  position: absolute;
+  top: 7px;
+  left: 2px; }
+
 .centered {
   text-align: center; }
 

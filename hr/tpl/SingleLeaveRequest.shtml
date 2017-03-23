@@ -1,7 +1,7 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
 <!--ET_BEGIN activatedBy-->
 <div style="position: relative">
-    <div class="stamp" style="position: absolute; margin-top: 3px; top:7px; left: 2px; padding: 10px 10px 5px !important">
+    <div class="stamp approved">
         <div style="font-size: 26px;font-style: italic" class="centered">ОДОБРЕНО</div>
         <div style="margin-top: 5px;">
             <span class="fleft">[#activatedOn#]</span>
@@ -31,7 +31,7 @@
 <div class="richtext-holder indent">|Бележки|*: [#note#] </div>
 <!--ET_END note-->
 <p>|По време на отсъствието|*:</p>
-<ul class='custom-ul' style="min-width: 56em;">
+<ul class='custom-ul'>
     <li>|ще отговарям на мобилен телефон|*: <b>[#answerGSM#]</b></li>
     <li>|ще имам достъп до системата|*: <b>[#answerSystem#]</b></li>
     <!--ET_BEGIN alternatePerson-->
