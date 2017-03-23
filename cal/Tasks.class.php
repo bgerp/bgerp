@@ -412,6 +412,7 @@ class cal_Tasks extends core_Master
             $data->query->where("#createdBy = $userId");
         } else {
             $data->query->where("#sharedUsers LIKE '%|{$userId}|%'");
+            $data->query->orWhere("#assign = '{$userId}'");
         }
         
         $now = dt::now();
