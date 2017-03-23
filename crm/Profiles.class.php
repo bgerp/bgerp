@@ -494,15 +494,15 @@ class crm_Profiles extends core_Master
                 $state = static::$map[$data->rec->stateInfo] . " на ". dt::mysql2verbal($data->rec->stateDateFrom, 'd M');
                 
                 if($hoursFrom != "00:00:00") {
-                    $state = static::$map[$data->rec->stateInfo] . " на ". dt::mysql2verbal($data->rec->stateDateFrom, 'd M')  . " от ". dt::mysql2verbal($data->rec->stateDateFrom, 'H:m');
+                    $state = static::$map[$data->rec->stateInfo] . " на ". dt::mysql2verbal($data->rec->stateDateFrom, 'd M')  . " от ". dt::mysql2verbal($data->rec->stateDateFrom, 'H:i');
                 }
                 
                 if($hoursTo != "23:59:59") {
-                    $state = static::$map[$data->rec->stateInfo] . " на ". dt::mysql2verbal($data->rec->stateDateTo, 'd M')  . " до ". dt::mysql2verbal($data->rec->stateDateTo, 'H:m');
+                    $state = static::$map[$data->rec->stateInfo] . " на ". dt::mysql2verbal($data->rec->stateDateTo, 'd M')  . " до ". dt::mysql2verbal($data->rec->stateDateTo, 'H:i');
                 }
                 
                 if($hoursFrom != "00:00:00" && $hoursTo != "23:59:59") {
-                    $state = static::$map[$data->rec->stateInfo] . " от ". dt::mysql2verbal($data->rec->stateDateFrom, 'smartTime') . " до ". dt::mysql2verbal($data->rec->stateDateTo, 'H:m');
+                    $state = static::$map[$data->rec->stateInfo] . " от ". dt::mysql2verbal($data->rec->stateDateFrom, 'smartTime') . " до ". dt::mysql2verbal($data->rec->stateDateTo, 'H:i');
                 }
             } else { 
                 $state = static::$map[$data->rec->stateInfo] . " от ". dt::mysql2verbal($data->rec->stateDateFrom, 'd M') . " до ". dt::mysql2verbal($data->rec->stateDateTo, 'd M');
@@ -512,7 +512,7 @@ class crm_Profiles extends core_Master
                 }
                 
                 if($hoursTo == "23:59:59") {
-                    $state = static::$map[$data->rec->stateInfo] . " от ". dt::mysql2verbal($data->rec->stateDateTo, 'smartTime')  . " до ". dt::mysql2verbal($data->rec->stateDateTo, 'H:m');
+                    $state = static::$map[$data->rec->stateInfo] . " от ". dt::mysql2verbal($data->rec->stateDateTo, 'smartTime')  . " до ". dt::mysql2verbal($data->rec->stateDateTo, 'H:i');
                 }
                 
                 if($hoursFrom == "00:00:00" && $hoursTo == "23:59:59") {
@@ -1212,15 +1212,15 @@ class crm_Profiles extends core_Master
                             $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " на ". dt::mysql2verbal($rec->stateDateFrom, 'd M') . "</span>";
                             
                             if($hoursFrom != "00:00:00") {
-                                $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " на ". dt::mysql2verbal($rec->stateDateFrom, 'd M')  . " от ". dt::mysql2verbal($rec->stateDateFrom, 'H:m') . "</span>";
+                                $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " на ". dt::mysql2verbal($rec->stateDateFrom, 'd M')  . " от ". dt::mysql2verbal($rec->stateDateFrom, 'H:i') . "</span>";
                             }
                             
                             if($hoursTo != "23:59:59") {
-                                $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " на ". dt::mysql2verbal($rec->stateDateTo, 'd M')  . " до ". dt::mysql2verbal($rec->stateDateTo, 'H:m') . "</span>";
+                                $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " на ". dt::mysql2verbal($rec->stateDateTo, 'd M')  . " до ". dt::mysql2verbal($rec->stateDateTo, 'H:i') . "</span>";
                             }
                             
                             if($hoursFrom != "00:00:00" && $hoursTo != "23:59:59") { 
-                                $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " на ". dt::mysql2verbal($rec->stateDateFrom, 'd M')  . " от ". dt::mysql2verbal($rec->stateDateFrom, 'H:m') . " до ". dt::mysql2verbal($rec->stateDateTo, 'H:m') . "</span>";
+                                $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " на ". dt::mysql2verbal($rec->stateDateFrom, 'd M')  . " от ". dt::mysql2verbal($rec->stateDateFrom, 'H:i') . " до ". dt::mysql2verbal($rec->stateDateTo, 'H:i') . "</span>";
                             }
                         } else { 
                             $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " от ". dt::mysql2verbal($rec->stateDateFrom, 'smartTime') . " до ". dt::mysql2verbal($rec->stateDateTo, 'smartTime'). "</span>";
