@@ -4719,7 +4719,7 @@ function prepareBugReport(form, user, domain, name, ctr, act, sysDomain)
 	var browser = getUserAgent();
 	var title = sysDomain + '/' + ctr + '/' + act;
 	
-	if (url) {
+	if (url && (url.length > 250)) {
 		url = url.substring(0, 250);
 		url += '...';
 	}
