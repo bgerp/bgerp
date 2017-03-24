@@ -76,8 +76,8 @@ class transsrv_ProductDrv extends cat_ProductDriver
                                         8 = Kлac 8 - Корозионни вещества,
                                         9 = Клас 9 - Други опасни вещества)', 'caption=Информация за товара->Опасност');
         // Срокове
-        $form->FLD('loadingTime', 'datetime(format=smartTime,defaultTime=09:00:00)', 'caption=Срокове->За товарене');
-        $form->FLD('deliveryTime', 'datetime(format=smartTime,defaultTime=17:00:00)', 'caption=Срокове->За доставка');
+        $form->FLD('loadingTime', 'datetime(defaultTime=09:00:00)', 'caption=Срокове->За товарене');
+        $form->FLD('deliveryTime', 'datetime(defaultTime=17:00:00)', 'caption=Срокове->За доставка');
         
         // Обща информация
         $form->FLD('conditions', 'richtext(bucket=Notes,rows=3)', 'caption=Обща информация->Условия');
