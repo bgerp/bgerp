@@ -227,11 +227,12 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	 * @param int $rec - запис на артикул
 	 * @param array $size - размер на картинката
 	 * @param array $maxSize - макс размер на картинката
+	 * @param embed_Manager $Embedder
 	 * @return string|NULL $preview - хтмл представянето
 	 */
-	public function getPreview($rec, $size = array('280', '150'), $maxSize = array('550', '550'))
+	public function getPreview($rec, embed_Manager $Embedder, $size = array('280', '150'), $maxSize = array('550', '550'))
 	{
-		return $this->class->getPreview($rec, $size, $maxSize);
+		return $this->class->getPreview($rec, $Embedder, $size, $maxSize);
 	}
 	
 	
