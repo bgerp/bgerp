@@ -125,8 +125,8 @@ class email_Outgoings extends core_Master
     var $loadList = 'email_Wrapper, doc_DocumentPlg, plg_RowTools2, 
         plg_Printing, email_plg_Document, doc_ActivatePlg, 
         bgerp_plg_Blank,  plg_Search, recently_Plugin, plg_Clone, change_Plugin';
-	
-	
+
+
     /**
      * Кой може да променя активирани записи
      */
@@ -1087,6 +1087,76 @@ class email_Outgoings extends core_Master
             
             $mvc->checkHost($form, 'boxFrom');
         }
+        
+        // Проверяваме дали може да се изпраща до този имейл
+        if ($form->isSubmitted()) {
+            $mvc->checkForSending($form, array('emailsTo', 'emailsCc'));
+        }
+    }
+    
+    
+    /**
+     * Проверява се дали може да се изпраща имейл до съответните домейни
+     * 
+     * @param core_Form $form
+     * @param array $fieldsArr
+     */
+    protected static function checkForSending($form, $fieldsArr = array('email'))
+    {
+        $stopSendTo = email_Setup::get('STOP_SEND_TO');
+        
+        if ($stopSendTo === FALSE) continue;
+        
+        $stopSendToArr = type_Set::toArray($stopSendTo);
+        
+        $corpAcc = email_Accounts::getCorporateDomainsArr();
+        
+        // Подготвяме регулярния израз
+        foreach ($stopSendToArr as &$stopStr) {
+            $r = '__' . rand() . '__';
+            $stopStr = str_replace('*', $r, $stopStr);
+            $stopStr = preg_quote($stopStr, '/');
+            $stopStr = str_replace($r, '.*', $stopStr);
+        }
+        
+        $corporateDomains = email_Accounts::getCorporateDomainsArr();
+        
+        $rec = $form->rec;
+        foreach ($fieldsArr as $fieldName) {
+            $fValStr = $rec->{$fieldName};
+            $fValArr = type_Emails::toArray($fValStr);
+            
+            foreach ($fValArr as $fVal) {
+                if (!trim($fVal)) continue;
+                
+                $haveErr = FALSE;
+                foreach ($stopSendToArr as $stopReg) {
+                    
+                    $errMsg = 'Не е позволено изпращането до този имейл|*: ' . type_Varchar::escape($fVal);
+                    
+                    $stopReg = "/{$stopReg}/i";
+                    if (preg_match($stopReg, $fVal)) {
+                        $haveErr = TRUE;
+                    }
+                    
+                    $fVal = strtolower($fVal);
+                    
+                    // Проверяваме и дали това не е опит за изпращане към вътрешен потребител
+                    list($nick,$domain) = explode('@', $fVal);
+                    
+                    if ($corporateDomains[$domain] && core_Users::fetchField(array("LOWER(#nick) = '[#1#]'", $nick))) {
+                        $haveErr = TRUE;
+                        $errMsg .=  "<br>|Вместо това използвайте коментар със споделяне към |*" . '@' . $nick;
+                    }
+                }
+                
+                if ($haveErr) {
+                    $form->setError($fieldName, $errMsg);
+                    
+                    break;
+                }
+            }
+        }
     }
     
     
@@ -1152,6 +1222,11 @@ class email_Outgoings extends core_Master
                 }
                 
                 $mvc->checkHost($form, 'subject');
+            }
+            
+            // Проверяваме дали може да се изпраща до този имейл
+            if ($form->isSubmitted()) {
+                $mvc->checkForSending($form, array('email', 'emailCc'));
             }
             
             if (trim($form->rec->body) && (preg_match_all(type_Richtext::QUOTE_PATTERN, $form->rec->body, $matches))) {

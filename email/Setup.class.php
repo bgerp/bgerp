@@ -189,6 +189,12 @@ defIfNot('EMAIL_REPLACE_DOMAINS', '');
 
 
 /**
+ * Имейл до кото няма да се праща
+ */
+defIfNot('EMAIL_STOP_SEND_TO', 'no-reply@*,noreply@*');
+
+
+/**
  * class email_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -306,6 +312,8 @@ class email_Setup extends core_ProtoSetup
             'EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING' => array ('varchar', 'caption=Текст по подразбиране при препращане на имейл->На български, customizeBy=powerUser'),
     
             'EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING_EN' => array ('varchar', 'caption=Текст по подразбиране при препращане на имейл->На английски, customizeBy=powerUser'),
+            
+            'EMAIL_STOP_SEND_TO' => array ('varchar', 'caption=Шаблон за имейли до които няма да се праща->Шаблон'),
         );
         
         
