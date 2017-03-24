@@ -124,7 +124,13 @@ class email_Outgoings extends core_Master
      */
     var $loadList = 'email_Wrapper, doc_DocumentPlg, plg_RowTools2, 
         plg_Printing, email_plg_Document, doc_ActivatePlg, 
-        bgerp_plg_Blank,  plg_Search, recently_Plugin, plg_Clone';
+        bgerp_plg_Blank,  plg_Search, recently_Plugin, plg_Clone, change_Plugin';
+	
+	
+    /**
+     * Кой може да променя активирани записи
+     */
+    var $canChangerec = 'powerUser';
     
     
     /**
@@ -180,8 +186,8 @@ class email_Outgoings extends core_Master
      */
     function description()
     {
-        $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%,reduceText');
-        $this->FLD('body', 'richtext(rows=15,bucket=Postings)', 'caption=Съобщение,mandatory');
+        $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%,reduceText,changable');
+        $this->FLD('body', 'richtext(rows=15,bucket=Postings)', 'caption=Съобщение,mandatory,changable');
         
         $this->FLD('waiting', 'time', 'input=none, caption=Изчакване');
         $this->FLD('lastSendedOn', 'datetime(format=smartTime)', 'input=none, caption=Изпратено->на');
@@ -189,16 +195,16 @@ class email_Outgoings extends core_Master
         $this->FLD('forward', 'enum(,no=Не, yes=Да)', 'caption=Препращане, input=hidden, allowEmpty');
         
         //Данни за адресата
-        $this->FLD('email', 'emails', 'caption=Адресат->Имейл, width=100%, silent');
-        $this->FLD('emailCc', 'emails', 'caption=Адресат->Копие до,  width=100%');
-        $this->FLD('recipient', 'varchar', 'caption=Адресат->Фирма,class=contactData');
-        $this->FLD('attn', 'varchar', 'caption=Адресат->Име,oldFieldName=attentionOf,class=contactData');
-        $this->FLD('tel', 'varchar', 'caption=Адресат->Тел.,oldFieldName=phone,class=contactData');
-        $this->FLD('fax', 'drdata_PhoneType', 'caption=Адресат->Факс,class=contactData, silent');
-        $this->FLD('country', 'varchar', 'caption=Адресат->Държава,class=contactData');
-        $this->FLD('pcode', 'varchar', 'caption=Адресат->П. код,class=pCode');
-        $this->FLD('place', 'varchar', 'caption=Адресат->Град/с,class=contactData');
-        $this->FLD('address', 'varchar', 'caption=Адресат->Адрес,class=contactData');
+        $this->FLD('email', 'emails', 'caption=Адресат->Имейл, width=100%, silent,changable');
+        $this->FLD('emailCc', 'emails', 'caption=Адресат->Копие до,  width=100%,changable');
+        $this->FLD('recipient', 'varchar', 'caption=Адресат->Фирма,class=contactData,changable');
+        $this->FLD('attn', 'varchar', 'caption=Адресат->Име,oldFieldName=attentionOf,class=contactData,changable');
+        $this->FLD('tel', 'varchar', 'caption=Адресат->Тел.,oldFieldName=phone,class=contactData,changable');
+        $this->FLD('fax', 'drdata_PhoneType', 'caption=Адресат->Факс,class=contactData, silent,changable');
+        $this->FLD('country', 'varchar', 'caption=Адресат->Държава,class=contactData,changable');
+        $this->FLD('pcode', 'varchar', 'caption=Адресат->П. код,class=pCode,changable');
+        $this->FLD('place', 'varchar', 'caption=Адресат->Град/с,class=contactData,changable');
+        $this->FLD('address', 'varchar', 'caption=Адресат->Адрес,class=contactData,changable');
 
         $this->setDbIndex('createdOn');
     }
@@ -3098,5 +3104,24 @@ class email_Outgoings extends core_Master
         unset($nRec->waiting);
         unset($nRec->lastSendedOn);
         unset($nRec->lastSendedBy);
+    }
+    
+    
+    /**
+     * Проверява дали може да се променя записа в зависимост от състоянието на документа
+     * 
+     * @see change_Plugin
+     * @param core_Mvc $mvc
+     * @param boolean $res
+     * @param string $state
+     */
+    public static function on_AfterCanChangeRec($mvc, &$res, $rec)
+    {
+        // Затворените имейли също могат да се променят
+        // Само черновите имейли няма да могат да се променят, но това се задава в change_Plugin
+        if ($res !== FALSE && $rec->state == 'closed') {
+            
+            $res = TRUE;
+        }
     }
 }
