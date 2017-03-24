@@ -27,8 +27,20 @@ class cal_Tasks extends core_Master
      * 
      */
     const maxLenTitle = 120;
-
-
+    
+    
+    /**
+     * 
+     */
+    protected $limitShowMonths = 6;
+    
+    
+    /**
+     * Период на показване на чакащи и активни задачи в портала
+     */
+    protected static $taskShowPeriod = 3;
+    
+    
     /**
      * Поддържани интерфейси
      */
@@ -400,10 +412,17 @@ class cal_Tasks extends core_Master
             $data->query->where("#createdBy = $userId");
         } else {
             $data->query->where("#sharedUsers LIKE '%|{$userId}|%'");
+            $data->query->orWhere("#assign = '{$userId}'");
         }
-
+        
+        $now = dt::now();
+        $before = dt::addDays(-1 * self::$taskShowPeriod, $now);
+        $after = dt::addDays(self::$taskShowPeriod, $now);
+        
         $data->query->where("#state = 'active'");
-
+        $data->query->orWhere(array("#state = 'waiting' AND #expectationTimeStart >= '[#1#]'", $before));
+        $data->query->orWhere(array("#state = 'closed' AND #timeClosed <= '[#1#]' AND #timeClosed >= '[#2#]'", $after, $before));
+        
         // Време за подредба на записите в портала
         $data->query->orderBy("modifiedOn", "DESC");
         $data->query->orderBy("createdOn", "DESC");
@@ -440,6 +459,8 @@ class cal_Tasks extends core_Master
                 
                 if ($rec->savedState == 'waiting') {
                     $row->title = "<div class='state-pending-link'>{$row->title}</div>";
+                } elseif ($rec->savedState == 'closed') {
+                    $row->title = "<div class='state-closed-link'>{$row->title}</div>";
                 }
             }
         }
@@ -2568,9 +2589,23 @@ class cal_Tasks extends core_Master
         $query->where("#state = 'waiting'");
         $query->orWhere("#state = 'active'");
         
-        $query->orderBy('modifiedOn', 'DESC');
+        $query->EXT('recentlyLast', 'bgerp_Recently', 'externalName=last, externalKey=threadId, externalFieldName=threadId');
+        $query->EXT('recentlyUserId', 'bgerp_Recently', 'externalName=userId, externalKey=threadId, externalFieldName=threadId');
+        
+        $query->where(array("#recentlyUserId = '[#1#]'", $cu));
+        
+        $limitShowMonths = $this->limitShowMonths;
+        if ($limitShowMonths > 0) {
+            $limitShowMonths *= -1;
+        }
+        
+        $before = dt::addMonths($limitShowMonths);
+        $query->where(array("#recentlyLast > '[#1#]'", $before));
         
         doc_Threads::restrictAccess($query);
+        
+        $query->orderBy("recentlyLast", "DESC");
+        $query->orderBy('modifiedOn', 'DESC');
         
         $tArr = array();
         

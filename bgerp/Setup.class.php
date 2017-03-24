@@ -124,6 +124,14 @@ class bgerp_Setup extends core_ProtoSetup {
      * Дали пакета е системен
      */
     public $isSystem = TRUE;
+
+
+    /**
+     * Списък с мениджърите, които съдържа пакета
+     */
+    var $managers = array(
+            'migrate::addThreadIdToRecently',
+        );
     
     
     /**
@@ -310,6 +318,8 @@ class bgerp_Setup extends core_ProtoSetup {
         
         $html .= core_Classes::add('bgerp_plg_CsvExport');
         
+        $html .= parent::install();
+        
         return $html;
     }
 
@@ -358,5 +368,27 @@ class bgerp_Setup extends core_ProtoSetup {
             }
         }
     }
+    
+    
+    /**
+     * Миграция за добавяне на threadId на документите
+     */
+    public static function addThreadIdToRecently()
+    {
+        $Recently = cls::get(bgerp_Recently);
+        $rQuery = $Recently->getQuery();
+        $rQuery->where("#threadId IS NULL");
+        $rQuery->where("#objectId IS NOT NULL");
+        $rQuery->where("#objectId != ''");
+        $rQuery->where("#objectId != 0");
+        $rQuery->where("#type = 'document'");
+        
+        while($rec = $rQuery->fetch()) {
+            try {
+                $Recently->save($rec, 'threadId');
+            } catch (Exception $e) {
+                continue;
+            }
+        }
+    }
 }
-

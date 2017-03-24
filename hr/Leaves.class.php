@@ -650,8 +650,32 @@ class hr_Leaves extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+        $DateTime = cls::get(core_DateTime);
+        
     	if(isset($rec->activatedOn)){
     		$row->activatedOn = dt::mysql2verbal($rec->activatedOn, 'd.m.Y');
     	}
+    	
+    	if($rec->leaveFrom){
+    	    list($dateFrom,$hourFrom) = explode(" ", $rec->leaveFrom);
+    	    
+    	    if($hourFrom != "00:00:00") {
+    	        $row->leaveFrom = $DateTime->mysql2verbal($rec->leaveFrom, "d.m.Y");
+    	        $row->fromHour = $DateTime->mysql2verbal($rec->leaveFrom, "H:i");
+    	        
+    	    }
+    	}
+    	
+    	if($rec->leaveTo){
+    	    list($dateTo,$hourTo) = explode(" ", $rec->leaveTo);
+    	    
+    	    if($hourTo != "23:59:59") {
+    	        $row->leaveTo = $DateTime->mysql2verbal($rec->leaveTo, "d.m.Y");
+    	        $row->toHour = $DateTime->mysql2verbal($rec->leaveTo, "H:i");
+    	    }
+    	}
+
+        $myCompany = crm_Companies::fetchOurCompany();
+        $row->myCompany = $myCompany->name;
     }
 }

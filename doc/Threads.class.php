@@ -1138,7 +1138,7 @@ class doc_Threads extends core_Manager
         $exp->question("#folderId", tr("Моля, изберете папка") . ":", "#dest == 'exFolder'", 'title=' . tr('Избор на папка за нишката'));
         
         // От какъв клас е корицата на папката където е изходния тред?
-        $exp->DEF('#moveRest=Преместване на всички', 'enum(yes=Да,no=Не)');
+        $exp->DEF('#moveRest=Преместване на всички', 'enum(no=Не,yes=Да)');
         $exp->rule('#askMoveRest', "getQuestionForMoveRest(#threadId)", TRUE);
         $exp->question("#moveRest", "=#askMoveRest", '#askMoveRest && #folderId', 'title=' . tr('Групово преместване'));
         $exp->rule("#moveRest", "'no'", '!(#askMoveRest)');

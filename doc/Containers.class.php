@@ -1999,186 +1999,190 @@ class doc_Containers extends core_Manager
                 $repairAll = FALSE;
             }
             
-            while ($dRec = $dQuery->fetch()) {
-                
-                $delete = FALSE;
-                
-                // Поправяме containerId
-                if (!$dRec->containerId) {
-                    if ($dRec->state == 'rejected') {
-                        $delete = TRUE;
-                        $reason = 'Няма containerId на оттеглен документ';
-                    }
-                }
-                
-                if (!$delete) {
+            try {
+                while ($dRec = $dQuery->fetch()) {
                     
-                    // Опитваме се да сравним със записа в doc_Containers
-                    if (($docClassId = core_Classes::getId($clsInst)) && ($cId = self::fetchField(array("#docId = '[#1#]' AND #docClass = '[#2#]'", $dRec->id, $docClassId), 'id', FALSE))) {
-                        
-                        $update = TRUE;
-                        if ($repairAll) {
-                            
-                            if ($cId == $dRec->containerId) {
-                                $update = FALSE;
-                            }
-                        }
-                        
-                        if ($update) {
-                            $resArr['containerId']++;
-                            $clsInst->logNotice("Обновен containerId на документа", $dRec->id);
-                            $dRec->containerId = $cId;
-                            
-                            try {
-                                $clsInst->save($dRec, 'containerId');
-                            } catch (ErrorException $e) {
-                                reportException($e);
-                            }
-                        }
-                    } else {
-                        // Да не се изтрива, защото може и да е на наследниците или бащите
-//                         $delete = TRUE;
-                    }
-                }
-                
-                if (!$dRec->containerId) {
-                    $delete = TRUE;
-                    $reason = 'Няма containerId';
-                }
-                
-                // Поправяме originId
-                if (!$delete && $repairAll && $dRec->originId) {
+                    $delete = FALSE;
                     
-                    // Ако originId липсва в контейнерите
-                    if (!$oCRec = doc_Containers::fetch($dRec->originId, '*', FALSE)) {
-                        $resArr['originId']++;
-                        $clsInst->logNotice("Нилиран originId на документа", $dRec->id);
-                        $dRec->originId = NULL;
-                        
-                        try {
-                            $clsInst->save_($dRec, 'originId');
-                        } catch (ErrorException $e) {
-                            reportException($e);
+                    // Поправяме containerId
+                    if (!$dRec->containerId) {
+                        if ($dRec->state == 'rejected') {
+                            $delete = TRUE;
+                            $reason = 'Няма containerId на оттеглен документ';
                         }
-                    }
-                }
-                
-                // Поправяме threadId
-                if (!$delete && !$dRec->threadId) {
-                    if ($dRec->state == 'rejected') {
-                        $delete = TRUE;
-                        $reason = 'Няма threadId на оттеглен документ';
-                    }
-                }
-                
-                if (!$delete) {
-                    if ($dRec->containerId && ($threadId = self::fetchField($dRec->containerId, 'threadId', FALSE))) {
-                        
-                        $update = TRUE;
-                        if ($repairAll) {
-                        
-                            if ($threadId == $dRec->threadId) {
-                                $update = FALSE;
-                            }
-                        }
-                        
-                        if ($update) {
-                            $resArr['threadId']++;
-                            $clsInst->logNotice("Обновен threadId на документа", $dRec->id);
-                            $dRec->threadId = $threadId;
-                            try {
-                                $clsInst->save($dRec, 'threadId');
-                            } catch (ErrorException $e) {
-                                reportException($e);
-                            }
-                        }
-                    } else {
-                        $delete = TRUE;
-                        $reason = 'Няма запис в doc_Threads за containerId';
-                    }
-                    
-                }
-                
-                // Поправяме folderId
-                if (!$delete) {
-                    if (!$dRec->folderId && $dRec->state == 'rejected') {
-                        $delete = TRUE;
-                        $reason = 'Няма folderId на оттеглен документ';
                     }
                     
                     if (!$delete) {
-                        $folderId = NULL;
                         
-                        if ($dRec->containerId) {
-                            $folderId = self::fetchField($dRec->containerId, 'folderId', FALSE);
-                        }
-                        
-                        if (!$folderId && $dRec->threadId) {
-                            $folderId = doc_Threads::fetchField($dRec->threadId, 'folderId', FALSE);
-                        
-                        }
-                        
-                        if ($folderId) {
+                        // Опитваме се да сравним със записа в doc_Containers
+                        if (($docClassId = core_Classes::getId($clsInst)) && ($cId = self::fetchField(array("#docId = '[#1#]' AND #docClass = '[#2#]'", $dRec->id, $docClassId), 'id', FALSE))) {
                             
                             $update = TRUE;
                             if ($repairAll) {
-                            
-                                if ($folderId == $dRec->folderId) {
+                                
+                                if ($cId == $dRec->containerId) {
                                     $update = FALSE;
                                 }
                             }
                             
                             if ($update) {
-                                $resArr['folderId']++;
-                                $clsInst->logNotice("Обновен folderId на документа", $dRec->id);
-                                $dRec->folderId = $folderId;
+                                $resArr['containerId']++;
+                                $clsInst->logNotice("Обновен containerId на документа", $dRec->id);
+                                $dRec->containerId = $cId;
+                                
                                 try {
-                                    $clsInst->save($dRec, 'folderId');
+                                    $clsInst->save($dRec, 'containerId');
+                                } catch (ErrorException $e) {
+                                    reportException($e);
+                                }
+                            }
+                        } else {
+                            // Да не се изтрива, защото може и да е на наследниците или бащите
+//                             $delete = TRUE;
+                        }
+                    }
+                    
+                    if (!$dRec->containerId) {
+                        $delete = TRUE;
+                        $reason = 'Няма containerId';
+                    }
+                    
+                    // Поправяме originId
+                    if (!$delete && $repairAll && $dRec->originId) {
+                        
+                        // Ако originId липсва в контейнерите
+                        if (!$oCRec = doc_Containers::fetch($dRec->originId, '*', FALSE)) {
+                            $resArr['originId']++;
+                            $clsInst->logNotice("Нилиран originId на документа", $dRec->id);
+                            $dRec->originId = NULL;
+                            
+                            try {
+                                $clsInst->save_($dRec, 'originId');
+                            } catch (ErrorException $e) {
+                                reportException($e);
+                            }
+                        }
+                    }
+                    
+                    // Поправяме threadId
+                    if (!$delete && !$dRec->threadId) {
+                        if ($dRec->state == 'rejected') {
+                            $delete = TRUE;
+                            $reason = 'Няма threadId на оттеглен документ';
+                        }
+                    }
+                    
+                    if (!$delete) {
+                        if ($dRec->containerId && ($threadId = self::fetchField($dRec->containerId, 'threadId', FALSE))) {
+                            
+                            $update = TRUE;
+                            if ($repairAll) {
+                            
+                                if ($threadId == $dRec->threadId) {
+                                    $update = FALSE;
+                                }
+                            }
+                            
+                            if ($update) {
+                                $resArr['threadId']++;
+                                $clsInst->logNotice("Обновен threadId на документа", $dRec->id);
+                                $dRec->threadId = $threadId;
+                                try {
+                                    $clsInst->save($dRec, 'threadId');
                                 } catch (ErrorException $e) {
                                     reportException($e);
                                 }
                             }
                         } else {
                             $delete = TRUE;
-                            $reason = 'Не може да се определи folderId';
+                            $reason = 'Няма запис в doc_Threads за containerId';
                         }
-                    }
-                }
-                
-                // Ако не може да се поправи - премахваме записа
-                if ($delete) {
-                    try {
                         
-                        $delMsg = 'Изтрит документ' . ' - ' . $reason;
-                        if ($clsInst instanceof core_Master) {
-                            $dArr = arr::make($clsInst->details, TRUE);
+                    }
+                    
+                    // Поправяме folderId
+                    if (!$delete) {
+                        if (!$dRec->folderId && $dRec->state == 'rejected') {
+                            $delete = TRUE;
+                            $reason = 'Няма folderId на оттеглен документ';
+                        }
+                        
+                        if (!$delete) {
+                            $folderId = NULL;
                             
-                            // Изтирваме детайлите за документа
-                            if (!empty($dArr)) {
+                            if ($dRec->containerId) {
+                                $folderId = self::fetchField($dRec->containerId, 'folderId', FALSE);
+                            }
+                            
+                            if (!$folderId && $dRec->threadId) {
+                                $folderId = doc_Threads::fetchField($dRec->threadId, 'folderId', FALSE);
+                            
+                            }
+                            
+                            if ($folderId) {
                                 
-                                $delDetCnt = 0;
+                                $update = TRUE;
+                                if ($repairAll) {
                                 
-                                foreach ($dArr as $detail) {
-                                    if (!cls::load($detail, TRUE)) continue;
-                                    
-                                    $detailInst = cls::get($detail);
-                                    if (!($detailInst->Master instanceof $clsInst)) continue;
-                                    
-                                    if ($detailInst->masterKey) {
-                                        $delDetCnt += $detailInst->delete(array("#{$detailInst->masterKey} = '[#1#]'", $dRec->id));
+                                    if ($folderId == $dRec->folderId) {
+                                        $update = FALSE;
                                     }
                                 }
-                                $delMsg = "Изтрит документ и детайлите към него ({$delDetCnt})" . ' - ' . $reason;
+                                
+                                if ($update) {
+                                    $resArr['folderId']++;
+                                    $clsInst->logNotice("Обновен folderId на документа", $dRec->id);
+                                    $dRec->folderId = $folderId;
+                                    try {
+                                        $clsInst->save($dRec, 'folderId');
+                                    } catch (ErrorException $e) {
+                                        reportException($e);
+                                    }
+                                }
+                            } else {
+                                $delete = TRUE;
+                                $reason = 'Не може да се определи folderId';
                             }
                         }
-
-                        $clsInst->logInfo($delMsg, $dRec->id);
-                        $resArr['del_cnt']++;
-                        $clsInst->delete($dRec->id);
-                    } catch (ErrorException $e) {
-                        reportException($e);
+                    }
+                    
+                    // Ако не може да се поправи - премахваме записа
+                    if ($delete) {
+                        try {
+                            
+                            $delMsg = 'Изтрит документ' . ' - ' . $reason;
+                            if ($clsInst instanceof core_Master) {
+                                $dArr = arr::make($clsInst->details, TRUE);
+                                
+                                // Изтирваме детайлите за документа
+                                if (!empty($dArr)) {
+                                    
+                                    $delDetCnt = 0;
+                                    
+                                    foreach ($dArr as $detail) {
+                                        if (!cls::load($detail, TRUE)) continue;
+                                        
+                                        $detailInst = cls::get($detail);
+                                        if (!($detailInst->Master instanceof $clsInst)) continue;
+                                        
+                                        if ($detailInst->masterKey) {
+                                            $delDetCnt += $detailInst->delete(array("#{$detailInst->masterKey} = '[#1#]'", $dRec->id));
+                                        }
+                                    }
+                                    $delMsg = "Изтрит документ и детайлите към него ({$delDetCnt})" . ' - ' . $reason;
+                                }
+                            }
+    
+                            $clsInst->logInfo($delMsg, $dRec->id);
+                            $resArr['del_cnt']++;
+                            $clsInst->delete($dRec->id);
+                        } catch (ErrorException $e) {
+                            reportException($e);
+                        }
                     }
                 }
+            } catch (Exception $e) {
+                reportException($e);
             }
         }
         
