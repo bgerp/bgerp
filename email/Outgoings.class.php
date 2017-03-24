@@ -1105,7 +1105,7 @@ class email_Outgoings extends core_Master
     {
         $stopSendTo = email_Setup::get('STOP_SEND_TO');
         
-        if ($stopSendTo === FALSE) continue;
+        if ($stopSendTo === FALSE) return;
         
         $stopSendToArr = type_Set::toArray($stopSendTo);
         
