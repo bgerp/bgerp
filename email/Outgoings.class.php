@@ -1144,9 +1144,13 @@ class email_Outgoings extends core_Master
                     // Проверяваме и дали това не е опит за изпращане към вътрешен потребител
                     list($nick,$domain) = explode('@', $fVal);
                     
-                    if ($corporateDomains[$domain] && core_Users::fetchField(array("LOWER(#nick) = '[#1#]'", $nick))) {
+                    if ($corporateDomains[$domain]) {
                         $haveErr = TRUE;
-                        $errMsg .=  "<br>|Вместо това използвайте коментар със споделяне към |*" . '@' . $nick;
+                        
+                        // Ако е потребител в системата
+                        if (core_Users::fetchField(array("LOWER(#nick) = '[#1#]' AND #state != 'rejected'", $nick))) {
+                            $errMsg .=  "<br>|Вместо това използвайте коментар със споделяне към |*" . '@' . $nick;
+                        }
                     }
                 }
                 
