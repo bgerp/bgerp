@@ -409,6 +409,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * ХТМЛ представяне на артикула (img)
 	 *
 	 * @param int $rec - запис на артикул
+	 * @param embed_Manager $Embedder
 	 * @param array $size - размер на картинката
 	 * @param array $maxSize - макс размер на картинката
 	 * 
