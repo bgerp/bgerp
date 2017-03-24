@@ -1,0 +1,34 @@
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+<div>
+	<table class='styled-table'>
+		<tr>
+			<td class='quiet'>|Заглавие|*</td>
+			<td>[#title#]</td>
+		</tr>
+		
+		<!--ET_BEGIN lastRefreshed-->
+		<tr>
+			<td class='quiet'>|Актуален към|*</td>
+			<td>[#lastRefreshed#]</td>
+		</tr>
+		<!--ET_END lastRefreshed-->
+		
+		<!--ET_BEGIN UPDATE-->
+		[#UPDATE#]
+		<tr>
+			<td class='quiet'>|Обновяване|*</td>
+			<td>[#updateDays#] [#updateTime#]</td>
+		</tr>
+		<!--ET_END UPDATE-->
+		<!--ET_BEGIN notificationText-->
+		<tr>
+			<td class='quiet'>|Текст на нотификация|*</td>
+			<td><i>[#notificationText#]</i></td>
+		</tr>
+		<!--ET_END notificationText-->
+		[#DRIVER_FIELDS#]
+	</table>
+	[#DRIVER_DATA#]
+</div>
+ [#innerState#]
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

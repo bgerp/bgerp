@@ -462,7 +462,18 @@ class unit_MinkPPayment extends core_Manager {
         //$browser->setValue('valior', date('d-m-Y', $valior));
         //$browser->press('Чернова');
         //$browser->press('Контиране');
-        
+        if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 2157,43')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешна данъчна основа', 'warning');
+        }
+        if(strpos($browser->gettext(), 'ДДС 20%: BGN 431,49')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешно ДДС', 'warning');
+        }
+        if(strpos($browser->gettext(), 'Две хиляди петстотин осемдесет и осем BGN и 0,92')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
+        }
         if(strpos($browser->gettext(), 'Чакащо плащане: Просрочено')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешно чакащо плащане', 'warning');

@@ -894,15 +894,17 @@ class core_Query extends core_FieldSet
         // Добавка за връзване по външен ключ
         if (count($external = $this->selectFields("#kind == 'EXT'"))) {
             foreach ($external as $name => $fieldRec) {
-                //                if ((empty($this->show) || in_array($name, $this->show)) && $fieldRec->externalKey) {
+                $externalFieldName = $fieldRec->externalFieldName ? $fieldRec->externalFieldName : 'id';
+                $externalFieldName = str::phpToMysqlName($externalFieldName);
+                
                 if ($fieldRec->externalKey && !$isDelete) {
                     $mvc = cls::get($fieldRec->externalClass);
-                    $this->where("#{$fieldRec->externalKey} = `{$mvc->dbTableName}`.`id`");
+                    $this->where("#{$fieldRec->externalKey} = `{$mvc->dbTableName}`.`{$externalFieldName}`");
                     $this->tables[$mvc->dbTableName] = TRUE;
                 } elseif(isset($fieldRec->remoteKey) && !$isDelete) {
                 	$mvc = cls::get($fieldRec->externalClass);
                 	$remoteKey = str::phpToMysqlName($fieldRec->remoteKey);
-                	$this->where("`{$mvc->dbTableName}`.`{$remoteKey}` = `{$this->mvc->dbTableName}`.`id`");
+                	$this->where("`{$mvc->dbTableName}`.`{$remoteKey}` = `{$this->mvc->dbTableName}`.`{$externalFieldName}`");
                 	$this->tables[$mvc->dbTableName] = TRUE;
                 }
             }

@@ -1455,7 +1455,7 @@ class cat_Products extends embed_Manager {
     	if($Driver = static::getDriver($id)){
     		$rec = self::fetchRec($id);
     		
-    		return $Driver->getPreview($rec, $size, $maxSize);
+    		return $Driver->getPreview($rec, static::getSingleton(), $size, $maxSize);
     	}
     
     	// Ако няма връщаме FALSE

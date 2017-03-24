@@ -1292,15 +1292,18 @@ class doc_DocumentPlg extends core_Plugin
             $url['Q'] = $attr['Q'];
             unset($attr['Q']);
         }
-        $row       = $mvc->getDocumentRow($id);
+        
         $handle    = $mvc->getHandle($id);
-        $type      = mb_strtolower($mvc->singleTitle);
         $rec       = $mvc->fetch($id);
 
         if($maxLength > 0) {
+        	$row = $mvc->getDocumentRow($id);
             $row->title = "#{$handle} - " . str::limitLen($row->title, $maxLength);
         } elseif($maxLength === 0) {
+        	$row = new stdClass();
             $row->title = "#{$handle}";
+        } else {
+        	$row = $mvc->getDocumentRow($id);
         }
 
         $attr['ef_icon']  = $mvc->getIcon($id);

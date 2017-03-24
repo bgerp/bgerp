@@ -67,6 +67,12 @@ class cal_TaskDocuments extends core_Detail
      * Кой има право да оттегле?
      */
     public $canReject = 'powerUser';
+	
+    
+    /**
+     * Кой има право да възстановява?
+     */
+    public $canRestore = 'powerUser';
     
     
     /**
@@ -375,7 +381,10 @@ class cal_TaskDocuments extends core_Detail
 	    $res = parent::prepareDetail_($data);
 		
 		if (empty($data->recs)) {
-		    $data->disabled = TRUE;
+		    
+		    if (!self::fetch("#state = 'rejected' && #taskId = '{$data->masterData->rec->id}'")) {
+		        $data->disabled = TRUE;
+		    }
 		}
 		
 		return $res;
@@ -389,7 +398,7 @@ class cal_TaskDocuments extends core_Detail
 	 */
 	public function renderDetail_($data)
 	{
-	    if (empty($data->recs)) return ;
+	    if ($data->disabled) return ;
 		
 		return parent::renderDetail_($data);
 	}

@@ -50,7 +50,7 @@ class doc_Search extends core_Manager
     /**
      * @see plg_Search
      */
-    public $searchId = FALSE;
+    public $searchInId = FALSE;
     
     
     

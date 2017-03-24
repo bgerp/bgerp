@@ -1136,7 +1136,7 @@ class doc_Threads extends core_Manager
         $exp->question("#folderId", tr("Моля, изберете папка") . ":", "#dest == 'exFolder'", 'title=' . tr('Избор на папка за нишката'));
         
         // От какъв клас е корицата на папката където е изходния тред?
-        $exp->DEF('#moveRest=Преместване на всички', 'enum(yes=Да,no=Не)');
+        $exp->DEF('#moveRest=Преместване на всички', 'enum(no=Не,yes=Да)');
         $exp->rule('#askMoveRest', "getQuestionForMoveRest(#threadId)", TRUE);
         $exp->question("#moveRest", "=#askMoveRest", '#askMoveRest && #folderId', 'title=' . tr('Групово преместване'));
         $exp->rule("#moveRest", "'no'", '!(#askMoveRest)');
@@ -2666,7 +2666,7 @@ class doc_Threads extends core_Manager
         $form->title = 'Настройка на|* ' . $row->title;
         
         // Добавяме функционални полета
-        $form->FNC('notify', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известие при добавяне на документ->Известяване, input=input');
+        $form->FNC('notify', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при->Нов документ, input=input');
         
         $form->setDefault('notify', 'default');
         

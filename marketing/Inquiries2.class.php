@@ -732,6 +732,8 @@ class marketing_Inquiries2 extends embed_Manager
      */
     function act_New()
     {
+        Mode::set('showBulletin', FALSE);
+        
     	$this->requireRightFor('new');
     	expect($drvId = Request::get('drvId', 'int'));
     	$proto = Request::get('protos', 'varchar');
@@ -861,7 +863,7 @@ class marketing_Inquiries2 extends embed_Manager
     	
         // Премахва зададения временно текущ език
         core_Lg::pop();
-
+        
     	return $tpl;
     }
     
