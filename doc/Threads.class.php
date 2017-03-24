@@ -765,7 +765,7 @@ class doc_Threads extends core_Manager
     	$cacheKey = ($onlyVisibleForPartners === TRUE) ? "visibleDocumentsInFolder{$folderId}" : "folder{$folderId}";
     	
     	// Проверяваме имали кеширани данни
-    	$options = core_Cache::get("doc_Folders", $cacheKey);
+    	$options = FALSE; // core_Cache::get("doc_Folders", $cacheKey);
     	
     	// Ако няма кеширани данни, извличаме ги наново
     	if($options === FALSE) {
@@ -774,7 +774,9 @@ class doc_Threads extends core_Manager
     		$query = doc_Threads::getQuery();
     		$query->where("#folderId = {$folderId}");
     		$query->EXT('firstDocumentClassId', 'doc_Containers', 'externalName=docClass,externalKey=firstContainerId');
-    		
+            $year = dt::addDays(-360);
+            $query->where("#modifiedOn >= '{$year}'");
+	
     		// Ако ще проверяваме за партньори, оставяме само видимите за тях документи
     		if($onlyVisibleForPartners){
     			$query->EXT('visibleForPartners', 'doc_Containers', 'externalName=visibleForPartners,externalKey=firstContainerId');
