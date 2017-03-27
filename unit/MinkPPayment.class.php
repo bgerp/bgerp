@@ -381,7 +381,6 @@ class unit_MinkPPayment extends core_Manager {
             $browser->press('Нов...');
             $browser->press('Продажба');
         }
-         
         $valior=strtotime("-4 Days");
         $browser->setValue('valior', date('d-m-Y', $valior));
         $browser->setValue('reff', 'exp');
@@ -398,14 +397,14 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('productId', 'Други продукти');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '010+03*08');//34
-        $browser->setValue('packPrice', '066-3*0.8');//63,6
+        $browser->setValue('packPrice', '016-3*0.8');//13,6
         $browser->setValue('discount', '0.23');
         // Записваме артикула и добавяме нов - услуга
         $browser->press('Запис и Нов');
         $browser->setValue('productId', 'Транспорт');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '140 / 05-03*08');//4
-        $browser->setValue('packPrice', '100/05+3*08');//44
+        $browser->setValue('packPrice', '10/05+3*08');//26
         $browser->setValue('discount', 1);
         // Записваме артикула
         $browser->press('Запис');
@@ -415,11 +414,11 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('action_ship', False);
         $browser->press('Активиране/Контиране');
        
-        if(strpos($browser->gettext(), 'ДДС 20%: BGN 466,34')) {
+        if(strpos($browser->gettext(), 'ДДС 20%: BGN 112,86')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешно ДДС', 'warning');
         }
-        if(strpos($browser->gettext(), 'Две хиляди седемстотин деветдесет и осем BGN и 0,01')) {
+        if(strpos($browser->gettext(), 'Шестстотин седемдесет и седем BGN и 0,16')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
@@ -443,6 +442,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Експедиране');
         $browser->setValue('valior', date('d-m-Y', $valior));
         $browser->setValue('storeId', 'Склад 1');
+        $browser->setValue('template', 'Експедиционно нареждане');
         $browser->press('Чернова');
         $browser->press('Контиране');
     
@@ -461,15 +461,15 @@ class unit_MinkPPayment extends core_Manager {
         //$browser->setValue('valior', date('d-m-Y', $valior));
         //$browser->press('Чернова');
         //$browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Данъчна основа 20%:	BGN	2157,43')) {
+        if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 461,34')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа', 'warning');
         }
-        if(strpos($browser->gettext(), 'ДДС 20%: BGN 431,49')) {
+        if(strpos($browser->gettext(), 'ДДС 20%: BGN 92,27')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешно ДДС', 'warning');
         }
-        if(strpos($browser->gettext(), 'Две хиляди петстотин осемдесет и осем BGN и 0,92')) {
+        if(strpos($browser->gettext(), 'Петстотин петдесет и три BGN и 0,61')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
@@ -478,7 +478,7 @@ class unit_MinkPPayment extends core_Manager {
             return unit_MinkPbgERP::reportErr('Грешно чакащо плащане', 'warning');
         }
     }
-    
+       
     /**
      * 2.
      * Проверка състояние плащане - просрочено, доставено и нефактурирано
