@@ -6,22 +6,22 @@
 |Има актуална версия от|* [#checkoutDate#] [#checkoutBtn#]
 </div>
 <!--ET_END UPDATE-->
-<div>
-	<!--ET_BEGIN DRIVER_FIELDS-->
-	<table class='styled-table'>
-		[#DRIVER_FIELDS#]
-	</table>
-	<!--ET_END DRIVER_FIELDS-->
-	[#DRIVER_DATA#]
-</div>
+
+<!--ET_BEGIN DRIVER_FIELDS-->
+<table class='styled-table'>
+	[#DRIVER_FIELDS#]
+</table>
+<!--ET_END DRIVER_FIELDS-->
+[#DRIVER_DATA#]
+
 
 <div>
 [#innerState#]
 </div>
 <!--ET_BEGIN frame2_ReportVersions-->
-	<div style='font-size:0.85em;margin-top:10px'>
- 	<div style='font-weight:bold'>|Предишни състояния|*</div>
+<fieldset class='detail-info' style="font-size: 0.8em">
+	<legend style="font-weight: bold">|Предишни състояния|*</legend>
  	[#frame2_ReportVersions#]
- 	</div>
+</fieldset>
 <!--ET_END frame2_ReportVersions-->
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
