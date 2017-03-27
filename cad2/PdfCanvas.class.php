@@ -220,10 +220,10 @@ class cad2_PdfCanvas extends cad2_Canvas {
     /**
      * Изписва текст
      */
-    public function writeText($x, $y, $text, $rotation = 0, $absolute = TRUE)
+    public function writeText($x, $y, $text, $rotation = 0, $absolute = TRUE, $link = NULL)
     {   
         $this->toAbs($x, $y, $absolute);
-        $e = (object) array('tag' => 'text', 'x' => $x, 'y' => $y, 'rotation' => $rotation, 'text' => $text, 'attr' => $this->attr);
+        $e = (object) array('tag' => 'text', 'x' => $x, 'y' => $y, 'rotation' => $rotation, 'text' => $text, 'attr' => $this->attr, 'link' => $link);
 
         $this->fitPoint($x, $y);
 
@@ -625,7 +625,7 @@ class cad2_PdfCanvas extends cad2_Canvas {
             $this->pdf->SetTextColorArray($color);
         }
 
-        $this->pdf->Text($e->x + $this->addX, $e->y + $this->addY, $e->text);
+        $this->pdf->Text($e->x + $this->addX, $e->y + $this->addY, $e->text, FALSE, FALSE, TRUE, 0, 0, '', FALSE, $e->link);
 
         $this->pdf->StopTransform();
     }
