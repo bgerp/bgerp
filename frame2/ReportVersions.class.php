@@ -278,11 +278,17 @@ class frame2_ReportVersions extends core_Detail
 		
 		// Изтриване на стари версии
 		if($count > $maxCount){
+			$versionArr = Mode::get(self::PERMANENT_SAVE_NAME);
+			
 			while($rec = $query->fetch()){
+				unset($versionArr[$rec->id]);
 				self::delete($rec->id);
 				$count--;
+				
 				if($count <= $maxCount) break;
 			}
+			
+			Mode::setPermanent(self::PERMANENT_SAVE_NAME, $versionArr);
 		}
 	}
 	

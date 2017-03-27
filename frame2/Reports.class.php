@@ -490,9 +490,9 @@ class frame2_Reports extends embed_Manager
     {
     	// Ако има избрана версия записа се подменя преди да се е подготвил
     	if($versionId = self::getSelectedVersionId($data->rec->id)){
-    		$versionRec = frame2_ReportVersions::fetchField($versionId, 'oldRec');
-    		
-    		$data->rec = $versionRec;
+    		if($versionRec = frame2_ReportVersions::fetchField($versionId, 'oldRec')){
+    			$data->rec = $versionRec;
+    		}
     	}
     }
     
@@ -518,7 +518,7 @@ class frame2_Reports extends embed_Manager
     				// Показва се информация
     				if(frame2_ReportVersions::haveRightFor('checkout', $latestVersionId)){
     					$checkoutUrl = array('frame2_ReportVersions', 'checkout', $latestVersionId, 'ret_url' => $mvc->getSingleUrlArray($rec->id));
-    					$row->checkoutBtn = ht::createBtn('Обнови', $checkoutUrl, FALSE, FALSE, 'ef_icon=arrow_refresh.png');
+    					$row->checkoutBtn = ht::createLink('Избор', $checkoutUrl, FALSE);
     					$row->checkoutDate = frame2_ReportVersions::getVerbal($latestVersionId, 'createdOn');
     				}
     			}
