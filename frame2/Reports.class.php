@@ -326,7 +326,7 @@ class frame2_Reports extends embed_Manager
     	}
     	
     	if($mvc->haveRightFor('export', $rec)){
-    		$data->toolbar->addBtn('Експорт в CSV', array($mvc, 'export', $rec->id), NULL, 'ef_icon=img/16/file_extension_xls.png, title=Сваляне на записите в CSV формат,row=1');
+    		$data->toolbar->addBtn('Експорт в CSV', array($mvc, 'export', $rec->id), NULL, 'ef_icon=img/16/file_extension_xls.png, title=Сваляне на записите в CSV формат,row=2');
     	}
     }
     

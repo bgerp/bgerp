@@ -52,7 +52,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 	 * 
 	 * @var инт
 	 */
-	private $listItemsPerPage = 50;
+	private $listItemsPerPage = 5;
 	
 	
 	/**
@@ -334,7 +334,6 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 							              'dealerId'          => $sRec->dealerId,
 							              'readiness'         => $readiness);
 					
-					//'valior'            => $soRec->valior,
 					$data->recs[$sRec->containerId] = $dRec;
 				}
 			}
@@ -545,7 +544,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 	
 	
 	/**
-	 * Връща редовете на експортирания файл
+	 * Връща полетата за експортиране във csv
 	 *
 	 * @param stdClass $rec
 	 * @return array

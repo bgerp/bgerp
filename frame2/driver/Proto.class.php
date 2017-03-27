@@ -142,7 +142,7 @@ abstract class frame2_driver_Proto extends core_BaseClass
 	
 	/**
 	 * Връща редовете на CSV файл-а
-	 * 
+	 *
 	 * @param stdClass $rec
 	 * @return array
 	 */
@@ -153,8 +153,8 @@ abstract class frame2_driver_Proto extends core_BaseClass
 	
 	
 	/**
-	 * Връща редовете на експортирания файл
-	 * 
+	 * Връща полетата за експортиране във csv
+	 *
 	 * @param stdClass $rec
 	 * @return array
 	 */

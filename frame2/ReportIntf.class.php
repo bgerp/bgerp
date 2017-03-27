@@ -112,4 +112,28 @@ class frame2_ReportIntf extends embed_DriverIntf
 	{
 		return $this->class->canBeRefreshedOnTime($rec);
 	}
+	
+	
+	/**
+	 * Връща редовете на CSV файл-а
+	 *
+	 * @param stdClass $rec
+	 * @return array
+	 */
+	public function getCsvExportRows($rec)
+	{
+		return $this->class->getCsvExportRows($rec);
+	}
+	
+	
+	/**
+	 * Връща полетата за експортиране във csv
+	 *
+	 * @param stdClass $rec
+	 * @return array
+	 */
+	public function getCsvExportFieldset($rec)
+	{
+		return $this->class->getCsvExportFieldset($rec);
+	}
 }
