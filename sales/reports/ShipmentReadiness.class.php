@@ -334,7 +334,6 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 			$shipQuery = store_ShipmentOrders::getQuery();
 			$shipQuery->where("#state = 'pending'");
 			$shipQuery->where("#threadId = {$sRec->threadId}");
-			$shipQuery->show('containerId,folderId,state,storeId');
 			
 			while($soRec = $shipQuery->fetch()){
 				
