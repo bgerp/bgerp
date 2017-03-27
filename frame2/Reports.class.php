@@ -447,6 +447,10 @@ class frame2_Reports extends embed_Manager
     				$requiredRoles = 'no_one';
     			}
     		}
+    		
+    		if($rec->state == 'rejected'){
+    			$requiredRoles = 'no_one';
+    		}
     	}
     }
     
