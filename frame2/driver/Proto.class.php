@@ -100,6 +100,7 @@ abstract class frame2_driver_Proto extends core_BaseClass
 	{
 		$params = array();
 		$params['handle'] = "#" . frame2_Reports::getHandle($rec->id);
+		$params['lastRefreshed'] = frame2_Reports::getVerbal($rec, 'lastRefreshed');
 		
 		return $params;
 	}

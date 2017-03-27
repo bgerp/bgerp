@@ -231,7 +231,6 @@ class frame2_ReportVersions extends core_Detail
 		$versionArr = Mode::get(static::PERMANENT_SAVE_NAME);
 		$versionArr = is_array($versionArr) ? $versionArr : array();
 		$versionArr[$rec->reportId] = $rec->id;
-		
 		Mode::setPermanent(static::PERMANENT_SAVE_NAME, $versionArr);
 		
 		// Редирект към спавката
@@ -288,6 +287,7 @@ class frame2_ReportVersions extends core_Detail
 				if($count <= $maxCount) break;
 			}
 			
+			// Махане от сесията на изтритите записи
 			Mode::setPermanent(self::PERMANENT_SAVE_NAME, $versionArr);
 		}
 	}

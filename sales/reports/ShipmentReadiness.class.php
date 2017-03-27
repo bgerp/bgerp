@@ -52,7 +52,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 	 * 
 	 * @var инт
 	 */
-	private $listItemsPerPage = 5;
+	private $listItemsPerPage = 50;
 	
 	
 	/**
@@ -112,14 +112,16 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		$data->rows = array();
 		
 		// Подготовка на пейджъра
-		$data->Pager = cls::get('core_Pager',  array('itemsPerPage' => $this->listItemsPerPage));
-		$data->Pager->setPageVar('frame2_Reports', $rec->id);
-		$data->Pager->itemsCount = count($data->recs);
+		if(!Mode::isReadOnly()){
+			$data->Pager = cls::get('core_Pager',  array('itemsPerPage' => $this->listItemsPerPage));
+			$data->Pager->setPageVar('frame2_Reports', $rec->id);
+			$data->Pager->itemsCount = count($data->recs);
+		}
 		
 		// Вербализиране само на нужните записи
 		if(is_array($data->recs)){
 			foreach ($data->recs as $index => $dRec){
-				if(!$data->Pager->isOnPage()) continue;
+				if(isset($data->Pager) && !$data->Pager->isOnPage()) continue;
 				$data->rows[$index] = $this->detailRecToVerbal($dRec);
 			}
 		}

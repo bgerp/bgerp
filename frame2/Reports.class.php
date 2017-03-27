@@ -566,17 +566,19 @@ class frame2_Reports extends embed_Manager
     	expect($rec = $this->fetch($id));
     	$this->requireRightFor('export', $rec);
     
-    	if($versionId = self::getSelectedVersionId($data->rec->id)){
+    	// Ако е избрана версия експортира се тя
+    	if($versionId = self::getSelectedVersionId($id)){
     		if($versionRec = frame2_ReportVersions::fetchField($versionId, 'oldRec')){
     			$rec = $versionRec;
     		}
     	}
     	
+    	// Подготовка на данните
     	$Driver = $this->getDriver($rec);
-   	    
     	$csvExportRows = $Driver->getCsvExportRows($rec);
     	$fields = $Driver->getCsvExportFieldset($rec);
     	
+    	// Създаване на csv-то
     	$csv = csv_Lib::createCsv($csvExportRows, $fields);
     	$csv .= "\n" . $rCsv;
     	
