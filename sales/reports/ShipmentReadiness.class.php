@@ -74,9 +74,9 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 	 */
 	public function addFields(core_Fieldset &$fieldset)
 	{
-		$fieldset->FLD('dealers', 'userList(roles=ceo|sales)', 'caption=Дилъри,after=title,mandatory,single=none');
+		$fieldset->FLD('dealers', 'keylist(mvc=core_Users,select=nick)', 'caption=Дилъри,after=title,mandatory,single=none');
 		$fieldset->FLD('precision', 'percent(min=0,max=1)', 'caption=Готовност,unit=и нагоре,after=dealers');
-		$fieldset->FLD('orderBy', 'enum(readiness=Готовност,contragents=Контрагенти)', 'caption=Подредба по,after=precision');
+		$fieldset->FLD('orderBy', 'enum(readiness=По готовност,contragents=По контрагенти)', 'caption=Подредба,after=precision');
 	}
 	
 	
@@ -154,10 +154,11 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 	 */
 	private function getListFields($rec)
 	{
-		$fields = array('dealerId'   => 'Търговец', 
-				        'contragent' => 'Контрагент', 
-				        'document'   => 'Документ', 
-				        'readiness'  => 'Готовност');
+		$fields = array('dealerId'     => 'Търговец', 
+				        'contragent'   => 'Контрагент',
+						'deliveryTime' => 'Доставка',
+				        'document'     => 'Документ', 
+				        'readiness'    => 'Готовност');
 		
 		return $fields;
 	}
@@ -183,7 +184,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		// Линк към контрагента
 		$key = "{$dRec->contragentClassId}|{$dRec->contragentId}";
 		if(!array_key_exists($key, self::$contragentNames)){
-			self::$contragentNames[$key] = cls::get($dRec->contragentClassId)->getShortHyperlink($dRec->contragentId, 'name');
+			self::$contragentNames[$key] = cls::get($dRec->contragentClassId)->getShortHyperlink($dRec->contragentId);
 		}
 		$row->contragent = self::$contragentNames[$key];
 		
@@ -193,6 +194,16 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		$row->document = ht::createLink("#{$handle}", $singleUrl, FALSE, "ef_icon={$Document->singleIcon}");
 		$row->readiness = cls::get('type_Percent')->toVerbal($dRec->readiness);
 		$row->ROW_ATTR['class'] = "state-{$Document->fetchField('state')}";
+		
+		if($dRec->readiness == 0){
+			$row->readiness = "<span class='quiet'>{$row->readiness}<span>";
+		} elseif($dRec->readiness >= 0.8) {
+			$row->readiness = "<span style='color:blue'>{$row->readiness}<span>";
+		} else {
+			$row->readiness = "<span style='color:green'>{$row->readiness}<span>";
+		}
+		
+		$row->deliveryTime = cls::get('type_Datetime')->toVerbal($dRec->deliveryTime);
 		
 		return $row;
 	}
@@ -211,6 +222,27 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		if(isset($rec->precision)){
 			$row->precision .= " " . tr('и нагоре');
 		}
+		
+		$dealers = keylist::toArray($rec->dealers);
+		foreach ($dealers as $userId => &$nick) {
+			$nick = crm_Profiles::createLink($userId)->getContent();
+		}
+		
+		$row->dealers = implode(', ', $dealers);
+	}
+	
+	
+	/**
+	 * След рендиране на единичния изглед
+	 *
+	 * @param cat_ProductDriver $Driver
+	 * @param embed_Manager $Embedder
+	 * @param core_ET $tpl
+	 * @param stdClass $data
+	 */
+	public static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
+	{
+		$tpl->append(tr("|*<fieldset><legend class='groupTitle'><small><b>|Дилъри|*</b></small></legend><small>{$data->row->dealers}</small></fieldset>"), 'DRIVER_FIELDS');
 	}
 	
 	
@@ -238,6 +270,9 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 	 */
 	public function prepareData($rec)
 	{
+		core_App::setTimeLimit(150);
+		$Sales = sales_Sales::getSingleton();
+		
 		$data = new stdClass();
 		$data->recs = array();
 		
@@ -266,15 +301,23 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 				// И тя е в посочения диапазон
 				if(!isset($rec->precision) || (isset($rec->precision) && $readiness >= $rec->precision)){
 					
+					$delTime = (!empty($sRec->deliveryTime)) ? $sRec->deliveryTime : (!empty($sRec->deliveryTermTime) ?  dt::addSecs($sRec->deliveryTermTime, $sRec->valior) : NULL);
+					if(empty($delTime)){
+						$delTime = $Sales->getMaxDeliveryTime($sRec->id);
+						$delTime = ($delTime) ? $delTime : $sRec->valior;
+					}
+					
 					// Добавя се
 					$dRec = (object)array('containerId'       => $sRec->containerId,
 							              'contragentName'    => self::normalizeFolderName($sRec->folderId),
 										  'contragentClassId' => $sRec->contragentClassId,
 										  'contragentId'      => $sRec->contragentId,
+										  'deliveryTime'      => $delTime,
 							              'folderId'          => $sRec->folderId,
 							              'dealerId'          => $sRec->dealerId,
 							              'readiness'         => $readiness);
 					
+					//'valior'            => $soRec->valior,
 					$data->recs[$sRec->containerId] = $dRec;
 				}
 			}
@@ -300,11 +343,14 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 					// И тя е в посочения диапазон
 					if(isset($rec->precision) && $readiness1 < $rec->precision) continue;
 					
+					$deliveryTime = !empty($soRec->deliveryTime) ? $soRec->deliveryTime : $soRec->valior;
+					
 					// Добавя се
 					$r = (object)array('containerId'       => $soRec->containerId,
 							           'contragentName'    => self::normalizeFolderName($soRec->folderId),
 							           'contragentClassId' => $sRec->contragentClassId,
 							           'contragentId'      => $sRec->contragentId,
+									   'deliveryTime'      => $deliveryTime,
 							           'folderId'          => $soRec->folderId, 
 							           'dealerId'          => $sRec->dealerId, 
 							           'readiness'         => $readiness1);
