@@ -74,6 +74,12 @@ class frame2_Reports extends embed_Manager
     /**
      * Права за писане
      */
+    public $canExport = 'ceo, report, admin';
+    
+    
+    /**
+     * Права за писане
+     */
     public $canRefresh = 'ceo, report, admin';
     
     
@@ -318,6 +324,10 @@ class frame2_Reports extends embed_Manager
     	if($mvc->haveRightFor('refresh', $rec)){
     		$data->toolbar->addBtn('Обнови', array($mvc, 'refresh', $rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/arrow_refresh.png,title=Обновяване на отчета');
     	}
+    	
+    	if($mvc->haveRightFor('export', $rec)){
+    		$data->toolbar->addBtn('Експорт в CSV', array($mvc, 'export', $rec->id), NULL, 'ef_icon=img/16/file_extension_xls.png, title=Сваляне на записите в CSV формат,row=1');
+    	}
     }
     
     
@@ -349,6 +359,7 @@ class frame2_Reports extends embed_Manager
     	
     	// Рендиране на данните
     	if($Driver = $mvc->getDriver($rec)){
+    		$rec->data = $Driver->prepareData($rec);
     		$tpl->append($Driver->renderData($rec), 'DRIVER_DATA');
     	}
     }
@@ -452,6 +463,12 @@ class frame2_Reports extends embed_Manager
     			$requiredRoles = 'no_one';
     		}
     	}
+    	
+    	if($action == 'export' && isset($rec)){
+    		if(!$mvc->haveRightFor('single', $rec)){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
     }
     
     
@@ -536,5 +553,42 @@ class frame2_Reports extends embed_Manager
     			}
     		}
     	}
+    }
+    
+    
+    /**
+     * Екшън който експортира данните
+     */
+    public function act_Export()
+    {
+		// Проверка за права
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	$this->requireRightFor('export', $rec);
+    
+    	if($versionId = self::getSelectedVersionId($data->rec->id)){
+    		if($versionRec = frame2_ReportVersions::fetchField($versionId, 'oldRec')){
+    			$rec = $versionRec;
+    		}
+    	}
+    	
+    	$Driver = $this->getDriver($rec);
+   	    
+    	$csvExportRows = $Driver->getCsvExportRows($rec);
+    	$fields = $Driver->getCsvExportFieldset($rec);
+    	
+    	$csv = csv_Lib::createCsv($csvExportRows, $fields);
+    	$csv .= "\n" . $rCsv;
+    	
+    	$fileName = str_replace(' ', '_', Str::utf2ascii($Driver->title));
+    	 
+    	header("Content-type: application/csv");
+    	header("Content-Disposition: attachment; filename={$fileName}.csv");
+    	header("Pragma: no-cache");
+    	header("Expires: 0");
+    	 
+    	echo $csv;
+    
+    	shutdown();
     }
 }

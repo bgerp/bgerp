@@ -138,4 +138,28 @@ abstract class frame2_driver_Proto extends core_BaseClass
 			}
 		}
 	}
+	
+	
+	/**
+	 * Връща редовете на CSV файл-а
+	 * 
+	 * @param stdClass $rec
+	 * @return array
+	 */
+	public function getCsvExportRows($rec)
+	{
+		return array();
+	}
+	
+	
+	/**
+	 * Връща редовете на експортирания файл
+	 * 
+	 * @param stdClass $rec
+	 * @return array
+	 */
+	public function getCsvExportFieldset($rec)
+	{
+		return new core_FieldSet();
+	}
 }
