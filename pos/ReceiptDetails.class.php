@@ -550,9 +550,11 @@ class pos_ReceiptDetails extends core_Detail {
     	}
     	
     	if(!$product->packagingId){
-    		
-    		// По дефолт винаги избираме основната мярка/опаковка ако не е зададено друго
-    		$basePackId = $rec->value;
+    		if(isset($rec->value)){
+    			$basePackId = $rec->value;
+    		} else {
+    			$basePackId = key(cat_Products::getPacks($product->productId));
+    		}
     	} else {
     		$basePackId = $product->packagingId;
     	}
