@@ -1,34 +1,27 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+
+<!--ET_BEGIN UPDATE-->
+[#UPDATE#]
+<div class='report-new-version-info'>
+|Има актуална версия от|* [#checkoutDate#] [#checkoutBtn#]
+</div>
+<!--ET_END UPDATE-->
 <div>
+	<!--ET_BEGIN DRIVER_FIELDS-->
 	<table class='styled-table'>
-		<tr>
-			<td class='quiet'>|Заглавие|*</td>
-			<td>[#title#]</td>
-		</tr>
-		
-		<!--ET_BEGIN lastRefreshed-->
-		<tr>
-			<td class='quiet'>|Актуален към|*</td>
-			<td>[#lastRefreshed#]</td>
-		</tr>
-		<!--ET_END lastRefreshed-->
-		
-		<!--ET_BEGIN UPDATE-->
-		[#UPDATE#]
-		<tr>
-			<td class='quiet'>|Обновяване|*</td>
-			<td>[#updateDays#] [#updateTime#]</td>
-		</tr>
-		<!--ET_END UPDATE-->
-		<!--ET_BEGIN notificationText-->
-		<tr>
-			<td class='quiet'>|Текст на нотификация|*</td>
-			<td><i>[#notificationText#]</i></td>
-		</tr>
-		<!--ET_END notificationText-->
 		[#DRIVER_FIELDS#]
 	</table>
+	<!--ET_END DRIVER_FIELDS-->
 	[#DRIVER_DATA#]
 </div>
- [#innerState#]
+
+<div>
+[#innerState#]
+</div>
+<!--ET_BEGIN frame2_ReportVersions-->
+	<div style='font-size:0.85em;margin-top:10px'>
+ 	<div style='font-weight:bold'>|Предишни състояния|*</div>
+ 	[#frame2_ReportVersions#]
+ 	</div>
+<!--ET_END frame2_ReportVersions-->
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
