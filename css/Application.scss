@@ -2371,6 +2371,7 @@ ul.history {
 .narrow ul.history {
 	white-space: nowrap;
 	display: inline-block;
+	min-width: 0 !important;
 	li {
 		line-height: 1.2;
 		display: inline-block;

@@ -2078,7 +2078,8 @@ ul.history {
 
 .narrow ul.history {
   white-space: nowrap;
-  display: inline-block; }
+  display: inline-block;
+  min-width: 0 !important; }
   .narrow ul.history li {
     line-height: 1.2;
     display: inline-block;
