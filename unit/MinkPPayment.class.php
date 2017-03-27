@@ -714,8 +714,8 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Активиране');
         // Изключваме плащането
         //$browser->setValue('action_pay', False);
-        // Изключваме експедирането
-        $browser->setValue('action_ship', False);
+        //Изключваме експедирането
+        //$browser->setValue('action_ship', False);
         
        //return  $browser->getHtml();
         $browser->press('Активиране/Контиране');
