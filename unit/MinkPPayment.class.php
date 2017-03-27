@@ -411,7 +411,6 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Запис');
         // активираме продажбата
         $browser->press('Активиране');
-        //return  $browser->getHtml();
         // Изключваме експедирането
         $browser->setValue('action_ship', False);
         $browser->press('Активиране/Контиране');
@@ -462,7 +461,7 @@ class unit_MinkPPayment extends core_Manager {
         //$browser->setValue('valior', date('d-m-Y', $valior));
         //$browser->press('Чернова');
         //$browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 2157,43')) {
+        if(strpos($browser->gettext(), 'Данъчна основа 20%:	BGN	2157,43')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа', 'warning');
         }
@@ -512,7 +511,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('template', "Договор за продажба");
         // Записваме черновата на продажбата
         $browser->press('Чернова');
-        // Добавяме нов артикул
+        // Добавяме артикул
         // За да смята добре с водещи нули - апостроф '023+045*03', '013+091*02'
         $browser->press('Артикул');
         $browser->setValue('productId', 'Други продукти');
@@ -715,9 +714,12 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Активиране');
         // Изключваме плащането
         //$browser->setValue('action_pay', False);
-        //return  $browser->getHtml();
+        //Изключваме експедирането
+        //$browser->setValue('action_ship', False);
+        
+       //return  $browser->getHtml();
         $browser->press('Активиране/Контиране');
-        ////Да се изключи експедирането!
+        
          
         if(strpos($browser->gettext(), 'ДДС 20%: BGN 87,05')) {
         } else {
