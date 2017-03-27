@@ -191,16 +191,24 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		// Линк към документа
 		$singleUrl = $Document->getSingleUrlArray();
 		$handle = $Document->getHandle();
-		$row->document = ht::createLink("#{$handle}", $singleUrl, FALSE, "ef_icon={$Document->singleIcon}");
-		$row->readiness = cls::get('type_Percent')->toVerbal($dRec->readiness);
-		$row->ROW_ATTR['class'] = "state-{$Document->fetchField('state')}";
 		
-		if($dRec->readiness == 0){
-			$row->readiness = "<span class='quiet'>{$row->readiness}<span>";
-		} elseif($dRec->readiness >= 0.8) {
-			$row->readiness = "<span style='color:blue'>{$row->readiness}<span>";
-		} else {
-			$row->readiness = "<span style='color:green'>{$row->readiness}<span>";
+		$row->document = "#{$handle}";
+		if(!Mode::isReadOnly()){
+			$row->document = ht::createLink("#{$handle}", $singleUrl, FALSE, "ef_icon={$Document->singleIcon}");
+		}
+		
+		$row->readiness = cls::get('type_Percent')->toVerbal($dRec->readiness);
+		
+		if(!Mode::isReadOnly()){
+			$row->ROW_ATTR['class'] = "state-{$Document->fetchField('state')}";
+			
+			if($dRec->readiness == 0){
+				$row->readiness = "<span class='quiet'>{$row->readiness}<span>";
+			} elseif($dRec->readiness >= 0.8) {
+				$row->readiness = "<span style='color:blue'>{$row->readiness}<span>";
+			} else {
+				$row->readiness = "<span style='color:green'>{$row->readiness}<span>";
+			}
 		}
 		
 		$row->deliveryTime = cls::get('type_Datetime')->toVerbal($dRec->deliveryTime);

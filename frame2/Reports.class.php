@@ -54,6 +54,12 @@ class frame2_Reports extends embed_Manager
 
     
     /**
+     * Да се забрани ли кеширането на документа
+     */
+    public $preventCache = TRUE;
+    
+    
+    /**
      * Права за писане
      */
     public $canWrite = 'ceo, report, admin';
@@ -326,6 +332,9 @@ class frame2_Reports extends embed_Manager
     	$this->requireRightFor('refresh', $rec);
     	
     	self::refresh($rec, $save = TRUE);
+    	$versionArr = Mode::get(frame2_ReportVersions::PERMANENT_SAVE_NAME);
+    	unset($versionArr[$rec->id]);
+    	Mode::setPermanent(frame2_ReportVersions::PERMANENT_SAVE_NAME, $versionArr);
     	
     	return followRetUrl();
     }
@@ -361,7 +370,6 @@ class frame2_Reports extends embed_Manager
     		// Опресняват се данните му
     		$rec->data = $Driver->prepareData($rec);
     		$rec->lastRefreshed = dt::now();
-    		
     		
     		// Запис на променените полета
     		$me->save_($rec, 'data,lastRefreshed');

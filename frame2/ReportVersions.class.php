@@ -169,7 +169,7 @@ class frame2_ReportVersions extends core_Detail
 		
 		if($mvc->haveRightFor('checkout', $rec->id)){
 			$url = array($mvc, 'checkout', $rec->id, 'ret_url' => frame2_Reports::getSingleUrlArray($rec->reportId));
-			$icon = ($rec->id == $selectedId) ? 'img/16/checkbox_yes.png' : 'img/16/checkbox_no.png';
+			$icon = ($rec->id == $selectedId) ? 'img/16/radio-button.png' : 'img/16/radio-button-uncheck.png ';
 			$row->createdOn = ht::createLink($row->createdOn, $url, FALSE, "ef_icon={$icon},title=Избор на версия");
 		}
 	}
