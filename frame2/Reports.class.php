@@ -351,9 +351,7 @@ class frame2_Reports extends embed_Manager
     	$this->requireRightFor('refresh', $rec);
     	
     	self::refresh($rec, $save = TRUE);
-    	$versionArr = Mode::get(frame2_ReportVersions::PERMANENT_SAVE_NAME);
-    	unset($versionArr[$rec->id]);
-    	Mode::setPermanent(frame2_ReportVersions::PERMANENT_SAVE_NAME, $versionArr);
+    	frame2_ReportVersions::unSelectVersion($rec->id);
     	
     	return followRetUrl();
     }
