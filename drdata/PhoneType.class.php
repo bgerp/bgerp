@@ -156,7 +156,7 @@ class drdata_PhoneType extends type_Varchar
 
         if ($parsedTel == FALSE) {
 
-            return "<span class='red'>{$telNumber}</span>";
+            return "<span class='red' title='" . tr('Неразпознаваем телефонен номер||Unrecognizable phone number') . "'>{$telNumber}</span>";
         } else {
             $res = new ET();
             $value = '';
