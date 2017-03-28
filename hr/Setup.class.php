@@ -75,7 +75,6 @@ class hr_Setup extends core_ProtoSetup
    		    'hr_Departments',
             'hr_WorkingCycles',
             'hr_WorkingCycleDetails',
-            'hr_WorkingShiftsDetails',
             'hr_WorkingCycles',
 			'hr_Positions',
             'hr_ContractTypes',

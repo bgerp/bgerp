@@ -348,7 +348,7 @@ class cad2_SvgCanvas extends cad2_Canvas {
     /**
      * Изписва текст
      */
-    public function writeText($x, $y, $text, $rotation = 0, $absolute = TRUE)
+    public function writeText($x, $y, $text, $rotation = 0, $absolute = TRUE, $link = NULL)
     {
         $this->closePath(FALSE);
 

@@ -231,4 +231,52 @@ class hr_WorkingCycleDetails extends core_Detail
             }
         }
     }
+
+    
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    public function loadSetupData()
+    {
+        // Подготвяме пътя до файла с данните
+        $file = "hr/csv/WorkingCycles.csv";
+         
+        // Кои колонки ще вкарваме
+        $fields = array(
+            0 => "csv_cycleId",
+            1 => "day",
+            2 => "start",
+            3 => "duration",
+            4 => "break",
+        );
+
+        // Импортираме данните от CSV файла.
+        // Ако той не е променян - няма да се импортират повторно
+        $cntObj = csv_Lib::importOnce($this, $file, $fields, NULL, NULL);
+         
+        // Записваме в лога вербалното представяне на резултата от импортирането
+        $res = $cntObj->html;
+    
+        return $res;
+    }
+    
+    
+    /**
+     * Изпълнява се преди импортирването на данните
+     */
+    public static function on_BeforeImportRec($mvc, &$rec)
+    {
+        if(!hr_WorkingCycles::count()) {
+            $rec->cycleId = 1;
+            $rec->createdBy = -1;
+        } else {
+            $query = hr_WorkingCycles::getQuery();
+            $query->where("#sysId = 'dayShift'");
+
+            $recSys = $query->fetch();
+         
+            $rec->cycleId = $recSys->id;
+            $rec->createdBy = -1;
+        }
+    }
 }

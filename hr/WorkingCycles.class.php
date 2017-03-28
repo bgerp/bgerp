@@ -36,7 +36,7 @@ class hr_WorkingCycles extends core_Master
     /**
      * @todo Чака за документация...
      */
-    public $details = 'hr_WorkingCycleDetails,hr_WorkingShiftsDetails';
+    public $details = 'hr_WorkingCycleDetails';
     
     
     /**
@@ -89,9 +89,9 @@ class hr_WorkingCycles extends core_Master
     
     
     /**
-     * @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
-    public $singleFields = 'id,name,cycleDuration,info';
+    public $listFields = 'id,name,cycleDuration';
     
     
     /**
@@ -137,6 +137,7 @@ class hr_WorkingCycles extends core_Master
     {
         $this->FLD('name', 'varchar', 'caption=Наименование, width=100%,mandatory');
         $this->FLD('cycleDuration', 'int(min=1)', 'caption=Брой дни, width=50px, mandatory');
+        $this->FLD('sysId', 'varchar', "caption=Служебно ид,input=none");
         
         // $this->FLD('cycleMeasure', 'enum(days=Дни,weeks=Седмици)', 'caption=Цикъл->Мярка, maxRadio=4,mandatory');
         // $this->FLD('serial', 'text', "caption=Последователност,hint=На всеки ред запишете: \nчасове работа&#44; минути почивка&#44; неработни часове");
@@ -667,5 +668,38 @@ class hr_WorkingCycles extends core_Master
             
             return self::renderGrafic($data);
         }
+    }
+    
+    
+    /**
+     * Създава начални шаблони за трудови договори, ако такива няма
+     */
+    function on_AfterSetUpMvc($mvc, &$res)
+    {
+        if(!self::count()) {
+            // Стандартен работен график
+            $rec = new stdClass();
+            
+            $rec->name = 'Дневен график';
+            $rec->cycleDuration = 7;
+            $rec->sysId = 'dayShift';
+            $rec->createdBy = -1;
+            
+            self::save($rec);
+        } else{
+            $query = self::getQuery();
+            
+            // Намираме тези, които са създадени от системата
+            $query->where("#createdBy = -1");
+            $sysContracts = array();
+            
+            while ($recPrev = $query->fetch()){
+                $rec = new stdClass();
+                $rec->id = $recPrev->id;
+                $rec->name = 'Дневен график';
+                
+                self::save($rec, 'name');
+            }                                                                                         
+        }   
     }
 }

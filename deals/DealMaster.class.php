@@ -454,11 +454,11 @@ abstract class deals_DealMaster extends deals_DealBase
 						$data->query->where("#state = 'active' OR #state = 'closed'");
 						break;
 					case 'undelivered':
-						$data->query->where("#deliveredRound < #dealRound");
+						$data->query->where("#deliveredRound < #dealRound OR #deliveredRound IS NULL");
 						$data->query->where("#state = 'active'");
 						break;
 					case 'unpaid':
-						$data->query->where("#paidRound < #deliveredRound");
+						$data->query->where("#paidRound < #deliveredRound OR #paidRound IS NULL");
 						$data->query->where("#state = 'active'");
 						break;
 				}
@@ -1013,7 +1013,7 @@ abstract class deals_DealMaster extends deals_DealBase
      * @param int $id
      * @return int|NULL
      */
-    private function getMaxDeliveryTime($id)
+    public function getMaxDeliveryTime($id)
     {
     	$maxDeliveryTime = NULL;
     	

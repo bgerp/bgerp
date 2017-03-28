@@ -809,6 +809,16 @@ div.productImage {
 	}
 }
 
+.report-new-version-info {
+	margin-top: 15px;
+	border: 1px solid #ccc;
+	padding: 5px 5px 5px 10px;
+	background: rgba(255,255,190, 0.5);
+	font-size: 0.9em;
+	color:#222;
+	border-radius:5px;
+}
+
 .products-table,  .jobTable, .general-product-description, .sales_SalesDetails .productImage{
 	a.fancybox img{
 		max-width: 320px;
@@ -2371,6 +2381,7 @@ ul.history {
 .narrow ul.history {
 	white-space: nowrap;
 	display: inline-block;
+	min-width: 0 !important;
 	li {
 		line-height: 1.2;
 		display: inline-block;
