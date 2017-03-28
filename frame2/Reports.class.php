@@ -611,7 +611,7 @@ class frame2_Reports extends embed_Manager
     	$fileName = str_replace(' ', '_', Str::utf2ascii($rec->title));
     	 
     	header("Content-type: application/csv");
-    	header("Content-Disposition: attachment; filename={$fileName}.csv");
+    	header("Content-Disposition: attachment; filename={$fileName}({$rec->id}).csv");
     	header("Pragma: no-cache");
     	header("Expires: 0");
     	 
@@ -623,7 +623,9 @@ class frame2_Reports extends embed_Manager
     
     /**
      * Задаване на автоматично време за изпълнение
-     * @param unknown $id
+     * 
+     * @param int $id
+     * @return void
      */
     public static function setAutoToRefresh($id)
     {
