@@ -535,7 +535,8 @@ class core_Users extends core_Manager
         }
         
         if(!self::isUsersEmpty()) {
-            $roleTypes = core_Roles::getGroupedOptions();
+            $roleTypes = core_Roles::getGroupedOptions((boolean) $form->rec->id);
+            
             asort($roleTypes['job']);
             asort($roleTypes['system']);
             asort($roleTypes['position']);
