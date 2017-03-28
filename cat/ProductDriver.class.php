@@ -300,11 +300,11 @@ abstract class cat_ProductDriver extends core_BaseClass
                         $tpl->prepend($dhtml, $field->inlineTo);
                     } else {
                         if($field->singleCaption == '@') {
-                            $dhtml = new ET("<tr><td>&nbsp;&nbsp;</td><td colspan=2 style='padding-left:5px; font-weight:bold;'>" . $data->row->{$name} . " {$unit}[#$name#]</td></tr>");
+                            $dhtml = new ET("<tr><td>&nbsp;&nbsp;</td><td colspan=2 style='padding-left:5px; font-weight:bold;vertical-align:bottom;'>" . $data->row->{$name} . " {$unit}[#$name#]</td></tr>");
                         } elseif($field->singleCaption) {
                             $caption = tr($field->singleCaption);
                         } else {
-                            $dhtml = new ET("<tr><td>&nbsp;-&nbsp;</td> <td> {$caption}:</td><td style='padding-left:5px; font-weight:bold;'>" . $data->row->{$name} . " {$unit}[#$name#]</td></tr>");
+                            $dhtml = new ET("<tr><td>&nbsp;-&nbsp;</td> <td> {$caption}:</td><td style='padding-left:5px; font-weight:bold;vertical-align:bottom;'>" . $data->row->{$name} . " {$unit}[#$name#]</td></tr>");
                         }
                         $tpl->append($dhtml, 'INFO');
                     }
