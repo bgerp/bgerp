@@ -246,6 +246,13 @@ class frame2_Reports extends embed_Manager
     			// Флаг че датата трябва да се рефрешне
     			if($refresh === TRUE){
     				$rec->refreshData = TRUE;
+    			} else {
+    				if(isset($rec->id)){
+    					$oldRec = self::fetch($rec->id);
+    					if($rec->maxKeepHistory != $oldRec->maxKeepHistory){
+    						$rec->updateVersionHistory = TRUE;
+    					}
+    				}
     			}
     		}
     		
@@ -253,6 +260,8 @@ class frame2_Reports extends embed_Manager
     		if(empty($rec->title)){
     			$form->setError('title', 'Задайте име на справката');
     		}
+    		
+    		frame2_ReportVersions::unSelectVersion($rec->id);
     	}
     }
     
@@ -342,9 +351,7 @@ class frame2_Reports extends embed_Manager
     	$this->requireRightFor('refresh', $rec);
     	
     	self::refresh($rec, $save = TRUE);
-    	$versionArr = Mode::get(frame2_ReportVersions::PERMANENT_SAVE_NAME);
-    	unset($versionArr[$rec->id]);
-    	Mode::setPermanent(frame2_ReportVersions::PERMANENT_SAVE_NAME, $versionArr);
+    	frame2_ReportVersions::unSelectVersion($rec->id);
     	
     	return followRetUrl();
     }
@@ -386,8 +393,8 @@ class frame2_Reports extends embed_Manager
     		$me->save_($rec, 'data,lastRefreshed');
     		
     		// Записване в опашката че отчета е бил опреснен
-    		$me->refreshReports[$rec->id] = $rec;
     		if(frame2_ReportVersions::log($rec->id, $rec)){
+    			$me->refreshReports[$rec->id] = $rec;
     			if(core_Users::getCurrent() != core_Users::SYSTEM_USER){
     				core_Statuses::newStatus('Справката е актуализирана');
     			}
@@ -407,7 +414,7 @@ class frame2_Reports extends embed_Manager
     			if($Driver = $mvc->getDriver($rec)){
     				
     				// Проверява се трябва ли да бъде изпратена нова нотификация до споделените
-    				if($Driver->canSendNotification($rec)){
+    				if($Driver->canSendNotificationOnRefresh($rec)){
     					
     					// Ако да то се нотифицират всички споделени потребители
     					self::sendNotification($rec);
@@ -429,6 +436,10 @@ class frame2_Reports extends embed_Manager
     {
     	if($rec->refreshData === TRUE){
     		self::refresh($rec);
+    	}
+    	
+    	if($rec->updateVersionHistory === TRUE){
+    		frame2_ReportVersions::keepInCheck($rec->id);
     	}
     }
     
@@ -536,6 +547,7 @@ class frame2_Reports extends embed_Manager
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if(isset($fields['-single'])){
+    		
     		// Ако има избрана версия
     		$selectedVersionid = self::getSelectedVersionId($rec->id);
     		if(isset($selectedVersionid) && !Mode::isReadOnly()){

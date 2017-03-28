@@ -50,7 +50,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 	/**
 	 * Брой записи на страница
 	 * 
-	 * @var инт
+	 * @var int
 	 */
 	private $listItemsPerPage = 50;
 	
