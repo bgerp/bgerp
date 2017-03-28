@@ -180,14 +180,16 @@ class core_Roles extends core_Manager
     /**
      * Връща масив от групирани по тип опции за ролите
      * 
-     * @param boolean $hideClosed
+     * @param array $rolesArr
      */
-    public static function getGroupedOptions($hideClosed = TRUE)
+    public static function getGroupedOptions($rolesArr = array())
     {
         $query = self::getQuery();
         
-        if (!$hideClosed) {
-            $query->where("#state != 'closed'");
+        $query->where("#state != 'closed'");
+        
+        if (!empty($rolesArr)) {
+            $query->in('id', $rolesArr, FALSE, TRUE);
         }
         
         $types = $query->getFieldType('type')->options;
