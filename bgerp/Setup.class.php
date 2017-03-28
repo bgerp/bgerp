@@ -58,6 +58,12 @@ defIfNot('BGERP_SOUND_ON_NOTIFICATION', 'scanner');
 
 
 /**
+ * Кога е началото на работния ден
+ */
+defIfNot('BGERP_START_OF_WORKING_DAY', '08:00');
+
+
+/**
  * class 'bgerp_Setup' - Начално установяване на 'bgerp'
  *
  *
@@ -111,6 +117,7 @@ class bgerp_Setup extends core_ProtoSetup {
         
         'BGERP_RECENTLY_KEEP_DAYS' => array ('time(suggestions=180 дни|360 дни|540 дни,unit=days)', 'caption=Време за съхранение на историята в "Последно"->Време'),
 
+        'BGERP_START_OF_WORKING_DAY' => array ('enum(08:00,09:00,10:00,11:00,12:00)', 'caption=Начало на работния ден->Час'),
      );
     
     
