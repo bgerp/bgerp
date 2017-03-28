@@ -222,7 +222,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 			}
 		}
 		
-		$row->deliveryTime = ($isPlain) ? frame_CsvLib::toCsvFormatData($dRec->deliveryTime) : cls::get('type_Datetime')->toVerbal($dRec->deliveryTime);
+		$row->deliveryTime = ($isPlain) ? frame_CsvLib::toCsvFormatData($dRec->deliveryTime) : dt::mysql2verbal($dRec->deliveryTime);
 		
 		return $row;
 	}
@@ -296,6 +296,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		$data->recs = array();
 		
 		$dealers = keylist::toArray($rec->dealers);
+		$startOfTheDay = bgerp_Setup::get('START_OF_WORKING_DAY');
 		
 		// Всички чакащи и активни продажби на избраните дилъри
 		$sQuery = sales_Sales::getQuery();
@@ -324,6 +325,11 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 					if(empty($delTime)){
 						$delTime = $Sales->getMaxDeliveryTime($sRec->id);
 						$delTime = ($delTime) ? $delTime : $sRec->valior;
+					}
+					
+					$delTime = str_replace('00:00', $startOfTheDay, $delTime);
+					if(strpos($delTime, ':') === FALSE){
+						$delTime .= " {$startOfTheDay}"; 
 					}
 					
 					// Добавя се
@@ -361,6 +367,11 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 					if(isset($rec->precision) && $readiness1 < $rec->precision) continue;
 					
 					$deliveryTime = !empty($soRec->deliveryTime) ? $soRec->deliveryTime : $soRec->valior;
+					$deliveryTime = str_replace('00:00', $startOfTheDay, $deliveryTime);
+					
+					if(strpos($deliveryTime, ':') === FALSE){
+						$deliveryTime .= " {$startOfTheDay}";
+					}
 					
 					// Добавя се
 					$r = (object)array('containerId'       => $soRec->containerId,
