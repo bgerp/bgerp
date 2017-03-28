@@ -2154,7 +2154,11 @@ class doc_DocumentPlg extends core_Plugin
         if ($action == 'psingle' && $rec) {
             $modeAllowedContainerIdName = $mvc->getAllowedContainerName();
             $allowedCidArr = Mode::get($modeAllowedContainerIdName);
-             
+            
+            if (!$rec->containerId && $rec->id) {
+                $rec->containerId = $mvc->fetchField($rec->id, 'containerId');
+            }
+            
             if (!$rec->containerId || !$allowedCidArr[$rec->containerId]) {
                 $requiredRoles = 'no_one';
             }
