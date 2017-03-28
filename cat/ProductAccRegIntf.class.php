@@ -190,13 +190,13 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      *
      * @param int $id - ид на артикул
      * @param core_RowToolbar $toolbar - тулбара
-     * @param mixed $docClass - класа документа
-     * @param int $docId - ид на документа
+     * @param mixed $detailClass - класа на детайла на документа
+     * @param int $detailId - ид на реда от детайла на документа
      * @return void
      */
-    public function addButtonsToDocToolbar($id, core_RowToolbar &$toolbar, $docClass, $docId)
+    public function addButtonsToDocToolbar($id, core_RowToolbar &$toolbar, $detailClass, $detailId)
     {
-    	return $this->class->addButtonsToDocToolbar($id, $toolbar, $docClass, $docId);
+    	return $this->class->addButtonsToDocToolbar($id, $toolbar, $detailClass, $detailId);
     }
     
     

@@ -374,7 +374,7 @@ abstract class deals_DealDetail extends doc_Detail
      * Преди подготовка на полетата за показване в списъчния изглед
      */
     public static function on_AfterPrepareListRows($mvc, $data)
-    {
+    { 
     	if(!count($data->recs)) return;
     	
     	$recs = &$data->recs;
@@ -388,8 +388,8 @@ abstract class deals_DealDetail extends doc_Detail
     	
     	foreach ($rows as $id => &$row){
     		$rec = $recs[$id];
-    		core_RowToolbar::createIfNotExists($row->_rowTools);
-    		cat_Products::addButtonsToDocToolbar($rec->productId, $row->_rowTools, $mvc->Master->getClassId(), $masterRec->id);
+    		core_RowToolbar::createIfNotExists($row->_rowTools); 
+    		cat_Products::addButtonsToDocToolbar($rec->productId, $row->_rowTools, $mvc->className, $id);
     		
     		// Показване на вашия реф, ако има
     		if(isset($listId)){

@@ -2556,14 +2556,14 @@ class cat_Products extends embed_Manager {
      * 
      * @param int $id - ид на артикул
      * @param core_RowToolbar $toolbar - тулбара
-     * @param mixed $docClass - класа документа
-     * @param int $docId - ид на документа
+     * @param mixed $detailClass - класа на детайла на документа
+     * @param int $detailId - ид на реда от детайла на документа
      * @return void
      */
-    public static function addButtonsToDocToolbar($id, core_RowToolbar &$toolbar, $docClass, $docId)
+    public static function addButtonsToDocToolbar($id, core_RowToolbar &$toolbar, $detailClass, $detailId)
     {
     	if($Driver = self::getDriver($id)){
-    		$Driver->addButtonsToDocToolbar($id, $toolbar, $docClass, $docId);
+    		$Driver->addButtonsToDocToolbar($id, $toolbar, $detailClass, $detailId);
     	}
     }
     

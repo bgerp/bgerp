@@ -253,13 +253,13 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	 *
 	 * @param int $id - ид на артикул
 	 * @param core_RowToolbar $toolbar - тулбара
-	 * @param mixed $docClass - класа документа
-	 * @param int $docId - ид на документа
+	 * @param mixed $detailClass - класа на детаила в документа
+	 * @param int $detailId - ид на реда от документа
 	 * @return void
 	 */
-	public function addButtonsToDocToolbar($id, core_RowToolbar &$toolbar, $docClass, $docId)
+	public function addButtonsToDocToolbar($id, core_RowToolbar &$toolbar, $detailClass, $detailId)
 	{
-		return $this->class->addButtonsToDocToolbar($id, $toolbar, $docClass, $docId);
+		return $this->class->addButtonsToDocToolbar($id, $toolbar, $detailClass, $detailId);
 	}
 	
 	
