@@ -84,9 +84,9 @@ class frame2_ReportIntf extends embed_DriverIntf
 	 * @param stdClass $rec
 	 * @return boolean
 	 */
-	public function canSendNotification($rec)
+	public function canSendNotificationOnRefresh($rec)
 	{
-		return $this->class->canSendNotification($rec);
+		return $this->class->canSendNotificationOnRefresh($rec);
 	}
 	
 	

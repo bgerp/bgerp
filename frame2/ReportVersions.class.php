@@ -3,7 +3,7 @@
 
 
 /**
- * Кеш на изгледа на частните артикули
+ * Версии на новите справки
  *
  *
  * @category  bgerp
@@ -227,11 +227,7 @@ class frame2_ReportVersions extends core_Detail
 		expect($rec = $this->fetch($id));
 		$this->requireRightFor('checkout', $rec);
 		
-		// Добавяне на избраната версия в сесията
-		$versionArr = Mode::get(static::PERMANENT_SAVE_NAME);
-		$versionArr = is_array($versionArr) ? $versionArr : array();
-		$versionArr[$rec->reportId] = $rec->id;
-		Mode::setPermanent(static::PERMANENT_SAVE_NAME, $versionArr);
+		self::checkoutVersion($rec->reportId, $rec->id);
 		
 		// Редирект към спавката
 		return followRetUrl();
@@ -261,7 +257,7 @@ class frame2_ReportVersions extends core_Detail
 	 * @param int $reportId
 	 * @return int|NULL
 	 */
-	private static function keepInCheck($reportId)
+	public static function keepInCheck($reportId)
 	{
 		// максимален брой на изтриване
 		$maxCount = self::getMaxCount($reportId);
@@ -270,25 +266,20 @@ class frame2_ReportVersions extends core_Detail
 		$query = self::getQuery();
 		$query->where("#reportId = {$reportId}");
 		$query->orderBy('id', 'ASC');
-		$query->show('id');
+		$query->show('id,reportId');
 		
 		// Ако ограничението е надминато
 		$count = $query->count();
 		
 		// Изтриване на стари версии
 		if($count > $maxCount){
-			$versionArr = Mode::get(self::PERMANENT_SAVE_NAME);
-			
 			while($rec = $query->fetch()){
-				unset($versionArr[$rec->id]);
+				self::unSelectVersion($rec->reportId);
 				self::delete($rec->id);
 				$count--;
 				
 				if($count <= $maxCount) break;
 			}
-			
-			// Махане от сесията на изтритите записи
-			Mode::setPermanent(self::PERMANENT_SAVE_NAME, $versionArr);
 		}
 	}
 	
@@ -307,5 +298,37 @@ class frame2_ReportVersions extends core_Detail
 		$query->show('id');
 		
 		return $query->fetch()->id;
+	}
+	
+	
+	/**
+	 * Деселектиране на избраната версия на отчета от сета
+	 * 
+	 * @param int $reportId
+	 * @return void
+	 */
+	public static function unSelectVersion($reportId)
+	{
+		$versionArr = Mode::get(self::PERMANENT_SAVE_NAME);
+		if(!isset($versionArr[$reportId])) return;
+		
+		unset($versionArr[$reportId]);
+		Mode::setPermanent(self::PERMANENT_SAVE_NAME, $versionArr);
+	}
+	
+	
+	/**
+	 * Избор на определена версия
+	 *
+	 * @param int $reportId  - ид на отчет
+	 * @param int $versionId - ид на версия
+	 * @return void     
+	 */
+	public static function checkoutVersion($reportId, $versionId)
+	{
+		$versionArr = Mode::get(self::PERMANENT_SAVE_NAME);
+		$versionArr = is_array($versionArr) ? $versionArr : array();
+		$versionArr[$reportId] = $versionId;
+		Mode::setPermanent(self::PERMANENT_SAVE_NAME, $versionArr);
 	}
 }

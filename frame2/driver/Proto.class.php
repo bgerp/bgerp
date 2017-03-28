@@ -84,7 +84,7 @@ abstract class frame2_driver_Proto extends core_BaseClass
 	 * @param stdClass $rec
 	 * @return boolean
 	 */
-	public function canSendNotification($rec)
+	public function canSendNotificationOnRefresh($rec)
 	{
 		return TRUE;
 	}
