@@ -180,7 +180,7 @@ class frame2_Reports extends embed_Manager
     {
     	$this->FLD('title', 'varchar', 'caption=Заглавие');
     	$this->FLD('updateDays', 'set(monday=Понеделник,tuesday=Вторник,wednesday=Сряда,thursday=Четвъртък,friday=Петък,saturday=Събота,sunday=Неделя)', 'caption=Обновяване->Дни');
-    	$this->FLD('updateTime', 'set(08:00=08:00,09:00=9:00,11:00=11:00)', 'caption=Обновяване->Час');
+    	$this->FLD('updateTime', 'set(08:00=08:00,09:00=9:00,10:00=10:00,11:00=11:00,12:00=12:00)', 'caption=Обновяване->Час');
     	$this->FLD('notificationText', 'varchar', 'caption=Нотифициране при обновяване->Текст,mandatory');
     	$this->FLD('sharedUsers', 'userList(roles=powerUser)', 'caption=Нотифициране при обновяване->Потребители,mandatory');
     	$this->FLD('maxKeepHistory', 'int(Min=0)', 'caption=Запазване на предишни състояния->Версии,autohide,placeholder=Неограничено');
