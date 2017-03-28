@@ -562,4 +562,41 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		
 		return $fieldset;
 	}
+	
+	
+	/**
+	 * Да се изпраща ли нова нотификация на споделените потребители, при опресняване на отчета
+	 *
+	 * @param stdClass $rec
+	 * @return boolean $res
+	 */
+	public function canSendNotificationOnRefresh($rec)
+	{
+		$query = frame2_ReportVersions::getQuery();
+		$query->where("#reportId = {$rec->id}");
+		$query->orderBy('id', 'DESC');
+		$query->limit(2);
+		$all = $query->fetchAll();
+		unset($all[key($all)]);
+		
+		if(!count($all)) return TRUE;
+		$oldRec = $all[key($all)]->oldRec;
+		
+		$dataRecsNew = $rec->data->recs;
+		$dataRecsOld = $oldRec->data->recs;
+		
+		$newContainerIds = $oldContainerIds = array();
+		if(is_array($rec->data->recs)){
+			$newContainerIds = arr::extractValuesFromArray($rec->data->recs, 'containerId');
+		}
+		
+		if(is_array($oldRec->data->recs)){
+			$oldContainerIds = arr::extractValuesFromArray($oldRec->data->recs, 'containerId');
+		}
+		
+		$diff = array_diff_key($newContainerIds, $oldContainerIds);
+		$res = (is_array($diff) && count($diff));
+		
+		return $res;
+	}
 }
