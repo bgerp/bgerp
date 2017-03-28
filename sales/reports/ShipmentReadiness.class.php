@@ -91,6 +91,33 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 	{
 		$form = &$data->form;
 		
+		// Всички активни потебители
+		$uQuery = core_Users::getQuery();
+		$uQuery->where("#state = 'active'");
+		$uQuery->orderBy("#names", 'ASC');
+		$uQuery->show('id');
+		
+		// Които са търговци
+		$roles = core_Roles::getRolesAsKeylist('ceo,sales');
+		$uQuery->likeKeylist('roles', $roles);
+		$allDealers = arr::extractValuesFromArray($uQuery->fetchAll(), 'id');
+		
+		// Към тях се добавят и вече избраните търговци
+		if(isset($form->rec->dealers)){
+			$dealers = keylist::toArray($form->rec->dealers);
+			$allDealers = array_merge($allDealers, $dealers);
+		}
+		
+		// Вербализират се
+		$suggestions = array();
+		foreach ($allDealers as $dealerId){
+			$suggestions[$dealerId] = core_Users::fetchField($dealerId, 'nick');
+		}
+		
+		// Задават се като предложение
+		$form->setSuggestions('dealers', $suggestions);
+		
+		// Ако текущия потребител е търговец добавя се като избран по дефолт
 		if(haveRole('sales')){
 			$form->setDefault('dealers', keylist::addKey('', core_Users::getCurrent()));
 		}
@@ -157,7 +184,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 	private function getListFields($rec)
 	{
 		$fields = array('dealerId'     => 'Търговец', 
-				        'contragent'   => 'Контрагент',
+				        'contragent'   => 'Клиент',
 						'deliveryTime' => 'Доставка',
 				        'document'     => 'Документ', 
 				        'readiness'    => 'Готовност');
@@ -566,7 +593,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 	{
 		$fieldset = new core_FieldSet();
 		$fieldset->FLD('dealerId', 'varchar','caption=Търговец');
-		$fieldset->FLD('contragent', 'varchar','caption=Контрагент');
+		$fieldset->FLD('contragent', 'varchar','caption=Клиент');
 		$fieldset->FLD('deliveryTime', 'varchar','caption=Доставка');
 		$fieldset->FLD('document', 'varchar','caption=Документ');
 		$fieldset->FLD('readiness', 'varchar','caption=Готовност %');
@@ -583,13 +610,17 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 	 */
 	public function canSendNotificationOnRefresh($rec)
 	{
+		// Намира се последните две версии
 		$query = frame2_ReportVersions::getQuery();
 		$query->where("#reportId = {$rec->id}");
 		$query->orderBy('id', 'DESC');
 		$query->limit(2);
+		
+		// Маха се последната
 		$all = $query->fetchAll();
 		unset($all[key($all)]);
 		
+		// Ако няма предпоследна, бие се нотификация
 		if(!count($all)) return TRUE;
 		$oldRec = $all[key($all)]->oldRec;
 		
@@ -605,6 +636,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 			$oldContainerIds = arr::extractValuesFromArray($oldRec->data->recs, 'containerId');
 		}
 		
+		// Ако има нови документи бие се нотификация
 		$diff = array_diff_key($newContainerIds, $oldContainerIds);
 		$res = (is_array($diff) && count($diff));
 		
