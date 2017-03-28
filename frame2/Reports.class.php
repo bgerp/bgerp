@@ -511,8 +511,8 @@ class frame2_Reports extends embed_Manager
     	$resArr['title'] = array('name' => tr('Заглавие'), 'val' => $row->title);
     	
     	if(!empty($rec->updateDays) || !empty($rec->updateTime)){
-    		$resArr['update'] = array('name' => tr('Актуализиране'), 'val' => tr("|*<div><!--ET_BEGIN updateDays--><span style='font-weight:normal'>|Дни|*</span>: [#updateDays#]<!--ET_END updateDays-->
-        																		 <!--ET_BEGIN updateTime--><br><span style='font-weight:normal'>|Часове|*</span>: [#updateTime#]<!--ET_END updateTime-->"));										 
+    		$resArr['update'] = array('name' => tr('Актуализиране'), 'val' => tr("|*<!--ET_BEGIN updateDays--><div><span style='font-weight:normal'>|Дни|*</span>: [#updateDays#]<br><!--ET_END updateDays-->
+        																		 <!--ET_BEGIN updateTime--><span style='font-weight:normal'>|Часове|*</span>: [#updateTime#]<!--ET_END updateTime-->"));										 
     	}
     	
     	if(isset($rec->lastRefreshed)){
