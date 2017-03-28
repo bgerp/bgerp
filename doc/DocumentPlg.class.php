@@ -1962,7 +1962,13 @@ class doc_DocumentPlg extends core_Plugin
                 	    $modeAllowedContainerIdName = $mvc->getAllowedContainerName();
                 	    $allowedCidArr = Mode::get($modeAllowedContainerIdName);
                 	    
-                	    if ($rec->containerId && $allowedCidArr[$rec->containerId]) {
+                	    $cId = $rec->containerId;
+                	    
+                	    if (!$cId && $rec->id) {
+                	        $cId = $mvc->fetchField($rec->id, 'containerId');
+                	    }
+                	    
+                	    if ($cId && $allowedCidArr[$cId]) {
                 	        $requiredRoles = $mvc->getRequiredRoles('psingle', $rec, $userId);
                 	    }
                 	}
@@ -2155,11 +2161,13 @@ class doc_DocumentPlg extends core_Plugin
             $modeAllowedContainerIdName = $mvc->getAllowedContainerName();
             $allowedCidArr = Mode::get($modeAllowedContainerIdName);
             
-            if (!$rec->containerId && $rec->id) {
-                $rec->containerId = $mvc->fetchField($rec->id, 'containerId');
+            $cId = $rec->containerId;
+            
+            if (!$cId && $rec->id) {
+                $cId = $mvc->fetchField($rec->id, 'containerId');
             }
             
-            if (!$rec->containerId || !$allowedCidArr[$rec->containerId]) {
+            if (!$cId || !$allowedCidArr[$cId]) {
                 $requiredRoles = 'no_one';
             }
         }
