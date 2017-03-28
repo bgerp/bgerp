@@ -3257,16 +3257,20 @@ class doc_Containers extends core_Manager
      * 
      * @param int $containerId - ид на контейнера
      * @param string $msg      - съобщение за нотифициране
+     * @param array|NULL $url  - съобщение за нотифициране
      * @return void
      */
-    public static function notifyToSubscribedUsers($containerId, $msg)
+    public static function notifyToSubscribedUsers($containerId, $msg, $url = NULL)
     {
     	// Намиране на споделените потребители в документа
     	$sharedUsers = doc_Containers::getSubscribedUsers($containerId);
     	if(!count($sharedUsers)) return;
     	
-    	$doc = doc_Containers::getDocument($containerId);
-    	$url = $doc->getSingleUrlArray();
+    	if(!isset($url)){
+    		$doc = doc_Containers::getDocument($containerId);
+    		$url = $doc->getSingleUrlArray();
+    		unset($url['ret_url']);
+    	}
     	
     	// На всеки от абонираните потребители се изпраща нотификацията
     	foreach ($sharedUsers as $userId){

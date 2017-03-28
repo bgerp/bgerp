@@ -460,7 +460,7 @@ class cal_Tasks extends core_Master
                 $row->title = ht::createLink($title, self::getSingleUrlArray($rec->id), NULL, array('ef_icon' => $me->getIcon($rec->id)));
                 
                 if ($rec->savedState == 'waiting') {
-                    $row->title = "<div class='state-pending-link'>{$row->title}</div>";
+                    $row->title = "<div class='state-waiting-link'>{$row->title}</div>";
                 } elseif ($rec->savedState == 'closed') {
                     $row->title = "<div class='state-closed-link'>{$row->title}</div>";
                 }
