@@ -627,7 +627,7 @@ class frame2_Reports extends embed_Manager
      * @param int $id
      * @return void
      */
-    public static function setAutoToRefresh($id)
+    public static function setAutoRefresh($id)
     {
     	$rec = self::fetchRec($id);
     	
