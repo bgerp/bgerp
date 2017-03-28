@@ -868,7 +868,10 @@ class sales_QuotationsDetails extends doc_Detail {
     	$date = ($masterRec->state == 'draft') ? NULL : $masterRec->modifiedOn;
     	
     	foreach ($rows as $id => &$row){
-    		$rec = $recs[$id];
+            $rec = $recs[$id];
+    		core_RowToolbar::createIfNotExists($row->_rowTools); 
+    		cat_Products::addButtonsToDocToolbar($rec->productId, $row->_rowTools, $mvc->className, $id);
+
     		if($rec->discount){
     			$data->hasDiscounts = TRUE;
     		}

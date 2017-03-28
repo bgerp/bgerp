@@ -714,6 +714,15 @@ div.productImage {
     font-size: 0.9em;
     color: #222222; }
 
+.report-new-version-info {
+  margin-top: 15px;
+  border: 1px solid #cccccc;
+  padding: 5px 5px 5px 10px;
+  background: rgba(255, 255, 190, 0.5);
+  font-size: 0.9em;
+  color: #222222;
+  border-radius: 5px; }
+
   .products-table a.fancybox img,
   .jobTable a.fancybox img,
   .general-product-description a.fancybox img,
@@ -2078,7 +2087,8 @@ ul.history {
 
 .narrow ul.history {
   white-space: nowrap;
-  display: inline-block; }
+  display: inline-block;
+  min-width: 0 !important; }
   .narrow ul.history li {
     line-height: 1.2;
     display: inline-block;

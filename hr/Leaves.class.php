@@ -656,6 +656,13 @@ class hr_Leaves extends core_Master
     		$row->activatedOn = dt::mysql2verbal($rec->activatedOn, 'd.m.Y');
     	}
     	
+    	if(isset($rec->activatedBy)){
+    		$row->activatedBy = core_Users::getVerbal($rec->activatedBy, 'names');
+    		if(!Mode::isReadOnly()){
+    			$row->activatedBy = crm_Profiles::createLink($rec->activatedBy, $row->activatedBy);
+    		}
+    	}
+    	
     	if($rec->leaveFrom){
     	    list($dateFrom,$hourFrom) = explode(" ", $rec->leaveFrom);
     	    

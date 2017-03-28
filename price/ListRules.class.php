@@ -181,11 +181,11 @@ class price_ListRules extends core_Detail
     		expect($validUntill = dt::verbal2mysql($validUntill));
     		$rec->validUntil = $validUntill;
     	}
-    	
-    	if($type != 'groupDiscount'){
+ 
+        if($type != 'groupDiscount'){
     		expect($productRec = cat_Products::getByCode($productCode));
     		$productRec = cat_Products::fetch($productRec->productId);
-    		expect($productRec->canSell == 'yes', 'Артикулът не е продаваем');
+    		// expect($productRec->canSell == 'yes', 'Артикулът не е продаваем');
     		$rec->productId = $productRec->id;
     		$rec->priority = 1;
     	}

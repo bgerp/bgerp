@@ -1,11 +1,13 @@
 <?php
 
+
+
 /**
- * Базов драйвер за драйвер на артикул
+ * Базов драйвер за новите справки
  *
  *
  * @category  bgerp
- * @package   cat
+ * @package   frame2
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
@@ -82,7 +84,7 @@ abstract class frame2_driver_Proto extends core_BaseClass
 	 * @param stdClass $rec
 	 * @return boolean
 	 */
-	public function canSendNotification($rec)
+	public function canSendNotificationOnRefresh($rec)
 	{
 		return TRUE;
 	}
@@ -98,35 +100,67 @@ abstract class frame2_driver_Proto extends core_BaseClass
 	{
 		$params = array();
 		$params['handle'] = "#" . frame2_Reports::getHandle($rec->id);
+		$params['lastRefreshed'] = frame2_Reports::getVerbal($rec, 'lastRefreshed');
 		
 		return $params;
 	}
 	
 	
 	/**
-	 * След рендиране на единичния изглед
+	 * Дали отчета може да бъде опресняван автоматично
 	 *
-	 * @param cat_ProductDriver $Driver
-	 * @param embed_Manager $Embedder
-	 * @param core_ET $tpl
-	 * @param stdClass $data
+	 * @param stdClass $rec
+	 * @return boolean
 	 */
-	public static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
+	public function canBeRefreshedOnTime($id)
 	{
-		$row = $data->row;
-		$rec = $data->rec;
+		return TRUE;
+	}
 	
+	
+	/**
+	 * Добавя допълнителни полетата в антетката
+	 *
+	 * @param frame2_driver_Proto $Driver
+	 * @param embed_Manager $Embedder
+	 * @param NULL|array $resArr
+	 * @param object $rec
+	 * @param object $row
+	 */
+	public static function on_AfterGetFieldForLetterHead(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$resArr, $rec, $row)
+	{
 		$form = cls::get('core_Form');
 		$Driver->addFields($form);
 		$fields = (is_array($form->fields)) ? $form->fields : array();
 		
 		foreach ($fields as $name => $fld){
 			if(isset($rec->{$name}) && $fld->single !== 'none'){
-				$append = new core_ET(tr("|*<tr><td class='quiet'>[#caption#]</td><td>[#value#]</td></tr>"));
-				$append->replace($fld->caption, 'caption');
-				$append->replace($row->{$name}, 'value');
-				$tpl->append($append, 'DRIVER_FIELDS');
+				$resArr[$name] = array('name' => tr($fld->caption), 'val' => $row->{$name});
 			}
 		}
+	}
+	
+	
+	/**
+	 * Връща редовете на CSV файл-а
+	 *
+	 * @param stdClass $rec
+	 * @return array
+	 */
+	public function getCsvExportRows($rec)
+	{
+		return array();
+	}
+	
+	
+	/**
+	 * Връща полетата за експортиране във csv
+	 *
+	 * @param stdClass $rec
+	 * @return array
+	 */
+	public function getCsvExportFieldset($rec)
+	{
+		return new core_FieldSet();
 	}
 }

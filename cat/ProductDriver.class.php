@@ -438,11 +438,11 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 *
 	 * @param int $id - ид на артикул
 	 * @param core_RowToolbar $toolbar - тулбара
-	 * @param mixed $docClass - класа документа
-	 * @param int $docId - ид на документа
+	 * @param mixed $detailClass - класа детаила на документа
+	 * @param int $detailId - ид на детайла на документа
 	 * @return void
 	 */
-	public function addButtonsToDocToolbar($id, core_RowToolbar &$toolbar, $docClass, $docId)
+	public function addButtonsToDocToolbar($id, core_RowToolbar &$toolbar, $detailClass, $detailId)
 	{
 	
 	}

@@ -1013,7 +1013,7 @@ abstract class deals_DealMaster extends deals_DealBase
      * @param int $id
      * @return int|NULL
      */
-    private function getMaxDeliveryTime($id)
+    public function getMaxDeliveryTime($id)
     {
     	$maxDeliveryTime = NULL;
     	
