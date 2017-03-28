@@ -3133,7 +3133,7 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         // Ако документа е в състояние "чернова" и е променян преди по-малко от 10 минути - не се кешира.
-        if($cRec->state == 'draft' && dt::addSecs(10*60, $cRec->modifiedOn) > dt::now()) {
+        if($cRec->state == 'draft') {
             $res = FALSE;
             
             return ;
