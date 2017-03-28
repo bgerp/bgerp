@@ -1097,7 +1097,7 @@ class cal_Tasks extends core_Master
         }
         
         // Подготвяме запис за Крайния срок
-        if($rec->state == 'active' || $rec->state == 'waiting' || $rec->state == 'closed'  || $rec->state == 'pending') {
+        if($rec->state == 'active' || $rec->state == 'waiting' || $rec->state == 'pending') {
             
             $calRec = new stdClass();
             
