@@ -89,18 +89,6 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Кой може да редактира в частния сингъл
-     */
-    public $canEditpsingle = 'powerUser';
-    
-    
-    /**
-     * Кой може да редактира активен документ в частния сингъл
-     */
-    public $canEditactivatedpsingle  = 'powerUser';
-    
-    
-    /**
      * Кой може да вижда частния сингъл
      */
     public $canViewpsingle = 'user';
@@ -157,7 +145,13 @@ class cat_Products extends embed_Manager {
     /**
      * Кой може да променя?
      */
-    public $canEdit = 'cat,ceo,sales,purchase';
+    public $canEdit = 'cat,ceo,sales,purchase,catEdit';
+    
+    
+    /**
+     * Кой може да пише?
+     */
+    public $canWrite = 'cat,ceo,sales,purchase,catEdit';
     
     
     /**
@@ -1892,17 +1886,11 @@ class cat_Products extends embed_Manager {
     	
     	// Ако потребителя няма определени роли не може да добавя или променя записи в папка на категория
     	if(($action == 'add' || $action == 'edit' || $action == 'write' || $action == 'clonerec') && isset($rec)){
-			
-    		if(isset($rec->folderId) || isset($rec->threadId)){
-    			$folderId = isset($rec->folderId) ? $rec->folderId : doc_Threads::fetchField($rec->threadId, 'folderId');
-    			$Cover = doc_Folders::getCover($folderId);
-    			
-    			if(!$Cover->haveInterface('crm_ContragentAccRegIntf')){
-    				if(!haveRole('ceo,cat')){
-    					$res = 'no_one';
-    				}
-    			}
-    		}
+			if($rec->isPublic == 'yes'){
+				if(!haveRole('ceo,cat')){
+					$res = 'no_one';
+				}
+			}
     	}
     }
     

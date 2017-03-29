@@ -63,19 +63,19 @@ class cat_products_Packagings extends core_Detail
     /**
      * Кой може да качва файлове
      */
-    var $canAdd = 'powerUser';
+    var $canAdd = 'cat,ceo,sales,purchase,catEdit';
     
     
     /**
      * Кой може да качва файлове
      */
-    var $canEdit = 'powerUser';
+    var $canEdit = 'cat,ceo,sales,purchase,catEdit';
     
     
     /**
      * Кой може да качва файлове
      */
-    var $canDelete = 'powerUser';
+    var $canDelete = 'cat,ceo,sales,purchase,catEdit';
     
 
     /**  
@@ -158,21 +158,21 @@ class cat_products_Packagings extends core_Detail
         }
         
         if(($action == 'add' ||  $action == 'delete' ||  $action == 'edit') && isset($rec->productId)) {
-        	$masterState = cat_Products::fetchField($rec->productId, 'state');
-        	if($masterState != 'active' && $masterState != 'template'){
+        	$productRec = cat_Products::fetch($rec->productId, 'isPublic,state');
+        	if($productRec->state != 'active' && $productRec->state != 'template'){
         		$requiredRoles = 'no_one';
+        	} elseif($productRec->isPublic == 'yes'){
+        		if(!haveRole('ceo,cat')){
+        			$requiredRoles = 'no_one';
+        		}
         	}
         }
         
         // Ако потрбителя няма достъп до сингъла на артикула, не може да модифицира опаковките
         if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec) && $requiredRoles != 'no_one'){
-        	if(!cat_Products::haveRightFor('single', $rec->productId)){
+        	$productInfo = cat_Products::getProductInfo($rec->productId);
+        	if(empty($productInfo->meta['canStore'])){
         		$requiredRoles = 'no_one';
-        	} else {
-        		$productInfo = cat_Products::getProductInfo($rec->productId);
-        		if(empty($productInfo->meta['canStore'])){
-        			$requiredRoles = 'no_one';
-        		}
         	}
         }
         

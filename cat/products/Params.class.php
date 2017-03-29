@@ -334,7 +334,11 @@ class cat_products_Params extends doc_Detail
         		} elseif($rec->classId == marketing_Inquiries2::getClassId()){
         			$requiredRoles = 'marketing,ceo';
         		} elseif($rec->classId == cat_Products::getClassId()){
-        			$requiredRoles = 'cat,ceo';
+        			$requiredRoles = 'cat,ceo,catEdit,sales,purchase';
+        			$isPublic = cat_Products::fetchField($rec->productId, 'isPublic');
+        			if($isPublic == 'yes'){
+        				$requiredRoles = 'cat,ceo';
+        			}
         		}
         	}
         }
