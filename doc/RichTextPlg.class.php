@@ -413,14 +413,23 @@ class doc_RichTextPlg extends core_Plugin
     public static function getDocsInRichtextFields(core_Mvc $mvc, $rec)
     {
     	$all = '';
-    	$rec = $mvc->fetch($rec->id);
-    	$fields = $mvc->selectFields();
     	
-    	foreach ($fields as $name => $fld){
-    		if ($fld->type instanceof type_Richtext){
-    		    if ($fld->type->params['hndToLink'] == 'no') continue;
-    			$all .= $rec->{$name};
-    		}
+    	if ($rec) {
+    	    
+    	    if (is_object($rec)) {
+    	        $rec = $mvc->fetch($rec->id);
+    	    } else {
+    	        $rec = $mvc->fetchRec($rec);
+    	    }
+    	    
+    	    $fields = $mvc->selectFields();
+    	     
+    	    foreach ($fields as $name => $fld){
+    	        if ($fld->type instanceof type_Richtext){
+    	            if ($fld->type->params['hndToLink'] == 'no') continue;
+    	            $all .= $rec->{$name};
+    	        }
+    	    }
     	}
     	
     	// Намират се всички цитирания на документи в поле richtext

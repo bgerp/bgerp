@@ -2950,8 +2950,14 @@ class doc_DocumentPlg extends core_Plugin
     function on_AfterGetUsedDocs($mvc, &$res, $id)
     {
     	$rec = $mvc->fetch($id);
-    	$docs = doc_RichTextPlg::getDocsInRichtextFields($mvc, $rec);
-    	if(count($docs)){
+    	
+    	if ($rec !== FALSE) {
+    	    $docs = doc_RichTextPlg::getDocsInRichtextFields($mvc, $rec);
+    	} else {
+    	    $docs = array();
+    	}
+    	
+    	if (!empty($docs)){
 	    	foreach ($docs as $doc){
 	    	    if (isset($doc['rec']->containerId)) {
 	    	        $res[$doc['rec']->containerId] = $doc['rec']->containerId;
@@ -2960,7 +2966,7 @@ class doc_DocumentPlg extends core_Plugin
     	}
     	
         // Ако ориджина е от друг тред, добавяме и него
-    	if(isset($rec->originId)){
+    	if ($rec && isset($rec->originId)){
     	    $cRec = doc_Containers::fetch($rec->originId);
     	    if($cRec->threadId != $rec->threadId) {
     	        $res[$rec->originId] = $rec->originId;
