@@ -212,16 +212,7 @@ class escpos_Print extends core_Manager
             
             $res->replace("Тестово отпечатване", 'title');
             
-            $test = "<c F b>Фактура №123/28.02.17" .
-                            "<p><r32 =>" .
-                            "<p b>1.<l3 b>Кисело мляко" .
-                            "<p><l4>2.00<l12>х 0.80<r32>= 1.60" .
-                            "<p b>2.<l3 b>Хляб \"Добруджа\"" . "<l f> | годност: 03.03" .
-                            "<p><l4>2.00<l12>х 0.80<r32>= 1.60" .
-                            "<p b>3.<l3 b>Минерална вода" .
-                            "<p><l4>2.00<l12>х 0.80<r32>= 1.60" .
-                            "<p><r32 =>" .
-                            "<p><r29 F b>Общо: 34.23 лв.";
+            $test = "<c F b>Test<p><r29 F b>Proba...<p><p><p>";
             $dataContent = escpos_Convert::process($test, 'escpos_driver_Ddp250');
             
             $res->replace(base64_encode($dataContent), 'data');
