@@ -467,7 +467,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 			
 		$totalAmount = 0;
 		$readyAmount = NULL;
-			
+		
 		// За всеки договорен артикул
 		foreach ($agreedProducts as $pId => $pRec){
 			$productRec = cat_Products::fetch($pId, 'canStore,isPublic');
@@ -478,9 +478,10 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 			
 			// Ако всичко е експедирано се пропуска реда
 			if($quantity <= 0) continue;
-					
+			$price = (isset($pRec->discount)) ? ($pRec->price - ($pRec->discount * $pRec->price)) : $pRec->price;
+			
 			$amount = NULL;
-			$totalAmount += $quantity * $pRec->price;
+			$totalAmount += $quantity * $price;
 					
 			// Ако артикула е нестандартен и има приключено задание по продажбата и няма друго активно по нея
 			if($productRec->isPublic == 'no'){
@@ -489,7 +490,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 						
 				// Се приема че е готово
 				if($closedJobId && !$activeJobId){
-					$amount = $quantity * $pRec->price;
+					$amount = $quantity * $price;
 				}
 			}
 					
@@ -499,7 +500,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 				$quantityInStock = store_Products::getQuantity($pId, $saleRec->shipmentStoreId);
 				$quantityInStock = ($quantityInStock > $quantity) ? $quantity : (($quantityInStock < 0) ? 0 : $quantityInStock);
 						
-				$amount = $quantityInStock * $pRec->price;
+				$amount = $quantityInStock * $price;
 			}
 					
 			// Събиране на изпълнената сума за всеки ред
@@ -507,7 +508,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 				$readyAmount += $amount;
 			}
 		}
-			
+		
 		// Готовноста е процента на изпълнената сума от общата
 		$readiness = (isset($readyAmount)) ? @round($readyAmount / $totalAmount, 2) : NULL;
 		
@@ -539,13 +540,15 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		
 		// За всеки се определя колко % може да се изпълни
 		foreach ($all as $pId => $pRec){
-			$totalAmount += $pRec->quantity * $pRec->price;
+			$price = (isset($pRec->discount)) ? ($pRec->price - ($pRec->discount * $pRec->price)) : $pRec->price;
+			
+			$totalAmount += $pRec->quantity * $price;
 				
 			// Определя се каква сума може да се изпълни
 			$quantityInStock = store_Products::getQuantity($pId, $soRec->storeId);
 			$quantityInStock = ($quantityInStock > $pRec->quantity) ? $pRec->quantity : (($quantityInStock < 0) ? 0 : $quantityInStock);
 			
-			$amount = $quantityInStock * $pRec->price;
+			$amount = $quantityInStock * $price;
 				
 			if(isset($amount)){
 				$readyAmount += $amount;
