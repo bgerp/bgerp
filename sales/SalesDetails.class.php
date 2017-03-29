@@ -256,9 +256,10 @@ class sales_SalesDetails extends deals_DealDetail
     protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
     {
     	// Преди клониране клонира се и сумата на цената на транспорта
-    	$fee = tcost_Calcs::get($mvc->Master, $oldRec->saleId, $oldRec->id)->fee;
-    	if(isset($fee)){
-    		$rec->fee = $fee;
+    	$cRec = tcost_Calcs::get($mvc->Master, $oldRec->saleId, $oldRec->id);
+    	if(isset($cRec)){
+    		$rec->fee = $cRec->fee;
+    		$rec->deliveryTimeFromFee = $cRec->deliveryTime;
     		$rec->syncFee = TRUE;
     	}
     }
@@ -271,7 +272,7 @@ class sales_SalesDetails extends deals_DealDetail
     {
     	// Синхронизиране на сумата на транспорта
     	if($rec->syncFee === TRUE){
-    		tcost_Calcs::sync($mvc->Master, $rec->{$mvc->masterKey}, $rec->id, $rec->fee);
+    		tcost_Calcs::sync($mvc->Master, $rec->{$mvc->masterKey}, $rec->id, $rec->fee, $rec->deliveryTimeFromFee);
     	}
     }
     

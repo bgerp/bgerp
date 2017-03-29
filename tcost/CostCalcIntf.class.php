@@ -50,8 +50,9 @@ class tcost_CostCalcIntf
      * @param int $fromCountry       - id на страната на мястото за изпращане
      * @param string $fromPostalCode - пощенски код на мястото за изпращане
      *
-     * @return double                - цена, която ще бъде платена за теглото на артикул,
-     * 								   ако не може да се изчисли се връща tcost_CostCalcIntf::CALC_ERROR
+     * @return array
+     * 			['fee']              - цена, която ще бъде платена за теглото на артикул, ако не може да се изчисли се връща tcost_CostCalcIntf::CALC_ERROR
+     * 			['deliveryTime']     - срока на доставка в секунди ако го има
      */
     function getTransportFee($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode)
     {

@@ -156,6 +156,7 @@ class tcost_Fees extends core_Detail
      * [0] - Обработената цена, за доставката на цялото количество
      * [1] - Резултат за подадената единица $singleWeight
      * [2] - Id на зоната
+     * [3] - Срока на доставка з
      */
     public static function calcFee($deliveryTermId, $countryId, $pCode, $totalWeight, $singleWeight = 1)
     {
@@ -165,7 +166,7 @@ class tcost_Fees extends core_Detail
     	
         // Определяне на зоната на транспорт, за зададеното условие на доставка
         $zone = tcost_Zones::getZoneIdAndDeliveryTerm($deliveryTermId, $countryId, $pCode);
-		
+        
         // Ако не се намери зона се връща 0
         if(is_null($zone)) return tcost_CostCalcIntf::CALC_ERROR;
 
@@ -255,7 +256,7 @@ class tcost_Fees extends core_Detail
         $result = round($finalPrice / $totalWeight * $singleWeight, 2);
 
         // Връща се получената цена и отношението цена/тегло в определен $singleWeight и зоната към която принадлежи
-        return array($finalPrice, $result, $zone['zoneId']);
+        return array($finalPrice, $result, $zone['zoneId'], $zone['deliveryTime']);
     }
     
     

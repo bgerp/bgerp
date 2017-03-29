@@ -917,10 +917,16 @@ class sales_QuotationsDetails extends doc_Detail {
     	}
     	
     	$row->tolerance = deals_Helper::getToleranceRow($rec->tolerance, $rec->productId, $rec->quantity);
+    	$term = isset($rec->term) ? $rec->term : cat_Products::getDeliveryTime($rec->productId, $rec->quantity);
+    	if(isset($term)){
+    		if($deliveryTime = tcost_Calcs::get('sales_Quotations', $rec->quotationId, $rec->id)->deliveryTime){
+    			$term += $deliveryTime;
+    		}
+    	}
     	
-    	if(empty($rec->term)){
-    		if($term = cat_Products::getDeliveryTime($rec->productId, $rec->quantity)){
-    			$row->term = core_Type::getByName('time')->toVerbal($term);
+    	if(isset($term)){
+    		$row->term = core_Type::getByName('time')->toVerbal($term);
+    		if(!isset($rec->term)){
     			$row->term = ht::createHint($row->term, 'Срокът на доставка е изчислен автоматично на база количеството и параметрите на артикула');
     		}
     	}
@@ -951,7 +957,7 @@ class sales_QuotationsDetails extends doc_Detail {
     
 
     /**
-     * Връща последната цена за посочения продукт направена оферта към контрагента
+     * Връща последната цена за посочения продукт направена от оферта към контрагента
      *
      * @return object $rec->price  - цена
      * 				  $rec->discount - отстъпка
@@ -999,7 +1005,7 @@ class sales_QuotationsDetails extends doc_Detail {
     {
     	// Синхронизиране на сумата на транспорта
     	if($rec->syncFee === TRUE){
-    		tcost_Calcs::sync($mvc->Master, $rec->quotationId, $rec->id, $rec->fee);
+    		tcost_Calcs::sync($mvc->Master, $rec->quotationId, $rec->id, $rec->fee, $rec->deliveryTimeFromFee);
     	}
     }
     
@@ -1022,9 +1028,10 @@ class sales_QuotationsDetails extends doc_Detail {
     protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
     {
     	// Преди клониране клонира се и сумата на цената на транспорта
-    	$fee = tcost_Calcs::get($mvc->Master, $oldRec->quotationId, $oldRec->id)->fee;
-    	if(isset($fee)){
-    		$rec->fee = $fee;
+    	$cRec = tcost_Calcs::get($mvc->Master, $oldRec->quotationId, $oldRec->id);
+    	if(isset($cRec)){
+    		$rec->fee = $cRec->fee;
+    		$rec->deliveryTimeFromFee = $cRec->deliveryTime;
     		$rec->syncFee = TRUE;
     	}
     }

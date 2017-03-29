@@ -169,8 +169,9 @@ class tcost_FeeZones extends core_Master
      * @param int $fromCountry       - id на страната на мястото за изпращане
      * @param string $fromPostalCode - пощенски код на мястото за изпращане
      *
-     * @return double                - цена, която ще бъде платена за теглото на артикул,
-     * 								   ако не може да се изчисли се връща tcost_CostCalcIntf::CALC_ERROR
+     * @return array
+     * 			['fee']              - цена, която ще бъде платена за теглото на артикул, ако не може да се изчисли се връща tcost_CostCalcIntf::CALC_ERROR
+     * 			['deliveryTime']     - срока на доставка в секунди ако го има
      */
     public function getTransportFee($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode)
     {
@@ -180,10 +181,12 @@ class tcost_FeeZones extends core_Master
     	$weightRow = $this->getVolumicWeight($weightRow, $volumeRow);
     	
     	// Ако няма, цената няма да може да се изчисли
-    	if(empty($weightRow)) return tcost_CostCalcIntf::CALC_ERROR;
+    	if(empty($weightRow)) return array('fee' => tcost_CostCalcIntf::CALC_ERROR);
     	
     	// Опит за калкулиране на цена по посочените данни
     	$fee = tcost_Fees::calcFee($deliveryTermId, $toCountry, $toPostalCode, $totalWeight, $weightRow);
+    	
+    	$deliveryTime = ($fee[3]) ? $fee[3] : NULL;
     	
     	// Ако цената може да бъде изчислена се връща
     	if($fee != tcost_CostCalcIntf::CALC_ERROR){
@@ -191,7 +194,7 @@ class tcost_FeeZones extends core_Master
     	} 
     	
     	// Връщане на изчислената цена
-    	return $fee;
+    	return array('fee' => $fee, 'deliveryTime' => $deliveryTime);
     }
     
     
