@@ -368,7 +368,6 @@ class frame2_Reports extends embed_Manager
     	$this->requireRightFor('refresh', $rec);
     	
     	self::refresh($rec, $save = TRUE);
-    	
     	frame2_ReportVersions::unSelectVersion($rec->id);
     	
     	return followRetUrl();
@@ -385,6 +384,11 @@ class frame2_Reports extends embed_Manager
     	// Рендиране на данните
     	if($Driver = $mvc->getDriver($rec)){
     		$tpl->append($Driver->renderData($rec), 'DRIVER_DATA');
+    	}
+    	
+    	// Връщане на оригиналния рек ако е пушнат
+    	if(isset($data->originalRec)){
+    		$rec = $data->originalRec;
     	}
     }
     
@@ -583,6 +587,7 @@ class frame2_Reports extends embed_Manager
     	// Ако има избрана версия записа се подменя преди да се е подготвил
     	if($versionId = self::getSelectedVersionId($data->rec->id)){
     		if($versionRec = frame2_ReportVersions::fetchField($versionId, 'oldRec')){
+    			$data->originalRec = clone $data->rec;
     			$data->rec = $versionRec;
     		}
     	}
