@@ -168,6 +168,12 @@ class frame2_Reports extends embed_Manager
     
     
     /**
+     * Кеш на обновените отчети
+     */
+    protected $setNewUpdateTimes = array();
+    
+    
+    /**
      * Максимален брон на пазене на версии
      */
     const MAX_VERSION_HISTORT_COUNT = 10;
@@ -231,9 +237,9 @@ class frame2_Reports extends embed_Manager
     			$refresh = TRUE;
     			if(isset($rec->id)){
     				$refresh = FALSE;
-    				
-    				// Ако записа бива редактиран и няма променени полета от драйвера не се преизчислява
     				$oldRec = self::fetch($rec->id);
+    			
+    				// Ако записа бива редактиран и няма променени полета от драйвера не се преизчислява
     				$fields = $mvc->getDriverFields($Driver);
     				foreach ($fields as $name => $caption){
     					if($oldRec->{$name} !== $rec->{$name}){
@@ -241,18 +247,29 @@ class frame2_Reports extends embed_Manager
     						break;
     					}
     				}
+    			
+    				// Ако е променен броя на версиите ъпдейт
+    				if($rec->maxKeepHistory != $oldRec->maxKeepHistory){
+    					$rec->updateVersionHistory = TRUE;
+    				}
+    				
+    				// Ако преди е имало обновяване, но сега няма ще се премахнат зададените обновявания
+    				$oldUpdateTime = (!empty($oldRec->updateDays) || !empty($oldRec->updateTime));
+    				if($oldUpdateTime && (empty($rec->updateDays) && empty($rec->updateTime))){
+    					$rec->removeSetUpdateTimes = TRUE;
+    				}
+    				
+    				// Ако са променени данните за обновяване ъпдейтват се
+    				if($rec->removeSetUpdateTimes !== TRUE){
+    					if($oldRec->updateDays != $rec->updateDays || $oldRec->updateTime != $rec->updateTime){
+    						$rec->updateRefreshTimes = TRUE;
+    					}
+    				}
     			}
     			
     			// Флаг че датата трябва да се рефрешне
     			if($refresh === TRUE){
     				$rec->refreshData = TRUE;
-    			} else {
-    				if(isset($rec->id)){
-    					$oldRec = self::fetch($rec->id);
-    					if($rec->maxKeepHistory != $oldRec->maxKeepHistory){
-    						$rec->updateVersionHistory = TRUE;
-    					}
-    				}
     			}
     		}
     		
@@ -411,6 +428,9 @@ class frame2_Reports extends embed_Manager
     				core_Statuses::newStatus('Справката е актуализирана');
     			}
     		}
+    		
+    		// Mаркиране че отчера реяжва да се обнови
+    		$me->setNewUpdateTimes[$rec->id] = $rec;
     	}
     }
     
@@ -423,6 +443,7 @@ class frame2_Reports extends embed_Manager
     	// Ако е имало опреснени отчети
     	if(count($mvc->refreshReports)){
     		foreach ($mvc->refreshReports as $rec) {
+    			
     			if($Driver = $mvc->getDriver($rec)){
     				
     				// Проверява се трябва ли да бъде изпратена нова нотификация до споделените
@@ -432,6 +453,13 @@ class frame2_Reports extends embed_Manager
     					self::sendNotification($rec);
     				}
     			}
+    		}
+    	}
+    	
+    	// Задаване на нови времена за обновяване
+    	if(count($mvc->setNewUpdateTimes)){
+    		foreach ($mvc->setNewUpdateTimes as $rec) {
+    			self::setAutoRefresh($rec->id);
     		}
     	}
     }
@@ -454,6 +482,16 @@ class frame2_Reports extends embed_Manager
     	// Ако е променен броя на поддържаните версии, ъпдейтват се
     	if($rec->updateVersionHistory === TRUE){
     		frame2_ReportVersions::keepInCheck($rec->id);
+    	}
+    	
+    	// Айи ще се махнат зададените времена за обновяване, махат се
+    	if($rec->removeSetUpdateTimes === TRUE){
+    		self::removeAllSetUpdateTimes($rec->id);
+    	}
+    	
+    	// Ако ще се ъпдейтват времената за обновяване
+    	if($rec->updateRefreshTimes === TRUE){
+    		$mvc->setNewUpdateTimes[$rec->id] = $rec;
     	}
     }
     
@@ -621,6 +659,18 @@ class frame2_Reports extends embed_Manager
     }
     
     
+    // Премахване на зададените времена за обновяване
+    public static function removeAllSetUpdateTimes($id)
+    {
+    	foreach (range(0, 2) as $i){
+    		$data = new stdClass();
+    		$data->id = (string)$id;
+    		$data->index = (string)$i;
+    		core_CallOnTime::remove(get_called_class(), 'refreshOnTime', $data);
+    	}
+    }
+    
+    
     /**
      * Задаване на автоматично време за изпълнение
      * 
@@ -634,18 +684,18 @@ class frame2_Reports extends embed_Manager
     	// Намира следващите три времена за обновяване
     	$dates = self::getNextRefreshDates($rec);
     	
-    	// Обхождане от 1 до 3
+    	// Обхождане от 0 до 2
     	foreach (range(0, 2) as $i){
     		$data = new stdClass();
-    		$data->id = $id;
-    		$data->index = $i;
+    		$data->id = (string)$id;
+    		$data->index = (string)$i;
+    		if(!isset($dates[$i])) continue;
     		
-    		// Ако има дата се задава обновяване по крон, ако няма се изтрива ако вече е имало такова
-    		if(!empty($dates[$i])){
-    			core_CallOnTime::setOnce(get_called_class(), 'refreshOnTime', $data, $dates[$i]);
-    		} else {
-    			core_CallOnTime::remove(get_called_class(), 'refreshOnTime', $data);
-    		}
+    		core_CallOnTime::setOnce(get_called_class(), 'refreshOnTime', $data, $dates[$i]);
+    	}
+    	
+    	if(haveRole('debug')){
+    		status_Messages::newStatus("Зададени времена за обновяване");
     	}
     }
     
