@@ -1127,30 +1127,35 @@ class email_Outgoings extends core_Master
             $fValArr = type_Emails::toArray($fValStr);
             
             foreach ($fValArr as $fVal) {
-                if (!trim($fVal)) continue;
+                $fVal = trim($fVal);
+                if (!$fVal) continue;
+                
+                $fVal = mb_strtolower($fVal);
                 
                 $haveErr = FALSE;
+                $errMsg = 'Не е позволено изпращането до този имейл|*: ' . type_Varchar::escape($fVal);
+                
                 foreach ($stopSendToArr as $stopReg) {
-                    
-                    $errMsg = 'Не е позволено изпращането до този имейл|*: ' . type_Varchar::escape($fVal);
                     
                     $stopReg = "/{$stopReg}/i";
                     if (preg_match($stopReg, $fVal)) {
                         $haveErr = TRUE;
                     }
+                }
+                
+                // Проверяваме и дали това не е опит за изпращане към вътрешен потребител
+                list($nick,$domain) = explode('@', $fVal);
+                
+                if ($corporateDomains[$domain]) {
+                    $haveErr = TRUE;
                     
-                    $fVal = strtolower($fVal);
+                    $errMsg .=  "<br>|";
                     
-                    // Проверяваме и дали това не е опит за изпращане към вътрешен потребител
-                    list($nick,$domain) = explode('@', $fVal);
-                    
-                    if ($corporateDomains[$domain]) {
-                        $haveErr = TRUE;
-                        
-                        // Ако е потребител в системата
-                        if (core_Users::fetchField(array("LOWER(#nick) = '[#1#]' AND #state != 'rejected'", $nick))) {
-                            $errMsg .=  "<br>|Вместо това използвайте коментар със споделяне към |*" . '@' . $nick;
-                        }
+                    // Ако е потребител в системата
+                    if (core_Users::fetchField(array("LOWER(#nick) = '[#1#]' AND #state != 'rejected'", $nick))) {
+                        $errMsg .=  "Вместо това използвайте коментар със споделяне към|* " . '@' . $nick;
+                    } else {
+                        $errMsg .= "Имейла е към корпоративната ви сметка";
                     }
                 }
                 
