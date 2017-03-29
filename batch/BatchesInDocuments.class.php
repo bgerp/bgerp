@@ -124,7 +124,6 @@ class batch_BatchesInDocuments extends core_Manager
 	 */ 
 	public static function renderBatches($detailClassId, $detailRecId, $storeId)
 	{
-		$tpl = getTplFromFile('batch/tpl/BatchInfoBlock.shtml');
 		$detailClassId = cls::get($detailClassId)->getClassId();
 		$rInfo = cls::get($detailClassId)->getRowInfo($detailRecId);
 		if(!count($rInfo->operation)) return;
@@ -134,6 +133,9 @@ class batch_BatchesInDocuments extends core_Manager
 		$query->where("#detailClassId = {$detailClassId} AND #detailRecId = {$detailRecId} AND #operation = '{$operation}'");
 		$query->orderBy('id', "DESC");
 		$batchDef = batch_Defs::getBatchDef($rInfo->productId);
+		
+		$file = ($batchDef instanceof batch_definitions_Serial) ? 'batch/tpl/BatchInfoBlockSerial.shtml' : 'batch/tpl/BatchInfoBlock.shtml';
+		$tpl = getTplFromFile($file);
 		
 		$count = 0;
 		$total = $rInfo->quantity;
@@ -172,7 +174,13 @@ class batch_BatchesInDocuments extends core_Manager
 			}
 
 			$batch = implode(', ', $batch);
-			$string = "{$label} {$batch}" . "<br>";
+			
+			if($batchDef instanceof batch_definitions_Serial){
+				$label = ($count == 0) ? "{$label} " : "";
+				$string = "{$label}{$batch},";
+			} else {
+				$string = "{$label} {$batch}" . "<br>";
+			}
 				
 			$block->append($string, "batch");
 			$block->removePlaces();
@@ -184,7 +192,7 @@ class batch_BatchesInDocuments extends core_Manager
 		if($total > 0 || $total < 0){
 			
 			// Показва се като 'Без партида'
-			$block = clone $tpl->getBlock('BLOCK');
+			$block = clone $tpl->getBlock('NO_BATCH');
 			if($total > 0){
 				$batch = "<i style=''>" . tr('Без партида') . "</i>";
 				$quantity = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($total / $rInfo->quantityInPack);
@@ -196,8 +204,8 @@ class batch_BatchesInDocuments extends core_Manager
 				$block->append('border:1px dotted red;', 'BATCH_STYLE');
 			}
 			
-			$block->append($batch, 'batch');
-			$block->append($quantity, "quantity");
+			$block->append($batch, 'nobatch');
+			$block->append($quantity, "nobatchquantity");
 			$block->removePlaces();
 			$block->append2Master();
 		}
