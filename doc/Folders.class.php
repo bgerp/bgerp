@@ -1706,6 +1706,13 @@ class doc_Folders extends core_Master
         $query = self::getQuery();
 	    $query->orderBy("last=DESC");
 
+	    // Ако има зададен интерфейс за кориците, взимат се само тези папки, чиито корици имат интерфейса
+	    if(isset($params['coverInterface'])){
+	    	$coverClasses = core_Classes::getOptionsByInterface($params['coverInterface'], 'title');
+	    	$coverClasses = array_keys($coverClasses);
+	    	$query->in('coverClass', $coverClasses);
+	    }
+	    
         $viewAccess = TRUE;
 	    if ($params['restrictViewAccess'] == 'yes') {
 	        $viewAccess = FALSE;
