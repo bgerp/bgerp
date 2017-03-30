@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -111,13 +111,13 @@ class cat_Boms extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,cat';
+    public $canList = 'ceo,cat,sales';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,cat';
+    public $canSingle = 'ceo,cat,sales';
     
     
     /**
@@ -390,18 +390,18 @@ class cat_Boms extends core_Master
     		if(empty($rec->productId)){
     			$res = 'no_one';
     		} else {
-    			$productRec = cat_Products::fetch($rec->productId, 'state,canManifacture');
-    			
-    			// Трябва да е активиран
-    			if($productRec->state != 'active' && $productRec->state != 'template'){
+    			$productRec = cat_Products::fetch($rec->productId, 'state,canManifacture,threadId');
+    			if(!doc_Threads::haveRightFor('single', $productRec->threadId)){
     				$res = 'no_one';
-    			}
-    			
-    			// Трябва и да е производим
-    			if($res != 'no_one'){
+    			} else {
     				
-    				if($productRec->canManifacture == 'no'){
+    				// Трябва да е активиран
+    				if($productRec->state != 'active' && $productRec->state != 'template'){
     					$res = 'no_one';
+    				} else {
+    					if($productRec->canManifacture == 'no'){
+    						$res = 'no_one';
+    					}
     				}
     			}
     		}

@@ -420,7 +420,7 @@ class cal_Tasks extends core_Master
         $after = dt::addDays(self::$taskShowPeriod, $now);
         
         $data->query->where("#state = 'active'");
-        $data->query->orWhere(array("#state = 'waiting' AND #expectationTimeStart >= '[#1#]'", $before));
+        $data->query->orWhere(array("#state = 'waiting' AND #expectationTimeStart <= '[#1#]' AND #expectationTimeStart >= '[#2#]'", $after, $before));
         $data->query->orWhere(array("#state = 'closed' AND #timeClosed <= '[#1#]' AND #timeClosed >= '[#2#]'", $after, $before));
         
         // Време за подредба на записите в портала
@@ -460,7 +460,7 @@ class cal_Tasks extends core_Master
                 $row->title = ht::createLink($title, self::getSingleUrlArray($rec->id), NULL, array('ef_icon' => $me->getIcon($rec->id)));
                 
                 if ($rec->savedState == 'waiting') {
-                    $row->title = "<div class='state-pending-link'>{$row->title}</div>";
+                    $row->title = "<div class='state-waiting-link'>{$row->title}</div>";
                 } elseif ($rec->savedState == 'closed') {
                     $row->title = "<div class='state-closed-link'>{$row->title}</div>";
                 }
@@ -1097,7 +1097,7 @@ class cal_Tasks extends core_Master
         }
         
         // Подготвяме запис за Крайния срок
-        if($rec->state == 'active' || $rec->state == 'waiting' || $rec->state == 'closed'  || $rec->state == 'pending') {
+        if($rec->state == 'active' || $rec->state == 'waiting' || $rec->state == 'pending') {
             
             $calRec = new stdClass();
             

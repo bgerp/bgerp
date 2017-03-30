@@ -5,13 +5,14 @@
 	[#btn#]
 	<div style='[#BATCH_STYLE#]'>
 	<table class='no-border' >
-		<!--ET_BEGIN BLOCK-->
-		[#BLOCK#]
 		<tr>
-		   <td>[#batch#]</td>
-		   <td style='padding-left:8px'>[#quantity#]</td>
+		   <td>
+		   	<!--ET_BEGIN BLOCK-->
+			[#BLOCK#]
+		   	[#batch#]
+		   	<!--ET_END BLOCK-->
+		   	</td>
 		</tr>
-		<!--ET_END BLOCK-->
 		<!--ET_BEGIN NO_BATCH-->
 		[#NO_BATCH#]
 		<tr>
@@ -19,8 +20,7 @@
 		   <td style='padding-left:8px'>[#nobatchquantity#]</td>
 		</tr>
 		<!--ET_END NO_BATCH-->
-	</table>
-	</div>
+	</table></div>
 	</div>
 </div>
 <!--ET_END BATCH-->

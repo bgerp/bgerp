@@ -1267,6 +1267,12 @@ a.profile {
     box-shadow: inset 0 0 3px #eca7a6;
 }
 
+.state-waiting-link > a {
+	background-color: rgba(210, 255, 70, 0.4);
+	padding-right: 4px;
+	box-shadow: inset 0 0 3px #aaf277;
+}
+
 .state-closed {
     background-color: #f1f1f1;
 	background-color: rgba(240, 240, 240, 0.7);
@@ -1285,7 +1291,7 @@ a.profile {
 
 .state-waiting {
 	background-color: #cef763;
-	background-color: rgba(206, 247, 99, 0.8);
+	background-color: rgba(210, 255, 120, 0.6);
 }
 
 .state-rejected td, .state-rejected .document th, .state-rejected .document td a , .state-rejected .document p, .state-rejected .document h3, .state-rejected .document h4,

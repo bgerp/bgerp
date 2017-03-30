@@ -91,6 +91,33 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 	{
 		$form = &$data->form;
 		
+		// Всички активни потебители
+		$uQuery = core_Users::getQuery();
+		$uQuery->where("#state = 'active'");
+		$uQuery->orderBy("#names", 'ASC');
+		$uQuery->show('id');
+		
+		// Които са търговци
+		$roles = core_Roles::getRolesAsKeylist('ceo,sales');
+		$uQuery->likeKeylist('roles', $roles);
+		$allDealers = arr::extractValuesFromArray($uQuery->fetchAll(), 'id');
+		
+		// Към тях се добавят и вече избраните търговци
+		if(isset($form->rec->dealers)){
+			$dealers = keylist::toArray($form->rec->dealers);
+			$allDealers = array_merge($allDealers, $dealers);
+		}
+		
+		// Вербализират се
+		$suggestions = array();
+		foreach ($allDealers as $dealerId){
+			$suggestions[$dealerId] = core_Users::fetchField($dealerId, 'nick');
+		}
+		
+		// Задават се като предложение
+		$form->setSuggestions('dealers', $suggestions);
+		
+		// Ако текущия потребител е търговец добавя се като избран по дефолт
 		if(haveRole('sales')){
 			$form->setDefault('dealers', keylist::addKey('', core_Users::getCurrent()));
 		}
@@ -157,7 +184,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 	private function getListFields($rec)
 	{
 		$fields = array('dealerId'     => 'Търговец', 
-				        'contragent'   => 'Контрагент',
+				        'contragent'   => 'Клиент',
 						'deliveryTime' => 'Доставка',
 				        'document'     => 'Документ', 
 				        'readiness'    => 'Готовност');
@@ -222,7 +249,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 			}
 		}
 		
-		$row->deliveryTime = ($isPlain) ? frame_CsvLib::toCsvFormatData($dRec->deliveryTime) : cls::get('type_Datetime')->toVerbal($dRec->deliveryTime);
+		$row->deliveryTime = ($isPlain) ? frame_CsvLib::toCsvFormatData($dRec->deliveryTime) : dt::mysql2verbal($dRec->deliveryTime);
 		
 		return $row;
 	}
@@ -296,6 +323,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		$data->recs = array();
 		
 		$dealers = keylist::toArray($rec->dealers);
+		$startOfTheDay = bgerp_Setup::get('START_OF_WORKING_DAY');
 		
 		// Всички чакащи и активни продажби на избраните дилъри
 		$sQuery = sales_Sales::getQuery();
@@ -324,6 +352,11 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 					if(empty($delTime)){
 						$delTime = $Sales->getMaxDeliveryTime($sRec->id);
 						$delTime = ($delTime) ? $delTime : $sRec->valior;
+					}
+					
+					$delTime = str_replace('00:00', $startOfTheDay, $delTime);
+					if(strpos($delTime, ':') === FALSE){
+						$delTime .= " {$startOfTheDay}"; 
 					}
 					
 					// Добавя се
@@ -361,6 +394,11 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 					if(isset($rec->precision) && $readiness1 < $rec->precision) continue;
 					
 					$deliveryTime = !empty($soRec->deliveryTime) ? $soRec->deliveryTime : $soRec->valior;
+					$deliveryTime = str_replace('00:00', $startOfTheDay, $deliveryTime);
+					
+					if(strpos($deliveryTime, ':') === FALSE){
+						$deliveryTime .= " {$startOfTheDay}";
+					}
 					
 					// Добавя се
 					$r = (object)array('containerId'       => $soRec->containerId,
@@ -429,7 +467,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 			
 		$totalAmount = 0;
 		$readyAmount = NULL;
-			
+		
 		// За всеки договорен артикул
 		foreach ($agreedProducts as $pId => $pRec){
 			$productRec = cat_Products::fetch($pId, 'canStore,isPublic');
@@ -440,9 +478,10 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 			
 			// Ако всичко е експедирано се пропуска реда
 			if($quantity <= 0) continue;
-					
+			$price = (isset($pRec->discount)) ? ($pRec->price - ($pRec->discount * $pRec->price)) : $pRec->price;
+			
 			$amount = NULL;
-			$totalAmount += $quantity * $pRec->price;
+			$totalAmount += $quantity * $price;
 					
 			// Ако артикула е нестандартен и има приключено задание по продажбата и няма друго активно по нея
 			if($productRec->isPublic == 'no'){
@@ -451,7 +490,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 						
 				// Се приема че е готово
 				if($closedJobId && !$activeJobId){
-					$amount = $quantity * $pRec->price;
+					$amount = $quantity * $price;
 				}
 			}
 					
@@ -461,7 +500,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 				$quantityInStock = store_Products::getQuantity($pId, $saleRec->shipmentStoreId);
 				$quantityInStock = ($quantityInStock > $quantity) ? $quantity : (($quantityInStock < 0) ? 0 : $quantityInStock);
 						
-				$amount = $quantityInStock * $pRec->price;
+				$amount = $quantityInStock * $price;
 			}
 					
 			// Събиране на изпълнената сума за всеки ред
@@ -469,7 +508,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 				$readyAmount += $amount;
 			}
 		}
-			
+		
 		// Готовноста е процента на изпълнената сума от общата
 		$readiness = (isset($readyAmount)) ? @round($readyAmount / $totalAmount, 2) : NULL;
 		
@@ -501,13 +540,15 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		
 		// За всеки се определя колко % може да се изпълни
 		foreach ($all as $pId => $pRec){
-			$totalAmount += $pRec->quantity * $pRec->price;
+			$price = (isset($pRec->discount)) ? ($pRec->price - ($pRec->discount * $pRec->price)) : $pRec->price;
+			
+			$totalAmount += $pRec->quantity * $price;
 				
 			// Определя се каква сума може да се изпълни
 			$quantityInStock = store_Products::getQuantity($pId, $soRec->storeId);
 			$quantityInStock = ($quantityInStock > $pRec->quantity) ? $pRec->quantity : (($quantityInStock < 0) ? 0 : $quantityInStock);
 			
-			$amount = $quantityInStock * $pRec->price;
+			$amount = $quantityInStock * $price;
 				
 			if(isset($amount)){
 				$readyAmount += $amount;
@@ -555,11 +596,53 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 	{
 		$fieldset = new core_FieldSet();
 		$fieldset->FLD('dealerId', 'varchar','caption=Търговец');
-		$fieldset->FLD('contragent', 'varchar','caption=Контрагент');
+		$fieldset->FLD('contragent', 'varchar','caption=Клиент');
 		$fieldset->FLD('deliveryTime', 'varchar','caption=Доставка');
 		$fieldset->FLD('document', 'varchar','caption=Документ');
 		$fieldset->FLD('readiness', 'varchar','caption=Готовност %');
 		
 		return $fieldset;
+	}
+	
+	
+	/**
+	 * Да се изпраща ли нова нотификация на споделените потребители, при опресняване на отчета
+	 *
+	 * @param stdClass $rec
+	 * @return boolean $res
+	 */
+	public function canSendNotificationOnRefresh($rec)
+	{
+		// Намира се последните две версии
+		$query = frame2_ReportVersions::getQuery();
+		$query->where("#reportId = {$rec->id}");
+		$query->orderBy('id', 'DESC');
+		$query->limit(2);
+		
+		// Маха се последната
+		$all = $query->fetchAll();
+		unset($all[key($all)]);
+		
+		// Ако няма предпоследна, бие се нотификация
+		if(!count($all)) return TRUE;
+		$oldRec = $all[key($all)]->oldRec;
+		
+		$dataRecsNew = $rec->data->recs;
+		$dataRecsOld = $oldRec->data->recs;
+		
+		$newContainerIds = $oldContainerIds = array();
+		if(is_array($rec->data->recs)){
+			$newContainerIds = arr::extractValuesFromArray($rec->data->recs, 'containerId');
+		}
+		
+		if(is_array($oldRec->data->recs)){
+			$oldContainerIds = arr::extractValuesFromArray($oldRec->data->recs, 'containerId');
+		}
+		
+		// Ако има нови документи бие се нотификация
+		$diff = array_diff_key($newContainerIds, $oldContainerIds);
+		$res = (is_array($diff) && count($diff));
+		
+		return $res;
 	}
 }
