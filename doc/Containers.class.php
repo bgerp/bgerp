@@ -884,6 +884,31 @@ class doc_Containers extends core_Manager
     
     
     /**
+     * 
+     * @param array $usersArr
+     * @param string $settingsKey
+     * @param string $property
+     * @param integer|NULL $threadId
+     */
+    protected static function prepareUsersArrForNotifications(&$usersArr, $settingsKey, $property, $threadId = NULL)
+    {
+        $settingsNotifyArr = core_Settings::fetchUsers($settingsKey, $property);
+        
+        // В зависимост от настройкие добавяме или премахваме от списъка за нотифициране
+        foreach ((array)$settingsNotifyArr as $userSettingsId => $sArr) {
+            if ($sArr[$property] == 'no') {
+                unset($usersArr[$userSettingsId]);
+            } else if ($sArr[$property] == 'yes') {
+                // Ако има права за сингъла на нишката тогава може да се нотифицира
+                if ($threadId && doc_Threads::haveRightFor('single', $threadId, $userSettingsId)) {
+                    $usersArr[$userSettingsId] = $userSettingsId;
+                }
+            }
+        }
+    }
+    
+    
+    /**
      * Добавя нотификация за съответното действие на потребителите
      * 
      * @param array $usersArr - Масив с потребителите, които да се нотифицират
@@ -900,24 +925,31 @@ class doc_Containers extends core_Manager
 
             return;
         }
-
-        // Ако няма да се споделя, а ще се добавя
+        
+        // Ако няма да се споделя, а ще се добавя или променя
         if ($action != 'сподели') {
             
-            // id на класа
-            $key = doc_Threads::getSettingsKey($rec->threadId);
+            // Ако глобално в настройките е зададено да се нотифицира или не
+            $docSettings = doc_Setup::get('NOTIFY_FOR_NEW_DOC');
+            if ($docSettings == 'no') {
+                $usersArr = array();
+            } elseif ($docSettings == 'yes') {
+                $usersArr = core_Users::getByRole('powerUser');
+            }
             
-            $settingsNotifyArr = core_Settings::fetchUsers($key, 'notify');
+            $checkNotifyArr = array();
+            // Ако е зададено в персоналните настройки на потребителя за всички папки
+            $checkNotifyArr[]['DOC_NOTIFY_FOR_NEW_DOC'] = crm_Profiles::getSettingsKey(); 
             
-            // В зависимост от настройкие добавяме или премахваме от списъка за нотифициране
-            foreach ((array)$settingsNotifyArr as $userSettingsId => $notifyArr) {
-                if ($notifyArr['notify'] == 'no') {
-                    unset($usersArr[$userSettingsId]);
-                } else if ($notifyArr['notify'] == 'yes') {
-                    // Ако има права за сингъла на нишката тогава може да се нотифицира
-                    if (doc_Threads::haveRightFor('single', $rec->threadId, $userSettingsId)) {
-                        $usersArr[$userSettingsId] = $userSettingsId;
-                    }
+            // Ако е зададено в настройките на папката
+            $checkNotifyArr[]['newDoc'] = doc_Folders::getSettingsKey($rec->folderId);
+            
+            // Ако е зададено в настройките на нишката
+            $checkNotifyArr[]['notify'] = doc_Threads::getSettingsKey($rec->threadId);
+            
+            foreach ($checkNotifyArr as $nArr) {
+                foreach ($nArr as $property => $sKey) {
+                    self::prepareUsersArrForNotifications($usersArr, $sKey, $property, $rec->threadId);
                 }
             }
         }

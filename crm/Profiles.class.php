@@ -438,6 +438,15 @@ class crm_Profiles extends core_Master
                     $data->ActionLog->actionLogLink = ht::createLink(tr("Още..."), $loginLogUrl, FALSE, $attr);  
                 }
             }
+            
+            // Ако има вътрешен номер, показваме го
+            if (core_Packs::isInstalled('callcenter')) {
+                $numbersArr = callcenter_Numbers::getInternalNumbersForUsers(array($data->rec->userId));
+                
+                if (!empty($numbersArr)) {
+                    $data->User->row->internalNum = implode(', ', $numbersArr);
+                }
+            }
         }
         
         // Бутон за персонализиране

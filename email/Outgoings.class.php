@@ -2200,6 +2200,13 @@ class email_Outgoings extends core_Master
      */
     static function on_AfterPrepareSingle($mvc, $data)
     {
+        if (!Mode::isReadOnly()) {
+        
+            // Изчистваме нотификацията за събуждане
+            $url = array($mvc, 'single', $data->rec->id, 'wakeUp' => TRUE);
+            bgerp_Notifications::clear($url);
+        }
+        
         if($data->rec->recipient || $data->rec->attn || $data->rec->email) {
             $data->row->headerType = tr('Писмо');
         } elseif($data->rec->originId) {
@@ -2452,6 +2459,9 @@ class email_Outgoings extends core_Master
                     // Премахваме нотификацията
                     $urlArr = array('doc_Search', 'state' => 'wakeup');
                     bgerp_Notifications::clear($urlArr, $rec->lastSendedBy);
+                    
+                    $urlArr = array(get_called_class(), 'single', $rec->id, 'wakeUp' => TRUE);
+                    bgerp_Notifications::clear($urlArr, $rec->lastSendedBy);
                 }
                 
                 // Затваряме
@@ -2472,8 +2482,10 @@ class email_Outgoings extends core_Master
                     // "Събуждаме" имейла и добавяме нотификация
                     $nRec->state = 'wakeup';
                     $saveFiedsArr['state'] = 'state';
-                    static::addWaitingEmailNotification($rec->lastSendedBy);
+                    static::addWaitingEmailNotification($rec->lastSendedBy, $rec);
                     $flagSave = TRUE;
+                    
+                    self::logWrite('Събуждане', $rec->id);
                 }
             }
             
@@ -2492,9 +2504,10 @@ class email_Outgoings extends core_Master
     /**
      * Добавяме нотификация на съответния потребител за чакащ имейл
      *
-     * @param integer $userId
+     * @param integer|NULL $userId
+     * @param stdObject|NULL $rec
      */
-    static function addWaitingEmailNotification($userId = NULL)
+    static function addWaitingEmailNotification($userId = NULL, $rec = NULL)
     {
         if (!$userId) {
             $userId = core_Users::getCurrent();
@@ -2502,11 +2515,13 @@ class email_Outgoings extends core_Master
         
         if ($userId <= 0) return ;
         
-        // Съобщение
-        $msg = "|Липсва отговор на изпратен имейл";
-        
-        // URL-то, където ще сочи нотификацията
-        $urlArr = array('doc_Search', 'state' => 'wakeup');
+        if ($rec && self::haveRightFor('single', $rec, $userId)) {
+            $msg = '|Липсва отговор на|* "' . $rec->subject . '"';
+            $urlArr = array(get_called_class(), 'single', $rec->id, 'wakeUp' => TRUE);
+        } else {
+            $msg = "|Липсва отговор на изпратен имейл";
+            $urlArr = array('doc_Search', 'state' => 'wakeup');
+        }
         
         // Добавяме нотификацията
         bgerp_Notifications::add($msg, $urlArr, $userId, 'normal');

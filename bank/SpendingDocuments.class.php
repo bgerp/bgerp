@@ -90,9 +90,12 @@ class bank_SpendingDocuments extends bank_Document
         $form->setOptions('ownAccount', bank_OwnAccounts::getOwnAccounts(FALSE));
         
         $mvc->setDefaultsFromOrigin($origin, $form, $options);
-        
         $form->setSuggestions('contragentIban', bank_Accounts::getContragentIbans($form->rec->contragentId, $form->rec->contragentClassId));
-        $form->setDefault('valior', $today);
+        if(!isset($form->rec->valior)){
+        	$form->setDefault('valior', $today);
+        }
+        
+        
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
         $form->setOptions('operationSysId', $options);
         

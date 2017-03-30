@@ -62,6 +62,12 @@ defIfNot('DOC_SHOW_DOCUMENTS_BEGIN', 3);
 
 
 /**
+ * Нотификация за добавен документ в нишка
+ */
+defIfNot('DOC_NOTIFY_FOR_NEW_DOC', 'default');
+
+
+/**
  * Задължително показване на документи -> В края на нишката
  */
 defIfNot('DOC_SHOW_DOCUMENTS_END', 3);
@@ -167,6 +173,7 @@ class doc_Setup extends core_ProtoSetup
     	
         'DOC_REPAIR_ALL' => array ('enum(yes=Да (бавно), no=Не)', 'caption=Дали да се проверяват всички документи за поправка->Избор'),
         'DOC_SEARCH_FOLDER_CNT' => array ('int(Min=0)', 'caption=Колко папки от последно отворените да се показват при търсене->Брой'),
+        'DOC_NOTIFY_FOR_NEW_DOC' => array ('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Нотификация за добавен документ в нишка->Избор, customizeBy=powerUser'),
     
         'DOC_SHOW_DOCUMENTS_BEGIN' => array ('int(Min=0)', 'caption=Задължително показване на документи в нишка->В началото, customizeBy=user'),
         'DOC_SHOW_DOCUMENTS_END' => array ('int(Min=0)', 'caption=Задължително показване на документи в нишка->В края, customizeBy=user'),
