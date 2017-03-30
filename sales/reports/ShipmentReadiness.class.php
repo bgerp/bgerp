@@ -351,7 +351,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 					$delTime = (!empty($sRec->deliveryTime)) ? $sRec->deliveryTime : (!empty($sRec->deliveryTermTime) ?  dt::addSecs($sRec->deliveryTermTime, $sRec->valior) : NULL);
 					if(empty($delTime)){
 						$delTime = $Sales->getMaxDeliveryTime($sRec->id);
-						$delTime = ($delTime) ? $delTime : $sRec->valior;
+						$delTime = ($delTime) ? dt::addSecs($delTime, $sRec->valior) : $sRec->valior;
 					}
 					
 					$delTime = str_replace('00:00', $startOfTheDay, $delTime);
