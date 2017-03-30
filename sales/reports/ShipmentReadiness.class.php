@@ -75,8 +75,8 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 	public function addFields(core_Fieldset &$fieldset)
 	{
 		$fieldset->FLD('dealers', 'keylist(mvc=core_Users,select=nick)', 'caption=Търговци,after=title,single=none');
-		$fieldset->FLD('countryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,after=dealers');
-		$fieldset->FLD('precision', 'percent(min=0,max=1)', 'caption=Готовност,unit=и нагоре,after=countryId');
+		$fieldset->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonNameBg,allowEmpty)', 'caption=Държави,after=dealers,single=none');
+		$fieldset->FLD('precision', 'percent(min=0,max=1)', 'caption=Готовност,unit=и нагоре,after=countries');
 		$fieldset->FLD('orderBy', 'enum(readiness=По готовност,contragents=По контрагенти)', 'caption=Подредба,after=precision');
 	}
 	
@@ -278,6 +278,9 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		}
 		
 		$row->dealers = implode(', ', $dealers);
+		if(isset($rec->countries)){
+			$row->countries = core_Type::getByName('keylist(mvc=drdata_Countries,select=commonNameBg)')->toVerbal($rec->countries);
+		}
 	}
 	
 	
@@ -291,9 +294,19 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 	 */
 	public static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
 	{
+		$fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
+								<fieldset><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
+							    <!--ET_BEGIN place--><small><div><!--ET_BEGIN dealers-->|Търговци|*: [#dealers#]<!--ET_END dealers--></div><!--ET_BEGIN countries--><div>|Държави|*: [#countries#]</div><!--ET_END countries--></small></fieldset><!--ET_END BLOCK-->"));
+		
 		if(isset($data->rec->dealers)){
-			$tpl->append(tr("|*<fieldset><legend class='groupTitle'><small><b>|Търговци|*</b></small></legend><small>{$data->row->dealers}</small></fieldset>"), 'DRIVER_FIELDS');
+			$fieldTpl->append($data->row->dealers, 'dealers');
 		}
+		
+		if(isset($data->rec->countries)){
+			$fieldTpl->append($data->row->countries, 'countries');
+		}
+		
+		$tpl->append($fieldTpl, 'DRIVER_FIELDS');
 	}
 	
 	
@@ -329,6 +342,8 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		
 		$dealers = keylist::toArray($rec->dealers);
 		$startOfTheDay = bgerp_Setup::get('START_OF_WORKING_DAY');
+		$countries = keylist::toArray($rec->countries);
+		$cCount = count($countries);
 		
 		// Всички чакащи и активни продажби на избраните дилъри
 		$sQuery = sales_Sales::getQuery();
@@ -341,9 +356,9 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		while($sRec = $sQuery->fetch()){
 			
 			// Ако има филтър по държава 
-			if(isset($rec->countryId)){
+			if($cCount){
 				$contragentCountryId = cls::get($sRec->contragentClassId)->fetchField($sRec->contragentId, 'country');
-				if($contragentCountryId != $rec->countryId) continue;
+				if(!array_key_exists($contragentCountryId, $countries)) continue;
 			}
 			
 			// Изчислява се готовноста
