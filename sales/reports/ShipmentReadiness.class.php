@@ -208,12 +208,10 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		
 		// Линк към дилъра
 		if(!array_key_exists($dRec->dealerId, self::$dealers)){
-			if(isset($dRec->dealerId)){
-				self::$dealers[$dRec->dealerId] = crm_Profiles::createLink($dRec->dealerId);
-			}
+			self::$dealers[$dRec->dealerId] = crm_Profiles::createLink($dRec->dealerId);
 		}
 		
-		$row->dealerId = isset(self::$dealers[$dRec->dealerId]) ? self::$dealers[$dRec->dealerId] : "<i class='quiet'>" . tr('Без дилър') . "</i>";
+		$row->dealerId = self::$dealers[$dRec->dealerId];
 		if($isPlain){
 			$row->dealerId = strip_tags(($row->dealerId instanceof core_ET) ? $row->dealerId->getContent() : $row->dealerId);
 		}
@@ -368,6 +366,8 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 				core_Cache::set('sales_reports_ShipmentReadiness', "c{$sRec->containerId}", $readiness, 58);
 			}
 			
+			$dealerId = ($sRec->dealerId) ? $sRec->dealerId : (($sRec->activatedBy) ? $sRec->activatedBy : $sRec->createdOn);
+			
 			// Ако има някаква изчислена готовност
 			if($readiness !== FALSE && $readiness !== NULL){
 				
@@ -392,7 +392,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 										  'contragentId'      => $sRec->contragentId,
 										  'deliveryTime'      => $delTime,
 							              'folderId'          => $sRec->folderId,
-							              'dealerId'          => $sRec->dealerId,
+							              'dealerId'          => $dealerId,
 							              'readiness'         => $readiness);
 					
 					$data->recs[$sRec->containerId] = $dRec;
@@ -433,7 +433,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 							           'contragentId'      => $sRec->contragentId,
 									   'deliveryTime'      => $deliveryTime,
 							           'folderId'          => $soRec->folderId, 
-							           'dealerId'          => $sRec->dealerId, 
+							           'dealerId'          => $dealerId, 
 							           'readiness'         => $readiness1);
 					
 					$data->recs[$soRec->containerId] = $r;
