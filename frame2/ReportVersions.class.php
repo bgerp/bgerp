@@ -165,8 +165,14 @@ class frame2_ReportVersions extends core_Detail
 	 */
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
+		// Коя е избраната версия в момента
 		$selectedId = frame2_Reports::getSelectedVersionId($rec->reportId);
+		if(!$selectedId){
+			$latestVersionId = self::getLatestVersionId($rec->reportId);
+			$selectedId = $latestVersionId;
+		}
 		
+		// Бутон за избор на текуща версия
 		if($mvc->haveRightFor('checkout', $rec->id)){
 			$url = array($mvc, 'checkout', $rec->id, 'ret_url' => frame2_Reports::getSingleUrlArray($rec->reportId));
 			$icon = ($rec->id == $selectedId) ? 'img/16/radio-button.png' : 'img/16/radio-button-uncheck.png ';

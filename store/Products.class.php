@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -62,7 +62,7 @@ class store_Products extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId=Наименование, measureId=Мярка,quantity';
+    public $listFields = 'productId=Наименование, measureId=Мярка,quantity,storeId';
     
     
     /**
@@ -86,9 +86,6 @@ class store_Products extends core_Manager
     }
     
     
-
-    
-
     /**
      * След преобразуване на записа в четим за хора вид.
      */
@@ -103,14 +100,14 @@ class store_Products extends core_Manager
 	    foreach($rows as $id => &$row){
 	       $rec = &$recs[$id];
 	       $row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
-	        	
+	       $row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
+	       
 	        try{
 	        	$pInfo = cat_Products::getProductInfo($rec->productId);
 	        	$row->measureId = cat_UoM::getTitleById($pInfo->productRec->measureId);
 	        } catch(core_exception_Expect $e){
 	        	$row->measureId = tr("???");
 	        }
-	        	 
         }
     }
     
@@ -130,7 +127,17 @@ class store_Products extends core_Manager
 		$data->listFilter->setDefault('order', 'active');
     	
     	$data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
-    	$data->listFilter->setDefault('storeId', store_Stores::getCurrent());
+    	
+    	$stores = array();
+    	$sQuery = store_Stores::getQuery();
+    	$sQuery->where("#state != 'rejected'");
+    	store_Stores::restrictAccess($sQuery);
+    	while($sRec = $sQuery->fetch()){
+    		$stores[$sRec->id] = store_Stores::getTitleById($sRec->id, FALSE);
+    	}
+    	$data->listFilter->setOptions('storeId', array('' => '') + $stores);
+    	$data->listFilter->setDefault('storeId', store_Stores::getCurrent('id', FALSE));
+    	
     	$data->listFilter->setField('storeId', 'autoFilter');
     	
     	// Подготвяме в заявката да може да се търси по полета от друга таблица
@@ -348,7 +355,9 @@ class store_Products extends core_Manager
     }
 
 
-
+	/**
+	 * Преди подготовката на ключовете за избор
+	 */
     public static function on_BeforePrepareKeyOptions($mvc, &$options, $typeKey, $where = '')
     {
         $storeId = store_Stores::getCurrent();

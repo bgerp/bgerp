@@ -168,6 +168,12 @@ class frame2_Reports extends embed_Manager
     
     
     /**
+     * Кеш на обновените отчети
+     */
+    protected $setNewUpdateTimes = array();
+    
+    
+    /**
      * Максимален брон на пазене на версии
      */
     const MAX_VERSION_HISTORT_COUNT = 10;
@@ -179,8 +185,8 @@ class frame2_Reports extends embed_Manager
     function description()
     {
     	$this->FLD('title', 'varchar', 'caption=Заглавие');
-    	$this->FLD('updateDays', 'set(mon=Понеделник,tue=Вторник,wed=Сряда,thu=Четвъртък,fri=Петък,sat=Събота,sun=Неделя)', 'caption=Обновяване->Дни');
-    	$this->FLD('updateTime', 'set(8:00=8:00,9:00=9:00,11:11=11:11)', 'caption=Обновяване->Час');
+    	$this->FLD('updateDays', 'set(monday=Понеделник,tuesday=Вторник,wednesday=Сряда,thursday=Четвъртък,friday=Петък,saturday=Събота,sunday=Неделя)', 'caption=Обновяване->Дни');
+    	$this->FLD('updateTime', 'set(08:00=08:00,09:00=9:00,10:00=10:00,11:00=11:00,12:00=12:00)', 'caption=Обновяване->Час');
     	$this->FLD('notificationText', 'varchar', 'caption=Нотифициране при обновяване->Текст,mandatory');
     	$this->FLD('sharedUsers', 'userList(roles=powerUser)', 'caption=Нотифициране при обновяване->Потребители,mandatory');
     	$this->FLD('maxKeepHistory', 'int(Min=0)', 'caption=Запазване на предишни състояния->Версии,autohide,placeholder=Неограничено');
@@ -231,9 +237,9 @@ class frame2_Reports extends embed_Manager
     			$refresh = TRUE;
     			if(isset($rec->id)){
     				$refresh = FALSE;
-    				
-    				// Ако записа бива редактиран и няма променени полета от драйвера не се преизчислява
     				$oldRec = self::fetch($rec->id);
+    			
+    				// Ако записа бива редактиран и няма променени полета от драйвера не се преизчислява
     				$fields = $mvc->getDriverFields($Driver);
     				foreach ($fields as $name => $caption){
     					if($oldRec->{$name} !== $rec->{$name}){
@@ -241,18 +247,29 @@ class frame2_Reports extends embed_Manager
     						break;
     					}
     				}
+    			
+    				// Ако е променен броя на версиите ъпдейт
+    				if($rec->maxKeepHistory != $oldRec->maxKeepHistory){
+    					$rec->updateVersionHistory = TRUE;
+    				}
+    				
+    				// Ако преди е имало обновяване, но сега няма ще се премахнат зададените обновявания
+    				$oldUpdateTime = (!empty($oldRec->updateDays) || !empty($oldRec->updateTime));
+    				if($oldUpdateTime && (empty($rec->updateDays) && empty($rec->updateTime))){
+    					$rec->removeSetUpdateTimes = TRUE;
+    				}
+    				
+    				// Ако са променени данните за обновяване ъпдейтват се
+    				if($rec->removeSetUpdateTimes !== TRUE){
+    					if($oldRec->updateDays != $rec->updateDays || $oldRec->updateTime != $rec->updateTime){
+    						$rec->updateRefreshTimes = TRUE;
+    					}
+    				}
     			}
     			
     			// Флаг че датата трябва да се рефрешне
     			if($refresh === TRUE){
     				$rec->refreshData = TRUE;
-    			} else {
-    				if(isset($rec->id)){
-    					$oldRec = self::fetch($rec->id);
-    					if($rec->maxKeepHistory != $oldRec->maxKeepHistory){
-    						$rec->updateVersionHistory = TRUE;
-    					}
-    				}
     			}
     		}
     		
@@ -366,9 +383,25 @@ class frame2_Reports extends embed_Manager
     	
     	// Рендиране на данните
     	if($Driver = $mvc->getDriver($rec)){
-    		$rec->data = $Driver->prepareData($rec);
     		$tpl->append($Driver->renderData($rec), 'DRIVER_DATA');
     	}
+    	
+    	// Връщане на оригиналния рек ако е пушнат
+    	if(isset($data->originalRec)){
+    		$rec = $data->originalRec;
+    	}
+    }
+    
+    
+    /**
+     * Метод опресняващ отчета по разписания
+     *
+     * @param stdClass $data - дата
+     */
+    public static function callback_refreshOnTime($data)
+    {
+    	expect($rec = self::fetch($data->id));
+    	self::refresh($rec);
     }
     
     
@@ -399,6 +432,9 @@ class frame2_Reports extends embed_Manager
     				core_Statuses::newStatus('Справката е актуализирана');
     			}
     		}
+    		
+    		// Mаркиране че отчера реяжва да се обнови
+    		$me->setNewUpdateTimes[$rec->id] = $rec;
     	}
     }
     
@@ -411,6 +447,7 @@ class frame2_Reports extends embed_Manager
     	// Ако е имало опреснени отчети
     	if(count($mvc->refreshReports)){
     		foreach ($mvc->refreshReports as $rec) {
+    			
     			if($Driver = $mvc->getDriver($rec)){
     				
     				// Проверява се трябва ли да бъде изпратена нова нотификация до споделените
@@ -420,6 +457,13 @@ class frame2_Reports extends embed_Manager
     					self::sendNotification($rec);
     				}
     			}
+    		}
+    	}
+    	
+    	// Задаване на нови времена за обновяване
+    	if(count($mvc->setNewUpdateTimes)){
+    		foreach ($mvc->setNewUpdateTimes as $rec) {
+    			self::setAutoRefresh($rec->id);
     		}
     	}
     }
@@ -434,12 +478,24 @@ class frame2_Reports extends embed_Manager
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
+    	// Данни
     	if($rec->refreshData === TRUE){
     		self::refresh($rec);
     	}
     	
+    	// Ако е променен броя на поддържаните версии, ъпдейтват се
     	if($rec->updateVersionHistory === TRUE){
     		frame2_ReportVersions::keepInCheck($rec->id);
+    	}
+    	
+    	// Айи ще се махнат зададените времена за обновяване, махат се
+    	if($rec->removeSetUpdateTimes === TRUE){
+    		self::removeAllSetUpdateTimes($rec->id);
+    	}
+    	
+    	// Ако ще се ъпдейтват времената за обновяване
+    	if($rec->updateRefreshTimes === TRUE){
+    		$mvc->setNewUpdateTimes[$rec->id] = $rec;
     	}
     }
     
@@ -497,8 +553,8 @@ class frame2_Reports extends embed_Manager
     	$resArr['title'] = array('name' => tr('Заглавие'), 'val' => $row->title);
     	
     	if(!empty($rec->updateDays) || !empty($rec->updateTime)){
-    		$resArr['update'] = array('name' => tr('Актуализиране'), 'val' => tr("|*<div><!--ET_BEGIN updateDays--><span style='font-weight:normal'>|Дни|*</span>: [#updateDays#]<!--ET_END updateDays-->
-        																		 <!--ET_BEGIN updateTime--><br><span style='font-weight:normal'>|Часове|*</span>: [#updateTime#]<!--ET_END updateTime-->"));										 
+    		$resArr['update'] = array('name' => tr('Актуализиране'), 'val' => tr("|*<!--ET_BEGIN updateDays--><div><span style='font-weight:normal'>|Дни|*</span>: [#updateDays#]<br><!--ET_END updateDays-->
+        																		 <!--ET_BEGIN updateTime--><span style='font-weight:normal'>|Часове|*</span>: [#updateTime#]<!--ET_END updateTime-->"));										 
     	}
     	
     	if(isset($rec->lastRefreshed)){
@@ -531,6 +587,7 @@ class frame2_Reports extends embed_Manager
     	// Ако има избрана версия записа се подменя преди да се е подготвил
     	if($versionId = self::getSelectedVersionId($data->rec->id)){
     		if($versionRec = frame2_ReportVersions::fetchField($versionId, 'oldRec')){
+    			$data->originalRec = clone $data->rec;
     			$data->rec = $versionRec;
     		}
     	}
@@ -559,7 +616,7 @@ class frame2_Reports extends embed_Manager
     				// Показва се информация
     				if(frame2_ReportVersions::haveRightFor('checkout', $latestVersionId)){
     					$checkoutUrl = array('frame2_ReportVersions', 'checkout', $latestVersionId, 'ret_url' => $mvc->getSingleUrlArray($rec->id));
-    					$row->checkoutBtn = ht::createLink('Избор', $checkoutUrl, FALSE, array('ef_icon' => 'img/16/tick-circle-frame.png'));
+    					$row->checkoutBtn = ht::createLink('Избор', $checkoutUrl, FALSE, array('ef_icon' => 'img/16/tick-circle-frame.png', 'title' => 'Към последната версия'));
     					$row->checkoutDate = frame2_ReportVersions::getVerbal($latestVersionId, 'createdOn');
     				}
     			}
@@ -594,15 +651,144 @@ class frame2_Reports extends embed_Manager
     	$csv = csv_Lib::createCsv($csvExportRows, $fields);
     	$csv .= "\n" . $rCsv;
     	
-    	$fileName = str_replace(' ', '_', Str::utf2ascii($Driver->title));
+    	$fileName = str_replace(' ', '_', Str::utf2ascii($rec->title));
     	 
     	header("Content-type: application/csv");
-    	header("Content-Disposition: attachment; filename={$fileName}.csv");
+    	header("Content-Disposition: attachment; filename={$fileName}({$rec->id}).csv");
     	header("Pragma: no-cache");
     	header("Expires: 0");
     	 
     	echo $csv;
     
     	shutdown();
+    }
+    
+    
+    // Премахване на зададените времена за обновяване
+    public static function removeAllSetUpdateTimes($id)
+    {
+    	foreach (range(0, 2) as $i){
+    		$data = new stdClass();
+    		$data->id = (string)$id;
+    		$data->index = (string)$i;
+    		core_CallOnTime::remove(get_called_class(), 'refreshOnTime', $data);
+    	}
+    }
+    
+    
+    /**
+     * Задаване на автоматично време за изпълнение
+     * 
+     * @param int $id
+     * @return void
+     */
+    public static function setAutoRefresh($id)
+    {
+    	$rec = self::fetchRec($id);
+    	
+    	// Намира следващите три времена за обновяване
+    	$dates = self::getNextRefreshDates($rec);
+    	
+    	// Обхождане от 0 до 2
+    	foreach (range(0, 2) as $i){
+    		$data = new stdClass();
+    		$data->id = (string)$id;
+    		$data->index = (string)$i;
+    		if(!isset($dates[$i])) continue;
+    		
+    		core_CallOnTime::setOnce(get_called_class(), 'refreshOnTime', $data, $dates[$i]);
+    	}
+    	
+    	if(haveRole('debug')){
+    		status_Messages::newStatus("Зададени времена за обновяване");
+    	}
+    }
+    
+    
+    /**
+     * Връща следващите три дати, когато да се актуализира справката
+     * 
+     * @param stdClass $rec - запис
+     * @return array        - масив с три дати
+     */
+    private static function getNextRefreshDates($rec)
+    {
+    	// Ако няма зададени времена, няма да има дати за обновяване
+    	if(empty($rec->updateDays) && empty($rec->updateTime)) return array();
+    	
+    	$fromDate = $rec->lastRefreshed;
+    	$dayKeys = array(1 => 'monday', 2 => 'tuesday' , 3 => 'wednesday', 4 => 'thursday', 5 => 'friday', 6 => 'saturday', 7 => 'sunday');
+    	$date = new DateTime($fromDate);
+    	
+    	// Кой ден от седмицата е (1 за Понеделник до 7 за Неделя)
+    	$todayKey = $date->format('N');
+    	$days = type_Set::toArray($rec->updateDays);
+    	$daysArr = array();
+    	
+    	// Ако има зададени дати
+    	if(count($days)){
+    		$orderArr = $after = $before = array();
+    		
+    		// Подреждат се дните, които са след текущия ден
+    		foreach ($days as $d){
+    			$k = array_search($d, $dayKeys);
+    			if($k > $todayKey && $k <= 7){
+    				$after[$k] = $d;
+    			} elseif($k <= $todayKey && $k >= 1){
+    				$before[$k] = $d;
+    			}
+    		}
+    		 
+    		ksort($after);
+    		ksort($before);
+    		 
+    		// Връща се масив с подредените относително дни
+    		$orderArr = array_merge($after, $before);
+    		$count = count($orderArr);
+    		
+    		// Подсигуряване, че масива има три дена (ако е зададен само един, се повтарят)
+    		if(count($orderArr) == 1){
+    			$orderArr = array_merge($orderArr, $orderArr, $orderArr);
+    		} elseif($count == 2){
+    			$orderArr = array_merge($orderArr, array($orderArr[key($orderArr)]));
+    		}
+    		 
+    		// Генериране на следващите три дена за изпълняване
+    		foreach ($orderArr as $d1){
+    			$date->modify("next {$d1}");
+    			$nextDate = $date->format('Y-m-d');
+    			$daysArr[] = $nextDate;
+    		}
+    	} else {
+    		
+    		// Ако няма зададени дни, взимат се най-близките три дена
+    		$date->modify("next day");
+    		$daysArr[] = $date->format('Y-m-d');
+    		$date->modify("next day");
+    		$daysArr[] = $date->format('Y-m-d');
+    		$date->modify("next day");
+    		$daysArr[] = $date->format('Y-m-d');
+    	}
+    	
+    	// Намират се зададените времена, ако няма това е началото на работния ден
+    	$timesArr = type_Set::toArray($rec->updateTime);
+    	if(!count($timesArr)){
+    		$startTime = bgerp_Setup::get('START_OF_WORKING_DAY');
+    		$timesArr[$startTime] = $startTime;
+    	}
+    	
+    	// Времената се добавят към датите
+    	$res = array();
+    	foreach ($daysArr as $d){
+    		foreach ($timesArr as $time){
+    			$res[] = "{$d} {$time}";
+    		}
+    	}
+    	
+    	// Сортират се
+    	sort($res);
+    	
+    	// Връщат се най близките 3 дати
+    	return array($res[0], $res[1], $res[2]);
     }
 }

@@ -74,8 +74,9 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 	 */
 	public function addFields(core_Fieldset &$fieldset)
 	{
-		$fieldset->FLD('dealers', 'keylist(mvc=core_Users,select=nick)', 'caption=Търговци,after=title,mandatory,single=none');
-		$fieldset->FLD('precision', 'percent(min=0,max=1)', 'caption=Готовност,unit=и нагоре,after=dealers');
+		$fieldset->FLD('dealers', 'keylist(mvc=core_Users,select=nick)', 'caption=Търговци,after=title,single=none');
+		$fieldset->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonNameBg,allowEmpty)', 'caption=Държави,after=dealers,single=none');
+		$fieldset->FLD('precision', 'percent(min=0,max=1)', 'caption=Готовност,unit=и нагоре,after=countries');
 		$fieldset->FLD('orderBy', 'enum(readiness=По готовност,contragents=По контрагенти)', 'caption=Подредба,after=precision');
 	}
 	
@@ -118,7 +119,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		$form->setSuggestions('dealers', $suggestions);
 		
 		// Ако текущия потребител е търговец добавя се като избран по дефолт
-		if(haveRole('sales')){
+		if(haveRole('sales') && empty($form->rec->id)){
 			$form->setDefault('dealers', keylist::addKey('', core_Users::getCurrent()));
 		}
 	}
@@ -212,7 +213,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		
 		$row->dealerId = self::$dealers[$dRec->dealerId];
 		if($isPlain){
-			$row->dealerId = strip_tags($row->dealerId->getContent());
+			$row->dealerId = strip_tags(($row->dealerId instanceof core_ET) ? $row->dealerId->getContent() : $row->dealerId);
 		}
 		
 		// Линк към контрагента
@@ -275,6 +276,9 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		}
 		
 		$row->dealers = implode(', ', $dealers);
+		if(isset($rec->countries)){
+			$row->countries = core_Type::getByName('keylist(mvc=drdata_Countries,select=commonNameBg)')->toVerbal($rec->countries);
+		}
 	}
 	
 	
@@ -288,7 +292,19 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 	 */
 	public static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
 	{
-		$tpl->append(tr("|*<fieldset><legend class='groupTitle'><small><b>|Търговци|*</b></small></legend><small>{$data->row->dealers}</small></fieldset>"), 'DRIVER_FIELDS');
+		$fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
+								<fieldset><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
+							    <!--ET_BEGIN place--><small><div><!--ET_BEGIN dealers-->|Търговци|*: [#dealers#]<!--ET_END dealers--></div><!--ET_BEGIN countries--><div>|Държави|*: [#countries#]</div><!--ET_END countries--></small></fieldset><!--ET_END BLOCK-->"));
+		
+		if(isset($data->rec->dealers)){
+			$fieldTpl->append($data->row->dealers, 'dealers');
+		}
+		
+		if(isset($data->rec->countries)){
+			$fieldTpl->append($data->row->countries, 'countries');
+		}
+		
+		$tpl->append($fieldTpl, 'DRIVER_FIELDS');
 	}
 	
 	
@@ -324,6 +340,8 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		
 		$dealers = keylist::toArray($rec->dealers);
 		$startOfTheDay = bgerp_Setup::get('START_OF_WORKING_DAY');
+		$countries = keylist::toArray($rec->countries);
+		$cCount = count($countries);
 		
 		// Всички чакащи и активни продажби на избраните дилъри
 		$sQuery = sales_Sales::getQuery();
@@ -335,12 +353,20 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		// За всяка
 		while($sRec = $sQuery->fetch()){
 			
+			// Ако има филтър по държава 
+			if($cCount){
+				$contragentCountryId = cls::get($sRec->contragentClassId)->fetchField($sRec->contragentId, 'country');
+				if(!array_key_exists($contragentCountryId, $countries)) continue;
+			}
+			
 			// Изчислява се готовноста
 			$readiness = core_Cache::get('sales_reports_ShipmentReadiness', "c{$sRec->containerId}");
 			if($readiness === FALSE) {
 				$readiness = self::calcSaleReadiness($sRec);
 				core_Cache::set('sales_reports_ShipmentReadiness', "c{$sRec->containerId}", $readiness, 58);
 			}
+			
+			$dealerId = ($sRec->dealerId) ? $sRec->dealerId : (($sRec->activatedBy) ? $sRec->activatedBy : $sRec->createdOn);
 			
 			// Ако има някаква изчислена готовност
 			if($readiness !== FALSE && $readiness !== NULL){
@@ -351,7 +377,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 					$delTime = (!empty($sRec->deliveryTime)) ? $sRec->deliveryTime : (!empty($sRec->deliveryTermTime) ?  dt::addSecs($sRec->deliveryTermTime, $sRec->valior) : NULL);
 					if(empty($delTime)){
 						$delTime = $Sales->getMaxDeliveryTime($sRec->id);
-						$delTime = ($delTime) ? $delTime : $sRec->valior;
+						$delTime = ($delTime) ? dt::addSecs($delTime, $sRec->valior) : $sRec->valior;
 					}
 					
 					$delTime = str_replace('00:00', $startOfTheDay, $delTime);
@@ -366,7 +392,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 										  'contragentId'      => $sRec->contragentId,
 										  'deliveryTime'      => $delTime,
 							              'folderId'          => $sRec->folderId,
-							              'dealerId'          => $sRec->dealerId,
+							              'dealerId'          => $dealerId,
 							              'readiness'         => $readiness);
 					
 					$data->recs[$sRec->containerId] = $dRec;
@@ -407,7 +433,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 							           'contragentId'      => $sRec->contragentId,
 									   'deliveryTime'      => $deliveryTime,
 							           'folderId'          => $soRec->folderId, 
-							           'dealerId'          => $sRec->dealerId, 
+							           'dealerId'          => $dealerId, 
 							           'readiness'         => $readiness1);
 					
 					$data->recs[$soRec->containerId] = $r;
@@ -467,7 +493,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 			
 		$totalAmount = 0;
 		$readyAmount = NULL;
-			
+		
 		// За всеки договорен артикул
 		foreach ($agreedProducts as $pId => $pRec){
 			$productRec = cat_Products::fetch($pId, 'canStore,isPublic');
@@ -478,9 +504,10 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 			
 			// Ако всичко е експедирано се пропуска реда
 			if($quantity <= 0) continue;
-					
+			$price = (isset($pRec->discount)) ? ($pRec->price - ($pRec->discount * $pRec->price)) : $pRec->price;
+			
 			$amount = NULL;
-			$totalAmount += $quantity * $pRec->price;
+			$totalAmount += $quantity * $price;
 					
 			// Ако артикула е нестандартен и има приключено задание по продажбата и няма друго активно по нея
 			if($productRec->isPublic == 'no'){
@@ -489,7 +516,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 						
 				// Се приема че е готово
 				if($closedJobId && !$activeJobId){
-					$amount = $quantity * $pRec->price;
+					$amount = $quantity * $price;
 				}
 			}
 					
@@ -499,7 +526,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 				$quantityInStock = store_Products::getQuantity($pId, $saleRec->shipmentStoreId);
 				$quantityInStock = ($quantityInStock > $quantity) ? $quantity : (($quantityInStock < 0) ? 0 : $quantityInStock);
 						
-				$amount = $quantityInStock * $pRec->price;
+				$amount = $quantityInStock * $price;
 			}
 					
 			// Събиране на изпълнената сума за всеки ред
@@ -507,7 +534,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 				$readyAmount += $amount;
 			}
 		}
-			
+		
 		// Готовноста е процента на изпълнената сума от общата
 		$readiness = (isset($readyAmount)) ? @round($readyAmount / $totalAmount, 2) : NULL;
 		
@@ -539,13 +566,15 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		
 		// За всеки се определя колко % може да се изпълни
 		foreach ($all as $pId => $pRec){
-			$totalAmount += $pRec->quantity * $pRec->price;
+			$price = (isset($pRec->discount)) ? ($pRec->price - ($pRec->discount * $pRec->price)) : $pRec->price;
+			
+			$totalAmount += $pRec->quantity * $price;
 				
 			// Определя се каква сума може да се изпълни
 			$quantityInStock = store_Products::getQuantity($pId, $soRec->storeId);
 			$quantityInStock = ($quantityInStock > $pRec->quantity) ? $pRec->quantity : (($quantityInStock < 0) ? 0 : $quantityInStock);
 			
-			$amount = $quantityInStock * $pRec->price;
+			$amount = $quantityInStock * $price;
 				
 			if(isset($amount)){
 				$readyAmount += $amount;

@@ -158,7 +158,8 @@ class doc_SharablePlg extends core_Plugin
             $viewedBy[$userId] = dt::now(TRUE);
             $rec->sharedViews = serialize($viewedBy);
             $rec->modifiedOn = dt::verbal2mysql();
-            if ($mvc->save_($rec)) {
+            
+            if ($mvc->save_($rec, 'sharedViews,modifiedOn')) {
                 core_Cache::remove($mvc->className, $data->cacheKey . '%');
                 if($rec->containerId) {
                     $cRec = new stdClass();
@@ -166,7 +167,7 @@ class doc_SharablePlg extends core_Plugin
                     $cRec->modifiedOn = $rec->modifiedOn;
                     $cRec->modifiedBy = $userId;
                     $dCon = cls::get("doc_Containers");
-                    $dCon->save_($cRec);
+                    $dCon->save_($cRec, 'modifiedOn,modifiedBy');
                 }
             }
         }

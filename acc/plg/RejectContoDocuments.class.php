@@ -115,7 +115,7 @@ class acc_plg_RejectContoDocuments extends core_Plugin
     {
         $rec = $mvc->fetchRec($id);
         
-        if($rec->state != 'draft' && $rec->state != 'stopped'){
+        if($rec->state != 'draft' && $rec->state != 'stopped'  && $rec->state != 'pending'){
             
             // Ако не може да се оттегля, връща FALSE за да се стопира оттеглянето
             return $mvc->canRejectOrRestore($id);
@@ -132,7 +132,7 @@ class acc_plg_RejectContoDocuments extends core_Plugin
         $ignore = array();
         
         // Ако не може да се възстановява, връща FALSE за да се стопира възстановяването
-        if($rec->brState != 'draft' && $rec->brState != 'stopped'){
+        if($rec->brState != 'draft' && $rec->brState != 'stopped' && $rec->brState != 'pending'){
         	
             // Ако документа не е сделка
             if(!cls::haveInterface('deals_DealsAccRegIntf', $mvc)){

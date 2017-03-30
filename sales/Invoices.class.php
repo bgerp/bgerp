@@ -662,9 +662,7 @@ class sales_Invoices extends deals_InvoiceMaster
     		}
     	}
     	
-    	if($action == 'conto' && isset($rec)){
-    	
-    		// Не може да се контира, ако има ф-ра с по нова дата
+    	if($action == 'restore' && isset($rec)){
     		$lastDate = $mvc->getNewestInvoiceDate($rec->numlimit);
     		if($lastDate > $rec->date) {
     			$res = 'no_one';
@@ -674,7 +672,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	// Само ceo,salesmaster и acc могат да оттеглят контирана фактура
     	if($action == 'reject' && isset($rec)){
     		if($rec->state == 'active'){
-    			if(!haveRole('ceo,salesMaster,acc', $userId)){
+    			if(!haveRole('ceo,sales,invoicer', $userId)){
     				$res = 'no_one';
     			}
     		}
@@ -682,8 +680,10 @@ class sales_Invoices extends deals_InvoiceMaster
     	
     	// Само ceo,salesmaster и acc могат да възстановят фактура
     	if($action == 'restore' && isset($rec)){
-    		if(!haveRole('ceo,salesMaster,acc', $userId)){
-    			$res = 'no_one';
+    		if($rec->brState == 'active'){
+    			if(!haveRole('ceo,sales,invoicer', $userId)){
+    				$res = 'no_one';
+    			}
     		}
     	}
     	

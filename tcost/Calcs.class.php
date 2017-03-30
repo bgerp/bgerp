@@ -77,7 +77,7 @@ class tcost_Calcs extends core_Manager
     /**
      * Полета, които се виждат
      */
-    public $listFields  = "docId,recId,fee";
+    public $listFields  = "docId,recId,fee,deliveryTime";
     
     
     /**
@@ -89,6 +89,7 @@ class tcost_Calcs extends core_Manager
     	$this->FLD('docId', 'int', 'mandatory,caption=Ид на документа');
     	$this->FLD('recId', 'int', 'mandatory,caption=Ид на реда');
     	$this->FLD('fee', 'double', 'mandatory,caption=Сума на транспорта');
+    	$this->FLD('deliveryTime', 'time', 'mandatory,caption=Срок на доставка');
     	
     	$this->setDbUnique('docClassId,docId,recId');
     	$this->setDbIndex('docClassId,docId');
@@ -126,11 +127,16 @@ class tcost_Calcs extends core_Manager
     	
     	$ourCompany = crm_Companies::fetchOurCompany();	 
     	$totalFee = $TransportCostDriver->getTransportFee($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $toCountryId, $toPcodeId, $ourCompany->country, $ourCompany->pCode);
+    	$fee = $totalFee['fee'];
     	
-    	$res = array('totalFee' => $totalFee);
+    	$res = array('totalFee' => $fee);
     	
-    	if($totalFee != tcost_CostCalcIntf::CALC_ERROR){
-    		$res['singleFee'] = $totalFee / $quantity;
+    	if($fee != tcost_CostCalcIntf::CALC_ERROR){
+    		$res['singleFee'] = $fee / $quantity;
+    	}
+    	
+    	if(isset($totalFee['deliveryTime'])){
+    		$res['deliveryTime'] = $totalFee['deliveryTime'];
     	}
     	
     	return $res;
@@ -163,7 +169,7 @@ class tcost_Calcs extends core_Manager
      * @param double $fee       - начисления скрит транспорт
      * @return void
      */
-    public static function sync($docClass, $docId, $recId, $fee)
+    public static function sync($docClass, $docId, $recId, $fee, $deliveryTimeFromFee = NULL)
     {
     	// Клас ид
     	$classId = cls::get($docClass)->getClassId();
@@ -183,12 +189,22 @@ class tcost_Calcs extends core_Manager
     		// И няма съществуващ запис, ще се добавя нов
     		if(!$exRec){
     			$exRec = (object)array('docClassId' => $classId, 'docId' => $docId, 'recId' => $recId);
+    			if(isset($deliveryTimeFromFee)){
+    				$exRec->deliveryTime = $deliveryTimeFromFee;
+    			}
     		} else {
     			$fields = 'fee';
+    			if(isset($deliveryTimeFromFee)){
+    				$fields .= ',deliveryTime';
+    			}
     		}
     		 
     		// Ъпдейт / Добавяне на записа
     		$exRec->fee = $fee;
+    		if(isset($deliveryTimeFromFee)){
+    			$exRec->deliveryTime = $deliveryTimeFromFee;
+    		}
+    		
     		self::save($exRec);
     	}
     }
@@ -415,7 +431,7 @@ class tcost_Calcs extends core_Manager
     	// Опит за изчисляване на транспорт
     	$totalWeight = cond_Parameters::getParameter($contragentClassId, $contragentId, 'calcShippingWeight');
     	$feeArr = tcost_Calcs::getTransportCost($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $codeAndCountryArr['countryId'], $codeAndCountryArr['pCode']);
-    
+    	
     	return $feeArr;
     }
     
@@ -462,13 +478,20 @@ class tcost_Calcs extends core_Manager
     	$map = array_merge(self::$map, $map);
     	
     	// Имали вече начислен транспорт
-    	$rec->fee = tcost_Calcs::get($map['masterMvc'], $masterRec->id, $rec->id)->fee;
+    	if($cRec = tcost_Calcs::get($map['masterMvc'], $masterRec->id, $rec->id)){
+    		$rec->fee = tcost_Calcs::get($map['masterMvc'], $masterRec->id, $rec->id)->fee;
+    		$rec->deliveryTimeFromFee = tcost_Calcs::get($map['masterMvc'], $masterRec->id, $rec->id)->deliveryTime;
+    	}
     	
     	// Колко е очаквания транспорт
     	$feeArr = tcost_Calcs::getCostArray($masterRec->{$map['deliveryTermId']}, $masterRec->{$map['contragentClassId']}, $masterRec->{$map['contragentId']}, $rec->{$map['productId']}, $rec->{$map['packagingId']}, $rec->{$map['quantity']}, $masterRec->{$map['deliveryLocationId']});
     	
     	// Ако има такъв към цената се добавя
     	if(is_array($feeArr)){
+    		if(isset($feeArr['deliveryTime'])){
+    			$rec->deliveryTimeFromFee = $feeArr['deliveryTime'];
+    		}
+    		
     		if($rec->autoPrice === TRUE){
     			if(isset($feeArr['singleFee'])){
     				$rec->{$map['price']} += $feeArr['singleFee'];

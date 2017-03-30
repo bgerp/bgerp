@@ -138,6 +138,22 @@ class core_CallOnTime extends core_Manager
 	
 	
 	/**
+	 * Изтриване на вече зададен запис, който все още не е изпълнен
+	 * 
+	 * @param string $className
+	 * @param string $methodName
+	 * @param mixed $data
+	 * @return void
+	 */
+	public static function remove($className, $methodName, $data)
+	{
+		$hash = self::getHash($className, $methodName, $data);
+		
+		self::delete("#hash = '{$hash}' AND #state = 'draft'");
+	}
+	
+	
+	/**
 	 * Връща хеша за записа
 	 * 
 	 * @param string $className
