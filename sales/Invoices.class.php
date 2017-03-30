@@ -662,9 +662,7 @@ class sales_Invoices extends deals_InvoiceMaster
     		}
     	}
     	
-    	if($action == 'conto' && isset($rec)){
-    	
-    		// Не може да се контира, ако има ф-ра с по нова дата
+    	if($action == 'restore' && isset($rec)){
     		$lastDate = $mvc->getNewestInvoiceDate($rec->numlimit);
     		if($lastDate > $rec->date) {
     			$res = 'no_one';
