@@ -311,10 +311,13 @@ class acc_plg_Contable extends core_Plugin
                     
                     // Ако потребителя не може да контира документа, не може и да го оттегля
                     if(!(core_Packs::isInstalled('colab') && core_Users::haveRole('partner', $userId) && $rec->createdBy == $userId && ($rec->state == 'draft' || $rec->state == 'pending'))){
-                    	
-                    	$clone = clone $rec;
-                    	$clone->state = 'draft';
-                    	$requiredRoles = $mvc->getRequiredRoles('conto', $clone);
+                    	if($rec->state == 'draft' || $rec->state == 'pending'){
+                    		$requiredRoles = $mvc->getRequiredRoles('add', $rec);
+                    	} else {
+                    		$clone = clone $rec;
+                    		$clone->state = 'draft';
+                    		$requiredRoles = $mvc->getRequiredRoles('conto', $clone);
+                    	}
                     }
                 }
             }
@@ -324,9 +327,13 @@ class acc_plg_Contable extends core_Plugin
         		// Ако потребителя не може да контира документа, не може и да го възстановява
         		if(!(core_Packs::isInstalled('colab') && core_Users::haveRole('partner', $userId) && $rec->createdBy == $userId)){
         		
-        			$clone = clone $rec;
-        			$clone->state = 'draft';
-        			$requiredRoles = $mvc->getRequiredRoles('conto', $clone);
+        			if($rec->state == 'rejected' && ($rec->brState == 'draft' || $rec->brState == 'pending')){
+        				$requiredRoles = $mvc->getRequiredRoles('add', $rec);
+        			} else {
+        				$clone = clone $rec;
+        				$clone->state = 'draft';
+        				$requiredRoles = $mvc->getRequiredRoles('conto', $clone);
+        			}
         		}
         		
             	// Ако сч. период на записа е затворен, документа не може да се възстановява
