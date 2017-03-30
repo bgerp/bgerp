@@ -109,7 +109,7 @@ class bgerp_F extends core_Manager
         // Ако докъмента е отхвърлен, да не се показва на нерегистрирани потребители
         if ($docRec->state == 'rejected') {
             
-            requireRole('user');
+            requireRole('powerUser');
         }
         
         // Вземаме линкнатите файлове в документите
@@ -203,7 +203,7 @@ class bgerp_F extends core_Manager
             if ($docRec->state == 'rejected') {
                 
                 // Само логнати могат да разглеждат
-                requireRole('user');
+                requireRole('powerUser');
             }
             
             // Вземаме линкнатите файлове в документите
