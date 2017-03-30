@@ -41,30 +41,6 @@ abstract class deals_PaymentDocument extends core_Master {
 	
 	
 	/**
-	 * След подготовка на тулбара на единичен изглед.
-	 *
-	 * @param core_Mvc $mvc
-	 * @param stdClass $data
-	 */
-	protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
-	{
-		$rec = $data->rec;
-		
-		if($rec->state != 'rejected'){
-			if(cal_Reminders::haveRightFor('add', (object)array('originId' => $rec->containerId, 'threadId' => $rec->threadId))){
-				$timeStart = array('d' => $rec->{$mvc->valiorFld}, 't' => '8:30');
-				$sharedUsers = keylist::toArray($rec->sharedUsers);
-				$description = tr('Да се активира документ|* #') . $mvc->getHandle($rec);
-				$title = tr("Активиране на|* ") .  mb_strtolower($mvc->singleTitle) . " №{$rec->id}";
-					
-				$url = array('cal_Reminders', 'add', 'originId' => $rec->containerId, 'timeStart' => $timeStart, 'sharedUsers' => $sharedUsers, 'description' => $description, 'title' => $title, 'ret_url' => TRUE);
-				$data->toolbar->addBtn('Напомняне', $url, 'ef_icon=img/16/alarm_clock_add.png', 'title=Създаване на ново напомняне');
-			}
-		}
-	}
-	
-	
-	/**
 	 *  Подготовка на филтър формата
 	 */
 	protected static function on_AfterPrepareListFilter($mvc, $data)
