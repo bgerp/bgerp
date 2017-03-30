@@ -245,8 +245,11 @@ class tcost_Fees extends core_Detail
             $priceLeft = floatval($arrayOfWeightPrice[$weightsLeft]);
             $priceRight = floatval($arrayOfWeightPrice[$weightsRight]);
 
-            $a = ($priceLeft - $priceRight) / ($weightsLeft - $weightsRight);
-            $b = $priceLeft - (($priceLeft - $priceRight) / ($weightsLeft - $weightsRight) * $weightsLeft);
+            $delimiter = $weightsLeft - $weightsRight;
+            if(!$delimiter) return tcost_CostCalcIntf::CALC_ERROR;
+            
+            $a = ($priceLeft - $priceRight) / $delimiter;
+            $b = $priceLeft - (($priceLeft - $priceRight) / $delimiter * $weightsLeft);
 
             $finalPrice = $a * $totalWeight + $b;
         }
