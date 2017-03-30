@@ -74,8 +74,9 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 	 */
 	public function addFields(core_Fieldset &$fieldset)
 	{
-		$fieldset->FLD('dealers', 'keylist(mvc=core_Users,select=nick)', 'caption=Търговци,after=title,mandatory,single=none');
-		$fieldset->FLD('precision', 'percent(min=0,max=1)', 'caption=Готовност,unit=и нагоре,after=dealers');
+		$fieldset->FLD('dealers', 'keylist(mvc=core_Users,select=nick)', 'caption=Търговци,after=title,single=none');
+		$fieldset->FLD('countryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,after=dealers');
+		$fieldset->FLD('precision', 'percent(min=0,max=1)', 'caption=Готовност,unit=и нагоре,after=countryId');
 		$fieldset->FLD('orderBy', 'enum(readiness=По готовност,contragents=По контрагенти)', 'caption=Подредба,after=precision');
 	}
 	
@@ -118,7 +119,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		$form->setSuggestions('dealers', $suggestions);
 		
 		// Ако текущия потребител е търговец добавя се като избран по дефолт
-		if(haveRole('sales')){
+		if(haveRole('sales') && empty($form->rec->id)){
 			$form->setDefault('dealers', keylist::addKey('', core_Users::getCurrent()));
 		}
 	}
@@ -207,12 +208,14 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		
 		// Линк към дилъра
 		if(!array_key_exists($dRec->dealerId, self::$dealers)){
-			self::$dealers[$dRec->dealerId] = crm_Profiles::createLink($dRec->dealerId);
+			if(isset($dRec->dealerId)){
+				self::$dealers[$dRec->dealerId] = crm_Profiles::createLink($dRec->dealerId);
+			}
 		}
 		
-		$row->dealerId = self::$dealers[$dRec->dealerId];
+		$row->dealerId = isset(self::$dealers[$dRec->dealerId]) ? self::$dealers[$dRec->dealerId] : "<i class='quiet'>" . tr('Без дилър') . "</i>";
 		if($isPlain){
-			$row->dealerId = strip_tags($row->dealerId->getContent());
+			$row->dealerId = strip_tags(($row->dealerId instanceof core_ET) ? $row->dealerId->getContent() : $row->dealerId);
 		}
 		
 		// Линк към контрагента
@@ -288,7 +291,9 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 	 */
 	public static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
 	{
-		$tpl->append(tr("|*<fieldset><legend class='groupTitle'><small><b>|Търговци|*</b></small></legend><small>{$data->row->dealers}</small></fieldset>"), 'DRIVER_FIELDS');
+		if(isset($data->rec->dealers)){
+			$tpl->append(tr("|*<fieldset><legend class='groupTitle'><small><b>|Търговци|*</b></small></legend><small>{$data->row->dealers}</small></fieldset>"), 'DRIVER_FIELDS');
+		}
 	}
 	
 	
@@ -334,6 +339,12 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		
 		// За всяка
 		while($sRec = $sQuery->fetch()){
+			
+			// Ако има филтър по държава 
+			if(isset($rec->countryId)){
+				$contragentCountryId = cls::get($sRec->contragentClassId)->fetchField($sRec->contragentId, 'country');
+				if($contragentCountryId != $rec->countryId) continue;
+			}
 			
 			// Изчислява се готовноста
 			$readiness = core_Cache::get('sales_reports_ShipmentReadiness', "c{$sRec->containerId}");
