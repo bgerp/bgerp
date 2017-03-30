@@ -51,7 +51,7 @@ abstract class store_DocumentMaster extends core_Master
      */
     protected static function setDocFields(core_Master &$mvc)
     {
-    	$mvc->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date');
+    	$mvc->FLD('valior', 'date', 'caption=Дата');
     	$mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'input=none,caption=Плащане->Валута');
     	$mvc->FLD('currencyRate', 'double(decimals=5)', 'caption=Валута->Курс,input=hidden');
     	$mvc->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=От склад, mandatory');
@@ -114,7 +114,10 @@ abstract class store_DocumentMaster extends core_Master
     	$form = &$data->form;
     	$rec  = &$form->rec;
     
-    	$form->setDefault('valior', dt::now());
+    	if(!isset($rec->id)){
+    		$form->setDefault('valior', dt::now());
+    	}
+    	
     	$form->setDefault('storeId', store_Stores::getCurrent('id', FALSE));
     	$rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
     	$rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);

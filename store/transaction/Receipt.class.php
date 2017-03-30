@@ -57,6 +57,8 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         	} 
         }
         
+        $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
+        
         $transaction = (object)array(
             'reason'  => 'Складова разписка №' . $rec->id,
             'valior'  => $rec->valior,
