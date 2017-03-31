@@ -1,6 +1,13 @@
 <?php
 
 
+
+/**
+ * Дефолтно общо условие за продажба
+ */
+defIfNot('TRANSSRV_SALE_DEFAULT_CONDITION', '');
+
+
 /**
  * Клас 'transsrv_Setup' 
  *
@@ -62,11 +69,11 @@ class transsrv_Setup extends core_ProtoSetup
     
 
     /**
-     * Връзки от менюто, сочещи към модула
+     * Описание на конфигурационните константи
      */
-    // var $menuItems = array(
-    //        array(3.09, 'Логистика', 'trans.bid', 'transbid_Auctions', 'default', "transbid,ceo"),
-    //    );
+    var $configDescription = array(
+    		'TRANSSRV_SALE_DEFAULT_CONDITION' => array("text", 'caption=Общо условие за продажба по подразбиране->Условие'),
+    );
 
     
     /**

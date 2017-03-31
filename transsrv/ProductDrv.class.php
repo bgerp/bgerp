@@ -114,8 +114,6 @@ class transsrv_ProductDrv extends cat_ProductDriver
         $to2let = drdata_Countries::fetch($rec->toCountry)->letterCode2;
         
         $title = 'Транспорт ' . $from2let . ' => ' . $to2let;
-        
-        $Driver = $mvc->getDriver($rec);
  
         if($rec->unitQty && $rec->transUnit) {
             $title .= ', ' . $rec->unitQty . ' ' . type_Varchar::escape($rec->transUnit);
@@ -244,5 +242,23 @@ class transsrv_ProductDrv extends cat_ProductDriver
 	 */
 	public function prepareProductDescription(&$data)
 	{
+	}
+	
+	
+	/**
+	 * Допълнителните условия за дадения продукт,
+	 * които автоматично се добавят към условията на договора
+	 *
+	 * @param mixed $rec       - ид или запис на артикул
+	 * @param double $quantity - к-во
+	 * @return array           - Допълнителните условия за дадения продукт
+	 */
+	public static function getConditions($rec, $quantity)
+	{
+		if($condition = transsrv_Setup::get('SALE_DEFAULT_CONDITION')){
+			return array($condition);
+		}
+		
+		return array();
 	}
 }
