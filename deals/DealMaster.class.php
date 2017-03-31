@@ -1023,14 +1023,17 @@ abstract class deals_DealMaster extends deals_DealBase
     	$query->show("productId,term,quantity,{$Detail->masterKey}");
     	
     	while($rec = $query->fetch()){
-    		$term = (isset($rec->term)) ? $rec->term : cat_Products::getDeliveryTime($rec->productId, $rec->quantity);
+    		$term = $rec->term;
+    		if(!isset($term)){
+    			if($term = cat_Products::getDeliveryTime($rec->productId, $rec->quantity)){
+    				$cRec = tcost_Calcs::get($this, $rec->{$Detail->masterKey}, $rec->id);
+    				if(isset($cRec->deliveryTime)){
+    					$term = $cRec->deliveryTime + $term;
+    				}
+    			}
+    		}
     		
     		if(isset($term)){
-    			$cRec = tcost_Calcs::get($this, $rec->{$Detail->masterKey}, $rec->id);
-    			if(isset($cRec->deliveryTime)){
-    				$term = $cRec->deliveryTime + $term;
-    			}
-    			
     			$maxDeliveryTime = max($maxDeliveryTime, $term);
     		}
     	}

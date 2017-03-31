@@ -1486,6 +1486,9 @@ class sales_Quotations extends core_Master
     		
     		if(!isset($dRec->term)){
     			if($term = cat_Products::getDeliveryTime($dRec->productId, $dRec->quantity)){
+    				if($deliveryTime = tcost_Calcs::get('sales_Quotations', $dRec->quotationId, $dRec->id)->deliveryTime){
+    					$term += $deliveryTime;
+    				}
     				$dRec->term = $term;
     			}
     		}
