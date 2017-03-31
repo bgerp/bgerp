@@ -71,6 +71,128 @@ class doc_ThreadRefreshPlg extends core_Plugin
     
     
     /**
+     * 
+     * 
+     * @param core_Manager $mvc
+     * @param stdObject $res
+     * @param stdObject $data
+     */
+    public static function on_AfterPrepareListRecs($mvc, &$res, $data)
+    {
+        $hash = self::getDocumentStatesHash($data->recs);
+        $hashName = self::getStateHashName($data->threadId, $data->recs);
+        
+        Mode::setPermanent($hashName, $hash);
+        
+        if (!Request::get('ajax_mode')) {
+            $threadLastSendName = self::getLastSendName($data->threadId);
+            Mode::setPermanent($threadLastSendName, dt::now());
+        }
+    }
+    
+    
+    /**
+     * Проверява дали стария и новия хеш си отговарят и ако е зададено сетва новия
+     * 
+     * @param ingeter $threadId
+     * @param array $recsArr
+     * @param boolean $setNew
+     * 
+     * @return boolean
+     */
+    public static function checkHash($threadId, $recsArr, $setNew = TRUE)
+    {
+        $hash = self::getDocumentStatesHash($recsArr);
+        $hashName = self::getStateHashName($threadId, $recsArr);
+        
+        $oldHash = Mode::get($hashName);
+        
+        if ($oldHash == $hash) return TRUE;
+        
+        if ($setNew) {
+            Mode::setPermanent($hashName, $hash);
+        }
+        
+        return FALSE;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param integer $threadId
+     * @param array $recsArr
+     * 
+     * @return string
+     */
+    protected static function getStateHashName($threadId, $recsArr)
+    {
+        if (!$threadId && !empty($recsArr)) {
+            $recKey = key($recsArr);
+            $threadId = $recsArr[$recKey]->threadId;
+        }
+        
+        $hitTime = Request::get('hitTime');
+        if (!$hitTime) {
+            $hitTime = Mode::get('hitTime');
+        }
+        if (!$hitTime) {
+            $hitTime = dt::mysql2timestamp();
+        }
+        
+        $hashName = 'ThreadStatesHash_' . $threadId . '_' . $hitTime;
+        
+        return $hashName;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param array $recsArr
+     * @return string|NULL
+     */
+    protected static function getDocumentStatesHash($recsArr)
+    {
+        if (empty($recsArr)) return ;
+        
+        ksort($recsArr);
+        
+        $states = '|';
+        foreach ($recsArr as $rec) {
+            $states .= $rec->state . '|';
+        }
+        
+        $hash = md5($states);
+        
+        return $hash;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param integer $threadId
+     * 
+     * @return string
+     */
+    protected static function getLastSendName($threadId)
+    {
+        $hitTime = Request::get('hitTime');
+        if (!$hitTime) {
+            $hitTime = Mode::get('hitTime');
+        }
+        if (!$hitTime) {
+            $hitTime = dt::mysql2timestamp();
+        }
+        
+        $threadLastSendName = 'LastSendThread_' . $threadId . '_' . $hitTime;
+        
+        return $threadLastSendName;
+    }
+    
+    
+    /**
      * Извиква се преди изпълняването на екшън
      * 
      * @param core_Mvc $mvc
@@ -100,36 +222,18 @@ class doc_ThreadRefreshPlg extends core_Plugin
         
         $hitTime = Request::get('hitTime');
         
-        $threadLastSendName = 'LastSendThread_' . $threadId . '_' . $hitTime;
+        $recsArr = array();
         
-        $lastSend = Mode::get($threadLastSendName);
-        
-        if(!$lastSend) {
-            
-            if ($hitTime) {
-                $lastSend = dt::timestamp2Mysql($hitTime);
-            }
-            
-            if (!$lastSend) {
-                $lastSend = dt::verbal2mysql();
-            }
-            
-            Mode::setPermanent($threadLastSendName, $lastSend);
-        }
-        
-        // Определяме времето на последна модификация на контейнер в нишката
         $cQuery = doc_Containers::getQuery();
         $cQuery->where("#threadId = {$threadId}");
-        $cQuery->orderBy('#modifiedOn', 'DESC');
-        $cQuery->limit(1);
-        $lastModifiedRec = $cQuery->fetch();
-        $threadLastRec = doc_Threads::fetch($lastModifiedRec->threadId);
-        $lastModified = max($threadLastRec->modifiedOn, $lastModifiedRec->modifiedOn);
+        $cQuery->orderBy('#id', 'ASC');
+        $cQuery->show('id,state,threadId');
         
-        if($lastSend >= $lastModified && dt::addSecs(3*60, $lastSend) > dt::now()) {
-
-            return FALSE;
+        while ($rec = $cQuery->fetch()) {
+            $recsArr[$rec->id] = $rec;
         }
+        
+        if (self::checkHash($threadId, $recsArr)) return FALSE;
         
         // URL-то за рефрешване
         $refreshUrlStr = Request::get('refreshUrl');
@@ -238,10 +342,11 @@ class doc_ThreadRefreshPlg extends core_Plugin
                     $resStatus[] = $statusObj;
                 }
             }
-         }
+        }
         
+        $threadLastSendName = self::getLastSendName($threadId);
         Mode::setPermanent($threadLastSendName, dt::now());
-
+        
         return FALSE;
     }
     
@@ -278,27 +383,29 @@ class doc_ThreadRefreshPlg extends core_Plugin
      * @param object $res
      * @param object $data
      */
-    function on_AfterPrepareListRows($mvc, &$res, $data)
+    public static function on_AfterPrepareListRows($mvc, &$res, $data)
     {
-        // Масив с променените документи
-        $docsArr = array();
-        
-        $threadId = Request::get('threadId', 'int');
-        
-        $threadLastSendName = 'LastSendThread_' . $threadId . '_' . Request::get('hitTime');
-        
-        $lastSend = Mode::get($threadLastSendName);
-
-        // Намира всички документи, които са променени
-        if (Request::get('ajax_mode') && $lastSend && count($data->recs)) {
+        if (Request::get('ajax_mode')) {
+            // Масив с променените документи
+            $docsArr = array();
             
-            foreach($data->recs as $id => $r) {
-                
-                // Ако са променени след последно изтегленото време
-                if($r->modifiedOn >= $lastSend) {
-                    
-                    // Добавяме хендълуте в масива
-                    $docsArr[$id] = $data->rows[$id]->ROW_ATTR['id'];
+            $threadId = Request::get('threadId', 'int');
+            
+            $threadLastSendName = self::getLastSendName($threadId);
+            
+            $lastSend = Mode::get($threadLastSendName);
+            
+            // Намира всички документи, които са променени
+            if ($lastSend && count($data->recs)) {
+            
+                foreach($data->recs as $id => $r) {
+            
+                    // Ако са променени след последно изтегленото време
+                    if($r->modifiedOn >= $lastSend) {
+            
+                        // Добавяме хендълуте в масива
+                        $docsArr[$id] = $data->rows[$id]->ROW_ATTR['id'];
+                    }
                 }
             }
             
