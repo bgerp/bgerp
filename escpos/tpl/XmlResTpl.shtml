@@ -7,6 +7,10 @@
 	<printerSelectCodetable>[#printerSelectCodetable#]</printerSelectCodetable>
 	<!--ET_END printerSelectCodetable-->
 	
+    <!--ET_BEGIN printerSelectCodetableChar-->
+    <printerSelectCodetableChar>[#printerSelectCodetableChar#]</printerSelectCodetableChar>
+    <!--ET_END printerSelectCodetableChar-->
+	
     <!--ET_BEGIN printerPrintTaggedTextEncoding-->
     <printerPrintTaggedTextEncoding>[#printerPrintTaggedTextEncoding#]</printerPrintTaggedTextEncoding>
     <!--ET_END printerPrintTaggedTextEncoding-->
