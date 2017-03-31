@@ -47,19 +47,26 @@ class transsrv_ProductDrv extends cat_ProductDriver
 	 */
 	function addFields(core_Fieldset &$form)
 	{
-
         // Локация за натоварване
-        $form->FLD('fromCountry', 'key(mvc=drdata_Countries,select=commonNameBg,allowEmpty)', 'caption=Локация за натоварване->Държава');
-        $form->FLD('fromPCode', 'varchar(16)', 'caption=Локация за натоварване->П. код');
-        $form->FLD('fromPlace', 'varchar(32)', 'caption=Локация за натоварване->Нас. място');
+        $form->FLD('fromCountry', 'key(mvc=drdata_Countries,select=commonNameBg,allowEmpty)', 'caption=Натоварване->Държава');
+        $form->FLD('fromPCode', 'varchar(16)', 'caption=Натоварване->П. код');
+        $form->FLD('fromPlace', 'varchar(32)', 'caption=Натоварване->Нас. място');
+        $form->FLD('fromAddress', 'varchar', 'caption=Натоварване->Адрес');
+        $form->FLD('fromCompany', 'varchar', 'caption=Натоварване->Фирма');
+        $form->FLD('fromPerson', 'varchar', 'caption=Натоварване->Лице');
+        $form->FLD('loadingTime', 'datetime(defaultTime=09:00:00)', 'caption=Натоварване->Най-късно на');
 
         // Локация за разтоварване
-        $form->FLD('toCountry', 'key(mvc=drdata_Countries,select=commonNameBg,allowEmpty)', 'caption=Локация за разтоварване->Държава');
-        $form->FLD('toPCode', 'varchar(16)', 'caption=Локация за разтоварване->П. код');
-        $form->FLD('toPlace', 'varchar(32)', 'caption=Локация за разтоварване->Нас. място');
+        $form->FLD('toCountry', 'key(mvc=drdata_Countries,select=commonNameBg,allowEmpty)', 'caption=Разтоварване->Държава');
+        $form->FLD('toPCode', 'varchar(16)', 'caption=Разтоварване->П. код');
+        $form->FLD('toPlace', 'varchar(32)', 'caption=Разтоварване->Нас. място');
+        $form->FLD('toAddress', 'varchar', 'caption=Разтоварване->Адрес');
+        $form->FLD('toCompany', 'varchar', 'caption=Разтоварване->Фирма');
+        $form->FLD('toPerson', 'varchar', 'caption=Разтоварване->Лице');
+        $form->FLD('deliveryTime', 'datetime(defaultTime=17:00:00)', 'caption=Разтоварване->Краен срок');
 
         // Описание на товара
-        $form->FLD('transUnit', 'varchar', 'caption=Информация за товара->Трансп. ед.,suggestions=Европалета|Палета|Кашона|Скари|Сандъка|Чувала|Каси|Биг Бага|20\' контейнера|40\' контейнера|20\' контейнера upgraded|40\' High cube контейнера|20\' reefer хладилни|40\' reefer хладилни|Reefer 40\' High Cube хлд|Open Top 20\'|Open Top 40\'|Flat Rack 20\'|Flat Rack 40\'|FlatRack Collapsible 20\'|FlatRack Collapsible 40\'|Platform 20\'|Platform 40\'|Хенгер|Прицеп|Мега трейлър|Гондола');
+        $form->FLD('transUnit', 'varchar', 'caption=Информация за товара->Трансп. ед.,suggestions=Европалета|Палета|Кашона|Скари|Сандъка|Чувала|Каси|Биг Бага|20\' контейнер|40\' контейнер|20\' контейнер upgraded|40\' High cube контейнер|20\' reefer хладилен|40\' reefer хладилен|Reefer 40\' High Cube хлд|Open Top 20\'|Open Top 40\'|Flat Rack 20\'|Flat Rack 40\'|FlatRack Collapsible 20\'|FlatRack Collapsible 40\'|Platform 20\'|Platform 40\'|Хенгер|Прицеп|Мега трейлър|Гондола');
         $form->FLD('unitQty', 'int(Min=0)', 'caption=Информация за товара->Количество');
         $form->FLD('maxWeight', 'cat_type_Uom(unit=t,min=1,max=5000000)', 'caption=Информация за товара->Общо тегло');
         $form->FLD('maxVolume', 'cat_type_Uom(unit=cub.m,min=0.1,max=5000)', 'caption=Информация за товара->Общ обем');
@@ -75,15 +82,75 @@ class transsrv_ProductDrv extends cat_ProductDriver
                                         7 = Клас 7 - Радиоактивни материали,
                                         8 = Kлac 8 - Корозионни вещества,
                                         9 = Клас 9 - Други опасни вещества)', 'caption=Информация за товара->Опасност');
-        // Срокове
-        $form->FLD('loadingTime', 'datetime(defaultTime=09:00:00)', 'caption=Срокове->За товарене');
-        $form->FLD('deliveryTime', 'datetime(defaultTime=17:00:00)', 'caption=Срокове->За доставка');
-        
+        $form->FLD('load', 'varchar', 'caption=Информация за товара->Описание');
+
+         
         // Обща информация
         $form->FLD('conditions', 'richtext(bucket=Notes,rows=3)', 'caption=Обща информация->Условия');
+        $form->FLD('ourReff', 'varchar', 'caption=Обща информация->Наш реф.№');
 	}
 	
 	
+
+    /**
+     * Връща дефолтното име на артикула
+     * 
+     * @param stdClass $rec
+	 * @return NULL|string
+     */
+    public function getProductTitle($rec)
+    {
+        $myCompany = crm_Companies::fetchOurCompany();
+    	
+        if(!$rec->fromCountry) {
+            $rec->fromCountry = $myCompany->country;
+        }
+
+    	if(!$rec->toCountry) {
+            $rec->toCountry = $myCompany->country;
+        }
+
+        $from2let = drdata_Countries::fetch($rec->fromCountry)->letterCode2;
+        $to2let = drdata_Countries::fetch($rec->toCountry)->letterCode2;
+        
+        $title = 'Транспорт ' . $from2let . ' => ' . $to2let;
+        
+        $Driver = $mvc->getDriver($rec);
+ 
+        if($rec->unitQty && $rec->transUnit) {
+            $title .= ', ' . $rec->unitQty . ' ' . type_Varchar::escape($rec->transUnit);
+        } elseif($rec->transUnit) {
+            $title .= ', ' . type_Varchar::escape($rec->transUnit);
+        }
+
+        return $title;
+    }
+
+
+
+    /**
+	 * Преди показване на форма за добавяне/промяна.
+	 *
+	 * @param cat_ProductDriver $Driver
+	 * @param embed_Manager $Embedder
+	 * @param stdClass $data
+	 */
+	public static function on_AfterInputEditForm(cat_ProductDriver $Driver, embed_Manager $Embedder, &$form)
+	{
+        if($form->isSubmitted()) {
+            $fields = $form->selectFields("#input != 'none'");
+     
+            foreach($fields as $name => $fld) {
+                if($form->rec->{$name} === '' && cls::getClassName($fld->type) == 'type_Varchar') {
+                
+                    $form->rec->{$name} = NULL;
+                }
+            }
+        }
+    }
+
+
+
 	/**
 	 * Преди показване на форма за добавяне/промяна.
 	 *
@@ -103,6 +170,17 @@ class transsrv_ProductDrv extends cat_ProductDriver
 
         if($data->form->getField('info', FALSE)){
 			$data->form->setField('info', 'input=hidden');
+		}
+
+        if($data->form->getField('packQuantity', FALSE)){
+			$data->form->setField('packQuantity', 'input=hidden');
+		}
+
+        if($data->form->getField('name', FALSE)){
+			$data->form->setField('name', 'input=hidden');
+		}
+        if($data->form->getField('notes', FALSE)){
+			$data->form->setField('notes', 'input=hidden');
 		}
 
 	}

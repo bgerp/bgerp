@@ -224,7 +224,8 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		$row->contragent = self::$contragentNames[$key];
 		if($isPlain){
 			$row->contragent = strip_tags($row->contragent);
-			$row->contragent = rtrim($row->contragent, "&nbsp;");
+			$row->contragent = str_replace('&nbsp;', ' ', $row->contragent);
+			$row->contragent = str_replace(';', '', $row->contragent);
 		}
 		
 		// Линк към документа
