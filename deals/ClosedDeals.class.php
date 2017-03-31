@@ -456,12 +456,6 @@ abstract class deals_ClosedDeals extends core_Master
             		// Ако перото на сделката не е използвано, не може да се приключи
             		$res = 'no_one';
             	}
-            	
-                $originState = $origin->fetchField('state');
-                
-                if($originState === 'closed' || $originState == 'stopped'){
-                    $res = 'no_one';
-                }
             }
         }
         
