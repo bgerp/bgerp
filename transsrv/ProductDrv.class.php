@@ -66,7 +66,7 @@ class transsrv_ProductDrv extends cat_ProductDriver
         $form->FLD('deliveryTime', 'datetime(defaultTime=17:00:00)', 'caption=Разтоварване->Краен срок');
 
         // Описание на товара
-        $form->FLD('transUnit', 'varchar', 'caption=Информация за товара->Трансп. ед.,suggestions=Европалета|Палета|Кашона|Скари|Сандъка|Чувала|Каси|Биг Бага|20\' контейнера|40\' контейнера|20\' контейнера upgraded|40\' High cube контейнера|20\' reefer хладилни|40\' reefer хладилни|Reefer 40\' High Cube хлд|Open Top 20\'|Open Top 40\'|Flat Rack 20\'|Flat Rack 40\'|FlatRack Collapsible 20\'|FlatRack Collapsible 40\'|Platform 20\'|Platform 40\'|Хенгер|Прицеп|Мега трейлър|Гондола');
+        $form->FLD('transUnit', 'varchar', 'caption=Информация за товара->Трансп. ед.,suggestions=Европалета|Палета|Кашона|Скари|Сандъка|Чувала|Каси|Биг Бага|20\' контейнер|40\' контейнер|20\' контейнер upgraded|40\' High cube контейнер|20\' reefer хладилен|40\' reefer хладилен|Reefer 40\' High Cube хлд|Open Top 20\'|Open Top 40\'|Flat Rack 20\'|Flat Rack 40\'|FlatRack Collapsible 20\'|FlatRack Collapsible 40\'|Platform 20\'|Platform 40\'|Хенгер|Прицеп|Мега трейлър|Гондола');
         $form->FLD('unitQty', 'int(Min=0)', 'caption=Информация за товара->Количество');
         $form->FLD('maxWeight', 'cat_type_Uom(unit=t,min=1,max=5000000)', 'caption=Информация за товара->Общо тегло');
         $form->FLD('maxVolume', 'cat_type_Uom(unit=cub.m,min=0.1,max=5000)', 'caption=Информация за товара->Общ обем');
@@ -82,9 +82,12 @@ class transsrv_ProductDrv extends cat_ProductDriver
                                         7 = Клас 7 - Радиоактивни материали,
                                         8 = Kлac 8 - Корозионни вещества,
                                         9 = Клас 9 - Други опасни вещества)', 'caption=Информация за товара->Опасност');
+        $form->FLD('load', 'varchar', 'caption=Информация за товара->Описание');
+
          
         // Обща информация
         $form->FLD('conditions', 'richtext(bucket=Notes,rows=3)', 'caption=Обща информация->Условия');
+        $form->FLD('ourReff', 'varchar', 'caption=Обща информация->Наш реф.№');
 	}
 	
 	
@@ -95,7 +98,7 @@ class transsrv_ProductDrv extends cat_ProductDriver
      * @param stdClass $rec
 	 * @return NULL|string
      */
-    public function getProductTitle($rec, $mvc)
+    public function getProductTitle($rec)
     {
         $myCompany = crm_Companies::fetchOurCompany();
     	
@@ -122,6 +125,31 @@ class transsrv_ProductDrv extends cat_ProductDriver
 
         return $title;
     }
+
+
+
+    /**
+	 * Преди показване на форма за добавяне/промяна.
+	 *
+	 * @param cat_ProductDriver $Driver
+	 * @param embed_Manager $Embedder
+	 * @param stdClass $data
+	 */
+	public static function on_AfterInputEditForm(cat_ProductDriver $Driver, embed_Manager $Embedder, &$form)
+	{
+        if($form->isSubmitted()) {
+            $fields = $form->selectFields("#input != 'none'");
+     
+            foreach($fields as $name => $fld) {
+                if($form->rec->{$name} === '' && cls::getClassName($fld->type) == 'type_Varchar') {
+                
+                    $form->rec->{$name} = NULL;
+                }
+            }
+        }
+    }
+
+
 
 	/**
 	 * Преди показване на форма за добавяне/промяна.
