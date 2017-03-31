@@ -312,7 +312,7 @@ class acc_plg_Contable extends core_Plugin
                     // Ако потребителя не може да контира документа, не може и да го оттегля
                     if(!(core_Packs::isInstalled('colab') && core_Users::haveRole('partner', $userId) && $rec->createdBy == $userId && ($rec->state == 'draft' || $rec->state == 'pending'))){
                     	if($rec->state == 'draft' || $rec->state == 'pending'){
-                    		$requiredRoles = $mvc->getRequiredRoles('add', $rec);
+                    		$requiredRoles = $mvc->getRequiredRoles('add');
                     	} else {
                     		$clone = clone $rec;
                     		$clone->state = 'draft';
@@ -328,7 +328,7 @@ class acc_plg_Contable extends core_Plugin
         		if(!(core_Packs::isInstalled('colab') && core_Users::haveRole('partner', $userId) && $rec->createdBy == $userId)){
         		
         			if($rec->state == 'rejected' && ($rec->brState == 'draft' || $rec->brState == 'pending')){
-        				$requiredRoles = $mvc->getRequiredRoles('add', $rec);
+        				$requiredRoles = $mvc->getRequiredRoles('add');
         			} else {
         				$clone = clone $rec;
         				$clone->state = 'draft';
