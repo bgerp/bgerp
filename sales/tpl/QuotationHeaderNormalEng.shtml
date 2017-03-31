@@ -66,25 +66,25 @@
 	            <td> 
 	                <ol id='conditions'>
 	                	<!--ET_BEGIN validFor-->
-			            <li>Valid untill: <b>[#validFor#] (till [#validDate#])</b></li>
+			            <li>Valid untill: [#validFor#] (till [#validDate#])</li>
 			            <!--ET_END validFor-->
 			             
 			            <!--ET_BEGIN paymentMethodId-->
-			            <li>Payment method: <b>[#paymentMethodId#]</b></li>
+			            <li>Payment method: [#paymentMethodId#]</li>
 				        <!--ET_END paymentMethodId-->
 				        <!--ET_BEGIN bankAccountId-->
-			            <li>Bank account: <b>[#bankAccountId#]</b></li>
+			            <li>Bank account: [#bankAccountId#]</li>
 			            <!--ET_END bankAccountId-->
 				        <!--ET_BEGIN deliveryTermId-->
-				        <li>Delivery term: <b>[#deliveryTermId#]</b></li>
+				        <li>Delivery term: [#deliveryTermId#]</li>
 				        <!--ET_END deliveryTermId-->
 				        
 				        <!--ET_BEGIN deliveryPlaceId-->
-				        <li>Delivery place: <b>[#deliveryPlaceId#]</b></li>
+				        <li>Delivery place: [#deliveryPlaceId#]</li>
 				        <!--ET_END deliveryPlaceId-->
 				        
 				        <!--ET_BEGIN commonConditionQuote-->
-				        <li><b>[#commonConditionQuote#]</b></li>
+				        <li>General Terms and Conditions of Sale: [#commonConditionQuote#]</li>
 				        <!--ET_END commonConditionQuote-->
 				        
 				        <!--ET_BEGIN others-->

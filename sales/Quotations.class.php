@@ -569,7 +569,7 @@ class sales_Quotations extends core_Master
     		}
     	
     		if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, 'commonConditionSale')){
-    			$row->commonConditionQuote = cls::get('type_Varchar')->toVerbal($cond);
+    			$row->commonConditionQuote = cls::get('type_Url')->toVerbal($cond);
     		}
     		 
     		if(empty($rec->date)){
