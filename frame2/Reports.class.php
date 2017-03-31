@@ -400,8 +400,12 @@ class frame2_Reports extends embed_Manager
      */
     public static function callback_refreshOnTime($data)
     {
-    	expect($rec = self::fetch($data->id));
-    	self::refresh($rec);
+    	try{
+    		expect($rec = self::fetch($data->id));
+    		self::refresh($rec);
+    	} catch(core_exception_Expect $e){
+    		reportException($e);
+    	}
     }
     
     
