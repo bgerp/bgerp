@@ -72,14 +72,12 @@
 	                    <!--ET_BEGIN deliveryPlaceId-->
 	                    <li>|Място на доставка|*: [#deliveryPlaceId#]</li>
 	                    <!--ET_END deliveryPlaceId-->
-	
+						<!--ET_BEGIN others-->
+	                    [#others#]
+	                    <!--ET_END others-->
 	                    <!--ET_BEGIN commonConditionQuote-->
 				        <li>|Общи условия по продажба|*: [#commonConditionQuote#]</li>
 				        <!--ET_END commonConditionQuote-->
-	
-	                    <!--ET_BEGIN others-->
-	                    [#others#]
-	                    <!--ET_END others-->
 	                </ol>
 	            </td>
 	            <td class="centered" style='vertical-align: bottom !important'>

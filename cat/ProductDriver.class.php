@@ -498,4 +498,28 @@ abstract class cat_ProductDriver extends core_BaseClass
 	{
 		return array();
 	}
+	
+	
+	/**
+     * Допълнителните условия за дадения продукт,
+     * които автоматично се добавят към условията на договора
+     *
+     * @param mixed $rec       - ид или запис на артикул
+     * @param double $quantity - к-во
+     * @return array           - Допълнителните условия за дадения продукт
+     */
+	public static function getConditions($rec, $quantity)
+	{
+		//$rec->id++;
+		//echo "<li>{$rec->id}" . ($rec->id % 2);
+		if($rec->id % 2 == 0){
+			return array('Доставка на момента');
+		} elseif($rec->id % 2 == 1){
+			return array('Доставка на момента', "Опазване на околната среда");
+		} elseif($rec->id % 2 == 3){
+			return array('Доналд Тръмп');
+		}
+		
+		return array('Доставка на момента', "Опазване на околната среда", 'Доналд Тръмп');
+	}
 }

@@ -544,6 +544,14 @@ class sales_Quotations extends core_Master
     			}
     		}
     			
+    		// Показване на допълнителните условия от артикулите
+    		$additionalConditions = deals_Helper::getConditionsFromProducts($mvc->mainDetail, $rec->id);
+    		if(is_array($additionalConditions)){
+    			foreach ($additionalConditions as $cond){
+    				$row->others .= "<li>{$cond}</li>";
+    			}
+    		}
+    		
     		if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
     			if($rec->deliveryPlaceId){
     				if($placeId = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id')){

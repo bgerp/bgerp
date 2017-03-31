@@ -926,6 +926,14 @@ abstract class deals_DealMaster extends deals_DealBase
 				}
 			}
 			
+			// Показване на допълнителните условия от артикулите
+			$additionalConditions = deals_Helper::getConditionsFromProducts($mvc->mainDetail, $rec->id);
+			if(is_array($additionalConditions)){
+				foreach ($additionalConditions as $cond){
+					$row->notes .= "<li>{$cond}</li>";
+				}
+			}
+			
 			// Взависимост начислява ли се ддс-то се показва подходящия текст
 			switch($rec->chargeVat){
 				case 'yes':
@@ -950,10 +958,6 @@ abstract class deals_DealMaster extends deals_DealBase
 					}
 					
 					$row->shipmentStoreIdTop = $storeVerbal;
-				}
-				
-				if($rec->caseId){
-					$row->caseId = cash_Cases::getHyperlink($rec->caseId);
 				}
 				
 				if($rec->caseId){

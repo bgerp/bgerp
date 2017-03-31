@@ -948,4 +948,43 @@ abstract class deals_Helper
 			}
 		}
 	}
+	
+	
+	/**
+	 * Помощна ф-я за показване на всички условия идващи от артикулите на един детайл
+	 * 
+	 * @param core_Detail $Detail
+	 * @param int $masterId
+	 * @param string $productFieldName
+	 * @return array $res
+	 */
+	public static function getConditionsFromProducts($Detail, $masterId, $productFieldName = 'productId')
+	{
+		$res = array();
+		
+		// Намиране на детайлите
+		$Detail = cls::get($Detail);
+		$dQuery = $Detail->getQuery();
+		$dQuery->where("#{$Detail->masterKey} = {$masterId}");
+		$dQuery->show("{$productFieldName},quantity");
+		
+		while($dRec = $dQuery->fetch()){
+			
+			// Опит за намиране на условията
+			$conditions = cat_Products::getConditions($dRec->{$productFieldName}, $dRec->quantity);
+			
+			// Извличат се
+			if(count($conditions)){
+				foreach ($conditions as $t){
+					$value = preg_replace('!\s+!', ' ', str::mbUcfirst($t));
+					$key = mb_strtolower($value);
+					if(!array_key_exists($key, $res)){
+						$res[$key] = $value;
+					}
+				}
+			}
+		}
+		
+		return $res;
+	}
 }
