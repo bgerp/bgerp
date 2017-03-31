@@ -367,7 +367,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 				core_Cache::set('sales_reports_ShipmentReadiness', "c{$sRec->containerId}", $readiness, 58);
 			}
 			
-			$dealerId = ($sRec->dealerId) ? $sRec->dealerId : (($sRec->activatedBy) ? $sRec->activatedBy : $sRec->createdOn);
+			$dealerId = ($sRec->dealerId) ? $sRec->dealerId : (($sRec->activatedBy) ? $sRec->activatedBy : $sRec->createdBy);
 			
 			// Ако има някаква изчислена готовност
 			if($readiness !== FALSE && $readiness !== NULL){
