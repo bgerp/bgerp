@@ -651,7 +651,7 @@ class frame2_Reports extends embed_Manager
     	$csv = csv_Lib::createCsv($csvExportRows, $fields);
     	$csv .= "\n" . $rCsv;
     	
-    	$fileName = str_replace(' ', '_', Str::utf2ascii($rec->title));
+    	$fileName = str_replace(' ', '_', str::utf2ascii($rec->title));
     	 
     	header("Content-type: application/csv");
     	header("Content-Disposition: attachment; filename={$fileName}({$rec->id}).csv");
