@@ -729,9 +729,14 @@ class type_Richtext extends type_Blob
     function _catchImage($match)
     {
         $place = $this->getPlace();
-        $url = core_Url::escape($match[2]);
         
-        $title = htmlentities($match[3], ENT_COMPAT, 'UTF-8');
+        if ($match[2]) {
+            $url = core_Url::escape($match[2]);
+            $title = htmlentities($match[3], ENT_COMPAT, 'UTF-8');
+        } else {
+            $url = sbf('img/error.gif', '', TRUE);
+            $title = tr('Невалиден идентификатор на картинка');
+        }
         
         $this->_htmlBoard[$place] = "<div><img src=\"{$url}\" alt=\"{$title}\"><br><small>";
         
