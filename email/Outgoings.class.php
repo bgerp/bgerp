@@ -2226,7 +2226,11 @@ class email_Outgoings extends core_Master
         if (!Mode::is('text', 'xhtml') && $data->rec->waiting && ($data->rec->state == 'waiting' || $data->rec->state == 'active')) {
             $notifyDate = dt::addSecs($data->rec->waiting, $data->rec->lastSendedOn);
             $data->row->notifyDate = dt::mysql2verbal($notifyDate, 'smartTime');
-            $data->row->notifyUser = crm_Profiles::createLink($data->rec->lastSendedBy);
+            $notifyUserId = $data->rec->lastSendedBy ? $data->rec->lastSendedBy : $data->rec->modifiedBy;
+            if (!$notifyUserId) {
+                $notifyUserId = $data->rec->activatedBy;
+            }
+            $data->row->notifyUser = crm_Profiles::createLink($notifyUserId);
             
             if ($mvc->haveRightFor('close', $data->rec)) {
                 $data->row->removeNotify = ht::createLink('', array($mvc, 'close', $data->rec->id, 'ret_url'=>TRUE), tr('Сигурни ли сте, че искате да спрете изчакването') . '?',
