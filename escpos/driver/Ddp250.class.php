@@ -126,6 +126,7 @@ class escpos_driver_Ddp250 extends core_BaseClass
     {
         $dataArr = array();
         $dataArr['printerSelectCodetable'] = 17;
+        $dataArr['printerSelectCodetableChar'] = 117;
         $dataArr['printerPrintTaggedTextEncoding'] = 'cp1251';
         $dataArr['printerFeedPaper'] = 110;
         $dataArr['printerInputTextEncoding'] = 'UTF-8';

@@ -34,6 +34,8 @@ class escpos_driver_P300 extends escpos_driver_Ddp250
         
         $tpl->placeArray($dataArr);
         
+        $tpl->removeBlock('printerSelectCodetableChar');
+        
         parent::placePrintData($tpl);
         
         return $tpl;
