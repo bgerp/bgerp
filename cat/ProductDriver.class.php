@@ -510,16 +510,6 @@ abstract class cat_ProductDriver extends core_BaseClass
      */
 	public static function getConditions($rec, $quantity)
 	{
-		//$rec->id++;
-		//echo "<li>{$rec->id}" . ($rec->id % 2);
-		if($rec->id % 2 == 0){
-			return array('Доставка на момента');
-		} elseif($rec->id % 2 == 1){
-			return array('Доставка на момента', "Опазване на околната среда");
-		} elseif($rec->id % 2 == 3){
-			return array('Доналд Тръмп');
-		}
-		
-		return array('Доставка на момента', "Опазване на околната среда", 'Доналд Тръмп');
+		return array();
 	}
 }
