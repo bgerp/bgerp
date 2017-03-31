@@ -2710,4 +2710,25 @@ class cat_Products extends embed_Manager {
     	 
     	return NULL;
     }
+    
+    
+    /**
+     * Допълнителните условия за дадения продукт,
+     * които автоматично се добавят към условията на договора
+     *
+     * @param mixed $rec       - ид или запис на артикул
+     * @param double $quantity - к-во
+     * @return array           - Допълнителните условия за дадения продукт
+     */
+    public static function getConditions($rec, $quantity)
+    {
+    	// Ако има драйвър, питаме него за стойността
+    	if($Driver = static::getDriver($rec)){
+    		$rec = self::fetchRec($rec);
+    		
+    		return $Driver->getConditions($rec, $quantity);
+    	}
+    	 
+    	return array();
+    }
 }

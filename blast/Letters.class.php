@@ -117,7 +117,13 @@ class blast_Letters extends core_Master
     /**
      * Плъгините и враперите, които ще се използват
      */
-    var $loadList = 'blast_Wrapper, plg_State, plg_RowTools, plg_Rejected, doc_DocumentPlg, bgerp_plg_Blank, change_Plugin, plg_Printing, plg_Clone';
+    var $loadList = 'blast_Wrapper, plg_State, plg_RowTools, doc_DocumentPlg, bgerp_plg_Blank, change_Plugin, plg_Printing, plg_Clone';
+    
+
+    /**
+     * Кой може да оттелгя имейла
+     */
+    protected $canReject = 'ceo, blast';
     
     
     /**

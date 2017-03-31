@@ -916,17 +916,21 @@ class sales_QuotationsDetails extends doc_Detail {
     		$row->amount = $Double->toVerbal($rec->amount);
     	}
     	
+    	$hintTerm = FALSE;
     	$row->tolerance = deals_Helper::getToleranceRow($rec->tolerance, $rec->productId, $rec->quantity);
-    	$term = isset($rec->term) ? $rec->term : cat_Products::getDeliveryTime($rec->productId, $rec->quantity);
-    	if(isset($term)){
-    		if($deliveryTime = tcost_Calcs::get('sales_Quotations', $rec->quotationId, $rec->id)->deliveryTime){
-    			$term += $deliveryTime;
+    	$term = $rec->term;
+    	if(!isset($term)){
+    		if($term = cat_Products::getDeliveryTime($rec->productId, $rec->quantity)){
+    			$hintTerm = TRUE;
+    			if($deliveryTime = tcost_Calcs::get('sales_Quotations', $rec->quotationId, $rec->id)->deliveryTime){
+    				$term += $deliveryTime;
+    			}
     		}
     	}
     	
     	if(isset($term)){
     		$row->term = core_Type::getByName('time')->toVerbal($term);
-    		if(!isset($rec->term)){
+    		if($hintTerm === TRUE){
     			$row->term = ht::createHint($row->term, 'Срокът на доставка е изчислен автоматично на база количеството и параметрите на артикула');
     		}
     	}

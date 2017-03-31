@@ -544,6 +544,14 @@ class sales_Quotations extends core_Master
     			}
     		}
     			
+    		// Показване на допълнителните условия от артикулите
+    		$additionalConditions = deals_Helper::getConditionsFromProducts($mvc->mainDetail, $rec->id);
+    		if(is_array($additionalConditions)){
+    			foreach ($additionalConditions as $cond){
+    				$row->others .= "<li>{$cond}</li>";
+    			}
+    		}
+    		
     		if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
     			if($rec->deliveryPlaceId){
     				if($placeId = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id')){
@@ -569,7 +577,7 @@ class sales_Quotations extends core_Master
     		}
     	
     		if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, 'commonConditionSale')){
-    			$row->commonConditionQuote = cls::get('type_Varchar')->toVerbal($cond);
+    			$row->commonConditionQuote = cls::get('type_Url')->toVerbal($cond);
     		}
     		 
     		if(empty($rec->date)){
@@ -1486,6 +1494,9 @@ class sales_Quotations extends core_Master
     		
     		if(!isset($dRec->term)){
     			if($term = cat_Products::getDeliveryTime($dRec->productId, $dRec->quantity)){
+    				if($deliveryTime = tcost_Calcs::get('sales_Quotations', $dRec->quotationId, $dRec->id)->deliveryTime){
+    					$term += $deliveryTime;
+    				}
     				$dRec->term = $term;
     			}
     		}

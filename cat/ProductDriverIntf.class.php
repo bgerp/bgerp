@@ -287,4 +287,18 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	{
 		return $this->class->getDefaultPackagings($rec);
 	}
+	
+	
+	/**
+     * Допълнителните условия за дадения продукт,
+     * които автоматично се добавят към условията на договора
+     *
+     * @param mixed $rec       - ид или запис на артикул
+     * @param double $quantity - к-во
+     * @return array           - Допълнителните условия за дадения продукт
+     */
+	public static function getConditions($rec, $quantity)
+	{
+		return $this->class->getConditions($rec, $quantity);
+	}
 }

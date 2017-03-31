@@ -63,29 +63,26 @@
 	            <td> 
 	                <ol id='conditions'>
 	                    <!--ET_BEGIN validFor-->
-			            <li> |Валидност на офертата|*: <b>[#validFor#] (|до|* [#validDate#])</b>			            
-			            </li>
+			            <li> |Валидност на офертата|*: [#validFor#] (|до|* [#validDate#])</li>
 			            <!--ET_END validFor-->
 			            <!--ET_BEGIN paymentMethodId-->
-			            <li>|Начин на плащане|*: <b>[#paymentMethodId#]</b></li>
+			            <li>|Начин на плащане|*: [#paymentMethodId#]</li>
 			            <!--ET_END paymentMethodId-->
 			            <!--ET_BEGIN bankAccountId-->
-			            <li>|Банкова сметка|*: <b>[#bankAccountId#]</b></li>
+			            <li>|Банкова сметка|*: [#bankAccountId#]</li>
 			            <!--ET_END bankAccountId-->
 			            <!--ET_BEGIN deliveryTermId-->
-				        <li>|Условие на доставка|*: <b>[#deliveryTermId#]</b></li>
+				        <li>|Условие на доставка|*: [#deliveryTermId#]</li>
 				        <!--ET_END deliveryTermId-->
 				        <!--ET_BEGIN deliveryPlaceId-->
-				        <li>|Място на доставка|*: <b>[#deliveryPlaceId#]</b></li>
+				        <li>|Място на доставка|*: [#deliveryPlaceId#]</li>
 				        <!--ET_END deliveryPlaceId-->
-				        
-				        <!--ET_BEGIN commonConditionQuote-->
-				        <li><b>[#commonConditionQuote#]</b></li>
-				        <!--ET_END commonConditionQuote-->
-				        
 				        <!--ET_BEGIN others-->
 				        [#others#]
 				        <!--ET_END others-->
+				        <!--ET_BEGIN commonConditionQuote-->
+				        <li>|Общи условия по продажба|*: [#commonConditionQuote#]</li>
+				        <!--ET_END commonConditionQuote-->
 			        </ol>
 	            </td>
 	            <td class="centered" style='vertical-align: bottom !important;'>
