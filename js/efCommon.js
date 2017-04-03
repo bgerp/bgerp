@@ -1845,8 +1845,11 @@ function saveSelectedTextToSession(handle, onlyHandle) {
 	        if (typeof handle2 != "undefined") {
 	        	handle = handle2;
 	        }
-            // Записваме манипулатора
-            sessionStorage.selHandle = handle;
+	        
+	        if ((typeof handle != "undefined") && (handle != "undefined")) {
+	        	// Записваме манипулатора
+	            sessionStorage.selHandle = handle;
+	        }
         }
         
         // Ако няма да записваме само манипулатора
@@ -1946,7 +1949,7 @@ function appendQuote(id, line) {
             quoteText = "[bQuote";
 
             // Ако има манипулато, го добавяме
-            if (selHandle) {
+            if (selHandle && (typeof selHandle != "undefined") && (selHandle != 'undefined')) {
             	quoteText += "=" + selHandle + "]";
             } else {
             	quoteText += "]";
