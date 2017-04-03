@@ -2731,4 +2731,23 @@ class cat_Products extends embed_Manager {
     	 
     	return array();
     }
+    
+    
+    /**
+     * Връща хеша на артикула (стойност която показва дали е уникален)
+     *
+     * @param mixed $rec     - ид или запис на артикул
+     * @return NULL|varchar  - Допълнителните условия за дадения продукт
+     */
+    public static function getHash($rec)
+    {
+    	// Ако има драйвър, питаме него за стойността
+    	if($Driver = static::getDriver($rec)){
+    		$rec = self::fetchRec($rec);
+    
+    		return $Driver->getHash(self::getSingleton(), $rec);
+    	}
+    
+    	return NULL;
+    }
 }

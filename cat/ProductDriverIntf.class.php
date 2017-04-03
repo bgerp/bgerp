@@ -297,8 +297,21 @@ class cat_ProductDriverIntf extends embed_DriverIntf
      * @param double $quantity - к-во
      * @return array           - Допълнителните условия за дадения продукт
      */
-	public static function getConditions($rec, $quantity)
+	public function getConditions($rec, $quantity)
 	{
 		return $this->class->getConditions($rec, $quantity);
+	}
+	
+	
+	/**
+	 * Връща хеша на артикула (стойност която показва дали е уникален)
+	 *
+	 * @param embed_Manager $Embedder - Ембедър
+	 * @param mixed $rec              - Ид или запис на артикул
+	 * @return NULL|varchar           - Допълнителните условия за дадения продукт
+	 */
+	public function getHash(embed_Manager $Embedder, $rec)
+	{
+		return $this->class->getHash($Embedder, $rec);
 	}
 }
