@@ -86,7 +86,7 @@ class unit_MinkPbgERP extends core_Manager {
         $res .= 'MinkPbgERP ';
         $res .= " 0.".$this->act_DeinstallSelect2();
         $res .= " 1.".$this->act_AddRoleCat();
-        $res .= " 2.".$this->act_ModifySettings();
+        //$res .= " 2.".$this->act_ModifySettings();
         $res .= " 3.".$this->act_CreateUser1();
         $res .= "  4.".$this->act_CreateUser2();
         $res .= "  5.".$this->act_CreateStore();
@@ -216,7 +216,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Персонализиране');
         $browser->setValue('CORE_PORTAL_ARRANGE', 'Последно - Известия - Задачи и Календар');
         $browser->press('Запис');
-    
+     
     }
     /**
      * 1. Създаване на потребител от Админ
@@ -628,7 +628,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Нов запис');
         //$browser->hasText('Добавяне на запис в "Организационна структура"');
         $browser->setValue('name', 'Завод');
-        $browser->setValue('schedule','Редовен'); 
+        $browser->setValue('schedule','Дневен график'); 
         $browser->press('Запис');
         if (strpos($browser->getText(),'Непопълнено задължително поле')){
             $browser->press('Отказ');
@@ -654,9 +654,10 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->click('Структура');
         $browser->press('Нов запис');
         //$browser->hasText('Добавяне на запис в "Организационна структура"');
-        $browser->setValue('name', 'Производство');
+        $browser->setValue('name', 'Производство 1');
         $browser->setValue('parentId', 'Завод');
-        $browser->setValue('schedule','Редовен');
+        $browser->setValue('schedule','Дневен график');
+        //$browser->setValue('User1', True);
         $browser->setValue('shared_13_2', '13_2');
         $browser->press('Запис');
          if (strpos($browser->getText(),'Непопълнено задължително поле')){
