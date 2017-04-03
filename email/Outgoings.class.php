@@ -3227,4 +3227,30 @@ class email_Outgoings extends core_Master
             $res = TRUE;
         }
     }
+	
+	
+    /**
+     * 
+     * 
+     * @param email_Outgoings $mvc
+     * @param mixed $res
+     * @param int|object $id първичен ключ или запис на $mvc
+     */
+    public static function on_AfterReject($mvc, &$res, $id)
+    {
+        if (is_object($id)) {
+            $rId = $id->id;
+        } else {
+            $rId = $id;
+        }
+        
+        if ($rId) {
+            $sQuery = email_SendOnTime::getQuery();
+            $sQuery->where(array("#objectId = [#1#] AND #state = 'waiting'", $rId));
+            
+            while ($rec = $sQuery->fetch()) {
+                email_SendOnTime::stopSending($rec);
+            }
+        }
+    }
 }
