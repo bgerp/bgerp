@@ -180,15 +180,21 @@ class frame2_Reports extends embed_Manager
     
     
     /**
+     * Дефолтен текст за нотификация
+     */
+    protected static $defaultNotificationText = "|*[#handle#] |има актуална версия от|* '[#lastRefreshed#]'";
+    
+    
+    /**
      * Описание на модела
      */
     function description()
     {
     	$this->FLD('title', 'varchar', 'caption=Заглавие');
-    	$this->FLD('updateDays', 'set(monday=Понеделник,tuesday=Вторник,wednesday=Сряда,thursday=Четвъртък,friday=Петък,saturday=Събота,sunday=Неделя)', 'caption=Обновяване->Дни');
-    	$this->FLD('updateTime', 'set(08:00,09:00,10:00,11:00,12:00,13:00,14:00,15:00,16:00,17:00,18:00,19:00,20:00)', 'caption=Обновяване->Час');
-    	$this->FLD('notificationText', 'varchar', 'caption=Нотифициране при обновяване->Текст,mandatory');
-    	$this->FLD('sharedUsers', 'userList(roles=powerUser)', 'caption=Нотифициране при обновяване->Потребители,mandatory');
+    	$this->FLD('updateDays', 'set(monday=Понеделник,tuesday=Вторник,wednesday=Сряда,thursday=Четвъртък,friday=Петък,saturday=Събота,sunday=Неделя)', 'caption=Обновяване и известяване->Дни,autohide');
+    	$this->FLD('updateTime', 'set(08:00,09:00,10:00,11:00,12:00,13:00,14:00,15:00,16:00,17:00,18:00,19:00,20:00)', 'caption=Обновяване и известяване->Час,autohide');
+    	$this->FLD('notificationText', 'varchar', 'caption=Обновяване и известяване->Текст,autohide');
+    	$this->FLD('sharedUsers', 'userList(roles=powerUser)', 'caption=Обновяване и известяване->Потребители,autohide');
     	$this->FLD('maxKeepHistory', 'int(Min=0)', 'caption=Запазване на предишни състояния->Версии,autohide,placeholder=Неограничено');
     	$this->FLD('data', 'blob(serialize, compress)', 'input=none');
     	$this->FLD('lastRefreshed', 'datetime', 'caption=Последно актуализиране,input=none');
@@ -201,8 +207,7 @@ class frame2_Reports extends embed_Manager
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
-    	$form->setDefault('sharedUsers', keylist::addKey('', core_Users::getCurrent()));
-    	$form->setDefault('notificationText', "|*[#handle#] |има актуална версия от|* '[#lastRefreshed#]'");
+    	$form->setField('notificationText', array('placeholder' => self::$defaultNotificationText));
     	$form->setField('maxKeepHistory', array('placeholder' => self::MAX_VERSION_HISTORT_COUNT));
     }
     
@@ -292,7 +297,10 @@ class frame2_Reports extends embed_Manager
     public static function sendNotification($rec)
     {
     	$userArr = keylist::toArray($rec->sharedUsers);
-    	$msg = new core_ET($rec->notificationText);
+    	if(!count($userArr)) return;
+    	
+    	$text = (!empty($rec->notificationText)) ? $rec->notificationText : self::$defaultNotificationText;
+    	$msg = new core_ET($text);
     	
     	// Заместване на параметрите
     	if($Driver = self::getDriver($rec)){
@@ -565,7 +573,9 @@ class frame2_Reports extends embed_Manager
     		$resArr['lastRefreshed'] = array('name' => tr('Актуален към'), 'val' => $row->lastRefreshed);
     	}
     	
-    	$resArr['notify'] = array('name' => tr('Известия'), 'row' => 2, 'val' => tr("|*[#sharedUsers#]"));
+    	if(isset($rec->sharedUsers)){
+    		$resArr['notify'] = array('name' => tr('Известия'), 'row' => 2, 'val' => tr("|*[#sharedUsers#]"));
+    	}
     }
     
     
