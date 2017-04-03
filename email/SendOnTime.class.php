@@ -318,7 +318,7 @@ class email_SendOnTime extends core_Manager
         $query = self::getQuery();
         $now = dt::now();
         $query->where("#delaySendOn <= '{$now}'");
-        $query->where("#state != 'closed'");
+        $query->where("#state = 'waiting'");
         
         $cnt = 0;
         
