@@ -1960,7 +1960,7 @@ abstract class deals_DealMaster extends deals_DealBase
     		$res["{$contrPart}PCode"]     = !empty($contragentLocation->pCode) ? $contragentLocation->pCode : NULL;
     		$res["{$contrPart}toPlace"]   = !empty($contragentLocation->place) ? $contragentLocation->place : NULL;
     		$res["{$contrPart}Address"]   = !empty($contragentLocation->address) ? $contragentLocation->address : NULL;
-    		$res["{$contrPart}toPerson"]  = !empty($contragentLocation->mol) ? $contragentLocation->mol : NULL;
+    		$res["{$contrPart}Person"]  = !empty($contragentLocation->mol) ? $contragentLocation->mol : NULL;
     	} else {
     		$res["{$contrPart}PCode"]   = !empty($contragentData->pCode) ? $contragentData->pCode : NULL;
     		$res["{$contrPart}Place"]   = !empty($contragentData->place) ? $contragentData->place : NULL;
