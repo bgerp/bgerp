@@ -1922,9 +1922,10 @@ abstract class deals_DealMaster extends deals_DealBase
     	$contragentCountryId = $contragentData->countryId;
     	
     	if(isset($rec->shipmentStoreId)){
-    		$locationId = store_Stores::fetchField($rec->shipmentStoreId, 'locationId');
-    		$storeLocation = crm_Locations::fetch($locationId);
-    		$ownCountryId = $storeLocation->countryId;
+    		if($locationId = store_Stores::fetchField($rec->shipmentStoreId, 'locationId')){
+    			$storeLocation = crm_Locations::fetch($locationId);
+    			$ownCountryId = $storeLocation->countryId;
+    		}
     	}
     	
     	if(isset($rec->deliveryLocationId)){

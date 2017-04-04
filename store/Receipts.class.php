@@ -53,7 +53,7 @@ class store_Receipts extends store_DocumentMaster
      * Поддържани интерфейси
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf,
-                          acc_TransactionSourceIntf=store_transaction_Receipt, bgerp_DealIntf';
+                          acc_TransactionSourceIntf=store_transaction_Receipt, bgerp_DealIntf,trans_LogisticDataIntf';
     
     
     /**
@@ -263,5 +263,80 @@ class store_Receipts extends store_DocumentMaster
     					  'toggleFields' => array('masterFld' => NULL, 'store_ReceiptDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
     	
         $res .= doc_TplManager::addOnce($this, $tplArr);
+    }
+    
+    
+    /**
+     * Информация за логистичните данни
+     *
+     * @param mixed $rec   - ид или запис на документ
+     * @return array $data - логистичните данни
+     *
+     *		string(2)     ['fromCountry']  - двубуквен код на държавата за натоварване
+     * 		string|NULL   ['fromPCode']    - пощенски код на мястото за натоварване
+     * 		string|NULL   ['fromPlace']    - град за натоварване
+     * 		string|NULL   ['fromAddress']  - адрес за натоварване
+     *  	string|NULL   ['fromCompany']  - фирма
+     *   	string|NULL   ['fromPerson']   - лице
+     * 		datetime|NULL ['loadingTime']  - дата на натоварване
+     * 		string(2)     ['toCountry']    - двубуквен код на държавата за разтоварване
+     * 		string|NULL   ['toPCode']      - пощенски код на мястото за разтоварване
+     * 		string|NULL   ['toPlace']      - град за разтоварване
+     *  	string|NULL   ['toAddress']    - адрес за разтоварване
+     *   	string|NULL   ['toCompany']    - фирма
+     *   	string|NULL   ['toPerson']     - лице
+     * 		datetime|NULL ['deliveryTime'] - дата на разтоварване
+     * 		text|NULL 	  ['conditions']   - други условия
+     */
+    function getLogisticData($rec)
+    {
+    	$rec = $this->fetchRec($rec);
+    	$ownCompany = crm_Companies::fetchOurCompany();
+    	$ownCountryId = $ownCompany->country;
+    	
+    	if($locationId = store_Stores::fetchField($rec->storeId, 'locationId')){
+    		$storeLocation = crm_Locations::fetch($locationId);
+    		$ownCountryId = $storeLocation->countryId;
+    	}
+    	
+    	$contragentData = doc_Folders::getContragentData($rec->folderId);
+    	$contragentCountryId = $contragentData->countryId;
+    	
+    	if(isset($rec->locationId)){
+    		$contragentLocation = crm_Locations::fetch($rec->locationId);
+    		$contragentCountryId = $contragentLocation->countryId;
+    	}
+    	
+    	// Подготвяне на данните за натоварване
+    	$res['fromCountry'] = drdata_Countries::fetchField($contragentCountryId, 'letterCode2');
+    	if(isset($rec->locationId)){
+    		$res["fromPCode"]   = !empty($contragentLocation->pCode) ? $contragentLocation->pCode : NULL;
+    		$res["fromPlace"]   = !empty($contragentLocation->place) ? $contragentLocation->place : NULL;
+    		$res["fromAddress"] = !empty($contragentLocation->address) ? $contragentLocation->address : NULL;
+    		$res["fromPerson"]  = !empty($contragentLocation->mol) ? $contragentLocation->mol : NULL;
+    	} else {
+    		$res["fromPCode"]    = !empty($contragentData->pCode) ? $contragentData->pCode : NULL;
+    		$res["fromPlace"]    = !empty($contragentData->place) ? $contragentData->place : NULL;
+    		$res["fromAddress"]  = !empty($contragentData->address) ? $contragentData->address : NULL;
+    		$res["fromPerson"]   = !empty($contragentData->person) ? $contragentData->person : NULL;
+    	}
+    	
+    	// Подготвяне на данните за разтоварване
+    	$res['toCountry'] = drdata_Countries::fetchField($ownCountryId, 'letterCode2');
+    	if(isset($locationId)){
+    		$res["toPCode"]    = !empty($storeLocation->pCode) ? $storeLocation->pCode : NULL;
+    		$res["toPlace"]    = !empty($storeLocation->place) ? $storeLocation->place : NULL;
+    		$res["toAddress"]  = !empty($storeLocation->address) ? $storeLocation->address : NULL;
+    		$res["toPerson"]   = !empty($storeLocation->mol) ? $storeLocation->mol : NULL;
+    	} else {
+    		$res["toPCode"]   = !empty($ownCompany->pCode) ? $ownCompany->pCode : NULL;
+    		$res["toPlace"]   = !empty($ownCompany->place) ? $ownCompany->place : NULL;
+    		$res["toAddress"] = !empty($ownCompany->address) ? $ownCompany->address : NULL;
+    		$toPersonId = ($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy;
+    		$res["toPerson"]  = core_Users::fetchField($toPersonId, 'names');
+    	}
+    	$res["deliveryTime"]  = $rec->deliveryTime;
+    	
+    	return $res;
     }
 }
