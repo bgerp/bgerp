@@ -86,7 +86,7 @@ class unit_MinkPbgERP extends core_Manager {
         $res .= 'MinkPbgERP ';
         $res .= " 0.".$this->act_DeinstallSelect2();
         $res .= " 1.".$this->act_AddRoleCat();
-        //$res .= " 2.".$this->act_ModifySettings();
+        $res .= " 2.".$this->act_ModifySettings();
         $res .= " 3.".$this->act_CreateUser1();
         $res .= "  4.".$this->act_CreateUser2();
         $res .= "  5.".$this->act_CreateStore();
