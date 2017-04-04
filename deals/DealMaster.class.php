@@ -1916,10 +1916,10 @@ abstract class deals_DealMaster extends deals_DealBase
     {
     	$rec = $this->fetchRec($rec);
     	$ownCompany = crm_Companies::fetchOurCompany();
-    	$ownCountry = drdata_Countries::fetchField($ownCompany->country, 'letterCode2');
+    	$ownCountryId = $ownCompany->country;
     	
     	$contragentData = doc_Folders::getContragentData($rec->folderId);
-    	$contragentCountry = drdata_Countries::fetchField($contragentData->countryId, 'letterCode2');
+    	$contragentCountryId = $contragentData->countryId;
     	
     	if(isset($rec->shipmentStoreId)){
     		$locationId = store_Stores::fetchField($rec->shipmentStoreId, 'locationId');
@@ -1931,7 +1931,9 @@ abstract class deals_DealMaster extends deals_DealBase
     		$contragentLocation = crm_Locations::fetch($rec->deliveryLocationId);
     		$contragentCountryId = $contragentLocation->countryId;
     	}
-    	$contragentCountryId = isset($contragentLocation->countryId) ? $contragentLocation->countryId : $contragentData->countryId;
+    	
+    	$ownCountry = drdata_Countries::fetchField($ownCountryId, 'letterCode2');
+    	$contragentCountry = drdata_Countries::fetchField($contragentCountryId, 'letterCode2');
     	
     	$ownPart = ($this instanceof sales_Sales) ? 'from' : 'to';
     	$contrPart = ($this instanceof sales_Sales) ? 'to' : 'from';
