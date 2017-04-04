@@ -592,7 +592,6 @@ class doc_Folders extends core_Master
         $oSharedArr = keylist::toArray($rec->shared);
         
         // Настройките на пакета
-        $notifyShared = TRUE;
         $notifySharedConf = doc_Setup::get('NOTIFY_FOLDERS_SHARED_USERS');
         if ($notifySharedConf == 'no') {
             $sharedArr = array();
@@ -631,7 +630,7 @@ class doc_Folders extends core_Master
             } else if ($folOpening['folOpenings'] == 'yes') {
                 
                 // Може да е абониран, но да няма права
-                if (doc_Folders::haveRightFor('single', $rec->folderId)) {
+                if (doc_Folders::haveRightFor('single', $rec->folderId, $userId)) {
                     $notifyArr[$userId] = $userId;
                 }
             }
