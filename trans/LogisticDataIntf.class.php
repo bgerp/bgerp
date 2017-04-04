@@ -25,21 +25,27 @@ class trans_LogisticDataIntf
 	
 	
 	/**
-	 * Информация за логистичните данни
-	 * 
-	 * @param mixed $rec   - ид или запис на документ
+     * Информация за логистичните данни
+     *
+     * @param mixed $rec   - ид или запис на документ
      * @return array $data - логистичните данни
-     * 
-     * 			string(2)     ['fromCountry']  - двубуквен код на държавата за натоварване
-     * 			string|NULL   ['fromPCode']    - пощенски код на мястото за натоварване
-     * 			string|NULL   ['fromPlace']    - град за натоварване
-     * 			datetime|NULL ['loadingTime']  - дата на натоварване
-     * 			string(2)     ['toCountry']    - двубуквен код на държавата за разтоварване
-     * 			string|NULL   ['toPCode']      - пощенски код на мястото за разтоварване
-     * 			string|NULL   ['toPlace']      - град за разтоварване
-     * 			datetime|NULL ['deliveryTime'] - дата на разтоварване
-     * 			text|NULL 	  ['conditions']   - други условия
-	 */
+     *		
+     *		string(2)     ['fromCountry']  - двубуквен код на държавата за натоварване
+     * 		string|NULL   ['fromPCode']    - пощенски код на мястото за натоварване
+     * 		string|NULL   ['fromPlace']    - град за натоварване
+     * 		string|NULL   ['fromAddress']  - адрес за натоварване
+     *  	string|NULL   ['fromCompany']  - фирма 
+     *   	string|NULL   ['fromPerson']   - лице
+     * 		datetime|NULL ['loadingTime']  - дата на натоварване
+     * 		string(2)     ['toCountry']    - двубуквен код на държавата за разтоварване
+     * 		string|NULL   ['toPCode']      - пощенски код на мястото за разтоварване
+     * 		string|NULL   ['toPlace']      - град за разтоварване
+     *  	string|NULL   ['toAddress']    - адрес за разтоварване
+     *   	string|NULL   ['toCompany']    - фирма 
+     *   	string|NULL   ['toPerson']     - лице
+     * 		datetime|NULL ['deliveryTime'] - дата на разтоварване
+     * 		text|NULL 	  ['conditions']   - други условия
+     */
     function getLogisticData($rec)
     {
     	return $this->class->getLogisticData($rec);
