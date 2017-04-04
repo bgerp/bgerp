@@ -1809,6 +1809,41 @@ class email_Outgoings extends core_Master
         
         if (!$contragentData) {
             $contragentData = doc_Folders::getContragentData($rec->folderId);
+        } else {
+            // Ако е в папка на котрагент, може да се използват името на фирмата, лицето и държавата от там
+            $cover = doc_Folders::getCover($rec->folderId);
+            if (($cover->instance instanceof crm_Companies) || ($cover->instance instanceof crm_Persons)) {
+            
+                $use = TRUE;
+            
+                $contrData = $cover->getContragentData();
+            
+                $contrData->groupEmails = mb_strtolower($contrData->groupEmails);
+            
+                $emailsArr = type_Emails::toArray($contrData->groupEmails);
+            
+                if ($rec->originId) {
+                    $oDoc = doc_Containers::getDocument($rec->originId);
+                    $oRec = $oDoc->fetch();
+                    $fromEml = $oRec->fromEml;
+                    $fromEml = trim($fromEml);
+                    $fromEml = mb_strtolower($fromEml);
+            
+                    if (!$fromEml || !in_array($fromEml, $emailsArr)) {
+                        $use = FALSE;
+                    }
+                }
+            
+                if ($use) {
+                    $contragentData->country = $contrData->country;
+                    $contragentData->countryId = $contrData->countryId;
+                    if ($contrData->person) {
+                        $contragentData->person = $contrData->person;
+                    }
+                    $contragentData->company = $contrData->company;
+                    $contragentData->companyId = $contrData->companyId;
+                }
+            }
         }
         
         return $contragentData;
