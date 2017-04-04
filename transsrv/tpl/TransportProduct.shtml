@@ -1,108 +1,150 @@
 <table style="width: 45%; float:left;" class="styled-table no-border">
     <tr>
-        <th colspan = "2" >Натоварване</th>
+        <th colspan = "2" >|Натоварване|*</th>
     </tr>
+    <!--ET_BEGIN fromCountry-->
     <tr>
         <td>- |Държава|*:</td>
         <td class="boldText">[#fromCountry#]</td>
     </tr>
+    <!--ET_END fromCountry-->
+    <!--ET_BEGIN fromPCode-->
     <tr>
         <td>- |П. код|*:</td>
         <td class="boldText">[#fromPCode#]</td>
     </tr>
+    <!--ET_END fromPCode-->
+    <!--ET_BEGIN fromPlace-->
     <tr>
         <td>- |Нас. място|*:</td>
         <td class="boldText">[#fromPlace#]</td>
     </tr>
+    <!--ET_END fromPlace-->
+    <!--ET_BEGIN fromCompany-->
     <tr>
         <td>- |Фирма|*:</td>
         <td class="boldText">[#fromCompany#]</td>
     </tr>
+    <!--ET_END fromCompany-->
+    <!--ET_BEGIN fromPerson-->
     <tr>
         <td>- |Лице|*:</td>
         <td class="boldText">[#fromPerson#]</td>
     </tr>
+    <!--ET_END fromPerson-->
+    <!--ET_BEGIN loadingTime-->
     <tr>
         <td>- |Най-късно на|*:</td>
         <td class="boldText">[#loadingTime#]</td>
     </tr>
+    <!--ET_END loadingTime-->
 </table>
 
 <table style="width: 45%; float:left; margin-left: 50px;" class="styled-table no-border">
     <tr>
-        <th colspan = "2">Разтоварване</th>
+        <th colspan = "2">|Разтоварване|*</th>
     </tr>
+    <!--ET_BEGIN toCountry-->
     <tr>
         <td>- |Държава|*:</td>
         <td class="boldText">[#toCountry#]</td>
     </tr>
+    <!--ET_END toCountry-->
+    <!--ET_BEGIN toPCode-->
     <tr>
         <td>- |П. код|*:</td>
         <td class="boldText">[#toPCode#]</td>
     </tr>
+    <!--ET_END toPCode-->
+    <!--ET_BEGIN toPlace-->
     <tr>
         <td>- |Нас. място|*:</td>
         <td class="boldText">[#toPlace#]</td>
     </tr>
+    <!--ET_END toPlace-->
+    <!--ET_BEGIN toCompany-->
     <tr>
         <td>- |Фирма|*:</td>
         <td class="boldText">[#toCompany#]</td>
     </tr>
+    <!--ET_END toCompany-->
+    <!--ET_BEGIN toPerson-->
     <tr>
         <td>- |Лице|*:</td>
         <td class="boldText">[#toPerson#]</td>
     </tr>
+    <!--ET_END toPerson-->
+    <!--ET_BEGIN deliveryTime-->
     <tr>
         <td>- |Краен срок|*:</td>
         <td class="boldText">[#deliveryTime#]</td>
     </tr>
+    <!--ET_END deliveryTime-->
 </table>
 
 <div class="clearfix21"></div>
 <table class="styled-table no-border">
     <tr>
-        <th colspan = "2">Информация за товара</th>
+        <th colspan = "2">|Информация за товара|*</th>
     </tr>
+    <!--ET_BEGIN transUnit-->
     <tr>
         <td>- |Трансп. ед.|*:</td>
         <td  class="boldText">[#transUnit#]</td>
     </tr>
+    <!--ET_END transUnit-->
+    <!--ET_BEGIN unitQty-->
     <tr>
         <td>- |Количество|*:</td>
         <td class="boldText">[#unitQty#]</td>
     </tr>
+    <!--ET_END unitQty-->
+    <!--ET_BEGIN maxWeight-->
     <tr>
         <td>- |Общо тегло|*:</td>
         <td class="boldText">[#maxWeight#]</td>
     </tr>
+    <!--ET_END maxWeight-->
+    <!--ET_BEGIN maxVolume-->
     <tr>
         <td>- |Общ обем|*:</td>
         <td class="boldText">[#maxVolume#]</td>
     </tr>
+    <!--ET_END maxVolume-->
+    <!--ET_BEGIN maxHeight-->
     <tr>
         <td>- |Макс. височина|*:</td>
         <td class="boldText">[#maxHeight#]</td>
     </tr>
+    <!--ET_END  maxHeight-->
+    <!--ET_BEGIN dangerous-->
     <tr>
         <td>- |Опасност|*:</td>
         <td class="boldText">[#dangerous#]</td>
     </tr>
+    <!--ET_END dangerous-->
+    <!--ET_BEGIN load-->
     <tr>
         <td>- |Описание|*:</td>
         <td class="boldText">[#load#]</td>
     </tr>
+    <!--ET_END load-->
 </table>
 
 <table class="styled-table no-border">
     <tr>
         <th colspan = "2">Информация за товара</th>
     </tr>
+    <!--ET_BEGIN conditions-->
     <tr>
         <td>- |Условия|*:</td>
         <td class="boldText">[#conditions#]</td>
     </tr>
+    <!--ET_END conditions-->
+    <!--ET_BEGIN ourReff-->
     <tr>
         <td>- |Наш реф.№|*:</td>
         <td class="boldText">[#ourReff#]</td>
     </tr>
+    <!--ET_END ourReff-->
 </table>
