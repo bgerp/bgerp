@@ -1934,13 +1934,13 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	$res["{$ownPart}Country"] = $ownCountry;
     	if(isset($storeLocation)){
-    		$res["{$ownPart}PCode"]   = $storeLocation->pCode;
-    		$res["{$ownPart}Place"]   = $storeLocation->place;
-    		$res["{$ownPart}Address"] = $storeLocation->address;
+    		$res["{$ownPart}PCode"]   = !empty($storeLocation->pCode) ? $storeLocation->pCode : NULL;
+    		$res["{$ownPart}Place"]   = !empty($storeLocation->place) ? $storeLocation->place : NULL;
+    		$res["{$ownPart}Address"] = !empty($storeLocation->address) ? $storeLocation->address : NULL;
     	} else {
-    		$res["{$ownPart}PCode"]   = $ownCompany->pCode;
-    		$res["{$ownPart}Place"]   = $ownCompany->place;
-    		$res["{$ownPart}Address"] = $ownCompany->address;
+    		$res["{$ownPart}PCode"]   = !empty($ownCompany->pCode) ? $ownCompany->pCode : NULL;
+    		$res["{$ownPart}Place"]   = !empty($ownCompany->place) ? $ownCompany->place : NULL;
+    		$res["{$ownPart}Address"] = !empty($ownCompany->address) ? $ownCompany->address : NULL;
     	}
     	$res["{$ownPart}Company"] = $ownCompany->name;
     	$personId = ($rec->dealerId) ? $rec->dealerId : (($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy);
@@ -1950,15 +1950,15 @@ abstract class deals_DealMaster extends deals_DealBase
     	$res["{$contrPart}Company"] = $contragentData->company;
     	
     	if(isset($contragentLocation)){
-    		$res["{$contrPart}PCode"]     = $contragentLocation->pCode;
-    		$res["{$contrPart}toPlace"]   = $contragentLocation->place;
-    		$res["{$contrPart}Address"]   = $contragentLocation->address;
-    		$res["{$contrPart}toPerson"]  = $contragentLocation->mol;
+    		$res["{$contrPart}PCode"]     = !empty($contragentLocation->pCode) ? $contragentLocation->pCode : NULL;
+    		$res["{$contrPart}toPlace"]   = !empty($contragentLocation->place) ? $contragentLocation->place : NULL;
+    		$res["{$contrPart}Address"]   = !empty($contragentLocation->address) ? $contragentLocation->address : NULL;
+    		$res["{$contrPart}toPerson"]  = !empty($contragentLocation->mol) ? $contragentLocation->mol : NULL;
     	} else {
-    		$res["{$contrPart}PCode"]   = $contragentData->pCode;
-    		$res["{$contrPart}Place"]   = $contragentData->place;
-    		$res["{$contrPart}Address"] = $contragentData->address;
-    		$res["{$contrPart}Person"]  = $contragentData->person;
+    		$res["{$contrPart}PCode"]   = !empty($contragentData->pCode) ? $contragentData->pCode : NULL;
+    		$res["{$contrPart}Place"]   = !empty($contragentData->place) ? $contragentData->place : NULL;
+    		$res["{$contrPart}Address"] = !empty($contragentData->address) ? $contragentData->address : NULL;
+    		$res["{$contrPart}Person"]  = !empty($contragentData->person) ? $contragentData->person : NULL;
     	}
     	
     	$delTime = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : (!empty($rec->deliveryTermTime) ?  dt::addSecs($rec->deliveryTermTime, $rec->valior) : NULL);
