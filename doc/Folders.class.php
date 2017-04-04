@@ -582,13 +582,43 @@ class doc_Folders extends core_Master
      */
     public static function getUsersArrForNotify($rec)
     {
-        $resArr = array();
+        static $resArr = array();
         
         if ($resArr[$rec->id]) $resArr[$rec->id];
         
         $notifyArr = array();
         $notifyArr[$rec->inCharge] = $rec->inCharge;
-        $notifyArr += keylist::toArray($rec->shared);
+        
+        $oSharedArr = keylist::toArray($rec->shared);
+        
+        // Настройките на пакета
+        $notifyShared = TRUE;
+        $notifySharedConf = doc_Setup::get('NOTIFY_FOLDERS_SHARED_USERS');
+        if ($notifySharedConf == 'no') {
+            $sharedArr = array();
+        } else {
+            $sharedArr = $oSharedArr;
+        }
+        
+        // Персоналните настройки на потребителите
+        $pKey = crm_Profiles::getSettingsKey();
+        $pName = 'DOC_NOTIFY_FOLDERS_SHARED_USERS';
+        
+        $settingsNotifyArr = core_Settings::fetchUsers($pKey, $pName);
+        
+        if ($settingsNotifyArr) {
+            foreach ($settingsNotifyArr as $userId => $uConfArr) {
+                if ($uConfArr[$pName] == 'no') {
+                    unset($sharedArr[$userId]);
+                } elseif ($uConfArr[$pName] == 'yes') {
+                    if ($oSharedArr[$userId]) {
+                        $sharedArr[$userId] = $userId;
+                    }
+                }
+            }
+        }
+        
+        $notifyArr += $sharedArr;
         
         $key = doc_Folders::getSettingsKey($rec->id);
         $folOpeningNotifications = core_Settings::fetchUsers($key, 'folOpenings');
@@ -599,20 +629,19 @@ class doc_Folders extends core_Master
             if ($folOpening['folOpenings'] == 'no') {
                 unset($notifyArr[$userId]);
             } else if ($folOpening['folOpenings'] == 'yes') {
-                $notifyArr[$userId] = $userId;
+                
+                // Може да е абониран, но да няма права
+                if (doc_Folders::haveRightFor('single', $rec->folderId)) {
+                    $notifyArr[$userId] = $userId;
+                }
             }
         }
         
         $currUserId = core_Users::getCurrent();
-        
-        // Ако няма права за дебъг, няма да се нотифицира текущия потребител
-        if (!haveRole('debug', $currUserId)) {
-            unset($notifyArr[$currUserId]);
-        }
-        
-        // Премахваме анонимния и системния потребител
+        // Премахваме анонимния, системния и текущия потребител
         unset($notifyArr[0]);
         unset($notifyArr[-1]);
+        unset($notifyArr[$currUserId]);
         
         $resArr[$rec->id] = $notifyArr;
         
