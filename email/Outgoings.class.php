@@ -2496,6 +2496,7 @@ class email_Outgoings extends core_Master
             // Ако е вдигнат флага, записваме
             if ($flagSave) {
                 if (static::save($nRec, $saveFiedsArr)) {
+                    self::touchRec($nRec->id);
                     $cnt++;
                 }
             }
