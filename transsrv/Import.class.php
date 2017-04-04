@@ -51,19 +51,35 @@ class transsrv_Import extends core_BaseClass
     	$folderId = self::getFolderId($data);
     	if(!$folderId) return;
     	
-    	//$data->ourReff = "Sal1778";
+    	$costItemId = NULL;
+    	$data->ourReff = "Sal1778";
     	if(isset($data->ourReff)){
     		$doc = doc_Containers::getDocumentByHandle($data->ourReff);
     		if(is_object($doc)){
+    			
+    			// Ако цитирания документ има логистични данни, взимат се те
     			if($doc->haveInterface('trans_LogisticDataIntf')){
-    				$rData = (object)$doc->getLogisticData();
-    				foreach (array('from', 'to') as $prefix){
-    					if($rData->{"{$prefix}Country"} == $data->{"{$prefix}Country"}){
-    						setIfNot($data->{"{$prefix}PCode"}, $rData->{"{$prefix}PCode"});
-    						setIfNot($data->{"{$prefix}Place"}, $rData->{"{$prefix}Place"});
-    						setIfNot($data->{"{$prefix}Address"}, $rData->{"{$prefix}Address"});
-    						setIfNot($data->{"{$prefix}Company"}, $rData->{"{$prefix}Company"});
-    						setIfNot($data->{"{$prefix}Person"}, $rData->{"{$prefix}Person"});
+    				if($doc->fetchField('state') == 'active'){
+    					$rData = (object)$doc->getLogisticData();
+    					foreach (array('from', 'to') as $prefix){
+    						if($rData->{"{$prefix}Country"} == $data->{"{$prefix}Country"}){
+    							setIfNot($data->{"{$prefix}PCode"}, $rData->{"{$prefix}PCode"});
+    							setIfNot($data->{"{$prefix}Place"}, $rData->{"{$prefix}Place"});
+    							setIfNot($data->{"{$prefix}Address"}, $rData->{"{$prefix}Address"});
+    							setIfNot($data->{"{$prefix}Company"}, $rData->{"{$prefix}Company"});
+    							setIfNot($data->{"{$prefix}Person"}, $rData->{"{$prefix}Person"});
+    						}
+    					}
+    					
+    					// Форсиране на нашия реф като разходно перо 
+    					if($doc->isInstanceOf('deals_DealMaster')){
+    						$listId = acc_Lists::fetchBySystemId('costObjects')->id;
+    						if(!acc_Items::isItemInList($doc->getClassId(), $doc->that, 'costObjects')){
+    							$costItemId = acc_Items::force($doc->getClassId(), $doc->that, $listId);
+    							doc_ExpensesSummary::save((object)array('containerId' => $doc->fetchField('containerId')));
+    						} else {
+    							$costItemId = acc_Items::fetchItem($doc->getClassId(), $doc->that)->id;
+    						}
     					}
     				}
     			}
@@ -82,7 +98,17 @@ class transsrv_Import extends core_BaseClass
     		
     			// Добавя транспортната услуга към покупката
     			if($purchaseId){
-    				purchase_Purchases::addRow($purchaseId, $productId, 1, $data->price);
+    				$id = purchase_Purchases::addRow($purchaseId, $productId, 1, $data->price);
+    				
+    				// ако има разходен обект разпределя се по него
+    				if(isset($id) && isset($costItemId)){
+    					$quantity = purchase_PurchasesDetails::fetchField($id, 'quantity');
+    					$containerId = purchase_Purchases::fetchField($purchaseId, 'containerId');
+    					$detailClassId = purchase_PurchasesDetails::getClassId();
+    					acc_CostAllocations::delete("#detailClassId = {$detailClassId} AND #detailRecId = {$id} AND #productId = {$productId}");
+    					$saveRec = (object)array('detailClassId' => $detailClassId, 'detailRecId' => $id, 'productId' => $productId, 'expenseItemId' => $costItemId, 'containerId' => $containerId, 'quantity' => $quantity, 'allocationBy' => 'no');
+    					acc_CostAllocations::save($saveRec);
+    				}
     			}
     			
     			redirect(purchase_Purchases::getSingleUrlArray($purchaseId), FALSE, 'Успешно добавяне');
