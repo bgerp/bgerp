@@ -52,7 +52,6 @@ class transsrv_Import extends core_BaseClass
     	if(!$folderId) return;
     	
     	$costItemId = NULL;
-    	$data->ourReff = "Sal1778";
     	if(isset($data->ourReff)){
     		$doc = doc_Containers::getDocumentByHandle($data->ourReff);
     		if(is_object($doc)){
