@@ -1888,4 +1888,82 @@ abstract class deals_DealMaster extends deals_DealBase
     		$data->tabs->TAB('DealReport', 'Поръчано / Доставено' , $url);
     	}
     }
+    
+    
+    /**
+     * Информация за логистичните данни
+     *
+     * @param mixed $rec   - ид или запис на документ
+     * @return array $data - логистичните данни
+     *
+     * 			string(2)     ['fromCountry']  - двубуквен код на държавата за натоварване
+     * 			string|NULL   ['fromPCode']    - пощенски код на мястото за натоварване
+     * 			string|NULL   ['fromPlace']    - град за натоварване
+     * 			string|NULL   ['fromAddress']  - адрес за натоварване
+     * 			datetime|NULL ['loadingTime']  - дата на натоварване
+     * 			string(2)     ['toCountry']    - двубуквен код на държавата за разтоварване
+     * 			string|NULL   ['toPCode']      - пощенски код на мястото за разтоварване
+     * 			string|NULL   ['toPlace']      - град за разтоварване
+     *  		string|NULL   ['toAddress']    - адрес за разтоварване
+     * 			datetime|NULL ['deliveryTime'] - дата на разтоварване
+     * 			text|NULL 	  ['conditions']   - други условия
+     */
+    function getLogisticData($rec)
+    {
+    	$rec = $this->fetchRec($rec);
+    	$ownCompany = crm_Companies::fetchOurCompany();
+    	$ownCountry = drdata_Countries::fetchField($ownCompany->country, 'letterCode2');
+    	
+    	$contragentData = doc_Folders::getContragentData($rec->folderId);
+    	$contragentCountry = drdata_Countries::fetchField($contragentData->countryId, 'letterCode2');
+    	
+    	if(isset($rec->shipmentStoreId)){
+    		$locationId = store_Stores::fetchField($rec->shipmentStoreId, 'locationId');
+    		$storeLocation = crm_Locations::fetch($locationId);
+    		$ownCountryId = $storeLocation->countryId;
+    	}
+    	
+    	if(isset($rec->deliveryLocationId)){
+    		$contragentLocation = crm_Locations::fetch($rec->deliveryLocationId);
+    		$contragentCountryId = $contragentLocation->countryId;
+    	}
+    	$contragentCountryId = isset($contragentLocation->countryId) ? $contragentLocation->countryId : $contragentData->countryId;
+    	
+    	$ownPart = ($this instanceof sales_Sales) ? 'from' : 'to';
+    	$contrPart = ($this instanceof sales_Sales) ? 'to' : 'from';
+    	
+    	$res["{$ownPart}Country"] = $ownCountry;
+    	if(isset($storeLocation)){
+    		$res["{$ownPart}PCode"]   = $storeLocation->pCode;
+    		$res["{$ownPart}Place"]   = $storeLocation->place;
+    		$res["{$ownPart}Address"] = $storeLocation->address;
+    	} else {
+    		$res["{$ownPart}PCode"]   = $ownCompany->pCode;
+    		$res["{$ownPart}Place"]   = $ownCompany->place;
+    		$res["{$ownPart}Address"] = $ownCompany->address;
+    	}
+    	$res["{$ownPart}Company"] = $ownCompany->name;
+    	$personId = ($rec->dealerId) ? $rec->dealerId : (($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy);
+    	$res["{$ownPart}Person"] = core_users::fetchField($personId, 'names');
+    	
+    	$res["{$contrPart}Country"] = $contragentCountry;
+    	$res["{$contrPart}Company"] = $contragentData->company;
+    	
+    	if(isset($contragentLocation)){
+    		$res["{$contrPart}PCode"]     = $contragentLocation->pCode;
+    		$res["{$contrPart}toPlace"]   = $contragentLocation->place;
+    		$res["{$contrPart}Address"]   = $contragentLocation->address;
+    		$res["{$contrPart}toPerson"]  = $contragentLocation->mol;
+    	} else {
+    		$res["{$contrPart}PCode"]   = $contragentData->pCode;
+    		$res["{$contrPart}Place"]   = $contragentData->place;
+    		$res["{$contrPart}Address"] = $contragentData->address;
+    		$res["{$contrPart}Person"]  = $contragentData->person;
+    	}
+    	
+    	$delTime = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : (!empty($rec->deliveryTermTime) ?  dt::addSecs($rec->deliveryTermTime, $rec->valior) : NULL);
+    	$res["deliveryTime"]  = $delTime;
+    	
+    	return $res;
+    }
 }
