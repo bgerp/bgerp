@@ -155,6 +155,7 @@ class transsrv_Import extends core_BaseClass
      */
     private static function forceProductId($data, $folderId)
     {
+    	core_Classes::add('transsrv_ProductDrv');
     	$Products = cls::get('cat_Products');
     	$Driver = cls::get('transsrv_ProductDrv');
     	$driverId = $Driver->getClassId();
