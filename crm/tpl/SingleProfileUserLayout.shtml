@@ -10,12 +10,6 @@
                 <td>[#nick#]</td>
             </tr>
             <!--ET_END nick-->
-            <!--ET_BEGIN internalNum-->
-            <tr>
-                <td class='dt'>|Номер|*</td>
-                <td>[#internalNum#]</td>
-            </tr>
-            <!--ET_END internalNum-->
             <!--ET_BEGIN roles-->
             <tr>
                 <td class='dt'>|Роли|*</td>
