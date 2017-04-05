@@ -70,14 +70,17 @@ class transsrv_Import extends core_BaseClass
     						}
     					}
     					
-    					// Форсиране на нашия реф като разходно перо 
-    					if($doc->isInstanceOf('deals_DealMaster')){
+    					$threadId = $doc->fetchField('threadId');
+    					$firstDoc = doc_Threads::getFirstDocument($threadId);
+    					if(is_object($firstDoc) && $doc->isInstanceOf('deals_DealMaster')){
+    						
+    						// Форсиране на нашия реф като разходно перо
     						$listId = acc_Lists::fetchBySystemId('costObjects')->id;
-    						if(!acc_Items::isItemInList($doc->getClassId(), $doc->that, 'costObjects')){
-    							$costItemId = acc_Items::force($doc->getClassId(), $doc->that, $listId);
-    							doc_ExpensesSummary::save((object)array('containerId' => $doc->fetchField('containerId')));
+    						if(!acc_Items::isItemInList($firstDoc->getClassId(), $firstDoc->that, 'costObjects')){
+    							$costItemId = acc_Items::force($firstDoc->getClassId(), $firstDoc->that, $listId);
+    							doc_ExpensesSummary::save((object)array('containerId' => $firstDoc->fetchField('containerId')));
     						} else {
-    							$costItemId = acc_Items::fetchItem($doc->getClassId(), $doc->that)->id;
+    							$costItemId = acc_Items::fetchItem($firstDoc->getClassId(), $firstDoc->that)->id;
     						}
     					}
     				}
