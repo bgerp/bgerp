@@ -339,7 +339,7 @@ class bgerp_Setup extends core_ProtoSetup {
      *
      * @return array                Грешки
      */
-    function loadSetupDataProc($packs, &$haveError = array(), $html = '', $itr = '')
+    function loadSetupDataProc($packs, &$haveError = array(), &$html = '', $itr = '')
     {
         // Кои пакети дотук сме засели с данни
         $isLoad = array();
