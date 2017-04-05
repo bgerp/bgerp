@@ -947,21 +947,6 @@ class findeals_Deals extends deals_DealBase
     
     
     /**
-     * Извиква се след успешен запис в модела
-     */
-    public static function on_AfterSave($mvc, &$id, $rec)
-    {
-    	if($rec->state != 'draft'){
-    		
-    		$rec = $mvc->fetchRec($id);
-    
-    		// Записване на продажбата като отворена сделка
-    		deals_OpenDeals::saveRec($rec, $mvc);
-    	}
-    }
-    
-    
-    /**
      * Кои сделки ще могатд а се приключат с документа
      * 
      * @param findeals_Deals $mvc

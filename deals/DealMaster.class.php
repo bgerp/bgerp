@@ -634,22 +634,6 @@ abstract class deals_DealMaster extends deals_DealBase
     
     
 	/**
-     * Извиква се след успешен запис в модела
-     */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
-    {
-    	if($rec->state != 'draft'){
-    		$state = $rec->state;
-    		$rec = $mvc->fetch($id);
-    		$rec->state = $state;
-    		
-    		// Записване на сделката в чакащи
-    		deals_OpenDeals::saveRec($rec, $mvc);
-    	}
-    }
-    
-    
-	/**
      * Връща тялото на имейла генериран от документа
      * 
      * @see email_DocumentIntf
@@ -1084,8 +1068,6 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	cls::get('doc_Containers')->save_($cRec, 'modifiedOn');
     	$mvc->save_($rec);
-    	
-    	deals_OpenDeals::saveRec($rec, $mvc);
     }
     
    
