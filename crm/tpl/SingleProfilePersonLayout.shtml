@@ -50,6 +50,12 @@
                 <td>[#buzTel#]</td>
             </tr>
             <!--ET_END buzTel-->
+            <!--ET_BEGIN internalNum-->
+            <tr>
+                <td class='dt'>|Вътрешен|*</td>
+                <td>[#internalNum#]</td>
+            </tr>
+            <!--ET_END internalNum-->
             <!--ET_BEGIN buzFax-->
             <tr>
                 <td class='dt'>|Факс|*</td>

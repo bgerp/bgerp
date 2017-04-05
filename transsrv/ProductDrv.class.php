@@ -32,7 +32,7 @@ class transsrv_ProductDrv extends cat_ProductDriver
 	/**
 	 * Дефолт мета данни за всички продукти
 	 */
-	protected $defaultMetaData = 'canSell,canBuy,canConvert';
+	protected $defaultMetaData = 'canSell,canBuy';
 	
 	
 	/**
@@ -253,12 +253,44 @@ class transsrv_ProductDrv extends cat_ProductDriver
 	 * @param double $quantity - к-во
 	 * @return array           - Допълнителните условия за дадения продукт
 	 */
-	public static function getConditions($rec, $quantity)
+	public function getConditions($rec, $quantity)
 	{
 		if($condition = transsrv_Setup::get('SALE_DEFAULT_CONDITION')){
 			return array($condition);
 		}
 		
 		return array();
+	}
+	
+	
+	/**
+	 * Връща хеша на артикула (стойност която показва дали е уникален)
+	 *
+	 * @param embed_Manager $Embedder - Ембедър
+	 * @param mixed $rec              - Ид или запис на артикул
+	 * @return NULL|varchar           - Допълнителните условия за дадения продукт
+	 */
+	public function getHash(embed_Manager $Embedder, $rec)
+	{
+		$objectToHash = new stdClass();
+		$fields = $Embedder->getDriverFields($this);
+		foreach ($fields as $name => $caption){
+			$objectToHash->{$name} = $rec->{$name};
+		}
+		
+		$hash = md5(serialize($objectToHash));
+	
+		return $hash;
+	}
+	
+	
+	/**
+	 * Връща задължителната основна мярка
+	 *
+	 * @return int|NULL - ид на мярката, или NULL ако може да е всяка
+	 */
+	public function getDefaultUomId()
+	{
+		return cat_UoM::fetchBySinonim($this->uom)->id;
 	}
 }

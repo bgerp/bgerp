@@ -86,43 +86,44 @@ class unit_MinkPbgERP extends core_Manager {
         $res .= 'MinkPbgERP ';
         $res .= " 0.".$this->act_DeinstallSelect2();
         $res .= " 1.".$this->act_AddRoleCat();
-        $res .= " 1.".$this->act_CreateUser1();
-        $res .= "  2.".$this->act_CreateUser2();
-        $res .= "  3.".$this->act_CreateStore();
-        $res .= "  4.".$this->act_CreateBankAcc1();
-        $res .= "  5.".$this->act_CreateBankAcc2();
-        $res .= "  6.".$this->act_CreateCase();
-        $res .= "  7.".$this->act_EditCms();
-        $res .= "  8.".$this->act_GetCurrencies();
-        $res .= "  9.".$this->act_CreateCategory();
-        $res .= "  10.".$this->act_CreateParam();
-        $res .= "  11.".$this->act_CreateMeasure();
-        $res .= "  12.".$this->act_CreatePackage();
-        $res .= "  13.".$this->act_CreateGroup();
-        $res .= "  14.".$this->act_CreateProject();
-        $res .= "  15.".$this->act_CreateCycle();
-        $res .= "  16.".$this->act_CreateDepartment1();
-        $res .= "  17.".$this->act_CreateDepartment2();
-        $res .= "  18.".$this->act_CreateProduct();
-        $res .= "  19.".$this->act_CreateEditPerson();
-        $res .= "  20.".$this->act_CreateCompany();
-        $res .= "  21.".$this->act_EditCompany();
-        $res .= "  22.".$this->act_CreateLocation1();
-        $res .= "  23.".$this->act_CreateLocation2();
-        $res .= "  24.".$this->act_CreateEditCompany();
-        $res .= "  25.".$this->act_CreateInq();
-        $res .= "  26.".$this->act_CreateQuotation();
-        $res .= "  27.".$this->act_CreatePurchase();
-        $res .= "  28.".$this->act_CreatePurchaseC();
-        $res .= "  29.".$this->act_CreateSale();
-        $res .= "  30.".$this->act_CreateSaleC();
-        $res .= "  31.".$this->act_CreateTask();
-        $res .= "  32.".$this->act_CreateProductVAT9();
-        $res .= "  33.".$this->act_CreatePersonUSA();
-        $res .= "  34.".$this->act_CreateSupplier();
-        $res .= "  35.".$this->act_CreateContractorGroup();
-        $res .= "  36.".$this->act_CreatePaymentMethod();
-        $res .= "  37.".$this->act_CreateCondParameter();
+        $res .= " 2.".$this->act_ModifySettings();
+        $res .= " 3.".$this->act_CreateUser1();
+        $res .= "  4.".$this->act_CreateUser2();
+        $res .= "  5.".$this->act_CreateStore();
+        $res .= "  6.".$this->act_CreateBankAcc1();
+        $res .= "  7.".$this->act_CreateBankAcc2();
+        $res .= "  8.".$this->act_CreateCase();
+        $res .= "  9.".$this->act_EditCms();
+        $res .= "  10.".$this->act_GetCurrencies();
+        $res .= "  11.".$this->act_CreateCategory();
+        $res .= "  12.".$this->act_CreateParam();
+        $res .= "  13.".$this->act_CreateMeasure();
+        $res .= "  14.".$this->act_CreatePackage();
+        $res .= "  15.".$this->act_CreateGroup();
+        $res .= "  16.".$this->act_CreateProject();
+        $res .= "  17.".$this->act_CreateCycle();
+        $res .= "  18.".$this->act_CreateDepartment1();
+        $res .= "  19.".$this->act_CreateDepartment2();
+        $res .= "  20.".$this->act_CreateProduct();
+        $res .= "  21.".$this->act_CreateEditPerson();
+        $res .= "  22.".$this->act_CreateCompany();
+        $res .= "  23.".$this->act_EditCompany();
+        $res .= "  24.".$this->act_CreateLocation1();
+        $res .= "  25.".$this->act_CreateLocation2();
+        $res .= "  26.".$this->act_CreateEditCompany();
+        $res .= "  27.".$this->act_CreateInq();
+        $res .= "  28.".$this->act_CreateQuotation();
+        $res .= "  29.".$this->act_CreatePurchase();
+        $res .= "  30.".$this->act_CreatePurchaseC();
+        $res .= "  31.".$this->act_CreateSale();
+        $res .= "  32.".$this->act_CreateSaleC();
+        $res .= "  33.".$this->act_CreateTask();
+        $res .= "  34.".$this->act_CreateProductVAT9();
+        $res .= "  35.".$this->act_CreatePersonUSA();
+        $res .= "  36.".$this->act_CreateSupplier();
+        $res .= "  37.".$this->act_CreateContractorGroup();
+        $res .= "  38.".$this->act_CreatePaymentMethod();
+        $res .= "  39.".$this->act_CreateCondParameter();
         
         return $res;
     }
@@ -198,6 +199,24 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('cat', True);
         $browser->press('Запис');
         
+    }
+    
+    /**
+     * 1. Персонализиране на портала на потребител bgerp
+     */
+    //http://localhost/unit_MinkPbgERP/ModifySettings/
+    function act_ModifySettings()
+    {
+        // Логване
+        $browser = $this->SetUp();
+        // Създаване на потребител
+        $browser->click('Админ');
+        $browser->click('Потребители');
+        $browser->click('Профил');
+        $browser->press('Персонализиране');
+        $browser->setValue('CORE_PORTAL_ARRANGE', 'Последно - Известия - Задачи и Календар');
+        $browser->press('Запис');
+     
     }
     /**
      * 1. Създаване на потребител от Админ
@@ -609,7 +628,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Нов запис');
         //$browser->hasText('Добавяне на запис в "Организационна структура"');
         $browser->setValue('name', 'Завод');
-        $browser->setValue('schedule','Редовен'); 
+        $browser->setValue('schedule','Дневен график'); 
         $browser->press('Запис');
         if (strpos($browser->getText(),'Непопълнено задължително поле')){
             $browser->press('Отказ');
@@ -635,9 +654,10 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->click('Структура');
         $browser->press('Нов запис');
         //$browser->hasText('Добавяне на запис в "Организационна структура"');
-        $browser->setValue('name', 'Производство');
+        $browser->setValue('name', 'Производство 1');
         $browser->setValue('parentId', 'Завод');
-        $browser->setValue('schedule','Редовен');
+        $browser->setValue('schedule','Дневен график');
+        //$browser->setValue('User1', True);
         $browser->setValue('shared_13_2', '13_2');
         $browser->press('Запис');
          if (strpos($browser->getText(),'Непопълнено задължително поле')){

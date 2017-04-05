@@ -371,8 +371,10 @@ class remote_BgerpDriver extends core_Mvc
 
         expect($userId = core_Users::getCurrent());
 
-        $url = Request::get('url', 'type_Url');
-        
+        $url = Request::get('url');
+
+        expect(filter_var($url, FILTER_VALIDATE_URL));
+
         $arr = array();
 
         if(!$url) {

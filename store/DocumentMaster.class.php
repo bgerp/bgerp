@@ -674,4 +674,89 @@ abstract class store_DocumentMaster extends core_Master
     		}
     	}
     }
+    
+    
+
+
+
+    /**
+     * Информация за логистичните данни
+     *
+     * @param mixed $rec   - ид или запис на документ
+     * @return array $data - логистичните данни
+     *
+     *		string(2)     ['fromCountry']  - двубуквен код на държавата за натоварване
+     * 		string|NULL   ['fromPCode']    - пощенски код на мястото за натоварване
+     * 		string|NULL   ['fromPlace']    - град за натоварване
+     * 		string|NULL   ['fromAddress']  - адрес за натоварване
+     *  	string|NULL   ['fromCompany']  - фирма
+     *   	string|NULL   ['fromPerson']   - лице
+     * 		datetime|NULL ['loadingTime']  - дата на натоварване
+     * 		string(2)     ['toCountry']    - двубуквен код на държавата за разтоварване
+     * 		string|NULL   ['toPCode']      - пощенски код на мястото за разтоварване
+     * 		string|NULL   ['toPlace']      - град за разтоварване
+     *  	string|NULL   ['toAddress']    - адрес за разтоварване
+     *   	string|NULL   ['toCompany']    - фирма
+     *   	string|NULL   ['toPerson']     - лице
+     * 		datetime|NULL ['deliveryTime'] - дата на разтоварване
+     * 		text|NULL 	  ['conditions']   - други условия
+     */
+    function getLogisticData($rec)
+    {
+    	$rec = $this->fetchRec($rec);
+    	$ownCompany = crm_Companies::fetchOurCompany();
+    	$ownCountryId = $ownCompany->country;
+    	 
+    	if($locationId = store_Stores::fetchField($rec->storeId, 'locationId')){
+    		$storeLocation = crm_Locations::fetch($locationId);
+    		$ownCountryId = $storeLocation->countryId;
+    	}
+    	 
+    	$contragentData = doc_Folders::getContragentData($rec->folderId);
+    	$contragentCountryId = $contragentData->countryId;
+    	 
+    	if(isset($rec->locationId)){
+    		$contragentLocation = crm_Locations::fetch($rec->locationId);
+    		$contragentCountryId = $contragentLocation->countryId;
+    	}
+    	 
+    	$ownPart = ($this instanceof store_ShipmentOrders) ? 'from' : 'to';
+    	$contrPart = ($this instanceof store_ShipmentOrders) ? 'to' : 'from';
+    	
+    	// Подготвяне на данните за разтоварване
+    	$res["{$ownPart}Country"] = drdata_Countries::fetchField($ownCountryId, 'letterCode2');
+    	if(isset($locationId)){
+    		$res["{$ownPart}PCode"]    = !empty($storeLocation->pCode) ? $storeLocation->pCode : NULL;
+    		$res["{$ownPart}Place"]    = !empty($storeLocation->place) ? $storeLocation->place : NULL;
+    		$res["{$ownPart}Address"]  = !empty($storeLocation->address) ? $storeLocation->address : NULL;
+    		$res["{$ownPart}Person"]   = !empty($storeLocation->mol) ? $storeLocation->mol : NULL;
+    	} else {
+    		$res["{$ownPart}PCode"]   = !empty($ownCompany->pCode) ? $ownCompany->pCode : NULL;
+    		$res["{$ownPart}Place"]   = !empty($ownCompany->place) ? $ownCompany->place : NULL;
+    		$res["{$ownPart}Address"] = !empty($ownCompany->address) ? $ownCompany->address : NULL;
+    	}
+    	
+    	$res["{$ownPart}Company"] = $ownCompany->name;
+    	$toPersonId = ($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy;
+    	$res["{$ownPart}Person"]  = core_Users::fetchField($toPersonId, 'names');
+    	
+    	// Подготвяне на данните за натоварване
+    	$res["{$contrPart}Country"] = drdata_Countries::fetchField($contragentCountryId, 'letterCode2');
+    	$res["{$contrPart}Company"] = $contragentData->company;
+    	if(isset($rec->locationId)){
+    		$res["{$contrPart}PCode"]   = !empty($contragentLocation->pCode) ? $contragentLocation->pCode : NULL;
+    		$res["{$contrPart}Place"]   = !empty($contragentLocation->place) ? $contragentLocation->place : NULL;
+    		$res["{$contrPart}Address"] = !empty($contragentLocation->address) ? $contragentLocation->address : NULL;
+    		$res["{$contrPart}Person"]  = !empty($contragentLocation->mol) ? $contragentLocation->mol : NULL;
+    	} else {
+    		$res["{$contrPart}PCode"]    = !empty($contragentData->pCode) ? $contragentData->pCode : NULL;
+    		$res["{$contrPart}Place"]    = !empty($contragentData->place) ? $contragentData->place : NULL;
+    		$res["{$contrPart}Address"]  = !empty($contragentData->address) ? $contragentData->address : NULL;
+    		$res["{$contrPart}Person"]   = !empty($contragentData->person) ? $contragentData->person : NULL;
+    	}
+    	 
+    	$res["deliveryTime"]  = $rec->deliveryTime;
+    	 
+    	return $res;
+    }
 }

@@ -141,6 +141,43 @@ class email_SendOnTime extends core_Manager
     
     
     /**
+     * Спира разпращането
+     * 
+     * @param stdObject|int $id
+     * 
+     * @return array
+     */
+    public static function stopSending($id)
+    {
+        $rec = self::fetchRec($id);
+        
+        expect($rec);
+        
+        $res = array();
+        
+        if ($rec->state != 'waiting') return $res;
+        
+        $rec->state = 'stopped';
+        
+        $msg = 'Спряно изпращане';
+        $type = 'notice';
+        if (self::save($rec, 'state')) {
+            email_Outgoings::logWrite($msg, $rec->objectId);
+            email_Outgoings::touchRec($rec->objectId);
+        } else {
+            $msg = 'Грешка при спиране на изпращането';
+            $type = 'error';
+            email_Outgoings::logErr($msg, $rec->objectId);
+        }
+        
+        $res['msg'] = $msg;
+        $res['type'] = $type;
+        
+        return $res;
+    }
+    
+    
+    /**
      * Добавя стойност на функционалното поле emailsTo
      * 
      * @param email_SendOnTime $mvc
@@ -205,30 +242,21 @@ class email_SendOnTime extends core_Manager
      */
     function act_Stop()
     {
-        self::requireRightFor('stop');
+        $this->requireRightFor('stop');
         
         $id = Request::get('id', 'int');
         
-        self::requireRightFor('stop', $id);
+        $rec = $this->fetch($id);
         
-        expect($rec = self::fetch($id));
+        expect($rec);
         
         expect($rec->state == 'waiting');
         
-        $rec->state = 'stopped';
+        $this->requireRightFor('stop', $rec);
         
-        $msg = 'Спряно изпращане';
-        $type = 'notice';
-        if (self::save($rec, 'state')) {
-            email_Outgoings::logWrite($msg, $rec->objectId);
-            email_Outgoings::touchRec($rec->objectId);
-        } else {
-            $msg = 'Грешка при спиране на изпращането';
-            $type = 'error';
-            email_Outgoings::logErr($msg, $rec->objectId);
-        }
+        $msgArr = $this->stopSending($id);
         
-        return new Redirect(array('email_Outgoings', 'single', $rec->objectId), '|' . $msg, $type);
+        return new Redirect(email_Outgoings::getSingleUrlArray($rec->objectId), '|' . $msgArr['msg'], $msgArr['type']);
     }
     
     
@@ -290,7 +318,7 @@ class email_SendOnTime extends core_Manager
         $query = self::getQuery();
         $now = dt::now();
         $query->where("#delaySendOn <= '{$now}'");
-        $query->where("#state != 'closed'");
+        $query->where("#state = 'waiting'");
         
         $cnt = 0;
         

@@ -277,6 +277,15 @@ class crm_Profiles extends core_Master
                     $data->toolbar->addBtn(tr('Визитка'), array('crm_Persons', 'single', $data->Person->rec->id), 'id=btnPerson', 'ef_icon = img/16/vcard.png');    
                 }
             }
+			
+            // Ако има вътрешен номер, показваме го
+            if (core_Packs::isInstalled('callcenter')) {
+                $numbersArr = callcenter_Numbers::getInternalNumbersForUsers(array($data->rec->userId));
+            	
+                if (!empty($numbersArr)) {
+                    $data->Person->row->internalNum = implode(', ', $numbersArr);
+                }
+            }
         }
         
         // Ако потребителя е контрактор и текущия е супер потребите
@@ -436,15 +445,6 @@ class crm_Profiles extends core_Master
                     
                     // Създаме линка
                     $data->ActionLog->actionLogLink = ht::createLink(tr("Още..."), $loginLogUrl, FALSE, $attr);  
-                }
-            }
-            
-            // Ако има вътрешен номер, показваме го
-            if (core_Packs::isInstalled('callcenter')) {
-                $numbersArr = callcenter_Numbers::getInternalNumbersForUsers(array($data->rec->userId));
-                
-                if (!empty($numbersArr)) {
-                    $data->User->row->internalNum = implode(', ', $numbersArr);
                 }
             }
         }

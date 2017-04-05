@@ -480,7 +480,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * @param int|NULL $id - ид на артикул
 	 * @return double|NULL - минималното количество в основна мярка, или NULL ако няма
 	 */
-	public static function getMoq($id = NULL)
+	public function getMoq($id = NULL)
 	{
 		return NULL;
 	}
@@ -494,7 +494,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * 		o packagingId - ид на мярка/опаковка
 	 * 		o quantity    - к-во в опаковката
 	 */
-	public static function getDefaultPackagings($rec)
+	public function getDefaultPackagings($rec)
 	{
 		return array();
 	}
@@ -508,8 +508,21 @@ abstract class cat_ProductDriver extends core_BaseClass
      * @param double $quantity - к-во
      * @return array           - Допълнителните условия за дадения продукт
      */
-	public static function getConditions($rec, $quantity)
+	public function getConditions($rec, $quantity)
 	{
 		return array();
+	}
+	
+	
+	/**
+	 * Връща хеша на артикула (стойност която показва дали е уникален)
+	 *
+	 * @param embed_Manager $Embedder - Ембедър
+	 * @param mixed $rec              - Ид или запис на артикул
+	 * @return NULL|varchar           - Допълнителните условия за дадения продукт
+	 */
+	public function getHash(embed_Manager $Embedder, $rec)
+	{
+		return NULL;
 	}
 }

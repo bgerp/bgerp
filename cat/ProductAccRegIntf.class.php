@@ -232,7 +232,7 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      * @param int|NULL $id - ид на артикул
      * @return double|NULL - минималното количество в основна мярка, или NULL ако няма
      */
-    public static function getMoq($id)
+    public function getMoq($id)
     {
     	return $this->class->getMoq($id);
     }
@@ -246,8 +246,20 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      * @param double $quantity - к-во
      * @return array           - Допълнителните условия за дадения продукт
      */
-    public static function getConditions($rec, $quantity)
+    public function getConditions($rec, $quantity)
     {
     	return $this->class->getConditions($rec, $quantity);
+    }
+    
+    
+    /**
+     * Връща хеша на артикула (стойност която показва дали е уникален)
+     *
+     * @param mixed $rec     - ид или запис на артикул
+     * @return NULL|varchar  - Допълнителните условия за дадения продукт
+     */
+    public static function getHash($rec)
+    {
+    	return $this->class->getHash($rec);
     }
 }

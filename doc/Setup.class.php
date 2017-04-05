@@ -68,6 +68,18 @@ defIfNot('DOC_NOTIFY_FOR_NEW_DOC', 'default');
 
 
 /**
+ * Известяване на споделените потребители на папка
+ */
+defIfNot('DOC_NOTIFY_FOLDERS_SHARED_USERS', 'default');
+
+
+/**
+ * Нотификация за създадени чакащи документи
+ */
+defIfNot('DOC_NOTIFY_PENDING_DOC', 'default');
+
+
+/**
  * Задължително показване на документи -> В края на нишката
  */
 defIfNot('DOC_SHOW_DOCUMENTS_END', 3);
@@ -174,6 +186,8 @@ class doc_Setup extends core_ProtoSetup
         'DOC_REPAIR_ALL' => array ('enum(yes=Да (бавно), no=Не)', 'caption=Дали да се проверяват всички документи за поправка->Избор'),
         'DOC_SEARCH_FOLDER_CNT' => array ('int(Min=0)', 'caption=Колко папки от последно отворените да се показват при търсене->Брой'),
         'DOC_NOTIFY_FOR_NEW_DOC' => array ('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Нотификация за добавен документ в нишка->Избор, customizeBy=powerUser'),
+        'DOC_NOTIFY_FOLDERS_SHARED_USERS' => array ('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване на споделените потребители на папка->Избор, customizeBy=powerUser'),
+        'DOC_NOTIFY_PENDING_DOC' => array ('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Нотификация за създадени чакащи документи->Избор, customizeBy=powerUser'),
     
         'DOC_SHOW_DOCUMENTS_BEGIN' => array ('int(Min=0)', 'caption=Задължително показване на документи в нишка->В началото, customizeBy=user'),
         'DOC_SHOW_DOCUMENTS_END' => array ('int(Min=0)', 'caption=Задължително показване на документи в нишка->В края, customizeBy=user'),
@@ -209,7 +223,7 @@ class doc_Setup extends core_ProtoSetup
         'migrate::repairFoldersKeywords',
     	'migrate::migratePending1',
         'migrate::showFiles',
-        'migrate::addCountryIn2LgFolders',
+        'migrate::addCountryIn2LgFolders2',
     );
 	
     
@@ -593,10 +607,15 @@ class doc_Setup extends core_ProtoSetup
 	/**
      * Добавя държавата на два езика в папките
      */
-    public static function addCountryIn2LgFolders()
+    public static function addCountryIn2LgFolders2()
     {
-        $companiesId = core_Classes::getId('crm_Companies');
-        $personsId = core_Classes::getId('crm_Persons');
+        try {
+            $companiesId = core_Classes::getId('crm_Companies');
+            $personsId = core_Classes::getId('crm_Persons');
+        } catch (core_exception_Expect $e) {
+            
+            return ;
+        }
 
         $mvcInst = cls::get('doc_Folders');
         $query = $mvcInst->getQuery();
@@ -605,15 +624,15 @@ class doc_Setup extends core_ProtoSetup
         Mode::push('htmlEntity', 'none');
         
         while($rec = $query->fetchAndCache()) {
-
-            if($rec->coverClass != $companiesId && $rec->coverClass != $companiesId )  continue;
- 
+            
+            if ($rec->coverClass != $companiesId && $rec->coverClass != $personsId)  continue;
+            
             if (strpos($rec->searchKeywords, 'bulgaria')) continue;
-
+            
             $rec->searchKeywords = $mvcInst->getSearchKeywords($rec);
             $mvcInst->save_($rec, 'searchKeywords');
         }
-
+        
         Mode::pop('htmlEntity');
         Mode::pop('text');
     }

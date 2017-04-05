@@ -939,7 +939,7 @@ class doc_Containers extends core_Manager
             
             $checkNotifyArr = array();
             // Ако е зададено в персоналните настройки на потребителя за всички папки
-            $checkNotifyArr[]['DOC_NOTIFY_FOR_NEW_DOC'] = crm_Profiles::getSettingsKey(); 
+            $checkNotifyArr[]['DOC_NOTIFY_FOR_NEW_DOC'] = crm_Profiles::getSettingsKey();
             
             // Ако е зададено в настройките на папката
             $checkNotifyArr[]['newDoc'] = doc_Folders::getSettingsKey($rec->folderId);

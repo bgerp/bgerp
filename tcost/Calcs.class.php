@@ -330,7 +330,7 @@ class tcost_Calcs extends core_Manager
     	
     	if($amountFee == tcost_CostCalcIntf::CALC_ERROR){
     		
-    		return ht::createHint($amountRow, 'Скритият транспорт, не може да бъде изчислен', 'warning', FALSE);
+    		return ht::createHint($amountRow, 'Скритият транспорт не може да бъде изчислен', 'warning', FALSE);
     	} elseif(isset($amountFee)){
     		$amountFee = deals_Helper::getDisplayPrice($amountFee, $vat, $currencyRate, $chargeVat);
     		$amountFee = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($amountFee);
