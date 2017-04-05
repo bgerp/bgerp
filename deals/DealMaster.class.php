@@ -991,8 +991,6 @@ abstract class deals_DealMaster extends deals_DealBase
 			$row->username = core_Lg::transliterate($row->username);
 			$row->responsible = core_Lg::transliterate($row->responsible);
 			
-			core_Lg::pop();
-			
 			if(empty($rec->deliveryTime) && empty($rec->deliveryTermTime)){
 				$deliveryTermTime = $mvc->getMaxDeliveryTime($rec->id);
 				if($deliveryTermTime){
@@ -1000,6 +998,8 @@ abstract class deals_DealMaster extends deals_DealBase
 					$row->deliveryTermTime = ht::createHint($deliveryTermTime, 'Времето за доставка се изчислява динамично възоснова на най-големия срок за доставка от артикулите');
 				}
 			}
+			
+			core_Lg::pop();
 	    }
 	    
         if($rec->makeInvoice == 'no') {
