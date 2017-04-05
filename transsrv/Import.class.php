@@ -72,7 +72,8 @@ class transsrv_Import extends core_BaseClass
     					
     					$threadId = $doc->fetchField('threadId');
     					$firstDoc = doc_Threads::getFirstDocument($threadId);
-    					if(is_object($firstDoc) && $doc->isInstanceOf('deals_DealMaster') && $firstDoc->fetchField('state') == 'active'){
+    					
+    					if(is_object($firstDoc) && $firstDoc->isInstanceOf('deals_DealMaster') && $firstDoc->fetchField('state') == 'active'){
     						
     						// Форсиране на нашия реф като разходно перо
     						$listId = acc_Lists::fetchBySystemId('costObjects')->id;
