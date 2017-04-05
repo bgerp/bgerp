@@ -458,7 +458,7 @@ class cal_Calendar extends core_Master
 
         // Броя на дните в месеца (= на последната дата в месеца);
         $lastDay = date('t', $firstDayTms);
-        
+
         // Днес
         $today = date('j-n-Y');
 
@@ -466,7 +466,7 @@ class cal_Calendar extends core_Master
             $t = mktime(0, 0, 0, $month, $i, $year);
             $monthArr[date('W', $t)][date('N', $t)] = $i;
         }
-
+       
         $html = "<table class='mc-calendar'>";        
 
         $html .= "<tr><td colspan='8' style='padding:0px;'>{$header}</td></tr>";
@@ -478,7 +478,7 @@ class cal_Calendar extends core_Master
             $html .= "<td class='mc-wd-name'>{$wdName}</td>";
         }
         $html .= '</tr>';
-
+       
         foreach($monthArr as $weekNum => $weekArr) {
             $html .= "<tr>";
             $html .= "<td class='mc-week-nb'>$weekNum</td>";
@@ -532,7 +532,7 @@ class cal_Calendar extends core_Master
         }
 
         $html .= "</table>";
-        
+       
         return $html;
     }
 
@@ -551,7 +551,7 @@ class cal_Calendar extends core_Master
             $year = date('Y');
             $month = date('n');
         }
-        
+    
         $monthOpt = self::prepareMonthOptions();
     
         //currentM
@@ -560,7 +560,7 @@ class cal_Calendar extends core_Master
         //tuk
         
         $select = ht::createSelect('dropdown-cal', $monthOpt->opt, $monthOpt->currentM, array('onchange' => "javascript:location.href = this.value;", 'class' => 'portal-select'));
-       
+     
         // правим заглавието на календара, 
         // който ще се състои от линк-селект-линк
         // като линковете ще са един месец напред и назад в зависимост от избраната стойност в селекта
@@ -600,7 +600,7 @@ class cal_Calendar extends core_Master
         $Calendar->prepareListFilter($state);
         $Calendar->prepareListRecs($state); 
         $Calendar->prepareListRows($state);
-        
+
         // Подготвяме лентата с инструменти
         $Calendar->prepareListToolbar($state);
 
@@ -1833,7 +1833,7 @@ class cal_Calendar extends core_Master
      * 
      */
     public static function prepareMonthOptions()
-    {
+    {  
         $month = Request::get('cal_month', 'int');
         $month = str_pad($month, 2, '0', STR_PAD_LEFT);
         $year  = Request::get('cal_year', 'int');
@@ -1842,10 +1842,10 @@ class cal_Calendar extends core_Master
             $year = date('Y');
             $month = date('n');
         }
-        
+     
         // Добавяне на първия хедър
-        $currentMonth = tr(dt::$months[$month-1]) . " " . $year;
-        $nextLink = $prevtLink = $prev = getCurrentUrl();
+        $currentMonth = tr(dt::$months[$month-1]) . " " . $year; 
+        $nextLink = $prevtLink = $prev = $next = $current =  getCurrentUrl();
         
         // генериране на един месец назад
         $pm = $month-1;
@@ -1861,7 +1861,7 @@ class cal_Calendar extends core_Master
         $prevtLink['cal_month'] = $pm;
         $prevtLink['cal_year'] = $py;
         $prevtLink = toUrl($prevtLink) . "#calendarPortal";
-        
+ 
         // генериране на един месец напред
         $nm = $month+1;
         if($nm == 13) {
@@ -1879,19 +1879,20 @@ class cal_Calendar extends core_Master
         
         // взимаме текущия месец и го добавяме и него
         $now = dt::today();
+        $today = getCurrentUrl();
         $monthToday =  date("m", dt::mysql2timestamp($now));
         $yearToday  = date("Y", dt::mysql2timestamp($now));
         $today['cal_month'] = $monthToday;
         $today['cal_year'] = $yearToday;
         $today = toUrl($today) . "#calendarPortal";
-  
+       
         $thisMonth =  tr(dt::$months[$monthToday -1]) . " " . $yearToday ;
    
         $options = array();
         $attr['value'] = $today;
         $attr['style'] .= 'color:#00F;';
         $options[$today] = (object) array('title' => $thisMonth, 'attr' => $attr);
-         
+       
         // правим масив с 3 месеца назад от текущия месец,
         // които е подготовка за нашия select
         // за value има линк към съответния месец
@@ -1924,17 +1925,23 @@ class cal_Calendar extends core_Master
             }
              
         }
-        
+
         // добавяме текущия месец къммасива
         // за него не ни е нужен линк
+        $curLink = getCurrentUrl();
         $currentM = tr(dt::$months[$month-1]) . " " . $year;
-        $options[$currentMonth] = $currentM;
+        $curLink['cal_month'] = $monthToday;
+        $curLink['cal_year'] = $yearToday;
+        $curLink = toUrl($curLink) . "#calendarPortal";
         
-        if($currentM == $thisMonth) {
+        $options[$currentMonth] = $currentM;
+
+        if($currentMonth == $thisMonth) {
             $attr['value'] = $currentM;
             $attr['style'] .= 'color:#00F;';
-            $options[$currentM] = (object) array('title' => $currentM, 'attr' => $attr);
-             
+           
+            $options[$curLink] = (object) array('title' => $currentM, 'attr' => $attr);
+           
             unset($options[$today]);
         }
         
@@ -1964,7 +1971,7 @@ class cal_Calendar extends core_Master
              
             $options[$next] = $nextM;
         
-            if($nextM == $thisMonth) {
+            if($nextM == $thisMonth) { 
                 $attr['value'] = $nextM;
                 $attr['style'] .= 'color:#00F;';
                 $options[$next] = (object) array('title' => $nextM, 'attr' => $attr);
@@ -1973,7 +1980,7 @@ class cal_Calendar extends core_Master
             }
         
         }
-        
+        //bp($options, $currentMonth, $prevtLink,$prevMonth,$nextLink,  $nextMonth);
         return (object) array('opt' => $options, 'currentM' =>$currentMonth,  
                               'prevtLink'=>$prevtLink, 'nextLink'=>$nextLink, 
                               'nextMonth'=>$nextMonth,'prevMonth' =>$prevMonth);
