@@ -354,10 +354,16 @@ class bgerp_Setup extends core_ProtoSetup {
                 
                 if (method_exists($packsInst[$p], 'loadSetupData')) {
                     try {
-                        $html .= "<h2>Инициализиране на $p</h2>";
-                        $html .= "<ul>";
-                        $html .= $packsInst[$p]->loadSetupData($itr);
-                        $html .= "</ul>";
+                        
+                        $loadRes = $packsInst[$p]->loadSetupData($itr);
+                        
+                        if ($loadRes) {
+                            $html .= "<h2>Инициализиране на $p</h2>";
+                            $html .= "<ul>";
+                            $html .= $loadRes;
+                            $html .= "</ul>";
+                        }
+                        
                         $isLoad[$p] = TRUE;
                         
                         // Махаме грешките, които са възникнали, но все пак са се поправили
