@@ -1098,6 +1098,12 @@ div.acc-detail {
 	padding: 5px;
 }
 
+table.listTable > tbody > tr {
+	> .folderListTitle, >  .threadListTitle, > .emailListTitle {
+		max-width: 600px;
+	}
+}
+
 /*детайли*/
 .detail-info {
 	margin: 10px 0 0 0;

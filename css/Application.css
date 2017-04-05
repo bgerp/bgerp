@@ -967,6 +967,11 @@ div.acc-detail {
   background-color: #e1e1e1;
   padding: 5px; }
 
+  table.listTable > tbody > tr > .folderListTitle,
+  table.listTable > tbody > tr >  .threadListTitle,
+  table.listTable > tbody > tr > .emailListTitle {
+    max-width: 600px; }
+
 /*
  * детайли
  */
