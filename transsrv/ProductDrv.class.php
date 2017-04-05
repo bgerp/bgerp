@@ -293,4 +293,28 @@ class transsrv_ProductDrv extends cat_ProductDriver
 	{
 		return cat_UoM::fetchBySinonim($this->uom)->id;
 	}
+	
+	
+	/**
+	 * Рендиране на описанието на драйвера
+	 *
+	 * @param stdClass $data
+	 * @return core_ET $tpl
+	 */
+	public function renderProductDescription($data)
+	{
+		// Шаблон
+		$tpl = getTplFromFile('transsrv/tpl/TransportProduct.shtml');
+		
+		// ще се заместват само полетата от драйвера
+		$fields = cat_Products::getDriverFields($this);
+		$row = new stdClass();
+		foreach ($fields as $name => $caption){
+			$row->{$name} = $data->row->{$name};
+		}
+		
+		$tpl->placeObject($row);
+		
+		return $tpl;
+	}
 }

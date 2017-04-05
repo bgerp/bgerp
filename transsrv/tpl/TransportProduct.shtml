@@ -131,6 +131,8 @@
     <!--ET_END load-->
 </table>
 
+<!--ET_BEGIN INFORMATION-->
+[#INFORMATION#]
 <table class="styled-table no-border">
     <tr>
         <th colspan = "2">Информация за товара</th>
@@ -148,3 +150,4 @@
     </tr>
     <!--ET_END ourReff-->
 </table>
+<!--ET_END INFORMATION-->
