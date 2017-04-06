@@ -1246,6 +1246,7 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         $rec->state = $rec->brState;
+        $rec->brState = 'rejected';
         
         $res = static::updateDocumentState($mvc, $rec);
         doc_Threads::setModification($rec->threadId);
