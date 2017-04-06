@@ -323,6 +323,23 @@ class thumb_Img
             } else {
                 if($asString = $this->getAsString()) {
                     $this->gdRes = @imagecreatefromstring($asString);
+                    
+                    if (thumb_Setup::get('OPTIMIZATORS')) {
+                        // Ако е от URL и е определно грешно разширението го киригираме, за да може да се не гърми при оптимизиране
+//                         if(!in_array($this->format, array('png', 'jpg', 'gif', 'jpeg')) || (stripos($this->source, 'gravatar'))) {
+                            if ($this->sourceType == 'url') {
+                                
+                                $fileName = rtrim(EF_TEMP_PATH, '/');
+                                $fileName .= '/' . str::getRand();
+                                @file_put_contents($fileName, $asString);
+                                if (is_file($fileName)) {
+                                    $fimg = new thumb_FastImageSize($fileName);
+                                    $this->format = $fimg->getType();
+                                }
+                                @unlink($fileName);
+                            }
+//                         }
+                    }
                 }
             }
         }
@@ -583,11 +600,10 @@ class thumb_Img
         // ToDo: Ако картинката е зададена като файл, размерите и съответстват на изходните, няма ротация и форматите са едни и същи,
         // можем да направим само копиране на файла, вместо да минаваме през GD
 
- 
         if($gdRes = $this->getGdRes()) {
             
             $path = $this->getThumbPath();
-
+            
             $this->getSize();
             
             // Склаираме, само ако имаме пропорция, различна от 1 или ротираме
