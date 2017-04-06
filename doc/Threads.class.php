@@ -124,7 +124,7 @@ class doc_Threads extends core_Manager
     {
         // Информация за нишката
         $this->FLD('folderId', 'key(mvc=doc_Folders,select=title,silent)', 'caption=Папки');
-       // $this->FLD('title', 'varchar(255)', 'caption=Заглавие');
+        $this->FNC('title', 'varchar', 'caption=Заглавие,tdClass=threadListTitle');
         $this->FLD('state', 'enum(opened,pending,closed,rejected)', 'caption=Състояние,notNull');
         $this->FLD('allDocCnt', 'int', 'caption=Брой документи->Всички');
         $this->FLD('partnerDocCnt', 'int', 'caption=Брой документи->Публични, oldFieldName=pubDocCnt');

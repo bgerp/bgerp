@@ -1,4 +1,4 @@
-<table style="width: 45%; float:left;" class="styled-table no-border">
+<table style="width: 45%; float:left; margin-top: 5px;" class="styled-table no-border">
     <tr>
         <th colspan = "2" >|Натоварване|*</th>
     </tr>
@@ -40,7 +40,7 @@
     <!--ET_END loadingTime-->
 </table>
 
-<table style="width: 45%; float:left; margin-left: 50px;" class="styled-table no-border">
+<table style="width: 45%; float:left; margin-left: 50px;margin-top: 5px;" class="styled-table no-border">
     <tr>
         <th colspan = "2">|Разтоварване|*</th>
     </tr>
@@ -131,6 +131,8 @@
     <!--ET_END load-->
 </table>
 
+<!--ET_BEGIN INFORMATION-->
+[#INFORMATION#]
 <table class="styled-table no-border">
     <tr>
         <th colspan = "2">Информация за товара</th>
@@ -148,3 +150,4 @@
     </tr>
     <!--ET_END ourReff-->
 </table>
+<!--ET_END INFORMATION-->

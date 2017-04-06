@@ -368,6 +368,8 @@ abstract class store_DocumentMaster extends core_Master
 	   		if($rec->isReverse == 'yes'){
 	   			$row->operationSysId = tr('Връщане на стока');
 	   		}
+	   		
+	   		$row->valior = (isset($rec->valior)) ? $row->valior : ht::createHint('', 'Вальора ще бъде датата на контиране');
 	   	}
    }
 

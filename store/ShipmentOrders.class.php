@@ -498,4 +498,46 @@ class store_ShipmentOrders extends store_DocumentMaster
     	
     	return $count;
     }
+    
+    
+    /**
+     * Информация за логистичните данни
+     *
+     * @param mixed $rec   - ид или запис на документ
+     * @return array $data - логистичните данни
+     *
+     *		string(2)     ['fromCountry']  - двубуквен код на държавата за натоварване
+     * 		string|NULL   ['fromPCode']    - пощенски код на мястото за натоварване
+     * 		string|NULL   ['fromPlace']    - град за натоварване
+     * 		string|NULL   ['fromAddress']  - адрес за натоварване
+     *  	string|NULL   ['fromCompany']  - фирма
+     *   	string|NULL   ['fromPerson']   - лице
+     * 		datetime|NULL ['loadingTime']  - дата на натоварване
+     * 		string(2)     ['toCountry']    - двубуквен код на държавата за разтоварване
+     * 		string|NULL   ['toPCode']      - пощенски код на мястото за разтоварване
+     * 		string|NULL   ['toPlace']      - град за разтоварване
+     *  	string|NULL   ['toAddress']    - адрес за разтоварване
+     *   	string|NULL   ['toCompany']    - фирма
+     *   	string|NULL   ['toPerson']     - лице
+     * 		datetime|NULL ['deliveryTime'] - дата на разтоварване
+     * 		text|NULL 	  ['conditions']   - други условия
+     */
+    function getLogisticData($rec)
+    {
+    	$rec = $this->fetchRec($rec);
+    	$res = parent::getLogisticData($rec);
+    	
+    	// Данните за разтоварване от ЕН-то са с приоритет
+    	if(!empty($rec->country)|| !empty($rec->pCode)|| !empty($rec->place)|| !empty($rec->address)){
+    		$res['toCountry'] = !empty($rec->country) ? $rec->country : NULL;
+    		$res['toPCode']   = !empty($rec->pCode) ? $rec->pCode : NULL;
+    		$res['toPlace']   = !empty($rec->place) ? $rec->place : NULL;
+    		$res['toAddress'] = !empty($rec->address) ? $rec->address : NULL;
+    	}
+    	
+    	$res['toCompany'] = !empty($rec->company) ? $rec->company : $res['toCompany'];
+    	$res['toPerson'] = !empty($rec->person) ? $rec->person : $res['toPerson'];
+    	
+    	return $res;
+    }
 }

@@ -634,22 +634,6 @@ abstract class deals_DealMaster extends deals_DealBase
     
     
 	/**
-     * Извиква се след успешен запис в модела
-     */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
-    {
-    	if($rec->state != 'draft'){
-    		$state = $rec->state;
-    		$rec = $mvc->fetch($id);
-    		$rec->state = $state;
-    		
-    		// Записване на сделката в чакащи
-    		deals_OpenDeals::saveRec($rec, $mvc);
-    	}
-    }
-    
-    
-	/**
      * Връща тялото на имейла генериран от документа
      * 
      * @see email_DocumentIntf
@@ -991,8 +975,6 @@ abstract class deals_DealMaster extends deals_DealBase
 			$row->username = core_Lg::transliterate($row->username);
 			$row->responsible = core_Lg::transliterate($row->responsible);
 			
-			core_Lg::pop();
-			
 			if(empty($rec->deliveryTime) && empty($rec->deliveryTermTime)){
 				$deliveryTermTime = $mvc->getMaxDeliveryTime($rec->id);
 				if($deliveryTermTime){
@@ -1000,6 +982,8 @@ abstract class deals_DealMaster extends deals_DealBase
 					$row->deliveryTermTime = ht::createHint($deliveryTermTime, 'Времето за доставка се изчислява динамично възоснова на най-големия срок за доставка от артикулите');
 				}
 			}
+			
+			core_Lg::pop();
 	    }
 	    
         if($rec->makeInvoice == 'no') {
@@ -1084,8 +1068,6 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	cls::get('doc_Containers')->save_($cRec, 'modifiedOn');
     	$mvc->save_($rec);
-    	
-    	deals_OpenDeals::saveRec($rec, $mvc);
     }
     
    

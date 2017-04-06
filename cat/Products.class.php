@@ -830,9 +830,6 @@ class cat_Products extends embed_Manager {
     public static function expandFilter(&$listFilter)
     {
     	$orderOptions = arr::make('all=Всички,standard=Стандартни,private=Нестандартни,last=Последно добавени,prototypes=Шаблони,closed=Закрити');
-    	if(!haveRole('cat,sales,ceo,purchase')){
-    		unset($orderOptions['private']);
-    	}
     	$orderOptions = arr::fromArray($orderOptions);
     	 
     	$listFilter->FNC('order', "enum({$orderOptions})",

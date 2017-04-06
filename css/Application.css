@@ -967,6 +967,11 @@ div.acc-detail {
   background-color: #e1e1e1;
   padding: 5px; }
 
+  table.listTable > tbody > tr > .folderListTitle,
+  table.listTable > tbody > tr >  .threadListTitle,
+  table.listTable > tbody > tr > .emailListTitle {
+    max-width: 600px; }
+
 /*
  * детайли
  */
@@ -1278,7 +1283,8 @@ a.tOld {
     background-color: #e0e0e0; }
   .document .no-border-bottom {
     border-bottom: none !important; }
-  .document .no-border td {
+  .document .no-border td,
+  .document .no-border th {
     border: none !important; }
   .document.print-letter {
     page-break-after: always;
