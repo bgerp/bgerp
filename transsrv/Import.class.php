@@ -49,7 +49,9 @@ class transsrv_Import extends core_BaseClass
     	
     	// Има ли папка на доставчик
     	$folderId = self::getFolderId($data);
-    	if(!$folderId) return;
+    	if(!$folderId) {
+    		redirect(array('bgerp_Portal', 'Show'), FALSE, "Не може да бъде определена папка на фирмата", 'warning');
+    	}
     	
     	$costItemId = NULL;
     	if(isset($data->ourReff)){
@@ -101,15 +103,17 @@ class transsrv_Import extends core_BaseClass
     		
     			// Добавя транспортната услуга към покупката
     			if($purchaseId){
+    				$purRec = purchase_Purchases::fetch($purchaseId, 'threadId,containerId');
+    				doc_ThreadUsers::addShared($purRec->threadId, $purRec->containerId, core_Users::getCurrent());
+    				
     				$id = purchase_Purchases::addRow($purchaseId, $productId, 1, $data->price);
     				
     				// ако има разходен обект разпределя се по него
     				if(isset($id) && isset($costItemId)){
     					$quantity = purchase_PurchasesDetails::fetchField($id, 'quantity');
-    					$containerId = purchase_Purchases::fetchField($purchaseId, 'containerId');
     					$detailClassId = purchase_PurchasesDetails::getClassId();
     					acc_CostAllocations::delete("#detailClassId = {$detailClassId} AND #detailRecId = {$id} AND #productId = {$productId}");
-    					$saveRec = (object)array('detailClassId' => $detailClassId, 'detailRecId' => $id, 'productId' => $productId, 'expenseItemId' => $costItemId, 'containerId' => $containerId, 'quantity' => $quantity, 'allocationBy' => 'no');
+    					$saveRec = (object)array('detailClassId' => $detailClassId, 'detailRecId' => $id, 'productId' => $productId, 'expenseItemId' => $costItemId, 'containerId' => $purRec->containerId, 'quantity' => $quantity, 'allocationBy' => 'no');
     					acc_CostAllocations::save($saveRec);
     				}
     			}
@@ -128,7 +132,7 @@ class transsrv_Import extends core_BaseClass
     
     
     /**
-     * Намира папка
+     * Намиране на папка
      * 
      * @param stdClass $data
      * @return NULL|int
@@ -139,10 +143,18 @@ class transsrv_Import extends core_BaseClass
     	 
     	$query = crm_Companies::getQuery();
     	$query->where(array("#name = '[#1#]'", $data->companyName));
-    	 
+    	$cloneQuery = clone $query;
+    	
     	$supplierGroupId = crm_Groups::getIdFromSysId('suppliers');
     	$query->likeKeylist("groupList", $supplierGroupId);
+    	
+    	// С приоритет е папката на фирма в група доставчици със същото име
     	if($companyRec = $query->fetch()){
+    		return crm_Companies::forceCoverAndFolder($companyRec->id);
+    	}
+    	
+    	// Ако няма фирма в група доставчици, гледа се във всички фирми тогава
+    	if($companyRec = $cloneQuery->fetch()){
     		return crm_Companies::forceCoverAndFolder($companyRec->id);
     	}
     	
