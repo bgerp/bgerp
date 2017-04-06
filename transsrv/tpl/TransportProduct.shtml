@@ -20,6 +20,12 @@
         <td class="boldText">[#fromPlace#]</td>
     </tr>
     <!--ET_END fromPlace-->
+    <!--ET_BEGIN fromAddress-->
+    <tr>
+        <td>- |Адрес|*:</td>
+        <td class="boldText">[#fromAddress#]</td>
+    </tr>
+    <!--ET_END fromAddress-->
     <!--ET_BEGIN fromCompany-->
     <tr>
         <td>- |Фирма|*:</td>
@@ -62,6 +68,12 @@
         <td class="boldText">[#toPlace#]</td>
     </tr>
     <!--ET_END toPlace-->
+    <!--ET_BEGIN toAddress-->
+    <tr>
+        <td>- |Адрес|*:</td>
+        <td class="boldText">[#toAddress#]</td>
+    </tr>
+    <!--ET_END toAddress-->
     <!--ET_BEGIN toCompany-->
     <tr>
         <td>- |Фирма|*:</td>
