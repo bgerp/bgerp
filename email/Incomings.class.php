@@ -1293,6 +1293,78 @@ class email_Incomings extends core_Master
     
     
     /**
+     * Обучаване на SPAS за HAM и SPAM
+     * 
+     * Правила за обучение:
+     * От последния час, оттеглени/възстановени от потребител и няма друг документ в нишката
+     * В папки с корица на Е-Кутия и несортирани - за оттеглените
+     */
+    function cron_TrainSpas()
+    {
+        // Ако пакета не е истанлиран
+        if (!core_Packs::isInstalled('spas')) return ;
+        
+        $query = self::getQuery();
+        $before = dt::subtractSecs(3600);
+        $query->where(array("#modifiedOn >= '[#1#]'", $before));
+        $query->where("#modifiedBy > 0");
+        $query->where("#state = 'rejected'");
+        $query->orWhere("#brState = 'rejected'");
+        $query->EXT('docCnt', 'doc_Threads', 'externalName=allDocCnt,remoteKey=firstContainerId, externalFieldName=containerId');
+        $query->where("#docCnt <= 1");
+        $query->where("#emlFile != ''");
+        $query->where("#emlFile IS NOT NULL");
+        
+        while($rec = $query->fetch()) {
+            if (!$rec->emlFile) continue;
+            
+            // Ако е оттеглен и има други документи в нишката
+            if (($rec->state == 'rejected') && $rec->docCnt == 0) {
+                $cQuery = doc_Containers::getQuery();
+                $cQuery->where(array("#threadId = '[#1#]'", $rec->threadId));
+                $cQuery->limit(2);
+                $cQuery->show('threadId');
+                if ($cQuery->count() > 1) continue;
+            }
+            
+            // Проверяваме имейлите само в Е-кутии и Несортирани
+            if ($rec->state == 'rejected') {
+                $cover = doc_Folders::getCover($rec->folderId);
+                if (!($cover->instance instanceof email_Inboxes) && !($cover->instance instanceof doc_UnsortedFolders)) continue;
+            }
+            
+            $type = spas_Client::LEARN_HAM;
+            $typeStr = 'НЕ Е СПАМ';
+            
+            if ($rec->state == 'rejected') {
+                $type = spas_Client::LEARN_SPAM;
+                $typeStr = "СПАМ";
+            }
+            
+            $fh =  fileman_Files::fetchField($rec->emlFile, 'fileHnd');
+            $rawEmail = fileman_Files::getContent($fh);
+            
+            try {
+                $sa = spas_Test::getSa();
+                
+                $res = $sa->learn($rawEmail, $type);
+                
+                if ($res) {
+                    $resStr = 'ОК';
+                } else {
+                    $resStr = 'Проблем';
+                }
+                
+                email_Incomings::logDebug("Резултат от обучние за {$typeStr} - " . $resStr, $rec->id);
+            } catch(spas_client_Exception $e) {
+                reportException($e);
+                email_Incomings::logErr('Грешка при обучение на SPAS: ' . $e->getMessage());
+            }
+        }
+    }
+    
+    
+    /**
      * @todo Чака за документация...
      */
     function act_UpdatePublicDomains()
@@ -1328,6 +1400,17 @@ class email_Incomings extends core_Master
         $rec->offset = rand(120, 180); // от 2 до 3h
         $rec->delay = 0;
         $rec->timeLimit = 100;
+        $res .= core_Cron::addOnce($rec);
+
+        $rec = new stdClass();
+        $rec->systemId = 'trainSpas';
+        $rec->description = 'Обучение на SPAS';
+        $rec->controller = $mvc->className;
+        $rec->action = 'trainSpas';
+        $rec->period = 60;
+        $rec->offset = rand(0, 59);
+        $rec->delay = 0;
+        $rec->timeLimit = 250;
         $res .= core_Cron::addOnce($rec);
     }
     
