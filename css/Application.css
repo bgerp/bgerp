@@ -1320,9 +1320,16 @@ a.tOld {
   margin-top: 5px; }
   .wide .halfTable.offsetLeft {
     margin-left: 50px; }
+  .wide .halfTable .titleCol {
+    width: 120px; }
 
 .narrow .halfTable {
   margin-top: 10px; }
+
+  .productCell .halfTable .titleCol {
+    width: 100px; }
+  .productCell .halfTable.offsetLeft {
+    margin-left: 20px; }
 
 .document-settings,
 .document-settings-left {
