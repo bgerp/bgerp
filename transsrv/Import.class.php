@@ -62,6 +62,7 @@ class transsrv_Import extends core_BaseClass
     			if($doc->haveInterface('trans_LogisticDataIntf')){
     				if($doc->fetchField('state') == 'active'){
     					$rData = (object)$doc->getLogisticData();
+    					
     					foreach (array('from', 'to') as $prefix){
     						if($rData->{"{$prefix}Country"} == $data->{"{$prefix}Country"}){
     							setIfNot($data->{"{$prefix}PCode"}, $rData->{"{$prefix}PCode"});
@@ -96,21 +97,20 @@ class transsrv_Import extends core_BaseClass
     	}
     	
     	try{
-    			
-    			// Форсира покупка
-    			$purchaseId = self::forcePurchaseId($folderId, $data);
+    		// Форсира покупка
+    		$purchaseId = self::forcePurchaseId($folderId, $data);
     		
-    			// Добавя транспортната услуга към покупката
-    			if($purchaseId){
-    				$purRec = purchase_Purchases::fetch($purchaseId, 'threadId,containerId');
-    				doc_ThreadUsers::addShared($purRec->threadId, $purRec->containerId, core_Users::getCurrent());
+    		// Добавя транспортната услуга към покупката
+    		if($purchaseId){
+    			$purRec = purchase_Purchases::fetch($purchaseId, 'threadId,containerId');
+    			doc_ThreadUsers::addShared($purRec->threadId, $purRec->containerId, core_Users::getCurrent());
     				
-    				$data->fromCountry = drdata_Countries::fetchField("#letterCode2 = '{$data->fromCountry}'", 'id');
-    				$data->toCountry = drdata_Countries::fetchField("#letterCode2 = '{$data->toCountry}'", 'id');
+    			$data->fromCountry = drdata_Countries::fetchField("#letterCode2 = '{$data->fromCountry}'", 'id');
+    			$data->toCountry = drdata_Countries::fetchField("#letterCode2 = '{$data->toCountry}'", 'id');
     				
-    				core_Request::setProtected('d');
-    				redirect(array('purchase_PurchasesDetails', 'CreateProduct', 'requestId' => $purchaseId, 'innerClass' => transsrv_ProductDrv::getClassId(), 'd' => $data, 'ret_url' => purchase_Purchases::getSingleUrlArray($purchaseId)));
-    			}
+    			core_Request::setProtected('d');
+    			redirect(array('purchase_PurchasesDetails', 'CreateProduct', 'requestId' => $purchaseId, 'innerClass' => transsrv_ProductDrv::getClassId(), 'd' => $data, 'ret_url' => purchase_Purchases::getSingleUrlArray($purchaseId)));
+    		}
     		
     	} catch(core_exception_Expect $e){
     		reportException($e);
