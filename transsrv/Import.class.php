@@ -41,7 +41,7 @@ class transsrv_Import extends core_BaseClass
     function act_Import()
     {
     	// Декодиране на данните
-    	expect($data = Request::get('d', 'varchar'));
+    	expect($data = Request::get('d'));
     	$data = base64_decode($data);
     	$data = gzuncompress($data);
     	$data = json_decode($data);
