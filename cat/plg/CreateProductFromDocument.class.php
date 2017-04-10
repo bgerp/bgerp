@@ -321,12 +321,11 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				$mvc->save($dRec);
 				
 				// Разпределяне на разходи при нужда
-				if(acc_CostAllocations::haveRightFor('add', $dRec)){
-					if(isset($d->costItemId)){
-						acc_CostAllocations::delete("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$dRec->id} AND #productId = {$productId}");
-						$saveRec = (object)array('detailClassId' => $mvc->getClassId(), 'detailRecId' => $dRec->id, 'productId' => $productId, 'expenseItemId' => $d->costItemId, 'containerId' => $masterRec->containerId, 'quantity' => $dRec->quantity, 'allocationBy' => 'no');
-						acc_CostAllocations::save($saveRec);
-					}
+				if(isset($d->costItemId)){
+					acc_CostAllocations::delete("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$dRec->id} AND #productId = {$productId}");
+					$saveRec = (object)array('detailClassId' => $mvc->getClassId(), 'detailRecId' => $dRec->id, 'productId' => $productId, 'expenseItemId' => $d->costItemId, 'containerId' => $masterRec->containerId, 'quantity' => $dRec->quantity, 'allocationBy' => 'no');
+					
+					acc_CostAllocations::save($saveRec);
 				}
 				
 				// Редирект към сделката/офертата
