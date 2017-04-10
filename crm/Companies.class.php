@@ -390,9 +390,7 @@ class crm_Companies extends core_Master
         }
 
         if(!empty($data->listFilter->rec->groupId)){
-        	$descendants = crm_Groups::getDescendantArray($data->listFilter->rec->groupId);
-        	$keylist = keylist::fromArray($descendants);
-        	$data->query->likeKeylist("groupList", $keylist);
+        	$data->query->where("LOCATE('|{$data->listFilter->rec->groupId}|', #groupList)");
         }
     }
     
