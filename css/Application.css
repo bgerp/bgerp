@@ -1314,6 +1314,16 @@ a.tOld {
 .groupList .small-padding td {
   padding: 2px 3px 0 !important; }
 
+.wide .halfTable {
+  width: 45%;
+  float: left;
+  margin-top: 5px; }
+  .wide .halfTable.offsetLeft {
+    margin-left: 50px; }
+
+.narrow .halfTable {
+  margin-top: 10px; }
+
 .document-settings,
 .document-settings-left {
   display: inline-block;
