@@ -723,7 +723,7 @@ abstract class store_DocumentMaster extends core_Master
     	$contrPart = ($this instanceof store_ShipmentOrders) ? 'to' : 'from';
     	
     	// Подготвяне на данните за разтоварване
-    	$res["{$ownPart}Country"] = drdata_Countries::fetchField($ownCountryId, 'formalName');
+    	$res["{$ownPart}Country"] = drdata_Countries::fetchField($ownCountryId, 'commonName');
     	if(isset($locationId)){
     		$res["{$ownPart}PCode"]    = !empty($storeLocation->pCode) ? $storeLocation->pCode : NULL;
     		$res["{$ownPart}Place"]    = !empty($storeLocation->place) ? $storeLocation->place : NULL;
@@ -740,7 +740,7 @@ abstract class store_DocumentMaster extends core_Master
     	$res["{$ownPart}Person"]  = core_Users::fetchField($toPersonId, 'names');
     	
     	// Подготвяне на данните за натоварване
-    	$res["{$contrPart}Country"] = drdata_Countries::fetchField($contragentCountryId, 'formalName');
+    	$res["{$contrPart}Country"] = drdata_Countries::fetchField($contragentCountryId, 'commonName');
     	$res["{$contrPart}Company"] = $contragentData->company;
     	if(isset($rec->locationId)){
     		$res["{$contrPart}PCode"]   = !empty($contragentLocation->pCode) ? $contragentLocation->pCode : NULL;

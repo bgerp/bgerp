@@ -1915,8 +1915,8 @@ abstract class deals_DealMaster extends deals_DealBase
     		$contragentCountryId = $contragentLocation->countryId;
     	}
     	
-    	$ownCountry = drdata_Countries::fetchField($ownCountryId, 'formalName');
-    	$contragentCountry = drdata_Countries::fetchField($contragentCountryId, 'formalName');
+    	$ownCountry = drdata_Countries::fetchField($ownCountryId, 'commonName');
+    	$contragentCountry = drdata_Countries::fetchField($contragentCountryId, 'commonName');
     	
     	$ownPart = ($this instanceof sales_Sales) ? 'from' : 'to';
     	$contrPart = ($this instanceof sales_Sales) ? 'to' : 'from';

@@ -529,7 +529,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     	
     	// Данните за разтоварване от ЕН-то са с приоритет
     	if(!empty($rec->country)|| !empty($rec->pCode)|| !empty($rec->place)|| !empty($rec->address)){
-    		$res['toCountry'] = !empty($rec->country) ? drdata_Countries::fetchField($rec->country, 'formalName') : NULL;
+    		$res['toCountry'] = !empty($rec->country) ? drdata_Countries::fetchField($rec->country, 'commonName') : NULL;
     		$res['toPCode']   = !empty($rec->pCode) ? $rec->pCode : NULL;
     		$res['toPlace']   = !empty($rec->place) ? $rec->place : NULL;
     		$res['toAddress'] = !empty($rec->address) ? $rec->address : NULL;
