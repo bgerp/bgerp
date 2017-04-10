@@ -1584,11 +1584,11 @@ class cat_Products extends embed_Manager {
     			}
     		}
     		
-    		$groups = keylist::toArray($rec->groups);
+    		$groups = keylist::toArray($rec->groupsInput);
     		if(count($groups)){
     			$listUrl = array();
     			
-    			$row->groups = '';
+    			$row->groupsInput = '';
     			foreach ($groups as $grId){
     				if($mvc->haveRightFor('list')){
     					if(!Mode::isReadOnly()){
@@ -1598,12 +1598,12 @@ class cat_Products extends embed_Manager {
     				
     				$groupTitle = cat_Groups::getVerbal($grId, 'name');
     				$groupLink = ht::createLink($groupTitle, $listUrl, FALSE, "class=group-link,title=Филтриране на артикули по група|* '{$groupTitle}'");
-    				$row->groups .= $groupLink . " ";
+    				$row->groupsInput .= $groupLink . " ";
     			}
-    			$row->groups = trim($row->groups, ' ');
+    			$row->groupsInput = trim($row->groupsInput, ' ');
     			
     		} else {
-    			$row->groups = "<i>" . tr("Няма") . "</i>";
+    			$row->groupsInput = "<i>" . tr("Няма") . "</i>";
     		}
     	}
         
@@ -2521,13 +2521,14 @@ class cat_Products extends embed_Manager {
     	
     	$form = cls::get('core_Form');
     	$form->title = "Промяна на групите на|* <b>" . cat_Products::getHyperlink($id, TRUE) . "</b>";
-    	$form->FNC('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Групи,input');
-    	$form->setDefault('groups', $rec->groups);
+    	$form->FNC('groupsInput', 'keylist(mvc=cat_Groups,select=name)', 'caption=Групи,input');
+    	$form->setDefault('groupsInput', $rec->groupsInput);
     	$form->input();
     	if($form->isSubmitted()){
     		$fRec = $form->rec;
-    		if($fRec->groups != $rec->groups){
-    			$this->save((object)array('id' => $id, 'groups' => $fRec->groups), 'groups');
+    		
+    		if($fRec->groupsInput != $rec->groupsInput){
+    			$this->save((object)array('id' => $id, 'groupsInput' => $fRec->groupsInput), 'groups');
     		}
     		
     		return followRetUrl();
