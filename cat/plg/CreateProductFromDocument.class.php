@@ -168,18 +168,20 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				$form->setDefault('optional', 'no');
 			}
 			
+			$d = Request::get('d');
+			
 			// Ако е инпутнат прототип
-			if(isset($form->rec->proto) || isset($form->rec->innerClass)){
+			if(isset($form->rec->proto) || isset($form->rec->innerClass) || isset($d)){
 				
 				// Взимаме от драйвера нужните полета
 				$proto = $form->rec->proto;
 				cat_Products::setAutoCloneFormFields($form, $proto, $form->rec->innerClass);
 				$form->setDefault('productId', $form->rec->proto);
-				//
+				$productFields = array_diff_key($form->fields, $detailFields);
+				
 				// Зареждаме данни от прототипа (или артикула който клонираме)
 				if($proto){
 					$protoRec = cat_Products::fetch($proto);
-					$productFields = array_diff_key($form->fields, $detailFields);
 					$protoName = cat_Products::getTitleById($protoRec->id);
 					foreach ($productFields as $n1 => $fld){
 						if(isset($protoRec->{$n1})){
@@ -191,6 +193,15 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 					// Допустимите мерки са сред производните на тази на прототипа
 					$sameMeasures = cat_UoM::getSameTypeMeasures($protoRec->measureId);
 					$form->setOptions('measureId', $sameMeasures);
+				}
+				
+				// Ако има в крипитаните данни записват се
+				if(isset($d)){
+					foreach ($productFields as $n1 => $fld){
+						if(isset($d->{$n1})){
+							$form->setDefault($n1, $d->{$n1});
+						}
+					}
 				}
 				
 				$form->rec->folderId = $masterRec->folderId;
@@ -271,8 +282,28 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				$pRec->innerClass = $rec->innerClass;
 				$pRec->meta = $rec->meta;
 				
-				// Създаваме артикула
-				$productId = $Products->save($pRec);
+				$productId = NULL;
+				$hash = cat_products::getHash($pRec);
+				
+				// Ако артикула има хеш търси се имали друг артикул със същия хеш ако има се добавя
+				if(isset($hash)){
+					$pQuery = cat_Products::getQuery();
+					$pQuery->where("#innerClass = {$rec->innerClass}");
+					$pQuery->where("#state = 'active'");
+					while($eRec = $pQuery->fetch()){
+						$hash1 = cat_Products::getHash($eRec);
+						if($hash1 == $hash){
+							$productId = $eRec->id;
+							break;
+						}
+					}
+				}
+				
+				// Създаване на нов артикул само при нужда
+				if(!isset($productId)){
+					$productId = $Products->save($pRec);
+				}
+				
 				$dRec = (object)array_diff_key($arrRec, $productFields);
 				$dRec->productId = $productId;
 				$dRec->packagingId = $pRec->measureId;
