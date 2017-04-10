@@ -1,22 +1,70 @@
-<h4 class="centered" style="margin-bottom: 10px;"ДОГОВОР</h4>
+<table class="innerTable border-table paddingCells">
+    <tbody>
+    <tr>
+        <td class='centered'>
+            <div class="document-title">|ДОГОВОР|*</div>
+            <p class="centered boldText" style="margin-top: 5px;">ЗА ИЗВЪРШВАНЕ НА ТРАНСПОРТ</p>
+            <div style="padding-top:5px;">
+                                <span class="state [#STATE_CLASS#]">
+                                    № <span class="bigData">[#id#]</span> /
+                                    <span class="bigData">[#valior#]</span>
+                                </span>
+            </div>
+            <!--ET_BEGIN reff-->
+            <p class="centered">|Ваш реф|*: <b>[#reff#]</b></p>
+            <!--ET_END reff-->
+        </td>
+    </tr>
+    <tr>
+        <td class="cell custom-header-bg"><b>|Получател|*</b></td>
+    </tr>
+    <tr>
+        <td>
+            <b>[#contragentName#]</b>
+            <div class='address-block'>
+                [#contragentCountryId#]
+                <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
+            </div>
+            <!--ET_BEGIN deliveryLocationId-->
+            <hr style="margin: 3px 0 1px;">
+            <div>
+                |От обект|*: [#deliveryLocationId#]
+            </div>
+            <!--ET_END deliveryLocationId-->
+        </td>
+    </tr>
+    <tr>
+        <td class="cell custom-header-bg"><b>|Доставчик|*</b></td>
+    </tr>
+    <tr>
+        <td>
+            <b>[#MyCompany#]</b>
+            <div class='address-block'>
+                [#MyAddress#]
+            </div>
+            <!--ET_BEGIN shipmentStoreId-->
+            <hr style="margin: 3px 0 1px;">
+            <div>
+                |До склад|*: [#shipmentStoreId#]
+            </div>
+            <!--ET_END shipmentStoreId-->
+        </td>
+    </tr>
+    <tr>
+        <td>
 
-<p class="centered">ЗА ИЗВЪРШВАНЕ НА ТРАНСПОРТ</p>
+            <p>Уважаеми Дами и Господа,</p>
 
-<p class="centered">№[#id#] / [#valior#]</p>
-
-<!--ET_BEGIN reff-->
-<p class="centered">|Ваш реф|*: <b>[#reff#]</b></p>
-<!--ET_END reff-->
-<br>
-<p>Уважаеми Дами и Господа,</p>
-
-<p>Ще организираме транспорт, както следва:</p>
-<br>
+            <p>Ще организираме транспорт, както следва:</p>
+        </td>
+    </tr>
+    </tbody>
+</table>
 <div class="scrolling-holder">
-[#purchase_PurchasesDetails#]
+[#sales_SalesDetails#]
 </div>
 <div class="lines"></div>
-<table class="innerTable footer-notes paddingCells">
+<table class="innerTable footer-notes paddingCells" style="width: 100%;">
     <tr>
         <td class="topCell aright vtop">
             [#/deals/tpl/DocumentPiceInfo.shtml#]
@@ -45,7 +93,7 @@
     </tr>
     <tr>
         <td class="topCell vtop">
-            Изготвил: <br>
+            Изготвил:
             [#username#]
         </td>
     </tr>
