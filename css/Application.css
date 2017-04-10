@@ -1327,7 +1327,8 @@ a.tOld {
   margin-top: 10px; }
 
   .productCell .halfTable .titleCol {
-    width: 100px; }
+    width: 100px;
+    vertical-align: top; }
   .productCell .halfTable.offsetLeft {
     margin-left: 20px; }
 

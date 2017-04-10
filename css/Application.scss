@@ -1525,6 +1525,7 @@ a.tOld {
 .productCell .halfTable {
 	.titleCol {
 		width: 100px;
+		vertical-align: top;
 	}
 	&.offsetLeft {
 		margin-left: 20px;
