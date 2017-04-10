@@ -50,7 +50,14 @@ class cat_Products extends embed_Manager {
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, plg_SaveAndNew, plg_Clone,doc_plg_Prototype, doc_DocumentPlg, plg_PrevAndNext, acc_plg_Registry, plg_State, cat_plg_Grouping, bgerp_plg_Blank,
-                     cat_Wrapper, plg_Sorting, doc_ActivatePlg, doc_plg_Close, doc_plg_BusinessDoc, cond_plg_DefaultValues, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import, bgerp_plg_Groups, bgerp_plg_Export';
+                     cat_Wrapper, plg_Sorting, doc_ActivatePlg, doc_plg_Close, doc_plg_BusinessDoc, cond_plg_DefaultValues, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import, bgerp_plg_Groups, bgerp_plg_Export,plg_ExpandInput';
+    
+    
+    /**
+     * Полето, което ще се разширява
+     * @see plg_ExpandInput
+     */
+    public $expandFieldName = 'groups';
     
     
     /**
@@ -133,7 +140,7 @@ class cat_Products extends embed_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code,name,measureId,quantity,price,folderId';
+    public $listFields = 'code,name,measureId,quantity,price,folderId,groups,groupsInput';
     
     
     /**
@@ -896,16 +903,13 @@ class cat_Products extends embed_Manager {
         		break;
         }
         
-        // Филтър по групи
-        if (!empty($data->listFilter->rec->groupId)) {
-        	$descendants = cat_Groups::getDescendantArray($data->listFilter->rec->groupId);
-        	$keylist = keylist::fromArray($descendants);
-        	$data->query->likeKeylist("groups", $keylist);
-        }
-        
         // Филтър по свойства
         if ($data->listFilter->rec->meta1 && $data->listFilter->rec->meta1 != 'all') {
         	$data->query->like("meta", $data->listFilter->rec->meta1);
+        }
+        
+        if ($data->listFilter->rec->groupId) {
+        	$data->query->where("LOCATE('|{$data->listFilter->rec->groupId}|', #groups)");
         }
     }
 
