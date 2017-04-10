@@ -4,19 +4,19 @@
     </tr>
     <!--ET_BEGIN fromCountry-->
     <tr>
-        <td>- |Държава|*:</td>
+        <td style="width: 120px;">- |Държава|*:</td>
         <td class="boldText">[#fromCountry#]</td>
     </tr>
     <!--ET_END fromCountry-->
     <!--ET_BEGIN fromPCode-->
     <tr>
-        <td>- |П. код|*:</td>
+        <td style="width: 120px;">- |П. код|*:</td>
         <td class="boldText">[#fromPCode#]</td>
     </tr>
     <!--ET_END fromPCode-->
     <!--ET_BEGIN fromPlace-->
     <tr>
-        <td>- |Нас. място|*:</td>
+        <td style="width: 120px;">- |Нас. място|*:</td>
         <td class="boldText">[#fromPlace#]</td>
     </tr>
     <!--ET_END fromPlace-->
@@ -52,19 +52,19 @@
     </tr>
     <!--ET_BEGIN toCountry-->
     <tr>
-        <td>- |Държава|*:</td>
+        <td style="width: 120px;">- |Държава|*:</td>
         <td class="boldText">[#toCountry#]</td>
     </tr>
     <!--ET_END toCountry-->
     <!--ET_BEGIN toPCode-->
     <tr>
-        <td>- |П. код|*:</td>
+        <td style="width: 120px;">- |П. код|*:</td>
         <td class="boldText">[#toPCode#]</td>
     </tr>
     <!--ET_END toPCode-->
     <!--ET_BEGIN toPlace-->
     <tr>
-        <td>- |Нас. място|*:</td>
+        <td style="width: 120px;">- |Нас. място|*:</td>
         <td class="boldText">[#toPlace#]</td>
     </tr>
     <!--ET_END toPlace-->
@@ -95,49 +95,49 @@
 </table>
 
 <div class="clearfix21"></div>
-<table class="styled-table no-border">
+<table style="width: 45%; float:left; margin-top: 5px;" class="styled-table no-border">
     <tr>
         <th colspan = "2">|Информация за товара|*</th>
     </tr>
     <!--ET_BEGIN transUnit-->
     <tr>
-        <td>- |Трансп. ед.|*:</td>
+        <td style="width: 120px;">- |Трансп. ед.|*:</td>
         <td  class="boldText">[#transUnit#]</td>
     </tr>
     <!--ET_END transUnit-->
     <!--ET_BEGIN unitQty-->
     <tr>
-        <td>- |Количество|*:</td>
+        <td style="width: 120px;">- |Количество|*:</td>
         <td class="boldText">[#unitQty#]</td>
     </tr>
     <!--ET_END unitQty-->
     <!--ET_BEGIN maxWeight-->
     <tr>
-        <td>- |Общо тегло|*:</td>
+        <td style="width: 120px;">- |Общо тегло|*:</td>
         <td class="boldText">[#maxWeight#]</td>
     </tr>
     <!--ET_END maxWeight-->
     <!--ET_BEGIN maxVolume-->
     <tr>
-        <td>- |Общ обем|*:</td>
+        <td style="width: 120px;">- |Общ обем|*:</td>
         <td class="boldText">[#maxVolume#]</td>
     </tr>
     <!--ET_END maxVolume-->
     <!--ET_BEGIN maxHeight-->
     <tr>
-        <td>- |Макс. височина|*:</td>
+        <td style="width: 120px;">- |Макс. височина|*:</td>
         <td class="boldText">[#maxHeight#]</td>
     </tr>
-    <!--ET_END  maxHeight-->
+    <!--ET_END maxHeight-->
     <!--ET_BEGIN dangerous-->
     <tr>
-        <td>- |Опасност|*:</td>
+        <td style="width: 120px;">- |Опасност|*:</td>
         <td class="boldText">[#dangerous#]</td>
     </tr>
     <!--ET_END dangerous-->
     <!--ET_BEGIN load-->
     <tr>
-        <td>- |Описание|*:</td>
+        <td style="width: 120px;">- |Описание|*:</td>
         <td class="boldText">[#load#]</td>
     </tr>
     <!--ET_END load-->
@@ -145,21 +145,22 @@
 
 <!--ET_BEGIN INFORMATION-->
 [#INFORMATION#]
-<table class="styled-table no-border">
+<table style="width: 45%; float:left; margin-left: 50px;margin-top: 5px;"  class="styled-table no-border">
     <tr>
-        <th colspan = "2">Информация за товара</th>
+        <th colspan = "2">|Обща информация|*</th>
     </tr>
     <!--ET_BEGIN conditions-->
     <tr>
-        <td>- |Условия|*:</td>
+        <td style="width: 120px;">- |Условия|*:</td>
         <td class="boldText">[#conditions#]</td>
     </tr>
     <!--ET_END conditions-->
     <!--ET_BEGIN ourReff-->
     <tr>
-        <td>- |Наш реф.№|*:</td>
+        <td style="width: 120px;">- |Наш реф.№|*:</td>
         <td class="boldText">[#ourReff#]</td>
     </tr>
     <!--ET_END ourReff-->
 </table>
 <!--ET_END INFORMATION-->
+<div class="clearfix21"></div>
