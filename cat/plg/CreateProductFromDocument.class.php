@@ -282,8 +282,28 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				$pRec->innerClass = $rec->innerClass;
 				$pRec->meta = $rec->meta;
 				
-				// Създаваме артикула
-				$productId = $Products->save($pRec);
+				$productId = NULL;
+				$hash = cat_products::getHash($pRec);
+				
+				// Ако артикула има хеш търси се имали друг артикул със същия хеш ако има се добавя
+				if(isset($hash)){
+					$pQuery = cat_Products::getQuery();
+					$pQuery->where("#innerClass = {$rec->innerClass}");
+					$pQuery->where("#state = 'active'");
+					while($eRec = $pQuery->fetch()){
+						$hash1 = cat_Products::getHash($eRec);
+						if($hash1 == $hash){
+							$productId = $eRec->id;
+							break;
+						}
+					}
+				}
+				
+				// Създаване на нов артикул само при нужда
+				if(!isset($productId)){
+					$productId = $Products->save($pRec);
+				}
+				
 				$dRec = (object)array_diff_key($arrRec, $productFields);
 				$dRec->productId = $productId;
 				$dRec->packagingId = $pRec->measureId;
