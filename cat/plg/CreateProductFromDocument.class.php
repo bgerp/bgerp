@@ -168,18 +168,20 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				$form->setDefault('optional', 'no');
 			}
 			
+			$d = Request::get('d');
+			
 			// Ако е инпутнат прототип
-			if(isset($form->rec->proto) || isset($form->rec->innerClass)){
+			if(isset($form->rec->proto) || isset($form->rec->innerClass) || isset($d)){
 				
 				// Взимаме от драйвера нужните полета
 				$proto = $form->rec->proto;
 				cat_Products::setAutoCloneFormFields($form, $proto, $form->rec->innerClass);
 				$form->setDefault('productId', $form->rec->proto);
-				//
+				$productFields = array_diff_key($form->fields, $detailFields);
+				
 				// Зареждаме данни от прототипа (или артикула който клонираме)
 				if($proto){
 					$protoRec = cat_Products::fetch($proto);
-					$productFields = array_diff_key($form->fields, $detailFields);
 					$protoName = cat_Products::getTitleById($protoRec->id);
 					foreach ($productFields as $n1 => $fld){
 						if(isset($protoRec->{$n1})){
@@ -191,6 +193,15 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 					// Допустимите мерки са сред производните на тази на прототипа
 					$sameMeasures = cat_UoM::getSameTypeMeasures($protoRec->measureId);
 					$form->setOptions('measureId', $sameMeasures);
+				}
+				
+				// Ако има в крипитаните данни записват се
+				if(isset($d)){
+					foreach ($productFields as $n1 => $fld){
+						if(isset($d->{$n1})){
+							$form->setDefault($n1, $d->{$n1});
+						}
+					}
 				}
 				
 				$form->rec->folderId = $masterRec->folderId;
