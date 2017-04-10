@@ -41,7 +41,7 @@ class transsrv_Import extends core_BaseClass
     function act_Import()
     {
     	// Декодиране на данните
-    	expect($data = Request::get('d', 'varchar'));
+    	expect($data = Request::get('d'));
     	$data = base64_decode($data);
     	$data = gzuncompress($data);
     	$data = json_decode($data);
@@ -62,6 +62,7 @@ class transsrv_Import extends core_BaseClass
     			if($doc->haveInterface('trans_LogisticDataIntf')){
     				if($doc->fetchField('state') == 'active'){
     					$rData = (object)$doc->getLogisticData();
+    					
     					foreach (array('from', 'to') as $prefix){
     						if($rData->{"{$prefix}Country"} == $data->{"{$prefix}Country"}){
     							setIfNot($data->{"{$prefix}PCode"}, $rData->{"{$prefix}PCode"});
@@ -85,6 +86,10 @@ class transsrv_Import extends core_BaseClass
     						} else {
     							$costItemId = acc_Items::fetchItem($firstDoc->getClassId(), $firstDoc->that)->id;
     						}
+    						
+    						if(isset($costItemId)){
+    							$data->costItemId = $costItemId;
+    						}
     					}
     				}
     			}
@@ -92,36 +97,22 @@ class transsrv_Import extends core_BaseClass
     	}
     	
     	try{
-    		// Форсира транспортната услуга
-    		$productId = self::forceProductId($data, $folderId);
+    		// Форсира покупка
+    		$purchaseId = self::forcePurchaseId($folderId, $data);
     		
-    		// Ако има вече
-    		if($productId){
-    			
-    			// Форсира покупка
-    			$purchaseId = self::forcePurchaseId($folderId, $data);
-    		
-    			// Добавя транспортната услуга към покупката
-    			if($purchaseId){
-    				$purRec = purchase_Purchases::fetch($purchaseId, 'threadId,containerId');
-    				doc_ThreadUsers::addShared($purRec->threadId, $purRec->containerId, core_Users::getCurrent());
+    		// Добавя транспортната услуга към покупката
+    		if($purchaseId){
+    			$purRec = purchase_Purchases::fetch($purchaseId, 'threadId,containerId');
+    			doc_ThreadUsers::addShared($purRec->threadId, $purRec->containerId, core_Users::getCurrent());
     				
-    				$id = purchase_Purchases::addRow($purchaseId, $productId, 1, $data->price);
+    			$data->fromCountry = drdata_Countries::fetchField(array("#commonName = '[#1#]'", $data->fromCountry), 'id');
+    			$data->toCountry = drdata_Countries::fetchField(array("#commonName = '[#1#]'", $data->toCountry), 'id');
     				
-    				// ако има разходен обект разпределя се по него
-    				if(isset($id) && isset($costItemId)){
-    					$quantity = purchase_PurchasesDetails::fetchField($id, 'quantity');
-    					$detailClassId = purchase_PurchasesDetails::getClassId();
-    					acc_CostAllocations::delete("#detailClassId = {$detailClassId} AND #detailRecId = {$id} AND #productId = {$productId}");
-    					$saveRec = (object)array('detailClassId' => $detailClassId, 'detailRecId' => $id, 'productId' => $productId, 'expenseItemId' => $costItemId, 'containerId' => $purRec->containerId, 'quantity' => $quantity, 'allocationBy' => 'no');
-    					acc_CostAllocations::save($saveRec);
-    				}
-    			}
-    			
-    			redirect(purchase_Purchases::getSingleUrlArray($purchaseId), FALSE, 'Успешно добавяне');
+    			core_Request::setProtected('d');
+    			redirect(array('purchase_PurchasesDetails', 'CreateProduct', 'requestId' => $purchaseId, 'innerClass' => transsrv_ProductDrv::getClassId(), 'd' => $data, 'ret_url' => purchase_Purchases::getSingleUrlArray($purchaseId)));
     		}
     		
-    	} catch(core_exception_Expect $e){
+    	} catch(Exception $e){
     		reportException($e);
     		return;
     	}
@@ -163,58 +154,6 @@ class transsrv_Import extends core_BaseClass
     
     
     /**
-     * Форсира транспортна услуга
-     * 
-     * @param stdClass $data
-     * @param int $folderId
-     * @return int
-     */
-    private static function forceProductId($data, $folderId)
-    {
-    	core_Classes::add('transsrv_ProductDrv');
-    	$Products = cls::get('cat_Products');
-    	$Driver = cls::get('transsrv_ProductDrv');
-    	$driverId = $Driver->getClassId();
-    	
-    	$productRec = clone $data;
-    	$productRec->folderId = $folderId;
-    	$productRec->fromCountry = drdata_Countries::fetchField("#letterCode2 = '{$productRec->fromCountry}'", 'id');
-    	$productRec->toCountry = drdata_Countries::fetchField("#letterCode2 = '{$productRec->toCountry}'", 'id');
-    	$productRec->innerClass = $driverId;
-    	unset($productRec->companyName);
-    	unset($productRec->price);
-    	
-    	$hash = cat_Products::getHash($productRec);
-    	$pQuery = cat_Products::getQuery();
-    	$pQuery->where("#innerClass = {$driverId} AND #folderId = {$folderId}");
-    	
-    	while($pRec = $pQuery->fetch()){
-    		$pHash = cat_Products::getHash($pRec);
-    		if($pHash == $hash) {
-    			cat_Products::logDebug("Транспортната услуга е вече създадена", $pRec->id);
-    			return $pRec->id;
-    		}
-    	}
-    	
-    	$metas = $Driver->getDefaultMetas();
-    	$productRec->meta = cls::get('type_Set')->fromVerbal($metas);
-    	$productRec->name = $Driver->getProductTitle($productRec);
-    	$productRec->measureId = $Driver->getDefaultUomId();
-    	
-    	core_Users::forceSystemUser();
-    	$productId = $Products->save($productRec);
-    	core_Users::cancelSystemUser();
-    	cat_Products::logDebug("Импортиране на транспортна услуга", $productId);
-    	if($productId){
-    		$handle = cat_Products::getHandle($productId);
-    		core_Statuses::newStatus("Импортиране на транспортна услуга|* {$handle}");
-    	}
-    	
-    	return $productId;
-    }
-    
-    
-    /**
      * Форсира покупка
      * 
      * @param int $folderId
@@ -223,7 +162,7 @@ class transsrv_Import extends core_BaseClass
      */
     private static function forcePurchaseId($folderId, $data)
     {
-    	$chargeVat = ($data->fromCountry != 'BG' || $data->toCountry != 'BG') ? 'no' : 'separate';
+    	$chargeVat = ($data->fromCountry != 'Bulgaria' || $data->toCountry != 'Bulgaria') ? 'no' : 'separate';
     	
     	$purQuery = purchase_Purchases::getQuery();
     	$purQuery->where("#folderId = '{$folderId}'");

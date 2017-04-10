@@ -63,7 +63,7 @@ class hr_Departments extends core_Master
      */
     public $loadList = 'plg_RowTools2, hr_Wrapper, doc_FolderPlg, plg_Printing, plg_State, plg_Rejected,
                         plg_Created, WorkingCycles=hr_WorkingCycles,acc_plg_Registry, plg_SaveAndNew, 
-                        plg_TreeObject, plg_Modified, bgerp_plg_Blank,plg_ExpandInput';
+                        plg_TreeObject, plg_Modified, bgerp_plg_Blank';
     
     
     /**
@@ -148,7 +148,7 @@ class hr_Departments extends core_Master
      * Полето, което ще се разширява
      * @see plg_ExpandInput
      */
-    public $expandFieldName = 'parentId';
+    //public $expandFieldName = 'parentId';
      
     
     /**

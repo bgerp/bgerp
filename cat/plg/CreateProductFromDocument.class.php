@@ -202,6 +202,12 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 							$form->setDefault($n1, $d->{$n1});
 						}
 					}
+					
+					// Цената
+					if(isset($d->price)){
+						$d->price = deals_Helper::getDisplayPrice($d->price, 0, $masterRec->currencyRate, $masterRec->chargeVat);
+						$form->setDefault('packPrice', $d->price);
+					}
 				}
 				
 				$form->rec->folderId = $masterRec->folderId;
@@ -311,8 +317,16 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				
 				$fields = ($mvc instanceof sales_QuotationsDetails) ? array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId') : array();
 				tcost_Calcs::prepareFee($dRec, $form, $masterRec, $fields);
-				
+			
 				$mvc->save($dRec);
+				
+				// Разпределяне на разходи при нужда
+				if(isset($d->costItemId)){
+					acc_CostAllocations::delete("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$dRec->id} AND #productId = {$productId}");
+					$saveRec = (object)array('detailClassId' => $mvc->getClassId(), 'detailRecId' => $dRec->id, 'productId' => $productId, 'expenseItemId' => $d->costItemId, 'containerId' => $masterRec->containerId, 'quantity' => $dRec->quantity, 'allocationBy' => 'no');
+					
+					acc_CostAllocations::save($saveRec);
+				}
 				
 				// Редирект към сделката/офертата
 				return Redirect(array($mvc->Master, 'single', $dRec->{$mvc->masterKey}), FALSE, 'Успешно е създаден нов артикул');

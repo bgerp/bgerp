@@ -199,6 +199,8 @@ class remote_Authorizations extends embed_Manager
                 $userId = core_Users::getCurrent();
             }
 
+            if(!$userId) return NULL;
+            
             $query = self::getQuery();
 
             while($rec = $query->fetch(array("#url LIKE '%[#1#]%' AND #userId = {$userId}", $url))) {
