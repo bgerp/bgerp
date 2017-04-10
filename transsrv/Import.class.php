@@ -105,14 +105,14 @@ class transsrv_Import extends core_BaseClass
     			$purRec = purchase_Purchases::fetch($purchaseId, 'threadId,containerId');
     			doc_ThreadUsers::addShared($purRec->threadId, $purRec->containerId, core_Users::getCurrent());
     				
-    			$data->fromCountry = drdata_Countries::fetchField("#formalName = '{$data->fromCountry}'", 'id');
-    			$data->toCountry = drdata_Countries::fetchField("#formalName = '{$data->toCountry}'", 'id');
+    			$data->fromCountry = drdata_Countries::fetchField(array("#formalName = '[#1#]'", $data->fromCountry), 'id');
+    			$data->toCountry = drdata_Countries::fetchField(array("#formalName = '[#1#]'", $data->toCountry), 'id');
     				
     			core_Request::setProtected('d');
     			redirect(array('purchase_PurchasesDetails', 'CreateProduct', 'requestId' => $purchaseId, 'innerClass' => transsrv_ProductDrv::getClassId(), 'd' => $data, 'ret_url' => purchase_Purchases::getSingleUrlArray($purchaseId)));
     		}
     		
-    	} catch(core_exception_Expect $e){
+    	} catch(Exception $e){
     		reportException($e);
     		return;
     	}
