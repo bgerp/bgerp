@@ -678,27 +678,24 @@ abstract class store_DocumentMaster extends core_Master
     }
     
     
-
-
-
     /**
      * Информация за логистичните данни
      *
      * @param mixed $rec   - ид или запис на документ
      * @return array $data - логистичните данни
-     *
-     *		string(2)     ['fromCountry']  - двубуквен код на държавата за натоварване
+     *		
+     *		string(2)     ['fromCountry']  - международното име на английски на държавата за натоварване
      * 		string|NULL   ['fromPCode']    - пощенски код на мястото за натоварване
      * 		string|NULL   ['fromPlace']    - град за натоварване
      * 		string|NULL   ['fromAddress']  - адрес за натоварване
-     *  	string|NULL   ['fromCompany']  - фирма
+     *  	string|NULL   ['fromCompany']  - фирма 
      *   	string|NULL   ['fromPerson']   - лице
      * 		datetime|NULL ['loadingTime']  - дата на натоварване
-     * 		string(2)     ['toCountry']    - двубуквен код на държавата за разтоварване
+     * 		string(2)     ['toCountry']    - международното име на английски на държавата за разтоварване
      * 		string|NULL   ['toPCode']      - пощенски код на мястото за разтоварване
      * 		string|NULL   ['toPlace']      - град за разтоварване
      *  	string|NULL   ['toAddress']    - адрес за разтоварване
-     *   	string|NULL   ['toCompany']    - фирма
+     *   	string|NULL   ['toCompany']    - фирма 
      *   	string|NULL   ['toPerson']     - лице
      * 		datetime|NULL ['deliveryTime'] - дата на разтоварване
      * 		text|NULL 	  ['conditions']   - други условия
@@ -726,7 +723,7 @@ abstract class store_DocumentMaster extends core_Master
     	$contrPart = ($this instanceof store_ShipmentOrders) ? 'to' : 'from';
     	
     	// Подготвяне на данните за разтоварване
-    	$res["{$ownPart}Country"] = drdata_Countries::fetchField($ownCountryId, 'letterCode2');
+    	$res["{$ownPart}Country"] = drdata_Countries::fetchField($ownCountryId, 'formalName');
     	if(isset($locationId)){
     		$res["{$ownPart}PCode"]    = !empty($storeLocation->pCode) ? $storeLocation->pCode : NULL;
     		$res["{$ownPart}Place"]    = !empty($storeLocation->place) ? $storeLocation->place : NULL;
@@ -743,7 +740,7 @@ abstract class store_DocumentMaster extends core_Master
     	$res["{$ownPart}Person"]  = core_Users::fetchField($toPersonId, 'names');
     	
     	// Подготвяне на данните за натоварване
-    	$res["{$contrPart}Country"] = drdata_Countries::fetchField($contragentCountryId, 'letterCode2');
+    	$res["{$contrPart}Country"] = drdata_Countries::fetchField($contragentCountryId, 'formalName');
     	$res["{$contrPart}Company"] = $contragentData->company;
     	if(isset($rec->locationId)){
     		$res["{$contrPart}PCode"]   = !empty($contragentLocation->pCode) ? $contragentLocation->pCode : NULL;
