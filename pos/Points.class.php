@@ -48,9 +48,9 @@ class pos_Points extends core_Master {
     
     
     /**
-     * Кой може да го прочете?
+     * Да се създаде папка при създаване на нов запис
      */
-    public $canRead = 'ceo, pos';
+    public $autoCreateFolder = 'instant';
     
     
     /**

@@ -46,12 +46,6 @@ class pos_Receipts extends core_Master {
 	 * Детайли на бележката
 	 */
 	public $details = 'pos_ReceiptDetails';
-	
-	
-    /**
-     * Кой може да го прочете?
-     */
-    public $canRead = 'ceo, pos';
     
     
     /**
