@@ -189,7 +189,7 @@ class cal_Reminders extends core_Master
     /**
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
-    public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
+    public $coversAndInterfacesForNewDoc = '*';
 
 
     /**

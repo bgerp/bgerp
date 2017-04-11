@@ -550,10 +550,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	{
 		// При активиране/оттегляне
 		if($rec->state == 'active' || $rec->state == 'rejected'){
-			$origin = doc_Containers::getDocument($rec->originId);
-			
-			planning_Jobs::updateProducedQuantity($origin->that);
-			doc_DocumentCache::threadCacheInvalidation($rec->threadId);
+			if(isset($rec->originId)){
+				$origin = doc_Containers::getDocument($rec->originId);
+					
+				planning_Jobs::updateProducedQuantity($origin->that);
+				doc_DocumentCache::threadCacheInvalidation($rec->threadId);
+			}
 		}
 	}
 

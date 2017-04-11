@@ -50,7 +50,14 @@ class cat_Products extends embed_Manager {
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, plg_SaveAndNew, plg_Clone,doc_plg_Prototype, doc_DocumentPlg, plg_PrevAndNext, acc_plg_Registry, plg_State, cat_plg_Grouping, bgerp_plg_Blank,
-                     cat_Wrapper, plg_Sorting, doc_ActivatePlg, doc_plg_Close, doc_plg_BusinessDoc, cond_plg_DefaultValues, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import, bgerp_plg_Groups, bgerp_plg_Export';
+                     cat_Wrapper, plg_Sorting, doc_ActivatePlg, doc_plg_Close, doc_plg_BusinessDoc, cond_plg_DefaultValues, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import, bgerp_plg_Groups, bgerp_plg_Export,plg_ExpandInput';
+    
+    
+    /**
+     * Полето, което ще се разширява
+     * @see plg_ExpandInput
+     */
+    public $expandFieldName = 'groups';
     
     
     /**
@@ -896,16 +903,13 @@ class cat_Products extends embed_Manager {
         		break;
         }
         
-        // Филтър по групи
-        if (!empty($data->listFilter->rec->groupId)) {
-        	$descendants = cat_Groups::getDescendantArray($data->listFilter->rec->groupId);
-        	$keylist = keylist::fromArray($descendants);
-        	$data->query->likeKeylist("groups", $keylist);
-        }
-        
         // Филтър по свойства
         if ($data->listFilter->rec->meta1 && $data->listFilter->rec->meta1 != 'all') {
         	$data->query->like("meta", $data->listFilter->rec->meta1);
+        }
+        
+        if ($data->listFilter->rec->groupId) {
+        	$data->query->where("LOCATE('|{$data->listFilter->rec->groupId}|', #groups)");
         }
     }
 
@@ -1580,11 +1584,11 @@ class cat_Products extends embed_Manager {
     			}
     		}
     		
-    		$groups = keylist::toArray($rec->groups);
+    		$groups = keylist::toArray($rec->groupsInput);
     		if(count($groups)){
     			$listUrl = array();
     			
-    			$row->groups = '';
+    			$row->groupsInput = '';
     			foreach ($groups as $grId){
     				if($mvc->haveRightFor('list')){
     					if(!Mode::isReadOnly()){
@@ -1594,12 +1598,12 @@ class cat_Products extends embed_Manager {
     				
     				$groupTitle = cat_Groups::getVerbal($grId, 'name');
     				$groupLink = ht::createLink($groupTitle, $listUrl, FALSE, "class=group-link,title=Филтриране на артикули по група|* '{$groupTitle}'");
-    				$row->groups .= $groupLink . " ";
+    				$row->groupsInput .= $groupLink . " ";
     			}
-    			$row->groups = trim($row->groups, ' ');
+    			$row->groupsInput = trim($row->groupsInput, ' ');
     			
     		} else {
-    			$row->groups = "<i>" . tr("Няма") . "</i>";
+    			$row->groupsInput = "<i>" . tr("Няма") . "</i>";
     		}
     	}
         
@@ -2517,13 +2521,14 @@ class cat_Products extends embed_Manager {
     	
     	$form = cls::get('core_Form');
     	$form->title = "Промяна на групите на|* <b>" . cat_Products::getHyperlink($id, TRUE) . "</b>";
-    	$form->FNC('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Групи,input');
-    	$form->setDefault('groups', $rec->groups);
+    	$form->FNC('groupsInput', 'keylist(mvc=cat_Groups,select=name)', 'caption=Групи,input');
+    	$form->setDefault('groupsInput', $rec->groupsInput);
     	$form->input();
     	if($form->isSubmitted()){
     		$fRec = $form->rec;
-    		if($fRec->groups != $rec->groups){
-    			$this->save((object)array('id' => $id, 'groups' => $fRec->groups), 'groups');
+    		
+    		if($fRec->groupsInput != $rec->groupsInput){
+    			$this->save((object)array('id' => $id, 'groupsInput' => $fRec->groupsInput), 'groups');
     		}
     		
     		return followRetUrl();

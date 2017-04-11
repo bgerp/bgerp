@@ -133,7 +133,7 @@ class select2_Adapter
     		minimumInputLength: 0";
         }
         
-        $select2Str .= ",templateResult: formatSelect2Data,templateSelection: formatSelect2DataSelection";
+        $select2Str .= ",templateResult: formatSelect2Data,templateSelection: formatSelect2DataSelection, matcher: modelMatcher";
         	        
         $select2Str .= "});";
         

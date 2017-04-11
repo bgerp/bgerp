@@ -45,7 +45,7 @@ class cat_Listings extends core_Master
     /**
      * Абревиатура
      */
-    public $abbr = "Li";
+    public $abbr = "Lst";
     
     
     /**

@@ -1878,14 +1878,14 @@ abstract class deals_DealMaster extends deals_DealBase
      * @param mixed $rec   - ид или запис на документ
      * @return array $data - логистичните данни
      *		
-     *		string(2)     ['fromCountry']  - двубуквен код на държавата за натоварване
+     *		string(2)     ['fromCountry']  - международното име на английски на държавата за натоварване
      * 		string|NULL   ['fromPCode']    - пощенски код на мястото за натоварване
      * 		string|NULL   ['fromPlace']    - град за натоварване
      * 		string|NULL   ['fromAddress']  - адрес за натоварване
      *  	string|NULL   ['fromCompany']  - фирма 
      *   	string|NULL   ['fromPerson']   - лице
      * 		datetime|NULL ['loadingTime']  - дата на натоварване
-     * 		string(2)     ['toCountry']    - двубуквен код на държавата за разтоварване
+     * 		string(2)     ['toCountry']    - международното име на английски на държавата за разтоварване
      * 		string|NULL   ['toPCode']      - пощенски код на мястото за разтоварване
      * 		string|NULL   ['toPlace']      - град за разтоварване
      *  	string|NULL   ['toAddress']    - адрес за разтоварване
@@ -1915,8 +1915,8 @@ abstract class deals_DealMaster extends deals_DealBase
     		$contragentCountryId = $contragentLocation->countryId;
     	}
     	
-    	$ownCountry = drdata_Countries::fetchField($ownCountryId, 'letterCode2');
-    	$contragentCountry = drdata_Countries::fetchField($contragentCountryId, 'letterCode2');
+    	$ownCountry = drdata_Countries::fetchField($ownCountryId, 'commonName');
+    	$contragentCountry = drdata_Countries::fetchField($contragentCountryId, 'commonName');
     	
     	$ownPart = ($this instanceof sales_Sales) ? 'from' : 'to';
     	$contrPart = ($this instanceof sales_Sales) ? 'to' : 'from';
@@ -1940,7 +1940,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	if(isset($contragentLocation)){
     		$res["{$contrPart}PCode"]     = !empty($contragentLocation->pCode) ? $contragentLocation->pCode : NULL;
-    		$res["{$contrPart}toPlace"]   = !empty($contragentLocation->place) ? $contragentLocation->place : NULL;
+    		$res["{$contrPart}Place"]   = !empty($contragentLocation->place) ? $contragentLocation->place : NULL;
     		$res["{$contrPart}Address"]   = !empty($contragentLocation->address) ? $contragentLocation->address : NULL;
     		$res["{$contrPart}Person"]  = !empty($contragentLocation->mol) ? $contragentLocation->mol : NULL;
     	} else {

@@ -1,17 +1,71 @@
-<h4 class="centered" style="margin-bottom: 10px">ДОГОВОР</h4>
+<div class="scrolling-holder">
+    <table class="innerTable paddingCells" style='width:100%'>
+        <tbody>
+        <tr>
+            <td class="cell custom-header-bg vtop" style='width:34%'><b>|Получател|*</b>
+                <!--ET_BEGIN isPaid-->
+                <div class='stamp fright'>[#isPaid#]</div>
+                <!--ET_END isPaid-->
+            </td>
+            <td class="cell centered" rowspan='2'>
+                <div class="document-title">|ДОГОВОР|*</div>
+                <div class="boldText" style="margin-top: 5px;">|ЗА ИЗВЪРШВАНЕ НА ТРАНСПОРТ|*</div>
+                <div style="padding-top:5px;">
+                    № <span class="bigData">[#id#]</span> /
+                    <span class="bigData">[#valior#]</span>
+                </div>
+                <!--ET_BEGIN state-->
+                <div class="state [#STATE_CLASS#]" style='margin:5px 0'>[#state#]</div>
+                <!--ET_END state-->
+                <!--ET_BEGIN reff-->
+                <p class="centered">|Ваш реф|*: <b>[#reff#]</b></p>
+                <!--ET_END reff-->
+            </td>
+            <td class="cell custom-header-bg vtop" style='width:34%'><b>|Доставчик|*</b>
+                <!--ET_BEGIN isDelivered-->
+                <div class='stamp fright'>[#isDelivered#]</div>
+                <!--ET_END isDelivered-->
+            </td>
+        </tr>
+        <tr>
+            <td class="cell">
+                <b>[#contragentName#]</b>
+                <div class='address-block'>
+                    [#contragentCountryId#]
+                    <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
+                </div>
+                <!--ET_BEGIN deliveryLocationId-->
+                <hr style="margin: 3px 0 1px;">
+                <div>
+                    |От обект|*: [#deliveryLocationId#]
+                </div>
+                <!--ET_END deliveryLocationId-->
+            </td>
+            <td class="cell">
 
-<p class="centered">ЗА ИЗВЪРШВАНЕ НА ТРАНСПОРТ</p>
+                <b>[#MyCompany#]</b>
+                <div class='address-block'>
+                    [#MyAddress#]
+                </div>
+                <!--ET_BEGIN shipmentStoreId-->
+                <hr style="margin: 3px 0 1px;">
+                <div>
+                    |До склад|*: [#shipmentStoreId#]
+                </div>
+                <!--ET_END shipmentStoreId-->
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3">
+                <p>Уважаеми Дами и Господа,</p>
 
-<p class="centered">№[#id#] / [#valior#]</p>
-
-<!--ET_BEGIN reff-->
-<p class="centered">|Ваш реф|*: <b>[#reff#]</b></p>
-<!--ET_END reff-->
-<br>
-<p>Уважаеми Дами и Господа,</p>
-
-<p>Ще организираме транспорт, както следва:</p>
-<br>
+                <p>Ще организираме транспорт, както следва:</p>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<div class="lines"></div>
 [#sales_SalesDetails#]
 <div class="lines"></div>
 <table class="innerTable footer-notes paddingCells">

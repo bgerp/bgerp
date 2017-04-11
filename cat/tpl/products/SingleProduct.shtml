@@ -20,7 +20,7 @@
     <fieldset class="detail-info">
          <legend class="groupTitle nowrap">|Групи|* [#editGroupBtn#]</legend>
          <div class="groupList">
-              [#groups#]
+              [#groupsInput#]
          </div>
     </fieldset>
     <!--ET_END groups-->
