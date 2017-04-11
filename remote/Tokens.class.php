@@ -117,6 +117,8 @@ class remote_Tokens extends core_Master
      */
     function cron_DeleteExpiredTokens()
     {
+        $now = dt::now();
+        
         $cnt = self::delete("#expiredOn < '{$now}'");
 
         return "Изтрити са $cnt tokens";
