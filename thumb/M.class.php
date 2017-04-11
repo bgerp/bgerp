@@ -114,9 +114,9 @@ class thumb_M extends core_Mvc
         exec($cmd, $out, $status);
         if($status > 0) {
             $err = implode(' | ', $out);
-            log_System::add('tumb_Img', 'Грешка: ' . $cmd  . ' ' . $err, NULL, 'err');
+            log_System::add('thumb_Img', 'Грешка: ' . $cmd  . ' ' . $err, NULL, 'warning');
         } else {
-            log_System::add('tumb_Img', 'Оптимизирано: ' . $cmd , NULL, 'debug');
+            log_System::add('thumb_Img', 'Оптимизирано: ' . $cmd , NULL, 'debug');
         }
     }
 
