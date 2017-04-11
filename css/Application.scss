@@ -1518,9 +1518,6 @@ a.tOld {
 	}
 }
 
-.narrow .halfTable {
-	margin-top: 10px;
-}
 
 .productCell .halfTable {
 	.titleCol {
@@ -1529,6 +1526,13 @@ a.tOld {
 	}
 	&.offsetLeft {
 		margin-left: 20px;
+	}
+}
+
+.narrow .halfTable {
+	margin-top: 10px;
+	&.offsetLeft {
+		margin-left: 0px;
 	}
 }
 
