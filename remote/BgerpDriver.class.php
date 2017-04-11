@@ -572,13 +572,19 @@ class remote_BgerpDriver extends core_Mvc
     public static function sendQuestion($auth, $ctr, $act, $args = NULL)
     {
         $url = self::prepareQuestionUrl($auth, $ctr, $act, $args);
-
+        
+        ini_set('default_socket_timeout', 5);
+        
         $res = @file_get_contents($url);
 
         if($res) {
             $params = self::decode($auth, $res, 'answer');
      
             return $params['result'];
+        }
+        
+        if ($res === FALSE) {
+            self::logWarning('Грешка при вземане на данни от URL: ' . $url);
         }
     }
     
