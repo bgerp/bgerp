@@ -257,7 +257,7 @@ class tcost_Calcs extends core_Manager
     	$cData = cls::get($contragentClassId)->getContragentData($contragentId);
     	
     	// Ако има локация, адресните данни са приоритетни от там
-    	if(isset($locationId)){
+    	if(isset($locationId) && is_numeric($locationId)){
     		$locationRec = crm_Locations::fetch($locationId);
     		$locationCountryId = (isset($locationRec->countryId)) ? $locationRec->countryId : $cData->countryId;
     		if(isset($locationCountryId) && !empty($locationRec->pCode)){
