@@ -152,6 +152,13 @@ class core_Users extends core_Manager
      */
     var $isSystemUser = FALSE;
     
+    
+    /**
+     * Дали е заглушено работата на системния потребител
+     */
+    protected $isMutedSystemUser = FALSE;
+    
+    
     /**
      * URL за javascript
      */
@@ -1222,6 +1229,12 @@ class core_Users extends core_Manager
             $userRec->_isSudo = TRUE;
         }
         
+        if (self::isSystemUser()) {
+            $Users = cls::get('core_Users');
+            $Users->isMutedSystemUser = TRUE;
+            self::cancelSystemUser();
+        }
+        
         return $bValid;
     }
     
@@ -1236,6 +1249,12 @@ class core_Users extends core_Manager
     static function exitSudo()
     {
         core_Mode::pop('currentUserRec');
+        
+        $Users = cls::get('core_Users');
+        if ($Users->isMutedSystemUser) {
+            self::forceSystemUser();
+            $Users->isMutedSystemUser = FALSE;
+        }
     }
     
     
