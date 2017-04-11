@@ -338,8 +338,7 @@ class remote_BgerpDriver extends core_Mvc
                 // Прескачаме, ако липсва отговор на въпроса
                 if($nCnt === NULL) continue;;
 
-                $cUrl = $nUrl = array($this, 'Autologin', $rec->id);
-                $cUrl['url'] = $rec->url;
+                $nUrl = array($this, 'Autologin', $rec->id);
                 
                 $userId = $rec->userId;
 
@@ -353,7 +352,7 @@ class remote_BgerpDriver extends core_Mvc
                     $message = "|Имате|* {$nCnt} |в|* {$url}";
 
                     // Добавя, ако няма нофификация
-                    bgerp_Notifications::add($message, $nUrl, $userId, NULL, $cUrl, TRUE);
+                    bgerp_Notifications::add($message, $nUrl, $userId, NULL, NULL, TRUE);
                 } else {
                     bgerp_Notifications::clear($nUrl, $userId);
                 }
@@ -375,13 +374,12 @@ class remote_BgerpDriver extends core_Mvc
 
         $url = Request::get('url');
 
-        expect(filter_var($url, FILTER_VALIDATE_URL));
-
         $arr = array();
 
         if(!$url) {
             bgerp_Notifications::clear(array($this, 'Autologin', $id), $userId);
         } else {
+            expect(filter_var($url, FILTER_VALIDATE_URL));
             $arr['url'] = $url;
         }
         
