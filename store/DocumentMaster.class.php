@@ -724,7 +724,8 @@ abstract class store_DocumentMaster extends core_Master
     	
     	// Подготвяне на данните за разтоварване
     	$res["{$ownPart}Country"] = drdata_Countries::fetchField($ownCountryId, 'commonName');
-    	if(isset($locationId)){
+    	
+    	if(isset($storeLocation)){
     		$res["{$ownPart}PCode"]    = !empty($storeLocation->pCode) ? $storeLocation->pCode : NULL;
     		$res["{$ownPart}Place"]    = !empty($storeLocation->place) ? $storeLocation->place : NULL;
     		$res["{$ownPart}Address"]  = !empty($storeLocation->address) ? $storeLocation->address : NULL;
@@ -737,7 +738,7 @@ abstract class store_DocumentMaster extends core_Master
     	
     	$res["{$ownPart}Company"] = $ownCompany->name;
     	$toPersonId = ($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy;
-    	$res["{$ownPart}Person"]  = core_Users::fetchField($toPersonId, 'names');
+    	$res["{$ownPart}Person"]  = ($res["{$ownPart}Person"]) ? $res["{$ownPart}Person"] : core_Users::fetchField($toPersonId, 'names');
     	
     	// Подготвяне на данните за натоварване
     	$res["{$contrPart}Country"] = drdata_Countries::fetchField($contragentCountryId, 'commonName');

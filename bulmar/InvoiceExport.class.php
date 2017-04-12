@@ -104,6 +104,7 @@ class bulmar_InvoiceExport extends core_Manager {
     	}
     	
     	$data = $this->prepareExportData($recs);
+    	
     	$content = $this->prepareFileContent($data);
     	$content = iconv('utf-8', 'CP1251', $content);
     	
@@ -167,10 +168,7 @@ class bulmar_InvoiceExport extends core_Manager {
     		}
     		
     		$pInfo = $this->cache[$dRec->productId];
-    		
-    		if(!isset($dRec->amount)){
-    			$dRec->amount = $dRec->packPrice * $dRec->quantity;
-    		}
+    		$dRec->amount = round($dRec->packPrice * $dRec->quantity, 2);
     		
     		if(empty($pInfo->meta['canStore'])){
     			$byServices += $dRec->amount * (1 - $dRec->discount);

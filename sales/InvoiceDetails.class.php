@@ -142,4 +142,23 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
     	// Редирект обратно към фактурата
     	return followRetUrl(NULL, 'Артикулите от сделката са копирани успешно');
     }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc $mvc
+     * @param int $id първичния ключ на направения запис
+     * @param stdClass $rec всички полета, които току-що са били записани
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+    	// Наблюдаване ако има несъответствия
+    	// @TODO да се махне след време
+    	$amount1Compare = round($rec->packPrice * $rec->quantity, 2);
+    	$amount2Compare = round($rec->amount, 2);
+    	if($amount1Compare != $amount2Compare){
+    		wp($rec);
+    	}
+    }
 }
