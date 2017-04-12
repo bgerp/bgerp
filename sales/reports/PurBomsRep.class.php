@@ -131,7 +131,71 @@ class sales_reports_PurBomsRep extends frame2_driver_Proto
 	 */
 	public function prepareData($rec)
 	{
-	     
+	    $Sales = sales_Sales::getSingleton();
+	    $data = new stdClass();
+	    $data->recs = array();
+
+	    $dealers = keylist::toArray($rec->dealers);
+	    // Всички чакащи и активни продажби на избраните дилъри
+	    $sQuery = sales_Sales::getQuery();
+	    $sQuery->where("#state = 'active' AND #valior >= '2017-04-10'");
+	    
+	    if(count($dealers)){ 
+	        $sQuery->in('dealerId', $dealers);
+	    } 
+
+	    // За всяка
+	    while($sRec = $sQuery->fetch()){ 
+
+	        // Взимане на договорените и експедираните артикули по продажбата (събрани по артикул)
+	        $Sales = sales_Sales::getSingleton();
+	        $dealerId = ($sRec->dealerId) ? $sRec->dealerId : (($sRec->activatedBy) ? $sRec->activatedBy : $sRec->createdBy);
+	        $dealInfo = $Sales->getAggregateDealInfo($sRec);
+
+	        // Колко е очакваното авансово плащане
+	        $downPayment = $dealInfo->agreedDownpayment;
+	        // Колко е платено
+	        $downpayment = $dealInfo->downpayment;
+	        //$downpayment = $dealInfo->amountPaid;
+
+	        // ако имаме зададено авансово плащане
+	        // дали имаме поне 95% авансово плащане
+	        if($downpayment < $downPayment * 0.95)  break;
+	        
+	        // артикулите
+	        $agreedProducts = $dealInfo->get('products');
+
+	        // За всеки договорен артикул
+	        foreach ($agreedProducts as $pId => $pRec){ 
+	            // ако е нестандартен
+	            $productRec = cat_Products::fetch($pId, 'isPublic');
+	            $d = NULL;
+	            // Ако артикула е нестандартен и няма задание по продажбата 
+	            if($productRec->isPublic == 'no'){    
+	                $jobId = planning_Jobs::fetchField("#productId = {$pId} AND #saleId = {$sRec->id}");
+	              
+	                if (!$jobId){ 	   
+	                    $d  = (object) array ("pur" => $sRec->id,
+	                                          "purDate" => $sRec->valior, 
+	                                          "deliveryTime" => $sRec->deliveryTime,
+	                                          "article" => $pId,
+	                                          "dealerId" => $dealerId,
+	                                          "quantity"=>$pRec->quantity);  
+	                }
+	            }	
+	            
+	            if($d != NULL) {
+	               $data->recs[$sRec->id]  = $d;
+	            }
+	        } 
+	    } 
+	    
+	    foreach ($data->recs as $index => $dRec){
+	    
+	        if($dRec == NULL) unset($data->recs[$index]);
+	    }
+
+	    return $data;
 	}
 	
 	
@@ -142,11 +206,13 @@ class sales_reports_PurBomsRep extends frame2_driver_Proto
 	 * @return core_ET      - рендирания шаблон
 	 */
 	public function renderData($rec)
-	{
+	{   
+
+	    if(empty($rec->data)) return;
+
 	    $tpl = new core_ET("[#PAGER_TOP#][#TABLE#][#PAGER_BOTTOM#]");
 	    
-	    $data = new stdClass();
-	    //$data = $rec->data; 
+	    $data = $rec->data;
 	    $data->listFields = $this->getListFields($rec);
 	    $data->rows = array();
 	    
@@ -158,13 +224,22 @@ class sales_reports_PurBomsRep extends frame2_driver_Proto
 	    }
 	    
 	    // Вербализиране само на нужните записи
+	    $cnt = 1; 
 	    if(is_array($data->recs)){
-	        foreach ($data->recs as $index => $dRec){
+	        foreach ($data->recs as $index => $dRec){ 
+
 	            if(isset($data->Pager) && !$data->Pager->isOnPage()) continue;
+	            
 	            $data->rows[$index] = $this->detailRecToVerbal($dRec);
+	            
+	            if(array_key_exists($index, $data->recs)) {
+	                $data->rows[$index]->num = $cnt;
+	            }
+	            
+	            $cnt++;
 	        }
 	    }
-	    
+	  
 	    // Рендиране на пейджъра
 	    if(isset($data->Pager)){
 	        $tpl->append($data->Pager->getHtml(), 'PAGER_TOP');
@@ -173,7 +248,12 @@ class sales_reports_PurBomsRep extends frame2_driver_Proto
 	    
 	    // Рендиране на лист таблицата
 	    $fld = cls::get('core_FieldSet');
+	    $fld->FLD('pur', 'varchar');
+	    $fld->FLD('purDate', 'varchar');
 	    $fld->FLD('dealerId', 'varchar', 'smartCenter');
+	    $fld->FLD('article', 'varchar');
+	    $fld->FLD('quantity', 'varchar', 'smartCenter');
+	    $fld->FLD('deliveryTime', 'varchar', 'smartCenter');
 
 	    $table = cls::get('core_TableView', array('mvc' => $fld));
 	    $tpl->append($table->get($data->rows, $data->listFields), 'TABLE');
@@ -194,6 +274,8 @@ class sales_reports_PurBomsRep extends frame2_driver_Proto
 	private function detailRecToVerbal(&$dRec)
 	{
 		$isPlain = Mode::is('text', 'plain');
+		$Int = cls::get('type_Int');
+		$Date = cls::get('type_Date');
 		$row = new stdClass();
 
 		// Линк към дилъра
@@ -201,12 +283,37 @@ class sales_reports_PurBomsRep extends frame2_driver_Proto
 			self::$dealers[$dRec->dealerId] = crm_Profiles::createLink($dRec->dealerId);
 		}
 		
-		$row->dealerId = self::$dealers[$dRec->dealerId];
+		if(isset($dRec->dealerId)) {
+		    $row->dealerId = self::$dealers[$dRec->dealerId];
+		}
+		
 		if($isPlain){
 			$row->dealerId = strip_tags(($row->dealerId instanceof core_ET) ? $row->dealerId->getContent() : $row->dealerId);
 		}
 
-		$row->deliveryTime = ($isPlain) ? frame_CsvLib::toCsvFormatData($dRec->deliveryTime) : dt::mysql2verbal($dRec->deliveryTime);
+		if(isset($dRec->num)) {
+		    $row->num = $Int->toVerbal($dRec->num);
+		}
+
+		//if(isset($dRec->deliveryTime)) {
+		    $row->deliveryTime = ($isPlain) ? frame_CsvLib::toCsvFormatData($dRec->deliveryTime) : dt::mysql2verbal($dRec->deliveryTime);
+		//}
+		
+		if(isset($dRec->pur)) {
+		    $row->pur = sales_Sales::getShortHyperlink($dRec->pur);
+		}
+		
+		if(isset($dRec->purDate)) {
+		    $row->purDate = $Date->toVerbal($dRec->purDate);
+		}
+		
+		if(isset($dRec->article)) {
+		    $row->article = cat_Products::getShortHyperlink($dRec->article);
+		}
+		
+		if(isset($dRec->quantity)) {
+		    $row->quantity = $Int->toVerbal($dRec->quantity);
+		}
 		
 		return $row;
 	}
@@ -244,13 +351,13 @@ class sales_reports_PurBomsRep extends frame2_driver_Proto
      */
     public static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
-   
+
         $dealers = keylist::toArray($rec->dealers);
         foreach ($dealers as $userId => &$nick) {
             $nick = crm_Profiles::createLink($userId)->getContent();
         }
     
-        $row->dealers = implode(', ', $dealers);
+        $row->dealerId = implode(', ', $dealers);
     }
     
     
@@ -264,19 +371,15 @@ class sales_reports_PurBomsRep extends frame2_driver_Proto
      */
     public static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
-       /* $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
+        $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-							    <!--ET_BEGIN place--><small><div><!--ET_BEGIN dealers-->|Търговци|*: [#dealers#]<!--ET_END dealers--></div><!--ET_BEGIN countries--><div>|Държави|*: [#countries#]</div><!--ET_END countries--></small></fieldset><!--ET_END BLOCK-->"));
-    
+							    <small><div><!--ET_BEGIN dealers-->|Търговци|*: [#dealers#]<!--ET_END dealers--></div></small></fieldset><!--ET_END BLOCK-->"));
+      
         if(isset($data->rec->dealers)){
-            $fieldTpl->append($data->row->dealers, 'dealers');
+            $fieldTpl->append($data->row->dealerId, 'dealers');
         }
-    
-        if(isset($data->rec->countries)){
-            $fieldTpl->append($data->row->countries, 'countries');
-        }
-    
-        $tpl->append($fieldTpl, 'DRIVER_FIELDS');*/
+
+        $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
     
     
@@ -380,5 +483,4 @@ class sales_reports_PurBomsRep extends frame2_driver_Proto
     
         return $res;
     }
-    
 }
