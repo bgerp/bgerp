@@ -426,12 +426,12 @@ class thumb_Img
             }
 
             // Ако от името не можем да опрределим формата - пробваме съдържанието
-            if(!in_array($this->format, array('png', 'jpg', 'gif', 'jpeg'))) {
-                if(strlen($uri) && is_readable($uri)) {
-                    $fimg = new thumb_FastImageSize($uri);
-                    $this->format = $fimg->getType();
+            if(strlen($uri) && is_readable($uri)) {
+                $fimg = new thumb_FastImageSize($uri);
+                $format = $fimg->getType();
+                if($format) {
+                    $this->format = $format;
                 }
-
             }
             
             if($this->format == 'jpeg' || empty($this->format)) {
