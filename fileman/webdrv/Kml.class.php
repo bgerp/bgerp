@@ -118,6 +118,10 @@ class fileman_webdrv_Kml extends fileman_webdrv_Xml
             if ($xml->Document->Folder) {
                 if ($xml->Document->Folder->Placemark) {
                     $placemark = $xml->Document->Folder->Placemark;
+                } elseif ($xml->Document->Folder->Folder) {
+                    if ($xml->Document->Folder->Folder->Placemark) {
+                        $placemark = $xml->Document->Folder->Folder->Placemark;
+                    }
                 }
             } else {
                 $placemark = $xml->Document->Placemark;
@@ -139,6 +143,7 @@ class fileman_webdrv_Kml extends fileman_webdrv_Xml
         $coordinates = $infoArr = array();
         
         foreach ($placemark as $pl) {
+            
             if ($pl->Point) {
                 // В този случай се отнасят за един обект
                 $coordinates[0] .= "\n" . (string)$pl->Point->coordinates;
@@ -191,12 +196,21 @@ class fileman_webdrv_Kml extends fileman_webdrv_Xml
             $cExplode = explode("\n", $c);
             
             foreach ($cExplode as $cStr) {
+                
                 if (!$cStr) continue;
                 
-                $eArr = explode(',', $cStr);
+                $cStrArr = explode(' ', $cStr);
                 
-                $cArr[$i]['coords'][] = array($eArr[1], $eArr[0]);
+                foreach ($cStrArr as $cStr2) {
+                    $cStr2Arr = explode(',', $cStr2);
+                    
+                    if (!isset($cStr2Arr[0]) || !isset($cStr2Arr[1])) continue;
+                    
+                    $cArr[$i]['coords'][] = array($cStr2Arr[1], $cStr2Arr[0], $cStr2Arr[2]);
+                }
+                
                 $cArr[$i]['info'] = $infoArr[$i];
+                
             }
         }
         
