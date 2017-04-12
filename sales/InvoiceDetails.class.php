@@ -155,10 +155,10 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
     {
     	// Наблюдаване ако има несъответствия
     	// @TODO да се махне след време
-    	$amount1Compare = round($rec->packPrice * $rec->quantity, 2);
+    	$amount1Compare = round($rec->price * $rec->quantity * $rec->quantityInPack, 2);
     	$amount2Compare = round($rec->amount, 2);
     	if($amount1Compare != $amount2Compare){
-    		wp($rec);
+    		wp($rec,$amount1Compare,$amount2Compare);
     	}
     }
 }
