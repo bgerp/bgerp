@@ -169,25 +169,31 @@ class sales_reports_PurBomsRep extends frame2_driver_Proto
 	        foreach ($agreedProducts as $pId => $pRec){ 
 	            // ако е нестандартен
 	            $productRec = cat_Products::fetch($pId, 'isPublic');
-	           
+	            $d = NULL;
 	            // Ако артикула е нестандартен и няма задание по продажбата 
 	            if($productRec->isPublic == 'no'){    
 	                $jobId = planning_Jobs::fetchField("#productId = {$pId} AND #saleId = {$sRec->id}");
 	              
 	                if (!$jobId){ 	   
 	                    $d  = (object) array ("pur" => $sRec->id,
-	                                                    "purDate" => $sRec->valior, 
-	                                                    "deliveryTime" => $sRec->deliveryTime,
-	                                                    "article" => $pId,
-	                                                    "dealerId" => $dealerId,
-	                                                    "quantity"=>$pRec->quantity
-	                                                    );  
+	                                          "purDate" => $sRec->valior, 
+	                                          "deliveryTime" => $sRec->deliveryTime,
+	                                          "article" => $pId,
+	                                          "dealerId" => $dealerId,
+	                                          "quantity"=>$pRec->quantity);  
 	                }
 	            }	
 	            
-	            $data->recs[$sRec->id]  = $d;
+	            if($d != NULL) {
+	               $data->recs[$sRec->id]  = $d;
+	            }
 	        } 
 	    } 
+	    
+	    foreach ($data->recs as $index => $dRec){
+	    
+	        if($dRec == NULL) unset($data->recs[$index]);
+	    }
 
 	    return $data;
 	}
@@ -201,8 +207,9 @@ class sales_reports_PurBomsRep extends frame2_driver_Proto
 	 */
 	public function renderData($rec)
 	{   
+
 	    if(empty($rec->data)) return;
-	 
+
 	    $tpl = new core_ET("[#PAGER_TOP#][#TABLE#][#PAGER_BOTTOM#]");
 	    
 	    $data = $rec->data;
@@ -217,12 +224,18 @@ class sales_reports_PurBomsRep extends frame2_driver_Proto
 	    }
 	    
 	    // Вербализиране само на нужните записи
-	    $cnt = 1;
-	    if(is_array($data->recs)){ 
-	        foreach ($data->recs as $index => $dRec){
-	            $data->recs[$index]->num = $cnt;
+	    $cnt = 1; 
+	    if(is_array($data->recs)){
+	        foreach ($data->recs as $index => $dRec){ 
+
 	            if(isset($data->Pager) && !$data->Pager->isOnPage()) continue;
+	            
 	            $data->rows[$index] = $this->detailRecToVerbal($dRec);
+	            
+	            if(array_key_exists($index, $data->recs)) {
+	                $data->rows[$index]->num = $cnt;
+	            }
+	            
 	            $cnt++;
 	        }
 	    }
