@@ -1926,6 +1926,7 @@ abstract class deals_DealMaster extends deals_DealBase
     		$res["{$ownPart}PCode"]   = !empty($storeLocation->pCode) ? $storeLocation->pCode : NULL;
     		$res["{$ownPart}Place"]   = !empty($storeLocation->place) ? $storeLocation->place : NULL;
     		$res["{$ownPart}Address"] = !empty($storeLocation->address) ? $storeLocation->address : NULL;
+    		$res["{$ownPart}Person"]  = !empty($storeLocation->mol) ? $storeLocation->mol : NULL;
     	} else {
     		$res["{$ownPart}PCode"]   = !empty($ownCompany->pCode) ? $ownCompany->pCode : NULL;
     		$res["{$ownPart}Place"]   = !empty($ownCompany->place) ? $ownCompany->place : NULL;
@@ -1933,7 +1934,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	}
     	$res["{$ownPart}Company"] = $ownCompany->name;
     	$personId = ($rec->dealerId) ? $rec->dealerId : (($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy);
-    	$res["{$ownPart}Person"] = core_users::fetchField($personId, 'names');
+    	$res["{$ownPart}Person"] = ($res["{$ownPart}Person"]) ? $res["{$ownPart}Person"] : core_users::fetchField($personId, 'names');
     	
     	$res["{$contrPart}Country"] = $contragentCountry;
     	$res["{$contrPart}Company"] = $contragentData->company;
