@@ -337,7 +337,7 @@ class price_ListToCustomers extends core_Manager
         		
         		// Ако драйвера може да върне цена, връщаме нея
         		if($Driver = cat_Products::getDriver($productId)){
-        			$price = $Driver->getPrice($productId, $quantity, $deltas->minDelta, $deltas->maxDelta, $datetime);
+        			$price = $Driver->getPrice($productId, $quantity, $deltas->minDelta, $deltas->maxDelta, $datetime, $rate, $chargeVat);
         			if(isset($price)){
         				$rec->price = $price;
         				

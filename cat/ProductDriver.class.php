@@ -373,9 +373,11 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * @param double $minDelta     - минималната отстъпка
 	 * @param double $maxDelta     - максималната надценка
 	 * @param datetime $datetime   - дата
+	 * @param double $rate  - валутен курс
+     * @param enum(yes=Включено,no=Без,separate=Отделно,export=Експорт) $chargeVat - начин на начисляване на ддс
 	 * @return double|NULL $price  - цена
 	 */
-	public function getPrice($productId, $quantity, $minDelta, $maxDelta, $datetime = NULL)
+	public function getPrice($productId, $quantity, $minDelta, $maxDelta, $datetime = NULL, $rate = 1, $chargeVat = 'no')
 	{
 		return NULL;
 	}
