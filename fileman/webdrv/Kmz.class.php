@@ -65,69 +65,73 @@ class fileman_webdrv_Kmz extends fileman_webdrv_Kml
             
             // throw fileman_Exception - ако размера е над допустимия за обработка,
             // трябва да го прихванеш
-            try{
-                $archiveInst = fileman_webdrv_Archive::getArchiveInst($fRec);
-            }catch(fileman_Exception $e){
-                $error = TRUE;
-            }
-            
             try {
-                $entriesArr = $archiveInst->getEntries();
-            } catch (ErrorException $e) {
+                $archiveInst = fileman_webdrv_Archive::getArchiveInst($fRec);
+            } catch(fileman_Exception $e) {
+                self::logWarning($e->getMessage());
                 $error = TRUE;
             }
             
-            $archiveHaveExt = FALSE;
-            
-            foreach ($entriesArr as $key => $entry) {
-                $size = $entry->getSize();
-            
-                if (!$size) continue;
-            
-                // Гледаме размера след разархивиране да не е много голям
-                // Защита от "бомби" - от препълване на сървъра
-                if ($size > ARCHIVE_MAX_FILE_SIZE_AFTER_EXTRACT) continue;
-            
-                $path = $entry->getPath();
-                
-                $ext = pathinfo($path, PATHINFO_EXTENSION);
-            
-                if (!$ext) continue;
-                
-                $ext = strtolower($ext);
-                
-                if ($ext != 'kml') continue;
-                
-                // След като открием файла който ще пратим към VT
+            if (!$error) {
                 try {
-                    $extractedPath = $archiveInst->extractEntry($path);
+                    $entriesArr = $archiveInst->getEntries();
                 } catch (ErrorException $e) {
-                    $error = FALSE;
+                    self::logWarning($e->getMessage());
+                    $error = TRUE;
+                }
+            }
+            
+            if (!$error) {
+                foreach ($entriesArr as $key => $entry) {
+                    $size = $entry->getSize();
+                
+                    if (!$size) continue;
+                
+                    // Гледаме размера след разархивиране да не е много голям
+                    // Защита от "бомби" - от препълване на сървъра
+                    if ($size > ARCHIVE_MAX_FILE_SIZE_AFTER_EXTRACT) continue;
+                
+                    $path = $entry->getPath();
+                
+                    $ext = pathinfo($path, PATHINFO_EXTENSION);
+                
+                    if (!$ext) continue;
+                
+                    $ext = strtolower($ext);
+                
+                    if ($ext != 'kml') continue;
+                
+                    // След като открием файла който ще пратим към VT
+                    try {
+                        $extractedPath = $archiveInst->extractEntry($path);
+                    } catch (ErrorException $e) {
+                        continue;
+                    }
+                
+                    if (!is_file($extractedPath)) {
+                        continue;
+                    }
+                    $kml = fileman::absorb($extractedPath, 'archive');
+                
+                    if ($kml) {
+                        $archiveInst->deleteTempPath();
+                        break;
+                    } else {
+                        continue;
+                    }
                 }
                 
-                if (!is_file($extractedPath)) {
-                    $error = FALSE;
-                }
-                $kml = fileman::absorb($extractedPath, 'archive');
+                $params = array();
+                $params['dataId'] = $fRec->dataId;
+                $params['type'] = 'kml';
+                $params['createdBy'] = core_Users::getCurrent();
                 
                 if ($kml) {
-                    $archiveInst->deleteTempPath();
-                    break;
+                    $params['content'] = fileman_Indexes::prepareContent(array($kml));
+                    fileman_Indexes::saveContent($params);
                 } else {
-                    $error = FALSE;
+                    fileman_Indexes::createError($params);
                 }
-            }
-            
-            $params = array();
-            $params['dataId'] = $fRec->dataId;
-            $params['type'] = 'kml';
-            $params['createdBy'] = core_Users::getCurrent();
-            
-            if ($kml) {
-                $params['content'] = fileman_Indexes::prepareContent(array($kml));
-                fileman_Indexes::saveContent($params);
-            } else {
-                fileman_Indexes::createError($params);
             }
         } else {
             $kmlArr = fileman_Indexes::decodeContent($kml);
