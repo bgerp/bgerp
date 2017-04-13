@@ -371,7 +371,7 @@ class backup_Start extends core_Manager
      */
     private static function saveFileMan()
     {
-        $unArchived = fileman_Data::getUnArchived(100);
+        $unArchived = fileman_Data::getUnArchived(self::$conf->BACKUP_FILEMAN_COUNT_FILES);
 
         foreach ($unArchived as $fileObj) {
             if (file_exists($fileObj->path)) {
