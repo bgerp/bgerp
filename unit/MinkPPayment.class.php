@@ -6,8 +6,8 @@
  *
  * @category  bgerp
  * @package   tests
- * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @author    Pavlinka Dainovska <pdainovska@gmail.com>
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -1080,6 +1080,8 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('note', 'MinkPPaymentPurchaseOverdue');
         $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
+        $browser->setValue('template', "Договор за покупка");
+        
         $browser->press('Чернова');
         // Записваме черновата на покупката
         // Добавяме нов артикул
