@@ -426,6 +426,11 @@ class cal_Tasks extends core_Master
         // Време за подредба на записите в портала
         $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'waiting' THEN 2 ELSE 3 END)");
         $data->query->orderBy('#orderByState=ASC');
+        
+        // Чакащите задачи, ако имат начало първо по тях да се подреждат, после по последно
+        $data->query->XPR('waitingOrder', 'datetime', "IF((#state = 'waiting' AND (#timeStart)), -#timeStart, NULL)");
+        
+        $data->query->orderBy("waitingOrder", "DESC");
         $data->query->orderBy("modifiedOn", "DESC");
         $data->query->orderBy("createdOn", "DESC");
         
