@@ -91,7 +91,7 @@ class cal_TaskProgresses extends core_Detail
             'caption=Очакван край, silent');
         
         // Статус съобщение
-        $this->FLD('message',    'richtext(rows=5)', 'caption=Съобщение');
+        $this->FLD('message',    'richtext(rows=5, bucket=calTasks)', 'caption=Съобщение');
     }
 
 
