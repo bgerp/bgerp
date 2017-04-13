@@ -29,7 +29,7 @@ class unit_MinkPGroups extends core_Manager {
         $res .= "<br>".'MinkPGroups';
         $res .= "  1.".$this->act_CreateGroup1();
         $res .= "  2.".$this->act_CreateGroup2();
-        //$res .= "  3.".$this->act_CreateFeeZones();
+        $res .= "  3.".$this->act_CreateProduct1();
         return $res;
     }
     
@@ -105,6 +105,52 @@ class unit_MinkPGroups extends core_Manager {
         
     }
     
+    /**
+     * 3. Създаване на артикул от първата група от последното ниво
+     */
+    //http://localhost/unit_MinkPGroups/CreateProduct1/
+    function act_CreateProduct1()
+    {
+        // Логване
+        $browser = $this->SetUp();
     
-   
+        // Създаване на нов артикул от първата група от последното ниво
+        $browser->click('Каталог');
+        $browser->press('Нов запис');
+        $browser->setValue('catcategorieId', 'Продукти');
+        $browser->press('Напред');
+        $browser->setValue('name', 'Кашон 30x50x20');
+        $browser->setValue('code', 'K1');
+        $browser->setValue('measureId', 'брой');
+        $browser->setValue('meta_canBuy', 'canBuy');
+        $browser->setValue('Продукти » Кашони » Големи', True);
+        $browser->press('Запис');
+        
+        //return $browser->getHtml();
+    }
+    
+    /**
+     * 4. Създаване на артикул от втората група от последното ниво
+     */
+    
+    //http://localhost/unit_MinkPGroups/CreateProduct2/
+    function act_CreateProduct2()
+    {
+        // Логване
+        $browser = $this->SetUp();
+    
+        // Създаване на нов артикул - продукт
+        $browser->click('Каталог');
+        $browser->press('Нов запис');
+        $browser->setValue('catcategorieId', 'Продукти');
+        $browser->press('Напред');
+        $browser->setValue('name', 'Кашон 20x30x16');
+        $browser->setValue('code', 'K2');
+        $browser->setValue('measureId', 'брой');
+        $browser->setValue('meta_canBuy', 'canBuy');
+        $browser->setValue('Продукти » Кашони » Малки', True);
+        $browser->press('Запис');
+    
+        //return $browser->getHtml();
+    }
 }
