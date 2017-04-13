@@ -30,6 +30,8 @@ class unit_MinkPGroups extends core_Manager {
         $res .= "  1.".$this->act_CreateGroup1();
         $res .= "  2.".$this->act_CreateGroup2();
         $res .= "  3.".$this->act_CreateProduct1();
+        $res .= "  4.".$this->act_CreateProduct2();
+        $res .= "  5.".$this->act_FilterCatGroup();
         return $res;
     }
     
@@ -126,8 +128,7 @@ class unit_MinkPGroups extends core_Manager {
         $browser->setValue('Продукти » Кашони » Големи', True);
         $browser->press('Запис');
         
-        //return $browser->getHtml();
-    }
+     }
     
     /**
      * 4. Създаване на артикул от втората група от последното ниво
@@ -151,6 +152,30 @@ class unit_MinkPGroups extends core_Manager {
         $browser->setValue('Продукти » Кашони » Малки', True);
         $browser->press('Запис');
     
-        //return $browser->getHtml();
     }
+    
+    /**
+     * 5. Филтриране по група артикули
+     */
+    //http://localhost/unit_MinkPGroups/FilterCatGroup/
+    function act_FilterCatGroup()
+    {
+        // Логване
+        $browser = $this->SetUp();
+    
+        $browser->click('Каталог');
+        // търсене
+        $browser->setValue('groupId', 'Продукти');
+        $browser->press('Филтрирай');
+        if(strpos($browser->gettext(), 'Кашон 30x50x20')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Липсва артикул от първия запис на последното ниво', 'warning');
+        }
+        if(strpos($browser->gettext(), 'Кашон 20x30x16')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Липсва артикул от втория запис на последното ниво', 'warning');
+        }
+        return $browser->getHtml();
+    }
+     
 }
