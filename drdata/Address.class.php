@@ -392,13 +392,7 @@ class drdata_Address extends core_MVC
     }
 
 
-
-
-
-
-
-
-   
+  
     /**
      * Извлича данните за контакт от даден текст
      * 
@@ -922,5 +916,44 @@ class drdata_Address extends core_MVC
         $res .= "\n</table>";
 
         return $res;
+    }
+
+
+    /**
+     * Парсира място, като се опитва да извлече държава и код
+     * 
+     * @return object ->pCode & ->countryId
+     */
+    public static function parsePlace($str)
+    {
+        $div = array(',', ';', '-', ' ');
+        $best = NULL;
+
+        foreach($div as $d) {
+            $arr = explode($d, $str);
+            $o = new stdClass();
+            foreach($arr as $part) {
+                $part = trim($part, ",;- \t\n\r");
+                if(preg_match("/[0-9]/", $part)) {
+                    $o->pCode = $part;
+                    continue;
+                }
+                if($countryId = drdata_Countries::getIdByName($part)) {
+                    $o->countryId = $countryId;
+                }
+                if($o->countryId && $o->code) break;
+            }
+
+            if(!$best && $o->countryId) {
+                $best = new stdClass();
+                $best = $o;
+            }
+
+            if($o->countryId && $o->pCode) {
+                $best = $o;
+            }
+        }
+
+        return $best;
     }
 }
