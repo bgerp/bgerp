@@ -175,7 +175,7 @@ class unit_MinkPGroups extends core_Manager {
         } else {
             return unit_MinkPbgERP::reportErr('Липсва артикул от втория запис на последното ниво', 'warning');
         }
-        return $browser->getHtml();
+        
     }
      
 }
