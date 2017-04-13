@@ -139,6 +139,29 @@ class cal_TaskDocuments extends core_Detail
         return $sId; 
     }
     
+    /**
+     * Връща първия документ, добавен към задачата
+     * 
+     * @param integer $taskId
+     * @return integer|FALSE
+     */
+    public static function getFirstDocumentCid($taskId)
+    {
+        $query = self::getQuery();
+        $query->where(array("#taskId = '[#1#]'", $taskId));
+        $query->where("#state != 'rejected'");
+        $query->orderBy("createdOn", 'ASC');
+        $query->limit(1);
+        
+        $rec = $query->fetch();
+        
+        if (!$rec) {
+            
+            return FALSE;
+        }
+        
+        return $rec->containerId;
+    }
 
     /**
      * Изпълнява се след създаване на нов запис
