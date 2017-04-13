@@ -162,7 +162,12 @@ class transsrv_Import extends core_BaseClass
      */
     private static function forcePurchaseId($folderId, $data)
     {
-    	$chargeVat = ($data->fromCountry != 'Bulgaria' || $data->toCountry != 'Bulgaria') ? 'no' : 'separate';
+    	$fromCountryId = drdata_Countries::fetchField("#commonName = '{$data->fromCountry}'");
+    	
+    	$chargeVat = 'no';
+    	if($data->toCountry == 'Bulgaria' && drdata_Countries::isEu($fromCountryId)){
+    		$chargeVat = 'separate';
+    	}
     	
     	$purQuery = purchase_Purchases::getQuery();
     	$purQuery->where("#folderId = '{$folderId}'");

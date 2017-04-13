@@ -515,7 +515,9 @@ class sales_QuotationsDetails extends doc_Detail {
     		
     		if(!$form->gotErrors()){
     		    if(isset($masterRec->deliveryPlaceId)){
-    		        $masterRec->deliveryPlaceId  = crm_Locations::fetchField("#title = '{$masterRec->deliveryPlaceId}'", 'id');
+    		    	if($locationId = crm_Locations::fetchField("#title = '{$masterRec->deliveryPlaceId}'", 'id')){
+    		    		$masterRec->deliveryPlaceId  = $locationId;
+    		    	}
     		    }
     		  
     		    if($rec->productId){

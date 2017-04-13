@@ -426,6 +426,11 @@ class cal_Tasks extends core_Master
         // Време за подредба на записите в портала
         $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'waiting' THEN 2 ELSE 3 END)");
         $data->query->orderBy('#orderByState=ASC');
+        
+        // Чакащите задачи, ако имат начало първо по тях да се подреждат, после по последно
+        $data->query->XPR('waitingOrder', 'datetime', "IF((#state = 'waiting' AND (#timeStart)), -#timeStart, NULL)");
+        
+        $data->query->orderBy("waitingOrder", "DESC");
         $data->query->orderBy("modifiedOn", "DESC");
         $data->query->orderBy("createdOn", "DESC");
         
@@ -459,6 +464,12 @@ class cal_Tasks extends core_Master
                 // Документа да е линк към single' а на документа
                 $row->title = ht::createLink($title, self::getSingleUrlArray($rec->id), NULL, array('ef_icon' => $me->getIcon($rec->id)));
                 
+                if ($row->title instanceof core_ET) {
+                    $row->title->append($row->subTitleDiv);
+                } else {
+                    $row->title .= $row->subTitleDiv;
+                }
+                
                 if ($rec->savedState == 'waiting') {
                     $row->title = "<div class='state-waiting-link'>{$row->title}</div>";
                 } elseif ($rec->savedState == 'closed') {
@@ -487,6 +498,25 @@ class cal_Tasks extends core_Master
         $tpl->append(self::renderListPager($data), 'PortalPagerBottom');
 
         return $tpl;
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    protected static function on_AfterPrepareListRows($mvc, &$res, $data)
+    {
+        foreach ($data->rows as $id => $row) {
+            
+            $row->subTitle = $mvc->getDocumentRow($id)->subTitle;
+            $row->subTitleDiv = "<div class='threadSubTitle'>{$row->subTitle}</div>";
+            
+            if ($row->title instanceof core_ET) {
+                $row->title->append($row->subTitleDiv);
+            } else {
+                $row->title .= $row->subTitleDiv;
+            }
+        }
     }
     
     
@@ -1243,9 +1273,47 @@ class cal_Tasks extends core_Master
             $usersArr += type_Keylist::toArray($rec->sharedUsers);
         }
         if (!empty($usersArr)) {
+            
+            $subTitleMaxUsersCnt = 3;
+            $othersStr = '';
+            if (count($usersArr) > $subTitleMaxUsersCnt) {
+                $usersArr = array_slice($usersArr, 0, $subTitleMaxUsersCnt, TRUE);
+                $othersStr = ' ' . tr('и др.');
+            }
+            
             $Users = cls::get('type_userList');
             // В заглавието добавяме потребителя
             $row->subTitle = $Users->toVerbal(type_userList::fromArray($usersArr));
+            $row->subTitle .= $othersStr;
+        }
+        
+        // Добавяме първия документ в subTitle
+        if ($fCid = cal_TaskDocuments::getFirstDocumentCid($rec->id)) {
+            $document = doc_Containers::getDocument($fCid);
+            
+            if ($document->instance instanceof cal_Tasks) {
+                $dTitle = $document->getVerbal('title');
+            } else {
+                $dTitle = doc_Containers::getDocTitle($fCid);
+            }
+            
+            $row->subTitle .= $row->subTitle ? ' - ' : '';
+            
+            $row->subTitle .= $dTitle;
+        }
+        
+        $date = '';
+        if ($rec->state == 'active' && $rec->timeEnd) {
+            $date = $rec->timeEnd;
+        }
+        
+        if ($rec->state = 'waiting' && $rec->timeStart) {
+            $date = $rec->timeStart;
+        }
+        
+        if ($date) {
+            $row->subTitle .= $row->subTitle ? ' - ' : '';
+            $row->subTitle .= dt::mysql2verbal($date, 'smartTime');
         }
         
         //Създателя
