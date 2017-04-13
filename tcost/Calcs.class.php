@@ -257,15 +257,21 @@ class tcost_Calcs extends core_Manager
     	$cData = cls::get($contragentClassId)->getContragentData($contragentId);
     	
     	// Ако има локация, адресните данни са приоритетни от там
-    	if(isset($locationId) && is_numeric($locationId)){
-    		$locationRec = crm_Locations::fetch($locationId);
-    		$locationCountryId = (isset($locationRec->countryId)) ? $locationRec->countryId : $cData->countryId;
-    		if(isset($locationCountryId) && !empty($locationRec->pCode)){
-    			return array('pCode' => $locationRec->pCode, 'countryId' => $locationCountryId);
-    		}
-    		
-    		if(isset($locationRec->countryId)) {
-    			return array('pCode' => NULL, 'countryId' => $locationRec->countryId);
+    	if(isset($locationId)){
+    		if(is_numeric($locationId)){
+    			$locationRec = crm_Locations::fetch($locationId);
+    			$locationCountryId = (isset($locationRec->countryId)) ? $locationRec->countryId : $cData->countryId;
+    			if(isset($locationCountryId) && !empty($locationRec->pCode)){
+    				return array('pCode' => $locationRec->pCode, 'countryId' => $locationCountryId);
+    			}
+    			
+    			if(isset($locationRec->countryId)) {
+    				return array('pCode' => NULL, 'countryId' => $locationRec->countryId);
+    			}
+    		} else {
+    			if($parsePlace = drdata_Address::parsePlace($locationId)){
+    				return array('pCode' => $parsePlace->pCode, 'countryId' => $parsePlace->countryId);
+    			}
     		}
     	}
     	
