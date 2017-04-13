@@ -257,14 +257,26 @@ class cat_reports_BomsRep extends frame_BaseDriver
             unset($rec->params['$T']);
             
             foreach($rec->params as $name=>$val) {
-                
+             
                 //if(!is_numeric($val)) continue;
-                
+
                 $name = cat_Params::getNormalizedName($name);
                 $name = str_replace("_", " ", $name);
+         
+                if(strpos($name, "дължина") !== FALSE) { 
+                    $row->length = $val;
+                    continue;
+                }
                 
-                $row->params .= $name . ": " . $val . "<br/>";
-   
+                if(strpos($name, "широчина") !== FALSE) {
+                    $row->width = $val;
+                    continue;
+                }
+                
+                if(strpos($name, "височина") !== FALSE) {
+                    $row->height = $val;
+                    continue;
+                }
             }
         }
          
@@ -312,8 +324,10 @@ class cat_reports_BomsRep extends frame_BaseDriver
         // Кои полета ще се показват
         $data->listFields = arr::make("num=№,
                              article=Детайл,
-    					     articleCnt=Брой,
-    					     params=Параметри,
+                             length=Параметри->Дължина,
+    					     width=Параметри->Ширина,
+                             height=Параметри->Височина,
+                             articleCnt=Брой,
                              materials=Материали->Име,
                              mParams=Материали->Мярка,
                              mCnt=Материали->Количество", TRUE);
@@ -354,7 +368,9 @@ class cat_reports_BomsRep extends frame_BaseDriver
     	$f->FLD('num', 'int');
     	$f->FLD('article', 'varchar');
     	$f->FLD('articleCnt', 'int', 'tdClass=accItemClass,smartCenter');
-    	$f->FLD('params', 'varchar','tdClass=itemClass');
+    	$f->FLD('length', 'varchar','tdClass=smartCenter');
+    	$f->FLD('width', 'varchar','tdClass=smartCenter');
+    	$f->FLD('height', 'varchar','tdClass=smartCenter');
     	$f->FLD('materials', 'varchar');
     	$f->FLD('mParams', 'varchar');
     	$f->FLD('mCnt', 'int','tdClass=accItemClass,smartCenter');
@@ -385,7 +401,9 @@ class cat_reports_BomsRep extends frame_BaseDriver
         $f->FLD('num', 'int');
         $f->FLD('article', 'key(mvc=cat_Products,select=name)');
         $f->FLD('articleCnt', 'int');
-        $f->FLD('params', 'varchar');
+        $f->FLD('length', 'varchar');
+        $f->FLD('width', 'varchar');
+        $f->FLD('height', 'varchar');
         $f->FLD('materials', 'key(mvc=cat_Products,select=name)');
         $f->FLD('mParams', 'key(mvc=cat_UoM,select=shortName)');
         $f->FLD('mCnt', 'int');
@@ -407,7 +425,9 @@ class cat_reports_BomsRep extends frame_BaseDriver
         $fields = arr::make("num=№,
                              article=Детайл,
     					     articleCnt=Брой,
-                             params=Параметри,
+                             length=Параметри->Дължина,
+                             width=Параметри->Ширина,
+                             height=Параметри->Височина,
                              materials=Материали->Име,
     					     mParams=Материали->Мярка,
                              mCnt=Материали->Количество", TRUE);
