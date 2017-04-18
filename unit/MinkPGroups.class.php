@@ -32,6 +32,8 @@ class unit_MinkPGroups extends core_Manager {
         $res .= "  3.".$this->act_CreateProduct1();
         $res .= "  4.".$this->act_CreateProduct2();
         $res .= "  5.".$this->act_FilterCatGroup();
+        $res .= "  6.".$this->act_CreateContractorGroup1();
+        $res .= "  7.".$this->act_CreateContractorGroup2();
         return $res;
     }
     
@@ -177,5 +179,57 @@ class unit_MinkPGroups extends core_Manager {
         }
         
     }
-     
+    
+    /**
+     * 6. Създаване на група контрагенти - подниво на клиенти
+     */
+    //http://localhost/unit_MinkPGroups/CreateContractorGroup1/
+    function act_CreateContractorGroup1()
+    {
+        // Логване
+        $browser = $this->SetUp();
+    
+        // Създаване на нова група
+        $browser->click('Визитник');
+        $browser->click('Групи');
+        $browser->press('Нов запис');
+        $browser->setValue('name', 'Големи клиенти');
+        $browser->setValue('parentId', 'Клиенти');
+        $browser->press('Запис');
+        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+            $browser->press('Отказ');
+            return $this->reportErr('Дублиране на група', 'info');
+        }
+    }
+    
+    /**
+     * 7. Създаване на група контрагенти - подниво на поднивото
+     */
+    //http://localhost/unit_MinkPGroups/CreateContractorGroup2/
+    function act_CreateContractorGroup2()
+    {
+        // Логване
+        $browser = $this->SetUp();
+    
+        // Създаване на нова група
+        $browser->click('Визитник');
+        $browser->click('Групи');
+        $browser->press('Нов запис');
+        $browser->setValue('name', 'Местни');
+        $browser->setValue('parentId', 'Големи клиенти');
+        $browser->press('Запис');
+        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+            $browser->press('Отказ');
+            return $this->reportErr('Дублиране на група', 'info');
+        }
+        $browser->click('Групи');
+        $browser->press('Нов запис');
+        $browser->setValue('name', 'Чуждестранни');
+        $browser->setValue('parentId', 'Големи клиенти');
+        $browser->press('Запис');
+        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+            $browser->press('Отказ');
+            return $this->reportErr('Дублиране на група', 'info');
+        }
+    }
 }
