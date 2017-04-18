@@ -37,7 +37,7 @@ class tcost_Zones extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "countryId, pCode, deliveryTime, createdOn, createdBy";
+    public $listFields = "countryId, pCode, createdOn, createdBy";
 
 
     /**
