@@ -68,7 +68,7 @@ class frame2_ReportVersions extends core_Detail
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'createdBy=От,createdOn=Версия';
+	public $listFields = 'createdBy=От,createdOn=Версия,versionBefore=Предишна версия';
 	
 	
 	/**
@@ -90,6 +90,7 @@ class frame2_ReportVersions extends core_Detail
 	{
 		$this->FLD("reportId", "key(mvc=frame2_Reports)", "caption=Репорт");
 		$this->FLD("oldRec", "blob(serialize, compress)", "caption=Стар запис");
+		$this->FLD("versionBefore", "int", "caption=Предишна версия");
 	}
 	
 	
@@ -102,7 +103,7 @@ class frame2_ReportVersions extends core_Detail
 	public static function log($reportId, $rec)
 	{
 		// Записа на новата версия
-		$logRec = (object)array('reportId' => $reportId, 'oldRec' => $rec);
+		$logRec = (object)array('reportId' => $reportId, 'oldRec' => $rec, 'versionBefore' => NULL);
 		
 		// Опит за намиране на последната записана версия
 		$query = self::getQuery();
@@ -118,6 +119,7 @@ class frame2_ReportVersions extends core_Detail
 			
 			// Ако няма промяна на данните, не се записва нова версия
 			if(serialize($obj1) == serialize($obj2)) return FALSE;
+			$logRec->versionBefore = $lastRec->id;
 		}
 		
 		// Запис на новата версия
