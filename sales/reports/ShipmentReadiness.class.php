@@ -20,7 +20,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 	/**
 	 * Кой може да избира драйвъра
 	 */
-	public $canSelectDriver = 'ceo, store, sales, admin';
+	public $canSelectDriver = 'ceo, store, sales, admin, purchase';
 	
 	
 	/**
