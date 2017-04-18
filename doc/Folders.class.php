@@ -191,9 +191,10 @@ class doc_Folders extends core_Master
      */
     public static function logRead($action, $objectId = NULL, $lifeDays = 180)
     {
-        self::logToFolder('read', $action, $objectId, $lifeDays);
-        
-        return parent::logRead($action, $objectId, $lifeDays);
+        if (!self::logToFolder('read', $action, $objectId, $lifeDays)) {
+            
+            return parent::logRead($action, $objectId, $lifeDays);
+        }
     }
     
     
@@ -208,9 +209,10 @@ class doc_Folders extends core_Master
      */
     public static function logWrite($action, $objectId = NULL, $lifeDays = 360)
     {
-        self::logToFolder('write', $action, $objectId, $lifeDays);
-        
-        return parent::logWrite($action, $objectId, $lifeDays);
+        if (!self::logToFolder('write', $action, $objectId, $lifeDays)) {
+            
+            return parent::logWrite($action, $objectId, $lifeDays);
+        }
     }
     
     
