@@ -62,25 +62,25 @@ class frame2_Reports extends embed_Manager
     /**
      * Права за писане
      */
-    public $canWrite = 'ceo, report, admin';
+    public $canWrite = 'powerUser';
     
     
     /**
      * Права за писане
      */
-    public $canEdit = 'ceo, report, admin';
+    public $canEdit = 'powerUser';
     
     
     /**
      * Права за писане
      */
-    public $canExport = 'ceo, report, admin';
+    public $canExport = 'powerUser';
     
     
     /**
      * Права за писане
      */
-    public $canRefresh = 'ceo, report, admin';
+    public $canRefresh = 'powerUser';
     
     
     /**
@@ -92,13 +92,13 @@ class frame2_Reports extends embed_Manager
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo, report, admin';
+	public $canSingle = 'powerUser';
     
     
 	/**
 	 * Кой може да добавя?
 	 */
-	public $canAdd = 'ceo, report, admin';
+	public $canAdd = 'powerUser';
 	
 	
 	/**
@@ -546,6 +546,23 @@ class frame2_Reports extends embed_Manager
     	if($action == 'export' && isset($rec)){
     		if(!$mvc->haveRightFor('single', $rec)){
     			$requiredRoles = 'no_one';
+    		}
+    	}
+    	
+    	// Документа може да бъде създаван ако потребителя може да избере поне един драйвер
+    	if($action == 'add'){
+    		$options = self::getAvailableDriverOptions($userId);
+    		if(!count($options)){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
+    	
+    	// За модификация, потребителя трябва да има права и за драйвера
+    	if(in_array($action, array('edit', 'write', 'refresh', 'export')) && isset($rec->driverClass)){
+    		if($Driver = $mvc->getDriver($rec)){
+    			if(!$Driver->canSelectDriver($userId)){
+    				$requiredRoles = 'no_one';
+    			}
     		}
     	}
     }
