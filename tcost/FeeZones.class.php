@@ -179,6 +179,10 @@ class tcost_FeeZones extends core_Master
     	// Колко е еденичното транспортно тегло на артикула
     	$weightRow = cat_Products::getWeight($productId, $packagingId, $quantity);
     	$volumeRow = cat_Products::getVolume($productId, $packagingId, $quantity);
+    	
+    	// Ако теглото е 0 и няма обем, да не се изчислява транспорт
+    	if(empty($weightRow) && isset($weightRow) && empty($volumeRow)) return;
+    	
     	$weightRow = $this->getVolumicWeight($weightRow, $volumeRow);
     	
     	// Ако няма, цената няма да може да се изчисли
