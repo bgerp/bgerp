@@ -11,7 +11,7 @@
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Готовност за експедиция
+ * @title     Логистика » Готовност за експедиция
  */
 class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 {
