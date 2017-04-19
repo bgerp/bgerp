@@ -195,6 +195,18 @@ defIfNot('EMAIL_STOP_SEND_TO', 'no-reply@*,noreply@*');
 
 
 /**
+ * Хедъри, които ще се проверяват за спам скоре
+ */
+defIfNot('EMAIL_AUTO_REJECT_SPAM_SCORE_HEADERS', 'x-spam-score');
+
+
+/**
+ * Стойност, над която имейлите ще се приемат за спам
+ */
+defIfNot('EMAIL_AUTO_REJECT_SPAM_SCORE', 2);
+
+
+/**
  * class email_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -314,6 +326,10 @@ class email_Setup extends core_ProtoSetup
             'EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING_EN' => array ('varchar', 'caption=Текст по подразбиране при препращане на имейл->На английски, customizeBy=powerUser'),
             
             'EMAIL_STOP_SEND_TO' => array ('varchar', 'caption=Шаблон за имейли до които няма да се праща->Шаблон'),
+            
+            'EMAIL_AUTO_REJECT_SPAM_SCORE_HEADERS' => array ('varchar', 'caption=Проверка за спам и автоматично оттегляне на имейли->Хедъри'),
+            
+            'EMAIL_AUTO_REJECT_SPAM_SCORE' => array ('varchar', 'caption=Проверка за спам и автоматично оттегляне на имейли->Резултат'),
         );
         
         

@@ -54,6 +54,7 @@ class tracking_Log extends core_Master {
         $this->FNC('text', 'html', 'caption=Данни');
         $this->FLD('remoteIp', 'ip', 'caption=Tракер IP');
         
+        $this->setDbIndex('vehicleId');
         $this->dbEngine = 'InnoDB';
     }
     

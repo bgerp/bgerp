@@ -306,11 +306,12 @@ class tcost_Calcs extends core_Manager
     	
     	$query = self::getQuery();
     	$query->where("#docClassId = {$classId} AND #docId = {$docId}");
+    	
     	$query->where("#fee != {$feeErr}");
     	while($rec = $query->fetch()){
     		if($isQuote === TRUE){
     			$dRec = sales_QuotationsDetails::fetch($rec->recId, 'price,optional');
-    			if(!isset($dRec->price) || $dRec->optional == 'yes') continue;
+    			if($dRec->optional == 'yes') continue;
     		}
     		
     		$count += $rec->fee;

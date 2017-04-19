@@ -991,7 +991,6 @@ class email_Incomings extends core_Master
         
         $hint .= " |" . $errStr;
         
-        
         return  ht::createHint($emailStr, $hint, $type);
     }
     
@@ -1308,7 +1307,7 @@ class email_Incomings extends core_Master
         $before = dt::subtractSecs(3600);
         $query->where(array("#modifiedOn >= '[#1#]'", $before));
         $query->where("#modifiedBy > 0");
-        $query->where("#state = 'rejected'");
+        $query->where("#state = 'rejected' AND #brState IS NOT NULL");
         $query->orWhere("#brState = 'rejected'");
         $query->EXT('docCnt', 'doc_Threads', 'externalName=allDocCnt,remoteKey=firstContainerId, externalFieldName=containerId');
         $query->where("#docCnt <= 1");
@@ -1520,6 +1519,36 @@ class email_Incomings extends core_Master
             }
             
             if ($rec->routeBy && $rec->threadId) return ;
+        }
+        
+        // Ако няма да се рутира в нишка, правим проверка на СПАМ рейтинга и оттегляме
+        if ($rec->routeBy != 'file' && $rec->routeBy != 'thread') {
+            
+            $headersNames = email_Setup::get('AUTO_REJECT_SPAM_SCORE_HEADERS');
+            
+            $headersNamesArr = type_Set::toArray($headersNames);
+            
+            if ($headersNamesArr) {
+                
+                $spamScore = email_Setup::get('AUTO_REJECT_SPAM_SCORE');
+                
+                foreach ($headersNamesArr as $header) {
+                    
+                    $header = trim($header);
+                    
+                    if (!$header) continue;
+                    
+                    $score = email_Mime::getHeadersFromArr($rec->headers, $header);
+                    
+                    if (isset($score) && ($score >= $spamScore)) {
+                        $rec->state = 'rejected';
+                        
+                        self::logNotice("Автоматично оттеглен имейл със '{$header}' = '{$score}'");
+                        
+                        break;
+                    }
+                }
+            }
         }
         
         // Първо рутираме по ръчно зададените правила

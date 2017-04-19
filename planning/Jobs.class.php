@@ -123,12 +123,6 @@ class planning_Jobs extends core_Master
     
     
     /**
-     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-     */
-    public $rowToolsSingleField = 'title';
-    
-    
-    /**
      * Шаблон за единичен изглед
      */
     public $singleLayoutFile = 'planning/tpl/SingleLayoutJob.shtml';

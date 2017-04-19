@@ -1625,7 +1625,6 @@ class doc_Containers extends core_Manager
     static function getVerbalLink($params)
     {
         try {
-            
             // Опитваме се да вземем инстанция на класа
             $ctrInst = cls::get($params['Ctr']);
             
@@ -1655,20 +1654,26 @@ class doc_Containers extends core_Manager
             return FALSE;
         }
         
-        // Ако не е зададено поле
-        if ($field) {
+        try {
+            // Ако не е зададено поле
+            if ($field) {
             
-            // Стойността на полето на текстовата част
-            $title = $ctrInst->getVerbal($params['id'], $field);
-        } else {
+                // Стойността на полето на текстовата част
+                $title = $ctrInst->getVerbal($params['id'], $field);
+            } else {
             
-            // Използваме името на модула
-            $title = ($ctrInst->singleTitle) ? $ctrInst->singleTitle : $ctrInst->title;
+                // Използваме името на модула
+                $title = ($ctrInst->singleTitle) ? $ctrInst->singleTitle : $ctrInst->title;
             
-            // Добавяме id на фирмата
-            $title .= ' #' . $rec->id;
+                // Добавяме id на фирмата
+                $title .= ' #' . $rec->id;
+            }
+        } catch (core_exception_Expect $e) {
+            
+            reportException($e);
+            // Ако възникне някаква греша
+            return FALSE;
         }
-        
 
         // Ако мода е xhtml
         if (Mode::is('text', 'xhtml')) {
