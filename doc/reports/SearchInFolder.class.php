@@ -125,7 +125,7 @@ class doc_reports_SearchInFolder extends frame2_driver_Proto
 	 */
 	private function getListFields($rec)
 	{
-		$fields = array('num'    => "№", 'string' => 'Дума', 'diff'   => 'Новости', 'count'  => 'Срещания',);
+		$fields = array('num'    => "№", 'string' => 'Дума', 'diff'   => 'Новости', 'count'  => 'Резултат',);
 	
 		return $fields;
 	}
@@ -256,7 +256,7 @@ class doc_reports_SearchInFolder extends frame2_driver_Proto
 	{
 		$fieldset = new core_FieldSet();
 		$fieldset->FLD('string', 'varchar','caption=Дума');
-		$fieldset->FLD('count', 'int','caption=Срещания');
+		$fieldset->FLD('count', 'int','caption=Резултат');
 		$fieldset->FLD('diff', 'int','caption=Новости');
 	
 		return $fieldset;
@@ -273,7 +273,7 @@ class doc_reports_SearchInFolder extends frame2_driver_Proto
 	 */
 	public static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
 	{
-		$row->folder = doc_Folders::recToVerbal($rec->folder)->title;
+		$row->folder = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folder))->title;
 	}
 	
 	
