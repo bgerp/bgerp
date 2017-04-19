@@ -161,12 +161,11 @@ class cal_TaskProgresses extends core_Detail
         }
     	
         $tpl = new ET('<div class="clearfix21 portal" style="margin-top:20px;background-color:transparent;">
-	                            <div class="legend" style="background-color:#ffc;font-size:0.9em;padding:2px;color:black">Прогрес</div>
-	                                <div class="listRows">
-	                                [#TABLE#]
-	                                </div>
-	                            </div>
-	                        </div>           
+                            <div class="legend" style="background-color:#ffc;font-size:0.9em;padding:2px;color:black">Прогрес</div>
+                            <div class="listRows">
+                            [#TABLE#]
+                            </div>
+	                   </div>
 	                ');
 	        $tpl->replace($this->renderListTable($data), 'TABLE');
 		

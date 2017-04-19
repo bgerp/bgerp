@@ -80,7 +80,7 @@ class embed_Manager extends core_Master
 		
 		// Ако няма достъпни драйвери редирект със съобщение
 		if(!count($interfaces)) {
-			redirect(array($this), FALSE, '|Липсват възможни видове|* ' . $mvc->title);
+			followRetUrl(NULL, '|Липсват възможни видове|* ' . $mvc->title, 'error');
 		} else {
 			$form->setOptions($this->driverClassField, $interfaces);
 			

@@ -32,6 +32,11 @@ class unit_MinkPGroups extends core_Manager {
         $res .= "  3.".$this->act_CreateProduct1();
         $res .= "  4.".$this->act_CreateProduct2();
         $res .= "  5.".$this->act_FilterCatGroup();
+        $res .= "  6.".$this->act_CreateContractorGroup1();
+        $res .= "  7.".$this->act_CreateContractorGroup2();
+        $res .= "  8.".$this->act_CreateCompany1();
+        $res .= "  9.".$this->act_CreateCompany2();
+        $res .= "  10.".$this->act_FilterCrmGroup();
         return $res;
     }
     
@@ -175,7 +180,125 @@ class unit_MinkPGroups extends core_Manager {
         } else {
             return unit_MinkPbgERP::reportErr('Липсва артикул от втория запис на последното ниво', 'warning');
         }
-        return $browser->getHtml();
+        
     }
-     
+    
+    /**
+     * 6. Създаване на група контрагенти - подниво на клиенти
+     */
+    //http://localhost/unit_MinkPGroups/CreateContractorGroup1/
+    function act_CreateContractorGroup1()
+    {
+        // Логване
+        $browser = $this->SetUp();
+    
+        // Създаване на нова група
+        $browser->click('Визитник');
+        $browser->click('Групи');
+        $browser->press('Нов запис');
+        $browser->setValue('name', 'Големи клиенти');
+        $browser->setValue('parentId', 'Клиенти');
+        $browser->press('Запис');
+        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+            $browser->press('Отказ');
+            return $this->reportErr('Дублиране на група', 'info');
+        }
+    }
+    
+    /**
+     * 7. Създаване на група контрагенти - подниво на поднивото
+     */
+    //http://localhost/unit_MinkPGroups/CreateContractorGroup2/
+    function act_CreateContractorGroup2()
+    {
+        // Логване
+        $browser = $this->SetUp();
+    
+        // Създаване на нова група
+        $browser->click('Визитник');
+        $browser->click('Групи');
+        $browser->press('Нов запис');
+        $browser->setValue('name', 'Местни');
+        $browser->setValue('parentId', 'Големи клиенти');
+        $browser->press('Запис');
+        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+            $browser->press('Отказ');
+            return $this->reportErr('Дублиране на група', 'info');
+        }
+        $browser->click('Групи');
+        $browser->press('Нов запис');
+        $browser->setValue('name', 'Чуждестранни');
+        $browser->setValue('parentId', 'Големи клиенти');
+        $browser->press('Запис');
+        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
+            $browser->press('Отказ');
+            return $this->reportErr('Дублиране на група', 'info');
+        }
+    }
+    
+    /**
+     * 8. Създаване на фирма от първата група от последното ниво
+     */
+    //http://localhost/unit_MinkPGroups/CreateCompany1/
+    function act_CreateCompany1()
+    {
+        // Логване
+        $browser = $this->SetUp();
+    
+        // Създаване на нова фирма
+        $browser->click('Визитник');
+        $browser->press('Нова фирма');
+        $browser->setValue('name', 'Фирма местна');
+        $browser->setValue('place', 'София');
+        $browser->setValue('pCode', '1104');
+        $browser->setValue('address', 'ул.Бояна, №34');
+        $browser->setValue('Клиенти » Големи клиенти » Местни', True);
+        $browser->press('Запис');
+        
+    }
+    
+    /**
+     * 9. Създаване на фирма от втората група от последното ниво
+     */
+    //http://localhost/unit_MinkPGroups/CreateCompany2/
+    function act_CreateCompany2()
+    {
+        // Логване
+        $browser = $this->SetUp();
+    
+        // Създаване на нова фирма
+        $browser->click('Визитник');
+        $browser->press('Нова фирма');
+        $browser->setValue('name', 'Фирма чуждестранна');
+        $browser->setValue('country', 'Австрия');
+        $browser->setValue('place', 'Виена');
+        $browser->setValue('pCode', '11504');
+        $browser->setValue('Клиенти » Големи клиенти » Чуждестранни', True);
+        $browser->press('Запис');
+       
+    }
+    
+    /**
+     * 10. Филтриране по група контрагенти
+     */
+    //http://localhost/unit_MinkPGroups/FilterCrmGroup/
+    function act_FilterCrmGroup()
+    {
+        // Логване
+        $browser = $this->SetUp();
+    
+        $browser->click('Визитник');
+        // търсене
+        $browser->setValue('groupId', 'Клиенти');
+        $browser->press('Филтрирай');
+        if(strpos($browser->gettext(), 'Фирма местна')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Липсва фирма от първия запис на последното ниво', 'warning');
+        }
+        if(strpos($browser->gettext(), 'Фирма чуждестранна')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Липсва фирма от втория запис на последното ниво', 'warning');
+        }
+    
+    }
 }

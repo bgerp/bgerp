@@ -63,7 +63,7 @@ class cat_Listings extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title, folderId, createdOn, createdBy';
+    public $listFields = 'doc=Документ,title, folderId, createdOn, createdBy';
     
     
     /**
@@ -88,12 +88,6 @@ class cat_Listings extends core_Master
 	 * Кой може да разглежда сингъла на документите?
 	 */
 	public $canSingle = 'cat,ceo';
-   
-    
-    /**
-     * Поле за връзка към единичния изглед
-     */
-    public $rowToolsSingleField = 'title';
 
 
 	/**
@@ -378,7 +372,14 @@ class cat_Listings extends core_Master
     		
     		return FALSE;
     	}
-    	
-    	
+    }
+    
+    
+    /**
+     *  Обработки по вербалното представяне на данните
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+    	$row->doc = $mvc->getLink($rec->id, 0);
     }
 }
