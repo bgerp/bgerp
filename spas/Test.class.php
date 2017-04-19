@@ -162,7 +162,7 @@ class spas_Test extends core_Mvc
     public static function getSa()
     {
         $params = array(
-            'host' => spas_Setup::get('HOSTNAME'), 
+            'hostname' => spas_Setup::get('HOSTNAME'), 
             'port' => spas_Setup::get('PORT'),
             'user' => spas_Setup::get('USER'));
         $sa = new spas_Client($params);
