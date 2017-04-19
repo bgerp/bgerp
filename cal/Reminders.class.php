@@ -911,8 +911,9 @@ class cal_Reminders extends core_Master
         }
         
         do {
+            $exTimeStart = $rec2->timeStart;
             $rec2->timeStart = self::calcNextStartTime($rec2); 
-        } while($rec2->timeStart <= dt::now());
+        } while($rec2->timeStart <= dt::now() && ($exTimeStart < $rec2->timeStart));
 
         return $rec2->timeStart;
     }

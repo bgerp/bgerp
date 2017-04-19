@@ -138,7 +138,7 @@ class sales_reports_PurBomsRep extends frame2_driver_Proto
 	    $dealers = keylist::toArray($rec->dealers);
 	    // Всички чакащи и активни продажби на избраните дилъри
 	    $sQuery = sales_Sales::getQuery();
-	    $sQuery->where("#state = 'active' AND #valior >= '2017-04-10'");
+	    $sQuery->where("#state = 'active'");
 	    
 	    if(count($dealers)){ 
 	        $sQuery->in('dealerId', $dealers);
@@ -148,10 +148,9 @@ class sales_reports_PurBomsRep extends frame2_driver_Proto
 	    while($sRec = $sQuery->fetch()){ 
 
 	        // Взимане на договорените и експедираните артикули по продажбата (събрани по артикул)
-	        $Sales = sales_Sales::getSingleton();
 	        $dealerId = ($sRec->dealerId) ? $sRec->dealerId : (($sRec->activatedBy) ? $sRec->activatedBy : $sRec->createdBy);
 	        $dealInfo = $Sales->getAggregateDealInfo($sRec);
-
+	        
 	        // Колко е очакваното авансово плащане
 	        $downPayment = $dealInfo->agreedDownpayment;
 	        // Колко е платено
@@ -160,7 +159,7 @@ class sales_reports_PurBomsRep extends frame2_driver_Proto
 
 	        // ако имаме зададено авансово плащане
 	        // дали имаме поне 95% авансово плащане
-	        if($downpayment < $downPayment * 0.95)  break;
+	        if($downpayment < $downPayment * 0.95)  continue;
 	        
 	        // артикулите
 	        $agreedProducts = $dealInfo->get('products');
@@ -168,7 +167,7 @@ class sales_reports_PurBomsRep extends frame2_driver_Proto
 	        // За всеки договорен артикул
 	        foreach ($agreedProducts as $pId => $pRec){ 
 	            // ако е нестандартен
-	            $productRec = cat_Products::fetch($pId, 'isPublic');
+	            $productRec = cat_Products::fetch($pId, 'canStore,isPublic');
 	            $d = NULL;
 	            // Ако артикула е нестандартен и няма задание по продажбата 
 	            if($productRec->isPublic == 'no'){    
@@ -380,22 +379,6 @@ class sales_reports_PurBomsRep extends frame2_driver_Proto
         }
 
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
-    }
-    
-    
-    /**
-     * Връща нормализирано име на корицата, за по-лесно сортиране
-     *
-     * @param int $folderId
-     * @return string
-     */
-    private static function normalizeFolderName($folderId)
-    {
-        if(!array_key_exists($folderId, self::$folderNames)){
-            self::$folderNames[$folderId] = strtolower(str::utf2ascii(doc_Folders::fetchField($folderId, 'title')));
-        }
-    
-        return self::$folderNames[$folderId];
     }
     
 
