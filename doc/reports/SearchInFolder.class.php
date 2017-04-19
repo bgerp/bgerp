@@ -125,7 +125,7 @@ class doc_reports_SearchInFolder extends frame2_driver_Proto
 	 */
 	private function getListFields($rec)
 	{
-		$fields = array('num'    => "№", 'string' => 'Дума', 'diff'   => 'Новости', 'count'  => 'Резултат',);
+		$fields = array('num'    => "№", 'string' => 'Дума', 'diff'   => 'Нови', 'count'  => 'Резултат',);
 	
 		return $fields;
 	}
@@ -257,7 +257,7 @@ class doc_reports_SearchInFolder extends frame2_driver_Proto
 		$fieldset = new core_FieldSet();
 		$fieldset->FLD('string', 'varchar','caption=Дума');
 		$fieldset->FLD('count', 'int','caption=Резултат');
-		$fieldset->FLD('diff', 'int','caption=Новости');
+		$fieldset->FLD('diff', 'int','caption=Нови');
 	
 		return $fieldset;
 	}
