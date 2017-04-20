@@ -234,10 +234,6 @@ abstract class cash_Document extends deals_PaymentDocument
     	}
     	
     	// Поставяме стойности по подразбиране
-    	if(!isset($form->rec->id)){
-    		$form->setDefault('valior', dt::today());
-    	}
-    	
     	if(empty($form->rec->id) && $form->cmd != 'refresh'){
     		$form->setDefault('peroCase', cash_Cases::getCurrent('id', FALSE));
     		$form->setDefault('peroCase', $caseId);
