@@ -276,7 +276,7 @@ class core_Roles extends core_Manager
         
         $roleQuery->orderBy("orderByRole=ASC");
 
-        while($roleRec = $roleQuery->fetch("#type = '{$type}'")) {
+        while($roleRec = $roleQuery->fetch("#type = '{$type}' AND #state != 'closed'")) {
             $res[$roleRec->id] = $roleRec->id;
         }
         
