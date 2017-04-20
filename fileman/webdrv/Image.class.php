@@ -217,7 +217,7 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         $allFilesArr = scandir($script->tempDir);
         
         // Шаблон за намиране на името на файла
-        $pattern = "/" . preg_quote($script->fName, "/") . "\-(?'num'[0-9]+)\.jpg" . "/i";
+        $pattern = "/^" . preg_quote($script->fName, "/") . "\-(?'num'[0-9]+)\.jpg$" . "/i";
         
         $matchedFilesArr = array();
         
