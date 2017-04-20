@@ -325,7 +325,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 	public static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
 	{
 		$fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
-								<fieldset><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
+								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
 							    <!--ET_BEGIN place--><small><div><!--ET_BEGIN dealers-->|Търговци|*: [#dealers#]<!--ET_END dealers--></div><!--ET_BEGIN countries--><div>|Държави|*: [#countries#]</div><!--ET_END countries--></small></fieldset><!--ET_END BLOCK-->"));
 		
 		if(isset($data->rec->dealers)){
