@@ -517,10 +517,8 @@ class hr_Leaves extends core_Master
      */
     protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
-      
             $title = $mvc->getRecTitle($rec, FALSE);;
             $res .= " " . plg_Search::normalizeText($title);
-
     }
 
     
