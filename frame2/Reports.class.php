@@ -283,6 +283,10 @@ class frame2_Reports extends embed_Manager
     			$form->setError('title', 'Задайте име на справката');
     		}
     		
+    		if((isset($rec->updateDays) || isset($rec->updateTime)) && empty($rec->sharedUsers)){
+    			$form->setWarning('sharedUsers', 'Не сте избрали, кои потребители да се известяват при обновяване на справката');
+    		}
+    		
     		frame2_ReportVersions::unSelectVersion($rec->id);
     	}
     }
