@@ -44,13 +44,19 @@ class hr_Leaves extends core_Master
      */
     public $loadList = 'plg_RowTools2, hr_Wrapper, doc_plg_TransferDoc,bgerp_plg_Blank,
     				 doc_DocumentPlg, acc_plg_DocumentSummary, doc_ActivatePlg,
-    				 plg_Printing,doc_SharablePlg';
+    				 plg_Printing,doc_SharablePlg,plg_Search';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id,personId, leaveFrom, leaveTo, note, useDaysFromYear, paid';
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'personId,leaveFrom, leaveTo,note';
     
     
     /**
@@ -503,6 +509,18 @@ class hr_Leaves extends core_Master
     	        }
     	    }
     	}
+    }
+    
+    
+    /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+      
+            $title = $mvc->getRecTitle($rec, FALSE);;
+            $res .= " " . plg_Search::normalizeText($title);
+
     }
 
     
