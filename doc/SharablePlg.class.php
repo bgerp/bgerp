@@ -375,6 +375,16 @@ class doc_SharablePlg extends core_Plugin
                 }
             }
         }
+        
+        // Ако потребителя се е отписал от нишката, да не излиза при автоматично споделените
+        if ($rec->threadId) {
+            $sKey = doc_Threads::getSettingsKey($rec->threadId);
+            $noNotifyArr = core_Settings::fetchUsers($sKey, 'notify', 'no');
+            if ($noNotifyArr) {
+                $keysArr = array_keys($noNotifyArr);
+                $res = array_diff($res, $keysArr);
+            }
+        }
     }
     
     
