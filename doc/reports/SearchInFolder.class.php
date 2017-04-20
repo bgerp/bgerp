@@ -58,15 +58,22 @@ class doc_reports_SearchInFolder extends frame2_driver_Proto
 	{
 		$unique = array();
 		$words = explode("\n", $form->rec->text);
+		$duplicatedWords = array();
 		
 		// Проверка за повтарящи се думи
 		foreach ($words as $word){
 			$key = $Driver->normalizeString($word);
 			if(in_array($key, $unique)){
-				$form->setError('text', 'Има повтарящи се думи');
+				$duplicatedWords[] = trim($word);
 			} else {
 				$unique[] = $key;
 			}
+		}
+		
+		// Проверка за дуплицирани думи
+		if(count($duplicatedWords)){
+			$duplicatedWords = implode('<span style=font-weight:normal>,</span> ', $duplicatedWords);
+			$form->setError('text', "Следните думи се повтарят|*: <b>{$duplicatedWords}</b>");
 		}
 	}
 	

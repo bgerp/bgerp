@@ -89,6 +89,8 @@ class type_UserOrRole extends type_User
             // Вземаме всички роли
             $rQuery = core_Roles::getQuery();
             
+            $rQuery->where("#state != 'closed'");
+            
             if ($this->params['rolesType']) {
                 $this->params['rolesType'] = arr::make($this->params['rolesType']);
                 $rQuery->orWhereArr('type', $this->params['rolesType']);
