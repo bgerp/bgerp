@@ -793,6 +793,7 @@ class frame2_Reports extends embed_Manager
     	} else {
     		
     		// Ако няма зададени дни, взимат се най-близките три дена
+    		$daysArr[] = $date->format('Y-m-d');
     		$date->modify("next day");
     		$daysArr[] = $date->format('Y-m-d');
     		$date->modify("next day");
@@ -809,10 +810,13 @@ class frame2_Reports extends embed_Manager
     	}
     	
     	// Времената се добавят към датите
+    	$now = dt::now();
     	$res = array();
     	foreach ($daysArr as $d){
     		foreach ($timesArr as $time){
-    			$res[] = "{$d} {$time}";
+    			$dt = "{$d} {$time}";
+    			if($dt < $now) continue;
+    			$res[] = $dt;
     		}
     	}
     	
