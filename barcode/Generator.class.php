@@ -143,7 +143,7 @@ class barcode_Generator extends core_Manager
         
         // Минималната дължина и широчина на баркода
         $minWidthAndHeightArr = self::getMinWidthAndHeight($type, $content);
-        
+
         // Ако размера не е масив
         if (!is_array($size)) {
             
@@ -448,7 +448,8 @@ class barcode_Generator extends core_Manager
         
         // Височината е различна само при квадратните баркодове - QR и codabar
         $height = 1;
-        
+
+        $text = (string)$text;
         // Опредяляме минималната дъжина и широчина
         switch ($type) {
             
