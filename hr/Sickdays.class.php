@@ -55,6 +55,12 @@ class hr_Sickdays extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
+    public $searchFields = 'personId,startDate, toDate,fitNoteNum,fitNoteDate,reason,note, icdCode, title';
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
     //public $searchFields = 'description';
 
     
@@ -199,10 +205,21 @@ class hr_Sickdays extends core_Master
     	$this->FLD('alternatePerson', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=По време на отсъствието->Заместник');
     	$this->FLD('paidByEmployer', 'double(Min=0)', 'caption=Заплащане->Работодател, input=hidden, changable');
     	$this->FLD('paidByHI', 'double(Min=0)', 'caption=Заплащане->НЗК, input=hidden,changable');
+    	$this->FNC('title', 'varchar', 'column=none');
+    	 
     	
     	$this->FLD('sharedUsers', 'userList(roles=hr|ceo)', 'caption=Споделяне->Потребители');
     }
 
+    
+    /**
+     * Изчисление на title
+     */
+    protected static function on_CalcTitle($mvc, $rec)
+    {
+        $rec->title = "Болничен лист №{$rec->id}";
+    }
+    
     
     /**
      * Филтър на on_AfterPrepareListFilter()

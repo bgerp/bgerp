@@ -114,6 +114,12 @@ class hr_Trips extends core_Master
     
     
     /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'personId,startDate, toDate,purpose,title';
+    
+    
+    /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     public $rowToolsField = 'id';
@@ -178,11 +184,20 @@ class hr_Trips extends core_Master
     	$this->FLD('amountRoad', 'double(decimals=2)', 'caption=Начисления->Пътни,input=none, changable');
     	$this->FLD('amountDaily', 'double(decimals=2)', 'caption=Начисления->Дневни,input=none, changable');
     	$this->FLD('amountHouse', 'double(decimals=2)', 'caption=Начисления->Квартирни,input=none, changable');
-
+    	$this->FNC('title', 'varchar', 'column=none');
     	
     	$this->FLD('sharedUsers', 'userList(roles=hr|ceo)', 'caption=Споделяне->Потребители');
     }
 
+    
+    /**
+     * Изчисление на title
+     */
+    protected static function on_CalcTitle($mvc, $rec)
+    {
+        $rec->title = "Командировъчен лист  №{$rec->id}";
+    }
+    
     
     /**
      * Извиква се преди вкарване на запис в таблицата на модела

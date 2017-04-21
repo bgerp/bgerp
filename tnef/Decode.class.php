@@ -102,6 +102,8 @@ class tnef_Decode extends core_Manager
         
         if (!$fRec) return FALSE;
         
+        $fileHndArr = array();
+        
         // Ако е за същия файл е бил извличан преди
         $rec = self::fetch("#dataId = '{$fRec->dataId}'");
         if ($rec) {
@@ -130,20 +132,25 @@ class tnef_Decode extends core_Manager
         // Скрипта, който ще конвертира
         $Script->lineExec('tnef [#INPUTF#] -C [#OUTPUTF#]');
         
+        $Script->setCheckProgramsArr('tnef');
+        
         // Стартираме скрипта синхронно синхронно
-        $Script->run(FALSE);
-        
-        $fileHndArr = self::uploadResFiles($Script);
-        
-        if (!$fileHndArr) {
-            fileman_Indexes::haveErrors($Script->outputPath, array('type' => 'tnef', 'errFilePath' => $errFilePath));
+        if ($Script->run(FALSE) === FALSE) {
+            fileman_Indexes::createError($params);
+        } else {
+            
+            $fileHndArr = self::uploadResFiles($Script);
+            
+            if (!$fileHndArr) {
+                fileman_Indexes::haveErrors($Script->outputPath, array('type' => 'tnef', 'errFilePath' => $errFilePath));
+            }
+            
+            $rec = new stdClass();
+            $rec->fileHnd = $fileHnd;
+            $rec->dataId = $fRec->dataId;
+            $rec->extractedFilesHnd = implode(self::$filesDelimiter, (array)$fileHndArr);
+            $savedId = self::save($rec, NULL, 'IGNORE');
         }
-        
-        $rec = new stdClass();
-        $rec->fileHnd = $fileHnd;
-        $rec->dataId = $fRec->dataId;
-        $rec->extractedFilesHnd = implode(self::$filesDelimiter, (array)$fileHndArr);
-        $savedId = self::save($rec, NULL, 'IGNORE');
         
         return $fileHndArr;
     }

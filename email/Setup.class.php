@@ -201,9 +201,15 @@ defIfNot('EMAIL_AUTO_REJECT_SPAM_SCORE_HEADERS', 'x-spam-score');
 
 
 /**
- * Стойност, над която имейлите ще се приемат за спам
+ * Стойност, над която имейлите ще се приемат за спам и ще се оттеглят
  */
-defIfNot('EMAIL_AUTO_REJECT_SPAM_SCORE', 2);
+defIfNot('EMAIL_AUTO_REJECT_SPAM_SCORE', 6);
+
+
+/**
+ * Стойност, над която имейлите ще се приемат за спам и ще се оттеглят
+ */
+defIfNot('EMAIL_WARNING_SPAM_SCORE', 2);
 
 
 /**
@@ -327,9 +333,11 @@ class email_Setup extends core_ProtoSetup
             
             'EMAIL_STOP_SEND_TO' => array ('varchar', 'caption=Шаблон за имейли до които няма да се праща->Шаблон'),
             
-            'EMAIL_AUTO_REJECT_SPAM_SCORE_HEADERS' => array ('varchar', 'caption=Проверка за спам и автоматично оттегляне на имейли->Хедъри'),
+            'EMAIL_AUTO_REJECT_SPAM_SCORE_HEADERS' => array ('varchar', 'caption=Хедъри за проверка на СПАМ рейтинг->Хедъри'),
             
-            'EMAIL_AUTO_REJECT_SPAM_SCORE' => array ('varchar', 'caption=Проверка за спам и автоматично оттегляне на имейли->Резултат'),
+            'EMAIL_AUTO_REJECT_SPAM_SCORE' => array ('varchar', 'caption=Автоматично оттегляне на спам->Рейтинг'),
+            
+            'EMAIL_WARNING_SPAM_SCORE' => array ('varchar', 'caption=Предупреждение за възможен спам->Рейтинг'),
         );
         
         
