@@ -596,8 +596,12 @@ class label_TemplateFormats extends core_Detail
                     // Вземаме умалено изборажение със зададените размер
                     $thumb= new thumb_Img(array($val, $rec->formatParams['Width'], $rec->formatParams['Height'], 'fileman', 'possibleRotation' => $possibleRotation));
                     
-                    // Добавяме вербалната стойност
-                    $verbalValArr[$valStr] = $thumb->createImg($attr);
+                    try {
+                        // Добавяме вербалната стойност
+                        $verbalValArr[$valStr] = $thumb->createImg($attr);
+                    } catch (core_exception_Expect $e) {
+                        $verbalValArr[$valStr] = "<span style='color: #c00;'>" . tr("Грешка при показване на файл") . ': ' . $val . "</span>";
+                    }
                 }
             }
         } elseif ($type == 'counter') {
