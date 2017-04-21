@@ -167,7 +167,7 @@ class sales_reports_PurBomsRep extends frame2_driver_Proto
 	        // За всеки договорен артикул
 	        foreach ($agreedProducts as $pId => $pRec){ 
 	            // ако е нестандартен
-	            $productRec = cat_Products::fetch($pId, 'canStore,isPublic');
+	            $productRec = cat_Products::fetch($pId, 'canManifacture,isPublic');
 	            $d = NULL;
 	            // Ако артикула е нестандартен и няма задание по продажбата 
 	            if($productRec->isPublic == 'no'){    
