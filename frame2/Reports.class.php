@@ -284,7 +284,7 @@ class frame2_Reports extends embed_Manager
     		}
     		
     		if((isset($rec->updateDays) || isset($rec->updateTime)) && empty($rec->sharedUsers)){
-    			$form->setWarning('sharedUsers', 'Не сте избрали, кои потребители да се известяват при обновяване на справката');
+    			$form->setError('sharedUsers', 'Не са посочени потребители за известяване при обновяване');
     		}
     		
     		frame2_ReportVersions::unSelectVersion($rec->id);
