@@ -600,7 +600,7 @@ class label_TemplateFormats extends core_Detail
                         // Добавяме вербалната стойност
                         $verbalValArr[$valStr] = $thumb->createImg($attr);
                     } catch (core_exception_Expect $e) {
-                        $verbalValArr[$valStr] = tr("Грешка при показване на файл") . ': ' . $val;
+                        $verbalValArr[$valStr] = "<span style='color: #c00;'>" . tr("Грешка при показване на файл") . ': ' . $val . "</span>";
                     }
                 }
             }
