@@ -162,10 +162,10 @@ class doc_reports_SearchInFolder extends frame2_driver_Proto
 		
 		// Редниране на таблицата
 		$fld = cls::get('core_FieldSet');
-		$fld->FLD('num', 'int');
+		$fld->FLD('num', 'int', 'tdClass=small-field');
 		$fld->FLD('string', 'varchar');
-		$fld->FLD('count', 'int');
-		$fld->FLD('diff', 'int');
+		$fld->FLD('count', 'int', 'tdClass=small-field');
+		$fld->FLD('diff', 'int', 'tdClass=small-field');
 		
 		$data->listFields = $this->getListFields($rec);
 		$table = cls::get('core_TableView', array('mvc' => $fld));
@@ -197,7 +197,7 @@ class doc_reports_SearchInFolder extends frame2_driver_Proto
 		$Int = cls::get('type_Int');
 		$row->string = cls::get('type_Varchar')->toVerbal($dRec->string);
 		if(!$isPlain){
-			$row->string = "<span style='font-style:italic'>{$row->string}</span>";
+			$row->string = "<span style='font-weight:bold'>{$row->string}</span>";
 		}
 		
 		$row->count  = $Int->toVerbal($dRec->count);

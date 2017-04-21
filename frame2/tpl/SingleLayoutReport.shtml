@@ -12,8 +12,9 @@
 	[#DRIVER_FIELDS#]
 </table>
 <!--ET_END DRIVER_FIELDS-->
+<div style="margin-top: 15px">
 [#DRIVER_DATA#]
-
+</div>
 
 <div>
 [#innerState#]

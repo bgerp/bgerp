@@ -3305,7 +3305,7 @@ class doc_Containers extends core_Manager
     	
     	if(!isset($url)){
     		$doc = doc_Containers::getDocument($containerId);
-    		$url = $doc->getSingleUrlArray();
+    		$url = array($doc->getInstance(), 'single', $doc->that);
     		unset($url['ret_url']);
     	}
     	

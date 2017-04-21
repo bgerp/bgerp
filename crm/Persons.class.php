@@ -1089,7 +1089,9 @@ class crm_Persons extends core_Master
         } else {
             $query = $data->query;
         }
-
+        $query->limit(50);
+        $data->companiesCnt = $query->count();
+        
         while($rec = $query->fetch()) {
             $data->recs[$rec->id] = $rec;
             $row = $data->rows[$rec->id] = $this->recToVerbal($rec, 'name,mobile,tel,email,buzEmail,buzTel,buzLocationId,buzPosition');
@@ -1123,7 +1125,7 @@ class crm_Persons extends core_Master
     function renderCompanyExpandData($data)
     {
         $tpl = new ET("<fieldset class='detail-info'>
-                            <legend class='groupTitle'>" . tr('Представители') . "[#BTN#]</legend>
+                            <legend class='groupTitle'>" . tr('Представители') . "<!--ET_BEGIN CNT--> ([#CNT#])<!--ET_END CNT-->[#BTN#]</legend>
                                 <div class='groupList clearfix21'>
                                  [#persons#]
                             </div>
@@ -1133,7 +1135,9 @@ class crm_Persons extends core_Master
         if($data->addBtn){
         	$tpl->replace($data->addBtn, 'BTN');
         }
-        
+        if($data->companiesCnt){
+            $tpl->replace($data->companiesCnt, 'CNT');
+        }
         if(count($data->rows)){
             $i = 0;
         	foreach($data->rows as $id => $row) {
