@@ -1521,36 +1521,6 @@ class email_Incomings extends core_Master
             if ($rec->routeBy && $rec->threadId) return ;
         }
         
-        // Ако няма да се рутира в нишка, правим проверка на СПАМ рейтинга и оттегляме
-        if ($rec->routeBy != 'file' && $rec->routeBy != 'thread') {
-            
-            $headersNames = email_Setup::get('AUTO_REJECT_SPAM_SCORE_HEADERS');
-            
-            $headersNamesArr = type_Set::toArray($headersNames);
-            
-            if ($headersNamesArr) {
-                
-                $spamScore = email_Setup::get('AUTO_REJECT_SPAM_SCORE');
-                
-                foreach ($headersNamesArr as $header) {
-                    
-                    $header = trim($header);
-                    
-                    if (!$header) continue;
-                    
-                    $score = email_Mime::getHeadersFromArr($rec->headers, $header);
-                    
-                    if (isset($score) && ($score >= $spamScore)) {
-                        $rec->state = 'rejected';
-                        
-                        self::logNotice("Автоматично оттеглен имейл със '{$header}' = '{$score}'");
-                        
-                        break;
-                    }
-                }
-            }
-        }
-        
         // Първо рутираме по ръчно зададените правила
         if (email_Filters::preroute($rec)) {
             
@@ -1592,6 +1562,9 @@ class email_Incomings extends core_Master
                 // Рутиране по място (държава)
                 if(email_Router::doRuleCountry($rec)) {
                     
+                    // Автоматично оттегляне на имейлите, които са СПАМ
+                    self::checkSpamLevelAndReject($rec);
+                    
                     // Добавяме начина на рутиране
                     $rec->routeBy = 'country';
                     
@@ -1611,6 +1584,9 @@ class email_Incomings extends core_Master
             }
         }
         
+        // Автоматично оттегляне на имейлите, които са СПАМ
+        self::checkSpamLevelAndReject($rec);
+        
         // Накрая безусловно вкарваме в кутията на `toBox`
         email_Router::doRuleToBox($rec); 
         
@@ -1618,6 +1594,43 @@ class email_Incomings extends core_Master
         $rec->routeBy = 'toBox';
         
         expect($rec->folderId, $rec);
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param stdClass $rec
+     */
+    protected static function checkSpamLevelAndReject($rec)
+    {
+        if ($rec->state == 'rejected') return ;
+        
+        $headersNames = email_Setup::get('AUTO_REJECT_SPAM_SCORE_HEADERS');
+        
+        $headersNamesArr = type_Set::toArray($headersNames);
+        
+        if ($headersNamesArr) {
+        
+            $spamScore = email_Setup::get('AUTO_REJECT_SPAM_SCORE');
+        
+            foreach ($headersNamesArr as $header) {
+        
+                $header = trim($header);
+        
+                if (!$header) continue;
+        
+                $score = email_Mime::getHeadersFromArr($rec->headers, $header);
+                
+                if (isset($score) && ($score >= $spamScore)) {
+                    $rec->state = 'rejected';
+        
+                    self::logNotice("Автоматично оттеглен имейл със '{$header}' = '{$score}'");
+        
+                    break;
+                }
+            }
+        }
     }
     
     
