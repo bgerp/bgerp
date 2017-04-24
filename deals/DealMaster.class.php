@@ -1982,7 +1982,7 @@ abstract class deals_DealMaster extends deals_DealBase
      * @param stdClass $rec
      * @return int|NULL $productId
      */
-    private function findProductIdWithBiggestAmount($rec)
+    public function findProductIdWithBiggestAmount($rec)
     {
     	$Detail = cls::get($this->mainDetail);
     	$query = $Detail->getQuery();
@@ -2000,4 +2000,3 @@ abstract class deals_DealMaster extends deals_DealBase
     	return NULL;
     }
 }
-
