@@ -1972,7 +1972,7 @@ abstract class deals_DealMaster extends deals_DealBase
     {
     	$Detail = cls::get($this->mainDetail);
     	$query = $Detail->getQuery();
-    	$query = $query->where("#{$Detail->masterKey} = {$rec->id}111");
+    	$query = $query->where("#{$Detail->masterKey} = {$rec->id}");
     	
     	$all = $query->fetchAll();
     	
