@@ -25,7 +25,7 @@ class drdata_Address extends core_MVC
     {
         $res = array();
         
-        $text = str_replace(array("\r\n", "\n\r", "\r"), array("\n", "\n", "\n"), trim($text));
+        $text = str_replace(array("\r\n", "\n\r", "\r", '|'), array("\n", "\n", "\n", "\n"), trim($text));
         
         $lines = explode("\n", $text);
 
@@ -64,7 +64,7 @@ class drdata_Address extends core_MVC
      */
     static function extractTelNumbers($line, $negativeList = array())
     {
-        preg_match_all("/[^a-zA-Z]([\d\(\+][\d\- \,\(\)\.\+\/]{7,27}[\d\)])/", " {$line} ", $matches);
+        preg_match_all("/[^a-zA-Z]([0\+][\d\- \,\(\)\.\+\/]{7,27}[\d\)])/", " {$line} ", $matches);
         
         $res = array();
 
@@ -181,9 +181,6 @@ class drdata_Address extends core_MVC
         	$givenNames = ' ' . getFileContent('drdata/data/givenNames.txt');
         }
         
-        if(empty($givenNames)) {
-        	$givenNames = ' ' . getFileContent('drdata/data/givenNames.txt');
-        }
 
         if(empty($addresses)) {
         	$addresses = ' ' . getFileContent('drdata/data/addresses.txt');
@@ -417,7 +414,7 @@ class drdata_Address extends core_MVC
         
         if (!$lines) return new stdClass();
         
-        static $regards, $companyTypes, $companyWords, $givenNames, $addresses, $titles, $regards, $noStart;
+        static $regards, $companyTypes, $companyWords, $givenNames, $addresses, $titles, $noStart;
         
          
         if(empty($companyTypes)) {
@@ -433,10 +430,6 @@ class drdata_Address extends core_MVC
         	$givenNames = ' ' . getFileContent('drdata/data/givenNames.txt');
         }
         
-        if(empty($givenNames)) {
-        	$givenNames = ' ' . getFileContent('drdata/data/givenNames.txt');
-        }
-
         if(empty($addresses)) {
         	$addresses = ' ' . getFileContent('drdata/data/addresses.txt');
         }
@@ -603,7 +596,6 @@ class drdata_Address extends core_MVC
 
                 }
 
-                
 
                 if($wordsCnt < 3) {
                     $regardsCnt *= 1.3;
