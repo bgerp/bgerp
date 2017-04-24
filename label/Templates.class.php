@@ -643,4 +643,28 @@ class label_Templates extends core_Master
     	 
     	return $res;
     }
+    
+    
+    /**
+     * Връща шаблоните достъпни за избор от даден документ
+     * 
+     * @param mixed $class
+     * @param boolean $onlyIds
+     * @return array $res
+     */
+    public static function getTemplatesByDocument($class, $onlyIds = FALSE)
+    {
+    	$Class = cls::get($class);
+    	$tQuery = label_Templates::getQuery();
+    	$tQuery->where("#classId = '{$Class->getClassId()}' AND #state != 'rejected'");
+    	
+    	if($onlyIds === TRUE){
+    		$tQuery->show('id');
+    		$res = arr::extractValuesFromArray($tQuery->fetchAll(), 'id');
+    	} else {
+    		$res = $tQuery->fetchAll();
+    	}
+    	
+    	return $res;
+    }
 }
