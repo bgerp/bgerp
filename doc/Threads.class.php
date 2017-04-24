@@ -153,6 +153,9 @@ class doc_Threads extends core_Manager
         
         // Ид-та на контейнерите оттеглени при цялостното оттегляне на треда, при възстановяване на треда се занулява
         $this->FLD('rejectedContainersInThread', 'blob(serialize,compress)', 'caption=Заглавие, input=none');
+		
+        $this->FLD('firstDocClass' , 'class', 'caption=Документ->Клас, input=none');
+        $this->FLD('firstDocId' , 'int', 'caption=Документ->Обект, input=none');
         
         // Индекс за по-бързо избиране по папка
         $this->setDbIndex('folderId');
@@ -331,9 +334,11 @@ class doc_Threads extends core_Manager
         $query->orWhere("#partnerDocCnt IS NULL");
         $query->orWhere("#lastAuthor IS NULL");
         $query->orWhere("#lastState IS NULL");
+        $query->orWhere("#firstDocClass IS NULL");
+        $query->orWhere("#firstDocId IS NULL");
         
         $query->limit(500);
-
+        
         while ($rec = $query->fetch()) {
             try {
                 // Ако има нишка без firstContainerId
@@ -371,6 +376,26 @@ class doc_Threads extends core_Manager
                     if (self::save($rec, 'folderId')) {
                         $resArr['folderId']++;
                         self::logNotice("Нишката е преместена в папка {$defaultFolderId}", $rec->id);
+                    }
+                }
+                
+                // Ако няма firstDocClass използваме от контейнера
+                if (!isset($rec->firstDocClass)) {
+                    $rec->firstDocClass = doc_Containers::fetchField("#id = '{$rec->firstContainerId}'", 'docClass', FALSE);
+                    
+                    if (self::save($rec, 'firstDocClass')) {
+                        $resArr['firstDocClass']++;
+                        self::logNotice("Добавен липсващ firstDocClass", $rec->id);
+                    }
+                }
+                
+                // Ако няма firstDocId използваме от контейнера
+                if (!isset($rec->firstDocId)) {
+                    $rec->firstDocId = doc_Containers::fetchField("#id = '{$rec->firstContainerId}'", 'docId', FALSE);
+                    
+                    if (self::save($rec, 'firstDocId')) {
+                        $resArr['firstDocId']++;
+                        self::logNotice("Добавен липсващ firstDocId", $rec->id);
                     }
                 }
                 
@@ -531,6 +556,7 @@ class doc_Threads extends core_Manager
                     self::prepareDocCnt($rec, $firstDcRec, $lastDcRec);
                 }
                 
+                $fCid = NULL;
                 if ($firstDcRec && $firstDcRec->id && ($rec->firstContainerId != $firstDcRec->id)) {
                     $fCid = $rec->firstContainerId;
                     $rec->firstContainerId = $firstDcRec->id;
@@ -540,8 +566,35 @@ class doc_Threads extends core_Manager
                     self::logNotice("Променено firstContainerId от {$fCid} на {$firstDcRec->id} в нишка", $rec->id);
                 }
                 
+                if ($fCid) {
+                    try {
+                        $cRec = doc_Containers::fetch($fCid, '*', FALSE);
+                    } catch (ErrorException $e) {
+                        continue;
+                    }
+                }
                 
                 if (!$cRec || !$cRec->docClass || !$cRec->docId) continue;
+                
+                // Ако firstDocClass не съвпада с този в контейнера, го променяме
+                if ($rec->firstDocClass != $cRec->docClass) {
+                    $fDocClass = $rec->firstDocClass;
+                    $rec->firstDocClass = $cRec->docClass;
+                    if (self::save($rec, 'firstDocClass')) {
+                        $resArr['firstDocClass']++;
+                        self::logNotice("Променен firstDocClass от {$fDocClass} на {$rec->firstDocClass}", $rec->id);
+                    }
+                }
+                
+                // Ако firstDocId не съвпада с този в контейнера, го променяме
+                if ($rec->firstDocId != $cRec->docId) {
+                    $fDocId = $rec->firstDocId;
+                    $rec->firstDocId = $cRec->docId;
+                    if (self::save($rec, 'firstDocId')) {
+                        $resArr['firstDocId']++;
+                        self::logNotice("Променен firstDocId от {$fDocId} на {$rec->firstDocId}", $rec->id);
+                    }
+                }
                 
                 try {
                     
@@ -773,7 +826,6 @@ class doc_Threads extends core_Manager
     		// Ще групираме типовете документи в нишката
     		$query = doc_Threads::getQuery();
     		$query->where("#folderId = {$folderId}");
-    		$query->EXT('firstDocumentClassId', 'doc_Containers', 'externalName=docClass,externalKey=firstContainerId');
             $year = dt::addDays(-360);
             $query->where("#modifiedOn >= '{$year}'");
 	
@@ -784,20 +836,20 @@ class doc_Threads extends core_Manager
     			$query->where("#visibleForPartners = 'yes'");
     			$query->where("#firstDocState != 'draft' && #firstDocState != 'rejected'");
     		}
-    		$query->show('firstDocumentClassId, state');
-    		$query->groupBy('firstDocumentClassId,state');
-
+    		$query->show('firstDocClass, state');
+    		$query->groupBy('firstDocClass,state');
+    		
     		// Групираме записите по classId
     		while($rec = $query->fetch()){
     			$index = ($rec->state == 'rejected') ? 'rejected' : 'notrejected';
     			
-    			if(!isset($options[$index][$rec->firstDocumentClassId])){
-    				$options[$index][$rec->firstDocumentClassId] = core_Classes::getTitleById($rec->firstDocumentClassId);
+    			if(!isset($options[$index][$rec->firstDocClass])){
+    				$options[$index][$rec->firstDocClass] = core_Classes::getTitleById($rec->firstDocClass);
     			}
     		}
     		
     		// Кешираме резултатите
-    		core_Cache::set("doc_Folders", $cacheKey, $options, 1440);
+//     		core_Cache::set("doc_Folders", $cacheKey, $options, 1440);
     	}
     
     	// Връщаме данните за оттеглените или за не оттеглените документи в папката
@@ -834,8 +886,7 @@ class doc_Threads extends core_Manager
         }
         
         if($filter->documentClassId){
-        	$query->EXT('firstDocumentClassId', 'doc_Containers', 'externalName=docClass,externalKey=firstContainerId');
-        	$query->where("#firstDocumentClassId = {$filter->documentClassId}");
+        	$query->where("#firstDocClass = {$filter->documentClassId}");
         }
         
 
@@ -1694,6 +1745,8 @@ class doc_Threads extends core_Manager
         if($firstDcRec) {
             // Първи документ в треда
             $rec->firstContainerId = $firstDcRec->id;
+            $rec->firstDocClass = $firstDcRec->docClass;
+            $rec->firstDocId = $firstDcRec->docId;
             
             // Последния документ в треда
             if($lastDcRec->state != 'draft') {
@@ -1745,7 +1798,7 @@ class doc_Threads extends core_Manager
                 $rec->state = 'closed';
             }
             
-            doc_Threads::save($rec, 'last, allDocCnt, partnerDocCnt, firstContainerId, state, shared, modifiedOn, modifiedBy, lastState, lastAuthor');
+            doc_Threads::save($rec, 'last, allDocCnt, partnerDocCnt, firstContainerId, state, shared, modifiedOn, modifiedBy, lastState, lastAuthor, firstDocClass, firstDocId');
          } else {
             // Ако липсват каквито и да е документи в нишката - изтриваме я
             self::delete($id);

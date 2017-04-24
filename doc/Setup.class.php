@@ -224,6 +224,7 @@ class doc_Setup extends core_ProtoSetup
     	'migrate::migratePending1',
         'migrate::showFiles',
         'migrate::addCountryIn2LgFolders2',
+        'migrate::addFirstDocClassAndId',
     );
 	
     
@@ -636,5 +637,30 @@ class doc_Setup extends core_ProtoSetup
         Mode::pop('htmlEntity');
         Mode::pop('text');
     }
-
+    
+    
+    /**
+     * Миграция за попълване на firstDocClass и firstDocId в doc_Threads
+     */
+    public static function addFirstDocClassAndId()
+    {
+        $Threads = cls::get('doc_Threads');
+        $query = $Threads->getQuery();
+        $query->where("#firstDocClass IS NULL");
+        $query->orWhere("#firstDocId IS NULL");
+        
+        $query->EXT('docId', 'doc_Containers', 'externalName=docId,externalKey=firstContainerId');
+        $query->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=firstContainerId');
+        
+        $query->orderBy('id', 'DESC');
+        
+        while ($rec = $query->fetch()) {
+            if (!$rec->firstContainerId) continue;
+            
+            $rec->firstDocClass = $rec->docClass;
+            $rec->firstDocId = $rec->docId;
+            
+            $Threads->save_($rec, 'firstDocClass, firstDocId');
+        }
+    }
 }
