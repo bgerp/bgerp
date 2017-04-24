@@ -44,6 +44,12 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 	
 	
 	/**
+	 * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+	 */
+	public $searchFields = 'storeId,note';
+	
+	
+	/**
 	 * Кой има право да чете?
 	 */
 	public $canConto = 'ceo,planning,store';

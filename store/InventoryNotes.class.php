@@ -133,6 +133,12 @@ class store_InventoryNotes extends core_Master
     
     
     /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'storeId,groups,folderId';
+    
+    
+    /**
      * Име на документа в бързия бутон за добавяне в папката
      */
     public $buttonInFolderTitle = 'Инвентаризация';

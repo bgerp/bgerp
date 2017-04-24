@@ -36,6 +36,12 @@ class planning_Tasks extends tasks_Tasks
 	
 	
 	/**
+	 * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+	 */
+	public $searchFields = 'title';
+	
+	
+	/**
 	 * След дефиниране на полетата на модела
 	 *
 	 * @param core_Mvc $mvc
@@ -382,6 +388,8 @@ class planning_Tasks extends tasks_Tasks
 		$res['QUANTITY'] = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($tInfo->quantityInPack);
 		if(isset($jobRec->saleId)){
 			$res['ORDER'] =  "#" . sales_Sales::getHandle($jobRec->saleId);
+			$logisticData = cls::get('sales_Sales')->getLogisticData($jobRec->saleId);
+			$res['COUNTRY'] = drdata_Countries::fetchField("#commonName = '{$logisticData['toCountry']}'", 'letterCode2');
 		}
 		
 		// Извличане на всички параметри на артикула
@@ -411,6 +419,8 @@ class planning_Tasks extends tasks_Tasks
 			$res['ИЗГЛЕД'] = $preview;
 			$res['PREVIEW'] = $preview;
 		}
+		
+		$res['SIZE_UNIT'] = 'cm';
 		
 		// Връщане на масива, нужен за отпечатването на един етикет
 		return $res;

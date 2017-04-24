@@ -44,6 +44,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	
 	
 	/**
+	 * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+	 */
+	public $searchFields = 'productId,storeId,inputStoreId,expenseItemId,note';
+	
+	
+	/**
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'ceo,planning,store';

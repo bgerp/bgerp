@@ -217,6 +217,7 @@ class sales_Setup extends core_ProtoSetup
     		'sales_PrimeCostByDocument',
     		'migrate::cacheInvoicePaymentType',
     		'migrate::migrateRoles',
+    		'migrate::updateDealFields1',
         );
 
         
@@ -376,6 +377,42 @@ class sales_Setup extends core_ProtoSetup
     			}
     		} catch(core_exception_Expect $e){
     			reportException($e);
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Миграция на сделките
+     */
+    function updateDealFields1()
+    {
+    	foreach (array('sales_Sales', 'purchase_Purchases') as $className){
+    		$Deal = cls::get($className);
+    		$Deal->setupMvc();
+    		if(!$Deal::count()) return;
+    		$update = array();
+    		
+    		$query = $Deal->getQuery();
+    		$query->where("#state = 'active'");
+    		$query->show('id');
+    		 
+    		$timeLimit = 0.2 * $query->count();
+    		$timeLimit = ($timeLimit < 60) ? 60 : $timeLimit;
+    		core_App::setTimeLimit($timeLimit);
+    		
+    		while($rec = $query->fetch()){
+    			try{
+    				if($product = $Deal->findProductIdWithBiggestAmount($rec)){
+    					$update[] = (object)array('productIdWithBiggestAmount' => $product, 'id' => $rec->id);
+    				}
+    			} catch(core_exception_Expect $e){
+    				reportException($e);
+    			}
+    		}
+    		
+    		if(count($update)){
+    			$Deal->saveArray($update, 'id,productIdWithBiggestAmount');
     		}
     	}
     }

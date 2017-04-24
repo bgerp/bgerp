@@ -121,6 +121,12 @@ class store_ShipmentOrders extends store_DocumentMaster
 
     
     /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'folderId,currencyId';
+    
+    
+    /**
      * Икона на единичния изглед
      */
     public $singleIcon = 'img/16/EN.png';

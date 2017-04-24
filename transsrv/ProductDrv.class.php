@@ -100,6 +100,8 @@ class transsrv_ProductDrv extends cat_ProductDriver
      */
     public function getProductTitle($rec)
     {
+ 
+
         $myCompany = crm_Companies::fetchOurCompany();
     	
         if(!$rec->fromCountry) {
@@ -113,7 +115,7 @@ class transsrv_ProductDrv extends cat_ProductDriver
         $from2let = drdata_Countries::fetch($rec->fromCountry)->letterCode2;
         $to2let = drdata_Countries::fetch($rec->toCountry)->letterCode2;
         
-        $title = 'Транспорт ' . $from2let . ' => ' . $to2let;
+        $title = $from2let . '»' . $to2let;
  
         if($rec->unitQty && $rec->transUnit) {
             $title .= ', ' . $rec->unitQty . ' ' . type_Varchar::escape($rec->transUnit);
@@ -121,7 +123,7 @@ class transsrv_ProductDrv extends cat_ProductDriver
             $title .= ', ' . type_Varchar::escape($rec->transUnit);
         }
 
-        return $title;
+        return $title . ' / ' . tr('Транспорт') . '';
     }
 
 
@@ -135,6 +137,9 @@ class transsrv_ProductDrv extends cat_ProductDriver
 	 */
 	public static function on_AfterInputEditForm(cat_ProductDriver $Driver, embed_Manager $Embedder, &$form)
 	{
+
+        $form->rec->name = $Driver->getProductTitle($form->rec);
+
         if($form->isSubmitted()) {
             $fields = $form->selectFields("#input != 'none'");
      

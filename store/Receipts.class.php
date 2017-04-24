@@ -128,6 +128,12 @@ class store_Receipts extends store_DocumentMaster
 
 
     /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'folderId';
+
+    
+    /**
      * Детайла, на модела
      */
     public $details = 'store_ReceiptDetails' ;
