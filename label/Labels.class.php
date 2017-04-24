@@ -356,13 +356,10 @@ class label_Labels extends core_Master
         $optArr = array();
         
         if (!empty($labelDataArr)) {
-            $tQuery = label_Templates::getQuery();
-            $tQuery->where("#classId = '{$classId}'");
-            $tQuery->where("#state != 'rejected'");
+        	$templates = label_Templates::getTemplatesByDocument($classId);
+            if (!count($templates)) return new Redirect($retUrl, '|Няма шаблон, който да се използва');
             
-            if (!$tQuery->count()) return new Redirect($retUrl, '|Няма шаблон, който да се използва');
-            
-            while ($tRec = $tQuery->fetch()) {
+            foreach ($templates as $tRec){
                 $template = label_Templates::getTemplate($tRec->id);
                 $templatePlaceArr = label_Templates::getPlaceHolders($template);
                 
