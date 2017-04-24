@@ -212,7 +212,8 @@ abstract class deals_DealMaster extends deals_DealBase
 		);
 		
 		$mvc->FLD('paymentState', 'enum(pending=Има,overdue=Просрочено,paid=Няма,repaid=Издължено)', 'caption=Чакащо плащане, input=none,notNull,value=paid');
-
+		$mvc->FLD('productIdWithBiggestAmount', 'int', 'caption=Ид на артикул с най-голяма стойност, input=none');
+		
 		$mvc->setDbIndex('valior');
 	}
 
@@ -304,6 +305,7 @@ abstract class deals_DealMaster extends deals_DealBase
 		$rec->amountDeal = $amountDeal * $rec->currencyRate;
 		$rec->amountVat  = $this->_total->vat * $rec->currencyRate;
 		$rec->amountDiscount = $this->_total->discount * $rec->currencyRate;
+		$rec->productIdWithBiggestAmount = $this->findProductIdWithBiggestAmount($rec);
 		
 		$this->invoke('BeforeUpdatedMaster', array(&$rec));
 		
@@ -338,7 +340,9 @@ abstract class deals_DealMaster extends deals_DealBase
         	$contragent = type_Varchar::escape($contragent);
         }
 
-    	return "{$abbr}{$rec->id}/{$date} {$contragent}";
+        $title = "{$abbr}{$rec->id}/{$date} {$contragent}";
+       
+    	return $title;
     }
     
     
@@ -1956,4 +1960,29 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	return $res;
     }
+    
+    
+    /**
+     * Връща ид-то на артикула с най-голяма стойност в сделката
+     * 
+     * @param stdClass $rec
+     * @return int|NULL $productId
+     */
+    private function findProductIdWithBiggestAmount($rec)
+    {
+    	$Detail = cls::get($this->mainDetail);
+    	$query = $Detail->getQuery();
+    	$query = $query->where("#{$Detail->masterKey} = {$rec->id}111");
+    	
+    	$all = $query->fetchAll();
+    	
+    	$arr = deals_Helper::normalizeProducts(array($all));
+    	arr::order($arr, 'sumAmounts', "DESC");
+    	if($productId = $arr[key($arr)]->productId){
+    		return $productId;
+    	}
+    	
+    	return NULL;
+    }
 }
+
