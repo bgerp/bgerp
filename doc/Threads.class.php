@@ -826,7 +826,6 @@ class doc_Threads extends core_Manager
     		// Ще групираме типовете документи в нишката
     		$query = doc_Threads::getQuery();
     		$query->where("#folderId = {$folderId}");
-    		$query->EXT('firstDocumentClassId', 'doc_Containers', 'externalName=docClass,externalKey=firstContainerId');
             $year = dt::addDays(-360);
             $query->where("#modifiedOn >= '{$year}'");
 	
@@ -837,15 +836,15 @@ class doc_Threads extends core_Manager
     			$query->where("#visibleForPartners = 'yes'");
     			$query->where("#firstDocState != 'draft' && #firstDocState != 'rejected'");
     		}
-    		$query->show('firstDocumentClassId, state');
-    		$query->groupBy('firstDocumentClassId,state');
-
+    		$query->show('firstDocClass, state');
+    		$query->groupBy('firstDocClass,state');
+    		
     		// Групираме записите по classId
     		while($rec = $query->fetch()){
     			$index = ($rec->state == 'rejected') ? 'rejected' : 'notrejected';
     			
-    			if(!isset($options[$index][$rec->firstDocumentClassId])){
-    				$options[$index][$rec->firstDocumentClassId] = core_Classes::getTitleById($rec->firstDocumentClassId);
+    			if(!isset($options[$index][$rec->firstDocClass])){
+    				$options[$index][$rec->firstDocClass] = core_Classes::getTitleById($rec->firstDocClass);
     			}
     		}
     		
