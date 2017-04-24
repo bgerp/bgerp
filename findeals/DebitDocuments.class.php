@@ -45,6 +45,12 @@ class findeals_DebitDocuments extends deals_Document
     
     
     /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'operationSysId, name,dealId,dealHandler,currencyId,description,contragentId,contragentClassId';
+    
+    
+    /**
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'ceo, findealsMaster';

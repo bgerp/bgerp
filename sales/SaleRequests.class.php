@@ -97,6 +97,12 @@ class sales_SaleRequests extends core_Master
     public $listFields = 'id, folderId, amountDeal, state, createdOn, createdBy';
     
     
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'contragentClassId,contragentId,folderId,others,paymentMethodId,currencyId,chargeVat,deliveryTermId,deliveryPlaceId';
+    
+    
 	/**
      * Заглавие в единствено число
      */

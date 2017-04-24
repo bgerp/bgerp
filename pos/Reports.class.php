@@ -112,6 +112,12 @@ class pos_Reports extends core_Master {
     public $listFields = 'id, title=Заглавие, pointId, total, paid, state, createdOn, createdBy';
     
     
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'pointId';
+    
+    
 	/**
      * Групиране на документите
      */

@@ -96,6 +96,12 @@ class findeals_CreditDocuments extends deals_Document
      * Файл с шаблон за единичен изглед
      */
     public $singleLayoutFile = 'findeals/tpl/SingleLayoutCreditDocument.shtml';
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'operationSysId, name,dealId,dealHandler,currencyId,description,contragentId,contragentClassId';
 
     
     /**
