@@ -80,6 +80,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
     public function addEmbeddedFields(core_FieldSet &$form)
     {
     	$form->FLD('saleId', 'keylist(mvc=sales_Sales, select=id)', 'caption=Договор за продажба');
+    	$form->FLD('groupId', 'keylist(mvc=cat_Groups,select=name)', 'caption=Група');
     }
       
 
@@ -124,10 +125,9 @@ class cat_reports_BomsRep extends frame_BaseDriver
        
         $salesArr = keylist::toArray($fRec->saleId);
         $salesArr = implode(',', $salesArr);
- 
+
         $query = planning_Jobs::getQuery();
         $query->where("#saleId IN ('{$salesArr}') AND (#state = 'active' OR #state = 'wakeup')");
-
 
         // за всяко едно активно Задания за производство
         while($rec = $query->fetch()) { 
@@ -175,7 +175,15 @@ class cat_reports_BomsRep extends frame_BaseDriver
         }
     
         $i = 1;
-        foreach ($data->recs as $id=>$rec){
+        foreach ($data->recs as $id=>$rec){ 
+            
+            $queryProduct = cat_Products::getQuery();
+            $queryProduct->where("#id  = '{$rec->article}'");
+            $queryProduct->likeKeylist("groups", $fRec->groupId);
+            
+            if($queryProduct->fetch() == FALSE) {
+                unset($data->recs[$id]);
+            }
             
             $mArr = cat_Products::getMaterialsForProduction($rec->article,$rec->articleCnt, NULL,TRUE);
             $rec->num = $i;
