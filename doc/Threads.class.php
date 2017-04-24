@@ -886,8 +886,7 @@ class doc_Threads extends core_Manager
         }
         
         if($filter->documentClassId){
-        	$query->EXT('firstDocumentClassId', 'doc_Containers', 'externalName=docClass,externalKey=firstContainerId');
-        	$query->where("#firstDocumentClassId = {$filter->documentClassId}");
+        	$query->where("#firstDocClass = {$filter->documentClassId}");
         }
         
 
