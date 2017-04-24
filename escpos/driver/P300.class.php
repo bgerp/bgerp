@@ -30,7 +30,7 @@ class escpos_driver_P300 extends escpos_driver_Ddp250
     public function placePrintData($tpl)
     {
         $dataArr = array();
-        $dataArr['printerSelectCodetable'] = 23;
+        $dataArr['printerSelectCodetable'] = 17;
         $dataArr['printerSelectCodetableChar'] = 116;
         
         $tpl->placeArray($dataArr);
