@@ -343,7 +343,7 @@ abstract class deals_DealMaster extends deals_DealBase
         // Показване и на артикула с най-голяма стойност в продажбата
         if(isset($rec->productIdWithBiggestAmount)){
         	$pName = cat_Products::getTitleById($rec->productIdWithBiggestAmount);
-        	$pName = str::limitLen($pName, 16);
+        	$pName = mb_substr($pName, 0, 16);
         	$title .= "/{$pName}";
         }
         
