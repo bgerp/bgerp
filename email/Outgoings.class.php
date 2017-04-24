@@ -2029,14 +2029,18 @@ class email_Outgoings extends core_Master
      *
      * @param integer $contragentCountryId
      */
-    function getFooter($contragentCountryId = NULL)
+    public static function getFooter($contragentCountryId = NULL, $userId = NULL)
     {
+        if(!$userId) {
+            $userId = core_Users::getCurrent();
+        }
+
         $conf = core_Packs::getConfig('email');
         
         // Профила на текущият потребител
-        $personRec = crm_Profiles::getProfile();
+        $personRec = crm_Profiles::getProfile($userId);
         
-        // Ако текущия потребител няма фирма
+        // Ако потребителя няма фирма
         if (!($companyId = $personRec->buzCompanyId)) {
             
             // Вземаме фирмата по подразбиране

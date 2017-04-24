@@ -153,8 +153,8 @@ class type_Double extends core_Type {
 
         // Закръгляме числото преди да го обърнем в нормален вид
         $value = round($value, $this->params['decimals']);
-        
-        $value = number_format($value, $this->params['decimals'], $this->params['decPoint'], $this->params['thousandsSep']);
+        $ts = Mode::is('forSearch') ? '' : $this->params['thousandsSep'];
+        $value = number_format($value, $this->params['decimals'], $this->params['decPoint'], $ts);
         
         if(!Mode::is('text', 'plain')) {
             $value = str_replace(' ', '&nbsp;', $value);

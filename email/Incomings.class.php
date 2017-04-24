@@ -2157,7 +2157,7 @@ class email_Incomings extends core_Master
         //Данните за имейл-а
         $msg = email_Incomings::fetch($id);
         
-        $addrParse = cls::get('drdata_Address');
+        $addrParse = cls::get('drdata_Address'); 
         
         Mode::push('text', 'plain');
         Mode::push('ClearFormat', TRUE);
@@ -2165,8 +2165,12 @@ class email_Incomings extends core_Master
         $textPart = $rt->toVerbal($msg->textPart);
         Mode::pop('ClearFormat');
         Mode::pop('text');
-        
-        $contragentData = $addrParse->extractContact($textPart);
+
+        $footer = email_Outgoings::getFooter();
+
+        $avoid = array('html') + array_filter(explode("\n", str_replace(array('Тел.:', 'Факс:', 'Tel.:', 'Fax:'), array('', '', '', ''), trim($footer))));
+
+        $contragentData = $addrParse->extractContact($textPart, array('email' => $msg->fromEml), $avoid);
         
         $headersArr = array();
         

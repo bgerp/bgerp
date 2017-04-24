@@ -244,8 +244,8 @@ class findeals_Deals extends deals_DealBase
      * 
      * @param mixed $contragentClassId
      * @param int $contragentId
-     * @param int $accountId
-     * @param array $fields
+     * @param int $accountSysId
+     * @param array $params
      * 			['valior']           - вальор, ако няма е текущата дата
      * 			['dealName']         - име на сделката (незадължително)
      * 			['description']      - описание (незадължително)
@@ -253,30 +253,30 @@ class findeals_Deals extends deals_DealBase
      * 			['currencyRate']     - курса от валутата към основната валута за периода
      * 			['baseAccountSysId'] - систем ид на сметката от която ще се прехвърля салдото
      * 			['baseAmount']       - сума в основна валута, която ще стане салдото на финансовата сделка
-     * 			['baseAmountType']   - дали салдото да е дебитно или кредитно
+     * 			['baseAmountType']   - дали салдото да е дебитно или кредитно 'debit' || 'credit'
      * 
      * @return int|FALSE $id
      */
-    public static function createDraft($contragentClassId, $contragentId, $accountId, $fields = array())
+    public static function createDraft($contragentClassId, $contragentId, $accountSysId, $params = array())
     {
     	$me = cls::get(get_called_class());
-    	
+   
     	// Проверки
     	$contragentClass = cls::get($contragentClassId);
     	expect($cRec = $contragentClass->fetch($contragentId));
     	expect($cRec->state != 'rejected');
-    	expect($accRec = acc_Accounts::getRecBySystemId($accountId), 'Невалидна сметка');
+    	expect($accRec = acc_Accounts::getRecBySystemId($accountSysId), 'Невалидна сметка');
     	if($me instanceof findeals_AdvanceDeals){
     		expect($contragentClass instanceof crm_Persons, "Служебен аванс може да е само в папка на лице");
     	}
     	
     	$options = acc_Accounts::getOptionsByListInterfaces($me->accountListInterfaces);
-    	expect(array_key_exists($accRec->id, $options), "{$accountId} разбивките нямат нужните интерфейси {$me->accountListInterfaces}");
+    	expect(array_key_exists($accRec->id, $options), "{$accountSysId} разбивките нямат нужните интерфейси {$me->accountListInterfaces}");
     	
     	$Double = cls::get('type_Double');
     	
     	// Кои полета ще се записват
-    	$fields = arr::make($fields);
+    	$fields = arr::make($params);
     	$newFields = array();
     	$newFields['contragentClassId'] = $contragentClass->getClassId();
     	$newFields['contragentId'] = $contragentId;
