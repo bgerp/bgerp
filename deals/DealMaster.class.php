@@ -513,7 +513,8 @@ abstract class deals_DealMaster extends deals_DealBase
     
     
     /**
-     * Връща подзаглавието на документа във вида "Дост: ХХХ(ууу), Плат ХХХ(ууу), Факт: ХХХ(ууу)"
+     * Връща подзаглавието на документа във вида "Дост: ХХХ(ууу), Плат ХХХ(ууу), Факт: ХХХ(ууу)", Реф: ХХХ"
+     * 
      * @param stdClass $rec - запис от модела
      * @return string $subTitle - подзаглавието
      */
@@ -1981,7 +1982,7 @@ abstract class deals_DealMaster extends deals_DealBase
      * @param stdClass $rec
      * @return int|NULL $productId
      */
-    private function findProductIdWithBiggestAmount($rec)
+    public function findProductIdWithBiggestAmount($rec)
     {
     	$Detail = cls::get($this->mainDetail);
     	$query = $Detail->getQuery();
@@ -1999,4 +2000,3 @@ abstract class deals_DealMaster extends deals_DealBase
     	return NULL;
     }
 }
-
