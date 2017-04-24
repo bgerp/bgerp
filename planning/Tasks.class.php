@@ -344,7 +344,7 @@ class planning_Tasks extends tasks_Tasks
 	public function getLabelPlaceholders($id)
 	{
 		expect($rec = planning_Tasks::fetchRec($id));
-		$fields = array('JOB', 'NAME', 'BARCODE', 'MEASURE_ID', 'QUANTITY', 'ИЗГЛЕД', 'PREVIEW');
+		$fields = array('JOB', 'NAME', 'BARCODE', 'MEASURE_ID', 'QUANTITY', 'ИЗГЛЕД', 'PREVIEW', 'SIZE_UNIT', 'DATE');
 		
 		// Извличане на всички параметри на артикула
 		$params = static::getTaskProductParams($rec, TRUE);
