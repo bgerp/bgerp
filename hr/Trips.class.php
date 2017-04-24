@@ -114,6 +114,12 @@ class hr_Trips extends core_Master
     
     
     /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'personId,startDate, toDate,purpose,title';
+    
+    
+    /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     public $rowToolsField = 'id';
@@ -178,11 +184,20 @@ class hr_Trips extends core_Master
     	$this->FLD('amountRoad', 'double(decimals=2)', 'caption=Начисления->Пътни,input=none, changable');
     	$this->FLD('amountDaily', 'double(decimals=2)', 'caption=Начисления->Дневни,input=none, changable');
     	$this->FLD('amountHouse', 'double(decimals=2)', 'caption=Начисления->Квартирни,input=none, changable');
-
+    	$this->FNC('title', 'varchar', 'column=none');
     	
     	$this->FLD('sharedUsers', 'userList(roles=hr|ceo)', 'caption=Споделяне->Потребители');
     }
 
+    
+    /**
+     * Изчисление на title
+     */
+    protected static function on_CalcTitle($mvc, $rec)
+    {
+        $rec->title = "Командировъчен лист  №{$rec->id}";
+    }
+    
     
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
@@ -190,7 +205,7 @@ class hr_Trips extends core_Master
     public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
     	$mvc->updateTripsToCalendar($rec->id);
-    	$mvc->updateTripsToCustomSchedules($rec->id);
+    	
     }
 
     
@@ -377,67 +392,7 @@ class hr_Trips extends core_Master
 
         return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
     }
-    
-    
-    /**
-     * Обновява информацията за командировките в Персонални работни графици
-     */
-    public static function updateTripsToCustomSchedules($id)
-    {
-        $rec = static::fetch($id);
-    
-        $events = array();
-    
-        // Годината на датата от преди 30 дни е начална
-        $cYear = date('Y', time() - 30 * 24 * 60 * 60);
-    
-        // Начална дата
-        $fromDate = "{$cYear}-01-01";
-    
-        // Крайна дата
-        $toDate = ($cYear + 2) . '-12-31';
-    
-        // Префикс на ключовете за записите персонални работни цикли
-        $prefix = "TRIP-{$id}";
-    
-        $curDate = $rec->startDate;
-         
-        while($curDate < dt::addDays(1, $rec->toDate)){
-            // Подготвяме запис за началната дата
-            if($curDate && $curDate >= $fromDate && $curDate <= $toDate && $rec->state == 'active') {
-                 
-                $customRec = new stdClass();
-                 
-                // Ключ на събитието
-                $customRec->key = $prefix . "-{$curDate}";
-                 
-                // Дата на събитието
-                $customRec->date = $curDate;
-    
-                // За човек или департамент е
-                $customRec->strukture  = 'personId';
-    
-                // Тип на събитието
-                $customRec->typePerson = 'traveling';
-    
-                // За кого се отнася
-                $customRec->personId = $rec->personId;
-    
-                // Документа
-                $customRec->docId = $rec->id;
-    
-                // Класа ан документа
-                $customRec->docClass = core_Classes::getId("hr_Trips");
-    
-                $events[] = $customRec;
-            }
-    
-            $curDate = dt::addDays(1, $curDate);
-        }
-    
-        return hr_CustomSchedules::updateEvents($events, $fromDate, $toDate, $prefix);
-    }
-    
+  
 
     /**
      * Интерфейсен метод на doc_DocumentIntf

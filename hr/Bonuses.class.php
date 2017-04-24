@@ -106,6 +106,13 @@ class hr_Bonuses extends core_Master
      */
     public $listFields = 'id, date, personId, type, sum';
     
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'personId,date, type, title';
+    
+    
     /**
      * Групиране на документите
      */
@@ -152,6 +159,16 @@ class hr_Bonuses extends core_Master
     	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител');
     	$this->FLD('type', 'richtext',     'caption=Произход на бонуса');
     	$this->FLD('sum', 'double',     'caption=Сума');
+    	$this->FNC('title', 'varchar', 'column=none');
+    }
+    
+    
+    /**
+     * Изчисление на title
+     */
+    protected static function on_CalcTitle($mvc, $rec)
+    {
+        $rec->title = "Премия  №{$rec->id}";
     }
     
     

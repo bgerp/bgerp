@@ -366,7 +366,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         $files = scandir($script->tempDir);
 
         // Шаблон за намиране на името на файла
-        $pattern = "/" . preg_quote($script->fName, "/") . "\-(?'num'[0-9]+)\.jpg" . "/i";
+        $pattern = "/^" . preg_quote($script->fName, "/") . "\-(?'num'[0-9]+)\.jpg$/i";
         
         $filesArr = array();
         

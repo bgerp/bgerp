@@ -1654,9 +1654,9 @@ class core_Users extends core_Manager
         $roleQuery->orderBy("#role", 'ASC');
 
         if($type) {
-            $cond = "#type = '{$type}'";
+            $cond = "#type = '{$type}' AND #state != 'closed'";
         } else {
-            $cond = "";
+            $cond = "#state != 'closed'";
         }
         
         while($roleRec = $roleQuery->fetch($cond)) {

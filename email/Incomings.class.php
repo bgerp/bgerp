@@ -228,6 +228,8 @@ class email_Incomings extends core_Master
         
         $this->FLD("toAndCc", "blob(serialize,compress)", 'caption=Имейл до');
         
+        $this->FLD("spamScore", "double", 'caption=Смам рейтинг');
+        
         $this->setDbUnique('hash');
         $this->setDbIndex('fromEml');
     }
@@ -545,13 +547,51 @@ class email_Incomings extends core_Master
         // Преобразуваме в масив с хедъри и сериализираме
         $rec->headers = $mime->parseHeaders($headersStr);
         
+        $rec->spamScore = $this->getSpamScore($rec->headers);
+        
         // Записваме (и автоматично рутираме) писмото
         $saved = email_Incomings::save($rec);
 
         return $saved;
     }
-
-
+    
+    
+    /**
+     * 
+     * @param array $headerArr
+     * @param boolean $notNull
+     */
+    public static function getSpamScore($headerArr, $notNull = TRUE)
+    {
+        $headersNames = email_Setup::get('AUTO_REJECT_SPAM_SCORE_HEADERS');
+        
+        $headersNamesArr = type_Set::toArray($headersNames);
+        
+        $score = NULL;
+        
+        // Проверяваме рейтинга във всички зададени хедъри
+        if ($headersNamesArr) {
+            
+            foreach ($headersNamesArr as $header) {
+                
+                $header = trim($header);
+                
+                if (!$header) continue;
+                
+                $score = email_Mime::getHeadersFromArr($headerArr, $header);
+                
+                if (isset($score)) break;
+            }
+        }
+        
+        if (!isset($score) && $notNull) {
+            $score = 0;
+        }
+        
+        return $score;
+    }
+    
+    
     /**
      * Връща поредния номер на първото не-четено писмо
      */
@@ -765,6 +805,7 @@ class email_Incomings extends core_Master
             }
             
             self::calcAllToAndCc($rec);
+            self::calcSpamScore($rec);
             
             $errEmailInNameStr = 'Имейлът в името не съвпада с оригиналния|*.';
             
@@ -865,6 +906,28 @@ class email_Incomings extends core_Master
                 $row->fromEml->append('</span>');
             } else {
                 $row->fromEml = '<span class="textWithIcons">' . trim($row->fromName) . '</span>';
+            }
+        } else {
+            
+            // Показваме съответната икона в зависимост от СПАМ рейтинга
+            $rejectSpamRating = email_Setup::get('AUTO_REJECT_SPAM_SCORE');
+            $warningSpamRating = email_Setup::get('WARNING_SPAM_SCORE');
+            if (isset($rec->spamScore) && (($rec->spamScore >= $rejectSpamRating) || ($rec->spamScore >= $warningSpamRating))) {
+                
+                $img = '/img/24/warning.png';
+                
+                if ($rec->spamScore >= $rejectSpamRating) {
+                    $img = '/img/24/danger.png';
+                }
+                
+                $row->fromEml =  ht::createHint($row->fromEml, "Висок СПАМ рейтинг|*: {$rec->spamScore}", $img);
+                
+                if ($row->fromEml instanceof core_ET) {
+                    $row->fromEml->prepend('<span class="textWithIcons">');
+                    $row->fromEml->append('</span>');
+                } else {
+                    $row->fromEml = '<span class="textWithIcons">' . trim($row->fromName) . '</span>';
+                }
             }
         }
     }
@@ -1247,6 +1310,57 @@ class email_Incomings extends core_Master
             $inst->save_($rec, 'toAndCc');
         }
      }
+     
+     
+     /**
+      * Преизчислява спам рейтинга, ако е необходими
+      * 
+      * @param stdObject $rec
+      * @param boolean $saveIfNotExist
+      */
+     public static function calcSpamScore($rec, $saveIfNotExist = TRUE)
+     {
+         if (isset($rec->spamScore)) return ;
+        
+         // Ако няма хедъри
+         if (!$rec->headers && $rec->emlFile) {
+         
+             // Манипулатора на eml файла
+             $fh =  fileman_Files::fetchField($rec->emlFile, 'fileHnd');
+         
+             // Съдържаниетое
+             $rawEmail = fileman_Files::getContent($fh);
+         
+             // Инстанция на класа
+             $mime = cls::get('email_Mime');
+         
+             // Парсираме имейла
+             $mime->parseAll($rawEmail);
+         
+             // Вземаме хедърите
+             $headersArr = $mime->parts[1]->headersArr;
+         
+             // Ако няма хедъри, записваме ги
+             $nRec = new stdClass();
+             $nRec->id = $rec->id;
+             $nRec->headers = $headersArr;
+         
+             $eInc = cls::get('email_Incomings');
+         
+             $eInc->save_($nRec, 'headers');
+         } else {
+         
+             // Хедърите ги преобразуваме в масив
+             $headersArr = $rec->headers;
+         }
+         
+         $rec->spamScore = self::getSpamScore($headersArr);
+         
+         if ($rec->id && $saveIfNotExist) {
+             $inst = cls::get(get_called_class());
+             $inst->save_($rec, 'spamScore');
+         }
+     }
     
  
     /**
@@ -1521,36 +1635,6 @@ class email_Incomings extends core_Master
             if ($rec->routeBy && $rec->threadId) return ;
         }
         
-        // Ако няма да се рутира в нишка, правим проверка на СПАМ рейтинга и оттегляме
-        if ($rec->routeBy != 'file' && $rec->routeBy != 'thread') {
-            
-            $headersNames = email_Setup::get('AUTO_REJECT_SPAM_SCORE_HEADERS');
-            
-            $headersNamesArr = type_Set::toArray($headersNames);
-            
-            if ($headersNamesArr) {
-                
-                $spamScore = email_Setup::get('AUTO_REJECT_SPAM_SCORE');
-                
-                foreach ($headersNamesArr as $header) {
-                    
-                    $header = trim($header);
-                    
-                    if (!$header) continue;
-                    
-                    $score = email_Mime::getHeadersFromArr($rec->headers, $header);
-                    
-                    if (isset($score) && ($score >= $spamScore)) {
-                        $rec->state = 'rejected';
-                        
-                        self::logNotice("Автоматично оттеглен имейл със '{$header}' = '{$score}'");
-                        
-                        break;
-                    }
-                }
-            }
-        }
-        
         // Първо рутираме по ръчно зададените правила
         if (email_Filters::preroute($rec)) {
             
@@ -1592,6 +1676,9 @@ class email_Incomings extends core_Master
                 // Рутиране по място (държава)
                 if(email_Router::doRuleCountry($rec)) {
                     
+                    // Автоматично оттегляне на имейлите, които са СПАМ
+                    self::checkSpamLevelAndReject($rec);
+                    
                     // Добавяме начина на рутиране
                     $rec->routeBy = 'country';
                     
@@ -1611,6 +1698,9 @@ class email_Incomings extends core_Master
             }
         }
         
+        // Автоматично оттегляне на имейлите, които са СПАМ
+        self::checkSpamLevelAndReject($rec);
+        
         // Накрая безусловно вкарваме в кутията на `toBox`
         email_Router::doRuleToBox($rec); 
         
@@ -1618,6 +1708,29 @@ class email_Incomings extends core_Master
         $rec->routeBy = 'toBox';
         
         expect($rec->folderId, $rec);
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param stdClass $rec
+     */
+    protected static function checkSpamLevelAndReject($rec)
+    {
+        if ($rec->state == 'rejected') return ;
+        
+        $score = $rec->spamScore;
+        if (!isset($score)) {
+            $score = self::getSpamScore($rec->headers, FALSE);
+        }
+        
+        $spamScore = email_Setup::get('AUTO_REJECT_SPAM_SCORE');
+        
+        if (isset($score) && ($score >= $spamScore)) {
+            $rec->state = 'rejected';
+            self::logNotice("Автоматично оттеглен имейл със СПАМ рейтинг = '{$score}'");
+        }
     }
     
     

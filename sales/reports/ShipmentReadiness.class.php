@@ -163,10 +163,14 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		// Рендиране на лист таблицата
 		$fld = cls::get('core_FieldSet');
 		$fld->FLD('dealerId', 'varchar', 'smartCenter');
+		$fld->FLD('dueDates', 'varchar', 'smartCenter,tdClass=small');
+		$fld->FLD('deliveryTime', 'varchar', 'smartCenter,tdClass=small');
 		$fld->FLD('readiness', 'double');
 		$fld->FLD('document', 'varchar', 'smartCenter');
 		
 		$table = cls::get('core_TableView', array('mvc' => $fld));
+		$data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, 'dueDates');
+		
 		$tpl->append($table->get($data->rows, $data->listFields), 'TABLE');
 		$tpl->removeBlocks();
 		$tpl->removePlaces();
@@ -186,6 +190,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 	{
 		$fields = array('dealerId'     => 'Търговец', 
 				        'contragent'   => 'Клиент',
+						'dueDates'     => 'Падеж',
 						'deliveryTime' => 'Доставка',
 				        'document'     => 'Документ', 
 				        'readiness'    => 'Готовност');
@@ -249,9 +254,35 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 			} else {
 				$row->readiness = "<span style='color:green'>{$row->readiness}<span>";
 			}
+			
+			if($dRec->paymentState == 'paid' && isset($dRec->amountPaid)){
+				$row->readiness = ht::createHint($row->readiness, 'Сделката е платена', 'notice', FALSE);
+			}
 		}
 		
-		$row->deliveryTime = ($isPlain) ? frame_CsvLib::toCsvFormatData($dRec->deliveryTime) : dt::mysql2verbal($dRec->deliveryTime);
+		foreach (array('deliveryTime', 'dueDateMin', 'dueDateMax') as $dateFld){
+			if(isset($dRec->{$dateFld})){
+				if($isPlain){
+					$row->{$dateFld} = frame_CsvLib::toCsvFormatData($dRec->{$dateFld});
+				} else {
+					$DeliveryDate = new DateTime($dRec->{$dateFld});
+					$delYear = $DeliveryDate->format('Y');
+					$curYear = date('Y');
+					$mask = ($delYear == $curYear) ? 'd.M' : 'd.M.y';
+					$row->{$dateFld} = dt::mysql2verbal($dRec->{$dateFld}, $mask);
+				}
+			}
+		}
+		
+		if(!$isPlain){
+			if(isset($row->dueDateMin) && isset($row->dueDateMax)){
+				if($row->dueDateMin == $row->dueDateMax){
+					$row->dueDates = $row->dueDateMin;
+				} else {
+					$row->dueDates = "{$row->dueDateMin}-{$row->dueDateMax}";
+				}
+			}
+		}
 		
 		return $row;
 	}
@@ -294,7 +325,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 	public static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
 	{
 		$fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
-								<fieldset><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
+								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
 							    <!--ET_BEGIN place--><small><div><!--ET_BEGIN dealers-->|Търговци|*: [#dealers#]<!--ET_END dealers--></div><!--ET_BEGIN countries--><div>|Държави|*: [#countries#]</div><!--ET_END countries--></small></fieldset><!--ET_END BLOCK-->"));
 		
 		if(isset($data->rec->dealers)){
@@ -340,7 +371,6 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		$data->recs = array();
 		
 		$dealers = keylist::toArray($rec->dealers);
-		$startOfTheDay = bgerp_Setup::get('START_OF_WORKING_DAY');
 		$countries = keylist::toArray($rec->countries);
 		$cCount = count($countries);
 		
@@ -381,11 +411,6 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 						$delTime = ($delTime) ? dt::addSecs($delTime, $sRec->valior) : $sRec->valior;
 					}
 					
-					$delTime = str_replace('00:00', $startOfTheDay, $delTime);
-					if(strpos($delTime, ':') === FALSE){
-						$delTime .= " {$startOfTheDay}"; 
-					}
-					
 					// Добавя се
 					$dRec = (object)array('containerId'       => $sRec->containerId,
 							              'contragentName'    => self::normalizeFolderName($sRec->folderId),
@@ -393,9 +418,14 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 										  'contragentId'      => $sRec->contragentId,
 										  'deliveryTime'      => $delTime,
 							              'folderId'          => $sRec->folderId,
+										  'amountPaid'        => $sRec->amountPaid,
+										  'paymentState'      => $sRec->paymentState,
 							              'dealerId'          => $dealerId,
 							              'readiness'         => $readiness);
 					
+					$dueDates = $this->getSaleDueDates($sRec);
+					$dRec->dueDateMin = $dueDates['min']; 
+					$dRec->dueDateMax = $dueDates['max'];
 					$data->recs[$sRec->containerId] = $dRec;
 				}
 			}
@@ -421,11 +451,6 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 					if(isset($rec->precision) && $readiness1 < $rec->precision) continue;
 					
 					$deliveryTime = !empty($soRec->deliveryTime) ? $soRec->deliveryTime : $soRec->valior;
-					$deliveryTime = str_replace('00:00', $startOfTheDay, $deliveryTime);
-					
-					if(strpos($deliveryTime, ':') === FALSE){
-						$deliveryTime .= " {$startOfTheDay}";
-					}
 					
 					// Добавя се
 					$r = (object)array('containerId'       => $soRec->containerId,
@@ -448,6 +473,10 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 			// Първо се сортират по нормализираните имена на контрагентите, след това по готовноста
 			usort($data->recs, function($a, $b) {
 				if($a->contragentName == $b->contragentName){
+					if($a->readiness == $b->readiness){
+						return ($a->deliveryTime < $b->deliveryTime) ? -1 : 1;
+					}
+					
 					return ($a->readiness < $b->readiness) ? 1 : -1;
 				}
 				
@@ -459,6 +488,9 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 			// По дефолт се сортират по готовност във низходящ ред, при равенство по нормализираното име на контрагента
 			usort($data->recs, function($a, $b) {
 				if($a->readiness === $b->readiness){
+					if($a->contragentName == $b->contragentName){
+						return ($a->deliveryTime < $b->deliveryTime) ? -1 : 1;
+					} 
 					return (strnatcasecmp($a->contragentName, $b->contragentName) < 0) ? -1 : 1;
 				}
 			
@@ -469,6 +501,26 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		
 		// Връщане на датата
 		return $data;
+	}
+	
+	
+	private function getSaleDueDates($saleRec)
+	{
+		$dates = array();
+		
+		$jQuery = planning_Jobs::getQuery();
+		$jQuery->where("#saleId = {$saleRec->id} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')");
+		$jQuery->XPR('max', 'int', "MAX(#dueDate)");
+		$jQuery->XPR('min', 'int', "MIN(#dueDate)");
+		$jQuery->show('min,max');
+		
+		$fRec = $jQuery->fetch();
+		if(isset($fRec->min) || isset($fRec->max)){
+			$dates['min'] = $fRec->min;
+			$dates['max'] = $fRec->max;
+		}
+		
+		return $dates;
 	}
 	
 	
@@ -624,6 +676,8 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		$fieldset = new core_FieldSet();
 		$fieldset->FLD('dealerId', 'varchar','caption=Търговец');
 		$fieldset->FLD('contragent', 'varchar','caption=Клиент');
+		$fieldset->FLD('dueDateMin', 'varchar','caption=Падеж мин');
+		$fieldset->FLD('dueDateMax', 'varchar','caption=Падеж макс');
 		$fieldset->FLD('deliveryTime', 'varchar','caption=Доставка');
 		$fieldset->FLD('document', 'varchar','caption=Документ');
 		$fieldset->FLD('readiness', 'varchar','caption=Готовност %');

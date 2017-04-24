@@ -150,9 +150,15 @@ class spas_Test extends core_Mvc
             redirect($redirectUrl, FALSE, $e->getMessage(), 'error');
         }
         
+        $msg = 'Грешка при свързване със Спас';
+        $type = 'error';
+        
         if($res === TRUE) {
-            redirect($redirectUrl, FALSE, 'Установена е връзка със Спас', 'notice');
+            $msg = 'Установена е връзка със Спас';
+            $type = 'notice';
         }
+        
+        redirect($redirectUrl, FALSE, $msg, $type);
     }
 
     
@@ -162,7 +168,7 @@ class spas_Test extends core_Mvc
     public static function getSa()
     {
         $params = array(
-            'host' => spas_Setup::get('HOSTNAME'), 
+            'hostname' => spas_Setup::get('HOSTNAME'), 
             'port' => spas_Setup::get('PORT'),
             'user' => spas_Setup::get('USER'));
         $sa = new spas_Client($params);

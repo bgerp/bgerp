@@ -283,8 +283,25 @@ class frame2_Reports extends embed_Manager
     			$form->setError('title', 'Задайте име на справката');
     		}
     		
+    		if((isset($rec->updateDays) || isset($rec->updateTime)) && empty($rec->sharedUsers)){
+    			$form->setError('sharedUsers', 'Не са посочени потребители за известяване при обновяване');
+    		}
+    		
     		frame2_ReportVersions::unSelectVersion($rec->id);
     	}
+    }
+    
+    
+    /**
+     * Подготовка на бутоните на формата за добавяне/редактиране.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    {
+    	$data->form->toolbar->renameBtn('save', 'Запис');
     }
     
     
@@ -459,7 +476,6 @@ class frame2_Reports extends embed_Manager
     	// Ако е имало опреснени отчети
     	if(count($mvc->refreshReports)){
     		foreach ($mvc->refreshReports as $rec) {
-    			
     			if($Driver = $mvc->getDriver($rec)){
     				
     				// Проверява се трябва ли да бъде изпратена нова нотификация до споделените
@@ -793,6 +809,7 @@ class frame2_Reports extends embed_Manager
     	} else {
     		
     		// Ако няма зададени дни, взимат се най-близките три дена
+    		$daysArr[] = $date->format('Y-m-d');
     		$date->modify("next day");
     		$daysArr[] = $date->format('Y-m-d');
     		$date->modify("next day");
@@ -809,10 +826,13 @@ class frame2_Reports extends embed_Manager
     	}
     	
     	// Времената се добавят към датите
+    	$now = dt::now();
     	$res = array();
     	foreach ($daysArr as $d){
     		foreach ($timesArr as $time){
-    			$res[] = "{$d} {$time}";
+    			$dt = "{$d} {$time}";
+    			if($dt < $now) continue;
+    			$res[] = $dt;
     		}
     	}
     	

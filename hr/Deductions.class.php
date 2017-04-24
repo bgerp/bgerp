@@ -93,6 +93,13 @@ class hr_Deductions extends core_Master
      */
     public $listFields = 'id, date, personId, type, sum';
     
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'personId,date, type, title';
+    
+    
     /**
      * Групиране на документите
      */
@@ -139,7 +146,16 @@ class hr_Deductions extends core_Master
     	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител');
     	$this->FLD('type', 'richtext',     'caption=Произход на удръжката');
     	$this->FLD('sum', 'double',     'caption=Сума');
-    	
+    	$this->FNC('title', 'varchar', 'column=none');
+    }
+    
+    
+    /**
+     * Изчисление на title
+     */
+    protected static function on_CalcTitle($mvc, $rec)
+    {
+        $rec->title = "Удръжка  №{$rec->id}";
     }
     
     

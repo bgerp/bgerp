@@ -58,15 +58,22 @@ class doc_reports_SearchInFolder extends frame2_driver_Proto
 	{
 		$unique = array();
 		$words = explode("\n", $form->rec->text);
+		$duplicatedWords = array();
 		
 		// Проверка за повтарящи се думи
 		foreach ($words as $word){
 			$key = $Driver->normalizeString($word);
 			if(in_array($key, $unique)){
-				$form->setError('text', 'Има повтарящи се думи');
+				$duplicatedWords[] = trim($word);
 			} else {
 				$unique[] = $key;
 			}
+		}
+		
+		// Проверка за дуплицирани думи
+		if(count($duplicatedWords)){
+			$duplicatedWords = implode('<span style=font-weight:normal>,</span> ', $duplicatedWords);
+			$form->setError('text', "Следните думи се повтарят|*: <b>{$duplicatedWords}</b>");
 		}
 	}
 	
@@ -125,7 +132,7 @@ class doc_reports_SearchInFolder extends frame2_driver_Proto
 	 */
 	private function getListFields($rec)
 	{
-		$fields = array('num'    => "№", 'string' => 'Дума', 'diff'   => 'Новости', 'count'  => 'Резултат',);
+		$fields = array('num'    => "№", 'string' => 'Дума', 'diff'   => 'Нови', 'count'  => 'Резултат',);
 	
 		return $fields;
 	}
@@ -155,10 +162,10 @@ class doc_reports_SearchInFolder extends frame2_driver_Proto
 		
 		// Редниране на таблицата
 		$fld = cls::get('core_FieldSet');
-		$fld->FLD('num', 'int');
+		$fld->FLD('num', 'int', 'tdClass=small-field');
 		$fld->FLD('string', 'varchar');
-		$fld->FLD('count', 'int');
-		$fld->FLD('diff', 'int');
+		$fld->FLD('count', 'int', 'tdClass=small-field');
+		$fld->FLD('diff', 'int', 'tdClass=small-field');
 		
 		$data->listFields = $this->getListFields($rec);
 		$table = cls::get('core_TableView', array('mvc' => $fld));
@@ -190,7 +197,7 @@ class doc_reports_SearchInFolder extends frame2_driver_Proto
 		$Int = cls::get('type_Int');
 		$row->string = cls::get('type_Varchar')->toVerbal($dRec->string);
 		if(!$isPlain){
-			$row->string = "<span style='font-style:italic'>{$row->string}</span>";
+			$row->string = "<span style='font-weight:bold'>{$row->string}</span>";
 		}
 		
 		$row->count  = $Int->toVerbal($dRec->count);
@@ -257,7 +264,7 @@ class doc_reports_SearchInFolder extends frame2_driver_Proto
 		$fieldset = new core_FieldSet();
 		$fieldset->FLD('string', 'varchar','caption=Дума');
 		$fieldset->FLD('count', 'int','caption=Резултат');
-		$fieldset->FLD('diff', 'int','caption=Новости');
+		$fieldset->FLD('diff', 'int','caption=Нови');
 	
 		return $fieldset;
 	}

@@ -245,7 +245,7 @@ class doc_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
     */
-    var $defClasses = 'doc_reports_Docs';
+    var $defClasses = 'doc_reports_Docs,doc_reports_SearchInFolder';
         
     
     /**

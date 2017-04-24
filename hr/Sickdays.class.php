@@ -55,6 +55,12 @@ class hr_Sickdays extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
+    public $searchFields = 'personId,startDate, toDate,fitNoteNum,fitNoteDate,reason,note, icdCode, title';
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
     //public $searchFields = 'description';
 
     
@@ -199,10 +205,21 @@ class hr_Sickdays extends core_Master
     	$this->FLD('alternatePerson', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=По време на отсъствието->Заместник');
     	$this->FLD('paidByEmployer', 'double(Min=0)', 'caption=Заплащане->Работодател, input=hidden, changable');
     	$this->FLD('paidByHI', 'double(Min=0)', 'caption=Заплащане->НЗК, input=hidden,changable');
+    	$this->FNC('title', 'varchar', 'column=none');
+    	 
     	
     	$this->FLD('sharedUsers', 'userList(roles=hr|ceo)', 'caption=Споделяне->Потребители');
     }
 
+    
+    /**
+     * Изчисление на title
+     */
+    protected static function on_CalcTitle($mvc, $rec)
+    {
+        $rec->title = "Болничен лист №{$rec->id}";
+    }
+    
     
     /**
      * Филтър на on_AfterPrepareListFilter()
@@ -306,7 +323,6 @@ class hr_Sickdays extends core_Master
     public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
     	$mvc->updateSickdaysToCalendar($rec->id);
-    	$mvc->updateSickdaysToCustomSchedules($rec->id);	
     }
             
     
@@ -472,67 +488,7 @@ class hr_Sickdays extends core_Master
         return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
     }
     
-    
-    /**
-     * Обновява информацията за болничните в Персонални работни графици
-     */
-    public static function updateSickdaysToCustomSchedules($id)
-    {
-        $rec = static::fetch($id);
-    
-        $events = array();
-    
-        // Годината на датата от преди 30 дни е начална
-        $cYear = date('Y', time() - 30 * 24 * 60 * 60);
-    
-        // Начална дата
-        $fromDate = "{$cYear}-01-01";
-    
-        // Крайна дата
-        $toDate = ($cYear + 2) . '-12-31';
-    
-        // Префикс на ключовете за записите персонални работни цикли
-        $prefix = "Sick-{$id}";
-    
-        $curDate = $rec->startDate;
-         
-        while($curDate < dt::addDays(1, $rec->toDate)){
-            // Подготвяме запис за началната дата
-            if($curDate && $curDate >= $fromDate && $curDate <= $toDate && $rec->state == 'active') {
-                 
-                $customRec = new stdClass();
-                 
-                // Ключ на събитието
-                $customRec->key = $prefix . "-{$curDate}";
-                 
-                // Дата на събитието
-                $customRec->date = $curDate;
-
-                // За човек или департамент е
-                $customRec->strukture  = 'personId';
-                
-                // Тип на събитието
-                $customRec->typePerson = 'sicDay';
-    
-                // За кого се отнася
-                $customRec->personId = $rec->personId;
-
-                // Документа
-                $customRec->docId = $rec->id;
-                
-                // Класа ан документа
-                $customRec->docClass = core_Classes::getId("hr_Sickdays");
-
-                $events[] = $customRec;
-            }
-            
-            $curDate = dt::addDays(1, $curDate);
-        }
-    
-        return hr_CustomSchedules::updateEvents($events, $fromDate, $toDate, $prefix);
-    }
-
-    
+   
     /**
      * Проверка дали нов документ може да бъде добавен в посочената папка 
      *
