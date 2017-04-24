@@ -626,7 +626,7 @@ class label_Templates extends core_Master
     			$arr = $this->getPlaceholders($exRec->template);
     			if(is_array($arr)){
     				foreach ($arr as $placeholder){
-    					$type = (in_array($placeholder, array('BARCODE', 'preview'))) ? 'html' : 'caption';
+    					$type = (in_array($placeholder, array('BARCODE', 'PREVIEW'))) ? 'html' : 'caption';
     					$dRec = (object)array('placeHolder' => $placeholder, 'type' => $type, 'templateId' => $exRec->id);
     					label_TemplateFormats::save($dRec);
     				}
