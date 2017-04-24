@@ -849,7 +849,7 @@ class doc_Threads extends core_Manager
     		}
     		
     		// Кешираме резултатите
-    		core_Cache::set("doc_Folders", $cacheKey, $options, 1440);
+//     		core_Cache::set("doc_Folders", $cacheKey, $options, 1440);
     	}
     
     	// Връщаме данните за оттеглените или за не оттеглените документи в папката
