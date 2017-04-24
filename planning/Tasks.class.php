@@ -384,7 +384,7 @@ class planning_Tasks extends tasks_Tasks
 		
 		// Информация за артикула
 		$measureId = cat_Products::fetchField($tInfo->productId, 'measureId');
-		$res['MEASURE_ID'] = cat_UoM::getShortName($measureId);
+		$res['MEASURE_ID'] = tr(cat_UoM::getShortName($measureId));
 		$res['QUANTITY'] = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($tInfo->quantityInPack);
 		if(isset($jobRec->saleId)){
 			$res['ORDER'] =  "#" . sales_Sales::getHandle($jobRec->saleId);
