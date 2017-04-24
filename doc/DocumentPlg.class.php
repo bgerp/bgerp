@@ -913,10 +913,14 @@ class doc_DocumentPlg extends core_Plugin
                 }
             }
             
-            // Обновяваме споделените на нишката, да сме сигурни, че данните ще са актуални
-            $threadRec = doc_Threads::fetch($rec->threadId);
-            $threadRec->shared = keylist::fromArray(doc_ThreadUsers::getShared($rec->threadId));
-            doc_Threads::save($threadRec, 'shared');
+            try {
+                // Обновяваме споделените на нишката, да сме сигурни, че данните ще са актуални
+                $threadRec = doc_Threads::fetch($rec->threadId);
+                $threadRec->shared = keylist::fromArray(doc_ThreadUsers::getShared($rec->threadId));
+                doc_Threads::save($threadRec, 'shared');
+            } catch (core_exception_Expect $e) {
+                // Да не прекъсва при липса на threadId
+            }
            
             // Пренасочваме контрола
             if (!$res = getRetUrl()) {
