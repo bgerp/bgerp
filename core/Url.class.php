@@ -938,7 +938,7 @@ class core_Url
      */
     static function extractWebAddress($line)
     {
-        preg_match_all("/(((http(s?)):\/\/)|(www\.))([\%\_\-\.a-zA-Z0-9]+)/i", $line, $matches);
+        preg_match_all("/(((http(s?)):\/\/)|(www\.))([\%\_\-\.\p{L}0-9]+)/ui", $line, $matches);
         
         if(count($matches[0])) {
             foreach($matches[0] as $id => &$w) {
