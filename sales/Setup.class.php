@@ -217,7 +217,7 @@ class sales_Setup extends core_ProtoSetup
     		'sales_PrimeCostByDocument',
     		'migrate::cacheInvoicePaymentType',
     		'migrate::migrateRoles',
-    		'migrate::updateDealFields',
+    		'migrate::updateDealFields1',
         );
 
         
@@ -385,7 +385,7 @@ class sales_Setup extends core_ProtoSetup
     /**
      * Миграция на сделките
      */
-    function updateDealFields()
+    function updateDealFields1()
     {
     	foreach (array('sales_Sales', 'purchase_Purchases') as $className){
     		$Deal = cls::get($className);
@@ -394,7 +394,7 @@ class sales_Setup extends core_ProtoSetup
     		$update = array();
     		
     		$query = $Deal->getQuery();
-    		$query->where("#state = 'active' AND #productIdWithBiggestAmount IS NULL");
+    		$query->where("#state = 'active'");
     		$query->show('id');
     		 
     		$timeLimit = 0.2 * $query->count();
@@ -403,8 +403,8 @@ class sales_Setup extends core_ProtoSetup
     		
     		while($rec = $query->fetch()){
     			try{
-    				if($productId = $Deal->findProductIdWithBiggestAmount($rec)){
-    					$update[] = (object)array('productIdWithBiggestAmount' => $productId, 'id' => $rec->id);
+    				if($product = $Deal->findProductIdWithBiggestAmount($rec)){
+    					$update[] = (object)array('productIdWithBiggestAmount' => $product, 'id' => $rec->id);
     				}
     			} catch(core_exception_Expect $e){
     				reportException($e);
