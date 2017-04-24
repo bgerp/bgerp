@@ -976,7 +976,7 @@ class core_Html
     	
     	$attr = arr::make($attr, TRUE) + array('src' => sbf($iconPath, ''));
     	$iconHtml = ht::createElement("img", $attr);
-    	//bp($hint);
+    	
     	if($appendToEnd === TRUE){
     		$elementTpl = "[#body#] <span class='endTooltip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span>";
     	} else {

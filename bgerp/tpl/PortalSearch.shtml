@@ -1,6 +1,6 @@
 <form class='portal-filter'>
     <div class='hFormField'>
-        <input value="[#VALUE#]" name="[#FLD_NAME#]" type="text" placeholder="Търсене" list="[#LIST#]" autocomplete="off"/>
+        <input value="[#VALUE#]" name="[#FLD_NAME#]"  placeholder="Търсене" list="[#LIST#]" autocomplete="off"/>
         <div style = 'display:none'>
             [#DATA_LIST#]
         </div>

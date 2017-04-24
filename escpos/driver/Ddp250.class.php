@@ -110,16 +110,16 @@ class escpos_driver_Ddp250 extends core_BaseClass
      */
     public function encode($text)
     {
-
+        
         return $text;
     }
     
-
+    
     /**
-     *
-     *
+     * 
+     * 
      * @param core_Et $tpl
-     *
+     * 
      * @return core_Et
      */
     public function placePrintData($tpl)
@@ -132,9 +132,9 @@ class escpos_driver_Ddp250 extends core_BaseClass
         $dataArr['printerInputTextEncoding'] = 'UTF-8';
         $dataArr['printerTextAppendBegin'] = '{reset}';
         $dataArr['printerTextAppendEnd'] = '{br}';
-
+        
         $tpl->placeArray($dataArr);
-
+        
         return $tpl;
     }
 }

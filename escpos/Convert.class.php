@@ -122,9 +122,10 @@ class escpos_Convert extends core_Manager
 
                     $fontEnd = $driver->getFontEnd();
                     $newLine = $driver->GetNewLine();
+                    
                     $text = self::hyphenText($text, $newLine, $width);
                     $textArr = explode($newLine, $text);
-
+                    
                     foreach ($textArr as $text) {
                         $textLen = mb_strlen($text);
                         switch($cmd) {
@@ -139,7 +140,7 @@ class escpos_Convert extends core_Manager
                                 $res .= $l;
                                 // Код за преместване на хартията
                                 $r = (int) (($width-$textLen)/2);
-
+    							
                                 $r = max($r, 0);
                                 if($r) {
                                     $pad = str_repeat($tab , $r);
@@ -157,14 +158,14 @@ class escpos_Convert extends core_Manager
                                 } else {
                                     $pad = '';
                                 }
-
+    							
                                 $l .=  $fontPad . $pad . $fontTxt .  $driver->encode($text) . $fontEnd;
                                 $lLen += $r + $textLen;
                                 break;
-
+    							
                             case 'r':
                                 $r = $col - $lLen - $textLen;
-
+    							
                                 $r = max($r, 0);
                                 if($r) {
                                     $pad = str_repeat($tab , $r);
@@ -176,9 +177,10 @@ class escpos_Convert extends core_Manager
                                 break;
                             default:
                                 expect(FALSE, "Непозната команда", $cmd, $el);
-
+    						
                         }
                     }
+                    
                 }
             } else {
                 $l .= $el;

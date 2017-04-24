@@ -30,7 +30,45 @@ class plg_Select extends core_Plugin
     }
 
 
-
+    /**
+     * Извиква се след подготовката на колоните ($data->listFields)
+     */
+    function on_AfterPrepareListFields($mvc, &$res, $data)
+    {
+        // Ако се намираме в режим "печат", не показваме инструментите на реда
+        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) return;
+        
+        $data->listFields = arr::combine(array("_checkboxes" =>
+                "|*<input type='checkbox' onclick=\"return toggleAllCheckboxes();\" name='toggle'  class='checkbox'>"), $data->listFields);
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    function on_AfterPrepareListRows($mvc, &$res, $data)
+    {
+        // Ако се намираме в режим "печат", не показваме инструментите на реда
+        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) return;
+        
+        if(!count($data->rows)) {
+            unset($data->listFields['_checkboxes']);
+            
+            return;
+        }
+        
+        $checkboxField = '_checkboxes';
+        $inputName = plg_Select::getInputName($mvc);
+        
+        foreach($data->rows as $id => $row) {
+            $row->ROW_ATTR['id'] = 'lr_' . $id;
+            $row->{$checkboxField} .= "<input type='checkbox' onclick=\"chRwClSb('{$id}');\" name='R[{$id}]' id='cb_{$id}' class='checkbox'>";
+        }
+    }
     
     
     /**

@@ -121,7 +121,7 @@ class plg_RowTools2 extends core_Plugin
                 }
         }
 
-        if($mvc->hasPlugin('plg_Select') &&  !empty($singleUrl)){
+        if(FALSE) {
             $ddTools->addFnLink('Избор', 'actionsWithSelected();', array('ef_icon' => "img/16/checked.png", 'title' => "Действия с избраните", "id"=>"check{$rec->id}", "class" => 'checkbox-btn'));
         }
 
