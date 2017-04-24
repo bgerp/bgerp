@@ -40,7 +40,7 @@ class store_ShipmentOrders extends store_DocumentMaster
      * Поддържани интерфейси
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf,
-                          acc_TransactionSourceIntf=store_transaction_ShipmentOrder, bgerp_DealIntf,deals_InvoiceSourceIntf,trans_LogisticDataIntf';
+                          acc_TransactionSourceIntf=store_transaction_ShipmentOrder, bgerp_DealIntf,deals_InvoiceSourceIntf,trans_LogisticDataIntf,label_SequenceIntf';
     
     
     /**
@@ -545,5 +545,85 @@ class store_ShipmentOrders extends store_DocumentMaster
     	$res['toPerson'] = !empty($rec->person) ? $rec->person : $res['toPerson'];
     	
     	return $res;
+    }
+    
+    
+    /**
+     * Връща масив с плейсхолдърите, които ще се попълват от getLabelData
+     *
+     * @param mixed $id - ид или запис
+     * @return array $fields - полета за етикети
+     */
+    public function getLabelPlaceholders($id)
+    {
+    	$fields = array('NOMER', 'DESTINATION', 'DATE', 'Текущ_етикет');
+    	$allowSkip = FALSE;
+    	if($this->getEstimateCnt($id, $allowSkip)){
+    		$fields[] = 'Общо_етикети';
+    	}
+    	
+    	if(isset($rec->lineId)){
+    		if($forwarderId = trans_Lines::fetchField($rec->lineId, 'forwarderId')){
+    			$fields[] = 'SPEDITOR';
+    		}
+    	}
+    	
+    	return $fields;
+    }
+    
+    
+    /**
+     * Връща данни за етикети
+     *
+     * @param int $id - ид на задача
+     * @param number $labelNo - номер на етикета
+     *
+     * @return array $res - данни за етикетите
+     *
+     * @see label_SequenceIntf
+     */
+    public function getLabelData($id, $labelNo = 0)
+    {
+    	$rec = $this->fetchRec($id);
+    	
+    	$res = array();
+    	$res['NOMER'] = $rec->id;
+    	$res['Текущ_етикет'] = $labelNo;
+    	$logisticData = $this->getLogisticData($rec);
+    	$res['DESTINATION'] = "{$logisticData['toPCode']} {$logisticData['toPlace']}, {$logisticData['toCountry']}";
+    	
+    	$allowSkip = FALSE;
+    	if($count = $this->getEstimateCnt($id, $allowSkip)){
+    		$res['Общо_етикети'] = $count;
+    	}
+    	
+    	if(isset($rec->lineId)){
+    		if($forwarderId = trans_Lines::fetchField($rec->lineId, 'forwarderId')){
+    			$res['SPEDITOR'] = crm_Companies::getVerbal($forwarderId, 'name');
+    		}
+    	}
+    	$res['DATE'] = dt::mysql2verbal(dt::today(), 'd/m/Y');
+    	
+    	return $res;
+    }
+    
+    
+    /**
+     * Броя на етикетите, които могат да се отпечатат
+     *
+     * @param integer $id
+     * @param string $allowSkip
+     *
+     * @return integer
+     *
+     * @see label_SequenceIntf
+     */
+    public function getEstimateCnt($id, &$allowSkip)
+    {
+    	$rec = $this->fetchRec($id);
+    	$count = ($rec->palletCountInput) ? $rec->palletCountInput : static::countCollets($rec->id);
+    	$count = ($count) ? $count : NULL;
+    	
+    	return $count;
     }
 }
