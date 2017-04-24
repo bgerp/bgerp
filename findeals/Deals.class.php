@@ -743,15 +743,30 @@ class findeals_Deals extends deals_DealBase
     public function getDocumentRow($id)
     {
     	expect($rec = $this->fetch($id));
-    
+    	if(!empty($rec->dealName)){
+    		$title = $this->getVerbal($rec, 'dealName');
+    	} else {
+    		$title = $this->singleTitle . " №{$rec->id}";
+    	}
+    	
     	$row = (object)array(
-    			'title'    => $this->singleTitle . " №{$rec->id}",
+    			'title'    => $title,
     			'authorId' => $rec->createdBy,
     			'author'   => $this->getVerbal($rec, 'createdBy'),
     			'state'    => $rec->state,
-    			'recTitle' => $this->singleTitle . " №{$rec->id}",
+    			'recTitle' => $title,
     	);
     
+    	// Показване на текущото салдо на финансовите сделки
+    	if($this->haveRightFor('single', $rec) && isset($rec->amountDeal)){
+    		$amount = $rec->amountDeal / $rec->currencyRate;
+    		$amount = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($amount);
+    		if($rec->amountDeal < 0){
+    			$amount = "<span class='red'>{$amount}</span>";
+    		}
+    		$row->subTitle = tr("Текущо салдо|*: {$amount} {$rec->currencyId}");
+    	}
+    	
     	return $row;
     }
     
