@@ -2872,6 +2872,7 @@ function makeTooltipFromTitle(){
 	            tooltip.css( 'max-width', $( window ).width() / 2 );
 	        else
 	            tooltip.css( 'max-width', 340 );
+            tooltip.css('word-break', 'break-all');
 
 	        var pos_left = target.offset().left + ( target.outerWidth() / 2 ) - ( tooltip.outerWidth() / 2 ),
 	            pos_top  = target.offset().top - tooltip.outerHeight() - 20;

@@ -30,7 +30,7 @@ class gantt_Adapter extends core_Mvc
         
         $tpl->push('gantt/lib/ganttCustom.css', 'CSS');
         $tpl->push('gantt/lib/ganttCustom.js', 'JS');
-            
+
         $ganttData = json_encode($ganttData);
         jquery_Jquery::run($tpl, "ganttRender($('#{$idChart}'),{$ganttData});");
         

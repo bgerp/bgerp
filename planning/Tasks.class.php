@@ -39,8 +39,8 @@ class planning_Tasks extends tasks_Tasks
 	 * Полета от които се генерират ключови думи за търсене (@see plg_Search)
 	 */
 	public $searchFields = 'title';
-	
-	
+
+
 	/**
 	 * След дефиниране на полетата на модела
 	 *
@@ -421,7 +421,6 @@ class planning_Tasks extends tasks_Tasks
 		}
 		
 		$res['SIZE_UNIT'] = 'cm';
-		$res['DATE'] = dt::mysql2verbal(dt::today(), 'm/y');
 		
 		// Връщане на масива, нужен за отпечатването на един етикет
 		return $res;

@@ -32,9 +32,9 @@ class transsrv_ProductDrv extends cat_ProductDriver
 	/**
 	 * Дефолт мета данни за всички продукти
 	 */
-	protected $defaultMetaData = 'canSell,canBuy';
-	
-	
+	protected $defaultMetaData = 'canSell,canBuy,canConvert';
+
+
 	/**
 	 * Стандартна мярка за ЕП продуктите
 	 */

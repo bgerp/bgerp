@@ -118,8 +118,9 @@ class plg_Printing extends core_Plugin
             $tpl->prepend(tr($mvc->title) . " « ", 'PAGE_TITLE');
             
             $res = $tpl;
-            
-            jquery_Jquery::run($tpl, "scalePrintingDocument(1180);", TRUE);
+            if(Mode::is('screenMode', 'wide')) {
+                jquery_Jquery::run($tpl, "scalePrintingDocument(1180);", TRUE);
+            }
             
             return FALSE;
         }

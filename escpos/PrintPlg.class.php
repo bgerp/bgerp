@@ -69,7 +69,7 @@ class escpos_PrintPlg extends core_Plugin
         if ($action == 'agentprint') {
             if (!$requiredRoles != 'no_one' && $rec) {
                 if (($rec->state == 'rejected') || ($rec->state == 'draft')) {
-                    $requiredRoles = 'no_one';
+          //          $requiredRoles = 'no_one';
                 }
             }
             

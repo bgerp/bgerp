@@ -23,7 +23,10 @@ class context_Plugin extends core_Plugin {
     {
      	if (!is_object($toolbar)) return ;
 
-    	$toolbar->prepend(ht::createFnBtn(' ', NULL, NULL, array('class'=>'more-btn arrowDown', 'title'=>tr('Други действия с този документ'))), "ROW0");
+    	$toolbar->prepend(ht::createFnBtn(' ', NULL, NULL, array('class'=>'more-btn arrowDown', 'title'=>tr('Други действия с този документ'), "data-id" => "Row2_{$rowId}")), "ROW0");
+        $toolbar->append(ht::createFnBtn(' ', NULL, NULL, array('class'=>'more-btn task', 'title'=>tr('Избор на задача'), 'data-id' => "task_{$rowId}" )), "TASK");
+        $goBtn = ht::createFnBtn('>>', NULL, NULL, array('class'=>'button linkWithIcon no-icon small', 'title'=>tr('Добави към избраната задача')));
+        $toolbar->append("<div class='modal-toolbar twoColsContext' style = 'padding: 5px' data-position='auto' id='task_{$rowId}'> <select><option></option><option>Среща с фирма 1</option><option>Среща с фирма 2</option><option>Среща с фирма 3</option></select>{$goBtn}</div>", "TASK");
 
         $toolbar->push('context/'. context_Setup::get('VERSION') . '/contextMenu.css', "CSS");
         $toolbar->push('context/'. context_Setup::get('VERSION') . '/contextMenu.js', "JS");
@@ -43,7 +46,7 @@ class context_Plugin extends core_Plugin {
     	count($mvc->buttons) > 3 && Mode::is('screenMode', 'narrow')){
             $link = ht::createFnBtn("Още", "toggleDisplay('hidden_{$rowId}'); var trigger = $(this).closest('.toolbar-first').find('.more-btn'); $(this).remove(); $(trigger).contextMenu('destroy'); prepareContextMenu(); $(trigger).contextMenu('open'); $(trigger).contextMenu('open');", NULL, array('ef_icon'=>'img/16/dots.png', 'class' => "linkWithIcon"));
 
-    		$layout = new ET("<div class='clearfix21 toolbar'><div class='toolbar-first'>[#ROW0#][#ROW1#]" .
+    		$layout = new ET("<div class='clearfix21 toolbar'><div class='toolbar-first'>[#ROW0#][#TASK#][#ROW1#]" .
     		"<!--ET_BEGIN ROW2--><div class='modal-toolbar twoColsContext' data-position='auto' id='Row2_{$rowId}'><span class='context-column'>[#ROW2#]</span>" .
             "<!--ET_BEGIN HIDDEN--><span class='context-column sideBorder'>[#HIDDEN#]</span><!--ET_END HIDDEN-->" .
     		"</div><!--ET_END ROW2-->" .

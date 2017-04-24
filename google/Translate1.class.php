@@ -15,22 +15,23 @@
  */
 class google_Translate1 
 {
-    
-    
+
+
     /**
      * JavaScript фунцкията за превеждане
      */
     protected static $initJs = '
         function googleSectionalElementInit() {
+            console.log("in");
             new google.translate.SectionalElement({
                 sectionalNodeClassName: "goog-trans-section",
                 controlNodeClassName: "goog-trans-control",
                 background: "#f4fa58"
             }, "google_sectional_element");
-        } 
+        }
         ';
-    
-    
+
+
     /**
      * URL' то за превеждане
      */
@@ -41,7 +42,7 @@ class google_Translate1
      * Шаблона, в който се добавя текста за превеждане
      */
     protected static $markupTpl = '
-        <div class="goog-trans-section">
+        <div class="goog-trans-section" data-live="">
             <div class="goog-trans-control"></div>
             <div class="goog-trans-text">%s</div>
         </div>
@@ -95,8 +96,11 @@ class google_Translate1
             // Ескейпваме фунцкцията
             $initJs = static::htmlToJsText($initJs);
         }
-        
-        return $initJs;
+        $res = new ET($initJs);
+
+        jquery_Jquery::runAfterAjax($res, 'google');
+
+        return $res;
     }
     
     

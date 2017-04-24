@@ -842,7 +842,12 @@ class email_Incomings extends core_Master
             if ($rec->headers) {
                 $returnPath = email_Mime::getHeadersFromArr($rec->headers, 'Return-Path');
                 $returnPathEmails = type_Email::extractEmails($returnPath);
+                $returnPathEmails[0] = '3yuLnWA4JBPs1dqnd.plqfkhydjpdlo.frpwhdph0shuwd.ej@doclist.bounces.google.com';
+                $returnPathEmails[2] = '3yuLnWA4JBPs1dqqqnd.plqfkhydjpdlo.frpwhdph0shuwd.ej@doclist.bounces.google.com';
+                unset($returnPathEmails[1]);
                 if (!self::checkEmailIsExist($rec->fromEml, $returnPathEmails, FALSE, TRUE)) {
+
+
                     $returnPathEmailsUniq = array_unique($returnPathEmails);
                     $rEmailsStr = type_Emails::fromArray($returnPathEmailsUniq);
                     $rEmailsStr = type_Varchar::escape($rEmailsStr);
@@ -851,7 +856,7 @@ class email_Incomings extends core_Master
                         $w = 'този';
                     }
                     
-                    $row->fromEml = self::addErrToEmailStr($row->fromEml, "Имейлът не съвпада с {$w} в|* Return-Path: " . $rEmailsStr, 'warning');
+                    $row->fromEml = self::addErrToEmailStr($row->fromEml, "Имейлът не съвпада с {$w} в|* Return-Path: <span>" . $rEmailsStr . "</span>", 'warning');
                     $haveErr = TRUE;
                 }
             }

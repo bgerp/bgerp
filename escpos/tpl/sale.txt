@@ -1,0 +1,88 @@
+<c>[#MyCompany#]
+<c>[#MyAddress#]
+<!--ET_BEGIN MyCompanyVatNo-->
+<c>ЗДДС №: [#MyCompanyVatNo#]
+<!--ET_END MyCompanyVatNo-->
+<!--ET_BEGIN uicId-->
+<c>ЕИК: [#uicId#]
+<!--ET_END uicId-->
+<p>
+<p><r32 =>
+<c F b>ДОГОВОР ЗА ПРОДАЖБА
+<c F b>[#id#]/[#valior#]
+
+<p><r32 =>
+<p b>[#id#]<l3 b>[#productName#]
+<!--ET_BEGIN batch--><p>[#batch#]<!--ET_END batch-->
+<p><l4>[#quantity#]<l12>х [#price#]<r32>= [#productTotal#]
+<p><r32 =>
+<p><r29 F b>Общо: [#total#] [#currencyId#]
+<p>
+<p><r32 =>
+<p>Клиент
+<p>[#contragentName#]
+<p>[#contragentAddress#]
+<!--ET_BEGIN contragentVatNo-->
+<p>ЗДДС №: [#contragentVatNo#]
+<!--ET_END contragentVatNo-->
+<!--ET_BEGIN uicNo-->
+<p>ЕИК: [#uicNo#]
+<!--ET_END uicNo-->
+<p>До обект:
+<p>[#deliveryLocationId#]
+<p><r32 =>
+<p>
+<p>От склад:
+<p>[#shipmentStoreId#]
+<!--ET_BEGIN paymentMethodId-->
+<p>Плащане:
+<p>[#paymentMethodId#]
+<!--ET_END paymentMethodId-->
+<!--ET_BEGIN downpayment-->
+<p>Авансово:
+<p>[#downpayment#]
+<!--ET_END downpayment-->
+<!--ET_BEGIN currencyCode-->
+<p>Валута:
+<p>[#currencyCode#]
+<!--ET_END currencyCode-->
+<!--ET_BEGIN caseId-->
+<p>Каса:
+<p>[#caseId#]
+<!--ET_END caseId-->
+<p>Банк. с-ка
+<p>[#bankAccountId#]
+<p>
+<p><r32 =>
+<p b>Условия:
+<!--ET_BEGIN withVat-->
+<p>- Цените са с включен ДДС[#withVat#]
+<!--ET_END withVat-->
+<!--ET_BEGIN sepVat-->
+<p>- Цените са с отделно ДДС [#sepVat#]
+<!--ET_END sepVat-->
+<!--ET_BEGIN noVat-->
+<p>- Цените са без ДДС[#noVat#]
+<!--ET_END noVat-->
+<!--ET_BEGIN notes-->
+<p>[#notes#]
+<!--ET_END notes-->
+<!--ET_BEGIN closedDocuments-->
+<p>- Обединява: [#closedDocuments#]
+<!--ET_END closedDocuments-->
+<!--ET_BEGIN deliveryBlock-->
+[#deliveryBlock#]
+<p>- Доставка: [#deliveryTermId#]<!--ET_BEGIN deliveryTime--> до [#deliveryTime#]<!--ET_END deliveryTime-->
+<!--ET_END deliveryBlock-->
+<!--ET_BEGIN deliveryTermTime-->
+<p>- Срок за доставка [#deliveryTermTime#] след стартиране на договора
+<!--ET_END deliveryTermTime-->
+<!--ET_BEGIN commonConditionQuote-->
+<p>- Общи условия по продажба: [#commonConditionQuote#]
+<!--ET_END commonConditionQuote-->
+<p><r32 =>
+<p>
+<p>Получател:
+<p><r32 .>
+<p>Съставил:
+<p>[#username#]

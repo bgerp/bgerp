@@ -1147,6 +1147,7 @@ class core_Users extends core_Manager
     static function getCurrent($part = 'id', $escaped = FALSE)
     {
         $Users = cls::get('core_Users');
+
         
         expect($part);
 
@@ -1158,6 +1159,7 @@ class core_Users extends core_Manager
             $res = $rec->{$part};
         } else {
             $cRec = Mode::get('currentUserRec');
+            //$cRec= self::fetch(1);
             if ($escaped) {
                 $res = core_Users::getVerbal($cRec, $part);
             } elseif(is_object($cRec)) {
