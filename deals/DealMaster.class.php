@@ -325,13 +325,11 @@ abstract class deals_DealMaster extends deals_DealBase
         $abbr = $mvc->abbr;
         $abbr{0} = strtoupper($abbr{0});
 
-        $date = dt::mysql2verbal($rec->valior, 'd.m.year'); 
-        
         if(isset($rec->contragentClassId) && isset($rec->contragentId)){
         	$crm = cls::get($rec->contragentClassId);
         	$cRec =  $crm->getContragentData($rec->contragentId);
         	
-        	$contragent = str::limitLen($cRec->person ? $cRec->person : $cRec->company, 32);
+        	$contragent = str::limitLen($cRec->person ? $cRec->person : $cRec->company, 16);
         } else {
         	$contragent = tr("Проблем при показването");
         }
@@ -340,8 +338,15 @@ abstract class deals_DealMaster extends deals_DealBase
         	$contragent = type_Varchar::escape($contragent);
         }
 
-        $title = "{$abbr}{$rec->id}/{$date} {$contragent}";
-       
+        $title = "{$abbr}{$rec->id}/{$contragent}";
+        
+        // Показване и на артикула с най-голяма стойност в продажбата
+        if(isset($rec->productIdWithBiggestAmount)){
+        	$pName = cat_Products::getTitleById($rec->productIdWithBiggestAmount);
+        	$pName = str::limitLen($pName, 16);
+        	$title .= "/{$pName}";
+        }
+        
     	return $title;
     }
     
@@ -518,9 +523,17 @@ abstract class deals_DealMaster extends deals_DealBase
     	$row = $this->recToVerbal($rec, $fields);
     	
         $subTitle = tr("Дост:") . " {$row->amountDelivered} ({$row->amountToDeliver})";
-		$subTitle .= ", " . tr('Плат:') . " {$row->amountPaid} ({$row->amountToPay})";
-        if($rec->makeInvoice != 'no'){
+        if(!empty($rec->amountPaid)){
+        	$subTitle .= ", " . tr('Плат:') . " {$row->amountPaid} ({$row->amountToPay})";
+        }
+	
+        if($rec->makeInvoice != 'no' && !empty($rec->amountInvoiced)){
         	$subTitle .= ", " . tr('Факт:') . " {$row->amountInvoiced} ({$row->amountToInvoice})";
+        }
+        
+        if(!empty($rec->reff)){
+        	$reff = cls::get('type_Varchar')->toVerbal($rec->reff);
+        	$subTitle .= ", " . tr('Реф:') . " {$reff}";
         }
         
         return $subTitle;
@@ -1973,12 +1986,13 @@ abstract class deals_DealMaster extends deals_DealBase
     	$Detail = cls::get($this->mainDetail);
     	$query = $Detail->getQuery();
     	$query = $query->where("#{$Detail->masterKey} = {$rec->id}");
-    	
     	$all = $query->fetchAll();
     	
     	$arr = deals_Helper::normalizeProducts(array($all));
     	arr::order($arr, 'sumAmounts', "DESC");
-    	if($productId = $arr[key($arr)]->productId){
+    	$arr = array_values($arr);
+    	
+    	if($productId = $arr[0]->productId){
     		return $productId;
     	}
     	
