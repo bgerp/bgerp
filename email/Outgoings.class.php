@@ -1681,19 +1681,32 @@ class email_Outgoings extends core_Master
             }
             
             // Ако има имейли в Cc и е избрано да се попълват ги добавяме в полето
-            if ($contragentData->ccEmail && (email_Setup::get('AUTO_FILL_EMAILS_FROM_CC') == 'yes')) {
-            
-                $ccEmails = $rec->emailCc;
-                $ccEmails .= $ccEmails ? ', ' : '';
-                $ccEmails .= $contragentData->ccEmail;
-            
-                $ccEmailsArr = type_Emails::toArray($ccEmails);
+            if ($contragentData->ccEmail) {
                 
-                $ccEmailsArr = array_combine($ccEmailsArr, $ccEmailsArr);
-                $ccEmailsArr = email_Inboxes::removeOurEmails($ccEmailsArr);
-                $rec->emailCc = type_Emails::fromArray($ccEmailsArr);
+                $autoFillCnt = email_Setup::get('AUTO_FILL_EMAILS_FROM_CC');
+                if ($autoFillCnt == 'no' || !$autoFillCnt) {
+                    $autoFillCnt = 0;
+                } elseif ($autoFillCnt == 'yes') {
+                    $autoFillCnt = 1; 
+                }
                 
-                $removeFromGroup = array_merge($removeFromGroup, $ccEmailsArr);
+                if ($autoFillCnt) {
+                    
+                    $ccEmails = $rec->emailCc;
+                    $ccEmails .= $ccEmails ? ', ' : '';
+                    $ccEmails .= $contragentData->ccEmail;
+                
+                    $ccEmailsArr = type_Emails::toArray($ccEmails);
+                    
+                    $ccEmailsArr = array_combine($ccEmailsArr, $ccEmailsArr);
+                    $ccEmailsArr = email_Inboxes::removeOurEmails($ccEmailsArr);
+                    
+                    // Ако имейлите в копие са над лимита, не ги добавяме автоматично в полето
+                    if (count($ccEmailsArr) <= $autoFillCnt) {
+                        $rec->emailCc = type_Emails::fromArray($ccEmailsArr);
+                        $removeFromGroup = array_merge($removeFromGroup, $ccEmailsArr);
+                    }
+                }
             }
         } else {
             if ($isCloning) {
