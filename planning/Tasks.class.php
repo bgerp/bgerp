@@ -329,7 +329,7 @@ class planning_Tasks extends tasks_Tasks
 		// Добавяне на допълнителни плейсхолдъри от драйвера на артикула
 		$tInfo = planning_Tasks::getTaskInfo($rec);
 		if($Driver = cat_Products::getDriver($tInfo->productId)){
-			$additionalFields = $Driver->getAdditionalLabelData($rec, $this);
+			$additionalFields = $Driver->getAdditionalLabelData($tInfo->productId, $this);
 			if(count($additionalFields)){
 				$fields = array_merge($fields, array_keys($additionalFields));
 			}
@@ -408,7 +408,7 @@ class planning_Tasks extends tasks_Tasks
 		
 		// Ако от драйвера идват още параметри, добавят се с приоритет
 		if($Driver = cat_Products::getDriver($tInfo->productId)){
-			$additionalFields = $Driver->getAdditionalLabelData($rec, $this);
+			$additionalFields = $Driver->getAdditionalLabelData($tInfo->productId, $this);
 			if(count($additionalFields)){
 				$res = $additionalFields + $res;
 			}
