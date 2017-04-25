@@ -288,9 +288,9 @@ div.folder-cover {
   border-radius: 0 25px 0 0;
   box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.2); }
   div.folder-cover.state-opened {
-    background-image: url('../img/cover-bg-green.png'); }
+    background: #cef1d7 url('../img/cover-bg-green.png'); }
   div.folder-cover.state-active {
-    background-image: url('../img/cover-bg-yellow.png'); }
+    background: #fffdea url('../img/cover-bg-yellow.png'); }
   div.folder-cover .detail-info {
     background: none; }
     div.folder-cover .detail-info.portal {
