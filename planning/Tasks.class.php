@@ -319,6 +319,12 @@ class planning_Tasks extends tasks_Tasks
 	{
 		expect($rec = planning_Tasks::fetchRec($id));
 		$fields = array('JOB', 'NAME', 'BARCODE', 'MEASURE_ID', 'QUANTITY', 'ИЗГЛЕД', 'PREVIEW', 'SIZE_UNIT', 'DATE');
+		expect($origin = doc_Containers::getDocument($rec->originId));
+		$jobRec = $origin->fetch();
+		if(isset($jobRec->saleId)){
+			$fields[] = 'ORDER';
+			$fields[] = 'COUNTRY';
+		}
 		
 		// Извличане на всички параметри на артикула
 		$params = static::getTaskProductParams($rec, TRUE);
