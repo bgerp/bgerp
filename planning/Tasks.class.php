@@ -326,6 +326,15 @@ class planning_Tasks extends tasks_Tasks
 		$params = array_keys(cat_Params::getParamNameArr($params, TRUE));
 		$fields = array_merge($fields, $params);
 		
+		// Добавяне на допълнителни плейсхолдъри от драйвера на артикула
+		$tInfo = planning_Tasks::getTaskInfo($rec);
+		if($Driver = cat_Products::getDriver($tInfo->productId)){
+			$additionalFields = $Driver->getAdditionalLabelData($rec, $this);
+			if(count($additionalFields)){
+				$fields = array_merge($fields, array_keys($additionalFields));
+			}
+		}
+		
 		return $fields;
 	}
 	
@@ -396,6 +405,14 @@ class planning_Tasks extends tasks_Tasks
 		
 		$res['SIZE_UNIT'] = 'cm';
 		$res['DATE'] = dt::mysql2verbal(dt::today(), 'm/y');
+		
+		// Ако от драйвера идват още параметри, добавят се с приоритет
+		if($Driver = cat_Products::getDriver($tInfo->productId)){
+			$additionalFields = $Driver->getAdditionalLabelData($rec, $this);
+			if(count($additionalFields)){
+				$res = $additionalFields + $res;
+			}
+		}
 		
 		// Връщане на масива, нужен за отпечатването на един етикет
 		return $res;
