@@ -590,9 +590,9 @@ class label_Templates extends core_Master
     	$added = $skipped = $updated = 0;
     	
     	// Добавяне на дефолтни шаблони
-    	$templateArr = array('defaultTpl' => 'label/tpl/DefaultLabelBG.shtml', 'defaultTplEn' => 'label/tpl/DefaultLabelEN.shtml');
+    	$templateArr = array('defaultTpl' => 'label/tpl/DefaultLabelBG.shtml', 'defaultTplEn' => 'label/tpl/DefaultLabelEN.shtml', 'defaultTplPackiningList' => 'label/tpl/DefaultLabelPallet.shtml');
     	foreach ($templateArr as $sysId => $tplPath){
-    		$title = ($sysId == 'defaultTpl') ? 'Базов шаблон за етикети' : 'Default label template';
+    		$title = ($sysId == 'defaultTpl') ? 'Базов шаблон за етикети' : (($sysId == 'defaultTplEn') ? 'Default label template' : 'Packaging List label');
     		$lang = ($sysId == 'defaultTpl') ? 'bg' : 'en';
     		
     		// Ако няма запис
@@ -602,10 +602,22 @@ class label_Templates extends core_Master
     			$exRec = new stdClass();
     			$exRec->sysId = $sysId;
     			$exRec->title = $title;
-    			core_Classes::add('planning_Tasks');
-    			$exRec->classId = planning_Tasks::getClassId();
+    			
+    			if($sysId == 'defaultTplPackiningList'){
+    				core_Classes::add('store_ShipmentOrders');
+    				$exRec->classId = store_ShipmentOrders::getClassId();
+    			} else {
+    				core_Classes::add('planning_Tasks');
+    				$exRec->classId = planning_Tasks::getClassId();
+    			}
     		}
-    		$exRec->sizes = '100x72 mm';
+    		
+    		if($sysId == 'defaultTplPackiningList'){
+    			$exRec->sizes = '170x105 mm';
+    		} else {
+    			$exRec->sizes = '100x72 mm';
+    		}
+    		
     		$exRec->state = 'active';
     		$exRec->lang = $lang;
     		
