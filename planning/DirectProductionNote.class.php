@@ -613,6 +613,15 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$form->title = "Въвеждане на себестойност за|* <b style='color:#ffffcc;'>{$docTitle}</b>";
 		$form->info = tr('Не може да се определи себестойноста, защото няма посочени материали');
 		$form->FLD('debitPrice', 'double(Min=0)', 'caption=Ед. Себест-ст,mandatory');
+		
+		// Ако драйвера може да върне себестойност тя е избрана по дефолт
+		if($Driver = cat_Products::getDriver($rec->productId)){
+			$price = $Driver->getPrice($rec->productId, $rec->jobQuantity, 0, 0, $rec->valior);
+			if($price){
+				$form->setDefault('debitPrice', $price);
+			}
+		}
+		
 		$baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
 		$form->setField('debitPrice', "unit=|*{$baseCurrencyCode} |без ДДС|*");
 		$form->input();
