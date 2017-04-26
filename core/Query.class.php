@@ -85,6 +85,12 @@ class core_Query extends core_FieldSet
 
 
     /**
+     * Масив за хинтове на индекси
+     */
+    public $indexes = array();
+
+
+    /**
      * Флаг дали заявката е изпълнена
      */
     private $executed = FALSE;
@@ -598,7 +604,7 @@ class core_Query extends core_FieldSet
             $query .= "\nFROM ";
             
             $query .= $this->getTables();
-            
+
             $query .= $wh->w;
             $query .= $this->getGroupBy();
             $query .= $wh->h;
@@ -647,6 +653,7 @@ class core_Query extends core_FieldSet
             
             $query .= "\nFROM ";
             $query .= $temp->getTables();
+
             $query .= $wh->w;
             $query .= $wh->h;
             $query .= $temp->getLimit();
@@ -706,7 +713,7 @@ class core_Query extends core_FieldSet
          
         $query = "DELETE FROM";
         $query .= $this->getTables();
-        
+
         $query .= $wh->w;
         $query .= $wh->h;
         $query .= $orderBy;
@@ -1056,6 +1063,8 @@ class core_Query extends core_FieldSet
     {
         $tables = "\n   `" . $this->mvc->dbTableName . "`";
         
+        $tables .= ' ' . $this->getIndexes() . ' ';
+
         foreach ($this->tables as $name => $true) {
             $tables .= ",\n   `{$name}`";
         }
@@ -1284,5 +1293,30 @@ class core_Query extends core_FieldSet
     {
         $this->unions[] = $cond;
     }
+
+
+    /**
+     * Добавя индекс, който се форсира за използване
+     */
+    public function useIndex($index)
+    {
+        $this->indexes[$index] = TRUE;
+    }
+
+
+    /**
+     * Добавя индекс, който се форсира за използване
+     */
+    public function getIndexes()
+    {
+        $res = '';
+
+        if(count($this->indexes)) {
+            $res = "\nUSE INDEX(" . implode(',', array_keys($this->indexes)) . ")";
+        }
+
+        return  $res;
+    }
+
 
 }
