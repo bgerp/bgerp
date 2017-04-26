@@ -1223,24 +1223,40 @@ class email_Mime extends core_BaseClass
 
     /**
      * Връща вербално представяне на хедърите на съобщението
+     * 
+     * @param boolean $decode
+     * @param boolean $escape
      *
      * @return string
      */
-    public function getHeadersVerbal()
+    public function getHeadersVerbal($decode = TRUE, $escape = TRUE)
     {
         $headers = $this->getHeadersStr();
         $headers = $this->parseHeaders($headers);
         $res = '';
         if(is_array($headers)) {
+            $me = cls::get(get_called_class());
             foreach($headers as $h => $c) {
+                
+                if ($h == 'subject') {
+                    $s = TRUE;
+                }
+                
                 $a = implode('; ', $c);
                 $h = str_replace(' ', '-', ucwords(str_replace('-', ' ', $h)));
-                $a = type_Varchar::escape($a);
+                
+                if ($decode) {
+                    $a = $me->decodeHeader($a);
+                }
+                
+                if ($escape) {
+                    $a = type_Varchar::escape($a);
+                }
+                
                 $res .= "<div><b>{$h}</b>: {$a}</div>";
             }
         }
- 
-
+        
         return $res;
     }
 }

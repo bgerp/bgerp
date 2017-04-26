@@ -556,6 +556,7 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     public function getLabelPlaceholders($id)
     {
+    	$rec = $this->fetchRec($id);
     	$fields = array('NOMER', 'DESTINATION', 'DATE', 'Текущ_етикет');
     	$allowSkip = FALSE;
     	if($this->getEstimateCnt($id, $allowSkip)){

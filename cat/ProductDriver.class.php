@@ -527,4 +527,18 @@ abstract class cat_ProductDriver extends core_BaseClass
 	{
 		return NULL;
 	}
+	
+	
+	/**
+	 * Връща масив с допълнителните плейсхолдъри при печат на етикети
+	 *
+	 * @param mixed $rec              - ид или запис на артикул
+	 * @param mixed $labelSourceClass - клас източник на етикета
+	 * @return array                  - Допълнителните полета при печат на етикети
+	 * 		[Плейсхолдър] => [Стойност]
+	 */
+	public function getAdditionalLabelData($rec, $labelSourceClass = NULL)
+	{
+		return array();
+	}
 }

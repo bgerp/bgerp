@@ -190,6 +190,17 @@ class cal_Reminders extends core_Master
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
     public $coversAndInterfacesForNewDoc = '*';
+    
+                         //24x60x60
+    static $map = array ('days'=>86400,
+                         //7x24x60x60
+                         'weeks'=>604800,
+                         //30x24x60x60
+                         'months'=>2592000,
+                         //30x24x60x60
+                         'weekDay'=>2592000,
+                         //30x24x60x60
+                         'monthDay'=>2592000);
 
 
     /**
@@ -275,7 +286,7 @@ class cal_Reminders extends core_Master
               
         }
 
-        if(!$data->form->rec->id) {
+        if(!$data->form->rec->id) { 
 
       	    $cu = core_Users::getCurrent();
             $nextWorkDay = dt::nextWorkingDay(dt::addDays(1));
@@ -314,12 +325,30 @@ class cal_Reminders extends core_Master
             		// Добавяме съобщение за грешка
                     $form->setWarning('timeStart', "Датата за напомняне трябва да е след|* " . dt::mysql2verbal($now));
             	}
+            	
+            	if (isset($form->rec->timePreviously)) { //bp($mvc->getNextStartingTime2($form->rec), $form->rec);
+            	    $form->rec->nextStartTime = $mvc->getNextStartingTime2($form->rec);
+            	}
+            	
+            	if (isset($form->rec->repetitionEach) && isset($form->rec->repetitionType)) {
+            	    if (isset($form->rec->timePreviously)) { 
+            	        $secRepetitionType = static::$map[$form->rec->repetitionType];
+            	        $repetitionSec = $form->rec->repetitionEach * $secRepetitionType;
+
+            	        if ($form->rec->timePreviously >= $repetitionSec){
+            	            // Добавяме съобщение за грешка
+            	            $form->setError('timePreviously', "Не може да се направи напомняне с предварително време по-голямо от повторението|* ");
+            	        }
+            	    }
+            	}
+
     	    } else {
     	        if (!$form->rec->id) {
     	            $form->rec->timeStart = $now;
     	        }
     	    }
-        	
+
+    	    
     		if ($form->rec->id){
     			
     			$exState = self::fetchField($form->rec->id, 'state');
@@ -340,7 +369,7 @@ class cal_Reminders extends core_Master
     static function on_BeforeSave($mvc, &$id, $rec)
     {
     	$now = dt::now(); 
-        
+    
         if($rec->repetitionEach) {
             $rec->nextStartTime = $mvc->getNextStartingTime2($rec);
         } else {
@@ -791,7 +820,8 @@ class cal_Reminders extends core_Master
 							doc_Threads::save((object)array('id'=>$rec->threadId, 'state'=>'opened'), 'state');
                             doc_Threads::doUpdateThread($rec->threadId);
 							bgerp_Notifications::add($rec->message, $rec->url, $userId, $rec->priority, $rec->customUrl);
-						    break;
+						    //break;
+						    return;
 						
 						case 'notifyNoAns':
 							// Търсим дали има пристигнало писмо
@@ -808,11 +838,13 @@ class cal_Reminders extends core_Master
  						
 						case 'replicateDraft':
                             self::replicateThread($rec, TRUE);
-						    break;
+                            return;
+						    //break;
 						
 						case 'replicate':  
                             self::replicateThread($rec);
-						    break;
+                            return;
+						    //break;
 					}
 				}
 			}
@@ -899,9 +931,9 @@ class cal_Reminders extends core_Master
      
     
     static function getNextStartingTime2($rec)
-    {
+    {	
         if(empty($rec->repetitionEach)) {
-            return;
+            //return;
         }
         
         $rec2 = clone($rec);
@@ -978,11 +1010,12 @@ class cal_Reminders extends core_Master
             }
         } else {
             $nextStartTime = $rec->timeStart;
+  
         }
 
         // Ако имаме отбелязано време предварително
         if($rec->timePreviously != NULL){ 
-            if($nextStartTime) {
+            if($nextStartTime) { 
                 $nextStartTimeTs = dt::mysql2timestamp($nextStartTime) - $rec->timePreviously;
             } else {
                 $nextStartTimeTs = $startTs - $rec->timePreviousl;

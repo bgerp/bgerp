@@ -112,7 +112,7 @@ class transsrv_Import extends core_BaseClass
     			redirect(array('purchase_PurchasesDetails', 'CreateProduct', 'requestId' => $purchaseId, 'innerClass' => transsrv_ProductDrv::getClassId(), 'd' => $data, 'ret_url' => purchase_Purchases::getSingleUrlArray($purchaseId)));
     		}
     		
-    	} catch(Exception $e){
+    	} catch(core_exception_Expect $e){
     		reportException($e);
     		return;
     	}
@@ -163,11 +163,21 @@ class transsrv_Import extends core_BaseClass
     private static function forcePurchaseId($folderId, $data)
     {
     	$fromCountryId = drdata_Countries::fetchField("#commonName = '{$data->fromCountry}'");
-    	$toEu = drdata_Countries::isEu($fromCountryId);
+    	$toCountryId = drdata_Countries::fetchField("#commonName = '{$data->toCountry}'");
+    	$fromEu = drdata_Countries::isEu($fromCountryId);
+    	$toEu = drdata_Countries::isEu($toCountryId);
     	
-    	$chargeVat = 'no';
-    	if(($data->toCountry == 'Bulgaria' || $data->fromCountry == 'Bulgaria') && $toEu){
-    		$chargeVat = 'separate';
+    	/*
+    	 * Натоварване - разтоварване
+    	 * България - България - 20% ДДС
+    	 * България - страна от ЕС (фирма) - 20% ДДС на отделен ред във фактурата
+    	 * Страна от ЕС - България - 20% ДДС
+    	 * България - страна извън ЕС - 0% ДДС
+    	 * Страна извън ЕС - България - 0% ДДС
+    	 */
+    	$chargeVat = 'separate';
+    	if(($data->fromCountry == 'Bulgaria' && !$toEu) || ($data->toCountry == 'Bulgaria' && !$fromEu)){
+    		$chargeVat = 'no';
     	}
     	
     	$purQuery = purchase_Purchases::getQuery();

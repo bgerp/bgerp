@@ -316,4 +316,18 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	{
 		return $this->class->getHash($Embedder, $rec);
 	}
+	
+	
+	/**
+	 * Връща масив с допълнителните плейсхолдъри при печат на етикети
+	 *
+	 * @param mixed $rec              - ид или запис на артикул
+	 * @param mixed $labelSourceClass - клас източник на етикета
+	 * @return array                  - Допълнителните полета при печат на етикети
+	 * 		[Плейсхолдър] => [Стойност]
+	 */
+	public function getAdditionalLabelData($rec, $labelSourceClass = NULL)
+	{
+		return $this->class->getAdditionalLabelData($rec, $labelSourceClass);
+	}
 }
