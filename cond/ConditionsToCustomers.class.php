@@ -79,7 +79,7 @@ class cond_ConditionsToCustomers extends core_Manager
         $this->FLD('cClass', 'class(interface=crm_ContragentAccRegIntf)', 'caption=Контрагент->Клас,input=hidden,silent');
         $this->FLD('cId', 'int', 'caption=Контрагент->Обект,input=hidden,silent,tdClass=leftCol');
         $this->FLD('conditionId', 'key(mvc=cond_Parameters,select=typeExt,allowEmpty)', 'input,caption=Условие,mandatory,silent,removeAndRefreshForm=value');
-        $this->FLD('value', 'varchar(255)', 'caption=Стойност, mandatory');
+        $this->FLD('value', 'text', 'caption=Стойност, mandatory');
     
         // Добавяне на уникални индекси
         $this->setDbUnique('cClass,cId,conditionId');
