@@ -171,12 +171,6 @@ class findeals_Deals extends deals_DealBase
     
     
     /**
-     * Кое поле показва сумата на сделката
-     */
-    public $canClosewith = 'ceo,findealsMaster';
-    
-    
-    /**
      * Сметки с какви интерфейси да се показват за избор
      */
     protected $accountListInterfaces = 'crm_ContragentAccRegIntf,deals_DealsAccRegIntf,currency_CurrenciesAccRegIntf';
@@ -571,6 +565,8 @@ class findeals_Deals extends deals_DealBase
     		
     		// Ако сделката има начално салдо тя не може да приключва други сделки
     		if(isset($rec->baseAccountId)){
+    			$res = 'no_one';
+    		} elseif(!haveRole('findeals', $userId)){
     			$res = 'no_one';
     		}
     	}
