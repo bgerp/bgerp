@@ -147,17 +147,16 @@
 [#INFORMATION#]
 <table class="styled-table no-border halfTable offsetLeft">
     <tr>
-        <th colspan = "2">|Обща информация|*</th>
+        <th colspan = "2">|Обща информация и условия|*</th>
     </tr>
     <!--ET_BEGIN conditions-->
     <tr>
-        <td class="nowrap titleCol">- |Условия|*:</td>
-        <td class="boldText">[#conditions#]</td>
+        <td class="boldText" colspan = "2">[#conditions#]</td>
     </tr>
     <!--ET_END conditions-->
     <!--ET_BEGIN ourReff-->
     <tr>
-        <td class="nowrap titleCol">- |Наш реф.№|*:</td>
+        <td class="nowrap titleCol">|Наш реф.№|*:</td>
         <td class="boldText">[#ourReff#]</td>
     </tr>
     <!--ET_END ourReff-->
