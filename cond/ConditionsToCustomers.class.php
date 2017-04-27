@@ -205,6 +205,8 @@ class cond_ConditionsToCustomers extends core_Manager
         	if(!array_key_exists($dRec->conditionId, $data->recs)){
         		$data->recs[$dRec->conditionId] = $dRec;
         		$dRow = cond_Countries::recToVerbal($dRec);
+        		
+        		
         		$dRow->value = ht::createHint($dRow->value, "Стойноста е дефолтна за контрагентите от|* \"{$cData->country}\"", 'notice', TRUE, 'width=12px,height=12px');
         		unset($dRow->_rowTools);
         		
@@ -245,6 +247,8 @@ class cond_ConditionsToCustomers extends core_Manager
     	}
     	
     	$row->value = cond_Parameters::toVerbal($paramRec, $rec->cClass, $rec->cId, $rec->value);
+    	$row->value = cond_Parameters::limitValue($paramRec->driverClass, $row->value);
+    	
     	if(!empty($paramRec->suffix)){
     		$row->value .= " " . cls::get('type_Varchar')->toVerbal(tr($paramRec->suffix));
     	}

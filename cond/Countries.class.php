@@ -165,6 +165,7 @@ class cond_Countries extends core_Manager
 		
 		if($ParamType = cond_Parameters::getTypeInstance($paramRec, 'drdata_Countries', $rec->country, $rec->value)){
 			$row->value = $ParamType->toVerbal(trim($rec->value));
+			$row->value = cond_Parameters::limitValue($paramRec->driverClass, $row->value);
 		}
 		
 		if(!empty($paramRec->group)){
