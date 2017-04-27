@@ -111,6 +111,12 @@ class thumb_M extends core_Mvc
         $path = escapeshellarg($path);
         $cmd = constant(strtoupper($optimizer) . '_CMD');
         $cmd = str_replace('[#path#]', $path, $cmd);
+        
+        static $hashArr = array();
+        $cmdHash = md5($cmd);
+        if ($hashArr[$cmdHash]) return ;
+        $hashArr[$cmdHash] = $cmd;
+        
         exec($cmd, $out, $status);
         if($status > 0) {
             $err = implode(' | ', $out);
