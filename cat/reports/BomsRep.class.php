@@ -148,28 +148,33 @@ class cat_reports_BomsRep extends frame_BaseDriver
                 while($recDetail = $queryDetail->fetch()) {
 
                     $index = $recDetail->resourceId;
-                    
-                    if(!array_key_exists($index, $data->recs)){
-                         
-                        if(!$recDetail->parentId || $recDetail->type == 'stage') {
-                            unset($mArr[$index]);
-                            $data->recs[$index] =
-                            (object) array ('id' => $recDetail->id,
-                                'article' => $recDetail->resourceId,
-                                'articleCnt'	=> $rec->quantity * $recDetail->propQuantity,
-                                'params' => cat_Products::getParams($recDetail->resourceId, NULL, TRUE),
-                                'quantity' => $rec->quantity,
-                                'materials' => 0,
-                            );
-                        }
-                    } else {
-                    
-                        $obj = &$data->recs[$index];
-                        $obj->quantity += $rec->quantity * $recDetail->propQuantity;
-       
-                    }
+                    $componentArr = cat_Products::prepareComponents($rec->productId); 
 
-//                     if($recDetail->type == 'input' && $recDetail->parentId) {$materials[$recDetail->parentId][] = $recDetail->resourceId;}
+                    foreach($componentArr as $component) { 
+                        $divideBy = ($component->divideBy) ? $component->divideBy : 1;
+   
+                        if(!array_key_exists($index, $data->recs)){
+                            
+                            $quantity = str_replace(",", ".", $rec->quantity);
+                            $propQuantity = str_replace(",", ".",$recDetail->propQuantity);
+                             
+                            if(!$recDetail->parentId || $recDetail->type == 'stage') {
+                                unset($mArr[$index]);
+                                $data->recs[$index] =
+                                (object) array ('id' => $recDetail->id,
+                                    'article' => $recDetail->resourceId,
+                                    'articleCnt'	=> ($quantity * $propQuantity) / $divideBy,
+                                    'params' => cat_Products::getParams($recDetail->resourceId, NULL, TRUE),
+                                    'quantity' => $rec->quantity,
+                                    'materials' => 0,
+                                );
+                            }
+                        } else {
+                        
+                            $obj = &$data->recs[$index];
+                            $obj->quantity += ($quantity * $propQuantity) / $divideBy[$recDetail->resourceId];
+                        }
+                    }
                 }
             }
         }
