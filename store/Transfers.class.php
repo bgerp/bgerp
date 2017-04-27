@@ -46,7 +46,7 @@ class store_Transfers extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable, acc_plg_DocumentSummary,
+    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable, acc_plg_DocumentSummary,
                     doc_DocumentPlg, trans_plg_LinesPlugin, doc_plg_BusinessDoc, plg_Search, bgerp_plg_Blank,plg_Clone';
 
     
@@ -186,6 +186,12 @@ class store_Transfers extends core_Master
 	public $singleIcon = 'img/16/transfers.png';
 
 
+	/**
+	 * Полета за филтър по склад
+	 */
+	public $filterStoreFields = 'fromStore,toStore';
+	
+	
     /**
      * Описание на модела (таблицата)
      */
@@ -534,30 +540,5 @@ class store_Transfers extends core_Master
     	}
     
     	return $products;
-    }
-    
-    
-    /**
-     *  Подготовка на филтър формата
-     */
-    public static function on_AfterPrepareListFilter($mvc, $data)
-    {
-    	if(!Request::get('Rejected', 'int')){
-    		$data->listFilter->FNC('dState', 'enum(all=Всички, pending=Заявка, draft=Чернова, active=Контиран)', 'caption=Състояние,input,silent');
-    		$data->listFilter->setFieldTypeParams('fromStore', array('allowEmpty' => 'allowEmpty'));
-    		$data->listFilter->setField('fromStore', 'caption=Склад');
-    		$data->listFilter->showFields .= ',fromStore,dState';
-    		$data->listFilter->setDefault('dState', 'all');
-    		$data->listFilter->input();
-    		 
-    		$filter = $data->listFilter->rec;
-    		if($filter->dState && $filter->dState != 'all'){
-    			$data->query->where("#state = '{$filter->dState}'");
-    		}
-    		
-    		if($filter->fromStore){
-    			$data->query->where("#fromStore = '{$filter->fromStore}' OR #toStore = '{$filter->fromStore}'");
-    		}
-    	}
     }
 }
