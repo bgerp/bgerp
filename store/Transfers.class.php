@@ -543,13 +543,20 @@ class store_Transfers extends core_Master
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
     	if(!Request::get('Rejected', 'int')){
+    		$data->listFilter->FNC('dState', 'enum(all=Всички, pending=Заявка, draft=Чернова, active=Контиран)', 'caption=Състояние,input,silent');
     		$data->listFilter->setFieldTypeParams('fromStore', array('allowEmpty' => 'allowEmpty'));
     		$data->listFilter->setField('fromStore', 'caption=Склад');
-    		$data->listFilter->showFields .= ',fromStore';
+    		$data->listFilter->showFields .= ',fromStore,dState';
+    		$data->listFilter->setDefault('dState', 'all');
     		$data->listFilter->input();
     		 
-    		if($storeId = $data->listFilter->rec->fromStore){
-    			$data->query->where("#fromStore = '{$storeId}' OR #toStore = '{$storeId}'");
+    		$filter = $data->listFilter->rec;
+    		if($filter->dState && $filter->dState != 'all'){
+    			$data->query->where("#state = '{$filter->dState}'");
+    		}
+    		
+    		if($filter->fromStore){
+    			$data->query->where("#fromStore = '{$filter->fromStore}' OR #toStore = '{$filter->fromStore}'");
     		}
     	}
     }
