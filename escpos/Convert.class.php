@@ -188,7 +188,9 @@ class escpos_Convert extends core_Manager
         }
 
         $res .= $l;
-
+        
+        $res = $driver->prepareTextSettings($res);
+        
         return $res;
     }
     
