@@ -136,7 +136,7 @@ class crm_Profiles extends core_Master
     /**
      * Помощен масив за типовете дни
      */
-    static $map = array('missing'=>'Отсъстващи','sickDay'=>'Болничен','leaveDay'=>'Отпуска', 'tripDay'=>'Командировка');
+    static $map = array('missing'=>'Отсъстващи','sickDay'=>'Болничен','leaveDay'=>'Отпуск', 'tripDay'=>'Командировка');
     
     
     /**
@@ -500,7 +500,8 @@ class crm_Profiles extends core_Master
             list($dateTo, $hoursTo) = explode(" ", $data->rec->stateDateTo);
             
             if ($dateFrom == $dateTo) {
-                $state = static::$map[$data->rec->stateInfo] . " на ". dt::mysql2verbal($data->rec->stateDateFrom, 'd M');
+                //$state = static::$map[$data->rec->stateInfo] . " на ". dt::mysql2verbal($data->rec->stateDateFrom, 'd M');
+                $state = static::$map[$data->rec->stateInfo] . " ". dt::mysql2verbal($data->rec->stateDateFrom, 'smartTime');
                 
                 if($hoursFrom != "00:00:00") {
                     $state = static::$map[$data->rec->stateInfo] . " на ". dt::mysql2verbal($data->rec->stateDateFrom, 'd M')  . " от ". dt::mysql2verbal($data->rec->stateDateFrom, 'H:i');
@@ -1290,7 +1291,7 @@ class crm_Profiles extends core_Master
     {
         $rec = $data->listFilter->rec;
 
-        $data->listFilter->FNC('leave', 'enum(,missing=Отсъстващи,sickDay=Болничен,leaveDay=Отпуска,tripDay=Командировка)', 'width=6em,caption=Статус,silent,allowEmpty,autoFilter');
+        $data->listFilter->FNC('leave', 'enum(,missing=Отсъстващи,sickDay=Болничен,leaveDay=Отпуск,tripDay=Командировка)', 'width=6em,caption=Статус,silent,allowEmpty,autoFilter');
         
     	$data->listFilter->view = 'horizontal';
     	
