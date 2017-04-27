@@ -251,32 +251,6 @@ class planning_Tasks extends tasks_Tasks
 		$rec->additionalFields = count($rec->additionalFields) ? $rec->additionalFields : NULL;
 	}
 	
-
-	/**
-	 * След подготовка на тулбара на единичен изглед.
-	 *
-	 * @param core_Mvc $mvc
-	 * @param stdClass $data
-	 */
-	protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
-	{
-		if(core_Packs::isInstalled('label')){
-			if (($data->rec->state != 'rejected' && $data->rec->state != 'draft' && $data->rec->state != 'template') && label_Labels::haveRightFor('add')){
-				
-				$tQuery = label_Templates::getQuery();
-				$tQuery->where("#classId = '{$mvc->getClassId()}' AND #state != 'rejected'");
-				$tQuery->show('id');
-				$tQuery->limit(1);
-				$error = ($tQuery->fetch()) ? '' : ",error=Няма наличен шаблон за етикети от задачи за производство";
-				
-				core_Request::setProtected('class,objectId');
-				$url = array('label_Labels', 'selectTemplate', 'class' => $mvc->className, 'objectId' => $data->rec->id, 'ret_url' => TRUE);
-				$data->toolbar->addBtn('Етикетиране', toUrl($url), NULL, "target=_blank,ef_icon = img/16/price_tag_label.png,title=Разпечатване на етикети от задачата за производство{$error}");
-				core_Request::removeProtected('class,objectId');
-			}
-		}
-	}
-	
 	
 	/**
 	 * Генерира баркод изображение от даден сериен номер
@@ -344,13 +318,28 @@ class planning_Tasks extends tasks_Tasks
 	public function getLabelPlaceholders($id)
 	{
 		expect($rec = planning_Tasks::fetchRec($id));
-		$fields = array('JOB', 'NAME', 'BARCODE', 'MEASURE_ID', 'QUANTITY', 'ИЗГЛЕД', 'PREVIEW');
+		$fields = array('JOB', 'NAME', 'BARCODE', 'MEASURE_ID', 'QUANTITY', 'ИЗГЛЕД', 'PREVIEW', 'SIZE_UNIT', 'DATE');
+		expect($origin = doc_Containers::getDocument($rec->originId));
+		$jobRec = $origin->fetch();
+		if(isset($jobRec->saleId)){
+			$fields[] = 'ORDER';
+			$fields[] = 'COUNTRY';
+		}
 		
 		// Извличане на всички параметри на артикула
 		$params = static::getTaskProductParams($rec, TRUE);
 		
 		$params = array_keys(cat_Params::getParamNameArr($params, TRUE));
 		$fields = array_merge($fields, $params);
+		
+		// Добавяне на допълнителни плейсхолдъри от драйвера на артикула
+		$tInfo = planning_Tasks::getTaskInfo($rec);
+		if($Driver = cat_Products::getDriver($tInfo->productId)){
+			$additionalFields = $Driver->getAdditionalLabelData($tInfo->productId, $this);
+			if(count($additionalFields)){
+				$fields = array_merge($fields, array_keys($additionalFields));
+			}
+		}
 		
 		return $fields;
 	}
@@ -384,7 +373,7 @@ class planning_Tasks extends tasks_Tasks
 		
 		// Информация за артикула
 		$measureId = cat_Products::fetchField($tInfo->productId, 'measureId');
-		$res['MEASURE_ID'] = cat_UoM::getShortName($measureId);
+		$res['MEASURE_ID'] = tr(cat_UoM::getShortName($measureId));
 		$res['QUANTITY'] = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($tInfo->quantityInPack);
 		if(isset($jobRec->saleId)){
 			$res['ORDER'] =  "#" . sales_Sales::getHandle($jobRec->saleId);
@@ -421,6 +410,15 @@ class planning_Tasks extends tasks_Tasks
 		}
 		
 		$res['SIZE_UNIT'] = 'cm';
+		$res['DATE'] = dt::mysql2verbal(dt::today(), 'm/y');
+		
+		// Ако от драйвера идват още параметри, добавят се с приоритет
+		if($Driver = cat_Products::getDriver($tInfo->productId)){
+			$additionalFields = $Driver->getAdditionalLabelData($tInfo->productId, $this);
+			if(count($additionalFields)){
+				$res = $additionalFields + $res;
+			}
+		}
 		
 		// Връщане на масива, нужен за отпечатването на един етикет
 		return $res;

@@ -223,8 +223,8 @@ class sales_Invoices extends deals_InvoiceMaster
     	$this->FLD('number', 'bigint(21)', 'caption=Номер, after=place,input=none');
     	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно)', 'caption=Статус, input=none');
         $this->FLD('type', 'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие,dc_note=Известие)', 'caption=Вид, input=hidden');
-        $this->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта)', 'placeholder=Автоматично,caption=Плащане->Начин,before=accountId');
-        $this->FLD('autoPaymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта)', 'placeholder=Автоматично,caption=Плащане->Начин,input=none');
+        $this->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг)', 'placeholder=Автоматично,caption=Плащане->Начин,before=accountId');
+        $this->FLD('autoPaymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг)', 'placeholder=Автоматично,caption=Плащане->Начин,input=none');
         
         $this->setDbUnique('number');
     }
@@ -432,7 +432,8 @@ class sales_Invoices extends deals_InvoiceMaster
         	}
         }
         
-        if(empty($rec->id)){
+       if(empty($rec->id)){
+        	
         	// Първоначално изчислен начин на плащане
         	$rec->autoPaymentType = $mvc->getAutoPaymentType($rec);
         }
@@ -519,7 +520,6 @@ class sales_Invoices extends deals_InvoiceMaster
     			$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
     			
     			$row->bank = $Varchar->toVerbal($ownAcc->bank);
-    			
     			core_Lg::push($rec->tplLang);
     			$row->bank = transliterate(tr($row->bank));
     			$row->place = transliterate($row->place);
@@ -531,8 +531,13 @@ class sales_Invoices extends deals_InvoiceMaster
     	
     	$makeHint = FALSE;
     	
+    	if($rec->paymentType == 'factoring'){
+    		$row->accountId = 'ФАКТОРИНГ';
+    	}
+    	
     	if(empty($rec->paymentType)){
-    		$rec->paymentType = $rec->autoPaymentType;
+    		$pType = ($rec->autoPaymentType == 'factoring') ? 'bank' : $pType;
+    		$rec->paymentType = $pType;
     		$makeHint = TRUE;
     	}
     	
@@ -921,7 +926,7 @@ class sales_Invoices extends deals_InvoiceMaster
    		if(isset($firstDocRec->paymentMethodId)){
    			$type = cond_PaymentMethods::fetchField($firstDocRec->paymentMethodId, 'type');
    			
-   			if(in_array($type, array('cash', 'bank', 'intercept', 'card'))) return $type;
+   			if(in_array($type, array('cash', 'bank', 'intercept', 'card', 'factoring'))) return $type;
    		}
    		
    		// От последната фактура за клиента

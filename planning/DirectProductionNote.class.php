@@ -39,7 +39,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	/**
 	 * Плъгини за зареждане
 	 */
-	public $loadList = 'plg_RowTools2, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
+	public $loadList = 'plg_RowTools2, store_plg_StoreFilter, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
                     doc_DocumentPlg, plg_Printing, plg_Clone, plg_Search, bgerp_plg_Blank';
 	
 	
@@ -612,22 +612,32 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		// Подготовка на формата
 		$form->title = "Въвеждане на себестойност за|* <b style='color:#ffffcc;'>{$docTitle}</b>";
 		$form->info = tr('Не може да се определи себестойноста, защото няма посочени материали');
-		$form->FLD('debitAmount', 'double(Min=0)', 'caption=Себестойност,mandatory');
+		$form->FLD('debitPrice', 'double(Min=0)', 'caption=Ед. Себест-ст,mandatory');
+		
+		// Ако драйвера може да върне себестойност тя е избрана по дефолт
+		if($Driver = cat_Products::getDriver($rec->productId)){
+			$price = $Driver->getPrice($rec->productId, $rec->jobQuantity, 0, 0, $rec->valior);
+			if($price){
+				$form->setDefault('debitPrice', $price);
+			}
+		}
+		
 		$baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
-		$form->setField('debitAmount', "unit=|*{$baseCurrencyCode} |без ДДС|*");
+		$form->setField('debitPrice', "unit=|*{$baseCurrencyCode} |без ДДС|*");
 		$form->input();
 		
 		if($form->isSubmitted()){
+			$amount = $form->rec->debitPrice * $rec->quantity;
 			
 			// Ъпдейъваме подадената себестойност
-			$rec->debitAmount = $form->rec->debitAmount;
+			$rec->debitAmount = $amount;
 			$this->save($rec, 'debitAmount');
 			
 			// Редирект към екшъна за контиране
 			redirect($this->getContoUrl($id));
 		}
 		
-		$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
+		$form->toolbar->addSbBtn('Контиране', 'save', 'ef_icon = img/16/tick-circle-frame.png, title = Контиране на документа');
 		$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 		
 		$tpl = $form->renderHtml();

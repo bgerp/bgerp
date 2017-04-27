@@ -1018,12 +1018,18 @@ class planning_Jobs extends core_Master
     	$form = cls::get('core_Form');
     	$form->title = 'Създаване на задание към продажба|* <b>' . sales_Sales::getHyperlink($saleId, TRUE) . "</b>";
     	$form->FLD('productId', 'key(mvc=cat_Products)', 'caption=Артикул,mandatory');
-    	$form->setOptions('productId', array('' => '') + $this->getSelectableProducts($saleId));
+    	$threadId = sales_Sales::fetchField($saleId, 'threadId');
+    	
+    	$selectable = $this->getSelectableProducts($saleId);
+    	if(count($selectable) == 1){
+    		$selectable = array_keys($selectable);
+    		redirect(array($this, 'add', 'threadId' => $threadId, 'productId' => $selectable[0], 'saleId' => $saleId, 'ret_url' => array('sales_Sales', 'single', $saleId)));
+    	}
+    	
+    	$form->setOptions('productId', array('' => '') + $selectable);
     	$form->input();
     	if($form->isSubmitted()){
     		if(isset($form->rec->productId)){
-    			$threadId = sales_Sales::fetchField($saleId, 'threadId');
-    			
     			redirect(array($this, 'add', 'threadId' => $threadId, 'productId' => $form->rec->productId, 'saleId' => $saleId, 'ret_url' => TRUE));
     		}
     	}

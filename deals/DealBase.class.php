@@ -70,6 +70,12 @@ abstract class deals_DealBase extends core_Master
 	
 	
 	/**
+	 * Кой може да обединява сделките
+	 */
+	public $canClosewith = 'ceo,dealJoin';
+	
+	
+	/**
 	 * Извиква се след описанието на модела
 	 *
 	 * @param core_Mvc $mvc

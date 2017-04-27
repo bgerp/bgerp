@@ -1,127 +1,118 @@
 <style>
-.label-holder {
-    border-radius: 8px;
-    padding: 2px 3px 2px 3px;
-    width: 94mm;
-    font-size: 16px;
-}
+    .label-holder {
+        border-radius: 8px;
+        padding: 2px 3px 2px 3px;
+        width: 94mm;
+        font-size: 16px;
+    }
 
-.label-holder table {
-    height: 68mm;
-    width: 96mm;
-    border-collapse: collapse;
-}
+    .label-holder table {
+        height: 68mm;
+        width: 96mm;
+        border-collapse: collapse;
+    }
 
-.label-holder table tr > td {
-    border-left: 1px solid #aaa;
-    border-top: 1px solid #aaa;
-    padding: 0 1mm;
-}
+    .label-holder table tr > td {
+        border-left: 1px solid #aaa;
+        border-top: 1px solid #aaa;
+        padding: 0 1mm;
+    }
 
-.label-holder table tr > td.no-border-left {
-    border-left: none;
-}
+    .label-holder table tr > td.no-border-left {
+        border-left: none;
+    }
 
-.label-holder table tr > td.no-border-top {
-    border-top: none;
-}
+    .label-holder table tr > td.no-border-top {
+        border-top: none;
+    }
 
-.top-descr {
-    height: 10mm;
-}
+    .top-descr {
+        height: 10mm;
+    }
 
-.details-label {
-    position: relative;
-    top: -2px;
-}
+    .details-label {
+        position: relative;
+        top: -2px;
+    }
 
-.small {
-    font-size: 0.8em;
-    display: block;
-    font-weight: normal;
-}
+    .small {
+        font-size: 0.8em;
+        display: block;
+        font-weight: normal;
+    }
 
-.small.right {
-    float: right;
-}
+    .small.right {
+        float: right;
+    }
 
-.small.left {
-    float: left;
-}
-.bold {
-    font-weight:bold;
-}
-.label-preview {
-    margin: 0 auto;
-}
+    .small.left {
+        float: left;
+    }
+    .bold {
+        font-weight:bold;
+    }
+    .label-preview {
+        margin: 0 auto;
+    }
 
-.description {
-    border-left: 1px solid #aaa;
-    font-weight: bold;
-    height: 10mm;
-}
-.barcode-holder{
-    margin: 0 auto;
-}
-.small-letter{
-    font-size: 12px !important;
-    font-weight: normal !important;
-}
-.clearfix21 {
-    clear: both;
-}
+    .description {
+        border-left: 1px solid #aaa;
+        font-weight: bold;
+        height: 10mm;
+    }
+    .barcode-holder{
+        margin: 0 auto;
+    }
+    .small-letter{
+        font-size: 12px !important;
+        font-weight: normal !important;
+    }
+    .clearfix21 {
+        clear: both;
+    }
+    .productPreviewHolder {
+        float: none !important;
+    }
 </style>
-
 <div class="label-holder">
-    <table cellpadding="0">
-        <tr>
-            <td class="top-descr no-border-left no-border-top bold">
-                [#JOB#]
-            </td>
-            <td colspan="2" class="top-descr no-border-top bold">
-                [#NAME#]
-            </td>
-            <td rowspan="4" class="no-border-top" width="17%" align="center" valign="middle">
-                <div class="barcode-holder">
-                    [#BARCODE#]
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="top-descr no-border-left bold">
-                [#ORDER#]
-            </td>
-            <td colspan="2" class="top-descr bold">
-                [#MATERIAL#]
-            </td>
-        </tr>
-        <tr>
-            <td rowspan="3" valign="middle" align="center" class="no-border-left">
-                <div class="label-preview">
-                    [#preview#]
-                </div>
-            </td>
-            <td width="50%" class="description">
-                <div class="details-label">
-                    <span class="small top left">количество</span>
-                    <span class="small top right">[#MEASURE_ID#]</span>
-                    <div class="clearfix21"></div>
-                </div>
-                <span class="bold"> [#QUANTITY#]</span>
-            </td>
-        </tr>
-        <tr>
-            <td class="description">
-                <div class="details-label">
-                    <span class="small left">размер</span>
-                    <span class="small right">cm</span>
-                    <div class="clearfix21"></div>
-                </div>
-                <span class="bold">[#SIZE#]</span>
-            </td>
-        </tr>
-        <tr>
-            <td colspan="3" class="description small-letter">[#label_text#]</td>
-        </tr>
-    </table>
-</div>
+    <table cellpadding="0"><tr><td class="top-descr no-border-left no-border-top bold">
+        [#JOB#] [#DATE#]
+    </td>
+        <td colspan="2" class="top-descr no-border-top bold">
+            [#NAME#]
+        </td>
+        <td rowspan="4" class="no-border-top" width="17%" align="center" valign="middle">
+            <div class="barcode-holder">
+                [#BARCODE#]
+            </div>
+        </td>
+    </tr><tr><td class="top-descr no-border-left bold">
+        [#ORDER#]
+    </td>
+        <td colspan="2" class="top-descr bold">
+            [#MATERIAL#]
+        </td>
+    </tr><tr><td rowspan="3" valign="middle" align="center" class="no-border-left">
+        <div class="label-preview">
+            [#PREVIEW#]
+        </div>
+    </td>
+        <td width="50%" class="description">
+            <div class="details-label">
+                <span class="small top left">количество</span>
+                <span class="small top right">[#MEASURE_ID#]</span>
+                <div class="clearfix21"></div>
+            </div>
+            <span class="bold"> [#QUANTITY#]</span>
+        </td>
+
+    </tr><tr><td class="description">
+        <div class="details-label">
+            <span class="small left">размер</span>
+            <span class="small right">[#SIZE_UNIT#]</span>
+            <div class="clearfix21"></div>
+        </div>
+        <span class="bold">[#SIZE#]</span>
+    </td>
+    </tr><tr><td colspan="3" class="description small-letter">[#OTHER#]</td>
+    </tr></table></div>

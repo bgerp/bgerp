@@ -114,7 +114,7 @@ class cond_PaymentMethods extends core_Master
 
         // Текстово описание
         $this->FNC('title', 'varchar', 'caption=Описание, input=none, oldFieldName=description');
-        $this->FLD('type', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта)', 'caption=Вид плащане');
+        $this->FLD('type', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг)', 'caption=Вид плащане');
         
         // Процент на авансовото плащане
         $this->FLD('downpayment', 'percent(min=0,max=1)', 'caption=Авансово плащане->Дял,hint=Процент,oldFieldName=payAdvanceShare');
@@ -137,7 +137,6 @@ class cond_PaymentMethods extends core_Master
         $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
         
         $this->setDbUnique('sysId');
-        //$this->setDbUnique('title');
     }
 
 

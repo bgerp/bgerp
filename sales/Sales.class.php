@@ -61,12 +61,6 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,sales';
-    
-    
-    /**
      * Кой може да затваря?
      */
     public $canClose = 'ceo,sales';
@@ -198,12 +192,6 @@ class sales_Sales extends deals_DealMaster
      * В коя група по дефолт да влизат контрагентите, към които е направен документа
      */
     public $crmDefGroup = 'customers';
-    
-    
-    /**
-     * Кое поле показва сумата на сделката
-     */
-    public $canClosewith = 'ceo,salesMaster';
     
     
     /**
@@ -779,6 +767,8 @@ class sales_Sales extends deals_DealMaster
     	
     	if($action == 'closewith' && isset($rec)){
     		if(sales_SalesDetails::fetch("#saleId = {$rec->id}")){
+    			$res = 'no_one';
+    		} elseif(!haveRole('sales', $userId)){
     			$res = 'no_one';
     		}
     	}
