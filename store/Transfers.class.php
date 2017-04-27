@@ -535,4 +535,22 @@ class store_Transfers extends core_Master
     
     	return $products;
     }
+    
+    
+    /**
+     *  Подготовка на филтър формата
+     */
+    public static function on_AfterPrepareListFilter($mvc, $data)
+    {
+    	if(!Request::get('Rejected', 'int')){
+    		$data->listFilter->setFieldTypeParams('fromStore', array('allowEmpty' => 'allowEmpty'));
+    		$data->listFilter->setField('fromStore', 'caption=Склад');
+    		$data->listFilter->showFields .= ',fromStore';
+    		$data->listFilter->input();
+    		 
+    		if($storeId = $data->listFilter->rec->fromStore){
+    			$data->query->where("#fromStore = '{$storeId}' OR #toStore = '{$storeId}'");
+    		}
+    	}
+    }
 }

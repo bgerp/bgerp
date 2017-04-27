@@ -500,4 +500,20 @@ class store_ConsignmentProtocols extends core_Master
     		return $table->get($data->protocols, $fields);
     	}
     }
+    
+    
+    /**
+     *  Подготовка на филтър формата
+     */
+    public static function on_AfterPrepareListFilter($mvc, $data)
+    {
+    	if(!Request::get('Rejected', 'int')){
+    		$data->listFilter->showFields .= ',storeId';
+    		$data->listFilter->input();
+    		 
+    		if($storeId = $data->listFilter->rec->storeId){
+    			$data->query->where("#storeId = '{$storeId}'");
+    		}
+    	}
+    }
 }

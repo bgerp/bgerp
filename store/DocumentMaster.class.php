@@ -657,7 +657,7 @@ abstract class store_DocumentMaster extends core_Master
     {
     	if(!Request::get('Rejected', 'int')){
     		$data->listFilter->FNC('dState', 'enum(all=Всички, pending=Заявка, draft=Чернова, active=Контиран)', 'caption=Състояние,input,silent');
-    		$data->listFilter->showFields .= ',dState';
+    		$data->listFilter->showFields .= ',storeId,dState';
     		$data->listFilter->input();
     		$data->listFilter->setDefault('dState', 'all');
     		 
@@ -668,6 +668,11 @@ abstract class store_DocumentMaster extends core_Master
     				if($rec->dState != 'all'){
     					$data->query->where("#state = '{$rec->dState}'");
     				}
+    			}
+    			
+    			// Филтър по склад
+    			if($rec->storeId){
+    				$data->query->where("#storeId = '{$rec->storeId}'");
     			}
     		}
     	}
