@@ -1,6 +1,11 @@
 <?php
 
 
+/**
+ * Максимална дължина на думата до която ще се търси
+ */
+defIfNot('PLG_SEARCH_MAX_KEYWORD_LEN', '10');
+
 
 /**
  * Клас 'plg_Search' - Добавя пълнотекстово търсене в табличния изглед
@@ -172,16 +177,31 @@ class plg_Search extends core_Plugin
             $field = 'searchKeywords';
         }
         
-        $minLenFTS = Request::get('minLenFTS', 'int');
+        // Ако е зададен в конфига
+        if (defined('PLG_SEARCH_MIN_LEN_FTS')) {
+            $minLenFTS = PLG_SEARCH_MIN_LEN_FTS;
+        }
         
-        if(!isset($minLenFTS)) {
+        // Ако не е определен, но е зададен в конфига на mySQL
+        if (!$minLenFTS) {
+            try {
+                if ($query->mvc->db) {
+                    $minLenFTS = $query->mvc->db->getVariable('ft_min_word_len');
+                }
+            } catch (Exception $e) {
+                reportException($e);
+            }
+        }
+        
+        // Ако все още не може да се определи - дефолтната стойност от документацията
+        if(!$minLenFTS) {
             $minLenFTS = 4;
         }
 
         if ($words = static::parseQuery($search)) {
             
             usort($words, 'plg_Search::sortLength');
- 
+            
             foreach($words as $w) {
                 
                 $w = trim($w);
@@ -191,7 +211,7 @@ class plg_Search extends core_Plugin
                 $wordBegin = ' ';
                 $wordEnd = '';
                 $wordEndQ = '*';
-
+                
                 if($strict === TRUE ||(is_numeric($strict) && $strict > strlen($w))) {
                     $wordEnd = ' ';
                     $wordEndQ = '';
@@ -228,6 +248,12 @@ class plg_Search extends core_Plugin
                     $equalTo = "";
                 }
                 
+                // Ако няма да се търси точно съвпадение, ограничаваме дължината на думите
+                if ($mode != '"') {
+                    $maxLen = PLG_SEARCH_MAX_KEYWORD_LEN ? PLG_SEARCH_MAX_KEYWORD_LEN : 10;
+                    $w = mb_substr($w, 0, $maxLen);
+                }
+                
                 $w = trim(static::normalizeText($w, array('*')));
                 $minWordLen = strlen($w);
                 
@@ -256,29 +282,18 @@ class plg_Search extends core_Plugin
                         $query->where("LOCATE('{$wordBegin}{$w}{$wordEnd}', {$field1}){$equalTo}");
                     } else {
                         if($mode == '+') {
-                            $q .= " +{$w}{$wordEndQ}";
+                            $query->where("match(#{$field}) AGAINST('+{$w}{$wordEndQ}' IN BOOLEAN MODE)");
                         }
                         if($mode == '"') {
-                            $q .= " \"{$w}\"";
+                            $query->where("match(#{$field}) AGAINST('\"{$w}\"' IN BOOLEAN MODE)");
                         }
                         if($mode == '-') {
-                            $q .= " -{$w}";
+                            $query->where("LOCATE('" . substr($w, 1) . "', #{$field}) = 0");
                         }
                     }
                 }
             }
-            
-            $q = trim($q);
-            
-            if($q) {
-                if($q{0} == '-' && !strpos($q, ' ')) {
-                    $query->where("LOCATE('" . substr($q, 1) . "', #{$field}) = 0");
-                } else {
-                    $query->where("match(#{$field}) AGAINST('$q' IN BOOLEAN MODE)");
-                }
-            }
         }
-//         bp($query->where);
     }
     
     
