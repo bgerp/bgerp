@@ -100,7 +100,7 @@ class type_Users extends type_Keylist
             
             if(haveRole($this->params['rolesForAll'])) {
                 // Показваме всички екипи
-                $teams = core_Roles::getRolesByType('team');
+                $teams = core_Roles::getRolesByType('team', 'keylist', TRUE);
                 
                 // Добавя в началото опция за избор на всички потребители на системата
                 $all = new stdClass();
