@@ -1859,7 +1859,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPAdvExtraIncome');
-        $browser->setValue('paymentMethodId', "30% авансово, 70% преди експедиция");
+        $browser->setValue('paymentMethodId', "30% авансово и 70% преди експедиция");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
          
         // Записваме черновата на продажбата
@@ -1978,7 +1978,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPAdvExtraIncome1');
-        $browser->setValue('paymentMethodId', "30% авансово, 70% преди експедиция");
+        $browser->setValue('paymentMethodId', "30% авансово и 70% преди експедиция");
         $browser->setValue('chargeVat', "exempt");
          
         // Записваме черновата на продажбата
@@ -2182,7 +2182,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPAdvExtraExpenses');
-        $browser->setValue('paymentMethodId', "30% авансово, 70% преди експедиция");
+        $browser->setValue('paymentMethodId', "30% авансово и 70% преди експедиция");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
          
         // Записваме черновата на продажбата
@@ -2298,7 +2298,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPAdvExtraExpenses1');
-        $browser->setValue('paymentMethodId', "30% авансово, 70% преди експедиция");
+        $browser->setValue('paymentMethodId', "30% авансово и 70% преди експедиция");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
          
         // Записваме черновата на продажбата
