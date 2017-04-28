@@ -180,8 +180,10 @@ class acc_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     var $roles = array(
+    	array('seePrice'),
+    	array('invoicer'),
     	array('accJournal'),
-    	array('acc', 'accJournal'),
+    	array('acc', 'accJournal,invoicer,seePrice'),
         array('accMaster', 'acc'),
     	array('accLimits'),
     );
