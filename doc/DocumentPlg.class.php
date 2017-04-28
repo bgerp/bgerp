@@ -2840,12 +2840,7 @@ class doc_DocumentPlg extends core_Plugin
             $rec = $mvc->fetch($rec);
         }
         
-        // Ако има тяло
-        if ($rec->body) {
-            
-            // Вземаме всички прикачени файлове
-            $res = fileman_RichTextPlg::getFiles($rec->body);    
-        }
+        $res = array_merge($mvc->getAllFilesFromRec($rec), (array)$res);
         
         return $res;
     }
@@ -2865,7 +2860,7 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         // Намираме прикачените файлове
-        $res = array_merge(fileman_RichTextPlg::getFiles($rec->body), (array)$res);
+        $res = array_merge($mvc->getAllFilesFromRec($rec), (array)$res);
     }
     
     
@@ -2882,8 +2877,84 @@ class doc_DocumentPlg extends core_Plugin
             $rec = $mvc->fetch($rec);
         }
         
-        // Намираме прикачените файлове
-        $res = array_merge(cms_GalleryRichTextPlg::getImages($rec->body), (array)$res);
+        if (!isset($res)) {
+            $res = array();
+        }
+        
+        $rt = '';
+        
+        foreach ((array)$mvc->getAllFields() as $fieldName => $field) {
+            
+            if ($field->type->params['imgToLink'] == 'no') continue;
+            
+            $fVal = $rec->{$fieldName};
+        
+            if (!$fVal || !is_string($fVal)) continue;
+        
+            $fVal = trim($fVal);
+        
+            if (!$fVal) continue;
+        
+            // Ако са от type_Richtext
+            if ($field->type instanceof type_Richtext) {
+                $rt .= "\n" . $fVal;
+            }
+        }
+        
+        if ($rt) {
+            // Намираме прикачените файлове
+            $res = array_merge(cms_GalleryRichTextPlg::getImages($rt), (array)$res);
+        }
+    }
+    
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Manager $mvc
+     * @param stdObject $res
+     * @param stdObject $rec
+     */
+    function on_AfterGetAllFilesFromRec($mvc, &$res, $rec)
+    {
+        if (!isset($res)) {
+            $res = array();
+        }
+        
+        $rt = '';
+        
+        foreach ((array)$mvc->getAllFields() as $fieldName => $field) {
+            
+            if ($field->type->params['fileToLink'] == 'no') continue;
+            
+            $fVal = $rec->{$fieldName};
+            
+            if (!$fVal || !is_string($fVal)) continue;
+            
+            $fVal = trim($fVal);
+            
+            if (!$fVal) continue;
+            
+            // Ако са от type_Richtext
+            if ($field->type instanceof type_Richtext) {
+                $rt .= "\n" . $fVal;
+            } else if ($field->type instanceof fileman_FileType) {
+                if (isset($res[$fVal])) continue;
+                
+                try {
+                    $fName = fileman_Files::fetchByFh($fVal, 'name');
+                } catch (core_exception_Expect $e) {
+                    continue;
+                }
+                
+                $res[$fVal] = $fName;
+            }
+        }
+        
+        if ($rt) {
+            $res = array_merge(fileman_RichTextPlg::getFiles($rt), (array)$res);
+        }
     }
     
     
@@ -2897,7 +2968,34 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_AfterGetLinkedDocuments($mvc, &$res, $id, $userId=NULL, $data=NULL)
     {
-        if ($mvc->fields['body']->type->params['hndToLink'] == 'no') return ;
+        try {
+            $rec = $mvc->fetch($id);
+        } catch (core_exception_Expect $e) {
+            reportException($e);
+            return ;
+        }
+        
+        $rt = '';
+        
+        foreach ((array)$mvc->getAllFields() as $fieldName => $field) {
+            
+            if ($field->type->params['hndToLink'] == 'no') continue;
+            
+            $fVal = $rec->{$fieldName};
+            
+            if (!$fVal || !is_string($fVal)) continue;
+            
+            $fVal = trim($fVal);
+            
+            if (!$fVal) continue;
+            
+            // Ако са от type_Richtext
+            if ($field->type instanceof type_Richtext) {
+                $rt .= "\n" . $fVal;
+            }
+        }
+        
+        if (!$rt) return ;
         
         // Ако не е зададено id използваме текущото id на потребите (ако има) и в краен случай id на активиралия потребител
         if (!$userId) {
@@ -2910,8 +3008,6 @@ class doc_DocumentPlg extends core_Plugin
         core_Users::sudo($userId);
         
         try {
-            $rec = $mvc->fetch($id);
-            
             // Намираме прикачените документи
             $attachedDocs = doc_RichTextPlg::getAttachedDocs($rec->body);
             if (count($attachedDocs)) {

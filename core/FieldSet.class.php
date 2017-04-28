@@ -528,6 +528,18 @@ class core_FieldSet extends core_BaseClass
     
     
     /**
+     * Връща всички полета, които са зададени в $fileds
+     * 
+     * @return array
+     */
+    public function getAllFields_()
+    {
+        
+        return $this->fields;
+    }
+    
+    
+    /**
      * Връща типа на посоченото поле. Ако полето
      * липсва, а $strict е истина, генерира се грешка
      */
