@@ -2883,7 +2883,7 @@ class doc_DocumentPlg extends core_Plugin
         
         $rt = '';
         
-        foreach ((array)$mvc->getAllFields() as $fieldName => $field) {
+        foreach ((array)$mvc->getAllFields($rec) as $fieldName => $field) {
             
             if ($field->type->params['imgToLink'] == 'no') continue;
             
@@ -2924,7 +2924,7 @@ class doc_DocumentPlg extends core_Plugin
         
         $rt = '';
         
-        foreach ((array)$mvc->getAllFields() as $fieldName => $field) {
+        foreach ((array)$mvc->getAllFields($rec) as $fieldName => $field) {
             
             if ($field->type->params['fileToLink'] == 'no') continue;
             
@@ -2977,7 +2977,7 @@ class doc_DocumentPlg extends core_Plugin
         
         $rt = '';
         
-        foreach ((array)$mvc->getAllFields() as $fieldName => $field) {
+        foreach ((array)$mvc->getAllFields($rec) as $fieldName => $field) {
             
             if ($field->type->params['hndToLink'] == 'no') continue;
             
