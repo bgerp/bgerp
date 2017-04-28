@@ -32,10 +32,10 @@
 <!--ET_END note-->
 <p>|По време на отсъствието|*:</p>
 <ul class='custom-ul'>
-    <li>|ще отговарям на мобилен телефон|*: <b>[#answerGSM#]</b></li>
-    <li>|ще имам достъп до системата|*: <b>[#answerSystem#]</b></li>
+    <li>|Ще отговарям на мобилен телефон|*: <b>[#answerGSM#]</b></li>
+    <li>|Ще имам достъп до системата|*: <b>[#answerSystem#]</b></li>
     <!--ET_BEGIN alternatePerson-->
-    <li>|ще ме замества|*: <b>[#alternatePerson#]</b></li>
+    <li>|Ще ме замества|*: <b>[#alternatePerson#]</b></li>
     <!--ET_END alternatePerson-->
 </ul>
 <br><br>
