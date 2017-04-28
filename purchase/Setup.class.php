@@ -101,12 +101,6 @@ class purchase_Setup extends core_ProtoSetup
     		'purchase_Invoices',
     		'purchase_InvoiceDetails'
         );
-
-        
-    /**
-     * Роли за достъп до модула
-     */
-    var $roles = 'purchase';
     
     
     /**
@@ -133,23 +127,26 @@ class purchase_Setup extends core_ProtoSetup
 	
 	
 	/**
+	 * Роли за достъп до модула
+	 */
+	var $roles = array(
+			array('purchase', 'invoicer,seePrice'),
+			array('purchaseMaster', 'purchase'),
+	);
+	
+	
+	/**
+	 * Дефинирани класове, които имат интерфейси
+	 */
+	var $defClasses = "purchase_PurchaseLastPricePolicy";
+	
+	
+	/**
      * Инсталиране на пакета
      */
     function install()
     {
     	$html = parent::install();
-        
-        // Добавяме политиката "По последна покупна цена"
-        $html .= core_Classes::add('purchase_PurchaseLastPricePolicy');
-        
-        // Добавяне на роля за старши куповач
-        $html .= core_Roles::addOnce('purchaseMaster', 'purchase');
-        
-        // Добавяне на роля за създаване на фактури
-        $html .= core_Roles::addOnce('invoicer');
-        
-        // sales наследява invoicer
-        $html .= core_Roles::addOnce('purchase', 'invoicer');
         
         // Добавяне на дефолтни роли за бутоните
         foreach (array('PURCHASE_ADD_BY_PRODUCT_BTN', 'PURCHASE_ADD_BY_LIST_BTN') as $const){

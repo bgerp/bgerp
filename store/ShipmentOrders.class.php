@@ -69,7 +69,7 @@ class store_ShipmentOrders extends store_DocumentMaster
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,store';
+	public $canSingle = 'ceo,store,sales,purchase';
     
     
     /**

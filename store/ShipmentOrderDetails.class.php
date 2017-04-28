@@ -56,19 +56,11 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     
     
     /**
-     * Кой има право да чете?
-     * 
-     * @var string|array
-     */
-    public $canRead = 'ceo, store';
-    
-    
-    /**
      * Кой има право да променя?
      * 
      * @var string|array
      */
-    public $canEdit = 'ceo, store';
+    public $canEdit = 'ceo,store,sales,purchase';
     
     
     /**
@@ -76,7 +68,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      * 
      * @var string|array
      */
-    public $canAdd = 'ceo, store';
+    public $canAdd = 'ceo,store,sales,purchase';
     
     
     /**
@@ -84,7 +76,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      * 
      * @var string|array
      */
-    public $canDelete = 'ceo, store';
+    public $canDelete = 'ceo,store,sales,purchase';
     
     
     /**

@@ -66,7 +66,10 @@ class cash_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'cash';
+    var $roles = array(
+    		array('cash', 'seePrice'),
+    		array('cashMaster', 'cash'),
+    );
 
     
     /**
@@ -81,30 +84,6 @@ class cash_Setup extends core_ProtoSetup
      * Дефинирани класове, които имат интерфейси
      */
     var $defClasses = "cash_reports_CashImpl";
-    
-    
-    /**
-     * Път до css файла
-     */
-//    var $commonCSS = 'cash/tpl/styles.css';
-    
-    
-    /**
-     * Инсталиране на пакета
-     */
-    function install()
-    {
-        $html = parent::install();
-        
-    	if($roleRec = core_Roles::fetch("#role = 'masterCash'")){
-    		core_Roles::delete("#role = 'masterCash'");
-    	}
-    	
-        // Добавяне на роля за старши касиер
-        $html .= core_Roles::addOnce('cashMaster', 'cash');
-    	
-        return $html;
-    }
     
     
     /**
