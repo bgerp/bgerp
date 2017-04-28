@@ -244,9 +244,10 @@ class embed_Manager extends core_Master
 	 * 
 	 * @param core_BaseClass $driver - драйвер
 	 * @param boolean $onlySingleFields - дали да са само полетата за сингъл
+	 * @param boolean $returnAsFieldSet - дали да се върнат като фийлд сетове
 	 * @return array $res - добавените полета от драйвера
 	 */
-    public static function getDriverFields($driver, $onlySingleFields = FALSE)
+    public static function getDriverFields($driver, $onlySingleFields = FALSE, $returnAsFieldSet = FALSE)
     {
         $fieldset = cls::get('core_Fieldset');
         $driver->addFields($fieldset);
@@ -255,7 +256,8 @@ class embed_Manager extends core_Master
         if(is_array($fieldset->fields)) {
             foreach($fieldset->fields as $name => $f) {
             	if($onlySingleFields === TRUE && $f->single == 'none') continue;
-                $res[$name] = $f->caption;
+            	
+            	$res[$name] = ($returnAsFieldSet === FALSE) ? $f->caption : $f;
             }
         }
 
