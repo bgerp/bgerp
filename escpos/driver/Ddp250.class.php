@@ -126,7 +126,7 @@ class escpos_driver_Ddp250 extends core_BaseClass
     {
         $dataArr = array();
         $dataArr['printerSelectCodetable'] = 17;
-        $dataArr['printerSelectCodetableChar'] = 117;
+//         $dataArr['printerSelectCodetableChar'] = 117;
         $dataArr['printerPrintTaggedTextEncoding'] = 'cp1251';
         $dataArr['printerFeedPaper'] = 110;
         $dataArr['printerInputTextEncoding'] = 'UTF-8';
@@ -136,5 +136,19 @@ class escpos_driver_Ddp250 extends core_BaseClass
         $tpl->placeArray($dataArr);
         
         return $tpl;
+    }
+    
+    
+    /**
+     * Добавя необходимите настройки за преди текста за отпечатване
+     * 
+     * @param string $res
+     * 
+     * @return string
+     */
+    public function prepareTextSettings($res)
+    {
+        
+        return $res;
     }
 }

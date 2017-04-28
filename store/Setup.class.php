@@ -86,9 +86,13 @@ class store_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'storeWorker';
+    var $roles = array(
+    		array('storeWorker'),
+    		array('store', 'storeWorker'),
+    		array('storeMaster', 'store'),
+    );
     
-
+    
     /**
      * Връзки от менюто, сочещи към модула
      */
@@ -110,27 +114,19 @@ class store_Setup extends core_ProtoSetup
      */
     function install()
     {
-        $html = parent::install();      
-        
-        // Забравена миграция
-    	if($roleRec = core_Roles::fetch("#role = 'masterStore'")){
-    		core_Roles::delete("#role = 'masterStore'");
-    	}
+        $html = parent::install();
     	
     	// Закачане на плъгина за прехвърляне на собственотст на системни папки към core_Users
     	$Plugins = cls::get('core_Plugins');
     	$html .= $Plugins->installPlugin('Синхронизиране на складовите наличности', 'store_plg_BalanceSync', 'acc_Balances', 'private');
     	
-        // Добавяне на роля за старши складажия
-        $html .= core_Roles::addOnce('store', 'storeWorker');
-    	$html .= core_Roles::addOnce('storeMaster', 'store');
-		
-    	
-    	
     	return $html;
     }
     
 
+    /**
+     * Зареждане на данните
+     */
     function loadSetupData($itr = '')
     {
         $res = parent::loadSetupData($itr);

@@ -59,7 +59,7 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
+    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
                     doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search, doc_plg_TplManager,
 					doc_EmailCreatePlg, bgerp_plg_Blank, trans_plg_LinesPlugin, doc_plg_HidePrices, doc_SharablePlg';
 
@@ -94,7 +94,7 @@ class store_Receipts extends store_DocumentMaster
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,store';
+	public $canSingle = 'ceo,store,sales,purchase';
     
     
     /**

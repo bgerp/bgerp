@@ -121,4 +121,18 @@ class escpos_driver_Html extends core_BaseClass
         
         return $tpl;
     }
+    
+    
+    /**
+     * Добавя необходимите настройки за преди текста за отпечатване
+     * 
+     * @param string $res
+     * 
+     * @return string
+     */
+    public function prepareTextSettings($res)
+    {
+        
+        return $res;
+    }
 }

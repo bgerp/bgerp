@@ -46,7 +46,7 @@ class store_Transfers extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable, acc_plg_DocumentSummary,
+    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable, acc_plg_DocumentSummary,
                     doc_DocumentPlg, trans_plg_LinesPlugin, doc_plg_BusinessDoc, plg_Search, bgerp_plg_Blank,plg_Clone';
 
     
@@ -186,6 +186,12 @@ class store_Transfers extends core_Master
 	public $singleIcon = 'img/16/transfers.png';
 
 
+	/**
+	 * Полета за филтър по склад
+	 */
+	public $filterStoreFields = 'fromStore,toStore';
+	
+	
     /**
      * Описание на модела (таблицата)
      */

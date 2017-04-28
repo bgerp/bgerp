@@ -325,11 +325,7 @@ class cal_Reminders extends core_Master
             		// Добавяме съобщение за грешка
                     $form->setWarning('timeStart', "Датата за напомняне трябва да е след|* " . dt::mysql2verbal($now));
             	}
-            	
-            	if (isset($form->rec->timePreviously)) { //bp($mvc->getNextStartingTime2($form->rec), $form->rec);
-            	    $form->rec->nextStartTime = $mvc->getNextStartingTime2($form->rec);
-            	}
-            	
+
             	if (isset($form->rec->repetitionEach) && isset($form->rec->repetitionType)) {
             	    if (isset($form->rec->timePreviously)) { 
             	        $secRepetitionType = static::$map[$form->rec->repetitionType];
@@ -369,13 +365,8 @@ class cal_Reminders extends core_Master
     static function on_BeforeSave($mvc, &$id, $rec)
     {
     	$now = dt::now(); 
-    
-        if($rec->repetitionEach) {
-            $rec->nextStartTime = $mvc->getNextStartingTime2($rec);
-        } else {
-            $rec->nextStartTime = $rec->timeStart;
-        }
-
+    	
+    	$rec->nextStartTime = $mvc->getNextStartingTime2($rec);
     }
 
     
@@ -932,16 +923,20 @@ class cal_Reminders extends core_Master
     
     static function getNextStartingTime2($rec)
     {	
-        if(empty($rec->repetitionEach)) {
-            //return;
+        $rec2 = clone($rec);
+   
+        if(empty($rec2->repetitionEach)) { 
+            if(empty($rec2->timePreviously)) {
+                return;
+            } else {
+                $rec2->timeStart = dt::timestamp2Mysql(dt::mysql2timestamp($rec2->timeStart) - $rec2->timePreviously);
+            }
         }
         
-        $rec2 = clone($rec);
- 
         if($rec2->timeStart > dt::now()) {
             return $rec2->timeStart;
         }
-        
+
         do {
             $exTimeStart = $rec2->timeStart;
             $rec2->timeStart = self::calcNextStartTime($rec2); 
@@ -1071,7 +1066,7 @@ class cal_Reminders extends core_Master
                 $resArr[$fieldName] =  array('name' => tr($val), 'val' =>"[#{$fieldName}#]");
             }
         }
-        
+     
         if($rec->timeStart == $rec->nextStartTime) {
             unset($resArr['nextStartTime']);
         }
@@ -1122,7 +1117,7 @@ class cal_Reminders extends core_Master
                 $row->repetitionTypeMonth = tr('точния ден от месеца');
             }
         }
-
+    
         if($rec->repetitionEach != NULL ){
             $resArr['each'] =  array('name' => tr('Повторение'), 'val' =>"[#each#]<!--ET_BEGIN repetitionEach--> [#repetitionEach#]<!--ET_END repetitionEach--><!--ET_BEGIN repetitionType--> [#repetitionType#]<!--ET_END repetitionType-->");
         }

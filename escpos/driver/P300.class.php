@@ -30,13 +30,34 @@ class escpos_driver_P300 extends escpos_driver_Ddp250
     public function placePrintData($tpl)
     {
         $dataArr = array();
-        $dataArr['printerSelectCodetable'] = 17;
-        $dataArr['printerSelectCodetableChar'] = 116;
+        
+        // Това ще се сетва при изпращане на текст
+        $tpl->removeBlock('printerSelectCodetableChar');
+        $tpl->removeBlock('printerSelectCodetable');
+        
+        // Това е за кодово таблица 17
+        // За 23 - cp1251
+        $dataArr['printerPrintTaggedTextEncoding'] = 'cp866';
         
         $tpl->placeArray($dataArr);
         
         parent::placePrintData($tpl);
         
         return $tpl;
+    }
+    
+    
+    /**
+     * Добавя необходимите настройки за преди текста за отпечатване
+     * 
+     * @param string $res
+     * 
+     * @return string
+     */
+    public function prepareTextSettings($res)
+    {
+        $res = chr(27) . 't' . chr(17) . $res;
+        
+        return $res;
     }
 }

@@ -70,7 +70,10 @@ class bank_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'bank';
+    var $roles = array(
+    		array('bank', 'seePrice'),
+    		array('bankMaster', 'bank'),
+    );
     
     
     /**
@@ -85,24 +88,6 @@ class bank_Setup extends core_ProtoSetup
      * Дефинирани класове, които имат интерфейси
      */
     var $defClasses = "bank_reports_AccountImpl";
-    
-    
-    /**
-     * Инсталиране на пакета
-     */
-    function install()
-    {
-        $html = parent::install();
-        
-        // Добавяне на роля за старши касиер
-        if($roleRec = core_Roles::fetch("#role = 'masterBank'")){
-            core_Roles::delete("#role = 'masterBank'");
-        }
-        
-        $html .= core_Roles::addOnce('bankMaster', 'bank');
-        
-        return $html;
-    }
     
     
     /**

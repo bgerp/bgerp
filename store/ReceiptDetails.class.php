@@ -48,12 +48,6 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo, store';
-    
-    
-    /**
      * Кой има право да променя?
      */
     public $canEdit = 'ceo, store, purchase, sales';

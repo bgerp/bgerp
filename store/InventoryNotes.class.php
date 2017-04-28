@@ -93,7 +93,7 @@ class store_InventoryNotes extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_Wrapper,acc_plg_Contable,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search,bgerp_plg_Blank';
+    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_Wrapper,acc_plg_Contable,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search,bgerp_plg_Blank';
     
     
     /**

@@ -51,12 +51,6 @@ class purchase_Purchases extends deals_DealMaster
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo, purchase';
-    
-    
-    /**
      * Кой може да го активира?
      */
     public $canConto = 'ceo,purchase,acc';
@@ -206,12 +200,6 @@ class purchase_Purchases extends deals_DealMaster
     		'debitDeals'           => array('title' => 'Прихващане на вземания', 'debit' => '*', 'credit' => '401', 'reverse' => TRUE),
     		'creditDeals'          => array('title' => 'Прихващане на задължение', 'debit' => '401', 'credit' => '*'),
     );
-    
-    
-    /**
-     * Кое поле показва сумата на сделката
-     */
-    public $canClosewith = 'ceo,purchaseMaster';
     
     
     /**
@@ -532,6 +520,8 @@ class purchase_Purchases extends deals_DealMaster
 
     	if($action == 'closewith' && isset($rec)){
     		if(purchase_PurchasesDetails::fetch("#requestId = {$rec->id}")){
+    			$res = 'no_one';
+    		} elseif(!haveRole('purchase', $userId)){
     			$res = 'no_one';
     		}
     	}
