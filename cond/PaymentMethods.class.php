@@ -344,7 +344,7 @@ class cond_PaymentMethods extends core_Master
     	$file = "cond/csv/PaymentMethods.csv";
     	$fields = array(
             0 => 'sysId',
-	    	1 => 'title',
+	    	1 => 'name',
             2 => 'downpayment',
             3 => 'paymentBeforeShipping',
             4 => 'paymentOnDelivery',
