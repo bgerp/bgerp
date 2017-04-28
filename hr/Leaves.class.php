@@ -352,7 +352,7 @@ class hr_Leaves extends core_Master
                     $department = $employeeContractDetails->departmentId;
             
                     $schedule = hr_EmployeeContracts::getWorkingSchedule($employeeContract);
-                    if($schedule == FALSE){
+                    if($schedule){
                         $days = hr_WorkingCycles::calcLeaveDaysBySchedule($schedule, $department, $form->rec->leaveFrom, $form->rec->leaveTo);
                     } else {
                         $days = cal_Calendar::calcLeaveDays($form->rec->leaveFrom, $form->rec->leaveTo);
