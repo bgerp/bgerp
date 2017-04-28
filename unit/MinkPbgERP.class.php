@@ -186,7 +186,7 @@ class unit_MinkPbgERP extends core_Manager {
     }
     
     /**
-     * 1. Добавяне на роля cat на потребител bgerp
+     * 1. Добавяне на роли cat и seePrice на потребител bgerp
      */
     //http://localhost/unit_MinkPbgERP/AddRoleCat/
     function act_AddRoleCat()
@@ -198,6 +198,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->click('Потребители');
         $browser->click('Редактиране');
         $browser->setValue('cat', True);
+        $browser->setValue('seePrice', True);
         $browser->press('Запис');
         
     }
@@ -1028,7 +1029,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('deliveryTermIdExtended', 'EXW');
         $browser->setValue('deliveryLocationId', '1');
         $browser->setValue('note', 'MinkPTestCreatePurchase');
-        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
+        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         $browser->press('Чернова');
     
@@ -1153,7 +1154,7 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->setValue('bankAccountId', '');
         $browser->setValue('deliveryTermIdExtended', 'EXW');
         $browser->setValue('note', 'MinkPTestCreatePurchaseC');
-        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
+        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         //$browser->setValue('chargeVat', "Oсвободено от ДДС"); //// Ако контрагентът е от България дава грешка.
         $browser->setValue('chargeVat', 'exempt');
         //$browser->setValue('chargeVat', "Без начисляване на ДДС");
@@ -1290,7 +1291,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('note', 'MinkPbgErpCreateSale');
         $browser->setValue('deliveryTermIdExtended', 'DDP');
         $browser->setValue('deliveryLocationId', '1');
-        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
+        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         // Записване черновата на продажбата
         $browser->press('Чернова');
@@ -1418,7 +1419,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPbgErpCreateSaleC');
         //$browser->setValue('pricesAtDate', date('d-m-Y'));
-        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
+        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('chargeVat', 'exempt');
         //$browser->setValue('chargeVat', "Освободено от ДДС"); //// ДАВА ГРЕШКА!
         //$browser->setValue('chargeVat', "Без начисляване на ДДС");
