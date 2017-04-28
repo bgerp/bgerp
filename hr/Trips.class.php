@@ -178,8 +178,8 @@ class hr_Trips extends core_Master
 		$this->FLD('toDate', 'datetime(defaultTime=23:59:59)',     'caption=Считано->До, mandatory');
         $this->FLD('place',    'richtext(rows=5, bucket=Notes)', 'caption=Място');
     	$this->FLD('purpose', 'richtext(rows=5, bucket=Notes)', 'caption=Цел');
-    	$this->FLD('answerGSM', 'enum(yes=да, no=не, partially=частично)', 'caption=По време на отсъствието->Отговаря на моб. телефон, maxRadio=3,columns=3,notNull,value=yes');
-    	$this->FLD('answerSystem', 'enum(yes=да, no=не, partially=частично)', 'caption=По време на отсъствието->Достъп до системата, maxRadio=3,columns=3,notNull,value=yes');
+    	$this->FLD('answerGSM', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на отсъствието->Отговаря на моб. телефон, maxRadio=3,columns=3,notNull,value=yes');
+    	$this->FLD('answerSystem', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на отсъствието->Достъп до системата, maxRadio=3,columns=3,notNull,value=yes');
     	$this->FLD('alternatePerson', 'key(mvc=crm_Persons,select=name,group=employees, allowEmpty)', 'caption=По време на отсъствието->Заместник');
     	$this->FLD('amountRoad', 'double(decimals=2)', 'caption=Начисления->Пътни,input=none, changable');
     	$this->FLD('amountDaily', 'double(decimals=2)', 'caption=Начисления->Дневни,input=none, changable');
