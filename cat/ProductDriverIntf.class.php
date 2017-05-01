@@ -207,7 +207,7 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	 */
 	public function canAutoCalcPrimeCost($productId)
 	{
-		return $this->class->canCalcPrice($productId);
+		return $this->class->canAutoCalcPrimeCost($productId);
 	}
 	
 	
