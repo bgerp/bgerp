@@ -487,7 +487,9 @@ class store_ShipmentOrders extends store_DocumentMaster
     	}
     	 
     	// Връщане на броя на колетите
-    	$count = max($resArr);
+        if(count($resArr))) {
+    	    $count = max($resArr);
+        }
     	
     	return $count;
     }
