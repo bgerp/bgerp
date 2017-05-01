@@ -480,27 +480,14 @@ class store_ShipmentOrders extends store_DocumentMaster
     	
     	$resArr = array();
     	while($dRec = $dQuery->fetch()){
-    		
-    		// Разбиване на записа
-    		$info = explode(',', $dRec->info);
-    		if(!count($info)) continue;
-    		
-    		foreach ($info as &$seq){
-    				 
-    			// Ако е посочен интервал от рода 1-5
-    			$seq = explode('-', $seq);
-    			if(count($seq) == 1){
-    				$resArr[$seq[0]] = $seq[0];
-    			} else {
-    				foreach (range($seq[0], $seq[1]) as $i){
-    					$resArr[$i] = $i;
-    				}
-    			}
-    		}
+            $rowNums =store_ShipmentOrderDetails::getLUs($dRec->info);
+            if(is_array($rowNums)) {
+                $resArr += $rowNums;
+            }
     	}
     	 
     	// Връщане на броя на колетите
-    	$count = count($resArr);
+    	$count = max($resArr);
     	
     	return $count;
     }
@@ -576,7 +563,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Връща данни за етикети
      *
-     * @param int $id - ид на задача
+     * @param int $id - ид на store_ShipmentOrders
      * @param number $labelNo - номер на етикета
      *
      * @return array $res - данни за етикетите
@@ -584,11 +571,14 @@ class store_ShipmentOrders extends store_DocumentMaster
      * @see label_SequenceIntf
      */
     public function getLabelData($id, $labelNo = 0)
-    {
+    {  
     	$rec = $this->fetchRec($id);
     	
     	$res = array();
     	$res['NOMER'] = $rec->id;
+
+        if($labelNo == 0) $labelNo = 1;
+
     	$res['Текущ_етикет'] = $labelNo;
     	$logisticData = $this->getLogisticData($rec);
     	$res['DESTINATION'] = "{$logisticData['toPCode']} {$logisticData['toPlace']}, {$logisticData['toCountry']}";
@@ -624,7 +614,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     	$rec = $this->fetchRec($id);
     	$count = ($rec->palletCountInput) ? $rec->palletCountInput : static::countCollets($rec->id);
     	$count = ($count) ? $count : NULL;
-    	
+    	 
     	return $count;
     }
 }
