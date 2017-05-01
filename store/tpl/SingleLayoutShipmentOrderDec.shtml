@@ -102,8 +102,8 @@
                <div class='clearfix21' style='margin-bottom: 5px;'>
                   <div>
                      <span class='half-col'>|Общо тегло|*:&nbsp;[#weight#]</span>  <span class='half-col'>|Общ обем|*:&nbsp;[#volume#]</span>
-                     <!--ET_BEGIN colletsCount--><span class='half-col'>|Изчислен брой палети|*:&nbsp;[#colletsCount#]</span><!--ET_END colletsCount--> <!--ET_BEGIN palletCountInput--><span class='half-col'>|Брой палети|*: [#palletCountInput#]</span><!--ET_END palletCountInput-->
                   </div>
+                  <!--ET_BEGIN logisticInfo--><div style='margin-bottom:3px;margin-top:3px;'>|Logistic units|*:&nbsp;[#logisticInfo#]</div><!--ET_END logisticInfo--> 
                </div>
             </td>
             <td>
