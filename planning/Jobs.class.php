@@ -289,6 +289,9 @@ class planning_Jobs extends core_Master
     			$form->setDefault('sharedUsers', keylist::addKey($rec->sharedUsers, core_Users::getCurrent()));
     		}
     	}
+    	
+    	$departments = cls::get('hr_Departments')->makeArray4Select('name', "#type = 'workshop'", 'id');
+    	$form->setOptions('department', array('' => '') + $departments);
     }
     
     
