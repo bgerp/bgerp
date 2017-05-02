@@ -585,18 +585,27 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		if($data->toolbar->hasBtn('btnConto')){
 			if($mvc->haveRightFor('adddebitamount', $rec)){
 				$data->toolbar->removeBtn('btnConto');
-				
-				$warning = FALSE;
-				if($Driver = cat_Products::getDriver($rec->productId)){
-					$price = $Driver->getPrice($rec->productId, $rec->jobQuantity, 0, 0, $rec->valior);
-					if(isset($price)){
-						$warning = "warning=Наистина ли желаете документът да бъде контиран?";
-					}
-				}
-				
-				$data->toolbar->addBtn('Контиране', array($mvc, 'addDebitAmount', $rec->id, 'ret_url' => array($mvc, 'single', $rec->id)), "id=btnConto{$error},{$warning}", 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на протокола за производствo');
+				$attr = (!haveRole('seePrice') && !self::getDefaultDebitPrice($rec)) ? array('error' => 'Документа не може да бъде контиран, защото артикула няма себестойност') : array('warning' => 'Наистина ли желаете документът да бъде контиран');
+				$data->toolbar->addBtn('Контиране', array($mvc, 'addDebitAmount', $rec->id, 'ret_url' => array($mvc, 'single', $rec->id)), "id=btnConto,ef_icon = img/16/tick-circle-frame.png,title=Контиране на протокола за производствo", $attr);
 			}
 		}
+	}
+	
+	
+	/**
+	 * Връща дефолтната цена за артикула
+	 * 
+	 * @param mixed stdClass $rec
+	 * @return mixed $price 
+	 */
+	private static function getDefaultDebitPrice($rec)
+	{
+		if($Driver = cat_Products::getDriver($rec->productId)){
+			$price = $Driver->getPrice($rec->productId, $rec->jobQuantity, 0, 0, $rec->valior);
+			if(isset($price)) return $price;
+		}
+		
+		return NULL;
 	}
 	
 	
@@ -624,22 +633,22 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$form->FLD('debitPrice', 'double(Min=0)', 'caption=Ед. Себест-ст,mandatory');
 		
 		// Ако драйвера може да върне себестойност тя е избрана по дефолт
-		$auto = FALSE;
-		if($Driver = cat_Products::getDriver($rec->productId)){
-			$price = $Driver->getPrice($rec->productId, $rec->jobQuantity, 0, 0, $rec->valior);
-			if($price){
-				$auto = TRUE;
-				$form->setDefault('debitPrice', $price);
-			}
+		$defPrice = self::getDefaultDebitPrice($rec);
+		if(isset($defPrice)){
+			$form->setDefault('debitPrice', $defPrice);
 		}
 		
 		$baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
 		$form->setField('debitPrice', "unit=|*{$baseCurrencyCode} |без ДДС|*");
 		$form->input();
 		
-		if(!haveRole('seePrice') && $auto === TRUE){
-			$form->method = 'GET';
-			$form->cmd = 'save';
+		if(!haveRole('seePrice')){
+			if(isset($defPrice)){
+				$form->method = 'GET';
+				$form->cmd = 'save';
+			} else {
+				followRetUrl(NULL, 'Документът не може да бъде контиран, защото няма себестойност', 'error');
+			}
 		}
 		
 		if($form->isSubmitted()){
