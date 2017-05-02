@@ -176,7 +176,8 @@ class sales_reports_PurBomsRep extends frame2_driver_Proto
 	            $productRec = cat_Products::fetch($pId, 'canManifacture,isPublic');
 	            $d = NULL;
 	            // Ако артикула е нестандартен и няма задание по продажбата 
-	            if($productRec->isPublic == 'no'){    
+	            // артикула да е произведим
+	            if($productRec->isPublic == 'no' && $productRec->canManifacture == 'yes'){    
 	                $jobId = planning_Jobs::fetchField("#productId = {$pId} AND #saleId = {$sRec->id}");
 	              
 	                if (!$jobId){ 	   
