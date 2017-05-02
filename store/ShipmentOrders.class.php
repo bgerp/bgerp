@@ -595,7 +595,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     			$res['SPEDITOR'] = crm_Companies::getVerbal($forwarderId, 'name');
     		}
     	}
-    	$res['DATE'] = dt::mysql2verbal(dt::today(), 'd/m/Y');
+    	$res['DATE'] = dt::mysql2verbal(dt::today(), 'd/m/y');
     	
     	return $res;
     }
