@@ -197,7 +197,7 @@ class plg_Search extends core_Plugin
         if(!$minLenFTS) {
             $minLenFTS = 4;
         }
-
+        
         if ($words = static::parseQuery($search)) {
             
             usort($words, 'plg_Search::sortLength');
@@ -288,7 +288,7 @@ class plg_Search extends core_Plugin
                             $query->where("match(#{$field}) AGAINST('\"{$w}\"' IN BOOLEAN MODE)");
                         }
                         if($mode == '-') {
-                            $query->where("LOCATE('" . substr($w, 1) . "', #{$field}) = 0");
+                            $query->where("LOCATE('{$w}', #{$field}) = 0");
                         }
                     }
                 }
