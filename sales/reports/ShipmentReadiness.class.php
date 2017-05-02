@@ -255,8 +255,11 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 				$row->readiness = "<span style='color:green'>{$row->readiness}<span>";
 			}
 			
-			if($dRec->paymentState == 'paid' && !empty($dRec->amountPaid)){
-				$row->readiness = ht::createHint($row->readiness, 'Сделката е платена', 'notice', FALSE);
+			if($Document->isInstanceOf('sales_Sales')){
+				$sRec = $Document->fetchField('amountPaid,paymentState');
+				if($sRec->paymentState == 'paid' && !empty($sRec->amountPaid)){
+					$row->readiness = ht::createHint($row->readiness, 'Сделката е платена', 'notice', FALSE);
+				}
 			}
 		}
 		
@@ -418,8 +421,6 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 										  'contragentId'      => $sRec->contragentId,
 										  'deliveryTime'      => $delTime,
 							              'folderId'          => $sRec->folderId,
-										  'amountPaid'        => $sRec->amountPaid,
-										  'paymentState'      => $sRec->paymentState,
 							              'dealerId'          => $dealerId,
 							              'readiness'         => $readiness);
 					
