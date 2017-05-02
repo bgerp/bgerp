@@ -392,7 +392,7 @@ class unit_MinkPProducts extends core_Manager {
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPBaseMeasure');
-        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
+        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
          
         // Записваме черновата на продажбата
