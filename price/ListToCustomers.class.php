@@ -340,14 +340,19 @@ class price_ListToCustomers extends core_Manager
         			$price = $Driver->getPrice($productId, $quantity, $deltas->minDelta, $deltas->maxDelta, $datetime, $rate, $chargeVat);
         			
         			if(isset($price)){
-        				$vat = cat_Products::getVat($productId, $datetime);
-        				$vatRate = ($chargeVat == 'yes') ? $vatRate : 0;
-        				
-        				$priceInCurrency = $price / $rate;
-        				$priceInCurencyAndVAT = $priceInCurrency * (1+$vatRate);
-        				$roundPrice = round($priceInCurencyAndVAT, 4);
-        				
-        				$rec->price = ($roundPrice * $rate / ((1+$vatRate)));
+        				$newPrice = $price * $rate;
+						if($chargeVat == 'yes'){
+							$vat = cat_Products::getVat($productId, $datetime);
+							$newPrice = $newPrice * (1 + $vat);
+						}
+		
+						$newPrice = round($newPrice, 4);
+						if($chargeVat == 'yes'){
+							$newPrice = $newPrice / (1 + $vat);
+						}
+		
+						$newPrice /= $rate;
+        				$rec->price = $newPrice;
         				$rec->price = deals_Helper::getDisplayPrice($rec->price, $vat, $rate, $chargeVat);
         				
         				return $rec;
