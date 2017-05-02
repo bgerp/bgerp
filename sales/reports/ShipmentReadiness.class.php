@@ -255,7 +255,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 				$row->readiness = "<span style='color:green'>{$row->readiness}<span>";
 			}
 			
-			if($dRec->paymentState == 'paid' && isset($dRec->amountPaid)){
+			if($dRec->paymentState == 'paid' && !empty($dRec->amountPaid)){
 				$row->readiness = ht::createHint($row->readiness, 'Сделката е платена', 'notice', FALSE);
 			}
 		}
