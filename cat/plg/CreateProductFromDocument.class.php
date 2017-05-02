@@ -107,9 +107,6 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 			$form->setOptions('innerClass', cat_Products::getAvailableDriverOptions());
 			
 			$form->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Шаблон,input=hidden,silent,refreshForm,placeholder=Популярни продукти,before=packagingId");
-			if(!($mvc instanceof sales_QuotationsDetails)){
-				$form->setField('packPrice', 'mandatory');
-			}
 			
 			if(isset($cloneRec)){
 				$innerClass = cat_Products::fetchField($cloneRec->productId, 'innerClass');
@@ -121,6 +118,10 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 			// Наличните прототипи + клонирания
 			if(isset($form->rec->innerClass)){
 				$protos = cat_Categories::getProtoOptions($form->rec->innerClass, $mvc->filterProtoByMeta, NULL, $masterRec->folderId);
+				$Driver = cls::get($form->rec->innerClass);
+				if($Driver->canAutoCalcPrimeCost($rec) !== TRUE){
+					$form->setField('packPrice', 'mandatory');
+				}
 			} else {
 				$protos = array();
 			}
@@ -314,6 +315,24 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				$dRec->productId = $productId;
 				$dRec->packagingId = $pRec->measureId;
 				$dRec->quantityInPack = 1;
+				
+				// Хакване на автоматично изчислена цена
+				if(!($mvc instanceof sales_QuotationsDetails)){
+					if($Driver->canAutoCalcPrimeCost($productId) == TRUE && empty($dRec->packPrice)){
+						$Policy = (isset($mvc->Master->Policy)) ? $mvc->Master->Policy : cls::get('price_ListToCustomers');
+						$listId = ($masterRec->priceListId) ? $masterRec->priceListId : NULL;
+						$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $dRec->productId, $dRec->packagingId, $dRec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat, $listId);
+							
+						$price = $policyInfo->price;
+						if($policyInfo->discount && !isset($dRec->discount)){
+							$dRec->discount = $policyInfo->discount;
+						}
+						$dRec->autoPrice = TRUE;
+							
+						$price = deals_Helper::getPurePrice($price, cat_Products::getVat($productId, $masterRec->valior), $masterRec->currencyRate, $masterRec->chargeVat);
+						$dRec->price  = $price;
+					}
+				}
 				
 				$fields = ($mvc instanceof sales_QuotationsDetails) ? array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId') : array();
 				tcost_Calcs::prepareFee($dRec, $form, $masterRec, $fields);
