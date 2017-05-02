@@ -151,6 +151,12 @@ class sales_reports_PurBomsRep extends frame2_driver_Proto
 	        $dealerId = ($sRec->dealerId) ? $sRec->dealerId : (($sRec->activatedBy) ? $sRec->activatedBy : $sRec->createdBy);
 	        $dealInfo = $Sales->getAggregateDealInfo($sRec);
 	        
+	        $delTime = (!empty($sRec->deliveryTime)) ? $sRec->deliveryTime : (!empty($sRec->deliveryTermTime) ?  dt::addSecs($sRec->deliveryTermTime, $sRec->valior) : NULL);
+	        if(empty($delTime)){
+	            $delTime = $Sales->getMaxDeliveryTime($sRec->id);
+	            $delTime = ($delTime) ? dt::addSecs($delTime, $sRec->valior) : $sRec->valior;
+	        }
+	        
 	        // Колко е очакваното авансово плащане
 	        $downPayment = $dealInfo->agreedDownpayment;
 	        // Колко е платено
@@ -174,7 +180,8 @@ class sales_reports_PurBomsRep extends frame2_driver_Proto
 	                $jobId = planning_Jobs::fetchField("#productId = {$pId} AND #saleId = {$sRec->id}");
 	              
 	                if (!$jobId){ 	   
-	                    $d  = (object) array ("pur" => $sRec->id,
+	                    $d  = (object) array ("containerId" => $sRec->containerId,
+	                                          "pur" => $sRec->id,
 	                                          "purDate" => $sRec->valior, 
 	                                          "deliveryTime" => $sRec->deliveryTime,
 	                                          "article" => $pId,
@@ -450,7 +457,7 @@ class sales_reports_PurBomsRep extends frame2_driver_Proto
     
         $dataRecsNew = $rec->data->recs;
         $dataRecsOld = $oldRec->data->recs;
-    
+     
         $newContainerIds = $oldContainerIds = array();
         if(is_array($rec->data->recs)){
             $newContainerIds = arr::extractValuesFromArray($rec->data->recs, 'containerId');
