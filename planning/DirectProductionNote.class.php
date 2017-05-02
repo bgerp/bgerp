@@ -585,7 +585,16 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		if($data->toolbar->hasBtn('btnConto')){
 			if($mvc->haveRightFor('adddebitamount', $rec)){
 				$data->toolbar->removeBtn('btnConto');
-				$data->toolbar->addBtn('Контиране', array($mvc, 'addDebitAmount', $rec->id, 'ret_url' => array($mvc, 'single', $rec->id)), "id=btnConto{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на протокола за производствo');
+				
+				$warning = FALSE;
+				if($Driver = cat_Products::getDriver($rec->productId)){
+					$price = $Driver->getPrice($rec->productId, $rec->jobQuantity, 0, 0, $rec->valior);
+					if(isset($price)){
+						$warning = "warning=Наистина ли желаете документът да бъде контиран?";
+					}
+				}
+				
+				$data->toolbar->addBtn('Контиране', array($mvc, 'addDebitAmount', $rec->id, 'ret_url' => array($mvc, 'single', $rec->id)), "id=btnConto{$error},{$warning}", 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на протокола за производствo');
 			}
 		}
 	}
@@ -615,9 +624,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$form->FLD('debitPrice', 'double(Min=0)', 'caption=Ед. Себест-ст,mandatory');
 		
 		// Ако драйвера може да върне себестойност тя е избрана по дефолт
+		$auto = FALSE;
 		if($Driver = cat_Products::getDriver($rec->productId)){
 			$price = $Driver->getPrice($rec->productId, $rec->jobQuantity, 0, 0, $rec->valior);
 			if($price){
+				$auto = TRUE;
 				$form->setDefault('debitPrice', $price);
 			}
 		}
@@ -625,6 +636,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
 		$form->setField('debitPrice', "unit=|*{$baseCurrencyCode} |без ДДС|*");
 		$form->input();
+		
+		if(!haveRole('seePrice') && $auto === TRUE){
+			$form->method = 'GET';
+			$form->cmd = 'save';
+		}
 		
 		if($form->isSubmitted()){
 			$amount = $form->rec->debitPrice * $rec->quantity;
