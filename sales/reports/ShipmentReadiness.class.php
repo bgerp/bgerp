@@ -301,8 +301,8 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 	 */
 	public static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
 	{
-		if(isset($rec->precision)){
-			$row->precision .= " " . tr('и нагоре');
+		if(isset($rec->precision) && $rec->precision != 1){
+			$row->precision .= " " . tr('+');
 		}
 		
 		$dealers = keylist::toArray($rec->dealers);
