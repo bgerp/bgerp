@@ -593,7 +593,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	
 	
 	/**
-	 * Връща дефолтната цена за артикула
+	 * Връща дефолтната себестойност за артикула
 	 * 
 	 * @param mixed stdClass $rec
 	 * @return mixed $price 
@@ -604,6 +604,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 			$price = $Driver->getPrice($rec->productId, $rec->jobQuantity, 0, 0, $rec->valior);
 			if(isset($price)) return $price;
 		}
+		
+		$price = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->productId);
+		if(isset($price)) return $price;
 		
 		return NULL;
 	}
