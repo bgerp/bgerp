@@ -219,17 +219,20 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     public static function on_AfterRenderSingle($mvc, $tpl, $data)
     {
-    	$tpl->append(sbf('img/16/plus.png', "'"), 'iconPlus');
+    	$tpl->append(sbf('img/16/toggle1.png', "'"), 'iconPlus');
     	if($data->rec->country){
     		$deliveryAddress = "{$data->row->country} <br/> {$data->row->pCode} {$data->row->place} <br /> {$data->row->address}";
+			$inlineDeliveryAddress = "{$data->row->country},  {$data->row->pCode} {$data->row->place}, {$data->row->address}";
     	} else {
     		$deliveryAddress = $data->row->contragentAddress;
     	}
-    	
+
     	core_Lg::push($data->rec->tplLang);
     	$deliveryAddress = core_Lg::transliterate($deliveryAddress);
     	
     	$tpl->replace($deliveryAddress, 'deliveryAddress');
+		$tpl->replace($inlineDeliveryAddress, 'inlineDeliveryAddress');
+
     	core_Lg::pop();
     }
     

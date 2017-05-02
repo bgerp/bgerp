@@ -123,15 +123,10 @@
 </div>
 <div style='margin-top:20px'>
    <a href="javascript:toggleDisplay([#id#])"  style="font-weight:bold; background-image:url([#iconPlus#]);"
-      class="linkWithIcon">|Декларация за доставка|*</a>
+      class="linkWithIcon more-btn">|Декларация за доставка|*</a>
    <div class='clearfix21 richtextHide' id='[#id#]'>
-      <div>|Ние|*, [#contragentName#]</div>
-      <div>|Адрес|*: [#contragentAddress#]</div>
-      <div>|Ват. №|*: [#vatNo#]</div>
-      <br>
-      <div>|Потвърждаваме|*, |че|* |продуктите упоменати във фактура|* № <b>....... </b> |са получени на посочения адрес|*:</div>
-      <div>[#deliveryAddress#]</div>
-      <br>
+      <div class="indent">|Ние|*, [#contragentName#]<!--ET_BEGIN inlineContragentAddress-->, |с адрес|*: [#inlineContragentAddress#]<!--ET_END inlineContragentAddress--><!--ET_BEGIN vatNo-->, |ЕИК|*: [#vatNo#]<!--ET_END vatNo-->,</div>
+      <div>|потвърждаваме|*, |че|* |продуктите|* <!--ET_BEGIN invoiceHandler-->|упоменати във фактура|* № <b>[#invoiceHandler#]</b><!--ET_END invoiceHandler--> |са получени|*<!--ET_BEGIN inlineDeliveryAddress-->|на посочения адрес|*: [#inlineDeliveryAddress#]<!--ET_END inlineDeliveryAddress-->.</div>
       <table class="fleft signature-table" style='width: 30%'>
          <tr>
             <td style='width: 1%'>|Дата|*:  </td>
