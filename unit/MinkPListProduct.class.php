@@ -196,7 +196,7 @@ class unit_MinkPListProduct extends core_Manager {
         $browser->setValue('reff', 'MinkPListProducts');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPListVatInclude');
-        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
+        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('chargeVat', "Включено ДДС в цените");
         // Записване черновата на продажбата
         $browser->press('Чернова');
@@ -252,7 +252,7 @@ class unit_MinkPListProduct extends core_Manager {
         }
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPlistVatInclude');
-        $browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
+        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('chargeVat', "Включено ДДС в цените");
         $browser->setValue('template', 'Договор за покупка');
         // Записване черновата на покупката
@@ -346,7 +346,7 @@ class unit_MinkPListProduct extends core_Manager {
         }
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPListProductsG');
-        //$browser->setValue('paymentMethodId', "100% до 3 дни след датата на фактурата");
+        //$browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('chargeVat', "Oсвободено от ДДС");
         $browser->setValue('template', 'Sales contract');
         // Записване черновата на продажбата
