@@ -403,7 +403,7 @@ class price_ListToCustomers extends core_Manager
      * 				 o minDelta  - минималната отстъпка
      * 				 o maxDelta  - максималната надценка
      */
-    private static function getMinAndMaxDelta($customerClass, $customerId, $defPriceListId)
+    public static function getMinAndMaxDelta($customerClass, $customerId, $defPriceListId)
     {
     	$res = (object)array('minDelta' => 0, 'maxDelta' => 0);
     
