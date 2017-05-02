@@ -182,6 +182,12 @@ class label_Prints extends core_Master
             $intfInst = cls::getInterface('label_SequenceIntf', $lRec->classId);
             $allowSkip = FALSE;
             $estCnt = $intfInst->getEstimateCnt($lRec->objId, $allowSkip);
+            
+            if (!isset($estCnt)) {
+                $oName = label_TemplateFormats::getPlaceholderFieldName('Общо_етикети');
+                $estCnt = $lRec->params[$oName];
+            }
+            
             $form->setDefault('labelsCnt', $estCnt);
             $form->setDefault('begin', 1);
             $form->setDefault('end', $estCnt);
