@@ -1685,7 +1685,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('conditionId', 'Начин на плащане (4)');
         $browser->setValue('value', '16');
         $browser->press('Запис');
-        if (strpos($browser->getText(),"100% до 1 мес. след датата на фактурата")){
+        if (strpos($browser->getText(),"До 1 месец след фактуриране")){
         } else {
             return $this->reportErr('Грешка при създаване на търговско условие', 'warning');
         }
