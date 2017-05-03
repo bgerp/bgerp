@@ -275,6 +275,15 @@ class store_ShipmentOrders extends store_DocumentMaster
     		$row->username = core_Lg::transliterate($row->username);
     	}
     	
+    	if(isset($fields['-single'])){
+    		$logisticData = $mvc->getLogisticData($rec);
+    		$logisticData['toCountry'] = ($rec->tplLang == 'bg') ? drdata_Countries::fetchField("#commonName = '{$logisticData['toCountry']}'", 'commonNameBg') : $logisticData['toCountry'];
+    		$logisticData['toPCode'] = core_Lg::transliterate($logisticData['toPCode']);
+    		$logisticData['toPlace'] = core_Lg::transliterate($logisticData['toPlace']);
+    		$logisticData['toAddress'] = core_Lg::transliterate($logisticData['toAddress']);
+    		$row->inlineDeliveryAddress = "{$logisticData['toCountry']}, {$logisticData['toPCode']} {$logisticData['toPlace']}, {$logisticData['toAddress']}";
+		}
+    	
     	core_Lg::pop();
     	
     	$rec->palletCountInput = ($rec->palletCountInput) ? $rec->palletCountInput : static::countCollets($rec->id);
