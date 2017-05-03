@@ -80,12 +80,6 @@ class sales_Invoices extends deals_InvoiceMaster
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,invoicer';
-    
-    
-    /**
      * Кой може да сторнира
      */
     public $canRevert = 'salesMaster, ceo';
@@ -100,7 +94,7 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,sales';
+	public $canList = 'ceo,sales,acc';
 
 
 	/**
@@ -118,7 +112,7 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Кой има право да добавя?
      */
-    public $canExport = 'ceo,sales';
+    public $canExport = 'ceo,invoicer';
     
     
     /**

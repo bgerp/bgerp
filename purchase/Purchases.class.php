@@ -65,13 +65,13 @@ class purchase_Purchases extends deals_DealMaster
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo, purchase';
+	public $canList = 'ceo,purchase,acc';
 	
 	
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo, purchase';
+	public $canSingle = 'ceo,purchase,acc';
     
     
     /**
