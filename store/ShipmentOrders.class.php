@@ -282,7 +282,8 @@ class store_ShipmentOrders extends store_DocumentMaster
     		$logisticData['toPlace'] = core_Lg::transliterate($logisticData['toPlace']);
     		$logisticData['toAddress'] = core_Lg::transliterate($logisticData['toAddress']);
     		$row->inlineDeliveryAddress = "{$logisticData['toCountry']}, {$logisticData['toPCode']} {$logisticData['toPlace']}, {$logisticData['toAddress']}";
-		}
+			$row->toCompany = $logisticData['toCompany'];
+    	}
     	
     	core_Lg::pop();
     	
