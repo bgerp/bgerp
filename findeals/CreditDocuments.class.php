@@ -47,13 +47,13 @@ class findeals_CreditDocuments extends deals_Document
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo, findealsMaster';
+	public $canList = 'ceo, findeals, acc';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo, findeals';
+	public $canSingle = 'ceo, findeals, acc';
     
     
     /**
@@ -66,12 +66,6 @@ class findeals_CreditDocuments extends deals_Document
      * Абревиатура
      */
     public $abbr = "Cdc";
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'findeals, ceo';
     
     
     /**
