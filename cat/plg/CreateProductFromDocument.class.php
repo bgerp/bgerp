@@ -332,6 +332,12 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 						$price = deals_Helper::getPurePrice($price, cat_Products::getVat($productId, $masterRec->valior), $masterRec->currencyRate, $masterRec->chargeVat);
 						$dRec->price  = $price;
 					}
+				} else {
+					
+					// За офертата
+					if($Driver->canAutoCalcPrimeCost($productId) == TRUE && empty($dRec->packPrice)){
+						$dRec->autoPrice = TRUE;
+					}
 				}
 				
 				if(!$dRec->autoPrice){
