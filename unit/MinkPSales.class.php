@@ -1064,6 +1064,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPSaleCIDICVAT');
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('bankAccountId', '#BG22UNCR70001519562302');
         $browser->setValue('chargeVat', 'yes');
         // Записване черновата на продажбата
         $browser->press('Чернова');
