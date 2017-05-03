@@ -552,28 +552,32 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		foreach ($agreedProducts as $pId => $pRec){
 			$productRec = cat_Products::fetch($pId, 'canStore,isPublic');
 			if($productRec->canStore != 'yes') continue;
-					
-			// Количеството е неекспедираното
-			$quantity = (isset($shippedProducts[$pId])) ? ($pRec->quantity - $shippedProducts[$pId]->quantity) : $pRec->quantity;
 			
-			// Ако всичко е експедирано се пропуска реда
-			if($quantity <= 0) continue;
 			$price = (isset($pRec->discount)) ? ($pRec->price - ($pRec->discount * $pRec->price)) : $pRec->price;
-			
 			$amount = NULL;
-			$totalAmount += $quantity * $price;
-					
+			
 			// Ако артикула е нестандартен и има приключено задание по продажбата и няма друго активно по нея
+			$q = $pRec->quantity;
 			if($productRec->isPublic == 'no'){
 				$closedJobId = planning_Jobs::fetchField("#productId = {$pId} AND #state = 'closed' AND #saleId = {$saleRec->id}");
 				$activeJobId = planning_Jobs::fetchField("#productId = {$pId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup') AND #saleId = {$saleRec->id}");
 						
 				// Се приема че е готово
 				if($closedJobId && !$activeJobId){
-					$amount = $quantity * $price;
+					// Ако има приключено задание
+					$q = planning_Jobs::fetchField($closedJobId, 'quantity');
+					$amount = $q * $price;
 				}
 			}
-					
+
+			// Количеството е неекспедираното
+			$quantity = (isset($shippedProducts[$pId])) ? ($q - $shippedProducts[$pId]->quantity) : $q;
+			
+			// Ако всичко е експедирано се пропуска реда
+			if($quantity <= 0) continue;
+			
+			$totalAmount += $quantity * $price;
+			
 			if(is_null($amount)){
 						
 				// Изчислява се колко от сумата на артикула може да се изпълни
