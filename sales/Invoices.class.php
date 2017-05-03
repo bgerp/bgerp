@@ -543,7 +543,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	}
     	
     	if(empty($rec->paymentType)){
-    		$pType = ($rec->autoPaymentType == 'factoring') ? 'bank' : $pType;
+    		$pType = ($rec->autoPaymentType == 'factoring') ? 'bank' : $rec->autoPaymentType;
     		$rec->paymentType = $pType;
     		$makeHint = TRUE;
     	}
