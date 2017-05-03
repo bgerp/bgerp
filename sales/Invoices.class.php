@@ -382,7 +382,20 @@ class sales_Invoices extends deals_InvoiceMaster
      */
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
+    	$rec = $form->rec;
     	parent::inputInvoiceForm($mvc, $form);
+    	
+    	if($form->isSubmitted()){
+    		if($rec->type != 'dc_note' && empty($rec->accountId)){
+    			if($paymentMethodId = doc_Threads::getFirstDocument($rec->threadId)->fetchField('paymentMethodId')){
+    				$paymentPlan = cond_PaymentMethods::fetch($paymentMethodId);
+    				
+    				if(!empty($paymentPlan->timeBalancePayment) || $paymentPlan->type == 'bank' || $rec->paymentType == 'bank'){
+    					$form->setWarning('accountId', "Сигурни ли сте че не е нужно да се посочи и банкова сметка|*?");
+    				}
+    			}
+    		}
+    	}
 	}
     
     

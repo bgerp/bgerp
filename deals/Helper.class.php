@@ -811,6 +811,9 @@ abstract class deals_Helper
 			$cData = $ContragentClass->getContragentData($contragentId);
 			$res['contragentName'] = isset($contragentName) ? $contragentName : cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
 			$res['contragentAddress'] = $ContragentClass->getFullAdress($contragentId)->getContent();
+			$res['inlineContragentAddress'] = $ContragentClass->getFullAdress($contragentId)->getContent();
+			$res['inlineContragentAddress'] = str_replace('<br>', ',', $res['inlineContragentAddress']);
+			
 			$res['vatNo'] = $cData->vatNo;
 		} elseif(isset($contragentName)){
 			$res['contragentName'] = $contragentName;
