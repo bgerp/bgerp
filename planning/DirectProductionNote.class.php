@@ -585,7 +585,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		if($data->toolbar->hasBtn('btnConto')){
 			if($mvc->haveRightFor('adddebitamount', $rec)){
 				$data->toolbar->removeBtn('btnConto');
-				$attr = (!haveRole('seePrice') && !self::getDefaultDebitPrice($rec)) ? array('error' => 'Документа не може да бъде контиран, защото артикула няма себестойност') : array('warning' => 'Наистина ли желаете документът да бъде контиран');
+				$attr = (!haveRole('seePrice') && !self::getDefaultDebitPrice($rec)) ? array('error' => 'Документа не може да бъде контиран, защото артикула няма себестойност') : ((!haveRole('seePrice') ? array('warning' => 'Наистина ли желаете документът да бъде контиран') : array()));
 				$data->toolbar->addBtn('Контиране', array($mvc, 'addDebitAmount', $rec->id, 'ret_url' => array($mvc, 'single', $rec->id)), "id=btnConto,ef_icon = img/16/tick-circle-frame.png,title=Контиране на протокола за производствo", $attr);
 			}
 		}
