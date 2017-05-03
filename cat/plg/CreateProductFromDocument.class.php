@@ -334,6 +334,13 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 					}
 				}
 				
+				if(!$dRec->autoPrice){
+					$vat = cat_Products::getVat($productId, $masterRec->valior);
+					if($masterRec->chargeVat == 'yes'){
+						$dRec->price = $dRec->price / (1 + $vat);
+					}
+				}
+				
 				$fields = ($mvc instanceof sales_QuotationsDetails) ? array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId') : array();
 				tcost_Calcs::prepareFee($dRec, $form, $masterRec, $fields);
 			
