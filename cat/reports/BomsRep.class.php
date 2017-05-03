@@ -190,15 +190,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
 
         $i = 1;
         foreach ($data->recs as $id=>$rec){ 
-            
-            /*$queryProduct = cat_Products::getQuery();
-            $queryProduct->where("#id  = '{$rec->article}'");
-            $queryProduct->likeKeylist("groups", $fRec->groupId);
-            
-            if($queryProduct->fetch() == FALSE) {
-                unset($data->recs[$id]);
-            }*/
-            
+
             $mArr = cat_Products::getMaterialsForProduction($rec->article,$rec->articleCnt, NULL,TRUE);
             $rec->num = $i;
             if(count($mArr) >=1) {
@@ -212,6 +204,26 @@ class cat_reports_BomsRep extends frame_BaseDriver
             }
             
             $i++;
+        }
+        
+        foreach($data->recs as $i=>$r){ 
+       
+            if(isset($fRec->groupId)) {
+                if($r->materials != 0 || $r->materials != NULL) {
+                    $materialsArr = implode(',', $r->materials);
+     
+                    
+                    $queryProduct = cat_Products::getQuery();
+                    $queryProduct->where("#id IN ({$materialsArr})");
+                    $queryProduct->likeKeylist("groups", $fRec->groupId);
+                    
+                    if($queryProduct->fetch() == FALSE) {
+                        unset($data->recs[$i]);
+                    }  
+                }  else {
+                    unset($data->recs[$i]);
+                } 
+            }    
         }
 
         return $data;
