@@ -138,7 +138,7 @@ class type_UserList extends type_Keylist
                 $uRec->id = $uId;
 
                 // Ако е сетнат параметъра да са отворени всички или е групата на текущия потребител
-                if ($openAllGroups || ($uId == $currUserId)) {
+                if ($openAllGroups) {
                     
                     // Вдигам флага да се отвори групата
                     $group->autoOpen = TRUE;

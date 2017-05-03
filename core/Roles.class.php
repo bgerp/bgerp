@@ -270,10 +270,14 @@ class core_Roles extends core_Manager
     /**
      * Връща keylist с всички роли от посочения тип
      */
-    static function getRolesByType($type, $result = 'keylist')
+    static function getRolesByType($type, $result = 'keylist', $onlyActive = FALSE)
     {
         $roleQuery = core_Roles::getQuery();
         
+        if($onlyActive) {
+            $roleQuery->where("#state = 'active'");
+        }
+
         $roleQuery->orderBy("orderByRole=ASC");
 
         while($roleRec = $roleQuery->fetch("#type = '{$type}'")) {

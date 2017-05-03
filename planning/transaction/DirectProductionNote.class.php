@@ -249,6 +249,8 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 				}
 			}
 			
+			$selfAmount = $costAmount;
+			
 			// Ако има режийни разходи, разпределяме ги
 			if(isset($rec->expenses)){
 				$costAmount = $costAmount * $rec->expenses;
@@ -269,6 +271,29 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 					
 				$entries[] = $costArray;
 			}
+			
+			if($Driver = cat_Products::getDriver($rec->productId)){
+				$driverCost = $Driver->getPrice($rec->productId, $rec->jobQuantity, 0, 0, $rec->valior);
+				
+				if(isset($driverCost)){
+					$driverAmount = $driverCost * $rec->quantity;
+					$diff = round($driverAmount - $selfAmount, 2);
+					
+					if($diff > 0){
+						
+						$array['quantity'] = 0;
+						$array1 = array(
+								'amount' => $diff,
+								'debit'  => $array,
+								'credit' => array('61102'),
+						);
+							
+						$entries[] = $array1;
+					}
+				}
+			}
+			
+			
 			
 			// Разпределяне към продажба ако разходния обект е продажба
 			if(isset($expenseItem)){
@@ -292,6 +317,11 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 				}
 			}
 		}
+		
+		
+		
+		
+		
 		
 		return $entries;
 	}

@@ -219,17 +219,20 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     public static function on_AfterRenderSingle($mvc, $tpl, $data)
     {
-    	$tpl->append(sbf('img/16/plus.png', "'"), 'iconPlus');
+    	$tpl->append(sbf('img/16/toggle1.png', "'"), 'iconPlus');
     	if($data->rec->country){
     		$deliveryAddress = "{$data->row->country} <br/> {$data->row->pCode} {$data->row->place} <br /> {$data->row->address}";
+			$inlineDeliveryAddress = "{$data->row->country},  {$data->row->pCode} {$data->row->place}, {$data->row->address}";
     	} else {
     		$deliveryAddress = $data->row->contragentAddress;
     	}
-    	
+
     	core_Lg::push($data->rec->tplLang);
     	$deliveryAddress = core_Lg::transliterate($deliveryAddress);
     	
     	$tpl->replace($deliveryAddress, 'deliveryAddress');
+		$tpl->replace($inlineDeliveryAddress, 'inlineDeliveryAddress');
+
     	core_Lg::pop();
     }
     
@@ -371,7 +374,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
     	$tplArr[] = array('name' => 'Експедиционно нареждане с декларация',
     					  'content' => 'store/tpl/SingleLayoutShipmentOrderDec.shtml', 'lang' => 'bg', 'narrowContent' => 'store/tpl/SingleLayoutShipmentOrderDecNarrow.shtml',
-    					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'packagingId,packQuantity,weight,volume'));
+    					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
     	$tplArr[] = array('name' => 'Packaging list with Declaration',
     					  'content' => 'store/tpl/SingleLayoutPackagingListDec.shtml', 'lang' => 'en', 'oldName' => 'Packing list with Declaration', 'narrowContent' => 'store/tpl/SingleLayoutPackagingListDecNarrow.shtml',
     					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
@@ -480,27 +483,16 @@ class store_ShipmentOrders extends store_DocumentMaster
     	
     	$resArr = array();
     	while($dRec = $dQuery->fetch()){
-    		
-    		// Разбиване на записа
-    		$info = explode(',', $dRec->info);
-    		if(!count($info)) continue;
-    		
-    		foreach ($info as &$seq){
-    				 
-    			// Ако е посочен интервал от рода 1-5
-    			$seq = explode('-', $seq);
-    			if(count($seq) == 1){
-    				$resArr[$seq[0]] = $seq[0];
-    			} else {
-    				foreach (range($seq[0], $seq[1]) as $i){
-    					$resArr[$i] = $i;
-    				}
-    			}
-    		}
+            $rowNums =store_ShipmentOrderDetails::getLUs($dRec->info);
+            if(is_array($rowNums)) {
+                $resArr += $rowNums;
+            }
     	}
     	 
     	// Връщане на броя на колетите
-    	$count = count($resArr);
+        if(count($resArr)) {
+    	    $count = max($resArr);
+        }
     	
     	return $count;
     }
@@ -576,7 +568,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Връща данни за етикети
      *
-     * @param int $id - ид на задача
+     * @param int $id - ид на store_ShipmentOrders
      * @param number $labelNo - номер на етикета
      *
      * @return array $res - данни за етикетите
@@ -584,11 +576,14 @@ class store_ShipmentOrders extends store_DocumentMaster
      * @see label_SequenceIntf
      */
     public function getLabelData($id, $labelNo = 0)
-    {
+    {  
     	$rec = $this->fetchRec($id);
     	
     	$res = array();
     	$res['NOMER'] = $rec->id;
+
+        if($labelNo == 0) $labelNo = 1;
+
     	$res['Текущ_етикет'] = $labelNo;
     	$logisticData = $this->getLogisticData($rec);
     	$res['DESTINATION'] = "{$logisticData['toPCode']} {$logisticData['toPlace']}, {$logisticData['toCountry']}";
@@ -603,7 +598,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     			$res['SPEDITOR'] = crm_Companies::getVerbal($forwarderId, 'name');
     		}
     	}
-    	$res['DATE'] = dt::mysql2verbal(dt::today(), 'd/m/Y');
+    	$res['DATE'] = dt::mysql2verbal(dt::today(), 'd/m/y');
     	
     	return $res;
     }
@@ -624,7 +619,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     	$rec = $this->fetchRec($id);
     	$count = ($rec->palletCountInput) ? $rec->palletCountInput : static::countCollets($rec->id);
     	$count = ($count) ? $count : NULL;
-    	
+    	 
     	return $count;
     }
 }

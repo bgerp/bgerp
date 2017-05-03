@@ -285,7 +285,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 	{
 		if (!empty($data->toolbar->buttons['btnAdd'])) {
 			unset($data->toolbar->buttons['btnAdd']);
-			$products = $mvc->getProducts($masterRec);
+			$products = $mvc->getProducts($data->masterData->rec);
 			
 			if(!count($products)){
 				$error = "error=Няма артикули, ";

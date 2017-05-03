@@ -40,7 +40,13 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	 * Плъгини за зареждане
 	 */
 	public $loadList = 'plg_RowTools2, store_plg_StoreFilter, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
-                    doc_DocumentPlg, plg_Printing, plg_Clone, plg_Search, bgerp_plg_Blank';
+                    doc_DocumentPlg, plg_Printing, plg_Clone, plg_Search, bgerp_plg_Blank,doc_plg_HidePrices';
+	
+	
+	/**
+	 * Полета свързани с цени
+	 */
+	public $priceFields = 'debitAmount';
 	
 	
 	/**
@@ -585,9 +591,30 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		if($data->toolbar->hasBtn('btnConto')){
 			if($mvc->haveRightFor('adddebitamount', $rec)){
 				$data->toolbar->removeBtn('btnConto');
-				$data->toolbar->addBtn('Контиране', array($mvc, 'addDebitAmount', $rec->id, 'ret_url' => array($mvc, 'single', $rec->id)), "id=btnConto{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на протокола за производствo');
+				$attr = (!haveRole('seePrice') && !self::getDefaultDebitPrice($rec)) ? array('error' => 'Документа не може да бъде контиран, защото артикула няма себестойност') : ((!haveRole('seePrice') ? array('warning' => 'Наистина ли желаете документът да бъде контиран') : array()));
+				$data->toolbar->addBtn('Контиране', array($mvc, 'addDebitAmount', $rec->id, 'ret_url' => array($mvc, 'single', $rec->id)), "id=btnConto,ef_icon = img/16/tick-circle-frame.png,title=Контиране на протокола за производствo", $attr);
 			}
 		}
+	}
+	
+	
+	/**
+	 * Връща дефолтната себестойност за артикула
+	 * 
+	 * @param mixed stdClass $rec
+	 * @return mixed $price 
+	 */
+	private static function getDefaultDebitPrice($rec)
+	{
+		if($Driver = cat_Products::getDriver($rec->productId)){
+			$price = $Driver->getPrice($rec->productId, $rec->jobQuantity, 0, 0, $rec->valior);
+			if(isset($price)) return $price;
+		}
+		
+		$price = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->productId);
+		if(isset($price)) return $price;
+		
+		return NULL;
 	}
 	
 	
@@ -615,16 +642,23 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$form->FLD('debitPrice', 'double(Min=0)', 'caption=Ед. Себест-ст,mandatory');
 		
 		// Ако драйвера може да върне себестойност тя е избрана по дефолт
-		if($Driver = cat_Products::getDriver($rec->productId)){
-			$price = $Driver->getPrice($rec->productId, $rec->jobQuantity, 0, 0, $rec->valior);
-			if($price){
-				$form->setDefault('debitPrice', $price);
-			}
+		$defPrice = self::getDefaultDebitPrice($rec);
+		if(isset($defPrice)){
+			$form->setDefault('debitPrice', $defPrice);
 		}
 		
 		$baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
 		$form->setField('debitPrice', "unit=|*{$baseCurrencyCode} |без ДДС|*");
 		$form->input();
+		
+		if(!haveRole('seePrice')){
+			if(isset($defPrice)){
+				$form->method = 'GET';
+				$form->cmd = 'save';
+			} else {
+				followRetUrl(NULL, 'Документът не може да бъде контиран, защото няма себестойност', 'error');
+			}
+		}
 		
 		if($form->isSubmitted()){
 			$amount = $form->rec->debitPrice * $rec->quantity;

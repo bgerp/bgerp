@@ -70,19 +70,19 @@ class findeals_Deals extends deals_DealBase
     /**
      * Кой може да го контира?
      */
-    public $canConto = 'ceo,acc';
+    public $canConto = 'ceo,acc,findeals';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,findealsMaster';
+	public $canList = 'ceo,findeals,acc';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,findeals';
+	public $canSingle = 'ceo,findeals,acc';
     
     
     /**

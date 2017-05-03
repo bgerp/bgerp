@@ -717,7 +717,8 @@ class cal_Calendar extends core_Master
         
         $dayOfWeek = date('N', $t);
   
-        $time = dt::timestamp2Mysql($t, "Y-m-d 00:00:00");
+        $time = date("Y-m-d 00:00:00", $t);
+
     	$query = self::getQuery();
     	$type = strtoupper($country);
     	
@@ -729,7 +730,7 @@ class cal_Calendar extends core_Master
     	
         $rec = $query->fetch();
         $res = new stdClass();
-        
+
         if($rec->type == "holiday"){
             
     	    $res->isHoliday = TRUE;    
@@ -772,7 +773,35 @@ class cal_Calendar extends core_Master
     	}
     	
     	return $res;
- 
+    }
+
+
+    /**
+     * Дали датата е почивен?
+     */
+    static function isHoliday($date, $country = 'bg')
+    {
+        $status = self::getDayStatus($date, $country);
+        
+        return $status->isHoliday == TRUE;
+    }
+
+
+    /**
+     * Намира първият работен ден, започвайки от посочения и
+     * движейки се напред (1) или назад (-1)
+     */
+    static function nextWorkingDay($date = NULL, $direction = 1, $country = 'bg')
+    {
+        if (!$date) {
+            $date = dt::addDays($direction);
+        }
+        
+        while (self::isHoliday($date)) {
+            $date = dt::addDays($direction, $date);
+        }
+        
+        return $date;
     }
 
     

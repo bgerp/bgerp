@@ -108,6 +108,16 @@ class hr_Setup extends core_ProtoSetup
             'period' => self::INDICATORS_UPDATE_PERIOD,
             'offset' => 7,
             'timeLimit' => 200
+        ),
+    
+        array(
+            'systemId' => "collectDaysType",
+            'description' => "Събиране на информацията за персоналния вид на деня",
+            'controller' => "hr_WorkingCycles",
+            'action' => "SetPersonDayType",
+            'period' => 100,
+            'offset' => 0,
+            'timeLimit' => 200
         ));
 
     

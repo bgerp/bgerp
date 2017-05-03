@@ -61,14 +61,6 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Име на полето за групите на продуктите.
-     * 
-     * @see bgerp_plg_Groups
-     */
-    public $groupField = 'groups';
-
-    
-    /**
      * Детайла, на модела
      */
     public $details = 'Packagings=cat_products_Packagings,Prices=cat_PriceDetails,AccReports=acc_ReportDetails,

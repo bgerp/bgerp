@@ -501,9 +501,26 @@ class tcost_Calcs extends core_Manager
     		
     		if($rec->autoPrice === TRUE){
     			if(isset($feeArr['singleFee'])){
+    				$newFee = $feeArr['totalFee'] / $rec->{$map['quantity']};
+    				$newFee = $newFee / $masterRec->{$map['currencyRate']};
+    				if($masterRec->{$map['chargeVat']} == 'yes'){
+    					$vat = cat_Products::getVat($rec->productId, $masterRec->{$map['valior']});
+    					$newFee = $newFee * (1 + $vat);
+    				}
+    				
+    				$newFee = round($newFee, 4);
+    				if($masterRec->{$map['chargeVat']} == 'yes'){
+    					$newFee = $newFee / (1 + $vat);
+    				}
+    				
+    				$newFee *= $masterRec->{$map['currencyRate']};
+    				
+    				$feeArr['totalFee'] = $newFee * $rec->{$map['quantity']};
+    				$feeArr['singleFee'] = $newFee;
     				$rec->{$map['price']} += $feeArr['singleFee'];
     			}
     		}
+    		
     		$rec->fee = $feeArr['totalFee'];
     	}
     	
@@ -526,6 +543,7 @@ class tcost_Calcs extends core_Manager
     	
     	// Ако има сума ще се синхронизира
     	if(isset($rec->fee)){
+    		
     		$rec->syncFee = TRUE;
     	}
     }

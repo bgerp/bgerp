@@ -58,7 +58,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	/**
 	 * Полета от които се генерират ключови думи за търсене (@see plg_Search)
 	 */
-	public $searchFields = 'storeId,note,';
+	public $searchFields = 'storeId,note';
 	
 	
 	/**

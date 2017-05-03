@@ -160,6 +160,8 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 */
 	public function getParams($classId, $id, $name = NULL, $verbal = FALSE)
 	{
+        if($name) return FALSE;
+
 		return array();
 	}
 	

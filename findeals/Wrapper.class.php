@@ -22,12 +22,12 @@ class findeals_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {
-        $this->TAB('findeals_Deals', 'Финансови->Сделки', 'findealsMaster, ceo');
-        $this->TAB('findeals_ClosedDeals', 'Финансови->Приключвания', 'findealsMaster, ceo');
-        $this->TAB('findeals_AdvanceDeals', 'ПОЛ->Аванси', 'findealsMaster, ceo');
-        $this->TAB('findeals_AdvanceReports', 'ПОЛ->Отчети', 'findealsMaster, ceo');
-        $this->TAB('findeals_DebitDocuments', 'Прехвърляния->Вземания', 'findealsMaster, ceo');
-        $this->TAB('findeals_CreditDocuments', 'Прехвърляния->Задължения', 'findealsMaster, ceo');
+        $this->TAB('findeals_Deals', 'Финансови->Сделки', 'findeals, ceo, acc');
+        $this->TAB('findeals_ClosedDeals', 'Финансови->Приключвания', 'findeals, ceo, acc');
+        $this->TAB('findeals_AdvanceDeals', 'ПОЛ->Аванси', 'findeals, ceo, acc');
+        $this->TAB('findeals_AdvanceReports', 'ПОЛ->Отчети', 'ceo,pettyCashReport,acc');
+        $this->TAB('findeals_DebitDocuments', 'Прехвърляния->Вземания', 'findeals, ceo, acc');
+        $this->TAB('findeals_CreditDocuments', 'Прехвърляния->Задължения', 'findeals, ceo, acc');
         
         $this->title = 'Сделки';
     }

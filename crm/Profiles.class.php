@@ -1001,7 +1001,7 @@ class crm_Profiles extends core_Master
             $userId = core_Users::getCurrent();
         }
         
-        $profileId = static::fetchField("#userId = {$userId}", 'id');
+        $profileId = self::fetch("#userId = {$userId}")->id;
         
         return $profileId;
     }
@@ -1063,11 +1063,13 @@ class crm_Profiles extends core_Master
             $link = $title;
             
             $url  = array();
-            $date = self::fetchField("#userId = {$userId}",'stateDateFrom');
-            $dateTo = self::fetchField("#userId = {$userId}",'stateDateTo');
+
+            expect($profRec = self::fetch("#userId = {$userId}"));
+            $date = $profRec->stateDateFrom;
+            $dateTo = $profRec->stateDateTo;
             $dayBeforeNow = dt::addDays(-1, $date);
             
-            if(self::fetchField("#userId = {$userId}",'stateInfo')) { 
+            if($profRec->stateInfo) { 
                 if(strstr(dt::now(), " ", TRUE) >= strstr($dayBeforeNow, " ", TRUE) && 
                    strstr(dt::now(), " ", TRUE) <= strstr($dateTo, " ", TRUE)) {
                     $attr['class'] .= ' profile profile-state';
@@ -1079,6 +1081,7 @@ class crm_Profiles extends core_Master
             }
 
     		$profileId = self::getProfileId($userId);
+
     		if ($profileId) {
     			
     			if (crm_Profiles::haveRightFor('single', $profileId) && !$isOut) {
