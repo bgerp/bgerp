@@ -223,7 +223,7 @@ class sales_Quotations extends core_Master
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $this->FLD('contragentId', 'int', 'input=hidden');
         $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)','caption=Плащане->Метод,salecondSysId=paymentMethodSale');
-        $this->FLD('bankAccountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId,allowEmpty)', 'caption=Плащане->Банкова с-ка');
+        $this->FLD('bankAccountId', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=Плащане->Банкова с-ка');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,removeAndRefreshForm=currencyRate');
         $this->FLD('currencyRate', 'double(decimals=5)', 'caption=Плащане->Курс,input=hidden');
         $this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Oсвободено от ДДС, no=Без начисляване на ДДС)','caption=Плащане->ДДС,oldFieldName=vat');
