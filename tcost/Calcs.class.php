@@ -517,7 +517,10 @@ class tcost_Calcs extends core_Manager
     				
     				$feeArr['totalFee'] = $newFee * $rec->{$map['quantity']};
     				$feeArr['singleFee'] = $newFee;
-    				$rec->{$map['price']} += $feeArr['singleFee'];
+    				
+    				if(!is_null($rec->{$map['price']})){
+    					$rec->{$map['price']} += $feeArr['singleFee'];
+    				}
     			}
     		}
     		

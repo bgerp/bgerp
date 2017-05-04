@@ -66,7 +66,7 @@ class sales_Proformas extends deals_InvoiceMaster
      * 
      * @see plg_Clone
      */
-    public $cloneDetails = 'sales_ProformaDetails' ;
+    public $cloneDetails = 'sales_ProformaDetails';
     
     
     /**
@@ -230,7 +230,7 @@ class sales_Proformas extends deals_InvoiceMaster
     	 
     	if($data->aggregateInfo){
     		if($accId = $data->aggregateInfo->get('bankAccountId')){
-    			$form->rec->accountId = bank_OwnAccounts::fetchField("#bankAccountId = {$accId}", 'id');
+    			$form->setDefault('accountId', bank_OwnAccounts::fetchField("#bankAccountId = {$accId}", 'id'));
     		}
     	}
     	
@@ -315,6 +315,7 @@ class sales_Proformas extends deals_InvoiceMaster
     		if(isset($rec->accountId)){
     			$Varchar = cls::get('type_Varchar');
     			$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
+    			$row->accountId = cls::get('iban_Type')->toVerbal($ownAcc->iban);
     			
     			core_Lg::push($rec->tplLang);
     			$row->bank = transliterate(tr($Varchar->toVerbal($ownAcc->bank)));
