@@ -150,7 +150,7 @@ class sales_reports_PurBomsRep extends frame2_driver_Proto
 	        // Взимане на договорените и експедираните артикули по продажбата (събрани по артикул)
 	        $dealerId = ($sRec->dealerId) ? $sRec->dealerId : (($sRec->activatedBy) ? $sRec->activatedBy : $sRec->createdBy);
 	        $dealInfo = $Sales->getAggregateDealInfo($sRec);
-	        
+
 	        $delTime = (!empty($sRec->deliveryTime)) ? $sRec->deliveryTime : (!empty($sRec->deliveryTermTime) ?  dt::addSecs($sRec->deliveryTermTime, $sRec->valior) : NULL);
 	        if(empty($delTime)){
 	            $delTime = $Sales->getMaxDeliveryTime($sRec->id);
@@ -184,7 +184,7 @@ class sales_reports_PurBomsRep extends frame2_driver_Proto
 	                    $d  = (object) array ("containerId" => $sRec->containerId,
 	                                          "pur" => $sRec->id,
 	                                          "purDate" => $sRec->valior, 
-	                                          "deliveryTime" => $sRec->deliveryTime,
+	                                          "deliveryTime" => $delTime,
 	                                          "article" => $pId,
 	                                          "dealerId" => $dealerId,
 	                                          "quantity"=>$pRec->quantity);  
