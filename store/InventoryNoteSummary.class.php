@@ -415,8 +415,6 @@ class store_InventoryNoteSummary extends doc_Detail
     	$rec->charge = $userId; 
     	$rec->modifiedOn = dt::now();
     	
-    	$this->save($rec);
-    	
     	// Опитваме се да запишем
     	if($this->save($rec)){
     		
