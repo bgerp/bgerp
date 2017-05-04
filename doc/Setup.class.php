@@ -240,6 +240,15 @@ class doc_Setup extends core_ProtoSetup
                     'action' => 'DeleteThread',
                     'period' => 5,
                     'timeLimit' => 120,
+            ),
+            array(
+                    'systemId' => 'deleteOldObject',
+                    'description' => 'Изтриване на остарялите информации за обектите в документ',
+                    'controller' => 'doc_UsedInDocs',
+                    'action' => 'deleteOldObject',
+                    'period' => 1440,
+                    'offset' => 66,
+                    'timeLimit' => 120,
             )
     );
 	
