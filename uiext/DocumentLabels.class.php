@@ -18,8 +18,6 @@ class uiext_DocumentLabels extends core_Manager
 {
 	
 	
-
-
 	/**
 	 * Заглавие
 	 */
@@ -101,6 +99,9 @@ class uiext_DocumentLabels extends core_Manager
 	}
 	
 	
+	/**
+	 * Екшъм сменящ тага
+	 */
 	function act_saveLabels()
 	{
 		//core_Request::setProtected('containerId,hash');
@@ -113,6 +114,7 @@ class uiext_DocumentLabels extends core_Manager
 			return status_Messages::returnStatusesArray();
 		}
 		
+		// Проверки
 		$delete = FALSE;
 		$label = Request::get('label', 'int');
 		if(!$label){
@@ -124,6 +126,7 @@ class uiext_DocumentLabels extends core_Manager
 			}
 		}
 		
+		// Подготовка на записа
 		$rec = (object)array('containerId' => $containerId, 'hash' => $hash);
 		$rec->labels = keylist::addKey('', $label);
 		if($exRec = self::fetchByDoc($containerId, $hash)){
@@ -132,7 +135,6 @@ class uiext_DocumentLabels extends core_Manager
 		
 		if($delete === TRUE){
 			self::delete($exRec->id);
-			core_Statuses::newStatus('|Премахнат таг|*!', 'nitice');
 		} else {
 			$this->save($rec);
 		}
@@ -145,7 +147,6 @@ class uiext_DocumentLabels extends core_Manager
 				
 			$k = "{$containerId}|{$classId}|{$hash}";
 			$resObj->arg = array('id' => "charge{$k}", 'html' => uiext_Labels::renderLabel($containerId, $classId, $hash), 'replace' => TRUE);
-				
 			$res = array_merge(array($resObj));
 				
 			return $res;
@@ -156,6 +157,14 @@ class uiext_DocumentLabels extends core_Manager
 		redirect($document->getSingleUrlArray());
 	}
 	
+	
+	/**
+	 * Връща записа
+	 * 
+	 * @param int $containerId
+	 * @param varchar $hash
+	 * @return stdClass|FALSE
+	 */
 	public static function fetchByDoc($containerId, $hash)
 	{
 		return self::fetch(array("#containerId = {$containerId} AND #hash = '[#1#]'", $hash));

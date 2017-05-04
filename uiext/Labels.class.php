@@ -92,6 +92,7 @@ class uiext_Labels extends core_Manager
     {
     	$form = &$data->form;
     	
+    	// Определяне на кои класове са допустими за избор
     	$options = core_Classes::getOptionsByInterface('doc_DocumentIntf', 'title');
     	$options += core_Classes::getOptionsByInterface('frame2_ReportIntf', 'title');
     	$options += core_Classes::getOptionsByInterface('frame_ReportSourceIntf', 'title');
@@ -121,6 +122,12 @@ class uiext_Labels extends core_Manager
     }
     
     
+    /**
+     * Връща наличните опции за избор
+     * 
+     * @param int $classId
+     * @return array 
+     */
     private static function getLabelOptions($classId)
     {
     	if(!self::$cache[$classId]){
@@ -132,6 +139,7 @@ class uiext_Labels extends core_Manager
 
     		$lQuery = self::getQuery();
     		$lQuery->where("#docClassId = {$classId}");
+    		$lQuery->where('#state != "closed"');
     		$lQuery->show('title,color');
     		
     		while ($lRec = $lQuery->fetch()){
@@ -139,9 +147,7 @@ class uiext_Labels extends core_Manager
     			$opt = new stdClass();
     			$opt->title = $lRec->title;
     			
-    			
     			$opt->attr = array('style' => "background-color:{$lRec->color}; color:{$textColor}", 'data-color' => "{$lRec->color}", 'data-text' => "{$textColor}");
-    			
     			$options[$lRec->id] = $opt;
     		}
     		
@@ -151,24 +157,49 @@ class uiext_Labels extends core_Manager
     	return self::$cache[$classId];
     }
     
+    
+    /**
+     * Помощен метод за показване на таговете
+     * 
+     * @param int $class        - за кой клас
+     * @param int $containerId  - ид на контейнера
+     * @param array $recs       - масив със записите
+     * @param array $rows       - масив със вербалните записи
+     * @param array $listFields - колонките
+     * @param array $hashFields - кои полета ще служат за хеш
+     * @param varchar $colName  - Как ще се казва колонката за избора на тагове
+     * @param core_ET $tpl      - шаблон за рендиране
+     * @param void
+     */
     public static function showLabels($class, $containerId, $recs, &$rows, &$listFields, $hashFields, $colName, &$tpl)
     {
     	if(!is_array($rows)) return;
+    	if(Mode::isReadOnly() || Mode::is('blank')) return;
     	
     	$listFields = arr::make($listFields, TRUE);
     	$listFields['_tagField'] = $colName;
     	$classId = cls::get($class)->getClassId();
     	
+    	// Генериране на таговете на документа
     	foreach ($rows as $key => $row){
     		$rec = $recs[$key];
     		$hash = self::getHash($rec, $hashFields);
     		$row->_tagField = self::renderLabel($containerId, $classId, $hash);
     	}
 
+    	// Зареждане на нужните файлове
     	$tpl->push('uiext/js/Label.js', 'JS');
     	jquery_Jquery::run($tpl, "labelActions();");
     }
     
+    
+    /**
+     * Хеша на документа, който трябва да е уникален за записа
+     * 
+     * @param stdClass $rec     - запис
+     * @param mixed $hashFields - полета за хеш
+     * @return string $hash     - хеш
+     */
     public static function getHash($rec, $hashFields)
     {
     	$hash = array();
@@ -183,10 +214,19 @@ class uiext_Labels extends core_Manager
     }
     
     
+    /**
+     * Рендиране на таговете на документа
+     * 
+     * @param int $containerId - ид на контейнера
+     * @param int $classId     - ид на класа, от който ще се избират таговете
+     * @param varchar $hash    - хеш на реда
+     * @return text            - инпута за избор на тагове
+     */
     public static function renderLabel($containerId, $classId, $hash)
     {
     	$labels = self::getLabelOptions($classId);
     	
+    	// Връщане
     	$value = NULL;
     	$selRec = uiext_DocumentLabels::fetchByDoc($containerId, $hash);
     	if($selRec){
@@ -194,28 +234,27 @@ class uiext_Labels extends core_Manager
     		$value = key($value);
     	}
     	
-    	
-    	if(!Mode::isReadOnly() && !Mode::is('blank')){
-    		$input = '';
-    		if(uiext_DocumentLabels::haveRightFor('selectlabel', (object)array('containerId' => $containerId))){
-    			$attr = array();
-    			$attr['class'] = "transparentSelect selectLabel";
+    	$input = '';
+    	if(uiext_DocumentLabels::haveRightFor('selectlabel', (object)array('containerId' => $containerId))){
+    		$attr = array();
+    		$attr['class'] = "transparentSelect selectLabel";
     			
-    			//core_Request::setProtected('containerId,hash');
-    			$attr['data-url']    = toUrl(array('uiext_DocumentLabels', 'saveLabels', 'containerId' => $containerId, 'hash' => $hash, 'classId' => $classId), 'local');
-    			//core_Request::removeProtected('containerId,hash');
-    			
-    			$attr['title']       = "Избор на таг";
+    		//core_Request::setProtected('containerId,hash');
+    		$attr['data-url'] = toUrl(array('uiext_DocumentLabels', 'saveLabels', 'containerId' => $containerId, 'hash' => $hash, 'classId' => $classId), 'local');
+    		//core_Request::removeProtected('containerId,hash');
+    		$attr['title'] = "Избор на таг";
     	
-    			$input = ht::createSelect('selTag', $labels, $value, $attr);
-    			$input->removePlaces();
-    			$input = $input->getContent();
+    		$input = ht::createSelect('selTag', $labels, $value, $attr);
+    		$input->removePlaces();
+    		$input = $input->getContent();
+    	} else {
+    		if(!empty($value)){
+    			$input = cls::get('uiext_DocumentLabels')->getFieldType('labels')->toVerbal($value);
     		}
-    		
-    		$k = "{$containerId}|{$classId}|{$hash}";
-    		return "<span id='charge{$k}'>{$input}</span>";
     	}
-
-    	//bp($labels);
+    		
+    	$k = "{$containerId}|{$classId}|{$hash}";
+    	
+    	return "<span id='charge{$k}'>{$input}</span>";
     }
 }
