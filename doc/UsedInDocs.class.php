@@ -176,5 +176,16 @@ class doc_UsedInDocs extends core_Manager
         $mvc->flushArr();
     }
     
-    // TODO - изтриване на старите
+    
+    /**
+     * 
+     */
+    public static function cron_deleteOldObject()
+    {
+        $lifeDays = 7;
+        
+        $deletedRecs = self::delete("ADDDATE(#last, {$lifeDays}) < '" . dt::verbal2mysql() . "'");
+        
+        return "Изтрити записи: {$deletedRecs}";
+    }
 }
