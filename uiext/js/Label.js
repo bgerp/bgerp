@@ -22,6 +22,7 @@ function labelActions() {
 
 function changeColor(element) {
 	var color = $(element).find(":selected").attr('data-color');
+	var text = $(element).find(":selected").attr('data-text');
 
 	if (color) {
 		$(element).closest('td').css('background-color', color);
@@ -32,5 +33,5 @@ function changeColor(element) {
 		$(element).removeClass('no-border-select');
 	}
 
-	$(element).attr('style', 'background-color:' + color + ' !important');
+	$(element).attr('style', 'background-color:' + color + ' !important; color: ' + text);
 }
