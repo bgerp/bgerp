@@ -2160,6 +2160,13 @@ table.mc-header a {
         background: none;
     }
 }
+.transparentSelect {
+	//background-color: transparent !important;
+	&.no-border-select {
+		border: none !important;
+		box-shadow: none !important;
+	}
+}
 
 @-moz-document url-prefix(){
 	.portal-select {

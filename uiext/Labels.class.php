@@ -125,6 +125,11 @@ class uiext_Labels extends core_Manager
     {
     	if(!self::$cache[$classId]){
     		$options = array();
+			$opt = new stdClass();
+			$opt->title = "";
+			$opt->attr = array('style' => "background-color:#fff; color:#000");
+			$options[""] = $opt;
+
     		$lQuery = self::getQuery();
     		$lQuery->where("#docClassId = {$classId}");
     		$lQuery->show('title,color');
@@ -135,7 +140,7 @@ class uiext_Labels extends core_Manager
     			$opt->title = $lRec->title;
     			
     			
-    			$opt->attr = array('style' => "background-color:{$lRec->color}; color:{$textColor}");
+    			$opt->attr = array('style' => "background-color:{$lRec->color}; color:{$textColor}", 'data-color' => "{$lRec->color}");
     			
     			$options[$lRec->id] = $opt;
     		}
@@ -159,7 +164,7 @@ class uiext_Labels extends core_Manager
     		$hash = self::getHash($rec, $hashFields);
     		$row->_tagField = self::renderLabel($containerId, $classId, $hash);
     	}
-    	
+
     	$tpl->push('uiext/js/Label.js', 'JS');
     	jquery_Jquery::run($tpl, "labelActions();");
     }
@@ -172,7 +177,7 @@ class uiext_Labels extends core_Manager
     		$hash[] = $rec->{$name};
     	}
     	
-    	$hash = serialize(implode('|', $hash));
+    	$hash = md5(implode('|', $hash));
     	
     	return $hash;
     }
@@ -208,9 +213,9 @@ class uiext_Labels extends core_Manager
     		}
     		
     		$k = "{$containerId}|{$classId}|{$hash}";
-    		return "<span id='charge{$k}' style='background-color:red'>{$input}</span>";
+    		return "<span id='charge{$k}'>{$input}</span>";
     	}
-    	
+
     	//bp($labels);
     }
 }
