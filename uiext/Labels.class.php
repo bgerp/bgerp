@@ -140,7 +140,7 @@ class uiext_Labels extends core_Manager
     			$opt->title = $lRec->title;
     			
     			
-    			$opt->attr = array('style' => "background-color:{$lRec->color}; color:{$textColor}", 'data-color' => "{$lRec->color}");
+    			$opt->attr = array('style' => "background-color:{$lRec->color}; color:{$textColor}", 'data-color' => "{$lRec->color}", 'data-text' => "{$textColor}");
     			
     			$options[$lRec->id] = $opt;
     		}
