@@ -161,20 +161,22 @@ class uiext_Labels extends core_Manager
     /**
      * Помощен метод за показване на таговете
      * 
-     * @param int $class        - за кой клас
-     * @param int $containerId  - ид на контейнера
-     * @param array $recs       - масив със записите
-     * @param array $rows       - масив със вербалните записи
-     * @param array $listFields - колонките
-     * @param array $hashFields - кои полета ще служат за хеш
-     * @param varchar $colName  - Как ще се казва колонката за избора на тагове
-     * @param core_ET $tpl      - шаблон за рендиране
+     * @param int $class                - за кой клас
+     * @param int $containerId          - ид на контейнера
+     * @param array $recs               - масив със записите
+     * @param array $rows               - масив със вербалните записи
+     * @param array $listFields         - колонките
+     * @param array $hashFields         - кои полета ще служат за хеш
+     * @param varchar $colName          - Как ще се казва колонката за избора на тагове
+     * @param core_ET $tpl              - шаблон за рендиране
+     * @param core_FieldSet &$fieldset  - шаблон за рендиране
      * @param void
      */
-    public static function showLabels($class, $containerId, $recs, &$rows, &$listFields, $hashFields, $colName, &$tpl)
+    public static function showLabels($class, $containerId, $recs, &$rows, &$listFields, $hashFields, $colName, &$tpl, core_FieldSet &$fieldset)
     {
     	if(!is_array($rows)) return;
     	if(Mode::isReadOnly() || Mode::is('blank')) return;
+    	$fieldset->FLD('_tagField', 'varchar', 'tdClass=tagColumn');
     	
     	$listFields = arr::make($listFields, TRUE);
     	$listFields['_tagField'] = $colName;
