@@ -1064,12 +1064,14 @@ class crm_Profiles extends core_Master
             
             $url  = array();
 
-            expect($profRec = self::fetch("#userId = {$userId}"));
-            $date = $profRec->stateDateFrom;
-            $dateTo = $profRec->stateDateTo;
-            $dayBeforeNow = dt::addDays(-1, $date);
+            $profRec = self::fetch("#userId = {$userId}");
+            if ($profRec) {
+                $date = $profRec->stateDateFrom;
+                $dateTo = $profRec->stateDateTo;
+                $dayBeforeNow = dt::addDays(-1, $date);
+            }
             
-            if($profRec->stateInfo) { 
+            if($profRec && $profRec->stateInfo) { 
                 if(strstr(dt::now(), " ", TRUE) >= strstr($dayBeforeNow, " ", TRUE) && 
                    strstr(dt::now(), " ", TRUE) <= strstr($dateTo, " ", TRUE)) {
                     $attr['class'] .= ' profile profile-state';

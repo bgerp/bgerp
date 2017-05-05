@@ -114,8 +114,12 @@ class bgerp_F extends core_Manager
             requireRole('powerUser');
         }
         
+        Mode::push('saveObjectsToCid', $actRec->containerId);
+        
         // Вземаме линкнатите файлове в документите
         $linkedFiles = $doc->getLinkedFiles();
+        
+        Mode::pop('saveObjectsToCid');
         
         $resFileHnd = '';
         
@@ -150,7 +154,7 @@ class bgerp_F extends core_Manager
             }
         }
         
-        expect($resFileHnd);
+        expect($resFileHnd, 'Няма такъв файл');
         
         // В зависимост от това дали има права за разгреждане - линк към сингъла или за сваляне
         $url = fileman_Files::generateUrl_($resFileHnd, TRUE);

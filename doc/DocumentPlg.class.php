@@ -2840,7 +2840,11 @@ class doc_DocumentPlg extends core_Plugin
             $rec = $mvc->fetch($rec);
         }
         
-        $res = array_merge($mvc->getAllFilesFromRec($rec), (array)$res);
+        $res = $mvc->getLinkedFiles($rec);
+        
+        if (!isset($res)) {
+            $res = array();
+        }
         
         return $res;
     }
@@ -2859,8 +2863,43 @@ class doc_DocumentPlg extends core_Plugin
             $rec = $mvc->fetch($rec);
         }
         
-        // Намираме прикачените файлове
-        $res = array_merge($mvc->getAllFilesFromRec($rec), (array)$res);
+        $oCid = Mode::get('saveObjectsToCid');
+        
+        // Ако не са извлечени файловете или не сме в процес на извличане - форсираме процеса
+        if ((!$oCid && $rec->containerId) || ($oCid && ($oCid != $rec->containerId))) {
+            
+            Mode::push('saveObjectsToCid', $rec->containerId);
+            try {
+                $cRec = doc_Containers::fetch($rec->containerId);
+                if ($cRec->docClass) {
+                    $docMvc = cls::get($cRec->docClass);
+                }
+                if (!($cRec->docId)) {
+                    $cRec->docId = $docMvc->fetchField("#containerId = {$cRec->id}", 'id');
+                }
+                
+                $docMvc->prepareDocument($cRec->docId);
+            } catch (Exception $e) {
+                reportException($e);
+            }
+            Mode::pop('saveObjectsToCid');
+        }
+        
+        if (!isset($res)) {
+            $res = array();
+        }
+        
+        doc_UsedInDocs::flushArr();
+        
+        $filesArr = doc_UsedInDocs::getObjectVals($rec->containerId, core_Users::getCurrent(), 'files');
+        if (is_array($filesArr)) {
+            foreach ($filesArr as $fileHndArr) {
+                if (!is_array($fileHndArr)) continue;
+                foreach ($fileHndArr as $fh => $name) {
+                    $res[$fh] = $name;
+                }
+            }
+        }
     }
     
     
@@ -2904,56 +2943,6 @@ class doc_DocumentPlg extends core_Plugin
         if ($rt) {
             // Намираме прикачените файлове
             $res = array_merge(cms_GalleryRichTextPlg::getImages($rt), (array)$res);
-        }
-    }
-    
-    
-    
-    /**
-     * 
-     * 
-     * @param core_Manager $mvc
-     * @param stdObject $res
-     * @param stdObject $rec
-     */
-    function on_AfterGetAllFilesFromRec($mvc, &$res, $rec)
-    {
-        if (!isset($res)) {
-            $res = array();
-        }
-        
-        $rt = '';
-        
-        foreach ((array)$mvc->getAllFields($rec) as $fieldName => $field) {
-            
-            if ($field->type->params['fileToLink'] == 'no') continue;
-            
-            $fVal = $rec->{$fieldName};
-            
-            if (!$fVal || !is_string($fVal)) continue;
-            
-            $fVal = trim($fVal);
-            
-            if (!$fVal) continue;
-            
-            // Ако са от type_Richtext
-            if ($field->type instanceof type_Richtext) {
-                $rt .= "\n" . $fVal;
-            } else if ($field->type instanceof fileman_FileType) {
-                if (isset($res[$fVal])) continue;
-                
-                try {
-                    $fName = fileman_Files::fetchByFh($fVal, 'name');
-                } catch (core_exception_Expect $e) {
-                    continue;
-                }
-                
-                $res[$fVal] = $fName;
-            }
-        }
-        
-        if ($rt) {
-            $res = array_merge(fileman_RichTextPlg::getFiles($rt), (array)$res);
         }
     }
     
