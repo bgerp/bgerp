@@ -255,8 +255,7 @@ class sales_Invoices extends deals_InvoiceMaster
     {
     	if(isset($form->rec->id)) return;
     	
-    	$handle = sales_Proformas::getHandle($proformaRec->id);
-    	$unsetFields = array('id', 'number', 'state', 'searchKeywords', 'containerId', 'brState', 'lastUsedOn', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'dealValue', 'vatAmount', 'discountAmount', 'sourceContainerId');
+    	$unsetFields = array('id', 'number', 'state', 'searchKeywords', 'containerId', 'brState', 'lastUsedOn', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'dealValue', 'vatAmount', 'discountAmount', 'sourceContainerId', 'additionalInfo');
     	foreach ($unsetFields as $fld){
     		unset($proformaRec->{$fld});
     	}
@@ -267,7 +266,6 @@ class sales_Invoices extends deals_InvoiceMaster
     	if($form->rec->dpAmount){
     		$form->rec->dpAmount = abs($form->rec->dpAmount);
     	}
-    	$form->rec->additionalInfo .= (($form->rec->additionalInfo) ? ' ' : '') . tr("По проформа|* #") . $handle;
     }
     
     
@@ -278,11 +276,15 @@ class sales_Invoices extends deals_InvoiceMaster
     {
     	$form = &$data->form;
     	
+    	$defInfo = "";
+    	
     	if($form->rec->sourceContainerId){
     		$Source = doc_Containers::getDocument($form->rec->sourceContainerId);
     		if($Source->isInstanceOf('sales_Proformas')){
     			if($proformaRec = $Source->fetch()){
     				$mvc->prepareFromProforma($proformaRec, $form);
+    				$handle = sales_Proformas::getHandle($Source->that);
+    				$defInfo .= (($defInfo) ? ' ' : '') . tr("По проформа|* #") . $handle . "\n";
     			}
     		}
     	}
@@ -324,13 +326,12 @@ class sales_Invoices extends deals_InvoiceMaster
     	$firstDoc = doc_Threads::getFirstDocument($form->rec->threadId);
     	$firstRec = $firstDoc->rec();
     	 
-    	$defInfo = "";
     	$tLang = doc_TplManager::fetchField($form->rec->template, 'lang');
     	core_Lg::push($tLang);
     	
     	$showSale = core_Packs::getConfigValue('sales', 'SALE_INVOICES_SHOW_DEAL');
     	
-    	if($showSale == 'yes'){
+    	if($showSale == 'yes' && empty($form->rec->sourceContainerId)){
     		// Ако продажбата приключва други продажби също ги попълва в забележката
     		if($firstRec->closedDocuments){
     			$docs = keylist::toArray($firstRec->closedDocuments);
@@ -374,6 +375,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	
     	// Задаваме дефолтния текст
     	$form->setDefault('additionalInfo', $defInfo);
+    	
     }
     
     
