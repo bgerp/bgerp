@@ -331,7 +331,9 @@ class thumb_Img
                                 
                                 $fileName = rtrim(EF_TEMP_PATH, '/');
                                 $fileName .= '/' . str::getRand();
-                                @file_put_contents($fileName, $asString);
+                                if (!@file_put_contents($fileName, $asString)) {
+                                    log_System::add('thumb_Img', 'Грешка при създаване на файла: ' . $fileName, NULL, 'warning');
+                                }
                                 if (is_file($fileName)) {
                                     $fimg = new thumb_FastImageSize($fileName);
                                     $this->format = $fimg->getType();
@@ -432,13 +434,18 @@ class thumb_Img
                 if($format) {
                     $this->format = $format;
                 }
+            } else {
+                
+                if (strlen($uri) && $this->sourceType != 'url') {
+                    log_System::add('thumb_Img', 'Грешка при прочитане на URI: ' . $uri, NULL, 'warning');
+                }
             }
             
             if($this->format == 'jpeg' || empty($this->format)) {
                 $this->format = 'jpg';
             }
         }
-
+        
         return $this->format;
     }
 
@@ -456,7 +463,7 @@ class thumb_Img
             $this->thumbName .= '-' . $this->boxWidth;
             $this->thumbName .= '.' . $this->getThumbFormat();
         }
-
+        
         return $this->thumbName;
     }
 
