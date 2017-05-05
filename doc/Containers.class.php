@@ -497,7 +497,10 @@ class doc_Containers extends core_Manager
             	if($row->document) {
                     Debug::log("+++ Get from Cache $rec->id");
                 } else {
+                    Mode::push('saveObjectsToCid', $rec->id);
             		$data = $document->prepareDocument();
+            		doc_UsedInDocs::addToChecked($rec->id);
+            		Mode::pop('saveObjectsToCid');
                     $row->ROW_ATTR['onMouseUp'] = "saveSelectedTextToSession('" . $document->getHandle() . "', 'onlyHandle');";
                     
                     // Добавяме линк за скриване на документа

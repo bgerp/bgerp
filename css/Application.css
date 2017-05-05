@@ -1888,6 +1888,10 @@ table.mc-header a {
     box-shadow: none;
     background: none; }
 
+  .transparentSelect.no-border-select {
+    border: none !important;
+    box-shadow: none !important; }
+
 @-moz-document url-prefix() {
     .portal-select {
     color: rgba(0, 0, 0, 0);

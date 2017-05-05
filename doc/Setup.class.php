@@ -218,6 +218,7 @@ class doc_Setup extends core_ProtoSetup
     	'doc_Likes',
     	'doc_ExpensesSummary',
     	'doc_Prototypes',
+    	'doc_UsedInDocs',
         'migrate::repairBrokenFolderId',
         'migrate::repairLikeThread',
         'migrate::repairFoldersKeywords',
@@ -238,6 +239,15 @@ class doc_Setup extends core_ProtoSetup
                     'controller' => 'doc_Threads',
                     'action' => 'DeleteThread',
                     'period' => 5,
+                    'timeLimit' => 120,
+            ),
+            array(
+                    'systemId' => 'deleteOldObject',
+                    'description' => 'Изтриване на остарялите информации за обектите в документ',
+                    'controller' => 'doc_UsedInDocs',
+                    'action' => 'deleteOldObject',
+                    'period' => 1440,
+                    'offset' => 66,
                     'timeLimit' => 120,
             )
     );
