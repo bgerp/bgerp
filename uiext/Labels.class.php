@@ -117,7 +117,9 @@ class uiext_Labels extends core_Manager
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'delete' && isset($rec)){
-    		//bp();
+    		if(uiext_DocumentLabels::fetch("#labels LIKE '%|{$rec->id}|%'")){
+    			$requiredRoles = 'no_one';
+    		}
     	}
     }
     
