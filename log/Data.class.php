@@ -241,10 +241,11 @@ class log_Data extends core_Manager
      * @param object|string $className
      * @param integer $objectId
      * @param NULL|string $type
+     * @param NULL|string $act
      * 
      * @return NULL|integer
      */
-    public static function getObjectCnt($className, $objectId, $type = NULL)
+    public static function getObjectCnt($className, $objectId, $type = NULL, $act = NULL)
     {
         if (is_object($className)) {
             $className = cls::getClassName($className);
@@ -261,6 +262,13 @@ class log_Data extends core_Manager
         if (isset($type)) {
             $query->where(array("#type = '[#1#]'", $type));
         }
+        
+        if (isset($act)) {
+            $actCrc = log_Actions::getActionCrc($act);
+            $query->where(array("#actionCrc = '[#1#]'", $actCrc));
+        }
+        
+        $query->show('id');
         
         return $query->count();
     }
