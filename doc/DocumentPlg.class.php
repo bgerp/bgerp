@@ -2878,7 +2878,11 @@ class doc_DocumentPlg extends core_Plugin
                     $cRec->docId = $docMvc->fetchField("#containerId = {$cRec->id}", 'id');
                 }
                 
-                $docMvc->prepareDocument($cRec->docId);
+                try {
+                    $docMvc->prepareDocument($cRec->docId);
+                } catch (Exception $e) {
+                    // Това е ако все още няма docId
+                }
             } catch (Exception $e) {
                 reportException($e);
             }
