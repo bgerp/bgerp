@@ -323,7 +323,10 @@ class doc_Files extends core_Manager
         if (haveRole('debug')) {
 //         if (haveRole('admin, manager, ceo')) {
             $Users = cls::get('type_Users', array('params' => array('rolesForTeams' => 'admin, ceo, manager', 'rolesForAll' => 'ceo')));
-            $suggArr += $Users->prepareOptions();
+            $uArr = $Users->prepareOptions();
+            if (is_array($uArr) && !empty($uArr)) {
+                $suggArr += $uArr;
+            }
         }
         
         // Добавяме поле във формата за търсене
