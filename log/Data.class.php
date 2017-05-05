@@ -525,7 +525,7 @@ class log_Data extends core_Manager
         
         if (is_null(Request::get('class'))) {
             // По - подразбиране да се търси месец назад
-            $data->listFilter->setDefault('from', dt::subtractSecs(core_DateTime::SECONDS_IN_MONTH));
+            $data->listFilter->setDefault('from', dt::subtractSecs(86400));
         }
         
         $data->listFilter->showFields = 'users, message, class, object, ip, from, to';
