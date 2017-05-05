@@ -49,7 +49,7 @@ class doc_Files extends core_Manager
     /**
      * Полетата, които ще се показват
      */
-    var $listFields = 'fileHnd=Файл, threadId=Документ, date=Дата';
+    var $listFields = 'fileHnd=Файл, threadId=Документ, date=Час';
     
     
     /**
