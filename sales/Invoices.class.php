@@ -210,7 +210,7 @@ class sales_Invoices extends deals_InvoiceMaster
     {
     	parent::setInvoiceFields($this);
     	
-    	$this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка, changable');
+    	$this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=title, allowEmpty)', 'caption=Плащане->Банкова с-ка, changable');
     	
     	$this->FLD('numlimit', 'enum(1,2)', 'caption=Диапазон, after=template,input=hidden,notNull,default=1');
     	
@@ -305,7 +305,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	
     	if($data->aggregateInfo){
     		if($accId = $data->aggregateInfo->get('bankAccountId')){
-    			$form->rec->accountId = bank_OwnAccounts::fetchField("#bankAccountId = {$accId}", 'id');
+    			$form->setDefault('accountId', bank_OwnAccounts::fetchField("#bankAccountId = {$accId}", 'id'));
     		}
     	}
     	 
@@ -526,6 +526,7 @@ class sales_Invoices extends deals_InvoiceMaster
     			$Varchar = cls::get('type_Varchar');
     			$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
     			
+    			$row->accountId = cls::get('iban_Type')->toVerbal($ownAcc->iban);
     			$row->bank = $Varchar->toVerbal($ownAcc->bank);
     			core_Lg::push($rec->tplLang);
     			$row->bank = transliterate(tr($row->bank));
