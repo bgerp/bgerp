@@ -190,7 +190,7 @@ class uiext_Labels extends core_Manager
     		$hash = self::getHash($rec, $hashFields);
     		$row->_tagField = self::renderLabel($containerId, $classId, $hash);
     	}
-
+		
     	// Зареждане на нужните файлове
     	$tpl->push('uiext/js/Label.js', 'JS');
     	jquery_Jquery::run($tpl, "labelActions();");
@@ -229,6 +229,7 @@ class uiext_Labels extends core_Manager
     public static function renderLabel($containerId, $classId, $hash)
     {
     	$labels = self::getLabelOptions($classId);
+    	if(count($labels) <= 1) return NULL;
     	
     	// Връщане
     	$value = NULL;
