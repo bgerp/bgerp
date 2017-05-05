@@ -1599,7 +1599,6 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	// Дали толеранса е между 0 и 1
     	if(isset($tolerance)){
-    		expect($tolerance = cls::get('type_Double')->fromVerbal($tolerance));
     		expect($tolerance >= 0 && $tolerance <= 1);
     	}
     	
