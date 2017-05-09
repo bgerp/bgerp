@@ -264,6 +264,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         
         // Преброяване на черновите документи
         $activeQuery = clone $data->listSummary->query;
+        $pendingQuery = clone $data->listSummary->query;
         $data->listSummary->query->where("#state = 'draft'");
         $draftCount = $data->listSummary->query->count();
         
@@ -271,11 +272,13 @@ class acc_plg_DocumentSummary extends core_Plugin
         $activeQuery->where("#state = 'active' OR #state = 'closed'");
         $activeCount = $activeQuery->count();
         
-        // Изчистване на клонираната заявка
-        unset($activeQuery);
+        // Преброяване на заявките
+        $pendingQuery->where("#state = 'pending'");
+        $pendingCount = $pendingQuery->count();
         
         // Добавяне в обобщението на броя активирани и броя чернови документи
         $data->listSummary->summary['countA'] = (object)array('caption' => "<span style='float:right'>" . tr('Активирани') . "</span>", 'measure' => tr('бр') . ".", 'quantity' => $activeCount);
+        $data->listSummary->summary['countC'] = (object)array('caption' => "<span style='float:right'>" . tr('Заявки') . "</span>", 'measure' => tr('бр') . ".", 'quantity' => $pendingCount);
         $data->listSummary->summary['countB'] = (object)array('caption' => "<span style='float:right'>" . tr('Чернови') . "</span>", 'measure' => tr('бр') . ".", 'quantity' => $draftCount);
     }
     
