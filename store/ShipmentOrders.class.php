@@ -183,6 +183,12 @@ class store_ShipmentOrders extends store_DocumentMaster
     
     
     /**
+     * Да се показва антетка
+     */
+    public $showLetterHead = TRUE;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -631,5 +637,43 @@ class store_ShipmentOrders extends store_DocumentMaster
     	$count = ($count) ? $count : NULL;
     	 
     	return $count;
+    }
+    
+	
+    /**
+     * Добавя допълнителни полетата в антетката
+     *
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param object $rec
+     * @param object $row
+     */
+    public static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
+    {
+        $toDraftCnt = log_Data::getObjectCnt(get_called_class(), $rec->id, NULL, 'Документът се връща в чернова');
+        
+        if ($toDraftCnt) {
+            $resArr['_toDraft'] = array('name' => tr('Към чернова'), 'val' => $toDraftCnt);
+            $resArr['_lastFrom'] = array('name' => tr('Последно'), 'val' => tr('на') . " [#modifiedOn#] " . tr('от') . " [#modifiedBy#]");
+        }
+    }
+    
+    
+    /**
+     * Кои полета да са скрити във вътрешното показване
+     * 
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param object $rec
+     * @param object $row
+     */
+    public static function getHideArrForLetterHead_($rec, $row)
+    {
+        $hideArr = array();
+        
+        $hideArr['external']['_toDraft'] = TRUE;
+        $hideArr['external']['_lastFrom'] = TRUE;
+        
+        return $hideArr;
     }
 }
