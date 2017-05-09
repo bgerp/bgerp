@@ -3,7 +3,7 @@
         <tbody>
             <tr>
                 <td class='centered'>
-                    <div class="document-title">PACKAGING LIST</div>
+                    <div class="document-title">PACKING LIST</div>
                     <!--ET_BEGIN operationSysId-->
                     <small>( [#operationSysId#] )</small>
                     <!--ET_END operationSysId-->
