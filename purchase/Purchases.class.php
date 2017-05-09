@@ -521,7 +521,7 @@ class purchase_Purchases extends deals_DealMaster
     	if($action == 'closewith' && isset($rec)){
     		if(purchase_PurchasesDetails::fetch("#requestId = {$rec->id}")){
     			$res = 'no_one';
-    		} elseif(!haveRole('purchase', $userId)){
+    		} elseif(!haveRole('purchase,ceo', $userId)){
     			$res = 'no_one';
     		}
     	}
