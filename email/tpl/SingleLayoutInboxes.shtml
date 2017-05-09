@@ -17,6 +17,10 @@
                                 <td class='dt'>|Сметка|*:</td>
                                 <td> <b>[#accountId#]</b></td>
                             </tr>
+                            <tr>
+                                <td class='dt'>|Нотификация|*:</td>
+                                <td> <b>[#notifyForEmail#]</b></td>
+                            </tr>
                         </table>
                     </div>
                 </fieldset>
