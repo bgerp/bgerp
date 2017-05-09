@@ -4469,6 +4469,7 @@ only screen and (max-width: 320px) {
     margin: 0px !important; }
 
   .document {
+    min-width: 837px !important;
     width: 100%;
     max-width: 1200px;
     padding: 0px !important; }
