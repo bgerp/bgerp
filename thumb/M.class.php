@@ -119,7 +119,7 @@ class thumb_M extends core_Mvc
         $hashArr[$cmdHash] = $cmd;
         
         exec($cmd, $out, $status);
-        if($status >= 0) {
+        if($status > 0) {
             $err = implode(' | ', $out);
             log_System::add('thumb_Img', 'Грешка: ' . $cmd  . ' ' . $err, NULL, 'warning');
             
