@@ -198,6 +198,8 @@ class plg_Search extends core_Plugin
             $minLenFTS = 4;
         }
         
+        $wCacheArr = array();
+        
         if ($words = static::parseQuery($search)) {
             
             usort($words, 'plg_Search::sortLength');
@@ -205,6 +207,10 @@ class plg_Search extends core_Plugin
             foreach($words as $w) {
                 
                 $w = trim($w);
+                
+                // Предпазване от търсене на повтарящи се думи
+                if (isset($wCacheArr[$w])) continue;
+                $wCacheArr[$w] = $w;
                 
                 if(!$w) continue;
                 
@@ -298,9 +304,6 @@ class plg_Search extends core_Plugin
                 }
             }
         }
-//         unset($query->where[0]);
-//         unset($query->where[2]);
-//         bp($query->where);
     }
     
     
