@@ -257,6 +257,10 @@ class plg_Search extends core_Plugin
                 $w = trim(static::normalizeText($w, array('*')));
                 $minWordLen = strlen($w);
                 
+                // Ако търсената дума е празен интервал
+                $wTrim = trim($w);
+                if (!strlen($wTrim)) continue;
+                
                 if(strpos($w, ' ')) {
                     $mode = '"';
                     $wArr = explode(' ', $w);
@@ -294,6 +298,9 @@ class plg_Search extends core_Plugin
                 }
             }
         }
+//         unset($query->where[0]);
+//         unset($query->where[2]);
+//         bp($query->where);
     }
     
     
