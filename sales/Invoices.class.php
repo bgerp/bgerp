@@ -859,6 +859,27 @@ class sales_Invoices extends deals_InvoiceMaster
    			);
    		}
    	}
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Manager $mvc
+     * @param string|NULL $res
+     * @param stdObject $rec
+     */
+    public function on_AfterGetBtnErrStr($mvc, &$res, $rec)
+    {
+        if (empty($rec->number) && $rec->state != 'active' && $mvc->haveRightFor('conto', $rec)) {
+            $newDate = $mvc->getNewestInvoiceDate($rec->numlimit);
+            
+            if($newDate > $rec->date) {
+                $res = 'Не може да се запише фактура с дата по-малка от последната активна фактура в диапазона|* (' .
+   					dt::mysql2verbal($newDate, 'd.m.y') .
+   					')';
+            }
+        }
+    }
    	
    	
    	/**
