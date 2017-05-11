@@ -871,12 +871,15 @@ class sales_Invoices extends deals_InvoiceMaster
     public function on_AfterGetBtnErrStr($mvc, &$res, $rec)
     {
         if (empty($rec->number) && $rec->state != 'active' && $mvc->haveRightFor('conto', $rec)) {
-            $newDate = $mvc->getNewestInvoiceDate($rec->numlimit);
             
-            if($newDate > $rec->date) {
-                $res = 'Не може да се запише фактура с дата по-малка от последната активна фактура в диапазона|* (' .
-   					dt::mysql2verbal($newDate, 'd.m.y') .
-   					')';
+            if ($rec->numlimit && $rec->date) {
+                $newDate = $mvc->getNewestInvoiceDate($rec->numlimit);
+                
+                if ($newDate && ($newDate > $rec->date)) {
+                    $res = 'Не може да се запише фактура с дата по-малка от последната активна фактура в диапазона|* (' .
+                                    dt::mysql2verbal($newDate, 'd.m.y') .
+                                    ')';
+                }
             }
         }
     }
