@@ -393,7 +393,7 @@ class sales_Invoices extends deals_InvoiceMaster
     				$paymentPlan = cond_PaymentMethods::fetch($paymentMethodId);
     				
     				if(!empty($paymentPlan->timeBalancePayment) || $paymentPlan->type == 'bank' || $rec->paymentType == 'bank'){
-    					$form->setWarning('accountId', "Сигурни ли сте че не е нужно да се посочи и банкова сметка|*?");
+    					$form->setWarning('accountId', "Сигурни ли сте, че не е нужно да се посочи и банкова сметка|*?");
     				}
     			}
     		}
