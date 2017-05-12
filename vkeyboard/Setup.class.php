@@ -1,14 +1,7 @@
 <?php
 
-
-
 /**
- * @todo Чака за документация...
- */
-defIfNot('VKI_version', '1.28');
-
-/**
- * Клас 'keyboard_Setup' -
+ * Клас 'vkeyboard_Setup' -
  *
  *
  * @category  bgerp
