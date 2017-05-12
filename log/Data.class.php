@@ -247,6 +247,57 @@ class log_Data extends core_Manager
      */
     public static function getObjectCnt($className, $objectId, $type = NULL, $act = NULL)
     {
+        $query = self::getObjetQuery($className, $objectId, $type, $act);
+        
+        $query->show('id');
+        
+        return $query->count();
+    }
+    
+    
+    /**
+     * Връща записите за съответния обект
+     * 
+     * @param object|string $className
+     * @param integer $objectId
+     * @param NULL|string $type
+     * @param NULL|string $act
+     * 
+     * @return array
+     */
+    public static function getObjectRecs($className, $objectId, $type = NULL, $act = NULL, $limit = NULL, $order = 'DESC')
+    {
+        $query = self::getObjetQuery($className, $objectId, $type, $act);
+        
+        if ($limit) {
+            $query->limit($limit);
+        }
+        
+        if ($order) {
+            $query->orderBy('time', $order);
+        }
+        
+        $resArr = array();
+        while ($rec = $query->fetch()) {
+            $resArr[$rec->id] = $rec;
+        }
+	
+        return $resArr;
+    }
+    
+    
+    /**
+     * Връща заявка за съответния обект
+     * 
+     * @param object|string $className
+     * @param integer $objectId
+     * @param NULL|string $type
+     * @param NULL|string $act
+     *
+     * @return core_Query
+     */
+    protected static function getObjetQuery($className, $objectId, $type = NULL, $act = NULL)
+    {
         if (is_object($className)) {
             $className = cls::getClassName($className);
         }
@@ -268,9 +319,7 @@ class log_Data extends core_Manager
             $query->where(array("#actionCrc = '[#1#]'", $actCrc));
         }
         
-        $query->show('id');
-        
-        return $query->count();
+        return $query;
     }
     
     
