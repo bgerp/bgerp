@@ -177,7 +177,7 @@ class cal_Setup extends core_ProtoSetup
                     
                     if ($rec->timePreviously >= $repetitionSec){
                         $rec->timePreviously = $halfRepetitionSec;
-                        cal_Reminders::save_($rec,'timePreviously');
+                        cal_Reminders::save($rec,'timePreviously');
                     }
                 }
             }
