@@ -356,7 +356,7 @@ function isIE()
 function isRaspBerryPi()
 {
     var info = getUserAgent();
-    return info.indexOf("Linux armv7l");
+    return info.indexOf("Linux armv7l") >= 0;
 }
 
 /**
