@@ -613,6 +613,22 @@ class blast_Emails extends core_Master
             $this->touchRec($rec->id);
         }
     }
+
+
+    /**
+     * Преди записване на клонирания запис
+     *
+     * @param core_Mvc $mvc
+     * @param object $rec
+     * @param object $nRec
+     *
+     * @see plg_Clone
+     */
+    function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
+    {
+        unset($nRec->progress);
+        unset($nRec->activatedBy);
+    }
     
     
     /**

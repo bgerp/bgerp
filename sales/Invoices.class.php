@@ -80,12 +80,6 @@ class sales_Invoices extends deals_InvoiceMaster
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,invoicer';
-    
-    
-    /**
      * Кой може да сторнира
      */
     public $canRevert = 'salesMaster, ceo';
@@ -100,7 +94,7 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,sales';
+	public $canList = 'ceo,sales,acc';
 
 
 	/**
@@ -118,7 +112,7 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Кой има право да добавя?
      */
-    public $canExport = 'ceo,sales';
+    public $canExport = 'ceo,invoicer';
     
     
     /**
@@ -216,7 +210,7 @@ class sales_Invoices extends deals_InvoiceMaster
     {
     	parent::setInvoiceFields($this);
     	
-    	$this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка, changable');
+    	$this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=title, allowEmpty)', 'caption=Плащане->Банкова с-ка, changable');
     	
     	$this->FLD('numlimit', 'enum(1,2)', 'caption=Диапазон, after=template,input=hidden,notNull,default=1');
     	
@@ -261,8 +255,7 @@ class sales_Invoices extends deals_InvoiceMaster
     {
     	if(isset($form->rec->id)) return;
     	
-    	$handle = sales_Proformas::getHandle($proformaRec->id);
-    	$unsetFields = array('id', 'number', 'state', 'searchKeywords', 'containerId', 'brState', 'lastUsedOn', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'dealValue', 'vatAmount', 'discountAmount', 'sourceContainerId');
+    	$unsetFields = array('id', 'number', 'state', 'searchKeywords', 'containerId', 'brState', 'lastUsedOn', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'dealValue', 'vatAmount', 'discountAmount', 'sourceContainerId', 'additionalInfo');
     	foreach ($unsetFields as $fld){
     		unset($proformaRec->{$fld});
     	}
@@ -273,7 +266,6 @@ class sales_Invoices extends deals_InvoiceMaster
     	if($form->rec->dpAmount){
     		$form->rec->dpAmount = abs($form->rec->dpAmount);
     	}
-    	$form->rec->additionalInfo .= (($form->rec->additionalInfo) ? ' ' : '') . tr("По проформа|* #") . $handle;
     }
     
     
@@ -284,11 +276,15 @@ class sales_Invoices extends deals_InvoiceMaster
     {
     	$form = &$data->form;
     	
+    	$defInfo = "";
+    	
     	if($form->rec->sourceContainerId){
     		$Source = doc_Containers::getDocument($form->rec->sourceContainerId);
     		if($Source->isInstanceOf('sales_Proformas')){
     			if($proformaRec = $Source->fetch()){
     				$mvc->prepareFromProforma($proformaRec, $form);
+    				$handle = sales_Proformas::getHandle($Source->that);
+    				$defInfo .= (($defInfo) ? ' ' : '') . tr("По проформа|* #") . $handle . "\n";
     			}
     		}
     	}
@@ -311,7 +307,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	
     	if($data->aggregateInfo){
     		if($accId = $data->aggregateInfo->get('bankAccountId')){
-    			$form->rec->accountId = bank_OwnAccounts::fetchField("#bankAccountId = {$accId}", 'id');
+    			$form->setDefault('accountId', bank_OwnAccounts::fetchField("#bankAccountId = {$accId}", 'id'));
     		}
     	}
     	 
@@ -330,13 +326,12 @@ class sales_Invoices extends deals_InvoiceMaster
     	$firstDoc = doc_Threads::getFirstDocument($form->rec->threadId);
     	$firstRec = $firstDoc->rec();
     	 
-    	$defInfo = "";
     	$tLang = doc_TplManager::fetchField($form->rec->template, 'lang');
     	core_Lg::push($tLang);
     	
     	$showSale = core_Packs::getConfigValue('sales', 'SALE_INVOICES_SHOW_DEAL');
     	
-    	if($showSale == 'yes'){
+    	if($showSale == 'yes' && empty($form->rec->sourceContainerId)){
     		// Ако продажбата приключва други продажби също ги попълва в забележката
     		if($firstRec->closedDocuments){
     			$docs = keylist::toArray($firstRec->closedDocuments);
@@ -380,6 +375,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	
     	// Задаваме дефолтния текст
     	$form->setDefault('additionalInfo', $defInfo);
+    	
     }
     
     
@@ -388,7 +384,20 @@ class sales_Invoices extends deals_InvoiceMaster
      */
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
+    	$rec = $form->rec;
     	parent::inputInvoiceForm($mvc, $form);
+    	
+    	if($form->isSubmitted()){
+    		if($rec->type != 'dc_note' && empty($rec->accountId)){
+    			if($paymentMethodId = doc_Threads::getFirstDocument($rec->threadId)->fetchField('paymentMethodId')){
+    				$paymentPlan = cond_PaymentMethods::fetch($paymentMethodId);
+    				
+    				if(!empty($paymentPlan->timeBalancePayment) || $paymentPlan->type == 'bank' || $rec->paymentType == 'bank'){
+    					$form->setWarning('accountId', "Сигурни ли сте, че не е нужно да се посочи и банкова сметка|*?");
+    				}
+    			}
+    		}
+    	}
 	}
     
     
@@ -519,6 +528,7 @@ class sales_Invoices extends deals_InvoiceMaster
     			$Varchar = cls::get('type_Varchar');
     			$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
     			
+    			$row->accountId = cls::get('iban_Type')->toVerbal($ownAcc->iban);
     			$row->bank = $Varchar->toVerbal($ownAcc->bank);
     			core_Lg::push($rec->tplLang);
     			$row->bank = transliterate(tr($row->bank));
@@ -536,7 +546,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	}
     	
     	if(empty($rec->paymentType)){
-    		$pType = ($rec->autoPaymentType == 'factoring') ? 'bank' : $pType;
+    		$pType = ($rec->autoPaymentType == 'factoring') ? 'bank' : $rec->autoPaymentType;
     		$rec->paymentType = $pType;
     		$makeHint = TRUE;
     	}
@@ -849,6 +859,30 @@ class sales_Invoices extends deals_InvoiceMaster
    			);
    		}
    	}
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Manager $mvc
+     * @param string|NULL $res
+     * @param stdObject $rec
+     */
+    public function on_AfterGetBtnErrStr($mvc, &$res, $rec)
+    {
+        if (empty($rec->number) && $rec->state != 'active' && $mvc->haveRightFor('conto', $rec)) {
+            
+            if ($rec->numlimit && $rec->date) {
+                $newDate = $mvc->getNewestInvoiceDate($rec->numlimit);
+                
+                if ($newDate && ($newDate > $rec->date)) {
+                    $res = 'Не може да се запише фактура с дата по-малка от последната активна фактура в диапазона|* (' .
+                                    dt::mysql2verbal($newDate, 'd.m.y') .
+                                    ')';
+                }
+            }
+        }
+    }
    	
    	
    	/**

@@ -497,7 +497,10 @@ class doc_Containers extends core_Manager
             	if($row->document) {
                     Debug::log("+++ Get from Cache $rec->id");
                 } else {
+                    Mode::push('saveObjectsToCid', $rec->id);
             		$data = $document->prepareDocument();
+            		doc_UsedInDocs::addToChecked($rec->id);
+            		Mode::pop('saveObjectsToCid');
                     $row->ROW_ATTR['onMouseUp'] = "saveSelectedTextToSession('" . $document->getHandle() . "', 'onlyHandle');";
                     
                     // Добавяме линк за скриване на документа
@@ -977,8 +980,7 @@ class doc_Containers extends core_Manager
         
         // id на текущия потребител
         $currUserId = core_Users::getCurrent();
-        $haveDebug = haveRole('debug', $currUserId);
-            
+        
         // Ако заглавието на нишката не е определяна преди
         if (!$threadTitleArr[$rec->threadId]) {
             
@@ -999,7 +1001,7 @@ class doc_Containers extends core_Manager
             if ($userId < 1) continue; 
             
             // Ако текущия потребител няма debug роля, да не получава нотификация за своите действия
-            if (!$haveDebug && ($currUserId == $userId)) continue;
+            if ($currUserId == $userId) continue;
             
             // Ако потребителя, вече е бил нотифициран
             if ($notifiedUsersArr[$userId]) continue;

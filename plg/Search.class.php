@@ -197,7 +197,9 @@ class plg_Search extends core_Plugin
         if(!$minLenFTS) {
             $minLenFTS = 4;
         }
-
+        
+        $wCacheArr = array();
+        
         if ($words = static::parseQuery($search)) {
             
             usort($words, 'plg_Search::sortLength');
@@ -205,6 +207,10 @@ class plg_Search extends core_Plugin
             foreach($words as $w) {
                 
                 $w = trim($w);
+                
+                // Предпазване от търсене на повтарящи се думи
+                if (isset($wCacheArr[$w])) continue;
+                $wCacheArr[$w] = $w;
                 
                 if(!$w) continue;
                 
@@ -257,6 +263,10 @@ class plg_Search extends core_Plugin
                 $w = trim(static::normalizeText($w, array('*')));
                 $minWordLen = strlen($w);
                 
+                // Ако търсената дума е празен интервал
+                $wTrim = trim($w);
+                if (!strlen($wTrim)) continue;
+                
                 if(strpos($w, ' ')) {
                     $mode = '"';
                     $wArr = explode(' ', $w);
@@ -288,7 +298,7 @@ class plg_Search extends core_Plugin
                             $query->where("match(#{$field}) AGAINST('\"{$w}\"' IN BOOLEAN MODE)");
                         }
                         if($mode == '-') {
-                            $query->where("LOCATE('" . substr($w, 1) . "', #{$field}) = 0");
+                            $query->where("LOCATE('{$w}', #{$field}) = 0");
                         }
                     }
                 }

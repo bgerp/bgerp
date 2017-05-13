@@ -140,20 +140,17 @@ class acc_plg_Contable extends core_Plugin
     {
         $rec = &$data->rec;
         
+        $error = $mvc->getBtnErrStr($rec);
+        $error = $error ? ",error={$error}" : '';
+        
         if(haveRole('debug')) {
-            $data->toolbar->addBtn('Транзакция', array($mvc, 'getTransaction', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг информация,row=2');
+            $data->toolbar->addBtn('Транзакция', array($mvc, 'getTransaction', $rec->id), "ef_icon=img/16/bug.png,title=Дебъг информация,row=2{$error}");
         }
         
         $row = 1;
         if ($mvc->haveRightFor('conto', $rec)) {
-        	unset($error);
         	$row = 2;
         	
-            // Проверка на счетоводния период, ако има грешка я показваме
-            if(!self::checkPeriod($mvc->getValiorValue($rec), $error)){
-                $error = ",error={$error}";
-            }
-            
             if($rec->isContable == 'activate'){
             	$caption = 'Активиране';
             	$action = 'активиран';
@@ -170,9 +167,9 @@ class acc_plg_Contable extends core_Plugin
         // Бутон за заявка
         if($mvc->haveRightFor('pending', $rec)){
         	if($rec->state != 'pending'){
-        		$data->toolbar->addBtn('Заявка', array($mvc, 'changePending', $rec->id), "id=btnRequest,warning=Наистина ли желаете документът да стане заявка?,row={$row}", 'ef_icon = img/16/tick-circle-frame.png,title=Превръщане на документа в заявка');
+        		$data->toolbar->addBtn('Заявка', array($mvc, 'changePending', $rec->id), "id=btnRequest,warning=Наистина ли желаете документът да стане заявка?,row={$row}{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Превръщане на документа в заявка');
         	} else{
-        		$data->toolbar->addBtn('Чернова', array($mvc, 'changePending', $rec->id), "id=btnDraft,warning=Наистина ли желаете да върнете възможността за редакция?", 'ef_icon = img/16/arrow-undo.png,title=Връщане на възможността за редакция');
+        		$data->toolbar->addBtn('Чернова', array($mvc, 'changePending', $rec->id), "id=btnDraft,warning=Наистина ли желаете да върнете възможността за редакция?{$error}", 'ef_icon = img/16/arrow-undo.png,title=Връщане на възможността за редакция');
         	}
         }
         
@@ -184,7 +181,7 @@ class acc_plg_Contable extends core_Plugin
                 'docType' => $mvc->getClassId(),
                 'ret_url' => TRUE
             );
-            $data->toolbar->addBtn('Сторно', $rejectUrl, 'id=revert,warning=Наистина ли желаете документът да бъде сторниран?', 'ef_icon = img/16/red-back.png,title=Сторниране на документа, row=2');
+            $data->toolbar->addBtn('Сторно', $rejectUrl, "id=revert,warning=Наистина ли желаете документът да бъде сторниран?{$error}", 'ef_icon = img/16/red-back.png,title=Сторниране на документа, row=2');
         } else {
         	
         	// Ако потребителя може да създава коригиращ документ, слагаме бутон
@@ -196,7 +193,7 @@ class acc_plg_Contable extends core_Plugin
         				'docId' => $rec->id,
         				'ret_url' => TRUE
         		);
-        		$data->toolbar->addBtn('Корекция||Correct', $correctionUrl, "id=btnCorrection-{$rec->id},class=btn-correction,warning=Наистина ли желаете да коригирате документа?,title=Създаване на обратен мемориален ордер,ef_icon=img/16/page_red.png,row=2");
+        		$data->toolbar->addBtn('Корекция||Correct', $correctionUrl, "id=btnCorrection-{$rec->id},class=btn-correction,warning=Наистина ли желаете да коригирате документа?{$error},title=Създаване на обратен мемориален ордер,ef_icon=img/16/page_red.png,row=2");
         	}
         }
         
@@ -205,7 +202,24 @@ class acc_plg_Contable extends core_Plugin
         
         if(($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'pending' || $rec->state == 'stopped') && acc_Journal::haveRightFor('read') && $journalRec) {
             $journalUrl = array('acc_Journal', 'single', $journalRec->id, 'ret_url' => TRUE);
-            $data->toolbar->addBtn('Журнал', $journalUrl, 'row=2,ef_icon=img/16/book.png,title=Преглед на контировката на документа в журнала');
+            $data->toolbar->addBtn('Журнал', $journalUrl, "row=2,ef_icon=img/16/book.png,title=Преглед на контировката на документа в журнала{$error}");
+        }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Manager $mvc
+     * @param string|NULL $res
+     * @param stdObject $rec
+     */
+    public function on_AfterGetBtnErrStr($mvc, &$res, $rec)
+    {
+        if ($mvc->haveRightFor('conto', $rec)) {
+            if(!self::checkPeriod($mvc->getValiorValue($rec), $error)){
+                $res = $error;
+            }
         }
     }
     
@@ -223,12 +237,12 @@ class acc_plg_Contable extends core_Plugin
         
         if($docPeriod){
             if($docPeriod->state == 'closed'){
-                $error = tr("|Не може да се контира в затворения сч. период|* \'{$docPeriod->title}\'");
+                $error = "Не може да се контира в затворения сч. период|* \'{$docPeriod->title}\'";
             } elseif($docPeriod->state == 'draft'){
-                $error = tr("|Не може да се контира в бъдещия сч. период|* \'{$docPeriod->title}\'");
+                $error = "Не може да се контира в бъдещия сч. период|* \'{$docPeriod->title}\'";
             }
         } else {
-            $error = tr("Не може да се контира в несъществуващ сч. период");
+            $error = "Не може да се контира в несъществуващ сч. период";
         }
         
         return ($error) ? FALSE : TRUE;

@@ -46,12 +46,6 @@ class findeals_ClosedDeals extends deals_ClosedDeals
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,findeals';
-    
-    
-    /**
      * Кой има право да променя?
      */
     public $canEdit = 'ceo,findeals';
@@ -66,13 +60,13 @@ class findeals_ClosedDeals extends deals_ClosedDeals
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,findealsMaster';
+	public $canList = 'ceo, findeals, acc';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,findeals';
+	public $canSingle = 'ceo, findeals, acc';
     
 	
 	/**

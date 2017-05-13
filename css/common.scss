@@ -1294,11 +1294,16 @@ a.profile {
 	background-color: rgba(210, 255, 120, 0.6);
 }
 
-.state-rejected td, .state-rejected .document th, .state-rejected .document td a , .state-rejected .document p, .state-rejected .document h3, .state-rejected .document h4,
-.state-rejected .richtext, .state-rejected .document a, .state-rejected .document span:not(.state), .state-rejected .richtext div, .state-rejected .cCode, .state-rejected .antetka,
-.state-rejected .document ul, .state-rejected .document ol, .state-rejected .document li, .state-rejected .document b, .state-rejected .document font, .state-rejected .document legend {
-    color: #999 !important;
-    text-decoration: line-through !important;
+.state-rejected {
+	td, .document th, .document td a, .document p, .document h3, .document h4,
+	.richtext, .document a, .document span:not(.state), .richtext div, .cCode, .antetka,
+	.document ul, .document ol, .document li, .document b, .document font, .document legend {
+		color: #999 !important;
+		text-decoration: line-through !important;
+	}
+	.tagColumn {
+		opacity: 0.5;
+	}
 }
 
 .single-thread .state-rejected .document .tab-top div.alphabet .tab-row .tab {
@@ -2328,7 +2333,6 @@ div.alphabet div.tab-page {
 }
 
 .narrow div.alphabet  div.tab-row {
-	width: 340px;
 	float: left;
 	padding-bottom: 5px;
 }

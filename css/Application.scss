@@ -2160,6 +2160,12 @@ table.mc-header a {
         background: none;
     }
 }
+.transparentSelect {
+	&.no-border-select {
+		border: none !important;
+		box-shadow: none !important;
+	}
+}
 
 @-moz-document url-prefix(){
 	.portal-select {
@@ -4895,7 +4901,8 @@ body.narrow {
 		margin: 0px !important;
 	}
 	.document{
-        width: 100%;
+        min-width: 837px !important;
+		width: 100%;
 		max-width: 1200px;
 		padding: 0px !important;
 	}

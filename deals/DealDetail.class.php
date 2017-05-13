@@ -320,19 +320,21 @@ abstract class deals_DealDetail extends doc_Detail
     		if (!isset($rec->packPrice)) {
     			$Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
     			
-    			$listId = ($masterRec->priceListId) ? $masterRec->priceListId : NULL;
-    			$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat, $listId);
-    			
-    			if (empty($policyInfo->price) && empty($pRec)) {
-    				$form->setError('packPrice', 'Продуктът няма цена в избраната ценова политика');
-    			} else {
+    			if($rec->productId){
+    				$listId = ($masterRec->priceListId) ? $masterRec->priceListId : NULL;
+    				$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat, $listId);
     				 
-    				// Ако се обновява запис се взима цената от него, ако не от политиката
-    				$price = $policyInfo->price;
-    				if($policyInfo->discount && !isset($rec->discount)){
-    					$rec->discount = $policyInfo->discount;
+    				if (empty($policyInfo->price) && empty($pRec)) {
+    					$form->setError('packPrice', 'Продуктът няма цена в избраната ценова политика');
+    				} else {
+    						
+    					// Ако се обновява запис се взима цената от него, ако не от политиката
+    					$price = $policyInfo->price;
+    					if($policyInfo->discount && !isset($rec->discount)){
+    						$rec->discount = $policyInfo->discount;
+    					}
+    					$rec->autoPrice = TRUE;
     				}
-    				$rec->autoPrice = TRUE;
     			}
     		} else {
     			$price = $rec->packPrice / $rec->quantityInPack;

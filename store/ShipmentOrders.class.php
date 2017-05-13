@@ -183,6 +183,18 @@ class store_ShipmentOrders extends store_DocumentMaster
     
     
     /**
+     * Да се показва антетка
+     */
+    public $showLetterHead = TRUE;
+    
+    
+    /**
+     * Показва броя на записите в лога за съответното действие в документа
+     */
+    public $showLogTimeInHead = 'Документът се връща в чернова=3';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -219,17 +231,20 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     public static function on_AfterRenderSingle($mvc, $tpl, $data)
     {
-    	$tpl->append(sbf('img/16/plus.png', "'"), 'iconPlus');
+    	$tpl->append(sbf('img/16/toggle1.png', "'"), 'iconPlus');
     	if($data->rec->country){
     		$deliveryAddress = "{$data->row->country} <br/> {$data->row->pCode} {$data->row->place} <br /> {$data->row->address}";
+			$inlineDeliveryAddress = "{$data->row->country},  {$data->row->pCode} {$data->row->place}, {$data->row->address}";
     	} else {
     		$deliveryAddress = $data->row->contragentAddress;
     	}
-    	
+
     	core_Lg::push($data->rec->tplLang);
     	$deliveryAddress = core_Lg::transliterate($deliveryAddress);
     	
     	$tpl->replace($deliveryAddress, 'deliveryAddress');
+		$tpl->replace($inlineDeliveryAddress, 'inlineDeliveryAddress');
+
     	core_Lg::pop();
     }
     
@@ -270,6 +285,16 @@ class store_ShipmentOrders extends store_DocumentMaster
     	if(isset($rec->createdBy)){
     		$row->username = core_Users::fetchField($rec->createdBy, "names");
     		$row->username = core_Lg::transliterate($row->username);
+    	}
+    	
+    	if(isset($fields['-single'])){
+    		$logisticData = $mvc->getLogisticData($rec);
+    		$logisticData['toCountry'] = ($rec->tplLang == 'bg') ? drdata_Countries::fetchField("#commonName = '{$logisticData['toCountry']}'", 'commonNameBg') : $logisticData['toCountry'];
+    		$logisticData['toPCode'] = core_Lg::transliterate($logisticData['toPCode']);
+    		$logisticData['toPlace'] = core_Lg::transliterate($logisticData['toPlace']);
+    		$logisticData['toAddress'] = core_Lg::transliterate($logisticData['toAddress']);
+    		$row->inlineDeliveryAddress = "{$logisticData['toCountry']}, {$logisticData['toPCode']} {$logisticData['toPlace']}, {$logisticData['toAddress']}";
+			$row->toCompany = $logisticData['toCompany'];
     	}
     	
     	core_Lg::pop();
@@ -366,14 +391,14 @@ class store_ShipmentOrders extends store_DocumentMaster
     	$tplArr[] = array('name' => 'Експедиционно нареждане с цени', 
     					  'content' => 'store/tpl/SingleLayoutShipmentOrderPrices.shtml', 'lang' => 'bg', 'narrowContent' => 'store/tpl/SingleLayoutShipmentOrderPricesNarrow.shtml',
     					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,packPrice,discount,amount'));
-    	$tplArr[] = array('name' => 'Packaging list', 
-    					  'content' => 'store/tpl/SingleLayoutPackagingList.shtml', 'lang' => 'en', 'oldName' => 'Packing list', 'narrowContent' => 'store/tpl/SingleLayoutPackagingListNarrow.shtml',
+    	$tplArr[] = array('name' => 'Packing list',
+    					  'content' => 'store/tpl/SingleLayoutPackagingList.shtml', 'lang' => 'en', 'oldName' => 'Packaging list', 'narrowContent' => 'store/tpl/SingleLayoutPackagingListNarrow.shtml',
     					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
     	$tplArr[] = array('name' => 'Експедиционно нареждане с декларация',
     					  'content' => 'store/tpl/SingleLayoutShipmentOrderDec.shtml', 'lang' => 'bg', 'narrowContent' => 'store/tpl/SingleLayoutShipmentOrderDecNarrow.shtml',
-    					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'packagingId,packQuantity,weight,volume'));
-    	$tplArr[] = array('name' => 'Packaging list with Declaration',
-    					  'content' => 'store/tpl/SingleLayoutPackagingListDec.shtml', 'lang' => 'en', 'oldName' => 'Packing list with Declaration', 'narrowContent' => 'store/tpl/SingleLayoutPackagingListDecNarrow.shtml',
+    					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
+    	$tplArr[] = array('name' => 'Packing list with Declaration',
+    					  'content' => 'store/tpl/SingleLayoutPackagingListDec.shtml', 'lang' => 'en', 'oldName' => 'Packaging list with Declaration', 'narrowContent' => 'store/tpl/SingleLayoutPackagingListDecNarrow.shtml',
     					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
     	
     	$res .= doc_TplManager::addOnce($this, $tplArr);
@@ -595,7 +620,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     			$res['SPEDITOR'] = crm_Companies::getVerbal($forwarderId, 'name');
     		}
     	}
-    	$res['DATE'] = dt::mysql2verbal(dt::today(), 'd/m/Y');
+    	$res['DATE'] = dt::mysql2verbal(dt::today(), 'd/m/y');
     	
     	return $res;
     }

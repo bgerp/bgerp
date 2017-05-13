@@ -175,6 +175,18 @@ class store_Receipts extends store_DocumentMaster
     public static $defaultStrategies = array(
     		'template' => 'lastDocUser|lastDoc|LastDocSameCuntry',
     );
+	
+	
+    /**
+     * Да се показва антетка
+     */
+    public $showLetterHead = TRUE;
+    
+    
+    /**
+     * Показва броя на записите в лога за съответното действие в документа
+     */
+    public $showLogTimeInHead = 'Документът се връща в чернова=3';
     
     
     /**

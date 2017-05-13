@@ -359,8 +359,9 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->click('Добавяне на нова наша банкова сметка');
         //$browser->setValue('iban', '#BG33UNCR70001519562303');
         $browser->setValue('iban', '#BG22UNCR70001519562302');
-        $browser->setValue('currencyId', '1');
-        $browser->setValue('operators_13_1', '13_1');
+        $browser->setValue('currencyId', 'EUR');
+        $browser->setValue('Bgerp', True);
+        //$browser->setValue('operators_13_1', '13_1');
         $browser->press('Запис');
         //if (strpos($browser->getText(),'Непопълнено задължително поле')){
         //    $browser->press('Отказ');
@@ -1254,9 +1255,7 @@ class unit_MinkPbgERP extends core_Manager {
         }
         //return $browser->getHtml();
     }
-    
-   
-    
+      
     /**
      * 2. Нова продажба на съществуваща фирма с папка (DDP)
      */
@@ -1287,7 +1286,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('deliveryTime[d]', date('d-m-Y', $enddate));
         $browser->setValue('deliveryTime[t]', '10:30');
         $browser->setValue('reff', 'MinkP');
-        $browser->setValue('bankAccountId', '');
+        $browser->setValue('bankAccountId', '#BG11CREX92603114548401');
         $browser->setValue('note', 'MinkPbgErpCreateSale');
         $browser->setValue('deliveryTermIdExtended', 'DDP');
         $browser->setValue('deliveryLocationId', '1');
@@ -1416,7 +1415,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('deliveryTime[d]', date('d-m-Y', $enddate));
         $browser->setValue('deliveryTime[t]', '10:30');
         $browser->setValue('reff', 'MinkP');
-        $browser->setValue('bankAccountId', '');
+        $browser->setValue('bankAccountId', '#BG22UNCR70001519562302');
         $browser->setValue('note', 'MinkPbgErpCreateSaleC');
         //$browser->setValue('pricesAtDate', date('d-m-Y'));
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
@@ -1492,7 +1491,7 @@ class unit_MinkPbgERP extends core_Manager {
     
         // ПБД
         $browser->press('ПБД');
-        $browser->setValue('ownAccount', '#BG11CREX92603114548401');
+        //$browser->setValue('ownAccount', '#BG11CREX92603114548401');
         $browser->press('Чернова');
         $browser->press('Контиране');
     
@@ -1685,7 +1684,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('conditionId', 'Начин на плащане (4)');
         $browser->setValue('value', '16');
         $browser->press('Запис');
-        if (strpos($browser->getText(),"100% до 1 мес. след датата на фактурата")){
+        if (strpos($browser->getText(),"До 1 месец след фактуриране")){
         } else {
             return $this->reportErr('Грешка при създаване на търговско условие', 'warning');
         }

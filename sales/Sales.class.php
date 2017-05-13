@@ -93,13 +93,13 @@ class sales_Sales extends deals_DealMaster
 	/**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,sales';
+	public $canList = 'ceo,sales,acc';
 	
 	
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,sales';
+	public $canSingle = 'ceo,sales,acc';
     
 
 	/**
@@ -768,7 +768,7 @@ class sales_Sales extends deals_DealMaster
     	if($action == 'closewith' && isset($rec)){
     		if(sales_SalesDetails::fetch("#saleId = {$rec->id}")){
     			$res = 'no_one';
-    		} elseif(!haveRole('sales', $userId)){
+    		} elseif(!haveRole('sales,ceo', $userId)){
     			$res = 'no_one';
     		}
     	}
@@ -1208,5 +1208,14 @@ class sales_Sales extends deals_DealMaster
     	}
     	
     	return $products;
+    }
+    
+    
+    /**
+     * След промяна в журнала със свързаното перо
+     */
+    public static function on_AfterJournalItemAffect($mvc, $rec, $item)
+    {
+    	core_Cache::remove('sales_reports_ShipmentReadiness', "c{$rec->containerId}");
     }
 }

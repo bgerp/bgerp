@@ -37,7 +37,7 @@ class escpos_driver_P300 extends escpos_driver_Ddp250
         
         // Това е за кодово таблица 17
         // За 23 - cp1251
-        $dataArr['printerPrintTaggedTextEncoding'] = 'cp866';
+//         $dataArr['printerPrintTaggedTextEncoding'] = 'cp866';
         
         $tpl->placeArray($dataArr);
         
@@ -56,7 +56,7 @@ class escpos_driver_P300 extends escpos_driver_Ddp250
      */
     public function prepareTextSettings($res)
     {
-        $res = chr(27) . 't' . chr(17) . $res;
+        $res = chr(27) . 't' . chr(23) . $res;
         
         return $res;
     }

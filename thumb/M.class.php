@@ -108,6 +108,7 @@ class thumb_M extends core_Mvc
     {   
         $out = array();
         $status = 0;
+        $oPath = $path;
         $path = escapeshellarg($path);
         $cmd = constant(strtoupper($optimizer) . '_CMD');
         $cmd = str_replace('[#path#]', $path, $cmd);
@@ -117,12 +118,20 @@ class thumb_M extends core_Mvc
         if ($hashArr[$cmdHash]) return ;
         $hashArr[$cmdHash] = $cmd;
         
-        exec($cmd, $out, $status);
-        if($status > 0) {
-            $err = implode(' | ', $out);
-            log_System::add('thumb_Img', 'Грешка: ' . $cmd  . ' ' . $err, NULL, 'warning');
+        if (core_Locks::get($cmd, 1, 1)) {
+            exec($cmd, $out, $status);
+            if($status > 0) {
+                $err = implode(' | ', $out);
+                log_System::add('thumb_Img', 'Грешка: ' . $cmd  . ' ' . $err, NULL, 'warning');
+            	
+                wp($this, is_file($oPath), is_readable($oPath), $cmd, $out, $status);
+            } else {
+                log_System::add('thumb_Img', 'Оптимизирано: ' . $cmd , NULL, 'debug');
+            }
+            
+            core_Locks::release($cmd);
         } else {
-            log_System::add('thumb_Img', 'Оптимизирано: ' . $cmd , NULL, 'debug');
+            log_System::add('thumb_Img', 'Прескочено оптимизиране, защото е било заключено: ' . $cmd , NULL, 'debug');
         }
     }
 

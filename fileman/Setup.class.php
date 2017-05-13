@@ -66,6 +66,12 @@ defIfNot('FILEINFO_MAX_ARCHIVE_LEN', 104857600);
 
 
 /**
+ * Максимален брой на страниците при показване на превю
+ */
+defIfNot('FILEINFO_MAX_PREVIEW_PAGES', 20);
+
+
+/**
  * Пътя до gs файла
  */
 defIfNot('FILEMAN_GHOSTSCRIPT_PATH', 'gs');
@@ -160,6 +166,8 @@ class fileman_Setup extends core_ProtoSetup
        'FILEINFO_MIN_FILE_LEN_BARCODE'   => array ('fileman_FileSize', 'caption=Размер на файловете|*&comma;| в който ще се търси баркод->Минимален, suggestions=5KB|15 KB|30 KB|50 KB'),
 
        'FILEINFO_MAX_FILE_LEN_BARCODE'   => array ('fileman_FileSize', 'caption=Размер на файловете|*&comma;| в който ще се търси баркод->Максимален, suggestions=500 KB|1 MB|2 MB|3 MB'),
+       
+       'FILEINFO_MAX_PREVIEW_PAGES'   => array ('int(min=1)', 'caption=Максимален брой на страниците|*&comma;| които ще се показват в изгледа->Брой'),
 
        'FILEMAN_WEBDRV_ERROR_CLEAN'   => array ('time(suggestions=1 мин.|5 мин.|10 мин.|30 мин.|1 час)', 'caption=Време за живот на грешка при интексиране на файл->Време'), 
 

@@ -66,7 +66,7 @@ class sales_Proformas extends deals_InvoiceMaster
      * 
      * @see plg_Clone
      */
-    public $cloneDetails = 'sales_ProformaDetails' ;
+    public $cloneDetails = 'sales_ProformaDetails';
     
     
     /**
@@ -96,7 +96,7 @@ class sales_Proformas extends deals_InvoiceMaster
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,sales';
+	public $canList = 'ceo,sales,acc';
 
 
 	/**
@@ -188,7 +188,7 @@ class sales_Proformas extends deals_InvoiceMaster
     	parent::setInvoiceFields($this);
     	 
     	$this->FLD('saleId', 'key(mvc=sales_Sales)', 'caption=Продажба,input=none');
-    	$this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка');
+    	$this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=title, allowEmpty)', 'caption=Плащане->Банкова с-ка');
     	$this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 'caption=Статус, input=none');
     	$this->FLD('number', 'int', 'caption=Номер, export=Csv, after=place');
     
@@ -230,7 +230,7 @@ class sales_Proformas extends deals_InvoiceMaster
     	 
     	if($data->aggregateInfo){
     		if($accId = $data->aggregateInfo->get('bankAccountId')){
-    			$form->rec->accountId = bank_OwnAccounts::fetchField("#bankAccountId = {$accId}", 'id');
+    			$form->setDefault('accountId', bank_OwnAccounts::fetchField("#bankAccountId = {$accId}", 'id'));
     		}
     	}
     	
@@ -315,6 +315,7 @@ class sales_Proformas extends deals_InvoiceMaster
     		if(isset($rec->accountId)){
     			$Varchar = cls::get('type_Varchar');
     			$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
+    			$row->accountId = cls::get('iban_Type')->toVerbal($ownAcc->iban);
     			
     			core_Lg::push($rec->tplLang);
     			$row->bank = transliterate(tr($Varchar->toVerbal($ownAcc->bank)));

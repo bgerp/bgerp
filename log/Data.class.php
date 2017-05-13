@@ -241,10 +241,62 @@ class log_Data extends core_Manager
      * @param object|string $className
      * @param integer $objectId
      * @param NULL|string $type
+     * @param NULL|string $act
      * 
      * @return NULL|integer
      */
-    public static function getObjectCnt($className, $objectId, $type = NULL)
+    public static function getObjectCnt($className, $objectId, $type = NULL, $act = NULL)
+    {
+        $query = self::getObjetQuery($className, $objectId, $type, $act);
+        
+        $query->show('id');
+        
+        return $query->count();
+    }
+    
+    
+    /**
+     * Връща записите за съответния обект
+     * 
+     * @param object|string $className
+     * @param integer $objectId
+     * @param NULL|string $type
+     * @param NULL|string $act
+     * 
+     * @return array
+     */
+    public static function getObjectRecs($className, $objectId, $type = NULL, $act = NULL, $limit = NULL, $order = 'DESC')
+    {
+        $query = self::getObjetQuery($className, $objectId, $type, $act);
+        
+        if ($limit) {
+            $query->limit($limit);
+        }
+        
+        if ($order) {
+            $query->orderBy('time', $order);
+        }
+        
+        $resArr = array();
+        while ($rec = $query->fetch()) {
+            $resArr[$rec->id] = $rec;
+        }
+	
+        return $resArr;
+    }
+    
+    
+    /**
+     * Връща заявка за съответния обект
+     * 
+     * @param object|string $className
+     * @param integer $objectId
+     * @param NULL|string $type
+     * @param NULL|string $act
+     *
+     * @return core_Query
+     */
+    protected static function getObjetQuery($className, $objectId, $type = NULL, $act = NULL)
     {
         if (is_object($className)) {
             $className = cls::getClassName($className);
@@ -262,7 +314,12 @@ class log_Data extends core_Manager
             $query->where(array("#type = '[#1#]'", $type));
         }
         
-        return $query->count();
+        if (isset($act)) {
+            $actCrc = log_Actions::getActionCrc($act);
+            $query->where(array("#actionCrc = '[#1#]'", $actCrc));
+        }
+        
+        return $query;
     }
     
     
@@ -525,7 +582,7 @@ class log_Data extends core_Manager
         
         if (is_null(Request::get('class'))) {
             // По - подразбиране да се търси месец назад
-            $data->listFilter->setDefault('from', dt::subtractSecs(core_DateTime::SECONDS_IN_MONTH));
+            $data->listFilter->setDefault('from', dt::addDays(-1, NULL, FALSE));
         }
         
         $data->listFilter->showFields = 'users, message, class, object, ip, from, to';

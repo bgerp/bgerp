@@ -77,7 +77,7 @@ class findeals_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(2.3, 'Финанси', 'Сделки', 'findeals_Deals', 'default', "findealsMaster, ceo"),
+            array(2.3, 'Финанси', 'Сделки', 'findeals_Deals', 'default', "findeals, ceo, acc"),
         );
     
     

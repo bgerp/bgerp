@@ -62,12 +62,6 @@ class purchase_Invoices extends deals_InvoiceMaster
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,invoicer';
-    
-    
-    /**
      * Кой има право да променя?
      */
     public $canEdit = 'ceo,invoicer';
@@ -76,13 +70,13 @@ class purchase_Invoices extends deals_InvoiceMaster
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,purchase';
+	public $canList = 'ceo,purchase,acc';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,invoicer';
+	public $canSingle = 'ceo,purchase,acc';
 	
 	
     /**

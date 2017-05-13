@@ -459,7 +459,7 @@ abstract class bank_Document extends deals_PaymentDocument
         
         if(empty($form->rec->id) && $form->cmd != 'refresh'){
         	$form->setDefault('ownAccount', bank_OwnAccounts::getCurrent('id', FALSE));
-        	$form->setDefault('ownAccoun', $bankId);
+        	$form->setDefault('ownAccount', $bankId);
         }
         
         if(isset($form->rec->ownAccount)){

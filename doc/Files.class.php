@@ -49,7 +49,7 @@ class doc_Files extends core_Manager
     /**
      * Полетата, които ще се показват
      */
-    var $listFields = 'fileHnd=Файл, threadId=Документ, date=Дата';
+    var $listFields = 'fileHnd=Файл, threadId=Документ, date=Час';
     
     
     /**
@@ -323,7 +323,10 @@ class doc_Files extends core_Manager
         if (haveRole('debug')) {
 //         if (haveRole('admin, manager, ceo')) {
             $Users = cls::get('type_Users', array('params' => array('rolesForTeams' => 'admin, ceo, manager', 'rolesForAll' => 'ceo')));
-            $suggArr += $Users->prepareOptions();
+            $uArr = $Users->prepareOptions();
+            if (is_array($uArr) && !empty($uArr)) {
+                $suggArr += $uArr;
+            }
         }
         
         // Добавяме поле във формата за търсене
