@@ -179,8 +179,11 @@ class sales_reports_PurBomsRep extends frame2_driver_Proto
 	            // артикула да е произведим
 	            if($productRec->isPublic == 'no' && $productRec->canManifacture == 'yes'){    
 	                $jobId = planning_Jobs::fetchField("#productId = {$pId} AND #saleId = {$sRec->id}");
-	              
-	                if (!$jobId){ 	   
+	                if(isset($jobId)) {
+	                   $jobState = planning_Jobs::fetchField("#id = {$jobId}",'state');
+	                }
+
+	                if (!$jobId || $jobState == 'draft'){ 	   
 	                    $d  = (object) array ("containerId" => $sRec->containerId,
 	                                          "pur" => $sRec->id,
 	                                          "purDate" => $sRec->valior, 
