@@ -3543,7 +3543,7 @@ class doc_DocumentPlg extends core_Plugin
                     }
                     
                     if ($lastFromStr) {
-                        $resArr['_lastFrom'] = array('name' => tr('Последни движения'), 'val' => $lastFromStr);
+                        $resArr['_lastFrom'] = array('name' => tr('Последни промени на състоянието'), 'val' => $lastFromStr);
                     }
                 }
             }
