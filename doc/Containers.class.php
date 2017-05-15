@@ -944,8 +944,6 @@ class doc_Containers extends core_Manager
             
             $pSettingsKey = crm_Profiles::getSettingsKey();
             
-            $checkNotifyArr = array();
-            
             // Ако е зададено в персоналните настройки на потребителя за всички папки
             self::prepareUsersArrForNotifications($usersArr, $pSettingsKey, 'DOC_NOTIFY_FOR_NEW_DOC', $rec->threadId);
             
