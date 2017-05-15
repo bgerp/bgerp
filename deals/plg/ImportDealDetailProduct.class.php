@@ -310,7 +310,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 		
 		// Съответстващи колонки на полета
 		$form->FLD('codecol', 'int', 'caption=Съответствие в данните->Код,unit=колона,mandatory');
-		$form->FLD('quantitycol', 'int', 'caption=Съответствие в данните->К-во,unit=колона,mandatory');
+		$form->FLD('quantitycol', 'int', 'caption=Съответствие в данните->Количество,unit=колона,mandatory');
 		$form->FLD('packcol', 'int', 'caption=Съответствие в данните->Мярка/Опаковка,unit=колона');
 		
 		$fields = array('codecol', 'quantitycol', 'packcol');
