@@ -427,15 +427,29 @@ class cat_UoM extends core_Manager
      */
     public static function fetchBySinonim($unit)
     {
-    	$unitLat = strtolower(str::utf2ascii($unit));
-    	
-    	$query = static::getQuery();
-    	$query->likeKeylist('sinonims', "|{$unitLat}|");
-    	$query->orWhere(array("LOWER(#sysId) = LOWER('[#1#]')", $unitLat));
-        $query->orWhere(array("LOWER(#name) = LOWER('[#1#]')", $unit));
-        $query->orWhere(array("LOWER(#shortName) = LOWER('[#1#]')", $unit));
+        $unit = trim(mb_strtolower($unit));
 
-    	return $query->fetch();
+        $rec = self::fetch(array("LOWER(#sysId) = LOWER('[#1#]')", $unit));
+
+        if(!$rec) {
+            $rec = self::fetch(array("LOWER(#name) = LOWER('[#1#]')", $unit));
+        }
+
+        if(!$rec) {
+            self::fetch(array("LOWER(#shortName) = LOWER('[#1#]')", $unit));
+        }
+        
+        if(!$rec) {
+            $rec = self::fetch(array("LOWER(CONCAT('|', #name, '|', #shortName)) LIKE '%|[#1#]|%'", $unit));
+        }
+
+        if(!$rec) {
+            $unit = str::utf2ascii($unit);
+            $rec = self::fetch(array("LOWER(CONCAT('|', #sysId, #sinonims)) LIKE '%|[#1#]|%'", $unit));
+        }
+    	
+
+    	return $rec;
     }
     
     

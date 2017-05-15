@@ -880,7 +880,7 @@ class crm_Profiles extends core_Master
             }
             $mustSave = TRUE;
         }
-        
+     
 
         // Задаваме групата
         $profilesGroup = crm_Groups::fetch("#sysId = 'users'");

@@ -149,11 +149,27 @@ class rack_Pallets extends core_Manager
 
         // Дефолт за последното количество
         if($rec->productId && !$rec->quantity) {
-            $query = self::getQuery();
-            $query->orderBy('#createdOn', 'DESC');
-            $exRec = $query->fetch("#productId = {$rec->productId}");
-            if($exRec) {
-                $rec->quantity = $exRec->quantity;
+            
+            $prodRec = rack_Products::fetch($rec->productId);
+            
+            if($prodRec) {
+                $rec->quantity = cat_products_Packagings::getQuantityInPack($prodRec->productId, 'палет');
+     
+                if(!$rec->quantity) {
+                    $query = self::getQuery();
+                    $query->orderBy('#createdOn', 'DESC');
+                    $exRec = $query->fetch("#productId = {$rec->productId}");
+                    if($exRec) {
+                        $rec->quantity = $exRec->quantity;
+                    }
+                }
+                
+                $restQuantity = $prodRec->quantity - $prodRec->quantityOnPallets;
+                $rec->quantity = min($rec->quantity, $restQuantity);
+
+                if($rec->quantity <= 0) {
+                    $rec->quantity = NULL;
+                }
             }
         }
 
@@ -162,6 +178,7 @@ class rack_Pallets extends core_Manager
         if($mode == 'down') {
             $form->rec->positionTo = '';
         }
+
         if($mode) {
             $form->setReadOnly('productId');
             $form->setReadOnly('quantity');
@@ -289,8 +306,8 @@ class rack_Pallets extends core_Manager
         $data->query->where("#storeId = {$storeId}");
         $data->title = 'Палетизирани наличности в склад |*<b style="color:green">' . store_Stores::getTitleById($storeId) . "</b>";
         
-        $data->query->orderBy('#createdOn', 'DESC');
-        $data->listFilter = cls::get('core_Form');
+        
+        $data->listFilter = cls::get('core_Form', array('method' => 'GET'));
         $data->listFilter->FLD('productId', 'key(mvc=store_Products, select=productId,allowEmpty)', 'caption=Продукт');
         $data->listFilter->FLD('pos', 'varchar(10)', 'caption=Позиция', array('attr' => array('style' => 'width:5em;')));
 
@@ -304,6 +321,10 @@ class rack_Pallets extends core_Manager
         }
         if($rec->productId) {
             $data->query->where("#productId = {$rec->productId}");
+            if(!Request::get('Sort')) {
+                $data->query->orderBy("position", 'ASC');
+                $order = TRUE;
+            }
         }
 
         if(!$rec->pos) {
@@ -312,6 +333,14 @@ class rack_Pallets extends core_Manager
         }
         if($rec->pos) {
             $data->query->where(array("#position LIKE UPPER('[#1#]%')", $rec->pos));
+            if(!Request::get('Sort')) {
+                $data->query->orderBy("position", 'ASC');
+                $order = TRUE;
+            }
+        }
+
+        if(!$order) {
+            $data->query->orderBy('#createdOn', 'DESC');
         }
 
     }
@@ -402,7 +431,7 @@ class rack_Pallets extends core_Manager
             $q += $rec->quantity;
         }
         
-        rack_Products::save((object) array('id' => $productId, 'quantityOnPallets' => $q));
+        rack_Products::save((object) array('id' => $productId, 'quantityOnPallets' => $q), 'quantityOnPallets');
  
         // Премахваме кеша за този склад
         if(!$storeId) {

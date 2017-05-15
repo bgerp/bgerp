@@ -413,9 +413,48 @@ class cat_products_Packagings extends core_Detail
      */
     public static function getPack($productId, $packagingId)
     {
-        return self::fetch("#productId = '{$productId}' AND #packagingId = '{$packagingId}'");
+        return self::fetch("#productId = {$productId} AND #packagingId = {$packagingId}");
     }
     
+
+    /**
+     * Връща количеството на дадения продукт в посочената опаковка
+     */
+    public static function getQuantityInPack($productId, $pack = 'pallet')
+    { 
+        $uomRec = cat_UoM::fetchBySinonim(mb_strtolower($pack));
+ 
+        if($uomRec) {
+
+            $packRec = self::getPack($productId, $uomRec->id);
+
+            if($packRec) {
+ 
+                return $packRec->quantity;
+            }
+        }
+    }
+    
+
+    /**
+     * Връща най-голямата опаковка, която има по-малко бройки в себе си, от посоченото
+     */
+    public static function getLowerPack($productId, $quantity)
+    {
+        $bestRec = NULL;
+
+        $query = self::getQuery();
+        while($rec = $query->fetch("#productId = {$productId}")) {
+            if($rec->quantity < $quantity) {
+                if(!$bestRec || $bestRec->quantity < $rec->quantity) {
+                    $bestRec = $rec;
+                }
+            }
+        }
+
+        return $bestRec;
+    }
+
     
     /**
      * Дали в бизнес документите е използван артикула с посочената опаковка
