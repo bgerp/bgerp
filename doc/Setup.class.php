@@ -714,8 +714,8 @@ class doc_Setup extends core_ProtoSetup
     public static function addDefaultNotifyOptions()
     {
         // Вземаме конфига
-        $doc = core_Packs::getConfig('doc');
-         
+        $conf = core_Packs::getConfig('doc');
+        
         $data = array();
         
         if (!$conf->_data['DOC_NOTIFY_NEW_DOC_TYPE']) {
