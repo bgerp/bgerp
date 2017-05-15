@@ -52,7 +52,7 @@ class email_Inboxes extends core_Master
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin, email, manager';
+    var $canEdit = 'admin, email, manager, powerUser';
     
     
     /**
@@ -304,6 +304,14 @@ class email_Inboxes extends core_Master
             $accRec = $allAccounts[$data->form->rec->accountId];
             list(, $domain) = explode('@', $accRec->email);
             $data->form->setParams('email', array('placeholder' => '...@' . $domain));
+        }
+        
+        if ($data->form->rec->id) {
+            if (!haveRole('admin, manager, email')) {
+                $data->form->setReadonly('email');
+                $data->form->setReadonly('accountId');
+                $data->form->setReadonly('notifyForEmail');
+            }
         }
     }
     
