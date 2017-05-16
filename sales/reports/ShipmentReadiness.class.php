@@ -386,7 +386,6 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		// Всички чакащи и активни продажби на избраните дилъри
 		$sQuery = sales_Sales::getQuery();
 		$sQuery->where("#state = 'pending' || #state = 'active'");
-		$sQuery->where("#id=1863");
 		if(count($dealers)){
 			$sQuery->in('dealerId', $dealers);
 		}
@@ -401,7 +400,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 			}
 			
 			// Изчислява се готовноста
-			$readiness = FALSE;core_Cache::get('sales_reports_ShipmentReadiness', "c{$sRec->containerId}");
+			$readiness = core_Cache::get('sales_reports_ShipmentReadiness', "c{$sRec->containerId}");
 			if($readiness === FALSE) {
 				$readiness = self::calcSaleReadiness($sRec);
 				core_Cache::set('sales_reports_ShipmentReadiness', "c{$sRec->containerId}", $readiness, 58);
