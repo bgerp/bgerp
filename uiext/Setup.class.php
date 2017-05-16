@@ -26,7 +26,7 @@ class uiext_Setup extends core_ProtoSetup
     /**
      * Мениджър - входна точка в пакета
      */
-    //var $startCtr = 'transsrv_TransportModes';
+    var $startCtr = 'uiext_Labels';
     
     
     /**
