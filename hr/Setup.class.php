@@ -93,7 +93,7 @@ class hr_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'hr';
+    var $roles = 'hr,hrMaster';
     
     
     /**
@@ -125,7 +125,7 @@ class hr_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(2.31, 'Счетоводство', 'Персонал', 'hr_Indicators', 'default', "ceo, hr, admin"),
+            array(2.31, 'Счетоводство', 'Персонал', 'hr_Leaves', 'default', "ceo, hr, hrMaster, admin"),
         );
 
     
