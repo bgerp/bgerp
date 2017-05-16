@@ -3184,6 +3184,8 @@ class doc_DocumentPlg extends core_Plugin
         unset($nRec->modifiedOn);
         unset($nRec->modifiedBy);
         unset($nRec->brState);
+        unset($nRec->activatedBy);
+        unset($nRec->activatedOn);
         
         if (!core_Users::haveRole('partner')) {
             unset($nRec->state);
