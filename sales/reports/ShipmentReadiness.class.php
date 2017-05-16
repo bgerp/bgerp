@@ -581,7 +581,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 			}
 			
 			// Количеството е неекспедираното
-			if($ignore === TRUE){
+			if($ignore === TRUE && count($agreedProducts) != 1){
 				$quantity = 0;
 			} else {
 				$quantity = (isset($shippedProducts[$pId])) ? ($q - $shippedProducts[$pId]->quantity) : $q;
