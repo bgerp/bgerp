@@ -76,7 +76,7 @@ class hr_Leaves extends core_Master
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,hr';
+    public $canRead = 'ceo,hr,hrMaster';
     
     
     /**
@@ -94,7 +94,7 @@ class hr_Leaves extends core_Master
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,hr';
+	public $canList = 'ceo,hr,hrMaster';
 
 
 	/**
@@ -118,7 +118,7 @@ class hr_Leaves extends core_Master
     /**
      * Кой може да го активира?
      */
-    public $canActivate = 'ceo,hr';
+    public $canActivate = 'ceo,hr,hrMaster';
     
     
     /**

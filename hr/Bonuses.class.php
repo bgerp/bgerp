@@ -62,43 +62,43 @@ class hr_Bonuses extends core_Master
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,hr';
+    public $canRead = 'ceo,hrMaster';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,hr';
+    public $canEdit = 'ceo,hrMaster';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,hr';
+	public $canList = 'ceo,hrMaster';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,hr';
+	public $canSingle = 'ceo,hrMaster';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,hr';
+    public $canAdd = 'ceo,hrMaster';
     
     
     /**
      * Кой може да го види?
      */
-    public $canView = 'ceo,hr';
+    public $canView = 'ceo,hrMaster';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo,hr';
+    public $canDelete = 'ceo,hrMasters';
     
     
     /**
