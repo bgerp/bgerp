@@ -284,13 +284,15 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                 if($rec->notes){
     				deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     			}
+
                 $unit = $rec->transUnit ? $mvc->getVerbal($rec, 'transUnit') : 'Палет';
+                $unitTr = tr($unit);
+
                 if($row->info) {
                     $numbers = self::getLUs($rec->info);
                     if(!is_array($numbers)) {
                         $row->info = $numbers;
                     } elseif($bigPackCnt = count($numbers)) {
-                        $unitTr = tr($unit);
                         $row->info = "<small>" .  $unitTr . ': №' . implode(', №', $numbers) . "</small>";
                         $haveTransInfo = TRUE;
                         if(!isset($totalLU[$unitTr])) {
@@ -316,7 +318,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                 
                
                 if($bigPackInQty) {
-                    
+                   
                     $medPackRec = cat_products_Packagings::getLowerPack($rec->productId, $bigPackInQty);
 
                     if($medPackRec) {
@@ -334,9 +336,11 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                         $row->info .= "\n<br>";
                     }
                     
-                    $uom = tr(cat_UoM::fetchField($rec->packagingId, 'shortName'));
+                    $uom = tr(cat_UoM::fetchField(cat_Products::fetch($rec->productId)->measureId, 'shortName'));
                 
-                    $row->info .= self::getDistribution($bigPackName, $bigPackInQty, $bigPackCnt, $medPackName, $medPackInQty, $rec->quantity, $uom);
+                    $row->info .= self::getDistribution($bigPackName, $bigPackInQty, $bigPackCnt, $medPackName, $medPackInQty, $rec->quantity, $uom); 
+                    
+                    $haveTransInfo = TRUE;
                 }
     		}
     	}
