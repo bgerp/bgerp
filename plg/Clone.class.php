@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   plg
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -15,6 +15,12 @@ class plg_Clone extends core_Plugin
 {
     
     
+	/**
+	 * Общи полета, които да не се клонират
+	 */
+	public static $fieldsNotToClone = 'activatedOn,activatedBy,createdOn,createdBy,modifiedOn,modifiedBy,state';
+	
+	
 	/**
      * Извиква се след описанието на модела
      */
@@ -58,6 +64,8 @@ class plg_Clone extends core_Plugin
         
         // Проверяваме имали полета, които не искаме да се клонират
         $dontCloneFields = arr::make($mvc->fieldsNotToClone, TRUE);
+        $dontCloneFields1 = arr::make(self::$fieldsNotToClone, TRUE);
+        $dontCloneFields = array_merge($dontCloneFields, $dontCloneFields1);
         
         // Ако има махаме ги от $form->rec
         if(count($dontCloneFields)){
