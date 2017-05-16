@@ -386,6 +386,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		// Всички чакащи и активни продажби на избраните дилъри
 		$sQuery = sales_Sales::getQuery();
 		$sQuery->where("#state = 'pending' || #state = 'active'");
+		$sQuery->where("#id=1863");
 		if(count($dealers)){
 			$sQuery->in('dealerId', $dealers);
 		}
@@ -400,7 +401,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 			}
 			
 			// Изчислява се готовноста
-			$readiness = core_Cache::get('sales_reports_ShipmentReadiness', "c{$sRec->containerId}");
+			$readiness = FALSE;core_Cache::get('sales_reports_ShipmentReadiness', "c{$sRec->containerId}");
 			if($readiness === FALSE) {
 				$readiness = self::calcSaleReadiness($sRec);
 				core_Cache::set('sales_reports_ShipmentReadiness', "c{$sRec->containerId}", $readiness, 58);
@@ -576,12 +577,15 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 					// Ако има приключено задание
 					$q = planning_Jobs::fetchField($closedJobId, 'quantity');
 					$amount = $q * $price;
-					$ignore = TRUE;
+					
+					if(isset($shippedProducts[$pId])){
+						$ignore = TRUE;
+					}
 				}
 			}
 			
 			// Количеството е неекспедираното
-			if($ignore === TRUE && count($agreedProducts) != 1){
+			if($ignore === TRUE){
 				$quantity = 0;
 			} else {
 				$quantity = (isset($shippedProducts[$pId])) ? ($q - $shippedProducts[$pId]->quantity) : $q;
@@ -601,7 +605,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 				$amount = $quantityInStock * $price;
 				
 			}
-					
+			
 			// Събиране на изпълнената сума за всеки ред
 			if(isset($amount)){
 				$readyAmount += $amount;
