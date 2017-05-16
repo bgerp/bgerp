@@ -413,7 +413,7 @@ class cat_products_Packagings extends core_Detail
      */
     public static function getPack($productId, $packagingId)
     {
-        return self::fetch("#productId = {$productId} AND #packagingId = {$packagingId}");
+        return self::fetch("#productId = {$productId} AND #packagingId = '{$packagingId}'");
     }
     
 
