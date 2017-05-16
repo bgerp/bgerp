@@ -169,7 +169,13 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		$fld->FLD('document', 'varchar', 'smartCenter');
 		
 		$table = cls::get('core_TableView', array('mvc' => $fld));
-		$data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, 'dueDates');
+		
+		// Показване на тагове
+		if(core_Packs::isInstalled('uiext')){
+			uiext_Labels::showLabels($this, $rec->containerId, $data->recs, $data->rows, $data->listFields, 'containerId', 'Таг', $tpl, $fld);
+		}
+		
+		$data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, 'dueDates,_tagField');
 		
 		$tpl->append($table->get($data->rows, $data->listFields), 'TABLE');
 		$tpl->removeBlocks();
