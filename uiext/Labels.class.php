@@ -81,7 +81,7 @@ class uiext_Labels extends core_Manager
     	$this->FLD('title', 'varchar', 'caption=Заглавие, mandatory');
     	$this->FLD('color', 'color_Type()', 'caption=Фон, mandatory,tdClass=rightCol');
     	
-    	$this->setDbUnique('docClassId,title,color');
+    	$this->setDbUnique('docClassId,title');
     }
     
     
@@ -106,7 +106,7 @@ class uiext_Labels extends core_Manager
     public static function on_AfterInputEditForm($mvc, &$form)
     {
     	if(isset($form->rec->title)){
-    		$form->rec->title = mb_strtolower($form->rec->title);
+    		$form->rec->title = str::mbUcfirst($form->rec->title);
     	}
     }
     
