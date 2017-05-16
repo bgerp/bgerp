@@ -399,7 +399,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 				if(!array_key_exists($contragentCountryId, $countries)) continue;
 			}
 			
-			// Изчислява се готовноста
+			// Изчислява се готовността
 			$readiness = core_Cache::get('sales_reports_ShipmentReadiness', "c{$sRec->containerId}");
 			if($readiness === FALSE) {
 				$readiness = self::calcSaleReadiness($sRec);
@@ -444,7 +444,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 			
 			while($soRec = $shipQuery->fetch()){
 				
-				// Изчислява им се готовноста
+				// Изчислява им се готовността
 				$readiness1 = core_Cache::get('sales_reports_ShipmentReadiness', "c{$soRec->containerId}");
 				if($readiness1 === FALSE) {
 					$readiness1 = self::calcSoReadiness($soRec);
@@ -477,7 +477,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		// Ако е избрано филтриране по контрагенти
 		if($rec->orderBy == 'contragents'){
 			
-			// Първо се сортират по нормализираните имена на контрагентите, след това по готовноста
+			// Първо се сортират по нормализираните имена на контрагентите, след това по готовността
 			usort($data->recs, function($a, $b) {
 				if($a->contragentName == $b->contragentName){
 					if($a->readiness == $b->readiness){
@@ -532,14 +532,14 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 	
 	
 	/**
-	 * Изчислява готовноста на продажбата
+	 * Изчислява готовността на продажбата
 	 * 
 	 * @param stdClass $saleRec - запис на продажба
 	 * @return double|NULL      - готовност между 0 и 1, или NULL ако няма готовност
 	 */
 	public static function calcSaleReadiness($saleRec)
 	{
-		// На не чакащите и не активни не се изчислява готовноста
+		// На не чакащите и не активни не се изчислява готовността
 		if($saleRec->state != 'pending' && $saleRec->state != 'active') return NULL;
 		
 		// На бързите продажби също не се изчислява
@@ -611,7 +611,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 			}
 		}
 		
-		// Готовноста е процента на изпълнената сума от общата
+		// Готовността е процента на изпълнената сума от общата
 		$readiness = (isset($readyAmount)) ? @round($readyAmount / $totalAmount, 2) : NULL;
 		
 		// Подсигуряване че процента не е над 100%
@@ -625,7 +625,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 	
 	
 	/**
-	 * Изчислява готовноста на експедиционното нареждане
+	 * Изчислява готовността на експедиционното нареждане
 	 *
 	 * @param stdClass $soRec - запис на ЕН
 	 * @return double|NULL    - готовност между 0 и 1, или NULL ако няма готовност
@@ -662,7 +662,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 			}
 		}
 		
-		// Готовноста е процента на изпълнената сума от общата
+		// Готовността е процент на изпълнената сума от общата
 		$readiness = (isset($readyAmount)) ? @round($readyAmount / $totalAmount, 2) : NULL;
 		
 		// Връщане на изчислената готовност или NULL ако не може да се изчисли

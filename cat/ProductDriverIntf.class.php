@@ -200,7 +200,7 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	
 	
 	/**
-	 * Може ли драйвера автоматично да си изчисли себестойноста
+	 * Може ли драйвера автоматично да си изчисли себестойността
 	 * 
 	 * @param mixed $productId - запис или ид
 	 * @return boolean

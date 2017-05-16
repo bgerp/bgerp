@@ -180,14 +180,14 @@ class cat_PriceDetails extends core_Manager
     			if(isset($uRec)){
     				if(price_Updates::haveRightFor('saveprimecost', $uRec)){
     					if($hideIcons === FALSE){
-    						$btns .= "<div style='text-align:left'>" . ht::createLink('Обновяване', array('price_Updates', 'saveprimecost', $uRec->id, 'ret_url' => TRUE), FALSE, 'title=Обновяване на себестойноста според зададеното правило'). "</div>";
+    						$btns .= "<div style='text-align:left'>" . ht::createLink('Обновяване', array('price_Updates', 'saveprimecost', $uRec->id, 'ret_url' => TRUE), FALSE, 'title=Обновяване на себестойността според зададеното правило'). "</div>";
     					}
     				}
     			}
     			
     			if(price_Lists::haveRightFor('single', $primeCostListId) && isset($primeCost)){
     				if($hideIcons === FALSE){
-    					$btns .= "<div style='text-align:left'>" . ht::createLink('Хронология', array('price_Lists', 'single', $primeCostListId, 'product' => $data->masterId), FALSE, 'title=Хронология на себестойноста на артикула'). "</div>";
+    					$btns .= "<div style='text-align:left'>" . ht::createLink('Хронология', array('price_Lists', 'single', $primeCostListId, 'product' => $data->masterId), FALSE, 'title=Хронология на себестойността на артикула'). "</div>";
     				}
     			}
     		}
