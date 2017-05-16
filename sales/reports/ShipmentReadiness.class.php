@@ -564,20 +564,28 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 			
 			// Ако артикула е нестандартен и има приключено задание по продажбата и няма друго активно по нея
 			$q = $pRec->quantity;
+			
+			$ignore = FALSE;
 			if($productRec->isPublic == 'no'){
 				$closedJobId = planning_Jobs::fetchField("#productId = {$pId} AND #state = 'closed' AND #saleId = {$saleRec->id}");
 				$activeJobId = planning_Jobs::fetchField("#productId = {$pId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup') AND #saleId = {$saleRec->id}");
 						
 				// Се приема че е готово
 				if($closedJobId && !$activeJobId){
+					
 					// Ако има приключено задание
 					$q = planning_Jobs::fetchField($closedJobId, 'quantity');
 					$amount = $q * $price;
+					$ignore = TRUE;
 				}
 			}
-
+			
 			// Количеството е неекспедираното
-			$quantity = (isset($shippedProducts[$pId])) ? ($q - $shippedProducts[$pId]->quantity) : $q;
+			if($ignore === TRUE){
+				$quantity = 0;
+			} else {
+				$quantity = (isset($shippedProducts[$pId])) ? ($q - $shippedProducts[$pId]->quantity) : $q;
+			}
 			
 			// Ако всичко е експедирано се пропуска реда
 			if($quantity <= 0) continue;
@@ -589,8 +597,9 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 				// Изчислява се колко от сумата на артикула може да се изпълни
 				$quantityInStock = store_Products::getQuantity($pId, $saleRec->shipmentStoreId);
 				$quantityInStock = ($quantityInStock > $quantity) ? $quantity : (($quantityInStock < 0) ? 0 : $quantityInStock);
-						
+				
 				$amount = $quantityInStock * $price;
+				
 			}
 					
 			// Събиране на изпълнената сума за всеки ред
@@ -601,6 +610,11 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		
 		// Готовноста е процента на изпълнената сума от общата
 		$readiness = (isset($readyAmount)) ? @round($readyAmount / $totalAmount, 2) : NULL;
+		
+		// Подсигуряване че процента не е над 100%
+		if($readiness > 1){
+			$readiness = 1;
+		}
 		
 		// Връщане на изчислената готовност или NULL ако не може да се изчисли
 		return $readiness;
