@@ -104,11 +104,10 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				$data->form->setField($fld, 'input=none');
 			}
 			$data->form->setFieldTypeParams('quantity', array('min' => 0));
-			$data->form->setFieldTypeParams('packPrice', array('min' => 0));
 		} else {
 			$data->form->setFieldTypeParams('quantity', array('Min' => 0));
-			$data->form->setFieldTypeParams('packPrice', array('Min' => 0));
 		}
+		$data->form->setFieldTypeParams('packPrice', array('min' => 0));
 		
 		if (!empty($rec->packPrice)) {
 			$rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, 0, $masterRec->rate, 'no');
