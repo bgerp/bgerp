@@ -197,31 +197,34 @@ class cat_reports_BomsRep extends frame_BaseDriver
 
         $i = 1;
         if(is_array($data->recs)) {
-            foreach ($data->recs as $id=>$rec){ 
+            foreach ($data->recs as $idRec=>$rec){ 
     
-                $mArr = cat_Products::getMaterialsForProduction($rec->article,$rec->articleCnt, NULL,TRUE);
+                $mArr[$idRec] = cat_Products::getMaterialsForProduction($rec->article,$rec->articleCnt, NULL,TRUE);
+              
                 $rec->num = $i;
-                if(count($mArr) >=1) {
-                    foreach($mArr as $id=>$val){
-                        
-                        $rec->materials = array($id=>$id);
-                        $rec->mCnt = array($id=>$val['quantity']);
-                        $rec->mParams = key(cat_Products::getPacks($id));
-                       
-                    }
-                }
-                
+
                 $i++;
+            }  
+        }
+       
+        if(count($mArr) >=1) {
+            foreach($mArr as $id=>$val){ 
+                $data->recs[$id]->materials = array();
+                $data->recs[$id]->mCnt = array();
+                foreach($val as $mat=>$matVal) { 
+                    $data->recs[$id]->materials[$matVal['productId']] = $matVal['productId'];
+                    $data->recs[$id]->mCnt[$matVal['productId']] = $matVal['quantity'];
+                    $data->recs[$id]->mParams = key(cat_Products::getPacks($matVal['productId']));   
+                }      
             }
         }
-
+        
         if(is_array($data->recs)) {
             foreach($data->recs as $i=>$r){ 
-           
-                if(isset($fRec->groupId)) {
+                //bp($data);
+                /*if(isset($fRec->groupId)) {
                     if($r->materials != 0 || $r->materials != NULL) {
                         $materialsArr = implode(',', $r->materials);
-         
                         
                         $queryProduct = cat_Products::getQuery();
                         $queryProduct->where("#id IN ({$materialsArr})");
@@ -233,7 +236,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
                     }  else {
                         unset($data->recs[$i]);
                     } 
-                }    
+                } */   
             }
         }
 
@@ -318,7 +321,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
                     continue;
                 }
                 
-                if(strpos($name, "височина") !== FALSE) {
+                if(strpos($name, "дебелина") !== FALSE) {
                     $row->height = $val;
                     continue;
                 }
@@ -327,7 +330,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
          
         if(is_array($rec->materials)) { 
             foreach ($rec->materials as $material) { 
-                $row->materials .= cat_Products::getShortHyperlink($material) . "<br/>";
+                $row->materials .= cat_Products::getShortHyperlink($material) . "<br/>"; 
             }
         }
         
@@ -371,7 +374,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
                              article=Детайл,
                              length=Параметри->Дължина,
     					     width=Параметри->Ширина,
-                             height=Параметри->Височина,
+                             height=Параметри->Дебелина,
                              articleCnt=Брой,
                              materials=Материали->Име,
                              mParams=Материали->Мярка,
@@ -396,7 +399,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
     	
     	$tpl->replace($title[1], 'TITLE');
 
-    	$salesArr = keylist::toArray($data->fRec->saleId);
+    	/*$salesArr = keylist::toArray($data->fRec->saleId);
     	
     	if(is_array($salesArr)) {
     	    foreach($salesArr as $id=>$sale){
@@ -404,7 +407,11 @@ class cat_reports_BomsRep extends frame_BaseDriver
     	    }
     	}
     	
-        $tpl->replace($link, 'saleId');
+        $tpl->replace($link, 'saleId');*/
+        
+        $this->prependStaticForm($tpl, 'FORM');
+    	
+    	//$tpl->placeObject($data->row);
    
     	$tpl->placeObject($data->rec);
 
