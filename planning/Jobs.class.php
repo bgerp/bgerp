@@ -307,6 +307,7 @@ class planning_Jobs extends core_Master
     		$data->listFilter->showFields .= ',view';
     	}
     	
+    	$data->listFilter->setField("selectPeriod", "caption=Падеж");
     	$contragentsWithJobs = self::getContragentsWithJobs();
     	if(count($contragentsWithJobs)){
     		$enum = arr::fromArray($contragentsWithJobs);
