@@ -287,6 +287,23 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
 
                 $unit = $rec->transUnit ? $mvc->getVerbal($rec, 'transUnit') : 'Палет';
                 $unitTr = tr($unit);
+                
+                // Показване на разпределението
+                if(mb_strtolower($unitTr) == 'палет' || mb_strtolower($unitTr) == 'палети' ||  mb_strtolower($unitTr) == 'палетa') {
+                    $bigPackName = array('палет', 'палета');
+                    $unit = 'палет';
+                } elseif(mb_strtolower($unitTr) == 'pallet' || mb_strtolower($unitTr) == 'pallets') {
+                    $bigPackName = array('pallet', 'pallets');
+                    $unit = 'палет';
+                } elseif(mb_strtolower($unitTr) == 'кашон' || mb_strtolower($unitTr) == 'кашони' ||  mb_strtolower($unitTr) == 'кашона') {
+                    $bigPackName = array('кашон', 'кашона');
+                    $unit = 'палет';
+                } elseif(mb_strtolower($unitTr) == 'carton' || mb_strtolower($unitTr) == 'cartons') {
+                    $bigPackName = array('carton', 'cartons');
+                    $unit = 'carton';
+                } else {
+                    $bigPackName = $unitTr;
+                }
 
                 if($row->info) {
                     $numbers = self::getLUs($rec->info);
@@ -295,28 +312,16 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                     } elseif($bigPackCnt = count($numbers)) {
                         $row->info = "<small>" .  $unitTr . ': №' . implode(', №', $numbers) . "</small>";
                         $haveTransInfo = TRUE;
-                        if(!isset($totalLU[$unitTr])) {
-                            $totalLU[$unitTr] = $numbers;
+                        if(!isset($totalLU[$unit])) {
+                            $totalLU[$unit] = $numbers;
                         } else {
-                            $totalLU[$unitTr] += $numbers;
+                            $totalLU[$unit] += $numbers;
                         }
                     }
                 }
-                // Показване на разпределението
-                if(mb_strtolower($unitTr) == 'палет' || mb_strtolower($unitTr) == 'палети' ||  mb_strtolower($unitTr) == 'палетa') {
-                    $bigPackName = array('палет', 'палета');
-                    $unit = 'палет';
-                } elseif(mb_strtolower($unitTr) == 'pallet' || mb_strtolower($unitTr) == 'pallets') {
-                    $bigPackName = array('pallet', 'pallets');
-                    $unit = 'палет';
-                } else {
-                    $bigPackName = $unitTr;
-                }
-
 
                 $bigPackInQty = cat_products_Packagings::getQuantityInPack($rec->productId, $unit);
                 
-               
                 if($bigPackInQty) {
                    
                     $medPackRec = cat_products_Packagings::getLowerPack($rec->productId, $bigPackInQty);
