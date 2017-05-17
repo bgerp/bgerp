@@ -921,7 +921,7 @@ class blogm_Articles extends core_Master {
 	/**
      * Какви роли са необходими за посоченото действие?
      */
-	function on_AfterGetRequiredRoles($mvc, &$roles, $act, $rec = NULL, $user = NULL)
+	public static function on_AfterGetRequiredRoles($mvc, &$roles, $act, $rec = NULL, $user = NULL)
     {
         if($act == 'article' && isset($rec)) {
             if($rec->state != 'active') {

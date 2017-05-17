@@ -129,6 +129,12 @@ defIfNot('EMAIL_DEFAULT_SENT_INBOX', '');
 
 
 /**
+ * Автоматично попълване на имейлите в полето копие
+ */
+defIfNot('EMAIL_AUTO_FILL_EMAILS_FROM_CC', 0);
+
+
+/**
  * Хедъра на имейла на текстовата част, който се генерира автоматично при създаване на изходящ имейл
  */
 defIfNot('EMAIL_OUTGOING_HEADER_TEXT', "[#hello#] [#salutation#] [#name#]");
@@ -174,6 +180,36 @@ defIfNot('EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING', "Моля запоз�
  * Текст по подразбиране при препращане на имейл - на английски
  */
 defIfNot('EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING_EN', "Please read the forwarded email [#MSG#]");
+
+
+/**
+ * Имейл домейни за подменяне
+ */
+defIfNot('EMAIL_REPLACE_DOMAINS', '');
+
+
+/**
+ * Имейл до кото няма да се праща
+ */
+defIfNot('EMAIL_STOP_SEND_TO', 'no-reply@*,noreply@*');
+
+
+/**
+ * Хедъри, които ще се проверяват за спам скоре
+ */
+defIfNot('EMAIL_AUTO_REJECT_SPAM_SCORE_HEADERS', 'x-spam-score');
+
+
+/**
+ * Стойност, над която имейлите ще се приемат за спам и ще се оттеглят
+ */
+defIfNot('EMAIL_AUTO_REJECT_SPAM_SCORE', 6);
+
+
+/**
+ * Стойност, над която имейлите ще се приемат за спам и ще се оттеглят
+ */
+defIfNot('EMAIL_WARNING_SPAM_SCORE', 2);
 
 
 /**
@@ -267,11 +303,16 @@ class email_Setup extends core_ProtoSetup
             // Позиция на манипулатора в събджекта
             'EMAIL_THREAD_HANDLE_LEGACY_TYPES' => array ('set(type0=Тип 0 <1234>,type1=Тип 1 #EML123DEW,type2=Тип 2 #123498,type3=Тип 3 <aftepod>)', 'caption=Манипулатор на нишка в събджект на имейл->Наследени,columns=1'),
             
+            // Домейни за заменяне
+            'EMAIL_REPLACE_DOMAINS' => array ('varchar', 'caption=Домейни за заменяне->Списък,columns=1', array('hint' => 'OldDomain1=NewDomain1,OldDomain2=NewDomain2,...')),
+
             // Максимален размер на прикачените файлове и документи
             'EMAIL_MAX_ATTACHED_FILE_LIMIT' => array ('fileman_FileSize', 'caption=Максимален размер на прикачените файлове/документи в имейла->Размер, suggestions=10 MB|20 MB|30 MB'),
             
             'EMAIL_DEFAULT_SENT_INBOX' => array ('key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Изпращач на изходящите имейли->От, placeholder=Автоматично,customizeBy=powerUser, optionsFunc=email_Inboxes::getAllowedFromEmailOptions'),
-    
+            
+            'EMAIL_AUTO_FILL_EMAILS_FROM_CC' => array ('int', 'caption=Автоматично попълване на имейлите в полето копие|*&comma; |когато са до->Брой, customizeBy=powerUser'),
+            
             'EMAIL_OUTGOING_HEADER_TEXT' => array ('richtext(rows=5,bucket=Postings)', 'caption=Привет в изходящите имейли->На български, customizeBy=powerUser'),
     
             'EMAIL_OUTGOING_HEADER_TEXT_EN' => array ('richtext(rows=5,bucket=Postings)', 'caption=Привет в изходящите имейли->На английски, customizeBy=powerUser'),
@@ -280,7 +321,7 @@ class email_Setup extends core_ProtoSetup
     
             'EMAIL_OUTGOING_FOOTER_TEXT_EN' => array ('richtext(rows=5,bucket=Postings)', 'caption=Подпис за изходящите имейли->На английски, customizeBy=powerUser'),
     
-            'EMAIL_SALUTATION_EMAIL_TIME_LIMIT' => array ('time(suggestions=30 дни|90 дни|180 дни)', 'caption=След колко време да не се използват обръщеният по имейл за нова нишка->Време'),
+            'EMAIL_SALUTATION_EMAIL_TIME_LIMIT' => array ('time(suggestions=30 дни|90 дни|180 дни)', 'caption=След колко време да не се използват обръщенията по имейл за нова нишка->Време'),
             
             'EMAIL_INCOMINGS_DEFAULT_EMAIL_BODY' => array ('varchar', 'caption=Текст по подразбиране при отговор на имейл->На български, customizeBy=powerUser'),
             
@@ -289,6 +330,14 @@ class email_Setup extends core_ProtoSetup
             'EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING' => array ('varchar', 'caption=Текст по подразбиране при препращане на имейл->На български, customizeBy=powerUser'),
     
             'EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING_EN' => array ('varchar', 'caption=Текст по подразбиране при препращане на имейл->На английски, customizeBy=powerUser'),
+            
+            'EMAIL_STOP_SEND_TO' => array ('varchar', 'caption=Шаблон за имейли до които няма да се праща->Шаблон'),
+            
+            'EMAIL_AUTO_REJECT_SPAM_SCORE_HEADERS' => array ('varchar', 'caption=Хедъри за проверка на СПАМ рейтинг->Хедъри'),
+            
+            'EMAIL_AUTO_REJECT_SPAM_SCORE' => array ('varchar', 'caption=Автоматично оттегляне на спам->Рейтинг'),
+            
+            'EMAIL_WARNING_SPAM_SCORE' => array ('varchar', 'caption=Предупреждение за възможен спам->Рейтинг'),
         );
         
         

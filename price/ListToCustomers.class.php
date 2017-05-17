@@ -337,18 +337,25 @@ class price_ListToCustomers extends core_Manager
         		
         		// Ако драйвера може да върне цена, връщаме нея
         		if($Driver = cat_Products::getDriver($productId)){
-        			$price = $Driver->getPrice($productId, $quantity, $deltas->minDelta, $deltas->maxDelta, $datetime);
+        			$price = $Driver->getPrice($productId, $quantity, $deltas->minDelta, $deltas->maxDelta, $datetime, $rate, $chargeVat);
+        			
         			if(isset($price)){
-        				$rec->price = $price;
+        				$newPrice = $price * $rate;
+						if($chargeVat == 'yes'){
+							$vat = cat_Products::getVat($productId, $datetime);
+							$newPrice = $newPrice * (1 + $vat);
+						}
+		
+						$newPrice = round($newPrice, 4);
+						if($chargeVat == 'yes'){
+							$newPrice = $newPrice / (1 + $vat);
+						}
+		
+						$newPrice /= $rate;
+        				$rec->price = $newPrice;
+        				$rec->price = deals_Helper::getDisplayPrice($rec->price, $vat, $rate, $chargeVat);
+        				
         				return $rec;
-        			}
-        		}
-        		 
-        		// Ако не е зададено количество, взимаме това от последното активно задание, ако има такова
-        		if(!isset($quantity)){
-        			$quantityJob = cat_Products::getLastJob($productId)->quantity;
-        			if(isset($quantityJob)){
-        				$quantity = $quantityJob;
         			}
         		}
         		 
@@ -396,7 +403,7 @@ class price_ListToCustomers extends core_Manager
      * 				 o minDelta  - минималната отстъпка
      * 				 o maxDelta  - максималната надценка
      */
-    private static function getMinAndMaxDelta($customerClass, $customerId, $defPriceListId)
+    public static function getMinAndMaxDelta($customerClass, $customerId, $defPriceListId)
     {
     	$res = (object)array('minDelta' => 0, 'maxDelta' => 0);
     
@@ -607,7 +614,7 @@ class price_ListToCustomers extends core_Manager
 	/**
 	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
 	 */
-	protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
 		if($action == 'delete' && isset($rec)){
 			if($rec->validFrom <= dt::now()){

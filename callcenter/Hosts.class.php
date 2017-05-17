@@ -202,7 +202,7 @@ class callcenter_Hosts extends core_Master
      * @param NULL|stdObject $rec
      * @param NULL|integer $userId
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($action == 'use') {
             if (!$rec) {

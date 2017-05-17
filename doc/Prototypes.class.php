@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   doc
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -38,7 +38,15 @@ class doc_Prototypes extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "docId,title,sharedWithRoles,sharedWithUsers,state,createdOn,createdBy,modifiedOn,modifiedBy";
+    public $listFields = "docId,title,sharedWithRoles,sharedWithUsers,sharedFolders,state,modifiedOn,modifiedBy";
+    
+    
+    /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     *
+     *  @var string
+     */
+    public $hideListFieldsIfEmpty = 'sharedWithRoles,sharedWithUsers,sharedFolders';
     
     
     /**
@@ -77,6 +85,9 @@ class doc_Prototypes extends core_Manager
     public $canRestore  = 'no_one';
 
 
+    /**
+     * Кой е текущия таб
+     */
 	public $currentTab = "Нишка";
 
 
@@ -88,10 +99,11 @@ class doc_Prototypes extends core_Manager
     	$this->FLD('title', 'varchar', 'caption=Заглавие,mandatory');
     	$this->FLD('originId', 'key(mvc=doc_Containers)', 'caption=Документ,mandatory,input=hidden,silent');
     	$this->FLD('classId', 'class(interface=doc_PrototypeSourceIntf)', 'caption=Документ,mandatory,input=hidden,silent');
-    	$this->FLD('docId', 'int', 'caption=Документ,mandatory,input=hidden,silent');
+    	$this->FLD('docId', 'int', 'caption=Документ,mandatory,input=hidden,silent,tdClass=leftColImportant');
     	$this->FLD('driverClassId', 'class', 'caption=Документ,input=hidden');
     	$this->FLD('sharedWithRoles', 'keylist(mvc=core_Roles,select=role,groupBy=type,orderBy=orderByRole)', 'caption=Споделяне->Роли');
     	$this->FLD('sharedWithUsers', 'userList', 'caption=Споделяне->Потребители');
+    	$this->FLD('sharedFolders', 'key2(mvc=doc_Folders, name=title, allowEmpty)', 'caption=Споделяне->Папка');
     	$this->FLD('fields', 'blob(serialize, compress)', 'input=none');
     	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено,closed=Затворено)','caption=Състояние,column=none,input=none,notNull,value=active');
     	
@@ -187,6 +199,27 @@ class doc_Prototypes extends core_Manager
     
     
     /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	$rec = &$form->rec;
+    	
+    	if($form->isSubmitted()){
+    		if(isset($rec->sharedFolders)){
+    			$origin = doc_Containers::getDocument($rec->originId);
+    			if(!$origin->getInstance()->canAddToFolder($rec->sharedFolders)){
+    				$form->setError('sharedFolders', "Документа не може да бъде създаден в избраната папка");
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
      * Изпълнява се след създаване на нов запис
      */
     public static function on_AfterCreate($mvc, $rec)
@@ -235,7 +268,7 @@ class doc_Prototypes extends core_Manager
      * @param mixed $driver - драйвер, ако има
      * @return array $arr   - намерените шаблони
      */
-    public static function getPrototypes($class, $driver = NULL)
+    public static function getPrototypes($class, $driver = NULL, $folderId = NULL)
     {
     	$arr = array();
     	$Class = cls::get($class);
@@ -248,8 +281,12 @@ class doc_Prototypes extends core_Manager
     		$condition .= " AND #driverClassId = '{$Driver->getClassId()}'";
     	}
     	
-    	$query->where($condition);
+    	// Ако е подадена и папка се взимат всички които са до тази папка или са до всички папки
+    	if(isset($folderId)){
+    		$condition .= " AND (#sharedFolders IS NULL OR #sharedFolders = {$folderId})";
+    	}
     	
+    	$query->where($condition);
     	$cu = core_Users::getCurrent();
     	
     	// Ако потребителя не е 'ceo'
@@ -280,7 +317,30 @@ class doc_Prototypes extends core_Manager
     	// Връщане на намерените шаблони
     	return $arr;
     }
-
+    
+    
+    /**
+     * 
+     * 
+     * @param mixed $class
+     * @param integer $docId
+     * @param string|NULL $field
+     * 
+     * @return stdObject|string
+     */
+    public static function getProtoRec($class, $docId, $field = NULL)
+    {
+        $Class = cls::get($class);
+        
+        $cond = array("#classId = '[#1#]' AND #docId = '[#2#]'", $Class->getClassId(), $docId);
+        
+        if ($field) {
+            
+            return self::fetchField($cond, $field);
+        }
+        
+        return self::fetch($cond);
+    }
     
     
     /**

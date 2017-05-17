@@ -16,7 +16,11 @@
  */
 class bgerp_Notifications extends core_Manager
 {
-    
+
+    /**
+     * Максимална дължина на показваните заглавия
+     */
+    const maxLenTitle = 120;
     
     /**
      * Необходими мениджъри
@@ -40,8 +44,8 @@ class bgerp_Notifications extends core_Manager
      * Заглавие
      */
     var $title = 'Известия';
-    
-    
+
+
     /**
      * Заглавие
      */
@@ -52,8 +56,14 @@ class bgerp_Notifications extends core_Manager
      * Права за писане
      */
     var $canWrite = 'admin';
-    
-    
+
+
+    /**
+     * Брой записи на страница
+     */
+    var $listItemsPerPage = 15;
+
+
     /**
      * Кой има право да чете?
      */
@@ -115,9 +125,8 @@ class bgerp_Notifications extends core_Manager
         if (!isset($userId)) return ;
         
         // Потребителя не може да си прави нотификации сам на себе си
-        // Ако искаме да тестваме нотификациите - дава си роля 'debug'
         // Режима 'preventNotifications' спира задаването на всякакви нотификации
-        if ((!haveRole('debug') && $userId == core_Users::getCurrent()) || Mode::is('preventNotifications')) return ;
+        if (($userId == core_Users::getCurrent()) || Mode::is('preventNotifications')) return ;
         
         // Да не се нотифицира контрактора
         if (core_Users::haveRole('partner', $userId)) return ;
@@ -315,7 +324,7 @@ class bgerp_Notifications extends core_Manager
         // Превеждаме съобщението
         // Спираме преовада и въте, ако има за превеждане, тогава се превежда
         $row->msg = tr("|*{$row->msg}");
-        
+        $row->msg = str::limitLen($row->msg, self::maxLenTitle, 20, " ... ", TRUE);
         $row->msg = ht::createLink($row->msg, $url, NULL, $attr);
     }
     

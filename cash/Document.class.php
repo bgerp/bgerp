@@ -83,6 +83,12 @@ abstract class cash_Document extends deals_PaymentDocument
     
     
     /**
+     * Кой може да го прави документа чакащ/чернова?
+     */
+    public $canPending = 'cash, ceo, purchase, sales';
+    
+    
+    /**
      * Кой може да редактира?
      */
     public $canEdit = 'cash, ceo, purchase, sales';
@@ -147,7 +153,7 @@ abstract class cash_Document extends deals_PaymentDocument
     	$mvc->FLD('amountDeal', 'double(decimals=2,max=2000000000,min=0)', 'caption=Платени,mandatory,silent');
     	$mvc->FLD('dealCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'input=hidden');
     	$mvc->FLD('reason', 'richtext(rows=2)', 'caption=Основание,mandatory');
-    	$mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
+    	$mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор');
     	$mvc->FLD('number', 'int', 'caption=Номер');
     	$mvc->FLD('peroCase', 'key(mvc=cash_Cases, select=name,allowEmpty)', 'caption=Каса,removeAndRefreshForm=currencyId|amount,silent');
     	$mvc->FLD('contragentName', 'varchar(255)', 'caption=Контрагент->Вносител,mandatory');
@@ -163,7 +169,7 @@ abstract class cash_Document extends deals_PaymentDocument
     	$mvc->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,summary=amount,input=hidden');
     	$mvc->FLD('rate', 'double(decimals=5)', 'caption=Валута (и сума) на плащането->Курс,input=none');
     	$mvc->FLD('notes', 'richtext(bucket=Notes,rows=6)', 'caption=Допълнително->Бележки');
-    	$mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно)',	'caption=Статус, input=none');
+    	$mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)',	'caption=Статус, input=none');
     	$mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
     	 
     	// Поставяне на уникален индекс
@@ -228,8 +234,6 @@ abstract class cash_Document extends deals_PaymentDocument
     	}
     	
     	// Поставяме стойности по подразбиране
-    	$form->setDefault('valior', dt::today());
-    	
     	if(empty($form->rec->id) && $form->cmd != 'refresh'){
     		$form->setDefault('peroCase', cash_Cases::getCurrent('id', FALSE));
     		$form->setDefault('peroCase', $caseId);
@@ -341,8 +345,8 @@ abstract class cash_Document extends deals_PaymentDocument
     	$rec = $data->rec;
     	
     	// Ако не е избрана каса, показваме бутона за контиране но с грешка
-    	if($rec->state == 'draft' && !isset($rec->peroCase) && $mvc->haveRightFor('conto')){
-    		$data->toolbar->addBtn('Контиране', array(), "id=btnConto,error=Не е избрана каса", 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
+    	if(($rec->state == 'draft' || $rec->state == 'pending') && !isset($rec->peroCase) && $mvc->haveRightFor('conto')){
+    		$data->toolbar->addBtn('Контиране', array(), array('id' => 'btnConto', 'error' => 'Документа не може да бъде контиран, докато няма посочена каса|*!'), 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
     	}
     }
     

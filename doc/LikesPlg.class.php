@@ -43,7 +43,7 @@ class doc_LikesPlg extends core_Plugin
      * @param stdClass|NULL $rec
      * @param int|NULL $userId
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($rec) {
             if ($action == 'like') {
@@ -430,6 +430,7 @@ class doc_LikesPlg extends core_Plugin
                 jquery_Jquery::runAfterAjax($row->DocumentSettingsLeft, 'showTooltip');
                 jquery_Jquery::runAfterAjax($row->DocumentSettingsLeft, 'smartCenter');
                 jquery_Jquery::runAfterAjax($row->DocumentSettingsLeft, 'setThreadElemWidth');
+                jquery_Jquery::runAfterAjax($row->DocumentSettingsLeft, 'getContextMenuFromAjax');
             }
         }
     }

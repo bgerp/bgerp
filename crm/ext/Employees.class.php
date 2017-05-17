@@ -76,7 +76,7 @@ class crm_ext_Employees extends core_Manager
     {
         $this->FLD('personId', 'key(mvc=crm_Persons)', 'input=hidden,silent,mandatory');
         $this->FLD('code', 'varchar', 'caption=Код');
-        $this->FLD('departments', 'keylist(mvc=hr_Departments,select=name,makeLinks)', 'caption=Структура');
+        $this->FLD('departments', 'keylist(mvc=hr_Departments,select=name,makeLinks)', 'caption=Отдел');
         
         $this->setDbUnique('personId');
     }
@@ -198,7 +198,7 @@ class crm_ext_Employees extends core_Manager
     /**
      * Изпълнява се след подготовката на ролите
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
     	if(($action == 'add' || $action == 'delete' || $action == 'edit') && isset($rec->personId)){
     		if(!crm_Persons::haveRightFor('edit', $rec->personId)){

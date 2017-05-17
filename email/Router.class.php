@@ -240,6 +240,8 @@ class email_Router extends core_Manager
         $fromEmail = strtolower($fromEmail);
         $toEmail   = strtolower($toEmail);
         
+        $toEmail = email_Inboxes::replaceDomains($toEmail);
+        
         if ($type[self::RuleFromTo]) {
             $keys[self::RuleFromTo] = str::convertToFixedKey($fromEmail . '|' . $toEmail);
         }

@@ -58,6 +58,9 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 			$form->FLD($mvc->masterKey, "key(mvc={$mvc->Master->className})", 'input=hidden,silent');
 			$form->input(NULL, 'silent');
 			$form->title = 'Импортиране на артикули към|*' . " <b>" . $mvc->Master->getRecTitle($form->rec->{$mvc->masterKey}) . "</b>";
+			$form->FLD('folderId', "int", 'input=hidden');
+			$form->setDefault('folderId', $mvc->Master->fetchField($form->rec->{$mvc->masterKey}, 'folderId'));
+			
 			self::prepareForm($form);
 			
 			if($cacheRec){
@@ -90,7 +93,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 					
 					// Обработваме данните
 					$rows = csv_Lib::getCsvRows($data, $rec->delimiter, $rec->enclosure, $rec->firstRow);
-					$fields = array('code' => $rec->codecol, 'quantity' => $rec->quantitycol, 'price' => $rec->pricecol);
+					$fields = array('code' => $rec->codecol, 'quantity' => $rec->quantitycol, 'price' => $rec->pricecol, 'pack' => $rec->packcol);
 					
 					if(!count($rows)){
 						$form->setError('csvData,csvFile', 'Не са открити данни за импорт');
@@ -100,7 +103,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 					if($mvc->haveRightFor('import')){
 						
 						// Обработваме и проверяваме данните
-						if($msg = self::checkRows($rows, $fields)){
+						if($msg = self::checkRows($rows, $fields, $rec->folderId)){
 							$form->setError('csvData', $msg);
 						}
 						
@@ -119,6 +122,11 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 				}
 			}
 			
+			if(core_Users::haveRole('partner')){
+				$mvc->currentTab = 'Нишка';
+				plg_ProtoWrapper::changeWrapper($mvc, 'cms_ExternalWrapper');
+			}
+			
 			// Рендиране на опаковката
 			$tpl = $mvc->renderWrapping($form->renderHtml());
 	
@@ -130,10 +138,12 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 	/**
 	 * Проверява и обработва записите за грешки
 	 */
-	private static function checkRows(&$rows, $fields)
+	private static function checkRows(&$rows, $fields, $folderId)
 	{
 		$err = array();
 		$msg = FALSE;
+		
+		$isPartner = core_Users::haveRole('partner');
 		
 		foreach ($rows as $i => &$row){
 			$hasError = FALSE;
@@ -141,16 +151,38 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 			// Подготвяме данните за реда
 			$obj = (object)array('code'     => $row[$fields['code']],
 								 'quantity' => $row[$fields['quantity']],
+								 'pack'     => ($row[$fields['pack']]) ? $row[$fields['pack']] : NULL,
 					             'price'    => $row[$fields['price']]
 			);
 		
 			// Подсигуряваме се, че подадените данни са във вътрешен вид
 			$obj->code = cls::get('type_Varchar')->fromVerbal($obj->code);
 			$obj->quantity = cls::get('type_Double')->fromVerbal($obj->quantity);
+			
+			if(isset($obj->pack)){
+				$packId = cat_UoM::fetchBySinonim($obj->pack)->id;
+				if($packId){
+					$obj->pack = $packId;
+				}
+			}
+			
+			$pRec = cat_Products::getByCode($obj->code);
+			
 			if($obj->price){
-				$obj->price = cls::get('type_Varchar')->fromVerbal($obj->price);
-				if(!$obj->price){
-					$err[$i][] = "|Грешна цена|*";
+				if($isPartner === FALSE){
+					$obj->price = cls::get('type_Varchar')->fromVerbal($obj->price);
+					if(!$obj->price){
+						$err[$i][] = "|Грешна цена|*";
+					}
+				}
+			}
+			
+			if(!isset($obj->price)){
+				$Cover = doc_Folders::getCover($folderId);
+				$policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($Cover->getInstance()->getClassId(), $Cover->that, $pRec->productId, NULL, 1);
+				
+				if(empty($policyInfo->price)){
+					$err[$i][] = "|Артикулът няма цена|*";
 				}
 			}
 			
@@ -162,14 +194,29 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 				$err[$i][] = '|Грешно количество|*';
 			}
 			
+			if($pRec && isset($obj->pack)){
+				if(isset($pRec->packagingId) && $pRec->packagingId != $obj->pack){
+					$err[$i][] = '|Подадения баркод е за друга опаковка|*';
+				}
+				
+				$packs = cat_Products::getPacks($pRec->productId);
+				if(!array_key_exists($obj->pack, $packs)){
+					$err[$i][] = '|Артикулът не поддържа подадената мярка/опаковка|*';
+				}
+			}
+			
 			// Проверка за точност на к-то
 			if(isset($obj->quantity)){
-				if($pRec = cat_Products::getByCode($obj->code)){
+				if($pRec){
 					$packagingId = isset($pRec->packagingId) ? $pRec->packagingId : cat_Products::fetchField($pRec->productId, 'measureId');
 					if(!deals_Helper::checkQuantity($packagingId, $obj->quantity, $warning)){
 						$err[$i][] = $warning;
 					}
 				}
+			}
+			
+			if($isPartner === TRUE){
+				unset($obj->price);
 			}
 			
 			$row = clone $obj;
@@ -208,7 +255,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 			}
 		}
 	
-		$msg = "|Импортирани са|* {$added} |артикула|*";
+		$msg = ($added == 1) ? "|Импортиран е|* 1 |артикул|*" : "|Импортирани са|* {$added} |артикула|*";
 		if($failed != 0){
 			$msg .= ". |Не са импортирани|* {$failed} |артикула";
 		}
@@ -264,9 +311,15 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 		// Съответстващи колонки на полета
 		$form->FLD('codecol', 'int', 'caption=Съответствие в данните->Код,unit=колона,mandatory');
 		$form->FLD('quantitycol', 'int', 'caption=Съответствие в данните->К-во,unit=колона,mandatory');
-		$form->FLD('pricecol', 'int', 'caption=Съответствие в данните->Цена,unit=колона');
+		$form->FLD('packcol', 'int', 'caption=Съответствие в данните->Мярка/Опаковка,unit=колона');
 		
-		foreach (array('codecol', 'quantitycol', 'pricecol') as $i => $fld){
+		$fields = array('codecol', 'quantitycol', 'packcol');
+		if(!core_Users::haveRole('partner')){
+			$form->FLD('pricecol', 'int', 'caption=Съответствие в данните->Цена,unit=колона');
+			$fields[] = 'pricecol';
+		}
+		
+		foreach ($fields as $i => $fld){
 			$form->setSuggestions($fld, array(1,2,3,4,5,6,7));
 			$form->setDefault($fld, $i + 1);
 		}

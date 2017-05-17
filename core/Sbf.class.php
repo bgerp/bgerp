@@ -179,7 +179,7 @@ class core_Sbf extends core_Mvc
         if (!$file || !($toSave = $content = @file_get_contents($file))) {
             
             if (isDebug()) {
-                error_log("EF Error: Mising file: {$name}");
+                error_log("EF Error: Missing file: {$name}");
             }
             
             header('HTTP/1.1 404 Not Found');

@@ -404,7 +404,7 @@ class crm_Locations extends core_Master {
     /**
      * След обработка на ролите
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if($requiredRoles == 'no_one') return;
         

@@ -51,7 +51,7 @@ abstract class store_DocumentMaster extends core_Master
      */
     protected static function setDocFields(core_Master &$mvc)
     {
-    	$mvc->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date');
+    	$mvc->FLD('valior', 'date', 'caption=Дата');
     	$mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'input=none,caption=Плащане->Валута');
     	$mvc->FLD('currencyRate', 'double(decimals=5)', 'caption=Валута->Курс,input=hidden');
     	$mvc->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=От склад, mandatory');
@@ -76,7 +76,7 @@ abstract class store_DocumentMaster extends core_Master
     	
     	$mvc->FLD('note', 'richtext(bucket=Notes,rows=6)', 'caption=Допълнително->Бележки');
     	$mvc->FLD('state',
-    			'enum(draft=Чернова, active=Контиран, rejected=Сторниран,stopped=Спряно)',
+    			'enum(draft=Чернова, active=Контиран, rejected=Сторниран,stopped=Спряно, pending=Заявка)',
     			'caption=Статус, input=none'
     	);
     	$mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
@@ -92,8 +92,16 @@ abstract class store_DocumentMaster extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($requiredRoles == 'no_one') return;
+    	
     	if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'store_Stores', 'storeId')){
     		$requiredRoles = 'no_one';
+    	}
+    	
+    	if($action == 'pending' && isset($rec)){
+    		$Detail = cls::get($mvc->mainDetail);
+    		if(!$Detail->fetchField("#{$Detail->masterKey} = {$rec->id}")){
+    			$requiredRoles = 'no_one';
+    		}
     	}
     }
     
@@ -105,8 +113,7 @@ abstract class store_DocumentMaster extends core_Master
     {
     	$form = &$data->form;
     	$rec  = &$form->rec;
-    
-    	$form->setDefault('valior', dt::now());
+    	
     	$form->setDefault('storeId', store_Stores::getCurrent('id', FALSE));
     	$rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
     	$rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
@@ -206,11 +213,25 @@ abstract class store_DocumentMaster extends core_Master
     		// Ако документа е обратен не слагаме продукти по дефолт
     		if($rec->isReverse == 'yes') return;
     
-    		$aggregatedDealInfo = $origin->getAggregateDealInfo();
-    		$agreedProducts = $aggregatedDealInfo->get('products');
-    		$shippedProducts = $aggregatedDealInfo->get('shippedProducts');
-    		$normalizedProducts = deals_Helper::normalizeProducts(array($agreedProducts), array($shippedProducts));
     		$Detail = $mvc->mainDetail;
+    		$aggregatedDealInfo = $origin->getAggregateDealInfo();
+    		if($rec->importProducts != 'all'){
+    			$agreedProducts = $aggregatedDealInfo->get('products');
+    			$shippedProducts = $aggregatedDealInfo->get('shippedProducts');
+    			$normalizedProducts = deals_Helper::normalizeProducts(array($agreedProducts), array($shippedProducts));
+    			
+    			if($rec->importProducts == 'stocked'){
+    				foreach ($agreedProducts as $i1 => $p1) {
+    					$inStock = store_Products::fetchField("#storeId = {$rec->storeId} AND #productId = {$p1->productId}", 'quantity');
+    					if($p1->quantity > $inStock){
+    						unset($agreedProducts[$i1]);
+    					}
+    				}
+    			}
+    		} else {
+    			$agreedProducts = $aggregatedDealInfo->get('products');
+    			$normalizedProducts = deals_Helper::normalizeProducts(array($agreedProducts), array());
+    		}
     		
     		if(count($agreedProducts)){
     			foreach ($agreedProducts as $index => $product) {
@@ -281,14 +302,6 @@ abstract class store_DocumentMaster extends core_Master
 	   	
 	   	$row->amountDelivered = $mvc->getFieldType('amountDelivered')->toVerbal($amountDelivered);
 	   
-	   	if(!isset($rec->weight)) {
-	   		$row->weight = "<span class='quiet'>N/A</span>";
-	   	}
-	   
-	   	if(!isset($rec->volume)) {
-	   		$row->volume = "<span class='quiet'>N/A</span>";
-	   	}
-	   	 
 	   	if(isset($fields['-list'])){
 	   		if($rec->amountDelivered){
     			$row->amountDelivered = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDelivered}";
@@ -332,14 +345,27 @@ abstract class store_DocumentMaster extends core_Master
 	   			$row->lineId = trans_Lines::getHyperlink($rec->lineId);
 	   		}
 	   		
-	   		$row->weight = ($row->weightInput) ? $row->weightInput : $row->weight;
-	   		$row->volume = ($row->volumeInput) ? $row->volumeInput : $row->volume;
+	   		$weight = ($rec->weightInput) ? $rec->weightInput : $rec->weight;
+	   		if(!isset($weight)) {
+	   			$row->weight = "<span class='quiet'>N/A</span>";
+	   		} else {
+	   			$row->weight = $mvc->getFieldType('weight')->toVerbal($weight);
+	   		}
+	   		
+	   		$volume = ($rec->volumeInput) ? $rec->volumeInput : $rec->volume;
+	   		if(!isset($volume)) {
+	   			$row->volume = "<span class='quiet'>N/A</span>";
+	   		} else {
+	   			$row->volume = $mvc->getFieldType('volume')->toVerbal($volume);
+	   		}
 	   		
 	   		core_Lg::pop();
 	   		
 	   		if($rec->isReverse == 'yes'){
 	   			$row->operationSysId = tr('Връщане на стока');
 	   		}
+	   		
+	   		$row->valior = (isset($rec->valior)) ? $row->valior : ht::createHint('', 'Вальора ще бъде датата на контиране');
 	   	}
    }
 
@@ -621,5 +647,88 @@ abstract class store_DocumentMaster extends core_Master
     	if(empty($rec->originId)){
     		$rec->originId = doc_Threads::getFirstContainerId($rec->threadId);
     	}
+    }
+    
+    
+    /**
+     * Информация за логистичните данни
+     *
+     * @param mixed $rec   - ид или запис на документ
+     * @return array $data - логистичните данни
+     *		
+     *		string(2)     ['fromCountry']  - международното име на английски на държавата за натоварване
+     * 		string|NULL   ['fromPCode']    - пощенски код на мястото за натоварване
+     * 		string|NULL   ['fromPlace']    - град за натоварване
+     * 		string|NULL   ['fromAddress']  - адрес за натоварване
+     *  	string|NULL   ['fromCompany']  - фирма 
+     *   	string|NULL   ['fromPerson']   - лице
+     * 		datetime|NULL ['loadingTime']  - дата на натоварване
+     * 		string(2)     ['toCountry']    - международното име на английски на държавата за разтоварване
+     * 		string|NULL   ['toPCode']      - пощенски код на мястото за разтоварване
+     * 		string|NULL   ['toPlace']      - град за разтоварване
+     *  	string|NULL   ['toAddress']    - адрес за разтоварване
+     *   	string|NULL   ['toCompany']    - фирма 
+     *   	string|NULL   ['toPerson']     - лице
+     * 		datetime|NULL ['deliveryTime'] - дата на разтоварване
+     * 		text|NULL 	  ['conditions']   - други условия
+     */
+    function getLogisticData($rec)
+    {
+    	$rec = $this->fetchRec($rec);
+    	$ownCompany = crm_Companies::fetchOurCompany();
+    	$ownCountryId = $ownCompany->country;
+    	 
+    	if($locationId = store_Stores::fetchField($rec->storeId, 'locationId')){
+    		$storeLocation = crm_Locations::fetch($locationId);
+    		$ownCountryId = $storeLocation->countryId;
+    	}
+    	 
+    	$contragentData = doc_Folders::getContragentData($rec->folderId);
+    	$contragentCountryId = $contragentData->countryId;
+    	 
+    	if(isset($rec->locationId)){
+    		$contragentLocation = crm_Locations::fetch($rec->locationId);
+    		$contragentCountryId = $contragentLocation->countryId;
+    	}
+    	 
+    	$ownPart = ($this instanceof store_ShipmentOrders) ? 'from' : 'to';
+    	$contrPart = ($this instanceof store_ShipmentOrders) ? 'to' : 'from';
+    	
+    	// Подготвяне на данните за разтоварване
+    	$res["{$ownPart}Country"] = drdata_Countries::fetchField($ownCountryId, 'commonName');
+    	
+    	if(isset($storeLocation)){
+    		$res["{$ownPart}PCode"]    = !empty($storeLocation->pCode) ? $storeLocation->pCode : NULL;
+    		$res["{$ownPart}Place"]    = !empty($storeLocation->place) ? $storeLocation->place : NULL;
+    		$res["{$ownPart}Address"]  = !empty($storeLocation->address) ? $storeLocation->address : NULL;
+    		$res["{$ownPart}Person"]   = !empty($storeLocation->mol) ? $storeLocation->mol : NULL;
+    	} else {
+    		$res["{$ownPart}PCode"]   = !empty($ownCompany->pCode) ? $ownCompany->pCode : NULL;
+    		$res["{$ownPart}Place"]   = !empty($ownCompany->place) ? $ownCompany->place : NULL;
+    		$res["{$ownPart}Address"] = !empty($ownCompany->address) ? $ownCompany->address : NULL;
+    	}
+    	
+    	$res["{$ownPart}Company"] = $ownCompany->name;
+    	$toPersonId = ($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy;
+    	$res["{$ownPart}Person"]  = ($res["{$ownPart}Person"]) ? $res["{$ownPart}Person"] : core_Users::fetchField($toPersonId, 'names');
+    	
+    	// Подготвяне на данните за натоварване
+    	$res["{$contrPart}Country"] = drdata_Countries::fetchField($contragentCountryId, 'commonName');
+    	$res["{$contrPart}Company"] = $contragentData->company;
+    	if(isset($rec->locationId)){
+    		$res["{$contrPart}PCode"]   = !empty($contragentLocation->pCode) ? $contragentLocation->pCode : NULL;
+    		$res["{$contrPart}Place"]   = !empty($contragentLocation->place) ? $contragentLocation->place : NULL;
+    		$res["{$contrPart}Address"] = !empty($contragentLocation->address) ? $contragentLocation->address : NULL;
+    		$res["{$contrPart}Person"]  = !empty($contragentLocation->mol) ? $contragentLocation->mol : NULL;
+    	} else {
+    		$res["{$contrPart}PCode"]    = !empty($contragentData->pCode) ? $contragentData->pCode : NULL;
+    		$res["{$contrPart}Place"]    = !empty($contragentData->place) ? $contragentData->place : NULL;
+    		$res["{$contrPart}Address"]  = !empty($contragentData->address) ? $contragentData->address : NULL;
+    		$res["{$contrPart}Person"]   = !empty($contragentData->person) ? $contragentData->person : NULL;
+    	}
+    	 
+    	$res["deliveryTime"]  = $rec->deliveryTime;
+    	 
+    	return $res;
     }
 }

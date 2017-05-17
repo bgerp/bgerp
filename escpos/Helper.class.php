@@ -36,13 +36,15 @@ class escpos_Helper
         
         $res->replace(base64_encode($dataContent), 'data');
         
-        return $res->getContent();
+        $content = escpos_Convert::getContent($res, $drvName);
+        
+        return $content;
     }
     
     
     /**
      * Подготовка за печат на мобилен принтер
-     * 
+     *
      * @param core_Master $Inst
      * @param int $id
      * @param stdClass $data
@@ -78,7 +80,7 @@ class escpos_Helper
     			$row->{$fld} = trim(strip_tags($row->{$fld}));
     		}
     	}
-    	
+    	$row->delimiter = "|";
     	// Поставяне на мастър данните
     	$tpl->placeObject($row);
     	$count = 0;
@@ -103,7 +105,7 @@ class escpos_Helper
     	$Varchar = core_Type::getByName('varchar');
 
     	$block = $tpl->getBlock('PRODUCT_BLOCK');
-    	
+
     	// За всеки
     	foreach ($detailRows as $id => $dRow){
     		$dRec = $detailRecs[$id];
@@ -133,16 +135,28 @@ class escpos_Helper
     			$query->orderBy('id', "DESC");
     			
     			$res = '';
+    			$left = $dRec->quantity;
     			
     			// Показват се
     			while($bRec = $query->fetch()){
     				$batch = $Varchar->toverbal($bRec->batch);
     				$pack = cat_UoM::getShortName($bRec->packagingId);
     				$quantity = $DoubleQ->toVerbal($bRec->quantity / $bRec->quantityInPack);
+    				$left -= $bRec->quantity;
     				
-    				$prefix = ($res === '') ? "" : " / ";
+    				$prefix = ($res === '') ? "" : "<p f>";
     				$res .= "{$prefix}{$batch} {$quantity} {$pack}" . "\n";
     			}
+    			
+    			// Ако има остатък показва се и той
+    			if(round($left, 2) > 0 && batch_Defs::getBatchDef($dRec->productId)){
+    				$pack = cat_UoM::getShortName($dRec->packagingId);
+    				$quantity = $DoubleQ->toVerbal($left / $dRec->quantityInPack);
+    				$prefix = ($res === '') ? "" : "<p f>";
+    				$prefix = ($res === '') ? "" : "<p f>";
+    				$res .= "{$prefix} Без партида {$quantity} {$pack}" . "\n";
+    			}
+    			
     			if($res != ''){
     				$dRow->batch = $res;
     			}
@@ -167,7 +181,7 @@ class escpos_Helper
     		$dRow->packPrice = str_replace('&nbsp;', ' ', $dRow->packPrice);
 			$dRow->amount = strip_tags($DoubleQ->toVerbal($dRec->amount));
 			$dRow->amount = str_replace('&nbsp;', ' ', $dRow->amount);
-			
+
 			// Поставяне в шаблона
     		$b->placeObject($dRow);
     		$b->removeBlocks();
@@ -201,7 +215,7 @@ class escpos_Helper
     	return $tpl;
     }
     
-    
+
     /**
      * Подготвя данните за отпечатване
      * 
@@ -264,16 +278,40 @@ class escpos_Helper
      * 
      * @return ET
      */
-    protected static function getTpl()
+    public static function getTpl()
     {
-        $tpl = '<?xml version="1.0" encoding="utf-8"?>
+        $tpl = getTplFromFile('/escpos/tpl/XmlResTpl.shtml');
+        
+        // TODO #Eml2803 - тестове и ще се премахне
+        if (Request::get('nt')) {
+            $tpl = '<?xml version="1.0" encoding="utf-8"?>
+                <btpDriver Command="DirectIO">
+                    <data>[#data#]</data>
+                </btpDriver>';
+        } elseif (Request::get('nd')) {
+            $tpl = '<?xml version="1.0" encoding="utf-8"?>
+                <btpDriver Command="DirectIO">
+                    <title>[#title#]</title>
+                </btpDriver>';
+        } elseif (Request::get('bd')) {
+            $tpl = '<?xml version="1.0" encoding="utf-8"?>
+                <btpDriver Command="DirectIO">
+                    <title>[#title#]</title>
+                    <data>BAD_DATA</data>
+                </btpDriver>';
+        } elseif (Request::get('nx')) {
+            $tpl = '';
+        } elseif (Request::get('bx')) {
+            $tpl = 'BAD_XML<?xmlBAD version="1.0" encoding="utf-8"?>
                 <btpDriver Command="DirectIO">
                     <title>[#title#]</title>
                     <data>[#data#]</data>
                 </btpDriver>';
+        }
+        if (!($tpl instanceof core_ET)) {
+            $tpl = new ET(tr('|*' . $tpl));
+        }
         
-        $res = new ET(tr('|*' . $tpl));
-        
-        return $res;
+        return $tpl;
     }
 }

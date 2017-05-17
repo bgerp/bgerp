@@ -108,4 +108,31 @@ class escpos_driver_Html extends core_BaseClass
         return "<div style='font-family:\"Courier New\", Courier, monospace;'>" . $text . "</div>";
     }
     
+    
+    /**
+     * 
+     * 
+     * @param core_Et $tpl
+     * 
+     * @return core_Et
+     */
+    public function placePrintData($tpl)
+    {
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Добавя необходимите настройки за преди текста за отпечатване
+     * 
+     * @param string $res
+     * 
+     * @return string
+     */
+    public function prepareTextSettings($res)
+    {
+        
+        return $res;
+    }
 }

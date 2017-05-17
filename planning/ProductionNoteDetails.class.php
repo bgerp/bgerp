@@ -132,13 +132,6 @@ class planning_ProductionNoteDetails extends deals_ManifactureDetail
     	$showSelfvalue = TRUE;
     	
     	if($rec->productId){
-    		
-    		// Имали задание за артикула ?
-    		if($jobId = cat_Products::getLastJob($rec->productId)->id){
-    			$rec->jobId = $jobId;
-    		} else {
-    			$rec->jobId = NULL;
-    		}
     			
     		if($bomRec = cat_Products::getLastActiveBom($rec->productId, 'production')){
     			$rec->bomId = $bomRec->id;

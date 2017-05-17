@@ -39,6 +39,7 @@ class acc_plg_Contable extends core_Plugin
         setIfNot($mvc->lockBalances, FALSE);
         setIfNot($mvc->fieldsNotToClone, $mvc->valiorFld);
         setIfNot($mvc->canPending, 'no_one');
+        setIfNot($mvc->canViewpsingle, 'powerUser');
         
         // Зареждаме плъгина, който проверява може ли да се оттегли/възстанови докумена
         $mvc->load('acc_plg_RejectContoDocuments');
@@ -142,18 +143,11 @@ class acc_plg_Contable extends core_Plugin
         if(haveRole('debug')) {
             $data->toolbar->addBtn('Транзакция', array($mvc, 'getTransaction', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг информация,row=2');
         }
-       
-        // Бутон за заявка
-        if($mvc->haveRightFor('pending', $rec)){
-        	if($rec->state != 'pending'){
-        		$data->toolbar->addBtn('Заявка', array($mvc, 'changePending', $rec->id), "id=btnRequest,warning=Наистина ли желаете документът да стане заявка?,row=2", 'ef_icon = img/16/tick-circle-frame.png,title=Превръщане на документа в заявка');
-        	} else{
-        		$data->toolbar->addBtn('Чернова', array($mvc, 'changePending', $rec->id), "id=btnDraft,warning=Наистина ли желаете да върнете възможността за редакция?", 'ef_icon = img/16/arrow-undo.png,title=Връщане на възможността за редакция');
-        	}
-        }
         
+        $row = 1;
         if ($mvc->haveRightFor('conto', $rec)) {
         	unset($error);
+        	$row = 2;
         	
             // Проверка на счетоводния период, ако има грешка я показваме
             if(!self::checkPeriod($mvc->getValiorValue($rec), $error)){
@@ -171,6 +165,15 @@ class acc_plg_Contable extends core_Plugin
             // Урл-то за контиране
             $contoUrl = $mvc->getContoUrl($rec->id);
             $data->toolbar->addBtn($caption, $contoUrl, "id=btnConto,warning=Наистина ли желаете документът да бъде {$action}?{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
+        }
+        
+        // Бутон за заявка
+        if($mvc->haveRightFor('pending', $rec)){
+        	if($rec->state != 'pending'){
+        		$data->toolbar->addBtn('Заявка', array($mvc, 'changePending', $rec->id), "id=btnRequest,warning=Наистина ли желаете документът да стане заявка?,row={$row}", 'ef_icon = img/16/tick-circle-frame.png,title=Превръщане на документа в заявка');
+        	} else{
+        		$data->toolbar->addBtn('Чернова', array($mvc, 'changePending', $rec->id), "id=btnDraft,warning=Наистина ли желаете да върнете възможността за редакция?", 'ef_icon = img/16/arrow-undo.png,title=Връщане на възможността за редакция');
+        	}
         }
         
         if ($mvc->haveRightFor('revert', $rec)) {
@@ -308,23 +311,31 @@ class acc_plg_Contable extends core_Plugin
                     
                     // Ако потребителя не може да контира документа, не може и да го оттегля
                     if(!(core_Packs::isInstalled('colab') && core_Users::haveRole('partner', $userId) && $rec->createdBy == $userId && ($rec->state == 'draft' || $rec->state == 'pending'))){
-                    	if(!haveRole($mvc->getRequiredRoles('conto'))){
-                    		$requiredRoles = 'no_one';
+                    	if($rec->state == 'draft' || $rec->state == 'pending'){
+                    		$requiredRoles = $mvc->getRequiredRoles('add');
+                    	} else {
+                    		$clone = clone $rec;
+                    		$clone->state = 'draft';
+                    		$requiredRoles = $mvc->getRequiredRoles('conto', $clone);
                     	}
                     }
                 }
             }
         } elseif ($action == 'restore') {
-        	
-        	// Ако потребителя не може да контира документа, не може и да го възстановява
-        	if(!(core_Packs::isInstalled('colab') && core_Users::haveRole('partner', $userId) && $rec->createdBy == $userId)){
-        		if(!haveRole($mvc->getRequiredRoles('conto'))){
-        			$requiredRoles = 'no_one';
+        	if(isset($rec)){
+        		
+        		// Ако потребителя не може да контира документа, не може и да го възстановява
+        		if(!(core_Packs::isInstalled('colab') && core_Users::haveRole('partner', $userId) && $rec->createdBy == $userId)){
+        		
+        			if($rec->state == 'rejected' && ($rec->brState == 'draft' || $rec->brState == 'pending')){
+        				$requiredRoles = $mvc->getRequiredRoles('add');
+        			} else {
+        				$clone = clone $rec;
+        				$clone->state = 'draft';
+        				$requiredRoles = $mvc->getRequiredRoles('conto', $clone);
+        			}
         		}
-        	}
-            
-            if(isset($rec)){
-            	
+        		
             	// Ако сч. период на записа е затворен, документа не може да се възстановява
             	$periodRec = acc_Periods::fetchByDate($mvc->getValiorValue($rec));
             	if ($periodRec->state == 'closed') {
@@ -373,6 +384,24 @@ class acc_plg_Contable extends core_Plugin
             	$requiredRoles = 'no_one';
             }
         }
+        
+        if ($action == 'viewpsingle') {
+            $allowedClsArr = type_Keylist::toArray(acc_Setup::get('CLASSES_FOR_VIEW_ACCESS'));
+            
+            // Ако не е позволено в класа, да не може да се използва
+            if (!$allowedClsArr[$mvc->getClassId()]) {
+                $requiredRoles = 'no_one';
+            } else {
+                // Заобиколяване за вземане на правата
+                $cRec = NULL;
+                if (is_object($rec)) {
+                    $cRec = clone $rec;
+                    $cRec->state = 'draft';
+                }
+                 
+                $requiredRoles = $mvc->getRequiredRoles('conto', $cRec, $userId);
+            }
+        }
     }
     
     
@@ -411,7 +440,8 @@ class acc_plg_Contable extends core_Plugin
        		$cRes = acc_Journal::saveTransaction($mvc->getClassId(), $rec);
         } catch (acc_journal_RejectRedirect $e){
         	
-        	redirect(array($mvc, 'single', $rec->id), FALSE, '|' . $e->getMessage(), 'error');
+        	$url = $mvc->getSingleUrlArray($rec->id);
+        	redirect($url, FALSE, '|' . $e->getMessage(), 'error');
         }
         
         if(empty($cRes)){

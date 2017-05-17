@@ -39,38 +39,56 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	/**
 	 * Плъгини за зареждане
 	 */
-	public $loadList = 'plg_RowTools2, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
-                    doc_DocumentPlg, plg_Printing, plg_Clone, plg_Search, bgerp_plg_Blank';
+	public $loadList = 'plg_RowTools2, store_plg_StoreFilter, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
+                    doc_DocumentPlg, plg_Printing, plg_Clone, plg_Search, bgerp_plg_Blank,doc_plg_HidePrices';
 	
 	
 	/**
-	 * Кой има право да чете?
+	 * Полета свързани с цени
 	 */
-	public $canConto = 'ceo,planning';
+	public $priceFields = 'debitAmount';
+	
+	
+	/**
+	 * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+	 */
+	public $searchFields = 'productId,storeId,inputStoreId,expenseItemId,note';
 	
 	
 	/**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,planning';
+	public $canList = 'ceo,planning,store';
 	
 	
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,planning';
+	public $canSingle = 'ceo,planning,store';
 	
 	
 	/**
 	 * Кой има право да променя?
 	 */
-	public $canEdit = 'ceo,planning';
+	public $canEdit = 'ceo,planning,store';
 	
 	
 	/**
 	 * Кой има право да добавя?
 	 */
-	public $canAdd = 'ceo,planning';
+	public $canAdd = 'ceo,planning,store';
+	
+	
+	/**
+	 * Кой има право да чете?
+	 */
+	public $canConto = 'ceo,planning,store';
+	
+	
+	/**
+	 * Кой може да го прави документа чакащ/чернова?
+	 */
+	public $canPending = 'ceo,planning,store';
 	
 	
 	/**
@@ -267,7 +285,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	/**
 	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
 	 */
-	protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
 		if($action == 'add'){
 			if(isset($rec)){
@@ -544,10 +562,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	{
 		// При активиране/оттегляне
 		if($rec->state == 'active' || $rec->state == 'rejected'){
-			$origin = doc_Containers::getDocument($rec->originId);
-			
-			planning_Jobs::updateProducedQuantity($origin->that);
-			doc_DocumentCache::threadCacheInvalidation($rec->threadId);
+			if(isset($rec->originId)){
+				$origin = doc_Containers::getDocument($rec->originId);
+					
+				planning_Jobs::updateProducedQuantity($origin->that);
+				doc_DocumentCache::threadCacheInvalidation($rec->threadId);
+			}
 		}
 	}
 
@@ -571,9 +591,30 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		if($data->toolbar->hasBtn('btnConto')){
 			if($mvc->haveRightFor('adddebitamount', $rec)){
 				$data->toolbar->removeBtn('btnConto');
-				$data->toolbar->addBtn('Контиране', array($mvc, 'addDebitAmount', $rec->id, 'ret_url' => array($mvc, 'single', $rec->id)), "id=btnConto{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на протокола за производствo');
+				$attr = (!haveRole('seePrice') && !self::getDefaultDebitPrice($rec)) ? array('error' => 'Документа не може да бъде контиран, защото артикула няма себестойност') : ((!haveRole('seePrice') ? array('warning' => 'Наистина ли желаете документът да бъде контиран') : array()));
+				$data->toolbar->addBtn('Контиране', array($mvc, 'addDebitAmount', $rec->id, 'ret_url' => array($mvc, 'single', $rec->id)), "id=btnConto,ef_icon = img/16/tick-circle-frame.png,title=Контиране на протокола за производствo", $attr);
 			}
 		}
+	}
+	
+	
+	/**
+	 * Връща дефолтната себестойност за артикула
+	 * 
+	 * @param mixed stdClass $rec
+	 * @return mixed $price 
+	 */
+	private static function getDefaultDebitPrice($rec)
+	{
+		if($Driver = cat_Products::getDriver($rec->productId)){
+			$price = $Driver->getPrice($rec->productId, $rec->jobQuantity, 0, 0, $rec->valior);
+			if(isset($price)) return $price;
+		}
+		
+		$price = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->productId);
+		if(isset($price)) return $price;
+		
+		return NULL;
 	}
 	
 	
@@ -598,22 +639,39 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		// Подготовка на формата
 		$form->title = "Въвеждане на себестойност за|* <b style='color:#ffffcc;'>{$docTitle}</b>";
 		$form->info = tr('Не може да се определи себестойноста, защото няма посочени материали');
-		$form->FLD('debitAmount', 'double(Min=0)', 'caption=Себестойност,mandatory');
+		$form->FLD('debitPrice', 'double(Min=0)', 'caption=Ед. Себест-ст,mandatory');
+		
+		// Ако драйвера може да върне себестойност тя е избрана по дефолт
+		$defPrice = self::getDefaultDebitPrice($rec);
+		if(isset($defPrice)){
+			$form->setDefault('debitPrice', $defPrice);
+		}
+		
 		$baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
-		$form->setField('debitAmount', "unit=|*{$baseCurrencyCode} |без ДДС|*");
+		$form->setField('debitPrice', "unit=|*{$baseCurrencyCode} |без ДДС|*");
 		$form->input();
 		
+		if(!haveRole('seePrice')){
+			if(isset($defPrice)){
+				$form->method = 'GET';
+				$form->cmd = 'save';
+			} else {
+				followRetUrl(NULL, 'Документът не може да бъде контиран, защото няма себестойност', 'error');
+			}
+		}
+		
 		if($form->isSubmitted()){
+			$amount = $form->rec->debitPrice * $rec->quantity;
 			
 			// Ъпдейъваме подадената себестойност
-			$rec->debitAmount = $form->rec->debitAmount;
+			$rec->debitAmount = $amount;
 			$this->save($rec, 'debitAmount');
 			
 			// Редирект към екшъна за контиране
 			redirect($this->getContoUrl($id));
 		}
 		
-		$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
+		$form->toolbar->addSbBtn('Контиране', 'save', 'ef_icon = img/16/tick-circle-frame.png, title = Контиране на документа');
 		$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 		
 		$tpl = $form->renderHtml();
@@ -789,6 +847,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		expect($jRec->state != 'rejected' && $jRec->state != 'draft', 'Заданието не е активно');
 		expect($productRec = cat_Products::fetch($productId, 'canManifacture,canStore,fixedAsset,canConvert'));
 		$rec->valior = ($valior) ? $valior : dt::today();
+		$rec->valior = dt::verbal2mysql($rec->valior);
 		$rec->originId = $jRec->containerId;
 		$rec->threadId = $jRec->threadId;
 		$rec->productId = $productId;

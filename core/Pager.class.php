@@ -306,8 +306,6 @@ class core_Pager extends core_BaseClass
             $ids = implode(',', $ids);
             $query->where("#id IN ($ids)");
 
-            
-
             foreach($query->where as $i => $cond) {
                 if((stripos($cond, 'match(')  !== FALSE) || (stripos($cond, 'locate(') !== FALSE)) {
                     unset($query->where[$i]);
@@ -317,7 +315,16 @@ class core_Pager extends core_BaseClass
             $this->calc();
             $query->limit(0);
         }
-
+        
+        if($ui = Request::get('useIndex')) {
+            $uiArr = explode(",", $ui);
+            foreach($uiArr as $ind) {  
+                if($query->mvc->dbIndexes[$ind]) {  
+                    $query->useIndex($ind); 
+                }
+            }
+        }
+ 
         return;
     }
 

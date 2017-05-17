@@ -96,7 +96,7 @@ class tcost_Zones extends core_Detail
         $this->FLD('zoneId', 'key(mvc=tcost_FeeZones, select=name)', 'caption=Зона, recently, mandatory,smartCenter');
         $this->FLD('countryId', 'key(mvc = drdata_Countries, select = letterCode2)', 'caption=Държава, mandatory,smartCenter');
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode,smartCenter, notNull');
-    }
+ 	}
 
 
     /**
@@ -107,8 +107,9 @@ class tcost_Zones extends core_Detail
      * @param string $pCode - пощенски код
      * 
      * @return array
-     * ['zoneId'] - id на намерената зона
-     * ['zoneName'] - име на намерената зона
+     * 			['zoneId']       - id на намерената зона
+     * 			['zoneName']     - име на намерената зона
+     * 			['deliveryTime'] - срок на доставка (ако има)
      */
     public static function getZoneIdAndDeliveryTerm($deliveryTermId, $countryId, $pCode = "")
     {
@@ -137,9 +138,10 @@ class tcost_Zones extends core_Detail
         if(empty($bestZone)) return NULL;
         
         // Намиране на името на намерената зона
+        $deliveryTime = tcost_FeeZones::fetchField($bestZone->zoneId, 'deliveryTime');
         $zoneName = tcost_FeeZones::getVerbal($bestZone->zoneId, 'name');
 
-        return array('zoneId' => $bestZone->zoneId, 'zoneName' => $zoneName);
+        return array('zoneId' => $bestZone->zoneId, 'zoneName' => $zoneName, 'deliveryTime' => $deliveryTime);
     }
 
     

@@ -97,6 +97,12 @@ class sales_SaleRequests extends core_Master
     public $listFields = 'id, folderId, amountDeal, state, createdOn, createdBy';
     
     
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'contragentClassId,contragentId,folderId,others,paymentMethodId,currencyId,chargeVat,deliveryTermId,deliveryPlaceId';
+    
+    
 	/**
      * Заглавие в единствено число
      */
@@ -182,7 +188,7 @@ class sales_SaleRequests extends core_Master
 	/**
      * След проверка на ролите
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
     	if(($action == 'add') && isset($rec)){
     		if(!$rec->originId){

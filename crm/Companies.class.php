@@ -47,7 +47,7 @@ class crm_Companies extends core_Master
     	'cat_ProductFolderCoverIntf',
     );
     
-    
+ 
     /**
      * Заглавие
      */
@@ -70,6 +70,13 @@ class crm_Companies extends core_Master
      * Икона на единичния обект
      */
     var $singleIcon = 'img/16/office-building.png';
+    
+    
+    /**
+     * 
+     * @see plg_Select
+     */
+    var $doWithSelected = 'export=Експортиране';
     
     
     /**
@@ -383,9 +390,7 @@ class crm_Companies extends core_Master
         }
 
         if(!empty($data->listFilter->rec->groupId)){
-        	$descendants = crm_Groups::getDescendantArray($data->listFilter->rec->groupId);
-        	$keylist = keylist::fromArray($descendants);
-        	$data->query->likeKeylist("groupList", $keylist);
+        	$data->query->where("LOCATE('|{$data->listFilter->rec->groupId}|', #groupList)");
         }
     }
     
@@ -1041,8 +1046,7 @@ class crm_Companies extends core_Master
 	        $viewAccess = FALSE;
 	    }
 
-        $me = cls::get('crm_Companies');
-	       
+        $me = cls::get(get_called_class());
 	    $me->restrictAccess($query, NULL, $viewAccess);
 	    
         if(!$includeHiddens) {
@@ -1065,7 +1069,7 @@ class crm_Companies extends core_Master
         $titleFld = $params['titleFld'];
         $query->EXT($countryNameField, 'drdata_Countries', 'externalKey=country');  
         $query->XPR('searchFieldXpr', 'text', "CONCAT(' ', #{$titleFld}, IF(#country = {$ownCountry}, IF(LENGTH(#place), CONCAT(' - ', #place), ''), CONCAT(' - ', #{$countryNameField})))");
-       
+        
         if($q) {
             if($q{0} == '"') $strict = TRUE;
 
@@ -1750,7 +1754,7 @@ class crm_Companies extends core_Master
      * @param stdClass|NULL $rec
      * @param int|NULL $userId
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Никой да не може да изтрива
         if ($action == 'delete') {
@@ -2250,4 +2254,15 @@ class crm_Companies extends core_Master
     {
     	return 'private';
     }
+
+
+    /**
+     * Добавя ключовио думи за държавата и на bg и на en
+     */
+    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+        $res = drdata_Countries::addCountryInBothLg($rec->country, $res);
+    }
+
+
 }

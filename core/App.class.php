@@ -318,14 +318,27 @@ class core_App
         /**
          * Базова директория, където се намират под-директориите с качените файлове
          */
-        defIfNot('EF_UPLOADS_BASE_PATH', EF_ROOT_PATH . '/uploads');
+        if(defined('EF_ROOT_PATH')) {
+            defIfNot('EF_UPLOADS_BASE_PATH', EF_ROOT_PATH . '/uploads');
+        }
 
 
         /**
          * Директорията с качените и генерираните файлове
          */
-        defIfNot('EF_UPLOADS_PATH', EF_UPLOADS_BASE_PATH . '/' . EF_APP_NAME); 
- 
+        if(defined('EF_UPLOADS_BASE_PATH')) {
+            defIfNot('EF_UPLOADS_PATH', EF_UPLOADS_BASE_PATH . '/' . EF_APP_NAME);
+        }
+
+        
+        if(!defined('EF_UPLOADS_PATH')) {
+            die('Not possible to determine constant `EF_UPLOADS_PATH`');
+        }
+        
+        if(!is_dir(EF_UPLOADS_PATH)) {
+            die('It is not a directory: "' .  EF_UPLOADS_PATH . '" (EF_UPLOADS_PATH)');
+        }
+
         
         /**
          * Времева зона

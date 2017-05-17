@@ -40,13 +40,13 @@ class store_ShipmentOrders extends store_DocumentMaster
      * Поддържани интерфейси
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf,
-                          acc_TransactionSourceIntf=store_transaction_ShipmentOrder, bgerp_DealIntf,deals_InvoiceSourceIntf';
+                          acc_TransactionSourceIntf=store_transaction_ShipmentOrder, bgerp_DealIntf,deals_InvoiceSourceIntf,trans_LogisticDataIntf,label_SequenceIntf';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
+    public $loadList = 'plg_RowTools2, store_plg_StoreFilter,store_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
                     doc_DocumentPlg, plg_Printing, trans_plg_LinesPlugin, acc_plg_DocumentSummary, plg_Search, doc_plg_TplManager,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices, doc_SharablePlg';
 
@@ -61,12 +61,6 @@ class store_ShipmentOrders extends store_DocumentMaster
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,store';
-    
-    
-    /**
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'ceo,store';
@@ -75,7 +69,7 @@ class store_ShipmentOrders extends store_DocumentMaster
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,store';
+	public $canSingle = 'ceo,store,sales,purchase';
     
     
     /**
@@ -103,6 +97,12 @@ class store_ShipmentOrders extends store_DocumentMaster
 
 
     /**
+     * Кой може да го прави документа чакащ/чернова?
+     */
+    public $canPending = 'ceo,store,sales,purchase';
+    
+    
+    /**
      * Кой може да го види?
      */
     public $canViewprices = 'ceo,acc';
@@ -119,6 +119,12 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     public $listFields = 'valior, title=Документ, folderId, currencyId, amountDelivered, amountDeliveredVat, weight, volume, createdOn, createdBy';
 
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'folderId,currencyId';
+    
     
     /**
      * Икона на единичния изглед
@@ -177,6 +183,12 @@ class store_ShipmentOrders extends store_DocumentMaster
     
     
     /**
+     * Да се показва антетка
+     */
+    public $showLetterHead = TRUE;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -195,21 +207,38 @@ class store_ShipmentOrders extends store_DocumentMaster
     
     
     /**
+     * Преди показване на форма за добавяне/промяна
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	if(!isset($data->form->rec->id)){
+    		$origin = static::getOrigin($data->form->rec);
+    		if($origin->isInstanceOf('sales_Sales')){
+    			$data->form->FNC('importProducts', 'enum(notshipped=Неекспедирани,stocked=Неекспедирани и налични,all=Всички)', 'caption=Вкарване от продажбата->Артикули, input,before=sharedUsers');
+    		}
+    	}
+    }
+    
+    
+    /**
      * След рендиране на сингъла
      */
     public static function on_AfterRenderSingle($mvc, $tpl, $data)
     {
-    	$tpl->append(sbf('img/16/plus.png', "'"), 'iconPlus');
+    	$tpl->append(sbf('img/16/toggle1.png', "'"), 'iconPlus');
     	if($data->rec->country){
     		$deliveryAddress = "{$data->row->country} <br/> {$data->row->pCode} {$data->row->place} <br /> {$data->row->address}";
+			$inlineDeliveryAddress = "{$data->row->country},  {$data->row->pCode} {$data->row->place}, {$data->row->address}";
     	} else {
     		$deliveryAddress = $data->row->contragentAddress;
     	}
-    	
+
     	core_Lg::push($data->rec->tplLang);
     	$deliveryAddress = core_Lg::transliterate($deliveryAddress);
     	
     	$tpl->replace($deliveryAddress, 'deliveryAddress');
+		$tpl->replace($inlineDeliveryAddress, 'inlineDeliveryAddress');
+
     	core_Lg::pop();
     }
     
@@ -247,6 +276,21 @@ class store_ShipmentOrders extends store_DocumentMaster
     		$row->locationId = crm_Locations::getHyperLink($rec->locationId);
     	}
     	
+    	if(isset($rec->createdBy)){
+    		$row->username = core_Users::fetchField($rec->createdBy, "names");
+    		$row->username = core_Lg::transliterate($row->username);
+    	}
+    	
+    	if(isset($fields['-single'])){
+    		$logisticData = $mvc->getLogisticData($rec);
+    		$logisticData['toCountry'] = ($rec->tplLang == 'bg') ? drdata_Countries::fetchField("#commonName = '{$logisticData['toCountry']}'", 'commonNameBg') : $logisticData['toCountry'];
+    		$logisticData['toPCode'] = core_Lg::transliterate($logisticData['toPCode']);
+    		$logisticData['toPlace'] = core_Lg::transliterate($logisticData['toPlace']);
+    		$logisticData['toAddress'] = core_Lg::transliterate($logisticData['toAddress']);
+    		$row->inlineDeliveryAddress = "{$logisticData['toCountry']}, {$logisticData['toPCode']} {$logisticData['toPlace']}, {$logisticData['toAddress']}";
+			$row->toCompany = $logisticData['toCompany'];
+    	}
+    	
     	core_Lg::pop();
     	
     	$rec->palletCountInput = ($rec->palletCountInput) ? $rec->palletCountInput : static::countCollets($rec->id);
@@ -255,11 +299,6 @@ class store_ShipmentOrders extends store_DocumentMaster
     	} else {
     		unset($row->palletCountInput);
     	}
-
-		if(isset($rec->createdBy)){
-			$row->username = core_Users::fetchField($rec->createdBy, "names");
-		}
-
     }
     
     
@@ -346,14 +385,14 @@ class store_ShipmentOrders extends store_DocumentMaster
     	$tplArr[] = array('name' => 'Експедиционно нареждане с цени', 
     					  'content' => 'store/tpl/SingleLayoutShipmentOrderPrices.shtml', 'lang' => 'bg', 'narrowContent' => 'store/tpl/SingleLayoutShipmentOrderPricesNarrow.shtml',
     					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,packPrice,discount,amount'));
-    	$tplArr[] = array('name' => 'Packaging list', 
-    					  'content' => 'store/tpl/SingleLayoutPackagingList.shtml', 'lang' => 'en', 'oldName' => 'Packing list', 'narrowContent' => 'store/tpl/SingleLayoutPackagingListNarrow.shtml',
+    	$tplArr[] = array('name' => 'Packing list',
+    					  'content' => 'store/tpl/SingleLayoutPackagingList.shtml', 'lang' => 'en', 'oldName' => 'Packaging list', 'narrowContent' => 'store/tpl/SingleLayoutPackagingListNarrow.shtml',
     					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
     	$tplArr[] = array('name' => 'Експедиционно нареждане с декларация',
     					  'content' => 'store/tpl/SingleLayoutShipmentOrderDec.shtml', 'lang' => 'bg', 'narrowContent' => 'store/tpl/SingleLayoutShipmentOrderDecNarrow.shtml',
-    					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'packagingId,packQuantity,weight,volume'));
-    	$tplArr[] = array('name' => 'Packaging list with Declaration',
-    					  'content' => 'store/tpl/SingleLayoutPackagingListDec.shtml', 'lang' => 'en', 'oldName' => 'Packing list with Declaration', 'narrowContent' => 'store/tpl/SingleLayoutPackagingListDecNarrow.shtml',
+    					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
+    	$tplArr[] = array('name' => 'Packing list with Declaration',
+    					  'content' => 'store/tpl/SingleLayoutPackagingListDec.shtml', 'lang' => 'en', 'oldName' => 'Packaging list with Declaration', 'narrowContent' => 'store/tpl/SingleLayoutPackagingListDecNarrow.shtml',
     					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
     	
     	$res .= doc_TplManager::addOnce($this, $tplArr);
@@ -460,28 +499,181 @@ class store_ShipmentOrders extends store_DocumentMaster
     	
     	$resArr = array();
     	while($dRec = $dQuery->fetch()){
-    		
-    		// Разбиване на записа
-    		$info = explode(',', $dRec->info);
-    		if(!count($info)) continue;
-    		
-    		foreach ($info as &$seq){
-    				 
-    			// Ако е посочен интервал от рода 1-5
-    			$seq = explode('-', $seq);
-    			if(count($seq) == 1){
-    				$resArr[$seq[0]] = $seq[0];
-    			} else {
-    				foreach (range($seq[0], $seq[1]) as $i){
-    					$resArr[$i] = $i;
-    				}
-    			}
-    		}
+            $rowNums =store_ShipmentOrderDetails::getLUs($dRec->info);
+            if(is_array($rowNums)) {
+                $resArr += $rowNums;
+            }
     	}
     	 
     	// Връщане на броя на колетите
-    	$count = count($resArr);
+        if(count($resArr)) {
+    	    $count = max($resArr);
+        }
     	
     	return $count;
+    }
+    
+    
+    /**
+     * Информация за логистичните данни
+     *
+     * @param mixed $rec   - ид или запис на документ
+     * @return array $data - логистичните данни
+     *		
+     *		string(2)     ['fromCountry']  - международното име на английски на държавата за натоварване
+     * 		string|NULL   ['fromPCode']    - пощенски код на мястото за натоварване
+     * 		string|NULL   ['fromPlace']    - град за натоварване
+     * 		string|NULL   ['fromAddress']  - адрес за натоварване
+     *  	string|NULL   ['fromCompany']  - фирма 
+     *   	string|NULL   ['fromPerson']   - лице
+     * 		datetime|NULL ['loadingTime']  - дата на натоварване
+     * 		string(2)     ['toCountry']    - международното име на английски на държавата за разтоварване
+     * 		string|NULL   ['toPCode']      - пощенски код на мястото за разтоварване
+     * 		string|NULL   ['toPlace']      - град за разтоварване
+     *  	string|NULL   ['toAddress']    - адрес за разтоварване
+     *   	string|NULL   ['toCompany']    - фирма 
+     *   	string|NULL   ['toPerson']     - лице
+     * 		datetime|NULL ['deliveryTime'] - дата на разтоварване
+     * 		text|NULL 	  ['conditions']   - други условия
+     */
+    function getLogisticData($rec)
+    {
+    	$rec = $this->fetchRec($rec);
+    	$res = parent::getLogisticData($rec);
+    	
+    	// Данните за разтоварване от ЕН-то са с приоритет
+    	if(!empty($rec->country)|| !empty($rec->pCode)|| !empty($rec->place)|| !empty($rec->address)){
+    		$res['toCountry'] = !empty($rec->country) ? drdata_Countries::fetchField($rec->country, 'commonName') : NULL;
+    		$res['toPCode']   = !empty($rec->pCode) ? $rec->pCode : NULL;
+    		$res['toPlace']   = !empty($rec->place) ? $rec->place : NULL;
+    		$res['toAddress'] = !empty($rec->address) ? $rec->address : NULL;
+    	}
+    	
+    	$res['toCompany'] = !empty($rec->company) ? $rec->company : $res['toCompany'];
+    	$res['toPerson'] = !empty($rec->person) ? $rec->person : $res['toPerson'];
+    	
+    	return $res;
+    }
+    
+    
+    /**
+     * Връща масив с плейсхолдърите, които ще се попълват от getLabelData
+     *
+     * @param mixed $id - ид или запис
+     * @return array $fields - полета за етикети
+     */
+    public function getLabelPlaceholders($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	$fields = array('NOMER', 'DESTINATION', 'DATE', 'Текущ_етикет');
+    	$allowSkip = FALSE;
+    	if($this->getEstimateCnt($id, $allowSkip)){
+    		$fields[] = 'Общо_етикети';
+    	}
+    	
+    	if(isset($rec->lineId)){
+    		if($forwarderId = trans_Lines::fetchField($rec->lineId, 'forwarderId')){
+    			$fields[] = 'SPEDITOR';
+    		}
+    	}
+    	
+    	return $fields;
+    }
+    
+    
+    /**
+     * Връща данни за етикети
+     *
+     * @param int $id - ид на store_ShipmentOrders
+     * @param number $labelNo - номер на етикета
+     *
+     * @return array $res - данни за етикетите
+     *
+     * @see label_SequenceIntf
+     */
+    public function getLabelData($id, $labelNo = 0)
+    {  
+    	$rec = $this->fetchRec($id);
+    	
+    	$res = array();
+    	$res['NOMER'] = $rec->id;
+
+        if($labelNo == 0) $labelNo = 1;
+
+    	$res['Текущ_етикет'] = $labelNo;
+    	$logisticData = $this->getLogisticData($rec);
+    	$res['DESTINATION'] = "{$logisticData['toPCode']} {$logisticData['toPlace']}, {$logisticData['toCountry']}";
+    	
+    	$allowSkip = FALSE;
+    	if($count = $this->getEstimateCnt($id, $allowSkip)){
+    		$res['Общо_етикети'] = $count;
+    	}
+    	
+    	if(isset($rec->lineId)){
+    		if($forwarderId = trans_Lines::fetchField($rec->lineId, 'forwarderId')){
+    			$res['SPEDITOR'] = crm_Companies::getVerbal($forwarderId, 'name');
+    		}
+    	}
+    	$res['DATE'] = dt::mysql2verbal(dt::today(), 'd/m/y');
+    	
+    	return $res;
+    }
+    
+    
+    /**
+     * Броя на етикетите, които могат да се отпечатат
+     *
+     * @param integer $id
+     * @param string $allowSkip
+     *
+     * @return integer
+     *
+     * @see label_SequenceIntf
+     */
+    public function getEstimateCnt($id, &$allowSkip)
+    {
+    	$rec = $this->fetchRec($id);
+    	$count = ($rec->palletCountInput) ? $rec->palletCountInput : static::countCollets($rec->id);
+    	$count = ($count) ? $count : NULL;
+    	 
+    	return $count;
+    }
+    
+	
+    /**
+     * Добавя допълнителни полетата в антетката
+     *
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param object $rec
+     * @param object $row
+     */
+    public static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
+    {
+        $toDraftCnt = log_Data::getObjectCnt(get_called_class(), $rec->id, NULL, 'Документът се връща в чернова');
+        
+        if ($toDraftCnt) {
+            $resArr['_toDraft'] = array('name' => tr('Към чернова'), 'val' => $toDraftCnt);
+            $resArr['_lastFrom'] = array('name' => tr('Последно'), 'val' => tr('на') . " [#modifiedOn#] " . tr('от') . " [#modifiedBy#]");
+        }
+    }
+    
+    
+    /**
+     * Кои полета да са скрити във вътрешното показване
+     * 
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param object $rec
+     * @param object $row
+     */
+    public static function getHideArrForLetterHead_($rec, $row)
+    {
+        $hideArr = array();
+        
+        $hideArr['external']['_toDraft'] = TRUE;
+        $hideArr['external']['_lastFrom'] = TRUE;
+        
+        return $hideArr;
     }
 }

@@ -92,6 +92,11 @@ defIfNot('BACKUP_FILEMAN_OFFSET', 0);
  */
 defIfNot('BACKUP_FILEMAN_PATH', 'fileman');
 
+/**
+ * Поддиректория където ще се архивират файловете от fileman-a
+ */
+defIfNot('BACKUP_FILEMAN_COUNT_FILES', 100);
+
 
 /**
  * Път до масива за съхранение на файлове
@@ -169,6 +174,7 @@ class backup_Setup extends core_ProtoSetup
         'BACKUP_PREFIX'   => array ('varchar', 'caption=Имена на архивираните файлове->Префикс'),
         'BACKUP_STORAGE_TYPE'   => array ('enum(local=Локално, amazon=S3Amazon)', 'caption=Място за съхранение на архива->Тип'),
         'BACKUP_LOCAL_PATH' => array ('varchar', 'notNull, value=/storage, caption=Локален архив->Път'),
+        'BACKUP_FILEMAN_COUNT_FILES' => array ('int', 'caption=По колко файла да се архивират наведнъж->Брой'),
         'BACKUP_MYSQL_USER_NAME'   => array ('varchar', 'caption=Връзка към MySQL (с права за бекъп)->Потребител, hint=(SELECT, RELOAD, SUPER)'),
         'BACKUP_MYSQL_USER_PASS'   => array ('password', 'caption=Връзка към MySQL (с права за бекъп)->Парола'),
         'BACKUP_MYSQL_HOST'     => array ('varchar', 'caption=Връзка към MySQL->Хост'),

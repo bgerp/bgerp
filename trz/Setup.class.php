@@ -42,12 +42,25 @@ class trz_Setup extends core_ProtoSetup
     
     
     /**
+     * Дали да се пропусне, като избор за инсталиране
+     */
+    public $noInstall = TRUE;
+    
+    
+    /**
+     * Дали се спира поддръжката на този пакет
+     */
+    public $deprecated = TRUE;
+    
+    
+    /**
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
             'trz_Payroll',
             'trz_PayrollDetails',
             'trz_SalaryPayroll',
+            'trz_SalaryIndicatorNames',
 		    'trz_SalaryIndicators',
 		    'trz_SalaryRules',
             'trz_Bonuses',
@@ -64,13 +77,7 @@ class trz_Setup extends core_ProtoSetup
     var $roles = 'trz';
 
     
-    /**
-     * Връзки от менюто, сочещи към модула
-     */
-    var $menuItems = array(
-            array(2.32, 'Персонал', 'ТРЗ', 'trz_SalaryPayroll', 'default', "trz, ceo"),
-        );
-    
+     
     /**
      * Настройки за Cron
      */

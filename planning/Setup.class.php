@@ -163,7 +163,7 @@ class planning_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.21, 'Производство', 'Планиране', 'planning_Jobs', 'default', "planning, ceo, job"),
+            array(3.21, 'Производство', 'Планиране', 'planning_DirectProductionNote', 'default', "planning, ceo, job, store"),
         );
     
     

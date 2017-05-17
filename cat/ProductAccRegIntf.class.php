@@ -153,18 +153,6 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     
     /**
-     * Връща последното не оттеглено или чернова задание за артикула
-     * 
-     * @param mixed $id - ид или запис
-     * @return mixed $res - записа на заданието или FALSE ако няма
-     */
-    public function getLastJob($id)
-    {
-    	return $this->class->getLastJob($id);
-    }
-    
-    
-    /**
      * Връща последната активна рецепта на артикула
      *
      * @param mixed $id - ид или запис
@@ -202,13 +190,13 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      *
      * @param int $id - ид на артикул
      * @param core_RowToolbar $toolbar - тулбара
-     * @param mixed $docClass - класа документа
-     * @param int $docId - ид на документа
+     * @param mixed $detailClass - класа на детайла на документа
+     * @param int $detailId - ид на реда от детайла на документа
      * @return void
      */
-    public function addButtonsToDocToolbar($id, core_RowToolbar &$toolbar, $docClass, $docId)
+    public function addButtonsToDocToolbar($id, core_RowToolbar &$toolbar, $detailClass, $detailId)
     {
-    	return $this->class->addButtonsToDocToolbar($id, $toolbar, $docClass, $docId);
+    	return $this->class->addButtonsToDocToolbar($id, $toolbar, $detailClass, $detailId);
     }
     
     
@@ -235,5 +223,43 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     public function getDeliveryTime($id, $quantity)
     {
     	return $this->class->getDeliveryTime($id, $quantity);
+    }
+    
+    
+    /**
+     * Връща минималното количество за поръчка
+     *
+     * @param int|NULL $id - ид на артикул
+     * @return double|NULL - минималното количество в основна мярка, или NULL ако няма
+     */
+    public function getMoq($id)
+    {
+    	return $this->class->getMoq($id);
+    }
+    
+    
+    /**
+     * Допълнителните условия за дадения продукт,
+     * които автоматично се добавят към условията на договора
+     *
+     * @param mixed $rec       - ид или запис на артикул
+     * @param double $quantity - к-во
+     * @return array           - Допълнителните условия за дадения продукт
+     */
+    public function getConditions($rec, $quantity)
+    {
+    	return $this->class->getConditions($rec, $quantity);
+    }
+    
+    
+    /**
+     * Връща хеша на артикула (стойност която показва дали е уникален)
+     *
+     * @param mixed $rec     - ид или запис на артикул
+     * @return NULL|varchar  - Допълнителните условия за дадения продукт
+     */
+    public static function getHash($rec)
+    {
+    	return $this->class->getHash($rec);
     }
 }

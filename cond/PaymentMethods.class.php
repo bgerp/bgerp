@@ -108,10 +108,13 @@ class cond_PaymentMethods extends core_Master
     {
         // Съкратено име на плащането
         $this->FLD('sysId', 'varchar(16)', 'caption=Системно ID, input=none');
+        
+        // Име на метода за плащане
+        $this->FLD('name', 'varchar', 'caption=Наименование');
 
         // Текстово описание
         $this->FNC('title', 'varchar', 'caption=Описание, input=none, oldFieldName=description');
-        $this->FLD('type', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта)', 'caption=Вид плащане');
+        $this->FLD('type', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг)', 'caption=Вид плащане');
         
         // Процент на авансовото плащане
         $this->FLD('downpayment', 'percent(min=0,max=1)', 'caption=Авансово плащане->Дял,hint=Процент,oldFieldName=payAdvanceShare');
@@ -134,12 +137,17 @@ class cond_PaymentMethods extends core_Master
         $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
         
         $this->setDbUnique('sysId');
-        //$this->setDbUnique('title');
     }
 
 
     function on_CalcTitle($mvc, $rec)
     {
+        if($rec->name) {
+            $rec->title = tr($rec->name);
+
+            return;
+        }
+
         Mode::push('text', 'plain');
 
         if($rec->downpayment) {
@@ -156,6 +164,10 @@ class cond_PaymentMethods extends core_Master
         
         if($rec->timeBalancePayment) {
             $title .= ($title ? ', ' : '') .  round((1 - $rec->downpayment - $rec->paymentBeforeShipping - $rec->paymentOnDelivery)*100,2) . '% ' . tr('до||in') . ' ' . $mvc->getVerbal($rec, 'timeBalancePayment') . ' ' . $mvc->getVerbal($rec, 'eventBalancePayment');
+
+            if($rec->type && $rec->type != 'bank') {
+                $title .= ', ' . mb_strtolower($mvc->getVerbal($rec, 'type'));
+            }
         }
         
         if($rec->discountPercent) {
@@ -332,7 +344,7 @@ class cond_PaymentMethods extends core_Master
     	$file = "cond/csv/PaymentMethods.csv";
     	$fields = array(
             0 => 'sysId',
-	    	1 => 'title',
+	    	1 => 'name',
             2 => 'downpayment',
             3 => 'paymentBeforeShipping',
             4 => 'paymentOnDelivery',

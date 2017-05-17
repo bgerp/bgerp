@@ -226,9 +226,12 @@ abstract class deals_Helper
 		if($values['discount']){ 								// ако има отстъпка
 			$arr['discountValue'] = $values['discount'];
 			$arr['discountCurrencyId'] = $currencyId; 			// Валутата на отстъпката е тази на документа
-			$arr['neto'] = $arr['value'] - $arr['discountValue']; 	// Стойността - отстъпката
+			
+			$arr['neto'] = $arr['value'] - round($arr['discountValue'], 2); 	// Стойността - отстъпката
 			$arr['netoCurrencyId'] = $currencyId; 				// Валутата на нетото е тази на документа
 		}
+		
+		
 		
 		// Ако има нето, крайната сума е тази на нетото, ако няма е тази на стойността
 		$arr['total'] = (isset($arr['neto'])) ? $arr['neto'] : $arr['value']; 
@@ -808,6 +811,9 @@ abstract class deals_Helper
 			$cData = $ContragentClass->getContragentData($contragentId);
 			$res['contragentName'] = isset($contragentName) ? $contragentName : cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
 			$res['contragentAddress'] = $ContragentClass->getFullAdress($contragentId)->getContent();
+			$res['inlineContragentAddress'] = $ContragentClass->getFullAdress($contragentId)->getContent();
+			$res['inlineContragentAddress'] = str_replace('<br>', ',', $res['inlineContragentAddress']);
+			
 			$res['vatNo'] = $cData->vatNo;
 		} elseif(isset($contragentName)){
 			$res['contragentName'] = $contragentName;
@@ -882,6 +888,103 @@ abstract class deals_Helper
 			$msg = "Сумата на реда не може да бъде под|* <b>0.01</b>! |Моля увеличете количеството, защото цената по политика е много ниска|*";
 			} else {
 				$msg = "Сумата на реда не може да бъде под|* <b>0.01</b>! |Моля променете количеството и/или цената|*";
+			}
+		}
+		
+		return $res;
+	}
+	
+	
+	/**
+	 * Връща динамично изчисления толеранс
+	 * 
+	 * @param int $tolerance
+	 * @param int $productId
+	 * @param double $quantity
+	 * @return mixed
+	 */
+	public static function getToleranceRow($tolerance, $productId, $quantity)
+	{
+		$hint = FALSE;
+		
+		if(empty($tolerance)){
+			$tolerance = cat_Products::getTolerance($productId, $quantity);
+			if($tolerance){
+				$hint = TRUE;
+			}
+		}
+		
+		if($tolerance) {
+			$toleranceRow = core_Type::getByName('percent(smartRound)')->toVerbal($tolerance);
+			if($hint === TRUE){
+				$toleranceRow = ht::createHint($toleranceRow, 'Толерансът е изчислен автоматично на база количеството и параметрите на артикула');
+			}
+			
+			return $toleranceRow;
+		}
+		
+		return NULL;
+	}
+	
+	
+	/**
+	 * Проверка дали к-то е под МКП-то на артикула
+	 * 
+	 * @param core_Form $form
+	 * @param int $productId
+	 * @param double $quantity
+	 * @param double $quantityInPack
+	 * @param string $quantityField
+	 * @return void
+	 */
+	public static function isQuantityBellowMoq(&$form, $productId, $quantity, $quantityInPack, $quantityField = 'packQuantity')
+	{
+		$moq = cat_Products::getMoq($productId);
+		
+		if(isset($moq) && $quantity < $moq){
+			$moq /= $quantityInPack;
+			$verbal = core_Type::getByName('double(smartRound)')->toVerbal($moq);
+			if(haveRole('salesMaster,purchaseMaster,ceo')){
+				$form->setWarning($quantityField, "Минималното количество за поръчка в избраната мярка/опаковка e|*: <b>{$verbal}</b>");
+			} else {
+				$form->setError($quantityField, "Минималното количество за поръчка в избраната мярка/опаковка e|*: <b>{$verbal}</b>");
+			}
+		}
+	}
+	
+	
+	/**
+	 * Помощна ф-я за показване на всички условия идващи от артикулите на един детайл
+	 * 
+	 * @param core_Detail $Detail
+	 * @param int $masterId
+	 * @param string $productFieldName
+	 * @return array $res
+	 */
+	public static function getConditionsFromProducts($Detail, $masterId, $productFieldName = 'productId')
+	{
+		$res = array();
+		
+		// Намиране на детайлите
+		$Detail = cls::get($Detail);
+		$dQuery = $Detail->getQuery();
+		$dQuery->where("#{$Detail->masterKey} = {$masterId}");
+		$dQuery->show("{$productFieldName},quantity");
+		
+		while($dRec = $dQuery->fetch()){
+			
+			// Опит за намиране на условията
+			$conditions = cat_Products::getConditions($dRec->{$productFieldName}, $dRec->quantity);
+			
+			// Извличат се
+			if(count($conditions)){
+				foreach ($conditions as $t){
+					$value = preg_replace('!\s+!', ' ', str::mbUcfirst($t));
+					$key = mb_strtolower($value);
+					if(!array_key_exists($key, $res)){
+						$res[$key] = $value;
+					}
+				}
 			}
 		}
 		

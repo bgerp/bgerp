@@ -60,8 +60,6 @@ class findeals_Setup extends core_ProtoSetup
     		'findeals_AdvanceReports',
     		'findeals_AdvanceReportDetails',
     		'migrate::removeOldRoles',
-    		'migrate::updateDocuments',
-    		'migrate::updateReports',
         );
 
         
@@ -70,7 +68,7 @@ class findeals_Setup extends core_ProtoSetup
      */
     var $roles = array(
     		array('pettyCashReport'),
-    		array('findeals', 'pettyCashReport'),
+    		array('findeals', 'pettyCashReport,seePrice'),
     		array('findealsMaster', 'findeals'),
     );
 
@@ -79,7 +77,7 @@ class findeals_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(2.3, 'Финанси', 'Сделки', 'findeals_Deals', 'default', "findealsMaster, ceo"),
+            array(2.3, 'Финанси', 'Сделки', 'findeals_Deals', 'default', "findeals, ceo, acc"),
         );
     
     
@@ -112,61 +110,6 @@ class findeals_Setup extends core_ProtoSetup
     		 
     		core_Roles::delete("role = 'findealsMaster'");
     		core_Roles::save($rec);
-    	}
-    }
-    
-
-    /**
-     * Миграция на документите
-     */
-    public function updateDocuments()
-    {
-    	core_App::setTimeLimit(300);
-    	 
-    	$array = array('findeals_DebitDocuments', 'findeals_CreditDocuments');
-    	 
-    	foreach ($array as $doc){
-    		$Doc = cls::get($doc);
-    		$Doc->setupMvc();
-    
-    		$query = $Doc->getQuery();
-    		$query->where('#amountDeal IS NULL');
-    		while($rec = $query->fetch()){
-    			try{
-    				$dealRec = findeals_Deals::fetch($rec->dealId);
-    				$rec->amountDeal = ($rec->amount * $rec->rate) / $dealRec->currencyRate;
-    				$rec->currencyId = currency_Currencies::getIdByCode($dealRec->currencyId);
-    				
-    				$Doc->save_($rec, 'amountDeal,currencyId');
-    			} catch(core_exception_Expect $e){
-    				reportException($e);
-    			}
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Ъпдейт на авансовите отчети
-     */
-    function updateReports()
-    {
-    	$Reports = cls::get('findeals_AdvanceReports');
-    	$Reports->setupMvc();
-    	
-    	$query = $Reports->getQuery();
-    	$query->where("#contragentClassId IS NULL");
-    	$query->where("#contragentId IS NULL");
-    	
-    	while($rec = $query->fetch()){
-    		try{
-    			$Cover = doc_Folders::getCover($rec->folderId);
-    			$rec->contragentClassId = $Cover->getClassId();
-    			$rec->contragentId = $Cover->that;
-    			$Reports->save_($rec, 'contragentClassId,contragentId');
-    		} catch(core_exception_Expect $e){
-    			reportException($e);
-    		}
     	}
     }
 }

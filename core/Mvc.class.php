@@ -163,6 +163,18 @@ class core_Mvc extends core_FieldSet
 
 
     /**
+     * Връща инстанция към този клас
+     */
+    public static function getSingleton()
+    {
+        $me = cls::get(get_called_class());
+         
+        return $me;
+    }
+
+
+
+    /**
      * Начално установяване на модела чрез http заявка (само в Debug)
      */
     function act_SetupMVC()
@@ -822,7 +834,11 @@ class core_Mvc extends core_FieldSet
             $title = $inst->className;
         }
         
-        $link = ht::createLink($title, array());
+        if(Mode::is('text', 'plain')) {
+            $link = $title;
+        } else {
+            $link = ht::createLink($title, array($me, 'list', $objId));
+        }
         
         return $link;
     }

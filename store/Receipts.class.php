@@ -53,13 +53,13 @@ class store_Receipts extends store_DocumentMaster
      * Поддържани интерфейси
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf,
-                          acc_TransactionSourceIntf=store_transaction_Receipt, bgerp_DealIntf';
+                          acc_TransactionSourceIntf=store_transaction_Receipt, bgerp_DealIntf,trans_LogisticDataIntf';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
+    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
                     doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search, doc_plg_TplManager,
 					doc_EmailCreatePlg, bgerp_plg_Blank, trans_plg_LinesPlugin, doc_plg_HidePrices, doc_SharablePlg';
 
@@ -71,12 +71,6 @@ class store_Receipts extends store_DocumentMaster
      * @see doc_SharablePlg
      */
     public $shareUserRoles = 'ceo, store';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,store';
     
     
     /**
@@ -100,7 +94,7 @@ class store_Receipts extends store_DocumentMaster
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,store';
+	public $canSingle = 'ceo,store,sales,purchase';
     
     
     /**
@@ -116,6 +110,12 @@ class store_Receipts extends store_DocumentMaster
     
     
     /**
+     * Кой може да го прави документа чакащ/чернова?
+     */
+    public $canPending = 'ceo,store,sales,purchase';
+    
+    
+    /**
      * Кой може да го изтрие?
      */
     public $canConto = 'ceo,store';
@@ -127,6 +127,12 @@ class store_Receipts extends store_DocumentMaster
     public $listFields = 'valior, title=Документ, folderId, amountDelivered, weight, volume, createdOn, createdBy';
 
 
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'folderId';
+
+    
     /**
      * Детайла, на модела
      */
@@ -169,6 +175,12 @@ class store_Receipts extends store_DocumentMaster
     public static $defaultStrategies = array(
     		'template' => 'lastDocUser|lastDoc|LastDocSameCuntry',
     );
+	
+	
+    /**
+     * Да се показва антетка
+     */
+    public $showLetterHead = TRUE;
     
     
     /**
@@ -263,5 +275,43 @@ class store_Receipts extends store_DocumentMaster
     					  'toggleFields' => array('masterFld' => NULL, 'store_ReceiptDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
     	
         $res .= doc_TplManager::addOnce($this, $tplArr);
+    }
+    
+	
+    /**
+     * Добавя допълнителни полетата в антетката
+     *
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param object $rec
+     * @param object $row
+     */
+    public static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
+    {
+        $toDraftCnt = log_Data::getObjectCnt(get_called_class(), $rec->id, NULL, 'Документът се връща в чернова');
+        
+        if ($toDraftCnt) {
+            $resArr['_toDraft'] = array('name' => tr('Към чернова'), 'val' => $toDraftCnt);
+            $resArr['_lastFrom'] = array('name' => tr('Последно'), 'val' => tr('на') . " [#modifiedOn#] " . tr('от') . " [#modifiedBy#]");
+        }
+    }
+    
+    
+    /**
+     * Кои полета да са скрити във вътрешното показване
+     * 
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param object $rec
+     * @param object $row
+     */
+    public static function getHideArrForLetterHead_($rec, $row)
+    {
+        $hideArr = array();
+        
+        $hideArr['external']['_toDraft'] = TRUE;
+        $hideArr['external']['_lastFrom'] = TRUE;
+        
+        return $hideArr;
     }
 }

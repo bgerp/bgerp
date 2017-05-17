@@ -128,7 +128,7 @@ class doc_Folders extends core_Master
         $this->FLD('coverId' , 'int', 'caption=Корица->Обект');
         
         // Информация за папката
-        $this->FLD('title' , 'varchar(255,ci)', 'caption=Заглавие');
+        $this->FLD('title' , 'varchar(255,ci)', 'caption=Заглавие, tdClass=folderListTitle');
         $this->FLD('status' , 'varchar(128)', 'caption=Статус');
         $this->FLD('state' , 'enum(active=Активно,opened=Отворено,rejected=Оттеглено,closed=Затворено)', 'caption=Състояние');
         $this->FLD('allThreadsCnt', 'int', 'caption=Нишки->Всички');
@@ -191,9 +191,10 @@ class doc_Folders extends core_Master
      */
     public static function logRead($action, $objectId = NULL, $lifeDays = 180)
     {
-        self::logToFolder('read', $action, $objectId, $lifeDays);
-        
-        return parent::logRead($action, $objectId, $lifeDays);
+        if (!self::logToFolder('read', $action, $objectId, $lifeDays)) {
+            
+            return parent::logRead($action, $objectId, $lifeDays);
+        }
     }
     
     
@@ -208,9 +209,10 @@ class doc_Folders extends core_Master
      */
     public static function logWrite($action, $objectId = NULL, $lifeDays = 360)
     {
-        self::logToFolder('write', $action, $objectId, $lifeDays);
-        
-        return parent::logWrite($action, $objectId, $lifeDays);
+        if (!self::logToFolder('write', $action, $objectId, $lifeDays)) {
+            
+            return parent::logWrite($action, $objectId, $lifeDays);
+        }
     }
     
     
@@ -582,13 +584,42 @@ class doc_Folders extends core_Master
      */
     public static function getUsersArrForNotify($rec)
     {
-        $resArr = array();
+        static $resArr = array();
         
         if ($resArr[$rec->id]) $resArr[$rec->id];
         
         $notifyArr = array();
         $notifyArr[$rec->inCharge] = $rec->inCharge;
-        $notifyArr += keylist::toArray($rec->shared);
+        
+        $oSharedArr = keylist::toArray($rec->shared);
+        
+        // Настройките на пакета
+        $notifySharedConf = doc_Setup::get('NOTIFY_FOLDERS_SHARED_USERS');
+        if ($notifySharedConf == 'no') {
+            $sharedArr = array();
+        } else {
+            $sharedArr = $oSharedArr;
+        }
+        
+        // Персоналните настройки на потребителите
+        $pKey = crm_Profiles::getSettingsKey();
+        $pName = 'DOC_NOTIFY_FOLDERS_SHARED_USERS';
+        
+        $settingsNotifyArr = core_Settings::fetchUsers($pKey, $pName);
+        
+        if ($settingsNotifyArr) {
+            foreach ($settingsNotifyArr as $userId => $uConfArr) {
+                if ($uConfArr[$pName] == 'no') {
+                    unset($sharedArr[$userId]);
+                } elseif ($uConfArr[$pName] == 'yes') {
+                    if ($oSharedArr[$userId]) {
+                        $sharedArr[$userId] = $userId;
+                    }
+                }
+            }
+        }
+        
+        $notifyArr += $sharedArr;
         
         $key = doc_Folders::getSettingsKey($rec->id);
         $folOpeningNotifications = core_Settings::fetchUsers($key, 'folOpenings');
@@ -599,20 +630,19 @@ class doc_Folders extends core_Master
             if ($folOpening['folOpenings'] == 'no') {
                 unset($notifyArr[$userId]);
             } else if ($folOpening['folOpenings'] == 'yes') {
-                $notifyArr[$userId] = $userId;
+                
+                // Може да е абониран, но да няма права
+                if (doc_Folders::haveRightFor('single', $rec->folderId, $userId)) {
+                    $notifyArr[$userId] = $userId;
+                }
             }
         }
         
         $currUserId = core_Users::getCurrent();
-        
-        // Ако няма права за дебъг, няма да се нотифицира текущия потребител
-        if (!haveRole('debug', $currUserId)) {
-            unset($notifyArr[$currUserId]);
-        }
-        
-        // Премахваме анонимния и системния потребител
+        // Премахваме анонимния, системния и текущия потребител
         unset($notifyArr[0]);
         unset($notifyArr[-1]);
+        unset($notifyArr[$currUserId]);
         
         $resArr[$rec->id] = $notifyArr;
         
@@ -1529,6 +1559,14 @@ class doc_Folders extends core_Master
         }
         
         $searchKeywords .= " " . plg_Search::normalizeText($title);
+        
+        // Добавя ключовии думи за държавата и на bg и на en
+        if(($class->className == 'crm_Companies' || $class->className == 'crm_Persons') && $rec->coverId) {
+            $countryId = $class->fetchField($rec->coverId, 'country');
+            if($countryId) {
+                $searchKeywords = drdata_Countries::addCountryInBothLg($countryId, $searchKeywords);
+            }
+        } 
     }
     
     
@@ -1607,13 +1645,14 @@ class doc_Folders extends core_Master
         $form->title = 'Настройка на|* ' . $row->title;
         
         // Добавяме функционални полета
-        $form->FNC('folOpenings', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Отворени теми->Известяване, input=input');
+        $form->FNC('folOpenings', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при->Отворени теми, input=input');
+        $form->FNC('personalEmailIncoming', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при->Личен имейл, input=input');
+        $form->FNC('newDoc', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при->Нов документ, input=input');
         $form->FNC('perPage', 'enum(default=Автоматично, 10=10, 20=20, 40=40, 100=100, 200=200)', 'caption=Теми на една страница->Брой, input=input');
 
         $form->FNC('ordering', 'enum(default=Автоматично, ' . doc_Threads::filterList . ')', 'caption=Подредба на темите->Правило, input=input');
 
         $form->FNC('defaultEmail', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Адрес|* `From` за изходящите писма от тази папка->Имейл, input=input');
-        $form->FNC('personalEmailIncoming', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Получен личен имейл->Известяване, input=input');
         
         // Изходящ имейл по-подразбиране за съответната папка
         try {
@@ -1633,6 +1672,7 @@ class doc_Folders extends core_Master
         $form->setDefault('perPage', 'default');
         $form->setDefault('ordering', 'default');
         $form->setDefault('personalEmailIncoming', 'default');
+        $form->setDefault('newDoc', 'default');
         
         // Сетваме стринг за подразбиране
         $defaultStr = 'По подразбиране|*: ';
@@ -1698,12 +1738,19 @@ class doc_Folders extends core_Master
         $query = self::getQuery();
 	    $query->orderBy("last=DESC");
 
+	    // Ако има зададен интерфейс за кориците, взимат се само тези папки, чиито корици имат интерфейса
+	    if(isset($params['coverInterface'])){
+	    	$coverClasses = core_Classes::getOptionsByInterface($params['coverInterface'], 'title');
+	    	$coverClasses = array_keys($coverClasses);
+	    	$query->in('coverClass', $coverClasses);
+	    }
+	    
         $viewAccess = TRUE;
 	    if ($params['restrictViewAccess'] == 'yes') {
 	        $viewAccess = FALSE;
 	    }
 
-        $me = cls::get('crm_Companies');
+        $me = cls::get(get_called_class());
 	       
 	    $me->restrictAccess($query, NULL, $viewAccess);
 	    
@@ -1783,4 +1830,5 @@ class doc_Folders extends core_Master
         // Премахваме color стилове
         $status = preg_replace('/style\s*=\s*(\'|")color:\#[a-z0-9]{3,6}(\'|")/i', '', $status);
     }
+
 }

@@ -244,10 +244,6 @@ class core_SpellNumber
         $res = $this->insAnd(trim($N9 . " " . $N6 . " " . $N3 . " " . $N0));
         $res = str_replace("_", " ", $res);
         $res = trim($res);
-        
-        if($NUMBER < 0){
-        	$res = "минус" . " " . $res;
-        }
          
         return $res;
     }
@@ -295,7 +291,7 @@ class core_SpellNumber
             $w = '#';
         } else {
             if ($x < 0) {
-                $w = 'minus ';
+                $w = '';
                 $x = -$x;
             } else {
                 $w = '';
@@ -404,6 +400,14 @@ class core_SpellNumber
 		
         if ($cent > 0){
         	$text .= " {$andStr} {$cents}" . $centCur;
+        }
+       
+        if($num < 0){
+        	if ($lg == "bg") {
+        		$text = "минус" . " " . $text;
+        	} else {
+        		$text = "minus" . " " . $text;
+        	}
         }
         
         return $text;

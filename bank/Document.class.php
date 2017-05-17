@@ -58,12 +58,6 @@ abstract class bank_Document extends deals_PaymentDocument
 	
 	
 	/**
-	 * Кой има право да чете?
-	 */
-	public $canRead = 'bank, ceo';
-	
-	
-	/**
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'bank, ceo';
@@ -79,6 +73,12 @@ abstract class bank_Document extends deals_PaymentDocument
      * Кой може да създава?
      */
     public $canAdd = 'bank, ceo, purchase, sales';
+    
+    
+    /**
+     * Кой може да го прави документа чакащ/чернова?
+     */
+    public $canPending = 'bank, ceo, purchase, sales';
     
     
     /**
@@ -126,7 +126,7 @@ abstract class bank_Document extends deals_PaymentDocument
 		$mvc->FLD('amountDeal', 'double(decimals=2,max=2000000000,min=0)', 'caption=Платени,mandatory,silent');
 		$mvc->FLD('dealCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'input=hidden');
 		
-		$mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
+		$mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор');
 		$mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,input=hidden');
 		$mvc->FLD('rate', 'double(decimals=5)', 'caption=Курс,input=none');
 		$mvc->FLD('reason', 'richtext(bucket=Notes,rows=6)', 'caption=Основание,mandatory');
@@ -140,7 +140,7 @@ abstract class bank_Document extends deals_PaymentDocument
 		$mvc->FLD('debitAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'caption=debit,input=none');
 		$mvc->FLD('creditAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'caption=Кредит,input=none');
 		$mvc->FLD('state',
-				'enum(draft=Чернова, active=Активиран, rejected=Оттеглен,stopped=Спряно)',
+				'enum(draft=Чернова, active=Активиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)',
 				'caption=Статус, input=none'
 		);
 		$mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
@@ -354,8 +354,8 @@ abstract class bank_Document extends deals_PaymentDocument
 		$rec = $data->rec;
 		
 		// Ако не е избрана сметка, показваме бутона за контиране но с грешка
-		if($rec->state == 'draft' && !isset($rec->ownAccount) && $mvc->haveRightFor('conto')){
-			$data->toolbar->addBtn('Контиране', array(), "id=btnConto,error=Не е избрана сметка", 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
+		if(($rec->state == 'draft' || $rec->state == 'pending') && !isset($rec->ownAccount) && $mvc->haveRightFor('conto')){
+			$data->toolbar->addBtn('Контиране', array(), array('id' => 'btnConto', 'error' => 'Документа не може да бъде контиран, докато няма посочена банкова сметка|*!'), 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
 		}
 	}
 	
@@ -459,7 +459,7 @@ abstract class bank_Document extends deals_PaymentDocument
         
         if(empty($form->rec->id) && $form->cmd != 'refresh'){
         	$form->setDefault('ownAccount', bank_OwnAccounts::getCurrent('id', FALSE));
-        	$form->setDefault('ownAccoun', $bankId);
+        	$form->setDefault('ownAccount', $bankId);
         }
         
         if(isset($form->rec->ownAccount)){

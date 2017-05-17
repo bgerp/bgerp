@@ -69,7 +69,7 @@ class cal_Reminders extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'description';
+    public $searchFields = 'description,title';
     
     
     /**
@@ -189,7 +189,18 @@ class cal_Reminders extends core_Master
     /**
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
-    public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
+    public $coversAndInterfacesForNewDoc = '*';
+    
+                         //24x60x60
+    static $map = array ('days'=>86400,
+                         //7x24x60x60
+                         'weeks'=>604800,
+                         //30x24x60x60
+                         'months'=>2592000,
+                         //30x24x60x60
+                         'weekDay'=>2592000,
+                         //30x24x60x60
+                         'monthDay'=>2592000);
 
 
     /**
@@ -275,10 +286,10 @@ class cal_Reminders extends core_Master
               
         }
 
-        if(!$data->form->rec->id) {
+        if(!$data->form->rec->id) { 
 
       	    $cu = core_Users::getCurrent();
-            $nextWorkDay = dt::nextWorkingDay(dt::addDays(1));
+            $nextWorkDay = cal_Calendar::nextWorkingDay(dt::addDays(1));
             
             $time = strstr($nextWorkDay, " ", TRUE). " 08:00";
   
@@ -314,12 +325,26 @@ class cal_Reminders extends core_Master
             		// Добавяме съобщение за грешка
                     $form->setWarning('timeStart', "Датата за напомняне трябва да е след|* " . dt::mysql2verbal($now));
             	}
+
+            	if (isset($form->rec->repetitionEach) && isset($form->rec->repetitionType)) {
+            	    if (isset($form->rec->timePreviously)) { 
+            	        $secRepetitionType = static::$map[$form->rec->repetitionType];
+            	        $repetitionSec = $form->rec->repetitionEach * $secRepetitionType;
+
+            	        if ($form->rec->timePreviously >= $repetitionSec){
+            	            // Добавяме съобщение за грешка
+            	            $form->setError('timePreviously', "Не може да се направи напомняне с предварително време по-голямо от повторението|* ");
+            	        }
+            	    }
+            	}
+
     	    } else {
     	        if (!$form->rec->id) {
     	            $form->rec->timeStart = $now;
     	        }
     	    }
-        	
+
+    	    
     		if ($form->rec->id){
     			
     			$exState = self::fetchField($form->rec->id, 'state');
@@ -340,13 +365,8 @@ class cal_Reminders extends core_Master
     static function on_BeforeSave($mvc, &$id, $rec)
     {
     	$now = dt::now(); 
-        
-        if($rec->repetitionEach) {
-            $rec->nextStartTime = $mvc->getNextStartingTime2($rec);
-        } else {
-            $rec->nextStartTime = $rec->timeStart;
-        }
-
+    	
+    	$rec->nextStartTime = $mvc->getNextStartingTime2($rec);
     }
 
     
@@ -470,7 +490,7 @@ class cal_Reminders extends core_Master
      * @param stdClass|NULL $rec
      * @param int|NULL $userId
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	$now = dt::now();
       
@@ -563,77 +583,43 @@ class cal_Reminders extends core_Master
      * Обновява информацията за напомнянията
      * за текущата и следващите три години
      */
-    static function updateRemindersToCalendar($id)
+    static function updateRemindersToCalendar($rec, $fromDate, $toDate, $prefix, &$events)
     {
-        if(($rec = static::fetch($id)) && ($rec->state == 'active')) {
-
-            if(!$rec->timeStart) return;
     
-            list($y, $m, $d) = type_Combodate::toArray($rec->timeStart);
-        }
-    
-        $events = array();
-    
-        // Годината на датата от преди 30 дни е начална
-        $cYear = date('Y', time() - 30 * 24 * 60 * 60);
-    
-        // Начална дата
-        $fromDate = "{$cYear}-01-01";
-    
-        // Крайна дата
-        $toDate = ($cYear + 2) . '-12-31';
-    
-        // Масив с години, за които ще се вземат напомнянията
-        $years = array($cYear, $cYear + 1, $cYear + 2);
-        
-        // Префикс на клучовете за напомнянията в календара
-        $prefix = "RЕМ-{$id}";
         
         // Подготвяме запис за началната дата
-        if($rec->timeStart && $rec->timeStart >= $fromDate && $rec->timeStart <= $toDate && ($rec->state == 'active')) {
+        if($rec->timeStart && ($rec->timeStart >= $fromDate) && ($rec->timeStart <= $toDate) && ($rec->state == 'active')) {
             
-            if ($d > 0 && $m > 0) {
-                
-                $calRec = new stdClass();
+             $calRec = new stdClass();
     
-                // Ключ на събитието
-                $calRec->key = $prefix . '-Start';
+             // Ключ на събитието
+             $calRec->key = $prefix . '-' . $rec->id . '-Start';
     
-                // TODO да се проверява за високосна година
-                $calRec->time = $rec->timeStart;
-                
-                if($rec->nextStartTime) {
-                    // Ключ на събитието
-                    $calRec->key = $prefix . '-Start';
-                    
-                    // TODO да се проверява за високосна година
-                    $calRec->time = $rec->timeStart;
-                }
-    
-                $calRec->type = 'alarm_clock';
-                
-                $calRec->allDay = 'no';
-                
-                $calRec->state = $rec->state;
+             // TODO да се проверява за високосна година
+             $calRec->time = $rec->timeStart;
+                 
+             $calRec->type = 'alarm_clock';
+             
+             $calRec->allDay = 'no';
+             
+             $calRec->state = $rec->state;
 
-                $calRec->title = $rec->title;
+             $calRec->title = $rec->title;
  
-                $calRec->users =  $rec->sharedUsers;
+             $calRec->users =  $rec->sharedUsers;
 
-                $calRec->url = array('cal_Reminders', 'Single', $id);
+             $calRec->url = array('cal_Reminders', 'Single', $rec->id);
     
-                $calRec->priority = 90;
+             $calRec->priority = 90;
     
-                $events[] = $calRec;
-            }
-        }
+             $events[] = $calRec;
 
-        if ($rec->nextStartTime && $rec->nextStartTime >= $rec->timeStart && $rec->nextStartTime <= $toDate && ($rec->state == 'active')){ 
+        } elseif ($rec->nextStartTime && ($rec->nextStartTime >= $fromDate) && ($rec->nextStartTime <= $toDate) && ($rec->state == 'active')){ 
 
             $remRec = new stdClass();
                
             // Ключ на събитието
-            $remRec->key = $prefix . '-NextStart';
+            $remRec->key = $prefix . '-' . $rec->id . '-NextStart';
 
             $remRec->time = $rec->nextStartTime;
                
@@ -647,14 +633,14 @@ class cal_Reminders extends core_Master
                
             $remRec->users =  $rec->sharedUsers;
                
-            $remRec->url = array('cal_Reminders', 'Single', $id);
+            $remRec->url = array('cal_Reminders', 'Single', $rec->id);
                
             $remRec->priority = 90;
                
             $events[] = $remRec;
         }
 
-        return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
+        return $events;
     }
 
     
@@ -737,15 +723,30 @@ class cal_Reminders extends core_Master
     function cron_UpdateCalendarEvents()
     {
         $query = self::getQuery();
-
-        while($rec = $query->fetch()) {
-            $res = static::updateRemindersToCalendar($rec->id);
-            $new += $res['new'];
-            $deleted += $res['deleted'];
-            $updated += $res['updated'];
-        }
+            
+        $arr = array();
+        
+        // Годината на датата от преди 30 дни е начална
+        $cYear = date('Y', time() - 30 * 24 * 60 * 60);
     
-        $status = "В календара са добавени {$new}, обновени {$updated} и изтрити {$deleted} напомняния";
+        // Начална дата
+        $fromDate = "{$cYear}-01-01";
+    
+        // Крайна дата
+        $toDate = ($cYear + 2) . '-12-31';
+        
+        // Префикс на клучовете за напомнянията в календара
+        $prefix = "RЕМ";
+        
+        $events = array();
+
+        while($rec = $query->fetch("#state = 'active' && #priority != 'low'")) {
+            self::updateRemindersToCalendar($rec, $fromDate, $toDate, $prefix, $events);
+        }
+        
+        $res = cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
+
+        $status = "В календара са добавени {$res['new']}, обновени {$res['updated']} и изтрити {$res['deleted']} напомняния";
     
         return $status;
     }
@@ -810,7 +811,8 @@ class cal_Reminders extends core_Master
 							doc_Threads::save((object)array('id'=>$rec->threadId, 'state'=>'opened'), 'state');
                             doc_Threads::doUpdateThread($rec->threadId);
 							bgerp_Notifications::add($rec->message, $rec->url, $userId, $rec->priority, $rec->customUrl);
-						    break;
+						    //break;
+						    return;
 						
 						case 'notifyNoAns':
 							// Търсим дали има пристигнало писмо
@@ -827,11 +829,13 @@ class cal_Reminders extends core_Master
  						
 						case 'replicateDraft':
                             self::replicateThread($rec, TRUE);
-						    break;
+                            return;
+						    //break;
 						
 						case 'replicate':  
                             self::replicateThread($rec);
-						    break;
+                            return;
+						    //break;
 					}
 				}
 			}
@@ -918,20 +922,25 @@ class cal_Reminders extends core_Master
      
     
     static function getNextStartingTime2($rec)
-    {
-        if(empty($rec->repetitionEach)) {
-            return;
+    {	
+        $rec2 = clone($rec);
+   
+        if(empty($rec2->repetitionEach)) { 
+            if(empty($rec2->timePreviously)) {
+                return;
+            } else {
+                $rec2->timeStart = dt::timestamp2Mysql(dt::mysql2timestamp($rec2->timeStart) - $rec2->timePreviously);
+            }
         }
         
-        $rec2 = clone($rec);
- 
         if($rec2->timeStart > dt::now()) {
             return $rec2->timeStart;
         }
-        
+
         do {
+            $exTimeStart = $rec2->timeStart;
             $rec2->timeStart = self::calcNextStartTime($rec2); 
-        } while($rec2->timeStart <= dt::now());
+        } while($rec2->timeStart <= dt::now() && ($exTimeStart < $rec2->timeStart));
 
         return $rec2->timeStart;
     }
@@ -996,11 +1005,12 @@ class cal_Reminders extends core_Master
             }
         } else {
             $nextStartTime = $rec->timeStart;
+  
         }
 
         // Ако имаме отбелязано време предварително
         if($rec->timePreviously != NULL){ 
-            if($nextStartTime) {
+            if($nextStartTime) { 
                 $nextStartTimeTs = dt::mysql2timestamp($nextStartTime) - $rec->timePreviously;
             } else {
                 $nextStartTimeTs = $startTs - $rec->timePreviousl;
@@ -1056,7 +1066,7 @@ class cal_Reminders extends core_Master
                 $resArr[$fieldName] =  array('name' => tr($val), 'val' =>"[#{$fieldName}#]");
             }
         }
-        
+     
         if($rec->timeStart == $rec->nextStartTime) {
             unset($resArr['nextStartTime']);
         }
@@ -1107,7 +1117,7 @@ class cal_Reminders extends core_Master
                 $row->repetitionTypeMonth = tr('точния ден от месеца');
             }
         }
-
+    
         if($rec->repetitionEach != NULL ){
             $resArr['each'] =  array('name' => tr('Повторение'), 'val' =>"[#each#]<!--ET_BEGIN repetitionEach--> [#repetitionEach#]<!--ET_END repetitionEach--><!--ET_BEGIN repetitionType--> [#repetitionType#]<!--ET_END repetitionType-->");
         }

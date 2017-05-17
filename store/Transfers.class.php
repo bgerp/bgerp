@@ -46,7 +46,7 @@ class store_Transfers extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable, acc_plg_DocumentSummary,
+    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable, acc_plg_DocumentSummary,
                     doc_DocumentPlg, trans_plg_LinesPlugin, doc_plg_BusinessDoc, plg_Search, bgerp_plg_Blank,plg_Clone';
 
     
@@ -110,6 +110,12 @@ class store_Transfers extends core_Master
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo,store';
+    
+    
+    /**
+     * Кой може да го прави документа чакащ/чернова?
+     */
+    public $canPending = 'ceo,store';
     
     
     /**
@@ -180,6 +186,12 @@ class store_Transfers extends core_Master
 	public $singleIcon = 'img/16/transfers.png';
 
 
+	/**
+	 * Полета за филтър по склад
+	 */
+	public $filterStoreFields = 'fromStore,toStore';
+	
+	
     /**
      * Описание на модела (таблицата)
      */
@@ -198,7 +210,7 @@ class store_Transfers extends core_Master
         // Допълнително
         $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
     	$this->FLD('state', 
-            'enum(draft=Чернова, active=Контиран, rejected=Сторниран,stopped=Спряно)', 
+            'enum(draft=Чернова, active=Контиран, rejected=Сторниран,stopped=Спряно, pending=Заявка)', 
             'caption=Статус, input=none'
         );
     }
@@ -210,8 +222,16 @@ class store_Transfers extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($requiredRoles == 'no_one') return;
-    	if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'store_Stores', 'fromStore')){
+    	
+    	if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'store_Stores', 'toStore')){
     		$requiredRoles = 'no_one';
+    	}
+    	
+    	if($action == 'pending' && isset($rec)){
+    		$Detail = cls::get($mvc->mainDetail);
+    		if(!$Detail->fetchField("#{$Detail->masterKey} = {$rec->id}")){
+    			$requiredRoles = 'no_one';
+    		}
     	}
     }
     

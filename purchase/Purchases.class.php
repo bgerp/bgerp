@@ -16,14 +16,6 @@
  */
 class purchase_Purchases extends deals_DealMaster
 {
-	
-    
-    /**
-     * Дали да се показва бутон на чернова документ
-     * 
-     * @see doc_EmailCreatePlg
-     */
-	public $canEmailDraft = TRUE;
     
     
     /**
@@ -35,7 +27,7 @@ class purchase_Purchases extends deals_DealMaster
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, bgerp_DealAggregatorIntf, bgerp_DealIntf, acc_TransactionSourceIntf=purchase_transaction_Purchase, deals_DealsAccRegIntf, acc_RegisterIntf, deals_InvoiceSourceIntf,colab_CreateDocumentIntf,acc_AllowArticlesCostCorrectionDocsIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, bgerp_DealAggregatorIntf, bgerp_DealIntf, acc_TransactionSourceIntf=purchase_transaction_Purchase, deals_DealsAccRegIntf, acc_RegisterIntf, deals_InvoiceSourceIntf,colab_CreateDocumentIntf,acc_AllowArticlesCostCorrectionDocsIntf,trans_LogisticDataIntf';
     
     
     /**
@@ -59,12 +51,6 @@ class purchase_Purchases extends deals_DealMaster
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo, purchase';
-    
-    
-    /**
      * Кой може да го активира?
      */
     public $canConto = 'ceo,purchase,acc';
@@ -79,13 +65,13 @@ class purchase_Purchases extends deals_DealMaster
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo, purchase';
+	public $canList = 'ceo,purchase,acc';
 	
 	
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo, purchase';
+	public $canSingle = 'ceo,purchase,acc';
     
     
     /**
@@ -217,15 +203,15 @@ class purchase_Purchases extends deals_DealMaster
     
     
     /**
-     * Кое поле показва сумата на сделката
-     */
-    public $canClosewith = 'ceo,purchaseMaster';
-    
-    
-    /**
      * Как се казва приключващия документ
      */
     public $closeDealDoc = 'purchase_ClosedDeals';
+    
+    
+    /**
+     * Кой може да го прави документа чакащ/чернова?
+     */
+    public $canPending = 'purchase,ceo,distributor';
     
     
     /**
@@ -300,7 +286,7 @@ class purchase_Purchases extends deals_DealMaster
 	    		
 	    		// Ако разликата е над допустимата но потребителя има права 'purchase', той вижда бутона но не може да го използва
 	    		if(!purchase_ClosedDeals::isPurchaseDiffAllowed($rec) && haveRole('purchase') && empty($exClosedDeal)){
-	    			$data->toolbar->addBtn('Приключване', $closeArr, "row=2,ef_icon=img/16/closeDeal.png,title=Приключване на покупката,error=Нямате право да приключите покупка с разлика над допустимото");
+	    			$data->toolbar->addBtn('Приключване', $closeArr, "row=2,ef_icon=img/16/closeDeal.png,title=Приключване на покупката,error=Нямате право да приключите покупка с разлика над допустимото|*!");
 	    		}
 	    	}
     		
@@ -535,6 +521,8 @@ class purchase_Purchases extends deals_DealMaster
     	if($action == 'closewith' && isset($rec)){
     		if(purchase_PurchasesDetails::fetch("#requestId = {$rec->id}")){
     			$res = 'no_one';
+    		} elseif(!haveRole('purchase,ceo', $userId)){
+    			$res = 'no_one';
     		}
     	}
     }
@@ -607,7 +595,8 @@ class purchase_Purchases extends deals_DealMaster
     	$tplArr[] = array('name' => 'Договор за покупка на услуга', 'content' => 'purchase/tpl/purchases/Service.shtml', 'lang' => 'bg', 'narrowContent' => 'purchase/tpl/purchases/ServiceNarrow.shtml');
     	$tplArr[] = array('name' => 'Purchase contract', 'content' => 'purchase/tpl/purchases/PurchaseEN.shtml', 'lang' => 'en', 'narrowContent' => 'purchase/tpl/purchases/PurchaseNarrowEN.shtml');
     	$tplArr[] = array('name' => 'Purchase of service contract', 'content' => 'purchase/tpl/purchases/ServiceEN.shtml', 'lang' => 'en', 'oldName' => 'Purchase of Service contract', 'narrowContent' => 'purchase/tpl/purchases/ServiceNarrowEN.shtml');
-        
+    	$tplArr[] = array('name' => 'Заявка за транспорт', 'content' => 'purchase/tpl/purchases/Transport.shtml', 'lang' => 'bg', 'narrowContent' => 'purchase/tpl/purchases/TransportNarrow.shtml');
+    	
         $res .= doc_TplManager::addOnce($this, $tplArr);
     }
     

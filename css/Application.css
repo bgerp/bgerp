@@ -288,9 +288,9 @@ div.folder-cover {
   border-radius: 0 25px 0 0;
   box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.2); }
   div.folder-cover.state-opened {
-    background-image: url('../img/cover-bg-green.png'); }
+    background: #cef1d7 url('../img/cover-bg-green.png'); }
   div.folder-cover.state-active {
-    background-image: url('../img/cover-bg-yellow.png'); }
+    background: #fffdea url('../img/cover-bg-yellow.png'); }
   div.folder-cover .detail-info {
     background: none; }
     div.folder-cover .detail-info.portal {
@@ -680,7 +680,8 @@ div.productImage {
   border-radius: 4px;
   margin-top: 5px;
   padding: 1px 5px;
-  cursor: pointer; }
+  cursor: pointer;
+  white-space: nowrap; }
   .group-link:hover {
     background-color: #f1f1f1; }
 
@@ -712,6 +713,15 @@ div.productImage {
     margin: 0 0 2px;
     font-size: 0.9em;
     color: #222222; }
+
+.report-new-version-info {
+  margin-top: 15px;
+  border: 1px solid #cccccc;
+  padding: 5px 5px 5px 10px;
+  background: rgba(255, 255, 190, 0.5);
+  font-size: 0.9em;
+  color: #222222;
+  border-radius: 5px; }
 
   .products-table a.fancybox img,
   .jobTable a.fancybox img,
@@ -957,6 +967,11 @@ div.acc-detail {
   background-color: #e1e1e1;
   padding: 5px; }
 
+  table.listTable > tbody > tr > .folderListTitle,
+  table.listTable > tbody > tr >  .threadListTitle,
+  table.listTable > tbody > tr > .emailListTitle {
+    max-width: 600px; }
+
 /*
  * детайли
  */
@@ -1045,6 +1060,7 @@ div.acc-detail {
 
 .portal {
   margin-top: 15px;
+  margin-bottom: 30px;
   padding: 10px;
   padding-top: 18px;
   border: solid 1px #cccccc;
@@ -1236,8 +1252,6 @@ a.tOld {
       color: black; }
   .document .listTable {
     width: 100%; }
-  .document .custom-ul {
-    margin: 0 0 0 20px; }
   .document .header {
     -moz-border-radius: 3px;
     -webkit-border-radius: 3px;
@@ -1269,7 +1283,8 @@ a.tOld {
     background-color: #e0e0e0; }
   .document .no-border-bottom {
     border-bottom: none !important; }
-  .document .no-border td {
+  .document .no-border td,
+  .document .no-border th {
     border: none !important; }
   .document.print-letter {
     page-break-after: always;
@@ -1298,6 +1313,26 @@ a.tOld {
 
 .groupList .small-padding td {
   padding: 2px 3px 0 !important; }
+
+.wide .halfTable {
+  width: 45%;
+  float: left;
+  margin-top: 5px; }
+  .wide .halfTable.offsetLeft {
+    margin-left: 50px; }
+  .wide .halfTable .titleCol {
+    width: 120px; }
+
+  .productCell .halfTable .titleCol {
+    width: 100px;
+    vertical-align: top; }
+  .productCell .halfTable.offsetLeft {
+    margin-left: 20px; }
+
+.narrow .halfTable {
+  margin-top: 10px; }
+  .narrow .halfTable.offsetLeft {
+    margin-left: 0px; }
 
 .document-settings,
 .document-settings-left {
@@ -1439,6 +1474,15 @@ a.tOld {
   padding: 1px 2px 0px 2px !important;
   border-radius: 3px; }
 
+.approved {
+  margin-top: 3px;
+  padding: 10px 10px 5px !important; }
+
+.wide .approved {
+  position: absolute;
+  top: 7px;
+  left: 2px; }
+
 .centered {
   text-align: center; }
 
@@ -1564,6 +1608,9 @@ pre.document {
   font-size: 0.9em;
   margin-bottom: -2px;
   margin-top: 3px; }
+
+.boldText {
+  font-weight: bold; }
 
 .cell {
   border: 1px solid #999999;
@@ -1841,6 +1888,10 @@ table.mc-header a {
     box-shadow: none;
     background: none; }
 
+  .transparentSelect.no-border-select {
+    border: none !important;
+    box-shadow: none !important; }
+
 @-moz-document url-prefix() {
     .portal-select {
     color: rgba(0, 0, 0, 0);
@@ -2066,7 +2117,8 @@ ul.history {
 
 .narrow ul.history {
   white-space: nowrap;
-  display: inline-block; }
+  display: inline-block;
+  min-width: 0 !important; }
   .narrow ul.history li {
     line-height: 1.2;
     display: inline-block;
@@ -2575,6 +2627,10 @@ span.sharing-history-title {
 .richtext h2,
 .richtext h3 {
   clear: both; }
+
+.document .richtext .fancybox img {
+  max-width: 100%;
+  height: auto; }
 
   .clear-center img {
     max-width: 100%;
@@ -4413,6 +4469,7 @@ only screen and (max-width: 320px) {
     margin: 0px !important; }
 
   .document {
+    min-width: 837px !important;
     width: 100%;
     max-width: 1200px;
     padding: 0px !important; }
@@ -4788,6 +4845,13 @@ only screen and (max-width: 320px) {
 
 .document .display-table .details .listToolbar {
   border-bottom: none; }
+
+.attentionIcon {
+  background-image: url('../img/16/emotion_alert.png');
+  background-repeat: no-repeat;
+  background-position: left center;
+  padding-left: 20px;
+  font-size: 0.9em; }
 
 .feather-icon {
   background-image: url('../img/16/feather.png');

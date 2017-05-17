@@ -217,27 +217,22 @@ class sales_Setup extends core_ProtoSetup
     		'sales_PrimeCostByDocument',
     		'migrate::cacheInvoicePaymentType',
     		'migrate::migrateRoles',
+    		'migrate::updateDealFields1',
         );
-
-        
-    /**
-     * Роли за достъп до модула
-     */
-    var $roles = 'sales';
 
     
     /**
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.1, 'Търговия', 'Продажби', 'sales_Sales', 'default', "sales, ceo"),
+            array(3.1, 'Търговия', 'Продажби', 'sales_Sales', 'default', "sales, ceo, acc"),
         );
 
     
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = 'sales_reports_SalesPriceImpl, sales_reports_OweInvoicesImpl';
+    var $defClasses = 'sales_SalesLastPricePolicy,sales_reports_SalesPriceImpl, sales_reports_OweInvoicesImpl, sales_reports_ShipmentReadiness,sales_reports_PurBomsRep';
     
     
     /**
@@ -254,30 +249,13 @@ class sales_Setup extends core_ProtoSetup
     );
     
     
-	/**
-     * Инсталиране на пакета
+    /**
+     * Роли за достъп до модула
      */
-    function install()
-    {
-    	$html = parent::install();
-        
-        // Добавяме политиката "По последна продажна цена"
-        $html .= core_Classes::add('sales_SalesLastPricePolicy');
-        
-        // Добавяне на роля за старши продавач
-        $html .= core_Roles::addOnce('salesMaster', 'sales');
-        
-        // Добавяне на роля за създаване на фактури
-        $html .= core_Roles::addOnce('invoicer');
-        
-        // acc наследява invoicer
-        $html .= core_Roles::addOnce('acc', 'invoicer');
-        
-        // sales наследява invoicer
-        $html .= core_Roles::addOnce('sales', 'invoicer');
-        
-        return $html;
-    }
+    var $roles = array(
+    		array('sales', 'invoicer,seePrice'),
+    		array('salesMaster', 'sales'),
+    );
     
     
     /**
@@ -376,6 +354,42 @@ class sales_Setup extends core_ProtoSetup
     			}
     		} catch(core_exception_Expect $e){
     			reportException($e);
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Миграция на сделките
+     */
+    function updateDealFields1()
+    {
+    	foreach (array('sales_Sales', 'purchase_Purchases') as $className){
+    		$Deal = cls::get($className);
+    		$Deal->setupMvc();
+    		if(!$Deal::count()) return;
+    		$update = array();
+    		
+    		$query = $Deal->getQuery();
+    		$query->where("#state = 'active'");
+    		$query->show('id');
+    		 
+    		$timeLimit = 0.2 * $query->count();
+    		$timeLimit = ($timeLimit < 60) ? 60 : $timeLimit;
+    		core_App::setTimeLimit($timeLimit);
+    		
+    		while($rec = $query->fetch()){
+    			try{
+    				if($product = $Deal->findProductIdWithBiggestAmount($rec)){
+    					$update[] = (object)array('productIdWithBiggestAmount' => $product, 'id' => $rec->id);
+    				}
+    			} catch(core_exception_Expect $e){
+    				reportException($e);
+    			}
+    		}
+    		
+    		if(count($update)){
+    			$Deal->saveArray($update, 'id,productIdWithBiggestAmount');
     		}
     	}
     }

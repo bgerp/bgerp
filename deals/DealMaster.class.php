@@ -60,7 +60,7 @@ abstract class deals_DealMaster extends deals_DealBase
 	 *
 	 * @see plg_Clone
 	 */
-	public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,contragentClassId,contragentId,state';
+	public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,contragentClassId,contragentId,state,deliveryTermTime';
 	
 	
 	/**
@@ -187,6 +187,8 @@ abstract class deals_DealMaster extends deals_DealBase
 		$mvc->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,input=hidden,notChangeableByContractor');
 		$mvc->FLD('deliveryLocationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Доставка->Обект до,silent,class=contactData'); // обект, където да бъде доставено (allowEmpty)
 		$mvc->FLD('deliveryTime', 'datetime', 'caption=Доставка->Срок до,notChangeableByContractor'); // до кога трябва да бъде доставено
+		$mvc->FLD('deliveryTermTime', 'time(uom=days,suggestions=1 ден|5 дни|10 дни|1 седмица|2 седмици|1 месец)', 'caption=Доставка->Срок дни,after=deliveryTime,notChangeableByContractor');
+		
 		$mvc->FLD('shipmentStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)',  'caption=Доставка->От склад,notChangeableByContractor'); // наш склад, от където се експедира стоката
 		
 		// Плащане
@@ -210,7 +212,8 @@ abstract class deals_DealMaster extends deals_DealBase
 		);
 		
 		$mvc->FLD('paymentState', 'enum(pending=Има,overdue=Просрочено,paid=Няма,repaid=Издължено)', 'caption=Чакащо плащане, input=none,notNull,value=paid');
-
+		$mvc->FLD('productIdWithBiggestAmount', 'varchar', 'caption=Артикул с най-голяма стойност, input=none');
+		
 		$mvc->setDbIndex('valior');
 	}
 
@@ -302,6 +305,7 @@ abstract class deals_DealMaster extends deals_DealBase
 		$rec->amountDeal = $amountDeal * $rec->currencyRate;
 		$rec->amountVat  = $this->_total->vat * $rec->currencyRate;
 		$rec->amountDiscount = $this->_total->discount * $rec->currencyRate;
+		$rec->productIdWithBiggestAmount = $this->findProductIdWithBiggestAmount($rec);
 		
 		$this->invoke('BeforeUpdatedMaster', array(&$rec));
 		
@@ -321,13 +325,11 @@ abstract class deals_DealMaster extends deals_DealBase
         $abbr = $mvc->abbr;
         $abbr{0} = strtoupper($abbr{0});
 
-        $date = dt::mysql2verbal($rec->valior, 'd.m.year'); 
-        
         if(isset($rec->contragentClassId) && isset($rec->contragentId)){
         	$crm = cls::get($rec->contragentClassId);
         	$cRec =  $crm->getContragentData($rec->contragentId);
         	
-        	$contragent = str::limitLen($cRec->person ? $cRec->person : $cRec->company, 32);
+        	$contragent = str::limitLen($cRec->person ? $cRec->person : $cRec->company, 16);
         } else {
         	$contragent = tr("Проблем при показването");
         }
@@ -336,7 +338,15 @@ abstract class deals_DealMaster extends deals_DealBase
         	$contragent = type_Varchar::escape($contragent);
         }
 
-    	return "{$abbr}{$rec->id}/{$date} {$contragent}";
+        $title = "{$abbr}{$rec->id}/{$contragent}";
+        
+        // Показване и на артикула с най-голяма стойност в продажбата
+        if(isset($rec->productIdWithBiggestAmount)){
+        	$pName = mb_substr($rec->productIdWithBiggestAmount, 0, 16);
+        	$title .= "/{$pName}";
+        }
+        
+    	return $title;
     }
     
     
@@ -379,7 +389,6 @@ abstract class deals_DealMaster extends deals_DealBase
     		} else {
     			$rec->deliveryTermId = $termId;
     			$code = cond_DeliveryTerms::fetchField($termId, 'codeName');
-    			//
     			if($code == $deliveryExtended){
     				$tplLang = doc_TplManager::fetchField($rec->template, 'lang');
     				
@@ -389,6 +398,10 @@ abstract class deals_DealMaster extends deals_DealBase
     			}
     			$rec->deliveryTermIdExtended = $deliveryExtended;
     		}
+    	}
+    	
+    	if(isset($rec->deliveryTermTime) && isset($rec->deliveryTime)){
+    		$form->setError('deliveryTime,deliveryTermTime', 'Трябва да е избран само един срок на доставка');
     	}
     }
 
@@ -448,11 +461,11 @@ abstract class deals_DealMaster extends deals_DealBase
 						$data->query->where("#state = 'active' OR #state = 'closed'");
 						break;
 					case 'undelivered':
-						$data->query->where("#deliveredRound < #dealRound");
+						$data->query->where("#deliveredRound < #dealRound OR #deliveredRound IS NULL");
 						$data->query->where("#state = 'active'");
 						break;
 					case 'unpaid':
-						$data->query->where("#paidRound < #deliveredRound");
+						$data->query->where("#paidRound < #deliveredRound OR #paidRound IS NULL");
 						$data->query->where("#state = 'active'");
 						break;
 				}
@@ -498,7 +511,8 @@ abstract class deals_DealMaster extends deals_DealBase
     
     
     /**
-     * Връща подзаглавието на документа във вида "Дост: ХХХ(ууу), Плат ХХХ(ууу), Факт: ХХХ(ууу)"
+     * Връща подзаглавието на документа във вида "Дост: ХХХ(ууу), Плат ХХХ(ууу), Факт: ХХХ(ууу)", Реф: ХХХ"
+     * 
      * @param stdClass $rec - запис от модела
      * @return string $subTitle - подзаглавието
      */
@@ -508,9 +522,17 @@ abstract class deals_DealMaster extends deals_DealBase
     	$row = $this->recToVerbal($rec, $fields);
     	
         $subTitle = tr("Дост:") . " {$row->amountDelivered} ({$row->amountToDeliver})";
-		$subTitle .= ", " . tr('Плат:') . " {$row->amountPaid} ({$row->amountToPay})";
-        if($rec->makeInvoice != 'no'){
+        if(!empty($rec->amountPaid)){
+        	$subTitle .= ", " . tr('Плат:') . " {$row->amountPaid} ({$row->amountToPay})";
+        }
+	
+        if($rec->makeInvoice != 'no' && !empty($rec->amountInvoiced)){
         	$subTitle .= ", " . tr('Факт:') . " {$row->amountInvoiced} ({$row->amountToInvoice})";
+        }
+        
+        if(!empty($rec->reff)){
+        	$reff = cls::get('type_Varchar')->toVerbal($rec->reff);
+        	$subTitle .= ", " . tr('Реф:') . " {$reff}";
         }
         
         return $subTitle;
@@ -624,22 +646,6 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	// Текущия потребител се премахва от споделянето
     	$rec->sharedUsers = keylist::removeKey($rec->sharedUsers, core_Users::getCurrent());
-    }
-    
-    
-	/**
-     * Извиква се след успешен запис в модела
-     */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
-    {
-    	if($rec->state != 'draft'){
-    		$state = $rec->state;
-    		$rec = $mvc->fetch($id);
-    		$rec->state = $state;
-    		
-    		// Записване на сделката в чакащи
-    		deals_OpenDeals::saveRec($rec, $mvc);
-    	}
     }
     
     
@@ -784,6 +790,48 @@ abstract class deals_DealMaster extends deals_DealBase
     	// Ако потребителя не е в група доставчици го включваме
     	$rec = $mvc->fetchRec($rec);
     	cls::get($rec->contragentClassId)->forceGroup($rec->contragentId, $mvc->crmDefGroup);
+    	
+    	// След активиране се обновяват толеранса и срока на детайлите
+    	$saveRecs = array();
+    	$Detail = cls::get($mvc->mainDetail);
+    	$dQuery = $Detail->getQuery();
+    	$dQuery->where("#{$Detail->masterKey} = {$rec->id}");
+    	$dQuery->where("#tolerance IS NULL || #term IS NULL");
+    	
+    	while($dRec = $dQuery->fetch()){
+    		$save = FALSE;
+    		
+    		if(!isset($dRec->term)){
+    			if($term = cat_Products::getDeliveryTime($dRec->productId, $dRec->quantity)){
+    				$dRec->term = $term;
+    				$save = TRUE;
+    			}
+    		}
+    	
+    		if(!isset($dRec->tolerance)){
+    			if($tolerance = cat_Products::getTolerance($dRec->productId, $dRec->quantity)){
+    				$dRec->tolerance = $tolerance;
+    				$save = TRUE;
+    			}
+    		}
+    	
+    		if($save === TRUE){
+    			$saveRecs[] = $dRec;
+    		}
+    	}
+    	 
+    	// Ако има детайли за обновяване
+    	if(count($saveRecs)){
+    		$Detail->saveArray($saveRecs, 'id,tolerance,term');
+    	}
+    	
+    	// Записване на най-големия срок на доставка
+    	if(empty($rec->deliveryTime) && empty($rec->deliveryTermTime)){
+    		$rec->deliveryTermTime = $mvc->getMaxDeliveryTime($rec->id);
+    		if(isset($rec->deliveryTermTime)){
+    			$mvc->save_($rec, 'deliveryTermTime');
+    		}
+    	}
     }
     
     
@@ -878,6 +926,14 @@ abstract class deals_DealMaster extends deals_DealBase
 				}
 			}
 			
+			// Показване на допълнителните условия от артикулите
+			$additionalConditions = deals_Helper::getConditionsFromProducts($mvc->mainDetail, $rec->id);
+			if(is_array($additionalConditions)){
+				foreach ($additionalConditions as $cond){
+					$row->notes .= "<li>{$cond}</li>";
+				}
+			}
+			
 			// Взависимост начислява ли се ддс-то се показва подходящия текст
 			switch($rec->chargeVat){
 				case 'yes':
@@ -902,10 +958,6 @@ abstract class deals_DealMaster extends deals_DealBase
 					}
 					
 					$row->shipmentStoreIdTop = $storeVerbal;
-				}
-				
-				if($rec->caseId){
-					$row->caseId = cash_Cases::getHyperlink($rec->caseId);
 				}
 				
 				if($rec->caseId){
@@ -939,6 +991,14 @@ abstract class deals_DealMaster extends deals_DealBase
 			$row->username = core_Lg::transliterate($row->username);
 			$row->responsible = core_Lg::transliterate($row->responsible);
 			
+			if(empty($rec->deliveryTime) && empty($rec->deliveryTermTime)){
+				$deliveryTermTime = $mvc->getMaxDeliveryTime($rec->id);
+				if($deliveryTermTime){
+					$deliveryTermTime = cls::get('type_Time')->toVerbal($deliveryTermTime);
+					$row->deliveryTermTime = ht::createHint($deliveryTermTime, 'Времето за доставка се изчислява динамично възоснова на най-големия срок за доставка от артикулите');
+				}
+			}
+			
 			core_Lg::pop();
 	    }
 	    
@@ -948,6 +1008,41 @@ abstract class deals_DealMaster extends deals_DealBase
             }
 			$row->amountToInvoice = "<span style='font-size:0.7em'>" . $noInvStr . "</span>";
 		}
+    }
+    
+    
+    /**
+     * Най-големия срок на доставка
+     * 
+     * @param int $id
+     * @return int|NULL
+     */
+    public function getMaxDeliveryTime($id)
+    {
+    	$maxDeliveryTime = NULL;
+    	
+    	$Detail = cls::get($this->mainDetail);
+    	$query = $Detail->getQuery();
+    	$query->where("#{$Detail->masterKey} = {$id}");
+    	$query->show("productId,term,quantity,{$Detail->masterKey}");
+    	
+    	while($rec = $query->fetch()){
+    		$term = $rec->term;
+    		if(!isset($term)){
+    			if($term = cat_Products::getDeliveryTime($rec->productId, $rec->quantity)){
+    				$cRec = tcost_Calcs::get($this, $rec->{$Detail->masterKey}, $rec->id);
+    				if(isset($cRec->deliveryTime)){
+    					$term = $cRec->deliveryTime + $term;
+    				}
+    			}
+    		}
+    		
+    		if(isset($term)){
+    			$maxDeliveryTime = max($maxDeliveryTime, $term);
+    		}
+    	}
+    	
+    	return $maxDeliveryTime;
     }
     
     
@@ -989,8 +1084,6 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	cls::get('doc_Containers')->save_($cRec, 'modifiedOn');
     	$mvc->save_($rec);
-    	
-    	deals_OpenDeals::saveRec($rec, $mvc);
     }
     
    
@@ -1505,14 +1598,12 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	// Дали толеранса е между 0 и 1
     	if(isset($tolerance)){
-    		expect($tolerance = cls::get('type_Double')->fromVerbal($tolerance));
     		expect($tolerance >= 0 && $tolerance <= 1);
     	}
     	
-    	if(isset($term)){
+    	if(!empty($term)){
     		expect($term = cls::get('type_Time')->fromVerbal($term));
     	}
-    	
     	
     	// Трябва да има такъв продукт и опаковка
     	expect(cat_Products::fetchField($productId, 'id'));
@@ -1624,8 +1715,6 @@ abstract class deals_DealMaster extends deals_DealBase
     		if($res != 'no_one'){
     			$Detail = cls::get($mvc->mainDetail);
     			if(!$Detail->fetch("#{$Detail->masterKey} = {$rec->id}")){
-    				$res = 'no_one';
-    			} elseif(core_Users::isPowerUser($userId) && $rec->state == 'draft'){
     				$res = 'no_one';
     			}
     		}
@@ -1795,5 +1884,117 @@ abstract class deals_DealMaster extends deals_DealBase
     		$url['dealTab'] = 'DealReport';
     		$data->tabs->TAB('DealReport', 'Поръчано / Доставено' , $url);
     	}
+    }
+    
+    
+    /**
+     * Информация за логистичните данни
+     *
+     * @param mixed $rec   - ид или запис на документ
+     * @return array $data - логистичните данни
+     *		
+     *		string(2)     ['fromCountry']  - международното име на английски на държавата за натоварване
+     * 		string|NULL   ['fromPCode']    - пощенски код на мястото за натоварване
+     * 		string|NULL   ['fromPlace']    - град за натоварване
+     * 		string|NULL   ['fromAddress']  - адрес за натоварване
+     *  	string|NULL   ['fromCompany']  - фирма 
+     *   	string|NULL   ['fromPerson']   - лице
+     * 		datetime|NULL ['loadingTime']  - дата на натоварване
+     * 		string(2)     ['toCountry']    - международното име на английски на държавата за разтоварване
+     * 		string|NULL   ['toPCode']      - пощенски код на мястото за разтоварване
+     * 		string|NULL   ['toPlace']      - град за разтоварване
+     *  	string|NULL   ['toAddress']    - адрес за разтоварване
+     *   	string|NULL   ['toCompany']    - фирма 
+     *   	string|NULL   ['toPerson']     - лице
+     * 		datetime|NULL ['deliveryTime'] - дата на разтоварване
+     * 		text|NULL 	  ['conditions']   - други условия
+     */
+    function getLogisticData($rec)
+    {
+    	$rec = $this->fetchRec($rec);
+    	$ownCompany = crm_Companies::fetchOurCompany();
+    	$ownCountryId = $ownCompany->country;
+    	
+    	$contragentData = doc_Folders::getContragentData($rec->folderId);
+    	$contragentCountryId = $contragentData->countryId;
+    	
+    	if(isset($rec->shipmentStoreId)){
+    		if($locationId = store_Stores::fetchField($rec->shipmentStoreId, 'locationId')){
+    			$storeLocation = crm_Locations::fetch($locationId);
+    			$ownCountryId = $storeLocation->countryId;
+    		}
+    	}
+    	
+    	if(isset($rec->deliveryLocationId)){
+    		$contragentLocation = crm_Locations::fetch($rec->deliveryLocationId);
+    		$contragentCountryId = $contragentLocation->countryId;
+    	}
+    	
+    	$ownCountry = drdata_Countries::fetchField($ownCountryId, 'commonName');
+    	$contragentCountry = drdata_Countries::fetchField($contragentCountryId, 'commonName');
+    	
+    	$ownPart = ($this instanceof sales_Sales) ? 'from' : 'to';
+    	$contrPart = ($this instanceof sales_Sales) ? 'to' : 'from';
+    	
+    	$res["{$ownPart}Country"] = $ownCountry;
+    	if(isset($storeLocation)){
+    		$res["{$ownPart}PCode"]   = !empty($storeLocation->pCode) ? $storeLocation->pCode : NULL;
+    		$res["{$ownPart}Place"]   = !empty($storeLocation->place) ? $storeLocation->place : NULL;
+    		$res["{$ownPart}Address"] = !empty($storeLocation->address) ? $storeLocation->address : NULL;
+    		$res["{$ownPart}Person"]  = !empty($storeLocation->mol) ? $storeLocation->mol : NULL;
+    	} else {
+    		$res["{$ownPart}PCode"]   = !empty($ownCompany->pCode) ? $ownCompany->pCode : NULL;
+    		$res["{$ownPart}Place"]   = !empty($ownCompany->place) ? $ownCompany->place : NULL;
+    		$res["{$ownPart}Address"] = !empty($ownCompany->address) ? $ownCompany->address : NULL;
+    	}
+    	$res["{$ownPart}Company"] = $ownCompany->name;
+    	$personId = ($rec->dealerId) ? $rec->dealerId : (($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy);
+    	$res["{$ownPart}Person"] = ($res["{$ownPart}Person"]) ? $res["{$ownPart}Person"] : core_users::fetchField($personId, 'names');
+    	
+    	$res["{$contrPart}Country"] = $contragentCountry;
+    	$res["{$contrPart}Company"] = $contragentData->company;
+    	
+    	if(isset($contragentLocation)){
+    		$res["{$contrPart}PCode"]     = !empty($contragentLocation->pCode) ? $contragentLocation->pCode : NULL;
+    		$res["{$contrPart}Place"]   = !empty($contragentLocation->place) ? $contragentLocation->place : NULL;
+    		$res["{$contrPart}Address"]   = !empty($contragentLocation->address) ? $contragentLocation->address : NULL;
+    		$res["{$contrPart}Person"]  = !empty($contragentLocation->mol) ? $contragentLocation->mol : NULL;
+    	} else {
+    		$res["{$contrPart}PCode"]   = !empty($contragentData->pCode) ? $contragentData->pCode : NULL;
+    		$res["{$contrPart}Place"]   = !empty($contragentData->place) ? $contragentData->place : NULL;
+    		$res["{$contrPart}Address"] = !empty($contragentData->address) ? $contragentData->address : NULL;
+    		$res["{$contrPart}Person"]  = !empty($contragentData->person) ? $contragentData->person : NULL;
+    	}
+    	
+    	$delTime = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : (!empty($rec->deliveryTermTime) ?  dt::addSecs($rec->deliveryTermTime, $rec->valior) : NULL);
+    	$res["deliveryTime"]  = $delTime;
+    	
+    	return $res;
+    }
+    
+    
+    /**
+     * Връща ид-то на артикула с най-голяма стойност в сделката
+     * 
+     * @param stdClass $rec
+     * @return int|NULL $productName
+     */
+    public function findProductIdWithBiggestAmount($rec)
+    {
+    	$Detail = cls::get($this->mainDetail);
+    	$query = $Detail->getQuery();
+    	$query = $query->where("#{$Detail->masterKey} = {$rec->id}");
+    	$all = $query->fetchAll();
+    	
+    	$arr = deals_Helper::normalizeProducts(array($all));
+    	arr::order($arr, 'sumAmounts', "DESC");
+    	$arr = array_values($arr);
+    	
+    	if($productId = $arr[0]->productId){
+    		$productName = cat_Products::getTitleById($productId);
+    		return $productName;
+    	}
+    	
+    	return NULL;
     }
 }

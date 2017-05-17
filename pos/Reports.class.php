@@ -112,6 +112,12 @@ class pos_Reports extends core_Master {
     public $listFields = 'id, title=Заглавие, pointId, total, paid, state, createdOn, createdBy';
     
     
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'pointId';
+    
+    
 	/**
      * Групиране на документите
      */
@@ -591,7 +597,7 @@ class pos_Reports extends core_Master {
     /**
      * След обработка на ролите
      */
-	protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+	public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{
 		// Никой не може да редактира бележка
 		if($action == 'activate' && !$rec) {

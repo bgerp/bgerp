@@ -66,9 +66,10 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
         		// Записите от тип 1 (вземане от клиент)
         		$entries = $this->getEntries($rec, $origin);
         	}
-            
         }
        
+        $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
+        
         $transaction = (object)array(
             'reason'  => 'Експедиционно нареждане №' . $rec->id,
             'valior'  => $rec->valior,

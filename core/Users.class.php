@@ -152,6 +152,13 @@ class core_Users extends core_Manager
      */
     var $isSystemUser = FALSE;
     
+    
+    /**
+     * Дали е заглушено работата на системния потребител
+     */
+    protected $isMutedSystemUser = FALSE;
+    
+    
     /**
      * URL за javascript
      */
@@ -535,7 +542,9 @@ class core_Users extends core_Manager
         }
         
         if(!self::isUsersEmpty()) {
-            $roleTypes = core_Roles::getGroupedOptions();
+            $rolesArr = type_Keylist::toArray($form->rec->roles);
+            $roleTypes = core_Roles::getGroupedOptions($rolesArr);
+            
             asort($roleTypes['job']);
             asort($roleTypes['system']);
             asort($roleTypes['position']);
@@ -1087,7 +1096,7 @@ class core_Users extends core_Manager
     /**
      * Изпълнява се след получаването на необходимите роли
      */
-    static function on_AfterGetRequiredRoles(&$invoker, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles(&$invoker, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         $query = $invoker->getQuery();
         
@@ -1220,6 +1229,12 @@ class core_Users extends core_Manager
             $userRec->_isSudo = TRUE;
         }
         
+        if (self::isSystemUser()) {
+            $Users = cls::get('core_Users');
+            $Users->isMutedSystemUser = TRUE;
+            self::cancelSystemUser();
+        }
+        
         return $bValid;
     }
     
@@ -1234,6 +1249,12 @@ class core_Users extends core_Manager
     static function exitSudo()
     {
         core_Mode::pop('currentUserRec');
+        
+        $Users = cls::get('core_Users');
+        if ($Users->isMutedSystemUser) {
+            self::forceSystemUser();
+            $Users->isMutedSystemUser = FALSE;
+        }
     }
     
     
@@ -1633,9 +1654,9 @@ class core_Users extends core_Manager
         $roleQuery->orderBy("#role", 'ASC');
 
         if($type) {
-            $cond = "#type = '{$type}'";
+            $cond = "#type = '{$type}' AND #state != 'closed'";
         } else {
-            $cond = "";
+            $cond = "#state != 'closed'";
         }
         
         while($roleRec = $roleQuery->fetch($cond)) {
@@ -1747,23 +1768,26 @@ class core_Users extends core_Manager
      */
     static function getByRole($roleId)
     {
-        $users = array();
+        static $users = array();
         
         expect($roleId);
         
         if(!is_numeric($roleId)) {
             $roleId   = core_Roles::fetchByName($roleId);
         }
+
+        if(!$users[$roleId]) {
         
-        $query = static::getQuery();
-        $query->where("#state = 'active'");
-        $query->like('roles', "|{$roleId}|");
-        
-        while ($rec = $query->fetch()) {
-            $users[$rec->id] = $rec->id;
+            $query = static::getQuery();
+            $query->where("#state = 'active'");
+            $query->like('roles', "|{$roleId}|");
+            
+            while ($rec = $query->fetch()) {
+                $users[$roleId][$rec->id] = $rec->id;
+            }
         }
         
-        return $users;
+        return $users[$roleId];
     }
     
     

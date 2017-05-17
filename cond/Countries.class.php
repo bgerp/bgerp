@@ -74,7 +74,7 @@ class cond_Countries extends core_Manager
 	{
 		$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,removeAndRefreshForm=conditionId,silent,placeholder=Всички държави');
 		$this->FLD('conditionId', 'key(mvc=cond_Parameters,select=name,allowEmpty)', 'input,caption=Условие,mandatory,silent,removeAndRefreshForm=value');
-		$this->FLD('value', 'varchar(255)', 'caption=Стойност, mandatory');
+		$this->FLD('value', 'text', 'caption=Стойност, mandatory');
 		
 		$this->setDbIndex('country,conditionId');
 	}
@@ -165,6 +165,7 @@ class cond_Countries extends core_Manager
 		
 		if($ParamType = cond_Parameters::getTypeInstance($paramRec, 'drdata_Countries', $rec->country, $rec->value)){
 			$row->value = $ParamType->toVerbal(trim($rec->value));
+			$row->value = cond_Parameters::limitValue($paramRec->driverClass, $row->value);
 		}
 		
 		if(!empty($paramRec->group)){

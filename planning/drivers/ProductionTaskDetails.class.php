@@ -33,7 +33,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     /**
      * Интерфейси
      */
-    public $interfaces = 'trz_SalaryIndicatorsSourceIntf';
+    public $interfaces = 'hr_IndicatorsSourceIntf';
     
     
     /**
@@ -493,7 +493,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if(($action == 'add' || $action == 'reject' || $action == 'restore' || $action == 'edit' || $action == 'delete') && isset($rec->taskId)){
     		$state = $mvc->Master->fetchField($rec->taskId, 'state');
@@ -543,76 +543,91 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     
     
     /**
-     * Интерфейсен метод на trz_SalaryIndicatorsSourceIntf
+     * Интерфейсен метод на hr_IndicatorsSourceIntf
      *
      * @param date $date
      * @return array $result
      */
-    public static function getSalaryIndicators($date)
+    public static function getIndicatorValues($timeline)
     {
     	$query = self::getQuery();
-        $me = cls::get(get_called_class());
-        $Double = cls::get(type_Double);
-    
-        $from = $date . ' 00:00:00';
-        $to   = $date   . ' 23:59:59';
-  
-        $query->where("#modifiedOn >= '{$from}' AND #modifiedOn <= '{$to}' AND #state = 'active'");
+   
+        $query->where("#modifiedOn >= '{$timeline}'");
     
         $result = array();
-        $tplObj = (object) array ('date' => $date, 'docClass' => core_Classes::getId('planning_Tasks'), 'indicator' => tr("|Производство|*"));
+        $tplObj = (object) array (
+            'docClass' => core_Classes::getId('planning_Tasks'), 
+            'indicatorId' => 1,
+            );
         
         $queryProduct = planning_drivers_ProductionTaskProducts::getQuery();
         $queryMasterm = planning_Tasks::getQuery();
 
         while ($rec = $query->fetch()) { 
             
-            switch($rec->type){
-                case 'input':
-                	$time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');	
-                    break;
-                case 'waste':
-                	$time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');
-                	break;
-                case 'product':
-                	$time = planning_Tasks::getTaskInfo($rec->taskId)->indTime;
-                	break;
-                case 'start':
-                	$time = planning_Tasks::getTaskInfo($rec->taskId)->startTime;
-                	break;
-                default:
-                	$time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');
-                	break;
-            }
-
-            $time = $Double->fromVerbal($time);
-            $persons = keylist::toArray($rec->employees);
+            // За дата на записа, приемаме датата на създаването му
+            list($tplObj->date, ) = explode(' ', $rec->createdOn);
             
-            if(is_array($persons)) {
-                if ($time && count($persons) > 0) { 
-                    $timePerson = ($rec->quantity * $time) / count($persons) ;
-                }
-
+            // За източник - задачата, към който е този прогрес
+            $tplObj->docId = $rec->taskId;
+            
+            if($rec->state == 'rejected') {
+                $time = 0;
             } else {
-                if ($time) {
-                    $timePerson = $rec->quantity * $time;
+                switch($rec->type){
+                    case 'input':
+                        $time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');	
+                        break;
+                    case 'waste':
+                        $time = -planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');
+                        break;
+                    case 'product':
+                        $time = planning_Tasks::getTaskInfo($rec->taskId)->indTime;
+                        break;
+                    case 'start':
+                        $time = planning_Tasks::getTaskInfo($rec->taskId)->startTime;
+                        break;
+                    default:
+                        $time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');
+                        break;
+                }
+            }
+            
+            if($rec->employees) {
+                $persons = keylist::toArray($rec->employees);
+                
+                $timePerson = ($rec->quantity * $time) / count($persons) ;
+                
+                foreach ($persons as $person) {
+                    $res = clone($tplObj);
+                    $res->personId = $person;
+                    $res->docId = $rec->taskId;
+
+                    $key = "{$res->date}|{$res->docId}|{$res->personId}";
+                    
+                    if(isset($result[$key])) {
+                        $result[$key]->value += $timePerson;
+                    }
+
+                    $result[$key] = $res;
                 }
             }
 
-            foreach ($persons as $person) {
-                
-                $key = $person . "|" . $rec->taskId;
-                if(!$result[$key]){
-                    $result[$key] = clone($tplObj);
-                }
-                
-                $result[$key]->personId = $person;
-                $result[$key]->docId = $rec->taskId;
-                $result[$key]->value += $timePerson;
-               
-            }
         }
 
         return $result;
     }
+
+    
+    /**
+     * Интерфейсен метод на hr_IndicatorsSourceIntf
+     * 
+     * @param date $date
+     * @return array $result
+     */
+    public static function getIndicatorNames()
+    {
+        return array(1 => 'Време');
+    }
+
 }

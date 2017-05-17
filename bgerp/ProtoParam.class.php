@@ -54,6 +54,12 @@ abstract class bgerp_ProtoParam extends embed_Manager
 	
 	
 	/**
+	 * Работен кеш
+	 */
+	public static $cache = array();
+	
+	
+	/**
 	 * Добавя задължителни полета към модела
 	 * 
 	 * @param bgerp_ProtoParam $mvc
@@ -78,21 +84,32 @@ abstract class bgerp_ProtoParam extends embed_Manager
 	
 	
 	/**
+	 * Помощна ф-я
+	 */
+	private static function calcTypeExt($rec)
+	{
+		$typeExt = tr($rec->name);
+		$typeExt = str_replace(array('&lt;', '&amp;'), array("<", "&"), $typeExt);
+		
+		if (!empty($rec->group)) {
+			$group = tr($rec->group);
+			$typeExt = "{$group} » {$typeExt}";
+		}
+			
+		if (!empty($rec->suffix)) {
+			$typeExt .= ' (' . str_replace(array('&lt;', '&amp;'), array("<", "&"), tr($rec->suffix)) . ')';
+		}
+		
+		return $typeExt;
+	}
+	
+	
+	/**
 	 * Изчисляване на typeExt
 	 */
 	protected static function on_CalcTypeExt($mvc, $rec)
 	{
-		$rec->typeExt = tr($rec->name);
-		$rec->typeExt = str_replace(array('&lt;', '&amp;'), array("<", "&"), $rec->typeExt);
-		
-		if (!empty($rec->group)) {
-			$group = tr($rec->group);
-			$rec->typeExt = "{$group} » {$rec->typeExt}";
-		}
-		 
-		if (!empty($rec->suffix)) {
-			$rec->typeExt .= ' (' . str_replace(array('&lt;', '&amp;'), array("<", "&"), tr($rec->suffix)) . ')';
-		}
+		$rec->typeExt = self::calcTypeExt($rec);
 	}
 	
 	
@@ -143,19 +160,19 @@ abstract class bgerp_ProtoParam extends embed_Manager
 	protected static function on_AfterMakeArray4Select($mvc, &$options, $fields = NULL, &$where = "", $index = 'id')
 	{
 		$newOptions = $options;
-		
+	
 		// Ако има опции
 		if(is_array($options)){
 			$newOptions = array();
 			foreach ($options as $id => $value){
 				
 				// Ако има роли за параметъра и потребителя ги няма, не може да избира параметъра
-				$roles = $mvc->fetchField($id, 'roles');
+				$roles = self::$cache[$id]->roles;
 				if(!empty($roles)){
 					if(!haveRole($roles)) continue;
 				}
 				
-				$group = $mvc->fetchField($id, 'group');
+				$group = self::$cache[$id]->group;
 				
 				// Ако имат група, и няма такава група в масива, те се групират
 				if(!empty($group)){
@@ -187,10 +204,13 @@ abstract class bgerp_ProtoParam extends embed_Manager
 			$query->where($where);
 		}
 		$query->orderBy('group,order', 'ASC');
+		$query->show('name,suffix,group,roles,group');
 		
 		$options = array();
+		
 		while($rec = $query->fetch()){
-			$options[$rec->{$index}] = $rec->typeExt;
+			self::$cache[$rec->id] = $rec;
+			$options[$rec->{$index}] = self::calcTypeExt($rec);
 		}
 		
 		return $options;
@@ -319,7 +339,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
 	/**
 	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
 	 */
-	protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
 		if($action == 'delete' && isset($rec->id)) {
 			if($rec->sysId || $rec->lastUsedOn) {

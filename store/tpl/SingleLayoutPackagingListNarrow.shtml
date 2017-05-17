@@ -3,7 +3,7 @@
         <tbody>
             <tr>
                 <td class='centered'>
-                    <div class="document-title">PACKAGING LIST</div>
+                    <div class="document-title">PACKING LIST</div>
                      <!--ET_BEGIN operationSysId-->
                     <small>( [#operationSysId#] )</small>
                     <!--ET_END operationSysId-->
@@ -98,8 +98,11 @@
                         <!--ET_END note-->
                     </table>
                     <hr>
-                    <div class='clearfix21' style='margin-bottom: 5px;'><span class='half-col'>Total weight:&nbsp;[#weight#]</span>  <span class='half-col'>Total volume:&nbsp;[#volume#]</span>
-                        <!--ET_BEGIN colletsCount--><span class='half-col'>Collets count calced:&nbsp;[#colletsCount#]</span><!--ET_END colletsCount--> <!--ET_BEGIN palletCountInput--><span class='half-col'>Collets count: [#palletCountInput#]</span><!--ET_END palletCountInput--></div>
+                    <div class='clearfix21' style='margin-bottom: 5px;'>
+                        <span class='half-col'>Total weight:&nbsp;[#weight#]</span>  <span class='half-col'>Total volume:&nbsp;[#volume#]</span>
+                    </div>
+                    <div class='clearfix21'>
+                    <!--ET_BEGIN logisticInfo--><div style='margin-bottom:3px;margin-top:3px;'>|Logistic units|*:&nbsp;[#logisticInfo#]</div><!--ET_END logisticInfo-->
 
                     <hr>
                     <!--ET_BEGIN responsible-->

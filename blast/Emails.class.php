@@ -160,8 +160,7 @@ class blast_Emails extends core_Master
     /**
      * Плъгините и враперите, които ще се използват
      */
-    public $loadList = 'blast_Wrapper, doc_DocumentPlg, plg_RowTools2, bgerp_plg_blank, 
-                        change_Plugin, plg_Search, plg_Clone, doc_plg_SelectFolder';
+    public $loadList = 'blast_Wrapper, doc_DocumentPlg, plg_RowTools2, bgerp_plg_blank, change_Plugin, plg_Search, plg_Clone';
     
     
     /**
@@ -200,12 +199,6 @@ class blast_Emails extends core_Master
      */
     protected static $cronSytemId = 'SendEmails';
     
-    
-    /**
-     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
-     */
-    public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
-
     
     /**
      * Описание на модела
@@ -619,6 +612,22 @@ class blast_Emails extends core_Master
             $this->save($rec, 'progress');
             $this->touchRec($rec->id);
         }
+    }
+
+
+    /**
+     * Преди записване на клонирания запис
+     *
+     * @param core_Mvc $mvc
+     * @param object $rec
+     * @param object $nRec
+     *
+     * @see plg_Clone
+     */
+    function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
+    {
+        unset($nRec->progress);
+        unset($nRec->activatedBy);
     }
     
     
@@ -1787,7 +1796,7 @@ class blast_Emails extends core_Master
      * @param string $action
      * @param object $rec
      */
-    static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec)
+    public static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec = NULL, $userId = NULL)
     {
         // Трябва да има права за сингъла на документа, за да може да активира, спира и/или обновява
         if ((($action == 'activate') || ($action == 'stop') || ($action == 'update')) && $rec) {

@@ -58,6 +58,12 @@ defIfNot('BGERP_SOUND_ON_NOTIFICATION', 'scanner');
 
 
 /**
+ * Кога е началото на работния ден
+ */
+defIfNot('BGERP_START_OF_WORKING_DAY', '08:00');
+
+
+/**
  * class 'bgerp_Setup' - Начално установяване на 'bgerp'
  *
  *
@@ -111,6 +117,7 @@ class bgerp_Setup extends core_ProtoSetup {
         
         'BGERP_RECENTLY_KEEP_DAYS' => array ('time(suggestions=180 дни|360 дни|540 дни,unit=days)', 'caption=Време за съхранение на историята в "Последно"->Време'),
 
+        'BGERP_START_OF_WORKING_DAY' => array ('enum(08:00,09:00,10:00,11:00,12:00)', 'caption=Начало на работния ден->Час'),
      );
     
     
@@ -124,6 +131,14 @@ class bgerp_Setup extends core_ProtoSetup {
      * Дали пакета е системен
      */
     public $isSystem = TRUE;
+
+
+    /**
+     * Списък с мениджърите, които съдържа пакета
+     */
+    var $managers = array(
+            'migrate::addThreadIdToRecently',
+        );
     
     
     /**
@@ -310,6 +325,8 @@ class bgerp_Setup extends core_ProtoSetup {
         
         $html .= core_Classes::add('bgerp_plg_CsvExport');
         
+        $html .= parent::install();
+        
         return $html;
     }
 
@@ -322,7 +339,7 @@ class bgerp_Setup extends core_ProtoSetup {
      *
      * @return array                Грешки
      */
-    function loadSetupDataProc($packs, &$haveError = array(), $html = '', $itr = '')
+    function loadSetupDataProc($packs, &$haveError = array(), &$html = '', $itr = '')
     {
         // Кои пакети дотук сме засели с данни
         $isLoad = array();
@@ -337,10 +354,16 @@ class bgerp_Setup extends core_ProtoSetup {
                 
                 if (method_exists($packsInst[$p], 'loadSetupData')) {
                     try {
-                        $html .= "<h2>Инициализиране на $p</h2>";
-                        $html .= "<ul>";
-                        $html .= $packsInst[$p]->loadSetupData($itr);
-                        $html .= "</ul>";
+                        
+                        $loadRes = $packsInst[$p]->loadSetupData($itr);
+                        
+                        if ($loadRes) {
+                            $html .= "<h2>Инициализиране на $p</h2>";
+                            $html .= "<ul>";
+                            $html .= $loadRes;
+                            $html .= "</ul>";
+                        }
+                        
                         $isLoad[$p] = TRUE;
                         
                         // Махаме грешките, които са възникнали, но все пак са се поправили
@@ -358,5 +381,27 @@ class bgerp_Setup extends core_ProtoSetup {
             }
         }
     }
+    
+    
+    /**
+     * Миграция за добавяне на threadId на документите
+     */
+    public static function addThreadIdToRecently()
+    {
+        $Recently = cls::get(bgerp_Recently);
+        $rQuery = $Recently->getQuery();
+        $rQuery->where("#threadId IS NULL");
+        $rQuery->where("#objectId IS NOT NULL");
+        $rQuery->where("#objectId != ''");
+        $rQuery->where("#objectId != 0");
+        $rQuery->where("#type = 'document'");
+        
+        while($rec = $rQuery->fetch()) {
+            try {
+                $Recently->save($rec, 'threadId');
+            } catch (Exception $e) {
+                continue;
+            }
+        }
+    }
 }
-

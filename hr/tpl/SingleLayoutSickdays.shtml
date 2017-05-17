@@ -1,0 +1,75 @@
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+    <div class='antetka' style='line-height:160%;'>
+        <div class="small">
+            <div>
+                <div><b>|БОЛНИЧЕН ЛИСТ|*</b></div>
+                <!--ET_BEGIN createdDate-->
+                <div>№ [#fitNoteNum#] / [#createdDate#]|г|*.</div>
+                <!--ET_END createdDate-->
+            </div>
+        </div>
+        <div style='clear: both;'></div>
+    </div>
+    <div class='block_left'>
+        <!--ET_BEGIN personId-->
+        <p><b>|Служител|*:</b> [#personId#]</p>
+        <!--ET_END personId-->
+        <p><b>|Период|*:</b> |от|* <b>[#startDate#]</b> |до|* <b>[#toDate#]</b></p>
+        <!--ET_BEGIN fitNoteNum-->
+        <p><b>|Болничен лист|*:</b> № [#fitNoteNum#]</p>
+        <!--ET_END fitNoteNum-->
+         <!--ET_BEGIN fitNoteDate-->
+        <p><b>|Издаден на|*:</b> [#fitNoteDate#]</p>
+        <!--ET_END fitNoteDate-->
+        <!--ET_BEGIN fitNoteFile-->
+        <p><b>|Файл|*:</b>[#fitNoteFile#]</p>
+        <!--ET_END fitNoteFile-->
+        <p><b>|Причина|*:</b> [#reason#]</p>
+        <!--ET_BEGIN note-->
+        <div class='richtext-holder'><b>|Забележка|*:</b> [#note#]</div>
+        <!--ET_END note-->
+        <!--ET_BEGIN icdCode-->
+        <p><b>|Код по MKB|*:</b> [#icdCode#]</p>
+        <!--ET_END icdCode-->
+
+        <table class="inlineRichTable listTable" style="width:48%">
+        	<tr>
+        	    <!--ET_BEGIN compensationEmployer-->
+                <br><p><b>|Заплащане|*:</b></p>
+        		<th>|Oт работодателя|*</th>
+                <td class="centered">[#paidByEmployer#]</td>
+                <!--ET_END compensationEmployer-->
+            </tr>
+
+            <tr>  
+                <!--ET_BEGIN compensationHI-->
+            	<th>|Oт НЗК|*</th>
+	            <td class="centered">[#paidByHI#]</td>
+	            <!--ET_END compensationHI-->
+	        </tr>
+	    </table>
+        
+        
+        <!--ET_BEGIN access-->        
+        <br><p><b>|По време на отсъствието|*:</b></p>
+        <table class="inlineRichTable listTable">
+        	<tr>
+        		<td>|Ще отговарям на мобилен телефон|*</td>
+                <td class="centered">[#answerGSM#]</td>
+            </tr>
+            
+            <tr>
+            	<td>|Ще имам достъп до системата|*</td>
+                <td class="centered">[#answerSystem#]</td>
+            </tr>
+            
+            <tr>
+            	<td>|Ще ме замества|*</td>
+            	<td class="centered">[#alternatePerson#]</td>
+            </tr>
+        </table>
+        <!--ET_END access-->
+    </div>
+    <div style='clear: both;'></div>
+    
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

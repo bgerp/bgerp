@@ -166,7 +166,8 @@ class type_Int extends core_Type {
         $conf = core_Packs::getConfig('core');
         
         if(strlen($value) > 4) {
-            $value = number_format($value, 0, html_entity_decode($conf->EF_NUMBER_DEC_POINT), html_entity_decode($conf->EF_NUMBER_THOUSANDS_SEP));
+            $ts = Mode::is('forSearch') ? '' : $conf->EF_NUMBER_THOUSANDS_SEP;
+            $value = number_format($value, 0, html_entity_decode($conf->EF_NUMBER_DEC_POINT), html_entity_decode($ts));
         }
         
     	if(!Mode::is('text', 'plain')) {

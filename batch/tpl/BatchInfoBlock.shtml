@@ -12,7 +12,15 @@
 		   <td style='padding-left:8px'>[#quantity#]</td>
 		</tr>
 		<!--ET_END BLOCK-->
-	</table></div>
+		<!--ET_BEGIN NO_BATCH-->
+		[#NO_BATCH#]
+		<tr>
+		   <td>[#nobatch#]</td>
+		   <td style='padding-left:8px'>[#nobatchquantity#]</td>
+		</tr>
+		<!--ET_END NO_BATCH-->
+	</table>
+	</div>
 	</div>
 </div>
 <!--ET_END BATCH-->

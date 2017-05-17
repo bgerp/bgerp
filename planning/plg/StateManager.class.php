@@ -41,6 +41,8 @@ class planning_plg_StateManager extends core_Plugin
 	 */
 	public static function on_AfterDescription(core_Mvc $mvc)
 	{
+		setIfNot($mvc->canPending, 'no_one');
+		
 		// Ако липсва, добавяме поле за състояние
 		if (!$mvc->fields['state']) {
 			$mvc->FLD('state', 'enum(draft=Чернова, pending=Заявка,waiting=Чакащо,active=Активирано, rejected=Оттеглено, closed=Приключено, stopped=Спряно, wakeup=Събудено,template=Шаблон)', 'caption=Състояние, input=none');
@@ -48,6 +50,10 @@ class planning_plg_StateManager extends core_Plugin
 		
 		if (!$mvc->fields['timeClosed']) {
 			$mvc->FLD('timeClosed', 'datetime(format=smartTime)', 'caption=Времена->Затворено на,input=none');
+		}
+		
+		if (!$mvc->fields['timeActivated']) {
+			$mvc->FLD('timeActivated', 'datetime(format=smartTime)', 'caption=Времена->Активирано на,input=none');
 		}
 		
 		if(isset($mvc->demandReasonChangeState)){
@@ -108,13 +114,24 @@ class planning_plg_StateManager extends core_Plugin
 		
 		// Добавяне на бутон запървоначално активиране
 		if($mvc->haveRightFor('activate', $rec)){
-			$attr = array('ef_icon' => "img/16/lightning.png", 'title' => "Активиране на документа", 'warning'=> "Сигурни ли сте, че искате да активирате документа|*?", 'order' => 30);
+			$attr = array('ef_icon' => "img/16/lightning.png", 'title' => "Активиране на документа", 'warning'=> "Сигурни ли сте, че искате да активирате документа|*?", 'order' => 30, 'id' => 'btnActivate');
 			if(isset($mvc->demandReasonChangeState) && isset($mvc->demandReasonChangeState['activate'])){
 				unset($attr['warning']);
 			}
 			
 			$data->toolbar->addBtn("Активиране", array($mvc, 'changeState', $rec->id, 'type' => 'activate', 'ret_url' => TRUE, ), $attr);
 		}
+		
+		// Бутон за заявка
+		if($mvc->haveRightFor('pending', $rec)){
+			if($rec->state != 'pending'){
+				$r = $data->toolbar->hasBtn('btnActivate') ? 2 : 1;
+				$data->toolbar->addBtn('Заявка', array($mvc, 'changePending', $rec->id), "id=btnRequest,warning=Наистина ли желаете документът да стане заявка?,row={$r}", 'ef_icon = img/16/tick-circle-frame.png,title=Превръщане на документа в заявка');
+			} else{
+				$data->toolbar->addBtn('Чернова', array($mvc, 'changePending', $rec->id), "id=btnDraft,warning=Наистина ли желаете да върнете възможността за редакция?", 'ef_icon = img/16/arrow-undo.png,title=Връщане на възможността за редакция');
+			}
+		}
+		
 	}
 	
 	
@@ -150,14 +167,14 @@ class planning_plg_StateManager extends core_Plugin
 				case 'activateagain':
 	
 					// Дали може да бъде активирана отново, след като е било променено състоянието
-					if($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'wakeup' || $rec->state == 'rejected' || $rec->state == 'draft' || $rec->state == 'waiting' || $rec->state == 'template'){
+					if($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'wakeup' || $rec->state == 'rejected' || $rec->state == 'draft' || $rec->state == 'waiting' || $rec->state == 'template' || $rec->state == 'pending'){
 						$requiredRoles = 'no_one';
 					}
 					break;
 				case 'activate':
 					
 					// Само приключените могат да бъдат събудени
-					if($rec->state != 'draft' && isset($rec->state)){
+					if(($rec->state != 'draft' && $rec->state != 'pending') && isset($rec->state)){
 						$requiredRoles = 'no_one';
 					}
 					break;
@@ -236,11 +253,12 @@ class planning_plg_StateManager extends core_Plugin
     				$rec->brState = $rec->state;
     				$rec->state = ($mvc->activateNow($rec)) ? 'active' : 'waiting';
     				$logAction = 'Активиране';
+    				$rec->timeActivated = dt::now();
     			break;
     		}
     	
     		// Ако ще активираме: запалваме събитие, че ще активираме
-    		$saveFields = 'brState,state,modifiedOn,modifiedBy,timeClosed';
+    		$saveFields = 'brState,state,modifiedOn,modifiedBy,timeClosed,timeActivated';
     		if($action == 'activate'){
     			$mvc->invoke('BeforeActivation', array(&$rec));
     			$saveFields = NULL;

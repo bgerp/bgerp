@@ -174,10 +174,11 @@ class sales_QuotationsDetails extends doc_Detail {
      */
     public static function calcLivePrice($rec, $masterRec)
     {
-    	$policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $rec->date, 1, 'no', NULL, FALSE);
+    	$policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $rec->date, $masterRec->currencyRate, $masterRec->chargeVat, NULL, FALSE);
     	
     	if(isset($policyInfo->price)){
     		$rec->price = $policyInfo->price;
+    		$rec->price = deals_Helper::getPurePrice($rec->price, cat_Products::getVat($rec->productId, $rec->date), $masterRec->currencyRate, $masterRec->chargeVat);
     		
     		// Добавяне на транспортните разходи, ако има
     		$fee = tcost_Calcs::get('sales_Quotations', $rec->quotationId, $rec->id)->fee;
@@ -404,7 +405,7 @@ class sales_QuotationsDetails extends doc_Detail {
     			$form->setField('tolerance', 'input');
     		}
     		
-    		if(cat_Products::getDeliveryTime($rec->productId, $quantity)){
+    		if(cat_Products::getDeliveryTime($rec->productId, 1)){
     			$form->setField('term', 'input');
     		}
     	}
@@ -460,6 +461,9 @@ class sales_QuotationsDetails extends doc_Detail {
     		$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
     		$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
     		
+    		// Проверка дали к-то е под МКП
+    		deals_Helper::isQuantityBellowMoq($form, $rec->productId, $rec->quantity, $rec->quantityInPack);
+    		
     		if(!$form->gotErrors()){
     		    if(Request::get('Act') != 'CreateProduct'){
     			   if($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}")){
@@ -511,12 +515,13 @@ class sales_QuotationsDetails extends doc_Detail {
     		
     		if(!$form->gotErrors()){
     		    if(isset($masterRec->deliveryPlaceId)){
-    		        $masterRec->deliveryPlaceId  = crm_Locations::fetchField("#title = '{$masterRec->deliveryPlaceId}'", 'id');
+    		    	if($locationId = crm_Locations::fetchField("#title = '{$masterRec->deliveryPlaceId}'", 'id')){
+    		    		$masterRec->deliveryPlaceId  = $locationId;
+    		    	}
     		    }
     		  
     		    if($rec->productId){
     		    	tcost_Calcs::prepareFee($rec, $form, $masterRec, array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId'));
-    		    	//bp($rec);
     		    }
     		}
 	    }
@@ -866,7 +871,10 @@ class sales_QuotationsDetails extends doc_Detail {
     	$date = ($masterRec->state == 'draft') ? NULL : $masterRec->modifiedOn;
     	
     	foreach ($rows as $id => &$row){
-    		$rec = $recs[$id];
+            $rec = $recs[$id];
+    		core_RowToolbar::createIfNotExists($row->_rowTools); 
+    		cat_Products::addButtonsToDocToolbar($rec->productId, $row->_rowTools, $mvc->className, $id);
+
     		if($rec->discount){
     			$data->hasDiscounts = TRUE;
     		}
@@ -911,16 +919,21 @@ class sales_QuotationsDetails extends doc_Detail {
     		$row->amount = $Double->toVerbal($rec->amount);
     	}
     	
-    	if(empty($rec->tolerance)){
-    		if($tolerance = cat_Products::getTolerance($rec->productId, $rec->quantity)){
-    			$row->tolerance = core_Type::getByName('percent(smartRound)')->toVerbal($tolerance);
-    			$row->tolerance = ht::createHint($row->tolerance, 'Толерансът е изчислен автоматично на база количеството и параметрите на артикула');
+    	$hintTerm = FALSE;
+    	$row->tolerance = deals_Helper::getToleranceRow($rec->tolerance, $rec->productId, $rec->quantity);
+    	$term = $rec->term;
+    	if(!isset($term)){
+    		if($term = cat_Products::getDeliveryTime($rec->productId, $rec->quantity)){
+    			$hintTerm = TRUE;
+    			if($deliveryTime = tcost_Calcs::get('sales_Quotations', $rec->quotationId, $rec->id)->deliveryTime){
+    				$term += $deliveryTime;
+    			}
     		}
     	}
     	
-    	if(empty($rec->term)){
-    		if($term = cat_Products::getDeliveryTime($rec->productId, $rec->quantity)){
-    			$row->term = core_Type::getByName('time')->toVerbal($term);
+    	if(isset($term)){
+    		$row->term = core_Type::getByName('time')->toVerbal($term);
+    		if($hintTerm === TRUE){
     			$row->term = ht::createHint($row->term, 'Срокът на доставка е изчислен автоматично на база количеството и параметрите на артикула');
     		}
     	}
@@ -932,7 +945,7 @@ class sales_QuotationsDetails extends doc_Detail {
     /**
      * След проверка на ролите
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if(($action == 'add' || $action == 'delete') && isset($rec)){
     		$quoteState = $mvc->Master->fetchField($rec->quotationId, 'state');
@@ -951,7 +964,7 @@ class sales_QuotationsDetails extends doc_Detail {
     
 
     /**
-     * Връща последната цена за посочения продукт направена оферта към контрагента
+     * Връща последната цена за посочения продукт направена от оферта към контрагента
      *
      * @return object $rec->price  - цена
      * 				  $rec->discount - отстъпка
@@ -999,7 +1012,7 @@ class sales_QuotationsDetails extends doc_Detail {
     {
     	// Синхронизиране на сумата на транспорта
     	if($rec->syncFee === TRUE){
-    		tcost_Calcs::sync($mvc->Master, $rec->quotationId, $rec->id, $rec->fee);
+    		tcost_Calcs::sync($mvc->Master, $rec->quotationId, $rec->id, $rec->fee, $rec->deliveryTimeFromFee);
     	}
     }
     
@@ -1022,9 +1035,10 @@ class sales_QuotationsDetails extends doc_Detail {
     protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
     {
     	// Преди клониране клонира се и сумата на цената на транспорта
-    	$fee = tcost_Calcs::get($mvc->Master, $oldRec->quotationId, $oldRec->id)->fee;
-    	if(isset($fee)){
-    		$rec->fee = $fee;
+    	$cRec = tcost_Calcs::get($mvc->Master, $oldRec->quotationId, $oldRec->id);
+    	if(isset($cRec)){
+    		$rec->fee = $cRec->fee;
+    		$rec->deliveryTimeFromFee = $cRec->deliveryTime;
     		$rec->syncFee = TRUE;
     	}
     }

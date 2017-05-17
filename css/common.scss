@@ -1255,10 +1255,22 @@ a.profile {
     box-shadow: inset 0 0 3px #f4e4f5;
 }
 
+.state-closed-link > a {
+	background-color: #ddd;
+	padding-right: 4px;
+	box-shadow: inset 0 0 3px #ccc;
+}
+
 .state-rejected-link > a{
     background-color: #f3c9c8;
     padding-right: 4px;
     box-shadow: inset 0 0 3px #eca7a6;
+}
+
+.state-waiting-link > a {
+	background-color: rgba(210, 255, 70, 0.4);
+	padding-right: 4px;
+	box-shadow: inset 0 0 3px #aaf277;
 }
 
 .state-closed {
@@ -1279,14 +1291,19 @@ a.profile {
 
 .state-waiting {
 	background-color: #cef763;
-	background-color: rgba(206, 247, 99, 0.8);
+	background-color: rgba(210, 255, 120, 0.6);
 }
 
-.state-rejected td, .state-rejected .document th, .state-rejected .document td a , .state-rejected .document p, .state-rejected .document h3, .state-rejected .document h4,
-.state-rejected .richtext, .state-rejected .document a, .state-rejected .document span:not(.state), .state-rejected .richtext div, .state-rejected .cCode, .state-rejected .antetka,
-.state-rejected .document ul, .state-rejected .document ol, .state-rejected .document li, .state-rejected .document b, .state-rejected .document font, .state-rejected .document legend {
-    color: #999 !important;
-    text-decoration: line-through !important;
+.state-rejected {
+	td, .document th, .document td a, .document p, .document h3, .document h4,
+	.richtext, .document a, .document span:not(.state), .richtext div, .cCode, .antetka,
+	.document ul, .document ol, .document li, .document b, .document font, .document legend {
+		color: #999 !important;
+		text-decoration: line-through !important;
+	}
+	.tagColumn {
+		opacity: 0.5;
+	}
 }
 
 .single-thread .state-rejected .document .tab-top div.alphabet .tab-row .tab {
@@ -2025,6 +2042,8 @@ td.formElement {
 
 .wide .path-title {
 	margin-top: 2px;
+	max-width: 1100px;
+	display: block;
 }
 
 /*Загвавие, състоящо се от пътека*/
@@ -2310,7 +2329,7 @@ div.alphabet div.tab-row .tab {
 
 div.alphabet div.tab-page {
 	margin: 0;
-	padding: 7px 0 0 0;
+	padding: 10px 0 0 0;
 }
 
 .narrow div.alphabet  div.tab-row {
@@ -2545,13 +2564,38 @@ div.tab-control.deal-history-tab, .single-thread .document .tab-top div.alphabet
  	.tab {
 	    font-size: 0.7em;
 	    margin: 0 4px 0 0;
-	    padding: 5px;
+		padding: 5px 8px;
+		margin: 0 4px 0 0 !important;
+		cursor: pointer;
+		border: 1px solid #bbb !important;
+		font-size: 0.7em;
+		text-decoration: none;
+		white-space: nowrap;
+		color: #555 !important;
+		background-color: #ddd !important;
+		background-image: linear-gradient(top, rgba(255,255,255,1),
+						rgba(255,255,255,0)),
+		url(data:image/png;base64,iVBORw0KGg[...]QmCC) !important;
+		transition: background-color .2s ease-out !important;
+		background-clip: padding-box; /* Fix bleeding */
+		border-radius: 5px !important;
+		box-shadow: 0 1px 0 rgba(0, 0, 0, .3),
+		0 1px 0 rgba(255, 255, 255, .3) inset !important;
+		text-shadow: 0 1px 0 rgba(255,255,255, .9) !important;
+		a {
+			color: #333 !important;
+		}
 	    &:hover , &.selected {
-	        margin: 0 4px 0 0;
-	        padding: 5px !important;
-	    }
-	    &.selected {
-	        top: -4px;
+			margin: 0 4px 0 0 !important;
+			background: #ffffe9 !important;
+			padding: 5px 8px !important;
+			position: relative;
+			top: 1px;
+			top: -4px;
+			text-shadow: none;
+			a {
+				color: #444 !important;
+			}
 	    }
 	 }
 }

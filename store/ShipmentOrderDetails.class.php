@@ -56,19 +56,11 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     
     
     /**
-     * Кой има право да чете?
-     * 
-     * @var string|array
-     */
-    public $canRead = 'ceo, store';
-    
-    
-    /**
      * Кой има право да променя?
      * 
      * @var string|array
      */
-    public $canEdit = 'ceo, store';
+    public $canEdit = 'ceo,store,sales,purchase';
     
     
     /**
@@ -76,7 +68,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      * 
      * @var string|array
      */
-    public $canAdd = 'ceo, store';
+    public $canAdd = 'ceo,store,sales,purchase';
     
     
     /**
@@ -84,13 +76,13 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      * 
      * @var string|array
      */
-    public $canDelete = 'ceo, store';
+    public $canDelete = 'ceo,store,sales,purchase';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'info=Колети, productId, packagingId, packQuantity, packPrice, discount, amount, weight, volume,quantityInPack';
+    public $listFields = 'info=@Колети, productId, packagingId, packQuantity, packPrice, discount, amount, weight, volume,quantityInPack';
     
         
     /**
@@ -127,8 +119,9 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     	
         $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
         $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
-        $this->FLD('info', "text(rows=2)", 'caption=Разпределение по логистични единици->Номера,after=showMode', array('hint' => 'Напишете номерата на колетите, в които се съдържа този продукт, разделени със запетая'));
         $this->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Изглед,notNull,default=short,value=short,after=notes');
+        $this->FLD('transUnit', 'varchar', 'caption=Логистични единици->Вид,autohide');
+        $this->FLD('info', "text(rows=2)", 'caption=Логистични единици->Номера,after=transUnit,autohide', array('hint' => 'Напишете номерата на колетите, в които се съдържа този продукт, разделени със запетая'));
     }
 
 
@@ -156,29 +149,45 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form &$form)
     { 
     	$rec = &$form->rec;
-    	
-    	if(isset($rec->productId)){
-    		$masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->storeId;
-    		$storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore);
-    		$form->info = $storeInfo->formInfo;
+
+        if(!$form->isSubmitted()) {
+            if($mvc->masterKey && $rec->{$mvc->masterKey}) {
+    	        $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
+            }
+
+            if(isset($rec->productId) && isset($masterRec)){
+                $masterStore = $masterRec->storeId;
+                $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore);
+                $form->info = $storeInfo->formInfo;
+            }
+            
+            if($masterRec->template) {
+                $tplRec = doc_TplManager::fetch($masterRec->template);
+            }
+
+            $form->setSuggestions('transUnit', $tplRec->lang == 'bg' ? ',Палети,Кашона' : ',Pallets,Carton boxes');
+            $form->setField('transUnit', array('placeholder' => $tplRec->lang == 'bg' ? 'Палети' : 'Pallets'));
     	}
-    	
+
     	parent::inputDocForm($mvc, $form);
     	
     	if ($form->isSubmitted() && !$form->gotErrors()) {
             
             if($rec->info){
-            	if(!preg_match('/^[0-9]+[\ \,\-0-9]*$/', $rec->info, $matches)){
-            		$form->setError('info', "Полето може да приема само числа,запетаи и тирета");
-            	}
-            	$rec->info = preg_replace("/\s+/", "", $rec->info);
+                $all = self::getLUs($rec->info);
+                if(is_string($all)) {
+                    $form->setError('info', $all);
+                }
             } else {
             	$rec->info = NULL;
             }
         }
     }
     
-    
+
+
+
+
     /**
      * След преобразуване на записа в четим за хора вид.
      */
@@ -205,6 +214,58 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     	}
     }
     
+
+    /**
+     * Парсира текст, въведен от потребителя в масив с номера на логистични единици
+     * Връща FALSE, ако текста е некоректно форматиран
+     */
+    public static function getLUs($infoLU)
+    {   
+        $res = array();
+
+        $str = str_replace(array(",", '№'), array("\n", ''), $infoLU);
+        $arr = explode("\n", $str);
+
+        foreach($arr as $item) {
+            $item = trim($item);
+
+            if(empty($item)) continue;
+
+            if(strpos($item, '-')) {
+                list($from, $to) = explode('-', $item);
+                $from = trim($from);
+                $to   = trim($to);
+                if(!ctype_digit($from) || !ctype_digit($to) || !($from < $to)) {
+                    return "Непарсируем диапазон на колети|* \"". $item . '"';
+                }
+                for($i = (int) $from; $i <= $to; $i++) {
+                    if(isset($res[$i])) {
+                        return "Повторение на колет|* №". $i;
+                    }
+                    $res[$i] = $i;
+                }
+            } elseif(!ctype_digit($item)) {
+
+                return "Непарсируем номер на колет|* \"". $item . '"';
+            } else {
+                if(isset($res[$item])) {
+                    return "Повторение на колет|* №". $item;
+                }
+                $item = (int) $item;
+                $res[$item] = $item;
+            }
+        }
+        
+        if(trim($infoLU) && !count($res)) {
+            return "Грешка при парсиране на номерата на колетите";
+        }
+
+        asort($res);
+
+        return $res;
+    }
+
+
     
     /**
      * След обработка на записите от базата данни
@@ -215,6 +276,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     	
     	$date = ($data->masterData->rec->state == 'draft') ? NULL : $data->masterData->rec->modifiedOn;
     	if(count($data->rows)) {
+            $totalLU = array();
     		foreach ($data->rows as $i => &$row) {
     			$rec = &$data->recs[$i];
     			
@@ -222,8 +284,66 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                 if($rec->notes){
     				deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     			}
+                
+                if($row->info) {
+                    $numbers = self::getLUs($rec->info);
+                    if(!is_array($numbers)) {
+                        $row->info = $numbers;
+                    }elseif(count($numbers)) {
+                        $unit = tr($rec->transUnit ? $mvc->getVerbal($rec, 'transUnit') : 'Палети');
+                        $row->info = "<small>" . $unit . ': №' . implode(', №', $numbers) . "</small>";
+                        $haveTransInfo = TRUE;
+                        if(!isset($totalLU[$unit])) {
+                            $totalLU[$unit] = $numbers;
+                        } else {
+                            $totalLU[$unit] += $numbers;
+                        }
+                    }
+                }
     		}
     	}
+        
+        if(count($totalLU)) {
+            $allNum = array();  
+            foreach($totalLU as $lu => $luArr) {  
+                if(strlen($luInfo)) $luInfo .= ';';
+                $luInfo .=  ' <strong>' . count($luArr) . '</strong>&nbsp;' . mb_strtolower($lu);
+                foreach($luArr as $i) {
+                    if(isset($allNum[$i])) {
+                        $err = "Логистичната единица|* №{$i} |не може едновремено да бъде|* " . $allNum[$i] . " |и|* " . $lu;
+                    }
+                    $allNum[$i] = $lu;
+                }
+            }
+
+            if(count($allNum)) {
+                $max = max(array_keys($allNum));
+                $missing = array();
+                for($i = 1; $i <= $max; $i++) {
+                    if(!isset($allNum[$i])) {
+                        $missing[] = $i;
+                    }
+                }
+
+                if(count($missing)) {
+                    $err2 = "Липсва информация за логистични единици|* №" . implode(", №", $missing);
+                }
+            }
+ 
+            $data->masterData->row->logisticInfo =  $luInfo;
+
+            if($err) {
+                $data->masterData->row->logisticInfo = ht::createHint($data->masterData->row->logisticInfo, $err, 'error');
+            }
+            if($err2) {
+                $data->masterData->row->logisticInfo = ht::createHint($data->masterData->row->logisticInfo, $err2, 'error');
+            }
+
+        }
+
+        if(!$haveTransInfo) {
+            unset($data->listFields['info']);
+        }
     	
     	core_Lg::pop();
     }

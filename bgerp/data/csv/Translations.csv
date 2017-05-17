@@ -244,9 +244,10 @@ en,Вальор,Value date
 en,Ваш реф. №,Your ref. №
 en,Ваш реф.,Your ref.
 en,Вашата държава,Your country
-en,Вашата фирма,Your company
+en,Вашата фирма,Your Company
 en,Вашият адрес,Your address
-en,Вашият имейл,Your name
+en,Вашият имейл,Your email
+en,Вашето име,Your name
 en,Вашият пощенски код,Your post code
 en,Вашият сайт или блог,Your website or blog
 en,Вашият телефон,Your phone number
@@ -2216,6 +2217,8 @@ en,кандела,candela
 en,кашон,carton
 en,кв.м,sq.m
 en,квадратен метър,square meter
+en,кв.см,sq.cm
+en,квадратен сантиметър,square centimeter
 en,кг,kg
 en,кг/м3,kg/m3
 en,келвин,kelvin
@@ -2389,3 +2392,5 @@ en,срок за д-ка,Delivery time
 en,толеранс к-во,Qty tolerance
 en,Клониране на артикула,Clone product
 en,Клониране на реда,Clone row
+en,Толеранс, Tolerance
+en,Включено ДДС в цените, Prices are with applied VAT

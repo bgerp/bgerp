@@ -463,7 +463,7 @@ class change_Plugin extends core_Plugin
             $firstCreatedOnDate = dt::mysql2verbal($firstSelVerArr['createdOn'], $dateMask);
             
             if ($firstCreatedOnDate == $lastCreatedOnDate) {
-                $dateMask = 'd-m-y H:m:s';
+                $dateMask = 'd-m-y H:i:s';
             }
         }
         

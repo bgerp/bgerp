@@ -1177,10 +1177,20 @@ a.profile {
   padding-right: 4px;
   box-shadow: inset 0 0 3px #f4e4f5; }
 
+.state-closed-link > a {
+  background-color: #dddddd;
+  padding-right: 4px;
+  box-shadow: inset 0 0 3px #cccccc; }
+
 .state-rejected-link > a {
   background-color: #f3c9c8;
   padding-right: 4px;
   box-shadow: inset 0 0 3px #eca7a6; }
+
+.state-waiting-link > a {
+  background-color: rgba(210, 255, 70, 0.4);
+  padding-right: 4px;
+  box-shadow: inset 0 0 3px #aaf277; }
 
 .state-closed {
   background-color: #f1f1f1;
@@ -1197,28 +1207,30 @@ a.profile {
 
 .state-waiting {
   background-color: #cef763;
-  background-color: rgba(206, 247, 99, 0.8); }
+  background-color: rgba(210, 255, 120, 0.6); }
 
-.state-rejected td,
-.state-rejected .document th,
-.state-rejected .document td a,
-.state-rejected .document p,
-.state-rejected .document h3,
-.state-rejected .document h4,
-.state-rejected .richtext,
-.state-rejected .document a,
-.state-rejected .document span:not(.state),
-.state-rejected .richtext div,
-.state-rejected .cCode,
-.state-rejected .antetka,
-.state-rejected .document ul,
-.state-rejected .document ol,
-.state-rejected .document li,
-.state-rejected .document b,
-.state-rejected .document font,
-.state-rejected .document legend {
-  color: #999999 !important;
-  text-decoration: line-through !important; }
+  .state-rejected td,
+  .state-rejected .document th,
+  .state-rejected .document td a,
+  .state-rejected .document p,
+  .state-rejected .document h3,
+  .state-rejected .document h4,
+  .state-rejected .richtext,
+  .state-rejected .document a,
+  .state-rejected .document span:not(.state),
+  .state-rejected .richtext div,
+  .state-rejected .cCode,
+  .state-rejected .antetka,
+  .state-rejected .document ul,
+  .state-rejected .document ol,
+  .state-rejected .document li,
+  .state-rejected .document b,
+  .state-rejected .document font,
+  .state-rejected .document legend {
+    color: #999999 !important;
+    text-decoration: line-through !important; }
+  .state-rejected .tagColumn {
+    opacity: 0.5; }
 
 .single-thread .state-rejected .document .tab-top div.alphabet .tab-row .tab {
   opacity: 0.5; }
@@ -1863,7 +1875,9 @@ input:focus[type=button] {
   word-wrap: break-word; }
 
 .wide .path-title {
-  margin-top: 2px; }
+  margin-top: 2px;
+  max-width: 1100px;
+  display: block; }
 
 /*
  * Загвавие, състоящо се от пътека
@@ -2123,7 +2137,7 @@ div.alphabet div.tab-row .tab {
 
 div.alphabet div.tab-page {
   margin: 0;
-  padding: 7px 0 0 0; }
+  padding: 10px 0 0 0; }
 
 .narrow div.alphabet  div.tab-row {
   width: 340px;
@@ -2331,13 +2345,38 @@ div.alphabet div.tab-page {
   .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab {
     font-size: 0.7em;
     margin: 0 4px 0 0;
-    padding: 5px; }
+    padding: 5px 8px;
+    margin: 0 4px 0 0 !important;
+    cursor: pointer;
+    border: 1px solid #bbbbbb !important;
+    font-size: 0.7em;
+    text-decoration: none;
+    white-space: nowrap;
+    color: #555555 !important;
+    background-color: #dddddd !important;
+    background-image: linear-gradient(top, white, rgba(255, 255, 255, 0)), ();
+    transition: background-color 0.2s ease-out !important;
+    background-clip: padding-box;
+        /*
+     * Fix bleeding
+     */
+    border-radius: 5px !important;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.3) inset !important;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) !important; }
+    .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab a {
+      color: #333333 !important; }
     .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab:hover,
     .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab.selected {
-      margin: 0 4px 0 0;
-      padding: 5px !important; }
-    .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab.selected {
-      top: -4px; }
+      margin: 0 4px 0 0 !important;
+      background: #ffffe9 !important;
+      padding: 5px 8px !important;
+      position: relative;
+      top: 1px;
+      top: -4px;
+      text-shadow: none; }
+      .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab:hover a,
+      .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab.selected a {
+        color: #444444 !important; }
 
   .narrow div.tab-control.deal-history-tab .tab-row,
   .narrow .single-thread .document .tab-top div.alphabet .tab-row {

@@ -91,7 +91,7 @@ class cal_TaskProgresses extends core_Detail
             'caption=Очакван край, silent');
         
         // Статус съобщение
-        $this->FLD('message',    'richtext(rows=5)', 'caption=Съобщение');
+        $this->FLD('message',    'richtext(rows=5, bucket=calTasks)', 'caption=Съобщение');
     }
 
 
@@ -161,12 +161,11 @@ class cal_TaskProgresses extends core_Detail
         }
     	
         $tpl = new ET('<div class="clearfix21 portal" style="margin-top:20px;background-color:transparent;">
-	                            <div class="legend" style="background-color:#ffc;font-size:0.9em;padding:2px;color:black">Прогрес</div>
-	                                <div class="listRows">
-	                                [#TABLE#]
-	                                </div>
-	                            </div>
-	                        </div>           
+                            <div class="legend" style="background-color:#ffc;font-size:0.9em;padding:2px;color:black">Прогрес</div>
+                            <div class="listRows">
+                            [#TABLE#]
+                            </div>
+	                   </div>
 	                ');
 	        $tpl->replace($this->renderListTable($data), 'TABLE');
 		
@@ -248,7 +247,7 @@ class cal_TaskProgresses extends core_Detail
      */
     static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
-        $tRec = cal_Tasks::fetch($rec->taskId, 'workingTime, progress, state, title, expectationTimeEnd, threadId, createdBy');
+        $tRec = cal_Tasks::fetch($rec->taskId);
         $now = dt::now();
         // Определяне на прогреса
         if(isset($rec->progress)) {
@@ -273,8 +272,22 @@ class cal_TaskProgresses extends core_Detail
             $rec = $query->fetch();
             $tRec->workingTime = $rec->workingTimeSum;
         }
-
-       
+        
+        $sharedUsersArr = rtac_Plugin::getNicksArr($rec->message);
+        
+        // Ако има споделяния
+        if ($sharedUsersArr && !empty($sharedUsersArr)) {
+            
+            // Добавяме id-тата на споделените потребители
+            foreach ((array)$sharedUsersArr as $nick) {
+                $nick = strtolower($nick);
+                $id = core_Users::fetchField(array("LOWER(#nick) = '[#1#]'", $nick), 'id');
+                $tRec->sharedUsers = type_Keylist::addKey($tRec->sharedUsers, $id);
+            }
+            
+            doc_Containers::changeNotifications($tRec, NULL, $tRec->sharedUsers);
+        }
+        
         cal_Tasks::save($tRec);
     }
     
@@ -288,7 +301,7 @@ class cal_TaskProgresses extends core_Detail
      * @param stdClass $rec
      * @param int $userId
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'add' && isset($rec->taskId)){
     		if($requiredRoles == 'no_one') return;
@@ -302,4 +315,24 @@ class cal_TaskProgresses extends core_Detail
     		}
     	}
     }
+	
+	
+	/**
+	 * 
+	 * 
+	 * @param stdObject $data
+	 */
+	public function prepareDetail_($data)
+	{
+		$data->TabCaption = 'Прогрес';
+		$data->Tab = 'top';
+		
+		$res = parent::prepareDetail_($data);
+		
+		if (empty($data->recs)) {
+		    $data->disabled = TRUE;
+		}
+		
+		return $res;
+	}
 }

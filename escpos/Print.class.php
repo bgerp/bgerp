@@ -60,7 +60,7 @@ class escpos_Print extends core_Manager
     /**
      * Масив с `id` от приложението и драйвер, на който отговарят
      */
-    public static $drvMapArr = array(1 => 'escpos_driver_Ddp250');
+    public static $drvMapArr = array(1 => 'escpos_driver_Ddp250', 2 => 'escpos_driver_P300');
     
     
     /**
@@ -190,21 +190,46 @@ class escpos_Print extends core_Manager
     public function act_Test()
     {
         $idFullStr = Request::get('id');
-        
-        $paramsArr = self::parseParamStr($idFullStr);
-        
-        expect($paramsArr);
-        
-        $dataContent = escpos_Helper::preparePrintView($paramsArr['clsInst'], $paramsArr['id'], $paramsArr['userId']);
-        
+		
         $drvName = 'escpos_driver_Ddp250';
         
         if (Request::get('html')) {
             $drvName = 'escpos_driver_Html';
         }
         
-        echo escpos_Convert::process($dataContent, $drvName);
-        
-        shutdown();
+        if ($idFullStr) {
+            $paramsArr = self::parseParamStr($idFullStr);
+            
+            expect($paramsArr);
+            
+            $dataContent = escpos_Helper::preparePrintView($paramsArr['clsInst'], $paramsArr['id'], $paramsArr['userId']);
+            
+            echo escpos_Convert::process($dataContent, $drvName);
+            
+            shutdown();
+        } else {
+            $res = escpos_Helper::getTpl();
+            
+            $res->replace("Тестово отпечатване", 'title');
+            
+            $test = "<c F b>Test<p><r29 F b>Proba...<p><p><p>";
+            $dataContent = escpos_Convert::process($test, 'escpos_driver_Ddp250');
+            
+            $res->replace(base64_encode($dataContent), 'data');
+            
+            // За да не се кешира
+            header("Expires: Sun, 19 Nov 1978 05:00:00 GMT");
+            header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
+            header("Cache-Control: no-store, no-cache, must-revalidate");
+            header("Cache-Control: post-check=0, pre-check=0", false);
+            header("Pragma: no-cache");
+            
+            // Указваме, че ще се връща XML
+            header('Content-Type: application/xml');
+            
+            echo $res;
+            
+            shutdown();
+        }
     }
 }

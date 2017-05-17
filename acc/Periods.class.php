@@ -197,10 +197,15 @@ class acc_Periods extends core_Manager
      */
     public static function fetchByDate($date = NULL)
     {
+        static $periods = array();
+
         $lastDayOfMonth = dt::getLastdayOfMonth($date);
-        $rec = self::fetch("#end = '{$lastDayOfMonth}'");
+
+        if(!$periods[$lastDayOfMonth]) {
+            $periods[$lastDayOfMonth] = self::fetch("#end = '{$lastDayOfMonth}'");
+        }
         
-        return $rec;
+        return $periods[$lastDayOfMonth];
     }
     
     

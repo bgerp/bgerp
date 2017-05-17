@@ -414,9 +414,7 @@ class crm_Persons extends core_Master
         }
 
     	if(!empty($data->listFilter->rec->groupId)){
-        	$descendants = crm_Groups::getDescendantArray($data->listFilter->rec->groupId);
-        	$keylist = keylist::fromArray($descendants);
-        	$data->query->likeKeylist("groupList", $keylist);
+        	$data->query->where("LOCATE('|{$data->listFilter->rec->groupId}|', #groupList)");
         }
     }
 
@@ -1091,7 +1089,9 @@ class crm_Persons extends core_Master
         } else {
             $query = $data->query;
         }
-
+        $query->limit(50);
+        $data->companiesCnt = $query->count();
+        
         while($rec = $query->fetch()) {
             $data->recs[$rec->id] = $rec;
             $row = $data->rows[$rec->id] = $this->recToVerbal($rec, 'name,mobile,tel,email,buzEmail,buzTel,buzLocationId,buzPosition');
@@ -1125,7 +1125,7 @@ class crm_Persons extends core_Master
     function renderCompanyExpandData($data)
     {
         $tpl = new ET("<fieldset class='detail-info'>
-                            <legend class='groupTitle'>" . tr('Представители') . "[#BTN#]</legend>
+                            <legend class='groupTitle'>" . tr('Представители') . "<!--ET_BEGIN CNT--> ([#CNT#])<!--ET_END CNT-->[#BTN#]</legend>
                                 <div class='groupList clearfix21'>
                                  [#persons#]
                             </div>
@@ -1135,7 +1135,9 @@ class crm_Persons extends core_Master
         if($data->addBtn){
         	$tpl->replace($data->addBtn, 'BTN');
         }
-        
+        if($data->companiesCnt){
+            $tpl->replace($data->companiesCnt, 'CNT');
+        }
         if(count($data->rows)){
             $i = 0;
         	foreach($data->rows as $id => $row) {
@@ -2517,7 +2519,7 @@ class crm_Persons extends core_Master
      * @param stdClass|NULL $rec
      * @param int|NULL $userId
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Никой да не може да изтрива
         if ($action == 'delete') {
@@ -2905,4 +2907,96 @@ class crm_Persons extends core_Master
     {
     	return 'private';
     }
+	
+	
+    /**
+     * Подготовка на опции за key2
+     */
+    public static function getSelectArr($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
+    {
+        $query = self::getQuery();
+	    $query->orderBy("modifiedOn", "DESC");
+	    
+		
+        $viewAccess = TRUE;
+	    if ($params['restrictViewAccess'] == 'yes') {
+	        $viewAccess = FALSE;
+	    }
+		
+        $me = cls::get(get_called_class());
+	    $me->restrictAccess($query, NULL, $viewAccess);
+	    
+        if(!$includeHiddens) {
+            $query->where("#state != 'rejected' AND #state != 'closed'");
+        }
+		
+        if($params['where']) {
+            $query->where($params['where']);
+        }
+	    
+        if(is_array($onlyIds)) {
+            if(!count($onlyIds)) {
+                return array();
+            }
+			
+            $ids = implode(',', $onlyIds);
+            expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
+			
+            $query->where("#id IN ($ids)");
+        } elseif(ctype_digit("{$onlyIds}")) {
+            $query->where("#id = $onlyIds");
+        }
+        
+        $titleFld = $params['titleFld'];
+        $query->XPR('searchFieldXpr', 'text', "CONCAT(' ', #{$titleFld})");
+        
+        if($q) {
+            if($q{0} == '"') $strict = TRUE;
+			
+            $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
+            
+            if($strict) {
+                $qArr = array(str_replace(' ', '%', $q));
+            } else {
+                $qArr = explode(' ', $q);
+            }
+            
+            foreach($qArr as $w) {
+                $query->where("#searchFieldXpr COLLATE {$query->mvc->db->dbCharset}_general_ci LIKE '% {$w}%'");
+            }
+        }
+		
+        if($limit) {
+            $query->limit($limit);
+        }
+		
+        $query->show('id, buzCompanyId, ' . $titleFld);
+        
+        $res = array();
+        
+        while($rec = $query->fetch()) {
+            
+            $str = trim($rec->{$titleFld});
+            
+            if ($rec->buzCompanyId) {
+                $str .= " - " . crm_Companies::fetchField($rec->buzCompanyId, 'name');
+            }
+            
+            $str .= " ({$rec->id})";
+            
+            $res[$rec->id] = $str;
+        }
+ 		
+        return $res;
+    }
+
+
+    /**
+     * Добавя ключовио думи за държавата и на bg и на en
+     */
+    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+        $res = drdata_Countries::addCountryInBothLg($rec->country, $res);
+    }
+
 }

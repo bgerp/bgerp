@@ -188,8 +188,33 @@ class escpos_Convert extends core_Manager
         }
 
         $res .= $l;
-
+        
+        $res = $driver->prepareTextSettings($res);
+        
         return $res;
+    }
+    
+    
+    /**
+     * 
+     * @param unknown $tpl
+     * @param string $driver
+     * 
+     * @return string
+     */
+    public static function getContent($tpl, $driver = 'escpos_driver_Html')
+    {
+        if (!($tpl instanceof core_ET)) {
+            $tpl = new ET($tpl);
+        }
+        
+        $driver = cls::get($driver);
+        
+        $driver->placePrintData($tpl);
+        
+        $content = $tpl->getContent();
+        
+        return $content;
     }
     
     

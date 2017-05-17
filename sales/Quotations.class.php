@@ -223,7 +223,7 @@ class sales_Quotations extends core_Master
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $this->FLD('contragentId', 'int', 'input=hidden');
         $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)','caption=Плащане->Метод,salecondSysId=paymentMethodSale');
-        $this->FLD('bankAccountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId,allowEmpty)', 'caption=Плащане->Банкова с-ка');
+        $this->FLD('bankAccountId', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=Плащане->Банкова с-ка');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,removeAndRefreshForm=currencyRate');
         $this->FLD('currencyRate', 'double(decimals=5)', 'caption=Плащане->Курс,input=hidden');
         $this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Oсвободено от ДДС, no=Без начисляване на ДДС)','caption=Плащане->ДДС,oldFieldName=vat');
@@ -450,7 +450,7 @@ class sales_Quotations extends core_Master
     					$price = deals_Helper::getPurePrice($price, $vat, $rec->currencyRate, $rec->chargeVat);
     				}
     				sales_Quotations::addRow($rec->id, $originRec->id, $quantity, $originRec->measureId, $price);
-    			} catch(core_exception_Expect $e){
+    			} catch(Exception $e){
     				reportException($e);
     		
     				if(haveRole('debug')){
@@ -544,6 +544,14 @@ class sales_Quotations extends core_Master
     			}
     		}
     			
+    		// Показване на допълнителните условия от артикулите
+    		$additionalConditions = deals_Helper::getConditionsFromProducts($mvc->mainDetail, $rec->id);
+    		if(is_array($additionalConditions)){
+    			foreach ($additionalConditions as $cond){
+    				$row->others .= "<li>{$cond}</li>";
+    			}
+    		}
+    		
     		if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
     			if($rec->deliveryPlaceId){
     				if($placeId = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id')){
@@ -569,7 +577,7 @@ class sales_Quotations extends core_Master
     		}
     	
     		if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, 'commonConditionSale')){
-    			$row->commonConditionQuote = cls::get('type_Varchar')->toVerbal($cond);
+    			$row->commonConditionQuote = cls::get('type_Url')->toVerbal($cond);
     		}
     		 
     		if(empty($rec->date)){
@@ -721,7 +729,7 @@ class sales_Quotations extends core_Master
     /**
      * След проверка на ролите
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
     	if($res == 'no_one') return;
     	
@@ -1008,9 +1016,9 @@ class sales_Quotations extends core_Master
     		$addedRecId = sales_Sales::addRow($sId, $item->productId, $item->packQuantity, $item->price, $item->packagingId, $item->discount, $item->tolerance, $item->term, $item->notes);
     		
     		// Копира се и транспорта, ако има
-    		$fee = tcost_Calcs::get($this, $item->quotationId, $item->id)->fee;
-    		if(isset($fee)){
-    			tcost_Calcs::sync('sales_Sales', $sId, $addedRecId, $fee);
+    		$cRec = tcost_Calcs::get($this, $item->quotationId, $item->id);
+    		if(isset($cRec)){
+    			tcost_Calcs::sync('sales_Sales', $sId, $addedRecId, $cRec->fee, $cRec->deliveryTime);
     		}
     	}
     	
@@ -1486,6 +1494,9 @@ class sales_Quotations extends core_Master
     		
     		if(!isset($dRec->term)){
     			if($term = cat_Products::getDeliveryTime($dRec->productId, $dRec->quantity)){
+    				if($deliveryTime = tcost_Calcs::get('sales_Quotations', $dRec->quotationId, $dRec->id)->deliveryTime){
+    					$term += $deliveryTime;
+    				}
     				$dRec->term = $term;
     			}
     		}

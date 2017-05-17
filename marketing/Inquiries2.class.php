@@ -193,10 +193,10 @@ class marketing_Inquiries2 extends embed_Manager
     	$this->FLD('quantity1', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 1,hint=Въведете количество,input=none,formOrder=47');
     	$this->FLD('quantity2', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 2,hint=Въведете количество,input=none,formOrder=48');
     	$this->FLD('quantity3', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 3,hint=Въведете количество,input=none,formOrder=49');
-    	$this->FLD('name', 'varchar(255)', 'caption=Контактни данни->Имена,class=contactData,hint=Вашето име,contragentDataField=person,formOrder=50,mandatory');
-    	$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни данни->Държава,class=contactData,hint=Вашата държава,formOrder=51,contragentDataField=countryId,mandatory');
-    	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни данни->Имейл,class=contactData,hint=Вашият имейл,formOrder=52,mandatory');
-    	$this->FLD('company', 'varchar(255)', 'caption=Контактни данни->Фирма,class=contactData,hint=Вашата фирма,formOrder=53');
+    	$this->FLD('company', 'varchar(255)', 'caption=Контактни данни->Фирма,class=contactData,hint=Вашата фирма,formOrder=50');
+    	$this->FLD('name', 'varchar(255)', 'caption=Контактни данни->Лице,class=contactData,hint=Вашето име||Your name,contragentDataField=person,formOrder=51,mandatory');
+    	$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни данни->Държава,class=contactData,hint=Вашата държава,formOrder=52,contragentDataField=countryId,mandatory');
+    	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни данни->Имейл,class=contactData,hint=Вашият имейл||Your email,formOrder=53,mandatory');
     	$this->FLD('tel', 'drdata_PhoneType', 'caption=Контактни данни->Телефони,class=contactData,hint=Вашият телефон,formOrder=54');
     	$this->FLD('pCode', 'varchar(16)', 'caption=Контактни данни->П. код,class=contactData,hint=Вашият пощенски код,formOrder=55');
         $this->FLD('place', 'varchar(64)', 'caption=Контактни данни->Град,class=contactData,hint=Населено място: град или село и община,formOrder=56');
@@ -576,6 +576,7 @@ class marketing_Inquiries2 extends embed_Manager
     private function getTitle($id)
     {
     	$rec = $this->fetchRec($id);
+ 
     	$Driver = $this->getDriver($rec->id);
     	 
     	$name = $this->getFieldType('name')->toVerbal((($rec->company) ? $rec->company : $rec->name));
@@ -731,6 +732,8 @@ class marketing_Inquiries2 extends embed_Manager
      */
     function act_New()
     {
+        Mode::set('showBulletin', FALSE);
+        
     	$this->requireRightFor('new');
     	expect($drvId = Request::get('drvId', 'int'));
     	$proto = Request::get('protos', 'varchar');
@@ -836,7 +839,9 @@ class marketing_Inquiries2 extends embed_Manager
     			}
 
                 if($Driver) {
-                    $rec->title = $Driver->getProductTitle($rec);
+                    if($title = $Driver->getProductTitle($rec)) {
+                        $rec->title = $title;
+                    }
                 }
 
     			$id = $this->save($rec);
@@ -858,7 +863,7 @@ class marketing_Inquiries2 extends embed_Manager
     	
         // Премахва зададения временно текущ език
         core_Lg::pop();
-
+        
     	return $tpl;
     }
     

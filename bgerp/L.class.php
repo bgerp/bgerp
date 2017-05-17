@@ -174,9 +174,11 @@ class bgerp_L extends core_Manager
                 }
             }
             
+            Mode::push('saveObjectsToCid', $cid);
             // Има запис в историята - MID-a е валиден, генерираме HTML съдържанието на 
             // документа за показване
             $html = $doc->getDocumentBody('xhtml', (object) $options);
+            Mode::pop('saveObjectsToCid');
             
             Mode::set('wrapper', 'page_External');
             

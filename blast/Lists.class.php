@@ -45,7 +45,7 @@ class blast_Lists extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'blast_Wrapper,plg_RowTools2,doc_DocumentPlg, plg_Search, 
-                     bgerp_plg_Blank, plg_Clone, doc_plg_SelectFolder';
+                     bgerp_plg_Blank, plg_Clone';
     
     
     /**
@@ -118,8 +118,8 @@ class blast_Lists extends core_Master
      * Детайла, на модела
      */
     var $details = 'blast_ListDetails';
-
-
+	
+	
     /**
      * Икона за единичния изглед
      */
@@ -156,14 +156,6 @@ class blast_Lists extends core_Master
     public $showLetterHead = TRUE;
     
     
-    /**
-     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
-     */
-    public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
-
-
-
-
     /**
      * Описание на модела (таблицата)
      */
@@ -293,7 +285,7 @@ class blast_Lists extends core_Master
     /**
      * Изпълнява се след подготовката на ролите, необходимо за това действие
      */
-    static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec)
+    public static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec = NULL, $userId = NULL)
     {
         if(($action == 'edit' || $action == 'delete') && $rec->state != 'draft' && isset($rec->state)) {
             $roles = 'no_one';

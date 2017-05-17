@@ -80,12 +80,6 @@ class sales_Invoices extends deals_InvoiceMaster
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,invoicer';
-    
-    
-    /**
      * Кой може да сторнира
      */
     public $canRevert = 'salesMaster, ceo';
@@ -100,7 +94,7 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,sales';
+	public $canList = 'ceo,sales,acc';
 
 
 	/**
@@ -118,7 +112,7 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Кой има право да добавя?
      */
-    public $canExport = 'ceo,sales';
+    public $canExport = 'ceo,invoicer';
     
     
     /**
@@ -216,15 +210,15 @@ class sales_Invoices extends deals_InvoiceMaster
     {
     	parent::setInvoiceFields($this);
     	
-    	$this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка, changable');
+    	$this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=title, allowEmpty)', 'caption=Плащане->Банкова с-ка, changable');
     	
     	$this->FLD('numlimit', 'enum(1,2)', 'caption=Диапазон, after=template,input=hidden,notNull,default=1');
     	
     	$this->FLD('number', 'bigint(21)', 'caption=Номер, after=place,input=none');
     	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно)', 'caption=Статус, input=none');
         $this->FLD('type', 'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие,dc_note=Известие)', 'caption=Вид, input=hidden');
-        $this->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта)', 'placeholder=Автоматично,caption=Плащане->Начин,before=accountId');
-        $this->FLD('autoPaymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта)', 'placeholder=Автоматично,caption=Плащане->Начин,input=none');
+        $this->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг)', 'placeholder=Автоматично,caption=Плащане->Начин,before=accountId');
+        $this->FLD('autoPaymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг)', 'placeholder=Автоматично,caption=Плащане->Начин,input=none');
         
         $this->setDbUnique('number');
     }
@@ -261,8 +255,7 @@ class sales_Invoices extends deals_InvoiceMaster
     {
     	if(isset($form->rec->id)) return;
     	
-    	$handle = sales_Proformas::getHandle($proformaRec->id);
-    	$unsetFields = array('id', 'number', 'state', 'searchKeywords', 'containerId', 'brState', 'lastUsedOn', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'dealValue', 'vatAmount', 'discountAmount', 'sourceContainerId');
+    	$unsetFields = array('id', 'number', 'state', 'searchKeywords', 'containerId', 'brState', 'lastUsedOn', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'dealValue', 'vatAmount', 'discountAmount', 'sourceContainerId', 'additionalInfo');
     	foreach ($unsetFields as $fld){
     		unset($proformaRec->{$fld});
     	}
@@ -273,7 +266,6 @@ class sales_Invoices extends deals_InvoiceMaster
     	if($form->rec->dpAmount){
     		$form->rec->dpAmount = abs($form->rec->dpAmount);
     	}
-    	$form->rec->additionalInfo .= (($form->rec->additionalInfo) ? ' ' : '') . tr("По проформа|* #") . $handle;
     }
     
     
@@ -284,11 +276,15 @@ class sales_Invoices extends deals_InvoiceMaster
     {
     	$form = &$data->form;
     	
+    	$defInfo = "";
+    	
     	if($form->rec->sourceContainerId){
     		$Source = doc_Containers::getDocument($form->rec->sourceContainerId);
     		if($Source->isInstanceOf('sales_Proformas')){
     			if($proformaRec = $Source->fetch()){
     				$mvc->prepareFromProforma($proformaRec, $form);
+    				$handle = sales_Proformas::getHandle($Source->that);
+    				$defInfo .= (($defInfo) ? ' ' : '') . tr("По проформа|* #") . $handle . "\n";
     			}
     		}
     	}
@@ -311,7 +307,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	
     	if($data->aggregateInfo){
     		if($accId = $data->aggregateInfo->get('bankAccountId')){
-    			$form->rec->accountId = bank_OwnAccounts::fetchField("#bankAccountId = {$accId}", 'id');
+    			$form->setDefault('accountId', bank_OwnAccounts::fetchField("#bankAccountId = {$accId}", 'id'));
     		}
     	}
     	 
@@ -330,13 +326,12 @@ class sales_Invoices extends deals_InvoiceMaster
     	$firstDoc = doc_Threads::getFirstDocument($form->rec->threadId);
     	$firstRec = $firstDoc->rec();
     	 
-    	$defInfo = "";
     	$tLang = doc_TplManager::fetchField($form->rec->template, 'lang');
     	core_Lg::push($tLang);
     	
     	$showSale = core_Packs::getConfigValue('sales', 'SALE_INVOICES_SHOW_DEAL');
     	
-    	if($showSale == 'yes'){
+    	if($showSale == 'yes' && empty($form->rec->sourceContainerId)){
     		// Ако продажбата приключва други продажби също ги попълва в забележката
     		if($firstRec->closedDocuments){
     			$docs = keylist::toArray($firstRec->closedDocuments);
@@ -380,6 +375,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	
     	// Задаваме дефолтния текст
     	$form->setDefault('additionalInfo', $defInfo);
+    	
     }
     
     
@@ -388,7 +384,20 @@ class sales_Invoices extends deals_InvoiceMaster
      */
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
+    	$rec = $form->rec;
     	parent::inputInvoiceForm($mvc, $form);
+    	
+    	if($form->isSubmitted()){
+    		if($rec->type != 'dc_note' && empty($rec->accountId)){
+    			if($paymentMethodId = doc_Threads::getFirstDocument($rec->threadId)->fetchField('paymentMethodId')){
+    				$paymentPlan = cond_PaymentMethods::fetch($paymentMethodId);
+    				
+    				if(!empty($paymentPlan->timeBalancePayment) || $paymentPlan->type == 'bank' || $rec->paymentType == 'bank'){
+    					$form->setWarning('accountId', "Сигурни ли сте че не е нужно да се посочи и банкова сметка|*?");
+    				}
+    			}
+    		}
+    	}
 	}
     
     
@@ -432,7 +441,8 @@ class sales_Invoices extends deals_InvoiceMaster
         	}
         }
         
-        if(empty($rec->id)){
+       if(empty($rec->id)){
+        	
         	// Първоначално изчислен начин на плащане
         	$rec->autoPaymentType = $mvc->getAutoPaymentType($rec);
         }
@@ -518,8 +528,8 @@ class sales_Invoices extends deals_InvoiceMaster
     			$Varchar = cls::get('type_Varchar');
     			$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
     			
+    			$row->accountId = cls::get('iban_Type')->toVerbal($ownAcc->iban);
     			$row->bank = $Varchar->toVerbal($ownAcc->bank);
-    			
     			core_Lg::push($rec->tplLang);
     			$row->bank = transliterate(tr($row->bank));
     			$row->place = transliterate($row->place);
@@ -531,8 +541,13 @@ class sales_Invoices extends deals_InvoiceMaster
     	
     	$makeHint = FALSE;
     	
+    	if($rec->paymentType == 'factoring'){
+    		$row->accountId = 'ФАКТОРИНГ';
+    	}
+    	
     	if(empty($rec->paymentType)){
-    		$rec->paymentType = $rec->autoPaymentType;
+    		$pType = ($rec->autoPaymentType == 'factoring') ? 'bank' : $rec->autoPaymentType;
+    		$rec->paymentType = $pType;
     		$makeHint = TRUE;
     	}
     	
@@ -662,9 +677,7 @@ class sales_Invoices extends deals_InvoiceMaster
     		}
     	}
     	
-    	if($action == 'conto' && isset($rec)){
-    	
-    		// Не може да се контира, ако има ф-ра с по нова дата
+    	if($action == 'restore' && isset($rec)){
     		$lastDate = $mvc->getNewestInvoiceDate($rec->numlimit);
     		if($lastDate > $rec->date) {
     			$res = 'no_one';
@@ -674,7 +687,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	// Само ceo,salesmaster и acc могат да оттеглят контирана фактура
     	if($action == 'reject' && isset($rec)){
     		if($rec->state == 'active'){
-    			if(!haveRole('ceo,salesMaster,acc', $userId)){
+    			if(!haveRole('ceo,sales,invoicer', $userId)){
     				$res = 'no_one';
     			}
     		}
@@ -682,8 +695,10 @@ class sales_Invoices extends deals_InvoiceMaster
     	
     	// Само ceo,salesmaster и acc могат да възстановят фактура
     	if($action == 'restore' && isset($rec)){
-    		if(!haveRole('ceo,salesMaster,acc', $userId)){
-    			$res = 'no_one';
+    		if($rec->brState == 'active'){
+    			if(!haveRole('ceo,sales,invoicer', $userId)){
+    				$res = 'no_one';
+    			}
     		}
     	}
     	
@@ -921,7 +936,7 @@ class sales_Invoices extends deals_InvoiceMaster
    		if(isset($firstDocRec->paymentMethodId)){
    			$type = cond_PaymentMethods::fetchField($firstDocRec->paymentMethodId, 'type');
    			
-   			if(in_array($type, array('cash', 'bank', 'intercept', 'card'))) return $type;
+   			if(in_array($type, array('cash', 'bank', 'intercept', 'card', 'factoring'))) return $type;
    		}
    		
    		// От последната фактура за клиента

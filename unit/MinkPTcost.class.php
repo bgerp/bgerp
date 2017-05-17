@@ -97,6 +97,7 @@ class unit_MinkPTcost extends core_Manager {
         $browser->setValue('codeName', 'TRR');
         $browser->setValue('term', 'За изчисляване на транспортна себестойност');
         $browser->setValue('costCalc', 'Навла');
+        $browser->setValue('calcCost', 'Включено');
         $browser->press('Запис');
         //return $browser->getHtml();
         

@@ -22,10 +22,10 @@ class sales_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {
-        $this->TAB('sales_Sales', 'Продажби', 'ceo,sales');
+        $this->TAB('sales_Sales', 'Продажби', 'ceo,sales,acc');
         $this->TAB('sales_Quotations', 'Оферти', 'ceo,sales');
-        $this->TAB('sales_Invoices', 'Фактури', 'ceo,sales');
-        $this->TAB('sales_Proformas', 'Проформи', 'ceo,sales');
+        $this->TAB('sales_Invoices', 'Фактури', 'ceo,sales,acc');
+        $this->TAB('sales_Proformas', 'Проформи', 'ceo,sales,acc');
         $this->TAB('sales_Services', 'Протоколи', 'ceo,sales');
         $this->TAB('dec_Declarations', 'Декларации->Списък', 'ceo,dec');
         $this->TAB('dec_Statements', 'Декларации->Твърдения', 'ceo,dec');

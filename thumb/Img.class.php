@@ -323,6 +323,25 @@ class thumb_Img
             } else {
                 if($asString = $this->getAsString()) {
                     $this->gdRes = @imagecreatefromstring($asString);
+                    
+                    if (thumb_Setup::get('OPTIMIZATORS')) {
+                        // Ако е от URL и е определно грешно разширението го киригираме, за да може да се не гърми при оптимизиране
+//                         if(!in_array($this->format, array('png', 'jpg', 'gif', 'jpeg')) || (stripos($this->source, 'gravatar'))) {
+                            if ($this->sourceType == 'url') {
+                                
+                                $fileName = rtrim(EF_TEMP_PATH, '/');
+                                $fileName .= '/' . str::getRand();
+                                if (!@file_put_contents($fileName, $asString)) {
+                                    log_System::add('thumb_Img', 'Грешка при създаване на файла: ' . $fileName, NULL, 'warning');
+                                }
+                                if (is_file($fileName)) {
+                                    $fimg = new thumb_FastImageSize($fileName);
+                                    $this->format = $fimg->getType();
+                                }
+                                @unlink($fileName);
+                            }
+//                         }
+                    }
                 }
             }
         }
@@ -409,19 +428,24 @@ class thumb_Img
             }
 
             // Ако от името не можем да опрределим формата - пробваме съдържанието
-            if(!in_array($this->format, array('png', 'jpg', 'gif', 'jpeg'))) {
-                if(strlen($uri) && is_readable($uri)) {
-                    $fimg = new thumb_FastImageSize($uri);
-                    $this->format = $fimg->getType();
+            if(strlen($uri) && is_readable($uri)) {
+                $fimg = new thumb_FastImageSize($uri);
+                $format = $fimg->getType();
+                if($format) {
+                    $this->format = $format;
                 }
-
+            } else {
+                
+                if (strlen($uri) && $this->sourceType != 'url') {
+                    log_System::add('thumb_Img', 'Грешка при прочитане на URI: ' . $uri, NULL, 'warning');
+                }
             }
             
             if($this->format == 'jpeg' || empty($this->format)) {
                 $this->format = 'jpg';
             }
         }
-
+        
         return $this->format;
     }
 
@@ -439,7 +463,7 @@ class thumb_Img
             $this->thumbName .= '-' . $this->boxWidth;
             $this->thumbName .= '.' . $this->getThumbFormat();
         }
-
+        
         return $this->thumbName;
     }
 
@@ -583,11 +607,10 @@ class thumb_Img
         // ToDo: Ако картинката е зададена като файл, размерите и съответстват на изходните, няма ротация и форматите са едни и същи,
         // можем да направим само копиране на файла, вместо да минаваме през GD
 
- 
         if($gdRes = $this->getGdRes()) {
             
             $path = $this->getThumbPath();
-
+            
             $this->getSize();
             
             // Склаираме, само ако имаме пропорция, различна от 1 или ротираме

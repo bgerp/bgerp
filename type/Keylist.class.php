@@ -59,6 +59,8 @@ class type_Keylist extends core_Type {
      */
     function toVerbal_($value)
     {
+        static $cache;
+
         if(empty($value)) return NULL;
         
         $value = trim($value);
@@ -81,29 +83,33 @@ class type_Keylist extends core_Type {
         $ids = str_replace($div, ',', $value);
         
         if($ids) {  
-            $query = $mvc->getQuery();
-            $query->where("#id IN ($ids)");
-            while($query->fetchAndCache()) {}
-        }
-
-        foreach($vals as $v) {
-            if($v) { 
-                $name = $this->getVerbal($v);
-                if((!Mode::is('text', 'xhtml')) && (!Mode::is('text', 'plain')) && (!Mode::is('printing')) && $mvc instanceof core_Master && $mvc->haveRightFor('single', $v)) {
-                	$attr = array();
-                	if(isset($this->params['classLink'])){
-                		$attr = array('class' => $this->params['classLink']);
-                	}
-                	
-                	if($this->params['makeLinks'] === 'short'){
-                		$name = ht::createLinkRef($name, array($mvc, 'Single', $v), FALSE, $attr);
-                	} else {
-                		$name = ht::createLink($name, array($mvc, 'Single', $v), FALSE, $attr);
-                	}
+            if(($res = $cache[$mvc->className][$ids]) === NULL) {
+                $query = $mvc->getQuery();
+                //$query->where("#id IN ($ids)");
+                //while($query->fetchAndCache()) {}
+ 
+                foreach($vals as $v) {
+                    if($v) { 
+                        $name = $this->getVerbal($v);
+                        if((!Mode::is('text', 'xhtml')) && (!Mode::is('text', 'plain')) && (!Mode::is('printing')) && $mvc instanceof core_Master && $mvc->haveRightFor('single', $v)) {
+                            $attr = array();
+                            if(isset($this->params['classLink'])){
+                                $attr = array('class' => $this->params['classLink']);
+                            }
+                            
+                            if($this->params['makeLinks'] === 'short'){
+                                $name = ht::createLinkRef($name, array($mvc, 'Single', $v), FALSE, $attr);
+                            } else {
+                                $name = ht::createLink($name, array($mvc, 'Single', $v), FALSE, $attr);
+                            }
+                        }
+                        
+                        $delimeter = (isset($this->params['classLink'])) ? " " : ", ";
+                        $res .= ($res ? $delimeter : '') . $name;
+                    }
                 }
-                
-                $delimeter = (isset($this->params['classLink'])) ? " " : ", ";
-                $res .= ($res ? $delimeter : '') . $name;
+
+                $cache[$mvc->className][$ids] = $res;
             }
         }
         

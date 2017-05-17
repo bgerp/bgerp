@@ -75,7 +75,7 @@ class core_Roles extends core_Manager
     /**
      * 
      */
-     public $loadList = 'plg_Sorting';
+     public $loadList = 'plg_Sorting, plg_State2, plg_Created, plg_SystemWrapper, plg_RowTools2';
     
     
     /**
@@ -90,17 +90,19 @@ class core_Roles extends core_Manager
         $this->XPR('orderByRole', 'int', "(CASE #type WHEN 'team' THEN 1 WHEN 'rang' THEN 2 WHEN 'job' THEN 3 WHEN 'position' THEN 4 ELSE 5 END)");
 
         $this->setDbUnique('role');
-        
-        $this->load('plg_Created,plg_SystemWrapper,plg_RowTools');
     }
     
-
+    
+    /**
+     * 
+     */
     function act_test()
     {
         requireRole('admin');
         $S = cls::get('doc_Setup');
         $S->addPartnerRole1();
     }
+    
     
     /**
      * Добавя посочената роля, ако я няма
@@ -177,11 +179,19 @@ class core_Roles extends core_Manager
 
     /**
      * Връща масив от групирани по тип опции за ролите
+     * 
+     * @param array $rolesArr
      */
-    public static function getGroupedOptions()
+    public static function getGroupedOptions($rolesArr = array())
     {
         $query = self::getQuery();
-
+        
+        $query->where("#state != 'closed'");
+        
+        if (!empty($rolesArr)) {
+            $query->in('id', $rolesArr, FALSE, TRUE);
+        }
+        
         $types = $query->getFieldType('type')->options;
         
         $res = array();
@@ -260,10 +270,14 @@ class core_Roles extends core_Manager
     /**
      * Връща keylist с всички роли от посочения тип
      */
-    static function getRolesByType($type, $result = 'keylist')
+    static function getRolesByType($type, $result = 'keylist', $onlyActive = FALSE)
     {
         $roleQuery = core_Roles::getQuery();
         
+        if($onlyActive) {
+            $roleQuery->where("#state = 'active'");
+        }
+
         $roleQuery->orderBy("orderByRole=ASC");
 
         while($roleRec = $roleQuery->fetch("#type = '{$type}'")) {
@@ -525,6 +539,21 @@ class core_Roles extends core_Manager
         }
         
         return parent::getVerbal($rec, $fieldName);
+    }
+    
+    
+    /**
+     * Преди извличане на записите от БД
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $res
+     * @param StdClass $data
+     */
+    static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        // Сортиране на записите по name
+        $data->query->orderBy('state', 'DESC');
+        $data->query->orderBy('id', 'ASC');
     }
 
 

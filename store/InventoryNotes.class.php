@@ -93,7 +93,7 @@ class store_InventoryNotes extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_Wrapper,acc_plg_Contable,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search,bgerp_plg_Blank';
+    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_Wrapper,acc_plg_Contable,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search,bgerp_plg_Blank';
     
     
     /**
@@ -133,6 +133,12 @@ class store_InventoryNotes extends core_Master
     
     
     /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'storeId,groups,folderId';
+    
+    
+    /**
      * Име на документа в бързия бутон за добавяне в папката
      */
     public $buttonInFolderTitle = 'Инвентаризация';
@@ -154,7 +160,7 @@ class store_InventoryNotes extends core_Master
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'makesale' && isset($rec->id)){
     		if($rec->state != 'active'){
@@ -463,6 +469,10 @@ class store_InventoryNotes extends core_Master
      */
     protected static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
+		$tpl->push('store/js/InventoryNotes.js', 'JS');
+
+		jquery_Jquery::run($tpl, "noteActions();");
+
     	if(!Mode::is('printing')){
     		$tpl->removeBlock('COUNTER');
     	}

@@ -62,6 +62,24 @@ defIfNot('DOC_SHOW_DOCUMENTS_BEGIN', 3);
 
 
 /**
+ * Нотификация за добавен документ в нишка
+ */
+defIfNot('DOC_NOTIFY_FOR_NEW_DOC', 'default');
+
+
+/**
+ * Известяване на споделените потребители на папка
+ */
+defIfNot('DOC_NOTIFY_FOLDERS_SHARED_USERS', 'default');
+
+
+/**
+ * Нотификация за създадени чакащи документи
+ */
+defIfNot('DOC_NOTIFY_PENDING_DOC', 'default');
+
+
+/**
  * Задължително показване на документи -> В края на нишката
  */
 defIfNot('DOC_SHOW_DOCUMENTS_END', 3);
@@ -167,6 +185,9 @@ class doc_Setup extends core_ProtoSetup
     	
         'DOC_REPAIR_ALL' => array ('enum(yes=Да (бавно), no=Не)', 'caption=Дали да се проверяват всички документи за поправка->Избор'),
         'DOC_SEARCH_FOLDER_CNT' => array ('int(Min=0)', 'caption=Колко папки от последно отворените да се показват при търсене->Брой'),
+        'DOC_NOTIFY_FOR_NEW_DOC' => array ('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Нотификация за добавен документ в нишка->Избор, customizeBy=powerUser'),
+        'DOC_NOTIFY_FOLDERS_SHARED_USERS' => array ('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване на споделените потребители на папка->Избор, customizeBy=powerUser'),
+        'DOC_NOTIFY_PENDING_DOC' => array ('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Нотификация за създадени чакащи документи->Избор, customizeBy=powerUser'),
     
         'DOC_SHOW_DOCUMENTS_BEGIN' => array ('int(Min=0)', 'caption=Задължително показване на документи в нишка->В началото, customizeBy=user'),
         'DOC_SHOW_DOCUMENTS_END' => array ('int(Min=0)', 'caption=Задължително показване на документи в нишка->В края, customizeBy=user'),
@@ -197,11 +218,14 @@ class doc_Setup extends core_ProtoSetup
     	'doc_Likes',
     	'doc_ExpensesSummary',
     	'doc_Prototypes',
+    	'doc_UsedInDocs',
         'migrate::repairBrokenFolderId',
         'migrate::repairLikeThread',
         'migrate::repairFoldersKeywords',
     	'migrate::migratePending1',
-        'migrate::showFiles'
+        'migrate::showFiles',
+        'migrate::addCountryIn2LgFolders2',
+        'migrate::addFirstDocClassAndId',
     );
 	
     
@@ -216,6 +240,15 @@ class doc_Setup extends core_ProtoSetup
                     'action' => 'DeleteThread',
                     'period' => 5,
                     'timeLimit' => 120,
+            ),
+            array(
+                    'systemId' => 'deleteOldObject',
+                    'description' => 'Изтриване на остарялите информации за обектите в документ',
+                    'controller' => 'doc_UsedInDocs',
+                    'action' => 'deleteOldObject',
+                    'period' => 1440,
+                    'offset' => 66,
+                    'timeLimit' => 120,
             )
     );
 	
@@ -223,7 +256,7 @@ class doc_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
     */
-    var $defClasses = 'doc_reports_Docs';
+    var $defClasses = 'doc_reports_Docs,doc_reports_SearchInFolder';
         
     
     /**
@@ -578,6 +611,66 @@ class doc_Setup extends core_ProtoSetup
         
         while ($rec = $query->fetch()) {
             doc_Files::recalcFiles($rec->containerId);
+        }
+    }
+
+
+	/**
+     * Добавя държавата на два езика в папките
+     */
+    public static function addCountryIn2LgFolders2()
+    {
+        try {
+            $companiesId = core_Classes::getId('crm_Companies');
+            $personsId = core_Classes::getId('crm_Persons');
+        } catch (core_exception_Expect $e) {
+            
+            return ;
+        }
+
+        $mvcInst = cls::get('doc_Folders');
+        $query = $mvcInst->getQuery();
+                    
+        Mode::push('text', 'plain');
+        Mode::push('htmlEntity', 'none');
+        
+        while($rec = $query->fetchAndCache()) {
+            
+            if ($rec->coverClass != $companiesId && $rec->coverClass != $personsId)  continue;
+            
+            if (strpos($rec->searchKeywords, 'bulgaria')) continue;
+            
+            $rec->searchKeywords = $mvcInst->getSearchKeywords($rec);
+            $mvcInst->save_($rec, 'searchKeywords');
+        }
+        
+        Mode::pop('htmlEntity');
+        Mode::pop('text');
+    }
+    
+    
+    /**
+     * Миграция за попълване на firstDocClass и firstDocId в doc_Threads
+     */
+    public static function addFirstDocClassAndId()
+    {
+        $Threads = cls::get('doc_Threads');
+        $query = $Threads->getQuery();
+        $query->where("#firstDocClass IS NULL");
+        $query->orWhere("#firstDocId IS NULL");
+        
+        $query->EXT('docId', 'doc_Containers', 'externalName=docId,externalKey=firstContainerId');
+        $query->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=firstContainerId');
+        
+        $query->orderBy('id', 'DESC');
+        
+        while ($rec = $query->fetch()) {
+            if (!$rec->firstContainerId) continue;
+            
+            $rec->firstDocClass = $rec->docClass;
+            $rec->firstDocId = $rec->docId;
+            
+            $Threads->save_($rec, 'firstDocClass, firstDocId');
         }
     }
 }

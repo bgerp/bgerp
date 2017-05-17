@@ -79,7 +79,7 @@ abstract class cad2_Canvas extends core_BaseClass {
     /**
      * Изписва текст
      */
-    abstract public function writeText($x, $y, $text, $rotation = 0, $absolute = TRUE);
+    abstract public function writeText($x, $y, $text, $rotation = 0, $absolute = TRUE, $link = NULL);
  
 
     /**

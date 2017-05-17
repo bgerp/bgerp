@@ -1,0 +1,28 @@
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+
+<!--ET_BEGIN UPDATE-->
+[#UPDATE#]
+<div class='report-new-version-info'>
+|Има актуална версия от|* [#checkoutDate#] [#checkoutBtn#]
+</div>
+<!--ET_END UPDATE-->
+
+<!--ET_BEGIN DRIVER_FIELDS-->
+<table class='styled-table'>
+	[#DRIVER_FIELDS#]
+</table>
+<!--ET_END DRIVER_FIELDS-->
+<div style="margin-top: 15px">
+[#DRIVER_DATA#]
+</div>
+
+<div>
+[#innerState#]
+</div>
+<!--ET_BEGIN frame2_ReportVersions-->
+<fieldset class='detail-info' style="font-size: 0.8em">
+	<legend style="font-weight: bold">|Предишни състояния|*</legend>
+ 	[#frame2_ReportVersions#]
+</fieldset>
+<!--ET_END frame2_ReportVersions-->
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

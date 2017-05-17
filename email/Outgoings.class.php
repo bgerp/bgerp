@@ -124,7 +124,13 @@ class email_Outgoings extends core_Master
      */
     var $loadList = 'email_Wrapper, doc_DocumentPlg, plg_RowTools2, 
         plg_Printing, email_plg_Document, doc_ActivatePlg, 
-        bgerp_plg_Blank,  plg_Search, recently_Plugin, plg_Clone';
+        bgerp_plg_Blank,  plg_Search, recently_Plugin, plg_Clone, change_Plugin';
+
+
+    /**
+     * Кой може да променя активирани записи
+     */
+    var $canChangerec = 'powerUser';
     
     
     /**
@@ -180,8 +186,8 @@ class email_Outgoings extends core_Master
      */
     function description()
     {
-        $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%,reduceText');
-        $this->FLD('body', 'richtext(rows=15,bucket=Postings)', 'caption=Съобщение,mandatory');
+        $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%,reduceText,changable,tdClass=emailListTitle');
+        $this->FLD('body', 'richtext(rows=15,bucket=Postings)', 'caption=Съобщение,mandatory,changable');
         
         $this->FLD('waiting', 'time', 'input=none, caption=Изчакване');
         $this->FLD('lastSendedOn', 'datetime(format=smartTime)', 'input=none, caption=Изпратено->на');
@@ -189,16 +195,18 @@ class email_Outgoings extends core_Master
         $this->FLD('forward', 'enum(,no=Не, yes=Да)', 'caption=Препращане, input=hidden, allowEmpty');
         
         //Данни за адресата
-        $this->FLD('email', 'emails', 'caption=Адресат->Имейл, width=100%, silent');
-        $this->FLD('emailCc', 'emails', 'caption=Адресат->Копие до,  width=100%');
-        $this->FLD('recipient', 'varchar', 'caption=Адресат->Фирма,class=contactData');
-        $this->FLD('attn', 'varchar', 'caption=Адресат->Име,oldFieldName=attentionOf,class=contactData');
-        $this->FLD('tel', 'varchar', 'caption=Адресат->Тел.,oldFieldName=phone,class=contactData');
-        $this->FLD('fax', 'drdata_PhoneType', 'caption=Адресат->Факс,class=contactData, silent');
-        $this->FLD('country', 'varchar', 'caption=Адресат->Държава,class=contactData');
-        $this->FLD('pcode', 'varchar', 'caption=Адресат->П. код,class=pCode');
-        $this->FLD('place', 'varchar', 'caption=Адресат->Град/с,class=contactData');
-        $this->FLD('address', 'varchar', 'caption=Адресат->Адрес,class=contactData');
+        $this->FLD('email', 'emails', 'caption=Адресат->Имейл, width=100%, silent,changable');
+        $this->FLD('emailCc', 'emails', 'caption=Адресат->Копие до,  width=100%,changable');
+        $this->FLD('recipient', 'varchar', 'caption=Адресат->Фирма,class=contactData,changable');
+        $this->FLD('attn', 'varchar', 'caption=Адресат->Име,oldFieldName=attentionOf,class=contactData,changable');
+        $this->FLD('tel', 'varchar', 'caption=Адресат->Тел.,oldFieldName=phone,class=contactData,changable');
+        $this->FLD('fax', 'drdata_PhoneType', 'caption=Адресат->Факс,class=contactData, silent,changable');
+        $this->FLD('country', 'varchar', 'caption=Адресат->Държава,class=contactData,changable');
+        $this->FLD('pcode', 'varchar', 'caption=Адресат->П. код,class=pCode,changable');
+        $this->FLD('place', 'varchar', 'caption=Адресат->Град/с,class=contactData,changable');
+        $this->FLD('address', 'varchar', 'caption=Адресат->Адрес,class=contactData,changable');
+
+        $this->setDbIndex('createdOn');
     }
     
     
@@ -739,10 +747,12 @@ class email_Outgoings extends core_Master
         // Масив, който ще съдърща прикачените файлове
         $filesArr = array();
         
-        expect(is_array($mvc->getAttachments($data->rec)), $mvc->getAttachments($data->rec), $data->rec);
+        $attachmenstArr = $mvc->getAttachments($data->rec);
+        
+        expect(is_array($attachmenstArr), $attachmenstArr, $data->rec);
         
         // Добавяне на предложения за прикачени файлове
-        $filesArr += $mvc->getAttachments($data->rec);
+        $filesArr += $attachmenstArr;
         
         // Добавяне на предложения на свързаните документи
         $docHandlesArr = $mvc->GetPossibleTypeConvertings($data->form->rec->id);
@@ -1079,6 +1089,85 @@ class email_Outgoings extends core_Master
             
             $mvc->checkHost($form, 'boxFrom');
         }
+        
+        // Проверяваме дали може да се изпраща до този имейл
+        if ($form->isSubmitted()) {
+            $mvc->checkForSending($form, array('emailsTo', 'emailsCc'));
+        }
+    }
+    
+    
+    /**
+     * Проверява се дали може да се изпраща имейл до съответните домейни
+     * 
+     * @param core_Form $form
+     * @param array $fieldsArr
+     */
+    protected static function checkForSending($form, $fieldsArr = array('email'))
+    {
+        $stopSendTo = email_Setup::get('STOP_SEND_TO');
+        
+        if ($stopSendTo === FALSE) return;
+        
+        $stopSendToArr = type_Set::toArray($stopSendTo);
+        
+        $corpAcc = email_Accounts::getCorporateDomainsArr();
+        
+        // Подготвяме регулярния израз
+        foreach ($stopSendToArr as &$stopStr) {
+            $r = '__' . rand() . '__';
+            $stopStr = str_replace('*', $r, $stopStr);
+            $stopStr = preg_quote($stopStr, '/');
+            $stopStr = str_replace($r, '.*', $stopStr);
+        }
+        
+        $corporateDomains = email_Accounts::getCorporateDomainsArr();
+        
+        $rec = $form->rec;
+        foreach ($fieldsArr as $fieldName) {
+            $fValStr = $rec->{$fieldName};
+            $fValArr = type_Emails::toArray($fValStr);
+            
+            foreach ($fValArr as $fVal) {
+                $fVal = trim($fVal);
+                if (!$fVal) continue;
+                
+                $fVal = mb_strtolower($fVal);
+                
+                $haveErr = FALSE;
+                $errMsg = 'Не е позволено изпращането до този имейл|*: ' . type_Varchar::escape($fVal);
+                
+                foreach ($stopSendToArr as $stopReg) {
+                    
+                    $stopReg = "/{$stopReg}/i";
+                    if (preg_match($stopReg, $fVal)) {
+                        $haveErr = TRUE;
+                    }
+                }
+                
+                // Проверяваме и дали това не е опит за изпращане към вътрешен потребител
+                list($nick,$domain) = explode('@', $fVal);
+                
+                if ($corporateDomains[$domain]) {
+                    $haveErr = TRUE;
+                    
+                    $errMsg .=  "<br>|";
+                    
+                    // Ако е потребител в системата
+                    if (core_Users::fetchField(array("LOWER(#nick) = '[#1#]' AND #state != 'rejected'", $nick))) {
+                        $errMsg .=  "Вместо това използвайте коментар със споделяне към|* " . '@' . $nick;
+                    } else {
+                        $errMsg .= "Имейла е към корпоративната ви сметка";
+                    }
+                }
+                
+                if ($haveErr) {
+                    $form->setError($fieldName, $errMsg);
+                    
+                    break;
+                }
+            }
+        }
     }
     
     
@@ -1144,6 +1233,11 @@ class email_Outgoings extends core_Master
                 }
                 
                 $mvc->checkHost($form, 'subject');
+            }
+            
+            // Проверяваме дали може да се изпраща до този имейл
+            if ($form->isSubmitted()) {
+                $mvc->checkForSending($form, array('email', 'emailCc'));
             }
             
             if (trim($form->rec->body) && (preg_match_all(type_Richtext::QUOTE_PATTERN, $form->rec->body, $matches))) {
@@ -1588,6 +1682,35 @@ class email_Outgoings extends core_Master
                     $removeFromGroup = array();
                 }
             }
+            
+            // Ако има имейли в Cc и е избрано да се попълват ги добавяме в полето
+            if ($contragentData->ccEmail) {
+                
+                $autoFillCnt = email_Setup::get('AUTO_FILL_EMAILS_FROM_CC');
+                if ($autoFillCnt == 'no' || !$autoFillCnt) {
+                    $autoFillCnt = 0;
+                } elseif ($autoFillCnt == 'yes') {
+                    $autoFillCnt = 1; 
+                }
+                
+                if ($autoFillCnt) {
+                    
+                    $ccEmails = $rec->emailCc;
+                    $ccEmails .= $ccEmails ? ', ' : '';
+                    $ccEmails .= $contragentData->ccEmail;
+                
+                    $ccEmailsArr = type_Emails::toArray($ccEmails);
+                    
+                    $ccEmailsArr = array_combine($ccEmailsArr, $ccEmailsArr);
+                    $ccEmailsArr = email_Inboxes::removeOurEmails($ccEmailsArr);
+                    
+                    // Ако имейлите в копие са над лимита, не ги добавяме автоматично в полето
+                    if (count($ccEmailsArr) <= $autoFillCnt) {
+                        $rec->emailCc = type_Emails::fromArray($ccEmailsArr);
+                        $removeFromGroup = array_merge($removeFromGroup, $ccEmailsArr);
+                    }
+                }
+            }
         } else {
             if ($isCloning) {
                 $oId = $rec->originId ? $rec->originId : $rec->containerId;
@@ -1687,6 +1810,12 @@ class email_Outgoings extends core_Master
                     $contragentData->email = $oContragentData->email;
                 }
                 
+                // Имейлите от полето копие
+                if ($oContragentData->ccEmail) {
+                    $contragentData->ccEmail .= ($contragentData->ccEmail) ? ', ': '';
+                    $contragentData->ccEmail .= $oContragentData->ccEmail;
+                }
+                
                 if ($oContragentData->groupEmails) {
                     $contragentData->groupEmails .= ($contragentData->groupEmails) ? ', ' : '';
                     $contragentData->groupEmails .= $oContragentData->groupEmails;
@@ -1696,6 +1825,41 @@ class email_Outgoings extends core_Master
         
         if (!$contragentData) {
             $contragentData = doc_Folders::getContragentData($rec->folderId);
+        } else {
+            // Ако е в папка на котрагент, може да се използват името на фирмата, лицето и държавата от там
+            $cover = doc_Folders::getCover($rec->folderId);
+            if (($cover->instance instanceof crm_Companies) || ($cover->instance instanceof crm_Persons)) {
+            
+                $use = TRUE;
+            
+                $contrData = $cover->getContragentData();
+            
+                $contrData->groupEmails = mb_strtolower($contrData->groupEmails);
+            
+                $emailsArr = type_Emails::toArray($contrData->groupEmails);
+            
+                if ($rec->originId) {
+                    $oDoc = doc_Containers::getDocument($rec->originId);
+                    $oRec = $oDoc->fetch();
+                    $fromEml = $oRec->fromEml;
+                    $fromEml = trim($fromEml);
+                    $fromEml = mb_strtolower($fromEml);
+            
+                    if (!$fromEml || !in_array($fromEml, $emailsArr)) {
+                        $use = FALSE;
+                    }
+                }
+            
+                if ($use) {
+                    $contragentData->country = $contrData->country;
+                    $contragentData->countryId = $contrData->countryId;
+                    if ($contrData->person) {
+                        $contragentData->person = $contrData->person;
+                    }
+                    $contragentData->company = $contrData->company;
+                    $contragentData->companyId = $contrData->companyId;
+                }
+            }
         }
         
         return $contragentData;
@@ -1881,14 +2045,18 @@ class email_Outgoings extends core_Master
      *
      * @param integer $contragentCountryId
      */
-    function getFooter($contragentCountryId = NULL)
+    public static function getFooter($contragentCountryId = NULL, $userId = NULL)
     {
+        if(!$userId) {
+            $userId = core_Users::getCurrent();
+        }
+
         $conf = core_Packs::getConfig('email');
         
         // Профила на текущият потребител
-        $personRec = crm_Profiles::getProfile();
+        $personRec = crm_Profiles::getProfile($userId);
         
-        // Ако текущия потребител няма фирма
+        // Ако потребителя няма фирма
         if (!($companyId = $personRec->buzCompanyId)) {
             
             // Вземаме фирмата по подразбиране
@@ -2087,6 +2255,13 @@ class email_Outgoings extends core_Master
      */
     static function on_AfterPrepareSingle($mvc, $data)
     {
+        if (!Mode::isReadOnly()) {
+        
+            // Изчистваме нотификацията за събуждане
+            $url = array($mvc, 'single', $data->rec->id, 'wakeUp' => TRUE);
+            bgerp_Notifications::clear($url);
+        }
+        
         if($data->rec->recipient || $data->rec->attn || $data->rec->email) {
             $data->row->headerType = tr('Писмо');
         } elseif($data->rec->originId) {
@@ -2106,7 +2281,11 @@ class email_Outgoings extends core_Master
         if (!Mode::is('text', 'xhtml') && $data->rec->waiting && ($data->rec->state == 'waiting' || $data->rec->state == 'active')) {
             $notifyDate = dt::addSecs($data->rec->waiting, $data->rec->lastSendedOn);
             $data->row->notifyDate = dt::mysql2verbal($notifyDate, 'smartTime');
-            $data->row->notifyUser = crm_Profiles::createLink($data->rec->lastSendedBy);
+            $notifyUserId = $data->rec->lastSendedBy ? $data->rec->lastSendedBy : $data->rec->modifiedBy;
+            if (!$notifyUserId) {
+                $notifyUserId = $data->rec->activatedBy;
+            }
+            $data->row->notifyUser = crm_Profiles::createLink($notifyUserId);
             
             if ($mvc->haveRightFor('close', $data->rec)) {
                 $data->row->removeNotify = ht::createLink('', array($mvc, 'close', $data->rec->id, 'ret_url'=>TRUE), tr('Сигурни ли сте, че искате да спрете изчакването') . '?',
@@ -2339,6 +2518,9 @@ class email_Outgoings extends core_Master
                     // Премахваме нотификацията
                     $urlArr = array('doc_Search', 'state' => 'wakeup');
                     bgerp_Notifications::clear($urlArr, $rec->lastSendedBy);
+                    
+                    $urlArr = array(get_called_class(), 'single', $rec->id, 'wakeUp' => TRUE);
+                    bgerp_Notifications::clear($urlArr, $rec->lastSendedBy);
                 }
                 
                 // Затваряме
@@ -2359,14 +2541,17 @@ class email_Outgoings extends core_Master
                     // "Събуждаме" имейла и добавяме нотификация
                     $nRec->state = 'wakeup';
                     $saveFiedsArr['state'] = 'state';
-                    static::addWaitingEmailNotification($rec->lastSendedBy);
+                    static::addWaitingEmailNotification($rec->lastSendedBy, $rec);
                     $flagSave = TRUE;
+                    
+                    self::logWrite('Събуждане', $rec->id);
                 }
             }
             
             // Ако е вдигнат флага, записваме
             if ($flagSave) {
                 if (static::save($nRec, $saveFiedsArr)) {
+                    self::touchRec($nRec->id);
                     $cnt++;
                 }
             }
@@ -2379,9 +2564,10 @@ class email_Outgoings extends core_Master
     /**
      * Добавяме нотификация на съответния потребител за чакащ имейл
      *
-     * @param integer $userId
+     * @param integer|NULL $userId
+     * @param stdObject|NULL $rec
      */
-    static function addWaitingEmailNotification($userId = NULL)
+    static function addWaitingEmailNotification($userId = NULL, $rec = NULL)
     {
         if (!$userId) {
             $userId = core_Users::getCurrent();
@@ -2389,11 +2575,13 @@ class email_Outgoings extends core_Master
         
         if ($userId <= 0) return ;
         
-        // Съобщение
-        $msg = "|Липсва отговор на изпратен имейл";
-        
-        // URL-то, където ще сочи нотификацията
-        $urlArr = array('doc_Search', 'state' => 'wakeup');
+        if ($rec && self::haveRightFor('single', $rec, $userId)) {
+            $msg = '|Липсва отговор на|* "' . $rec->subject . '"';
+            $urlArr = array(get_called_class(), 'single', $rec->id, 'wakeUp' => TRUE);
+        } else {
+            $msg = "|Липсва отговор на изпратен имейл";
+            $urlArr = array('doc_Search', 'state' => 'wakeup');
+        }
         
         // Добавяме нотификацията
         bgerp_Notifications::add($msg, $urlArr, $userId, 'normal');
@@ -3075,5 +3263,50 @@ class email_Outgoings extends core_Master
         unset($nRec->waiting);
         unset($nRec->lastSendedOn);
         unset($nRec->lastSendedBy);
+    }
+    
+    
+    /**
+     * Проверява дали може да се променя записа в зависимост от състоянието на документа
+     * 
+     * @see change_Plugin
+     * @param core_Mvc $mvc
+     * @param boolean $res
+     * @param string $state
+     */
+    public static function on_AfterCanChangeRec($mvc, &$res, $rec)
+    {
+        // Затворените имейли също могат да се променят
+        // Само черновите имейли няма да могат да се променят, но това се задава в change_Plugin
+        if ($res !== FALSE && $rec->state == 'closed') {
+            
+            $res = TRUE;
+        }
+    }
+	
+	
+    /**
+     * 
+     * 
+     * @param email_Outgoings $mvc
+     * @param mixed $res
+     * @param int|object $id първичен ключ или запис на $mvc
+     */
+    public static function on_AfterReject($mvc, &$res, $id)
+    {
+        if (is_object($id)) {
+            $rId = $id->id;
+        } else {
+            $rId = $id;
+        }
+        
+        if ($rId) {
+            $sQuery = email_SendOnTime::getQuery();
+            $sQuery->where(array("#objectId = [#1#] AND #state = 'waiting'", $rId));
+            
+            while ($rec = $sQuery->fetch()) {
+                email_SendOnTime::stopSending($rec);
+            }
+        }
     }
 }

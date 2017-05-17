@@ -79,7 +79,7 @@ class cond_ConditionsToCustomers extends core_Manager
         $this->FLD('cClass', 'class(interface=crm_ContragentAccRegIntf)', 'caption=Контрагент->Клас,input=hidden,silent');
         $this->FLD('cId', 'int', 'caption=Контрагент->Обект,input=hidden,silent,tdClass=leftCol');
         $this->FLD('conditionId', 'key(mvc=cond_Parameters,select=typeExt,allowEmpty)', 'input,caption=Условие,mandatory,silent,removeAndRefreshForm=value');
-        $this->FLD('value', 'varchar(255)', 'caption=Стойност, mandatory');
+        $this->FLD('value', 'text', 'caption=Стойност, mandatory');
     
         // Добавяне на уникални индекси
         $this->setDbUnique('cClass,cId,conditionId');
@@ -205,6 +205,8 @@ class cond_ConditionsToCustomers extends core_Manager
         	if(!array_key_exists($dRec->conditionId, $data->recs)){
         		$data->recs[$dRec->conditionId] = $dRec;
         		$dRow = cond_Countries::recToVerbal($dRec);
+        		
+        		
         		$dRow->value = ht::createHint($dRow->value, "Стойноста е дефолтна за контрагентите от|* \"{$cData->country}\"", 'notice', TRUE, 'width=12px,height=12px');
         		unset($dRow->_rowTools);
         		
@@ -245,6 +247,8 @@ class cond_ConditionsToCustomers extends core_Manager
     	}
     	
     	$row->value = cond_Parameters::toVerbal($paramRec, $rec->cClass, $rec->cId, $rec->value);
+    	$row->value = cond_Parameters::limitValue($paramRec->driverClass, $row->value);
+    	
     	if(!empty($paramRec->suffix)){
     		$row->value .= " " . cls::get('type_Varchar')->toVerbal(tr($paramRec->suffix));
     	}
@@ -347,7 +351,7 @@ class cond_ConditionsToCustomers extends core_Manager
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
        if(($action == 'edit' || $action == 'delete' || $action == 'add') && isset($rec)){
        		if(empty($rec->cClass) || empty($rec->cId)){

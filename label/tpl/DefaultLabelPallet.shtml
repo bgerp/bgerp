@@ -1,0 +1,122 @@
+<style>
+    .label-holder {
+        border-radius: 8px;
+        width: 170mm;
+        height: 105mm;
+    }
+
+    .label-holder table {
+        width: 170mm;
+        height: 105mm;
+        font-size: 36px;
+        border-collapse: collapse;
+    }
+
+    .label-holder table tr > td {
+        border-left: 1px solid #aaa;
+        border-top: 1px solid #aaa;
+        padding: 0 2mm;
+        font-weight: bold;
+    }
+
+    .label-holder table tr > td.no-border-left {
+        border-left: none;
+    }
+
+    .label-holder table tr > td.no-border-top {
+        border-top: none;
+    }
+    .center{
+        text-align: center;
+    }
+    .small-text{
+        font-size: 32px;
+    }
+    .big-number{
+        font-size: 78px;
+    }
+    .gray{
+        color: #666;
+    }
+    .nowrap{
+        white-space: nowrap;
+    }
+    .date{
+        padding-bottom: 20px;
+    }
+    .table-cell{
+        display: table-cell;
+        text-align: right;
+        vertical-align: middle;
+    }
+
+    .qr{
+        padding-right: 50px;
+    }
+
+    .details-label {
+        top: -4mm;
+        position: relative;
+    }
+
+    .small {
+        font-size: 20px;
+        display: block;
+        font-weight: normal;
+    }
+
+    .right {
+        float: right;
+        margin-right: 15px;
+    }
+
+    .left {
+        float: left;
+        margin-left: 15px;
+
+    }
+    .clear{
+        clear:both;
+    }
+    .inline-div > div{
+        display: inline;
+    }
+
+    .text-right{
+        text-align: right;
+    }
+</style>
+
+<div class="label-holder">
+    <table><tr><td class="top-descr no-border-left no-border-top big-number nowrap center">
+        <div class="details-label">
+            <span class="small top left">Pallet №</span>
+            <span class="small top right">Total</span>
+            <div class="clear"></div>
+        </div>
+        <div class="nowrap inline-div">[#Текущ_етикет#] / <span class="gray"> [#Общо_етикети#]</span></div>
+
+    </td>
+        <td class="top-descr no-border-top big-number text-right">
+            <div class="details-label">
+                <span class="small top right">Packing list №</span>
+                <div class="clear"></div>
+            </div>
+            [#NOMER#]
+        </td>
+    </tr><tr><td class="top-descr no-border-left" colspan="2">
+        <div class="details-label">
+            <span class="small top left">Destination</span>
+            <div class="clear"></div>
+        </div>
+        [#DESTINATION#]
+    </td>
+    </tr><tr><td class="top-descr no-border-left" style="vertical-align:middle;">
+        <div class="details-label">
+            <span class="small top left">Speditor</span>
+            <div class="clear"></div>
+        </div>[#SPEDITOR#]
+    </td>
+        <td class="top-descr no-border-left" align="right">[#DATE#]<div class="clear"></div>
+        </td>
+    </tr></table></div>

@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -68,7 +68,7 @@ class cat_products_SharedInFolders extends core_Manager
     /**
      * Кой може да добавя
      */
-    public $canAdd = 'ceo,cat';
+    public $canAdd = 'ceo,cat,sales,purchase';
     
     
     /**
@@ -86,7 +86,7 @@ class cat_products_SharedInFolders extends core_Manager
     /**
      * Кой може да изтрива
      */
-    public $canDelete = 'ceo,cat';
+    public $canDelete = 'ceo,cat,sales,purchase';
     
     
     /**
@@ -95,7 +95,7 @@ class cat_products_SharedInFolders extends core_Manager
     function description()
     {
     	$this->FLD('productId', 'key(mvc=cat_Products)', 'caption=Артикул,mandatory,silent,input=hidden');
-    	$this->FLD('folderId', 'key(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Сподели в,mandatory');
+    	$this->FLD('folderId', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Споделено с,mandatory');
     
     	$this->setDbUnique('productId,folderId');
     }
@@ -123,26 +123,20 @@ class cat_products_SharedInFolders extends core_Manager
     
     
     /**
-     * Преди показване на форма за добавяне/промяна.
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
-     * @param core_Manager $mvc
-     * @param stdClass $data
+     * @param core_Mvc $mvc
+     * @param core_Form $form
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    public static function on_AfterInputEditForm($mvc, &$form)
     {
-    	$form = &$data->form;
-    	
-    	$query = self::getQuery();
-    	$query->where("#productId = {$form->rec->productId}");
-    	$masterRec = cat_Products::fetch($form->rec->productId);
-    	
-    	$ignore = array($masterRec->folderId => $masterRec->folderId);
-    	while($dRec = $query->fetch()){
-    		$ignore[$dRec->folderId] = $dRec->folderId;
+    	if($form->isSubmitted()){
+    		$rec = $form->rec;
+    		$productFolderId = cat_Products::fetchField($rec->productId, 'folderId');
+    		if($productFolderId == $rec->folderId){
+    			$form->setError('folderId', 'Вече съществува запис със същите данни');
+    		}
     	}
-    	
-    	$folderOptions = doc_Folders::getOptionsByCoverInterface('crm_ContragentAccRegIntf', $ignore);
-    	$form->setOptions('folderId', $folderOptions);
     }
     
     
@@ -172,7 +166,8 @@ class cat_products_SharedInFolders extends core_Manager
     	}
     	
     	if($action == 'changepublicstate'){
-    		$requiredRoles = cat_Products::getRequiredRoles('edit', $rec, $userId);
+    		$pRec = (isset($rec->productId)) ? cat_Products::fetch($rec->productId) : NULL;
+    		$requiredRoles = cat_Products::getRequiredRoles('edit', $pRec, $userId);
     		
     		if($requiredRoles != 'no_one' && isset($rec->productId)){
     			$pRec = cat_Products::fetch($rec->productId, 'state,folderId');

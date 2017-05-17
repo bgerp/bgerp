@@ -160,7 +160,12 @@ class cat_products_Params extends doc_Detail
     	if(!$rec->id){
     		$form->setField('paramId', array('removeAndRefreshForm' => "paramValue|paramValue[lP]|paramValue[rP]"));
 	    	$options = self::getRemainingOptions($rec->classId, $rec->productId, $rec->id);
-			$form->setOptions('paramId', array('' => '') + $options);
+	    	
+			if(!count($options)){
+				return followRetUrl(NULL, 'Няма параметри за добавяне', 'warning');
+			}
+	    	
+	    	$form->setOptions('paramId', array('' => '') + $options);
 			$form->paramOptions = $options;
 			
 			if(count($options) == 1){
@@ -319,7 +324,7 @@ class cat_products_Params extends doc_Detail
 	/**
      * След проверка на ролите
      */
-    protected static function on_AfterGetRequiredRoles(core_Mvc $mvc, &$requiredRoles, $action, $rec)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Ако потрбителя няма достъп до сингъла на артикула, не може да модифицира параметрите
         if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec)){
@@ -329,19 +334,16 @@ class cat_products_Params extends doc_Detail
         		} elseif($rec->classId == marketing_Inquiries2::getClassId()){
         			$requiredRoles = 'marketing,ceo';
         		} elseif($rec->classId == cat_Products::getClassId()){
-        			$requiredRoles = 'cat,ceo';
+        			$requiredRoles = 'cat,ceo,catEdit,sales,purchase';
+        			$isPublic = cat_Products::fetchField($rec->productId, 'isPublic');
+        			if($isPublic == 'yes'){
+        				$requiredRoles = 'cat,ceo';
+        			}
         		}
         	}
         }
        
         if(isset($rec->productId) && isset($rec->classId)){
-        	
-        	// Ако няма оставащи параметри или състоянието е оттеглено, не може да се добавят параметри
-        	if($action == 'add'){
-        		if (!count($mvc::getRemainingOptions($rec->classId, $rec->productId))) {
-        			$requiredRoles = 'no_one';
-        		}
-        	}
         	
         	if(isset($rec->classId)){
         		$pRec = cls::get($rec->classId)->fetch($rec->productId);

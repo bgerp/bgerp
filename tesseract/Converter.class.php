@@ -91,7 +91,7 @@ class tesseract_Converter extends core_Manager
             $arr = array();
             $arr['tesseract']['url'] = array(get_called_class(), 'getTextByOcr', $fRec->fileHnd, 'ret_url' => TRUE);
             $arr['tesseract']['title'] = 'OCR';
-            $arr['tesseract']['icon'] = 'img/16/scanner.png';
+            $arr['tesseract']['icon'] = 'img/16/scanner2.png';
             $arr['tesseract']['btnParams'] = $btnParams;
         }
         

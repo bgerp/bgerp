@@ -331,10 +331,10 @@ div.folder-cover {
 	@include border-radius4(0, 25px, 0, 0);
 	box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.2);
 	&.state-opened {
-		background-image: url('../img/cover-bg-green.png');
+		background: #CEF1D7 url('../img/cover-bg-green.png');
 	}
 	&.state-active {
-		background-image: url('../img/cover-bg-yellow.png');
+		background: #FFFDEA url('../img/cover-bg-yellow.png');
 	}
 	.detail-info {
 		background: none;
@@ -767,6 +767,7 @@ div.productImage {
 	margin-top: 5px;
 	padding: 1px 5px;
 	cursor: pointer;
+	white-space: nowrap;
 	&:hover {
 		background-color: #f1f1f1;
 	}
@@ -806,6 +807,16 @@ div.productImage {
 	    font-size: 0.9em;
 	    color: #222;
 	}
+}
+
+.report-new-version-info {
+	margin-top: 15px;
+	border: 1px solid #ccc;
+	padding: 5px 5px 5px 10px;
+	background: rgba(255,255,190, 0.5);
+	font-size: 0.9em;
+	color:#222;
+	border-radius:5px;
 }
 
 .products-table,  .jobTable, .general-product-description, .sales_SalesDetails .productImage{
@@ -1087,6 +1098,12 @@ div.acc-detail {
 	padding: 5px;
 }
 
+table.listTable > tbody > tr {
+	> .folderListTitle, >  .threadListTitle, > .emailListTitle {
+		max-width: 600px;
+	}
+}
+
 /*детайли*/
 .detail-info {
 	margin: 10px 0 0 0;
@@ -1192,6 +1209,7 @@ div.acc-detail {
 
 .portal {
 	margin-top: 15px;
+	margin-bottom: 30px;
 	padding: 10px;
 	padding-top: 18px;
 	border: solid 1px #ccc;
@@ -1411,9 +1429,6 @@ a.tOld {
 	.listTable {
 	   width: 100%;
 	}
-	.custom-ul {
-		margin: 0 0 0 20px;
-	}
 	.header {
 		@include border-radius(3px);
 		padding: 3px;
@@ -1449,7 +1464,7 @@ a.tOld {
 	.no-border-bottom{
 		border-bottom: none !important;
 	}
-	.no-border td{
+	.no-border td, .no-border th{
 	    border: none !important;
 	}
 	&.print-letter {
@@ -1489,6 +1504,36 @@ a.tOld {
 
 .groupList .small-padding td {
 	padding: 2px 3px 0!important;
+}
+
+.wide .halfTable {
+	width: 45%;
+	float: left;
+	margin-top: 5px;
+	&.offsetLeft {
+		margin-left: 50px;
+	}
+	.titleCol {
+		width: 120px;
+	}
+}
+
+
+.productCell .halfTable {
+	.titleCol {
+		width: 100px;
+		vertical-align: top;
+	}
+	&.offsetLeft {
+		margin-left: 20px;
+	}
+}
+
+.narrow .halfTable {
+	margin-top: 10px;
+	&.offsetLeft {
+		margin-left: 0px;
+	}
 }
 
 .document-settings, .document-settings-left {
@@ -1620,6 +1665,16 @@ a.tOld {
 	padding: 1px 2px 0px 2px !important;
 	border-radius: 3px;
 }
+.approved {
+	margin-top: 3px;
+	padding: 10px 10px 5px !important
+}
+
+.wide .approved {
+	position: absolute;
+	top:7px;
+	left: 2px;
+}
 
 .centered {
     text-align: center;
@@ -1724,7 +1779,7 @@ pre.document {
 	padding: 5px;
 	border: solid 1px $gray3;
 	background: transparent;
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#40C8C8C8,endColorstr=#40C8C8C8); 
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#40C8C8C8,endColorstr=#40C8C8C8);
     zoom: 1;
 	background: rgba(200, 200, 200, 0.3);
 	span.timeSpan {
@@ -1757,19 +1812,19 @@ pre.document {
 }
 
 .smallData {
-	padding: 1px; 
-	font-size: 1em; 
+	padding: 1px;
+	font-size: 1em;
 }
 
 .bigData {
 	font-family: "Courier New",  Courier, monospace;
-	font-size: 1.1em; 
+	font-size: 1.1em;
 	font-weight: bold;
 }
 
 .narrow .bigData {
     font-family: Verdana;
-    font-size: 0.9em; 
+    font-size: 0.9em;
 }
 
 .quiet-small {
@@ -1777,6 +1832,10 @@ pre.document {
     font-size: 0.9em;
     margin-bottom: -2px;
     margin-top: 3px;
+}
+
+.boldText {
+	font-weight: bold;
 }
 
 .cell {
@@ -1836,7 +1895,7 @@ pre.document {
 }
 
 .document .special-borders  td {
-	border: none; 
+	border: none;
 	&.border-right{
         border-right: 1px solid #999 !important;
     }
@@ -1881,8 +1940,8 @@ pre.document {
 
 .document .listTable .acc-article-entries {
 	font-size: 0.8em;
-    list-style: none; 
-    margin: 0.2em 0; 
+    list-style: none;
+    margin: 0.2em 0;
     padding-left: 1em;
 	td {
 		border: none !important;
@@ -2076,7 +2135,7 @@ table.mc-calendar {
         color: red;
     }
 }
-    
+
 table.mc-header a {
   color: #999;
 }
@@ -2097,9 +2156,15 @@ table.mc-header a {
 	height: 1.4em;
     &:focus, &:hover {
         outline: none;
-        box-shadow: none; 
+        box-shadow: none;
         background: none;
     }
+}
+.transparentSelect {
+	&.no-border-select {
+		border: none !important;
+		box-shadow: none !important;
+	}
 }
 
 @-moz-document url-prefix(){
@@ -2108,10 +2173,10 @@ table.mc-header a {
 	    text-shadow: 0 0 0 #000;
 	}
 }
-/*край на стилове за селекта на календара в портала*/ 
+/*край на стилове за селекта на календара в портала*/
 
 
-/*край на стилове за селекта на календара в портала*/ 
+/*край на стилове за селекта на календара в портала*/
 
 
 
@@ -2121,21 +2186,21 @@ table.mc-header a {
 	margin-bottom: 0.5em;
 }
 
-.wide .level-1 td { 
-	background-color: #008; 
-	color: #fff; 
+.wide .level-1 td {
+	background-color: #008;
+	color: #fff;
 	font-weight: bold;
 	a {
-		color: #fff; 
+		color: #fff;
 	}
 }
 
-.wide .level-2 td { 
-	background-color: #fc6; 
-	color: #333; 
+.wide .level-2 td {
+	background-color: #fc6;
+	color: #333;
 }
 
-.wide .level-3 td, .wide .level-4 td, .wide .level-5 td { 
+.wide .level-3 td, .wide .level-4 td, .wide .level-5 td {
 	background-color: #fff;
 }
 
@@ -2165,12 +2230,12 @@ input.inplace {
 }
 
 td.pallet_place {
-    font-size: 14px; 
-    text-align: center; 
+    font-size: 14px;
+    text-align: center;
     width: 32px;
     color: #999999;
-    background: $gray1; 
-	&.outofuse { 
+    background: $gray1;
+	&.outofuse {
 	    text-decoration: line-through;
 	    color: #333;
 	}
@@ -2178,27 +2243,27 @@ td.pallet_place {
 	    color: #b80000;;
 	    background: $gray1;
 	}
-	&.in_use { 
+	&.in_use {
 	    background: #00ff55;
 	    font-weight: bold;
 	}
-	&.movement_waiting { 
+	&.movement_waiting {
 	    background: #00dd55;
 	}
-	&.movement_active { 
+	&.movement_active {
 	    background: #00dd55;
 	    text-decoration: blink;
 	}
-	&.out_of_filter { 
+	&.out_of_filter {
 	    background: #777777 !important;
 	}
 }
 
-td.constrColumnRight { 
+td.constrColumnRight {
     border-right: solid 3px #777 !important;
 }
 
-td.constrColumnLeft { 
+td.constrColumnLeft {
     border-left: solid 3px #777 !important;
 }
 /*край на стилове за палети*/
@@ -2239,16 +2304,16 @@ td.constrColumnLeft {
 	border: solid 1px #c33;
 }
 
-#notificationsCnt a.noNtf { 
+#notificationsCnt a.noNtf {
     color: $gray3;
 	background-color: transparent;
 	border: none;
 	@include no-shadow();
 }
 
-.narrow #notificationsCnt a.noNtf { 
+.narrow #notificationsCnt a.noNtf {
 	color: #fff;
-	background-color: $gray4; 
+	background-color: $gray4;
 	border: solid 1px #999;
 }
 /*край на стилове за нотификация*/
@@ -2259,7 +2324,7 @@ td.constrColumnLeft {
 	margin-bottom: 0;
 	text-decoration: none;
 	div {
-		white-space: nowrap; 
+		white-space: nowrap;
 		padding-right: 5px;
 		span{
 			display: block;
@@ -2358,6 +2423,7 @@ ul.history {
 .narrow ul.history {
 	white-space: nowrap;
 	display: inline-block;
+	min-width: 0 !important;
 	li {
 		line-height: 1.2;
 		display: inline-block;
@@ -2368,10 +2434,10 @@ ul.history {
 	}
 }
 
-.narrow ul.history.summary li span { 
-	display: block; 
+.narrow ul.history.summary li span {
+	display: block;
 	padding-top: 4px;
-	font-size: 0.8em; 
+	font-size: 0.8em;
 }
 
 div.sharing-history {
@@ -2415,7 +2481,7 @@ span.sharing-history-title {
 	border: 1px solid #ccc;
 	border-top: none;
 	color: #777;
-	
+
 }
 
 .narrow span.sharing-history-title {
@@ -2467,7 +2533,7 @@ fieldset.sharing-history {
 	background-color: white;
 }
 
-.wide .headerImg { 
+.wide .headerImg {
 	width: 100%;
     max-height: 350px;
 }
@@ -2540,7 +2606,7 @@ fieldset.sharing-history {
 	font-size: 1.12em;
 	padding: 4px;
     margin:2px 20px 2px 10px;
-    line-height:normal;	
+    line-height:normal;
     white-space: nowrap;
 	display: block;
 	float: left;
@@ -2817,7 +2883,7 @@ fieldset.sharing-history {
 	}
 }
 
-.narrow #login-form {	   
+.narrow #login-form {
 	max-width:17em !important;
 	margin:20px auto;
 	input[type='text'], input[type='password']{
@@ -2838,7 +2904,7 @@ fieldset.sharing-history {
 	padding: 1px;
 	line-height: normal;
 	font-family: Trebuchet MS, Geneva, Tahoma, sans-serif;
-	display: block; 
+	display: block;
 	clear: both;
 	margin-bottom: 3px;
 }
@@ -2867,7 +2933,7 @@ fieldset.sharing-history {
     height: 21px;
     float: left;
     margin-left: 5px;
-    background-position: center !important; 
+    background-position: center !important;
 }
 
 #cmsNavigation .level1 {
@@ -2900,8 +2966,8 @@ fieldset.sharing-history {
 }
 #cmsNavigation .addPage {
 	clear: both;
-	padding:2px; 
-	border:solid 1px #ccc; 
+	padding:2px;
+	border:solid 1px #ccc;
 	background-color:#eee;
 	margin:5px 0;
 	font-size:0.7em;
@@ -2920,8 +2986,13 @@ fieldset.sharing-history {
     margin-left: -2px;
 }
 
-.richtext h1, .richtext h2, .richtext h3 { 
+.richtext h1, .richtext h2, .richtext h3 {
 	clear: both;
+}
+
+.document .richtext .fancybox img {
+	max-width: 100%;
+	height: auto;
 }
 
 .clear-center {
@@ -2965,21 +3036,21 @@ fieldset.sharing-history {
 }
 
 
-/*Ако newsbar е пуснат и искаме да се показва под картинката трябва да има паддинг 
+/*Ако newsbar е пуснат и искаме да се показва под картинката трябва да има паддинг
 #cmsTop{
     padding-bottom:42px;
 }
 */
 .newsbar{
-    width:100%; 
-    text-align:center; 
-    position:absolute; 
-    bottom:0px; 
-    margin:0px; 
+    width:100%;
+    text-align:center;
+    position:absolute;
+    bottom:0px;
+    margin:0px;
     display:block;
-    font-size:0.9em; 
-    padding-top:12px; 
-    padding-bottom:10px; 
+    font-size:0.9em;
+    padding-top:12px;
+    padding-bottom:10px;
     left: 0;
     z-index: 100;
 }
@@ -2990,7 +3061,7 @@ fieldset.sharing-history {
 }
 
 .narrow .newsbar{
-    padding-bottom:8px;    
+    padding-bottom:8px;
 }
 /*край на newsbar*/
 
@@ -3039,7 +3110,7 @@ fieldset.sharing-history {
 		sup {
 			position: relative;
 			top: -2px;
-		}	
+		}
 	}
 	.soc-sharing img {
 		top: 3px;
@@ -3155,8 +3226,8 @@ fieldset.sharing-history {
 	min-height: 625px;
 }
 
-.narrow .webdrvIframe { 
-	min-height: 300px; 
+.narrow .webdrvIframe {
+	min-height: 300px;
 }
 
 .wide .webdrvFieldset {
@@ -3232,7 +3303,7 @@ fieldset.sharing-history {
 }
 
 .webdrv-preview {
-	display: block; 
+	display: block;
 	max-width: 100%;
 	height: auto;
 	margin-top: 5px;
@@ -3252,7 +3323,7 @@ fieldset.sharing-history {
 	clear:both;
 }
 
-#blog-article-details .listTable { 
+#blog-article-details .listTable {
 	background: rgb(229,229,229);
 }
 
@@ -3409,7 +3480,7 @@ fieldset.sharing-history {
 .counter-link{
 	font-weight: bold;
 	font-size: 24px;
-	font-family: courier new; 
+	font-family: courier new;
 }
 
 /*стилове за автор в документ*/
@@ -3423,7 +3494,7 @@ fieldset.sharing-history {
 	.date-box {
 		font-size: 0.8em;
 		margin-left: 2px;
-		margin-right: 2px; 
+		margin-right: 2px;
 		margin-bottom: 5px;
 		margin-top: 5px;
 	}
@@ -3463,12 +3534,12 @@ fieldset.sharing-history {
 }
 
 .singleView .title-style {
-	color: #666;	
+	color: #666;
 }
 
 .singleView p {
 	margin-bottom: 10px;
-	line-height: 120%;	
+	line-height: 120%;
 }
 
 .rowtoolsGroup{
@@ -3547,15 +3618,15 @@ div.location.public {
 	> div {
 	    width: 99% !important;
 	    img {
-	        max-width: none !important; 
-	        max-height: none !important; 
-	        width: auto; 
+	        max-width: none !important;
+	        max-height: none !important;
+	        width: auto;
 	        height: auto;
 	    }
-	    
+
 	}
 }
-  
+
 .pickermap{
 	z-index: 1;
 }
@@ -3568,7 +3639,7 @@ div.location.public {
 	list-style-type: none;
 	.part {
 		float: left;
-		width: 50%;	
+		width: 50%;
 	}
 }
 
@@ -3742,8 +3813,8 @@ div.location.public {
 }
 
 .blast-overflow {
-	max-width: 840px; 
-	overflow: auto; 
+	max-width: 840px;
+	overflow: auto;
 }
 /*край на бласт*/
 
@@ -3769,14 +3840,14 @@ div.location.public {
 	float: right;
 	display: block;
 	position: relative;
-	height: 1.2em; 	
-	margin: 0 0 0 7px; 	
+	height: 1.2em;
+	margin: 0 0 0 7px;
 	background: rgba(255, 255, 255, 0.7);
 	@include border-radius(3px);
 }
 
 .narrow .portal-filter .hFormField {
-	height: auto;	
+	height: auto;
 	position: relative;
 	top: -1px;
 }
@@ -4830,7 +4901,8 @@ body.narrow {
 		margin: 0px !important;
 	}
 	.document{
-        width: 100%;
+        min-width: 837px !important;
+		width: 100%;
 		max-width: 1200px;
 		padding: 0px !important;
 	}
@@ -5244,7 +5316,15 @@ body.narrow {
 }
 
 .document .display-table .details .listToolbar {
-    border-bottom: none;
+	border-bottom: none;
+}
+
+.attentionIcon {
+	background-image: url('../img/16/emotion_alert.png');
+	background-repeat: no-repeat;
+	background-position: left center;
+	padding-left: 20px;
+	font-size: 0.9em;
 }
 
 .feather-icon{

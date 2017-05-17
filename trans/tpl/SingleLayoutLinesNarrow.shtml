@@ -82,23 +82,24 @@
 		<!--ET_BEGIN TOTAL-->
 		<div class='line-detail'>
 			[#TOTAL#]
-            <table class="listTable">
-                <thead>
-                    <tr>
-                        <th>|Общо тегло|*</th>
-                        <th>|Общ обем|*</th>
-                        <th>|Общ брой палети|*</th>
-                        <th>|Общa сума|*</th>
-                    </tr>
-                </thead>
-                <tr>
-                    <td class="centered">[#weight#]</td>
-                    <td class="centered">[#volume#]</td>
-                    <td class="centered">[#palletCount#]</td>
-                    <td class="centered">[#totalAmount#]</td>
-                </tr>
-
-            </table>
+			<div class="scrolling-holder">
+				<table class="listTable">
+					<thead>
+						<tr>
+							<th>|Общо тегло|*</th>
+							<th>|Общ обем|*</th>
+							<th>|Общ брой палети|*</th>
+							<th>|Общa сума|*</th>
+						</tr>
+					</thead>
+					<tr>
+						<td class="centered">[#weight#]</td>
+						<td class="centered">[#volume#]</td>
+						<td class="centered">[#palletCount#]</td>
+						<td class="centered">[#totalAmount#]</td>
+					</tr>
+				</table>
+			</div>
 		</div>
 		<!--ET_END TOTAL-->
 		

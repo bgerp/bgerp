@@ -28,14 +28,13 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	
 	
 	/**
-	 * Кои опаковки поддържа продукта
+	 * Връща свойствата на артикула според драйвера
 	 * 
-	 * @param array $metas - кои са дефолтните мета данни от ембедъра
 	 * @return array $metas - кои са дефолтните мета данни
 	 */
-	public function getDefaultMetas($metas)
+	public function getDefaultMetas()
 	{
-		return $this->class->getDefaultMetas($metas);
+		return $this->class->getDefaultMetas();
 	}
 	
 	
@@ -190,11 +189,13 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	 * @param double $minDelta     - минималната отстъпка
 	 * @param double $maxDelta     - максималната надценка
 	 * @param datetime $datetime   - дата
+	 * @param double $rate  - валутен курс
+     * @param enum(yes=Включено,no=Без,separate=Отделно,export=Експорт) $chargeVat - начин на начисляване на ддс
 	 * @return double|NULL $price  - цена
 	 */
-	public function getPrice($productId, $quantity, $minDelta, $maxDelta, $datetime = NULL)
+	public function getPrice($productId, $quantity, $minDelta, $maxDelta, $datetime = NULL, $rate = 1, $chargeVat = 'no')
 	{
-		return $this->class->getPrice($productId, $quantity, $minDelta, $maxDelta, $datetime);
+		return $this->class->getPrice($productId, $quantity, $minDelta, $maxDelta, $datetime, $rate, $chargeVat);
 	}
 	
 	
@@ -206,7 +207,7 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	 */
 	public function canAutoCalcPrimeCost($productId)
 	{
-		return $this->class->canCalcPrice($productId);
+		return $this->class->canAutoCalcPrimeCost($productId);
 	}
 	
 	
@@ -228,11 +229,12 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	 * @param int $rec - запис на артикул
 	 * @param array $size - размер на картинката
 	 * @param array $maxSize - макс размер на картинката
+	 * @param embed_Manager $Embedder
 	 * @return string|NULL $preview - хтмл представянето
 	 */
-	public function getPreview($rec, $size = array('280', '150'), $maxSize = array('550', '550'))
+	public function getPreview($rec, embed_Manager $Embedder, $size = array('280', '150'), $maxSize = array('550', '550'))
 	{
-		return $this->class->getPreview($rec, $size, $maxSize);
+		return $this->class->getPreview($rec, $Embedder, $size, $maxSize);
 	}
 	
 	
@@ -253,12 +255,79 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	 *
 	 * @param int $id - ид на артикул
 	 * @param core_RowToolbar $toolbar - тулбара
-	 * @param mixed $docClass - класа документа
-	 * @param int $docId - ид на документа
+	 * @param mixed $detailClass - класа на детаила в документа
+	 * @param int $detailId - ид на реда от документа
 	 * @return void
 	 */
-	public function addButtonsToDocToolbar($id, core_RowToolbar &$toolbar, $docClass, $docId)
+	public function addButtonsToDocToolbar($id, core_RowToolbar &$toolbar, $detailClass, $detailId)
 	{
-		return $this->class->addButtonsToDocToolbar($id, $toolbar, $docClass, $docId);
+		return $this->class->addButtonsToDocToolbar($id, $toolbar, $detailClass, $detailId);
+	}
+	
+	
+	/**
+	 * Връща минималното количество за поръчка
+	 * 
+	 * @param int|NULL $id - ид на артикул
+	 * @return double|NULL - минималното количество в основна мярка, или NULL ако няма
+	 */
+	public static function getMoq($id = NULL)
+	{
+		return $this->class->getMoq($id);
+	}
+	
+	
+	/**
+	 * Връща дефолтните опаковки за артикула
+	 *
+	 * @param mixed $rec - запис на артикула
+	 * @return array     - масив с дефолтни опаковки
+	 * 		o packagingId - ид на мярка/опаковка
+	 * 		o quantity    - к-во в опаковката
+	 */
+	public static function getDefaultPackagings($rec)
+	{
+		return $this->class->getDefaultPackagings($rec);
+	}
+	
+	
+	/**
+     * Допълнителните условия за дадения продукт,
+     * които автоматично се добавят към условията на договора
+     *
+     * @param mixed $rec       - ид или запис на артикул
+     * @param double $quantity - к-во
+     * @return array           - Допълнителните условия за дадения продукт
+     */
+	public function getConditions($rec, $quantity)
+	{
+		return $this->class->getConditions($rec, $quantity);
+	}
+	
+	
+	/**
+	 * Връща хеша на артикула (стойност която показва дали е уникален)
+	 *
+	 * @param embed_Manager $Embedder - Ембедър
+	 * @param mixed $rec              - Ид или запис на артикул
+	 * @return NULL|varchar           - Допълнителните условия за дадения продукт
+	 */
+	public function getHash(embed_Manager $Embedder, $rec)
+	{
+		return $this->class->getHash($Embedder, $rec);
+	}
+	
+	
+	/**
+	 * Връща масив с допълнителните плейсхолдъри при печат на етикети
+	 *
+	 * @param mixed $rec              - ид или запис на артикул
+	 * @param mixed $labelSourceClass - клас източник на етикета
+	 * @return array                  - Допълнителните полета при печат на етикети
+	 * 		[Плейсхолдър] => [Стойност]
+	 */
+	public function getAdditionalLabelData($rec, $labelSourceClass = NULL)
+	{
+		return $this->class->getAdditionalLabelData($rec, $labelSourceClass);
 	}
 }

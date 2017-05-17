@@ -77,7 +77,7 @@ class tcost_Calcs extends core_Manager
     /**
      * Полета, които се виждат
      */
-    public $listFields  = "docId,recId,fee";
+    public $listFields  = "docId,recId,fee,deliveryTime";
     
     
     /**
@@ -89,6 +89,7 @@ class tcost_Calcs extends core_Manager
     	$this->FLD('docId', 'int', 'mandatory,caption=Ид на документа');
     	$this->FLD('recId', 'int', 'mandatory,caption=Ид на реда');
     	$this->FLD('fee', 'double', 'mandatory,caption=Сума на транспорта');
+    	$this->FLD('deliveryTime', 'time', 'mandatory,caption=Срок на доставка');
     	
     	$this->setDbUnique('docClassId,docId,recId');
     	$this->setDbIndex('docClassId,docId');
@@ -126,11 +127,16 @@ class tcost_Calcs extends core_Manager
     	
     	$ourCompany = crm_Companies::fetchOurCompany();	 
     	$totalFee = $TransportCostDriver->getTransportFee($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $toCountryId, $toPcodeId, $ourCompany->country, $ourCompany->pCode);
+    	$fee = $totalFee['fee'];
     	
-    	$res = array('totalFee' => $totalFee);
+    	$res = array('totalFee' => $fee);
     	
-    	if($totalFee != tcost_CostCalcIntf::CALC_ERROR){
-    		$res['singleFee'] = $totalFee / $quantity;
+    	if($fee != tcost_CostCalcIntf::CALC_ERROR){
+    		$res['singleFee'] = $fee / $quantity;
+    	}
+    	
+    	if(isset($totalFee['deliveryTime'])){
+    		$res['deliveryTime'] = $totalFee['deliveryTime'];
     	}
     	
     	return $res;
@@ -163,7 +169,7 @@ class tcost_Calcs extends core_Manager
      * @param double $fee       - начисления скрит транспорт
      * @return void
      */
-    public static function sync($docClass, $docId, $recId, $fee)
+    public static function sync($docClass, $docId, $recId, $fee, $deliveryTimeFromFee = NULL)
     {
     	// Клас ид
     	$classId = cls::get($docClass)->getClassId();
@@ -183,12 +189,22 @@ class tcost_Calcs extends core_Manager
     		// И няма съществуващ запис, ще се добавя нов
     		if(!$exRec){
     			$exRec = (object)array('docClassId' => $classId, 'docId' => $docId, 'recId' => $recId);
+    			if(isset($deliveryTimeFromFee)){
+    				$exRec->deliveryTime = $deliveryTimeFromFee;
+    			}
     		} else {
     			$fields = 'fee';
+    			if(isset($deliveryTimeFromFee)){
+    				$fields .= ',deliveryTime';
+    			}
     		}
     		 
     		// Ъпдейт / Добавяне на записа
     		$exRec->fee = $fee;
+    		if(isset($deliveryTimeFromFee)){
+    			$exRec->deliveryTime = $deliveryTimeFromFee;
+    		}
+    		
     		self::save($exRec);
     	}
     }
@@ -242,14 +258,20 @@ class tcost_Calcs extends core_Manager
     	
     	// Ако има локация, адресните данни са приоритетни от там
     	if(isset($locationId)){
-    		$locationRec = crm_Locations::fetch($locationId);
-    		$locationCountryId = (isset($locationRec->countryId)) ? $locationRec->countryId : $cData->countryId;
-    		if(isset($locationCountryId) && !empty($locationRec->pCode)){
-    			return array('pCode' => $locationRec->pCode, 'countryId' => $locationCountryId);
-    		}
-    		
-    		if(isset($locationRec->countryId)) {
-    			return array('pCode' => NULL, 'countryId' => $locationRec->countryId);
+    		if(is_numeric($locationId)){
+    			$locationRec = crm_Locations::fetch($locationId);
+    			$locationCountryId = (isset($locationRec->countryId)) ? $locationRec->countryId : $cData->countryId;
+    			if(isset($locationCountryId) && !empty($locationRec->pCode)){
+    				return array('pCode' => $locationRec->pCode, 'countryId' => $locationCountryId);
+    			}
+    			
+    			if(isset($locationRec->countryId)) {
+    				return array('pCode' => NULL, 'countryId' => $locationRec->countryId);
+    			}
+    		} else {
+    			if($parsePlace = drdata_Address::parsePlace($locationId)){
+    				return array('pCode' => $parsePlace->pCode, 'countryId' => $parsePlace->countryId);
+    			}
     		}
     	}
     	
@@ -284,11 +306,12 @@ class tcost_Calcs extends core_Manager
     	
     	$query = self::getQuery();
     	$query->where("#docClassId = {$classId} AND #docId = {$docId}");
+    	
     	$query->where("#fee != {$feeErr}");
     	while($rec = $query->fetch()){
     		if($isQuote === TRUE){
     			$dRec = sales_QuotationsDetails::fetch($rec->recId, 'price,optional');
-    			if(!isset($dRec->price) || $dRec->optional == 'yes') continue;
+    			if($dRec->optional == 'yes') continue;
     		}
     		
     		$count += $rec->fee;
@@ -314,7 +337,7 @@ class tcost_Calcs extends core_Manager
     	
     	if($amountFee == tcost_CostCalcIntf::CALC_ERROR){
     		
-    		return ht::createHint($amountRow, 'Скритият транспорт, не може да бъде изчислен', 'warning', FALSE);
+    		return ht::createHint($amountRow, 'Скритият транспорт не може да бъде изчислен', 'warning', FALSE);
     	} elseif(isset($amountFee)){
     		$amountFee = deals_Helper::getDisplayPrice($amountFee, $vat, $currencyRate, $chargeVat);
     		$amountFee = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($amountFee);
@@ -415,7 +438,7 @@ class tcost_Calcs extends core_Manager
     	// Опит за изчисляване на транспорт
     	$totalWeight = cond_Parameters::getParameter($contragentClassId, $contragentId, 'calcShippingWeight');
     	$feeArr = tcost_Calcs::getTransportCost($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $codeAndCountryArr['countryId'], $codeAndCountryArr['pCode']);
-    
+    	
     	return $feeArr;
     }
     
@@ -462,18 +485,45 @@ class tcost_Calcs extends core_Manager
     	$map = array_merge(self::$map, $map);
     	
     	// Имали вече начислен транспорт
-    	$rec->fee = tcost_Calcs::get($map['masterMvc'], $masterRec->id, $rec->id)->fee;
+    	if($cRec = tcost_Calcs::get($map['masterMvc'], $masterRec->id, $rec->id)){
+    		$rec->fee = tcost_Calcs::get($map['masterMvc'], $masterRec->id, $rec->id)->fee;
+    		$rec->deliveryTimeFromFee = tcost_Calcs::get($map['masterMvc'], $masterRec->id, $rec->id)->deliveryTime;
+    	}
     	
     	// Колко е очаквания транспорт
     	$feeArr = tcost_Calcs::getCostArray($masterRec->{$map['deliveryTermId']}, $masterRec->{$map['contragentClassId']}, $masterRec->{$map['contragentId']}, $rec->{$map['productId']}, $rec->{$map['packagingId']}, $rec->{$map['quantity']}, $masterRec->{$map['deliveryLocationId']});
     	
     	// Ако има такъв към цената се добавя
     	if(is_array($feeArr)){
+    		if(isset($feeArr['deliveryTime'])){
+    			$rec->deliveryTimeFromFee = $feeArr['deliveryTime'];
+    		}
+    		
     		if($rec->autoPrice === TRUE){
     			if(isset($feeArr['singleFee'])){
-    				$rec->{$map['price']} += $feeArr['singleFee'];
+    				$newFee = $feeArr['totalFee'] / $rec->{$map['quantity']};
+    				$newFee = $newFee / $masterRec->{$map['currencyRate']};
+    				if($masterRec->{$map['chargeVat']} == 'yes'){
+    					$vat = cat_Products::getVat($rec->productId, $masterRec->{$map['valior']});
+    					$newFee = $newFee * (1 + $vat);
+    				}
+    				
+    				$newFee = round($newFee, 4);
+    				if($masterRec->{$map['chargeVat']} == 'yes'){
+    					$newFee = $newFee / (1 + $vat);
+    				}
+    				
+    				$newFee *= $masterRec->{$map['currencyRate']};
+    				
+    				$feeArr['totalFee'] = $newFee * $rec->{$map['quantity']};
+    				$feeArr['singleFee'] = $newFee;
+    				
+    				if(!is_null($rec->{$map['price']})){
+    					$rec->{$map['price']} += $feeArr['singleFee'];
+    				}
     			}
     		}
+    		
     		$rec->fee = $feeArr['totalFee'];
     	}
     	
@@ -496,6 +546,7 @@ class tcost_Calcs extends core_Manager
     	
     	// Ако има сума ще се синхронизира
     	if(isset($rec->fee)){
+    		
     		$rec->syncFee = TRUE;
     	}
     }

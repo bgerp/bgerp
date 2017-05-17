@@ -31,7 +31,6 @@ class bank_Wrapper extends plg_ProtoWrapper
         $this->TAB('bank_PaymentOrders', 'Бланки->Платежни Нареждания', 'ceo, bank');
         $this->TAB('bank_CashWithdrawOrders', 'Бланки->Нареждане Разписка', 'ceo, bank');
         $this->TAB('bank_DepositSlips', 'Бланки->Вносни Бележки', 'ceo, bank');
-        $this->TAB(array('deals_OpenDeals', 'list', 'show' => 'bank'), 'Чакащи', 'bank, ceo');
         
         $this->title = 'Банка';
     }

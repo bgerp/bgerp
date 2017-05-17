@@ -20,6 +20,9 @@ class marketing_BulletinPlg extends core_Plugin
      */
     static function on_Output(&$invoker)
     {
+        // Ако няма да се показва
+        if (Mode::get('showBulletin') === FALSE) return ;
+        
         $currDomain = cms_Domains::getPublicDomain();
         
         if (!$currDomain) return ;

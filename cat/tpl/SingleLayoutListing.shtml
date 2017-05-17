@@ -1,5 +1,5 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
  	<h3>|Заглавие|*: [#title#]</h3>
- 	<div>|Артикули|*: [#type#]</div>
+ 	<div>|Вид|*: [#type#]</div>
     [#cat_ListingDetails#]
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

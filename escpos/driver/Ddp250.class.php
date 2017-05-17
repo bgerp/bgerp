@@ -30,10 +30,12 @@ class escpos_driver_Ddp250 extends core_BaseClass
 
         if($font == 'F') {
             $f = 32;
-        }
-
-        if($font == 'f') {
+            $lf = chr(27) . chr(0x32);
+        } else if ($font == 'f') {
             $f = 1;
+            $lf = chr(27) . chr(0x33) . chr(0x18);
+        } else {
+            $lf = chr(27) . chr(0x32);
         }
 
         if($bold) {
@@ -44,7 +46,7 @@ class escpos_driver_Ddp250 extends core_BaseClass
             $u = 128;
         }
 
-        return chr(27) . '!' . chr($f|$b|$u);
+        return $lf . chr(27) . '!' . chr($f|$b|$u);
     }
     
 
@@ -108,8 +110,45 @@ class escpos_driver_Ddp250 extends core_BaseClass
      */
     public function encode($text)
     {
+        
         return $text;
-//         return iconv('utf-8', 'windows-1251', htmlspecialchars_decode($text));
     }
     
+    
+    /**
+     * 
+     * 
+     * @param core_Et $tpl
+     * 
+     * @return core_Et
+     */
+    public function placePrintData($tpl)
+    {
+        $dataArr = array();
+        $dataArr['printerSelectCodetable'] = 17;
+//         $dataArr['printerSelectCodetableChar'] = 117;
+        $dataArr['printerPrintTaggedTextEncoding'] = 'cp1251';
+        $dataArr['printerFeedPaper'] = 110;
+        $dataArr['printerInputTextEncoding'] = 'UTF-8';
+        $dataArr['printerTextAppendBegin'] = '{reset}';
+        $dataArr['printerTextAppendEnd'] = '{br}';
+        
+        $tpl->placeArray($dataArr);
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Добавя необходимите настройки за преди текста за отпечатване
+     * 
+     * @param string $res
+     * 
+     * @return string
+     */
+    public function prepareTextSettings($res)
+    {
+        
+        return $res;
+    }
 }

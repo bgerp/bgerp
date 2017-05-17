@@ -51,7 +51,7 @@ class cat_products_Packagings extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'cat_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_AlignDecimals2';
+    var $loadList = 'cat_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_AlignDecimals2, plg_Created';
     
     
     /**
@@ -63,19 +63,19 @@ class cat_products_Packagings extends core_Detail
     /**
      * Кой може да качва файлове
      */
-    var $canAdd = 'ceo,cat';
+    var $canAdd = 'cat,ceo,sales,purchase,catEdit';
     
     
     /**
      * Кой може да качва файлове
      */
-    var $canEdit = 'ceo,cat';
+    var $canEdit = 'cat,ceo,sales,purchase,catEdit';
     
     
     /**
      * Кой може да качва файлове
      */
-    var $canDelete = 'ceo,cat';
+    var $canDelete = 'cat,ceo,sales,purchase,catEdit';
     
 
     /**  
@@ -147,7 +147,7 @@ class cat_products_Packagings extends core_Detail
     /**
      * След проверка на ролите
      */
-    public static function on_AfterGetRequiredRoles(core_Mvc $mvc, &$requiredRoles, $action, $rec)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($requiredRoles == 'no_one') return;
     	
@@ -158,27 +158,34 @@ class cat_products_Packagings extends core_Detail
         }
         
         if(($action == 'add' ||  $action == 'delete' ||  $action == 'edit') && isset($rec->productId)) {
-        	$masterState = cat_Products::fetchField($rec->productId, 'state');
-        	if($masterState != 'active' && $masterState != 'template'){
+        	$productRec = cat_Products::fetch($rec->productId, 'isPublic,state');
+        	if($productRec->state != 'active' && $productRec->state != 'template'){
         		$requiredRoles = 'no_one';
+        	} elseif($productRec->isPublic == 'yes'){
+        		if(!haveRole('ceo,cat')){
+        			$requiredRoles = 'no_one';
+        		}
         	}
         }
         
         // Ако потрбителя няма достъп до сингъла на артикула, не може да модифицира опаковките
         if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec) && $requiredRoles != 'no_one'){
-        	if(!cat_Products::haveRightFor('single', $rec->productId)){
+        	$productInfo = cat_Products::getProductInfo($rec->productId);
+        	if(empty($productInfo->meta['canStore'])){
         		$requiredRoles = 'no_one';
-        	} else {
-        		$productInfo = cat_Products::getProductInfo($rec->productId);
-        		if(empty($productInfo->meta['canStore'])){
-        			$requiredRoles = 'no_one';
-        		}
         	}
         }
         
         // Ако опаковката вече е използвана не може да се изтрива
         if($action == 'delete' && isset($rec)){
         	if(self::isUsed($rec->productId, $rec->packagingId, TRUE)){
+        		$requiredRoles = 'no_one';
+        	}
+        }
+        
+        // Ако потребителя не е създал записа, трябва да има cat или ceo за да го промени
+        if(($action == 'edit' || $action == 'delete') && isset($rec)){
+        	if($rec->createdBy != $userId && !haveRole('ceo,cat', $userId)){
         		$requiredRoles = 'no_one';
         	}
         }
@@ -479,5 +486,36 @@ class cat_products_Packagings extends core_Detail
     	
     	// Връщаме резултат
     	return $isUsed;
+    }
+    
+    
+    /**
+     * Синхронизиране на дефолтните опаковки
+     * 
+     * @param mixed $productRec
+     */
+    public static function sync($productRec)
+    {
+    	// Имали драйвер?
+    	$Driver = cat_Products::getDriver($productRec);
+    	if(!$Driver) return;
+    	
+    	// Имали дефолтни опаковки от драйвера
+    	$defaultPacks = $Driver->getDefaultPackagings($productRec);
+    	if(!count($defaultPacks) || !is_array($defaultPacks)) return;
+    	
+    	foreach ($defaultPacks as $obj)
+    	{
+    		// Дефолтната опаковка ще се добавя/обновява ако е вече добавена
+    		$r = (object)array('productId' => $productRec->id, 'packagingId' => $obj->packagingId, 'quantity' => $obj->quantity);
+    		if($id = self::getPack($productRec->id, $obj->packagingId)->id){
+    			$r->id = $id;
+    		}
+    		
+    		// и ще се запише промяната ако не е използвана
+    		if(!self::isUsed($productRec->id, $obj->packagingId, TRUE)){
+    			self::save($r);
+    		}
+    	}
     }
 }

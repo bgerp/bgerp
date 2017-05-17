@@ -48,6 +48,7 @@ class expert_Dataset extends core_BaseClass {
         if($name{0} == '$') {
             $name = substr($name, 1);
         }
+
         $id = substr(md5($name . $expr . $cond . $priority), 0, 8);
 
         $rule = (object) array('name' => $name, 'expr' => $expr, 'cond' => $cond, 'state' => 'pending', 'order' => count($this->rules[$name])+1);
@@ -157,11 +158,12 @@ class expert_Dataset extends core_BaseClass {
 
         if($this->trusts[$rule->name]) {
             $rule->state = 'block';
+            $rule->reason = "Използвано е друго правило";
 
             return;
         }
  
-        $trust = $maxTrust = 1 + ($rule->expr != '' && $rule->expr != '0' && $rule->expr != '""') - $rule->order/100000 + $rule->priority;
+        $trust = $maxTrust = max($rule->priority < 0 ? pow(3, $rule->priority/20) : 0.1, 1 + ($rule->expr != '' && $rule->expr != '0' && $rule->expr != '""') - $rule->order/100000 + $rule->priority);
         $div = 3;
         
         $vars = $rule->exprVars + $rule->condVars;
@@ -175,18 +177,20 @@ class expert_Dataset extends core_BaseClass {
             if(!($this->trusts[$n] > 0)) {
                 if(!isset($this->rules[$n])) {
                     $rule->state = 'block';
+                    $rule->reason = "Липсват правила за {$n}";
 
                     return;
                 } else {
                     $havePending = FALSE;
                     foreach($this->rules[$n] as $id => $rN) {
-                        if($rN->state == 'pending') {
+                        if($rN->state == 'pending' || ($rN->trust && isset($rN->value))) {
                             $havePending = TRUE;
                             break;
                         }
                     }
                     if(!$havePending) {
                         $rule->state = 'block';
+                        $rule->reason = "Правилата за {$n} са изчерпани";
 
                         return;
                     }
@@ -196,6 +200,7 @@ class expert_Dataset extends core_BaseClass {
             $trust += (1+$this->trusts[$n])/2;
             if(!$this->trusts[$n]) {
                 $trust = 0;
+                $rule->trustReason = "Няма достоверност за {$n}";
                 break;
             }
         }
@@ -203,16 +208,24 @@ class expert_Dataset extends core_BaseClass {
         $rule->trust = $trust/$div;
         $rule->maxTrust = $maxTrust/$div;
 
-        if($rule->trust > 0) {
+        if($rule->trust > 1) {
+            $rule->trust = 1 + log(2+$rule->trust);
+        }
+
+        if($rule->maxTrust > 1) {
+            $rule->maxTrust = 2 + log(2+$rule->trust);
+        }
+
+        if($rule->trust > 0 && !isset($rule->value)) {
+
             $rule->condVal = empty($rule->cond) ? TRUE : $this->calc($rule->cond, $rule->condVars);
             if(!$rule->condVal) {
                 $rule->state = 'fail';
-
+                 
                 return;
             }
             $rule->value = $this->calc($rule->expr, $rule->exprVars);
         }
-
 
     }
 
@@ -294,7 +307,7 @@ class expert_Dataset extends core_BaseClass {
                     }
 
                     // общия рейтинг на текущото правило
-                    $r->rate = 9 + $r->trust - $l;
+                    $r->rate = 9 + $r->trust - $l + $r->priority;
  
                     if(!isset($bestRule) || $bestRule->rate < $r->rate) {
                         $bestRule = $r;
@@ -304,16 +317,16 @@ class expert_Dataset extends core_BaseClass {
             }
             
             if($bestRule) {  
-
-                // if($bestRule->name == 'CostVariable') bp($rated, $this);
-
+//if($this->vars['W'] && $bestRule->name == 'WeightTotal') bp($this->rules, $rated);
                 $this->setVar($bestRule->name, $bestRule->value, $bestRule->trust, "[{$bestRule->expr}]" . ($bestRule->cond ?  " ({$bestRule->cond})":''));
                 $bestRule->state = 'used';
             }
 
         } while($bestRule);
-
-
+        
+        if($this->vars['W']) {
+        //     bp($this->rules);
+        }
         return $this->vars;
     }
 }

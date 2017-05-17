@@ -45,7 +45,7 @@ class trz_Requests extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,personId, leaveFrom, leaveTo, note, useDaysFromYear, paid';
+    public $listFields = 'id,personId, leaveFrom, leaveTo, note, paid';
     
     
     /**
@@ -123,12 +123,6 @@ class trz_Requests extends core_Master
 
     
     /**
-     * Икона за единичния изглед
-     */
-    //var $singleIcon = 'img/16/money.png';
-    
-    
-    /**
      * Единична икона
      */
     public $singleIcon = 'img/16/leaves.png';
@@ -183,7 +177,7 @@ class trz_Requests extends core_Master
     	$this->FLD('leaveFrom', 'datetime', 'caption=Считано->От, mandatory');
     	$this->FLD('leaveTo', 'datetime(defaultTime=23:59:59)', 'caption=Считано->До, mandatory');
     	$this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
-    	$this->FLD('useDaysFromYear', 'int', 'caption=Информация->Ползване от,unit=година');
+    	$this->FLD('useDaysFromYear', 'int', 'caption=Информация->Ползване от,unit=година, input=none');
     	$this->FLD('paid', 'enum(paid=платен, unpaid=неплатен)', 'caption=Информация->Вид, maxRadio=2,columns=2,notNull,value=paid');
     	$this->FLD('note', 'richtext(rows=5, bucket=Notes, shareUsersRoles=trz|ceo)', 'caption=Информация->Бележки');
     	$this->FLD('answerGSM', 'enum(yes=да, no=не, partially=частично)', 'caption=По време на отсъствието->Отговаря на моб. телефон, maxRadio=3,columns=3,notNull,value=yes');
@@ -277,8 +271,7 @@ class trz_Requests extends core_Master
     		$years[$nowYear - $i] = $nowYear - $i;
     	} 
     	$form->setSuggestions('useDaysFromYear', $years);
-    	$form->setDefault('useDaysFromYear', $years[$nowYear]);
-    	
+    	//$form->setDefault('useDaysFromYear', $years[$nowYear]);
 
     	// Намират се всички служители
     	$employees = crm_Persons::getEmployeesOptions();
@@ -386,7 +379,7 @@ class trz_Requests extends core_Master
             // за всяка една молба отговаряща на условията проверяваме
             if ($recReq = $query->fetch()) {
             
-            $link = ht::createLink("Молба за отпуска №{$recReq->id}", array('trz_Requests', 'single', $recReq->id, 'ret_url' => TRUE, ''), NULL, "ef_icon=img/16/leaves.png");
+                $link = ht::createLink("Молба за отпуска №{$recReq->id}", array('trz_Requests', 'single', $recReq->id, 'ret_url' => TRUE, ''), NULL, "ef_icon=img/16/leaves.png");
                 // и изписваме предупреждение
             	$form->setError('leaveFrom, leaveTo', "|Засичане по време с |*{$link}");
             
@@ -406,7 +399,7 @@ class trz_Requests extends core_Master
      * @param stdClass $rec
      * @param int $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
 
 	     if ($rec->id) {
@@ -418,6 +411,25 @@ class trz_Requests extends core_Master
 	                 // то не може да я направим
 	                 $requiredRoles = 'no_one';
 	             }
+	         }
+	     }
+	     
+	     if ($action == 'add' || $action == 'reject') { 
+	         if ($rec->folderId) {
+    	         $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
+    	        
+    	         if($rec->folderId && $folderClass == 'crm_Persons') { 
+    	             $personId = doc_Folders::fetchCoverId($rec->folderId);
+    	             $inCharge = crm_Profiles::fetchField("#personId = '{$personId}'", 'userId');
+    	             //$inCharge = doc_Folders::fetchField($rec->folderId, 'inCharge');
+    	       
+    	             if($inCharge != $userId) { 
+                        if(!Users::haveRole('ceo') && !Users::haveRole('trz')){
+    	                 // то не може да я направим
+    	                 $requiredRoles = 'no_one';
+                        }
+    	             }
+    	         }
 	         }
 	     }
      }
@@ -442,6 +454,16 @@ class trz_Requests extends core_Master
         
         }
         
+        // Ако имаме права да създадем заповед за отпуск
+        if(haveRole('trz, ceo') && $data->rec->state == 'active') {
+        
+            // Добавяме бутон
+            //$data->toolbar->addBtn('Заповед', array('trz_Requests', 'Print', 'id' => $data->rec->id, 'Printing' => 'yes'), 'ef_icon = img/16/btn-order.png, title=Създаване на заповед за отпуска');
+            $data->toolbar->addBtn('Заповед', array('trz_Requests', 'single', 'id' => $data->rec->id, 'Printing' => 'yes', 'Order'=>'yes'),
+                'ef_icon = img/16/btn-order.png, title=Създаване на заповед за отпуска', array('target' => '_blank'), array('class' => 'print'));
+        
+        }
+        
         // Ако нямаме права за писане в треда
     	if(doc_Threads::haveRightFor('single', $data->rec->threadId) == FALSE){
     		
@@ -460,10 +482,16 @@ class trz_Requests extends core_Master
         //
         $rec = $mvc->fetchRec($rec);
         $subscribedArr = keylist::toArray($rec->sharedUsers);
+        
+        if(isset($rec->alternatePerson)) { 
+            $alternatePersonId = crm_Profiles::fetchField("#personId = '{$rec->alternatePerson}'", 'userId');
+            $subscribedArr[$alternatePersonId] = $alternatePersonId;
+        }
+
     	if(count($subscribedArr)) {
    	        foreach($subscribedArr as $userId) {
     	        if($userId > 0  && doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
-    	            $rec->message  = "|Разрешена е |* \"" . self::getRecTitle($rec) . "\"";
+    	            $rec->message  = "|Активирана е |* \"" . self::getRecTitle($rec) . "\"";
     	            $rec->url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
     	            $rec->customUrl = array('trz_Requests', 'single',  $rec->id);
     	            $rec->priority = 0;
@@ -518,19 +546,14 @@ class trz_Requests extends core_Master
 	
 	            $personName = crm_Persons::fetchField($rec->personId, 'name');
 	            // Заглавие за записа в календара
-	            $calRec->title = "Отпуск:{$personName}";
+	            $calRec->title = "Отпуск: {$personName}";
 	
-	            // Само молбите на потребителите и на публично достъпните лица се виждат от всички
-	            $access = crm_Persons::fetch("#id = {$rec->personId}",'access');
-	            
-	            if(crm_Profiles::fetch("#personId = {$rec->personId}") && $access == 'public') {
-	                $calRec->users = '';
-	            } else {
-	                $calRec->users =  $rec->sharedUsers;
-	            }
+	            $personProfile = crm_Profiles::fetch("#personId = '{$rec->personId}'");
+	            $personId = array($personProfile->userId => 0);
+	            $user = keylist::fromArray($personId);
 	
 	            // В чии календари да влезе?
-	            //$calRec->users = $user;
+	            $calRec->users = $user;
 	            
 	            // Статус на задачата
 	            $calRec->state = $rec->state;

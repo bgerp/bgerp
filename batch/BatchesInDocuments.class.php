@@ -124,7 +124,6 @@ class batch_BatchesInDocuments extends core_Manager
 	 */ 
 	public static function renderBatches($detailClassId, $detailRecId, $storeId)
 	{
-		$tpl = getTplFromFile('batch/tpl/BatchInfoBlock.shtml');
 		$detailClassId = cls::get($detailClassId)->getClassId();
 		$rInfo = cls::get($detailClassId)->getRowInfo($detailRecId);
 		if(!count($rInfo->operation)) return;
@@ -134,6 +133,9 @@ class batch_BatchesInDocuments extends core_Manager
 		$query->where("#detailClassId = {$detailClassId} AND #detailRecId = {$detailRecId} AND #operation = '{$operation}'");
 		$query->orderBy('id', "DESC");
 		$batchDef = batch_Defs::getBatchDef($rInfo->productId);
+		
+		$file = ($batchDef instanceof batch_definitions_Serial) ? 'batch/tpl/BatchInfoBlockSerial.shtml' : 'batch/tpl/BatchInfoBlock.shtml';
+		$tpl = getTplFromFile($file);
 		
 		$count = 0;
 		$total = $rInfo->quantity;
@@ -162,17 +164,23 @@ class batch_BatchesInDocuments extends core_Manager
 			$total = round($total, 5);
 			
 			$caption = $batchDef->getFieldCaption();
-			$label = (!empty($caption)) ? $caption . ":" : 'lot:';
+			$label = (!empty($caption)) ? tr($caption) . ":" : 'lot:';
 			
 			// Вербализацията на к-то ако е нужно
 			if(count($batch) == 1 && (!($batchDef instanceof batch_definitions_Serial))){
 				$quantity = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($rec->quantity / $rInfo->quantityInPack);
-				$quantity .= " " . cat_UoM::getShortName($rInfo->packagingId);
+				$quantity .= " " . tr(cat_UoM::getShortName($rInfo->packagingId));
 				$block->append($quantity, "quantity");
 			}
 
 			$batch = implode(', ', $batch);
-			$string = "{$label} {$batch}" . "<br>";
+			
+			if($batchDef instanceof batch_definitions_Serial){
+				$label = ($count == 0) ? "{$label} " : "";
+				$string = "{$label}{$batch},";
+			} else {
+				$string = "{$label} {$batch}" . "<br>";
+			}
 				
 			$block->append($string, "batch");
 			$block->removePlaces();
@@ -184,11 +192,11 @@ class batch_BatchesInDocuments extends core_Manager
 		if($total > 0 || $total < 0){
 			
 			// Показва се като 'Без партида'
-			$block = clone $tpl->getBlock('BLOCK');
+			$block = clone $tpl->getBlock('NO_BATCH');
 			if($total > 0){
 				$batch = "<i style=''>" . tr('Без партида') . "</i>";
 				$quantity = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($total / $rInfo->quantityInPack);
-				$quantity .= " " . cat_UoM::getShortName($rInfo->packagingId);
+				$quantity .= " " . tr(cat_UoM::getShortName($rInfo->packagingId));
 			} else {
 				$batch = "<i style='color:red'>" . tr('Несъответствие') . "</i>";
 				$batch = ht::createHint($batch, 'К-то на разпределените партиди е повече от това на реда', 'error');
@@ -196,8 +204,8 @@ class batch_BatchesInDocuments extends core_Manager
 				$block->append('border:1px dotted red;', 'BATCH_STYLE');
 			}
 			
-			$block->append($batch, 'batch');
-			$block->append($quantity, "quantity");
+			$block->append($batch, 'nobatch');
+			$block->append($quantity, "nobatchquantity");
 			$block->removePlaces();
 			$block->append2Master();
 		}
@@ -321,9 +329,11 @@ class batch_BatchesInDocuments extends core_Manager
 		$Detail->filterBatches($detailRecId, $batches);
 		$packName = cat_UoM::getShortName($recInfo->packagingId);
 		
+		$link = doc_Containers::getDocument($recInfo->containerId)->getLink(0);
+		
 		// Подготовка на формата
 		$form = cls::get('core_Form');
-		$form->title = "Задаване на партидности";
+		$form->title = "Задаване на партидности в|* " . $link;
 		$form->info = new core_ET(tr("Артикул|*:[#productId#]<br>|Склад|*: [#storeId#]<br>|Количество за разпределяне|*: <b>[#quantity#]</b>"));
 		$form->info->replace(cat_Products::getHyperlink($recInfo->productId, TRUE), 'productId');
 		$form->info->replace(store_Stores::getHyperlink($storeId, TRUE), 'storeId');

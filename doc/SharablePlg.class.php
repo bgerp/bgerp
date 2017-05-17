@@ -158,7 +158,8 @@ class doc_SharablePlg extends core_Plugin
             $viewedBy[$userId] = dt::now(TRUE);
             $rec->sharedViews = serialize($viewedBy);
             $rec->modifiedOn = dt::verbal2mysql();
-            if ($mvc->save_($rec)) {
+            
+            if ($mvc->save_($rec, 'sharedViews,modifiedOn')) {
                 core_Cache::remove($mvc->className, $data->cacheKey . '%');
                 if($rec->containerId) {
                     $cRec = new stdClass();
@@ -166,7 +167,7 @@ class doc_SharablePlg extends core_Plugin
                     $cRec->modifiedOn = $rec->modifiedOn;
                     $cRec->modifiedBy = $userId;
                     $dCon = cls::get("doc_Containers");
-                    $dCon->save_($cRec);
+                    $dCon->save_($cRec, 'modifiedOn,modifiedBy');
                 }
             }
         }
@@ -372,6 +373,28 @@ class doc_SharablePlg extends core_Plugin
                     $sharedArr = $mvc->getDefaultShared($dRec, $dRec->originId);
                     $res += $sharedArr;
                 }
+            }
+        }
+        
+        // Ако потребителя се е отписал от папката, да не излиза при автоматично споделените
+        if ($rec->folderId) {
+            $sKey = doc_Folders::getSettingsKey($rec->folderId);
+            $noNotifyArr = core_Settings::fetchUsers($sKey, 'newDoc', 'no');
+            
+            if ($noNotifyArr) {
+                $keysArr = array_keys($noNotifyArr);
+                $res = array_diff($res, $keysArr);
+            }
+        }
+        
+        // Ако потребителя се е отписал от нишката, да не излиза при автоматично споделените
+        if ($rec->threadId) {
+            $sKey = doc_Threads::getSettingsKey($rec->threadId);
+            $noNotifyArr = core_Settings::fetchUsers($sKey, 'notify', 'no');
+            
+            if ($noNotifyArr) {
+                $keysArr = array_keys($noNotifyArr);
+                $res = array_diff($res, $keysArr);
             }
         }
     }

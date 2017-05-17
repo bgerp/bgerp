@@ -1718,7 +1718,7 @@ class callcenter_Talks extends core_Master
      * @param NULL|stdObject $rec
      * @param NULL|integer $userId
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Ако искаме да отворим сингъла на документа
         if ($rec->id && $action == 'single' && $userId) {

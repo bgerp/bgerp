@@ -232,7 +232,7 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'setresponsibleperson' && isset($rec)){
     		$requiredRoles = store_InventoryNotes::getRequiredRoles('edit', $rec->noteId);
@@ -414,8 +414,6 @@ class store_InventoryNoteSummary extends doc_Detail
     	// Сменяме начина на начисляване
     	$rec->charge = $userId; 
     	$rec->modifiedOn = dt::now();
-    	
-    	$this->save($rec);
     	
     	// Опитваме се да запишем
     	if($this->save($rec)){

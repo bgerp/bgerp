@@ -155,8 +155,12 @@ class plg_ExpandInput extends core_Plugin
             
             $rec->{$mvc->expandInputFieldName} = $rec->{$mvc->expandFieldName};
             
-            $mvc->save($rec, "{$mvc->expandInputFieldName}, {$mvc->expandFieldName}");
-            $cnt++;
+            try {
+                $mvc->save($rec, "{$mvc->expandInputFieldName}, {$mvc->expandFieldName}");
+                $cnt++;
+            } catch (Exception $e) {
+                reportException($e);
+            }
         }
         
         if ($cnt) {

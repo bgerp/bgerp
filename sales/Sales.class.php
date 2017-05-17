@@ -18,14 +18,6 @@
 class sales_Sales extends deals_DealMaster
 {
 	
-    
-    /**
-     * Дали да се показва бутон на чернова документ
-     * 
-     * @see doc_EmailCreatePlg
-     */
-	public $canEmailDraft = TRUE;
-	
 	
 	/**
      * Заглавие
@@ -51,7 +43,7 @@ class sales_Sales extends deals_DealMaster
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf,
                           acc_TransactionSourceIntf=sales_transaction_Sale,
                           bgerp_DealIntf, bgerp_DealAggregatorIntf, deals_DealsAccRegIntf, 
-                          acc_RegisterIntf,deals_InvoiceSourceIntf,colab_CreateDocumentIntf,acc_AllowArticlesCostCorrectionDocsIntf';
+                          acc_RegisterIntf,deals_InvoiceSourceIntf,colab_CreateDocumentIntf,acc_AllowArticlesCostCorrectionDocsIntf,trans_LogisticDataIntf';
     
     
     /**
@@ -59,19 +51,13 @@ class sales_Sales extends deals_DealMaster
      */
     public $loadList = 'plg_RowTools2, sales_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Registry, doc_plg_MultiPrint, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
                     acc_plg_DocumentSummary, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close, plg_LastUsedKeys';
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close, plg_LastUsedKeys,doc_plg_HideMeasureAndQuantityColumns';
     
     
     /**
      * Активен таб на менюто
      */
     public $menuPage = 'Търговия:Продажби';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,sales';
     
     
     /**
@@ -107,13 +93,13 @@ class sales_Sales extends deals_DealMaster
 	/**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,sales';
+	public $canList = 'ceo,sales,acc';
 	
 	
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,sales';
+	public $canSingle = 'ceo,sales,acc';
     
 
 	/**
@@ -209,12 +195,6 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
-     * Кое поле показва сумата на сделката
-     */
-    public $canClosewith = 'ceo,salesMaster';
-    
-    
-    /**
      * Позволени операции на последващите платежни документи
      */
     public $allowedPaymentOperations = array(
@@ -282,8 +262,7 @@ class sales_Sales extends deals_DealMaster
         $this->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,class=contactData,after=valior');
         $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban,allowEmpty)', 'caption=Плащане->Банкова с-ка,after=currencyRate,notChangeableByContractor');
         $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Цени,notChangeableByContractor');
-        $this->FLD('deliveryTermTime', 'time(uom=days,suggestions=1 ден|5 дни|10 дни|1 седмица|2 седмици|1 месец)', 'caption=Доставка->Срок дни,after=deliveryTime,notChangeableByContractor');
-    	$this->setField('shipmentStoreId', "salecondSysId=defaultStoreSale");
+        $this->setField('shipmentStoreId', "salecondSysId=defaultStoreSale");
     	$this->setField('deliveryTermId', 'salecondSysId=deliveryTermSale');
     	$this->setField('paymentMethodId', 'salecondSysId=paymentMethodSale');
     }
@@ -318,12 +297,6 @@ class sales_Sales extends deals_DealMaster
     		
     		$form->setDefault('dealerId', $dealerId);
     	}
-    	
-    	if ($form->isSubmitted()) {
-    		if(isset($rec->deliveryTermTime) && isset($rec->deliveryTime)){
-    			$form->setError('deliveryTime,deliveryTermTime', 'Трябва да е избран само един срок на доставка');
-    		}
-    	}
     }
     
     
@@ -340,25 +313,6 @@ class sales_Sales extends deals_DealMaster
     	if($rec->bankAccountId){
     		$operators = bank_OwnAccounts::fetchField("#bankAccountId = '{$rec->bankAccountId}'",'operators');
     		$rec->sharedUsers = keylist::merge($rec->sharedUsers, $operators);
-    	}
-    }
-    
-    
-    /**
-     * Преди ъпдейт след промяна на детайла
-     */
-    public static function on_BeforeUpdatedMaster($mvc, &$rec)
-    {
-    	if(isset($rec->id) && empty($rec->deliveryTime)){
-    		
-    		$dQuery = sales_SalesDetails::getQuery();
-    		$dQuery->where("#saleId = {$rec->id}");
-    		$dQuery->XPR('maxTerm', 'time', 'MAX(#term)');
-    		$dQuery->show('maxTerm');
-    		if($maxTerm = $dQuery->fetch()->maxTerm){
-    			
-    			$rec->deliveryTermTime = max($rec->deliveryTermTime, $maxTerm);
-    		}
     	}
     }
     
@@ -448,7 +402,7 @@ class sales_Sales extends deals_DealMaster
 	    		
 	    		// Ако разликата е над допустимата но потребителя има права 'sales', той вижда бутона но не може да го използва
 	    		if(!sales_ClosedDeals::isSaleDiffAllowed($rec) && haveRole('sales') && empty($exClosedDeal)){
-	    			$data->toolbar->addBtn('Приключване', $closeArr, "ef_icon=img/16/closeDeal.png,title=Приключване на продажбата,error=Нямате право да приключите продажба с разлика над допустимото");
+	    			$data->toolbar->addBtn('Приключване', $closeArr, "ef_icon=img/16/closeDeal.png,title=Приключване на продажбата,error=Нямате право да приключите продажба с разлика над допустимото|*!");
 	    		}
 	    	}
     		
@@ -770,8 +724,10 @@ class sales_Sales extends deals_DealMaster
     	$tplArr[] = array('name' => 'Sales contract',         'content' => 'sales/tpl/sales/SaleEN.shtml', 'lang' => 'en', 'narrowContent' => 'sales/tpl/sales/SaleNarrowEN.shtml');
     	$tplArr[] = array('name' => 'Manufacturing contract', 'content' => 'sales/tpl/sales/ManufacturingEN.shtml', 'lang' => 'en', 'narrowContent' => 'sales/tpl/sales/ManufacturingNarrowEN.shtml');
     	$tplArr[] = array('name' => 'Service contract',       'content' => 'sales/tpl/sales/ServiceEN.shtml', 'lang' => 'en', 'narrowContent' => 'sales/tpl/sales/ServiceNarrowEN.shtml');
-       
-        $res .= doc_TplManager::addOnce($this, $tplArr);
+		$tplArr[] = array('name' => 'Договор за транспорт',   'content' => 'sales/tpl/sales/Transport.shtml', 'lang' => 'bg', 'narrowContent' => 'sales/tpl/sales/TransportNarrow.shtml');
+
+
+		$res .= doc_TplManager::addOnce($this, $tplArr);
     }
     
     
@@ -811,6 +767,8 @@ class sales_Sales extends deals_DealMaster
     	
     	if($action == 'closewith' && isset($rec)){
     		if(sales_SalesDetails::fetch("#saleId = {$rec->id}")){
+    			$res = 'no_one';
+    		} elseif(!haveRole('sales,ceo', $userId)){
     			$res = 'no_one';
     		}
     	}
@@ -997,9 +955,11 @@ class sales_Sales extends deals_DealMaster
     	$dQuery->where("#saleId = {$rec->id}");
     	$dQuery->show('productId,packagingId,quantity,tolerance');
     	
+    	$data->jobs = array();
     	while($dRec = $dQuery->fetch()){
-    		if($dRow = sales_SalesDetails::prepareJobInfo($dRec, $rec)){
-    			$data->JobsInfo[] = $dRow;
+    		$jobRows = sales_SalesDetails::prepareJobInfo($dRec, $rec);
+    		if(count($jobRows)){
+    			$data->jobs = array_merge($data->jobs, $jobRows);
     		}
     	}
     	
@@ -1023,9 +983,7 @@ class sales_Sales extends deals_DealMaster
     		$Jobs = cls::get('planning_Jobs');
     		$table = cls::get('core_TableView', array('mvc' => $Jobs));
     		
-    		plg_AlignDecimals2::alignDecimals($Jobs, $data->jobInfo, $data->jobInfo);
-    		
-    		foreach ($data->JobsInfo as &$row){
+    		foreach ($data->jobs as &$row){
     			foreach (array('quantity', 'quantityFromTasks', 'quantityProduced') as $var){
     				if($row->{$var} == 0){
     						$row->{$var} = "<span class='quiet'>{$row->{$var}}</span>";
@@ -1033,7 +991,7 @@ class sales_Sales extends deals_DealMaster
     				}
     			}
     	
-    			$jobsTable = $table->get($data->JobsInfo, 'jobId=Задание,productId=Артикул,dueDate=Падеж,quantity=Количество->Планирано,quantityFromTasks=Количество->Произведено,quantityProduced=Количество->Заскладено');
+    			$jobsTable = $table->get($data->jobs, 'jobId=Задание,productId=Артикул,dueDate=Падеж,quantity=Количество->Планирано,quantityFromTasks=Количество->Произведено,quantityProduced=Количество->Заскладено');
     			$jobTpl = new core_ET("<div style='margin-top:6px'>[#table#]</div>");
     			$jobTpl->replace($jobsTable, 'table');
     			$tpl->replace($jobTpl, 'JOB_INFO');
@@ -1250,5 +1208,14 @@ class sales_Sales extends deals_DealMaster
     	}
     	
     	return $products;
+    }
+    
+    
+    /**
+     * След промяна в журнала със свързаното перо
+     */
+    public static function on_AfterJournalItemAffect($mvc, $rec, $item)
+    {
+    	core_Cache::remove('sales_reports_ShipmentReadiness', "c{$rec->containerId}");
     }
 }

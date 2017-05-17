@@ -19,7 +19,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 	/**
 	 * Кой може да избира драйвъра
 	 */
-	public $canSelectDriver = 'ceo, cat, sales';
+	public $canSelectDriver = 'ceo, cat, sales, purchase';
 	
 	
 	/**
@@ -133,13 +133,12 @@ abstract class cat_ProductDriver extends core_BaseClass
 	/**
 	 * Кои опаковки поддържа продукта
 	 *
-	 * @param array $metas - кои са дефолтните мета данни от ембедъра
 	 * @return array $metas - кои са дефолтните мета данни
 	 */
-	public function getDefaultMetas($metas)
+	public function getDefaultMetas()
 	{
 		// Взимаме дефолтните мета данни от ембедъра
-		$metas = arr::make($metas, TRUE);
+		$metas = array();
 	
 		// Ако за драйвера има дефолтни мета данни, добавяме ги към тези от ембедъра
 		if(!empty($this->defaultMetaData)){
@@ -161,6 +160,8 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 */
 	public function getParams($classId, $id, $name = NULL, $verbal = FALSE)
 	{
+        if($name) return FALSE;
+
 		return array();
 	}
 	
@@ -301,11 +302,11 @@ abstract class cat_ProductDriver extends core_BaseClass
                         $tpl->prepend($dhtml, $field->inlineTo);
                     } else {
                         if($field->singleCaption == '@') {
-                            $dhtml = new ET("<tr><td>&nbsp;&nbsp;</td><td colspan=2 style='padding-left:5px; font-weight:bold;'>" . $data->row->{$name} . " {$unit}[#$name#]</td></tr>");
+                            $dhtml = new ET("<tr><td>&nbsp;&nbsp;</td><td colspan=2 style='padding-left:5px; font-weight:bold;vertical-align:bottom;'>" . $data->row->{$name} . " {$unit}[#$name#]</td></tr>");
                         } elseif($field->singleCaption) {
                             $caption = tr($field->singleCaption);
                         } else {
-                            $dhtml = new ET("<tr><td>&nbsp;-&nbsp;</td> <td> {$caption}:</td><td style='padding-left:5px; font-weight:bold;'>" . $data->row->{$name} . " {$unit}[#$name#]</td></tr>");
+                            $dhtml = new ET("<tr><td>&nbsp;-&nbsp;</td> <td> {$caption}:</td><td style='padding-left:5px; font-weight:bold;vertical-align:bottom;'>" . $data->row->{$name} . " {$unit}[#$name#]</td></tr>");
                         }
                         $tpl->append($dhtml, 'INFO');
                     }
@@ -374,9 +375,11 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * @param double $minDelta     - минималната отстъпка
 	 * @param double $maxDelta     - максималната надценка
 	 * @param datetime $datetime   - дата
+	 * @param double $rate  - валутен курс
+     * @param enum(yes=Включено,no=Без,separate=Отделно,export=Експорт) $chargeVat - начин на начисляване на ддс
 	 * @return double|NULL $price  - цена
 	 */
-	public function getPrice($productId, $quantity, $minDelta, $maxDelta, $datetime = NULL)
+	public function getPrice($productId, $quantity, $minDelta, $maxDelta, $datetime = NULL, $rate = 1, $chargeVat = 'no')
 	{
 		return NULL;
 	}
@@ -410,11 +413,13 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * ХТМЛ представяне на артикула (img)
 	 *
 	 * @param int $rec - запис на артикул
+	 * @param embed_Manager $Embedder
 	 * @param array $size - размер на картинката
 	 * @param array $maxSize - макс размер на картинката
+	 * 
 	 * @return string|NULL $preview - хтмл представянето
 	 */
-	public function getPreview($rec, $size = array('280', '150'), $maxSize = array('550', '550'))
+	public function getPreview($rec, embed_Manager $Embedder, $size = array('280', '150'), $maxSize = array('550', '550'))
 	{
 		return NULL;
 	}
@@ -437,11 +442,11 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 *
 	 * @param int $id - ид на артикул
 	 * @param core_RowToolbar $toolbar - тулбара
-	 * @param mixed $docClass - класа документа
-	 * @param int $docId - ид на документа
+	 * @param mixed $detailClass - класа детаила на документа
+	 * @param int $detailId - ид на детайла на документа
 	 * @return void
 	 */
-	public function addButtonsToDocToolbar($id, core_RowToolbar &$toolbar, $docClass, $docId)
+	public function addButtonsToDocToolbar($id, core_RowToolbar &$toolbar, $detailClass, $detailId)
 	{
 	
 	}
@@ -470,5 +475,72 @@ abstract class cat_ProductDriver extends core_BaseClass
 	public function getDeliveryTime($id, $quantity)
 	{
 		return NULL;
+	}
+	
+	
+	/**
+	 * Връща минималното количество за поръчка
+	 * 
+	 * @param int|NULL $id - ид на артикул
+	 * @return double|NULL - минималното количество в основна мярка, или NULL ако няма
+	 */
+	public function getMoq($id = NULL)
+	{
+		return NULL;
+	}
+	
+	
+	/**
+	 * Връща дефолтните опаковки за артикула
+	 *
+	 * @param mixed $rec - запис на артикула
+	 * @return array     - масив с дефолтни опаковки
+	 * 		o packagingId - ид на мярка/опаковка
+	 * 		o quantity    - к-во в опаковката
+	 */
+	public function getDefaultPackagings($rec)
+	{
+		return array();
+	}
+	
+	
+	/**
+     * Допълнителните условия за дадения продукт,
+     * които автоматично се добавят към условията на договора
+     *
+     * @param mixed $rec       - ид или запис на артикул
+     * @param double $quantity - к-во
+     * @return array           - Допълнителните условия за дадения продукт
+     */
+	public function getConditions($rec, $quantity)
+	{
+		return array();
+	}
+	
+	
+	/**
+	 * Връща хеша на артикула (стойност която показва дали е уникален)
+	 *
+	 * @param embed_Manager $Embedder - Ембедър
+	 * @param mixed $rec              - Ид или запис на артикул
+	 * @return NULL|varchar           - Допълнителните условия за дадения продукт
+	 */
+	public function getHash(embed_Manager $Embedder, $rec)
+	{
+		return NULL;
+	}
+	
+	
+	/**
+	 * Връща масив с допълнителните плейсхолдъри при печат на етикети
+	 *
+	 * @param mixed $rec              - ид или запис на артикул
+	 * @param mixed $labelSourceClass - клас източник на етикета
+	 * @return array                  - Допълнителните полета при печат на етикети
+	 * 		[Плейсхолдър] => [Стойност]
+	 */
+	public function getAdditionalLabelData($rec, $labelSourceClass = NULL)
+	{
+		return array();
 	}
 }

@@ -84,6 +84,14 @@ class cat_ListingDetails extends doc_Detail
     public $hideListFieldsIfEmpty = 'moq,multiplicity';
     
     
+    /**
+     * Брой записи на страница
+     *
+     * @var integer
+     */
+    public $listItemsPerPage = 50;
+    
+    
 	/**
 	 * Описание на модела (таблицата)
 	 */
@@ -214,7 +222,7 @@ class cat_ListingDetails extends doc_Detail
 	/**
 	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
 	 */
-	protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
 		if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec)){
 			if(empty($rec->listId)){
@@ -271,25 +279,23 @@ class cat_ListingDetails extends doc_Detail
 	/**
 	 * Помощна ф-я връщаща намерения артикул и опаковка според кода
 	 * 
-	 * @param mixed $cClass          - ид на клас
-	 * @param int $cId               - ид на контрагента
-	 * @param varchar $reff          - код за търсене
+	 * @param int $listId            - ид на продуктовият лист
+	 * @param varchar $reff          - чужд код за търсене
 	 * @return NULL|stdClass         - обект с ид на артикула и опаковката или NULL ако няма
 	 */
-	public static function getProductByReff($cClass, $cId, $reff)
+	public static function getProductByReff($listId, $reff)
 	{
 		// Взимане от кеша на листваните артикули
-		$all = self::getAll($cClass, $cId);
+		$all = cat_Listings::getAll($listId);
 		
 		// Оставят се само тези записи, в които се среща кода
 		$res = array_filter($all, function (&$e) use ($reff) {
 			if($e->reff == $reff){
 				return TRUE;
 			}
-				
 			return FALSE;
 		});
-		
+
 		// Ако има първи елемент, взима се той
 		$firstFound = $res[key($res)];
 		$reff = (is_object($firstFound)) ? (object)array('productId' => $firstFound->productId, 'packagingId' => $firstFound->packagingId) : NULL;
