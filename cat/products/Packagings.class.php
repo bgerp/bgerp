@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -63,19 +63,19 @@ class cat_products_Packagings extends core_Detail
     /**
      * Кой може да качва файлове
      */
-    var $canAdd = 'cat,ceo,sales,purchase,catEdit';
+    var $canAdd = 'ceo,sales,purchase,packEdit';
     
     
     /**
      * Кой може да качва файлове
      */
-    var $canEdit = 'cat,ceo,sales,purchase,catEdit';
+    var $canEdit = 'ceo,sales,purchase,packEdit';
     
     
     /**
      * Кой може да качва файлове
      */
-    var $canDelete = 'cat,ceo,sales,purchase,catEdit';
+    var $canDelete = 'ceo,sales,purchase,packEdit';
     
 
     /**  
@@ -162,7 +162,7 @@ class cat_products_Packagings extends core_Detail
             if($productRec->state != 'active' && $productRec->state != 'template'){
                 $requiredRoles = 'no_one';
             } elseif($productRec->isPublic == 'yes'){
-                if(!haveRole('ceo,cat')){
+                if(!haveRole('ceo,packEdit')){
                     $requiredRoles = 'no_one';
                 }
             }
@@ -185,7 +185,7 @@ class cat_products_Packagings extends core_Detail
         
         // Ако потребителя не е създал записа, трябва да има cat или ceo за да го промени
         if(($action == 'edit' || $action == 'delete') && isset($rec)){
-            if($rec->createdBy != $userId && !haveRole('ceo,cat', $userId)){
+            if($rec->createdBy != $userId && !haveRole('ceo,packEdit', $userId)){
                 $requiredRoles = 'no_one';
             }
         }
