@@ -143,13 +143,15 @@ class acc_plg_DocumentSummary extends core_Plugin
                 }
             }
             
-            if (!$haveUsers) {
-                $data->listFilter->setDefault('users', keylist::addKey('', core_Users::getCurrent()));
-            } else {
-                $data->listFilter->setDefault('users', $lastUsers); 
+            if($mvc->filterFieldUsers !== FALSE){
+            	if (!$haveUsers) {
+            		$data->listFilter->setDefault('users', keylist::addKey('', core_Users::getCurrent()));
+            	} else {
+            		$data->listFilter->setDefault('users', $lastUsers);
+            	}
+            	
+            	$data->listFilter->showFields .= ',users';
             }
-            
-            $data->listFilter->showFields .= ',users';
         }
         
         // Активиране на филтъра
