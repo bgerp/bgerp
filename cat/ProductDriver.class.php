@@ -494,9 +494,16 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * Връща дефолтните опаковки за артикула
 	 *
 	 * @param mixed $rec - запис на артикула
-	 * @return array     - масив с дефолтни опаковки
-	 * 		o packagingId - ид на мярка/опаковка
-	 * 		o quantity    - к-во в опаковката
+	 * @return array     - масив с дефолтни данни за опаковките
+	 * 		
+	 * 		o boolean justGuess   - дали е задължителна
+	 * 		o int     packagingId - ид на мярка/опаковка
+	 * 		o double  quantity    - количество
+	 * 		o boolean isBase      - дали опаковката е основна
+	 * 		o double  tareWeight  - тара тегло
+	 * 		o double  sizeWidth   - широчина на опаковката
+	 * 		o double  sizeHeight  - височина на опаковката
+	 * 		o double  sizeDepth   - дълбочина на опаковката
 	 */
 	public function getDefaultPackagings($rec)
 	{
