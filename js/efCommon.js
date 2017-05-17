@@ -353,6 +353,12 @@ function isIE()
     return /msie/i.test(navigator.userAgent) && !/opera/i.test(navigator.userAgent);
 }
 
+function isRaspBerryPi()
+{
+    var info = getUserAgent();
+    return info.indexOf("Linux armv7l") >= 0;
+}
+
 /**
  * Връща коя версия на IE е браузъра
  */
@@ -1112,6 +1118,7 @@ function portalTabsChange() {
         setCookie('portalTabs', tab_id);
     });
 
+
 }
 
 // Скрива или показва съдържанието на div (или друг) елемент
@@ -1461,6 +1468,7 @@ function rgb2hex(rgb) {
  * Задава максиналната височина на опаковката и основното съдържание
  */
 function setMinHeight() {
+
     var ch = document.documentElement.clientHeight;
 
     if (document.getElementById('framecontentTop')) {
@@ -1489,6 +1497,7 @@ function setMinHeight() {
  * мащабиране на страницата при touch устройства с по-голяма ширина
  */
 function scaleViewport() {
+
     if (isTouchDevice()) {
         var pageWidth = $(window).width();
         var customWidth = 1024;

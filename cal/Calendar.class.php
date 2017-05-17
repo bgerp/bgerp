@@ -253,7 +253,7 @@ class cal_Calendar extends core_Master
     	
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('from', 'date', 'caption=От,input,silent, width = 150px,autoFilter');
-        $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent,autoFilter');
+        $data->listFilter->FNC('selectedUsers', 'users(rolesForAll = hrMaster, rolesForTeams = hr)', 'caption=Потребител,input,silent,autoFilter');
         $data->listFilter->setdefault('from', date('Y-m-d'));
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');

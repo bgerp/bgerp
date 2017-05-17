@@ -44,6 +44,13 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
     			'entries' => array(),
     	);
     	
+    	if(Mode::get('saveTransaction')){
+    		$error = $this->class->getBtnErrStr($rec);
+    		if($error){
+    			acc_journal_RejectRedirect::expect(FALSE, $error);
+    		}
+    	}
+    	
     	$origin = $this->class->getOrigin($rec);
     	
     	// Ако е ДИ или КИ се посочва към коя фактура е то

@@ -373,4 +373,5 @@ class store_Products extends core_Manager
             $options[''] = '';
         }
     }
+
 }

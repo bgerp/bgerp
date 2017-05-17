@@ -932,6 +932,8 @@ class doc_Containers extends core_Manager
         // Ако няма да се споделя, а ще се добавя или променя
         if ($action != 'сподели') {
             
+            $oUsersArr = $usersArr;
+            
             // Ако глобално в настройките е зададено да се нотифицира или не
             $docSettings = doc_Setup::get('NOTIFY_FOR_NEW_DOC');
             if ($docSettings == 'no') {
@@ -940,21 +942,48 @@ class doc_Containers extends core_Manager
                 $usersArr = core_Users::getByRole('powerUser');
             }
             
-            $checkNotifyArr = array();
+            $pSettingsKey = crm_Profiles::getSettingsKey();
+            
             // Ако е зададено в персоналните настройки на потребителя за всички папки
-            $checkNotifyArr[]['DOC_NOTIFY_FOR_NEW_DOC'] = crm_Profiles::getSettingsKey();
+            self::prepareUsersArrForNotifications($usersArr, $pSettingsKey, 'DOC_NOTIFY_FOR_NEW_DOC', $rec->threadId);
             
-            // Ако е зададено в настройките на папката
-            $checkNotifyArr[]['newDoc'] = doc_Folders::getSettingsKey($rec->folderId);
+            // Ако е избран вид документ за който да се спре или дава нотификация
+            $pSettingsNotifyArr = core_Settings::fetchUsers($pSettingsKey);
+            $globalNotifyStr = doc_Setup::get('NOTIFY_NEW_DOC_TYPE');
+            $globalNotifyStrStop = doc_Setup::get('STOP_NOTIFY_NEW_DOC_TYPE');
             
-            // Ако е зададено в настройките на нишката
-            $checkNotifyArr[]['notify'] = doc_Threads::getSettingsKey($rec->threadId);
+            $clsId = $docMvc->getClassId();
             
-            foreach ($checkNotifyArr as $nArr) {
-                foreach ($nArr as $property => $sKey) {
-                    self::prepareUsersArrForNotifications($usersArr, $sKey, $property, $rec->threadId);
+            foreach ((array)$oUsersArr as $oUserId) {
+                
+                if ($oUserId < 1) continue;
+                
+                // Ако ще се нотифицира за съответния документ
+                $settings =  $pSettingsNotifyArr[$oUserId]['DOC_NOTIFY_NEW_DOC_TYPE'];
+                if (!isset($settings)) {
+                    $settings = $globalNotifyStr;
+                }
+                $settingsArr = type_Keylist::toArray($settings);
+                if (isset($settingsArr[$clsId])) {
+                    $usersArr[$oUserId] = $oUserId;
+                }
+                
+                // Ако няма да се нотифицира за съответния документ, премахваме потребителя
+                $settingsStop =  $pSettingsNotifyArr[$oUserId]['DOC_STOP_NOTIFY_NEW_DOC_TYPE'];
+                if (!isset($settingsStop)) {
+                    $settingsStop = $globalNotifyStrStop;
+                }
+                $settingsStopArr = type_Keylist::toArray($settingsStop);
+                if (isset($settingsStopArr[$clsId])) {
+                    unset($usersArr[$oUserId]);
                 }
             }
+            
+            // Ако е зададено в настройките на папката
+            self::prepareUsersArrForNotifications($usersArr, doc_Folders::getSettingsKey($rec->folderId), 'newDoc', $rec->threadId);
+            
+            // Ако е зададено в настройките на нишката
+            self::prepareUsersArrForNotifications($usersArr, doc_Threads::getSettingsKey($rec->threadId), 'notify', $rec->threadId);
         }
         
         // Ако няма потребители за нотифирциране
@@ -980,8 +1009,7 @@ class doc_Containers extends core_Manager
         
         // id на текущия потребител
         $currUserId = core_Users::getCurrent();
-        $haveDebug = haveRole('debug', $currUserId);
-            
+        
         // Ако заглавието на нишката не е определяна преди
         if (!$threadTitleArr[$rec->threadId]) {
             
@@ -1002,7 +1030,7 @@ class doc_Containers extends core_Manager
             if ($userId < 1) continue; 
             
             // Ако текущия потребител няма debug роля, да не получава нотификация за своите действия
-            if (!$haveDebug && ($currUserId == $userId)) continue;
+            if ($currUserId == $userId) continue;
             
             // Ако потребителя, вече е бил нотифициран
             if ($notifiedUsersArr[$userId]) continue;

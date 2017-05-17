@@ -48,6 +48,7 @@ class unit_MinkPSales extends core_Manager {
         $res .= "  23.".$this->act_CreateSaleAdvExtraExpenses1();
         $res .= "  24.".$this->act_CreateSaleManuf();
         $res .= "  25.".$this->act_CreateSaleService();
+        $res .= "  26.".$this->act_CreateSaleControlInvoiceDate();
         return $res;
     }
        
@@ -2614,5 +2615,86 @@ class unit_MinkPSales extends core_Manager {
                        
     }
     
+    /**
+     * Контрол на датата на фактурата
+     */
+     
+    //http://localhost/unit_MinkPSales/CreateSaleControlInvoiceDate/
+    function act_CreateSaleControlInvoiceDate()
+    {
+    
+        // Логване
+        $browser = $this->SetUp();
+    
+        //Отваряне папката на фирмата
+        $browser = $this->SetFirm();
+    
+        // нова продажба - проверка има ли бутон
+        if(strpos($browser->gettext(), 'Продажба')) {
+            $browser->press('Продажба');
+        } else {
+            $browser->press('Нов...');
+            $browser->press('Продажба');
+        }
+         
+        //$browser->hasText('Създаване на продажба');
+        $browser->setValue('reff', 'MinkP');
+        $browser->setValue('bankAccountId', '');
+        $browser->setValue('note', 'MinkPSaleControlInvoiceDate');
+        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('chargeVat', "Включено ДДС в цените");
+        // Записване черновата на продажбата
+        $browser->press('Чернова');
+    
+        // Добавяне на артикул
+        $browser->press('Артикул');
+        $browser->setValue('productId', 'Други стоки');
+        $browser->refresh('Запис');
+        $browser->setValue('packQuantity', '1000');
+        $browser->setValue('packPrice', '1');
+        $browser->setValue('discount', 2);
+    
+        // Записване на артикула
+        $browser->press('Запис');
+    
+        // активиране на продажбата
+        $browser->press('Активиране');
+        $browser->press('Активиране/Контиране');
+       
+        // Когато няма автом. избиране
+        // Складова разписка
+      
+        // Фактура с дата утре
+        $browser->press('Фактура');
+        $dateInv=strtotime("+1 Day");
+        $browser->setValue('date', date('d-m-Y', $dateInv));
+        $browser->setValue('dueDate', '');
+        $browser->press('Чернова');
+        
+        // Фактура с днешна дата
+        $browser->press('Фактура');
+        $browser->press('Чернова');
+        
+        //Контиране на двете фактури
+        $browser->press('Контиране');
+        $browser->press('Контиране');
+        
+        //1 стотинка
+        //if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 816,67')) {
+        //} else {
+        //    return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактура', 'warning');
+        //}
+        //if(strpos($browser->gettext(), 'ДДС 20%: BGN 163,33')) {
+        //} else {
+        //    return unit_MinkPbgERP::reportErr('Грешно ДДС във фактура', 'warning');
+        //}
+    
+        if(strpos($browser->gettext(), 'Не може да се запише фактура с дата по-малка от последната активна фактура в диапазона')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Не излиза съобщение за грешка - фактура със стара дата', 'warning');
+        }
+    
+    }
+       
     
 }

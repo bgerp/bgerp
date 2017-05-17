@@ -384,7 +384,12 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         // Сортираме масива по ключ
         ksort($filesArr);
         
+        $maxFilesCnt = fileman_Setup::get('FILEINFO_MAX_PREVIEW_PAGES', TRUE);
+        
         foreach ($filesArr as $file) {
+            
+            // При достигане на лимита, спираме качването
+            if (!$maxFilesCnt--) break;
             
             // Ако възникне грешка при качването на файла (липса на права)
             try {

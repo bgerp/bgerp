@@ -69,37 +69,37 @@ class hr_Departments extends core_Master
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,hr';
+    public $canRead = 'ceo,hrMaster';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,hr';
+    public $canList = 'ceo,hrMaster';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,hr';
+    public $canSingle = 'ceo,hrMaster';
     
     
     /**
      * Кой може да пише?
      */
-    public $canWrite = 'ceo,hr';
+    public $canWrite = 'ceo,hrMaster';
     
     
     /**
      * Кой може да оттегля
      */
-    public $canReject = 'ceo,hr';
+    public $canReject = 'ceo,hrMaster';
     
     
     /**
      * Кой може да го възстанови?
      */
-    public $canRestore = 'ceo,hr';
+    public $canRestore = 'ceo,hrMaster';
     
     
     /**

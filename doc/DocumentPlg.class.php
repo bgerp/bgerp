@@ -3184,6 +3184,8 @@ class doc_DocumentPlg extends core_Plugin
         unset($nRec->modifiedOn);
         unset($nRec->modifiedBy);
         unset($nRec->brState);
+        unset($nRec->activatedBy);
+        unset($nRec->activatedOn);
         
         if (!core_Users::haveRole('partner')) {
             unset($nRec->state);
@@ -3497,6 +3499,8 @@ class doc_DocumentPlg extends core_Plugin
         $res['internal']['ident'] = TRUE;
         $res['internal']['createdBy'] = TRUE;
         $res['internal']['createdOn'] = TRUE;
+        
+        $res['external']['_lastFrom'] = TRUE;
     }
     
     
@@ -3522,6 +3526,30 @@ class doc_DocumentPlg extends core_Plugin
         
         $resArr['createdBy'] = array('name' => tr('Автор'), 'val' => '[#createdBy#]');
         $resArr['createdOn'] = array('name' => tr('Дата'), 'val' => '[#createdOn#]');
+        
+        // Ако е зададено да се показва действията в документа
+        if ($mvc->showLogTimeInHead) {
+            $showArr = arr::make($mvc->showLogTimeInHead);
+            if ($showArr) {
+                $keyArr = array();
+                foreach ($showArr as $str => $limit) {
+                    $keyArr += log_Data::getObjectRecs($mvc, $rec->id, NULL, 'Документът се връща в чернова', $limit);
+                }
+                
+                if ($keyArr) {
+                    $rowArr = log_Data::getRows($keyArr, array('actTime', 'userId'));
+                    $lastFromStr = '';
+                    foreach ($rowArr as $row) {
+                        $lastFromStr .= $lastFromStr ? '<br>' : '';
+                        $lastFromStr .= tr('от') . ' ' . $row->userId . ' ' . tr('на') . ' ' . $row->actTime;
+                    }
+                    
+                    if ($lastFromStr) {
+                        $resArr['_lastFrom'] = array('name' => tr('Последни промени на състоянието'), 'val' => $lastFromStr);
+                    }
+                }
+            }
+        }
     }
     
     

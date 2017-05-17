@@ -3873,6 +3873,9 @@ div.location.public {
  * rack
  */
 td.rack-hl {
+  background-color: red; }
+
+td.rack-same {
   background-color: yellow; }
 
 .app-name {

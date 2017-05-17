@@ -871,10 +871,10 @@ class core_Packs extends core_Manager
 
         // Започваме самото инсталиране
         if ($setup->startCtr && !$setupFlag) {
-            $res .= "<h2>Инсталиране на пакета \"<a href=\"" .
+            $res .= "<h2>Инициализиране на пакета \"<a href=\"" .
             toUrl(array($setup->startCtr, $setup->startAct)) . "\"><b>{$pack}</b></a>\"&nbsp;";
         } else {
-            $res .= "<h2>Инсталиране на пакета \"<b>{$pack}</b>\"&nbsp;";
+            $res .= "<h2>Инициализиране на пакета \"<b>{$pack}</b>\"&nbsp;";
         }
 
         try {

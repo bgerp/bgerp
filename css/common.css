@@ -728,10 +728,10 @@ input[type=checkbox]:checked + label {
   table-layout: fixed; }
 
 tr.zebra0 {
-  background-color: rgba(238, 238, 238, 0.5); }
+  background-color: rgba(255, 245, 240, 0.5); }
 
 tr.zebra1 {
-  background-color: rgba(0, 0, 0, 0); }
+  background-color: rgba(240, 245, 255, 0.5); }
 
 .wide input[type=submit],
 .wide input[type=button] {
@@ -2140,7 +2140,6 @@ div.alphabet div.tab-page {
   padding: 10px 0 0 0; }
 
 .narrow div.alphabet  div.tab-row {
-  width: 340px;
   float: left;
   padding-bottom: 5px; }
 

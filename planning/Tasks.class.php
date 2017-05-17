@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Задачи за производство
@@ -39,17 +39,6 @@ class planning_Tasks extends tasks_Tasks
 	 * Полета от които се генерират ключови думи за търсене (@see plg_Search)
 	 */
 	public $searchFields = 'title';
-	
-	
-	/**
-	 * След дефиниране на полетата на модела
-	 *
-	 * @param core_Mvc $mvc
-	 */
-	public static function on_AfterDescription(core_Master &$mvc)
-	{
-		expect(is_subclass_of($mvc->driverInterface, 'tasks_DriverIntf'), 'Невалиден интерфейс');
-	}
 	
 	
 	/**
@@ -95,11 +84,40 @@ class planning_Tasks extends tasks_Tasks
 	
 	
 	/**
+	 * Полета, които ще се показват в листов изглед
+	 */
+	public $listFields = 'name = Документ, originId=Задание, title, progress, state';
+	
+	
+	/**
 	 * Дали винаги да се форсира папка, ако не е зададена
 	 * 
 	 * @see doc_plg_BusinessDoc
 	 */
 	public $alwaysForceFolderIfEmpty = TRUE;
+	
+	
+	/**
+	 * Поле за търсене по потребител
+	 */
+	public $filterFieldUsers = FALSE;
+	
+	
+	/**
+	 * Кой може да го разглежда?
+	 */
+	public $canList = 'ceo,planning,taskWorker';
+	
+	
+	/**
+	 * След дефиниране на полетата на модела
+	 *
+	 * @param core_Mvc $mvc
+	 */
+	public static function on_AfterDescription(core_Master &$mvc)
+	{
+		expect(is_subclass_of($mvc->driverInterface, 'tasks_DriverIntf'), 'Невалиден интерфейс');
+	}
 	
 	
 	/**
@@ -490,5 +508,39 @@ class planning_Tasks extends tasks_Tasks
     	}
     	 
     	return $form->selectFields();
+    }
+    
+    
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, $data)
+    {
+    	// Филтър по всички налични департаменти
+    	$departmentOptions = hr_Departments::makeArray4Select('name', "type = 'workshop' AND #state != 'rejected'");
+    	
+    	if(count($departmentOptions)){
+    		$data->listFilter->FLD('departmentId', 'int', 'caption=Звено');
+    		$data->listFilter->setOptions('departmentId', array('' => '') + $departmentOptions);
+    		$data->listFilter->showFields .= ',departmentId';
+    		
+    		// Ако потребителя е служител и има само един департамент, той ще е избран по дефолт
+    		$cPersonId = crm_Profiles::getProfile(core_Users::getCurrent())->id;
+    		$departments = crm_ext_Employees::fetchField("#personId = {$cPersonId}", 'departments');
+    		$departments = keylist::toArray($departments);
+    		
+    		if(count($departments) == 1){
+    			$defaultDepartment = key($departments);
+    			$data->listFilter->setDefault('departmentId', $defaultDepartment);
+    		}
+    		
+    		$data->listFilter->input('departmentId');
+    	}
+    	
+    	// Филтър по департамент
+    	if($departmentFolderId = $data->listFilter->rec->departmentId){
+    		$folderId = hr_Departments::fetchField($departmentFolderId, 'folderId');
+    		$data->query->where("#folderId = {$folderId}");
+    	}
     }
 }

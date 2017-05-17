@@ -91,7 +91,7 @@ abstract class cond_type_abstract_Proto extends core_BaseClass
 	 * @param NULL|string $value - стойност
 	 * @return core_Type         - готовия тип
 	 */
-	public function getType($rec, $domainClass, $domainId, $value = NULL)
+	public function getType($rec, $domainClass = NULL, $domainId = NULL, $value = NULL)
     {
     	if(isset($this->baseType)){
     		$type = cls::get($this->baseType);

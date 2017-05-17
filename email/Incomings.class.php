@@ -914,10 +914,10 @@ class email_Incomings extends core_Master
             $warningSpamRating = email_Setup::get('WARNING_SPAM_SCORE');
             if (isset($rec->spamScore) && (($rec->spamScore >= $rejectSpamRating) || ($rec->spamScore >= $warningSpamRating))) {
                 
-                $img = '/img/24/warning.png';
+                $img = '/img/24/spam-warning.png';
                 
                 if ($rec->spamScore >= $rejectSpamRating) {
-                    $img = '/img/24/danger.png';
+                    $img = '/img/24/spam.png';
                 }
                 
                 $row->fromEml =  ht::createHint($row->fromEml, "Висок СПАМ рейтинг|*: {$rec->spamScore}", $img);

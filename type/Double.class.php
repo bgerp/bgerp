@@ -91,7 +91,7 @@ class type_Double extends core_Type {
         $pattern = "/(^(\s*(\*|\/)\s*))|({$signP}{1}\s*{$signP}+)|((\s*{$signP}\s*)$|([^\.|\,]*(\.|\,)[^{$signP}]*(\.|\,)[^\.|\,]*))/";
         
         if(!preg_match($pattern, $value) && @eval('return TRUE;' . $code)) {
-            eval($code);
+            @eval($code);
             
             return (float) $val;
         } else {

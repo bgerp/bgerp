@@ -48,7 +48,7 @@
                                        			<!--ET_END expenseItemId-->
                                        			<!--ET_BEGIN quantity-->
                                        			<tr>
-                                       				<td class='quiet'>|К-во|*:</td>
+                                       				<td class='quiet'>|Количество|*:</td>
                                        				<td>[#quantity#]</td>
                                        			</tr>
                                        			<!--ET_END quantity-->
