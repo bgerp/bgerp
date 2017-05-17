@@ -66,10 +66,6 @@ class cms_page_External extends core_page_Active
             $this->push('Cache-Control: private, max-age=0', 'HTTP_HEADER');
             $this->push('Expires: -1', 'HTTP_HEADER');
         }
-        
-        $this->push('X-Frame-Options: DENY', 'HTTP_HEADER');
-        $this->push('X-Content-Type-Options: nosniff', 'HTTP_HEADER');
-        $this->push('X-XSS-Protection: 1; mode=block', 'HTTP_HEADER');
 
         $pageTpl = getFileContent('cms/tpl/Page.shtml');
                 

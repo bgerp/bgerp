@@ -455,10 +455,6 @@ class core_App
             //header('Pragma: no-cache'); // HTTP 1.0.
             header('Expires: -1'); // Proxies.
             header('Connection: close');
-            
-            header('X-Frame-Options: DENY');
-            header('X-Content-Type-Options: nosniff');
-            header('X-XSS-Protection: 1; mode=block');
         }
 
         // Логваме съдържанието
