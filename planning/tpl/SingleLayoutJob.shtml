@@ -186,8 +186,16 @@
 		     </table>         
 	       </td>
         </tr>
-         <!--ET_END SALE_INFO-->
+        <!--ET_END SALE_INFO-->
+         <!--ET_BEGIN TITLE-->
+	  	<tr>
+	  	   	<th colspan="2" class='job-head'>
+	  	   	|Опаковки|* [#TITLE#]
+	  	   	</th>
+	 	</tr>
+	 	<!--ET_END TITLE-->
     </table>
+    [#PACKAGINGS#]
     </div>
     <div class='scrolling-holder'>
 		<div class='job-head1' style='margin-top:10px;padding-top:8px;padding-bottom:8px'>

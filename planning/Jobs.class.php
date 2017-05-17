@@ -433,6 +433,9 @@ class planning_Jobs extends core_Master
     			$clone->append2master();
     		}
     	}
+    	
+    	$packagingTpl = cls::get('cat_products_Packagings')->renderPackagings($data->packagingData);
+    	$tpl->replace($packagingTpl, 'PACKAGINGS');
     }
     
     
@@ -845,6 +848,12 @@ class planning_Jobs extends core_Master
     	}
     	
     	$data->row->history = array_reverse($data->row->history, TRUE);
+    	
+    	$data->packagingData = new stdClass();
+    	$data->packagingData->masterMvc = cls::get('cat_Products');
+    	$data->packagingData->masterId = $data->rec->productId;
+    	$data->packagingData->tpl = new core_ET("[#CONTENT#]");
+    	cls::get('cat_products_Packagings')->preparePackagings($data->packagingData);
     }
     
     
