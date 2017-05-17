@@ -147,7 +147,7 @@ class cond_Parameters extends bgerp_ProtoParam
     		$cHtml = mb_strcut($value, 90);
     	
     		$value = $bHtml . "\n[hide=" . tr('Вижте още') . "]" . $value . "[/hide]";
-    		$value = cls::get('type_RichText')->toVerbal($value);
+    		$value = cls::get('type_Richtext')->toVerbal($value);
     	}
     	
     	return $value;
