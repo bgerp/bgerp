@@ -467,11 +467,14 @@ class planning_Jobs extends core_Master
     {
     	$rec = &$form->rec;
     	
-    	
     	if($form->isSubmitted()){
+    		if(hr_Departments::count("#type = 'workshop'") && empty($rec->department)){
+    			$form->setWarning('department', 'В Заданието липсва избран цех и ще бъде записано в нишката');
+    		}
+    		
     		$weight = cat_Products::getWeight($rec->productId, NULL, $rec->quantity);
     		$rec->brutoWeight = ($weight) ? $weight : NULL;
-    		
+    			
     		// Колко е еденичното тегло
     		if($weight = cat_Products::getParams($rec->productId, 'transportWeight')){
     			$rec->weight = $weight * $rec->quantity;
@@ -482,7 +485,7 @@ class planning_Jobs extends core_Master
     		if($rec->dueDate < dt::today()){
     			$form->setWarning('dueDate', 'Падежът е в миналото');
     		}
-    		
+    			
     		if(empty($rec->id)){
     			if(isset($rec->department)){
     				$rec->folderId = hr_Departments::forceCoverAndFolder($rec->department);
