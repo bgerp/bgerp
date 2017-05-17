@@ -123,13 +123,19 @@ class cat_Setup extends core_ProtoSetup
     		'migrate::migratePrototypes',
     		'migrate::updateListings1',
         );
-
-
+    
+    
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'cat,sales,purchase,techno,catEdit';
- 
+    var $roles = array(
+    		array('sales'),
+    		array('purchase'),
+    		array('catEdit'),
+    		array('packEdit'),
+    		array('cat', 'packEdit,catEdit'),
+    );
+    
     
     /**
      * Връзки от менюто, сочещи към модула

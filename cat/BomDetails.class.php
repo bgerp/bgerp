@@ -601,7 +601,7 @@ class cat_BomDetails extends doc_Detail
     	if($rec->rowQuantity == static::CALC_ERROR){
     		$row->rowQuantity = "<span class='red'>???</span>";
     		$row->primeCost = "<span class='red'>???</span>";
-    		$row->primeCost = ht::createHint($row->primeCost, 'Не може да бъде изчислена себестойноста', 'warning', FALSE);
+    		$row->primeCost = ht::createHint($row->primeCost, 'Не може да бъде изчислена себестойността', 'warning', FALSE);
     	} else {
     		$row->rowQuantity = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($rec->rowQuantity);
     	}

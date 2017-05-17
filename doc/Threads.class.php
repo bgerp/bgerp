@@ -1824,6 +1824,7 @@ class doc_Threads extends core_Manager
         
         $dcQuery = doc_Containers::getQuery();
         $dcQuery->orderBy('#createdOn');
+        $dcQuery->orderBy('#id'); // Ако датите съвпадат, гледаме по id
         
         while($dcRec = $dcQuery->fetch("#threadId = {$rec->id}")) {
         

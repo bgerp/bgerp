@@ -61,14 +61,14 @@ class hr_WorkingCycleDetails extends core_Detail
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,hr';
+    public $canAdd = 'ceo,hrMaster';
     
     
     /**
      * Кой може да го изтрие?
      * 
      */
-    public $canDelete = 'ceo,hr';
+    public $canDelete = 'ceo,hrMaster';
     
     
     /**

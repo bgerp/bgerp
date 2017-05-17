@@ -221,11 +221,11 @@ class cat_reports_BomsRep extends frame_BaseDriver
         
         if(is_array($data->recs)) {
             foreach($data->recs as $i=>$r){ 
-                //bp($data);
-                /*if(isset($fRec->groupId)) {
-                    if($r->materials != 0 || $r->materials != NULL) {
+            
+                if(isset($fRec->groupId)) {   
+                    if(is_array($r->materials) && count($r->materials) != 0) { 
                         $materialsArr = implode(',', $r->materials);
-                        
+
                         $queryProduct = cat_Products::getQuery();
                         $queryProduct->where("#id IN ({$materialsArr})");
                         $queryProduct->likeKeylist("groups", $fRec->groupId);
@@ -236,7 +236,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
                     }  else {
                         unset($data->recs[$i]);
                     } 
-                } */   
+                }   
             }
         }
 

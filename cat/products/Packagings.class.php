@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -63,19 +63,19 @@ class cat_products_Packagings extends core_Detail
     /**
      * Кой може да качва файлове
      */
-    var $canAdd = 'cat,ceo,sales,purchase,catEdit';
+    var $canAdd = 'ceo,sales,purchase,packEdit';
     
     
     /**
      * Кой може да качва файлове
      */
-    var $canEdit = 'cat,ceo,sales,purchase,catEdit';
+    var $canEdit = 'ceo,sales,purchase,packEdit';
     
     
     /**
      * Кой може да качва файлове
      */
-    var $canDelete = 'cat,ceo,sales,purchase,catEdit';
+    var $canDelete = 'ceo,sales,purchase,packEdit';
     
 
     /**  
@@ -140,6 +140,14 @@ class cat_products_Packagings extends core_Detail
             if(!deals_Helper::checkQuantity($baseMeasureId, $rec->quantity, $warning)){
                 $form->setError('quantity', $warning);
             }
+            
+            // Ако няма въведено нето тегло, взима се от артикула
+            if(empty($rec->netWeight)){
+            	if($transportWeight = cat_Products::getParams($rec->productId, 'transportWeight')){
+            		$totalTransportWeight = $transportWeight * $rec->quantity;
+            		$form->rec->netWeight = $totalTransportWeight;
+            	}
+            }
         }
     }
     
@@ -162,7 +170,7 @@ class cat_products_Packagings extends core_Detail
             if($productRec->state != 'active' && $productRec->state != 'template'){
                 $requiredRoles = 'no_one';
             } elseif($productRec->isPublic == 'yes'){
-                if(!haveRole('ceo,cat')){
+                if(!haveRole('ceo,packEdit')){
                     $requiredRoles = 'no_one';
                 }
             }
@@ -185,7 +193,7 @@ class cat_products_Packagings extends core_Detail
         
         // Ако потребителя не е създал записа, трябва да има cat или ceo за да го промени
         if(($action == 'edit' || $action == 'delete') && isset($rec)){
-            if($rec->createdBy != $userId && !haveRole('ceo,cat', $userId)){
+            if($rec->createdBy != $userId && !haveRole('ceo,packEdit', $userId)){
                 $requiredRoles = 'no_one';
             }
         }
@@ -278,11 +286,43 @@ class cat_products_Packagings extends core_Detail
         }
         
         if(!$rec->id){
-            $options = array('' => '') + $options;
+        	$options = array('' => '') + $options;
+        }
+		$form->setOptions('packagingId', $options);
+        
+		// Ако има дефолтни опаковки от драйвера
+        if($Driver = cat_Products::getDriver($rec->productId)){
+        	$defaults = $Driver->getDefaultPackagings($rec);
+        	
+        	if(count($defaults)){
+        		foreach ($defaults as $def){
+        			
+        			// Ако опаковката още не е зададена
+        			if(isset($options[$def->packagingId])){
+        				$form->setDefault('packagingId', $def->packagingId);
+        				
+        				// За дава се избрана по дефолт
+        				foreach (array('quantity', 'isBase', 'tareWeight', 'sizeWidth', 'sizeHeight', 'sizeDepth') as $fld){
+        					
+        					if($def->justGuess === TRUE){
+        						$form->setDefault($fld, $def->{$fld});
+        					} else {
+        						
+        						// Ако не е задължителна само стойностите и се подават като плейсходлъри
+        						$placeholder = $mvc->getFieldType($fld)->toVerbal($def->{$fld});
+        						$placeholder = explode(' ', $placeholder);
+        						$placeholder = $placeholder[0];
+        						$form->setField($fld, "placeholder={$placeholder}");
+        					}
+        				}
+        				
+        				break;
+        			}
+        		}
+        	}
         }
         
         $form->setDefault('isBase', 'no');
-        $form->setOptions('packagingId', $options);
         
         $pInfo = cat_Products::getProductInfo($rec->productId);
         $unit = cat_UoM::getShortName($pInfo->productRec->measureId);
@@ -413,7 +453,7 @@ class cat_products_Packagings extends core_Detail
      */
     public static function getPack($productId, $packagingId)
     {
-        return self::fetch("#productId = {$productId} AND #packagingId = {$packagingId}");
+        return self::fetch("#productId = {$productId} AND #packagingId = '{$packagingId}'");
     }
     
 
@@ -537,36 +577,5 @@ class cat_products_Packagings extends core_Detail
 
         // Връщаме резултат
         return $isUsed;
-    }
-    
-    
-    /**
-     * Синхронизиране на дефолтните опаковки
-     * 
-     * @param mixed $productRec
-     */
-    public static function sync($productRec)
-    {
-        // Имали драйвер?
-        $Driver = cat_Products::getDriver($productRec);
-        if(!$Driver) return;
-        
-        // Имали дефолтни опаковки от драйвера
-        $defaultPacks = $Driver->getDefaultPackagings($productRec);
-        if(!count($defaultPacks) || !is_array($defaultPacks)) return;
-        
-        foreach ($defaultPacks as $obj)
-        {
-            // Дефолтната опаковка ще се добавя/обновява ако е вече добавена
-            $r = (object)array('productId' => $productRec->id, 'packagingId' => $obj->packagingId, 'quantity' => $obj->quantity);
-            if($id = self::getPack($productRec->id, $obj->packagingId)->id){
-                $r->id = $id;
-            }
-            
-            // и ще се запише промяната ако не е използвана
-            if(!self::isUsed($productRec->id, $obj->packagingId, TRUE)){
-                self::save($r);
-            }
-        }
     }
 }

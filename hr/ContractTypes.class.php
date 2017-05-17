@@ -44,37 +44,37 @@ class hr_ContractTypes extends core_Master
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,hr';
+    public $canRead = 'ceo,hrMaster';
     
     
     /**
      * Кой може да пише?
      */
-    public $canWrite = 'ceo,hr';
+    public $canWrite = 'ceo,hrMaster';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,hr';
+    public $canList = 'ceo,hrMaster';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,hr';
+    public $canSingle = 'ceo,hrMaster';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,hr';
+    public $canEdit = 'ceo,hrMaster';
     
     
     /**
      * Кой има право да променя системните данни?
      */
-    public $canEditsysdata = 'ceo,hr';
+    public $canEditsysdata = 'ceo,hrMaster';
     
     
     /**
