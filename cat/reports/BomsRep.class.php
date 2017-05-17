@@ -211,14 +211,16 @@ class cat_reports_BomsRep extends frame_BaseDriver
             foreach($mArr as $id=>$val){ 
                 $data->recs[$id]->materials = array();
                 $data->recs[$id]->mCnt = array();
+                $data->recs[$id]->mParams = array();
                 foreach($val as $mat=>$matVal) { 
                     $data->recs[$id]->materials[$matVal['productId']] = $matVal['productId'];
                     $data->recs[$id]->mCnt[$matVal['productId']] = $matVal['quantity'];
-                    $data->recs[$id]->mParams = key(cat_Products::getPacks($matVal['productId']));   
+                    $data->recs[$id]->mParams[$matVal['productId']] = key(cat_Products::getPacks($matVal['productId']));   
                 }      
             }
         }
         
+
         if(is_array($data->recs)) {
             foreach($data->recs as $i=>$r){ 
             
@@ -293,7 +295,8 @@ class cat_reports_BomsRep extends frame_BaseDriver
         $RichtextType = cls::get('type_Richtext');
         $Blob = cls::get('type_Blob');
         $Int = cls::get('type_Int');
-        $Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
+        //$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
+        $Double = cls::get('type_Double');
         
         $row = new stdClass();
         
@@ -334,13 +337,15 @@ class cat_reports_BomsRep extends frame_BaseDriver
             }
         }
         
-        if(isset($rec->mParams)) {
-            $row->mParams = cat_UoM::getShortName($rec->mParams);
+        if(is_array($rec->mParams)) {
+            foreach ($rec->mParams as $mParam) {
+                $row->mParams .= cat_UoM::getShortName($mParam) . "<br/>"; 
+            }
         }
         
         if(is_array($rec->mCnt)) {
             foreach ($rec->mCnt as $mCnt) { 
-                $row->mCnt = $Int->toVerbal($mCnt) . "<br/>";
+                $row->mCnt .= $Double->toVerbal($mCnt) . "<br/>";
             }
         }
 
