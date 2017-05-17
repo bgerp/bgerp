@@ -32,4 +32,17 @@ class planning_Wrapper extends plg_ProtoWrapper
     	
         $this->title = 'Планиране';
     }
+    
+    
+    /**
+     * Дефолтен контролър
+     */
+    function act_getStartCtr()
+    {
+    	if(haveRole('ceo,planning,store')){
+    		redirect(array('planning_DirectProductionNote', 'list'));
+    	}else{
+    		redirect(array('planning_Tasks', 'list'));
+    	}
+    }
 }
