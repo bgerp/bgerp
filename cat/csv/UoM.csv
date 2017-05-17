@@ -1,6 +1,6 @@
 "ампер","A",,1,"closed","A","|a|ampera|amper|",0,"uom",
 "бака","бака",,,"active",,,0,"packaging",1
-"брой","бр.",,1,"active","pcs","|br|broj|broq|brojki|pcs|",0,"uom",1
+"брой","бр.",,1,"active","pcs","|br|broj|broq|brojki|pcs|br.|",0,"uom",1
 "варел","варел",,,"active",,,0,"packaging",1
 "ват","w",,1,"closed","w","|vat|wat|w|",0,"uom",
 "грам","г","килограм","0.001","closed","g","|gram|grama|gr|",0,"uom",

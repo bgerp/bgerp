@@ -638,7 +638,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		
 		// Подготовка на формата
 		$form->title = "Въвеждане на себестойност за|* <b style='color:#ffffcc;'>{$docTitle}</b>";
-		$form->info = tr('Не може да се определи себестойноста, защото няма посочени материали');
+		$form->info = tr('Не може да се определи себестойността, защото няма посочени материали');
 		$form->FLD('debitPrice', 'double(Min=0)', 'caption=Ед. Себест-ст,mandatory');
 		
 		// Ако драйвера може да върне себестойност тя е избрана по дефолт

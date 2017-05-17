@@ -297,8 +297,6 @@ class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
     
         $tableMvc = new core_Mvc;
 
-        $tableMvc->FLD('item2', 'int', 'tdClass=accCell');
-        $tableMvc->FLD('item3', 'int', 'tdClass=accCell');
         $tableMvc->FLD('blQuantity', 'double', 'tdClass=accCell');
         $tableMvc->FLD('blAmount', 'double', 'tdClass=accCell');
         $tableMvc->FLD('delta', 'percent', 'tdClass=accCell');

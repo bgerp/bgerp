@@ -59,6 +59,7 @@ class cal_Setup extends core_ProtoSetup
             'cal_ReminderSnoozes',
     		'cal_TaskConditions',
     		'cal_TaskDocuments',
+            'migrate::windUpRem',
             //'migrate::reCalcNextStart'
         );
 
@@ -150,5 +151,36 @@ class cal_Setup extends core_ProtoSetup
 
             cal_Reminders::save($rec, 'nextStartTime');
         }
+    }
+    
+    
+    /**
+     * Миграция за "зациклилите" напомняния
+     * Търсим напомняния, на които "Предварително" е по-голямо
+     * от "Повторението". В такъв случай ще сетнем "Повторението"
+     * на половината време от "Повторението" 
+     */
+    function windUpRem()
+    {
+        $query = cal_Reminders::getQuery();
+        $query->where("#repetitionEach IS NOT NULL AND #repetitionType IS NOT NULL");
+        
+        while ($rec = $query->fetch()) {
+            if (isset($rec->repetitionEach) && isset($rec->repetitionType)) {
+                if (isset($rec->timePreviously)) {
+                    $secRepetitionType = cal_Reminders::$map[$rec->repetitionType];
+                    $repetitionSec = $rec->repetitionEach * $secRepetitionType;
+        
+                    if ($repetitionSec > 0) {
+                        $halfRepetitionSec = $repetitionSec / 2;
+                    }
+                    
+                    if ($rec->timePreviously >= $repetitionSec){
+                        $rec->timePreviously = $halfRepetitionSec;
+                        cal_Reminders::save($rec,'timePreviously');
+                    }
+                }
+            }
+        } 
     }
 }

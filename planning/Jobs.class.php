@@ -307,6 +307,7 @@ class planning_Jobs extends core_Master
     		$data->listFilter->showFields .= ',view';
     	}
     	
+    	$data->listFilter->setField("selectPeriod", "caption=Падеж");
     	$contragentsWithJobs = self::getContragentsWithJobs();
     	if(count($contragentsWithJobs)){
     		$enum = arr::fromArray($contragentsWithJobs);
@@ -432,6 +433,9 @@ class planning_Jobs extends core_Master
     			$clone->append2master();
     		}
     	}
+    	
+    	$packagingTpl = cls::get('cat_products_Packagings')->renderPackagings($data->packagingData);
+    	$tpl->replace($packagingTpl, 'PACKAGINGS');
     }
     
     
@@ -466,11 +470,14 @@ class planning_Jobs extends core_Master
     {
     	$rec = &$form->rec;
     	
-    	
     	if($form->isSubmitted()){
+    		if(hr_Departments::count("#type = 'workshop'") && empty($rec->department)){
+    			$form->setWarning('department', 'В Заданието липсва избран цех и ще бъде записано в нишката');
+    		}
+    		
     		$weight = cat_Products::getWeight($rec->productId, NULL, $rec->quantity);
     		$rec->brutoWeight = ($weight) ? $weight : NULL;
-    		
+    			
     		// Колко е еденичното тегло
     		if($weight = cat_Products::getParams($rec->productId, 'transportWeight')){
     			$rec->weight = $weight * $rec->quantity;
@@ -481,7 +488,7 @@ class planning_Jobs extends core_Master
     		if($rec->dueDate < dt::today()){
     			$form->setWarning('dueDate', 'Падежът е в миналото');
     		}
-    		
+    			
     		if(empty($rec->id)){
     			if(isset($rec->department)){
     				$rec->folderId = hr_Departments::forceCoverAndFolder($rec->department);
@@ -841,6 +848,12 @@ class planning_Jobs extends core_Master
     	}
     	
     	$data->row->history = array_reverse($data->row->history, TRUE);
+    	
+    	$data->packagingData = new stdClass();
+    	$data->packagingData->masterMvc = cls::get('cat_Products');
+    	$data->packagingData->masterId = $data->rec->productId;
+    	$data->packagingData->tpl = new core_ET("[#CONTENT#]");
+    	cls::get('cat_products_Packagings')->preparePackagings($data->packagingData);
     }
     
     

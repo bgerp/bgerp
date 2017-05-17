@@ -176,7 +176,7 @@ class email_Inboxes extends core_Master
     {
         $this->FLD("email", "email(link=no)", "caption=Имейл, mandatory, silent");
         $this->FLD("accountId", "key(mvc=email_Accounts, select=email)", 'caption=Сметка, refreshForm, mandatory, notNull, silent');
-        $this->FLD("notifyForEmail", "enum(yes=Винаги,no=Стандартно за системата)", 'caption=Нотификация за получен имейл->Избор, notNull');
+        $this->FLD("notifyForEmail", "enum(yes=Винаги,no=Стандартно за системата)", 'caption=Нотифициране на отговорниците за получен имейл->Избор, notNull');
         
         $this->setDbUnique('email');
     }

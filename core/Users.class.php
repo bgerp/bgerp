@@ -542,7 +542,13 @@ class core_Users extends core_Manager
         }
         
         if(!self::isUsersEmpty()) {
-            $rolesArr = type_Keylist::toArray($form->rec->roles);
+            
+            if ($form->cmd == 'refresh' && $form->rec->id && !$form->rec->roles) {
+                $roles = $mvc->fetchField($form->rec->id, 'roles');
+                $rolesArr = type_Keylist::toArray($roles);
+            } else {
+                $rolesArr = type_Keylist::toArray($form->rec->roles);
+            }
             $roleTypes = core_Roles::getGroupedOptions($rolesArr);
             
             asort($roleTypes['job']);

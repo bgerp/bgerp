@@ -1143,9 +1143,6 @@ class cat_Products extends embed_Manager {
         		$mvc->save_($rec, 'isPublic');
         	}
         }
-        
-        // Синхронизиране на дефолтните опаковки
-        cat_products_Packagings::sync($rec);
     }
     
     
@@ -2577,7 +2574,7 @@ class cat_Products extends embed_Manager {
      * Намира цена на артикул по неговия код към текущата дата, в следния ред
      * 
      * 1. Мениджърска себестойност
-     * 2. Ако е вложим и има заместващи, себестойноста на този с най-голямо к-во във всички складове
+     * 2. Ако е вложим и има заместващи, себестойността на този с най-голямо к-во във всички складове
      * 3. Ако е производим и има търговска рецепта, цената по нея
      * 4. Ако е складируем - средната му цена във всички складове
      * 5. Ако не открие връща NULL
@@ -2620,7 +2617,7 @@ class cat_Products extends embed_Manager {
     			krsort($orderArr);
     			$topKey = $orderArr[key($orderArr)];
     			
-    			// Връщане на себестойноста на този с най-голямо количество
+    			// Връщане на себестойността на този с най-голямо количество
     			if(!empty($topKey)){
     				$primeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $topKey);
     				if(!empty($primeCost)) return $primeCost;

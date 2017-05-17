@@ -162,6 +162,8 @@ class core_Query extends core_FieldSet
             if (is_int($cond) || (intval($cond) . '' == $cond)) {
                 
                 $cond = "#id = {$cond}";
+
+                $this->highPriority = TRUE;
             }
             
             $lastCondKey = count($this->where)-1;
@@ -595,6 +597,10 @@ class core_Query extends core_FieldSet
         } else {
             $wh = $this->getWhereAndHaving();
             $query = "SELECT ";
+
+            if($this->highPriority) {
+                $query .= " HIGH_PRIORITY ";
+            }
             
             if (!empty($this->_selectOptions)) {
                 $query .= implode(' ', $this->_selectOptions) . ' ';

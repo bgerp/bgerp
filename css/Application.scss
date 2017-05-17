@@ -4270,9 +4270,12 @@ div.location.public {
 
 /*rack*/
 td.rack-hl {
-	background-color:yellow;
+	background-color:red;
 }
 
+td.rack-same {
+	background-color:yellow;
+}
 
 .app-name {
     display: block;

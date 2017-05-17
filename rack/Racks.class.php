@@ -324,9 +324,16 @@ class rack_Racks extends core_Master
         $row = $rec->rows;
         $hlPos = Request::get('pos');
         
+
+        $hlFullPos = "{$rec->num}-{$hlPos}";
+
+        
         list($unusable, $reserved) = rack_RackDetails::getunUsableAndReserved();
         $used = rack_Pallets::getUsed();
         list($movedFrom, $movedTo) = rack_Movements::getExpected();
+        
+        $hlProdId = $used[$hlFullPos];
+
 
         while($row >= 'A') {
 
@@ -347,7 +354,8 @@ class rack_Racks extends core_Master
                 
                 $url = toUrl(array('rack_RackDetails', 'add', 'rackId' => $rec->id, 'row' => $row, 'col' => $i));
                 $attr['ondblclick'] = "document.location='{$url}';";
-                
+                $pId = NULL;
+
                 // Ако е заето с нещо
                 if(!isset($title) && ($pId = $used[$posFull])) {
                     $prodRec = rack_Products::fetch($pId);
@@ -400,6 +408,8 @@ class rack_Racks extends core_Master
 
                 if($pos == $hlPos) {
                     $attr['class'] .= ' rack-hl';
+                } elseif(isset($pId) && $hlProdId == $pId) {
+                    $attr['class'] .= ' rack-same';
                 }
                 
                 if($c = $rec->constrColumnsStep) {

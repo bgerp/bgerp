@@ -91,13 +91,13 @@ class planning_Setup extends core_ProtoSetup
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'planning_Jobs';
+    var $startCtr = 'planning_Setup';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    var $startAct = 'getStartCtr';
     
     
     /**
@@ -163,7 +163,7 @@ class planning_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.21, 'Производство', 'Планиране', 'planning_DirectProductionNote', 'default', "planning, ceo, job, store"),
+            array(3.21, 'Производство', 'Планиране', 'planning_Wrapper', 'getStartCtr', "planning, ceo, job, store, taskWorker, taskPlanning"),
         );
     
     

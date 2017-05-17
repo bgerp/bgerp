@@ -110,4 +110,23 @@ class rack_Products extends store_Products
 		$row->_rowTools->addLink('Търсене', array('rack_Pallets', 'list', 'productId' => $rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/filter.png,title=Търсене на палети с артикул');
     }
  
+    
+    /**
+     * Изпълнява се след създаване на нов запис
+     * 
+     * @param rack_Products $mvc
+     * @param stdClass $rec
+     * @param array $fields
+     * @param NULL|string $mode
+     */
+    public static function on_AfterSaveArray($mvc, $res, $recs)
+    { 
+        foreach($recs as $rec) {
+            $rec = self::fetch("#productId = {$rec->productId} AND #storeId = {$rec->storeId}");
+            if($rec) {
+                rack_Pallets::recalc($rec->id);
+            }
+        }
+    }
+
 }

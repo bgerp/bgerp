@@ -76,7 +76,7 @@ class hr_Leaves extends core_Master
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,hr';
+    public $canRead = 'ceo,hr,hrMaster';
     
     
     /**
@@ -94,7 +94,7 @@ class hr_Leaves extends core_Master
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,hr';
+	public $canList = 'ceo,hr,hrMaster';
 
 
 	/**
@@ -118,7 +118,7 @@ class hr_Leaves extends core_Master
     /**
      * Кой може да го активира?
      */
-    public $canActivate = 'ceo,hr';
+    public $canActivate = 'ceo,hr,hrMaster';
     
     
     /**
@@ -185,7 +185,7 @@ class hr_Leaves extends core_Master
     {
     	$this->FLD('docType', 'enum(request=Молба за отпуск, order=Заповед за отпуск)', 'caption=Документ, input=none,column=none');
     	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител, mandatory');
-    	$this->FLD('leaveFrom', 'datetime', 'caption=Считано->От, mandatory');
+    	$this->FLD('leaveFrom', 'datetime(defaultTime=00:00:00)', 'caption=Считано->От, mandatory');
     	$this->FLD('leaveTo', 'datetime(defaultTime=23:59:59)', 'caption=Считано->До, mandatory');
     	$this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
     	$this->FLD('useDaysFromYear', 'int', 'caption=Информация->Ползване от,unit=година, input=none');
@@ -352,9 +352,9 @@ class hr_Leaves extends core_Master
                     $department = $employeeContractDetails->departmentId;
             
                     $schedule = hr_EmployeeContracts::getWorkingSchedule($employeeContract);
-                    if($schedule){
+                    if($schedule){ 
                         $days = hr_WorkingCycles::calcLeaveDaysBySchedule($schedule, $department, $form->rec->leaveFrom, $form->rec->leaveTo);
-                    } else {
+                    } else { 
                         $days = cal_Calendar::calcLeaveDays($form->rec->leaveFrom, $form->rec->leaveTo);
                     }
                 } else {
