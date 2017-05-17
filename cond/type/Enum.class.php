@@ -37,7 +37,7 @@ class cond_type_Enum extends cond_type_abstract_Proto
 	 * @param NULL|string $value - стойност
 	 * @return core_Type         - готовия тип
 	 */
-	public function getType($rec, $domainClass, $domainId, $value = NULL)
+	public function getType($rec, $domainClass = NULL, $domainId = NULL, $value = NULL)
 	{
 		$Type = cls::get('type_Enum');
         $Type->options = static::text2options($rec->options);
