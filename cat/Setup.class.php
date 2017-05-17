@@ -131,9 +131,9 @@ class cat_Setup extends core_ProtoSetup
     var $roles = array(
     		array('sales'),
     		array('purchase'),
-    		array('catEdit'),
     		array('packEdit'),
-    		array('cat', 'packEdit,catEdit'),
+    		array('catEdit', 'packEdit'),
+    		array('cat', 'catEdit'),
     );
     
     
