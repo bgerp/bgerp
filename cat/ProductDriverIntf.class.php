@@ -271,7 +271,7 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	 * @param int|NULL $id - ид на артикул
 	 * @return double|NULL - минималното количество в основна мярка, или NULL ако няма
 	 */
-	public static function getMoq($id = NULL)
+	public function getMoq($id = NULL)
 	{
 		return $this->class->getMoq($id);
 	}
@@ -285,7 +285,7 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	 * 		o packagingId - ид на мярка/опаковка
 	 * 		o quantity    - к-во в опаковката
 	 */
-	public static function getDefaultPackagings($rec)
+	public function getDefaultPackagings($rec)
 	{
 		return $this->class->getDefaultPackagings($rec);
 	}
