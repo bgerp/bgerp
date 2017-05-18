@@ -687,7 +687,7 @@ class log_Data extends core_Manager
         // Ако не е въведена дата, ограничаваме времето - това е само за показване на класовете
         if (!$rec->from && !$rec->to) {
             $beforeT = dt::mysql2timestamp(dt::addDays(-2, NULL, FALSE));
-            $cQuery->where(array("#time <= '[#1#]'", $beforeT));
+            $cQuery->where(array("#time >= '[#1#]'", $beforeT));
         }
         
         $cQuery->groupBy('classCrc');
