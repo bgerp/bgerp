@@ -89,7 +89,13 @@ class doc_Containers extends core_Manager
      */
     var $canAdddoc = 'user';
     
-    
+
+    /**
+     * Флаг, че заявките, които са към този модел лимитирани до 1 запис, ще са HIGH_PRIORITY
+     */
+    public $highPriority = TRUE;
+
+
     /**
      * 
      */
