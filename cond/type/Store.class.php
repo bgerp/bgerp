@@ -26,7 +26,7 @@ class cond_type_Store extends cond_type_abstract_Proto
 	 * @param NULL|string $value - стойност
 	 * @return core_Type         - готовия тип
 	 */
-	public function getType($rec, $domainClass, $domainId, $value = NULL)
+	public function getType($rec, $domainClass = NULL, $domainId = NULL, $value = NULL)
 	{
 		$Type = core_Type::getByName("key(mvc=store_Stores,select=name,allowEmpty,makeLink)");
 		

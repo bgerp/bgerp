@@ -3712,6 +3712,12 @@ div.location.public {
   width: 100%;
   text-align: left; }
 
+.noTopBorder .listTable {
+  font-size: 0.9em;
+  border-top: none; }
+  .noTopBorder .listTable th {
+    border-top: none; }
+
 .custom-bg-block {
   background-color: #e0e0e0;
   padding: 0.2em;

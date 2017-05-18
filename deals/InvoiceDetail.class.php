@@ -419,12 +419,10 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		
 		if ($form->isSubmitted() && !$form->gotErrors()) {
 			if(!isset($rec->quantity) && $masterRec->type != 'dc_note'){
-				$defQuantity = cat_UoM::fetchField($rec->packagingId, 'defQuantity');
-    			if(!empty($defQuantity)){
-    				$rec->quantity = $defQuantity;
-    			} else {
-    				$form->setError('quantity', 'Не е въведено количество');
-    			}
+				$form->setDefault('quantity', deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId));
+				if(empty($rec->quantity)){
+					$form->setError('quantity', 'Не е въведено количество');
+				}
 			}
 			
 			if($masterRec->type == 'dc_note'){

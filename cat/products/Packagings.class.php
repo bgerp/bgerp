@@ -408,6 +408,8 @@ class cat_products_Packagings extends core_Detail
                     'ret_url' => getCurrentUrl() + array('#'=> get_class($this))
             );
         }
+        
+        $data->listFields = arr::make($this->listFields, TRUE);
     }
     
     
@@ -419,14 +421,12 @@ class cat_products_Packagings extends core_Detail
     public function renderPackagings($data)
     {
         if($data->notStorable === TRUE && !count($data->recs)) return;
-        
-        $tpl = getTplFromFile('cat/tpl/PackigingDetail.shtml');
+        $tpl = (isset($data->tpl)) ? $data->tpl : getTplFromFile('cat/tpl/PackigingDetail.shtml');
         
         if ($data->addUrl  && !Mode::isReadOnly()) {
             $addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, FALSE, 'title=Добавяне на нова опаковка/мярка');
             $tpl->append($addBtn, 'TITLE');
         }
-        $data->listFields = arr::make($this->listFields);
         
         // Ако артикула не е производим, показваме в детайла
         if($data->notStorable === TRUE){
