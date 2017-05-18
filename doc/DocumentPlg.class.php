@@ -2865,6 +2865,14 @@ class doc_DocumentPlg extends core_Plugin
         
         $oCid = Mode::get('saveObjectsToCid');
         
+        // Ако сме пушнали, но няма запис за таблицата
+        if ($oCid) {
+            $filesArr = doc_UsedInDocs::getObjectVals($rec->containerId, core_Users::getCurrent(), 'files');
+            if (!isset($filesArr)) {
+                $oCid = NULL;
+            }
+        }
+        
         // Ако не са извлечени файловете или не сме в процес на извличане - форсираме процеса
         if ((!$oCid && $rec->containerId) || ($oCid && ($oCid != $rec->containerId))) {
             
