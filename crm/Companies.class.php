@@ -861,6 +861,26 @@ class crm_Companies extends core_Master
      */
     protected static function setCompanyLogo($companyConstName)
     {
+        $cRec = crm_Companies::fetchOwnCompany();
+        
+        $pngHnd = self::getCompanyLogoHnd($companyConstName, $cRec);
+        
+        if (!empty($pngHnd)) {
+            core_Packs::setConfig('bgerp', array($companyConstName => $pngHnd));
+        }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param string $fileName
+     * @param NULL|stdObjec $cRec
+     * 
+     * @return string
+     */
+    public static function getCompanyLogoHnd($fileName, $cRec = NULL)
+    {
         $baseColor = 'yellow';
         $activeColor = 'green';
         
@@ -876,7 +896,10 @@ class crm_Companies extends core_Master
         }
         
         $tpl = getTplFromFile('bgerp/tpl/companyBlank.svg');
-        $cRec = crm_Companies::fetchOwnCompany();
+        if (!isset($cRec)) {
+            $cRec = crm_Companies::fetchOwnCompany();
+        }
+        
         $cRec->company = trim($cRec->company);
         $companyName = transliterate(tr($cRec->company));
         $tpl->append($companyName, 'myCompanyName');
@@ -941,7 +964,7 @@ class crm_Companies extends core_Master
         $pngHnd = '';
         
         try {
-            $pngHnd = fileman_webdrv_Inkscape::toPng($content, 'string', $companyConstName);
+            $pngHnd = fileman_webdrv_Inkscape::toPng($content, 'string', $fileName);
         } catch (ErrorException $e) {
             reportException($e);
         }
@@ -987,9 +1010,7 @@ class crm_Companies extends core_Master
             reportException($e);
         }
         
-        if (!empty($pngHnd)) {
-            core_Packs::setConfig('bgerp', array($companyConstName => $pngHnd));
-        }
+        return $pngHnd;
     }
     
     
