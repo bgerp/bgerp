@@ -188,15 +188,18 @@
         </tr>
         <!--ET_END SALE_INFO-->
          <!--ET_BEGIN TITLE-->
-	  	<tr>
-	  	   	<th colspan="2" class='job-head'>
+	  	<tr style="border-bottom: none">
+	  	   	<th colspan="2" class='job-head'  style="border-right: 1px solid #ccc">
 	  	   	|Опаковки|* [#TITLE#]
 	  	   	</th>
 	 	</tr>
 	 	<!--ET_END TITLE-->
     </table>
+    <!--ET_BEGIN PACKAGINGS-->
+    <div class="noTopBorder">
     [#PACKAGINGS#]
     </div>
+    <!--ET_END PACKAGINGS-->
     <div class='scrolling-holder'>
 		<div class='job-head1' style='margin-top:10px;padding-top:8px;padding-bottom:8px'>
 		     <b>|Задачи|*</b>

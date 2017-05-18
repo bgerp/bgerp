@@ -4093,7 +4093,12 @@ div.location.public {
 	width: 100%;
 	text-align: left;
 }
-
+.noTopBorder .listTable {
+	border-top: none;
+	th {
+		border-top: none;
+	}
+}
 .custom-bg-block{
 	background-color: $gray2;
 	padding:0.2em;
