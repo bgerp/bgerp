@@ -189,7 +189,7 @@
         <!--ET_END SALE_INFO-->
          <!--ET_BEGIN TITLE-->
 	  	<tr style="border-bottom: none">
-	  	   	<th colspan="2" class='job-head'  style="border-right: 1px solid #ccc">
+	  	   	<th colspan="2" class='job-head'  style="border-right: 1px solid #ccc; font-size: 0.9em">
 	  	   	|Опаковки|* [#TITLE#]
 	  	   	</th>
 	 	</tr>

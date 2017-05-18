@@ -3713,6 +3713,7 @@ div.location.public {
   text-align: left; }
 
 .noTopBorder .listTable {
+  font-size: 0.9em;
   border-top: none; }
   .noTopBorder .listTable th {
     border-top: none; }
