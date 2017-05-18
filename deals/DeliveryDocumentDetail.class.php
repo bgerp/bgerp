@@ -115,12 +115,10 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		
 		if ($form->isSubmitted() && !$form->gotErrors()) {
 			if(!isset($rec->packQuantity)){
-				$defQuantity = cat_UoM::fetchField($rec->packagingId, 'defQuantity');
-    			if(!empty($defQuantity)){
-    				$rec->packQuantity = $defQuantity;
-    			} else {
-    				$form->setError('packQuantity', 'Не е въведено количество');
-    			}
+				$form->setDefault('packQuantity', deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId));
+				if(empty($rec->packQuantity)){
+					$form->setError('packQuantity', 'Не е въведено количество');
+				}
 			}
 			
 			// Проверка на к-то

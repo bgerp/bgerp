@@ -990,4 +990,20 @@ abstract class deals_Helper
 		
 		return $res;
 	}
+	
+	
+	/**
+	 * Помощна ф-я връщаща дефолтното количество за артикула в бизнес документ
+	 * 
+	 * @param int $productId
+	 * @param int $packagingId
+	 * @return double|NULL $defQuantity
+	 */
+	public static function getDefaultPackQuantity($productId, $packagingId)
+	{
+		$defQuantity = cat_Products::getMoq($productId);
+		$defQuantity = !empty($defQuantity) ? $defQuantity : cat_UoM::fetchField($packagingId, 'defQuantity');
+	
+		return ($defQuantity) ? $defQuantity : NULL;
+	}
 }
