@@ -130,9 +130,6 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 			$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
 			$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
 	
-			// Проверка дали к-то е под МКП
-			deals_Helper::isQuantityBellowMoq($form, $rec->productId, $rec->quantity, $rec->quantityInPack);
-			
 			if (!isset($rec->packPrice)) {
 				$autoPrice = TRUE;
 				
