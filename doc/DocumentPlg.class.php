@@ -2865,6 +2865,8 @@ class doc_DocumentPlg extends core_Plugin
         
         $oCid = Mode::get('saveObjectsToCid');
         
+        $filesArr = NULL;
+        
         // Ако сме пушнали, но няма запис за таблицата
         if ($oCid) {
             $filesArr = doc_UsedInDocs::getObjectVals($rec->containerId, core_Users::getCurrent(), 'files');
@@ -2901,7 +2903,10 @@ class doc_DocumentPlg extends core_Plugin
         
         doc_UsedInDocs::flushArr();
         
-        $filesArr = doc_UsedInDocs::getObjectVals($rec->containerId, core_Users::getCurrent(), 'files');
+        if (!isset($filesArr)) {
+            $filesArr = doc_UsedInDocs::getObjectVals($rec->containerId, core_Users::getCurrent(), 'files');
+        }
+        
         if (is_array($filesArr)) {
             foreach ($filesArr as $fileHndArr) {
                 if (!is_array($fileHndArr)) continue;
