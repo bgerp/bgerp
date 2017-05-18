@@ -2884,13 +2884,16 @@ class doc_DocumentPlg extends core_Plugin
                 if ($cRec->docClass) {
                     $docMvc = cls::get($cRec->docClass);
                 }
-                if (!($cRec->docId)) {
-                    $cRec->docId = $docMvc->fetchField("#containerId = {$cRec->id}", 'id');
-                    $cInst = cls::get('doc_Containers');
-                    $cInst->save_($cRec, 'docId');
-                }
                 
-                $docMvc->prepareDocument($cRec->docId);
+                if ($docMvc) {
+                    if (!($cRec->docId)) {
+                        $cRec->docId = $docMvc->fetchField("#containerId = {$cRec->id}", 'id');
+                        $cInst = cls::get('doc_Containers');
+                        $cInst->save_($cRec, 'docId');
+                    }
+                    
+                    $docMvc->prepareDocument($cRec->docId);
+                }
             } catch (Exception $e) {
                 reportException($e);
             }
