@@ -297,10 +297,8 @@ abstract class deals_DealDetail extends doc_Detail
     	
     		// Извличане на информация за продукта - количество в опаковка, единична цена
     		if(!isset($rec->packQuantity)){
-    			$defQuantity = cat_UoM::fetchField($rec->packagingId, 'defQuantity');
-    			if(!empty($defQuantity)){
-    				$rec->packQuantity = $defQuantity;
-    			} else {
+    			$form->setDefault('packQuantity', deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId));
+    			if(empty($rec->packQuantity)){
     				$form->setError('packQuantity', 'Не е въведено количество');
     			}
     		}

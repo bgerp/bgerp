@@ -254,6 +254,13 @@ class eshop_Products extends core_Master
     public static function prepareAllProducts($data)
     {
         $gQuery = eshop_Groups::getQuery();
+
+        $groups = eshop_Groups::getGroupsByDomain();
+        if(count($groups)) {
+            $groupList = implode(',', array_keys($groups));
+            $gQuery->where("#id IN ({$groupList})");
+        }
+
         while($gRec = $gQuery->fetch("#state = 'active'")) {
             $data->groups[$gRec->id] = new stdClass();
             $data->groups[$gRec->id]->groupId = $gRec->id;
@@ -586,20 +593,18 @@ class eshop_Products extends core_Master
         $rec = $data->listFilter->input(NULL, 'silent');
 
  
+        $data->listFilter->setField('groupId', 'autoFilter');
+        
         if($rec->groupId) {
             $data->query->where("#groupId = {$rec->groupId}");
+        } else {
+
+            $groups = eshop_Groups::getGroupsByDomain();
+            if(count($groups)) {
+                $groupList = implode(',', array_keys($groups));
+                $data->query->where("#groupId IN ({$groupList})");
+                $data->listFilter->setOptions('groupId', $groups);
+            }
         }
-        $data->listFilter->setField('groupId', 'autoFilter');
-
-        $groups = eshop_Groups::getGroupsByDomain();
-        if(count($groups)) {
-            $groupList = implode(',', array_keys($groups));
-            $data->query->where("#groupId IN ({$groupList})");
-            $data->listFilter->setOptions('groupId', $groups);
-        }
-
-        
-
-        
     }
 }
