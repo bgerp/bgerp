@@ -434,6 +434,7 @@ class planning_Jobs extends core_Master
     		}
     	}
     	
+    	$data->packagingData->listFields['packagingId'] = 'Опаковка';
     	$packagingTpl = cls::get('cat_products_Packagings')->renderPackagings($data->packagingData);
     	$tpl->replace($packagingTpl, 'PACKAGINGS');
     }

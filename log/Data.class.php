@@ -683,6 +683,13 @@ class log_Data extends core_Manager
         // Добавяме класовете, за които има запис в търсения резултат
         $classSuggArr = array();
         $cQuery = clone $query;
+        
+        // Ако не е въведена дата, ограничаваме времето - това е само за показване на класовете
+        if (!$rec->from && !$rec->to) {
+            $beforeT = dt::mysql2timestamp(dt::addDays(-2, NULL, FALSE));
+            $cQuery->where(array("#time <= '[#1#]'", $beforeT));
+        }
+        
         $cQuery->groupBy('classCrc');
         $cQuery->show('classCrc');
         while ($cRec = $cQuery->fetch()) {
@@ -690,6 +697,10 @@ class log_Data extends core_Manager
             if ($className) {
                 $classSuggArr[$className] = $className;
             }
+        }
+            
+        if (trim($rec->class)) {
+            $classSuggArr[$rec->class] = $rec->class;
         }
         
         if (!empty($classSuggArr)) {
