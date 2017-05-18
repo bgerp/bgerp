@@ -193,17 +193,6 @@ class eshop_Products extends core_Master
             if($exRec = $query->fetch(array("#code = '[#1#]' AND #menuId = [#2#]", $rec->code, $menuId))) {
                 $form->setError('code', "Повторение на кода със съществуващ продукт: |* <strong>" . $mvc->getVerbal($rec, 'name') . '</strong>');
             }
-            
-            // Ако няма МКП. но има драйвер взимаме МКП-то от драйвера
-            if(empty($rec->coMoq) && isset($rec->coDriver)){
-            	if(cls::load($rec->coDriver, TRUE)){
-            		if($Driver = cls::get($rec->coDriver)){
-            			if($moq = $Driver->getMoq()){
-            				$rec->coMoq = $moq;
-            			}
-            		}
-            	}
-            }
         }
     }
 
@@ -222,7 +211,18 @@ class eshop_Products extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-        if($rec->coMoq) {
+    	// Ако няма МКП. но има драйвер взимаме МКП-то от драйвера
+        if(empty($rec->coMoq) && isset($rec->coDriver)){
+            if(cls::load($rec->coDriver, TRUE)){
+            	if($Driver = cls::get($rec->coDriver)){
+            		if($moq = $Driver->getMoq()){
+            			$rec->coMoq = $moq;
+            		}
+            	}
+            }
+        }
+    	
+    	if($rec->coMoq) {
         	$row->coMoq = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($rec->coMoq);
         }
 
