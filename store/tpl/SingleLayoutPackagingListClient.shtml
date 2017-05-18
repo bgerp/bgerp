@@ -1,4 +1,21 @@
- <div class='scrolling-holder'>
+<!--ET_BEGIN blankClient-->
+    [#blankClient#]
+	<table style="width: 100%; margin-bottom:5px;">
+	    <tr>
+	        <td class='blankImage'>
+	            <!--ET_BEGIN blankImage-->
+	            [#blankImageClient#]
+	            <!--ET_END blankImage-->
+	        </td>
+	        <td class='qrcode aright vbottom'>
+	            <!--ET_BEGIN blankQr-->
+	            [#blankQrClient#]
+	            <!--ET_END blankQr-->
+	        </td>
+	    </tr>
+	</table>
+<!--ET_END blankClient-->
+<div class='scrolling-holder'>
     <table class="innerTable border-table paddingCells">
         <tbody>
             <tr>

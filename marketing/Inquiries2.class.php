@@ -292,8 +292,14 @@ class marketing_Inquiries2 extends embed_Manager
             }
     	}
 
-   	
     	$mvc->expandEditForm($data);
+    	if(cls::load($form->rec->innerClass, TRUE)){
+    		if($Driver = cls::get($form->rec->innerClass)){
+    			if($moq = $Driver->getMoq()){
+    				$form->rec->moq = $moq;
+    			}
+    		}
+    	}
     }
     
     
@@ -911,7 +917,7 @@ class marketing_Inquiries2 extends embed_Manager
     		}
     		
     		if(count($errorMoqs)){
-    			$form->setError(implode(',', $errorMoqs), "Количеството се повтаря||Duplicated quantity|* <b>{$moqVerbal}</b>");
+    			$form->setError(implode(',', $errorMoqs), "Количеството не трябва да е под||Quantity can't be bellow|* <b>{$moqVerbal}</b>");
     		}
     		
     		if(count($errorQuantities)){

@@ -163,7 +163,7 @@ class eshop_Products extends core_Master
     /**
      * Проверка за дублиран код
      */
-    protected static function on_AfterInputeditForm($mvc, $form)
+    protected static function on_AfterInputEditForm($mvc, $form)
     {
     	$rec = $form->rec;
     	
@@ -192,6 +192,17 @@ class eshop_Products extends core_Master
 
             if($exRec = $query->fetch(array("#code = '[#1#]' AND #menuId = [#2#]", $rec->code, $menuId))) {
                 $form->setError('code', "Повторение на кода със съществуващ продукт: |* <strong>" . $mvc->getVerbal($rec, 'name') . '</strong>');
+            }
+            
+            // Ако няма МКП. но има драйвер взимаме МКП-то от драйвера
+            if(empty($rec->coMoq) && isset($rec->coDriver)){
+            	if(cls::load($rec->coDriver, TRUE)){
+            		if($Driver = cls::get($rec->coDriver)){
+            			if($moq = $Driver->getMoq()){
+            				$rec->coMoq = $moq;
+            			}
+            		}
+            	}
             }
         }
     }
