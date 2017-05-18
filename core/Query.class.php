@@ -162,8 +162,6 @@ class core_Query extends core_FieldSet
             if (is_int($cond) || (intval($cond) . '' == $cond)) {
                 
                 $cond = "#id = {$cond}";
-
-                $this->highPriority = TRUE;
             }
             
             $lastCondKey = count($this->where)-1;
@@ -598,7 +596,7 @@ class core_Query extends core_FieldSet
             $wh = $this->getWhereAndHaving();
             $query = "SELECT ";
 
-            if($this->highPriority) {
+            if($this->mvc->highPriority && $this->limit == 1) {
                 $query .= " HIGH_PRIORITY ";
             }
             
