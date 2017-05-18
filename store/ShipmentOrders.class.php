@@ -195,6 +195,18 @@ class store_ShipmentOrders extends store_DocumentMaster
     
     
     /**
+     * 
+     */
+    public $printAsClientLayaoutFile = 'store/tpl/SingleLayoutPackagingListClient.shtml';
+    
+    
+    /**
+     * 
+     */
+    public $canAsclient = 'debug';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
