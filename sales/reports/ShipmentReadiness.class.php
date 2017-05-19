@@ -2,7 +2,7 @@
 
 
 /**
- * Драйвер за документи готови за експедиция
+ * Драйвер за готовност за експедиция на документи
  *
  *
  * @category  bgerp
@@ -13,7 +13,7 @@
  * @since     v 0.1
  * @title     Логистика » Готовност за експедиция
  */
-class sales_reports_ShipmentReadiness extends frame2_driver_Proto
+class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 {
 	
 	
@@ -21,6 +21,14 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 	 * Кой може да избира драйвъра
 	 */
 	public $canSelectDriver = 'ceo, store, sales, admin, purchase';
+	
+	
+	/**
+	 * Кое поле от $data->recs да се следи, ако има нов във новата версия
+	 *
+	 * @var varchar
+	 */
+	protected $newFieldToCheck = 'containerId';
 	
 	
 	/**
@@ -48,23 +56,20 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 	
 	
 	/**
-	 * Брой записи на страница
-	 * 
+	 * Полета от таблицата за скриване, ако са празни
+	 *
 	 * @var int
 	 */
-	private $listItemsPerPage = 50;
+	protected $filterEmptyListFields = 'dueDates';
 	
 	
 	/**
-	 * Връща заглавието на отчета
-	 *
-	 * @param stdClass $rec - запис
-	 * @return string|NULL  - заглавието или NULL, ако няма
+	 * Полета за хеширане на таговете
+	 * 
+	 * @see uiext_Labels
+	 * @var varchar
 	 */
-	public function getTitle($rec)
-	{
-		return 'Готовност за експедиция';
-	}
+	protected $hashField = 'containerId';
 	
 	
 	/**
@@ -126,92 +131,12 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 	
 	
 	/**
-	 * Рендиране на данните на справката
+	 * Вербализиране на редовете, които ще се показват на текущата страница в отчета
 	 *
-	 * @param stdClass $rec - запис на справката
-	 * @return core_ET      - рендирания шаблон
-	 */
-	public function renderData($rec)
-	{
-		$tpl = new core_ET("[#PAGER_TOP#][#TABLE#][#PAGER_BOTTOM#]");
-		
-		$data = $rec->data;
-		$data->listFields = $this->getListFields($rec);
-		$data->rows = array();
-		
-		// Подготовка на пейджъра
-		if(!Mode::isReadOnly()){
-			$data->Pager = cls::get('core_Pager',  array('itemsPerPage' => $this->listItemsPerPage));
-			$data->Pager->setPageVar('frame2_Reports', $rec->id);
-			$data->Pager->itemsCount = count($data->recs);
-		}
-		
-		// Вербализиране само на нужните записи
-		if(is_array($data->recs)){
-			foreach ($data->recs as $index => $dRec){
-				if(isset($data->Pager) && !$data->Pager->isOnPage()) continue;
-				$data->rows[$index] = $this->detailRecToVerbal($dRec);
-			}
-		}
-		
-		// Рендиране на пейджъра
-		if(isset($data->Pager)){
-			$tpl->append($data->Pager->getHtml(), 'PAGER_TOP');
-			$tpl->append($data->Pager->getHtml(), 'PAGER_BOTTOM');
-		}
-		
-		// Рендиране на лист таблицата
-		$fld = cls::get('core_FieldSet');
-		$fld->FLD('dealerId', 'varchar', 'smartCenter');
-		$fld->FLD('dueDates', 'varchar', 'smartCenter,tdClass=small');
-		$fld->FLD('deliveryTime', 'varchar', 'smartCenter,tdClass=small');
-		$fld->FLD('readiness', 'double');
-		$fld->FLD('document', 'varchar', 'smartCenter');
-		
-		$table = cls::get('core_TableView', array('mvc' => $fld));
-		
-		// Показване на тагове
-		if(core_Packs::isInstalled('uiext')){
-			uiext_Labels::showLabels($this, $rec->containerId, $data->recs, $data->rows, $data->listFields, 'containerId', 'Таг', $tpl, $fld);
-		}
-		
-		$data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, 'dueDates,_tagField');
-		
-		$tpl->append($table->get($data->rows, $data->listFields), 'TABLE');
-		$tpl->removeBlocks();
-		$tpl->removePlaces();
-		
-		// Връщане на шаблона
-		return $tpl;
-	}
-	
-	
-	/**
-	 * Връща списъчните полета
-	 * 
-	 * @param stdClass $rec  - запис
-	 * @return array $fields - полета
-	 */
-	private function getListFields($rec)
-	{
-		$fields = array('dealerId'     => 'Търговец', 
-				        'contragent'   => 'Клиент',
-						'dueDates'     => 'Падеж',
-						'deliveryTime' => 'Доставка',
-				        'document'     => 'Документ', 
-				        'readiness'    => 'Готовност');
-		
-		return $fields;
-	}
-	
-	
-	/**
-	 * Вербализиране на данните
-	 * 
-	 * @param stdClass $dRec - запис от детайла
+	 * @param stdClass $dRec - чистия запис
 	 * @return stdClass $row - вербалния запис
 	 */
-	private function detailRecToVerbal(&$dRec)
+	protected function detailRecToVerbal(&$dRec)
 	{
 		$isPlain = Mode::is('text', 'plain');
 		$row = new stdClass();
@@ -366,18 +291,17 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 	
 	
 	/**
-	 * Подготвя данните на справката от нулата, които се записват в модела
+	 * Кои записи ще се показват в таблицата
 	 *
-	 * @param stdClass $rec        - запис на справката
-	 * @return stdClass|NULL $data - подготвените данни
+	 * @param stdClass $rec
+	 * @return array
 	 */
-	public function prepareData($rec)
+	protected function prepareRecs($rec)
 	{
-		core_App::setTimeLimit(150);
-		$Sales = sales_Sales::getSingleton();
+		$recs = array();
 		
-		$data = new stdClass();
-		$data->recs = array();
+		core_App::setTimeLimit(150);
+		$Sales = cls::get('sales_Sales');
 		
 		$dealers = keylist::toArray($rec->dealers);
 		$countries = keylist::toArray($rec->countries);
@@ -392,125 +316,159 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		
 		// За всяка
 		while($sRec = $sQuery->fetch()){
-			
-			// Ако има филтър по държава 
+				
+			// Ако има филтър по държава
 			if($cCount){
 				$contragentCountryId = cls::get($sRec->contragentClassId)->fetchField($sRec->contragentId, 'country');
 				if(!array_key_exists($contragentCountryId, $countries)) continue;
 			}
-			
+				
 			// Изчислява се готовността
 			$readiness = core_Cache::get('sales_reports_ShipmentReadiness', "c{$sRec->containerId}");
 			if($readiness === FALSE) {
 				$readiness = self::calcSaleReadiness($sRec);
 				core_Cache::set('sales_reports_ShipmentReadiness', "c{$sRec->containerId}", $readiness, 58);
 			}
-			
+				
 			$dealerId = ($sRec->dealerId) ? $sRec->dealerId : (($sRec->activatedBy) ? $sRec->activatedBy : $sRec->createdBy);
-			
+				
 			// Ако има някаква изчислена готовност
 			if($readiness !== FALSE && $readiness !== NULL){
-				
+		
 				// И тя е в посочения диапазон
 				if(!isset($rec->precision) || (isset($rec->precision) && $readiness >= $rec->precision)){
-					
+						
 					$delTime = (!empty($sRec->deliveryTime)) ? $sRec->deliveryTime : (!empty($sRec->deliveryTermTime) ?  dt::addSecs($sRec->deliveryTermTime, $sRec->valior) : NULL);
 					if(empty($delTime)){
 						$delTime = $Sales->getMaxDeliveryTime($sRec->id);
 						$delTime = ($delTime) ? dt::addSecs($delTime, $sRec->valior) : $sRec->valior;
 					}
-					
+						
 					// Добавя се
 					$dRec = (object)array('containerId'       => $sRec->containerId,
-							              'contragentName'    => self::normalizeFolderName($sRec->folderId),
+										  'contragentName'    => self::normalizeFolderName($sRec->folderId),
 										  'contragentClassId' => $sRec->contragentClassId,
 										  'contragentId'      => $sRec->contragentId,
 										  'deliveryTime'      => $delTime,
-							              'folderId'          => $sRec->folderId,
-							              'dealerId'          => $dealerId,
-							              'readiness'         => $readiness);
-					
+										  'folderId'          => $sRec->folderId,
+										  'dealerId'          => $dealerId,
+										  'readiness'         => $readiness);
+						
 					$dueDates = $this->getSaleDueDates($sRec);
-					$dRec->dueDateMin = $dueDates['min']; 
+					$dRec->dueDateMin = $dueDates['min'];
 					$dRec->dueDateMax = $dueDates['max'];
-					$data->recs[$sRec->containerId] = $dRec;
+					$recs[$sRec->containerId] = $dRec;
 				}
 			}
-			
+				
 			// Всички чакащи ЕН-та от треда на продажбата
 			$shipQuery = store_ShipmentOrders::getQuery();
 			$shipQuery->where("#state = 'pending'");
 			$shipQuery->where("#threadId = {$sRec->threadId}");
-			
-			while($soRec = $shipQuery->fetch()){
 				
+			while($soRec = $shipQuery->fetch()){
+		
 				// Изчислява им се готовността
 				$readiness1 = core_Cache::get('sales_reports_ShipmentReadiness', "c{$soRec->containerId}");
 				if($readiness1 === FALSE) {
 					$readiness1 = self::calcSoReadiness($soRec);
 					core_Cache::set('sales_reports_ShipmentReadiness', "c{$soRec->containerId}", $readiness1, 58);
 				}
-				
+		
 				// Ако има изчислена готовност
 				if($readiness1 !== FALSE && $readiness1 !== NULL){
-					
+						
 					// И тя е в посочения диапазон
 					if(isset($rec->precision) && $readiness1 < $rec->precision) continue;
-					
+						
 					$deliveryTime = !empty($soRec->deliveryTime) ? $soRec->deliveryTime : $soRec->valior;
-					
+						
 					// Добавя се
 					$r = (object)array('containerId'       => $soRec->containerId,
-							           'contragentName'    => self::normalizeFolderName($soRec->folderId),
-							           'contragentClassId' => $sRec->contragentClassId,
+									   'contragentName'    => self::normalizeFolderName($soRec->folderId),
+									   'contragentClassId' => $sRec->contragentClassId,
 							           'contragentId'      => $sRec->contragentId,
-									   'deliveryTime'      => $deliveryTime,
-							           'folderId'          => $soRec->folderId, 
-							           'dealerId'          => $dealerId, 
+							           'deliveryTime'      => $deliveryTime,
+							           'folderId'          => $soRec->folderId,
+							           'dealerId'          => $dealerId,
 							           'readiness'         => $readiness1);
-					
-					$data->recs[$soRec->containerId] = $r;
+						
+					$recs[$soRec->containerId] = $r;
 				}
 			}
 		}
 		
 		// Ако е избрано филтриране по контрагенти
 		if($rec->orderBy == 'contragents'){
-			
+				
 			// Първо се сортират по нормализираните имена на контрагентите, след това по готовността
-			usort($data->recs, function($a, $b) {
+			usort($recs, function($a, $b) {
 				if($a->contragentName == $b->contragentName){
 					if($a->readiness == $b->readiness){
 						return ($a->deliveryTime < $b->deliveryTime) ? -1 : 1;
 					}
-					
+						
 					return ($a->readiness < $b->readiness) ? 1 : -1;
 				}
-				
+		
 				return (strnatcasecmp($a->contragentName, $b->contragentName) < 0) ? -1 : 1;
-				
+		
 			});
 		} else {
-			
+				
 			// По дефолт се сортират по готовност във низходящ ред, при равенство по нормализираното име на контрагента
-			usort($data->recs, function($a, $b) {
+			usort($recs, function($a, $b) {
 				if($a->readiness === $b->readiness){
 					if($a->contragentName == $b->contragentName){
 						return ($a->deliveryTime < $b->deliveryTime) ? -1 : 1;
-					} 
+					}
 					return (strnatcasecmp($a->contragentName, $b->contragentName) < 0) ? -1 : 1;
 				}
-			
+					
 				return ($a->readiness < $b->readiness) ? 1 : -1;
-			
+					
 			});
 		}
 		
-		// Връщане на датата
-		return $data;
+		return $recs;
 	}
 	
 	
+	/**
+	 * Връща фийлдсета на таблицата, която ще се рендира
+	 *
+	 * @param stdClass $rec      - записа
+	 * @param boolean $export    - таблицата за експорт ли е
+	 * @return core_FieldSet     - полетата
+	 */
+	protected function getTableFieldSet($rec, $export = FALSE)
+	{
+		$fld = cls::get('core_FieldSet');
+		
+		if($export === FALSE){
+			$fld->FLD('dealerId', 'varchar', 'smartCenter,caption=Търговец');
+			$fld->FLD('contragent', 'varchar', 'caption=Клиент');
+			$fld->FLD('dueDates', 'varchar', 'smartCenter,tdClass=small,caption=Падеж');
+			$fld->FLD('deliveryTime', 'varchar', 'smartCenter,tdClass=small,caption=Доставка');
+			$fld->FLD('document', 'varchar', 'smartCenter,caption=Документ');
+			$fld->FLD('readiness', 'double', 'caption=Готовност');
+		} else {
+			$fld->FLD('dealerId', 'varchar','caption=Търговец');
+			$fld->FLD('contragent', 'varchar','caption=Клиент');
+			$fld->FLD('dueDateMin', 'varchar','caption=Падеж мин');
+			$fld->FLD('dueDateMax', 'varchar','caption=Падеж макс');
+			$fld->FLD('deliveryTime', 'varchar','caption=Доставка');
+			$fld->FLD('document', 'varchar','caption=Документ');
+			$fld->FLD('readiness', 'varchar','caption=Готовност %');
+		}
+		
+		return $fld;
+	}
+	
+	
+	/**
+	 * Крайните дати за плащане
+	 */
 	private function getSaleDueDates($saleRec)
 	{
 		$dates = array();
@@ -537,7 +495,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 	 * @param stdClass $saleRec - запис на продажба
 	 * @return double|NULL      - готовност между 0 и 1, или NULL ако няма готовност
 	 */
-	public static function calcSaleReadiness($saleRec)
+	private static function calcSaleReadiness($saleRec)
 	{
 		// На не чакащите и не активни не се изчислява готовността
 		if($saleRec->state != 'pending' && $saleRec->state != 'active') return NULL;
@@ -630,7 +588,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 	 * @param stdClass $soRec - запис на ЕН
 	 * @return double|NULL    - готовност между 0 и 1, или NULL ако няма готовност
 	 */
-	public static function calcSoReadiness($soRec)
+	private static function calcSoReadiness($soRec)
 	{
 		// На не чакащите не се изчислява готовност
 		if($soRec->state != 'pending') return NULL;
@@ -667,91 +625,5 @@ class sales_reports_ShipmentReadiness extends frame2_driver_Proto
 		
 		// Връщане на изчислената готовност или NULL ако не може да се изчисли
 		return $readiness;
-	}
-	
-	
-	/**
-	 * Връща редовете на CSV файл-а
-	 *
-	 * @param stdClass $rec
-	 * @return array
-	 */
-	public function getCsvExportRows($rec)
-	{
-		$dRecs = $rec->data->recs;
-		$exportRows = array();
-		
-		Mode::push('text', 'plain');
-		if(is_array($dRecs)){
-			foreach ($dRecs as $key => $dRec){
-				$exportRows[$key] = $this->detailRecToVerbal($dRec);
-			}
-		}
-		Mode::pop('text');
-		
-		return $exportRows;
-	}
-	
-	
-	/**
-	 * Връща полетата за експортиране във csv
-	 *
-	 * @param stdClass $rec
-	 * @return array
-	 */
-	public function getCsvExportFieldset($rec)
-	{
-		$fieldset = new core_FieldSet();
-		$fieldset->FLD('dealerId', 'varchar','caption=Търговец');
-		$fieldset->FLD('contragent', 'varchar','caption=Клиент');
-		$fieldset->FLD('dueDateMin', 'varchar','caption=Падеж мин');
-		$fieldset->FLD('dueDateMax', 'varchar','caption=Падеж макс');
-		$fieldset->FLD('deliveryTime', 'varchar','caption=Доставка');
-		$fieldset->FLD('document', 'varchar','caption=Документ');
-		$fieldset->FLD('readiness', 'varchar','caption=Готовност %');
-		
-		return $fieldset;
-	}
-	
-	
-	/**
-	 * Да се изпраща ли нова нотификация на споделените потребители, при опресняване на отчета
-	 *
-	 * @param stdClass $rec
-	 * @return boolean $res
-	 */
-	public function canSendNotificationOnRefresh($rec)
-	{
-		// Намира се последните две версии
-		$query = frame2_ReportVersions::getQuery();
-		$query->where("#reportId = {$rec->id}");
-		$query->orderBy('id', 'DESC');
-		$query->limit(2);
-		
-		// Маха се последната
-		$all = $query->fetchAll();
-		unset($all[key($all)]);
-		
-		// Ако няма предпоследна, бие се нотификация
-		if(!count($all)) return TRUE;
-		$oldRec = $all[key($all)]->oldRec;
-		
-		$dataRecsNew = $rec->data->recs;
-		$dataRecsOld = $oldRec->data->recs;
-		
-		$newContainerIds = $oldContainerIds = array();
-		if(is_array($rec->data->recs)){
-			$newContainerIds = arr::extractValuesFromArray($rec->data->recs, 'containerId');
-		}
-		
-		if(is_array($oldRec->data->recs)){
-			$oldContainerIds = arr::extractValuesFromArray($oldRec->data->recs, 'containerId');
-		}
-		
-		// Ако има нови документи бие се нотификация
-		$diff = array_diff_key($newContainerIds, $oldContainerIds);
-		$res = (is_array($diff) && count($diff));
-		
-		return $res;
 	}
 }

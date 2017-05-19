@@ -436,7 +436,7 @@ class cat_UoM extends core_Manager
         }
 
         if(!$rec) {
-            self::fetch(array("LOWER(#shortName) = LOWER('[#1#]')", $unit));
+            $rec = self::fetch(array("LOWER(#shortName) = LOWER('[#1#]')", $unit));
         }
         
         if(!$rec) {

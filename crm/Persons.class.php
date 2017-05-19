@@ -2572,9 +2572,10 @@ class crm_Persons extends core_Master
      * 
      * @param int $id - ид на контрагент
      * @param boolean $translitarate - дали да се транслитерира адреса
+     * @param boolean|NULL $showCountry - да се показвали винаги държавата или Не, NULL означава че автоматично ще се определи
      * @return core_ET $tpl - адреса
      */
-    public function getFullAdress($id, $translitarate = FALSE)
+    public function getFullAdress($id, $translitarate = FALSE, $showCountry = NULL)
     {
     	expect($rec = $this->fetchRec($id));
     	
@@ -2582,11 +2583,15 @@ class crm_Persons extends core_Master
     	$tpl = new ET("<!--ET_BEGIN country-->[#country#]<br><!--ET_END country--> <!--ET_BEGIN pCode-->[#pCode#]<!--ET_END pCode--><!--ET_BEGIN place--> [#place#]<br><!--ET_END place--> [#address#]");
     	
     	// Показваме държавата само ако е различна от тази на моята компания
-    	if($rec->country){
-    		$ourCompany = crm_Companies::fetchOurCompany();
-    		if($ourCompany->country != $rec->country){
-    			$obj->country = $this->getVerbal($rec, 'country');
+    	if(!isset($showCountry)){
+    		if($rec->country){
+    			$ourCompany = crm_Companies::fetchOurCompany();
+    			if($ourCompany->country != $rec->country){
+    				$obj->country = $this->getVerbal($rec, 'country');
+    			}
     		}
+    	} elseif($showCountry === TRUE){
+    		$obj->country = $this->getVerbal($rec, 'country');
     	}
     
     	$Varchar = cls::get('type_Varchar');
