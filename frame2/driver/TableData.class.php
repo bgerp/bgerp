@@ -204,7 +204,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 	 * @param stdClass $rec
 	 * @return boolean $res
 	 */
-	public function canSendNotificationOnRefresh111($rec)
+	public function canSendNotificationOnRefresh($rec)
 	{
 		// Намира се последните две версии
 		$query = frame2_ReportVersions::getQuery();

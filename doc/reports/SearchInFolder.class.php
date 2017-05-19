@@ -243,4 +243,16 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
 		
 		return $versionBeforeData;
 	}
+	
+	
+	/**
+	 * Да се изпраща ли нова нотификация на споделените потребители, при опресняване на отчета
+	 *
+	 * @param stdClass $rec
+	 * @return boolean $res
+	 */
+	public function canSendNotificationOnRefresh($rec)
+	{
+		//@TODO
+	}
 }
