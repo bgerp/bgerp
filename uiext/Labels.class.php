@@ -190,10 +190,22 @@ class uiext_Labels extends core_Manager
     		$hash = self::getHash($rec, $hashFields);
     		$row->_tagField = self::renderLabel($containerId, $classId, $hash);
     	}
-		
+    }
+    
+    
+    /**
+     * Активира нужните файлове за таговете
+     * 
+     * @param core_ET $tpl
+     * @return void
+     */
+    public static function enable(&$tpl)
+    {
     	// Зареждане на нужните файлове
-    	$tpl->push('uiext/js/Label.js', 'JS');
-    	jquery_Jquery::run($tpl, "labelActions();");
+    	if(core_Packs::isInstalled('uiext')){
+    		$tpl->push('uiext/js/Label.js', 'JS');
+    		jquery_Jquery::run($tpl, "labelActions();");
+    	}
     }
     
     
