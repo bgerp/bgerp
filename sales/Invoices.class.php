@@ -542,7 +542,9 @@ class sales_Invoices extends deals_InvoiceMaster
     	$makeHint = FALSE;
     	
     	if($rec->paymentType == 'factoring'){
-    		$row->accountId = 'ФАКТОРИНГ';
+    		$row->accountId = tr('ФАКТОРИНГ');
+    		unset($row->bank);
+    		unset($row->bic);
     	}
     	
     	if(empty($rec->paymentType)){
