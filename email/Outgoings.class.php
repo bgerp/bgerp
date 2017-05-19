@@ -1921,7 +1921,8 @@ class email_Outgoings extends core_Master
         
         if (!$contragentDataHeader['hello']) {
             if($contragentData->person) {
-                $contragentDataHeader['hello'] = tr('Здравейте');
+                $contragentDataHeader['hello'] = tr('Здравейте') . ',';
+                $contragentDataHeader['lastChar'] = '!';
             } else {
                 $contragentDataHeader['hello'] = tr('Уважаеми колеги');
             }
@@ -2008,8 +2009,10 @@ class email_Outgoings extends core_Master
         // Ако последният символ не е пунктуация, добавяме запетая накрая
         $lastChar = mb_substr($content, -1);
         
+        setIfNot($headerDataArr['lastChar'], ',');
+        
         if (!core_String::isPunctuation($lastChar)) {
-            $content .= ',';
+            $content .= $headerDataArr['lastChar'];
         }
         
         return $content;

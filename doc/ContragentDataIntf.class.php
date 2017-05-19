@@ -54,9 +54,10 @@ class doc_ContragentDataIntf
      * 
      * @param int $id - ид на контрагент
      * @param boolean $translitarate - дали да се транслитерира адреса
+     * @param boolean|NULL $showCountry - да се показвали винаги държавата или Не, NULL означава че автоматично ще се определи
      * @return core_ET $tpl - адреса
      */
-    public function getFullAdress($id, $translitarate = FALSE)
+    public function getFullAdress($id, $translitarate = FALSE, $showCountry = NULL)
     {
         return $this->class->getFullAdress($id, $translitarate);
     }
