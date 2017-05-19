@@ -262,11 +262,23 @@ class cat_reports_BomsRep extends frame_BaseDriver
                         
                         if($queryProduct->fetch() == FALSE) {
                             unset($data->recs[$i]);
+                  
                         }  
                     }  else {
                         unset($data->recs[$i]);
                     } 
                 }   
+            }
+        }
+        
+        if(is_array($data->recs)) {
+            foreach($data->recs as $rI=>$rC){
+                foreach($rC->materials as $mat) {
+                    if(strpos(cat_Products::fetchField($mat,'groups'),$fRec->groupId) == FALSE) {
+                        unset($data->recs[$rI]->materials[$mat]);
+                    }
+                }
+     
             }
         }
 
