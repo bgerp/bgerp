@@ -792,11 +792,12 @@ abstract class deals_Helper
 		// Данните на 'Моята фирма'
 		$ownCompanyData = crm_Companies::fetchOwnCompany();
 		
+		//$hideCountries = 
+		
 		// Името и адреса на 'Моята фирма'
 		$Companies = cls::get('crm_Companies');
 		$res['MyCompany'] = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
 		$res['MyCompany'] = transliterate(tr($res['MyCompany']));
-		$res['MyAddress'] = $Companies->getFullAdress($ownCompanyData->companyId, TRUE)->getContent();
 		
 		// ДДС и националния номер на 'Моята фирма'
 		$uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
@@ -810,9 +811,7 @@ abstract class deals_Helper
 			$ContragentClass = cls::get($contragentClass);
 			$cData = $ContragentClass->getContragentData($contragentId);
 			$res['contragentName'] = isset($contragentName) ? $contragentName : cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
-			$res['contragentAddress'] = $ContragentClass->getFullAdress($contragentId)->getContent();
-			$res['inlineContragentAddress'] = $ContragentClass->getFullAdress($contragentId)->getContent();
-			$res['inlineContragentAddress'] = str_replace('<br>', ',', $res['inlineContragentAddress']);
+			$res['inlineContragentName'] = $res['contragentName'];
 			
 			$res['vatNo'] = $cData->vatNo;
 		} elseif(isset($contragentName)){
@@ -831,6 +830,16 @@ abstract class deals_Helper
 				$res['contragentName'] = $res['contragentName']->getContent();
 			}
 		}
+		
+		$showCountries = ($ownCompanyData->countryId == $cData->countryId) ? FALSE : TRUE;
+		
+		if(isset($contragentClass) && isset($contragentId)){
+			$res['contragentAddress'] = $ContragentClass->getFullAdress($contragentId, FALSE, $showCountries)->getContent();
+			$res['inlineContragentAddress'] = $ContragentClass->getFullAdress($contragentId, FALSE, $showCountries)->getContent();
+			$res['inlineContragentAddress'] = str_replace('<br>', ',', $res['inlineContragentAddress']);
+		}
+		
+		$res['MyAddress'] = $Companies->getFullAdress($ownCompanyData->companyId, TRUE, $showCountries)->getContent();
 		
 		return $res;
 	}

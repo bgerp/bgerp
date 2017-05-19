@@ -440,11 +440,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
     		if($masterRec->type != 'dc_note'){
     			$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
     		}
-			
-    		// Проверка дали к-то е под МКП
-    		if($masterRec->type != 'dc_note'){
-    			deals_Helper::isQuantityBellowMoq($form, $rec->productId, $rec->quantity * $rec->quantityInPack, $rec->quantityInPack);
-    		}
     		
 			// Ако няма въведена цена
 			if (!isset($rec->packPrice) && $masterRec->type != 'dc_note') {

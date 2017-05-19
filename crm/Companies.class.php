@@ -861,6 +861,26 @@ class crm_Companies extends core_Master
      */
     protected static function setCompanyLogo($companyConstName)
     {
+        $cRec = crm_Companies::fetchOwnCompany();
+        
+        $pngHnd = self::getCompanyLogoHnd($companyConstName, $cRec);
+        
+        if (!empty($pngHnd)) {
+            core_Packs::setConfig('bgerp', array($companyConstName => $pngHnd));
+        }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param string $fileName
+     * @param NULL|stdObjec $cRec
+     * 
+     * @return string
+     */
+    public static function getCompanyLogoHnd($fileName, $cRec = NULL)
+    {
         $baseColor = 'yellow';
         $activeColor = 'green';
         
@@ -876,7 +896,10 @@ class crm_Companies extends core_Master
         }
         
         $tpl = getTplFromFile('bgerp/tpl/companyBlank.svg');
-        $cRec = crm_Companies::fetchOwnCompany();
+        if (!isset($cRec)) {
+            $cRec = crm_Companies::fetchOwnCompany();
+        }
+        
         $cRec->company = trim($cRec->company);
         $companyName = transliterate(tr($cRec->company));
         $tpl->append($companyName, 'myCompanyName');
@@ -941,7 +964,7 @@ class crm_Companies extends core_Master
         $pngHnd = '';
         
         try {
-            $pngHnd = fileman_webdrv_Inkscape::toPng($content, 'string', $companyConstName);
+            $pngHnd = fileman_webdrv_Inkscape::toPng($content, 'string', $fileName);
         } catch (ErrorException $e) {
             reportException($e);
         }
@@ -987,9 +1010,7 @@ class crm_Companies extends core_Master
             reportException($e);
         }
         
-        if (!empty($pngHnd)) {
-            core_Packs::setConfig('bgerp', array($companyConstName => $pngHnd));
-        }
+        return $pngHnd;
     }
     
     
@@ -1970,9 +1991,10 @@ class crm_Companies extends core_Master
      * 
      * @param int $id - ид на контрагент
      * @param boolean $translitarate - дали да се транслитерира адреса
+     * @param boolean|NULL $showCountry - да се показвали винаги държавата или Не, NULL означава че автоматично ще се определи
      * @return core_ET $tpl - адреса
      */
-    public function getFullAdress($id, $translitarate = FALSE)
+    public function getFullAdress($id, $translitarate = FALSE, $showCountry = NULL)
     {
     	expect($rec = $this->fetchRec($id));
     	
@@ -1980,11 +2002,15 @@ class crm_Companies extends core_Master
     	$tpl = new ET("<!--ET_BEGIN country-->[#country#]<br><!--ET_END country--> <!--ET_BEGIN pCode-->[#pCode#]<!--ET_END pCode--><!--ET_BEGIN place--> [#place#]<br><!--ET_END place--> [#address#]");
     	
     	// Показваме държавата само ако е различна от тази на моята компания
-    	if($rec->country){
-    		$ourCompany = crm_Companies::fetchOurCompany();
-    		if($ourCompany->country != $rec->country){
-    			$obj->country = $this->getVerbal($rec, 'country');
+    	if(!isset($showCountry)){
+    		if($rec->country){
+    			$ourCompany = crm_Companies::fetchOurCompany();
+    			if($ourCompany->country != $rec->country){
+    				$obj->country = $this->getVerbal($rec, 'country');
+    			}
     		}
+    	} elseif($showCountry === TRUE){
+    		$obj->country = $this->getVerbal($rec, 'country');
     	}
     	
     	$Varchar = cls::get('type_Varchar');

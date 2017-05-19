@@ -2865,6 +2865,16 @@ class doc_DocumentPlg extends core_Plugin
         
         $oCid = Mode::get('saveObjectsToCid');
         
+        $filesArr = NULL;
+        
+        // Ако сме пушнали, но няма запис за таблицата
+        if ($oCid) {
+            $filesArr = doc_UsedInDocs::getObjectVals($rec->containerId, core_Users::getCurrent(), 'files');
+            if (!isset($filesArr)) {
+                $oCid = NULL;
+            }
+        }
+        
         // Ако не са извлечени файловете или не сме в процес на извличане - форсираме процеса
         if ((!$oCid && $rec->containerId) || ($oCid && ($oCid != $rec->containerId))) {
             
@@ -2874,13 +2884,16 @@ class doc_DocumentPlg extends core_Plugin
                 if ($cRec->docClass) {
                     $docMvc = cls::get($cRec->docClass);
                 }
-                if (!($cRec->docId)) {
-                    $cRec->docId = $docMvc->fetchField("#containerId = {$cRec->id}", 'id');
-                    $cInst = cls::get('doc_Containers');
-                    $cInst->save_($cRec, 'docId');
-                }
                 
-                $docMvc->prepareDocument($cRec->docId);
+                if ($docMvc) {
+                    if (!($cRec->docId)) {
+                        $cRec->docId = $docMvc->fetchField("#containerId = {$cRec->id}", 'id');
+                        $cInst = cls::get('doc_Containers');
+                        $cInst->save_($cRec, 'docId');
+                    }
+                    
+                    $docMvc->prepareDocument($cRec->docId);
+                }
             } catch (Exception $e) {
                 reportException($e);
             }
@@ -2893,7 +2906,10 @@ class doc_DocumentPlg extends core_Plugin
         
         doc_UsedInDocs::flushArr();
         
-        $filesArr = doc_UsedInDocs::getObjectVals($rec->containerId, core_Users::getCurrent(), 'files');
+        if (!isset($filesArr)) {
+            $filesArr = doc_UsedInDocs::getObjectVals($rec->containerId, core_Users::getCurrent(), 'files');
+        }
+        
         if (is_array($filesArr)) {
             foreach ($filesArr as $fileHndArr) {
                 if (!is_array($fileHndArr)) continue;

@@ -35,6 +35,8 @@ class doc_plg_TplManager extends core_Plugin
         if(empty($mvc->fields['template'])){
         	$mvc->FLD('template', "key(mvc=doc_TplManager,select=name)", 'caption=Допълнително->Изглед,notChangeableByContractor');
         }
+        
+        setIfNot($mvc->canAsclient, 'no_one');
     }
     
     
@@ -149,7 +151,11 @@ class doc_plg_TplManager extends core_Plugin
     	
     	// Ако ще се замества целия сингъл, подменяме го елегантно
     	if(!$mvc->templateFld){
-    		$data->singleLayout = doc_TplManager::getTemplate($data->rec->template);
+    		if (Request::get('asClient')) {
+    		    $data->singleLayout = getTplFromFile($mvc->printAsClientLayaoutFile);
+    		} else {
+    		    $data->singleLayout = doc_TplManager::getTemplate($data->rec->template);
+    		}
     	}
     }
     
@@ -182,7 +188,13 @@ class doc_plg_TplManager extends core_Plugin
     {
     	// Ако има посочен плейсхолдър където да отива шаблона, то той се използва
     	if($mvc->templateFld){
-    		$content = doc_TplManager::getTemplate($data->rec->template);
+    		
+    		if (Request::get('asClient')) {
+    		    $content = getTplFromFile($mvc->printAsClientLayaoutFile);
+    		} else {
+    		    $content = doc_TplManager::getTemplate($data->rec->template);
+    		}
+    		
     		$tpl->replace($content, $mvc->templateFld);
     	}
     	
@@ -199,6 +211,10 @@ class doc_plg_TplManager extends core_Plugin
     {
     	// След като документа е рендиран, се възстановява нормалния език
     	core_Lg::pop();
+    	
+    	if (Request::get('asClient')) {
+    	    $tpl->removeBlock('blank');
+    	}
     }
     
     
@@ -237,6 +253,57 @@ class doc_plg_TplManager extends core_Plugin
     			$Script->modifyMasterData($mvc, $data);
     		}
     	}
+    	
+    	// Добавяме бланките
+    	if (Request::get('asClient')) {
+    	    
+    	    $companyName = strip_tags($data->row->contragentName);
+    	    $companyObj = $mvc->getCompanyLogoVals($data);
+    	    
+    	    if ($companyObj && $companyObj->company) {
+    	        
+    	        core_Lg::push('en');
+    	        $fileHnd = crm_Companies::getCompanyLogoHnd($companyObj->company . 'Tpl', $companyObj);
+    	        core_Lg::pop();
+    	        	
+    	        if ($fileHnd) {
+    	            $thumb = new thumb_Img(array($fileHnd, 750, 87, 'fileman', 'isAbsolute' => TRUE, 'mode' => 'small-no-change', 'verbalName' => 'companyLogTpl'));
+    	            $data->row->blankImageClient = "<img src='" . $thumb->getUrl() . "' alt='Logo'  width='750' height='87'>";
+    	             
+    	            $params = array(
+    	                    'pixelPerPoint' => 6,
+    	                    'outFileName' => NULL,
+    	                    'quality' => 'L',
+    	                    'outerFrame' => 0,
+    	                    'absolute' => TRUE,
+    	            );
+    	            
+    	            try {
+    	                $data->row->blankQrClient = barcode_Generator::getLink('qr', $companyObj->company, array('width'=> 87, 'height' => 87), $params);
+    	            } catch (Exception $e) {
+    	                reportException($e);
+    	            }
+    	        }
+    	    }
+    	}
+    }
+    
+    
+    /**
+     * Помощна функция за връщане на данните необходими за генериране на лого
+     * 
+     * @param core_Mvc $mvc
+     * @param NULL|stdObject $res
+     * @param stdObject $data
+     */
+    public static function on_AfterGetCompanyLogoVals($mvc, &$res, $data)
+    {
+        if (!isset($res)) {
+            $res = new stdClass();
+        }
+        
+        $res->company = $data->row->inlineContragentName;
+        $res->address = $data->row->inlineContragentAddress;
     }
     
     
@@ -339,5 +406,59 @@ class doc_plg_TplManager extends core_Plugin
     		$res = cls::get('doc_TplManager')->makeArray4Select('name', "#docClassId = '{$mvc->getClassId()}' AND #lang = 'en'");
     		ksort($res);
     	}
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Mvc $mvc
+     * @param core_Et|NULL $res
+     * @param stdObject $rec
+     * @param stdObject $row
+     */
+    public static function on_BeforeGetLetterHead($mvc, &$res, $rec, $row)
+    {
+        if (Request::get('asClient')) return FALSE;
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        if ($action == 'asclient') {
+            if (!$mvc->printAsClientLayaoutFile) {
+                $requiredRoles = 'no_one';
+            }
+        }
+        
+        if ($action == 'single') {
+            if (Request::get('asClient')) {
+                $requiredRoles = $mvc->getRequiredRoles('asclient', $rec, $userId);
+            }
+        }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Mvc $mvc
+     * @param stdObject $res
+     * @param stdObject $data
+     */
+    public static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
+    {
+        if ($mvc->haveRightFor('asClient', $data->rec)) {
+            $data->toolbar->addBtn('П Клиент', array($mvc, 'single', $data->rec->id, 'Printing' => 'yes', 'asClient' => TRUE), "id=btnClientPrint{$data->rec->containerId},target=_blank,row=1", 'ef_icon = img/16/print_go.png,title=Печатане с данните на клиента');
+        }
     }
 }
