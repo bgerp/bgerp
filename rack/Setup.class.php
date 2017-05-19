@@ -82,8 +82,8 @@ class rack_Setup extends core_ProtoSetup
     	$html = parent::install();
     	
     	$Plugins = cls::get('core_Plugins');
-    	$html .= $Plugins->installPlugin('Връзка между ЕН и палетния склад', 'rack_plg_Document', 'store_TransfersDetails', 'private');
-    	$html .= $Plugins->installPlugin('Връзка между междускладовия трансфер и палетния склад', 'rack_plg_Document', 'store_ShipmentOrderDetails', 'private');
+    	$html .= $Plugins->installPlugin('Връзка между междускладовия трансфер и палетния склад', 'rack_plg_Document', 'store_TransfersDetails', 'private');
+    	$html .= $Plugins->installPlugin('Връзка между ЕН и палетния склад', 'rack_plg_Document', 'store_ShipmentOrderDetails', 'private');
     	
     	return $html;
     }
