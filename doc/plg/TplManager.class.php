@@ -132,9 +132,7 @@ class doc_plg_TplManager extends core_Plugin
     			
     			// Ако няма шаблон, за шаблон се приема първия такъв за модела
     			$rec->template = $mvc->getTemplate($rec->id);
-    			$rec->tplLang = doc_TplManager::fetchField($rec->template, 'lang');
-    			
-				core_Lg::push($rec->tplLang);
+    			$rec->tplLang = $mvc->pushTemplateLg($rec->template);
     		}
     	}
     }
@@ -146,8 +144,7 @@ class doc_plg_TplManager extends core_Plugin
     public static function on_BeforeRenderSingleLayout(core_Mvc $mvc, &$res, $data)
     {
     	// За текущ език се избира този на шаблона
-		$lang = doc_TplManager::fetchField($data->rec->template, 'lang');
-    	core_Lg::push($lang);
+    	$mvc->pushTemplateLg($data->rec->template);
     	
     	// Ако ще се замества целия сингъл, подменяме го елегантно
     	if(!$mvc->templateFld){
@@ -176,8 +173,25 @@ class doc_plg_TplManager extends core_Plugin
     public static function on_AfterRenderSingleToolbar(core_Mvc $mvc, &$res, $data)
     {
     	// След рендиране на тулбара отново се пушва езика на шаблона
-    	$lang = doc_TplManager::fetchField($data->rec->template, 'lang');
-    	core_Lg::push($lang);
+    	$mvc->pushTemplateLg($data->rec->template);
+    }
+    
+    
+    /**
+     * 
+     * @param core_Mvc $mvc
+     * @param NULL|string $res
+     * @param integer $templateId
+     */
+    public static function on_AfterPushTemplateLg($mvc, &$res, $templateId)
+    {
+        if (Request::get('asClient')) {
+            $res = 'en';
+        } else {
+            $res = doc_TplManager::fetchField($templateId, 'lang');
+        }
+        
+        core_Lg::push($res);
     }
     
     
@@ -435,7 +449,7 @@ class doc_plg_TplManager extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($action == 'asclient') {
-            if (!$mvc->printAsClientLayaoutFile) {
+            if (!$mvc->printAsClientLayaoutFile || $rec->state == 'rejected' || $rec->state == 'draft') {
                 $requiredRoles = 'no_one';
             }
         }
