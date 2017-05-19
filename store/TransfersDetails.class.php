@@ -84,9 +84,15 @@ class store_TransfersDetails extends doc_Detail
     
     
     /**
-     * 
+     * Поле за артикула
      */
     public $productFieldName = 'newProductId';
+    
+    
+    /**
+     * Поле за главния склад в мастъра
+     */
+    public $masterStoreFld = 'fromStore';
     
     
     /**
