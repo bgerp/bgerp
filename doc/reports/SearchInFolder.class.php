@@ -253,6 +253,26 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
 	 */
 	public function canSendNotificationOnRefresh($rec)
 	{
-		//@TODO
+		$data = $rec->data;
+		$oldData = $this->getVersionBeforeData($rec);
+		
+		$send = FALSE;
+		if(is_array($data->recs)){
+			foreach ($data->recs as $id => $rec){
+				if(isset($oldData[$rec->index])){
+					$oldCount = $oldData[$rec->index]->count;
+					$diff = $rec->count - $oldCount;
+				} else {
+					$diff = $rec->count;
+				}
+				
+				if($diff != 0){
+					$send = TRUE;
+					break;
+				}
+			}
+		}
+		
+		return $send;
 	}
 }
