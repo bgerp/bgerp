@@ -308,7 +308,7 @@ class rack_Pallets extends core_Manager
         
         
         $data->listFilter = cls::get('core_Form', array('method' => 'GET'));
-        $data->listFilter->FLD('productId', 'key(mvc=store_Products, select=productId,allowEmpty)', 'caption=Продукт');
+        $data->listFilter->FLD('productId', 'key(mvc=store_Products, select=productId,allowEmpty)', 'caption=Продукт,silent');
         $data->listFilter->FLD('pos', 'varchar(10)', 'caption=Позиция', array('attr' => array('style' => 'width:5em;')));
 
         $data->listFilter->showFields = 'productId,pos';  //, HistoryResourceId';
