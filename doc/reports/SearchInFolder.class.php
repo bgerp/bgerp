@@ -13,7 +13,7 @@
  * @since     v 0.1
  * @title     Документи » Търсене в папка
  */
-class doc_reports_SearchInFolder extends frame2_driver_Proto
+class doc_reports_SearchInFolder extends frame2_driver_TableData
 {
 	
 	
@@ -24,15 +24,17 @@ class doc_reports_SearchInFolder extends frame2_driver_Proto
 	
 	
 	/**
-	 * Връща заглавието на отчета
+	 * Полета от таблицата за скриване, ако са празни
 	 *
-	 * @param stdClass $rec - запис
-	 * @return string|NULL  - заглавието или NULL, ако няма
+	 * @var int
 	 */
-	public function getTitle($rec)
-	{
-		return 'Търсене в папка';
-	}
+	protected $filterEmptyListFields = 'diff';
+	
+	
+	/**
+	 * Кеш на предишните версии
+	 */
+	private static $versionData = array();
 	
 	
 	/**
@@ -54,7 +56,7 @@ class doc_reports_SearchInFolder extends frame2_driver_Proto
 	 * @param embed_Manager $Embedder
 	 * @param stdClass $data
 	 */
-	public static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
+	protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
 	{
 		$unique = array();
 		$words = explode("\n", $form->rec->text);
@@ -79,36 +81,35 @@ class doc_reports_SearchInFolder extends frame2_driver_Proto
 	
 	
 	/**
-	 * Подготвя данните на справката от нулата, които се записват в модела
+	 * Кои записи ще се показват в таблицата
 	 *
-	 * @param stdClass $rec        - запис на справката
-	 * @return stdClass|NULL $data - подготвените данни
+	 * @param stdClass $rec
+	 * @return array
 	 */
-	public function prepareData($rec)
+	protected function prepareRecs($rec)
 	{
-		$data = new stdClass();
-		$data->recs = array();
+		$recs = array();
 		
 		// За всяка дума
 		$words = explode("\n", $rec->text);
 		foreach ($words as $word){
-			
+				
 			// Подготовка на заявка, намираща колко пъти се среща в документи в папка
 			$cQuery = doc_Containers::getQuery();
 			$cQuery->where("#folderId = {$rec->folder}");
 			plg_Search::applySearch($word, $cQuery);
-			
+				
 			// Нормализиране на думата
 			$key = $this->normalizeString($word);
 			$r = (object)array('string' => $word, 'count' => $cQuery->count(), 'index' => $key);
-			
-			$data->recs[$key] = $r;
+				
+			$recs[$key] = $r;
 		}
 		
 		// Подреждане по най-срещаните думи
-		arr::order($data->recs, 'count', 'DESC');
+		arr::order($recs, 'count', 'DESC');
 		
-		return $data;
+		return $recs;
 	}
 	
 	
@@ -125,59 +126,27 @@ class doc_reports_SearchInFolder extends frame2_driver_Proto
 	
 	
 	/**
-	 * Връща списъчните полета
+	 * Връща фийлдсета на таблицата, която ще се рендира
 	 *
-	 * @param stdClass $rec  - запис
-	 * @return array $fields - полета
+	 * @param stdClass $rec      - записа
+	 * @param boolean $export    - таблицата за експорт ли е
+	 * @return core_FieldSet     - полетата
 	 */
-	private function getListFields($rec)
+	protected function getTableFieldSet($rec, $export = FALSE)
 	{
-		$fields = array('num'    => "№", 'string' => 'Дума', 'diff'   => 'Нови', 'count'  => 'Резултат',);
-	
-		return $fields;
-	}
-	
-	
-	/**
-	 * Рендиране на данните на справката
-	 *
-	 * @param stdClass $rec - запис на справката
-	 * @return core_ET      - рендирания шаблон
-	 */
-	public function renderData($rec)
-	{
-		$data = $rec->data;
-		$data->rows = array();
-		$oldData = $this->getVersionBeforeData($rec);
-		
-		// Вербализиране на данните
-		$count = 1;
-		if(is_array($data->recs)){
-			foreach ($data->recs as $index => $dRec){
-				$dRec->num = $count;
-				$data->rows[$index] = $this->detailRecToVerbal($rec, $dRec, $oldData);
-				$count++;
-			}
-		}
-		
-		// Редниране на таблицата
 		$fld = cls::get('core_FieldSet');
-		$fld->FLD('num', 'int', 'tdClass=small-field');
-		$fld->FLD('string', 'varchar');
-		$fld->FLD('count', 'int', 'tdClass=small-field');
-		$fld->FLD('diff', 'int', 'tdClass=small-field');
-		
-		$data->listFields = $this->getListFields($rec);
-		$table = cls::get('core_TableView', array('mvc' => $fld));
-		$data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, 'diff');
-		
-		$tpl = new core_ET("");
-		$tpl->append($table->get($data->rows, $data->listFields));
-		$tpl->removeBlocks();
-		$tpl->removePlaces();
-		
-		// Връщане на шаблона
-		return $tpl;
+	
+		if($export === FALSE){
+			$fld->FLD('string', 'varchar', 'caption=Дума');
+			$fld->FLD('diff', 'int', 'caption=Нови,tdClass=small-field');
+			$fld->FLD('count', 'int', 'smartCenter,caption=Резултат,tdClass=small-field');
+		} else {
+			$fld->FLD('string', 'varchar','caption=Дума');
+			$fld->FLD('count', 'int','caption=Резултат');
+			$fld->FLD('diff', 'int','caption=Нови');
+		}
+	
+		return $fld;
 	}
 	
 	
@@ -189,9 +158,13 @@ class doc_reports_SearchInFolder extends frame2_driver_Proto
 	 * @param array $oldData - записа на предишната версия
 	 * @return stdClass $row - вербалния запис
 	 */
-	private function detailRecToVerbal($rec, $dRec, $oldData)
+	protected function detailRecToVerbal($rec, &$dRec)
 	{
 		$isPlain = Mode::is('text', 'plain');
+		if(!isset(self::$versionData[$rec->id])){
+			self::$versionData[$rec->id] = $this->getVersionBeforeData($rec);
+		}
+		$oldData = self::$versionData[$rec->id];
 		
 		$row = new stdClass();
 		$Int = cls::get('type_Int');
@@ -231,46 +204,6 @@ class doc_reports_SearchInFolder extends frame2_driver_Proto
 	
 	
 	/**
-	 * Връща редовете на CSV файл-а
-	 *
-	 * @param stdClass $rec
-	 * @return array
-	 */
-	public function getCsvExportRows($rec)
-	{
-		$exportRows = array();
-		$oldData = $this->getVersionBeforeData($rec);
-		
-		Mode::push('text', 'plain');
-		if(is_array($rec->data->recs)){
-			foreach ($rec->data->recs as $key => $dRec){
-				$exportRows[$key] = $this->detailRecToVerbal($rec, $dRec, $oldData);
-			}
-		}
-		Mode::pop('text');
-	
-		return $exportRows;
-	}
-	
-	
-	/**
-	 * Връща полетата за експортиране във csv
-	 *
-	 * @param stdClass $rec
-	 * @return array
-	 */
-	public function getCsvExportFieldset($rec)
-	{
-		$fieldset = new core_FieldSet();
-		$fieldset->FLD('string', 'varchar','caption=Дума');
-		$fieldset->FLD('count', 'int','caption=Резултат');
-		$fieldset->FLD('diff', 'int','caption=Нови');
-	
-		return $fieldset;
-	}
-	
-	
-	/**
 	 * След рендиране на единичния изглед
 	 *
 	 * @param frame2_driver_Proto $Driver
@@ -278,7 +211,7 @@ class doc_reports_SearchInFolder extends frame2_driver_Proto
 	 * @param core_ET $tpl
 	 * @param stdClass $data
 	 */
-	public static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
+	protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
 	{
 		$row->folder = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folder))->title;
 	}

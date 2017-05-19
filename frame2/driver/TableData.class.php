@@ -106,7 +106,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 		if(is_array($data->recs)){
 			foreach ($data->recs as $index => $dRec){
 				if(isset($data->Pager) && !$data->Pager->isOnPage()) continue;
-				$data->rows[$index] = $this->detailRecToVerbal($dRec);
+				$data->rows[$index] = $this->detailRecToVerbal($rec, $dRec);
 			}
 		}
 		
@@ -189,7 +189,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 		Mode::push('text', 'plain');
 		if(is_array($dRecs)){
 			foreach ($dRecs as $key => $dRec){
-				$exportRows[$key] = $this->detailRecToVerbal($dRec);
+				$exportRows[$key] = $this->detailRecToVerbal($rec, $dRec);
 			}
 		}
 		Mode::pop('text');
@@ -204,7 +204,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 	 * @param stdClass $rec
 	 * @return boolean $res
 	 */
-	public function canSendNotificationOnRefresh($rec)
+	public function canSendNotificationOnRefresh111($rec)
 	{
 		// Намира се последните две версии
 		$query = frame2_ReportVersions::getQuery();
@@ -253,10 +253,11 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 	/**
 	 * Вербализиране на редовете, които ще се показват на текущата страница в отчета
 	 *
+	 * @param stdClass $rec  - записа
 	 * @param stdClass $dRec - чистия запис
 	 * @return stdClass $row - вербалния запис
 	 */
-	protected abstract function detailRecToVerbal(&$dRec);
+	protected abstract function detailRecToVerbal($rec, &$dRec);
 	
 	
 	/**
