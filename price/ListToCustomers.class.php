@@ -338,23 +338,24 @@ class price_ListToCustomers extends core_Manager
         		// Ако драйвера може да върне цена, връщаме нея
         		if($Driver = cat_Products::getDriver($productId)){
         			$price = $Driver->getPrice($productId, $quantity, $deltas->minDelta, $deltas->maxDelta, $datetime, $rate, $chargeVat);
-        			
-        			if(isset($price)){
-        				$newPrice = $price * $rate;
+        			if(isset($price) && $rate > 0){
+        				$newPrice = $price / $rate;
 						if($chargeVat == 'yes'){
 							$vat = cat_Products::getVat($productId, $datetime);
 							$newPrice = $newPrice * (1 + $vat);
 						}
 		
-						$newPrice = round($newPrice, 4);
+					    $newPrice = round($newPrice, 4);
+
 						if($chargeVat == 'yes'){
 							$newPrice = $newPrice / (1 + $vat);
 						}
 		
-						$newPrice /= $rate;
+					    $newPrice *= $rate;
+
         				$rec->price = $newPrice;
         				$rec->price = deals_Helper::getDisplayPrice($rec->price, $vat, $rate, $chargeVat);
-        				
+        		 
         				return $rec;
         			}
         		}
