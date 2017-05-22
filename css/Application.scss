@@ -1410,6 +1410,10 @@ a.tOld {
 	.indent {
 		text-indent: 25px;
 	}
+	.custom-ul {
+		margin-top: 5px;
+		margin-bottom: 5px;
+	}
     h1 {
         margin: 0.5em 0;
         line-height: 1em;
@@ -1673,7 +1677,7 @@ a.tOld {
 .wide .approved {
 	position: absolute;
 	top:7px;
-	left: 2px;
+	right: 2px;
 }
 
 .centered {

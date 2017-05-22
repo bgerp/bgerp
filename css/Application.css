@@ -1238,6 +1238,9 @@ a.tOld {
     line-height: 120%; }
   .document .indent {
     text-indent: 25px; }
+  .document .custom-ul {
+    margin-top: 5px;
+    margin-bottom: 5px; }
   .document h1 {
     margin: 0.5em 0;
     line-height: 1em; }
@@ -1481,7 +1484,7 @@ a.tOld {
 .wide .approved {
   position: absolute;
   top: 7px;
-  left: 2px; }
+  right: 2px; }
 
 .centered {
   text-align: center; }

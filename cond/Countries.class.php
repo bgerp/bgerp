@@ -40,7 +40,7 @@ class cond_Countries extends core_Manager
 	/**
 	 * Плъгини за зареждане
 	 */
-	public $loadList = 'plg_RowTools2,cond_Wrapper,plg_Created,plg_Sorting';
+	public $loadList = 'plg_RowTools2,cond_Wrapper,plg_Created,plg_Sorting,plg_SaveAndNew';
 	
 	
 	/**
@@ -72,9 +72,9 @@ class cond_Countries extends core_Manager
 	 */
 	function description()
 	{
-		$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,removeAndRefreshForm=conditionId,silent,placeholder=Всички държави');
-		$this->FLD('conditionId', 'key(mvc=cond_Parameters,select=name,allowEmpty)', 'input,caption=Условие,mandatory,silent,removeAndRefreshForm=value');
-		$this->FLD('value', 'text', 'caption=Стойност, mandatory');
+		$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,silent,placeholder=Всички държави');
+		$this->FLD('conditionId', 'key(mvc=cond_Parameters,select=name,allowEmpty)', 'input,caption=Условие,mandatory,silent,removeAndRefreshForm=value,remember');
+		$this->FLD('value', 'text', 'caption=Стойност, mandatory,remember');
 		
 		$this->setDbIndex('country,conditionId');
 	}
@@ -91,10 +91,6 @@ class cond_Countries extends core_Manager
 		$form = &$data->form;
 		$rec = $form->rec;
 		
-		if($form->cmd != 'refresh' && empty($rec->id)){
-			$myCompany = crm_Companies::fetchOurCompany();
-			$form->setDefault('country', $myCompany->country);
-		}
 		
 		if($rec->conditionId){
 			if($Type = cond_Parameters::getTypeInstance($rec->conditionId, 'drdata_Countries', $rec->country, $rec->value)){

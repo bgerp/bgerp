@@ -51,6 +51,12 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 	
 	
 	/**
+	 * По-кое поле да се групират листовите данни
+	 */
+	protected $groupByField;
+	
+	
+	/**
 	 * Връща заглавието на отчета
 	 *
 	 * @param stdClass $rec - запис
@@ -75,7 +81,8 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 	public function prepareData($rec)
 	{
 		$data = new stdClass();
-		$data->recs = $this->prepareRecs($rec);
+		$data->recs = $this->prepareRecs($rec, $data);
+		setIfNot($data->groupByField, $this->groupByField);
 		
 		return $data;
 	}
@@ -112,14 +119,14 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 		
 		// Рендиране на пейджъра
 		if(isset($data->Pager)){
-			$tpl->append($data->Pager->getHtml(), 'PAGER_TOP');
-			$tpl->append($data->Pager->getHtml(), 'PAGER_BOTTOM');
+			$tpl->replace($data->Pager->getHtml(), 'PAGER_TOP');
+			$tpl->replace($data->Pager->getHtml(), 'PAGER_BOTTOM');
 		}
 	
 		// Рендиране на лист таблицата
 		$fld = $this->getTableFieldSet($rec);
 		$table = cls::get('core_TableView', array('mvc' => $fld));
-	
+		
 		// Показване на тагове
 		if(core_Packs::isInstalled('uiext')){
 			uiext_Labels::showLabels($this, $rec->containerId, $data->recs, $data->rows, $data->listFields, $this->hashField, 'Таг', $tpl, $fld);
@@ -127,14 +134,84 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 
 		$filterFields = arr::make($this->filterEmptyListFields, TRUE);
 		$filterFields['_tagField'] = '_tagField';
+		
+		if(isset($data->groupByField)){
+			$this->groupRows($data->recs, $data->rows, $data->listFields, $data->groupByField);
+			
+			
+			$filterFields[$data->groupByField] = $data->groupByField;
+			
+		}
+		
 		$data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, implode(',', $filterFields));
 	
 		$tpl->append($table->get($data->rows, $data->listFields), 'TABLE');
 		$tpl->removeBlocks();
 		$tpl->removePlaces();
-	
+		
 		// Връщане на шаблона
 		return $tpl;
+	}
+	
+	
+	/**
+	 * След рендиране на единичния изглед
+	 *
+	 * @param cat_ProductDriver $Driver
+	 * @param embed_Manager $Embedder
+	 * @param core_ET $tpl
+	 * @param stdClass $data
+	 */
+	protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
+	{
+		uiext_Labels::enable($tpl);
+	}
+	
+	
+	/**
+	 * Групира записите по поле
+	 * 
+	 * @param array $recs
+	 * @param array $rows
+	 * @param array $listFields
+	 */
+	protected function groupRows($recs, &$rows, $listFields, $field)
+	{
+		if(!count($rows)) return;
+		$columns = count($listFields);
+		
+		$groups = array();
+		foreach ($rows as $index => $row){
+			$groups[$recs[$index]->{$field}] = $row->{$field};
+		}
+		
+		$newRows = $rowAttr = array();
+		$rowAttr['class'] = ' group-by-field-row';
+		foreach ($groups as $groupId => $groupVerbal){
+			$groupVerbal = ($groupVerbal instanceof core_ET) ? $groupVerbal->getContent() : $groupVerbal;
+			$groupVerbal = $groupVerbal;
+			$groupVerbal = "<td style='padding-top:9px;padding-left:5px;' colspan='{$columns}'><b>" . $groupVerbal . "</b></td>";
+			
+			$newRows['|' . $groupId] = ht::createElement('tr', $rowAttr, $groupVerbal);
+			$newRows['|' . $groupId]->removeBlocks();
+			$newRows['|' . $groupId]->removePlaces();
+			
+			// За всички записи
+			foreach ($rows as $index => $row1){
+				$r = $recs[$index];
+				if($r->{$field} == $groupId){
+					unset($rows[$index]->{$field});
+					if(is_object($rows[$index])){
+						$newRows[$index] = clone $rows[$index];
+							
+						// Веднъж групирано, премахваме записа от старите записи
+						unset($rows[$index]);
+					}
+				}
+			}
+		}
+		
+		$rows = $newRows;
 	}
 	
 	
@@ -245,9 +322,10 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 	 * Кои записи ще се показват в таблицата
 	 * 
 	 * @param stdClass $rec
+	 * @param stdClass $data
 	 * @return array
 	 */
-	protected abstract function prepareRecs($rec);
+	protected abstract function prepareRecs($rec, &$data = NULL);
 	
 	
 	/**

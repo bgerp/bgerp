@@ -158,11 +158,11 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 		if(!array_key_exists($key, self::$contragentNames)){
 			self::$contragentNames[$key] = cls::get($dRec->contragentClassId)->getShortHyperlink($dRec->contragentId);
 		}
-		$row->contragent = self::$contragentNames[$key];
+		$row->contragentName = self::$contragentNames[$key];
 		if($isPlain){
-			$row->contragent = strip_tags($row->contragent);
-			$row->contragent = str_replace('&nbsp;', ' ', $row->contragent);
-			$row->contragent = str_replace(';', '', $row->contragent);
+			$row->contragentName = strip_tags($row->contragentName);
+			$row->contragentName = str_replace('&nbsp;', ' ', $row->contragentName);
+			$row->contragentName = str_replace(';', '', $row->contragentName);
 		}
 		
 		// Линк към документа
@@ -293,11 +293,12 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 	
 	/**
 	 * Кои записи ще се показват в таблицата
-	 *
+	 * 
 	 * @param stdClass $rec
+	 * @param stdClass $data
 	 * @return array
 	 */
-	protected function prepareRecs($rec)
+	protected function prepareRecs($rec, &$data = NULL)
 	{
 		$recs = array();
 		
@@ -401,7 +402,8 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 		
 		// Ако е избрано филтриране по контрагенти
 		if($rec->orderBy == 'contragents'){
-				
+			$data->groupByField = 'contragentName';
+			
 			// Първо се сортират по нормализираните имена на контрагентите, след това по готовността
 			usort($recs, function($a, $b) {
 				if($a->contragentName == $b->contragentName){
@@ -448,14 +450,14 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 		
 		if($export === FALSE){
 			$fld->FLD('dealerId', 'varchar', 'smartCenter,caption=Търговец');
-			$fld->FLD('contragent', 'varchar', 'caption=Клиент');
+			$fld->FLD('contragentName', 'varchar', 'caption=Клиент');
 			$fld->FLD('dueDates', 'varchar', 'smartCenter,tdClass=small,caption=Падеж');
 			$fld->FLD('deliveryTime', 'varchar', 'smartCenter,tdClass=small,caption=Доставка');
 			$fld->FLD('document', 'varchar', 'smartCenter,caption=Документ');
 			$fld->FLD('readiness', 'double', 'caption=Готовност');
 		} else {
 			$fld->FLD('dealerId', 'varchar','caption=Търговец');
-			$fld->FLD('contragent', 'varchar','caption=Клиент');
+			$fld->FLD('contragentName', 'varchar','caption=Клиент');
 			$fld->FLD('dueDateMin', 'varchar','caption=Падеж мин');
 			$fld->FLD('dueDateMax', 'varchar','caption=Падеж макс');
 			$fld->FLD('deliveryTime', 'varchar','caption=Доставка');

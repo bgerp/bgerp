@@ -211,7 +211,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
                     
                     if(array_key_exists($index, $data->recs) && $data->recs[$index]->sal != $rec->saleId) {
                         $obj = &$data->recs[$index]; 
-                        $obj->articleCnt += $q;
+                        $obj->articleCnt += $quantity * $propQuantity;
                    }
                 } 
             }
@@ -271,11 +271,13 @@ class cat_reports_BomsRep extends frame_BaseDriver
             }
         }
         
-        if(is_array($data->recs)) {
+        if(is_array($data->recs) && isset($fRec->groupId)) {
             foreach($data->recs as $rI=>$rC){
                 foreach($rC->materials as $mat) {
                     if(strpos(cat_Products::fetchField($mat,'groups'),$fRec->groupId) == FALSE) {
                         unset($data->recs[$rI]->materials[$mat]);
+                        unset($data->recs[$rI]->mCnt[$mat]);
+                        unset($data->recs[$rI]->mParams[$mat]);
                     }
                 }
      
