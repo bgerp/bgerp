@@ -298,7 +298,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 	 * @param stdClass $data
 	 * @return array
 	 */
-	protected function prepareRecs($rec, $data = NULL)
+	protected function prepareRecs($rec, &$data = NULL)
 	{
 		$recs = array();
 		
