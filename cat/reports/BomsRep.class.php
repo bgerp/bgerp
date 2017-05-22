@@ -271,7 +271,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
             }
         }
         
-        if(is_array($data->recs)) {
+        if(is_array($data->recs) && isset($fRec->groupId)) {
             foreach($data->recs as $rI=>$rC){
                 foreach($rC->materials as $mat) {
                     if(strpos(cat_Products::fetchField($mat,'groups'),$fRec->groupId) == FALSE) {
