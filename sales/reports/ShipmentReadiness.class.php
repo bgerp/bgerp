@@ -93,7 +93,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 	 * @param embed_Manager $Embedder
 	 * @param stdClass $data
 	 */
-	public static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
+	protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
 	{
 		$form = &$data->form;
 		
@@ -133,10 +133,11 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 	/**
 	 * Вербализиране на редовете, които ще се показват на текущата страница в отчета
 	 *
+	 * @param stdClass $rec  - записа
 	 * @param stdClass $dRec - чистия запис
 	 * @return stdClass $row - вербалния запис
 	 */
-	protected function detailRecToVerbal(&$dRec)
+	protected function detailRecToVerbal($rec, &$dRec)
 	{
 		$isPlain = Mode::is('text', 'plain');
 		$row = new stdClass();
@@ -230,7 +231,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 	 * @param core_ET $tpl
 	 * @param stdClass $data
 	 */
-	public static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
+	protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
 	{
 		if(isset($rec->precision) && $rec->precision != 1){
 			$row->precision .= " " . tr('+');
@@ -256,7 +257,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 	 * @param core_ET $tpl
 	 * @param stdClass $data
 	 */
-	public static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
+	protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
 	{
 		$fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>

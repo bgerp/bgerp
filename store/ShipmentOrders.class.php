@@ -656,4 +656,23 @@ class store_ShipmentOrders extends store_DocumentMaster
     	 
     	return $count;
     }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        if (($action == 'asclient') && $rec) {
+            if (!trim($rec->company) && !trim($rec->person) && !$rec->country) {
+                $requiredRoles = 'no_one';
+            }
+        }
+    }
 }
