@@ -1499,7 +1499,16 @@ a.tOld {
 		padding:3px !important ;
 		border:0px !important;
 	}
+	.reportHolder {
+		td {
+			vertical-align: middle !important;
+		}
+		.group-by-field-row td {
+			padding: 5px !important;
+		}
 
+
+	}
 }
 
 .small-padding td {

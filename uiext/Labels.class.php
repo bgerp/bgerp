@@ -178,7 +178,7 @@ class uiext_Labels extends core_Manager
     {
     	if(!is_array($rows)) return;
     	if(Mode::isReadOnly() || Mode::is('blank')) return;
-    	$fieldset->FLD('_tagField', 'varchar', 'tdClass=tagColumn');
+    	$fieldset->FLD('_tagField', 'varchar', 'tdClass=tagColumn small-field');
     	
     	$listFields = arr::make($listFields, TRUE);
     	$listFields['_tagField'] = $colName;
