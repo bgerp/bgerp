@@ -82,11 +82,12 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
 	
 	/**
 	 * Кои записи ще се показват в таблицата
-	 *
+	 * 
 	 * @param stdClass $rec
+	 * @param stdClass $data
 	 * @return array
 	 */
-	protected function prepareRecs($rec)
+	protected function prepareRecs($rec, $data = NULL)
 	{
 		$recs = array();
 		

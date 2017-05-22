@@ -51,6 +51,12 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 	
 	
 	/**
+	 * По-кое поле да се групират листовите данни
+	 */
+	protected $groupByField;
+	
+	
+	/**
 	 * Връща заглавието на отчета
 	 *
 	 * @param stdClass $rec - запис
@@ -75,7 +81,8 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 	public function prepareData($rec)
 	{
 		$data = new stdClass();
-		$data->recs = $this->prepareRecs($rec);
+		$data->recs = $this->prepareRecs($rec, $data);
+		setIfNot($data->groupByField, $this->groupByField);
 		
 		return $data;
 	}
@@ -313,9 +320,10 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 	 * Кои записи ще се показват в таблицата
 	 * 
 	 * @param stdClass $rec
+	 * @param stdClass $data
 	 * @return array
 	 */
-	protected abstract function prepareRecs($rec);
+	protected abstract function prepareRecs($rec, $data = NULL);
 	
 	
 	/**
