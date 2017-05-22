@@ -153,7 +153,6 @@ class cat_reports_BomsRep extends frame_BaseDriver
                 $queryDetail->where("#bomId = '{$bomId}'");
 
                 while($recDetail = $queryDetail->fetch()) { 
-                   
 
                     $index = $recDetail->resourceId;
 
@@ -186,8 +185,16 @@ class cat_reports_BomsRep extends frame_BaseDriver
                                         'bomId'=> $bomId
                                     );
                                 }
-                            };
+                            }
+                            
+                            if(array_key_exists($index, $data->recs) && $data->recs[$index]->sal != $rec->saleId) {
+                                $obj = &$data->recs[$index];
+                                
+                                    $obj->articleCnt += $q;
+                      
+                            }
                         }
+                        
                     } else { 
                         if(!array_key_exists($index, $data->recs)){ 
                         
@@ -204,15 +211,15 @@ class cat_reports_BomsRep extends frame_BaseDriver
                                     'bomId'=> $bomId
                                 );
                             }
-                        };
+                        }
+                        
+                        if(array_key_exists($index, $data->recs) && $data->recs[$index]->sal != $rec->saleId) {
+                            $divideBy = cat_Boms::fetchField($bomId,'quantity');
+                            $obj = &$data->recs[$index];
+                            $obj->articleCnt += ($quantity * $propQuantity)/$divideBy;
+                           
+                        }
                     }
-                    
-                    
-                    
-                    if(array_key_exists($index, $data->recs) && $data->recs[$index]->sal != $rec->saleId) {
-                        $obj = &$data->recs[$index]; 
-                        $obj->articleCnt += $quantity * $propQuantity;
-                   }
                 } 
             }
         }
@@ -242,7 +249,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
                 $data->recs[$id]->mParams = array();
                 foreach($val as $mat=>$matVal) { 
                     $data->recs[$id]->materials[$matVal['productId']] = $matVal['productId'];
-                    $data->recs[$id]->mCnt[$matVal['productId']] = $matVal['quantity'];
+                    $data->recs[$id]->mCnt[$matVal['productId']] = $matVal['quantity'] * $data->recs[$id]->articleCnt;
                     $data->recs[$id]->mParams[$matVal['productId']] = key(cat_Products::getPacks($matVal['productId']));   
                 }      
             }
