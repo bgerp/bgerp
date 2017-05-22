@@ -211,7 +211,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
                     
                     if(array_key_exists($index, $data->recs) && $data->recs[$index]->sal != $rec->saleId) {
                         $obj = &$data->recs[$index]; 
-                        $obj->articleCnt += $q;
+                        $obj->articleCnt += $quantity * $propQuantity;
                    }
                 } 
             }
