@@ -263,7 +263,7 @@ class cal_Tasks extends core_Master
         $this->FLD('sharedUsers', 'userList', 'caption=Споделяне,changable');
         
         // Отговорноици
-        $this->FLD('assign', 'user(role=powerUser,allowEmpty)', 'caption=Възложено на,changable,input=none');
+        $this->FLD('assign', 'user(role=powerUser,allowEmpty)', 'caption=Възложено на,changable');
 
         // Начало на задачата
         $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00, format=smartTime)',
@@ -2560,8 +2560,13 @@ class cal_Tasks extends core_Master
         	unset($resArr['expectationTimeEnd']);
         }
 
-        if ($row->assign) {
-            $resArr['assign'] =  array('name' => tr('Възложено'), 'val' => tr('на') . " [#assign#] " . tr('от') . " [#assignedBy#] " . tr('в') . " [#assignedOn#]");
+        if ($row->assign) { 
+            
+            if($rec->assign && $rec->assignedBy) {
+                $resArr['assign'] =  array('name' => tr('Възложено'), 'val' => tr('на') . " [#assign#] " . tr('от') . " [#assignedBy#] " . tr('в') . " [#assignedOn#]");
+            } else {
+                $resArr['assign'] =  array('name' => tr('Възложено'), 'val' => tr('на') . " [#assign#] " . tr('от') . " [#createdBy#] " . tr('в') . " [#createdOn#]");
+            }
         }
     }
     
