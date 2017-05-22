@@ -158,11 +158,11 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 		if(!array_key_exists($key, self::$contragentNames)){
 			self::$contragentNames[$key] = cls::get($dRec->contragentClassId)->getShortHyperlink($dRec->contragentId);
 		}
-		$row->contragent = self::$contragentNames[$key];
+		$row->contragentName = self::$contragentNames[$key];
 		if($isPlain){
-			$row->contragent = strip_tags($row->contragent);
-			$row->contragent = str_replace('&nbsp;', ' ', $row->contragent);
-			$row->contragent = str_replace(';', '', $row->contragent);
+			$row->contragentName = strip_tags($row->contragentName);
+			$row->contragentName = str_replace('&nbsp;', ' ', $row->contragentName);
+			$row->contragentName = str_replace(';', '', $row->contragentName);
 		}
 		
 		// Линк към документа
@@ -448,14 +448,14 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 		
 		if($export === FALSE){
 			$fld->FLD('dealerId', 'varchar', 'smartCenter,caption=Търговец');
-			$fld->FLD('contragent', 'varchar', 'caption=Клиент');
+			$fld->FLD('contragentName', 'varchar', 'caption=Клиент');
 			$fld->FLD('dueDates', 'varchar', 'smartCenter,tdClass=small,caption=Падеж');
 			$fld->FLD('deliveryTime', 'varchar', 'smartCenter,tdClass=small,caption=Доставка');
 			$fld->FLD('document', 'varchar', 'smartCenter,caption=Документ');
 			$fld->FLD('readiness', 'double', 'caption=Готовност');
 		} else {
 			$fld->FLD('dealerId', 'varchar','caption=Търговец');
-			$fld->FLD('contragent', 'varchar','caption=Клиент');
+			$fld->FLD('contragentName', 'varchar','caption=Клиент');
 			$fld->FLD('dueDateMin', 'varchar','caption=Падеж мин');
 			$fld->FLD('dueDateMax', 'varchar','caption=Падеж макс');
 			$fld->FLD('deliveryTime', 'varchar','caption=Доставка');
