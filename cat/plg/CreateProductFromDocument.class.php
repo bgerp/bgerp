@@ -347,6 +347,9 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 					}
 				}
 				
+				$dRec->quantity = deals_Helper::getDefaultPackQuantity($productId, $pRec->measureId);
+				$dRec->quantity = ($dRec->quantity) ? $dRec->quantity : 1;
+				
 				$fields = ($mvc instanceof sales_QuotationsDetails) ? array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId') : array();
 				tcost_Calcs::prepareFee($dRec, $form, $masterRec, $fields);
 			
