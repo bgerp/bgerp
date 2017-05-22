@@ -135,9 +135,12 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 		$filterFields = arr::make($this->filterEmptyListFields, TRUE);
 		$filterFields['_tagField'] = '_tagField';
 		
-		if(isset($this->groupByField)){
-			$this->groupRows($data->recs, $data->rows, $data->listFields);
-			$filterFields[$this->groupByField] = $this->groupByField;
+		if(isset($data->groupByField)){
+			$this->groupRows($data->recs, $data->rows, $data->listFields, $data->groupByField);
+			
+			
+			$filterFields[$data->groupByField] = $data->groupByField;
+			
 		}
 		
 		$data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, implode(',', $filterFields));
@@ -172,11 +175,10 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 	 * @param array $rows
 	 * @param array $listFields
 	 */
-	protected function groupRows($recs, &$rows, $listFields)
+	protected function groupRows($recs, &$rows, $listFields, $field)
 	{
 		if(!count($rows)) return;
 		$columns = count($listFields);
-		$field = $this->groupByField;
 		
 		$groups = array();
 		foreach ($rows as $index => $row){

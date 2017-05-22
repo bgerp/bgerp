@@ -402,7 +402,8 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 		
 		// Ако е избрано филтриране по контрагенти
 		if($rec->orderBy == 'contragents'){
-				
+			$data->groupByField = 'contragentName';
+			
 			// Първо се сортират по нормализираните имена на контрагентите, след това по готовността
 			usort($recs, function($a, $b) {
 				if($a->contragentName == $b->contragentName){
