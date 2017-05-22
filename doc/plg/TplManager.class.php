@@ -271,7 +271,7 @@ class doc_plg_TplManager extends core_Plugin
     	// Добавяме бланките
     	if (Request::get('asClient')) {
     	    
-    	    $companyName = strip_tags($data->row->inlineContragentName);
+    	    $companyName = $data->row->inlineContragentName;
     	    
     	    if ($companyName) {
 	            $params = array(
