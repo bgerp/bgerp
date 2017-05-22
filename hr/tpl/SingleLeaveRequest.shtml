@@ -1,4 +1,5 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+
 <!--ET_BEGIN activatedBy-->
 <div style="position: relative">
     <div class="stamp approved">
@@ -9,28 +10,31 @@
         </div>
     </div>
 </div>
-<!--ET_END activatedBy-->
-<h3 class="centered" style="font-size:16pt">|М О Л Б А|* </h3>
-<p class="centered">№ [#id#] / [#createdDate#] |г|*.</p>
 
-<table class="no-border-table" style="margin-top: 25px;">
+<!--ET_END activatedBy-->
+<table class="no-border-table" style="margin-top: 5px;">
     <tr>
         <td class="fright">|От|*:</td>
         <td><b>[#personId#]</b></td>
     </tr>
     <tr>
         <td class="fright">|Относно|*:</td>
-        <td ><b>|ползване на|* <b>[#paid#]</b> |годишен отпуск|*</b></td>
+        <td ><b>|Ползване на|* <b>[#paid#]</b> |годишен отпуск|*</b></td>
+    </tr>
+    <tr>
+        <td class="fright">|До|*:</td>
+        <td><b>|Управителя на|* [#myCompany#]</b></td>
     </tr>
 </table>
 <br>
-<p>|До Управителя на|* [#myCompany#],</p>
-<p>|Моля, да ми бъде разрешен|* <b>[#leaveDays#]</b> |дневен|* <b>[#paid#]</b> |отпуск|*<!--ET_BEGIN useDaysFromYear--> |за|* [#useDaysFromYear#] |г|*.<!--ET_END useDaysFromYear-->, |считано от|* <b>[#leaveFrom#] |г|.<!--ET_BEGIN fromHour--> [#fromHour#]|ч|.<!--ET_END fromHour--></b> |до|* <b>[#leaveTo#]|г.|*<!--ET_BEGIN toHour--> [#toHour#] |ч.|*<!--ET_END toHour--></b>| включително|*.</p>
-<br>
-<!--ET_BEGIN note-->
-<div class="richtext-holder" style="margin-bottom: 10px;">|Бележки|*: [#note#] </div>
-<br>
-<!--ET_END note-->
+
+<h3 class="centered" style="font-size:16pt">|М О Л Б А|* </h3>
+<p class="centered">№ [#id#] / [#createdDate#] |г|*.</p>
+
+<br><br>
+
+<p class="indent">|Моля, да ми бъде разрешен|* <b>[#leaveDays#]</b> |дневен|* <b>[#paid#]</b> |отпуск|*<!--ET_BEGIN useDaysFromYear--> |за|* [#useDaysFromYear#] |г|*.<!--ET_END useDaysFromYear-->, |считано от|* <b>[#leaveFrom#] |г|.<!--ET_BEGIN fromHour--> [#fromHour#]|ч|.<!--ET_END fromHour--></b> |до|* <b>[#leaveTo#]|г.|*<!--ET_BEGIN toHour--> [#toHour#] |ч.|*<!--ET_END toHour--></b>| включително|*.</p>
+
 <p>|По време на отсъствието|*:</p>
 <ul class='custom-ul'>
     <li>|Ще отговарям на мобилен телефон|*: <b>[#answerGSM#]</b></li>
@@ -39,6 +43,9 @@
     <li>|Ще ме замества|*: <b>[#alternatePerson#]</b></li>
     <!--ET_END alternatePerson-->
 </ul>
+<!--ET_BEGIN note-->
+<div class="richtext-holder indent" style="margin-bottom: 10px;">|Бележки|*: [#note#] </div>
+<!--ET_END note-->
 <br><br>
 
 <table style='width:100%;'>
