@@ -929,7 +929,7 @@ class sales_Sales extends deals_DealMaster
     	if(!isset($data->tabs)) return;
     	$url = getCurrentUrl();
     	
-    	if(haveRole('ceo,planning,sales,store')){
+    	if(haveRole('ceo,planning,sales,store,job')){
     		$manifacturable = static::getManifacurableProducts($data->rec);
     		if(count($manifacturable)){
     			$url['dealTab'] = 'JobsInfo';
@@ -978,7 +978,7 @@ class sales_Sales extends deals_DealMaster
     protected function renderJobsInfo(&$tpl, $data)
     {
     	// Ако има подготвена информация за наличните задания, рендираме я
-    	if($data->tabs->hasTab('JobsInfo') && haveRole('ceo,planning,sales,store')){
+    	if($data->tabs->hasTab('JobsInfo') && haveRole('ceo,planning,sales,store,job')){
     		
     		$Jobs = cls::get('planning_Jobs');
     		$table = cls::get('core_TableView', array('mvc' => $Jobs));
