@@ -1310,6 +1310,10 @@ a.tOld {
   .document .business-doc-summary-table > tbody > tr > td {
     padding: 3px !important;
     border: 0px !important; }
+    .document .reportHolder td {
+      vertical-align: middle !important; }
+    .document .reportHolder .group-by-field-row td {
+      padding: 5px !important; }
 
 .small-padding td {
   padding: 3px !important; }
