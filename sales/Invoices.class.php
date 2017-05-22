@@ -542,7 +542,9 @@ class sales_Invoices extends deals_InvoiceMaster
     	$makeHint = FALSE;
     	
     	if($rec->paymentType == 'factoring'){
-    		$row->accountId = 'ФАКТОРИНГ';
+    		$row->accountId = tr('ФАКТОРИНГ');
+    		unset($row->bank);
+    		unset($row->bic);
     	}
     	
     	if(empty($rec->paymentType)){
@@ -768,7 +770,7 @@ class sales_Invoices extends deals_InvoiceMaster
    		$conf = core_Packs::getConfig('sales');
    		if($conf->SALE_INV_HAS_FISC_PRINTERS == 'yes'){
    			$data->listFields['paymentType'] = 'Плащане';
-   			$data->listFilter->FNC('payType', 'enum(all=Всички,cash=В брой,bank=По банка,intercept=С прихващане,card=С карта)', 'caption=Начин на плащане,input');
+   			$data->listFilter->FNC('payType', 'enum(all=Всички,cash=В брой,bank=По банка,intercept=С прихващане,card=С карта,factoring=Факторинг)', 'caption=Начин на плащане,input');
    			$data->listFilter->showFields .= ",payType";
    		}
    		$data->listFilter->showFields .= ',invType';

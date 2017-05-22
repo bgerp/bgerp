@@ -31,7 +31,7 @@ class core_SpellNumber
         $l = strlen($text);
         
         if ($i >= 3) {
-            if (substr($text, $i - 2, 2) != " и")
+            if (substr($text, $i - 3, 3) != " и")
             $text = substr($text, 0, $i) . " и" . substr($text, $i, $l - $i);
         }
         
@@ -39,20 +39,18 @@ class core_SpellNumber
     }
     
     
-    /**
-     * @todo Чака за документация...
-     */
+   /**
+    * @access private
+    * @param int $d1 десетична цифра
+    * @param int $d2 десетична цифра
+    * @param int $d3 десетична цифра
+    * @param string $G род
+    * @return string Словесната форма за числото образувано от цифрите в указания род
+    */
     function dig2Text($d2, $d1, $d0, $g = "n")
     {
-        
-        /**
-         * @access private
-         * @param int $d1 десетична цифра
-         * @param int $d2 десетична цифра
-         * @param int $d3 десетична цифра
-         * @param string $G род
-         * @return string Словесната форма за числото образувано от цифрите в указания род
-         */
+        $text = NULL;
+
         switch ($d2) {
             case 1 : {
                     $text .= "сто";

@@ -1922,7 +1922,9 @@ class email_Outgoings extends core_Master
         if (!$contragentDataHeader['hello']) {
             if($contragentData->person) {
                 $contragentDataHeader['hello'] = tr('Здравейте') . ',';
-                $contragentDataHeader['lastChar'] = '!';
+                if (core_Lg::getCurrent() == 'bg') {
+                    $contragentDataHeader['lastChar'] = '!';
+                }
             } else {
                 $contragentDataHeader['hello'] = tr('Уважаеми колеги');
             }

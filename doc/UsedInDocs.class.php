@@ -102,7 +102,7 @@ class doc_UsedInDocs extends core_Manager
      * @param integer|NULL $userId
      * @param NULL|string $type
      * 
-     * @param string $type
+     * @return NULL|array $type
      */
     public static function getObjectVals($cId, $userId, $type = NULL)
     {

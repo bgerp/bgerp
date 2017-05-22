@@ -61,11 +61,6 @@ class core_RowToolbar extends core_BaseClass
     {
         $params = arr::combine($params, $moreParams);
         
-        if($params['target']) {
-            $btn->newWindow = $params['target'];
-            unset($params['target']);
-        }
-        
         if($params['warning']) {
             $btn->warning = $params['warning'];
             unset($params['warning']);

@@ -143,9 +143,14 @@ class cat_products_Packagings extends core_Detail
             
             // Ако няма въведено нето тегло, взима се от артикула
             if(empty($rec->netWeight)){
-            	if($transportWeight = cat_Products::getParams($rec->productId, 'transportWeight')){
-            		$totalTransportWeight = $transportWeight * $rec->quantity;
-            		$form->rec->netWeight = $totalTransportWeight;
+            	$weightKg = cat_Products::getParams($rec->productId, 'weightKg');
+            	$weightGr = cat_Products::getParams($rec->productId, 'weight');
+            	
+            	$netWeight = ($weightKg) ? $weightKg : (($weightGr) ? ($weightGr / 1000): NULL);
+            	
+            	if(!empty($netWeight)){
+            		$netWeight = $netWeight * $rec->quantity;
+            		$form->rec->netWeight = $netWeight;
             	}
             }
         }

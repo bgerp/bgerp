@@ -408,7 +408,7 @@ class frame2_Reports extends embed_Manager
     	
     	// Рендиране на данните
     	if($Driver = $mvc->getDriver($rec)){
-    		$tpl->append($Driver->renderData($rec), 'DRIVER_DATA');
+    		$tpl->replace($Driver->renderData($rec)->getContent(), 'DRIVER_DATA');
     	}
     	
     	// Връщане на оригиналния рек ако е пушнат
