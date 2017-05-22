@@ -323,7 +323,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 	 * @param stdClass $data
 	 * @return array
 	 */
-	protected abstract function prepareRecs($rec, $data = NULL);
+	protected abstract function prepareRecs($rec, &$data = NULL);
 	
 	
 	/**
