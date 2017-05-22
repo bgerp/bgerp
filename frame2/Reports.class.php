@@ -445,7 +445,7 @@ class frame2_Reports extends embed_Manager
     	
     	// Ако има драйвер
     	if($Driver = self::getDriver($rec)){
-    		$me = self::getSingleton();
+    		$me = cls::get(get_called_class());
     		
     		// Опресняват се данните му
     		$rec->data = $Driver->prepareData($rec);
