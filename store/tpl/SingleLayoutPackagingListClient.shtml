@@ -2,10 +2,11 @@
     [#blankClient#]
 	<table style="width: 100%; margin-bottom:5px;">
 	    <tr>
-	        <td class='blankImage'>
-	            <!--ET_BEGIN blankImage-->
-	            [#blankImageClient#]
-	            <!--ET_END blankImage-->
+	        <td>
+                <div style="position:relative;width: 750px;height:87px;">
+                    <div style="position: absolute; top: 20px; left: 10px; font-size: 34px; font-weight: bold">[#inlineContragentName#]</div>
+                    <div style="position: absolute; top: 60px; left: 10px; font-size: 20px;">[#inlineContragentAddress#]</div>
+                </div>
 	        </td>
 	        <td class='qrcode aright vbottom'>
 	            <!--ET_BEGIN blankQr-->
@@ -47,10 +48,7 @@
                             Contact person: [#person#], [#tel#]
                         </div>
                         <!--ET_END person-->
-
                     </div>
-
-
                 </td>
                 <td class="cell">
                     <b>[#contragentName#]</b>
@@ -130,14 +128,9 @@
                         </tr>
                         <tr>
                             <td class='centered' style='border-right:1px solid #999'> <span class="sign_names">[#responsible#]</span></td>
-                            <td class='nowrap centared'><span class="sign_names">[#username#]</span></td>
+                            <td class='nowrap centared'><span class="sign_names">ERP System</span></td>
                         </tr>
                     </table>
-                </td>
-            </tr>
-            <tr class='footerDocInfo'>
-                <td colspan="2">
-                     <div class='aright'>This document is created by <b><a href='http://bgerp.com'>bgERP</a></b></div>
                 </td>
             </tr>
         </tbody>

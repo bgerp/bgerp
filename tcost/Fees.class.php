@@ -191,7 +191,7 @@ class tcost_Fees extends core_Detail
                 $biggestWeight = $rec->weight;
             }
             if($rec->weight >= $weightsLeft && $rec->weight <= $totalWeight){
-              $weightsLeft = $rec->weight;
+                $weightsLeft = $rec->weight;
             }
             if ($rec->weight <= $weightsRight && $rec->weight >= $totalWeight) {
                 $weightsRight = $rec->weight;
@@ -244,6 +244,10 @@ class tcost_Fees extends core_Detail
             $weightsRight = floatval($weightsRight);
             $priceLeft = floatval($arrayOfWeightPrice[$weightsLeft]);
             $priceRight = floatval($arrayOfWeightPrice[$weightsRight]);
+
+            if($weightsLeft == 0) {
+                $priceLeft = $priceRight;
+            }
 
             $delimiter = $weightsLeft - $weightsRight;
             if(!$delimiter) return tcost_CostCalcIntf::CALC_ERROR;

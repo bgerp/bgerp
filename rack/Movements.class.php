@@ -120,7 +120,7 @@ class rack_Movements extends core_Manager
         
         $this->FLD('state', 'enum(pending=Чакащо, active=Активно, closed=Приключено)', 'caption=Състояние,smartCenter,input=hidden');
         $this->FLD('workerId', 'user(roles=storeWorker,ceo)', 'caption=Товарач,smartCenter');
-        $this->FNC('created', 'varchar(64)', 'caption=Създаване,smartCenter');
+        $this->FNC('created', 'varchar(64)', 'caption=Създаване,tdClass=small-field nowrap');
 
         $this->FLD('note', 'varchar(64)', 'caption=Забележка,column=none');
     }

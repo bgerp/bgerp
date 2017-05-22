@@ -979,7 +979,13 @@ class sales_Quotations extends core_Master
     	);
     	
     	// Създаваме нова продажба от офертата
-    	return sales_Sales::createNewDraft($rec->contragentClassId, $rec->contragentId, $fields);
+    	$saleId = sales_Sales::createNewDraft($rec->contragentClassId, $rec->contragentId, $fields);
+    	if(isset($rec->bankAccountId)){
+    		$uRec = (object)array('id' => $saleId, 'bankAccountId' => bank_OwnAccounts::fetchField($rec->bankAccountId, 'bankAccountId'));
+    		cls::get('sales_Sales')->save_($uRec);
+    	}
+    	
+    	return $saleId;
     }
     
     
