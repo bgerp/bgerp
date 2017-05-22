@@ -4,8 +4,8 @@
 	    <tr>
 	        <td>
                 <div style="position:relative;width: 750px;height:87px;">
-                    <div style="position: absolute; top: 20px; left: 10px; font-size: 34px; font-weight: bold">[#contragentName#]</div>
-                    <div style="position: absolute; top: 60px; left: 10px; font-size: 20px;">[#supplierAddress#]</div>
+                    <div style="position: absolute; top: 20px; left: 10px; font-size: 34px; font-weight: bold">[#inlineContragentName#]</div>
+                    <div style="position: absolute; top: 60px; left: 10px; font-size: 20px;">[#inlineContragentAddress#]</div>
                 </div>
 	        </td>
 	        <td class='qrcode aright vbottom'>

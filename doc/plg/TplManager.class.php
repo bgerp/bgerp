@@ -271,53 +271,24 @@ class doc_plg_TplManager extends core_Plugin
     	// Добавяме бланките
     	if (Request::get('asClient')) {
     	    
-    	    $companyName = strip_tags($data->row->contragentName);
-    	    $companyObj = $mvc->getCompanyLogoVals($data);
+    	    $companyName = strip_tags($data->row->inlineContragentName);
     	    
-    	    if ($companyObj && $companyObj->company) {
-    	        
-    	        core_Lg::push('en');
-    	        $fileHnd = crm_Companies::getCompanyLogoHnd($companyObj->company . 'Tpl', $companyObj);
-    	        core_Lg::pop();
-    	        	
-    	        if ($fileHnd) {
-    	            $thumb = new thumb_Img(array($fileHnd, 750, 87, 'fileman', 'isAbsolute' => TRUE, 'mode' => 'small-no-change', 'verbalName' => 'companyLogTpl'));
-    	            $data->row->blankImageClient = "<img src='" . $thumb->getUrl() . "' alt='Logo'  width='750' height='87'>";
-    	             
-    	            $params = array(
-    	                    'pixelPerPoint' => 6,
-    	                    'outFileName' => NULL,
-    	                    'quality' => 'L',
-    	                    'outerFrame' => 0,
-    	                    'absolute' => TRUE,
-    	            );
-    	            
-    	            try {
-    	                $data->row->blankQrClient = barcode_Generator::getLink('qr', $companyObj->company, array('width'=> 87, 'height' => 87), $params);
-    	            } catch (Exception $e) {
-    	                reportException($e);
-    	            }
-    	        }
+    	    if ($companyName) {
+	            $params = array(
+	                    'pixelPerPoint' => 6,
+	                    'outFileName' => NULL,
+	                    'quality' => 'L',
+	                    'outerFrame' => 0,
+	                    'absolute' => TRUE,
+	            );
+	            
+	            try {
+	                $data->row->blankQrClient = barcode_Generator::getLink('qr', $companyName, array('width'=> 87, 'height' => 87), $params);
+	            } catch (Exception $e) {
+	                reportException($e);
+	            }
     	    }
     	}
-    }
-    
-    
-    /**
-     * Помощна функция за връщане на данните необходими за генериране на лого
-     * 
-     * @param core_Mvc $mvc
-     * @param NULL|stdObject $res
-     * @param stdObject $data
-     */
-    public static function on_AfterGetCompanyLogoVals($mvc, &$res, $data)
-    {
-        if (!isset($res)) {
-            $res = new stdClass();
-        }
-        
-        $res->company = $data->row->inlineContragentName;
-        $res->address = $data->row->inlineContragentAddress;
     }
     
     
