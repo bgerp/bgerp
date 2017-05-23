@@ -2028,6 +2028,36 @@ td.formElement {
 .flashElem.select2 > .selection > .select2-selection {
 	background-color: #fffa99 !important;
 }
+.multipleFiles {
+	font-weight: bold;
+	padding: 5px;
+}
+
+ .input_align_horizontal {
+	.multipleFiles {
+		margin-right: 5px;
+	}
+}
+.align_horizontal .fileHolder {
+	padding: 5px;
+}
+
+.align_vertical .fileHolder{
+	display: block;
+	padding: 1px;
+}
+
+.input_align_vertical_btn {
+	float: left;
+}
+
+.input_align_vertical, .align_vertical {
+	float: left;
+	.multipleFiles {
+		display: block;
+		padding: 1px;
+	}
+}
 /*край на хоризонтални форми*/
 .contextCursor {
 	cursor: context-menu;
