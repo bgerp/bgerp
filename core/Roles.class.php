@@ -94,17 +94,6 @@ class core_Roles extends core_Manager
     
     
     /**
-     * 
-     */
-    function act_test()
-    {
-        requireRole('admin');
-        $S = cls::get('doc_Setup');
-        $S->addPartnerRole1();
-    }
-    
-    
-    /**
      * Добавя посочената роля, ако я няма
      */
     static function addOnce($role, $inherit = NULL, $type = 'job')
