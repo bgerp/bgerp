@@ -41,7 +41,9 @@ class planning_Wrapper extends plg_ProtoWrapper
     {
     	if(haveRole('ceo,planning,store')){
     		redirect(array('planning_DirectProductionNote', 'list'));
-    	}else{
+    	} elseif(haveRole('job')){
+    		redirect(array('planning_Jobs', 'list'));
+    	} else {
     		redirect(array('planning_Tasks', 'list'));
     	}
     }
