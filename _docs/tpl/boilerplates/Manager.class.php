@@ -267,8 +267,36 @@ class boilerplate_Manager extends core_Manager
     protected static function on_AfterPrepareListTitle($mvc, &$res, $data)
     {   
     }
-
+   
     
+    /**
+     * Изпълнява се след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     *
+     * @return boolean
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    {
+    }
+
+
+    /**
+     * Изпълнява се след подготвянето на тулбара в листовия изглед
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     *
+     * @return boolean
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    {
+    }
+
+
     /**
      * Изпълнява се преди опаковане на съдаржанието от мениджъра
      *
