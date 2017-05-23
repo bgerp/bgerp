@@ -2030,12 +2030,13 @@ td.formElement {
 }
 .multipleFiles {
 	font-weight: bold;
-	padding: 5px;
 }
 
  .input_align_horizontal {
 	.multipleFiles {
-		margin-right: 5px;
+		margin-right: 10px;
+		display: block;
+		float: left;
 	}
 }
 .align_horizontal .fileHolder {
@@ -2047,7 +2048,7 @@ td.formElement {
 	padding: 1px;
 }
 
-.input_align_vertical_btn {
+.input_align_vertical_btn, .input_align_horizontal_btn {
 	float: left;
 }
 .align_vertical {
