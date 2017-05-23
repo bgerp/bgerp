@@ -195,6 +195,40 @@ class cat_reports_BomsRep extends frame_BaseDriver
             }
         }
         
+        if(is_array($data->recs)) {
+            foreach($data->recs as $i=>$r){
+        
+                if(isset($fRec->groupId)) {
+                    if(is_array($r->materials) && count($r->materials) != 0) {
+                        $materialsArr = implode(',', $r->materials);
+        
+                        $queryProduct = cat_Products::getQuery();
+                        $queryProduct->where("#id IN ({$materialsArr})");
+                        $queryProduct->likeKeylist("groups", $fRec->groupId);
+        
+                        if($queryProduct->fetch() == FALSE) {
+                            unset($data->recs[$i]);
+        
+                        }
+                    }  else {
+                        unset($data->recs[$i]);
+                    }
+                }
+            }
+        }
+        
+        if(is_array($data->recs) && isset($fRec->groupId)) {
+            foreach($data->recs as $rI=>$rC){
+                foreach($rC->materials as $mat) {
+                    if(strpos(cat_Products::fetchField($mat,'groups'),$fRec->groupId) == FALSE) {
+                        unset($data->recs[$rI]->materials[$mat]);
+                        unset($data->recs[$rI]->mCnt[$mat]);
+                        unset($data->recs[$rI]->mParams[$mat]);
+                    }
+                }
+            }
+        }
+        
         return $data;
     }
     
