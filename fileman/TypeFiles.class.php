@@ -113,7 +113,7 @@ class fileman_TypeFiles extends type_Keylist
                 $valueFhArr[$fRec->fileHnd] = $fRec->fileHnd;
                 
                 $crossImg = "<img src=" . sbf('img/16/delete.png') . " align=\"absmiddle\" title=\"" . tr("Премахване на файла") . "\" alt=\"\">";
-                $html .= "<span class='{$name}_{$fRec->fileHnd} multipleFiles'>" . $this->toVerbal($vId) . "&nbsp;<a style=\"color:red;\" href=\"#\" onclick=\"unsetInputFile('" . $name . "', '" . $fRec->fileHnd . "')\">" . $crossImg . '</a></span>';
+                $html .= "<span class='{$name}_{$fRec->fileHnd} multipleFiles'>" . $this->toVerbal($vId) . "&nbsp;<a class=\"remove-file-link\" href=\"#\" onclick=\"unsetInputFile('" . $name . "', '" . $fRec->fileHnd . "')\">" . $crossImg . '</a></span>';
             }
         }
         
@@ -154,7 +154,7 @@ class fileman_TypeFiles extends type_Keylist
                     var divFileName = document.getElementById(name + '_files_name_id');
                     var crossImg = '<img src=" . sbf('img/16/cross.png') . " align=\"absmiddle\" alt=\"\">';
                     divFileName.innerHTML += '<span class=\"' + name + '_' + fh + ' multipleFiles\">' + getDownloadLink(fName, fh) + 
-                    '&nbsp;<a style=\"color:red;\" href=\"#\" onclick=\"unsetInputFile(\'' + name + '\', \'' + fh + '\')\">' + crossImg + '</a></span>';
+                    '&nbsp;<a class=\"remove-file-link\" href=\"#\" onclick=\"unsetInputFile(\'' + name + '\', \'' + fh + '\')\">' + crossImg + '</a></span>';
                 }
                 
                 return true;
