@@ -20,7 +20,7 @@
 "клетка","клетка",,,"active",,,0,"packaging",1
 "кубичен метър","куб.м",,1,"active","cub.m","|kubichen metar|kubichni metri|kub.m|kub.metra|kub. metri|kub. metra|kubichni metri|kub. metar|",3,"uom",
 "литър","л","кубичен метър","0.001","active","l","|l|litar|litri|",3,"uom",
-"метър","м",,1,"active","m","|m|meter|metar|metri|metra|",3,"uom",
+"метър","м",,1,"active","m","|m|meter|metar|metri|metra|",2,"uom",
 "микрон","μ","метър","0.000001","closed","mk","|mk|mikron|mikrona|μ|",0,"uom",
 "милиампер","мил.амп","ампер","0.001","closed","mA","|ma|miliamper|miliampera|miliamperi|",0,"uom",
 "милиграм","мг","килограм","0.000001","closed","mg","|mg|miligrama|miligram|",0,"uom",

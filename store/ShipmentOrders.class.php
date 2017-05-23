@@ -203,7 +203,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * 
      */
-    public $canAsclient = 'debug';
+    public $canAsclient = 'ceo,store,sales,purchase';
     
     
     /**

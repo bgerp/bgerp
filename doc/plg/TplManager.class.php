@@ -443,7 +443,7 @@ class doc_plg_TplManager extends core_Plugin
     public static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
         if ($mvc->haveRightFor('asClient', $data->rec)) {
-            $data->toolbar->addBtn('П Клиент', array($mvc, 'single', $data->rec->id, 'Printing' => 'yes', 'asClient' => TRUE), "id=btnClientPrint{$data->rec->containerId},target=_blank,row=1", 'ef_icon = img/16/print_go.png,title=Печатане с данните на клиента');
+            $data->toolbar->addBtn('П Клиент', array($mvc, 'single', $data->rec->id, 'Printing' => 'yes', 'asClient' => TRUE), "id=btnClientPrint{$data->rec->containerId},target=_blank,row=2", 'ef_icon = img/16/print_go.png,title=Печатане с данните на клиента');
         }
     }
 }
