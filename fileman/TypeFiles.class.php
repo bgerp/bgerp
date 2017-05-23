@@ -101,7 +101,6 @@ class fileman_TypeFiles extends type_Keylist
         $attrInp['id'] = $name . "_files_name_id";
         $align = $this->params['align'] ? $this->params['align'] : 'horizontal';
         $attrInp['class'] .= $attr['class'] . ' input_align_' . $align;
-        $attrInp['style'] = 'padding:5px;font-weight:bold;';
         
         $valueFhArr = array();
         
@@ -114,7 +113,7 @@ class fileman_TypeFiles extends type_Keylist
                 $valueFhArr[$fRec->fileHnd] = $fRec->fileHnd;
                 
                 $crossImg = "<img src=" . sbf('img/16/delete.png') . " align=\"absmiddle\" title=\"" . tr("Премахване на файла") . "\" alt=\"\">";
-                $html .= "<span class='{$name}_{$fRec->fileHnd}'>" . $this->toVerbal($vId) . "&nbsp;<a style=\"color:red;\" href=\"#\" onclick=\"unsetInputFile('" . $name . "', '" . $fRec->fileHnd . "')\">" . $crossImg . '</a></span>';
+                $html .= "<span class='{$name}_{$fRec->fileHnd} multipleFiles'>" . $this->toVerbal($vId) . "&nbsp;<a style=\"color:red;\" href=\"#\" onclick=\"unsetInputFile('" . $name . "', '" . $fRec->fileHnd . "')\">" . $crossImg . '</a></span>';
             }
         }
         
@@ -154,7 +153,7 @@ class fileman_TypeFiles extends type_Keylist
                     
                     var divFileName = document.getElementById(name + '_files_name_id');
                     var crossImg = '<img src=" . sbf('img/16/cross.png') . " align=\"absmiddle\" alt=\"\">';
-                    divFileName.innerHTML += '<span class=\"' + name + '_' + fh + '\">' + getDownloadLink(fName, fh) + 
+                    divFileName.innerHTML += '<span class=\"' + name + '_' + fh + ' multipleFiles\">' + getDownloadLink(fName, fh) + 
                     '&nbsp;<a style=\"color:red;\" href=\"#\" onclick=\"unsetInputFile(\'' + name + '\', \'' + fh + '\')\">' + crossImg + '</a></span>';
                 }
                 
