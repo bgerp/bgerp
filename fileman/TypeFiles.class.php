@@ -129,7 +129,7 @@ class fileman_TypeFiles extends type_Keylist
         
         expect($bucketId, 'Очаква се валидна кофа', $bucket);
         
-        $tpl->prepend($Files->makeBtnToAddFile("+", $bucketId, 'placeFile_setInputFile' . $name, array('class' => 'noicon', 'title' => 'Добавяне или промяна на файлове')));
+        $tpl->prepend($Files->makeBtnToAddFile("+", $bucketId, 'placeFile_setInputFile' . $name, array('class' => 'noicon ' . $attrInp['class'] . '_btn', 'title' => 'Добавяне или промяна на файлове')));
         
         $this->addJavascript($tpl, $name);
         
