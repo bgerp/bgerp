@@ -1860,6 +1860,49 @@ input:focus[type=button] {
 .flashElem.select2 > .selection > .select2-selection {
   background-color: #fffa99 !important; }
 
+.multipleFiles {
+  font-weight: bold; }
+
+  .input_align_horizontal .multipleFiles {
+    margin-right: 10px;
+    display: block;
+    float: left; }
+
+.align_horizontal .fileHolder {
+  padding: 5px; }
+
+.align_vertical .fileHolder {
+  display: block;
+  padding: 1px; }
+
+.input_align_vertical_btn,
+.input_align_horizontal_btn {
+  float: left; }
+
+.align_vertical {
+  float: left; }
+
+.input_align_vertical {
+  float: left; }
+  .input_align_vertical .multipleFiles {
+    clear: both;
+    float: left;
+    display: block;
+    padding: 0px; }
+    .input_align_vertical .multipleFiles .align_vertical,
+    .input_align_vertical .multipleFiles a {
+      display: inline-block;
+      padding: 1px; }
+    .input_align_vertical .multipleFiles .remove-file-link {
+      position: relative;
+      top: 3px;
+      margin-left: 2px; }
+    .input_align_vertical .multipleFiles .remove-file-link-new {
+      margin-top: 7px;
+      position: relative;
+      top: -2px;
+      display: inline-block; }
+
 /*
  * край на хоризонтални форми
  */

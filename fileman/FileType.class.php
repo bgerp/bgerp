@@ -68,7 +68,7 @@ class fileman_FileType extends type_Varchar {
         
         expect($bucketId, 'Очаква се валидна кофа', $bucket);
         
-        $tpl->prepend($Files->makeBtnToAddFile("+", $bucketId, 'setInputFile' . $name, array('class' => 'noicon', 'title' => tr('Добавяне или промяна на файл'))));
+        $tpl->prepend($Files->makeBtnToAddFile("+", $bucketId, 'setInputFile' . $name, array('class' => 'noicon', 'title' => 'Добавяне или промяна на файл')));
         
         $this->addJavascript($tpl, $name);
         
@@ -84,7 +84,7 @@ class fileman_FileType extends type_Varchar {
         $tpl->appendOnce("
             function setInputFile(name, fh, fName) {
                 var divFileName = document.getElementById(name + '_file_name_id');
-                var crossImg = '<img src=" . sbf('img/16/cross.png') . " align=\"absmiddle\" alt=\"\">';
+                var crossImg = '<img src=" . sbf('img/16/delete.png') . " align=\"absmiddle\" alt=\"\">';
                 divFileName.innerHTML = getDownloadLink(fName, fh) + 
                 '&nbsp;<a style=\"color:red;\" href=\"#\" onclick=\"unsetInputFile(\'' + name + '\')\">' + crossImg + '</a>';
 
