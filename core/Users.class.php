@@ -493,6 +493,24 @@ class core_Users extends core_Manager
     }
     
     
+
+    /**
+     * Изпълнява се след подготвянето на тулбара в листовия изглед
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     *
+     * @return boolean
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    {
+        if(haveRole('admin')) {
+            $data->toolbar->addBtn('Миграция на папки', array('core_Users', 'migrateFolders'));
+        }
+    }
+
+
     /**
      * Изпълнява се след създаване на формата за добавяне/редактиране
      */
@@ -1703,6 +1721,32 @@ class core_Users extends core_Manager
         
         return $teamMates;
     }
+
+
+    /**
+     * Връща ранга на потребителя
+     */
+    public static function getRang($userId)
+    {
+        static $rangs;
+        if(!$rangs) {
+            $rangs['ceo'] = core_Roles::fetchByName('ceo');
+            $rangs['manager'] = core_Roles::fetchByName('manager');
+            $rangs['officer'] = core_Roles::fetchByName('officer');
+            $rangs['executive'] = core_Roles::fetchByName('executive');
+            $rangs['partner'] = core_Roles::fetchByName('partner');
+        }
+        
+        $userRec = self::fetch($userId);
+        $rolesArr = keylist::toArray($userRec->roles);
+
+        foreach($rangs as $role => $roleId) {
+            if($rolesArr[$roleId]) {
+
+                return $role;
+            }
+        }
+    }
     
     
     /**
@@ -2209,5 +2253,71 @@ class core_Users extends core_Manager
             
             $this->runCron = FALSE;
         }
+    }
+
+
+    /**
+     * Мигриране на папки на потребител
+     */
+    public function act_MigrateFolders()
+    {
+        requireRole('admin');
+
+        $form = cls::get('core_Form');
+
+        $form->FLD('userFrom', 'user(allowEmpty)', 'caption=Потребител - образец->Избор,refreshForm,silent,mandatory');
+
+        if($userFrom = Request::get('userFrom')) {
+            
+            list($team, $user) = explode('_', $userFrom);
+
+            // bp(self::fetch($user), self::fetch($team));
+
+            // $teamMates = self::getTeammates($userFrom);
+            
+            $team = core_Roles::fetchById($team);
+            $rang = self::getRang($user);
+
+            $form->FLD('userTo', "user(roles={$team},allowEmpty)", 'caption=Приемен потребител->Избор,mandatory');
+        }
+
+        $rec = $form->input();
+
+        if($form->isSubmitted()) {
+
+            $fQuery = doc_Folders::getQuery();
+            $fQuery->where("#shared LIKE '%|{$rec->userFrom}|%'");
+
+            while($fRec = $fQuery->fetch()) {
+
+                if(($fRec->inCharge == $rec->userTo) && $fRec->access == 'private') continue;
+                if($fRec->access == 'secret') continue;
+
+                if(!keylist::isIn($rec->userTo, $fRec->shared)) {
+
+                    $mvc = cls::get($fRec->coverClass);
+                    $cRec = $mvc->fetch($fRec->coverId);
+                    $cRec->shared = keylist::addKey($cRec->shared, $rec->userTo);
+                    $mvc->save($cRec, 'shared');
+                    $res[] = doc_Folders::getLink($fRec->id);
+                }
+            }
+        }
+        
+        $form->title = "Миграция на споделени папки";
+        $form->toolbar->addSbbtn('Миграция', 'save');
+
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на миграцията');
+
+        $html = $this->renderWrapping($form->renderHtml());
+
+        if($cnt = count($res)) {
+            $html .= "<h2 style='margin-left:15px'>Мигрирани са $cnt папки</h2>";
+            $html .= "<ul><li>" . implode('</li><li>', $res) . "</li></ul>";
+        } elseif($form->isSubmitted()) {
+            $html .= "<h2 style='margin-left:15px'>Няма мигрирани папки</h2>";
+        }
+
+        return $html;
     }
 }
