@@ -228,6 +228,7 @@ class doc_plg_TplManager extends core_Plugin
     	
     	if (Request::get('asClient')) {
     	    $tpl->removeBlock('blank');
+    	    $tpl->removeBlock('ExtState');
     	}
     }
     
@@ -420,7 +421,7 @@ class doc_plg_TplManager extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($action == 'asclient') {
-            if (!$mvc->printAsClientLayaoutFile || $rec->state == 'rejected' || $rec->state == 'draft') {
+            if (!$mvc->printAsClientLayaoutFile || $rec->state == 'rejected') {
                 $requiredRoles = 'no_one';
             }
         }
