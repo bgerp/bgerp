@@ -2050,12 +2050,31 @@ td.formElement {
 .input_align_vertical_btn {
 	float: left;
 }
-
-.input_align_vertical, .align_vertical {
+.align_vertical {
+	float: left;
+}
+.input_align_vertical{
 	float: left;
 	.multipleFiles {
+		clear: both;
+		float: left;
 		display: block;
-		padding: 1px;
+		padding: 0px;
+		.align_vertical, a {
+			display: inline-block;
+			padding: 1px;
+		}
+		.remove-file-link {
+			position: relative;
+			top: 3px;
+			margin-left: 2px;
+		}
+		.remove-file-link-new {
+			margin-top: 7px;
+			position: relative;
+			top: -2px;
+			display: inline-block;
+		}
 	}
 }
 /*край на хоризонтални форми*/

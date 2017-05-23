@@ -1877,13 +1877,29 @@ input:focus[type=button] {
 .input_align_vertical_btn {
   float: left; }
 
-.input_align_vertical,
 .align_vertical {
   float: left; }
-  .input_align_vertical .multipleFiles,
-  .align_vertical .multipleFiles {
+
+.input_align_vertical {
+  float: left; }
+  .input_align_vertical .multipleFiles {
+    clear: both;
+    float: left;
     display: block;
-    padding: 1px; }
+    padding: 0px; }
+    .input_align_vertical .multipleFiles .align_vertical,
+    .input_align_vertical .multipleFiles a {
+      display: inline-block;
+      padding: 1px; }
+    .input_align_vertical .multipleFiles .remove-file-link {
+      position: relative;
+      top: 3px;
+      margin-left: 2px; }
+    .input_align_vertical .multipleFiles .remove-file-link-new {
+      margin-top: 7px;
+      position: relative;
+      top: -2px;
+      display: inline-block; }
 
 /*
  * край на хоризонтални форми
