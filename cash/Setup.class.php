@@ -57,6 +57,7 @@ class cash_Setup extends core_ProtoSetup
         	'cash_Rko',
         	'cash_InternalMoneyTransfer',
         	'cash_ExchangeDocument',
+    		'cash_NonCashPaymentDetails',
     		'migrate::updateDocumentStates',
     		'migrate::updateDocuments'
     		

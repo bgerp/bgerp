@@ -72,6 +72,12 @@ class cash_Pko extends cash_Document
     
     
     /**
+     * Детайла, на модела
+     */
+    public $details = 'cash_NonCashPaymentDetails';
+    
+    
+    /**
      * Описание на модела
      */
     function description()

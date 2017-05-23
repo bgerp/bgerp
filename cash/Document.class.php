@@ -204,6 +204,12 @@ abstract class cash_Document extends deals_PaymentDocument
     	$form->setDefault('dealCurrencyId', $cId);
     	$form->setDefault('currencyId', $cId);
     	
+    	if(isset($form->rec->id)){
+    		if(cash_NonCashPaymentDetails::fetchField("#documentId = {$form->rec->id} AND #documentClassId = {$mvc->getClassId()}")){
+    			$form->setReadOnly('currencyId');
+    		}
+    	}
+    	
     	if($expectedPayment = $dealInfo->get('expectedPayment')){
     		if(isset($form->rec->originId) && isset($form->rec->amountDeal)){
     			$expectedPayment = $form->rec->amountDeal * $dealInfo->get('rate');
@@ -347,6 +353,16 @@ abstract class cash_Document extends deals_PaymentDocument
     	// Ако не е избрана каса, показваме бутона за контиране но с грешка
     	if(($rec->state == 'draft' || $rec->state == 'pending') && !isset($rec->peroCase) && $mvc->haveRightFor('conto')){
     		$data->toolbar->addBtn('Контиране', array(), array('id' => 'btnConto', 'error' => 'Документа не може да бъде контиран, докато няма посочена каса|*!'), 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
+    	}
+    	
+    	// Бутон за промяна на безналичните методи за плащане
+    	if(cash_NonCashPaymentDetails::haveRightFor('modify', (object)array('documentId' => $rec->id, 'documentClassId' => $mvc->getClassId()))){
+    		core_Request::setProtected('documentId,documentClassId');
+    		$url = array('cash_NonCashPaymentDetails', 'modify', 'documentId' => $rec->id, 'documentClassId' => $mvc->getClassId(), 'ret_url' => TRUE);
+    		$data->toolbar->addBtn('Безналично', toUrl($url), FALSE, 'ef_icon = img/16/edit.png,title=Добавяне на безналичен начин на плащане');
+    		
+    		$data->addUrl = toUrl($url);
+    		core_Request::removeProtected('documentId,documentClassId');
     	}
     }
     
