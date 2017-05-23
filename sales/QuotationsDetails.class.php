@@ -641,28 +641,31 @@ class sales_QuotationsDetails extends doc_Detail {
     		
     		$pId = $data->recs[$i]->productId;
     		$optional = $data->recs[$i]->optional;
-    		($optional == 'no') ? $zebra = &$dZebra : $zebra = &$oZebra;
     		
     		// Сездава се специален индекс на записа productId|optional, така
     		// резултатите са разделени по продукти и дали са опционални или не
     		$pId = $pId . "|{$optional}";
-    		if(array_key_exists($pId, $newRows)){
-    			
-    			// Ако има вече такъв продукт, го махаме от записа
-    			unset($row->productId);
-    			
-    			// Слагаме клас на клетките около rospan-а за улеснение на JS
-    			$row->rowspanId = $newRows[$pId][0]->rowspanId;
-    			$row->TR_CLASS = $newRows[$pId][0]->TR_CLASS;
-    		} else {
-    			// Слагаме уникален индекс на клетката с продукта
-    			$prot = md5($pId.$data->masterData->rec->id);
-	    		$row->rowspanId = $row->rowspanpId = "product-row{$prot}";
-	    		$zebra = $row->TR_CLASS = ($zebra == 'zebra0') ? 'zebra1' :'zebra0';
-    		}
     		
     		$newRows[$pId][] = $row;
-    		$newRows[$pId][0]->rowspan = count($newRows[$pId]);
+    	}
+    	
+    	// Подреждане на груприаните записи по к-ва
+    	foreach ($newRows as &$group){
+    		arr::order($group, 'quantity');
+    		$group = array_values($group);
+    		$group[0]->rowspan = count($group);
+    		
+    		foreach ($group as $index => $row){
+    			if($index != 0){
+    				unset($row->productId);
+    				$row->rowspanId = $group[0]->rowspanId;
+    				$row->TR_CLASS = $group[0]->TR_CLASS;
+    			} else {
+    				$prot = md5($pId.$data->masterData->rec->id);
+    				$row->rowspanId = $row->rowspanpId = "product-row{$prot}";
+    				$zebra = $row->TR_CLASS = ($zebra == 'zebra0') ? 'zebra1' :'zebra0';
+    			}
+    		}
     	}
     	
     	// Така имаме масив в който резултатите са групирани 
