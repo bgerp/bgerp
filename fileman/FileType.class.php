@@ -68,7 +68,7 @@ class fileman_FileType extends type_Varchar {
         
         expect($bucketId, 'Очаква се валидна кофа', $bucket);
         
-        $tpl->prepend($Files->makeBtnToAddFile("+", $bucketId, 'setInputFile' . $name, array('class' => 'noicon', 'title' => tr('Добавяне или промяна на файл'))));
+        $tpl->prepend($Files->makeBtnToAddFile("+", $bucketId, 'setInputFile' . $name, array('class' => 'noicon', 'title' => 'Добавяне или промяна на файл')));
         
         $this->addJavascript($tpl, $name);
         
