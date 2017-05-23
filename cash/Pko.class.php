@@ -105,4 +105,23 @@ class cash_Pko extends cash_Document
     	
     	return $options;
     }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед
+     */
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	$rec = $data->rec;
+    	 
+    	// Бутон за промяна на безналичните методи за плащане
+    	if(cash_NonCashPaymentDetails::haveRightFor('modify', (object)array('documentId' => $rec->id, 'documentClassId' => $mvc->getClassId()))){
+    		core_Request::setProtected('documentId,documentClassId');
+    		$url = array('cash_NonCashPaymentDetails', 'modify', 'documentId' => $rec->id, 'documentClassId' => $mvc->getClassId(), 'ret_url' => TRUE);
+    		$data->toolbar->addBtn('Безналично', toUrl($url), FALSE, 'ef_icon = img/16/edit.png,title=Добавяне на безналичен начин на плащане');
+    
+    		$data->addUrl = toUrl($url);
+    		core_Request::removeProtected('documentId,documentClassId');
+    	}
+    }
 }
