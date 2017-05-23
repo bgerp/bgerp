@@ -154,7 +154,7 @@ class fileman_TypeFiles extends type_Keylist
                     var divFileName = document.getElementById(name + '_files_name_id');
                     var crossImg = '<img src=" . sbf('img/16/delete.png') . " align=\"absmiddle\" alt=\"\">';
                     divFileName.innerHTML += '<span class=\"' + name + '_' + fh + ' multipleFiles\">' + getDownloadLink(fName, fh) + 
-                    '&nbsp;<a class=\"remove-file-link\" href=\"#\" onclick=\"unsetInputFile(\'' + name + '\', \'' + fh + '\')\">' + crossImg + '</a></span>';
+                    '&nbsp;<a class=\"remove-file-link-new\" href=\"#\" onclick=\"unsetInputFile(\'' + name + '\', \'' + fh + '\')\">' + crossImg + '</a></span>';
                 }
                 
                 return true;
