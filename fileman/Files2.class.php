@@ -708,6 +708,18 @@ class fileman_Files2 extends core_Master
         return $isCorrect[$path];
     }
     
+
+    /**
+     * Проверява дали аргумента е допустим файлов манипулатор
+     */
+    public static function isFileHnd($str)
+    {
+        cls::load('fileman_Files');
+        $ptr = "/^[a-z][a-z0-9]{" . (FILEMAN_HANDLER_LEN-1) . "}\$/i";
+
+        return preg_match($ptr, $str);
+    }
+
     
     /**
      * Връща mimе типа за съответния файл
