@@ -168,7 +168,7 @@ abstract class cash_Document extends deals_PaymentDocument
     	$mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута (и сума) на плащането->Валута,silent,removeAndRefreshForm=rate|amount');
     	$mvc->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,summary=amount,input=hidden');
     	$mvc->FLD('rate', 'double(decimals=5)', 'caption=Валута (и сума) на плащането->Курс,input=none');
-    	$mvc->FLD('notes', 'richtext(bucket=Notes,rows=6)', 'caption=Допълнително->Бележки');
+    	$mvc->FLD('notes', 'richtext(bucket=Notes,rows=1)', 'caption=Допълнително->Бележки');
     	$mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)',	'caption=Статус, input=none');
     	$mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
     	 
@@ -314,6 +314,8 @@ abstract class cash_Document extends deals_PaymentDocument
     		if($msg = currency_CurrencyRates::checkAmounts($rec->amount, $rec->amountDeal, $rec->valior, $currencyCode, $dealCurrencyCode)){
     			$form->setError('amountDeal', $msg);
     		}
+    		
+    		$mvc->invoke('AfterSubmitInputEditForm', array($form));
     	}
     }
     

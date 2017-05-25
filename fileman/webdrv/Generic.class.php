@@ -254,19 +254,25 @@ class fileman_webdrv_Generic extends core_Manager
             
             // Създаваме шаблон за preview на изображението
             $preview = new ET("<div style='background-image:url(" . $bgImg . "); padding: 5px 0; min-height: 590px;'><div style='margin: 0 auto;'>[#THUMB_IMAGE#]</div></div>");
-            
-            foreach ($jpgArr as $jpgFh) {
+			
+            foreach ($jpgArr as $key => $jpgFh) {
                 
-                $imgInst = new thumb_Img(array($jpgFh, $thumbWidthAndHeightArr['width'], $thumbWidthAndHeightArr['height'], 'fileman', 'verbalName' => 'Preview'));
-                
-                // Вземаме файла
-                $thumbnailImg = $imgInst->createImg($attr);
-                
-                if ($thumbnailImg) {
-                
-                    // Добавяме към preview' то генерираното изображение
-                    $preview->append($thumbnailImg, 'THUMB_IMAGE');
-                
+                if ($key == 'otherPagesCnt') {
+                    
+                    $str = '<span>' . tr('Още страници') . '</span>';
+                    
+                    $preview->append($str . ': ' . $jpgFh, 'THUMB_IMAGE');
+                } else {
+                    $imgInst = new thumb_Img(array($jpgFh, $thumbWidthAndHeightArr['width'], $thumbWidthAndHeightArr['height'], 'fileman', 'verbalName' => 'Preview'));
+                    
+                    // Вземаме файла
+                    $thumbnailImg = $imgInst->createImg($attr);
+                    
+                    if ($thumbnailImg) {
+                    
+                        // Добавяме към preview' то генерираното изображение
+                        $preview->append($thumbnailImg, 'THUMB_IMAGE');
+                    }
                 }
             }
             

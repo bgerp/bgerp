@@ -386,10 +386,17 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         
         $maxFilesCnt = fileman_Setup::get('FILEINFO_MAX_PREVIEW_PAGES', TRUE);
         
+        $otherFilesCnt = 0;
+        
         foreach ($filesArr as $file) {
             
             // При достигане на лимита, спираме качването
-            if (!$maxFilesCnt--) break;
+            if ($maxFilesCnt-- <= 0) {
+                
+                $otherFilesCnt++;
+                
+                continue;
+            }
             
             // Ако възникне грешка при качването на файла (липса на права)
             try {
@@ -404,6 +411,10 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
             if ($fileHnd) {
                 $fileHndArr[$fileHnd] = $fileHnd;    
             }
+        }
+        
+        if ($otherFilesCnt) {
+            $fileHndArr['otherPagesCnt'] = $otherFilesCnt;
         }
         
         // Десериализираме нужните помощни данни

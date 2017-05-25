@@ -707,7 +707,7 @@ class fileman_Files2 extends core_Master
         
         return $isCorrect[$path];
     }
-    
+
     
     /**
      * Връща mimе типа за съответния файл
