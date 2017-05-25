@@ -532,15 +532,15 @@ class cat_reports_BomsRep extends frame_BaseDriver
                     $valior = dt::mysql2verbal($recSale->valior, "d.m.y");
                     // контрагент
                     $Contragent = cls::get($recSale->contragentClassId);
-                    $contragent = $Contragent->getTitleById($recSale->contragentId);
-                    
+                    $contragent = $Contragent->getTitleById($recSale->contragentId, FALSE);
+                 
                     $string = $handle . "/" . $valior . " " . $contragent;
                     // правим масив с опции
                     $options[$recSale->id] = $string;
                 }
             }
         }
-    
+
         return $options;
     }
 }
