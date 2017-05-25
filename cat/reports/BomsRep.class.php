@@ -182,7 +182,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
             }  
         }
 
-        if(count($mArr) >=1) {
+       /* if(count($mArr) >=1) {
             foreach($mArr as $id=>$val){ 
                 $data->recs[$id]->materials = array();
                 $data->recs[$id]->mCnt = array();
@@ -227,7 +227,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
                     }
                 }
             }
-        }
+        }*/
         
         return $data;
     }
