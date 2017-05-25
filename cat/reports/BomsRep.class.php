@@ -121,6 +121,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
         $q = 0;
         $index = 0;
 
+        $cnt = 0;
         // за всяко едно активно Задания за производство
         while($rec = $query->fetch()) { 
        
@@ -151,7 +152,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
                        
                         if(!array_key_exists($index, $data->recs)){
                             if(!$recDetail->parentId || $recDetail->type == 'stage') {
-                                unset($mArr[$index]);
+                                
                                 $data->recs[$index] =
                                 (object) array ('id' => $recDetail->id,
                                     'article' => $recDetail->resourceId,
@@ -165,11 +166,14 @@ class cat_reports_BomsRep extends frame_BaseDriver
                         };
                     }
 
-                    if(array_key_exists($index, $data->recs) && $data->recs[$index]->id != $recDetail->id) { 
-                        $obj = &$data->recs[$index]; 
-                        $obj->articleCnt += $q;
+                    if(array_key_exists($index, $data->recs) && $cnt != 1) { 
+
+                            $obj = &$data->recs[$index]; 
+                            $obj->articleCnt += $q;
                    }
                 } 
+                
+                $cnt++;
             }
         }
 
