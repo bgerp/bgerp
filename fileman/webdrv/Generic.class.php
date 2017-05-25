@@ -257,7 +257,7 @@ class fileman_webdrv_Generic extends core_Manager
 			
             foreach ($jpgArr as $key => $jpgFh) {
                 
-                if ($key == 'otherPagesCnt') {
+                if ($key === 'otherPagesCnt') {
                     
                     $str = '<span>' . tr('Още страници') . '</span>';
                     
