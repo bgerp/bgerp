@@ -120,6 +120,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
         $propQuantity = 0;
         $q = 0;
         $index = 0;
+
         // за всяко едно активно Задания за производство
         while($rec = $query->fetch()) { 
        
@@ -128,7 +129,8 @@ class cat_reports_BomsRep extends frame_BaseDriver
             if(!$bomId) {
                 $bomId = cat_Products::getLastActiveBom($rec->productId, 'sales')->id;
             }
-            if (isset($bomId)) {
+            
+            if (isset($bomId)) { 
                 $queryDetail = cat_BomDetails::getQuery();
                 $queryDetail->where("#bomId = '{$bomId}'");
                 
@@ -137,6 +139,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
                 
                 while($recDetail = $queryDetail->fetch()) {
                     $index = $recDetail->resourceId;
+
                     $componentArr = cat_Products::prepareComponents($rec->productId); 
                     
                     $quantity = str_replace(",", ".", $rec->quantity);
@@ -161,15 +164,15 @@ class cat_reports_BomsRep extends frame_BaseDriver
                             }
                         };
                     }
-                    
-                    if(array_key_exists($index, $data->recs) && $data->recs[$index]->sal != $rec->saleId) {
+
+                    if(array_key_exists($index, $data->recs) && $data->recs[$index]->id != $recDetail->id) { 
                         $obj = &$data->recs[$index]; 
                         $obj->articleCnt += $q;
                    }
                 } 
             }
         }
-        
+
         $i = 1;
         if(is_array($data->recs)) {
             foreach ($data->recs as $idRec=>$rec){ 
@@ -182,7 +185,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
             }  
         }
 
-       /* if(count($mArr) >=1) {
+        if(count($mArr) >=1) {
             foreach($mArr as $id=>$val){ 
                 $data->recs[$id]->materials = array();
                 $data->recs[$id]->mCnt = array();
@@ -227,7 +230,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
                     }
                 }
             }
-        }*/
+        }
         
         return $data;
     }
