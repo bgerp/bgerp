@@ -943,6 +943,17 @@ class fileman_Files extends core_Master
         return $res;
     }
     
+
+    /**
+     * Проверява дали аргумента е допустим файлов манипулатор
+     */
+    public static function isFileHnd($str)
+    {
+        $ptr = "/^[a-z][a-z0-9]{" . (FILEMAN_HANDLER_LEN-1) . "}\$/i";
+		
+        return preg_match($ptr, $str);
+    }
+    
     
     /**
      * Връща линк към сингъла на файла

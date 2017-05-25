@@ -12,7 +12,7 @@
 300,"Артикули","cat_ProductAccRegIntf","catProducts","yes"
 400,"Сделки","deals_DealsAccRegIntf","deals","no"
 501,"Каси","cash_CaseAccRegIntf","case","no"
-502,"Безналични методи за плащане","cond_PaymentAccRegIntf","nonCash","no"
+502,"Безналични методи за плащане","cond_PaymentAccRegIntf","nonCash","yes"
 503,"Банкови сметки","bank_OwnAccRegIntf","bankAcc","no"
 600,"Разходни обекти","doc_DocumentIntf","costObjects","no"
 610,"Центрове на дейност","hr_DepartmentAccRegIntf","departments","no"

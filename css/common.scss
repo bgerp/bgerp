@@ -2030,12 +2030,13 @@ td.formElement {
 }
 .multipleFiles {
 	font-weight: bold;
-	padding: 5px;
 }
 
  .input_align_horizontal {
 	.multipleFiles {
-		margin-right: 5px;
+		margin-right: 10px;
+		display: block;
+		float: left;
 	}
 }
 .align_horizontal .fileHolder {
@@ -2047,15 +2048,34 @@ td.formElement {
 	padding: 1px;
 }
 
-.input_align_vertical_btn {
+.input_align_vertical_btn, .input_align_horizontal_btn {
 	float: left;
 }
-
-.input_align_vertical, .align_vertical {
+.align_vertical {
+	float: left;
+}
+.input_align_vertical{
 	float: left;
 	.multipleFiles {
+		clear: both;
+		float: left;
 		display: block;
-		padding: 1px;
+		padding: 0px;
+		.align_vertical, a {
+			display: inline-block;
+			padding: 1px;
+		}
+		.remove-file-link {
+			position: relative;
+			top: 3px;
+			margin-left: 2px;
+		}
+		.remove-file-link-new {
+			margin-top: 7px;
+			position: relative;
+			top: -2px;
+			display: inline-block;
+		}
 	}
 }
 /*край на хоризонтални форми*/

@@ -567,17 +567,22 @@ class acc_plg_Contable extends core_Plugin
             } elseif(count($mvc->details)){
                 $hasDetail = FALSE;
                 
-                if($rec->id){
-                    // Ако класа има поне един запис в детаил, той може да се активира
-                    foreach ($mvc->details as $name){
-                        $Details = $mvc->{$name};
+                // Ако класа има поне един запис в детаил, той може да се активира
+                foreach ($mvc->details as $name){
+                    $Details = $mvc->{$name};
+                    if(!$Details->masterKey) {
+                        $hasDetail = TRUE;
+                        continue;
+                    }
                         
+                    if($rec->id){
                         if($Details->fetch("#{$Details->masterKey} = {$rec->id}")){
-                            $hasDetail = TRUE;
-                            break;
+                        	$hasDetail = TRUE;
+                        	break;
                         }
                     }
                 }
+                
                 $res = $hasDetail;
             } else {
                 $res = TRUE;

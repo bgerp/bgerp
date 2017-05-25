@@ -1,0 +1,4 @@
+<!--ET_BEGIN NON_CASH_PAYMENT-->
+[#NON_CASH_PAYMENT#]
+<div class='small'><span>[#paymentId#]:</span><span class='amount' style = 'font-size:0.8em'><b>[#amount#]</b></span></div>
+<!--ET_END NON_CASH_PAYMENT-->

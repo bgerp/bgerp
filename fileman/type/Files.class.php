@@ -11,7 +11,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class fileman_TypeFiles extends type_Keylist
+class fileman_type_Files extends type_Keylist
 {
     
     
@@ -60,22 +60,25 @@ class fileman_TypeFiles extends type_Keylist
      * @todo Чака за документация...
      */
     function toVerbal($fhList)
-    {
+    {   
+        if(fileman::isFileHnd($fhList)) {
+            $fhList = '|' . fileman::fhToId($fhList) . '|';
+        }
+
         $fhArr = $this->toArray($fhList);
-        
+      
         $res = '';
         
         foreach ($fhArr as $id) {
             $fh = fileman_Files::fetchField($id, 'fileHnd');
             $res .= fileman_Files::getLink($fh);
         }
-        
         if (!$res) return "";
         
         $align = $this->params['align'] ? $this->params['align'] : 'horizontal';
         $align = 'align_' . $align;
-        $res = "<span class='{$align}'>" . $res . "</span>";
-        
+        $res = "<span class='{$align}' style='padding-bottom:5px'>" . $res . "</span>";
+         
         return $res;
     }
     
@@ -103,7 +106,9 @@ class fileman_TypeFiles extends type_Keylist
         $attrInp['class'] .= $attr['class'] . ' input_align_' . $align;
         
         $valueFhArr = array();
-        
+        if(fileman::isFileHnd($value)) {
+            $value = '|' . fileman::fhToId($value) . '|';
+        }
         if ($value && (strpos($value, '|') !== FALSE)) {
             $valueArr = $this->toArray($value);
             
@@ -154,7 +159,7 @@ class fileman_TypeFiles extends type_Keylist
                     var divFileName = document.getElementById(name + '_files_name_id');
                     var crossImg = '<img src=" . sbf('img/16/delete.png') . " align=\"absmiddle\" alt=\"\">';
                     divFileName.innerHTML += '<span class=\"' + name + '_' + fh + ' multipleFiles\">' + getDownloadLink(fName, fh) + 
-                    '&nbsp;<a class=\"remove-file-link\" href=\"#\" onclick=\"unsetInputFile(\'' + name + '\', \'' + fh + '\')\">' + crossImg + '</a></span>';
+                    '&nbsp;<a class=\"remove-file-link-new\" href=\"#\" onclick=\"unsetInputFile(\'' + name + '\', \'' + fh + '\')\">' + crossImg + '</a></span>';
                 }
                 
                 return true;
