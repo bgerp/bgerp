@@ -54,11 +54,14 @@
 			            <table class='border-table' style='width:100%;'>
 			                <tr>
 			                    <td class='aleft' style='padding-left:10px;padding-top: 10px;width:67%;'>
-			                    	<div><span class='quiet'>|Плащане|*:</span>&nbsp;&nbsp;&nbsp;[#paymentType#]</div>
-			                        <div class='richtext-holder'><span class='quiet'>|Основание|*:</span>&nbsp;&nbsp;&nbsp;[#reason#]</div>
+			                    	<div class='richtext-holder'><span class='quiet'>|Основание|*:</span>&nbsp;&nbsp;&nbsp;[#reason#]</div>
 			                   	</td>
 			                    <td style='padding-left:10px; padding-top: 10px;'>
-			                        <span style='font-size:20px'>|Сума|*:</span><span class='amount'><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></span>
+			                        <div><span style='font-size:20px'>|Сума|*:</span><span class='amount'><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></span></div>
+			                    	<!--ET_BEGIN cash_NonCashPaymentDetails-->
+                        				<hr />
+                        				[#cash_NonCashPaymentDetails#]
+                        			<!--ET_END cash_NonCashPaymentDetails-->
 			                    </td>
 			                </tr>
 			            </table>
