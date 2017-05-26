@@ -122,7 +122,6 @@ class cat_reports_BomsRep extends frame_BaseDriver
         $q = 0;
         $index = 0;
 
-        $cnt = 0;
         // за всяко едно активно Задания за производство
         while($rec = $query->fetch()) { 
        
@@ -173,12 +172,9 @@ class cat_reports_BomsRep extends frame_BaseDriver
                             $obj->articleCnt += $q;
                    }
                 } 
-                
-                $cnt++;
             }
         }
-        
-        
+
     
         foreach($dRecs as $dId => $recD){
             $sal = strstr($dId, "|", TRUE);
@@ -221,8 +217,8 @@ class cat_reports_BomsRep extends frame_BaseDriver
         if(is_array($data->recs)) {
             foreach($data->recs as $i=>$r){
         
-                if(isset($fRec->groupId)) {
-                    if(is_array($r->materials) && count($r->materials) != 0) {
+                if(isset($fRec->groupId)) { 
+                    if(is_array($r->materials) && count($r->materials) != 0) {//bp($fRec->groupId);
                         $materialsArr = implode(',', $r->materials);
         
                         $queryProduct = cat_Products::getQuery();
@@ -233,7 +229,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
                             unset($data->recs[$i]);
         
                         }
-                    }  else {
+                    } else {
                         unset($data->recs[$i]);
                     }
                 }
@@ -242,8 +238,9 @@ class cat_reports_BomsRep extends frame_BaseDriver
         
         if(is_array($data->recs) && isset($fRec->groupId)) {
             foreach($data->recs as $rI=>$rC){
-                foreach($rC->materials as $mat) {
-                    if(strpos(cat_Products::fetchField($mat,'groups'),$fRec->groupId) == FALSE) {
+                foreach($rC->materials as $mat) { 
+                    if (!preg_match("/$fRec->groupId/",cat_Products::fetchField($mat,'groups'))){
+
                         unset($data->recs[$rI]->materials[$mat]);
                         unset($data->recs[$rI]->mCnt[$mat]);
                         unset($data->recs[$rI]->mParams[$mat]);
