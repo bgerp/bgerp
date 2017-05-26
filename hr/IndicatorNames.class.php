@@ -94,7 +94,7 @@ class hr_IndicatorNames extends core_Manager
     	} else{
     		if($rec->name != $name){
     			$rec->name = $name;
-    			self::save($rec, 'name');
+    			cls::get(get_called_class())->save_($rec, 'name');
     		}
     	}
     	
@@ -114,13 +114,5 @@ class hr_IndicatorNames extends core_Manager
     	$name = str_replace(' ', '_', $name);
     	
     	return $name;
-    }
-    
-    
-    function act_Test()
-    {
-    	$this->truncate();
-    	hr_Indicators::truncate();
-    	hr_Payroll::truncate();
     }
 }
