@@ -62,7 +62,7 @@ defIfNot('DOC_SHOW_DOCUMENTS_BEGIN', 3);
 
 
 /**
- * Нотификация за нова тема
+ * Нотификация за добавен документ в нишка
  */
 defIfNot('DOC_NOTIFY_FOR_NEW_DOC', 'default');
 
@@ -197,7 +197,7 @@ class doc_Setup extends core_ProtoSetup
     	
         'DOC_REPAIR_ALL' => array ('enum(yes=Да (бавно), no=Не)', 'caption=Дали да се проверяват всички документи за поправка->Избор'),
         'DOC_SEARCH_FOLDER_CNT' => array ('int(Min=0)', 'caption=Колко папки от последно отворените да се показват при търсене->Брой'),
-        'DOC_NOTIFY_FOR_NEW_DOC' => array ('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Нотификация за нова тема->Избор, customizeBy=powerUser'),
+        'DOC_NOTIFY_FOR_NEW_DOC' => array ('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Нотификация за добавен документ в нишка->Избор, customizeBy=powerUser'),
         'DOC_NOTIFY_NEW_DOC_TYPE' => array ('keylist(mvc=core_Classes, select=title)', 'caption=Известяване при нов документ->Задължително, customizeBy=powerUser, optionsFunc=doc_Setup::getAllDocClassOptions'),
         'DOC_STOP_NOTIFY_NEW_DOC_TYPE' => array ('keylist(mvc=core_Classes, select=title)', 'caption=Известяване при нов документ->Никога, customizeBy=powerUser, optionsFunc=doc_Setup::getAllDocClassOptions'),
         'DOC_NOTIFY_FOLDERS_SHARED_USERS' => array ('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване на споделените потребители на папка->Избор, customizeBy=powerUser'),
