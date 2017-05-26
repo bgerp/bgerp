@@ -940,18 +940,29 @@ class doc_Containers extends core_Manager
             
             $oUsersArr = $usersArr;
             
-            // Ако глобално в настройките е зададено да се нотифицира или не
-            $docSettings = doc_Setup::get('NOTIFY_FOR_NEW_DOC');
-            if ($docSettings == 'no') {
-                $usersArr = array();
-            } elseif ($docSettings == 'yes') {
-                $usersArr = core_Users::getByRole('powerUser');
+            $isFirst = FALSE;
+            
+            if ($rec->threadId) {
+                $tRec = doc_Threads::fetch($rec->threadId);
+                if (!$tRec->firstContainerId || ($tRec->firstContainerId == $rec->id)) {
+                    $isFirst = TRUE;
+                }
             }
             
             $pSettingsKey = crm_Profiles::getSettingsKey();
             
-            // Ако е зададено в персоналните настройки на потребителя за всички папки
-            self::prepareUsersArrForNotifications($usersArr, $pSettingsKey, 'DOC_NOTIFY_FOR_NEW_DOC', $rec->threadId);
+            if ($isFirst) {
+                // Ако глобално в настройките е зададено да се нотифицира или не
+                $docSettings = doc_Setup::get('NOTIFY_FOR_NEW_DOC');
+                if ($docSettings == 'no') {
+                    $usersArr = array();
+                } elseif ($docSettings == 'yes') {
+                    $usersArr = core_Users::getByRole('powerUser');
+                }
+                
+                // Ако е зададено в персоналните настройки на потребителя за всички папки
+                self::prepareUsersArrForNotifications($usersArr, $pSettingsKey, 'DOC_NOTIFY_FOR_NEW_DOC', $rec->threadId);
+            }
             
             // Ако е избран вид документ за който да се спре или дава нотификация
             $pSettingsNotifyArr = core_Settings::fetchUsers($pSettingsKey);
@@ -985,8 +996,10 @@ class doc_Containers extends core_Manager
                 }
             }
             
-            // Ако е зададено в настройките на папката
-            self::prepareUsersArrForNotifications($usersArr, doc_Folders::getSettingsKey($rec->folderId), 'newDoc', $rec->threadId);
+            if ($isFirst) {
+                // Ако е зададено в настройките на папката
+                self::prepareUsersArrForNotifications($usersArr, doc_Folders::getSettingsKey($rec->folderId), 'newDoc', $rec->threadId);
+            }
             
             // Ако е зададено в настройките на нишката
             self::prepareUsersArrForNotifications($usersArr, doc_Threads::getSettingsKey($rec->threadId), 'notify', $rec->threadId);
