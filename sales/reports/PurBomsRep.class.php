@@ -123,7 +123,7 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 	protected function prepareRecs($rec, &$data = NULL)
 	{
 		$recs = array();
-		
+		$salArr = array();
 		$Sales = cls::get('sales_Sales');
 		$dealers = keylist::toArray($rec->dealers);
 		$count = 1;
@@ -138,7 +138,7 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 		
 		// За всяка
 		while($sRec = $sQuery->fetch()){
-		
+
 			// Взимане на договорените и експедираните артикули по продажбата (събрани по артикул)
 			$dealerId = ($sRec->dealerId) ? $sRec->dealerId : (($sRec->activatedBy) ? $sRec->activatedBy : $sRec->createdBy);
 			$dealInfo = $Sales->getAggregateDealInfo($sRec);
@@ -167,10 +167,26 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 				// ако е нестандартен
 				$productRec = cat_Products::fetch($pId, 'canManifacture,isPublic');
 				$d = NULL;
+				
+				if($sRec->closedDocuments) {
+				    
+				    $newKeylist = keylist::addKey($sRec->closedDocuments, $sRec->id);
+				
+    				$salesArr = keylist::toArray($newKeylist);
+    				$salesArr = implode(',', $salesArr);
+    				$query = planning_Jobs::getQuery();
+    				$query->where("#saleId IN ({$salesArr}) AND (#state = 'active' OR #state = 'wakeup')");
+				}
+				
 				// Ако артикула е нестандартен и няма задание по продажбата
 				// артикула да е произведим
 				if($productRec->isPublic == 'no' && $productRec->canManifacture == 'yes'){
-					$jobId = planning_Jobs::fetchField("#productId = {$pId} AND #saleId = {$sRec->id}");
+				    if(count($salesArr)) {
+				        $jobId = planning_Jobs::fetchField("#productId = {$pId} AND #saleId IN ({$salesArr})");
+				    } else {
+					   $jobId = planning_Jobs::fetchField("#productId = {$pId} AND #saleId = {$sRec->id}");
+				    }
+				    
 					if(isset($jobId)) {
 						$jobState = planning_Jobs::fetchField("#id = {$jobId}",'state');
 					}
@@ -194,7 +210,7 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 				}
 			}
 		}
-		
+
 		return $recs;
 	}
 	
