@@ -935,16 +935,12 @@ class sales_Invoices extends deals_InvoiceMaster
    		if(isset($contoActions['pay'])) return 'cash';
    		
    		// Проверяваме имали ПБД-та, ПКО-та или Прихващания
-   		$hasPkoCash = cash_Pko::fetchField("#threadId = {$rec->threadId} AND #state = 'active' AND #paymentType = 'cash'", 'id');
-   		$hasPkoCard = cash_Pko::fetchField("#threadId = {$rec->threadId} AND #state = 'active' AND #paymentType = 'card'", 'id');
+   		$hasPkoCash = cash_Pko::fetchField("#threadId = {$rec->threadId} AND #state = 'active'", 'id');
    		$hasBankDocument = bank_IncomeDocuments::fetchField("#threadId = {$rec->threadId} AND #state = 'active'", 'id');
    		$hasInterceptDocument = findeals_DebitDocuments::fetchField("#threadId = {$rec->threadId} AND #state = 'active'", 'id');
    		
    		// Ако имаме ПКО с плащане в брой и нямаме други ПКО-та и банкови документи, плащането е в брой
-   		if(!empty($hasPkoCash) && empty($hasBankDocument) && empty($hasPkoCard)) return 'cash';
-   		
-   		// Ако имаме ПКО с плащане с карта, и нямаме други ПКО-та и банкови документи, плащането е с карта
-   		if(!empty($hasPkoCard) && empty($hasBankDocument) && empty($hasPkoCash)) return 'card';
+   		if(!empty($hasPkoCash) && empty($hasBankDocument)) return 'cash';
    		
    		$hasPko = !empty($hasPkoCash) || !empty($hasPkoCard);
    		

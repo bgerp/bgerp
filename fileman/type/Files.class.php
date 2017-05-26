@@ -61,8 +61,8 @@ class fileman_type_Files extends type_Keylist
      */
     function toVerbal($fhList)
     {   
-        if(fileman_Files2::isFileHnd($fhList)) {
-            $fhList = '|' . fileman_Files2::fhToId($fhList) . '|';
+        if(fileman::isFileHnd($fhList)) {
+            $fhList = '|' . fileman::fhToId($fhList) . '|';
         }
 
         $fhArr = $this->toArray($fhList);
@@ -106,8 +106,8 @@ class fileman_type_Files extends type_Keylist
         $attrInp['class'] .= $attr['class'] . ' input_align_' . $align;
         
         $valueFhArr = array();
-        if(fileman_Files2::isFileHnd($value)) {
-            $value = '|' . fileman_Files2::fhToId($value) . '|';
+        if(fileman::isFileHnd($value)) {
+            $value = '|' . fileman::fhToId($value) . '|';
         }
         if ($value && (strpos($value, '|') !== FALSE)) {
             $valueArr = $this->toArray($value);

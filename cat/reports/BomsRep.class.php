@@ -109,6 +109,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
     	$data = new stdClass();
         $data->articleCnt = array();
         $data->recs = array();
+        $dRecs = array();
         $fRec = $data->fRec = $this->innerForm;
         $this->prepareListFields($data);
        
@@ -120,6 +121,8 @@ class cat_reports_BomsRep extends frame_BaseDriver
         $propQuantity = 0;
         $q = 0;
         $index = 0;
+
+        $cnt = 0;
         // за всяко едно активно Задания за производство
         while($rec = $query->fetch()) { 
        
@@ -128,7 +131,8 @@ class cat_reports_BomsRep extends frame_BaseDriver
             if(!$bomId) {
                 $bomId = cat_Products::getLastActiveBom($rec->productId, 'sales')->id;
             }
-            if (isset($bomId)) {
+            
+            if (isset($bomId)) { 
                 $queryDetail = cat_BomDetails::getQuery();
                 $queryDetail->where("#bomId = '{$bomId}'");
                 
@@ -136,7 +140,8 @@ class cat_reports_BomsRep extends frame_BaseDriver
                 $materials = array();
                 
                 while($recDetail = $queryDetail->fetch()) {
-                    $index = $recDetail->resourceId;
+                    $index = $rec->saleId."|".$recDetail->resourceId;
+
                     $componentArr = cat_Products::prepareComponents($rec->productId); 
                     
                     $quantity = str_replace(",", ".", $rec->quantity);
@@ -146,10 +151,10 @@ class cat_reports_BomsRep extends frame_BaseDriver
                         $divideBy = ($component->divideBy) ? $component->divideBy : 1;
                         $q = ($quantity * $propQuantity) / $divideBy;
                        
-                        if(!array_key_exists($index, $data->recs)){
+                        if(!array_key_exists($index, $dRecs)){
                             if(!$recDetail->parentId || $recDetail->type == 'stage') {
-                                unset($mArr[$index]);
-                                $data->recs[$index] =
+                                
+                                $dRecs[$index] =
                                 (object) array ('id' => $recDetail->id,
                                     'article' => $recDetail->resourceId,
                                     'articleCnt'	=> $q,
@@ -159,17 +164,35 @@ class cat_reports_BomsRep extends frame_BaseDriver
                                     'sal'=> $rec->saleId,
                                 );
                             }
-                        };
+                        }
                     }
-                    
-                    if(array_key_exists($index, $data->recs) && $data->recs[$index]->sal != $rec->saleId) {
-                        $obj = &$data->recs[$index]; 
-                        $obj->articleCnt += $q;
+
+                    if(array_key_exists($index, $dRecs) && $dRecs[$index]->id != $recDetail->id) { 
+         
+                            $obj = &$dRecs[$index]; 
+                            $obj->articleCnt += $q;
                    }
                 } 
+                
+                $cnt++;
             }
         }
         
+        
+    
+        foreach($dRecs as $dId => $recD){
+            $sal = strstr($dId, "|", TRUE);
+            $prod = substr(strstr($dId, "|"),1);
+
+            if(!array_key_exists($prod, $data->recs)){
+                $data->recs[$prod] = $recD;
+            } else {
+                $aObj = &$data->recs[$prod];
+                $aObj->articleCnt += $recD->articleCnt;
+            }
+        }
+
+
         $i = 1;
         if(is_array($data->recs)) {
             foreach ($data->recs as $idRec=>$rec){ 
@@ -532,15 +555,15 @@ class cat_reports_BomsRep extends frame_BaseDriver
                     $valior = dt::mysql2verbal($recSale->valior, "d.m.y");
                     // контрагент
                     $Contragent = cls::get($recSale->contragentClassId);
-                    $contragent = $Contragent->getTitleById($recSale->contragentId);
-                    
+                    $contragent = $Contragent->getTitleById($recSale->contragentId, FALSE);
+                 
                     $string = $handle . "/" . $valior . " " . $contragent;
                     // правим масив с опции
                     $options[$recSale->id] = $string;
                 }
             }
         }
-    
+
         return $options;
     }
 }

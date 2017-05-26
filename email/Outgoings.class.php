@@ -182,6 +182,12 @@ class email_Outgoings extends core_Master
     
     
     /**
+     * Масив с грешки, които ще се показват на потребителя при възникването им
+     */
+    protected static $errShowNotifyStr = array('recipients failed');
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -509,7 +515,8 @@ class email_Outgoings extends core_Master
                         array(
                             'encoding' => $options->encoding
                         ),
-                        $emailsCc
+                        $emailsCc,
+                        $error
                     );
                 } catch (core_exception_Expect $e) {
                     self::logErr("Грешка при изпращане", $rec->id);
@@ -552,8 +559,23 @@ class email_Outgoings extends core_Master
                 $success[] = $allEmailsToStr;
             } else {
                 
-                // Правим запис в лога за неуспех
-                static::logErr('Грешка при изпращане', $rec->id);
+                $errType = 'err';
+                foreach (email_Sent::$logErrToWarningArr as $v) {
+                    if (stripos($error, $v)) {
+                
+                        $errType = 'warning';
+                
+                        break;
+                    }
+                }
+                
+                $errStr = 'Грешка при изпращане: ' . $error;
+                if ($errType == 'warning') {
+                    static::logWarning($errStr, $rec->id);
+                } else {
+                    static::logErr($errStr, $rec->id);
+                }
+                
                 $failure[] = $allEmailsToStr;
             }
         }
@@ -633,6 +655,16 @@ class email_Outgoings extends core_Master
         // Ако има провалено изпращане
         if ($failure) {
             $msg = '|Грешка при изпращане до|*: ' . implode(', ', $failure);
+            
+            if ($error) {
+                foreach (self::$errShowNotifyStr as $v) {
+                    if (stripos($error, $v)) {
+                        $msg .= '<br>' . $error;
+                        break;
+                    }
+                }
+            }
+            
             $statusType = 'error';
             
             // Добавяме статус

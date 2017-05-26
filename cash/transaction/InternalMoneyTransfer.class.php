@@ -43,13 +43,30 @@ class cash_transaction_InternalMoneyTransfer extends acc_DocumentTransactionSour
     
     	($rec->debitCase) ? $debitArr = array('cash_Cases', $rec->debitCase) : $debitArr = array('bank_OwnAccounts', $rec->debitBank);
     	
-    	$entry = array('debit' => array($rec->debitAccId,$debitArr,
+    	$creditArr = array($rec->creditAccId, 
+    						array('cash_Cases', $rec->creditCase),
+    						array('currency_Currencies', $rec->currencyId),
+    						'quantity' => $rec->amount);
+    	
+    	if($rec->operationSysId == 'nonecash2bank'){
+    		$creditArr = array($rec->creditAccId,
+    				array('cash_Cases', $rec->creditCase),
+    				array('cond_Payments', $rec->paymentId),
+    				'quantity' => $rec->amount);
+    		
+    		$payment = cond_Payments::getTitleById($rec->paymentId);
+    		$reason = "Инкасирано от: '{$payment}'";
+    	} elseif($rec->operationSysId == 'case2case'){
+    		$reason = 'Вътрешно касов трансфер';
+    	} elseif($rec->operationSysId == 'case2bank'){
+    		$reason = 'Захранване на банкова сметка';
+    	}
+    	
+    	$entry = array('debit' => array($rec->debitAccId, $debitArr,
 					    			array('currency_Currencies', $rec->currencyId),
 					    			'quantity' => $rec->amount), 
-    				   'credit' => array($rec->creditAccId,
-					    			array('cash_Cases', $rec->creditCase),
-					    			array('currency_Currencies', $rec->currencyId),
-					    			'quantity' => $rec->amount));
+    				   'credit' => $creditArr, 'reason' => $reason);
+    	
     	$entry = array($entry);
     	 
     	// Подготвяме информацията която ще записваме в Журнала
