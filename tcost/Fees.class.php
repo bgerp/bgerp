@@ -120,7 +120,22 @@ class tcost_Fees extends core_Detail
     	$form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
     }
     
-    
+
+
+    /**
+     * Преди извличане на записите от БД
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    public static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    {
+        $data->query->orderBy('#weight');
+     }
+
+
+
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
@@ -168,7 +183,7 @@ class tcost_Fees extends core_Detail
         $zone = tcost_Zones::getZoneIdAndDeliveryTerm($deliveryTermId, $countryId, $pCode);
         
         // Ако не се намери зона се връща 0
-        if(is_null($zone)) return tcost_CostCalcIntf::CALC_ERROR;
+        if(is_null($zone)) return tcost_CostCalcIntf::ZONE_FIND_ERROR;
 
         // Асоциативен масив от тегло(key) и цена(value) -> key-value-pair
         $arrayOfWeightPrice = array();
@@ -250,7 +265,7 @@ class tcost_Fees extends core_Detail
             }
 
             $delimiter = $weightsLeft - $weightsRight;
-            if(!$delimiter) return tcost_CostCalcIntf::CALC_ERROR;
+            if(!$delimiter) return tcost_CostCalcIntf::DELIMITER_ERROR;
             
             $a = ($priceLeft - $priceRight) / $delimiter;
             $b = $priceLeft - (($priceLeft - $priceRight) / $delimiter * $weightsLeft);

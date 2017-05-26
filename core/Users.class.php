@@ -2257,6 +2257,21 @@ class core_Users extends core_Manager
 
 
     /**
+     * Филтрира опциите за избор на потребител при мограцията
+     */    
+    public static function filterUserForMigrateFolders($type)
+    {
+        foreach($type->options as $id => $opt) {
+            $value = is_object($opt) ? $opt->value : $opt;
+
+            if($value == $type->params['preventId']) {
+                unset($type->options[$id]); 
+            }
+        }
+    }
+
+
+    /**
      * Мигриране на папки на потребител
      */
     public function act_MigrateFolders()
@@ -2278,7 +2293,7 @@ class core_Users extends core_Manager
             $team = core_Roles::fetchById($team);
             $rang = self::getRang($user);
 
-            $form->FLD('userTo', "user(roles={$team},allowEmpty)", 'caption=Приемен потребител->Избор,mandatory');
+            $form->FLD('userTo', "user(roles={$team},allowEmpty, preventId={$user}, filter=core_Users::filterUserForMigrateFolders)", 'caption=Приемен потребител->Избор,mandatory');
         }
 
         $rec = $form->input();
@@ -2307,7 +2322,7 @@ class core_Users extends core_Manager
         $form->title = "Миграция на споделени папки";
         $form->toolbar->addSbbtn('Миграция', 'save');
 
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на миграцията');
+        $form->toolbar->addBtn('Отказ', array('core_Users'), 'ef_icon=img/16/close-red.png, title=Прекратяване на миграцията');
 
         $html = $this->renderWrapping($form->renderHtml());
 

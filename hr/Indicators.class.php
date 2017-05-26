@@ -16,6 +16,8 @@
  */
 class hr_Indicators extends core_Manager
 {
+    
+    
     /**
      * Старо име на класа
      */
@@ -37,13 +39,7 @@ class hr_Indicators extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_SaveAndNew, plg_RowTools2, hr_Wrapper';
-                   
-
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,hrMaster';
+    public $loadList = 'plg_RowTools2, hr_Wrapper';
     
     
     /**
@@ -59,21 +55,9 @@ class hr_Indicators extends core_Manager
     
     
     /**
-     * Кой може да го види?
-     */
-    public $canView = 'ceo,hrMaster';
-    
-    
-    /**
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,hrMaster';
-
-
-    /**
-     * Кой може да разглежда сингъла на документите?
-     */
-    public $canSingle = 'ceo,hrMaster';
     
     
     /**
@@ -95,14 +79,11 @@ class hr_Indicators extends core_Manager
     public function description()
     {
         $this->FLD('date',    'date', 'caption=Дата,mandatory');
-
-        $this->FLD('docId',    'int', 'caption=Документ->№,mandatory');
+        $this->FLD('docId',    'int', 'caption=Документ->№,mandatory,tdClass=leftCol');
         $this->FLD('docClass', 'int', 'caption=Документ->Клас,silent,mandatory');
-
-        $this->FLD('personId',    'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител,mandatory');
-
-        $this->FLD('indicatorId',    'int', 'caption=Индикатор,smartCenter,mandatory');
-        $this->FLD('sourceClass',    'class(interface=hr_IndicatorsSourceIntf,select=title)', 'caption=Индикатор->Източник,smartCenter,mandatory');
+		$this->FLD('personId',    'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител,mandatory');
+		$this->FLD('indicatorId',    'key(mvc=hr_IndicatorNames,select=name)', 'caption=Показател,smartCenter,mandatory');
+        $this->FLD('sourceClass',    'class(interface=hr_IndicatorsSourceIntf,select=title)', 'caption=Показател->Източник,smartCenter,mandatory');
         $this->FLD('value',    'double(smartRound,decimals=2)', 'caption=Стойност,mandatory');
 
         $this->setDbUnique('date,docId,docClass,indicatorId,sourceClass,personId');
@@ -118,74 +99,13 @@ class hr_Indicators extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {   
-        // Подготвяме масив с имената на индикаторите
-        static $names;
-        if(!$names) {
-            $names = $mvc->getIndicatorNames();
-        }
-
         // Ако имаме права да видим визитката
         if(crm_Persons::haveRightFor('single', $rec->personId)){
             $name = crm_Persons::fetchField("#id = '{$rec->personId}'", 'name');
             $row->personId = ht::createLink($name, array ('crm_Persons', 'single', 'id' => $rec->personId), NULL, 'ef_icon = img/16/vcard.png');
         }
         
-        $dMvc = cls::get($rec->docClass); 
-        $row->docId = $dMvc->getLinkForObject($rec->docId);
-
-        $sMvc = cls::get($rec->sourceClass);
-        $row->indicatorId = $names[$rec->sourceClass][$rec->indicatorId];
-    }
- 
-    
-    /**
-     * Филтър на on_AfterPrepareListFilter()
-     * Малко манипулации след подготвянето на формата за филтриране
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
-     */
-    public static function on_AfterPrepareListFilter1($mvc, $data)
-    {
-        
-        // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('from', 'date', 'caption=Дата->От,input,silent, width = 150px');
-        $data->listFilter->FNC('to', 'date', 'caption=Дата->До,input,silent, width = 150px');
-        $data->listFilter->FNC('person', 'key(mvc=crm_Persons,select=name,group=employees, allowEmpty=true)', 'caption=Служител,input,silent, width = 150px');
-
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        
-        $data->listFilter->showFields = 'from, to, person, indicators';
-        $data->listFilter->input('from, to, person', 'silent');
-        
-        $from = $data->listFilter->rec->from;
-        $to = $data->listFilter->rec->to;
-        $person = $data->listFilter->rec->person;
-        $indicators = $data->listFilter->rec->indicators;
-        $group = $data->listFilter->rec->group;
-
-        if($from && $to){
-            if($from > $to){
-                $newFrom = $from;
-                $from = $to;
-                $to = $newFrom;
-            }
-            $data->query->where("#date >= '{$from}' AND #date <= '{$to}'");
-        }
-        
-        if($from){
-            $data->query->where("#date >= '{$from}'");
-            
-        }
-        
-        if($to){
-            $data->query->where("#date <= '{$to}'");
-        }
-        
-        if($person){
-            $data->query->where("#personId = '{$person}'");
-        }
-        
+        $row->docId = cls::get($rec->docClass)->getLink($rec->docId, 0);
     }
     
     
@@ -195,15 +115,65 @@ class hr_Indicators extends core_Manager
     public static function cron_Update()
     { 
         $timeline = dt::addSecs(-(hr_Setup::INDICATORS_UPDATE_PERIOD + 10000) * 60);
-       
-        $periods = self::saveIndicators($timeline);
-        foreach($periods as $id => $rec) {
-            self::calcPeriod($rec);
-        }
- 
+        
+    	self::recalc($timeline);
     }
     
      
+    /**
+     * Екшън за преизчисляване на индикаторите след дадена дата
+     */
+    function act_Recalc()
+    {
+    	requireRole('ceo,hrMaster');
+    	
+    	$form = cls::get('core_Form');
+    	$form->FLD('timeline', 'datetime', 'caption=Oт кога');
+    	$form->input();
+    	
+    	if($form->isSubmitted()){
+    		$rec = $form->rec;
+    		
+    		$this->logWrite("Преизчисляване на индикаторите след '{$rec->timeline}'");
+    		self::recalc($rec->timeline);
+    		followRetUrl(NULL, 'Индикаторите са преизчислени');
+    	}
+    	
+    	// Добавяне на бутони
+    	$form->title = 'Преизчисляване на индикаторите';
+    	$form->toolbar->addSbBtn('Преизчисляване', 'save', 'ef_icon = img/16/arrow_refresh.png, title = Запис на документа');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+    	
+    	return $this->renderWrapping($form->renderHtml());
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	if(haveRole('ceo,hrMaster')){
+    		$data->toolbar->addBtn('Преизчисляване', array($mvc, 'recalc', 'ret_url' => TRUE), 'title=Преизчисляване на индикаторите,ef_icon=img/16/arrow_refresh.png');
+    	}
+    }
+    
+    
+    /**
+     * Рекалкулиране на индикаторите от определена дата
+     * 
+     * @param datetime $timeline
+     * @return void
+     */
+    private static function recalc($timeline)
+    {
+    	$periods = self::saveIndicators($timeline);
+    	foreach($periods as $id => $rec) {
+    		self::calcPeriod($rec);
+    	}
+    }
+    
+    
     /**
      * Събиране на информация от всички класове
      * имащи интерфейс hr_IndicatorsSourceIntf
@@ -225,7 +195,7 @@ class hr_Indicators extends core_Manager
         
         // Ако нямаме източници - нищо не правим
         if(!is_array($docArr) || !count($docArr)) return;
-
+        
         // Зареждаме всеки един такъв клас
         foreach ($docArr as $class){
             
@@ -235,7 +205,7 @@ class hr_Indicators extends core_Manager
             $data = $sMvc->getIndicatorValues($timeline);
            
             if (is_array($data) && count($data)) {
-           
+           		
                 // Даваме време
                 core_App::setTimeLimit(count($data) + 10);
 
@@ -294,10 +264,11 @@ class hr_Indicators extends core_Manager
         return $periods;
     }
     
+    
     /**
      * Калкулира заплащането на всички, които имат трудов договор за посочения период
      */
-    static function calcPeriod($pRec)
+    private static function calcPeriod($pRec)
     { 
         // Намираме последните, активни договори за назначения, които се засичат с периода
         $ecQuery = hr_EmployeeContracts::getQuery();
@@ -314,7 +285,6 @@ class hr_Indicators extends core_Manager
             }
         }
         
-
         $query = self::getQuery();
         $query->where("#date >= '{$pRec->start}' AND #date <= '{$pRec->end}'");
         $query->groupBy("personId");
@@ -327,7 +297,6 @@ class hr_Indicators extends core_Manager
         // Дали да извадим формулата от длъжността
         $replaceFormula = dt::now() < $pRec->end;
 
-
         // Подготвяме масив с нулеви стойности
         $names = self::getIndicatorNames();
         foreach($names as $class => $nArr) {
@@ -335,8 +304,7 @@ class hr_Indicators extends core_Manager
                 $zeroInd[$n] = 0;
             }
         }
-
- 
+		
         // За всеки един договор, се опитваме да намерим формулата за заплащането от позицията.
         foreach($ecArr as $personId => $ecRec) {
 
@@ -354,7 +322,6 @@ class hr_Indicators extends core_Manager
                 }
             }
          
-            $names = self::getIndicatorNames();
             $query = self::getQuery();
             $query->where("#date >= '{$pRec->start}' AND #date <= '{$pRec->end}'");
             $query->where("#personId = {$personId}");
@@ -371,7 +338,6 @@ class hr_Indicators extends core_Manager
                 $prlRec->periodId = $pRec->id;
             }
             
-     
             if($replaceFormula && $ecRec->positionId) {  
                 $prlRec->formula = hr_Positions::fetchField($ecRec->positionId, 'formula');
             }
@@ -400,13 +366,11 @@ class hr_Indicators extends core_Manager
                         $prlRec->error = 'Грешка в калкулацията';
                     }
                 }
-
             } 
 
             $prlRec->indicators = $sum;
 
             hr_Payroll::save($prlRec);
-
         }
 
         // Ако не успеем - заплащането е базовото от договора
@@ -417,6 +381,7 @@ class hr_Indicators extends core_Manager
 
         // В записа записваме и формулата и заместените велични
     }
+    
     
     /**
      * Извличаме имената на идикаторите

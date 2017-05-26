@@ -103,7 +103,7 @@ class hr_Payroll extends core_Manager
     	 $this->FLD('indicators',    'blob(serialize)', 'caption=Индикатори');
     	 $this->FLD('formula',    'text', 'caption=Формула');
     	 $this->FLD('salary',    'double', 'caption=Заплата,width=100%');
-   	    $this->FLD('status',    'varchar', 'caption=Статус,mandatory');
+   	     $this->FLD('status',    'varchar', 'caption=Статус,mandatory');
 
     	 $this->setDbUnique('periodId,personId');
     }

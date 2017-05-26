@@ -71,12 +71,6 @@ class sales_PrimeCostByDocument extends core_Manager
     
     
     /**
-     * Работен кеш
-     */
-    public static $cache1 = array();
-    
-    
-    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -240,7 +234,13 @@ class sales_PrimeCostByDocument extends core_Manager
 			// Извличане на ид-та на детайлите му и кеш на мастър данните
 			while($dRec = $dQuery->fetch()){
 				if(!isset($masters[$dRec->containerId])){
-					$masters[$dRec->containerId] = array(doc_Containers::getDocument($dRec->containerId), $dRec->state, $dRec->isReverse);
+					try{
+						$masters[$dRec->containerId] = array(doc_Containers::getDocument($dRec->containerId), $dRec->state, $dRec->isReverse);
+					} catch(core_exception_Expect $e){
+						reportException($e);
+						break;
+					}
+					
 				}
 		
 				$ids[$dRec->id] = $dRec->id;
@@ -271,6 +271,9 @@ class sales_PrimeCostByDocument extends core_Manager
 		$result = array();
 		if(!count($indicatorRecs)) return $result;
 		
+		$deltaId = hr_IndicatorNames::force('Delta', __CLASS__, 1)->id;
+		$deltaIId = hr_IndicatorNames::force('DeltaI', __CLASS__, 2)->id;
+		
 		foreach ($indicatorRecs as $rec){
 			
 			// Намиране на дилъра, инициатора и взимане на данните на мастъра на детайла
@@ -287,7 +290,7 @@ class sales_PrimeCostByDocument extends core_Manager
 				}
 							
 				$personFldValue = $personIds[$rec->{$personFld}];
-				$indicatorId = ($personFld == 'dealerId') ? 1 : 2;
+				$indicatorId = ($personFld == 'dealerId') ? $deltaId : $deltaIId;
 							
 				// Ключа по който ще събираме е лицето, документа и вальора
 				$key = "{$personFldValue}|{$Document->getClassId()}|{$Document->that}|{$rec->valior}|{$indicatorId}";
@@ -417,7 +420,14 @@ class sales_PrimeCostByDocument extends core_Manager
      */
     public static function getIndicatorNames()
     {
-        $res = array(1 => 'Delta', 2 => 'DeltaI');
+    	$result = array();
+    	$rec = hr_IndicatorNames::force('Delta', __CLASS__, 1);
+    	$result[$rec->id] = $rec->name;
+    	
+    	$rec = hr_IndicatorNames::force('DeltaI', __CLASS__, 2);
+    	$result[$rec->id] = $rec->name;
+    	
+    	return $result;
         
         /*$selectedGroups = sales_Setup::get('DELTA_CAT_GROUPS');
         $selectedGroups = keylist::toArray($selectedGroups);
