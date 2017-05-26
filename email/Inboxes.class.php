@@ -28,7 +28,7 @@ class email_Inboxes extends core_Master
      */
     var $loadList = 'email_Wrapper, plg_State, plg_Created, 
     				 plg_Modified, doc_FolderPlg, plg_RowTools2, 
-    				 plg_Rejected';
+    				 plg_Rejected, doc_plg_Close';
     
     
     /**
@@ -344,30 +344,36 @@ class email_Inboxes extends core_Master
      * Ако е зададена $accId филтрира и оставя само кутиите, които са към посочената сметка
      * 
      * @param int $accId
+     * @param boolean $removeClosed
      * @param boolean $removeRejected
      * 
      * @return array
      */
-    static function getAllInboxes($accId = 0, $removeRejected = TRUE)
+    static function getAllInboxes($accId = 0, $removeClosed = TRUE, $removeRejected = TRUE)
     {
-        if (!self::$allBoxes[$accId]) {
+        $key = $accId . '|' . $removeClosed . '|' . $removeRejected;
+        if (!self::$allBoxes[$key]) {
             $query = static::getQuery();
             $query->show('id, email, accountId');
             
             if ($removeRejected) {
                 $query->where("#state != 'rejected'");
             }
+
+            if ($removeClosed) {
+                $query->where("#state != 'closed'");
+            }
             
-            self::$allBoxes[$accId] = array();
+            self::$allBoxes[$key] = array();
             
             while ($rec = $query->fetch()) {
                 if(($accId == 0) || ($accId == $rec->accountId)) {
-                    self::$allBoxes[$accId][$rec->email] = $rec->accountId;
+                    self::$allBoxes[$key][$rec->email] = $rec->accountId;
                 }
             }
         }
         
-        return self::$allBoxes[$accId];
+        return self::$allBoxes[$key];
     }
     
     
@@ -1088,13 +1094,14 @@ class email_Inboxes extends core_Master
      * Връща масив с всички имейл кутии
      * 
      * @param boolean $removeRejected
+     * @param boolean $removeClosed
      * 
      * @return array
      */
-    public static function getAllEmailsArr($removeRejected = TRUE)
+    public static function getAllEmailsArr($removeClosed = TRUE, $removeRejected = TRUE)
     {
         $cacheType = 'emailInboxes';
-        $cacheHandle = 'allEmails' . $removeRejected;
+        $cacheHandle = 'allEmails_' . $removeRejected . '_' . $removeClosed;
         $keepMinutes = 1000;
         $depends = array('email_Inboxes', 'email_Accounts');
         
@@ -1104,6 +1111,10 @@ class email_Inboxes extends core_Master
             
             if ($removeRejected) {
                 $query->where("#state != 'rejected'");
+            }
+            
+            if ($removeClosed) {
+                $query->where("#state != 'closed'");
             }
             
             $allEmailsArr = array();
