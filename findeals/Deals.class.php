@@ -789,7 +789,14 @@ class findeals_Deals extends deals_DealBase
     	
     	// Обновяваме крайното салдо на сметката на сделката
     	$entries = acc_Journal::getEntries(array($this->className, $rec->id));
-    	$blAmount = acc_Balances::getBlAmounts($entries, acc_Accounts::fetchField($rec->accountId, 'systemId'))->amount;
+    	
+    	$itemId = acc_Items::fetchItem($this, $rec->id)->id;
+    	$accSysId = acc_Accounts::fetchField($rec->accountId, 'systemId');
+    	$cItemId = acc_Items::fetchItem($rec->contragentClassId, $rec->contragentId)->id;
+    	$curItemId = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode($rec->currencyId))->id;
+    	
+    	$blAmount = acc_Balances::getBlAmounts($entries, $accSysId, NULL, NULL, array($cItemId, $itemId, $curItemId))->amount;
+    	
     	$paid = acc_Balances::getBlAmounts($entries, '501,503')->amount;
     	
     	$result->set('amount', 0);
