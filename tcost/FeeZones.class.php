@@ -171,7 +171,7 @@ class tcost_FeeZones extends core_Master
      * @param string $fromPostalCode - пощенски код на мястото за изпращане
      *
      * @return array
-     * 			['fee']              - цена, която ще бъде платена за теглото на артикул, ако не може да се изчисли се връща tcost_CostCalcIntf::CALC_ERROR
+     * 			['fee']              - цена, която ще бъде платена за теглото на артикул, ако не може да се изчисли се връща < 0
      * 			['deliveryTime']     - срока на доставка в секунди ако го има
      */
     public function getTransportFee($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $toCountry, $toPostalCode, $fromCountry, $fromPostalCode)
@@ -186,7 +186,7 @@ class tcost_FeeZones extends core_Master
     	$weightRow = $this->getVolumicWeight($weightRow, $volumeRow);
     	
     	// Ако няма, цената няма да може да се изчисли
-    	if(empty($weightRow)) return array('fee' => tcost_CostCalcIntf::CALC_ERROR);
+    	if(empty($weightRow)) return array('fee' => tcost_CostCalcIntf::EMPTY_WEIGHT_ERROR);
     	
     	// Опит за калкулиране на цена по посочените данни
     	$fee = tcost_Fees::calcFee($deliveryTermId, $toCountry, $toPostalCode, $totalWeight, $weightRow);
@@ -194,7 +194,7 @@ class tcost_FeeZones extends core_Master
     	$deliveryTime = ($fee[3]) ? $fee[3] : NULL;
     	
     	// Ако цената може да бъде изчислена се връща
-    	if($fee != tcost_CostCalcIntf::CALC_ERROR){
+    	if(!($fee < 0)){
     		$fee = (isset($fee[1])) ? $fee[1] : 0;
     	} 
     	
@@ -238,8 +238,8 @@ class tcost_FeeZones extends core_Master
     		$rec = $form->rec;
     		try {
     			$result = tcost_Fees::calcFee($rec->deliveryTermId, $rec->countryId, $rec->pCode, $rec->totalWeight, $rec->singleWeight);
-    			if($result === tcost_CostCalcIntf::CALC_ERROR){
-    				$form->setError("deliveryTermId,countryId,pCode", 'Не може да се изчисли сума за транспорт');
+    			if($result < 0){
+    				$form->setError("deliveryTermId,countryId,pCode", "Не може да се изчисли сума за транспорт ($result)");
     			} else {
     				$zoneName = tcost_FeeZones::getVerbal($result[2], 'name');
     				$form->info = "Цената за|* <b>" . $rec->singleWeight . "</b> |на|* <b>" . $rec->totalWeight . "</b> |кг. от този пакет ще струва|* <b>". round($result[1], 4).

@@ -225,4 +225,19 @@ class tcost_Zones extends core_Detail
     		}
     	}
     }
+
+
+    /**
+     * Преди извличане на записите от БД
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    public static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    {
+        $data->query->orderBy('#countryId,#pCode');
+    }
+
+
 }

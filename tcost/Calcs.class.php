@@ -131,7 +131,7 @@ class tcost_Calcs extends core_Manager
     	
     	$res = array('totalFee' => $fee);
     	
-    	if($fee != tcost_CostCalcIntf::CALC_ERROR){
+    	if($fee > 0){
     		$res['singleFee'] = $fee / $quantity;
     	}
     	
@@ -301,13 +301,12 @@ class tcost_Calcs extends core_Manager
     {
     	$count = 0;
     	$classId = cls::get($docClass)->getClassId();
-    	$feeErr = tcost_CostCalcIntf::CALC_ERROR;
     	$isQuote = ($classId == sales_Quotations::getClassId());
     	
     	$query = self::getQuery();
     	$query->where("#docClassId = {$classId} AND #docId = {$docId}");
     	
-    	$query->where("#fee != {$feeErr}");
+    	$query->where("#fee > 0");
     	while($rec = $query->fetch()){
     		if($isQuote === TRUE){
     			$dRec = sales_QuotationsDetails::fetch($rec->recId, 'price,optional');
@@ -335,9 +334,9 @@ class tcost_Calcs extends core_Manager
     {
     	if(!haveRole('powerUser')) return $amountRow;
     	
-    	if($amountFee == tcost_CostCalcIntf::CALC_ERROR){
+    	if($amountFee < 0){
     		
-    		return ht::createHint($amountRow, 'Скритият транспорт не може да бъде изчислен', 'warning', FALSE);
+    		return ht::createHint($amountRow, "Скритият транспорт не може да бъде изчислен ({$amountFee})", 'warning', FALSE);
     	} elseif(isset($amountFee)){
     		$amountFee = deals_Helper::getDisplayPrice($amountFee, $vat, $currencyRate, $chargeVat);
     		$amountFee = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($amountFee);
