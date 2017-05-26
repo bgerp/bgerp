@@ -66,7 +66,7 @@ class hr_IndicatorNames extends core_Manager
     public function description()
     {
         $this->FLD('name', 'varchar', 'caption=Наименование,mandatory');
-        $this->FLD('uniqueId', 'int', 'caption=Обект,mandatory');
+        $this->FLD('uniqueId', 'varchar', 'caption=Обект,mandatory');
         $this->FLD('classId', 'class(interface=hr_IndicatorsSourceIntf,select=title)', 'caption=Клас,mandatory');
         
         $this->setDbUnique('uniqueId,classId');
@@ -85,7 +85,7 @@ class hr_IndicatorNames extends core_Manager
     {
     	$class = cls::get($class);
     	
-    	$rec = self::fetch("#classId = {$class->getClassId()} AND #uniqueId = {$uniqueId}");
+    	$rec = self::fetch("#classId = {$class->getClassId()} AND #uniqueId = '{$uniqueId}'");
     	$name = self::normalizeName($name);
     	
     	if(!$rec){
