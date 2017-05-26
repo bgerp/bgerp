@@ -127,22 +127,23 @@ class cat_reports_BomsRep extends frame_BaseDriver
        
             // Намираме рецептата за артикула (ако има)
             $bomId = cat_Products::getLastActiveBom($rec->productId, 'production')->id;
+       
             if(!$bomId) {
                 $bomId = cat_Products::getLastActiveBom($rec->productId, 'sales')->id;
             }
-            
+       
             if (isset($bomId)) { 
                 $queryDetail = cat_BomDetails::getQuery();
                 $queryDetail->where("#bomId = '{$bomId}'");
                 
                 $products = array();
                 $materials = array();
-                
+        
                 while($recDetail = $queryDetail->fetch()) {
                     $index = $rec->saleId."|".$recDetail->resourceId;
-
-                    $componentArr = cat_Products::prepareComponents($rec->productId); 
-                    
+                 
+                    $componentArr = cat_Products::prepareComponents($rec->productId, 'production'); 
+                    //bp($bomId,$recDetail,$componentArr);
                     $quantity = str_replace(",", ".", $rec->quantity);
                     $propQuantity = str_replace(",", ".",$recDetail->propQuantity);
                     
@@ -175,7 +176,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
             }
         }
 
-    
+
         foreach($dRecs as $dId => $recD){
             $sal = strstr($dId, "|", TRUE);
             $prod = substr(strstr($dId, "|"),1);
@@ -193,7 +194,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
         if(is_array($data->recs)) {
             foreach ($data->recs as $idRec=>$rec){ 
 
-                $mArr[$idRec] = cat_Products::getMaterialsForProduction($rec->article,$rec->articleCnt, NULL,TRUE);
+                $mArr[$idRec] = cat_Products::getMaterialsForProduction($rec->article, $rec->articleCnt, NULL,TRUE);
          
                 $rec->num = $i;
 
