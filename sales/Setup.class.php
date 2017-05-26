@@ -195,6 +195,7 @@ class sales_Setup extends core_ProtoSetup
 			'SALES_ADD_BY_CREATE_BTN'  => array("keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Необходими роли за добавяне на артикули в продажба от->Създаване'),
 			'SALES_ADD_BY_LIST_BTN'    => array("keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Необходими роли за добавяне на артикули в продажба от->Списък'),
 			'SALES_ADD_BY_IMPORT_BTN'  => array("keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Необходими роли за добавяне на артикули в продажба от->Импорт'),
+			'SALES_DELTA_CAT_GROUPS'   => array('keylist(mvc=cat_Groups,select=name)', 'caption=Групи продажбени артикули за изчисляване на ТРЗ индикатори->Групи'),
 	);
 	
 	
@@ -218,6 +219,7 @@ class sales_Setup extends core_ProtoSetup
     		'migrate::cacheInvoicePaymentType',
     		'migrate::migrateRoles',
     		'migrate::updateDealFields1',
+    		'migrate::updateDeltaTable'
         );
 
     
@@ -391,6 +393,38 @@ class sales_Setup extends core_ProtoSetup
     		if(count($update)){
     			$Deal->saveArray($update, 'id,productIdWithBiggestAmount');
     		}
+    	}
+    }
+    
+    
+    /**
+     * Миграция на сделките
+     */
+    function updateDeltaTable()
+    {
+    	$Class = cls::get('sales_PrimeCostByDocument');
+    	$Class->setupMvc();
+    	
+    	$update = array();
+    	$query = $Class->getQuery();
+    	while($rec = $query->fetch()){
+    		try{
+    			$Detail = cls::get($rec->detailClassId);
+    			$masterId = $Detail->fetchField($rec->detailRecId, "{$Detail->masterKey}");
+    			
+    			$rec->containerId = $Detail->Master->fetchField($masterId, 'containerId');
+    			$persons = sales_PrimeCostByDocument::getDealerAndInitiatorId($rec->containerId);
+    			$rec->dealerId = $persons['dealerId'];
+    			$rec->initiatorId = $persons['initiatorId'];
+    			
+    			$update[] = $rec;
+    		} catch(core_exception_Expect $e){
+    			reportException($e);
+    		}
+    	}
+    	
+    	if(count($update)){
+    		$Class->saveArray($update, 'id,containerId,dealerId,initiatorId');
     	}
     }
 }

@@ -94,11 +94,16 @@ class sales_plg_CalcPriceDelta extends core_Plugin
 			$r = (object)array('valior'        => $valior,
 							   'detailClassId' => $detailClassId,
 					           'detailRecId'   => $dRec->id,
+							   'containerId'   => $rec->containerId,
 					           'quantity'      => $dRec->{$mvc->detailQuantityFld},
 					           'productId'     => $dRec->{$mvc->detailProductFld},
 					           'sellCost'      => $dRec->{$mvc->detailSellPriceFld},
 					           'primeCost'     => $primeCost);
-				
+			
+			$persons = sales_PrimeCostByDocument::getDealerAndInitiatorId($rec->containerId);
+			$r->dealerId = $persons['dealerId'];
+			$r->initiatorId = $persons['initiatorId'];
+			
 			$id = sales_PrimeCostByDocument::fetchField("#detailClassId = {$detailClassId} AND #detailRecId = {$dRec->id}");
 			if(!empty($id)){
 				$r->id = $id;
