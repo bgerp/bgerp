@@ -32,7 +32,7 @@ class acc_BalanceHistory extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'Balance=acc_BalanceDetails, acc_Wrapper';
+    public $loadList = 'Balance=acc_BalanceDetails, acc_Wrapper, plg_Printing';
     
     
     /**
