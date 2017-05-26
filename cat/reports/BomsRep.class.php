@@ -239,8 +239,10 @@ class cat_reports_BomsRep extends frame_BaseDriver
         if(is_array($data->recs) && isset($fRec->groupId)) {
             foreach($data->recs as $rI=>$rC){
                 foreach($rC->materials as $mat) { 
-                    if (!preg_match("/$fRec->groupId/",cat_Products::fetchField($mat,'groups'))){
+                    if (strpos(cat_Products::fetchField($mat,'groups'),$fRec->groupId)){
 
+                        
+                    } else {
                         unset($data->recs[$rI]->materials[$mat]);
                         unset($data->recs[$rI]->mCnt[$mat]);
                         unset($data->recs[$rI]->mParams[$mat]);
