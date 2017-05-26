@@ -660,7 +660,7 @@ class sales_Quotations extends core_Master
     		$fee = tcost_Calcs::getTransportCost($rec->deliveryTermId, $p2->productId, $p2->packagingId, $p2->quantity, $totalWeight, $codeAndCountryArr['countryId'], $codeAndCountryArr['pCode']);
     
     		// Сумира се, ако е изчислен
-    		if(is_array($fee) && $fee['totalFee'] != tcost_CostCalcIntf::CALC_ERROR){
+    		if(is_array($fee) && $fee['totalFee'] > 0){
     			$expectedTransport += $fee['totalFee'];
     		}
     	}

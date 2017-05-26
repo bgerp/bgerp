@@ -183,7 +183,7 @@ class sales_QuotationsDetails extends doc_Detail {
     		// Добавяне на транспортните разходи, ако има
     		$fee = tcost_Calcs::get('sales_Quotations', $rec->quotationId, $rec->id)->fee;
     		
-    		if(isset($fee) && $fee != tcost_CostCalcIntf::CALC_ERROR){
+    		if(isset($fee) && $fee > 0){
     			$rec->price += $fee / $rec->quantity;
     		}
     		

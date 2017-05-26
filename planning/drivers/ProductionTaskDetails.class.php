@@ -553,11 +553,12 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	$query = self::getQuery();
    
         $query->where("#modifiedOn >= '{$timeline}'");
-    
+        $iRec = hr_IndicatorNames::force('Време', __CLASS__, 1);
+        
         $result = array();
         $tplObj = (object) array (
             'docClass' => core_Classes::getId('planning_Tasks'), 
-            'indicatorId' => 1,
+            'indicatorId' => $iRec->id,
             );
         
         $queryProduct = planning_drivers_ProductionTaskProducts::getQuery();
@@ -627,7 +628,10 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
      */
     public static function getIndicatorNames()
     {
-        return array(1 => 'Време');
+    	$result = array();
+    	$rec = hr_IndicatorNames::force('Време', __CLASS__, 1);
+    	$result[$rec->id] = $rec->name;
+    	 
+    	return $result;
     }
-
 }

@@ -25,9 +25,10 @@ class hr_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {
-        $this->TAB('hr_Indicators', 'Заплащане->Индикатори', 'ceo,hrMaster');
+        $this->TAB('hr_Indicators', 'Заплащане->Показатели', 'ceo,hrMaster');
         $this->TAB('hr_Payroll', 'Заплащане->Ведомост','ceo,hrMaster');
-
+        $this->TAB('hr_IndicatorNames', 'Заплащане->Видове показатели','debug,admin');
+        
         $this->TAB('hr_EmployeeContracts', 'Документи->Договори', 'ceo,hrMaster');
         $this->TAB('hr_Leaves', 'Документи->Отпуски', 'ceo,hr');
         $this->TAB('hr_Sickdays', 'Документи->Болнични', 'ceo,hrMaster');

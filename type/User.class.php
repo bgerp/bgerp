@@ -137,7 +137,11 @@ class type_User extends type_Key
         }
         
         $this->options = parent::prepareOptions();
-       
+        
+        if(isset($this->params['filter'])) {
+            call_user_func($this->params['filter'], $this);
+        }
+
         return $this->options;
     }
     

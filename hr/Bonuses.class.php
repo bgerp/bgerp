@@ -158,7 +158,7 @@ class hr_Bonuses extends core_Master
     	$this->FLD('date', 'date',     'caption=Дата,oldFieldName=periodId');
     	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител');
     	$this->FLD('type', 'richtext',     'caption=Произход на бонуса');
-    	$this->FLD('sum', 'double',     'caption=Сума');
+    	$this->FLD('sum', 'double',     'caption=Сума,mandatory');
     	$this->FNC('title', 'varchar', 'column=none');
     }
     
@@ -240,6 +240,8 @@ class hr_Bonuses extends core_Master
     	$query = self::getQuery();
         $query->where("#modifiedOn  >= '{$timeline}' AND #state != 'draft' AND #state != 'template' AND #state != 'pending'");
  
+        $iRec = hr_IndicatorNames::force('Бонус', __CLASS__, 1);
+        
     	while($rec = $query->fetch()){
  
     		$result[] = (object)array(
@@ -247,7 +249,7 @@ class hr_Bonuses extends core_Master
 	    		'personId' => $rec->personId, 
 	    		'docId'  => $rec->id, 
 	    	    'docClass' => core_Classes::getId('hr_Bonuses'),
-	    		'indicatorId' => 1, 
+	    		'indicatorId' => $iRec->id, 
 	    		'value' => $rec->sum,
                 'isRejected' => $rec->state == 'rejected',
 	    	);
@@ -267,7 +269,11 @@ class hr_Bonuses extends core_Master
      */
     public static function getIndicatorNames()
     {
-        return array(1 => 'Бонус');
+        $result = array();
+        $rec = hr_IndicatorNames::force('Бонус', __CLASS__, 1);
+        $result[$rec->id] = $rec->name;
+        
+    	return $result;
     }
 
 
