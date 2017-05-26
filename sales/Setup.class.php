@@ -8,6 +8,12 @@ defIfNot('SALE_INV_MIN_NUMBER1', '0');
 
 
 /**
+ * 
+ */
+defIfNot('SALES_DELTA_CAT_GROUPS', '');
+
+
+/**
  * Краен номер на фактурите
  */
 defIfNot('SALE_INV_MAX_NUMBER1', '2000000');
