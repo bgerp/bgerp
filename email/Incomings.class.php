@@ -1411,6 +1411,7 @@ class email_Incomings extends core_Master
      * Правила за обучение:
      * От последния час, оттеглени/възстановени от потребител и няма друг документ в нишката
      * В папки с корица на Е-Кутия и несортирани - за оттеглените
+     * Ако е пратен до имейл, който не е в системата
      */
     function cron_TrainSpas()
     {
@@ -1420,18 +1421,22 @@ class email_Incomings extends core_Master
         $query = self::getQuery();
         $before = dt::subtractSecs(3600);
         $query->where(array("#modifiedOn >= '[#1#]'", $before));
-        $query->where("#modifiedBy > 0");
-        $query->where("#state = 'rejected' AND #brState IS NOT NULL");
-        $query->orWhere("#brState = 'rejected'");
         $query->EXT('docCnt', 'doc_Threads', 'externalName=allDocCnt,remoteKey=firstContainerId, externalFieldName=containerId');
         $query->where("#docCnt <= 1");
         $query->where("#emlFile != ''");
         $query->where("#emlFile IS NOT NULL");
         
+        $allBoxesArr = email_Inboxes::getAllEmailsArr(FALSE);
+        $allBoxesArrNew = array();
+        foreach ((array)$allBoxesArr as $email) {
+            $email = strtolower($email);
+            $allBoxesArrNew[$email] = $email;
+        }
+        
         while($rec = $query->fetch()) {
             if (!$rec->emlFile) continue;
             
-            // Ако е оттеглен и има други документи в нишката
+            // Ако е оттеглен, проверяваме броя на документите
             if (($rec->state == 'rejected') && $rec->docCnt == 0) {
                 $cQuery = doc_Containers::getQuery();
                 $cQuery->where(array("#threadId = '[#1#]'", $rec->threadId));
@@ -1440,21 +1445,57 @@ class email_Incomings extends core_Master
                 if ($cQuery->count() > 1) continue;
             }
             
-            // Проверяваме имейлите само в Е-кутии и Несортирани
-            if ($rec->state == 'rejected') {
-                $cover = doc_Folders::getCover($rec->folderId);
-                if (!($cover->instance instanceof email_Inboxes) && !($cover->instance instanceof doc_UnsortedFolders)) continue;
+            $haveEmail = TRUE;
+            if (!$rec->userInboxes) {
+                $haveEmail = FALSE;
+                foreach ((array)$rec->toAndCc['allTo'] as $emailAddArr) {
+                    $email = strtolower(trim($emailAddArr['address']));
+                    if ($allBoxesArrNew[$email]) {
+                        $haveEmail = TRUE;
+                        break;
+                    }
+                }
+                
+                if (!$haveEmail) {
+                    foreach ((array)$rec->toAndCc['allCc'] as $emailAddArr) {
+                        $email = strtolower(trim($emailAddArr['address']));
+                        if ($allBoxesArrNew[$email]) {
+                            $haveEmail = TRUE;
+                            break;
+                        }
+                    }
+                }
+            } else {
+                // Оттеглните имейлите се проверяват само в Е-кутии и Несортирани
+                if ($rec->state == 'rejected') {
+                    $cover = doc_Folders::getCover($rec->folderId);
+                    if (!($cover->instance instanceof email_Inboxes) && !($cover->instance instanceof doc_UnsortedFolders)) continue;
+                }
+            }
+            
+            if ($haveEmail) {
+                if ($rec->modifiedBy <= 0) continue;
+                
+                if (!(($rec->state == 'rejected' && $rec->brState) || ($rec->brState == 'rejected'))) continue;
             }
             
             $type = spas_Client::LEARN_HAM;
-            $typeStr = 'НЕ Е СПАМ';
+            $typeStr = 'НЕ Е СПАМ (от възстановен имейл)';
             
-            if ($rec->state == 'rejected') {
+            if (!$haveEmail || ($rec->state == 'rejected')) {
                 $type = spas_Client::LEARN_SPAM;
-                $typeStr = "СПАМ";
+                
+                if (!$haveEmail) {
+                    $typeStr = "СПАМ (от няма такава кутия)";
+                } else {
+                    $typeStr = "СПАМ (от оттеглен имейл)";
+                }
             }
             
             $fh =  fileman_Files::fetchField($rec->emlFile, 'fileHnd');
+            
+            if (!$fh) continue;
+            
             $rawEmail = fileman_Files::getContent($fh);
             
             try {
