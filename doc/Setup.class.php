@@ -240,7 +240,6 @@ class doc_Setup extends core_ProtoSetup
         'migrate::showFiles',
         'migrate::addCountryIn2LgFolders2',
         'migrate::addFirstDocClassAndId',
-        'migrate::addDefaultNotifyOptions',
     );
 	
     
@@ -736,5 +735,15 @@ class doc_Setup extends core_ProtoSetup
         if (!empty($data)) {
             core_Packs::setConfig('doc', $data);
         }
+    }
+    
+    
+    /**
+     * Зареждане на данни
+     */
+    function loadSetupData($itr = '')
+    {
+        
+        return $this->callMigrate('addDefaultNotifyOptions', 'doc');
     }
 }
