@@ -61,7 +61,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         setIfNot($mvc->filterDateField, 'valior');
         setIfNot($mvc->filterCurrencyField, 'currencyId');
         setIfNot($mvc->filterFieldUsers, 'createdBy');
-        setIfNot($mvc->termDateFld, FALSE);
+        setIfNot($mvc->termDateFld, NULL);
         
         $mvc->filterRolesForTeam .= ',' . acc_Setup::get('SUMMARY_ROLES_FOR_TEAMS');
         $mvc->filterRolesForTeam = trim($mvc->filterRolesForTeam, ',');
@@ -204,7 +204,8 @@ class acc_plg_DocumentSummary extends core_Plugin
             $toField = ($mvc->filterFieldDateFrom) ? $mvc->filterFieldDateFrom : $mvc->filterDateField;
             
             if($dateRange[0] && $dateRange[1]) {
-            	$extraFld1 = (isset($mvc->termDateFld)) ? " AND #{$mvc->termDateFld} IS NULL" : '';
+            	$extraFld1 = (!empty($mvc->termDateFld)) ? " AND #{$mvc->termDateFld} IS NULL" : '';
+            	
             	
                 if($fromField) {
                     $where = "((#{$fromField} >= '[#1#]' AND #{$fromField} <= '[#2#] 23:59:59') OR (#{$fromField} IS NULL{$extraFld1}))";
@@ -213,9 +214,9 @@ class acc_plg_DocumentSummary extends core_Plugin
                 if($toField && $toField != $fromField) {
                     $where .= " OR ((#{$toField} >= '[#1#]' AND #{$toField} <= '[#2#] 23:59:59') OR (#{$toField} IS NULL{$extraFld1}))";
                 }
-
-                if(isset($mvc->termDateFld)){
-                	$extraField = (isset($mvc->termDateFld)) ? " OR (#{$mvc->termDateFld} >= '[#1#]' AND #{$mvc->termDateFld} <= '[#2#] 23:59:59')" : '';
+                
+                if(!empty($mvc->termDateFld)){
+                	$extraField = (!empty($mvc->termDateFld)) ? " OR (#{$mvc->termDateFld} >= '[#1#]' AND #{$mvc->termDateFld} <= '[#2#] 23:59:59')" : '';
                 	$where .= $extraField;
                 }
                
