@@ -109,6 +109,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
     	$data = new stdClass();
         $data->articleCnt = array();
         $data->recs = array();
+        $data->component = array();
         $dRecs = array();
         $fRec = $data->fRec = $this->innerForm;
         $this->prepareListFields($data);
@@ -142,8 +143,8 @@ class cat_reports_BomsRep extends frame_BaseDriver
                 while($recDetail = $queryDetail->fetch()) {
                     $index = $rec->saleId."|".$recDetail->resourceId;
                  
-                    $componentArr = cat_Products::prepareComponents($rec->productId, 'production'); 
-                    //bp($bomId,$recDetail,$componentArr);
+                    $componentArr = cat_Products::prepareComponents($rec->productId, $data->component,'production'); 
+   
                     $quantity = str_replace(",", ".", $rec->quantity);
                     $propQuantity = str_replace(",", ".",$recDetail->propQuantity);
                     
