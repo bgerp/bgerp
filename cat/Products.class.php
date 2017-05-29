@@ -1374,7 +1374,7 @@ class cat_Products extends embed_Manager {
     public static function getPacks($productId)
     {
     	$options = array();
-    	$pInfo = static::getProductInfo($productId)
+    	$pInfo = static::getProductInfo($productId);
     	if(!$pInfo) return $options;
     	
     	// Определяме основната мярка
