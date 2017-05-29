@@ -1376,10 +1376,11 @@ class cat_Products extends embed_Manager {
      */
     public static function getPacks($productId)
     {
-    	expect($pInfo = static::getProductInfo($productId));
+    	$options = array();
+    	$pInfo = static::getProductInfo($productId)
+    	if(!$pInfo) return $options;
     	
     	// Определяме основната мярка
-    	$options = array();
     	$measureId = $pInfo->productRec->measureId;
     	$baseId = $measureId;
     	
