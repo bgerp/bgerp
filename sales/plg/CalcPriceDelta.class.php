@@ -93,7 +93,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
 			
 			$sellCost = $dRec->{$mvc->detailSellPriceFld};
 			if(isset($dRec->{$mvc->detailDiscountPriceFld})){
-				$sellCost *= $dRec->{$mvc->detailDiscountPriceFld};
+				$sellCost = $sellCost * (1 - $dRec->{$mvc->detailDiscountPriceFld});
 			}
 			
 			// Изчисляване на цената по политика
