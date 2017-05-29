@@ -2301,7 +2301,7 @@ class cat_Products extends embed_Manager {
      * @param string $code
      * @return void
      */
-    public static function prepareComponents($productId, $typeBom = 'production', &$res = array(), $documentType = 'internal', $compontQuantity = 1)
+    public static function prepareComponents($productId, &$res = array(), $documentType = 'internal', $compontQuantity = 1, $typeBom = 'production')
     {
         if($typeBom) { 
         	// Имали последна активна търговска рецепта за артикула?
