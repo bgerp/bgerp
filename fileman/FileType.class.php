@@ -103,7 +103,6 @@ class fileman_FileType extends type_Varchar {
         
         $tpl->appendOnce("
             function unsetInputFile(name) {
-                        console.log(name);
                 var divFileName = document.getElementById(name + '_file_name_id');
                 divFileName.innerHTML = '';
 
