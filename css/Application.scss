@@ -4920,6 +4920,10 @@ body.narrow {
 @media print{
 	.wide .singleView {
 		display: block;
+
+	}
+	.smaller-text {
+		font-size: 0.95em;
 	}
 	.document{
         min-width: 837px !important;

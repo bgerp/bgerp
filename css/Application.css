@@ -4484,6 +4484,9 @@ only screen and (max-width: 320px) {
   .wide .singleView {
     display: block; }
 
+  .smaller-text {
+    font-size: 0.95em; }
+
   .document {
     min-width: 837px !important;
     width: 100%;
