@@ -71,6 +71,12 @@ class sales_PrimeCostByDocument extends core_Manager
     
     
     /**
+     * Работен кеш
+     */
+    public static $groupNames = array();
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -263,12 +269,13 @@ class sales_PrimeCostByDocument extends core_Manager
 	 * Връща индикаторите за делта на търговеца и инициаторът
 	 * 
 	 * @param array $indicatorRecs - филтрираните записи
-	 * @param array $masters     - помощен масив
-	 * @return array $result     - @see hr_IndicatorsSourceIntf::getIndicatorValues($timeline)
+	 * @param array $masters       - помощен масив
+	 * @param array $personIds     - масив с ид-та на визитките на дилърите
+	 * @return array $result       - @see hr_IndicatorsSourceIntf::getIndicatorValues($timeline)
 	 */
-	private static function getDeltaIndicators($indicatorRecs, $masters)
+	private static function getDeltaIndicators($indicatorRecs, $masters, &$personIds)
 	{
-		$result = array();
+		$result = $personIds = array();
 		if(!count($indicatorRecs)) return $result;
 		
 		$deltaId = hr_IndicatorNames::force('Delta', __CLASS__, 1)->id;
@@ -330,35 +337,31 @@ class sales_PrimeCostByDocument extends core_Manager
 	 */
 	public static function getIndicatorValues($timeline)
 	{
+		$result = $masters = array();
+		
 		// Подготовка на заявката
-		$masters = array();
 		$iQuery = self::getIndicatorQuery($timeline, $masters);
 		
 		// Ако не е намерен променен документ, връща се празен масив
 		$wh = $iQuery->getWhereAndHaving();
 		if(empty($wh->w)) return array();
 		
-		$cloneQuery = clone $iQuery;
-		
-		// Тук ще се сумират индикаторите
-		$result = array();
-		
 		// Всички записи
 		$indicatorRecs = $iQuery->fetchAll();
 		
 		// Връщане на индикаторите за делта на търговеца и инициатора
-		$result1 = self::getDeltaIndicators($indicatorRecs, $masters);
+		$result1 = self::getDeltaIndicators($indicatorRecs, $masters, $personIds);
 		if(count($result1)){
 			$result = array_merge($result1, $result);
 		}
 		
 		// Връщане на индикаторите за сумата на продадените артикули по групи
-		//$result2 = self::getProductGroupIndicators($indicatorRecs, $masters);
+		$result2 = self::getProductGroupIndicators($indicatorRecs, $masters, $personIds);
 		if(count($result2)){
 			$result = array_merge($result2, $result);
 		}
 		
-		// Връщане на намерените резултати
+		// Връщане на всички индикатори
         return $result;
 	}
 	
@@ -369,47 +372,77 @@ class sales_PrimeCostByDocument extends core_Manager
 	 *
 	 * @param array $indicatorRecs - филтрираните записи
 	 * @param array $masters       - помощен масив
+	 * @param array $personIds     - масив с ид-та на визитките на дилърите
 	 * @return array $result       - @see hr_IndicatorsSourceIntf::getIndicatorValues($timeline)
 	 */
-	private static function getProductGroupIndicators($indicatorRecs, $masters)
+	private static function getProductGroupIndicators($indicatorRecs, $masters, $personIds)
 	{
 		$result = array();
 		if(!count($indicatorRecs)) return $result;
 		
-		// Имали зададени групи, по които ще се следят продажбите
-		$selectedGroups = sales_Setup::get('DELTA_CAT_GROUPS');
-		$selectedGroups = keylist::toArray($selectedGroups);
-		if(!count($selectedGroups)) return $result;
+		$selectedGroups = self::cacheGroupNames();
+		if(!count($selectedGroups))  return $result;
 		
-		// Извличане на всички артикули от записите
-		$productArr = arr::extractValuesFromArray($indicatorRecs, 'productId');
+		$productGroups = self::getAllProductGroups($indicatorRecs);
 		
-		// Еднократно подготвяне на съответствието 
-		$groups = array();
-		$pQuery = cat_Products::getQuery();
-		$pQuery->show('groups');
-		$pQuery->in("id", $productArr);
-		while($pRec = $pQuery->fetch()){
-			$groups[$pRec->id] = keylist::toArray($pRec->groups);
-		}
-		
-		// Съмари по групи
-		//bp($selectedGroups);
-		$indicators = self::getIndicatorNames();
-		
-		
-		$summary = array();
+		//
 		foreach ($indicatorRecs as $rec){
-			$group = $groups[$rec->productId];
+			if(!$rec->dealerId) continue;
 			
+			// Намиране на първата група от търсените в която се среща артикула
+			$groupId = self::getFirstFoundGroupInProduct($productGroups[$rec->productId], $selectedGroups);
+			if(!$groupId) continue;
 			
+			expect($indicatorId = $selectedGroups[$groupId]->id);
+			$Document = $masters[$rec->containerId][0];
+			$personFldValue = $personIds[$rec->dealerId];
 			
+			// Подготовка на ключа по-който ще се събират данните
+			$key = "{$personFldValue}|{$Document->getClassId()}|{$Document->that}|{$rec->valior}|{$indicatorId}";
+			$sign = ($masters[$rec->containerId][2] == 'yes') ? -1 : 1;
+			$value = $sign * round($rec->quantity * $rec->sellCost, 2);
+			
+			// Ако няма данни, добавят се
+			if(!array_key_exists($key, $result)){
+				$result[$key] = (object)array('date'        => $rec->valior,
+											  'personId'    => $personFldValue,
+											  'docId'       => $Document->that,
+											  'docClass'    => $Document->getClassId(),
+											  'indicatorId' => $indicatorId,
+											  'value'       => $value,
+											  'isRejected'  => ($masters[$rec->containerId][1] == 'rejected'),);
+			} else {
+				
+				// Ако има вече се сумират
+				$ref = &$result[$key];
+				$ref->value += $delta;
+			}
 		}
 		
-		bp($groups);
-		
-		
+		// Връщане на индикаторите
 		return $result;
+	}
+	
+	
+	/**
+	 * Връща първата група от търсените, в която се среща артикула
+	 * 
+	 * @param unknown $productGroups  - всички групи на даден артикул
+	 * @param unknown $selectedGroups - всички търсени групи
+	 * @return NULL|int               - ид на намерената група или NULL ако няма
+	 */
+	private static function getFirstFoundGroupInProduct($productGroups, $selectedGroups)
+	{
+		if(!count($productGroups) || !count($selectedGroups)) return NULL;
+		
+		// Обхождат се всички групи
+		foreach($selectedGroups as $groupId => $obj)
+		{
+			// Връща се ид-то на първата група, която е срещната
+			if(in_array($groupId, $productGroups)) return $groupId;
+		}
+		
+		return NULL;
 	}
 	
 	
@@ -421,32 +454,77 @@ class sales_PrimeCostByDocument extends core_Manager
     public static function getIndicatorNames()
     {
     	$result = array();
+    	
+    	// Индикатор за делта на търговеца
     	$rec = hr_IndicatorNames::force('Delta', __CLASS__, 1);
     	$result[$rec->id] = $rec->name;
     	
+    	// Индикатор за делта на инициатора
     	$rec = hr_IndicatorNames::force('DeltaI', __CLASS__, 2);
     	$result[$rec->id] = $rec->name;
     	
+    	// Индикатори за избраните артикулни групи
+    	$groupNames = self::cacheGroupNames();
+    	if(count($groupNames)){
+    		foreach ($groupNames as $indRec){
+    			$result[$indRec->id] = $indRec->name;
+    		}
+    	}
+    	
+    	// Връщане на всички индикатори
     	return $result;
-        
-        /*$selectedGroups = sales_Setup::get('DELTA_CAT_GROUPS');
-        $selectedGroups = keylist::toArray($selectedGroups);
-        if(count($selectedGroups)){
-        	foreach ($selectedGroups as $groupId){
-        		$groupName = cat_Groups::getVerbal($groupId, 'name');
-        		$groupName = preg_replace('/\s+/', ' ', $groupName);
-        		$res[] = str_replace(' ', '_', $groupName);
-        	}
-        	
-        	//bp($res);
-        }*/
-        
-        return $res;
     }
     
     
-    private static function getNormalizedGroupName()
+    /**
+     * Връща и кешира имената на груповите индикатори
+     * 
+     * @return array
+     */
+    private static function cacheGroupNames()
     {
+    	if(!count(self::$groupNames)){
+    		
+    		// Ако има селектирани групи
+    		$selectedGroups = sales_Setup::get('DELTA_CAT_GROUPS');
+    		$selectedGroups = keylist::toArray($selectedGroups);
+    		if(count($selectedGroups)){
+    			
+    			// Форсират им се индикатори
+    			foreach ($selectedGroups as $groupId){
+    				$groupName = cat_Groups::getVerbal($groupId, 'name');
+    				$rec = hr_IndicatorNames::force($groupName, __CLASS__, "group{$groupId}");
+    				
+    				self::$groupNames[$groupId] = $rec;
+    			}
+    		}
+    	}
     	
+    	// Връщане на кешираните групи
+    	return self::$groupNames;
+    }
+    
+    
+    /**
+     * Помощна ф-я връщаща всички  групи на артикулите
+     * 
+     * @param array $indicatorRecs
+     * @return array $groups
+     */
+    private static function getAllProductGroups($indicatorRecs)
+    {
+    	$groups = array();
+    	if(!count($indicatorRecs)) return $groups;
+    	
+    	// Извличане на всички артикули от записите
+    	$productArr = arr::extractValuesFromArray($indicatorRecs, 'productId');
+    	$pQuery = cat_Products::getQuery();
+    	$pQuery->show('groups');
+    	$pQuery->in("id", $productArr);
+    	while($pRec = $pQuery->fetch()){
+    		$groups[$pRec->id] = keylist::toArray($pRec->groups);
+    	}
+    	
+    	return $groups;
     }
 }

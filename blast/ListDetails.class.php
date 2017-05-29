@@ -606,8 +606,10 @@ class blast_ListDetails extends doc_Detail
                 unset($csvRows[0]);
             }
             
-            // Приемаме, че сървъра може да импортва по минимум 20 записа в секунда
-            set_time_limit(round(count($csvRows) / 20) + 10);
+            $time = round(count($csvRows) / 10) + 10;
+            if ($time > ini_get('max_execution_time')) {
+                core_App::setTimeLimit($time);
+            }
             
             $newCnt = $skipCnt = $updateCnt = 0;
             $errLinesArr = array();
