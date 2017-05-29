@@ -259,7 +259,7 @@ class fileman_webdrv_Generic extends core_Manager
                 
                 if ($key === 'otherPagesCnt') {
                     
-                    $str = '<span>' . tr('Още страници') . ': ' . $jpgFh . '</span>';
+                    $str = '<div style="margin: 5px 0 0 5px; background: #fff; display: inline-block; padding: 2px; color: #444;">' . tr('Още страници') . ': ' . $jpgFh . '</div>';
                     
                     $preview->append($str, 'THUMB_IMAGE');
                 } else {

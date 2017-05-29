@@ -4481,8 +4481,8 @@ only screen and (max-width: 320px) {
  * стилове за принтиране
  */
 @media print {
-  body {
-    margin: 0px !important; }
+  .wide .singleView {
+    display: block; }
 
   .document {
     min-width: 837px !important;
@@ -4626,7 +4626,8 @@ only screen and (max-width: 320px) {
     display: none; }
 
   body {
-    background: white !important; }
+    background: white !important;
+    margin: 0px !important; }
 
   .external .document {
     margin: 0;
