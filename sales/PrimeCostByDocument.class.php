@@ -514,4 +514,25 @@ class sales_PrimeCostByDocument extends core_Manager
     	
     	return $groups;
     }
+    
+    
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+    	$data->listFilter->FLD('documentId', 'varchar', 'caption=Документ');
+    	$data->listFilter->showFields = 'documentId';
+    	$data->listFilter->view = 'horizontal';
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+    	$data->listFilter->input();
+    	
+    	if($rec = $data->listFilter->rec){
+    		if(!empty($rec->documentId)){
+    			if($document = doc_Containers::getDocumentByHandle($rec->documentId)){
+    				$data->query->where("#containerId = {$document->fetchField('containerId')}");
+    			}
+    		}
+    	}
+    }
 }
