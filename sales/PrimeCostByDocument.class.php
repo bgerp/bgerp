@@ -400,7 +400,7 @@ class sales_PrimeCostByDocument extends core_Manager
 			// Подготовка на ключа по-който ще се събират данните
 			$key = "{$personFldValue}|{$Document->getClassId()}|{$Document->that}|{$rec->valior}|{$indicatorId}";
 			$sign = ($masters[$rec->containerId][2] == 'yes') ? -1 : 1;
-			$value = round($rec->quantity * $rec->sellCost, 2);
+			$value = $sign * round($rec->quantity * $rec->sellCost, 2);
 			
 			// Ако няма данни, добавят се
 			if(!array_key_exists($key, $result)){
