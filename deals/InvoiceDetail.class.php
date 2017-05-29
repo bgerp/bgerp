@@ -148,10 +148,11 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	{
 		// Проверки
 		$this->requireRightFor('importfromdeal');
+		
 		expect($id = Request::get("{$this->masterKey}", 'int'));
 		expect($invoiceRec = $this->Master->fetch($id));
 		$this->requireRightFor('importfromdeal', (object)array("{$this->masterKey}" => $id));
-		 
+		
 		// Извличане на дийл интерфейса от договора-начало на нишка
 		$this->delete("#{$this->masterKey} = {$id}");
 		$firstDoc = doc_Threads::getFirstDocument($invoiceRec->threadId);
@@ -405,7 +406,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		}
 		
 		if($action == 'importfromdeal'){
-			$requiredRoles = $mvc->getRequiredRoles('add', $rec, $userId);
+			$res = $mvc->getRequiredRoles('add', $rec, $userId);
 		}
 	}
 	
