@@ -478,7 +478,7 @@ class acc_BalanceHistory extends core_Manager
             }
         }
         
-        if(!Mode::is('printing')){
+        if(!Mode::isReadOnly()){
             try{
             	$Class = cls::get($rec['docType']);
                 $arr['docId'] = $Class->getShortHyperLink($rec['docId']);
