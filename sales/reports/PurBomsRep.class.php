@@ -148,6 +148,16 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 				$delTime = $Sales->getMaxDeliveryTime($sRec->id);
 				$delTime = ($delTime) ? dt::addSecs($delTime, $sRec->valior) : $sRec->valior;
 			}
+			
+			if($sRec->closedDocuments) {
+			
+			    $newKeylist = keylist::addKey($sRec->closedDocuments, $sRec->id);
+			
+			    $salesArr = keylist::toArray($newKeylist);
+			    $salesArr = implode(',', $salesArr);
+			    $query = planning_Jobs::getQuery();
+			    $query->where("#saleId IN ({$salesArr}) AND (#state = 'active' OR #state = 'wakeup')");
+			}
 			 
 			// Колко е очакваното авансово плащане
 			$downPayment = $dealInfo->agreedDownpayment;
@@ -167,17 +177,7 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 				// ако е нестандартен
 				$productRec = cat_Products::fetch($pId, 'canManifacture,isPublic');
 				$d = NULL;
-				
-				if($sRec->closedDocuments) {
-				    
-				    $newKeylist = keylist::addKey($sRec->closedDocuments, $sRec->id);
-				
-    				$salesArr = keylist::toArray($newKeylist);
-    				$salesArr = implode(',', $salesArr);
-    				$query = planning_Jobs::getQuery();
-    				$query->where("#saleId IN ({$salesArr}) AND (#state = 'active' OR #state = 'wakeup')");
-				}
-				
+
 				// Ако артикула е нестандартен и няма задание по продажбата
 				// артикула да е произведим
 				if($productRec->isPublic == 'no' && $productRec->canManifacture == 'yes'){
