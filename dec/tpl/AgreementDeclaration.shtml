@@ -2,7 +2,7 @@
     <div class='scrolling-holder'>
         <br>
         <div class='indent'>
-            Долуподписаният, <!--ET_BEGIN manager--><b>[#manager#]</b><!--ET_END manager-->, представляващ доставчика: <b>[#MyCompany#]</b>, 
+            Долуподписаният, <!--ET_BEGIN manager--><b>[#manager#]</b><!--ET_END manager-->, представляващ доставчика: <b>[#MyCompany#]</b>,
             <!--ET_BEGIN MyCountry-->
             с адрес [#MyCountry#], 
             <!--ET_BEGIN MyAddress-->гр. [#MyAddress#],<!--ET_END MyAddress-->
@@ -17,8 +17,8 @@
         [#products#]
         <!--ET_END products-->        
         <div>продадени с фактура <b>№ [#invoiceNo#]</b> на <b>[#contragentCompany#]</b>, <!--ET_BEGIN contragentCountry-->с адрес [#contragentCountry#], <!--ET_END contragentCountry-->
-            <!--ET_BEGIN contragentAddress-->гр. [#contragentAddress#],<!--ET_END contragentAddress--> 
-            <!--ET_BEGIN contragentCompanyVatNo-->ДДС№ <b>[#contragentCompanyVatNo#]</b>,<!--ET_END contragentCompanyVatNo--> <!--ET_BEGIN contragentUicId--> ЕИК [#contragentUicId#]<!--ET_END contragentUicId-->,
+            <!--ET_BEGIN contragentAddress-->гр. [#contragentAddress#],<!--ET_END contragentAddress-->
+            <!--ET_BEGIN contragentCompanyVatNo-->ДДС№ <b>[#contragentCompanyVatNo#]</b>,<!--ET_END contragentCompanyVatNo--> <!--ET_BEGIN contragentUicId--> ЕИК [#contragentUicId#],<!--ET_END contragentUicId-->
         </div>
         <br>
         <p><b>ОТГОВАРЯТ НА СЛЕДНОТО:</b> </p>
@@ -26,10 +26,9 @@
         <!--ET_BEGIN material-->
          <li> Изделията са произведени от [#material#] </li>
         <!--ET_END material-->
-  		</ul>
-        <ul>
+
 		<!--ET_BEGIN statements-->
-		 <li> Изделията отговарят на изискванията [#statements#] </li>
+		<li> Изделията отговарят на изискванията [#statements#] </li>
 		<!--ET_END statements-->
         </ul>
         <!--ET_BEGIN note-->
