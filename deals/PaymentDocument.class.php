@@ -71,4 +71,28 @@ abstract class deals_PaymentDocument extends core_Master {
 	{
 		$row->valior = (isset($rec->valior)) ? $row->valior : ht::createHint('', 'Вальора ще бъде датата на контиране');
 	}
+	
+	
+	/**
+	 * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
+	 */
+	public function getDocumentRow($id)
+	{
+		$rec = $this->fetch($id);
+		$row = new stdClass();
+		$row->title = $this->getRecTitle($rec);
+		$row->authorId = $rec->createdBy;
+		$row->author = $this->getVerbal($rec, 'createdBy');
+		$row->state = $rec->state;
+	
+		$recTitle = $rec->amount . " " . currency_Currencies::getCodeById($rec->currencyId);
+		$date = ($rec->valior) ? $rec->valior : (isset($rec->termDate) ? $rec->termDate : NULL);
+		if(isset($date)){
+			$recTitle .= " / " . dt::mysql2verbal($date, 'd.m.y');
+		}
+	
+		$row->recTitle = $recTitle;
+	
+		return $row;
+	}
 }

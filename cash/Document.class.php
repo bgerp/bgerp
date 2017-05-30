@@ -365,23 +365,6 @@ abstract class cash_Document extends deals_PaymentDocument
     		$data->toolbar->addBtn('Контиране', array(), array('id' => 'btnConto', 'error' => 'Документа не може да бъде контиран, докато няма посочена каса|*!'), 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
     	}
     }
-    
-    
-    /**
-     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
-     */
-    public function getDocumentRow($id)
-    {
-    	$rec = $this->fetch($id);
-    	$row = new stdClass();
-    	$row->title = $this->singleTitle . " №{$id}";
-    	$row->authorId = $rec->createdBy;
-    	$row->author = $this->getVerbal($rec, 'createdBy');
-    	$row->state = $rec->state;
-    	$row->recTitle = $rec->reason;
-    
-    	return $row;
-    }
 
 
     /**
