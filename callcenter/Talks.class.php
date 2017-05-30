@@ -1724,7 +1724,7 @@ class callcenter_Talks extends core_Master
         if ($rec->id && $action == 'single' && $userId) {
             
             // Ако нямаме роля CEO
-            if (!haveRole('ceo')) {
+            if (!haveRole('ceo, callcenter')) {
                 
                 // Ако сме мениджър
                 if (haveRole('manager')) {
