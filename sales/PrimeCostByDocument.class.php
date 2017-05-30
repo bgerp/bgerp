@@ -413,17 +413,17 @@ class sales_PrimeCostByDocument extends core_Manager
 				// Ако няма данни, добавят се
 				if(!array_key_exists($key, $result)){
 					$result[$key] = (object)array('date'        => $rec->valior,
-							'personId'    => $personFldValue,
-							'docId'       => $Document->that,
-							'docClass'    => $Document->getClassId(),
-							'indicatorId' => $indicatorId,
-							'value'       => $value,
-							'isRejected'  => ($masters[$rec->containerId][1] == 'rejected'),);
+											      'personId'    => $personFldValue,
+							                      'docId'       => $Document->that,
+							                      'docClass'    => $Document->getClassId(),
+							                      'indicatorId' => $indicatorId,
+							                      'value'       => $value,
+							                      'isRejected'  => ($masters[$rec->containerId][1] == 'rejected'),);
 				} else {
 				
 					// Ако има вече се сумират
 					$ref = &$result[$key];
-					$ref->value += $delta;
+					$ref->value += $value;
 				}
 			}
 		}
