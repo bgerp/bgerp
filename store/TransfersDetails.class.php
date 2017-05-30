@@ -165,6 +165,7 @@ class store_TransfersDetails extends doc_Detail
                 
                 // Показваме подробната информация за опаковката при нужда
                 deals_Helper::getPackInfo($row->packagingId, $rec->newProductId, $rec->packagingId, $rec->quantityInPack);
+            	deals_Helper::addAdditionalNotesToProductRow($row->newProductId, $rec->newProductId, $data->masterMvc, $data->masterId);
             }
         }
     }
