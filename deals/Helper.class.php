@@ -434,6 +434,30 @@ abstract class deals_Helper
 	
 	
 	/**
+	 * Добавя допълнителния текст към документа
+	 * 
+	 * @param mixed $productRow
+	 * @param int $productId
+	 * @param mixed $masterMvc
+	 * @param int $masterId
+	 */
+	public static function addAdditionalNotesToProductRow(&$productRow, $productId, $masterMvc, $masterId)
+	{
+		if(!$productId) return;
+		if(!$Driver = cat_Products::getDriver($productId)) return;
+		$additionalNotes = $Driver->getAdditionalNotesToDocument($productId, $masterMvc, $masterId);
+		if(empty($additionalNotes)) return;
+		
+		//$notes = isset($notes) ? $notes : '';
+		if(is_string($productRow)){
+			$productRow .= "<div class='small'>{$additionalNotes}</div>";
+		} else {
+			$productRow->append(new core_ET("<div class='small'>[#NOTES#]</div>"));
+			$productRow->replace($additionalNotes, 'NOTES');
+		}
+	}
+	
+	/**
 	 * Помощна функция за показване на пдоробната информация за опаковката при нужда
 	 * 
 	 * @param string $packagingRow
