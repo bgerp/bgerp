@@ -1423,7 +1423,7 @@ class callcenter_Talks extends core_Master
         $data->listFilter->FNC('number', 'drdata_PhoneType', 'caption=Номер,input,silent, recently');
         
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent,autoFilter');
+        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo|callcenter, rolesForTeams=ceo|manager|callcenter)', 'caption=Потребител,input,silent,autoFilter');
         
         // Функционално поле за търсене по статус и тип на разговора
         $data->listFilter->FNC('dialStatusType', 'enum()', 'caption=Състояние,input,autoFilter');
@@ -1523,30 +1523,24 @@ class callcenter_Talks extends core_Master
             if ($filter->usersSearch) {
                 
     			// Ако се търси по всички и има права admin или ceo
-    			if (strpos($filter->usersSearch, '|-1|') !== FALSE) {
+    			if (strpos($filter->usersSearch, '|-1|') === FALSE) {
+    			    // Масив с потребителите
+    			    $usersArr = type_Keylist::toArray($filter->usersSearch);
     			    
-    			    if (!(haveRole('ceo'))) {
-                        $data->query->where("1=2");
+    			    // Масив с номерата на съответните потребители
+    			    $numbersArr = callcenter_Numbers::getInternalNumbersForUsers($usersArr);
+    			    
+    			    // Ако има такива номера
+    			    if (count((array)$numbersArr)) {
+    			    
+    			        // Показваме обажданията към и от тях
+    			        $data->query->orWhereArr('internalNum', $numbersArr);
+    			    } else {
+    			    
+    			        // Не показваме нищо
+    			        $data->query->where("1=2");
     			    }
-    			    // Търсим всичко
-                } else {
-                    
-                    // Масив с потребителите
-                    $usersArr = type_Keylist::toArray($filter->usersSearch);
-                    
-                    // Масив с номерата на съответните потребители
-                    $numbersArr = callcenter_Numbers::getInternalNumbersForUsers($usersArr);
-                    
-                    // Ако има такива номера
-                    if (count((array)$numbersArr)) {
-                        
-                        // Показваме обажданията към и от тях
-        			    $data->query->orWhereArr('internalNum', $numbersArr);
-                    } else {
-                        
-                        // Не показваме нищо
-                        $data->query->where("1=2");
-                    }
+    			    
                 }
     		}
     		
@@ -1724,10 +1718,10 @@ class callcenter_Talks extends core_Master
         if ($rec->id && $action == 'single' && $userId) {
             
             // Ако нямаме роля CEO
-            if (!haveRole('ceo')) {
+            if (!haveRole('ceo, callcenter', $userId)) {
                 
                 // Ако сме мениджър
-                if (haveRole('manager')) {
+                if (haveRole('manager', $userId)) {
                     
                     // Вземаме хората от нашия екип
                     $teemMates = core_Users::getTeammates($userId);

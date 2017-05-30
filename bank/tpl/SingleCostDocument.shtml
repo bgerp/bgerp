@@ -52,6 +52,13 @@
                                 <td>|Основание|*: </td>
                                 <td> [#reason#]</td>
                             </tr>
+                            
+                            <!--ET_BEGIN termDate-->
+                            <tr>
+                                 <td>|Срок|*: </td>
+                                 <td>[#termDate#]</td>
+                            </tr>
+                            <!--ET_END termDate-->
                         </table>
                     </td>
                     <td>

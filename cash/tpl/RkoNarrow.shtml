@@ -56,7 +56,7 @@
 			                        <div class='richtext-holder'><span class='quiet'>|Основание|*:</span>&nbsp;&nbsp;&nbsp;[#reason#]</div>
 			                    
 			                    	<!--ET_BEGIN termDate-->
-                     				<div class='richtext-holder'><span class='quiet'>|Очаквано на|*:</span>&nbsp;&nbsp;&nbsp;[#termDate#]</div>
+                     				<div class='richtext-holder'><span class='quiet'>|Срок|*:</span>&nbsp;&nbsp;&nbsp;[#termDate#]</div>
                      				<!--ET_END termDate-->
 			                    </td>
 			                    <td style='padding-left:10px; padding-top: 10px;'>
