@@ -47,6 +47,12 @@ abstract class store_DocumentMaster extends core_Master
     
     
     /**
+     * Дата на очакване
+     */
+    public $termDateFld = 'deliveryTime';
+    
+    
+    /**
      * След описанието на полетата
      */
     protected static function setDocFields(core_Master &$mvc)
