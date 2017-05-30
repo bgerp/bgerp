@@ -1373,10 +1373,11 @@ class cat_Products extends embed_Manager {
      */
     public static function getPacks($productId)
     {
-    	expect($pInfo = static::getProductInfo($productId));
+    	$options = array();
+    	$pInfo = static::getProductInfo($productId);
+    	if(!$pInfo) return $options;
     	
     	// Определяме основната мярка
-    	$options = array();
     	$measureId = $pInfo->productRec->measureId;
     	$baseId = $measureId;
     	
@@ -1767,8 +1768,8 @@ class cat_Products extends embed_Manager {
     	
     	$cond = "#productId = '{$rec->id}' AND #state = 'active'";
     	
-    	if(isset($type)){
-    		expect(in_array($type, array('sales', 'production')));
+    	if(isset($type)){ 
+    		expect(in_array($type, array('sales', 'production'))); 
     		$cond .= " AND #type = '{$type}'";
     	}
     	
@@ -2109,7 +2110,7 @@ class cat_Products extends embed_Manager {
     	if(!$bomId) {
     		$bomId = static::getLastActiveBom($id, 'sales')->id;
     	}
-    	
+
     	if (isset($bomId)) {
     		
     		// Извличаме какво к-во
@@ -2127,7 +2128,7 @@ class cat_Products extends embed_Manager {
 	    		}
 	    		
 	    		// Ако искаме рекурсивно, проверяваме дали артикула има материали
-	    		if($recursive === TRUE){
+	    		if($recursive === TRUE){ 
 	    			$newMaterials = self::getMaterialsForProduction($rRec->productId, $quantity1, $date, $recursive);
 	    			
 	    			// Ако има артикула се маха и се викат материалите му
@@ -2295,15 +2296,20 @@ class cat_Products extends embed_Manager {
      * Подготвя обект от компонентите на даден артикул
      *
      * @param int $productId
+     * @param str $typeBom
      * @param array $res
      * @param int $level
      * @param string $code
      * @return void
      */
-    public static function prepareComponents($productId, &$res = array(), $documentType = 'internal', $compontQuantity = 1)
+    public static function prepareComponents($productId, &$res = array(), $documentType = 'internal', $compontQuantity = 1, $typeBom = NULL)
     {
-    	// Имали последна активна търговска рецепта за артикула?
-    	$rec = cat_Products::getLastActiveBom($productId, 'sales');
+        if($typeBom) { 
+        	// Имали последна активна търговска рецепта за артикула?
+        	$rec = cat_Products::getLastActiveBom($productId, $typeBom);
+        } else { 
+            $rec = cat_Products::getLastActiveBom($productId, 'sales');
+        }
     	
     	// Ако няма последна активна рецепта, и сме на 0-во ниво ще показваме от черновите ако има
     	if(!$rec && $level == 0){

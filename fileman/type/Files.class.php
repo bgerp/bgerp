@@ -118,7 +118,7 @@ class fileman_type_Files extends type_Keylist
                 $valueFhArr[$fRec->fileHnd] = $fRec->fileHnd;
                 
                 $crossImg = "<img src=" . sbf('img/16/delete.png') . " align=\"absmiddle\" title=\"" . tr("Премахване на файла") . "\" alt=\"\">";
-                $html .= "<span class='{$name}_{$fRec->fileHnd} multipleFiles'>" . $this->toVerbal($vId) . "&nbsp;<a class=\"remove-file-link\" href=\"#\" onclick=\"unsetInputFile('" . $name . "', '" . $fRec->fileHnd . "')\">" . $crossImg . '</a></span>';
+                $html .= "<span class='{$name}_{$fRec->fileHnd} multipleFiles'>" . $this->toVerbal($vId) . "&nbsp;<a class=\"remove-file-link\" href=\"javascript:void(0)\" onclick=\"unsetOneFile('" . $name . "', '" . $fRec->fileHnd . "')\">" . $crossImg . '</a></span>';
             }
         }
         
@@ -159,7 +159,7 @@ class fileman_type_Files extends type_Keylist
                     var divFileName = document.getElementById(name + '_files_name_id');
                     var crossImg = '<img src=" . sbf('img/16/delete.png') . " align=\"absmiddle\" alt=\"\">';
                     divFileName.innerHTML += '<span class=\"' + name + '_' + fh + ' multipleFiles\">' + getDownloadLink(fName, fh) + 
-                    '&nbsp;<a class=\"remove-file-link-new\" href=\"#\" onclick=\"unsetInputFile(\'' + name + '\', \'' + fh + '\')\">' + crossImg + '</a></span>';
+                    '&nbsp;<a class=\"remove-file-link-new\" href=\"javascript:void(0)\" onclick=\"unsetOneFile(\'' + name + '\', \'' + fh + '\')\">' + crossImg + '</a></span>';
                 }
                 
                 return true;
@@ -175,7 +175,7 @@ class fileman_type_Files extends type_Keylist
         ", 'SCRIPTS');
         
         $tpl->appendOnce("
-            function unsetInputFile(name, fh) {
+            function unsetOneFile(name, fh) {
                 var spanFileName = document.getElementsByClassName(name + '_' + fh);
                 for(var i=0; i < spanFileName.length; i++) {
                     spanFileName[i].innerHTML = '';

@@ -52,7 +52,7 @@
     </div>
     <div class='clearfix21'></div>
     [#PAGER#]
-    <div class='overflow-scroll'>
+    <div class='overflow-scroll smaller-text'>
         [#DETAILS#]
     </div>
     [#PAGER#]

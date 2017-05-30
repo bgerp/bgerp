@@ -1514,18 +1514,20 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 /* Стилове за показване на формите */
 /*грешки и предупреждения*/
 .formError, .formNotice {
-    background-color: #ff6;
-    font-size: 0.9em;
+       font-size: 0.9em;
     padding: 10px; 
     margin-bottom: 10px;
   	@include border-radius(5px);
- }
+}
 
 .formNotice {
+	background-color: #fefead;
 	border: solid 1px green;
 }
+
 .formError {
 	border: solid 1px red;
+	background-color: #ff6;
 }
 
 .wide .formError {

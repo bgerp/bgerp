@@ -131,10 +131,47 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	
 			$data->toolbar->addBtn('Артикул', array($mvc, 'add', "{$mvc->masterKey}" => $data->masterId, 'ret_url' => TRUE),
 					"id=btnAdd,{$error} order=10,title=Добавяне на артикул", 'ef_icon = img/16/shopping.png');
-			
+		}
+		
+		// Добавяне на бутон за импортиране на артикулите директно от договора
+		if($mvc->haveRightFor('importfromdeal', (object)array("{$mvc->masterKey}" => $data->masterId))){
+			$data->toolbar->addBtn('От договора', array($mvc, 'importfromdeal', "{$mvc->masterKey}" => $data->masterId, 'ret_url' => TRUE),
+			"id=btnimportfromdeal-{$masterRec->id},{$error} order=10,title=Импортиране на артикулите от договора", array('warning' => 'Редовете на фактурата, ще копират точно тези от договора|*!', 'ef_icon' => 'img/16/shopping.png'));
 		}
 	}
-
+	
+	
+	/**
+	 * Импортиране на артикулите от договора във фактурата
+	 */
+	function act_Importfromdeal()
+	{
+		// Проверки
+		$this->requireRightFor('importfromdeal');
+		
+		expect($id = Request::get("{$this->masterKey}", 'int'));
+		expect($invoiceRec = $this->Master->fetch($id));
+		$this->requireRightFor('importfromdeal', (object)array("{$this->masterKey}" => $id));
+		
+		// Извличане на дийл интерфейса от договора-начало на нишка
+		$this->delete("#{$this->masterKey} = {$id}");
+		$firstDoc = doc_Threads::getFirstDocument($invoiceRec->threadId);
+		$dealInfo = $firstDoc->getAggregateDealInfo();
+		 
+		// За всеки артикул от договора, копира се 1:1
+		$productsToSave =  $dealInfo->dealProducts;
+		if(is_array($dealInfo->dealProducts)){
+			foreach ($dealInfo->dealProducts as $det){
+				$det->{$this->masterKey} = $id;
+				$det->quantity /= $det->quantityInPack;
+				$this->save($det);
+			}
+		}
+		 
+		// Редирект обратно към фактурата
+		return followRetUrl(NULL, 'Артикулите от сделката са копирани успешно');
+	}
+	
 	
 	/**
 	 * Изчисляване на цена за опаковка на реда
@@ -366,6 +403,10 @@ abstract class deals_InvoiceDetail extends doc_Detail
 					$res = 'no_one';
 				}
 			}
+		}
+		
+		if($action == 'importfromdeal'){
+			$res = $mvc->getRequiredRoles('add', $rec, $userId);
 		}
 	}
 	

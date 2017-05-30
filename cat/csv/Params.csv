@@ -6,6 +6,7 @@
 Обем,cond_type_Double,л,volumel,,,no,active,"min=0"
 Плътност,cond_type_Double,кг/м3,density,,,no,active
 Цвят,cond_type_Varchar,,color,,,yes,active
+Митнически тарифен номер,cond_type_Varchar,,customsTariffNumber,,,no,active
 Транспортно Тегло,cond_type_Double,кг,transportWeight,,,no,active,"min=0"
 Транспортен Обем,cond_type_Double,куб.м,transportVolume,,,no,active,"min=0"
 Толеранс,cond_type_Percent,,tolerance,,,no,active

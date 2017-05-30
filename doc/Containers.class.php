@@ -938,6 +938,15 @@ class doc_Containers extends core_Manager
         // Ако няма да се споделя, а ще се добавя или променя
         if ($action != 'сподели') {
             
+            // Определяме дали е начало на нишка
+            $isFirst = FALSE;
+            if ($rec->threadId) {
+                $tRec = doc_Threads::fetch($rec->threadId);
+                if (!$tRec->firstContainerId || ($tRec->firstContainerId == $rec->id)) {
+                    $isFirst = TRUE;
+                }
+            }
+            
             $oUsersArr = $usersArr;
             
             // Ако глобално в настройките е зададено да се нотифицира или не
@@ -987,6 +996,11 @@ class doc_Containers extends core_Manager
             
             // Ако е зададено в настройките на папката
             self::prepareUsersArrForNotifications($usersArr, doc_Folders::getSettingsKey($rec->folderId), 'newDoc', $rec->threadId);
+            
+            if ($isFirst) {
+                // Ако е зададено в настройките на папката да се известява за нова тема
+                self::prepareUsersArrForNotifications($usersArr, doc_Folders::getSettingsKey($rec->folderId), 'newThread', $rec->threadId);
+            }
             
             // Ако е зададено в настройките на нишката
             self::prepareUsersArrForNotifications($usersArr, doc_Threads::getSettingsKey($rec->threadId), 'notify', $rec->threadId);

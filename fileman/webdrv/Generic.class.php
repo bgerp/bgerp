@@ -259,9 +259,9 @@ class fileman_webdrv_Generic extends core_Manager
                 
                 if ($key === 'otherPagesCnt') {
                     
-                    $str = '<span>' . tr('Още страници') . '</span>';
+                    $str = '<div style="margin: 5px 0 0 5px; background: #fff; display: inline-block; padding: 2px; color: #444;">' . tr('Още страници') . ': ' . $jpgFh . '</div>';
                     
-                    $preview->append($str . ': ' . $jpgFh, 'THUMB_IMAGE');
+                    $preview->append($str, 'THUMB_IMAGE');
                 } else {
                     $imgInst = new thumb_Img(array($jpgFh, $thumbWidthAndHeightArr['width'], $thumbWidthAndHeightArr['height'], 'fileman', 'verbalName' => 'Preview'));
                     

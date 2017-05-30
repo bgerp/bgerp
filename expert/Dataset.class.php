@@ -263,12 +263,10 @@ class expert_Dataset extends core_BaseClass {
     public function run($rec = NULL, $state = NULL)
     {
  
- 
- 
         // Записваме променливите от $rec
         if(is_object($rec) || is_array($rec)) {
             foreach((array) $rec as $name => $value) {
-                if($value !== NULL) {
+                if($value !== NULL && is_scalar($value)) {
                     $this->setVar($name, $value, 1, "INPUT");
                 }
             }
