@@ -117,7 +117,7 @@ abstract class cash_Document extends deals_PaymentDocument
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'number, valior, contragentName, reason, id';
+    public $searchFields = 'valior, contragentName, reason, id';
     
     
     /**
