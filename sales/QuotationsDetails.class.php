@@ -894,10 +894,7 @@ class sales_QuotationsDetails extends doc_Detail {
     		
     		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $masterRec->tplLang);
     		deals_Helper::addAdditionalNotesToProductRow($row->productId, $rec->productId, $data->masterMvc, $data->masterId);
-    		
-    		if($rec->notes){
-    			deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
-    		}
+    		deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     		
     		// Ако е имало проблем при изчисляването на скрития транспорт, показва се хинт
     		$fee = tcost_Calcs::get($mvc->Master, $rec->quotationId, $rec->id)->fee;
