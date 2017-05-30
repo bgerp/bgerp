@@ -341,14 +341,14 @@ class dec_Declarations extends core_Master
     	if ($recDec->materials) {
     		$materials = type_Keylist::toArray($recDec->materials);
 
-            $row->material= "<ol>";
+            $row->material = "<ul>";
     		foreach ($materials as $material) {  
     			$m = dec_Materials::fetch($material);
     			
     			$text = $m->text;
     			$row->material .= "<li>".$text."</li>";
     		}  			
-    		$row->statements .= "</ol>";
+    		$row->material .= "</ul>";
     	}
 
     	// вземаме твърденията
@@ -356,15 +356,15 @@ class dec_Declarations extends core_Master
     		
     		$statements = type_Keylist::toArray($recDec->statements);
     		
-            $row->statements = "<ol>";
+            $row->statements = "<ul>";
     		foreach($statements as $statement){
     		    $s = dec_Statements::fetch($statement);
     		    $text = $s->text;
     		   $row->statements .= "<li>".$text."</li>";
     		}
-    		$row->statements .= "</ol>";
+    		$row->statements .= "</ul>";
     	}
-    	
+
     	// ако има допълнителни бележки
     	if($recDec->note) {
     		$cTpl = $decContent->getBlock("note");

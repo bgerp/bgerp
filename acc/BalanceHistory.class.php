@@ -478,31 +478,16 @@ class acc_BalanceHistory extends core_Manager
             }
         }
         
-        if(!Mode::isReadOnly()){
-            try{
-            	$Class = cls::get($rec['docType']);
-                $arr['docId'] = $Class->getShortHyperLink($rec['docId']);
-                $arr['reason'] = $Class->getContoReason($rec['docId'], $rec['reasonCode']);
-            } catch(core_exception_Expect $e){
-                if(is_numeric($rec['docId'])){
-                    $arr['docId'] = "<span style='color:red'>" . tr("Проблем при показването") . "</span>";
-                } else {
-                    $arr['docId'] = $rec['docId'];
-                }
-            }
-        } else {
-            try{
-            	$Class = cls::get($rec['docType']);
-            	$handle = "#" . $Class->getHandle($rec['docId']);
-                $arr['docId'] = $handle;
-                $arr['reason'] = $Class->getContoReason($rec['docId'], $rec['reasonCode']);
-            } catch(core_exception_Expect $e){
-                if(is_numeric($rec['docId'])){
-                    $arr['docId'] = "<span style='color:red'>" . tr("Проблем при показването") . "</span>";
-                } else {
-                    $arr['docId'] = $rec['docId'];
-                }
-            }
+        try{
+        	$Class = cls::get($rec['docType']);
+        	$arr['docId'] = (!Mode::isReadOnly()) ? $Class->getShortHyperLink($rec['docId']) : "#" . $Class->getHandle($rec['docId']);
+        	$arr['reason'] = $Class->getContoReason($rec['docId'], $rec['reasonCode']);
+        } catch(core_exception_Expect $e){
+        	if(is_numeric($rec['docId'])){
+        		$arr['docId'] = "<span style='color:red'>" . tr("Проблем при показването") . "</span>";
+        	} else {
+        		$arr['docId'] = $rec['docId'];
+        	}
         }
         
         if($rec['ROW_ATTR']){

@@ -70,6 +70,7 @@ class bank_SpendingDocuments extends bank_Document
     function description()
     {
         parent::getFields($this);
+        $this->setField('termDate', 'caption=Срок');
     }
     
     

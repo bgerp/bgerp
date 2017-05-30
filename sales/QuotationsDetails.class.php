@@ -651,7 +651,12 @@ class sales_QuotationsDetails extends doc_Detail {
     	
     	// Подреждане на груприаните записи по к-ва
     	foreach ($newRows as &$group){
-    		arr::order($group, 'quantity');
+    		
+    		// Сортиране по к-во
+    		usort($group, function($a, $b) {
+    			return (str_replace('&nbsp;', '', $a->quantity) > str_replace('&nbsp;', '', $b->quantity)) ? 1 : -1;
+    		});
+    		
     		$group = array_values($group);
     		$group[0]->rowspan = count($group);
     		
@@ -888,6 +893,8 @@ class sales_QuotationsDetails extends doc_Detail {
     		}
     		
     		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $masterRec->tplLang);
+    		deals_Helper::addAdditionalNotesToProductRow($row->productId, $rec->productId, $data->masterMvc, $data->masterId);
+    		
     		if($rec->notes){
     			deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     		}
