@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   cash
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -49,7 +49,15 @@ abstract class cash_Document extends deals_PaymentDocument
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "valior, title=Документ, reason, folderId, currencyId=Валута, amount,state, createdOn, createdBy";
+    public $listFields = "termDate=Очаквано,valior=Вальор, title=Документ, reason, folderId, currencyId=Валута, amount,state, createdOn, createdBy";
+    
+    
+    /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     *
+     *  @var string
+     */
+    public $hideListFieldsIfEmpty = 'termDate,valior';
     
     
     /**
@@ -92,6 +100,12 @@ abstract class cash_Document extends deals_PaymentDocument
      * Кой може да редактира?
      */
     public $canEdit = 'cash, ceo, purchase, sales';
+    
+    
+    /**
+     * Дата на очакване
+     */
+    public $termDateFld = 'termDate';
     
     
     /**
@@ -153,7 +167,7 @@ abstract class cash_Document extends deals_PaymentDocument
     	$mvc->FLD('amountDeal', 'double(decimals=2,max=2000000000,min=0)', 'caption=Платени,mandatory,silent');
     	$mvc->FLD('dealCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'input=hidden');
     	$mvc->FLD('reason', 'richtext(rows=2)', 'caption=Основание,mandatory');
-    	$mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор');
+    	$mvc->FLD('termDate', 'date(format=d.m.Y)', 'caption=Очаквано на');
     	$mvc->FLD('number', 'int', 'caption=Номер');
     	$mvc->FLD('peroCase', 'key(mvc=cash_Cases, select=name,allowEmpty)', 'caption=Каса,removeAndRefreshForm=currencyId|amount,silent');
     	$mvc->FLD('contragentName', 'varchar(255)', 'caption=Контрагент->Вносител,mandatory');
@@ -169,6 +183,7 @@ abstract class cash_Document extends deals_PaymentDocument
     	$mvc->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,summary=amount,input=hidden');
     	$mvc->FLD('rate', 'double(decimals=5)', 'caption=Валута (и сума) на плащането->Курс,input=none');
     	$mvc->FLD('notes', 'richtext(bucket=Notes,rows=1)', 'caption=Допълнително->Бележки');
+    	$mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Допълнително->Вальор');
     	$mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)',	'caption=Статус, input=none');
     	$mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
     	 

@@ -135,31 +135,11 @@ class core_ProtoSetup
 
             // Ако мениджърът е миграция - изпълняваме я еднократно
             if (stripos($manager, 'migrate::') === 0) {
-
-                Mode::push('isMigrate', TRUE);
                 
                 list($migrate, $method) = explode('::', $manager);
                 
-                // Ключ в настойките на пакета `core` под който се пази изпълнението на миграцията
-                $key = "migration_{$packName}_{$method}";
-
-                if(!core_Packs::getConfigKey('core', $key)) {
-                    try {
-                        $res = call_user_func(array($this, $method));
-                        core_Packs::setConfig('core', array($key => TRUE));
-                        if($res) {
-                            $html .= $res;
-                        } else {
-                            $html .= "<li class='debug-new'>Миграцията {$packName}::{$method} беше приложена успешно</li>";
-                        }
-                    } catch(ErrorException $e) {
-                        $html .= "<li class='debug-error'>Миграцията {$packName}::{$method} не беше успешна</li>";
-                        reportException($e);
-                    }
-                }
-
-                Mode::pop('isMigrate', TRUE);
-
+                $html .= $this->callMigrate($method, $packName);
+                
                 continue;
             }
 
@@ -185,6 +165,42 @@ class core_ProtoSetup
             $html .= core_Roles::addOnce($role);
         }
 
+        return $html;
+    }
+    
+    
+    /**
+     * Пуска подадена миграция от съответния пакет, ако преди това не е била пусната
+     * 
+     * @param string $method
+     * @param string $packName
+     * 
+     * @return string
+     */
+    public function callMigrate($method, $packName)
+    {
+        Mode::push('isMigrate', TRUE);
+        
+        // Ключ в настойките на пакета `core` под който се пази изпълнението на миграцията
+        $key = "migration_{$packName}_{$method}";
+        
+        if(!core_Packs::getConfigKey('core', $key)) {
+            try {
+                $res = call_user_func(array($this, $method));
+                core_Packs::setConfig('core', array($key => TRUE));
+                if($res) {
+                    $html = $res;
+                } else {
+                    $html = "<li class='debug-new'>Миграцията {$packName}::{$method} беше приложена успешно</li>";
+                }
+            } catch(ErrorException $e) {
+                $html = "<li class='debug-error'>Миграцията {$packName}::{$method} не беше успешна</li>";
+                reportException($e);
+            }
+        }
+        
+        Mode::pop('isMigrate', TRUE);
+        
         return $html;
     }
 

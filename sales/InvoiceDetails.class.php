@@ -90,61 +90,6 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
     
     
     /**
-     * След подготовка на лист тулбара
-     */
-    public static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	// Добавяне на бутон за импортиране на артикулите директно от договора
-    	if($mvc->haveRightFor('importfromsale', (object)array("{$mvc->masterKey}" => $data->masterId))){
-    		$data->toolbar->addBtn('От договора', array($mvc, 'importfromsale', "{$mvc->masterKey}" => $data->masterId, 'ret_url' => TRUE),
-    		"id=btnImportFromSale-{$masterRec->id},{$error} order=10,title=Импортиране на артикулите от договора", array('warning' => 'Редовете на фактурата, ще копират точно тези от договора|*!', 'ef_icon' => 'img/16/shopping.png'));
-    	}
-    }
-    
-    
-    /**
-     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
-     */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-    {
-    	if($action == 'importfromsale'){
-    		$requiredRoles = $mvc->getRequiredRoles('add', $rec, $userId);
-    	}
-    }
-    
-    
-    /**
-     * Импортиране на артикулите от договора във фактурата
-     */
-    function act_Importfromsale()
-    {
-    	// Проверки
-    	$this->requireRightFor('importfromsale');
-    	expect($id = Request::get("{$this->masterKey}", 'int'));
-    	expect($invoiceRec = $this->Master->fetch($id));
-    	$this->requireRightFor('importfromsale', (object)array("{$this->masterKey}" => $id));
-    	
-    	// Извличане на дийл интерфейса от договора-начало на нишка
-    	$this->delete("#{$this->masterKey} = {$id}");
-    	$firstDoc = doc_Threads::getFirstDocument($invoiceRec->threadId);
-    	$dealInfo = $firstDoc->getAggregateDealInfo();
-    	
-    	// За всеки артикул от договора, копира се 1:1
-    	$productsToSave =  $dealInfo->dealProducts;
-    	if(is_array($dealInfo->dealProducts)){
-    		foreach ($dealInfo->dealProducts as $det){
-    			$det->{$this->masterKey} = $id;
-    			$det->quantity /= $det->quantityInPack;
-    			$this->save($det);
-    		}
-    	}
-    	
-    	// Редирект обратно към фактурата
-    	return followRetUrl(NULL, 'Артикулите от сделката са копирани успешно');
-    }
-    
-    
-    /**
      * Извиква се след успешен запис в модела
      *
      * @param core_Mvc $mvc

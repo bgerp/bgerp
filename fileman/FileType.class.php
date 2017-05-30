@@ -55,7 +55,7 @@ class fileman_FileType extends type_Varchar {
         
         if($fileName) {
             $crossImg = "<img src=" . sbf('img/16/delete.png') . " align=\"absmiddle\" title=\"" . tr("Премахване на файла") . "\" alt=\"\">";
-            $html = $this->toVerbal($value) . "&nbsp;<a style=\"color:red;\" href=\"#\" onclick=\"unsetInputFile('" . $name . "')\">" . $crossImg . '</a>';
+            $html = $this->toVerbal($value) . "&nbsp;<a style=\"color:red;\" href=\"javascript:void(0)\" onclick=\"unsetInputFile('" . $name . "')\">" . $crossImg . '</a>';
         }
         
         $tpl = ht::createElement("span", $attrInp, $html, TRUE);
@@ -86,7 +86,7 @@ class fileman_FileType extends type_Varchar {
                 var divFileName = document.getElementById(name + '_file_name_id');
                 var crossImg = '<img src=" . sbf('img/16/delete.png') . " align=\"absmiddle\" alt=\"\">';
                 divFileName.innerHTML = getDownloadLink(fName, fh) + 
-                '&nbsp;<a style=\"color:red;\" href=\"#\" onclick=\"unsetInputFile(\'' + name + '\')\">' + crossImg + '</a>';
+                '&nbsp;<a style=\"color:red;\" href=\"javascript:void(0)\" onclick=\"unsetInputFile(\'' + name + '\')\">' + crossImg + '</a>';
 
                 var inputFileHnd = document.getElementById(name + '_id');
                 inputFileHnd.value = fh;

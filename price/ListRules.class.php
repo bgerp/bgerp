@@ -109,6 +109,7 @@ class price_ListRules extends core_Detail
         $this->setDbIndex('priority');
         $this->setDbIndex('validFrom');
         $this->setDbIndex('productId');
+        $this->setDbIndex('groupId');
     }
      
     

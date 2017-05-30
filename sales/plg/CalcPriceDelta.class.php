@@ -26,6 +26,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
 	public static function on_AfterDescription(core_Mvc $mvc)
 	{
 		setIfNot($mvc->detailSellPriceFld, 'price');
+		setIfNot($mvc->detailDiscountPriceFld, 'discount');
 		setIfNot($mvc->detailQuantityFld, 'quantity');
 		setIfNot($mvc->detailProductFld, 'productId');
 		setIfNot($mvc->detailPackagingFld, 'packagingId');
@@ -90,6 +91,11 @@ class sales_plg_CalcPriceDelta extends core_Plugin
 				}
 			}
 			
+			$sellCost = $dRec->{$mvc->detailSellPriceFld};
+			if(isset($dRec->{$mvc->detailDiscountPriceFld})){
+				$sellCost = $sellCost * (1 - $dRec->{$mvc->detailDiscountPriceFld});
+			}
+			
 			// Изчисляване на цената по политика
 			$r = (object)array('valior'        => $valior,
 							   'detailClassId' => $detailClassId,
@@ -97,7 +103,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
 							   'containerId'   => $rec->containerId,
 					           'quantity'      => $dRec->{$mvc->detailQuantityFld},
 					           'productId'     => $dRec->{$mvc->detailProductFld},
-					           'sellCost'      => $dRec->{$mvc->detailSellPriceFld},
+					           'sellCost'      => $sellCost,
 					           'primeCost'     => $primeCost);
 			
 			$persons = sales_PrimeCostByDocument::getDealerAndInitiatorId($rec->containerId);
