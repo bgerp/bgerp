@@ -182,8 +182,8 @@ abstract class cash_Document extends deals_PaymentDocument
     	$mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута (и сума) на плащането->Валута,silent,removeAndRefreshForm=rate|amount');
     	$mvc->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,summary=amount,input=hidden');
     	$mvc->FLD('rate', 'double(decimals=5)', 'caption=Валута (и сума) на плащането->Курс,input=none');
-    	$mvc->FLD('notes', 'richtext(bucket=Notes,rows=1)', 'caption=Допълнително->Бележки');
-    	$mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Допълнително->Вальор');
+    	$mvc->FLD('notes', 'richtext(bucket=Notes,rows=1)', 'caption=Допълнително->Бележки,autohide');
+    	$mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Допълнително->Вальор,autohide');
     	$mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)',	'caption=Статус, input=none');
     	$mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
     	 
