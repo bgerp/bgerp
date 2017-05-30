@@ -76,7 +76,7 @@ class deals_OpenDeals extends core_Manager {
     	$this->FLD('amountPaid', 'double(decimals=2)', 'caption=Сума->Платено, summary = amount');
     	$this->FLD('amountDelivered', 'double(decimals=2)', 'caption=Сума->Доставено, summary = amount');
     	$this->FLD('expectedPayment', 'double(decimals=2)', 'caption=Сума->Очаквано плащане,oldFieldName=expectedDownpayment');
-    	$this->FLD('state', 'enum(active=Активно, closed=Приключено, rejected=Оттеглено)', 'caption=Състояние');
+    	$this->FLD('state', 'enum(active=Активно, closed=Приключено, rejected=Оттеглено, stopped=Спряно)', 'caption=Състояние');
     	
     	$this->setDbUnique('docClass,docId');
         $this->setDbIndex('valior');
