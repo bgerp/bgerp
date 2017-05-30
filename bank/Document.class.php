@@ -254,23 +254,6 @@ abstract class bank_Document extends deals_PaymentDocument
 	
 
 	/**
-	 * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
-	 */
-	public function getDocumentRow($id)
-	{
-		$rec = $this->fetch($id);
-		$row = new stdClass();
-		$row->title = $this->singleTitle . " №{$id}";
-		$row->authorId = $rec->createdBy;
-		$row->author = $this->getVerbal($rec, 'createdBy');
-		$row->state = $rec->state;
-		$row->recTitle = $rec->reason;
-	
-		return $row;
-	}
-	
-
-	/**
 	 * Проверка дали нов документ може да бъде добавен в
 	 * посочената нишка
 	 *

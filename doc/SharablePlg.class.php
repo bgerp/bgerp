@@ -53,7 +53,7 @@ class doc_SharablePlg extends core_Plugin
             
             $rec = &$form->rec;
             
-            $sharedUsersArr = array();
+            $sharedUsersArrAll = array();
             
             // Обхождаме всички полета от модела, за да разберем кои са ричтекст
             foreach ((array)$mvc->fields as $name => $field) {
@@ -66,15 +66,15 @@ class doc_SharablePlg extends core_Plugin
                     if (empty($sharedUsersArr)) continue;
                     
                     // Обединяваме всички потребители от споделянията
-                    $sharedUsersArr = array_merge($sharedUsersArr, $sharedUsersArr);
+                    $sharedUsersArrAll = array_merge($sharedUsersArrAll, $sharedUsersArr);
                 }
             }
             
             // Ако има споделяния
-            if (!empty($sharedUsersArr)) {
+            if (!empty($sharedUsersArrAll)) {
                 
                 // Добавяме id-тата на споделените потребители
-                foreach ((array)$sharedUsersArr as $nick) {
+                foreach ((array)$sharedUsersArrAll as $nick) {
                     $nick = strtolower($nick);
                     $id = core_Users::fetchField(array("LOWER(#nick) = '[#1#]'", $nick), 'id');
                     $rec->sharedUsers = type_Keylist::addKey($rec->sharedUsers, $id);
