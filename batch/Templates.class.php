@@ -148,8 +148,10 @@ class batch_Templates extends embed_Manager {
     	}
     	
     	$found = FALSE;
+    	$p = $params;
+    	unset($p['name']);
     	foreach ($templates as $k => $t){
-    		if(arr::areEqual($params, $t)){
+    		if(arr::areEqual($p, $t)){
     			$found = $k;
     			break;
     		}

@@ -385,64 +385,51 @@ class sales_PrimeCostByDocument extends core_Manager
 		
 		$productGroups = self::getAllProductGroups($indicatorRecs);
 		
-		//
+		// За всеки запис
 		foreach ($indicatorRecs as $rec){
 			if(!$rec->dealerId) continue;
 			
-			// Намиране на първата група от търсените в която се среща артикула
-			$groupId = self::getFirstFoundGroupInProduct($productGroups[$rec->productId], $selectedGroups);
-			if(!$groupId) continue;
+			// Намира се в колко от търсените групи участва
+			$groups = $productGroups[$rec->productId];
+			$diff = array_intersect_key($selectedGroups, $groups);
+			$delimiter = count($diff);
 			
-			expect($indicatorId = $selectedGroups[$groupId]->id);
-			$Document = $masters[$rec->containerId][0];
-			$personFldValue = $personIds[$rec->dealerId];
+			// Ако не е в нито една група, пропуска се
+			if(!$delimiter) continue;
 			
-			// Подготовка на ключа по-който ще се събират данните
-			$key = "{$personFldValue}|{$Document->getClassId()}|{$Document->that}|{$rec->valior}|{$indicatorId}";
-			$sign = ($masters[$rec->containerId][2] == 'yes') ? -1 : 1;
-			$value = $sign * round($rec->quantity * $rec->sellCost, 2);
-			
-			// Ако няма данни, добавят се
-			if(!array_key_exists($key, $result)){
-				$result[$key] = (object)array('date'        => $rec->valior,
-											  'personId'    => $personFldValue,
-											  'docId'       => $Document->that,
-											  'docClass'    => $Document->getClassId(),
-											  'indicatorId' => $indicatorId,
-											  'value'       => $value,
-											  'isRejected'  => ($masters[$rec->containerId][1] == 'rejected'),);
-			} else {
+			foreach ($diff as $groupId => $obj){
 				
-				// Ако има вече се сумират
-				$ref = &$result[$key];
-				$ref->value += $delta;
+				$Document = $masters[$rec->containerId][0];
+				$personFldValue = $personIds[$rec->dealerId];
+					
+				// Подготовка на ключа по-който ще се събират данните
+				$indicatorId = $selectedGroups[$groupId]->id;
+				$key = "{$personFldValue}|{$Document->getClassId()}|{$Document->that}|{$rec->valior}|{$indicatorId}";
+				$sign = ($masters[$rec->containerId][2] == 'yes') ? -1 : 1;
+				
+				// Сумата е X / броя на групите в които се среща от тези, които се следят
+				$value = $sign * (round($rec->quantity * $rec->sellCost, 2) / $delimiter);
+					
+				// Ако няма данни, добавят се
+				if(!array_key_exists($key, $result)){
+					$result[$key] = (object)array('date'        => $rec->valior,
+							'personId'    => $personFldValue,
+							'docId'       => $Document->that,
+							'docClass'    => $Document->getClassId(),
+							'indicatorId' => $indicatorId,
+							'value'       => $value,
+							'isRejected'  => ($masters[$rec->containerId][1] == 'rejected'),);
+				} else {
+				
+					// Ако има вече се сумират
+					$ref = &$result[$key];
+					$ref->value += $delta;
+				}
 			}
 		}
 		
 		// Връщане на индикаторите
 		return $result;
-	}
-	
-	
-	/**
-	 * Връща първата група от търсените, в която се среща артикула
-	 * 
-	 * @param unknown $productGroups  - всички групи на даден артикул
-	 * @param unknown $selectedGroups - всички търсени групи
-	 * @return NULL|int               - ид на намерената група или NULL ако няма
-	 */
-	private static function getFirstFoundGroupInProduct($productGroups, $selectedGroups)
-	{
-		if(!count($productGroups) || !count($selectedGroups)) return NULL;
-		
-		// Обхождат се всички групи
-		foreach($selectedGroups as $groupId => $obj)
-		{
-			// Връща се ид-то на първата група, която е срещната
-			if(in_array($groupId, $productGroups)) return $groupId;
-		}
-		
-		return NULL;
 	}
 	
 	
@@ -526,5 +513,26 @@ class sales_PrimeCostByDocument extends core_Manager
     	}
     	
     	return $groups;
+    }
+    
+    
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+    	$data->listFilter->FLD('documentId', 'varchar', 'caption=Документ');
+    	$data->listFilter->showFields = 'documentId';
+    	$data->listFilter->view = 'horizontal';
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+    	$data->listFilter->input();
+    	
+    	if($rec = $data->listFilter->rec){
+    		if(!empty($rec->documentId)){
+    			if($document = doc_Containers::getDocumentByHandle($rec->documentId)){
+    				$data->query->where("#containerId = {$document->fetchField('containerId')}");
+    			}
+    		}
+    	}
     }
 }

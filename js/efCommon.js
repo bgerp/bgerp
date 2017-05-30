@@ -1077,6 +1077,9 @@ function prepareContextMenu() {
             'verAdjust': vertAdjust,
             'horAdjust': horAdjust
         });
+        $('.modal-toolbar .button').on("click", function(){
+            $('.more-btn').contextMenu('close');
+        });
     });
 }
 
