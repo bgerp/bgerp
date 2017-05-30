@@ -1383,6 +1383,9 @@ abstract class deals_DealMaster extends deals_DealBase
     	$query->where("#state = 'active'");
     	$query->where("#amountDelivered IS NOT NULL AND #amountPaid IS NOT NULL");
     	 
+    	// Пропускат се и тези по които има още да се експедира
+    	$query->where("#amountDeal <= #amountDelivered");
+    	
     	// На които треда им не е променян от определено време
     	$query->where("#threadModifiedOn <= '{$oldBefore}'");
     	 
