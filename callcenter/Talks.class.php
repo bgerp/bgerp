@@ -1423,7 +1423,7 @@ class callcenter_Talks extends core_Master
         $data->listFilter->FNC('number', 'drdata_PhoneType', 'caption=Номер,input,silent, recently');
         
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent,autoFilter');
+        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo|callcenter, rolesForTeams=ceo|manager|callcenter)', 'caption=Потребител,input,silent,autoFilter');
         
         // Функционално поле за търсене по статус и тип на разговора
         $data->listFilter->FNC('dialStatusType', 'enum()', 'caption=Състояние,input,autoFilter');
