@@ -448,7 +448,6 @@ abstract class deals_Helper
 		$additionalNotes = $Driver->getAdditionalNotesToDocument($productId, $masterMvc, $masterId);
 		if(empty($additionalNotes)) return;
 		
-		//$notes = isset($notes) ? $notes : '';
 		if(is_string($productRow)){
 			$productRow .= "<div class='small'>{$additionalNotes}</div>";
 		} else {
