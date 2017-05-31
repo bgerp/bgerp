@@ -218,7 +218,6 @@ class store_TransfersDetails extends doc_Detail
     		$fromStoreId = store_Transfers::fetchField($rec->transferId, 'fromStore');
     		$storeInfo = deals_Helper::checkProductQuantityInStore($rec->newProductId, $rec->packagingId, $rec->packQuantity, $fromStoreId);
     		$form->info = $storeInfo->formInfo;
-    		$pInfo = cat_Products::getProductInfo($rec->newProductId);
     		
     		$packs = cat_Products::getPacks($rec->newProductId);
     		$form->setField('packagingId', 'input');
@@ -227,6 +226,7 @@ class store_TransfersDetails extends doc_Detail
     	}
     	
     	if ($form->isSubmitted()){
+    		$pInfo = cat_Products::getProductInfo($rec->newProductId);
     		$rec->quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
             
     		$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
