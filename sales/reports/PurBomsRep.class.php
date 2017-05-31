@@ -143,7 +143,7 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 			// Взимане на договорените и експедираните артикули по продажбата (събрани по артикул)
 			$dealerId = ($sRec->dealerId) ? $sRec->dealerId : (($sRec->activatedBy) ? $sRec->activatedBy : $sRec->createdBy);
 			$dealInfo = $Sales->getAggregateDealInfo($sRec);
-		
+
 			$delTime = (!empty($sRec->deliveryTime)) ? $sRec->deliveryTime : (!empty($sRec->deliveryTermTime) ?  dt::addSecs($sRec->deliveryTermTime, $sRec->valior) : NULL);
 			if(empty($delTime)){
 				$delTime = $Sales->getMaxDeliveryTime($sRec->id);
@@ -164,7 +164,7 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 			$agreedProducts = $dealInfo->get('products');
 
 			$d = NULL;
-
+	
 			// За всеки договорен артикул
 			foreach ($agreedProducts as $pId => $pRec){ 
 				// ако е нестандартен
@@ -177,7 +177,7 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 				    $salesArr = keylist::toArray($newKeylist);
 				    $salesSrt = implode(',', $salesArr);
 				}		
-				
+			
 				// Ако артикула е нестандартен и няма задание по продажбата
 				// артикула да е произведим
 				if($productRec->isPublic == 'no' && $productRec->canManifacture == 'yes'){ 
@@ -194,9 +194,10 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 				   
 					if(isset($jobId)) {
 						$jobState = planning_Jobs::fetchField("#id = {$jobId}",'state');
+						$jobQuantity = planning_Jobs::fetchField("#id = {$jobId}",'quantity');
 					}
-					
-					if (!$jobId || ($jobState == 'draft' || $jobState == 'rejected') ){  
+
+					if (!$jobId || ($jobState == 'draft' || $jobState == 'rejected') || ($jobQuantity < $pRec->quantity * 0.90)){  
 					    
 					    $index = $sRec->id . "|" . $pId;
 						$d = (object) array ("num" => $count,
