@@ -238,7 +238,7 @@ class cat_ProductTplCache extends core_Master
 		$cacheRec->cache = cat_Products::getTitleById($rec->id);
 		
 		if($Driver = cat_Products::getDriver($rec->id)){
-			$additionalNotes = $Driver->getAdditionalNotesToDocument($productId, $masterMvc, $masterId);
+			$additionalNotes = $Driver->getAdditionalNotesToDocument($productId, $documentType);
 			if(!empty($additionalNotes)){
 				$cacheRec->cache = array('title' => $cacheRec->cache, 'subTitle' => $additionalNotes);
 			}
