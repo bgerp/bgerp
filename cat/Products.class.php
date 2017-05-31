@@ -1748,11 +1748,11 @@ class cat_Products extends embed_Manager {
     	}
     	
     	// Връщаме шаблона с подготвените данни
-    	$tpl = new ET("[#name#]<!--ET_BEGIN subtTitle--><br>[#subtTitle#]<!--ET_END subtTitle--><!--ET_BEGIN desc--><br><div style='font-size:0.85em'>[#desc#]</div><!--ET_END desc-->");
+    	$tpl = new ET("[#name#]<!--ET_BEGIN subTitle--><br>[#subTitle#]<!--ET_END subTitle--><!--ET_BEGIN desc--><br><div style='font-size:0.85em'>[#desc#]</div><!--ET_END desc-->");
     	$tpl->replace($title, 'name');
     	$tpl->replace($descriptionTpl, 'desc');
-    	if(isset($subTitle)){
-    		$tpl->replace($subTitle, 'subtTitle');
+    	if(!empty($subTitle)){
+    		$tpl->replace($subTitle, 'subTitle');
     	}
     	
     	return $tpl;
