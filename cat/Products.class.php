@@ -1699,6 +1699,10 @@ class cat_Products extends embed_Manager {
     		$title = cat_ProductTplCache::cacheTitle($rec, $time, $documentType, $lang);
     	}
     	
+    	$fullTitle = $title;
+    	$title = (is_array($fullTitle)) ? $fullTitle['title'] : $fullTitle;
+    	$subTitle = (is_array($fullTitle)) ? $fullTitle['subTitle'] : NULL;
+    	
     	// Ако е частен показваме за код хендлъра му + версията в кеша
     	if($rec->isPublic == 'no'){
     		$count = cat_ProductTplCache::count("#productId = {$rec->id} AND #type = 'description' AND #documentType = '{$documentType}'");
@@ -1744,9 +1748,12 @@ class cat_Products extends embed_Manager {
     	}
     	
     	// Връщаме шаблона с подготвените данни
-    	$tpl = new ET("[#name#]<!--ET_BEGIN desc--><br><div style='font-size:0.85em'>[#desc#]</div><!--ET_END desc-->");
+    	$tpl = new ET("[#name#]<!--ET_BEGIN subtTitle--><br>[#subtTitle#]<!--ET_END subtTitle--><!--ET_BEGIN desc--><br><div style='font-size:0.85em'>[#desc#]</div><!--ET_END desc-->");
     	$tpl->replace($title, 'name');
     	$tpl->replace($descriptionTpl, 'desc');
+    	if(isset($subTitle)){
+    		$tpl->replace($subTitle, 'subtTitle');
+    	}
     	
     	return $tpl;
     }

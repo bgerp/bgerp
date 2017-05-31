@@ -136,7 +136,6 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
     		foreach ($data->rows as $i => &$row) {
     			$rec = &$data->recs[$i];
                 $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $data->masterData->rec->tplLang);
-                deals_Helper::addAdditionalNotesToProductRow($row->productId, $rec->productId, $data->masterMvc, $data->masterId);
                 deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     		}
     	}

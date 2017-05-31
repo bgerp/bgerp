@@ -148,8 +148,6 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     			$rec = &$data->recs[$i];
     
     			$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'short', 'public', $data->masterData->rec->tplLang);
-    			
-    			deals_Helper::addAdditionalNotesToProductRow($row->productId, $rec->productId, $data->masterMvc, $data->masterId);
     			deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     		}
     	}

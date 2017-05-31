@@ -342,13 +342,12 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	/**
 	 * Връща допълнителен текст, който да се показва към забележките на показването на артикула в документ
 	 *
-	 * @param mixed $productId - ид или запис на артикул
-	 * @param mixed $masterMvc - клас на документа където е избран артикула
-	 * @param mixed $masterId  - ид на документа където е избран артикула
-	 * @return string          - допълнителния текст, специфичен за документа
+	 * @param mixed $productId     - ид или запис на артикул
+	 * @param string $documentType - public или internal
+	 * @return string              - допълнителния текст, специфичен за документа
 	 */
-	public function getAdditionalNotesToDocument($productId, $masterMvc, $masterId)
+	public function getAdditionalNotesToDocument($productId, $documentType)
 	{
-		return $this->class->getAdditionalNotesToDocument($productId, $masterMvc, $masterId);
+		return $this->class->getAdditionalNotesToDocument($productId, $documentType);
 	}
 }

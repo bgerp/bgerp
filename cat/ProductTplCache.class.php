@@ -227,6 +227,14 @@ class cat_ProductTplCache extends core_Master
 		
 		Mode::push('text', 'plain');
 		$cacheRec->cache = cat_Products::getTitleById($rec->id);
+		
+		if($Driver = cat_Products::getDriver($rec->id)){
+			$additionalNotes = $Driver->getAdditionalNotesToDocument($productId, $masterMvc, $masterId);
+			if(!empty($additionalNotes)){
+				$cacheRec->cache = array('title' => $cacheRec->cache, 'subTitle' => $additionalNotes);
+			}
+		}
+		
 		Mode::pop('text');
 		$cacheRec->lang = $lang;
 		

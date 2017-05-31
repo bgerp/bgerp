@@ -367,7 +367,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		$date = ($masterRec->state == 'draft') ? NULL : $masterRec->modifiedOn;
 		
 		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'short', 'public', $lang);
-		deals_Helper::addAdditionalNotesToProductRow($row->productId, $rec->productId, $mvc->Master, $rec->{$mvc->masterKey});
 		deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
 		
 		// Показваме подробната информация за опаковката при нужда
