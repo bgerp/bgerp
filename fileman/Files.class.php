@@ -1933,7 +1933,7 @@ class fileman_Files extends core_Master
             
             $retUrl = getRetUrl();
             
-            if (!$retUrl) {
+            if (empty($retUrl)) {
                 $retUrl = toUrl(array($this, 'single', $rec->fileHnd));
             }
             
