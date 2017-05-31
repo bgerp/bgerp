@@ -4953,6 +4953,25 @@ function addParamsToBookmarkBtn(obj, parentUrl, localUrl)
     obj.setAttribute("href", parentUrl + '&url=' + url + '&title=' + title);
 }
 
+/**
+ * Вика по AJAX екшън, който добавя документа към последни
+ * 
+ * @param fh
+ */
+function copyFileToLast(fh)
+{
+	if (this.event) {
+		stopBtnDefault(this.event);
+	}
+	
+    getEfae().process({url: '/fileman_Files/CopyToLast/' + fh});
+    
+    // Затваряме прозореца
+    if ($('.iw-mTrigger').contextMenu) {
+    	$('.iw-mTrigger').contextMenu('close');
+    }
+}
+
 
 /**
  * Fix за IE8
