@@ -110,7 +110,16 @@ class cat_ProductTplCache extends core_Master
 				$row->cache->append($componentTpl, 'COMPONENTS');
 				
 			} else {
-				$row->cache = cls::get('type_Varchar')->toVerbal($rec->cache);
+				if($rec->cache instanceof core_ET){
+					$row->cache = cls::get('type_Varchar')->toVerbal($rec->cache);
+				} else {
+					if(is_array($rec->cache)){
+						$row->cache->append("<br>" . $rec->cache['subTitle']);
+						$row->cache = cls::get('type_Html')->toVerbal($row->cache);
+					} else {
+						$row->cache = cls::get('type_Varchar')->toVerbal($rec->cache);
+					}
+				}
 			}
 		}
 	}
