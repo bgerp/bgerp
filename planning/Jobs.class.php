@@ -275,6 +275,7 @@ class planning_Jobs extends core_Master
     		$form->setField('deliveryTermId', 'input=none');
     		$form->setField('deliveryDate', 'input=none');
     		$form->setField('deliveryPlace', 'input=none');
+    		$form->setField('department', 'mandatory');
     	}
     	
     	// Ако е избрано предишно задание зареждат се данните от него
