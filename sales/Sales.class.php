@@ -370,7 +370,7 @@ class sales_Sales extends deals_DealMaster
         		// И условието на доставка е със скрито начисляване, не може да се сменя локацията и условието на доставка
         		if(isset($rec->deliveryTermId)){
         			if(cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost') == 'yes'){
-        				$form->setReadOnly('deliveryTermIdExtended');
+        				$form->setReadOnly('deliveryAdress');
         				$form->setReadOnly('deliveryLocationId');
         			}
         		}
@@ -436,6 +436,10 @@ class sales_Sales extends deals_DealMaster
 		    
 		    if(!Mode::is('printing') && !Mode::is('text', 'xhtml') && $mvc->haveRightFor('printFiscReceipt', $rec)){
 		    	$data->toolbar->addBtn('КБ', array($mvc, 'printReceipt', $rec->id), NULL, 'ef_icon=img/16/cash-receipt.png,warning=Искате ли да издадете нова касова бележка ?,title=Издаване на касова бележка', array('class' => "actionBtn", 'target' => 'iframe_a'));
+		    }
+		    
+		    if(store_ReserveStocks::haveRightFor('add', (object)array('originId' => $rec->containerId))){
+		    	$data->toolbar->addBtn("Резервиране", array('store_ReserveStocks', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'row=1,ef_icon=img/16/view.png,title=Резервиране на складови наличности');
 		    }
     	}
     }
