@@ -330,10 +330,11 @@ class cond_ConditionsToCustomers extends core_Manager
      */
     public static function fetchByCustomer($cClass, $cId, $conditionId = NULL)
     {
-    	expect(cls::haveInterface('crm_ContragentAccRegIntf', $cClass));
+    	$Class = cls::get($cClass);
+    	expect(cls::haveInterface('crm_ContragentAccRegIntf', $Class));
     	
     	$query = static::getQuery();
-    	$query->where("#cClass = {$cClass}");
+    	$query->where("#cClass = {$Class->getClassId()}");
     	$query->where("#cId = {$cId}");
     	if($conditionId){
     		$query->where("#conditionId = {$conditionId}");
