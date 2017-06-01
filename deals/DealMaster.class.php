@@ -935,8 +935,7 @@ abstract class deals_DealMaster extends deals_DealBase
 			}
 
 			core_Lg::push($rec->tplLang);
-			
-			$deliveryAdress = (isset($rec->deliveryTermId)) ? (cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'codeName') . ": ") : "";
+			$deliveryAdress = '';
 			if(!empty($rec->deliveryAdress)){
 				$deliveryAdress .= $mvc->getFieldType('deliveryAdress')->toVerbal($rec->deliveryAdress);
 			} else {
@@ -946,6 +945,8 @@ abstract class deals_DealMaster extends deals_DealBase
 			}
 			
 			if(!empty($deliveryAdress)){
+				$deliveryAdress = (isset($rec->deliveryTermId)) ? (cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'codeName') . ": ") : "";
+				
 				$row->deliveryTermId = $deliveryAdress;
 			}
 			

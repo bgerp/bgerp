@@ -295,11 +295,8 @@ class cond_DeliveryTerms extends core_Master
     	}
     	
     	$adress = trim(strip_tags($adress));
-    	if(!empty($adress)){
-    		$deliveryCode = $adress;
-    	}
     	
-    	return $deliveryCode;
+    	return $adress;
     }
     
     
