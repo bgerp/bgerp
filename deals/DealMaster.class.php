@@ -1552,10 +1552,14 @@ abstract class deals_DealMaster extends deals_DealBase
     	 
     	// Форсираме папката на клиента
     	$fields['folderId'] = $contragentClass::forceCoverAndFolder($contragentId);
-    	 
+    	
     	// Ако няма платежен план, това е плащане в брой
-    	$fields['paymentMethodId'] = (empty($fields['paymentMethodId'])) ? cond_PaymentMethods::fetchField("#sysId = 'COD'", 'id') : $fields['paymentMethodId'];
+    	$paymentSysId = (get_called_class() == 'sales_Sales') ? 'paymentMethodSale' : 'paymentMethodPurchase';
+    	$fields['paymentMethodId'] = (empty($fields['paymentMethodId'])) ? cond_Parameters::getParameter($contragentClass, $contragentId, $paymentSysId) : $fields['paymentMethodId'];
     	 
+    	$termSysId = (get_called_class() == 'sales_Sales') ? 'deliveryTermSale' : 'deliveryTermPurchase';
+    	$fields['deliveryTermId'] = (empty($fields['deliveryTermId'])) ? cond_Parameters::getParameter($contragentClass, $contragentId, $termSysId) : $fields['deliveryTermId'];
+    	
     	// Ако няма търговец, това е текущия потребител
     	$fields['dealerId'] = (empty($fields['dealerId'])) ? core_Users::getCurrent() : $fields['dealerId'];
     	 
