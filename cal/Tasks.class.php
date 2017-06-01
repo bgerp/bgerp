@@ -154,6 +154,11 @@ class cal_Tasks extends core_Master
      * Кой може да възлага задачата
      */
     public $canAssign = 'powerUser';
+    
+    /**
+     * Кой може да възлага задачата
+     */
+    public $canActivate = 'powerUser';
 
     
     /**
@@ -599,7 +604,7 @@ class cal_Tasks extends core_Master
         }
     }
 
-
+    
     /**
      *
      * След подготовка на тулбара на единичен изглед.
@@ -629,6 +634,10 @@ class cal_Tasks extends core_Master
             $taskStart = dt::now();
         }
         
+        if($data->rec->id) {
+            $data->toolbar->removeBtn('btnActivate');
+        }
+        
         // ако имаме зададена продължителност
         if ($data->rec->timeDuration) {
 
@@ -646,7 +655,7 @@ class cal_Tasks extends core_Master
         } 
 
         // ако имаме бутон "Активиране"
-        if (isset($data->toolbar->buttons['Активиране'])) {
+        if (isset($data->toolbar->buttons['Активиране'])) { 
 
             // заявка към базата
             $query = self::getQuery();
@@ -721,7 +730,7 @@ class cal_Tasks extends core_Master
             }
         }
 
-        if ($action == 'edit') {
+        if ($action == 'edit') { 
             if ($rec->id) {
                 if (!cal_Tasks::haveRightFor('single', $rec)) {
                     $requiredRoles = 'no_one';
@@ -734,19 +743,6 @@ class cal_Tasks extends core_Master
                 if (!$mvc->haveRightFor('single', $rec->id, $userId)) {
                     $requiredRoles = 'no_one';
                }
-            }
-        }
-        
-        // Ако няма потребители, да не може да се активира - ще се промени състоянието на заявка
-        if ($action == 'activate' && $rec->id) {
-            $sharedUsersArr = keylist::toArray($rec->sharedUsers);
-            
-            if ($rec->assign) {
-                $sharedUsersArr[$rec->assign] = $rec->assign;
-            }
-            
-            if (empty($sharedUsersArr)) {
-                $requiredRoles = 'no_one';
             }
         }
     }
@@ -773,9 +769,9 @@ class cal_Tasks extends core_Master
 
             $rec->timeCalc = $canActivate->calcTime;
 
-            // ако не може, задачата ставачакаща
+            // ако не може, задачата става заявка
         } else {
-            $rec->state = 'waiting';
+            $rec->state = 'pending';
         }
 
         if ($rec->id) {
@@ -2123,9 +2119,11 @@ class cal_Tasks extends core_Master
     {
         // Без отговорник да не може да се активират
         $sharedUsersArr = keylist::toArray($rec->sharedUsers);
+        
         if ($rec->assign) {
             $sharedUsersArr[$rec->assign] = $rec->assign;
         }
+        
         if (empty($sharedUsersArr)) {
             
             return ;
