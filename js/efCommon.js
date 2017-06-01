@@ -3066,7 +3066,7 @@ function efae() {
     efae.prototype.increaseInterval = 100;
 
     // Горната граница (в милисекунди), до която може да се увеличи брояча
-    efae.prototype.maxIncreaseInterval = 60000;
+    efae.prototype.maxIncreaseInterval = 300000;
 
     // През колко време да се праща AJAX заяка към сървъра
     efae.prototype.ajaxInterval = efae.prototype.ajaxDefInterval = 5000;
