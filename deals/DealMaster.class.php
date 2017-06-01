@@ -795,12 +795,24 @@ abstract class deals_DealMaster extends deals_DealBase
     		$Detail->saveArray($saveRecs, 'id,tolerance,term');
     	}
     	
+    	$update = FALSE;
+    	
+    	// Запис на адреса
+    	if(empty($rec->deliveryAdress)){
+    		$update = TRUE;
+    		$rec->deliveryAdress = cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $mvc);
+    	}
+    	
     	// Записване на най-големия срок на доставка
     	if(empty($rec->deliveryTime) && empty($rec->deliveryTermTime)){
     		$rec->deliveryTermTime = $mvc->getMaxDeliveryTime($rec->id);
     		if(isset($rec->deliveryTermTime)){
-    			$mvc->save_($rec, 'deliveryTermTime');
+    			$update = TRUE;
     		}
+    	}
+    	
+    	if($update === TRUE){
+    		$mvc->save_($rec, 'deliveryTermTime,deliveryAdress');
     	}
     }
     
@@ -945,8 +957,8 @@ abstract class deals_DealMaster extends deals_DealBase
 			}
 			
 			if(!empty($deliveryAdress)){
-				$deliveryAdress = (isset($rec->deliveryTermId)) ? (cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'codeName') . ": ") : "";
-				
+				$deliveryAdress1 = (isset($rec->deliveryTermId)) ? (cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'codeName') . ": ") : "";
+				$deliveryAdress = $deliveryAdress1 . $deliveryAdress;
 				$row->deliveryTermId = $deliveryAdress;
 			}
 			
