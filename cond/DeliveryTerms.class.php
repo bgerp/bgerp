@@ -260,7 +260,7 @@ class cond_DeliveryTerms extends core_Master
     /**
      * Помощен метод допълващ условието на доставка с адреса
      * 
-     * @param string $deliveryCode   - текста на търговското условие
+     * @param int $deliveryCode   - текста на търговското условие
      * @param int $contragentClassId - класа на контрагента
      * @param int $contragentId      - ид на котнрагента
      * @param int $storeId           - ид на склада
@@ -272,13 +272,13 @@ class cond_DeliveryTerms extends core_Master
     {
     	$adress = '';
     	$isSale = ($document instanceof sales_Sales);
-    	expect($rec = self::fetch(array("#codeName = '[#1#]'", $deliveryCode)));
+    	expect($rec = self::fetch(array("[#1#]", $deliveryCode)));
     	
     	if(($rec->address == 'supplier' && $isSale === TRUE) || ($rec->address == 'receiver' && $isSale === FALSE)){
     		
     		if(isset($storeId)){
     			if($locationId = store_Stores::fetchField($storeId, 'locationId')){
-    				$adress = crm_Locations::getAddress($locationId);
+    				$adress = crm_Locations::getAddress($locationId, TRUE);
     			}
     		}
     		
@@ -288,7 +288,7 @@ class cond_DeliveryTerms extends core_Master
     		}
     	} elseif(($rec->address == 'receiver' && $isSale === TRUE) || ($rec->address == 'supplier' && $isSale === FALSE)){
     		if(isset($locationId)){
-    			$adress = crm_Locations::getAddress($locationId);
+    			$adress = crm_Locations::getAddress($locationId, TRUE);
     		} else {
     			$adress = cls::get($contragentClassId)->getFullAdress($contragentId, TRUE)->getContent();
     		}
@@ -296,7 +296,7 @@ class cond_DeliveryTerms extends core_Master
     	
     	$adress = trim(strip_tags($adress));
     	if(!empty($adress)){
-    		$deliveryCode .= ": {$adress}";
+    		$deliveryCode = $adress;
     	}
     	
     	return $deliveryCode;
