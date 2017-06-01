@@ -1843,7 +1843,7 @@ class fileman_Files extends core_Master
     	$urlPreview['#'] = 'fileDetail';
     
     	$tpl = new core_ET();
-    	$preview = ht::createLink(tr('Преглед'), $urlPreview, NULL, array('ef_icon' => $icon, 'title' => 'Преглед на файла', "class" => "button"));
+    	$preview = ht::createLink(tr('Преглед'), $urlPreview, NULL, array('ef_icon' => $icon, 'target' => '_blank', 'title' => 'Преглед на файла', "class" => "button"));
     	$tpl->append($preview);
         
     	// Вземаме линка към сингъла на файла таб информация
