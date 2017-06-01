@@ -3842,6 +3842,7 @@ function render_redirect(data) {
 
 var oldTitle;
 var oldIconPath;
+var isChanged = false;
 var blinkerWorking = false;
 
 /**
@@ -3876,13 +3877,20 @@ function render_Notify(data) {
 
 	var interval = setInterval(function(){
 		// Задаваме новия текст и икона
-		setTitle(title);
-		setFavIcon(newIcon);
+
+        if(title != oldTitle && !isChanged) {
+            isChanged = true;
+            setTitle(title);
+            setFavIcon(newIcon);
+        }
 
 		// задаваме старите текст и икона след като изтече времето за показване
 		var timeOut = setTimeout(function(){
-			restoreTitle(oldTitle);
-			setFavIcon(oldIcon);
+            if(title != oldTitle && isChanged) {
+                isChanged = false;
+                restoreTitle(oldTitle);
+                setFavIcon(oldIcon);
+            }
 		}, 600);
 
 		counter++;
