@@ -463,6 +463,21 @@ class planning_Jobs extends core_Master
     
     
     /**
+     * След намиране на текста за грешка на бутона за 'Приключване'
+     * 
+     * @param stdClass $rec
+     * @return string|NULL $res
+     */
+    public function getCloseBtnError_($rec)
+    {
+    	$hasPending = doc_Containers::fetchField("#threadId = {$rec->threadId} AND #state = 'pending'");
+    	$res = ($hasPending) ? "В нишката има документи в състояние \'Заявка\'|*!" : NULL;
+    	
+    	return $res;
+    }
+    
+    
+    /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
      * @param core_Mvc $mvc
@@ -756,6 +771,13 @@ class planning_Jobs extends core_Master
     		$count = $mvc->getSelectableProducts($rec->saleId);
     		if(!$count){
     			$res = 'no_one';
+    		}
+    	}
+    	
+    	
+    	if($action == 'close' && isset($rec)){
+    		if(doc_Containers::fetchField("#threadId = {$rec->threadId} AND #state = 'pending'")){
+    			//$res = 'no_one';
     		}
     	}
     }
