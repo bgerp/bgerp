@@ -1921,6 +1921,10 @@ class cat_Products extends embed_Manager {
     			$data->toolbar->addBtn("Партидност", array('batch_Defs', 'add', 'productId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/wooden-box.png,title=Добавяне на партидност,row=2');
     		}
     	}
+
+    	if(sales_Sales::haveRightFor('createsaleforproduct', (object)array('folderId' => $data->rec->folderId, 'productId' => $data->rec->id))){
+    		$data->toolbar->addBtn("Нова продажба", array('sales_Sales', 'createsaleforproduct', 'folderId' => $data->rec->folderId, 'productId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/cart_go.png,title=Добавяне на партидност');
+    	}
     }
     
     
