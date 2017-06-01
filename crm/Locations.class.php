@@ -519,9 +519,10 @@ class crm_Locations extends core_Master {
      * Ф-я връщаща пълния адрес на локацията: Държава, ПКОД, град, адрес
      * 
      * @param int $id
+     * @param boolen $translitarate
      * @return core_ET $tpl 
      */
-    public static function getAddress($id)
+    public static function getAddress($id, $translitarate = FALSE)
     {
     	expect($rec = static::fetch($id));
     	$row = static::recToVerbal($rec);
@@ -532,6 +533,11 @@ class crm_Locations extends core_Master {
     		if($ourCompany->country != $rec->countryId){
     			$string .= "{$row->countryId}, ";
     		}
+    	}
+    	
+    	if($translitarate === TRUE){
+    		$row->place = transliterate($row->place);
+    		$row->address = transliterate($row->address);
     	}
     	
     	$string .= "{$row->pCode} {$row->place}, {$row->address}";
