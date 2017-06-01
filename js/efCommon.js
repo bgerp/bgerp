@@ -2465,7 +2465,7 @@ function escapeRegExp(str) {
 	
 	if (!str.trim()) return ;
 	
-    return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+    return str.replace(/[\'\"\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
 }
 
 

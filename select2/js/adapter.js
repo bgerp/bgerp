@@ -119,7 +119,7 @@ $.fn.alternativeFind = function(selector) {
 function modelMatcher (params, data)
 {
     data.parentText = data.parentText || "";
-
+    
     // Always return the object if there is nothing to compare
     if ($.trim(params.term) === '') {
     	
@@ -135,6 +135,11 @@ function modelMatcher (params, data)
 		// Check each child of the option
 		for (var c = data.children.length - 1; c >= 0; c--) {
 			var child = data.children[c];
+			
+			if (typeof child.parentText == 'undefined') {
+				child.parentText = '';
+			}
+			
 			child.parentText += data.parentText + " " + data.text;
 			
 			var matches = modelMatcher(params, child);
@@ -167,7 +172,10 @@ function modelMatcher (params, data)
     termArr.forEach(function(element) {
     	if (!element || !element.length) return true;
     	
-    	if (original.indexOf(element) == -1) {
+    	var regExpStr = "[ \"\'\(\[\-\s]" + escapeRegExp(element);
+    	var regExp = new RegExp(regExpStr, "gi");
+    	
+    	if (!original.match(regExp)) {
     		have = false;
     	}
     });
@@ -180,7 +188,10 @@ function modelMatcher (params, data)
         	
         	if (!element || !element.length) return true;
         	
-        	if (original.indexOf(element) > -1) {
+        	var regExpStr = "[ \"\'\(\[\-\s]" + escapeRegExp(element);
+        	var regExp = new RegExp(regExpStr, "gi");
+        	
+        	if (original.match(regExp)) {
         		have = true;
         	}
         });
