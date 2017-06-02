@@ -111,6 +111,8 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 		if(haveRole('sales') && empty($form->rec->id)){
 			$form->setDefault('dealers', keylist::addKey('', core_Users::getCurrent()));
 		}
+		
+		$form->setDefault('precision', "0.95");
 	}
     
 	
@@ -158,7 +160,11 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 		
 			// ако имаме зададено авансово плащане
 			// дали имаме поне 95% авансово плащане
-			if($downpayment < $downPayment * 0.95)  continue;
+			if(isset($rec->precision)) {
+			    if($downpayment < $downPayment * $rec->precision)  continue;
+			} else {
+			    if($downpayment < $downPayment * 0.95)  continue;
+			}
 			 
 			// артикулите
 			$agreedProducts = $dealInfo->get('products');
