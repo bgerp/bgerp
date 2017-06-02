@@ -25,7 +25,7 @@ class sales_PrimeCostByDocument extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'sales_Wrapper,plg_AlignDecimals2';
+    public $loadList = 'sales_Wrapper,plg_AlignDecimals2,plg_Sorting';
     
     
     /**
