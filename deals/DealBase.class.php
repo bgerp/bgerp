@@ -830,7 +830,7 @@ abstract class deals_DealBase extends core_Master
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         if (!$mvc instanceof findeals_AdvanceDeals) {
-            $data->toolbar->addBtn('btnAdd');
+            $data->toolbar->removeBtn('btnAdd');
         }
     }
 }
