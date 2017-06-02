@@ -189,21 +189,25 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 				if($productRec->isPublic == 'no' && $productRec->canManifacture == 'yes'){ 
 				    if(is_array($salesArr)) { 
     				    if(in_array($sRec->id, $salesArr)) { 
-    				        $jobId = planning_Jobs::fetchField("#productId = {$pId} AND #saleId IN ({$salesSrt}) AND (#state = 'active' OR #state = 'wakeup' OR #state = 'rejected')");
+    				        $jobId = planning_Jobs::fetchField("#productId = {$pId} AND #saleId IN ({$salesSrt})");
     				       
     				    } else { 
-				          $jobId = planning_Jobs::fetchField("#productId = {$pId} AND #saleId = {$sRec->id} AND (#state = 'active' OR #state = 'wakeup' OR #state = 'rejected')");
-				        }
+				          $jobId = planning_Jobs::fetchField("#productId = {$pId} AND #saleId = {$sRec->id} ");
+				       
+    				    }
+				    
 				    } else { 
-				        $jobId = planning_Jobs::fetchField("#productId = {$pId} AND #saleId = {$sRec->id} AND (#state = 'active' OR #state = 'wakeup' OR #state = 'rejected')");
+				        $jobId = planning_Jobs::fetchField("#productId = {$pId} AND #saleId = {$sRec->id}");
 				    }
-				   
+
+				    $jobState = NULL;
+				    $jobQuantity = NULL;
 					if(isset($jobId)) {
 						$jobState = planning_Jobs::fetchField("#id = {$jobId}",'state');
 						$jobQuantity = planning_Jobs::fetchField("#id = {$jobId}",'quantity');
 					}
-
-					if (!$jobId || ($jobState == 'draft' || $jobState == 'rejected') || ($jobQuantity < $pRec->quantity * 0.90)){  
+					
+					if (!$jobId || ($jobState == 'draft' || $jobState == 'rejected') || $jobQuantity < $pRec->quantity * 0.90) {  
 					    
 					    $index = $sRec->id . "|" . $pId;
 						$d = (object) array ("num" => $count,
