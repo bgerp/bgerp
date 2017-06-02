@@ -793,9 +793,9 @@ class cal_Tasks extends core_Master
 
             // ако не може, задачата става заявка
         } elseif(empty($sharedUsersArr)) {
-            $rec->state = 'waiting';
-        } else {
             $rec->state = 'pending';
+        } else {
+            $rec->state = 'waiting';
         }
 
         if ($rec->id) {
