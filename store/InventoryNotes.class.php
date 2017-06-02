@@ -869,7 +869,7 @@ class store_InventoryNotes extends core_Master
     
     
     /**
-     * Добавяне на ред към протокол за производство
+     * Добавяне на ред към протокол за инвентаризация
      * 
      * @param int $noteId                       - ид на протокол
      * @param int $productId                    - ид на артикул

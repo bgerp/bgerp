@@ -43,7 +43,7 @@ class sales_Sales extends deals_DealMaster
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf,
                           acc_TransactionSourceIntf=sales_transaction_Sale,
                           bgerp_DealIntf, bgerp_DealAggregatorIntf, deals_DealsAccRegIntf, 
-                          acc_RegisterIntf,deals_InvoiceSourceIntf,colab_CreateDocumentIntf,acc_AllowArticlesCostCorrectionDocsIntf,trans_LogisticDataIntf';
+                          acc_RegisterIntf,deals_InvoiceSourceIntf,colab_CreateDocumentIntf,acc_AllowArticlesCostCorrectionDocsIntf,trans_LogisticDataIntf,store_iface_ReserveStockSourceIntf';
     
     
     /**
@@ -370,7 +370,7 @@ class sales_Sales extends deals_DealMaster
         		// И условието на доставка е със скрито начисляване, не може да се сменя локацията и условието на доставка
         		if(isset($rec->deliveryTermId)){
         			if(cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost') == 'yes'){
-        				$form->setReadOnly('deliveryTermIdExtended');
+        				$form->setReadOnly('deliveryAdress');
         				$form->setReadOnly('deliveryLocationId');
         			}
         		}
@@ -770,6 +770,21 @@ class sales_Sales extends deals_DealMaster
     			$res = 'no_one';
     		} elseif(!haveRole('sales,ceo', $userId)){
     			$res = 'no_one';
+    		}
+    	}
+    	
+    	// Проверка на екшъна за създаване на артикул към продажба
+    	if($action == 'createsaleforproduct'){
+    		$res = $mvc->getRequiredRoles('add', $rec, $userId);
+    		if(isset($rec) && $res != 'no_one'){
+    			if(empty($rec->productId) || empty($rec->folderId)){
+    				$res = 'no_one';
+    			} else {
+    				$pRec = cat_Products::fetch($rec->productId, 'state,canSell');
+    				if($pRec->state != 'active' || $pRec->canSell != 'yes'){
+    					$res = 'no_one';
+    				}
+    			}
     		}
     	}
     }
@@ -1217,5 +1232,24 @@ class sales_Sales extends deals_DealMaster
     public static function on_AfterJournalItemAffect($mvc, $rec, $item)
     {
     	core_Cache::remove('sales_reports_ShipmentReadiness', "c{$rec->containerId}");
+    }
+    
+    
+    /**
+     * Екшън за създаване на продажба директно от нестандартен артикул
+     */
+    function act_createsaleforproduct()
+    {
+    	$this->requireRightFor('createsaleforproduct');
+    	expect($folderId = core_Request::get('folderId', 'int'));
+    	expect($productId = core_Request::get('productId', 'int'));
+    	expect($productRec = cat_Products::fetch($productId));
+    	
+    	$this->requireRightFor('createsaleforproduct', (object)array('folderId' => $folderId, 'productId' => $productId));
+    	$cover = doc_Folders::getCover($folderId);
+    	
+    	// Създаване на продажба и редирект към добавянето на артикула
+    	expect($saleId = sales_Sales::createNewDraft($cover->getInstance(), $cover->that));
+    	redirect(array('sales_SalesDetails', 'add', 'saleId' => $saleId, 'productId' => $productId));
     }
 }

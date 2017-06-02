@@ -135,7 +135,7 @@ class crm_Locations extends core_Master {
         $this->FLD('tel', 'drdata_PhoneType', 'caption=Телефони,class=contactData');
         $this->FLD('email', 'emails', 'caption=Имейли,class=contactData');
         $this->FLD('gln', 'gs1_TypeEan(gln)', 'caption=GLN код');
-        $this->FLD('gpsCoords', 'location_Type', 'caption=Координати');
+        $this->FLD('gpsCoords', 'location_Type(geolocation=mobile)', 'caption=Координати');
         $this->FLD('image', 'fileman_FileType(bucket=location_Images)', 'caption=Снимка');
         $this->FLD('comment', 'richtext(bucket=Notes, rows=4)', 'caption=@Информация');
 
@@ -519,9 +519,10 @@ class crm_Locations extends core_Master {
      * Ф-я връщаща пълния адрес на локацията: Държава, ПКОД, град, адрес
      * 
      * @param int $id
+     * @param boolen $translitarate
      * @return core_ET $tpl 
      */
-    public static function getAddress($id)
+    public static function getAddress($id, $translitarate = FALSE)
     {
     	expect($rec = static::fetch($id));
     	$row = static::recToVerbal($rec);
@@ -532,6 +533,11 @@ class crm_Locations extends core_Master {
     		if($ourCompany->country != $rec->countryId){
     			$string .= "{$row->countryId}, ";
     		}
+    	}
+    	
+    	if($translitarate === TRUE){
+    		$row->place = transliterate($row->place);
+    		$row->address = transliterate($row->address);
     	}
     	
     	$string .= "{$row->pCode} {$row->place}, {$row->address}";
@@ -643,7 +649,7 @@ class crm_Locations extends core_Master {
         $form->FLD('place', 'varchar(64)', 'caption=Локация->Град,class=contactData');
         $form->FLD('pCode', 'varchar(16)', 'caption=Локация->П. код,class=contactData');
         $form->FLD('address', 'varchar(255)', 'caption=Локация->Адрес,class=contactData');
-        $form->FLD('gpsCoords', 'location_Type', 'caption=Локация->Координати');
+        $form->FLD('gpsCoords', 'location_Type(geolocation=mobile)', 'caption=Локация->Координати');
         $form->FLD('image', 'fileman_FileType(bucket=location_Images)', 'caption=Локация->Снимка');
         $form->FLD('comment', 'richtext(bucket=Notes, rows=4)', 'caption=Локация->Информация');
         

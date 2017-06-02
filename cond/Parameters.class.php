@@ -108,7 +108,7 @@ class cond_Parameters extends bgerp_ProtoParam
     	expect($condId = self::fetchIdBySysId($conditionSysId));
     	
     	// Връщаме стойността ако има директен запис за условието
-    	$value = cond_ConditionsToCustomers::fetchByCustomer($cClass, $cId, $condId);
+    	$value = cond_ConditionsToCustomers::fetchByCustomer($Class, $cId, $condId);
     	if($value) return $value;
     	
     	// Търси се метод дефиниран за връщане на стойността на условието
@@ -116,7 +116,7 @@ class cond_Parameters extends bgerp_ProtoParam
     	if(method_exists($Class, $method)) return $Class::$method($cId);
     	
     	// Търсим имали дефинирано търговско условие за държавата на контрагента
-    	$contragentData = cls::get($cClass)->getContragentData($cId);
+    	$contragentData = $Class->getContragentData($cId);
     	$countryId = $contragentData->countryId;
     	if($countryId){
     		$value = cond_Countries::fetchField("#country = {$countryId} AND #conditionId = {$condId}", 'value');

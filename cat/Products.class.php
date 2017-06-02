@@ -1347,6 +1347,13 @@ class cat_Products extends embed_Manager {
     	price_ListToCustomers::canonizeTime($date);
     	$price = price_ListRules::getPrice($listId, $productId, $packagingId, $date);
     	
+    	// Ако няма цена се опитва да намери от драйвера
+    	if(!$price){
+    		if($Driver = cat_Products::getDriver($productId)){
+    			$price = $Driver->getPrice($productId, $quantity, 0, 0, $date);
+    		}
+    	}
+    	
     	// Ако няма се мъчим да намерим себестойността по рецепта, ако има такава
     	if(!$price){
     		$bomRec = cat_Products::getLastActiveBom($productId, 'sales');
@@ -1699,6 +1706,10 @@ class cat_Products extends embed_Manager {
     		$title = cat_ProductTplCache::cacheTitle($rec, $time, $documentType, $lang);
     	}
     	
+    	$fullTitle = $title;
+    	$title = (is_array($fullTitle)) ? $fullTitle['title'] : $fullTitle;
+    	$subTitle = (is_array($fullTitle)) ? $fullTitle['subTitle'] : NULL;
+    	
     	// Ако е частен показваме за код хендлъра му + версията в кеша
     	if($rec->isPublic == 'no'){
     		$count = cat_ProductTplCache::count("#productId = {$rec->id} AND #type = 'description' AND #documentType = '{$documentType}'");
@@ -1744,9 +1755,16 @@ class cat_Products extends embed_Manager {
     	}
     	
     	// Връщаме шаблона с подготвените данни
-    	$tpl = new ET("[#name#]<!--ET_BEGIN desc--><br><div style='font-size:0.85em'>[#desc#]</div><!--ET_END desc-->");
+    	$tpl = new ET("[#name#]<!--ET_BEGIN additionalTitle--><br>[#additionalTitle#]<!--ET_END additionalTitle--><!--ET_BEGIN desc--><br><div style='font-size:0.85em'>[#desc#]</div><!--ET_END desc-->");
     	$tpl->replace($title, 'name');
     	$tpl->replace($descriptionTpl, 'desc');
+    	
+    	
+    	if(!empty($subTitle)){
+    		$tpl->replace($subTitle, 'additionalTitle');
+    	}
+    	
+    	$r = $tpl->getContent();
     	
     	return $tpl;
     }
@@ -1909,6 +1927,10 @@ class cat_Products extends embed_Manager {
     		if(batch_Defs::haveRightFor('add', (object)array('productId' => $data->rec->id))){
     			$data->toolbar->addBtn("Партидност", array('batch_Defs', 'add', 'productId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/wooden-box.png,title=Добавяне на партидност,row=2');
     		}
+    	}
+
+    	if(sales_Sales::haveRightFor('createsaleforproduct', (object)array('folderId' => $data->rec->folderId, 'productId' => $data->rec->id))){
+    		$data->toolbar->addBtn("Нова продажба", array('sales_Sales', 'createsaleforproduct', 'folderId' => $data->rec->folderId, 'productId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/cart_go.png,title=Добавяне на партидност');
     	}
     }
     

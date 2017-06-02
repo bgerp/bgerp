@@ -372,9 +372,24 @@ class deals_plg_DpInvoice extends core_Plugin
     	$firstDoc = doc_Threads::getFirstDocument($data->masterData->rec->threadId);
     	$valior = $firstDoc->getVerbal('valior');
     	
+    	$deals = array();
+    	if($firstDoc->isInstanceOf('deals_DealMaster')){
+    		$closedDeals = $firstDoc->fetchField('closedDocuments');
+    		$closedDeals = keylist::toArray($closedDeals);
+    		foreach ($closedDeals as $id){
+    			$deals[] = "№{$id}";
+    		}
+    		$caption = 'договори';
+    	}
+    	
+    	if(!count($deals)){
+    		$deals[] = "№{$firstDoc->that} " . tr("от|* {$valior}");
+    		$caption = 'договор';
+    	}
+    	
     	if($data->dpInfo->dpOperation == 'accrued'){
     		$colspan = count($data->listFields) - 1;
-    		$lastRow = new ET("<tr><td colspan='{$colspan}' style='text-indent:20px'>" . tr('Авансово плащане') . " " . tr('по договор') . " №{$firstDoc->that} " . tr('от') . " {$valior} <td style='text-align:right'>[#dpAmount#]</td></td></tr>");
+    		$lastRow = new ET("<tr><td colspan='{$colspan}' style='text-indent:20px'>" . tr('Авансово плащане') . " " . tr("по|*") . tr("|* |{$caption}|* ") . implode(', ', $deals) . "<td style='text-align:right'>[#dpAmount#]</td></td></tr>");
     	} else {
     		$fields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $mvc->hideListFieldsIfEmpty);
     		
@@ -398,7 +413,7 @@ class deals_plg_DpInvoice extends core_Plugin
     			$docTitle = ($mvc->Master instanceof sales_Proformas) ? 'по проформи' : 'по фактури';
     			$misc = tr($docTitle) . " {$handleString}";
     		} else {
-    			$misc = tr("по договор|* №{$firstDoc->that} |от|* {$valior}");
+    			$misc = tr("по {$caption}|* ") . implode(', ', $deals);
     		}
     		
     		$colspan1 = isset($fields['reff']) ? 2 : 1;
