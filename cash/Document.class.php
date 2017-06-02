@@ -185,9 +185,6 @@ abstract class cash_Document extends deals_PaymentDocument
     	$mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Допълнително->Вальор,autohide');
     	$mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)',	'caption=Статус, input=none');
     	$mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
-    	 
-    	// Поставяне на уникален индекс
-    	$mvc->setDbUnique('number');
     }
     
     

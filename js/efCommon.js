@@ -2465,7 +2465,7 @@ function escapeRegExp(str) {
 	
 	if (!str.trim()) return ;
 	
-    return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+    return str.replace(/[\'\"\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
 }
 
 
@@ -3066,7 +3066,7 @@ function efae() {
     efae.prototype.increaseInterval = 100;
 
     // Горната граница (в милисекунди), до която може да се увеличи брояча
-    efae.prototype.maxIncreaseInterval = 60000;
+    efae.prototype.maxIncreaseInterval = 300000;
 
     // През колко време да се праща AJAX заяка към сървъра
     efae.prototype.ajaxInterval = efae.prototype.ajaxDefInterval = 5000;
@@ -3842,6 +3842,7 @@ function render_redirect(data) {
 
 var oldTitle;
 var oldIconPath;
+var isChanged = false;
 var blinkerWorking = false;
 
 /**
@@ -3876,13 +3877,20 @@ function render_Notify(data) {
 
 	var interval = setInterval(function(){
 		// Задаваме новия текст и икона
-		setTitle(title);
-		setFavIcon(newIcon);
+
+        if(title != oldTitle && !isChanged) {
+            isChanged = true;
+            setTitle(title);
+            setFavIcon(newIcon);
+        }
 
 		// задаваме старите текст и икона след като изтече времето за показване
 		var timeOut = setTimeout(function(){
-			restoreTitle(oldTitle);
-			setFavIcon(oldIcon);
+            if(title != oldTitle && isChanged) {
+                isChanged = false;
+                restoreTitle(oldTitle);
+                setFavIcon(oldIcon);
+            }
 		}, 600);
 
 		counter++;
@@ -4951,6 +4959,25 @@ function addParamsToBookmarkBtn(obj, parentUrl, localUrl)
 	var title = document.title;
 
     obj.setAttribute("href", parentUrl + '&url=' + url + '&title=' + title);
+}
+
+/**
+ * Вика по AJAX екшън, който добавя документа към последни
+ * 
+ * @param fh
+ */
+function copyFileToLast(fh)
+{
+	if (this.event) {
+		stopBtnDefault(this.event);
+	}
+	
+    getEfae().process({url: '/fileman_Files/CopyToLast/' + fh});
+    
+    // Затваряме прозореца
+    if ($('.iw-mTrigger').contextMenu) {
+    	$('.iw-mTrigger').contextMenu('close');
+    }
 }
 
 

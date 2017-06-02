@@ -143,17 +143,13 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 			// Взимане на договорените и експедираните артикули по продажбата (събрани по артикул)
 			$dealerId = ($sRec->dealerId) ? $sRec->dealerId : (($sRec->activatedBy) ? $sRec->activatedBy : $sRec->createdBy);
 			$dealInfo = $Sales->getAggregateDealInfo($sRec);
-		
+
 			$delTime = (!empty($sRec->deliveryTime)) ? $sRec->deliveryTime : (!empty($sRec->deliveryTermTime) ?  dt::addSecs($sRec->deliveryTermTime, $sRec->valior) : NULL);
 			if(empty($delTime)){
 				$delTime = $Sales->getMaxDeliveryTime($sRec->id);
 				$delTime = ($delTime) ? dt::addSecs($delTime, $sRec->valior) : $sRec->valior;
 			}
-			
-			$query = planning_Jobs::getQuery();
-			
-		
-			 
+
 			// Колко е очакваното авансово плащане
 			$downPayment = $dealInfo->agreedDownpayment;
 			// Колко е платено
@@ -168,6 +164,7 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 			$agreedProducts = $dealInfo->get('products');
 
 			$d = NULL;
+	
 			// За всеки договорен артикул
 			foreach ($agreedProducts as $pId => $pRec){ 
 				// ако е нестандартен
@@ -179,32 +176,29 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 				
 				    $salesArr = keylist::toArray($newKeylist);
 				    $salesSrt = implode(',', $salesArr);
-				     
-				    $query->where("#saleId IN ({$salesArr}) AND (#state = 'active' OR #state = 'wakeup')");
-				} else {
-				    $query->where("#saleId = '{$sRec->id}' AND (#state = 'active' OR #state = 'wakeup')");
-				}
-				
+				}		
+			
 				// Ако артикула е нестандартен и няма задание по продажбата
 				// артикула да е произведим
 				if($productRec->isPublic == 'no' && $productRec->canManifacture == 'yes'){ 
 				    if(is_array($salesArr)) { 
     				    if(in_array($sRec->id, $salesArr)) { 
-    				        $jobId = planning_Jobs::fetchField("#productId = {$pId} AND #saleId IN ({$salesSrt})");
-    				        
+    				        $jobId = planning_Jobs::fetchField("#productId = {$pId} AND #saleId IN ({$salesSrt}) AND (#state = 'active' OR #state = 'wakeup' OR #state = 'rejected')");
+    				       
     				    } else { 
-				          $jobId = planning_Jobs::fetchField("#productId = {$pId} AND #saleId = {$sRec->id}");
+				          $jobId = planning_Jobs::fetchField("#productId = {$pId} AND #saleId = {$sRec->id} AND (#state = 'active' OR #state = 'wakeup' OR #state = 'rejected')");
 				        }
 				    } else { 
-				        $jobId = planning_Jobs::fetchField("#productId = {$pId} AND #saleId = {$sRec->id}");
+				        $jobId = planning_Jobs::fetchField("#productId = {$pId} AND #saleId = {$sRec->id} AND (#state = 'active' OR #state = 'wakeup' OR #state = 'rejected')");
 				    }
-				    
+				   
 					if(isset($jobId)) {
 						$jobState = planning_Jobs::fetchField("#id = {$jobId}",'state');
+						$jobQuantity = planning_Jobs::fetchField("#id = {$jobId}",'quantity');
 					}
-					
-					if (!$jobId || $jobState == 'draft'){ 
 
+					if (!$jobId || ($jobState == 'draft' || $jobState == 'rejected') || ($jobQuantity < $pRec->quantity * 0.90)){  
+					    
 					    $index = $sRec->id . "|" . $pId;
 						$d = (object) array ("num" => $count,
 											  "containerId" => $sRec->containerId,
@@ -216,7 +210,7 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 								              "quantity"=>$pRec->quantity);
 						
 						$count++;
-		
+						
 					}
 					
 					if($d != NULL) {
@@ -224,15 +218,12 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 					    if($pId == $d->article) {
     					    
     					    $recs[$index] = $d;
-					    }
-					   
+					    } 
 					}
-					
 				}
 			}
 		}
-
-
+		
 		return $recs;
 	}
 	

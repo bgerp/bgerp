@@ -391,7 +391,7 @@ class cat_Boms extends core_Master
     			$res = 'no_one';
     		} else {
     			$productRec = cat_Products::fetch($rec->productId, 'state,canManifacture,threadId');
-    			if(!doc_Threads::haveRightFor('single', $productRec->threadId)){
+    			if($rec->type != 'production' && !doc_Threads::haveRightFor('single', $productRec->threadId)){
     				$res = 'no_one';
     			} else {
     				
