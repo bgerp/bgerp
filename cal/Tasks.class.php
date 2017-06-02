@@ -634,8 +634,23 @@ class cal_Tasks extends core_Master
             $taskStart = dt::now();
         }
         
+        // ако имаме задача в чернова, проверяваме дали може да се активира
         if($data->rec->id) {
-            $data->toolbar->removeBtn('btnActivate');
+            $sharedUsersArr = keylist::toArray($data->rec->sharedUsers);
+           
+            if ($rec->assign) {
+                $sharedUsersArr[$rec->assign] = $rec->assign;
+            }
+               
+            if (empty($sharedUsersArr)) {
+                // ако не може, слагаме бутон заявка
+                $data->toolbar->addBtn('Заявка', array($mvc, 'changePending', $data->rec->id), "id=btnRequest", 'ef_icon = img/16/tick-circle-frame.png,title=Превръщане на документа в заявка');
+                $data->toolbar->removeBtn('btnActivate');
+            } 
+        }
+        
+        if($data->rec->state == 'pending') {
+            $data->toolbar->removeBtn('btnRequest');
         }
         
         // ако имаме зададена продължителност
