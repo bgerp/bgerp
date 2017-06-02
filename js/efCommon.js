@@ -3913,9 +3913,11 @@ function setTitle(title) {
 }
 
 function changeTabTitle(){
-    var title = document.title;
-    if(title.indexOf("✍") != 0) {
-        setTitle("✍ " + title);
+    if($('#main-container').length) {
+        var title = document.title;
+        if(title.indexOf("✍") != 0) {
+            setTitle("✍ " + title);
+        }
     }
 }
 
