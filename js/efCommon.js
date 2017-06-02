@@ -3912,6 +3912,12 @@ function setTitle(title) {
 	document.title = title;
 }
 
+function changeTabTitle(){
+    var title = document.title;
+    if(title.indexOf("✍") != 0) {
+        setTitle("✍ " + title);
+    }
+}
 
 /**
  * задава старата титла

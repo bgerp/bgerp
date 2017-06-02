@@ -502,6 +502,7 @@ class core_Form extends core_FieldSet
                     "\n</form>\n");
                 
                 jquery_Jquery::run($this->layout, "setFormElementsWidth();");
+                jquery_Jquery::run($this->layout, "changeTabTitle();");
                 jquery_Jquery::runAfterAjax($this->layout, "setFormElementsWidth");
 
                 jquery_Jquery::run($this->layout, "markElementsForRefresh();");
