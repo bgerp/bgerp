@@ -4,7 +4,7 @@
 
 <div class='document'>
 	<!--ET_BEGIN STOPPED_INFO-->
-	<div class='no-print richtext-message richtext-warning no-margin' style="min-width: 50em;">[#STOPPED_INFO#]</div>
+	<div class='no-print richtext-message richtext-warning no-margin'>[#STOPPED_INFO#]</div>
 	<!--ET_END STOPPED_INFO-->
 
 	<!--ET_BEGIN blank-->
