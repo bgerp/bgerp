@@ -638,8 +638,8 @@ class cal_Tasks extends core_Master
         if($data->rec->id) {
             $sharedUsersArr = keylist::toArray($data->rec->sharedUsers);
            
-            if ($rec->assign) {
-                $sharedUsersArr[$rec->assign] = $rec->assign;
+            if ($data->rec->assign) {
+                $sharedUsersArr[$data->rec->assign] = $data->rec->assign;
             }
                
             if (empty($sharedUsersArr)) {
@@ -651,6 +651,7 @@ class cal_Tasks extends core_Master
         
         if($data->rec->state == 'pending') {
             $data->toolbar->removeBtn('btnRequest');
+            $data->toolbar->removeBtn('btnActivate');
         }
         
         // ако имаме зададена продължителност
@@ -780,11 +781,19 @@ class cal_Tasks extends core_Master
         // проверяваме дали може да стане задачата в активно състояние
         $canActivate = self::canActivateTask($rec);
         
+        $sharedUsersArr = keylist::toArray($rec->sharedUsers);
+        
+        if ($rec->assign) {
+            $sharedUsersArr[$rec->assign] = $rec->assign;
+        }
+        
         if ($now >= $canActivate && $canActivate !== NULL) {
 
             $rec->timeCalc = $canActivate->calcTime;
 
             // ако не може, задачата става заявка
+        } elseif(empty($sharedUsersArr)) {
+            $rec->state = 'waiting';
         } else {
             $rec->state = 'pending';
         }
