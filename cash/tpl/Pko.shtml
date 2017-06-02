@@ -109,7 +109,7 @@
                             </tr>
                             <tr>
                                 <td></td>
-                                <td><span class='sign_names nowrap'>( [#cashier#] )</span></td>
+                                <td><span class='sign_names nowrap'>( [#activatedBy#] )</span></td>
                             </tr>
                         </table>
                     </td>
