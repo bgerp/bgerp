@@ -135,7 +135,7 @@ class crm_Locations extends core_Master {
         $this->FLD('tel', 'drdata_PhoneType', 'caption=Телефони,class=contactData');
         $this->FLD('email', 'emails', 'caption=Имейли,class=contactData');
         $this->FLD('gln', 'gs1_TypeEan(gln)', 'caption=GLN код');
-        $this->FLD('gpsCoords', 'location_Type', 'caption=Координати');
+        $this->FLD('gpsCoords', 'location_Type(geolocation=mobile)', 'caption=Координати');
         $this->FLD('image', 'fileman_FileType(bucket=location_Images)', 'caption=Снимка');
         $this->FLD('comment', 'richtext(bucket=Notes, rows=4)', 'caption=@Информация');
 
@@ -649,7 +649,7 @@ class crm_Locations extends core_Master {
         $form->FLD('place', 'varchar(64)', 'caption=Локация->Град,class=contactData');
         $form->FLD('pCode', 'varchar(16)', 'caption=Локация->П. код,class=contactData');
         $form->FLD('address', 'varchar(255)', 'caption=Локация->Адрес,class=contactData');
-        $form->FLD('gpsCoords', 'location_Type', 'caption=Локация->Координати');
+        $form->FLD('gpsCoords', 'location_Type(geolocation=mobile)', 'caption=Локация->Координати');
         $form->FLD('image', 'fileman_FileType(bucket=location_Images)', 'caption=Локация->Снимка');
         $form->FLD('comment', 'richtext(bucket=Notes, rows=4)', 'caption=Локация->Информация');
         
