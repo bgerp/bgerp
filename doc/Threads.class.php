@@ -43,6 +43,14 @@ class doc_Threads extends core_Manager
     
     
     /**
+     * Кое поле да се гледа за промяна и да се пуска обновяването
+     * 
+     * @see plg_RefreshRows
+     */
+    public $refreshRowsCheckField = 'modifiedOn';
+    
+    
+    /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created,plg_Modified,plg_State,doc_Wrapper, plg_Select, expert_Plugin,plg_Sorting, plg_RefreshRows';
