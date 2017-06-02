@@ -21,7 +21,7 @@ class planning_Jobs extends core_Master
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    public $interfaces = 'doc_DocumentIntf';
+    public $interfaces = 'doc_DocumentIntf,store_iface_ReserveStockSourceIntf';
     
     
     /**
@@ -275,6 +275,7 @@ class planning_Jobs extends core_Master
     		$form->setField('deliveryTermId', 'input=none');
     		$form->setField('deliveryDate', 'input=none');
     		$form->setField('deliveryPlace', 'input=none');
+    		$form->setField('department', 'mandatory');
     	}
     	
     	// Ако е избрано предишно задание зареждат се данните от него
@@ -458,6 +459,21 @@ class planning_Jobs extends core_Master
     		 $pUrl = array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
     		 $data->toolbar->addBtn("Произвеждане", $pUrl, 'ef_icon = img/16/page_paste.png,title=Създаване на протокол за производство от заданието');
     	}
+    }
+    
+    
+    /**
+     * След намиране на текста за грешка на бутона за 'Приключване'
+     * 
+     * @param stdClass $rec
+     * @return string|NULL $res
+     */
+    public function getCloseBtnError_($rec)
+    {
+    	$hasPending = doc_Containers::fetchField("#threadId = {$rec->threadId} AND #state = 'pending'");
+    	$res = ($hasPending) ? "В нишката има документи в състояние \'Заявка\'|*!" : NULL;
+    	
+    	return $res;
     }
     
     
@@ -755,6 +771,13 @@ class planning_Jobs extends core_Master
     		$count = $mvc->getSelectableProducts($rec->saleId);
     		if(!$count){
     			$res = 'no_one';
+    		}
+    	}
+    	
+    	
+    	if($action == 'close' && isset($rec)){
+    		if(doc_Containers::fetchField("#threadId = {$rec->threadId} AND #state = 'pending'")){
+    			//$res = 'no_one';
     		}
     	}
     }

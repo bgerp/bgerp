@@ -269,7 +269,19 @@ class fileman_webdrv_Generic extends core_Manager
                     $thumbnailImg = $imgInst->createImg($attr);
                     
                     if ($thumbnailImg) {
-                    
+                        
+                        // Ако е зададено да се увеличава превюто, добавяме линк който показва по-голямото изображение
+                        $multiplier = fileman_Setup::get('WEBDRV_PREVIEW_MULTIPLIER');
+                        if ($multiplier > 1) {
+                            $bigImg = new thumb_Img(array($jpgFh, $multiplier*$thumbWidthAndHeightArr['width'], $multiplier*$thumbWidthAndHeightArr['height'], 'fileman', 'verbalName' => 'Preview X ' . $multiplier));
+                            
+                            $aAttr = array();
+                            // Вземаме URL към sbf директорията
+                            $aAttr['href'] = $bigImg->getUrl();
+                            
+                            $thumbnailImg = ht::createElement('a', $aAttr, $thumbnailImg);
+                        }
+                        
                         // Добавяме към preview' то генерираното изображение
                         $preview->append($thumbnailImg, 'THUMB_IMAGE');
                     }

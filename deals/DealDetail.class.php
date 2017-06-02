@@ -397,10 +397,7 @@ abstract class deals_DealDetail extends doc_Detail
     		}
     		
     		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $masterRec->tplLang);
-    		
-    		if($rec->notes){
-    			deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
-    		}
+    		deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     	}
     	
     	core_Lg::pop();

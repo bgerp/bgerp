@@ -1027,7 +1027,7 @@ class unit_MinkPbgERP extends core_Manager {
         }
          
         //$browser->setValue('bankAccountId', '');
-        $browser->setValue('deliveryTermIdExtended', 'EXW');
+        $browser->setValue('deliveryTermId', 'EXW');
         $browser->setValue('deliveryLocationId', '1');
         $browser->setValue('note', 'MinkPTestCreatePurchase');
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
@@ -1153,7 +1153,7 @@ class unit_MinkPbgERP extends core_Manager {
         }
          
         //$browser->setValue('bankAccountId', '');
-        $browser->setValue('deliveryTermIdExtended', 'EXW');
+        $browser->setValue('deliveryTermId', 'EXW');
         $browser->setValue('note', 'MinkPTestCreatePurchaseC');
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         //$browser->setValue('chargeVat', "Oсвободено от ДДС"); //// Ако контрагентът е от България дава грешка.
@@ -1288,7 +1288,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '#BG11CREX92603114548401');
         $browser->setValue('note', 'MinkPbgErpCreateSale');
-        $browser->setValue('deliveryTermIdExtended', 'DDP');
+        $browser->setValue('deliveryTermId', 'DDP');
         $browser->setValue('deliveryLocationId', '1');
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");

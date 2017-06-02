@@ -304,7 +304,7 @@ class sales_PrimeCostByDocument extends core_Manager
 							
 				// Ако документа е обратен
 				$sign = ($masters[$rec->containerId][2] == 'yes') ? -1 : 1;
-				$delta = $sign * $rec->delta;
+				$delta = round($sign * $rec->delta, 2);
 							
 				// Ако няма данни, добавят се
 				if(!array_key_exists($key, $result)){
@@ -413,17 +413,17 @@ class sales_PrimeCostByDocument extends core_Manager
 				// Ако няма данни, добавят се
 				if(!array_key_exists($key, $result)){
 					$result[$key] = (object)array('date'        => $rec->valior,
-							'personId'    => $personFldValue,
-							'docId'       => $Document->that,
-							'docClass'    => $Document->getClassId(),
-							'indicatorId' => $indicatorId,
-							'value'       => $value,
-							'isRejected'  => ($masters[$rec->containerId][1] == 'rejected'),);
+											      'personId'    => $personFldValue,
+							                      'docId'       => $Document->that,
+							                      'docClass'    => $Document->getClassId(),
+							                      'indicatorId' => $indicatorId,
+							                      'value'       => $value,
+							                      'isRejected'  => ($masters[$rec->containerId][1] == 'rejected'),);
 				} else {
 				
 					// Ако има вече се сумират
 					$ref = &$result[$key];
-					$ref->value += $delta;
+					$ref->value += $value;
 				}
 			}
 		}

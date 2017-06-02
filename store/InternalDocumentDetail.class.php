@@ -157,9 +157,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     		$rec = &$data->recs[$i];
     		$row->productId = cat_Products::getShortHyperlink($rec->productId);
     		
-    		if($rec->notes){
-    			deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
-    		}
+    		deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     		
     		// Показваме подробната информация за опаковката при нужда
     		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);

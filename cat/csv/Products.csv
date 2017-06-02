@@ -9,3 +9,4 @@
 "Други услуги",services,брой,services,services
 "Други ДА (LTA)",fixedAssets,брой,fixedAssets,fixedAssets
 "Транспорт",transport,брой,services,services,"canBuy,canSell"
+"Надценка",surcharge,брой,surcharge,surcharge,"canBuy,canSell"

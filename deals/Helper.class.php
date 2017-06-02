@@ -422,6 +422,8 @@ abstract class deals_Helper
 	 */
 	public static function addNotesToProductRow(&$productRow, $notes)
 	{
+		if(!$notes) return;
+		
 		$RichText = cls::get('type_Richtext');
 		$notes = $RichText->toVerbal($notes);
 		if(is_string($productRow)){

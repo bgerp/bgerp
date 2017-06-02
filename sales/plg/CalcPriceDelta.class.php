@@ -96,6 +96,12 @@ class sales_plg_CalcPriceDelta extends core_Plugin
 				$sellCost = $sellCost * (1 - $dRec->{$mvc->detailDiscountPriceFld});
 			}
 			
+			// Ако артикулът е 'Надценка' няма себестойност
+			$code = cat_Products::fetchField($dRec->{$mvc->detailProductFld}, 'code');
+			if($code == 'surcharge'){
+				$primeCost = 0;
+			}
+			
 			// Изчисляване на цената по политика
 			$r = (object)array('valior'        => $valior,
 							   'detailClassId' => $detailClassId,
@@ -107,6 +113,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
 					           'primeCost'     => $primeCost);
 			
 			$persons = sales_PrimeCostByDocument::getDealerAndInitiatorId($rec->containerId);
+			
 			$r->dealerId = $persons['dealerId'];
 			$r->initiatorId = $persons['initiatorId'];
 			

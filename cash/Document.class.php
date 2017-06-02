@@ -35,7 +35,7 @@ abstract class cash_Document extends deals_PaymentDocument
      * Неща, подлежащи на начално зареждане
      */
     public $loadList = 'plg_RowTools2, cash_Wrapper, plg_Sorting, acc_plg_Contable,
-                     doc_DocumentPlg, plg_Printing, doc_SequencerPlg,acc_plg_DocumentSummary,
+                     doc_DocumentPlg, plg_Printing,acc_plg_DocumentSummary,
                      plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, doc_plg_HidePrices,
                      bgerp_DealIntf, doc_EmailCreatePlg, cond_plg_DefaultValues, doc_SharablePlg';
     
@@ -117,7 +117,7 @@ abstract class cash_Document extends deals_PaymentDocument
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'number, valior, contragentName, reason, id';
+    public $searchFields = 'valior, contragentName, reason, id';
     
     
     /**
@@ -168,7 +168,6 @@ abstract class cash_Document extends deals_PaymentDocument
     	$mvc->FLD('dealCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'input=hidden');
     	$mvc->FLD('reason', 'richtext(rows=2)', 'caption=Основание,mandatory');
     	$mvc->FLD('termDate', 'date(format=d.m.Y)', 'caption=Очаквано на');
-    	$mvc->FLD('number', 'int', 'caption=Номер');
     	$mvc->FLD('peroCase', 'key(mvc=cash_Cases, select=name,allowEmpty)', 'caption=Каса,removeAndRefreshForm=currencyId|amount,silent');
     	$mvc->FLD('contragentName', 'varchar(255)', 'caption=Контрагент->Вносител,mandatory');
     	$mvc->FLD('contragentId', 'int', 'input=hidden,notNull');
@@ -182,13 +181,10 @@ abstract class cash_Document extends deals_PaymentDocument
     	$mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута (и сума) на плащането->Валута,silent,removeAndRefreshForm=rate|amount');
     	$mvc->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,summary=amount,input=hidden');
     	$mvc->FLD('rate', 'double(decimals=5)', 'caption=Валута (и сума) на плащането->Курс,input=none');
-    	$mvc->FLD('notes', 'richtext(bucket=Notes,rows=1)', 'caption=Допълнително->Бележки');
-    	$mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Допълнително->Вальор');
+    	$mvc->FLD('notes', 'richtext(bucket=Notes,rows=1)', 'caption=Допълнително->Бележки,autohide');
+    	$mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Допълнително->Вальор,autohide');
     	$mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)',	'caption=Статус, input=none');
     	$mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
-    	 
-    	// Поставяне на уникален индекс
-    	$mvc->setDbUnique('number');
     }
     
     
@@ -365,23 +361,6 @@ abstract class cash_Document extends deals_PaymentDocument
     	if(($rec->state == 'draft' || $rec->state == 'pending') && !isset($rec->peroCase) && $mvc->haveRightFor('conto')){
     		$data->toolbar->addBtn('Контиране', array(), array('id' => 'btnConto', 'error' => 'Документа не може да бъде контиран, докато няма посочена каса|*!'), 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
     	}
-    }
-    
-    
-    /**
-     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
-     */
-    public function getDocumentRow($id)
-    {
-    	$rec = $this->fetch($id);
-    	$row = new stdClass();
-    	$row->title = $this->singleTitle . " №{$id}";
-    	$row->authorId = $rec->createdBy;
-    	$row->author = $this->getVerbal($rec, 'createdBy');
-    	$row->state = $rec->state;
-    	$row->recTitle = $rec->reason;
-    
-    	return $row;
     }
 
 

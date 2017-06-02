@@ -136,9 +136,7 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
     		foreach ($data->rows as $i => &$row) {
     			$rec = &$data->recs[$i];
                 $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $data->masterData->rec->tplLang);
-                if($rec->notes){
-    				$row->productId .= "<div class='small'>{$mvc->getFieldType('notes')->toVerbal($rec->notes)}</div>";
-    			}
+                deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     		}
     	}
     	
