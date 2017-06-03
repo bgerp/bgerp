@@ -634,7 +634,23 @@ class cal_Tasks extends core_Master
             $taskStart = dt::now();
         }
         
+        // ако имаме задача в чернова, проверяваме дали може да се активира
         if($data->rec->id) {
+            $sharedUsersArr = keylist::toArray($data->rec->sharedUsers);
+           
+            if ($data->rec->assign) {
+                $sharedUsersArr[$data->rec->assign] = $data->rec->assign;
+            }
+               
+            if (empty($sharedUsersArr)) {
+                // ако не може, слагаме бутон заявка
+                $data->toolbar->addBtn('Заявка', array($mvc, 'changePending', $data->rec->id), "id=btnRequest", 'ef_icon = img/16/tick-circle-frame.png,title=Превръщане на документа в заявка');
+                $data->toolbar->removeBtn('btnActivate');
+            } 
+        }
+        
+        if($data->rec->state == 'pending') {
+            $data->toolbar->removeBtn('btnRequest');
             $data->toolbar->removeBtn('btnActivate');
         }
         
@@ -694,6 +710,10 @@ class cal_Tasks extends core_Master
             cal_TaskDocuments::add($rec->id, $rec->foreignId);
         }
  
+        if($rec->state == 'pending') {
+            core_Statuses::newStatus("|Не е избран потребител. Документа е приведен в състояние 'Заявка'|*");
+        }
+        
         $mvc->updateTaskToCalendar($rec->id);
     }
 
@@ -765,13 +785,21 @@ class cal_Tasks extends core_Master
         // проверяваме дали може да стане задачата в активно състояние
         $canActivate = self::canActivateTask($rec);
         
+        $sharedUsersArr = keylist::toArray($rec->sharedUsers);
+        
+        if ($rec->assign) {
+            $sharedUsersArr[$rec->assign] = $rec->assign;
+        }
+        
         if ($now >= $canActivate && $canActivate !== NULL) {
 
             $rec->timeCalc = $canActivate->calcTime;
 
             // ако не може, задачата става заявка
-        } else {
+        } elseif(empty($sharedUsersArr)) {
             $rec->state = 'pending';
+        } else {
+            $rec->state = 'waiting';
         }
 
         if ($rec->id) {

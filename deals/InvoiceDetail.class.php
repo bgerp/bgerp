@@ -366,7 +366,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		$lang = doc_TplManager::fetchField($masterRec->template, 'lang');
 		$date = ($masterRec->state == 'draft') ? NULL : $masterRec->modifiedOn;
 		
-		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'short', 'public', $lang);
+		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'short', 'invoice', $lang);
 		deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
 		
 		// Показваме подробната информация за опаковката при нужда

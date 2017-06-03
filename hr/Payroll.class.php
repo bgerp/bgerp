@@ -98,8 +98,8 @@ class hr_Payroll extends core_Manager
     public function description()
     {
          // Ключ към мастъра
-    	 $this->FLD('periodId',    'key(mvc=acc_Periods, select=title, where=#state !\\= \\\'closed\\\', allowEmpty=true)', 'caption=Период,smartCenter');
-    	 $this->FLD('personId',    'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Лице,smartCenter');
+    	 $this->FLD('periodId',    'key(mvc=acc_Periods, select=title, where=#state !\\= \\\'closed\\\', allowEmpty=true)', 'caption=Период,tdClass=nowrap');
+    	 $this->FLD('personId',    'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Лице,tdClass=nowrap');
     	 $this->FLD('indicators',    'blob(serialize)', 'caption=Индикатори');
     	 $this->FLD('formula',    'text', 'caption=Формула');
     	 $this->FLD('salary',    'double', 'caption=Заплата,width=100%');
