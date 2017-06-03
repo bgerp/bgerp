@@ -3912,14 +3912,6 @@ function setTitle(title) {
 	document.title = title;
 }
 
-function changeTabTitle(){
-    if($('#main-container').length) {
-        var title = document.title;
-        if(title.indexOf("✍") != 0) {
-            setTitle("✍ " + title);
-        }
-    }
-}
 
 /**
  * задава старата титла
