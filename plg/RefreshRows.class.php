@@ -123,6 +123,16 @@ class plg_RefreshRows extends core_Plugin
         // Кеша зе името
         $nameHash = static::getNameHash($refreshUrlStr, $hitTime);
         
+        // Парсираме URL-то
+        $refreshUrlOrig = $refreshUrl = core_App::parseLocalUrl($refreshUrlStr);
+        
+        if ($refreshUrl['Ctr']) {            
+            if ($refreshUrl['Ctr']::checkTimeForRefresh($hitTime, $refreshUrl)) {
+                
+                return FALSE;
+            }
+        }
+        
         $manualNameHash = static::getManualNameHash($nameHash);
         
         // Ако ще се обновява ръчно и вече е обновен n пъти
@@ -132,9 +142,6 @@ class plg_RefreshRows extends core_Plugin
         
             return FALSE;
         }
-        
-        // Парсираме URL-то
-        $refreshUrlOrig = $refreshUrl = core_App::parseLocalUrl($refreshUrlStr);
         
         // Добавяме флага
         $refreshUrl['ajax_mode'] = $ajaxMode;
@@ -410,6 +417,48 @@ class plg_RefreshRows extends core_Plugin
             $res = $tpl;
             
             return FALSE;
+        }
+    }
+    
+    
+    /**
+     * Метод по подразбиране за проверка на времето за обновяване
+     *
+     * @param core_Mvc $mvc
+     * @param boolean|NULL $res
+     * @param integer $hitTime
+     * @param array $refreshUrl
+     */
+    public static function on_AfterCheckTimeForRefresh($mvc, &$res, $hitTime, $refreshUrl)
+    {
+        // Ако е зададено поле
+        if (!$mvc->refreshRowsCheckField) return ;
+        
+        if ($res === TRUE) return ;
+        
+        $res = TRUE;
+        
+        $query = $mvc->getQuery();
+        $query->XPR('maxDate', 'datetime', "MAX(#{$mvc->refreshRowsCheckField})");
+        $maxDate = $query->fetch()->maxDate;
+    	
+        if ($maxDate) {
+            $lastChanges = dt::mysql2timestamp($maxDate);
+        }
+    	
+        $modeName = $mvc->className . '_last_' . $hitTime;
+    	
+        $modeLastTime = Mode::get($modeName);
+    	
+        $nt = dt::mysql2timestamp();
+    	
+        $maxTime = max(array($hitTime, $modeLastTime, $lastChanges, $nt));
+    	
+        Mode::setPermanent($modeName, $maxTime);
+        
+        // Отбелязваме че има промяна
+        if (($lastChanges > $hitTime) && (!$modeLastTime || ($lastChanges > $modeLastTime))) {
+            $res = FALSE;
         }
     }
 }

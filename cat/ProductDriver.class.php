@@ -556,7 +556,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * Връща допълнителен текст, който да се показва към забележките на показването на артикула в документ
 	 *
 	 * @param mixed $productId     - ид или запис на артикул
-	 * @param string $documentType - public или internal
+	 * @param string $documentType - public или internal или invoice
 	 * @return string              - допълнителния текст, специфичен за документа
 	 */
 	public function getAdditionalNotesToDocument($productId, $documentType)

@@ -1930,7 +1930,7 @@ class cat_Products extends embed_Manager {
     	}
 
     	if(sales_Sales::haveRightFor('createsaleforproduct', (object)array('folderId' => $data->rec->folderId, 'productId' => $data->rec->id))){
-    		$data->toolbar->addBtn("Нова продажба", array('sales_Sales', 'createsaleforproduct', 'folderId' => $data->rec->folderId, 'productId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/cart_go.png,title=Добавяне на партидност');
+    		$data->toolbar->addBtn("Продажба", array('sales_Sales', 'createsaleforproduct', 'folderId' => $data->rec->folderId, 'productId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/cart_go.png,title=Създаване на нова продажба');
     	}
     }
     
@@ -2177,7 +2177,7 @@ class cat_Products extends embed_Manager {
      * Връща готовото описание на артикула
      * 
      * @param mixed $id
-     * @param enum(public,internal) $documentType
+     * @param enum(public,internal,invoice) $documentType
      * @return core_ET
      */
     public static function getDescription($id, $documentType = 'public')
@@ -2228,7 +2228,7 @@ class cat_Products extends embed_Manager {
     	
     	if($Driver){
     		$tpl = $Driver->renderProductDescription($data);
-    		$showLinks = ($data->documentType == 'public') ? FALSE : TRUE;
+    		$showLinks = ($data->documentType == 'public' || $data->documentType == 'invoice') ? FALSE : TRUE;
     		
     		$componentTpl = cat_Products::renderComponents($data->components, $showLinks);
     		$tpl->append($componentTpl, 'COMPONENTS');

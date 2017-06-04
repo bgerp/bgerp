@@ -105,7 +105,7 @@
                               <div>|Броил|*: [#depositor#]</div>
                             <!--ET_END depositor-->
                             <!--ET_BEGIN cashier-->
-                              <div>|Касиер|*: [#cashier#]</div>
+                              <div>|Касиер|*: [#activatedBy#]</div>
                              <!--ET_END cashier-->
 		                    </td>
 		                </tr>

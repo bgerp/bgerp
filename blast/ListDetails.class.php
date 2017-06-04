@@ -428,8 +428,8 @@ class blast_ListDetails extends doc_Detail
      */
     function on_AfterGetQuery($mvc, $query)
     {
-        $query->orderBy('state');
-        $query->orderBy('createdOn', 'DESC');
+          $query->orderBy('state');
+          $query->orderBy('createdOn', 'DESC');
     }
     
     
@@ -504,7 +504,9 @@ class blast_ListDetails extends doc_Detail
      * Импортиране на контактен списък от друго място (визитника или външен източник)
      */
     function exp_Import($exp)
-    {
+    {   
+        core_App::setTimeLimit(50);
+
         $exp->functions['getcsvcolnames'] = 'blast_ListDetails::getCsvColNames';
         $exp->functions['getfilecontentcsv'] = 'blast_ListDetails::getFileContent';
         $exp->functions['getcsvcolumnscnt'] = 'blast_ListDetails::getCsvColumnsCnt';
@@ -581,6 +583,7 @@ class blast_ListDetails extends doc_Detail
             
             $qFields .= ($qFields ? ',' : '') . "#col{$name}";
         }
+
         $exp->DEF('#priority=Приоритет', 'enum(update=Новите данни да обновят съществуващите,data=Съществуващите данни да се запазят)', 'mandatory');
         $exp->question("#priority", tr("Какъв да бъде приоритета в случай, че има нов контакт с дублирано съдържание на полето") . " <span class=\"green\">'" . $fieldsArr[$listRec->keyField] . "'</span> ?", TRUE, 'title=' . tr('Приоритет на данните'));
         
@@ -606,14 +609,14 @@ class blast_ListDetails extends doc_Detail
                 unset($csvRows[0]);
             }
             
-            $time = round(count($csvRows) / 10) + 10;
-            if ($time > ini_get('max_execution_time')) {
-                core_App::setTimeLimit($time);
-            }
+            $time = round(count($csvRows) / 5) + 10;
+            
+            core_App::setTimeLimit($time);
             
             $newCnt = $skipCnt = $updateCnt = 0;
+
             $errLinesArr = array();
-            
+       
             if(count($csvRows)) {
                 foreach($csvRows as $row) {
                     $rowArr = str_getcsv($row, $delimiter, $enclosure);
@@ -626,7 +629,7 @@ class blast_ListDetails extends doc_Detail
                         $rec->{$name} = trim($rowArr[$id-1]);
                     }
                     
-                    $err = $this->normalizeRec($rec);
+                    $err = $this->normalizeRec($rec); ;
                     $keyField = $listRec->keyField;
                     
                     // Вземаме стойността на ключовото поле;
@@ -649,7 +652,7 @@ class blast_ListDetails extends doc_Detail
                     $rec->key = str::convertToFixedKey($key);
                     $rec->listId = $listId;
                     $rec->state = 'active';
-                    
+                   
                     if($exRec = $this->fetch(array("#listId = {$listId} AND #key = '[#1#]'", $rec->key))) {
                         // Ако имаме съществуващ $exRec със същия ключ, имаме две възможности
                         // 1. Да го обновим с новите данни
@@ -674,8 +677,10 @@ class blast_ListDetails extends doc_Detail
                     }
                     
                     $rec->data = serialize($data);
-                    $this->save($rec);
+
+                    $this->save_($rec);
                 }
+
                 $exp->message = tr("Добавени са") . " {$newCnt} " . tr("нови записа") . ", " . tr("обновени") . " - {$updateCnt}, " . tr("пропуснати") . " - {$skipCnt}";
                 
                 // Ако има грешни линни да се добавят в 'csv' файл

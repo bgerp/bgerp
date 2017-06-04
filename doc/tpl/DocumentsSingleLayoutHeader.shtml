@@ -3,10 +3,14 @@
 <!--ET_END SingleToolbar-->
 
 <div class='document'>
+	<!--ET_BEGIN STOPPED_INFO-->
+	<div class='no-print richtext-message richtext-warning no-margin'>[#STOPPED_INFO#]</div>
+	<!--ET_END STOPPED_INFO-->
+
 	<!--ET_BEGIN blank-->
 		[#blank#]
 	<!--ET_END blank-->
-	
+
 	<!--ET_BEGIN header-->
 	    
 	    <span style='display:none;'>[#header#]</span>
@@ -30,11 +34,7 @@
 		    </div>
 		</div>
 	<!--ET_END header-->
-	
-	<!--ET_BEGIN STOPPED_INFO-->
-		<div class='no-print richtext-message richtext-warning no-margin'>[#STOPPED_INFO#]</div>
-	<!--ET_END STOPPED_INFO-->
-	
+
 	<!--ET_BEGIN ExtState-->
 	   <div class='extState'>[#ExtState#]</div>
 	<!--ET_END ExtState-->
