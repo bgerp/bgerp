@@ -111,6 +111,8 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 		if(haveRole('sales') && empty($form->rec->id)){
 			$form->setDefault('dealers', keylist::addKey('', core_Users::getCurrent()));
 		}
+		
+		$form->setDefault('precision', "0.95");
 	}
     
 	
@@ -158,7 +160,11 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 		
 			// ако имаме зададено авансово плащане
 			// дали имаме поне 95% авансово плащане
-			if($downpayment < $downPayment * 0.95)  continue;
+			if(isset($rec->precision)) {
+			    if($downpayment < $downPayment * $rec->precision)  continue;
+			} else {
+			    if($downpayment < $downPayment * 0.95)  continue;
+			}
 			 
 			// артикулите
 			$agreedProducts = $dealInfo->get('products');
@@ -183,21 +189,25 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 				if($productRec->isPublic == 'no' && $productRec->canManifacture == 'yes'){ 
 				    if(is_array($salesArr)) { 
     				    if(in_array($sRec->id, $salesArr)) { 
-    				        $jobId = planning_Jobs::fetchField("#productId = {$pId} AND #saleId IN ({$salesSrt}) AND (#state = 'active' OR #state = 'wakeup' OR #state = 'rejected')");
+    				        $jobId = planning_Jobs::fetchField("#productId = {$pId} AND #saleId IN ({$salesSrt})");
     				       
     				    } else { 
-				          $jobId = planning_Jobs::fetchField("#productId = {$pId} AND #saleId = {$sRec->id} AND (#state = 'active' OR #state = 'wakeup' OR #state = 'rejected')");
-				        }
+				          $jobId = planning_Jobs::fetchField("#productId = {$pId} AND #saleId = {$sRec->id} ");
+				       
+    				    }
+				    
 				    } else { 
-				        $jobId = planning_Jobs::fetchField("#productId = {$pId} AND #saleId = {$sRec->id} AND (#state = 'active' OR #state = 'wakeup' OR #state = 'rejected')");
+				        $jobId = planning_Jobs::fetchField("#productId = {$pId} AND #saleId = {$sRec->id}");
 				    }
-				   
+
+				    $jobState = NULL;
+				    $jobQuantity = NULL;
 					if(isset($jobId)) {
 						$jobState = planning_Jobs::fetchField("#id = {$jobId}",'state');
 						$jobQuantity = planning_Jobs::fetchField("#id = {$jobId}",'quantity');
 					}
-
-					if (!$jobId || ($jobState == 'draft' || $jobState == 'rejected') || ($jobQuantity < $pRec->quantity * 0.90)){  
+					
+					if (!$jobId || ($jobState == 'draft' || $jobState == 'rejected') || $jobQuantity < $pRec->quantity * 0.90) {  
 					    
 					    $index = $sRec->id . "|" . $pId;
 						$d = (object) array ("num" => $count,

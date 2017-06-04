@@ -87,12 +87,11 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 				
 				if(!$form->gotErrors()){
 					$data = ($rec->csvFile) ? bgerp_plg_Import::getFileContent($rec->csvFile) : $rec->csvData;
-					if($rec->delimiter == '\t'){
-						$rec->delimiter = "\t";
-					}
+					
+                    $delimiter = $rec->delimiter == '\t' ? "\t" : $rec->delimiter;
 					
 					// Обработваме данните
-					$rows = csv_Lib::getCsvRows($data, $rec->delimiter, $rec->enclosure, $rec->firstRow);
+					$rows = csv_Lib::getCsvRows($data, $delimiter, $rec->enclosure, $rec->firstRow);
 					$fields = array('code' => $rec->codecol, 'quantity' => $rec->quantitycol, 'price' => $rec->pricecol, 'pack' => $rec->packcol);
 					
 					if(!count($rows)){
@@ -152,27 +151,52 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 			$obj = (object)array('code'     => $row[$fields['code']],
 								 'quantity' => $row[$fields['quantity']],
 								 'pack'     => ($row[$fields['pack']]) ? $row[$fields['pack']] : NULL,
-					             'price'    => $row[$fields['price']]
+					             'price'    => $row[$fields['price']] ? $row[$fields['price']] : NULL,
 			);
 		
 			// Подсигуряваме се, че подадените данни са във вътрешен вид
 			$obj->code = cls::get('type_Varchar')->fromVerbal($obj->code);
 			$obj->quantity = cls::get('type_Double')->fromVerbal($obj->quantity);
 			
-			if(isset($obj->pack)){
-				$packId = cat_UoM::fetchBySinonim($obj->pack)->id;
-				if($packId){
-					$obj->pack = $packId;
-				}
+			
+            if(!strlen($obj->code)){
+				$err[$i][] = $obj->code . ' |Липсващ код|*';
+                continue;
 			}
 			
 			$pRec = cat_Products::getByCode($obj->code);
+		    
+            if(!$pRec){
+				$err[$i][] = $obj->code . ' |Нама продукт с такъв код|*';
+                continue;
+			}
+
+            $packs = cat_Products::getPacks($pRec->productId);
 			
+            if(isset($obj->pack)){
+
+                $obj->exPack = $obj->pack;
+
+				$packId = cat_UoM::fetchBySinonim($obj->pack)->id;
+
+				if(!$packId){
+                    foreach($packs as $pId => $pName) {
+                        if(strpos($obj->pack, $pName) !== FALSE) {
+                             $packId = $pId;
+                             break;
+                        }
+                    }
+                }
+                if($packId) {
+                    $obj->pack = $packId;
+                }
+			}
+
 			if($obj->price){
 				if($isPartner === FALSE){
 					$obj->price = cls::get('type_Varchar')->fromVerbal($obj->price);
 					if(!$obj->price){
-						$err[$i][] = "|Грешна цена|*";
+						$err[$i][] = $obj->code . "|Грешна цена|*";
 					}
 				}
 			}
@@ -182,26 +206,21 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 				$policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($Cover->getInstance()->getClassId(), $Cover->that, $pRec->productId, NULL, 1);
 				
 				if(empty($policyInfo->price)){
-					$err[$i][] = "|Артикулът няма цена|*";
+					$err[$i][] = $obj->code . " |Артикулът няма цена|*";
 				}
 			}
 			
-			if(!$obj->code || (isset($obj->code) && !cat_Products::getByCode($obj->code))){
-				$err[$i][] = '|Грешен или липсващ код|*';
-			}
-			
 			if(!$obj->quantity){
-				$err[$i][] = '|Грешно количество|*';
+				$err[$i][] = $obj->code . ' |Липсващо количество|*';
 			}
 			
 			if($pRec && isset($obj->pack)){
 				if(isset($pRec->packagingId) && $pRec->packagingId != $obj->pack){
-					$err[$i][] = '|Подадения баркод е за друга опаковка|*';
+					$err[$i][] = $obj->code . '|Подадения баркод е за друга опаковка|*';
 				}
-				
-				$packs = cat_Products::getPacks($pRec->productId);
+				  
 				if(!array_key_exists($obj->pack, $packs)){
-					$err[$i][] = '|Артикулът не поддържа подадената мярка/опаковка|*';
+					$err[$i][] = $obj->code . ' |Артикулът не поддържа подадената мярка/опаковка|* (' . implode(',', $packs) . ')';
 				}
 			}
 			
@@ -280,9 +299,6 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 						      'quantitycol' => $rec->quantitycol, 
 						      'pricecol'    => $rec->pricecol);
 		
-		if($nRec->delimiter == "\t"){
-			$nRec->delimiter = '\t';
-		}
 		
 		core_Cache::set($mvc->className, $key, $nRec, 1440);
 	}
@@ -320,7 +336,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 		}
 		
 		foreach ($fields as $i => $fld){
-			$form->setSuggestions($fld, array(1,2,3,4,5,6,7));
+			$form->setSuggestions($fld, array(1=>1,2=>2,3=>3,4=>4,5=>5,6=>6,7=>7));
 			$form->setDefault($fld, $i + 1);
 		}
 		

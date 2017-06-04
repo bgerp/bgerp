@@ -88,7 +88,7 @@ class cat_ProductTplCache extends core_Master
 	{
 		$this->FLD("productId", "key(mvc=cat_Products,select=name)", "input=none,caption=Артикул");
 		$this->FLD("type", "enum(title=Заглавие,description=Описание)", "input=none,caption=Тип");
-		$this->FLD("documentType", "enum(public=Външни документи,internal=Вътрешни документи)", "input=none,caption=Документ тип");
+		$this->FLD("documentType", "enum(public=Външни документи,internal=Вътрешни документи,invoice=Фактура)", "input=none,caption=Документ тип");
 		$this->FLD("lang", "varchar", "input=none,caption=Език");
 		
 		$this->FLD("cache", "blob(1000000, serialize, compress)", "input=none,caption=Html,column=none");
@@ -238,7 +238,7 @@ class cat_ProductTplCache extends core_Master
 		$cacheRec->cache = cat_Products::getTitleById($rec->id);
 		
 		if($Driver = cat_Products::getDriver($rec->id)){
-			$additionalNotes = $Driver->getAdditionalNotesToDocument($productId, $documentType);
+			$additionalNotes = $Driver->getAdditionalNotesToDocument($rec->id, $documentType);
 			if(!empty($additionalNotes)){
 				$cacheRec->cache = array('title' => $cacheRec->cache, 'subTitle' => $additionalNotes);
 			}

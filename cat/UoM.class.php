@@ -330,8 +330,20 @@ class cat_UoM extends core_Manager
      */
     public static function convertValue($value, $from, $to)
     {
-    	expect($fromRec = static::fetch($from), 'Проблем при изчислението на първата валута');
-    	expect($toRec = static::fetch($to), 'Проблем при изчислението на втората валута');
+        if(is_string($from) && !is_numeric($from)) {
+            $fromRec = self::fetchBySinonim($from);
+        } else {
+            $fromRec = static::fetch($from);
+        }
+
+        if(is_string($to) && !is_numeric($to)) {
+            $toRec = self::fetchBySinonim($to);
+        } else {
+            $toRec = static::fetch($to);
+        }
+ 
+    	expect($fromRec, 'Проблем при изчислението на първата мярка');
+    	expect($toRec, 'Проблем при изчислението на втората мярка');
     	
     	($fromRec->baseUnitId) ? $baseFromId = $fromRec->baseUnitId : $baseFromId = $fromRec->id;
     	($toRec->baseUnitId) ? $baseToId = $toRec->baseUnitId : $baseToId = $toRec->id;

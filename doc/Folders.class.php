@@ -30,8 +30,18 @@ class doc_Folders extends core_Master
     
     /**
      * 10 секунди време за опресняване на нишката
+     * 
+     * @see plg_RefreshRows
      */
     public $refreshRowsTime = 10000;
+    
+
+    /**
+     * Кое поле да се гледа за промяна и да се пуска обновяването
+     * 
+     * @see plg_RefreshRows
+     */
+    public $refreshRowsCheckField = 'last';
     
     
     /**
@@ -1834,5 +1844,4 @@ class doc_Folders extends core_Master
         // Премахваме color стилове
         $status = preg_replace('/style\s*=\s*(\'|")color:\#[a-z0-9]{3,6}(\'|")/i', '', $status);
     }
-
 }
