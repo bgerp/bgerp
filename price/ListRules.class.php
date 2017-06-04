@@ -774,7 +774,10 @@ class price_ListRules extends core_Detail
         if(empty($currencyCode)) {
             $currencyCode = acc_Periods::getBaseCurrencyCode();
         }
-
+        
+        // Във всяка API функция проверките за входните параметри са задължителни
+        expect(!empty($productId) && !empty($validFrom) && !empty($primeCost), $productId, $primeCost, $validFrom, $currencyCode, $vat);
+ 
 		$obj = (object)array('productId' => $productId,
 				             'type'      => 'value',
 				             'validFrom' => $validFrom,
