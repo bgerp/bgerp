@@ -134,7 +134,7 @@ class doc_Threads extends core_Manager
         $this->FLD('folderId', 'key(mvc=doc_Folders,select=title,silent)', 'caption=Папки');
         $this->FNC('title', 'varchar', 'caption=Заглавие,tdClass=threadListTitle');
         $this->FLD('state', 'enum(opened,pending,closed,rejected)', 'caption=Състояние,notNull');
-        $this->FLD('allDocCnt', 'int', 'caption=Брой документи->Всички');
+        $this->FLD('allDocCnt', 'int', 'caption=Брой документи->Всички,smartCenter');
         $this->FLD('partnerDocCnt', 'int', 'caption=Брой документи->Публични, oldFieldName=pubDocCnt');
         $this->FLD('last', 'datetime(format=smartTime)', 'caption=Последно');
         
