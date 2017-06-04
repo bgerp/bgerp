@@ -127,7 +127,7 @@ class editwatch_Plugin extends core_Plugin
         // Понякога и every_one може да редактира запис
         if (!haveRole('user') && !$mvc->haveRightFor('edit', $recId)) {
             $status = tr('Трябва да сте логнати, за да редактирате този запис');
-            $status = "<span class='errorMsg'>$status</span>";
+            $status = "<div class='errorMsg'>$status <a href='javascript:void(0)' onclick='w = window.open(\"" . toUrl(array('core_Users', 'login', 'popup' => 1)) . "\",\"Login\",\"width=484,height=303,resizable=no,scrollbars=no,location=0,status=no,menubar=0,resizable=0,status=0\"); if(w) w.focus();'>Login</a></div>";
         } else {
             
             $editedBy = array();
