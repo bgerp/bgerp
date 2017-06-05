@@ -596,21 +596,20 @@ class crm_Companies extends core_Master
                 foreach ($emailArr as $email) {
                     $folderId = email_Router::route($email, NULL, email_Router::RuleFrom);
                     
-
                     if($folderId) {
                         $fRec = doc_Folders::fetch($folderId);
                         
                         if($fRec->coverClass == core_Classes::getId('crm_Companies')) {
+                            if ($rec->id && ($fRec->coverId == $rec->id)) continue;
+                            
                             $similarsArr[$fRec->coverId] = self::fetch($fRec->coverId);
                             $fieldsArr['email'] = 'email';
                         }
                     }
                 } 
-                
             }
         }
-       
-
+        
         $fields = implode(',', $fieldsArr);
         
         return $similarsArr;
