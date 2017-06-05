@@ -137,7 +137,7 @@ class distro_Repositories extends core_Master
         $this->FLD('hostId', 'key(mvc=ssh_Hosts, select=name)', 'caption=Хост,input,mandatory');
         $this->FLD('name', 'varchar', 'caption=Име, mandatory');
         $this->FLD('path', 'varchar', 'caption=Път на хранилището, mandatory');
-        $this->FLD('info', 'richtext', 'caption=Информация');
+        $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Информация');
         $this->FLD('lineHash', 'varchar(32)', 'caption=Хеш, input=none');
         $this->FLD('url', 'url', 'caption=Линк за сваляне');
         

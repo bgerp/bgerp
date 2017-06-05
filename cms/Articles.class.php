@@ -740,7 +740,7 @@ class cms_Articles extends core_Master
         $form = cls::get('core_Form');
         $form->FNC('menuId', 'key(mvc=cms_Content,select=menu)', 'caption=Меню,mandatory,silent');
         $form->FNC('articles', 'keylist(mvc=cms_Articles,select=title)', 'caption=Статии,columns=1,input');
-        $form->FNC('divider', 'richtext(rows=3)', 'caption=Разделител,input');
+        $form->FNC('divider', 'richtext(rows=3,bucket=Notes)', 'caption=Разделител,input');
 
         $form->input(NULL, 'silent');
         $form->method = 'GET';

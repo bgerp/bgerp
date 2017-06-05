@@ -266,9 +266,9 @@ class cal_Holidays extends core_Master
 										ZA=ЮАР,
 										JM=Ямайка,
 										JP=Япония)', 'caption=Празник->Тип,placeholder=Тип на празника,export');
-        $this->FLD('info', 'richtext', 'caption=Празник->Данни,export');
+        $this->FLD('info', 'richtext(bucket=calTasks)', 'caption=Празник->Данни,export');
         
-        $this->FLD('nameday', 'richtext', 'caption=Именници,export');
+        $this->FLD('nameday', 'richtext(bucket=calTasks)', 'caption=Именници,export');
         
         $this->setDbUnique('key');
     }

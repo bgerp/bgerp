@@ -79,7 +79,7 @@ class store_ReserveStockDetails extends doc_Detail
         $this->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input,mandatory');
         $this->FNC('inStockPackQuantity', 'double', 'caption=Запазено');
         $this->FNC('freeStockPackQuantity', 'double', 'caption=Разполагаемо');
-        $this->FLD('notes', 'richtext(rows=3)', 'caption=Забележки');
+        $this->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Забележки');
     }
     
     
