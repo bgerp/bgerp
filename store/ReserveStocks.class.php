@@ -52,37 +52,31 @@ class store_ReserveStocks extends core_Master
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,store';
-
-
-	/**
-	 * Кой има право да променя?
-	 */
-	public $canChangeline = 'ceo,store';
+	public $canList = 'ceo, store, planning, sales';
 	
 	
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,store';
+	public $canSingle = 'ceo, store, planning, sales';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,store';
+    public $canEdit = 'ceo, store, planning, sales';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,store';
+    public $canAdd = 'ceo, store, planning, sales';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title=Документ, storeId, originId,activatedOn, createdBy,modifiedOn,modifiedBy';
+    public $listFields = 'title=Документ, storeId, originId=От, activatedOn, activatedBy, modifiedOn,modifiedBy';
 
 
     /**
@@ -96,7 +90,7 @@ class store_ReserveStocks extends core_Master
      *
      * @var string - име на клас
      */
-    public $mainDetail = 'store_TransfersDetails';
+    public $mainDetail = 'store_ReserveStockDetails';
     
     
     /**
@@ -111,6 +105,12 @@ class store_ReserveStocks extends core_Master
     public $singleLayoutFile = 'store/tpl/SingleLayoutReserveStock.shtml';
 
    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'activatedOn';
+    
+    
     /**
      * Файл за единичния изглед в мобилен
      */
@@ -219,11 +219,13 @@ class store_ReserveStocks extends core_Master
     	$form = &$data->form;
     	$rec = &$form->rec;
     	
+    	// Склада е този от ориджина
     	$origin = doc_Containers::getDocument($rec->originId);
     	if($origin->getInstance()->getField('shipmentStoreId', FALSE)){
     		$form->setDefault('storeId', $origin->fetchField('shipmentStoreId'));
     	}
     	
+    	// Ако има детайли, склада не може да се променя
     	if(isset($rec->id)){
     		if(store_ReserveStockDetails::fetchField("#reserveId = {$rec->id}")){
     			$form->setreadOnly('storeId');
@@ -237,10 +239,13 @@ class store_ReserveStocks extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+    	$row->title = $mvc->getLink($rec->id, 0);
     	$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
     	$row->originId = doc_Containers::getDocument($rec->originId)->getLink(0);
     	
-    	$row->activatedOn = dt::mysql2verbal($rec->activatedOn, 'd.m.Y');
+    	if(isset($fields['-single'])){
+    		$row->activatedOn = dt::mysql2verbal($rec->activatedOn, 'd.m.Y');
+    	}
     }
     
     
