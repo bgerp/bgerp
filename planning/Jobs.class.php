@@ -542,7 +542,7 @@ class planning_Jobs extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->title = $mvc->getLink($rec->id, 0);
+    	$row->title = $mvc->getLink($rec->id);
     	
     	if(isset($rec->productId)){
     		$measureId = cat_Products::fetchField($rec->productId, 'measureId');
@@ -663,8 +663,8 @@ class planning_Jobs extends core_Master
     public static function getRecTitle($rec, $escaped = TRUE)
     {
     	$self = cls::get(get_called_class());
-    	 
     	$pTitle = cat_Products::getTitleById($rec->productId);
+    	
     	return "Job{$rec->id} - {$pTitle}";
     }
     
@@ -771,13 +771,6 @@ class planning_Jobs extends core_Master
     		$count = $mvc->getSelectableProducts($rec->saleId);
     		if(!$count){
     			$res = 'no_one';
-    		}
-    	}
-    	
-    	
-    	if($action == 'close' && isset($rec)){
-    		if(doc_Containers::fetchField("#threadId = {$rec->threadId} AND #state = 'pending'")){
-    			//$res = 'no_one';
     		}
     	}
     }
