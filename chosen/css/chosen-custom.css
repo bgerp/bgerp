@@ -3,5 +3,5 @@
 }
 
 .inputWarning + .chzn-container-single .chzn-single  {
-    border: solid 1px #ff9900;
+    border: solid 1px blue;
 }

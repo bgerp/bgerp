@@ -768,8 +768,16 @@ class price_ListRules extends core_Detail
 	 * @param yes|no $vat          - с ДДС или без
 	 * @return int				   - ид на създадения запис
 	 */
-	public static function savePrimeCost($productId, $primeCost, $validFrom, $currencyCode, $vat = 'no')
+	public static function savePrimeCost($productId, $primeCost, $validFrom, $currencyCode = NULL, $vat = 'no')
 	{
+        // По подразбиране задаваме в текуща валута
+        if(empty($currencyCode)) {
+            $currencyCode = acc_Periods::getBaseCurrencyCode();
+        }
+        
+        // Във всяка API функция проверките за входните параметри са задължителни
+        expect(!empty($productId) && !empty($validFrom) && !empty($primeCost), $productId, $primeCost, $validFrom, $currencyCode, $vat);
+ 
 		$obj = (object)array('productId' => $productId,
 				             'type'      => 'value',
 				             'validFrom' => $validFrom,

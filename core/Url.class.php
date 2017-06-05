@@ -304,18 +304,16 @@ class core_Url
     static function isValidTld($tld)
     {
         if(FALSE !== ($dotPos = strrpos($tld, '.'))) {
-            $tld = substr($tld, $dotPos + 1);
-        }
-
-        $tld = strtolower($tld);
-
-        if (in_array($tld, self::$valideTld)) {
-        	   
-        	return TRUE;
+            $tld = strtolower(substr($tld, $dotPos + 1));
+            if (in_array($tld, self::$valideTld)) {
+                   
+                return TRUE;
+            }
         }
        
         return FALSE;
     }
+
     
     /**
      * Проверява дали дадено URL е валидно

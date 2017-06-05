@@ -1513,21 +1513,29 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 
 /* Стилове за показване на формите */
 /*грешки и предупреждения*/
-.formError, .formNotice {
-       font-size: 0.9em;
+.formError, .formNotice, .formWarning {
+    font-size: 0.9em;
     padding: 10px; 
     margin-bottom: 10px;
   	@include border-radius(5px);
 }
 
 .formNotice {
-	background-color: #fefead;
+	background-color: #ff6;
 	border: solid 1px green;
+    color:green;
 }
 
 .formError {
 	border: solid 1px red;
 	background-color: #ff6;
+    color:red;
+}
+
+.formWarning {
+	border: solid 1px blue;
+	background-color: #ff6;
+    color: blue;
 }
 
 .wide .formError {
@@ -1558,7 +1566,7 @@ form .inputAdvanced {
 }
 
 .inputWarning {
-    border: solid 1px $orange;
+    border: solid 1px blue;
 }
 
 span.inputLackOfChoice {

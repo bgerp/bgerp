@@ -99,7 +99,7 @@ class type_Email extends type_Varchar {
      */
     static function isValidEmail($email)
     {
-        if (!$email) return NULL;
+        if (!strlen($email)) return NULL;
         
         if (preg_match("/[\\000-\\037]/", $email)) {
             
