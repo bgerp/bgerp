@@ -210,7 +210,7 @@ class email_Incomings extends core_Master
         $this->FLD("toBox", "email(link=no)", 'caption=До->Кутия');
         
         $this->FLD("headers", "blob(serialize,compress)", 'caption=Хедъри');
-        $this->FLD("textPart", "richtext(hndToLink=no, nickToLink=no)", 'caption=Текстова част');
+        $this->FLD("textPart", "richtext(hndToLink=no, nickToLink=no,bucket=Postings)", 'caption=Текстова част');
         $this->FLD("spam", "int", 'caption=Спам');
         $this->FLD("lg", "varchar", 'caption=Език');
         $this->FLD("date", "datetime(format=smartTime)", 'caption=Дата');

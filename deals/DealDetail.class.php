@@ -109,7 +109,7 @@ abstract class deals_DealDetail extends doc_Detail
     	$mvc->FLD('term', 'time(uom=days,suggestions=1 ден|5 дни|7 дни|10 дни|15 дни|20 дни|30 дни)', 'caption=Срок,after=tolerance,before=showMode,input=none');
     	
     	$mvc->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Допълнително->Изглед,notNull,default=auto');
-    	$mvc->FLD('notes', 'richtext(rows=3)', 'caption=Допълнително->Забележки');
+    	$mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Забележки');
     }
     
     

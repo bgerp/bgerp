@@ -144,7 +144,7 @@ class hr_Deductions extends core_Master
     {
     	$this->FLD('date', 'date',     'caption=Дата,oldFieldName=periodId');
     	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител');
-    	$this->FLD('type', 'richtext',     'caption=Произход на удръжката');
+    	$this->FLD('type', 'richtext(bucket=Notes)',     'caption=Произход на удръжката');
     	$this->FLD('sum', 'double',     'caption=Сума,mandatory');
     	$this->FNC('title', 'varchar', 'column=none');
     }

@@ -145,7 +145,7 @@ class cat_BomDetails extends doc_Detail
     	
     	$this->FLD("position", 'int(Min=0)', 'caption=Позиция,smartCenter,tdClass=leftCol');
     	$this->FLD("propQuantity", 'text(rows=2)', 'caption=Формула,tdClass=accCell,mandatory');
-    	$this->FLD("description", 'richtext(rows=3)', 'caption=Допълнително->Описание');
+    	$this->FLD("description", 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Описание');
     	$this->FLD('type', 'enum(input=Влагане,pop=Отпадък,stage=Етап)', 'caption=Действие,silent,input=hidden');
     	$this->FLD("primeCost", 'double', 'caption=Себестойност,input=none,tdClass=accCell');
     	$this->FLD('params', 'blob(serialize, compress)', 'input=none');

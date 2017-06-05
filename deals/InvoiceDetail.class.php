@@ -65,7 +65,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		$mvc->FLD('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
 		$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
 		$mvc->FLD('discount', 'percent(min=0,max=1)', 'caption=Отстъпка,smartCenter');
-		$mvc->FLD('notes', 'richtext(rows=3)', 'caption=Забележки,formOrder=110001');
+		$mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Забележки,formOrder=110001');
 	}
 	
 	
