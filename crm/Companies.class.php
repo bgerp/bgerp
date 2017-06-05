@@ -475,8 +475,6 @@ class crm_Companies extends core_Master
     {
         $resStr = '';
         
-        if ($rec->id) return $resStr;
-        
         $similarsArr = self::getSimilarRecs($rec, $fields);
         
         if (!empty($similarsArr)) {
@@ -543,8 +541,6 @@ class crm_Companies extends core_Master
 		
         $similarName = $similarVat = FALSE;
         
-        if ($rec->id) return $similarsArr;
-        
         $fieldsArr = array();
         
         $nameL = "#" . plg_Search::normalizeText(STR::utf2ascii($rec->name)) . "#";
@@ -573,6 +569,8 @@ class crm_Companies extends core_Master
         }
         
         while($similarRec = $nQuery->fetch()) {
+            if ($rec->id && ($similarRec->id == $rec->id)) continue;
+            
             $similarsArr[$similarRec->id] = $similarRec;
             $fieldsArr['name'] = 'name';
         }
@@ -584,6 +582,8 @@ class crm_Companies extends core_Master
             $vQuery->where(array("#vatId LIKE '%[#1#]%'", $vatNumb));
             
             while($similarRec = $vQuery->fetch()) {
+                if ($rec->id && ($similarRec->id == $rec->id)) continue;
+                
                 $similarsArr[$similarRec->id] = $similarRec;
                 $fieldsArr['vatId'] = 'vatId';
             }

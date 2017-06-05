@@ -2281,8 +2281,6 @@ class crm_Persons extends core_Master
     {
         $resStr = '';
         
-        if ($rec->id) return $resStr;
-        
         $similarsArr = self::getSimilarRecs($rec, $fields);
         
         if (!empty($similarsArr)) {
@@ -2351,8 +2349,6 @@ class crm_Persons extends core_Master
         
         $similarName = $similarEgn = FALSE;
         
-        if ($rec->id) return $similarsArr;
-        
         $fieldsArr = array();
         
         // Правим проверка за дублиране с друг запис
@@ -2369,6 +2365,8 @@ class crm_Persons extends core_Master
         }
         
         while($similarRec = $nQuery->fetch()) {
+            if ($rec->id && ($similarRec->id == $rec->id)) continue;
+            
             $similarsArr[$similarRec->id] = $similarRec;
             $fieldsArr['name'] = 'name';
         }
@@ -2380,7 +2378,9 @@ class crm_Persons extends core_Master
                 $eQuery = clone $oQuery;
                 $eQuery->where((array("#egn LIKE '[#1#]'", $egnNumb)));
             
-                while($similarRec = $eQuery->fetch) {
+                while($similarRec = $eQuery->fetch()) {
+                    if ($rec->id && ($similarRec->id == $rec->id)) continue;
+                    
                     $similarsArr[$similarRec->id] = $similarRec;
                 }
                 $fieldsArr['egn'] = 'egn';
@@ -2404,6 +2404,8 @@ class crm_Persons extends core_Master
                 }
                 
                 while($similarRec = $eQuery->fetch()) {
+                    if ($rec->id && ($similarRec->id == $rec->id)) continue;
+                    
                     $similarsArr[$similarRec->id] = $similarRec;
                     if ($rec->buzEmail) {
                         $fieldsArr['buzEmail'] = 'buzEmail';
