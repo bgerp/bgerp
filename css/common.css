@@ -1418,7 +1418,8 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
  * грешки и предупреждения
  */
 .formError,
-.formNotice {
+.formNotice,
+.formWarning {
   font-size: 0.9em;
   padding: 10px;
   margin-bottom: 10px;
@@ -1428,12 +1429,19 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
   border-radius: 5px; }
 
 .formNotice {
-  background-color: #fefead;
-  border: solid 1px green; }
+  background-color: #ffff66;
+  border: solid 1px green;
+  color: green; }
 
 .formError {
   border: solid 1px red;
-  background-color: #ffff66; }
+  background-color: #ffff66;
+  color: red; }
+
+.formWarning {
+  border: solid 1px blue;
+  background-color: #ffff66;
+  color: blue; }
 
 .wide .formError {
   text-align: left;
@@ -1457,7 +1465,7 @@ form .inputAdvanced {
   background-color: #ddffdd !important; }
 
 .inputWarning {
-  border: solid 1px #ff9900; }
+  border: solid 1px blue; }
 
 span.inputLackOfChoice {
   border: solid 1px #bbbbbb;
