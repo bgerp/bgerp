@@ -279,4 +279,20 @@ class store_ReserveStocks extends core_Master
     		}
     	}
     }
+    
+    
+    /**
+     * Връща ид на всички нишки, в които има активни РнСН
+     * 
+     * @return array $res
+     */
+    public static function getThreads()
+    {
+    	$query = store_ReserveStocks::getQuery();
+    	$query->where("#state = 'active'");
+    	$query->show('threadId');
+    	$res = arr::extractValuesFromArray($query->fetchAll(), 'threadId');
+    	
+    	return $res;
+    }
 }
