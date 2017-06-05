@@ -199,6 +199,8 @@ class blast_BlockedEmails extends core_Manager
      */
     public static function validateEmail_($email)
     {
+        $email = trim($email);
+        
         static $validatedDomainsArr = array();
         
         if (!trim($email)) return ;
