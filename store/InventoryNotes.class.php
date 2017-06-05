@@ -175,7 +175,7 @@ class store_InventoryNotes extends core_Master
     	
     	if(($action == 'add' || $action == 'edit') && isset($rec)){
     		if(isset($rec->threadId)){
-    			if(!doc_Threads::haveRightToFolder($rec->threadId, $userId)){
+    			if(!doc_Threads::haveRightFor('single', $rec->threadId)){
     				$requiredRoles = 'no_one';
     			}
     		}
