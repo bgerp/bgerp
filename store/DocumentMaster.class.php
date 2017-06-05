@@ -227,12 +227,18 @@ abstract class store_DocumentMaster extends core_Master
     		// Ако документа е обратен не слагаме продукти по дефолт
     		if($rec->isReverse == 'yes') return;
     
+    		
     		$Detail = $mvc->mainDetail;
     		$aggregatedDealInfo = $origin->getAggregateDealInfo();
     		if($rec->importProducts != 'all'){
     			$agreedProducts = $aggregatedDealInfo->get('products');
     			$shippedProducts = $aggregatedDealInfo->get('shippedProducts');
-    			$normalizedProducts = deals_Helper::normalizeProducts(array($agreedProducts), array($shippedProducts));
+    			
+    			if(count($shippedProducts)){
+    				$normalizedProducts = deals_Helper::normalizeProducts(array($agreedProducts), array($shippedProducts));
+    			} else {
+    				$agreedProducts = $aggregatedDealInfo->get('dealProducts');
+    			}
     			
     			if($rec->importProducts == 'stocked'){
     				foreach ($agreedProducts as $i1 => $p1) {
@@ -243,15 +249,20 @@ abstract class store_DocumentMaster extends core_Master
     				}
     			}
     		} else {
-    			$agreedProducts = $aggregatedDealInfo->get('products');
-    			$normalizedProducts = deals_Helper::normalizeProducts(array($agreedProducts), array());
+    			$agreedProducts = $aggregatedDealInfo->get('dealProducts');
+    			$normalizedProducts = $aggregatedDealInfo->get('dealProducts');
     		}
     		
     		if(count($agreedProducts)){
     			foreach ($agreedProducts as $index => $product) {
     				$info = cat_Products::getProductInfo($product->productId);
     				
-    				$toShip = $normalizedProducts[$index]->quantity;
+    				if(isset($normalizedProducts[$index])){
+    					$toShip = $normalizedProducts[$index]->quantity;
+    				} else {
+    					$toShip = $product->quantity;
+    				}
+    				
     				$price = ($agreedProducts[$index]->price) ? $agreedProducts[$index]->price : $normalizedProducts[$index]->price;
     				$discount = ($agreedProducts[$index]->discount) ? $agreedProducts[$index]->discount : $normalizedProducts[$index]->discount;
     				
