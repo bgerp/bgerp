@@ -466,6 +466,7 @@ class purchase_Purchases extends deals_DealMaster
         }
         
         $agreed = array();
+        $agreed2 = array();
         foreach ($detailRecs as $dRec) {
             $p = new bgerp_iface_DealProduct();
             foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes', 'expenseItemId') as $fld){
@@ -477,6 +478,10 @@ class purchase_Purchases extends deals_DealMaster
             $p->volume  = cat_Products::getVolume($p->productId, $p->packagingId, $p->quantity);
             
             $agreed[] = $p;
+            
+            $p1 = clone $p;
+            unset($p1->notes);
+            $agreed2[] = $p1;
             
         	$push = TRUE;
             $index = $p->productId;
