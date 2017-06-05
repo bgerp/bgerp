@@ -163,7 +163,7 @@ class store_ReserveStockDetails extends doc_Detail
     		}
     		
     		if($rec->freeStockPackQuantity < 0){
-    			$row->packQuantity = ht::createHint($row->inStockPackQuantity, 'Резервирано е по-голямо количество от наличното', 'warning', FALSE);
+    			$row->packQuantity = ht::createHint($row->packQuantity, 'Резервирано е по-голямо количество от наличното', 'warning', FALSE);
     		}
     	}
     }
