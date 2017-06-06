@@ -138,6 +138,12 @@ class store_ReserveStocks extends core_Master
 	public $canEditActivated = TRUE;
 	
 	
+	/**
+	 * Кой може да го прави документа чакащ/чернова?
+	 */
+	public $canPending = 'no_one';
+	
+	
     /**
      * Описание на модела (таблицата)
      */

@@ -348,7 +348,7 @@ class store_ReserveStockDetails extends doc_Detail
     	}
     	
     	if(count($details)){
-    		$me->saveDetails($details, $reserveId);
+    		$me->saveDetails($details, $masterRec->id);
     	}
     }
     
