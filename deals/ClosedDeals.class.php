@@ -106,7 +106,7 @@ abstract class deals_ClosedDeals extends core_Master
      */
     public function description()
     {
-        $this->FLD('notes', 'richtext(rows=2)', 'caption=Забележка');
+        $this->FLD('notes', 'richtext(rows=2,bucket=Notes)', 'caption=Забележка');
         $this->FLD('valior', 'date', 'input=hidden');
         
         // Класа на документа, който се затваря

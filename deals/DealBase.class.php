@@ -589,7 +589,7 @@ abstract class deals_DealBase extends core_Master
     	// Кои полета ще се показват
 		$f = new core_FieldSet;
     	$f->FLD('code', 'varchar');
-    	$f->FLD('productId', 'richtext');
+    	$f->FLD('productId', 'richtext(bucket=Notes)');
     	$f->FLD('measure', 'varchar');
     	$f->FLD('quantity', 'double');
     	$f->FLD('shipQuantity', 'double');

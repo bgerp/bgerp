@@ -211,7 +211,7 @@ class doc_UnsortedFolders extends core_Master
     public function description()
     {
         $this->FLD('name' , 'varchar(255)', 'caption=Наименование,mandatory');
-        $this->FLD('description' , 'richtext(rows=3, passage=Общи)', 'caption=Описание');
+        $this->FLD('description' , 'richtext(rows=3, passage=Общи,bucket=Notes)', 'caption=Описание');
         $this->FLD('closeTime' , 'time', 'caption=Автоматично затваряне на нишките след->Време, allowEmpty');
         $this->FLD('showDocumentsAsButtons' , 'keylist(mvc=core_Classes,select=title)', 'caption=Документи|*&#44; |които да се показват като бързи бутони в папката->Документи');
         $this->setDbUnique('name');

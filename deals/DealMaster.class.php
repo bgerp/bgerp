@@ -1109,7 +1109,7 @@ abstract class deals_DealMaster extends deals_DealBase
     			$id = $firstDoc->fetchField('id');
     			$closedIds[$id] = $id;
     			
-    			$products = (array)$dealInfo->get('products');
+    			$products = (array)$dealInfo->get('dealProducts');
     			if(count($products)){
     				$details[] = $products;
     			}
@@ -1121,6 +1121,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	$Detail::delete("#{$mvc->{$Detail}->masterKey} = {$rec->id}");
     	
     	$details = deals_Helper::normalizeProducts($details);
+    	
     	if(count($details)){
     		foreach ($details as &$det1){
     			$det1->{$mvc->{$Detail}->masterKey} = $rec->id;
@@ -1719,7 +1720,9 @@ abstract class deals_DealMaster extends deals_DealBase
     	if($action == 'pending' && isset($rec)){
     		if($res != 'no_one'){
     			$Detail = cls::get($mvc->mainDetail);
-    			if(!$Detail->fetch("#{$Detail->masterKey} = {$rec->id}")){
+    			if(empty($rec->id)){
+    				$res = 'no_one';
+    			} elseif(!$Detail->fetch("#{$Detail->masterKey} = '{$rec->id}'")){
     				$res = 'no_one';
     			}
     		}

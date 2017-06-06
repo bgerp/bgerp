@@ -5,9 +5,6 @@
 /**
  * Клас 'store_ReserveStocks' - Документ за резервиране на складови наличности
  *
- * 
- *
- *
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
@@ -52,37 +49,31 @@ class store_ReserveStocks extends core_Master
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,store';
-
-
-	/**
-	 * Кой има право да променя?
-	 */
-	public $canChangeline = 'ceo,store';
+	public $canList = 'ceo, store, planning, sales';
 	
 	
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,store';
+	public $canSingle = 'ceo, store, planning, sales';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,store';
+    public $canEdit = 'ceo, store, planning, sales';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,store';
+    public $canAdd = 'ceo, store, planning, sales';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title=Документ, storeId, originId,activatedOn, createdBy,modifiedOn,modifiedBy';
+    public $listFields = 'title=Документ, storeId, originId=От, activatedOn, activatedBy, modifiedOn,modifiedBy';
 
 
     /**
@@ -96,7 +87,7 @@ class store_ReserveStocks extends core_Master
      *
      * @var string - име на клас
      */
-    public $mainDetail = 'store_TransfersDetails';
+    public $mainDetail = 'store_ReserveStockDetails';
     
     
     /**
@@ -111,6 +102,12 @@ class store_ReserveStocks extends core_Master
     public $singleLayoutFile = 'store/tpl/SingleLayoutReserveStock.shtml';
 
    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'activatedOn';
+    
+    
     /**
      * Файл за единичния изглед в мобилен
      */
@@ -139,6 +136,12 @@ class store_ReserveStocks extends core_Master
 	 * Може ли да се редактират активирани документи
 	 */
 	public $canEditActivated = TRUE;
+	
+	
+	/**
+	 * Кой може да го прави документа чакащ/чернова?
+	 */
+	public $canPending = 'no_one';
 	
 	
     /**
@@ -214,16 +217,18 @@ class store_ReserveStocks extends core_Master
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
     	
+    	// Склада е този от ориджина
     	$origin = doc_Containers::getDocument($rec->originId);
     	if($origin->getInstance()->getField('shipmentStoreId', FALSE)){
     		$form->setDefault('storeId', $origin->fetchField('shipmentStoreId'));
     	}
     	
+    	// Ако има детайли, склада не може да се променя
     	if(isset($rec->id)){
     		if(store_ReserveStockDetails::fetchField("#reserveId = {$rec->id}")){
     			$form->setreadOnly('storeId');
@@ -235,12 +240,15 @@ class store_ReserveStocks extends core_Master
     /**
      * След преобразуване на записа в четим за хора вид
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+    	$row->title = $mvc->getLink($rec->id, 0);
     	$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
     	$row->originId = doc_Containers::getDocument($rec->originId)->getLink(0);
     	
-    	$row->activatedOn = dt::mysql2verbal($rec->activatedOn, 'd.m.Y');
+    	if(isset($fields['-single'])){
+    		$row->activatedOn = dt::mysql2verbal($rec->activatedOn, 'd.m.Y');
+    	}
     }
     
     
@@ -273,5 +281,30 @@ class store_ReserveStocks extends core_Master
     			$requiredRoles = 'no_one';
     		}
     	}
+    }
+    
+    
+    /**
+     * Връща ид на всички нишки, в които има активни РнСН
+     * 
+     * @return array $res
+     */
+    public static function getThreads()
+    {
+    	$query = store_ReserveStocks::getQuery();
+    	$query->where("#state = 'active'");
+    	$query->show('threadId');
+    	$res = arr::extractValuesFromArray($query->fetchAll(), 'threadId');
+    	
+    	return $res;
+    }
+    
+    
+    /**
+     * Изпълнява се след създаване на нов запис
+     */
+    protected static function on_AfterCreate($mvc, $rec)
+    {
+    	store_ReserveStockDetails::saveDefaultDetails($rec);
     }
 }

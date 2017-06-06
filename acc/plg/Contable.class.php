@@ -93,7 +93,7 @@ class acc_plg_Contable extends core_Plugin
      */
     public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
-        if (!empty($rec->state) && $rec->state != 'draft') {
+        if (!empty($rec->state) && $rec->state != 'draft' && $rec->state != 'pending') {
             return;
         }
         
@@ -144,7 +144,7 @@ class acc_plg_Contable extends core_Plugin
         $error = $error ? ",error={$error}" : '';
         
         if(haveRole('debug')) {
-            $data->toolbar->addBtn('Транзакция', array($mvc, 'getTransaction', $rec->id), "ef_icon=img/16/bug.png,title=Дебъг информация,row=2{$error}");
+            $data->toolbar->addBtn('Транзакция', array($mvc, 'getTransaction', $rec->id), "ef_icon=img/16/bug.png,title=Дебъг информация,row=2");
         }
         
         $row = 1;
@@ -214,7 +214,7 @@ class acc_plg_Contable extends core_Plugin
      * @param string|NULL $res
      * @param stdObject $rec
      */
-    public function on_AfterGetBtnErrStr($mvc, &$res, $rec)
+    public static function on_AfterGetBtnErrStr($mvc, &$res, $rec)
     {
         if ($mvc->haveRightFor('conto', $rec)) {
             if(!self::checkPeriod($mvc->getValiorValue($rec), $error)){
@@ -562,7 +562,7 @@ class acc_plg_Contable extends core_Plugin
     public static function on_AfterCanActivate($mvc, &$res, $rec)
     {
         if(!$res){
-            if (!empty($rec->id) && $rec->state != 'draft') {
+            if (!empty($rec->id) && $rec->state != 'draft' && $rec->state != 'pending') {
                 $res = FALSE;
             } elseif(count($mvc->details)){
                 $hasDetail = FALSE;

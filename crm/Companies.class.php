@@ -282,7 +282,8 @@ class crm_Companies extends core_Master
         // Допълнителна информация
         $this->FLD('info', 'richtext(bucket=crmFiles, passage=Общи)', 'caption=Бележки,height=150px,class=contactData,export=Csv');
         $this->FLD('logo', 'fileman_FileType(bucket=pictures)', 'caption=Лого,export=Csv');
-                
+        $this->FLD('folderName', 'varchar', 'caption=Име на папка');
+
         // В кои групи е?
         $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'persons\\\'AND #state !\\= \\\'rejected\\\',classLink=group-link)', 'caption=Групи->Групи,remember,silent,export=Csv');
         
@@ -475,8 +476,6 @@ class crm_Companies extends core_Master
     {
         $resStr = '';
         
-        if ($rec->id) return $resStr;
-        
         $similarsArr = self::getSimilarRecs($rec, $fields);
         
         if (!empty($similarsArr)) {
@@ -543,8 +542,6 @@ class crm_Companies extends core_Master
 		
         $similarName = $similarVat = FALSE;
         
-        if ($rec->id) return $similarsArr;
-        
         $fieldsArr = array();
         
         $nameL = "#" . plg_Search::normalizeText(STR::utf2ascii($rec->name)) . "#";
@@ -573,6 +570,8 @@ class crm_Companies extends core_Master
         }
         
         while($similarRec = $nQuery->fetch()) {
+            if ($rec->id && ($similarRec->id == $rec->id)) continue;
+            
             $similarsArr[$similarRec->id] = $similarRec;
             $fieldsArr['name'] = 'name';
         }
@@ -584,6 +583,8 @@ class crm_Companies extends core_Master
             $vQuery->where(array("#vatId LIKE '%[#1#]%'", $vatNumb));
             
             while($similarRec = $vQuery->fetch()) {
+                if ($rec->id && ($similarRec->id == $rec->id)) continue;
+                
                 $similarsArr[$similarRec->id] = $similarRec;
                 $fieldsArr['vatId'] = 'vatId';
             }
@@ -596,21 +597,20 @@ class crm_Companies extends core_Master
                 foreach ($emailArr as $email) {
                     $folderId = email_Router::route($email, NULL, email_Router::RuleFrom);
                     
-
                     if($folderId) {
                         $fRec = doc_Folders::fetch($folderId);
                         
                         if($fRec->coverClass == core_Classes::getId('crm_Companies')) {
+                            if ($rec->id && ($fRec->coverId == $rec->id)) continue;
+                            
                             $similarsArr[$fRec->coverId] = self::fetch($fRec->coverId);
                             $fieldsArr['email'] = 'email';
                         }
                     }
                 } 
-                
             }
         }
-       
-
+        
         $fields = implode(',', $fieldsArr);
         
         return $similarsArr;
@@ -725,6 +725,10 @@ class crm_Companies extends core_Master
             
             $VatType = new drdata_VatType();
             $row->vat = $VatType->toVerbal($rec->vatId);
+
+            if($rec->folderName) {
+                $row->companyName = $row->name;
+            }
         }
         
         
@@ -1505,29 +1509,33 @@ class crm_Companies extends core_Master
      */
     public static function getRecTitle($rec, $escaped = TRUE)
     {
-        // Конфигурационните данните
-    	$conf = core_Packs::getConfig('crm');
-    	
-    	// Заглавието
-        $title = $rec->name;
-        
-        // Ако е зададена държава
-        if ($rec->country) {
+        if($rec->folderName) {
+            $title = $rec->folderName;
+        } else {
+            // Конфигурационните данните
+            $conf = core_Packs::getConfig('crm');
             
-            // Името на дръжавата
-            $commonName = mb_strtolower(drdata_Countries::fetchField($rec->country, 'commonName'));    
-            $country = self::getVerbal($rec, 'country');
-        }
-        
-        // Ако е зададен града и държавата не е същата
-        if($rec->place && ($commonName == mb_strtolower($conf->BGERP_OWN_COMPANY_COUNTRY))) {
+            // Заглавието
+            $title = $rec->name;
             
-            // Добавяме града
-            $title .= ' - ' . $rec->place;
-        } elseif ($country) {
+            // Ако е зададена държава
+            if ($rec->country) {
+                
+                // Името на дръжавата
+                $commonName = mb_strtolower(drdata_Countries::fetchField($rec->country, 'commonName'));    
+                $country = self::getVerbal($rec, 'country');
+            }
             
-            // Или ако има държава
-            $title .= ' - ' . $country;
+            // Ако е зададен града и държавата не е същата
+            if($rec->place && ($commonName == mb_strtolower($conf->BGERP_OWN_COMPANY_COUNTRY))) {
+                
+                // Добавяме града
+                $title .= ' - ' . $rec->place;
+            } elseif ($country) {
+                
+                // Или ако има държава
+                $title .= ' - ' . $country;
+            }
         }
         
         // Ако е зададено да се ескейпва

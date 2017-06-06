@@ -423,6 +423,8 @@ class drdata_Countries extends core_Manager {
      */
     public static function addCountryInBothLg($countryId, $text)
     {
+        if (!$countryId) return $text;
+        
         $cBg = ' ' . plg_Search::normalizeText(self::getCountryName($countryId, 'bg'));
         $cEn = ' ' . plg_Search::normalizeText(self::getCountryName($countryId, 'en'));
 

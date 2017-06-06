@@ -357,6 +357,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPSaleVatInclude');
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('bankAccountId', '#BG11CREX92603114548401');
         $browser->setValue('chargeVat', "Включено ДДС в цените");
         // Записване черновата на продажбата
         $browser->press('Чернова');

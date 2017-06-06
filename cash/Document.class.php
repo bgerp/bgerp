@@ -166,7 +166,7 @@ abstract class cash_Document extends deals_PaymentDocument
     	$mvc->FLD('operationSysId', 'varchar', 'caption=Операция,mandatory');
     	$mvc->FLD('amountDeal', 'double(decimals=2,max=2000000000,min=0)', 'caption=Платени,mandatory,silent');
     	$mvc->FLD('dealCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'input=hidden');
-    	$mvc->FLD('reason', 'richtext(rows=2)', 'caption=Основание,mandatory');
+    	$mvc->FLD('reason', 'richtext(rows=2, bucket=Notes)', 'caption=Основание,mandatory');
     	$mvc->FLD('termDate', 'date(format=d.m.Y)', 'caption=Очаквано на');
     	$mvc->FLD('peroCase', 'key(mvc=cash_Cases, select=name,allowEmpty)', 'caption=Каса,removeAndRefreshForm=currencyId|amount,silent');
     	$mvc->FLD('contragentName', 'varchar(255)', 'caption=Контрагент->Вносител,mandatory');
@@ -510,9 +510,11 @@ abstract class cash_Document extends deals_PaymentDocument
     		}
     
     		// Извличаме имената на създателя на документа (касиера)
-    		$cashierRec = core_Users::fetch($rec->createdBy);
-    		$cashierRow = core_Users::recToVerbal($cashierRec);
-    		$row->cashier = $cashierRow->names;
+    		if(isset($rec->activatedBy)){
+    			$cashierRec = core_Users::fetch($rec->activatedBy);
+    			$cashierRow = core_Users::recToVerbal($cashierRec);
+    			$row->activatedBy = $cashierRow->names;
+    		}
     
     		if(isset($rec->peroCase)){
     			$row->peroCase = cash_Cases::getHyperlink($rec->peroCase);
