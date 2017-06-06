@@ -556,8 +556,7 @@ class store_Products extends core_Manager
      */
     private function doRecalcReservedQuantities()
     {
-    	//@TODO да го върна
-    	//$timeline = dt::addSecs(-10 * 60, dt::now());
+    	$timeline = dt::addSecs(-10 * 60, dt::now());
     	
     	// Извличане на всички нишки на активни РнСН
     	$threadIds = store_ReserveStocks::getThreads();
