@@ -93,7 +93,7 @@ class acc_plg_Contable extends core_Plugin
      */
     public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
-        if (!empty($rec->state) && $rec->state != 'draft') {
+        if (!empty($rec->state) && $rec->state != 'draft' && $rec->state != 'pending') {
             return;
         }
         
@@ -562,7 +562,7 @@ class acc_plg_Contable extends core_Plugin
     public static function on_AfterCanActivate($mvc, &$res, $rec)
     {
         if(!$res){
-            if (!empty($rec->id) && $rec->state != 'draft') {
+            if (!empty($rec->id) && $rec->state != 'draft' && $rec->state != 'pending') {
                 $res = FALSE;
             } elseif(count($mvc->details)){
                 $hasDetail = FALSE;
