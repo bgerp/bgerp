@@ -5,9 +5,6 @@
 /**
  * Клас 'store_ReserveStocks' - Документ за резервиране на складови наличности
  *
- * 
- *
- *
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
@@ -214,7 +211,7 @@ class store_ReserveStocks extends core_Master
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
@@ -237,7 +234,7 @@ class store_ReserveStocks extends core_Master
     /**
      * След преобразуване на записа в четим за хора вид
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->title = $mvc->getLink($rec->id, 0);
     	$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
@@ -294,5 +291,14 @@ class store_ReserveStocks extends core_Master
     	$res = arr::extractValuesFromArray($query->fetchAll(), 'threadId');
     	
     	return $res;
+    }
+    
+    
+    /**
+     * Изпълнява се след създаване на нов запис
+     */
+    protected static function on_AfterCreate($mvc, $rec)
+    {
+    	store_ReserveStockDetails::saveDefaultDetails($rec);
     }
 }

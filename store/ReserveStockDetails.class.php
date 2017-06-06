@@ -89,7 +89,7 @@ class store_ReserveStockDetails extends doc_Detail
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
@@ -116,7 +116,7 @@ class store_ReserveStockDetails extends doc_Detail
     /**
      * След обработка на записите от базата данни
      */
-    public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
+    protected static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
     	if(!count(count($data->rows))) return;
         $now = dt::now();
@@ -172,7 +172,7 @@ class store_ReserveStockDetails extends doc_Detail
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
-    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
     	$rec = &$form->rec;
     	
@@ -187,7 +187,7 @@ class store_ReserveStockDetails extends doc_Detail
     /**
      * Изчисляване на количеството на реда в брой опаковки
      */
-    public function on_CalcPackQuantity(core_Mvc $mvc, $rec)
+    protected function on_CalcPackQuantity(core_Mvc $mvc, $rec)
     {
     	if(empty($rec->quantity) || empty($rec->quantityInPack)) return;
     
@@ -198,7 +198,7 @@ class store_ReserveStockDetails extends doc_Detail
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if(in_array($action, array('add', 'edit', 'delete')) && isset($rec)){
     		$state = store_ReserveStocks::fetchField("#id = {$rec->reserveId}", 'state');
@@ -229,7 +229,7 @@ class store_ReserveStockDetails extends doc_Detail
     /**
      * След подготовка на лист тулбара
      */
-    public static function on_AfterPrepareListToolbar($mvc, $data)
+    protected static function on_AfterPrepareListToolbar($mvc, $data)
     {
     	if (!empty($data->toolbar->buttons['btnAdd'])) {
     		unset($data->toolbar->buttons['btnAdd']);
@@ -306,7 +306,7 @@ class store_ReserveStockDetails extends doc_Detail
     			
     			// Добавяне на материалите от рецептата и редирект
     			$details = self::getDefaultDetailsFromBom($bomId, $form->rec->quantity);
-    			$this->addDetails($details, $masterId);
+    			$this->saveDetails($details, $masterId);
     			
     			followRetUrl();
     		}
@@ -319,7 +319,7 @@ class store_ReserveStockDetails extends doc_Detail
         	// Ако е към продажба директно се наливат артикулите от нея
     	} elseif($origin->isInstanceOf('sales_Sales')) {
     		$details = $this->getDefaultDetailsFromSale($origin->that);
-    		$this->addDetails($details, $masterId);
+    		$this->saveDetails($details, $masterId);
     	}
     	
     	// Редирект
@@ -327,19 +327,48 @@ class store_ReserveStockDetails extends doc_Detail
     }
     
     
+    
     /**
-     * Добавя детайли
+     * Записва дефолтните детайли според източника
+     * 
+     * @param int $reserveId - ид/запис на документа
+     */
+    public static function saveDefaultDetails($containerId, $reserveId)
+    {
+    	$details = array();
+    	$masterRec = store_ReserveStocks::fetchRec($reserveId);
+    	
+    	$me = cls::get(get_called_class());
+    	$origin = doc_Containers::getDocument($masterRec->originId);
+    	$bomId = $me->getBomFromOrigin($origin);
+    	if(!empty($bomId)){
+    		$quantity = $origin->fetchField('quantity');
+    		$details = $me->getDefaultDetailsFromBom($bomId, $quantity);
+    	} elseif($origin->isInstanceOf('sales_Sales')){
+    		$details = $me->getDefaultDetailsFromSale($origin->that);
+    	}
+    	
+    	if(count($details)){
+    		$me->saveDetails($details, $reserveId);
+    	}
+    }
+    
+    
+    
+    /**
+     * Записва детайлите към документа за резервиране на складови наличности
      * 
      * @param array $details - детайли за добавяне
      * @param int $reserveId - ид на мастъра
      */
-    private function addDetails($details, $reserveId)
+    private function saveDetails($details, $reserveId)
     {
     	store_ReserveStockDetails::delete("#reserveId = {$reserveId}");
     	
     	if(count($details)){
     		array_walk($details, function(&$obj) use ($reserveId){ $obj->reserveId = $reserveId;});
     		$this->saveArray($details);
+    		cls::get('store_ReserveStocks')->invoke('AfterUpdateDetail', array($reserveId, $this));
     	}
     }
     
