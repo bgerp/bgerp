@@ -670,6 +670,9 @@ class doc_DocumentPlg extends core_Plugin
     }
     
     
+    /**
+     * Изпълнява се при шътдаун
+     */
     public static function on_Shutdown($mvc)
     {
     	if(count($mvc->pendingQueue)) {
