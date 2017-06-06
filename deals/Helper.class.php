@@ -389,9 +389,11 @@ abstract class deals_Helper
 			$packQuantity = 1;
 		}
 		
-		$quantity = store_Products::fetchField("#productId = {$productId} AND #storeId = {$storeId}", 'quantity');
-		$quantity = ($quantity) ? $quantity : 0;
-			
+		
+		$stRec = store_Products::fetch("#productId = {$productId} AND #storeId = {$storeId}", 'quantity,reservedQuantity');
+		
+		$quantity = $stRec->quantity - $stRec->reservedQuantity;
+		
 		$Double = cls::get('type_Double');
 		$Double->params['smartRound'] = 'smartRound';
 			
@@ -399,11 +401,18 @@ abstract class deals_Helper
 		$shortUom = cat_UoM::getShortName($pInfo->productRec->measureId);
 		$storeName = store_Stores::getTitleById($storeId);
 		$verbalQuantity = $Double->toVerbal($quantity);
+		
 		if($quantity < 0){
 			$verbalQuantity = "<span class='red'>{$verbalQuantity}</span>";
 		}
 		
-		$info = tr("|Количество в|* <b>{$storeName}</b> : {$verbalQuantity} {$shortUom}");
+		$text = "|Налично в|* <b>{$storeName}</b> : {$verbalQuantity} {$shortUom}";
+		if(!empty($stRec->reservedQuantity)){
+			$verbalReserved = $Double->toVerbal($stRec->reservedQuantity);
+			$text .= " " . "|*( |Запазено|* {$verbalReserved} {$shortUom} )";
+		}
+		
+		$info = tr($text);
 		$obj = (object)array('formInfo' => $info);
 		
 		$quantityInPack = ($pInfo->packagings[$packagingId]) ? $pInfo->packagings[$packagingId]->quantity : 1;
