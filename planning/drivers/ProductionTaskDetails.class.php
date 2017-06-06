@@ -110,7 +110,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	$this->FLD('weight', 'double', 'caption=Тегло,smartCenter,unit=кг');
     	$this->FLD('employees', 'keylist(mvc=crm_Persons,select=id)', 'caption=Работници,smartCenter,tdClass=nowrap');
     	$this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=code)', 'caption=Обордуване,input=none,smartCenter');
-    	$this->FLD('notes', 'richtext(rows=2)', 'caption=Забележки');
+    	$this->FLD('notes', 'richtext(rows=2,bucket=Notes)', 'caption=Забележки');
     	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
     	$this->FNC('packagingId', 'int', 'smartCenter,tdClass=small-field nowrap');
     	$this->FLD('actionRecId', 'int', 'input=none');

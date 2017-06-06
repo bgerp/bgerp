@@ -1108,7 +1108,7 @@ abstract class deals_DealMaster extends deals_DealBase
     			$id = $firstDoc->fetchField('id');
     			$closedIds[$id] = $id;
     			
-    			$products = (array)$dealInfo->get('products');
+    			$products = (array)$dealInfo->get('dealProducts');
     			if(count($products)){
     				$details[] = $products;
     			}
@@ -1120,6 +1120,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	$Detail::delete("#{$mvc->{$Detail}->masterKey} = {$rec->id}");
     	
     	$details = deals_Helper::normalizeProducts($details);
+    	
     	if(count($details)){
     		foreach ($details as &$det1){
     			$det1->{$mvc->{$Detail}->masterKey} = $rec->id;

@@ -43,27 +43,21 @@ class store_ReserveStockDetails extends doc_Detail
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo, store';
-    
-    
-    /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, store';
+    public $canEdit = 'ceo, store, planning, sales';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, store';
+    public $canAdd = 'ceo, store, planning, sales';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo, store';
+    public $canDelete = 'ceo, store, planning, sales';
     
     
     /**
@@ -85,7 +79,7 @@ class store_ReserveStockDetails extends doc_Detail
         $this->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input,mandatory');
         $this->FNC('inStockPackQuantity', 'double', 'caption=Запазено');
         $this->FNC('freeStockPackQuantity', 'double', 'caption=Разполагаемо');
-        $this->FLD('notes', 'richtext(rows=3)', 'caption=Забележки');
+        $this->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Забележки');
     }
     
     
@@ -101,9 +95,11 @@ class store_ReserveStockDetails extends doc_Detail
     	$rec = &$form->rec;
     	$masterRec = $data->masterRec;
     	
+    	// Всички складируеми артикули
     	$products = cat_Products::getByProperty('canStore');
     	$form->setOptions('productId', array('' => '') + $products);
 
+    	// Ако е избран артикул, показват се опаковките му
     	if(isset($rec->productId)){
     		$fromStoreId = $mvc->Master->fetchField($rec->reserveId, 'storeId');
     		$storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $fromStoreId);
@@ -125,8 +121,10 @@ class store_ReserveStockDetails extends doc_Detail
     	if(!count(count($data->rows))) return;
         $now = dt::now();
     	
+        // Количествата в склада
         $productsInStore = store_Products::getQuantitiesInStore($data->masterData->rec->storeId);
         
+        // За всеки запис
     	foreach ($data->rows as $i => &$row) {
     		$rec = &$data->recs[$i];
     		
@@ -136,10 +134,10 @@ class store_ReserveStockDetails extends doc_Detail
     		// Показваме подробната информация за опаковката при нужда
     		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
     		
+    		// Изчисляване на допълнителните полета
     		$rec->inStockPackQuantity = isset($productsInStore[$rec->productId]) ? $productsInStore[$rec->productId] : 0;
     		$rec->inStockPackQuantity /= $rec->quantityInPack;
     		$rec->freeStockPackQuantity = $rec->inStockPackQuantity - $rec->packQuantity;
-    		
     		$row->inStockPackQuantity = $mvc->getFieldType('inStockPackQuantity')->toVerbal($rec->inStockPackQuantity);
     		$row->freeStockPackQuantity = $mvc->getFieldType('freeStockPackQuantity')->toVerbal($rec->freeStockPackQuantity);
     	}
@@ -162,6 +160,10 @@ class store_ReserveStockDetails extends doc_Detail
     			} elseif($rec->{$fld} == 0){
     				$row->{$fld} = "<span class='quiet'>{$row->{$fld}}</span>";
     			}
+    		}
+    		
+    		if($rec->freeStockPackQuantity < 0){
+    			$row->packQuantity = ht::createHint($row->packQuantity, 'Резервирано е по-голямо количество от наличното', 'warning', FALSE);
     		}
     	}
     }
@@ -205,9 +207,11 @@ class store_ReserveStockDetails extends doc_Detail
     		}
     	}
     	
+    	// Дали може да се импортира от източника
     	if($action == 'importfromorigin'){
     		$requiredRoles = $mvc->getRequiredRoles('add', $rec, $userId);
     		
+    		// Ако е към задание, то трябва да има рецепта
     		if($requiredRoles != 'no_one' && isset($rec->reserveId)){
     			$originId = store_ReserveStocks::fetchField($rec->reserveId, 'originId');
     			$origin = doc_Containers::getDocument($originId);
@@ -252,6 +256,12 @@ class store_ReserveStockDetails extends doc_Detail
     }
     
     
+    /**
+     * Намира рецептата от заданието
+     * 
+     * @param core_ObjectReference $origin
+     * @return int|NULL - ид на рецепта или NULL ако няма
+     */
     private function getBomFromOrigin(core_ObjectReference $origin)
     {
     	if($origin->isInstanceOf('planning_Jobs')){
@@ -267,26 +277,34 @@ class store_ReserveStockDetails extends doc_Detail
     	return NULL;
     }
     
+    
+    /**
+     * Екшън зареждащ дефолтните детайли от източника на документа
+     */
     function act_Importfromorigin()
     {
+    	// Проверка за права
     	$this->requireRightFor('importfromorigin');
     	expect($masterId = Request::get($this->masterKey, 'int'));
     	$this->requireRightFor('importfromorigin', (object)array("{$this->masterKey}" => $masterId));
     	expect($masterRec = store_ReserveStocks::fetch($masterId));
     	$origin = doc_Containers::getDocument($masterRec->originId);
     	
+    	// Ако е към задание
     	if($origin->isInstanceOf('planning_Jobs')){
     		$bomId = $this->getBomFromOrigin($origin);
     		expect($bomId);
     		
+    		// Показва се форма за въвеждане за какво к-во да се попълнят материалите
     		$form = cls::get('core_Form');
     		$form->title = "Резервиране на материали по рецепта|* " . cat_Boms::getLink($bomId, 0);
-    		
     		$form->FLD('quantity', 'double', 'caption=За к-во,mandatory');
     		$form->setDefault('quantity', $origin->fetchField('quantity'));
     		$form->input();
     		
     		if($form->isSubmitted()){
+    			
+    			// Добавяне на материалите от рецептата и редирект
     			$details = self::getDefaultDetailsFromBom($bomId, $form->rec->quantity);
     			$this->addDetails($details, $masterId);
     			
@@ -298,15 +316,23 @@ class store_ReserveStockDetails extends doc_Detail
         
         	return $this->renderWrapping($form->renderHtml());
     		
+        	// Ако е към продажба директно се наливат артикулите от нея
     	} elseif($origin->isInstanceOf('sales_Sales')) {
     		$details = $this->getDefaultDetailsFromSale($origin->that);
     		$this->addDetails($details, $masterId);
     	}
     	
+    	// Редирект
     	followRetUrl();
     }
     
     
+    /**
+     * Добавя детайли
+     * 
+     * @param array $details - детайли за добавяне
+     * @param int $reserveId - ид на мастъра
+     */
     private function addDetails($details, $reserveId)
     {
     	store_ReserveStockDetails::delete("#reserveId = {$reserveId}");
@@ -318,6 +344,12 @@ class store_ReserveStockDetails extends doc_Detail
     }
     
     
+    /**
+     * Взима дефолтните детайли от продажба
+     * 
+     * @param int $saleId - ид на продажба
+     * @return array $res - артикулите от продажбата
+     */
     private function getDefaultDetailsFromSale($saleId)
     {
     	$res = array();
@@ -325,6 +357,8 @@ class store_ReserveStockDetails extends doc_Detail
     	$products = $dealInfo->dealProducts;
     	if(is_array($products)){
     		foreach ($products as $pRec){
+    			
+    			// Само складируемите артикули
     			$canStore = cat_Products::fetchField($pRec->productId, 'canStore');
     			if($canStore != 'yes') continue;
     			
@@ -339,6 +373,13 @@ class store_ReserveStockDetails extends doc_Detail
     }
     
     
+    /**
+     * Дефолтни артикули от рецепта
+     * 
+     * @param int $bomId
+     * @param double $quantity
+     * @return array $res - артикулите от рецептата
+     */
     private function getDefaultDetailsFromBom($bomId, $quantity)
     {
     	$res = array();

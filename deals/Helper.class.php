@@ -602,9 +602,17 @@ abstract class deals_Helper
 						foreach ($arr as $p){
 							$index = $p->productId;
 							
+							if(!empty($p->notes)){
+								$index .= "|" . serialize($p->notes) . "|";
+							}
+							
 							if(!isset($combined[$index])){
 								$combined[$index] = new stdClass();
 								$combined[$index]->productId = $p->productId;
+								
+								if(!empty($p->notes)){
+									$combined[$index]->notes = $p->notes;
+								}
 							}
 								
 							$d = &$combined[$index];

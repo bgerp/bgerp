@@ -53,7 +53,7 @@ class planning_Jobs extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, plg_Sorting, acc_plg_DocumentSummary, plg_Search, doc_SharablePlg, change_Plugin, plg_Clone, plg_Printing,bgerp_plg_Blank';
+    public $loadList = 'plg_RowTools2, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, plg_Sorting, acc_plg_DocumentSummary, plg_Search, doc_SharablePlg, change_Plugin, plg_Clone, plg_Printing,bgerp_plg_Blank, store_plg_ReserveStockSource';
     
     
     /**
@@ -542,7 +542,7 @@ class planning_Jobs extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->title = $mvc->getLink($rec->id, 0);
+    	$row->title = $mvc->getLink($rec->id);
     	
     	if(isset($rec->productId)){
     		$measureId = cat_Products::fetchField($rec->productId, 'measureId');
@@ -663,8 +663,8 @@ class planning_Jobs extends core_Master
     public static function getRecTitle($rec, $escaped = TRUE)
     {
     	$self = cls::get(get_called_class());
-    	 
     	$pTitle = cat_Products::getTitleById($rec->productId);
+    	
     	return "Job{$rec->id} - {$pTitle}";
     }
     
@@ -771,13 +771,6 @@ class planning_Jobs extends core_Master
     		$count = $mvc->getSelectableProducts($rec->saleId);
     		if(!$count){
     			$res = 'no_one';
-    		}
-    	}
-    	
-    	
-    	if($action == 'close' && isset($rec)){
-    		if(doc_Containers::fetchField("#threadId = {$rec->threadId} AND #state = 'pending'")){
-    			//$res = 'no_one';
     		}
     	}
     }

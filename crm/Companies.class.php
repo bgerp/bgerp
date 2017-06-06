@@ -476,8 +476,6 @@ class crm_Companies extends core_Master
     {
         $resStr = '';
         
-        if ($rec->id) return $resStr;
-        
         $similarsArr = self::getSimilarRecs($rec, $fields);
         
         if (!empty($similarsArr)) {
@@ -544,8 +542,6 @@ class crm_Companies extends core_Master
 		
         $similarName = $similarVat = FALSE;
         
-        if ($rec->id) return $similarsArr;
-        
         $fieldsArr = array();
         
         $nameL = "#" . plg_Search::normalizeText(STR::utf2ascii($rec->name)) . "#";
@@ -574,6 +570,8 @@ class crm_Companies extends core_Master
         }
         
         while($similarRec = $nQuery->fetch()) {
+            if ($rec->id && ($similarRec->id == $rec->id)) continue;
+            
             $similarsArr[$similarRec->id] = $similarRec;
             $fieldsArr['name'] = 'name';
         }
@@ -585,6 +583,8 @@ class crm_Companies extends core_Master
             $vQuery->where(array("#vatId LIKE '%[#1#]%'", $vatNumb));
             
             while($similarRec = $vQuery->fetch()) {
+                if ($rec->id && ($similarRec->id == $rec->id)) continue;
+                
                 $similarsArr[$similarRec->id] = $similarRec;
                 $fieldsArr['vatId'] = 'vatId';
             }
@@ -597,21 +597,20 @@ class crm_Companies extends core_Master
                 foreach ($emailArr as $email) {
                     $folderId = email_Router::route($email, NULL, email_Router::RuleFrom);
                     
-
                     if($folderId) {
                         $fRec = doc_Folders::fetch($folderId);
                         
                         if($fRec->coverClass == core_Classes::getId('crm_Companies')) {
+                            if ($rec->id && ($fRec->coverId == $rec->id)) continue;
+                            
                             $similarsArr[$fRec->coverId] = self::fetch($fRec->coverId);
                             $fieldsArr['email'] = 'email';
                         }
                     }
                 } 
-                
             }
         }
-       
-
+        
         $fields = implode(',', $fieldsArr);
         
         return $similarsArr;
