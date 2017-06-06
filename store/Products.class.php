@@ -567,8 +567,7 @@ class store_Products extends core_Manager
     	
     	// Има ли активирани РнСН след $timeline, или има оттеглени РнСН след $timeline
     	$rQuery1 = store_ReserveStocks::getQuery();
-    	$rQuery1->where("#activatedOn >= '{$timeline}' AND #state = 'active'");
-    	$rQuery1->orWhere("#modifiedOn >= '{$timeline}' AND #state = 'rejected'");
+    	$rQuery1->where("(#activatedOn >= '{$timeline}' AND #state = 'active') OR (#modifiedOn >= '{$timeline}' AND #state = 'rejected')  OR (#modifiedOn >= '{$timeline}' AND #state = 'active'  AND #brState = 'rejected')");
     	$rQuery1->show('id');
     	if($rQuery1->count()) return TRUE;
     	
@@ -579,8 +578,7 @@ class store_Products extends core_Manager
     		// Има ли активирани документи след $timeline, или има оттеглени документи след $timeline
     		$query = $mvc->getQuery();
     		$query->in('threadId', $threadIds);
-    		$query->where("#activatedOn >= '{$timeline}' AND #state = 'active'");
-    		$query->orWhere("#modifiedOn >= '{$timeline}' AND #state = 'rejected' AND #brState = 'active'");
+    		$query->where("(#activatedOn >= '{$timeline}' AND #state = 'active') OR (#modifiedOn >= '{$timeline}' AND #state = 'rejected' AND #brState = 'active') OR (#modifiedOn >= '{$timeline}' AND #state = 'active' AND #brState = 'rejected')");
     		$query->show('id');
     		
     		if($query->count()) return TRUE;
