@@ -251,7 +251,7 @@ class store_Products extends core_Manager
     {
     	// Всички записи, които са останали но не идват от баланса
     	$query = static::getQuery();
-    	$query->show('productId,storeId,quantity,state');
+    	$query->show('productId,storeId,quantity,state,reservedQuantity');
     	
     	// Зануляваме к-та само на тези продукти, които още не са занулени
     	$query->where("#state = 'active'");
@@ -268,7 +268,10 @@ class store_Products extends core_Manager
     	while($rec = $query->fetch()){
     		
     		// К-то им се занулява и състоянието се затваря
-    		$rec->state    = 'closed';
+    		if(empty($rec->reservedQuantity)){
+    			$rec->state = 'closed';
+    		}
+    		
     		$rec->quantity = 0;
     		
     		// Обновяване на записа

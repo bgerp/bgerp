@@ -354,7 +354,6 @@ class store_ReserveStockDetails extends doc_Detail
     }
     
     
-    
     /**
      * Записва детайлите към документа за резервиране на складови наличности
      * 
