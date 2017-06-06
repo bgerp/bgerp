@@ -144,7 +144,7 @@ class acc_plg_Contable extends core_Plugin
         $error = $error ? ",error={$error}" : '';
         
         if(haveRole('debug')) {
-            $data->toolbar->addBtn('Транзакция', array($mvc, 'getTransaction', $rec->id), "ef_icon=img/16/bug.png,title=Дебъг информация,row=2{$error}");
+            $data->toolbar->addBtn('Транзакция', array($mvc, 'getTransaction', $rec->id), "ef_icon=img/16/bug.png,title=Дебъг информация,row=2");
         }
         
         $row = 1;
