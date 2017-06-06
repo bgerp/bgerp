@@ -671,7 +671,8 @@ abstract class deals_Helper
 	public static function getQuantityHint($productId, $storeId, $quantity)
 	{
 		$hint = '';
-		$quantityInStore = store_Products::fetchField("#productId = {$productId} AND #storeId = {$storeId}", 'quantity');
+		$stRec = store_Products::fetch("#productId = {$productId} AND #storeId = {$storeId}", 'quantity,reservedQuantity');
+		$quantityInStore = $stRec->quantity - $stRec->reservedQuantity;
 		
 		if(is_null($quantityInStore)){
 			$hint = 'Налично количество в склада: н.д.';
