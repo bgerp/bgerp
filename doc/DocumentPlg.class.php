@@ -127,6 +127,7 @@ class doc_DocumentPlg extends core_Plugin
         setIfNot($mvc->canExportdoc, 'user');
         setIfNot($mvc->canForceexpenseitem, 'ceo,acc,purchase');
         setIfNot($mvc->canPsingle, 'user');
+        setIfNot($mvc->pendingQueue, array());
         
         $mvc->setDbIndex('state');
         $mvc->setDbIndex('folderId');
@@ -1642,6 +1643,10 @@ class doc_DocumentPlg extends core_Plugin
         } else {
         	$data->form->toolbar->renameBtn('save', 'Запис');
         }
+        
+        if(empty($data->form->rec->id) && $mvc->haveRightFor('pending', $data->form->rec)){
+        	$data->form->toolbar->addSbBtn('Заявка', 'save_pending', 'id=btnPending,order=9.99989','ef_icon = img/16/tick-circle-frame.png');
+        }
     }
 
     
@@ -1715,6 +1720,10 @@ class doc_DocumentPlg extends core_Plugin
     	if ($form->isSubmitted()) {
 	        if($form->cmd == 'save_new_thread' && $rec->threadId){
 		        unset($rec->threadId);
+		    }
+		    
+		    if($form->cmd == 'save_pending' && $mvc->haveRightFor('pending', $rec)){
+		    	$form->rec->state = 'pending';
 		    }
         }
     }
@@ -2180,7 +2189,7 @@ class doc_DocumentPlg extends core_Plugin
         	if($requiredRoles != 'no_one'){
         		
         		// Само чакащите и черновите могат да стават от чакащи -> чернова или обратно
-        		if($rec->state != 'pending' && $rec->state != 'draft'){
+        		if(isset($rec->state) && $rec->state != 'pending' && $rec->state != 'draft'){
         			$requiredRoles = 'no_one';
         		} elseif(!$mvc->haveRightFor('single', $rec)){
         			$requiredRoles = 'no_one';
