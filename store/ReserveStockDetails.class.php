@@ -327,7 +327,6 @@ class store_ReserveStockDetails extends doc_Detail
     }
     
     
-    
     /**
      * Записва дефолтните детайли според източника
      * 

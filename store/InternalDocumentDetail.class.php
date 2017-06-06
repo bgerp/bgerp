@@ -192,7 +192,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     public static function on_AfterRenderDetail($mvc, &$tpl, $data)
     {
     	// Ако документа е активиран и няма записи съответния детайл не го рендираме
-    	if($data->masterData->rec->state != 'draft' && !$data->rows){
+    	if($data->masterData->rec->state != 'draft' && $data->masterData->rec->state != 'pending' && !$data->rows){
     		$tpl = new ET('');
     	}
     }
