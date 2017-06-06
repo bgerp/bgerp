@@ -126,7 +126,7 @@ class marketing_Bulletins extends core_Master
         
         $this->FLD('lg', 'varchar(2)', 'caption=Език,notNull');
         
-        $this->FLD('formTitle', 'richtext(rows=3)', 'caption=Съдържание на формата->Покана за абонамент');
+        $this->FLD('formTitle', 'richtext(rows=3,bucket=InquiryBucket)', 'caption=Съдържание на формата->Покана за абонамент');
         $this->FLD('logo', 'fileman_FileType(bucket=pictures)', 'caption=Съдържание на формата->Лого');
         $this->FLD('formSuccessText', 'varchar(128)', 'caption=Съдържание на формата->Благодарност при абониране');
         $this->FLD('img', 'fileman_FileType(bucket=pictures)', 'caption=Съдържание на формата->Картинка при абониране');

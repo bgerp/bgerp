@@ -7,7 +7,7 @@
             с адрес [#MyCountry#], 
             <!--ET_BEGIN MyAddress-->гр. [#MyAddress#],<!--ET_END MyAddress-->
             <!--ET_END MyCountry-->
-            <!--ET_BEGIN MyCompanyVatNo--> ДДС№ [#MyCompanyVatNo#], <!--ET_END MyCompanyVatNo-->
+            <!--ET_BEGIN MyCompanyVatNo--> ДДС № [#MyCompanyVatNo#], <!--ET_END MyCompanyVatNo-->
             <!--ET_BEGIN uicId--> ЕИК [#uicId#],<!--ET_END uicId-->
             <!--ET_END MyCountry-->
         </div>

@@ -9,7 +9,7 @@
                                 <tbody>
                                     <tr>
                                        <td class="cell centered" rowspan='4' style='width:32%;'>
-                                            <div class="document-title">|Резервиране на складови наличности|*</div>
+                                            <div class="document-title">|резервиране на складови наличности|*</div>
                                             <div style="padding-top:5px;">
                                                 № <span class="bigData">[#id#]</span> / 
                                                 <span class="bigData">[#activatedOn#]</span>

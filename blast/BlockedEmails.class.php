@@ -70,6 +70,7 @@ class blast_BlockedEmails extends core_Manager
         $this->FLD('state', 'enum(ok=OK, blocked=Блокирано, error=Грешка)', 'caption=Състояние');
         $this->FLD('lastChecked', 'datetime(format=smartTime)', 'caption=Последно->Проверка, input=none');
         $this->FLD('lastSent', 'datetime(format=smartTime)', 'caption=Последно->Изпращане, input=none');
+        $this->FLD('checkPoint', 'int', 'caption=Проверка->Точки, input=none');
         
         $this->setDbUnique('email');
     }
@@ -84,7 +85,7 @@ class blast_BlockedEmails extends core_Manager
      */
     public static function isBlocked($email)
     {
-        if (self::fetch(array("#email = '[#1#]' AND (#state = 'blocked' OR #state = 'error')", $email))) return TRUE;
+        if (self::fetch(array("#email = '[#1#]' AND (#state = 'blocked' OR (#state = 'error' AND #checkPoint = 0))", $email))) return TRUE;
         
         return FALSE;
     }
@@ -199,6 +200,8 @@ class blast_BlockedEmails extends core_Manager
      */
     public static function validateEmail_($email)
     {
+        $email = trim($email);
+        
         static $validatedDomainsArr = array();
         
         if (!trim($email)) return ;
@@ -237,6 +240,21 @@ class blast_BlockedEmails extends core_Manager
     {
         if (!isset($rec->lastSent)) {
             $rec->lastSent = dt::now();
+        }
+        
+        if ($rec->state == 'error') {
+            $rec->checkPoint--;
+            
+            if ($rec->checkPoint < 0 || !(isset($rec->checkPoint))) {
+                $rec->checkPoint = 0;
+            }
+            
+        } elseif ($rec->state == 'ok') {
+            $rec->checkPoint++;
+            
+            if ($rec->checkPoint > 5) {
+                $rec->checkPoint = 5;
+            }
         }
     }
     
@@ -280,7 +298,7 @@ class blast_BlockedEmails extends core_Manager
             } else {
                 $rec->state = 'error';
             }
-            self::save($rec, 'lastChecked, state');
+            self::save($rec, 'lastChecked, state, checkPoint');
         }
     }
     

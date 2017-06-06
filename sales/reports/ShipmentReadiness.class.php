@@ -599,6 +599,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 		// Намират се детайлите на ЕН-то
 		$dQuery = store_ShipmentOrderDetails::getQuery();
 		$dQuery->where("#shipmentId = {$soRec->id}");
+		$dQuery->show('shipmentId,productId,packagingId,quantity,quantityInPack,price,discount,showMode');
 		
 		// Детайлите се сумират по артикул
 		$all = deals_Helper::normalizeProducts(array($dQuery->fetchAll()));

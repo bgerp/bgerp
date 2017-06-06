@@ -118,7 +118,7 @@ class rack_Racks extends core_Master
         $this->FLD('num', 'int(max=100)', 'caption=Стелаж,mandatory,smartCenter');
         $this->FLD('rows', 'enum(A,B,C,D,E,F,G,H,I,J,K,L,M)', 'caption=Редове,mandatory,smartCenter');
         $this->FLD('columns', 'int(max=100)', 'caption=Колони,mandatory,smartCenter');
-        $this->FLD('comment', 'richtext(rows=5)', 'caption=Коментар');
+        $this->FLD('comment', 'richtext(rows=5, bucket=Comments)', 'caption=Коментар');
         $this->FLD('total', 'int', 'caption=Палет-места->Общо,smartCenter,input=none');
         $this->FLD('used', 'int', 'caption=Палет-места->Използвани,smartCenter,input=none');
         $this->FLD('reserved', 'int', 'caption=Палет-места->Запазени,smartCenter,input=none');

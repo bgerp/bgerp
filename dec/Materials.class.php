@@ -70,7 +70,7 @@ class dec_Materials extends core_Master
     function description()
     {
         $this->FLD('title', 'varchar', 'caption=Заглавие, width=100%');
-        $this->FLD('text', 'richtext', 'caption=Текст');
+        $this->FLD('text', 'richtext(bucket=Notes)', 'caption=Текст');
     }
     
     

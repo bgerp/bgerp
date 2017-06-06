@@ -660,7 +660,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('name', 'Производство 1');
         $browser->setValue('parentId', 'Завод');
         $browser->setValue('schedule','Дневен график');
-        //$browser->setValue('User1', True);
+        $browser->setValue('type', 'Цех');
         $browser->setValue('shared_13_2', '13_2');
         $browser->press('Запис');
          if (strpos($browser->getText(),'Непопълнено задължително поле')){
@@ -1065,7 +1065,7 @@ class unit_MinkPbgERP extends core_Manager {
         } else {
             return $this->reportErr('Грешна обща сума', 'warning');
         }
-        if(strpos($browser->gettext(), 'Доставка: EXW 4000 Пловдив, ул.Родопи, №52')) {
+        if(strpos($browser->gettext(), 'Доставка: EXW: 4000 Пловдив, ул.Родопи, №52')) {
         } else {
             return $this->reportErr('Грешнo условие на доставка', 'warning');
         }
@@ -1329,7 +1329,7 @@ class unit_MinkPbgERP extends core_Manager {
         } else {
             return $this->reportErr('Грешна обща сума', 'warning');
         }
-        if(strpos($browser->gettext(), 'Доставка: DDP 4000 Пловдив, ул.Родопи, №52')) {
+        if(strpos($browser->gettext(), 'Доставка: DDP: 4000 Пловдив, ул.Родопи, №52')) {
         } else {
             return $this->reportErr('Грешнo условие на доставка', 'warning');
         }

@@ -128,7 +128,7 @@ class sales_QuotationsDetails extends doc_Detail {
     	$this->FLD('vatPercent', 'percent(min=0,max=1,decimals=2)', 'caption=ДДС,input=none');
         $this->FLD('optional', 'enum(no=Не,yes=Да)', 'caption=Опционален,maxRadio=2,columns=2,input=hidden,silent,notNull,value=no');
         $this->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Изглед,notNull,default=auto');
-        $this->FLD('notes', 'richtext(rows=3)', 'caption=Забележки,formOrder=110001');
+        $this->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Забележки,formOrder=110001');
     	$this->setField('packPrice', 'silent');
     }
     

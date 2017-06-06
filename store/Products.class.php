@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'store_Products' за наличните в склада артикули
  * Данните постоянно се опресняват от баланса
@@ -15,6 +16,12 @@
  */
 class store_Products extends core_Manager
 {
+    
+    
+	/**
+	 * Ключ с който да се заключи ъпдейта на таблицата
+	 */
+	const SYNC_LOCK_KEY = 'syncStoreProducts';
     
     
     /**
@@ -62,13 +69,7 @@ class store_Products extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId=Наименование, measureId=Мярка,quantity,storeId';
-    
-    
-    /**
-     * Работен кеш
-     */
-    protected static $cache = array();
+    public $listFields = 'productId=Наименование, measureId=Мярка,quantity,reservedQuantity,freeQuantity,storeId';
     
     
     /**
@@ -78,7 +79,9 @@ class store_Products extends core_Manager
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Име,remember=info');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад');
-        $this->FLD('quantity', 'double', 'caption=Количество,smartCenter');
+        $this->FLD('quantity', 'double', 'caption=Налично');
+        $this->FLD('reservedQuantity', 'double', 'caption=Запазено');
+        $this->FNC('freeQuantity', 'double', 'caption=Разполагаемо');
         $this->FLD('state', 'enum(active=Активирано,closed=Изчерпано)', 'caption=Състояние,input=none');
         
         $this->setDbUnique('productId, storeId');
@@ -91,23 +94,24 @@ class store_Products extends core_Manager
      */
     protected static function on_AfterPrepareListRows($mvc, $data)
     {
-        $recs = &$data->recs;
-        $rows = &$data->rows;
-        
         // Ако няма никакви записи - нищо не правим
-        if(!count($recs)) return;
+        if(!count($data->recs)) return;
 	            
-	    foreach($rows as $id => &$row){
-	       $rec = &$recs[$id];
+	    foreach($data->rows as $id => &$row){
+	       $rec = &$data->recs[$id];
 	       $row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
 	       $row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
+	       if(isset($rec->reservedQuantity)){
+	       		$rec->freeQuantity = $rec->quantity - $rec->reservedQuantity;
+	       		$row->freeQuantity = $mvc->getFieldType('freeQuantity')->toVerbal($rec->freeQuantity);
+	       }
 	       
-	        try{
-	        	$pInfo = cat_Products::getProductInfo($rec->productId);
-	        	$row->measureId = cat_UoM::getTitleById($pInfo->productRec->measureId);
-	        } catch(core_exception_Expect $e){
+	       try{
+	        	$measureId = cat_Products::fetchField($rec->productId, 'measureId');
+	        	$row->measureId = cat_UoM::getTitleById($measureId);
+	       } catch(core_exception_Expect $e){
 	        	$row->measureId = tr("???");
-	        }
+	       }
         }
     }
     
@@ -222,11 +226,18 @@ class store_Products extends core_Manager
     	
     	$arrRes = arr::syncArrays($all, $oldRecs, "productId,storeId", "quantity");
     	
+    	if(!core_Locks::get(self::SYNC_LOCK_KEY, 60, 1)) {
+    		$this->logWarning("Синхронизирането на складовите наличности е заключено от друг процес");
+    		return;
+    	}
+    	
     	$self->saveArray($arrRes['insert']);
-    	$self->saveArray($arrRes['update']);
+    	$self->saveArray($arrRes['update'], "id,quantity");
     	
     	// Ъпдейт на к-та на продуктите, имащи запис но липсващи в счетоводството
     	self::updateMissingProducts($arrRes['delete']);
+    	
+    	core_Locks::release(self::SYNC_LOCK_KEY);
     }
     
     
@@ -240,7 +251,7 @@ class store_Products extends core_Manager
     {
     	// Всички записи, които са останали но не идват от баланса
     	$query = static::getQuery();
-    	$query->show('productId,storeId,quantity,state');
+    	$query->show('productId,storeId,quantity,state,reservedQuantity');
     	
     	// Зануляваме к-та само на тези продукти, които още не са занулени
     	$query->where("#state = 'active'");
@@ -257,7 +268,10 @@ class store_Products extends core_Manager
     	while($rec = $query->fetch()){
     		
     		// К-то им се занулява и състоянието се затваря
-    		$rec->state    = 'closed';
+    		if(empty($rec->reservedQuantity)){
+    			$rec->state = 'closed';
+    		}
+    		
     		$rec->quantity = 0;
     		
     		// Обновяване на записа
@@ -364,14 +378,12 @@ class store_Products extends core_Manager
     }
     
     
-     
     /**
      * Проверяваме дали колонката с инструментите не е празна, и ако е така я махаме
      */
     public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
     	$data->listTableMvc->FLD('measureId', 'varchar', 'smartCenter');
-    	
     }
 
 
@@ -394,4 +406,185 @@ class store_Products extends core_Manager
         }
     }
 
+    
+    /**
+     * Обновяване на резервираните наличности по крон
+     */
+    function cron_CalcReservedQuantity()
+    {
+    	// Ще се преизчисляват ли резервациите
+    	if(!$this->doRecalcReservedQuantities()) return;
+    	$containerIds = $result = $reserveDetails = array();
+    	
+    	$saleQuery = sales_Sales::getQuery();
+    	$saleQuery->where("#state = 'active'");
+    	$saleQuery->show('containerId');
+    	$containerIds = arr::extractValuesFromArray($saleQuery->fetchAll(), 'containerId');
+    	
+    	$jobQuery = planning_Jobs::getQuery();
+    	$jobQuery->where("#state = 'active' || #state = 'stopped' || #state = 'wakeup'");
+    	$jobQuery->show('containerId');
+    	$containerIds1 = arr::extractValuesFromArray($jobQuery->fetchAll(), 'containerId');
+    	$containerIds += $containerIds1;
+    	
+    	// Сумират се резервираните количества
+    	$query = store_ReserveStockDetails::getQuery();
+    	$query->EXT('state', 'store_ReserveStocks', 'externalName=state,externalKey=reserveId');
+    	$query->EXT('originId', 'store_ReserveStocks', 'externalName=originId,externalKey=reserveId');
+    	$query->where("#state = 'active'");
+    	$query->show('reserveId,quantity,productId,originId');
+    	$query->in('originId', $containerIds);
+    	
+    	// Групират се резервираните количества по артикули и склад
+    	while($dRec = $query->fetch()){
+    		
+    		if(!is_array($reserveDetails[$dRec->reserveId])){
+    			$reserveDetails[$dRec->reserveId] = array();
+    		}
+    		
+    		if(!array_key_exists($dRec->productId, $reserveDetails[$dRec->reserveId])){
+    			$reserveDetails[$dRec->reserveId][$dRec->productId] = $dRec->quantity;
+    		} else {
+    			$reserveDetails[$dRec->reserveId][$dRec->productId] += $dRec->quantity;
+    		}
+    	}
+    	
+    	// Намират се всички активини РнСН
+    	$query = store_ReserveStocks::getQuery();
+    	$query->where("#state = 'active'");
+    	$query->show('storeId,threadId,activatedOn');
+    	while($rec = $query->fetch()){
+    		
+    		// Ако е празен се пропуска
+    		$details = $reserveDetails[$rec->id];
+    		if(!count($details)) continue;
+    		
+    		// Намират се всички експедирани артикули с ЕН, активирани след резервацията
+    		$shQuery = store_ShipmentOrderDetails::getQuery();
+    		$shQuery->EXT('state', 'store_ShipmentOrders', 'externalName=state,externalKey=shipmentId');
+    		$shQuery->EXT('threadId', 'store_ShipmentOrders', 'externalName=threadId,externalKey=shipmentId');
+    		$shQuery->EXT('activatedOn', 'store_ShipmentOrders', 'externalName=activatedOn,externalKey=shipmentId');
+    		$shQuery->where("#state = 'active'");
+    		$shQuery->where("#activatedOn >= '{$rec->activatedOn}'");
+    		$shQuery->where("#threadId = '{$rec->threadId}'");
+    		$shQuery->show('productId,quantity,shipmentId');
+    		
+    		// Ако има резервирано количество за този артикул, приспада се
+    		while($shRec = $shQuery->fetch()){
+    			if(isset($details[$shRec->productId])){
+    				$details[$shRec->productId] -= $shRec->quantity;
+    			}
+    		}
+    			
+    		// Намират се всички експедирани артикули с протокол за производство в нишката.
+    		// Активирани след активирането на резервацията
+    		$pQuery = planning_DirectProductNoteDetails::getQuery();
+    		$pQuery->EXT('state', 'planning_DirectProductionNote', 'externalName=state,externalKey=noteId');
+    		$pQuery->EXT('threadId', 'planning_DirectProductionNote', 'externalName=threadId,externalKey=noteId');
+    		$pQuery->EXT('activatedOn', 'planning_DirectProductionNote', 'externalName=activatedOn,externalKey=noteId');
+    		$pQuery->where("#type = 'input'");
+    		$pQuery->where("#state = 'active'");
+    		$pQuery->where("#activatedOn >= '{$rec->activatedOn}'");
+    		$pQuery->where("#threadId = '{$rec->threadId}'");
+    		$pQuery->where("#storeId IS NOT NULL");
+    		$pQuery->show('productId,quantity');
+    		
+    		// Ако има резервирано количество приспада се
+    		while($pRec = $pQuery->fetch()){
+    			if(isset($details[$pRec->productId])){
+    				$details[$pRec->productId] -= $pRec->quantity;
+    			}
+    		}
+    			
+    		// За останалите записи, подготвя се записите за ъпдейт
+    		foreach ($details as $productId => $quantity){
+    			$key = "{$rec->storeId}|{$productId}";
+    			if(!array_key_exists($key, $result)){
+    				$result[$key] = (object)array('storeId' => $rec->storeId, 'productId' => $productId, 'reservedQuantity' => $quantity, 'state' => 'active');
+    			} else {
+    				$result[$key]->reservedQuantity += $quantity;
+    			}
+    		}
+    	}
+    	
+    	// Извличане на всички стари записи
+    	$storeQuery = static::getQuery();
+    	$old = $storeQuery->fetchAll();
+    	
+    	// Синхронизират се новите със старите записи
+    	$res = arr::syncArrays($result, $old, 'storeId,productId', 'reservedQuantity');
+    	
+    	// Заклюване на процеса
+    	if(!core_Locks::get(self::SYNC_LOCK_KEY, 60, 1)) {
+    		$this->logWarning("Синхронизирането на складовите наличности е заключено от друг процес");
+    		return;
+    	}
+    	
+    	// Добавяне и ъпдейт на резервираното количество на новите
+    	$this->saveArray($res['insert']);
+    	$this->saveArray($res['update'], 'id,reservedQuantity');
+    		
+    	// Намиране на тези записи, от старите които са имали резервирано к-во, но вече нямат
+    	$unsetArr = array_filter($old, function (&$r) use ($result) {
+    		if(!isset($r->reservedQuantity)) return FALSE;
+    		if(array_key_exists("{$r->storeId}|{$r->productId}", $result)){
+    			return FALSE;
+    		}
+    			
+    		return TRUE;
+    	});
+    		
+    	// Техните резервирани количества се изтриват
+    	if(count($unsetArr)){
+    		array_walk($unsetArr, function($obj){$obj->reservedQuantity = NULL;});
+    		$this->saveArray($unsetArr, 'id,reservedQuantity');
+    	}
+    	
+    	// Освобождаване на процеса
+    	core_Locks::release(self::SYNC_LOCK_KEY);
+    }
+    
+    
+    /**
+     * Дали трябва да се преизчисляват запазените количества.
+     * Те ще се преизчисляват ако поне едно е изпълнено от изброените.
+     * 
+     * 1. Има ли въобще активни  РнСН
+     * 2. Има нови активни/оттеглени РнСН активирани/оттеглени след $timeline 
+     * 3. Има ли нови контирани или анулирани ЕН-та в нишките на активните РнСН
+     * 4. Има ли нови контирани или анулирани Протоколи за производство в нишките на активните РнСН
+     * 5. Ако поне от горните не е изпълнено нещо, няма да се преизчисляват
+     * 
+     * @return boolean - TRUE или FALSE
+     */
+    private function doRecalcReservedQuantities()
+    {
+    	$timeline = dt::addSecs(-10 * 60, dt::now());
+    	
+    	// Извличане на всички нишки на активни РнСН
+    	$threadIds = store_ReserveStocks::getThreads();
+    	if(!count($threadIds)) return FALSE;
+    	
+    	// Има ли активирани РнСН след $timeline, или има оттеглени РнСН след $timeline
+    	$rQuery1 = store_ReserveStocks::getQuery();
+    	$rQuery1->where("(#activatedOn >= '{$timeline}' AND #state = 'active') OR (#modifiedOn >= '{$timeline}' AND #state = 'rejected')  OR (#modifiedOn >= '{$timeline}' AND #state = 'active'  AND #brState = 'rejected')");
+    	$rQuery1->show('id');
+    	if($rQuery1->count()) return TRUE;
+    	
+    	// Проверяват се всички ЕН, СР и протоколи за производство в нишките
+    	foreach (array('store_ShipmentOrders', 'planning_DirectProductionNote') as $doc){
+    		$mvc = cls::get($doc);
+    			
+    		// Има ли активирани документи след $timeline, или има оттеглени документи след $timeline
+    		$query = $mvc->getQuery();
+    		$query->in('threadId', $threadIds);
+    		$query->where("(#activatedOn >= '{$timeline}' AND #state = 'active') OR (#modifiedOn >= '{$timeline}' AND #state = 'rejected' AND #brState = 'active') OR (#modifiedOn >= '{$timeline}' AND #state = 'active' AND #brState = 'rejected')");
+    		$query->show('id');
+    		
+    		if($query->count()) return TRUE;
+    	}
+    	
+    	// Ако се стигне до тук, няма промяна
+    	return FALSE;
+    }
 }
