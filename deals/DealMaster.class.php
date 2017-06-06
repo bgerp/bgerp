@@ -1720,7 +1720,9 @@ abstract class deals_DealMaster extends deals_DealBase
     	if($action == 'pending' && isset($rec)){
     		if($res != 'no_one'){
     			$Detail = cls::get($mvc->mainDetail);
-    			if(!$Detail->fetch("#{$Detail->masterKey} = {$rec->id}")){
+    			if(empty($rec->id)){
+    				$res = 'no_one';
+    			} elseif(!$Detail->fetch("#{$Detail->masterKey} = '{$rec->id}'")){
     				$res = 'no_one';
     			}
     		}
