@@ -484,7 +484,8 @@ class store_Products extends core_Manager
     		$pQuery->where("#activatedOn >= '{$rec->activatedOn}'");
     		$pQuery->where("#threadId = '{$rec->threadId}'");
     		$pQuery->where("#storeId IS NOT NULL");
-    			
+    		$pQuery->show('productId,quantity');
+    		
     		// Ако има резервирано количество приспада се
     		while($pRec = $pQuery->fetch()){
     			if(isset($details[$pRec->productId])){
@@ -545,16 +546,22 @@ class store_Products extends core_Manager
      * Дали трябва да се преизчисляват запазените количества.
      * Те ще се преизчисляват ако поне едно е изпълнено от изброените.
      * 
-     * 1. Има нови активни/оттеглени РнСН активирани/оттеглени след $timeline 
-     * 2. Има ли нови контирани или анулирани ЕН-та в нишките на активните РнСН
-     * 3. Има ли нови контирани или анулирани Протоколи за производство в нишките на активните РнСН
-     * 4. Ако поне от горните не е изпълнено нещо, няма да се преизчисляват
+     * 1. Има ли въобще активни  РнСН
+     * 2. Има нови активни/оттеглени РнСН активирани/оттеглени след $timeline 
+     * 3. Има ли нови контирани или анулирани ЕН-та в нишките на активните РнСН
+     * 4. Има ли нови контирани или анулирани Протоколи за производство в нишките на активните РнСН
+     * 5. Ако поне от горните не е изпълнено нещо, няма да се преизчисляват
      * 
      * @return boolean - TRUE или FALSE
      */
     private function doRecalcReservedQuantities()
     {
+    	//@TODO да го върна
     	//$timeline = dt::addSecs(-10 * 60, dt::now());
+    	
+    	// Извличане на всички нишки на активни РнСН
+    	$threadIds = store_ReserveStocks::getThreads();
+    	if(!count($threadIds)) return FALSE;
     	
     	// Има ли активирани РнСН след $timeline, или има оттеглени РнСН след $timeline
     	$rQuery1 = store_ReserveStocks::getQuery();
@@ -562,10 +569,6 @@ class store_Products extends core_Manager
     	$rQuery1->orWhere("#modifiedOn >= '{$timeline}' AND #state = 'rejected'");
     	$rQuery1->show('id');
     	if($rQuery1->count()) return TRUE;
-    	
-    	// Извличане на всички нишки на активни РнСН
-    	$threadIds = store_ReserveStocks::getThreads();
-    	if(!count($threadIds)) return FALSE;
     	
     	// Проверяват се всички ЕН, СР и протоколи за производство в нишките
     	foreach (array('store_ShipmentOrders', 'planning_DirectProductionNote') as $doc){
@@ -576,7 +579,8 @@ class store_Products extends core_Manager
     		$query->in('threadId', $threadIds);
     		$query->where("#activatedOn >= '{$timeline}' AND #state = 'active'");
     		$query->orWhere("#modifiedOn >= '{$timeline}' AND #state = 'rejected' AND #brState = 'active'");
-    			
+    		$query->show('id');
+    		
     		if($query->count()) return TRUE;
     	}
     	
