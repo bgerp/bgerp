@@ -798,7 +798,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	$update = FALSE;
     	
     	// Запис на адреса
-    	if(empty($rec->deliveryAdress)){
+    	if(empty($rec->deliveryAdress) && isset($rec->deliveryTermId)){
     		$update = TRUE;
     		$rec->deliveryAdress = cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $mvc);
     	}
@@ -953,6 +953,7 @@ abstract class deals_DealMaster extends deals_DealBase
 			} else {
 				if(isset($rec->deliveryTermId)){
 					$deliveryAdress .= cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $mvc);
+					$deliveryAdress = ht::createHint($deliveryAdress, 'Адреса за доставка ще се запише при активиране');
 				}
 			}
 			
