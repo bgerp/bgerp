@@ -333,7 +333,7 @@ class store_ReserveStockDetails extends doc_Detail
      * 
      * @param int $reserveId - ид/запис на документа
      */
-    public static function saveDefaultDetails($containerId, $reserveId)
+    public static function saveDefaultDetails($reserveId)
     {
     	$details = array();
     	$masterRec = store_ReserveStocks::fetchRec($reserveId);
