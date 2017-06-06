@@ -232,7 +232,7 @@ class store_Products extends core_Manager
     	}
     	
     	$self->saveArray($arrRes['insert']);
-    	$self->saveArray($arrRes['update']);
+    	$self->saveArray($arrRes['update'], "id,quantity");
     	
     	// Ъпдейт на к-та на продуктите, имащи запис но липсващи в счетоводството
     	self::updateMissingProducts($arrRes['delete']);
