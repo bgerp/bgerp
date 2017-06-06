@@ -388,11 +388,16 @@ class store_ReserveStockDetails extends doc_Detail
     			// Само складируемите артикули
     			$canStore = cat_Products::fetchField($pRec->productId, 'canStore');
     			if($canStore != 'yes') continue;
+    			$key = "{$pRec->productId}|{$pRec->packagingId}";
     			
-    			$res[] = (object)array('productId'      => $pRec->productId,
-    					               'packagingId'    => $pRec->packagingId,
-    					               'quantity'       => $pRec->quantity,
-    					               'quantityInPack' => $pRec->quantityInPack);
+    			if(!array_key_exists($key, $res)){
+    				$res[$key] = (object)array('productId'      => $pRec->productId, 
+    									       'packagingId'    => $pRec->packagingId,
+    						                   'quantity'       => $pRec->quantity,
+    						                   'quantityInPack' => $pRec->quantityInPack);
+    			} else {
+    				$res[$key]->quantity += $pRec->quantity;
+    			}
     		}
     	}
     
