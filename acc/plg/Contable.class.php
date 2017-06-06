@@ -214,7 +214,7 @@ class acc_plg_Contable extends core_Plugin
      * @param string|NULL $res
      * @param stdObject $rec
      */
-    public function on_AfterGetBtnErrStr($mvc, &$res, $rec)
+    public static function on_AfterGetBtnErrStr($mvc, &$res, $rec)
     {
         if ($mvc->haveRightFor('conto', $rec)) {
             if(!self::checkPeriod($mvc->getValiorValue($rec), $error)){
