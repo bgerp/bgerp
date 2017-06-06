@@ -1770,7 +1770,7 @@ class email_Incomings extends core_Master
         
         if (isset($score) && ($score >= $spamScore)) {
             $rec->state = 'rejected';
-            self::logNotice("Автоматично оттеглен имейл със СПАМ рейтинг = '{$score}'");
+            self::logNotice("Автоматично оттеглен имейл ({$rec->subject}) със СПАМ рейтинг = '{$score}'", $rec->id);
         }
     }
     
