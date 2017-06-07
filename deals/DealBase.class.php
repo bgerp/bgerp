@@ -199,7 +199,7 @@ abstract class deals_DealBase extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	$rec = &$data->rec;
     	
