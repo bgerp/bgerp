@@ -226,10 +226,6 @@ abstract class deals_DealBase extends core_Master
     	$dealQuery->where("#state = 'active'");
     	$dealQuery->where("#closedDocuments = ''");
     	
-    	if($this instanceof sales_Sales){
-    		$dealQuery->where("#dealerId = '{$rec->dealerId}'");
-    	}
-    	
     	$valiorFld = ($this->valior) ? $this->valior : 'createdOn';
     	while($dealRec = $dealQuery->fetch()){
     		$title = $this->getRecTitle($dealRec) . " / " . (($this->valiorFld) ? $this->getVerbal($dealRec, $this->valiorFld) : '');

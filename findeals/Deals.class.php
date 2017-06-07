@@ -525,7 +525,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * След подготовка на тулбара на единичен изглед
      */
-    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	$rec = $data->rec;
     	
