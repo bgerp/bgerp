@@ -210,6 +210,12 @@ class fileman_webdrv_Generic extends core_Manager
         // Манипулатора на файла
         $fileHnd = Request::get('id');
         
+        if (!$fileHnd) {
+            $fileHnd = Request::get('fileHnd');
+        }
+        
+        $bigImg = Request::get('bigImg');
+        
         // Вземаме записа за файла
         $fRec = fileman_Files::fetchByFh($fileHnd);
         
@@ -263,28 +269,34 @@ class fileman_webdrv_Generic extends core_Manager
                     
                     $preview->append($str, 'THUMB_IMAGE');
                 } else {
-                    $imgInst = new thumb_Img(array($jpgFh, $thumbWidthAndHeightArr['width'], $thumbWidthAndHeightArr['height'], 'fileman', 'verbalName' => 'Preview'));
+                    
+                    $multiplier = fileman_Setup::get('WEBDRV_PREVIEW_MULTIPLIER');
+                    
+                    $width = $thumbWidthAndHeightArr['width'];
+                    $height = $thumbWidthAndHeightArr['height'];
+                    $verbalName = 'Preview';
+                    if ($bigImg && ($multiplier > 1)) {
+                        $width *= $multiplier;
+                        $height *= $multiplier;
+                        $verbalName .= ' X ' . $multiplier;
+                        $attr['class'] = 'webdrv-previewX2';
+                    }
+                    
+                    $imgInst = new thumb_Img(array($jpgFh, $width, $height, 'fileman', 'verbalName' => $verbalName));
                     
                     // Вземаме файла
                     $thumbnailImg = $imgInst->createImg($attr);
-                    
-                    if ($thumbnailImg) {
                         
-                        // Ако е зададено да се увеличава превюто, добавяме линк който показва по-голямото изображение
-                        $multiplier = fileman_Setup::get('WEBDRV_PREVIEW_MULTIPLIER');
-                        if ($multiplier > 1) {
-                            $bigImg = new thumb_Img(array($jpgFh, $multiplier*$thumbWidthAndHeightArr['width'], $multiplier*$thumbWidthAndHeightArr['height'], 'fileman', 'verbalName' => 'Preview X ' . $multiplier));
-                            
-                            $aAttr = array();
-                            // Вземаме URL към sbf директорията
-                            $aAttr['href'] = $bigImg->getUrl();
-                            
-                            $thumbnailImg = ht::createElement('a', $aAttr, $thumbnailImg);
-                        }
+                    // В зависимост от текущото състояние добаваме линк за увеличаване/намаляне изборажението
+                    if ($multiplier > 1) {
+                        $aAttr = array();
+                        $aAttr['href'] = toUrl(array($this, 'preview', 'bigImg' => !$bigImg, 'fileHnd' => $fileHnd));
                         
-                        // Добавяме към preview' то генерираното изображение
-                        $preview->append($thumbnailImg, 'THUMB_IMAGE');
+                        $thumbnailImg = ht::createElement('a', $aAttr, $thumbnailImg);
                     }
+                    
+                    // Добавяме към preview' то генерираното изображение
+                    $preview->append($thumbnailImg, 'THUMB_IMAGE');
                 }
             }
             
