@@ -441,7 +441,7 @@ class core_Form extends core_FieldSet
             $haveErr = TRUE;
             $this->setWarning($name, "Възможен проблем с полето|" .
                 "* <b>'|" . $captions .
-                "|*'</b>!<br><small style='color:red'>" . "|" .
+                "|*'</b>!<br><small>" . "|" .
                 $result['warning'] . "|*</small>");
         }
         

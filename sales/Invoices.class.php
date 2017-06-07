@@ -870,9 +870,9 @@ class sales_Invoices extends deals_InvoiceMaster
      * @param string|NULL $res
      * @param stdObject $rec
      */
-    public function on_AfterGetBtnErrStr($mvc, &$res, $rec)
+    public static function on_AfterGetBtnErrStr($mvc, &$res, $rec)
     {
-        if (empty($rec->number) && $rec->state != 'active' && $mvc->haveRightFor('conto', $rec)) {
+    	if (empty($rec->number) && $rec->state != 'active' && $mvc->haveRightFor('conto', $rec)) {
             
             if ($rec->numlimit && $rec->date) {
                 $newDate = $mvc->getNewestInvoiceDate($rec->numlimit);
@@ -883,6 +883,12 @@ class sales_Invoices extends deals_InvoiceMaster
                                     ')';
                 }
             }
+        }
+        
+        if(empty($res)){
+        	if($rec->date > dt::today()){
+        		$res = 'Фактурата е с бъдещата дата и не може да бъде контирана';
+        	}
         }
     }
    	

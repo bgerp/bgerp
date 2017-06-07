@@ -1509,7 +1509,7 @@ class email_Incomings extends core_Master
                     $resStr = 'Проблем';
                 }
                 
-                email_Incomings::logDebug("Резултат от обучние за {$typeStr} - " . $resStr, $rec->id);
+                email_Incomings::logDebug("Резултат от обучение за {$typeStr} - " . $resStr, $rec->id);
             } catch(spas_client_Exception $e) {
                 reportException($e);
                 email_Incomings::logErr('Грешка при обучение на SPAS: ' . $e->getMessage());
@@ -1770,7 +1770,7 @@ class email_Incomings extends core_Master
         
         if (isset($score) && ($score >= $spamScore)) {
             $rec->state = 'rejected';
-            self::logNotice("Автоматично оттеглен имейл със СПАМ рейтинг = '{$score}'");
+            self::logNotice("Автоматично оттеглен имейл ({$rec->subject}) със СПАМ рейтинг = '{$score}'", $rec->id);
         }
     }
     

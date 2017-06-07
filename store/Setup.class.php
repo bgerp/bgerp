@@ -77,6 +77,8 @@ class store_Setup extends core_ProtoSetup
     		'store_InventoryNotes',
     		'store_InventoryNoteSummary',
     		'store_InventoryNoteDetails',
+    		'store_ReserveStocks',
+    		'store_ReserveStockDetails',
     		'migrate::updateConfig',
     		'migrate::updateTransfers',
     		'migrate::inventoryNotes'
@@ -108,6 +110,22 @@ class store_Setup extends core_ProtoSetup
 			'STORE_ACC_ACCOUNTS' => array("acc_type_Accounts(regInterfaces=store_AccRegIntf|cat_ProductAccRegIntf)", 'caption=Складова синхронизация със счетоводството->Сметки'),
 	);
 	
+	
+	/**
+     * Настройки за Cron
+     */
+    var $cronSettings = array(
+        array(
+            'systemId' => "Update Reserved Stocks",
+            'description' => "Обновяване на резервираните наличности",
+            'controller' => "store_Products",
+            'action' => "CalcReservedQuantity",
+            'period' => 10,
+        	'offset' => 1,
+            'timeLimit' => 100
+        ),
+    );
+    
 	
     /**
      * Инсталиране на пакета
