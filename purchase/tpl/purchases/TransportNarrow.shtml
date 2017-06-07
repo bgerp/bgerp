@@ -81,6 +81,10 @@
                 <li>|Цените са без ДДС|*.[#noVat#]</li>
                 <!--ET_END noVat-->
 
+                <!--ET_BEGIN closedDocuments-->
+                <li>|Обединява|*: [#closedDocuments#]</li>
+                <!--ET_END closedDocuments-->
+
                 <li>Страните признават тази заявка за официален договор.</li>
 
                 <li>Не се разрешава разпалетизиране на стоката без знанието и одобрението на изпращача.</li>
@@ -92,9 +96,7 @@
                 [#notes#]
                 <!--ET_END notes-->
                 
-                <!--ET_BEGIN closedDocuments-->
-                   <li>|Обединява|*: [#closedDocuments#]</li>
-                <!--ET_END closedDocuments-->
+
             </ul>
         </td>
     </tr>
