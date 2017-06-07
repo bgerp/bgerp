@@ -65,7 +65,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		$mvc->FLD('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
 		$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
 		$mvc->FLD('discount', 'percent(min=0,max=1)', 'caption=Отстъпка,smartCenter');
-		$mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Забележки,formOrder=110001');
+		$mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Забележки,formOrder=110001');
 	}
 	
 	
@@ -256,8 +256,23 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		$listSysId = ($firstDocument->isInstanceOf('sales_Sales')) ? 'salesList' : 'purchaseList';
 		$listId = cond_Parameters::getParameter($masterRec->contragentClassId, $masterRec->contragentId, $listSysId);
 		
+		$batchesInstalled = core_Packs::isInstalled('batch');
 		foreach ($data->rows as $id => &$row1){
 			$rec = $data->recs[$id];
+			
+			if($batchesInstalled && !empty($rec->batches)){
+				$b = batch_BatchesInDocuments::displayBatchesForInvoice($rec->productId, $rec->batches);
+				if(!empty($b)){
+					if(is_string($row1->productId)){
+						$row1->productId .= "<div class='small'>{$b}</div>";
+					} else {
+						$row1->productId->append(new core_ET("<div class='small'>[#BATCH#]</div>"));
+						$row1->productId->replace($b, 'BATCH');
+					}
+				}
+			}
+			
+			deals_Helper::addNotesToProductRow($row1->productId, $rec->notes);
 			
 			if(isset($listId)){
 				$row1->reff = cat_Listings::getReffByProductId($listId, $rec->productId, $rec->packagingId);
@@ -367,7 +382,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		$date = ($masterRec->state == 'draft') ? NULL : $masterRec->modifiedOn;
 		
 		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'short', 'invoice', $lang);
-		deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
 		
 		// Показваме подробната информация за опаковката при нужда
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);

@@ -389,7 +389,7 @@ class deals_plg_DpInvoice extends core_Plugin
     	
     	if($data->dpInfo->dpOperation == 'accrued'){
     		$colspan = count($data->listFields) - 1;
-    		$lastRow = new ET("<tr><td colspan='{$colspan}' style='text-indent:20px'>" . tr('Авансово плащане') . " " . tr("по|*") . tr("|* |{$caption}|* ") . implode(', ', $deals) . "<td style='text-align:right'>[#dpAmount#]</td></td></tr>");
+    		$lastRow = new ET("<tr><td colspan='{$colspan}' style='text-indent:20px'>" . tr('Авансово плащане') . " " . tr("по {$caption}|* ") . implode(', ', $deals) . "<td style='text-align:right'>[#dpAmount#]</td></td></tr>");
     	} else {
     		$fields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $mvc->hideListFieldsIfEmpty);
     		

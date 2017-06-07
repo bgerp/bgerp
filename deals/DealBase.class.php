@@ -194,19 +194,17 @@ abstract class deals_DealBase extends core_Master
     
     
     /**
-     * Преди рендиране на тулбара
+     * След подготовка на тулбара на единичен изглед.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
      */
-    public static function on_BeforeRenderSingleToolbar($mvc, &$res, &$data)
+    static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	$rec = &$data->rec;
     	
     	if($mvc->haveRightFor('closeWith', $rec)) {
-    		 
-    		// Ако тази сделка може да се приключи с друга сделка, и има налични сделки подменяме бутона да сочи
-    		// към екшън за избиране на кои сделки да се приключат с тази
-    		$data->toolbar->removeBtn('btnConto');
-    		$data->toolbar->removeBtn('btnActivate');
-    		$data->toolbar->addBtn('Активиране', array($mvc, 'closeWith', $rec->id), "id=btnConto{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Активиране на документа');
+    		$data->toolbar->addBtn('Обединяване', array($mvc, 'closeWith', $rec->id), "id=btnCloseWith{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Обединяване на сделката с други сделки');
     	}
     }
     
@@ -316,8 +314,8 @@ abstract class deals_DealBase extends core_Master
     	// Подготовка на формата за избор на опция
     	$form = cls::get('core_Form');
     	$form->title = "|Активиране на|* <b>" . $this->getTitleById($id). "</b>" . " ?";
-    	$form->info = 'Активирането на тази сделка може да приключи други сделки';
-    	$form->FLD('closeWith', "keylist(mvc={$this->className})", 'caption=Приключи и,column=1');
+    	$form->info = 'Посочете кои сделки желаете да обедините с тази сделка';
+    	$form->FLD('closeWith', "keylist(mvc={$this->className})", 'caption=Приключи и,column=1,mandatory');
     	$form->setSuggestions('closeWith', $options);
     	$form->input();
     
@@ -352,7 +350,7 @@ abstract class deals_DealBase extends core_Master
     		return new Redirect(array($this, 'single', $id));
     	}
     
-    	$form->toolbar->addSbBtn('Активиране', 'save', 'ef_icon = img/16/tick-circle-frame.png');
+    	$form->toolbar->addSbBtn('Обединяване', 'save', 'ef_icon = img/16/tick-circle-frame.png');
     	$form->toolbar->addBtn('Отказ', array($this, 'single', $id),  'ef_icon = img/16/close-red.png');
     	
     	// Рендиране на формата

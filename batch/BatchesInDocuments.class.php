@@ -603,4 +603,40 @@ class batch_BatchesInDocuments extends core_Manager
 			}
 		}
 	}
+	
+	
+	/**
+	 * Помощна ф-я за показване на партидите във фактура
+	 * 
+	 * @param int $productId
+	 * @param text $batches
+	 * @return NULL|string
+	 */
+	public static function displayBatchesForInvoice($productId, $batches)
+	{
+		$batches = explode(',', $batches);
+		if(!count($batches)) return NULL;
+		$res = array();
+		
+		foreach ($batches as $key => $b){
+			$batch = batch_Defs::getBatchArray($productId, $b);
+			if(count($batch)){
+				foreach ($batch as $k => &$b){
+					if(!Mode::isReadOnly() && haveRole('powerUser')){
+						if(!haveRole('batch,ceo')){
+							Request::setProtected('batch');
+						}
+						$b = ht::createLink($b, array('batch_Movements', 'list', 'batch' => $k));
+						$b = $b->getContent();
+					}
+					
+					$res[] = $b;
+				}
+			}
+		}
+		
+		$res = implode(",", $res);
+		
+		return $res;
+	}
 }

@@ -41,8 +41,6 @@ class planning_plg_StateManager extends core_Plugin
 	 */
 	public static function on_AfterDescription(core_Mvc $mvc)
 	{
-		setIfNot($mvc->canPending, 'no_one');
-		
 		// Ако липсва, добавяме поле за състояние
 		if (!$mvc->fields['state']) {
 			$mvc->FLD('state', 'enum(draft=Чернова, pending=Заявка,waiting=Чакащо,active=Активирано, rejected=Оттеглено, closed=Приключено, stopped=Спряно, wakeup=Събудено,template=Шаблон)', 'caption=Състояние, input=none');

@@ -200,7 +200,7 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Кои полета да могат да се променят след активация
      */
-    public $changableFields = 'responsible,contragentCountryId, contragentPCode, contragentPlace, contragentAddress, dueTime, dueDate, additionalInfo,accountId,paymentType';
+    public $changableFields = 'responsible,contragentCountryId, contragentPCode, contragentPlace, contragentAddress, dueTime, dueDate, additionalInfo,accountId,paymentType,template';
     
     
     /**
@@ -408,9 +408,7 @@ class sales_Invoices extends deals_InvoiceMaster
      */
     public function on_ValidateNumber(core_Mvc $mvc, $rec, core_Form $form)
     {
-        if (empty($rec->number)) {
-            return;
-        }
+        if (empty($rec->number)) return;
         
         $prevNumber = intval($rec->number)-1;
         if (!$mvc->fetchField("#number = {$prevNumber}")) {
@@ -575,11 +573,6 @@ class sales_Invoices extends deals_InvoiceMaster
     		$row->paymentType = ht::createHint($row->paymentType, 'Плащането е определено автоматично');
     	}
     }
-
-
-    /*
-     * Реализация на интерфейса doc_DocumentIntf
-     */
     
     
     /**
@@ -864,11 +857,7 @@ class sales_Invoices extends deals_InvoiceMaster
     
     
     /**
-     * 
-     * 
-     * @param core_Manager $mvc
-     * @param string|NULL $res
-     * @param stdObject $rec
+     * Текст за грешка при бутон за контиране
      */
     public static function on_AfterGetBtnErrStr($mvc, &$res, $rec)
     {

@@ -115,7 +115,7 @@ class core_Ajax extends core_Mvc
                 $errMsg = "Грешка при вземане на данни от {$url} - {$e->getMessage()}";
                 
                 // Записваме в лога
-                self::logWarning($errMsg, NULL, self::$logKeepDays);
+                self::logNotice($errMsg, NULL, self::$logKeepDays);
                 
                 // Ако сме в дебъг режим и сме логнат
                 if (isDebug() && haveRole('user')) {

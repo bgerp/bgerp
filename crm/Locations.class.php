@@ -171,16 +171,37 @@ class crm_Locations extends core_Master {
     
     
     /**
+     * Извиква се преди подготовката на формата за редактиране/добавяне $data->form
+     * 
+     * @param crm_Locations $mvc
+     * @param stdObject $res
+     * @param stdObject $data
+     */
+    protected static function on_BeforePrepareEditForm($mvc, &$res, $data)
+    {
+        Request::setProtected(array('contragentCls', 'contragentId'));
+    }
+    
+    
+    /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
+     * 
+     * @param crm_Locations $mvc
+     * @param stdObject $res
+     * @param stdObject $data
      */
     protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $rec = $data->form->rec;
         
+        expect($rec->contragentCls);
+        
         $Contragents = cls::get($rec->contragentCls);
         expect($Contragents instanceof core_Master);
         
         $contragentRec = $Contragents->fetch($rec->contragentId);
+        
+        $Contragents->requireRightFor('edit', $contragentRec);
         
         $data->form->setDefault('countryId', $contragentRec->country);
         $data->form->setDefault('place', $contragentRec->place);
@@ -391,6 +412,9 @@ class crm_Locations extends core_Master {
         
         if(!Mode::is('printing')) {
             if ($data->masterMvc->haveRightFor('edit', $data->masterId)) {
+                
+                Request::setProtected(array('contragentCls', 'contragentId'));
+                
                 $url = array($this, 'add', 'contragentCls' => $data->contragentCls, 'contragentId' => $data->masterId, 'ret_url' => TRUE);
                 $img = "<img src=" . sbf('img/16/add.png') . " width='16' height='16'>";
                 $tpl->append(ht::createLink($img, $url, FALSE, 'title=Добавяне на нова локация'), 'title');

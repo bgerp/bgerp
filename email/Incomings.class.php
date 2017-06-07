@@ -930,6 +930,15 @@ class email_Incomings extends core_Master
                 }
             }
         }
+        
+        // Показваме източника на първия документ в нишката
+        if ($rec->originId && $rec->threadId) {
+            $fCid = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
+            
+            if ($fCid == $rec->containerId) {
+                $row->inReplyToOrigin = doc_Containers::getLinkForSingle($rec->originId);
+            }
+        }
     }
     
     
@@ -1651,6 +1660,27 @@ class email_Incomings extends core_Master
             $rec->routeBy = 'file';
         }
         
+        $originId = $rec->originId;
+        
+        if (!$originId) {
+            
+            // Ако не е зададено originId - тогава е на последния документ 
+            if ($rec->threadId) {
+                $cQuery = doc_Containers::getQuery();
+                $cQuery->where(array("#threadId = '[#1#]'", $rec->threadId));
+                $cQuery->orderBy('#createdOn', 'DESC');
+                $cQuery->orderBy('#id', 'DESC');
+                $cQuery->limit(1);
+                $cQuery->show('id');
+                
+                $originId = $cQuery->fetch()->id;
+            }
+        }
+        $rArr = array('folderId' => NULL, 'threadId' => NULL, 'routeBy' => NULL, 'originId' => $originId);
+        
+        // Проверяваме дали може да се рутира тук
+        email_Router::checkRouteRules($rec, $rArr);
+        
         // Входящите имейли да не влизат в оттеглени нишки, в които има документи за контиране
         if ($rec->threadId && ($rec->routeBy == 'file' || $rec->routeBy == 'thread')) {
             $tRec = doc_Threads::fetch($rec->threadId);
@@ -1702,7 +1732,8 @@ class email_Incomings extends core_Master
                     // Добавяме начина на рутиране
                     $rec->routeBy = 'from';
                     
-                    return;
+                    // Проверяваме дали може да се рутира тук
+                    if (email_Router::checkRouteRules($rec, $rArr)) return;
                 }
                 
                 // Рутиране по домейn
@@ -1711,7 +1742,7 @@ class email_Incomings extends core_Master
                     // Добавяме начина на рутиране
                     $rec->routeBy = 'domain';
                     
-                    return;
+                    if (email_Router::checkRouteRules($rec, $rArr)) return;
                 }
                 
                 // Рутиране по място (държава)
@@ -1723,7 +1754,7 @@ class email_Incomings extends core_Master
                     // Добавяме начина на рутиране
                     $rec->routeBy = 'country';
                     
-                    return;
+                    if (email_Router::checkRouteRules($rec, $rArr)) return;
                 }
                 
             } else {
@@ -1734,7 +1765,7 @@ class email_Incomings extends core_Master
                     // Добавяме начина на рутиране
                     $rec->routeBy = 'fromTo';
                     
-                    return;
+                    if (email_Router::checkRouteRules($rec, $rArr)) return;
                 }
             }
         }
