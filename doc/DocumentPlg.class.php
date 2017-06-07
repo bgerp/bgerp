@@ -128,6 +128,7 @@ class doc_DocumentPlg extends core_Plugin
         setIfNot($mvc->canForceexpenseitem, 'ceo,acc,purchase');
         setIfNot($mvc->canPsingle, 'user');
         setIfNot($mvc->pendingQueue, array());
+        setIfNot($mvc->canPending, 'no_one');
         
         $mvc->setDbIndex('state');
         $mvc->setDbIndex('folderId');

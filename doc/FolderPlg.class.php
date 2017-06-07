@@ -301,7 +301,7 @@ class doc_FolderPlg extends core_Plugin
                 if(!$rec->inCharge) {
                     $rec = $mvc->fetch($rec->id);
                 }
-                if($userId && $userId != $rec->inCharge) {
+                if ($userId && ($userId != $rec->inCharge) && !type_Keylist::isIn($userId, $rec->shared)) {
                     $requiredRoles = 'officer';
                 }
             }

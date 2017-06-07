@@ -383,6 +383,82 @@ class email_Router extends core_Manager
     
     
     /**
+     * Проверява дали може да се рутира тук
+     * 
+     * @param stdObject $rec
+     * @param array $oldValArr
+     * 
+     * @return boolean
+     */
+    public static function checkRouteRules(&$rec, $oldValArr = array('folderId' => NULL, 'threadId' => NULL))
+    {
+        $rRoute = (email_Setup::get('RESTRICT_ROUTE') == 'yes') ? TRUE : FALSE; 
+        
+        $threadId = $rec->threadId;
+        $folderId = $rec->folderId;
+        
+        if (!$folderId) {
+            $folderId = doc_Threads::fetchField($threadId, 'folderId');
+        }
+        
+        static $stopRoutingArr = array();
+        $key = $rec->folderId;
+        
+        if (!isset($stopRoutingArr[$key])) {
+            $stopRoutingArr[$key] = FALSE;
+            
+            if ($folderId) {
+                
+                try {
+                    $cover = doc_Folders::getCover($folderId);
+                    $coverRec = $cover->fetch();
+                } catch (core_exception_Expect $e) {
+                    reportException($e);
+                    $coverRec = NULL;
+                }
+            
+                // Спираме рутирането до затворени папки
+                if ($coverRec && ($coverRec->state == 'closed')) {
+                    $stopRoutingArr[$key] = TRUE;
+                }
+                
+                // Спираме рутирането до проекти, които не са Несортирани
+                if (!$stopRoutingArr[$key] && $rRoute) {
+                    if ($coverRec && ($cover->instance instanceof doc_UnsortedFolders)) {
+                        $namePattern = sprintf(email_Setup::get('UNSORTABLE_COUNTRY'), '');
+                        
+                        if (stripos($coverRec->name, $namePattern) === FALSE) {
+                            $stopRoutingArr[$key] = TRUE;
+                        }
+                    }
+                }
+                
+                // Спираме рутирането, ако няма да е до папка на контрагент или имейл кутия
+                if (!$stopRoutingArr[$key] && $rRoute) {
+                    if (!($cover->instance instanceof crm_Companies) && !($cover->instance instanceof crm_Persons)
+                        && !($cover->instance instanceof doc_UnsortedFolders) && !($cover->instance instanceof email_Inboxes)) {
+                        $stopRoutingArr[$key] = TRUE;
+                    }
+                }
+            }
+        }
+        
+        // Ако ще се спира рутирането
+        if ($stopRoutingArr[$key]) {
+            
+            // Задаваме новите стойности
+            foreach ($oldValArr as $k => $v) {
+                $rec->{$k} = $v;
+            }
+            
+            return FALSE;
+        }
+        
+        return TRUE;
+    }
+    
+    
+    /**
      * Извлича нишката от 'In-Reply-To' MIME хедър
      *
      * @param stdClass $rec
