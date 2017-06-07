@@ -66,6 +66,12 @@ class frame2_Reports extends embed_Manager
     
     
     /**
+     * Кой може да го прави документа чакащ/чернова?
+     */
+    public $canPending = 'no_one';
+    
+    
+    /**
      * Права за писане
      */
     public $canEdit = 'powerUser';
