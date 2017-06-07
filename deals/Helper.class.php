@@ -406,7 +406,7 @@ abstract class deals_Helper
 			$verbalQuantity = "<span class='red'>{$verbalQuantity}</span>";
 		}
 		
-		$text = "|Налично в|* <b>{$storeName}</b> : {$verbalQuantity} {$shortUom}";
+		$text = "|Разполагаемо в|* <b>{$storeName}</b> : {$verbalQuantity} {$shortUom}";
 		if(!empty($stRec->reservedQuantity)){
 			$verbalReserved = $Double->toVerbal($stRec->reservedQuantity);
 			$text .= " " . "|*( |Запазено|* {$verbalReserved} {$shortUom} )";
