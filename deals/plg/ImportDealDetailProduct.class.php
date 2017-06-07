@@ -167,7 +167,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 			$pRec = cat_Products::getByCode($obj->code);
 		    
             if(!$pRec){
-				$err[$i][] = $obj->code . ' |Нама продукт с такъв код|*';
+				$err[$i][] = $obj->code . ' |Няма продукт с такъв код|*';
                 continue;
 			}
 
