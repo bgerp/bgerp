@@ -180,7 +180,7 @@ class type_UserList extends type_Keylist
             if ($firstGroup && is_object($this->suggestions[$firstGroup])) {
                 
                 // Вдигама флаг да се отвори
-                $this->suggestions[$firstGroup]->autoOpen = TRUE;
+                // $this->suggestions[$firstGroup]->autoOpen = TRUE;
             }
         }
         
