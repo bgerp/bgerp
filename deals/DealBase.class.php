@@ -204,7 +204,7 @@ abstract class deals_DealBase extends core_Master
     	$rec = &$data->rec;
     	
     	if($mvc->haveRightFor('closeWith', $rec)) {
-    		$data->toolbar->addBtn('Обединяване', array($mvc, 'closeWith', $rec->id), "id=btnCloseWith{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Активиране на документа');
+    		$data->toolbar->addBtn('Обединяване', array($mvc, 'closeWith', $rec->id), "id=btnCloseWith{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Обединяване на сделката с други сделки');
     	}
     }
     
