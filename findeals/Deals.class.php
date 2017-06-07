@@ -451,9 +451,10 @@ class findeals_Deals extends deals_DealBase
     		}
     		
     		if(!$rec->currencyRate){
+    			$date = (isset($rec->valior)) ? $rec->valior : dt::now();
     			
     			// Изчисляваме курса към основната валута ако не е дефиниран
-    			$rec->currencyRate = currency_CurrencyRates::getRate(dt::now(), $rec->currencyId, NULL);
+    			$rec->currencyRate = currency_CurrencyRates::getRate($date, $rec->currencyId, NULL);
     			if(!$rec->currencyRate){
     				$form->setError('rate', "Не може да се изчисли курс");
     			}
