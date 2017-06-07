@@ -33,6 +33,12 @@
                         <td>[#fromIp#]</td>
                     </tr>
                     <!--ET_END fromIp-->
+                    <!--ET_BEGIN inReplyToOrigin-->          
+                    <tr>
+                        <td  class='aright'>|В отговор на|*:</td>
+                        <td>[#inReplyToOrigin#]</td>
+                    </tr>
+                    <!--ET_END inReplyToOrigin-->
                 </table>
             </div>
         </div>
