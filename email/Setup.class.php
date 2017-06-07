@@ -89,6 +89,11 @@ defIfNot('EMAIL_MAX_TEXT_LEN', '1000000');
 defIfNot('EMAIL_THREAD_HANDLE_POS', 'BEFORE_SUBJECT');
 
 
+/**
+ * Ограничава рутирането по папки до папките на контрагент и "Несортирани - %"
+ */
+defIfNot('EMAIL_RESTRICT_ROUTE', 'yes');
+
 
 /**
  * След колко време да не се използват обръщеният по имейл за нова нишка
@@ -312,6 +317,8 @@ class email_Setup extends core_ProtoSetup
             'EMAIL_DEFAULT_SENT_INBOX' => array ('key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Изпращач на изходящите имейли->От, placeholder=Автоматично,customizeBy=powerUser, optionsFunc=email_Inboxes::getAllowedFromEmailOptions'),
             
             'EMAIL_AUTO_FILL_EMAILS_FROM_CC' => array ('int', 'caption=Автоматично попълване на имейлите в полето копие|*&comma; |когато са до->Брой, customizeBy=powerUser'),
+            
+            'EMAIL_RESTRICT_ROUTE' => array ('enum(yes=Да, no=Не)', 'caption=Ограничаване на рутурането по папки->Избор'),
             
             'EMAIL_OUTGOING_HEADER_TEXT' => array ('richtext(rows=5,bucket=Postings)', 'caption=Привет в изходящите имейли->На български, customizeBy=powerUser'),
     
