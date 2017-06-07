@@ -25,7 +25,7 @@ class batch_Defs extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, batch_Wrapper, plg_Modified, plg_Search, plg_Sorting, plg_SaveAndNew';
+    public $loadList = 'plg_RowTools2, batch_Wrapper, plg_Created, plg_Modified, plg_Search, plg_Sorting, plg_SaveAndNew';
     
     
     /**
