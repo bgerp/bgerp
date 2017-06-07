@@ -516,7 +516,8 @@ abstract class store_DocumentMaster extends core_Master
     	$row->rowNumb = $rec->rowNumb;
         
         $contragentClass = cls::get($rec->contragentClassId);
-        $contragentTitle = $contragentClass->getTitleById($rec->contragentId);
+        $contragentRec = $contragentClass->fetch($rec->contragentId);
+        $contragentTitle = $contragentClass->getVerbal($contragentRec, 'name');
 
     	$row->address = ($rec->locationId) ? crm_Locations::getAddress($rec->locationId) : $oldRow->contragentAddress;
     	$row->address = str_replace('<br>', ',', $row->address);
