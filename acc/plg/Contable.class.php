@@ -463,6 +463,10 @@ class acc_plg_Contable extends core_Plugin
         	$cRes = 'НЕ Е контиран';
         	status_Messages::newStatus("#{$handle} |" . $cRes);
         }
+        
+        // Нотифициране на създателя на документа и на създателя на първия документ в нишката
+        $users = self::getWhichUsersToNotifyOnConto($rec);
+        self::notifyCreatorsForPostedDocument($users, $mvc, $rec);
     }
     
     
@@ -501,12 +505,16 @@ class acc_plg_Contable extends core_Plugin
      */
     public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
     {
-        if (is_object($id)) {
-            $id = $id->id;
-        }
+        $rec = $mvc->fetchRec($id);
         
         // Оттегляме транзакцията при нужда
-        acc_Journal::rejectTransaction($mvc->getClassId(), $id);
+        acc_Journal::rejectTransaction($mvc->getClassId(), $rec->id);
+        
+        // Премахване на нотифицирането за контиране
+        if($rec->brState == 'active'){
+        	$users = self::getWhichUsersToNotifyOnConto($rec);
+        	self::removeCreatorsNotificationOnReject($users, $mvc, $rec);
+        }
     }
     
     
@@ -689,6 +697,76 @@ class acc_plg_Contable extends core_Plugin
     		if($warning = acc_Periods::checkDocumentDate($valior)){
     			$form->setWarning($mvc->valiorFld, $warning);
     		}
+    	}
+    }
+    
+    
+    /**
+     * Кои потребители да се нотифицират при контиране на документа
+     * 
+     * @param stdClass $rec
+     * @return array $userArr
+     */
+    private static function getWhichUsersToNotifyOnConto($rec)
+    {
+		// Това са създателят на документа
+    	$userArr = array($rec->createdBy => $rec->createdBy);
+    	
+    	// И създателят на първия документ в нишката
+    	if(isset($rec->threadId)){
+    		if($firstDoc = doc_Threads::getFirstDocument($rec->threadId)){
+    			$createdBy = $firstDoc->fetchField('createdBy');
+    			$userArr = array($createdBy => $createdBy);
+    		}
+    	}
+    	
+    	return $userArr;
+    }
+    
+    
+    /**
+     * Нотифицира потребители че документат е бил контиран
+     * 
+     * @param array $userArr
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     */
+    private static function notifyCreatorsForPostedDocument($userArr, $mvc, $rec)
+    {
+    	if(!count($userArr)) return;
+    	
+    	$currUserNick = core_Users::getCurrent('nick');
+    	$currUserNick = type_Nick::normalize($currUserNick);
+    	
+    	$docRow = $mvc->getDocumentRow($rec->id);
+    	$docTitle = $docRow->title;
+    	$folderTitle = doc_Threads::getThreadTitle($rec->threadId);
+    	
+    	$message = "{$currUserNick} |контира|* \"|{$docTitle}|*\" |в нишка|* \"{$folderTitle}\"";
+    	foreach ($userArr as $uId) {
+    		bgerp_Notifications::add($message, array($mvc, 'single', $rec->id), $uId);
+    	}
+    }
+    
+    
+    /**
+     * Премахване на нотификацията за контиране при оттегляне
+     * 
+     * @param array $userArr
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     */
+    private static function removeCreatorsNotificationOnReject($userArr, $mvc, $rec)
+    {
+    	if(!count($userArr)) return;
+    	
+    	doc_ThreadUsers::removeContainer($rec->containerId);
+    	$threadRec = doc_Threads::fetch($rec->threadId);
+    	$threadRec->shared = keylist::fromArray(doc_ThreadUsers::getShared($rec->threadId));
+    	doc_Threads::save($threadRec, 'shared');
+    	
+    	foreach ($userArr as $uId) {
+    		bgerp_Notifications::setHidden(array($mvc, 'single', $rec->id), 'yes', $uId);
     	}
     }
 }
