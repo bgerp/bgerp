@@ -1251,7 +1251,7 @@ class cat_Products extends embed_Manager {
     	$query->where("#state = 'active'");
     	$reverseOrder = FALSE;
     	
-    	// Ако е зададен контрагент, оставяме смао публичните + частните за него
+    	// Ако е зададен контрагент, оставяме само публичните + частните за него
     	if(isset($customerClass) && isset($customerId)){
     		$reverseOrder = TRUE;
     		$folderId = cls::get($customerClass)->forceCoverAndFolder($customerId);
@@ -1265,9 +1265,9 @@ class cat_Products extends embed_Manager {
     		} else {
     			$query->orWhere("#isPublic = 'no' AND #folderId = {$folderId}");
     		}
-    		
-    		$query->show('isPublic,folderId,meta,id,code,name');
     	}
+    	
+    	$query->show('isPublic,folderId,meta,id,code,name');
     	
     	// Ограничаваме заявката при нужда
     	if(isset($limit)){
