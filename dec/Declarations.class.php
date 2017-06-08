@@ -146,6 +146,8 @@ class dec_Declarations extends core_Master
         
     	// продукти, идват от фактурата
     	$this->FLD('productId', 'set', 'caption=Продукти->Продукти, maxColumns=2');
+    	
+    	$this->FLD('inv', 'int', 'caption=Фактура, input=none');
     
     	// на какви твърдения отговарят
 		$this->FLD('statements', 'keylist(mvc=dec_Statements,select=title)', 'caption=Твърдения->Отговарят на, mandatory,remember');
@@ -178,35 +180,19 @@ class dec_Declarations extends core_Master
     		$dId = $doc->that;
     		$rec = $class::fetch($dId);
     		
-    		// съдържа обобщена информация за сделките в нишката
-    		$firstDoc = doc_Threads::getFirstDocument($data->form->rec->threadId);
-    		if($firstDoc->haveInterface('bgerp_DealAggregatorIntf')){
-    			$deal = $firstDoc->getAggregateDealInfo();
-    		} elseif($firstDoc->haveInterface('bgerp_DealIntf')){
-    			$deal = $firstDoc->getDealInfo();
+    		// взимаме продуктите от детаийла на фактурата
+    		$dQuery = sales_InvoiceDetails::getQuery();
+    		$dQuery->where("#invoiceId = {$rec->id}");
+
+    		while($dRec = $dQuery->fetch()){
+    		      $productName[$dRec->productId] = cat_Products::getTitleById($dRec->productId);
+    		   
     		}
-    		expect($deal);
-    		//bp($rec,$deal);
-	       	// Продуктите
-	       	$invoicedProducts = $deal->get('invoicedProducts');
-	       	if (count($invoicedProducts)) {
-	       		
-		       	foreach($invoicedProducts as $iProduct){
-		        	$productName [$iProduct->productId] = cat_Products::getTitleById($iProduct->productId);
-				}
-				
-				$data->form->setSuggestions('productId', $productName);
-	       	}
+ 
+    		$data->form->setSuggestions('productId', $productName);
+    		$data->form->setDefault('inv', $rec->id);
     	}
-    	    	
-    	// декларатор е текущия потребител
-    	/*if (!$data->form->rec->declaratorName) {
-    		
-    		$personId = core_Users::getCurrent('id');
-    		$personName = crm_Persons::fetchField($personId, 'name');
-    		$data->form->setDefault('declaratorName', $personName);
-		}*/
-		
+
 		// сладаме Управители
 		$hr = cls::get('hr_EmployeeContracts');
 		$managers = $hr->getManagers();
@@ -219,7 +205,6 @@ class dec_Declarations extends core_Master
     	}
     }
     
-    //batches
     
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
@@ -242,9 +227,6 @@ class dec_Declarations extends core_Master
     	$row = &$data->row;
         $rec = &$data->rec;
         $recDec = $tpl->rec;
-
-        // Зареждаме бланката в шаблона на документа
-       // $row->content = new ET (dec_DeclarationTypes::fetchField($rec->typeId, 'script'));
 
         // взимаме съдържанието на бланката
         $decContent = doc_TplManager::getTemplate($data->rec->template);
@@ -306,6 +288,13 @@ class dec_Declarations extends core_Master
     		
     		$products = arr::make($recDec->productId);
     		
+    		$dQuery = sales_InvoiceDetails::getQuery();
+    		$dQuery->where("#invoiceId = {$rec->inv}");
+  
+    		while($dRec = $dQuery->fetch()){
+    		      $batches[$dRec->productId] = $dRec->batches; 
+    		}
+    		
     		foreach ($products as $product) {
     			$classProduct[$product] = explode("|", $product);
     		}
@@ -314,7 +303,7 @@ class dec_Declarations extends core_Master
 		       	foreach($classProduct as $iProduct=>$name){
 		       		$pId = (isset($name[1])) ? $name[1] : $name[0];
 		        	$productName = cat_Products::getTitleById($pId);
-		        	$row->products .= "<li>".$productName."</li>";
+		        	$row->products .= "<li>".$productName . " - ". $batches[$pId] ."</li>";
 			}
 			$row->products .= "</ol>";
     	}
