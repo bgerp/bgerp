@@ -1864,11 +1864,6 @@ class doclog_Documents extends core_Manager
             static::pushAction($rec);
         }
         
-        // Съобщение в лога
-        $doc = doc_Containers::getDocument($rec->containerId);
-		$docInst = $doc->getInstance();
-		$docInst->logWrite("Промяна", $doc->that, DOCLOG_DOCUMENTS_DAYS);
-        
         return $rec;
     }
     
