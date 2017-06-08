@@ -233,6 +233,7 @@ class doc_Setup extends core_ProtoSetup
     	'doc_ExpensesSummary',
     	'doc_Prototypes',
     	'doc_UsedInDocs',
+    	'doc_View',
         'migrate::repairBrokenFolderId',
         'migrate::repairLikeThread',
         'migrate::repairFoldersKeywords',

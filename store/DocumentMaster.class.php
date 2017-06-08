@@ -514,10 +514,14 @@ abstract class store_DocumentMaster extends core_Master
     	}
     	
     	$row->rowNumb = $rec->rowNumb;
-    	 
+        
+        $contragentClass = cls::get($rec->contragentClassId);
+        $contragentRec = $contragentClass->fetch($rec->contragentId);
+        $contragentTitle = $contragentClass->getVerbal($contragentRec, 'name');
+
     	$row->address = ($rec->locationId) ? crm_Locations::getAddress($rec->locationId) : $oldRow->contragentAddress;
     	$row->address = str_replace('<br>', ',', $row->address);
-    	$row->address = "<span style='font-size:0.8em'>{$row->address}</span>";
+    	$row->address = "<span style='font-size:0.8em'>{$contragentTitle}, {$row->address}</span>";
     	 
     	$row->storeId = store_Stores::getHyperlink($rec->storeId);
     	$row->ROW_ATTR['class'] = "state-{$rec->state}";
