@@ -14,7 +14,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class store_Products extends core_Manager
+class store_Products extends core_Detail
 {
     
     
@@ -34,12 +34,6 @@ class store_Products extends core_Manager
      * Плъгини за зареждане
      */
     public $loadList = 'plg_Created, store_Wrapper, plg_StyleNumbers, plg_Sorting, plg_AlignDecimals2, plg_State';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,store';
     
     
     /**
@@ -69,7 +63,13 @@ class store_Products extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId=Наименование, measureId=Мярка,quantity,reservedQuantity,freeQuantity,storeId';
+    public $listFields = 'code=Код,productId=Наименование, measureId=Мярка,quantity,reservedQuantity,freeQuantity,storeId';
+    
+    
+    /**
+     * Име на поле от модела, външен ключ към мастър записа
+     */
+    public $masterKey = 'storeId';
     
     
     /**
@@ -77,7 +77,7 @@ class store_Products extends core_Manager
      */
     function description()
     {
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Име,remember=info');
+        $this->FLD('productId', 'key(mvc=cat_Products,select=id)', 'caption=Име');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад');
         $this->FLD('quantity', 'double', 'caption=Налично');
         $this->FLD('reservedQuantity', 'double', 'caption=Запазено');
@@ -90,28 +90,55 @@ class store_Products extends core_Manager
     
     
     /**
+     * Преди подготовката на записите
+     */
+    public static function on_BeforePrepareListPager($mvc, &$res, $data)
+    {
+    	if(isset($data->masterMvc)){
+    		$mvc->listItemsPerPage = 100;
+    	}
+    }
+    
+    
+    /**
      * След преобразуване на записа в четим за хора вид.
      */
     protected static function on_AfterPrepareListRows($mvc, $data)
     {
         // Ако няма никакви записи - нищо не правим
         if(!count($data->recs)) return;
-	            
+       	$isDetail = isset($data->masterMvc);
+        
 	    foreach($data->rows as $id => &$row){
 	       $rec = &$data->recs[$id];
-	       $row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
+	       $row->productId = cat_Products::getVerbal($rec->productId, 'name');
+	       $icon = cls::get('cat_Products')->getIcon($rec->productId);
+	       $row->productId = ht::createLink($row->productId, cat_Products::getSingleUrlArray($rec->productId), FALSE, "ef_icon={$icon}");
+
+	       $pRec = cat_Products::fetch($rec->productId, 'code,isPublic,createdOn');
+	       $row->code = cat_Products::getVerbal($pRec, 'code');
+	       
+	       if($isDetail){
+	       		$basePack = key(cat_Products::getPacks($rec->productId));
+	       		if($pRec = cat_products_Packagings::getPack($rec->productId, $basePack)){
+	       			$rec->quantity /= $pRec->quantity;
+	       			$row->quantity = $mvc->getFieldType('quantity')->toVerbal($rec->quantity);
+	       			if(isset($rec->reservedQuantity)){
+	       				$rec->reservedQuantity /= $pRec->quantity;
+	       			}
+	       		}
+	       		$rec->measureId = $basePack;
+	       } else {
+	       		$rec->measureId = cat_Products::fetchField($rec->productId, 'measureId');
+	       }
+	       
 	       $row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
 	       if(isset($rec->reservedQuantity)){
 	       		$rec->freeQuantity = $rec->quantity - $rec->reservedQuantity;
 	       		$row->freeQuantity = $mvc->getFieldType('freeQuantity')->toVerbal($rec->freeQuantity);
 	       }
 	       
-	       try{
-	        	$measureId = cat_Products::fetchField($rec->productId, 'measureId');
-	        	$row->measureId = cat_UoM::getTitleById($measureId);
-	       } catch(core_exception_Expect $e){
-	        	$row->measureId = tr("???");
-	       }
+	       $row->measureId = cat_UoM::getTitleById($rec->measureId);
         }
     }
     
@@ -147,11 +174,19 @@ class store_Products extends core_Manager
     	// Подготвяме в заявката да може да се търси по полета от друга таблица
     	$data->query->EXT('keywords', 'cat_Products', 'externalName=searchKeywords,externalKey=productId');
     	$data->query->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+    	$data->query->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
     	$data->query->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
     	$data->query->EXT('name', 'cat_Products', 'externalName=name,externalKey=productId');
     	$data->query->EXT('productCreatedOn', 'cat_Products', 'externalName=createdOn,externalKey=productId');
     	
-        $data->listFilter->showFields = 'storeId,search,order,groupId';
+    	$data->query->orderBy('code,id', ASC);
+    	if(isset($data->masterMvc)){
+    		$data->query->where("#state != 'closed'");
+    		$data->listFilter->showFields = 'search,groupId';
+    	} else {
+    		$data->listFilter->showFields = 'storeId,search,order,groupId';
+    	}
+    	
         $data->listFilter->input('storeId,order,groupId,search', 'silent');
         
         // Ако има филтър
@@ -202,9 +237,7 @@ class store_Products extends core_Manager
         	
         	// Филтър по групи на артикула
         	if (!empty($rec->groupId)) {
-        		$descendants = cat_Groups::getDescendantArray($rec->groupId);
-        		$keylist = keylist::fromArray($descendants);
-        		$data->query->likeKeylist("groups", $keylist);
+        		$data->query->where("LOCATE('|{$rec->groupId}|', #groups)");
         	}
         }
     }
@@ -323,31 +356,6 @@ class store_Products extends core_Manager
     	
     	return $res;
     }
-    
-    
-    /**
-     * Връща всички продукти в склада
-     * 
-     * @param NULL|int $storeId - ид на склад, ако е NULL взима текущия активен склад
-     * @return array $products
-     */
-    public static function getProductsInStore($storeId = NULL)
-    {
-    	// Ако няма склад, взима се текущия
-    	if(!isset($storeId)){
-    		$storeId = store_Stores::getCurrent();
-    	}
-    	
-    	$products = array();
-	    $pQuery = static::getQuery();
-	    $pQuery->where("#storeId = {$storeId}");
-	    
-	    while($pRec = $pQuery->fetch()){
-	        $products[$pRec->id] = cat_Products::getTitleById($pRec->productId, FALSE);
-	    }
-	    
-	    return $products;
-    }
 
 
     /**
@@ -359,7 +367,19 @@ class store_Products extends core_Manager
     public static function on_AfterPrepareListToolbar($mvc, &$data)
     {
     	if(haveRole('debug')){
+    		if(isset($data->masterMvc)) return;
     		$data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искате ли да изчистите таблицата, ef_icon=img/16/sport_shuttlecock.png, title=Изтриване на таблицата с продукти');
+    	}
+    }
+    
+    
+    /**
+     * Преди подготовката на полетата за листовия изглед
+     */
+    public static function on_AfterPrepareListFields($mvc, &$res, &$data)
+    {
+    	if(isset($data->masterMvc)){
+    		unset($data->listFields['storeId']);
     	}
     }
     
@@ -383,7 +403,8 @@ class store_Products extends core_Manager
      */
     public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-    	$data->listTableMvc->FLD('measureId', 'varchar', 'smartCenter');
+    	$data->listTableMvc->FLD('code', 'varchar', 'tdClass=small-field');
+    	$data->listTableMvc->FLD('measureId', 'varchar', 'tdClass=centered');
     }
 
 

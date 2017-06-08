@@ -347,7 +347,10 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 					}
 				}
 				
-				$dRec->quantity = deals_Helper::getDefaultPackQuantity($productId, $pRec->measureId);
+				if(empty($rec->packQuantity) || $rec->defQuantity === TRUE){
+					$dRec->quantity = deals_Helper::getDefaultPackQuantity($productId, $pRec->measureId);
+				}
+				
 				$dRec->quantity = ($dRec->quantity) ? $dRec->quantity : 1;
 				
 				$fields = ($mvc instanceof sales_QuotationsDetails) ? array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId') : array();

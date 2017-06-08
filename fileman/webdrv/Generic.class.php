@@ -299,7 +299,10 @@ class fileman_webdrv_Generic extends core_Manager
                     $preview->append($thumbnailImg, 'THUMB_IMAGE');
                 }
             }
-            
+
+            $preview->push('js/wheelzoom.js', "JS");
+            jquery_Jquery::run($preview, 'wheelzoom(document.querySelector(\'img.webdrv-preview\'));');
+
             return $preview;
         }
     }

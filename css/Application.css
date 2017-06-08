@@ -1045,6 +1045,11 @@ div.acc-detail {
       text-align: left;
       float: left;
       margin-left: 6px; }
+    .detail-info .store_Products .listTopContainer {
+      min-width: 500px; }
+    .detail-info .store_Products .listTable {
+      font-size: 0.9em;
+      max-width: 700px !important; }
 
 /*
  * край на детайли
