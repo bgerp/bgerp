@@ -397,12 +397,12 @@ class email_Router extends core_Manager
         $threadId = $rec->threadId;
         $folderId = $rec->folderId;
         
-        if (!$folderId) {
+        if (!$folderId && $threadId) {
             $folderId = doc_Threads::fetchField($threadId, 'folderId');
         }
         
         static $stopRoutingArr = array();
-        $key = $rec->folderId;
+        $key = $folderId;
         
         if (!isset($stopRoutingArr[$key])) {
             $stopRoutingArr[$key] = FALSE;
