@@ -662,10 +662,16 @@ class core_Query extends core_FieldSet
             $query .= $wh->h;
             $query .= $temp->getLimit();
 
+            if($this->limit && $this->limitCnt) {
+                $query =  str_replace("count(*) AS `_count`", "1 AS `fix_val`", $query);
+                $query = "SELECT COUNT(*) AS `_count` FROM ({$query}) as COUNT_TABLE";
+            }
+
             $db = $temp->mvc->db;
             
             DEBUG::startTimer(cls::getClassName($this->mvc) . ' COUNT ');
             
+
             $dbRes = $db->query($query);
             
             DEBUG::stopTimer(cls::getClassName($this->mvc) . ' COUNT ');

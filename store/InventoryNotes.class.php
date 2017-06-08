@@ -153,7 +153,7 @@ class store_InventoryNotes extends core_Master
     	$this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад, mandatory');
     	$this->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Групи');
     	$this->FLD('hideOthers', 'enum(yes=Да,no=Не)', 'caption=Показване само на избраните групи->Избор, mandatory, notNULL,value=yes,maxRadio=2');
-    	$this->FLD('cache', 'blob(serialize, compress)', 'input=none');
+    	$this->FLD('cache', 'blob', 'input=none');
     }
     
     

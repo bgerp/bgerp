@@ -22,6 +22,8 @@ class bgerp_plg_Blank extends core_Plugin
      */
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
+        if (Mode::is('noBlank', TRUE)) return;
+        
         //Ако принтираме или пращаме документа
         if ((Mode::is('text', 'xhtml')) || (Mode::is('printing'))) {
             

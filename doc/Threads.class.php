@@ -808,6 +808,8 @@ class doc_Threads extends core_Manager
         // Позволяваме на корицата да модифицира филтъра
         $Cover = doc_Folders::getCover($folderId);
         $Cover->invoke('AfterPrepareThreadFilter', array(&$data->listFilter, &$data->query));
+
+        $data->query->useCacheForPager = TRUE;
     }
     
     

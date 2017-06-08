@@ -168,6 +168,14 @@ class store_InventoryNoteDetails extends doc_Detail
     }
     
     
+    public static function getProducts($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
+    {
+    	$res = cat_Products::getByProperty('canStore');
+    	
+    	return $res;
+    }
+    
+    
     /**
      * Подготвя данните (в обекта $data) необходими за единичния изглед
      */
@@ -270,6 +278,8 @@ class store_InventoryNoteDetails extends doc_Detail
     		// Ако не е избрано за пазене на артикула, се цикли в следващия в списъка
     		if($rec->keepProduct != 'yes'){
     			$cache = store_InventoryNotes::fetchField($rec->noteId, 'cache');
+    			$cache = (array)json_decode($cache);
+    			
     			$keys = array_values($cache);
     			$i = array_search($rec->productId, $keys);
     			$key = $i + 1;

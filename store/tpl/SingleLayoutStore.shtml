@@ -75,6 +75,14 @@
                     </table>
                 </div>
             </fieldset>
+            
+            <!--ET_BEGIN store_Products-->
+            <fieldset class="detail-info">
+                <legend class="groupTitle">|Артикули в наличност|*</legend>
+            	<div>[#store_Products#]</div>
+            </fieldset>
+            <!--ET_END store_Products-->
+            
             <!--ET_END SELECT_FIELD-->
                 [#DETAILS#]
             </div>
