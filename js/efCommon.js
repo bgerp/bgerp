@@ -4473,7 +4473,11 @@ Experta.prototype.setCoords = function(position) {
  * @param return
  */
 Experta.prototype.escape = function(str) {
-
+	
+	if (!str) return str;
+	
+	if (typeof str != 'string') return str;
+	
 	str = str.replace(/[&<>]/g, function(tag) {
 		var tagsToReplace = {
 			    '&': '&amp;',

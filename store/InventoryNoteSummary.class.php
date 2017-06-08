@@ -182,7 +182,8 @@ class store_InventoryNoteSummary extends doc_Detail
     	$row->ROW_ATTR['id'] = "row->{$rec->id}";
     	
     	if(!Mode::isReadOnly()){
-    		$row->productId = cat_Products::getShortHyperlink($rec->productId);
+    		$row->productId = cat_Products::getVerbal($rec->productId, 'name');
+    		$row->productId = ht::createLinkRef($row->productId, cat_Products::getSingleUrlArray($rec->productId));
     	}
     	
     	// Записваме датата на модифициране в чист вид за сравнение при инвалидирането на кеширането
@@ -339,7 +340,7 @@ class store_InventoryNoteSummary extends doc_Detail
     			$row->charge = static::renderCharge($rec);
     		}
     		
-    		if($rec->blQuantity < 0 && isset($rec->quantity)){
+    		if($rec->blQuantity < 0){
     			$row->blQuantity = "<span class='red'>{$row->blQuantity}</span>";
     		}
     	}
@@ -702,6 +703,8 @@ class store_InventoryNoteSummary extends doc_Detail
     	$query = store_InventoryNoteDetails::getQuery();
     	$query->where("#noteId = {$rec->noteId} AND #productId = {$rec->productId}");
     	$query->XPR('sumQuantity', 'double', 'SUM(#quantity)');
+    	$query->show('sumQuantity,quantity');
+    	
     	$quantity = $query->fetch()->sumQuantity;
     	$rec->quantity = $quantity;
     	
