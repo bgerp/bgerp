@@ -267,4 +267,34 @@ class doc_View extends core_Master
         
         $res .= " " . plg_Search::normalizeText($body);
     }
+
+
+    /**
+	 * Модификация на ролите, които могат да видят избраната тема
+	 * 
+     * @param doc_View $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param string|NULL $rec
+     * @param string|NULL $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+	{
+	    if ($action == 'add') {
+	        if ($rec) {
+	            if (!$rec->clsId || !$rec->dataId) {
+	                $requiredRoles = 'no_one';
+	            } else {
+	                if (!cls::load($rec->clsId, TRUE)) {
+	                    $requiredRoles = 'no_one';
+	                } else {
+	                    $inst = cls::get($rec->clsId);
+	                    if (!$inst->haveRightFor('single', $rec->dataId)) {
+	                        $requiredRoles = 'no_one';
+	                    }
+	                }
+	            }
+	        }
+	    }
+	}
 }
