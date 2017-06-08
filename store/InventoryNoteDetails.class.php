@@ -270,6 +270,8 @@ class store_InventoryNoteDetails extends doc_Detail
     		// Ако не е избрано за пазене на артикула, се цикли в следващия в списъка
     		if($rec->keepProduct != 'yes'){
     			$cache = store_InventoryNotes::fetchField($rec->noteId, 'cache');
+    			$cache = (array)json_decode($cache);
+    			
     			$keys = array_values($cache);
     			$i = array_search($rec->productId, $keys);
     			$key = $i + 1;
