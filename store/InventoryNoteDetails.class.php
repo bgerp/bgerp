@@ -168,6 +168,14 @@ class store_InventoryNoteDetails extends doc_Detail
     }
     
     
+    public static function getProducts($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
+    {
+    	$res = cat_Products::getByProperty('canStore');
+    	
+    	return $res;
+    }
+    
+    
     /**
      * Подготвя данните (в обекта $data) необходими за единичния изглед
      */
