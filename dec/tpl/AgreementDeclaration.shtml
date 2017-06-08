@@ -2,37 +2,42 @@
     <div class='scrolling-holder'>
         <br>
         <div class='indent'>
-            Долуподписаният, <!--ET_BEGIN manager--><b>[#manager#]</b><!--ET_END manager-->, представляващ доставчика: <b>[#MyCompany#]</b>,
+            Долуподписаният, <!--ET_BEGIN manager--><b>[#manager#]</b><!--ET_END manager-->, представляващ <b>производител/доставчик: [#MyCompany#]</b>,
             <!--ET_BEGIN MyCountry-->
-            с адрес [#MyCountry#], 
-            <!--ET_BEGIN MyAddress-->гр. [#MyAddress#],<!--ET_END MyAddress-->
-            <!--ET_END MyCountry-->
+            с адрес [#MyCountry#]  <!--ET_END MyCountry-->
+            <!--ET_BEGIN MyAddress-->, гр. [#MyAddress#],<!--ET_END MyAddress-->
+           
             <!--ET_BEGIN MyCompanyVatNo--> ДДС № [#MyCompanyVatNo#], <!--ET_END MyCompanyVatNo-->
             <!--ET_BEGIN uicId--> ЕИК [#uicId#],<!--ET_END uicId-->
-            <!--ET_END MyCountry-->
+            <!--ET_BEGIN explanation--> [#explanation#]<!--ET_END explanation-->
         </div>
         <br>
-        <p><b>ДЕКЛАРИРАМЕ, ЧЕ ПРОДУКТИТЕ:</b></p>
+        <div class='centered'><b>ДЕКЛАРИРАМ, ЧЕ:</b></div>
+        <div class='indent'><p><b>Изделията:</b></p></div>
         <!--ET_BEGIN products-->
         [#products#]
         <!--ET_END products-->        
-        <div>продадени с фактура <b>№ [#invoiceNo#]</b> на <b>[#contragentCompany#]</b>, <!--ET_BEGIN contragentCountry-->с адрес [#contragentCountry#], <!--ET_END contragentCountry-->
+        <div class='indent'>Продадени с фактура <b>№ [#invoiceNo#]</b> на <b>[#contragentCompany#]</b>, <!--ET_BEGIN contragentCountry-->с адрес [#contragentCountry#], <!--ET_END contragentCountry-->
             <!--ET_BEGIN contragentAddress-->гр. [#contragentAddress#],<!--ET_END contragentAddress-->
             <!--ET_BEGIN contragentCompanyVatNo-->ДДС№ <b>[#contragentCompanyVatNo#]</b>,<!--ET_END contragentCompanyVatNo--> <!--ET_BEGIN contragentUicId--> ЕИК [#contragentUicId#],<!--ET_END contragentUicId-->
         </div>
         <br>
-        <p><b>ОТГОВАРЯТ НА СЛЕДНОТО:</b> </p>
-        <ul>
-        <!--ET_BEGIN material-->
-         <li> Изделията са произведени от [#material#] </li>
-        <!--ET_END material-->
+        <div class='indent'><p><b>са произведени от:</b></p></div>
 
+        <!--ET_BEGIN material-->
+        <ul> [#material#]</ul>
+        <!--ET_END material-->
+        
+        <br>
+        <div class='indent'><p><b>и отговарят на:</b></p></div>
+ 
 		<!--ET_BEGIN statements-->
-		<li> Изделията отговарят на изискванията [#statements#] </li>
+		<ul> [#statements#] </ul>
 		<!--ET_END statements-->
-        </ul>
+  
+        <br>
         <!--ET_BEGIN note-->
-        <div>
+        <div class='indent'>
             [#note#]
         </div>
         <!--ET_END note-->
