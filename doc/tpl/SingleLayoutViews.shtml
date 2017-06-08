@@ -1,11 +1,9 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
-    <!--ET_BEGIN body--> 
-    <div style='padding:6px 10px 10px;'>
-        
-        <!--ET_BEGIN subject--><div>|Изглед на|*: [#subject#]</div><!--ET_END subject-->
-        <!--ET_BEGIN tplId--><div>|Шаблон|*: [#tplId#]</div><!--ET_END tplId-->
-        
-        <div>[#body#]</div>
+    <div style='padding:4px 10px;margin-bottom: 12px' class="report-new-version-info no-print">
+        <!--ET_BEGIN subject--><div style="display: inline-block; width: 48%;">|Изглед на|*: [#subject#]</div><!--ET_END subject-->
+        <!--ET_BEGIN tplId--><div style="display: inline-block; width: 48%;">|Шаблон|*: [#tplId#]</div><!--ET_END tplId-->
     </div>
+    <!--ET_BEGIN body-->
+    <div>[#body#]</div>
     <!--ET_END body-->
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
