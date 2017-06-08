@@ -197,6 +197,13 @@ class core_Pager extends core_BaseClass
     {
         // Дали да използва кеширане
         $useCache = $query->useCacheForPager;
+        
+        if($useCache) {
+            if($limit = doc_Setup::get('SEARCH_LIMIT')) {
+                $query->limit($limit);
+                $query->limitCnt = TRUE;
+            }
+        }
 
         $q = clone ($query);
         $qCnt = clone ($query);

@@ -656,7 +656,7 @@ class store_InventoryNoteSummary extends doc_Detail
     			}
     		}
     		
-    		$uRec = (object)array('id' => $data->masterId, 'cache' => $cache1);
+    		$uRec = (object)array('id' => $data->masterId, 'cache' => json_encode($cache1));
     		$data->masterMvc->save_($uRec);
     		
     		if($cacheRows === TRUE){

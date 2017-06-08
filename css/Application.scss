@@ -1193,7 +1193,17 @@ table.listTable > tbody > tr {
 		    float: left;
 		    margin-left: 6px;
         }
+
     }
+	.store_Products {
+		.listTopContainer {
+			min-width:500px;
+		}
+		.listTable {
+			font-size: 0.9em;
+			max-width: 700px !important;
+		}
+	}
 }
 /*край на детайли*/
 
