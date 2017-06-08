@@ -403,8 +403,8 @@ class store_Products extends core_Detail
      */
     public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-    	$data->listTableMvc->FLD('code', 'varchar', 'smartCenter');
-    	$data->listTableMvc->FLD('measureId', 'varchar', 'smartCenter');
+    	$data->listTableMvc->FLD('code', 'varchar', 'tdClass=small-field');
+    	$data->listTableMvc->FLD('measureId', 'varchar', 'tdClass=centered');
     }
 
 
