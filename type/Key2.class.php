@@ -300,12 +300,27 @@ class type_Key2 extends type_Int
                
                 foreach ($options as $key => $title) {
                     
+                    $isGroup = FALSE;
+                    
+                    if (is_object($title)) {
+                        $isGroup = $title->group ? TRUE : FALSE;
+                        $title = $title->title;
+                    }
                     if($this->params['inputType'] == 'combo') {
                         $key = $title . ' (' . $key . ')';
-                        $arrt = array('value' => $key);
+                        $attr = array('value' => $key);
+                        
                         $select->append(ht::createElement("option", $attr, $key));
                     } else {
                         $obj = (object) array('id' => $key, 'text' => $title);
+                        
+                        if ($isGroup) {
+                            $obj->group = TRUE;
+                            $obj->element = new stdClass();
+                            $obj->element->className = 'group';
+                            $obj->element->group = TRUE;
+                            $obj->id = NULL;
+                        }
                         $res[] = $obj;
                     }
                 }
