@@ -136,19 +136,22 @@ class dec_Declarations extends core_Master
     	$this->FLD('date', 'date', 'caption=Дата');
     	
     	// декларатор
-    	$this->FLD('declaratorName', 'varchar', 'caption=Представлявана от->Име, recently, mandatory');
+    	$this->FLD('declaratorName', 'key(mvc=crm_Persons, select=name,group=managers)', 'caption=Представлявана от->Име, recently, mandatory,remember');
     	
     	// позицията на декларатора
-    	$this->FLD('declaratorPosition', 'varchar', 'caption=Представлявана от->Позиция, recently, mandatory');
+    	$this->FLD('declaratorPosition', 'varchar', 'caption=Представлявана от->Позиция, recently, mandatory,remember');
+    	
+    	// допълнителни пояснения
+    	$this->FLD('explanation', 'varchar', 'caption=Представлявана от->Допълнителна информация, recently, remember');
         
     	// продукти, идват от фактурата
     	$this->FLD('productId', 'set', 'caption=Продукти->Продукти, maxColumns=2');
     
     	// на какви твърдения отговарят
-		$this->FLD('statements', 'keylist(mvc=dec_Statements,select=title)', 'caption=Твърдения->Отговарят на, mandatory');
+		$this->FLD('statements', 'keylist(mvc=dec_Statements,select=title)', 'caption=Твърдения->Отговарят на, mandatory,remember');
 		
 		// от какви материали е
-		$this->FLD('materials', 'keylist(mvc=dec_Materials,select=title)', 'caption=Материали->Изработени от, mandatory');
+		$this->FLD('materials', 'keylist(mvc=dec_Materials,select=title)', 'caption=Материали->Изработени от, mandatory,remember');
         
 		// допълнителен текст
 		$this->FLD('note', 'richtext(bucket=Notes,rows=6)', 'caption=Бележки->Допълнения');
@@ -183,7 +186,7 @@ class dec_Declarations extends core_Master
     			$deal = $firstDoc->getDealInfo();
     		}
     		expect($deal);
-
+    		//bp($rec,$deal);
 	       	// Продуктите
 	       	$invoicedProducts = $deal->get('invoicedProducts');
 	       	if (count($invoicedProducts)) {
@@ -197,12 +200,17 @@ class dec_Declarations extends core_Master
     	}
     	    	
     	// декларатор е текущия потребител
-    	if (!$data->form->rec->declaratorName) {
+    	/*if (!$data->form->rec->declaratorName) {
     		
     		$personId = core_Users::getCurrent('id');
     		$personName = crm_Persons::fetchField($personId, 'name');
     		$data->form->setDefault('declaratorName', $personName);
-		}
+		}*/
+		
+		// сладаме Управители
+		$hr = cls::get('hr_EmployeeContracts');
+		$managers = $hr->getManagers();
+		$data->form->setOptions('declaratorName', $managers);
     	
     	// ако не е указана дата взимаме днешната
     	if (!$data->form->rec->date) {
@@ -211,6 +219,7 @@ class dec_Declarations extends core_Master
     	}
     }
     
+    //batches
     
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
@@ -264,21 +273,22 @@ class dec_Declarations extends core_Master
     	if ($uic) {
     		$row->uicId = ' ' . $uic;
     	}
-    	
+    
     	// информация за управителя/декларатора
-    	if ($recDec->declaratorName) {
-    		$row->manager = $recDec->declaratorName;
-    		
-    		if ($declaratorData = crm_Persons::fetch("#name = '{$recDec->declaratorName}'")) {
-	    		$dTpl =  $decContent->getBlock("manager");
-	    		$dTpl->replace($declaratorData->egn, 'managerЕGN');
-	    		$dTpl->append2master();
-    		}
-    		
-    		$cTpl = $decContent->getBlock("declaratorInfo");
-    		$cTpl->replace($recDec->declaratorName, 'declaratorName');
-	    	$cTpl->replace($recDec->declaratorPosition, 'declaratorPosition');
-	    	$cTpl->append2master();
+    	if ($recDec->declaratorName) { 
+
+    	    if ($declaratorData = crm_Persons::fetch($recDec->declaratorName)) {
+    	        $row->manager = $declaratorData->name;
+    	        
+    	        $dTpl =  $decContent->getBlock("manager");
+    	        $dTpl->replace($declaratorData->egn, 'managerЕGN');
+    	        $dTpl->append2master();
+    	    }
+    	   
+    	    $cTpl = $decContent->getBlock("declaratorInfo");
+    	    $cTpl->replace($recDec->declaratorName, 'declaratorName');
+    	    $cTpl->replace($recDec->declaratorPosition, 'declaratorPosition');
+    	    $cTpl->append2master();	
     	}
     	
     	if($rec->date == NULL){
@@ -341,14 +351,13 @@ class dec_Declarations extends core_Master
     	if ($recDec->materials) {
     		$materials = type_Keylist::toArray($recDec->materials);
 
-            $row->material = "<ul>";
+            $row->material = "";
     		foreach ($materials as $material) {  
     			$m = dec_Materials::fetch($material);
     			
     			$text = $m->text;
     			$row->material .= "<li>".$text."</li>";
     		}  			
-    		$row->material .= "</ul>";
     	}
 
     	// вземаме твърденията
@@ -356,13 +365,12 @@ class dec_Declarations extends core_Master
     		
     		$statements = type_Keylist::toArray($recDec->statements);
     		
-            $row->statements = "<ul>";
+            $row->statements = "";
     		foreach($statements as $statement){
     		    $s = dec_Statements::fetch($statement);
     		    $text = $s->text;
     		   $row->statements .= "<li>".$text."</li>";
     		}
-    		$row->statements .= "</ul>";
     	}
 
     	// ако има допълнителни бележки
