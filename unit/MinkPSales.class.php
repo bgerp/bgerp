@@ -2665,21 +2665,25 @@ class unit_MinkPSales extends core_Manager {
         // Когато няма автом. избиране
         // Складова разписка
       
-        // Фактура с дата утре
-        $browser->press('Фактура');
-        $dateInv=strtotime("+1 Day");
-        $browser->setValue('date', date('d-m-Y', $dateInv));
-        $browser->setValue('dueDate', '');
-        $browser->press('Чернова');
-        
         // Фактура с днешна дата
         $browser->press('Фактура');
         $browser->press('Чернова');
         
-        //Контиране на двете фактури
-        $browser->press('Контиране');
-        $browser->press('Контиране');
+        // Фактура с вчерашна дата
+        $browser->press('Фактура');
+        $dateInv=strtotime("-1 Day");
+        $browser->setValue('date', date('d-m-Y', $dateInv));
+        $browser->setValue('dueDate', '');
+        $browser->press('Чернова');
         
+        if(strpos($browser->gettext(), 'Не може да се запише фактура с дата по-малка от последната активна фактура в диапазона')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Не излиза съобщение за грешка - фактура със стара дата', 'warning');
+        }
+        //return $browser->getHtml();
+        //Контиране 
+        $browser->press('Контиране');
+         
         //1 стотинка
         //if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 816,67')) {
         //} else {
@@ -2689,13 +2693,7 @@ class unit_MinkPSales extends core_Manager {
         //} else {
         //    return unit_MinkPbgERP::reportErr('Грешно ДДС във фактура', 'warning');
         //}
-    
-        if(strpos($browser->gettext(), 'Не може да се запише фактура с дата по-малка от последната активна фактура в диапазона')) {
-        } else {
-            return unit_MinkPbgERP::reportErr('Не излиза съобщение за грешка - фактура със стара дата', 'warning');
-        }
-    
+      
     }
-       
     
 }
