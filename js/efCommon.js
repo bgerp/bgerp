@@ -394,6 +394,10 @@ function comboBoxInit(id, selectId) {
         }
 
         selCombo.style.visibility = 'visible';
+
+        $(selCombo).hover(function (){
+            $(this).parent().find('input').focus();
+        });
     }
 }
 
@@ -426,6 +430,7 @@ function comboSelectOnChange(id, value, selectId) {
     var selCombo = get$(selectId);
     selCombo.value = '?';
     $('#' + id).change();
+
 }
 
 
