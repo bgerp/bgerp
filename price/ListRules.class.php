@@ -269,7 +269,7 @@ class price_ListRules extends core_Detail
         $data->listFilter->setDefault('threadId', $data->masterData->rec->threadId);
         $data->listFilter->showFields = 'product';
 		
-        $options = self::getProductOptions();
+        $options = self::getProductOptions($data->masterId);
         $data->listFilter->setOptions('product', array('' => '') + $options);
         $data->listFilter->input(NULL, 'silent');
         
@@ -452,7 +452,7 @@ class price_ListRules extends core_Detail
         if(Request::get('productId') && $form->rec->type == 'value' && $form->cmd != 'refresh'){
         	$form->setReadOnly('productId');
         } else {
-        	$availableProducts = self::getProductOptions();
+        	$availableProducts = self::getProductOptions($form->rec->listId);
         	if(isset($rec->productId) && !array_key_exists($rec->productId, $availableProducts)){
         		$availableProducts[$rec->productId] = cat_Products::getRecTitle(cat_Products::fetch($rec->productId, 'id,name,isPublic,code,createdOn'), FALSE);
         	}
@@ -632,7 +632,7 @@ class price_ListRules extends core_Detail
         		$requiredRoles = 'no_one';
         	} else {
         		$isPublic = cat_Products::fetchField($rec->productId, 'isPublic');
-        		if($isPublic == 'no'){
+        		if($isPublic == 'no' && $rec->listId != price_ListRules::PRICE_LIST_COST){
         			$requiredRoles = 'no_one';
         		}
         	}
@@ -935,19 +935,19 @@ class price_ListRules extends core_Detail
 	 * 
 	 * @return array $options - масив с артикули за избор
 	 */
-	public static function getProductOptions()
+	public static function getProductOptions($listId)
 	{
 		$options = array();
 		$pQuery = cat_Products::getQuery();
-		$pQuery->where("#isPublic = 'yes' AND #state = 'active' AND #canSell = 'yes'");
+		$pQuery->where("#state = 'active' AND #canSell = 'yes'");
+		if($listId != self::PRICE_LIST_COST){
+			$pQuery->where("#isPublic = 'yes'");
+		}
+		
 		$pQuery->show('id,name,isPublic,code,createdOn');
 		
 		while($pRec = $pQuery->fetch()){
 			$options[$pRec->id] = cat_Products::getRecTitle($pRec, FALSE);
-		}
-		
-		if(count($options)){
-			$options = array('pu' => (object)array('group' => TRUE, 'title' => tr('Стандартни'))) + $options;
 		}
 		
 		return $options;

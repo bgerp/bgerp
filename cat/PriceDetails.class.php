@@ -97,7 +97,7 @@ class cat_PriceDetails extends core_Manager
     	// Може да се добавя нова себестойност, ако продукта е в група и може да се променя
     	$primeCostListId = price_ListRules::PRICE_LIST_COST;
     	
-    	if(price_ListRules::haveRightFor('add', (object)array('productId' => $data->masterId))){
+    	if(price_ListRules::haveRightFor('add', (object)array('productId' => $data->masterId, 'listId' => $primeCostListId))){
     		$data->addPriceUrl = array('price_ListRules', 'add', 'type' => 'value', 'listId' => $primeCostListId, 'productId' => $data->masterId, 'priority' => 1, 'ret_url' => TRUE);
     	}
     	
@@ -163,7 +163,7 @@ class cat_PriceDetails extends core_Manager
     	}
     	
     	if(haveRole('priceDealer,ceo')){
-    		if(price_ListRules::haveRightFor('add', (object)array('productId' => $data->masterId))){
+    		if(price_ListRules::haveRightFor('add', (object)array('productId' => $data->masterId, 'listId' => $primeCostListId))){
     			$btns = '';
     			$newCost = NULL;
     			if(isset($uRec->costValue)){
