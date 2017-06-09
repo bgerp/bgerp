@@ -151,10 +151,10 @@ abstract class deals_InvoiceMaster extends core_Master
     public function updateMaster_($id, $save = TRUE)
     {
     	$rec = $this->fetchRec($id);
-    	$Detail = $this->mainDetail;
+    	$Detail = cls::get($this->mainDetail);
     	
-    	$query = $this->{$Detail}->getQuery();
-    	$query->where("#{$this->{$Detail}->masterKey} = '{$rec->id}'");
+    	$query = $Detail->getQuery();
+    	$query->where("#{$Detail->masterKey} = '{$rec->id}'");
     	$recs = $query->fetchAll();
     	
     	if(count($recs)){
@@ -163,7 +163,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		}
     	}
     	
-    	$this->{$Detail}->calculateAmount($recs, $rec);
+    	$Detail->calculateAmount($recs, $rec);
     	
     	$rate = ($rec->displayRate) ? $rec->displayRate : $rec->rate;
     	
