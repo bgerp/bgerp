@@ -661,7 +661,8 @@ textarea {
 select.combo {
   position: absolute;
   visibility: hidden;
-  overflow: hidden; }
+  overflow: hidden;
+  cursor: text; }
 
 .checkbox,
 .radiobutton,
