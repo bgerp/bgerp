@@ -1732,7 +1732,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	if($action == 'changerate' && isset($rec)){
     		if($rec->currencyId == 'BGN' || $rec->currencyId == 'EUR'){
-    			//$res = 'no_one';
+    			$res = 'no_one';
     		} elseif($rec->state == 'closed' || $rec->state == 'rejected'){
     			$res = 'no_one';
     		}
