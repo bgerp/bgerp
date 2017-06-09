@@ -429,14 +429,6 @@ class sales_Invoices extends deals_InvoiceMaster
         		$rec->number = self::getNextNumber($rec);
         		$rec->searchKeywords .= " " . plg_Search::normalizeText($rec->number);
         	}
-        	
-        	if(empty($rec->dueDate)){
-        		$dueTime = ($rec->dueTime) ? $rec->dueTime : sales_Setup::get('INVOICE_DEFAULT_VALID_FOR');
-        		
-        		if($dueTime){
-        			$rec->dueDate = dt::verbal2mysql(dt::addSecs($dueTime, $rec->date), FALSE);
-        		}
-        	}
         }
         
        if(empty($rec->id)){
