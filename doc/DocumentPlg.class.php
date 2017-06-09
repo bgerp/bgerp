@@ -731,15 +731,6 @@ class doc_DocumentPlg extends core_Plugin
     				foreach ($notifyArr as $uId) {
     					bgerp_Notifications::add($message, $urlArr, $uId);
     				}
-    			} else {
-    				doc_ThreadUsers::removeContainer($rec->containerId);
-    				 
-    				$threadRec = doc_Threads::fetch($rec->threadId);
-    				$threadRec->shared = keylist::fromArray(doc_ThreadUsers::getShared($rec->threadId));
-    				doc_Threads::save($threadRec, 'shared');
-    				foreach ($notifyArr as $uId) {
-    					bgerp_Notifications::setHidden($urlArr, 'yes', $uId);
-    				}
     			}
     		}
     	}
