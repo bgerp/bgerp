@@ -394,10 +394,6 @@ function comboBoxInit(id, selectId) {
         }
 
         selCombo.style.visibility = 'visible';
-
-        $(selCombo).hover(function (){
-            $(this).css('cursor', 'text');
-        });
     }
 }
 
