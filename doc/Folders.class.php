@@ -1655,10 +1655,10 @@ class doc_Folders extends core_Master
         $form->title = 'Настройка на|* ' . $row->title;
         
         // Добавяме функционални полета
+        $form->FNC('newDoc', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при->Нов документ, input=input');
+        $form->FNC('newThread', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при->Нова тема, input=input');
         $form->FNC('folOpenings', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при->Отворени теми, input=input');
         $form->FNC('personalEmailIncoming', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при->Личен имейл, input=input');
-        $form->FNC('newThread', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при->Нова тема, input=input');
-        $form->FNC('newDoc', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при->Нов документ, input=input');
         $form->FNC('perPage', 'enum(default=Автоматично, 10=10, 20=20, 40=40, 100=100, 200=200)', 'caption=Теми на една страница->Брой, input=input');
 
         $form->FNC('ordering', 'enum(default=Автоматично, ' . doc_Threads::filterList . ')', 'caption=Подредба на темите->Правило, input=input');
