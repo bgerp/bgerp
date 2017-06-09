@@ -137,7 +137,20 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 	function description()
 	{
 		parent::setDocumentFields($this);
+		$this->FLD('departmentId', 'key(mvc=hr_Departments,select=name,allowEmpty)', 'caption=Департамент,before=note');
 		$this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Детайлно връщане->Избор,notNull,default=yes,maxRadio=2,before=note');
+	}
+	
+	
+	/**
+	 * Преди показване на форма за добавяне/промяна
+	 */
+	protected static function on_AfterPrepareEditForm($mvc, &$data)
+	{
+		$folderCover = doc_Folders::getCover($data->form->rec->folderId);
+		if($folderCover->isInstanceOf('hr_Departments')){
+			$data->form->setReadOnly('departmentId', $folderCover->that);
+		}
 	}
 	
 	
@@ -152,5 +165,9 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 	{
 		$row->useResourceAccounts = ($rec->useResourceAccounts == 'yes') ? 'Артикулите ще бъдат изписани от незавършеното производство един по един' : 'Артикулите ще бъдат изписани от незавършеното производството сумарно';
 		$row->useResourceAccounts = tr($row->useResourceAccounts);
+		
+		if(isset($rec->departmentId)){
+			$row->departmentId = hr_Departments::getHyperlink($rec->departmentId, TRUE);
+		}
 	}
 }
