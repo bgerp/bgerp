@@ -194,7 +194,7 @@ class sales_Invoices extends deals_InvoiceMaster
      * Кой може да променя активирани записи
      * @see change_Plugin
      */
-    public $canChangerec = 'accMaster, ceo';
+    public $canChangerec = 'accMaster, ceo, invoicer';
     
     
     /**
