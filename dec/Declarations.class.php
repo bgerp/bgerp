@@ -136,7 +136,7 @@ class dec_Declarations extends core_Master
     	$this->FLD('date', 'date', 'caption=Дата');
     	
     	// декларатор
-    	$this->FLD('declaratorName', 'key(mvc=crm_Persons, select=name,group=managers)', 'caption=Представлявана от->Име, recently, mandatory,remember');
+    	$this->FLD('declaratorName', 'varchar', 'caption=Представлявана от->Име, recently, mandatory,remember');
     	
     	// позицията на декларатора
     	$this->FLD('declaratorPosition', 'varchar', 'caption=Представлявана от->Позиция, recently, mandatory,remember');
@@ -195,8 +195,13 @@ class dec_Declarations extends core_Master
 
 		// сладаме Управители
 		$hr = cls::get('hr_EmployeeContracts');
-		$managers = $hr->getManagers();
-		$data->form->setOptions('declaratorName', $managers);
+
+		$managers = $mvc->getManagers();
+		
+		if(count($managers) > 0) {
+
+		    $data->form->setSuggestions('declaratorName', $managers); 
+		} 
     	
     	// ако не е указана дата взимаме днешната
     	if (!$data->form->rec->date) {
@@ -257,15 +262,18 @@ class dec_Declarations extends core_Master
     	}
     
     	// информация за управителя/декларатора
-    	if ($recDec->declaratorName) { 
-
-    	    if ($declaratorData = crm_Persons::fetch($recDec->declaratorName)) {
-    	        $row->manager = $declaratorData->name;
-    	        
-    	        $dTpl =  $decContent->getBlock("manager");
-    	        $dTpl->replace($declaratorData->egn, 'managerЕGN');
-    	        $dTpl->append2master();
+    	if ($recDec->declaratorName) {
+    	    $row->manager = $recDec->declaratorName;
+    	    
+    	    if(is_numeric($recDec->declaratorName)) {
+        	    if ($declaratorData = crm_Persons::fetch($recDec->declaratorName)) {
+        	        $row->manager = $declaratorData->name;
+        	    }  
     	    }
+    	        $dTpl =  $decContent->getBlock("manager");
+    	       // $dTpl->replace($declaratorData->egn, 'managerЕGN');
+    	        $dTpl->append2master();
+    	 
     	   
     	    $cTpl = $decContent->getBlock("declaratorInfo");
     	    $cTpl->replace($recDec->declaratorName, 'declaratorName');
@@ -303,7 +311,11 @@ class dec_Declarations extends core_Master
 		       	foreach($classProduct as $iProduct=>$name){
 		       		$pId = (isset($name[1])) ? $name[1] : $name[0];
 		        	$productName = cat_Products::getTitleById($pId);
-		        	$row->products .= "<li>".$productName . " - ". $batches[$pId] ."</li>";
+		        	if(($batches[$pId])) {
+		        	    $row->products .= "<li>".$productName . " - ". $batches[$pId] ."</li>";
+		        	} else {
+		        	    $row->products .= "<li>".$productName."</li>";
+		        	}
 			}
 			$row->products .= "</ol>";
     	}
@@ -518,6 +530,26 @@ class dec_Declarations extends core_Master
     				  	  'content' => 'dec/tpl/Application5.shtml', 'lang' => 'bg',
     					  'toggleFields' => array('masterFld' => NULL));
     	$res .= doc_TplManager::addOnce($this, $tplArr);
+    }
+    
+    
+    /**
+     * Връща всички Всички лица, които могат да бъдат титуляри на сметка
+     * тези включени в група "Управители"
+     */
+    public function getManagers()
+    {
+        $options = array();
+        $groupId = crm_Groups::fetchField("#sysId = 'managers'", 'id');
+        $personQuery = crm_Persons::getQuery();
+        $personQuery->where("#groupList LIKE '%|{$groupId}|%'");
+    
+        while($personRec = $personQuery->fetch()) {
+            //$options[$personRec->id] = crm_Persons::getVerbal($personRec, 'name');
+            $options[crm_Persons::getVerbal($personRec, 'name')] = crm_Persons::getVerbal($personRec, 'name');
+        }
+
+        return $options;
     }
 
 }

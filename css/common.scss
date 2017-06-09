@@ -671,6 +671,7 @@ select.combo {
 	position: absolute; 
     visibility: hidden;
     overflow: hidden;
+	cursor: text;
 }
 
 .checkbox, .radiobutton, input[type=checkbox], input[type=radio] { 
