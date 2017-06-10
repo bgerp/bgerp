@@ -18,7 +18,7 @@ class doc_HiddenContainers extends core_Manager
     /**
      * Заглавие
      */
-    public $title = "Адреси, на които не се изпращат циркулярни имейли";
+    public $title = "Скриване/показване на документи в нишка";
     
     
     /**
@@ -72,11 +72,7 @@ class doc_HiddenContainers extends core_Manager
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption=Контейнер');
         $this->FLD('state', 'enum(opened=Отворено, closed=Затворено)', 'caption=Състояние');
         
-        $this->setDbIndex('userId');
-        $this->setDbIndex('containerId');
-        $this->setDbIndex('state');
-        
-        $this->setDbUnique('userId, containerId, state');
+        $this->setDbIndex('containerId,userId');
     }
     
 

@@ -129,6 +129,12 @@ class doc_Folders extends core_Master
 
 
     /**
+     * Флаг, че заявките, които са към този модел лимитирани до 1 запис, ще са HIGH_PRIORITY
+     */
+    public $highPriority = TRUE;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     function description()
