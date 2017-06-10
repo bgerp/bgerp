@@ -117,6 +117,12 @@ class doc_Threads extends core_Manager
     
     
     /**
+     * Флаг, че заявките, които са към този модел лимитирани до 1 запис, ще са HIGH_PRIORITY
+     */
+    public $highPriority = TRUE;
+
+
+    /**
      * Опашка от id на нишки, които трябва да обновят статистиките си
      *  
      * @var array

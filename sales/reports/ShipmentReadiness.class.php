@@ -82,6 +82,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 		$fieldset->FLD('dealers', 'keylist(mvc=core_Users,select=nick)', 'caption=Търговци,after=title,single=none');
 		$fieldset->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonNameBg,allowEmpty)', 'caption=Държави,after=dealers,single=none');
 		$fieldset->FLD('precision', 'percent(min=0,max=1)', 'caption=Готовност,unit=и нагоре,after=countries');
+		$fieldset->FLD('horizon', 'time(uom=days,Min=0)', 'caption=Падиращи до,after=precision');
 		$fieldset->FLD('orderBy', 'enum(readiness=По готовност,contragents=По контрагенти)', 'caption=Подредба,after=precision');
 	}
 	
@@ -122,6 +123,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 		
 		// Задават се като предложение
 		$form->setSuggestions('dealers', $suggestions);
+		$form->setSuggestions('horizon', explode("|", "1 ден|2 дни|5 дни|7 дни|10 дни|15 дни|20 дни|30 дни|60 дни|90 дни|120 дни"));
 		
 		// Ако текущия потребител е търговец добавя се като избран по дефолт
 		if(haveRole('sales') && empty($form->rec->id)){
@@ -261,14 +263,12 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 	{
 		$fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-							    <!--ET_BEGIN place--><small><div><!--ET_BEGIN dealers-->|Търговци|*: [#dealers#]<!--ET_END dealers--></div><!--ET_BEGIN countries--><div>|Държави|*: [#countries#]</div><!--ET_END countries--></small></fieldset><!--ET_END BLOCK-->"));
+							    <!--ET_BEGIN place--><small><div><!--ET_BEGIN dealers-->|Търговци|*: [#dealers#]<!--ET_END dealers--></div><!--ET_BEGIN countries--><div>|Държави|*: [#countries#]</div><!--ET_END countries--><!--ET_BEGIN horizon-->|Падиращи до|* [#horizon#]<!--ET_END horizon--></small></fieldset><!--ET_END BLOCK-->"));
 		
-		if(isset($data->rec->dealers)){
-			$fieldTpl->append($data->row->dealers, 'dealers');
-		}
-		
-		if(isset($data->rec->countries)){
-			$fieldTpl->append($data->row->countries, 'countries');
+		foreach (array('dealers', 'countries', 'horizon') as $fld){
+			if(isset($data->rec->{$fld})){
+				$fieldTpl->append($data->row->{$fld}, $fld);
+			}
 		}
 		
 		$tpl->append($fieldTpl, 'DRIVER_FIELDS');
@@ -359,7 +359,19 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 					$dueDates = $this->getSaleDueDates($sRec);
 					$dRec->dueDateMin = $dueDates['min'];
 					$dRec->dueDateMax = $dueDates['max'];
-					$recs[$sRec->containerId] = $dRec;
+					
+					$add = TRUE;
+					if(isset($rec->horizon)){
+						$horizon = dt::addDays($rec->horizon);
+						$compareDate = isset($dRec->dueDateMin) ? $dRec->dueDateMin : (isset($dRec->dueDateMax) ? $dRec->dueDateMax : (isset($delTime) ? $delTime : NULL));
+						if(!empty($compareDate) && $compareDate > $horizon){
+							$add = FALSE;
+						}
+					}
+					
+					if($add === TRUE){
+						$recs[$sRec->containerId] = $dRec;
+					}
 				}
 			}
 				
@@ -451,7 +463,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 		if($export === FALSE){
 			$fld->FLD('dealerId', 'varchar', 'smartCenter,caption=Търговец');
 			$fld->FLD('contragentName', 'varchar', 'caption=Клиент');
-			$fld->FLD('dueDates', 'varchar', 'smartCenter,tdClass=small,caption=Падеж');
+			$fld->FLD('dueDates', 'varchar', 'tdClass=small,caption=Падеж');
 			$fld->FLD('deliveryTime', 'varchar', 'smartCenter,tdClass=small,caption=Доставка');
 			$fld->FLD('document', 'varchar', 'smartCenter,caption=Документ');
 			$fld->FLD('readiness', 'double', 'caption=Готовност');

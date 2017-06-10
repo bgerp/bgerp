@@ -85,6 +85,8 @@ class bgerp_Recently extends core_Manager
         $this->FLD('threadId' , 'key(mvc=doc_Threads)', 'caption=Нишка, input=none');
         
         $this->setDbUnique('type, objectId, userId');
+        $this->setDbIndex('userId');
+        $this->setDbIndex('last');
     }
     
     

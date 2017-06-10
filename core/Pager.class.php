@@ -122,7 +122,7 @@ class core_Pager extends core_BaseClass
         }
         $this->rangeStart = 0;
         $this->rangeEnd = $this->itemsCount;
-        
+      
         $this->rangeStart = $this->itemsPerPage * ($this->page - 1);
         $this->rangeEnd = $this->rangeStart + $this->itemsPerPage;
         
@@ -204,6 +204,9 @@ class core_Pager extends core_BaseClass
                 $query->limitCnt = TRUE;
             }
         }
+        
+        // Приоритетна заявка
+        $query->highPriority = TRUE;
 
         $q = clone ($query);
         $qCnt = clone ($query);

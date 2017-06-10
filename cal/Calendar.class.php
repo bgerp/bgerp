@@ -325,9 +325,14 @@ class cal_Calendar extends core_Master
      * Входният параметър $rec е оригиналният запис от модела
      * резултата е вербалният еквивалент, получен до тук
      */
-    public static function recToVerbal(&$rec)
+    public static function recToVerbal(&$rec, $fields = NULL)
     {
-    	$row = parent::recToVerbal_($rec);
+        if(isset($fields) && $fields['-list']) {
+            $fields += arr::make('time,duration,type,title,priority', TRUE);
+            $row = parent::recToVerbal_($rec, $fields);
+        } else {
+    	    $row = parent::recToVerbal_($rec);
+        }
 
     	$lowerType = strtolower($rec->type);
        

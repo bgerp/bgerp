@@ -151,10 +151,10 @@ abstract class deals_InvoiceMaster extends core_Master
     public function updateMaster_($id, $save = TRUE)
     {
     	$rec = $this->fetchRec($id);
-    	$Detail = $this->mainDetail;
+    	$Detail = cls::get($this->mainDetail);
     	
-    	$query = $this->{$Detail}->getQuery();
-    	$query->where("#{$this->{$Detail}->masterKey} = '{$rec->id}'");
+    	$query = $Detail->getQuery();
+    	$query->where("#{$Detail->masterKey} = '{$rec->id}'");
     	$recs = $query->fetchAll();
     	
     	if(count($recs)){
@@ -163,7 +163,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		}
     	}
     	
-    	$this->{$Detail}->calculateAmount($recs, $rec);
+    	$Detail->calculateAmount($recs, $rec);
     	
     	$rate = ($rec->displayRate) ? $rec->displayRate : $rec->rate;
     	
@@ -611,7 +611,6 @@ abstract class deals_InvoiceMaster extends core_Master
     			
     			if(!isset($form->rec->id)){
     				$form->setDefault('dueTime', $plan['timeBalancePayment']);
-    				$form->setDefault('dueDate', $plan['deadlineForBalancePayment']);
     			}
     		}
     		 
@@ -658,19 +657,8 @@ abstract class deals_InvoiceMaster extends core_Master
     	if ($form->isSubmitted()) {
     		$rec = &$form->rec;
     		
-    		if(isset($rec->dueDate) && isset($rec->dueTime)){
-    			$date = dt::addDays($rec->dueTime / (24 * 60 * 60), $rec->date, FALSE);
-     			
-                if($date != $rec->dueDate){
-    				$form->setError('date,dueDate,dueTime', "Невъзможна стойност на датите");
-    			}
-    		}
-    		
-    		$dueDate = ($rec->dueDate) ? $rec->dueDate : ((isset($rec->dueTime)) ? dt::verbal2mysql(dt::addSecs($rec->dueTime, $rec->date), FALSE): NULL);
-    		if(isset($dueDate)){
-    			if($dueDate < $rec->date){
-    				$form->setError('date,dueDate', "Крайната дата за плащане трябва да е след вальора");
-    			}
+    		if(isset($rec->dueDate) && $rec->dueDate < $rec->date){
+    			$form->setError('date,dueDate', "Крайната дата за плащане трябва да е след вальора");
     		}
     		
     		if(!$rec->displayRate){
@@ -766,6 +754,14 @@ abstract class deals_InvoiceMaster extends core_Master
     			if($rec->contragentCountryId != $countryId){
     				$cCountry = drdata_Countries::fetchField($countryId, 'commonNameBg');
     				$rec->place .= (($place) ? ", " : "") . $cCountry;
+    			}
+    		}
+    		
+    		if(empty($rec->dueDate)){
+    			$dueTime = ($rec->dueTime) ? $rec->dueTime : sales_Setup::get('INVOICE_DEFAULT_VALID_FOR');
+    		
+    			if($dueTime){
+    				$rec->dueDate = dt::verbal2mysql(dt::addSecs($dueTime, $rec->date), FALSE);
     			}
     		}
     	}

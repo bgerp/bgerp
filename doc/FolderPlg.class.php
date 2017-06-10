@@ -706,6 +706,9 @@ class doc_FolderPlg extends core_Plugin
         $subordinates = array_diff($teammates, $managers);
         $subordinates = array_diff($subordinates, $ceos);
         
+        // Премахваме текущия потребител
+        unset($ceos[$userId]);
+        
         foreach (array('teammates', 'ceos', 'managers', 'subordinates') as $v) {
             if (${$v}) {
                 ${$v} = implode(',', ${$v});
@@ -742,6 +745,7 @@ class doc_FolderPlg extends core_Plugin
         switch (true) {
             case core_Users::haveRole('ceo') :
                 // CEO вижда всичко с изключение на private и secret папките на другите CEO
+                // Ако има само един `ceo` и е текущия потребител, да не сработва
                 if ($ceos) {
                     $conditions[] = "#folderInCharge NOT IN ({$ceos})";
                 }

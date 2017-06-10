@@ -194,7 +194,7 @@ class sales_Invoices extends deals_InvoiceMaster
      * Кой може да променя активирани записи
      * @see change_Plugin
      */
-    public $canChangerec = 'accMaster, ceo';
+    public $canChangerec = 'accMaster, ceo, invoicer';
     
     
     /**
@@ -428,14 +428,6 @@ class sales_Invoices extends deals_InvoiceMaster
         	if(empty($rec->number)){
         		$rec->number = self::getNextNumber($rec);
         		$rec->searchKeywords .= " " . plg_Search::normalizeText($rec->number);
-        	}
-        	
-        	if(empty($rec->dueDate)){
-        		$dueTime = ($rec->dueTime) ? $rec->dueTime : sales_Setup::get('INVOICE_DEFAULT_VALID_FOR');
-        		
-        		if($dueTime){
-        			$rec->dueDate = dt::verbal2mysql(dt::addSecs($dueTime, $rec->date), FALSE);
-        		}
         	}
         }
         
