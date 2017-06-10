@@ -85,6 +85,12 @@ class core_Query extends core_FieldSet
 
 
     /**
+     * Дали SELECT заявката да е приоритетна
+     */
+    var $highPriority = FALSE;
+
+
+    /**
      * Масив за хинтове на индекси
      */
     public $indexes = array();
@@ -596,7 +602,7 @@ class core_Query extends core_FieldSet
             $wh = $this->getWhereAndHaving();
             $query = "SELECT ";
 
-            if($this->mvc->highPriority && $this->limit == 1) {
+            if(($this->mvc->highPriority && $this->limit == 1) || $this->highPriority) {
                 $query .= " HIGH_PRIORITY ";
             }
             

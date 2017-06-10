@@ -182,10 +182,7 @@ abstract class deals_ManifactureMaster extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
-		// Може да добавяме като начало на тред само в папка на склад
-    	$folderClass = doc_Folders::fetchCoverClassName($folderId);
-    
-    	return cls::haveInterface('store_AccRegIntf', $folderClass);
+    	return TRUE;
     }
     
     
@@ -198,18 +195,7 @@ abstract class deals_ManifactureMaster extends core_Master
      */
     public static function canAddToThread($threadId)
     {
-    	// Може да добавяме или към нишка с начало задание
-    	$firstDoc = doc_Threads::getFirstDocument($threadId);
-    	if($firstDoc->isInstanceOf('planning_Jobs')){
-    		
-    		return TRUE;
-    	} 
-    	
-    	$folderId = doc_Threads::fetchField($threadId, 'folderId');
-    	$folderClass = doc_Folders::fetchCoverClassName($folderId);
-    
-    	// или към нишка в папка на склад
-    	return cls::haveInterface('store_AccRegIntf', $folderClass);
+    	return TRUE;
     }
     
     

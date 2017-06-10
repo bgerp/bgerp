@@ -61,6 +61,8 @@ class core_Sbf extends core_Mvc
     static function getSbfFilePath_($path)
     {  
         static $cache;
+        
+        // debug::log("getSbfFilePath {$path}");
 
         if(!$cache[$path]) {
             $time = 0;

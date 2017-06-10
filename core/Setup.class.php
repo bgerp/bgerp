@@ -302,7 +302,6 @@ class core_Setup extends core_ProtoSetup {
         'migrate::settigsDataFromCustomToCore',
         'migrate::movePersonalizationData',
         'migrate::repairUsersRolesInput',
-        'migrate::clearApcCache3',
         'migrate::removeFalseTranslate',
         'migrate::repairSearchKeywords'
     );
@@ -542,18 +541,6 @@ class core_Setup extends core_ProtoSetup {
             $rec->rolesInput = $rec->roles;
             
             core_Users::save($rec, 'rolesInput');
-        }
-    }
-    
-    
-    /**
-     * Изчисвта кеша на APC
-     */
-    static function clearApcCache3()
-    {
-        if (function_exists('apc_clear_cache')) {
-            apc_clear_cache('user');
-            apc_clear_cache();
         }
     }
     

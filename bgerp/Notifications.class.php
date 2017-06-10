@@ -110,6 +110,7 @@ class bgerp_Notifications extends core_Manager
         $this->FLD('closedOn', 'datetime', 'caption=Затворено на');
         
         $this->setDbUnique('url, userId');
+        $this->setDbIndex('userId');
     }
     
     

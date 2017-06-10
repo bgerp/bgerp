@@ -1608,7 +1608,7 @@ class doc_Containers extends core_Manager
     static function setAbrr()
     {
         //Проверяваме дали записа фигурира в кеша
-        $abbrArr = core_Cache::get('abbr', 'allClass', 1440, array('core_Classes', 'core_Interfaces'));
+        $abbrArr = core_Cache::get('abbr', 'allClass', 14400, array('core_Classes', 'core_Interfaces'));
         
         //Ако няма
         if (!$abbrArr) {
@@ -1634,7 +1634,7 @@ class doc_Containers extends core_Manager
             }
             
             //Записваме масива в кеша
-            core_Cache::set('abbr', 'allClass', $abbrArr, 1440, array('core_Classes', 'core_Interfaces'));
+            core_Cache::set('abbr', 'allClass', $abbrArr, 14400, array('core_Classes', 'core_Interfaces'));
         }
         
         self::$abbrArr = $abbrArr;

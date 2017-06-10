@@ -426,6 +426,7 @@ function comboSelectOnChange(id, value, selectId) {
     var selCombo = get$(selectId);
     selCombo.value = '?';
     $('#' + id).change();
+
 }
 
 

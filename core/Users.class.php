@@ -268,12 +268,23 @@ class core_Users extends core_Manager
      */
     public static function getRolesWithUsers()
     {
+        static $res;
+
+        if($res) {
+ 
+            return $res;
+        }
+
         $keepMinute = 1440;
 
         // Проверяваме дали записа фигурира в кеша
         $usersRolesArr = core_Cache::get(self::ROLES_WITH_USERS_CACHE_ID, self::ROLES_WITH_USERS_CACHE_ID, $keepMinute);
-        if (is_array($usersRolesArr)) return $usersRolesArr;
+        if (is_array($usersRolesArr)) {
+            $res = $usersRolesArr;
 
+            return $usersRolesArr;
+        }
+ 
         $uQuery = core_Users::getQuery();
         $uQuery->orderBy('#nick');
         
@@ -292,6 +303,8 @@ class core_Users extends core_Manager
         // Записваме масива в кеша
         core_Cache::set(self::ROLES_WITH_USERS_CACHE_ID, self::ROLES_WITH_USERS_CACHE_ID, $usersRolesArr, $keepMinute);
        
+        $res = $usersRolesArr;
+ 
         return $usersRolesArr;
     }
     
@@ -2335,4 +2348,27 @@ class core_Users extends core_Manager
 
         return $html;
     }
+
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на ключа
+     */
+    public static function getTitleById($id, $escaped = TRUE)
+    {
+        $me = cls::get(get_called_class());
+        
+        if($id>0) {
+            $uwr = $me->getRolesWithUsers();
+            $rec = $uwr['r'][$id];
+        }
+
+        if(!$rec) {
+            $rec = new stdClass();  
+            try {$rec = $me->fetch($id);} catch(ErrorException $e) {}
+        }
+        
+        if(!$rec) return '??????????????';
+		
+        return $me->getRecTitle($rec, $escaped);
+    }
+
 }

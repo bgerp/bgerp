@@ -382,16 +382,6 @@ class purchase_Invoices extends deals_InvoiceMaster
     {
     	parent::beforeInvoiceSave($rec);
     	
-    	if($rec->state == 'active'){
-    		if(empty($rec->dueDate)){
-    			$dueTime = ($rec->dueTime) ? $rec->dueTime : purchase_Setup::get('INVOICE_DEFAULT_VALID_FOR');
-    	
-    			if($dueTime){
-    				$rec->dueDate = dt::verbal2mysql(dt::addSecs($dueTime, $rec->date), FALSE);
-    			}
-    		}
-    	}
-    	
     	// Форсиране на нова фирма, ако е указано
     	if($rec->state == 'draft'){
     		if($rec->contragentSource == 'newContragent'){

@@ -74,16 +74,21 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
 		$dQuery = store_InventoryNoteSummary::getQuery();
 		$dQuery->where("#noteId = {$rec->id}");
 		$dQuery->where("#charge IS NULL");
+		
+		core_App::setTimeLimit(600);
+		
 		while($dRec = $dQuery->fetch()){
 			
 			// Ако разликата е положителна, тоест имаме излишък
 			if($dRec->delta > 0){
+				$amount = cat_Products::getSelfValue($dRec->productId, NULL, $dRec->delta, $rec->valior);
+				if(!$amount){
+					if(Mode::get('saveTransaction')){
+						$amount = cat_Products::getWacAmountInStore($dRec->delta, $dRec->productId, $rec->valior, $rec->storeId);
+					}
+				}
 				
-				// Артикулът трябва да има себестойност
-    			$amount = cat_Products::getWacAmountInStore($dRec->delta, $dRec->productId, $rec->valior, $rec->storeId);
-    			if(!$amount){
-    				$amount = $dRec->delta * cat_Products::getSelfValue($dRec->productId, NULL, $dRec->delta, $rec->valior);
-    			}
+				$amount = $dRec->delta * $amount;
     			
     			if(!$amount){
     				$errorArr[$dRec->productId] = cat_Products::getTitleById($dRec->productId);

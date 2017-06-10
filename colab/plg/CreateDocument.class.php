@@ -30,21 +30,22 @@ class colab_plg_CreateDocument extends core_Plugin
 				if(keylist::isIn($mvc->getClassId(), $documents)){
 					$addContractor = TRUE;
 				}
-			}
 			
-			if(isset($rec)){
-				if($action == 'edit'){
-					if($rec->createdBy != $userId){
-						$addContractor = FALSE;
-					}
-				} elseif($action == 'add') {
-					$sharedFolders = colab_Folders::getSharedFolders($userId);
-					if(!$rec->folderId || !in_array($rec->folderId, $sharedFolders)){
-						$addContractor = FALSE;
-					}
-				}
-			}
 			
+                if(isset($rec)){
+                    if($action == 'edit'){
+                        if($rec->createdBy != $userId){
+                            $addContractor = FALSE;
+                        }
+                    } elseif($action == 'add') {
+                        $sharedFolders = colab_Folders::getSharedFolders($userId);
+                        if(!$rec->folderId || !in_array($rec->folderId, $sharedFolders)){
+                            $addContractor = FALSE;
+                        }
+                    }
+                }
+            }
+
 			// Добавяне към правата ,че и партньор може да редактира/добавя
 			if($addContractor === TRUE){
 				$property = ucfirst($action);

@@ -223,7 +223,7 @@ class core_Db extends core_BaseClass
     function query($sqlQuery, $silent = FALSE)
     {
 
-     //   if(stripos($sqlQuery, "`hr_") && stripos($sqlQuery, "SET")) bp($sqlQuery);
+        if(isDebug() && ($fnd = Request::get('_bp')) &&  stripos($sqlQuery, $fnd)) bp($sqlQuery);
 
         DEBUG::startTimer("DB::query()");
         DEBUG::log("$sqlQuery");

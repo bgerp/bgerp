@@ -1035,4 +1035,50 @@ abstract class deals_Helper
 	
 		return ($defQuantity) ? $defQuantity : NULL;
 	}
+	
+	
+	/**
+	 * Помощна ф-я за рекалкулиране на курса на бизнес документ
+	 * 
+	 * @param mixed $masterMvc
+	 * @param int $masterId
+	 * @param double $newRate
+	 * @param string $priceFld
+	 * @param string $rateFld
+	 */
+	public static function recalcRate($masterMvc, $masterId, $newRate, $priceFld = 'price', $rateFld = 'currencyRate')
+	{
+		$rec = $masterMvc->fetchRec($masterId);
+		$Detail = cls::get($masterMvc->mainDetail);
+    	$dQuery = $Detail->getQuery();
+    		
+    	$dQuery->where("#{$Detail->masterKey} = {$rec->id}");
+    	while($dRec = $dQuery->fetch()){
+    		if($masterMvc instanceof deals_InvoiceMaster){
+    			$rateFld = 'rate';
+    		}
+    		
+    		$dRec->{$priceFld} = ($dRec->{$priceFld} / $rec->{$rateFld}) * $newRate;
+    		
+    		if($masterMvc instanceof deals_InvoiceMaster){
+    			$dRec->packPrice = $dRec->{$priceFld} * $dRec->quantityInPack;
+    			$dRec->amount = $dRec->packPrice * $dRec->quantity;
+    		}
+    		
+    		$Detail->save($dRec);
+    	}
+    	
+    	$rec->{$rateFld} = $newRate;
+    	if($masterMvc instanceof deals_InvoiceMaster){
+    		$rec->displayRate = $newRate;
+    	}
+    	
+    	$masterMvc->save($rec);
+    	$masterMvc->updateMaster_($rec->id);
+    	
+    	if($rec->state == 'active'){
+    		acc_Journal::deleteTransaction($masterMvc->getClassId(), $rec->id);
+    		acc_Journal::saveTransaction($masterMvc->getClassId(), $rec->id, FALSE);
+    	}
+	}
 }

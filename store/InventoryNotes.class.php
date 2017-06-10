@@ -807,7 +807,9 @@ class store_InventoryNotes extends core_Master
     {
     	$rec = $this->fetchRec($id);
     	
-    	$this->save($rec, 'isContable');
+    	if($rec->isContable != 'yes'){
+    		$this->save($rec, 'isContable');
+    	}
     }
     
     

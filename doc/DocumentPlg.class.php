@@ -727,18 +727,18 @@ class doc_DocumentPlg extends core_Plugin
     				$folderTitle = doc_Folders::getTitleById($rec->folderId, FALSE);
     			
     				$message = "{$currUserNick} |създаде заявка за|* \"|{$docTitle}|*\" |в папка|* \"{$folderTitle}\"";
-    				 
+    				
+    				$pSettingsKey = crm_Profiles::getSettingsKey();
+    				$prop = 'DOC_STOP_NOTIFY_NEW_DOC_TYPE';
+    				$pSettingsNotifyArr = core_Settings::fetchUsers($pSettingsKey, $prop);
+    				
     				foreach ($notifyArr as $uId) {
+    				    $uSelArr = $pSettingsNotifyArr[$uId];
+    				    
+    				    // Ако съответния потребител не иска да получава нотификация за документа, да не се праща
+    				    if ($uSelArr && ($propValStr = $uSelArr[$prop]) && (type_Keylist::isIn($mvc->getClassId(), $propValStr))) continue;
+    				    
     					bgerp_Notifications::add($message, $urlArr, $uId);
-    				}
-    			} else {
-    				doc_ThreadUsers::removeContainer($rec->containerId);
-    				 
-    				$threadRec = doc_Threads::fetch($rec->threadId);
-    				$threadRec->shared = keylist::fromArray(doc_ThreadUsers::getShared($rec->threadId));
-    				doc_Threads::save($threadRec, 'shared');
-    				foreach ($notifyArr as $uId) {
-    					bgerp_Notifications::setHidden($urlArr, 'yes', $uId);
     				}
     			}
     		}

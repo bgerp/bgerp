@@ -22,6 +22,9 @@
                           <!--ET_BEGIN storeLocation-->
                           <br>[#storeLocation#]
                           <!--ET_END storeLocation-->
+                          <!--ET_BEGIN departmentId-->
+                          <br>Структорно звено:[#departmentId#]
+                          <!--ET_END departmentId-->
                     </td>
                 </tr>
             </tbody>

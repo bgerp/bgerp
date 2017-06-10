@@ -1269,11 +1269,11 @@ class core_Mvc extends core_FieldSet
 
         $me = cls::get($class);
 
-        Debug::log("Start $class->{$method}");
+        //Debug::log("Start $class->{$method}");
 
         $res = $me->__call($method, $args);
 
-        Debug::log("Finish $class->{$method}");
+        //Debug::log("Finish $class->{$method}");
 
         return $res;
     }
