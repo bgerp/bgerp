@@ -97,96 +97,110 @@ class core_page_InternalModern extends core_page_Active
      */
     static function getTemplate()
     {
+        debug::log('StartTemplate');
+        
+        $data = new stdClass();
+
     	if (isset($_COOKIE['menuInfo']) && $_COOKIE['menuInfo']) {
     		$openMenuInfo = $_COOKIE['menuInfo'];
     		$winWidth = intval($openMenuInfo);
-    		$mainContainerClass = '';
+    		$data->mainContainerClass = '';
     		
     		//в зависимост от стойсността на разбираме кои менюта са било отворени
 			if(($winWidth > 700) && strrpos($openMenuInfo, "l") !== FALSE) {
-				$openLeftBtn = ' menu-active ';
-				$openLeftMenu = ' sidemenu-open ';
-				$mainContainerClass .= ' sidemenu-push-toright ';
+				$data->openLeftBtn = ' menu-active ';
+				$data->openLeftMenu = ' sidemenu-open ';
+				$data->mainContainerClass .= ' sidemenu-push-toright ';
 			}
 			if(($winWidth > 700) && strrpos($openMenuInfo, "r") !== FALSE) {
-				$openRightBtn = ' menu-active ';
-				$openRightMenu = ' sidemenu-open';
-				$mainContainerClass .= ' sidemenu-push-toleft ';
-				$pin = ' hidden ';
+				$data->openRightBtn = ' menu-active ';
+				$data->openRightMenu = ' sidemenu-open';
+				$data->mainContainerClass .= ' sidemenu-push-toleft ';
+				$data->pin = ' hidden ';
 			} else {
-				$pinned = ' hidden ';
+			    $data->pinned = ' hidden ';
 			}
     	} else {
-    			$pinned = ' hidden ';
+    	    $data->pinned = ' hidden ';
     	}
+    	$data->avatar = avatar_Plugin::getImg(core_Users::getCurrent(), NULL, 28);
     	
-    	$menuImg = ht::createElement('img', array('src' => sbf('img/menu.png', ''), 'class' => 'menuIcon', 'alt' => 'menu'));
-    	$pinImg = ht::createElement('img', array('src' => sbf('img/pin.png', ''), 'class' => "menuIcon pin {$pin}", 'alt' => 'pin'));
-        $searchImg = ht::createElement('img', array('src' => sbf('img/32/search.png', ''), 'alt' => 'search', 'width' => '20','height' => '20'));
-    	$pinnedImg = ht::createElement('img', array('src' => sbf('img/pinned.png', ''), 'class' => "menuIcon pinned {$pinned}", 'alt' => 'unpin'));
-    	$img = avatar_Plugin::getImg(core_Users::getCurrent(), NULL, 28);
-    	
-    	// Задаваме лейаута на страницата
-    	$header = "<div style='position: relative'>
-	    					<a id='nav-panel-btn' class='fleft btn-sidemenu btn-menu-left push-body {$openLeftBtn}'>". $menuImg ."</a>
-	    					<span class='fleft '>
-	    					    <span class='menu-options search-options'>" . $searchImg .
-                                     "<span class='menu-holder'>
-                                     		[#SEARCH_INPUT#]
-                                     		[#SEARCH_LINK#]
-		    							</span>
-                                    </span>
-	    					</span>
-	    					<span class='center-block'>
-	    					    <span class='logoText'>[#PORTAL#]</span><span class='notificationsCnt'>[#NOTIFICATIONS_CNT#]</span>
-	    					</span>
-	    					<a id='fav-panel-btn' class='fright btn-sidemenu btn-menu-right push-body {$openRightBtn}'>". $pinImg . $pinnedImg . "</a>
-	    					<div class='fright'>
-		    						<div class='menu-options user-options'>
-		    							" . $img .
-    			    					"<div class='menu-holder'>
-			     		   					[#USERLINK#]
-		    								[#CHANGE_MODE#]
-                                            [#LANG_CHANGE#]
-		    								[#SIGNAL#]
-    			    						[#DEBUG_BTN#]
-	    									<div class='divider'></div>
-			     		   					[#SIGN_OUT#]
-		    							</div>
-	    							</div>
-	     		   			</div>
-	    				<div class='clearfix21'></div>
-	    				</div>  " ;
-    	 
-    	$tpl = new ET("<div id='main-container' class='clearfix21 [#HAS_SCROLL_SUPPORT#] {$mainContainerClass}' style='top: 50px; position: relative'>" .
-    			"<div id=\"framecontentTop\"  class=\"headerBlock\"><div class='inner-framecontentTop'>" . $header . "</div></div>" .
-    			"<!--ET_BEGIN NAV_BAR--><div id=\"navBar\">[#NAV_BAR#]</div>\n<!--ET_END NAV_BAR--><div class='clearfix' style='min-height:9px;'></div>" .
-    			"<div id='statuses'>[#STATUSES#]</div>" .
-    			"[#PAGE_CONTENT#]" .
-    			"[#DEBUG#]</div>".
-    			"<div id='nav-panel' class='sidemenu sidemenu-left {$openLeftMenu}'>[#core_page_InternalModern::renderMenu#]</div>".
-    			"<div id='fav-panel' class='sidemenu sidemenu-right {$openRightMenu}'><div class='inner-fav-panel'>[#bgerp_Bookmark::renderBookmarks#]</div></div>"
+        $key = 'intrnalModernTpl';
 
-    	);
-    	if(isDebug()) {
-    		$tpl->prepend(new ET("<div id='debug_info' style='margin:5px; display:none;overflow-x: hidden'>
-                                     Време за изпълнение: [#DEBUG::getExecutionTime#]
-                                     [#Debug::getLog#]</div>"), "DEBUG");
-    	}
-    	
-        // Опаковките и главното съдържание заемат екрана до долу
-    	jquery_Jquery::run($tpl, "slidebars();");
-        jquery_Jquery::run($tpl, "scrollToHash();");
-     	
-    	if(Mode::is('screenMode', 'narrow')){
-        	jquery_Jquery::run($tpl, "checkForElementWidthChange();");
-        	jquery_Jquery::run($tpl, "sumOfChildrenWidth();");
-        	jquery_Jquery::run($tpl, "removeNarrowScroll();");
-    	}
-    	
-        // Добавяме кода, за определяне параметрите на браузъра
-        $Browser = cls::get('log_Browsers');
-        $tpl->append($Browser->renderBrowserDetectingCode(), 'BROWSER_DETECT');
+        if(($tpl = core_Cache::get($key, 'page'))  === FALSE) {
+            $menuImg = ht::createElement('img', array('src' => sbf('img/menu.png', ''), 'class' => 'menuIcon', 'alt' => 'menu'));
+            $pinImg = ht::createElement('img', array('src' => sbf('img/pin.png', ''), 'class' => "menuIcon pin [#pin#]", 'alt' => 'pin'));
+            $searchImg = ht::createElement('img', array('src' => sbf('img/32/search.png', ''), 'alt' => 'search', 'width' => '20','height' => '20'));
+            $pinnedImg = ht::createElement('img', array('src' => sbf('img/pinned.png', ''), 'class' => "menuIcon pinned [#pinned#]", 'alt' => 'unpin'));
+            
+            // Задаваме лейаута на страницата
+            $header = "<div style='position: relative'>
+                                <a id='nav-panel-btn' class='fleft btn-sidemenu btn-menu-left push-body [#openLeftBtn#]'>". $menuImg ."</a>
+                                <span class='fleft '>
+                                    <span class='menu-options search-options'>" . $searchImg .
+                                         "<span class='menu-holder'>
+                                                [#SEARCH_INPUT#]
+                                                [#SEARCH_LINK#]
+                                            </span>
+                                        </span>
+                                </span>
+                                <span class='center-block'>
+                                    <span class='logoText'>[#PORTAL#]</span><span class='notificationsCnt'>[#NOTIFICATIONS_CNT#]</span>
+                                </span>
+                                <a id='fav-panel-btn' class='fright btn-sidemenu btn-menu-right push-body [#openRightBtn#]'>". $pinImg . $pinnedImg . "</a>
+                                <div class='fright'>
+                                        <div class='menu-options user-options'>
+                                             [#avatar#]
+                                             <div class='menu-holder'>
+                                                [#USERLINK#]
+                                                [#CHANGE_MODE#]
+                                                [#LANG_CHANGE#]
+                                                [#SIGNAL#]
+                                                [#DEBUG_BTN#]
+                                                <div class='divider'></div>
+                                                [#SIGN_OUT#]
+                                            </div>
+                                        </div>
+                                </div>
+                            <div class='clearfix21'></div>
+                            </div>  " ;
+             
+            $tpl = new ET("<div id='main-container' class='clearfix21 [#HAS_SCROLL_SUPPORT#] [#mainContainerClass#]' style='top: 50px; position: relative'>" .
+                    "<div id=\"framecontentTop\"  class=\"headerBlock\"><div class='inner-framecontentTop'>" . $header . "</div></div>" .
+                    "<!--ET_BEGIN NAV_BAR--><div id=\"navBar\">[#NAV_BAR#]</div>\n<!--ET_END NAV_BAR--><div class='clearfix' style='min-height:9px;'></div>" .
+                    "<div id='statuses'>[#STATUSES#]</div>" .
+                    "[#PAGE_CONTENT#]" .
+                    "[#DEBUG#]</div>".
+                    "<div id='nav-panel' class='sidemenu sidemenu-left [#openLeftMenu#]'>[#core_page_InternalModern::renderMenu#]</div>".
+                    "<div id='fav-panel' class='sidemenu sidemenu-right [#openRightMenu#]'><div class='inner-fav-panel'>[#bgerp_Bookmark::renderBookmarks#]</div></div>"
+
+            );
+            if(isDebug()) {
+                $tpl->prepend(new ET("<div id='debug_info' style='margin:5px; display:none;overflow-x: hidden'>
+                                         Време за изпълнение: [#DEBUG::getExecutionTime#]
+                                         [#Debug::getLog#]</div>"), "DEBUG");
+            }
+            
+            // Опаковките и главното съдържание заемат екрана до долу
+            jquery_Jquery::run($tpl, "slidebars();");
+            jquery_Jquery::run($tpl, "scrollToHash();");
+            
+            if(Mode::is('screenMode', 'narrow')){
+                jquery_Jquery::run($tpl, "checkForElementWidthChange();");
+                jquery_Jquery::run($tpl, "sumOfChildrenWidth();");
+                jquery_Jquery::run($tpl, "removeNarrowScroll();");
+            }
+            
+            // Добавяме кода, за определяне параметрите на браузъра
+            $Browser = cls::get('log_Browsers');
+            $tpl->append($Browser->renderBrowserDetectingCode(), 'BROWSER_DETECT');
+
+            core_Cache::set($key, 'page', $tpl, 10000);
+        }
+        
+        $tpl->placeObject($data);
+
+        debug::log('EndTemplate');
 
         return $tpl;
     }
