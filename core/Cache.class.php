@@ -293,6 +293,11 @@ class core_Cache extends core_Manager
     {
         // Почистване на всичкия изтекъл Кеш
         $res .= $mvc->cron_DeleteExpiredData(TRUE);
+        if (function_exists('apcu_clear_cache')) {
+            apcu_clear_cache();
+        } elseif(function_exists('apc_clear_cache')) {
+            apc_clear_cache();
+        }
     }
     
     
@@ -352,7 +357,9 @@ class core_Cache extends core_Manager
      */
     function getData($key, $keepMinutes = NULL)
     {   
-        if (function_exists('apc_fetch')) {
+        if(function_exists('apcu_fetch')) {
+            $res = @apcu_fetch($key);
+        } elseif(function_exists('apc_fetch')) {
             $res = @apc_fetch($key);
         } elseif (function_exists('xcache_get')) {
             $res = @xcache_get($key);
@@ -392,7 +399,9 @@ class core_Cache extends core_Manager
      */
     function deleteData($key, $onlyInMemory = FALSE)
     {
-        if (function_exists('apc_delete')) {
+        if(function_exists('apcu_delete')) {
+            @apcu_delete($key);
+        } elseif(function_exists('apc_delete')) {
             @apc_delete($key);
         } elseif (function_exists('xcache_unset')) {
             @xcache_unset($key);
@@ -412,7 +421,12 @@ class core_Cache extends core_Manager
         $saved = FALSE;
         $keepSeconds = $keepMinutes * 60;
 
-        if (function_exists('apc_store')) {
+        if(function_exists('apcu_store')) {
+            $saved = @apcu_store($key, $data, $keepSeconds);
+            if (!$saved) {
+                self::logNotice('Грешка при записване в APCU_STORE');
+            }
+        } elseif(function_exists('apc_store')) {
             $saved = @apc_store($key, $data, $keepSeconds);
             if (!$saved) {
                 self::logNotice('Грешка при записване в APC_STORE');
