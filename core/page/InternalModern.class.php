@@ -105,7 +105,13 @@ class core_page_InternalModern extends core_page_Active
     		$openMenuInfo = $_COOKIE['menuInfo'];
     		$winWidth = intval($openMenuInfo);
     		$data->mainContainerClass = '';
-    		
+    		$data->pin = '';
+            $data->openLeftBtn = '';
+            $data->openLeftMenu = '';
+		    $data->openRightBtn = '';
+		    $data->openRightMenu = '';
+		    $data->pinned = '';
+
     		//в зависимост от стойсността на разбираме кои менюта са било отворени
 			if(($winWidth > 700) && strrpos($openMenuInfo, "l") !== FALSE) {
 				$data->openLeftBtn = ' menu-active ';
@@ -133,6 +139,9 @@ class core_page_InternalModern extends core_page_Active
             $searchImg = ht::createElement('img', array('src' => sbf('img/32/search.png', ''), 'alt' => 'search', 'width' => '20','height' => '20'));
             $pinnedImg = ht::createElement('img', array('src' => sbf('img/pinned.png', ''), 'class' => "menuIcon pinned [#pinned#]", 'alt' => 'unpin'));
             
+            $pinImg = str_replace("&#91;", '[', "$pinImg");
+            $pinnedImg = str_replace("&#91;", '[', "$pinnedImg");
+
             // Задаваме лейаута на страницата
             $header = "<div style='position: relative'>
                                 <a id='nav-panel-btn' class='fleft btn-sidemenu btn-menu-left push-body [#openLeftBtn#]'>". $menuImg ."</a>
@@ -197,7 +206,7 @@ class core_page_InternalModern extends core_page_Active
 
             core_Cache::set($key, 'page', $tpl, 10000);
         }
-        
+ 
         $tpl->placeObject($data);
 
         debug::log('EndTemplate');
