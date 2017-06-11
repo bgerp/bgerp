@@ -33,7 +33,7 @@ class tasks_Tasks extends embed_Manager
     /**
      * Единично заглавие
      */
-    public $singleTitle = 'Задача';
+    public $singleTitle = 'Пр. задача';
     
     
     /**
@@ -145,6 +145,11 @@ class tasks_Tasks extends embed_Manager
      */
     public $fieldsNotToClone = 'progress';
     
+    /**
+	 * Групиране на документите
+	 */
+	public $newBtnGroup = "3.5|Производство";
+
     
     /**
      * Описание на модела (таблицата)
