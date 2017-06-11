@@ -216,7 +216,6 @@ class doc_Threads extends core_Manager
     
     /**
      * 
-     * 
      * @param string $type
      * @param string $action
      * @param integer|NULL $objectId
@@ -1376,7 +1375,9 @@ class doc_Threads extends core_Manager
     }
     
     
-
+    /**
+     * В кои папки може да бъде преместена нишката?
+     */
     public static function getFolderOpt($threadId)
     {  
         $res = array();

@@ -1347,32 +1347,6 @@ class crm_Companies extends core_Master
     
     
     /**
-     * Ако е празна таблицата с контактите я инициализираме с един нов запис
-     * Записа е с id=1 и е с данните от файла bgerp.cfg.php
-     *
-     * @param unknown_type $mvc
-     * @param unknown_type $res
-     */
-    public static function on_AfterSetupMvc($mvc, &$res)
-    {
-        if(Request::get('Full')) {
-            
-            $query = $mvc->getQuery();
-            
-            while($rec = $query->fetch()) {
-                if($rec->id == crm_Setup::BGERP_OWN_COMPANY_ID) {
-                    $rec->state = 'active';
-                } elseif($rec->state == 'active') {
-                    $rec->state = 'closed';
-                }
-                
-                $mvc->save($rec, 'state');
-            }
-        }
-    }
-    
-
-    /**
      * Изпълнява се след инсталацията
      */
     public static function loadData()
