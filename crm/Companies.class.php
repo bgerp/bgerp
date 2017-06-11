@@ -115,7 +115,7 @@ class crm_Companies extends core_Master
     /**
      * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
      */
-    var $searchFields = 'name,pCode,place,country,email,tel,fax,website,vatId,info,uicId,id';
+    var $searchFields = 'name,pCode,place,country,folderName,email,tel,fax,website,vatId,info,uicId,id';
     
 
     /**
@@ -408,7 +408,11 @@ class crm_Companies extends core_Master
             }
             foreach($data->recs as $rec) {
                 if($cnt[str::utf2ascii(trim($rec->name))]>=2) {
-                    $data->rows[$rec->id]->nameList .= $data->rows[$rec->id]->titleNumber;
+                    if($data->rows[$rec->id]->folderName) {
+                        $data->rows[$rec->id]->nameList .= $data->rows[$rec->id]->folderName;
+                    } else {
+                        $data->rows[$rec->id]->nameList .= $data->rows[$rec->id]->titleNumber;
+                    }
                 }
             }
 
@@ -544,27 +548,28 @@ class crm_Companies extends core_Master
         
         $fieldsArr = array();
         
-        $nameL = "#" . plg_Search::normalizeText(STR::utf2ascii($rec->name)) . "#";
+        $nameL = "#" . mb_strtolower($rec->name) . "#";
         
         static $companyTypesArr = array();
         
         if (empty($companyTypesArr)) {
             $companyTypes = getFileContent('drdata/data/companyTypes.txt');
             $companyTypesArr = explode("\n", $companyTypes);
+            arr::combine($companyTypesArr, array('ет','еоод','сд', 'ад', 'еад'));
         }
-        
+   
         foreach($companyTypesArr as $word) {
             $word = trim($word, '|');
             $nameL = str_replace(array("#{$word}", "{$word}#"), array('', ''), $nameL);
         }
         
         $nameL = trim(str_replace('#', '', $nameL));
-        
+  
         $oQuery = self::getQuery();
         self::restrictAccess($oQuery); 
         
         $nQuery = clone $oQuery;
-        $nQuery->where(array("#searchKeywords LIKE '% [#1#] %'", $nameL));
+        $nQuery->where(array("CONCAT(' ', LOWER(#name), ' ') LIKE '% [#1#] %'", $nameL));
         if ($rec->country) {
             $nQuery->where(array("#country = '[#1#]'", $rec->country));
         }
@@ -612,7 +617,7 @@ class crm_Companies extends core_Master
         }
         
         $fields = implode(',', $fieldsArr);
-        
+      
         return $similarsArr;
     }
     
@@ -726,8 +731,8 @@ class crm_Companies extends core_Master
             $VatType = new drdata_VatType();
             $row->vat = $VatType->toVerbal($rec->vatId);
 
-            if($rec->folderName) {
-                $row->companyName = $row->name;
+            if($rec->folderName) {  
+                $row->title = $row->name;
             }
         }
         
@@ -776,7 +781,15 @@ class crm_Companies extends core_Master
         $row->nameList = '<div class="namelist">'. $row->nameList . "<span class='icon'>". $row->folder .'</span></div>';
 		$row->id = $mvc->getVerbal($rec, 'id');  
         $row->nameList .= ($country ? "<div style='font-size:0.8em;margin-bottom:2px;margin-left: 4px;'>{$country}</div>" : ""); 
-        $row->title .=  $mvc->getTitleById($rec->id);
+
+        if(!$row->title) {
+            $row->title .=  $mvc->getTitleById($rec->id);
+        }
+ 
+        if($rec->folderName) {
+            $row->folderName = "<div style='color:blue;'>" . $mvc->getVerbal($rec, 'folderName') . "</div>";
+        }
+   
         $row->titleNumber = "<div class='number-block' style='display:inline'>№{$rec->id}</div>";
         
         if ($rec->vatId && $rec->uicId) {
