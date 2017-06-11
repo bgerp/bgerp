@@ -83,8 +83,14 @@ class core_Cache extends core_Manager
      * Кои полета ще извличаме, преди изтриване на заявката
      */
     public $fetchFieldsBeforeDelete = 'id,key';
-
     
+
+    /**
+     * Дали да се използва кеширане в хита
+     */
+    static $stopCaching = FALSE;
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -141,7 +147,7 @@ class core_Cache extends core_Manager
      * Записва обект в кеша
      */
     static function set($type, $handler, $value, $keepMinutes = 1, $depends = array())
-    {
+    {   
         $Cache = cls::get('core_Cache');
         
         Debug::log("Cache::set $type, $handler");
@@ -291,8 +297,20 @@ class core_Cache extends core_Manager
      */
     static function on_AfterSetupMVC($mvc, &$res)
     {
+        $mvc->eraseFull();
+
+        $res .= "<li>Кеша е изтрит</li>";
+    }
+    
+
+    /**
+     * Изтрива целия кеш
+     */
+    public static function eraseFull()
+    {
         // Почистване на всичкия изтекъл Кеш
-        $res .= $mvc->cron_DeleteExpiredData(TRUE);
+        $cache = cls::get('core_Cache');
+        $res .= $cache->cron_DeleteExpiredData(TRUE);
         if (function_exists('apcu_clear_cache')) {
             apcu_clear_cache();
         } elseif(function_exists('apc_clear_cache')) {
@@ -300,7 +318,7 @@ class core_Cache extends core_Manager
         }
     }
     
-    
+
     /**
      * Подреждане - най-отгоре са последните записи
      */
@@ -356,7 +374,8 @@ class core_Cache extends core_Manager
      * Връща съдържанието записано на дадения ключ
      */
     function getData($key, $keepMinutes = NULL)
-    {   
+    {
+
         if(function_exists('apcu_fetch')) {
             $res = @apcu_fetch($key);
         } elseif(function_exists('apc_fetch')) {
@@ -417,7 +436,9 @@ class core_Cache extends core_Manager
      * Задава съдържанието на посочения ключ
      */
     function setData($key, $data, $keepMinutes)
-    {   
+    {
+        if(self::$stopCaching) return FALSE;
+
         $saved = FALSE;
         $keepSeconds = $keepMinutes * 60;
 
@@ -466,9 +487,7 @@ class core_Cache extends core_Manager
      * - фукция, която извлича резултата
      */
     public static function getOrCalc($name, $param, $fn)
-    {
-        static $cache = array();
-
+    {   
         if(is_scalar($param)) {
             $key = md5("{$name}{$param}");
         } else {
@@ -477,13 +496,11 @@ class core_Cache extends core_Manager
 
         $Cache = cls::get('core_Cache');
 
-        if(isset($cache[$key])) {
-            $res = $cache[$key];
-        } elseif($resObj = $Cache->getData($key)) {
+        if($resObj = $Cache->getData($key)) {
             $res = $resObj->res;
         } else {
             $res = $fn($param);
-            $cache[$key] = $res;
+
             $resObj = new stdClass();
             $resObj->res = $res;
             
