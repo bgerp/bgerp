@@ -282,12 +282,15 @@ class cash_ExchangeDocument extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
-        // Може да създаваме документ-а само в дефолт папката му
-        if (doc_Folders::fetchCoverClassName($folderId) == 'cash_Cases') {
-        	return TRUE;
-        } 
-        	
-       return FALSE;
+        return core_Cache::getOrCalc('CashExchDocCanAddToFolder', $folderId, function($folderId)
+        {
+            if($folderId == static::getDefaultFolder(NULL, FALSE) || doc_Folders::fetchCoverClassName($folderId) == 'cash_Cases') {
+                
+                return TRUE;
+            }
+
+            return FALSE;
+        });
     }
     
 	/**
@@ -299,12 +302,9 @@ class cash_ExchangeDocument extends core_Master
      */
 	public static function canAddToThread($threadId)
     {
-    	$threadRec = doc_Threads::fetch($threadId);
-    	if ($threadRec->folderId == static::getDefaultFolder(NULL, FALSE) || doc_Folders::fetchCoverClassName($threadRec->folderId) == 'cash_Cases') {
-        	return TRUE;
-       } 
-        
-       return FALSE;
+        $threadRec = doc_Threads::fetch($threadId);
+
+        return self::canAddToFolder($threadRec->folderId);
     }
     
     

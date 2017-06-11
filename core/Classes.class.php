@@ -176,29 +176,37 @@ class core_Classes extends core_Manager
      */
     static function getOptionsByInterface($interface, $title = 'name')
     {
-        if($interface) {
-            // Вземаме инстанция на core_Interfaces
-            $Interfaces = cls::get('core_Interfaces');
+        $params = array($interface, $title);
+
+        return core_Cache::getOrCalc('getOptionsByInterface', $params, function($params)
+        {
+            $interface = $params[0];
+            $title = $params[1];
+
+            if($interface) {
+                // Вземаме инстанция на core_Interfaces
+                $Interfaces = cls::get('core_Interfaces');
+                
+                $interfaceId = $Interfaces->fetchByName($interface);
+                
+                // Очакваме валиден интерфeйс
+                expect($interfaceId);
+                
+                $interfaceCond = " AND #interfaces LIKE '%|{$interfaceId}|%'";
+            } else {
+                $interfaceCond = '';
+            }
             
-            $interfaceId = $Interfaces->fetchByName($interface);
+            $options = self::makeArray4Select($title, "#state = 'active'" . $interfaceCond);
             
-            // Очакваме валиден интерфeйс
-            expect($interfaceId);
-            
-            $interfaceCond = " AND #interfaces LIKE '%|{$interfaceId}|%'";
-        } else {
-            $interfaceCond = '';
-        }
-        
-        $options = self::makeArray4Select($title, "#state = 'active'" . $interfaceCond);
-        
-        if(is_array($options)){
-        	foreach($options as $cls => &$name) {
-        		$name = static::translateClassName($name);
-        	}
-        }
+            if(is_array($options)){
+                foreach($options as $cls => &$name) {
+                    $name = static::translateClassName($name);
+                }
+            }
        
-        return $options;
+            return $options;
+        });
     }
     
     
@@ -273,7 +281,7 @@ class core_Classes extends core_Manager
             $classId = self::$classes[$className];
         }
 
-        expect($classId);
+        expect($classId, $class);
 
         return $classId;
     }
@@ -302,11 +310,20 @@ class core_Classes extends core_Manager
      */
     private static function loadClasses()
     {
-        $query = self::getQuery();
-        while($rec = $query->fetch("#state = 'active'")) {
-            self::$classes[$rec->id] = $rec->name;
-            self::$classes[$rec->name] = $rec->id;
-        }
+        $dummy = '';
+        $classes = core_Cache::getOrCalc('loadClasses1', $dummy, function($dummy)
+        {
+            $classes = array();
+            $query = self::getQuery();
+            while($rec = $query->fetch("#state = 'active'")) {
+                $classes[$rec->id] = $rec->name;
+                $classes[$rec->name] = $rec->id;
+            }
+
+            return $classes;
+        });
+
+        self::$classes = $classes;
     }
 
 
