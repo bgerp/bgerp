@@ -459,4 +459,37 @@ class core_Cache extends core_Manager
         
         $this->save($rec, NULL, 'REPLACE');
     }
+
+
+    /**
+     * Метоз за кратковременно кеширане с аргумент
+     * - фукция, която извлича резултата
+     */
+    public static function getOrCalc($name, $param, $fn)
+    {
+        static $cache = array();
+
+        if(is_scalar($param)) {
+            $key = md5("{$name}{$param}");
+        } else {
+            $key = md5($name . '|' . json_encode($param));
+        }
+
+        $Cache = cls::get('core_Cache');
+
+        if(isset($cache[$key])) {
+            $res = $cache[$key];
+        } elseif($resObj = $Cache->getData($key)) {
+            $res = $resObj->res;
+        } else {
+            $res = $fn($param);
+            $cache[$key] = $res;
+            $resObj = new stdClass();
+            $resObj->res = $res;
+            
+            $Cache->setData($key, $resObj, 120);
+        }
+ 
+        return $res;
+    }
 }
