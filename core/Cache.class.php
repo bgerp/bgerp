@@ -291,17 +291,6 @@ class core_Cache extends core_Manager
         return $msg;
     }
     
-    
-    /**
-     * Инсталация на MVC манипулатора
-     */
-    static function on_AfterSetupMVC($mvc, &$res)
-    {
-        $mvc->eraseFull();
-
-        $res .= "<li>Кеша е изтрит</li>";
-    }
-    
 
     /**
      * Изтрива целия кеш

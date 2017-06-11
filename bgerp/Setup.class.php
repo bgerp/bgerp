@@ -219,6 +219,8 @@ class bgerp_Setup extends core_ProtoSetup {
         $haveError = array();
         
         core_Debug::$isLogging = FALSE;
+        $Cache = cls::get('core_Cache');
+        $Cache->eraseFull();
         core_Cache::$stopCaching = TRUE;
 
         do {
