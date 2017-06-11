@@ -117,8 +117,10 @@ class doc_Containers extends core_Manager
         $this->FLD('docId' , 'int', 'caption=Документ->Обект');
         $this->FLD('searchKeywords', 'text(collate=ascii_bin)', 'notNull,column=none,input=none');
         
+        // Кой е активирал документа?
         $this->FLD('activatedBy', 'key(mvc=core_Users)', 'caption=Активирано от, input=none');
         
+        // Дали документа е видим за партньори
         $this->FLD('visibleForPartners', 'enum(no=Не, yes=Да)', 'caption=Видим за партньори');
         
         // Индекси за бързодействие
@@ -1516,7 +1518,7 @@ class doc_Containers extends core_Manager
 
         // Извличане на потенциалните класове на нови документи
         $docArr = core_Classes::getOptionsByInterface('doc_DocumentIntf');
- 
+  
         if(is_array($docArr) && count($docArr)) {
         	$docArrSort = array();
             foreach($docArr as $id => $class) {
@@ -1524,16 +1526,21 @@ class doc_Containers extends core_Manager
                 $mvc = cls::get($class);
                 
                 list($order, $group) = explode('|', $mvc->newBtnGroup);
+                
+                // debug::log('Start HaveRight:' . $mvc->className);
 
                 if($mvc->haveRightFor('add', $rec)) {
                     $ind = $order * 10000 + $i++;
                     $docArrSort[$ind] = array($group, $mvc->singleTitle, $class);
                 }
+
+                // debug::log('End HaveRight:' . $mvc->className);
+
             }
             
             // Сортиране
             ksort($docArrSort);
-
+ 
             // Групиране
             $btns = array();
             foreach($docArrSort as $id => $arr) {

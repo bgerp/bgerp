@@ -131,7 +131,7 @@ class core_page_InternalModern extends core_page_Active
     	}
     	$data->avatar = avatar_Plugin::getImg(core_Users::getCurrent(), NULL, 28);
     	
-        $key = 'intrnalModernTpl';
+        $key = 'intrnalModernTpl-debug';
 
         if(($tpl = core_Cache::get($key, 'page'))  === FALSE) {
             $menuImg = ht::createElement('img', array('src' => sbf('img/menu.png', ''), 'class' => 'menuIcon', 'alt' => 'menu'));
@@ -184,11 +184,7 @@ class core_page_InternalModern extends core_page_Active
                     "<div id='fav-panel' class='sidemenu sidemenu-right [#openRightMenu#]'><div class='inner-fav-panel'>[#bgerp_Bookmark::renderBookmarks#]</div></div>"
 
             );
-            if(isDebug()) {
-                $tpl->prepend(new ET("<div id='debug_info' style='margin:5px; display:none;overflow-x: hidden'>
-                                         Време за изпълнение: [#DEBUG::getExecutionTime#]
-                                         [#Debug::getLog#]</div>"), "DEBUG");
-            }
+
             
             // Опаковките и главното съдържание заемат екрана до долу
             jquery_Jquery::run($tpl, "slidebars();");
@@ -206,7 +202,13 @@ class core_page_InternalModern extends core_page_Active
 
             core_Cache::set($key, 'page', $tpl, 10000);
         }
- 
+        
+        if(isDebug()) {
+            $tpl->prepend(new ET("<div id='debug_info' style='margin:5px; display:none;overflow-x: hidden'>
+                                         Време за изпълнение: [#DEBUG::getExecutionTime#]
+                                         [#Debug::getLog#]</div>"), "DEBUG");
+        }
+
         $tpl->placeObject($data);
 
         debug::log('EndTemplate');

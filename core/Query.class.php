@@ -303,12 +303,8 @@ class core_Query extends core_FieldSet
         $isFirst = TRUE;
 
         if(count($keylistArr)) {
-            foreach($keylistArr as $key => $value) {
-                if($regExp) $regExp .= '|';
-                $regExp .= '\\\|' . $key . '\\\|';
-            }
-
-            $this->where("#{$field} RLIKE '({$regExp})'", $or);
+            $regExp = implode('|', $keylistArr);
+            $this->where("#{$field} REGEXP '\\\|({$regExp})\\\|'", $or);
         }
 
         return $this;
@@ -647,56 +643,46 @@ class core_Query extends core_FieldSet
         
         $wh = $temp->getWhereAndHaving();
         
-        if (!$temp->useHaving && !$temp->getGroupBy()) {
-            
-            $options = '';
-            
-            if (!empty($this->_selectOptions)) {
-                $options = implode(' ', $this->_selectOptions);
-            }
-           
-            $query = "SELECT {$options}\n   count(*) AS `_count`";
-            if(count($this->selectFields("#kind == 'XPR' || #kind == 'EXT'"))) {
-                $fields = $temp->getShowFields();
-                $query .= ($fields ? ',' : '') . $fields;
-            }
-            
-            $query .= "\nFROM ";
-            $query .= $temp->getTables();
-
-            $query .= $wh->w;
-            $query .= $wh->h;
-            $query .= $temp->getLimit();
-
-            if($this->limit && $this->limitCnt) {
-                $query =  str_replace("count(*) AS `_count`", "1 AS `fix_val`", $query);
-                $query = "SELECT COUNT(*) AS `_count` FROM ({$query}) as COUNT_TABLE";
-            }
-
-            $db = $temp->mvc->db;
-            
-            DEBUG::startTimer(cls::getClassName($this->mvc) . ' COUNT ');
-            
-
-            $dbRes = $db->query($query);
-            
-            DEBUG::stopTimer(cls::getClassName($this->mvc) . ' COUNT ');
-            
-            $r = $db->fetchObject($dbRes);
-            
-            // Освобождаваме MySQL резултата
-            $db->freeResult($dbRes);
-            
-            // Връщаме брояча на редовете
-            return $r->_count;
-        } else {
-            
-            $temp->orderBy = array();
-
-            $i = $temp->select();
-            
-            return $i;
+        $options = '';
+        
+        if (!empty($this->_selectOptions)) {
+            $options = implode(' ', $this->_selectOptions);
         }
+        
+        $query = "SELECT {$options}\n   count(*) AS `_count`";
+        if(count($this->selectFields("#kind == 'XPR' || #kind == 'EXT'"))) {
+            $fields = $temp->getShowFields();
+            $query .= ($fields ? ',' : '') . $fields;
+        }
+        
+        $query .= "\nFROM ";
+        $query .= $temp->getTables();
+
+        $query .= $wh->w;
+        $query .= $wh->h;
+        $query .= $temp->getGroupBy();
+        $query .= $temp->getLimit();
+
+        if ($temp->useHaving || $temp->getGroupBy() || ($this->limit && $this->limitCnt)) {
+            $query =  str_replace("count(*) AS `_count`", "1 AS `fix_val`", $query);
+            $query = "SELECT COUNT(*) AS `_count` FROM ({$query}) as COUNT_TABLE";
+        }
+
+        $db = $temp->mvc->db;
+        
+        DEBUG::startTimer(cls::getClassName($this->mvc) . ' COUNT ');
+        
+        $dbRes = $db->query($query);
+        
+        DEBUG::stopTimer(cls::getClassName($this->mvc) . ' COUNT ');
+        
+        $r = $db->fetchObject($dbRes);
+        
+        // Освобождаваме MySQL резултата
+        $db->freeResult($dbRes);
+        
+        // Връщаме брояча на редовете
+        return $r->_count;
     }
     
     

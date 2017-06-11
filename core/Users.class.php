@@ -533,6 +533,10 @@ class core_Users extends core_Manager
 
         // Ако няма регистрирани потребители, първият задължително е администратор
         if(self::isUsersEmpty()) {
+
+            $cache = cls::get('core_Cache');
+            $cache->eraseFull();
+
             $form->setOptions('state' , array('active' => 'active'));
             
             $form->setField("state", 'input=none');

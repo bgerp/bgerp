@@ -451,7 +451,7 @@ class doc_plg_TplManager extends core_Plugin
         if (doc_TplManager::fetch(array("#docClassId = '[#1#]'", $classId))) {
             if (doc_View::haveRightFor('add') && $mvc->haveRightFor('single', $data->rec->id)) {
                 Request::setProtected(array('clsId', 'dataId'));
-                $data->toolbar->addBtn('Изглед', array('doc_View', 'add', 'clsId' => $classId, 'dataId' => $data->rec->id, 'originId' => $data->rec->containerId), 'ef_icon=img/16/ui_saccordion.png, title=Създаване на документ изглед, order=18, row=2');
+                $data->toolbar->addBtn('Изглед', array('doc_View', 'add', 'clsId' => $classId, 'dataId' => $data->rec->id, 'originId' => $data->rec->containerId), 'ef_icon=img/16/ui_saccordion.png, title=Друг изглед на документа, order=18, row=3');
             }
         }
     }
