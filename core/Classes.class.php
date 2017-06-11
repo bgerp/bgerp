@@ -311,10 +311,10 @@ class core_Classes extends core_Manager
     private static function loadClasses()
     {
         $dummy = '';
-        $classes = core_Cache::getOrCalc('loadClasses', $dummy, function($dummy)
+        $classes = core_Cache::getOrCalc('loadClasses1', $dummy, function($dummy)
         {
             $classes = array();
-            $query = self::getQuery();
+            $query = core_Classes::getQuery();
             while($rec = $query->fetch("#state = 'active'")) {
                 $classes[$rec->id] = $rec->name;
                 $classes[$rec->name] = $rec->id;
