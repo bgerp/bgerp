@@ -268,13 +268,14 @@ class plg_Search extends core_Plugin
                 if (!strlen($wTrim)) continue;
                 
                 if(strpos($w, ' ')) {
+                    
                     $mode = '"';
+            
                     $wArr = explode(' ', $w);
+                    $minWordLen = 0;
                     foreach($wArr as $part) {
                         $partLen = strlen($part);
-                        if($partLen < $minWordLen) {
-                            $minWordLen = $partLen;
-                        }
+                        $minWordLen = max($minWordLen, $partLen);
                     }
                 }
 
@@ -283,7 +284,7 @@ class plg_Search extends core_Plugin
                     $w = trim($w, '%');
                     $query->where("#{$field} {$like} '%{$wordBegin}{$w}{$wordEnd}%'");
                 } else {
-                    if($minWordLen <= $minLenFTS || !empty($query->mvc->dbEngine) || $limit > 0) {
+                    if($minWordLen <= $minLenFTS || !empty($query->mvc->dbEngine) || $limit > 0) {  
                         if($limit > 0 && $like == 'LIKE') {
                             $field1 =  "LEFT(#{$field}, {$limit})";
                         } else {

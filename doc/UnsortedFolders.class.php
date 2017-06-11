@@ -346,10 +346,9 @@ class doc_UnsortedFolders extends core_Master
         $res .= core_Cron::addOnce($rec);
     }
     
- 
 
     /**
-     * Метод за Cron за зареждане на валутите
+     * Метод за Cron затваряне на нишки в проекти
      */
     static function cron_SelfClosed()
     {   

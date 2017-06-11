@@ -18,7 +18,7 @@
                     <legend class="groupTitle">|Адрес и контакти|*</legend>
                     <div class="groupList">
                         <!--ET_BEGIN companyName-->
-                        <div>[#companyName#]</div>
+                        <div><strong style='color:blue'>[#folderName#]</strong></div>
                         <!--ET_END companyName-->
                         <div>[#country#]</div>
                         <div>[#pCode#] [#place#]</div>

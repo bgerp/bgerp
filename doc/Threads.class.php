@@ -173,7 +173,9 @@ class doc_Threads extends core_Manager
         
         // Индекс за по-бързо избиране по папка
         $this->setDbIndex('folderId');
-        
+        $this->setDbIndex('last');
+        $this->setDbIndex('state');
+
         $this->setDbIndex('firstContainerId');
     }
     
@@ -213,7 +215,6 @@ class doc_Threads extends core_Manager
     
     
     /**
-     * 
      * 
      * @param string $type
      * @param string $action
@@ -843,7 +844,7 @@ class doc_Threads extends core_Manager
     		$query = doc_Threads::getQuery();
     		$query->where("#folderId = {$folderId}");
             $year = dt::addDays(-360);
-            $query->where("#modifiedOn >= '{$year}'");
+            $query->where("#last >= '{$year}'");
 	
     		// Ако ще проверяваме за партньори, оставяме само видимите за тях документи
     		if($onlyVisibleForPartners){
@@ -1374,7 +1375,9 @@ class doc_Threads extends core_Manager
     }
     
     
-
+    /**
+     * В кои папки може да бъде преместена нишката?
+     */
     public static function getFolderOpt($threadId)
     {  
         $res = array();
@@ -1662,6 +1665,13 @@ class doc_Threads extends core_Manager
      */
     public static function getFirstContainerId($id)
     {
+        $rec = self::fetch($id);
+
+        if($rec->firstContainerId) {
+
+            return $rec->firstContainerId;
+        }
+
         /* @var $query core_Query */
         $query = doc_Containers::getQuery();
         $query->where("#threadId = {$id}");

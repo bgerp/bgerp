@@ -246,7 +246,7 @@ class hr_EmployeeContracts extends core_Master
         // по дефолт слагаме днешна дата
         $data->form->setDefault('dateId', dt::verbal2mysql());
         
-        // сладаме Управители
+        // избор за Управители
         $managers = $mvc->getManagers();
         $data->form->setOptions('managerId', $managers);
         

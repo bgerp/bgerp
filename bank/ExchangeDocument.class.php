@@ -280,12 +280,15 @@ class bank_ExchangeDocument extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
-        // Може да създаваме документ-а само в дефолт папката му
-        if ($folderId == static::getDefaultFolder(NULL, FALSE) || doc_Folders::fetchCoverClassName($folderId) == 'bank_OwnAccounts') {
-            return TRUE;
-        }
-        
-        return FALSE;
+        return core_Cache::getOrCalc('BankExchDocCanAddToFolder', $folderId, function($folderId)
+        {
+            if($folderId == static::getDefaultFolder(NULL, FALSE) || doc_Folders::fetchCoverClassName($folderId) == 'bank_OwnAccounts') {
+                
+                return TRUE;
+            }
+
+            return FALSE;
+        });
     }
     
     
@@ -300,11 +303,7 @@ class bank_ExchangeDocument extends core_Master
     {
         $threadRec = doc_Threads::fetch($threadId);
         
-        if ($threadRec->folderId == static::getDefaultFolder(NULL, FALSE) || doc_Folders::fetchCoverClassName($threadRec->folderId) == 'bank_OwnAccounts') {
-            return TRUE;
-        }
-        
-        return FALSE;
+        return self::canAddToFolder($threadRec->folderId);
     }
     
     

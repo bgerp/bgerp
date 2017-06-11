@@ -110,7 +110,7 @@ class doc_Search extends core_Manager
         $data->listFilter->setField('scopeFolderId', 'input');
     	
         $data->listFilter->getField('state')->type->options = array('all' => 'Всички') + $data->listFilter->getField('state')->type->options;
-    	$data->listFilter->setField('search', 'autoFilter,caption=Ключови думи');
+    	$data->listFilter->setField('search', 'caption=Ключови думи');
         $data->listFilter->setField('docClass', 'caption=Вид документ,placeholder=Всички');
         
         $data->listFilter->setDefault('author', 'all_users');
@@ -162,13 +162,6 @@ class doc_Search extends core_Manager
                 
                 // Сетваме грешката
                 $data->listFilter->setError('fromDate', "Не може да се търси в бъдеще");    
-            }
-            
-            // Ако се търси в бъдеще
-            if ($filterRec->toDate && $filterRec->toDate > $now) {
-                
-                // Сетваме грешката
-                $data->listFilter->setError('toDate', "Не може да се търси в бъдеще");    
             }
         }
         
@@ -238,8 +231,11 @@ class doc_Search extends core_Manager
             }
             
             // Ограничаване на търсенето до избрана папка
-            if (!empty($filterRec->scopeFolderId)) {
+            if (!empty($filterRec->scopeFolderId) && doc_Folders::haveRightFor('single', $filterRec->scopeFolderId)) {
                 $data->query->where(array("#folderId = '[#1#]'", $filterRec->scopeFolderId));
+                $restrictAccess = FALSE;
+            } else {
+                $restrictAccess = TRUE;
             }
             
             // Ако е избран автор или не са избрани всичките
@@ -295,8 +291,10 @@ class doc_Search extends core_Manager
                 }
             }
             
-            // Ограничаване на заявката само до достъпните нишки
-            doc_Threads::restrictAccess($data->query, $currUserId);
+            if($restrictAccess) {
+                // Ограничаване на заявката само до достъпните нишки
+                doc_Threads::restrictAccess($data->query, $currUserId);
+            }
             
             // Създател
             $data->query->orWhere("#createdBy = '{$currUserId}'");
