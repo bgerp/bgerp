@@ -489,9 +489,9 @@ class core_Cache extends core_Manager
     public static function getOrCalc($name, $param, $fn)
     {   
         if(is_scalar($param)) {
-            $key = md5("{$name}{$param}");
+            $key = md5(EF_DB_NAME . '|' . CORE_CACHE_PREFIX_SALT . "{$name}{$param}");
         } else {
-            $key = md5($name . '|' . json_encode($param));
+            $key = md5(EF_DB_NAME . '|' . CORE_CACHE_PREFIX_SALT . $name . '|' . json_encode($param));
         }
 
         $Cache = cls::get('core_Cache');
