@@ -96,6 +96,8 @@ class store_Products extends core_Detail
     {
     	if(isset($data->masterMvc)){
     		$mvc->listItemsPerPage = 100;
+    	} else {
+    		$mvc->listItemsPerPage = 20;
     	}
     }
     
