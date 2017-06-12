@@ -75,6 +75,7 @@ class cond_Parameters extends bgerp_ProtoParam
     			3 => "group",
     			4 => 'suffix',
     			5 => 'csv_roles',
+    			6 => 'options',
     	);
     	 
     	$cntObj = csv_Lib::importOnce($this, $file, $fields);
