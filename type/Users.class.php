@@ -240,8 +240,23 @@ class type_Users extends type_Keylist
     function fromVerbal_($value)
     {
         $this->prepareOptions();
-       
+        
         if (isset($value) && !$this->options[$value]) {
+            if(strpos($value, '_')) {
+                list($gr, $value) = explode('_', $value);
+            }
+            if(is_numeric($value)) {
+                foreach($this->options as $key => $opt) { 
+                    if(strpos($key, '_')) { 
+                        list($gr, $usr) = explode('_', $key);
+                        if($usr == $value) {
+
+                            return $opt->keylist;
+                        }
+                    }
+                }
+            }
+
             $this->error = 'Некоректна стойност';
             
             return FALSE;
