@@ -384,7 +384,7 @@ abstract class deals_DealMaster extends deals_DealBase
 			if($filter->type) {
 				switch($filter->type){
 					case "clAndAct":
-						$data->query->where("#state = 'active' || #state = 'closed'");
+						$data->query->where("#state = 'active' OR #state = 'closed'");
 						break;
 					case "all":
 						break;

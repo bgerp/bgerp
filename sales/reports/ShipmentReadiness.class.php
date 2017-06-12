@@ -489,7 +489,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 		$dates = array();
 		
 		$jQuery = planning_Jobs::getQuery();
-		$jQuery->where("#saleId = {$saleRec->id} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')");
+		$jQuery->where("#saleId = {$saleRec->id} AND (#state = 'active' OR #state = 'stopped' OR #state = 'wakeup')");
 		$jQuery->XPR('max', 'int', "MAX(#dueDate)");
 		$jQuery->XPR('min', 'int', "MIN(#dueDate)");
 		$jQuery->show('min,max');
@@ -541,7 +541,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 			$ignore = FALSE;
 			if($productRec->isPublic == 'no'){
 				$closedJobId = planning_Jobs::fetchField("#productId = {$pId} AND #state = 'closed' AND #saleId = {$saleRec->id}");
-				$activeJobId = planning_Jobs::fetchField("#productId = {$pId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup') AND #saleId = {$saleRec->id}");
+				$activeJobId = planning_Jobs::fetchField("#productId = {$pId} AND (#state = 'active' OR #state = 'stopped' OR #state = 'wakeup') AND #saleId = {$saleRec->id}");
 						
 				// Се приема че е готово
 				if($closedJobId && !$activeJobId){

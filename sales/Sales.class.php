@@ -880,7 +880,7 @@ class sales_Sales extends deals_DealMaster
     	foreach (array('sales_Sales', 'store_ShipmentOrders', 'sales_Services') as $Cls){
     		$query = $Cls::getQuery();
     		$query->where("#contragentClassId = {$Contragent->getClassId()} AND #contragentId = {$contragentId}");
-    		$query->where("#state = 'active' || #state = 'closed'");
+    		$query->where("#state = 'active' OR #state = 'closed'");
     		$query->show('id');
     		$query->orderBy("valior", 'DESC');
     		while($rec = $query->fetch()){
@@ -904,7 +904,7 @@ class sales_Sales extends deals_DealMaster
     		foreach (array('sales_SalesDetails', 'store_ShipmentOrderDetails', 'sales_ServicesDetails') as $Detail){
     			$Detail = cls::get($Detail);
     			$dQuery = $Detail->getQuery();
-    			$dQuery->where("#state = 'active' || #state = 'closed'");
+    			$dQuery->where("#state = 'active' OR #state = 'closed'");
     			$dQuery->show("productId,price,{$Detail->masterKey}");
     			
     			$dQuery->EXT('state', $Detail->Master->className, "externalName=state,externalKey={$Detail->masterKey}");

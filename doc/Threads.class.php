@@ -2045,7 +2045,7 @@ class doc_Threads extends core_Manager
     	}
     	
     	$cloneQuery = clone $cQuery;
-    	$cloneQuery->where("#state = 'active' || #state = 'pending' || #state = 'waiting' || #state = 'closed'");
+    	$cloneQuery->where("#state = 'active' OR #state = 'pending' OR #state = 'waiting' OR #state = 'closed'");
     	$cloneQuery->notIn('docClass', array_keys($classes));
     	
     	$cQuery->in('docClass', array_keys($classes));

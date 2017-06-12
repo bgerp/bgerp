@@ -175,7 +175,7 @@ class acc_ClosePeriods extends core_Master
     	
     	$data->form->addAttr('periodId', array('onchange' => "addCmdRefresh(this.form);this.form.submit();"));
     	
-    	$options = acc_Periods::makeArray4Select(NULL, array("#state = 'active' || #state = 'pending'", $root));
+    	$options = acc_Periods::makeArray4Select(NULL, array("#state = 'active' OR #state = 'pending'", $root));
     	$data->form->setOptions('periodId', $options);
     	
     	if(empty($data->form->rec->id)){

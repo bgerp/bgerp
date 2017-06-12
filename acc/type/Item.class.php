@@ -97,7 +97,7 @@ class acc_type_Item extends type_Key
             	// и затворените след крайната дата на последния затворен период
             	$lastClosedPeriod = acc_Periods::getLastClosedPeriod();
             	if(!empty($lastClosedPeriod)){
-            		$query->where("#state = 'active' || (#state = 'closed' AND #closedOn IS NOT NULL AND #closedOn > '{$lastClosedPeriod->end}')");
+            		$query->where("#state = 'active' OR (#state = 'closed' AND #closedOn IS NOT NULL AND #closedOn > '{$lastClosedPeriod->end}')");
             	}
             }
             
