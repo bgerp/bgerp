@@ -563,7 +563,7 @@ class hr_WorkingCycles extends core_Master
     static public function calcLeaveDaysBySchedule($id, $masterId, $leaveFrom, $leaveTo)
     {
         $nonWorking = $workDays = $allDays = 0;
-        
+
         // Взимаме конкретния работен график
         $state = self::getQuery();
         $state->where("#id='{$id}'");
@@ -573,21 +573,27 @@ class hr_WorkingCycles extends core_Master
         $startingOn = hr_Departments::fetchField($masterId, 'startingOn');
        
         $curDate = $leaveFrom;
+
+        if(dt::daysBetween($leaveTo, $leaveFrom) == 1){
+            $to = $leaveTo;
+        } else {
+            $to = dt::addDays(1, $leaveTo);
+        }
         
         // От началната дата до крайната, проверяваме всеки ден
         // дали е работен или не
-        while($curDate < dt::addDays(1, $leaveTo)){
-            
+        while($curDate < $to){ 
+
             $dateType = static::getShiftDay($cycleDetails, $curDate, $startingOn);
-            
+     
             if($dateType == 0) {
                 $nonWorking++;
             } else {
-                $workDays++;
+                $workDays++;  
             }
-            
+           
             $curDate = dt::addDays(1, $curDate);
-            
+
             $allDays++;
         }
         
