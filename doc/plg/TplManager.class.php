@@ -185,10 +185,15 @@ class doc_plg_TplManager extends core_Plugin
      */
     public static function on_AfterPushTemplateLg($mvc, &$res, $templateId)
     {
-        if (Request::get('asClient')) {
-            $res = 'en';
+        // Ако езика на шаблона е зададен в мода
+        if ($modeLg = Mode::get('tplManagerLg')) {
+            $res = $modeLg;
         } else {
-            $res = doc_TplManager::fetchField($templateId, 'lang');
+            if (Request::get('asClient')) {
+                $res = 'en';
+            } else {
+                $res = doc_TplManager::fetchField($templateId, 'lang');
+            }
         }
         
         core_Lg::push($res);
