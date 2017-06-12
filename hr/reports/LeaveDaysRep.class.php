@@ -224,7 +224,8 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
 
 		// Линк към служителя
 		if(isset($dRec->person)) {
-		    $row->person = crm_Profiles::createLink($dRec->person);
+		    //crm_Profiles::fetchField("#personId = '{$rec->alternatePerson}'", 'userId');
+		    $row->person = crm_Persons::fetchField($dRec->person, 'name');;
 		}
 		
 		if($isPlain){
