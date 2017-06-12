@@ -119,11 +119,13 @@ class cat_Listings extends core_Master
      */
     function description()
     {
-    	$this->FLD('title', 'varchar', 'mandatory,caption=Заглавие');
+    	$this->FLD('title', 'varchar', 'mandatory,caption=Заглавие,ci');
     	$this->FLD('type', 'enum(canSell=Продаваеми,canBuy=Купуваеми)', 'mandatory,caption=Артикули,notNull,value=canSell');
     	$this->FLD('isPublic', 'enum(yes=Да,no=Не)', 'mandatory,caption=Публичен,input=none');
+    	$this->FLD('sysId', 'varchar', 'input=none');
     	
-    	$this->setDbUnique('title');
+    	$this->setDbIndex('title,type');
+    	$this->setDbIndex('sysId');
     }
     
     
@@ -152,7 +154,7 @@ class cat_Listings extends core_Master
     	$row = new stdClass();
     	$title = $this->getVerbal($rec, 'title');
     	 
-    	$row->title    = tr($this->singleTitle) . " \"{$title}\"";
+    	$row->title    = $title . " №{$rec->id}";
     	$row->authorId = $rec->createdBy;
     	$row->author   = $this->getVerbal($rec, 'createdBy');
     	$row->recTitle = $row->title;
@@ -381,5 +383,133 @@ class cat_Listings extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->doc = $mvc->getLink($rec->id, 0);
+    }
+    
+    
+    /**
+     * Обновяване на листите за продажба
+     */
+    public function cron_UpdateAutoLists()
+    {
+    	$from = dt::addDays(-30, NULL, FALSE);
+    	$today = dt::today();
+    	$now = dt::now();
+    	
+    	$cache = array();
+    	
+    	// Намират се последните продажби за месеца
+    	$query = sales_Sales::getQuery();
+    	$query->where("#valior >= '{$from}' AND #valior <= '{$today}' AND (#state = 'active' OR #state = 'closed')");
+    	$query->groupBy('folderId');
+    	$query->show('folderId');
+    	
+    	// Извличат се папките им
+    	$folders = arr::extractValuesFromArray($query->fetchAll(), 'folderId');
+    	if(!count($folders)) return;
+    	
+    	// За всяка папка
+    	foreach ($folders as $folderId){
+    		
+    		// Имали зададено търговско условие за автоматичен лист
+    		$Cover = doc_Folders::getCover($folderId);
+    		
+    		$value = cond_Parameters::getParameter($Cover->getInstance(), $Cover->that, 'autoSalesMakeList');
+    		if($value !== 'yes') continue;
+    		
+    		$res = array();
+    		
+    		// Намират се всички продавани стандартни артикули от тази папка
+    		$dQuery = sales_SalesDetails::getQuery();
+    		$dQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+    		$dQuery->EXT('canSell', 'cat_Products', 'externalName=canSell,externalKey=productId');
+    		$dQuery->EXT('valior', 'sales_Sales', 'externalName=valior,externalKey=saleId');
+    		$dQuery->EXT('folderId', 'sales_Sales', 'externalName=folderId,externalKey=saleId');
+    		$dQuery->EXT('state', 'sales_Sales', 'externalName=state,externalKey=saleId');
+    		$dQuery->where("#valior >= '{$from}' AND #valior <= '{$today}' AND (#state = 'active' OR #state = 'closed')");
+    		$dQuery->where("#folderId = {$folderId} AND #canSell = 'yes'");
+    		$dQuery->show('productId');
+    		
+    		// Групират се и се запазва бройката им
+    		while($dRec = $dQuery->fetch()){
+    			if(!array_key_exists($dRec->productId, $res)){
+    				$res[$dRec->productId] = 1;
+    			} else {
+    				$res[$dRec->productId] += 1;
+    			}
+    		}
+    		
+    		if(!count($res)) continue;
+    		
+    		// Подреждат се във низходящ ред по това, колко често са срещани
+    		arsort($res);
+    		$products = array_keys($res);
+    		
+    		// Форсира се системен лист
+    		$listId = self::forceAutoList($folderId, $Cover);
+    		
+    		$newDetails = array();
+    		
+    		// За всеки артикул, подготвят се детайлите
+    		foreach ($products as $productId){
+    			if(!array_key_exists($productId, $cache)){
+    				$cache[$productId] = array('packagingId' => key(cat_Products::getPacks($productId)), 
+    						                   'reff'        => cat_Products::fetchField($productId, 'code'));
+    			}
+    			
+    			$packagingId = $cache[$productId]['packagingId'];
+    			$reff = $cache[$productId]['reff'];
+    			
+    			$newDetails[$productId] = (object)array('listId'      => $listId,
+    												    'productId'   => $productId, 
+    					                                'reff'        => $reff,
+    													'modifiedOn'  => $now,
+    													'modifiedBy'  => core_Users::SYSTEM_USER,
+     					                                'packagingId' => $packagingId);
+    		}
+    		
+    		// Ако те са под 20 допълват се с артикулите от листа (ако има)
+    		if(count($newDetails) < 20){
+    			$lQuery = cat_ListingDetails::getQuery();
+    			$lQuery->where("#listId = {$listId}");
+    			$lQuery->notIn("productId", $products);
+    			
+    			// При достигане на 20 се спира допълването
+    			while($lRec = $lQuery->fetch()){
+    				$newDetails[$lRec->productId] = $lRec; 
+    				if(count($newDetails) >= 20) break;
+    			}
+    		}
+    		
+    		// Изтриване и наливане на новите детайли на листа
+    		cat_ListingDetails::delete("#listId = {$listId}");
+    		cat_ListingDetails::saveArray($newDetails);
+    	}
+    }
+    
+    
+    /**
+     * Форсира автоматичния лист на потребителя
+     * 
+     * @param int $folderId - ид на папка
+     * @return int $listid - ид на форсирания лист
+     */
+    private static function forceAutoList($folderId, $Cover)
+    {
+    	$folderName = doc_Folders::getTitleById($folderId);
+    	$title = "Списък от предишни продажби";
+    	$listId = cat_Listings::fetchField("#sysId = 'auto{$folderId}'");
+    	if(!$listId){
+    		$lRec = (object)array('title' => $title, 'type' => 'canSell', 'folderId' => $folderId, 'state' => 'active', 'isPublic' => 'no', 'sysId' => "auto{$folderId}");
+    		$listId = self::save($lRec);
+    	}
+    	
+    	// Задаване на списъка като търговско условие, ако няма такова за контрагента
+    	$paramId = cond_Parameters::fetchIdBySysId('salesList');
+    	$condId = cond_ConditionsToCustomers::fetchByCustomer($Cover->getClassId(), $Cover->that, $paramId);
+    	if(!$condId){
+    		cond_ConditionsToCustomers::force($Cover->getClassId(), $Cover->that, $paramId, $listId);
+    	}
+    	
+    	return $listId;
     }
 }
