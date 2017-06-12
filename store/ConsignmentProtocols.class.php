@@ -85,7 +85,7 @@ class store_ConsignmentProtocols extends core_Master
     /**
      * Кой има право да променя?
      */
-    public $canChangeline = 'ceo,store';
+    public $canChangeline = 'ceo,store,trans';
     
     
     /**
