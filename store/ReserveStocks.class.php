@@ -123,7 +123,7 @@ class store_ReserveStocks extends core_Master
 	/**
 	 * Икона на единичния изглед
 	 */
-	public $singleIcon = 'img/16/transfers.png';
+	public $singleIcon = 'img/16/lock.png';
 
 
 	/**
