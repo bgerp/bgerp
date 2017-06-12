@@ -93,6 +93,9 @@ class cat_ProductTplCache extends core_Master
 		
 		$this->FLD("cache", "blob(1000000, serialize, compress)", "input=none,caption=Html,column=none");
 		$this->FLD("time", "datetime", "input=none,caption=Дата");
+
+        $this->setDbIndex('productId');
+        $this->setDbIndex('time');
 	}
 	
 	
