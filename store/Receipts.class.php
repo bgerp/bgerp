@@ -82,7 +82,7 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Кой има право да променя?
      */
-    public $canChangeline = 'ceo,store';
+    public $canChangeline = 'ceo,store,trans';
     
     
     /**

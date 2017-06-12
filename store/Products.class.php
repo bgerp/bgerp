@@ -443,7 +443,7 @@ class store_Products extends core_Detail
     	$containerIds = arr::extractValuesFromArray($saleQuery->fetchAll(), 'containerId');
     	
     	$jobQuery = planning_Jobs::getQuery();
-    	$jobQuery->where("#state = 'active' || #state = 'stopped' || #state = 'wakeup'");
+    	$jobQuery->where("#state = 'active' OR #state = 'stopped' OR #state = 'wakeup'");
     	$jobQuery->show('containerId');
     	$containerIds1 = arr::extractValuesFromArray($jobQuery->fetchAll(), 'containerId');
     	$containerIds += $containerIds1;

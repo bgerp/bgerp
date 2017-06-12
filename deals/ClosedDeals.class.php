@@ -679,7 +679,7 @@ abstract class deals_ClosedDeals extends core_Master
         	
         	// Намираме първия валиден период, след този на датата
         	$pQuery = acc_Periods::getQuery();
-        	$pQuery->where("#state = 'active' || #state = 'pending'");
+        	$pQuery->where("#state = 'active' OR #state = 'pending'");
         	$pQuery->where("#id > {$pRec->id}");
         	$pQuery->orderBy("start", 'DESC');
         	

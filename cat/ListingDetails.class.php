@@ -520,7 +520,7 @@ class cat_ListingDetails extends doc_Detail
 		$query->EXT('state', $Class, "externalName=state,externalKey={$key}");
 		$query->EXT("{$type}", 'cat_Products', "externalName={$type},externalKey=productId");
 		$query->where("#folderId = {$listRec->folderId}");
-		$query->where("#state = 'active' || #state = 'closed'");
+		$query->where("#state = 'active' OR #state = 'closed'");
 		$query->where("#{$type} = 'yes'");
 	
 		if(!empty($from)){

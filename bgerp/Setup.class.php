@@ -380,6 +380,22 @@ class bgerp_Setup extends core_ProtoSetup {
                         $haveError[$p] .= "<h3 class='debug-error'>Грешка при зареждане данните на пакета {$p} <br>" . $exp->getMessage() . " " . date('H:i:s') . "</h3>";
                         reportException($exp);
                     }
+                    
+                    global $setupFlag;
+
+                    if ($setupFlag) {
+                        // Махаме <h2> тага на заглавието
+                       // $res = substr($res, strpos($res, "</h2>"), strlen($res));
+
+                        do {
+                            $res = @file_put_contents(EF_TEMP_PATH . '/setupLog.html', $res, FILE_APPEND|LOCK_EX);
+                            if($res !== FALSE) break;
+                            usleep(1000);
+                        } while($i++ < 100);
+                        
+                        unset($res);
+                    }
+
                 }
             }
         }
