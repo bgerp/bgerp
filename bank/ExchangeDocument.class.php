@@ -282,7 +282,9 @@ class bank_ExchangeDocument extends core_Master
     {
         return core_Cache::getOrCalc('BankExchDocCanAddToFolder', $folderId, function($folderId)
         {
-            if($folderId == static::getDefaultFolder(NULL, FALSE) || doc_Folders::fetchCoverClassName($folderId) == 'bank_OwnAccounts') {
+            $Be = cls::get('bank_ExchangeDocument');
+            
+            if($folderId == bank_ExchangeDocument::getDefaultFolder(NULL, FALSE) || doc_Folders::fetchCoverClassName($folderId) == 'bank_OwnAccounts') {
                 
                 return TRUE;
             }

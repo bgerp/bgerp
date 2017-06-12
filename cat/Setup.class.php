@@ -178,6 +178,16 @@ class cat_Setup extends core_ProtoSetup
     				'offset' => 60,
     				'timeLimit' => 200
     		),
+    		
+    		array(
+    				'systemId' => "Update Auto Sales List",
+    				'description' => "Обновяване на листовете с последните продажби",
+    				'controller' => "cat_Listings",
+    				'action' => "UpdateAutoLists",
+    				'period' => 86400,
+    				'offset' => 60,
+    				'timeLimit' => 200
+    		),
     );
     
     

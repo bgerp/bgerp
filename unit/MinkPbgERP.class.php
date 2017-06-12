@@ -235,7 +235,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('nick', 'User1');
         $browser->setValue('passNew', '123456');
         $browser->setValue('passRe', '123456');
-        $browser->setValue('names', 'User1');
+        $browser->setValue('names', 'Потребител 1');
         $browser->setValue('email', 'u1@abv.bg');
         $browser->setValue('roleRank', 'ceo');
         $browser->refresh('Запис');
