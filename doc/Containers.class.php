@@ -350,7 +350,7 @@ class doc_Containers extends core_Manager
     {
         expect($data->threadId = Request::get('threadId', 'int'));
         expect($data->threadRec = doc_Threads::fetch($data->threadId));
-        
+
         $data->folderId = $data->threadRec->folderId;
         
         doc_Threads::requireRightFor('single', $data->threadRec);
@@ -426,6 +426,21 @@ class doc_Containers extends core_Manager
      */
     static function on_AfterRenderListTable($mvc, &$tpl, $data)
     {
+        if(isDebug() && Request::get('_info')) {  
+                    
+            $tR = $data->threadRec;
+        
+            Debug::log("Thread: $tR->id, folderId={$tR->folderId}, firstContainerId={$tR->firstContainerId}");
+
+            if(is_array($data->recs)) {
+                foreach($data->recs as $rec) {
+                    $dMvc = cls::get($rec->docClass);
+                    $dRec = $dMvc->fetch($rec->docId);
+                    Debug::log("Container: $rec->id, threadId = {$rec->threadId}, folderId = {$rec->folderId}, docClass={$rec->docClass}, docId={$rec->docId}, docContainerId = {$dRec->containerId}, docThreadId = {$dRec->threadId}, docFolderId = {$dRec->folderId}");
+                }
+            }
+        }
+
         $state = $data->threadRec->state;
         $tpl = new ET("<div class='thread-{$state} single-thread'>[#1#]</div>", $tpl);
         
