@@ -225,7 +225,7 @@ class cat_ProductTplCache extends core_Master
 		$cacheRec = new stdClass();
 		
 		// Ако няма кеш досега записваме го с датата за която проверяваме за да се върне винаги
-		if(!self::count(("#productId = {$rec->id} AND #type = 'title' AND #documentType = '{$documentType}' AND #time <= '{$time}'"))){
+		if(!self::fetch(("#productId = {$rec->id} AND #type = 'title' AND #documentType = '{$documentType}' AND #time <= '{$time}'"))){
 			$cacheRec->time = $time;
 		} else {
 		
@@ -278,7 +278,7 @@ class cat_ProductTplCache extends core_Master
 		$cacheRec = new stdClass();
 		
 		// Ако няма кеш досега записваме го с датата за която проверяваме за да се върне винаги
-		if(!self::count(("#productId = {$pRec->id} AND #type = 'description' AND #documentType = '{$documentType}' AND #time <= '{$time}'"))){
+		if(!self::fetch(("#productId = {$pRec->id} AND #type = 'description' AND #documentType = '{$documentType}' AND #time <= '{$time}'"))){
 			$cacheRec->time = $time;
 		} else {
 		
