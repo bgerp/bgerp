@@ -154,7 +154,7 @@ class cat_Listings extends core_Master
     	$row = new stdClass();
     	$title = $this->getVerbal($rec, 'title');
     	 
-    	$row->title    = $title;
+    	$row->title    = $title . " №{$rec->id}";
     	$row->authorId = $rec->createdBy;
     	$row->author   = $this->getVerbal($rec, 'createdBy');
     	$row->recTitle = $row->title;
