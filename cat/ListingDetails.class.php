@@ -168,7 +168,11 @@ class cat_ListingDetails extends doc_Detail
 				}
 				
 				if(empty($rec->reff)){
-					$form->setError('reff', 'Трябва да бъде въведен код');
+					$form->setError('reff', 'Не е въведен код');
+				} else {
+					if(self::fetchField("#listId = {$rec->listId} AND #reff = '{$rec->reff}' AND #id != '{$rec->id}'")){
+						$form->setError('reff', "Има вече артикул с код|*  <b>{$rec->reff}</b> |в списъка|*");
+					}
 				}
 			}
 			
