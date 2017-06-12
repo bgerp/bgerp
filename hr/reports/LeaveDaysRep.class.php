@@ -23,15 +23,7 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'hrMaster,ceo,';
-    
-    
-    /**
-     * Дилърите
-     *
-     * @var array
-     */
-    //private static $dealers = array();
-    
+
     
     /**
      * Полета от таблицата за скриване, ако са празни
@@ -39,6 +31,12 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
      * @var int
      */
     //protected $filterEmptyListFields = 'deliveryTime';
+    
+    
+    /**
+     * По-кое поле да се групират листовите данни
+     */
+    protected $groupByField = 'person';
     
     
     /**
@@ -56,6 +54,14 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
      * @var varchar
      */
     protected $newFieldToCheck = 'containerId';
+    
+    
+    /**
+     * Видовете почивни дни
+     */
+    static $typeMap = array('sickDay' => 'Болничен',
+                               'tripDay' => 'Командировка',
+                               'leaveDay' => 'Отпуск');
     
     
     /**
@@ -78,40 +84,7 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
 	 */
 	protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
 	{
-	    /*$form = &$data->form;
-		
-		// Всички активни потебители
-		$uQuery = core_Users::getQuery();
-		$uQuery->where("#state = 'active'");
-		$uQuery->orderBy("#names", 'ASC');
-		$uQuery->show('id');
-		
-		// Които са търговци
-		$roles = core_Roles::getRolesAsKeylist('ceo,sales');
-		$uQuery->likeKeylist('roles', $roles);
-		$allDealers = arr::extractValuesFromArray($uQuery->fetchAll(), 'id');
-		
-		// Към тях се добавят и вече избраните търговци
-		if(isset($form->rec->dealers)){
-			$dealers = keylist::toArray($form->rec->dealers);
-			$allDealers = array_merge($allDealers, $dealers);
-		}
-		
-		// Вербализират се
-		$suggestions = array();
-		foreach ($allDealers as $dealerId){
-			$suggestions[$dealerId] = core_Users::fetchField($dealerId, 'nick');
-		}
-		
-		// Задават се като предложение
-		$form->setSuggestions('dealers', $suggestions);
-		
-		// Ако текущия потребител е търговец добавя се като избран по дефолт
-		if(haveRole('sales') && empty($form->rec->id)){
-			$form->setDefault('dealers', keylist::addKey('', core_Users::getCurrent()));
-		}
-		
-		$form->setDefault('precision', "0.95");*/
+
 	}
     
 	
@@ -124,116 +97,82 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
 	 */
 	protected function prepareRecs($rec, &$data = NULL)
 	{
-		/*$recs = array();
-		$salArr = array();
-		$Sales = cls::get('sales_Sales');
-		$dealers = keylist::toArray($rec->dealers);
-	    $count = 1;
-		
-		// Всички чакащи и активни продажби на избраните дилъри
-		$sQuery = sales_Sales::getQuery();
-		$sQuery->where("#state = 'active'");
-		 
-		if(count($dealers)){
-			$sQuery->in('dealerId', $dealers);
-		}
+		$recs = array();
+		$persons = array();
+		$date = acc_Periods::fetch($rec->periods);
 
-		// За всяка
-		while($sRec = $sQuery->fetch()){
-
-			// Взимане на договорените и експедираните артикули по продажбата (събрани по артикул)
-			$dealerId = ($sRec->dealerId) ? $sRec->dealerId : (($sRec->activatedBy) ? $sRec->activatedBy : $sRec->createdBy);
-			$dealInfo = $Sales->getAggregateDealInfo($sRec);
-
-			$delTime = (!empty($sRec->deliveryTime)) ? $sRec->deliveryTime : (!empty($sRec->deliveryTermTime) ?  dt::addSecs($sRec->deliveryTermTime, $sRec->valior) : NULL);
-			if(empty($delTime)){
-				$delTime = $Sales->getMaxDeliveryTime($sRec->id);
-				$delTime = ($delTime) ? dt::addSecs($delTime, $sRec->valior) : $sRec->valior;
-			}
-
-			// Колко е очакваното авансово плащане
-			$downPayment = $dealInfo->agreedDownpayment;
-			// Колко е платено
-			$downpayment = $dealInfo->downpayment;
-			//$downpayment = $dealInfo->amountPaid;
-		
-			// ако имаме зададено авансово плащане
-			// дали имаме поне 95% авансово плащане
-			if(isset($rec->precision)) {
-			    if($downpayment < $downPayment * $rec->precision)  continue;
-			} else {
-			    if($downpayment < $downPayment * 0.95)  continue;
-			}
-			 
-			// артикулите
-			$agreedProducts = $dealInfo->get('products');
-
-			$d = NULL;
 	
-			// За всеки договорен артикул
-			foreach ($agreedProducts as $pId => $pRec){ 
-				// ако е нестандартен
-				$productRec = cat_Products::fetch($pId, 'canManifacture,isPublic');
+	    $querySick = hr_Sickdays::getQuery();
+	    $querySick->where("((#startDate >= '{$date->start}' AND #toDate <= '{$date->end}')) AND #state = 'active'");
+	    
+	    $queryTrip = hr_Trips::getQuery();
+	    $queryTrip->where("((#startDate >= '{$date->start}' AND #toDate <= '{$date->end}')) AND #state = 'active'");
+	    
+	    $queryLeave = hr_Leaves::getQuery();
+	    $queryLeave->where("((#leaveFrom >= '{$date->start}' AND #leaveTo <= '{$date->end}')) AND #state = 'active'");
+	    
+	    $num = 1;
+	    // добавяме болничните
+	    while($recSick = $querySick->fetch()){
+	        // ключ за масива ще е ид-то на всеки потребител в системата
+	        $id = $recSick->personId;
 
-				if($sRec->closedDocuments != NULL) {
-				
-				    $newKeylist = keylist::addKey($sRec->closedDocuments, $sRec->id);
-				
-				    $salesArr = keylist::toArray($newKeylist);
-				    $salesSrt = implode(',', $salesArr);
-				}		
-			
-				// Ако артикула е нестандартен и няма задание по продажбата
-				// артикула да е произведим
-				if($productRec->isPublic == 'no' && $productRec->canManifacture == 'yes'){ 
-				    if(is_array($salesArr)) { 
-    				    if(in_array($sRec->id, $salesArr)) { 
-    				        $jobId = planning_Jobs::fetchField("#productId = {$pId} AND #saleId IN ({$salesSrt})");
-    				       
-    				    } else { 
-				          $jobId = planning_Jobs::fetchField("#productId = {$pId} AND #saleId = {$sRec->id} ");
-				       
-    				    }
-				    
-				    } else { 
-				        $jobId = planning_Jobs::fetchField("#productId = {$pId} AND #saleId = {$sRec->id}");
-				    }
+	        // добавяме в масива събитието
+	        $recs[$recSick->id.'|'.$id] =
+	            (object) array (
+	                'num' => $num,
+	                'containerId' => $recSick->containerId,
+	                'person' => $recSick->personId,
+	                'dateFrom' => $recSick->startDate,
+	                'dateTo' => $recSick->toDate,
+	                'count' => self::getLeaveDays($recSick->startDate, $recSick->toDate, $id)->workDays,
+	                'type' => 'sickDay',
+	            );
+	            
+	            $num++;
+	    }
+	    
+	    // добавяме командировките
+	    while($recTrip = $queryTrip->fetch()){
+	        // ключ за масива ще е ид-то на всеки потребител в системата
+	        $id = $recTrip->personId;
 
-				    $jobState = NULL;
-				    $jobQuantity = NULL;
-					if(isset($jobId)) {
-						$jobState = planning_Jobs::fetchField("#id = {$jobId}",'state');
-						$jobQuantity = planning_Jobs::fetchField("#id = {$jobId}",'quantity');
-					}
-					
-					if (!$jobId || ($jobState == 'draft' || $jobState == 'rejected') || $jobQuantity < $pRec->quantity * 0.90) {  
-					    
-					    $index = $sRec->id . "|" . $pId;
-						$d = (object) array ("num" => $count,
-											  "containerId" => $sRec->containerId,
-								              "pur" => $sRec->id,
-								              "purDate" => $sRec->valior,
-								              "deliveryTime" => $delTime,
-								              "article" => $pId,
-								              "dealerId" => $dealerId,
-								              "quantity"=>$pRec->quantity);
-						
-						$count++;
-						
-					}
-					
-					if($d != NULL) {
-					    $index = $sRec->id . "|" . $pId;
-					    if($pId == $d->article) {
-    					    
-    					    $recs[$index] = $d;
-					    } 
-					}
-				}
-			}
-		}
-		
-		return $recs;*/
+	        // добавяме в масива събитието
+	        $recs[$recTrip->id.'|'.$id] =
+	            (object) array (
+	                'num' => $num,
+	                'containerId' => $recTrip->containerId,
+	                'person' => $recTrip->personId,
+	                'dateFrom' => $recTrip->startDate,
+	                'dateTo' => $recTrip->toDate,
+	                'count' => self::getLeaveDays($recTrip->startDate, $recTrip->toDate, $id)->workDays,
+	                'type' => 'tripDay',
+	            );
+	            
+	            $num++;
+	    }
+	    
+	    // добавяме и отпуските
+	    while($recLeave = $queryLeave->fetch()){
+	        // ключ за масива ще е ид-то на всеки потребител в системата
+	        $id = $recLeave->personId;
+
+	        $recs[$recLeave->id.'|'.$id] =
+	           (object) array (
+	                'num' => $num,
+	                'containerId' => $recLeave->containerId,
+	                'person' => $recLeave->personId,
+	                'dateFrom' => $recLeave->leaveFrom,
+	                'dateTo' => $recLeave->leaveTo,
+	                'count' =>self::getLeaveDays($recLeave->leaveFrom, $recLeave->leaveTo, $id)->workDays,
+	                'type' => 'leaveDay',
+	            );
+	           
+	           $num++;
+	    }
+
+
+		return $recs;
 	}
 	
 	
@@ -254,6 +193,7 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
 	    	$fld->FLD('dateFrom', 'varchar', 'caption=Дата->От');
 		    $fld->FLD('dateTo', 'varchar', 'smartCenter,caption=Дата->До');
 	    	$fld->FLD('count', 'varchar', 'smartCenter,caption=Бр. дни');
+	    	$fld->FLD('type', 'varchar', 'smartCenter,caption=Вид');
 
 		} else {
 			$fld->FLD('num', 'varchar','caption=№');
@@ -261,6 +201,7 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
 	    	$fld->FLD('dateFrom', 'varchar', 'caption=Дата->От');
 		    $fld->FLD('dateTo', 'varchar', 'smartCenter,caption=Дата->До');
 	    	$fld->FLD('count', 'varchar', 'smartCenter,caption=Бр. дни');
+	    	$fld->FLD('type', 'varchar', 'smartCenter,caption=Вид');
 		}
 	
 		return $fld;
@@ -276,49 +217,41 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
 	 */
 	protected function detailRecToVerbal($rec, &$dRec)
 	{
-		/*$isPlain = Mode::is('text', 'plain');
+		$isPlain = Mode::is('text', 'plain');
 		$Int = cls::get('type_Int');
 		$Date = cls::get('type_Date');
 		$row = new stdClass();
 
-		// Линк към дилъра
-		if(!array_key_exists($dRec->dealerId, self::$dealers)){
-			self::$dealers[$dRec->dealerId] = crm_Profiles::createLink($dRec->dealerId);
-		}
-		
-		if(isset($dRec->dealerId)) {
-		    $row->dealerId = self::$dealers[$dRec->dealerId];
+		// Линк към служителя
+		if(isset($dRec->person)) {
+		    $row->person = crm_Profiles::createLink($dRec->person);
 		}
 		
 		if($isPlain){
-			$row->dealerId = strip_tags(($row->dealerId instanceof core_ET) ? $row->dealerId->getContent() : $row->dealerId);
+			$row->person = strip_tags(($row->person instanceof core_ET) ? $row->person->getContent() : $row->person);
 		}
 
 		if(isset($dRec->num)) {
 		    $row->num = $Int->toVerbal($dRec->num);
 		}
 
-		//if(isset($dRec->deliveryTime)) {
-		    $row->deliveryTime = ($isPlain) ? frame_CsvLib::toCsvFormatData($dRec->deliveryTime) : dt::mysql2verbal($dRec->deliveryTime);
-		//}
-		
-		if(isset($dRec->pur)) {
-			$row->pur = ($isPlain) ? sales_Sales::getTitleById($dRec->pur) : sales_Sales::getLink($dRec->pur, 0);
+		if(isset($dRec->dateFrom)) {
+		    $row->dateFrom = $Date->toVerbal($dRec->dateFrom);
 		}
 		
-		if(isset($dRec->purDate)) {
-		    $row->purDate = $Date->toVerbal($dRec->purDate);
+		if(isset($dRec->dateTo)) {
+		    $row->dateTo = $Date->toVerbal($dRec->dateTo);
 		}
 		
-		if(isset($dRec->article)) {
-			$row->article = ($isPlain) ? cat_Products::getTitleById($dRec->article, FALSE) : cat_Products::getShortHyperlink($dRec->article);
+	    if(isset($dRec->count)) {
+		    $row->count = $Int->toVerbal($dRec->count);
 		}
 		
-		if(isset($dRec->quantity)) {
-			$row->quantity = ($isPlain) ? frame_CsvLib::toCsvFormatDouble($dRec->quantity) : $Int->toVerbal($dRec->quantity);
+		if(isset($dRec->type)) {
+			$row->type = self::$typeMap[$dRec->type];
 		}
 
-		return $row;*/
+		return $row;
 	}
     
     
@@ -332,16 +265,7 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
      */
     protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
-       /* if(isset($rec->precision) && $rec->precision != 1){
-            $row->precision .= " " . tr('+');
-        }
-        
-        $dealers = keylist::toArray($rec->dealers);
-        foreach ($dealers as $userId => &$nick) {
-            $nick = crm_Profiles::createLink($userId)->getContent();
-        }
-    
-        $row->dealerId = implode(', ', $dealers);*/
+
     }
     
     
@@ -359,10 +283,48 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
 							    <small><div><!--ET_BEGIN dealers-->|Търговци|*: [#dealers#]<!--ET_END dealers--></div></small></fieldset><!--ET_END BLOCK-->"));
       
-        if(isset($data->rec->dealers)){
-            $fieldTpl->append($data->row->dealerId, 'dealers');
-        }
 
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
+    }
+    
+   
+    /**
+     * Изчисляване на дните - присъствени, неприсъствени, почивни
+     * 
+     * @param myslq Date $from
+     * @param myslq Date $to
+     * @param int $personId
+     */
+    static public function getLeaveDays($from, $to, $personId)
+    {
+    
+        // изисляване на непресъствените бр дни 
+        $state = hr_EmployeeContracts::getQuery();
+        $state->where("#personId='{$personId}'");
+        
+        // данните от договора на служителя
+        if($employeeContractDetails = $state->fetch()){
+            
+            $employeeContract = $employeeContractDetails->id;
+            $department = $employeeContractDetails->departmentId;
+            
+            // има ли график?
+            $schedule = hr_EmployeeContracts::getWorkingSchedule($employeeContract);
+            
+            // изчисляваме дните по него
+            if($schedule){
+                $days = hr_WorkingCycles::calcLeaveDaysBySchedule($schedule, $department, $from, $to);
+            // в противен случай ги изсичляваме на основание на калндара
+            } else {
+                $days = cal_Calendar::calcLeaveDays($from, $to);
+            }
+            
+        // ако служителя няма договор изчисляваме дните на база календара
+        } else {
+                 
+            $days = cal_Calendar::calcLeaveDays($from, $to);
+        }
+        
+        return $days;   
     }
 }
