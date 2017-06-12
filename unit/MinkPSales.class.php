@@ -2680,10 +2680,7 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return unit_MinkPbgERP::reportErr('Не излиза съобщение за грешка - фактура със стара дата', 'warning');
         }
-        //return $browser->getHtml();
-        //Контиране 
-        $browser->press('Контиране');
-         
+        
         //1 стотинка
         //if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 816,67')) {
         //} else {
