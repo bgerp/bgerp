@@ -14,3 +14,4 @@
 Политика за делта,cond_type_PriceList,deltaList,Продажба,,
 Листвани продукти,cond_type_SaleListings,salesList,Продажба,,
 Листвани продукти,cond_type_PurchaseListings,purchaseList,Покупка,,
+Списък от предишни продажби,cond_type_Enum,autoSalesMakeList,Продажба,,,"yes=Да"

@@ -222,8 +222,7 @@ class core_Db extends core_BaseClass
      */
     function query($sqlQuery, $silent = FALSE)
     {
-
-        if(isDebug() && ($fnd = Request::get('_bp')) &&  stripos($sqlQuery, $fnd)) bp($sqlQuery);
+        if(isDebug() && ($fnd = Request::get('_bp')) &&  stripos(preg_replace('!\\s+!', ' ', $sqlQuery), $fnd) !== FALSE) bp($sqlQuery);
 
         DEBUG::startTimer("DB::query()");
         DEBUG::log("$sqlQuery");

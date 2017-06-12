@@ -336,7 +336,7 @@ class tasks_Tasks extends embed_Manager
     			if($state != 'pendingandactive'){
     				$data->query->where("#state = '{$state}'");
     			} else {
-    				$data->query->where("#state = 'active' || #state = 'waiting'");
+    				$data->query->where("#state = 'active' OR #state = 'waiting'");
     			}
     		}
     	}
@@ -496,7 +496,7 @@ class tasks_Tasks extends embed_Manager
     {
     	// Намираме чакащите и активните задачи от най-старата към най-новата
     	$query = self::getQuery();
-    	$query->where("#state = 'active' || #state = 'waiting' || #state = 'stopped'");
+    	$query->where("#state = 'active' OR #state = 'waiting' OR #state = 'stopped'");
     	$query->orderBy('id', 'ASC');
     	
     	$recs = $query->fetchAll();

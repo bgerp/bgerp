@@ -84,13 +84,13 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Кой има право да променя?
      */
-    public $canChangeline = 'ceo,store';
+    public $canChangeline = 'ceo,store,trans';
     
     
     /**
      * Кой може да сторнира
      */
-    public $canRevert = 'storeMaster, ceo';
+    public $canRevert = 'storeMaster,ceo';
     
     
     /**

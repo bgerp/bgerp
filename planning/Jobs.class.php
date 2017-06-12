@@ -211,7 +211,7 @@ class planning_Jobs extends core_Master
     	$res = array();
     	$query = self::getQuery();
     	$query->show('id,productId,state');
-    	$where = "#productId = {$productId} AND (#state = 'active' || #state = 'wakeup' || #state = 'stopped' || #state = 'closed') AND ";
+    	$where = "#productId = {$productId} AND (#state = 'active' OR #state = 'wakeup' OR #state = 'stopped' OR #state = 'closed') AND ";
     	$where .= ($saleId) ? "#saleId = {$saleId}" : "#saleId IS NULL";
     	$query->where($where);
     	$query->orderBy('id', 'DESC');
@@ -727,7 +727,7 @@ class planning_Jobs extends core_Master
     		
     		// Ако има активно задание, да не може друга да се възстановява,контира,създава или активира
     		$where = "#productId = {$rec->productId}" . ((isset($rec->saleId)) ? " AND #saleId = {$rec->saleId}" : " AND #saleId IS NULL");
-    		if($mvc->fetchField("{$where} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')", 'id')){
+    		if($mvc->fetchField("{$where} AND (#state = 'active' OR #state = 'stopped' OR #state = 'wakeup')", 'id')){
     			$res = 'no_one';
     		}
     	}

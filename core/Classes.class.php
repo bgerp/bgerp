@@ -182,6 +182,8 @@ class core_Classes extends core_Manager
         {
             $interface = $params[0];
             $title = $params[1];
+            
+            $cC = cls::get('core_Classes');
 
             if($interface) {
                 // Вземаме инстанция на core_Interfaces
@@ -197,11 +199,11 @@ class core_Classes extends core_Manager
                 $interfaceCond = '';
             }
             
-            $options = self::makeArray4Select($title, "#state = 'active'" . $interfaceCond);
+            $options = core_Classes::makeArray4Select($title, "#state = 'active'" . $interfaceCond);
             
             if(is_array($options)){
                 foreach($options as $cls => &$name) {
-                    $name = static::translateClassName($name);
+                    $name = core_Classes::translateClassName($name);
                 }
             }
        
