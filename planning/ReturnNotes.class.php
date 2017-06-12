@@ -132,6 +132,12 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 	
 	
 	/**
+	 * Кой може да го прави документа чакащ/чернова?
+	 */
+	public $canPending = 'ceo,planning,store';
+	
+	
+	/**
 	 * Описание на модела
 	 */
 	function description()

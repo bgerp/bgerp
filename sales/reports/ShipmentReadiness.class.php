@@ -560,7 +560,15 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 			if($ignore === TRUE){
 				$quantity = 0;
 			} else {
-				$quantity = (isset($shippedProducts[$pId])) ? ($q - $shippedProducts[$pId]->quantity) : $q;
+				if(isset($shippedProducts[$pId])){
+					
+					if($q / $shippedProducts[$pId]->quantity > 0.9) continue;
+					
+					$quantity = $q - $shippedProducts[$pId]->quantity;
+				} else {
+					$quantity = $q;
+				}
+				//$quantity = (isset($shippedProducts[$pId])) ? ($q - $shippedProducts[$pId]->quantity) : $q;
 			}
 			
 			// Ако всичко е експедирано се пропуска реда

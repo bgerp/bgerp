@@ -393,24 +393,34 @@ class deals_plg_DpInvoice extends core_Plugin
     	} else {
     		$fields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $mvc->hideListFieldsIfEmpty);
     		
-    		$iQuery = $mvc->Master->getQuery();
-    		$iQuery->where("#state = 'active' AND #dpOperation = 'accrued'");
-    		$iQuery->where("#id != '{$rec->invoiceId}'");
+    		$iQuery = sales_Invoices::getQuery();
+    		$iQuery->where("#state = 'active' AND #dpOperation = 'accrued' AND #id != '{$rec->invoiceId}'");
     		$iQuery->where("#threadId = '{$firstDoc->fetchField('threadId')}'");
     		
-    		$handleArr = array();
+    		$pArr = $invArr = array();
     		while($iRec = $iQuery->fetch()){
-    			$handleArr[$iRec->id] = "№" . $mvc->Master->recToVerbal($iRec)->number;
+    			$invArr[$iRec->id] = "№" . sales_Invoices::recToVerbal($iRec)->number;
     		}
-    		$accruedInvoices = count($handleArr);
+    		
+    		$pQuery = sales_Proformas::getQuery();
+    		$pQuery->where("#state = 'active' AND #dpOperation = 'accrued' AND #id != '{$rec->invoiceId}'");
+    		$pQuery->where("#threadId = '{$firstDoc->fetchField('threadId')}'");
+    		
+    		while($pRec = $pQuery->fetch()){
+    			$pArr[$pRec->id] = "№" . sales_Invoices::recToVerbal($pRec)->number;
+    		}
+    		
+    		$handleArr = count($invArr) ? $invArr : $pArr;
     		$handleString = implode(', ', $handleArr);
+    		
+    		$accruedInvoices = count($handleArr);
     		$colspan = count($fields) - 2;
     		
     		if($accruedInvoices == 1){
-    			$docTitle = ($mvc->Master instanceof sales_Proformas) ? 'по проформа' : 'по фактура';
+    			$docTitle = count($invArr) ? 'по фактура' : 'по проформа';
     			$misc = tr($docTitle) . " {$handleString}";
     		} elseif($accruedInvoices) {
-    			$docTitle = ($mvc->Master instanceof sales_Proformas) ? 'по проформи' : 'по фактури';
+    			$docTitle = count($invArr) ? 'по фактури' : 'по проформи';
     			$misc = tr($docTitle) . " {$handleString}";
     		} else {
     			$misc = tr("по {$caption}|* ") . implode(', ', $deals);

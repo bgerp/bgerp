@@ -55,7 +55,7 @@ class doc_View extends core_Master
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'powerUser';
+    var $canAdd = 'officer';
     
     
     /**
@@ -111,12 +111,6 @@ class doc_View extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     var $searchFields = 'tplId, clsId, dataId';
-    
-    
-    /**
-     * Да се показва антетка
-     */
-    public $showLetterHead = TRUE;
     
     
     /**
@@ -218,6 +212,16 @@ class doc_View extends core_Master
             Mode::push('text', 'xhtml');
             Mode::push('noBlank', TRUE);
             
+            $tplManagerLg = FALSE;
+            if ($form->rec->tplId) {
+                $lg = doc_TplManager::fetchField($form->rec->tplId, 'lang');
+                
+                if ($lg) {
+                    Mode::push('tplManagerLg', $lg);
+                    $tplManagerLg = TRUE;
+                }
+            }
+            
             $data = $clsInst->prepareDocument($form->rec->dataId);
             $data->rec->template = $form->rec->tplId;
             
@@ -226,6 +230,10 @@ class doc_View extends core_Master
             $res  = $clsInst->renderDocument($form->rec->dataId, $data);
             
             $form->rec->body = $res->getContent();
+            
+            if ($tplManagerLg) {
+                Mode::pop('tplManagerLg');
+            }
             
             Mode::pop('noBlank');
             Mode::pop('text');
@@ -290,6 +298,15 @@ class doc_View extends core_Master
 	                } else {
 	                    $inst = cls::get($rec->clsId);
 	                    if (!$inst->haveRightFor('single', $rec->dataId)) {
+	                        $requiredRoles = 'no_one';
+	                    }
+	                }
+	            }
+	            
+	            // Ако няма достъп до сингъла на нишката, да не може да създава изглед
+	            if (($requiredRoles != 'no_one') && ($rec->originId)) {
+	                if ($threadId = doc_Containers::fetchField($rec->originId, 'threadId')) {
+	                    if (!doc_Threads::haveRightFor('single', $threadId)) {
 	                        $requiredRoles = 'no_one';
 	                    }
 	                }
