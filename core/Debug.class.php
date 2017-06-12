@@ -222,6 +222,8 @@ class core_Debug
             $html .= "\n<div style='padding:5px; margin:10px; border:solid 1px #777; background-color:#FFFF99; display:table;color:black;'>" .
             "\n<div style='background-color:#FFFF33; padding:5px;color:black;'>Timers info</div><ol>";
             
+            arsort(self::$timers);
+
             foreach (self::$timers as $name => $t) {
                 $html .= "\n<li> '{$name}' => " . number_format($t->workingTime, 5) . ' sec.';
             }
