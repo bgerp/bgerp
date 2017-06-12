@@ -284,7 +284,8 @@ class cash_ExchangeDocument extends core_Master
     {
         return core_Cache::getOrCalc('CashExchDocCanAddToFolder', $folderId, function($folderId)
         {
-            if($folderId == static::getDefaultFolder(NULL, FALSE) || doc_Folders::fetchCoverClassName($folderId) == 'cash_Cases') {
+            $Ce = cls::get('cash_ExchangeDocument');
+            if($folderId == cash_ExchangeDocument::getDefaultFolder(NULL, FALSE) || doc_Folders::fetchCoverClassName($folderId) == 'cash_Cases') {
                 
                 return TRUE;
             }

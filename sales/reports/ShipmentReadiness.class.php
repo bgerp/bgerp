@@ -362,7 +362,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 					
 					$add = TRUE;
 					if(isset($rec->horizon)){
-						$horizon = dt::addDays($rec->horizon);
+						$horizon = dt::addSecs($rec->horizon);
 						$compareDate = isset($dRec->dueDateMin) ? $dRec->dueDateMin : (isset($dRec->dueDateMax) ? $dRec->dueDateMax : (isset($delTime) ? $delTime : NULL));
 						if(!empty($compareDate) && $compareDate > $horizon){
 							$add = FALSE;

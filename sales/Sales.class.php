@@ -1257,4 +1257,38 @@ class sales_Sales extends deals_DealMaster
     	expect($saleId = sales_Sales::createNewDraft($cover->getInstance(), $cover->that));
     	redirect(array('sales_SalesDetails', 'add', 'saleId' => $saleId, 'productId' => $productId));
     }
+    
+    
+    /**
+     * Подготовка на бутоните на формата за добавяне/редактиране.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    {
+    	$rec = $data->form->rec;
+    	if (empty($rec->id)) {
+    		if(sales_SalesDetails::haveRightFor('importlisted') && cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, salesList)){
+    			$data->form->toolbar->addSbBtn('Чернова и лист', 'save_and_list', 'id=btnsaveAndList,order=9.99987','ef_icon = img/16/save_and_new.png');
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Пренасочва URL за връщане след запис към сингъл изгледа
+     */
+    protected static function on_AfterPrepareRetUrl($mvc, $res, $data)
+    {
+    	// Ако има форма, и тя е събмитната и действието е 'запис'
+    	if ($data->form && $data->form->isSubmitted() && $data->form->cmd == 'save_and_list') {
+    		$id = $data->form->rec->id;
+    		if(sales_SalesDetails::haveRightFor('importlisted', (object)array('saleId' => $id))){
+    			$data->retUrl = toUrl(array('sales_SalesDetails', 'importlisted', 'saleId' => $id, 'ret_url' => toUrl(array('sales_Sales', 'single', $id), 'local')));
+    			
+    		}
+    	}
+    }
 }
