@@ -39,7 +39,7 @@ class hr_Indicators extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, hr_Wrapper';
+    public $loadList = 'plg_RowTools2, hr_Wrapper,plg_Sorting';
     
     
     /**
@@ -71,7 +71,6 @@ class hr_Indicators extends core_Manager
      */
     public $listFields = 'date, docId=Документ, personId, indicatorId, value';
     
-     
     
     /**
      * Описание на модела (таблицата)
@@ -405,5 +404,101 @@ class hr_Indicators extends core_Manager
         }
 
         return $names;
+    }
+    
+    
+    /**
+     * Подготовка на показателите
+     * 
+     * @param stdClass $data
+     */
+    public function preparePersonIndicators(&$data)
+    {
+    	$data->IData = new stdClass();
+    	$data->IData->masterMvc = $data->masterMvc;
+    	$data->IData->query = self::getQuery();
+    	$data->IData->query->where("#personId = {$data->masterId}");
+    	$data->IData->query->orderBy('date', 'DESC');
+    	$data->IData->recs = $data->IData->rows = array();
+    	$this->prepareListFields($data->IData);
+    	$this->prepareListPager($data->IData);
+    	$this->prepareListFilter($data->IData);
+    	$data->IData->listFilter->method = 'GET';
+    	
+    	if ($data->IData->pager) {
+    		$data->IData->pager->setLimit($data->IData->query);
+    	}
+    	
+    	while($rec = $data->IData->query->fetch()){
+    		$data->IData->recs[$rec->id] = $rec;
+    		$data->IData->rows[$rec->id] = $this->recToVerbal($rec);
+    	}
+    }
+    
+    
+    /**
+     * Рендиране на индикаторите в корицата на служителите
+     * 
+     * @param stdClass $data
+     * @return core_ET $tpl
+     */
+    public function renderPersonIndicators($data)
+    {
+    	$tpl = new core_ET("[#ListToolbarTop#][#listFilter#][#I_TABLE#][#ListToolbarBottom#]");
+    	$tpl->append($this->renderListFilter($data->IData), 'listFilter');
+    	
+    	unset($data->IData->listFields['personId']);
+    	$table = cls::get('core_TableView', array('mvc' => $this));
+    	$tpl->append($table->get($data->IData->rows, $data->IData->listFields), 'I_TABLE');
+    	
+    	if ($data->IData->pager) {
+    		$toolbarHtml = $data->IData->pager->getHtml();
+    		$tpl->append($toolbarHtml, 'ListToolbarTop');
+    		$tpl->append($toolbarHtml, 'ListToolbarBottom');
+    	}
+    	
+    	return $tpl;
+    }
+    
+    
+    /**
+     * Изпълнява се след подготвянето на формата за филтриране
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    {
+    	$data->listFilter->FLD('period', 'date', 'caption=Период,silent,placeholder=Всички');
+    	$data->listFilter->setOptions('period', array('' => '') + dt::getRecentMonths(10));
+    	$data->listFilter->showFields = 'period';
+    	
+    	if(isset($data->masterMvc)){
+    		$data->listFilter->FLD('Tab', 'varchar', 'width=6em,input=hidden');
+    		$data->listFilter->setDefault('Tab', 'PersonsDetails');
+    		$data->listFilter->setDefault('period', date('Y-m-01'));
+    		$data->listFilter->input('period,Tab');
+    	} else {
+    		$data->listFilter->setFieldTypeParams("personId", array('allowEmpty' => 'allowEmpty'));
+    		$data->listFilter->setFieldTypeParams("indicatorId", array('allowEmpty' => 'allowEmpty'));
+    		$data->listFilter->showFields = 'period,personId,indicatorId';
+    		$data->listFilter->input('period,personId,indicatorId');
+    	}
+    	
+    	$data->listFilter->view = 'horizontal';
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    	
+    	// Филтриране на записите
+    	if($fRec = $data->listFilter->rec){
+    		if(isset($fRec->personId)){
+    			$data->query->where("#personId  = '{$fRec->personId}'");
+    		}
+    		
+    		if(isset($fRec->indicatorId)){
+    			$data->query->where("#indicatorId = '{$fRec->indicatorId}'");
+    		}
+    		
+    		if(isset($fRec->period)){
+    			$to = dt::getLastDayOfMonth($fRec->period);
+    			$data->query->where("#date >= '{$fRec->period}' AND #date <= '{$to}'");
+    		}
+    	}
     }
 }

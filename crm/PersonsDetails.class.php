@@ -18,6 +18,12 @@ class crm_PersonsDetails extends core_Manager
 	
 	
 	/**
+	 * Кой може да вижда личните индикатори на служителите
+	 */
+	public $canSeeindicators = 'powerUser';
+	
+	
+	/**
 	 * Подготвя ценовата информация за артикула
 	 */
 	public function preparePersonsDetails($data)
@@ -29,6 +35,12 @@ class crm_PersonsDetails extends core_Manager
 		if(keylist::isIn($employeeId, $data->masterData->rec->groupList)){
 			$data->Codes = cls::get('crm_ext_Employees');
 			$data->TabCaption = 'HR';
+		}
+		
+		// Подготовка на индикаторите
+		$data->Indicators = cls::get('hr_Indicators');
+		if($this->haveRightFor('seeindicators', (object)array('personId' => $data->masterId))){
+			$data->Indicators->preparePersonIndicators($data);
 		}
 		
 		$eQuery = crm_ext_Employees::getQuery();
@@ -45,7 +57,7 @@ class crm_PersonsDetails extends core_Manager
 		        }
 		    }
 		}
-
+		
 		$data->Cards = cls::get('crm_ext_IdCards');
 		$data->Cards->prepareIdCard($data);
 		
@@ -69,6 +81,12 @@ class crm_PersonsDetails extends core_Manager
 	public function renderPersonsDetails($data)
 	{
 		$tpl = getTplFromFile('crm/tpl/PersonsData.shtml');
+		
+		if(isset($data->IData)){
+			$resTpl = $data->Indicators->renderPersonIndicators($data);
+			$resTpl->removeBlocks();
+			$tpl->append($resTpl, 'INDICATORS_TABLE');
+		}
 		
 		$cardTpl = $data->Cards->renderIdCard($data);
 		$cardTpl->removeBlocks();
@@ -96,5 +114,28 @@ class crm_PersonsDetails extends core_Manager
 		}
 
 		return $tpl;
+	}
+	
+	
+	/**
+	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+	 *
+	 * @param core_Mvc $mvc
+	 * @param string $requiredRoles
+	 * @param string $action
+	 * @param stdClass $rec
+	 * @param int $userId
+	 */
+	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+	{
+		// Кой може да вижда индикаторите
+		if($action == 'seeindicators' && isset($rec)){
+			$personUserId = crm_Profiles::fetchField("#personId = {$rec->personId}", 'userId');
+			if($personUserId != $userId){
+				$requiredRoles = 'hr,ceo';
+			}
+			
+			//$requiredRoles = 'no_one';
+		}
 	}
 }
