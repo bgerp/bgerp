@@ -452,7 +452,7 @@ class cal_Tasks extends core_Master
 
             foreach ($data->recs as &$rec) {
                 $rec->savedState = $rec->state;
-                //$rec->state = '';
+                $rec->state = '';
             }
         }
 
