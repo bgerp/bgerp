@@ -318,11 +318,6 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 			}
 		}
 		
-		
-		
-		
-		
-		
 		return $entries;
 	}
 }
