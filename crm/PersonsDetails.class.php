@@ -82,22 +82,26 @@ class crm_PersonsDetails extends core_Manager
 	{
 		$tpl = getTplFromFile('crm/tpl/PersonsData.shtml');
 		
+		// Показване на индикаторите
 		if(isset($data->IData)){
 			$resTpl = $data->Indicators->renderPersonIndicators($data);
 			$resTpl->removeBlocks();
 			$tpl->append($resTpl, 'INDICATORS_TABLE');
 		}
 		
+		// Показване на клиентските карти
 		$cardTpl = $data->Cards->renderIdCard($data);
 		$cardTpl->removeBlocks();
 		$tpl->append($cardTpl, 'IDCARD');
 		
+		// Показване на кода
 		if(isset($data->Codes)){
 			$resTpl = $data->Codes->renderData($data);
 			$resTpl->removeBlocks();
 			$tpl->append($resTpl, 'CODE');
 		}
 		
+		// Показване на работните цикли
 		if(isset($data->Cycles)){
 		    $resTpl = $data->Cycles->renderGrafic($data);
 		    $resTpl->removeBlock('legend');
@@ -134,8 +138,6 @@ class crm_PersonsDetails extends core_Manager
 			if($personUserId != $userId){
 				$requiredRoles = 'hr,ceo';
 			}
-			
-			//$requiredRoles = 'no_one';
 		}
 	}
 }
