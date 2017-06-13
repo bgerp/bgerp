@@ -181,7 +181,7 @@ class crm_ext_Employees extends core_Manager
     	 
     	 if($eRec = hr_EmployeeContracts::fetch("#personId = {$data->masterId} AND #state = 'active'")){
     	 	$tpl->append(hr_EmployeeContracts::getHyperlink($eRec->id, TRUE), 'contract');
-    	 	$tpl->append(hr_Positions::getTitleById($eRec->positionId), 'positionId');
+    	 	$tpl->append(hr_Positions::getHyperlink($eRec->positionId), 'positionId');
     	 }
     	 
     	 if(isset($data->addExtUrl)){
