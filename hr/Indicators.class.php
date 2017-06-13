@@ -466,12 +466,12 @@ class hr_Indicators extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
-    	$data->listFilter->FLD('period', 'date', 'caption=Период,silent,placeholder=Всички');
+    	$data->listFilter->FLD('period', 'date(select2MinItems=11)', 'caption=Период,silent,placeholder=Всички');
     	$data->listFilter->setOptions('period', array('' => '') + dt::getRecentMonths(10));
     	$data->listFilter->showFields = 'period';
     	
     	if(isset($data->masterMvc)){
-    		$data->listFilter->FLD('Tab', 'varchar', 'width=6em,input=hidden');
+    		$data->listFilter->FLD('Tab', 'varchar', 'input=hidden');
     		$data->listFilter->setDefault('Tab', 'PersonsDetails');
     		$data->listFilter->setDefault('period', date('Y-m-01'));
     		$data->listFilter->input('period,Tab');
