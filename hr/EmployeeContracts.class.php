@@ -54,7 +54,7 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, hr_Wrapper, doc_ActivatePlg, bgerp_plg_Blank, plg_Printing, acc_plg_DocumentSummary,
+    public $loadList = 'plg_RowTools2, hr_Wrapper, doc_plg_Close,doc_ActivatePlg, bgerp_plg_Blank, plg_Printing, acc_plg_DocumentSummary,
                      acc_plg_Registry, doc_DocumentPlg, plg_Search,plg_Clone,
                      doc_plg_SelectFolder, doc_SharablePlg, bgerp_plg_Blank';
     
@@ -182,9 +182,6 @@ class hr_EmployeeContracts extends core_Master
         // Позиция в отдела
         $this->FLD('positionId', 'key(mvc=hr_Positions,select=name)', 'caption=Работа->Длъжност,mandatory,autoFilter');
         
-        // Работен график
-        // $this->FLD('schedule', 'key(mvc=hr_WorkingCycles, select=name, allowEmpty=true)', "caption=Работa->График");
-
         // Възнаграждения
         $this->FLD('salaryBase', 'double(decimals=2)', "caption=Възнагражение->Основно");
         $this->FLD('forYearsOfService', 'percent(decimals=2)', "caption=Възнагражение->За стаж");
@@ -477,6 +474,24 @@ class hr_EmployeeContracts extends core_Master
             $recPosition = new stdClass();
             $recPosition->id = $position;
             
+            // Намираме всички останали активни рецепти
+            $query = static::getQuery();
+            $query->where("#state = 'active' AND #id != {$rec->id} AND #personId = {$rec->personId}");
+            
+            // Затваряме ги
+            $closed = array();
+            while($eRec = $query->fetch()){
+            	$eRec->state = 'closed';
+            	$eRec->brState = 'active';
+            	$eRec->modifiedOn = dt::now();
+            	$mvc->save($eRec, 'state,brState,modifiedOn');
+            	$closed[] = "#" . $mvc->getHandle($eRec->id);
+            }
+            
+            if(count($closed)){
+            	$msg = (count($closed) == 1) ? "Затворен е" : "Затворени са";
+            	core_Statuses::newStatus("|{$msg}|* " . implode(',', $closed));
+            }
         }
     }
     
