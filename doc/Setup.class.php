@@ -249,6 +249,7 @@ class doc_Setup extends core_ProtoSetup
         'migrate::showFiles',
         'migrate::addCountryIn2LgFolders2',
         'migrate::addFirstDocClassAndId',
+        'migrate::threadsVisibleForPartners',
     );
 	
     
@@ -743,6 +744,43 @@ class doc_Setup extends core_ProtoSetup
         
         if (!empty($data)) {
             core_Packs::setConfig('doc', $data);
+        }
+    }
+    
+    
+    /**
+     * Миграция за попълване на visibleForPartners в нишките от първия документ
+     */
+    public static function threadsVisibleForPartners()
+    {
+        $threads = cls::get('doc_Threads');
+        $tQuery = $threads->getQuery();
+        
+        $tQuery->where('#visibleForPartners IS NULL');
+        
+        $tQuery->EXT('cVisible', 'doc_Containers', 'externalName=visibleForPartners,externalKey=firstContainerId');
+        $tQuery->EXT('cState', 'doc_Containers', 'externalName=state,externalKey=firstContainerId');
+        $tQuery->EXT('cCreatedBy', 'doc_Containers', 'externalName=createdBy,externalKey=firstContainerId');
+        
+        $tQuery->orderBy('modifiedOn', 'DESC');
+        
+        while ($tRec = $tQuery->fetch()) {
+            if ($tRec->cVisible === 'yes') {
+                $tRec->visibleForPartners = 'yes';
+            } else {
+                $tRec->visibleForPartners = 'no';
+            }
+            
+            // Ако е оттеглен документ|чернова и не е създаден от прартньори
+            if ($tRec->visibleForPartners == 'yes') {
+                if (($tRec->cState === 'rejected') || ($tRec->cState === 'draft')) {
+                    if (!$tRec->cCreatedBy || ($tRec->cCreatedBy < 1) || !core_Users::haveRole('partner', $tRec->cCreatedBy)) {
+                        $tRec->visibleForPartners = 'no';
+                    }
+                }
+            }
+            
+            $threads->save_($tRec, 'visibleForPartners');
         }
     }
     
