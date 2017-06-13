@@ -952,4 +952,26 @@ class core_DateTime
     	// В краен случай се връща FALSE
     	return FALSE;
     }
+    
+    
+    /**
+     * Връща масив с последните $n месеца
+     * 
+     * @param int $n         - колко месеца на зад (включително текущия)
+     * @param datetime $date - дата, NULL за текущата
+     * @return array $months - масив с месеците
+     */
+    public static function getRecentMonths($n, $date = NULL)
+    {
+    	$months = array();
+    	$date = new DateTime($date);
+    	foreach (range(1, $n) as $i){
+    		if($i != 1) $date->modify("last month");
+    	
+    		$thisMonth = $date->format('Y-m-01');
+    		$months[$thisMonth] = dt::mysql2verbal($thisMonth, 'M Y');
+    	}
+    	
+    	return $months;
+    }
 }
