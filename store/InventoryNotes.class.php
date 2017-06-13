@@ -118,7 +118,13 @@ class store_InventoryNotes extends core_Master
      * Файл за единичния изглед
      */
     public $singleLayoutFile = 'store/tpl/InventoryNote/SingleLayout.shtml';
-    
+
+
+	/**
+	 * Файл с шаблон за единичен изглед в мобилен
+	 */
+	public $singleLayoutFileNarrow = 'store/tpl/InventoryNote/SingleLayoutNarrow.shtml';
+
 
     /**
      * Да се забрани ли кеширането на документа
