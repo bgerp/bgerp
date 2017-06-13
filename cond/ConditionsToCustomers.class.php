@@ -83,7 +83,7 @@ class cond_ConditionsToCustomers extends core_Manager
     
         // Добавяне на уникални индекси
         $this->setDbUnique('cClass,cId,conditionId');
-        $this->setDbIndex('cClass,cId');
+        $this->setDbIndex('cId');
     }
     
     
@@ -331,15 +331,16 @@ class cond_ConditionsToCustomers extends core_Manager
     public static function fetchByCustomer($cClass, $cId, $conditionId = NULL)
     {
     	$Class = cls::get($cClass);
-    	expect(cls::haveInterface('crm_ContragentAccRegIntf', $Class));
     	
     	$query = static::getQuery();
     	$query->where("#cClass = {$Class->getClassId()}");
     	$query->where("#cId = {$cId}");
     	if($conditionId){
     		$query->where("#conditionId = {$conditionId}");
+    		$query->show('value');
     		return $query->fetch()->value;
     	} else {
+    		$query->show('conditionId,value');
     		$recs = array();
     		while($rec = $query->fetch()){
     			$recs[$rec->conditionId] = $rec->value;
