@@ -510,9 +510,6 @@ class cat_Listings extends core_Master
     	}
     	
     	// Задаване на списъка като търговско условие, ако няма такова за контрагента
-    	
-    	
-    	//@TODO да е на хит
     	$paramId = cond_Parameters::fetchIdBySysId('salesList');
     	$condId = cond_ConditionsToCustomers::fetchByCustomer($Cover->getClassId(), $Cover->that, $paramId);
     	if(!$condId){
