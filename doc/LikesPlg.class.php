@@ -416,7 +416,12 @@ class doc_LikesPlg extends core_Plugin
                         
                         $elemId = self::getElemId($rec);
                         
-                        $likesLink .= "<div class='additionalInfo-holder'><span class='additionalInfo' id='{$elemId}'></span></div>";
+                        $cssClass = 'additionalInfo-holder';
+                        if ($likesCnt >= 5) {
+                            $cssClass .= ' additionalInfo-bottom';
+                        }
+                        
+                        $likesLink .= "<div class='$cssClass'><span class='additionalInfo' id='{$elemId}'></span></div>";
                     }
                     
                     if ($likesLink) {
