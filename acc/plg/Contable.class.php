@@ -711,14 +711,6 @@ class acc_plg_Contable extends core_Plugin
 		// Това са създателят на документа
     	$userArr = array($rec->createdBy => $rec->createdBy);
     	
-    	// И създателят на първия документ в нишката
-    	if(isset($rec->threadId)){
-    		if($firstDoc = doc_Threads::getFirstDocument($rec->threadId)){
-    			$createdBy = $firstDoc->fetchField('createdBy');
-    			$userArr = array($createdBy => $createdBy);
-    		}
-    	}
-    	
     	return $userArr;
     }
     
