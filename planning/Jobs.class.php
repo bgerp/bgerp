@@ -724,11 +724,16 @@ class planning_Jobs extends core_Master
     	}
     	
     	if(($action == 'activate' || $action == 'restore' || $action == 'conto' || $action == 'write' || $action == 'add' || $action == 'wakeup') && isset($rec->productId) && $res != 'no_one'){
+    		$isPublic = cat_Products::fetchField($rec->productId, 'isPublic');
     		
-    		// Ако има активно задание, да не може друга да се възстановява,контира,създава или активира
-    		$where = "#productId = {$rec->productId}" . ((isset($rec->saleId)) ? " AND #saleId = {$rec->saleId}" : " AND #saleId IS NULL");
-    		if($mvc->fetchField("{$where} AND (#state = 'active' OR #state = 'stopped' OR #state = 'wakeup')", 'id')){
-    			$res = 'no_one';
+    		// Само за нестандартните артикули
+    		if($isPublic != 'yes'){
+    			
+    			// Ако има активно задание, да не може друга да се възстановява,контира,създава или активира
+    			$where = "#productId = {$rec->productId}" . ((isset($rec->saleId)) ? " AND #saleId = {$rec->saleId}" : " AND #saleId IS NULL");
+    			if($mvc->fetchField("{$where} AND (#state = 'active' OR #state = 'stopped' OR #state = 'wakeup')", 'id')){
+    				$res = 'no_one';
+    			}
     		}
     	}
     	 
