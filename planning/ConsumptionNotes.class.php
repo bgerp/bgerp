@@ -162,7 +162,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	{
 		parent::setDocumentFields($this);
 		$this->FLD('departmentId', 'key(mvc=hr_Departments,select=name,allowEmpty)', 'caption=Департамент,before=note');
-		$this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Детайлно влагане->Избор,notNull,default=no,maxRadio=2,before=note');
+		$this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Детайлно влагане->Избор,notNull,default=yes,maxRadio=2,before=note');
 	}
 	
 	
