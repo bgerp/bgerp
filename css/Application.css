@@ -3055,6 +3055,10 @@ span.sharing-history-title {
   _overflow: visible !important;
   width: auto !important; }
 
+    .narrow-scroll .single-thread .store_InventoryNoteDetails .listRowsDetail {
+      overflow: auto !important;
+      _overflow: auto !important; }
+
 .narrow-scroll .listRows::-webkit-scrollbar {
   -webkit-appearance: none;
   width: 10px;
@@ -3092,6 +3096,16 @@ span.sharing-history-title {
   .narrow-scroll .scrolling-holder > .antetka,
   .overflow-scroll > .antetka {
     margin-top: 0; }
+
+.scrolling-table {
+  width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  _overflow: auto !important;
+  margin-bottom: 0;
+  display: block; }
+  .scrolling-table .listTable {
+    width: 100%; }
 
 .planning_drivers_ProductionTaskDetails .listRowsDetail {
   width: 100% !important;
