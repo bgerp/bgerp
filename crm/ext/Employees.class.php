@@ -169,7 +169,7 @@ class crm_ext_Employees extends core_Manager
      */
     public function renderData($data)
     {
-    	 $tpl = new core_ET(tr("|*[#resTitle#]<!--ET_BEGIN code--> <b>[#code#]</b><!--ET_END code--><!--ET_BEGIN departments--><br>|Департаменти|*: [#departments#]<!--ET_END departments-->"));
+    	 $tpl = getTplFromFile('crm/tpl/HrDetail.shtml');
     	 $tpl->append(tr('Служебен код') . ":", 'resTitle');
     	 
     	 if(isset($data->row)){
@@ -177,6 +177,11 @@ class crm_ext_Employees extends core_Manager
     	 } else {
     	 	$code = "<b>" . tr('Няма') . "</b>";
     	 	$tpl->append($code, 'code');
+    	 }
+    	 
+    	 if($eRec = hr_EmployeeContracts::fetch("#personId = {$data->masterId} AND #state = 'active'")){
+    	 	$tpl->append(hr_EmployeeContracts::getHyperlink($eRec->id, TRUE), 'contract');
+    	 	$tpl->append(hr_Positions::getTitleById($eRec->positionId), 'positionId');
     	 }
     	 
     	 if(isset($data->addExtUrl)){
