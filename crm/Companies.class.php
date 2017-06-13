@@ -235,6 +235,12 @@ class crm_Companies extends core_Master
     
     
     /**
+     * Как се казва полето за държава на контрагента
+     */
+    public $countryFieldName = 'country';
+    
+    
+    /**
      * 
      * @see type_Key::filterByGroup
      */
