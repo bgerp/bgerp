@@ -49,11 +49,6 @@
       </tr>
    </tbody>
 </table><div class="lines"></div>
-<div class='scrolling-holder'>
-   <div class="details">
-      [#store_InventoryNoteSummary#]
-   </div>
-</div>
 <!--ET_BEGIN COUNTER-->
 <div class="lines"></div>
 <table style="width: 100%;" class="table-border">
