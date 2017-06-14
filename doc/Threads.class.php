@@ -1435,10 +1435,14 @@ class doc_Threads extends core_Manager
      * @param int $threadId - ид на нишка
      * @param int $folderId - ид на папка
      * 
+     * @return boolean
      */
     public static function canMoveToFolder($threadId, $folderId)
     {
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
+    	
+    	// Ако е зададено да не се може да се мести документа
+    	if ($firstDoc->moveDocToFolder === FALSE) return TRUE;
     	
     	return !$firstDoc->getInstance()->canAddToFolder($folderId);
     }

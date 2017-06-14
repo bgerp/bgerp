@@ -39,6 +39,7 @@ class acc_plg_Contable extends core_Plugin
         setIfNot($mvc->lockBalances, FALSE);
         setIfNot($mvc->fieldsNotToClone, $mvc->valiorFld);
         setIfNot($mvc->canViewpsingle, 'powerUser');
+        setIfNot($mvc->moveDocToFolder, FALSE);
         
         // Зареждаме плъгина, който проверява може ли да се оттегли/възстанови докумена
         $mvc->load('acc_plg_RejectContoDocuments');
