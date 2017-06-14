@@ -3,27 +3,21 @@
 
 
 /**
- * Мениджър на заплати
+ * Мениджър на показатели за заплати
  *
  *
  * @category  bgerp
  * @package   hr
- * @author    Gabriela Petrova <gab4eto@gmail.com>
+ * @author    Gabriela Petrova <gab4eto@gmail.com> и Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Заплати
+ * @title     Показатели
  */
 class hr_Indicators extends core_Manager
 {
     
     
-    /**
-     * Старо име на класа
-     */
-    public $oldClassname = 'trz_SalaryIndicators';
-    
-
     /**
      * Заглавие
      */
@@ -417,9 +411,35 @@ class hr_Indicators extends core_Manager
     	$data->IData = new stdClass();
     	$data->IData->masterMvc = $data->masterMvc;
     	$data->IData->query = self::getQuery();
+    	
+    	// Позицията от трудовия договор
+    	$positionId = hr_EmployeeContracts::fetchField("#state = 'active' AND #personId = {$data->masterId}", 'positionId');
+    	if(!empty($positionId)){
+    		
+    		// Ако има формула за заплата
+    		$formula = hr_Positions::fetchField($positionId, 'formula');
+    		if(!empty($formula)){
+    			
+    			// Ще се показват само индикаторите участващи във формулата
+    			$indicators = self::getIndicatorsInFormula($formula);
+    			$indicators = array_keys($indicators);
+    			if(count($indicators)){
+    				$data->IData->query->in("indicatorId", $indicators);
+    			} else {
+    				
+    				// Ако няма такива няма да се рендира нищо
+    				$data->IData->render = FALSE;
+    				return;
+    			}
+    		}
+    	}
+    	
+    	// Подготовка на заявката
     	$data->IData->query->where("#personId = {$data->masterId}");
     	$data->IData->query->orderBy('date', 'DESC');
     	$data->IData->recs = $data->IData->rows = array();
+    	
+    	// Подготивка на формата за търсене
     	$this->prepareListFields($data->IData);
     	$this->prepareListPager($data->IData);
     	$this->prepareListFilter($data->IData);
@@ -444,6 +464,8 @@ class hr_Indicators extends core_Manager
      */
     public function renderPersonIndicators($data)
     {
+    	if($data->IData->render === FALSE) return new core_ET();
+    	
     	$tpl = new core_ET("[#ListToolbarTop#][#listFilter#][#I_TABLE#][#ListToolbarBottom#]");
     	$tpl->append($this->renderListFilter($data->IData), 'listFilter');
     	
@@ -500,5 +522,29 @@ class hr_Indicators extends core_Manager
     			$data->query->where("#date >= '{$fRec->period}' AND #date <= '{$to}'");
     		}
     	}
+    }
+    
+    
+    /**
+     * Връща индикаторите, които са използвани във формула
+     * 
+     * @param text $formula
+     * @return array $res;
+     */
+    public static function getIndicatorsInFormula($formula)
+    {
+    	$names = self::getIndicatorNames();
+    	$res = array();
+    	array_walk_recursive($names, function ($value, $key) use (&$res){$res[$key] = $value;});
+    	
+    	// Подготвяме масив с нулеви стойности
+    	foreach($res as $id => $value) {
+    		
+    		if(strpos($formula, "$" . $value) === FALSE){
+    			unset($res[$id]);
+    		}
+    	}
+    	
+    	return $res;
     }
 }
