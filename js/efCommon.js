@@ -4060,6 +4060,7 @@ function changeNotificationsCnt(data) {
             nCntLink.className = 'noNtf';
         }
     }
+    setCookie('portalTabs', "notificationsPortal");
 }
 
 
