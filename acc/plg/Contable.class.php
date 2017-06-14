@@ -412,8 +412,10 @@ class acc_plg_Contable extends core_Plugin
                     $cRec = clone $rec;
                     $cRec->state = 'draft';
                 }
-                 
-                $requiredRoles = $mvc->getRequiredRoles('conto', $cRec, $userId);
+                
+                if (!haveRole('accpsingle', $userId)) {
+                    $requiredRoles = $mvc->getRequiredRoles('conto', $cRec, $userId);
+                }
             }
         }
     }
