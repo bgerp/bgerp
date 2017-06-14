@@ -393,6 +393,7 @@ div.folder-cover {
   max-width: 720px;
   min-width: 280px;
   font-size: 0.9em;
+  display: block;
   padding: 10px !important; }
   .narrow .folder-cover .block_title img {
     vertical-align: baseline; }
@@ -788,7 +789,7 @@ div.crmImage {
 
 .narrow div.crmImage {
   padding: 10px 8px 8px 0;
-  float: left; }
+  float: none; }
 
 div.crm_Companies div.tab-row .tab.selected,
 div.crm_Companies  div.tab-page {

@@ -89,7 +89,7 @@ function render_setThreadElemWidth() {
 function setMaxWidth() {
 	var viewportWidth = $(window).width();
 	if ($('body').hasClass('narrow')) {
-		$('.folder-cover .scrolling-holder').css('max-width', viewportWidth - 30);
+		$('.folder-cover .scrolling-holder').css('max-width', viewportWidth - 45);
 	} else {
 		var contentWidth = viewportWidth - $('.sidemenu-open').length * $('.sidemenu-open').width() - 64 - $('.wide-profile-info').width();
 		if(contentWidth < $('.listTable').first().width()){
@@ -99,10 +99,6 @@ function setMaxWidth() {
 			$('.document .scrolling-holder').addClass('overflow-scroll');
 		}
 	}
-
-
-
-
 }
 
 

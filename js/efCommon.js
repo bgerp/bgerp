@@ -2697,9 +2697,7 @@ function sumOfChildrenWidth() {
 			}
 		}
 		if ($('.docStatistic div.alphabet div.tab-row .tab').length){
-			var sum=0;
-			$('.docStatistic div.alphabet div.tab-row .tab').each( function(){ sum += $(this).width() + 5; });
-			$('.docStatistic').css('min-width', sum);
+			$('.docStatistic').css('max-width', $(window).width() - 30);
 		}
 	}
 }
