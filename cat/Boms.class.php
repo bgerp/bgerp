@@ -216,6 +216,13 @@ class cat_Boms extends core_Master
     	$form->setField('quantity', "unit={$shortUom}");
     	$form->setField('quantityForPrice', "unit={$shortUom}");
     	
+    	// К-то е дефолтното от заданието
+    	if(isset($form->rec->originId)){
+    		$origin = doc_Containers::getDocument($form->rec->originId);
+    		if($origin->isInstanceOf('planning_Jobs')){
+    			$form->setDefault('quantity', $origin->fetchField('quantity'));
+    		}
+    	}
     	$form->setDefault('quantity', 1);
     	
     	// При създаване на нова рецепта
