@@ -185,12 +185,12 @@ class crm_ext_Employees extends core_Manager
     	 }
     	 
     	 if(isset($data->addExtUrl)){
-    	 	$link = ht::createLink('', $data->addExtUrl, FALSE, "title=Добавяне на служебни данни,ef_icon=img/16/add.png");
+    	 	$link = ht::createLink('', $data->addExtUrl, FALSE, "title=Добавяне на служебни данни,ef_icon=img/16/add.png,style=float:right; height: 16px;");
     	 	$tpl->append($link, 'emBtn');
     	 }
     	 
     	 if(isset($data->editResourceUrl)){
-    	 	$link = ht::createLink('', $data->editResourceUrl, FALSE, "title=Редактиране на служебни данни,ef_icon=img/16/edit.png");
+    	 	$link = ht::createLink('', $data->editResourceUrl, FALSE, "title=Редактиране на служебни данни,ef_icon=img/16/edit.png,style=float:right; height: 16px;");
     	 	$tpl->append($link, 'emBtn');
     	 }
     	 
