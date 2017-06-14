@@ -1189,7 +1189,7 @@ class doc_Threads extends core_Manager
         
         $exp->rule("#checkMoveTime", "checkmovetime(#threadId, #moveRest)");
         $exp->WARNING(tr("Операцията може да отнеме време!"), '#checkMoveTime === FALSE');
-        $exp->ERROR(tr('Нишката не може да бъде преместена в избраната папка'), 'canMoveToFolder(#threadId, #folderId)');
+        $exp->ERROR(tr('Нишката не може да бъде преместена в избраната папка'), 'canMoveToFolder(#threadId, #folderId) === FALSE');
         
         $result = $exp->solve('#folderId,#moveRest,#checkMoveTime,#haveAccess');
         
@@ -1442,9 +1442,9 @@ class doc_Threads extends core_Manager
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	
     	// Ако е зададено да не се може да се мести документа
-    	if ($firstDoc->moveDocToFolder === FALSE) return TRUE;
+    	if ($firstDoc->moveDocToFolder === FALSE) return FALSE;
     	
-    	return !$firstDoc->getInstance()->canAddToFolder($folderId);
+    	return (boolean)$firstDoc->getInstance()->canAddToFolder($folderId);
     }
     
     
