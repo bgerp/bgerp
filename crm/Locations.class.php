@@ -438,11 +438,19 @@ class crm_Locations extends core_Master {
         }
         
     	if (($action == 'edit' || $action == 'delete') && isset($rec)) {
-    		$cState = cls::get($rec->contragentCls)->fetchField($rec->contragentId, 'state');
+    	    
+    	    $contragentCls = cls::get($rec->contragentCls);
+    	    
+    		$cState = $contragentCls->fetchField($rec->contragentId, 'state');
             
         	if ($cState == 'rejected') {
                 $requiredRoles = 'no_one';
-            } 
+            }
+            
+            // Ако няма права за редактиране на мастъра, да не може да редактира и локацията
+            if (($requiredRoles != 'no_one') && !$contragentCls->haveRightFor('edit', $rec->contragentId)) {
+                 $requiredRoles = 'no_one';
+            }
         }
         
         if($action == 'createsale' && isset($rec)){
