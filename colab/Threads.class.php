@@ -154,7 +154,7 @@ class colab_Threads extends core_Manager
 		
 		$data->query = $this->Containers->getQuery();
 		$data->query->where("#threadId = {$id}");
-		$data->query->where("#visibleForPartners = 'yes' || #createdBy IN ({$sharedUsers})");
+		$data->query->where("#visibleForPartners = 'yes'");
 		$data->query->where("#state != 'draft' || (#state = 'draft' AND #createdBy  IN ({$sharedUsers}))");
 		$data->query->orderBy('createdOn,id', 'ASC');
 		
@@ -391,7 +391,7 @@ class colab_Threads extends core_Manager
 				
     			// Трябва първия документ в нишката да е видим за партньори
     			$firstDocumentIsVisible = doc_Containers::fetchField($rec->firstContainerId, 'visibleForPartners');
-    			if($firstDocumentIsVisible != 'yes' && !in_array($rec->createdBy, $sharedUsers)){
+    			if($firstDocumentIsVisible != 'yes'){
     				$requiredRoles = 'no_one';
     			} 
     			
@@ -436,7 +436,7 @@ class colab_Threads extends core_Manager
 		
 		$params['where'][] = "#folderId = {$folderId}";
 		$res = $this->Threads->getQuery($params);
-		$res->where("#visibleForPartners = 'yes' OR #createdBy IN ({$sharedUsers})");
+		$res->where("#visibleForPartners = 'yes'");
 		$res->in('folderId', $sharedFolders);
 	    
 		return $res;
