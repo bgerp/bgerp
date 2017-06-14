@@ -153,7 +153,8 @@ class planning_Setup extends core_ProtoSetup
     		'migrate::updateNotes',
     		'migrate::updateStoreIds',
     		'migrate::migrateJobs',
-    		'migrate::addPackToNotes'
+    		'migrate::addPackToNotes',
+    		'migrate::addPackToJobs'
         );
 
         
@@ -336,6 +337,37 @@ class planning_Setup extends core_ProtoSetup
     	
     	if(count($toSave)){
     		$Notes->saveArray($toSave, 'id,packagingId,quantityInPack');
+    	}
+    }
+    
+    
+    /**
+     * Добавя опаковки на протокола за производство
+     */
+    public function addPackToJobs()
+    {
+    	$Job = cls::get('planning_Jobs');
+    	$Job->setupMvc();
+    	 
+    	if(!$Job->count()) return;
+    	core_App::setTimeLimit(300);
+    	 
+    	$toSave = array();
+    	$query = planning_Jobs::getQuery();
+    	$query->where("#packagingId IS NULL");
+    	 
+    	while($rec = $query->fetch()){
+    		try{
+    			$rec->packagingId = cat_Products::fetchField($rec->productId, 'measureId');
+    			$rec->quantityInPack = 1;
+    			$toSave[] = $rec;
+    		} catch(core_exception_Expect $e){
+    			reportException($e);
+    		}
+    	}
+    	 
+    	if(count($toSave)){
+    		$Job->saveArray($toSave, 'id,packagingId,quantityInPack');
     	}
     }
 }

@@ -207,17 +207,18 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		}
 		
 		$originRec = doc_Containers::getDocument($form->rec->originId)->rec();
+		$form->setDefault('storeId', $originRec->storeId);
 		$form->setDefault('productId', $originRec->productId);
 		$form->setReadOnly('productId');
 		
-		
 		$packs = cat_Products::getPacks($rec->productId);
 		$form->setOptions('packagingId', $packs);
-		$form->setDefault('packagingId', key($packs));
+		$form->setDefault('packagingId', $originRec->packagingId);
 		
 		// Ако артикула не е складируем, скриваме полето за мярка
 		$canStore = cat_Products::fetchField($rec->productId, 'canStore');
 		if($canStore == 'no'){
+			
 			$measureShort = cat_UoM::getShortName($rec->packagingId);
 			$form->setField('packQuantity', "unit={$measureShort}");
 		} else {
@@ -227,8 +228,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$form->setDefault('jobQuantity', $originRec->quantity);
 		$quantityFromTasks = planning_TaskActions::getQuantityForJob($originRec->id, 'product');
 		$quantityToStore = $quantityFromTasks - $originRec->quantityProduced;
+		
 		if($quantityToStore > 0){
-			$form->setDefault('quantity', $quantityToStore);
+			$form->setDefault('packQuantity', $quantityToStore / $originRec->quantityInPack);
 		}
 		
 		$bomRec = cat_Products::getLastActiveBom($originRec->productId, 'production');
@@ -263,6 +265,19 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$form->setDefault('storeId', $curStore);
 		
 		return $data;
+	}
+	
+	
+	/**
+	 * Преди показване на форма за добавяне/промяна.
+	 *
+	 * @param core_Manager $mvc
+	 * @param stdClass $data
+	 */
+	protected static function on_AfterPrepareEditForm111($mvc, &$data)
+	{
+		$form = &$data->form;
+		$rec = &$form->rec;
 	}
 	
 	

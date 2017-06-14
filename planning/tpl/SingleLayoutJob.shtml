@@ -24,7 +24,7 @@
              <!--ET_END captionNotStored-->
           </tr>
           <tr>
-              <td class = 'nowrap'>[#quantity#]</td>
+              <td class = 'nowrap'>[#packQuantity#]</td>
               <td class = 'nowrap'>[#quantityToProduce#]</td>
               <!--ET_BEGIN quantityFromTasks-->
               <td class = 'nowrap'>[#quantityFromTasks#] </td>
