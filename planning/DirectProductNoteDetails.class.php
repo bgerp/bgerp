@@ -408,5 +408,4 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
 		
     	followRetUrl(NULL, $msg);
     }
-    
 }

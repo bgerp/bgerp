@@ -46,12 +46,14 @@
                                        				<td>[#expenseItemId#]</td>
                                        			</tr>
                                        			<!--ET_END expenseItemId-->
-                                       			<!--ET_BEGIN quantity-->
+                                       			<tr>
+                                       				<td class='quiet'>|Мярка/Опаковка|*:</td>
+                                       				<td>[#packagingId#]</td>
+                                       			</tr>
                                        			<tr>
                                        				<td class='quiet'>|Количество|*:</td>
-                                       				<td>[#quantity#]</td>
+                                       				<td>[#packQuantity#]</td>
                                        			</tr>
-                                       			<!--ET_END quantity-->
                                        			<!--ET_BEGIN expenses-->
                                        			<tr>
                                        				<td class='quiet nowrap'>|Реж. разходи|*:</td>
