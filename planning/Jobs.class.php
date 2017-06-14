@@ -459,6 +459,12 @@ class planning_Jobs extends core_Master
     		 $pUrl = array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
     		 $data->toolbar->addBtn("Произвеждане", $pUrl, 'ef_icon = img/16/page_paste.png,title=Създаване на протокол за производство от заданието');
     	}
+    	
+    	if($data->toolbar->hasBtn('btnActivate')){
+    		if(self::fetchField("#productId = {$rec->productId} AND (#state = 'active' OR #state = 'stopped' OR #state = 'wakeup') AND #id != '{$rec->id}'")){
+    			$data->toolbar->setWarning('btnActivate', 'В момента има активно задание, желаете ли да създадете още едно?');
+    		}
+    	}
     }
     
     
