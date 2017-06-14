@@ -1150,6 +1150,9 @@ td.portal-date {
 
 .detail-info.portal table.listTable {
   font-size: 1em; }
+  .detail-info.portal table.listTable .frontToolip img {
+    height: 14px;
+    margin-top: -2px; }
 
 .shortTable .listTable {
   width: 1%; }

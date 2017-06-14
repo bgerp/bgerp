@@ -664,7 +664,8 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
         
-        if($rec->pendingSaved === TRUE){
+        if ($rec->pendingSaved === TRUE) {
+            $rec->pendingSaved = FALSE;
         	$mvc->pendingQueue[$rec->id] = $rec;
         	$mvc->invoke('AfterSavePendingDocument', array($rec));
         }

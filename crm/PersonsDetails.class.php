@@ -112,7 +112,7 @@ class crm_PersonsDetails extends core_Manager
     		    // правим url  за принтиране
                 $url = array('hr_WorkingCycles', 'Print', 'Printing'=>'yes', 'masterId' => $data->Cycles->masterId, 'cal_month'=>$data->Cycles->month, 'cal_year'=>$data->Cycles->year, 'personId'=>$data->masterId);
                 $efIcon = 'img/16/printer.png';
-                $link = ht::createLink('', $url, FALSE, "title=Печат,ef_icon={$efIcon}");                
+                $link = ht::createLink('', $url, FALSE, "title=Печат,ef_icon={$efIcon},style=float:right; height: 16px;");
                 $tpl->append($link, 'print');
 		    }
 		}

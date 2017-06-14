@@ -296,11 +296,16 @@ class dec_Declarations extends core_Master
     		
     		$products = arr::make($recDec->productId);
     		
-    		$dQuery = sales_InvoiceDetails::getQuery();
-    		$dQuery->where("#invoiceId = {$rec->inv}");
-  
-    		while($dRec = $dQuery->fetch()){
-    		      $batches[$dRec->productId] = $dRec->batches; 
+    		$batches = array();
+    		$classProduct = array();
+    		
+    		if ($rec->inv) {
+    		    $dQuery = sales_InvoiceDetails::getQuery();
+    		    $dQuery->where("#invoiceId = {$rec->inv}");
+    		    
+    		    while($dRec = $dQuery->fetch()){
+    		        $batches[$dRec->productId] = $dRec->batches;
+    		    }
     		}
     		
     		foreach ($products as $product) {
@@ -308,14 +313,14 @@ class dec_Declarations extends core_Master
     		}
 
     		$row->products = "<ol>";
-		       	foreach($classProduct as $iProduct=>$name){
-		       		$pId = (isset($name[1])) ? $name[1] : $name[0];
-		        	$productName = cat_Products::getTitleById($pId);
-		        	if(($batches[$pId])) {
-		        	    $row->products .= "<li>".$productName . " - ". $batches[$pId] ."</li>";
-		        	} else {
-		        	    $row->products .= "<li>".$productName."</li>";
-		        	}
+	       	foreach($classProduct as $iProduct=>$name){
+	       		$pId = (isset($name[1])) ? $name[1] : $name[0];
+	        	$productName = cat_Products::getTitleById($pId);
+	        	if(($batches[$pId])) {
+	        	    $row->products .= "<li>".$productName . " - ". $batches[$pId] ."</li>";
+	        	} else {
+	        	    $row->products .= "<li>".$productName."</li>";
+	        	}
 			}
 			$row->products .= "</ol>";
     	}

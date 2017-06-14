@@ -1314,6 +1314,10 @@ td.portal-date {
 
 .detail-info.portal table.listTable { 
 	font-size:1em;
+	.frontToolip img{
+		height: 14px;
+		margin-top: -2px;
+	}
 }
 
 .shortTable .listTable {
