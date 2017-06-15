@@ -860,9 +860,12 @@ class doc_Threads extends core_Manager
     static function applyFilter($filter, $query)
     {
         if (!empty($filter->folderId)) {
-            $query->EXT('containerFolderId', 'doc_Containers', 'externalName=folderId');
-            $query->where("#containerFolderId = {$filter->folderId}");
-            // $query->where("#folderId = {$filter->folderId}");
+            if (empty($filter->search)) {
+                $query->where("#folderId = {$filter->folderId}");
+            } else {
+                $query->EXT('containerFolderId', 'doc_Containers', 'externalName=folderId');
+                $query->where("#containerFolderId = {$filter->folderId}");
+            }
         }
         
         // Налагане на условията за търсене
