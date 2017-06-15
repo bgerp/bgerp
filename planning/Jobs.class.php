@@ -172,7 +172,7 @@ class planning_Jobs extends core_Master
     function description()
     {
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул');
-    	$this->FNC('oldJobId', 'int', 'silent,after=productId,caption=Предишни задания,removeAndRefreshForm=notes|department|sharedUsers');
+    	$this->FLD('oldJobId', 'int', 'silent,after=productId,caption=Старо задание,removeAndRefreshForm=notes|department|sharedUsers|packagingId|quantityInPack|storeId,input=none');
     	$this->FLD('dueDate', 'date(smartTime)', 'caption=Падеж,mandatory');
     	
     	$this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','smartCenter,mandatory,input=hidden,before=packQuantity');
@@ -254,7 +254,6 @@ class planning_Jobs extends core_Master
     	
     	$packs = cat_Products::getPacks($rec->productId);
     	$form->setOptions('packagingId', $packs);
-    	$form->setDefault('packagingId', key($packs));
     	
     	// Ако артикула не е складируем, скриваме полето за мярка
     	$canStore = cat_Products::fetchField($rec->productId, 'canStore');
@@ -298,16 +297,21 @@ class planning_Jobs extends core_Master
     	
     	// Ако е избрано предишно задание зареждат се данните от него
     	if(isset($rec->oldJobId)){
-    		$oRec = self::fetch($rec->oldJobId, 'notes,sharedUsers,department');
+    		$oRec = self::fetch($rec->oldJobId, 'notes,sharedUsers,department,packagingId,storeId');
+    		
     		$form->setDefault('notes', $oRec->notes);
     		$form->setDefault('sharedUsers', $oRec->sharedUsers);
     		$form->setDefault('department', $oRec->department);
+    		$form->setDefault('packagingId', $oRec->packagingId);
+    		$form->setDefault('storeId', $oRec->storeId);
     	} else {
     		// При ново задание, ако текущия потребител има права го добавяме като споделен
     		if(haveRole('planning,ceo') && empty($rec->id)){
     			$form->setDefault('sharedUsers', keylist::addKey($rec->sharedUsers, core_Users::getCurrent()));
     		}
     	}
+    	
+    	$form->setDefault('packagingId', key($packs));
     	
     	$departments = cls::get('hr_Departments')->makeArray4Select('name', "#type = 'workshop'", 'id');
     	$form->setOptions('department', array('' => '') + $departments);
@@ -1012,7 +1016,7 @@ class planning_Jobs extends core_Master
     	 	$tpl->append($addBtn, 'title');
     	 }
     	 
-    	 $listFields = arr::make('tools=Пулт,title=Документ,dueDate=Падеж,saleId=Към продажба,quantity=Количество,quantityProduced=Произведено,createdBy=Oт||By,createdOn=На');
+    	 $listFields = arr::make('tools=Пулт,title=Документ,dueDate=Падеж,saleId=Към продажба,packQuantity=Количество,quantityProduced=Произведено,packagingId=Мярка');
     	 
     	 if($data->hideSaleCol){
     	 	unset($listFields['saleId']);
