@@ -721,17 +721,6 @@ class planning_Jobs extends core_Master
     	
     	return $row;
     }
-
-
-    /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    protected static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	if(!empty($data->toolbar->buttons['btnAdd'])){
-    		$data->toolbar->removeBtn('btnAdd');
-    	}
-    }
     
     
     /**

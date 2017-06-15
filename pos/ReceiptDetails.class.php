@@ -65,6 +65,12 @@ class pos_ReceiptDetails extends core_Detail {
     
     
     /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
+    
+    
+    /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
     public $hideListFieldsIfEmpty = 'discountPercent';
@@ -601,15 +607,6 @@ class pos_ReceiptDetails extends core_Detail {
     	} 
     	
     	return FALSE;
-    }
-	
-	
-	/**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-        $data->toolbar->removeBtn('btnAdd');
     }
     
     

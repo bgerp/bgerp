@@ -38,18 +38,12 @@ class crm_Locations extends core_Master {
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = "title, contragent=Контрагент, type, createdOn, createdBy";
-
-
-    /**
-     * Кой може да чете и записва локации?
-     */
-    var $canRead  = 'ceo';
     
     
     /**
-     *  Поле за rowTools
+     * Дали в листовия изглед да се показва бутона за добавяне
      */
-    //var $rowToolsField = 'tools';
+    public $listAddBtn = FALSE;
     
     
     /**
@@ -328,15 +322,6 @@ class crm_Locations extends core_Master {
         }
 
         $data->TabCaption = 'Локации';
-    }
-
-
-    /**
-     * Премахване на бутона за добавяне на нова локация от лист изгледа
-     */
-    protected static function on_BeforeRenderListToolbar($mvc, &$tpl, &$data)
-    {
-        $data->toolbar->removeBtn('btnAdd');
     }
     
     

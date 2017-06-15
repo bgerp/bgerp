@@ -166,6 +166,12 @@ class cat_Products extends embed_Manager {
     
     
     /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
+    
+    
+    /**
      * Може ли да се редактират активирани документи
      */
     public $canEditActivated = TRUE;
@@ -1800,8 +1806,6 @@ class cat_Products extends embed_Manager {
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
-    	$data->toolbar->removeBtn('btnAdd');
-    	
     	// Бутона 'Нов запис' в листовия изглед, добавя винаги универсален артикул
     	if($mvc->haveRightFor('add')){
     		

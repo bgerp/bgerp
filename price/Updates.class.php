@@ -76,6 +76,12 @@ class price_Updates extends core_Manager
 	public $canSaveprimecost = 'priceMaster,ceo';
 	
 	
+	/**
+	 * Дали в листовия изглед да се показва бутона за добавяне
+	 */
+	public $listAddBtn = FALSE;
+	
+	
     /**
      * Описание на модела (таблицата)
      */
@@ -513,7 +519,6 @@ class price_Updates extends core_Manager
     	if(haveRole('debug')){
     		$data->toolbar->addBtn('Преизчисли', array($mvc, 'recalc'), NULL, 'ef_icon = img/16/arrow_refresh.png,title=Преизчисляване на себестойностите,target=_blank');
     	}
-    	$data->toolbar->removeBtn('btnAdd');
     }
     
     

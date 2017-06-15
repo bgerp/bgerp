@@ -121,6 +121,12 @@ abstract class bank_Document extends deals_PaymentDocument
 	
 	
 	/**
+	 * Дали в листовия изглед да се показва бутона за добавяне
+	 */
+	public $listAddBtn = FALSE;
+	
+	
+	/**
 	 * Добавяне на дефолтни полета
 	 *
 	 * @param core_Mvc $mvc
@@ -227,17 +233,6 @@ abstract class bank_Document extends deals_PaymentDocument
 	{
 		// Добавяме към формата за търсене търсене по Каса
 		bank_OwnAccounts::prepareBankFilter($data, array('ownAccount'));
-	}
-
-	
-	/**
-	 * Извиква се след подготовката на toolbar-а за табличния изглед
-	 */
-	protected static function on_AfterPrepareListToolbar($mvc, &$data)
-	{
-		if(!empty($data->toolbar->buttons['btnAdd'])){
-			$data->toolbar->removeBtn('btnAdd');
-		}
 	}
 	
 

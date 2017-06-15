@@ -112,10 +112,15 @@ class dec_Declarations extends core_Master
     
     
     /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
+    
+    
+    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-    
     	'statements' => 'lastDocUser|lastDoc|LastDocSameCuntry',
         'materials' => 'lastDocUser|lastDoc|LastDocSameCuntry',
     );
@@ -126,9 +131,6 @@ class dec_Declarations extends core_Master
      */
     function description()
     {
-    	// бланка
-    	//$this->FLD('typeId', 'key(mvc=dec_DeclarationTypes,select=name)', "caption=Бланка");
-    	
     	// номера на документа
     	$this->FLD('doc', 'key(mvc=doc_Containers)', 'caption=Към документ, input=none');
     	
@@ -471,18 +473,6 @@ class dec_Declarations extends core_Master
     public static function canAddToFolder($folderId)
     {
         return FALSE;
-    }
-    
-    
-	/**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    static function on_AfterPrepareSingleToolbar($mvc, &$data)
-    {
-
-    	if(!empty($data->toolbar->buttons['btnAdd'])){
-    		$data->toolbar->removeBtn('btnAdd');
-    	}
     }
     
     

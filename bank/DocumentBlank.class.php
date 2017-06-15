@@ -54,6 +54,12 @@ abstract class bank_DocumentBlank extends core_Master
 	
 	
 	/**
+	 * Дали в листовия изглед да се показва бутона за добавяне
+	 */
+	public $listAddBtn = FALSE;
+	
+	
+	/**
 	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
 	 */
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
@@ -84,15 +90,6 @@ abstract class bank_DocumentBlank extends core_Master
 		if(Mode::is('printing') || Mode::is('text', 'xhtml')){
 			$tpl->removeBlock('header');
 		}
-	}
-	
-
-	/**
-	 * Извиква се след подготовката на toolbar-а за табличния изглед
-	 */
-	protected static function on_AfterPrepareListToolbar($mvc, &$data)
-	{
-		$data->toolbar->removeBtn('btnAdd');
 	}
 	
 	

@@ -85,6 +85,12 @@ class price_ListToCustomers extends core_Manager
     
     
     /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -156,15 +162,6 @@ class price_ListToCustomers extends core_Manager
     	if(isset($rec->cClass) && isset($rec->cId)){
     		$data->form->title = core_Detail::getEditTitle($rec->cClass, $rec->cId, $mvc->singleTitle, $rec->id, $mvc->formTitlePreposition);
     	}
-    }
-    
-    
-    /**
-     * След подготовка на лентата с инструменти за табличния изглед
-     */
-    protected static function on_AfterPrepareListToolbar($mvc, $data)
-    {
-       $data->toolbar->removeBtn('btnAdd');
     }
 
 

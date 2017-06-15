@@ -151,6 +151,12 @@ class store_InventoryNotes extends core_Master
     
     
     /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -724,15 +730,6 @@ class store_InventoryNotes extends core_Master
     public static function on_AfterCanActivate($mvc, &$res, $rec)
     {
     	$res = TRUE;
-    }
-    
-    
-    /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    protected static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	$data->toolbar->removeBtn('btnAdd');
     }
     
     

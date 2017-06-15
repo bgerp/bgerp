@@ -76,6 +76,12 @@ abstract class deals_DealBase extends core_Master
 	
 	
 	/**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
+    
+    
+	/**
 	 * Извиква се след описанието на модела
 	 *
 	 * @param core_Mvc $mvc
@@ -819,16 +825,5 @@ abstract class deals_DealBase extends core_Master
     	}
     	
     	$data->DealHistory = $history;
-    }
-    
-    
-    /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    protected static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-        if (!$mvc instanceof findeals_AdvanceDeals) {
-            $data->toolbar->removeBtn('btnAdd');
-        }
     }
 }

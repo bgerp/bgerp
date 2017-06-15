@@ -74,6 +74,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	
 	
 	/**
+	 * Дали в листовия изглед да се показва бутона за добавяне
+	 */
+	public $listAddBtn = FALSE;
+	
+	
+	/**
 	 * Кой има право да добавя?
 	 */
 	public $canAdd = 'ceo,planning,store';
@@ -396,15 +402,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 				}
 			}
 		}
-	}
-	
-	
-	/**
-	 * Извиква се след подготовката на toolbar-а за табличния изглед
-	 */
-	protected static function on_AfterPrepareListToolbar($mvc, &$data)
-	{
-		$data->toolbar->removeBtn('btnAdd');
 	}
 	
 	
