@@ -862,7 +862,7 @@ class doc_Threads extends core_Manager
         if (!empty($filter->folderId)) {
             $query->EXT('containerFolderId', 'doc_Containers', 'externalName=folderId');
             $query->where("#containerFolderId = {$filter->folderId}");
-            $query->where("#folderId = {$filter->folderId}");
+            // $query->where("#folderId = {$filter->folderId}");
         }
         
         // Налагане на условията за търсене
