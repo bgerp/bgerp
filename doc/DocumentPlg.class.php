@@ -129,6 +129,7 @@ class doc_DocumentPlg extends core_Plugin
         setIfNot($mvc->canPsingle, 'user');
         setIfNot($mvc->pendingQueue, array());
         setIfNot($mvc->canPending, 'no_one');
+        setIfNot($mvc->requireDetailForPending, TRUE);
         
         $mvc->setDbIndex('state');
         $mvc->setDbIndex('folderId');
@@ -2257,7 +2258,7 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         if($action == 'pending' && isset($rec)){
-        	if(isset($mvc->mainDetail)){
+        	if(isset($mvc->mainDetail) && $mvc->requireDetailForPending === TRUE){
         		$Detail = cls::get($mvc->mainDetail);
         		if(!$Detail->fetch("#{$Detail->masterKey} = '{$rec->id}'")){
         			$requiredRoles = 'no_one';

@@ -164,6 +164,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	
 	
 	/**
+	 * Нужно ли е да има детайл, за да стане на 'Заявка'
+	 */
+	public $requireDetailForPending = FALSE;
+	
+	
+	/**
 	 * Описание на модела
 	 */
 	function description()
