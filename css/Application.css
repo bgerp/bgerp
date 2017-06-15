@@ -393,13 +393,12 @@ div.folder-cover {
   max-width: 720px;
   min-width: 280px;
   font-size: 0.9em;
+  display: block;
   padding: 10px !important; }
   .narrow .folder-cover .block_title img {
     vertical-align: baseline; }
   .narrow .folder-cover .detail-info {
     padding: 3px 7px 7px 7px; }
-  .narrow .folder-cover select {
-    font-size: 1.3em; }
   .narrow .folder-cover .tab-page {
     padding: 0 !important; }
   .narrow .folder-cover .tab-page .portal.detail-info {
@@ -790,7 +789,7 @@ div.crmImage {
 
 .narrow div.crmImage {
   padding: 10px 8px 8px 0;
-  float: left; }
+  float: none; }
 
 div.crm_Companies div.tab-row .tab.selected,
 div.crm_Companies  div.tab-page {
@@ -1151,6 +1150,9 @@ td.portal-date {
 
 .detail-info.portal table.listTable {
   font-size: 1em; }
+  .detail-info.portal table.listTable .frontToolip img {
+    height: 14px;
+    margin-top: -2px; }
 
 .shortTable .listTable {
   width: 1%; }
@@ -3054,6 +3056,10 @@ span.sharing-history-title {
   overflow: visible !important;
   _overflow: visible !important;
   width: auto !important; }
+
+    .narrow-scroll .single-thread .store_InventoryNoteDetails .listRowsDetail {
+      overflow: auto !important;
+      _overflow: auto !important; }
 
 .narrow-scroll .listRows::-webkit-scrollbar {
   -webkit-appearance: none;

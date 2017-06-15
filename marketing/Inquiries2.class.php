@@ -169,6 +169,12 @@ class marketing_Inquiries2 extends embed_Manager
     
     
     /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
+    
+    
+    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
@@ -1074,14 +1080,5 @@ class marketing_Inquiries2 extends embed_Manager
         }
         
         return $contrData;
-    }
-    
-    
-    /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    public static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	$data->toolbar->removeBtn('btnAdd');
     }
 }

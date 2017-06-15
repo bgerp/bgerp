@@ -24,6 +24,12 @@ abstract class deals_ServiceMaster extends core_Master
 	
 	
 	/**
+	 * Дали в листовия изглед да се показва бутона за добавяне
+	 */
+	public $listAddBtn = FALSE;
+	
+	
+	/**
 	 * Кои са задължителните полета за модела
 	 */
 	protected static function setServiceFields($mvc)
@@ -333,17 +339,6 @@ abstract class deals_ServiceMaster extends core_Master
     		$index = $dRec->productId;
     		
     		$aggregator->push('shippedPacks', $p, $index);
-    	}
-    }
-    
-    
-    /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    public static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	if(!empty($data->toolbar->buttons['btnAdd'])){
-    		$data->toolbar->removeBtn('btnAdd');
     	}
     }
     

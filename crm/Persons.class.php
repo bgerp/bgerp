@@ -244,6 +244,12 @@ class crm_Persons extends core_Master
     
     
     /**
+     * Как се казва полето за държава на контрагента
+     */
+    public $countryFieldName = 'country';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()

@@ -149,6 +149,12 @@ class store_ConsignmentProtocols extends core_Master
     
     
     /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()

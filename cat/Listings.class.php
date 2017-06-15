@@ -391,6 +391,8 @@ class cat_Listings extends core_Master
      */
     public function cron_UpdateAutoLists()
     {
+    	core_Debug::$isLogging = FALSE;
+    	
     	$from = dt::addDays(-30, NULL, FALSE);
     	$today = dt::today();
     	$now = dt::now();
@@ -405,7 +407,10 @@ class cat_Listings extends core_Master
     	
     	// Извличат се папките им
     	$folders = arr::extractValuesFromArray($query->fetchAll(), 'folderId');
-    	if(!count($folders)) return;
+    	$count = count($folders);
+    	if(!$count) return;
+    	
+    	core_App::setTimeLimit($count * 3);
     	
     	// За всяка папка
     	foreach ($folders as $folderId){
@@ -427,22 +432,13 @@ class cat_Listings extends core_Master
     		$dQuery->EXT('state', 'sales_Sales', 'externalName=state,externalKey=saleId');
     		$dQuery->where("#valior >= '{$from}' AND #valior <= '{$today}' AND (#state = 'active' OR #state = 'closed')");
     		$dQuery->where("#folderId = {$folderId} AND #canSell = 'yes'");
-    		$dQuery->show('productId');
+    		$dQuery->groupBy('productId,packagingId');
+    		$dQuery->XPR('count', 'int', 'COUNT(#id)');
+    		$dQuery->show('productId,packagingId,count');
+    		$dQuery->orderBy('count', 'DESC');
     		
-    		// Групират се и се запазва бройката им
-    		while($dRec = $dQuery->fetch()){
-    			if(!array_key_exists($dRec->productId, $res)){
-    				$res[$dRec->productId] = 1;
-    			} else {
-    				$res[$dRec->productId] += 1;
-    			}
-    		}
-    		
-    		if(!count($res)) continue;
-    		
-    		// Подреждат се във низходящ ред по това, колко често са срещани
-    		arsort($res);
-    		$products = array_keys($res);
+    		$products = arr::extractSubArray($dQuery->fetchAll(), 'productId,packagingId');
+    		if(!count($products)) continue;
     		
     		// Форсира се системен лист
     		$listId = self::forceAutoList($folderId, $Cover);
@@ -450,40 +446,50 @@ class cat_Listings extends core_Master
     		$newDetails = array();
     		
     		// За всеки артикул, подготвят се детайлите
-    		foreach ($products as $productId){
-    			if(!array_key_exists($productId, $cache)){
-    				$cache[$productId] = array('packagingId' => key(cat_Products::getPacks($productId)), 
-    						                   'reff'        => cat_Products::fetchField($productId, 'code'));
+    		foreach ($products as $obj){
+    			if(array_key_exists($obj->productId, $newDetails)) continue;
+    			
+    			if(!array_key_exists($obj->productId, $cache)){
+    				$cache[$obj->productId] = array('reff' => cat_Products::fetchField($obj->productId, 'code'));
     			}
     			
-    			$packagingId = $cache[$productId]['packagingId'];
-    			$reff = $cache[$productId]['reff'];
-    			
-    			$newDetails[$productId] = (object)array('listId'      => $listId,
-    												    'productId'   => $productId, 
-    					                                'reff'        => $reff,
-    													'modifiedOn'  => $now,
-    													'modifiedBy'  => core_Users::SYSTEM_USER,
-     					                                'packagingId' => $packagingId);
+    			$newDetails[$obj->productId] = (object)array('listId'      => $listId,
+    												         'productId'   => $obj->productId, 
+    					                                     'reff'        => $cache[$obj->productId]['reff'],
+    													     'modifiedOn'  => $now,
+    													     'modifiedBy'  => core_Users::SYSTEM_USER,
+     					                                     'packagingId' => $obj->packagingId);
     		}
     		
-    		// Ако те са под 20 допълват се с артикулите от листа (ако има)
-    		if(count($newDetails) < 20){
-    			$lQuery = cat_ListingDetails::getQuery();
-    			$lQuery->where("#listId = {$listId}");
-    			$lQuery->notIn("productId", $products);
-    			
-    			// При достигане на 20 се спира допълването
-    			while($lRec = $lQuery->fetch()){
-    				$newDetails[$lRec->productId] = $lRec; 
-    				if(count($newDetails) >= 20) break;
-    			}
+    		// Взимат се първите 20 записа
+    		$newDetails = array_slice($newDetails, 0, 20, TRUE);
+    		
+    		// Досегашните записи на листа
+    		$lQuery = cat_ListingDetails::getQuery();
+    		$lQuery->where("#listId = {$listId}");
+    		$old = $lQuery->fetchAll();
+    		
+    		// Синхронизиране на новите записи
+    		$res = arr::syncArrays($newDetails, $old, 'productId,packagingId', 'packagingId');
+    		
+    		// Инсърт на новите
+    		if(count($res['insert'])){
+    			cat_ListingDetails::saveArray($res['insert']);
     		}
     		
-    		// Изтриване и наливане на новите детайли на листа
-    		cat_ListingDetails::delete("#listId = {$listId}");
-    		cat_ListingDetails::saveArray($newDetails);
+    		// Ъпдейт на старите
+    		if(count($res['update'])){
+    			cat_ListingDetails::saveArray($res['update'], 'packagingId');
+    		}
+    		
+    		// Изтриване на тези дето не се срещат
+    		if(count($res['delete'])){
+    			$delete = implode(',', $res['delete']);
+    			cat_ListingDetails::delete("#id IN ({$delete})");
+    		}
     	}
+    	
+    	core_Debug::$isLogging = TRUE;
     }
     
     

@@ -71,6 +71,12 @@ class cat_ListingDetails extends doc_Detail
     
     
     /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
+    
+    
+    /**
      * Заглавие
      */
     public $title = 'Артикули за листване';
@@ -214,7 +220,6 @@ class cat_ListingDetails extends doc_Detail
 	{
 		// Добавяне на бутони
 		$masterRec = $data->masterData->rec;
-		$data->toolbar->removeBtn('btnAdd');
 		
 		if($mvc->haveRightFor('add', (object)array('listId' => $masterRec->id))){
 			$data->toolbar->addBtn('Артикул', array($mvc, 'add', 'listId' => $masterRec->id, 'ret_url' => TRUE), NULL, 'ef_icon = img/16/shopping.png,title=Добавяне на нов артикул за листване');

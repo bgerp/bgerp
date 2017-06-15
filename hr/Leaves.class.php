@@ -176,6 +176,10 @@ class hr_Leaves extends core_Master
     
     
     static public $map = array('paid' => 'платен', 'unpaid' => 'неплатен');
+
+    // Дните от седмицата
+    static public $weekDays = array('Monday'=>'понеделник', 'Tuesday'=>'вторник', 'Wednesday'=>'сряда', 
+                             'Thursday'=>'четвъртък', 'Friday'=>'петък', 'Saturday'=>'събота', 'Sunday'=>'неделя');
     
     
     /**
@@ -679,26 +683,61 @@ class hr_Leaves extends core_Master
     		}
     	}
     	
+    	
+    	
     	if($rec->leaveFrom){
+    	    
+    	    $tLeaveFrom = dt::mysql2timestamp($rec->leaveFrom);
+    	    $dayOfWeekFrom = date('l', $tLeaveFrom);
+    	    
     	    list($dateFrom,$hourFrom) = explode(" ", $rec->leaveFrom);
     	    
     	    if($hourFrom != "00:00:00") {
     	        $row->leaveFrom = $DateTime->mysql2verbal($rec->leaveFrom, "d.m.Y");
     	        $row->fromHour = $DateTime->mysql2verbal($rec->leaveFrom, "H:i");
-    	        
     	    }
+    	    
+    	    $row->dayFrom = static::$weekDays[$dayOfWeekFrom];
     	}
     	
     	if($rec->leaveTo){
+    	    
+    	    $tLeaveTo = dt::mysql2timestamp($rec->leaveTo);
+    	    $dayOfWeekTo = date('l', $tLeaveTo);
+    	    
     	    list($dateTo,$hourTo) = explode(" ", $rec->leaveTo);
     	    
     	    if($hourTo != "23:59:59") {
     	        $row->leaveTo = $DateTime->mysql2verbal($rec->leaveTo, "d.m.Y");
     	        $row->toHour = $DateTime->mysql2verbal($rec->leaveTo, "H:i");
     	    }
+    	    
+    	    $row->dayTo = static::$weekDays[$dayOfWeekTo];
     	}
 
         $myCompany = crm_Companies::fetchOurCompany();
         $row->myCompany = $myCompany->name;
+    }
+    
+    
+    /**
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    {
+        if(isset($data->rec->leaveFrom) && isset($data->rec->leaveTo)) {
+            $leaveFrom =  strstr($data->rec->leaveFrom, " ", TRUE); 
+            $leaveTo = strstr($data->rec->leaveTo, " ", TRUE);
+        }
+   
+        if(trim($leaveFrom) == trim($leaveTo)) {
+            $tpl->removeBlock('leaveFrom');
+            $tpl->removeBlock('fromHour');
+            $tpl->removeBlock('dayFrom');
+            $tpl->removeBlock('to');
+
+        } else {
+            $tpl->removeBlock('on');
+        }
     }
 }

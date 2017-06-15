@@ -39,6 +39,7 @@ class acc_plg_Contable extends core_Plugin
         setIfNot($mvc->lockBalances, FALSE);
         setIfNot($mvc->fieldsNotToClone, $mvc->valiorFld);
         setIfNot($mvc->canViewpsingle, 'powerUser');
+        setIfNot($mvc->moveDocToFolder, FALSE);
         
         // Зареждаме плъгина, който проверява може ли да се оттегли/възстанови докумена
         $mvc->load('acc_plg_RejectContoDocuments');
@@ -411,8 +412,10 @@ class acc_plg_Contable extends core_Plugin
                     $cRec = clone $rec;
                     $cRec->state = 'draft';
                 }
-                 
-                $requiredRoles = $mvc->getRequiredRoles('conto', $cRec, $userId);
+                
+                if (!haveRole('accpsingle', $userId)) {
+                    $requiredRoles = $mvc->getRequiredRoles('conto', $cRec, $userId);
+                }
             }
         }
     }
@@ -710,14 +713,6 @@ class acc_plg_Contable extends core_Plugin
     {
 		// Това са създателят на документа
     	$userArr = array($rec->createdBy => $rec->createdBy);
-    	
-    	// И създателят на първия документ в нишката
-    	if(isset($rec->threadId)){
-    		if($firstDoc = doc_Threads::getFirstDocument($rec->threadId)){
-    			$createdBy = $firstDoc->fetchField('createdBy');
-    			$userArr = array($createdBy => $createdBy);
-    		}
-    	}
     	
     	return $userArr;
     }

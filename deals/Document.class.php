@@ -39,6 +39,12 @@ abstract class deals_Document extends deals_PaymentDocument
 	public $priceFields = 'amount';
 	
 	
+	/**
+	 * Дали в листовия изглед да се показва бутона за добавяне
+	 */
+	public $listAddBtn = FALSE;
+	
+	
     /**
      * @param core_Mvc $mvc
      */
@@ -258,15 +264,6 @@ abstract class deals_Document extends deals_PaymentDocument
 			
 			$row->dealCurrencyId = $origin->fetchField('currencyId');
 		}
-	}
-    
-    
-	/**
-	 * Извиква се след подготовката на toolbar-а за табличния изглед
-	 */
-	public static function on_AfterPrepareListToolbar($mvc, &$data)
-	{
-		$data->toolbar->removeBtn('btnAdd');
 	}
 	
 	

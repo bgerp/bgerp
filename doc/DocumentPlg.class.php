@@ -664,7 +664,8 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
         
-        if($rec->pendingSaved === TRUE){
+        if ($rec->pendingSaved === TRUE) {
+            $rec->pendingSaved = FALSE;
         	$mvc->pendingQueue[$rec->id] = $rec;
         	$mvc->invoke('AfterSavePendingDocument', array($rec));
         }
@@ -1652,7 +1653,7 @@ class doc_DocumentPlg extends core_Plugin
         	$data->form->toolbar->renameBtn('save', 'Запис');
         }
         
-        if(empty($data->form->rec->id) && $mvc->haveRightFor('pending', $data->form->rec)){
+        if($mvc->haveRightFor('pending', $data->form->rec)){
         	$data->form->toolbar->addSbBtn('Заявка', 'save_pending', 'id=btnPending,order=9.99989','ef_icon = img/16/tick-circle-frame.png');
         }
     }
@@ -2253,6 +2254,15 @@ class doc_DocumentPlg extends core_Plugin
             if (!$cId || !$allowedCidArr[$cId]) {
                 $requiredRoles = 'no_one';
             }
+        }
+        
+        if($action == 'pending' && isset($rec)){
+        	if(isset($mvc->mainDetail)){
+        		$Detail = cls::get($mvc->mainDetail);
+        		if(!$Detail->fetch("#{$Detail->masterKey} = '{$rec->id}'")){
+        			$requiredRoles = 'no_one';
+        		}
+        	}
         }
     }
     

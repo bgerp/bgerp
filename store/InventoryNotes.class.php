@@ -118,7 +118,13 @@ class store_InventoryNotes extends core_Master
      * Файл за единичния изглед
      */
     public $singleLayoutFile = 'store/tpl/InventoryNote/SingleLayout.shtml';
-    
+
+
+	/**
+	 * Файл с шаблон за единичен изглед в мобилен
+	 */
+	public $singleLayoutFileNarrow = 'store/tpl/InventoryNote/SingleLayoutNarrow.shtml';
+
 
     /**
      * Да се забрани ли кеширането на документа
@@ -142,6 +148,12 @@ class store_InventoryNotes extends core_Master
      * Име на документа в бързия бутон за добавяне в папката
      */
     public $buttonInFolderTitle = 'Инвентаризация';
+    
+    
+    /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
     
     
     /**
@@ -718,15 +730,6 @@ class store_InventoryNotes extends core_Master
     public static function on_AfterCanActivate($mvc, &$res, $rec)
     {
     	$res = TRUE;
-    }
-    
-    
-    /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    protected static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	$data->toolbar->removeBtn('btnAdd');
     }
     
     
