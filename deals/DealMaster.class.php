@@ -187,7 +187,7 @@ abstract class deals_DealMaster extends deals_DealBase
 		// Доставка
 		$mvc->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,notChangeableByContractor');
 		$mvc->FLD('deliveryLocationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Доставка->Обект до,silent,class=contactData'); // обект, където да бъде доставено (allowEmpty)
-		$mvc->FLD('deliveryAdress', 'varchar', 'caption=Доставка->Адрес,notChangeableByContractor,placeholder=Ако е празно се взима според условието');
+		$mvc->FLD('deliveryAdress', 'varchar', 'caption=Доставка->Адрес,notChangeableByContractor,placeholder=Ако е празно се взима според условието на доставка');
 		$mvc->FLD('deliveryTime', 'datetime', 'caption=Доставка->Срок до,notChangeableByContractor'); // до кога трябва да бъде доставено
 		$mvc->FLD('deliveryTermTime', 'time(uom=days,suggestions=1 ден|5 дни|10 дни|1 седмица|2 седмици|1 месец)', 'caption=Доставка->Срок дни,after=deliveryTime,notChangeableByContractor');
 		
