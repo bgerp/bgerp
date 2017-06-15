@@ -1302,7 +1302,7 @@ class fileman_Files extends core_Master
         foreach ($fileVersionsArr as $fileHnd => $fileInfo) {
             
             // Линк към single' а на файла
-            $link = ht::createLink($fileInfo['fileName'], array('fileman_Files', 'single', $fileHnd), FALSE, array('title' => $fileInfo['versionInfo']));
+            $link = ht::createLink($fileInfo['fileName'], array('fileman_Files', 'single', $fileHnd), FALSE, array('title' => '|*' . $fileInfo['versionInfo']));
             
             // Всеки линк за файла да е на нов ред
             $text .= ($text) ? '<br />' . $link : $link;
@@ -1437,11 +1437,11 @@ class fileman_Files extends core_Master
 
         // Ограничаваме максиманата дължина на името на файла
         $nameFix = str::limitLen($name, 32);
-
+        
         if ($nameFix != $name) {
-            $attr['title'] = $name;
+            $attr['title'] = '|*' . $name;
         }
-
+        
         // Титлата пред файла в plain режим
         $linkFileTitlePlain = tr('Файл') . ": ";
         
