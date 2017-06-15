@@ -318,6 +318,10 @@ class crm_Locations extends core_Master {
      */
     public function prepareContragentLocations($data)
     {
+        $data->TabCaption = 'Локации';
+
+		if($data->isCurrent === FALSE) return;
+
         expect($data->masterId);
         expect($data->contragentCls = core_Classes::getId($data->masterMvc));
         
@@ -327,7 +331,6 @@ class crm_Locations extends core_Master {
             $data->rows[$rec->id] = $this->recToVerbal($rec);
         }
 
-        $data->TabCaption = 'Локации';
     }
 
 
