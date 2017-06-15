@@ -258,6 +258,7 @@ class planning_Jobs extends core_Master
     	// Ако артикула не е складируем, скриваме полето за мярка
     	$canStore = cat_Products::fetchField($rec->productId, 'canStore');
     	if($canStore == 'no'){
+    		$form->setDefault('packagingId', key($packs));
     		$measureShort = cat_UoM::getShortName($rec->packagingId);
     		$form->setField('packQuantity', "unit={$measureShort}");
     	} else {
