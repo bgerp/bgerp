@@ -21,7 +21,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
 	/**
      * Заглавие
      */
-    public $title = 'Детайли на задачите за производство';
+    public $title = 'Детайли на производствените операции';
 
 
     /**

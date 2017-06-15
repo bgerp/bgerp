@@ -3,7 +3,7 @@
 
 
 /**
- * Драйвер за задачи за производство
+ * Драйвер за Производствени операции
  *
  *
  * @category  bgerp
@@ -12,7 +12,7 @@
  * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title Задача за производство
+ * @title Производствени операции
  */
 class planning_drivers_ProductionTask extends tasks_BaseDriver
 {
@@ -33,7 +33,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	/**
 	 * Какво да е дефолтното име на задача от драйвера
 	 */
-	protected $defaultTitle = 'Задача за производство';
+	protected $defaultTitle = 'Производствена операция';
 	
 	
 	/**
