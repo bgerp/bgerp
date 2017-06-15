@@ -650,8 +650,7 @@ class core_Lg extends core_Manager
         if($form->isSubmitted()){
             $rec = $form->rec;
             
-            // Премахваме анонимния и системния потребител
-            $rec->users = type_Keylist::removeKey($rec->users, 0);
+            // Премахваме системния потребител
             $rec->users = type_Keylist::removeKey($rec->users, -1);
             
             $in = type_Keylist::toArray($rec->users);
