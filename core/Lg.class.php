@@ -620,4 +620,56 @@ class core_Lg extends core_Manager
         
         return $langArr;
     }
+    
+    
+    /**
+     * Екшън за изтриване на записи от превода
+     */
+    function act_DeleteUsersTr()
+    {
+        requireRole('admin');
+        
+        $retUrl = getRetUrl();
+        
+        if (!$retUrl) {
+            $retUrl = array($this);
+        }
+        
+        $form = cls::get('core_Form');
+        
+        $form->title = "Изтриване на преводи";
+         
+        $form->FLD('users', 'users', 'caption=Тип,mandatory,silent');
+        
+        $form->toolbar->addSbBtn('Изтриване', 'save', 'ef_icon = img/16/delete.png, title = Изтрива преводите за съответния потребител');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+        
+        $form->input();
+        
+        // Ако е събмитната формата
+        if($form->isSubmitted()){
+            $rec = $form->rec;
+            
+            // Премахваме анонимния и системния потребител
+            $rec->users = type_Keylist::removeKey($rec->users, 0);
+            $rec->users = type_Keylist::removeKey($rec->users, -1);
+            
+            $in = type_Keylist::toArray($rec->users);
+            
+            $delCnt = 0;
+            
+            if (!empty($in)) {
+                $inStr = implode(',', $in);
+                
+                $delCnt = $this->delete("#createdBy IN ({$inStr}) AND LEFT(#kstring, 10) = LEFT(#translated, 10)");
+            }
+            
+            return new Redirect($retUrl, "Изтрити записи: {$delCnt}");
+            
+        }
+        
+        $tpl = $this->renderWrapping($form->renderHtml());
+         
+        return $tpl;
+    }
 }
