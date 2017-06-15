@@ -15,6 +15,7 @@ function spr(sel) {
         $("input[name*='to']").prop('disabled', true);
         $("input[name*='from']").closest('tr').fadeOut();
         $("input[name*='to']").closest('tr').fadeOut();
+        sel.form.submit();
     }
 
 }
