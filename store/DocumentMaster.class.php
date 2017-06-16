@@ -262,7 +262,7 @@ abstract class store_DocumentMaster extends core_Master
     					$toShip = $product->quantity;
     				}
     				
-    				$price = ($agreedProducts[$index]->price) ? $agreedProducts[$index]->price : $normalizedProducts[$index]->price;
+    				$price = (isset($agreedProducts[$index]->price)) ? $agreedProducts[$index]->price : $normalizedProducts[$index]->price;
     				$discount = ($agreedProducts[$index]->discount) ? $agreedProducts[$index]->discount : $normalizedProducts[$index]->discount;
     				
     				// Пропускат се експедираните и нескладируемите продукти
