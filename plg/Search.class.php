@@ -201,7 +201,7 @@ class plg_Search extends core_Plugin
         $wCacheArr = array();
         
         if ($words = static::parseQuery($search)) {
-            
+          
             usort($words, 'plg_Search::sortLength');
             
             foreach($words as $w) {
@@ -253,14 +253,8 @@ class plg_Search extends core_Plugin
                     $like = "LIKE";
                     $equalTo = "";
                 }
-                
-                // Ако няма да се търси точно съвпадение, ограничаваме дължината на думите
-                if ($mode != '"') {
-                    $maxLen = PLG_SEARCH_MAX_KEYWORD_LEN ? PLG_SEARCH_MAX_KEYWORD_LEN : 10;
-                    $w = mb_substr($w, 0, $maxLen);
-                }
-                
-                $w = trim(static::normalizeText($w, array('*')));
+            
+                $w = trim(static::normalizeText($w, array('*'))); 
                 $minWordLen = strlen($w);
                 
                 // Ако търсената дума е празен интервал
@@ -277,6 +271,12 @@ class plg_Search extends core_Plugin
                         $partLen = strlen($part);
                         $minWordLen = max($minWordLen, $partLen);
                     }
+                }
+
+                // Ако няма да се търси точно съвпадение, ограничаваме дължината на думите
+                if ($mode != '"') {
+                    $maxLen = PLG_SEARCH_MAX_KEYWORD_LEN ? PLG_SEARCH_MAX_KEYWORD_LEN : 10;
+                    $w = substr($w, 0, $maxLen);
                 }
 
                 if(strpos($w, '*') !== FALSE) {
