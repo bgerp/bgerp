@@ -800,6 +800,12 @@ function createRicheditTable(textarea, newLine, tableCol, tableRow) {
     }
 }
 
+
+function dblRow(table, tpl){
+    $("#" + table).append(tpl);
+}
+
+
 /**
  * предпазване от субмит на формата, при натискане на enter във форма на richedit
  */

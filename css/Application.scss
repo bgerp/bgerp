@@ -1393,6 +1393,19 @@ a.tOld {
 }
 /*край на стилове при тредове*/
 
+.typeTable {
+	//width: 100%;
+	.formTypeTable {
+		text-align: center;
+		font-weight: bold;
+		font-size: 0.9em;
+	}
+	td  {
+		text-align: center;
+	}
+}
+
+
 /*стилове за документи*/
 .document {
 	width: 100%;

@@ -1216,6 +1216,13 @@ a.tOld {
 /*
  * край на стилове при тредове
  */
+  .typeTable .formTypeTable {
+    text-align: center;
+    font-weight: bold;
+    font-size: 0.9em; }
+  .typeTable td {
+    text-align: center; }
+
 /*
  * стилове за документи
  */

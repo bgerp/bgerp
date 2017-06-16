@@ -55,7 +55,7 @@ class type_Table extends type_Blob {
         $columns = $this->getColumns();
 
         foreach($columns as $field => $fObj) {
-            $row0 .= "<td style='color:blue;'>{$fObj->caption}</td>";
+            $row0 .= "<td class='formTypeTable'>{$fObj->caption}</td>";
             $attr[$field] = array('name' => $name . '[' . $field . '][]');
             
             $selOpt = $field . '_opt';
@@ -104,7 +104,7 @@ class type_Table extends type_Blob {
  
         $id = 'table_' . $name;
         $btn = ht::createElement('input', array('type' => 'button', 'value' => '+', 'onclick' => "dblRow(\"{$id}\", \"{$tpl}\")"));  
-        $res = "<table style='margin-top:10px' class='listTable' id='{$id}'><tr>{$row0}</tr><tr>{$row1}</tr>{$rows}</table>\n{$btn}\n";
+        $res = "<table class='listTable typeTable' id='{$id}'><tr>{$row0}</tr><tr>{$row1}</tr>{$rows}</table>\n{$btn}\n";
         
         $res = new ET($res);
         
@@ -127,7 +127,7 @@ class type_Table extends type_Blob {
             $columns = $this->getColumns();
             
             foreach($columns as $field => $fObj) {
-                $row0 .= "<td style='color:blue;'>{$fObj->caption}</td>";
+                $row0 .= "<td class='formTypeTable'>{$fObj->caption}</td>";
             }
  
             $i = 0;
@@ -153,7 +153,7 @@ class type_Table extends type_Blob {
 
             } while($isset);
             
-            $res = "<table class='listTable'><tr>{$row0}</tr>{$rows}</table>";
+            $res = "<table class='listTable typeTable'><tr>{$row0}</tr>{$rows}</table>";
         }
         
         return $res;
