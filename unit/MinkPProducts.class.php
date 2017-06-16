@@ -114,6 +114,7 @@ class unit_MinkPProducts extends core_Manager {
             $browser->press('Запис');
             
             //Добавяне на лимит
+            $browser->click('Счетоводство');
             $browser->click('Добавяне на ново ограничение на перото');
             $browser->setValue('accountId', '321. Суровини, материали, продукция, стоки');
             //$browser->refresh('Запис');
