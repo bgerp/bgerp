@@ -105,7 +105,9 @@ class type_Table extends type_Blob {
         $id = 'table_' . $name;
         $btn = ht::createElement('input', array('type' => 'button', 'value' => '+', 'onclick' => "dblRow(\"{$id}\", \"{$tpl}\")"));  
         $res = "<table style='margin-top:10px' class='listTable' id='{$id}'><tr>{$row0}</tr><tr>{$row1}</tr>{$rows}</table>\n{$btn}\n";
-
+        
+        $res = new ET($res);
+        
         return $res;
     }
     
