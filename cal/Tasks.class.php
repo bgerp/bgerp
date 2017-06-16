@@ -428,6 +428,11 @@ class cal_Tasks extends core_Master
         $data->query->orWhere(array("#state = 'waiting' AND #expectationTimeStart <= '[#1#]' AND #expectationTimeStart >= '[#2#]'", $after, $before));
         $data->query->orWhere(array("#state = 'closed' AND #timeClosed <= '[#1#]' AND #timeClosed >= '[#2#]'", $after, $before));
         
+        // Чакащите задачи под определено време да са в началото
+        $waitingShow = dt::addSecs(cal_Setup::get('WAITING_SHOW_TOP_TIME'), $now);
+        $data->query->XPR('waitingOrderTop', 'datetime', "IF((#state = 'waiting' AND (#expectationTimeStart) AND (#expectationTimeStart <= '{$waitingShow}')), -#expectationTimeStart, NULL)");
+        $data->query->orderBy("waitingOrderTop", "DESC");
+        
         // Време за подредба на записите в портала
         $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'waiting' THEN 2 ELSE 3 END)");
         $data->query->orderBy('#orderByState=ASC');
