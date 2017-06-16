@@ -55,7 +55,7 @@ class type_Table extends type_Blob {
         $columns = $this->getColumns();
 
         foreach($columns as $field => $fObj) {
-            $row0 .= "<td>{$fObj->caption}</td>";
+            $row0 .= "<td style='color:blue;'>{$fObj->caption}</td>";
             $attr[$field] = array('name' => $name . '[' . $field . '][]');
             
             $selOpt = $field . '_opt';
@@ -100,9 +100,11 @@ class type_Table extends type_Blob {
         } while($used);
         
         $tpl = str_replace("\"", "\\\"", "<tr>{$tpl}</tr>");
+        $tpl = str_replace("\n", "", $tpl);
+ 
         $id = 'table_' . $name;
         $btn = ht::createElement('input', array('type' => 'button', 'value' => '+', 'onclick' => "dblRow(\"{$id}\", \"{$tpl}\")"));  
-        $res = "<table style='margin-top:10px' class='listTable' id='{$id}'><tr>{$row0}</tr><tr>{$row1}</tr>{$rows}</table>{$btn}";
+        $res = "<table style='margin-top:10px' class='listTable' id='{$id}'><tr>{$row0}</tr><tr>{$row1}</tr>{$rows}</table>\n{$btn}\n";
 
         return $res;
     }
