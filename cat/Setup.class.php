@@ -132,6 +132,7 @@ class cat_Setup extends core_ProtoSetup
     		array('sales'),
     		array('purchase'),
     		array('packEdit'),
+            array('listArt'),
     		array('catEdit', 'packEdit'),
     		array('cat', 'catEdit'),
     );

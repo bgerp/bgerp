@@ -69,25 +69,25 @@ class cat_Listings extends core_Master
     /**
      * Кой може да го промени?
      */
-    public $canEdit = 'cat,ceo';
+    public $canEdit = 'listArt,ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'cat,ceo';
+    public $canAdd = 'listArt,ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'cat,ceo';
+    public $canList = 'listArt,ceo';
     
     
     /**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'cat,ceo';
+	public $canSingle = 'listing,ceo';
 
 
 	/**
