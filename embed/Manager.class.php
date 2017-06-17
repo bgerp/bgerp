@@ -172,7 +172,9 @@ class embed_Manager extends core_Master
 	 * Преди запис в модела, компактираме полетата
 	 */
 	public function save_(&$rec, $fields = NULL, $mode = NULL)
-	{
+	{   
+        $saveDriverRec = FALSE;
+
 		if($driver = $this->getDriver($rec)){
 			$addFields = self::getDriverFields($driver);
 			
@@ -181,8 +183,23 @@ class embed_Manager extends core_Master
 			}
 			
 			$rec->driverRec = $driverRec;
+
+            $saveDriverRec = TRUE;
 		}
-        
+
+        if($fields && (is_array($fields) || $fields != '*')) {
+            $fields = arr::make($fields, TRUE);
+            foreach($fields as $f => $dummy) {
+                if($addFields[$f] && !$this->getField($f, FALSE)) {
+                    unset($fields[$f]);
+                }
+            }
+        }
+
+        if($saveDriverRec && is_array($fields)) {
+            $fields['driverRec'] = 'driverRec';
+        }
+
         return parent::save_($rec, $fields, $mode);
 	}
 
