@@ -290,13 +290,13 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				$pRec->meta = $rec->meta;
 				
 				$productId = NULL;
-				$hash = cat_products::getHash($pRec);
-				
+				$hash = cat_Products::getHash($pRec);
+			 
 				// Ако артикула има хеш търси се имали друг артикул със същия хеш ако има се добавя
-				if(isset($hash)){
+				if(isset($hash) && $pRec->folderId){
 					$pQuery = cat_Products::getQuery();
 					$pQuery->where("#innerClass = {$rec->innerClass}");
-					$pQuery->where("#state = 'active'");
+					$pQuery->where("#state = 'active' AND #folderId = {$pRec->folderId}");
 					while($eRec = $pQuery->fetch()){
 						$hash1 = cat_Products::getHash($eRec);
 						if($hash1 == $hash){
