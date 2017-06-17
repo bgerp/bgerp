@@ -176,6 +176,7 @@ class embed_Manager extends core_Master
         $saveDriverRec = FALSE;
 
 		if($driver = $this->getDriver($rec)){
+            $driverRec = array();
 			$addFields = self::getDriverFields($driver);
 			
 			foreach($addFields as $name => $caption) {

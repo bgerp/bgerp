@@ -1664,7 +1664,7 @@ class cat_Products extends embed_Manager {
     			$rec = $mvc->fetchRec($rec);
     		}
     		
-    		$part = static::getDisplayName($rec);
+    		$part = self::getDisplayName($rec);
 
             return FALSE;
     	} elseif($field == 'code'){
@@ -1673,7 +1673,7 @@ class cat_Products extends embed_Manager {
     		}
     		
             $cRec = clone($rec);
-    		static::setCodeIfEmpty($cRec);
+    		self::setCodeIfEmpty($cRec);
             $part = $cRec->code;
 
             return FALSE;
