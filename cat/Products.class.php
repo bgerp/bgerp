@@ -1664,13 +1664,19 @@ class cat_Products extends embed_Manager {
     			$rec = $mvc->fetchRec($rec);
     		}
     		
-    		$rec->name = static::getDisplayName($rec);
+    		$part = static::getDisplayName($rec);
+
+            return FALSE;
     	} elseif($field == 'code'){
     		if(!is_object($rec) && type_Int::isInt($rec)){
     			$rec = $mvc->fetchRec($rec);
     		}
     		
-    		static::setCodeIfEmpty($rec);
+            $cRec = clone($rec);
+    		static::setCodeIfEmpty($cRec);
+            $part = $cRec->code;
+
+            return FALSE;
     	}
     }
     
