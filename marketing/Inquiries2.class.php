@@ -297,7 +297,7 @@ class marketing_Inquiries2 extends embed_Manager
             	$form->setOptions('proto', $protoProducts);
             }
     	}
-
+ 
     	$mvc->expandEditForm($data);
     	if(cls::load($form->rec->innerClass, TRUE)){
     		if($Driver = cls::get($form->rec->innerClass)){
@@ -762,12 +762,20 @@ class marketing_Inquiries2 extends embed_Manager
     			$pState = cat_Products::fetchField($pId, 'state');
     			if($pState != 'rejected' && $pState != 'closed'){
     				$name = cat_Products::getTitleById($pId, FALSE);
+                    $sort[$pId] = cat_Products::fetchField($pId, 'code');
     			} else {
     				unset($proto[$pId]);
     			}
     		}
     	}
     	
+        // Сортиране на продуктите по код
+        asort($sort);
+        foreach($sort as $pId => $code) {
+            $res[$pId] = $proto[$pId];
+        }
+        $proto = $res;
+
     	if($lg = Request::get('Lg')){
     		cms_Content::setLang($lg);
     		core_Lg::push($lg);
