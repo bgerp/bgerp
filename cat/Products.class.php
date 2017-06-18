@@ -1723,7 +1723,7 @@ class cat_Products extends embed_Manager {
     	
     	// Ако е частен показваме за код хендлъра му + версията в кеша
     	if($rec->isPublic == 'no'){
-    		$count = cat_ProductTplCache::count("#productId = {$rec->id} AND #type = 'description' AND #documentType = '{$documentType}'");
+    		$count = cat_ProductTplCache::count("#productId = {$rec->id} AND #type = 'description' AND #documentType = '{$documentType}'", 2);
     		
     		if($count > 1){
     			$vNumber = "/<small class='versionNumber'>v{$count}</small>";
