@@ -384,7 +384,11 @@ class core_Debug
         } elseif (is_bool($v)) {
             $result = ($v) ? "TRUE" : "FALSE";
         } elseif (is_object($v)) {
-            $result = get_class($v);
+            if(get_class($v) == 'stdClass') {
+                $result = ht::createElement('span', array('title' => self::arrayToString($v)), get_class($v));
+            } else {
+                $result =  get_class($v);
+            }
         } elseif (is_resource($v)) {
             $result = get_resource_type($v);
         } else {
@@ -395,11 +399,35 @@ class core_Debug
     }
 
     private static function arrayToString($arr)
-    {
+    {   
         $nArr = array();
-        
-        foreach ($arr as $i=>$v) {
-            $nArr[$i] = self::formatValue($v);
+
+        if(is_object($arr)) {
+            $arrNew = (array) $arr;
+            foreach($arrNew as $key => $part) {
+                if(isset($part)) {
+                    if(is_scalar($part)) {
+                        if($part === FALSE) {
+                            $part = 'FALSE';
+                        } elseif($part === TRUE) {
+                            $part = 'TRUE';
+                        } elseif(is_string($part) && empty($part)) {
+                            $part = "'" . $part . "'";
+                        }
+                        $nArr[] = "{$key}={$part}";
+                    } else {
+                        if(is_object($part)) {
+                            $nArr[] = "{$key}=" . get_class($part);
+                        } else {
+                            $nArr[] = "{$key}=" . gettype($part);
+                        }
+                    }
+                }
+            }
+        } else {
+            foreach ($arr as $i=>$v) {
+                $nArr[$i] = self::formatValue($v);
+            }
         }
 
         return '[' . implode(', ', $nArr) . ']';
