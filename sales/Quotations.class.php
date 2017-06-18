@@ -71,7 +71,7 @@ class sales_Quotations extends core_Master
     /**
      * Икона за единичния изглед
      */
-    public $singleIcon = 'img/16/document_quote.png';
+    public $singleIcon = 'img/16/quotation.png';
     
     
     /**
