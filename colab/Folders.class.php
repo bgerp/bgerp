@@ -239,7 +239,7 @@ class colab_Folders extends core_Manager
 	/**
 	 * Броя на записите
 	 */
-	public static function count($cond = '1=1')
+	public static function count($cond = '1=1', $limit = NULL)
 	{
 		$cu = core_Users::getCurrent('id');
 		
