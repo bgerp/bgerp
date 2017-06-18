@@ -174,18 +174,17 @@ class embed_Manager extends core_Master
 	public function save_(&$rec, $fields = NULL, $mode = NULL)
 	{   
         $saveDriverRec = FALSE;
-
+bp($fields);
 		if($driver = $this->getDriver($rec)){
             $driverRec = array();
 			$addFields = self::getDriverFields($driver);
-			
+			 
 			foreach($addFields as $name => $caption) {
 				$driverRec[$name] = $rec->{$name};
+                $saveDriverRec = TRUE;
 			}
 			
 			$rec->driverRec = $driverRec;
-
-            $saveDriverRec = TRUE;
 		}
 
         if($fields && (is_array($fields) || $fields != '*')) {
