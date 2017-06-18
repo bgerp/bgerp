@@ -499,12 +499,16 @@ class crm_Profiles extends core_Master
             list($dateFrom, $hoursFrom) = explode(" ", $data->rec->stateDateFrom);
             list($dateTo, $hoursTo) = explode(" ", $data->rec->stateDateTo);
             
-            if ($dateFrom == $dateTo) {
-                $state = static::$map[$data->rec->stateInfo] . " на ". $mvc->getVerbal($data->rec, 'stateDateFrom');
+            list($today, $hoursToday) = explode(" ", dt::verbal2mysql());
+            list($yesterday, $hoursYesterday ) = explode(" ", dt::addDays(-1));
+            list($tomorrow, $hoursTomorrow) = explode(" ", dt::addDays(1));
 
+            if ($dateFrom == $dateTo && ($dateFrom == $yesterday || $dateFrom == $today || $dateFrom == $tomorrow)) {
+                $state = static::$map[$data->rec->stateInfo] . "  ". $mvc->getVerbal($data->rec, 'stateDateFrom');
+            } elseif($dateFrom == $dateTo) {
+                $state = static::$map[$data->rec->stateInfo] . " на ". $mvc->getVerbal($data->rec, 'stateDateFrom');
             } else { 
                 $state = static::$map[$data->rec->stateInfo] . " от ". $mvc->getVerbal($data->rec, 'stateDateFrom') . " до ". $mvc->getVerbal($data->rec, 'stateDateTo');
-
             }
 
             $tpl->append($state, 'userStatus');  

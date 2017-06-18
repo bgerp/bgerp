@@ -26,7 +26,7 @@
                                        		<table class='no-border' style='float:left'>
                                        			<tr>
                                        				<td class='quiet'>|Артикул|*:</td>
-                                       				<td class='nowrap'>[#productId#]</td>
+                                       				<td>[#productId#]</td>
                                        			</tr>
                                        			<!--ET_BEGIN debitAmount-->
                                        			<tr>
@@ -36,7 +36,7 @@
                                        			<!--ET_END debitAmount-->
                                        			<!--ET_BEGIN storeId-->
                                        			<tr>
-                                       				<td class='quiet'>|Засклаждане в|*:</td>
+                                       				<td class='quiet nowrap'>|Засклаждане в|*:</td>
                                        				<td>[#storeId#]</td>
                                        			</tr>
                                        			<!--ET_END storeId-->
@@ -46,15 +46,17 @@
                                        				<td>[#expenseItemId#]</td>
                                        			</tr>
                                        			<!--ET_END expenseItemId-->
-                                       			<!--ET_BEGIN quantity-->
+                                       			<tr>
+                                       				<td class='quiet'>|Мярка/Опаковка|*:</td>
+                                       				<td>[#packagingId#]</td>
+                                       			</tr>
                                        			<tr>
                                        				<td class='quiet'>|Количество|*:</td>
-                                       				<td>[#quantity#]</td>
+                                       				<td>[#packQuantity#]</td>
                                        			</tr>
-                                       			<!--ET_END quantity-->
                                        			<!--ET_BEGIN expenses-->
                                        			<tr>
-                                       				<td class='quiet'>|Реж. разходи|*:</td>
+                                       				<td class='quiet nowrap'>|Реж. разходи|*:</td>
                                        				<td>[#expenses#]</td>
                                        			</tr>
                                        			<!--ET_END expenses-->

@@ -273,6 +273,10 @@ class bank_Accounts extends core_Master {
      */
     public function prepareContragentBankAccounts($data)
     {
+        $data->TabCaption = 'Банка';
+ 
+        if(!$data->isCurrent) return;
+
         expect($data->contragentCls = core_Classes::getId($data->masterMvc));
         expect($data->masterId);
         $query = $this->getQuery();
@@ -306,7 +310,6 @@ class bank_Accounts extends core_Master {
             }
         }
         
-        $data->TabCaption = 'Банка';
     }
     
     

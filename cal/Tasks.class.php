@@ -428,6 +428,11 @@ class cal_Tasks extends core_Master
         $data->query->orWhere(array("#state = 'waiting' AND #expectationTimeStart <= '[#1#]' AND #expectationTimeStart >= '[#2#]'", $after, $before));
         $data->query->orWhere(array("#state = 'closed' AND #timeClosed <= '[#1#]' AND #timeClosed >= '[#2#]'", $after, $before));
         
+        // Чакащите задачи под определено време да са в началото
+        $waitingShow = dt::addSecs(cal_Setup::get('WAITING_SHOW_TOP_TIME'), $now);
+        $data->query->XPR('waitingOrderTop', 'datetime', "IF((#state = 'waiting' AND (#expectationTimeStart) AND (#expectationTimeStart <= '{$waitingShow}')), -#expectationTimeStart, NULL)");
+        $data->query->orderBy("waitingOrderTop", "DESC");
+        
         // Време за подредба на записите в портала
         $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'waiting' THEN 2 ELSE 3 END)");
         $data->query->orderBy('#orderByState=ASC');
@@ -1325,26 +1330,26 @@ class cal_Tasks extends core_Master
             
             $row->subTitle .= $dTitle;
         }
+       
+        //Състояние
+        $row->state = $rec->state;
         
         $date = '';
         if ($rec->state == 'active' && $rec->timeEnd) {
-            $date = $rec->timeEnd;
+            $date = $rec->timeEnd; 
         }
         
         if ($rec->state = 'waiting' && $rec->timeStart) {
             $date = $rec->timeStart;
         }
-        
+    
         if ($date) {
             $row->subTitle .= $row->subTitle ? ' - ' : '';
             $row->subTitle .= dt::mysql2verbal($date, 'smartTime');
         }
-        
+
         //Създателя
-        $row->author = $this->getVerbal($rec, 'createdBy');
-        
-        //Състояние
-        $row->state = $rec->state;
+        $row->author = $this->getVerbal($rec, 'createdBy');   
         
         //id на създателя
         $row->authorId = $rec->createdBy;
@@ -1395,6 +1400,7 @@ class cal_Tasks extends core_Master
 		   self::updateTaskToCalendar($rec->id);
 		   // и проверяваме дали може да я активираме
 		   $canActivate = self::canActivateTask($rec);
+		   $exRec = $rec;
            
 		   if ($canActivate != FALSE) { 
 		   	   if ($now >= $canActivate) {  
@@ -1405,7 +1411,11 @@ class cal_Tasks extends core_Master
 				       
 				   // и да изпратим нотификация на потребителите
        			   self::doNotificationForActiveTasks($activatedTasks);
-		       }       
+		       } else {
+		           $rec->state = $exRec->state;
+		       }   
+		   } else {
+		       $rec->state = $exRec->state;
 		   }
 		   
 		   self::save($rec, 'state, timeActivated, expectationTimeEnd, expectationTimeStart');

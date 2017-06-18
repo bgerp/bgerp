@@ -27,7 +27,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     /**
      * Заглавие
      */
-    public $title = 'Детайл на задача за производство';
+    public $title = 'Детайл на производствените операции';
     
     
     /**
@@ -87,7 +87,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     /**
      * Активен таб на менюто
      */
-    public $currentTab = 'Задачи';
+    public $currentTab = 'Операции';
     
     
     /**

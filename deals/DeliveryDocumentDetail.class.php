@@ -39,8 +39,6 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
 		$mvc->FLD('discount', 'percent(min=0,max=1)', 'caption=Отстъпка,smartCenter');
 		$mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Забележки');
-		
-		$mvc->setDbUnique("{$mvc->masterKey},productId,packagingId,price,quantity,discount");
 	}
 	
 	
@@ -161,7 +159,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 				
 				// Ако няма последна покупна цена и не се обновява запис в текущата покупка
 				if (empty($policyInfo->price) && empty($pRec)) {
-					$form->setError('packPrice', 'Продуктът няма цена в избраната ценова политика');
+					$form->setError('packPrice', 'Продуктът няма цена в избраната ценова политика (2)');
 				} else {
 						
 					// Ако се обновява запис се взима цената от него, ако не от политиката

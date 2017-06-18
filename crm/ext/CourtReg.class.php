@@ -83,6 +83,8 @@ class crm_ext_CourtReg extends core_Detail
     public static function prepareCourtReg($data)
     {
         $data->TabCaption = 'Регистрация';
+		
+        if($data->isCurrent === FALSE) return;
 
         expect($data->masterId);
         

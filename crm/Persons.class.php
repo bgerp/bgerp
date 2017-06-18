@@ -207,8 +207,8 @@ class crm_Persons extends core_Master
      * 
      * @var string|array
      */
-    public $details = 'ContragentLocations=crm_Locations,
-                    ContragentBankAccounts=bank_Accounts,PersonsDetails=crm_PersonsDetails,AccReports=acc_ReportDetails,CommerceDetails=crm_CommerceDetails';
+    public $details = 'AccReports=acc_ReportDetails,ContragentLocations=crm_Locations,
+                    ContragentBankAccounts=bank_Accounts,PersonsDetails=crm_PersonsDetails,CommerceDetails=crm_CommerceDetails';
     
     
     /**
@@ -241,6 +241,12 @@ class crm_Persons extends core_Master
      * @see type_Key::filterByGroup
      */
     public $groupsField = 'groupList';
+    
+    
+    /**
+     * Как се казва полето за държава на контрагента
+     */
+    public $countryFieldName = 'country';
     
     
     /**

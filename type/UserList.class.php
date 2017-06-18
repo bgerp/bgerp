@@ -83,7 +83,7 @@ class type_UserList extends type_Keylist
             $ownRoles = self::toArray($ownRoles); 
         }
         
-        $teams = core_Roles::getRolesByType('team');
+        $teams = core_Roles::getRolesByType('team', 'keylist', TRUE);
         $teams = self::toArray($teams);
 
         $roles = core_Roles::getRolesAsKeylist($this->params['roles']);

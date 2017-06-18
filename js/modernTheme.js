@@ -7,9 +7,7 @@ function slidebars(){
 	changePinIcon();
 	userMenuActions();
 	sidebarAccordeonActions();
-	if($('body').hasClass('wide')) {
-		setMaxWidth();
-	}
+	setMaxWidth();
 }
 
 /**
@@ -89,16 +87,18 @@ function render_setThreadElemWidth() {
 
 
 function setMaxWidth() {
-	if($('body').hasClass('narrow')) return;
-
 	var viewportWidth = $(window).width();
-	var contentWidth = viewportWidth - $('.sidemenu-open').length * $('.sidemenu-open').width() - 64 - $('.wide-profile-info').width();
-	if(contentWidth < $('.listTable').first().width()){
-        $('#packWrapper, .listBlock').width(contentWidth);
-		$('.listRows > .listTable > tbody > tr > td:last-child').css('min-width', 0);
-        $('.document').css('width', contentWidth - 3);
-        $('.document .scrolling-holder').addClass('overflow-scroll');
-    }
+	if ($('body').hasClass('narrow')) {
+		$('.folder-cover .scrolling-holder').css('max-width', viewportWidth - 45);
+	} else {
+		var contentWidth = viewportWidth - $('.sidemenu-open').length * $('.sidemenu-open').width() - 64 - $('.wide-profile-info').width();
+		if(contentWidth < $('.listTable').first().width()){
+			$('#packWrapper, .listBlock').width(contentWidth);
+			$('.listRows > .listTable > tbody > tr > td:last-child').css('min-width', 0);
+			$('.document').css('width', contentWidth - 3);
+			$('.document .scrolling-holder').addClass('overflow-scroll');
+		}
+	}
 }
 
 

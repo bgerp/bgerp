@@ -154,6 +154,12 @@ class findeals_AdvanceReports extends core_Master
     
     
     /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -317,17 +323,6 @@ class findeals_AdvanceReports extends core_Master
     	}
     	 
     	return $options;
-    }
-    
-    
-    /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    protected static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	if(!empty($data->toolbar->buttons['btnAdd'])){
-    		$data->toolbar->removeBtn('btnAdd');
-    	}
     }
     
     

@@ -15,6 +15,7 @@ function spr(sel) {
         $("input[name*='to']").prop('disabled', true);
         $("input[name*='from']").closest('tr').fadeOut();
         $("input[name*='to']").closest('tr').fadeOut();
+        sel.form.submit();
     }
 
 }
@@ -798,6 +799,12 @@ function createRicheditTable(textarea, newLine, tableCol, tableRow) {
         textarea.focus(textarea.value.length - 1);
     }
 }
+
+
+function dblRow(table, tpl){
+    $("#" + table).append(tpl);
+}
+
 
 /**
  * предпазване от субмит на формата, при натискане на enter във форма на richedit
@@ -2697,9 +2704,7 @@ function sumOfChildrenWidth() {
 			}
 		}
 		if ($('.docStatistic div.alphabet div.tab-row .tab').length){
-			var sum=0;
-			$('.docStatistic div.alphabet div.tab-row .tab').each( function(){ sum += $(this).width() + 5; });
-			$('.docStatistic').css('min-width', sum);
+			$('.docStatistic').css('max-width', $(window).width() - 30);
 		}
 	}
 }
@@ -4062,6 +4067,7 @@ function changeNotificationsCnt(data) {
             nCntLink.className = 'noNtf';
         }
     }
+    setCookie('portalTabs', "notificationsPortal");
 }
 
 

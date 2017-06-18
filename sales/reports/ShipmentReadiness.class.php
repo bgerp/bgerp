@@ -83,7 +83,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 		$fieldset->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonNameBg,allowEmpty)', 'caption=Държави,after=dealers,single=none');
 		$fieldset->FLD('precision', 'percent(min=0,max=1)', 'caption=Готовност,unit=и нагоре,after=countries');
 		$fieldset->FLD('horizon', 'time(uom=days,Min=0)', 'caption=Падиращи до,after=precision');
-		$fieldset->FLD('orderBy', 'enum(readiness=По готовност,contragents=По контрагенти)', 'caption=Подредба,after=precision');
+		$fieldset->FLD('orderBy', 'enum(readiness=По готовност,contragents=По контрагенти,dueDate=По срок за изпълнение)', 'caption=Подредба,after=precision');
 	}
 	
 	
@@ -429,6 +429,8 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 				return (strnatcasecmp($a->contragentName, $b->contragentName) < 0) ? -1 : 1;
 		
 			});
+		} elseif($rec->orderBy == 'dueDate'){
+			arr::order($recs, 'deliveryTime', 'DESC');
 		} else {
 				
 			// По дефолт се сортират по готовност във низходящ ред, при равенство по нормализираното име на контрагента
@@ -561,14 +563,14 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 				$quantity = 0;
 			} else {
 				if(isset($shippedProducts[$pId])){
-					
-					if($q / $shippedProducts[$pId]->quantity > 0.9) continue;
+					if(!empty($shippedProducts[$pId]->quantity)){
+						if($q / $shippedProducts[$pId]->quantity > 0.9) continue;
+					}
 					
 					$quantity = $q - $shippedProducts[$pId]->quantity;
 				} else {
 					$quantity = $q;
 				}
-				//$quantity = (isset($shippedProducts[$pId])) ? ($q - $shippedProducts[$pId]->quantity) : $q;
 			}
 			
 			// Ако всичко е експедирано се пропуска реда

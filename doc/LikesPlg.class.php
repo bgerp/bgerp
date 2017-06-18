@@ -116,7 +116,8 @@ class doc_LikesPlg extends core_Plugin
             
             if (doc_Likes::like($rec->containerId, $rec->threadId)) {
                 $mvc->logWrite('Харесване', $rec->id);
-                $mvc->touchRec($rec->id);
+                
+                doc_DocumentCache::cacheInvalidation($rec->containerId);
                 
                 $mvc->notifyUsersForLike($rec);
             }
@@ -130,7 +131,8 @@ class doc_LikesPlg extends core_Plugin
             
             if (doc_Likes::dislike($rec->containerId)) {
                 $mvc->logWrite('Премахнато харесване', $rec->id);
-                $mvc->touchRec($rec->id);
+                
+                doc_DocumentCache::cacheInvalidation($rec->containerId);
                 
                 bgerp_Notifications::setHidden(array($mvc, 'single', $rec->id, 'like' => TRUE));
             }
@@ -416,7 +418,12 @@ class doc_LikesPlg extends core_Plugin
                         
                         $elemId = self::getElemId($rec);
                         
-                        $likesLink .= "<div class='additionalInfo-holder'><span class='additionalInfo' id='{$elemId}'></span></div>";
+                        $cssClass = 'additionalInfo';
+                        if ($likesCnt >= 5) {
+                            $cssClass .= ' bottom';
+                        }
+                        
+                        $likesLink .= "<div class='additionalInfo-holder'><span class='{$cssClass}' id='{$elemId}'></span></div>";
                     }
                     
                     if ($likesLink) {

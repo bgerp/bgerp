@@ -448,7 +448,7 @@ class hr_WorkingCycles extends core_Master
                 // правим url  за принтиране
                 $url = array('hr_WorkingCycles', 'Print', 'Printing'=>'yes', 'masterId' => $data->masterId, 'cal_month'=>$prepareRecs->month, 'cal_year' =>$prepareRecs->year);
                 $efIcon = 'img/16/printer.png';
-                $link = ht::createLink('', $url, FALSE, "title=Печат,ef_icon={$efIcon}");                
+                $link = ht::createLink('', $url, FALSE, "title=Печат,ef_icon={$efIcon}");
                 $tpl->append($link, 'print');
             }
         }

@@ -72,17 +72,44 @@ class doc_FolderPlg extends core_Plugin
     public static function on_AfterRenderRights($mvc, &$tpl, $data)
     {
         $tpl = new ET(tr('|*' . getFileContent('doc/tpl/RightsLayout.shtml')));
-                
+ 
         $tpl->placeObject($data->masterData->row);
     }
     
     
     /**
-     * След подготовка на таба със правата
+     * След подготовка на таба с историята
      */
     public static function on_AfterPrepareHistory($mvc, $res, $data)
     {
-        $data->TabCaption = 'История';
+        if ($mvc->haveRightFor('viewlogact', $data->rec)) {
+            $data->TabCaption = 'История';
+        }
+
+        if(!$data->TabCaption || !$data->isCurrent) return;
+ 
+        $data->HaveRightForLog = TRUE;
+            
+        $data->ActionLog = new stdClass();
+            
+        $perPage = $mvc->actLogPerPage ? $mvc->actLogPerPage : 10;
+            
+        $data->ActionLog->pager = cls::get('core_Pager', array('itemsPerPage' => $perPage, 'pageVar' => 'P_Act_Log'));
+             
+        $data->ActionLog->recs = log_Data::getRecs($mvc, $data->masterData->rec->id, $data->ActionLog->pager);
+        $data->ActionLog->rows = log_Data::getRows($data->ActionLog->recs, array('userId', 'actTime', 'actionCrc', 'ROW_ATTR'));
+            
+        // Ако има роля admin
+        if (log_Data::haveRightFor('list')) {
+                
+                $attr = array();
+		        $attr['ef_icon'] = '/img/16/page_go.png';
+		        $attr['title'] = 'Екшън лог на потребителя';
+                
+                $logUrl = array('log_Data', 'list', 'class' => $mvc->className, 'object' => $data->rec->id, 'Cmd[refresh]' => TRUE, 'ret_url' => TRUE);
+                
+                $data->ActionLog->actionLogLink = ht::createLink(tr("Още..."), $logUrl, FALSE, $attr);  
+        }
     }
 
     
@@ -91,19 +118,20 @@ class doc_FolderPlg extends core_Plugin
      */
     public static function on_AfterRenderHistory($mvc, &$tpl, $data)
     {
-        if (($data->masterData->ActionLog) && ($data->masterData->ActionLog->rows)) {
+   
+        if (($data->ActionLog) && ($data->ActionLog->rows)) {
             $tpl = getTplFromFile('doc/tpl/FolderHistoryLog.shtml');
             
             $logBlockTpl = $tpl->getBlock('log');
             
-            foreach ((array)$data->masterData->ActionLog->rows as $rows) {
+            foreach ((array)$data->ActionLog->rows as $rows) {
                 $logBlockTpl->placeObject($rows);
                 $logBlockTpl->replace($rows->ROW_ATTR['class'], 'logClass');
                 $logBlockTpl->append2Master();
             }
             
-            $tpl->append($data->masterData->ActionLog->pager->getHtml(), 'pager');
-            $tpl->append($data->masterData->ActionLog->actionLogLink, 'actionLogLink');
+            $tpl->append($data->ActionLog->pager->getHtml(), 'pager');
+            $tpl->append($data->ActionLog->actionLogLink, 'actionLogLink');
         } else {
             $data->masterData->History->disabled = TRUE;
         }
@@ -183,31 +211,6 @@ class doc_FolderPlg extends core_Plugin
     public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
         // Рендираме екшън лога на потребителя
-        if ($mvc->haveRightFor('viewlogact', $data->rec)) {
-            
-            $data->HaveRightForLog = TRUE;
-            
-            $data->ActionLog = new stdClass();
-            
-            $perPage = $mvc->actLogPerPage ? $mvc->actLogPerPage : 10;
-            
-            $data->ActionLog->pager = cls::get('core_Pager', array('itemsPerPage' => $perPage, 'pageVar' => 'P_Act_Log'));
-            
-            $data->ActionLog->recs = log_Data::getRecs($mvc, $data->rec->id, $data->ActionLog->pager);
-            $data->ActionLog->rows = log_Data::getRows($data->ActionLog->recs, array('userId', 'actTime', 'actionCrc', 'ROW_ATTR'));
-            
-            // Ако има роля admin
-            if (log_Data::haveRightFor('list')) {
-                
-                $attr = array();
-		        $attr['ef_icon'] = '/img/16/page_go.png';
-		        $attr['title'] = 'Екшън лог на потребителя';
-                
-                $logUrl = array('log_Data', 'list', 'class' => $mvc->className, 'object' => $data->rec->id, 'Cmd[refresh]' => TRUE, 'ret_url' => TRUE);
-                
-                $data->ActionLog->actionLogLink = ht::createLink(tr("Още..."), $logUrl, FALSE, $attr);  
-            }
-        }
     }
     
     

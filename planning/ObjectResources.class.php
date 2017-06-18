@@ -71,7 +71,16 @@ class planning_ObjectResources extends core_Manager
     public $singleTitle = 'Заместващ артикул';
     
     
+    /**
+     * Работен кеш
+     */
     protected static $cache = array();
+    
+    
+    /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
     
     
     /**
@@ -283,15 +292,6 @@ class planning_ObjectResources extends core_Manager
     	if(isset($rec->likeProductId)){
     		$row->likeProductId = cat_Products::getHyperlink($rec->likeProductId, TRUE);
     	}
-    }
-    
-    
-    /**
-     * След подготовка на лист тулбара
-     */
-    public static function on_AfterPrepareListToolbar($mvc, $data)
-    {
-    	$data->toolbar->removeBtn('btnAdd');
     }
     
     

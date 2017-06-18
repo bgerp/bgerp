@@ -152,8 +152,8 @@ class tcost_FeeZones extends core_Master
     	if(!empty($weight) || !empty($volume)){
     		$volumicWeight = max($weight, $volume * self::V2C);
     	}
-    	
-    	return $volumicWeight;
+        
+        return $volumicWeight;
     }
     
     
@@ -198,8 +198,10 @@ class tcost_FeeZones extends core_Master
     		$fee = (isset($fee[1])) ? $fee[1] : 0;
     	} 
     	
+        $res = array('fee' => $fee, 'deliveryTime' => $deliveryTime);
+ 
     	// Връщане на изчислената цена
-    	return array('fee' => $fee, 'deliveryTime' => $deliveryTime);
+    	return $res;
     }
     
     

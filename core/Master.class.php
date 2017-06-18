@@ -177,7 +177,10 @@ class core_Master extends core_Manager
 
             foreach($data->details as $var => $class) {
                 $this->loadSingle($var, $class);
-                
+                if(empty($data->Tab)) {
+                    $data->Tab = $var;
+                }
+
                 if($var == $class) {
                     $method = 'prepareDetail';
                 } else {
@@ -187,6 +190,11 @@ class core_Master extends core_Manager
                 $detailData->masterMvc = $this;
                 $detailData->masterId = $data->rec->id;
                 $detailData->masterData = $data;
+                if($data->Tab == $var) {
+                    $detailData->isCurrent = TRUE;
+                } else {
+                    $detailData->isCurrent = FALSE;
+                }
                 $this->{$var}->$method($detailData);
             }
         }

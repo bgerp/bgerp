@@ -154,7 +154,7 @@ class colab_Threads extends core_Manager
 		
 		$data->query = $this->Containers->getQuery();
 		$data->query->where("#threadId = {$id}");
-		$data->query->where("#visibleForPartners = 'yes' || #createdBy IN ({$sharedUsers})");
+		$data->query->where("#visibleForPartners = 'yes'");
 		$data->query->where("#state != 'draft' || (#state = 'draft' AND #createdBy  IN ({$sharedUsers}))");
 		$data->query->orderBy('createdOn,id', 'ASC');
 		
@@ -391,21 +391,22 @@ class colab_Threads extends core_Manager
 				
     			// Трябва първия документ в нишката да е видим за партньори
     			$firstDocumentIsVisible = doc_Containers::fetchField($rec->firstContainerId, 'visibleForPartners');
-    			if($firstDocumentIsVisible != 'yes' && !in_array($rec->createdBy, $sharedUsers)){
+    			if($firstDocumentIsVisible != 'yes'){
     				$requiredRoles = 'no_one';
     			} 
     			
-    			$firstDocumentState = doc_Containers::fetchField($rec->firstContainerId, 'state');
-    			if($firstDocumentState == 'draft' && !in_array($rec->createdBy, $sharedUsers)){
-    				$requiredRoles = 'no_one';
-    			}
 			} else {
 			    $requiredRoles = 'no_one';
+			}
+			
+			if ($rec->visibleForPartners != 'yes') {
+			    if(!core_Users::haveRole('partner', $userId)){
+			        $requiredRoles = 'no_one';
+			    }
 			}
 		}
 		
 		if($requiredRoles != 'no_one'){
-			
 			// Ако потребителя няма роля партньор, не му е работата тук
 			if(!core_Users::haveRole('partner', $userId)){
 				$requiredRoles = 'no_one';
@@ -435,12 +436,9 @@ class colab_Threads extends core_Manager
 		
 		$params['where'][] = "#folderId = {$folderId}";
 		$res = $this->Threads->getQuery($params);
-		$res->EXT('visibleForPartners', 'doc_Containers', 'externalName=visibleForPartners,externalKey=firstContainerId');
-		$res->EXT('firstDocumentState', 'doc_Containers', 'externalName=state,externalKey=firstContainerId');
-		$res->where("#visibleForPartners = 'yes' || #createdBy IN ({$sharedUsers})");
-		$res->where("#firstDocumentState != 'draft' || (#firstDocumentState = 'draft' AND #createdBy IN ({$sharedUsers}))");
+		$res->where("#visibleForPartners = 'yes'");
 		$res->in('folderId', $sharedFolders);
-	
+	    
 		return $res;
 	}
 	

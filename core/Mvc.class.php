@@ -514,13 +514,13 @@ class core_Mvc extends core_FieldSet
     /**
      * Преброява всички записи отговарящи на условието
      */
-    public static function count($cond = '1=1')
+    public static function count($cond = '1=1', $limit = NULL)
     {
         $me = cls::get(get_called_class());
 
         $query = $me->getQuery();
         
-  		$cnt = $query->count($cond);
+  		$cnt = $query->count($cond, $limit);
     	
 
         return $cnt;

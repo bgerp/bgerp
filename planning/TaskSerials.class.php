@@ -2,7 +2,7 @@
 
 
 /**
- * Клас 'planning_TaskSerials' - Серийни номера по задачи за производство
+ * Клас 'planning_TaskSerials' - Серийни номера по производствени операции
  *
  * 
  *
@@ -21,7 +21,7 @@ class planning_TaskSerials extends core_Manager
 	/**
 	 * Заглавие
 	 */
-	public $title = 'Серийни номера по задачи за производство';
+	public $title = 'Серийни номера по производствените операции';
 	
 	
 	/**
@@ -202,7 +202,7 @@ class planning_TaskSerials extends core_Manager
 					// То серийния номер на производимия артикул трябва да е по същата задача
 					// Ако е по друга сетваме подходяща грешка
 					if($serialRec->taskId != $taskId){
-						$error = "Въведения сериен номер е по друга задача";
+						$error = "Въведения сериен номер е по друга операция";
 						$error .= "|* " . planning_Tasks::getLink($serialRec->taskId, 0);
 					}
 				} else {
@@ -215,7 +215,7 @@ class planning_TaskSerials extends core_Manager
 					// Двете задачи трябва да са към едно и съще задание
 					// Не можем да влагаме заготовка която е произведена със задача по друго задание
 					if($taskOriginId != $productTaskOriginId){
-						$error = "Въведения сериен номер е по друга задача";
+						$error = "Въведения сериен номер е по друга операция";
 						$error .= "|* " . planning_Tasks::getLink($serialRec->taskId, 0);
 					}
 				}

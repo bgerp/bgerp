@@ -8,6 +8,17 @@
 	    </div>
 	</fieldset>
 	
+	<!--ET_BEGIN INDICATORS_TABLE-->
+	<fieldset class='top-tab-content' style='margin-top:10px'>
+	<legend class='groupTitle'>|Показатели|*</legend>
+		<div class='detail-info portal [#TAB_STATE#]'>
+		    <div class='groupList clearfix21'>
+		        [#INDICATORS_TABLE#]
+		    </div>
+	    </div>
+	</fieldset>
+	<!--ET_END INDICATORS_TABLE-->
+	
 	<!--ET_BEGIN CODE-->
 	<fieldset class='top-tab-content' style='margin-top:10px'>
 	<legend class='groupTitle'>|Служебни данни|* [#emBtn#]</legend>

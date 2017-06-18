@@ -169,8 +169,6 @@ class store_Products extends core_Detail
     		$stores[$sRec->id] = store_Stores::getTitleById($sRec->id, FALSE);
     	}
     	$data->listFilter->setOptions('storeId', array('' => '') + $stores);
-    	$data->listFilter->setDefault('storeId', store_Stores::getCurrent('id', FALSE));
-    	
     	$data->listFilter->setField('storeId', 'autoFilter');
     	
     	// Подготвяме в заявката да може да се търси по полета от друга таблица

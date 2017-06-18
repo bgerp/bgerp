@@ -153,6 +153,8 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 	 */
 	protected static function on_AfterPrepareEditForm($mvc, &$data)
 	{
+		$data->form->setDefault('useResourceAccounts', planning_Setup::get('CONSUMPTION_USE_AS_RESOURCE'));
+		
 		$folderCover = doc_Folders::getCover($data->form->rec->folderId);
 		if($folderCover->isInstanceOf('hr_Departments')){
 			$data->form->setReadOnly('departmentId', $folderCover->that);

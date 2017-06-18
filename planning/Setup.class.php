@@ -62,6 +62,12 @@ defIfNot('PLANNING_TASK_LABEL_PREVIEW_HEIGHT', 170);
 
 
 /**
+ * Бездетайлно влагане по подразбиране
+ */
+defIfNot('PLANNING_CONSUMPTION_USE_AS_RESOURCE', 'yes');
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -120,6 +126,8 @@ class planning_Setup extends core_ProtoSetup
     		'PLANNING_TASK_LABEL_ROTATION'             => array('enum(yes=Да, no=Не)', 'caption=Шаблон за етикети на задачите->Ротация'),
     		'PLANNING_TASK_LABEL_PREVIEW_WIDTH'        => array('int', 'caption=Превю на артикула в етикета->Широчина,unit=px'),
     		'PLANNING_TASK_LABEL_PREVIEW_HEIGHT'       => array('int', 'caption=Превю на артикула в етикета->Височина,unit=px'),
+    		'PLANNING_CONSUMPTION_USE_AS_RESOURCE'     => array('enum(yes=Да,no=Не)', 'caption=Бездетайлно влагане по подразбиране->Избор'),
+    
     );
     
     
@@ -145,6 +153,8 @@ class planning_Setup extends core_ProtoSetup
     		'migrate::updateNotes',
     		'migrate::updateStoreIds',
     		'migrate::migrateJobs',
+    		'migrate::addPackToNotes',
+    		'migrate::addPackToJobs'
         );
 
         
@@ -296,6 +306,68 @@ class planning_Setup extends core_ProtoSetup
     		} catch (core_exception_Expect $e){
     			reportException($e);
     		}
+    	}
+    }
+    
+    
+    /**
+     * Добавя опаковки на протокола за производство
+     */
+    public function addPackToNotes()
+    {
+    	$Notes = cls::get('planning_DirectProductionNote');
+    	$Notes->setupMvc();
+    	
+    	if(!$Notes->count()) return;
+    	core_App::setTimeLimit(300);
+    	
+    	$toSave = array();
+    	$query = planning_DirectProductionNote::getQuery();
+    	$query->where("#packagingId IS NULL");
+    	
+    	while($rec = $query->fetch()){
+    		try{
+    			$rec->packagingId = cat_Products::fetchField($rec->productId, 'measureId');
+    			$rec->quantityInPack = 1;
+    			$toSave[] = $rec;
+    		} catch(core_exception_Expect $e){
+    			reportException($e);
+    		}
+    	}
+    	
+    	if(count($toSave)){
+    		$Notes->saveArray($toSave, 'id,packagingId,quantityInPack');
+    	}
+    }
+    
+    
+    /**
+     * Добавя опаковки на протокола за производство
+     */
+    public function addPackToJobs()
+    {
+    	$Job = cls::get('planning_Jobs');
+    	$Job->setupMvc();
+    	 
+    	if(!$Job->count()) return;
+    	core_App::setTimeLimit(300);
+    	 
+    	$toSave = array();
+    	$query = planning_Jobs::getQuery();
+    	$query->where("#packagingId IS NULL");
+    	 
+    	while($rec = $query->fetch()){
+    		try{
+    			$rec->packagingId = cat_Products::fetchField($rec->productId, 'measureId');
+    			$rec->quantityInPack = 1;
+    			$toSave[] = $rec;
+    		} catch(core_exception_Expect $e){
+    			reportException($e);
+    		}
+    	}
+    	 
+    	if(count($toSave)){
+    		$Job->saveArray($toSave, 'id,packagingId,quantityInPack');
     	}
     }
 }
