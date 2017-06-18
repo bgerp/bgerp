@@ -598,6 +598,30 @@ class core_Array
     
     
     /**
+     * Извлича масив със стойности от масив със други стойности
+     *
+     * @param array $arr      - масив от който ще се извличат стойностите
+     * @param varchar $fields - полета
+     * @return array $res     - екстракнатите стойности, в масив
+     */
+    public static function extractSubArray($arr, $fields)
+    {
+    	$fields = arr::make($fields, TRUE);
+    	expect(count($fields));
+    	$res = array_values(array_map(function($obj) use ($fields){
+    		$res = new stdClass();
+    		foreach ($fields as $fld){
+    			$res->{$fld} = is_object($obj) ? $obj->{$fld} : $obj[$fld];
+    		}
+
+    		return $res;
+    	}, $arr));
+    	
+    	return $res;
+    }
+    
+    
+    /**
      * Ф-я проверяваща дали два масива/обекта имат еднакви ключове/стойности, без да е нужно да са в
      * същата последователност
      * 

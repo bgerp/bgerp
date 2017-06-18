@@ -132,7 +132,13 @@ class purchase_Invoices extends deals_InvoiceMaster
      */
     public $mainDetail = 'purchase_InvoiceDetails';
     
-    
+
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn,date,dueDate';
+
+
     /**
      * Стратегии за дефолт стойностти
      */

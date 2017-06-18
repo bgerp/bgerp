@@ -1,6 +1,11 @@
 <?php
 
 
+/**
+ * Време под което чакащите задачи ще се преместят над останалите в портала
+ */
+defIfNot('CAL_WAITING_SHOW_TOP_TIME', '86400');
+
 
 /**
  * Клас 'cal_Setup' - Инаталиране на пакета "Календар"
@@ -63,6 +68,13 @@ class cal_Setup extends core_ProtoSetup
             //'migrate::reCalcNextStart'
         );
 
+
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+            'CAL_WAITING_SHOW_TOP_TIME' => array('time(suggestions=12 часа|1 ден|2 дена)', 'caption=Време под което чакащите задачи ще се преместят над останалите в портала->Време'),
+    );
         
     /**
      * Роли за достъп до модула

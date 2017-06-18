@@ -663,7 +663,7 @@ class core_Query extends core_FieldSet
         $query .= $temp->getGroupBy();
         $query .= $temp->getLimit();
 
-        if ($temp->useHaving || $temp->getGroupBy() || ($this->limit && $this->limitCnt)) {
+        if ($temp->useHaving || $temp->getGroupBy() || ($temp->limit)) {
             $query =  str_replace("count(*) AS `_count`", "1 AS `fix_val`", $query);
             $query = "SELECT COUNT(*) AS `_count` FROM ({$query}) as COUNT_TABLE";
         }

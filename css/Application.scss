@@ -462,15 +462,13 @@ div.folder-cover {
 	max-width: 720px;
 	min-width: 280px;
 	font-size: 0.9em;
+	display: block;
 	padding: 10px !important;
 	.block_title img {
 		vertical-align: baseline;
 	}
 	.detail-info {
 		padding: 3px 7px 7px 7px;
-	}
-	select {
-		font-size: 1.3em;
 	}
 	.tab-page {
 		padding: 0 !important;
@@ -899,7 +897,7 @@ div.crmImage {
 
 .narrow div.crmImage {
 	padding: 10px  8px  8px 0;
-	float: left;
+	float: none;
 }
 
 div.crm_Companies div.tab-row .tab.selected, div.crm_Companies  div.tab-page {
@@ -1316,6 +1314,10 @@ td.portal-date {
 
 .detail-info.portal table.listTable { 
 	font-size:1em;
+	.frontToolip img{
+		height: 14px;
+		margin-top: -2px;
+	}
 }
 
 .shortTable .listTable {
@@ -1390,6 +1392,19 @@ a.tOld {
 	background-color: #fed7d6;
 }
 /*край на стилове при тредове*/
+
+.typeTable {
+	//width: 100%;
+	.formTypeTable {
+		text-align: center;
+		font-weight: bold;
+		font-size: 0.9em;
+	}
+	td  {
+		text-align: center;
+	}
+}
+
 
 /*стилове за документи*/
 .document {
@@ -3405,6 +3420,15 @@ fieldset.sharing-history {
 	overflow:visible !important;
 	_overflow: visible !important;
 	width:auto !important;
+}
+
+.narrow-scroll .single-thread {
+	.store_InventoryNoteDetails {
+		.listRowsDetail {
+			overflow: auto !important;
+			_overflow: auto !important;
+		}
+	}
 }
 
 .narrow-scroll .listRows::-webkit-scrollbar {

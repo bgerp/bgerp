@@ -129,7 +129,8 @@ class cat_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     var $roles = array(
-    		array('sales'),
+            array('listArt'),
+    		array('sales', 'listArt'),
     		array('purchase'),
     		array('packEdit'),
     		array('catEdit', 'packEdit'),

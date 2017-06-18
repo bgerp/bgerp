@@ -65,6 +65,12 @@ class pos_Cards extends core_Manager {
     
     
     /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -86,15 +92,6 @@ class pos_Cards extends core_Manager {
     	if(isset($rec->contragentClassId) && isset($rec->contragentId)){
     		$data->form->title = core_Detail::getEditTitle($rec->contragentClassId, $rec->contragentId, $mvc->singleTitle, $rec->id, $mvc->formTitlePreposition);
     	}
-    }
-    
-    
-	/**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    protected static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-        $data->toolbar->removeBtn('btnAdd');
     }
     
     

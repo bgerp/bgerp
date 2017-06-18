@@ -2,7 +2,7 @@
 
 
 /**
- * Мениджър на задачи за производство
+ * Мениджър на Производствени операции
  *
  *
  * @category  bgerp
@@ -11,7 +11,7 @@
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Задачи за производство
+ * @title     Производствени операции
  */
 class planning_Tasks extends tasks_Tasks
 {
@@ -50,13 +50,13 @@ class planning_Tasks extends tasks_Tasks
 	/**
 	 * Заглавие
 	 */
-	public $title = 'Задачи за производство';
+	public $title = 'Производствени операции';
 	
 	
 	/**
 	 * Единично заглавие
 	 */
-	public $singleTitle = 'Задача за производство';
+	public $singleTitle = 'Производствена операция';
 	
 	
 	/**

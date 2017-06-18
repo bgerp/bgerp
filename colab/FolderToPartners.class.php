@@ -167,6 +167,8 @@ class colab_FolderToPartners extends core_Manager
      */
     public static function preparePartners($data)
     {
+        if(!$data->isCurrent) return;
+
         $data->partners = array();
         $folderId = $data->masterData->rec->folderId;
         if ($folderId) {

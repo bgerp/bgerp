@@ -109,6 +109,26 @@ class acc_plg_DocumentSummary extends core_Plugin
         $data->listFilter->FNC('from', 'date', 'width=6em,caption=От,silent');
         $data->listFilter->FNC('to', 'date', 'width=6em,caption=До,silent');
         
+        if(is_array($mvc->filterDateField) || strpos($mvc->filterDateField, ',')) {
+            $flds = arr::make($mvc->filterDateField);
+            $defaultFilterDateField = NULL;
+            foreach($flds as $f) {
+                if(!$defaultFilterDateField){
+                    $defaultFilterDateField = $f;
+                }
+                $caption = $mvc->getField($f)->caption;
+                if(strpos($caption, '->')) {
+                    list($l, $r) = explode('->', $caption);
+                    $caption = tr($l) . ' » ' . tr($r);
+                }
+                $opt[] = $f . '=' . $caption;
+            }  
+            $data->listFilter->FLD('filterDateField', 'enum(' . implode(',', $opt) . ')', 'width=6em,caption=Филтър по||Filter by,silent,input');
+            $showFilterDateField = ',filterDateField';
+        } else {
+            $showFilterDateField = NULL;
+        }
+
         if(!isset($data->listFilter->fields['Rejected'])) {
             $data->listFilter->FNC('Rejected', 'int', 'input=hidden');
         }
@@ -124,7 +144,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         if(isset($fields['search'])){
             $data->listFilter->showFields .= 'search,';
         }
-        $data->listFilter->showFields .= 'from, to';
+        $data->listFilter->showFields .= 'from, to' . $showFilterDateField;
         
         if($isDocument = cls::haveInterface('doc_DocumentIntf', $mvc)){
             $data->listFilter->FNC('users', "users(rolesForAll={$mvc->filterRolesForAll},rolesForTeams={$mvc->filterRolesForTeam})", 'caption=Потребители,silent,autoFilter,remember');
@@ -200,8 +220,13 @@ class acc_plg_DocumentSummary extends core_Plugin
                 sort($dateRange);
             }
 
-            $fromField = ($mvc->filterFieldDateTo) ? $mvc->filterFieldDateTo : $mvc->filterDateField;
-            $toField = ($mvc->filterFieldDateFrom) ? $mvc->filterFieldDateFrom : $mvc->filterDateField;
+            if($showFilterDateField) {
+                $fromField = $filter->filterDateField ? $filter->filterDateField : $defaultFilterDateField;
+                $toField = $fromField;
+            } else {
+                $fromField = ($mvc->filterFieldDateTo) ? $mvc->filterFieldDateTo : $mvc->filterDateField;
+                $toField = ($mvc->filterFieldDateFrom) ? $mvc->filterFieldDateFrom : $mvc->filterDateField;
+            }
             
             if($dateRange[0] && $dateRange[1]) {
             	$extraFld1 = (!empty($mvc->termDateFld)) ? " AND #{$mvc->termDateFld} IS NULL" : '';

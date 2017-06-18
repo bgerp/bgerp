@@ -194,19 +194,14 @@ class cat_ProductTplCache extends core_Master
 		$query = self::getQuery();
 		$query->where("#productId = {$productId} AND #type = '{$type}' AND #lang = '{$lang}' AND #documentType = '{$documentType}' AND #time <= '{$time}'");
 		$query->orderBy('time', 'DESC');
-		while($rec = $query->fetch()){
-			$res[$rec->time] = $rec->cache;
-		}
-		
-		// За всяко от времената на модификация на артикула за които има кеш + последното модифициране
-		// намираме това което е най-близо до датата за която проверяваме, връщаме намерения кеш, ако
-		// върнатата дата е последната модификация на артикула за която няма кеш връща се NULL, което ще
-		// доведе до кеширане на изгледа
-		krsort($res);
-		
-		foreach ($res as $cTime => $cache){
-			if($cTime <= $time) return $cache;
-		}
+        $query->limit(1);
+        $rec = $query->fetch();
+
+        if($rec) {
+
+            return $rec->cache;
+        }
+
 	}
 	
 	
@@ -273,7 +268,7 @@ class cat_ProductTplCache extends core_Master
 		$data = cat_Products::prepareDescription($pRec->id, $documentType);
 		
 		$data->components = array();
-		cat_Products::prepareComponents($pRec->id, $data->components, $documentType, $compontQuantity);
+        cat_Products::prepareComponents($pRec->id, $data->components, $documentType, $compontQuantity);
 		
 		$cacheRec = new stdClass();
 		

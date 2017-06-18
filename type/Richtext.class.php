@@ -1044,10 +1044,10 @@ class type_Richtext extends type_Blob
         if($title{0} != ' ') {
             
             $bgPlace = $this->getPlace();
-            $thumb = new thumb_Img("https://plus.google.com/_/favicon?domain={$domain}", 16, 16, 'url');
+            $thumb = new thumb_Img(array("https://plus.google.com/_/favicon?domain={$domain}", 16, 16, 'url', 'isAbsolute' => Mode::isReadOnly()));
             $iconUrl = $thumb->getUrl();
             $this->_htmlBoard[$bgPlace] = "background-image:url('{$iconUrl}');";
-
+            
             $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out linkWithIcon\" style=\"[#{$bgPlace}#]\">[#{$titlePlace}#]</a>";  
 
         } else {

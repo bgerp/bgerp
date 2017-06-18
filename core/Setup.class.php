@@ -328,6 +328,7 @@ class core_Setup extends core_ProtoSetup {
      */
     var $systemActions = array(
         array('title' => 'Миграции', 'url' => array ('core_Packs', 'InvalidateMigrations', 'ret_url' => TRUE), 'params' => array('title' => 'Преглед и инвалидиране на миграциите')),
+        array('title' => 'Преводи', 'url' => array ('core_Lg', 'DeleteUsersTr', 'ret_url' => TRUE), 'params' => array('title' => 'Изтриване на преводите направени от различни потребители'))
     );
     
     

@@ -171,6 +171,9 @@ class doc_Threads extends core_Manager
         $this->FLD('firstDocClass' , 'class', 'caption=Документ->Клас, input=none');
         $this->FLD('firstDocId' , 'int', 'caption=Документ->Обект, input=none');
         
+        // Дали нишката е видима за партньори
+        $this->FLD('visibleForPartners', 'enum(no=Не, yes=Да)', 'caption=Видим за партньори, input=none');
+        
         // Индекс за по-бързо избиране по папка
         $this->setDbIndex('folderId');
         $this->setDbIndex('last');
@@ -832,49 +835,19 @@ class doc_Threads extends core_Manager
     {
         if (!$folderId) return array();
         
-    	$cacheKey = ($onlyVisibleForPartners === TRUE) ? "visibleDocumentsInFolder{$folderId}" : "folder{$folderId}";
-    	
-    	// Проверяваме имали кеширани данни
-    	$options = FALSE; // core_Cache::get("doc_Folders", $cacheKey);
-    	
-    	// Ако няма кеширани данни, извличаме ги наново
-    	if($options === FALSE) {
-    		
-    		// Ще групираме типовете документи в нишката
-    		$query = doc_Threads::getQuery();
-    		$query->where("#folderId = {$folderId}");
-            $year = dt::addDays(-360);
-            $query->where("#last >= '{$year}'");
-	
-    		// Ако ще проверяваме за партньори, оставяме само видимите за тях документи
-    		if($onlyVisibleForPartners){
-    			$query->EXT('visibleForPartners', 'doc_Containers', 'externalName=visibleForPartners,externalKey=firstContainerId');
-    			$query->EXT('firstDocState', 'doc_Containers', 'externalName=state,externalKey=firstContainerId');
-    			$query->where("#visibleForPartners = 'yes'");
-    			$query->where("#firstDocState != 'draft' && #firstDocState != 'rejected'");
-    		}
-    		$query->show('firstDocClass, state');
-    		$query->groupBy('firstDocClass,state');
-    		
-    		// Групираме записите по classId
-    		while($rec = $query->fetch()){
-    			$index = ($rec->state == 'rejected') ? 'rejected' : 'notrejected';
-    			
-    			if(!isset($options[$index][$rec->firstDocClass])){
-    				$options[$index][$rec->firstDocClass] = core_Classes::getTitleById($rec->firstDocClass);
-    			}
-    		}
-    		
-    		// Кешираме резултатите
-//     		core_Cache::set("doc_Folders", $cacheKey, $options, 1440);
-    	}
-    
-    	// Връщаме данните за оттеглените или за не оттеглените документи в папката
-    	if(!$rejected){	
-    		return $options['notrejected'];
-    	} else {
-    		return $options['rejected'];
-    	}
+        $fStatArr = doc_Folders::getStatistic($folderId);
+        
+        $visKey = ($onlyVisibleForPartners === TRUE) ? "yes" : "_all";
+        
+        $rejKey = ($rejected) ? 'rejected' : '_notRejected';
+        
+        $resArr = array();
+        
+        foreach ((array)$fStatArr[$visKey][$rejKey] as $clsId => $cnt) {
+            $resArr[$clsId] = core_Classes::getTitleById($clsId);
+        }
+        
+        return $resArr;
     }
     
     
@@ -887,7 +860,12 @@ class doc_Threads extends core_Manager
     static function applyFilter($filter, $query)
     {
         if (!empty($filter->folderId)) {
-            $query->where("#folderId = {$filter->folderId}");
+            if (empty($filter->search)) {
+                $query->where("#folderId = {$filter->folderId}");
+            } else {
+                $query->EXT('containerFolderId', 'doc_Containers', 'externalName=folderId');
+                $query->where("#containerFolderId = {$filter->folderId}");
+            }
         }
         
         // Налагане на условията за търсене
@@ -1216,7 +1194,7 @@ class doc_Threads extends core_Manager
         
         $exp->rule("#checkMoveTime", "checkmovetime(#threadId, #moveRest)");
         $exp->WARNING(tr("Операцията може да отнеме време!"), '#checkMoveTime === FALSE');
-        $exp->ERROR(tr('Нишката не може да бъде преместена в избраната папка'), 'canMoveToFolder(#threadId, #folderId)');
+        $exp->ERROR(tr('Нишката не може да бъде преместена в избраната папка'), 'canMoveToFolder(#threadId, #folderId) === FALSE');
         
         $result = $exp->solve('#folderId,#moveRest,#checkMoveTime,#haveAccess');
         
@@ -1462,12 +1440,16 @@ class doc_Threads extends core_Manager
      * @param int $threadId - ид на нишка
      * @param int $folderId - ид на папка
      * 
+     * @return boolean
      */
     public static function canMoveToFolder($threadId, $folderId)
     {
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	
-    	return !$firstDoc->getInstance()->canAddToFolder($folderId);
+    	// Ако е зададено да не се може да се мести документа
+    	if ($firstDoc->moveDocToFolder === FALSE) return FALSE;
+    	
+    	return (boolean)$firstDoc->getInstance()->canAddToFolder($folderId);
     }
     
     
@@ -1773,6 +1755,15 @@ class doc_Threads extends core_Manager
             $rec->firstContainerId = $firstDcRec->id;
             $rec->firstDocClass = $firstDcRec->docClass;
             $rec->firstDocId = $firstDcRec->docId;
+            $rec->visibleForPartners = $firstDcRec->visibleForPartners;
+            
+            if (($firstDcRec->state == 'draft') || $firstDcRec->state == 'rejected') {
+                
+                // Ако не е партньор документа не е видим за партньори
+                if (!core_Users::haveRole('partner', $firstDcRec->createdBy)) {
+                    $rec->visibleForPartners = 'no';
+                }
+            }
             
             // Последния документ в треда
             if($lastDcRec->state != 'draft') {
@@ -1824,7 +1815,7 @@ class doc_Threads extends core_Manager
                 $rec->state = 'closed';
             }
             
-            doc_Threads::save($rec, 'last, allDocCnt, partnerDocCnt, firstContainerId, state, shared, modifiedOn, modifiedBy, lastState, lastAuthor, firstDocClass, firstDocId');
+            doc_Threads::save($rec, 'last, allDocCnt, partnerDocCnt, firstContainerId, state, shared, modifiedOn, modifiedBy, lastState, lastAuthor, firstDocClass, firstDocId, visibleForPartners');
          } else {
             // Ако липсват каквито и да е документи в нишката - изтриваме я
             self::delete($id);
@@ -2170,8 +2161,26 @@ class doc_Threads extends core_Manager
     public static function addBinBtnToToolbar(&$data)
     {
     	$data->rejQuery->where("#folderId = {$data->folderId}");
-    	$data->rejectedCnt = $data->rejQuery->count();;
-    	 
+    	
+    	// Ако не се търси текст или документ, правим опит за по-бързо намиране на документите
+    	if (!$data->listFilter->rec->search && !$data->listFilter->rec->documentClassId) {
+    	    $fStatistic = doc_Folders::getStatistic($data->folderId);
+    	     
+    	    $visType = '_all';
+    	    if (haveRole('partner')) {
+    	        $visType = 'yes';
+    	    }
+    	     
+    	    $rejCnt = 0;
+    	     
+    	    foreach ((array)$fStatistic[$visType]['rejected'] as $cnt) {
+    	        $rejCnt += $cnt;
+    	    }
+    	    $data->rejectedCnt = $rejCnt;
+    	} else {
+    	    $data->rejectedCnt = $data->rejQuery->count();
+    	}
+    	
     	if($data->rejectedCnt) {
     		$curUrl = getCurrentUrl();
     		$curUrl['Rejected'] = 1;

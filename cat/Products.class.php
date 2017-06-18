@@ -166,6 +166,12 @@ class cat_Products extends embed_Manager {
     
     
     /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
+    
+    
+    /**
      * Може ли да се редактират активирани документи
      */
     public $canEditActivated = TRUE;
@@ -1658,13 +1664,19 @@ class cat_Products extends embed_Manager {
     			$rec = $mvc->fetchRec($rec);
     		}
     		
-    		$rec->name = static::getDisplayName($rec);
+    		$part = self::getDisplayName($rec);
+
+            return FALSE;
     	} elseif($field == 'code'){
     		if(!is_object($rec) && type_Int::isInt($rec)){
     			$rec = $mvc->fetchRec($rec);
     		}
     		
-    		static::setCodeIfEmpty($rec);
+            $cRec = clone($rec);
+    		self::setCodeIfEmpty($cRec);
+            $part = $cRec->code;
+
+            return FALSE;
     	}
     }
     
@@ -1711,7 +1723,7 @@ class cat_Products extends embed_Manager {
     	
     	// Ако е частен показваме за код хендлъра му + версията в кеша
     	if($rec->isPublic == 'no'){
-    		$count = cat_ProductTplCache::count("#productId = {$rec->id} AND #type = 'description' AND #documentType = '{$documentType}'");
+    		$count = cat_ProductTplCache::count("#productId = {$rec->id} AND #type = 'description' AND #documentType = '{$documentType}'", 2);
     		
     		if($count > 1){
     			$vNumber = "/<small class='versionNumber'>v{$count}</small>";
@@ -1800,8 +1812,6 @@ class cat_Products extends embed_Manager {
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
-    	$data->toolbar->removeBtn('btnAdd');
-    	
     	// Бутона 'Нов запис' в листовия изглед, добавя винаги универсален артикул
     	if($mvc->haveRightFor('add')){
     		

@@ -112,10 +112,15 @@ class dec_Declarations extends core_Master
     
     
     /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
+    
+    
+    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-    
     	'statements' => 'lastDocUser|lastDoc|LastDocSameCuntry',
         'materials' => 'lastDocUser|lastDoc|LastDocSameCuntry',
     );
@@ -126,9 +131,6 @@ class dec_Declarations extends core_Master
      */
     function description()
     {
-    	// бланка
-    	//$this->FLD('typeId', 'key(mvc=dec_DeclarationTypes,select=name)', "caption=Бланка");
-    	
     	// номера на документа
     	$this->FLD('doc', 'key(mvc=doc_Containers)', 'caption=Към документ, input=none');
     	
@@ -296,11 +298,16 @@ class dec_Declarations extends core_Master
     		
     		$products = arr::make($recDec->productId);
     		
-    		$dQuery = sales_InvoiceDetails::getQuery();
-    		$dQuery->where("#invoiceId = {$rec->inv}");
-  
-    		while($dRec = $dQuery->fetch()){
-    		      $batches[$dRec->productId] = $dRec->batches; 
+    		$batches = array();
+    		$classProduct = array();
+    		
+    		if ($rec->inv) {
+    		    $dQuery = sales_InvoiceDetails::getQuery();
+    		    $dQuery->where("#invoiceId = {$rec->inv}");
+    		    
+    		    while($dRec = $dQuery->fetch()){
+    		        $batches[$dRec->productId] = $dRec->batches;
+    		    }
     		}
     		
     		foreach ($products as $product) {
@@ -308,14 +315,14 @@ class dec_Declarations extends core_Master
     		}
 
     		$row->products = "<ol>";
-		       	foreach($classProduct as $iProduct=>$name){
-		       		$pId = (isset($name[1])) ? $name[1] : $name[0];
-		        	$productName = cat_Products::getTitleById($pId);
-		        	if(($batches[$pId])) {
-		        	    $row->products .= "<li>".$productName . " - ". $batches[$pId] ."</li>";
-		        	} else {
-		        	    $row->products .= "<li>".$productName."</li>";
-		        	}
+	       	foreach($classProduct as $iProduct=>$name){
+	       		$pId = (isset($name[1])) ? $name[1] : $name[0];
+	        	$productName = cat_Products::getTitleById($pId);
+	        	if(($batches[$pId])) {
+	        	    $row->products .= "<li>".$productName . " - ". $batches[$pId] ."</li>";
+	        	} else {
+	        	    $row->products .= "<li>".$productName."</li>";
+	        	}
 			}
 			$row->products .= "</ol>";
     	}
@@ -466,18 +473,6 @@ class dec_Declarations extends core_Master
     public static function canAddToFolder($folderId)
     {
         return FALSE;
-    }
-    
-    
-	/**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    static function on_AfterPrepareSingleToolbar($mvc, &$data)
-    {
-
-    	if(!empty($data->toolbar->buttons['btnAdd'])){
-    		$data->toolbar->removeBtn('btnAdd');
-    	}
     }
     
     

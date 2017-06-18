@@ -38,18 +38,12 @@ class crm_Locations extends core_Master {
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = "title, contragent=Контрагент, type, createdOn, createdBy";
-
-
-    /**
-     * Кой може да чете и записва локации?
-     */
-    var $canRead  = 'ceo';
     
     
     /**
-     *  Поле за rowTools
+     * Дали в листовия изглед да се показва бутона за добавяне
      */
-    //var $rowToolsField = 'tools';
+    public $listAddBtn = FALSE;
     
     
     /**
@@ -318,6 +312,10 @@ class crm_Locations extends core_Master {
      */
     public function prepareContragentLocations($data)
     {
+        $data->TabCaption = 'Локации';
+
+		if($data->isCurrent === FALSE) return;
+
         expect($data->masterId);
         expect($data->contragentCls = core_Classes::getId($data->masterMvc));
         
@@ -327,16 +325,6 @@ class crm_Locations extends core_Master {
             $data->rows[$rec->id] = $this->recToVerbal($rec);
         }
 
-        $data->TabCaption = 'Локации';
-    }
-
-
-    /**
-     * Премахване на бутона за добавяне на нова локация от лист изгледа
-     */
-    protected static function on_BeforeRenderListToolbar($mvc, &$tpl, &$data)
-    {
-        $data->toolbar->removeBtn('btnAdd');
     }
     
     
@@ -438,11 +426,19 @@ class crm_Locations extends core_Master {
         }
         
     	if (($action == 'edit' || $action == 'delete') && isset($rec)) {
-    		$cState = cls::get($rec->contragentCls)->fetchField($rec->contragentId, 'state');
+    	    
+    	    $contragentCls = cls::get($rec->contragentCls);
+    	    
+    		$cState = $contragentCls->fetchField($rec->contragentId, 'state');
             
         	if ($cState == 'rejected') {
                 $requiredRoles = 'no_one';
-            } 
+            }
+            
+            // Ако няма права за редактиране на мастъра, да не може да редактира и локацията
+            if (($requiredRoles != 'no_one') && !$contragentCls->haveRightFor('edit', $rec->contragentId)) {
+                 $requiredRoles = 'no_one';
+            }
         }
         
         if($action == 'createsale' && isset($rec)){

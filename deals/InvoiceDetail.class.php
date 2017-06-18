@@ -522,7 +522,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				
 				// Ако няма последна покупна цена и не се обновява запис в текущата покупка
 				if (empty($policyInfo->price) && empty($pRec)) {
-					$form->setError('packPrice', 'Продуктът няма цена в избраната ценова политика');
+					$form->setError('packPrice', 'Продуктът няма цена в избраната ценова политика (3)');
 				} else {
 							
 					// Ако се обновява запис се взима цената от него, ако не от политиката

@@ -150,6 +150,7 @@ class doc_Folders extends core_Master
         $this->FLD('allThreadsCnt', 'int', 'caption=Нишки->Всички');
         $this->FLD('openThreadsCnt', 'int', 'caption=Нишки->Отворени');
         $this->FLD('last' , 'datetime(format=smartTime)', 'caption=Последно');
+        $this->FLD('statistic', 'blob(serialize,compress)', 'caption=Статистика, input=none');
         
         $this->setDbUnique('coverId,coverClass');
     }
@@ -509,8 +510,23 @@ class doc_Folders extends core_Master
                 // Запомняме броя на отворените теми до сега
                 $exOpenThreadsCnt = $rec->openThreadsCnt;
                 
-                $thQuery = doc_Threads::getQuery();
-                $rec->openThreadsCnt = $thQuery->count("#folderId = {$id} AND state = 'opened'");
+                $allThreadsCnt = $openThreadCnt = 0;
+                
+                $newStatisticArr = $mvc->updateStatistic($rec->id);
+                
+                foreach ((array)$newStatisticArr['_all'] as $key => $cntArr) {
+                    if (($key != '_notRejected') && ($key != 'opened')) continue;
+                    foreach ($cntArr as $cnt) {
+                        if ($key == 'opened') {
+                            $openThreadCnt += $cnt;
+                        } else {
+                            $allThreadsCnt += $cnt;
+                        }
+                    }
+                }
+                
+                $rec->allThreadsCnt = $allThreadsCnt;
+                $rec->openThreadsCnt = $openThreadCnt;
                 
                 // Възстановяване на корицата, ако е оттеглена.
                 self::getCover($rec)->restore();
@@ -522,9 +538,6 @@ class doc_Folders extends core_Master
                 		$rec->state = 'active';
                 	}
                 }
-                
-                $thQuery = doc_Threads::getQuery();
-                $rec->allThreadsCnt = $thQuery->count("#folderId = {$id} AND #state != 'rejected'");
                 
                 $thQuery = doc_Threads::getQuery();
                 $thQuery->orderBy("#last", 'DESC');
@@ -588,6 +601,68 @@ class doc_Folders extends core_Master
                 }
             }
         }
+    }
+    
+    
+    /**
+     * Връща статистиката за документите в папката
+     * 
+     * @param int $folderId
+     * 
+     * @return array
+     */
+    public static function getStatistic($folderId)
+    {
+        
+        return self::updateStatistic($folderId, FALSE);
+    }
+    
+    
+    /**
+     * Обновява и връща статистиката за документите в папката
+     * 
+     * @param int $folderId
+     * @param boolean $forced
+     * 
+     * @return array
+     */
+    public static function updateStatistic($folderId, $forced = TRUE)
+    {
+        $fRec = self::fetch($folderId);
+        
+        // Ако не е форсирано, при наличие на запис да не се обновява
+        if (!$forced) {
+            if (isset($fRec->statistic)) return $fRec->statistic;
+        }
+        
+        $tQuery = doc_Threads::getQuery();
+        $tQuery->where(array("#folderId = '[#1#]'", $folderId));
+        $tQuery->groupBy('visibleForPartners,state,firstDocClass');
+        
+        $tQuery->XPR('cnt', 'int', 'COUNT(#id)');
+        
+        $tQuery->show('visibleForPartners,state,firstDocClass,cnt');
+        
+        $statisticArr = array();
+        
+        while ($tRec = $tQuery->fetch()) {
+            $statisticArr[$tRec->visibleForPartners][$tRec->state][$tRec->firstDocClass] = $tRec->cnt;
+            
+            if ($tRec->state != 'rejected') {
+                $statisticArr[$tRec->visibleForPartners]['_notRejected'][$tRec->firstDocClass] += $tRec->cnt;
+                $statisticArr['_all']['_notRejected'][$tRec->firstDocClass] += $tRec->cnt;
+            }
+            
+            $statisticArr['_all'][$tRec->state][$tRec->firstDocClass] += $tRec->cnt;
+            $statisticArr['_all']['_all'][$tRec->firstDocClass] += $tRec->cnt;
+            $statisticArr['_all']['_all']['_all'] += $tRec->cnt;
+        }
+        
+        $fRec->statistic = $statisticArr;
+        
+        self::save($fRec, 'statistic');
+        
+        return $fRec->statistic;
     }
     
     

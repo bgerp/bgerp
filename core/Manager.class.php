@@ -82,6 +82,12 @@ class core_Manager extends core_Mvc
     var $canAdmin = 'admin';
     
     
+    /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = TRUE;
+    
+    
     /****************************************************************************************
      *                                                                                      *
      *       ПРЕДЕФИНИРАНИ ДЕЙСТВИЯ (ЕКШЪНИ) НА МЕНИДЖЪРА                                   *
@@ -531,7 +537,7 @@ class core_Manager extends core_Mvc
     {
         $data->toolbar = cls::get('core_Toolbar');
         
-        if ($this->haveRightFor('add')) {
+        if ($this->haveRightFor('add') && $this->listAddBtn !== FALSE) {
             $data->toolbar->addBtn('Нов запис', array(
                     $this,
                     'add'

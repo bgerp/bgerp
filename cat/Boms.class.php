@@ -152,6 +152,12 @@ class cat_Boms extends core_Master
     
     
     /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -216,6 +222,13 @@ class cat_Boms extends core_Master
     	$form->setField('quantity', "unit={$shortUom}");
     	$form->setField('quantityForPrice', "unit={$shortUom}");
     	
+    	// К-то е дефолтното от заданието
+    	if(isset($form->rec->originId)){
+    		$origin = doc_Containers::getDocument($form->rec->originId);
+    		if($origin->isInstanceOf('planning_Jobs')){
+    			$form->setDefault('quantity', $origin->fetchField('quantity'));
+    		}
+    	}
     	$form->setDefault('quantity', 1);
     	
     	// При създаване на нова рецепта
@@ -499,17 +512,6 @@ class cat_Boms extends core_Master
     				$row->primeCost .= ht::createLink('', array($mvc, 'RecalcSelfValue', $rec->id), FALSE, 'ef_icon=img/16/arrow_refresh.png,title=Преизчисляване на себестойността');
     			}
     		}
-    	}
-    }
-    
-    
-    /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    public static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	if(!empty($data->toolbar->buttons['btnAdd'])){
-    		$data->toolbar->removeBtn('btnAdd');
     	}
     }
     
