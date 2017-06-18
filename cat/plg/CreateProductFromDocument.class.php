@@ -177,8 +177,10 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				// Взимаме от драйвера нужните полета
 				$proto = $form->rec->proto;
 				cat_Products::setAutoCloneFormFields($form, $proto, $form->rec->innerClass);
-				$form->setDefault('productId', $form->rec->proto);
-				$productFields = array_diff_key($form->fields, $detailFields);
+				
+                // $form->setDefault('productId', $form->rec->proto);
+				
+                $productFields = array_diff_key($form->fields, $detailFields);
 				
 				// Зареждаме данни от прототипа (или артикула който клонираме)
 				if($proto){
@@ -293,17 +295,35 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				$hash = cat_Products::getHash($pRec);
 			 
 				// Ако артикула има хеш търси се имали друг артикул със същия хеш ако има се добавя
-				if(isset($hash) && $pRec->folderId){
-					$pQuery = cat_Products::getQuery();
-					$pQuery->where("#innerClass = {$rec->innerClass}");
-					$pQuery->where("#state = 'active' AND #folderId = {$pRec->folderId}");
-					while($eRec = $pQuery->fetch()){
-						$hash1 = cat_Products::getHash($eRec);
-						if($hash1 == $hash){
-							$productId = $eRec->id;
-							break;
-						}
-					}
+				if(isset($hash)){
+                    
+                    // Филтрираме id-тата само на детайла от текущия документ
+                    $ids = array();
+           
+                    $detDocs = array('quotationId' => 'sales_QuotationsDetails', 'requestId' => 'purchase_PurchasesDetails', 'saleId' => 'sales_SalesDetails');
+                    foreach($detDocs as $part => $detMvc) {
+                        if($rec->{$part}) {
+                            $detQuery = $detMvc::getQuery();
+                            while($detRec = $detQuery->fetch("#{$part} = " . $rec->{$part})) {
+                                $ids[] = $detRec->productId;
+                            }
+                        }
+                    }
+ 
+                    if(count($ids)) {  
+                        $pQuery = cat_Products::getQuery();
+                        $pQuery->where("#id IN (" . implode(',', $ids) . ')');
+                        $pQuery->where("#innerClass = {$rec->innerClass}");
+                        $pQuery->where("#state = 'active'");
+                        while($eRec = $pQuery->fetch()){
+                            $hash1 = cat_Products::getHash($eRec);
+                            
+                            if($hash1 == $hash){
+                                $productId = $eRec->id;
+                                break;
+                            }
+                        }
+                    }
 				}
 				
 				// Създаване на нов артикул само при нужда
