@@ -248,8 +248,8 @@ class doc_Setup extends core_ProtoSetup
     	'migrate::migratePending1',
         'migrate::showFiles',
         'migrate::addCountryIn2LgFolders2',
-        'migrate::addFirstDocClassAndId',
-        'migrate::threadsVisibleForPartners',
+        'migrate::addFirstDocClassAndId'
+        //'migrate::threadsVisibleForPartners',
     );
 	
     
