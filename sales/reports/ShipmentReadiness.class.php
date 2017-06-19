@@ -467,11 +467,11 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 			$fld->FLD('contragentName', 'varchar', 'caption=Клиент');
 			
 			if($rec->orderBy != 'execDate'){
-				$fld->FLD('dueDates', 'varchar', 'tdClass=small,caption=Падеж');
+				$fld->FLD('dueDates', 'varchar', 'tdClass=small centered,caption=Падеж');
 			}
 			
 			if($rec->orderBy != 'dueDate'){
-				$fld->FLD('execDate', 'varchar', 'smartCenter,tdClass=small,caption=Изпълнение');
+				$fld->FLD('execDate', 'varchar', 'tdClass=small centered,caption=Изпълнение');
 			}
 			
 			$fld->FLD('document', 'varchar', 'caption=Документ');
