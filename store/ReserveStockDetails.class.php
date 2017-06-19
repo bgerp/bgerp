@@ -414,20 +414,7 @@ class store_ReserveStockDetails extends doc_Detail
      */
     private function getDefaultDetailsFromBom($bomId, $quantity)
     {
-    	$res = array();
-    	
-    	$bomInfo = cat_Boms::getResourceInfo($bomId, $quantity, dt::now());
-    	if(count($bomInfo['resources'])){
-    		foreach ($bomInfo['resources'] as $pRec){
-    			$canStore = cat_Products::fetchField($pRec->productId, 'canStore');
-    			if($canStore != 'yes' || $pRec->type != 'input') continue;
-    				
-    			$res[] = (object)array('productId'      => $pRec->productId,
-    					               'packagingId'    => $pRec->packagingId,
-    					               'quantity'       => $pRec->propQuantity,
-    					               'quantityInPack' => $pRec->quantityInPack);
-    		}
-    	}
+    	$res = cat_Boms::getBomMaterials($bomId, $quantity);
     	
     	return $res;
     }

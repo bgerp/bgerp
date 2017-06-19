@@ -1451,4 +1451,31 @@ class cat_Boms extends core_Master
     		}
     	}
     }
+    
+    
+    /**
+     * Връща складируемите материали по-рецепта
+     * 
+     * @param int $bomId
+     * @param double $quantity
+     * @return array $res
+     */
+    public static function getBomMaterials($bomId, $quantity)
+    {
+    	$res = array();
+    	$bomInfo = cat_Boms::getResourceInfo($bomId, $quantity, dt::now());
+    	if(!count($bomInfo['resources'])) return $res;
+    	
+    	foreach ($bomInfo['resources'] as $pRec){
+    		$canStore = cat_Products::fetchField($pRec->productId, 'canStore');
+    		if($canStore != 'yes' || $pRec->type != 'input') continue;
+    			 
+    		$res[] = (object)array('productId'      => $pRec->productId,
+    				               'packagingId'    => $pRec->packagingId,
+    				               'quantity'       => $pRec->propQuantity,
+    				               'quantityInPack' => $pRec->quantityInPack);
+    	}
+    	
+    	return $res;
+    }
 }
