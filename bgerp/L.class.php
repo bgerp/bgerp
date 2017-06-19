@@ -87,11 +87,78 @@ class bgerp_L extends core_Manager
     
     
     /**
+     * Помощна функция, която връща 
+     * 
+     * @param integer $cId
+     * @param integer $mId
+     * 
+     * @return array
+     */
+    protected static function getDocOptions($cId, $mId)
+    {
+        // Трасираме стека с действията докато намерим SEND екшън
+        $i = 0;
+        
+        $options = array();
+        
+        while ($action = doclog_Documents::getAction($i--)) {
+        
+            $options = (array)$action->data;
+        
+            // Ако има изпратено от
+            if (($action->data->sendedBy > 0) && (!$options['__userId'] || $options['__userId'] <= 0)) {
+                $options['__userId'] = $action->data->sendedBy;
+            }
+        	
+            // Ако е принтиран
+            // TODO ще се оправи
+            if ($action->action == doclog_Documents::ACTION_PRINT) {
+                $options['__toListId'] = $action->data->toListId;
+        		
+                if ($action->createdBy > 0 && !$options['__userId']) {
+                    $options['__userId'] = $action->createdBy;
+                }
+            }
+        	
+            // Ако е изпратен
+            if ($action->action == doclog_Documents::ACTION_SEND) {
+        		
+                if ($action && $action->data->to) {
+                    log_Browsers::setVars(array('email' => $action->data->to), FALSE, FALSE);
+                }
+        		
+                $activatedBy = $action->createdBy;
+        		
+                // Активатора и последния модифицирал на изпратения документ
+                if (!$activatedBy || $activatedBy <= 0) {
+                    $activatedBy = $rec->activatedBy;
+                }
+        		
+                // Активатора и последния модифицирал на изпратения документ
+                if (!$activatedBy || $activatedBy <= 0) {
+        
+                    $sendContainerRec = doc_Containers::fetch($action->containerId);
+                    $activatedBy = $sendContainerRec->activatedBy;
+                }
+        		
+                // Ако няма потребител или е системата - за бласт
+                if (!$options['__userId'] || $options['__userId'] <= 0) {
+                    if ($activatedBy > 0) {
+                        $options['__userId'] = $activatedBy;
+                    }
+                }
+            }
+        }
+        
+        return $options;
+    }
+    
+    
+    /**
      * Екшъна за показване на документи
      */
     function act_S()
     {
-        
         try {
             //Вземаме номера на контейнера
             expect($cid = Request::get('id', 'int'));
@@ -111,59 +178,10 @@ class bgerp_L extends core_Manager
             
             // Вземаме манипулатора на записа от този модел (bgerp_L)
             expect($mid = Request::get('m'));
+            
             expect(doclog_Documents::opened($cid, $mid));
             
-            // Трасираме стека с действията докато намерим SEND екшън
-            $i = 0;
-            
-            while ($action = doclog_Documents::getAction($i--)) {
-                
-                $options = (array)$action->data;
-                
-                // Ако има изпратено от
-                if (($action->data->sendedBy > 0) && (!$options['__userId'] || $options['__userId'] <= 0)) {
-                    $options['__userId'] = $action->data->sendedBy;
-                }
-                
-                // Ако е принтиран
-                // TODO ще се оправи
-                if ($action->action == doclog_Documents::ACTION_PRINT) {
-                    $options['__toListId'] = $action->data->toListId;
-                    
-                    if ($action->createdBy > 0 && !$options['__userId']) {
-                        $options['__userId'] = $action->createdBy;
-                    }
-                }
-                
-                // Ако е изпратен
-                if ($action->action == doclog_Documents::ACTION_SEND) {
-                    
-                    if ($action && $action->data->to) {
-                        log_Browsers::setVars(array('email' => $action->data->to), FALSE, FALSE);
-                    }
-                    
-                    $activatedBy = $action->createdBy;
-                    
-                    // Активатора и последния модифицирал на изпратения документ
-                    if (!$activatedBy || $activatedBy <= 0) {
-                        $activatedBy = $rec->activatedBy;
-                    }
-                    
-                    // Активатора и последния модифицирал на изпратения документ
-                    if (!$activatedBy || $activatedBy <= 0) {
-                        
-                        $sendContainerRec = doc_Containers::fetch($action->containerId);
-                        $activatedBy = $sendContainerRec->activatedBy;
-                    }
-                    
-                    // Ако няма потребител или е системата - за бласт
-                    if (!$options['__userId'] || $options['__userId'] <= 0) {
-                        if ($activatedBy > 0) {
-                            $options['__userId'] = $activatedBy;
-                        }
-                    }
-                }
-            }
+            $options = $this->getDocOptions($cid, $mid);
             
             // Ако потребителя има права до треда на документа, то той му се показва
             if($rec && $rec->threadId) {
@@ -195,10 +213,14 @@ class bgerp_L extends core_Manager
                 foreach ($emailsArr as $email) {
                     if (!core_Users::fetch(array("#email = '[#1#]' AND #state = 'active'", $email))) continue;
                     
-                    $html->append(ht::createLink(tr('Логнете се, за да видите нишката') . '.', array('core_Users', 'login', 'ret_url' => TRUE), NULL, array('style' => 'margin-left: 10px; font-size: 0.9em; margin-bottom: 10px; display: block; margin-top: -6px;')));
+                    $html->append(ht::createLink(tr('Логнете се, за да видите нишката'), array('core_Users', 'login', 'ret_url' => TRUE), NULL, array('style' => 'margin-left: 10px; font-size: 0.9em; margin-bottom: 10px; display: block; margin-top: -6px;')));
                     
                     break;
                 }
+            }
+            
+            if (!haveRole('user') && doc_PdfCreator::canConvert()) {
+                $html->append(ht::createLink(tr('Свали като PDF'), array($this, 'pdf', $cid, 'mid' => $mid, 'ret_url' => TRUE), NULL, array('style' => 'margin-left: 10px; font-size: 0.9em; margin-bottom: 10px; display: block; margin-top: -6px;')));
             }
             
             return $html;
@@ -229,6 +251,63 @@ class bgerp_L extends core_Manager
             
             expect(FALSE);  // Същото се случва и ако документа съществува, но потребителя няма
             // достъп до него.
+        }
+    }
+    
+    
+    /**
+     * Екшън, който сваля подадения документ, като PDF
+     */
+    function act_Pdf()
+    {
+        try {
+            expect(doc_PdfCreator::canConvert());
+            
+            $cId = Request::get('id', 'int');
+            $mId = Request::get('mid');
+            
+            expect($cId && $mId);
+            
+            expect($doc = doc_Containers::getDocument($cId));
+            
+            $rec = $doc->fetch();
+            
+            // Очакваме да не е оттеглен документ
+            expect($rec->state != 'rejected', 'Липсващ документ');
+            
+            expect(doclog_Documents::opened($cId, $mId));
+            
+            $optArr = $this->getDocOptions($cId, $mId);
+            
+            Mode::push('saveObjectsToCid', $cid);
+            // Има запис в историята - MID-a е валиден, генерираме HTML съдържанието на
+            // документа за показване
+            $html = $doc->getDocumentBody('xhtml', (object) $optArr);
+            Mode::pop('saveObjectsToCid');
+            
+            $hnd = $doc->getHandle();
+            $name = $hnd . '.pdf';
+            $resFileHnd = doc_PdfCreator::convert($html, $name);
+            
+            Request::forward(array('fileman_Download', 'download', 'fh' => $resFileHnd, 'forceDownload' => TRUE));
+        } catch (core_exception_Expect $ex) {
+            requireRole('user'); 
+            
+            if($doc) {
+            	$urlArray = $doc->getSingleUrlArray();
+            	
+                if(is_array($urlArray) && count($urlArray)) {
+                    
+                    return new Redirect($urlArray);
+                }
+            }
+            
+            expect(FALSE);
+        }
+        
+        if ($retUrl = getRetUrl()) {
+            
+            return $retUrl;
         }
     }
     
