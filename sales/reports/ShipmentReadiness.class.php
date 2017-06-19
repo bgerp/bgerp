@@ -177,7 +177,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 			
 			// Под документа се показват и артикулите, които имат задания към него
 			$jQuery = planning_Jobs::getQuery();
-			$jQuery->where("#saleId = {$Document->that} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')");
+			$jQuery->where("#saleId = {$Document->that} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup' || #state = 'closed')");
 			$jQuery->show('productId');
 			while($jRec = $jQuery->fetch()){
 				$pRec = cat_products::fetch($jRec->productId, 'name,code,isPublic');
