@@ -45,7 +45,7 @@ class price_ListDocs extends core_Master
      /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, price_Wrapper, doc_DocumentPlg, doc_EmailCreatePlg,
+    public $loadList = 'plg_RowTools2, price_Wrapper, plg_Clone, doc_DocumentPlg, doc_EmailCreatePlg,
     	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, doc_ActivatePlg, doc_plg_SelectFolder';
     	
     
@@ -132,6 +132,14 @@ class price_ListDocs extends core_Master
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
     public $coversAndInterfacesForNewDoc = 'crm_ContragentAccRegIntf,doc_UnsortedFolders';
+
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'date';
     
     
     /**
