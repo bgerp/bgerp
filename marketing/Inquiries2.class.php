@@ -756,6 +756,7 @@ class marketing_Inquiries2 extends embed_Manager
         core_Lg::push($lang);
 
     	if(count($proto)){
+            $sort = array();
     		foreach ($proto as $pId => &$name){
     			
     			// Ако прототипа е оттеглен или затворен, маха се от списъка
@@ -767,14 +768,16 @@ class marketing_Inquiries2 extends embed_Manager
     				unset($proto[$pId]);
     			}
     		}
+
+            // Сортиране на продуктите по код
+            asort($sort);
+            $res = array();
+            foreach($sort as $pId => $code) {
+                $res[$pId] = $proto[$pId];
+            }
+            $proto = $res;
     	}
     	
-        // Сортиране на продуктите по код
-        asort($sort);
-        foreach($sort as $pId => $code) {
-            $res[$pId] = $proto[$pId];
-        }
-        $proto = $res;
 
     	if($lg = Request::get('Lg')){
     		cms_Content::setLang($lg);
