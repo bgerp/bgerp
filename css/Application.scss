@@ -4930,6 +4930,13 @@ body.narrow {
 		font-size: 1.1em;
 		text-transform: uppercase;
 	}
+	.hideLink {
+		display: block;
+		margin-left: 10px;
+		font-size: 0.9em;
+		margin-bottom: 10px;
+		margin-top: -6px;
+	}
 }
 
 .wide .external .vertical .formTable {
@@ -5148,6 +5155,9 @@ body.narrow {
 	}
 	thead {
 		display:table-row-group;
+	}
+	.external .hideLink {
+		display: none !important;
 	}
 }
 
