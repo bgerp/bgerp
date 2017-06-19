@@ -249,7 +249,6 @@ class doc_Setup extends core_ProtoSetup
         'migrate::showFiles',
         'migrate::addCountryIn2LgFolders2',
         'migrate::addFirstDocClassAndId'
-        //'migrate::threadsVisibleForPartners',
     );
 	
     
@@ -791,6 +790,7 @@ class doc_Setup extends core_ProtoSetup
     function loadSetupData($itr = '')
     {
         
+        return $this->callMigrate('threadsVisibleForPartners', 'doc');
         return $this->callMigrate('addDefaultNotifyOptions', 'doc');
     }
 }
