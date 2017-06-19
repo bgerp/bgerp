@@ -760,8 +760,8 @@ class cal_Reminders extends core_Master
 
     	 while($rec = $query->fetch()){
              
-    	 	 self::doUsefullyPerformance($rec);
-    	 	
+             $savedRec = clone($rec);
+
     	 	 if($rec->repetitionEach == 0){
     	 	 	$rec->notifySent = 'yes';
     	 	 	$rec->state = 'closed';
@@ -772,6 +772,8 @@ class cal_Reminders extends core_Master
              }
 
     	 	 self::save($rec, $fields);
+             
+             self::doUsefullyPerformance($savedRec);
     	 }
     }
     
