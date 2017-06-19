@@ -174,6 +174,17 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 		$row->document = "#{$handle}";
 		if(!Mode::isReadOnly() && !$isPlain){
 			$row->document = ht::createLink("#{$handle}", $singleUrl, FALSE, "ef_icon={$Document->singleIcon}");
+			
+			// Под документа се показват и артикулите, които имат задания към него
+			$jQuery = planning_Jobs::getQuery();
+			$jQuery->where("#saleId = {$Document->that} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')");
+			$jQuery->show('productId');
+			while($jRec = $jQuery->fetch()){
+				$pRec = cat_products::fetch($jRec->productId, 'name,code,isPublic');
+				$productName = cat_Products::getRecTitle($pRec);
+				$productName = str::limitLen($productName, 24);
+				$row->document .= "<div style='font-size:0.7em'>{$productName}</div>";
+			}
 		}
 		
 		$row->readiness = ($isPlain) ?  frame_CsvLib::toCsvFormatDouble($dRec->readiness * 100) : cls::get('type_Percent')->toVerbal($dRec->readiness);
@@ -463,7 +474,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 				$fld->FLD('execDate', 'varchar', 'smartCenter,tdClass=small,caption=Изпълнение');
 			}
 			
-			$fld->FLD('document', 'varchar', 'smartCenter,caption=Документ');
+			$fld->FLD('document', 'varchar', 'caption=Документ');
 			$fld->FLD('readiness', 'double', 'caption=Готовност');
 		} else {
 			$fld->FLD('dealerId', 'varchar','caption=Търговец');
