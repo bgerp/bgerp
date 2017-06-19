@@ -299,6 +299,7 @@ class core_Setup extends core_ProtoSetup {
         'core_Settings',
         'core_Forwards',
         'core_Updates',
+    	'core_Permanent',
         'migrate::settigsDataFromCustomToCore',
         'migrate::movePersonalizationData',
         'migrate::repairUsersRolesInput',
