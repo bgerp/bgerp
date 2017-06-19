@@ -83,7 +83,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 		$fieldset->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonNameBg,allowEmpty)', 'caption=Държави,after=dealers,single=none');
 		$fieldset->FLD('precision', 'percent(min=0,max=1)', 'caption=Готовност,unit=и нагоре,after=countries');
 		$fieldset->FLD('horizon', 'time(uom=days,Min=0)', 'caption=Падиращи до,after=precision');
-		$fieldset->FLD('orderBy', 'enum(readiness=По готовност,contragents=По контрагенти,dueDate=По срок за изпълнение)', 'caption=Подредба,after=precision');
+		$fieldset->FLD('orderBy', 'enum(readiness=Готовност,contragents=Клиенти,execDate=Срок за изпълнение,dueDate=Дата на падеж)', 'caption=Подредба,after=precision');
 	}
 	
 	
@@ -197,7 +197,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 			}
 		}
 		
-		foreach (array('deliveryTime', 'dueDateMin', 'dueDateMax') as $dateFld){
+		foreach (array('deliveryTime', 'dueDateMin', 'dueDateMax', 'execDate') as $dateFld){
 			if(isset($dRec->{$dateFld})){
 				if($isPlain){
 					$row->{$dateFld} = frame_CsvLib::toCsvFormatData($dRec->{$dateFld});
@@ -331,83 +331,68 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 				$readiness = self::calcSaleReadiness($sRec);
 				core_Cache::set('sales_reports_ShipmentReadiness', "c{$sRec->containerId}", $readiness, 58);
 			}
-				
-			$dealerId = ($sRec->dealerId) ? $sRec->dealerId : (($sRec->activatedBy) ? $sRec->activatedBy : $sRec->createdBy);
-				
-			// Ако има някаква изчислена готовност
-			if($readiness !== FALSE && $readiness !== NULL){
-		
-				// И тя е в посочения диапазон
-				if(!isset($rec->precision) || (isset($rec->precision) && $readiness >= $rec->precision)){
-						
-					$delTime = (!empty($sRec->deliveryTime)) ? $sRec->deliveryTime : (!empty($sRec->deliveryTermTime) ?  dt::addSecs($sRec->deliveryTermTime, $sRec->valior) : NULL);
-					if(empty($delTime)){
-						$delTime = $Sales->getMaxDeliveryTime($sRec->id);
-						$delTime = ($delTime) ? dt::addSecs($delTime, $sRec->valior) : $sRec->valior;
-					}
-						
-					// Добавя се
-					$dRec = (object)array('containerId'       => $sRec->containerId,
-										  'contragentName'    => self::normalizeFolderName($sRec->folderId),
-										  'contragentClassId' => $sRec->contragentClassId,
-										  'contragentId'      => $sRec->contragentId,
-										  'deliveryTime'      => $delTime,
-										  'folderId'          => $sRec->folderId,
-										  'dealerId'          => $dealerId,
-										  'readiness'         => $readiness);
-						
-					$dueDates = $this->getSaleDueDates($sRec);
-					$dRec->dueDateMin = $dueDates['min'];
-					$dRec->dueDateMax = $dueDates['max'];
-					
-					$add = TRUE;
-					if(isset($rec->horizon)){
-						$horizon = dt::addSecs($rec->horizon);
-						$compareDate = isset($dRec->dueDateMin) ? $dRec->dueDateMin : (isset($dRec->dueDateMax) ? $dRec->dueDateMax : (isset($delTime) ? $delTime : NULL));
-						if(!empty($compareDate) && $compareDate > $horizon){
-							$add = FALSE;
-						}
-					}
-					
-					if($add === TRUE){
-						$recs[$sRec->containerId] = $dRec;
-					}
-				}
+			
+			$delTime = (!empty($sRec->deliveryTime)) ? $sRec->deliveryTime : (!empty($sRec->deliveryTermTime) ?  dt::addSecs($sRec->deliveryTermTime, $sRec->valior) : NULL);
+			if(empty($delTime)){
+				$delTime = $Sales->getMaxDeliveryTime($sRec->id);
+				$delTime = ($delTime) ? dt::addSecs($delTime, $sRec->valior) : $sRec->valior;
 			}
-				
-			// Всички чакащи ЕН-та от треда на продажбата
+			
+			$max = $readiness;
+			$minDel = $delTime;
+			
 			$shipQuery = store_ShipmentOrders::getQuery();
 			$shipQuery->where("#state = 'pending'");
 			$shipQuery->where("#threadId = {$sRec->threadId}");
-				
 			while($soRec = $shipQuery->fetch()){
-		
+				$deliveryTime = !empty($soRec->deliveryTime) ? $soRec->deliveryTime : $soRec->valior;
+				
 				// Изчислява им се готовността
 				$readiness1 = core_Cache::get('sales_reports_ShipmentReadiness', "c{$soRec->containerId}");
 				if($readiness1 === FALSE) {
 					$readiness1 = self::calcSoReadiness($soRec);
 					core_Cache::set('sales_reports_ShipmentReadiness', "c{$soRec->containerId}", $readiness1, 58);
 				}
-		
-				// Ако има изчислена готовност
-				if($readiness1 !== FALSE && $readiness1 !== NULL){
+				
+				$max = max($max, $readiness1);
+				
+				if(isset($deliveryTime)){
+					if(empty($minDel) || $deliveryTime < $minDel){
+						$minDel = $deliveryTime;
+					}
+				}
+			}
+			
+			if($max === FALSE || is_null($max)) continue;
+				
+			if(!isset($rec->precision) || (isset($rec->precision) && $max >= $rec->precision)){
+				$dealerId = ($sRec->dealerId) ? $sRec->dealerId : (($sRec->activatedBy) ? $sRec->activatedBy : $sRec->createdBy);
 						
-					// И тя е в посочения диапазон
-					if(isset($rec->precision) && $readiness1 < $rec->precision) continue;
+				$dueDates = $this->getSaleDueDates($sRec);
 						
-					$deliveryTime = !empty($soRec->deliveryTime) ? $soRec->deliveryTime : $soRec->valior;
+				$add = TRUE;
+				if(isset($rec->horizon)){
+					$horizon = dt::addSecs($rec->horizon);
+					$compareDate = isset($dueDates['min']) ? $dueDates['min'] : (isset($dueDates['max']) ? $dueDates['max'] : (isset($delTime) ? $delTime : NULL));
+					if(!empty($compareDate) && $compareDate > $horizon){
+						$add = FALSE;
+					}
+				}
 						
-					// Добавя се
-					$r = (object)array('containerId'       => $soRec->containerId,
-									   'contragentName'    => self::normalizeFolderName($soRec->folderId),
-									   'contragentClassId' => $sRec->contragentClassId,
-							           'contragentId'      => $sRec->contragentId,
-							           'deliveryTime'      => $deliveryTime,
-							           'folderId'          => $soRec->folderId,
-							           'dealerId'          => $dealerId,
-							           'readiness'         => $readiness1);
-						
-					$recs[$soRec->containerId] = $r;
+				if($add === TRUE){
+					$dRec = (object)array('containerId'       => $sRec->containerId,
+										  'contragentName'    => self::normalizeFolderName($sRec->folderId),
+										  'contragentClassId' => $sRec->contragentClassId,
+										  'contragentId'      => $sRec->contragentId,
+										  'deliveryTime'      => $delTime,
+										  'execDate'          => $minDel,
+										  'dueDateMin'        => $dueDates['min'],
+										  'dueDateMax'        => $dueDates['max'],
+										  'folderId'          => $sRec->folderId,
+										  'dealerId'          => $dealerId,
+										  'readiness'         => $max);
+			
+							$recs[$sRec->containerId] = $dRec;
 				}
 			}
 		}
@@ -429,8 +414,12 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 				return (strnatcasecmp($a->contragentName, $b->contragentName) < 0) ? -1 : 1;
 		
 			});
+		} elseif($rec->orderBy == 'execDate'){
+			arr::order($recs, 'execDate', 'ASC');
+			$data->groupByField = 'contragentName';
 		} elseif($rec->orderBy == 'dueDate'){
-			arr::order($recs, 'deliveryTime', 'DESC');
+			arr::order($recs, 'dueDateMin', 'ASC');
+			$data->groupByField = 'contragentName';
 		} else {
 				
 			// По дефолт се сортират по готовност във низходящ ред, при равенство по нормализираното име на контрагента
@@ -465,16 +454,30 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 		if($export === FALSE){
 			$fld->FLD('dealerId', 'varchar', 'smartCenter,caption=Търговец');
 			$fld->FLD('contragentName', 'varchar', 'caption=Клиент');
-			$fld->FLD('dueDates', 'varchar', 'tdClass=small,caption=Падеж');
-			$fld->FLD('deliveryTime', 'varchar', 'smartCenter,tdClass=small,caption=Доставка');
+			
+			if($rec->orderBy != 'execDate'){
+				$fld->FLD('dueDates', 'varchar', 'tdClass=small,caption=Падеж');
+			}
+			
+			if($rec->orderBy != 'dueDate'){
+				$fld->FLD('execDate', 'varchar', 'smartCenter,tdClass=small,caption=Изпълнение');
+			}
+			
 			$fld->FLD('document', 'varchar', 'smartCenter,caption=Документ');
 			$fld->FLD('readiness', 'double', 'caption=Готовност');
 		} else {
 			$fld->FLD('dealerId', 'varchar','caption=Търговец');
 			$fld->FLD('contragentName', 'varchar','caption=Клиент');
-			$fld->FLD('dueDateMin', 'varchar','caption=Падеж мин');
-			$fld->FLD('dueDateMax', 'varchar','caption=Падеж макс');
-			$fld->FLD('deliveryTime', 'varchar','caption=Доставка');
+			
+			if($rec->orderBy != 'execDate'){
+				$fld->FLD('dueDateMin', 'varchar','caption=Падеж мин');
+				$fld->FLD('dueDateMax', 'varchar','caption=Падеж макс');
+			}
+				
+			if($rec->orderBy != 'dueDate'){
+				$fld->FLD('execDate', 'varchar','caption=Изпълнение');
+			}
+			
 			$fld->FLD('document', 'varchar','caption=Документ');
 			$fld->FLD('readiness', 'varchar','caption=Готовност %');
 		}
