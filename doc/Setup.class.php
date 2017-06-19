@@ -248,7 +248,8 @@ class doc_Setup extends core_ProtoSetup
     	'migrate::migratePending1',
         'migrate::showFiles',
         'migrate::addCountryIn2LgFolders2',
-        'migrate::addFirstDocClassAndId'
+        'migrate::addFirstDocClassAndId',
+        'migrate::receiveEmailUnsorted'
     );
 	
     
@@ -792,5 +793,28 @@ class doc_Setup extends core_ProtoSetup
         
         return $this->callMigrate('threadsVisibleForPartners', 'doc');
         return $this->callMigrate('addDefaultNotifyOptions', 'doc');
+    }
+    
+    
+    /**
+     * Миграция, която добавя в "Несортирани - " да може да се рутират имейли
+     */
+    public static function receiveEmailUnsorted()
+    {
+        $uInst = cls::get('doc_UnsortedFolders');
+        $uQuery = $uInst->getQuery();
+        $uQuery->where("#receiveEmail IS NULL");
+        
+        $namePattern = sprintf(email_Setup::get('UNSORTABLE_COUNTRY'), '');
+        
+        while ($uRec = $uQuery->fetch()) {
+            if (stripos($uRec->name, $namePattern) === FALSE) {
+                $uRec->receiveEmail = 'no';
+            } else {
+                $uRec->receiveEmail = 'yes';
+            }
+            
+            $uInst->save_($uRec, 'receiveEmail');
+        }
     }
 }
