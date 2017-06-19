@@ -255,9 +255,8 @@ class unit_MinkPProducts extends core_Manager {
             $browser->click('Добавяне на ново задание за производство');
             $valior=strtotime("+1 Day");
             $browser->setValue('dueDate', date('d-m-Y', $valior));
-            $browser->setValue('quantity', '1000');
+            $browser->setValue('packQuantity', '1000');
             $browser->setValue('notes', 'CreatePlanningJob');
-    
             $browser->press('Чернова');
             $browser->press('Активиране');
             //Добавяне на задача
@@ -270,7 +269,7 @@ class unit_MinkPProducts extends core_Manager {
             //Произвеждане и влагане
             $browser->press('Произвеждане'); 
             //$browser->press('Добавяне на произведен артикул');
-            $browser->setValue('quantity', '1000');
+            $browser->setValue('quantity', '100000');
             $browser->setValue('employees[4]', '4');
             $browser->press('Запис');
             $browser->press('Влагане');

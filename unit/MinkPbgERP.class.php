@@ -109,7 +109,7 @@ class unit_MinkPbgERP extends core_Manager {
         $res .= "  21.".$this->act_CreateEditPerson();
         $res .= "  22.".$this->act_CreateCompany();
         $res .= "  23.".$this->act_EditCompany();
-        $res .= "  24.".$this->act_CreateLocation1();
+        //$res .= "  24.".$this->act_CreateLocation1();
         $res .= "  25.".$this->act_CreateLocation2();
         $res .= "  26.".$this->act_CreateEditCompany();
         $res .= "  27.".$this->act_CreateInq();
@@ -1028,7 +1028,7 @@ class unit_MinkPbgERP extends core_Manager {
          
         //$browser->setValue('bankAccountId', '');
         $browser->setValue('deliveryTermId', 'EXW');
-        $browser->setValue('deliveryLocationId', '1');
+        //$browser->setValue('deliveryLocationId', '1');
         $browser->setValue('note', 'MinkPTestCreatePurchase');
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
@@ -1289,7 +1289,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('bankAccountId', '#BG11CREX92603114548401');
         $browser->setValue('note', 'MinkPbgErpCreateSale');
         $browser->setValue('deliveryTermId', 'DDP');
-        $browser->setValue('deliveryLocationId', '1');
+        //$browser->setValue('deliveryLocationId', '1');
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         // Записване черновата на продажбата
