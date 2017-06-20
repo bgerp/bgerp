@@ -31,7 +31,7 @@ class tcost_Fees extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, tcost_Wrapper, plg_AlignDecimals2";
+    public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, tcost_Wrapper, plg_AlignDecimals2, plg_SaveAndNew";
 
 
     /**
@@ -196,7 +196,8 @@ class tcost_Fees extends core_Detail
         // Преглеждаме базата за зоните, чиито id съвпада с въведенето
         $query = self::getQuery();
         $query->where(array("#feeId = [#1#]", $zone['zoneId']));
-		
+        $query->orderBy('#weight');
+        
         while($rec = $query->fetch()){
             // Определяме следните променливи - $weightsLeft, $weightsRight, $smallestWeight, $biggestWeight
             if (!isset($smallestWeight) || $smallestWeight > $rec->weight) {

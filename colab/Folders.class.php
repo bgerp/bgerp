@@ -237,9 +237,9 @@ class colab_Folders extends core_Manager
 	
 	
 	/**
-	 * Броя на записите
+	 * Броя на споделените папки на потребителя
 	 */
-	public static function count($cond = '1=1', $limit = NULL)
+	public static function getSharedFoldersCount()
 	{
 		$cu = core_Users::getCurrent('id');
 		

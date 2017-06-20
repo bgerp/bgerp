@@ -735,7 +735,14 @@ class doc_Folders extends core_Master
         unset($notifyArr[-1]);
         unset($notifyArr[$currUserId]);
         
-        $resArr[$rec->id] = $notifyArr;
+        $rNotifyArr = array();
+        foreach ($notifyArr as $kUId => $uId) {
+            if (doc_Folders::haveRightFor('single', $rec->folderId, $uId)) {
+                $rNotifyArr[$kUId] = $uId;
+            }
+        }
+        
+        $resArr[$rec->id] = $rNotifyArr;
         
         return $resArr[$rec->id];
     }

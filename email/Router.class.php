@@ -425,9 +425,7 @@ class email_Router extends core_Manager
                 // Спираме рутирането до проекти, които не са Несортирани
                 if (!$stopRoutingArr[$key] && $rRoute) {
                     if ($coverRec && ($cover->instance instanceof doc_UnsortedFolders)) {
-                        $namePattern = sprintf(email_Setup::get('UNSORTABLE_COUNTRY'), '');
-                        
-                        if (stripos($coverRec->name, $namePattern) === FALSE) {
+                        if ($coverRec->receiveEmail != 'yes') {
                             $stopRoutingArr[$key] = TRUE;
                         }
                     }

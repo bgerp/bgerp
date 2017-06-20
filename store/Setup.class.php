@@ -120,7 +120,7 @@ class store_Setup extends core_ProtoSetup
             'description' => "Обновяване на резервираните наличности",
             'controller' => "store_Products",
             'action' => "CalcReservedQuantity",
-            'period' => 10,
+            'period' => 5,
         	'offset' => 1,
             'timeLimit' => 100
         ),

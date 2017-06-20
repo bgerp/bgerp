@@ -54,7 +54,7 @@ class cms_ExternalWrapper extends plg_ProtoWrapper
     	$threadId = Request::get('threadId', 'int');
     	$folderId = Request::get('folderId', 'key(mvc=doc_Folders,select=title)');
     	
-    	if(colab_Folders::count() > 1){
+    	if(colab_Folders::getSharedFoldersCount() > 1){
     		$this->TAB('colab_Folders', 'Папки', 'partner');
     	} else {
     		$query = colab_Folders::getQuery();
