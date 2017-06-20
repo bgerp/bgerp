@@ -93,7 +93,7 @@ class store_InventoryNotes extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_Wrapper,acc_plg_Contable,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search,bgerp_plg_Blank';
+    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_Wrapper,acc_plg_Contable,plg_Clone,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search,bgerp_plg_Blank';
     
     
     /**
@@ -154,6 +154,22 @@ class store_InventoryNotes extends core_Master
      * Дали в листовия изглед да се показва бутона за добавяне
      */
     public $listAddBtn = FALSE;
+    
+
+    /**
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     *
+     * @see plg_Clone
+     */
+    public $cloneDetails = 'store_InventoryNoteSummary,store_InventoryNoteDetails';
+    
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'valior';
     
     
     /**

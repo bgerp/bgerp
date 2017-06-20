@@ -59,19 +59,25 @@ class crm_CommerceDetails extends core_Manager
 		$tpl->replace(tr('Търговия'), 'title');
 		
 		// Рендираме ценовата информация
-		$listsTpl = $data->Lists->renderPricelists($data->listData);
-		$listsTpl->removeBlocks();
-		$tpl->append($listsTpl, 'LISTS');
+		if(!empty($data->Lists)){
+			$listsTpl = $data->Lists->renderPricelists($data->listData);
+			$listsTpl->removeBlocks();
+			$tpl->append($listsTpl, 'LISTS');
+		}
 		
 		// Рендираме търговските условия
-		$condTpl = $data->Conditions->renderCustomerSalecond($data->condData);
-		$condTpl->removeBlocks();
-		$tpl->append($condTpl, 'CONDITIONS');
+		if(!empty($data->Conditions)){
+			$condTpl = $data->Conditions->renderCustomerSalecond($data->condData);
+			$condTpl->removeBlocks();
+			$tpl->append($condTpl, 'CONDITIONS');
+		}
 		
 		// Рендираме клиентските карти
-		$cardTpl = $data->Cards->renderCards($data->cardData);
-		$cardTpl->removeBlocks();
-		$tpl->append($cardTpl, 'CARDS');
+		if(!empty($data->Cards)){
+			$cardTpl = $data->Cards->renderCards($data->cardData);
+			$cardTpl->removeBlocks();
+			$tpl->append($cardTpl, 'CARDS');
+		}
 		
 		return $tpl;
 	}

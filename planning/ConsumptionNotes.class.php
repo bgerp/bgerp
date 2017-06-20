@@ -2,7 +2,7 @@
 
 
 /**
- * Клас 'planning_ConsumptionNotes' - Документ за Протокол за влагане
+ * Клас 'planning_ConsumptionNotes' - Документ за Протокол за влагане в производството
  *
  * 
  *
@@ -10,18 +10,12 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class planning_ConsumptionNotes extends deals_ManifactureMaster
 {
-	
-	
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'mp_ConsumptionNotes';
 	
 	
 	/**
@@ -195,5 +189,33 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 		if(isset($rec->departmentId)){
 			$row->departmentId = hr_Departments::getHyperlink($rec->departmentId, TRUE);
 		}
+	}
+	
+	
+	/**
+	 * Изпълнява се след създаване на нов запис
+	 */
+	public static function on_AfterCreate($mvc, $rec)
+	{
+		// Ако първия документ в нишката е задание
+		$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+		if(!$firstDoc) return;
+		
+		if(!$firstDoc->isInstanceOf('planning_Jobs')) return; 
+		$productId = $firstDoc->fetchField('productId');
+		
+		// И по артикула има рецепта
+		$bomId = cat_Products::getLastActiveBom($productId, 'production');
+		$bomId = (!empty($bomId)) ? $bomId : cat_Products::getLastActiveBom($productId, 'sales');
+		if(empty($bomId)) return;
+		
+		// Взимате се материалите за производството на к-то от заданието
+		$details = cat_Boms::getBomMaterials($bomId, $firstDoc->fetchField('quantity'), $rec->storeId);
+		if(!count($details)) return;
+		
+		// Записват се детайлите
+		$id = $rec->id;
+		array_walk($details, function(&$obj) use ($id){ $obj->noteId = $id;});
+		cls::get('planning_ConsumptionNoteDetails')->saveArray($details);
 	}
 }

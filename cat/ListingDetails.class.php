@@ -25,25 +25,25 @@ class cat_ListingDetails extends doc_Detail
 	/**
 	 * Кой  може да изтрива?
 	 */
-	public $canDelete = 'cat, ceo';
+	public $canDelete = 'listArt, ceo';
 	
 	
 	/**
 	 * Кой  може да добавя?
 	 */
-	public $canAdd = 'cat, ceo';
+	public $canAdd = 'listArt, ceo';
 	
 	
 	/**
 	 * Кой  може да листва?
 	 */
-	public $canList = 'debug';
+	public $canList = 'no_one';
 	
 	
 	/**
 	 * Кой  може да редактира?
 	 */
-	public $canEdit = 'cat, ceo';
+	public $canEdit = 'listArt, ceo';
 	
 	
 	/**

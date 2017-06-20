@@ -13,6 +13,7 @@
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
+ * @deprecated
  */
 class store_ReserveStockDetails extends doc_Detail
 {
@@ -45,19 +46,19 @@ class store_ReserveStockDetails extends doc_Detail
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, store, planning, sales';
+    public $canEdit = 'no_one';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, store, planning, sales';
+    public $canAdd = 'no_one';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo, store, planning, sales';
+    public $canDelete = 'no_one';
     
     
     /**
@@ -414,20 +415,7 @@ class store_ReserveStockDetails extends doc_Detail
      */
     private function getDefaultDetailsFromBom($bomId, $quantity)
     {
-    	$res = array();
-    	
-    	$bomInfo = cat_Boms::getResourceInfo($bomId, $quantity, dt::now());
-    	if(count($bomInfo['resources'])){
-    		foreach ($bomInfo['resources'] as $pRec){
-    			$canStore = cat_Products::fetchField($pRec->productId, 'canStore');
-    			if($canStore != 'yes' || $pRec->type != 'input') continue;
-    				
-    			$res[] = (object)array('productId'      => $pRec->productId,
-    					               'packagingId'    => $pRec->packagingId,
-    					               'quantity'       => $pRec->propQuantity,
-    					               'quantityInPack' => $pRec->quantityInPack);
-    		}
-    	}
+    	$res = cat_Boms::getBomMaterials($bomId, $quantity);
     	
     	return $res;
     }

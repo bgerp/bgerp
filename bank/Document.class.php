@@ -35,7 +35,7 @@ abstract class bank_Document extends deals_PaymentDocument
 	 * Неща, подлежащи на начално зареждане
 	 */
 	public $loadList = 'plg_RowTools2, bank_Wrapper, acc_plg_RejectContoDocuments, acc_plg_Contable,
-         plg_Sorting, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary,doc_plg_HidePrices,
+         plg_Sorting, plg_Clone, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary,doc_plg_HidePrices,
          plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, doc_EmailCreatePlg, doc_SharablePlg';
 	
 	
@@ -124,6 +124,14 @@ abstract class bank_Document extends deals_PaymentDocument
 	 * Дали в листовия изглед да се показва бутона за добавяне
 	 */
 	public $listAddBtn = FALSE;
+	
+	
+	/**
+	 * Полета, които при клониране да не са попълнени
+	 *
+	 * @see plg_Clone
+	 */
+	public $fieldsNotToClone = 'amountDeal,termDate,amount,valior';
 	
 	
 	/**

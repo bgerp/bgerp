@@ -102,12 +102,12 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 					if($mvc->haveRightFor('import')){
 						
 						// Обработваме и проверяваме данните
-						if($msg = self::checkRows($rows, $fields, $rec->folderId)){
+						if($msg = self::checkRows($rows, $fields, $rec->folderId, $mvc)){
 							$form->setError('csvData', $msg);
 						}
 						
 						if(!$form->gotErrors()){
-							
+						
 							// Импортиране на данните от масива в зададените полета
 							$msg = self::importRows($mvc, $rec->{$mvc->masterKey}, $rows, $fields);
 							
@@ -137,7 +137,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 	/**
 	 * Проверява и обработва записите за грешки
 	 */
-	private static function checkRows(&$rows, $fields, $folderId)
+	private static function checkRows(&$rows, $fields, $folderId, $mvc)
 	{
 		$err = array();
 		$msg = FALSE;
@@ -203,7 +203,8 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 			
 			if(!isset($obj->price)){
 				$Cover = doc_Folders::getCover($folderId);
-				$policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($Cover->getInstance()->getClassId(), $Cover->that, $pRec->productId, NULL, 1);
+				$Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
+				$policyInfo = $Policy->getPriceInfo($Cover->getInstance()->getClassId(), $Cover->that, $pRec->productId, NULL, 1);
 				
 				if(empty($policyInfo->price)){
 					$err[$i][] = $obj->code . " |Артикулът няма цена|*";
