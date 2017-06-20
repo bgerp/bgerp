@@ -459,7 +459,8 @@ class store_Products extends core_Detail
     			if(!isset($reserved)){
     				$reserved = array();
     				$Detail = cls::get($arr['Detail']);
-    				 
+    				setIfNot($Detail->productFieldName, 'productId');
+    				
     				$shQuery = $Detail->getQuery();
     				
     				$isCp = ($arr['Detail'] == 'store_ConsignmentProtocolDetailsSend');
