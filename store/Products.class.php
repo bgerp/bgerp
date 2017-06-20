@@ -505,7 +505,7 @@ class store_Products extends core_Detail
     	foreach ($queue as $arr){
     		foreach ($arr as $key => $obj){
     			if(!array_key_exists($key, $result)){
-    				$result[$key] = (object)array('storeId' => $obj['sId'], 'productId' => $obj['pId'], 'reservedQuantity' => $obj['q']);
+    				$result[$key] = (object)array('storeId' => $obj['sId'], 'productId' => $obj['pId'], 'reservedQuantity' => $obj['q'], 'state' => 'active');
     			} else {
     				$result[$key]->reservedQuantity += $obj['q'];
     			}
