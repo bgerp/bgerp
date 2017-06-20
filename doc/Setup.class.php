@@ -790,9 +790,12 @@ class doc_Setup extends core_ProtoSetup
      */
     function loadSetupData($itr = '')
     {
+        $res = $this->callMigrate('threadsVisibleForPartners', 'doc');
+        $res .= $this->callMigrate('addDefaultNotifyOptions', 'doc');
         
-        return $this->callMigrate('threadsVisibleForPartners', 'doc');
-        return $this->callMigrate('addDefaultNotifyOptions', 'doc');
+        $res .= parent::loadSetupData($itr);
+        
+        return $res;
     }
     
     
