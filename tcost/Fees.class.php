@@ -196,7 +196,8 @@ class tcost_Fees extends core_Detail
         // Преглеждаме базата за зоните, чиито id съвпада с въведенето
         $query = self::getQuery();
         $query->where(array("#feeId = [#1#]", $zone['zoneId']));
-		
+        $query->orderBy('#weight');
+        
         while($rec = $query->fetch()){
             // Определяме следните променливи - $weightsLeft, $weightsRight, $smallestWeight, $biggestWeight
             if (!isset($smallestWeight) || $smallestWeight > $rec->weight) {
