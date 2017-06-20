@@ -13,6 +13,7 @@
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
+ * @deprecated
  */
 class store_ReserveStockDetails extends doc_Detail
 {
@@ -45,19 +46,19 @@ class store_ReserveStockDetails extends doc_Detail
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, store, planning, sales';
+    public $canEdit = 'no_one';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, store, planning, sales';
+    public $canAdd = 'no_one';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo, store, planning, sales';
+    public $canDelete = 'no_one';
     
     
     /**
