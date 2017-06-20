@@ -31,7 +31,7 @@ class tcost_Fees extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, tcost_Wrapper, plg_AlignDecimals2";
+    public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, tcost_Wrapper, plg_AlignDecimals2, plg_SaveAndNew";
 
 
     /**

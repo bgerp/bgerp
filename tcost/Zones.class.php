@@ -31,7 +31,7 @@ class tcost_Zones extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, tcost_Wrapper";
+    public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, tcost_Wrapper, plg_SaveAndNew";
 
 
     /**
