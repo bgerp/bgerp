@@ -137,13 +137,16 @@ class core_Permanent extends core_Manager
     	// Опит за извличане на данни
     	$rec = self::fetch(array($where, $key), 'data', FALSE);
     	
-    	Debug::log("PERMANENT_CACHE::get {$key} - no exists");
-    	if(empty($rec) || !is_object($rec->data)) return NULL;
+    	if(empty($rec) || !is_object($rec->data)){
+    		Debug::log("PERMANENT_CACHE::get {$key} - no exists");
+    		
+    		return NULL;
+    	}
     	
     	// Връщане на кешираните данни
     	$value = $rec->data->value;
-    	
     	Debug::log("PERMANENT_CACHE::get {$key} - success");
+    	
     	return $value;
     }
     
