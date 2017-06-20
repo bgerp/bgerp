@@ -273,8 +273,9 @@ class planning_Jobs extends core_Master
     	
     	if(isset($rec->saleId)){
     		$saleRec = sales_Sales::fetch($rec->saleId);
-    		$dQuantity = sales_SalesDetails::fetchField("#saleId = {$rec->saleId} AND #productId = {$rec->productId}", 'quantity');
-    		$form->setDefault('quantity', $dQuantity);
+    		$dRec = sales_SalesDetails::fetch("#saleId = {$rec->saleId} AND #productId = {$rec->productId}");
+    		$form->setDefault('packagingId', $dRec->packagingId);
+    		$form->setDefault('packQuantity', $dRec->packQuantity);
     		
     		// Ако има данни от продажба, попълваме ги
     		$form->setDefault('deliveryTermId', $saleRec->deliveryTermId);
@@ -283,6 +284,8 @@ class planning_Jobs extends core_Master
     		$locations = crm_Locations::getContragentOptions($saleRec->contragentClassId, $saleRec->contragentId);
     		$form->setOptions('deliveryPlace', $locations);
     		$caption = "|Данни от|* <b>" . sales_Sales::getRecTitle($rec->saleId) . "</b>";
+    		$caption = str_replace(', ', ' ', $caption);
+    		$caption = str_replace(',', ' ', $caption);
     		
     		$form->setField('deliveryTermId', "caption={$caption}->Условие,changable");
     		$form->setField('deliveryDate', "caption={$caption}->Срок,changable");
@@ -313,7 +316,6 @@ class planning_Jobs extends core_Master
     	}
     	
     	$form->setDefault('packagingId', key($packs));
-    	
     	$departments = cls::get('hr_Departments')->makeArray4Select('name', "#type = 'workshop'", 'id');
     	$form->setOptions('department', array('' => '') + $departments);
     }
