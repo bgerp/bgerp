@@ -464,8 +464,15 @@ class store_Products extends core_Detail
     				$shQuery = $Detail->getQuery();
     				
     				$isCp = ($arr['Detail'] == 'store_ConsignmentProtocolDetailsSend');
-    				$suMFld = ($isCp) ? 'packQuantity' : 'quantity';
-    				$shQuery->XPR('sum', 'double', "SUM(#{$suMFld})");
+    				
+    				if($isCp){
+    					$suMFld = 'packQuantity';
+    					$shQuery->XPR('sum', 'double', "SUM(#{$suMFld} * #quantityInPack)");
+    				} else {
+    					$suMFld = 'quantity';
+    					$shQuery->XPR('sum', 'double', "SUM(#{$suMFld})");
+    				}
+    				
     				$shQuery->where("#{$Detail->masterKey} = {$sRec->id}");
     				$isPn = ($arr['Detail'] == 'planning_DirectProductNoteDetails');
     				
@@ -483,9 +490,7 @@ class store_Products extends core_Detail
     					$storeId = ($isPn) ? $sd->storeId : $sRec->{$storeField};
     					$key = "{$storeId}|{$sd->{$Detail->productFieldName}}";
     					
-    					$sum = ($isCp) ? $sd->sum * $sd->quantityInPack : $sd->sum;
-    					
-    					$reserved[$key] = array('sId' => $storeId, 'pId' => $sd->{$Detail->productFieldName}, 'q' => $sum);
+    					$reserved[$key] = array('sId' => $storeId, 'pId' => $sd->{$Detail->productFieldName}, 'q' => $sd->sum);
     				}
     				
     				// Кеширане
