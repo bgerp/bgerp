@@ -46,6 +46,7 @@ class spcheck_Setup extends core_ProtoSetup
      */
     var $managers = array(
         'spcheck_Dictionary',
+        'migrate::addLg'
     );
         
     
@@ -78,5 +79,24 @@ class spcheck_Setup extends core_ProtoSetup
         $html .= $Plugins->forcePlugin('Spell Check', 'spcheck_Plugin', 'core_Master', 'family');
         
         return $html;
+    }
+    
+    
+    /**
+     * Миграция за попълване на езика за думите
+     */
+    public static function addLg()
+    {
+        $Dictionary = cls::get('spcheck_Dictionary');
+        $lQuery = $Dictionary->getQuery();
+        $lQuery->where("#lg IS NULL");
+        
+        $defLg = core_Lg::getDefaultLang();
+        
+        while ($lRec = $lQuery->fetch()) {
+            $lRec->lg = $defLg;
+            
+            $Dictionary->save_($lRec, 'lg');
+        }
     }
 }
