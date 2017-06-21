@@ -651,6 +651,7 @@ abstract class store_DocumentMaster extends core_Master
     public static function getRecTitle($rec, $escaped = TRUE)
     {
     	$self = cls::get(get_called_class());
+    	$rec = self::fetchRec($rec);
     	
     	return tr("|{$self->singleTitle}|* №") . $rec->id;
     }
