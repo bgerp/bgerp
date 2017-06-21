@@ -157,13 +157,15 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		$this->delete("#{$this->masterKey} = {$id}");
 		$firstDoc = doc_Threads::getFirstDocument($invoiceRec->threadId);
 		$dealInfo = $firstDoc->getAggregateDealInfo();
-		 
+		
 		// За всеки артикул от договора, копира се 1:1
 		$productsToSave =  $dealInfo->dealProducts;
 		if(is_array($dealInfo->dealProducts)){
 			foreach ($dealInfo->dealProducts as $det){
 				$det->{$this->masterKey} = $id;
+				$det->amount = $det->price * $det->quantity;
 				$det->quantity /= $det->quantityInPack;
+				
 				$this->save($det);
 			}
 		}
