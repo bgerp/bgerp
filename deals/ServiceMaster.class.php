@@ -99,6 +99,9 @@ abstract class deals_ServiceMaster extends core_Master
 	 */
 	public static function on_AfterCreate($mvc, $rec)
 	{
+		// Ако документа е клониран пропуска се
+		if($rec->_isClone === TRUE) return;
+		
 		$origin = $mvc->getOrigin($rec);
 	
 		// Ако новосъздадения документ има origin, който поддържа bgerp_AggregateDealIntf,

@@ -197,6 +197,9 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	 */
 	public static function on_AfterCreate($mvc, $rec)
 	{
+		// Ако документа е клониран пропуска се
+		if($rec->_isClone === TRUE) return;
+		
 		// Ако първия документ в нишката е задание
 		$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
 		if(!$firstDoc) return;
