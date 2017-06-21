@@ -222,7 +222,7 @@ class store_ShipmentOrders extends store_DocumentMaster
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = '';
+    public $fieldsNotToClone = 'valior, amountDelivered, amountDeliveredVat, amountDiscount, deliveryTime, ';
     
     
     /**
