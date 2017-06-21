@@ -86,6 +86,7 @@ class store_Products extends core_Detail
         
         $this->setDbUnique('productId, storeId');
         $this->setDbIndex('productId');
+        $this->setDbIndex('storeId');
     }
     
     
@@ -433,11 +434,14 @@ class store_Products extends core_Detail
      */
     function cron_CalcReservedQuantity()
     {
+    	core_Debug::$isLogging = FALSE;
+    	core_App::setTimeLimit(200);
+    	
     	$docArr = array('store_ShipmentOrders'          => array('storeFld' => 'storeId', 'Detail' => 'store_ShipmentOrderDetails'), 
     					'store_Transfers'               => array('storeFld' => 'fromStore', 'Detail' => 'store_TransfersDetails'), 
     					'planning_ConsumptionNotes'     => array('storeFld' => 'storeId', 'Detail' => 'planning_ConsumptionNoteDetails'),
     					'planning_DirectProductionNote' => array('storeFld' => 'storeId', 'Detail' => 'planning_DirectProductNoteDetails'),
-    			        'store_ConsignmentProtocols' => array('storeFld' => 'storeId', 'Detail' => 'store_ConsignmentProtocolDetailsSend'),
+    			        'store_ConsignmentProtocols'    => array('storeFld' => 'storeId', 'Detail' => 'store_ConsignmentProtocolDetailsSend'),
     	);
     	
     	$result = $queue = array();
@@ -547,5 +551,6 @@ class store_Products extends core_Detail
     		 
     	// Освобождаване на процеса
     	core_Locks::release(self::SYNC_LOCK_KEY);
+    	core_Debug::$isLogging = TRUE;
     }
 }

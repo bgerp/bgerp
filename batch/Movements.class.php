@@ -75,6 +75,9 @@ class batch_Movements extends core_Detail {
     	$this->FLD('docType', 'class(interface=doc_DocumentIntf)', 'caption=Документ вид');
     	$this->FLD('docId', 'int', 'caption=Документ номер');
     	$this->FLD('date', 'date', 'caption=Дата');
+    	
+    	$this->setDbIndex('itemId');
+    	$this->setDbIndex('operation');
     }
     
     
