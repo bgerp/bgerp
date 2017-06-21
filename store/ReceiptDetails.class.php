@@ -38,7 +38,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
      */
     public $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_SaveAndNew, plg_RowNumbering,Policy=purchase_PurchaseLastPricePolicy, 
                         plg_AlignDecimals2, plg_Sorting, doc_plg_HidePrices, ReverseLastPricePolicy=sales_SalesLastPricePolicy, 
-                        Policy=purchase_PurchaseLastPricePolicy, plg_PrevAndNext';
+                        Policy=purchase_PurchaseLastPricePolicy, plg_PrevAndNext,deals_plg_ImportDealDetailProduct';
     
     
     /**
@@ -57,6 +57,12 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo, store, purchase, sales';
+    
+    
+    /**
+     * Кой има право да импортира?
+     */
+    public $canImport = 'ceo, store, purchase, sales';
     
     
     /**
@@ -174,6 +180,62 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     	if($masterRec->isReverse == 'yes'){
     		$res->operation['in'] = $masterRec->storeId;
     		unset($res->operation['out']);
+    	}
+    }
+    
+    
+    /**
+     * Импортиране на артикул генериран от ред на csv файл
+     *
+     * @param int $masterId - ид на мастъра на детайла
+     * @param array $row - Обект представляващ артикула за импортиране
+     * 					->code - код/баркод на артикула
+     * 					->quantity - К-во на опаковката или в основна мярка
+     * 					->price - цената във валутата на мастъра, ако няма се изчислява директно
+     * 					->pack - Опаковката
+     * @return  mixed - резултата от експорта
+     */
+    function import($masterId, $row)
+    {
+    	$pRec = cat_Products::getByCode($row->code);
+    	$rec = new stdClass();
+    	$rec->receiptId = $masterId;
+    	$rec->productId = $pRec->productId;
+    	$rec->packagingId = (isset($pRec->packagingId)) ? $pRec->packagingId : $row->pack;
+    	$rec->price = NULL;
+    	$rec->isEdited = TRUE;
+    	
+    	$pack = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
+    	$rec->quantityInPack = ($pack) ? $pack->quantity : 1;
+    	$rec->quantity = $row->quantity * $rec->quantityInPack;
+    	
+    	// Ако има цена я обръщаме в основна валута без ддс, спрямо мастъра на детайла
+    	$masterRec = store_Receipts::fetch($masterId);
+    	if($row->price){
+    		$rec->price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($rec->productId), $masterRec->currencyRate, $masterRec->chargeVat);
+    	} else {
+    		$policyInfo = cls::get('purchase_PurchaseLastPricePolicy')->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat);
+    		$rec->price = $policyInfo->price;
+    	}
+    	
+    	if(!empty($row->batch)){
+    		$rec->batch = $row->batch;
+    	}
+    	
+    	return $this->save($rec);
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'import' && isset($rec)){
+    		$isReverse = $mvc->Master->fetchField($rec->receiptId, 'isReverse');
+    		if($isReverse == 'yes'){
+    			$requiredRoles = 'no_one';
+    		}
     	}
     }
 }
