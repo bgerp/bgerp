@@ -94,6 +94,10 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 					$rows = csv_Lib::getCsvRows($data, $delimiter, $rec->enclosure, $rec->firstRow);
 					$fields = array('code' => $rec->codecol, 'quantity' => $rec->quantitycol, 'price' => $rec->pricecol, 'pack' => $rec->packcol);
 					
+					if(core_Packs::isInstalled('batch')){
+						$fields['batch'] = $rec->batchcol;
+					}
+					
 					if(!count($rows)){
 						$form->setError('csvData,csvFile', 'Не са открити данни за импорт');
 					}
@@ -143,6 +147,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 		$msg = FALSE;
 		
 		$isPartner = core_Users::haveRole('partner');
+		$batchInstalled = core_Packs::isInstalled('batch');
 		
 		foreach ($rows as $i => &$row){
 			$hasError = FALSE;
@@ -152,12 +157,12 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 								 'quantity' => $row[$fields['quantity']],
 								 'pack'     => ($row[$fields['pack']]) ? $row[$fields['pack']] : NULL,
 					             'price'    => $row[$fields['price']] ? $row[$fields['price']] : NULL,
+								 'batch'     => ($row[$fields['batch']]) ? $row[$fields['batch']] : NULL,
 			);
 		
 			// Подсигуряваме се, че подадените данни са във вътрешен вид
 			$obj->code = cls::get('type_Varchar')->fromVerbal($obj->code);
 			$obj->quantity = cls::get('type_Double')->fromVerbal($obj->quantity);
-			
 			
             if(!strlen($obj->code)){
 				$err[$i][] = $obj->code . ' |Липсващ код|*';
@@ -237,6 +242,27 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 				}
 			}
 			
+			// Ако е инсталиран пакета за партидност и има партида
+			if($batchInstalled && isset($obj->batch) && isset($pRec->productId)){
+				if($batchDef = batch_Defs::getBatchDef($pRec->productId)){
+					$batchType = $batchDef->getBatchClassType();
+					$obj->batch = $batchType->fromVerbal($obj->batch);
+					if(!$obj->batch){
+						$err[$i][] = $obj->batch . " |{$batchType->error}|*";
+						continue;
+					}
+					$obj->batch = $batchDef->denormalize($obj->batch);
+					if(!$batchDef->isValid($obj->batch, $obj->quantity, $msg)){
+						$msg = str_replace(',', ' ', $msg);
+						$err[$i][] = $obj->batch . " |{$msg}|*";
+						continue;
+					}
+				} else {
+					$err[$i][] = $obj->batch . ' |Продукта не поддържа партидност|*';
+					continue;
+				}
+			}
+			
 			if($isPartner === TRUE){
 				unset($obj->price);
 			}
@@ -264,7 +290,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 	private static function importRows($mvc, $masterId, $rows, $fields)
 	{
 		$added = $failed = 0;
-	
+		
 		foreach ($rows as $row){
 				
 			// Опитваме се да импортираме записа
@@ -336,6 +362,11 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 		if(!core_Users::haveRole('partner')){
 			$form->FLD('pricecol', 'int', 'caption=Съответствие в данните->Цена,unit=колона');
 			$fields[] = 'pricecol';
+		}
+		
+		if(core_Packs::isInstalled('batch')){
+			$form->FLD('batchcol', 'int', 'caption=Съответствие в данните->Партида,unit=колона');
+			$fields[] = 'batchcol';
 		}
 		
 		foreach ($fields as $i => $fld){

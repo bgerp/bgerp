@@ -101,6 +101,7 @@ class cat_products_Packagings extends core_Detail
         $this->FLD('eanCode', 'gs1_TypeEan', 'caption=Код->EAN');
         
         $this->setDbUnique('productId,packagingId');
+        $this->setDbIndex('productId');
     }
     
     

@@ -104,9 +104,9 @@
 		                    <!--ET_BEGIN depositor-->
                               <div>|Броил|*: [#depositor#]</div>
                             <!--ET_END depositor-->
-                            <!--ET_BEGIN cashier-->
+                            <!--ET_BEGIN activatedBy-->
                               <div>|Касиер|*: [#activatedBy#]</div>
-                             <!--ET_END cashier-->
+                             <!--ET_END activatedBy-->
 		                    </td>
 		                </tr>
 		            </table>

@@ -41,6 +41,7 @@ class batch_definitions_Document extends batch_definitions_Proto
 		
 		$handle = mb_strtoupper($Class->getHandle($dRec->id));
 		$date = $dRec->{$Class->valiorFld};
+		$date = (!empty($date)) ? $date : dt::today();
 		$date = str_replace('-', '', $date);
 		
 		$res = "{$date}-{$handle}";

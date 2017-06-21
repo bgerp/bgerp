@@ -84,6 +84,10 @@ class planning_TaskActions extends core_Manager
 		$this->FLD('serial', 'varchar(32)', 'input=none,mandatory,caption=С. номер,smartCenter');
 		$this->FLD('employees', 'keylist(mvc=crm_Persons,select=id)', 'input=none,mandatory,caption=Служители');
 		$this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=code)', 'input=none,mandatory,caption=Обордуване');
+	
+		$this->setDbIndex('taskId');
+		$this->setDbIndex('taskId,type');
+		$this->setDbIndex('productId');
 	}
 	
 	

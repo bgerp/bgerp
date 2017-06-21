@@ -77,6 +77,7 @@ class batch_CategoryDefinitions extends embed_Manager {
     function description()
     {
     	$this->FLD('categoryId', 'key(mvc=cat_Categories, select=name)', 'caption=Категория,silent,mandatory,input=hidden');
+    	$this->setDbIndex('categoryId');
     }
     
     
