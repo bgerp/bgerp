@@ -101,8 +101,6 @@ class core_Permanent extends core_Manager
     	expect(is_numeric($lifetime));
     	expect(!is_null($data));
     	
-    	Debug::log("PERMANENT_CACHE::set {$key}");
-    	
     	// Колко е живота на кеша
     	$lifetime = time() + ($lifetime * 60);
     	
@@ -112,6 +110,7 @@ class core_Permanent extends core_Manager
     	// Запис, ако има стар го замества
     	$me = cls::get(get_called_class());
     	$id = $me->save($rec, NULL, 'REPLACE');
+    	Debug::log("PERMANENT_CACHE::set {$key}");
     	
     	return $id;
     }
@@ -127,7 +126,7 @@ class core_Permanent extends core_Manager
     public static function get($key, $minCreatedOn = NULL)
     {
     	$key = self::getKey($key);
-   
+    	
     	// Подготовка на условието
     	$where = "#key = '[#1#]'";
     	if(isset($minCreatedOn)){
@@ -135,10 +134,18 @@ class core_Permanent extends core_Manager
     	}
     	
     	// Опит за извличане на данни
-    	$rec = self::fetch(array($where, $key), 'data', FALSE);
+    	$rec = self::fetch(array($where, $key), 'data,lifetime', FALSE);
     	
     	if(empty($rec) || !is_object($rec->data)){
     		Debug::log("PERMANENT_CACHE::get {$key} - no exists");
+    		
+    		return NULL;
+    	}
+    	 
+    	// Ако живота е изтекъл се изтрива записа, вместо да се връща-
+    	if($rec->lifetime < time()){
+    		self::delete($rec->id);
+    		Debug::log("PERMANENT_CACHE::delete {$key} - expired");
     		
     		return NULL;
     	}
