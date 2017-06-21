@@ -202,7 +202,6 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     	$rec->receiptId = $masterId;
     	$rec->productId = $pRec->productId;
     	$rec->packagingId = (isset($pRec->packagingId)) ? $pRec->packagingId : $row->pack;
-    	$rec->price = NULL;
     	$rec->isEdited = TRUE;
     	
     	$pack = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
