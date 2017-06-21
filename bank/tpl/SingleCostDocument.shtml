@@ -9,7 +9,10 @@
                     <td  rowspan='2' class='cell centered'>
                         <div class='document-title'>|РАЗХОДЕН|*<br> |БАНКОВ ДОКУМЕНТ|*</div>
                         <small>( [#operationSysId#] )</small><br>
-                        |Дата|*:&nbsp;&nbsp;<b>[#valior#]</b>
+                        <div style="padding-top:5px;">
+                            № <span class="bigData">[#id#]</span> /
+                            <span class="bigData">[#valior#]</span>
+                        </div>
                         <!--ET_BEGIN state-->
                         <div class="state [#STATE_CLASS#]" style='margin:5px 0'>[#state#]</div>
                         <!--ET_END state-->
