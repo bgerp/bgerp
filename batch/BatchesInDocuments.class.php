@@ -75,6 +75,9 @@ class batch_BatchesInDocuments extends core_Manager
     	$this->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
     	$this->FLD('operation', 'enum(in=Влиза, out=Излиза, stay=Стои)', 'mandatory,caption=Операция');
     	$this->FLD('storeId', 'key(mvc=store_Stores)', 'caption=Склад');
+    	
+    	$this->setDbIndex('detailClassId,detailRecId');
+    	$this->setDbIndex('productId');
     }
 	
 	

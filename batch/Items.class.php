@@ -342,8 +342,10 @@ class batch_Items extends core_Master {
     {
     	$storable = array();
     	$dQuery = batch_Defs::getQuery();
+    	$dQuery->show('productId');
     	while($dRec = $dQuery->fetch()){
-    		$storable[$dRec->productId] = cat_Products::getTitleById($dRec->productId, FALSE);
+    		$pRec = cat_Products::fetch($dRec->productId, 'name,isPublic,code');
+    		$storable[$dRec->productId] = cat_Products::getRecTitle($pRec, FALSE);
     	}
     	
     	return $storable;

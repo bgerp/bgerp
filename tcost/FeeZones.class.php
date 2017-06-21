@@ -116,6 +116,8 @@ class tcost_FeeZones extends core_Master
         $this->FLD('name', 'varchar(16)', 'caption=Зона, mandatory');
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms, select = codeName)', 'caption=Условие на доставка, mandatory');
         $this->FLD('deliveryTime', 'time', 'caption=Доставка,recently,smartCenter');
+        
+        $this->setDbIndex('deliveryTermId');
     }
     
     
