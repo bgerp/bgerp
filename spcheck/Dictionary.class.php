@@ -82,6 +82,12 @@ class spcheck_Dictionary extends core_Manager
      */
     protected static $minLen = 1;
     
+	
+    /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'admin, ceo';
+    
     
     /**
      * Думи, които ще се игнорират и няма да се проверяват
@@ -101,10 +107,11 @@ class spcheck_Dictionary extends core_Manager
      */
     function description()
     {
-        $this->FLD('pattern', 'varchar(128, ci)', 'caption=Шаблон');
-        $this->FLD('isCorrect', 'enum(yes=Да, no=Не)', 'caption=Коректност, notNull');
+        $this->FLD('pattern', 'varchar(128, ci)', 'caption=Шаблон->Дума');
+        $this->FLD('isCorrect', 'enum(yes=Да, no=Не)', 'caption=Шаблон->Състояние, notNull');
+        $this->FLD('lg', 'varchar(2)', 'caption=Език');
         
-        $this->setDbUnique('pattern');
+        $this->setDbUnique('pattern, lg');
     }
     
     
@@ -129,7 +136,7 @@ class spcheck_Dictionary extends core_Manager
         if (isset($wArr[$key])) return $wArr[$key];
         
         // Ако е зададено в модела
-        $rec = self::fetch(array("#pattern = '[#1#]' AND #state = 'active'", $word));
+        $rec = self::fetch(array("#pattern = '[#1#]' AND #state = 'active' AND #lg = '[#2#]'", $word, $lg));
         
         if ($rec) {
             if ($rec->isCorrect == 'no') {
@@ -270,6 +277,40 @@ class spcheck_Dictionary extends core_Manager
         
         $out = substr($out, 0, $len) . $w;
     }
+	
+	
+	/**
+	 * Екшън за промяна на състоянието
+	 * 
+	 * @return Redirect
+	 */
+	function act_ChangeCorrect()
+	{
+	    $id = Request::get('id', 'int');
+	    
+	    expect($id);
+	    
+	    expect($rec = $this->fetch($id));
+	    
+	    $this->requireRightFor('edit', $rec);
+	    
+	    if ($rec->isCorrect == 'no') {
+	        $rec->isCorrect = 'yes';
+	    } else {
+	        $rec->isCorrect = 'no';
+	    }
+	    $this->save($rec, 'isCorrect');
+	    
+	    $this->logWrite('Смяна на коректност', $rec->id);
+	    
+	    $retUrl = getRetUrl();
+	    
+	    if (empty($retUrl)) {
+	        $retUrl = array($this, 'list');
+	    }
+	    
+	    return new Redirect($retUrl);
+	}
     
     
     /**
@@ -303,12 +344,135 @@ class spcheck_Dictionary extends core_Manager
      */
     static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->showFields = 'search';
+        $data->listFilter->showFields = 'lg, search';
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
 
         $data->listFilter->view = 'horizontal';
         
         $data->query->orderBy('createdOn', 'DESC');
+        
+        // Добавяме всички езици за които има запис в масива
+        $cQuery = core_Lg::getQuery();
+        $cQuery->groupBy('lg');
+        $cQuery->orderBy('createdOn');
+        $langArr = array('' => '');
+        while ($rec = $cQuery->fetch()) {
+            if (isset($langArr[$rec->lg])) continue;
+            if (!$rec->lg) continue;
+            $langArr[$rec->lg] = $rec->lg;
+        }
+        
+        if ($langArr) {
+            $data->listFilter->setOptions('lg', $langArr);
+        }
+        
+        $filterRec = $data->listFilter->input('lg, search');
+        
+        if ($filterRec->lg) {
+            $data->query->where(array("#lg = '[#1#]'", $filterRec->lg));
+        }
+    }
+		
+	
+	/**
+	 * 
+	 * Добавя бутон на файловете, които са за клишета
+	 */
+	static function on_AfterRecToVerbal($mvc, &$row, $rec)
+	{
+	    if ($mvc->haveRightFor('edit', $rec)) {
+	        if ($rec->isCorrect == 'yes') {
+	            $btnName = 'Коректен';
+	            $efIcon = 'img/16/accept.png';
+	            $title = 'Отбелязване на думата като некоректна';
+	        } else {
+	            $btnName = 'Некоректен';
+	            $efIcon = 'img/16/red-back.png';
+	            $title = 'Отбелязване на думата като коректна';
+	        }
+	        
+	        $row->isCorrect = HT::createBtn($btnName, array($mvc, 'changeCorrect', $rec->id, 'ret_url' => TRUE), FALSE, FALSE, "ef_icon={$efIcon}, title={$title}");
+	    }
+	}
+	
+	
+	/**
+	 * Проверява коректността на думите в речника и ги добавя в модела
+	 */
+    static function cron_AddWordsToDict()
+    {
+        $cQuery = doc_Containers::getQuery();
+        $before = dt::subtractSecs(3600);
+        $cQuery->where("#createdOn >= '{$before}'");
+        
+        $cQuery->orderBy('modifiedOn', 'DESC');
+        
+        while ($cRec = $cQuery->fetch()) {
+            try {
+                $doc = doc_Containers::getDocument($cRec->id);
+                $text = $doc->getInlineDocumentBody('plain');
+            } catch (core_exception_Expect $e) {
+                reportException($e);
+                
+                continue;
+            }
+            
+            $text = strip_tags($text);
+            
+            $text = preg_replace('/[^\p{L}]/u', ' ', $text); // Махаме символите
+            $text = preg_replace('/(\p{Lu}+\p{L}*\s)/u', ' ', $text); // Махаме думите с главна буква
+            $text = preg_replace('/\s+/u', ' ', $text);
+            
+            $text = trim($text);
+            
+            $textArr = explode(' ', $text);
+            
+            $systemLg = core_Lg::getDefaultLang();
+            
+            foreach ($textArr as $str) {
+                $str = trim($str);
+                
+                if (!$str) continue;
+                
+                if (mb_strlen($str) <= self::$minLen) continue;
+                
+                if (i18n_Charset::is7Bit($str)) {
+                    $lg = 'en';
+                } else {
+                    $lg = $systemLg;
+                }
+                
+                if (!self::checkWord($str, $lg)) {
+                    $rec = new stdClass();
+                    $rec->lg = $lg;
+                    $rec->isCorrect = 'no';
+                    $rec->pattern = $str;
+                    
+                    self::save($rec, NULL, 'IGNORE');
+                }
+            }
+        }
+    }
+    
+    
+    /**
+     * Изпълнява се след създаването на модела
+     * 
+     * @param spcheck_Dictionary $mvc
+     * @param NULL|string $res
+     */
+    static function on_AfterSetupMVC($mvc, &$res)
+    {
+        $rec = new stdClass();
+        $rec->systemId = 'addWordsToDict';
+        $rec->description = 'Добавяне на думите в речника';
+        $rec->controller = $mvc->className;
+        $rec->action = 'addWordsToDict';
+        $rec->period = 60;
+        $rec->offset = 0;
+        $rec->delay = 0;
+        $rec->timeLimit = 100;
+        $res .= core_Cron::addOnce($rec);
     }
 }

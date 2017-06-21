@@ -190,6 +190,8 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 if($packId) {
                     $obj->pack = $packId;
                 }
+			} else {
+				$obj->pack = key($packs);
 			}
 
 			if($obj->price){

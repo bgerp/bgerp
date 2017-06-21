@@ -186,6 +186,7 @@ class acc_Setup extends core_ProtoSetup
     	array('acc', 'accJournal,invoicer,seePrice'),
         array('accMaster', 'acc'),
     	array('accLimits'),
+        array('accpsingle')
     );
     
     

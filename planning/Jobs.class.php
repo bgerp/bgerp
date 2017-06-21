@@ -119,7 +119,7 @@ class planning_Jobs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title=Документ, dueDate, packQuantity=Количество->|*<small>|Планирано|*</small>,quantityFromTasks=Количество->|*<small>|Произведено|*</small>, quantityProduced=Количество->|*<small>|Заскладено|*</small>, quantityNotStored=Количество->|*<small>|Незаскладено|*</small>, packagingId, state,modifiedOn,modifiedBy';
+    public $listFields = 'title=Документ, dueDate, packQuantity=Количество->|*<small>|Планирано|*</small>,quantityFromTasks=Количество->|*<small>|Произведено|*</small>, quantityProduced=Количество->|*<small>|Заскладено|*</small>, quantityNotStored=Количество->|*<small>|Незаскладено|*</small>, packagingId,folderId, state, modifiedOn,modifiedBy';
     
     
     /**
@@ -362,8 +362,10 @@ class planning_Jobs extends core_Master
     		if(isset($filter->view)){
     			switch($filter->view){
     				case 'createdOn':
-    					arr::placeInAssocArray($data->listFields, array('createdOn' => 'Създаване||Created->На'), 'modifiedOn');
-    					arr::placeInAssocArray($data->listFields, array('createdBy' => 'Създаване||Created->От||By'), 'modifiedOn');
+    					unset($data->listFields['modifiedOn']);
+    					unset($data->listFields['modifiedBy']);
+    					$data->listFields['createdOn'] = 'Създаване||Created->На';
+    					$data->listFields['createdBy'] = 'Създаване||Created->От||By';
     					$data->query->orderBy('createdOn', 'DESC');
     					break;
     				case 'dueDate':
