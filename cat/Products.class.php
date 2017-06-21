@@ -1682,6 +1682,19 @@ class cat_Products extends embed_Manager {
     
     
     /**
+     * Връща разбираемо за човека заглавие, отговарящо на ключа
+     */
+    public static function getTitleById($id, $escaped = TRUE)
+    {
+    	// Предефиниране на метода, за да е подсигурено само фечването на нужните полета
+    	// За да се намали натоварването, при многократни извиквания
+    	$rec = self::fetch($id, 'name,code,isPublic');
+    	
+    	return parent::getTitleById($rec, $escaped);
+    }
+    
+    
+    /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
     public static function getRecTitle($rec, $escaped = TRUE)
