@@ -187,4 +187,21 @@ class core_Permanent extends core_Manager
     	
     	return $newKey;
     }
+    
+    
+    /**
+     * Изтриване на изтеклите записи, по разписание
+     */
+    function cron_DeleteExpiredPermData()
+    {
+    	$query = $this->getQuery();
+    	$query->where("#lifetime < " . time());
+    	
+    	$deletedRecs = 0;
+    	while($rec = $query->fetch()) {
+    		$deletedRecs += $this->delete($rec->id);
+    	}
+    	
+    	$msg = "Лог: <b style='color:blue;'>{$deletedRecs}</b> постоянни записа с изтекъл срок бяха изтрити";
+    }
 }
