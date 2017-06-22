@@ -78,7 +78,7 @@ class store_Products extends core_Detail
     function description()
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Име');
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
         $this->FLD('quantity', 'double', 'caption=Налично');
         $this->FLD('reservedQuantity', 'double', 'caption=Запазено');
         $this->FNC('freeQuantity', 'double', 'caption=Разполагаемо');
