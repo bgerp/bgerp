@@ -74,6 +74,15 @@ class core_page_InternalModern extends core_page_Active
         // Вкарваме съдържанието
         $this->replace(self::getTemplate(), 'PAGE_CONTENT');
 
+        jquery_Jquery::run($this, "slidebars();");
+        jquery_Jquery::run($this, "scrollToHash();");
+
+        if(Mode::is('screenMode', 'narrow')){
+            jquery_Jquery::run($this, "checkForElementWidthChange();");
+            jquery_Jquery::run($this, "sumOfChildrenWidth();");
+            jquery_Jquery::run($this, "removeNarrowScroll();");
+        }
+
         // Извличаме броя на нотификациите за текущия потребител
         $openNotifications = bgerp_Notifications::getOpenCnt();
         $url  = toUrl(array('bgerp_Portal', 'Show', '#' => 'notificationsPortal'));
@@ -185,17 +194,6 @@ class core_page_InternalModern extends core_page_Active
 
             );
 
-            
-            // Опаковките и главното съдържание заемат екрана до долу
-            jquery_Jquery::run($tpl, "slidebars();");
-            jquery_Jquery::run($tpl, "scrollToHash();");
-            
-            if(Mode::is('screenMode', 'narrow')){
-                jquery_Jquery::run($tpl, "checkForElementWidthChange();");
-                jquery_Jquery::run($tpl, "sumOfChildrenWidth();");
-                jquery_Jquery::run($tpl, "removeNarrowScroll();");
-            }
-            
             // Добавяме кода, за определяне параметрите на браузъра
             $Browser = cls::get('log_Browsers');
             $tpl->append($Browser->renderBrowserDetectingCode(), 'BROWSER_DETECT');
@@ -226,9 +224,9 @@ class core_page_InternalModern extends core_page_Active
                     <ul>
                     [#MENU_ROW#]
                     </ul>");
-        
-        
-         
+
+
+
         self::placeMenu($tpl);
         
         self::addLinksToMenu($tpl);

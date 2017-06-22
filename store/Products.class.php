@@ -78,7 +78,7 @@ class store_Products extends core_Detail
     function description()
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Име');
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
         $this->FLD('quantity', 'double', 'caption=Налично');
         $this->FLD('reservedQuantity', 'double', 'caption=Запазено');
         $this->FNC('freeQuantity', 'double', 'caption=Разполагаемо');
@@ -162,15 +162,12 @@ class store_Products extends core_Detail
     	
     	$data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
     	
-    	$stores = array();
-    	$sQuery = store_Stores::getQuery();
-    	$sQuery->where("#state != 'rejected'");
-    	store_Stores::restrictAccess($sQuery);
-    	while($sRec = $sQuery->fetch()){
-    		$stores[$sRec->id] = store_Stores::getTitleById($sRec->id, FALSE);
-    	}
+    	$stores = cls::get('store_Stores')->makeArray4Select('name', "#state != 'rejected'");
     	$data->listFilter->setOptions('storeId', array('' => '') + $stores);
     	$data->listFilter->setField('storeId', 'autoFilter');
+    	if(count($stores) == 1){
+    		$data->listFilter->setDefault('storeId', key($stores));
+    	}
     	
     	// Подготвяме в заявката да може да се търси по полета от друга таблица
     	$data->query->EXT('keywords', 'cat_Products', 'externalName=searchKeywords,externalKey=productId');
@@ -198,6 +195,12 @@ class store_Products extends core_Detail
         		$selectedStoreName = store_Stores::getHyperlink($rec->storeId, TRUE);
         		$data->title = "|Наличности в склад|* <b style='color:green'>{$selectedStoreName}</b>";
         		$data->query->where("#storeId = {$rec->storeId}");
+        	} elseif(count($stores)){
+        		// Под всички складове се разбира само наличните за избор от потребителя
+        		$data->query->in("storeId", array_keys($stores));
+        	} else {
+        		// Ако няма налични складове за избор не вижда нищо
+        		$data->query->where("1 = 2");
         	}
         	
         	// Ако се търси по ключови думи, търсим по тези от външното поле

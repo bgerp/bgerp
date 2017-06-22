@@ -29,6 +29,12 @@ abstract class deals_ManifactureMaster extends core_Master
 	public $listFields = 'valior, title=Документ, storeId, folderId, deadline, createdOn, createdBy';
 	
 	
+	/**
+	 * Дали в листовия изглед да се показва бутона за добавяне
+	 */
+	public $listAddBtn = FALSE;
+	
+	
    /**
 	* Кои са задължителните полета за модела
 	*/

@@ -249,7 +249,7 @@ class doc_Setup extends core_ProtoSetup
         'migrate::showFiles',
         'migrate::addCountryIn2LgFolders2',
         'migrate::addFirstDocClassAndId',
-        'migrate::receiveEmailUnsorted'
+        'migrate::receiveEmailUnsortedN'
     );
 	
     
@@ -802,19 +802,32 @@ class doc_Setup extends core_ProtoSetup
     /**
      * Миграция, която добавя в "Несортирани - " да може да се рутират имейли
      */
-    public static function receiveEmailUnsorted()
+    public static function receiveEmailUnsortedN()
     {
         $uInst = cls::get('doc_UnsortedFolders');
         $uQuery = $uInst->getQuery();
         $uQuery->where("#receiveEmail IS NULL");
+        $uQuery->orWhere("#receiveEmail = 'no'");
         
         $namePattern = sprintf(email_Setup::get('UNSORTABLE_COUNTRY'), '');
         
+        $emailInClsId = email_Incomings::getClassId();
+        $emailOutClsId = email_Outgoings::getClassId();
+        
         while ($uRec = $uQuery->fetch()) {
-            if (stripos($uRec->name, $namePattern) === FALSE) {
-                $uRec->receiveEmail = 'no';
-            } else {
-                $uRec->receiveEmail = 'yes';
+            
+            if (!$uRec->receiveEmail) {
+                if (stripos($uRec->name, $namePattern) === FALSE) {
+                    $uRec->receiveEmail = 'no';
+                } else {
+                    $uRec->receiveEmail = 'yes';
+                }
+            } elseif ($uRec->folderId && ($uRec->receiveEmail == 'no')) {
+                
+                // Ако има изпратени/получени имейли
+                if (doc_Containers::fetch(array("#folderId = '[#1#]' AND (#docClass = '[#2#]' OR #docClass = '[#3#]') AND #state != 'rejected'", $uRec->folderId, $emailInClsId, $emailOutClsId))) {
+                    $uRec->receiveEmail = 'yes';
+                }
             }
             
             $uInst->save_($uRec, 'receiveEmail');
