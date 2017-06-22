@@ -219,6 +219,7 @@ class doc_View extends core_Master
                 if ($lg) {
                     Mode::push('tplManagerLg', $lg);
                     $tplManagerLg = TRUE;
+                    core_Lg::push($lg);
                 }
             }
             
@@ -232,6 +233,7 @@ class doc_View extends core_Master
             $form->rec->body = $res->getContent();
             
             if ($tplManagerLg) {
+                core_Lg::pop();
                 Mode::pop('tplManagerLg');
             }
             
