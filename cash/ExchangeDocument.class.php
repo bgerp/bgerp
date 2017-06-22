@@ -40,7 +40,7 @@ class cash_ExchangeDocument extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     public $loadList = 'plg_RowTools2, cash_Wrapper, acc_plg_Contable,
-     	plg_Sorting,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary,
+     	plg_Sorting,plg_Clone,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary,
      	plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, doc_SharablePlg';
     
     
@@ -126,6 +126,14 @@ class cash_ExchangeDocument extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'reason, peroFrom, peroTo, id';
+    
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'valior';
     
     
 	/**

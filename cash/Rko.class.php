@@ -72,6 +72,14 @@ class cash_Rko extends cash_Document
     
     
     /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'termDate';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
