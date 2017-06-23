@@ -336,7 +336,7 @@ class core_Classes extends core_Manager
     {
         self::$classes = array();
         $cache = cls::get('core_Cache');
-        $cache->deleteData('loadClasses');
+        $cache->deleteData('loadClasses1');
     }
     
     
