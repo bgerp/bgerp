@@ -212,6 +212,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     	$masterRec = store_Receipts::fetch($masterId);
     	if($row->price){
     		$rec->price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($rec->productId), $masterRec->currencyRate, $masterRec->chargeVat);
+    		$rec->price /= $rec->quantityInPack;
     	} else {
     		$policyInfo = cls::get('purchase_PurchaseLastPricePolicy')->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat);
     		$rec->price = $policyInfo->price;

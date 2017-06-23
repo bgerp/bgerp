@@ -46,7 +46,7 @@ class cash_InternalMoneyTransfer extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools2, cash_Wrapper,acc_plg_Contable, acc_plg_DocumentSummary,
-     	plg_Sorting,doc_DocumentPlg, plg_Printing, plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable, doc_SharablePlg';
+     	plg_Sorting,plg_Clone,doc_DocumentPlg, plg_Printing, plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable, doc_SharablePlg';
     
     
     /**
@@ -134,6 +134,14 @@ class cash_InternalMoneyTransfer extends core_Master
     							      'case2bank' => array('debit' => '503', 'credit' => '501'),
     								  'nonecash2bank' => array('debit' => '503', 'credit' => '502'),
     );
+    
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'valior';
     
     
 	/**

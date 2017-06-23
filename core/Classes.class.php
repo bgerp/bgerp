@@ -67,6 +67,12 @@ class core_Classes extends core_Manager
     
     
     /**
+     * 
+     */
+    protected static $classHashName = 'loadClasses1';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -306,14 +312,14 @@ class core_Classes extends core_Manager
         return $className;
     }
 
-
+    
     /**
      * Зарежда кеша на класовете
      */
     private static function loadClasses()
     {
         $dummy = '';
-        $classes = core_Cache::getOrCalc('loadClasses1', $dummy, function($dummy)
+        $classes = core_Cache::getOrCalc(self::$classHashName, $dummy, function($dummy)
         {
             $classes = array();
             $query = core_Classes::getQuery();
@@ -336,7 +342,7 @@ class core_Classes extends core_Manager
     {
         self::$classes = array();
         $cache = cls::get('core_Cache');
-        $cache->deleteData('loadClasses');
+        $cache->deleteData(md5(EF_DB_NAME . '|' . CORE_CACHE_PREFIX_SALT . self::$classHashName));
     }
     
     

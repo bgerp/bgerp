@@ -939,9 +939,9 @@ class price_ListRules extends core_Detail
 	{
 		$options = array();
 		$pQuery = cat_Products::getQuery();
-		$pQuery->where("#state = 'active' AND #canSell = 'yes'");
+		$pQuery->where("#state = 'active'");
 		if($listId != self::PRICE_LIST_COST){
-			$pQuery->where("#isPublic = 'yes'");
+			$pQuery->where("#isPublic = 'yes' AND #canSell = 'yes'");
 		}
 		
 		$pQuery->show('id,name,isPublic,code,createdOn');

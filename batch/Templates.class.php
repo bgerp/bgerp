@@ -25,7 +25,7 @@ class batch_Templates extends embed_Manager {
     /**
      * Заглавие
      */
-    public $title = 'Дефиниции на партиди';
+    public $title = 'Видове партиди';
     
     
     /**
@@ -43,7 +43,7 @@ class batch_Templates extends embed_Manager {
     /**
      * Наименование на единичния обект
      */
-    public $singleTitle = "Дефиниция на партидa";
+    public $singleTitle = "Вид партидa";
     
     
     /**
