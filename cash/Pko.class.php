@@ -76,6 +76,22 @@ class cash_Pko extends cash_Document
      */
     public $details = 'cash_NonCashPaymentDetails';
     
+
+    /**
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     *
+     * @see plg_Clone
+     */
+    public $cloneDetails = 'cash_NonCashPaymentDetails';
+    
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'termDate';
+    
     
     /**
      * Описание на модела

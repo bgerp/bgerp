@@ -1510,9 +1510,14 @@ abstract class deals_DealMaster extends deals_DealBase
     		expect(cond_PaymentMethods::fetch($fields['paymentMethodId']));
     	}
     	
+    	// Форсираме папката на клиента
+    	$fields['folderId'] = $contragentClass::forceCoverAndFolder($contragentId);
+    	
     	// Ако е зададен шаблон, съществува ли?
     	if(isset($fields['template'])){
     		expect(doc_TplManager::fetch($fields['template']));
+    	} elseif($me instanceof sales_Sales){
+    		$fields['template'] = $me->getDefaultTemplate((object)array('folderId' => $fields['folderId']));
     	}
     	
     	// Ако не е подадена дата, това е сегашната
@@ -1531,9 +1536,6 @@ abstract class deals_DealMaster extends deals_DealBase
     	    $fields['currencyRate'] = currency_CurrencyRates::getRate($fields['currencyRate'], $fields['currencyId'], NULL);
     	    expect($fields['currencyRate']);
     	}
-    	 
-    	// Форсираме папката на клиента
-    	$fields['folderId'] = $contragentClass::forceCoverAndFolder($contragentId);
     	
     	// Ако няма платежен план, това е плащане в брой
     	$paymentSysId = (get_called_class() == 'sales_Sales') ? 'paymentMethodSale' : 'paymentMethodPurchase';

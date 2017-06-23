@@ -68,7 +68,7 @@ class marketing_Inquiries2 extends embed_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, marketing_Wrapper, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
+    public $loadList = 'plg_RowTools, marketing_Wrapper, plg_Sorting, plg_Clone, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,Router=marketing_InquiryRouter, drdata_PhonePlg';
     
     
@@ -172,6 +172,14 @@ class marketing_Inquiries2 extends embed_Manager
      * Дали в листовия изглед да се показва бутона за добавяне
      */
     public $listAddBtn = FALSE;
+
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'title';
     
     
     /**

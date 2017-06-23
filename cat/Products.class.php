@@ -1682,6 +1682,19 @@ class cat_Products extends embed_Manager {
     
     
     /**
+     * Връща разбираемо за човека заглавие, отговарящо на ключа
+     */
+    public static function getTitleById($id, $escaped = TRUE)
+    {
+    	// Предефиниране на метода, за да е подсигурено само фечването на нужните полета
+    	// За да се намали натоварването, при многократни извиквания
+    	$rec = self::fetch($id, 'name,code,isPublic');
+    	
+    	return parent::getTitleById($rec, $escaped);
+    }
+    
+    
+    /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
     public static function getRecTitle($rec, $escaped = TRUE)
@@ -1814,8 +1827,6 @@ class cat_Products extends embed_Manager {
     {
     	// Бутона 'Нов запис' в листовия изглед, добавя винаги универсален артикул
     	if($mvc->haveRightFor('add')){
-    		
-    		//, 'innerClass' => cat_GeneralProductDriver::getClassId())
     		 $data->toolbar->addBtn('Нов запис', array($mvc, 'add'), 'order=1,id=btnAdd', 'ef_icon = img/16/shopping.png,title=Създаване на нова стока');
     	}
     }
@@ -2777,5 +2788,59 @@ class cat_Products extends embed_Manager {
     	}
     
     	return NULL;
+    }
+    
+    
+    /**
+     * Дали артикула се среща в детайла на активни договори (Покупка и продажба)
+     * 
+     * @param int $productId
+     * @return boolean
+     */
+    private function isUsedInActiveDeal($productId)
+    {
+    	$productId = (is_object($productId)) ? $productId->id : $productId;
+    	
+    	foreach (array('sales_SalesDetails', 'purchase_PurchasesDetails') as $Det){
+    		$Detail = cls::get($Det);
+    		$dQuery = $Detail->getQuery();
+    		$dQuery->EXT('state', $Detail->Master, "externalName=state,externalKey={$Detail->masterKey}");
+    		$dQuery->where("#productId = {$productId} AND #state = 'active'");
+    		$dQuery->show('id');
+    		$dQuery->limit(1);
+    		
+    		if($dQuery->fetch()) return TRUE;
+    	}
+    	
+    	return FALSE;
+    }
+    
+    
+    /**
+     * Преди затваряне/отваряне на записа
+     * 
+     * @param core_Mvc $mvc    - мениджър
+     * @param stdClass $rec    - запис
+     * @param string $newState - ново състояние
+     * @return mixed
+     */
+    public static function on_BeforeChangeState(core_Mvc $mvc, &$rec, $newState)
+    {
+    	if($newState == 'closed' && $mvc->isUsedInActiveDeal($rec)){
+    		core_Statuses::newStatus("Артикулът не може да бъде затворен, докато се използва в активни договори", 'error');
+    		return FALSE;
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се преди оттеглянето на документа
+     */
+    public static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
+    {
+    	if($mvc->isUsedInActiveDeal($id)){
+    		core_Statuses::newStatus("Артикулът не може да бъде оттеглен, докато се използва в активни договори", 'error');
+    		return FALSE;
+    	}
     }
 }

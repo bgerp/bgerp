@@ -29,6 +29,12 @@ abstract class deals_ManifactureMaster extends core_Master
 	public $listFields = 'valior, title=Документ, storeId, folderId, deadline, createdOn, createdBy';
 	
 	
+	/**
+	 * Дали в листовия изглед да се показва бутона за добавяне
+	 */
+	public $listAddBtn = FALSE;
+	
+	
    /**
 	* Кои са задължителните полета за модела
 	*/
@@ -161,42 +167,6 @@ abstract class deals_ManifactureMaster extends core_Master
 			$res = " " . $res . " " . $detailsKeywords;
 		}
 	}
-	
-	
-	/**
-     * В кои корици може да се вкарва документа
-     * 
-     * @return array - интерфейси, които трябва да имат кориците
-     */
-    public static function getCoversAndInterfacesForNewDoc()
-    {
-    	return array('store_AccRegIntf');
-    }
-    
-    
-    /**
-     * Проверка дали нов документ може да бъде добавен в
-     * посочената папка като начало на нишка
-     *
-     * @param $folderId int ид на папката
-     */
-    public static function canAddToFolder($folderId)
-    {
-    	return TRUE;
-    }
-    
-    
-    /**
-     * Проверка дали нов документ може да бъде добавен в
-     * посочената нишка
-     *
-     * @param int $threadId key(mvc=doc_Threads)
-     * @return boolean
-     */
-    public static function canAddToThread($threadId)
-    {
-    	return TRUE;
-    }
     
     
     /**
@@ -227,5 +197,37 @@ abstract class deals_ManifactureMaster extends core_Master
     	if ($rec !== FALSE) {
     	    $this->save($rec);
     	}
+    }
+    
+    
+    /**
+     * Може ли документа да се добави в посочената папка?
+     *
+     * @param $folderId int ид на папката
+     * @return boolean
+     */
+    public static function canAddToFolder($folderId)
+    {
+    	// Може да добавяме като начало на тред само в папка на склад
+    	$folderClass = doc_Folders::fetchCoverClassName($folderId);
+    	
+    	return ($folderClass == 'store_Stores' || $folderClass == 'hr_Departments');
+    }
+    
+    
+    /**
+     * Проверка дали нов документ може да бъде добавен в посочената нишка
+     *
+     * @param int $threadId key(mvc=doc_Threads)
+     * @return boolean
+     */
+    public static function canAddToThread($threadId)
+    {
+    	// Може да добавяме или към нишка в която има задание
+    	if(planning_Jobs::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')")){
+    		return TRUE;
+    	}
+    	
+    	return FALSE;
     }
 }

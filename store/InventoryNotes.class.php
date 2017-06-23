@@ -93,7 +93,7 @@ class store_InventoryNotes extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_Wrapper,acc_plg_Contable,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search,bgerp_plg_Blank';
+    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_Wrapper,acc_plg_Contable,plg_Clone,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search,bgerp_plg_Blank';
     
     
     /**
@@ -155,6 +155,22 @@ class store_InventoryNotes extends core_Master
      */
     public $listAddBtn = FALSE;
     
+
+    /**
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     *
+     * @see plg_Clone
+     */
+    public $cloneDetails = 'store_InventoryNoteSummary,store_InventoryNoteDetails';
+    
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'valior';
+    
     
     /**
      * Описание на модела (таблицата)
@@ -164,7 +180,7 @@ class store_InventoryNotes extends core_Master
     	$this->FLD('valior', 'date', 'caption=Вальор, mandatory');
     	$this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад, mandatory');
     	$this->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Групи');
-    	$this->FLD('hideOthers', 'enum(yes=Да,no=Не)', 'caption=Показване само на избраните групи->Избор, mandatory, notNULL,value=yes,maxRadio=2');
+    	$this->FLD('hideOthers', 'enum(yes=Да,no=Не)', 'caption=Показване само на избраните групи->Избор, mandatory, notNULL,value=no,maxRadio=2');
     	$this->FLD('cache', 'blob', 'input=none');
     }
     
@@ -228,7 +244,7 @@ class store_InventoryNotes extends core_Master
     	
     	$form->setDefault('storeId', doc_Folders::fetchCoverId($form->rec->folderId));
     	$form->setReadOnly('storeId');
-    	$form->setDefault('hideOthers', 'yes');
+    	$form->setDefault('hideOthers', 'no');
     	
     	if(isset($form->rec->id)){
     		$form->setReadOnly('storeId');
@@ -504,7 +520,7 @@ class store_InventoryNotes extends core_Master
     	
     	$query = store_InventoryNoteSummary::getQuery();
     	$query->where("#noteId = {$rec->id}");
-    	$query->show('noteId,productId,blQuantity,groups,modifiedOn');
+    	$query->show('noteId,productId,blQuantity,groups,modifiedOn,quantity');
     	
     	while($dRec = $query->fetch()){
     		$res[] = $dRec;
@@ -528,9 +544,6 @@ class store_InventoryNotes extends core_Master
     private function getProductsFromBalance($rec)
     {
     	$res = array();
-    	$rGroup = cat_Groups::getDescendantArray($rec->groups);
-    	$rGroup = keylist::toArray($rGroup);
-    	
     	$Summary = cls::get('store_InventoryNoteSummary');
     	
     	// Търсим артикулите от два месеца назад
@@ -569,18 +582,7 @@ class store_InventoryNotes extends core_Master
     				$aRec->groups = $groups;
     			}
     			
-    			$add = TRUE;
-    			
-    			// Ако е указано че искаме само артикулите с тези групи
-    			if($rec->hideOthers == 'yes'){
-    				if(!keylist::isIn($rGroup, $aRec->groups)){
-    					$add = FALSE;
-    				}
-    			}
-    			
-    			if($add === TRUE){
-    				$res[] = $aRec;
-    			}
+    			$res[] = $aRec;
     		}
     	}
     	
@@ -609,9 +611,31 @@ class store_InventoryNotes extends core_Master
     	// Извличаме текущите записи
     	$currentArr = $this->getCurrentProducts($rec);
     	 
+    	// Избраните групи
+    	$rGroup = cat_Groups::getDescendantArray($rec->groups);
+    	$rGroup = keylist::toArray($rGroup);
+    	$gCount = count($rGroup);
+    	
+    	// От наличните артикули, взимат се ид-та на тези с к-во
+    	$productArr = array();
+    	array_walk($currentArr, function ($a) use (&$productArr){
+    		if(isset($a->quantity)){
+    			$productArr[$a->productId] = $a->productId;
+    		}});
+    	
+    	// От артикулите от баланса, се махат тези, които нямат избраната група и нямат к-ва.
+    	// Целта е ако потребителя е въвел артикул, който не е в избраните групи с к-во, неговото очаквано
+    	// к-во да дойде от баланса
+    	foreach ($balanceArr as $id => $new){
+    		if($rec->hideOthers == 'yes' && $gCount){
+    			if(!keylist::isIn($rGroup, $new->groups) && !in_array($new->productId, $productArr)){
+    				unset($balanceArr[$id]);
+    			}
+    		}
+    	}
+    	
     	// Синхронизираме двата масива
     	$syncedArr = arr::syncArrays($balanceArr, $currentArr, 'noteId,productId', 'blQuantity,groups,modifiedOn');
-    	 
     	$Summary = cls::get('store_InventoryNoteSummary');
     	
     	// Ако има нови артикули, добавяме ги

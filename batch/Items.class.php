@@ -340,10 +340,17 @@ class batch_Items extends core_Master {
      */
     public static function getProductsWithDefs()
     {
-    	$storable = array();
-    	$dQuery = batch_Defs::getQuery();
-    	while($dRec = $dQuery->fetch()){
-    		$storable[$dRec->productId] = cat_Products::getTitleById($dRec->productId, FALSE);
+    	$storable = core_Cache::get('batch_Defs', 'products');
+    	
+    	if(!$storable){
+    		$storable = array();
+    		$dQuery = batch_Defs::getQuery();
+    		$dQuery->show('productId');
+    		while($dRec = $dQuery->fetch()){
+    			$pRec = cat_Products::fetch($dRec->productId, 'name,isPublic,code');
+    			$storable[$dRec->productId] = cat_Products::getRecTitle($pRec, FALSE);
+    		}
+    		core_Cache::set('batch_Defs', 'products', $storable, 60);
     	}
     	
     	return $storable;

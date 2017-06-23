@@ -49,7 +49,7 @@ class store_ReserveStocks extends core_Master
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo, store, planning, sales';
+	public $canList = 'no_one';
 	
 	
 	/**
@@ -61,13 +61,13 @@ class store_ReserveStocks extends core_Master
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, store, planning, sales';
+    public $canEdit = 'no_one';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, store, planning, sales';
+    public $canAdd = 'no_one';
     
     
     /**

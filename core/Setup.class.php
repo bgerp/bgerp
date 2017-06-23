@@ -299,6 +299,7 @@ class core_Setup extends core_ProtoSetup {
         'core_Settings',
         'core_Forwards',
         'core_Updates',
+    	'core_Permanent',
         'migrate::settigsDataFromCustomToCore',
         'migrate::movePersonalizationData',
         'migrate::repairUsersRolesInput',
@@ -411,6 +412,18 @@ class core_Setup extends core_ProtoSetup {
         $rec->offset = mt_rand(8*60, 12*60);
         $rec->delay = 0;
         $rec->timeLimit = 300;
+        $html .= core_Cron::addOnce($rec);
+        
+        // Нагласяване на Крон да почиства кеша
+        $rec = new stdClass();
+        $rec->systemId = 'ClearPermCache';
+        $rec->description = 'Почистване на постоянния кеш';
+        $rec->controller = 'core_Permanent';
+        $rec->action = 'DeleteExpiredPermData';
+        $rec->period = 24 * 60;
+        $rec->offset = rand(60, 180); // от 1h до 3h
+        $rec->delay = 0;
+        $rec->timeLimit = 200;
         $html .= core_Cron::addOnce($rec);
         
         $html .= core_Classes::add('core_page_Internal');        

@@ -126,11 +126,11 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Активиране');
         //return $browser->getHtml();
         $browser->press('Активиране/Контиране');
-        if(strpos($browser->gettext(), 'ДДС 20%: BGN 81,64')) {
+        if(strpos($browser->gettext(), 'ДДС 20%: BGN 81,63')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешно ДДС', 'warning');
         }
-        if(strpos($browser->gettext(), 'Четиристотин осемдесет и девет BGN и 0,81')) {
+        if(strpos($browser->gettext(), 'Четиристотин осемдесет и девет BGN и 0,80')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
@@ -905,12 +905,12 @@ class unit_MinkPPayment extends core_Manager {
         //$browser->setValue('action_pay', 'pay');
         $browser->press('Активиране/Контиране');
     
-        if(strpos($browser->gettext(), 'ДДС 20%: BGN 26,75')) {
+        if(strpos($browser->gettext(), 'ДДС 20%: BGN 26,74')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешно ДДС', 'warning');
         }
     
-        if(strpos($browser->gettext(), 'Сто и шестдесет BGN и 0,47 ')) {
+        if(strpos($browser->gettext(), 'Сто и шестдесет BGN и 0,46')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
@@ -994,12 +994,12 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Активиране');
         $browser->press('Активиране/Контиране');
         
-        if(strpos($browser->gettext(), 'ДДС 20%: BGN 92,13')) {
+        if(strpos($browser->gettext(), 'ДДС 20%: BGN 92,12')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешно ДДС', 'warning');
         }
         
-        if(strpos($browser->gettext(), 'Петстотин петдесет и два BGN и 0,74')) {
+        if(strpos($browser->gettext(), 'Петстотин петдесет и два BGN и 0,73')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }

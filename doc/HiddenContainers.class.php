@@ -137,40 +137,46 @@ class doc_HiddenContainers extends core_Manager
                 }
             } else {
                 
-                if ($cRec->state != 'rejected') {
-                    
-                    // Ако следващия документ е създаден от същия потребител
-                    // Не е оттеглен и съдържанието е идентично
-                    // Скриваме текущия документ, ако не е бил показан изрично
-                    if (($nextRec && $nextRec->state != 'rejected') 
-                        && ($nextRec->docClass == $cRec->docClass)
-                        && ($cRec->createdBy == $nextRec->createdBy)
-                        && (cls::load($cRec->docClass, TRUE))) {
-                            $clsInst = cls::get($cRec->docClass);
-                            
-                            $cContentHash = $clsInst->getDocContentHash($cRec->docId);
-                            $nContentHash = $clsInst->getDocContentHash($nextRec->docId);
-                            
-                            if ($cContentHash == $nContentHash) {
-                                self::$hiddenDocsArr[$cId] = TRUE;
-                                continue;
-                            }
+                // Скриваме само оттеглени, затворение и активни документи
+                if (($cRec->state == 'rejected') || ($cRec->state == 'closed') || ($cRec->state == 'active')) {
+                    if ($cRec->state != 'rejected') {
+                        
+                        // Ако следващия документ е създаден от същия потребител
+                        // Не е оттеглен и съдържанието и състоянието е идентично
+                        // Скриваме текущия документ, ако не е бил показан изрично
+                        if (($nextRec && $nextRec->state != 'rejected') 
+                            && ($nextRec->docClass == $cRec->docClass)
+                            && ($cRec->createdBy == $nextRec->createdBy)
+                            && ($cRec->state == $nextRec->state)
+                            && (cls::load($cRec->docClass, TRUE))) {
+                                $clsInst = cls::get($cRec->docClass);
+                                
+                                $cContentHash = $clsInst->getDocContentHash($cRec->docId);
+                                $nContentHash = $clsInst->getDocContentHash($nextRec->docId);
+                                
+                                if ($cContentHash == $nContentHash) {
+                                    self::$hiddenDocsArr[$cId] = TRUE;
+                                    continue;
+                                }
+                        }
+                        
+                        // По новите от да не се показват
+                        if ($cRec->modifiedOn > $from) {
+                            $hide = FALSE;
+                        }
+                        
+                        // Първите да не се скриват
+                        if ($begin >= $i) {
+                            $hide = FALSE;
+                        }
+                        
+                        // Последните да не се скриват
+                        if ($end < $i) {
+                            $hide = FALSE;
+                        }
                     }
-                    
-                    // По новите от да не се показват
-                    if ($cRec->modifiedOn > $from) {
-                        $hide = FALSE;
-                    }
-                    
-                    // Първите да не се скриват
-                    if ($begin >= $i) {
-                        $hide = FALSE;
-                    }
-                    
-                    // Последните да не се скриват
-                    if ($end < $i) {
-                        $hide = FALSE;
-                    }
+                } else {
+                    $hide = FALSE;
                 }
             }
             

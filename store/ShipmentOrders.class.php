@@ -50,7 +50,7 @@ class store_ShipmentOrders extends store_DocumentMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter,store_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
-                    doc_DocumentPlg, plg_Printing, trans_plg_LinesPlugin, acc_plg_DocumentSummary, plg_Search, doc_plg_TplManager,
+                    plg_Clone,doc_DocumentPlg, plg_Printing, trans_plg_LinesPlugin, acc_plg_DocumentSummary, plg_Search, doc_plg_TplManager,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices, doc_SharablePlg';
 
     
@@ -207,6 +207,22 @@ class store_ShipmentOrders extends store_DocumentMaster
      * 
      */
     public $canAsclient = 'ceo,store,sales,purchase';
+       
+
+    /**
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     *
+     * @see plg_Clone
+     */
+    public $cloneDetails = 'store_ShipmentOrderDetails';
+    
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'valior, amountDelivered, amountDeliveredVat, amountDiscount, deliveryTime';
     
     
     /**

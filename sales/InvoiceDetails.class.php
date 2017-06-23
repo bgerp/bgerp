@@ -86,25 +86,6 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
     
     
     /**
-     * Извиква се след успешен запис в модела
-     *
-     * @param core_Mvc $mvc
-     * @param int $id първичния ключ на направения запис
-     * @param stdClass $rec всички полета, които току-що са били записани
-     */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
-    {
-    	// Наблюдаване ако има несъответствия
-    	// @TODO да се махне след време
-    	$amount1Compare = round($rec->price * $rec->quantity * $rec->quantityInPack, 2);
-    	$amount2Compare = round($rec->amount, 2);
-    	if($amount1Compare != $amount2Compare){
-    		wp($rec,$amount1Compare,$amount2Compare);
-    	}
-    }
-    
-    
-    /**
      * Извиква се след подготовката на формата
      */
     public static function on_AfterPrepareEditForm($mvc, $data)

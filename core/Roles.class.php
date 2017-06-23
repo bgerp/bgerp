@@ -75,7 +75,13 @@ class core_Roles extends core_Manager
     /**
      * 
      */
-     public $loadList = 'plg_Sorting, plg_State2, plg_Created, plg_SystemWrapper, plg_RowTools2';
+    public $loadList = 'plg_Sorting, plg_State2, plg_Created, plg_SystemWrapper, plg_RowTools2, plg_Search';
+    
+
+    /**
+     * 
+     */
+    public $searchFields = 'role, inherit, type';
     
     
     /**
@@ -540,6 +546,24 @@ class core_Roles extends core_Manager
      */
     static function on_AfterPrepareListFilter($mvc, &$data)
     {
+        $data->listFilter->showFields = 'search, type';
+        
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->fields['type']->type->options = array('' => '') + $data->listFilter->fields['type']->type->options;
+        
+        $data->listFilter->input('search, type');
+        
+        $rec = $data->listFilter->rec;
+        
+        if (!$rec->type) {
+            $rec->type = '';
+        }
+        
+        if ($rec->type) {
+            $data->query->where(array("#type = '[#1#]'", $rec->type));
+        }
+        
         // Сортиране на записите по name
         $data->query->orderBy('state', 'DESC');
         $data->query->orderBy('id', 'ASC');

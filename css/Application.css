@@ -4482,6 +4482,12 @@ only screen and (max-width: 320px) {
     margin-bottom: 10px;
     font-size: 1.1em;
     text-transform: uppercase; }
+  .external .hideLink {
+    display: block;
+    margin-left: 10px;
+    font-size: 0.9em;
+    margin-bottom: 10px;
+    margin-top: -6px; }
 
 .wide .external .vertical .formTable {
   box-shadow: none !important; }
@@ -4698,7 +4704,10 @@ only screen and (max-width: 320px) {
     display: block; }
 
   thead {
-    display: table-row-group; } }
+    display: table-row-group; }
+
+  .external .hideLink {
+    display: none !important; } }
 
   .printing .specialLink {
     font-weight: bold; }

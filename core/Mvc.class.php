@@ -797,7 +797,7 @@ class core_Mvc extends core_FieldSet
 
         $rec = new stdClass();
 
-        try {$rec = $me->fetch($id);} catch(ErrorException $e) {}
+        try {$rec = $me->fetchRec($id);} catch(ErrorException $e) {}
         
         if(!$rec) return '??????????????';
 		

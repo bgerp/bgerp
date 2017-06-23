@@ -94,7 +94,7 @@ class hr_Leaves extends core_Master
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,hr,hrMaster';
+	public $canList = 'ceo, hr, hrMaster, admin';
 
 
 	/**
@@ -458,25 +458,7 @@ class hr_Leaves extends core_Master
      */
     public static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
-    	
-    	// Ако имаме права да създадем заповед за отпуск
-        if(haveRole('hr, ceo') && $data->rec->state == 'active') {
-            
-        	// Добавяме бутон
-            $data->toolbar->addBtn('Заповед', array('hr_Leaves', 'single', 'id' => $data->rec->id, 'Printing' => 'yes', 'Order'=>'yes'),
-            'ef_icon = img/16/btn-order.png, title=Създаване на заповед за отпуска', array('target' => '_blank'), array('class' => 'print'));
-        
-        }
-        
-        // Ако имаме права да създадем заповед за отпуск
-        if(haveRole('hr, ceo') && $data->rec->state == 'active') {
-        
-            // Добавяме бутон
-            $data->toolbar->addBtn('Заповед', array($mvc, 'single', 'id' => $data->rec->id, 'Printing' => 'yes', 'Order'=>'yes'),
-                'ef_icon = img/16/btn-order.png, title=Създаване на заповед за отпуска', array('target' => '_blank'), array('class' => 'print'));
-        
-        }
-        
+
         // Ако нямаме права за писане в треда
     	if(doc_Threads::haveRightFor('single', $data->rec->threadId) == FALSE){
     		

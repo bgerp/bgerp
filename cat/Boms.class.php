@@ -1451,4 +1451,43 @@ class cat_Boms extends core_Master
     		}
     	}
     }
+    
+    
+    /**
+     * Връща складируемите материали по-рецепта, ако е подаден склад се
+     * отсяват само ненулевите количества
+     * 
+     * @param int $bomId
+     * @param double $quantity
+     * @param int $storeId
+     * @return array $res
+     * 			['productId']      - ид на артикул
+     * 		    ['packagingId']    - ид на опаковка
+     * 		    ['quantity']       - к-во
+     * 			['quantityInPack'] - к-во в опаковка
+     */
+    public static function getBomMaterials($bomId, $quantity, $storeId = NULL)
+    {
+    	$res = array();
+    	$bomInfo = cat_Boms::getResourceInfo($bomId, $quantity, dt::now());
+    	if(!count($bomInfo['resources'])) return $res;
+    	
+    	foreach ($bomInfo['resources'] as $pRec){
+    		$canStore = cat_Products::fetchField($pRec->productId, 'canStore');
+    		if($canStore != 'yes' || $pRec->type != 'input') continue;
+    		
+    		// Ако има склад се отсяват артикулите, които имат нулева наличност
+    		if(isset($storeId)){
+    			$quantity = store_Products::getQuantity($pRec->productId, $storeId);
+    			if(empty($quantity)) continue;
+    		}
+    		
+    		$res[] = (object)array('productId'      => $pRec->productId,
+    				               'packagingId'    => $pRec->packagingId,
+    				               'quantity'       => $pRec->propQuantity,
+    				               'quantityInPack' => $pRec->quantityInPack);
+    	}
+    	
+    	return $res;
+    }
 }

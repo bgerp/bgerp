@@ -33,7 +33,7 @@ class cat_Listings extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_ActivatePlg, plg_Search, doc_DocumentPlg, doc_plg_SelectFolder';
+    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_ActivatePlg, plg_Search, plg_Clone, doc_DocumentPlg, doc_plg_SelectFolder';
                     
     
     /**
@@ -112,7 +112,22 @@ class cat_Listings extends core_Master
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
     public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders,crm_ContragentAccRegIntf';
+
+    /**
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     *
+     * @see plg_Clone
+     */
+    public $cloneDetails = 'cat_ListingDetails';
     
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'title';
+
     
     /**
      * Описание на модела (таблицата)

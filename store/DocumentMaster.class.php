@@ -218,7 +218,10 @@ abstract class store_DocumentMaster extends core_Master
     public static function on_AfterCreate($mvc, $rec)
     {
     	$origin = $mvc::getOrigin($rec);
-    
+    	
+    	// Ако документа е клониран пропуска се
+    	if($rec->_isClone === TRUE) return;
+    	
     	// Ако новосъздадения документ има origin, който поддържа bgerp_AggregateDealIntf,
     	// използваме го за автоматично попълване на детайлите на документа
     	if ($origin->haveInterface('bgerp_DealAggregatorIntf')) {
@@ -651,6 +654,7 @@ abstract class store_DocumentMaster extends core_Master
     public static function getRecTitle($rec, $escaped = TRUE)
     {
     	$self = cls::get(get_called_class());
+    	$rec = self::fetchRec($rec);
     	
     	return tr("|{$self->singleTitle}|* №") . $rec->id;
     }

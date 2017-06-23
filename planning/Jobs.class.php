@@ -119,7 +119,7 @@ class planning_Jobs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title=Документ, dueDate, packQuantity=Количество->|*<small>|Планирано|*</small>,quantityFromTasks=Количество->|*<small>|Произведено|*</small>, quantityProduced=Количество->|*<small>|Заскладено|*</small>, quantityNotStored=Количество->|*<small>|Незаскладено|*</small>, packagingId, state,modifiedOn,modifiedBy';
+    public $listFields = 'title=Документ, dueDate, packQuantity=Количество->|*<small>|Планирано|*</small>,quantityFromTasks=Количество->|*<small>|Произведено|*</small>, quantityProduced=Количество->|*<small>|Заскладено|*</small>, quantityNotStored=Количество->|*<small>|Незаскладено|*</small>, packagingId,folderId, state, modifiedOn,modifiedBy';
     
     
     /**
@@ -273,8 +273,9 @@ class planning_Jobs extends core_Master
     	
     	if(isset($rec->saleId)){
     		$saleRec = sales_Sales::fetch($rec->saleId);
-    		$dQuantity = sales_SalesDetails::fetchField("#saleId = {$rec->saleId} AND #productId = {$rec->productId}", 'quantity');
-    		$form->setDefault('quantity', $dQuantity);
+    		$dRec = sales_SalesDetails::fetch("#saleId = {$rec->saleId} AND #productId = {$rec->productId}");
+    		$form->setDefault('packagingId', $dRec->packagingId);
+    		$form->setDefault('packQuantity', $dRec->packQuantity);
     		
     		// Ако има данни от продажба, попълваме ги
     		$form->setDefault('deliveryTermId', $saleRec->deliveryTermId);
@@ -283,6 +284,8 @@ class planning_Jobs extends core_Master
     		$locations = crm_Locations::getContragentOptions($saleRec->contragentClassId, $saleRec->contragentId);
     		$form->setOptions('deliveryPlace', $locations);
     		$caption = "|Данни от|* <b>" . sales_Sales::getRecTitle($rec->saleId) . "</b>";
+    		$caption = str_replace(', ', ' ', $caption);
+    		$caption = str_replace(',', ' ', $caption);
     		
     		$form->setField('deliveryTermId', "caption={$caption}->Условие,changable");
     		$form->setField('deliveryDate', "caption={$caption}->Срок,changable");
@@ -313,7 +316,6 @@ class planning_Jobs extends core_Master
     	}
     	
     	$form->setDefault('packagingId', key($packs));
-    	
     	$departments = cls::get('hr_Departments')->makeArray4Select('name', "#type = 'workshop'", 'id');
     	$form->setOptions('department', array('' => '') + $departments);
     }
@@ -360,8 +362,10 @@ class planning_Jobs extends core_Master
     		if(isset($filter->view)){
     			switch($filter->view){
     				case 'createdOn':
-    					arr::placeInAssocArray($data->listFields, array('createdOn' => 'Създаване||Created->На'), 'modifiedOn');
-    					arr::placeInAssocArray($data->listFields, array('createdBy' => 'Създаване||Created->От||By'), 'modifiedOn');
+    					unset($data->listFields['modifiedOn']);
+    					unset($data->listFields['modifiedBy']);
+    					$data->listFields['createdOn'] = 'Създаване||Created->На';
+    					$data->listFields['createdBy'] = 'Създаване||Created->От||By';
     					$data->query->orderBy('createdOn', 'DESC');
     					break;
     				case 'dueDate':

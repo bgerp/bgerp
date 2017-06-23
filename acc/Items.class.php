@@ -155,6 +155,7 @@ class acc_Items extends core_Manager
         $this->FNC('titleNum', 'varchar', 'column=none');
         
         $this->setDbUnique('objectId,classId');
+        $this->setDbIndex('earliestUsedOn');
     }
     
     
