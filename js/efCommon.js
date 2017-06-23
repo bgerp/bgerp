@@ -2388,9 +2388,9 @@ function prepareContextHtmlFromAjax() {
 function getContextMenuFromAjax() {
     prepareContextHtmlFromAjax();
 
-    $('.ajaxContext').on('mousedown', function() {
+    $('.ajaxContext').on('mousedown touchstart', function(e) {
         openAjaxMenu(this);
-    } );
+    });
 
     $('.ajaxContext').each(function(){
         var el = $(this);
