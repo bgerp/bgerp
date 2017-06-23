@@ -258,7 +258,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 					$obj->batch = $batchDef->denormalize($obj->batch);
 					if(!$batchDef->isValid($obj->batch, $obj->quantity, $msg)){
 						$msg = str_replace(',', ' ', $msg);
-						$err[$i][] = $obj->batch . " |{$msg}|*";
+						$err[$i][] = $obj->batch . " {$msg}";
 						continue;
 					}
 				} else {
