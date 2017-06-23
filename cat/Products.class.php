@@ -2799,6 +2799,8 @@ class cat_Products extends embed_Manager {
      */
     private function isUsedInActiveDeal($productId)
     {
+    	$productId = (is_object($productId)) ? $productId->id : $productId;
+    	
     	foreach (array('sales_SalesDetails', 'purchase_PurchasesDetails') as $Det){
     		$Detail = cls::get($Det);
     		$dQuery = $Detail->getQuery();
@@ -2811,5 +2813,34 @@ class cat_Products extends embed_Manager {
     	}
     	
     	return FALSE;
+    }
+    
+    
+    /**
+     * Преди затваряне/отваряне на записа
+     * 
+     * @param core_Mvc $mvc    - мениджър
+     * @param stdClass $rec    - запис
+     * @param string $newState - ново състояние
+     * @return mixed
+     */
+    public static function on_BeforeChangeState(core_Mvc $mvc, &$rec, $newState)
+    {
+    	if($newState == 'closed' && $mvc->isUsedInActiveDeal($rec)){
+    		core_Statuses::newStatus("Артикулът не може да бъде затворен, докато се използва в активни договори", 'error');
+    		return FALSE;
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се преди оттеглянето на документа
+     */
+    public static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
+    {
+    	if($mvc->isUsedInActiveDeal($id)){
+    		core_Statuses::newStatus("Артикулът не може да бъде оттеглен, докато се използва в активни договори", 'error');
+    		return FALSE;
+    	}
     }
 }
