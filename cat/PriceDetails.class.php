@@ -187,7 +187,8 @@ class cat_PriceDetails extends core_Manager
     			
     			if(price_Lists::haveRightFor('single', $primeCostListId) && isset($primeCost)){
     				if($hideIcons === FALSE){
-    					$btns .= "<div style='text-align:left'>" . ht::createLink('Хронология', array('price_Lists', 'single', $primeCostListId, 'product' => $data->masterId), FALSE, 'title=Хронология на себестойността на артикула'). "</div>";
+    					$threadId = price_Lists::fetchField($primeCostListId, 'threadId');
+    					$btns .= "<div style='text-align:left'>" . ht::createLink('Хронология', array('doc_Containers', 'list', 'threadId' => $threadId, 'product' => $data->masterId), FALSE, 'title=Хронология на себестойността на артикула'). "</div>";
     				}
     			}
     		}

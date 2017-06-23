@@ -1091,6 +1091,7 @@ function prepareContextMenu() {
     });
 }
 
+var timeOfSettingTab, timeOfNotification;
 function openCurrentTab(){
     if(!$('body').hasClass('modern-theme')) return;
     var current;
@@ -1115,6 +1116,8 @@ function openCurrentTab(){
 
     portalTabsChange();
 }
+
+
 /**
  * Действия на табовете в мобилен
  */
@@ -1126,10 +1129,9 @@ function portalTabsChange() {
 
         $(this).addClass('activeTab');
         $("#"+tab_id).addClass('activeTab');
+        timeOfSettingTab = jQuery.now();
         setCookie('portalTabs', tab_id);
     });
-
-
 }
 
 // Скрива или показва съдържанието на div (или друг) елемент
@@ -2386,9 +2388,9 @@ function prepareContextHtmlFromAjax() {
 function getContextMenuFromAjax() {
     prepareContextHtmlFromAjax();
 
-    $('.ajaxContext').on('mousedown', function() {
+    $('.ajaxContext').on('mousedown touchstart', function(e) {
         openAjaxMenu(this);
-    } );
+    });
 
     $('.ajaxContext').each(function(){
         var el = $(this);
@@ -4042,7 +4044,7 @@ function changeTitleCnt(cnt) {
     document.title = title;
 }
 
-
+var oldNotificationsCnt = 0 ;
 /**
  * Променя броя на нотификациите
  *
@@ -4060,14 +4062,22 @@ function changeNotificationsCnt(data) {
     var nCntLink = get$(data.id);
 
     if (nCntLink != null) {
-
-        if (parseInt(data.cnt) > 0) {
+        var notificationsCnt = parseInt(data.cnt);
+        if (notificationsCnt > 0) {
             nCntLink.className = 'haveNtf';
         } else {
             nCntLink.className = 'noNtf';
         }
+
+        if($('body').hasClass('modern-theme') && oldNotificationsCnt != notificationsCnt) {
+            oldNotificationsCnt = notificationsCnt;
+            timeOfNotification = jQuery.now();
+
+            if(!timeOfSettingTab || (timeOfSettingTab < timeOfNotification)) {
+                setCookie('portalTabs', "notificationsPortal");
+            }
+        }
     }
-    setCookie('portalTabs', "notificationsPortal");
 }
 
 

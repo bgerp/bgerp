@@ -313,7 +313,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 	{
 		$recs = array();
 		
-		core_App::setTimeLimit(150);
+		core_App::setTimeLimit(200);
 		$Sales = cls::get('sales_Sales');
 		
 		$dealers = keylist::toArray($rec->dealers);
@@ -323,8 +323,10 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 		// Всички чакащи и активни продажби на избраните дилъри
 		$sQuery = sales_Sales::getQuery();
 		$sQuery->where("#state = 'pending' || #state = 'active'");
+		$sQuery->EXT('inCharge', 'doc_Folders', 'externalName=inCharge,externalKey=folderId');
 		if(count($dealers)){
-			$sQuery->in('dealerId', $dealers);
+			$dealers = implode(',', $dealers);
+			$sQuery->where("#inCharge IN ({$dealers}) OR #dealerId IN ({$dealers})");
 		}
 		
 		// За всяка
