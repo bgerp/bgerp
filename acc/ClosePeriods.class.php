@@ -32,7 +32,7 @@ class acc_ClosePeriods extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools2, acc_Wrapper, acc_plg_Contable, plg_Clone, doc_DocumentPlg, doc_plg_HidePrices, doc_plg_SelectFolder';
+    public $loadList = 'plg_RowTools2, acc_Wrapper, acc_plg_Contable, doc_DocumentPlg, doc_plg_HidePrices, doc_plg_SelectFolder';
     
     
     /**
@@ -139,14 +139,6 @@ class acc_ClosePeriods extends core_Master
      */
     public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
 
-    
-    /**
-     * Полета, които при клониране да не са попълнени
-     *
-     * @see plg_Clone
-     */
-    public $fieldsNotToClone = 'periodId';
-    
     
     /**
      * Описание на модела
