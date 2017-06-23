@@ -213,6 +213,8 @@ class hr_WorkingCycles extends core_Master
         expect($data->masterId); 
         $shift = hr_Departments::fetchField($data->masterId, 'schedule');
         
+        return;
+        
         $customScheQuery = hr_CustomSchedules::getQuery();
         $custom = array();
         
