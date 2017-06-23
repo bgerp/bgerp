@@ -1827,8 +1827,6 @@ class cat_Products extends embed_Manager {
     {
     	// Бутона 'Нов запис' в листовия изглед, добавя винаги универсален артикул
     	if($mvc->haveRightFor('add')){
-    		
-    		//, 'innerClass' => cat_GeneralProductDriver::getClassId())
     		 $data->toolbar->addBtn('Нов запис', array($mvc, 'add'), 'order=1,id=btnAdd', 'ef_icon = img/16/shopping.png,title=Създаване на нова стока');
     	}
     }
@@ -2790,5 +2788,28 @@ class cat_Products extends embed_Manager {
     	}
     
     	return NULL;
+    }
+    
+    
+    /**
+     * Дали артикула се среща в детайла на активни договори (Покупка и продажба)
+     * 
+     * @param int $productId
+     * @return boolean
+     */
+    private function isUsedInActiveDeal($productId)
+    {
+    	foreach (array('sales_SalesDetails', 'purchase_PurchasesDetails') as $Det){
+    		$Detail = cls::get($Det);
+    		$dQuery = $Detail->getQuery();
+    		$dQuery->EXT('state', $Detail->Master, "externalName=state,externalKey={$Detail->masterKey}");
+    		$dQuery->where("#productId = {$productId} AND #state = 'active'");
+    		$dQuery->show('id');
+    		$dQuery->limit(1);
+    		
+    		if($dQuery->fetch()) return TRUE;
+    	}
+    	
+    	return FALSE;
     }
 }
