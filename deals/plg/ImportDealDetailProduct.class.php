@@ -247,10 +247,14 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 				if($batchDef = batch_Defs::getBatchDef($pRec->productId)){
 					$batchType = $batchDef->getBatchClassType();
 					$obj->batch = $batchType->fromVerbal($obj->batch);
-					if(!$obj->batch){
-						$err[$i][] = $obj->batch . " |{$batchType->error}|*";
+					$r = $batchType->isValid($obj->batch);
+					
+					if(!$obj->batch || !empty($r['error'])){
+						$error = !empty($r['error']) ? $r['error'] : $batchType->error;
+						$err[$i][] = $obj->batch . " |{$error}|*";
 						continue;
 					}
+					
 					$obj->batch = $batchDef->denormalize($obj->batch);
 					if(!$batchDef->isValid($obj->batch, $obj->quantity, $msg)){
 						$msg = str_replace(',', ' ', $msg);
