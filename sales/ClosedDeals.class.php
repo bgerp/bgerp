@@ -37,8 +37,7 @@ class sales_ClosedDeals extends deals_ClosedDeals
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'sales_Wrapper, acc_plg_Contable, plg_RowTools, plg_Sorting,
-                        plg_Clone, doc_DocumentPlg, doc_plg_HidePrices, plg_Search';
+    public $loadList = 'sales_Wrapper, acc_plg_Contable, plg_RowTools, plg_Sorting,doc_DocumentPlg, doc_plg_HidePrices, plg_Search';
     
     
     /**
