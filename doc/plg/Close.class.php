@@ -120,15 +120,17 @@ class doc_plg_Close extends core_Plugin
     	$state = ($rec->state == 'closed') ? 'active' : 'closed';
     	$action = ($state == 'closed') ? 'Приключване' : 'Активиране';
     	
-    	$rec->brState = $rec->state;
-    	$rec->exState = $rec->state;
-    	$rec->state = $state;
+    	if($mvc->invoke('BeforeChangeState', array(&$rec, $state))){
+    		$rec->brState = $rec->state;
+    		$rec->exState = $rec->state;
+    		$rec->state = $state;
     	
-    	$mvc->save($rec);
-    	if(cls::haveInterface('doc_DocumentIntf', $mvc)){
-    		doc_Prototypes::sync($rec->containerId);
+    		$mvc->save($rec);
+    		if(cls::haveInterface('doc_DocumentIntf', $mvc)){
+    			doc_Prototypes::sync($rec->containerId);
+    		}
+    		$mvc->logWrite($action, $rec->id);
     	}
-    	$mvc->logWrite($action, $rec->id);
     	
     	$retUrl = getRetUrl();
     	
