@@ -247,7 +247,8 @@ class doclog_Documents extends core_Manager
         
         $this->setDbIndex('containerId');
         $this->setDbIndex('mid');
-        
+        $this->setDbIndex('threadId');
+
         $this->setDbUnique('containerId, action, mid');
     } 
     

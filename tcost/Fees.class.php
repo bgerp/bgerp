@@ -292,8 +292,17 @@ class tcost_Fees extends core_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
+        static $lastPrice;
+
     	$rec->total = self::getTotalPrice($rec);
     	$row->total = $mvc->getFieldType('total')->toVerbal($rec->total);
+
+        if($lastPrice >= $rec->price) {
+            $row->ROW_ATTR = array('style' => 'color:red;');
+        }
+
+ 
+        $lastPrice = $rec->price;
     }
     
     
