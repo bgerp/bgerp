@@ -111,6 +111,12 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 	
 		// Вербализиране само на нужните записи
 		if(is_array($data->recs)){
+			
+			// Ако има поле за групиране, предварително се групират записите
+			if(isset($data->groupByField)){
+				$data->recs = $this->orderByContragentName($data->recs, $data->groupByField);
+			}
+			
 			foreach ($data->recs as $index => $dRec){
 				if(isset($data->Pager) && !$data->Pager->isOnPage()) continue;
 				$data->rows[$index] = $this->detailRecToVerbal($rec, $dRec);
@@ -137,10 +143,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 		
 		if(isset($data->groupByField)){
 			$this->groupRows($data->recs, $data->rows, $data->listFields, $data->groupByField);
-			
-			
 			$filterFields[$data->groupByField] = $data->groupByField;
-			
 		}
 		
 		$data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, implode(',', $filterFields));
@@ -151,6 +154,28 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 		
 		// Връщане на шаблона
 		return $tpl;
+	}
+	
+	
+	/**
+	 * Подреждане на записите първо по-поле и после групиране по полр
+	 *
+	 * @param int $recs
+	 * @param string $field
+	 * @return array $newRecs
+	 */
+	private function orderByContragentName($recs, $groupField)
+	{
+		$newRecs = array();
+		foreach ($recs as $i => $r){
+			$newRecs[$i] = $r;
+			$subArr = array_filter($recs, function ($a) use ($r, $groupField){return ($a->{$groupField} == $r->{$groupField});});
+			if(count($subArr)){
+				$newRecs = array_replace($newRecs, $subArr);
+			}
+		}
+	
+		return $newRecs;
 	}
 	
 	
