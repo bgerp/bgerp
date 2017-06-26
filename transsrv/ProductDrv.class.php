@@ -322,14 +322,14 @@ class transsrv_ProductDrv extends cat_ProductDriver
 		if(!Mode::isReadOnly()){
 			$systemId = remote_Authorizations::getSystemId(transsrv_Setup::TRANS_BID_DOMAIN);
 			if(haveRole('officer')){
-				if($systemId){
-					if(!empty($data->rec->auction) && haveRole('officer')){
+				if(!empty($data->rec->auction) && haveRole('officer')){
+					if($systemId){
 						$url = array("transbid_Auctions/single/{$data->rec->auctionId}");
 						$url = remote_Authorizations::getRemoteUrl($systemId, $url);
 						$row->auction = ht::createLink($row->auction, $url);
+					} else {
+						$row->auction = ht::createHint($row->auction, 'За да видите търга, ви е нужно оторизация за trans.bid', 'warning');
 					}
-				} else {
-					$row->auction = ht::createHint($row->auction, 'За да видите търга, ви е нужно оторизация за trans.bid', 'warning');
 				}
 			}
 		}
