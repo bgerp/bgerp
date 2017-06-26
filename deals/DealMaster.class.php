@@ -1356,8 +1356,18 @@ abstract class deals_DealMaster extends deals_DealBase
     	$now = dt::mysql2timestamp(dt::now());
     	$oldBefore = dt::timestamp2mysql($now - $olderThan);
     	 
+    	// Всички нишки със заявка
+    	$cQuery = doc_Containers::getQuery();
+    	$cQuery->where("#state = 'pending'");
+    	$cQuery->show('threadId');
+    	$cQuery->groupBy('threadId');
+    	$threadIds = arr::extractValuesFromArray($cQuery->fetchAll(), 'threadId');
+    	
     	$query->EXT('threadModifiedOn', 'doc_Threads', 'externalName=last,externalKey=threadId');
-    	 
+    	if(count($threadIds)){
+    	    $query->notIn("threadId", $threadIds);
+    	}
+    	
     	// Закръглената оставаща сума за плащане
     	$query->XPR('toInvoice', 'double', 'ROUND(#amountDelivered - #amountInvoiced, 2)');
     	 
@@ -1385,6 +1395,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	 
     	// Всяка намерената сделка, се приключва като платена
     	while($rec = $query->fetch()){
+    		
     		try{
     			 
     			// Създаване на приключващ документ-чернова
