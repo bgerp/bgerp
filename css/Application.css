@@ -1782,6 +1782,10 @@ div.attachments {
     display: block;
     margin-bottom: 2px; }
 
+.dangerFile {
+  background-image: url('../img/16/bug.png') !important;
+  color: red !important; }
+
 .wide .em-holder {
   width: 68%; }
 
