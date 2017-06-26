@@ -26,37 +26,37 @@ class transsrv_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'transsrv_TransportModes';
+    public $startCtr = 'transsrv_TransportModes';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Необходими пакети
      */
-    var $depends = 'drdata=0.1';
+    public $depends = 'drdata=0.1';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Добавя артикул за транспорт";
+    public $info = "Интеграция с trans.bid";
     
     
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
             'transsrv_TransportModes',
             'transsrv_TransportUnits',
         );
@@ -65,13 +65,13 @@ class transsrv_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'transsrv';
+    public $roles = 'transsrv';
     
 
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
+    public $configDescription = array(
     		'TRANSSRV_SALE_DEFAULT_CONDITION' => array("text", 'caption=Общо условие за продажба по подразбиране->Условие'),
     );
 
@@ -79,8 +79,5 @@ class transsrv_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "transsrv_ProductDrv";
-         
-
-    
+    public $defClasses = "transsrv_ProductDrv";
 }
