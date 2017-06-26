@@ -750,7 +750,7 @@ abstract class store_DocumentMaster extends core_Master
     	}
     	 
     	$res["deliveryTime"]  = $rec->deliveryTime;
-    	$res['ourReff'] => "#" . $this->getHandle($rec);
+    	$res['ourReff'] = "#" . $this->getHandle($rec);
     	
     	return $res;
     }
