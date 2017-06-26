@@ -881,7 +881,7 @@ if ($step == 'setup') {
     set_time_limit(1000);
 
     $calibrate = 1000;
-    $totalRecords = 205000; // 205 300
+    $totalRecords = 209972; // 205 300
     $totalTables = 365; //366
     $percents = $persentsBase = $persentsLog = 0;
     $total = $totalTables*$calibrate + $totalRecords;
@@ -944,7 +944,7 @@ if ($step == 'setup') {
         list($numTables, $numRows) = dataBaseStat(); 
 
         // От базата идват 80% от прогрес бара
-        $percentsBase = round(($numRows+$calibrate*$numTables*(4/5))/$total,2)*100;
+        $percentsBase = round(($numRows + $calibrate * $numTables*(4/5))/$total, 2)*100;
         
         // Изчитаме лог-а
         $setupLog = @file_get_contents(EF_TEMP_PATH . '/setupLog.html');
