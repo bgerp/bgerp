@@ -114,7 +114,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 			
 			// Ако има поле за групиране, предварително се групират записите
 			if(isset($data->groupByField)){
-				$data->recs = $this->orderByContragentName($data->recs, $data->groupByField);
+				$data->recs = $this->orderByGroupField($data->recs, $data->groupByField);
 			}
 			
 			foreach ($data->recs as $index => $dRec){
@@ -164,7 +164,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 	 * @param string $field
 	 * @return array $newRecs
 	 */
-	private function orderByContragentName($recs, $groupField)
+	private function orderByGroupField($recs, $groupField)
 	{
 		$newRecs = array();
 		foreach ($recs as $i => $r){
