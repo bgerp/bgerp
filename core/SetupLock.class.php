@@ -82,3 +82,4 @@ class core_SetupLock
             die;
         }
     }
+}
