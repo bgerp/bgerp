@@ -255,7 +255,7 @@ class store_Products extends core_Detail
      */
     public static function sync($all)
     {
-    	$query = static::getQuery();
+    	$query = self::getQuery();
     	$query->show('productId,storeId,quantity,state');
     	$oldRecs = $query->fetchAll();
     	$self = cls::get(get_called_class());
@@ -272,6 +272,15 @@ class store_Products extends core_Detail
     	
     	// Ъпдейт на к-та на продуктите, имащи запис но липсващи в счетоводството
     	self::updateMissingProducts($arrRes['delete']);
+    	
+    	// Поправка ако случайно е останал някой артикул с к-во в затворено състояние
+    	$fixQuery = self::getQuery();
+    	$fixQuery->where("#quantity != 0 AND #state = 'closed'");
+    	$fixQuery->show('id,state');
+    	while($fRec = $fixQuery->fetch()){
+    		$fRec->state = 'active';
+    		self::save($fRec, 'state');
+    	}
     	
     	core_Locks::release(self::SYNC_LOCK_KEY);
     }
