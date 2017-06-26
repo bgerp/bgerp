@@ -572,6 +572,7 @@ class store_ShipmentOrders extends store_DocumentMaster
      *   	string|NULL   ['toPerson']     - лице
      * 		datetime|NULL ['deliveryTime'] - дата на разтоварване
      * 		text|NULL 	  ['conditions']   - други условия
+     * 		varchar|NULL  ['ourReff']      - наш реф
      */
     function getLogisticData($rec)
     {

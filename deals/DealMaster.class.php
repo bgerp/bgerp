@@ -1942,6 +1942,7 @@ abstract class deals_DealMaster extends deals_DealBase
      *   	string|NULL   ['toPerson']     - лице
      * 		datetime|NULL ['deliveryTime'] - дата на разтоварване
      * 		text|NULL 	  ['conditions']   - други условия
+     *		varchar|NULL  ['ourReff']      - наш реф
      */
     function getLogisticData($rec)
     {
