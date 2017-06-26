@@ -336,17 +336,27 @@ class core_ProtoSetup
      *
      * @return mixed
      */
-    public static function get($name, $absolute = FALSE)
+    public static function get($name, $absolute = FALSE, $userId = NULL)
     {
         if(!$absolute) {
             $prefix = strtoupper(self::getPackName()) . '_';
         }
 
         $name = $prefix . $name;
+        
+        if($userId > 0) {
+            core_Users::sudo($userId);
+            Mode::set('ddd');
+        }
 
         $conf = self::getConfig();
-
-        return $conf->{$name};
+        $res = $conf->{$name};
+        
+        if($userId > 0) {
+            core_Users::exitSudo();
+        }
+        
+        return $res;
     }
     
     
