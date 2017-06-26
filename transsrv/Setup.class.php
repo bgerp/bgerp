@@ -23,6 +23,12 @@ class transsrv_Setup extends core_ProtoSetup
 {
     
     
+	/**
+	 * Домейн на трансбид
+	 */
+	const TRANS_BID_DOMAIN = 'http://tb.bgerp.com';
+	
+	
     /**
      * Версия на пакета
      */

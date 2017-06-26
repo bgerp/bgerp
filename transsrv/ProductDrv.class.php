@@ -88,8 +88,9 @@ class transsrv_ProductDrv extends cat_ProductDriver
         // Обща информация
         $form->FLD('conditions', 'richtext(bucket=Notes,rows=3)', 'caption=Обща информация->Условия');
         $form->FLD('ourReff', 'varchar', 'caption=Обща информация->Наш реф.№');
+        $form->FLD('auction', 'varchar', 'caption=Обща информация->Търг');
+        $form->FLD('auctionId', 'varchar', 'caption=Обща информация->Търг,input=hidden');
 	}
-	
 	
 
     /**
@@ -316,6 +317,21 @@ class transsrv_ProductDrv extends cat_ProductDriver
 		$row = new stdClass();
 		foreach ($fields as $name => $caption){
 			$row->{$name} = $data->row->{$name};
+		}
+		
+		if(!Mode::isReadOnly()){
+			$systemId = remote_Authorizations::getSystemId(transsrv_Setup::TRANS_BID_DOMAIN);
+			if(haveRole('officer')){
+				if($systemId){
+					if(!empty($data->rec->auction) && haveRole('officer')){
+						$url = array("transbid_Auctions/single/{$data->rec->auctionId}");
+						$url = remote_Authorizations::getRemoteUrl($systemId, $url);
+						$row->auction = ht::createLink($row->auction, $url);
+					}
+				} else {
+					$row->auction = ht::createHint($row->auction, 'За да видите търга, ви е нужно оторизация за trans.bid', 'warning');
+				}
+			}
 		}
 		
 		$tpl->placeObject($row);
