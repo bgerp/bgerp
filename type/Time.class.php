@@ -225,9 +225,12 @@ class type_Time extends type_Varchar {
         }
 
         $this->params['size'] = 13;
-        
+
+        $uom = $this->params['uom'];
+        unset($this->params['uom']);
         $this->fromVerbalSuggestions($value);
-        
+        $this->params['uom'] = $uom;
+
         return parent::renderInput_($name, $value, $attr);
     }
     

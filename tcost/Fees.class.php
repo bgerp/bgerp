@@ -199,81 +199,48 @@ class tcost_Fees extends core_Detail
         $query->orderBy('#weight');
         
         while($rec = $query->fetch()){
-            // Определяме следните променливи - $weightsLeft, $weightsRight, $smallestWeight, $biggestWeight
-            if (!isset($smallestWeight) || $smallestWeight > $rec->weight) {
-                $smallestWeight = $rec->weight;
-            }
-            if (!isset($biggestWeight) || $biggestWeight < $rec->weight) {
-                $biggestWeight = $rec->weight;
-            }
-            if($rec->weight >= $weightsLeft && $rec->weight <= $totalWeight){
-                $weightsLeft = $rec->weight;
-            }
-            if ($rec->weight <= $weightsRight && $rec->weight >= $totalWeight) {
-                $weightsRight = $rec->weight;
-            }
-
             // Слагаме получените цени за по-късно ползване в асоциативния масив
             $price = self::getTotalPrice($rec);
-            $arrayOfWeightPrice[$rec->weight] = $price;
+            $arrayOfWeightPrice[round($rec->weight)] = $price;
         }
+        // дотук имаме масив Тегло -> Сума
+
+
+ 
+
        
         //Създаваме вече индексиран масив от ключовете на по горния асоциативен маскив
         $indexedArray = array_keys($arrayOfWeightPrice);
 
-        //Покриване на специалните случаи, които въведеното тегло е най-малко
-        if(!isset($weightsLeft)){
-            $weightsLeft = 0;
-        }
+        // Разглеждаме 4 случая
+        // Търсеното тегло е по-малко от най-малкото в масива. Тогава Общата цена е най-малката
 
-        // Покриване на специалните случаи, които въведеното тегло е най-голямо
-        if($biggestWeight < $weightsRight){
-            end($indexedArray);
-            $key = key($indexedArray);
-            $weightsRight = $indexedArray[$key];
-            $weightsLeft = $indexedArray[$key - 1];
-        }
 
-        $finalPrice = NULL;
-        //Ако е въведеното тегло е по-малко от най-малкото тегло в базата,то трябва да се върне отношение 1:1
-       
-        //Ако съществува точно такова тегло, трябва да се върне цената директно цената за него
-        if($totalWeight == $weightsLeft){
-            $finalPrice = $arrayOfWeightPrice[$weightsLeft];
-        } elseif($totalWeight == $smallestWeight){
-            $finalPrice =  $totalWeight;
-        } else{
-        	//Ако нищо от посоченото по-горе не се осъществи значи апроксимираме
-            
-            /** Формули за сметката
-             * y = price
-             * x = weight
-             * y1 = a*x1 + b
-             * y2 = a*x2 + b
-             * a = (y1 - y2) / (x1 - x2)
-             * b = y1 - ((y1 - y2) / (x1 - x2) * x1);
-             * y3 = a*x3 + b // y3 = finalPrice
-             * Възможно е float да се запази като string, така че ги преобразяваме
-             */
+        $minWeight = min($indexedArray);
+        $maxWeight = max($indexedArray);
+        $totalWeight = round($totalWeight);
 
-            $weightsLeft = floatval($weightsLeft);
-            $weightsRight = floatval($weightsRight);
-            $priceLeft = floatval($arrayOfWeightPrice[$weightsLeft]);
-            $priceRight = floatval($arrayOfWeightPrice[$weightsRight]);
-
-            if($weightsLeft == 0) {
-                $priceLeft = $priceRight;
+        if($totalWeight < $minWeight) {
+            $finalPrice = $arrayOfWeightPrice[$minWeight];
+        } elseif($totalWeight > $maxWeight) {
+            $finalPrice = $arrayOfWeightPrice[$maxWeight] * ($totalWeight / $maxWeight);
+        } elseif(isset($arrayOfWeightPrice[$totalWeight])) {
+            $finalPrice = $arrayOfWeightPrice[$totalWeight];
+        } else {
+            $x = $totalWeight;
+            foreach($arrayOfWeightPrice as $x2 => $y2) {
+                if(isset($x1) && $x > $x1 && $x < $x2) {
+                    $b = ($y1 - $y2) / ($x1 - $x2);
+                    $a = $y1 - $x1 * $b;
+                    $y = $a + $b * $x;
+                    $finalPrice = $y;
+                    break;
+                }
+                $x1 = $x2;
+                $y1 = $y2;
             }
-
-            $delimiter = $weightsLeft - $weightsRight;
-            if(!$delimiter) return tcost_CostCalcIntf::DELIMITER_ERROR;
-            
-            $a = ($priceLeft - $priceRight) / $delimiter;
-            $b = $priceLeft - (($priceLeft - $priceRight) / $delimiter * $weightsLeft);
-
-            $finalPrice = $a * $totalWeight + $b;
         }
-        
+
         // Резултата се получава, като получената цена разделяме на $totalweight и умножаваме по $singleWeight.
         $finalPrice = round($finalPrice, 2);
         $result = round($finalPrice / $totalWeight * $singleWeight, 2);

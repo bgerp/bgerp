@@ -149,6 +149,9 @@ class bgerp_Setup extends core_ProtoSetup {
         // Предотвратяваме логването в Debug режим
         Debug::$isLogging = FALSE;
         
+        // Блокираме други процеси
+        core_SetupLock::block("Prepare bgERP installation...");
+
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         $html = $Plugins->repair();
@@ -167,10 +170,13 @@ class bgerp_Setup extends core_ProtoSetup {
         $instances = array();
         
         foreach ($managers as $manager) {
+            core_SetupLock::block("Install {$manager}");
             $instances[$manager] = &cls::get($manager);
             $html .= $instances[$manager]->setupMVC();
         }
         
+        core_SetupLock::block("Starting bgERP installation...");
+
         // Инстанция на мениджъра на пакетите
         $Packs = cls::get('core_Packs');
         
@@ -218,6 +224,8 @@ class bgerp_Setup extends core_ProtoSetup {
         
         $haveError = array();
         
+        core_SetupLock::block("Clearing cache");
+
         core_Debug::$isLogging = FALSE;
         $Cache = cls::get('core_Cache');
         $Cache->eraseFull();
@@ -226,8 +234,17 @@ class bgerp_Setup extends core_ProtoSetup {
         do {
             $loop++;
             
+            $packArr = arr::make($packs);
+
+            $packCnt = count($packArr);
+            $i = 1;
+
             // Извършваме инициализирането на всички включени в списъка пакети
-            foreach (arr::make($packs) as $p) {
+            foreach ($packArr as $p) {
+                
+                $i++;
+                core_SetupLock::block("Load Setup Data For {$p} ({$i}/{$packCnt})");
+
                 if (cls::load($p . '_Setup', TRUE) && !$isSetup[$p]) {
                     try {
                         $html .= $Packs->setupPack($p);
@@ -266,6 +283,9 @@ class bgerp_Setup extends core_ProtoSetup {
         
 
         core_Debug::$isLogging = TRUE;
+        
+        
+        core_SetupLock::block("Finishing bgERP Installation");
 
         $html .= implode("\n", $haveError);
         
@@ -329,7 +349,8 @@ class bgerp_Setup extends core_ProtoSetup {
         $html .= core_Classes::add('bgerp_plg_CsvExport');
         
         $html .= parent::install();
-        
+
+        core_SetupLock::remove();
         return $html;
     }
 
@@ -349,9 +370,18 @@ class bgerp_Setup extends core_ProtoSetup {
         
         // Инстанции на пакетите;
         $packsInst = array();
+        
+        $packArr = arr::make($packs);
+
+        $packCnt = count($packArr);
+        $i = 1;
 
         // Извършваме инициализирането на всички включени в списъка пакети
-        foreach (arr::make($packs) as $p) {
+        foreach ($packArr as $p) {
+            
+            $i++;
+            core_SetupLock::block("Load Setup Data For {$p} ({$i}/{$packCnt})");
+
             if (cls::load($p . '_Setup', TRUE) && !$isLoad[$p]) {
                 $packsInst[$p] = cls::get($p . '_Setup');
                 

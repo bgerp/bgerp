@@ -137,11 +137,7 @@ class auto_handler_CreateQuotationFromInquiry {
     	$idField = $form->getField('id');
     	unset($idField->silent);
     	
-    	$isSystemUser = core_Users::isSystemUser();
-    	if ($isSystemUser) {
-    		core_Users::cancelSystemUser();
-    	}
-    	core_Users::sudo($marketingRec->createdBy);
+    	core_Users::sudo($sudoUser = $marketingRec->createdBy);
     	
     	$data = (object)array('form' => &$form);
     	$Products->invoke('AfterPrepareEditForm', array($data, $data));
@@ -170,10 +166,8 @@ class auto_handler_CreateQuotationFromInquiry {
     	$form->input(implode(',', array_keys($fields)));
     	
     	$Products->invoke('AfterInputEditForm', array($form));
-    	core_Users::exitSudo();
-    	if ($isSystemUser) {
-    		core_Users::forceSystemUser();
-    	}
+    	
+        core_Users::exitSudo($sudoUser);
     	
     	// Попване на пушнатите стойности, за да няма объркване при следваща автоматизация
     	if(is_array($popArray)){

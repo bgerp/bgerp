@@ -1804,7 +1804,7 @@ class doc_DocumentPlg extends core_Plugin
                 }
             }
             // Временна промяна на текущия потребител на този, който е активирал документа
-            $bExitSudo = core_Users::sudo($userId);
+            $sudoUser = core_Users::sudo($userId);
         }
         
         // Ако възникне изключение
@@ -1818,25 +1818,17 @@ class doc_DocumentPlg extends core_Plugin
             $res  = $mvc->renderDocument($id, $data);
         } catch (core_exception_Expect $e) {
             
-            // Ако сме в SUDO режим
-            if ($bExitSudo) {
-                
-                // Възстановяване на текущия потребител
-                core_Users::exitSudo();
-            }
+            // Възстановяване на текущия потребител
+            core_Users::exitSudo($sudoUser);
             
             reportException($e);
             
             expect(FALSE, $e);
         }
         
-        // Ако сме в SUDO режим
-        if ($bExitSudo) {
-            
-            // Възстановяване на текущия потребител
-            core_Users::exitSudo();
-        }
-        
+        // Възстановяване на текущия потребител
+        core_Users::exitSudo($sudoUser);
+
         Mode::pop('inlineDocument');
         
         // Връщаме старата стойност на 'text'
@@ -1873,7 +1865,7 @@ class doc_DocumentPlg extends core_Plugin
                 }
             }
             // Временна промяна на текущия потребител на този, който е активирал документа
-            $bExitSudo = core_Users::sudo($userId);
+            $sudoUser = core_Users::sudo($userId);
         }
         
         // Ако възникне изключение
@@ -1883,23 +1875,14 @@ class doc_DocumentPlg extends core_Plugin
             $res  = $mvc->renderDocument($id, $data);
         } catch (core_exception_Expect $e) {
             
-            // Ако сме в SUDO режим
-            if ($bExitSudo) {
-                
-                // Възстановяване на текущия потребител
-                core_Users::exitSudo();
-            }
-            
+            // Възстановяване на текущия потребител
+            core_Users::exitSudo($sudoUser);
             expect(FALSE, $e);
         }
         
-        // Ако сме в SUDO режим
-        if ($bExitSudo) {
-            
-            // Възстановяване на текущия потребител
-            core_Users::exitSudo();
-        }
-        
+        // Възстановяване на текущия потребител
+        core_Users::exitSudo($sudoUser);
+         
         // Връщаме старата стойност на 'text'
         Mode::pop('text');
     }
@@ -3041,7 +3024,7 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
         
-        core_Users::sudo($userId);
+        $sudoUser = core_Users::sudo($userId);
         
         try {
             // Намираме прикачените документи
@@ -3058,12 +3041,12 @@ class doc_DocumentPlg extends core_Plugin
             
             $res = array_merge($attachedDocs, (array)$res);
         } catch (core_exception_Expect $e) {
-            core_Users::exitSudo();
+            core_Users::exitSudo($sudoUser);
             
             return ;
         }
         
-        core_Users::exitSudo();
+        core_Users::exitSudo($sudoUser);
     }
     
     

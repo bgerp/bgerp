@@ -324,13 +324,7 @@ class email_SendOnTime extends core_Manager
         
         while ($rec = $query->fetch()) {
             
-            // Трябва да спрем системния потребител
-            $isSystemUser = core_Users::isSystemUser();
-            if ($isSystemUser) {
-                core_Users::cancelSystemUser();
-            }
-            
-            core_Users::sudo($rec->createdBy);
+            $sudoUser = core_Users::sudo($rec->createdBy);
             try {
                 $inst = cls::get($rec->class);
                 $inst->send($rec->data['rec'], $rec->data['options'], $rec->data['lg']);
@@ -339,11 +333,7 @@ class email_SendOnTime extends core_Manager
                 reportException($e);
                 self::logErr('Грешка при изпращане', $rec->id);
             }
-            core_Users::exitSudo();
-            
-            if ($isSystemUser) {
-                core_Users::forceSystemUser();
-            }
+            core_Users::exitSudo($sudoUser);
             
             $rec->state = 'closed';
             $rec->sentOn = dt::now();

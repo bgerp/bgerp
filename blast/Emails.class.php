@@ -533,16 +533,9 @@ class blast_Emails extends core_Master
                 
                 // Клонираме записа
                 $cRec = clone $rec;
-                
-                // Ако е системяния потребител, го спираме
-                $isSystemUser = core_Users::isSystemUser();
-                
-                if ($isSystemUser) {
-                    core_Users::cancelSystemUser();
-                }
-                
+
                 // Имейла да се рендира и да се праща с правата на активатора
-                core_Users::sudo($cRec->activatedBy);
+                core_Users::sudo($sudoUser = $cRec->activatedBy);
                 
                 // Задаваме екшъна за изпращането
                 doclog_Documents::pushAction(
@@ -586,15 +579,8 @@ class blast_Emails extends core_Master
                 doclog_Documents::flushActions();
                 
                 // Връщаме стария потребител
-                core_Users::exitSudo();
-                
-                // Ако е бил стартиран системия потребител, пак го стартираме
-                if ($isSystemUser) {
-                    
-                    //Стартираме системния потребител
-                    core_Users::forceSystemUser();
-                }
-                
+                core_Users::exitSudo($sudoUser);
+                                
                 // Ако имейлът е изпратен успешно, добавяме времето на изпращане
                 if ($status) {
                     

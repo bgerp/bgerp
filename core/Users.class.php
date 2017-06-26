@@ -147,17 +147,6 @@ class core_Users extends core_Manager
 	var $canList = 'admin';
 	
     
-    /**
-     * Дали в момента се работи със системния потребител (-1)
-     */
-    var $isSystemUser = FALSE;
-    
-    
-    /**
-     * Дали е заглушено работата на системния потребител
-     */
-    protected $isMutedSystemUser = FALSE;
-    
     
     /**
      * URL за javascript
@@ -667,10 +656,7 @@ class core_Users extends core_Manager
             }
         }
  
-
-
         $form->setField('rolesInput', 'input=none');
-
     }
     
     
@@ -1182,6 +1168,7 @@ class core_Users extends core_Manager
         return $res;
     }
     
+
     /**
      * Връща id-то (или друга зададена част) от записа за текущия потребител
      */
@@ -1191,20 +1178,11 @@ class core_Users extends core_Manager
         
         expect($part);
 
-        if($Users->isSystemUser) {
-            $rec = new stdClass();
-            $rec->nick = core_Setup::get('SYSTEM_NICK');
-            $rec->id = -1;
-            $rec->state = 'active';
-            $res = $rec->{$part};
-        } else {
-            $cRec = Mode::get('currentUserRec');
-            if ($escaped) {
-                $res = core_Users::getVerbal($cRec, $part);
-            } elseif(is_object($cRec)) {
-
-                $res = $cRec->$part;
-            }
+        $cRec = Mode::get('currentUserRec');
+        if ($escaped) {
+            $res = core_Users::getVerbal($cRec, $part);
+        } elseif(is_object($cRec)) {
+            $res = $cRec->$part;
         }
 
         return $res;
@@ -1216,9 +1194,7 @@ class core_Users extends core_Manager
      */
     static function forceSystemUser()
     {
-        $Users = cls::get('core_Users');
-        
-        $Users->isSystemUser = TRUE;
+        core_Users::sudo(core_Users::SYSTEM_USER);
     }
     
     
@@ -1227,9 +1203,7 @@ class core_Users extends core_Manager
      */
     static function cancelSystemUser()
     {
-        $Users = cls::get('core_Users');
-        
-        $Users->isSystemUser = FALSE;
+        core_Users::exitSudo(core_Users::SYSTEM_USER);
     }
     
     
@@ -1240,9 +1214,8 @@ class core_Users extends core_Manager
      */
     static function isSystemUser()
     {
-        $Users = cls::get('core_Users');
         
-        return (boolean)$Users->isSystemUser;
+        return self::getCurrent() == core_Users::SYSTEM_USER;
     }
     
     
@@ -1262,21 +1235,14 @@ class core_Users extends core_Manager
     static function sudo($id)
     {
         $userRec = self::fetch((int) $id);
-        $bValid = FALSE;
-        
+       
         if (is_object($userRec)) {
-            core_Mode::push('currentUserRec', $userRec);
-            $bValid = TRUE;
-            $userRec->_isSudo = TRUE;
+            $userRecS = clone($userRec);
+            $userRecS->_isSudo = TRUE;
+            core_Mode::push('currentUserRec', $userRecS);
+            
+            return $id;
         }
-        
-        if (self::isSystemUser()) {
-            $Users = cls::get('core_Users');
-            $Users->isMutedSystemUser = TRUE;
-            self::cancelSystemUser();
-        }
-        
-        return $bValid;
     }
     
     
@@ -1287,15 +1253,16 @@ class core_Users extends core_Manager
      * @see core_Users::sudo().
      * 
      */
-    static function exitSudo()
+    static function exitSudo($id = TRUE)
     {
-        core_Mode::pop('currentUserRec');
-        
-        $Users = cls::get('core_Users');
-        if ($Users->isMutedSystemUser) {
-            self::forceSystemUser();
-            $Users->isMutedSystemUser = FALSE;
+        // Не правим нищо, ако $id е празен
+        if(!isset($id)) return;
+
+        if($id !== TRUE) {
+            expect($id == core_Users::getCurrent());
         }
+
+        core_Mode::pop('currentUserRec');
     }
     
     
@@ -1890,7 +1857,7 @@ class core_Users extends core_Manager
                 if ($role == 'no_one' && !isDebug()) continue;
                 
                 // Системният потребител има роля system
-                if($role == 'system' && core_Users::getCurrent() == -1) return TRUE;
+                if($role == 'system' && core_Users::getCurrent() == core_Users::SYSTEM_USER) return TRUE;
                 
                 // Анонимният потребител има роля anonym
                 if($role == 'anonym' && core_Users::getCurrent() == 0) return TRUE;
@@ -2243,7 +2210,7 @@ class core_Users extends core_Manager
             // Вземаме ника от записа
             $nick = self::fetch($userId)->nick;
 
-        } elseif($userId == -1) {
+        } elseif($userId == core_Users::SYSTEM_USER) {
             
             // Ако е сустемния потребител
             $nick = core_Setup::get('SYSTEM_NICK');

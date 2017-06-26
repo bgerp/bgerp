@@ -40,6 +40,10 @@ class core_App
             if (!core_Mode::is('screenMode')) {
                 core_Mode::set('screenMode', log_Browsers::detectMobile() ? 'narrow' : 'wide');
             }
+    
+ //   cls::load('core_SetupLock');
+    // Ако в момента се извършва инсталация - да не се изпълняват процесите
+    core_SetupLock::stopIfBlocked();
 
             // Генерираме съдържанието
             $content = core_Request::forward();
