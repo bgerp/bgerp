@@ -802,7 +802,10 @@ abstract class deals_DealMaster extends deals_DealBase
     	// Запис на адреса
     	if(empty($rec->deliveryAdress) && isset($rec->deliveryTermId)){
     		$update = TRUE;
+    		
+    		$rec->tplLang = $mvc->pushTemplateLg($rec->template);
     		$rec->deliveryAdress = cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $mvc);
+    		core_Lg::pop($rec->tplLang);
     	}
     	
     	// Записване на най-големия срок на доставка
