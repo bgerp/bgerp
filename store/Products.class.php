@@ -158,8 +158,6 @@ class store_Products extends core_Detail
     	cat_Products::expandFilter($data->listFilter);
     	$orderOptions = arr::make('all=Всички,active=Активни,standard=Стандартни,private=Нестандартни,last=Последно добавени,closed=Изчерпани');
     	$data->listFilter->setOptions('order', $orderOptions);
-		$data->listFilter->setDefault('order', 'active');
-    	
     	$data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
     	
     	$stores = cls::get('store_Stores')->makeArray4Select('name', "#state != 'rejected'");
@@ -179,9 +177,10 @@ class store_Products extends core_Detail
     	
     	$data->query->orderBy('code,id', ASC);
     	if(isset($data->masterMvc)){
-    		$data->query->where("#state != 'closed'");
+    		$data->listFilter->setDefault('order', 'all');
     		$data->listFilter->showFields = 'search,groupId';
     	} else {
+    		$data->listFilter->setDefault('order', 'active');
     		$data->listFilter->showFields = 'storeId,search,order,groupId';
     	}
     	
