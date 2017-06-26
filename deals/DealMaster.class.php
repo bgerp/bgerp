@@ -2003,6 +2003,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	$delTime = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : (!empty($rec->deliveryTermTime) ?  dt::addSecs($rec->deliveryTermTime, $rec->valior) : NULL);
     	$res["deliveryTime"]  = $delTime;
+    	$res['ourReff'] => "#" . $this->getHandle($rec);
     	
     	return $res;
     }
