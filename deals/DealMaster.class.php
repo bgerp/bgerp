@@ -671,37 +671,8 @@ abstract class deals_DealMaster extends deals_DealBase
         
         return FALSE;
     }
-    
-    
-    /**
-      * Добавя ключови думи за пълнотекстово търсене, това са името на
-      * документа или папката
-      */
-     public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
-     {
-     	// Тук ще генерираме всички ключови думи
-     	$detailsKeywords = '';
-
-     	// заявка към детайлите
-     	$Detail = $mvc->mainDetail;
-     	$query = $mvc->{$Detail}->getQuery();
-     	
-     	// точно на тази фактура детайлите търсим
-     	$query->where("#{$mvc->{$Detail}->masterKey}  = '{$rec->id}'");
-     	
-	        while ($recDetails = $query->fetch()){
-	        	// взимаме заглавията на продуктите
-	        	$productTitle = cat_Products::getTitleById($recDetails->productId);
-	        	
-	        	// и ги нормализираме
-	        	$detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
-	        }
-	        
-    	// добавяме новите ключови думи към основните
-    	$res = " " . $res . " " . $detailsKeywords;
-     }
      
-     
+    
      /**
       * Перо в номенклатурите, съответстващо на този продукт
       *
@@ -816,9 +787,13 @@ abstract class deals_DealMaster extends deals_DealBase
     		}
     	}
     	
+    	$saveFields = 'searchKeywords';
+    	$rec->searchKeywords = $mvc->updateSearchKeywords($rec);
     	if($update === TRUE){
-    		$mvc->save_($rec, 'deliveryTermTime,deliveryAdress');
+    		$saveFields .= ',deliveryTermTime,deliveryAdress';
     	}
+    	
+    	$mvc->save_($rec, $saveFields);
     }
     
     
@@ -2089,5 +2064,37 @@ abstract class deals_DealMaster extends deals_DealBase
     	 
     	// Рендиране на формата
     	return $this->renderWrapping($form->renderHtml());
+    }
+    
+    /**
+     * Ъпдейтване на ключовите думи
+     * 
+     * @param stdClass $rec
+     * @param string $keywords
+     */
+    protected function updateSearchKeywords($rec)
+    {
+    	$detailsKeywords = '';
+    	
+    	// заявка към детайлите
+    	$Detail = cls::get($this->mainDetail);
+    	$query = $Detail->getQuery();
+    	$query->where("#{$Detail->masterKey}  = '{$rec->id}'");
+    	$query->show('productId,notes');
+    	
+    	while ($dRec = $query->fetch()){
+    		
+    		// взимаме заглавията на продуктите
+    		$productTitle = cat_Products::getTitleById($dRec->productId);
+    		$detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
+    		if(!empty($dRec->notes)){
+    			$detailsKeywords .= " " . plg_Search::normalizeText($dRec->notes);
+    		}
+    	}
+    	 
+    	// добавяме новите ключови думи към основните
+    	$rec->searchKeywords = " " . $rec->searchKeywords . " " . $detailsKeywords;
+    	
+    	return $rec->searchKeywords;
     }
 }

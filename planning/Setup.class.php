@@ -62,7 +62,7 @@ defIfNot('PLANNING_TASK_LABEL_PREVIEW_HEIGHT', 170);
 
 
 /**
- * Бездетайлно влагане по подразбиране
+ * Детайлно влагане по подразбиране
  */
 defIfNot('PLANNING_CONSUMPTION_USE_AS_RESOURCE', 'yes');
 
@@ -126,7 +126,7 @@ class planning_Setup extends core_ProtoSetup
     		'PLANNING_TASK_LABEL_ROTATION'             => array('enum(yes=Да, no=Не)', 'caption=Шаблон за етикети на задачите->Ротация'),
     		'PLANNING_TASK_LABEL_PREVIEW_WIDTH'        => array('int', 'caption=Превю на артикула в етикета->Широчина,unit=px'),
     		'PLANNING_TASK_LABEL_PREVIEW_HEIGHT'       => array('int', 'caption=Превю на артикула в етикета->Височина,unit=px'),
-    		'PLANNING_CONSUMPTION_USE_AS_RESOURCE'     => array('enum(yes=Да,no=Не)', 'caption=Бездетайлно влагане по подразбиране->Избор'),
+    		'PLANNING_CONSUMPTION_USE_AS_RESOURCE'     => array('enum(yes=Да,no=Не)', 'caption=Детайлно влагане по подразбиране->Избор'),
     
     );
     

@@ -163,6 +163,7 @@ class auto_handler_CreateQuotationFromInquiry {
     	// Ид-то не трябва да се инпутва, защото ще вземе ид-то на крон процеса и ще се обърка
     	$fields = $form->selectFields();
     	unset($fields['id']);
+    	unset($fields['driverRec']);
     	$form->input(implode(',', array_keys($fields)));
     	
     	$Products->invoke('AfterInputEditForm', array($form));
