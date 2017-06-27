@@ -792,7 +792,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	if($update === TRUE){
     		$saveFields .= ',deliveryTermTime,deliveryAdress';
     	}
-    	core_Statuses::newStatus($rec->searchKeywords, 'warning');
+    	
     	$mvc->save_($rec, $saveFields);
     }
     
