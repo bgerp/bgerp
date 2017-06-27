@@ -31,7 +31,7 @@ class transsrv_plg_CreateAuction extends core_Plugin
 				$d = base64_encode(gzcompress(json_encode($d)));
 				//$url = array('transbid_Auctions', 'Add', 'd' => $d);
 				$url = remote_Authorizations::getRemoteUrl(7, array('transbid_Auctions', 'Add', 'd' => $d));
-				$data->toolbar->addBtn('Търг', $url, 'ef_icon = img/16/view.png,title=Създаване на търг в trans.bid');
+				$data->toolbar->addBtn('Търг', $url, 'ef_icon = img/16/view.png,title=Създаване на търг в trans.bid,row=2');
 			}
 		}
 	}
