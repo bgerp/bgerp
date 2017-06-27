@@ -121,7 +121,7 @@ class store_Transfers extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valior, title=Документ, fromStore, toStore, volume, weight, folderId, createdOn, createdBy';
+    public $listFields = 'deliveryTime,valior, title=Документ, fromStore, toStore, volume, weight, folderId, createdOn, createdBy';
 
 
     /**
@@ -174,6 +174,12 @@ class store_Transfers extends core_Master
     public $storeFieldName = 'fromStore';
 
 
+    /**
+     * Дата на очакване
+     */
+    public $termDateFld = 'deliveryTime';
+    
+    
 	/**
 	 * Икона на единичния изглед
 	 */
@@ -184,6 +190,12 @@ class store_Transfers extends core_Master
 	 * Полета за филтър по склад
 	 */
 	public $filterStoreFields = 'fromStore,toStore';
+	
+	
+	/**
+	 * Кои полета от листовия изглед да се скриват ако няма записи в тях
+	 */
+	public $hideListFieldsIfEmpty = 'deliveryTime';
 	
 	
     /**
@@ -198,7 +210,7 @@ class store_Transfers extends core_Master
         $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
         
         // Доставка
-        $this->FLD('deliveryTime', 'datetime', 'caption=Срок до');
+        $this->FLD('deliveryTime', 'datetime', 'caption=Натоварване');
         $this->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транспорт');
         
         // Допълнително
@@ -565,6 +577,7 @@ class store_Transfers extends core_Master
     	$rec = $this->fetchRec($rec);
     	$res = array();
     	$res['ourReff'] = "#" . $this->getHandle($rec);
+    	$res['loadingTime'] = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : $rec->valior . " " . bgerp_Setup::get('START_OF_WORKING_DAY');
     	
     	foreach (array('from', 'to')  as $part){
     		if($locationId = store_Stores::fetchField($rec->{"{$part}Store"}, 'locationId')){

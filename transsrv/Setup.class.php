@@ -86,4 +86,20 @@ class transsrv_Setup extends core_ProtoSetup
      * Дефинирани класове, които имат интерфейси
      */
     public $defClasses = "transsrv_ProductDrv";
+    
+    
+    /**
+     * Инсталиране на пакета
+     */
+    function install()
+    {
+    	$html = parent::install();
+    
+    	$Plugins = cls::get('core_Plugins');
+    	$html .= $Plugins->installPlugin('Създаване на търгове от ЕН', 'transsrv_plg_CreateAuction', 'store_ShipmentOrders', 'private');
+    	$html .= $Plugins->installPlugin('Създаване на търгове от СР', 'transsrv_plg_CreateAuction', 'store_Receipts', 'private');
+    	$html .= $Plugins->installPlugin('Създаване на търгове от МС', 'transsrv_plg_CreateAuction', 'store_Transfers', 'private');
+    
+    	return $html;
+    }
 }
