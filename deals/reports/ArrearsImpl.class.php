@@ -49,7 +49,7 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
     public function addEmbeddedFields(core_FieldSet &$form)
     {
         $form->FLD('from', 'date(allowEmpty)', 'caption=Към,input,mandatory');
-        $form->FLD('amout', 'double', 'caption=Не показвай под,unit=лв.');
+        $form->FLD('amount', 'double', 'caption=Не показвай под,unit=лв.');
         $form->FLD('dealerId', 'userList(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 'caption=Търговец');
         
 
