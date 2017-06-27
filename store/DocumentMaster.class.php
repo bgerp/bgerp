@@ -87,7 +87,7 @@ abstract class store_DocumentMaster extends core_Master
     	
     	// Доставка
     	$mvc->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Обект до,silent');
-    	$mvc->FLD('deliveryTime', 'datetime', 'caption=Срок до');
+    	$mvc->FLD('deliveryTime', 'datetime');
     	$mvc->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транспорт');
     	
     	// Допълнително

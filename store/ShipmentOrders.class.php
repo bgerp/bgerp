@@ -240,6 +240,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         $this->FLD('pCode', 'varchar', 'caption=Адрес за доставка->П. код, changable, class=contactData');
         $this->FLD('place', 'varchar', 'caption=Адрес за доставка->Град/с, changable, class=contactData');
         $this->FLD('address', 'varchar', 'caption=Адрес за доставка->Адрес, changable, class=contactData');
+        $this->setField('deliveryTime', 'caption=Натоварване');
     }
     
     
