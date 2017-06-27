@@ -137,7 +137,7 @@ class auto_handler_CreateQuotationFromInquiry {
     	$idField = $form->getField('id');
     	unset($idField->silent);
     	
-    	core_Users::sudo($sudoUser = $marketingRec->createdBy);
+    	$sudoUser = core_Users::sudo($marketingRec->createdBy);
     	
     	$data = (object)array('form' => &$form);
     	$Products->invoke('AfterPrepareEditForm', array($data, $data));

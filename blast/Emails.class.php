@@ -535,7 +535,7 @@ class blast_Emails extends core_Master
                 $cRec = clone $rec;
 
                 // Имейла да се рендира и да се праща с правата на активатора
-                core_Users::sudo($sudoUser = $cRec->activatedBy);
+                $sudoUser = core_Users::sudo($cRec->activatedBy);
                 
                 // Задаваме екшъна за изпращането
                 doclog_Documents::pushAction(
