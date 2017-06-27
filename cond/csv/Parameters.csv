@@ -15,3 +15,4 @@
 Листвани продукти,cond_type_SaleListings,salesList,Продажба,,
 Листвани продукти,cond_type_PurchaseListings,purchaseList,Покупка,,
 Списък от предишни продажби,cond_type_Enum,autoSalesMakeList,Продажба,,,"yes=Да"
+Автоматична оферта при запитване,cond_type_Enum,autoCreateQuote,,,,"yes=Да"

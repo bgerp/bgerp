@@ -149,9 +149,6 @@ class cond_Countries extends core_Manager
 		
 		if(isset($fields['-list'])){
 			$row->conditionId = cond_Parameters::getVerbal($paramRec, 'typeExt');
-			$singleUrl = cond_Parameters::getSingleUrlArray($rec->conditionId);
-			$row->conditionId = ht::createLink($row->conditionId, $singleUrl);
-		
 			$row->ROW_ATTR['class'] .= " state-active";
 			
 			if(empty($rec->country)){
