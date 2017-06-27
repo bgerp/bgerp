@@ -155,7 +155,7 @@ class auto_handler_CreateQuotationFromInquiry {
     	
     	// За всеки случай не се пушват допълнителните параметри, защото са много големи
     	unset($arr['_params']);
-    	unset($popArray['_params']);
+    	unset($arr['_params']);
     	
     	Request::push($arr);
     	$form->cmd = 'save';
@@ -163,6 +163,7 @@ class auto_handler_CreateQuotationFromInquiry {
     	// Ид-то не трябва да се инпутва, защото ще вземе ид-то на крон процеса и ще се обърка
     	$fields = $form->selectFields();
     	unset($fields['id']);
+    	unset($fields['driverRec']);
     	$form->input(implode(',', array_keys($fields)));
     	
     	$Products->invoke('AfterInputEditForm', array($form));
