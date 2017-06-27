@@ -1782,6 +1782,10 @@ div.attachments {
     display: block;
     margin-bottom: 2px; }
 
+.dangerFile {
+  background-image: url('../img/16/bug.png') !important;
+  color: red !important; }
+
 .wide .em-holder {
   width: 68%; }
 
@@ -1927,8 +1931,11 @@ table.mc-header a {
 /*
  * Стилове за счетоводството
  */
-.legalscript h1 {
-  margin-bottom: 0.5em; }
+  .legalscript h1 {
+    margin-bottom: 0.5em; }
+  .legalscript .header span {
+    background-repeat: no-repeat;
+    padding-right: 23px; }
 
 .wide .level-1 td {
   background-color: #000088;

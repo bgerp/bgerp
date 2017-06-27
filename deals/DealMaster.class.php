@@ -802,7 +802,10 @@ abstract class deals_DealMaster extends deals_DealBase
     	// Запис на адреса
     	if(empty($rec->deliveryAdress) && isset($rec->deliveryTermId)){
     		$update = TRUE;
+    		
+    		$rec->tplLang = $mvc->pushTemplateLg($rec->template);
     		$rec->deliveryAdress = cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $mvc);
+    		core_Lg::pop($rec->tplLang);
     	}
     	
     	// Записване на най-големия срок на доставка
@@ -1356,8 +1359,18 @@ abstract class deals_DealMaster extends deals_DealBase
     	$now = dt::mysql2timestamp(dt::now());
     	$oldBefore = dt::timestamp2mysql($now - $olderThan);
     	 
+    	// Всички нишки със заявка
+    	$cQuery = doc_Containers::getQuery();
+    	$cQuery->where("#state = 'pending'");
+    	$cQuery->show('threadId');
+    	$cQuery->groupBy('threadId');
+    	$threadIds = arr::extractValuesFromArray($cQuery->fetchAll(), 'threadId');
+    	
     	$query->EXT('threadModifiedOn', 'doc_Threads', 'externalName=last,externalKey=threadId');
-    	 
+    	if(count($threadIds)){
+    	    $query->notIn("threadId", $threadIds);
+    	}
+    	
     	// Закръглената оставаща сума за плащане
     	$query->XPR('toInvoice', 'double', 'ROUND(#amountDelivered - #amountInvoiced, 2)');
     	 
@@ -1385,6 +1398,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	 
     	// Всяка намерената сделка, се приключва като платена
     	while($rec = $query->fetch()){
+    		
     		try{
     			 
     			// Създаване на приключващ документ-чернова
@@ -1928,6 +1942,7 @@ abstract class deals_DealMaster extends deals_DealBase
      *   	string|NULL   ['toPerson']     - лице
      * 		datetime|NULL ['deliveryTime'] - дата на разтоварване
      * 		text|NULL 	  ['conditions']   - други условия
+     *		varchar|NULL  ['ourReff']      - наш реф
      */
     function getLogisticData($rec)
     {
@@ -1988,6 +2003,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	$delTime = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : (!empty($rec->deliveryTermTime) ?  dt::addSecs($rec->deliveryTermTime, $rec->valior) : NULL);
     	$res["deliveryTime"]  = $delTime;
+    	$res['ourReff'] = "#" . $this->getHandle($rec);
     	
     	return $res;
     }

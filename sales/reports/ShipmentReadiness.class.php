@@ -182,7 +182,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 			while($jRec = $jQuery->fetch()){
 				$pRec = cat_products::fetch($jRec->productId, 'name,code,isPublic');
 				$productName = cat_Products::getRecTitle($pRec);
-				$productName = str::limitLen($productName, 24);
+				$productName = str::limitLen($productName, 60);
 				$row->document .= "<div style='font-size:0.7em'>{$productName}</div>";
 			}
 		}
@@ -507,7 +507,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 		$dates = array();
 		
 		$jQuery = planning_Jobs::getQuery();
-		$jQuery->where("#saleId = {$saleRec->id} AND (#state = 'active' OR #state = 'stopped' OR #state = 'wakeup')");
+		$jQuery->where("#saleId = {$saleRec->id} AND (#state = 'active' OR #state = 'stopped' OR #state = 'wakeup' OR #state = 'closed')");
 		$jQuery->XPR('max', 'int', "MAX(#dueDate)");
 		$jQuery->XPR('min', 'int', "MIN(#dueDate)");
 		$jQuery->show('min,max');

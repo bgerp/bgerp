@@ -151,7 +151,7 @@
     </tr>
     <!--ET_BEGIN conditions-->
     <tr>
-        <td class="boldText" colspan = "2">[#conditions#]</td>
+        <td class="boldText" colspan = "2">[#conditions#]<!--ET_BEGIN auction--><div class="richtext">|Съгласно офериране|* [#auction#] |в|* trans.bid</div><!--ET_END auction--></td>
     </tr>
     <!--ET_END conditions-->
     <!--ET_BEGIN ourReff-->

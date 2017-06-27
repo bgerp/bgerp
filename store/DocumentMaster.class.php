@@ -87,7 +87,7 @@ abstract class store_DocumentMaster extends core_Master
     	
     	// Доставка
     	$mvc->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Обект до,silent');
-    	$mvc->FLD('deliveryTime', 'datetime', 'caption=Срок до');
+    	$mvc->FLD('deliveryTime', 'datetime');
     	$mvc->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транспорт');
     	
     	// Допълнително
@@ -692,6 +692,7 @@ abstract class store_DocumentMaster extends core_Master
      *   	string|NULL   ['toPerson']     - лице
      * 		datetime|NULL ['deliveryTime'] - дата на разтоварване
      * 		text|NULL 	  ['conditions']   - други условия
+     * 		varchar|NULL  ['ourReff']      - наш реф
      */
     function getLogisticData($rec)
     {
@@ -747,9 +748,10 @@ abstract class store_DocumentMaster extends core_Master
     		$res["{$contrPart}Address"]  = !empty($contragentData->address) ? $contragentData->address : NULL;
     		$res["{$contrPart}Person"]   = !empty($contragentData->person) ? $contragentData->person : NULL;
     	}
-    	 
-    	$res["deliveryTime"]  = $rec->deliveryTime;
-    	 
+    	
+    	$res["deliveryTime"]  = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : $rec->valior . " " . bgerp_Setup::get('START_OF_WORKING_DAY');
+    	$res['ourReff'] = "#" . $this->getHandle($rec);
+    	
     	return $res;
     }
 }
