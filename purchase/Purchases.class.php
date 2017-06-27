@@ -132,7 +132,7 @@ class purchase_Purchases extends deals_DealMaster
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'deliveryTermId, deliveryLocationId, deliveryTime, shipmentStoreId, paymentMethodId,
-    					 currencyId, bankAccountId, caseId, dealerId, folderId, id';
+    					 currencyId, bankAccountId, caseId, dealerId, folderId, note';
     
     
     /**
