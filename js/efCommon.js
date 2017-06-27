@@ -1705,7 +1705,8 @@ function maxSelectWidth(){
 function setThreadElemWidth() {
 	var offsetWidth = 45;
     var threadWidth = parseInt($(window).width()) - offsetWidth;
-    $('.doc_Containers table.listTable.listAction > tbody > tr > td').css('maxWidth', threadWidth + 10);
+    $('#main-container .doc_Containers table.listTable.listAction > tbody > tr > td').css('maxWidth', threadWidth + 10);
+    $('.background-holder .doc_Containers table.listTable > tbody > tr > td').css('maxWidth', threadWidth + 10);
     $('.doc_Containers .scrolling-holder').css('maxWidth', threadWidth + 10);
 }
 
