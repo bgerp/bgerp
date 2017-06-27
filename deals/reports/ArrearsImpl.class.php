@@ -49,7 +49,9 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
     public function addEmbeddedFields(core_FieldSet &$form)
     {
         $form->FLD('from', 'date(allowEmpty)', 'caption=Към,input,mandatory');
+        $form->FLD('amout', 'double', 'caption=Не показвай под,unit=лв.');
         $form->FLD('dealerId', 'userList(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 'caption=Търговец');
+        
 
         $this->invoke('AfterAddEmbeddedFields', array($form));
     }
@@ -66,6 +68,8 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
         $today = dt::today();
         	
         $form->setDefault('from',date('Y-m-01', strtotime("-1 months", dt::mysql2timestamp(dt::now()))));
+        
+        $form->setDefault('amount', '1');
 
         $this->inputForm($form);
     
@@ -179,12 +183,17 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
                 }
             }
         }
-        
-        
-       
+
         arr::order($data->recs, 'amount', strtoupper('DESC'));
-  
-      
+
+        foreach($data->recs as $id=>$r) {
+
+            if($r->amount <= $data->rec->amount || $r->amount == '') {
+               
+                unset($data->recs[$id]);
+            }
+        }
+
         return $data;  
     }
     
