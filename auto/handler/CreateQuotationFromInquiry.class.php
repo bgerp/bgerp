@@ -155,7 +155,7 @@ class auto_handler_CreateQuotationFromInquiry {
     	
     	// За всеки случай не се пушват допълнителните параметри, защото са много големи
     	unset($arr['_params']);
-    	unset($arr['_params']);
+    	unset($popArray['_params']);
     	
     	Request::push($arr);
     	$form->cmd = 'save';
