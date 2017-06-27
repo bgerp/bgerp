@@ -590,6 +590,10 @@ class store_ShipmentOrders extends store_DocumentMaster
     	$res['toCompany'] = !empty($rec->company) ? $rec->company : $res['toCompany'];
     	$res['toPerson'] = !empty($rec->person) ? $rec->person : $res['toPerson'];
     	
+    	unset($res['deliveryTime']);
+    	$res['loadingTime'] = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : $rec->valior . " " . bgerp_Setup::get('START_OF_WORKING_DAY');
+    	
+    	
     	return $res;
     }
     

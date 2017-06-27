@@ -748,8 +748,8 @@ abstract class store_DocumentMaster extends core_Master
     		$res["{$contrPart}Address"]  = !empty($contragentData->address) ? $contragentData->address : NULL;
     		$res["{$contrPart}Person"]   = !empty($contragentData->person) ? $contragentData->person : NULL;
     	}
-    	 
-    	$res["deliveryTime"]  = $rec->deliveryTime;
+    	
+    	$res["deliveryTime"]  = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : $rec->valior . " " . bgerp_Setup::get('START_OF_WORKING_DAY');
     	$res['ourReff'] = "#" . $this->getHandle($rec);
     	
     	return $res;
