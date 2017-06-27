@@ -1705,7 +1705,7 @@ function maxSelectWidth(){
 function setThreadElemWidth() {
 	var offsetWidth = 45;
     var threadWidth = parseInt($(window).width()) - offsetWidth;
-    $('.doc_Containers table.listTable > tbody > tr > td').css('maxWidth', threadWidth + 10);
+    $('.doc_Containers table.listTable.listAction > tbody > tr > td').css('maxWidth', threadWidth + 10);
     $('.doc_Containers .scrolling-holder').css('maxWidth', threadWidth + 10);
 }
 
@@ -2706,7 +2706,15 @@ function sumOfChildrenWidth() {
 			}
 		}
 		if ($('.docStatistic div.alphabet div.tab-row .tab').length){
-			$('.docStatistic').css('max-width', $(window).width() - 30);
+            var sumDocTab=0;
+            $('.docStatistic div.alphabet div.tab-row .tab').each( function(){ sumDocTab += $(this).width() + 5; });
+            var tableWidth = $('.docStatistic div.alphabet.tab-control .listTable').width();
+            var maxWidth = Math.max(tableWidth, sumDocTab);
+            $('.docStatistic div.tab-row').css('width',  sumDocTab);
+            $('.docStatistic  div.alphabet.tab-control .listTable').css('width',  sumDocTab);
+            $('.docStatistic').css('width',  maxWidth);
+            $('.docStatistic').css('display', 'table');
+            $('.docStatistic').css('overflow', 'scroll');
 		}
 	}
 }
