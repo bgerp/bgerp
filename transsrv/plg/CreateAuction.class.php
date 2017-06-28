@@ -43,7 +43,7 @@ class transsrv_plg_CreateAuction extends core_Plugin
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
 		if($action == 'createauction' && isset($rec)){
-			if(!$mvc->haveRightFor('single', $rec) || $rec->state != 'active'){
+			if(!$mvc->haveRightFor('single', $rec) || (!in_array($rec->state, array('active', 'pending', 'draft')))){
 				$requiredRoles = 'no_one';
 			} else{
 				$requiredRoles = 'officer';
