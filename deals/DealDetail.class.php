@@ -549,12 +549,18 @@ abstract class deals_DealDetail extends doc_Detail
     			if(!isset($rec->id)){
     				$listId = ($saleRec->priceListId) ? $saleRec->priceListId : NULL;
     				
-    				$policyInfo = $Policy->getPriceInfo($saleRec->contragentClassId, $saleRec->contragentId, $productId, $packagingId, $quantity, $saleRec->valior, $saleRec->currencyRate, $saleRec->chargeVat, $listId);
+    				$policyInfo = (isset($lRec->price)) ? (object)array('price' => $lRec->price) : $Policy->getPriceInfo($saleRec->contragentClassId, $saleRec->contragentId, $productId, $packagingId, $quantity, $saleRec->valior, $saleRec->currencyRate, $saleRec->chargeVat, $listId);
+    				
     				if(!isset($policyInfo->price)){
     					$error[$lId] = "quantity{$lId}";
     				} else {
     					$vat = cat_Products::getVat($productId, $saleRec->valior);
-    					$price = deals_Helper::getPurePrice($policyInfo->price, $vat, $saleRec->currencyRate, $saleRec->chargeVat);
+    					if(isset($lRec->price)){
+    						$price = $lRec->price;
+    					} else {
+    						$price = deals_Helper::getPurePrice($policyInfo->price, $vat, $saleRec->currencyRate, $saleRec->chargeVat);
+    					}
+    					
     					$packPrice = $price * $quantityInPack;
     					$discount = $policyInfo->discount;
     				}

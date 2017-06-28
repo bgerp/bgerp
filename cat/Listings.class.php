@@ -272,7 +272,19 @@ class cat_Listings extends core_Master
     		
     		// Добавя се всеки запис, групиран според типа
     		while($rec = $query->fetch()){
-    			$obj = (object)array('productId' => $rec->productId, 'packagingId' => $rec->packagingId, 'reff' => $rec->reff, 'moq' => $rec->moq, 'multiplicity' => $rec->multiplicity);
+    			$obj = (object)array('productId' => $rec->productId, 'packagingId' => $rec->packagingId, 'reff' => $rec->reff, 'moq' => $rec->moq, 'multiplicity' => $rec->multiplicity, 'price');
+    			if(isset($rec->price)){
+    				
+    				if($listRec->vat == 'yes'){
+    					$vat = cat_Products::getVat($rec->productId);
+    					$rec->price *= (1 - $vat);
+    				}
+    				
+    				$rate = currency_CurrencyRates::getRate(NULL, $listRec->currencyId, NULL);
+    				
+    				$price = $rec->price * $rate;
+    				$obj->price = $price;
+    			}
     			
     			self::$cache[$listRec->id][$rec->id] = $obj;
     		}
