@@ -436,6 +436,13 @@ class cat_Listings extends core_Master
     		$value = cond_Parameters::getParameter($Cover->getInstance(), $Cover->that, 'autoSalesMakeList');
     		if($value !== 'yes') continue;
     		
+    		// Задаване на списъка като търговско условие, ако няма такова за контрагента
+    		$paramId = cond_Parameters::fetchIdBySysId('salesList');
+    		
+    		// Ако за тази папка има избран лист не се създава
+    		$condId = cond_ConditionsToCustomers::fetchByCustomer($Cover->getClassId(), $Cover->that, $paramId);
+    		if(!empty($condId)) continue;
+    		
     		$res = array();
     		
     		// Намират се всички продавани стандартни артикули от тази папка
@@ -457,6 +464,9 @@ class cat_Listings extends core_Master
     		
     		// Форсира се системен лист
     		$listId = self::forceAutoList($folderId, $Cover);
+    		if($listId){
+    			cond_ConditionsToCustomers::force($Cover->getClassId(), $Cover->that, $paramId, $listId);
+    		}
     		
     		$newDetails = array();
     		
@@ -522,13 +532,6 @@ class cat_Listings extends core_Master
     	if(!$listId){
     		$lRec = (object)array('title' => $title, 'type' => 'canSell', 'folderId' => $folderId, 'state' => 'active', 'isPublic' => 'no', 'sysId' => "auto{$folderId}");
     		$listId = self::save($lRec);
-    	}
-    	
-    	// Задаване на списъка като търговско условие, ако няма такова за контрагента
-    	$paramId = cond_Parameters::fetchIdBySysId('salesList');
-    	$condId = cond_ConditionsToCustomers::fetchByCustomer($Cover->getClassId(), $Cover->that, $paramId);
-    	if(!$condId){
-    		cond_ConditionsToCustomers::force($Cover->getClassId(), $Cover->that, $paramId, $listId);
     	}
     	
     	return $listId;
