@@ -139,6 +139,9 @@ class cat_Listings extends core_Master
     	$this->FLD('isPublic', 'enum(yes=Да,no=Не)', 'mandatory,caption=Публичен,input=none');
     	$this->FLD('sysId', 'varchar', 'input=none');
     	
+    	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Допълнително->Валута');
+    	$this->FLD('vat', 'enum(yes=Включено,no=Без ДДС)', 'caption=Допълнително->ДДС');
+    	
     	$this->setDbIndex('title,type');
     	$this->setDbIndex('sysId');
     }
@@ -155,7 +158,15 @@ class cat_Listings extends core_Master
     	if(isset($rec->id)){
     		if(cat_ListingDetails::fetchField("#listId = {$rec->id}")){
     			$form->setReadOnly('type');
+    			$form->setReadOnly('currencyId');
+    			$form->setReadOnly('vat');
     		}
+    	}
+    	
+    	$Cover = doc_Folders::getCover($rec->folderId);
+    	if($Cover->haveInterface('crm_ContragentAccRegIntf')){
+    		$form->setDefault('currencyId', $Cover->getDefaultCurrencyId());
+    		$form->setDefault('vat', ($Cover->shouldChargeVat()) ? 'yes' : 'no');
     	}
     }
     

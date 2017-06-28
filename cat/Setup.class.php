@@ -122,6 +122,7 @@ class cat_Setup extends core_ProtoSetup
     		'migrate::updateParamStates',
     		'migrate::migratePrototypes',
     		'migrate::updateListings1',
+    		'migrate::updateLists',
         );
     
     
@@ -581,6 +582,35 @@ class cat_Setup extends core_ProtoSetup
     	 
     	if(count($toSave)){
     		$Detail->saveArray($toSave);
+    	}
+    }
+    
+    
+    /**
+     * Ъпдейт на валутите на листовете
+     */
+    function updateLists()
+    {
+    	$Lists = cls::get('cat_Listings');
+    	$Lists->setupMvc();
+    	
+    	if(!cat_Listings::count()) return;
+    	
+    	$query = $Lists->getQuery();
+    	$query->where('#currencyId IS NULL OR #currencyId = 0');
+    	while($rec = $query->fetch()){
+    	
+    		$Cover = doc_Folders::getCover($rec->folderId);
+    		if($Cover->haveInterface('crm_ContragentAccRegIntf')){
+    			$rec->currencyId = $Cover->getDefaultCurrencyId();
+    			$rec->vat = ($Cover->shouldChargeVat()) ? 'yes' : 'no';
+    			
+    		} else {
+    			$rec->currencyId = 'BGN';
+    			$rec->vat = 'yes';
+    		}
+    		
+    		$Lists->save_($rec, 'currencyId,vat');
     	}
     }
 }
