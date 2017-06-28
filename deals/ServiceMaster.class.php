@@ -92,12 +92,8 @@ abstract class deals_ServiceMaster extends core_Master
 		
 		return $this->save($rec);
 	}
-
-function act_Test()
-{
-	$rec = $this->fetch(48);
-	self::on_AfterCreate($this, $rec);
-}
+	
+	
 	/**
 	 * След създаване на запис в модела
 	 */
@@ -155,7 +151,19 @@ function act_Test()
 				}
 				
 				$Detail = $mvc->mainDetail;
-				$mvc->{$Detail}->save($shipProduct);
+				$dId = $mvc->{$Detail}->save($shipProduct);
+				
+				// Копиране на разпределените разходи
+				if(!empty($product->expenseRecId)){
+					$aRec = acc_CostAllocations::fetch($product->expenseRecId);
+					unset($aRec->id);
+					$aRec->detailRecId = $dId;
+					$aRec->detailClassId = $Detail::getClassId();
+					$aRec->containerId = $rec->containerId;
+					
+					acc_CostAllocations::save($aRec);
+					core_Statuses::newStatus($aRec->id);
+				}
 			}
 		}
 	}

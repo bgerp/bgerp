@@ -94,11 +94,15 @@ class acc_CostAllocations extends core_Manager
 	 */
 	protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
 	{
-		$origin = doc_Containers::getDocument($rec->containerId);
-		if($origin->fetchField('state') == 'active'){
+		try{
+			$origin = doc_Containers::getDocument($rec->containerId);
+			if($origin->fetchField('state') == 'active'){
+					
+				// Реконтиране на документа
+				acc_Journal::reconto($rec->containerId);
+			}
+		} catch (core_exception_Expect $e){
 			
-			// Реконтиране на документа
-			acc_Journal::reconto($rec->containerId);
 		}
 	}
 	
