@@ -602,8 +602,7 @@ abstract class deals_DealDetail extends doc_Detail
     		}
     
     		if(count($error2)){
-    			$warningRoles = ($mvc instanceof sales_SalesDetails) ? 'salesMaster,ceo' : 'purchaseMaster,ceo';
-    			if(haveRole($warningRoles)){
+    			if(haveRole('powerUser')){
     				$form->setWarning(implode(',', $error2), "Количеството е под МКП");
     			} else {
     				$form->setError(implode(',', $error2), "Количеството е под МКП");
