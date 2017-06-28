@@ -82,7 +82,7 @@ class cond_Setup  extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "cond_type_Double,cond_type_Text,cond_type_Varchar,cond_type_Time,cond_type_Date,cond_type_Component,cond_type_Enum,cond_type_Set,cond_type_Percent,cond_type_Int,cond_type_Delivery,cond_type_PaymentMethod,cond_type_Image,cond_type_File,cond_type_Store,cond_type_PriceList,cond_type_PurchaseListings,cond_type_SaleListings,cond_type_Url";
+    var $defClasses = "cond_type_Double,cond_type_Text,cond_type_Varchar,cond_type_Time,cond_type_Date,cond_type_Component,cond_type_Enum,cond_type_Set,cond_type_Percent,cond_type_Int,cond_type_Delivery,cond_type_PaymentMethod,cond_type_Image,cond_type_File,cond_type_Store,cond_type_PriceList,cond_type_PurchaseListings,cond_type_SaleListings,cond_type_Url,cond_type_YesOrNo";
     
     
 	/**
