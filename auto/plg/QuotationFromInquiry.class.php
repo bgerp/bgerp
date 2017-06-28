@@ -24,6 +24,10 @@ class auto_plg_QuotationFromInquiry extends core_Plugin
 	{
 		// Ако създателя е агент, се записва ивент за създаване на нова оферта
 		if(haveRole('agent', $rec->createdBy)){
+			$Cover = doc_Folders::getCover($rec->folderId);
+			$value = cond_Parameters::getParameter($Cover->getInstance(), $Cover->that, 'autoCreateQuote');
+			if($value != 'yes') return;
+			
 			$Driver = $mvc->getDriver($rec);
 			
 			// Ако има драйвър
