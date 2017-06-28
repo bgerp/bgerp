@@ -93,7 +93,11 @@ abstract class deals_ServiceMaster extends core_Master
 		return $this->save($rec);
 	}
 
-
+function act_Test()
+{
+	$rec = $this->fetch(48);
+	self::on_AfterCreate($this, $rec);
+}
 	/**
 	 * След създаване на запис в модела
 	 */
@@ -112,13 +116,23 @@ abstract class deals_ServiceMaster extends core_Master
 		$agreedProducts = $aggregatedDealInfo->get('products');
 		
 		$shippedProducts = $aggregatedDealInfo->get('shippedProducts');
-		$normalizedProducts = deals_Helper::normalizeProducts(array($agreedProducts), array($shippedProducts));
+		
+		
+		if(count($shippedProducts)){
+			$normalizedProducts = deals_Helper::normalizeProducts(array($agreedProducts), array($shippedProducts));
+		} else {
+			$agreedProducts = $aggregatedDealInfo->get('dealProducts');
+		}
 		
 		if(count($agreedProducts)){
 			foreach ($agreedProducts as $index => $product) {
 				$info = cat_Products::getProductInfo($product->productId);
 				
-				$toShip = $normalizedProducts[$index]->quantity;
+				if(isset($normalizedProducts[$index])){
+					$toShip = $normalizedProducts[$index]->quantity;
+				} else {
+					$toShip = $product->quantity;
+				}
 				
 				$price = ($agreedProducts[$index]->price) ? $agreedProducts[$index]->price : $normalizedProducts[$index]->price;
 				$discount = ($agreedProducts[$index]->discount) ? $agreedProducts[$index]->discount : $normalizedProducts[$index]->discount;
