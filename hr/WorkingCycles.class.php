@@ -572,9 +572,9 @@ class hr_WorkingCycles extends core_Master
             $res = cal_Calendar::calcLeaveDays($leaveFrom, $leaveTo);
         } else { 
             $days = hr_WorkingCycleDetails::getDayArr($dRec->schedule, $dRec->startingOn, $leaveFrom, $leaveTo);
-
+ 
             foreach($days as $d) {
-                if($d) {
+                if($d && $d->duration > 0 && !$d->isHoliday) {
                     $workDays++;
                 } else {
                     $nonWorking++;

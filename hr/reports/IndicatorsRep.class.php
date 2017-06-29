@@ -117,14 +117,15 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	                'indicatorId' => $recIndic->indicatorId,
 	                'value' => $recIndic->value,
 	            );
+	            $num++;
 	        } else {
 	            $obj = &$recs[$id];
 	            $obj->value += $recIndic->value;
 	        }
 	            
-	            $num++;
+	           
 	    }
-
+	    
 		return $recs;
 	}
 	
