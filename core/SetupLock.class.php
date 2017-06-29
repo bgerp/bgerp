@@ -78,7 +78,19 @@ class core_SetupLock
         if(self::isBlocked()) {
             $setupLockFile = self::getPath();
             $msg = @file_get_contents($setupLockFile);
-            echo "<html><head><meta http-equiv=\"refresh\" content=\"1\"></head><body><h2>{$msg}</h2></body>";
+            header('HTTP/1.1 503 Service Temporarily Unavailable');
+            header('Status: 503 Service Temporarily Unavailable');
+            header('Retry-After: 300'); //300 seconds
+
+            if(strtoupper($_SERVER['REQUEST_METHOD']) == 'GET') {
+                $refresh = "<meta http-equiv=\"refresh\" content=\"1\">";
+            }
+            echo "<html><head>
+                    <meta charset=\"UTF-8\">
+                    {$refresh}</head>
+                    <body><h2>{$msg}</h2>
+                    <p>We'll be back in a while...</p>
+                    <p>Ще сме на разположение след малко...</p></body>";
             die;
         }
     }
