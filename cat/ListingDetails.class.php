@@ -103,7 +103,7 @@ class cat_ListingDetails extends doc_Detail
     	$this->FLD('reff', 'varchar(32)', 'caption=Техен код,smartCenter');
     	$this->FLD('moq', 'double(smartRound,Min=0)', 'caption=МКП||MOQ');
     	$this->FLD('multiplicity', 'double(Min=0)', 'caption=Кратност');
-    	$this->FLD('price', 'double(Min=0)', 'caption=Ед. цена');
+    	$this->FLD('price', 'double(Min=0)', 'caption=Цена');
     	
     	$this->setDbUnique('listId,productId,packagingId');
     	$this->setDbUnique('listId,reff');
@@ -220,6 +220,7 @@ class cat_ListingDetails extends doc_Detail
 		$masterRec = $data->masterData->rec;
 		
 		if($mvc->haveRightFor('add', (object)array('listId' => $masterRec->id))){
+			$data->toolbar->removeBtn('btnAdd');
 			$data->toolbar->addBtn('Артикул', array($mvc, 'add', 'listId' => $masterRec->id, 'ret_url' => TRUE), NULL, 'ef_icon = img/16/shopping.png,title=Добавяне на нов артикул за листване');
 			$data->toolbar->addBtn('Импорт', array($mvc, 'import', 'listId' => $masterRec->id, 'ret_url' => TRUE), NULL, 'ef_icon=img/16/import.png,title=Импортиране на артикули');
 		}
@@ -290,6 +291,9 @@ class cat_ListingDetails extends doc_Detail
 					$row->productId = ht::createHint($row->productId, "Артикулът вече не е {$vType}", 'error', FALSE);
 				}
 			}
+			
+			$exPack = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
+			deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, ($exPack->quantity) ? $exPack->quantity : 1);
 		}
 	}
 	
