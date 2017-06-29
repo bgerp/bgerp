@@ -153,7 +153,7 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
-    public $coversAndInterfacesForNewDoc = 'crm_ContragentAccRegIntf';
+    public $coversAndInterfacesForNewDoc = 'crm_PersonAccRegIntf,doc_UnsortedFolders';
 
 
     /**
@@ -240,6 +240,7 @@ class hr_EmployeeContracts extends core_Master
             $data->form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
             $data->form->setReadonly('personId');
         }
+
         // по дефолт слагаме днешна дата
         $data->form->setDefault('dateId', dt::verbal2mysql());
         
@@ -771,22 +772,7 @@ class hr_EmployeeContracts extends core_Master
      ****************************************************************************************/
     
     
-    /**
-     * Проверка дали нов документ може да бъде добавен в
-     * посочената папка
-     *
-     * @param $folderId int ид на папката
-     */
-    public static function canAddToFolder($folderId)
-    {
-        $coverClass = doc_Folders::fetchCoverClassName($folderId);
-        
-        if (cls::haveInterface('crm_PersonAccRegIntf', $coverClass)) {
-            return TRUE;
-        }
-        
-        return FALSE;
-    }
+ 
     
     
     /**
@@ -806,16 +792,7 @@ class hr_EmployeeContracts extends core_Master
         return $row;
     }
     
-    
-    /**
-     * В кои корици може да се вкарва документа
-     * @return array - интерфейси, които трябва да имат кориците
-     */
-    public static function getCoversAndInterfacesForNewDoc()
-    {
-        return array('crm_PersonAccRegIntf');
-    }
-    
+ 
     
     /**
      * Дали подадения номер е в позволения диапазон за номера на фактури

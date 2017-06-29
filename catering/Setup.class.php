@@ -74,7 +74,7 @@ class catering_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(2.39, 'Персонал', 'Кетъринг', 'catering_Menu', 'default', "catering, ceo"),
+            array(2.39, 'Обслужване', 'Кетъринг', 'catering_Menu', 'default', "catering, ceo"),
         );
 
     

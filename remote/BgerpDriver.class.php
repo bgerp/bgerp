@@ -326,13 +326,20 @@ class remote_BgerpDriver extends core_Mvc
      */
     function cron_UpdateRemoteNotification()
     {
+
         $query = remote_Authorizations::getQuery();
         
         $dc = core_Classes::getId(__CLASS__);
 
         while($rec = $query->fetch("#driverClass = $dc AND #state = 'active'")) {
+            
+            // Ако нотификациите са изключени за този потребител, не вадим нищо
+            $getNotifys = remote_Setup::get('RECEIVE_NOTIFICATIONS', FALSE, $rec->userId);
+
+            if($getNotifys == 'no') continue;
+
             if($rec->data->lKeyCC && $rec->data->rId) {
-                
+
                 $nCnt = self::sendQuestion($rec, __CLASS__, 'getNotifications');
                 
                 // Прескачаме, ако липсва отговор на въпроса

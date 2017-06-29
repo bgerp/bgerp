@@ -137,11 +137,7 @@ class auto_handler_CreateQuotationFromInquiry {
     	$idField = $form->getField('id');
     	unset($idField->silent);
     	
-    	$isSystemUser = core_Users::isSystemUser();
-    	if ($isSystemUser) {
-    		core_Users::cancelSystemUser();
-    	}
-    	core_Users::sudo($marketingRec->createdBy);
+    	$sudoUser = core_Users::sudo($marketingRec->createdBy);
     	
     	$data = (object)array('form' => &$form);
     	$Products->invoke('AfterPrepareEditForm', array($data, $data));
@@ -167,13 +163,12 @@ class auto_handler_CreateQuotationFromInquiry {
     	// Ид-то не трябва да се инпутва, защото ще вземе ид-то на крон процеса и ще се обърка
     	$fields = $form->selectFields();
     	unset($fields['id']);
+    	unset($fields['driverRec']);
     	$form->input(implode(',', array_keys($fields)));
     	
     	$Products->invoke('AfterInputEditForm', array($form));
-    	core_Users::exitSudo();
-    	if ($isSystemUser) {
-    		core_Users::forceSystemUser();
-    	}
+    	
+        core_Users::exitSudo($sudoUser);
     	
     	// Попване на пушнатите стойности, за да няма объркване при следваща автоматизация
     	if(is_array($popArray)){

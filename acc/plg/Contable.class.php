@@ -167,9 +167,9 @@ class acc_plg_Contable extends core_Plugin
         // Бутон за заявка
         if($mvc->haveRightFor('pending', $rec)){
         	if($rec->state != 'pending'){
-        		$data->toolbar->addBtn('Заявка', array($mvc, 'changePending', $rec->id), "id=btnRequest,warning=Наистина ли желаете документът да стане заявка?,row={$row}{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Превръщане на документа в заявка');
+        		$data->toolbar->addBtn('Заявка', array($mvc, 'changePending', $rec->id), "id=btnRequest,warning=Наистина ли желаете документът да стане заявка?,row={$row}", 'ef_icon = img/16/tick-circle-frame.png,title=Превръщане на документа в заявка');
         	} else{
-        		$data->toolbar->addBtn('Чернова', array($mvc, 'changePending', $rec->id), "id=btnDraft,warning=Наистина ли желаете да върнете възможността за редакция?{$error}", 'ef_icon = img/16/arrow-undo.png,title=Връщане на възможността за редакция');
+        		$data->toolbar->addBtn('Чернова', array($mvc, 'changePending', $rec->id), "id=btnDraft,warning=Наистина ли желаете да върнете възможността за редакция?", 'ef_icon = img/16/arrow-undo.png,title=Връщане на възможността за редакция');
         	}
         }
         

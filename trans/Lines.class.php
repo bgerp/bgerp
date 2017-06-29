@@ -395,9 +395,9 @@ class trans_Lines extends core_Master
     		
             if(self::getDocumentsCnt($rec->id, NULL, 1) || doc_Threads::fetchField($rec->threadId, 'allDocCnt') > 1) {
                 // Ако в старата линия има документи, създава и записва новата линия
-                core_Users::sudo($rec->createdBy);
+                $sudoUser = core_Users::sudo($rec->createdBy);
                 $this->save($newRec);
-                core_Users::exitSudo();
+                core_Users::exitSudo($sudoUser);
                 
                 // Линията се отбелязва като повторена
                 $rec->isRepeated = 'yes';

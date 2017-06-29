@@ -2058,6 +2058,11 @@ div.attachments {
 	}
 }
 
+.dangerFile {
+	background-image: url('../img/16/bug.png') !important;
+	color:#f00 !important;
+}
+
 .wide .em-holder {
 	width: 68%;
 }
@@ -2220,8 +2225,14 @@ table.mc-header a {
 
 
 /*Стилове за счетоводството*/
-.legalscript h1 {
-	margin-bottom: 0.5em;
+.legalscript {
+	h1 {
+		margin-bottom: 0.5em;
+	}
+	.header span {
+		background-repeat: no-repeat;
+		padding-left: 23px;
+	}
 }
 
 .wide .level-1 td {

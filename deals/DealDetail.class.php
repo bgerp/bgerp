@@ -549,12 +549,18 @@ abstract class deals_DealDetail extends doc_Detail
     			if(!isset($rec->id)){
     				$listId = ($saleRec->priceListId) ? $saleRec->priceListId : NULL;
     				
-    				$policyInfo = $Policy->getPriceInfo($saleRec->contragentClassId, $saleRec->contragentId, $productId, $packagingId, $quantity, $saleRec->valior, $saleRec->currencyRate, $saleRec->chargeVat, $listId);
+    				$policyInfo = (isset($lRec->price)) ? (object)array('price' => $lRec->price) : $Policy->getPriceInfo($saleRec->contragentClassId, $saleRec->contragentId, $productId, $packagingId, $quantity, $saleRec->valior, $saleRec->currencyRate, $saleRec->chargeVat, $listId);
+    				
     				if(!isset($policyInfo->price)){
     					$error[$lId] = "quantity{$lId}";
     				} else {
     					$vat = cat_Products::getVat($productId, $saleRec->valior);
-    					$price = deals_Helper::getPurePrice($policyInfo->price, $vat, $saleRec->currencyRate, $saleRec->chargeVat);
+    					if(isset($lRec->price)){
+    						$price = $lRec->price;
+    					} else {
+    						$price = deals_Helper::getPurePrice($policyInfo->price, $vat, $saleRec->currencyRate, $saleRec->chargeVat);
+    					}
+    					
     					$packPrice = $price * $quantityInPack;
     					$discount = $policyInfo->discount;
     				}
@@ -596,8 +602,7 @@ abstract class deals_DealDetail extends doc_Detail
     		}
     
     		if(count($error2)){
-    			$warningRoles = ($mvc instanceof sales_SalesDetails) ? 'salesMaster,ceo' : 'purchaseMaster,ceo';
-    			if(haveRole($warningRoles)){
+    			if(haveRole('powerUser')){
     				$form->setWarning(implode(',', $error2), "Количеството е под МКП");
     			} else {
     				$form->setError(implode(',', $error2), "Количеството е под МКП");

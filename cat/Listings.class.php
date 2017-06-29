@@ -139,6 +139,9 @@ class cat_Listings extends core_Master
     	$this->FLD('isPublic', 'enum(yes=Да,no=Не)', 'mandatory,caption=Публичен,input=none');
     	$this->FLD('sysId', 'varchar', 'input=none');
     	
+    	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Допълнително->Валута');
+    	$this->FLD('vat', 'enum(yes=Включено,no=Без ДДС)', 'caption=Допълнително->ДДС');
+    	
     	$this->setDbIndex('title,type');
     	$this->setDbIndex('sysId');
     }
@@ -155,7 +158,15 @@ class cat_Listings extends core_Master
     	if(isset($rec->id)){
     		if(cat_ListingDetails::fetchField("#listId = {$rec->id}")){
     			$form->setReadOnly('type');
+    			$form->setReadOnly('currencyId');
+    			$form->setReadOnly('vat');
     		}
+    	}
+    	
+    	$Cover = doc_Folders::getCover($rec->folderId);
+    	if($Cover->haveInterface('crm_ContragentAccRegIntf')){
+    		$form->setDefault('currencyId', $Cover->getDefaultCurrencyId());
+    		$form->setDefault('vat', ($Cover->shouldChargeVat()) ? 'yes' : 'no');
     	}
     }
     
@@ -261,7 +272,19 @@ class cat_Listings extends core_Master
     		
     		// Добавя се всеки запис, групиран според типа
     		while($rec = $query->fetch()){
-    			$obj = (object)array('productId' => $rec->productId, 'packagingId' => $rec->packagingId, 'reff' => $rec->reff, 'moq' => $rec->moq, 'multiplicity' => $rec->multiplicity);
+    			$obj = (object)array('productId' => $rec->productId, 'packagingId' => $rec->packagingId, 'reff' => $rec->reff, 'moq' => $rec->moq, 'multiplicity' => $rec->multiplicity, 'price');
+    			if(isset($rec->price)){
+    				
+    				if($listRec->vat == 'yes'){
+    					$vat = cat_Products::getVat($rec->productId);
+    					$rec->price *= (1 - $vat);
+    				}
+    				
+    				$rate = currency_CurrencyRates::getRate(NULL, $listRec->currencyId, NULL);
+    				
+    				$price = $rec->price * $rate;
+    				$obj->price = $price;
+    			}
     			
     			self::$cache[$listRec->id][$rec->id] = $obj;
     		}
@@ -436,6 +459,13 @@ class cat_Listings extends core_Master
     		$value = cond_Parameters::getParameter($Cover->getInstance(), $Cover->that, 'autoSalesMakeList');
     		if($value !== 'yes') continue;
     		
+    		// Задаване на списъка като търговско условие, ако няма такова за контрагента
+    		$paramId = cond_Parameters::fetchIdBySysId('salesList');
+    		
+    		// Ако за тази папка има избран лист не се създава
+    		$condId = cond_ConditionsToCustomers::fetchByCustomer($Cover->getClassId(), $Cover->that, $paramId);
+    		if(!empty($condId)) continue;
+    		
     		$res = array();
     		
     		// Намират се всички продавани стандартни артикули от тази папка
@@ -457,6 +487,9 @@ class cat_Listings extends core_Master
     		
     		// Форсира се системен лист
     		$listId = self::forceAutoList($folderId, $Cover);
+    		if($listId){
+    			cond_ConditionsToCustomers::force($Cover->getClassId(), $Cover->that, $paramId, $listId);
+    		}
     		
     		$newDetails = array();
     		
@@ -522,13 +555,6 @@ class cat_Listings extends core_Master
     	if(!$listId){
     		$lRec = (object)array('title' => $title, 'type' => 'canSell', 'folderId' => $folderId, 'state' => 'active', 'isPublic' => 'no', 'sysId' => "auto{$folderId}");
     		$listId = self::save($lRec);
-    	}
-    	
-    	// Задаване на списъка като търговско условие, ако няма такова за контрагента
-    	$paramId = cond_Parameters::fetchIdBySysId('salesList');
-    	$condId = cond_ConditionsToCustomers::fetchByCustomer($Cover->getClassId(), $Cover->that, $paramId);
-    	if(!$condId){
-    		cond_ConditionsToCustomers::force($Cover->getClassId(), $Cover->that, $paramId, $listId);
     	}
     	
     	return $listId;

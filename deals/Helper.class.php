@@ -973,7 +973,7 @@ abstract class deals_Helper
 		if(isset($moq) && $quantity < $moq){
 			$moq /= $quantityInPack;
 			$verbal = core_Type::getByName('double(smartRound)')->toVerbal($moq);
-			if(haveRole('salesMaster,purchaseMaster,ceo')){
+			if(haveRole('powerUser')){
 				$form->setWarning($quantityField, "Минималното количество за поръчка в избраната мярка/опаковка e|*: <b>{$verbal}</b>");
 			} else {
 				$form->setError($quantityField, "Минималното количество за поръчка в избраната мярка/опаковка e|*: <b>{$verbal}</b>");

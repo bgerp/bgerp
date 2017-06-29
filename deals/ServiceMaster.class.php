@@ -92,8 +92,8 @@ abstract class deals_ServiceMaster extends core_Master
 		
 		return $this->save($rec);
 	}
-
-
+	
+	
 	/**
 	 * След създаване на запис в модела
 	 */
@@ -112,13 +112,23 @@ abstract class deals_ServiceMaster extends core_Master
 		$agreedProducts = $aggregatedDealInfo->get('products');
 		
 		$shippedProducts = $aggregatedDealInfo->get('shippedProducts');
-		$normalizedProducts = deals_Helper::normalizeProducts(array($agreedProducts), array($shippedProducts));
+		
+		
+		if(count($shippedProducts)){
+			$normalizedProducts = deals_Helper::normalizeProducts(array($agreedProducts), array($shippedProducts));
+		} else {
+			$agreedProducts = $aggregatedDealInfo->get('dealProducts');
+		}
 		
 		if(count($agreedProducts)){
 			foreach ($agreedProducts as $index => $product) {
 				$info = cat_Products::getProductInfo($product->productId);
 				
-				$toShip = $normalizedProducts[$index]->quantity;
+				if(isset($normalizedProducts[$index])){
+					$toShip = $normalizedProducts[$index]->quantity;
+				} else {
+					$toShip = $product->quantity;
+				}
 				
 				$price = ($agreedProducts[$index]->price) ? $agreedProducts[$index]->price : $normalizedProducts[$index]->price;
 				$discount = ($agreedProducts[$index]->discount) ? $agreedProducts[$index]->discount : $normalizedProducts[$index]->discount;
@@ -141,7 +151,19 @@ abstract class deals_ServiceMaster extends core_Master
 				}
 				
 				$Detail = $mvc->mainDetail;
-				$mvc->{$Detail}->save($shipProduct);
+				$dId = $mvc->{$Detail}->save($shipProduct);
+				
+				// Копиране на разпределените разходи
+				if(!empty($product->expenseRecId)){
+					$aRec = acc_CostAllocations::fetch($product->expenseRecId);
+					unset($aRec->id);
+					$aRec->detailRecId = $dId;
+					$aRec->detailClassId = $Detail::getClassId();
+					$aRec->containerId = $rec->containerId;
+					
+					acc_CostAllocations::save($aRec);
+					core_Statuses::newStatus($aRec->id);
+				}
 			}
 		}
 	}

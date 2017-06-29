@@ -23,7 +23,7 @@ class writetab_Plugin extends core_Plugin {
      */
     function on_AfterRenderLayout($form, &$layout)
     {
-        if((strtoupper($form->method) != 'GET') && (strtolower($form->view) != 'horizontal')) {
+        if((strtoupper($form->method) != 'GET') && (strtolower($form->view) != 'horizontal') && (strtolower($form->class) != 'simpleform')) {
  
             $symbol = writetab_Setup::get('SYMBOL');
             $color = writetab_Setup::get('COLOR');
