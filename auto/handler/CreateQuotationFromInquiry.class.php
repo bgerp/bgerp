@@ -114,7 +114,7 @@ class auto_handler_CreateQuotationFromInquiry {
      * @param core_ObjectReference $document - референция към обекта
      * @param int - ид на създадения артикул
      */
-    private function createProduct($marketingRec, $Cover, $document)
+    public function createProduct($marketingRec, $Cover, $document)
     {
 		$Driver = $document->getDriver();
     	if(!$Driver) return;
@@ -132,6 +132,7 @@ class auto_handler_CreateQuotationFromInquiry {
     	$form->rec->proto = $marketingRec->proto;
     	$form->rec->originId = $marketingRec->containerId;
     	$form->rec->name =  $marketingRec->title;
+    	$Driver->addFields($form);
     	
     	// Полето за ид не е тихо за да не се обърка и да инпутва ид-то на крон процеса
     	$idField = $form->getField('id');
@@ -157,6 +158,7 @@ class auto_handler_CreateQuotationFromInquiry {
     	unset($arr['_params']);
     	unset($popArray['_params']);
     	
+    	$arr['Ignore'] = 1;
     	Request::push($arr);
     	$form->cmd = 'save';
     	
