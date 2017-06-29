@@ -158,8 +158,6 @@ class store_Products extends core_Detail
     	cat_Products::expandFilter($data->listFilter);
     	$orderOptions = arr::make('all=Всички,active=Активни,standard=Стандартни,private=Нестандартни,last=Последно добавени,closed=Изчерпани');
     	$data->listFilter->setOptions('order', $orderOptions);
-		$data->listFilter->setDefault('order', 'active');
-    	
     	$data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
     	
     	$stores = cls::get('store_Stores')->makeArray4Select('name', "#state != 'rejected'");
@@ -179,9 +177,10 @@ class store_Products extends core_Detail
     	
     	$data->query->orderBy('code,id', ASC);
     	if(isset($data->masterMvc)){
-    		$data->query->where("#state != 'closed'");
+    		$data->listFilter->setDefault('order', 'all');
     		$data->listFilter->showFields = 'search,groupId';
     	} else {
+    		$data->listFilter->setDefault('order', 'active');
     		$data->listFilter->showFields = 'storeId,search,order,groupId';
     	}
     	
@@ -256,7 +255,7 @@ class store_Products extends core_Detail
      */
     public static function sync($all)
     {
-    	$query = static::getQuery();
+    	$query = self::getQuery();
     	$query->show('productId,storeId,quantity,state');
     	$oldRecs = $query->fetchAll();
     	$self = cls::get(get_called_class());
@@ -273,6 +272,15 @@ class store_Products extends core_Detail
     	
     	// Ъпдейт на к-та на продуктите, имащи запис но липсващи в счетоводството
     	self::updateMissingProducts($arrRes['delete']);
+    	
+    	// Поправка ако случайно е останал някой артикул с к-во в затворено състояние
+    	$fixQuery = self::getQuery();
+    	$fixQuery->where("#quantity != 0 AND #state = 'closed'");
+    	$fixQuery->show('id,state');
+    	while($fRec = $fixQuery->fetch()){
+    		$fRec->state = 'active';
+    		self::save($fRec, 'state');
+    	}
     	
     	core_Locks::release(self::SYNC_LOCK_KEY);
     }

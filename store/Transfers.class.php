@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -40,14 +40,14 @@ class store_Transfers extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf, acc_TransactionSourceIntf=store_transaction_Transfer, acc_AllowArticlesCostCorrectionDocsIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf, acc_TransactionSourceIntf=store_transaction_Transfer, acc_AllowArticlesCostCorrectionDocsIntf,trans_LogisticDataIntf';
     
     
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable, acc_plg_DocumentSummary,
-                    doc_DocumentPlg, trans_plg_LinesPlugin, doc_plg_BusinessDoc, plg_Search, bgerp_plg_Blank,plg_Clone';
+                    doc_DocumentPlg, trans_plg_LinesPlugin, doc_plg_BusinessDoc, plg_Search,plg_Clone';
 
     
     /**
@@ -68,12 +68,6 @@ class store_Transfers extends core_Master
      * Дали може да бъде само в началото на нишка
      */
     public $onlyFirstInThread = TRUE;
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,store';
     
     
     /**
@@ -127,7 +121,7 @@ class store_Transfers extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valior, title=Документ, fromStore, toStore, volume, weight, folderId, createdOn, createdBy';
+    public $listFields = 'deliveryTime,valior, title=Документ, fromStore, toStore, volume, weight, folderId, createdOn, createdBy';
 
 
     /**
@@ -180,6 +174,12 @@ class store_Transfers extends core_Master
     public $storeFieldName = 'fromStore';
 
 
+    /**
+     * Дата на очакване
+     */
+    public $termDateFld = 'deliveryTime';
+    
+    
 	/**
 	 * Икона на единичния изглед
 	 */
@@ -190,6 +190,12 @@ class store_Transfers extends core_Master
 	 * Полета за филтър по склад
 	 */
 	public $filterStoreFields = 'fromStore,toStore';
+	
+	
+	/**
+	 * Кои полета от листовия изглед да се скриват ако няма записи в тях
+	 */
+	public $hideListFieldsIfEmpty = 'deliveryTime';
 	
 	
     /**
@@ -204,7 +210,7 @@ class store_Transfers extends core_Master
         $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
         
         // Доставка
-        $this->FLD('deliveryTime', 'datetime', 'caption=Срок до');
+        $this->FLD('deliveryTime', 'datetime', 'caption=Натоварване');
         $this->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транспорт');
         
         // Допълнително
@@ -540,5 +546,51 @@ class store_Transfers extends core_Master
     	}
     
     	return $products;
+    }
+    
+    
+    /**
+     * Информация за логистичните данни
+     *
+     * @param mixed $rec   - ид или запис на документ
+     * @return array $data - логистичните данни
+     *
+     *		string(2)     ['fromCountry']  - международното име на английски на държавата за натоварване
+     * 		string|NULL   ['fromPCode']    - пощенски код на мястото за натоварване
+     * 		string|NULL   ['fromPlace']    - град за натоварване
+     * 		string|NULL   ['fromAddress']  - адрес за натоварване
+     *  	string|NULL   ['fromCompany']  - фирма
+     *   	string|NULL   ['fromPerson']   - лице
+     * 		datetime|NULL ['loadingTime']  - дата на натоварване
+     * 		string(2)     ['toCountry']    - международното име на английски на държавата за разтоварване
+     * 		string|NULL   ['toPCode']      - пощенски код на мястото за разтоварване
+     * 		string|NULL   ['toPlace']      - град за разтоварване
+     *  	string|NULL   ['toAddress']    - адрес за разтоварване
+     *   	string|NULL   ['toCompany']    - фирма
+     *   	string|NULL   ['toPerson']     - лице
+     * 		datetime|NULL ['deliveryTime'] - дата на разтоварване
+     * 		text|NULL 	  ['conditions']   - други условия
+     * 		varchar|NULL  ['ourReff']      - наш реф
+     */
+    function getLogisticData($rec)
+    {
+    	$rec = $this->fetchRec($rec);
+    	$res = array();
+    	$res['ourReff'] = "#" . $this->getHandle($rec);
+    	$res['loadingTime'] = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : $rec->valior . " " . bgerp_Setup::get('START_OF_WORKING_DAY');
+    	
+    	foreach (array('from', 'to')  as $part){
+    		if($locationId = store_Stores::fetchField($rec->{"{$part}Store"}, 'locationId')){
+    			$location = crm_Locations::fetch($locationId);
+    			
+    			$res["{$part}Country"]    = drdata_Countries::fetchField($location->countryId, 'commonName');
+    			$res["{$part}PCode"]    = !empty($location->pCode) ? $location->pCode : NULL;
+    			$res["{$part}Place"]    = !empty($location->place) ? $location->place : NULL;
+    			$res["{$part}Address"]  = !empty($location->address) ? $location->address : NULL;
+    			$res["{$part}Person"]   = !empty($location->mol) ? $location->mol : NULL;
+    		}
+    	}
+    	
+    	return $res;
     }
 }

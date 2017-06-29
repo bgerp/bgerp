@@ -74,7 +74,7 @@ class doc_ExpensesSummary extends core_Manager
     		$actionTitle = 'Показване на разходите към документа';
     		$document = doc_Containers::getDocument($containerId);
     		
-    		if(haveRole('acc,ceo') && $document->haveRightFor('single')){
+    		if(haveRole('ceo, acc, purchase') && $document->haveRightFor('single')){
     			$linkArr = array($document->getInstance(), 'single', $document->that, 'Sid' =>  $containerId);
     		}
     		$link = ht::createLink("<b>{$count}</b><span>{$actionVerbal}</span>", $linkArr, FALSE, array('title' => $actionTitle));
@@ -97,16 +97,19 @@ class doc_ExpensesSummary extends core_Manager
     	// Вземаме cid от URL' то
         $cid = Request::get('Sid', 'int');
         $masterRec = $data->masterData->rec;
+        $rec = self::fetch("#containerId = {$masterRec->containerId}");
         
-        // Ако не листваме данните за съответния контейнер
-        if ($masterRec->containerId != $cid && !haveRole('acc,ceo')) {
-        	$data->renderExpenses = FALSE;
-        	return;
+        $render = TRUE;
+        if ($masterRec->containerId != $cid) {
+        	$render = FALSE;
+        } elseif(!haveRole('ceo, acc, purchase')){
+        	$render = FALSE;
+        } elseif(!$rec){
+        	$render = FALSE;
         }
         
-        // Намираме кеширания запис за контейнера
-        $rec = self::fetch("#containerId = {$masterRec->containerId}");
-        if(!$rec){
+        // Ако не листваме данните за съответния контейнер
+        if ($render === FALSE) {
         	$data->renderExpenses = FALSE;
         	return;
         }

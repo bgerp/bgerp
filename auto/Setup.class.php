@@ -37,14 +37,6 @@ class auto_Setup extends core_ProtoSetup
 	
 	
 	/**
-	 * Описание на конфигурационните константи
-	 */
-	public $configDescription = array(
-			'AUTO_TRY_TO_CREATE_QUOTATION_FROM_INQUIRY' => array("enum(no=Не,yes=Да)", 'caption=Автоматично създаване на оферта към запитване създадено от партньор->Избор'),
-	);
-	
-	
-	/**
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
@@ -90,15 +82,9 @@ class auto_Setup extends core_ProtoSetup
     function loadSetupData($itr = '')
     {
     	$html = parent::loadSetupData($itr);
-    	$addPluginToInquiry = self::get('TRY_TO_CREATE_QUOTATION_FROM_INQUIRY');
     	
     	$Plugins = cls::get('core_Plugins');
-    	if($addPluginToInquiry == 'yes'){
-    		$html .= $Plugins->installPlugin('Автоматично създаване на оферта от запитване', 'auto_plg_QuotationFromInquiry', 'marketing_Inquiries2', 'private');
-    	} else {
-    		$Plugins->deinstallPlugin('auto_plg_QuotationFromInquiry');
-    		$html .= "<li>Премахнат плъгина за автоматично създаване на оферти";
-    	}
+    	$html .= $Plugins->installPlugin('Автоматично създаване на оферта от запитване', 'auto_plg_QuotationFromInquiry', 'marketing_Inquiries2', 'private');
     	
     	return $html;
     }

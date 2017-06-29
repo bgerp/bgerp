@@ -233,15 +233,11 @@ class escpos_Helper
     	
     	expect($iRec);
     	
-    	$isSystemUser = core_Users::isSystemUser();
-    	if ($isSystemUser) {
-    	    core_Users::cancelSystemUser();
-    	}
-    	
     	if (!isset($userId)) {
     	    $userId = $iRec->createdBy;
     	}
-    	core_Users::sudo($userId);
+
+    	$sudoUser = core_Users::sudo($userId);
     	
     	// Записваме, че документа е принтиран
     	doclog_Documents::pushAction(
@@ -259,11 +255,7 @@ class escpos_Helper
      	$data = Request::forward(array('Ctr' => $Inst->className, 'Act' => 'single', 'id' => $id));
      	Mode::pop('text');
      	Mode::pop('dataType');
-     	core_Users::exitSudo();
-     	
-     	if ($isSystemUser) {
-     	    core_Users::forceSystemUser();
-     	}
+     	core_Users::exitSudo($sudoUser);
      	
      	expect($data);
 

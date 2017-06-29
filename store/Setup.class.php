@@ -90,6 +90,7 @@ class store_Setup extends core_ProtoSetup
      */
     var $roles = array(
     		array('storeWorker'),
+            array('inventory'),
     		array('store', 'storeWorker'),
     		array('storeMaster', 'store'),
     );

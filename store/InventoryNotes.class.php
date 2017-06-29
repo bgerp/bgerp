@@ -39,37 +39,37 @@ class store_InventoryNotes extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,store';
+    public $canList = 'ceo,store,inventory';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,store';
+    public $canSingle = 'ceo,store,inventory';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,storeMaster';
+    public $canEdit = 'ceo,storeMaster,inventory';
     
     
     /**
      * Кой може да създава продажба към отговорника на склада?
      */
-    public $canMakesale = 'ceo,sale';
+    public $canMakesale = 'ceo,sale,inventory';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,storeMaster';
+    public $canAdd = 'ceo,storeMaster,inventory';
     
     
     /**
      * Кой може да го контира?
      */
-    public $canConto = 'ceo,storeMaster';
+    public $canConto = 'ceo,storeMaster,inventory';
     
     
     /**
@@ -924,7 +924,7 @@ class store_InventoryNotes extends core_Master
     	
     	$Double = cls::get('type_Double');
     	expect($quantityInPack = $Double->fromVerbal($quantityInPack));
-    	expect($foundPackQuantity = $Double->fromVerbal($foundPackQuantity));
+    	expect(($foundPackQuantity = $Double->fromVerbal($foundPackQuantity)) || !$foundPackQuantity);
     	$quantity = $quantityInPack * $foundPackQuantity;
     	if(isset($expectedPackQuantity)){
     		$exQuantity = $quantity * $expectedPackQuantity;

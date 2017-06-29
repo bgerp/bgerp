@@ -240,6 +240,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         $this->FLD('pCode', 'varchar', 'caption=Адрес за доставка->П. код, changable, class=contactData');
         $this->FLD('place', 'varchar', 'caption=Адрес за доставка->Град/с, changable, class=contactData');
         $this->FLD('address', 'varchar', 'caption=Адрес за доставка->Адрес, changable, class=contactData');
+        $this->setField('deliveryTime', 'caption=Натоварване');
     }
     
     
@@ -572,6 +573,7 @@ class store_ShipmentOrders extends store_DocumentMaster
      *   	string|NULL   ['toPerson']     - лице
      * 		datetime|NULL ['deliveryTime'] - дата на разтоварване
      * 		text|NULL 	  ['conditions']   - други условия
+     * 		varchar|NULL  ['ourReff']      - наш реф
      */
     function getLogisticData($rec)
     {
@@ -588,6 +590,10 @@ class store_ShipmentOrders extends store_DocumentMaster
     	
     	$res['toCompany'] = !empty($rec->company) ? $rec->company : $res['toCompany'];
     	$res['toPerson'] = !empty($rec->person) ? $rec->person : $res['toPerson'];
+    	
+    	unset($res['deliveryTime']);
+    	$res['loadingTime'] = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : $rec->valior . " " . bgerp_Setup::get('START_OF_WORKING_DAY');
+    	
     	
     	return $res;
     }

@@ -321,9 +321,8 @@ class distro_Actions extends embed_Manager
         $fRec = distro_Files::fetch($rec->fileId);
         
         if ($fRec) {
-            $sudo = FALSE;
             if ($rec->createdBy > 0) {
-                $sudo = core_Users::sudo($rec->createdBy);
+                $sudoUser = core_Users::sudo($rec->createdBy);
             }
             
             distro_Files::save($fRec, 'modifiedOn, modifiedBy');
@@ -334,9 +333,7 @@ class distro_Actions extends embed_Manager
             $gRec = $DGroup->fetch($rec->groupId);
             doc_Files::saveFile($DGroup, $gRec);
             
-            if ($sudo) {
-                core_Users::exitSudo();
-            }
+            core_Users::exitSudo($sudoUser);
         }
     }
     

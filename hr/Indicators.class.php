@@ -418,6 +418,7 @@ class hr_Indicators extends core_Manager
     		
     		// Ако има формула за заплата
     		$formula = hr_Positions::fetchField($positionId, 'formula');
+    		
     		if(!empty($formula)){
     			
     			// Ще се показват само индикаторите участващи във формулата
@@ -432,6 +433,10 @@ class hr_Indicators extends core_Manager
     				return;
     			}
     		}
+    	} else {
+    		// Ако няма такива няма да се рендира нищо
+    		$data->IData->render = FALSE;
+    		return;
     	}
     	
     	// Подготовка на заявката

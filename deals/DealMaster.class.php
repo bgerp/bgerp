@@ -671,37 +671,8 @@ abstract class deals_DealMaster extends deals_DealBase
         
         return FALSE;
     }
-    
-    
-    /**
-      * Добавя ключови думи за пълнотекстово търсене, това са името на
-      * документа или папката
-      */
-     public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
-     {
-     	// Тук ще генерираме всички ключови думи
-     	$detailsKeywords = '';
-
-     	// заявка към детайлите
-     	$Detail = $mvc->mainDetail;
-     	$query = $mvc->{$Detail}->getQuery();
-     	
-     	// точно на тази фактура детайлите търсим
-     	$query->where("#{$mvc->{$Detail}->masterKey}  = '{$rec->id}'");
-     	
-	        while ($recDetails = $query->fetch()){
-	        	// взимаме заглавията на продуктите
-	        	$productTitle = cat_Products::getTitleById($recDetails->productId);
-	        	
-	        	// и ги нормализираме
-	        	$detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
-	        }
-	        
-    	// добавяме новите ключови думи към основните
-    	$res = " " . $res . " " . $detailsKeywords;
-     }
      
-     
+    
      /**
       * Перо в номенклатурите, съответстващо на този продукт
       *
@@ -802,7 +773,10 @@ abstract class deals_DealMaster extends deals_DealBase
     	// Запис на адреса
     	if(empty($rec->deliveryAdress) && isset($rec->deliveryTermId)){
     		$update = TRUE;
+    		
+    		$rec->tplLang = $mvc->pushTemplateLg($rec->template);
     		$rec->deliveryAdress = cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $mvc);
+    		core_Lg::pop($rec->tplLang);
     	}
     	
     	// Записване на най-големия срок на доставка
@@ -813,9 +787,13 @@ abstract class deals_DealMaster extends deals_DealBase
     		}
     	}
     	
+    	$saveFields = 'searchKeywords';
+    	$rec->searchKeywords = $mvc->updateSearchKeywords($rec);
     	if($update === TRUE){
-    		$mvc->save_($rec, 'deliveryTermTime,deliveryAdress');
+    		$saveFields .= ',deliveryTermTime,deliveryAdress';
     	}
+    	
+    	$mvc->save_($rec, $saveFields);
     }
     
     
@@ -1356,8 +1334,18 @@ abstract class deals_DealMaster extends deals_DealBase
     	$now = dt::mysql2timestamp(dt::now());
     	$oldBefore = dt::timestamp2mysql($now - $olderThan);
     	 
+    	// Всички нишки със заявка
+    	$cQuery = doc_Containers::getQuery();
+    	$cQuery->where("#state = 'pending'");
+    	$cQuery->show('threadId');
+    	$cQuery->groupBy('threadId');
+    	$threadIds = arr::extractValuesFromArray($cQuery->fetchAll(), 'threadId');
+    	
     	$query->EXT('threadModifiedOn', 'doc_Threads', 'externalName=last,externalKey=threadId');
-    	 
+    	if(count($threadIds)){
+    	    $query->notIn("threadId", $threadIds);
+    	}
+    	
     	// Закръглената оставаща сума за плащане
     	$query->XPR('toInvoice', 'double', 'ROUND(#amountDelivered - #amountInvoiced, 2)');
     	 
@@ -1385,6 +1373,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	 
     	// Всяка намерената сделка, се приключва като платена
     	while($rec = $query->fetch()){
+    		
     		try{
     			 
     			// Създаване на приключващ документ-чернова
@@ -1928,6 +1917,7 @@ abstract class deals_DealMaster extends deals_DealBase
      *   	string|NULL   ['toPerson']     - лице
      * 		datetime|NULL ['deliveryTime'] - дата на разтоварване
      * 		text|NULL 	  ['conditions']   - други условия
+     *		varchar|NULL  ['ourReff']      - наш реф
      */
     function getLogisticData($rec)
     {
@@ -1988,6 +1978,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	$delTime = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : (!empty($rec->deliveryTermTime) ?  dt::addSecs($rec->deliveryTermTime, $rec->valior) : NULL);
     	$res["deliveryTime"]  = $delTime;
+    	$res['ourReff'] = "#" . $this->getHandle($rec);
     	
     	return $res;
     }
@@ -2073,5 +2064,37 @@ abstract class deals_DealMaster extends deals_DealBase
     	 
     	// Рендиране на формата
     	return $this->renderWrapping($form->renderHtml());
+    }
+    
+    /**
+     * Ъпдейтване на ключовите думи
+     * 
+     * @param stdClass $rec
+     * @param string $keywords
+     */
+    protected function updateSearchKeywords($rec)
+    {
+    	$detailsKeywords = '';
+    	
+    	// заявка към детайлите
+    	$Detail = cls::get($this->mainDetail);
+    	$query = $Detail->getQuery();
+    	$query->where("#{$Detail->masterKey}  = '{$rec->id}'");
+    	$query->show('productId,notes');
+    	
+    	while ($dRec = $query->fetch()){
+    		
+    		// взимаме заглавията на продуктите
+    		$productTitle = cat_Products::getTitleById($dRec->productId);
+    		$detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
+    		if(!empty($dRec->notes)){
+    			$detailsKeywords .= " " . plg_Search::normalizeText($dRec->notes);
+    		}
+    	}
+    	 
+    	// добавяме новите ключови думи към основните
+    	$rec->searchKeywords = " " . $rec->searchKeywords . " " . $detailsKeywords;
+    	
+    	return $rec->searchKeywords;
     }
 }

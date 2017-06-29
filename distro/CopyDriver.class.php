@@ -172,16 +172,13 @@ class distro_CopyDriver extends core_Mvc
         $nRec->name = $rec->newFileName;
         $nRec->createdBy = $rec->createdBy;
         
-        $sudo = FALSE;
         if ($rec->createdBy > 0) {
-            $sudo = core_Users::sudo($rec->createdBy);
+            $sudoUser = core_Users::sudo($rec->createdBy);
         }
         
         $newFileId = distro_Files::save($nRec, NULL, 'IGNORE');
         
-        if ($sudo) {
-            core_Users::exitSudo();
-        }
+        core_Users::exitSudo($sudoUser);
         
         if ($newFileId) {
             $rec->newFileId = $newFileId;

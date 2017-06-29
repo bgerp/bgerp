@@ -17,12 +17,6 @@ class cat_ListingDetails extends doc_Detail
 	
 	
 	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'crm_ext_ProductListToContragents';
-	
-	
-	/**
 	 * Кой  може да изтрива?
 	 */
 	public $canDelete = 'listArt, ceo';
@@ -55,13 +49,13 @@ class cat_ListingDetails extends doc_Detail
 	/**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId=Артикул,packagingId=Опаковка,reff=Техен код,moq,multiplicity,modifiedOn,modifiedBy';
+    public $listFields = 'productId=Артикул,packagingId=Опаковка,reff=Техен код,moq,multiplicity,price,modifiedOn,modifiedBy';
 			
 
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Modified, cat_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_RowNumbering';
+    public $loadList = 'plg_Modified, cat_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_RowNumbering, plg_AlignDecimals2';
     
     
     /**
@@ -87,7 +81,7 @@ class cat_ListingDetails extends doc_Detail
      *
      *  @var string
      */
-    public $hideListFieldsIfEmpty = 'moq,multiplicity';
+    public $hideListFieldsIfEmpty = 'moq,multiplicity,price';
     
     
     /**
@@ -109,6 +103,7 @@ class cat_ListingDetails extends doc_Detail
     	$this->FLD('reff', 'varchar(32)', 'caption=Техен код,smartCenter');
     	$this->FLD('moq', 'double(smartRound,Min=0)', 'caption=МКП||MOQ');
     	$this->FLD('multiplicity', 'double(Min=0)', 'caption=Кратност');
+    	$this->FLD('price', 'double(Min=0)', 'caption=Ед. цена');
     	
     	$this->setDbUnique('listId,productId,packagingId');
     	$this->setDbUnique('listId,reff');
@@ -149,6 +144,9 @@ class cat_ListingDetails extends doc_Detail
 			$form->setOptions('packagingId', $packs);
 			$form->setDefault('packagingId', key($packs));
 		}
+		
+		$unit = $masterRec->currencyId . " " . (($masterRec->vat == 'yes') ? 'с ДДС' : 'без ДДС');
+		$form->setField('price', "unit={$unit}");
 	}
 	
 	
@@ -255,21 +253,32 @@ class cat_ListingDetails extends doc_Detail
 			$row->productId = cat_Products::getShortHyperlink($rec->productId);
 			$row->reff = "<b>{$row->reff}</b>";
 			 
-			$listRec = cat_Listings::fetch($rec->listId, 'folderId,type');
+			$listRec = cat_Listings::fetch($rec->listId, 'folderId,type,currencyId,vat');
 			$Cover = doc_Folders::getCover($listRec->folderId);
 			 
 			if($Cover->haveInterface('crm_ContragentAccRegIntf')){
 				if($listRec->type == 'canBuy'){
 					$policyInfo = cls::get('purchase_PurchaseLastPricePolicy')->getPriceInfo($Cover->getClassId(), $Cover->that, $rec->productId, $rec->packagingId, 1);
 					$hint = 'Артикулът няма цена по-която е купуван от контрагента';
+					$hint2 = 'Артикулът е купен последно на тази цена';
 				} else {
 					$policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($Cover->getClassId(), $Cover->that, $rec->productId, $rec->packagingId, 1);
 					$hint = 'Артикулът няма цена по ценовата политика на контрагента';
+					$hint2 = 'Цената е според ценовата политика на контрагента';
 				}
 				
-				if(!isset($policyInfo->price)){
-					$row->productId = ht::createHint($row->productId, $hint, 'warning', FALSE);
-					$row->productId = ht::createElement("span", array('style' => 'color:#755101'), $row->productId);
+				if(!isset($rec->price)){
+					if(!isset($policyInfo->price)){
+						$row->productId = ht::createHint($row->productId, $hint, 'warning', FALSE);
+						$row->productId = ht::createElement("span", array('style' => 'color:#755101'), $row->productId);
+					} else {
+						$vat = cat_Products::getVat($rec->productId);
+						$rate = currency_CurrencyRates::getRate($date, $listRec->currencyId, NULL);
+						
+						$row->price = deals_Helper::getDisplayPrice($policyInfo->price, $vat, $rate, $listRec->vat);
+						$row->price = $mvc->getFieldType('price')->toVerbal($row->price);
+						$row->price = ht::createHint($row->price, $hint2);
+					}
 				}
 			}
 			
@@ -549,5 +558,16 @@ class cat_ListingDetails extends doc_Detail
 		
 		// Връщане на намерените артикул
 		return $products;
+	}
+	
+	
+	/**
+	 * Преди подготовката на полетата за листовия изглед
+	 */
+	public static function on_AfterPrepareListFields($mvc, &$res, &$data)
+	{
+		$masterRec = $data->masterData->rec;
+		$vat = ($masterRec->vat == 'yes') ? 'с ДДС' : 'без ДДС';
+		$data->listFields['price'] = tr("Цена") . "|* <small>({$masterRec->currencyId})</small> |{$vat}|*";
 	}
 }
