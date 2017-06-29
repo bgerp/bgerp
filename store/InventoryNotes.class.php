@@ -924,7 +924,7 @@ class store_InventoryNotes extends core_Master
     	
     	$Double = cls::get('type_Double');
     	expect($quantityInPack = $Double->fromVerbal($quantityInPack));
-    	expect($foundPackQuantity = $Double->fromVerbal($foundPackQuantity));
+    	expect(($foundPackQuantity = $Double->fromVerbal($foundPackQuantity)) || !$foundPackQuantity);
     	$quantity = $quantityInPack * $foundPackQuantity;
     	if(isset($expectedPackQuantity)){
     		$exQuantity = $quantity * $expectedPackQuantity;
