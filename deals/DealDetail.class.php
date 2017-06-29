@@ -556,7 +556,7 @@ abstract class deals_DealDetail extends doc_Detail
     				} else {
     					$vat = cat_Products::getVat($productId, $saleRec->valior);
     					if(isset($lRec->price)){
-    						$price = $lRec->price;
+    						$price = $lRec->price / $quantityInPack;
     					} else {
     						$price = deals_Helper::getPurePrice($policyInfo->price, $vat, $saleRec->currencyRate, $saleRec->chargeVat);
     					}
