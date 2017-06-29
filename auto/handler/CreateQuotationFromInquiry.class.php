@@ -114,7 +114,7 @@ class auto_handler_CreateQuotationFromInquiry {
      * @param core_ObjectReference $document - референция към обекта
      * @param int - ид на създадения артикул
      */
-    public function createProduct($marketingRec, $Cover, $document)
+    private function createProduct($marketingRec, $Cover, $document)
     {
 		$Driver = $document->getDriver();
     	if(!$Driver) return;
