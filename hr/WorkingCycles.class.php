@@ -562,44 +562,30 @@ class hr_WorkingCycles extends core_Master
      * @param datetime $leaveFrom
      * @param datetime $leaveTo
      */
-    static public function calcLeaveDaysBySchedule($id, $masterId, $leaveFrom, $leaveTo)
+    static public function calcLeaveDaysBySchedule($id, $departmentId, $leaveFrom, $leaveTo)
     {
         $nonWorking = $workDays = $allDays = 0;
 
-        // Взимаме конкретния работен график
-        $state = self::getQuery();
-        $state->where("#id='{$id}'");
-        $cycleDetails = $state->fetch();
+        $dRec = hr_Departments::fetch($departmentId);
         
-        // Намираме кога започва графика
-        $startingOn = hr_Departments::fetchField($masterId, 'startingOn');
-       
-        $curDate = $leaveFrom;
-
-        if(dt::daysBetween($leaveTo, $leaveFrom) == 1){
-            $to = $leaveTo;
+        if(!$dRec || !$dRec->startOn || !$dRec->schedule) {
+            $res = cal_Calendar::calcLeaveDays($leaveFrom, $leaveTo);
         } else {
-            $to = dt::addDays(1, $leaveTo);
-        }
-        
-        // От началната дата до крайната, проверяваме всеки ден
-        // дали е работен или не
-        while($curDate < $to){ 
+            $days = getDayArr($dRec->schedule, $dRec->startOn, $leaveFrom, $leaveTo);
 
-            $dateType = static::getShiftDay($cycleDetails, $curDate, $startingOn);
-     
-            if($dateType == 0) {
-                $nonWorking++;
-            } else {
-                $workDays++;  
+            foreach($days as $d) {
+                if($d) {
+                    $workDays++;
+                } else {
+                    $nonWorking++;
+                }
+                $allDays++;
             }
-           
-            $curDate = dt::addDays(1, $curDate);
 
-            $allDays++;
+            $res = (object) array('nonWorking' => $nonWorking, 'workDays' => $workDays, 'allDays' => $allDays);
         }
-        
-        return (object) array('nonWorking'=>$nonWorking, 'workDays'=>$workDays, 'allDays'=>$allDays);
+
+        return $res;
     }
 
 
