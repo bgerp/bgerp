@@ -146,11 +146,13 @@ class hr_WorkingCycleDetails extends core_Detail
 
         while($from <= $to) {
             $dayInd = $dayNo % $cycleDuration;
-            $res[$from] = $cycleDays[$cycleId][$dayInd];
+            if(isset($cycleDays[$cycleId][$dayInd]) && isset($cycleDays[$cycleId][$dayInd]->duration)) {
+                $res[$from] = $cycleDays[$cycleId][$dayInd];
+            }
             $from = dt::addDays(1, $from);
             $dayNo++;
         }
-
+ 
         return $res;
     }
 

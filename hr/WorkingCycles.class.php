@@ -568,10 +568,10 @@ class hr_WorkingCycles extends core_Master
 
         $dRec = hr_Departments::fetch($departmentId);
         
-        if(!$dRec || !$dRec->startOn || !$dRec->schedule) {
+        if(!$dRec || !$dRec->startingOn || !$dRec->schedule) { bp($dRec);
             $res = cal_Calendar::calcLeaveDays($leaveFrom, $leaveTo);
-        } else {
-            $days = getDayArr($dRec->schedule, $dRec->startOn, $leaveFrom, $leaveTo);
+        } else { 
+            $days = hr_WorkingCycleDetails::getDayArr($dRec->schedule, $dRec->startingOn, $leaveFrom, $leaveTo);
 
             foreach($days as $d) {
                 if($d) {

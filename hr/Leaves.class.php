@@ -50,7 +50,7 @@ class hr_Leaves extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,personId, leaveFrom, leaveTo, note, useDaysFromYear, paid';
+    public $listFields = 'id,personId, leaveFrom, leaveTo, leaveDays, note, paid';
     
     
     /**
@@ -348,19 +348,12 @@ class hr_Leaves extends core_Master
             if($form->rec->leaveFrom &&  $form->rec->leaveTo){
                  
                 $state = hr_EmployeeContracts::getQuery();
-                $state->where("#personId='{$form->rec->personId}'");
-                 
+                $state->where("#personId='{$form->rec->personId}' AND #state = 'active'");
+              
                 if($employeeContractDetails = $state->fetch()){
-            
-                    $employeeContract = $employeeContractDetails->id;
-                    $department = $employeeContractDetails->departmentId;
-            
-                    $schedule = hr_EmployeeContracts::getWorkingSchedule($employeeContract);
-                    if($schedule){ 
-                        $days = hr_WorkingCycles::calcLeaveDaysBySchedule($schedule, $department, $form->rec->leaveFrom, $form->rec->leaveTo);
-                    } else { 
-                        $days = cal_Calendar::calcLeaveDays($form->rec->leaveFrom, $form->rec->leaveTo);
-                    }
+           
+                    $days = hr_WorkingCycles::calcLeaveDaysBySchedule($schedule, $employeeContractDetails->departmentId, $form->rec->leaveFrom, $form->rec->leaveTo);
+
                 } else {
                      
                     $days = cal_Calendar::calcLeaveDays($form->rec->leaveFrom, $form->rec->leaveTo);
