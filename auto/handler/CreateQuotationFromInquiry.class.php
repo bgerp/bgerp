@@ -132,6 +132,7 @@ class auto_handler_CreateQuotationFromInquiry {
     	$form->rec->proto = $marketingRec->proto;
     	$form->rec->originId = $marketingRec->containerId;
     	$form->rec->name =  $marketingRec->title;
+    	$Driver->addFields($form);
     	
     	// Полето за ид не е тихо за да не се обърка и да инпутва ид-то на крон процеса
     	$idField = $form->getField('id');
@@ -157,6 +158,7 @@ class auto_handler_CreateQuotationFromInquiry {
     	unset($arr['_params']);
     	unset($popArray['_params']);
     	
+    	$arr['Ignore'] = 1;
     	Request::push($arr);
     	$form->cmd = 'save';
     	
