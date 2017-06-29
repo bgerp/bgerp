@@ -465,6 +465,10 @@ class hr_EmployeeContracts extends core_Master
 
     	if($rec->state == 'active'){
             
+            if(!$rec->personId) {
+                $rec->personId = self::fetch($rec->id)->personId;
+            }
+
             // Взимаме запълването до сега
             $employmentOccupied = hr_Positions::fetchField($position, 'employmentOccupied');
             
