@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'store_InventoryNoteSummary'
  *
@@ -38,7 +39,7 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_GroupByField, store_Wrapper,plg_AlignDecimals2,plg_Search';
+    public $loadList = 'plg_GroupByField, store_Wrapper,plg_AlignDecimals2,plg_Search,plg_Created';
     
     
     /**
@@ -80,7 +81,7 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code=Код, productId, measureId=Мярка,blQuantity, quantity=Количество->Установено,delta,charge,groupName';
+    public $listFields = 'code=Код, productId, measureId=Мярка,blQuantity, quantity=Количество->Установено,delta,charge,groupName,createdBy';
     
         
     /**
@@ -135,6 +136,8 @@ class store_InventoryNoteSummary extends doc_Detail
     	if($tab == '' || $tab == get_called_class() || Mode::is('blank')){
     		parent::prepareDetail_($data);
     	}
+    	
+    	
     }
     
     
@@ -709,5 +712,16 @@ class store_InventoryNoteSummary extends doc_Detail
     	$rec->quantity = $quantity;
     	
     	cls::get('store_InventoryNoteSummary')->save($rec, 'quantity');
+    }
+    
+    
+    /**
+     * Изпълнява се след подготвянето на тулбара в листовия изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    {
+    	if(store_InventoryNoteDetails::haveRightFor('add', (object)array('noteId' => $data->masterId))){
+    		$data->toolbar->addBtn('Импорт', array('store_InventoryNoteDetails', 'import', 'noteId' => $data->masterId, 'ret_url' => TRUE), 'title=Добавяне на артикули от група,ef_icon=img/16/cart_go.png');
+    	}
     }
 }

@@ -513,7 +513,7 @@ class store_InventoryNotes extends core_Master
      * @param stdClass $rec - ид или запис
      * @return array $res - масив с артикули
      */
-    private function getCurrentProducts($rec)
+    public function getCurrentProducts($rec)
     {
     	$res = array();
     	$rec = $this->fetchRec($rec);
@@ -574,7 +574,8 @@ class store_InventoryNotes extends core_Master
     								  "productId"  => $productId,
     								  "groups"     => NULL,
     								  "modifiedOn" => $now,
-    								  "blQuantity" => $bRec->blQuantity,);
+    								  "createdBy"  => core_Users::SYSTEM_USER,
+    								  "blQuantity" => $bRec->blQuantity);
     			$aRec->searchKeywords = $Summary->getSearchKeywords($aRec);
     			
     			$groups = cat_Products::fetchField($productId, 'groups');
@@ -655,8 +656,9 @@ class store_InventoryNotes extends core_Master
     		foreach ($syncedArr['delete'] as $deleteId){
     			
     			// Трием само тези, които нямат въведено количество
-    			$quantity = store_InventoryNoteSummary::fetchField($deleteId, 'quantity');
-    			if(!isset($quantity)){
+    			$sRec = store_InventoryNoteSummary::fetch($deleteId, 'productId,quantity,createdBy');
+    			
+    			if(!isset($sRec->quantity) && ($sRec->createdBy == core_Users::SYSTEM_USER || empty($sRec->createdBy))){
     				$deleted++;
     				store_InventoryNoteSummary::delete($deleteId);
     			}
@@ -956,6 +958,7 @@ class store_InventoryNotes extends core_Master
     	}
     	
     	// Запис на реда
+    	core_Users::forceSystemUser();
     	store_InventoryNoteDetails::save($rec);
     	
     	// Задаване на очакваното количество
@@ -963,6 +966,7 @@ class store_InventoryNotes extends core_Master
     		$sId = store_InventoryNoteSummary::force($noteId, $productId);
     		store_InventoryNoteSummary::save((object)array('id' => $sId, 'blQuantity' => $expectedPackQuantity), 'id,blQuantity');
     	}
+    	core_Users::cancelSystemUser();
     	
     	// Връщане на записа
     	return $rec->id;
