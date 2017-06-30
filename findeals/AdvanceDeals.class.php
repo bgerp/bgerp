@@ -58,7 +58,7 @@ class findeals_AdvanceDeals extends findeals_Deals
     /**
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
-    public $coversAndInterfacesForNewDoc = 'crm_ContragentAccRegIntf';
+    public $coversAndInterfacesForNewDoc = 'crm_PersonAccRegIntf';
 
     
     /**
@@ -84,16 +84,6 @@ class findeals_AdvanceDeals extends findeals_Deals
         }
         
         return FALSE;
-    }
-    
-    
-    /**
-     * В кои корици може да се вкарва документа
-     * @return array - интерфейси, които трябва да имат кориците
-     */
-    public static function getCoversAndInterfacesForNewDoc()
-    {
-        return array('crm_PersonAccRegIntf');
     }
     
     

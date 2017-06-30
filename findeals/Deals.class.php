@@ -164,6 +164,12 @@ class findeals_Deals extends deals_DealBase
     
     
     /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = 'crm_ContragentAccRegIntf';
+    
+    
+    /**
      * Позволени операции на последващите платежни документи
      */
     public  $allowedPaymentOperations = array(
