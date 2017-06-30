@@ -135,6 +135,12 @@ class bank_ExchangeDocument extends core_Master
     
     
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'valior,createdOn';
+    
+    
+    /**
      * Описание на модела
      */
     function description()

@@ -90,6 +90,12 @@ class bank_DepositSlips extends bank_DocumentBlank
     
     
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'valior,createdOn';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
