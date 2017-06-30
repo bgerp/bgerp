@@ -57,7 +57,10 @@ class type_Table extends type_Blob {
         foreach($columns as $field => $fObj) {
             $row0 .= "<td class='formTypeTable'>{$fObj->caption}</td>";
             $attr[$field] = array('name' => $name . '[' . $field . '][]');
-            
+            if($fObj->width) {
+                $attr[$field]['style'] .= ";width:{$fObj->width}";
+            }
+
             $selOpt = $field . '_opt';
 
             if($this->params[$selOpt]) {
@@ -103,8 +106,8 @@ class type_Table extends type_Blob {
         $tpl = str_replace("\n", "", $tpl);
  
         $id = 'table_' . $name;
-        $btn = ht::createElement('input', array('type' => 'button', 'value' => '+', 'onclick' => "dblRow(\"{$id}\", \"{$tpl}\")"));  
-        $res = "<table class='listTable typeTable' id='{$id}'><tr>{$row0}</tr><tr>{$row1}</tr>{$rows}</table>\n{$btn}\n";
+        $btn = ht::createElement('input', array('type' => 'button', 'value' => '+ Нов ред', 'onclick' => "dblRow(\"{$id}\", \"{$tpl}\")"));  
+        $res = "<table class='listTable typeTable'   style='margin-bottom:5px;' id='{$id}'><tr style=\"background-color:rgba(200, 200, 200, 0.3);\">{$row0}</tr><tr>{$row1}</tr>{$rows}</table>\n{$btn}\n";
         
         $res = new ET($res);
         
@@ -121,6 +124,13 @@ class type_Table extends type_Blob {
         
         if(is_string($value)) {
             $value = @json_decode($value);
+        }
+        
+        if($this->params['render']) {
+
+            $res = call_user_func_array($this->params['render'], array($value, $this));
+
+            return $res;
         }
 
         if(is_array($value)) {
@@ -218,13 +228,23 @@ class type_Table extends type_Blob {
     function getColumns()
     {
         $colsArr = explode('|', $this->params['columns']);
-        $captionArr = explode('|', $this->params['captions']);
+        if(core_Lg::getCurrent() != 'bg' && $this->params['captionsEn']) {
+            $captionArr = explode('|', $this->params['captionsEn']);
+        } else {
+            $captionArr = explode('|', $this->params['captions']);
+        }
+        
+        $widthsArr = array();
+        if(isset($this->params['widths'])) {
+            $widthsArr = explode('|', $this->params['widths']);
+        }
         
         $res = array();
  
         foreach($colsArr as $i => $c) {
             $obj = new stdClass();
             $obj->caption = $captionArr[$i] ? $captionArr[$i] : $c;
+            $obj->width = $widthsArr[$i];
             $res[$c] = $obj;
         }
  
