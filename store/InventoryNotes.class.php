@@ -628,7 +628,7 @@ class store_InventoryNotes extends core_Master
     	// Целта е ако потребителя е въвел артикул, който не е в избраните групи с к-во, неговото очаквано
     	// к-во да дойде от баланса
     	foreach ($balanceArr as $id => $new){
-    		if($rec->hideOthers == 'yes' && $gCount){
+    		if($rec->hideOthers == 'yes'){
     			if(!keylist::isIn($rGroup, $new->groups) && !in_array($new->productId, $productArr)){
     				unset($balanceArr[$id]);
     			}
