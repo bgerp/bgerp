@@ -146,6 +146,12 @@ class accda_Da extends core_Master
      */
     public $fieldsNotToClone = 'valior,title,num';
     
+
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'valior, createdOn';
+    
     
     /**
      * Описание на модела

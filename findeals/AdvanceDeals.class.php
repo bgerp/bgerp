@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   findeals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -47,48 +47,6 @@ class findeals_AdvanceDeals extends findeals_Deals
      * Групиране на документите
      */ 
     public $newBtnGroup = "4.2|Финанси";
-
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,findeals';
-    
-    
-    /**
-     * Кой може да го разглежда?
-     */
-    public $canList = 'ceo,findeals';
-    
-    
-    /**
-     * Кой може да разглежда сингъла на документите?
-     */
-    public $canSingle = 'ceo,findeals';
-    
-    
-    /**
-     * Кой може да пише?
-     */
-    public $canWrite = 'ceo,findeals';
-    
-    
-    /**
-     * Кой може да пише?
-     */
-    public $canEdit = 'ceo,findeals';
-    
-    
-    /**
-     * Кой има право да клонира?
-     */
-    public $canClonerec = 'ceo,findeals';
-    
-    
-    /**
-     * Кой има право да клонира?
-     */
-    public $canAdd = 'ceo,findeals';
     
     
     /**
@@ -98,17 +56,9 @@ class findeals_AdvanceDeals extends findeals_Deals
     
     
     /**
-     * Плъгини за зареждане
-     */
-    public $loadList = 'plg_RowTools2, acc_plg_Registry, findeals_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_Contable,
-                        acc_plg_DocumentSummary, plg_Search, bgerp_plg_Blank, doc_ActivatePlg,
-                        doc_plg_Close, cond_plg_DefaultValues, plg_Clone, doc_plg_Prototype,doc_plg_SelectFolder';
-    
-    
-    /**
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
-    public $coversAndInterfacesForNewDoc = 'crm_ContragentAccRegIntf';
+    public $coversAndInterfacesForNewDoc = 'crm_PersonAccRegIntf';
 
     
     /**
@@ -134,16 +84,6 @@ class findeals_AdvanceDeals extends findeals_Deals
         }
         
         return FALSE;
-    }
-    
-    
-    /**
-     * В кои корици може да се вкарва документа
-     * @return array - интерфейси, които трябва да имат кориците
-     */
-    public static function getCoversAndInterfacesForNewDoc()
-    {
-        return array('crm_PersonAccRegIntf');
     }
     
     

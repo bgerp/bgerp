@@ -54,6 +54,9 @@ abstract class deals_DealBase extends core_Master
 	public $addToListOnActivation = 'deals';
 	
 	
+	/**
+	 * Кой има права да експортира
+	 */
 	public $canExport = 'powerUser';
 	
 	
