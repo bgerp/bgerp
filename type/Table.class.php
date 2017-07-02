@@ -41,11 +41,11 @@ class type_Table extends type_Blob {
     /**
      * Рендира HTML инпут поле
      */
-    function renderInput_($name, $value = "", &$attr = array())
+    function renderInput_($name, $value = "", &$attrDiv = array())
     {
 
         if(is_string($value)) {
-            $value = json_decode($value);
+            $value = json_decode($value, TRUE);
         }
 
         if(!is_array($value)) {
@@ -107,11 +107,34 @@ class type_Table extends type_Blob {
  
         $id = 'table_' . $name;
         $btn = ht::createElement('input', array('type' => 'button', 'value' => '+ Нов ред', 'onclick' => "dblRow(\"{$id}\", \"{$tpl}\")"));  
-        $res = "<table class='listTable typeTable'   style='margin-bottom:5px;' id='{$id}'><tr style=\"background-color:rgba(200, 200, 200, 0.3);\">{$row0}</tr><tr>{$row1}</tr>{$rows}</table>\n{$btn}\n";
+        
+        $attrTable = array();
+        $attrTable['class'] = 'listTable typeTable ' . $attrTable['class'];
+        $attrTable['style'] .= ';margin-bottom:5px;';
+        $attrTable['id'] = $id;
+        unset($attrTable['value']);
+
+        $res = ht::createElement('table', $attrTable, "<tr style=\"background-color:rgba(200, 200, 200, 0.3);\">{$row0}</tr><tr>{$row1}</tr>{$rows}");
+        $res .= "\n{$btn}\n";
+        $res = ht::createElement('div', $attrDiv, $res);
         
         $res = new ET($res);
         
         return $res;
+    }
+
+    function isValid($value)
+    {
+        if(empty($value)) return NULL;
+        
+        if($this->params['validate']) {
+
+            $res = call_user_func_array($this->params['validate'], array($value, $this));
+
+            return $res;
+        }
+
+
     }
     
 
@@ -123,7 +146,7 @@ class type_Table extends type_Blob {
         if(empty($value)) return NULL;
         
         if(is_string($value)) {
-            $value = @json_decode($value);
+            $value = @json_decode($value, TRUE);
         }
         
         if($this->params['render']) {
@@ -180,7 +203,7 @@ class type_Table extends type_Blob {
 
             if(!$len) return NULL;
 
-            $value = @json_decode($value);
+            $value = @json_decode($value, TRUE);
         }
         
         $columns = $this->getColumns();
@@ -217,7 +240,8 @@ class type_Table extends type_Blob {
 
         } while($isset);
 
- 
+        $res = @json_encode($res);
+
         return $res;
     }
 
