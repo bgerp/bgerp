@@ -275,7 +275,7 @@ class core_Cron extends core_Manager
         }
         
         // Ако в момента се извършва инсталация - да не се изпълняват процесите
-        core_SetupLock::stopIfBlocked();
+        core_SystemLock::stopIfBlocked();
 
         header('Cache-Control: no-cache, no-store');
         

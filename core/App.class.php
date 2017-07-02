@@ -41,9 +41,8 @@ class core_App
                 core_Mode::set('screenMode', log_Browsers::detectMobile() ? 'narrow' : 'wide');
             }
     
- //   cls::load('core_SetupLock');
-    // Ако в момента се извършва инсталация - да не се изпълняват процесите
-    core_SetupLock::stopIfBlocked();
+            // Ако в момента се извършва инсталация - да не се изпълняват процесите
+            core_SystemLock::stopIfBlocked();
 
             // Генерираме съдържанието
             $content = core_Request::forward();
