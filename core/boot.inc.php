@@ -92,13 +92,18 @@ try {
 
     // Стартира приложението
     core_App::run();
-
+    
+    // Отключваме системата, ако е била заключена в този хит
+    core_SystemLock::remove();
 
     // Край на работата на скрипта
     core_App::shutdown();
 
 } catch (Exception  $e) {
     
+    // Отключваме системата, ако е била заключена в този хит
+    core_SystemLock::remove();
+
     if($e instanceof core_exception_Db && ($link = $e->getDbLink())) { 
         
         if(defined('EF_DB_NAME') && preg_match("/^\w{0,64}$/i", EF_DB_NAME)) {

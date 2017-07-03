@@ -150,7 +150,7 @@ class bgerp_Setup extends core_ProtoSetup {
         Debug::$isLogging = FALSE;
         
         // Блокираме други процеси
-        core_SetupLock::block("Prepare bgERP installation...");
+        core_SystemLock::block("Prepare bgERP installation...");
 
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
@@ -170,12 +170,12 @@ class bgerp_Setup extends core_ProtoSetup {
         $instances = array();
         
         foreach ($managers as $manager) {
-            core_SetupLock::block("Install {$manager}");
+            core_SystemLock::block("Install {$manager}");
             $instances[$manager] = &cls::get($manager);
             $html .= $instances[$manager]->setupMVC();
         }
         
-        core_SetupLock::block("Starting bgERP installation...");
+        core_SystemLock::block("Starting bgERP installation...");
 
         // Инстанция на мениджъра на пакетите
         $Packs = cls::get('core_Packs');
@@ -224,7 +224,7 @@ class bgerp_Setup extends core_ProtoSetup {
         
         $haveError = array();
         
-        core_SetupLock::block("Clearing cache");
+        core_SystemLock::block("Clearing cache");
 
         core_Debug::$isLogging = FALSE;
         $Cache = cls::get('core_Cache');
@@ -243,7 +243,7 @@ class bgerp_Setup extends core_ProtoSetup {
             foreach ($packArr as $p) {
                 
                 $i++;
-                core_SetupLock::block("Load Setup Data For {$p} ({$i}/{$packCnt})");
+                core_SystemLock::block("Load Setup Data For {$p} ({$i}/{$packCnt})");
 
                 if (cls::load($p . '_Setup', TRUE) && !$isSetup[$p]) {
                     try {
@@ -285,7 +285,7 @@ class bgerp_Setup extends core_ProtoSetup {
         core_Debug::$isLogging = TRUE;
         
         
-        core_SetupLock::block("Finishing bgERP Installation");
+        core_SystemLock::block("Finishing bgERP Installation");
 
         $html .= implode("\n", $haveError);
         
@@ -350,7 +350,7 @@ class bgerp_Setup extends core_ProtoSetup {
         
         $html .= parent::install();
 
-        core_SetupLock::remove();
+        core_SystemLock::remove();
         return $html;
     }
 
@@ -380,7 +380,7 @@ class bgerp_Setup extends core_ProtoSetup {
         foreach ($packArr as $p) {
             
             $i++;
-            core_SetupLock::block("Load Setup Data For {$p} ({$i}/{$packCnt})");
+            core_SystemLock::block("Load Setup Data For {$p} ({$i}/{$packCnt})");
 
             if (cls::load($p . '_Setup', TRUE) && !$isLoad[$p]) {
                 $packsInst[$p] = cls::get($p . '_Setup');

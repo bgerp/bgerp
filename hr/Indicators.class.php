@@ -496,6 +496,7 @@ class hr_Indicators extends core_Manager
     	$data->listFilter->FLD('period', 'date(select2MinItems=11)', 'caption=Период,silent,placeholder=Всички');
     	$data->listFilter->setOptions('period', array('' => '') + dt::getRecentMonths(10));
     	$data->listFilter->showFields = 'period';
+    	$data->query->orderBy('date', "DESC");
     	
     	if(isset($data->masterMvc)){
     		$data->listFilter->FLD('Tab', 'varchar', 'input=hidden');

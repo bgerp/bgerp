@@ -398,6 +398,8 @@ class core_Array
                 error('Некоректен параметър', $arr1);
             }
         }
+
+        return $arr1;
     }
     
     

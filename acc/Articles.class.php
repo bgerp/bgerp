@@ -151,6 +151,12 @@ class acc_Articles extends core_Master
      */
     public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
 
+
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'valior';
+    
     
     /**
      * Описание на модела

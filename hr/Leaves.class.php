@@ -317,6 +317,12 @@ class hr_Leaves extends core_Master
      */
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
+        if(haveRole('ceo,hr,admin')) {
+            $ignorable = TRUE;
+        } else {
+            $ignorable = FALSE;
+        }
+
         $now = dt::now();
         // един месец назад
         $before30Days = dt::addMonths(-1, $now);
@@ -333,15 +339,15 @@ class hr_Leaves extends core_Master
             }
             
             if(isset($form->rec->leaveFrom) &&  ($form->rec->leaveFrom < $before30Days)) {
-                $form->setError('leaveFrom', "Началната дата трябва да е след {$before30DaysVerbal}г.");
+                $form->setError('leaveFrom', "Началната дата трябва да е след {$before30DaysVerbal}г.", $ignorable);
             }
             
             if(isset($form->rec->leaveFrom) && ($form->rec->leaveFrom > $after1year)) {
-                $form->setError('leaveFrom', "Началната дата трябва да е преди {$after1yearVerbal}г.");
+                $form->setError('leaveFrom', "Началната дата трябва да е преди {$after1yearVerbal}г.", $ignorable);
             }
             
             if(isset($form->rec->leaveTo) && ($form->rec->leaveTo > $after1year)) {
-                $form->setError('leaveTo', "Крайната дата трябва да е преди {$after1yearVerbal}г.");
+                $form->setError('leaveTo', "Крайната дата трябва да е преди {$after1yearVerbal}г.", $ignorable);
             }
             
             // изисляване на бр дни отпуска

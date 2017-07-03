@@ -94,7 +94,7 @@ class tcost_Zones extends core_Detail
     public function description()
     {
         $this->FLD('zoneId', 'key(mvc=tcost_FeeZones, select=name)', 'caption=Зона, recently, mandatory,smartCenter');
-        $this->FLD('countryId', 'key(mvc = drdata_Countries, select = letterCode2)', 'caption=Държава, mandatory,smartCenter');
+        $this->FLD('countryId', 'key(mvc = drdata_Countries, select = commonName)', 'caption=Държава, mandatory,smartCenter');
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode,smartCenter, notNull');
  	}
 
@@ -118,9 +118,9 @@ class tcost_Zones extends core_Detail
         $query->where(array("#deliveryTermId = '[#1#]'", $deliveryTermId));
         
         if(empty($pCode)){
-            $query->where(array("#countryId = [#1#] AND #pCode = '[#2#]'", $countryId, $pCode));
+            $query->where(array("#countryId = [#1#] AND (#pCode = '' OR #pCode IS NULL)", $countryId, $pCode));
             $rec = $query->fetch();
-            $bestZone = $rec;
+            $bestZone = $rec;  
         } else{
         	// Обхождане на tcost_Zones базата и намиране на най-подходящата зона
         	$query->where(array('#countryId = [#1#]', $countryId));
