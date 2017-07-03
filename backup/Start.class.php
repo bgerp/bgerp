@@ -75,11 +75,16 @@ class backup_Start extends core_Manager
             
             shutdown();
         }
+        // Заключваме цялата система
+        core_SystemLock::block("Процес на архивиране на данните", $time = 1800); // 30 мин.
         
         exec("mysqldump --lock-tables --delete-master-logs -u"
             . self::$conf->BACKUP_MYSQL_USER_NAME . " -p" . self::$conf->BACKUP_MYSQL_USER_PASS . " " . EF_DB_NAME
             . " | gzip -9 >" . EF_TEMP_PATH . "/" . self::$backupFileName
             , $output, $returnVar);
+        
+        // Освобождаваме системата
+        core_SystemLock::remove();
         
         if ($returnVar !== 0) {
             self::logErr("Грешка при FullBackup");
