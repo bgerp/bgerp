@@ -422,15 +422,15 @@ class blast_Emails extends core_Master
             
             // Ако се изпраща от частна мрежа, спираме процеса
             if (core_App::checkCurrentHostIsPrivate()) {
-//                 $this->logErr('Прекъснато изпращане на циркулярни имейли. Прави се опит за изпращане от частна мрежа', $rec->id);
+                $this->logErr('Прекъснато изпращане на циркулярни имейли. Прави се опит за изпращане от частна мрежа', $rec->id);
                 
-//                 $rec->state = 'stopped';
-//                 $rec->errMsg = '|Спряно разпращане, поради опит за изпращане от частен адрес.';
+                $rec->state = 'stopped';
+                $rec->errMsg = '|Спряно разпращане, поради опит за изпращане от частен адрес.';
                 
-//                 $this->save($rec, 'state, errMsg');
-//                 $this->touchRec($rec->id);
+                $this->save($rec, 'state, errMsg');
+                $this->touchRec($rec->id);
                 
-//                 break;
+                break;
             }
             
             // Ако е свършило времето
@@ -614,7 +614,6 @@ class blast_Emails extends core_Master
     {
         unset($nRec->progress);
         unset($nRec->activatedBy);
-        unset($nRec->errMsg);
     }
     
     
