@@ -196,8 +196,10 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 		
 		// Линк към служителя
 		if(isset($dRec->person)) {
+		    $userId = crm_Profiles::fetchField("#personId = '{$dRec->person}'",'userId');
+		    $nick = crm_Profiles::createLink($userId)->getContent();
 		    //crm_Profiles::fetchField("#personId = '{$rec->alternatePerson}'", 'userId');
-		    $row->person = crm_Persons::fetchField($dRec->person, 'name');
+		    $row->person = crm_Persons::fetchField($dRec->person, 'name') . " (" . $nick .")";
 		}
 		
 		if($isPlain){
