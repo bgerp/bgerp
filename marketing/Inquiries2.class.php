@@ -662,6 +662,7 @@ class marketing_Inquiries2 extends embed_Manager
     	$msg = '|Успешно препращане';
     	try {
     	    $this->sendNotificationEmail($rec);
+    	    $this->logWrite('Препращане', $rec->id);
     	} catch (core_exception_Expect $e) {
             $this->logErr("Грешка при изпращане", $rec->id);
             reportException($e);
