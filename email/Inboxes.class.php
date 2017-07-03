@@ -831,7 +831,7 @@ class email_Inboxes extends core_Master
         $query->orWhereArr('id', $idsArr);
         
         if ($onlyWithNotify) {
-            $query->where("#notifyForEmail != 'no'");
+            $query->where("#notifyForEmail = 'yes'");
         }
         
         while ($rec = $query->fetch()) {

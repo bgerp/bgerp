@@ -128,6 +128,12 @@ class acc_ValueCorrections extends core_Master
     
     
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'valior';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
