@@ -954,7 +954,7 @@ class cat_Products extends embed_Manager {
      * @param stdClass $rec - запис
      * @return void
      */
-    private static function setCodeIfEmpty(&$rec)
+    public static function setCodeIfEmpty(&$rec)
     {
     	if($rec->isPublic == 'no' && empty($rec->code)){
     		$rec->code = "Art{$rec->id}";
