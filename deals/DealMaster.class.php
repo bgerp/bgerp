@@ -368,7 +368,7 @@ abstract class deals_DealMaster extends deals_DealBase
     static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
     {
         if(!Request::get('Rejected', 'int')){
-        	$data->listFilter->FNC('type', 'enum(all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,notInvoiced=Нефактурирани)', 'caption=Състояние');
+        	$data->listFilter->FNC('type', 'enum(all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,pending=Заявки,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,notInvoiced=Нефактурирани)', 'caption=Състояние');
 	        $data->listFilter->setDefault('type', 'active');
 			$data->listFilter->showFields .= ',type';
 		}
@@ -388,6 +388,8 @@ abstract class deals_DealMaster extends deals_DealBase
 						break;
 					case "all":
 						break;
+					case "pending":
+						$data->query->where("#state = 'pending'");
 					case "draft":
 						$data->query->where("#state = 'draft'");
 						break;
