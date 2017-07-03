@@ -79,7 +79,7 @@
             <!--ET_BEGIN store_Products-->
             <fieldset class="detail-info">
                 <legend class="groupTitle">|Артикули в наличност|*</legend>
-            	<div class="scrolling-holder">[#store_Products#]</div>
+            	<div class="scrolling-holder full-width-holder">[#store_Products#]</div>
             </fieldset>
             <!--ET_END store_Products-->
             

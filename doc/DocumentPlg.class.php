@@ -1992,7 +1992,9 @@ class doc_DocumentPlg extends core_Plugin
             } elseif ($action == 'reject'  || $action == 'restore') {
                 if (doc_Threads::haveRightFor('single', $oRec->threadId, $userId)) {
                     if($requiredRoles != 'no_one'){
-                    	$requiredRoles = 'powerUser';
+                    	if(!$mvc->hasPlugin('acc_plg_Contable')){
+                    		$requiredRoles = 'powerUser';
+                    	}
                     }
                 } else {
                 	if(core_Packs::isInstalled('colab') && core_Users::haveRole('partner', $userId)){
