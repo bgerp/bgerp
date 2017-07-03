@@ -20,6 +20,8 @@ defIfNot('BGERP_SYSTEM_LOCK_TIME', 120);
 class core_SystemLock
 {
 
+    static $isLocked = FALSE;
+
     /**
      * Връща пътя към временния файл
      */
@@ -47,6 +49,8 @@ class core_SystemLock
         }
 
         @file_put_contents($setupLockFile, "{$startTime}\n{$time}\n{$msg}");
+        
+        self::$isLocked = TRUE;
     }
 
 
@@ -55,8 +59,11 @@ class core_SystemLock
      */
     static function remove()
     {
-        $setupLockFile = self::getPath();
-        @unlink(realpath($setupLockFile));
+        if(self::$isLocked) {
+            $setupLockFile = self::getPath();
+            @unlink(realpath($setupLockFile));
+            self::$isLocked = FALSE;
+        }
     }
 
 
