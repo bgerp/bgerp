@@ -602,7 +602,7 @@ class store_InventoryNoteSummary extends doc_Detail
     		}
     		
     		// Подреждаме ги по име
-    		arr::natOrder($rest, 'orderName');
+    		arr::orderA($rest, 'orderCode');
     	
     		// Добавяме ги най-накрая
     		$ordered += $rest;
