@@ -2967,12 +2967,14 @@ class cal_Tasks extends core_Master
             $lArr[] = cal_Tasks::getLinkToSingle($dRec->taskId);
         }
         
-        $form->info = tr("Добавено към");
-        if ($cnt > count($lArr)) {
-            $form->info .= " {$cnt} " . tr('задачи');
+        if (!empty($lArr)) {
+            $form->info = tr("Добавено към");
+            if ($cnt > count($lArr)) {
+                $form->info .= " {$cnt} " . tr('задачи');
+            }
+            $form->info .= ":<br>";
+            $form->info .= implode('<br>', $lArr);
         }
-        $form->info .= ":<br>";
-        $form->info .= implode('<br>', $lArr);
         
         // Получаваме изгледа на формата
         $tpl = $form->renderHtml();
