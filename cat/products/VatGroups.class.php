@@ -31,19 +31,13 @@ class cat_products_VatGroups extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'vatGroup,vatPercent=ДДС (%),validFrom,tools=Пулт';
+    public $listFields = 'vatGroup,vatPercent=ДДС (%),validFrom';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'cat_Wrapper, plg_Created, plg_Modified, plg_RowTools';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
+    public $loadList = 'cat_Wrapper, plg_Created';
     
     
     /**
@@ -167,7 +161,10 @@ class cat_products_VatGroups extends core_Detail
         $query->orderBy("#validFrom", 'DESC');
         while($rec = $query->fetch()){
         	$data->recs[$rec->id] = $rec;
-        	$data->rows[$rec->id] = $this->recToVerbal($rec);
+        	$row = $this->recToVerbal($rec);
+        	
+        	$row->createdOn .= " " . tr('от') . " " . $row->createdBy;
+        	$data->rows[$rec->id] = $row;
         }
         
         if(count($data->rows)) {
@@ -198,7 +195,7 @@ class cat_products_VatGroups extends core_Detail
     {
     	$wrapTpl = getTplFromFile('cat/tpl/ProductDetail.shtml');
     	$table = cls::get('core_TableView', array('mvc' => $this));
-    	$data->listFields = array("vatGroup" => "Група", 'vatPercent' => 'ДДС|* (%)', 'validFrom' => 'В сила oт');
+    	$data->listFields = array("vatGroup" => "Група", 'vatPercent' => 'ДДС|* (%)', 'validFrom' => 'В сила oт', 'createdOn' => 'Създаване');
         $tpl = $table->get($data->rows, $data->listFields);
     	
     	$title = 'ДДС';
