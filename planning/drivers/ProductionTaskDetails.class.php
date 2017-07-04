@@ -554,69 +554,59 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	$query = self::getQuery();
    
         $query->where("#modifiedOn >= '{$timeline}'");
+       
         $iRec = hr_IndicatorNames::force('Време', __CLASS__, 1);
+        $classId = planning_Tasks::getClassId();
+        $indicatorId = $iRec->id;
         
         $result = array();
-        $tplObj = (object) array (
-            'docClass' => core_Classes::getId('planning_Tasks'), 
-            'indicatorId' => $iRec->id,
-            );
-        
         $queryProduct = planning_drivers_ProductionTaskProducts::getQuery();
         $queryMasterm = planning_Tasks::getQuery();
 
-        while ($rec = $query->fetch()) { 
-            
-            // За дата на записа, приемаме датата на създаването му
-            list($tplObj->date, ) = explode(' ', $rec->createdOn);
-            
-            // За източник - задачата, към който е този прогрес
-            $tplObj->docId = $rec->taskId;
-            
-            if($rec->state == 'rejected') {
-                $time = 0;
-            } else {
-                switch($rec->type){
-                    case 'input':
-                        $time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');	
-                        break;
-                    case 'waste':
-                        $time = -planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');
-                        break;
-                    case 'product':
-                        $time = planning_Tasks::getTaskInfo($rec->taskId)->indTime;
-                        break;
-                    case 'start':
-                        $time = planning_Tasks::getTaskInfo($rec->taskId)->startTime;
-                        break;
-                    default:
-                        $time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');
-                        break;
-                }
+        while ($rec = $query->fetch()) {
+           switch($rec->type){
+               case 'input':
+                    $time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');	
+                    break;
+               case 'waste':
+                    $time = -planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');
+                    break;
+               case 'product':
+                    $time = planning_Tasks::getTaskInfo($rec->taskId)->startTime;
+                    break;
+               case 'start':
+                    $time = planning_Tasks::getTaskInfo($rec->taskId)->indTime;
+                    break;
+               default:
+                    $time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');
+                    break;
             }
+            
+            if(empty($time)) continue;
             
             if($rec->employees) {
                 $persons = keylist::toArray($rec->employees);
-                
+               
                 $timePerson = ($rec->quantity * $time) / count($persons) ;
-                
-                foreach ($persons as $person) {
-                    $res = clone($tplObj);
-                    $res->personId = $person;
-                    $res->docId = $rec->taskId;
-
-                    $key = "{$res->date}|{$res->docId}|{$res->personId}";
-                    
-                    if(isset($result[$key])) {
-                        $result[$key]->value += $timePerson;
-                    }
-
-                    $result[$key] = $res;
+                $date = dt::verbal2mysql($rec->createdOn, FALSE);
+                foreach ($persons as $personId) {
+                	
+                	$key = "{$personId}|{$classId}|{$rec->taskId}|{$date}|{$indicatorId}";
+                	if(!array_key_exists($key, $result)){
+                		$result[$key] = (object)array('date'        => $date,
+												      'personId'    => $personId,
+									                  'docId'       => $rec->taskId,
+									                  'docClass'    => $classId,
+									                  'indicatorId' => $indicatorId,
+									                  'value'       => 0,
+									                  'isRejected'  => ($rec->state == 'rejected'));
+                	}
+                	
+                	$result[$key]->value += $timePerson;
                 }
             }
-
         }
-
+        
         return $result;
     }
 
