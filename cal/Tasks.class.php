@@ -2954,6 +2954,26 @@ class cal_Tasks extends core_Master
         $form->title = "Създаване на задача от|* ";
         $form->title .= cls::get($document)->getFormTitleLink($document->that);
         
+        $dQuery = cal_TaskDocuments::getQuery();
+        $dQuery->where(array("#containerId = '[#1#]'", $originId));
+        $dQuery->orderBy('createdOn', 'DESC');
+        
+        $cnt = $dQuery->count();
+        $dQuery->limit(5);
+        
+        $lArr = array();
+        while ($dRec = $dQuery->fetch()) {
+            if (!$dRec->taskId) continue;
+            $lArr[] = cal_Tasks::getLinkToSingle($dRec->taskId);
+        }
+        
+        $form->info = tr("Добавено към");
+        if ($cnt > count($lArr)) {
+            $form->info .= " {$cnt} " . tr('задачи');
+        }
+        $form->info .= ":<br>";
+        $form->info .= implode('<br>', $lArr);
+        
         // Получаваме изгледа на формата
         $tpl = $form->renderHtml();
         
