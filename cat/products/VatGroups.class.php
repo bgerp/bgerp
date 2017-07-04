@@ -61,12 +61,6 @@ class cat_products_VatGroups extends core_Detail
     
     
     /**
-     * Работен кеш
-     */
-    protected static $cache = array();
-    
-    
-    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -234,26 +228,28 @@ class cat_products_VatGroups extends core_Detail
     
     
     /**
-     * Коя е активната данъчна група
+     * Коя е активната данъчна група към дата
+     * 
+     * @param int $productId
+     * @param datetime|NULL $date
+     * @return double|FALSE $value
      */
-    public static function getCurrentGroup($productId)
+    public static function getCurrentGroup($productId, $date = NULL)
     {
+    	$date = (!empty($date)) ? $date : dt::now();
+    	
     	// Кешираме активната данъчна група на артикула в текущия хит
-    	if(!array_key_exists($productId, static::$cache)){
-    		$query = cat_products_VatGroups::getQuery();
-    		$query->where("#productId = {$productId}");
-    		$query->where("#validFrom <= NOW()");
-    		$query->orderBy("#validFrom", "DESC");
-    		$query->limit(1);
+    	$query = cat_products_VatGroups::getQuery();
+    	$query->where("#productId = {$productId}");
+    	$query->where("#validFrom <= '{$date}'");
+    	$query->orderBy("#validFrom", "DESC");
+    	$query->limit(1);
     		 
-    		$value = FALSE;
-    		if($rec = $query->fetch()){
-    			$value = acc_VatGroups::fetch($rec->vatGroup);
-    		}
-    		static::$cache[$productId] = $value;
+    	$value = FALSE;
+    	if($rec = $query->fetch()){
+    		$value = acc_VatGroups::fetch($rec->vatGroup);
     	}
     	
-    	// Връщаме кешираната активна данъчна група
-    	return static::$cache[$productId];
+    	return $value;
     }
 }
