@@ -1,13 +1,4 @@
-[#SingleToolbar#]
-<div class='document'>
-    <!--ET_BEGIN blank-->
-    [#blank#]
-    <!--ET_END blank-->
-    <!--ET_BEGIN header-->
-    <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
-    </div>
-    <!--ET_END header-->
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <div class='scrolling-holder'>
         <table style='width:100%;' id='inv-holder'>
             <tbody>
@@ -16,7 +7,7 @@
                         <table class="innerTable footer-notes paddingCells" style='width:100%;'>
                             <tbody>
                                 <tr>
-                                    <td class="cell custom-header-bg" style='vertical-align:middle !important;width:35%;'><b>|Получател|* / <i>Buyer</i></b></td>
+                                    <td class="cell custom-header-bg" style='vertical-align:middle !important; width:35%;'><b>|Получател|* / <i>Buyer</i></b></td>
                                     <td class="cell centered" rowspan="3" style='width:30%;'>
                                         <div class='invoiceTitle' style='margin-bottom: 5px;'><span id='invType'>[#type#]</span></div>
                                         <div class='invInfo'>|Номер|* / Number</div>
@@ -252,9 +243,4 @@
             </tbody>
         </table>
     </div>
-    <!--ET_BEGIN DETAILS-->
-    <div class='details'>
-        [#DETAILS#]
-    </div>
-    <!--ET_END DETAILS-->
-</div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
