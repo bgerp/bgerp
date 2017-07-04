@@ -88,7 +88,7 @@ class doc_Search extends core_Manager
         $data->listFilter->FNC('fromDate', 'date', 'input,silent,caption=От,width=140px, placeholder=Дата');
         $data->listFilter->FNC('toDate', 'date', 'input,silent,caption=До,width=140px, placeholder=Дата');
         $data->listFilter->FNC('author', 'type_Users(rolesForAll=user)', 'caption=Автор');
-        $data->listFilter->FNC('liked', 'enum(,shared_with_me=Споделени с мен, liked_from_me=Харесани от мен)', 'caption=Само, placeholder=Всички');
+        $data->listFilter->FNC('withMe', 'enum(,shared_with_me=Споделени с мен, liked_from_me=Харесани от мен)', 'caption=Само, placeholder=Всички');
         
         $conf = core_Packs::getConfig('doc');
         $lastFoldersArr = bgerp_Recently::getLastFolderIds($conf->DOC_SEARCH_FOLDER_CNT);
@@ -115,7 +115,7 @@ class doc_Search extends core_Manager
         
         $data->listFilter->setDefault('author', 'all_users');
         
-        $data->listFilter->showFields = 'search, scopeFolderId, docClass,  author, liked, state, fromDate, toDate';
+        $data->listFilter->showFields = 'search, scopeFolderId, docClass,  author, withMe, state, fromDate, toDate';
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         $data->listFilter->input(NULL, 'silent');
@@ -127,7 +127,7 @@ class doc_Search extends core_Manager
         !empty($filterRec->scopeFolderId) ||
         !empty($filterRec->docClass) ||
         !empty($filterRec->fromDate) ||
-        !empty($filterRec->liked) ||
+        !empty($filterRec->withMe) ||
         !empty($filterRec->state) ||
         !empty($filterRec->fromDate) ||
         !empty($filterRec->toDate) ||
@@ -276,14 +276,14 @@ class doc_Search extends core_Manager
             // id на текущия потребител
             $currUserId = core_Users::getCurrent();
             
-            if ($filterRec->liked && ($currUserId > 0)) {
+            if ($filterRec->withMe && ($currUserId > 0)) {
                 
                 // Ако ще се показват само харесаните от текущия потребител
-                if ($filterRec->liked == 'liked_from_me') {
+                if ($filterRec->withMe == 'liked_from_me') {
                     // Всички харесвания
                     $data->query->EXT('likedBy', 'doc_Likes', 'externalName=createdBy, remoteKey=containerId');
                     $data->query->where(array("#likedBy = '[#1#]'", $currUserId));
-                } elseif ($filterRec->liked == 'shared_with_me') {
+                } elseif ($filterRec->withMe == 'shared_with_me') {
                     $data->query->EXT('sharedBy', 'doc_ThreadUsers', 'externalName=userId, remoteKey=containerId');
                     $data->query->EXT('relation', 'doc_ThreadUsers', 'externalName=relation, remoteKey=containerId');
                     $data->query->where("#relation = 'shared'");

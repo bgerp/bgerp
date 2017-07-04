@@ -602,7 +602,7 @@ class store_InventoryNoteSummary extends doc_Detail
     		}
     		
     		// Подреждаме ги по име
-    		arr::natOrder($rest, 'orderName');
+    		arr::orderA($rest, 'orderCode');
     	
     		// Добавяме ги най-накрая
     		$ordered += $rest;
@@ -688,7 +688,8 @@ class store_InventoryNoteSummary extends doc_Detail
     protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
     	if(isset($rec->productId)){
-    		$code = cat_Products::getVerbal($rec->productId, 'code');
+    		$pRec = cat_Products::fetch($rec->productId, 'isPublic,code');
+    		$code = cat_Products::getVerbal($pRec, 'code');
     		$res .= " " . plg_Search::normalizeText($code);
     	}
     }

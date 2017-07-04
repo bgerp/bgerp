@@ -174,16 +174,9 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 		$row->document = "#{$handle}";
 		if(!Mode::isReadOnly() && !$isPlain){
 			$row->document = ht::createLink("#{$handle}", $singleUrl, FALSE, "ef_icon={$Document->singleIcon}");
-			
-			// Под документа се показват и артикулите, които имат задания към него
-			$jQuery = planning_Jobs::getQuery();
-			$jQuery->where("#saleId = {$Document->that} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup' || #state = 'closed')");
-			$jQuery->show('productId');
-			while($jRec = $jQuery->fetch()){
-				$pRec = cat_products::fetch($jRec->productId, 'name,code,isPublic');
-				$productName = cat_Products::getRecTitle($pRec);
-				$productName = str::limitLen($productName, 60);
-				$row->document .= "<div style='font-size:0.7em'>{$productName}</div>";
+			$dTable = $this->getSaleDetailTable($Document->that);
+			if(!empty($dTable)){
+				$row->document .= $dTable;
 			}
 		}
 		
@@ -233,6 +226,40 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 		}
 		
 		return $row;
+	}
+	
+	
+	/**
+	 * Подготвя допълнителна информация за продажбата
+	 * 
+	 * @param int $saleId
+	 * @return string|NULL
+	 */
+	private function getSaleDetailTable($saleId)
+	{
+		$arr = array();
+			
+		// Под документа се показват и артикулите, които имат задания към него
+		$jQuery = planning_Jobs::getQuery();
+		$jQuery->where("#saleId = {$saleId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup' || #state = 'closed')");
+		$jQuery->show('productId');
+		while($jRec = $jQuery->fetch()){
+			$pRec = cat_products::fetch($jRec->productId, 'name,code,isPublic,measureId,canStore');
+			$inStock = ($pRec->canStore == 'yes') ? store_Products::getQuantity($jRec->productId, NULL, TRUE) . " " . cat_UoM::getShortName($pRec->measureId) : NULL;
+			
+			$arr[] = array('job' => planning_Jobs::getLink($jRec->id), 'inStock' => $inStock);
+		}
+			
+		if(count($arr)){
+			$tableHtml = "";
+			foreach ($arr as $ar){
+				$tableHtml .= "<div class='small' style='display: inline-block;'>{$ar['job']}<span class='nowrap'  style='margin-left: 5px; display: inline-block;'>{$ar['inStock']}</span></div>";
+			}
+			
+			return $tableHtml;
+		}
+		
+		return NULL;
 	}
 	
 	

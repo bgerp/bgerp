@@ -1228,20 +1228,21 @@ class core_Users extends core_Manager
      * Този ефект продължава до извикването на метода @see core_Users::exitSudo().
      * 
      * @param int $id key(mvc=core_Users)
-     * @return boolean TRUE ако всичко е наред, FALSE ако има проблем - тогава текущия 
-     *                                                                  потребител не 
-     *                                                                  се променя.
+     * 
+     * @return int|NULL
      */
     static function sudo($id)
     {
         $userRec = self::fetch((int) $id);
-       
+        
         if (is_object($userRec)) {
             $userRecS = clone($userRec);
             $userRecS->_isSudo = TRUE;
             core_Mode::push('currentUserRec', $userRecS);
             
-            return $id;
+            $rId = isset($userRec->id) ? $userRec->id : $id;
+            
+            return $rId;
         }
     }
     

@@ -954,7 +954,7 @@ class cat_Products extends embed_Manager {
      * @param stdClass $rec - запис
      * @return void
      */
-    private static function setCodeIfEmpty(&$rec)
+    public static function setCodeIfEmpty(&$rec)
     {
     	if($rec->isPublic == 'no' && empty($rec->code)){
     		$rec->code = "Art{$rec->id}";
@@ -1094,7 +1094,7 @@ class cat_Products extends embed_Manager {
     	return $res;
     }
     
-    
+   
     /**
      * Връща ДДС на даден продукт
      * 
@@ -1108,12 +1108,11 @@ class cat_Products extends embed_Manager {
     public static function getVat($productId, $date = NULL)
     {
     	expect(static::fetch($productId), 'Няма такъв артикул');
-    	
     	if(!$date){
     		$date = dt::now();
     	}
     	
-    	if($groupRec = cat_products_VatGroups::getCurrentGroup($productId)){
+    	if($groupRec = cat_products_VatGroups::getCurrentGroup($productId, $date)){
     		return $groupRec->vat;
     	}
     	
