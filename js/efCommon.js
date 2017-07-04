@@ -4812,7 +4812,7 @@ function detectScrollAndWp() {
 
 function removeNarrowScroll() {
 	if($('body').hasClass('narrow-scroll') && !checkNativeSupport()){
-		//$('body').removeClass('narrow-scroll');
+		$('body').removeClass('narrow-scroll');
 	}
 }
 
