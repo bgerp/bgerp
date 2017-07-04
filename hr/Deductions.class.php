@@ -216,11 +216,20 @@ class hr_Deductions extends core_Master
     
     
     /**
-     * Интерфейсен метод на hr_IndicatorsSourceIntf
-     *
-     * @param date $date
-     * @return array $result
-     */
+	 * Метод за вземане на резултатност на хората. За определена дата се изчислява
+     * успеваемостта на човека спрямо ресурса, които е изпозлвал 
+	 *
+	 * @param date $timeline  - Времето, след което да се вземат всички модифицирани/създадени записи
+	 * @return array $result  - масив с обекти
+	 *
+	 * 			o date        - дата на стайноста
+	 * 		    o personId    - ид на лицето
+	 *          o docId       - ид на документа
+	 *          o docClass    - клас ид на документа
+	 *          o indicatorId - ид на индикатора
+	 *          o value       - стойноста на инфикатора
+	 *          o isRejected  - оттеглена или не. Ако е оттеглена се изтрива от индикаторите
+	 */
     public static function getIndicatorValues($timeline)
     {
         $query = self::getQuery();
