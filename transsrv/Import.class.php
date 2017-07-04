@@ -56,11 +56,13 @@ class transsrv_Import extends core_BaseClass
     	$costItemId = NULL;
     	if(isset($data->ourReff)){
     		$doc = doc_Containers::getDocumentByHandle($data->ourReff);
+    		
     		if(is_object($doc)){
     			
     			// Ако цитирания документ има логистични данни, взимат се те
     			if($doc->haveInterface('trans_LogisticDataIntf')){
-    				if($doc->fetchField('state') == 'active'){
+    				$state = $doc->fetchField('state');
+    				if(in_array($state, array('draft', 'active', 'pending'))){
     					$rData = (object)$doc->getLogisticData();
     					
     					foreach (array('from', 'to') as $prefix){
@@ -76,7 +78,7 @@ class transsrv_Import extends core_BaseClass
     					$threadId = $doc->fetchField('threadId');
     					$firstDoc = doc_Threads::getFirstDocument($threadId);
     					
-    					if(is_object($firstDoc) && $firstDoc->isInstanceOf('deals_DealMaster') && $firstDoc->fetchField('state') == 'active'){
+    					if(is_object($firstDoc) && ($firstDoc->isInstanceOf('deals_DealMaster') || $firstDoc->isInstanceOf('store_Transfers')) && $firstDoc->fetchField('state') == 'active'){
     						
     						// Форсиране на нашия реф като разходно перо
     						$listId = acc_Lists::fetchBySystemId('costObjects')->id;
