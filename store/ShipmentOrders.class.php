@@ -432,6 +432,9 @@ class store_ShipmentOrders extends store_DocumentMaster
     	$tplArr[] = array('name' => 'Packing list with Declaration',
     					  'content' => 'store/tpl/SingleLayoutPackagingListDec.shtml', 'lang' => 'en', 'oldName' => 'Packaging list with Declaration', 'narrowContent' => 'store/tpl/SingleLayoutPackagingListDecNarrow.shtml',
     					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
+    	$tplArr[] = array('name' => 'Експедиционно нареждане с цени в евро',
+    					  'content' => 'store/tpl/SingleLayoutShipmentOrderEuro.shtml', 'lang' => 'bg',
+    					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
     	
     	$res .= doc_TplManager::addOnce($this, $tplArr);
     }

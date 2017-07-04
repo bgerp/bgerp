@@ -614,6 +614,7 @@ class blast_Emails extends core_Master
     {
         unset($nRec->progress);
         unset($nRec->activatedBy);
+        unset($nRec->errMsg);
     }
     
     

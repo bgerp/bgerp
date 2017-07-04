@@ -77,7 +77,10 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	 */
 	protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
 	{
-
+	    $form = &$data->form;
+	    
+        $periodToday = acc_Periods::fetchByDate(dt::now());
+        $form->setDefault('periods', $periodToday->id);
 	}
     
 	
@@ -92,40 +95,56 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	{
 		$recs = array();
 		$persons = array();
+		$personsId = array();
 		$date = acc_Periods::fetch($rec->periods);
 
-	    $query = hr_Indicators::getQuery();
-	    $query->where("((#date >= '{$date->start}' AND #date <= '{$date->end}'))");
-	    $query->orLikeKeylist('personId', "|$rec->personId|");
-	    
-	    
-	    
-	    $num = 1;
-	    // добавяме болничните
-	    while($recIndic = $query->fetch()){ 
-	        // ключ за масива ще е ид-то на всеки потребител в системата
-	        $id = $recIndic->personId."|".$recIndic->indicatorId;
+	    $query = hr_Indicators::getQuery(); 
+        
+	    // кои потребители търсим
+	    $persons = keylist::toArray($rec->personId);
 
+	    // ограничаваме по дата
+	    $query->where("(#date >= '{$date->start}' AND #date <= '{$date->end}')");
+	   
+	    if(count($persons)){
+	        foreach ($persons as $person) {
+	            // търсим ид-то на профила му
+	           $personId = crm_Profiles::fetchField("#userId = '{$person}'",'personId');
+	           
+	           array_push($personsId,$personId); 
+	        }
+	        $personsId = implode(',', $personsId);
+
+	        $query->where("#personId IN ({$personsId})"); 
+	    }
+	
+	    // за всеки един индикатор
+	    while($recIndic = $query->fetch()){ 
+	        $id = $recIndic->personId."|".$recIndic->indicatorId;
 	        // добавяме в масива събитието
 	        if(!array_key_exists($id,$recs)) { 
 	            $recs[$id]=
 	            (object) array (
-	                'num' => $num,
+	                'num' => 0,
 	                'date' => $recIndic->date,
 	                'docId' => $recIndic->docId,
 	                'person' => $recIndic->personId,
 	                'indicatorId' => $recIndic->indicatorId,
 	                'value' => $recIndic->value,
 	            );
-	            $num++;
+	            
 	        } else {
 	            $obj = &$recs[$id];
 	            $obj->value += $recIndic->value;
-	        }
-	            
-	           
+	        }  
 	    }
 	    
+	    $num = 1;
+	    foreach($recs as $r) {
+	        $r->num = $num;
+	        $num++;
+	    }
+	  
 		return $recs;
 	}
 	
@@ -152,7 +171,6 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 			$fld->FLD('person', 'varchar', 'caption=Служител');
 	    	$fld->FLD('indicator', 'varchar', 'caption=Показател');
 		    $fld->FLD('value', 'double(smartRound,decimals=2)', 'smartCenter,caption=Стойност');
-			
 		}
 	
 		return $fld;
@@ -178,8 +196,10 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 		
 		// Линк към служителя
 		if(isset($dRec->person)) {
+		    $userId = crm_Profiles::fetchField("#personId = '{$dRec->person}'",'userId');
+		    $nick = crm_Profiles::createLink($userId)->getContent();
 		    //crm_Profiles::fetchField("#personId = '{$rec->alternatePerson}'", 'userId');
-		    $row->person = crm_Persons::fetchField($dRec->person, 'name');;
+		    $row->person = crm_Persons::fetchField($dRec->person, 'name') . " (" . $nick .")";
 		}
 		
 		if($isPlain){
@@ -212,9 +232,23 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
      */
     protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
+        // потребителите
+        if(isset($rec->personId)){
+            $persons = keylist::toArray($rec->personId);
+            foreach ($persons as $userId => &$nick) {
+                $nick = crm_Profiles::createLink($userId)->getContent();
+            }
+            
+            $row->persons = implode(', ', $persons);
+        }
+        
 
+        if(isset($rec->periods)){
+            // избраният месец
+            $row->month = acc_Periods::fetchField("#id = '{$rec->periods}'", 'title');
+        }
     }
-    
+
     
     /**
      * След рендиране на единичния изглед
@@ -228,8 +262,17 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
     {
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-							    <small><div><!--ET_BEGIN dealers-->|Търговци|*: [#dealers#]<!--ET_END dealers--></div></small></fieldset><!--ET_END BLOCK-->"));
-      
+							    <small><div><!--ET_BEGIN persons-->|Потребител|*: [#persons#]<!--ET_END persons--></div></small>
+                                <small><div><!--ET_BEGIN month-->|Месец|*: [#month#]<!--ET_END month--></div></small>
+                                </fieldset><!--ET_END BLOCK-->"));
+
+        if(isset($data->rec->personId)){
+            $fieldTpl->append($data->row->persons, 'persons');
+        }
+
+        if(isset($data->rec->periods)){
+            $fieldTpl->append($data->row->month, 'month');
+        }
 
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }

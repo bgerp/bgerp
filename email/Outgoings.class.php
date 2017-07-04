@@ -1614,23 +1614,8 @@ class email_Outgoings extends core_Master
                 unset($rec->threadId);
             }
             
-            if ($rec->originId) {
-                $oDoc = doc_Containers::getDocument($rec->originId);
-                $oRow = $oDoc->getDocumentRow();
-                
-                // Заглавието на темата
-                $title = html_entity_decode($oRow->title, ENT_COMPAT | ENT_HTML401, 'UTF-8');
-            }
-            
             // Ако е отговор, на някой документ
             if (!$isForwarding) {
-                if ($rec->originId) {
-                    if ($oDoc->instance instanceof email_Incomings) {
-                        $rec->subject = 'Re: ' . $title;
-                    } else {
-                        $rec->subject = $title;
-                    }
-                }
                 
                 if (!$rec->threadId && $rec->originId) {
                     $rec->threadId = doc_Containers::fetchField($rec->originId, 'threadId');
@@ -1643,12 +1628,19 @@ class email_Outgoings extends core_Master
                 $emailLg = email_Outgoings::getLanguage($rec->originId, $rec->threadId, $rec->folderId);
                 $rec->forward = 'no';
             } else {
-                $rec->subject = 'Fw: ' . $title;
                 $emailLg = email_Outgoings::getLanguage(FALSE, FALSE, $rec->folderId);
                 $rec->forward = 'yes';
             }
             
+            if ($rec->originId) {
+                $oDoc = doc_Containers::getDocument($rec->originId);
+            }
+            
             core_Lg::push($emailLg);
+            
+            if ($rec->originId && $oDoc->haveInterface('email_DocumentIntf')) {
+                $rec->subject = $oDoc->getDefaultEmailSubject($isForwarding);
+            }
             
             $hintStr = tr('Смяна на езика');
             

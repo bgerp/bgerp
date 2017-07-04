@@ -218,7 +218,7 @@ class hr_Indicators extends core_Manager
                     $periods[$periodRec->id] = $periodRec;
                     
                     // Оттеглените източници ги записваме само за почистване
-                    if($rec->state == 'rejected') continue;
+                    if($rec->isRejected === TRUE) continue;
                     
                     $rec->sourceClass = core_Classes::getId($class);
 
