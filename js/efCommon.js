@@ -1888,6 +1888,7 @@ function saveSelectedTextToSession(handle, onlyHandle) {
 
         // Записваме в сесията празен стринг
         sessionStorage.selText = '';
+        sessionStorage.selHandle = '';
     }
 }
 
