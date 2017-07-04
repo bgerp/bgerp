@@ -428,8 +428,9 @@ class plg_Search extends core_Plugin
         if(is_array($qArr)) {
             foreach($qArr as $q) {
                 if($q{0} == '-') continue;
-                $q = trim(str_replace("'", "\\'", $q), '"');
-                jquery_Jquery::run($text, "\n $('.{$class}').highlight('{$q}');", TRUE);
+                $q = trim($q);
+                $q = json_encode($q);
+                jquery_Jquery::run($text, "\n $('.{$class}').highlight({$q});", TRUE);
             }
         }
 
