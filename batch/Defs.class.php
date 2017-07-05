@@ -302,6 +302,8 @@ class batch_Defs extends core_Manager {
     	if($action == 'add' && isset($rec->productId)){
     		if(self::fetchField("#productId = {$rec->productId}")){
     			$requiredRoles = 'no_one';
+    		} elseif(cat_Products::fetchField($rec->productId, 'canStore') != 'yes'){
+    			$requiredRoles = 'no_one';
     		}
     	}
     }

@@ -1888,6 +1888,7 @@ function saveSelectedTextToSession(handle, onlyHandle) {
 
         // Записваме в сесията празен стринг
         sessionStorage.selText = '';
+        sessionStorage.selHandle = '';
     }
 }
 
@@ -2706,7 +2707,7 @@ function sumOfChildrenWidth() {
 				$('#main-container > div.tab-control > .tab-row ').scrollLeft(activeOffset.left);
 			}
 		}
-		if ($('.docStatistic div.alphabet div.tab-row .tab').length){
+		if ($('.single-thread .docStatistic div.alphabet div.tab-row .tab').length){
             var sumDocTab=0;
             $('.docStatistic div.alphabet div.tab-row .tab').each( function(){ sumDocTab += $(this).width() + 5; });
             var tableWidth = $('.docStatistic div.alphabet.tab-control .listTable').width();

@@ -1239,6 +1239,8 @@ class doc_DocumentPlg extends core_Plugin
         doc_Threads::setModification($rec->threadId);
         
         doc_Files::recalcFiles($rec->containerId);
+        
+        bgerp_Notifications::hideNotificationsForSingle($mvc->className, $rec->id);
     }
     
     
@@ -1267,6 +1269,8 @@ class doc_DocumentPlg extends core_Plugin
         doc_Threads::setModification($rec->threadId);
         
         doc_Files::recalcFiles($rec->containerId);
+        
+        bgerp_Notifications::showNotificationsForSingle($mvc->className, $rec->id);
     }
     
 	
@@ -2401,12 +2405,51 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
-     * Изпълнява се, ако е дефиниран метод getContragentData
+     * Връща тялото на имейла генериран от документа
+     * 
+     * @param core_Mvc $mvc
+     * @param unknown NULL|string
+     * @param int $originId
+     * @param boolean $isForwarding
+     * 
+     * @see email_DocumentIntf
      */
-    function on_AfterGetDefaultEmailBody($mvc, $data, $id)
+    function on_AfterGetDefaultEmailBody($mvc, $data, $originId, $isForwarding = FALSE)
     {
         
-        return NULL;
+    }
+    
+    
+    /**
+     * Връща заглавието на имейла
+     * 
+     * @param core_Mvc $mvc
+     * @param NULL|string $res
+     * @param int $id
+     * @param boolean $isForwarding
+     * 
+     * @see email_DocumentIntf
+     */
+    function on_AfterGetDefaultEmailSubject($mvc, &$res, $id, $isForwarding = FALSE)
+    {
+        $title = '';
+        
+        if ($id) {
+            $row = $mvc->getDocumentRow($id);
+            $title = html_entity_decode($row->title, ENT_COMPAT | ENT_HTML401, 'UTF-8');
+        }
+        
+        if (!$isForwarding) {
+            if ($id) {
+                if ($mvc instanceof email_Incomings) {
+                    $res = 'Re: ' . $title;
+                } else {
+                    $res = $title;
+                }
+            }
+        } else {
+            $res = 'Fw: ' . $title;
+        }
     }
     
     
@@ -3575,7 +3618,7 @@ class doc_DocumentPlg extends core_Plugin
                     }
                     
                     if ($lastFromStr) {
-                        $resArr['_lastFrom'] = array('name' => tr('Последни промени на състоянието'), 'val' => $lastFromStr);
+                        $resArr['_lastFrom'] = array('name' => tr('Последни промени'), 'val' => $lastFromStr);
                     }
                 }
             }

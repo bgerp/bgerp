@@ -390,6 +390,7 @@ abstract class deals_DealMaster extends deals_DealBase
 						break;
 					case "pending":
 						$data->query->where("#state = 'pending'");
+						break;
 					case "draft":
 						$data->query->where("#state = 'draft'");
 						break;

@@ -301,6 +301,60 @@ class bgerp_Notifications extends core_Manager
     
     
     /**
+     * Скрива записите, които са към съответния сингъл на документа
+     * 
+     * @param string $className
+     * @param integer $clsId
+     */
+    public static function hideNotificationsForSingle($className, $clsId, $hidden = 'no')
+    {
+        $query = self::getQuery();
+        $query->where("#hidden = '{$hidden}'");
+        $className = strtolower($className);
+        
+        $query->where(array("LOWER(#url) LIKE '%/[#1#]/single/[#2#]' OR LOWER(#url) LIKE '%/[#1#]/single/[#2#]/%' OR LOWER(#customUrl) LIKE '%/[#1#]/single/[#2#]' OR LOWER(#customUrl) LIKE '%/[#1#]/single/[#2#]/%'", $className, $clsId));
+        
+        while ($rec = $query->fetch()) {
+            $rec->hidden = ($hidden == 'no') ? 'yes' : 'no';
+            
+            if ($rec->hidden == 'no') {
+                try {
+                    $urlArr = parseLocalUrl($rec->customUrl ? $rec->customUrl : $rec->url, FALSE);
+                    $act = strtolower($urlArr['Act']);
+                    
+                    $ctr = $urlArr['Ctr'];
+                    if (!$ctr::haveRightFor($act, $urlArr['id'], $rec->userId)) continue;
+                } catch (Exception $e) {
+                    reportException($e);
+                }
+            }
+            
+            self::save($rec, 'hidden');
+            
+            $msg = 'Скрита нотификация';
+            if ($rec->hidden == 'no') {
+                $msg = 'Показана нотификация';
+            }
+            
+            self::logDebug($msg, $rec->id);
+        }
+    }
+    
+    
+    /**
+     * Показва записите, които са към съответния сингъл на документа
+     * 
+     * @param string $className
+     * @param integer $clsId
+     */
+    public static function showNotificationsForSingle($className, $clsId)
+    {
+        self::hideNotificationsForSingle($className, $clsId, 'yes');
+    }
+    
+    
+    
+    /**
      * След преобразуване на записа в четим за хора вид.
      *
      * @param core_Manager $mvc
@@ -735,5 +789,43 @@ class bgerp_Notifications extends core_Manager
             return "Бяха изтрити {$res} записа от " . $this->className;
         }
     }
-
+    
+    
+    /**
+     * Изтриваме недостъпните нотификации, към съответните потребители
+     */
+    function cron_HideInaccesable()
+    {
+        $query = self::getQuery();
+        $query->where("#hidden = 'no'");
+        $query->where("#state = 'active'");
+        
+        $query->orderBy('modifiedOn', 'DESC');
+        
+        while ($rec = $query->fetch()) {
+            $urlArr = parseLocalUrl($rec->customUrl ? $rec->customUrl : $rec->url, FALSE);
+            
+            $act = strtolower($urlArr['Act']);
+            
+            if ($act == 'default') {
+                $act = 'list';
+            }
+            
+            if (($act != 'single') && ($act != 'list')) continue;
+            
+            try {
+                $ctr = $urlArr['Ctr'];
+                
+                if (!$ctr::haveRightFor($act, $urlArr['id'], $rec->userId)) {
+                    $rec->hidden = 'yes';
+                    self::save($rec, 'hidden');
+                    
+                    self::logDebug("Скрит недостъпен ресурс", $rec->id);
+                }
+            } catch (core_exception_Expect $e) {
+                reportException($e);
+                continue;
+            }
+        }
+    }
 }

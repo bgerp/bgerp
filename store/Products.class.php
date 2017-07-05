@@ -330,20 +330,25 @@ class store_Products extends core_Detail
      * 
      * @param int $productId    - ид на артикул
      * @param int|NULL $storeId - конкретен склад, NULL ако е във всички
+     * @param boolean $onlyFree - само наличните
      * @return double $sum      - наличното количество
      */
-    public static function getQuantity($productId, $storeId = NULL)
+    public static function getQuantity($productId, $storeId = NULL, $onlyFree = FALSE)
     {
-    	$sum = 0;
     	$query = self::getQuery();
     	$query->where("#productId = {$productId}");
-    	$query->show('quantity');
+    	
     	if(isset($storeId)){
     		$query->where("#storeId = {$storeId}");
     	}
     	
+    	$sum = 0;
     	while($r = $query->fetch()){
-    		$sum += $r->quantity;
+    		if($onlyFree !== TRUE){
+    			$sum += $r->quantity;
+    		} else {
+    			$sum += $r->quantity - $r->reservedQuantity;
+    		}
     	}
     	
     	return $sum;
