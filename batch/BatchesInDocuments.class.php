@@ -180,11 +180,12 @@ class batch_BatchesInDocuments extends core_Manager
 			
 			if($batchDef instanceof batch_definitions_Serial){
 				$label = ($count == 0) ? "{$label} " : "";
-				$string = "{$label}{$batch},";
+				$end = ($count == 0) ? "," : "";
+				$string = "{$label}{$batch}{$end}";
 			} else {
 				$string = "{$label} {$batch}" . "<br>";
 			}
-				
+			
 			$block->append($string, "batch");
 			$block->removePlaces();
 			$block->append2Master();
