@@ -1239,6 +1239,8 @@ class doc_DocumentPlg extends core_Plugin
         doc_Threads::setModification($rec->threadId);
         
         doc_Files::recalcFiles($rec->containerId);
+        
+        bgerp_Notifications::hideNotificationsForSingle($mvc->className, $rec->id);
     }
     
     
@@ -1267,6 +1269,8 @@ class doc_DocumentPlg extends core_Plugin
         doc_Threads::setModification($rec->threadId);
         
         doc_Files::recalcFiles($rec->containerId);
+        
+        bgerp_Notifications::showNotificationsForSingle($mvc->className, $rec->id);
     }
     
 	
@@ -3614,7 +3618,7 @@ class doc_DocumentPlg extends core_Plugin
                     }
                     
                     if ($lastFromStr) {
-                        $resArr['_lastFrom'] = array('name' => tr('Последни промени на състоянието'), 'val' => $lastFromStr);
+                        $resArr['_lastFrom'] = array('name' => tr('Последни промени'), 'val' => $lastFromStr);
                     }
                 }
             }

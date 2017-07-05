@@ -142,6 +142,22 @@ class bgerp_Setup extends core_ProtoSetup {
     
     
     /**
+     * Настройки за Cron
+     */
+    var $cronSettings = array(
+            array(
+                    'systemId' => "Hide Inaccesable",
+                    'description' => "Скрива на недостъпните нотификации",
+                    'controller' => "bgerp_Notifications",
+                    'action' => "HideInaccesable",
+                    'period' => 1440,
+                    'offset' => 50,
+                    'timeLimit' => 200
+            ),
+    );
+    
+    
+    /**
      * Инсталиране на пакета
      */
     function install()
