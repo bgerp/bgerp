@@ -1239,6 +1239,8 @@ class doc_DocumentPlg extends core_Plugin
         doc_Threads::setModification($rec->threadId);
         
         doc_Files::recalcFiles($rec->containerId);
+        
+        bgerp_Notifications::hideNotificationsForSingle($mvc->className, $rec->id);
     }
     
     
@@ -1267,6 +1269,8 @@ class doc_DocumentPlg extends core_Plugin
         doc_Threads::setModification($rec->threadId);
         
         doc_Files::recalcFiles($rec->containerId);
+        
+        bgerp_Notifications::showNotificationsForSingle($mvc->className, $rec->id);
     }
     
 	
