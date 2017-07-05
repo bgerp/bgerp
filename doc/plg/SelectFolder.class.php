@@ -100,7 +100,7 @@ class doc_plg_SelectFolder extends core_Plugin
         if($folderId) {
             $allParams['folderId'] = $folderId;
             
-            bp($allParams);
+           
             $tpl = new Redirect(
                 	// Редирект към създаването на документа в ясната папка
                     toUrl($allParams));

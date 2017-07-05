@@ -343,11 +343,12 @@ class cal_TaskDocuments extends core_Detail
             // Документа
             $doc = doc_Containers::getDocument($rec->containerId);
             
+            $hnd = '#' . $doc->getHandle();
+            
             // Полетата на документа във вербален вид
             $docRow = $doc->getDocumentRow();
             
             $url = $doc->getSingleUrlArray();
-            
             if (empty($url) && $mvc->Master->haveRightFor('single', $rec->taskId) && $rec->state != 'rejected') {
                 $url = $doc->getUrlWithAccess($mvc, $rec->id);
             }
@@ -357,7 +358,17 @@ class cal_TaskDocuments extends core_Detail
             $attr['ef_icon'] = $doc->getIcon($doc->that);
             $attr['title'] = 'Документ|*: ' . $docRow->title;
             
-            $row->containerId = ht::createLink(str::limitLen($docRow->title, 35), $url, NULL, $attr);
+            $row->containerId = ht::createLink($hnd, $url, NULL, $attr);
+            
+            $folderId = doc_Containers::fetchField($rec->containerId, 'folderId');
+            if ($folderId) {
+                $fRec = doc_Folders::fetch($folderId);
+                $row->containerId .= ' « ' . doc_Folders::recToVerbal($fRec, 'title')->title;
+            }
+            
+            if (!$rec->comment) {
+                $row->comment = $docRow->title;
+            }
         }
     }
     
