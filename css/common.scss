@@ -2402,6 +2402,33 @@ div.alphabet div.tab-page {
 	margin-top: 20px;
 }
 
+.single-thread .document .docStatistic .detail-info {
+	padding: 0;
+	margin-top: 0;
+	font-size: 0.85em;
+	border: none;
+	.listTable td {
+		background-color: $history-bg;
+	}
+	.row-state-returned td{
+		background-color:#fed6d6;
+	}
+	.stateIndicator,.inline-date {
+		display: inline-block;
+	}
+	.stateIndicator {
+		&.state-active {
+			background-color: #FED;
+		}
+		&.state-stopped {
+			background-color: #FEADAD;
+		}
+		&.state-closed {
+			background-color: $gray3;
+		}
+	}
+}
+
 /*вътрешни alphabet табовете в документ - изглеждат като основните, но по-малки*/
 .single-thread .document .docStatistic div.alphabet {
 	padding-bottom: 0;
@@ -2443,20 +2470,6 @@ div.alphabet div.tab-page {
 			}
 			&:last-child{
 				border-radius: 0 0 5px 0;
-			}
-		}
-		.stateIndicator,.inline-date {
-			display: inline-block;
-		}
-		.stateIndicator {
-			&.state-active {
-				background-color: #FED;
-			}
-			&.state-stopped {
-				background-color: #FEADAD;
-			}
-			&.state-closed {
-				background-color: $gray3;
 			}
 		}
 		.listTable th {
