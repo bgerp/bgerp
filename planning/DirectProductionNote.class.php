@@ -281,19 +281,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	
 	
 	/**
-	 * Преди показване на форма за добавяне/промяна.
-	 *
-	 * @param core_Manager $mvc
-	 * @param stdClass $data
-	 */
-	protected static function on_AfterPrepareEditForm111($mvc, &$data)
-	{
-		$form = &$data->form;
-		$rec = &$form->rec;
-	}
-	
-	
-	/**
 	 * Извиква се след въвеждането на данните от Request във формата ($form->rec)
 	 *
 	 * @param core_Mvc $mvc
