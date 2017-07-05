@@ -2664,6 +2664,10 @@ class cal_Tasks extends core_Master
         $toNewTask->title = 'Към нова задача';
         $toNewTask->group = TRUE;
         
+        $toPendingTask = new stdClass();
+        $toPendingTask->title = 'Към задача заявка';
+        $toPendingTask->group = TRUE;
+        
         $toWaitingTask = new stdClass();
         $toWaitingTask->title = 'Към чакаща задача';
         $toWaitingTask->group = TRUE;
@@ -2677,8 +2681,9 @@ class cal_Tasks extends core_Master
         $newPrefix = 'n' . $prefixDelim;
         $waitingPrefix = 'w' . $prefixDelim;
         $activePrefix = 'a' . $prefixDelim;
+        $pendingPrefix = 'p' . $prefixDelim;
         
-        $prefixTaskTypeArr = array($newPrefix => $toNewTask, $waitingPrefix => $toWaitingTask, $activePrefix => $toActiveTask);
+        $prefixTaskTypeArr = array($newPrefix => $toNewTask, $pendingPrefix => $toPendingTask, $waitingPrefix => $toWaitingTask, $activePrefix => $toActiveTask);
         
         $form->setDefault('taskType', $newPrefix . 'postPonned');
         
@@ -2699,6 +2704,7 @@ class cal_Tasks extends core_Master
         $query = $this->getQuery();
         $query->where("#state = 'waiting'");
         $query->orWhere("#state = 'active'");
+        $query->orWhere("#state = 'pending'");
         
         $query->EXT('recentlyLast', 'bgerp_Recently', 'externalName=last, externalKey=threadId, externalFieldName=threadId');
         $query->EXT('recentlyUserId', 'bgerp_Recently', 'externalName=userId, externalKey=threadId, externalFieldName=threadId');
@@ -2728,6 +2734,14 @@ class cal_Tasks extends core_Master
             if ($isTask && $rec->id == $document->that) continue; 
             
             $tArr[$rec->state][$rec->id] = $rec->title;
+        }
+        
+        // Чакащите задачи
+        if (is_array($tArr['pending']) && !empty($tArr['pending'])) {
+            $taskArr[$pendingPrefix] = $prefixTaskTypeArr[$pendingPrefix];
+            foreach ($tArr['pending'] as $id => $title) {
+                $taskArr[$pendingPrefix . $id] = $title;
+            }
         }
         
         // Чакащите задачи
@@ -2834,7 +2848,7 @@ class cal_Tasks extends core_Master
         if($form->isSubmitted() && $sTypePrefix) {
             
             // Ако е избрана задача, проверяваме дали документа е бил добавен вече
-            if (($sTypePrefix == $waitingPrefix) || ($sTypePrefix == $activePrefix)) {
+            if (($sTypePrefix == $waitingPrefix) || ($sTypePrefix == $activePrefix) || ($sTypePrefix == $pendingPrefix)) {
                 $taskId = $sSel;
                 
                 if ($taskId) {
@@ -2958,13 +2972,28 @@ class cal_Tasks extends core_Master
         $dQuery->where(array("#containerId = '[#1#]'", $originId));
         $dQuery->orderBy('createdOn', 'DESC');
         
+        // Ограничаваме да се показват само достъпните
+        $dQuery->EXT('threadId', 'cal_Tasks', 'externalKey=taskId');
+        $dQuery->EXT('folderId', 'cal_Tasks', 'externalKey=taskId');
+        $dQuery->EXT('tState', 'cal_Tasks', 'externalKey=taskId, externalName=state');
+        doc_Threads::restrictAccess($dQuery, NULL, TRUE);
+        
+        $dQuery->where("#tState != 'rejected'");
+        
         $cnt = $dQuery->count();
         $dQuery->limit(5);
         
         $lArr = array();
         while ($dRec = $dQuery->fetch()) {
             if (!$dRec->taskId) continue;
-            $lArr[] = cal_Tasks::getLinkToSingle($dRec->taskId);
+            $cRec = cal_Tasks::fetch($dRec->taskId);
+            
+            if ($cRec->state == 'rejected') continue;
+            
+            if ($cRec->folderId) {
+                $fRec = doc_Folders::fetch($cRec->folderId);
+                $lArr[] = cal_Tasks::getLinkToSingle($dRec->taskId) . ' « ' . doc_Folders::recToVerbal($fRec, 'title')->title;
+            }
         }
         
         if (!empty($lArr)) {
