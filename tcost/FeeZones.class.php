@@ -221,7 +221,7 @@ class tcost_FeeZones extends core_Master
     /**
      * Изчисление на транспортни разходи
      */
-    public function act_calcFee()
+    public function act_CalcFee()
     {
     	//Дос на потребителите
     	requireRole('admin, ceo, tcost');
@@ -229,7 +229,7 @@ class tcost_FeeZones extends core_Master
     	// Вземаме съответстващата форма на този модел
     	$form = cls::get('core_Form');
     	$form->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms, select = codeName,allowEmpty)', 'caption=Условие на доставка, mandatory');
-    	$form->FLD('countryId', 'key(mvc = drdata_Countries, select = letterCode2,allowEmpty)', 'caption=Държава, mandatory,smartCenter');
+    	$form->FLD('countryId', 'key(mvc = drdata_Countries, select=commonName,allowEmpty)', 'caption=Държава, mandatory,smartCenter');
     	$form->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode,smartCenter, notNull');
     	$form->FLD('singleWeight', 'double(Min=0)', 'caption=Единично тегло,mandatory');
     	$form->FLD('totalWeight', 'double(Min=0)', 'caption=Тегло за изчисление,recently, unit = kg.,mandatory');
