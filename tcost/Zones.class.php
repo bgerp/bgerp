@@ -133,7 +133,7 @@ class tcost_Zones extends core_Detail
                 }
             }
         }
-        
+
         // Ако няма зона NULL
         if(empty($bestZone)) return NULL;
         
@@ -153,7 +153,7 @@ class tcost_Zones extends core_Detail
      * @return  int     Брой съвпадения
      */
     private static function strNearPCode($pc1, $pc2)
-    {
+    { 
         if(strlen($pc1) > strlen($pc2)) {
         	list($pc1, $pc2) = array($pc2, $pc1);
         }
@@ -164,7 +164,14 @@ class tcost_Zones extends core_Detail
         for($i= 0; $i < $cycleNumber; $i++)
         {
             if($pc1{$i} != $pc2{$i}) {
-                return $i;
+
+                if($i == 0 && strlen($pc1) && strlen($pc2)) {
+ 
+                    return -1;
+                } else {
+
+                    return $i;
+                }
             }
         }
         
