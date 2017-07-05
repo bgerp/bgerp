@@ -163,7 +163,7 @@ class planning_Jobs extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'dueDate,quantityProduced,history';
+    public $fieldsNotToClone = 'dueDate,quantityProduced,history,oldJobId';
     
     
 	/**
@@ -485,6 +485,12 @@ class planning_Jobs extends core_Master
     	if(planning_DirectProductionNote::haveRightFor('add', (object)array('originId' => $rec->containerId))){
     		 $pUrl = array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
     		 $data->toolbar->addBtn("Произвеждане", $pUrl, 'ef_icon = img/16/page_paste.png,title=Създаване на протокол за производство от заданието');
+    	}
+    	
+    	// Бутон за добавяне на документ за влагане
+    	if(planning_ConsumptionNotes::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
+    		$pUrl = array('planning_ConsumptionNotes', 'add', 'threadId' => $rec->threadId, 'ret_url' => TRUE);
+    		$data->toolbar->addBtn("Влагане", $pUrl, 'ef_icon = img/16/produce_in.png,title=Създаване на протокол за влагане към заданието');
     	}
     	
     	if($data->toolbar->hasBtn('btnActivate')){

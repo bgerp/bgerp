@@ -10,7 +10,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -40,7 +40,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 	 * Плъгини за зареждане
 	 */
 	public $loadList = 'plg_RowTools2, store_plg_StoreFilter, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
-                    doc_DocumentPlg, plg_Printing, plg_Clone, plg_Search, bgerp_plg_Blank';
+                    doc_DocumentPlg, plg_Printing, plg_Clone, plg_Search';
 	
 	
 	/**
@@ -153,11 +153,63 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 	 */
 	protected static function on_AfterPrepareEditForm($mvc, &$data)
 	{
-		$data->form->setDefault('useResourceAccounts', planning_Setup::get('CONSUMPTION_USE_AS_RESOURCE'));
+		$form = &$data->form;
+		$rec = &$form->rec;
+		$form->setDefault('useResourceAccounts', planning_Setup::get('CONSUMPTION_USE_AS_RESOURCE'));
 		
-		$folderCover = doc_Folders::getCover($data->form->rec->folderId);
+		$folderCover = doc_Folders::getCover($rec->folderId);
 		if($folderCover->isInstanceOf('hr_Departments')){
-			$data->form->setReadOnly('departmentId', $folderCover->that);
+			$form->setReadOnly('departmentId', $folderCover->that);
+		}
+		
+		// Ако ориджина е протокол за влагане
+		if(isset($rec->originId) && empty($rec->id)){
+			$origin = doc_Containers::getDocument($rec->originId);
+			if($origin->isInstanceOf('planning_ConsumptionNotes')){
+				
+				// Всекиа артикул от протокола се показва във формата
+				$rec->details = array();
+				$dQuery = planning_ConsumptionNoteDetails::getQuery();
+				$dQuery->where("#noteId = {$origin->that}");
+				while($dRec = $dQuery->fetch()){
+					$caption = cat_Products::getTitleById($dRec->productId);
+					$caption .= " / " . cat_UoM::getShortName($dRec->packagingId);
+					$caption= str_replace(',', ' ', $caption);
+					$form->FLD("quantity|{$dRec->id}", "double(Min=0)","input,caption={$caption}->К-во");
+					$rec->details["quantity|{$dRec->id}"] = $dRec;
+				}
+			}
+		}
+	}
+	
+	
+	/**
+	 * Извиква се след успешен запис в модела
+	 *
+	 * @param core_Mvc $mvc
+	 * @param int $id първичния ключ на направения запис
+	 * @param stdClass $rec всички полета, които току-що са били записани
+	 */
+	public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $saveFileds = NULL)
+	{
+		// Ако дефолтни детайли
+		if(count($rec->details)){
+			$saveArray = array();
+			
+			// Ъпдейтват им се к-та
+			foreach ($rec->details as $field => $det){
+				if(empty($rec->{$field})) continue;
+				unset($det->id, $det->createdOn, $det->createdBy);
+				
+				$det->noteId = $rec->id;
+				$det->quantity = $rec->{$field} * $det->quantityInPack;
+				$saveArray[] = $det;
+			}
+			
+			// Записват се в детайла
+			$Detail = cls::get('planning_ReturnNoteDetails');
+			$Detail->saveArray($saveArray);
+			$mvc->invoke('AfterUpdateDetail', array($id, $Detail));
 		}
 	}
 	

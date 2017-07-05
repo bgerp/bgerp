@@ -224,4 +224,17 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 		$Detail->saveArray($details);
 		$mvc->invoke('AfterUpdateDetail', array($id, $Detail));
 	}
+	
+	
+	/**
+	 * След подготовка на тулбара на единичен изглед
+	 */
+	protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+	{
+		$rec = &$data->rec;
+		
+		if($rec->state == 'active' && planning_ReturnNotes::haveRightFor('add', (object)array('originId' => $rec->containerId))){
+			$data->toolbar->addBtn('Връщане', array('planning_ReturnNotes', 'add', 'originId' => $rec->containerId, 'storeId' => $rec->storeId, 'ret_url' => TRUE), NULL, 'ef_icon = img/16/produce_out.png,title=Връщане на артикули от производството');
+		}
+	}
 }
