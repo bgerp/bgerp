@@ -2199,6 +2199,25 @@ div.alphabet div.tab-page {
 .docStatistic {
   margin-top: 20px; }
 
+.single-thread .document .docStatistic .detail-info {
+  padding: 0;
+  margin-top: 0;
+  font-size: 0.85em;
+  border: none; }
+  .single-thread .document .docStatistic .detail-info .listTable td {
+    background-color: #fefec2; }
+  .single-thread .document .docStatistic .detail-info .row-state-returned td {
+    background-color: #fed6d6; }
+  .single-thread .document .docStatistic .detail-info .stateIndicator,
+  .single-thread .document .docStatistic .detail-info .inline-date {
+    display: inline-block; }
+    .single-thread .document .docStatistic .detail-info .stateIndicator.state-active {
+      background-color: #ffeedd; }
+    .single-thread .document .docStatistic .detail-info .stateIndicator.state-stopped {
+      background-color: #feadad; }
+    .single-thread .document .docStatistic .detail-info .stateIndicator.state-closed {
+      background-color: #dddddd; }
+
 /*
  * вътрешни alphabet табовете в документ - изглеждат като основните, но по-малки
  */
@@ -2236,15 +2255,6 @@ div.alphabet div.tab-page {
         border-radius: 0 0 0 5px; }
       .single-thread .document .docStatistic div.alphabet .tab-page .listTable tr:last-child td:last-child {
         border-radius: 0 0 5px 0; }
-    .single-thread .document .docStatistic div.alphabet .tab-page .stateIndicator,
-    .single-thread .document .docStatistic div.alphabet .tab-page .inline-date {
-      display: inline-block; }
-      .single-thread .document .docStatistic div.alphabet .tab-page .stateIndicator.state-active {
-        background-color: #ffeedd; }
-      .single-thread .document .docStatistic div.alphabet .tab-page .stateIndicator.state-stopped {
-        background-color: #feadad; }
-      .single-thread .document .docStatistic div.alphabet .tab-page .stateIndicator.state-closed {
-        background-color: #dddddd; }
     .single-thread .document .docStatistic div.alphabet .tab-page .listTable th {
       background-color: #fefec2;
       border-left: 1px solid rgba(0, 0, 0, 0);
