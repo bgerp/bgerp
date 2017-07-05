@@ -46,7 +46,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	 * Плъгини за зареждане
 	 */
 	public $loadList = 'plg_RowTools2, store_plg_StoreFilter, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
-                    doc_DocumentPlg, plg_Printing, plg_Clone, plg_Search, bgerp_plg_Blank';
+                    doc_DocumentPlg, plg_Printing, plg_Clone, plg_Search';
 	
 	
 	/**
@@ -214,11 +214,14 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 		
 		// Взимате се материалите за производството на к-то от заданието
 		$details = cat_Boms::getBomMaterials($bomId, $firstDoc->fetchField('quantity'), $rec->storeId);
+		
 		if(!count($details)) return;
 		
 		// Записват се детайлите
 		$id = $rec->id;
 		array_walk($details, function(&$obj) use ($id){ $obj->noteId = $id;});
-		cls::get('planning_ConsumptionNoteDetails')->saveArray($details);
+		$Detail = cls::get('planning_ConsumptionNoteDetails');
+		$Detail->saveArray($details);
+		$mvc->invoke('AfterUpdateDetail', array($id, $Detail));
 	}
 }
