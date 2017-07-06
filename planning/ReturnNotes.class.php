@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'planning_ReturnNotes' - Документ за Протокол за връщане
  *
@@ -149,6 +150,67 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 	
 	
 	/**
+	 * Подготвя данните (в обекта $data) необходими за единичния изглед
+	 */
+	public function prepareEditForm_($data)
+	{
+		parent::prepareEditForm_($data);
+		
+		$form = &$data->form;
+		$rec = &$form->rec;
+		
+		// Ако ориджина е протокол за влагане
+		if(isset($rec->originId) && empty($rec->id)){
+			$origin = doc_Containers::getDocument($rec->originId);
+			if($origin->isInstanceOf('planning_ConsumptionNotes')){
+				$detailId = planning_ConsumptionNoteDetails::getClassId();
+		
+				// Всеки артикул от протокола се показва във формата
+				$rec->details = array();
+				$dQuery = planning_ConsumptionNoteDetails::getQuery();
+				$dQuery->where("#noteId = {$origin->that}");
+		
+				// Ако ориджина има артикули
+				while($dRec = $dQuery->fetch()){
+					$caption = cat_Products::getTitleById($dRec->productId);
+					$caption .= " / " . cat_UoM::getShortName($dRec->packagingId);
+					$caption= str_replace(',', ' ', $caption);
+					$Def = batch_Defs::getBatchDef($dRec->productId);
+						
+					$subCaption = 'К-во';
+					
+					// Ако е инсталиран пакета за партиди, ще се показват и те
+					if(core_Packs::isInstalled('batch') && is_object($Def)){
+						$subCaption = 'Без партида';
+						$bQuery = batch_BatchesInDocuments::getQuery();
+						$bQuery->where("#detailClassId = {$detailId} AND #detailRecId = {$dRec->id} AND #productId = {$dRec->productId}");
+						$bQuery->show('batch');
+						while($bRec = $bQuery->fetch()){
+							$verbal = strip_tags($Def->toVerbal($bRec->batch));
+							$b = str_replace(',', '', $bRec->batch);
+							$b = str_replace('.', '', $b);
+							
+							$max = ($Def instanceof batch_definitions_Serial) ? 'max=1' : '';
+							$key = "quantity|{$b}|{$dRec->id}";
+							$form->FLD($key, "double(Min=0,{$max})","input,caption={$caption}->|*{$verbal}");
+							$clone = clone $dRec;
+							$clone->batch = $bRec->batch;
+							$rec->details[$key] = $clone;
+						}
+					}
+
+					// Показване на полетата без партиди
+					$form->FLD("quantity||{$dRec->id}", "double(Min=0)","input,caption={$caption}->{$subCaption}");
+					$rec->details["quantity||{$dRec->id}"] = $dRec;
+				}
+			}
+		}
+		
+		return $data;
+	}
+	
+	
+	/**
 	 * Преди показване на форма за добавяне/промяна
 	 */
 	protected static function on_AfterPrepareEditForm($mvc, &$data)
@@ -160,25 +222,6 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 		$folderCover = doc_Folders::getCover($rec->folderId);
 		if($folderCover->isInstanceOf('hr_Departments')){
 			$form->setReadOnly('departmentId', $folderCover->that);
-		}
-		
-		// Ако ориджина е протокол за влагане
-		if(isset($rec->originId) && empty($rec->id)){
-			$origin = doc_Containers::getDocument($rec->originId);
-			if($origin->isInstanceOf('planning_ConsumptionNotes')){
-				
-				// Всекиа артикул от протокола се показва във формата
-				$rec->details = array();
-				$dQuery = planning_ConsumptionNoteDetails::getQuery();
-				$dQuery->where("#noteId = {$origin->that}");
-				while($dRec = $dQuery->fetch()){
-					$caption = cat_Products::getTitleById($dRec->productId);
-					$caption .= " / " . cat_UoM::getShortName($dRec->packagingId);
-					$caption= str_replace(',', ' ', $caption);
-					$form->FLD("quantity|{$dRec->id}", "double(Min=0)","input,caption={$caption}->К-во");
-					$rec->details["quantity|{$dRec->id}"] = $dRec;
-				}
-			}
 		}
 	}
 	
@@ -195,21 +238,20 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 		// Ако дефолтни детайли
 		if(count($rec->details)){
 			$saveArray = array();
+			$Detail = cls::get('planning_ReturnNoteDetails');
 			
 			// Ъпдейтват им се к-та
 			foreach ($rec->details as $field => $det){
 				if(empty($rec->{$field})) continue;
 				unset($det->id, $det->createdOn, $det->createdBy);
+				if(!empty($det->batch)){
+					$det->isEdited = TRUE;
+				}
 				
 				$det->noteId = $rec->id;
 				$det->quantity = $rec->{$field} * $det->quantityInPack;
-				$saveArray[] = $det;
+				$Detail->save($det);
 			}
-			
-			// Записват се в детайла
-			$Detail = cls::get('planning_ReturnNoteDetails');
-			$Detail->saveArray($saveArray);
-			$mvc->invoke('AfterUpdateDetail', array($id, $Detail));
 		}
 	}
 	
