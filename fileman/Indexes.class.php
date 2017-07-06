@@ -455,18 +455,13 @@ class fileman_Indexes extends core_Manager
         $rec->createdBy = $params['createdBy'];
         $rec->content = static::prepareContent($params['content']);
         
-        $saveId = static::save($rec, NULL, 'IGNORE');
-        
-        if (!$saveId && !is_object($params['content'])) {
-            $recOld = self::fetch(array("#dataId = '[#1#]' AND #type = '[#2#]'", $rec->dataId, $rec->type));
-            
-            if ($recOld) {
-                $content = self::decodeContent($recOld->content);
-                if (is_object($content)) {
-                    $saveId = static::save($rec, NULL, 'REPLACE');
-                }
-            }
+        // Ако новата стойност не е грешка, презаписваме предишната
+        $saveType = 'IGNORE';
+        if (!is_object($params['content']) && !empty($params['content'])) {
+            $saveType = 'REPLACE';
         }
+        
+        $saveId = static::save($rec, NULL, $saveType);
         
         return $saveId;
     }
