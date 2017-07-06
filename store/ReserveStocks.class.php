@@ -11,6 +11,7 @@
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
+ * @deprecated
  */
 class store_ReserveStocks extends core_Master
 {

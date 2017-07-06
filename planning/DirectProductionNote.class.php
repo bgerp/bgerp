@@ -214,10 +214,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$form = &$data->form;
 		$rec = $form->rec;
 		
-		if(isset($form->rec->id)){
-			$form->setField('inputStoreId', 'input=none');
-		}
-		
 		$originRec = doc_Containers::getDocument($form->rec->originId)->rec();
 		$form->setDefault('storeId', $originRec->storeId);
 		$form->setDefault('productId', $originRec->productId);
@@ -273,8 +269,18 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 			$form->setField('inputStoreId', array('caption' => 'Допълнително->Влагане от'));
 		}
 		
-		$curStore = store_Stores::getCurrent('id', FALSE);
-		$form->setDefault('storeId', $curStore);
+		$nQuery = self::getQuery();
+		$nQuery->where("#originId = {$rec->originId} AND (#state = 'active' || #state = 'pending')");
+		$nQuery->where("#id != '{$rec->id}'");
+		$nQuery->orderBy('id', 'DESC');
+		$nQuery->limit(1);
+		
+		if($lastRec = $nQuery->fetch()){
+			$form->setDefault('storeId', $lastRec->storeId);
+			$form->setDefault('inputStoreId', $lastRec->inputStoreId);
+		}
+		
+		$form->setDefault('storeId', store_Stores::getCurrent('id', FALSE));
 		
 		return $data;
 	}
@@ -326,6 +332,10 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$row->subTitle = tr($row->subTitle);
 		
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+	
+		if(isset($rec->inputStoreId)){
+			$row->inputStoreId = store_Stores::getHyperlink($rec->inputStoreId, TRUE);
+		}
 	}
 	
 	
