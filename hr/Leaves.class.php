@@ -72,6 +72,13 @@ class hr_Leaves extends core_Master
     public $rowToolsSingleField = 'personId';
     
     
+    /**
+     * Брой записи на страница
+     *
+     * @var integer
+     */
+    public $listItemsPerPage = 300;
+    
     
     /**
      * Кой има право да чете?
