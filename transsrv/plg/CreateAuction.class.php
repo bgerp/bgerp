@@ -24,8 +24,8 @@ class transsrv_plg_CreateAuction extends core_Plugin
 	public static function on_AfterPrepareSingleToolbar($mvc, &$data)
 	{
 		$rec = $data->rec;
-	
-		if($systemId = remote_Authorizations::getSystemId(transsrv_Setup::TRANS_BID_DOMAIN)) {
+		
+		if($systemId = remote_Authorizations::getSystemId(transsrv_Setup::get('BID_DOMAIN'))) {
 			if($mvc->haveRightFor('createauction', $rec)){
 				$d = $mvc->getLogisticData($rec);
 				$d = base64_encode(gzcompress(json_encode($d)));
