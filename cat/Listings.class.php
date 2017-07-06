@@ -255,7 +255,7 @@ class cat_Listings extends core_Master
     		$query = cat_ListingDetails::getQuery();
     		$query->where("#listId = {$listRec->id}");
     		
-    		if(isset($instock) && is_array($instock)){
+    		if(is_array($instock) && count($instock)){
     			
     			// Артикулите се подреждат така че наличните в склада да са по-напред
     			$instock = implode(',', $instock);
