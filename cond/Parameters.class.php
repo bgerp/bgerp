@@ -116,8 +116,11 @@ class cond_Parameters extends bgerp_ProtoParam
     	$method = "get{$conditionSysId}";
     	if(method_exists($Class, $method)) return $Class::$method($cId);
     	
+    	$countryFieldName = $Class->countryFieldName;
+    	if (!$countryFieldName) return ;
+    	
     	// Търсим имали дефинирано търговско условие за държавата на контрагента
-    	$countryId = $cRec->{$Class->countryFieldName};
+    	$countryId = $cRec->{$countryFieldName};
     	if($countryId){
     		$value = cond_Countries::fetchField("#country = {$countryId} AND #conditionId = {$condId}", 'value');
     		if(isset($value)) return $value;
