@@ -453,9 +453,11 @@ class cat_Listings extends core_Master
     	// За всяка папка
     	foreach ($folders as $folderId){
     		
-    		// Имали зададено търговско условие за автоматичен лист
+    		// Има ли зададено търговско условие за автоматичен лист
     		$Cover = doc_Folders::getCover($folderId);
+    		if(!$Cover->haveInterface('crm_ContragentAccRegIntf')) continue;
     		
+    		// Има ли зададено търговско условие
     		$value = cond_Parameters::getParameter($Cover->getInstance(), $Cover->that, 'autoSalesMakeList');
     		if($value !== 'yes') continue;
     		
