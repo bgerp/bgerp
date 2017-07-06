@@ -2929,7 +2929,7 @@ span.sharing-history-title {
 .webdrvIframe {
   width: 100%;
   border: solid 0 rgba(0, 0, 0, 0);
-  min-height: 625px; }
+  min-height: 600px; }
 
 .narrow .webdrvIframe {
   min-height: 300px; }
