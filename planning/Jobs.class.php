@@ -87,6 +87,13 @@ class planning_Jobs extends core_Master
     
     
     /**
+     * Кой може да променя активирани записи
+     * @see change_Plugin
+     */
+    public $canChangerec = 'ceo, job';
+    
+    
+    /**
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'ceo, planning, job';

@@ -35,6 +35,7 @@ class tcost_Calcs extends core_Manager
 			'chargeVat'	         => 'chargeVat',
 			'currencyRate'	     => 'currencyRate',
 			'currencyId'         => 'currencyId',
+			'countryId'          => 'countryId',
 	);
 	
 	
@@ -184,7 +185,6 @@ class tcost_Calcs extends core_Manager
     	
     	// Ако има сума
     	if(isset($fee)){
-    		$fields = NULL;
     		
     		// И няма съществуващ запис, ще се добавя нов
     		if(!$exRec){
@@ -192,17 +192,14 @@ class tcost_Calcs extends core_Manager
     			if(isset($deliveryTimeFromFee)){
     				$exRec->deliveryTime = $deliveryTimeFromFee;
     			}
-    		} else {
-    			$fields = 'fee';
-    			if(isset($deliveryTimeFromFee)){
-    				$fields .= ',deliveryTime';
-    			}
     		}
     		 
     		// Ъпдейт / Добавяне на записа
     		$exRec->fee = $fee;
     		if(isset($deliveryTimeFromFee)){
     			$exRec->deliveryTime = $deliveryTimeFromFee;
+    		} else {
+    			$exRec->deliveryTime = NULL;
     		}
     		
     		self::save($exRec);
@@ -426,13 +423,13 @@ class tcost_Calcs extends core_Manager
      * @param int|NULL $deliveryLocationId - ид на локация
      * @return NULL|array $feeArray        - сумата на транспорта
      */
-    public static function getCostArray($deliveryTermId, $contragentClassId, $contragentId, $productId, $packagingId, $quantity, $deliveryLocationId)
+    public static function getCostArray($deliveryTermId, $contragentClassId, $contragentId, $productId, $packagingId, $quantity, $deliveryLocationId, $countryId = NULL)
     {
     	// Ако може да се изчислява скрит транспорт
     	if(!cond_DeliveryTerms::canCalcHiddenCost($deliveryTermId, $productId)) return NULL;
     	
     	// Пощенския код и ид-то на държавата
-    	$codeAndCountryArr = tcost_Calcs::getCodeAndCountryId($contragentClassId, $contragentId, NULL, NULL, $deliveryLocationId);
+    	$codeAndCountryArr = tcost_Calcs::getCodeAndCountryId($contragentClassId, $contragentId, NULL, $countryId, $deliveryLocationId);
     	 
     	// Опит за изчисляване на транспорт
     	$totalWeight = cond_Parameters::getParameter($contragentClassId, $contragentId, 'calcShippingWeight');
@@ -488,14 +485,17 @@ class tcost_Calcs extends core_Manager
     		$rec->fee = tcost_Calcs::get($map['masterMvc'], $masterRec->id, $rec->id)->fee;
     		$rec->deliveryTimeFromFee = tcost_Calcs::get($map['masterMvc'], $masterRec->id, $rec->id)->deliveryTime;
     	}
+    	$countryId = !empty($masterRec->{$map['countryId']}) ? $masterRec->{$map['countryId']} : NULL;
     	
     	// Колко е очаквания транспорт
-    	$feeArr = tcost_Calcs::getCostArray($masterRec->{$map['deliveryTermId']}, $masterRec->{$map['contragentClassId']}, $masterRec->{$map['contragentId']}, $rec->{$map['productId']}, $rec->{$map['packagingId']}, $rec->{$map['quantity']}, $masterRec->{$map['deliveryLocationId']});
+    	$feeArr = tcost_Calcs::getCostArray($masterRec->{$map['deliveryTermId']}, $masterRec->{$map['contragentClassId']}, $masterRec->{$map['contragentId']}, $rec->{$map['productId']}, $rec->{$map['packagingId']}, $rec->{$map['quantity']}, $masterRec->{$map['deliveryLocationId']}, $countryId);
     	
     	// Ако има такъв към цената се добавя
     	if(is_array($feeArr)){
     		if(isset($feeArr['deliveryTime'])){
     			$rec->deliveryTimeFromFee = $feeArr['deliveryTime'];
+    		} else {
+    			$rec->deliveryTimeFromFee = NULL;
     		}
     		
     		if($rec->autoPrice === TRUE){
@@ -545,7 +545,6 @@ class tcost_Calcs extends core_Manager
     	
     	// Ако има сума ще се синхронизира
     	if(isset($rec->fee)){
-    		
     		$rec->syncFee = TRUE;
     	}
     }

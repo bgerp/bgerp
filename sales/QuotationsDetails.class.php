@@ -520,7 +520,7 @@ class sales_QuotationsDetails extends doc_Detail {
     		    }
     		  
     		    if($rec->productId){
-    		    	tcost_Calcs::prepareFee($rec, $form, $masterRec, array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId'));
+    		    	tcost_Calcs::prepareFee($rec, $form, $masterRec, array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId', 'countryId' => 'contragentCountryId'));
     		    }
     		}
 	    }
