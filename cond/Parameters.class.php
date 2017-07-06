@@ -116,14 +116,16 @@ class cond_Parameters extends bgerp_ProtoParam
     	$method = "get{$conditionSysId}";
     	if(method_exists($Class, $method)) return $Class::$method($cId);
     	
+    	// Ако има поле за държава
     	$countryFieldName = $Class->countryFieldName;
-    	if (!$countryFieldName) return ;
-    	
-    	// Търсим имали дефинирано търговско условие за държавата на контрагента
-    	$countryId = $cRec->{$countryFieldName};
-    	if($countryId){
-    		$value = cond_Countries::fetchField("#country = {$countryId} AND #conditionId = {$condId}", 'value');
-    		if(isset($value)) return $value;
+    	if ($countryFieldName) {
+    		
+    		// Търсим имали дефинирано търговско условие за държавата на контрагента
+    		$countryId = $cRec->{$countryFieldName};
+    		if($countryId){
+    			$value = cond_Countries::fetchField("#country = {$countryId} AND #conditionId = {$condId}", 'value');
+    			if(isset($value)) return $value;
+    		}
     	}
     	
     	// От глобалния дефолт за всички държави
