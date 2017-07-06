@@ -825,7 +825,9 @@ class unit_MinkPbgERP extends core_Manager {
         if(strpos($browser->gettext(), $Company)) {
             //има такава фирма - редакция
             $browser->click($Company);
+            $browser->click('Локации(2)');
             $browser->click('Добавяне на нова локация');
+            return $browser->getHtml();
             $browser->setValue('title', 'Офис Пловдив');
             $browser->setValue('type', 'Офис');
             $browser->setValue('place', 'Пловдив');
@@ -1564,6 +1566,9 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->click('Избор на ДДС група');
             //$browser->refresh('Запис');
             $browser->setValue('vatGroup', 'Г - 9,00 %');
+            $startdate=strtotime("+1 Day");
+            $browser->setValue('validFrom[d]', date('d-m-Y', $startdate));
+            $browser->setValue('validFrom[t]', '00:00');
             $browser->press('Запис');
         }
         //return $browser->getHtml();

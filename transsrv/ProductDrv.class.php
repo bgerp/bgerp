@@ -320,7 +320,7 @@ class transsrv_ProductDrv extends cat_ProductDriver
 		}
 		
 		if(!Mode::isReadOnly()){
-			$systemId = remote_Authorizations::getSystemId(transsrv_Setup::TRANS_BID_DOMAIN);
+			$systemId = remote_Authorizations::getSystemId(transsrv_Setup::get('BID_DOMAIN'));
 			if(haveRole('officer')){
 				if(!empty($data->rec->auction) && haveRole('officer')){
 					if($systemId){

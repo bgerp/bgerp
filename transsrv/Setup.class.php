@@ -1,11 +1,16 @@
 <?php
 
 
-
 /**
  * Дефолтно общо условие за продажба
  */
 defIfNot('TRANSSRV_SALE_DEFAULT_CONDITION', '');
+
+
+/**
+ * 
+ */
+defIfNot('TRANSSRV_BID_DOMAIN', '//trans.bid');
 
 
 /**
@@ -21,12 +26,6 @@ defIfNot('TRANSSRV_SALE_DEFAULT_CONDITION', '');
  */
 class transsrv_Setup extends core_ProtoSetup
 {
-    
-    
-	/**
-	 * Домейн на трансбид
-	 */
-	const TRANS_BID_DOMAIN = 'http://trans.bid/';
 	
 	
     /**
@@ -79,6 +78,7 @@ class transsrv_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
     		'TRANSSRV_SALE_DEFAULT_CONDITION' => array("text", 'caption=Общо условие за продажба по подразбиране->Условие'),
+    		'TRANSSRV_BID_DOMAIN' => array("varchar", 'caption=Отдалечена системно за създаване на търг->URL'),
     );
 
     
