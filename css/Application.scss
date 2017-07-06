@@ -3258,7 +3258,7 @@ fieldset.sharing-history {
 .webdrvTabBody {
 	max-width: 900px;
 	min-width: 800px;
-	min-height: 600px;
+	min-height: 612px;
 	top: 10px;
 	position: relative;
 }
@@ -3272,7 +3272,7 @@ fieldset.sharing-history {
 .webdrvIframe {
 	width: 100%;
 	border: solid 0 transparent;
-	min-height: 600px;
+	min-height: 612px;
 }
 
 .narrow .webdrvIframe {
@@ -3280,7 +3280,7 @@ fieldset.sharing-history {
 }
 
 .wide .webdrvFieldset {
-	min-height: 620px;
+	min-height: 615px;
 	border: 1px solid #ccc;
 	padding: 15px 10px 10px;
 	@include border-radius(5px);

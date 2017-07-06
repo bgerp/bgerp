@@ -2917,7 +2917,7 @@ span.sharing-history-title {
 .webdrvTabBody {
   max-width: 900px;
   min-width: 800px;
-  min-height: 600px;
+  min-height: 612px;
   top: 10px;
   position: relative; }
 
@@ -2929,13 +2929,13 @@ span.sharing-history-title {
 .webdrvIframe {
   width: 100%;
   border: solid 0 rgba(0, 0, 0, 0);
-  min-height: 600px; }
+  min-height: 612px; }
 
 .narrow .webdrvIframe {
   min-height: 300px; }
 
 .wide .webdrvFieldset {
-  min-height: 620px;
+  min-height: 615px;
   border: 1px solid #cccccc;
   padding: 15px 10px 10px;
   -moz-border-radius: 5px;
