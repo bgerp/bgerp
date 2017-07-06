@@ -279,7 +279,7 @@ class fileman_webdrv_Generic extends core_Manager
                         $width *= $multiplier;
                         $height *= $multiplier;
                         $verbalName .= ' X ' . $multiplier;
-                        $attr['class'] = 'webdrv-previewX2';
+                        $attr['class'] .= ' webdrv-previewX2';
                     }
                     
                     $imgInst = new thumb_Img(array($jpgFh, $width, $height, 'fileman', 'verbalName' => $verbalName));
