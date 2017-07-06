@@ -816,7 +816,12 @@ class bgerp_Notifications extends core_Manager
             try {
                 $ctr = $urlArr['Ctr'];
                 
-                if (!$ctr::haveRightFor($act, $urlArr['id'], $rec->userId)) {
+                if (!$ctr) continue;
+                
+                if ((!cls::load($ctr, TRUE)) || ($urlArr['id'] && !$ctr::fetch($urlArr['id']))) {
+                    self::delete($rec->id);
+                    self::logDebug("Изтрита нотифакаци за премахнат ресурс", $rec->id);
+                } elseif (!$ctr::haveRightFor($act, $urlArr['id'], $rec->userId)) {
                     $rec->hidden = 'yes';
                     self::save($rec, 'hidden');
                     
