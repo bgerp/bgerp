@@ -74,6 +74,12 @@
                                        				<td>[#inputStoreId#]</td>
                                        			</tr>
                                        			<!--ET_END inputStoreId-->
+                                       			<!--ET_BEGIN deadline-->
+                                       			<tr>
+                                       				<td class='quiet nowrap'>|Срок до|*:</td>
+                                       				<td>[#deadline#]</td>
+                                       			</tr>
+                                       			<!--ET_END deadline-->
                                        		</table>
                                        </td>
                                     </tr>
