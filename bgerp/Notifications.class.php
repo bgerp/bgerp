@@ -108,6 +108,7 @@ class bgerp_Notifications extends core_Manager
         $this->FLD('customUrl', 'varchar', 'caption=URL->Обект');
         $this->FLD('hidden', 'enum(no,yes)', 'caption=Скрито,notNull');
         $this->FLD('closedOn', 'datetime', 'caption=Затворено на');
+        $this->FLD('lastTime', 'datetime', 'caption=Предишното време, input=none');
         
         $this->setDbUnique('url, userId');
         $this->setDbIndex('userId');
@@ -203,7 +204,7 @@ class bgerp_Notifications extends core_Manager
         while($rec = $query->fetch()) {
             $rec->state = 'closed';
             $rec->closedOn = dt::now();
-            bgerp_Notifications::save($rec, 'state,modifiedOn,closedOn');
+            bgerp_Notifications::save($rec, 'state,modifiedOn,closedOn,modifiedBy');
         }
     }
     
@@ -332,7 +333,7 @@ class bgerp_Notifications extends core_Manager
                 }
             }
             
-            self::save($rec, 'hidden');
+            self::save($rec, 'hidden,modifiedOn,modifiedBy');
             
             $msg = 'Скрита нотификация';
             if ($rec->hidden == 'no') {
@@ -492,9 +493,6 @@ class bgerp_Notifications extends core_Manager
             $msg = 'маркирахте';
             $act = 'Маркиране';
         }
-        
-        $rec->modifiedOn = dt::now();
-        $rec->modifiedBy = core_Users::getCurrent();
         
         self::save($rec, 'state, modifiedOn, modifiedBy');
         
@@ -681,7 +679,12 @@ class bgerp_Notifications extends core_Manager
             $data->listFields = 'modifiedOn=Време,msg=Съобщение';
             
             $data->query->where("#userId = {$userId} AND #hidden != 'yes'");
-            $data->query->orderBy("state,modifiedOn=DESC");
+            
+            $modifiedBefore = dt::subtractSecs(180);
+            $data->query->XPR('modifiedOnTop', 'datetime', "IF((((#modifiedOn >= '{$modifiedBefore}') || (#state = 'active'))), IF((#state = 'active'), #modifiedOn, #lastTime), NULL)");
+            $data->query->orderBy("modifiedOnTop", "DESC");
+            
+            $data->query->orderBy("modifiedOn=DESC");
             
             if(Mode::is('screenMode', 'narrow') && !Request::get('noticeSearch')) {
                 $data->query->where("#state = 'active'");
@@ -712,7 +715,7 @@ class bgerp_Notifications extends core_Manager
             // Рендираме изгледа
             $tpl = $Notifications->renderPortal($data);
 
-            core_Cache::set('Notifications', $key, array($tpl, $lastRec->modifiedOn), doc_Setup::get('CACHE_LIFETIME'));
+             core_Cache::set('Notifications', $key, array($tpl, $lastRec->modifiedOn), doc_Setup::get('CACHE_LIFETIME'));
         }
         
         //Задаваме текущото време, за последно преглеждане на нотификациите
@@ -1070,13 +1073,30 @@ class bgerp_Notifications extends core_Manager
                     self::logDebug("Изтрита нотифакаци за премахнат ресурс", $rec->id);
                 } elseif (!$ctr::haveRightFor($act, $urlArr['id'], $rec->userId)) {
                     $rec->hidden = 'yes';
-                    self::save($rec, 'hidden');
+                    self::save($rec, 'hidden,modifiedOn,modifiedBy');
                     
                     self::logDebug("Скрит недостъпен ресурс", $rec->id);
                 }
             } catch (core_exception_Expect $e) {
                 reportException($e);
                 continue;
+            }
+        }
+    }
+    
+    
+    /**
+     * Извиква се преди вкарване на запис в таблицата на модела
+     */
+    public static function on_BeforeSave(&$invoker, &$id, &$rec, &$fields = NULL)
+    {
+        if ($rec->id) {
+            $modifiedOn = self::fetchField($rec->id, 'modifiedOn', FALSE);
+            $rec->lastTime = $modifiedOn;
+            
+            if ($fields !== NULL) {
+                $fields = arr::make($fields, TRUE);
+                $fields['lastTime'] = 'lastTime';
             }
         }
     }
