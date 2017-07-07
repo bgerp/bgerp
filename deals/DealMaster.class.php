@@ -82,14 +82,6 @@ abstract class deals_DealMaster extends deals_DealBase
 		
 		setIfNot($mvc->canChangerate, 'ceo,salesMaster,purchaseMaster');
 	}
-
-public function act_Test()
-{
-	$i = $this->getAggregateDealInfo(2041);
-	$s = $this->getPaymentState($i);
-	bp($s);
-}
-	
 	
 	
 	/**
