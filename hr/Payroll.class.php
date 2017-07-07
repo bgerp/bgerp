@@ -34,14 +34,14 @@ class hr_Payroll extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Rejected,  plg_SaveAndNew, hr_Wrapper';
+    public $loadList = 'plg_RowTools2, plg_Rejected,  plg_SaveAndNew, hr_Wrapper, plg_GroupByField';
                     
     
-    
     /**
-     * Кой има право да чете?
+     * По кое поле да се групира
      */
-    public $canRead = 'ceo,hrMaster';
+    public $groupByField = 'periodId';
+    
     
     
     /**
@@ -54,12 +54,6 @@ class hr_Payroll extends core_Manager
      * Кой има право да добавя?
      */
     public $canAdd = 'no_one';
-    
-    
-    /**
-     * Кой може да го види?
-     */
-    public $canView = 'ceo,hrMaster';
     
     
     /**
@@ -84,12 +78,6 @@ class hr_Payroll extends core_Manager
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'periodId,personId,salary,data=@Данни';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'id';
     
     
     /**
@@ -124,15 +112,15 @@ class hr_Payroll extends core_Manager
             }
             $row->data = "<div style='font-size:0.9em;'>{$row->data}</div>";
         }
-
-        if($rec->formula) {
+        
+        if(!empty($rec->formula)) {
             $row->data .= "<div>" . $mvc->getVerbal($rec, 'formula') . "</div";
+        } 
+        
+        if(!empty($rec->status)) {
+            $row->data .= "<div>{$rec->status}</div>";
         }
-
-        if($rec->status) {
-            $row->data .= "<div>{$rec->status}</div";
-        }
-       
+        
         $row->personId = crm_Persons::getHyperlink($rec->personId, TRUE);
     }
 
