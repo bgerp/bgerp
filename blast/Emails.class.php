@@ -2007,13 +2007,22 @@ class blast_Emails extends core_Master
         
         if (!$haveNextStartTime) {
             
-            $nextStartDay = 7;
+            $nextStartDay = NULL;
             
             foreach ($sendingArr as $sendingDay) {
-                if ($sendingDay > $dayOfWeek) {
+                if ($sendingDay >= $dayOfWeek) {
+                    
+                    if ($sendingDay == $dayOfWeek) {
+                        if (dt::now() >= $sendingTo) continue;
+                    }
+                    
                     $nextStartDay = $sendingDay;
                     break;
                 }
+            }
+            
+            if (!isset($nextStartDay)) {
+                $nextStartDay = 7 + min($sendingArr);
             }
             
             $nextStartTime = dt::addDays($nextStartDay-$dayOfWeek, $nowF);
