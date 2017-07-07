@@ -23,8 +23,8 @@
                                     </tr>
                                     <tr>
                                        <td>
+                                            <b style="margin:3px;display: inline-block;">[#productId#]</b>
                                        		<table class='no-border'>
-                                                <b style="margin:3px;display: inline-block;">[#productId#]</b>
                                        			<!--ET_BEGIN debitAmount-->
                                        			<tr>
                                        				<td class='quiet'>|Себестойност|*:</td>
