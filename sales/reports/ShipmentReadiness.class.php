@@ -251,11 +251,12 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 		}
 			
 		if(count($arr)){
-			$tableHtml = "";
+			$tableHtml = "<table class='small no-border'>";
 			foreach ($arr as $ar){
-				$tableHtml .= "<div class='small' style='display: inline-block;'>{$ar['job']}<span class='nowrap'  style='margin-left: 5px; display: inline-block;'>{$ar['inStock']}</span></div>";
+				$tableHtml .= "<tr><td>{$ar['job']}</td><td class='nowrap'> / {$ar['inStock']}</td></tr>";
 			}
-			
+			$tableHtml .= "</table>";
+
 			return $tableHtml;
 		}
 		

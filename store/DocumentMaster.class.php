@@ -53,14 +53,6 @@ abstract class store_DocumentMaster extends core_Master
     
     
     /**
-     * Кои полета от листовия изглед да се скриват ако няма записи в тях
-     *
-     *  @var string
-     */
-    public $hideListFieldsIfEmpty = 'deliveryTime';
-    
-    
-    /**
      * Дали в листовия изглед да се показва бутона за добавяне
      */
     public $listAddBtn = FALSE;

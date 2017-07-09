@@ -7,8 +7,8 @@
                         <div class='display-table'>
                             <table class="innerTable border-table paddingCells">
                                 <tbody>
-                                    <tr>
-                                       <td class="cell centered" rowspan='4' style='width:32%;'>
+                                    <tr><td class="cell custom-header-bg" style='width:35%;'><b>|Артикул|*</b></td>
+                                       <td class="cell centered" rowspan="2" style='width:30%;'>
                                             <div class="document-title">|протокол за производство|*</div>
                                             <small>( [#subTitle#] )</small>
                                             <div style="padding-top:5px;">
@@ -19,27 +19,19 @@
                                             <div class="state [#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
                                             <!--ET_END state-->
                                         </td>
-                                         <td class="cell custom-header-bg" style='width:35%;'><b>|За произвеждане|*</b></td>
+                                         <td class="cell custom-header-bg" style='width:35%;'><b>|Информация|*</b></td>
                                     </tr>
                                     <tr>
                                        <td>
-                                       		<table class='no-border' style='float:left'>
-                                       			<tr>
-                                       				<td class='quiet'>|Артикул|*:</td>
-                                       				<td>[#productId#]</td>
-                                       			</tr>
+                                            <b style="margin:3px;display: inline-block;">[#productId#]</b>
+                                       		<table class='no-border'>
                                        			<!--ET_BEGIN debitAmount-->
                                        			<tr>
                                        				<td class='quiet'>|Себестойност|*:</td>
                                        				<td>[#debitAmount#]</td>
                                        			</tr>
                                        			<!--ET_END debitAmount-->
-                                       			<!--ET_BEGIN storeId-->
-                                       			<tr>
-                                       				<td class='quiet nowrap'>|Засклаждане в|*:</td>
-                                       				<td>[#storeId#]</td>
-                                       			</tr>
-                                       			<!--ET_END storeId-->
+                                       			
                                        			<!--ET_BEGIN expenseItemId-->
                                        			<tr>
                                        				<td class='quiet'>|Разход за|*:</td>
@@ -47,7 +39,7 @@
                                        			</tr>
                                        			<!--ET_END expenseItemId-->
                                        			<tr>
-                                       				<td class='quiet'>|Мярка/Опаковка|*:</td>
+                                       				<td class='quiet'>|Мярка|*:</td>
                                        				<td>[#packagingId#]</td>
                                        			</tr>
                                        			<tr>
@@ -66,8 +58,32 @@
                                        				<td>[#batch#]</td>
                                        			</tr>
                                        			<!--ET_END batch-->
+
                                        		</table>
                                        </td>
+                                        <td>
+                                            <table class='no-border'>
+                                                <!--ET_BEGIN storeId-->
+                                                <tr>
+                                                    <td class='quiet nowrap'>|Засклаждане в|*:</td>
+                                                    <td>[#storeId#]</td>
+                                                </tr>
+                                                <!--ET_END storeId-->
+
+                                                <!--ET_BEGIN inputStoreId-->
+                                                <tr>
+                                                    <td class='quiet nowrap'>|Влагане от|*:</td>
+                                                    <td>[#inputStoreId#]</td>
+                                                </tr>
+                                                <!--ET_END inputStoreId-->
+                                                <!--ET_BEGIN deadline-->
+                                                <tr>
+                                                    <td class='quiet nowrap'>|Срок до|*:</td>
+                                                    <td>[#deadline#]</td>
+                                                </tr>
+                                                <!--ET_END deadline-->
+                                            </table>
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -81,7 +97,6 @@
                                     <tr>
                                         <td class="topCell first vtop" style='width:50%;'>
                                         	<!--ET_BEGIN note-->
-                                            <hr>
                                             [#note#]
                                             <!--ET_END note-->
                                         </td>

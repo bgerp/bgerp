@@ -35,6 +35,12 @@ abstract class deals_ManifactureMaster extends core_Master
 	public $listAddBtn = FALSE;
 	
 	
+	/**
+	 * Дата на очакване
+	 */
+	public $termDateFld = 'deadline';
+	
+	
    /**
 	* Кои са задължителните полета за модела
 	*/

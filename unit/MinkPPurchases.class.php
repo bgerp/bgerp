@@ -1255,6 +1255,8 @@ class unit_MinkPPurchases extends core_Manager {
         }
          
         //$browser->hasText('Създаване на Покупка');
+        $startdate=strtotime("+1 Day");
+        $browser->setValue('valior', date('d-m-Y', $startdate));
         $browser->setValue('note', 'MinkPPurchaseDifVAT');
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
@@ -1299,6 +1301,7 @@ class unit_MinkPPurchases extends core_Manager {
         // Фактура
         $browser->press('Вх. фактура');
         $browser->setValue('number', '13');
+        $browser->setValue('date', date('d-m-Y', $startdate));
         $browser->press('Чернова');
         $browser->press('Контиране');
         if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 400,00')) {
@@ -1312,6 +1315,7 @@ class unit_MinkPPurchases extends core_Manager {
         // Кредитно известие - количество
         $browser->press('Известие');
         $browser->setValue('number', '14');
+        $browser->setValue('date', date('d-m-Y', $startdate));
         $browser->press('Чернова');
         $browser->click('Редактиране на артикул');
        
@@ -1326,6 +1330,7 @@ class unit_MinkPPurchases extends core_Manager {
         // Кредитно известие - цена
         $browser->press('Известие');
         $browser->setValue('number', '15');
+        $browser->setValue('date', date('d-m-Y', $startdate));
         $browser->press('Чернова');
         $browser->click('Редактиране на артикул');
         $browser->setValue('packPrice', '15');
@@ -1338,6 +1343,7 @@ class unit_MinkPPurchases extends core_Manager {
         // Дебитно известие - количество
         $browser->press('Известие');
         $browser->setValue('number', '16');
+        $browser->setValue('date', date('d-m-Y', $startdate));
         $browser->press('Чернова');
         $browser->click('Редактиране на артикул');
         $browser->setValue('quantity', '21');
@@ -1351,6 +1357,7 @@ class unit_MinkPPurchases extends core_Manager {
         // Дебитно известие - цена
         $browser->press('Известие');
         $browser->setValue('number', '17');
+        $browser->setValue('date', date('d-m-Y', $startdate));
         $browser->press('Чернова');
         $browser->click('Редактиране на артикул');
         $browser->setValue('packPrice', '20,14');

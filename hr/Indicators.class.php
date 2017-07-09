@@ -161,6 +161,7 @@ class hr_Indicators extends core_Manager
     private static function recalc($timeline)
     {
     	$periods = self::saveIndicators($timeline);
+    	
     	foreach($periods as $id => $rec) {
     		self::calcPeriod($rec);
     	}
@@ -286,12 +287,13 @@ class hr_Indicators extends core_Manager
                 $ecArr[$rec->personId] = new stdClass();
             }
         }
-
+        
         // Дали да извадим формулата от длъжността
         $replaceFormula = dt::now() < $pRec->end;
 
         // Подготвяме масив с нулеви стойности
         $names = self::getIndicatorNames();
+        $zeroInd = array('BaseSalary' => 0);
         foreach($names as $class => $nArr) {
             foreach($nArr as $n) {
                 $zeroInd[$n] = 0;
@@ -300,21 +302,21 @@ class hr_Indicators extends core_Manager
 		
         // За всеки един договор, се опитваме да намерим формулата за заплащането от позицията.
         foreach($ecArr as $personId => $ecRec) {
-
             $res = (object) array(
                 'personId' => $personId,
                 'periodId' => $pRec->id,
                 );
             
             $sum = array();
- 
+            
             if(isset($ecRec->positionId)) {
                 $posRec = hr_Positions::fetch($ecRec->positionId);
-                if(!empty($ecRec->salaryBase)) {
-                    $sum['$BaseSalary'] = $ecRec->salaryBase;
+                $salaryBase = (!empty($ecRec->salaryBase)) ? $ecRec->salaryBase : $posRec->salaryBase;
+                if(!empty($salaryBase)) {
+                    $sum['BaseSalary'] = $salaryBase;
                 }
             }
-         
+            
             $query = self::getQuery();
             $query->where("#date >= '{$pRec->start}' AND #date <= '{$pRec->end}'");
             $query->where("#personId = {$personId}");
@@ -324,7 +326,7 @@ class hr_Indicators extends core_Manager
             }
             
             $prlRec = hr_Payroll::fetch("#personId = {$personId} AND #periodId = {$pRec->id}");
-            
+           
             if(empty($prlRec)) {
                 $prlRec = new stdClass();
                 $prlRec->personId = $personId;
@@ -334,7 +336,7 @@ class hr_Indicators extends core_Manager
             if($replaceFormula && $ecRec->positionId) {  
                 $prlRec->formula = hr_Positions::fetchField($ecRec->positionId, 'formula');
             }
-
+			
             // Изчисляване на заплатата
             $prlRec->salary = NULL;
             if($prlRec->formula) {
@@ -349,7 +351,7 @@ class hr_Indicators extends core_Manager
 
                 // Заместваме променливите и индикаторите
                 $expr  = strtr($prlRec->formula, $contex);
-        
+        		
                 if(str::prepareMathExpr($expr) === FALSE) {
                     $prlRec->error = 'Невъзможно изчисление';
                 } else {
@@ -362,7 +364,6 @@ class hr_Indicators extends core_Manager
             } 
 
             $prlRec->indicators = $sum;
-
             hr_Payroll::save($prlRec);
         }
 
