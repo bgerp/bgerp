@@ -68,7 +68,7 @@
                <table class='shipment-table'  style='width:100%;'>
                   <!--ET_BEGIN deliveryTime-->
                   <tr>
-                     <td class='nowrap quiet aright'  style='width:1%;'>|Срок до|*:</td>
+                     <td class='nowrap quiet aright'  style='width:1%;'>|Натоварване|*:</td>
                      <td>[#deliveryTime#]</td>
                   </tr>
                   <!--ET_END deliveryTime-->

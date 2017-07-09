@@ -65,7 +65,7 @@
                      <table class='shipment-table' style='width: 100%'>
                         <!--ET_BEGIN deliveryTime-->
                         <tr>
-                            <td style='width:1%' class='nowrap quiet aright'>Delivery time:</td>
+                            <td style='width:1%' class='nowrap quiet aright'>Loading time:</td>
                             <td>[#deliveryTime#]</td>
                         </tr>
                         <!--ET_END deliveryTime-->

@@ -456,8 +456,7 @@ class store_Products extends core_Detail
     	$docArr = array('store_ShipmentOrders'          => array('storeFld' => 'storeId', 'Detail' => 'store_ShipmentOrderDetails'), 
     					'store_Transfers'               => array('storeFld' => 'fromStore', 'Detail' => 'store_TransfersDetails'), 
     					'planning_ConsumptionNotes'     => array('storeFld' => 'storeId', 'Detail' => 'planning_ConsumptionNoteDetails'),
-    					'planning_DirectProductionNote' => array('storeFld' => 'storeId', 'Detail' => 'planning_DirectProductNoteDetails'),
-    			        'store_ConsignmentProtocols'    => array('storeFld' => 'storeId', 'Detail' => 'store_ConsignmentProtocolDetailsSend'),
+    					'store_ConsignmentProtocols'    => array('storeFld' => 'storeId', 'Detail' => 'store_ConsignmentProtocolDetailsSend'),
     	);
     	
     	$result = $queue = array();
@@ -480,7 +479,6 @@ class store_Products extends core_Detail
     				$reserved = array();
     				$Detail = cls::get($arr['Detail']);
     				setIfNot($Detail->productFieldName, 'productId');
-    				
     				$shQuery = $Detail->getQuery();
     				
     				$isCp = ($arr['Detail'] == 'store_ConsignmentProtocolDetailsSend');
@@ -494,17 +492,8 @@ class store_Products extends core_Detail
     				}
     				
     				$shQuery->where("#{$Detail->masterKey} = {$sRec->id}");
-    				$isPn = ($arr['Detail'] == 'planning_DirectProductNoteDetails');
-    				
-    				if($isPn) {
-    					$shQuery->where("#type = 'input'");
-    					$shQuery->where("#storeId IS NOT NULL");
-    					$shQuery->show("productId,{$suMFld},noteId,storeId,sum,quantityInPack");
-    					$shQuery->groupBy('productId,storeId');
-    				} else {
-    					$shQuery->show("{$Detail->productFieldName},{$suMFld},{$Detail->masterKey},sum,quantityInPack");
-    					$shQuery->groupBy($Detail->productFieldName);
-    				}
+    				$shQuery->show("{$Detail->productFieldName},{$suMFld},{$Detail->masterKey},sum,quantityInPack");
+    				$shQuery->groupBy($Detail->productFieldName);
     				
     				while($sd = $shQuery->fetch()){
     					$storeId = ($isPn) ? $sd->storeId : $sRec->{$storeField};

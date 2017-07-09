@@ -473,6 +473,11 @@ class core_Settings extends core_Manager
             // Записваме данните
             self::setValues($key, (array)$recArr, $userOrRole);
             
+            $pKey = self::prepareKey($key);
+            $rec = self::fetch(array("#key = '[#1#]' AND #userOrRole = '[#2#]'", $pKey, $userOrRole));
+            
+            $this->logWrite('Промяна на настройките', $rec);
+            
             return new Redirect($retUrl);
         }
         
@@ -495,7 +500,7 @@ class core_Settings extends core_Manager
      * 
      * @return string
      */
-    protected static function prepareKey($key)
+    public static function prepareKey($key)
     {
         $key = str::convertToFixedKey($key, 16, 4);
         

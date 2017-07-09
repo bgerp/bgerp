@@ -143,6 +143,23 @@ class bgerp_RefreshRowsPlg extends core_Plugin
             $resObj->arg = array('id' => $divId, 'html' => $status, 'replace' => TRUE);
             
             $res = array($resObj);
+            
+            // Стойности на плейсхолдера
+            $runAfterAjaxArr = $tpl->getArray('JQUERY_RUN_AFTER_AJAX');
+            
+            // Добавя всички функции в масива, които ще се виката
+            if (!empty($runAfterAjaxArr)) {
+            
+                // Да няма повтарящи се функции
+                $runAfterAjaxArr = array_unique($runAfterAjaxArr);
+            
+                foreach ((array)$runAfterAjaxArr as $runAfterAjax) {
+                    $jqResObj = new stdClass();
+                    $jqResObj->func = $runAfterAjax;
+            
+                    $res[] = $jqResObj;
+                }
+            }
         }
         
         return FALSE;

@@ -147,6 +147,12 @@ class doc_UnsortedFolders extends core_Master
      * Кой има право да променя системните данни?  
      */  
     public $canEditsysdata = 'admin';
+    
+    
+    /**  
+     * Кой има право да оттегля системните данни?  
+     */  
+    public $canRejectsysdata = 'admin';
   
     
     /**

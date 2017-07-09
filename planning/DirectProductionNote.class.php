@@ -40,7 +40,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	 * Плъгини за зареждане
 	 */
 	public $loadList = 'plg_RowTools2, store_plg_StoreFilter, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
-                    doc_DocumentPlg, plg_Printing, plg_Clone, plg_Search, bgerp_plg_Blank,doc_plg_HidePrices';
+                    doc_DocumentPlg, plg_Printing, plg_Clone, plg_Search, bgerp_plg_Blank,doc_plg_HidePrices, deals_plg_SetTermDate';
 	
 	
 	/**
@@ -175,7 +175,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	function description()
 	{
 		parent::setDocumentFields($this);
-		$this->setField('deadline', 'input=none');
 		$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,before=storeId');
 		$this->FLD('jobQuantity', 'double(smartRound)', 'caption=Задание,input=hidden,mandatory,after=productId');
 		
@@ -213,10 +212,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		parent::prepareEditForm_($data);
 		$form = &$data->form;
 		$rec = $form->rec;
-		
-		if(isset($form->rec->id)){
-			$form->setField('inputStoreId', 'input=none');
-		}
 		
 		$originRec = doc_Containers::getDocument($form->rec->originId)->rec();
 		$form->setDefault('storeId', $originRec->storeId);
@@ -273,8 +268,18 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 			$form->setField('inputStoreId', array('caption' => 'Допълнително->Влагане от'));
 		}
 		
-		$curStore = store_Stores::getCurrent('id', FALSE);
-		$form->setDefault('storeId', $curStore);
+		$nQuery = self::getQuery();
+		$nQuery->where("#originId = {$rec->originId} AND (#state = 'active' || #state = 'pending')");
+		$nQuery->where("#id != '{$rec->id}'");
+		$nQuery->orderBy('id', 'DESC');
+		$nQuery->limit(1);
+		
+		if($lastRec = $nQuery->fetch()){
+			$form->setDefault('storeId', $lastRec->storeId);
+			$form->setDefault('inputStoreId', $lastRec->inputStoreId);
+		}
+		
+		$form->setDefault('storeId', store_Stores::getCurrent('id', FALSE));
 		
 		return $data;
 	}
@@ -326,6 +331,10 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$row->subTitle = tr($row->subTitle);
 		
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+	
+		if(isset($rec->inputStoreId)){
+			$row->inputStoreId = store_Stores::getHyperlink($rec->inputStoreId, TRUE);
+		}
 	}
 	
 	
