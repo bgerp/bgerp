@@ -123,6 +123,8 @@ class cams_Records extends core_Master
         $this->FLD('playedOn', 'datetime', 'caption=Гледан на');
         $this->FLD('marked', 'enum(no,yes)', 'caption=Маркиран');
         $this->FLD('params', 'text', 'caption=Параметри, input=none');
+
+        $this->setDbIndex('cameraId');
     }
     
     
@@ -647,7 +649,7 @@ class cams_Records extends core_Master
         
         $startPageEndMysql = dt::verbal2mysql($startPageEnd);
         
-        $data->query->where("#startTime >=  '{$startPageMysql}' && #startTime < '{$startPageEndMysql}'");
+        $data->query->where("#startTime >=  '{$startPageMysql}' AND #startTime < '{$startPageEndMysql}'");
         
         $data->query->where("#cameraId = {$fRec->cameraId}");
     }
@@ -667,7 +669,10 @@ class cams_Records extends core_Master
         $pageOpts = $pageState = array();
         while($rec = $query->fetch()) {
             $page = $this->getPageByTime($rec->startTime);
-            $pageOpts[$page] = $page;
+
+            if(!isset($pageOpts[$page])) {
+                $pageOpts[$page] = $page;
+            }
             
             if($cameraId == $rec->cameraId) {
                 $pageState[$page] = TRUE;
@@ -807,9 +812,14 @@ class cams_Records extends core_Master
      */
     function getPageDuration()
     {
-    	$conf = core_Packs::getConfig('cams');
-    	
-        return $conf->CAMS_CLIP_DURATION * $this->getClipsPerPage();
+        static $duration;
+
+        if(!$duration) {
+            $conf = core_Packs::getConfig('cams');
+            $duration = $conf->CAMS_CLIP_DURATION * $this->getClipsPerPage();
+        }
+
+        return $duration;
     }
     
     
