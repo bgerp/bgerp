@@ -343,7 +343,7 @@ class marketing_Bulletins extends core_Master
             
             $thmb = new thumb_Img(array($bRec->logo, 400, 400, 'isAbsolute' => TRUE));
             
-            $logoUrl = $thmb->getUrl();
+            $logoUrl = $thmb->getUrl('deferred');
             
             list($logoWidth, $logoHeight) = $thmb->getSize();
             
