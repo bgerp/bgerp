@@ -162,15 +162,15 @@ class hr_Indicators extends core_Manager
     {
     	$periods = self::saveIndicators($timeline, $persons);
     	
-    	foreach($periods as $id => $rec) {
-    		self::calcPeriod($rec);
-    	}
-    	
     	// Форсиране на лицата в група 'Служители'
     	if(is_array($persons)){
     		foreach ($persons as $personId){
     			crm_Persons::forceGroup($personId, 'employees');
     		}
+    	}
+    	
+    	foreach($periods as $id => $rec) {
+    		self::calcPeriod($rec);
     	}
     }
     
@@ -347,6 +347,15 @@ class hr_Indicators extends core_Manager
                 $prlRec->formula = hr_Positions::fetchField($ecRec->positionId, 'formula');
             }
 			
+            // Ако няма формула. Няма смисъл да се изчислява ведомост
+            if(empty($prlRec->formula)){
+            	if(isset($prlRec->id)){
+            		hr_Payroll::delete($prlRec->id);
+            	}
+            	
+            	continue;
+            }
+            
             // Изчисляване на заплатата
             $prlRec->salary = NULL;
             if($prlRec->formula) {
