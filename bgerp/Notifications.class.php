@@ -553,14 +553,15 @@ class bgerp_Notifications extends core_Manager
         $sArr = array();
         
         $enumChoise = 'enum(default=Автоматично, yes=Винаги, no=Никога)';
+        $enumType = 'input=input,maxRadio=3,columns=3';
         
         if ($folderId) {
             $fKey = doc_Folders::getSettingsKey($folderId);
             
-            $form->FNC('newDoc', $enumChoise, 'caption=Известяване в папки при->Нов документ, input=input');
-            $form->FNC('newThread', $enumChoise, 'caption=Известяване в папки при->Нова тема, input=input');
-            $form->FNC('folOpenings', $enumChoise, 'caption=Известяване в папки при->Отворени теми, input=input');
-            $form->FNC('personalEmailIncoming', $enumChoise, 'caption=Известяване в папки при->Личен имейл, input=input');
+            $form->FNC('newDoc', $enumChoise, "caption=Известяване в папки при->Нов документ, {$enumType}");
+            $form->FNC('newThread', $enumChoise, "caption=Известяване в папки при->Нова тема, {$enumType}");
+            $form->FNC('folOpenings', $enumChoise, "caption=Известяване в папки при->Отворени теми, {$enumType}");
+            $form->FNC('personalEmailIncoming', $enumChoise, "caption=Известяване в папки при->Личен имейл, {$enumType}");
             
             $sArr[$fKey] = array('newDoc', 'newThread', 'folOpenings', 'personalEmailIncoming');
             
@@ -569,12 +570,16 @@ class bgerp_Notifications extends core_Manager
             foreach ($valsArr as $valKey => $val) {
                 $form->setDefault($valKey, $val);
             }
+            
+            foreach ($sArr[$fKey] as $v) {
+                $form->setDefault($v, 'default');
+            }
         }
         
         if ($containerId && $threadId) {
             $tKey = doc_Threads::getSettingsKey($threadId);
             
-            $form->FNC('notify', $enumChoise, 'caption=Известяване в нишки при->Нов документ, input=input');
+            $form->FNC('notify', $enumChoise, "caption=Известяване в нишки при->Нов документ, {$enumType}");
             
             $sArr[$tKey] = array('notify');
             
@@ -582,6 +587,10 @@ class bgerp_Notifications extends core_Manager
             $valsArr = core_Settings::fetchKeyNoMerge($tKey);
             foreach ($valsArr as $valKey => $val) {
                 $form->setDefault($valKey, $val);
+            }
+            
+            foreach ($sArr[$tKey] as $v) {
+                $form->setDefault($v, 'default');
             }
         }
         
