@@ -132,12 +132,6 @@ class purchase_Invoices extends deals_InvoiceMaster
      */
     public $mainDetail = 'purchase_InvoiceDetails';
     
-
-    /**
-     * Поле за филтриране по дата
-     */
-    public $filterDateField = 'createdOn,date,dueDate';
-    
     
     /**
      * Записите от кои детайли на мениджъра да се клонират, при клониране на записа

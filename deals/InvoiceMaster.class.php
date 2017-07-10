@@ -32,12 +32,6 @@ abstract class deals_InvoiceMaster extends core_Master
     /**
      * Поле за филтриране по дата
      */
-    public $filterDateField = 'date';
-    
-    
-    /**
-     * Поле за филтриране по дата
-     */
     public $valiorFld = 'date';
     
     
@@ -69,6 +63,12 @@ abstract class deals_InvoiceMaster extends core_Master
      * Дата на очакване
      */
     public $termDateFld = 'dueDate';
+    
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn,date,dueDate';
     
     
     /**
