@@ -43,7 +43,7 @@ class sales_Sales extends deals_DealMaster
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf,
                           acc_TransactionSourceIntf=sales_transaction_Sale,
                           bgerp_DealIntf, bgerp_DealAggregatorIntf, deals_DealsAccRegIntf, 
-                          acc_RegisterIntf,deals_InvoiceSourceIntf,colab_CreateDocumentIntf,acc_AllowArticlesCostCorrectionDocsIntf,trans_LogisticDataIntf,store_iface_ReserveStockSourceIntf';
+                          acc_RegisterIntf,deals_InvoiceSourceIntf,colab_CreateDocumentIntf,acc_AllowArticlesCostCorrectionDocsIntf,trans_LogisticDataIntf,store_iface_ReserveStockSourceIntf,hr_IndicatorsSourceIntf';
     
     
     /**
@@ -1290,5 +1290,64 @@ class sales_Sales extends deals_DealMaster
     			
     		}
     	}
+    }
+    
+    
+    /**
+     * Интерфейсен метод на hr_IndicatorsSourceIntf
+     *
+     * @param date $date
+     * @return array $result
+     */
+    public static function getIndicatorNames()
+    {
+    	$result = array();
+    	$rec = hr_IndicatorNames::force('Активирани_продажби', __CLASS__, 1);
+    	$result[$rec->id] = $rec->name;
+    
+    	return $result;
+    }
+    
+    
+    /**
+     * Метод за вземане на резултатност на хората. За определена дата се изчислява
+     * успеваемостта на човека спрямо ресурса, които е изпозлвал
+     *
+     * @param date $timeline  - Времето, след което да се вземат всички модифицирани/създадени записи
+     * @return array $result  - масив с обекти
+     *
+     * 			o date        - дата на стайноста
+     * 		    o personId    - ид на лицето
+     *          o docId       - ид на документа
+     *          o docClass    - клас ид на документа
+     *          o indicatorId - ид на индикатора
+     *          o value       - стойноста на инфикатора
+     *          o isRejected  - оттеглена или не. Ако е оттеглена се изтрива от индикаторите
+     */
+    public static function getIndicatorValues($timeline)
+    {
+    	$result = array();
+    	$iRec = hr_IndicatorNames::force('Активирани_продажби', __CLASS__, 1);
+    	 
+    	$query = self::getQuery();
+    	$query->where("#state = 'active' || #state = 'closed' || (#state = 'rejected' && (#brState = 'active' || #brState = 'closed'))");
+    	$query->where("#activatedOn >= '{$timeline}'");
+    	$query->show('activatedBy,activatedOn,state');
+    	 
+    	while($rec = $query->fetch()){
+    		$personId = crm_Profiles::fetchField("#userId = {$rec->activatedBy}", 'personId');
+    		if(empty($personId)) continue;
+    		
+    		$result[] = (object)array('date'        => dt::verbal2mysql($rec->activatedOn, FALSE),
+    								  'personId'    => $personId,
+    								  'docId'       => $rec->id,
+    								  'docClass'    => sales_Sales::getClassId(),
+    								  'indicatorId' => $iRec->id,
+    								  'value'       => 1,
+    								  'isRejected'  => $rec->state == 'rejected',
+    		);
+    	}
+    
+    	return $result;
     }
 }

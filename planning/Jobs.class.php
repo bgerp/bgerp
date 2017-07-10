@@ -1165,7 +1165,6 @@ class planning_Jobs extends core_Master
     public static function getIndicatorValues($timeline)
     {
     	$result = array();
-    	
     	$iRec = hr_IndicatorNames::force('Активирани_задания', __CLASS__, 1);
     	
     	$query = self::getQuery();
