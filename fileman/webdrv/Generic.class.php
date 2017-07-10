@@ -1300,7 +1300,7 @@ class fileman_webdrv_Generic extends core_Manager
             
             // Създаваме съобщение за грешка
             $text = tr("Архива е много голям|*: ") . fileman_Data::getVerbal($dataRec, 'fileLen');
-            $text .= "\n" . tr("Допустимият размер е|*: ") . $fileSizeInst->toVerbal($conf->FILEINFO_MIN_FILE_LEN_BARCODE);
+            $text .= "\n" . tr("Допустимият размер е|*: ") . $fileSizeInst->toVerbal($conf->FILEINFO_MAX_ARCHIVE_LEN);
             
             // Очакваме да не сме влезли тука
             throw new fileman_Exception($text);
