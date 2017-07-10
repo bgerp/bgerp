@@ -169,8 +169,10 @@ class hr_Indicators extends core_Manager
     		}
     	}
     	
-    	foreach($periods as $id => $rec) {
-    		self::calcPeriod($rec);
+    	if(is_array($persons)){
+    		foreach($periods as $id => $rec) {
+    			self::calcPeriod($rec);
+    		}
     	}
     }
     
@@ -179,7 +181,7 @@ class hr_Indicators extends core_Manager
      * Събиране на информация от всички класове
      * имащи интерфейс hr_IndicatorsSourceIntf
      * 
-     * @param date $date
+     * @param date $timeline
      * @param array $persons - лицата
      * @return array $periods - засегнатите периоди
      */
@@ -196,7 +198,7 @@ class hr_Indicators extends core_Manager
         $docArr = core_Classes::getOptionsByInterface('hr_IndicatorsSourceIntf');
         
         // Ако нямаме източници - нищо не правим
-        if(!is_array($docArr) || !count($docArr)) return;
+        if(!is_array($docArr) || !count($docArr)) return $periods;
         
         // Зареждаме всеки един такъв клас
         foreach ($docArr as $class){
