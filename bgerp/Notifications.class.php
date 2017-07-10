@@ -419,26 +419,28 @@ class bgerp_Notifications extends core_Manager
     	if ($rec->userId != core_Users::getCurrent()) return array();
     	
     	$url = self::getUrl($rec);
-    	
+
     	// Отваряне в нов таб
-    	$newTabBtn = ht::createLink(tr('Отвори в нов таб'), $url, NULL, array('ef_icon' => 'img/16/info-16.png', 'title' => 'Отваряне в нов таб', "class" => "button", 'target' => '_blank'));
+    	$newTabBtn = ht::createLink(tr('Отвори в нов таб'), $url, NULL, array('ef_icon' => "img/16/tab-new.png", 'title' => 'Отваряне в нов таб', "class" => "button", 'target' => '_blank'));
     	$tpl->append($newTabBtn);
         
     	if ($rec->state == 'active') {
     	    // Запознаване със съдържанието, но без отмаркиране
     	    $meetUrl = $url;
     	    $meetUrl['ОnlyMeet'] = TRUE;
-    	    $introBtn = ht::createLink(tr('Запознаване'), $meetUrl, NULL, array('ef_icon' => 'img/16/info-16.png', 'title' => 'Запознаване със съдържанието без отмаркиране', "class" => "button"));
+    	    $introBtn = ht::createLink(tr('Запознаване'), $meetUrl, NULL, array('ef_icon' => "img/16/see.png", 'title' => 'Запознаване със съдържанието без отмаркиране', "class" => "button"));
     	    $tpl->append($introBtn);
     	}
         
     	// Маркиране/отмаркиране на текст
     	$markUrl = array(get_called_class(), 'mark', $rec->id, 'ret_url' => TRUE);
     	$markText = 'Маркиране';
+        $iconMark = "img/16/mark.png";
     	if ($rec->state == 'active') {
     	    $markText = 'Отмаркиране';
+            $iconMark = "img/16/unmark.png";
     	}
-    	$markBtn = ht::createLink(tr($markText), $markUrl, NULL, array('ef_icon' => 'img/16/info-16.png', 'title' => 'Запознаване със съдържанието', "class" => "button"));
+    	$markBtn = ht::createLink(tr($markText), $markUrl, NULL, array('ef_icon' => $iconMark, 'title' => 'Запознаване със съдържанието', "class" => "button"));
     	$tpl->append($markBtn);
     	
     	// Бутон за настройки
@@ -448,12 +450,12 @@ class bgerp_Notifications extends core_Manager
         	    $ctrInst = cls::get($ctr);
         	    $settingsUrl = array(get_called_class(), 'settings', $rec->id, 'ret_url' => TRUE);
         	    if (($ctrInst instanceof doc_Folders) || ($ctrInst instanceof doc_Threads) || ($ctrInst instanceof doc_Containers) || (cls::haveInterface('doc_DocumentIntf', $ctrInst))) {
-        	        $settingsBtn = ht::createLink('Настройки', $settingsUrl, NULL, array('ef_icon' => 'img/16/info-16.png', 'title' => 'Запознаване със съдържанието', "class" => "button"));
+        	        $settingsBtn = ht::createLink('Настройки', $settingsUrl, NULL, array('ef_icon' => "img/16/cog.png", 'title' => 'Запознаване със съдържанието', "class" => "button"));
         	        $tpl->append($settingsBtn);
         	    }
     	    }
     	}
-    	
+
     	// Ако сме в AJAX режим
     	if(Request::get('ajax_mode')) {
     		$resObj = new stdClass();
