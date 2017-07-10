@@ -74,6 +74,10 @@
   float: none;
 }
 
+.portal .modal-toolbar, .bgerp_Notifications .modal-toolbar {
+  min-height: 40px !important;
+}
+
 .modal-toolbar{
   display: none;
 }
