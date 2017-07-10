@@ -419,26 +419,28 @@ class bgerp_Notifications extends core_Manager
     	if ($rec->userId != core_Users::getCurrent()) return array();
     	
     	$url = self::getUrl($rec);
-    	
+
     	// Отваряне в нов таб
-    	$newTabBtn = ht::createLink(tr('Отвори в нов таб'), $url, NULL, array('ef_icon' => 'img/16/info-16.png', 'title' => 'Отваряне в нов таб', "class" => "button", 'target' => '_blank'));
+    	$newTabBtn = ht::createLink(tr('Отвори в нов таб'), $url, NULL, array('ef_icon' => "img/16/tab-new.png", 'title' => 'Отваряне в нов таб', "class" => "button", 'target' => '_blank'));
     	$tpl->append($newTabBtn);
         
     	if ($rec->state == 'active') {
     	    // Запознаване със съдържанието, но без отмаркиране
     	    $meetUrl = $url;
     	    $meetUrl['ОnlyMeet'] = TRUE;
-    	    $introBtn = ht::createLink(tr('Запознаване'), $meetUrl, NULL, array('ef_icon' => 'img/16/info-16.png', 'title' => 'Запознаване със съдържанието без отмаркиране', "class" => "button"));
+    	    $introBtn = ht::createLink(tr('Запознаване'), $meetUrl, NULL, array('ef_icon' => "img/16/see.png", 'title' => 'Запознаване със съдържанието без отмаркиране', "class" => "button"));
     	    $tpl->append($introBtn);
     	}
         
     	// Маркиране/отмаркиране на текст
     	$markUrl = array(get_called_class(), 'mark', $rec->id, 'ret_url' => TRUE);
     	$markText = 'Маркиране';
+        $iconMark = "img/16/mark.png";
     	if ($rec->state == 'active') {
     	    $markText = 'Отмаркиране';
+            $iconMark = "img/16/unmark.png";
     	}
-    	$markBtn = ht::createLink(tr($markText), $markUrl, NULL, array('ef_icon' => 'img/16/info-16.png', 'title' => 'Запознаване със съдържанието', "class" => "button"));
+    	$markBtn = ht::createLink(tr($markText), $markUrl, NULL, array('ef_icon' => $iconMark, 'title' => 'Запознаване със съдържанието', "class" => "button"));
     	$tpl->append($markBtn);
     	
     	// Бутон за настройки
@@ -448,12 +450,12 @@ class bgerp_Notifications extends core_Manager
         	    $ctrInst = cls::get($ctr);
         	    $settingsUrl = array(get_called_class(), 'settings', $rec->id, 'ret_url' => TRUE);
         	    if (($ctrInst instanceof doc_Folders) || ($ctrInst instanceof doc_Threads) || ($ctrInst instanceof doc_Containers) || (cls::haveInterface('doc_DocumentIntf', $ctrInst))) {
-        	        $settingsBtn = ht::createLink('Настройки', $settingsUrl, NULL, array('ef_icon' => 'img/16/info-16.png', 'title' => 'Запознаване със съдържанието', "class" => "button"));
+        	        $settingsBtn = ht::createLink('Настройки', $settingsUrl, NULL, array('ef_icon' => "img/16/cog.png", 'title' => 'Запознаване със съдържанието', "class" => "button"));
         	        $tpl->append($settingsBtn);
         	    }
     	    }
     	}
-    	
+
     	// Ако сме в AJAX режим
     	if(Request::get('ajax_mode')) {
     		$resObj = new stdClass();
@@ -551,14 +553,26 @@ class bgerp_Notifications extends core_Manager
         $sArr = array();
         
         $enumChoise = 'enum(default=Автоматично, yes=Винаги, no=Никога)';
+        $enumTypeArr = array('input' => 'input', 'maxRadio' => 3, 'columns' => 3);
         
         if ($folderId) {
             $fKey = doc_Folders::getSettingsKey($folderId);
             
-            $form->FNC('newDoc', $enumChoise, 'caption=Известяване в папки при->Нов документ, input=input');
-            $form->FNC('newThread', $enumChoise, 'caption=Известяване в папки при->Нова тема, input=input');
-            $form->FNC('folOpenings', $enumChoise, 'caption=Известяване в папки при->Отворени теми, input=input');
-            $form->FNC('personalEmailIncoming', $enumChoise, 'caption=Известяване в папки при->Личен имейл, input=input');
+            $folderTitle = doc_Folders::getLinkForObject($folderId);
+            
+            $fCaption = "Известяване в|* {$folderTitle} |при";
+            
+            $enumTypeArr['caption'] = $fCaption . '->Нов документ';
+            $form->FNC('newDoc', $enumChoise, $enumTypeArr);
+            
+            $enumTypeArr['caption'] = $fCaption . '->Нова тема';
+            $form->FNC('newThread', $enumChoise, $enumTypeArr);
+            
+            $enumTypeArr['caption'] = $fCaption . '->Отворени теми';
+            $form->FNC('folOpenings', $enumChoise, $enumTypeArr);
+            
+            $enumTypeArr['caption'] = $fCaption . '->Личен имейл';
+            $form->FNC('personalEmailIncoming', $enumChoise, $enumTypeArr);
             
             $sArr[$fKey] = array('newDoc', 'newThread', 'folOpenings', 'personalEmailIncoming');
             
@@ -567,12 +581,20 @@ class bgerp_Notifications extends core_Manager
             foreach ($valsArr as $valKey => $val) {
                 $form->setDefault($valKey, $val);
             }
+            
+            foreach ($sArr[$fKey] as $v) {
+                $form->setDefault($v, 'default');
+            }
         }
         
         if ($containerId && $threadId) {
             $tKey = doc_Threads::getSettingsKey($threadId);
             
-            $form->FNC('notify', $enumChoise, 'caption=Известяване в нишки при->Нов документ, input=input');
+            $threadTitle = doc_Threads::getLinkForObject($threadId);
+            $tCaption = "Известяване в|* {$threadTitle} |при";
+            $enumTypeArr['caption'] = $tCaption . '->Нов документ';
+            
+            $form->FNC('notify', $enumChoise, $enumTypeArr);
             
             $sArr[$tKey] = array('notify');
             
@@ -580,6 +602,10 @@ class bgerp_Notifications extends core_Manager
             $valsArr = core_Settings::fetchKeyNoMerge($tKey);
             foreach ($valsArr as $valKey => $val) {
                 $form->setDefault($valKey, $val);
+            }
+            
+            foreach ($sArr[$tKey] as $v) {
+                $form->setDefault($v, 'default');
             }
         }
         
@@ -659,13 +685,29 @@ class bgerp_Notifications extends core_Manager
         $query = $Notifications->getQuery();
         $query->where("#userId = $userId");
         $query->limit(1);
+        
+        $cQuery = clone $query;
+                
         $query->orderBy("#modifiedOn", 'DESC');
         $lastRec = $query->fetch();
-        $key = md5($userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . Request::get('P_bgerp_Notifications') . '_' . Request::get('noticeSearch') . '_' . core_Lg::getCurrent());
+        
+        $lastModifiedOn = $lastRec->modifiedOn;
+        $lastRecId = $lastRec->id;
+        
+        $modifiedBefore = dt::subtractSecs(180);
+        
+        // Инвалиидиране на кеша след запазване на подредбата -  да не стои запазено до следващото инвалидиране
+        $cQuery->where(array("#modifiedOn >= '[#1#]'", $modifiedBefore));
+        if ($cLastRec = $cQuery->fetch()) {
+            $lastModifiedOn = $lastRec->lastTime;
+            $lastRecId = $cLastRec->id;
+        }
+        
+        $key = md5($userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . Request::get('P_bgerp_Notifications') . '_' . Request::get('noticeSearch') . '_' . core_Lg::getCurrent() . '_' . $lastRecId);
 
         list($tpl, $modifiedOn) = core_Cache::get('Notifications', $key);
- 
-        if(!$tpl || $modifiedOn != $lastRec->modifiedOn) {
+        
+        if(!$tpl || $modifiedOn != $lastModifiedOn) {
 
             // Създаваме обекта $data
             $data = new stdClass();
@@ -680,8 +722,7 @@ class bgerp_Notifications extends core_Manager
             
             $data->query->where("#userId = {$userId} AND #hidden != 'yes'");
             
-            $modifiedBefore = dt::subtractSecs(180);
-            $data->query->XPR('modifiedOnTop', 'datetime', "IF((((#modifiedOn >= '{$modifiedBefore}') || (#state = 'active'))), IF((#state = 'active'), #modifiedOn, #lastTime), NULL)");
+            $data->query->XPR('modifiedOnTop', 'datetime', "IF((((#modifiedOn > '{$modifiedBefore}') || (#state = 'active'))), IF((#state = 'active'), #modifiedOn, #lastTime), NULL)");
             $data->query->orderBy("modifiedOnTop", "DESC");
             
             $data->query->orderBy("modifiedOn=DESC");
@@ -690,8 +731,7 @@ class bgerp_Notifications extends core_Manager
                 $data->query->where("#state = 'active'");
                 
                 // Нотификациите, модифицирани в скоро време да се показват
-                $before = dt::subtractSecs(200);
-                $data->query->orWhere("#modifiedOn >= '{$before}'");
+                $data->query->orWhere("#modifiedOn > '{$modifiedBefore}'");
             }
             
             // Подготвяме филтрирането
@@ -715,7 +755,7 @@ class bgerp_Notifications extends core_Manager
             // Рендираме изгледа
             $tpl = $Notifications->renderPortal($data);
 
-             core_Cache::set('Notifications', $key, array($tpl, $lastRec->modifiedOn), doc_Setup::get('CACHE_LIFETIME'));
+            core_Cache::set('Notifications', $key, array($tpl, $lastModifiedOn), doc_Setup::get('CACHE_LIFETIME'));
         }
         
         //Задаваме текущото време, за последно преглеждане на нотификациите

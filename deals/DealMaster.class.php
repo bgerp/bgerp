@@ -126,9 +126,11 @@ abstract class deals_DealMaster extends deals_DealBase
 				$balance = -1 * $balance;
 			}
 			
-			// Ако неплатеното е повече от допуснатото отклонение, то сделката е просрочена
-			$difference = trim($balance) - trim($valueToCompare);
-			if(!($difference >= -5 && $difference <= 5)) return 'overdue';
+			$balance = round($balance, 4);
+			$valueToCompare = round($valueToCompare, 4);
+			$difference = $balance - $valueToCompare;
+			
+			if($balance > $valueToCompare && ($difference < -5 || $difference > 5)) return 'overdue';
 		} else {
 			
 			// Ако няма фактури, гледаме имали платежен план
