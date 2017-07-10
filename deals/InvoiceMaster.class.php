@@ -66,6 +66,12 @@ abstract class deals_InvoiceMaster extends core_Master
     
     
     /**
+     * Дата на очакване
+     */
+    public $termDateFld = 'dueDate';
+    
+    
+    /**
      * След описанието на полетата
      */
     protected static function setInvoiceFields(core_Master &$mvc)
