@@ -160,10 +160,17 @@ class hr_Indicators extends core_Manager
      */
     private static function recalc($timeline)
     {
-    	$periods = self::saveIndicators($timeline);
+    	$periods = self::saveIndicators($timeline, $persons);
     	
     	foreach($periods as $id => $rec) {
     		self::calcPeriod($rec);
+    	}
+    	
+    	// Форсиране на лицата в група 'Служители'
+    	if(is_array($persons)){
+    		foreach ($persons as $personId){
+    			crm_Persons::forceGroup($personId, 'employees');
+    		}
     	}
     }
     
@@ -173,9 +180,10 @@ class hr_Indicators extends core_Manager
      * имащи интерфейс hr_IndicatorsSourceIntf
      * 
      * @param date $date
-     * @return array $indicators
+     * @param array $persons - лицата
+     * @return array $periods - засегнатите периоди
      */
-    public static function saveIndicators($timeline)
+    public static function saveIndicators($timeline, &$persons = array())
     {  
         // Записите за кои документи, трябва да почистим (id-та в ключовете), 
         // оставяйки определени записи (id-та в масива - стойност)
@@ -228,6 +236,8 @@ class hr_Indicators extends core_Manager
                                                 AND #indicatorId = '{$rec->indicatorId}' AND #sourceClass = {$rec->sourceClass}
                                                 AND #date = '{$rec->date}'"));
  
+                    $persons[$rec->personId] = $rec->personId;
+                     
                     if($exRec) {
                         $rec->id = $exRec->id;
                         $forClean[$key][$rec->id] = $rec->id;
