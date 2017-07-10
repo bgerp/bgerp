@@ -553,15 +553,26 @@ class bgerp_Notifications extends core_Manager
         $sArr = array();
         
         $enumChoise = 'enum(default=Автоматично, yes=Винаги, no=Никога)';
-        $enumType = 'input=input,maxRadio=3,columns=3';
+        $enumTypeArr = array('input' => 'input', 'maxRadio' => 3, 'columns' => 3);
         
         if ($folderId) {
             $fKey = doc_Folders::getSettingsKey($folderId);
             
-            $form->FNC('newDoc', $enumChoise, "caption=Известяване в папки при->Нов документ, {$enumType}");
-            $form->FNC('newThread', $enumChoise, "caption=Известяване в папки при->Нова тема, {$enumType}");
-            $form->FNC('folOpenings', $enumChoise, "caption=Известяване в папки при->Отворени теми, {$enumType}");
-            $form->FNC('personalEmailIncoming', $enumChoise, "caption=Известяване в папки при->Личен имейл, {$enumType}");
+            $folderTitle = doc_Folders::getLinkForObject($folderId);
+            
+            $fCaption = "Известяване в|* {$folderTitle} |при";
+            
+            $enumTypeArr['caption'] = $fCaption . '->Нов документ';
+            $form->FNC('newDoc', $enumChoise, $enumTypeArr);
+            
+            $enumTypeArr['caption'] = $fCaption . '->Нова тема';
+            $form->FNC('newThread', $enumChoise, $enumTypeArr);
+            
+            $enumTypeArr['caption'] = $fCaption . '->Отворени теми';
+            $form->FNC('folOpenings', $enumChoise, $enumTypeArr);
+            
+            $enumTypeArr['caption'] = $fCaption . '->Личен имейл';
+            $form->FNC('personalEmailIncoming', $enumChoise, $enumTypeArr);
             
             $sArr[$fKey] = array('newDoc', 'newThread', 'folOpenings', 'personalEmailIncoming');
             
@@ -579,7 +590,11 @@ class bgerp_Notifications extends core_Manager
         if ($containerId && $threadId) {
             $tKey = doc_Threads::getSettingsKey($threadId);
             
-            $form->FNC('notify', $enumChoise, "caption=Известяване в нишки при->Нов документ, {$enumType}");
+            $threadTitle = doc_Threads::getLinkForObject($threadId);
+            $tCaption = "Известяване в|* {$threadTitle} |при";
+            $enumTypeArr['caption'] = $tCaption . '->Нов документ';
+            
+            $form->FNC('notify', $enumChoise, $enumTypeArr);
             
             $sArr[$tKey] = array('notify');
             
