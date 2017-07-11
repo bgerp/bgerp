@@ -216,7 +216,7 @@ class sales_Invoices extends deals_InvoiceMaster
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'date,dueDate,vatDate';
+    public $fieldsNotToClone = 'date,dueTime,dueDate,vatDate';
     
     
     /**
