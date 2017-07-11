@@ -219,7 +219,7 @@ class acc_plg_DocumentSummary extends core_Plugin
             if (count($dateRange) == 2) {
                 sort($dateRange);
             }
-
+ 
             if($showFilterDateField) {
                 $fromField = $filter->filterDateField ? $filter->filterDateField : $defaultFilterDateField;
                 $toField = $fromField;
@@ -227,22 +227,22 @@ class acc_plg_DocumentSummary extends core_Plugin
                 $fromField = ($mvc->filterFieldDateTo) ? $mvc->filterFieldDateTo : $mvc->filterDateField;
                 $toField = ($mvc->filterFieldDateFrom) ? $mvc->filterFieldDateFrom : $mvc->filterDateField;
             }
-            
+         
             if($dateRange[0] && $dateRange[1]) {
-            	$extraFld1 = (!empty($mvc->termDateFld)) ? " AND #{$mvc->termDateFld} IS NULL" : '';
             	
+                //$extraFld1 = (!empty($mvc->termDateFld)) ? " AND #{$mvc->termDateFld} IS NULL" : '';
             	
                 if($fromField) {
-                    $where = "((#{$fromField} >= '[#1#]' AND #{$fromField} <= '[#2#] 23:59:59') OR (#{$fromField} IS NULL{$extraFld1}))";
+                    $where = "((#{$fromField} >= '[#1#]' AND #{$fromField} <= '[#2#] 23:59:59'))";
                 }
 
                 if($toField && $toField != $fromField) {
-                    $where .= " OR ((#{$toField} >= '[#1#]' AND #{$toField} <= '[#2#] 23:59:59') OR (#{$toField} IS NULL{$extraFld1}))";
+                    $where .= " OR ((#{$toField} >= '[#1#]' AND #{$toField} <= '[#2#] 23:59:59'))";
                 }
-                
+         
                 if(!empty($mvc->termDateFld)){
-                	$extraField = (!empty($mvc->termDateFld)) ? " OR (#{$mvc->termDateFld} >= '[#1#]' AND #{$mvc->termDateFld} <= '[#2#] 23:59:59')" : '';
-                	$where .= $extraField;
+                //	$extraField = (!empty($mvc->termDateFld)) ? " OR (#{$mvc->termDateFld} >= '[#1#]' AND #{$mvc->termDateFld} <= '[#2#] 23:59:59')" : '';
+                //	$where .= $extraField;
                 }
                
                $data->query->where(array($where, $dateRange[0], $dateRange[1]));
