@@ -121,7 +121,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 				
 				$entries[] = array('amount' => round($sign * $vatAmount, 2),
 						'debit' => $debitArr,
-						'credit' => array('4530'),
+						'credit' => array('4530', array($correspondingDoc->getInstance()->getClassId(), $correspondingDoc->that)),
 				);
 					
 				$total += round($sign * $vatAmount, 2);
@@ -162,7 +162,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 				$creditArr['quantity'] = $sign * currency_Currencies::round($creditArr['quantity'], $correspondingDoc->fetchField('currencyId'));
 				
 				$entries[] = array('amount' => round($sign * $vatAmount, 2),
-						'debit' => array('4530'),
+						'debit' => array('4530', array($correspondingDoc->getInstance()->getClassId(), $correspondingDoc->that)),
 						'credit' => $creditArr,
 				);
 					
