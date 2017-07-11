@@ -261,7 +261,7 @@ class acc_ValueCorrections extends core_Master
     		$count++;
     	}
     	
-    	$listFields = arr::make("count=№,name=Артикул,amount=Сума,allocated=|Разпределено|* ({$data->row->baseCurrencyCode}) |без ДДС|*", TRUE);
+    	$listFields = arr::make("count=№,name=Артикул,amount=Сума,allocated=|Разпределени|* ({$data->row->baseCurrencyCode}) |без ДДС|*", TRUE);
     	
     	// Взависимост от признака на разпределяне, показваме колоната възоснова на която е разпределено
     	switch($data->rec->allocateBy){
