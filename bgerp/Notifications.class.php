@@ -705,9 +705,9 @@ class bgerp_Notifications extends core_Manager
         
         $key = md5($userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . Request::get('P_bgerp_Notifications') . '_' . Request::get('noticeSearch') . '_' . core_Lg::getCurrent());
         
-        list($tpl, $modifiedOn) = core_Cache::get('Notifications', $key);
+        list($tpl, $modifiedOnKey) = core_Cache::get('Notifications', $key);
         
-        if(!$tpl || $modifiedOn != $lastModifiedOnKey) {
+        if(!$tpl || $modifiedOnKey != $lastModifiedOnKey) {
 
             // Създаваме обекта $data
             $data = new stdClass();
