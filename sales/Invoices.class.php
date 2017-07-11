@@ -744,7 +744,7 @@ class sales_Invoices extends deals_InvoiceMaster
    	    
    	    foreach ($recs as &$rec) {
    	        $rec->number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
-   	        $rec->dealValue = round($rec->dealValue + $rec->vatAmount - $rec->discountAmount, 2);
+   	        $rec->dealValue = round($rec->dealValue - $rec->discountAmount, 2);
    	    }
    	}
    	
