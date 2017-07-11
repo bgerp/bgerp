@@ -102,9 +102,9 @@ class unit_MinkPListProduct extends core_Manager {
         
         // Добавяне на артикул
         $browser->press('Артикул');
-        $browser->setValue('productId', 'Артикул ДДС 9');
+        $browser->setValue('productId', 'Други стоки');
         $browser->refresh('Запис');
-        $browser->setValue('reff', 'D9');
+        $browser->setValue('reff', 'goods');
         $browser->setValue('moq', '20');
         $browser->setValue('multiplicity', '10');
        
