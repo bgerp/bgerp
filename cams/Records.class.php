@@ -123,6 +123,7 @@ class cams_Records extends core_Master
         $this->FLD('playedOn', 'datetime', 'caption=Гледан на');
         $this->FLD('marked', 'enum(no,yes)', 'caption=Маркиран');
         $this->FLD('params', 'text', 'caption=Параметри, input=none');
+        $this->FLD('isAnalyzed', 'enum(no,yes)', 'caption=Анализиране?, input=none');
 
         $this->setDbIndex('cameraId');
     }
@@ -1021,11 +1022,25 @@ class cams_Records extends core_Master
     
     
     /**
-     * Метод за Cron за почистване на таблицата
+     * Метод за Cron за анализиране на записите
+     * Извикава се на всеки 5 минути (300 секунди).
      */
-    function cron_RefreshRecords()
+    function cron_Analyze()
     {
-        return $this->refrefRecords();
+
+        // Вземаме всички записи, които не са анализирани, под 100 са, и са започнати 
+        // преди повече от $conf->CAMS_CLIP_DURATION + 7 сек. от най-новите към по-старите
+
+        // За всеки запис намираме файла му. Пускаме ffmpeg -i 11-07-17_05-00-35.mp4 -an -vf "select=gt(scene\,0.03),setpts=N/(2*TB)" keyframes_no_no_movie%03d.png
+
+        // Ако имаме получени картинки, вадим максимално до 4 от тях и викаме: montage keyframes001.png keyframes002.png keyframes003.png keyframes005.png -geometry 512x384+2+2 result.png
+        // Ако имаме само 1 картинка - нищо не правим. Ако имаме 2 или 3, повтаряме последтата 
+
+        // Резултатната снимка записваме като файла за картинка, а нейния thumb - в пътя за тъмб
+
+        // Отбелязваме че записа е анализиран
+
+        // Ако е наближило 300 секунди от началото на процеса - излизаме иначе, продължаваме от начало
     }
     
 }
