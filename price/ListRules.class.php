@@ -588,15 +588,6 @@ class price_ListRules extends core_Detail
             if(!$form->gotErrors()) {
                 Mode::setPermanent('PRICE_VALID_UNTIL', $rec->validUntil);
             }
-            
-            if($rec->type == 'value' && isset($rec->price)){
-            	
-            	// Проверка на цената
-            	if(!deals_Helper::isPriceAllowed($rec->price, 1, FALSE, $msg)){
-            		$form->setError('packPrice', $msg);
-            		unset($rec->price);
-            	}
-            }
         }
     }
 
