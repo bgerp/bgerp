@@ -862,7 +862,7 @@ class bgerp_Notifications extends core_Manager
         } else {
             
             // Добавяме поле във формата за търсене
-            $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager|admin)', 'caption=Потребител,input,silent,autoFilter');
+            $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo|admin, rolesForTeams=ceo|manager|admin)', 'caption=Потребител,input,silent,autoFilter');
             
             // Кои полета да се показват
             $data->listFilter->showFields = "{$mvc->searchInputField}, usersSearch";
@@ -876,8 +876,16 @@ class bgerp_Notifications extends core_Manager
             // Ако не е избран потребител по подразбиране
             if(!$data->listFilter->rec->usersSearch) {
                 
-                // Да е текущия
-                $data->listFilter->rec->usersSearch = '|' . core_Users::getCurrent() . '|';
+                if ($data->listFilter->rec->id) {
+                    $f = 'all_users';
+                } else {
+                    $uArr = $data->listFilter->getField('usersSearch')->type->getUserFromTeams($f);
+                    reset($uArr);
+                    $f = key($uArr);
+                }
+                
+                $default = $data->listFilter->getField('usersSearch')->type->fitInDomain($f);
+                $data->listFilter->setDefault('usersSearch', $default);
             }
             
             // Ако има филтър
