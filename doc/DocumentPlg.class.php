@@ -681,6 +681,8 @@ class doc_DocumentPlg extends core_Plugin
     	if(count($mvc->pendingQueue)) {
     		foreach ($mvc->pendingQueue as $rec){
     			
+    		    $notifyArr = array();
+    		    
     			// Подготвяме потребителите, които ще получат нотификация за заявката
     			if ($rec->folderId) {
     				$fRec = doc_Folders::fetch($rec->folderId);
