@@ -162,9 +162,11 @@ class email_Router extends core_Manager
      * @param string $toEmail има значение само при $type == email_Router::RuleFromTo, в противен
      * случай се игнорира (може да е NULL)
      * @param string $type email_Router::RuleFromTo | email_Router::RuleFrom | email_Router::RuleDomain
+     * @param boolean $bForce 
+     * 
      * @return int key(mvc=doc_Folders)
      */
-    public static function route($fromEmail, $toEmail, $type)
+    public static function route($fromEmail, $toEmail, $type, $bForce = TRUE)
     {
         $key = static::getRoutingKey($fromEmail, $toEmail, $type);
         
@@ -180,12 +182,12 @@ class email_Router extends core_Manager
                     break;
                 case 'person' :
                     if(crm_Persons::fetch($rec->objectId)) {
-                        $folderId = crm_Persons::forceCoverAndFolder($rec->objectId);
+                        $folderId = crm_Persons::forceCoverAndFolder($rec->objectId, $bForce);
                     }
                     break;
                 case 'company' :
                     if(crm_Companies::fetch($rec->objectId)) {
-                        $folderId = crm_Companies::forceCoverAndFolder($rec->objectId);
+                        $folderId = crm_Companies::forceCoverAndFolder($rec->objectId, $bForce);
                     }
                     break;
                 default :
