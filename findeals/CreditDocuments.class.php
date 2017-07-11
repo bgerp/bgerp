@@ -111,6 +111,12 @@ class findeals_CreditDocuments extends deals_Document
     
     
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, valior,modifiedOn';
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
