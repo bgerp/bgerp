@@ -190,6 +190,12 @@ class hr_Leaves extends core_Master
     
     
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, leaveFrom,leaveTo, modifiedOn';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
