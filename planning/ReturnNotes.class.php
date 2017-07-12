@@ -139,6 +139,12 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 	
 	
 	/**
+	 * Поле за филтриране по дата
+	 */
+	public $filterDateField = 'createdOn, valior,deadline,modifiedOn';
+	
+	
+	/**
 	 * Описание на модела
 	 */
 	function description()

@@ -148,6 +148,12 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	 */
 	public $singleIcon = 'img/16/produce_in.png';
 	
+ 
+	/**
+	 * Поле за филтриране по дата
+	 */
+	public $filterDateField = 'createdOn, valior,deadline,modifiedOn';
+	
 	
 	/**
 	 * Описание на модела
@@ -233,7 +239,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	{
 		$rec = &$data->rec;
 		
-		if($rec->state == 'active' && planning_ReturnNotes::haveRightFor('add', (object)array('originId' => $rec->containerId))){
+		if($rec->state == 'active' && planning_ReturnNotes::haveRightFor('add', (object)array('originId' => $rec->containerId, 'threadId' => $rec->threadId))){
 			$data->toolbar->addBtn('Връщане', array('planning_ReturnNotes', 'add', 'originId' => $rec->containerId, 'storeId' => $rec->storeId, 'ret_url' => TRUE), NULL, 'ef_icon = img/16/produce_out.png,title=Връщане на артикули от производството');
 		}
 	}

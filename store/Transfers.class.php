@@ -198,6 +198,11 @@ class store_Transfers extends core_Master
 	public $hideListFieldsIfEmpty = 'deliveryTime';
 	
 	
+	/**
+	 * Поле за филтриране по дата
+	 */
+	public $filterDateField = 'createdOn, valior,deliveryTime,modifiedOn';
+	
     /**
      * Описание на модела (таблицата)
      */

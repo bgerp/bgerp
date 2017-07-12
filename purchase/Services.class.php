@@ -192,6 +192,12 @@ class purchase_Services extends deals_ServiceMaster
     
     
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, valior,deliveryTime,modifiedOn';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()

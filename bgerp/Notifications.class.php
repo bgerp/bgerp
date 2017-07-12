@@ -691,23 +691,23 @@ class bgerp_Notifications extends core_Manager
         $query->orderBy("#modifiedOn", 'DESC');
         $lastRec = $query->fetch();
         
-        $lastModifiedOn = $lastRec->modifiedOn;
-        $lastRecId = $lastRec->id;
+        $lastModifiedOnKey = $lastRec->modifiedOn;
+        $lastModifiedOnKey .= '|' . $lastRec->id;
         
         $modifiedBefore = dt::subtractSecs(180);
         
         // Инвалиидиране на кеша след запазване на подредбата -  да не стои запазено до следващото инвалидиране
         $cQuery->where(array("#modifiedOn >= '[#1#]'", $modifiedBefore));
         if ($cLastRec = $cQuery->fetch()) {
-            $lastModifiedOn = $lastRec->lastTime;
-            $lastRecId = $cLastRec->id;
+            $lastModifiedOnKey .= '|' . $lastRec->lastTime;
+            $lastModifiedOnKey .= '|' . $cLastRec->id;
         }
         
-        $key = md5($userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . Request::get('P_bgerp_Notifications') . '_' . Request::get('noticeSearch') . '_' . core_Lg::getCurrent() . '_' . $lastRecId);
-
-        list($tpl, $modifiedOn) = core_Cache::get('Notifications', $key);
+        $key = md5($userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . Request::get('P_bgerp_Notifications') . '_' . Request::get('noticeSearch') . '_' . core_Lg::getCurrent());
         
-        if(!$tpl || $modifiedOn != $lastModifiedOn) {
+        list($tpl, $modifiedOnKey) = core_Cache::get('Notifications', $key);
+        
+        if(!$tpl || $modifiedOnKey != $lastModifiedOnKey) {
 
             // Създаваме обекта $data
             $data = new stdClass();
@@ -755,7 +755,7 @@ class bgerp_Notifications extends core_Manager
             // Рендираме изгледа
             $tpl = $Notifications->renderPortal($data);
 
-            core_Cache::set('Notifications', $key, array($tpl, $lastModifiedOn), doc_Setup::get('CACHE_LIFETIME'));
+            core_Cache::set('Notifications', $key, array($tpl, $lastModifiedOnKey), doc_Setup::get('CACHE_LIFETIME'));
         }
         
         //Задаваме текущото време, за последно преглеждане на нотификациите
@@ -862,7 +862,7 @@ class bgerp_Notifications extends core_Manager
         } else {
             
             // Добавяме поле във формата за търсене
-            $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager|admin)', 'caption=Потребител,input,silent,autoFilter');
+            $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo|admin, rolesForTeams=ceo|manager|admin)', 'caption=Потребител,input,silent,autoFilter');
             
             // Кои полета да се показват
             $data->listFilter->showFields = "{$mvc->searchInputField}, usersSearch";
@@ -876,8 +876,16 @@ class bgerp_Notifications extends core_Manager
             // Ако не е избран потребител по подразбиране
             if(!$data->listFilter->rec->usersSearch) {
                 
-                // Да е текущия
-                $data->listFilter->rec->usersSearch = '|' . core_Users::getCurrent() . '|';
+                if ($data->listFilter->rec->id) {
+                    $f = 'all_users';
+                } else {
+                    $uArr = $data->listFilter->getField('usersSearch')->type->getUserFromTeams();
+                    reset($uArr);
+                    $f = key($uArr);
+                }
+                
+                $default = $data->listFilter->getField('usersSearch')->type->fitInDomain($f);
+                $data->listFilter->setDefault('usersSearch', $default);
             }
             
             // Ако има филтър

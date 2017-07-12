@@ -204,7 +204,7 @@ class sales_PrimeCostByDocument extends core_Manager
 	 * @param array $masters      - помощен масив
 	 * @return core_Query $iQuery - подготвената заявка
 	 */
-	private static function getIndicatorQuery($timeline, &$masters)
+	public static function getIndicatorQuery($timeline, &$masters)
 	{
 		$iQuery = self::getQuery();
 		
