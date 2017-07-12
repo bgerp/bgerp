@@ -539,6 +539,7 @@ class cams_Records extends core_Master
             $rec->startTime = $startTime;
             $rec->duration = $conf->CAMS_CLIP_DURATION;
             $rec->marked = 'no';
+            $rec->isAnalyzed = 'no';
             $rec->params = json_encode(array("FPS"=>$driver->getFPS(), "width"=>$driver->getWidth(), "height"=>$driver->getHeight()));
             
             $this->save($rec);
@@ -1027,11 +1028,21 @@ class cams_Records extends core_Master
      */
     function cron_Analyze()
     {
-
         // Вземаме всички записи, които не са анализирани, под 100 са, и са започнати 
         // преди повече от $conf->CAMS_CLIP_DURATION + 7 сек. от най-новите към по-старите
-
-        // За всеки запис намираме файла му. Пускаме ffmpeg -i 11-07-17_05-00-35.mp4 -an -vf "select=gt(scene\,0.03),setpts=N/(2*TB)" keyframes_no_no_movie%03d.png
+        $query = $this->getQuery();
+        
+        $query->orderBy('startTime');
+        $before5min = dt::addsecs(-5*60);
+        $query->where("#startTime < '{$before5min}' AND #isAnalyzed = 'no'");
+        $query->limit(100);
+        
+        while ($rec = $query->fetch()) {
+            $paths = $this->getFilePaths($rec->startTime, $rec->id);
+           // bp($paths);
+        }
+       // bp($rec);
+        // За всеки запис намираме файла му. Пускаме ffmpeg -i 11-07-17_05-00-35.mp4 -an -vf "select=gt(scene\,0.03),setpts=N/(2*TB)" keyframes_no_no_movie%03d.jpg
 
         // Ако имаме получени картинки, вадим максимално до 4 от тях и викаме: montage keyframes001.png keyframes002.png keyframes003.png keyframes005.png -geometry 512x384+2+2 result.png
         // Ако имаме само 1 картинка - нищо не правим. Ако имаме 2 или 3, повтаряме последтата 
@@ -1043,4 +1054,15 @@ class cams_Records extends core_Master
         // Ако е наближило 300 секунди от началото на процеса - излизаме иначе, продължаваме от начало
     }
     
+    
+    /**
+     * Ръчен метод за тестване на кеон метода за детектиране на движение
+     * 
+     */
+    function act_Analyze()
+    {
+        requireRole('admin');
+        
+        $this->cron_Analyze();
+    }
 }
