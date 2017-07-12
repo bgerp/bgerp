@@ -94,6 +94,12 @@ class cash_Pko extends cash_Document
     
     
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, termDate,modifiedOn';
+
+    
+    /**
      * Описание на модела
      */
     function description()
