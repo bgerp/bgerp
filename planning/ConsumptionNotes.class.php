@@ -148,6 +148,12 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	 */
 	public $singleIcon = 'img/16/produce_in.png';
 	
+ 
+	/**
+	 * Поле за филтриране по дата
+	 */
+	public $filterDateField = 'createdOn, valior,deadline,modifiedOn';
+	
 	
 	/**
 	 * Описание на модела

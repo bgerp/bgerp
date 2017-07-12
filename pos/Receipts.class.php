@@ -139,6 +139,12 @@ class pos_Receipts extends core_Master {
     
     
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, valior,modifiedOn';
+    
+    
+    /**
      * Описание на модела
      */
     function description()

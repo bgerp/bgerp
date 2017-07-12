@@ -2022,7 +2022,16 @@ class blast_Emails extends core_Master
             }
             
             if (!isset($nextStartDay)) {
-                $nextStartDay = 7 + min($sendingArr);
+                
+                if ($dw = $sendingArr[$dayOfWeek]) {
+                    if (!$sendingTo || ($nextStartTime < $sendingTo)) {
+                        $nextStartDay = $dw;
+                    }
+                }
+                
+                if (!isset($nextStartDay)) {
+                    $nextStartDay = 7 + min($sendingArr);
+                }
             }
             
             $nextStartTime = dt::addDays($nextStartDay-$dayOfWeek, $nowF);

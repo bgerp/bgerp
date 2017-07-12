@@ -136,6 +136,12 @@ class cash_ExchangeDocument extends core_Master
     public $fieldsNotToClone = 'valior';
     
     
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, valior,modifiedOn';
+	
+	
 	/**
      * Описание на модела
      */

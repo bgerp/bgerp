@@ -879,7 +879,7 @@ class bgerp_Notifications extends core_Manager
                 if ($data->listFilter->rec->id) {
                     $f = 'all_users';
                 } else {
-                    $uArr = $data->listFilter->getField('usersSearch')->type->getUserFromTeams($f);
+                    $uArr = $data->listFilter->getField('usersSearch')->type->getUserFromTeams();
                     reset($uArr);
                     $f = key($uArr);
                 }

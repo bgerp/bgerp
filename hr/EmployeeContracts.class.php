@@ -155,7 +155,13 @@ class hr_EmployeeContracts extends core_Master
      */
     public $coversAndInterfacesForNewDoc = 'crm_PersonAccRegIntf,doc_UnsortedFolders';
 
-
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, dateId,startFrom,endOn, modifiedOn';
+    
+    
     /**
      * Описание на модела
      */

@@ -138,7 +138,7 @@ class planning_Jobs extends core_Master
     /**
      * Поле за дата по което ще филтрираме
      */
-    public $filterDateField = 'dueDate';
+    public $filterDateField = 'createdOn, dueDate,deliveryDate,modifiedOn';
     
     
     /**
@@ -171,7 +171,7 @@ class planning_Jobs extends core_Master
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'dueDate,quantityProduced,history,oldJobId';
-    
+
     
 	/**
      * Описание на модела (таблицата)
