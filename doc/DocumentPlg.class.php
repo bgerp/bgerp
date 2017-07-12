@@ -680,6 +680,8 @@ class doc_DocumentPlg extends core_Plugin
     {
     	if(count($mvc->pendingQueue)) {
     		foreach ($mvc->pendingQueue as $rec){
+    			$log = ($rec->state == 'pending') ? 'Документът става на заявка' : 'Документът се връща в чернова';
+    			$mvc->logInAct($log, $rec);
     			
     		    $notifyArr = array();
     		    
@@ -1086,16 +1088,13 @@ class doc_DocumentPlg extends core_Plugin
         	
         	$oldState = $rec->state;
         	$newState = ($oldState == 'pending') ? 'draft' : 'pending';
-        	$log = ($oldState == 'pending') ? 'Документът се връща в чернова' : 'Документът става на заявка';
         	
         	$rec->state = $newState;
         	$rec->brState = $oldState;
         	$rec->pendingSaved = TRUE;
         	
         	$mvc->save($rec, 'state,brState');
-        	
         	$mvc->touchRec($rec->id);
-        	$mvc->logInAct($log, $rec);
         	
         	if (!$res = getRetUrl()) {
         	    $res = $mvc->getSingleUrlArray($rec->id);
