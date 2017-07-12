@@ -606,7 +606,7 @@ class crm_Companies extends core_Master
             
             if (!empty($emailArr)) {
                 foreach ($emailArr as $email) {
-                    $folderId = email_Router::route($email, NULL, email_Router::RuleFrom);
+                    $folderId = email_Router::route($email, NULL, email_Router::RuleFrom, FALSE);
                     
                     if($folderId) {
                         $fRec = doc_Folders::fetch($folderId);

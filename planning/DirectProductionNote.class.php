@@ -170,6 +170,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	
 	
 	/**
+	 * Поле за филтриране по дата
+	 */
+	public $filterDateField = 'createdOn, valior,modifiedOn';
+	
+	
+	/**
 	 * Описание на модела
 	 */
 	function description()

@@ -169,6 +169,12 @@ class hr_Trips extends core_Master
     
     
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, startDate,toDate,modifiedOn';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()

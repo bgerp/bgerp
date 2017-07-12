@@ -167,6 +167,12 @@ class purchase_Invoices extends deals_InvoiceMaster
     
     
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, date,dueDate,vatDate, modifiedOn';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
