@@ -225,6 +225,12 @@ class purchase_Purchases extends deals_DealMaster
     
     
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, valior,modifiedOn';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()

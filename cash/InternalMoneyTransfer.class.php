@@ -144,6 +144,12 @@ class cash_InternalMoneyTransfer extends core_Master
     public $fieldsNotToClone = 'valior';
     
     
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'valior,createdOn,modifiedOn';
+    
+    
 	/**
      * Описание на модела
      */

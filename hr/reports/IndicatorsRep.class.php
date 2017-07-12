@@ -136,7 +136,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	        $queryIndic->where("#personId IN ({$persons})"); 
 	        $flg = TRUE;
 	    }
-	
+	   
 	    if($flg == TRUE) {
     	    // за всеки един индикатор
     	    while($recIndic = $queryIndic->fetch()){ 
@@ -160,7 +160,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
     	    }
     	    
     	    $num = 1;
-    	    foreach($recs as $r) {
+    	    foreach($recs as $r) { 
     	        $r->num = $num;
     	        $num++;
     	    }
@@ -306,7 +306,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
                                 <small><div><!--ET_BEGIN position-->|Длъжност|*: [#position#]<!--ET_END position--></div></small>
                                 <small><div><!--ET_BEGIN month-->|Месец|*: [#month#]<!--ET_END month--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
-//bp($data->row->month,$data->row->departments,$data->row->position);
+
         if(isset($data->rec->departments)){
             $fieldTpl->append($data->row->departments, 'departments');
         }

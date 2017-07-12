@@ -178,6 +178,12 @@ class hr_Sickdays extends core_Master
     
     
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, startDate,toDate,modifiedOn';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
