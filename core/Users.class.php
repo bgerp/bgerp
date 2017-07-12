@@ -47,6 +47,12 @@ defIfNot('EF_USERS_MIN_TIME_WITHOUT_BLOCKING', 120);
 
 
 /**
+ * Списък със собствени IP-та, които не се блокират
+ */
+defIfNot('BGERP_OWN_IPS', '');
+
+
+/**
  * Писмо до потребителя за активация
  */
 defIfNot('USERS_UNBLOCK_EMAIL',
@@ -1297,10 +1303,10 @@ class core_Users extends core_Manager
             $userRec->maxIdleTime = 0;
         } else {
             // Дали нямаме дублирано ползване?
-            if ( $userRec->lastLoginIp != $Users->getRealIpAddr() &&
+            if (self::getOwnIp($userRec->lastLoginIp) != self::getOwnIp($Users->getRealIpAddr()) &&
                 $userRec->lastLoginTime > $sessUserRec->loginTime &&
                 dt::mysql2timestamp($userRec->lastLoginTime) - dt::mysql2timestamp($sessUserRec->loginTime) < EF_USERS_MIN_TIME_WITHOUT_BLOCKING) {
-                
+            
                 // Блокираме потребителя
                 $userRec->state = 'blocked';
                 $Users->save($userRec, 'state');
@@ -1358,7 +1364,7 @@ class core_Users extends core_Manager
         if(!isDebug() && haveRole('debug')) {
             core_Debug::setDebugCookie();
         }
-        
+       
         return $userRec;
     }
     
@@ -1947,6 +1953,25 @@ class core_Users extends core_Manager
         return $_SERVER['REMOTE_ADDR'];
     }
     
+
+    /**
+     * Връща реалното IP на потребителя
+     */
+    static function getOwnIp($ip)
+    {
+        static $ips;
+ 
+        if(!is_array($ips)) {
+            $ips = arr::make(BGERP_OWN_IPS);
+        }
+
+        if(in_array($ip, $ips)) {
+            $ip = $ips[0];
+        }
+
+        return $ip;
+    }
+
     
     /**
      * Начално инсталиране в системата
