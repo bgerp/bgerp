@@ -1282,7 +1282,6 @@ class core_Html
     static function getIconStyle($icon, $style = 'background-size:16px 16px;')
     {   
         if(!empty($icon)) {
-           // bp();
             if(log_Browsers::isRetina()) {
                 $icon2 = str_replace('/16/', '/32/', $icon);
                
