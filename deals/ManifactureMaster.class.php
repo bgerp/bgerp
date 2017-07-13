@@ -105,7 +105,7 @@ abstract class deals_ManifactureMaster extends core_Master
 	{
 		$folderCover = doc_Folders::getCover($data->form->rec->folderId);
 		if($folderCover->haveInterface('store_AccRegIntf')){
-			$data->form->setReadOnly('storeId', $folderCover->that);
+			$data->form->setDefault('storeId', $folderCover->that);
 		}
 	}
 	
