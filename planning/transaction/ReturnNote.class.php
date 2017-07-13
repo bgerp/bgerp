@@ -110,7 +110,7 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
 		if(Mode::get('saveTransaction')){
 			if(count($errorArr)){
 				$errorArr = implode(', ', $errorArr);
-				acc_journal_RejectRedirect::expect(FALSE, "Артикулите: |{$errorArr}|* не могат да бъдат върнати защото не са били вложени във производството");
+				acc_journal_RejectRedirect::expect(FALSE, "Артикулите: |{$errorArr}|* не могат да бъдат върнати защото липсва себестойност");
 			}
 		}
 		
