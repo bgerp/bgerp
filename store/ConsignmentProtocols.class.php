@@ -384,7 +384,6 @@ class store_ConsignmentProtocols extends core_Master
     	$form = &$data->form;
     	$rec  = &$form->rec;
     
-    	$form->setDefault('valior', dt::now());
     	$form->setDefault('storeId', store_Stores::getCurrent('id', FALSE));
     	$rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
     	$rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
