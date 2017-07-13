@@ -109,7 +109,8 @@ class hr_Positions extends core_Master
                 $sugg[$n] = $n;
             }
         }
-
+        $sugg["$" . 'BaseSalary'] = "$" . 'BaseSalary';
+        
         $form->setSuggestions('formula', $sugg);
     }
 

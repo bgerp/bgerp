@@ -53,14 +53,6 @@ abstract class cash_Document extends deals_PaymentDocument
     
     
     /**
-     * Кои полета от листовия изглед да се скриват ако няма записи в тях
-     *
-     *  @var string
-     */
-    public $hideListFieldsIfEmpty = 'termDate,valior';
-    
-    
-    /**
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'ceo, cash';

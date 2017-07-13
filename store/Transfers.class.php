@@ -208,7 +208,7 @@ class store_Transfers extends core_Master
      */
     public function description()
     {
-        $this->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date');
+        $this->FLD('valior', 'date', 'caption=Дата');
         $this->FLD('fromStore', 'key(mvc=store_Stores,select=name)', 'caption=От склад,mandatory');
  		$this->FLD('toStore', 'key(mvc=store_Stores,select=name)', 'caption=До склад,mandatory');
  		$this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
@@ -291,6 +291,8 @@ class store_Transfers extends core_Master
     		$row->volume = "<span class='quiet'>0</span>";
     	}
     	
+    	$row->valior = (isset($rec->valior)) ? $row->valior : ht::createHint('', 'Вальора ще бъде датата на контиране');
+    	
     	if($fields['-single']){
 	    	
     		$row->fromStore = store_Stores::getHyperlink($rec->fromStore);
@@ -339,7 +341,6 @@ class store_Transfers extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        $data->form->setDefault('valior', dt::now());
         $data->form->setDefault('fromStore', store_Stores::getCurrent('id', FALSE));
         $folderCoverId = doc_Folders::fetchCoverId($data->form->rec->folderId);
         $data->form->setDefault('toStore', $folderCoverId);

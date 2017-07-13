@@ -189,19 +189,21 @@ class cat_ProductTplCache extends core_Master
 		// Кога артикула е бил последно модифициран
 		$productModifiedOn = cat_Products::fetchField($productId, 'modifiedOn');
 		
-		// Намираме кешираните данни
-		$res = array($productModifiedOn => NULL);
 		$query = self::getQuery();
 		$query->where("#productId = {$productId} AND #type = '{$type}' AND #lang = '{$lang}' AND #documentType = '{$documentType}' AND #time <= '{$time}'");
 		$query->orderBy('time', 'DESC');
         $query->limit(1);
         $rec = $query->fetch();
 
-        if($rec) {
-
-            return $rec->cache;
+        if(!empty($rec)) {
+        	$res = array("{$productModifiedOn}" => NULL, "{$rec->time}" => $rec->cache);
+        	krsort($res);
+        	foreach ($res as $cTime => $cache){
+        		if($cTime <= $time) return $cache;
+        	}
         }
-
+        
+        return NULL;
 	}
 	
 	

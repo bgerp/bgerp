@@ -52,7 +52,7 @@ defIfNot('SALES_INVOICE_DEFAULT_VALID_FOR', 60 * 60 * 24 * 3);
 /**
  * Колко продажби да се приключват автоматично брой
  */
-defIfNot('SALE_CLOSE_OLDER_NUM', 15);
+defIfNot('SALE_CLOSE_OLDER_NUM', 50);
 
 
 /**

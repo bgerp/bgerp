@@ -27,7 +27,8 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 	{
 		// Извличане на мастър-записа
 		expect($rec = $this->class->fetchRec($id));
-	
+		$rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
+		
 		$result = (object)array(
 				'reason'      => "Протокол за производство №{$rec->id}",
 				'valior'      => $rec->valior,
