@@ -703,10 +703,10 @@ class sales_Sales extends deals_DealMaster
         $rec->description = "Затваряне на приключените продажби";
         $rec->controller = "sales_Sales";
         $rec->action = "CloseOldSales";
-        $rec->period = 180;
+        $rec->period = 60;
         $rec->offset = mt_rand(0,30);
         $rec->delay = 0;
-        $rec->timeLimit = 100;
+        $rec->timeLimit = 200;
         $res .= core_Cron::addOnce($rec);
 
         // Проверка по крон дали продажбата е просрочена
