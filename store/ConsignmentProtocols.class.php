@@ -181,7 +181,7 @@ class store_ConsignmentProtocols extends core_Master
      */
     public function description()
     {
-    	$this->FLD('valior', 'date', 'caption=Дата, mandatory');
+    	$this->FLD('valior', 'date', 'caption=Вальор');
     	$this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
     	$this->FLD('contragentId', 'int', 'input=hidden,tdClass=leftCol');
     	
@@ -254,6 +254,7 @@ class store_ConsignmentProtocols extends core_Master
     		$row->title = $mvc->getLink($rec->id, 0);
     	}
     	
+    	$row->valior = (isset($rec->valior)) ? $row->valior : ht::createHint('', 'Вальора ще бъде датата на контиране');
     	$headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId);
 		$row = (object)((array)$row + (array)$headerInfo);
 		

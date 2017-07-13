@@ -208,7 +208,7 @@ class store_Transfers extends core_Master
      */
     public function description()
     {
-        $this->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date');
+        $this->FLD('valior', 'date', 'caption=Дата');
         $this->FLD('fromStore', 'key(mvc=store_Stores,select=name)', 'caption=От склад,mandatory');
  		$this->FLD('toStore', 'key(mvc=store_Stores,select=name)', 'caption=До склад,mandatory');
  		$this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
@@ -290,6 +290,8 @@ class store_Transfers extends core_Master
     	if(!$rec->volume) {
     		$row->volume = "<span class='quiet'>0</span>";
     	}
+    	
+    	$row->valior = (isset($rec->valior)) ? $row->valior : ht::createHint('', 'Вальора ще бъде датата на контиране');
     	
     	if($fields['-single']){
 	    	

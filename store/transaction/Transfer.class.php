@@ -27,7 +27,8 @@ class store_transaction_Transfer extends acc_DocumentTransactionSource
 	{
 		// Извличане на мастър-записа
 		expect($rec = $this->class->fetchRec($id));
-	
+		$rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
+		
 		$result = (object)array(
 				'reason'      => "Междускладов трансфер №{$rec->id}",
 				'valior'      => $rec->valior,

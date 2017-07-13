@@ -46,7 +46,7 @@ abstract class deals_ManifactureMaster extends core_Master
 	*/
 	protected static function setDocumentFields($mvc)
 	{
-		$mvc->FLD('valior', 'date', 'caption=Вальор, mandatory');
+		$mvc->FLD('valior', 'date', 'caption=Вальор');
 		$mvc->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад, mandatory,silent');
 		$mvc->FLD('deadline', 'datetime', 'caption=Срок до');
 		$mvc->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
@@ -81,6 +81,8 @@ abstract class deals_ManifactureMaster extends core_Master
 	    	}
 	    }
 		
+	    $row->valior = (isset($rec->valior)) ? $row->valior : ht::createHint('', 'Вальора ще бъде датата на контиране');
+	    
 		if($fields['-single']){
 			if(isset($rec->storeId)){
 				$storeLocation = store_Stores::fetchField($rec->storeId, 'locationId');
@@ -101,7 +103,6 @@ abstract class deals_ManifactureMaster extends core_Master
 	 */
 	protected static function on_AfterPrepareEditForm($mvc, &$data)
 	{
-		$data->form->setDefault('valior', dt::now());
 		$folderCover = doc_Folders::getCover($data->form->rec->folderId);
 		if($folderCover->haveInterface('store_AccRegIntf')){
 			$data->form->setReadOnly('storeId', $folderCover->that);
