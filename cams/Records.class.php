@@ -1035,11 +1035,24 @@ class cams_Records extends core_Master
         $query->orderBy('startTime');
         $before5min = dt::addsecs(-5*60);
         $query->where("#startTime < '{$before5min}' AND #isAnalyzed = 'no'");
-        $query->limit(100);
+        //$query->limit(100);
+        $query->limit(1);
         
         while ($rec = $query->fetch()) {
             $paths = $this->getFilePaths($rec->startTime, $rec->id);
-           // bp($paths);
+            //bp($$rec->id."%03d.jpg");
+            ${$rec->id} = cls::get('fconv_Script');
+            ${$rec->id}->setFile('INPUTF', $paths->videoFile);
+            ${$rec->id}->setFile('OUTPUTF', ${$rec->id}."%03d.jpg");
+            
+            ${$rec->id}->lineExec("ffmpeg -i [#INPUTF#] -an -vf \"select=gt(scene\,0.03),setpts=N/(2*TB)\" [#OUTPUTF#]");
+            ${$rec->id}->callBack('cams_Records::afterAnalyze');
+            $async = TRUE;
+            if ($Script->run($async) !== FALSE) {
+              //  bp();
+            }
+                     
+            //bp($paths);
         }
        // bp($rec);
         // За всеки запис намираме файла му. Пускаме ffmpeg -i 11-07-17_05-00-35.mp4 -an -vf "select=gt(scene\,0.03),setpts=N/(2*TB)" keyframes_no_no_movie%03d.jpg
@@ -1054,6 +1067,14 @@ class cams_Records extends core_Master
         // Ако е наближило 300 секунди от началото на процеса - излизаме иначе, продължаваме от начало
     }
     
+    /**
+     * Ръчен метод за тестване на кеон метода за детектиране на движение
+     *
+     */
+    function act_afterAnalyze()
+    {
+        file_put_contents('afterAnalizeRES.txt', print_r($_REQUEST, TRUE));
+    }
     
     /**
      * Ръчен метод за тестване на кеон метода за детектиране на движение

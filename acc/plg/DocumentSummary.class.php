@@ -223,6 +223,7 @@ class acc_plg_DocumentSummary extends core_Plugin
             if($showFilterDateField) {
                 $fromField = $filter->filterDateField ? $filter->filterDateField : $defaultFilterDateField;
                 $toField = $fromField;
+                $data->query->orderBy($fromField, 'DESC');
             } else {
                 $fromField = ($mvc->filterFieldDateTo) ? $mvc->filterFieldDateTo : $mvc->filterDateField;
                 $toField = ($mvc->filterFieldDateFrom) ? $mvc->filterFieldDateFrom : $mvc->filterDateField;

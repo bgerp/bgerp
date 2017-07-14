@@ -107,7 +107,7 @@ class hr_Indicators extends core_Manager
      */
     public static function cron_Update()
     { 
-        $timeline = dt::addSecs(-(hr_Setup::INDICATORS_UPDATE_PERIOD + 10000) * 60);
+        $timeline = dt::addSecs(-(hr_Setup::INDICATORS_UPDATE_PERIOD * 60  + 10000));
         
     	self::recalc($timeline);
     }

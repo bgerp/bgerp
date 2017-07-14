@@ -473,6 +473,7 @@ class cat_Listings extends core_Master
     		// Намират се всички продавани стандартни артикули от тази папка
     		$dQuery = sales_SalesDetails::getQuery();
     		$dQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+    		$dQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
     		$dQuery->EXT('canSell', 'cat_Products', 'externalName=canSell,externalKey=productId');
     		$dQuery->EXT('valior', 'sales_Sales', 'externalName=valior,externalKey=saleId');
     		$dQuery->EXT('folderId', 'sales_Sales', 'externalName=folderId,externalKey=saleId');
@@ -480,15 +481,20 @@ class cat_Listings extends core_Master
     		$dQuery->where("#valior >= '{$from}' AND #valior <= '{$today}' AND (#state = 'active' OR #state = 'closed')");
     		$dQuery->where("#folderId = {$folderId} AND #canSell = 'yes'");
     		$dQuery->groupBy('productId,packagingId');
-    		$dQuery->XPR('count', 'int', 'COUNT(#id)');
-    		$dQuery->show('productId,packagingId,count');
-    		$dQuery->orderBy('count', 'DESC');
+    		$dQuery->show('productId,packagingId,code');
+    		$all = $dQuery->fetchAll();
+    		if(!count($all)) continue;
     		
-    		$products = arr::extractSubArray($dQuery->fetchAll(), 'productId,packagingId');
-    		if(!count($products)) continue;
+    		foreach ($all as &$o){
+    			cat_Products::setCodeIfEmpty($o);
+    		}
+    		
+    		arr::orderA($all, 'code');
+    		$products = arr::extractSubArray($all, 'productId,packagingId');
     		
     		// Форсира се системен лист
     		$listId = self::forceAutoList($folderId, $Cover);
+    		
     		if($listId){
     			cond_ConditionsToCustomers::force($Cover->getClassId(), $Cover->that, $paramId, $listId);
     		}

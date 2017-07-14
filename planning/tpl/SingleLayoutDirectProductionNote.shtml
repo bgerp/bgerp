@@ -25,12 +25,7 @@
                                        <td>
                                             <b style="margin:3px;display: inline-block;">[#productId#]</b>
                                        		<table class='no-border'>
-                                       			<!--ET_BEGIN debitAmount-->
-                                       			<tr>
-                                       				<td class='quiet'>|Себестойност|*:</td>
-                                       				<td>[#debitAmount#]</td>
-                                       			</tr>
-                                       			<!--ET_END debitAmount-->
+
                                        			
                                        			<!--ET_BEGIN expenseItemId-->
                                        			<tr>
@@ -46,12 +41,6 @@
                                        				<td class='quiet'>|Количество|*:</td>
                                        				<td>[#packQuantity#]</td>
                                        			</tr>
-                                       			<!--ET_BEGIN expenses-->
-                                       			<tr>
-                                       				<td class='quiet nowrap'>|Реж. разходи|*:</td>
-                                       				<td>[#expenses#]</td>
-                                       			</tr>
-                                       			<!--ET_END expenses-->
                                        			<!--ET_BEGIN batch-->
                                        			<tr>
                                        				<td class='quiet'>|Партида|*:</td>
@@ -82,6 +71,18 @@
                                                     <td>[#deadline#]</td>
                                                 </tr>
                                                 <!--ET_END deadline-->
+                                                <!--ET_BEGIN debitAmount-->
+                                                <tr>
+                                                    <td class='quiet'>|Себестойност|*:</td>
+                                                    <td>[#debitAmount#]</td>
+                                                </tr>
+                                                <!--ET_END debitAmount-->
+                                                <!--ET_BEGIN expenses-->
+                                                <tr>
+                                                    <td class='quiet nowrap'>|Реж. разходи|*:</td>
+                                                    <td>[#expenses#]</td>
+                                                </tr>
+                                                <!--ET_END expenses-->
                                             </table>
                                         </td>
                                     </tr>
