@@ -650,6 +650,12 @@ class purchase_Invoices extends deals_InvoiceMaster
         
         $form->input('folderId, purId');
         
+        if ($form->cmd != 'refresh') {
+            if ($bestPosArr['folderId']) {
+                $form->setDefault('folderId', $bestPosArr['folderId']);
+            }
+        }
+        
         // Намираме всчики достъп покупки
         $purArr = array();
         $pQuery = purchase_Purchases::getQuery();
@@ -702,9 +708,6 @@ class purchase_Invoices extends deals_InvoiceMaster
         
         // Улесняваме избора на потребителя, като избираме покупката или поне папката
         if ($form->cmd != 'refresh') {
-            if ($bestPosArr['folderId']) {
-                $form->setDefault('folderId', $bestPosArr['folderId']);
-            }
             
             if ($bestPosArr['threadId']) {
         
