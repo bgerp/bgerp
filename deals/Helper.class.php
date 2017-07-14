@@ -389,7 +389,6 @@ abstract class deals_Helper
 			$packQuantity = 1;
 		}
 		
-		
 		$stRec = store_Products::fetch("#productId = {$productId} AND #storeId = {$storeId}", 'quantity,reservedQuantity');
 		
 		$quantity = $stRec->quantity - $stRec->reservedQuantity;

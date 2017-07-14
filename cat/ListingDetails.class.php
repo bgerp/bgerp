@@ -160,24 +160,7 @@ class cat_ListingDetails extends doc_Detail
 			
 			// Ако няма код
 			if(empty($rec->reff)){
-				
-				// И има такава опаковка, взима се ЕАН кода
-				if($pack = cat_products_Packagings::getPack($rec->productId, $rec->packagingId)){
-					$rec->reff = (!empty($pack->eanCode)) ? $pack->eanCode : NULL;
-				}
-				
-				// Ако още не е намерен код, взима се кода на артикула
-				if(empty($rec->reff)){
-					$rec->reff = cat_Products::fetchField($rec->productId, 'code');
-				}
-				
-				if(empty($rec->reff)){
-					$form->setError('reff', 'Не е въведен код');
-				} else {
-					if(self::fetchField("#listId = {$rec->listId} AND #reff = '{$rec->reff}' AND #id != '{$rec->id}'")){
-						$form->setError('reff', "Има вече артикул с код|*  <b>{$rec->reff}</b> |в списъка|*");
-					}
-				}
+				$rec->reff = NULL;
 			}
 			
 			// Проверка на МКП-то
