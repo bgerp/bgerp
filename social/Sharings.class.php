@@ -244,6 +244,7 @@ class social_Sharings extends core_Master
 					    	"newsvine.com"=>"newsvine",
 					    	"ping.fm"=>"pingfm",
 					    	"evernote.com"=>"evernote",
+							"youtube.com"=>"youtube",
 					    	"friendfeed.com"=>"friendfeed");
     	    	 
     	foreach($services as $servic=>$nameServic){
