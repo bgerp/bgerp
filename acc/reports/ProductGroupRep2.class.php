@@ -10,7 +10,7 @@
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Счетоводство » Продукти по групиAAAAAAAAAAAAAAAAAAAA
+ * @title     Счетоводство » Продукти по групи
  */
 class acc_reports_ProductGroupRep2 extends frame2_driver_Proto
 {                  
