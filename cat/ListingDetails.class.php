@@ -335,7 +335,7 @@ class cat_ListingDetails extends doc_Detail
 			$form->setReadOnly('from');
 		}
 		
-		$form->FLD('code', 'enum(code=Наш код,barcode=Баркод)', "caption=Техен код");
+		$form->FLD('code', 'enum(noCode=Без код,barcode=Баркод)', "caption=Техен код");
 		$form->FLD('fromDate', 'date', "caption=От,input=hidden,silent,removeAndRefreshForm=category|selected");
 		$form->FLD('toDate', 'date', "caption=До,input=hidden,silent,removeAndRefreshForm=category|selected");
 		$form->FLD('group', 'key(mvc=cat_Groups,select=name,allowEmpty)', "caption=Група,input=hidden,silent,removeAndRefreshForm=selected|fromDate|toDate");
@@ -408,11 +408,6 @@ class cat_ListingDetails extends doc_Detail
 					} else {
 						$error[] = cat_Products::getTitleById($productId, FALSE);
 					}
-				} else {
-					
-					// Ако не се иска баркод, се попълва за код кода на артикула, ако няма ид-то му
-					$code = cat_Products::fetchField($productId, 'code');
-					$toSave[$productId]['reff'] = (!empty($code)) ? $code : $productId;
 				}
 			}
 			
