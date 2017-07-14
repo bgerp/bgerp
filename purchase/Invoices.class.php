@@ -962,6 +962,35 @@ class purchase_Invoices extends deals_InvoiceMaster
         $form->toolbar->addSbBtn($sbTitle, 'save', 'id=save, ef_icon = img/16/disk.png', 'title=Изпращане на имейл за регистрация на парньори');
         $form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close-red.png', 'title=Прекратяване на действията');
         
+        $form->layout = $form->renderLayout();
+        
+        // Показваме превю на файла
+        
+        if ($form->cmd != 'refresh') {
+            $ext = fileman::getExt($fRec->name);
+            
+            // Вземаме уеб-драйверите за това файлово разширение
+            $webdrvArr = fileman_Indexes::getDriver($ext, $fRec->name);
+            
+            // Обикаляме всички открити драйвери
+            foreach($webdrvArr as $drv) {
+            
+                // Стартираме процеса за извличане на данни
+                $drv->startProcessing($fRec);
+            
+                // Комбиниране всички открити табове
+                $tabsArr = arr::combine($tabsArr, $drv->getTabs($fRec));
+            }
+            
+            setIfNot($defTab, $tabsArr['__defaultTab'], 'info');
+            
+            if ($tabsArr[$defTab]) {
+                $preview = $tabsArr[$defTab]->html;
+            }
+            
+            $form->layout->append($preview);
+        }
+        
         $tpl = $this->renderWrapping($form->renderHtml());
         
         return $tpl;
