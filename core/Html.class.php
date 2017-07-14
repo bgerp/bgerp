@@ -1291,7 +1291,7 @@ class core_Html
             }
 
             $iconSrc = sbf($icon, '', Mode::is('text', 'xhtml'));
-                        
+
             $style = rtrim($style, ' ;');
 
             $style .= ($style ? '; ' : '') . "background-image:url('{$iconSrc}');";

@@ -264,7 +264,7 @@ class acc_Setup extends core_ProtoSetup
     					acc_reports_CorespondingImpl,acc_reports_SaleArticles,acc_reports_SaleContractors,acc_reports_OweProviders,
     					acc_reports_ProfitArticles,acc_reports_ProfitContractors,acc_reports_MovementContractors,acc_reports_TakingCustomers,
     					acc_reports_ManufacturedProducts,acc_reports_PurchasedProducts,acc_reports_BalancePeriodImpl, acc_reports_ProfitSales,
-                        acc_reports_MovementsBetweenAccounts";
+                        acc_reports_MovementsBetweenAccounts,acc_reports_ProductGroupRep";
     
     
     /**
