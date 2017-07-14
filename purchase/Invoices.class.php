@@ -724,67 +724,71 @@ class purchase_Invoices extends deals_InvoiceMaster
             
             $pRec = purchase_Purchases::fetch($form->rec->purId);
             
+            $aSet = array();
+            
+            $createdInvArr = doc_Files::getCidWithFile($fRec->dataId, purchase_Invoices::getClassId());
+            
+            if (!empty($createdInvArr)) {
+                $wMsg = 'Вече има създадена фактура от файла|*';
+                foreach ($createdInvArr as $cId) {
+                    $doc = doc_Containers::getDocument($cId);
+                    $wMsg .= '<br>' . $doc->getLinkToSingle();
+                }
+                $form->setWarning('fileHnd', $wMsg);
+            }
+            
+            if ($pRec->threadId) {
+            
+                // Ако няма създадена складова разписка - да е избрано във формата
+                $rClsId = store_Receipts::getClassId();
+                $sClsId = purchase_Services::getClassId();
+                if (!doc_Containers::fetch(array("#threadId = [#1#] AND #state != 'rejected' AND #docClass = '[#2#]'", $pRec->threadId, $rClsId))) {
+                    $aSet['store'] = 'store';
+                }
+            
+                // Ако няма създаден приемателен протокол - да е избрано във формата
+                if (!doc_Containers::fetch(array("#threadId = [#1#] AND #state != 'rejected' AND #docClass = '[#2#]'", $pRec->threadId, $sClsId))) {
+                    $aSet['service'] = 'service';
+                }
+            }
+            
+            $detFieldPref = '_pDet_';
+            
+            // Показваме полета и за попълване/промяна на детайлите от покупката
+            $dQuery = purchase_PurchasesDetails::getQuery();
+            $dQuery->where(array("#requestId = '[#1#]'", $pRec->id));
+            while($dRec = $dQuery->fetch()) {
+                $productName = cat_Products::getTitleById($dRec->productId);
+            
+                $productName = str_replace('->', '-', $productName);
+            
+                $vat = cat_Products::getVat($dRec->productId, $pRec->valior);
+                $price = deals_Helper::getDisplayPrice($dRec->price, $vat, $pRec->currencyRate, $pRec->chargeVat, 3);
+            
+                $unit = $price . ' ' . $pRec->currencyId;
+            
+                if ($dRec->discount) {
+                    $discount = $dRec->discount * 100;
+                    $unit .= ', ' . tr('ТО') . ': ' . $discount . '%';
+                }
+            
+                $productName .= '->' . cat_UoM::getTitleById($dRec->packagingId);
+            
+                $fncName = $detFieldPref . $dRec->id;
+                
+                $form->FNC($fncName, 'varchar', array("caption" => "|*" . $productName, 'input', 'unit' => '|*' . $unit, 'class' => 'w50'));
+                
+                $form->setDefault($fncName, $dRec->quantity);
+                
+                if ($pRec->state == 'closed') {
+                    $form->setReadonly($fncName);
+                }
+            }
+            
+            $form->setDefault('acceptance', $aSet);
+            
             // Ако няма да се клонира
-            if ($pRec->state != 'closed') {
-                
-                $aSet = array();
-                
-                $createdInvArr = doc_Files::getCidWithFile($fRec->dataId, purchase_Invoices::getClassId());
-                
-                if (!empty($createdInvArr)) {
-                    $wMsg = 'Вече има създадена фактура от файла|*';
-                    foreach ($createdInvArr as $cId) {
-                        $doc = doc_Containers::getDocument($cId);
-                        $wMsg .= '<br>' . $doc->getLinkToSingle();
-                    }
-                    $form->setWarning('fileHnd', $wMsg);
-                }
-                
-                if ($pRec->threadId) {
-                    
-                    // Ако няма създадена складова разписка - да е избрано във формата
-                    $rClsId = store_Receipts::getClassId();
-                    $sClsId = purchase_Services::getClassId();
-                    if (!doc_Containers::fetch(array("#threadId = [#1#] AND #state != 'rejected' AND #docClass = '[#2#]'", $pRec->threadId, $rClsId))) {
-                        $aSet['store'] = 'store';
-                    }
-                    
-                    // Ако няма създаден приемателен протокол - да е избрано във формата
-                    if (!doc_Containers::fetch(array("#threadId = [#1#] AND #state != 'rejected' AND #docClass = '[#2#]'", $pRec->threadId, $sClsId))) {
-                        $aSet['service'] = 'service';
-                    }
-                }
-                
-                $detFieldPref = '_pDet_';
-                
-                // Показваме полета и за попълване/промяна на детайлите от покупката
-                $dQuery = purchase_PurchasesDetails::getQuery();
-                $dQuery->where(array("#requestId = '[#1#]'", $pRec->id));
-                while($dRec = $dQuery->fetch()) {
-                    $productName = cat_Products::getTitleById($dRec->productId);
-                
-                    $productName = str_replace('->', '-', $productName);
-                
-                    $vat = cat_Products::getVat($dRec->productId, $pRec->valior);
-                    $price = deals_Helper::getDisplayPrice($dRec->price, $vat, $pRec->currencyRate, $pRec->chargeVat, 3);
-                
-                    $unit = $price . ' ' . $pRec->currencyId;
-                
-                    if ($dRec->discount) {
-                        $discount = $dRec->discount * 100;
-                        $unit .= ', ' . tr('ТО') . ': ' . $discount . '%';
-                    }
-                
-                    $productName .= '->' . cat_UoM::getTitleById($dRec->packagingId);
-                
-                    $fncName = $detFieldPref . $dRec->id;
-                    $form->FNC($fncName, 'varchar', array("caption" => "|*" . $productName, 'input', 'unit' => '|*' . $unit, 'class' => 'w50'));
-                
-                    $form->setDefault($fncName, $dRec->quantity);
-                }
-                
-                $form->setDefault('acceptance', $aSet);
-            } else {
+            if ($pRec->state == 'closed') {
                 $form->setField('acceptance', 'input=none');
                 $form->setField('invNum', 'input=none');
             }
