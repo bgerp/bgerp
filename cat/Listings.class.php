@@ -253,6 +253,7 @@ class cat_Listings extends core_Master
     			
     		// Кои са листваните артикули за контрагента
     		$query = cat_ListingDetails::getQuery();
+    		$query->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
     		$query->where("#listId = {$listRec->id}");
     		
     		if(is_array($instock) && count($instock)){
@@ -272,7 +273,7 @@ class cat_Listings extends core_Master
     		
     		// Добавя се всеки запис, групиран според типа
     		while($rec = $query->fetch()){
-    			$obj = (object)array('productId' => $rec->productId, 'packagingId' => $rec->packagingId, 'reff' => $rec->reff, 'moq' => $rec->moq, 'multiplicity' => $rec->multiplicity, 'price');
+    			$obj = (object)array('productId' => $rec->productId, 'packagingId' => $rec->packagingId, 'reff' => $rec->reff, 'moq' => $rec->moq, 'multiplicity' => $rec->multiplicity, 'code' => $rec->code);
     			if(isset($rec->price)){
     				
     				if($listRec->vat == 'yes'){
@@ -289,7 +290,7 @@ class cat_Listings extends core_Master
     			self::$cache[$listRec->id][$rec->id] = $obj;
     		}
     	}
-    
+    	
     	// Връщане на кешираните данни
     	return self::$cache[$listRec->id];
     }
@@ -327,7 +328,7 @@ class cat_Listings extends core_Master
     
     	// Ако има намерен поне един запис се връща кода
     	$firstFound = $res[key($res)];
-    	$reff = (is_object($firstFound)) ? $firstFound->reff : NULL;
+    	$reff = (is_object($firstFound)) ? (($firstFound->reff != $firstFound->code) ? $firstFound->reff : NULL) : NULL;
     
     	// Връща се намерения код
     	return $reff;

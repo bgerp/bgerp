@@ -64,7 +64,7 @@ class rack_Products extends store_Products
     var $canDelete = 'no_one';
     
 
-    public $listFields = 'productId=Наименование, measureId=Мярка,quantity=Количество->Общо,quantityNotOnPallets,quantityOnPallets';
+    public $listFields = 'code=Код,productId=Наименование, measureId=Мярка,quantity=Количество->Общо,quantityNotOnPallets,quantityOnPallets,storeId=Склад';
 
 
      /**

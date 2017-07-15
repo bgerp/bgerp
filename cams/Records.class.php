@@ -1037,19 +1037,18 @@ class cams_Records extends core_Master
         $query->where("#startTime < '{$before5min}' AND #isAnalyzed = 'no'");
         //$query->limit(100);
         $query->limit(1);
-        
+
         while ($rec = $query->fetch()) {
             $paths = $this->getFilePaths($rec->startTime, $rec->id);
-            //bp($$rec->id."%03d.jpg");
-            ${$rec->id} = cls::get('fconv_Script');
-            ${$rec->id}->setFile('INPUTF', $paths->videoFile);
-            ${$rec->id}->setFile('OUTPUTF', ${$rec->id}."%03d.jpg");
-            
-            ${$rec->id}->lineExec("ffmpeg -i [#INPUTF#] -an -vf \"select=gt(scene\,0.03),setpts=N/(2*TB)\" [#OUTPUTF#]");
-            ${$rec->id}->callBack('cams_Records::afterAnalyze');
+            $Script[$rec->id] = cls::get('fconv_Script');
+            $Script[$rec->id]->setFile('INPUTF', $paths->videoFile);
+            $Script[$rec->id]->setFile('OUTPUTF', "/shot_" . $rec->id . "_%03d.jpg");
+            $Script[$rec->id]->lineExec("ffmpeg -i [#INPUTF#] -an -vf \"select=gt(scene\,0.03),setpts=N/(2*TB)\" [#OUTPUTF#]");
+            $Script[$rec->id]->callBack('cams_Records::afterAnalyze');
             $async = TRUE;
-            if ($Script->run($async) !== FALSE) {
-              //  bp();
+            // bp($Script);
+            if ($Script[$rec->id]->run($async) !== FALSE) {
+                //bp($Script);
             }
                      
             //bp($paths);

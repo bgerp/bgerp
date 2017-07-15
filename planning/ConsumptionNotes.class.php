@@ -175,7 +175,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 		
 		$folderCover = doc_Folders::getCover($data->form->rec->folderId);
 		if($folderCover->isInstanceOf('hr_Departments')){
-			$data->form->setReadOnly('departmentId', $folderCover->that);
+			$data->form->setDefault('departmentId', $folderCover->that);
 		}
 	}
 	

@@ -123,6 +123,7 @@ class cat_Setup extends core_ProtoSetup
     		'migrate::migratePrototypes',
     		'migrate::updateListings1',
     		'migrate::updateLists',
+    		'migrate::migrateListings'
         );
     
     
@@ -611,6 +612,29 @@ class cat_Setup extends core_ProtoSetup
     		}
     		
     		$Lists->save_($rec, 'currencyId,vat');
+    	}
+    }
+    
+    
+    /**
+     * Миграция на листовете
+     */
+    function migrateListings()
+    {
+    	core_App::setTimeLimit(200);
+    	$Listings = cls::get('cat_ListingDetails');
+    	$lQuery = $Listings->getQuery();
+    	$lQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
+    	$lQuery->where("#code = #reff");
+    	$lQuery->show('id,listId,productId,reff,code');
+    	
+    	while($lRec = $lQuery->fetch()){
+    		try{
+    			$lRec->reff = NULL;
+    			$Listings->save_($lRec);
+    		} catch(core_exception_Expect $e){
+    			reportException($e);
+    		}
     	}
     }
 }

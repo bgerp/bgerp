@@ -20,7 +20,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, acc_TransactionSourceIntf=purchase_transaction_Invoice, bgerp_DealIntf, deals_InvoiceSourceIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, acc_TransactionSourceIntf=purchase_transaction_Invoice, bgerp_DealIntf, deals_InvoiceSourceIntf, fileman_FileActionsIntf';
     
     
     /**
@@ -83,6 +83,12 @@ class purchase_Invoices extends deals_InvoiceMaster
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo,invoicer';
+    
+	
+    /**
+     * Кой има право да създава от файл?
+     */
+    public $canCreatefromfile = 'ceo,invoicer';
     
     
     /**
@@ -551,5 +557,445 @@ class purchase_Invoices extends deals_InvoiceMaster
     			}
     		}
     	}
+    }
+	
+	
+    /**
+     * Интерфейсен метод на fileman_FileActionsIntf
+     * 
+     * Връща масив с действия, които могат да се извършат с дадения файл
+     * 
+     * @param stdObject $fRec - Обект са данни от модела
+     * 
+     * @return array $arr - Масив с данните
+     * $arr['url'] - array URL на действието
+     * $arr['title'] - Заглавието на бутона
+     * $arr['icon'] - Иконата
+     */
+    static function getActionsForFile($fRec)
+    {
+        if(self::haveRightFor('createfromfile') && self::canKeepDoc($fRec->name, $fRec->fileLen)) {
+			
+            // Създаваме масива за съзване на визитка
+            $arr = array();
+            
+            $me = cls::get(get_called_class());
+            
+            $arr['incomingInv']['url'] = array($me, 'createFromFile', 'fh' => $fRec->fileHnd, 'ret_url' => TRUE);
+            $arr['incomingInv']['title'] = 'Входяща фактура';
+            $arr['incomingInv']['icon'] = $me->getIcon();
+            
+            if (doc_Files::getCidWithFile($fRec->dataId, purchase_Invoices::getClassId(), 1, 100, FALSE)) {
+                $arr['incomingInv']['btnParams'] = 'warning=Има създадане фактура от файла';
+            }
+        }
+		
+        return $arr;
+    }
+    
+    
+    /**
+     * Преценява дали файла с посоченото име и дължина може да съдържа документ
+     * 
+     * @param string $fileName
+     * @param integer $fileLen
+     * 
+     * @return boolean
+     */
+    public static function canKeepDoc($fileName, $fileLen)
+    {
+        // От кои документи и над какъв размер може да се създават документ
+        static $typeToLen = array();
+        if(empty($typeToLen)) {
+            $typeToLen = arr::make("pdf=10,doc=10,docx=10,odt=10,xls=10,zip=10,rar=10,txt=1,rtf=2,tiff=20,tff=20,jpg=20,jpeg=20,png=20,bmp=50,csv=1", TRUE);
+        }
+        
+        $ext = fileman_Files::getExt($fileName);
+
+        if(($minLen = $typeToLen[$ext]) && ($minLen <= $fileLen)) {
+
+            return TRUE;
+        }
+        
+        return FALSE;
+    }
+    
+    
+    /**
+     * Екшън за създаване на входяща фактура (и услуга и/или стока) от файл
+     */
+    function act_Createfromfile()
+    {
+        $this->requireRightFor('createfromfile');
+        
+        $fileHnd = Request::get('fh');
+        
+        expect($fileHnd);
+        
+        expect($fRec = fileman::fetchByFh($fileHnd));
+        
+        expect($this->canKeepDoc($fRec->name, $fRec->fileLen));
+        
+        $form = cls::get('core_Form');
+        
+        $showClosedLimit = 3;
+        $maxLimitForShow = 200;
+        
+        $bestPosArr = doc_Files::getBestContainer($fileHnd, 'crm_ContragentAccRegIntf');
+        
+        $form->FNC('folderId', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент, input, removeAndRefreshForm=acceptance');
+        $form->FNC('purId', 'key(mvc=purchase_Purchases,allowEmpty)', 'caption=Покупка, input, removeAndRefreshForm=acceptance, mandatory');
+        $form->FNC('invNum', 'varchar', 'caption=Фактура номер, input, class=w50');
+        $form->FNC('acceptance', 'set(store=Стоки, service=Услуги)', 'caption=Приемане, input');
+        
+        $form->input('folderId, purId');
+        
+        if ($form->cmd != 'refresh') {
+            if ($bestPosArr['folderId']) {
+                $form->setDefault('folderId', $bestPosArr['folderId']);
+            }
+        }
+        
+        // Намираме всчики достъп покупки
+        $purArr = array();
+        $pQuery = purchase_Purchases::getQuery();
+        
+        doc_Threads::restrictAccess($pQuery);
+        
+        if ($form->rec->folderId) {
+            $pQuery->where(array("#folderId = [#1#]", $form->rec->folderId));
+        }
+        
+        $cPQuery = clone $pQuery;
+        
+        $pQuery->where("#state = 'active'");
+        $pQuery->where("#makeInvoice != 'no'");
+        $pQuery->XPR('amountToInvoice', 'double', '#amountDelivered - #amountInvoiced');
+        $tolerance = acc_Setup::get('MONEY_TOLERANCE');
+        $pQuery->where(array("#amountToInvoice NOT BETWEEN -[#1#] AND [#1#]", $tolerance));
+        $pQuery->orWhere("#amountToInvoice IS NULL");
+        
+        $pQuery->limit($maxLimitForShow);
+        $pQuery->orderBy('valior', 'DESC');
+        $pQuery->orderBy('activatedOn', 'DESC');
+        
+        while ($pRec = $pQuery->fetch()) {
+            $purArr[$pRec->id] = purchase_Purchases::getTitleById($pRec->id);
+        }
+        
+        // Вземаме последните 3 покукпи
+        $cPQuery->where("#state = 'closed'");
+        $cPQuery->limit($showClosedLimit);
+        
+        $cPQuery->orderBy('closedOn', 'DESC');
+        $cPQuery->orderBy('valior', 'DESC');
+        
+        $group = FALSE;
+        while ($pRec = $cPQuery->fetch()) {
+            if (!$group) {
+                $group = TRUE;
+                
+                $purArr['closed'] = (object) array('title' => tr('Затворени'), 'group' => TRUE);
+            }
+            $purArr[$pRec->id] = purchase_Purchases::getTitleById($pRec->id);
+        }
+        
+        if (empty($purArr)) {
+            $purArr[''] = '';
+        }
+        
+        $form->setOptions('purId', $purArr);
+        
+        // Улесняваме избора на потребителя, като избираме покупката или поне папката
+        if ($form->cmd != 'refresh') {
+            
+            if ($bestPosArr['threadId']) {
+        
+                $fContainerId = doc_Threads::getFirstContainerId($bestPosArr['threadId']);
+        
+                $doc = doc_Containers::fetch($fContainerId);
+        
+                if (($doc->docClass == purchase_Purchases::getClassId()) && ($purArr[$doc->docId])) {
+                    $form->setDefault('purId', $doc->docId);
+                }
+            }
+        }
+        
+        $pRec = FALSE;
+        
+        if ($form->rec->purId) {
+            
+            $pRec = purchase_Purchases::fetch($form->rec->purId);
+            
+            $aSet = array();
+            
+            $createdInvArr = doc_Files::getCidWithFile($fRec->dataId, purchase_Invoices::getClassId());
+            
+            if (!empty($createdInvArr)) {
+                $wMsg = 'Вече има създадена фактура от файла|*';
+                foreach ($createdInvArr as $cId) {
+                    $doc = doc_Containers::getDocument($cId);
+                    $wMsg .= '<br>' . $doc->getLinkToSingle();
+                }
+                $form->setWarning('fileHnd', $wMsg);
+            }
+            
+            if ($pRec->threadId) {
+            
+                // Ако няма създадена складова разписка - да е избрано във формата
+                $rClsId = store_Receipts::getClassId();
+                $sClsId = purchase_Services::getClassId();
+                if (!doc_Containers::fetch(array("#threadId = [#1#] AND #state != 'rejected' AND #docClass = '[#2#]'", $pRec->threadId, $rClsId))) {
+                    $aSet['store'] = 'store';
+                }
+            
+                // Ако няма създаден приемателен протокол - да е избрано във формата
+                if (!doc_Containers::fetch(array("#threadId = [#1#] AND #state != 'rejected' AND #docClass = '[#2#]'", $pRec->threadId, $sClsId))) {
+                    $aSet['service'] = 'service';
+                }
+            }
+            
+            $detFieldPref = '_pDet_';
+            
+            // Показваме полета и за попълване/промяна на детайлите от покупката
+            $dQuery = purchase_PurchasesDetails::getQuery();
+            $dQuery->where(array("#requestId = '[#1#]'", $pRec->id));
+            while($dRec = $dQuery->fetch()) {
+                $productName = cat_Products::getTitleById($dRec->productId);
+            
+                $productName = str_replace('->', '-', $productName);
+            
+                $vat = cat_Products::getVat($dRec->productId, $pRec->valior);
+                $price = deals_Helper::getDisplayPrice($dRec->price, $vat, $pRec->currencyRate, $pRec->chargeVat, 3);
+            
+                $unit = $price . ' ' . $pRec->currencyId;
+            
+                if ($dRec->discount) {
+                    $discount = $dRec->discount * 100;
+                    $unit .= ', ' . tr('ТО') . ': ' . $discount . '%';
+                }
+            
+                $productName .= '->' . cat_UoM::getTitleById($dRec->packagingId);
+            
+                $fncName = $detFieldPref . $dRec->id;
+                
+                $form->FNC($fncName, 'varchar', array("caption" => "|*" . $productName, 'input', 'unit' => '|*' . $unit, 'class' => 'w50'));
+                
+                $form->setDefault($fncName, $dRec->quantity);
+                
+                if ($pRec->state == 'closed') {
+                    $form->setReadonly($fncName);
+                }
+            }
+            
+            $form->setDefault('acceptance', $aSet);
+            
+            // Ако няма да се клонира
+            if ($pRec->state == 'closed') {
+                $form->setField('acceptance', 'input=none');
+                $form->setField('invNum', 'input=none');
+            }
+        }
+        
+        // Вече инпутваме формата и създаваме необходимите документи
+        $form->input();
+        $createDocArr = array();
+        if ($form->isSubmitted()) {
+            
+            // Ако ще се клонира покупката - пращаме директно към съответната форма
+            if ($pRec->state == 'closed') {
+                
+                return new Redirect(array('purchase_Purchases', 'clonefields', $pRec->id, 'ret_url' => TRUE));
+            }
+            
+            $recArr = (array) $form->rec;
+            
+            // Кои документи и в каква последователност да се създадат
+            if ($form->rec->acceptance) {
+                $acceptanceArr = type_Set::toArray($form->rec->acceptance);
+                
+                if ($acceptanceArr['service']) {
+                    $createDocArr['purchase_Services'] = array('details' => 'purchase_ServicesDetails', 'masterKey' => 'shipmentId');
+                }
+                
+                if ($acceptanceArr['store']) {
+                    $createDocArr['store_Receipts'] = array('details' => 'store_ReceiptDetails', 'masterKey' => 'receiptId');
+                }
+            }
+            $createDocArr['purchase_Invoices'] = array('details' => 'purchase_InvoiceDetails', 'masterKey' => 'invoiceId');
+            
+            foreach ($createDocArr as $clsName => $detArr) {
+                
+                $detailsArr = arr::make($detArr['details']);
+                
+                $masterKey = $detArr['masterKey'];
+                
+                $errMsg = '';
+                
+                $clsInst = cls::get($clsName);
+                
+                $singleTitle = $clsInst->singleTitle;
+                $singleTitle = mb_strtolower($singleTitle);
+                
+                // Емулираме създаване от форма на съответния документ
+                
+                $invForm = $clsInst->getForm();
+                $invForm->method = 'POST';
+                $invForm->rec->_isClone = TRUE;
+                $invForm->rec->threadId = $pRec->threadId;
+                $invForm->rec->originId = $pRec->containerId;
+                
+                if ($clsName == 'purchase_Invoices') {
+                    $invForm->rec->fileHnd = $fileHnd;
+                    $invForm->rec->number = $form->rec->invNum;
+                }
+                
+                // Полето за ид не е тихо за да не се обърка и да инпутва ид-то на крон процеса
+                $idField = $invForm->getField('id');
+                unset($idField->silent);
+                
+                $data = (object)array('form' => &$invForm);
+                $clsInst->invoke('AfterPrepareEditForm', array($data, $data));
+                
+                $pArr = array('Ignore' => 1);
+                
+                $cRec = clone $invForm->rec;
+                
+                foreach ((array)$cRec as $f => $v) {
+                    $pArr[$f] = $v;
+                }
+                
+                Request::push($pArr);
+                $invForm->cmd = 'save';
+                 
+                // Ид-то не трябва да се инпутва
+                $fields = $invForm->selectFields();
+                unset($fields['id']);
+                $invForm->input(implode(',', array_keys($fields)));
+                
+                $clsInst->invoke('AfterInputEditForm', array($invForm));
+                
+                // Инпутваме емулираната форма и ако няма грешки, записваме
+                if($invForm->isSubmitted()) {
+                    $rec = $invForm->rec;
+                    $savedId = $clsInst->save($rec);
+                    if ($savedId) {
+                        
+                        $clsInst->logInAct('Създаване от файл', $savedId);
+                        
+                        // След създаване на документа създаваме и детайлите
+                        foreach ($recArr as $f => $val) {
+                            if (stripos($f, $detFieldPref) === FALSE) continue;
+                            $dId = str_replace($detFieldPref, '', $f);
+                            
+                            if (!is_numeric($dId)) continue;
+                            
+                            $dRec = purchase_PurchasesDetails::fetch($dId);
+                            
+                            $pDetRec = new stdClass();
+                            $pDetRec->{$masterKey} = $savedId;
+                            $pDetRec->productId = $dRec->productId;
+                            $pDetRec->packagingId = $dRec->packagingId;
+                            $pDetRec->quantity = $val;
+                            $pDetRec->quantityInPack = $dRec->quantityInPack;
+                            $pDetRec->price = $dRec->price;
+                            $pDetRec->amount = $dRec->amount;
+                            $pDetRec->discount = $dRec->discount;
+                            $pDetRec->notes = $dRec->notes;
+                            $pDetRec->packPrice = $dRec->packPrice;
+                            
+                            foreach ($detailsArr as $detailName) {
+                                $detailName::save($pDetRec);
+                            }
+                        }
+                        
+                        status_Messages::newStatus("|Създаден документ|* " . $clsInst->getLinkToSingle($savedId));
+                        
+                        if ($clsName == 'purchase_Invoices') {
+                            $invId = $savedId;
+                        }
+                    } else {
+                        $errMsg .= ' |Грешка при записване';
+                    }
+                } else {
+                    
+                    // Ако има грешки, показваме ги
+                    foreach ($invForm->errors as $key => $errObj) {
+                        if ($errObj->ignorable) continue;
+                        
+                        // Ако грешката е в номера
+                        if ($clsName == 'purchase_Invoices' && $key == 'number') {
+                            $form->setError('invNum', $errObj->msg);
+                            
+                            continue;
+                        }
+                        
+                        $errMsg .= '<br>' . $errObj->msg;
+                    }
+                }
+                
+                // Попваме всички пушнати стойности от формата
+                foreach ($pArr as $pArrKey => $pVal){
+                    Request::pop($pArrKey);
+                }
+                
+                if ($errMsg) {
+                    
+                    status_Messages::newStatus("|Не може да се създаде документ|* |{$singleTitle}|*. |Опитайте ръчно|*:" . $errMsg, 'error');
+                }
+                
+                // Редиктваме към фактурата, ако успешно е създаден документа
+                if ($invId) {
+                    
+                    return new Redirect(purchase_Invoices::getSingleUrlArray($invId));
+                }
+            }
+        }
+        
+        $form->title = "Създаване на входяща фактура от файл|* " . fileman::getLinkToSingle($fileHnd);
+        
+        $sbTitle = "Създаване";
+        
+        // Ако е избран затворен документ - тогава клонираме
+        if ($pRec && ($pRec->state == 'closed')) {
+            $sbTitle = 'Клониране';
+            $form->title = "Клониране на|* " . purchase_Purchases::getLinkToSingle($pRec->id);
+        }
+        
+        $form->toolbar->addSbBtn($sbTitle, 'save', 'id=save, ef_icon = img/16/disk.png', 'title=Изпращане на имейл за регистрация на парньори');
+        $form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close-red.png', 'title=Прекратяване на действията');
+        
+        $form->layout = $form->renderLayout();
+        
+        // Показваме превю на файла
+        
+        if ($form->cmd != 'refresh') {
+            $ext = fileman::getExt($fRec->name);
+            
+            // Вземаме уеб-драйверите за това файлово разширение
+            $webdrvArr = fileman_Indexes::getDriver($ext, $fRec->name);
+            
+            // Обикаляме всички открити драйвери
+            foreach($webdrvArr as $drv) {
+            
+                // Стартираме процеса за извличане на данни
+                $drv->startProcessing($fRec);
+            
+                // Комбиниране всички открити табове
+                $tabsArr = arr::combine($tabsArr, $drv->getTabs($fRec));
+            }
+            
+            setIfNot($defTab, $tabsArr['__defaultTab'], 'info');
+            
+            if ($tabsArr[$defTab]) {
+                $preview = $tabsArr[$defTab]->html;
+            }
+            
+            $form->layout->append($preview);
+        }
+        
+        $tpl = $this->renderWrapping($form->renderHtml());
+        
+        return $tpl;
     }
 }

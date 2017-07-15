@@ -84,7 +84,7 @@ class deals_plg_SetTermDate extends core_Plugin
 		$form->title = core_Detail::getEditTitle($mvc, $id, $Field->caption, NULL);
 		$form->FLD('newTermDate', 'datetime', "caption={$Field->caption}");
 		$form->setDefault('newTermDate', $rec->{$mvc->termDateFld});
-		$form->setDefault('newTermDate', dt::now());
+		$form->setDefault('newTermDate', date('Y-m-d H:i'));
 		$form->input();
 		
 		// Ако е събмитнат
@@ -93,6 +93,7 @@ class deals_plg_SetTermDate extends core_Plugin
 			// Обновява се срока
 			$rec->{$mvc->termDateFld} = $form->rec->newTermDate;
 			$mvc->save_($rec, $mvc->termDateFld);
+			$mvc->touchRec($rec);
 			
 			followRetUrl(NULL, 'Успешна промяна');
 		}

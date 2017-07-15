@@ -389,7 +389,6 @@ abstract class deals_Helper
 			$packQuantity = 1;
 		}
 		
-		
 		$stRec = store_Products::fetch("#productId = {$productId} AND #storeId = {$storeId}", 'quantity,reservedQuantity');
 		
 		$quantity = $stRec->quantity - $stRec->reservedQuantity;
@@ -419,7 +418,7 @@ abstract class deals_Helper
 		
 		// Показваме предупреждение ако наличното в склада е по-голямо от експедираното
 		if($packQuantity > ($quantity / $quantityInPack)){
-			$obj->warning = "Въведеното количество е по-голямо от наличното|* <b>{$verbalQuantity}</b> |в склада|*";
+			$obj->warning = "Въведеното количество е по-голямо от разполагаемо|* <b>{$verbalQuantity}</b> |в склада|*";
 		}
 		
 		return $obj;
@@ -684,11 +683,11 @@ abstract class deals_Helper
 		$quantityInStore = $stRec->quantity - $stRec->reservedQuantity;
 		
 		if(is_null($quantityInStore)){
-			$hint = 'Налично количество в склада: н.д.';
+			$hint = 'Разполагаемо количество в склада: н.д.';
 		} elseif($quantityInStore < 0 || ($quantityInStore - $quantity) < 0) {
 			$quantityInStore = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($quantityInStore);
 			$measureName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));
-			$hint = "Налично количество в склада|*: {$quantityInStore} {$measureName}";
+			$hint = "Разполагаемо количество в склада|*: {$quantityInStore} {$measureName}";
 		}
 		
 		return $hint;

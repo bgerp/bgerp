@@ -436,7 +436,7 @@ class store_Products extends core_Detail
             $query->where($where);
         }
         while($rec = $query->fetch("#storeId = {$storeId}  AND #state = 'active'")) {
-            $options[$rec->id] = self::getVerbal($rec, 'productId');
+            $options[$rec->id] = cat_Products::getTitleById($rec->productId, FALSE);
         }
 
         if(!count($options)) {

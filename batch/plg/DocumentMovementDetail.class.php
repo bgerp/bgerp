@@ -137,6 +137,8 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		// След създаване се прави опит за разпределяне на количествата според наличните партиди
 		$BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
 		if(is_object($BatchClass)){
+			if(!$BatchClass->canAutoAllocate()) continue;
+			
 			$info = $mvc->getRowInfo($rec->id);
 			if(count($info->operation)){
 				$batches = $BatchClass->allocateQuantityToBatches($info->quantity, $info->operation['out'], $info->date);

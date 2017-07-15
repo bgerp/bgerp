@@ -53,6 +53,12 @@ class batch_Templates extends embed_Manager {
     
     
     /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'batch,ceo';
+    
+    
+    /**
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'batch,ceo';
@@ -82,6 +88,7 @@ class batch_Templates extends embed_Manager {
     function description()
     {
     	$this->FLD('name', 'varchar', 'caption=Име,mandatory');
+    	$this->FLD('autoAllocate', 'enum(yes=Да,no=Не)', 'caption=Автоматично разпределение в документи->Избор,notNull,value=yes,formOrder=1000');
     	
     	$this->setDbUnique('name');
     }
@@ -170,5 +177,26 @@ class batch_Templates extends embed_Manager {
     	}
     	
     	return $templateId;
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$form = &$data->form;
+    	$rec = &$form->rec;
+    	
+    	if($rec->createdBy == core_Users::SYSTEM_USER && isset($rec->id)){
+    		$fields = $form->selectFields("#input != 'none' AND #input != 'hidden'");
+    		foreach ($fields as $name => $fld){
+    			if($name == 'autoAllocate') continue;
+    			$form->setReadOnly($name);
+    		}
+    	}
     }
 }
