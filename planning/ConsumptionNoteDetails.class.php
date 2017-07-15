@@ -117,4 +117,22 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
     		}
     	}
     }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     */
+    protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    {
+    	$rec = &$form->rec;
+    	if(isset($rec->productId)){
+    		$canStore = cat_Products::fetchField($rec->productId, 'canStore');
+    		$storeId = planning_ConsumptionNotes::fetchField($rec->noteId, 'storeId');
+    		
+    		if(isset($storeId) && $canStore == 'yes'){
+    			$storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $storeId);
+    			$form->info = $storeInfo->formInfo;
+    		}
+    	}
+    }
 }

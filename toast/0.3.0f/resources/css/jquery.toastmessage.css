@@ -34,9 +34,10 @@
 }
 
 .toast-item-close {
-    background:url(../images/close.gif);
+    background:url(../images/close3.png);
     width:22px;
     height:22px;
+    background-size: 22px 22px;
     position: absolute;
     top:7px;
     right:7px;

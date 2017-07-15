@@ -259,6 +259,17 @@ abstract class batch_definitions_Proto extends core_BaseClass
     
     
     /**
+     * Може ли автоматично да се разпределят к-та
+     *
+     * @return varchar
+     */
+    public function canAutoAllocate()
+    {
+    	return ($this->rec->autoAllocate) ? TRUE : FALSE;
+    }
+    
+    
+    /**
      * Връща името на дефиницията
      *
      * @return varchar - Името на дефиницията

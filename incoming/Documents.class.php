@@ -433,7 +433,7 @@ class incoming_Documents extends core_Master
      * $arr['title'] - Заглавието на бутона
      * $arr['icon'] - Иконата
      */
-    static function getActionsForFile_($fRec)
+    static function getActionsForFile($fRec)
     {
         if(self::canKeepDoc($fRec->name, $fRec->fileLen)) {
 

@@ -389,13 +389,15 @@ class store_Transfers extends core_Master
     {
         expect($rec = $this->fetch($id));
         $title = $this->getRecTitle($rec);
+        $subTitle = "<b>" . store_Stores::getTitleById($rec->fromStore) . "</b> » <b>" . store_Stores::getTitleById($rec->toStore) . "</b>";
         
         $row = (object)array(
             'title'    => $title,
             'authorId' => $rec->createdBy,
             'author'   => $this->getVerbal($rec, 'createdBy'),
             'state'    => $rec->state,
-            'recTitle' => $title
+        	'subTitle' => $subTitle,
+            'recTitle' => $title,
         );
         
         return $row;
