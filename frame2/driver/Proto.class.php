@@ -107,18 +107,6 @@ abstract class frame2_driver_Proto extends core_BaseClass
 	
 	
 	/**
-	 * Дали отчета може да бъде опресняван автоматично
-	 *
-	 * @param stdClass $rec
-	 * @return boolean
-	 */
-	public function canBeRefreshedOnTime($id)
-	{
-		return TRUE;
-	}
-	
-	
-	/**
 	 * Добавя допълнителни полетата в антетката
 	 *
 	 * @param frame2_driver_Proto $Driver
@@ -162,5 +150,17 @@ abstract class frame2_driver_Proto extends core_BaseClass
 	public function getCsvExportFieldset($rec)
 	{
 		return new core_FieldSet();
+	}
+	
+	
+	/**
+	 * Връща следващите три дати, когато да се актуализира справката
+	 *
+	 * @param stdClass $rec - запис
+	 * @return array|FALSE  - масив с три дати или FALSE ако не може да се обновява
+	 */
+	public function getNextRefreshDates($rec)
+	{
+		return array();
 	}
 }

@@ -239,7 +239,7 @@ class tesseract_Converter extends core_Manager
             $pdfPathEsc = escapeshellarg($pdfPath);
             $tiffPathEsc = escapeshellarg($tiffPath);
             
-            exec("convert -density 300 {$pdfPathEsc} -depth 8 {$tiffPathEsc}");
+            exec("convert -background white -flatten +matte -density 300 {$pdfPathEsc} -depth 8 {$tiffPathEsc}");
             
             if (is_file($tiffPath)) {
                 $fileHnd = $tiffPath;
