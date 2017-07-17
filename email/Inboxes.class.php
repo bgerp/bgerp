@@ -832,6 +832,7 @@ class email_Inboxes extends core_Master
         
         if ($onlyWithNotify) {
             $query->where("#notifyForEmail = 'yes'");
+            $query->where("#state != 'rejected'");
         }
         
         while ($rec = $query->fetch()) {
