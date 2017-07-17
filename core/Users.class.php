@@ -203,7 +203,7 @@ class core_Users extends core_Manager
             //Ако не използвам никовете, тогава полето трябва да е задължително
             $this->FLD('nick', 'nick(64, ci)', 'caption=Ник,notNull,mandatory,width=100%');
         }
-        $this->FLD('state', 'enum(active=Активен,draft=Неактивиран,blocked=Блокиран,rejected=Заличен)',
+        $this->FLD('state', 'enum(active=Активен,draft=Непотвърден,blocked=Блокиран,closed=Затворен,rejected=Заличен)',
             'caption=Състояние,notNull,default=draft');
         
         $this->FLD('names', 'varchar', 'caption=Лице->Имена,mandatory,width=100%');
@@ -556,12 +556,12 @@ class core_Users extends core_Manager
         $form->FNC('passRe', 'password(allowEmpty,autocomplete=off)', "caption=Парола (пак),input,hint={$passReHint},after=passNew");
 
         self::setUserFormJS($form);
-
+ 
         if($id = $form->rec->id) {
             $exRec = self::fetch($id);
-            if($exRec->lastLoginTime) {
+            if($exRec->state != 'draft') {
                 $stateType = &$mvc->fields['state']->type;
-                unset($stateType->options['draft']);
+                unset($stateType->options['draft']); 
             }
         } else {
             $teamsList = core_Roles::getRolesByType('team');
@@ -866,7 +866,6 @@ class core_Users extends core_Manager
                 $inputs = $form->input('nick,pass,ret_url,time,hash');
             }
 
-           
             // Ако логин формата е субмитната
             if (($inputs->nick || $inputs->email) && $form->isSubmitted()) {
                 
@@ -893,7 +892,7 @@ class core_Users extends core_Manager
                     $userRec = new stdClass();
                 }
                 
-                if ($userRec->state == 'rejected') {
+                if ($userRec->state == 'rejected' || $userRec->state == 'closed') {
                     $form->setError('nick', 'Този потребител е деактивиран|*!');
                     $this->logLoginMsg($inputs, 'missing_password');
                     core_LoginLog::add('reject', $userRec->id, $inputs->time);
@@ -917,7 +916,6 @@ class core_Users extends core_Manager
                     $form->setError('pass', 'Липсва парола!');
                     $this->logLoginMsg($inputs, 'missing_password');
                     core_LoginLog::add('missing_password', $userRec->id, $inputs->time);
-//                } elseif (!$inputs->pass && !core_LoginLog::isTimestampDeviationInNorm($inputs->time)) {  
                 } elseif (!core_LoginLog::isTimestampDeviationInNorm($inputs->time)) {  
                     $form->setError('pass', 'Прекалено дълго време за логване|*!<br>|Опитайте пак|*.');
                     $this->logLoginMsg($inputs, 'time_deviation');

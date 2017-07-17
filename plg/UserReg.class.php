@@ -141,7 +141,7 @@ class plg_UserReg extends core_Plugin
     	    
     	    $userId = (int) core_Cache::get(USERREG_CACHE_TYPE, $id);
     	    
-    	    if (!$userId || (!$rec = $mvc->fetch($userId))) {
+    	    if (!$userId || (!($rec = $mvc->fetch("#id = [#1#] AND (#state = 'active' OR #state = 'blocked'")))) {
     	        redirect(array('Index'), FALSE, '|Този линк е невалиден. Вероятно е използван или е изтекъл.', 'error');
     	    }
     	    
@@ -382,7 +382,8 @@ class plg_UserReg extends core_Plugin
             $rec = $form->input('email,captcha');
             
             if ($form->isSubmitted() && $rec) {
-                $id = $mvc->fetchField(array("#email = '[#1#]'", $rec->email), 'id');
+                
+                $id = $mvc->fetchField(array("#email = '[#1#]' AND (#state = 'active' OR #state = 'blocked')", $rec->email), 'id');
                 
                 if (!$id) {
                     sleep(2);
