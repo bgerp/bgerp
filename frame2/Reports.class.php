@@ -732,9 +732,17 @@ class frame2_Reports extends embed_Manager
     public static function setAutoRefresh($id)
     {
     	$rec = self::fetchRec($id);
+    	$dates = NULL;
     	
-    	// Намира следващите три времена за обновяване
-    	$dates = self::getNextRefreshDates($rec);
+    	if($Driver = self::getDriver($rec)){
+    		$dates = $Driver->getNextRefreshDates($rec);
+    	}
+    	
+    	if(empty($dates)){
+    		
+    		// Намира следващите три времена за обновяване
+    		$dates = self::getNextRefreshDates($rec);
+    	}
     	
     	// Обхождане от 0 до 2
     	foreach (range(0, 2) as $i){

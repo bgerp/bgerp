@@ -136,4 +136,16 @@ class frame2_ReportIntf extends embed_DriverIntf
 	{
 		return $this->class->getCsvExportFieldset($rec);
 	}
+	
+	
+	/**
+	 * Връща следващите три дати, когато да се актуализира справката
+	 *
+	 * @param stdClass $rec - запис
+	 * @return array        - масив с три дати
+	 */
+	public function getNextRefreshDates($rec)
+	{
+		return $this->class->getNextRefreshDates($rec);
+	}
 }
