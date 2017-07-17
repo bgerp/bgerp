@@ -103,8 +103,11 @@ class type_Keylist extends core_Type {
                                 $name = ht::createLink($name, array($mvc, 'Single', $v), FALSE, $attr);
                             }
                         }
-                        
-                        $delimeter = (isset($this->params['classLink'])) ? " " : ", ";
+                        if(Mode::is('text-export', 'csv')) {
+                            $delimeter = '|';
+                        } else {
+                            $delimeter = (isset($this->params['classLink']) && !Mode::is('text', 'plain')) ? " " : ", ";
+                        }
                         $res .= ($res ? $delimeter : '') . $name;
                     }
                 }
