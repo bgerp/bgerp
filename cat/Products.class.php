@@ -722,7 +722,7 @@ class cat_Products extends embed_Manager {
     	} else {
     	    if (isset($rec->measureId) && !is_numeric($rec->measureId)) {
     	        $measureName = $rec->measureId;
-    	        $rec->measureId = cat_UoM::fetchField(array("LOWER(#name) = '[#1#]'", mb_strtolower(trim($rec->measureId))), 'id');
+    	        $rec->measureId = cat_UoM::fetchBySinonim($rec->measureId)->id;
 
     	        if (!$rec->measureId) {
     	            self::logNotice('Липсваща мярка при импортиране: ' . "{$measureName}");
@@ -738,7 +738,9 @@ class cat_Products extends embed_Manager {
     	    
     	    // От вербална стойност се опитваме да вземем невербалната
             if (isset($rec->groups)) {
-                setIfNot($delimiter, Mode::get('importDelimiter'), ',');
+
+                $delimiter = csv_Lib::getDevider($rec->groups);
+
                 $groupArr = explode($delimiter, $rec->groups);
                 
                 $groupIdArr = array();

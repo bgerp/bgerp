@@ -142,13 +142,10 @@ class bgerp_BaseImporter extends core_Manager {
         
         // Ако има грешки при импортиране, ги записваме в отделен файл
         if (!empty($errArr)) {
-            $delimiter = Mode::get('importDelimiter');
-            $enclosure = Mode::get('importEnclosure');
-            
             $nCsv = '';
             foreach ($errArr as $errStr) {
                 $nCsv .= ($nCsv) ? "\n" : '';
-                $nCsv .= csv_Lib::getCsvLine($errStr, $delimiter, $enclosure);
+                $nCsv .= csv_Lib::getCsvLine($errStr, '|', '"');
             }
             
             $fh = fileman::absorbStr($nCsv, 'exportCsv', 'ImportErr.csv');
