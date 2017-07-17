@@ -109,16 +109,12 @@ class bgerp_plg_Import extends core_Plugin
                 
                 // Преобразуване на csv-то в масив, по зададените параметри
                 $rows = csv_Lib::getCsvRows($csvData, $delimiter, $enclosure, $firstRow, $cols);
-                
+      
                 if($mvc->haveRightFor('import')){
                     
                     Mode::push('onExist', $onExist);
-                    Mode::push('importDelimiter', $delimiter);
-                    Mode::push('importEnclosure', $enclosure);
                     // Импортиране на данните от масива в зададените полета
                     $msg = $Driver->import($rows, $fields);
-                    Mode::pop('importEnclosure');
-                    Mode::pop('importDelimiter');
                     Mode::pop('onExist');
                     
                     // Редирект кум лист изгледа на мениджъра в който се импортира
@@ -153,7 +149,7 @@ class bgerp_plg_Import extends core_Plugin
     static function getFileContent($fh)
     {
         $csv = fileman_Files::getContent($fh);
-        $csv = i18n_Charset::convertToUtf8($csv);
+        $csv = i18n_Charset::convertToUtf8($csv, array('UTF-8', 'CP1251'));
         
         return $csv;
     }
@@ -174,6 +170,7 @@ class bgerp_plg_Import extends core_Plugin
         
         // Избиране на драйвър за импортиране
         $exp->DEF('#driver', 'int', 'caption=Източник,input,mandatory');
+        $exp->rule("#driver", "key(getimportdrivers())", "count(getimportdrivers()) == 1");
         $exp->OPTIONS("#driver", "getimportdrivers()");
         $exp->question("#driver", tr("Моля, изберете източник") . ":", TRUE, 'title=' . tr('Какъв е източникът на данни') . '?');
         
@@ -187,15 +184,15 @@ class bgerp_plg_Import extends core_Plugin
         $exp->question("#csvData,#delimiter,#enclosure,#firstRow,#onExist", tr("Моля, поставете данните, и посочете формата на данните") . ":", "#source == 'csv'", 'title=' . tr('Въвеждане на CSV данни за импорт, и уточняване на разделителя и ограждането'));
         
         // Поле за ъплоуд на csv файл
-        $exp->DEF('#csvFile=CSV файл', 'fileman_FileType(bucket=bnav_importCsv)', 'mandatory');
+        $exp->DEF('#csvFile=CSV файл', 'fileman_FileType(bucket=csvContacts)', 'mandatory');
         $exp->question("#csvFile,#delimiter,#enclosure,#firstRow,#onExist", tr("Въведете файл в CSV формат, и посочете формата на данните") . ":", "#source == 'csvFile'", 'title=' . tr('Въвеждане на данните от файл, и уточняване на разделителя и ограждането'));
         $exp->rule("#csvData", "getFileContentCsv(#csvFile)");
         
         // Полета за избиране на Разделител, ограждане и вида на първия ред
-        $exp->DEF('#delimiter=Разделител', 'varchar(1,size=3)', array('value' => ','), 'mandatory');
-        $exp->SUGGESTIONS("#delimiter", array(',' => ',', ';' => ';', ':' => ':', '|' => '|'));
-        $exp->DEF('#enclosure=Ограждане', 'varchar(1,size=3)', array('value' => '"'), 'mandatory');
-        $exp->SUGGESTIONS("#enclosure", array('"' => '"', '\'' => '\''));
+        $exp->DEF('#delimiter=Разделител', 'varchar(1,size=3)', array('value' => ''), 'placeholder=автоматично');
+        $exp->SUGGESTIONS("#delimiter", array('' => '', ',' => ',', ';' => ';', ':' => ':', '|' => '|'));
+        $exp->DEF('#enclosure=Ограждане', 'varchar(1,size=3)', array('value' => ''), 'placeholder=автоматично');
+        $exp->SUGGESTIONS("#enclosure", array('' => '', '"' => '"', '\'' => '\''));
         $exp->DEF('#firstRow=Първи ред', 'enum(columnNames=Имена на колони,data=Данни)', 'mandatory');
         $exp->DEF('#onExist=При съвпадение', 'enum(skip=Пропускане, update=Обновяване, duplicate=Дублиране)', 'mandatory');
         
@@ -223,7 +220,7 @@ class bgerp_plg_Import extends core_Plugin
                 $qFields .= ($qFields ? ',' : '') . "#col{$name}";
             }
             
-            $exp->question($qFields, tr("Въведете съответстващите полета за \"{$exp->mvc->className}\"") . ":", TRUE, 'label=lastQ,title=' . tr('Съответствие между полетата на източника и списъка'));
+            $exp->question($qFields, tr("Въведете съответстващите полета за \"{$exp->mvc->title}\"") . ":", TRUE, 'label=lastQ,title=' . tr('Съответствие между полетата на източника и списъка'));
             
             $res = $exp->solve("#driver,#source,#delimiter,#enclosure,#firstRow,#onExist,#lastQ");
         } else {

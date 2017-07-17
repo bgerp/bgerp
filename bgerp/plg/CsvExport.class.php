@@ -121,7 +121,9 @@ class bgerp_plg_CsvExport extends core_BaseClass {
     {
     	$cu = core_Users::getCurrent();
     	$recs = core_Cache::get($this->mvc->className, "exportRecs{$cu}");
-    	
+        
+        core_App::setTimeLimit(count($recs) / 100);
+
     	$retUrl = getRetUrl();
     	
     	if (empty($retUrl)) {
@@ -183,7 +185,7 @@ class bgerp_plg_CsvExport extends core_BaseClass {
     	$params['text'] = 'plain';
     	
 	    $this->mvc->invoke('BeforeExportCsv', array(&$recs));
-    	
+     
     	$content = csv_Lib::createCsv($recs, $this->mvc, $fieldsArr, $params);
     	$content = iconv('utf-8', $filter->encoding, $content);
     	
