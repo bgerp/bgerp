@@ -74,6 +74,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     	
     	$masterRec  = $mvc->Master->fetch($rec->{$mvc->masterKey});
     	$currencyRate = $rec->currencyRate = currency_CurrencyRates::getRate($masterRec->valior, $masterRec->currencyId, acc_Periods::getBaseCurrencyCode($masterRec->valior));
+    	bp($currencyRate);
     	if(!$currencyRate){
     		$form->setError('currencyRate', 'Не може да се изчисли курс');
     	}
@@ -86,7 +87,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     		
     		// Слагаме цената от политиката за последна цена
     		if(isset($mvc->LastPricePolicy)){
-    			$policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, cat_Products::getClassId(), $rec->packagingId, $rec->packQuantity, $masterRec->valior, $currencyRate, $rec->chargeVat);
+    			$policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity, $masterRec->valior, $currencyRate, $rec->chargeVat);
     			if($policyInfoLast->price != 0){
     				$form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
     			}
