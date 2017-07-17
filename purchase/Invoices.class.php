@@ -643,7 +643,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         
         $bestPosArr = doc_Files::getBestContainer($fileHnd, 'crm_ContragentAccRegIntf');
         
-        $form->FNC('folderId', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент, input, removeAndRefreshForm=acceptance');
+        $form->FNC('folderId', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент, input, removeAndRefreshForm=acceptance|purId');
         $form->FNC('purId', 'key(mvc=purchase_Purchases,allowEmpty)', 'caption=Покупка, input, removeAndRefreshForm=acceptance, mandatory');
         $form->FNC('invNum', 'varchar', 'caption=Фактура номер, input, class=w50');
         $form->FNC('acceptance', 'set(store=Стоки, service=Услуги)', 'caption=Приемане, input');
@@ -719,6 +719,11 @@ class purchase_Invoices extends deals_InvoiceMaster
                     $form->setDefault('purId', $doc->docId);
                 }
             }
+        }
+        
+        // Ако има само една опция - тя да е избрана по подразбиране
+        if ((count($purArr) == 1) && !isset($purArr[''])) {
+            $form->setDefault('purId', key($purArr));
         }
         
         $pRec = FALSE;
