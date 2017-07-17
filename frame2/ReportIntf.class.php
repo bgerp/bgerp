@@ -103,18 +103,6 @@ class frame2_ReportIntf extends embed_DriverIntf
 	
 	
 	/**
-	 * Дали отчета може да бъде опресняван автоматично
-	 *
-	 * @param stdClass $rec
-	 * @return boolean
-	 */
-	public function canBeRefreshedOnTime($id)
-	{
-		return $this->class->canBeRefreshedOnTime($rec);
-	}
-	
-	
-	/**
 	 * Връща редовете на CSV файл-а
 	 *
 	 * @param stdClass $rec
@@ -135,5 +123,17 @@ class frame2_ReportIntf extends embed_DriverIntf
 	public function getCsvExportFieldset($rec)
 	{
 		return $this->class->getCsvExportFieldset($rec);
+	}
+	
+	
+	/**
+	 * Връща следващите три дати, когато да се актуализира справката
+	 *
+	 * @param stdClass $rec - запис
+	 * @return array|FALSE  - масив с три дати или FALSE ако не може да се обновява
+	 */
+	public function getNextRefreshDates($rec)
+	{
+		return $this->class->getNextRefreshDates($rec);
 	}
 }

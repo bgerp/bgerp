@@ -1096,7 +1096,6 @@ class bgerp_Notifications extends core_Manager
     {
         $query = self::getQuery();
         $query->where("#hidden = 'no'");
-        $query->where("#state = 'active'");
         
         $query->orderBy('modifiedOn', 'DESC');
         
