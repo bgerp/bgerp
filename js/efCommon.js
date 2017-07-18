@@ -1654,6 +1654,8 @@ function setFormElementsWidth() {
         $('.formTable .select2-container').css('maxWidth', formElWidth);
         $('.formTable select').css('maxWidth', formElWidth);
 
+        $('.formTable .scrolling-holder').css('maxWidth', formElWidth);
+
         $('.formTable .hiddenFormRow select.w50').css('width', formElWidth);
         $('.formTable .hiddenFormRow select.w75').css('width', formElWidth);
         $('.formTable .hiddenFormRow select.w100').css('width', formElWidth);
