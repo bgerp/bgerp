@@ -639,7 +639,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         $form = cls::get('core_Form');
         
         $showClosedLimit = 3;
-        $maxLimitForShow = 200;
+        $maxLimitForShow = 300;
         
         $bestPosArr = doc_Files::getBestContainer($fileHnd, 'crm_ContragentAccRegIntf');
         
@@ -672,6 +672,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         $cPQuery = clone $pQuery;
         
         $pQuery->where("#state = 'active'");
+        $pQuery->orWhere("#state = 'pending'");
         $pQuery->where("#makeInvoice != 'no'");
         $pQuery->XPR('amountToInvoice', 'double', '#amountDelivered - #amountInvoiced');
         $tolerance = acc_Setup::get('MONEY_TOLERANCE');
@@ -679,10 +680,20 @@ class purchase_Invoices extends deals_InvoiceMaster
         $pQuery->orWhere("#amountToInvoice IS NULL");
         
         $pQuery->limit($maxLimitForShow);
+        $pQuery->orderBy('state', 'DESC');
         $pQuery->orderBy('valior', 'DESC');
         $pQuery->orderBy('activatedOn', 'DESC');
         
+        $group = '';
         while ($pRec = $pQuery->fetch()) {
+            
+            if ($group != $pRec->state) {
+                $group = $pRec->state;
+                
+                $verGroup = ($group == 'pending') ? 'Заявка' : 'Активни';
+                $purArr[$pRec->state] = (object) array('title' => tr($verGroup), 'group' => TRUE);
+            }
+            
             $purArr[$pRec->id] = purchase_Purchases::getTitleWithAmount($pRec->id);
         }
         
