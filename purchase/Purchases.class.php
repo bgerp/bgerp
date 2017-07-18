@@ -718,4 +718,18 @@ class purchase_Purchases extends deals_DealMaster
 		
 		return $products;
 	}
+	
+	
+    /**
+     * След клониране на покупката
+     * @see plg_Clone
+     *
+     * @param label_Labels $mvc
+     * @param object $rec
+     * @param object $nRec
+     */
+    protected static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
+    {
+        Mode::setPermanent('clonedPur|' . $nRec->id, $rec->id);
+    }
 }

@@ -262,6 +262,85 @@ class purchase_Invoices extends deals_InvoiceMaster
     	if($rec->contragentCountryId == $bgId){
     		$form->setFieldType('number', core_Type::getByName('bigint(size=10)'));
     	}
+    	
+    	$clonedFh = $form->rec->fileHnd;
+    	
+    	if (!$clonedFh) {
+    	    $clonedFh = Mode::get('invOriginFh');
+    	}
+    	
+    	if ($clonedFh) {
+    	
+    	    $form->setDefault('fileHnd', $clonedFh);
+    	
+    	    $fRec = fileman::fetchByFh($clonedFh);
+    	    self::showOriginalFile($fRec, $form);
+    	}
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param purchase_Invoices $mvc
+     * @param stdObject $data
+     */
+    function on_BeforePrepareEditForm($mvc, &$data)
+    {
+        $oId = Request::get('originId');
+        if ($oId) {
+            $origin = doc_Containers::getDocument($oId);
+            
+            if ($origin->isInstanceOf('purchase_Purchases')) {
+                $oRec = $origin->fetch();
+                $clonedFromId = Mode::get('clonedPur|' . $oRec->id);
+            
+                if ($clonedFromId) {
+                    $clonedFh = Mode::get('clonedPurFh|' . $clonedFromId);
+                    Mode::set('invOriginFh', $clonedFh);
+                    
+                    // Да не се рендира оригиналния документ
+                    Mode::set('stopRenderOrigin', TRUE);
+                }
+            }
+        }
+    }
+    
+    
+    /**
+     * Помощна функция за показване на текста на оригиналния файл във формата
+     * 
+     * @param stdObject $fRec
+     * @param stdObject $form
+     */
+    protected static function showOriginalFile($fRec, $form)
+    {
+        $ext = fileman::getExt($fRec->name);
+         
+        // Вземаме уеб-драйверите за това файлово разширение
+        $webdrvArr = fileman_Indexes::getDriver($ext, $fRec->name);
+         
+        // Обикаляме всички открити драйвери
+        foreach($webdrvArr as $drv) {
+             
+            // Стартираме процеса за извличане на данни
+            $drv->startProcessing($fRec);
+             
+            // Комбиниране всички открити табове
+            $tabsArr = arr::combine($tabsArr, $drv->getTabs($fRec));
+        }
+         
+        if ($tabsArr['text']) {
+            $defTab = 'text';
+        }
+        setIfNot($defTab, $tabsArr['__defaultTab'], 'info');
+         
+        if ($tabsArr[$defTab]) {
+            $preview = $tabsArr[$defTab]->html;
+        }
+        
+        $form->layout = $form->renderLayout();
+        $form->layout->append($preview);
     }
     
     
@@ -825,6 +904,8 @@ class purchase_Invoices extends deals_InvoiceMaster
             // Ако ще се клонира покупката - пращаме директно към съответната форма
             if ($pRec->state == 'closed') {
                 
+                Mode::setPermanent('clonedPurFh|' . $pRec->id, $fileHnd);
+                
                 return new Redirect(array('purchase_Purchases', 'clonefields', $pRec->id, 'ret_url' => TRUE));
             }
             
@@ -998,31 +1079,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         // Показваме превю на файла
         
         if ($form->cmd != 'refresh') {
-            $ext = fileman::getExt($fRec->name);
-            
-            // Вземаме уеб-драйверите за това файлово разширение
-            $webdrvArr = fileman_Indexes::getDriver($ext, $fRec->name);
-            
-            // Обикаляме всички открити драйвери
-            foreach($webdrvArr as $drv) {
-            
-                // Стартираме процеса за извличане на данни
-                $drv->startProcessing($fRec);
-            
-                // Комбиниране всички открити табове
-                $tabsArr = arr::combine($tabsArr, $drv->getTabs($fRec));
-            }
-            
-            if ($tabsArr['text']) {
-                $defTab = 'text';
-            }
-            setIfNot($defTab, $tabsArr['__defaultTab'], 'info');
-            
-            if ($tabsArr[$defTab]) {
-                $preview = $tabsArr[$defTab]->html;
-            }
-            
-            $form->layout->append($preview);
+            $this->showOriginalFile($fRec, $form);
         }
         
         $tpl = $this->renderWrapping($form->renderHtml());
