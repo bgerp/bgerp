@@ -116,6 +116,7 @@ class store_reports_Documents extends frame2_driver_TableData
 				self::applyFilters($cQuery, $storeIds, $pDoc, $rec, 'deadline');
 				while($cRec = $cQuery->fetch()){
 					$recs[$cRec->containerId] = (object)array('containerId' => $cRec->containerId,
+															  'stores'      => array($cRec->storeId), 
 													          'dueDate'     => $cRec->deadline,
 													          'weight'      => NULL,
 													          'pallets'     => NULL,
@@ -139,8 +140,10 @@ class store_reports_Documents extends frame2_driver_TableData
 						$lineCid = trans_Lines::fetchField($sRec->lineId, 'containerId');
 						$linked[$lineCid] = $lineCid;
 					}
+					$stores = ($pDoc != 'store_Transfers') ? array($sRec->storeId) : array($sRec->fromStore, $sRec->toStore);
 					
 					$recs[$sRec->containerId] = (object)array('containerId' => $sRec->containerId,
+														      'stores'      => $stores,
 													          'dueDate'     => $sRec->deliveryTime,
 													  		  'weight'      => ($sRec->weightInput) ? $sRec->weightInput : $sRec->weight,
 													  		  'pallets'     => NULL, // @TODO
@@ -160,6 +163,7 @@ class store_reports_Documents extends frame2_driver_TableData
 			self::applyFilters($pQuery, $storeIds, 'planning_DirectProductionNote', $rec, 'deadline');
 			while($pRec = $pQuery->fetch()){
 				$recs[$pRec->containerId] = (object)array('containerId' => $pRec->containerId,
+													      'stores'      => array($pRec->storeId),
 												  		  'dueDate'     => $pRec->deadline,
 												  		  'weight'      => NULL,
 											      		  'pallets'     => NULL,
@@ -249,7 +253,6 @@ class store_reports_Documents extends frame2_driver_TableData
 		$row = new stdClass();
 		
 		$Document = doc_Containers::getDocument($dRec->containerId);
-		
 		$row->createdBy = crm_Profiles::createLink($dRec->createdBy);
 		if($isPlain){
 			$row->createdBy = strip_tags(($row->createdBy instanceof core_ET) ? $row->createdBy->getContent() : $row->createdBy);
@@ -268,18 +271,16 @@ class store_reports_Documents extends frame2_driver_TableData
 			$row->ROW_ATTR['class'] = "state-{$Document->fetchField('state')}";
 		}
 		
-		foreach (array('dueDate', 'createdOn') as $dateFld){
-			if(isset($dRec->{$dateFld})){
-				if($isPlain){
-					$row->{$dateFld} = frame_CsvLib::toCsvFormatData($dRec->{$dateFld});
-				} else {
-					$DeliveryDate = new DateTime($dRec->{$dateFld});
-					$delYear = $DeliveryDate->format('Y');
-					$curYear = date('Y');
-					$mask = ($delYear == $curYear) ? 'd.M H:i:s' : 'd.M.y H:i:s';
-					$row->{$dateFld} = dt::mysql2verbal($dRec->{$dateFld}, $mask);
-				}
-			}
+		if($isPlain){
+			$row->dueDate = frame_CsvLib::toCsvFormatData($dRec->dueDate);
+			$row->createdOn = frame_CsvLib::toCsvFormatData($dRec->createdOn);
+		} else {
+			$DeliveryDate = new DateTime($dRec->dueDate);
+			$delYear = $DeliveryDate->format('Y');
+			$curYear = date('Y');
+			$mask = ($delYear == $curYear) ? 'd.M H:i:s' : 'd.M.y H:i:s';
+			$row->dueDate = dt::mysql2verbal($dRec->dueDate, $mask);
+			$row->createdOn = core_Type::getByName('datetime(format=smartTime)')->toVerbal($dRec->createdOn);
 		}
 		
 		if(!empty($dRec->weight)){
@@ -301,18 +302,28 @@ class store_reports_Documents extends frame2_driver_TableData
 		if($isPlain){
 			$row->folderId = doc_Folders::getTitleById($dRec->folderId, FALSE);
 		} else {
+			$row->created = "{$row->createdOn} " . tr('от') . " {$row->createdBy}";
 			$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($dRec->folderId))->title;
 		}
 		
 		if(is_array($dRec->linked) && count($dRec->linked)){
-			$linked = array();
+			$linked = "<table class='small no-border'>";
 			foreach ($dRec->linked as $cId){
 				$Document = doc_Containers::getDocument($cId);
 				$link = ($isPlain) ? "#" .$Document->getHandle(): $Document->getLink(0);
-				$linked[] = $link;
+				$linked .= "<tr><td>{$link}<td></tr>";
 			}
-			
-			$row->linked = implode(', ', $linked);
+			$linked .= "</table>";
+			$row->linked = $linked;
+		}
+		
+		if(is_array($dRec->stores)){
+			$stores = array();
+			foreach ($dRec->stores as $storeId){
+				$link = store_Stores::getHyperlink($storeId, TRUE);
+				$stores[] = ($isPlain) ? store_Stores::getTitleById() : store_Stores::getHyperlink($storeId, TRUE);
+			}
+			$row->stores = implode(' » ', $stores);
 		}
 		
 		return $row;
@@ -331,19 +342,26 @@ class store_reports_Documents extends frame2_driver_TableData
 		$fld = cls::get('core_FieldSet');
 		
 		$fld->FLD('document', 'varchar', 'caption=Документ');
-			
+		if(empty($rec->storeId)){
+			$fld->FLD('stores', 'varchar', 'caption=Склад,tdClass=small');
+		}
+		
 		if($export === FALSE){
-			$fld->FLD('dueDate', 'varchar', 'tdClass=small centered,caption=Срок');
+			$fld->FLD('dueDate', 'varchar', 'tdClass=small nowrap,caption=Срок');
+			$fld->FLD('weight', 'varchar', 'caption=Тегло,tdClass=small nowrap');
+			$fld->FLD('pallets', 'varchar', 'caption=Палети');
+			$fld->FLD('linked', 'varchar', 'caption=Задачи');
+			$fld->FLD('folderId', 'varchar', 'tdClass=small,caption=Папка');
+			$fld->FLD('created', 'datetime', 'caption=Създаване,tdClass=small nowrap');
 		} else {
 			$fld->FLD('dueDate', 'varchar', 'caption=Срок');
+			$fld->FLD('weight', 'varchar', 'caption=Тегло');
+			$fld->FLD('pallets', 'varchar', 'caption=Палети');
+			$fld->FLD('linked', 'varchar', 'caption=Задачи');
+			$fld->FLD('folderId', 'varchar', 'tdClass=small,caption=Папка');
+			$fld->FLD('createdOn', 'datetime', 'caption=Създаване->На');
+			$fld->FLD('createdBy', 'varchar', 'caption=Създаване->От');
 		}
-			
-		$fld->FLD('weight', 'varchar', 'caption=Тегло,tdClass=small');
-		$fld->FLD('pallets', 'varchar', 'caption=Палети');
-		$fld->FLD('linked', 'varchar', 'caption=Задачи,tdClass=small');
-		$fld->FLD('folderId', 'varchar', 'tdClass=small,caption=Папка');
-		$fld->FLD('createdOn', 'datetime', 'caption=Създаване->На');
-		$fld->FLD('createdBy', 'varchar', 'caption=Създаване->От');
 		
 		return $fld;
 	}
@@ -392,14 +410,16 @@ class store_reports_Documents extends frame2_driver_TableData
 		
 		if(!is_array($dataRecsOld)) return TRUE;
 		
-		foreach ($dataRecsNew as $index => $new){
-			$old = $dataRecsNew[$index];
-			
-			// Ако има нов документ - известяване
-			if(!array_key_exists($index, $dataRecsOld)) return TRUE;
-			
-			// Ако има промяна в крайния срок - известяване
-			if($new->dueDate != $old->dueDate) return TRUE;
+		if(is_array($dataRecsNew)){
+			foreach ($dataRecsNew as $index => $new){
+				$old = $dataRecsNew[$index];
+					
+				// Ако има нов документ - известяване
+				if(!array_key_exists($index, $dataRecsOld)) return TRUE;
+					
+				// Ако има промяна в крайния срок - известяване
+				if($new->dueDate != $old->dueDate) return TRUE;
+			}
 		}
 		
 		return FALSE;
