@@ -680,7 +680,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         $pQuery->orderBy('activatedOn', 'DESC');
         
         while ($pRec = $pQuery->fetch()) {
-            $purArr[$pRec->id] = purchase_Purchases::getTitleById($pRec->id);
+            $purArr[$pRec->id] = purchase_Purchases::getTitleWithAmount($pRec->id);
         }
         
         // Вземаме последните 3 покукпи
@@ -697,7 +697,7 @@ class purchase_Invoices extends deals_InvoiceMaster
                 
                 $purArr['closed'] = (object) array('title' => tr('Затворени'), 'group' => TRUE);
             }
-            $purArr[$pRec->id] = purchase_Purchases::getTitleById($pRec->id);
+            $purArr[$pRec->id] = purchase_Purchases::getTitleWithAmount($pRec->id);
         }
         
         if (empty($purArr)) {

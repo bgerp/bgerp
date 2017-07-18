@@ -245,6 +245,41 @@ class purchase_Purchases extends deals_DealMaster
     
     
     /**
+     * Връща заглавието на покупката със сумата за фактуриране
+     * 
+     * @param integer $id
+     * @param boolean $showAmount
+     * 
+     * @return string
+     */
+    public static function getTitleWithAmount($id, $showAmount = TRUE)
+    {
+        if (!$id) return '';
+        $rec = self::fetch($id);
+        
+        if ($rec) {
+            $amountToInvoice = $rec->amountDelivered - $rec->amountInvoiced;
+            
+            if ($amountToInvoice) {
+                $amountToInvoice = round($amountToInvoice, 2);
+            }
+            
+            if ($amountToInvoice) {
+                $amountToInvoice .= ' ' . $rec->currencyId;
+            }
+        }
+        
+        $title = self::getTitleById($id);
+        
+        if ($amountToInvoice) {
+            $title .= ' ' . $amountToInvoice;
+        }
+        
+        return $title;
+    }
+    
+    
+    /**
      * Преди показване на форма за добавяне/промяна
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
