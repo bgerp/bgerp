@@ -931,7 +931,7 @@ class cat_Products extends embed_Manager {
         	
         	$result = (object)array(
                 'num'      => $rec->code . " a",
-                'title'    => static::getDisplayName($rec),
+                'title'    => self::getDisplayName($rec),
                 'uomId'    => $rec->measureId,
                 'features' => array()
             );
@@ -1177,7 +1177,7 @@ class cat_Products extends embed_Manager {
         if(count($mvc->createdProducts)){
         	foreach ($mvc->createdProducts as $rec) {
         		if($rec->canManifacture == 'yes'){
-        			static::createDefaultBom($rec);
+        			self::createDefaultBom($rec);
         		}
         		
         		// Ако е създаден артикул, базиран на прототип клонират се споделените му папки, само ако той е частен
@@ -2222,7 +2222,7 @@ class cat_Products extends embed_Manager {
     {
     	$data = static::prepareDescription($id, $documentType);
     	
-    	return static::renderDescription($data);
+    	return self::renderDescription($data);
     }
     
     

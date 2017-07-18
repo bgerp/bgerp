@@ -64,7 +64,7 @@ class store_reports_Documents extends frame2_driver_TableData
 	{
 		$form = &$data->form;
 		
-		$stores = $Driver->getContableStores();
+		$stores = self::getContableStores();
 		$form->setOptions('storeId', array('' => '') + $stores);
 		$documents = array('planning_ConsumptionNotes', 'planning_ReturnNotes', 'store_Transfers', 'store_ShipmentOrders', 'store_Receipts', 'planning_DirectProductionNote');
 	
@@ -81,7 +81,7 @@ class store_reports_Documents extends frame2_driver_TableData
 	 * Връща складовете, в които може да контира потребителя
 	 * @return array $res
 	 */
-	private function getContableStores()
+	private static function getContableStores()
 	{
 		$res = array();
 		
@@ -107,7 +107,7 @@ class store_reports_Documents extends frame2_driver_TableData
 	protected function prepareRecs($rec, &$data = NULL)
 	{
 		$recs = array();
-		$storeIds = isset($rec->storeId) ? array($rec->storeId => $rec->storeId) : array_keys($this->getContableStores());
+		$storeIds = isset($rec->storeId) ? array($rec->storeId => $rec->storeId) : array_keys(self::getContableStores());
 		if(!count($storeIds)) return $recs;
 		
 		foreach (array('planning_ConsumptionNotes', 'planning_ReturnNotes') as $pDoc){
@@ -327,12 +327,13 @@ class store_reports_Documents extends frame2_driver_TableData
 	
 	
 	/**
-	 * След рендиране на единичния изглед
+	 * След вербализирането на данните
 	 *
 	 * @param frame2_driver_Proto $Driver
 	 * @param embed_Manager $Embedder
-	 * @param core_ET $tpl
-	 * @param stdClass $data
+	 * @param stdClass $row
+	 * @param stdClass $rec
+	 * @param array $fields
 	 */
 	protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
 	{

@@ -211,7 +211,7 @@ class cat_ProductTplCache extends core_Master
 	 * Кешира заглавието на артикула
 	 *
 	 * @param int $productId
-	 * @param datetime $time
+	 * @param datetime|NULL $time
 	 * @param enum(internal,public) $documentType
 	 * @return string - заглавието на артикула
 	 */
@@ -259,7 +259,7 @@ class cat_ProductTplCache extends core_Master
 	 * Кешира описанието на артикула
 	 *
 	 * @param int $productId
-	 * @param datetime $time
+	 * @param datetime|NULL $time
 	 * @param enum(public,internal) $documentType
 	 * @return core_ET
 	 */
