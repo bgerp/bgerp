@@ -778,7 +778,7 @@ abstract class deals_Helper
 			// Ако документа е бил чернова не проверяваме дали потребителя може да избере обекта
 			if($action == 'restore' && $rec->brState == 'draft') return TRUE;
 			
-			// Ако има избран обект и потребитеяле не може да го избере връщаме FALSE
+			// Ако има избран обект и потребителя не може да го избере връщаме FALSE
 			if(isset($rec->{$objectIdField}) && !$ObjectManager::haveRightFor('select', $rec->{$objectIdField})){
 				return FALSE;
 			}
