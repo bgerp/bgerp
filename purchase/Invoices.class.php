@@ -1002,6 +1002,9 @@ class purchase_Invoices extends deals_InvoiceMaster
                 $tabsArr = arr::combine($tabsArr, $drv->getTabs($fRec));
             }
             
+            if ($tabsArr['text']) {
+                $defTab = 'text';
+            }
             setIfNot($defTab, $tabsArr['__defaultTab'], 'info');
             
             if ($tabsArr[$defTab]) {
