@@ -98,7 +98,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 	{
 		$tpl = new core_ET("[#PAGER_TOP#][#TABLE#][#PAGER_BOTTOM#]");
 	
-		$data = $rec->data;
+		$data = (is_object($rec->data)) ? $rec->data : new stdClass();
 		$data->listFields = $this->getListFields($rec);
 		$data->rows = array();
 	

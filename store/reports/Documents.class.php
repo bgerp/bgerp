@@ -367,6 +367,8 @@ class store_reports_Documents extends frame2_driver_TableData
 		$dataRecsNew = $rec->data->recs;
 		$dataRecsOld = $oldRec->data->recs;
 		
+		if(!is_array($dataRecsOld)) return TRUE;
+		
 		foreach ($dataRecsNew as $index => $new){
 			$old = $dataRecsNew[$index];
 			
