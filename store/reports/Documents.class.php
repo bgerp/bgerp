@@ -119,7 +119,7 @@ class store_reports_Documents extends frame2_driver_TableData
 													          'dueDate'     => $cRec->deadline,
 													          'weight'      => NULL,
 													          'pallets'     => NULL,
-													          'lineId'      => NULL,
+													          'linked'      => $this->getLinkedDocuments($cRec->containerId),
 													          'folderId'    => $cRec->folderId,
 													          'createdOn'   => $cRec->createdOn,
 													          'createdBy'   => $cRec->createdBy,
@@ -129,39 +129,28 @@ class store_reports_Documents extends frame2_driver_TableData
 			}
 		}
 		
-		foreach (array('store_ShipmentOrders', 'store_Receipts') as $pDoc){
+		foreach (array('store_ShipmentOrders', 'store_Receipts', 'store_Transfers') as $pDoc){
 			if(empty($rec->document) || ($rec->document == $pDoc::getClassId())){
 				$sQuery = $pDoc::getQuery();
 				self::applyFilters($sQuery, $storeIds, $pDoc, $rec, 'deliveryTime');
 				while($sRec = $sQuery->fetch()){
+					$linked = $this->getLinkedDocuments($sRec->containerId);
+					if(!empty($sRec->lineId)){
+						$lineCid = trans_Lines::fetchField($sRec->lineId, 'containerId');
+						$linked[$lineCid] = $lineCid;
+					}
+					
 					$recs[$sRec->containerId] = (object)array('containerId' => $sRec->containerId,
 													          'dueDate'     => $sRec->deliveryTime,
 													  		  'weight'      => ($sRec->weightInput) ? $sRec->weightInput : $sRec->weight,
 													  		  'pallets'     => NULL, // @TODO
-													  		  'lineId'      => $sRec->lineId,
+													  		  'linked'      => $linked,
 													  		  'folderId'    => $sRec->folderId,
 													 		  'createdOn'   => $sRec->createdOn,
 													  		  'createdBy'   => $sRec->createdBy,
 													 		  'modifiedOn'  => $sRec->modifiedOn,
 					);
 				}
-			}
-		}
-		
-		if(empty($rec->document) || ($rec->document == store_Transfers::getClassId())){
-			$tQuery = store_Transfers::getQuery();
-			self::applyFilters($tQuery, $storeIds, 'store_Transfers', $rec, 'deliveryTime');
-			while($tRec = $tQuery->fetch()){
-				$recs[$tRec->containerId] = (object)array('containerId' => $tRec->containerId,
-												          'dueDate'     => $tRec->deliveryTime,
-												          'weight'      => ($tRec->weightInput) ? $tRec->weightInput : $tRec->weight,
-												          'pallets'     => NULL,
-												          'lineId'      => $tRec->lineId,
-												          'folderId'    => $tRec->folderId,
-												          'createdOn'   => $tRec->createdOn,
-												          'createdBy'   => $tRec->createdBy,
-												          'modifiedOn'  => $tRec->modifiedOn,
-				);
 			}
 		}
 		
@@ -174,7 +163,7 @@ class store_reports_Documents extends frame2_driver_TableData
 												  		  'dueDate'     => $pRec->deadline,
 												  		  'weight'      => NULL,
 											      		  'pallets'     => NULL,
-												  		  'lineId'      => NULL,
+												  		  'linked'      => $this->getLinkedDocuments($pRec->containerId),
 											      		  'folderId'    => $pRec->folderId,
 												  		  'createdOn'   => $pRec->createdOn,
 												  		  'createdBy'   => $pRec->createdBy,
@@ -200,6 +189,29 @@ class store_reports_Documents extends frame2_driver_TableData
 		$recs = $dueDateArr + $noDueDateArr;
 		
 		return $recs;
+	}
+	
+	
+	/**
+	 * Връща линкнатите документи към контейнера
+	 * 
+	 * @param int $containerId
+	 * @return array $linked
+	 */
+	private function getLinkedDocuments($containerId)
+	{
+		$linked = array();
+		
+		$cQuery = cal_TaskDocuments::getQuery();
+		$cQuery->EXT('taskContainerId', 'cal_Tasks', 'externalName=containerId,externalKey=taskId');
+		$cQuery->EXT('taskState', 'cal_Tasks', 'externalName=state,externalKey=taskId');
+		$cQuery->where("#containerId = {$containerId} AND #taskState != 'rejected'");
+		$cQuery->show('taskId,taskContainerId');
+		while($cRec = $cQuery->fetch()){
+			$linked[$cRec->taskContainerId] = $cRec->taskContainerId;
+		}
+		
+		return $linked;
 	}
 	
 	
@@ -264,7 +276,7 @@ class store_reports_Documents extends frame2_driver_TableData
 					$DeliveryDate = new DateTime($dRec->{$dateFld});
 					$delYear = $DeliveryDate->format('Y');
 					$curYear = date('Y');
-					$mask = ($delYear == $curYear) ? 'd.M' : 'd.M.y';
+					$mask = ($delYear == $curYear) ? 'd.M H:i:s' : 'd.M.y H:i:s';
 					$row->{$dateFld} = dt::mysql2verbal($dRec->{$dateFld}, $mask);
 				}
 			}
@@ -292,6 +304,17 @@ class store_reports_Documents extends frame2_driver_TableData
 			$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($dRec->folderId))->title;
 		}
 		
+		if(is_array($dRec->linked) && count($dRec->linked)){
+			$linked = array();
+			foreach ($dRec->linked as $cId){
+				$Document = doc_Containers::getDocument($cId);
+				$link = ($isPlain) ? "#" .$Document->getHandle(): $Document->getLink(0);
+				$linked[] = $link;
+			}
+			
+			$row->linked = implode(', ', $linked);
+		}
+		
 		return $row;
 	}
 	
@@ -317,7 +340,7 @@ class store_reports_Documents extends frame2_driver_TableData
 			
 		$fld->FLD('weight', 'varchar', 'caption=Тегло,tdClass=small');
 		$fld->FLD('pallets', 'varchar', 'caption=Палети');
-		$fld->FLD('lineId', 'varchar', 'caption=Линия');
+		$fld->FLD('linked', 'varchar', 'caption=Задачи,tdClass=small');
 		$fld->FLD('folderId', 'varchar', 'tdClass=small,caption=Папка');
 		$fld->FLD('createdOn', 'datetime', 'caption=Създаване->На');
 		$fld->FLD('createdBy', 'varchar', 'caption=Създаване->От');
