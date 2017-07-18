@@ -39,7 +39,7 @@ class purchase_PurchasesDetails extends deals_DealDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, purchase_Wrapper, plg_Sorting, plg_RowNumbering,acc_plg_ExpenseAllocation, doc_plg_HidePrices, plg_SaveAndNew, plg_AlignDecimals2,Policy=purchase_PurchaseLastPricePolicy, cat_plg_CreateProductFromDocument,doc_plg_HideMeasureAndQuantityColumns';
+    public $loadList = 'plg_RowTools2, plg_Created, purchase_Wrapper, plg_Sorting, plg_RowNumbering,acc_plg_ExpenseAllocation, doc_plg_HidePrices, plg_SaveAndNew, plg_AlignDecimals2,Policy=purchase_PurchaseLastPricePolicy, cat_plg_CreateProductFromDocument,doc_plg_HideMeasureAndQuantityColumns,cat_plg_ShowCodes';
     
     
     /**
@@ -83,7 +83,7 @@ class purchase_PurchasesDetails extends deals_DealDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, packQuantity, packPrice, discount, amount, quantityInPack';
+    public $listFields = 'productId, packagingId, packQuantity, packPrice, discount, amount';
     
 
     /**
@@ -116,6 +116,12 @@ class purchase_PurchasesDetails extends deals_DealDetail
      * @param out|in|stay - тип движение (излиза, влиза, стои)
      */
     public $batchMovementDocument = 'in';
+    
+    
+    /**
+     * Да се показва ли вашия номер
+     */
+    public $showReffCode = TRUE;
     
     
     /**

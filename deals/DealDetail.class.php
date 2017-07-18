@@ -384,20 +384,13 @@ abstract class deals_DealDetail extends doc_Detail
     	
     	core_Lg::push($masterRec->tplLang);
     	$date = ($masterRec->state == 'draft') ? NULL : $masterRec->modifiedOn;
-    	$listSysId = ($mvc instanceof sales_SalesDetails) ? 'salesList' : 'purchaseList';
-    	$listId = cond_Parameters::getParameter($masterRec->contragentClassId, $masterRec->contragentId, $listSysId);
     	
     	foreach ($rows as $id => &$row){
     		$rec = $recs[$id];
     		core_RowToolbar::createIfNotExists($row->_rowTools); 
     		cat_Products::addButtonsToDocToolbar($rec->productId, $row->_rowTools, $mvc->className, $id);
-    		
-    		// Показване на вашия реф, ако има
-    		if(isset($listId)){
-    			$row->reff = cat_Listings::getReffByProductId($listId, $rec->productId, $rec->packagingId);
-    		}
-    		
     		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $masterRec->tplLang);
+    		
     		deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     	}
     	
@@ -437,15 +430,7 @@ abstract class deals_DealDetail extends doc_Detail
     	$recs = &$data->recs;
     	$rows = &$data->rows;
     	
-    	// Скриване на полето "мярка"
-    	$data->listFields = array_diff_key($data->listFields, arr::make('quantityInPack', TRUE));
-    	
     	if(!count($recs)) return;
-    	arr::placeInAssocArray($data->listFields, array('reff' => 'Ваш номер'), 'productId');
-    	$data->listTableMvc->FNC('reff', 'varchar', 'smartCenter');
-    	
-        // Флаг дали има отстъпка
-        $haveDiscount = FALSE;
         
         if(count($data->rows)) {
             foreach ($data->rows as $i => &$row) {

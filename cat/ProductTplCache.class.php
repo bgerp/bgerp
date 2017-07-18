@@ -235,7 +235,7 @@ class cat_ProductTplCache extends core_Master
 		$cacheRec->documentType = $documentType;
 		
 		Mode::push('text', 'plain');
-		$cacheRec->cache = cat_Products::getTitleById($rec->id);
+		$cacheRec->cache = cat_Products::getVerbal($rec->id, 'name');
 		
 		if($Driver = cat_Products::getDriver($rec->id)){
 			$additionalNotes = $Driver->getAdditionalNotesToDocument($rec->id, $documentType);

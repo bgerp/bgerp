@@ -44,7 +44,13 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      */
     public $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_RowNumbering, plg_SaveAndNew, doc_plg_HidePrices,
                         plg_AlignDecimals2, plg_Sorting, doc_plg_TplManagerDetail, LastPricePolicy=sales_SalesLastPricePolicy,
-                        ReversePolicy=purchase_PurchaseLastPricePolicy, plg_PrevAndNext';
+                        ReversePolicy=purchase_PurchaseLastPricePolicy, plg_PrevAndNext,cat_plg_ShowCodes';
+    
+    
+    /**
+     * Да се показва ли кода като в отделна колона
+     */
+    public $showCodeColumn = TRUE;
     
     
     /**
@@ -82,7 +88,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'info=@Колети, productId, packagingId, packQuantity, packPrice, discount, amount, weight, volume,quantityInPack';
+    public $listFields = 'info=@Колети, productId, packagingId, packQuantity, packPrice, discount, amount, weight, volume';
     
         
     /**
@@ -264,8 +270,18 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
 
         return $res;
     }
-
-
+    
+    
+    /**
+     * Преди подготовката на полетата за листовия изглед
+     */
+    public static function on_AfterPrepareListFields($mvc, &$res, &$data)
+    {
+    	if(!empty($data->masterData->rec->deliveryTime)){
+    		$data->showReffCode = TRUE;
+    	}
+    }
+    
     
     /**
      * След обработка на записите от базата данни
@@ -280,7 +296,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     		foreach ($data->rows as $i => &$row) {
     			$rec = &$data->recs[$i];
     	 
-                $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $data->masterData->rec->tplLang);
+                $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $data->masterData->rec->tplLang, 1, FALSE);
                 deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
 
                 $unit = $rec->transUnit ? $mvc->getVerbal($rec, 'transUnit') : 'Палет';
