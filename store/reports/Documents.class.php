@@ -64,7 +64,7 @@ class store_reports_Documents extends frame2_driver_TableData
 	{
 		$form = &$data->form;
 		
-		$stores = self::getContableStores();
+		$stores = self::getContableStores($form->rec);
 		$form->setOptions('storeId', array('' => '') + $stores);
 		$documents = array('planning_ConsumptionNotes', 'planning_ReturnNotes', 'store_Transfers', 'store_ShipmentOrders', 'store_Receipts', 'planning_DirectProductionNote');
 	
@@ -81,11 +81,11 @@ class store_reports_Documents extends frame2_driver_TableData
 	 * Връща складовете, в които може да контира потребителя
 	 * @return array $res
 	 */
-	private static function getContableStores()
+	public static function getContableStores($rec)
 	{
 		$res = array();
+		$cu = (!empty($rec->createdBy)) ? $rec->createdBy : core_Users::getCurrent();
 		
-		$cu = core_Users::getCurrent();
 		$sQuery = store_Stores::getQuery();
 		while($sRec = $sQuery->fetch()){
 			if(bgerp_plg_FLB::canUse('store_Stores', $sRec, $cu)){
@@ -107,7 +107,7 @@ class store_reports_Documents extends frame2_driver_TableData
 	protected function prepareRecs($rec, &$data = NULL)
 	{
 		$recs = array();
-		$storeIds = isset($rec->storeId) ? array($rec->storeId => $rec->storeId) : array_keys(self::getContableStores());
+		$storeIds = isset($rec->storeId) ? array($rec->storeId => $rec->storeId) : array_keys(self::getContableStores($rec));
 		if(!count($storeIds)) return $recs;
 		
 		foreach (array('planning_ConsumptionNotes', 'planning_ReturnNotes') as $pDoc){
