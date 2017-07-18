@@ -1328,6 +1328,10 @@ a.tOld {
     .document .reportHolder .group-by-field-row td {
       padding: 5px !important; }
 
+.smallerTextInTable {
+  font-size: 0.7em;
+  min-width: 20em; }
+
 .small-padding td {
   padding: 3px !important; }
 
