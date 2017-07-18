@@ -645,8 +645,11 @@ class purchase_Invoices extends deals_InvoiceMaster
         
         $form->FNC('folderId', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент, input, removeAndRefreshForm=acceptance|purId');
         $form->FNC('purId', 'key(mvc=purchase_Purchases,allowEmpty)', 'caption=Покупка, input, removeAndRefreshForm=acceptance, mandatory');
-        $form->FNC('invNum', 'varchar', 'caption=Фактура номер, input, class=w50');
+        $form->FNC('invDate', 'date(format=d.m.Y)', 'caption=Фактура->Дата,  notNull, mandatory, input');
+        $form->FNC('invNum', 'varchar', 'caption=Фактура->Номер, input, class=w50');
         $form->FNC('acceptance', 'set(store=Стоки, service=Услуги)', 'caption=Приемане, input');
+        
+        $form->setDefault('invDate', dt::today());
         
         $form->input('folderId, purId');
         
@@ -799,6 +802,7 @@ class purchase_Invoices extends deals_InvoiceMaster
             if ($pRec->state == 'closed') {
                 $form->setField('acceptance', 'input=none');
                 $form->setField('invNum', 'input=none');
+                $form->setField('invDate', 'input=none');
             }
         }
         
@@ -853,6 +857,7 @@ class purchase_Invoices extends deals_InvoiceMaster
                 if ($clsName == 'purchase_Invoices') {
                     $invForm->rec->fileHnd = $fileHnd;
                     $invForm->rec->number = $form->rec->invNum;
+                    $invForm->rec->date = $form->rec->invDate;
                 }
                 
                 // Полето за ид не е тихо за да не се обърка и да инпутва ид-то на крон процеса
@@ -929,10 +934,17 @@ class purchase_Invoices extends deals_InvoiceMaster
                         if ($errObj->ignorable) continue;
                         
                         // Ако грешката е в номера
-                        if ($clsName == 'purchase_Invoices' && $key == 'number') {
-                            $form->setError('invNum', $errObj->msg);
+                        if ($clsName == 'purchase_Invoices') {
                             
-                            continue;
+                            if ($key == 'number') {
+                                $form->setError('invNum', $errObj->msg);
+                                
+                                continue;
+                            } elseif ($key == 'date') {
+                                $form->setError('invDate', $errObj->msg);
+                                
+                                continue;
+                            }
                         }
                         
                         $errMsg .= '<br>' . $errObj->msg;
