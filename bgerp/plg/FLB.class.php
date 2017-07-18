@@ -104,7 +104,7 @@ class bgerp_plg_FLB extends core_Plugin
 		$rec = $mvc->fetchRec($rec);
 		
 		// Ако потребителя е ceo винаги има достъп
-		if(core_Users::haveRole('ceo')) return TRUE;
+		if(core_Users::haveRole('ceo', $userId)) return TRUE;
 		
 		// Отговорника на папката винаги може да прави всичко с нея
 		if($rec->inCharge == $userId) return TRUE;
