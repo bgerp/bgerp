@@ -24,6 +24,7 @@ class plg_Clone extends core_Plugin
         setIfNot($invoker->canClonesysdata, 'admin, ceo');
         setIfNot($invoker->canCloneuserdata, 'user');
         setIfNot($invoker->canClonerec, 'user');
+        $invoker->FLD('clonedFromId', 'key(mvc=doc_Containers)', 'input=hidden,forceField');
     }
     
     
@@ -55,6 +56,7 @@ class plg_Clone extends core_Plugin
         // след като сме махнали от река зададените полета
         $mvc->prepareEditForm_($data);
         $form = &$data->form;
+        $form->setDefault('clonedFromId', $rec->id);
         
         // Проверяваме имали полета, които не искаме да се клонират
         $dontCloneFields = arr::make($mvc->fieldsNotToClone, TRUE);
