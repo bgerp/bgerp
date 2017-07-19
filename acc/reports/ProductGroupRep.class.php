@@ -132,25 +132,21 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
     	        }
     	    }
     	    
-    	    /*$arr = array();
+    	    $arr = array();
     	    foreach($recs as $i=>$r) {
     	        if(isset($rec->group)) {
     	            $groups = keylist::toArray($rec->group);
     	            $prodGroup = keylist::toArray($r->group);
     	            
     	            foreach($groups as $group) {
-    	                if(array_key_exists($group, $prodGroup)) { 
-    	                    //array_push($arr, $group);
-    	                    $arr[$i][$group] = $group;
+    	                $r->group = $group;
+    	                if(!array_key_exists($group, $prodGroup)) { 
+    	                    
+    	                    unset($recs[$i]);
     	                }
     	            }
     	        }
     	    }
-    	    
-    	    foreach($arr as $iArr=>$gr) {
-    	        $recs[$iArr]->group = $gr;
-    	    }*/
-
 
 		return $recs;
 	}
@@ -174,9 +170,9 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
     		$fld->FLD('primeCost', 'varchar', 'smartCenter,caption=Продажна');
     		$fld->FLD('sellCost', 'double(smartRound,decimals=2)', 'smartCenter,caption=Себестойност');
 		    
-		    //if(isset($rec->group)) {
+		    if(isset($rec->group)) {
 		        $fld->FLD('group', 'varchar', 'smartCenter,caption=Група');
-		    //}
+		    }
 
 		} else { 
 			$fld->FLD('kod', 'varchar','caption=Код');
