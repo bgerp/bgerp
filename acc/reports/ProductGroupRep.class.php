@@ -36,7 +36,7 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
     /**
      * По-кое поле да се групират листовите данни
      */
-    protected $groupByField = 'productId';
+    //protected $groupByField = 'productId';
     
     
     /**
@@ -114,6 +114,7 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
     	            $recs[$id]=
     	            (object) array (
     	                //'num' => $num,
+    	                'kod' => cat_Products::fetchField($recPrime->productId, 'code'),
     	                'date' => $recPrime->valior,
     	                'docId' => $recPrime->containerId,
     	                'productId' => $recPrime->productId,
@@ -123,10 +124,15 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
     	                'group' => cat_Products::fetchField($recPrime->productId, 'groups'),
   
     	            );
-    	        } 
+    	        } else {
+    	            $obj = &$recs[$id];
+    	            $obj->quantity += $recPrime->quantity;
+    	            $obj->primeCost += $recPrime->quantity * $recPrime->primeCost;
+    	            $obj->sellCost += $recPrime->quantity * $recPrime->sellCost;
+    	        }
     	    }
     	    
-    	    $arr = array();
+    	    /*$arr = array();
     	    foreach($recs as $i=>$r) {
     	        if(isset($rec->group)) {
     	            $groups = keylist::toArray($rec->group);
@@ -143,7 +149,7 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
     	    
     	    foreach($arr as $iArr=>$gr) {
     	        $recs[$iArr]->group = $gr;
-    	    }
+    	    }*/
 
 
 		return $recs;
@@ -162,22 +168,22 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
 		$fld = cls::get('core_FieldSet');
 	
 		if($export === FALSE){
-    		$fld->FLD('num', 'varchar','caption=№');
+    		$fld->FLD('kod', 'varchar','caption=Код');
     		$fld->FLD('productId', 'varchar', 'caption=Артикул');
     		$fld->FLD('quantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Количество');
-    		$fld->FLD('primeCost', 'varchar', 'smartCenter,caption=Сума->Продажна');
-    		$fld->FLD('sellCost', 'double(smartRound,decimals=2)', 'smartCenter,caption=Сума->Себестойност');
+    		$fld->FLD('primeCost', 'varchar', 'smartCenter,caption=Продажна');
+    		$fld->FLD('sellCost', 'double(smartRound,decimals=2)', 'smartCenter,caption=Себестойност');
 		    
-		    if(isset($rec->group)) {
+		    //if(isset($rec->group)) {
 		        $fld->FLD('group', 'varchar', 'smartCenter,caption=Група');
-		    }
+		    //}
 
 		} else { 
-			$fld->FLD('num', 'varchar','caption=№');
+			$fld->FLD('kod', 'varchar','caption=Код');
 			$fld->FLD('productId', 'varchar', 'caption=Артикул');
 			$fld->FLD('quantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Количество');
-	    	$fld->FLD('primeCost', 'varchar', 'caption=Сума->Продажна');
-		    $fld->FLD('sellCost', 'double(smartRound,decimals=2)', 'smartCenter,caption=Сума->Себестойност');
+	    	$fld->FLD('primeCost', 'varchar', 'caption=Продажна');
+		    $fld->FLD('sellCost', 'double(smartRound,decimals=2)', 'smartCenter,caption=Себестойност');
 		    $fld->FLD('group', 'varchar', 'smartCenter,caption=Група');
 		}
 	
@@ -203,8 +209,8 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
 		$row = new stdClass();
 
 
-		if(isset($dRec->num)) {
-		    $row->num = $Int->toVerbal($dRec->num);
+	    if(isset($dRec->kod)) {
+		    $row->kod = $dRec->kod;
 		}
 
 		if(isset($dRec->productId)) {
