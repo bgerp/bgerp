@@ -24,7 +24,8 @@ class plg_Clone extends core_Plugin
         setIfNot($invoker->canClonesysdata, 'admin, ceo');
         setIfNot($invoker->canCloneuserdata, 'user');
         setIfNot($invoker->canClonerec, 'user');
-        $invoker->FLD('clonedFromId', 'key(mvc=doc_Containers)', 'input=hidden,forceField');
+        
+        $invoker->FLD('clonedFromId', "key(mvc={$invoker->className})", 'input=hidden,forceField');
     }
     
     
