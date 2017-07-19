@@ -55,7 +55,7 @@ class hr_Bonuses extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_State, plg_SaveAndNew, doc_plg_TransferDoc, bgerp_plg_Blank,
+    public $loadList = 'plg_RowTools2, plg_State, plg_SaveAndNew, doc_plg_TransferDoc, bgerp_plg_Blank,plg_Sorting, 
     				 doc_DocumentPlg, doc_ActivatePlg,hr_Wrapper,acc_plg_DocumentSummary';
     
     
@@ -149,6 +149,12 @@ class hr_Bonuses extends core_Master
      */
     public $singleLayoutFile = 'trz/tpl/SingleLayoutBonuses.shtml';
 
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, date,modifiedOn';
+    
     
     /**
      * Описание на модела (таблицата)

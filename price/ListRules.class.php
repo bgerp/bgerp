@@ -953,9 +953,8 @@ class price_ListRules extends core_Detail
 		// Ако няма правила създаваме дефолтни
 		if(!self::count()){
 			cls::get('cat_Groups')->setupMvc();
-			
 			$path = getFullPath('price/csv/CatalogRules.csv');
-			$csv = csv_Lib::getCsvRowsFromFile($path, array('firstRow' => FALSE));
+			$csv = csv_Lib::getCsvRowsFromFile(file_get_contents($path), array('firstRow' => FALSE));
 			$csvRows = $csv['data'];
 			if(is_array($csvRows)){
 				foreach ($csvRows as $row){

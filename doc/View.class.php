@@ -223,7 +223,16 @@ class doc_View extends core_Master
                 }
             }
             
-            $data = $clsInst->prepareDocument($form->rec->dataId);
+            $options = NULL;
+            if ($form->rec->dataId) {
+                $dRec = $clsInst->fetch($form->rec->dataId);
+                $dRec->template = $form->rec->tplId;
+                $options = new stdClass();
+                $options->rec = $dRec;
+            }
+            
+            $data = $clsInst->prepareDocument($form->rec->dataId, $options);
+            
             $data->rec->template = $form->rec->tplId;
             
             $data->noToolbar = TRUE;

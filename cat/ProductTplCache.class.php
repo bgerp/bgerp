@@ -189,19 +189,21 @@ class cat_ProductTplCache extends core_Master
 		// Кога артикула е бил последно модифициран
 		$productModifiedOn = cat_Products::fetchField($productId, 'modifiedOn');
 		
-		// Намираме кешираните данни
-		$res = array($productModifiedOn => NULL);
 		$query = self::getQuery();
 		$query->where("#productId = {$productId} AND #type = '{$type}' AND #lang = '{$lang}' AND #documentType = '{$documentType}' AND #time <= '{$time}'");
 		$query->orderBy('time', 'DESC');
         $query->limit(1);
         $rec = $query->fetch();
 
-        if($rec) {
-
-            return $rec->cache;
+        if(!empty($rec)) {
+        	$res = array("{$productModifiedOn}" => NULL, "{$rec->time}" => $rec->cache);
+        	krsort($res);
+        	foreach ($res as $cTime => $cache){
+        		if($cTime <= $time) return $cache;
+        	}
         }
-
+        
+        return NULL;
 	}
 	
 	
@@ -209,7 +211,7 @@ class cat_ProductTplCache extends core_Master
 	 * Кешира заглавието на артикула
 	 *
 	 * @param int $productId
-	 * @param datetime $time
+	 * @param datetime|NULL $time
 	 * @param enum(internal,public) $documentType
 	 * @return string - заглавието на артикула
 	 */
@@ -233,7 +235,7 @@ class cat_ProductTplCache extends core_Master
 		$cacheRec->documentType = $documentType;
 		
 		Mode::push('text', 'plain');
-		$cacheRec->cache = cat_Products::getTitleById($rec->id);
+		$cacheRec->cache = cat_Products::getVerbal($rec->id, 'name');
 		
 		if($Driver = cat_Products::getDriver($rec->id)){
 			$additionalNotes = $Driver->getAdditionalNotesToDocument($rec->id, $documentType);
@@ -257,7 +259,7 @@ class cat_ProductTplCache extends core_Master
 	 * Кешира описанието на артикула
 	 *
 	 * @param int $productId
-	 * @param datetime $time
+	 * @param datetime|NULL $time
 	 * @param enum(public,internal) $documentType
 	 * @return core_ET
 	 */

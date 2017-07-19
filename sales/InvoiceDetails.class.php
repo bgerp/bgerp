@@ -41,7 +41,7 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, plg_Created, plg_Sorting, sales_Wrapper, plg_RowNumbering, plg_SaveAndNew, plg_AlignDecimals2, doc_plg_HidePrices, deals_plg_DpInvoice,Policy=price_ListToCustomers, 
-                        LastPricePolicy=sales_SalesLastPricePolicy, plg_PrevAndNext';
+                        LastPricePolicy=sales_SalesLastPricePolicy, plg_PrevAndNext,cat_plg_ShowCodes';
     
     
     /**

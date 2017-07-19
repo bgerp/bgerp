@@ -315,6 +315,7 @@ class csv_Lib
                 }
                 
                 Mode::push('text', 'plain');
+                Mode::push('text-export', 'csv');
                 if (($type instanceof type_Key) || ($type instanceof type_Key2)) {
                     $value = $type->toVerbal($rec->{$name});
                 } elseif ($type instanceof type_Keylist) {
@@ -345,6 +346,7 @@ class csv_Lib
                 } else {
                     $value = $rec->{$name};
                 }
+                Mode::pop('text-export');
                 Mode::pop('text');
                 
                 $rCsvArr[] = $value;
@@ -416,15 +418,9 @@ class csv_Lib
      * @return array $rows - масив с парсирани редовете на csv-то
      */
     public static function getCsvRows($csvData, $delimiter = NULL, $enclosure = NULL, $firstRow = 'columnNames')
-    {
-        $strPath = fileman::addStrToFile($csvData, 'file.csv');
-        
-        $csvData = i18n_Charset::convertToUtf8($csvData);
-        
-        $rowsArr = self::getCsvRowsFromFile($strPath, array('delimiter' => $delimiter, 'enclosure' => $enclosure, 'firstRow' => $firstRow));
-        
-        fileman::deleteTempPath($strPath);
-        
+    { 
+        $rowsArr = self::getCsvRowsFromFile($csvData, array('delimiter' => $delimiter, 'enclosure' => $enclosure, 'firstRow' => $firstRow));
+     
         return $rowsArr['data'];
     }
     
@@ -441,14 +437,8 @@ class csv_Lib
      * @return array
      */
     public static function getCsvColNames($csvData, $delimiter = NULL, $enclosure = NULL, $firstEmpty = FALSE, $checkErr = FALSE)
-    {
-        $strPath = fileman::addStrToFile($csvData, 'file.csv');
-        
-        $csvData = i18n_Charset::convertToUtf8($csvData);
-        
-        $rowsArr = self::getCsvRowsFromFile($strPath, array('delimiter' => $delimiter, 'enclosure' => $enclosure, 'firstRow' => 'columnNames'));
-        
-        fileman::deleteTempPath($strPath);
+    {  
+        $rowsArr = self::getCsvRowsFromFile($csvData, array('delimiter' => $delimiter, 'enclosure' => $enclosure, 'firstRow' => 'columnNames'));
         
         if ($checkErr && $rowsArr['error']) {
             
@@ -473,12 +463,12 @@ class csv_Lib
      * 
      * @return array
      */
-    public static function getCsvRowsFromFile($path, $params = array())
-    {
-        expect(($handle = fopen($path, "r")) !== FALSE);
+    public static function getCsvRowsFromFile($csvData, $params = array())
+    {  
+        list($handle, $params['delimiter'], $params['enclosure']) = self::analyze($csvData, $params['delimiter'], $params['enclosure']);
+
         setIfNot($params['length'], 0);
-        setIfNot($params['delimiter'], ',');
-        setIfNot($params['enclosure'], '"');
+
         setIfNot($params['escape'], '\\');
         setIfNot($params['firstRow'], 'columnNames');
         setIfNot($params['check'], TRUE);
@@ -492,7 +482,7 @@ class csv_Lib
         $isFirst = TRUE;
         $oldCnt = NULL;
         
-        while (($data = fgetcsv($handle, $params['length'], $params['delimiter'], $params['enclosure'], $params['escape'])) !== FALSE) {
+        while (($data = fgetcsv($handle, NULL, $params['delimiter'], $params['enclosure'], $params['escape'])) !== FALSE) {
             
             // Пропускаме празните линии
             if(!count($data) || (count($data) == 1 && trim($data[0]) == '')) continue;
@@ -510,7 +500,7 @@ class csv_Lib
                 
                 $oldCnt = $cnt;
             }
-            
+       
             array_unshift($data, "");
             unset($data[0]);
             
@@ -524,4 +514,130 @@ class csv_Lib
         
         return $resArr;
     }
+
+
+    /**
+     * Функция, която се опитва да анализира CSV файл
+     */
+    public static function analyze($csv, $delimiter = NULL, $enclosure = NULL)
+    {   
+        // Колко максимално линии да рзглеждаме
+        $maxLinesCheck = 100;
+
+        // Махаме BOM, ако има
+        $bom = pack('H*','EFBBBF');
+        $csv = preg_replace("/^$bom/", '', $csv);
+        
+        // Правим новия ред - \n
+        $nl = "\n";
+        $csv = str_replace(array("\r\n", "\n\r", "\r"), $nl, $csv);
+  
+        // Конвертираме към UTF-8
+        $csv = i18n_Charset::convertToUtf8($csv, array('UTF-8', 'WIN1251'));
+
+
+        // Определяне на формата
+        if(strlen($delimiter)) {
+            $dArr = array($delimiter);
+        } else {
+            $dArr = array("|", "\t", ",", ";", ' ', ':');
+        }
+
+        if(strlen($enclosure)) {
+            $eArr = array($enclosure);
+        } else {
+            $eArr = array("\"", "'", chr(8));
+        }
+
+        $nlCnt = substr_count($csv, $nl);
+        
+        // $csvSample = implode($nl, array_slice(explode($nl, $csv, $maxLinesCheck * 10 + 1), 0, $maxLinesCheck * 10));
+
+        // Запис на файла в паметта
+        $fp = fopen('php://memory','r+');
+        fputs($fp, $csv);
+        $best = NULL;
+
+        foreach($dArr as $d) {
+            foreach($eArr as $e) {
+                if(strpos($csv, $d) === FALSE) continue;
+               
+                rewind($fp);
+
+                $res = array();
+                $lCnt = 0;
+                $totalFields = 0;
+
+                // Опитваме да парсираме първите 100 реда
+                while (($data = fgetcsv($fp, NULL, $d, $e)) !== FALSE && $lCnt <= $maxLinesCheck) {
+    
+                    // Пропускаме празните линии
+                    if(!is_array($data) || !count($data) || (count($data) == 1 && trim($data[0]) == '')) continue;
+
+                    $res[] = $data;
+                    $totalFields += count($data);
+                    $lCnt++;
+                }
+                
+                if(!$lCnt) continue;
+
+                // Оценка: Броя на редовете и елементите във всеки ред, като се броят само редовете, 
+                // които имат брой полета, равен на средния
+                $cellsPerRow = round($totalFields/$lCnt);
+             
+                $points = 0;
+                foreach($res as $row) {
+                    $cnt = count($row);
+                    if($cnt == $cellsPerRow) {
+                        $points += $cnt;
+                    } else {
+                        $points -= $cnt;
+                    }
+                }
+                
+                // Добавка за срещанията на ображдащия символ до разделител или нов ред
+                $deCntL = substr_count($csv, $d . $e) + substr_count($csv, $nl . $e);
+                $deCntR = substr_count($csv, $e . $d) +substr_count($csv, $e . $nl) ;
+                $points += 0.4 * (($deCntL > 0) && ($deCntL == $deCntR));
+                $points -= ($deCntL > 0) && ($deCntL != $deCntR);
+              
+                // Среща ли се $е самостоятелно
+                preg_match_all("/[^\\{$d}\\{$e}]\\{$e}[^\\{$d}\\{$e}]/u", $d . str_replace($nl, $d, $csv) . $d, $matches);
+                $soloUse = count($matches[0]);
+                $points -= $soloUse;
+                $points += 0.6 * ($soloUse == 1);
+
+               // bp($deCntL, $deCntR, $soloUse, $points);
+ 
+                if(!isset($best) || $best < $points) {
+                    $delimiter = $d;
+                    $enclosure = $e;
+                    $best = $points;
+                    $parse = $res;
+                }
+            }
+        }
+ 
+        rewind($fp);
+ 
+        return array($fp, $delimiter, $enclosure);
+    }
+
+
+    /**
+     * Определя разделителя на групи
+     */
+    public static function getDevider($str)
+    {
+        if(strpos($str, '|')) {
+            $d = '|';
+        } elseif(strpos($str, ';')) {
+            $d = ';';
+        } else {
+            $d = ',';
+        }
+
+        return $d;
+    }
+    
 }

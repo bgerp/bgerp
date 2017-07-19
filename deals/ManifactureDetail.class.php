@@ -32,6 +32,12 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	
 	
 	/**
+	 * Да се показва ли кода като в отделна колона
+	 */
+	public $showCodeColumn = TRUE;
+	
+	
+	/**
 	 * Описание на модела (таблицата)
 	 */
 	public function setDetailFields($mvc)
@@ -169,7 +175,9 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	 */
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec)
 	{
-		$row->productId = cat_Products::getShortHyperLink($rec->productId);
+		$singleUrl = cat_Products::getSingleUrlArray($rec->productId);
+		$row->productId = cat_Products::getVerbal($rec->productId, 'name');
+		$row->productId = ht::createLinkRef($row->productId, $singleUrl);
 		
 		// Показваме подробната информация за опаковката при нужда
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);

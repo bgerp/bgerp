@@ -42,7 +42,7 @@ class hr_Leaves extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, hr_Wrapper, doc_plg_TransferDoc,bgerp_plg_Blank,
+    public $loadList = 'plg_RowTools2, hr_Wrapper, doc_plg_TransferDoc,bgerp_plg_Blank,plg_Sorting, 
     				 doc_DocumentPlg, acc_plg_DocumentSummary, doc_ActivatePlg,
     				 plg_Printing,doc_SharablePlg,plg_Search';
     
@@ -127,6 +127,11 @@ class hr_Leaves extends core_Master
      */
     public $canActivate = 'ceo,hr,hrMaster';
     
+    /**
+     * Кой може да го активира?
+     */
+    public $candDecline = 'ceo,hr,hrMaster';
+    
     
     /**
      * Кой може да го изтрие?
@@ -187,6 +192,12 @@ class hr_Leaves extends core_Master
     // Дните от седмицата
     static public $weekDays = array('Monday'=>'понеделник', 'Tuesday'=>'вторник', 'Wednesday'=>'сряда', 
                              'Thursday'=>'четвъртък', 'Friday'=>'петък', 'Saturday'=>'събота', 'Sunday'=>'неделя');
+    
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, leaveFrom,leaveTo, modifiedOn';
     
     
     /**
@@ -435,7 +446,7 @@ class hr_Leaves extends core_Master
 	         }
 	     }
 	     
-	     if ($action == 'add' || $action == 'reject') { 
+	     if ($action == 'add' || $action == 'reject'  || $action == 'decline') { 
 	         if ($rec->folderId) {
     	         $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
     	        
@@ -471,7 +482,26 @@ class hr_Leaves extends core_Master
     		// Премахваме бутона за коментар
 	    	$data->toolbar->removeBtn('Коментар');
 	    }
+	   
+	         
+	    if ($mvc->haveRightFor('decline', $data->rec) && $data->rec->state != 'closed') {
+	            $data->toolbar->addBtn('Отказ',array(
+	                $mvc,
+	                'Decline',
+	                'id' => $data->rec->id,
+	                'ret_url' => array('hr_Leaves', 'single', $data->rec->id)
+	            ),
+	                array('ef_icon'=>'img/16/cancel16.png',
+	                    'title'=>'Отказ на молбата'
+	                ));
+        } 
+
+        // Ако нямаме права за писане в треда
+        if(doc_Threads::haveRightFor('single', $data->rec->threadId) == FALSE  && $data->rec->state == 'closed'){
         
+            // Премахваме бутона за коментар
+            $data->toolbar->removeBtn('activate');
+        }
     }
     
     
@@ -491,7 +521,7 @@ class hr_Leaves extends core_Master
 
     	if(count($subscribedArr)) {
    	        foreach($subscribedArr as $userId) {
-    	        if($userId > 0  && doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
+    	        if($userId > 0  && doc_Threads::haveRightFor('single', $rec->threadId, $userId)) { 
     	            $rec->message  = "|Активирана е |* \"" . self::getRecTitle($rec) . "\"";
     	            $rec->url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
     	            $rec->customUrl = array($mvc, 'single',  $rec->id);
@@ -727,5 +757,82 @@ class hr_Leaves extends core_Master
         } else {
             $tpl->removeBlock('on');
         }
+
+        if($data->rec->state == 'closed') { 
+            $row = new stdClass();
+            $rowTpl = $tpl->getBlock("decline");
+       
+            if(isset($data->rec->modifiedOn)){
+                $row->modifiedOn = dt::mysql2verbal($data->rec->modifiedOn, 'd.m.Y');
+            }
+       
+            if(isset($data->rec->modifiedBy)){ 
+                $row->modifiedBy = core_Users::getVerbal($data->rec->modifiedBy, 'names');
+                if(!Mode::isReadOnly()){
+                    $row->modifiedBy = crm_Profiles::createLink($data->rec->modifiedBy, $row->modifiedBy);
+                }
+            }
+            
+            $rowTpl->placeObject($row);
+            $rowTpl->removeBlocks();
+            $rowTpl->append2master();
+            
+            $tpl->removeBlock('activatedBy');
+        } else {
+            $tpl->removeBlock('decline');
+        }
     }
+    
+    
+    /**
+     * Метод за отказване на молбата за отпуск
+     */
+    public static function act_Decline()
+    {
+        
+        //Очакваме да има такъв запис
+        expect($id = Request::get('id', 'int'));
+        
+        expect($rec = hr_Leaves::fetch($id));
+        
+        // Очакваме да има права за записа
+        hr_Leaves::requireRightFor('decline', $rec);
+        
+        //Очакваме потребителя да има права за спиране
+        hr_Leaves::haveRightFor('decline', $rec);
+        
+        $link = array('hr_Leaves', 'single', $rec->id);
+        
+        //Променяме статуса на затворено
+        $recUpd = new stdClass();
+        $recUpd->id = $rec->id;
+        $recUpd->state = 'closed';
+        
+        hr_Leaves::save($recUpd);
+        
+        $subscribedArr = keylist::toArray($rec->sharedUsers);
+        
+        if(isset($rec->alternatePerson)) {
+            $alternatePersonId = crm_Profiles::fetchField("#personId = '{$rec->alternatePerson}'", 'userId');
+            $subscribedArr[$alternatePersonId] = $alternatePersonId;
+        }
+        
+        if(count($subscribedArr)) {
+            foreach($subscribedArr as $userId) {
+                if($userId > 0  && doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
+                    $rec->message  = "|Отказана е |* \"" . self::getRecTitle($rec) . "\"";
+                    $rec->url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+                    $rec->customUrl = array($mvc, 'single',  $rec->id);
+                    $rec->priority = 0;
+                     
+                    bgerp_Notifications::add($rec->message, $rec->url, $userId, $rec->priority, $rec->customUrl);
+                }
+            }
+        }
+
+        // Редиректваме
+        return new Redirect($link, "|Успешно отказахте молба за отпуска");
+        
+    }
+    
 }

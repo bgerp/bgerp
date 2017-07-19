@@ -879,7 +879,7 @@ class bgerp_Notifications extends core_Manager
                 if ($data->listFilter->rec->id) {
                     $f = 'all_users';
                 } else {
-                    $uArr = $data->listFilter->getField('usersSearch')->type->getUserFromTeams($f);
+                    $uArr = $data->listFilter->getField('usersSearch')->type->getUserFromTeams();
                     reset($uArr);
                     $f = key($uArr);
                 }
@@ -1096,7 +1096,6 @@ class bgerp_Notifications extends core_Manager
     {
         $query = self::getQuery();
         $query->where("#hidden = 'no'");
-        $query->where("#state = 'active'");
         
         $query->orderBy('modifiedOn', 'DESC');
         

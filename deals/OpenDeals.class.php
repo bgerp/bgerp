@@ -65,6 +65,12 @@ class deals_OpenDeals extends core_Manager {
 	
 	
 	/**
+	 * Поле за филтриране по дата
+	 */
+	public $filterDateField = 'valior';
+	
+	
+	/**
      * Описание на модела
      */
     function description()

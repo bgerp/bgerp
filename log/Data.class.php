@@ -581,8 +581,8 @@ class log_Data extends core_Manager
         $data->listFilter->setDefault('users', $default);
         
         if (is_null(Request::get('class'))) {
-            // По - подразбиране да се търси месец назад
-            $data->listFilter->setDefault('from', dt::addDays(-1, NULL, FALSE));
+            // По - подразбиране да търси от днес
+            $data->listFilter->setDefault('from', dt::now(FALSE));
         }
         
         $data->listFilter->showFields = 'users, message, class, object, ip, from, to';

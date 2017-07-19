@@ -160,6 +160,12 @@ class findeals_AdvanceReports extends core_Master
     
     
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, valior,modifiedOn';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()

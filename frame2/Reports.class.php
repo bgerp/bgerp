@@ -209,6 +209,14 @@ class frame2_Reports extends embed_Manager
     	$form = &$data->form;
     	$form->setField('notificationText', array('placeholder' => self::$defaultNotificationText));
     	$form->setField('maxKeepHistory', array('placeholder' => self::MAX_VERSION_HISTORT_COUNT));
+    
+    	if($Driver = self::getDriver($form->rec)){
+    		$dates = $Driver->getNextRefreshDates($form->rec);
+    		if((is_array($dates) && count($dates)) || $dates === FALSE){
+    			$form->setField('updateDays', 'input=none');
+    			$form->setField('updateTime', 'input=none');
+    		}
+    	}
     }
     
     
@@ -230,13 +238,6 @@ class frame2_Reports extends embed_Manager
     			// и няма заглавие на отчета, прави се опит да се вземе от драйвера
     			if(empty($rec->title)){
     				$rec->title = $Driver->getTitle($rec);
-    			}
-    			
-    			// Ако отчета е за фиксирана дата и има опит за обновяване по разписание дава се грешка
-    			if(!empty($rec->updateTime) || !empty($rec->updateDays)){
-    				if(!$Driver->canBeRefreshedOnTime($rec)){
-    					$form->setError('updateDays,updateTime', 'Отчета е за фиксирана дата/период и не може да бъде опресняван по разписание');
-    				}
     			}
     			
     			$refresh = TRUE;
@@ -549,7 +550,8 @@ class frame2_Reports extends embed_Manager
     {
     	if($action == 'refresh' && isset($rec)){
     		if($Driver = $mvc->getDriver($rec)){
-    			if(!$Driver->canBeRefreshedOnTime($rec)){
+    			$dates = $Driver->getNextRefreshDates($rec);
+    			if($dates === FALSE){
     				$requiredRoles = 'no_one';
     			}
     		}
@@ -732,9 +734,17 @@ class frame2_Reports extends embed_Manager
     public static function setAutoRefresh($id)
     {
     	$rec = self::fetchRec($id);
+    	$dates = NULL;
     	
-    	// Намира следващите три времена за обновяване
-    	$dates = self::getNextRefreshDates($rec);
+    	if($Driver = self::getDriver($rec)){
+    		$dates = $Driver->getNextRefreshDates($rec);
+    	}
+    	
+    	if(empty($dates)){
+    		
+    		// Намира следващите три времена за обновяване
+    		$dates = self::getNextRefreshDates($rec);
+    	}
     	
     	// Обхождане от 0 до 2
     	foreach (range(0, 2) as $i){

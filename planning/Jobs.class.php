@@ -53,7 +53,7 @@ class planning_Jobs extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, plg_Sorting, acc_plg_DocumentSummary, plg_Search, doc_SharablePlg, change_Plugin, plg_Clone, plg_Printing, store_plg_ReserveStockSource';
+    public $loadList = 'plg_RowTools2, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, plg_Sorting, acc_plg_DocumentSummary, plg_Search, doc_SharablePlg, change_Plugin, plg_Clone, plg_Printing';
     
     
     /**
@@ -138,7 +138,7 @@ class planning_Jobs extends core_Master
     /**
      * Поле за дата по което ще филтрираме
      */
-    public $filterDateField = 'dueDate';
+    public $filterDateField = 'createdOn, dueDate,deliveryDate,modifiedOn';
     
     
     /**
@@ -171,7 +171,7 @@ class planning_Jobs extends core_Master
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'dueDate,quantityProduced,history,oldJobId';
-    
+
     
 	/**
      * Описание на модела (таблицата)

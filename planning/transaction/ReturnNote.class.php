@@ -27,7 +27,8 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
 	{
 		// Извличане на мастър-записа
 		expect($rec = $this->class->fetchRec($id));
-	
+		$rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
+		
 		$result = (object)array(
 				'reason' => "Протокол за връщане от производство №{$rec->id}",
 				'valior' => $rec->valior,
@@ -109,7 +110,7 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
 		if(Mode::get('saveTransaction')){
 			if(count($errorArr)){
 				$errorArr = implode(', ', $errorArr);
-				acc_journal_RejectRedirect::expect(FALSE, "Артикулите: |{$errorArr}|* не могат да бъдат върнати защото не са били вложени във производството");
+				acc_journal_RejectRedirect::expect(FALSE, "Артикулите: |{$errorArr}|* не могат да бъдат върнати защото липсва себестойност");
 			}
 		}
 		

@@ -765,7 +765,6 @@ div.productImage {
 	margin-top: 5px;
 	padding: 1px 5px;
 	cursor: pointer;
-	white-space: nowrap;
 	&:hover {
 		background-color: #f1f1f1;
 	}
@@ -1525,15 +1524,16 @@ a.tOld {
 		border:0px !important;
 	}
 	.reportHolder {
-		td {
-			vertical-align: middle !important;
-		}
 		.group-by-field-row td {
 			padding: 5px !important;
 		}
 
 
 	}
+}
+.smallerTextInTable {
+	font-size:0.7em;
+	min-width:20em;
 }
 
 .small-padding td {

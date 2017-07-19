@@ -40,7 +40,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_Sorting, 
-                        planning_plg_ReplaceEquivalentProducts, plg_PrevAndNext';
+                        planning_plg_ReplaceEquivalentProducts, plg_PrevAndNext,cat_plg_ShowCodes';
     
     
     /**
@@ -52,19 +52,19 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,planning,store';
+    public $canEdit = 'ceo,planning,store,production';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,planning,store';
+    public $canAdd = 'ceo,planning,store,production';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo,planning,store';
+    public $canDelete = 'ceo,planning,store,production';
     
     
     /**
@@ -246,6 +246,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	$table = cls::get('core_TableView', array('mvc' => $fieldset));
     	
     	$iData = clone $data;
+    	$iData->listTableMvc = clone $this;
     	$iData->rows = $data->inputArr;
     	$iData->recs = array_intersect_key($iData->recs, $iData->rows);
     	plg_AlignDecimals2::alignDecimals($this, $iData->recs, $iData->rows);
@@ -271,6 +272,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     		unset($data->listFields['storeId']);
     		
     		$pData = clone $data;
+    		$pData->listTableMvc = clone $this;
     		$pData->rows = $data->popArr;
     		$pData->recs = array_intersect_key($pData->recs, $pData->rows);
     		plg_AlignDecimals2::alignDecimals($this, $pData->recs, $pData->rows);

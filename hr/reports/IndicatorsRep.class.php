@@ -63,10 +63,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	 */
 	public function addFields(core_Fieldset &$fieldset)
 	{
-	    //$fieldset->FLD('personId', 'type_UserList', 'caption=Потребител,after=title,single=none');
-	    //$fieldset->FLD('userId', 'keylist(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител,after=title,single=none');
-	    $fieldset->FLD('departments', 'keylist(mvc=hr_Departments,select=name)', 'caption=Отдел,after=title,single=none');
-	    $fieldset->FLD('positionId',    'keylist(mvc=hr_Positions, select=name)', 'caption=Длъжност,after=title,single=none');
+	    $fieldset->FLD('personId', 'type_UserList', 'caption=Потребител,after=title,single=none');
 	    $fieldset->FLD('periods', 'key(mvc=acc_Periods,select=title)', 'caption=Месец,after=title,single=none');
 	}
       
@@ -99,71 +96,53 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 		$recs = array();
 		$persons = array();
 		$personsId = array();
-		$flg = FALSE;
 		$date = acc_Periods::fetch($rec->periods);
 
-	    // Обръщаме се към трудовите договори
-		$query = hr_EmployeeContracts::getQuery();
-		// ТОДО
-        $query->where("#state = 'active'");
-		
-		// има ли избран отдел
-		if(isset($rec->departments)) { 
-		    $departments = keylist::toArray($rec->departments);
-		    $departments = implode(',', $departments);
-		    $query->where("#departmentId IN ({$departments})");
-		}
-	
-		// има ли избрана позиция
-		if(isset($rec->positionId)) { 
-		    $positionId = keylist::toArray($rec->positionId);
-		    $positionId = implode(',', $positionId);
-		    $query->where("#positionId IN ({$positionId})");
-		}
+	    $query = hr_Indicators::getQuery(); 
+        
+	    // кои потребители търсим
+	    $persons = keylist::toArray($rec->personId);
 
-		// намираме отдоварящите ТД
-		while($contract = $query->fetch()) { 
-		    // записваме персонала в един масив
-		    array_push($persons, $contract->personId);		
-		}
+	    // ограничаваме по дата
+	    $query->where("(#date >= '{$date->start}' AND #date <= '{$date->end}')");
+	   
+	    if(count($persons)){
+	        foreach ($persons as $person) {
+	            // търсим ид-то на профила му
+	           $personId = crm_Profiles::fetchField("#userId = '{$person}'",'personId');
+	           
+	           array_push($personsId,$personId); 
+	        }
+	        $personsId = implode(',', $personsId);
 
-	    if(count($persons)){ 
-	        $queryIndic = hr_Indicators::getQuery();
-	        
-	        // ограничаваме по дата
-	        $queryIndic->where("(#date >= '{$date->start}' AND #date <= '{$date->end}')");
-	        $persons = implode(',', $persons); 
-	        $queryIndic->where("#personId IN ({$persons})"); 
-	        $flg = TRUE;
+	        $query->where("#personId IN ({$personsId})"); 
 	    }
 	
-	    if($flg == TRUE) {
-    	    // за всеки един индикатор
-    	    while($recIndic = $queryIndic->fetch()){ 
-    	        $id = $recIndic->personId."|".$recIndic->indicatorId;
-    	        // добавяме в масива събитието
-    	        if(!array_key_exists($id,$recs)) { 
-    	            $recs[$id]=
-    	            (object) array (
-    	                'num' => 0,
-    	                'date' => $recIndic->date,
-    	                'docId' => $recIndic->docId,
-    	                'person' => $recIndic->personId,
-    	                'indicatorId' => $recIndic->indicatorId,
-    	                'value' => $recIndic->value,
-    	            );
-    	            
-    	        } else {
-    	            $obj = &$recs[$id];
-    	            $obj->value += $recIndic->value;
-    	        }  
-    	    }
-    	    
-    	    $num = 1;
-    	    foreach($recs as $r) {
-    	        $r->num = $num;
-    	        $num++;
-    	    }
+	    // за всеки един индикатор
+	    while($recIndic = $query->fetch()){ 
+	        $id = $recIndic->personId."|".$recIndic->indicatorId;
+	        // добавяме в масива събитието
+	        if(!array_key_exists($id,$recs)) { 
+	            $recs[$id]=
+	            (object) array (
+	                'num' => 0,
+	                'date' => $recIndic->date,
+	                'docId' => $recIndic->docId,
+	                'person' => $recIndic->personId,
+	                'indicatorId' => $recIndic->indicatorId,
+	                'value' => $recIndic->value,
+	            );
+	            
+	        } else {
+	            $obj = &$recs[$id];
+	            $obj->value += $recIndic->value;
+	        }  
+	    }
+	    
+	    $num = 1;
+	    foreach($recs as $r) {
+	        $r->num = $num;
+	        $num++;
 	    }
 	  
 		return $recs;
@@ -218,14 +197,9 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 		// Линк към служителя
 		if(isset($dRec->person)) {
 		    $userId = crm_Profiles::fetchField("#personId = '{$dRec->person}'",'userId');
-		    
 		    $nick = crm_Profiles::createLink($userId)->getContent();
 		    //crm_Profiles::fetchField("#personId = '{$rec->alternatePerson}'", 'userId');
-		    if($userId) {
-		        $row->person = crm_Persons::fetchField($dRec->person, 'name') . " (" . $nick .")";
-		    } else {
-		        $row->person = crm_Persons::fetchField($dRec->person, 'name');
-		    }
+		    $row->person = crm_Persons::fetchField($dRec->person, 'name') . " (" . $nick .")";
 		}
 		
 		if($isPlain){
@@ -258,28 +232,14 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
      */
     protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
-        $posArr = array();
-        $depArr = array();
-            
-        if(isset($rec->departments)){
-            // избраният отдел
-            $departments = keylist::toArray($rec->departments);
-            foreach ($departments as &$d) {
-                $dep = hr_Departments::fetchField("#id = '{$d}'", 'name');
-                array_push($depArr, $dep);
-            }
-            $row->departments = implode(', ', $depArr); 
-        }
-
-        if(isset($rec->positionId)){
-            // избраната позиция
-            $position = keylist::toArray($rec->positionId);
-            foreach ($position as &$p) {
-                $pos = hr_Positions::fetchField("#id = '{$p}'", 'name');
-                array_push($posArr, $pos);
+        // потребителите
+        if(isset($rec->personId)){
+            $persons = keylist::toArray($rec->personId);
+            foreach ($persons as $userId => &$nick) {
+                $nick = crm_Profiles::createLink($userId)->getContent();
             }
             
-            $row->position = implode(', ', $posArr);
+            $row->persons = implode(', ', $persons);
         }
         
 
@@ -302,17 +262,12 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
     {
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-							    <small><div><!--ET_BEGIN departments-->|Отдел|*: [#departments#]<!--ET_END departments--></div></small>
-                                <small><div><!--ET_BEGIN position-->|Длъжност|*: [#position#]<!--ET_END position--></div></small>
+							    <small><div><!--ET_BEGIN persons-->|Потребител|*: [#persons#]<!--ET_END persons--></div></small>
                                 <small><div><!--ET_BEGIN month-->|Месец|*: [#month#]<!--ET_END month--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
-//bp($data->row->month,$data->row->departments,$data->row->position);
-        if(isset($data->rec->departments)){
-            $fieldTpl->append($data->row->departments, 'departments');
-        }
-        
-        if(isset($data->rec->positionId)){
-            $fieldTpl->append($data->row->position, 'position');
+
+        if(isset($data->rec->personId)){
+            $fieldTpl->append($data->row->persons, 'persons');
         }
 
         if(isset($data->rec->periods)){

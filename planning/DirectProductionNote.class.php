@@ -40,7 +40,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	 * Плъгини за зареждане
 	 */
 	public $loadList = 'plg_RowTools2, store_plg_StoreFilter, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
-                    doc_DocumentPlg, plg_Printing, plg_Clone, plg_Search, bgerp_plg_Blank,doc_plg_HidePrices, deals_plg_SetTermDate';
+                    doc_DocumentPlg, plg_Printing, plg_Clone, plg_Search, bgerp_plg_Blank,doc_plg_HidePrices, deals_plg_SetTermDate, plg_Sorting';
 	
 	
 	/**
@@ -58,19 +58,19 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	/**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,planning,store';
+	public $canList = 'ceo,planning,store,production';
 	
 	
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,planning,store';
+	public $canSingle = 'ceo,planning,store,production';
 	
 	
 	/**
 	 * Кой има право да променя?
 	 */
-	public $canEdit = 'ceo,planning,store';
+	public $canEdit = 'ceo,planning,store,production';
 	
 	
 	/**
@@ -82,19 +82,19 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	/**
 	 * Кой има право да добавя?
 	 */
-	public $canAdd = 'ceo,planning,store';
+	public $canAdd = 'ceo,planning,store,production';
 	
 	
 	/**
 	 * Кой има право да чете?
 	 */
-	public $canConto = 'ceo,planning,store';
+	public $canConto = 'ceo,planning,store,production';
 	
 	
 	/**
 	 * Кой може да го прави документа чакащ/чернова?
 	 */
-	public $canPending = 'ceo,planning,store';
+	public $canPending = 'ceo,planning,store,production';
 	
 	
 	/**
@@ -167,6 +167,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	 * Нужно ли е да има детайл, за да стане на 'Заявка'
 	 */
 	public $requireDetailForPending = FALSE;
+	
+	
+	/**
+	 * Поле за филтриране по дата
+	 */
+	public $filterDateField = 'createdOn, valior,modifiedOn';
 	
 	
 	/**

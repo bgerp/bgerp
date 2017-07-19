@@ -272,7 +272,7 @@ class acc_ReportDetails extends core_Manager
     	
     	// Ако баланса се преизчислява в момента, показваме подходящо съобщение
     	if($data->balanceIsRecalculating === TRUE){
-    		$warning = "<span class='red'>" . tr('Баланса се преизчислява в момента|*! |Моля изчакайте|*.') . "</span>";
+    		$warning = "<span class='red'>" . tr('Балансът се преизчислява в момента|*. |Моля, изчакайте|*!') . "</span>";
         	$tpl->append($warning, 'CONTENT');
         	
         	return $tpl;

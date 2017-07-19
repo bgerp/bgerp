@@ -679,8 +679,7 @@ div.productImage {
   border-radius: 4px;
   margin-top: 5px;
   padding: 1px 5px;
-  cursor: pointer;
-  white-space: nowrap; }
+  cursor: pointer; }
   .group-link:hover {
     background-color: #f1f1f1; }
 
@@ -1324,10 +1323,12 @@ a.tOld {
   .document .business-doc-summary-table > tbody > tr > td {
     padding: 3px !important;
     border: 0px !important; }
-    .document .reportHolder td {
-      vertical-align: middle !important; }
     .document .reportHolder .group-by-field-row td {
       padding: 5px !important; }
+
+.smallerTextInTable {
+  font-size: 0.7em;
+  min-width: 20em; }
 
 .small-padding td {
   padding: 3px !important; }

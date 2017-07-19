@@ -77,6 +77,12 @@ class bank_IncomeDocuments extends bank_Document
     
     
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, termDate,valior,modifiedOn';
+    
+    
+    /**
      * Описание на модела
      */
     function description()

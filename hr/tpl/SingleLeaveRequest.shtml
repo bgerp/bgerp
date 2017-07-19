@@ -12,6 +12,19 @@
 </div>
 
 <!--ET_END activatedBy-->
+
+<!--ET_BEGIN decline-->
+<div style="position: relative">
+    <div class="stamp approved">
+        <div style="font-size: 26px;font-style: italic" class="centered">ОДОБРЕНО</div>
+        <div style="margin-top: 5px;">
+            <span class="fleft">[#modifiedOn#]</span>
+            <span class="fright" style="margin-left: 10px;">[#modifiedBy#]</span>
+        </div>
+    </div>
+</div>
+
+<!--ET_END decline-->
 <table class="no-border-table" style="margin-top: 5px;">
     <tr>
         <td class="fright">|От|*:</td>
@@ -33,8 +46,7 @@
 
 <br><br>
 
-<p class="indent">|Моля, да ми бъде разрешен|* <b>[#leaveDays#]</b> |дневен|* <b>[#paid#]</b> |отпуск|*<!--ET_BEGIN useDaysFromYear--> |за|* [#useDaysFromYear#] |г|*.<!--ET_END useDaysFromYear--><!--ET_BEGIN leaveFrom-->, |считано от|* <b>[#leaveFrom#]<!--ET_END leaveFrom--><!--ET_BEGIN fromHour--> [#fromHour#]| ч|*.<!--ET_END fromHour--><!--ET_BEGIN dayFrom--> ([#dayFrom#])<!--ET_END dayFrom--></b> <!--ET_BEGIN on--> |на|*<!--ET_END on--><!--ET_BEGIN to--> |до|*<!--ET_END to--><!--ET_BEGIN leaveTo--> <b>[#leaveTo#]<!--ET_END leaveTo--><!--ET_BEGIN toHour--> [#toHour#] |ч.|*<!--ET_END toHour--><!--ET_END dayTo--> ([#dayTo#])<!--ET_END dayTo--></b>| включително|*.
-                                                                                                                                                                                                  
+<p class="indent">|Моля, да ми бъде разрешен|* <b>[#leaveDays#]</b> |дневен|* <b>[#paid#]</b> |отпуск|*<!--ET_BEGIN useDaysFromYear--> |за|* [#useDaysFromYear#] |г|*.<!--ET_END useDaysFromYear-->, |считано от|* <b>[#leaveFrom#] |г|.<!--ET_BEGIN fromHour--> [#fromHour#]|ч|.<!--ET_END fromHour--></b> |до|* <b>[#leaveTo#]|г.|*<!--ET_BEGIN toHour--> [#toHour#] |ч.|*<!--ET_END toHour--></b>| включително|*.</p>
 
 <p>|По време на отсъствието|*:</p>
 <ul class='custom-ul'>

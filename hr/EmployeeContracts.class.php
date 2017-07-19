@@ -55,7 +55,7 @@ class hr_EmployeeContracts extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, hr_Wrapper, doc_plg_Close,doc_ActivatePlg, bgerp_plg_Blank, plg_Printing, acc_plg_DocumentSummary,
-                     acc_plg_Registry, doc_DocumentPlg, plg_Search,plg_Clone,
+                     acc_plg_Registry, doc_DocumentPlg, plg_Search,plg_Clone,plg_Sorting, 
                      doc_plg_SelectFolder, doc_SharablePlg, bgerp_plg_Blank';
     
     
@@ -155,7 +155,13 @@ class hr_EmployeeContracts extends core_Master
      */
     public $coversAndInterfacesForNewDoc = 'crm_PersonAccRegIntf,doc_UnsortedFolders';
 
-
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, dateId,startFrom,endOn, modifiedOn';
+    
+    
     /**
      * Описание на модела
      */

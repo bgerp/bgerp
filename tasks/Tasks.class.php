@@ -150,7 +150,13 @@ class tasks_Tasks extends embed_Manager
 	 */
 	public $newBtnGroup = "3.5|Производство";
 
+	
+	/**
+	 * Поле за филтриране по дата
+	 */
+	public $filterDateField = 'createdOn, timeStart,timeEnd,expectedTimeStart,modifiedOn';
     
+	
     /**
      * Описание на модела (таблицата)
      */

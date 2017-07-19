@@ -51,7 +51,7 @@ class sales_Sales extends deals_DealMaster
      */
     public $loadList = 'plg_RowTools2, sales_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Registry, doc_plg_MultiPrint, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
                     acc_plg_DocumentSummary, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close, store_plg_ReserveStockSource';
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close';
     
     
     /**
@@ -251,6 +251,12 @@ class sales_Sales extends deals_DealMaster
      * Кеш на уникален индекс
      */
     protected $unique = 0;
+    
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, valior,deliveryTime,modifiedOn';
     
     
     /**
@@ -697,10 +703,10 @@ class sales_Sales extends deals_DealMaster
         $rec->description = "Затваряне на приключените продажби";
         $rec->controller = "sales_Sales";
         $rec->action = "CloseOldSales";
-        $rec->period = 180;
+        $rec->period = 60;
         $rec->offset = mt_rand(0,30);
         $rec->delay = 0;
-        $rec->timeLimit = 100;
+        $rec->timeLimit = 200;
         $res .= core_Cron::addOnce($rec);
 
         // Проверка по крон дали продажбата е просрочена

@@ -89,7 +89,7 @@ class type_User extends type_Key
             } else {
                 
                 $uQuery = core_Users::getQuery();
-                $uQuery->where("#state = 'active'");
+                $uQuery->where("#state = 'active' OR #state = 'blocked' OR #state = 'closed'");
                 $uQuery->orderBy("#names", 'ASC');
                 
                 // Потребителите, които ще покажем, трябва да имат посочените роли

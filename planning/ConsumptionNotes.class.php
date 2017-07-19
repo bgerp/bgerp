@@ -46,7 +46,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	 * Плъгини за зареждане
 	 */
 	public $loadList = 'plg_RowTools2, store_plg_StoreFilter, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
-                    doc_DocumentPlg, plg_Printing, plg_Clone, plg_Search, deals_plg_SetTermDate';
+                    doc_DocumentPlg, plg_Printing, plg_Clone, plg_Search, deals_plg_SetTermDate, plg_Sorting';
 	
 	
 	/**
@@ -148,6 +148,12 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	 */
 	public $singleIcon = 'img/16/produce_in.png';
 	
+ 
+	/**
+	 * Поле за филтриране по дата
+	 */
+	public $filterDateField = 'createdOn, valior,deadline,modifiedOn';
+	
 	
 	/**
 	 * Описание на модела
@@ -169,7 +175,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 		
 		$folderCover = doc_Folders::getCover($data->form->rec->folderId);
 		if($folderCover->isInstanceOf('hr_Departments')){
-			$data->form->setReadOnly('departmentId', $folderCover->that);
+			$data->form->setDefault('departmentId', $folderCover->that);
 		}
 	}
 	
@@ -233,7 +239,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	{
 		$rec = &$data->rec;
 		
-		if($rec->state == 'active' && planning_ReturnNotes::haveRightFor('add', (object)array('originId' => $rec->containerId))){
+		if($rec->state == 'active' && planning_ReturnNotes::haveRightFor('add', (object)array('originId' => $rec->containerId, 'threadId' => $rec->threadId))){
 			$data->toolbar->addBtn('Връщане', array('planning_ReturnNotes', 'add', 'originId' => $rec->containerId, 'storeId' => $rec->storeId, 'ret_url' => TRUE), NULL, 'ef_icon = img/16/produce_out.png,title=Връщане на артикули от производството');
 		}
 	}

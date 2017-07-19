@@ -37,7 +37,7 @@ class hr_Trips extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, doc_DocumentPlg,doc_plg_TransferDoc, acc_plg_DocumentSummary,
+    public $loadList = 'plg_RowTools2, doc_DocumentPlg,doc_plg_TransferDoc, acc_plg_DocumentSummary,plg_Sorting, 
     				 doc_ActivatePlg, plg_Printing,doc_SharablePlg,bgerp_plg_Blank,change_Plugin, hr_Wrapper';
     
     
@@ -166,6 +166,12 @@ class hr_Trips extends core_Master
      * По кое поле ще се премества документа
      */
     public $transferFolderField = 'personId';
+    
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, startDate,toDate,modifiedOn';
     
     
     /**

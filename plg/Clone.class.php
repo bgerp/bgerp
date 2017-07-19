@@ -154,8 +154,14 @@ class plg_Clone extends core_Plugin
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title=Запис на документа');
         $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
+        if ($mvc instanceof core_Master) {
+            $singleLink = $mvc->getLinkToSingle($id);
+        } else {
+            $singleLink = '|' . mb_strtolower($mvc->getTitle()) . '|*';
+        }
+        
         // Добавяме титлата на формата
-        $form->title = 'Клониране на запис в|* "' . $mvc->getTitle() . '"';
+        $form->title = 'Клониране на|* ' . $singleLink;
         
         // Рендираме опаковката
         $res = $mvc->renderWrapping($form->renderHtml());

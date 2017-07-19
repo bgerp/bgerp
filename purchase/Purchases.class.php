@@ -225,6 +225,12 @@ class purchase_Purchases extends deals_DealMaster
     
     
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, valior,modifiedOn';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -235,6 +241,41 @@ class purchase_Purchases extends deals_DealMaster
     	$this->setField('shipmentStoreId', 'caption=Доставка->В склад,notChangeableByContractor,salecondSysId=defaultStorePurchase');
     	$this->setField('deliveryTermId', 'salecondSysId=deliveryTermPurchase');
     	$this->setField('paymentMethodId', 'salecondSysId=paymentMethodPurchase');
+    }
+    
+    
+    /**
+     * Връща заглавието на покупката със сумата за фактуриране
+     * 
+     * @param integer $id
+     * @param boolean $showAmount
+     * 
+     * @return string
+     */
+    public static function getTitleWithAmount($id, $showAmount = TRUE)
+    {
+        if (!$id) return '';
+        $rec = self::fetch($id);
+        
+        if ($rec) {
+            $amountToInvoice = $rec->amountDelivered - $rec->amountInvoiced;
+            
+            if ($amountToInvoice) {
+                $amountToInvoice = round($amountToInvoice, 2);
+            }
+            
+            if ($amountToInvoice) {
+                $amountToInvoice .= ' ' . $rec->currencyId;
+            }
+        }
+        
+        $title = self::getTitleById($id);
+        
+        if ($amountToInvoice) {
+            $title .= ' ' . $amountToInvoice;
+        }
+        
+        return $title;
     }
     
     
@@ -677,4 +718,18 @@ class purchase_Purchases extends deals_DealMaster
 		
 		return $products;
 	}
+	
+	
+    /**
+     * След клониране на покупката
+     * @see plg_Clone
+     *
+     * @param label_Labels $mvc
+     * @param object $rec
+     * @param object $nRec
+     */
+    protected static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
+    {
+        Mode::setPermanent('clonedPur|' . $nRec->id, $rec->id);
+    }
 }
