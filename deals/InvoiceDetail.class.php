@@ -57,6 +57,12 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	
 	
 	/**
+	 * Да се показва ли кода като в отделна колона
+	 */
+	public $showCodeColumn = TRUE;
+	
+	
+	/**
 	 * Извиква се след описанието на модела
 	 *
 	 * @param core_Mvc $mvc
@@ -378,7 +384,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		$lang = doc_TplManager::fetchField($masterRec->template, 'lang');
 		$date = ($masterRec->state == 'draft') ? NULL : $masterRec->modifiedOn;
 		
-		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'short', 'invoice', $lang);
+		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'short', 'invoice', $lang, 1, FALSE);
 		
 		// Показваме подробната информация за опаковката при нужда
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
