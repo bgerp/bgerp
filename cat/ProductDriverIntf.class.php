@@ -350,4 +350,16 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	{
 		return $this->class->getAdditionalNotesToDocument($productId, $documentType);
 	}
+	
+	
+	/**
+	 * Може ли в артикула да се начислява транспорт към цената му
+	 *
+	 * @param mixed $productId - ид или запис на артикул
+	 * @return boolean
+	 */
+	public function canCalcTransportFee($productId)
+	{
+		return $this->class->canCalcTransportFee($productId);
+	}
 }
