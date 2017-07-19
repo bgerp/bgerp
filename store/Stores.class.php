@@ -134,7 +134,7 @@ class store_Stores extends core_Master
    /**
 	* Кой може да активира?
 	*/
-	public $canActivate = 'ceo, store';
+	public $canActivate = 'ceo, store, production';
     
     
     /**
@@ -182,7 +182,7 @@ class store_Stores extends core_Master
     {
         $this->FLD('name', 'varchar(128)', 'caption=Наименование,mandatory,remember=info');
         $this->FLD('comment', 'varchar(256)', 'caption=Коментар');
-        $this->FLD('chiefs', 'userList(roles=store|ceo)', 'caption=Контиране на документи->Потребители,mandatory');
+        $this->FLD('chiefs', 'userList(roles=store|ceo|production)', 'caption=Контиране на документи->Потребители,mandatory');
         $this->FLD('workersIds', 'userList(roles=storeWorker)', 'caption=Допълнително->Товарачи');
         $this->FLD('locationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Допълнително->Локация');
     	$this->FLD('lastUsedOn', 'datetime', 'caption=Последено използване,input=none');

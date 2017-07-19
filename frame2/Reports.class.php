@@ -550,7 +550,7 @@ class frame2_Reports extends embed_Manager
     {
     	if($action == 'refresh' && isset($rec)){
     		if($Driver = $mvc->getDriver($rec)){
-    			$dates = $Driver->getNextRefreshDates($form->rec);
+    			$dates = $Driver->getNextRefreshDates($rec);
     			if($dates === FALSE){
     				$requiredRoles = 'no_one';
     			}

@@ -39,7 +39,7 @@ class planning_ReturnNoteDetails extends deals_ManifactureDetail
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_RowNumbering, plg_AlignDecimals2, 
-                        planning_plg_ReplaceEquivalentProducts, plg_PrevAndNext';
+                        planning_plg_ReplaceEquivalentProducts, plg_PrevAndNext,cat_plg_ShowCodes';
     
     
     /**

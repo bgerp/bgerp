@@ -1488,18 +1488,20 @@ class doc_DocumentPlg extends core_Plugin
             $rec->threadId = $oRec->threadId;
             $rec->folderId = $oRec->folderId;
             
-            $data->form->layout = $data->form->renderLayout();
-            $tpl = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Оригинален документ") . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div>");
-            
-            // TODO: да се замени с интерфейсен метод
-            
-            $document = doc_Containers::getDocument($rec->originId);
-            
-            $docHtml = $document->getInlineDocumentBody();
-            
-            $tpl->append($docHtml, 'DOCUMENT');
-            
-            $data->form->layout->append($tpl);
+            if (!Mode::is('stopRenderOrigin')) {
+                $data->form->layout = $data->form->renderLayout();
+                $tpl = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Оригинален документ") . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div>");
+                
+                // TODO: да се замени с интерфейсен метод
+                
+                $document = doc_Containers::getDocument($rec->originId);
+                
+                $docHtml = $document->getInlineDocumentBody();
+                
+                $tpl->append($docHtml, 'DOCUMENT');
+                
+                $data->form->layout->append($tpl);
+            }
         }
         
         if($rec->threadId) {

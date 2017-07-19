@@ -265,12 +265,13 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 	
 	
 	/**
-	 * След рендиране на единичния изглед
+	 * След вербализирането на данните
 	 *
 	 * @param frame2_driver_Proto $Driver
 	 * @param embed_Manager $Embedder
-	 * @param core_ET $tpl
-	 * @param stdClass $data
+	 * @param stdClass $row
+	 * @param stdClass $rec
+	 * @param array $fields
 	 */
 	protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
 	{

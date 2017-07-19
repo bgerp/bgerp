@@ -38,7 +38,7 @@ class store_TransfersDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, plg_Sorting, store_Wrapper, plg_RowNumbering, plg_AlignDecimals, plg_PrevAndNext,plg_SaveAndNew';
+    public $loadList = 'plg_RowTools2, plg_Created, plg_Sorting, store_Wrapper, plg_RowNumbering, plg_AlignDecimals, plg_PrevAndNext,plg_SaveAndNew,cat_plg_ShowCodes';
     
     
     /**
@@ -90,9 +90,21 @@ class store_TransfersDetails extends doc_Detail
     
     
     /**
+     * Поле за артикула
+     */
+    public $productFld = 'newProductId';
+    
+    
+    /**
      * Поле за главния склад в мастъра
      */
     public $masterStoreFld = 'fromStore';
+    
+    
+    /**
+     * Да се показва ли кода като в отделна колона
+     */
+    public $showCodeColumn = TRUE;
     
     
     /**
@@ -161,7 +173,10 @@ class store_TransfersDetails extends doc_Detail
         	
             foreach ($data->rows as $i => &$row) {
                 $rec = &$data->recs[$i];
-                $row->newProductId = cat_Products::getShortHyperlink($rec->newProductId);
+                
+                $singleUrl = cat_Products::getSingleUrlArray($rec->newProductId);
+                $row->newProductId = cat_Products::getVerbal($rec->newProductId, 'name');
+                $row->newProductId = ht::createLinkRef($row->newProductId, $singleUrl);
                 
                 // Показваме подробната информация за опаковката при нужда
                 deals_Helper::getPackInfo($row->packagingId, $rec->newProductId, $rec->packagingId, $rec->quantityInPack);

@@ -262,6 +262,85 @@ class purchase_Invoices extends deals_InvoiceMaster
     	if($rec->contragentCountryId == $bgId){
     		$form->setFieldType('number', core_Type::getByName('bigint(size=10)'));
     	}
+    	
+    	$clonedFh = $form->rec->fileHnd;
+    	
+    	if (!$clonedFh) {
+    	    $clonedFh = Mode::get('invOriginFh');
+    	}
+    	
+    	if ($clonedFh) {
+    	
+    	    $form->setDefault('fileHnd', $clonedFh);
+    	
+    	    $fRec = fileman::fetchByFh($clonedFh);
+    	    self::showOriginalFile($fRec, $form);
+    	}
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param purchase_Invoices $mvc
+     * @param stdObject $data
+     */
+    function on_BeforePrepareEditForm($mvc, &$data)
+    {
+        $oId = Request::get('originId');
+        if ($oId) {
+            $origin = doc_Containers::getDocument($oId);
+            
+            if ($origin->isInstanceOf('purchase_Purchases')) {
+                $oRec = $origin->fetch();
+                $clonedFromId = $mvc->getClonedFromId($oRec);
+            
+                if ($clonedFromId) {
+                    $clonedFh = Mode::get('clonedPurFh|' . $clonedFromId);
+                    Mode::set('invOriginFh', $clonedFh);
+                    
+                    // Да не се рендира оригиналния документ
+                    Mode::set('stopRenderOrigin', TRUE);
+                }
+            }
+        }
+    }
+    
+    
+    /**
+     * Помощна функция за показване на текста на оригиналния файл във формата
+     * 
+     * @param stdObject $fRec
+     * @param stdObject $form
+     */
+    protected static function showOriginalFile($fRec, $form)
+    {
+        $ext = fileman::getExt($fRec->name);
+         
+        // Вземаме уеб-драйверите за това файлово разширение
+        $webdrvArr = fileman_Indexes::getDriver($ext, $fRec->name);
+         
+        // Обикаляме всички открити драйвери
+        foreach($webdrvArr as $drv) {
+             
+            // Стартираме процеса за извличане на данни
+            $drv->startProcessing($fRec);
+             
+            // Комбиниране всички открити табове
+            $tabsArr = arr::combine($tabsArr, $drv->getTabs($fRec));
+        }
+         
+        if ($tabsArr['text']) {
+            $defTab = 'text';
+        }
+        setIfNot($defTab, $tabsArr['__defaultTab'], 'info');
+         
+        if ($tabsArr[$defTab]) {
+            $preview = $tabsArr[$defTab]->html;
+        }
+        
+        $form->layout = $form->renderLayout();
+        $form->layout->append($preview);
     }
     
     
@@ -639,14 +718,17 @@ class purchase_Invoices extends deals_InvoiceMaster
         $form = cls::get('core_Form');
         
         $showClosedLimit = 3;
-        $maxLimitForShow = 200;
+        $maxLimitForShow = 300;
         
         $bestPosArr = doc_Files::getBestContainer($fileHnd, 'crm_ContragentAccRegIntf');
         
-        $form->FNC('folderId', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент, input, removeAndRefreshForm=acceptance');
+        $form->FNC('folderId', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент, input, removeAndRefreshForm=acceptance|purId');
         $form->FNC('purId', 'key(mvc=purchase_Purchases,allowEmpty)', 'caption=Покупка, input, removeAndRefreshForm=acceptance, mandatory');
-        $form->FNC('invNum', 'varchar', 'caption=Фактура номер, input, class=w50');
+        $form->FNC('invDate', 'date(format=d.m.Y)', 'caption=Фактура->Дата,  notNull, mandatory, input');
+        $form->FNC('invNum', 'varchar', 'caption=Фактура->Номер, input, class=w50');
         $form->FNC('acceptance', 'set(store=Стоки, service=Услуги)', 'caption=Приемане, input');
+        
+        $form->setDefault('invDate', dt::today());
         
         $form->input('folderId, purId');
         
@@ -669,6 +751,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         $cPQuery = clone $pQuery;
         
         $pQuery->where("#state = 'active'");
+        $pQuery->orWhere("#state = 'pending'");
         $pQuery->where("#makeInvoice != 'no'");
         $pQuery->XPR('amountToInvoice', 'double', '#amountDelivered - #amountInvoiced');
         $tolerance = acc_Setup::get('MONEY_TOLERANCE');
@@ -676,11 +759,21 @@ class purchase_Invoices extends deals_InvoiceMaster
         $pQuery->orWhere("#amountToInvoice IS NULL");
         
         $pQuery->limit($maxLimitForShow);
+        $pQuery->orderBy('state', 'DESC');
         $pQuery->orderBy('valior', 'DESC');
         $pQuery->orderBy('activatedOn', 'DESC');
         
+        $group = '';
         while ($pRec = $pQuery->fetch()) {
-            $purArr[$pRec->id] = purchase_Purchases::getTitleById($pRec->id);
+            
+            if ($group != $pRec->state) {
+                $group = $pRec->state;
+                
+                $verGroup = ($group == 'pending') ? 'Заявка' : 'Активни';
+                $purArr[$pRec->state] = (object) array('title' => tr($verGroup), 'group' => TRUE);
+            }
+            
+            $purArr[$pRec->id] = purchase_Purchases::getTitleWithAmount($pRec->id);
         }
         
         // Вземаме последните 3 покукпи
@@ -697,7 +790,7 @@ class purchase_Invoices extends deals_InvoiceMaster
                 
                 $purArr['closed'] = (object) array('title' => tr('Затворени'), 'group' => TRUE);
             }
-            $purArr[$pRec->id] = purchase_Purchases::getTitleById($pRec->id);
+            $purArr[$pRec->id] = purchase_Purchases::getTitleWithAmount($pRec->id);
         }
         
         if (empty($purArr)) {
@@ -719,6 +812,11 @@ class purchase_Invoices extends deals_InvoiceMaster
                     $form->setDefault('purId', $doc->docId);
                 }
             }
+        }
+        
+        // Ако има само една опция - тя да е избрана по подразбиране
+        if ((count($purArr) == 1) && !isset($purArr[''])) {
+            $form->setDefault('purId', key($purArr));
         }
         
         $pRec = FALSE;
@@ -794,6 +892,7 @@ class purchase_Invoices extends deals_InvoiceMaster
             if ($pRec->state == 'closed') {
                 $form->setField('acceptance', 'input=none');
                 $form->setField('invNum', 'input=none');
+                $form->setField('invDate', 'input=none');
             }
         }
         
@@ -804,6 +903,8 @@ class purchase_Invoices extends deals_InvoiceMaster
             
             // Ако ще се клонира покупката - пращаме директно към съответната форма
             if ($pRec->state == 'closed') {
+                
+                Mode::setPermanent('clonedPurFh|' . $pRec->id, $fileHnd);
                 
                 return new Redirect(array('purchase_Purchases', 'clonefields', $pRec->id, 'ret_url' => TRUE));
             }
@@ -848,6 +949,7 @@ class purchase_Invoices extends deals_InvoiceMaster
                 if ($clsName == 'purchase_Invoices') {
                     $invForm->rec->fileHnd = $fileHnd;
                     $invForm->rec->number = $form->rec->invNum;
+                    $invForm->rec->date = $form->rec->invDate;
                 }
                 
                 // Полето за ид не е тихо за да не се обърка и да инпутва ид-то на крон процеса
@@ -924,10 +1026,17 @@ class purchase_Invoices extends deals_InvoiceMaster
                         if ($errObj->ignorable) continue;
                         
                         // Ако грешката е в номера
-                        if ($clsName == 'purchase_Invoices' && $key == 'number') {
-                            $form->setError('invNum', $errObj->msg);
+                        if ($clsName == 'purchase_Invoices') {
                             
-                            continue;
+                            if ($key == 'number') {
+                                $form->setError('invNum', $errObj->msg);
+                                
+                                continue;
+                            } elseif ($key == 'date') {
+                                $form->setError('invDate', $errObj->msg);
+                                
+                                continue;
+                            }
                         }
                         
                         $errMsg .= '<br>' . $errObj->msg;
@@ -970,28 +1079,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         // Показваме превю на файла
         
         if ($form->cmd != 'refresh') {
-            $ext = fileman::getExt($fRec->name);
-            
-            // Вземаме уеб-драйверите за това файлово разширение
-            $webdrvArr = fileman_Indexes::getDriver($ext, $fRec->name);
-            
-            // Обикаляме всички открити драйвери
-            foreach($webdrvArr as $drv) {
-            
-                // Стартираме процеса за извличане на данни
-                $drv->startProcessing($fRec);
-            
-                // Комбиниране всички открити табове
-                $tabsArr = arr::combine($tabsArr, $drv->getTabs($fRec));
-            }
-            
-            setIfNot($defTab, $tabsArr['__defaultTab'], 'info');
-            
-            if ($tabsArr[$defTab]) {
-                $preview = $tabsArr[$defTab]->html;
-            }
-            
-            $form->layout->append($preview);
+            $this->showOriginalFile($fRec, $form);
         }
         
         $tpl = $this->renderWrapping($form->renderHtml());
