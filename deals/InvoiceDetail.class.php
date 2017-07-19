@@ -124,6 +124,14 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		if (!empty($rec->packPrice)) {
 			$rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, 0, $masterRec->rate, 'no');
 		}
+		
+		if($masterRec->state != 'draft'){
+			$fields = $data->form->selectFields("#name != 'notes'");
+			
+			foreach ($fields as $name => $fld){
+				$data->form->setReadOnly($name);
+			}
+		}
 	}
 
 
@@ -422,6 +430,15 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		
 		if($action == 'importfromdeal'){
 			$res = $mvc->getRequiredRoles('add', $rec, $userId);
+		}
+		
+		// В определени случаи се позволява на потребителя да редактира в активно състояние
+		if($action == 'edit' && isset($rec)){
+			if($mvc->Master->haveRightFor('single', $masterRec) && $masterRec->state == 'active'){
+				if($masterRec->createdBy == $userId || haveRole('ceo,manager', $userId)){
+					$res = 'powerUser';
+				}
+			}
 		}
 	}
 	
