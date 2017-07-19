@@ -497,10 +497,11 @@ class hr_Leaves extends core_Master
         } 
 
         // Ако нямаме права за писане в треда
-        if(doc_Threads::haveRightFor('single', $data->rec->threadId) == FALSE  && $data->rec->state == 'closed'){
+        if(doc_Threads::haveRightFor('single', $data->rec->threadId) && ($data->rec->state != 'draft' && $data->rec->state != 'pending')){
         
             // Премахваме бутона за коментар
             $data->toolbar->removeBtn('activate');
+            $data->toolbar->removeBtn('Отказ');
         }
     }
     

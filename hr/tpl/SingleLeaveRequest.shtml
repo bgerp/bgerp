@@ -16,7 +16,7 @@
 <!--ET_BEGIN decline-->
 <div style="position: relative">
     <div class="stamp approved">
-        <div style="font-size: 26px;font-style: italic" class="centered">ОДОБРЕНО</div>
+        <div style="font-size: 26px;font-style: italic" class="centered">ОТКАЗАНО</div>
         <div style="margin-top: 5px;">
             <span class="fleft">[#modifiedOn#]</span>
             <span class="fright" style="margin-left: 10px;">[#modifiedBy#]</span>
