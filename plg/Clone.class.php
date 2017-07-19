@@ -389,4 +389,21 @@ class plg_Clone extends core_Plugin
     	// Добавяме артикулите към детайлите за клониране
     	$res = arr::make($mvc->cloneDetails, TRUE);
     }
+    
+    
+    /**
+     * Връща id на източника, от къдете е клониран записа
+     * 
+     * @param core_Mvc $mvc
+     * @param NULL|integer $res
+     * @param stdObject $rec
+     */
+    public static function on_AfterGetClonedFromId($mvc, &$res, $rec)
+    {
+        $rec = $mvc->fetchRec($rec);
+        
+        if (isset($rec->clonedFromId)) {
+            $res = $rec->clonedFromId;
+        }
+    }
 }

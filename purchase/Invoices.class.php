@@ -293,7 +293,7 @@ class purchase_Invoices extends deals_InvoiceMaster
             
             if ($origin->isInstanceOf('purchase_Purchases')) {
                 $oRec = $origin->fetch();
-                $clonedFromId = Mode::get('clonedPur|' . $oRec->id);
+                $clonedFromId = $mvc->getClonedFromId($oRec);
             
                 if ($clonedFromId) {
                     $clonedFh = Mode::get('clonedPurFh|' . $clonedFromId);
