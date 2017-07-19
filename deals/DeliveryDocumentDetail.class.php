@@ -20,7 +20,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 	/**
 	 * Кои полета от листовия изглед да се скриват ако няма записи в тях
 	 */
-	public $hideListFieldsIfEmpty = 'discount, reff';
+	public $hideListFieldsIfEmpty = 'discount';
 	
 	
 	/**
@@ -217,15 +217,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		$masterRec = $data->masterData->rec;
 		$firstDocument = doc_Threads::getFirstDocument($masterRec->threadId);
 		
-		// Скриваме полето "мярка"
-		$data->listFields = array_diff_key($data->listFields, arr::make('quantityInPack', TRUE));
-		
 		if(!count($recs)) return;
-		arr::placeInAssocArray($data->listFields, array('reff' => 'Ваш номер'), 'productId');
-		$data->listTableMvc->FNC('reff', 'varchar', 'smartCenter');
-		
-		$listSysId = ($firstDocument->isInstanceOf('sales_Sales')) ? 'salesList' : 'purchaseList';
-		$listId = cond_Parameters::getParameter($masterRec->contragentClassId, $masterRec->contragentId, $listSysId);
 		
 		if(count($data->rows)) {
 			foreach ($data->rows as $i => &$row) {
@@ -233,11 +225,6 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 				
 				// Показваме подробната информация за опаковката при нужда
 				deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
-				
-				// Показване на вашия реф ако има
-				if(isset($listId)){
-					$row->reff = cat_Listings::getReffByProductId($listId, $rec->productId, $rec->packagingId);
-				}
 				
 				$row->weight = (!empty($rec->weight)) ? $row->weight : "<span class='quiet'>0</span>";
 				$row->volume = (!empty($rec->volume)) ? $row->volume : "<span class='quiet'>0</span>";

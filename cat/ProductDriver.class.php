@@ -563,4 +563,16 @@ abstract class cat_ProductDriver extends core_BaseClass
 	{
 		return NULL;
 	}
+	
+	
+	/**
+	 * Може ли в артикула да се начислява транспорт към цената му
+	 * 
+	 * @param mixed $productId - ид или запис на артикул
+	 * @return boolean
+	 */
+	public function canCalcTransportFee($productId)
+	{
+		return TRUE;
+	}
 }

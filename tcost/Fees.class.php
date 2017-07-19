@@ -243,7 +243,12 @@ class tcost_Fees extends core_Detail
 
         // Резултата се получава, като получената цена разделяме на $totalweight и умножаваме по $singleWeight.
         $finalPrice = round($finalPrice, 2);
-        $result = round($finalPrice / $totalWeight * $singleWeight, 2);
+        $delimiter = $totalWeight * $singleWeight;
+        if($delimiter){
+        	$result = round($finalPrice / $delimiter, 2);
+        } else {
+        	$result = 0;
+        }
 
         // Връща се получената цена и отношението цена/тегло в определен $singleWeight и зоната към която принадлежи
         return array($finalPrice, $result, $zone['zoneId'], $zone['deliveryTime']);

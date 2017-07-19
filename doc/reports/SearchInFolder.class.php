@@ -54,7 +54,7 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
 	 *
 	 * @param frame2_driver_Proto $Driver $Driver
 	 * @param embed_Manager $Embedder
-	 * @param stdClass $data
+	 * @param core_Form $form
 	 */
 	protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
 	{
@@ -205,12 +205,13 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
 	
 	
 	/**
-	 * След рендиране на единичния изглед
+	 * След вербализирането на данните
 	 *
 	 * @param frame2_driver_Proto $Driver
 	 * @param embed_Manager $Embedder
-	 * @param core_ET $tpl
-	 * @param stdClass $data
+	 * @param stdClass $row
+	 * @param stdClass $rec
+	 * @param array $fields
 	 */
 	protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
 	{

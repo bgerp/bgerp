@@ -38,7 +38,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
      */
     public $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_SaveAndNew, plg_RowNumbering,Policy=purchase_PurchaseLastPricePolicy, 
                         plg_AlignDecimals2, plg_Sorting, doc_plg_HidePrices, ReverseLastPricePolicy=sales_SalesLastPricePolicy, 
-                        Policy=purchase_PurchaseLastPricePolicy, plg_PrevAndNext,deals_plg_ImportDealDetailProduct';
+                        Policy=purchase_PurchaseLastPricePolicy, plg_PrevAndNext,deals_plg_ImportDealDetailProduct,cat_plg_ShowCodes';
     
     
     /**
@@ -74,7 +74,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, packQuantity, packPrice, discount, amount, weight, volume, quantityInPack';
+    public $listFields = 'productId, packagingId, packQuantity, packPrice, discount, amount, weight, volume';
     
         
     /**
@@ -101,6 +101,12 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
      * @param out|in|stay - тип движение (излиза, влиза, стои)
      */
     public $batchMovementDocument = 'in';
+    
+    
+    /**
+     * Да се показва ли кода като в отделна колона
+     */
+    public $showCodeColumn = TRUE;
     
     
     /**
@@ -153,7 +159,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     		foreach ($data->rows as $i => &$row) {
     			$rec = &$data->recs[$i];
     
-    			$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'short', 'public', $data->masterData->rec->tplLang);
+    			$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'short', 'public', $data->masterData->rec->tplLang, 1, FALSE);
     			deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     		}
     	}

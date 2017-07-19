@@ -96,7 +96,7 @@ class type_UserList extends type_Keylist
         
         // Заявка за да вземем всички запсии
         $uQueryAll = core_Users::getQuery();
-        $uQueryAll->where("#state != 'rejected'");
+        $uQueryAll->where("#state != 'rejected' AND #state != 'draft'");
         $uQueryAll->likeKeylist('roles', "{$teamsKeylist}");
         $uQueryAll->likeKeylist('roles', $roles);
         
@@ -129,7 +129,7 @@ class type_UserList extends type_Keylist
             foreach((array)$userArr[$t] as $uId) {
                     
                 $uRec = $userArr['r'][$uId];
-                if ($uRec->state == 'rejected') continue;
+                if ($uRec->state == 'rejected' || $uRec->state == 'draft') continue;
                 
                 if (!empty($rolesArr)) {
                     if (!type_Keylist::isIn($rolesArr, $uRec->roles)) continue;

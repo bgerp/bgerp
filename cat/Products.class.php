@@ -931,7 +931,7 @@ class cat_Products extends embed_Manager {
         	
         	$result = (object)array(
                 'num'      => $rec->code . " a",
-                'title'    => static::getDisplayName($rec),
+                'title'    => self::getDisplayName($rec),
                 'uomId'    => $rec->measureId,
                 'features' => array()
             );
@@ -1177,7 +1177,7 @@ class cat_Products extends embed_Manager {
         if(count($mvc->createdProducts)){
         	foreach ($mvc->createdProducts as $rec) {
         		if($rec->canManifacture == 'yes'){
-        			static::createDefaultBom($rec);
+        			self::createDefaultBom($rec);
         		}
         		
         		// Ако е създаден артикул, базиран на прототип клонират се споделените му папки, само ако той е частен
@@ -1713,16 +1713,19 @@ class cat_Products extends embed_Manager {
 	 * 		- детайлно    : винаги връщаме детайлното описание
 	 * 		- кратко      : връщаме краткото описание
 	 * 
-	 * @param mixed $id                       - ид или запис на артикул
-	 * @param datetime $time                  - време
+	 * @param mixed $id                 - ид или запис на артикул
+	 * @param datetime $time            - време
 	 * @param auto|detailed|short $mode - режим на показване
-	 * 		
+	 * @param string $lang              - език
+	 * @param int $compontQuantity      - к-во на компонентите   
+	 * @param boolean $showCode         - да се показва ли кода до името или не
+	 * 
 	 * @return mixed $res
 	 * 		ако $mode e 'auto'     - ако артикула е частен се връща детайлното описание, иначе краткото
 	 *      ако $mode e 'detailed' - подробно описание
 	 *      ако $mode e 'short'	   - кратко описание
 	 */
-    public static function getAutoProductDesc($id, $time = NULL, $mode = 'auto', $documentType = 'public', $lang = 'bg', $compontQuantity = 1)
+    public static function getAutoProductDesc($id, $time = NULL, $mode = 'auto', $documentType = 'public', $lang = 'bg', $compontQuantity = 1, $showCode = TRUE)
     {
     	$rec = static::fetchRec($id);
     	
@@ -1735,13 +1738,27 @@ class cat_Products extends embed_Manager {
     	$title = (is_array($fullTitle)) ? $fullTitle['title'] : $fullTitle;
     	$subTitle = (is_array($fullTitle)) ? $fullTitle['subTitle'] : NULL;
     	
-    	// Ако е частен показваме за код хендлъра му + версията в кеша
-    	if($rec->isPublic == 'no'){
-    		$count = cat_ProductTplCache::count("#productId = {$rec->id} AND #type = 'description' AND #documentType = '{$documentType}'", 2);
+    	if($showCode === TRUE){
+    		$titleTpl = new core_ET('[#name#]<!--ET_BEGIN code--> ([#code#])<!--ET_END code-->');
+    		$titleTpl->replace($title, 'name');
     		
-    		if($count > 1){
-    			$vNumber = "/<small class='versionNumber'>v{$count}</small>";
-    			$title = str::replaceLastOccurence($title, ')', $vNumber . ")");
+    		
+    		if(!empty($rec->code)){
+    			$code = core_Type::getByName('varchar')->toVerbal($rec->code);
+    			if(!mb_strpos($title, "({$code})")){
+    				$titleTpl->replace($code, 'code');
+    			}
+    		}
+    		$title = $titleTpl->getContent();
+    		
+    		if($rec->isPublic == 'no' && empty($rec->code)){
+    			$count = cat_ProductTplCache::count("#productId = {$rec->id} AND #type = 'description' AND #documentType = '{$documentType}'", 2);
+    			$title .= " (Art{$rec->id})";
+    			
+    			if($count > 1){
+    				$vNumber = "/<small class='versionNumber'>v{$count}</small>";
+    				$title = str::replaceLastOccurence($title, ')', $vNumber . ")");
+    			}
     		}
     	}
     	
@@ -2205,7 +2222,7 @@ class cat_Products extends embed_Manager {
     {
     	$data = static::prepareDescription($id, $documentType);
     	
-    	return static::renderDescription($data);
+    	return self::renderDescription($data);
     }
     
     

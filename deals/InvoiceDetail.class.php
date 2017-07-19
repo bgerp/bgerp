@@ -51,6 +51,18 @@ abstract class deals_InvoiceDetail extends doc_Detail
 
 
 	/**
+	 * Да се показва ли вашия номер
+	 */
+	public $showReffCode = TRUE;
+	
+	
+	/**
+	 * Да се показва ли кода като в отделна колона
+	 */
+	public $showCodeColumn = TRUE;
+	
+	
+	/**
 	 * Извиква се след описанието на модела
 	 *
 	 * @param core_Mvc $mvc
@@ -250,13 +262,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		if(!count($data->rows)) return;
 		
 		$masterRec = $data->masterData->rec;
-		$firstDocument = doc_Threads::getFirstDocument($masterRec->threadId);
-		
-		arr::placeInAssocArray($data->listFields, array('reff' => 'Ваш номер'), 'productId');
-		$data->listTableMvc->FNC('reff', 'varchar', 'smartCenter');
-		
-		$listSysId = ($firstDocument->isInstanceOf('sales_Sales')) ? 'salesList' : 'purchaseList';
-		$listId = cond_Parameters::getParameter($masterRec->contragentClassId, $masterRec->contragentId, $listSysId);
 		
 		$batchesInstalled = core_Packs::isInstalled('batch');
 		foreach ($data->rows as $id => &$row1){
@@ -275,10 +280,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			}
 			
 			deals_Helper::addNotesToProductRow($row1->productId, $rec->notes);
-			
-			if(isset($listId)){
-				$row1->reff = cat_Listings::getReffByProductId($listId, $rec->productId, $rec->packagingId);
-			}
 		}
 		
 		if($masterRec->type != 'dc_note') return;
@@ -383,7 +384,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		$lang = doc_TplManager::fetchField($masterRec->template, 'lang');
 		$date = ($masterRec->state == 'draft') ? NULL : $masterRec->modifiedOn;
 		
-		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'short', 'invoice', $lang);
+		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'short', 'invoice', $lang, 1, FALSE);
 		
 		// Показваме подробната информация за опаковката при нужда
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);

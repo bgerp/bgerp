@@ -115,6 +115,7 @@ class type_Table extends type_Blob {
         unset($attrTable['value']);
 
         $res = ht::createElement('table', $attrTable, "<tr style=\"background-color:rgba(200, 200, 200, 0.3);\">{$row0}</tr><tr>{$row1}</tr>{$rows}");
+        $res = "<div class='scrolling-holder'>" . $res . "</div>";
         $res .= "\n{$btn}\n";
         $res = ht::createElement('div', $attrDiv, $res);
         
