@@ -375,7 +375,7 @@ class plg_Clone extends core_Plugin
     public static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
     {
     	$Details = $mvc->getDetailsToClone($rec);
-    	
+    	$mvc->invoke('BeforeSaveCloneDetails', array($nRec, &$Details));
     	self::cloneDetails($Details, $rec->id, $nRec->id);
     }
     
