@@ -68,7 +68,7 @@ class frame2_ReportVersions extends core_Detail
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'createdBy=От,createdOn=Версия';
+	public $listFields = 'createdOn=Версия,createdBy=От';
 	
 	
 	/**
