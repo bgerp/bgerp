@@ -72,6 +72,14 @@ abstract class deals_InvoiceMaster extends core_Master
     
     
     /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'number,date,dueTime,dueDate,vatDate';
+    
+    
+    /**
      * След описанието на полетата
      */
     protected static function setInvoiceFields(core_Master &$mvc)
