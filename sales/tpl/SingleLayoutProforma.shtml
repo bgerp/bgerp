@@ -111,15 +111,15 @@
 					                        <span class='quiet'>Авансово:</span> [#downpayment#]
 					                    </div>
 					                    <!--ET_END downpayment-->
-                                       	<!--ET_BEGIN dueDate-->
-                                        <div><span class='quiet'>Краен срок за плащане:</span> [#dueDate#]</div>
-                                        <!--ET_END dueDate-->  
+                                       	<!--ET_BEGIN dueTime-->
+                                        <div><span class='quiet'>Срок за плащане:</span> [#dueTime#]</div>
+                                        <!--ET_END dueTime-->
                                         
                                         <!--ET_BEGIN deadline-->
                                         [#deadline#]
                                         <div>
-                                            <!--ET_BEGIN DUE_DATE-->
-                                            <span class='quiet'>Краен срок за плащане:</span> [#DUE_DATE#]<!--ET_END DUE_DATE-->  &nbsp;&nbsp;  
+                                            <!--ET_BEGIN dueDate-->
+                                            <span class='quiet'>Краен срок за плащане:</span> [#dueDate#]<!--ET_END dueDate-->  &nbsp;&nbsp;
                                             <!--ET_BEGIN OVERDUE_INTEREST_RATE-->
                                             <span class="smallData">Лихва за просрочено плащане: [#OVERDUE_INTEREST_RATE#] |на ден|*</span>
                                             <!--ET_END OVERDUE_INTEREST_RATE-->
