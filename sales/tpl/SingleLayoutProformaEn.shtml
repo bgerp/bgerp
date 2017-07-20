@@ -116,8 +116,8 @@
                                         <!--ET_BEGIN deadline-->
                                         [#deadline#]
                                         <div>
-                                            <!--ET_BEGIN DUE_DATE-->
-                                            <span class='quiet'>Deadline for payment:</span> [#DUE_DATE#]<!--ET_END DUE_DATE-->  &nbsp;&nbsp;  
+                                            <!--ET_BEGIN dueDate-->
+                                            <span class='quiet'>Deadline for payment:</span> [#dueDate#]<!--ET_END dueDate-->  &nbsp;&nbsp;
                                             <!--ET_BEGIN OVERDUE_INTEREST_RATE-->
                                             <span class="smallData">Interest for late payment: [#OVERDUE_INTEREST_RATE#] per day</span>
                                             <!--ET_END OVERDUE_INTEREST_RATE-->
