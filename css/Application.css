@@ -4520,7 +4520,7 @@ only screen and (max-width: 320px) {
   .wide .singleView {
     display: block; }
 
-  .selectTplForm {
+  .noPrint {
     display: none; }
 
   .smaller-text {

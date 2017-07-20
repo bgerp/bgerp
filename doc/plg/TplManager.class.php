@@ -206,7 +206,7 @@ class doc_plg_TplManager extends core_Plugin
     public static function on_AfterRenderSingleLayout(core_Mvc $mvc, &$tpl, $data)
     {
         if ($data->_selectTplForm) {
-            $tpl->prepend($data->_selectTplForm);
+            $tpl->append($data->_selectTplForm, 'noPrint');
         }
         
     	// Ако има посочен плейсхолдър където да отива шаблона, то той се използва

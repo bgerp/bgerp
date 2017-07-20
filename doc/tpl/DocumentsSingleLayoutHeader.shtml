@@ -2,6 +2,10 @@
 	[#SingleToolbar#]
 <!--ET_END SingleToolbar-->
 
+<!--ET_BEGIN noPrint-->
+    <div class='noPrint'>[#noPrint#]</div>
+<!--ET_END noPrint-->
+
 <div class='document'>
 	<!--ET_BEGIN STOPPED_INFO-->
 	<div class='no-print richtext-message richtext-warning no-margin'>[#STOPPED_INFO#]</div>
