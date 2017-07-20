@@ -1032,47 +1032,88 @@ class cams_Records extends core_Master
         // преди повече от $conf->CAMS_CLIP_DURATION + 7 сек. от най-новите към по-старите
         $query = $this->getQuery();
         
-        $query->orderBy('startTime');
+        $query->orderBy('startTime', 'DESC');
         $before5min = dt::addsecs(-5*60);
         $query->where("#startTime < '{$before5min}' AND #isAnalyzed = 'no'");
         //$query->limit(100);
-        $query->limit(1);
+        $query->limit(50);
 
         while ($rec = $query->fetch()) {
-            $paths = $this->getFilePaths($rec->startTime, $rec->id);
+            $paths = $this->getFilePaths($rec->startTime, $rec->cameraId); //bp($paths);
             $Script[$rec->id] = cls::get('fconv_Script');
             $Script[$rec->id]->setFile('INPUTF', $paths->videoFile);
             $Script[$rec->id]->setFile('OUTPUTF', "/shot_" . $rec->id . "_%03d.jpg");
             $Script[$rec->id]->lineExec("ffmpeg -i [#INPUTF#] -an -vf \"select=gt(scene\,0.03),setpts=N/(2*TB)\" [#OUTPUTF#]");
             $Script[$rec->id]->callBack('cams_Records::afterAnalyze');
+            $Script[$rec->id]->recId = $rec->id;
+            $Script[$rec->id]->imageFile = $paths->imageFile;
+            $Script[$rec->id]->thumbFile = $paths->thumbFile;
+            
             $async = TRUE;
-            // bp($Script);
             if ($Script[$rec->id]->run($async) !== FALSE) {
-                //bp($Script);
             }
-                     
-            //bp($paths);
         }
-       // bp($rec);
-        // За всеки запис намираме файла му. Пускаме ffmpeg -i 11-07-17_05-00-35.mp4 -an -vf "select=gt(scene\,0.03),setpts=N/(2*TB)" keyframes_no_no_movie%03d.jpg
 
-        // Ако имаме получени картинки, вадим максимално до 4 от тях и викаме: montage keyframes001.png keyframes002.png keyframes003.png keyframes005.png -geometry 512x384+2+2 result.png
-        // Ако имаме само 1 картинка - нищо не правим. Ако имаме 2 или 3, повтаряме последтата 
-
-        // Резултатната снимка записваме като файла за картинка, а нейния thumb - в пътя за тъмб
-
-        // Отбелязваме че записа е анализиран
-
-        // Ако е наближило 300 секунди от началото на процеса - излизаме иначе, продължаваме от начало
     }
     
     /**
-     * Ръчен метод за тестване на кеон метода за детектиране на движение
+     * Получава обекта - скрипт, който е вадел кадри от видео 
      *
      */
-    function act_afterAnalyze()
+    function afterAnalyze($script)
     {
-        file_put_contents('afterAnalizeRES.txt', print_r($_REQUEST, TRUE));
+        // Ако имаме получени картинки, вадим максимално до 4 от тях и викаме: montage keyframes001.png keyframes002.png keyframes003.png keyframes005.png -geometry 512x384+2+2 result.png
+        // взимаме броя на jpg файловете, които са резултат от движението във видеото
+        $fCnt = exec("ls -l {$script->tempDir}*.jpg | wc -l");
+        $fourShots = '';
+        $outpuF = str_replace("//", "/", $script->tempDir . $script->files['OUTPUTF']);
+        // Ако имаме само 1 картинка - нищо не правим. Ако имаме 2 или 3, повтаряме последтата
+        switch ($fCnt) {
+            case 1:
+                break;
+            case 2:
+                //$script->files['OUTPUTF']; // [OUTPUTF] => /shot_1656_%03d.jpg
+                $fourShots = sprintf($outpuF, 1) . " "
+                     . sprintf($outpuF, 2) . " " 
+                     . sprintf($outpuF, 2) . " "
+                     . sprintf($outpuF, 2);
+                break;
+            case 3:
+                $fourShots = sprintf($outpuF, 1) . " "
+                     . sprintf($outpuF, 2) . " "
+                     . sprintf($outpuF, 3) . " "
+                     . sprintf($outpuF, 3);
+                break;
+            default:
+                $fourShots = sprintf($outpuF, 1) . " "
+                     . sprintf($outpuF, (int)$fCnt/3) . " "
+                     . sprintf($outpuF, (int)$fCnt*2/3)  . " " 
+                     . sprintf($outpuF, $fCnt);
+        }
+        
+        $cmd = "montage " . $fourShots . " -geometry 512x384+2+2 " . $script->tempDir . "result.jpg";        
+        
+//         file_put_contents('afterAnalizeRES.txt', print_r($script, TRUE) . PHP_EOL, FILE_APPEND);
+//         file_put_contents('afterAnalizeRES.txt', $fCnt . PHP_EOL, FILE_APPEND);
+        if (!empty($fourShots)) {
+            exec($cmd);
+            // Резултатната снимка записваме като файла за картинка
+            copy($script->tempDir . "result.jpg", $script->imageFile);
+            // и нейния thumb - в пътя за тъмб
+            $img = new thumb_Img(array($script->tempDir . "result.jpg", 280, 210, 'path', 'isAbsolute' => FALSE, 'mode' => 'small-no-change'));
+            $thumb = $img->getScaledGdRes();
+            
+            imagejpeg($thumb, $script->thumbFile, 85);
+            
+        }
+        
+        // Отбелязваме че записа е анализиран
+        $rec = new stdClass();
+        $rec->id = $script->recId;
+        $rec->isAnalyzed = yes;
+        $this->save($rec);
+        // Ако е наближило 300 секунди от началото на процеса - излизаме иначе, продължаваме от начало
+        
     }
     
     /**
