@@ -187,7 +187,7 @@ class bgerp_plg_CsvExport extends core_BaseClass {
 	    $this->mvc->invoke('BeforeExportCsv', array(&$recs));
      
     	$content = csv_Lib::createCsv($recs, $this->mvc, $fieldsArr, $params);
-    	$content = iconv('utf-8', $filter->encoding, $content);
+    	$content = iconv('utf-8', $filter->encoding . '//TRANSLIT', $content);
     	
     	return $content;
     }
