@@ -138,7 +138,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
 		
 		if(count($rec->details)){
 			foreach ($rec->details as $det){
-				$newPackQuantity = 0;
+				$newPackQuantity = $updatePackQuantity = 0;
 				if(is_array($det->batches)){
 					foreach ($det->batches as $index => &$bRec){
 						$b = str_replace(',', '', $bRec->batch);
@@ -149,6 +149,13 @@ class deals_plg_EditClonedDetails extends core_Plugin
 							unset($det->batches[$index]);
 							continue;
 						}
+						
+						$q = $rec->{$key};
+						if($q > ($bRec->quantity / $bRec->quantityInPack)){
+							$q = $bRec->quantity / $bRec->quantityInPack;
+						}
+						$updatePackQuantity += $q;
+						
 						$newPackQuantity += $rec->{$key};
 						$bRec->oldQuantity = $bRec->quantity;
 						$bRec->quantity = $rec->{$key} * $bRec->quantityInPack;
@@ -168,7 +175,8 @@ class deals_plg_EditClonedDetails extends core_Plugin
 							$Detail->delete($det->id);
 							batch_BatchesInDocuments::delete("#detailClassId = {$detailClassId} AND #detailRecId = {$det->id}");
 						} else {
-							$updateRec = (object)array('id' => $oldDetailId, 'quantity' => $diff);
+							$diff1 = $oldQuantity - ($updatePackQuantity * $det->quantityInPack);
+							$updateRec = (object)array('id' => $oldDetailId, 'quantity' => $diff1);
 							$Detail->save_($updateRec, 'quantity');
 						}
 					}
