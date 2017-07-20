@@ -152,7 +152,7 @@ class acc_plg_DocumentSummary extends core_Plugin
             
             $haveUsers = FALSE;
             
-            if($lastUsers = core_Cache::get('userFilter',  $cKey)) {
+            if($lastUsers = core_Permanent::get('userFilter' . $cKey)) {
                 $type = $data->listFilter->getField('users')->type;
                 $type->prepareOptions();
                 foreach($type->options as $key => $optObj) {
@@ -163,7 +163,13 @@ class acc_plg_DocumentSummary extends core_Plugin
                     }
                 }
             }
-            
+             
+            if($lastPeriod = core_Permanent::get('periodFilter' . $cKey)) {
+                if(!Request::get('selectPeriod')) {
+                    Request::push(array('selectPeriod' => $lastPeriod));
+                }
+            }
+
             if($mvc->filterFieldUsers !== FALSE){
             	if (!$haveUsers) {
             		$data->listFilter->setDefault('users', keylist::addKey('', core_Users::getCurrent()));
@@ -186,7 +192,12 @@ class acc_plg_DocumentSummary extends core_Plugin
                 if(($requestUsers = Request::get('users')) && !is_numeric(str_replace('_', '', $requestUsers))) {
                     $usedUsers = $requestUsers;
                 }
-                core_Cache::set('userFilter',  $cKey, $usedUsers, 24*60*100);
+                core_Permanent::set('userFilter' . $cKey, $usedUsers, 24*60*100);
+            }
+
+            if(($thisPeriod = Request::get('selectPeriod')) && ($thisPeriod != $lastPeriod)) {
+
+                core_Permanent::set('periodFilter' . $cKey, $thisPeriod, 24*60*100);
             }
         	
             // Филтрираме по потребители
