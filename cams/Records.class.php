@@ -1043,7 +1043,7 @@ class cams_Records extends core_Master
         $query = $this->getQuery();
         
         $query->orderBy('startTime', 'DESC');
-        $before5min = dt::addsecs(-5*60);
+        $before5min = dt::addsecs(-6*60);
         $query->where("#startTime < '{$before5min}' AND #isAnalyzed = 'no'");
         //$query->limit(100);
         $query->limit(50);
