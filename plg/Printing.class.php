@@ -134,7 +134,7 @@ class plg_Printing extends core_Plugin
      */
     public static function on_BeforeRenderHtml($mvc, &$res)
     {
-        if(Request::get('Printing')) {
+        if (Request::get('Printing') && !Mode::get('forcePrinting')) {
             
             $res = NULL;
             
