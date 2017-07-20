@@ -1019,6 +1019,16 @@ class cams_Records extends core_Master
         $rec->period = (int) 2 * $conf->CAMS_CLIP_DURATION / 60;
         $rec->offset = mt_rand(0,8);
         $res .= core_Cron::addOnce($rec);
+
+        
+        $rec = new stdClass();
+        $rec->systemId = "cams_Analyze";
+        $rec->description = "Монтира по 4 записите с движение";
+        $rec->controller = "cams_Records";
+        $rec->action = "Analyze";
+        $rec->period = (int) $conf->CAMS_CLIP_DURATION / 60;
+        $rec->offset = 1;
+        $res .= core_Cron::addOnce($rec);
     }
     
     
