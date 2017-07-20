@@ -334,6 +334,12 @@ class transsrv_ProductDrv extends cat_ProductDriver
 			}
 		}
 		
+		if(!empty($data->rec->ourReff)){
+			$reff = str_replace('#', '', $row->ourReff);
+			$reffLink = array('doc_Search', 'list', 'search' => "#{$reff}");
+			$row->ourReff = ht::createLink("#{$reff}", $reffLink);
+		}
+		
 		$tpl->placeObject($row);
 		
 		return $tpl;

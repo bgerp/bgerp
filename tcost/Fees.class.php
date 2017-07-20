@@ -243,9 +243,8 @@ class tcost_Fees extends core_Detail
 
         // Резултата се получава, като получената цена разделяме на $totalweight и умножаваме по $singleWeight.
         $finalPrice = round($finalPrice, 2);
-        $delimiter = $totalWeight * $singleWeight;
-        if($delimiter){
-        	$result = round($finalPrice / $delimiter, 2);
+        if($totalWeight){
+        	$result = round($finalPrice / $totalWeight * $singleWeight, 2);
         } else {
         	$result = 0;
         }

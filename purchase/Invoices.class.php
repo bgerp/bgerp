@@ -145,14 +145,6 @@ class purchase_Invoices extends deals_InvoiceMaster
      * @see plg_Clone
      */
     public $cloneDetails = 'purchase_InvoiceDetails';
-    
-    
-    /**
-     * Полета, които при клониране да не са попълнени
-     *
-     * @see plg_Clone
-     */
-    public $fieldsNotToClone = 'number,invoiceId,date,dueTime,dueDate';
 
 
     /**
