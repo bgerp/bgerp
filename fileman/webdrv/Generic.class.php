@@ -252,9 +252,6 @@ class fileman_webdrv_Generic extends core_Manager
             // Вземаме височината и широчината
             $thumbWidthAndHeightArr = static::getPreviewWidthAndHeight();
             
-            // Атрибути на thumbnail изображението
-            $attr = array('class' => 'webdrv-preview', 'style' => 'margin: 0 auto 5px auto; display: block;');
-            
             // Background' а на preview' то
             $bgImg = sbf('fileman/img/Preview_background.jpg');
             
@@ -262,6 +259,9 @@ class fileman_webdrv_Generic extends core_Manager
             $preview = new ET("<div style='background-image:url(" . $bgImg . "); padding: 8px 0 4px; min-height: 598px;display: table;width: 100%;'><div style='margin: 0 auto;'>[#THUMB_IMAGE#]</div></div>");
 			
             foreach ($jpgArr as $key => $jpgFh) {
+                
+                // Атрибути на thumbnail изображението
+                $attr = array('class' => 'webdrv-preview', 'style' => 'margin: 0 auto 5px auto; display: block;');
                 
                 if ($key === 'otherPagesCnt') {
                     
