@@ -18,8 +18,8 @@
  */
 class doc_plg_TplManager extends core_Plugin
 {
-	
-	
+    
+    
 	/**
      * След инициализирането на модела
      * 
@@ -205,6 +205,10 @@ class doc_plg_TplManager extends core_Plugin
      */
     public static function on_AfterRenderSingleLayout(core_Mvc $mvc, &$tpl, $data)
     {
+        if ($data->_selectTplForm) {
+            $tpl->prepend($data->_selectTplForm);
+        }
+        
     	// Ако има посочен плейсхолдър където да отива шаблона, то той се използва
     	if($mvc->templateFld){
     		
@@ -235,6 +239,56 @@ class doc_plg_TplManager extends core_Plugin
     	    $tpl->removeBlock('blank');
     	    $tpl->removeBlock('ExtState');
     	}
+    }
+    
+    
+    /**
+     * Преди подготовка на на единичния изглед
+     */
+    public static function on_BeforePrepareSingle(core_Mvc $mvc, &$res, &$data)
+    {
+        // Показваме форма за избор на шаблон в екрана за отпечатване
+        if (Mode::is('printing') && Request::get('Printing')) {
+            
+            $form = cls::get('core_Form');
+            
+            $form->class .= ' selectTplForm';
+            
+            $form->FNC('tplId', 'key(mvc=doc_TplManager, select=name)', 'caption=Изглед, silent, input');
+            
+            $form->addAttr('tplId', array('onchange' => "this.form.submit();"));
+            
+            $tplArr = doc_TplManager::getTemplates($mvc->getClassId());
+            
+            expect($tplArr);
+            
+            $form->setOptions('tplId', $tplArr);
+            
+            $form->setDefault('tplId', $data->rec->template);
+            
+//             $form->title = "Избор на изглед за отпечатване";
+//             $form->toolbar->addSbBtn('Избор', 'save', 'id=save, ef_icon = img/16/disk.png', 'title=Избор на шаблон за отпечатване, style=display:none;');
+            
+            $form->input();
+            
+            if ($form->isSubmitted()) {
+                
+                if ($data->rec->template != $form->rec->tplId) {
+                    $data->rec->template = $form->rec->tplId;
+                }
+            }
+            
+            Mode::push('forcePrinting', TRUE);
+            $data->_selectTplForm = $form->renderHtml();
+            Mode::pop('forcePrinting');
+            
+            if ($data->_selectTplForm) {
+                // Това е необходимо за инпутва на формата
+                // Когат няма 'addSbBtn'
+                $data->_selectTplForm->appendOnce("<input type=\"hidden\" name=\"Cmd[default]\" value=1>",
+                                'FORM_HIDDEN');
+            }
+        }
     }
     
     
