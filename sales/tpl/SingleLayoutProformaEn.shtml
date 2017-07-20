@@ -111,7 +111,7 @@
 					                    <!--ET_END downpayment-->
                                         <!--ET_BEGIN DUE_BLOCK-->
                                            [#DUE_BLOCK#]
-                                        <div><span class='quiet'>Deadline:</span> [#dueTime#] (till [#dueDate#])</div>
+                                        <div><span class='quiet'>Deadline:</span> [#dueTime#]</div>
                                         <!--ET_END DUE_BLOCK--> 
                                         <!--ET_BEGIN deadline-->
                                         [#deadline#]
@@ -122,11 +122,8 @@
                                             <span class="smallData">Interest for late payment: [#OVERDUE_INTEREST_RATE#] per day</span>
                                             <!--ET_END OVERDUE_INTEREST_RATE-->
                                         </div>
-                                       
                                         <!--ET_END deadline-->
-                                        <!--ET_BEGIN deadlineForBalancePayment-->
-                                        <div><span class='quiet'>Finally till: </span>[#deadlineForBalancePayment#]</div>
-                                        <!--ET_END deadlineForBalancePayment-->
+
                                         <!--ET_BEGIN accountId-->
                                         <div>
                                             <span class='quiet'>Bank Account:</span> [#accountId#]
