@@ -252,7 +252,7 @@ class doc_plg_TplManager extends core_Plugin
             
             $form = cls::get('core_Form');
             
-            $form->class .= ' selectTplForm';
+            $form->class .= ' simpleForm';
             
             $form->FNC('tplId', 'key(mvc=doc_TplManager, select=name)', 'caption=Изглед, silent, input');
             

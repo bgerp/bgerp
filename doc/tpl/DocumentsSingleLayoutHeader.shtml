@@ -3,7 +3,7 @@
 <!--ET_END SingleToolbar-->
 
 <!--ET_BEGIN noPrint-->
-    <div class='noPrint'>[#noPrint#]</div>
+    <div class='noMediaPrint'>[#noPrint#]</div>
 <!--ET_END noPrint-->
 
 <div class='document'>
