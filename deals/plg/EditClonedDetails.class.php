@@ -45,15 +45,17 @@ class deals_plg_EditClonedDetails extends core_Plugin
 			$caption= str_replace(',', ' ', $caption);
 			$caption = "{$num}. {$caption}";
 				
-			$Def = batch_Defs::getBatchDef($dRec->productId);
+			$Def = batch_Defs::getBatchDef($dRec->{$Detail->productFld});
 			$subCaption = 'К-во';
 			
 			// Ако е инсталиран пакета за партиди, ще се показват и те
 			if(core_Packs::isInstalled('batch') && is_object($Def)){
 				$subCaption = 'Без партида';
 				$bQuery = batch_BatchesInDocuments::getQuery();
-				$bQuery->where("#detailClassId = {$detailId} AND #detailRecId = {$dRec->id} AND #productId = {$dRec->productId}");
+				$bQuery->where("#detailClassId = {$detailId} AND #detailRecId = {$dRec->id} AND #productId = {$dRec->{$Detail->productFld}}");
+				$bQuery->groupBy('batch');
 				$bQuery->orderBy('id', "DESC");
+				
 				if(!array_key_exists($dRec->id, $rec->details)){
 					$rec->details[$dRec->id] = $dRec;
 				}
