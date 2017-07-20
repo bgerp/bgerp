@@ -212,14 +212,6 @@ class sales_Invoices extends deals_InvoiceMaster
     
     
     /**
-     * Полета, които при клониране да не са попълнени
-     *
-     * @see plg_Clone
-     */
-    public $fieldsNotToClone = 'date,dueTime,dueDate,vatDate';
-    
-    
-    /**
      * Поле за филтриране по дата
      */
     public $filterDateField = 'createdOn, date,dueDate,vatDate,modifiedOn';

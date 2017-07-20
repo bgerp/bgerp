@@ -278,7 +278,7 @@ class cat_Listings extends core_Master
     				
     				if($listRec->vat == 'yes'){
     					$vat = cat_Products::getVat($rec->productId);
-    					$rec->price *= (1 - $vat);
+    					$rec->price /= 1 + $vat;
     				}
     				
     				$rate = currency_CurrencyRates::getRate(NULL, $listRec->currencyId, NULL);

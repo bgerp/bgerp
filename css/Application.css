@@ -1533,6 +1533,10 @@ td.rowtools-column {
 .large-field {
   width: 50%; }
 
+.morePadding {
+  padding-left: 6px !important;
+  padding-right: 6px !important; }
+
 .amount-field {
   min-width: 180px; }
 
