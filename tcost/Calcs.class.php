@@ -488,8 +488,10 @@ class tcost_Calcs extends core_Manager
     	$countryId = !empty($masterRec->{$map['countryId']}) ? $masterRec->{$map['countryId']} : NULL;
     	
     	// Ако драйвера не иска да се начислява цената да не се начислява
-    	$Driver = cat_Products::getDriver($rec->{$map['productId']});
-    	if(!$Driver->canCalcTransportFee($rec->{$map['productId']})) return;
+    	if(isset($rec->{$map['productId']})){
+    		$Driver = cat_Products::getDriver($rec->{$map['productId']});
+    		if(!$Driver->canCalcTransportFee($rec->{$map['productId']})) return;
+    	}
     	
     	// Колко е очаквания транспорт
     	$feeArr = tcost_Calcs::getCostArray($masterRec->{$map['deliveryTermId']}, $masterRec->{$map['contragentClassId']}, $masterRec->{$map['contragentId']}, $rec->{$map['productId']}, $rec->{$map['packagingId']}, $rec->{$map['quantity']}, $masterRec->{$map['deliveryLocationId']}, $countryId);
