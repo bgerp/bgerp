@@ -4977,8 +4977,12 @@ body.narrow {
 @media print{
 	.wide .singleView {
 		display: block;
-
 	}
+
+	.noMediaPrint {
+        display: none;
+    }
+
 	.smaller-text {
 		font-size: 0.95em;
 	}

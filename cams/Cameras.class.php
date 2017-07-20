@@ -147,7 +147,7 @@ class cams_Cameras extends core_Master
             if($driver->isActive()) {
                 $attr['src'] = toUrl(array($this, 'ShowImage', $rec->id, 'thumb' => 'yes'));
                 $attr['class'] = 'camera-tumb';
-                $row->thumb = ht::createLink(ht::createElement('img', $attr), array($this, 'Single', $rec->id)); ;
+                $row->thumb = ht::createLink(ht::createElement('img', $attr), array($this, 'Single', $rec->id));
             } else {
                 $attr['src'] = sbf('cams/img/novideo.jpg', '');
                 $row->thumb = ht::createElement('img', $attr);

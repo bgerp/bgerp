@@ -4520,6 +4520,9 @@ only screen and (max-width: 320px) {
   .wide .singleView {
     display: block; }
 
+  .noMediaPrint {
+    display: none; }
+
   .smaller-text {
     font-size: 0.95em; }
 
