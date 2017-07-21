@@ -284,6 +284,8 @@ class fileman_webdrv_Generic extends core_Manager
                     
                     $imgInst = new thumb_Img(array($jpgFh, $width, $height, 'fileman', 'verbalName' => $verbalName));
                     
+                    $attr['class'] .= ' ' . $jpgFh;
+                    
                     // Вземаме файла
                     $thumbnailImg = $imgInst->createImg($attr);
                         
@@ -331,6 +333,7 @@ class fileman_webdrv_Generic extends core_Manager
         $res = array();
         
         $dataArr = array();
+        $dataArr['fh'] = $fh;
         $dataArr['data-url'] = toUrl(array(get_called_class(), 'getFilePreviewData', 'fileHnd' => $fh, 'bigImg' => (int)!$bigImg), 'local');
         
         $multiplier = fileman_Setup::get('WEBDRV_PREVIEW_MULTIPLIER');
