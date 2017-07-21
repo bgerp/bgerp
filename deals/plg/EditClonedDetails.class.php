@@ -18,6 +18,27 @@ class deals_plg_EditClonedDetails extends core_Plugin
 	
 	
 	/**
+	 * Кои детайли да се клонират с промяна
+	 *
+	 * @param stdClass $rec
+	 * @param mixed $Detail
+	 * @return array
+	 */
+	public static function on_AfterGetDetailsToCloneAndChange($mvc, &$res, $rec, &$Detail = NULL)
+	{
+		if(!$res){
+			$res = array();
+			if(!$rec->clonedFromId) return;
+			
+			$Detail = cls::get($mvc->mainDetail);
+			$dQuery = $Detail->getQuery();
+			$dQuery->where("#{$Detail->masterKey} = {$rec->clonedFromId}");
+			$res = $dQuery->fetchAll();
+		}
+	}
+	
+	
+	/**
 	 * Преди показване на форма за добавяне/промяна.
 	 *
 	 * @param core_Manager $mvc
@@ -28,18 +49,18 @@ class deals_plg_EditClonedDetails extends core_Plugin
 		if($data->action != 'clone') return;
 		$form = &$data->form;
 		$rec = $form->rec;
-		if(!$rec->clonedFromId) return;
 		
-		$Detail = cls::get($mvc->mainDetail);
-		$detailId = $Detail->getClassId();
-		$dQuery = $Detail->getQuery();
-		$dQuery->where("#{$Detail->masterKey} = {$rec->clonedFromId}");
+		$detailsToClone = $mvc->getDetailsToCloneAndChange($rec, $Detail);
+		setIfNot($Detail, cls::get($mvc->mainDetail));
+		if(!count($detailsToClone)) return;
 		
 		$rec->details = array();
 		
 		// Ако ориджина има артикули
 		$num = 1;
-		while($dRec = $dQuery->fetch()){
+		$detailId = $Detail->getClassId();
+		
+		foreach ($detailsToClone as $dRec){
 			$caption = cat_Products::getTitleById($dRec->{$Detail->productFld});
 			$caption .= " / " . cat_UoM::getShortName($dRec->packagingId);
 			$caption= str_replace(',', ' ', $caption);
@@ -94,8 +115,9 @@ class deals_plg_EditClonedDetails extends core_Plugin
 			$num++;
 		}
 		
-		$clonedState = $mvc->fetchField($rec->clonedFromId, 'state');
+		if(!isset($rec->clonedFromId)) return;
 		
+		$clonedState = $mvc->fetchField($rec->clonedFromId, 'state');
 		if($clonedState == 'pending'){
 			$form->FLD("deduct", "enum(yes=Да,no=Не)","input,caption=Приспадане от заявката->Избор,formOrder=10000");
 		}
@@ -138,17 +160,20 @@ class deals_plg_EditClonedDetails extends core_Plugin
 		
 		if(count($rec->details)){
 			foreach ($rec->details as $det){
-				$newPackQuantity = 0;
+				$newPackQuantity = $updatePackQuantity = 0;
 				if(is_array($det->batches)){
 					foreach ($det->batches as $index => &$bRec){
 						$b = str_replace(',', '', $bRec->batch);
 						$b = str_replace('.', '', $b);
 						$key = "quantity|{$b}|{$det->id}|";
 						
-						if(empty($rec->{$key})) {
-							unset($det->batches[$index]);
-							continue;
+						
+						$q = $rec->{$key};
+						if($q > ($bRec->quantity / $bRec->quantityInPack)){
+							$q = $bRec->quantity / $bRec->quantityInPack;
 						}
+						$updatePackQuantity += $q;
+						
 						$newPackQuantity += $rec->{$key};
 						$bRec->oldQuantity = $bRec->quantity;
 						$bRec->quantity = $rec->{$key} * $bRec->quantityInPack;
@@ -157,6 +182,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
 					}
 				}
 				$newPackQuantity += $rec->{"quantity||{$det->id}|"};
+				$updatePackQuantity += $rec->{"quantity||{$det->id}|"};
 				if(!empty($newPackQuantity)){
 					$oldQuantity = $det->quantity;
 					$det->quantity = $newPackQuantity * $det->quantityInPack;
@@ -168,7 +194,8 @@ class deals_plg_EditClonedDetails extends core_Plugin
 							$Detail->delete($det->id);
 							batch_BatchesInDocuments::delete("#detailClassId = {$detailClassId} AND #detailRecId = {$det->id}");
 						} else {
-							$updateRec = (object)array('id' => $oldDetailId, 'quantity' => $diff);
+							$diff1 = $oldQuantity - ($updatePackQuantity * $det->quantityInPack);
+							$updateRec = (object)array('id' => $oldDetailId, 'quantity' => $diff1);
 							$Detail->save_($updateRec, 'quantity');
 						}
 					}

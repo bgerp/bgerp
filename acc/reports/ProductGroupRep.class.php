@@ -31,13 +31,7 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
      * @var int
      */
     //protected $filterEmptyListFields = 'deliveryTime';
-    
-    
-    /**
-     * По-кое поле да се групират листовите данни
-     */
-    //protected $groupByField = 'productId';
-    
+
     
     /**
      * Полета за хеширане на таговете
@@ -64,8 +58,9 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
 	public function addFields(core_Fieldset &$fieldset)
 	{
 	    $fieldset->FLD('from', 'date(smartTime)', 'caption=От,after=title,single=none');
-	    $fieldset->FLD('to',    'date(smartTime)', 'caption=До,after=title,single=none');
-	    $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Група,after=title,single=none');
+	    $fieldset->FLD('to',    'date(smartTime)', 'caption=До,after=from,single=none');
+	    $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Група,after=to,single=none');
+	    $fieldset->FLD('groupBy', 'enum(none= Няма,users=Потребители)','caption=Групиране по,after=group,single=none');
 	}
       
 
@@ -122,6 +117,7 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
     	                'primeCost'=> $recPrime->quantity * $recPrime->primeCost,
     	                'sellCost' => $recPrime->quantity * $recPrime->sellCost,
     	                'group' => cat_Products::fetchField($recPrime->productId, 'groups'),
+    	                'dealerId' => $recPrime->dealerId
   
     	            );
     	        } else {
@@ -132,19 +128,29 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
     	        }
     	    }
     	    
+    	    if($rec->groupBy == 'users'){
+    	        $data->groupByField = 'dealerId';
+    	    } else {
+    	        $data->groupByField = 'group';
+    	    }
+    	    
     	    $arr = array();
     	    foreach($recs as $i=>$r) {
     	        if(isset($rec->group)) {
+    	           // $data->groupByField = 'group';
     	            $groups = keylist::toArray($rec->group);
     	            $prodGroup = keylist::toArray($r->group);
     	            
-    	            foreach($groups as $group) {
-    	                $r->group = $group;
-    	                if(!array_key_exists($group, $prodGroup)) { 
-    	                    
-    	                    unset($recs[$i]);
-    	                }
+    	            $queryProduct = cat_Products::getQuery();
+    	            $queryProduct->where("#id = '{$r->productId}'");
+    	            $queryProduct->likeKeylist("groups", $rec->group);
+    	            
+    	            if($queryProduct->fetch() == FALSE) {
+    	                unset($recs[$i]);
+    	                
     	            }
+    	
+    	            $r->group = $rec->group;
     	        }
     	    }
 
@@ -228,6 +234,10 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
 		    $row->group = implode(', ', $groArr);
 		}
 		
+		if(isset($dRec->dealerId)){
+		  $row->dealerId = crm_Profiles::createLink($dRec->dealerId);
+		}
+		
 		return $row;
 	}
     
@@ -248,6 +258,8 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
         $Date = cls::get('type_Date');
         $row->from = $Date->toVerbal($rec->from);
         $row->to = $Date->toVerbal($rec->to);
+        $groupbyArr = array('none'=>'Няма','users'=>'Потребители');
+        $row->groupBy = $groupbyArr[$rec->groupBy];
         
         if(isset($rec->group)){
             // избраната позиция
@@ -277,6 +289,7 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
 							    <small><div><!--ET_BEGIN from-->|От|*: [#from#]<!--ET_END from--></div></small>
                                 <small><div><!--ET_BEGIN to-->|До|*: [#to#]<!--ET_END to--></div></small>
                                 <small><div><!--ET_BEGIN group-->|Групи|*: [#group#]<!--ET_END group--></div></small>
+                                <small><div><!--ET_BEGIN groupBy-->|Групиране по|*: [#groupBy#]<!--ET_END groupBy--></div></small>
                                 </fieldset><!--ET_END BLOCK-->"));
 
         if(isset($data->rec->from)){
@@ -289,6 +302,10 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
 
         if(isset($data->rec->group)){
             $fieldTpl->append($data->row->group, 'group');
+        }
+        
+        if(isset($data->rec->groupBy)){
+            $fieldTpl->append($data->row->groupBy, 'groupBy');
         }
 
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
