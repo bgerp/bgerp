@@ -188,6 +188,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
 					$det->quantity = $newPackQuantity * $det->quantityInPack;
 					$diff = $oldQuantity - $det->quantity;
 					$oldDetailId = $det->id;
+					$det->_clonedWithBatches = TRUE;
 					
 					if($rec->deduct == 'yes'){
 						if($diff <= 0){
@@ -201,7 +202,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
 					}
 					unset($det->id, $det->createdOn, $det->createdBy);
 					
-					$det->autoAllocate = FALSE;
+					
 					$det->{$Detail->masterKey} = $rec->id;
 					$Detail->save($det);
 					if(is_array($det->batches)){
