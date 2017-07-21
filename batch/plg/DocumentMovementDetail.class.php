@@ -154,7 +154,9 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 	public static function on_AfterCreate($mvc, $rec)
 	{
 		if($mvc->getBatchMovementDocument($rec) == 'out'){
-			self::autoAllocate($mvc, $rec);
+			if($rec->_clonedWithBatches !== TRUE){
+				self::autoAllocate($mvc, $rec);
+			}
 		} else {
 			
 			// Ако се създава нова партида, прави се опит за автоматичното и създаване

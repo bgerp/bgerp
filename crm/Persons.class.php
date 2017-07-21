@@ -1852,6 +1852,8 @@ class crm_Persons extends core_Master
 			}
             $form->title = "Добавяне на служител към|* " . crm_Companies::getLinkToSingle($form->rec->buzCompanyId);
         }
+        
+        crm_Companies::autoChangeFields($form);
     }
 
 
