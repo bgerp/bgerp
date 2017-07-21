@@ -53,9 +53,11 @@ class type_Table extends type_Blob {
         }
 
         $columns = $this->getColumns();
-
         foreach($columns as $field => $fObj) {
-            $row0 .= "<td class='formTypeTable'>{$fObj->caption}</td>";
+        	if(empty($this->params['noCaptions'])){
+        		$row0 .= "<td class='formTypeTable'>{$fObj->caption}</td>";
+        	}
+            
             $attr[$field] = array('name' => $name . '[' . $field . '][]');
             if($fObj->width) {
                 $attr[$field]['style'] .= ";width:{$fObj->width}";
