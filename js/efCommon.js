@@ -4118,6 +4118,20 @@ function showToast(data) {
 
 
 /**
+ * Рендира новото изображение за превю на картина
+ * 
+ * @param object data - Обект с необходимите стойности
+ * data.data-url
+ * data.src
+ * data.width
+ * data.height
+ */
+function render_setNewFilePreview(data) {
+	console.log(data);
+}
+
+
+/**
  * Experta - Клас за функции на EF
  *
  * @category  ef

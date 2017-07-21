@@ -290,7 +290,10 @@ class fileman_webdrv_Generic extends core_Manager
                     // В зависимост от текущото състояние добаваме линк за увеличаване/намаляне изборажението
                     if ($multiplier > 1) {
                         $aAttr = array();
-                        $aAttr['href'] = toUrl(array($this, 'preview', 'bigImg' => !$bigImg, 'fileHnd' => $fileHnd));
+                        $aAttr['href'] = toUrl(array($this, 'preview', 'bigImg' => (int)!$bigImg, 'fileHnd' => $fileHnd));
+                        
+                        $aAttr['onclick'] = 'return startUrlFromDataAttr(this, true);';
+                        $aAttr['data-url'] = toUrl(array(get_called_class(), 'getFilePreviewData', 'fileHnd' => $fileHnd, 'bigImg' => (int)!$bigImg), 'local');
                         
                         $thumbnailImg = ht::createElement('a', $aAttr, $thumbnailImg);
                     }
@@ -305,6 +308,58 @@ class fileman_webdrv_Generic extends core_Manager
 
             return $preview;
         }
+    }
+    
+    
+    /**
+     * Вика се по AJAX и връща по-голямата/или по-малката картина
+     * 
+     * @return array
+     */
+    function act_GetFilePreviewData()
+    {
+        $fh = Request::get('fileHnd');
+        
+        expect($fh);
+        
+        expect($fRec = fileman::fetchByFh($fh));
+        
+        expect(Request::get('ajax_mode'));
+        
+        $bigImg = Request::get('bigImg');
+        
+        $res = array();
+        
+        $dataArr = array();
+        $dataArr['data-url'] = toUrl(array(get_called_class(), 'getFilePreviewData', 'fileHnd' => $fh, 'bigImg' => (int)!$bigImg), 'local');
+        
+        $multiplier = fileman_Setup::get('WEBDRV_PREVIEW_MULTIPLIER');
+        $thumbWidthAndHeightArr = static::getPreviewWidthAndHeight();
+        
+        $width = $thumbWidthAndHeightArr['width'];
+        $height = $thumbWidthAndHeightArr['height'];
+        $verbalName = 'Preview';
+        if ($bigImg && ($multiplier > 1)) {
+            $width *= $multiplier;
+            $height *= $multiplier;
+            $verbalName .= ' X ' . $multiplier;
+            $attr['class'] .= ' webdrv-previewX2';
+        }
+        
+        $imgInst = new thumb_Img(array($fh, $width, $height, 'fileman', 'verbalName' => $verbalName));
+        $dataArr['src'] = $imgInst->getUrl();
+        
+        // Вземаме файла
+        
+        $dataArr['width'] = $width;
+        $dataArr['height'] = $height;
+        
+        $obj = new stdClass();
+        $obj->func = 'setNewFilePreview';
+        $obj->arg = $dataArr;
+        $res[] = $obj;
+        
+        return $res;
     }
     
     
