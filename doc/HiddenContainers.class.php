@@ -137,9 +137,17 @@ class doc_HiddenContainers extends core_Manager
                 }
             } else {
                 
+                if ($cId) {
+                    $rec = doc_Containers::fetch($cId, 'docId, docClass');
+                    if ($rec->docClass && cls::load($rec->docClass, TRUE)) {
+                        $dInst = cls::get($rec->docClass);
+                    }
+                }
+                
                 // Скриваме само оттеглени, затворение и активни документи
-                if (($cRec->state == 'rejected') || ($cRec->state == 'closed') || ($cRec->state == 'active')) {
-                    if ($cRec->state != 'rejected') {
+                // Документи, на които им е зададено да не се скриват автоматично и тя нама да се скриват
+                if ((($cRec->state == 'rejected') || ($cRec->state == 'closed') || ($cRec->state == 'active')) && ($dInst->autoHideDoc !== FALSE)) {
+                    if (($cRec->state != 'rejected')) {
                         
                         // Ако следващия документ е създаден от същия потребител
                         // Не е оттеглен и съдържанието и състоянието е идентично
