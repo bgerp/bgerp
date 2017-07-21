@@ -80,7 +80,7 @@
                             <!--ET_BEGIN dimentions-->
                         [#dimentions#]
                         <hr>
-                           <div>|Общо тегло|*:&nbsp;<b>[#weight#]</b> &nbsp;&nbsp;&nbsp;&nbsp; |Общ обем|*:&nbsp;<b>[#volume#]</b></div>
+                          <div><!--  |Общо тегло|*:&nbsp;<b>[#weight#]</b> --!> &nbsp;&nbsp;&nbsp;&nbsp; |Общ обем|*:&nbsp;<b>[#volume#]</b></div>
                         <!--ET_BEGIN dimentions-->
                         <!--ET_BEGIN note-->
                         <hr>
