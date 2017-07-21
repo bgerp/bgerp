@@ -379,7 +379,7 @@ class cond_plg_DefaultValues extends core_Plugin
                             
                             Request::setProtected('AutoChangeFields');
                             
-                            $updateLink = ht::createLink(tr('обновяване'), array($inst, 'edit', $fRec->coverId, 'AutoChangeFields' => serialize($changedRecArr)));
+                            $updateLink = ht::createLink(tr('обновяване'), array($inst, 'edit', $fRec->coverId, 'AutoChangeFields' => serialize($changedRecArr), 'ret_url' => array($mvc, 'single', $rec->id)));
                             
                             status_Messages::newStatus("|Контактните данни се различават от тези във визитката. Ако желаете, направете|* {$updateLink}");
                         }
