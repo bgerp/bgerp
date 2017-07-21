@@ -733,7 +733,7 @@ class cat_Products extends embed_Manager {
     	}
     	
     	if($rec->csv_groups){
-    		$rec->groups = cat_Groups::getKeylistBySysIds($rec->csv_groups);
+    		$rec->groupsInput = cat_Groups::getKeylistBySysIds($rec->csv_groups);
     	} else {
     	    
     	    // От вербална стойност се опитваме да вземем невербалната
@@ -766,13 +766,13 @@ class cat_Products extends embed_Manager {
                     $groupIdArr[$groupId] = $groupId;
                 }
                 
-                $rec->groups = type_Keylist::fromArray($groupIdArr);
+                $rec->groupsInput = type_Keylist::fromArray($groupIdArr);
             }
     	}
     	
     	// Обединяваме групите с избраните от потребителя
     	if ($rec->Groups) {
-    	    $rec->groups = type_Keylist::merge($rec->groups, $rec->Groups);
+    	    $rec->groupsInput = type_Keylist::merge($rec->groupsInput, $rec->Groups);
     	}
     	
     	$nMetaArr = array();
