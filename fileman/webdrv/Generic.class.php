@@ -286,19 +286,13 @@ class fileman_webdrv_Generic extends core_Manager
                     
                     $attr['class'] .= ' ' . $jpgFh;
                     
+                    if ($multiplier > 1) {
+                        $attr['onclick'] = 'return startUrlFromDataAttr(this, true);';
+                        $attr['data-url'] = toUrl(array(get_called_class(), 'getFilePreviewData', 'fileHnd' => $jpgFh, 'bigImg' => (int)!$bigImg), 'local');
+                    }
+                    
                     // Вземаме файла
                     $thumbnailImg = $imgInst->createImg($attr);
-                        
-                    // В зависимост от текущото състояние добаваме линк за увеличаване/намаляне изборажението
-                    if ($multiplier > 1) {
-                        $aAttr = array();
-                        $aAttr['href'] = toUrl(array($this, 'preview', 'bigImg' => (int)!$bigImg, 'fileHnd' => $fileHnd));
-                        
-                        $aAttr['onclick'] = 'return startUrlFromDataAttr(this, true);';
-                        $aAttr['data-url'] = toUrl(array(get_called_class(), 'getFilePreviewData', 'fileHnd' => $jpgFh, 'bigImg' => (int)!$bigImg), 'local');
-                        
-                        $thumbnailImg = ht::createElement('a', $aAttr, $thumbnailImg);
-                    }
                     
                     // Добавяме към preview' то генерираното изображение
                     $preview->append($thumbnailImg, 'THUMB_IMAGE');
