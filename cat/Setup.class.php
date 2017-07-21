@@ -123,7 +123,8 @@ class cat_Setup extends core_ProtoSetup
     		'migrate::migratePrototypes',
     		'migrate::updateListings1',
     		'migrate::updateLists',
-    		'migrate::migrateListings'
+    		'migrate::migrateListings',
+    		'migrate::updateCatCache',
         );
     
     
@@ -636,5 +637,14 @@ class cat_Setup extends core_ProtoSetup
     			reportException($e);
     		}
     	}
+    }
+    
+    
+    /**
+     * Изчистване на кеша
+     */
+    function updateCatCache()
+    {
+    	cat_ProductTplCache::delete("#type = 'title'");
     }
 }
