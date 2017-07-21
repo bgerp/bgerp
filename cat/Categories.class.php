@@ -458,7 +458,6 @@ class cat_Categories extends core_Master
     			
     			// Разпъваме групите
     			$descendants = cat_groups::getDescendantArray($group);
-    			
     			$keylist = keylist::fromArray($descendants);
     			
     			// Намираме ид-та на артикулите от тези групи
@@ -466,7 +465,7 @@ class cat_Categories extends core_Master
     			$catQuery->likeKeylist("groups", $keylist);
     			$catQuery->show('id');
     			$productIds = array_map(create_function('$o', 'return $o->id;'), $catQuery->fetchAll());
-    			bp($catQuery->where);
+    			
     			// Искаме от нишките да останат само тези за въпросните артикули
     			$threadQuery->in('docId', $productIds);
     		}
