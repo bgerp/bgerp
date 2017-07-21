@@ -4125,6 +4125,7 @@ function showToast(data) {
  * data.src
  * data.width
  * data.height
+ * data.fh
  */
 function render_setNewFilePreview(data) {
 	console.log(data);
