@@ -293,7 +293,7 @@ class fileman_webdrv_Generic extends core_Manager
                         $aAttr['href'] = toUrl(array($this, 'preview', 'bigImg' => (int)!$bigImg, 'fileHnd' => $fileHnd));
                         
                         $aAttr['onclick'] = 'return startUrlFromDataAttr(this, true);';
-                        $aAttr['data-url'] = toUrl(array(get_called_class(), 'getFilePreviewData', 'fileHnd' => $fileHnd, 'bigImg' => (int)!$bigImg), 'local');
+                        $aAttr['data-url'] = toUrl(array(get_called_class(), 'getFilePreviewData', 'fileHnd' => $jpgFh, 'bigImg' => (int)!$bigImg), 'local');
                         
                         $thumbnailImg = ht::createElement('a', $aAttr, $thumbnailImg);
                     }
