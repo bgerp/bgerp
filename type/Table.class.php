@@ -130,7 +130,8 @@ class type_Table extends type_Blob {
         
         if($this->params['validate']) {
 
-            $res = call_user_func_array($this->params['validate'], array($value, $this));
+        	$valueToValidate = @json_decode($value, TRUE);
+            $res = call_user_func_array($this->params['validate'], array($valueToValidate, $this));
 
             return $res;
         }
@@ -233,7 +234,7 @@ class type_Table extends type_Blob {
 
             if(!$empty) {
                 foreach($columns as $field => $fObj) {
-                    $res[$field][] = $value[$field][$i];
+                    $res[$field][] = trim($value[$field][$i]);
                 }
             }
 
