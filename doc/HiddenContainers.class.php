@@ -138,7 +138,7 @@ class doc_HiddenContainers extends core_Manager
             } else {
                 
                 if ($cId) {
-                    $rec = doc_Containers::fetch($cId, 'docId, docClass');
+                    $rec = doc_Containers::fetch($cId, 'docClass');
                     if ($rec->docClass && cls::load($rec->docClass, TRUE)) {
                         $dInst = cls::get($rec->docClass);
                     }
