@@ -471,6 +471,49 @@ class crm_Companies extends core_Master
             // Да има само 2 колони
             $data->form->setField($mvc->expandInputFieldName, array('maxColumns' => 2));    
         }
+        
+        $mvc->autoChangeFields($form);
+    }
+    
+    
+    /**
+     * Добавя стойности на полетата за автоматична промяна
+     * 
+     * @param core_Form $form
+     */
+    public static function autoChangeFields($form)
+    {
+        Request::setProtected('AutoChangeFields');
+        
+        if ($changeFieldsArr = Request::get('AutoChangeFields')) {
+            $changeFieldsArr = unserialize($changeFieldsArr);
+            
+            if ($changeFieldsArr) {
+                $oRec = clone ($form->rec);
+                
+                $oldValArr = array();
+                foreach ($changeFieldsArr as $fName => $fVal) {
+                    if ($form->rec->{$fName} == $fVal) continue;
+                    
+                    $oldValArr[$fName] = $form->rec->{$fName};
+                    $form->rec->{$fName} = $fVal;
+                }
+            
+                if ($oldValArr) {
+                    foreach ($oldValArr as $fName => $fVal) {
+                        if (!$form->fields[$fName]) continue;
+            
+                        if ($form->fields[$fName]->type instanceof type_Key || $form->fields[$fName]->type instanceof type_Keylist) {
+            
+                            $form->fields[$fName]->unit = '|*(' . $form->fields[$fName]->type->toVerbal($fVal) . ')';
+                        }
+            
+                        $form->fields[$fName]->hint = 'Предишна стойност|*: ' . $fVal;
+                        $form->fields[$fName]->class .= ' flashElem';
+                    }
+                }
+            }
+        }
     }
     
     
