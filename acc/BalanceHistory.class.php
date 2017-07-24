@@ -646,9 +646,11 @@ class acc_BalanceHistory extends core_Manager
         // Рендиране на филтъра
         $tpl->append($this->renderListFilter($data), 'listFilter');
         
-        // Рендиране на пейджъра
-        if($data->pager){
-        	$tpl->append($data->pager->getHtml(), 'PAGER');
+        if(!Mode::is('printing')) {
+            // Рендиране на пейджъра
+            if($data->pager){ 
+            	$tpl->append($data->pager->getHtml(), 'PAGER');
+            }
         }
         
         
