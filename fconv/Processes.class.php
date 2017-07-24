@@ -85,7 +85,6 @@ class fconv_Processes extends core_Manager
         $rec = self::fetch(array("#processId = '[#1#]'", $pid));
         
         if (!is_object($rec)) {
-            wp ($pid, $func);
             exit(1);
         }
         

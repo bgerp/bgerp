@@ -1074,11 +1074,12 @@ class cams_Records extends core_Master
     {
         // Ако имаме получени картинки, вадим максимално до 4 от тях и викаме: montage keyframes001.png keyframes002.png keyframes003.png keyframes005.png -geometry 512x384+2+2 result.png
         // взимаме броя на jpg файловете, които са резултат от движението във видеото
-        $fCnt = exec("ls -l {$script->tempDir}*.jpg | wc -l");
+        $fCnt = (int) exec("ls -l {$script->tempDir}*.jpg | wc -l");
         $fourShots = '';
         $outpuF = str_replace("//", "/", $script->tempDir . $script->files['OUTPUTF']);
         // Ако имаме само 1 картинка - нищо не правим. Ако имаме 2 или 3, повтаряме последтата
         switch ($fCnt) {
+            case 0:
             case 1:
                 break;
             case 2:
@@ -1101,11 +1102,8 @@ class cams_Records extends core_Master
                      . sprintf($outpuF, $fCnt);
         }
         
-        $cmd = "montage " . $fourShots . " -geometry 512x384+2+2 " . $script->tempDir . "result.jpg";        
-        
-//         file_put_contents('afterAnalizeRES.txt', print_r($script, TRUE) . PHP_EOL, FILE_APPEND);
-//         file_put_contents('afterAnalizeRES.txt', $fCnt . PHP_EOL, FILE_APPEND);
         if (!empty($fourShots)) {
+            $cmd = "montage " . $fourShots . " -geometry 512x384+2+2 " . $script->tempDir . "result.jpg";        
             exec($cmd);
             // Резултатната снимка записваме като файла за картинка
             copy($script->tempDir . "result.jpg", $script->imageFile);
@@ -1123,9 +1121,6 @@ class cams_Records extends core_Master
         $rec->isAnalyzed = yes;
         $this->save($rec);
         // Ако е наближило 300 секунди от началото на процеса - излизаме иначе, продължаваме от начало
-        
-        // Разкарваме временната директория
-        // exec(sprintf("rm -rf %s", escapeshellarg($script->tempDir)));
         
         return TRUE;
     }
