@@ -142,6 +142,7 @@ class batch_BatchesInDocuments extends core_Manager
 		
 		$count = 0;
 		$total = $rInfo->quantity;
+		$totalCount = $query->count() - 1;
 		
 		while($rec = $query->fetch()){
 			
@@ -159,6 +160,8 @@ class batch_BatchesInDocuments extends core_Manager
 				if($msg = self::checkBatchRow($detailClassId, $detailRecId, $key, $rec->quantity)){
 					$b = ht::createHint($b, $msg, 'warning');
 				}
+				
+				$b = ($b instanceof core_ET) ? $b->getContent() : $b;
 			}
 			
 			$string = '';
@@ -180,7 +183,7 @@ class batch_BatchesInDocuments extends core_Manager
 			
 			if($batchDef instanceof batch_definitions_Serial){
 				$label = ($count == 0) ? "{$label} " : "";
-				$end = ($count == 0) ? "," : "";
+				$end = ($count == $totalCount) ? "" : ",";
 				$string = "{$label}{$batch}{$end}";
 			} else {
 				$string = "{$label} {$batch}" . "<br>";
