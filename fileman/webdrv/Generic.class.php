@@ -214,7 +214,7 @@ class fileman_webdrv_Generic extends core_Manager
             $fileHnd = Request::get('fileHnd');
         }
         
-        $bigImg = Request::get('bigImg');
+//         $bigImg = Request::get('bigImg');
         
         // Вземаме записа за файла
         $fRec = fileman_Files::fetchByFh($fileHnd);
@@ -275,21 +275,28 @@ class fileman_webdrv_Generic extends core_Manager
                     $width = $thumbWidthAndHeightArr['width'];
                     $height = $thumbWidthAndHeightArr['height'];
                     $verbalName = 'Preview';
-                    if ($bigImg && ($multiplier > 1)) {
-                        $width *= $multiplier;
-                        $height *= $multiplier;
-                        $verbalName .= ' X ' . $multiplier;
-                        $attr['class'] .= ' webdrv-previewX2';
+                    if ($multiplier > 1) {
+                        $bigWidth = $width * $multiplier;
+                        $bigHeight = $height * $multiplier;
+                        $bigVerbalName = $verbalName . ' X ' . $multiplier;
+                        
+                        $bigImgInst = new thumb_Img(array($jpgFh, $bigWidth, $bigHeight, 'fileman', 'verbalName' => $verbalName));
+                        
+                        $bigImgUrl = $bigImgInst->getUrl('deferred');
+                        
+                        $attr['data-bigWidth'] = $bigWidth;
+                        $attr['data-bigHeight'] = $bigHeight;
+                        $attr['data-bigSrc'] = $bigImgUrl;
                     }
                     
                     $imgInst = new thumb_Img(array($jpgFh, $width, $height, 'fileman', 'verbalName' => $verbalName));
                     
                     $attr['class'] .= ' ' . $jpgFh;
                     
-                    if ($multiplier > 1) {
-                        $attr['onclick'] = 'return startUrlFromDataAttr(this, true);';
-                        $attr['data-url'] = toUrl(array(get_called_class(), 'getFilePreviewData', 'fileHnd' => $jpgFh, 'bigImg' => (int)!$bigImg), 'local');
-                    }
+//                     if ($multiplier > 1) {
+//                         $attr['onclick'] = 'return startUrlFromDataAttr(this, true);';
+//                         $attr['data-url'] = toUrl(array(get_called_class(), 'getFilePreviewData', 'fileHnd' => $jpgFh, 'bigImg' => (int)!$bigImg), 'local');
+//                     }
                     
                     // Вземаме файла
                     $thumbnailImg = $imgInst->createImg($attr);
@@ -311,6 +318,8 @@ class fileman_webdrv_Generic extends core_Manager
      * Вика се по AJAX и връща по-голямата/или по-малката картина
      * 
      * @return array
+     * 
+     * @todo - remove
      */
     function act_GetFilePreviewData()
     {
