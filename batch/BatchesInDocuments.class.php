@@ -134,7 +134,7 @@ class batch_BatchesInDocuments extends core_Manager
 		
 		$query = self::getQuery();
 		$query->where("#detailClassId = {$detailClassId} AND #detailRecId = {$detailRecId} AND #operation = '{$operation}'");
-		$query->orderBy('id', "DESC");
+		$query->orderBy('id', 'ASC');
 		$batchDef = batch_Defs::getBatchDef($rInfo->productId);
 		
 		$file = ($batchDef instanceof batch_definitions_Serial) ? 'batch/tpl/BatchInfoBlockSerial.shtml' : 'batch/tpl/BatchInfoBlock.shtml';
