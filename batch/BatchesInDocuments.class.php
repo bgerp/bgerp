@@ -451,7 +451,9 @@ class batch_BatchesInDocuments extends core_Manager
 				} else {
 					foreach ($batches as $b){
 						$saveBatches[$b] = 1 / $recInfo->quantityInPack;
+						$total += 1;
 					}
+					$fields[] = "serials";
 					
 					if(is_array($foundBatches)){
 						foreach ($foundBatches as $fb){
@@ -479,13 +481,13 @@ class batch_BatchesInDocuments extends core_Manager
 						}
 					}
 				}
-				
-				if($form->cmd != 'updateQuantity'){
+			}
+			
+			if($form->cmd != 'updateQuantity'){
 					
-					// Не може да е разпределено по-голямо количество от допустимото
-					if($total > ($recInfo->quantity / ($recInfo->quantityInPack))){
-						$form->setError(implode(',', $fields), 'Общото количество е над допустимото');
-					}
+				// Не може да е разпределено по-голямо количество от допустимото
+				if($total > ($recInfo->quantity / ($recInfo->quantityInPack))){
+					$form->setError(implode(',', $fields), 'Общото количество е над допустимото');
 				}
 			}
 			
