@@ -1125,7 +1125,9 @@ class cams_Records extends core_Master
         // Ако е наближило 300 секунди от началото на процеса - излизаме иначе, продължаваме от начало
         
         // Разкарваме временната директория
-        exec(sprintf("rm -rf %s", escapeshellarg($script->tempDir)));
+        // exec(sprintf("rm -rf %s", escapeshellarg($script->tempDir)));
+        
+        return TRUE;
     }
     
     /**
