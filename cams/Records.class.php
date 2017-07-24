@@ -1053,7 +1053,7 @@ class cams_Records extends core_Master
             $Script[$rec->id] = cls::get('fconv_Script');
             $Script[$rec->id]->setFile('INPUTF', $paths->videoFile);
             $Script[$rec->id]->setFile('OUTPUTF', "/shot_" . $rec->id . "_%03d.jpg");
-            $Script[$rec->id]->lineExec("ffmpeg -i [#INPUTF#] -an -vf \"select=gt(scene\,0.03),setpts=N/(2*TB)\" [#OUTPUTF#]");
+            $Script[$rec->id]->lineExec("ffmpeg -i [#INPUTF#] -an -vf \"select=gt(scene\,0.02),setpts=N/(2*TB)\" [#OUTPUTF#]");
             $Script[$rec->id]->callBack('cams_Records::afterAnalyze');
             $Script[$rec->id]->recId = $rec->id;
             $Script[$rec->id]->imageFile = $paths->imageFile;
