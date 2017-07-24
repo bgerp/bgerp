@@ -388,7 +388,7 @@ class batch_BatchesInDocuments extends core_Manager
 		}
 		
 		// Добавяне на поле за нова партида
-		$autohide = count($batches) ? 'autohide' : '';
+		//$autohide = count($batches) ? 'autohide' : '';
 		$caption = ($Def->getFieldCaption()) ? $Def->getFieldCaption() : 'Партида';
 		
 		$columns = ($Def instanceof batch_definitions_Serial) ? 'batch' : 'batch|quantity';
@@ -411,7 +411,7 @@ class batch_BatchesInDocuments extends core_Manager
 			if(!empty($r->newArray)){
 				$newBatchArray = array();
 				$newBatches = (array)@json_decode($r->newArray);
-				$bCount = count($newBatches);
+				$bCount = count($newBatches['batch']);
 				
 				for($i = 0; $i <= $bCount - 1; $i++){
 					if(empty($newBatches['batch'][$i])) continue;
@@ -498,7 +498,6 @@ class batch_BatchesInDocuments extends core_Manager
 					$intersect = array_diff_key($old, $saveBatches);
 					$delete = (count($intersect)) ? array_keys($intersect) : array();
 				}
-				
 				
 				// Ъпдейт/добавяне на записите, които трябва
 				if(count($saveBatches)){
