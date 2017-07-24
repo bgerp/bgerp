@@ -4131,6 +4131,13 @@ function render_setNewFilePreview(data) {
 	console.log(data);
 }
 
+function changeZoomImage(el){
+    $(el).css("width",850);
+    $(el).css("height","auto");
+    $(el).attr("width", $(el).attr("data-bigwidth"));
+    $(el).attr("height", $(el).attr("data-bigheight"));
+    $(el).attr("src",$(el).attr("data-bigsrc"));
+}
 
 /**
  * Experta - Клас за функции на EF

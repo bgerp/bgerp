@@ -284,9 +284,9 @@ class fileman_webdrv_Generic extends core_Manager
                         
                         $bigImgUrl = $bigImgInst->getUrl('deferred');
                         
-                        $attr['data-bigWidth'] = $bigWidth;
-                        $attr['data-bigHeight'] = $bigHeight;
-                        $attr['data-bigSrc'] = $bigImgUrl;
+                        $attr['data-bigwidth'] = $bigWidth;
+                        $attr['data-bigheight'] = $bigHeight;
+                        $attr['data-bigsrc'] = $bigImgUrl;
                     }
                     
                     $imgInst = new thumb_Img(array($jpgFh, $width, $height, 'fileman', 'verbalName' => $verbalName));
@@ -307,7 +307,8 @@ class fileman_webdrv_Generic extends core_Manager
             }
 
             $preview->push('js/wheelzoom.js', "JS");
-            jquery_Jquery::run($preview, 'wheelzoom(document.querySelector(\'img.webdrv-preview\'));');
+
+            jquery_Jquery::run($preview, '$("img.webdrv-preview").on("click", function(e){changeZoomImage(e.target)});; wheelzoom(document.querySelectorAll(\'img.webdrv-preview\'), {zoom:1});');
 
             return $preview;
         }
