@@ -4132,7 +4132,7 @@ function render_setNewFilePreview(data) {
 }
 
 function changeZoomImage(el){
-    $(el).css("width",850);
+    $(el).css("width",$(el).css("width"));
     $(el).css("height","auto");
     $(el).attr("width", $(el).attr("data-bigwidth"));
     $(el).attr("height", $(el).attr("data-bigheight"));
