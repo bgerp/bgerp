@@ -1062,6 +1062,7 @@ class cams_Records extends core_Master
             $async = TRUE;
             if ($Script[$rec->id]->run($async) !== FALSE) {
             }
+            sleep(1);
         }
 
     }
