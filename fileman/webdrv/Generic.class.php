@@ -280,7 +280,7 @@ class fileman_webdrv_Generic extends core_Manager
                         $bigHeight = $height * $multiplier;
                         $bigVerbalName = $verbalName . ' X ' . $multiplier;
                         
-                        $bigImgInst = new thumb_Img(array($jpgFh, $bigWidth, $bigHeight, 'fileman', 'verbalName' => $verbalName));
+                        $bigImgInst = new thumb_Img(array($jpgFh, $bigWidth, $bigHeight, 'fileman', 'verbalName' => $bigVerbalName));
                         
                         $bigImgUrl = $bigImgInst->getUrl('deferred');
                         
