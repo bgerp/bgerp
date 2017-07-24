@@ -904,8 +904,14 @@ class crm_Companies extends core_Master
         
         if ($companyNameLen > 37) {
             $companyFontSize = 100;
+        } elseif ($companyNameLen > 33) {
+            $companyFontSize = 110;
+        } elseif ($companyNameLen > 31) {
+            $companyFontSize = 120;
         } elseif ($companyNameLen > 29) {
             $companyFontSize = 130;
+        } elseif ($companyNameLen > 25) {
+            $companyFontSize = 140;
         } elseif ($companyNameLen > 23) {
             $companyFontSize = 150;
         } elseif ($companyNameLen > 19) {

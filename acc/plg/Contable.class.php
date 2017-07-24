@@ -40,6 +40,7 @@ class acc_plg_Contable extends core_Plugin
         setIfNot($mvc->fieldsNotToClone, $mvc->valiorFld);
         setIfNot($mvc->canViewpsingle, 'powerUser');
         setIfNot($mvc->moveDocToFolder, FALSE);
+        setIfNot($mvc->autoHideDoc, FALSE); // @see doc_HiddenContainers - да не се скрива автоматично
         
         // Зареждаме плъгина, който проверява може ли да се оттегли/възстанови докумена
         $mvc->load('acc_plg_RejectContoDocuments');
