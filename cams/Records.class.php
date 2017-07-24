@@ -1046,7 +1046,7 @@ class cams_Records extends core_Master
         $before5min = dt::addsecs(-6*60);
         $query->where("#startTime < '{$before5min}' AND #isAnalyzed = 'no'");
         //$query->limit(100);
-        $query->limit(50);
+        $query->limit(60);
 
         while ($rec = $query->fetch()) {
             $paths = $this->getFilePaths($rec->startTime, $rec->cameraId); //bp($paths);
@@ -1062,7 +1062,7 @@ class cams_Records extends core_Master
             $async = TRUE;
             if ($Script[$rec->id]->run($async) !== FALSE) {
             }
-            sleep(1);
+            sleep(2);
         }
 
     }
