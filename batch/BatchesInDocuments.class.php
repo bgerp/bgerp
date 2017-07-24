@@ -433,6 +433,11 @@ class batch_BatchesInDocuments extends core_Manager
 					
 					$quantity = ($Def instanceof batch_definitions_Serial) ? 1 : $quantity;
 					$saveBatches[$batch] = $quantity  * $recInfo->quantityInPack;
+					
+					// Проверка на к-то
+					if(!deals_Helper::checkQuantity($recInfo->packagingId, $quantity, $warning)){
+						$form->setError("newArray", $warning);
+					}
 				}
 			}
 			
