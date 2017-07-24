@@ -447,7 +447,10 @@ class batch_BatchesInDocuments extends core_Manager
 			if($Def instanceof batch_definitions_Serial){
 				$batches = type_Set::toArray($r->serials);
 				if(count($batches) > $recInfo->quantity){
-					$form->setError('serials', "Серийните номера са повече от цялото количество");
+					if($form->cmd != 'updateQuantity'){
+						$form->setError('serials', "Серийните номера са повече от цялото количество");
+					}
+					$total += count($batches);
 				} else {
 					foreach ($batches as $b){
 						$saveBatches[$b] = 1 / $recInfo->quantityInPack;
