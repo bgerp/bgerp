@@ -214,8 +214,6 @@ class fileman_webdrv_Generic extends core_Manager
             $fileHnd = Request::get('fileHnd');
         }
         
-//         $bigImg = Request::get('bigImg');
-        
         // Вземаме записа за файла
         $fRec = fileman_Files::fetchByFh($fileHnd);
         
@@ -258,6 +256,8 @@ class fileman_webdrv_Generic extends core_Manager
             // Създаваме шаблон за preview на изображението
             $preview = new ET("<div style='background-image:url(" . $bgImg . "); padding: 8px 0 4px; min-height: 598px;display: table;width: 100%;'><div style='margin: 0 auto;'>[#THUMB_IMAGE#]</div></div>");
 			
+            $multiplier = fileman_Setup::get('WEBDRV_PREVIEW_MULTIPLIER');
+            
             foreach ($jpgArr as $key => $jpgFh) {
                 
                 // Атрибути на thumbnail изображението
@@ -270,34 +270,24 @@ class fileman_webdrv_Generic extends core_Manager
                     $preview->append($str, 'THUMB_IMAGE');
                 } else {
                     
-                    $multiplier = fileman_Setup::get('WEBDRV_PREVIEW_MULTIPLIER');
-                    
                     $width = $thumbWidthAndHeightArr['width'];
                     $height = $thumbWidthAndHeightArr['height'];
                     $verbalName = 'Preview';
                     if ($multiplier > 1) {
                         $bigWidth = $width * $multiplier;
                         $bigHeight = $height * $multiplier;
-                        $bigVerbalName = $verbalName . ' X ' . $multiplier;
                         
-                        $bigImgInst = new thumb_Img(array($jpgFh, $bigWidth, $bigHeight, 'fileman', 'verbalName' => $bigVerbalName));
-                        
-                        $bigImgUrl = $bigImgInst->getUrl('deferred');
+                        $bigImgInst = new thumb_Img(array($jpgFh, $bigWidth, $bigHeight, 'fileman', 'verbalName' => $verbalName . ' X ' . $multiplier));
                         
                         $attr['data-bigwidth'] = $bigWidth;
                         $attr['data-bigheight'] = $bigHeight;
-                        $attr['data-bigsrc'] = $bigImgUrl;
+                        $attr['data-bigsrc'] = $bigImgInst->getUrl('deferred');
                         $attr['data-zoomed'] = "no";
                     }
                     
                     $imgInst = new thumb_Img(array($jpgFh, $width, $height, 'fileman', 'verbalName' => $verbalName));
                     
                     $attr['class'] .= ' ' . $jpgFh;
-                    
-//                     if ($multiplier > 1) {
-//                         $attr['onclick'] = 'return startUrlFromDataAttr(this, true);';
-//                         $attr['data-url'] = toUrl(array(get_called_class(), 'getFilePreviewData', 'fileHnd' => $jpgFh, 'bigImg' => (int)!$bigImg), 'local');
-//                     }
                     
                     // Вземаме файла
                     $thumbnailImg = $imgInst->createImg($attr);
@@ -306,68 +296,19 @@ class fileman_webdrv_Generic extends core_Manager
                     $preview->append($thumbnailImg, 'THUMB_IMAGE');
                 }
             }
+            
+            $jqRun = 'wheelzoom(document.querySelectorAll(\'img.webdrv-preview\'), {zoom:1});';
+            
+            if ($multiplier > 1) {
+                $jqRun = '$("img.webdrv-preview").on("click", function(e){changeZoomImage(e.target)}); ' . $jqRun;
+            }
 
             $preview->push('js/wheelzoom.js', "JS");
-
-            jquery_Jquery::run($preview, '$("img.webdrv-preview").on("click", function(e){changeZoomImage(e.target)}); wheelzoom(document.querySelectorAll(\'img.webdrv-preview\'), {zoom:1});');
+            
+            jquery_Jquery::run($preview, $jqRun);
 
             return $preview;
         }
-    }
-    
-    
-    /**
-     * Вика се по AJAX и връща по-голямата/или по-малката картина
-     * 
-     * @return array
-     * 
-     * @todo - remove
-     */
-    function act_GetFilePreviewData()
-    {
-        $fh = Request::get('fileHnd');
-        
-        expect($fh);
-        
-        expect($fRec = fileman::fetchByFh($fh));
-        
-        expect(Request::get('ajax_mode'));
-        
-        $bigImg = Request::get('bigImg');
-        
-        $res = array();
-        
-        $dataArr = array();
-        $dataArr['fh'] = $fh;
-        $dataArr['data-url'] = toUrl(array(get_called_class(), 'getFilePreviewData', 'fileHnd' => $fh, 'bigImg' => (int)!$bigImg), 'local');
-        
-        $multiplier = fileman_Setup::get('WEBDRV_PREVIEW_MULTIPLIER');
-        $thumbWidthAndHeightArr = static::getPreviewWidthAndHeight();
-        
-        $width = $thumbWidthAndHeightArr['width'];
-        $height = $thumbWidthAndHeightArr['height'];
-        $verbalName = 'Preview';
-        if ($bigImg && ($multiplier > 1)) {
-            $width *= $multiplier;
-            $height *= $multiplier;
-            $verbalName .= ' X ' . $multiplier;
-            $attr['class'] .= ' webdrv-previewX2';
-        }
-        
-        $imgInst = new thumb_Img(array($fh, $width, $height, 'fileman', 'verbalName' => $verbalName));
-        $dataArr['src'] = $imgInst->getUrl();
-        
-        // Вземаме файла
-        
-        $dataArr['width'] = $width;
-        $dataArr['height'] = $height;
-        
-        $obj = new stdClass();
-        $obj->func = 'setNewFilePreview';
-        $obj->arg = $dataArr;
-        $res[] = $obj;
-        
-        return $res;
     }
     
     
