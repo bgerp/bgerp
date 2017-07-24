@@ -388,14 +388,13 @@ class batch_BatchesInDocuments extends core_Manager
 		// Добавяне на поле за нова партида
 		$autohide = count($batches) ? 'autohide' : '';
 		$caption = ($Def->getFieldCaption()) ? $Def->getFieldCaption() : 'Партида';
-		$form->FLD('newBatch', 'varchar', "caption=Нова партида->{$caption},placeholder={$Def->placeholder},{$autohide}");
-		$form->setFieldType('newBatch', $Def->getBatchClassType());
 		
-		// Ако е сериен номер полето за к-во се скрива
-		if(!($Def instanceof batch_definitions_Serial)){
-			$form->FLD('newBatchQuantity', 'double(min=0)', "caption=Нова партида->К-во,placeholder={$Def->placeholder},{$autohide}");
-			$form->setField('newBatchQuantity', "unit={$packName}");
-		}
+		$columns = ($Def instanceof batch_definitions_Serial) ? 'batch' : 'batch|quantity';
+		$captions = ($Def instanceof batch_definitions_Serial) ? 'Номер' : 'Номер|Количество';
+		$noCaptions = ($Def instanceof batch_definitions_Serial) ? 'noCaptions' : '';
+		
+		$form->FLD('newArray', "table(columns={$columns},captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Нови партиди->{$caption},placeholder={$Def->placeholder},{$autohide}");
+		$form->setFieldTypeParams('newArray', array('batchDefinition' => $Def));
 		
 		$form->input();
 		$saveBatches = array();
@@ -407,20 +406,29 @@ class batch_BatchesInDocuments extends core_Manager
 			$update = $delete = $fields = $error = $error2 = $errorFields = array();
 			$total = 0;
 			
-			// Ако има нова партида, проверява се
-			if(!empty($r->newBatch)){
-				$r->newBatchQuantity = ($Def instanceof batch_definitions_Serial) ? 1 : $r->newBatchQuantity;
+			if(!empty($r->newArray)){
+				$newBatchArray = array();
+				$newBatches = (array)@json_decode($r->newArray);
+				$bCount = count($newBatches);
 				
-				if(empty($r->newBatchQuantity)){
-					$form->setError('newBatchQuantity', 'При въвеждането на нова партида е нужно количество');
-				} else {
-					$total += $r->newBatchQuantity;
-					$fields[] = 'newBatchQuantity';
-				}
-				
-				// Трябва да е валидна
-				if(!$Def->isValid($r->newBatch, $r->newBatchQuantity, $msg)){
-					$form->setError('newBatch', $msg);
+				for($i = 0; $i <= $bCount - 1; $i++){
+					if(empty($newBatches['batch'][$i])) continue;
+					$batch = $Def->normalize($newBatches['batch'][$i]);
+					if(array_key_exists($batch, $batches)){
+						$form->setError('newArray', 'Опитвате се да създадете съществуваща партида');
+					} 
+					
+					$Double = core_Type::getByName('double');
+					$quantity = $Double->fromVerbal($newBatches['quantity'][$i]);
+					
+					if(!$quantity){
+						$form->setError('newArray', 'Невалидно количество');
+					} else {
+						$total += $quantity;
+					}
+					
+					$quantity = ($Def instanceof batch_definitions_Serial) ? 1 : $quantity;
+					$saveBatches[$batch] = $quantity  * $recInfo->quantityInPack;
 				}
 			}
 			
@@ -461,19 +469,12 @@ class batch_BatchesInDocuments extends core_Manager
 					}
 				}
 				
-				// Не може да е разпределено по-голямо количество от допустимото
-				if($total > ($recInfo->quantity / ($recInfo->quantityInPack))){
-					$form->setError(implode(',', $fields), 'Общото количество е над допустимото');
-				}
-			}
-			
-			// Новата партида също ще се добави
-			if(!empty($r->newBatch) && !empty($r->newBatchQuantity)){
-				$batch = $Def->normalize($r->newBatch);
-				if(array_key_exists($batch, $batches)){
-					$form->setError('newBatch', 'Опитвате се да създадете същестуваща партида');
-				} else {
-					$saveBatches[$batch] = $r->newBatchQuantity * $recInfo->quantityInPack;
+				if($form->cmd != 'updateQuantity'){
+					
+					// Не може да е разпределено по-голямо количество от допустимото
+					if($total > ($recInfo->quantity / ($recInfo->quantityInPack))){
+						$form->setError(implode(',', $fields), 'Общото количество е над допустимото');
+					}
 				}
 			}
 			
@@ -503,6 +504,11 @@ class batch_BatchesInDocuments extends core_Manager
 				
 				// Предизвиква се обновяване на документа
 				$dRec = cls::get($detailClassId)->fetch($detailRecId);
+				
+				if($form->cmd == 'updateQuantity'){
+					$dRec->quantity = $total * $recInfo->quantityInPack;
+				}
+				
 				cls::get($detailClassId)->save($dRec);
 				
 				return followRetUrl();
@@ -514,11 +520,80 @@ class batch_BatchesInDocuments extends core_Manager
 		
 		$attr = arr::make('warning=К-то ще бъде разпределено автоматично по наличните партиди,ef_icon = img/16/arrow_refresh.png, title = Автоматично разпределяне на количеството');
 		$attr['onclick'] = "$(this.form).find('.batch-quantity-fields').val('');";
+		$form->toolbar->addSbBtn('Това е количеството', 'updateQuantity', "ef_icon = img/16/disk.png,title = Обновяване на количеството");
 		$form->toolbar->addSbBtn('Автоматично', 'auto', $attr);
 		$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 		 
 		// Рендиране на формата
 		return $this->renderWrapping($form->renderHtml());
+	}
+	
+	
+	/**
+	 * Валидира партидите
+	 */
+	public static function validateNewBatches($tableData, $Type)
+	{
+		$res = array();
+		$Def = $Type->params['batchDefinition'];
+		$tableData = (array)$tableData;
+		$isSerial = $Def instanceof batch_definitions_Serial;
+		$DefType = $Def->getBatchClassType();
+		
+		$error = array();
+		$batches = $tableData['batch'];
+		if(empty($tableData)) return;
+		
+		$bArray = array();
+		foreach ($batches as $key => $batch)
+		{
+			if(!empty($batch)){
+				if(empty($tableData['quantity'][$key]) && $isSerial === FALSE){
+					$error[] = "<b>{$batch}</b>: |Няма зададено количество|*";
+				}
+				
+				if($isSerial){
+					if(empty($tableData['quantity'][$key])){
+						$tableData['quantity'][$key] = 1;
+					}
+				}
+				
+				if(!$Def->isValid($batch, $tableData['quantity'][$key], $msg)){
+					$error[]= "<b>{$batch}</b>: {$msg}";
+				}
+				
+				if(array_key_exists($batch, $bArray)){
+					$error[]= "Повтаряща се партида";
+				} else {
+					$bArray[$batch] = $batch;
+				}
+			}
+		}
+		
+		if(is_array($tableData['quantity'])){
+			foreach ($tableData['quantity'] as $key => $quantity)
+			{
+				if(!empty($quantity)){
+					if(empty($tableData['batch'][$key])){
+						$error[] = "|Попълнено количество без да има партида|*";
+					}
+			
+					$Max = ($isSerial) ? 'max=1' : '';
+					$Double = core_Type::getByName("double(Min=0,{$Max})");
+					$qVal = $Double->isValid($quantity);
+					if(!empty($qVal['error'])){
+						$error[] = "Количеството " . mb_strtolower($qVal['error']);
+					}
+				}
+			}
+		}
+		
+		if(count($error)){
+			$error = implode("<li>", $error);
+			$res['error'] = $error;
+		}
+		
+		return $res;
 	}
 	
 	
