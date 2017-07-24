@@ -60,7 +60,7 @@ class batch_definitions_Document extends batch_definitions_Proto
 	 */
 	public function isValid($value, $quantity, &$msg)
 	{
-		if(!preg_match("/^[0-9]{8}[\-]{1}[A-Z]{3}[0-9]+/", $value, $matches)){
+		if(!preg_match("/^[0-9]{8}[\-]{1}[A-Z]{1,3}[0-9]+/", $value, $matches)){
 			$date = str_replace('-', '', dt::today());
 			$msg = "Формата трябва да е във вида на|* {$date}-SAL1";
 			return FALSE;
