@@ -507,6 +507,13 @@ abstract class deals_DealDetail extends doc_Detail
     	$recs = $query->fetchAll();
     	expect(count($listed));
     	
+    	
+    	foreach ($listed as &$list){
+    		$list->code = cat_Products::getVerbal($list->productId, 'code');
+    	}
+    	
+    	arr::natOrder($listed, 'code');
+    	
     	// Подготовка на полетата на формата
     	$this->prepareImportListForm($form, $listed, $recs, $saleRec);
     	$form->input();
