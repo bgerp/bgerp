@@ -133,42 +133,53 @@ class acc_BalanceHistory extends core_Manager
     	// Преизчисляваме пейджъра с новия брой на записите
         $conf = core_Packs::getConfig('acc');
         
-        $Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listHistoryItemsPerPage));
-        $Pager->itemsCount = count($data->recs);
-        $Pager->calc();
-        $data->pager = $Pager;
-        
-        $start = $data->pager->rangeStart;
-        $end = $data->pager->rangeEnd - 1;
-        
-        if(count($data->recs)){
-        	$data->recs = array_reverse($data->recs, TRUE);
-        }
-        
-        // Махаме тези записи които не са в диапазона на страницирането
-        $count = 0;
-        
-        if(count($data->recs)){
-        	foreach ($data->recs as $id => $dRec){
-        		if(!($count >= $start && $count <= $end)){
-        			unset($data->recs[$id]);
-        		}
-        		$count++;
-        	}
-        }
-        
-        if($data->pager->page == 1){
-        	// Добавяне на последния ред
-        	if(count($data->recs)){
-        		array_unshift($data->recs, $data->lastRec);
-        	} else {
-        		$data->recs = array($data->lastRec);
-        	}
-        }
-        
-        // Ако сме на единствената страница или последната, показваме началното салдо
-        if($data->pager->page == $data->pager->pagesCount || $data->pager->pagesCount == 0){
-        	$data->recs[] = $data->zeroRec;
+        if(!Mode::is('printing')) {
+                
+           
+            $Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listHistoryItemsPerPage));
+            $Pager->itemsCount = count($data->recs);
+            $Pager->calc();
+            $data->pager = $Pager;
+            
+            $start = $data->pager->rangeStart;
+            $end = $data->pager->rangeEnd - 1;
+            
+            if(count($data->recs)){
+            	$data->recs = array_reverse($data->recs, TRUE);
+            }
+            
+            // Махаме тези записи които не са в диапазона на страницирането
+            $count = 0;
+            
+            if(count($data->recs)){
+            	foreach ($data->recs as $id => $dRec){
+            		if(!($count >= $start && $count <= $end)){
+            			unset($data->recs[$id]);
+            		}
+            		$count++;
+            	}
+            }
+            
+            if($data->pager->page == 1){
+            	// Добавяне на последния ред
+            	if(count($data->recs)){
+            		array_unshift($data->recs, $data->lastRec);
+            	} else {
+            		$data->recs = array($data->lastRec);
+            	}
+            }
+            
+            // Ако сме на единствената страница или последната, показваме началното салдо
+            if($data->pager->page == $data->pager->pagesCount || $data->pager->pagesCount == 0){
+            	$data->recs[] = $data->zeroRec;
+            }
+        } else {
+            // Подготвя средното салдо
+            if(!count($data->allRecs)){
+                $data->allRecs = array();
+            }
+
+            $data->recs = array('zero' => $data->zeroRec) + $data->allRecs + array('last' => $data->lastRec);
         }
         
         // Подготвя средното салдо
