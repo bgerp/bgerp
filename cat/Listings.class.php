@@ -433,7 +433,7 @@ class cat_Listings extends core_Master
     {
     	core_Debug::$isLogging = FALSE;
     	
-    	$from = dt::addDays(-30, NULL, FALSE);
+    	$from = dt::addDays(-60, NULL, FALSE);
     	$today = dt::today();
     	$now = dt::now();
     	
@@ -474,6 +474,7 @@ class cat_Listings extends core_Master
     		
     		// Намират се всички продавани стандартни артикули от тази папка
     		$dQuery = sales_SalesDetails::getQuery();
+    		$dQuery->XPR('count', 'int', 'count(#productId)');
     		$dQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
     		$dQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
     		$dQuery->EXT('canSell', 'cat_Products', 'externalName=canSell,externalKey=productId');
@@ -483,15 +484,11 @@ class cat_Listings extends core_Master
     		$dQuery->where("#valior >= '{$from}' AND #valior <= '{$today}' AND (#state = 'active' OR #state = 'closed')");
     		$dQuery->where("#folderId = {$folderId} AND #canSell = 'yes'");
     		$dQuery->groupBy('productId,packagingId');
-    		$dQuery->show('productId,packagingId,code');
+    		$dQuery->show('productId,packagingId,code,count');
+    		$dQuery->orderBy('count,saleId', 'DESC');
     		$all = $dQuery->fetchAll();
+    		
     		if(!count($all)) continue;
-    		
-    		foreach ($all as &$o){
-    			cat_Products::setCodeIfEmpty($o);
-    		}
-    		
-    		arr::orderA($all, 'code');
     		$products = arr::extractSubArray($all, 'productId,packagingId');
     		
     		// Форсира се системен лист
@@ -519,8 +516,10 @@ class cat_Listings extends core_Master
      					                                     'packagingId' => $obj->packagingId);
     		}
     		
-    		// Взимат се първите 20 записа
-    		$newDetails = array_slice($newDetails, 0, 20, TRUE);
+    		$limit = cat_Setup::get('AUTO_LIST_PRODUCT_COUNT');
+    		
+    		// Взимат се първите N записа
+    		$newDetails = array_slice($newDetails, 0, $limit, TRUE);
     		
     		// Досегашните записи на листа
     		$lQuery = cat_ListingDetails::getQuery();
