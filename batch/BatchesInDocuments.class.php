@@ -450,20 +450,19 @@ class batch_BatchesInDocuments extends core_Manager
 					if($form->cmd != 'updateQuantity'){
 						$form->setError('serials', "Серийните номера са повече от цялото количество");
 					}
-					$total += count($batches);
-				} else {
-					foreach ($batches as $b){
-						$saveBatches[$b] = 1 / $recInfo->quantityInPack;
-						$total += 1;
-					}
-					$fields[] = "serials";
+				}
 					
-					if(is_array($foundBatches)){
-						foreach ($foundBatches as $fb){
-							if(!array_key_exists($fb, $batches)){
-								$delete[] = $fb;
-								unset($saveBatches[$fb]);
-							}
+				foreach ($batches as $b){
+					$saveBatches[$b] = 1 / $recInfo->quantityInPack;
+					$total += 1;
+				}
+				$fields[] = "serials";
+					
+				if(is_array($foundBatches)){
+					foreach ($foundBatches as $fb){
+						if(!array_key_exists($fb, $batches)){
+							$delete[] = $fb;
+							unset($saveBatches[$fb]);
 						}
 					}
 				}
