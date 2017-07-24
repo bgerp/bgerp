@@ -361,7 +361,9 @@ class batch_BatchesInDocuments extends core_Manager
 					$suggestions .= "{$b}={$verbal},";
 				}
 				$suggestions = trim($suggestions, ',');
-				$form->FLD('serials', "set({$suggestions})", 'caption=Партиди,maxRadio=1,class=batch-quantity-fields');
+				if(!empty($suggestions)){
+					$form->FLD('serials', "set({$suggestions})", 'caption=Партиди,maxRadio=1,class=batch-quantity-fields');
+				}
 				
 				if(count($foundBatches)){
 					$defaultBatches = $form->getFieldType('serials')->fromVerbal($foundBatches);
