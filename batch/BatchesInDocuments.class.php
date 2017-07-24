@@ -516,7 +516,7 @@ class batch_BatchesInDocuments extends core_Manager
 				// Предизвиква се обновяване на документа
 				$dRec = cls::get($detailClassId)->fetch($detailRecId);
 				
-				if($form->cmd == 'updateQuantity'){
+				if($form->cmd == 'updateQuantity' && !empty($total)){
 					$dRec->quantity = $total * $recInfo->quantityInPack;
 				}
 				
