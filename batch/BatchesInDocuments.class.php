@@ -419,6 +419,10 @@ class batch_BatchesInDocuments extends core_Manager
 					} 
 					
 					$Double = core_Type::getByName('double');
+					if($Def instanceof batch_definitions_Serial){
+					    $newBatches['quantity'][$i] = 1;
+					}
+					
 					$quantity = $Double->fromVerbal($newBatches['quantity'][$i]);
 					
 					if(!$quantity){
