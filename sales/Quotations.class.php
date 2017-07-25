@@ -364,14 +364,21 @@ class sales_Quotations extends core_Master
     	}
     	
     	$dData = $data->sales_QuotationsDetails;
+    	
     	if($dData->countNotOptional && $dData->notOptionalHaveOneQuantity){
-    		$firstProductRow = $dData->rows[key($dData->rows)][0];
+    		$keys = array_keys($dData->rows);
+    		$firstProductRow = $dData->rows[$keys[0]][0];
+    		
     		if($firstProductRow->tolerance){
-    			$data->row->others .= "<li>" . tr('Толеранс:') ." {$firstProductRow->tolerance}</li>";
+    			$data->row->others .= "<li>" . tr('Толеранс к-во') .": {$firstProductRow->tolerance}</li>";
     		}
     		
     		if(isset($firstProductRow->term)){
-    			$data->row->others .= "<li>" . tr('Срок:') ." {$firstProductRow->term}</li>";
+    			$data->row->others .= "<li>" . tr('Срок за доставка') .": {$firstProductRow->term}</li>";
+    		}
+    		
+    		if(isset($firstProductRow->weight)){
+    			$data->row->others .= "<li>" . tr('Транспортно тегло') .": {$firstProductRow->weight}</li>";
     		}
     	}
     }
