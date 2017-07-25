@@ -28,6 +28,9 @@
                 <!--ET_BEGIN term-->
                 <div class='quiantity-misc' style='font-size:0.8em'>|срок за д-ка|*:&nbsp;<b>[#term#]</b></div>
                 <!--ET_END term-->
+                <!--ET_BEGIN weight-->
+                <div class='quiantity-misc' style='font-size:0.8em'>|тегло|*:&nbsp;~&nbsp;<b>[#weight#]</b></div>
+                <!--ET_END weight-->
             </td>
         </tr>
         <!--ET_END ROW-->

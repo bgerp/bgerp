@@ -1080,4 +1080,43 @@ abstract class deals_Helper
     		acc_Journal::saveTransaction($masterMvc->getClassId(), $rec->id, FALSE);
     	}
 	}
+	
+	
+	/**
+	 * Връща реда за транспортното тегло на артикула
+	 * 
+	 * @param int $productId      - артикул
+	 * @param int $packagingId    - ид на опаковка
+	 * @param int $quantity       - общо количество
+	 * @param double|NULL $weight - тегло на артикула (ако няма се взима 'live')
+	 * @return core_ET|NULL       - шаблона за показване
+	 */
+	public static function getWeightRow($productId, $packagingId, $quantity, $weight = NULL)
+	{
+		$hint = FALSE;
+		
+		// Ако артикула не е складируем не му се изчислява транспортно тегло
+		$isStorable = cat_products::fetchField($productId, 'canStore');
+		if($isStorable != 'yes') return NULL;
+		
+		// Ако няма тегло взима се 'live'
+		if(empty($weight)){
+			$weight = cat_Products::getWeight($productId, $packagingId, $quantity);
+			
+			if(!empty($weight)){
+				$hint = TRUE;
+			}
+		}
+		
+		// Ако няма тегло не се прави нищо
+		if(empty($weight)) return NULL;
+		
+		// Вербализиране на теглото
+		$weightRow = core_Type::getByName('cat_type_Weight')->toVerbal($weight);
+		if($hint === TRUE){
+			$weightRow = ht::createHint($weightRow, 'Транспортното тегло е прогнозно на база количеството');
+		}
+				
+		return $weightRow;
+	}
 }

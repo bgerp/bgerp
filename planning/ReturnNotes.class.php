@@ -41,7 +41,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 	 * Плъгини за зареждане
 	 */
 	public $loadList = 'plg_RowTools2, store_plg_StoreFilter, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
-                    doc_DocumentPlg, plg_Printing, plg_Clone, plg_Search, plg_Sorting';
+                    doc_DocumentPlg, plg_Printing, plg_Clone, plg_Search, plg_Sorting,deals_plg_EditClonedDetails';
 	
 	
 	/**
@@ -156,12 +156,39 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 	
 	
 	/**
+	 * Кои детайли да се клонират с промяна
+	 * 
+	 * @param stdClass $rec
+	 * @param mixed $Detail
+	 * @return array
+	 */
+	public function getDetailsToCloneAndChange($rec, &$Detail)
+	{
+		$Detail = cls::get($this->mainDetail);
+		$id = $rec->clonedFromId;
+		
+		if(isset($rec->originId) && empty($rec->id)){
+			$origin = doc_Containers::getDocument($rec->originId);
+			if($origin->isInstanceOf('planning_ConsumptionNotes')){
+				$Detail = cls::get('planning_ConsumptionNoteDetails');
+				$id = $origin->that;
+			}
+		}
+		
+		$dQuery = $Detail->getQuery();
+		$dQuery->where("#{$Detail->masterKey} = {$origin->that}");
+			
+		return $dQuery->fetchAll();
+	}
+	
+	
+	/**
 	 * Подготвя данните (в обекта $data) необходими за единичния изглед
 	 */
 	public function prepareEditForm_($data)
 	{
 		parent::prepareEditForm_($data);
-		
+				
 		$form = &$data->form;
 		$rec = &$form->rec;
 		
@@ -169,46 +196,8 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 		if(isset($rec->originId) && empty($rec->id)){
 			$origin = doc_Containers::getDocument($rec->originId);
 			if($origin->isInstanceOf('planning_ConsumptionNotes')){
-				$detailId = planning_ConsumptionNoteDetails::getClassId();
-		
-				// Всеки артикул от протокола се показва във формата
-				$rec->details = array();
-				$dQuery = planning_ConsumptionNoteDetails::getQuery();
-				$dQuery->where("#noteId = {$origin->that}");
-		
-				// Ако ориджина има артикули
-				while($dRec = $dQuery->fetch()){
-					$caption = cat_Products::getTitleById($dRec->productId);
-					$caption .= " / " . cat_UoM::getShortName($dRec->packagingId);
-					$caption= str_replace(',', ' ', $caption);
-					$Def = batch_Defs::getBatchDef($dRec->productId);
-						
-					$subCaption = 'К-во';
-					
-					// Ако е инсталиран пакета за партиди, ще се показват и те
-					if(core_Packs::isInstalled('batch') && is_object($Def)){
-						$subCaption = 'Без партида';
-						$bQuery = batch_BatchesInDocuments::getQuery();
-						$bQuery->where("#detailClassId = {$detailId} AND #detailRecId = {$dRec->id} AND #productId = {$dRec->productId}");
-						$bQuery->show('batch');
-						while($bRec = $bQuery->fetch()){
-							$verbal = strip_tags($Def->toVerbal($bRec->batch));
-							$b = str_replace(',', '', $bRec->batch);
-							$b = str_replace('.', '', $b);
-							
-							$max = ($Def instanceof batch_definitions_Serial) ? 'max=1' : '';
-							$key = "quantity|{$b}|{$dRec->id}";
-							$form->FLD($key, "double(Min=0,{$max})","input,caption={$caption}->|*{$verbal}");
-							$clone = clone $dRec;
-							$clone->batch = $bRec->batch;
-							$rec->details[$key] = $clone;
-						}
-					}
-
-					// Показване на полетата без партиди
-					$form->FLD("quantity||{$dRec->id}", "double(Min=0)","input,caption={$caption}->{$subCaption}");
-					$rec->details["quantity||{$dRec->id}"] = $dRec;
-				}
+				$data->action = 'clone';
+				return $data;
 			}
 		}
 		
@@ -228,36 +217,6 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 		$folderCover = doc_Folders::getCover($rec->folderId);
 		if($folderCover->isInstanceOf('hr_Departments')){
 			$form->setReadOnly('departmentId', $folderCover->that);
-		}
-	}
-	
-	
-	/**
-	 * Извиква се след успешен запис в модела
-	 *
-	 * @param core_Mvc $mvc
-	 * @param int $id първичния ключ на направения запис
-	 * @param stdClass $rec всички полета, които току-що са били записани
-	 */
-	public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $saveFileds = NULL)
-	{
-		// Ако дефолтни детайли
-		if(count($rec->details)){
-			$saveArray = array();
-			$Detail = cls::get('planning_ReturnNoteDetails');
-			
-			// Ъпдейтват им се к-та
-			foreach ($rec->details as $field => $det){
-				if(empty($rec->{$field})) continue;
-				unset($det->id, $det->createdOn, $det->createdBy);
-				if(!empty($det->batch)){
-					$det->isEdited = TRUE;
-				}
-				
-				$det->noteId = $rec->id;
-				$det->quantity = $rec->{$field} * $det->quantityInPack;
-				$Detail->save($det);
-			}
 		}
 	}
 	

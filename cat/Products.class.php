@@ -1467,30 +1467,40 @@ class cat_Products extends embed_Manager {
      * @param int $productId   - ид на продукт
      * @param int $packagingId - ид на опаковка
      * @param int $quantity    - общо количество
-     * @return double - теглото на единица от продукта
+     * @return double|NULL     - теглото на единица от продукта
      */
     public static function getWeight($productId, $packagingId = NULL, $quantity)
     {
-    	$weight = 0;
+    	// За нескладируемите не се изчислява транспортно тегло
+    	if(cat_Products::fetchField($productId, 'canStore') != 'yes') return NULL;
     	
-    	// Транспортното тегло
-    	$weight = static::getParams($productId, 'transportWeight');
+    	// Първо се гледа най-голямата опаковка за която има Бруто тегло
+    	$packQuery = cat_products_Packagings::getQuery();
+    	$packQuery->where("#productId = '{$productId}'");
+    	$packQuery->where("#netWeight IS NOT NULL AND #tareWeight IS NOT NULL");
+    	$packQuery->orderBy('quantity', "DESC");
+    	$packQuery->limit(1);
+    	$packQuery->show('netWeight,tareWeight,quantity');
+    	$packRec = $packQuery->fetch();
     	
-    	if($weight){
+    	if(is_object($packRec)){
+    		
+    		// Ако има такава количеството се преизчислява в нея
+    		$brutoWeight = $packRec->netWeight + $packRec->tareWeight;
+    		$quantity /= $packRec->quantity;
+    		
+    		// Връща се намереното тегло
+    		$weight = $brutoWeight * $quantity;
+    		return $weight;
+    	}
+    	
+    	// Ако няма транспортно тегло от опаковката гледа се от артикула
+    	if($weight = static::getParams($productId, 'transportWeight')){
     		$weight *= $quantity;
+    		return $weight;
     	}
     	
-    	// Ако няма прави се опит да се изчисли от опаковката
-    	if(!$weight){
-    		if($pack = cat_products_Packagings::getPack($productId, $packagingId)){
-    			$weight = $pack->netWeight + $pack->tareWeight;
-    			if($weight){
-    				$weight *= $quantity / $pack->quantity;
-    			}
-    		}
-    	}
-    	
-    	return $weight;
+    	return NULL;
     }
     
     
