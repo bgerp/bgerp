@@ -218,7 +218,9 @@ class deals_plg_EditClonedDetails extends core_Plugin
 								}
 							}
 							
-							$batchesArr[$batch->batch] = $batch->quantity;
+							if(!empty($batch->quantity)){
+								$batchesArr[$batch->batch] = $batch->quantity;
+							}
 						}
 						batch_BatchesInDocuments::saveBatches($detailClassId, $det->id, $batchesArr);
 					}
