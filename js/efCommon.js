@@ -4118,6 +4118,31 @@ function showToast(data) {
 
 
 /**
+ * Рендира новото изображение за превю на картина
+ * 
+ * @param object data - Обект с необходимите стойности
+ * data.data-url
+ * data.src
+ * data.width
+ * data.height
+ * data.fh
+ */
+function render_setNewFilePreview(data) {
+	console.log(data);
+}
+
+function changeZoomImage(el) {
+    if($(el).attr("data-zoomed") == "no") {
+        $(el).css("width",$(el).css("width"));
+        $(el).css("height","auto");
+        $(el).attr("width", $(el).attr("data-bigwidth"));
+        $(el).attr("height", $(el).attr("data-bigheight"));
+        $(el).attr("src",$(el).attr("data-bigsrc"));
+        $(el).attr("data-zoomed", "yes");
+    }
+}
+
+/**
  * Experta - Клас за функции на EF
  *
  * @category  ef

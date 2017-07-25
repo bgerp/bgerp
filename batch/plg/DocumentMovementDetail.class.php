@@ -46,6 +46,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		if(!$storeId) return;
 		
 		if($mvc->getBatchMovementDocument($rec) == 'out') return;
+		if(isset($rec->id)) return;
 		$form->FNC('batch', 'text', 'caption=Партида,after=productId,input=none');
 		
 		// Задаване на типа на партидата на полето
@@ -96,6 +97,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 			$rec->isEdited = TRUE;
 			return;
 		}
+		if(isset($rec->id)) return;
 		
 		if(!$storeId) return;
 		
@@ -154,7 +156,9 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 	public static function on_AfterCreate($mvc, $rec)
 	{
 		if($mvc->getBatchMovementDocument($rec) == 'out'){
-			self::autoAllocate($mvc, $rec);
+			if($rec->_clonedWithBatches !== TRUE){
+				self::autoAllocate($mvc, $rec);
+			}
 		} else {
 			
 			// Ако се създава нова партида, прави се опит за автоматичното и създаване
@@ -348,8 +352,6 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 			$storeId = (isset($rec->{$mvc->storeFieldName})) ? $rec->{$mvc->storeFieldName} : $mvc->Master->fetchField($rec->{$mvc->masterKey}, $mvc->Master->storeFieldName);
 			
 			if(!$storeId || !count($info->operation)){
-				$res = 'no_one';
-			} elseif($mvc->getBatchMovementDocument($rec) != 'out'){
 				$res = 'no_one';
 			} else {
 				$res = $mvc->getRequiredRoles('edit', $rec);

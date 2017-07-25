@@ -441,7 +441,7 @@ class cat_Categories extends core_Master
     protected static function on_AfterPrepareThreadFilter($mvc, core_Form &$threadFilter, core_Query &$threadQuery)
     {
     	// Добавяме поле за избор на групи
-    	$threadFilter->FLD('group', 'key(mvc=cat_Groups,select=name)', 'caption=Група');
+    	$threadFilter->FLD('group', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група');
     	$threadFilter->showFields .= ",group";
     	$threadFilter->input('group');
     	
@@ -466,8 +466,13 @@ class cat_Categories extends core_Master
     			$catQuery->show('id');
     			$productIds = array_map(create_function('$o', 'return $o->id;'), $catQuery->fetchAll());
     			
-    			// Искаме от нишките да останат само тези за въпросните артикули
-    			$threadQuery->in('docId', $productIds);
+    			if (empty($productIds)) {
+    			    // Искаме от нишките да останат само тези за въпросните артикули
+    			    $threadQuery->where('1=2');
+    			} else {
+    			    // Искаме от нишките да останат само тези за въпросните артикули
+    			    $threadQuery->in('docId', $productIds);
+    			}
     		}
     	}
     }

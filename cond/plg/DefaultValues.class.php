@@ -340,4 +340,53 @@ class cond_plg_DefaultValues extends core_Plugin
     		$rec->folderId = doc_Threads::fetchField($rec->threadId, 'folderId');
     	}
     }
+    
+	
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc $mvc
+     * @param int $id първичния ключ на направения запис
+     * @param stdClass $rec всички полета, които току-що са били записани
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = array())
+    {
+        if ($rec->folderId) {
+            if (isset($mvc::$updateContragentdataField) && count($mvc::$updateContragentdataField) && ($mvc::$defaultStrategies) && count($mvc::$defaultStrategies)){
+                $fRec = doc_Folders::fetch($rec->folderId);
+                
+                if ($fRec && $fRec->coverClass && $fRec->coverId) {
+                    
+                    if (cls::load($fRec->coverClass, TRUE) && ($inst = cls::get($fRec->coverClass)) && $inst->haveRightFor('edit', $fRec->coverId)) {
+                        
+                        $changedRecArr = array();
+                        
+                        $fContrData = $inst->fetch($fRec->coverId);
+                        
+                        foreach ($mvc::$updateContragentdataField as $cName => $name) {
+                        
+                            if (!$rec->{$name}) continue;
+                            
+                            if (!($inst->fields[$cName])) continue;
+                            
+                            if ((isset($rec->{$name})) && ($rec->{$name} != $fContrData->{$cName})) {
+                                
+                                $changedRecArr[$cName] = $rec->{$name};
+                            }
+                        }
+                        
+                        if (!(empty($changedRecArr))) {
+                            
+                            Request::setProtected('AutoChangeFields');
+                            
+                            $updateLink = ht::createLink(tr('обновяване'), array($inst, 'edit', $fRec->coverId, 'AutoChangeFields' => serialize($changedRecArr), 'ret_url' => array($mvc, 'single', $rec->id)));
+                            
+                            status_Messages::newStatus("|Контактните данни се различават от тези във визитката. Ако желаете, направете|* {$updateLink}");
+                        }
+                    
+                    }
+                }
+            }
+        }
+    }
 }

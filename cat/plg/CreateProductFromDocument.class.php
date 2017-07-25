@@ -336,6 +336,12 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				$dRec->packagingId = $pRec->measureId;
 				$dRec->quantityInPack = 1;
 				
+				if(empty($rec->packQuantity) || $rec->defQuantity === TRUE){
+					$dRec->quantity = deals_Helper::getDefaultPackQuantity($productId, $pRec->measureId);
+				}
+				
+				$dRec->quantity = ($dRec->quantity) ? $dRec->quantity : 1;
+				
 				// Хакване на автоматично изчислена цена
 				if(!($mvc instanceof sales_QuotationsDetails)){
 					if($Driver->canAutoCalcPrimeCost($productId) == TRUE && empty($dRec->packPrice)){
@@ -366,12 +372,6 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 						$dRec->price = $dRec->price / (1 + $vat);
 					}
 				}
-				
-				if(empty($rec->packQuantity) || $rec->defQuantity === TRUE){
-					$dRec->quantity = deals_Helper::getDefaultPackQuantity($productId, $pRec->measureId);
-				}
-				
-				$dRec->quantity = ($dRec->quantity) ? $dRec->quantity : 1;
 				
 				$fields = ($mvc instanceof sales_QuotationsDetails) ? array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId') : array();
 				tcost_Calcs::prepareFee($dRec, $form, $masterRec, $fields);
