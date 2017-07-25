@@ -468,8 +468,10 @@ class cat_Listings extends core_Master
     		
     		// Ако за тази папка има избран лист не се създава
     		$condId = cond_ConditionsToCustomers::fetchByCustomer($Cover->getClassId(), $Cover->that, $paramId);
-    		if(!empty($condId)) continue;
+    		$autoListId = cat_Listings::fetchField("#sysId = 'auto{$folderId}'");
     		
+    		if(!empty($condId) && empty($autoListId)) continue;
+
     		$res = array();
     		
     		// Намират се всички продавани стандартни артикули от тази папка
@@ -494,7 +496,7 @@ class cat_Listings extends core_Master
     		// Форсира се системен лист
     		$listId = self::forceAutoList($folderId, $Cover);
     		
-    		if($listId){
+    		if($listId && empty($condId)){
     			cond_ConditionsToCustomers::force($Cover->getClassId(), $Cover->that, $paramId, $listId);
     		}
     		
