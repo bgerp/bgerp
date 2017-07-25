@@ -1473,21 +1473,30 @@ class cat_Products extends embed_Manager {
     {
     	$weight = 0;
     	
-    	// Транспортното тегло
-    	$weight = static::getParams($productId, 'transportWeight');
+    	// Първо се гледа най-голямата опаковка за която има Бруто тегло
+    	$packQuery = cat_products_Packagings::getQuery();
+    	$packQuery->where("#productId = '{$productId}'");
+    	$packQuery->where("#netWeight IS NOT NULL AND #tareWeight IS NOT NULL");
+    	$packQuery->orderBy('quantity', "DESC");
+    	$packQuery->limit(1);
+    	$packQuery->show('netWeight,tareWeight,quantity');
+    	$packRec = $packQuery->fetch();
     	
-    	if($weight){
-    		$weight *= $quantity;
+    	if(is_object($packRec)){
+    		
+    		// Ако има такава количеството се преизчислява в нея
+    		$brutoWeight = $packRec->netWeight + $packRec->tareWeight;
+    		$quantity /= $packRec->quantity;
+    		
+    		// Връща се намереното тегло
+    		$weight = $brutoWeight * $quantity;
+    		
+    		return $weight;
     	}
     	
-    	// Ако няма прави се опит да се изчисли от опаковката
-    	if(!$weight){
-    		if($pack = cat_products_Packagings::getPack($productId, $packagingId)){
-    			$weight = $pack->netWeight + $pack->tareWeight;
-    			if($weight){
-    				$weight *= $quantity / $pack->quantity;
-    			}
-    		}
+    	// Ако няма транспортно тегло от опаковката гледа се от артикула
+    	if($weight = static::getParams($productId, 'transportWeight')){
+    		$weight *= $quantity;
     	}
     	
     	return $weight;
