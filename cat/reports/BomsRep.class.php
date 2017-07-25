@@ -106,6 +106,9 @@ class cat_reports_BomsRep extends frame_BaseDriver
      */
     public function prepareInnerState()
     {
+        $timeLimit = 3000;
+        core_App::setTimeLimit($timeLimit);
+        
     	$data = new stdClass();
         $data->articleCnt = array();
         $data->recs = array();
@@ -116,64 +119,68 @@ class cat_reports_BomsRep extends frame_BaseDriver
        
         $salesArr = keylist::toArray($fRec->saleId);
         $salesArr = implode(',', $salesArr);
-        $query = planning_Jobs::getQuery();
-        $query->where("#saleId IN ({$salesArr}) AND (#state = 'active' OR #state = 'wakeup')");
-        $quantity = 0;
-        $propQuantity = 0;
-        $q = 0;
-        $index = 0;
-
-        // за всяко едно активно Задания за производство
-        while($rec = $query->fetch()) { 
        
-            // Намираме рецептата за артикула (ако има)
-            $bomId = cat_Products::getLastActiveBom($rec->productId, 'production')->id;
-       
-            if(!$bomId) {
-                $bomId = cat_Products::getLastActiveBom($rec->productId, 'sales')->id;
-            }
-       
-            if (isset($bomId)) { 
-                $queryDetail = cat_BomDetails::getQuery();
-                $queryDetail->where("#bomId = '{$bomId}'");
-                
-                $products = array();
-                $materials = array();
+        if(strlen($salesArr) > 0) { 
+            $query = planning_Jobs::getQuery();
+            $query->where("#saleId IN ({$salesArr}) AND (#state = 'active' OR #state = 'wakeup')");
         
-                while($recDetail = $queryDetail->fetch()) {
-                    $index = $rec->saleId."|".$recDetail->resourceId;
-                 
-                    $componentArr = cat_Products::prepareComponents($rec->productId, $data->component, NULL, NULL,'production'); 
+            $quantity = 0;
+            $propQuantity = 0;
+            $q = 0;
+            $index = 0;
+    
+            // за всяко едно активно Задания за производство
+            while($rec = $query->fetch()) { 
 
-                    $quantity = str_replace(",", ".", $rec->quantity);
-                    $propQuantity = str_replace(",", ".",$recDetail->propQuantity);
+                // Намираме рецептата за артикула (ако има)
+                $bomId = cat_Products::getLastActiveBom($rec->productId, 'production')->id;
+
+                if(!$bomId) {
+                    $bomId = cat_Products::getLastActiveBom($rec->productId, 'sales')->id;
+                }
+           
+                if (isset($bomId)) { 
+                    $queryDetail = cat_BomDetails::getQuery();
+                    $queryDetail->where("#bomId = '{$bomId}'");
                     
-                    foreach($componentArr as $component) { 
-                        $divideBy = ($component->divideBy) ? $component->divideBy : 1;
-                        $q = ($quantity * $propQuantity) / $divideBy;
-                       
-                        if(!array_key_exists($index, $dRecs)){
-                            if(!$recDetail->parentId || $recDetail->type == 'stage') {
-                                
-                                $dRecs[$index] =
-                                (object) array ('id' => $recDetail->id,
-                                    'article' => $recDetail->resourceId,
-                                    'articleCnt'	=> $q,
-                                    'params' => cat_Products::getParams($recDetail->resourceId, NULL, TRUE),
-                                    'quantity' => $rec->quantity,
-                                    'materials' => 0,
-                                    'sal'=> $rec->saleId,
-                                );
+                    $products = array();
+                    $materials = array();
+            
+                    while($recDetail = $queryDetail->fetch()) {
+                        $index = $rec->saleId."|".$recDetail->resourceId;
+                     
+                        $componentArr = cat_Products::prepareComponents($rec->productId, $data->component, NULL, NULL,'production'); 
+    
+                        $quantity = str_replace(",", ".", $rec->quantity);
+                        $propQuantity = str_replace(",", ".",$recDetail->propQuantity);
+                        
+                        foreach($componentArr as $component) { 
+                            $divideBy = ($component->divideBy) ? $component->divideBy : 1;
+                            $q = ($quantity * $propQuantity) / $divideBy;
+                           
+                            if(!array_key_exists($index, $dRecs)){
+                                if(!$recDetail->parentId || $recDetail->type == 'stage') {
+                                    
+                                    $dRecs[$index] =
+                                    (object) array ('id' => $recDetail->id,
+                                        'article' => $recDetail->resourceId,
+                                        'articleCnt'	=> $q,
+                                        'params' => cat_Products::getParams($recDetail->resourceId, NULL, TRUE),
+                                        'quantity' => $rec->quantity,
+                                        'materials' => 0,
+                                        'sal'=> $rec->saleId,
+                                    );
+                                }
                             }
                         }
-                    }
-
-                    if(array_key_exists($index, $dRecs) && $dRecs[$index]->id != $recDetail->id) { 
-         
-                            $obj = &$dRecs[$index]; 
-                            $obj->articleCnt += $q;
-                   }
-                } 
+    
+                        if(array_key_exists($index, $dRecs) && $dRecs[$index]->id != $recDetail->id) { 
+             
+                                $obj = &$dRecs[$index]; 
+                                $obj->articleCnt += $q;
+                       }
+                    } 
+                }
             }
         }
 
@@ -192,7 +199,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
 
 
         $i = 1;
-        if(is_array($data->recs)) {
+        if(is_array($data->recs)) { 
             foreach ($data->recs as $idRec=>$rec){ 
 
                 $mArr[$idRec] = cat_Products::getMaterialsForProduction($rec->article, $rec->articleCnt, NULL,TRUE);
@@ -400,8 +407,8 @@ class cat_reports_BomsRep extends frame_BaseDriver
     public function renderEmbeddedData(&$embedderTpl, $data)
     {
     	
-    	if(empty($data)) return;
-    	 
+    	//if(empty($data)) return;
+    	//bp(count($data->recs));
     	$tpl = $this->getReportLayout();
     	
     	$title = explode(" » ", $this->title);
