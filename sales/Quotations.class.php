@@ -1488,7 +1488,7 @@ class sales_Quotations extends core_Master
     	$saveRecs = array();
     	$dQuery = sales_QuotationsDetails::getQuery();
     	$dQuery->where("#quotationId = {$quotationId}");
-    	$dQuery->where("#price IS NULL || #tolerance IS NULL || #term IS NULL");
+    	$dQuery->where("#price IS NULL || #tolerance IS NULL || #term IS NULL || #weight IS NULL");
     	while($dRec = $dQuery->fetch()){
     		if(!isset($dRec->price)){
     			sales_QuotationsDetails::calcLivePrice($dRec, $rec);
@@ -1511,6 +1511,10 @@ class sales_Quotations extends core_Master
     			if($tolerance = cat_Products::getTolerance($dRec->productId, $dRec->quantity)){
     				$dRec->tolerance = $tolerance;
     			}
+    		}
+    		
+    		if(!isset($dRec->weight)){
+    			$dRec->weight = cat_Products::getWeight($dRec->productId, $dRec->packagingId, $dRec->quantity);
     		}
     		
     		$saveRecs[] = $dRec;
