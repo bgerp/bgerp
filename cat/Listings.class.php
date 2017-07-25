@@ -565,6 +565,8 @@ class cat_Listings extends core_Master
     	$listId = cat_Listings::fetchField("#sysId = 'auto{$folderId}'");
     	if(!$listId){
     		$lRec = (object)array('title' => $title, 'type' => 'canSell', 'folderId' => $folderId, 'state' => 'active', 'isPublic' => 'no', 'sysId' => "auto{$folderId}");
+    		$lRec->currencyId = $Cover->getDefaultCurrencyId();
+    		$lRec->vat = ($Cover->shouldChargeVat()) ? 'yes' : 'no';
     		$listId = self::save($lRec);
     	}
     	
