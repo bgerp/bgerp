@@ -391,7 +391,7 @@ class batch_BatchesInDocuments extends core_Manager
 		}
 		
 		// Добавяне на поле за нова партида
-		//$autohide = count($batches) ? 'autohide' : '';
+		$autohide = count($batches) ? 'autohide' : '';
 		$caption = ($Def->getFieldCaption()) ? $Def->getFieldCaption() : 'Партида';
 		
 		$columns = ($Def instanceof batch_definitions_Serial) ? 'batch' : 'batch|quantity';
