@@ -1130,8 +1130,8 @@ class unit_MinkPSales extends core_Manager {
         // Кредитно известие - количество
         $browser->press('Известие');
         $browser->press('Чернова');
-        //$browser->click('Редактиране на артикул');
-        $browser->click('Edit');
+        //$browser->click('Edit');
+        $browser->click('edt24');
         $browser->setValue('quantity', '20');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1143,8 +1143,8 @@ class unit_MinkPSales extends core_Manager {
         // Кредитно известие - цена
         $browser->press('Известие');
         $browser->press('Чернова');
-        $browser->click('Edit');
-        //$browser->click('Редактиране на артикул');
+        //$browser->click('Edit');
+        $browser->click('edt25');
         $browser->setValue('packPrice', '0.8');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1170,8 +1170,8 @@ class unit_MinkPSales extends core_Manager {
         // Дебитно известие - количество
         $browser->press('Известие');
         $browser->press('Чернова');
-        $browser->click('Edit');
-        //$browser->click('Редактиране на артикул');
+        //$browser->click('Edit');
+        $browser->click('edt26');
         $browser->setValue('quantity', '100');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1183,8 +1183,8 @@ class unit_MinkPSales extends core_Manager {
         // Дебитно известие - цена
         $browser->press('Известие');
         $browser->press('Чернова');
-        $browser->click('Edit');
-        //$browser->click('Редактиране на артикул');
+        //$browser->click('Edit');
+        $browser->click('edt27');
         $browser->setValue('packPrice', '1.3');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1282,8 +1282,8 @@ class unit_MinkPSales extends core_Manager {
         // Кредитно известие за цялата сума
         $browser->press('Известие');
         $browser->press('Чернова');
-        $browser->click('Edit');
-        //$browser->click('Редактиране');
+        //$browser->click('Edit');
+        $browser->click('edt29');
         $browser->setValue('quantity', '0');
         $browser->press('Следващ');
         // зануляване на кол. на втория артикул
