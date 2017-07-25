@@ -72,7 +72,7 @@ class sales_QuotationsDetails extends doc_Detail {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, quantityInPack, packQuantity, packPrice, discount, tolerance, term, optional, amount, discAmount,quantity';
+    public $listFields = 'productId, packagingId, quantityInPack, packQuantity, packPrice, discount, tolerance, term, weight,optional, amount, discAmount,quantity';
     
     
     /**
@@ -104,7 +104,7 @@ class sales_QuotationsDetails extends doc_Detail {
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'price,tolerance,term';
+    public $fieldsNotToClone = 'price,tolerance,term,weight';
     
     
   	/**
@@ -122,9 +122,10 @@ class sales_QuotationsDetails extends doc_Detail {
         
         $this->FLD('quantity', 'double(Min=0)', 'caption=Количество,input=none');
     	$this->FLD('price', 'double(minDecimals=2,maxDecimals=4)', 'caption=Ед. цена, input=none');
-        $this->FLD('discount', 'percent(smartRound,min=0)', 'caption=Отстъпка,smartCenter');
+    	$this->FLD('discount', 'percent(smartRound,min=0)', 'caption=Отстъпка,smartCenter');
         $this->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс,input=none');
     	$this->FLD('term', 'time(uom=days,suggestions=1 ден|5 дни|7 дни|10 дни|15 дни|20 дни|30 дни)', 'caption=Срок,input=none');
+    	$this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
     	$this->FLD('vatPercent', 'percent(min=0,max=1,decimals=2)', 'caption=ДДС,input=none');
         $this->FLD('optional', 'enum(no=Не,yes=Да)', 'caption=Опционален,maxRadio=2,columns=2,input=hidden,silent,notNull,value=no');
         $this->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Изглед,notNull,default=auto');
@@ -401,6 +402,12 @@ class sales_QuotationsDetails extends doc_Detail {
         }
     
     	if(isset($rec->productId)){
+    		$isStorable = cat_Products::fetchField($rec->productId, 'canStore');
+    		
+    		if($isStorable == 'yes'){
+    			$form->setField('weight', 'input');
+    		}
+    		
     		if(cat_Products::getTolerance($rec->productId, 1)){
     			$form->setField('tolerance', 'input');
     		}
@@ -941,6 +948,11 @@ class sales_QuotationsDetails extends doc_Detail {
     		if($hintTerm === TRUE){
     			$row->term = ht::createHint($row->term, 'Срокът на доставка е изчислен автоматично на база количеството и параметрите на артикула');
     		}
+    	}
+    	
+    	// Показване на теглото при определени условия
+    	if($rec->showMode == 'detailed' || ($rec->showMode == 'auto' && cat_Products::fetchField($rec->productId, 'isPublic') == 'no')){
+    		$row->weight = deals_Helper::getWeightRow($rec->productId, $rec->packagingId, $rec->quantity, $rec->weight);
     	}
     	
     	return $row;
