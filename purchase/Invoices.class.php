@@ -942,6 +942,7 @@ class purchase_Invoices extends deals_InvoiceMaster
                     $invForm->rec->fileHnd = $fileHnd;
                     $invForm->rec->number = $form->rec->invNum;
                     $invForm->rec->date = $form->rec->invDate;
+                    $invForm->rec->type = 'invoice';
                 }
                 
                 // Полето за ид не е тихо за да не се обърка и да инпутва ид-то на крон процеса
