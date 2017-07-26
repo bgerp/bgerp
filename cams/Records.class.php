@@ -316,7 +316,7 @@ class cams_Records extends core_Master
         $data->toolbar = $data->toolbar->renderHtml();
 
         if ($this->isRecordConverting(basename($data->url))) {
-            $data->playerTpl = "<img src={$data->image} width={$data->width} height={$data->height} style='cursor: wait;'>";
+            $data->playerTpl = "<img class='imageProcesing' src={$data->image} width={$data->width} height={$data->height} style='cursor: wait;'>";
             $data->convertProgress = "Конвертиране ...";
             $tpl->appendOnce("\n" . '<meta http-equiv="refresh" content="3">', "HEAD");
         } else {
