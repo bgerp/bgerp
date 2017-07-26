@@ -3380,6 +3380,13 @@ class doc_DocumentPlg extends core_Plugin
             return ;
         }
         
+        // Ако документа има отворена история - не се кешира
+        if($cRec->id == Request::get('Sid')) {
+        	$res = FALSE;
+        
+        	return ;
+        }
+        
         // Ако модела не допуска кеширане - ключ не се генерира
         if($mvc->preventCache) {
             $res = FALSE;
