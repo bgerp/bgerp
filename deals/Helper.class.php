@@ -1104,6 +1104,7 @@ abstract class deals_Helper
 				
 			if(!empty($value)){
 				$hint = TRUE;
+				$value = deals_Helper::roundPrice($value, 3);
 			}
 		}
 		
