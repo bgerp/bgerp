@@ -306,7 +306,7 @@ class cams_Records extends core_Master
 
         $tpl = new ET ('
             <div id=toolbar style="margin-bottom:10px;">[#toolbar#]</div>
-            <div class="video-rec" style="display:table">
+            <div class="video-rec">
                 <div class="[#captionClass#]" style="padding:5px;font-size:0.95em;">[#caption#]</div>
                 [#playerTpl#]
                 <div>[#convertProgress#]</div>
