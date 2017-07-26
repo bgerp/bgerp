@@ -1523,7 +1523,7 @@ class cat_Products extends embed_Manager {
     	$packQuery->where("#sizeWidth IS NOT NULL AND #sizeHeight IS NOT NULL AND #sizeDepth IS NOT NULL");
     	$packQuery->orderBy('quantity', "DESC");
     	$packQuery->limit(1);
-    	$packQuery->show('sizeWidth,sizeHeight,sizeDepth');
+    	$packQuery->show('sizeWidth,sizeHeight,sizeDepth,quantity');
     	$packRec = $packQuery->fetch();
     	 
     	if(is_object($packRec)){
