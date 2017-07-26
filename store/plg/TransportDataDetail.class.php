@@ -149,6 +149,7 @@ class store_plg_TransportDataDetail extends core_Plugin
 	{
 		if(empty($weight)){
 			$weight = cat_Products::getWeight($productId, $packagingId, $quantity);
+			$weight = deals_Helper::roundPrice($weight, 3);
 		}
 		
 		$res = $weight;
@@ -169,6 +170,7 @@ class store_plg_TransportDataDetail extends core_Plugin
 	{
 		if(empty($volume)){
 			$volume = cat_Products::getVolume($productId, $packagingId, $quantity);
+			$volume = deals_Helper::roundPrice($volume, 3);
 		}
 		
 		$res = $volume;
