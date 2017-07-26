@@ -167,38 +167,69 @@ class trans_plg_LinesPlugin extends core_Plugin
 			}
 		}
 	}
-
-
+	
+	
 	/**
-	 * Изчислява обема и теглото на продуктите в документа
+	 * След преобразуване на записа в четим за хора вид
+	 */
+	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+	{
+		$measures = $mvc->getTotalTransportInfo($rec->id);
+			
+		setIfNot($rec->{$mvc->totalWeightFieldName}, $measures->weight);
+		$weight = ($rec->weightInput) ? $rec->weightInput : $rec->{$mvc->totalWeightFieldName};
+		$hintWeight = ($rec->weightInput) ? 'Транспортното тегло е въведено от потребител' : 'Транспортното тегло е сумарно от редовете';
+		if(!isset($weight)) {
+			$row->{$mvc->totalWeightFieldName} = "<span class='quiet'>N/A</span>";
+		} else {
+			$row->{$mvc->totalWeightFieldName} = $mvc->getFieldType($mvc->totalWeightFieldName)->toVerbal($weight);
+			$row->{$mvc->totalWeightFieldName} = ht::createHint($row->{$mvc->totalWeightFieldName}, $hintWeight);
+		}
+			
+		setIfNot($rec->{$mvc->totalVolumeFieldName}, $measures->volume);
+		$volume = ($rec->volumeInput) ? $rec->volumeInput : $rec->{$mvc->totalVolumeFieldName};
+		$hintVolume = ($rec->volumeInput) ? 'Транспортният обем е въведен от потребител' : 'Транспортният обем е сумарен от редовете';
+		if(!isset($volume)) {
+			$row->{$mvc->totalVolumeFieldName} = "<span class='quiet'>N/A</span>";
+		} else {
+			$row->{$mvc->totalVolumeFieldName} = $mvc->getFieldType($mvc->totalVolumeFieldName)->toVerbal($volume);
+			$row->{$mvc->totalVolumeFieldName} = ht::createHint($row->{$mvc->totalVolumeFieldName}, $hintVolume);
+		}
+	}
+	
+	
+	/**
+	 * Изчисляване на общото тегло и обем на документа
+	 * 
 	 * @param core_Mvc $mvc
 	 * @param stdClass $res
-	 * @param array $products - масив от продуктите
-	 * 					[productId]    - ид на продукта
-	 * 					[packQuantity] - количество на опаковките
-	 * 					[weight]       - единичното тегло
-	 * 					[volume]       - единичния обем
+	 * 			- weight - теглото на реда
+	 * 			- volume - теглото на реда
+	 * @param int $id
+	 * @param boolean $force
 	 */
-	public static function on_AfterGetMeasures($mvc, &$res, $products)
+	public static function on_AfterGetTotalTransportInfo($mvc, &$res, $id, $force = FALSE)
 	{
-		$obj = new stdClass();
-		$obj->volume = 0;
-		$obj->weight = 0;
-		
-		foreach ($products as $p){
-				
-			// Ако има изчислен обем
-			if($obj->volume !== NULL){
-				$volume = $p->volume;
-				(!$volume) ? $obj->volume = NULL : $obj->volume += $volume;
-			}
-				
-			if($obj->weight !== NULL){
-				$weight = $p->weight;
-				(!$weight) ? $obj->weight = NULL : $obj->weight += $weight;
-			}
+		if(!$res){
+			$Detail = cls::get($mvc->mainDetail);
+			$res = cls::get($mvc->mainDetail)->getTransportInfo($id, $force);
 		}
+	}
 	
-		$res = $obj;
+	
+	/**
+	 * Функция, която се извиква след активирането на документа
+	 */
+	public static function on_AfterActivation($mvc, &$rec)
+	{
+		// Форсиране на мерките на редовете
+		$measures = $mvc->getTotalTransportInfo($rec->id, TRUE);
+		
+		// Ако няма обем или тегло се обновяват ако може
+		if(empty($rec->{$mvc->totalVolumeFieldName}) || empty($rec->{$mvc->totalWeightFieldName})){
+			$rec->{$mvc->totalWeightFieldName} = $measures->weight;
+			$rec->{$mvc->totalVolumeFieldName} = $measures->volume;
+			$mvc->save_($rec, "{$mvc->totalWeightFieldName},{$mvc->totalVolumeFieldName}");
+		}
 	}
 }

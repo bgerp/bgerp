@@ -1091,9 +1091,10 @@ function prepareContextMenu() {
     });
 }
 
-var timeOfSettingTab, timeOfNotification;
+var timeOfSettingTab, timeOfNotification, oldNotificationsCnt;
 function openCurrentTab(){
     if(!$('body').hasClass('modern-theme')) return;
+    oldNotificationsCnt = $('#nCntLink').text();
     var current;
     // взимаме данните за портала в бисквитката
     var portalTabs = getCookie('portalTabs');
@@ -4056,7 +4057,6 @@ function changeTitleCnt(cnt) {
     document.title = title;
 }
 
-var oldNotificationsCnt = 0 ;
 /**
  * Променя броя на нотификациите
  *
@@ -4085,7 +4085,7 @@ function changeNotificationsCnt(data) {
             oldNotificationsCnt = notificationsCnt;
             timeOfNotification = jQuery.now();
 
-            if(!timeOfSettingTab || (timeOfSettingTab < timeOfNotification)) {
+            if(typeof timeOfSettingTab == "undefined" || (timeOfSettingTab < timeOfNotification)) {
                 setCookie('portalTabs', "notificationsPortal");
             }
         }
