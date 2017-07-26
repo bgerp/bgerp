@@ -176,6 +176,8 @@ class trans_plg_LinesPlugin extends core_Plugin
 	{
 		$measures = $mvc->getTotalTransportInfo($rec->id);
 			
+		core_Lg::push($rec->tplLang);
+		
 		setIfNot($rec->{$mvc->totalWeightFieldName}, $measures->weight);
 		$weight = ($rec->weightInput) ? $rec->weightInput : $rec->{$mvc->totalWeightFieldName};
 		$hintWeight = ($rec->weightInput) ? 'Транспортното тегло е въведено от потребител' : 'Транспортното тегло е сумарно от редовете';
@@ -195,6 +197,8 @@ class trans_plg_LinesPlugin extends core_Plugin
 			$row->{$mvc->totalVolumeFieldName} = $mvc->getFieldType($mvc->totalVolumeFieldName)->toVerbal($volume);
 			$row->{$mvc->totalVolumeFieldName} = ht::createHint($row->{$mvc->totalVolumeFieldName}, $hintVolume);
 		}
+		
+		core_Lg::pop();
 	}
 	
 	
