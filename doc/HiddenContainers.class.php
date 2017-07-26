@@ -26,10 +26,12 @@ class doc_HiddenContainers extends core_Manager
      */
     protected $canRead = 'admin, debug';
     
+    
     /**
      * Кой има право да променя?
      */
     protected $canEdit = 'debug';
+    
     
     /**
      * Кой има право да добавя?
@@ -41,15 +43,18 @@ class doc_HiddenContainers extends core_Manager
      */
     protected $canView = 'admin, debug';
     
+    
     /**
      * Кой може да го разглежда?
      */
     protected $canList = 'admin, debug';
     
+    
     /**
      * Кой може да го изтрие?
      */
     protected $canDelete = 'admin, debug';
+    
     
     /**
      * Плъгини за зареждане
@@ -61,6 +66,12 @@ class doc_HiddenContainers extends core_Manager
      * 
      */
     protected static $hiddenDocsArr = array();
+    
+    
+    /**
+     * 
+     */
+    public static $haveRecInModeOrDB = FALSE;
     
     
     /**
@@ -131,7 +142,7 @@ class doc_HiddenContainers extends core_Manager
             
             // Ако е зададено да се показва в модела
             if ($rec || $modeStatus) {
-                
+                self::$haveRecInModeOrDB = TRUE;
                 if ($rec->state == 'opened' || $modeStatus == 'opened') {
                     $hide = FALSE;
                 }
@@ -203,6 +214,84 @@ class doc_HiddenContainers extends core_Manager
         if (isset($q)) return FALSE;
         
         return self::$hiddenDocsArr[$cId];
+    }
+    
+    
+    /**
+     * Помощна функция, която показва дали има скрити/показани документи
+     * 
+     * @param boolean|NULL $type
+     * 
+     * @return boolean
+     */
+    public static function haveHiddenOrShowedDoc($type = NULL)
+    {
+        if (empty(self::$hiddenDocsArr)) return FALSE;
+        
+        if (!isset($type)) return TRUE;
+        
+        if (array_search($type, self::$hiddenDocsArr)) return TRUE;
+        
+        return FALSE;
+    }
+    
+    
+    /**
+     * Премахва записа за съответното действие
+     * 
+     * @param integer $cId
+     * @param string $userId
+     * @param NULL|string $state
+     * @param boolean $forced
+     */
+    public static function removeFromTemp($cId, $userId = NULL, $state = 'opened', $forced = TRUE)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        $name = self::getModeName($cId, $userId);
+        
+        $delFlag = TRUE;
+        if ($state) {
+            $delFlag = FALSE;
+            $modeStatus = Mode::get($name);
+            
+            if ($modeStatus == 'opened') {
+                $delFlag = TRUE;
+            }
+        }
+        
+        if ($delFlag) {
+            Mode::setPermanent($name, NULL);
+        }
+        
+        if ($forced) {
+            self::deleteFromDb($cId, $userId, $state);
+        }
+    }
+    
+    
+    /**
+     * Премахва записа за съответното действие от модела
+     * 
+     * @param integer $cId
+     * @param string $userId
+     * @param NULL|string $state
+     */
+    public static function deleteFromDb($cId, $userId = NULL, $state = 'opened')
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        if ($state) {
+            
+            return self::delete(array("#containerId = '[#1#]' AND #userId = '[#2#]' AND #state = '[#3#]'", $cId, $userId, $state));
+        } else {
+            
+            return self::delete(array("#containerId = '[#1#]' AND #userId = '[#2#]'", $cId, $userId));
+        }
     }
     
     

@@ -502,7 +502,7 @@ class doc_Containers extends core_Manager
         }
 
         if($docRow) {
-  
+            
             $q = Request::get('Q');
             
             // Ако е задеден да не се скрива документа или ако се търси в него
@@ -526,11 +526,46 @@ class doc_Containers extends core_Manager
             		Mode::pop('saveObjectsToCid');
                     $row->ROW_ATTR['onMouseUp'] = "saveSelectedTextToSession('" . $document->getHandle() . "', 'onlyHandle');";
                     
+                    $data->row->DocumentSettings = new ET($data->row->DocumentSettings);
+                    
                     // Добавяме линк за скриване на документа
                     if (doc_HiddenContainers::isHidden($rec->id) === FALSE) {
                         $hideLink = self::getLinkForHideDocument($document, $rec->id);
-                        $data->row->DocumentSettings = new ET($data->row->DocumentSettings);
                         $data->row->DocumentSettings->append($hideLink);
+                    } else {
+                        if (doc_HiddenContainers::haveHiddenOrShowedDoc()) {
+                            
+                            $threadRec = doc_Threads::fetch($rec->threadId);
+                            
+                            if (($fCid = doc_Threads::getFirstContainerId($rec->threadId)) && (doc_Threads::haveRightFor('single', $threadRec) || colab_Threads::haveRightFor('single', $threadRec))) {
+                                if ($rec->id == $fCid) {
+                                    
+                                    $linkUrl = array(get_called_class(), 'HideOrShowAll', 'threadId' => $rec->threadId, 'ret_url' => TRUE);
+                                    
+                                    $attr = array();
+                                    
+                                    if (doc_HiddenContainers::haveHiddenOrShowedDoc(TRUE)) {
+                                        
+                                        $attr['title'] = 'Показване на всички документи в нишката';
+                                        $attr['ef_icon'] = 'img/16/toggle1.png';
+                                        $attr['class'] = 'settings-show-document';
+                                        $linkUrl['show'] = TRUE;
+                                    } else {
+                                        if (doc_HiddenContainers::$haveRecInModeOrDB) {
+                                            $attr['class'] = 'settings-hide-document';
+                                            $attr['ef_icon'] = 'img/16/toggle2.png';
+                                            $attr['title'] = 'Скриване на ръчно отворените нишки';
+                                            $linkUrl['hide'] = TRUE;
+                                        }
+                                    }
+                                    
+                                    $showOrHideAll = ht::createLink('', $linkUrl, NULL, $attr);
+                                    
+                                    $hideShowLink = self::getLinkForHideDocument($document, $rec->id);
+                                    $data->row->DocumentSettings->append($showOrHideAll);
+                                }
+                            }
+                        }
                     }
                     
                     $row->document = $document->renderDocument($data);
@@ -630,6 +665,39 @@ class doc_Containers extends core_Manager
             $row->document = new ET($row->document); 
             $row->document->prepend($row->created);
         }
+    }
+    
+    
+    /**
+     * Скриване/показване на всички документи в нишката
+     */
+    function act_HideOrShowAll()
+    {
+        $threadId = Request::get('threadId', 'int');
+        
+        expect($threadRec = doc_Threads::fetch($threadId));
+        
+        expect(self::haveRightFor('single', $threadRec) || colab_Threads::haveRightFor('single', $threadRec));
+        
+        $show = Request::get('show');
+        $hide = Request::get('hide');
+        
+        $retUrl = getRetUrl();
+        
+        $cQuery = doc_Containers::getQuery();
+        $cQuery->where(array("#threadId = '[#1#]'", $threadId));
+        $cQuery->where("#state != 'rejected'");
+        
+        while ($cRec = $cQuery->fetch()) {
+            
+            if ($show) {
+                doc_HiddenContainers::showOrHideDocument($cRec->id, FALSE, TRUE);
+            } elseif ($hide) {
+                doc_HiddenContainers::removeFromTemp($cRec->id);
+            }
+        }
+        
+        return new Redirect($retUrl);
     }
     
     
