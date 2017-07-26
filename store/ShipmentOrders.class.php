@@ -607,10 +607,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     	return $res;
     }
     
-    function act_Test()
-    {
-    	$this->getTotalTransportInfo(573, TRUE);
-    }
+    
     /**
      * Връща масив с плейсхолдърите, които ще се попълват от getLabelData
      *
