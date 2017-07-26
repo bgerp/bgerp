@@ -188,10 +188,6 @@ abstract class store_DocumentMaster extends core_Master
     	$recs = $query->fetchAll();
     
     	deals_Helper::fillRecs($this, $recs, $rec);
-    	$measures = $this->getMeasures($recs);
-    	
-    	$rec->weight = $measures->weight;
-    	$rec->volume = $measures->volume;
     	
     	// ДДС-т е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
     	$amount = ($rec->chargeVat == 'separate') ? $this->_total->amount + $this->_total->vat : $this->_total->amount;
@@ -270,9 +266,7 @@ abstract class store_DocumentMaster extends core_Master
     				$shipProduct->quantity    = $toShip;
     				$shipProduct->price       = $price;
     				$shipProduct->discount    = $discount;
-    				$shipProduct->weight      = $product->weight;
     				$shipProduct->notes       = $product->notes;
-    				$shipProduct->volume      = $product->volume;
     				$shipProduct->quantityInPack = $product->quantityInPack;
     				
     				$Detail::save($shipProduct);
@@ -362,20 +356,6 @@ abstract class store_DocumentMaster extends core_Master
 	   		$row->storeId = store_Stores::getHyperlink($rec->storeId);
 	   		if(isset($rec->lineId)){
 	   			$row->lineId = trans_Lines::getHyperlink($rec->lineId);
-	   		}
-	   		
-	   		$weight = ($rec->weightInput) ? $rec->weightInput : $rec->weight;
-	   		if(!isset($weight)) {
-	   			$row->weight = "<span class='quiet'>N/A</span>";
-	   		} else {
-	   			$row->weight = $mvc->getFieldType('weight')->toVerbal($weight);
-	   		}
-	   		
-	   		$volume = ($rec->volumeInput) ? $rec->volumeInput : $rec->volume;
-	   		if(!isset($volume)) {
-	   			$row->volume = "<span class='quiet'>N/A</span>";
-	   		} else {
-	   			$row->volume = $mvc->getFieldType('volume')->toVerbal($volume);
 	   		}
 	   		
 	   		core_Lg::pop();

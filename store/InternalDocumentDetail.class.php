@@ -27,10 +27,20 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     	$mvc->FLD('packQuantity', 'double(Min=0)', 'caption=Количество,input=input,mandatory,smartCenter');
 		$mvc->FLD('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
 		$mvc->FNC('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
-		
-		// Допълнително
-		$mvc->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
-		$mvc->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
+		$mvc->FNC('quantity', 'double(minDecimals=2,maxDecimals=2)', 'caption=К-во,input=none');
+    }
+    
+    
+    /**
+     * Изчисляване на сумата на реда
+     */
+    public static function on_CalcQuantity(core_Mvc $mvc, $rec)
+    {
+    	if (empty($rec->quantityInPack) || empty($rec->packQuantity)) {
+    		return;
+    	}
+    
+    	$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
     }
     
     
@@ -126,9 +136,6 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     				unset($rec->packPrice);
     			}
     		}
-    		
-    		$rec->weight = cat_Products::getWeight($rec->productId, $rec->packagingId, $rec->quantity);
-    		$rec->volume = cat_Products::getVolume($rec->productId, $rec->packagingId, $rec->quantity);
     	}
     }
     
@@ -196,17 +203,6 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     	if($data->masterData->rec->state != 'draft' && $data->masterData->rec->state != 'pending' && !$data->rows){
     		$tpl = new ET('');
     	}
-    }
-    
-    
-    /**
-     * Преди запис на продукт
-     */
-    public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
-    {
-    	$quantity = $rec->packQuantity * $rec->quantityInPack;
-    	$rec->weight = cat_Products::getWeight($rec->productId, $rec->packagingId, $quantity);
-    	$rec->volume = cat_Products::getVolume($rec->productId, $rec->packagingId, $quantity);
     }
     
     
