@@ -484,7 +484,7 @@ class cat_Listings extends core_Master
     		$dQuery->EXT('folderId', 'sales_Sales', 'externalName=folderId,externalKey=saleId');
     		$dQuery->EXT('state', 'sales_Sales', 'externalName=state,externalKey=saleId');
     		$dQuery->where("#valior >= '{$from}' AND #valior <= '{$today}' AND (#state = 'active' OR #state = 'closed')");
-    		$dQuery->where("#folderId = {$folderId} AND #canSell = 'yes'");
+    		$dQuery->where("#folderId = {$folderId} AND #canSell = 'yes' AND #isPublic = 'yes'");
     		$dQuery->groupBy('productId,packagingId');
     		$dQuery->show('productId,packagingId,code,count');
     		$dQuery->orderBy('count,saleId', 'DESC');

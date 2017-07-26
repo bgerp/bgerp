@@ -4133,8 +4133,10 @@ function render_setNewFilePreview(data) {
 
 function changeZoomImage(el) {
     if($(el).attr("data-zoomed") == "no") {
-        $(el).css("width",$(el).css("width"));
-        $(el).css("height","auto");
+        if($('body').hasClass('wide')){
+            $(el).css("width",$(el).css("width"));
+            $(el).css("height","auto");
+        }
         $(el).attr("width", $(el).attr("data-bigwidth"));
         $(el).attr("height", $(el).attr("data-bigheight"));
         $(el).attr("src",$(el).attr("data-bigsrc"));
