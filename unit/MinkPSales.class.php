@@ -1283,7 +1283,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Известие');
         $browser->press('Чернова');
         //$browser->click('Edit');
-        $browser->click('edt29');
+        $browser->click('edt31');
         $browser->setValue('quantity', '0');
         $browser->press('Следващ');
         // зануляване на кол. на втория артикул
