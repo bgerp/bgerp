@@ -214,7 +214,7 @@ class tesseract_Setup extends core_ProtoSetup
         
         $cnt = 0;
         $iQuery = fileman_Indexes::getQuery();
-        $iQuery->where("#type = 'barcode'");
+        $iQuery->where("#type = 'textOcr'");
         
         while ($iRec = $iQuery->fetch()) {
             if (!$iRec->dataId) continue;
