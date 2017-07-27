@@ -389,6 +389,14 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		$row = &$data->row;
 		$rec = &$data->rec;
 		
+		if(batch_BatchesInDocuments::haveRightFor('modify', (object)array('detailClassId' => $mvc->getClassId(), 'detailRecId' => $rec->id, 'storeId' => $rec->{$mvc->storeFieldName}))){
+			if(!core_Mode::isReadOnly()){
+				core_Request::setProtected('detailClassId,detailRecId,storeId');
+				$url = array('batch_BatchesInDocuments', 'modify', 'detailClassId' => $mvc->getClassId(), 'detailRecId' => $rec->id, 'storeId' => $rec->{$mvc->storeFieldName}, 'ret_url' => TRUE);
+				$row->addBatchBtn = ht::createLink('', $url, FALSE, 'ef_icon=img/16/edit-icon.png,title=Промяна на партидите');
+			}
+		}
+		
 		if(!batch_Defs::getBatchDef($rec->{$mvc->productFieldName})) return;
 		$row->{$mvc->productFieldName} = new core_ET($row->{$mvc->productFieldName});
 		$row->{$mvc->productFieldName}->append(batch_BatchesInDocuments::renderBatches($mvc, $rec->id, $rec->{$mvc->storeFieldName}));

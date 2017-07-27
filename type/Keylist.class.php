@@ -4,7 +4,7 @@
 /**
  * Броя на всички записи, над които групите ще са отворени по подразбиране
  */
-defIfNot('CORE_MAX_OPT_FOR_OPEN_GROUPS', 10);
+defIfNot('CORE_MAX_OPT_FOR_OPEN_GROUPS', 30);
 
 
 /**

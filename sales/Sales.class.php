@@ -620,8 +620,6 @@ class sales_Sales extends deals_DealMaster
             foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes') as $fld){
             	$p->{$fld} = $dRec->{$fld};
             }
-            $p->weight  = cat_Products::getWeight($p->productId, $p->packagingId, $p->quantity);
-            $p->volume  = cat_Products::getVolume($p->productId, $p->packagingId, $p->quantity);
             
             $agreed[] = $p;
             

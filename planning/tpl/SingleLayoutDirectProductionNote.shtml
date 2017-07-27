@@ -23,10 +23,8 @@
                                     </tr>
                                     <tr>
                                        <td>
-                                            <b style="margin:3px;display: inline-block;">[#productId#]</b>
+                                            <b style="margin:3px;display: inline-block;">[#addBatchBtn#] [#productId#]</b>
                                        		<table class='no-border'>
-
-                                       			
                                        			<!--ET_BEGIN expenseItemId-->
                                        			<tr>
                                        				<td class='quiet'>|Разход за|*:</td>
@@ -41,13 +39,6 @@
                                        				<td class='quiet'>|Количество|*:</td>
                                        				<td>[#packQuantity#]</td>
                                        			</tr>
-                                       			<!--ET_BEGIN batch-->
-                                       			<tr>
-                                       				<td class='quiet'>|Партида|*:</td>
-                                       				<td>[#batch#]</td>
-                                       			</tr>
-                                       			<!--ET_END batch-->
-
                                        		</table>
                                        </td>
                                         <td>

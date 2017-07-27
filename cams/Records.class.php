@@ -306,7 +306,7 @@ class cams_Records extends core_Master
 
         $tpl = new ET ('
             <div id=toolbar style="margin-bottom:10px;">[#toolbar#]</div>
-            <div class="video-rec" style="display:table">
+            <div class="video-rec">
                 <div class="[#captionClass#]" style="padding:5px;font-size:0.95em;">[#caption#]</div>
                 [#playerTpl#]
                 <div>[#convertProgress#]</div>
@@ -316,7 +316,7 @@ class cams_Records extends core_Master
         $data->toolbar = $data->toolbar->renderHtml();
 
         if ($this->isRecordConverting(basename($data->url))) {
-            $data->playerTpl = "<img src={$data->image} width={$data->width} height={$data->height} style='cursor: wait;'>";
+            $data->playerTpl = "<img class='imageProcesing' src={$data->image} width={$data->width} height={$data->height} style='cursor: wait;'>";
             $data->convertProgress = "Конвертиране ...";
             $tpl->appendOnce("\n" . '<meta http-equiv="refresh" content="3">', "HEAD");
         } else {

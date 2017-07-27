@@ -449,8 +449,6 @@ abstract class store_DocumentMaster extends core_Master
     	$fields = $this->selectFields();
     	$fields['-single'] = TRUE;
     	
-    	$rec->weight = ($rec->weightInput) ? $rec->weightInput : $rec->weight;
-    	$rec->volume = ($rec->volumeInput) ? $rec->volumeInput : $rec->volume;
     	$oldRow = $this->recToVerbal($rec, $fields);
     	
     	$amount = NULL;
@@ -468,11 +466,11 @@ abstract class store_DocumentMaster extends core_Master
     		$row->palletCount = $this->getFieldType('palletCount')->toVerbal($rec->palletCount);
     	}
     	
-    	if($rec->weight){
+    	if(!empty($rec->weight)){
     		$row->weight = $oldRow->weight;
     	}
     	
-    	if($rec->volume){
+    	if(!empty($rec->volume)){
     		$row->volume = $oldRow->volume;
     	}
     	
@@ -519,8 +517,18 @@ abstract class store_DocumentMaster extends core_Master
     		$arr[$dRec->id] = $this->prepareLineRows($dRec);
     		$i++;
     		
-    		$masterData->weight += $dRec->weight;
-    		$masterData->volume += $dRec->volume;
+    		if(!empty($dRec->weight) && $masterData->weight !== FALSE){
+    			$masterData->weight += $dRec->weight;
+    		} else {
+    			$masterData->weight = FALSE;
+    		}
+    		
+    		if(!empty($dRec->volume) && $masterData->volume !== FALSE){
+    			$masterData->volume += $dRec->volume;
+    		} else {
+    			$masterData->volume = FALSE;
+    		}
+    		
     		$masterData->palletCount += $dRec->palletCount;
     		$masterData->totalAmount += $dRec->amountDelivered;
     	}

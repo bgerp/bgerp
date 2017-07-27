@@ -957,7 +957,11 @@ class sales_QuotationsDetails extends doc_Detail {
     		$kgMeasures = cat_UoM::getSameTypeMeasures(cat_UoM::fetchBySysId('kg')->id);
     		if(!array_key_exists($rec->packagingId, $kgMeasures)){
     			$row->weight = deals_Helper::getWeightRow($rec->productId, $rec->packagingId, $rec->quantity, $rec->weight);
+    		} else {
+    			unset($row->weight);
     		}
+    	} else {
+    		unset($row->weight);
     	}
     	
     	return $row;

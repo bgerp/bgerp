@@ -176,25 +176,29 @@ class trans_plg_LinesPlugin extends core_Plugin
 	{
 		$measures = $mvc->getTotalTransportInfo($rec->id);
 			
+		core_Lg::push($rec->tplLang);
+		
 		setIfNot($rec->{$mvc->totalWeightFieldName}, $measures->weight);
-		$weight = ($rec->weightInput) ? $rec->weightInput : $rec->{$mvc->totalWeightFieldName};
+		$rec->{$mvc->totalWeightFieldName} = ($rec->weightInput) ? $rec->weightInput : $rec->{$mvc->totalWeightFieldName};
 		$hintWeight = ($rec->weightInput) ? 'Транспортното тегло е въведено от потребител' : 'Транспортното тегло е сумарно от редовете';
-		if(!isset($weight)) {
+		if(!isset($rec->{$mvc->totalWeightFieldName})) {
 			$row->{$mvc->totalWeightFieldName} = "<span class='quiet'>N/A</span>";
 		} else {
-			$row->{$mvc->totalWeightFieldName} = $mvc->getFieldType($mvc->totalWeightFieldName)->toVerbal($weight);
+			$row->{$mvc->totalWeightFieldName} = $mvc->getFieldType($mvc->totalWeightFieldName)->toVerbal($rec->{$mvc->totalWeightFieldName});
 			$row->{$mvc->totalWeightFieldName} = ht::createHint($row->{$mvc->totalWeightFieldName}, $hintWeight);
 		}
 			
 		setIfNot($rec->{$mvc->totalVolumeFieldName}, $measures->volume);
-		$volume = ($rec->volumeInput) ? $rec->volumeInput : $rec->{$mvc->totalVolumeFieldName};
+		$rec->{$mvc->totalVolumeFieldName} = ($rec->volumeInput) ? $rec->volumeInput : $rec->{$mvc->totalVolumeFieldName};
 		$hintVolume = ($rec->volumeInput) ? 'Транспортният обем е въведен от потребител' : 'Транспортният обем е сумарен от редовете';
-		if(!isset($volume)) {
+		if(!isset($rec->{$mvc->totalVolumeFieldName})) {
 			$row->{$mvc->totalVolumeFieldName} = "<span class='quiet'>N/A</span>";
 		} else {
-			$row->{$mvc->totalVolumeFieldName} = $mvc->getFieldType($mvc->totalVolumeFieldName)->toVerbal($volume);
+			$row->{$mvc->totalVolumeFieldName} = $mvc->getFieldType($mvc->totalVolumeFieldName)->toVerbal($rec->{$mvc->totalVolumeFieldName});
 			$row->{$mvc->totalVolumeFieldName} = ht::createHint($row->{$mvc->totalVolumeFieldName}, $hintVolume);
 		}
+		
+		core_Lg::pop();
 	}
 	
 	
