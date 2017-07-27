@@ -423,10 +423,7 @@ class store_Transfers extends core_Master
      */
     private function prepareLineRows($rec)
     {
-    	$rec->weight = ($rec->weightInput) ? $rec->weightInput : $rec->weight;
-    	$rec->volume = ($rec->volumeInput) ? $rec->volumeInput : $rec->volume;
-    	
-    	$row = $this->recToVerbal($rec, 'toAdress,fromStore,toStore,weight,volume,palletCountInput,-single');
+    	$row = $this->recToVerbal($rec);
     	
     	$row->rowNumb = $rec->rowNumb;
     	$row->address = $row->toAdress;
@@ -454,8 +451,18 @@ class store_Transfers extends core_Master
     		$data->transfers[$dRec->id] = $this->prepareLineRows($dRec);
     		$i++;
     		
-    		$data->masterData->weight += $dRec->weight;
-    		$data->masterData->volume += $dRec->volume;
+    		if(!empty($dRec->weight) && $data->masterData->weight !== FALSE){
+    			$data->masterData->weight += $dRec->weight;
+    		} else {
+    			$data->masterData->weight = FALSE;
+    		}
+    		
+    		if(!empty($dRec->volume) && $data->masterData->volume !== FALSE){
+    			$data->masterData->volume += $dRec->volume;
+    		} else {
+    			$data->masterData->volume = FALSE;
+    		}
+    		
     		$data->masterData->palletCount += $dRec->palletCountInput;
     	}
     }

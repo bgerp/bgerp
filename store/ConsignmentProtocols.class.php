@@ -460,16 +460,21 @@ class store_ConsignmentProtocols extends core_Master
     	
     	$count = 1;
     	while($rec = $query->fetch()){
+    		$row = $this->recToVerbal($rec);
     		
-    		$rec->weight = ($rec->weightInput) ? $rec->weightInput : $rec->weight;
-    		$rec->volume = ($rec->volumeInput) ? $rec->volumeInput : $rec->volume;
+    		if(!empty($rec->weight) && $data->masterData->weight !== FALSE){
+    			$data->masterData->weight += $rec->weight;
+    		} else {
+    			$data->masterData->weight = FALSE;
+    		}
     		
-    		$data->masterData->weight += $rec->weight;
-    		$data->masterData->volume += $rec->volume;
+    		if(!empty($rec->volume) && $data->masterData->volume !== FALSE){
+    			$data->masterData->volume += $rec->volume;
+    		} else {
+    			$data->masterData->volume = FALSE;
+    		}
+    		
     		$data->masterData->palletCount += $rec->palletCountInput;
-    		
-    		$row = $this->recToVerbal($rec, 'storeId,weight,volume,palletCountInput');
-    		
     		$row->docId = $this->getLink($rec->id, 0);
     		$row->contragentAddress = str_replace('<br>', ',', $row->contragentAddress);
     		$row->contragentAddress = "<span style='font-size:0.8em'>{$row->contragentAddress}</span>";
@@ -510,8 +515,8 @@ class store_ConsignmentProtocols extends core_Master
     	$res1 = cls::get('store_ConsignmentProtocolDetailsReceived')->getTransportInfo($id, $force);
     	$res2 = cls::get('store_ConsignmentProtocolDetailsSend')->getTransportInfo($id, $force);
     	
-    	$weight = (is_null($res1->weight) && is_null($res2->weight)) ? NULL : $res1->weight + $res2->weight;
-    	$volume = (is_null($res1->volume) && is_null($res2->volume)) ? NULL : $res1->volume + $res2->volume;
+    	$weight = (!is_null($res1->weight) && !is_null($res2->weight)) ? $res1->weight + $res2->weight : NULL;
+    	$volume = (!is_null($res1->volume) && !is_null($res2->volume)) ? $res1->volume + $res2->volume : NULL;
     	
     	return (object)array('weight' => $weight, 'volume' => $volume);
     }
