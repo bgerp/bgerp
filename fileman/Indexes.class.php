@@ -499,7 +499,12 @@ class fileman_Indexes extends core_Manager
                     }
                     
                     if (!$fileContent) {
-                        fileman_Indexes::logErr($errContent);
+                        
+                        if ($isValid) {
+                            fileman_Indexes::logNotice($errContent);
+                        } else {
+                            fileman_Indexes::logErr($errContent);
+                        }
                     }
                 }
             }
