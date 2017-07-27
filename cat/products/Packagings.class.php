@@ -93,12 +93,13 @@ class cat_products_Packagings extends core_Detail
         $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'input,tdClass=leftCol,caption=Опаковка,mandatory,smartCenter');
         $this->FLD('quantity', 'double(Min=0)', 'input,caption=Количество,mandatory,smartCenter');
         $this->FLD('isBase', 'enum(yes=Да,no=Не)', 'caption=Основна,mandatory,maxRadio=2');
-        $this->FLD('netWeight', 'cat_type_Weight', 'caption=Тегло->Нето');
-        $this->FLD('tareWeight', 'cat_type_Weight', 'caption=Тегло->Тара');
-        $this->FLD('sizeWidth', 'cat_type_Size', 'caption=Габарит->Ширина');
-        $this->FLD('sizeHeight', 'cat_type_Size', 'caption=Габарит->Височина');
-        $this->FLD('sizeDepth', 'cat_type_Size', 'caption=Габарит->Дълбочина');
-        $this->FLD('eanCode', 'gs1_TypeEan', 'caption=Код->EAN');
+        $this->FLD('netWeight', 'cat_type_Weight', 'caption=Нето');
+        $this->FLD('eanCode', 'gs1_TypeEan', 'caption=EAN');
+        $this->FLD('tareWeight', 'cat_type_Weight', 'caption=Параметри->Тара,autohide');
+        $this->FLD('sizeWidth', 'cat_type_Size', 'caption=Параметри->Ширина,autohide');
+        $this->FLD('sizeHeight', 'cat_type_Size', 'caption=Параметри->Височина,autohide');
+        $this->FLD('sizeDepth', 'cat_type_Size', 'caption=Параметри->Дълбочина,autohide');
+        
         
         $this->setDbUnique('productId,packagingId');
         $this->setDbIndex('productId');
