@@ -817,6 +817,17 @@ class purchase_Invoices extends deals_InvoiceMaster
             
             $pRec = purchase_Purchases::fetch($form->rec->purId);
             
+            if ($pRec->state != 'closed') {
+                if (($pRec->chargeVat == 'exempt') || ($pRec->chargeVat == 'no')) {
+                    $form->FNC('invVatReason', 'varchar(255)', 'caption=Данъчни параметри->Основание,recently,Основание за размера на ДДС, input, before=acceptance, mandatory');
+                	
+                    $noReason1 = acc_Setup::get('VAT_REASON_OUTSIDE_EU');
+                    $noReason2 = acc_Setup::get('VAT_REASON_IN_EU');
+                    $suggestions = array('' => '', $noReason1 => $noReason1, $noReason2 => $noReason2);
+                    $form->setSuggestions('invVatReason', $suggestions);
+                }
+            }
+            
             $aSet = array();
             
             $createdInvArr = doc_Files::getCidWithFile($fRec->dataId, purchase_Invoices::getClassId());
@@ -940,6 +951,7 @@ class purchase_Invoices extends deals_InvoiceMaster
                 
                 if ($clsName == 'purchase_Invoices') {
                     $invForm->rec->fileHnd = $fileHnd;
+                    $invForm->rec->vatReason = $form->rec->invVatReason;
                     $invForm->rec->number = $form->rec->invNum;
                     $invForm->rec->date = $form->rec->invDate;
                     $invForm->rec->type = 'invoice';
@@ -1042,6 +1054,10 @@ class purchase_Invoices extends deals_InvoiceMaster
                                 continue;
                             } elseif ($key == 'date') {
                                 $form->setError('invDate', $errObj->msg);
+                                
+                                continue;
+                            } elseif ($key == 'vatReason') {
+                                $form->setError('invVatReason', $errObj->msg);
                                 
                                 continue;
                             }
