@@ -1,4 +1,7 @@
 <?php
+
+
+
 /**
  * Клас 'store_ReceiptDetails'
  *
@@ -38,7 +41,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
      */
     public $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_SaveAndNew, plg_RowNumbering,Policy=purchase_PurchaseLastPricePolicy, 
                         plg_AlignDecimals2, plg_Sorting, doc_plg_HidePrices, ReverseLastPricePolicy=sales_SalesLastPricePolicy, 
-                        Policy=purchase_PurchaseLastPricePolicy, plg_PrevAndNext,deals_plg_ImportDealDetailProduct,cat_plg_ShowCodes';
+                        Policy=purchase_PurchaseLastPricePolicy, plg_PrevAndNext,deals_plg_ImportDealDetailProduct,cat_plg_ShowCodes,store_plg_TransportDataDetail';
     
     
     /**
@@ -74,7 +77,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, packQuantity, packPrice, discount, amount, weight, volume';
+    public $listFields = 'productId, packagingId, packQuantity, packPrice, discount, amount, weight=Тегло, volume=Обем';
     
         
     /**
@@ -116,9 +119,6 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     {
         $this->FLD('receiptId', 'key(mvc=store_Receipts)', 'column=none,notNull,silent,hidden,mandatory');
         parent::setDocumentFields($this);
-        
-        $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
-        $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
     }
 
     
@@ -163,16 +163,6 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     			deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     		}
     	}
-    }
-    
-    
-    /**
-     * Преди запис на продукт
-     */
-    public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
-    {
-    	$rec->weight = cat_Products::getWeight($rec->productId, $rec->packagingId, $rec->quantity);
-    	$rec->volume = cat_Products::getVolume($rec->productId, $rec->packagingId, $rec->quantity);
     }
     
     

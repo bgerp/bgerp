@@ -1462,7 +1462,7 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Връща теглото на единица от продукта, ако е в опаковка връща нейното тегло
+     * Връща транспортното тегло за подаденото количество и опаковка
      * 
      * @param int $productId   - ид на продукт
      * @param int $packagingId - ид на опаковка
@@ -1505,7 +1505,7 @@ class cat_Products extends embed_Manager {
     
     
 	/**
-     * Връща обема на единица от продукта, ако е в опаковка връща нейния обем
+     * Връща транспортния обем за подаденото количество и опаковка
      * 
      * @param int $productId   - ид на продукт
      * @param int $packagingId - ид на опаковка
@@ -1514,25 +1514,36 @@ class cat_Products extends embed_Manager {
      */
     public static function getVolume($productId, $packagingId = NULL, $quantity)
     {
-    	$volume = 0;
+    	// За нескладируемите не се изчислява транспортно тегло
+    	if(cat_Products::fetchField($productId, 'canStore') != 'yes') return NULL;
+    	 
+    	// Първо се гледа най-голямата опаковка за която има Бруто тегло
+    	$packQuery = cat_products_Packagings::getQuery();
+    	$packQuery->where("#productId = '{$productId}'");
+    	$packQuery->where("#sizeWidth IS NOT NULL AND #sizeHeight IS NOT NULL AND #sizeDepth IS NOT NULL");
+    	$packQuery->orderBy('quantity', "DESC");
+    	$packQuery->limit(1);
+    	$packQuery->show('sizeWidth,sizeHeight,sizeDepth,quantity');
+    	$packRec = $packQuery->fetch();
+    	 
+    	if(is_object($packRec)){
     	
-    	// Транспортният обем
+    		// Ако има такава количеството се преизчислява в нея
+    		$brutoVolume = $packRec->sizeWidth * $packRec->sizeHeight * $packRec->sizeDepth;
+    		$quantity /= $packRec->quantity;
+    	
+    		// Връща се намереното тегло
+    		$weight = $brutoVolume * $quantity;
+    		return $weight;
+    	}
+    	
     	$volume = static::getParams($productId, 'transportVolume');
     	if($volume){
     		$volume *= $quantity;
+    		return $volume;
     	}
     	
-    	// Ако няма и има опаковка, се прави опит да се сметне обема от опаковката
-    	if(!$volume){
-    		if($pack = cat_products_Packagings::getPack($productId, $packagingId)){
-    			$volume = $pack->sizeWidth * $pack->sizeHeight * $pack->sizeDepth;
-    			if($volume){
-    				$volume *= $quantity / $pack->quantity;
-    			}
-    		}
-    	}
-    	
-    	return $volume;
+    	return NULL;
     }
     
     

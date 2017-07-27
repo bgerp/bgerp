@@ -328,11 +328,8 @@ class trans_Lines extends core_Master
      */
     public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
-    	$weight = ($data->weight) ? $data->weight : 0;
-    	$data->row->weight = cls::get('cat_type_Weight')->toVerbal($weight);
-    	
-    	$volume = ($data->volume) ? $data->volume : 0;
-    	$data->row->volume = cls::get('cat_type_Volume')->toVerbal($volume);
+    	$data->row->weight = (!empty($data->weight)) ? cls::get('cat_type_Weight')->toVerbal($data->weight) : "<span class='quiet'>N/A</span>";
+    	$data->row->volume = (!empty($data->volume)) ? cls::get('cat_type_Volume')->toVerbal($data->volume) : "<span class='quiet'>N/A</span>";
     	
     	$count = ($data->palletCount) ? $data->palletCount : 0;
     	$data->row->palletCount = cls::get('type_Int')->toVerbal($count);

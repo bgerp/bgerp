@@ -121,7 +121,7 @@ class store_Transfers extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'deliveryTime,valior, title=Документ, fromStore, toStore, volume, weight, folderId, createdOn, createdBy';
+    public $listFields = 'deliveryTime,valior, title=Документ, fromStore, toStore, weight, volume, folderId, createdOn, createdBy';
 
 
     /**
@@ -203,6 +203,15 @@ class store_Transfers extends core_Master
 	 */
 	public $filterDateField = 'createdOn, valior,deliveryTime,modifiedOn';
 	
+	
+	/**
+	 * Полета, които при клониране да не са попълнени
+	 *
+	 * @see plg_Clone
+	 */
+	public $fieldsNotToClone = 'valior,weight,volume,weightInput,volumeInput,deliveryTime,palletCount';
+	
+	
     /**
      * Описание на модела (таблицата)
      */
@@ -247,26 +256,6 @@ class store_Transfers extends core_Master
     }
     
     
-	/**
-     * Обновява данни в мастъра
-     *
-     * @param int $id първичен ключ на статия
-     * @return int $id ид-то на обновения запис
-     */
-    public function updateMaster_($id)
-    {
-    	$rec = $this->fetch($id);
-    	$dQuery = store_TransfersDetails::getQuery();
-    	$dQuery->where("#transferId = {$id}");
-    	$measures = $this->getMeasures($dQuery->fetchAll());
-    	
-    	$rec->weight = $measures->weight;
-    	$rec->volume = $measures->volume;
-    	
-    	return $this->save($rec);
-    }
-    
-    
     /**
      * След рендиране на сингъла
      */
@@ -283,14 +272,6 @@ class store_Transfers extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	if(!$rec->weight) {
-    		$row->weight = "<span class='quiet'>0</span>";
-    	}
-    		
-    	if(!$rec->volume) {
-    		$row->volume = "<span class='quiet'>0</span>";
-    	}
-    	
     	$row->valior = (isset($rec->valior)) ? $row->valior : ht::createHint('', 'Вальора ще бъде датата на контиране');
     	
     	if($fields['-single']){
@@ -314,9 +295,6 @@ class store_Transfers extends core_Master
     		        $row->toAdress = crm_Locations::getAddress($toStoreLocation);
     		    }
     		}
-	    	
-	    	$row->weight = ($row->weightInput) ? $row->weightInput : $row->weight;
-	    	$row->volume = ($row->volumeInput) ? $row->volumeInput : $row->volume;
     	}
     	
     	if($fields['-list']){
@@ -445,10 +423,7 @@ class store_Transfers extends core_Master
      */
     private function prepareLineRows($rec)
     {
-    	$rec->weight = ($rec->weightInput) ? $rec->weightInput : $rec->weight;
-    	$rec->volume = ($rec->volumeInput) ? $rec->volumeInput : $rec->volume;
-    	
-    	$row = $this->recToVerbal($rec, 'toAdress,fromStore,toStore,weight,volume,palletCountInput,-single');
+    	$row = $this->recToVerbal($rec);
     	
     	$row->rowNumb = $rec->rowNumb;
     	$row->address = $row->toAdress;
@@ -476,8 +451,18 @@ class store_Transfers extends core_Master
     		$data->transfers[$dRec->id] = $this->prepareLineRows($dRec);
     		$i++;
     		
-    		$data->masterData->weight += $dRec->weight;
-    		$data->masterData->volume += $dRec->volume;
+    		if(!empty($dRec->weight) && $data->masterData->weight !== FALSE){
+    			$data->masterData->weight += $dRec->weight;
+    		} else {
+    			$data->masterData->weight = FALSE;
+    		}
+    		
+    		if(!empty($dRec->volume) && $data->masterData->volume !== FALSE){
+    			$data->masterData->volume += $dRec->volume;
+    		} else {
+    			$data->masterData->volume = FALSE;
+    		}
+    		
     		$data->masterData->palletCount += $dRec->palletCountInput;
     	}
     }
@@ -600,5 +585,19 @@ class store_Transfers extends core_Master
     	}
     	
     	return $res;
+    }
+    
+    
+    /**
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
+     */
+    public function updateMaster_($id)
+    {
+    	$rec = $this->fetchRec($id);
+    
+    	return $this->save($rec);
     }
 }

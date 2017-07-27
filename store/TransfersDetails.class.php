@@ -38,7 +38,7 @@ class store_TransfersDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, plg_Sorting, store_Wrapper, plg_RowNumbering, plg_AlignDecimals, plg_PrevAndNext,plg_SaveAndNew,cat_plg_ShowCodes';
+    public $loadList = 'plg_RowTools2, plg_Created, plg_Sorting, store_Wrapper, plg_RowNumbering, plg_AlignDecimals, plg_PrevAndNext,plg_SaveAndNew,cat_plg_ShowCodes,store_plg_TransportDataDetail';
     
     
     /**
@@ -68,7 +68,7 @@ class store_TransfersDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'newProductId, packagingId, packQuantity, weight, volume';
+    public $listFields = 'newProductId, packagingId, packQuantity, weight=Тегло, volume=Обем';
     
         
     /**
@@ -119,8 +119,6 @@ class store_TransfersDetails extends doc_Detail
         $this->FLD('quantity', 'double(Min=0)', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
         $this->FNC('packQuantity', 'double(decimals=2)', 'caption=Количество,input,mandatory');
-    	$this->FLD('weight', 'cat_type_Weight', 'input=hidden,caption=Тегло');
-        $this->FLD('volume', 'cat_type_Volume', 'input=hidden,caption=Обем');
     }
     
     
@@ -245,8 +243,6 @@ class store_TransfersDetails extends doc_Detail
     		$rec->quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
             
     		$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
-            $rec->weight = cat_Products::getWeight($rec->newProductId, $rec->packagingId, $rec->quantity);
-            $rec->volume = cat_Products::getVolume($rec->newProductId, $rec->packagingId, $rec->quantity);
     	}
     }
     

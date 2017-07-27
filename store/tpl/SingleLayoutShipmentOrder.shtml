@@ -101,7 +101,7 @@
                   <tr>
                      <td colspan="2" >
                         <div>
-                          <!-- <span class='half-col'>|Общо тегло|*:&nbsp;[#weight#]</span>  --> <span class='half-col'>|Общ обем|*:&nbsp;[#volume#]</span>
+                         <span class='half-col'>|Общо тегло|*:&nbsp;[#weight#]</span> <span class='half-col'>|Общ обем|*:&nbsp;[#volume#]</span>
                         </div>
 
                         <div class='clearfix21'>

@@ -1,4 +1,7 @@
 <?php
+
+
+
 /**
  * Клас 'store_ShipmentOrderDetails'
  *
@@ -7,7 +10,7 @@
  * @category  bgerp
  * @package   store
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -44,7 +47,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      */
     public $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_RowNumbering, plg_SaveAndNew, doc_plg_HidePrices,
                         plg_AlignDecimals2, plg_Sorting, doc_plg_TplManagerDetail, LastPricePolicy=sales_SalesLastPricePolicy,
-                        ReversePolicy=purchase_PurchaseLastPricePolicy, plg_PrevAndNext,cat_plg_ShowCodes';
+                        ReversePolicy=purchase_PurchaseLastPricePolicy, plg_PrevAndNext,cat_plg_ShowCodes,store_plg_TransportDataDetail';
     
     
     /**
@@ -88,7 +91,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'info=@Колети, productId, packagingId, packQuantity, packPrice, discount, amount, weight, volume';
+    public $listFields = 'info=@Колети, productId, packagingId, packQuantity, packPrice, discount, amount, weight=Тегло, volume=Обем';
     
         
     /**
@@ -123,11 +126,9 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     	$this->FLD('shipmentId', 'key(mvc=store_ShipmentOrders)', 'column=none,notNull,silent,hidden,mandatory');
     	parent::setDocumentFields($this);
     	
-        $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
-        $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
         $this->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Изглед,notNull,default=short,value=short,after=notes');
-        $this->FLD('transUnit', 'varchar', 'caption=Логистични единици->Вид,autohide');
-        $this->FLD('info', "text(rows=2)", 'caption=Логистични единици->Номера,after=transUnit,autohide', array('hint' => 'Напишете номерата на колетите, в които се съдържа този продукт, разделени със запетая'));
+        $this->FLD('transUnit', 'varchar', 'caption=Логистични единици->Вид,autohide,after=volume');
+        $this->FLD('info', "text(rows=2)", 'caption=Логистични единици->Номера,after=transUnit,autohide,after=volume', array('hint' => 'Напишете номерата на колетите, в които се съдържа този продукт, разделени със запетая'));
     }
 
 
@@ -491,16 +492,6 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
         }
 
         return $name;
-    }
-
-    
-    /**
-     * Преди запис на продукт
-     */
-    public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
-    {
-    	$rec->weight = cat_Products::getWeight($rec->productId, $rec->packagingId, $rec->quantity);
-    	$rec->volume = cat_Products::getVolume($rec->productId, $rec->packagingId, $rec->quantity);
     }
     
     

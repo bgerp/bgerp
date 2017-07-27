@@ -482,9 +482,17 @@ class cat_Listings extends core_Master
     		$dQuery->EXT('canSell', 'cat_Products', 'externalName=canSell,externalKey=productId');
     		$dQuery->EXT('valior', 'sales_Sales', 'externalName=valior,externalKey=saleId');
     		$dQuery->EXT('folderId', 'sales_Sales', 'externalName=folderId,externalKey=saleId');
+    		$dQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
     		$dQuery->EXT('state', 'sales_Sales', 'externalName=state,externalKey=saleId');
     		$dQuery->where("#valior >= '{$from}' AND #valior <= '{$today}' AND (#state = 'active' OR #state = 'closed')");
     		$dQuery->where("#folderId = {$folderId} AND #canSell = 'yes' AND #isPublic = 'yes'");
+    		
+    		// Ограничаване по групи, ако има
+    		$groupList = cat_Setup::get('AUTO_LIST_ALLOWED_GROUPS');
+    		if(!empty($groupList)){
+    			$dQuery->likeKeylist('groups', $groupList);
+    		}
+    		
     		$dQuery->groupBy('productId,packagingId');
     		$dQuery->show('productId,packagingId,code,count');
     		$dQuery->orderBy('count,saleId', 'DESC');

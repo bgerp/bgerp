@@ -1083,6 +1083,63 @@ abstract class deals_Helper
 	
 	
 	/**
+	 * Помощна ф-я за намиране на транспортното тегло/обем
+	 */
+	private static function getMeasureRow($productId, $packagingId, $quantity, $type, $value = NULL)
+	{
+		expect(in_array($type, array('volume', 'weight')));
+		$hint = FALSE;
+		
+		// Ако артикула не е складируем не му се изчислява транспортно тегло
+		$isStorable = cat_products::fetchField($productId, 'canStore');
+		if($isStorable != 'yes') return NULL;
+		
+		// Ако няма тегло взима се 'live'
+		if(empty($value)){
+			if($type == 'weight'){
+				$value = cat_Products::getWeight($productId, $packagingId, $quantity);
+			} else {
+				$value = cat_Products::getVolume($productId, $packagingId, $quantity);
+			}
+				
+			if(!empty($value)){
+				$hint = TRUE;
+				$value = deals_Helper::roundPrice($value, 3);
+			}
+		}
+		
+		// Ако няма тегло не се прави нищо
+		if(empty($value)) return NULL;
+		
+		$valueType = ($type == 'weight') ? 'cat_type_Weight' : 'cat_type_Volume';
+		
+		// Вербализиране на теглото
+		$valueRow = core_Type::getByName($valueType)->toVerbal($value);
+		if($hint === TRUE){
+			$hintType = ($type == 'weight') ? 'Транспортното тегло e прогнозно' : 'Транспортният обем е прогнозен';
+			$valueRow = ht::createHint($valueRow, "{$hintType} на база количеството");
+		}
+		
+		return $valueRow;
+	}
+	
+	
+	/**
+	 * Връща реда за транспортният обем на артикула
+	 *
+	 * @param int $productId      - артикул
+	 * @param int $packagingId    - ид на опаковка
+	 * @param int $quantity       - общо количество
+	 * @param double|NULL $weight - обем на артикула (ако няма се взима 'live')
+	 * @return core_ET|NULL       - шаблона за показване
+	 */
+	public static function getVolumeRow($productId, $packagingId, $quantity, $volume = NULL)
+	{
+		return self::getMeasureRow($productId, $packagingId, $quantity, 'volume', $volume);
+	}
+	
+	
+	/**
 	 * Връща реда за транспортното тегло на артикула
 	 * 
 	 * @param int $productId      - артикул
@@ -1093,30 +1150,6 @@ abstract class deals_Helper
 	 */
 	public static function getWeightRow($productId, $packagingId, $quantity, $weight = NULL)
 	{
-		$hint = FALSE;
-		
-		// Ако артикула не е складируем не му се изчислява транспортно тегло
-		$isStorable = cat_products::fetchField($productId, 'canStore');
-		if($isStorable != 'yes') return NULL;
-		
-		// Ако няма тегло взима се 'live'
-		if(empty($weight)){
-			$weight = cat_Products::getWeight($productId, $packagingId, $quantity);
-			
-			if(!empty($weight)){
-				$hint = TRUE;
-			}
-		}
-		
-		// Ако няма тегло не се прави нищо
-		if(empty($weight)) return NULL;
-		
-		// Вербализиране на теглото
-		$weightRow = core_Type::getByName('cat_type_Weight')->toVerbal($weight);
-		if($hint === TRUE){
-			$weightRow = ht::createHint($weightRow, 'Транспортното тегло е прогнозно на база количеството');
-		}
-				
-		return $weightRow;
+		return self::getMeasureRow($productId, $packagingId, $quantity, 'weight', $weight);
 	}
 }

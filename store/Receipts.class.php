@@ -202,7 +202,7 @@ class store_Receipts extends store_DocumentMaster
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'valior';
+    public $fieldsNotToClone = 'valior, amountDelivered, amountDeliveredVat, amountDiscount, deliveryTime,weight,volume,weightInput,volumeInput,palletCount';
     
     
     /**
