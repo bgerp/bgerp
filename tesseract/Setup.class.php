@@ -14,9 +14,16 @@ defIfNot('TESSERACT_LANGUAGES', 'bul+eng');
 
 
 /**
- * Езици за търсене
+ * Стойността на -psm
  */
 defIfNot('TESSERACT_PAGES_MODE', '4');
+
+
+
+/**
+ * Стойността на -oem
+ */
+defIfNot('TESSERACT_OCR_MODE', '-1');
 
 
 /**
@@ -61,7 +68,7 @@ class tesseract_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
-        'tesseract_Converter',
+        'tesseract_Converter'
     );
     
     
@@ -72,6 +79,8 @@ class tesseract_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
        'TESSERACT_LANGUAGES' => array ('varchar', 'caption=Езици за разпознаване, title=Инсталирани езици за разпознаване'),
+       'TESSERACT_PAGES_MODE' => array ('int', 'caption=Стойността на psm, title=Page segmentation modes от настройките'),
+       'TESSERACT_OCR_MODE' => array ('int', 'caption=Стойността на oem, title=OCR Engine modes от настройките'),
      );
      
      
@@ -130,5 +139,111 @@ class tesseract_Setup extends core_ProtoSetup
             
             return "Програмата " . type_Varchar::escape(self::get('PATH')) . " не е инсталирана.";
         }
+        
+        $versionArr = self::getVersionAndSubVersion();
+        
+        if ($versionArr['version'] < 4) {
+    
+            // Добавяме съобщение
+            return "Версията на tesseract e {$versionArr['version']}.{$versionArr['subVersion']}. За по-добро разпознаване трябва да инсталирате версия над 4.x";
+        }
+    }
+    
+    
+    /**
+     * Връща масив с версията и подверсията
+     * 
+     * @return array
+     * ['version']
+     * ['subVersion']
+     */
+    static function getVersionAndSubVersion()
+    {
+        $versionArr = array();
+        $tesseract = escapeshellcmd(self::get('PATH'));
+        exec($tesseract . " --version", $resArr, $erroCode);
+        
+        $tVerStr = $resArr[0];
+        
+        if (!$tVerStr) return $versionArr;
+        
+        $tVerStrArr = explode(' ', $tVerStr);
+        $tVerStrArr = explode('.', $tVerStrArr[1], 2);
+        
+        $versionArr['version'] = $tVerStrArr[0];
+        $versionArr['subVersion'] = $tVerStrArr[1];
+        
+        return $versionArr;
+    }
+    
+    
+    /**
+     * Зареждане на данни
+     */
+    function loadSetupData($itr = '')
+    {
+        $res = parent::loadSetupData($itr);
+        
+        $versionArr = self::getVersionAndSubVersion();
+        
+        // Ако се инсталира четвърта версия (или по-голяма)
+        // И се използва tesseract по подразбиране
+        // Караме да се регенерират OCR-натит изображения
+        if ($versionArr['version'] >= 4) {
+            
+            $defaultOcr = fileman_Setup::get('OCR');
+            
+            if ($defaultOcr) {
+                $dInst = cls::get($defaultOcr);
+                if ($dInst instanceof tesseract_Converter) {
+                    $res .= $this->callMigrate('reconvertOcrFiles', 'tesseract');
+                }
+            }
+        }
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Миграция, която кара да се реконвертират OCR-натите файлове
+     */
+    public static function reconvertOcrFiles()
+    {
+        $dataInst = cls::get('fileman_Data');
+        
+        $cnt = 0;
+        $iQuery = fileman_Indexes::getQuery();
+        $iQuery->where("#type = 'barcode'");
+        
+        while ($iRec = $iQuery->fetch()) {
+            if (!$iRec->dataId) continue;
+            
+            $dRec = fileman_Data::fetch($iRec->dataId);
+            
+            $dRec->processed = 'no';
+            $dataInst->save_($dRec, 'processed');
+            
+            fileman_Indexes::delete($iRec->id);
+            
+            $cnt++;
+        }
+        
+        $res = "Регенериране на {$cnt} OCR файлове";
+        
+        tesseract_Converter::logDebug($res);
+        
+        $ocrMode = tesseract_Setup::get('OCR_MODE');
+        
+        if ($ocrMode == -1) {
+            $conf = core_Packs::getConfig('tesseract');
+            $confData = $conf->_data;
+            $confData['TESSERACT_OCR_MODE'] = 1;
+            core_Packs::setConfig('tesseract', $confData);
+            
+            tesseract_Converter::logDebug("OCR_MODE е променен на 1");
+        }
+        
+        return $res;
     }
 }
