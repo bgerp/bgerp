@@ -122,6 +122,7 @@ class cat_Setup extends core_ProtoSetup
     		'cat_ProductTplCache',
     		'cat_Listings',
     		'cat_ListingDetails',
+    		'cat_PackParams',
     		'migrate::migrateGroups',
     		'migrate::migrateProformas',
     		'migrate::removeOldParams1',
