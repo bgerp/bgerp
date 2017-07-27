@@ -132,7 +132,9 @@ class store_reports_Documents extends frame2_driver_TableData
 		
 		foreach (array('store_ShipmentOrders', 'store_Receipts', 'store_Transfers') as $pDoc){
 			if(empty($rec->document) || ($rec->document == $pDoc::getClassId())){
-				$sQuery = $pDoc::getQuery();
+				$Document = cls::get($pDoc);
+				
+				$sQuery = $Document->getQuery();
 				self::applyFilters($sQuery, $storeIds, $pDoc, $rec, 'deliveryTime');
 				while($sRec = $sQuery->fetch()){
 					$linked = $this->getLinkedDocuments($sRec->containerId);
@@ -142,10 +144,14 @@ class store_reports_Documents extends frame2_driver_TableData
 					}
 					$stores = ($pDoc != 'store_Transfers') ? array($sRec->storeId) : array($sRec->fromStore, $sRec->toStore);
 					
+					$measures = $Document->getTotalTransportInfo($sRec->id);
+					setIfNot($sRec->{$Document->totalWeightFieldName}, $measures->weight); 
+					$sRec->{$Document->totalWeightFieldName} = ($sRec->weightInput) ? $sRec->weightInput : $sRec->{$Document->totalWeightFieldName};
+					
 					$recs[$sRec->containerId] = (object)array('containerId' => $sRec->containerId,
 														      'stores'      => $stores,
 													          'dueDate'     => $sRec->deliveryTime,
-													  		  'weight'      => ($sRec->weightInput) ? $sRec->weightInput : $sRec->weight,
+													  		  'weight'      => $sRec->{$Document->totalWeightFieldName},
 													  		  'pallets'     => NULL, // @TODO
 													  		  'linked'      => $linked,
 													  		  'folderId'    => $sRec->folderId,
