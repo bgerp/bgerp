@@ -465,6 +465,8 @@ class csv_Lib
      */
     public static function getCsvRowsFromFile($csvData, $params = array())
     {  
+        $csvData = str_replace(chr(194).chr(160), ' ', $csvData);
+        
         list($handle, $params['delimiter'], $params['enclosure']) = self::analyze($csvData, $params['delimiter'], $params['enclosure']);
 
         setIfNot($params['length'], 0);
