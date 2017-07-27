@@ -657,7 +657,7 @@ class purchase_Invoices extends deals_InvoiceMaster
             $arr['incomingInv']['icon'] = $me->getIcon();
             
             if (doc_Files::getCidWithFile($fRec->dataId, purchase_Invoices::getClassId(), 1, 100, FALSE)) {
-                $arr['incomingInv']['btnParams'] = 'warning=Има създадане фактура от файла';
+                $arr['incomingInv']['btnParams'] = 'warning=Има създадена фактура от файла';
             }
         }
 		
@@ -986,6 +986,21 @@ class purchase_Invoices extends deals_InvoiceMaster
                             if (!is_numeric($dId)) continue;
                             
                             $dRec = purchase_PurchasesDetails::fetch($dId);
+                            
+                            // Правилно определяне на артикулите в кой документ да може да се създават
+                            if ($dRec->productId) {
+                                if ($clsInst instanceof store_Receipts || $clsInst instanceof purchase_Services) {
+                                    $pRecStoreAndBuy = cat_Products::fetch($dRec->productId, 'canStore, canBuy');
+                                    
+                                    if (!$pRecStoreAndBuy->canBuy == 'no') continue;
+                                    
+                                    if ($pRecStoreAndBuy->canStore == 'yes') {
+                                        if (!($clsInst instanceof store_Receipts)) continue;
+                                    } elseif ($pRecStoreAndBuy->canStore == 'no') {
+                                        if (!($clsInst instanceof purchase_Services)) continue;
+                                    }
+                                }
+                            }
                             
                             $pDetRec = new stdClass();
                             $pDetRec->{$masterKey} = $savedId;
