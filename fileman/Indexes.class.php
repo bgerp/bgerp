@@ -499,7 +499,12 @@ class fileman_Indexes extends core_Manager
                     }
                     
                     if (!$fileContent) {
-                        fileman_Indexes::logErr($errContent);
+                        
+                        if ($isValid) {
+                            fileman_Indexes::logNotice($errContent);
+                        } else {
+                            fileman_Indexes::logErr($errContent);
+                        }
                     }
                 }
             }
@@ -706,7 +711,7 @@ class fileman_Indexes extends core_Manager
             
             // Ако от преди това е извличано текстовата част, използваме нея
             $content = self::getTextForIndex($hnd);
-            if ($content === FALSE) {
+            if ($content === FALSE || !trim($content)) {
                 
                 // Намираме драйвера
                 $drvInst = self::getDrvForMethod($ext, 'extractText', $fName);

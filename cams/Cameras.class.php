@@ -157,6 +157,7 @@ class cams_Cameras extends core_Master
         $attr = array();
         $url = toUrl(array($this, 'ShowImage', $rec->id));
         $attr['src'] = $url;
+        $attr['class'] = 'imageProcesing';
         $attr['width'] = $driver->getWidth();
         $attr['height'] = $driver->getHeight();
         $attr['id'] = 'monitor';
