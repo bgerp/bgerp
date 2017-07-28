@@ -65,9 +65,9 @@
         closeOnClick: true, //close context menu on click/ trigger of any item in menu
 
         //callback
-        onOpen: function (data, event) {},
-        afterOpen: function (data, event) {},
-        onClose: function (data, event) {}
+        onOpen: function (data, event) {getEfae().waitPeriodicAjaxCall = 60;},
+        afterOpen: function (data, event) {getEfae().waitPeriodicAjaxCall = 60;},
+        onClose: function (data, event) {getEfae().waitPeriodicAjaxCall = 0;}
     };
 
     var methods = {

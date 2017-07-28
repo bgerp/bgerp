@@ -1085,6 +1085,7 @@ function prepareContextMenu() {
             'verAdjust': vertAdjust,
             'horAdjust': horAdjust
         });
+        
         $('.modal-toolbar .button').on("click", function(){
             $('.more-btn').contextMenu('close');
         });
@@ -3116,6 +3117,9 @@ function efae() {
 
     // Флаг, който указва дали все още се чака резултат от предишна AJAX заявка
     Experta.prototype.isWaitingResponse = false;
+	
+    // Флаг, който указва колко време да не може да се прави AJAX заявки по часовник
+    efae.prototype.waitPeriodicAjaxCall = 0;
 }
 
 
@@ -3144,13 +3148,16 @@ efae.prototype.run = function() {
     try {
         // Увеличаваме брояча
         this.increaseTimeout();
-
-        // Вземаме всички URL-та, които трябва да се извикат в този цикъл
-        var subscribedObj = this.getSubscribed();
-
-        // Стартираме процеса
-        this.process(subscribedObj);
-
+    	
+        if (this.waitPeriodicAjaxCall <= 0) {
+        	// Вземаме всички URL-та, които трябва да се извикат в този цикъл
+            var subscribedObj = this.getSubscribed();
+			
+            // Стартираме процеса
+            this.process(subscribedObj);
+        } else {
+        	this.waitPeriodicAjaxCall--;
+        }
     } catch (err) {
 
         // Ако възникне грешка
@@ -4599,7 +4606,7 @@ Experta.prototype.checkBodyId = function(bodyId) {
 	}
 
 	var bodyIds = sessionStorage.getItem(this.bodyIdSessName);
-
+	
 	if (!bodyIds) return ;
 
 	bodyIds =  $.parseJSON(bodyIds);
@@ -4971,7 +4978,9 @@ function startUrlFromDataAttr(obj, stopOnClick)
 	}
 
 	getEfae().process(resObj);
-
+	
+	getEfae().waitPeriodicAjaxCall = 0;
+	
 	return false;
 }
 

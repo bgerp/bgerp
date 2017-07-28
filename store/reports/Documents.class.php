@@ -87,6 +87,7 @@ class store_reports_Documents extends frame2_driver_TableData
 		$cu = (!empty($rec->createdBy)) ? $rec->createdBy : core_Users::getCurrent();
 		
 		$sQuery = store_Stores::getQuery();
+		$sQuery->where("#state != 'rejected'");
 		while($sRec = $sQuery->fetch()){
 			if(bgerp_plg_FLB::canUse('store_Stores', $sRec, $cu)){
 				$res[$sRec->id] = store_Stores::getTitleById($sRec->id, FALSE);
