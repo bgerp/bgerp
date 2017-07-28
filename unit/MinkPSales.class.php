@@ -682,7 +682,6 @@ class unit_MinkPSales extends core_Manager {
         //$browser->click('Редактиране на артикул');
         $browser->click('edt9');
         //намира арт. от фактурата
-        //return $browser->getHtml();
         $browser->setValue('quantity', '20');
         
         $browser->press('Запис');
@@ -1268,12 +1267,7 @@ class unit_MinkPSales extends core_Manager {
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
     
-        // експедиционно нареждане
-        //$browser->press('Експедиране');
-        //$browser->setValue('storeId', 'Склад 1');
-        //$browser->press('Чернова');
-        //$browser->press('Контиране');
-         
+        /* ДДС групата сработва от следващия ден, а фактура не може да се издаде със следваша дата
         // Фактура
         $browser->press('Фактура');
         $browser->press('Чернова');
@@ -1297,7 +1291,7 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна сума в КИ за цялото количество', 'warning');
         }
-     
+        */
     }
     /**
      * Продажба - схема с авансово плащане, Включено ДДС в цените
@@ -1570,6 +1564,8 @@ class unit_MinkPSales extends core_Manager {
          
         //$browser->hasText('Създаване на продажба');
         $browser->setValue('reff', 'MinkP');
+        $valior=strtotime("+1 Day");
+        $browser->setValue('valior', date('d-m-Y', $valior));
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPDifVAT');
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
@@ -1618,13 +1614,8 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
-        // експедиционно нареждане
-        //$browser->press('Експедиране');
-        //$browser->setValue('storeId', 'Склад 1');
-        //$browser->setValue('template', 'Експедиционно нареждане с цени');
-        //$browser->press('Чернова');
-        //$browser->press('Контиране');
          
+        /* - ДДС групата сработва от следващия ден, а фактура не може да се издаде със следваша дата
         // Фактура
         $browser->press('Фактура');
         $browser->press('Чернова');
@@ -1684,7 +1675,7 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return "Грешна сума в ДИ - цена";
         }
-        
+        */
     }
     
     /**
