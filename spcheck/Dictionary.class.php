@@ -110,6 +110,7 @@ class spcheck_Dictionary extends core_Manager
         $this->FLD('pattern', 'varchar(128, ci)', 'caption=Шаблон->Дума');
         $this->FLD('isCorrect', 'enum(yes=Да, no=Не)', 'caption=Шаблон->Състояние, notNull');
         $this->FLD('lg', 'varchar(2)', 'caption=Език');
+        $this->FLD('cnt', 'int', 'caption=Срещане, input=none, notNull');
         
         $this->setDbUnique('pattern, lg');
     }
@@ -350,6 +351,7 @@ class spcheck_Dictionary extends core_Manager
 
         $data->listFilter->view = 'horizontal';
         
+        $data->query->orderBy('cnt', 'DESC');
         $data->query->orderBy('createdOn', 'DESC');
         
         // Добавяме всички езици за които има запис в масива
@@ -405,6 +407,7 @@ class spcheck_Dictionary extends core_Manager
         $cQuery = doc_Containers::getQuery();
         $before = dt::subtractSecs(3600);
         $cQuery->where("#createdOn >= '{$before}'");
+        $cQuery->where("#createdBy >= 1");
         
         $cQuery->orderBy('modifiedOn', 'DESC');
         
@@ -444,14 +447,39 @@ class spcheck_Dictionary extends core_Manager
                 }
                 
                 if (!self::checkWord($str, $lg)) {
-                    $rec = new stdClass();
-                    $rec->lg = $lg;
-                    $rec->isCorrect = 'no';
-                    $rec->pattern = $str;
+                    $rec = self::fetch(array("#pattern = '[#1#]' AND #lg = '[#2#]'", $str, $lg));
                     
-                    self::save($rec, NULL, 'IGNORE');
+                    if (!$rec) {
+                        $rec = new stdClass();
+                        $rec->lg = $lg;
+                        $rec->isCorrect = 'no';
+                        $rec->pattern = $str;
+                        $rec->cnt = 1;
+                        $saveF = NULL;
+                    } else {
+                        $rec->cnt++;
+                        $saveF = 'cnt';
+                    }
+                    
+                    self::save($rec, $saveF);
                 }
             }
+        }
+    }
+    
+    
+    /**
+     * Преди запис на документ, изчислява стойността на полето `isContable`
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $rec
+     * @param stdClass $res
+     * @param array $fields
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec, $fields = array())
+    {
+        if (!$rec->cnt) {
+            $rec->cnt = 1;
         }
     }
     

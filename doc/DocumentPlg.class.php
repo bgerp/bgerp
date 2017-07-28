@@ -321,11 +321,6 @@ class doc_DocumentPlg extends core_Plugin
                     ), 'ef_icon = img/16/task-normal.png, title=' . tr('Създаване на задача от документа'));
                 }
             }
-        } else {
-            //TODO да се "премахне" и оптимизира
-            if($data->rec->state == 'draft' || ($data->rec->state == 'rejected' && $data->rec->brState == 'draft') || ($data->rec->state == 'rejected' && $data->rec->brState != 'draft' && $mvc->printRejected === FALSE)){
-            	$data->toolbar->removeBtn('btnPrint');
-            }
         }
         
         if($mvc->haveRightFor('list') && $data->rec->state != 'rejected') { 
