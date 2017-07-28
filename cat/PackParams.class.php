@@ -156,7 +156,6 @@ class cat_PackParams extends core_Manager
     	$self = cls::get(get_called_class());
     	if($self->isUnique($rec, $fields, $exRec)){
     		$self->save($rec);
-    		core_Statuses::newStatus('SAVEEEE');
     	}
     }
 }
