@@ -407,7 +407,8 @@ class spcheck_Dictionary extends core_Manager
         $cQuery = doc_Containers::getQuery();
         $before = dt::subtractSecs(3600);
         $cQuery->where("#createdOn >= '{$before}'");
-        $cQuery->where("#createdBy >= 1");
+        
+        $cQuery->in('createdBy', core_Users::getByRole('powerUser'));
         
         $cQuery->orderBy('modifiedOn', 'DESC');
         
