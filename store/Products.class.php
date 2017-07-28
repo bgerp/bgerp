@@ -426,7 +426,8 @@ class store_Products extends core_Detail
 			$rec = $data->recs[$id];
 			$rec->isDetail = $isDetail;
 			
-			$tooltipUrl = toUrl(array('store_Products', 'ShowReservedDocs', 'recId' => $rec->id, 'isDetail' => $isDetail), 'local');
+			$hashed = str::addHash($rec->id, 6);
+			$tooltipUrl = toUrl(array('store_Products', 'ShowReservedDocs', 'recId' => $hashed), 'local');
 			$arrowImg = ht::createElement("img", array("src" => sbf("img/16/info-gray.png", "")));
 			$arrow = ht::createElement("span", array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => tr('Информация за документите резервирали количеството')), $arrowImg, TRUE);
 			$arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='reserve{$rec->id}'></span>{$arrow}</span>";
@@ -576,7 +577,8 @@ class store_Products extends core_Detail
     public function act_ShowReservedDocs()
     {
     	requireRole('powerUser');
-    	$id = Request::get('recId', 'int');
+    	$id = Request::get('recId', 'varchar');
+    	expect($id = str::checkHash($id, 6));
     	$rec = self::fetch($id);
     	
     	// Намират се документите, запазили количества
