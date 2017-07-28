@@ -175,4 +175,21 @@ class store_plg_TransportDataDetail extends core_Plugin
 		
 		$res = $volume;
 	}
+	
+	
+	/**
+	 * Преди рендиране на таблицата
+	 */
+	protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+	{
+		$masterRec = $data->masterData->rec;
+		
+		if(!empty($masterRec->weightInput) && $masterRec->weightInput != $masterRec->calcedWeight){
+			unset($data->listFields['weight']);
+		}
+		
+		if(!empty($masterRec->volumeInput) && $masterRec->volumeInput != $masterRec->calcedVolume){
+			unset($data->listFields['volume']);
+		}
+	}
 }
