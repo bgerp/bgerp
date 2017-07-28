@@ -172,6 +172,10 @@ class bgerp_L extends core_Manager
             // Очакваме да не е оттеглен документ
             expect($rec->state != 'rejected', 'Липсващ документ');
             
+            if ($rec->state == 'draft') {
+                expect($doc->canEmailDraft, 'Липсващ документ');
+            }
+            
             //
             // Проверка за право на достъп според MID
             //
