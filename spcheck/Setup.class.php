@@ -46,7 +46,8 @@ class spcheck_Setup extends core_ProtoSetup
      */
     var $managers = array(
         'spcheck_Dictionary',
-        'migrate::addLg'
+        'migrate::addLg',
+        'migrate::removeBadRecs'
     );
         
     
@@ -98,5 +99,20 @@ class spcheck_Setup extends core_ProtoSetup
             
             $Dictionary->save_($lRec, 'lg');
         }
+    }
+    
+    
+    /**
+     * Миграция за попълване на езика за думите
+     */
+    public static function removeBadRecs()
+    {
+        $delCnt = spcheck_Dictionary::delete("#isCorrect != 'yes' AND #modifiedBy <= 0 AND #createdBy <= 0");
+        
+        $msg = "Изтрити записи: " . $delCnt;
+        
+        spcheck_Dictionary::logDebug($msg);
+        
+        return $msg;
     }
 }
