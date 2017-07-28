@@ -332,8 +332,16 @@ class tcost_Calcs extends core_Manager
     	if(!haveRole('powerUser')) return $amountRow;
     	
     	if($amountFee < 0){
+    		$hint =  "Скритият транспорт не може да бъде изчислен: ";
+    		if($amountFee == tcost_CostCalcIntf::ZONE_FIND_ERROR){
+    			$hint .= "липсваща зона";
+    		} elseif($amountFee == tcost_CostCalcIntf::EMPTY_WEIGHT_ERROR){
+    			$hint .= "няма транспортно тегло";
+    		} else {
+    			$hint .= "({$amountFee})";
+    		}
     		
-    		return ht::createHint($amountRow, "Скритият транспорт не може да бъде изчислен ({$amountFee})", 'warning', FALSE);
+    		return ht::createHint($amountRow, $hint, 'warning', FALSE);
     	} elseif(isset($amountFee)){
     		$amountFee = deals_Helper::getDisplayPrice($amountFee, $vat, $currencyRate, $chargeVat);
     		$amountFee = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($amountFee);
