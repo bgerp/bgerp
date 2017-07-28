@@ -1267,7 +1267,7 @@ class unit_MinkPSales extends core_Manager {
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
     
-        /* ДДС групата сработва от следващия ден, а фактура не може да се издаде със следваша дата
+        /* ДДС групата сработва от следващия ден, а фактура не може да се издаде със следваща дата
         // Фактура
         $browser->press('Фактура');
         $browser->press('Чернова');
@@ -1541,7 +1541,7 @@ class unit_MinkPSales extends core_Manager {
     }
     
     /**
-     * Продажба на артикули с различно ДДС (вкл. КИ и ДИ)
+     * Продажба на артикули с различно ДДС
      */
      
     //http://localhost/unit_MinkPSales/CreateSaleDifVAT/
