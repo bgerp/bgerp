@@ -442,7 +442,7 @@ class bgerp_Notifications extends core_Manager
     	    $markText = 'Отмаркиране';
             $iconMark = "img/16/unmark.png";
     	}
-    	$attr = array('ef_icon' => $iconMark, 'title' => 'Запознаване със съдържанието', "class" => "button", 'data-url' => toUrl($markUrl, 'local'));
+    	$attr = array('ef_icon' => $iconMark, 'title' => $markText . ' на нотификацията', "class" => "button", 'data-url' => toUrl($markUrl, 'local'));
     	$attr['onclick'] = 'return startUrlFromDataAttr(this, true);';
     	
     	$markBtn = ht::createLink(tr($markText), $markUrl, NULL, $attr);
@@ -456,7 +456,7 @@ class bgerp_Notifications extends core_Manager
         	    $ctrInst = cls::get($ctr);
         	    $settingsUrl = array(get_called_class(), 'settings', $rec->id, 'ret_url' => TRUE);
         	    if (($ctrInst instanceof doc_Folders) || ($ctrInst instanceof doc_Threads) || ($ctrInst instanceof doc_Containers) || (cls::haveInterface('doc_DocumentIntf', $ctrInst))) {
-        	        $settingsBtn = ht::createLink('Настройки', $settingsUrl, NULL, array('ef_icon' => "img/16/cog.png", 'title' => 'Запознаване със съдържанието', "class" => "button"));
+        	        $settingsBtn = ht::createLink('Настройки', $settingsUrl, NULL, array('ef_icon' => "img/16/cog.png", 'title' => 'Настойки за получаване на нотификация', "class" => "button"));
         	        $tpl->append($settingsBtn);
         	    }
     	    }
