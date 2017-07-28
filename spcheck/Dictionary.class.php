@@ -355,7 +355,7 @@ class spcheck_Dictionary extends core_Manager
         $data->query->orderBy('createdOn', 'DESC');
         
         // Добавяме всички езици за които има запис в масива
-        $cQuery = core_Lg::getQuery();
+        $cQuery = self::getQuery();
         $cQuery->groupBy('lg');
         $cQuery->orderBy('createdOn');
         $langArr = array('' => '');
