@@ -234,7 +234,7 @@ class type_Table extends type_Blob {
                 }
             }
 
-            if(!$empty) {
+            if(!$empty) { 
                 foreach($columns as $field => $fObj) {
                     $res[$field][] = trim($value[$field][$i]);
                 }
@@ -245,6 +245,11 @@ class type_Table extends type_Blob {
         } while($isset);
 
         $res = @json_encode($res);
+        
+        if($res == '[]') {
+
+            $res = NULL;
+        }
 
         return $res;
     }

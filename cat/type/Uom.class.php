@@ -19,6 +19,8 @@
  */
 class cat_type_Uom extends type_Varchar {
     
+	
+	
     /**
      * MySQL тип на полето в базата данни
      */

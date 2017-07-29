@@ -168,7 +168,7 @@
                                             </tr>
                                             <tr>
                                                 <td class='centered border-right' > <span class="sign_names nowrap">[#responsible#]</span></td>
-                                                <td class='centered'><span class="sign_names nowrap">[#username#]</span></td>
+                                                <td class='centered'><span class="sign_names nowrap"><span>[#username#]</span> <br><span class='small'>( PIN: [#userCode#] )</span></span></td>
                                             </tr>
                                         </table>
                                     </td>

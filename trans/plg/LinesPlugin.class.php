@@ -175,10 +175,11 @@ class trans_plg_LinesPlugin extends core_Plugin
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 		$measures = $mvc->getTotalTransportInfo($rec->id);
-			
+		
 		core_Lg::push($rec->tplLang);
 		
 		setIfNot($rec->{$mvc->totalWeightFieldName}, $measures->weight);
+		$rec->calcedWeight = $rec->{$mvc->totalWeightFieldName};
 		$rec->{$mvc->totalWeightFieldName} = ($rec->weightInput) ? $rec->weightInput : $rec->{$mvc->totalWeightFieldName};
 		$hintWeight = ($rec->weightInput) ? 'Транспортното тегло е въведено от потребител' : 'Транспортното тегло е сумарно от редовете';
 		if(!isset($rec->{$mvc->totalWeightFieldName})) {
@@ -189,6 +190,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 		}
 			
 		setIfNot($rec->{$mvc->totalVolumeFieldName}, $measures->volume);
+		$rec->calcedVolume = $rec->{$mvc->totalVolumeFieldName};
 		$rec->{$mvc->totalVolumeFieldName} = ($rec->volumeInput) ? $rec->volumeInput : $rec->{$mvc->totalVolumeFieldName};
 		$hintVolume = ($rec->volumeInput) ? 'Транспортният обем е въведен от потребител' : 'Транспортният обем е сумарен от редовете';
 		if(!isset($rec->{$mvc->totalVolumeFieldName})) {

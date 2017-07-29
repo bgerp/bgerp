@@ -173,8 +173,8 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
     		$fld->FLD('kod', 'varchar','caption=Код');
     		$fld->FLD('productId', 'varchar', 'caption=Артикул');
     		$fld->FLD('quantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Количество');
-    		$fld->FLD('primeCost', 'varchar', 'smartCenter,caption=Продажна');
-    		$fld->FLD('sellCost', 'double(smartRound,decimals=2)', 'smartCenter,caption=Себестойност');
+    		$fld->FLD('primeCost', 'varchar', 'smartCenter,caption=Себестойност');
+    		$fld->FLD('sellCost', 'double(smartRound,decimals=2)', 'smartCenter,caption=Приход');
 		    
 		    if(isset($rec->group)) {
 		        $fld->FLD('group', 'varchar', 'smartCenter,caption=Група');
@@ -184,8 +184,8 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
 			$fld->FLD('kod', 'varchar','caption=Код');
 			$fld->FLD('productId', 'varchar', 'caption=Артикул');
 			$fld->FLD('quantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Количество');
-	    	$fld->FLD('primeCost', 'varchar', 'caption=Продажна');
-		    $fld->FLD('sellCost', 'double(smartRound,decimals=2)', 'smartCenter,caption=Себестойност');
+	    	$fld->FLD('primeCost', 'varchar', 'caption=Себестойност');
+		    $fld->FLD('sellCost', 'double(smartRound,decimals=2)', 'smartCenter,caption=Приход');
 		    $fld->FLD('group', 'varchar', 'smartCenter,caption=Група');
 		}
 	

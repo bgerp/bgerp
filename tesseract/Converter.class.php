@@ -48,7 +48,7 @@ class tesseract_Converter extends core_Manager
     /**
      * Кода, който ще се изпълнява
      */
-    public $fconvLineExec = 'tesseract [#INPUTF#] [#OUTPUTF#] -l [#LANGUAGE#] -psm [#PSM#]';
+    public $fconvLineExec = 'tesseract [#INPUTF#] [#OUTPUTF#] -l [#LANGUAGE#] --psm [#PSM#] --oem [#OEM#]';
 	
 	
     /**
@@ -250,6 +250,8 @@ class tesseract_Converter extends core_Manager
             }
         }
         
+        $ocrMode = tesseract_Setup::get('OCR_MODE');
+        
         // Инстанция на класа
         $Script = cls::get(fconv_Script);
         
@@ -263,12 +265,26 @@ class tesseract_Converter extends core_Manager
         // Задаваме параметрите
         $Script->setParam('LANGUAGE', tesseract_Setup::get('LANGUAGES'), TRUE);
         $Script->setParam('PSM', tesseract_Setup::get('PAGES_MODE'), TRUE);
+        $Script->setParam('OEM', $ocrMode, TRUE);
         
         // Заместваме програмата с пътя от конфига
         $Script->setProgram('tesseract', tesseract_Setup::get('PATH'));
         $Script->setProgramPath(get_called_class(), 'fconvProgramPaths');
         
         $errFilePath = fileman_webdrv_Generic::getErrLogFilePath($outputFile);
+        
+        if ($ocrMode == -1) {
+            
+            $versionArr = tesseract_Setup::getVersionAndSubVersion();
+            
+            $inst = cls::get('tesseract_Converter');
+            
+            if ($versionArr['version'] < 4) {
+                $inst->fconvLineExec = 'tesseract [#INPUTF#] [#OUTPUTF#] -l [#LANGUAGE#] -psm [#PSM#]';
+            } else {
+                $inst->fconvLineExec = 'tesseract [#INPUTF#] [#OUTPUTF#] -l [#LANGUAGE#] --psm [#PSM#]';
+            }
+        }
         
         // Скрипта, който ще конвертира
         $Script->lineExec(get_called_class() . '::fconvLineExec', array('LANG' => 'en_US.UTF-8', 'HOME' => $Script->tempPath, 'errFilePath' => $errFilePath));
