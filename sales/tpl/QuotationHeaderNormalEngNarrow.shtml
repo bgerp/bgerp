@@ -83,7 +83,7 @@
 			            <li>Bank account: [#bankAccountId#]</li>
 			            <!--ET_END bankAccountId-->
 				        <!--ET_BEGIN deliveryTermId-->
-				        <li>Delivery term: [#deliveryTermId#]</li>
+				        <li>Delivery: [#deliveryTermId#]</li>
 				        <!--ET_END deliveryTermId-->
 				        
 				        <!--ET_BEGIN deliveryPlaceId-->

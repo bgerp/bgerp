@@ -825,9 +825,9 @@ class unit_MinkPbgERP extends core_Manager {
         if(strpos($browser->gettext(), $Company)) {
             //има такава фирма - редакция
             $browser->click($Company);
-            $browser->click('Локации(2)');
+            $browser->click('Локации');
             $browser->click('Добавяне на нова локация');
-            return $browser->getHtml();
+            //return $browser->getHtml();
             $browser->setValue('title', 'Офис Пловдив');
             $browser->setValue('type', 'Офис');
             $browser->setValue('place', 'Пловдив');
@@ -1553,7 +1553,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('measureId', 'брой');
         $browser->setValue('info', 'черен');
         $browser->setValue('meta_canBuy', 'canBuy');
-        $browser->setValue('Ценова група » Промоция', 15);
+        $browser->setValue('Ценова група » Промоция',  True);
         $browser->press('Запис');
     
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
@@ -1564,11 +1564,8 @@ class unit_MinkPbgERP extends core_Manager {
         } else {
             $browser->click('Цени');
             $browser->click('Избор на ДДС група');
-            //$browser->refresh('Запис');
+            //не зарежда ДДС 9% от днешна дата
             $browser->setValue('vatGroup', 'Г - 9,00 %');
-            $startdate=strtotime("+1 Day");
-            $browser->setValue('validFrom[d]', date('d-m-Y', $startdate));
-            $browser->setValue('validFrom[t]', '00:00');
             $browser->press('Запис');
         }
         //return $browser->getHtml();

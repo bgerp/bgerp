@@ -156,6 +156,7 @@
                 <!--ET_BEGIN username-->
                 <div>Prepared by:  [#username#]</div>
                 <!--ET_END username-->
+                <div class='small'>( PIN: [#userCode#] )</div>
             </td>
         </tr>
         <tr class='footerDocInfo'>

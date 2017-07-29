@@ -1255,14 +1255,14 @@ class core_Form extends core_FieldSet
     /**
      * Вдига флаг за грешка на посоченото поле
      */
-    function setError($field, $msg, $ignorable = FALSE)
+    function setError($field, $msg, $ignorable = FALSE, $oncePerField = TRUE)
     {
         if(haveRole('no_one')) {
             $ignorable = TRUE;
         }
 
         // Премахваме дублиращи се съобщения
-        if(is_array($this->errors)) {
+        if(is_array($this->errors) && $oncePerField) {
             foreach($this->errors as $errRec) {
                 if(($errRec->msg == $msg) && ($ignorable == $errRec->ignorable)) {
                     $msg = FALSE;

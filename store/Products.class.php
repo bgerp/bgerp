@@ -46,8 +46,8 @@ class store_Products extends core_Detail
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'ceo,storeWorker';
-    
-    
+	
+	
     /**
      * Кой има право да добавя?
      */
@@ -95,11 +95,7 @@ class store_Products extends core_Detail
      */
     public static function on_BeforePrepareListPager($mvc, &$res, $data)
     {
-    	if(isset($data->masterMvc)){
-    		$mvc->listItemsPerPage = 100;
-    	} else {
-    		$mvc->listItemsPerPage = 20;
-    	}
+    	$mvc->listItemsPerPage = (isset($data->masterMvc)) ? 100 : 20;
     }
     
     
@@ -422,9 +418,23 @@ class store_Products extends core_Detail
     {
     	$data->listTableMvc->FLD('code', 'varchar', 'tdClass=small-field');
     	$data->listTableMvc->FLD('measureId', 'varchar', 'tdClass=centered');
+    	
+		if(!count($data->rows)) return;
+		
+		foreach ($data->rows as $id => &$row){
+			$rec = $data->recs[$id];
+			if(empty($rec->reservedQuantity)) continue;
+			
+			$hashed = str::addHash($rec->id, 6);
+			$tooltipUrl = toUrl(array('store_Products', 'ShowReservedDocs', 'recId' => $hashed), 'local');
+			$arrowImg = ht::createElement("img", array("src" => sbf("img/16/info-gray.png", "")));
+			$arrow = ht::createElement("span", array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => 'От кои документи е резервирано количеството'), $arrowImg, TRUE);
+			$arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='reserve{$rec->id}'></span>{$arrow}</span>";
+			$row->reservedQuantity .= "&nbsp;{$arrow}";
+		}
     }
-
-
+    
+    
 	/**
 	 * Преди подготовката на ключовете за избор
 	 */
@@ -557,5 +567,54 @@ class store_Products extends core_Detail
     	// Освобождаване на процеса
     	core_Locks::release(self::SYNC_LOCK_KEY);
     	core_Debug::$isLogging = TRUE;
+    }
+    
+    
+    /**
+     * Показва информация за резервираните количества
+     */
+    public function act_ShowReservedDocs()
+    {
+    	requireRole('powerUser');
+    	$id = Request::get('recId', 'varchar');
+    	expect($id = str::checkHash($id, 6));
+    	$rec = self::fetch($id);
+    	
+    	// Намират се документите, запазили количества
+    	$docs = array();
+    	foreach (array('store_ShipmentOrderDetails' => 'storeId', 'store_TransfersDetails' => 'fromStore', 'planning_ConsumptionNoteDetails' => 'storeId', 'store_ConsignmentProtocolDetailsSend' => 'storeId') as $Detail => $storeField){
+    		$Detail = cls::get($Detail);
+    		$Master = $Detail->Master;
+    		$dQuery = $Detail->getQuery();
+    		$dQuery->EXT('containerId', $Master->className, "externalName=containerId,externalKey={$Detail->masterKey}");
+    		$dQuery->EXT('storeId', $Master->className, "externalName={$storeField},externalKey={$Detail->masterKey}");
+    		$dQuery->EXT('state', $Master->className, "externalName=state,externalKey={$Detail->masterKey}");
+    		$dQuery->where("#state = 'pending'");
+    		$dQuery->where("#{$Detail->productFieldName} = {$rec->productId}");
+    		$dQuery->where("#storeId = {$rec->storeId}");
+    		$dQuery->groupBy('containerId');
+    		$dQuery->show('containerId');
+    		
+    		while ($dRec = $dQuery->fetch()){
+    			$docs[$dRec->containerId] = doc_Containers::getDocument($dRec->containerId)->getLink(0);
+    		}
+    	}
+    	
+    	$links = '';
+    	foreach ($docs as $link){
+    		$links .= "<div style='float:left'>{$link}</div>";
+    	}
+    	
+    	$tpl = new core_ET($links);
+    
+    	if (Request::get('ajax_mode')) {
+    		$resObj = new stdClass();
+    		$resObj->func = "html";
+    		$resObj->arg = array('id' => "reserve{$id}", 'html' => $tpl->getContent(), 'replace' => TRUE);
+    
+    		return array($resObj);
+    	} else {
+    		return $tpl;
+    	}
     }
 }
