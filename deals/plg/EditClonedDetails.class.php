@@ -59,18 +59,22 @@ class deals_plg_EditClonedDetails extends core_Plugin
 		// Ако ориджина има артикули
 		$num = 1;
 		$detailId = $Detail->getClassId();
+		$installedBatch = core_Packs::isInstalled('batch');
 		
 		foreach ($detailsToClone as $dRec){
 			$caption = cat_Products::getTitleById($dRec->{$Detail->productFld});
 			$caption .= " / " . cat_UoM::getShortName($dRec->packagingId);
 			$caption= str_replace(',', ' ', $caption);
 			$caption = "{$num}. {$caption}";
-				
-			$Def = batch_Defs::getBatchDef($dRec->{$Detail->productFld});
+			
+			if($installedBatch === TRUE){
+				$Def = batch_Defs::getBatchDef($dRec->{$Detail->productFld});
+			}
+			
 			$subCaption = 'К-во';
 			
 			// Ако е инсталиран пакета за партиди, ще се показват и те
-			if(core_Packs::isInstalled('batch') && is_object($Def)){
+			if($installedBatch && is_object($Def)){
 				$subCaption = 'Без партида';
 				$bQuery = batch_BatchesInDocuments::getQuery();
 				$bQuery->where("#detailClassId = {$detailId} AND #detailRecId = {$dRec->id} AND #productId = {$dRec->{$Detail->productFld}}");
@@ -188,6 +192,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
 					$det->quantity = $newPackQuantity * $det->quantityInPack;
 					$diff = $oldQuantity - $det->quantity;
 					$oldDetailId = $det->id;
+					$det->_clonedWithBatches = TRUE;
 					
 					if($rec->deduct == 'yes'){
 						if($diff <= 0){
@@ -201,7 +206,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
 					}
 					unset($det->id, $det->createdOn, $det->createdBy);
 					
-					$det->autoAllocate = FALSE;
+					
 					$det->{$Detail->masterKey} = $rec->id;
 					$Detail->save($det);
 					if(is_array($det->batches)){
@@ -217,7 +222,9 @@ class deals_plg_EditClonedDetails extends core_Plugin
 								}
 							}
 							
-							$batchesArr[$batch->batch] = $batch->quantity;
+							if(!empty($batch->quantity)){
+								$batchesArr[$batch->batch] = $batch->quantity;
+							}
 						}
 						batch_BatchesInDocuments::saveBatches($detailClassId, $det->id, $batchesArr);
 					}

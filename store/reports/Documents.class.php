@@ -87,6 +87,7 @@ class store_reports_Documents extends frame2_driver_TableData
 		$cu = (!empty($rec->createdBy)) ? $rec->createdBy : core_Users::getCurrent();
 		
 		$sQuery = store_Stores::getQuery();
+		$sQuery->where("#state != 'rejected'");
 		while($sRec = $sQuery->fetch()){
 			if(bgerp_plg_FLB::canUse('store_Stores', $sRec, $cu)){
 				$res[$sRec->id] = store_Stores::getTitleById($sRec->id, FALSE);
@@ -132,7 +133,9 @@ class store_reports_Documents extends frame2_driver_TableData
 		
 		foreach (array('store_ShipmentOrders', 'store_Receipts', 'store_Transfers') as $pDoc){
 			if(empty($rec->document) || ($rec->document == $pDoc::getClassId())){
-				$sQuery = $pDoc::getQuery();
+				$Document = cls::get($pDoc);
+				
+				$sQuery = $Document->getQuery();
 				self::applyFilters($sQuery, $storeIds, $pDoc, $rec, 'deliveryTime');
 				while($sRec = $sQuery->fetch()){
 					$linked = $this->getLinkedDocuments($sRec->containerId);
@@ -142,10 +145,14 @@ class store_reports_Documents extends frame2_driver_TableData
 					}
 					$stores = ($pDoc != 'store_Transfers') ? array($sRec->storeId) : array($sRec->fromStore, $sRec->toStore);
 					
+					$measures = $Document->getTotalTransportInfo($sRec->id);
+					setIfNot($sRec->{$Document->totalWeightFieldName}, $measures->weight); 
+					$sRec->{$Document->totalWeightFieldName} = ($sRec->weightInput) ? $sRec->weightInput : $sRec->{$Document->totalWeightFieldName};
+					
 					$recs[$sRec->containerId] = (object)array('containerId' => $sRec->containerId,
 														      'stores'      => $stores,
 													          'dueDate'     => $sRec->deliveryTime,
-													  		  'weight'      => ($sRec->weightInput) ? $sRec->weightInput : $sRec->weight,
+													  		  'weight'      => $sRec->{$Document->totalWeightFieldName},
 													  		  'pallets'     => NULL, // @TODO
 													  		  'linked'      => $linked,
 													  		  'folderId'    => $sRec->folderId,
@@ -258,12 +265,15 @@ class store_reports_Documents extends frame2_driver_TableData
 			$row->createdBy = strip_tags(($row->createdBy instanceof core_ET) ? $row->createdBy->getContent() : $row->createdBy);
 		}
 		
-		// Линк към документа
-		$singleUrl = $Document->getSingleUrlArray();
 		$handle = $Document->getHandle();
-		
 		$row->document = "#{$handle}";
+		
 		if(!Mode::isReadOnly() && !$isPlain){
+			$singleUrl = $Document->getSingleUrlArray();
+			if (empty($url) && frame2_Reports::haveRightFor('single', $rec->id) && $rec->state != 'rejected') {
+				$singleUrl = $Document->getUrlWithAccess($Document->getInstance(), $Document->that);
+			}
+			
 			$row->document = ht::createLink("#{$handle}", $singleUrl, FALSE, "ef_icon={$Document->singleIcon}");
 		}
 		
@@ -321,7 +331,7 @@ class store_reports_Documents extends frame2_driver_TableData
 			$stores = array();
 			foreach ($dRec->stores as $storeId){
 				$link = store_Stores::getHyperlink($storeId, TRUE);
-				$stores[] = ($isPlain) ? store_Stores::getTitleById() : store_Stores::getHyperlink($storeId, TRUE);
+				$stores[] = ($isPlain) ? store_Stores::getTitleById($storeId) : store_Stores::getHyperlink($storeId, TRUE);
 			}
 			$row->stores = implode(' » ', $stores);
 		}

@@ -229,6 +229,7 @@ class sales_Quotations extends core_Master
         $this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Oсвободено от ДДС, no=Без начисляване на ДДС)','caption=Плащане->ДДС,oldFieldName=vat');
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTermSale');
         $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Място,hint=Изберете локация или въведете нова');
+        $this->FLD('deliveryAdress', 'varchar', 'caption=Доставка->Адрес,placeholder=Ако е празно се взима според условието на доставка');
         
 		$this->FLD('company', 'varchar', 'caption=Получател->Фирма, changable, class=contactData');
         $this->FLD('person', 'varchar', 'caption=Получател->Име, changable, class=contactData');
@@ -364,14 +365,21 @@ class sales_Quotations extends core_Master
     	}
     	
     	$dData = $data->sales_QuotationsDetails;
+    	
     	if($dData->countNotOptional && $dData->notOptionalHaveOneQuantity){
-    		$firstProductRow = $dData->rows[key($dData->rows)][0];
+    		$keys = array_keys($dData->rows);
+    		$firstProductRow = $dData->rows[$keys[0]][0];
+    		
     		if($firstProductRow->tolerance){
-    			$data->row->others .= "<li>" . tr('Толеранс:') ." {$firstProductRow->tolerance}</li>";
+    			$data->row->others .= "<li>" . tr('Толеранс к-во') .": {$firstProductRow->tolerance}</li>";
     		}
     		
     		if(isset($firstProductRow->term)){
-    			$data->row->others .= "<li>" . tr('Срок:') ." {$firstProductRow->term}</li>";
+    			$data->row->others .= "<li>" . tr('Срок за доставка') .": {$firstProductRow->term}</li>";
+    		}
+    		
+    		if(isset($firstProductRow->weight)){
+    			$data->row->others .= "<li>" . tr('Транспортно тегло') .": {$firstProductRow->weight}</li>";
     		}
     	}
     }
@@ -554,7 +562,7 @@ class sales_Quotations extends core_Master
     		
     		if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
     			if($rec->deliveryPlaceId){
-    				if($placeId = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id')){
+    				if($placeId = crm_Locations::fetchField(array("#title = '[#1#]'", $rec->deliveryPlaceId), 'id')){
     					$row->deliveryPlaceId = ht::createLinkRef($row->deliveryPlaceId, array('crm_Locations', 'single', $placeId), NULL, 'title=Към локацията');
     				}
     			}
@@ -566,6 +574,22 @@ class sales_Quotations extends core_Master
     			}
     		}
     		 
+    		$deliveryAdress = '';
+    		if(!empty($rec->deliveryAdress)){
+    			$deliveryAdress .= $mvc->getFieldType('deliveryAdress')->toVerbal($rec->deliveryAdress);
+    		} else {
+    			if(isset($rec->deliveryTermId)){
+    				$deliveryAdress .= cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, NULL, $placeId, $mvc);
+    				$deliveryAdress = ht::createHint($deliveryAdress, 'Адреса за доставка ще се запише при активиране');
+    			}
+    		}
+    		
+    		if(!empty($deliveryAdress)){
+				$deliveryAdress1 = (isset($rec->deliveryTermId)) ? (cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'codeName') . ": ") : "";
+				$deliveryAdress = $deliveryAdress1 . $deliveryAdress;
+				$row->deliveryTermId = $deliveryAdress;
+			}
+			
     		if(!empty($profRec)){
     			$createdRec = crm_Persons::fetch($profRec->id);
     		}
@@ -826,10 +850,28 @@ class sales_Quotations extends core_Master
 		    }
 		}
 		
+		$updateFields = array();
+		
+		// Запис на адреса
+		if(empty($rec->deliveryAdress) && isset($rec->deliveryTermId)){
+			
+			$locationId = ($newLocation) ? $newLocation->id : NULL;
+			$rec->tplLang = $mvc->pushTemplateLg($rec->template);
+			$rec->deliveryAdress = cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, NULL, $locationId, $mvc);
+			$updateFields[] = 'deliveryAdress';
+			
+			core_Lg::pop($rec->tplLang);
+		}
+		
+		
 		// Ако няма дата попълваме текущата след активиране
 		if(empty($rec->date)){
+			$updateFields[] = 'date';
 			$rec->date = dt::today();
-			$mvc->save($rec, 'date');
+		}
+		
+		if(count($updateFields)){
+			$mvc->save($rec, $updateFields);
 		}
 		
 		// Ако запитването е в папка на контрагент вкарва се в група запитвания
@@ -1488,7 +1530,7 @@ class sales_Quotations extends core_Master
     	$saveRecs = array();
     	$dQuery = sales_QuotationsDetails::getQuery();
     	$dQuery->where("#quotationId = {$quotationId}");
-    	$dQuery->where("#price IS NULL || #tolerance IS NULL || #term IS NULL");
+    	$dQuery->where("#price IS NULL || #tolerance IS NULL || #term IS NULL || #weight IS NULL");
     	while($dRec = $dQuery->fetch()){
     		if(!isset($dRec->price)){
     			sales_QuotationsDetails::calcLivePrice($dRec, $rec);
@@ -1511,6 +1553,10 @@ class sales_Quotations extends core_Master
     			if($tolerance = cat_Products::getTolerance($dRec->productId, $dRec->quantity)){
     				$dRec->tolerance = $tolerance;
     			}
+    		}
+    		
+    		if(!isset($dRec->weight)){
+    			$dRec->weight = cat_Products::getWeight($dRec->productId, $dRec->packagingId, $dRec->quantity);
     		}
     		
     		$saveRecs[] = $dRec;

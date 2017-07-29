@@ -143,6 +143,7 @@
                 <!--ET_BEGIN username-->
                 <div>|Съставил|*:  [#username#]</div>
                 <!--ET_END username-->
+                <div class='small'>( ПИК: [#userCode#] )</div>
             </td>
         </tr>
         <tr class='footerDocInfo'>

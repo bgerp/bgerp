@@ -217,17 +217,12 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		$masterRec = $data->masterData->rec;
 		$firstDocument = doc_Threads::getFirstDocument($masterRec->threadId);
 		
-		if(!count($recs)) return;
-		
 		if(count($data->rows)) {
 			foreach ($data->rows as $i => &$row) {
 				$rec = &$data->recs[$i];
 				
 				// Показваме подробната информация за опаковката при нужда
 				deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
-				
-				$row->weight = (!empty($rec->weight)) ? $row->weight : "<span class='quiet'>0</span>";
-				$row->volume = (!empty($rec->volume)) ? $row->volume : "<span class='quiet'>0</span>";
 			}
 		}
 	}

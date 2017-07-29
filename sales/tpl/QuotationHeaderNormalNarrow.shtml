@@ -79,7 +79,7 @@
 			            <li>|Банкова сметка|*: [#bankAccountId#]</li>
 			            <!--ET_END bankAccountId-->
 			            <!--ET_BEGIN deliveryTermId-->
-				        <li>|Условие на доставка|*: [#deliveryTermId#]</li>
+				        <li>|Доставка|*: [#deliveryTermId#]</li>
 				        <!--ET_END deliveryTermId-->
 				        <!--ET_BEGIN deliveryPlaceId-->
 				        <li>|Място на доставка|*: [#deliveryPlaceId#]</li>

@@ -273,7 +273,8 @@ class cat_Listings extends core_Master
     		
     		// Добавя се всеки запис, групиран според типа
     		while($rec = $query->fetch()){
-    			$obj = (object)array('productId' => $rec->productId, 'packagingId' => $rec->packagingId, 'reff' => $rec->reff, 'moq' => $rec->moq, 'multiplicity' => $rec->multiplicity, 'code' => $rec->code);
+    			$reff = (!empty($rec->reff)) ? $rec->reff : $rec->code;
+    			$obj = (object)array('productId' => $rec->productId, 'packagingId' => $rec->packagingId, 'reff' => $reff, 'moq' => $rec->moq, 'multiplicity' => $rec->multiplicity, 'code' => $rec->code);
     			if(isset($rec->price)){
     				
     				if($listRec->vat == 'yes'){
@@ -432,7 +433,7 @@ class cat_Listings extends core_Master
     {
     	core_Debug::$isLogging = FALSE;
     	
-    	$from = dt::addDays(-30, NULL, FALSE);
+    	$from = dt::addDays(-60, NULL, FALSE);
     	$today = dt::today();
     	$now = dt::now();
     	
@@ -467,36 +468,43 @@ class cat_Listings extends core_Master
     		
     		// Ако за тази папка има избран лист не се създава
     		$condId = cond_ConditionsToCustomers::fetchByCustomer($Cover->getClassId(), $Cover->that, $paramId);
-    		if(!empty($condId)) continue;
+    		$autoListId = cat_Listings::fetchField("#sysId = 'auto{$folderId}'");
     		
+    		if(!empty($condId) && empty($autoListId)) continue;
+
     		$res = array();
     		
     		// Намират се всички продавани стандартни артикули от тази папка
     		$dQuery = sales_SalesDetails::getQuery();
+    		$dQuery->XPR('count', 'int', 'count(#productId)');
     		$dQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
     		$dQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
     		$dQuery->EXT('canSell', 'cat_Products', 'externalName=canSell,externalKey=productId');
     		$dQuery->EXT('valior', 'sales_Sales', 'externalName=valior,externalKey=saleId');
     		$dQuery->EXT('folderId', 'sales_Sales', 'externalName=folderId,externalKey=saleId');
+    		$dQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
     		$dQuery->EXT('state', 'sales_Sales', 'externalName=state,externalKey=saleId');
     		$dQuery->where("#valior >= '{$from}' AND #valior <= '{$today}' AND (#state = 'active' OR #state = 'closed')");
-    		$dQuery->where("#folderId = {$folderId} AND #canSell = 'yes'");
-    		$dQuery->groupBy('productId,packagingId');
-    		$dQuery->show('productId,packagingId,code');
-    		$all = $dQuery->fetchAll();
-    		if(!count($all)) continue;
+    		$dQuery->where("#folderId = {$folderId} AND #canSell = 'yes' AND #isPublic = 'yes'");
     		
-    		foreach ($all as &$o){
-    			cat_Products::setCodeIfEmpty($o);
+    		// Ограничаване по групи, ако има
+    		$groupList = cat_Setup::get('AUTO_LIST_ALLOWED_GROUPS');
+    		if(!empty($groupList)){
+    			$dQuery->likeKeylist('groups', $groupList);
     		}
     		
-    		arr::orderA($all, 'code');
+    		$dQuery->groupBy('productId,packagingId');
+    		$dQuery->show('productId,packagingId,code,count');
+    		$dQuery->orderBy('count,saleId', 'DESC');
+    		$all = $dQuery->fetchAll();
+    		
+    		if(!count($all)) continue;
     		$products = arr::extractSubArray($all, 'productId,packagingId');
     		
     		// Форсира се системен лист
     		$listId = self::forceAutoList($folderId, $Cover);
     		
-    		if($listId){
+    		if($listId && empty($condId)){
     			cond_ConditionsToCustomers::force($Cover->getClassId(), $Cover->that, $paramId, $listId);
     		}
     		
@@ -518,8 +526,10 @@ class cat_Listings extends core_Master
      					                                     'packagingId' => $obj->packagingId);
     		}
     		
-    		// Взимат се първите 20 записа
-    		$newDetails = array_slice($newDetails, 0, 20, TRUE);
+    		$limit = cat_Setup::get('AUTO_LIST_PRODUCT_COUNT');
+    		
+    		// Взимат се първите N записа
+    		$newDetails = array_slice($newDetails, 0, $limit, TRUE);
     		
     		// Досегашните записи на листа
     		$lQuery = cat_ListingDetails::getQuery();
@@ -563,6 +573,8 @@ class cat_Listings extends core_Master
     	$listId = cat_Listings::fetchField("#sysId = 'auto{$folderId}'");
     	if(!$listId){
     		$lRec = (object)array('title' => $title, 'type' => 'canSell', 'folderId' => $folderId, 'state' => 'active', 'isPublic' => 'no', 'sysId' => "auto{$folderId}");
+    		$lRec->currencyId = $Cover->getDefaultCurrencyId();
+    		$lRec->vat = ($Cover->shouldChargeVat()) ? 'yes' : 'no';
     		$listId = self::save($lRec);
     	}
     	

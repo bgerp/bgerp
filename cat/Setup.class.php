@@ -44,6 +44,19 @@ defIfNot('CAT_DEFAULT_PRICELIST', price_ListRules::PRICE_LIST_CATALOG);
 
 
 /**
+ * Брой артикули в автоматичните списъци
+ */
+defIfNot('CAT_AUTO_LIST_PRODUCT_COUNT', 30);
+
+
+
+/**
+ * Артикулите от кои групи да влизат в последните продажби
+ */
+defIfNot('CAT_AUTO_LIST_ALLOWED_GROUPS', '');
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -109,6 +122,7 @@ class cat_Setup extends core_ProtoSetup
     		'cat_ProductTplCache',
     		'cat_Listings',
     		'cat_ListingDetails',
+    		'cat_PackParams',
     		'migrate::migrateGroups',
     		'migrate::migrateProformas',
     		'migrate::removeOldParams1',
@@ -123,7 +137,8 @@ class cat_Setup extends core_ProtoSetup
     		'migrate::migratePrototypes',
     		'migrate::updateListings1',
     		'migrate::updateLists',
-    		'migrate::migrateListings'
+    		'migrate::migrateListings',
+    		'migrate::updateCatCache',
         );
     
     
@@ -165,6 +180,8 @@ class cat_Setup extends core_ProtoSetup
     		'CAT_BOM_MAX_COMPONENTS_LEVEL'          => array("int(min=0)", 'caption=Вложени рецепти - нива с показване на компонентите->Макс. брой'),
     		'CAT_WAC_PRICE_PERIOD_LIMIT'            => array("int(min=1)", array('caption' => 'До колко периода назад да се търси складова себестойност, ако няма->Брой')),
             'CAT_DEFAULT_PRICELIST'                 => array("key(mvc=price_Lists,select=title,allowEmpty)", 'caption=Ценова политика по подразбиране->Избор,mandatory'),
+            'CAT_AUTO_LIST_PRODUCT_COUNT'           => array("int(min=1)", 'caption=Списъци от последно продавани артикули->Брой'),
+            'CAT_AUTO_LIST_ALLOWED_GROUPS'          => array("keylist(mvc=cat_Groups,select=name)", 'caption=Списъци от последно продавани артикули->Групи'),
     );
 
     
@@ -636,5 +653,14 @@ class cat_Setup extends core_ProtoSetup
     			reportException($e);
     		}
     	}
+    }
+    
+    
+    /**
+     * Изчистване на кеша
+     */
+    function updateCatCache()
+    {
+    	cat_ProductTplCache::delete("#type = 'title'");
     }
 }

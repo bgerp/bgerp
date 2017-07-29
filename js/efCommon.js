@@ -1085,15 +1085,17 @@ function prepareContextMenu() {
             'verAdjust': vertAdjust,
             'horAdjust': horAdjust
         });
+        
         $('.modal-toolbar .button').on("click", function(){
             $('.more-btn').contextMenu('close');
         });
     });
 }
 
-var timeOfSettingTab, timeOfNotification;
+var timeOfSettingTab, timeOfNotification, oldNotificationsCnt;
 function openCurrentTab(){
     if(!$('body').hasClass('modern-theme')) return;
+    oldNotificationsCnt = $('#nCntLink').text();
     var current;
     // взимаме данните за портала в бисквитката
     var portalTabs = getCookie('portalTabs');
@@ -3115,6 +3117,9 @@ function efae() {
 
     // Флаг, който указва дали все още се чака резултат от предишна AJAX заявка
     Experta.prototype.isWaitingResponse = false;
+	
+    // Флаг, който указва колко време да не може да се прави AJAX заявки по часовник
+    efae.prototype.waitPeriodicAjaxCall = 0;
 }
 
 
@@ -3143,13 +3148,16 @@ efae.prototype.run = function() {
     try {
         // Увеличаваме брояча
         this.increaseTimeout();
-
-        // Вземаме всички URL-та, които трябва да се извикат в този цикъл
-        var subscribedObj = this.getSubscribed();
-
-        // Стартираме процеса
-        this.process(subscribedObj);
-
+    	
+        if (this.waitPeriodicAjaxCall <= 0) {
+        	// Вземаме всички URL-та, които трябва да се извикат в този цикъл
+            var subscribedObj = this.getSubscribed();
+			
+            // Стартираме процеса
+            this.process(subscribedObj);
+        } else {
+        	this.waitPeriodicAjaxCall--;
+        }
     } catch (err) {
 
         // Ако възникне грешка
@@ -4056,7 +4064,6 @@ function changeTitleCnt(cnt) {
     document.title = title;
 }
 
-var oldNotificationsCnt = 0 ;
 /**
  * Променя броя на нотификациите
  *
@@ -4085,7 +4092,7 @@ function changeNotificationsCnt(data) {
             oldNotificationsCnt = notificationsCnt;
             timeOfNotification = jQuery.now();
 
-            if(!timeOfSettingTab || (timeOfSettingTab < timeOfNotification)) {
+            if(typeof timeOfSettingTab == "undefined" || (timeOfSettingTab < timeOfNotification)) {
                 setCookie('portalTabs', "notificationsPortal");
             }
         }
@@ -4116,6 +4123,33 @@ function showToast(data) {
     }, data.timeOut);
 }
 
+
+/**
+ * Рендира новото изображение за превю на картина
+ * 
+ * @param object data - Обект с необходимите стойности
+ * data.data-url
+ * data.src
+ * data.width
+ * data.height
+ * data.fh
+ */
+function render_setNewFilePreview(data) {
+	console.log(data);
+}
+
+function changeZoomImage(el) {
+    if($(el).attr("data-zoomed") == "no") {
+        if($('body').hasClass('wide')){
+            $(el).css("width",$(el).css("width"));
+            $(el).css("height","auto");
+        }
+        $(el).attr("width", $(el).attr("data-bigwidth"));
+        $(el).attr("height", $(el).attr("data-bigheight"));
+        $(el).attr("src",$(el).attr("data-bigsrc"));
+        $(el).attr("data-zoomed", "yes");
+    }
+}
 
 /**
  * Experta - Клас за функции на EF
@@ -4572,7 +4606,7 @@ Experta.prototype.checkBodyId = function(bodyId) {
 	}
 
 	var bodyIds = sessionStorage.getItem(this.bodyIdSessName);
-
+	
 	if (!bodyIds) return ;
 
 	bodyIds =  $.parseJSON(bodyIds);
@@ -4944,7 +4978,9 @@ function startUrlFromDataAttr(obj, stopOnClick)
 	}
 
 	getEfae().process(resObj);
-
+	
+	getEfae().waitPeriodicAjaxCall = 0;
+	
 	return false;
 }
 

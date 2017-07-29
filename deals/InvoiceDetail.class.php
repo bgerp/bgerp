@@ -126,10 +126,12 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		}
 		
 		if($masterRec->state != 'draft'){
-			$fields = $data->form->selectFields("#name != 'notes'");
+			$fields = $data->form->selectFields("#name != 'notes' AND #name != 'productId' AND #name != 'id' AND #name != 'invoiceId'");
+			$data->singleTitle = 'забележка';
+			$data->form->editActive = TRUE;
 			
 			foreach ($fields as $name => $fld){
-				$data->form->setReadOnly($name);
+				$data->form->setField($name, 'input=none');
 			}
 		}
 	}
@@ -463,7 +465,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		$rec = &$form->rec;
 		$masterRec  = $mvc->Master->fetch($rec->{$mvc->masterKey});
 		
-		if($form->rec->productId && $masterRec->type != 'dc_note'){
+		if($form->rec->productId && $masterRec->type != 'dc_note' && $form->editActive !== TRUE){
 			$vat = cat_Products::getVat($rec->productId);
 			$productInfo = cat_Products::getProductInfo($rec->productId);
 			

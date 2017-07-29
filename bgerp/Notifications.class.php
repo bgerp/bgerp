@@ -376,6 +376,7 @@ class bgerp_Notifications extends core_Manager
         $attr = array();
         if($rec->state == 'active') {
             $attr['style'] = 'font-weight:bold;';
+            $attr['onclick'] = 'render_forceReloadAfterBack()';
         } else {
             $attr['style'] = 'color:#666;';
         }
@@ -396,6 +397,7 @@ class bgerp_Notifications extends core_Manager
         // Спираме преовада и въте, ако има за превеждане, тогава се превежда
         $row->msg = tr("|*{$row->msg}");
         $row->msg = str::limitLen($row->msg, self::maxLenTitle, 20, " ... ", TRUE);
+        
         $row->msg = ht::createLink($row->msg, $url, NULL, $attr);
     }
     
@@ -433,14 +435,18 @@ class bgerp_Notifications extends core_Manager
     	}
         
     	// Маркиране/отмаркиране на текст
-    	$markUrl = array(get_called_class(), 'mark', $rec->id, 'ret_url' => TRUE);
+    	$markUrl = array(get_called_class(), 'mark', $rec->id);
     	$markText = 'Маркиране';
         $iconMark = "img/16/mark.png";
     	if ($rec->state == 'active') {
     	    $markText = 'Отмаркиране';
             $iconMark = "img/16/unmark.png";
     	}
-    	$markBtn = ht::createLink(tr($markText), $markUrl, NULL, array('ef_icon' => $iconMark, 'title' => 'Запознаване със съдържанието', "class" => "button"));
+    	$attr = array('ef_icon' => $iconMark, 'title' => $markText . ' на нотификацията', "class" => "button", 'data-url' => toUrl($markUrl, 'local'));
+    	$attr['onclick'] = 'return startUrlFromDataAttr(this, true);';
+    	
+    	$markBtn = ht::createLink(tr($markText), $markUrl, NULL, $attr);
+
     	$tpl->append($markBtn);
     	
     	// Бутон за настройки
@@ -450,7 +456,7 @@ class bgerp_Notifications extends core_Manager
         	    $ctrInst = cls::get($ctr);
         	    $settingsUrl = array(get_called_class(), 'settings', $rec->id, 'ret_url' => TRUE);
         	    if (($ctrInst instanceof doc_Folders) || ($ctrInst instanceof doc_Threads) || ($ctrInst instanceof doc_Containers) || (cls::haveInterface('doc_DocumentIntf', $ctrInst))) {
-        	        $settingsBtn = ht::createLink('Настройки', $settingsUrl, NULL, array('ef_icon' => "img/16/cog.png", 'title' => 'Запознаване със съдържанието', "class" => "button"));
+        	        $settingsBtn = ht::createLink('Настройки', $settingsUrl, NULL, array('ef_icon' => "img/16/cog.png", 'title' => 'Настойки за получаване на нотификация', "class" => "button"));
         	        $tpl->append($settingsBtn);
         	    }
     	    }
@@ -498,11 +504,28 @@ class bgerp_Notifications extends core_Manager
         
         self::save($rec, 'state, modifiedOn, modifiedBy');
         
-        $retUrl = getRetUrl();
-        
         $this->logWrite($act . ' на нотификация', $rec->id);
         
-        return new Redirect($retUrl, "|Успепшно {$msg} нотификацията");
+        if (!Request::get('ajax_mode')) {
+            
+            return new Redirect(array('Portal', 'show'), "|Успепшно {$msg} нотификацията");
+        }
+        
+        $res = $this->action('render');
+        
+        // Добавяме резултата и броя на нотифиакциите
+        if (is_array($res)) {
+			
+            $notifCnt = static::getOpenCnt();
+            
+            $obj = new stdClass();
+            $obj->func = 'notificationsCnt';
+            $obj->arg = array('id'=>'nCntLink', 'cnt' => $notifCnt);
+            
+            $res[] = $obj;
+        }
+        
+        return $res;
     }
     
     
@@ -1066,8 +1089,13 @@ class bgerp_Notifications extends core_Manager
         // Премахваме всички тагове без 'a'
         // Това е необходимо за да определим когато има промяна в състоянието на някоя нотификация
         // Трябва да се премахват другите тагове, защото цвета се промяне през няколко секунди
-        // и това би накарало всеки път да се обновяват нотификациите
-        $hash = md5(trim(strip_tags($status, '<a>')));
+        // и това би накарало всеки път да се обновяват нотификациите.
+        
+        $status = strip_tags($status, '<a>');
+        
+        $status = preg_replace('/context-holder[0-9]{1,4}_[0-9]{1,2}/i', '', $status);
+        
+        $hash = md5(trim($status));
         
         return $hash;
     }

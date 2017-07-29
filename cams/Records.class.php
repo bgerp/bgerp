@@ -306,7 +306,7 @@ class cams_Records extends core_Master
 
         $tpl = new ET ('
             <div id=toolbar style="margin-bottom:10px;">[#toolbar#]</div>
-            <div class="video-rec" style="display:table">
+            <div class="video-rec">
                 <div class="[#captionClass#]" style="padding:5px;font-size:0.95em;">[#caption#]</div>
                 [#playerTpl#]
                 <div>[#convertProgress#]</div>
@@ -316,7 +316,7 @@ class cams_Records extends core_Master
         $data->toolbar = $data->toolbar->renderHtml();
 
         if ($this->isRecordConverting(basename($data->url))) {
-            $data->playerTpl = "<img src={$data->image} width={$data->width} height={$data->height} style='cursor: wait;'>";
+            $data->playerTpl = "<img class='imageProcesing' src={$data->image} width={$data->width} height={$data->height} style='cursor: wait;'>";
             $data->convertProgress = "Конвертиране ...";
             $tpl->appendOnce("\n" . '<meta http-equiv="refresh" content="3">', "HEAD");
         } else {
@@ -882,7 +882,7 @@ class cams_Records extends core_Master
                 
                 $date = "<div class='{$class}' style='border-bottom:solid 1px #ccc;'>" . $startVerbalTime . "</div>";
                 
-                $html .= "<td style='width:240px; height:211px; text-align:center; vertical-align:top;background-color:#e8e8e8'>{$date}{$content}</td>";
+                $html .= "<td class='recordImage'>{$date}{$content}</td>";
             }
             
             $html .= "</tr>";
@@ -918,7 +918,7 @@ class cams_Records extends core_Master
     {
         $attr = array();
         $attr['src'] = toUrl(array($mvc, 'StartJpg', $rec->id, 'thumb' => 'yes'));
-        
+
         $row->thumb = ht::createElement('img', $attr);
     }
     
@@ -1046,14 +1046,14 @@ class cams_Records extends core_Master
         $before5min = dt::addsecs(-6*60);
         $query->where("#startTime < '{$before5min}' AND #isAnalyzed = 'no'");
         //$query->limit(100);
-        $query->limit(50);
+        $query->limit(60);
 
         while ($rec = $query->fetch()) {
             $paths = $this->getFilePaths($rec->startTime, $rec->cameraId); //bp($paths);
             $Script[$rec->id] = cls::get('fconv_Script');
             $Script[$rec->id]->setFile('INPUTF', $paths->videoFile);
             $Script[$rec->id]->setFile('OUTPUTF', "/shot_" . $rec->id . "_%03d.jpg");
-            $Script[$rec->id]->lineExec("ffmpeg -i [#INPUTF#] -an -vf \"select=gt(scene\,0.03),setpts=N/(2*TB)\" [#OUTPUTF#]");
+            $Script[$rec->id]->lineExec("ffmpeg -i [#INPUTF#] -an -vf \"select=gt(scene\,0.02),setpts=N/(2*TB)\" [#OUTPUTF#]");
             $Script[$rec->id]->callBack('cams_Records::afterAnalyze');
             $Script[$rec->id]->recId = $rec->id;
             $Script[$rec->id]->imageFile = $paths->imageFile;
@@ -1062,6 +1062,7 @@ class cams_Records extends core_Master
             $async = TRUE;
             if ($Script[$rec->id]->run($async) !== FALSE) {
             }
+            sleep(2);
         }
 
     }
@@ -1074,11 +1075,12 @@ class cams_Records extends core_Master
     {
         // Ако имаме получени картинки, вадим максимално до 4 от тях и викаме: montage keyframes001.png keyframes002.png keyframes003.png keyframes005.png -geometry 512x384+2+2 result.png
         // взимаме броя на jpg файловете, които са резултат от движението във видеото
-        $fCnt = exec("ls -l {$script->tempDir}*.jpg | wc -l");
+        $fCnt = (int) exec("ls -l {$script->tempDir}*.jpg | wc -l");
         $fourShots = '';
         $outpuF = str_replace("//", "/", $script->tempDir . $script->files['OUTPUTF']);
         // Ако имаме само 1 картинка - нищо не правим. Ако имаме 2 или 3, повтаряме последтата
         switch ($fCnt) {
+            case 0:
             case 1:
                 break;
             case 2:
@@ -1101,11 +1103,8 @@ class cams_Records extends core_Master
                      . sprintf($outpuF, $fCnt);
         }
         
-        $cmd = "montage " . $fourShots . " -geometry 512x384+2+2 " . $script->tempDir . "result.jpg";        
-        
-//         file_put_contents('afterAnalizeRES.txt', print_r($script, TRUE) . PHP_EOL, FILE_APPEND);
-//         file_put_contents('afterAnalizeRES.txt', $fCnt . PHP_EOL, FILE_APPEND);
         if (!empty($fourShots)) {
+            $cmd = "montage " . $fourShots . " -geometry 512x384+2+2 " . $script->tempDir . "result.jpg";        
             exec($cmd);
             // Резултатната снимка записваме като файла за картинка
             copy($script->tempDir . "result.jpg", $script->imageFile);
@@ -1124,8 +1123,7 @@ class cams_Records extends core_Master
         $this->save($rec);
         // Ако е наближило 300 секунди от началото на процеса - излизаме иначе, продължаваме от начало
         
-        // Разкарваме временната директория
-        exec(sprintf("rm -rf %s", escapeshellarg($script->tempDir)));
+        return TRUE;
     }
     
     /**

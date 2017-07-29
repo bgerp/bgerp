@@ -477,27 +477,34 @@ class fileman_Indexes extends core_Manager
      */
     static function haveErrors($file, $params)
     {
-        $haveErrFile = FALSE;
-        
         // Ако е файл в директория
         if (strstr($file, '/')) {
             
             // Ако е валиден файл
             $isValid = is_file($file);
             
-            // Ако няма валиден файл записваме грешката в лога
-            if (!$isValid) {
+            if (($errFilePath = $params['errFilePath']) && is_file($errFilePath)) {
                 
-                if (($errFilePath = $params['errFilePath']) && is_file($errFilePath)) {
+                $errContent = @file_get_contents($errFilePath);
+                
+                $errContent = trim($errContent);
+                
+                // Записваме грешката в дебъг лога
+                if ($errContent) {
                     
-                    $haveErrFile = TRUE;
-                    $errContent = file_get_contents($errFilePath);
+                    $fileContent = '';
+                    if ($isValid) {
+                        $fileContent = @file_get_contents($file);
+                        $fileContent = trim($fileContent);
+                    }
                     
-                    $errContent = trim($errContent);
-                    
-                    // Записваме грешката в дебъг лога
-                    if ($errContent) {
-                        fileman_Indexes::logErr($errContent);
+                    if (!$fileContent) {
+                        
+                        if ($isValid) {
+                            fileman_Indexes::logNotice($errContent);
+                        } else {
+                            fileman_Indexes::logErr($errContent);
+                        }
                     }
                 }
             }
@@ -704,7 +711,7 @@ class fileman_Indexes extends core_Manager
             
             // Ако от преди това е извличано текстовата част, използваме нея
             $content = self::getTextForIndex($hnd);
-            if ($content === FALSE) {
+            if ($content === FALSE || !trim($content)) {
                 
                 // Намираме драйвера
                 $drvInst = self::getDrvForMethod($ext, 'extractText', $fName);

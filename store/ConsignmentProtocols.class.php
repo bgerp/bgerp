@@ -196,9 +196,6 @@ class store_ConsignmentProtocols extends core_Master
     	);
     	$this->FLD('snapshot', 'blob(serialize, compress)', 'caption=Данни,input=none');
     	$this->FLD('responsible', 'varchar', 'caption=Получил');
-    	
-    	$this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
-    	$this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
     }
     
     
@@ -211,36 +208,6 @@ class store_ConsignmentProtocols extends core_Master
     	if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'store_Stores', 'storeId')){
     		$requiredRoles = 'no_one';
     	}
-    }
-    
-    
-    /**
-     * Обновява данни в мастъра
-     *
-     * @param int $id първичен ключ на статия
-     * @return int $id ид-то на обновения запис
-     */
-    public function updateMaster_($id)
-    {
-    	$rec = $this->fetch($id);
-    	
-    	if (!$rec) return ;
-    	
-    	$dRec1 = store_ConsignmentProtocolDetailsReceived::getQuery();
-    	$dRec1->where("#protocolId = {$rec->id}");
-    	$measuresSend = $this->getMeasures($dRec1->fetchAll());
-    	 
-    	$dRec2 = store_ConsignmentProtocolDetailsSend::getQuery();
-    	$dRec2->where("#protocolId = {$rec->id}");
-    	
-    	$measuresReceived = $this->getMeasures($dRec2->fetchAll());
-    	$weight =  $measuresSend->weight + $measuresReceived->weight;
-    	$volume =  $measuresSend->volume + $measuresReceived->volume;
-    	 
-    	$rec->weight = $weight;
-    	$rec->volume = $volume;
-    	
-    	return $this->save($rec);
     }
     
     
@@ -264,8 +231,6 @@ class store_ConsignmentProtocols extends core_Master
     			$row->lineId = trans_Lines::getHyperLink($rec->lineId);
     		}
     		
-    		$row->weight = ($row->weightInput) ? $row->weightInput : $row->weight;
-    		$row->volume = ($row->volumeInput) ? $row->volumeInput : $row->volume;
     		$row->username = core_Users::getVerbal($rec->createdBy, 'names');
     	}
     }
@@ -495,16 +460,21 @@ class store_ConsignmentProtocols extends core_Master
     	
     	$count = 1;
     	while($rec = $query->fetch()){
+    		$row = $this->recToVerbal($rec);
     		
-    		$rec->weight = ($rec->weightInput) ? $rec->weightInput : $rec->weight;
-    		$rec->volume = ($rec->volumeInput) ? $rec->volumeInput : $rec->volume;
+    		if(!empty($rec->weight) && $data->masterData->weight !== FALSE){
+    			$data->masterData->weight += $rec->weight;
+    		} else {
+    			$data->masterData->weight = FALSE;
+    		}
     		
-    		$data->masterData->weight += $rec->weight;
-    		$data->masterData->volume += $rec->volume;
+    		if(!empty($rec->volume) && $data->masterData->volume !== FALSE){
+    			$data->masterData->volume += $rec->volume;
+    		} else {
+    			$data->masterData->volume = FALSE;
+    		}
+    		
     		$data->masterData->palletCount += $rec->palletCountInput;
-    		
-    		$row = $this->recToVerbal($rec, 'storeId,weight,volume,palletCountInput');
-    		
     		$row->docId = $this->getLink($rec->id, 0);
     		$row->contragentAddress = str_replace('<br>', ',', $row->contragentAddress);
     		$row->contragentAddress = "<span style='font-size:0.8em'>{$row->contragentAddress}</span>";
@@ -528,5 +498,40 @@ class store_ConsignmentProtocols extends core_Master
     		 
     		return $table->get($data->protocols, $fields);
     	}
+    }
+    
+    
+    /**
+     * Изчисляване на общото тегло и обем на документа
+     *
+     * @param stdClass $res
+     * 			- weight - теглото на реда
+     * 			- volume - теглото на реда
+     * @param int $id
+     * @param boolean $force
+     */
+    public function getTotalTransportInfo($id, $force = FALSE)
+    {
+    	$res1 = cls::get('store_ConsignmentProtocolDetailsReceived')->getTransportInfo($id, $force);
+    	$res2 = cls::get('store_ConsignmentProtocolDetailsSend')->getTransportInfo($id, $force);
+    	
+    	$weight = (!is_null($res1->weight) && !is_null($res2->weight)) ? $res1->weight + $res2->weight : NULL;
+    	$volume = (!is_null($res1->volume) && !is_null($res2->volume)) ? $res1->volume + $res2->volume : NULL;
+    	
+    	return (object)array('weight' => $weight, 'volume' => $volume);
+    }
+    
+    
+    /**
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
+     */
+    public function updateMaster_($id)
+    {
+    	$rec = $this->fetchRec($id);
+    
+    	return $this->save($rec);
     }
 }

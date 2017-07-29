@@ -534,7 +534,8 @@ class csv_Lib
   
         // Конвертираме към UTF-8
         $csv = i18n_Charset::convertToUtf8($csv, array('UTF-8', 'WIN1251'));
-
+        
+        $csv = str_replace(chr(194).chr(160), '', $csv);
 
         // Определяне на формата
         if(strlen($delimiter)) {

@@ -516,8 +516,6 @@ class purchase_Purchases extends deals_DealMaster
             }
            
             $info = cat_Products::getProductInfo($p->productId);
-            $p->weight  = cat_Products::getWeight($p->productId, $p->packagingId, $p->quantity);
-            $p->volume  = cat_Products::getVolume($p->productId, $p->packagingId, $p->quantity);
             $p->expenseRecId = acc_CostAllocations::fetchField("#detailClassId = {$detailClassId} AND #detailRecId = {$dRec->id}");
             
             $agreed[] = $p;

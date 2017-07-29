@@ -81,7 +81,7 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code=Код, productId, measureId=Мярка,blQuantity, quantity=Количество->Установено,delta,charge,groupName,createdBy';
+    public $listFields = 'code=Код, productId, measureId=Мярка,blQuantity, quantity=Количество->Установено,delta,charge,groupName';
     
         
     /**
