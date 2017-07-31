@@ -268,8 +268,14 @@ class sales_Proformas extends deals_InvoiceMaster
      */
     public static function on_BeforeSave($mvc, $id, $rec)
     {
-    	if(isset($rec->id) && empty($rec->folderId)){
-    		$rec->folderId = $mvc->fetchField($rec->id, 'folderId');
+    	if(isset($rec->id)){
+    		if(empty($rec->folderId)){
+    			$rec->folderId = $mvc->fetchField($rec->id, 'folderId');
+    		}
+    		
+    		if(empty($rec->dueDate) && $rec->state == 'active'){
+    			$rec->dueDate = $mvc->fetchField($rec->id, 'dueDate');
+    		}
     	}
     	
     	parent::beforeInvoiceSave($rec);
