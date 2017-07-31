@@ -1573,7 +1573,11 @@ class unit_MinkPSales extends core_Manager {
          
         // Записваме черновата на продажбата
         $browser->press('Чернова');
-    
+        if(strpos($browser->gettext(), 'Датата е в несъществуващ счетоводен период')) {
+            $browser->setValue('Игнорирай предупреждениeто', True);
+            $browser->press('Чернова');
+        }
+        
         // Добавяме нов артикул - 20% ДДС
         $browser->press('Артикул');
         $browser->setValue('productId', 'Чувал голям 50 L');
