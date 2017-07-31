@@ -715,9 +715,9 @@ class cal_Tasks extends core_Master
             cal_TaskDocuments::add($rec->id, $rec->foreignId);
         }
  
-        if($rec->state == 'pending') {
+        if($rec->state == 'pending' && !$rec->sharedUsers) { 
             core_Statuses::newStatus("|Не е избран потребител. Документа е приведен в състояние 'Заявка'|*");
-        }
+        } 
         
         $mvc->updateTaskToCalendar($rec->id);
     }
