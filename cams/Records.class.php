@@ -550,8 +550,14 @@ class cams_Records extends core_Master
         // Преоразмеряваме големите картинки
         if(count($toThumb)) {
             foreach($toThumb as $src => $dest) {
-                
-                $img = new thumb_Img(array($src, 280, 210, 'path', 'isAbsolute' => FALSE, 'mode' => 'small-no-change'));
+                if(Mode::is('screenMode', 'narrow')) {
+                    $width = 420;
+                    $height = 315;
+                } else {
+                    $width = 280;
+                    $height = 210;
+                }
+                $img = new thumb_Img(array($src, $width, $height, 'path', 'isAbsolute' => FALSE, 'mode' => 'small-no-change'));
                 $thumb = $img->getScaledGdRes();
                 
                 imagejpeg($thumb, $dest, 85);
@@ -577,7 +583,7 @@ class cams_Records extends core_Master
         $data->listFilter->showFields = 'cameraId,startTime,select';
         
         $data->listFilter->toolbar->addSbBtn('Покажи');
-        
+
         $data->listFilter->view = 'horizontal';
         
         // 1. Трябва да определим коя камера да се показва
@@ -854,22 +860,22 @@ class cams_Records extends core_Master
     	
         $cols = $this->getClipsPerRow();
         $rows = $this->getClipsPerPage() / $this->getClipsPerRow();
-        
+
         $html .= '<table cellspacing="3" bgcolor="white" class="video-rec">';
-        
+
         for($r = 0; $r < $rows; $r++) {
-            
+
             $html .= "<tr>";
-            
+
             for($c = 0; $c < $cols; $c++) {
-                
+
                 if(isset($data->listRecs[$r][$c]->id)) {
                     $content = $data->listRows[$r][$c]->thumb;
                     $content = ht::createLink($content, array($this, 'Single', $data->listRecs[$r][$c]->id));
                 } else {
                     $content = '';
                 }
-                
+
                 if(!$data->listRows[$r][$c]->startTime) {
                     $startStamp = $data->startPageStamp + ($r * $cols + $c) * $conf->CAMS_CLIP_DURATION;
                     $startTime = dt::timestamp2mysql($startStamp);
@@ -877,17 +883,17 @@ class cams_Records extends core_Master
                 } else {
                     $startVerbalTime = $data->listRows[$r][$c]->startTime;
                 }
-                
+
                 $class = $this->getCaptionClassByRec($data->listRecs[$r][$c]);
-                
+
                 $date = "<div class='{$class}' style='border-bottom:solid 1px #ccc;'>" . $startVerbalTime . "</div>";
-                
+
                 $html .= "<td class='recordImage'>{$date}{$content}</td>";
             }
-            
+
             $html .= "</tr>";
         }
-        
+
         $html .= "</table>";
         
         return $html;
@@ -918,6 +924,11 @@ class cams_Records extends core_Master
     {
         $attr = array();
         $attr['src'] = toUrl(array($mvc, 'StartJpg', $rec->id, 'thumb' => 'yes'));
+
+        if(Mode::is('screenMode', 'narrow')) {
+            $attr['width'] = 364;
+            $attr['height'] = 273;
+        }
 
         $row->thumb = ht::createElement('img', $attr);
     }
