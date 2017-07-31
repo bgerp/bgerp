@@ -158,9 +158,9 @@ class type_Time extends type_Varchar {
             $hours = $matches[1];
             $minutes = $matches[2];
         }
-        
+
         // На колко е равна една година и един месец?
-        if($secundes || $minutes || $hours || $days || $weeks) {
+        if($secundes || $minutes || $hours) {
             $monthDuration = 30 * 24 * 60 * 60;
             $yearDuration  = 365 * 24 * 60 * 60;
         } else {
@@ -243,9 +243,11 @@ class type_Time extends type_Varchar {
         if(!isset($value) || !is_numeric($value)) return NULL;
         
         $v = abs($value);
-        
-        if(($v % core_DateTime::SECONDS_IN_MONTH) == 0) {
-            $months =  $v / core_DateTime::SECONDS_IN_MONTH;
+        $restDays = ($v % core_DateTime::SECONDS_IN_MONTH);
+
+        if(($restDays % (24*60*60)) == 0) {
+            $days = $restDays / (24 * 60 * 60);
+            $months =  floor($v / core_DateTime::SECONDS_IN_MONTH);
             $years  = floor($months / 12);
             $months = $months - $years * 12;
         } else {
