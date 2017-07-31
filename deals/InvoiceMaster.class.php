@@ -727,6 +727,14 @@ abstract class deals_InvoiceMaster extends core_Master
     				$rec->dealValue = $diff;
     			}
     		}
+    		
+    		if(!empty($rec->dueDate) && !empty($rec->dueTime)){
+    			$cDate = dt::addSecs($rec->dueTime, $rec->date);
+    			$cDate = dt::verbal2mysql($cDate, FALSE);
+    			if($cDate != $rec->dueDate){
+    				$form->setError('date,dueDate,dueTime', "Невъзможна стойност на датите");
+    			}
+    		}
     	}
     	
     	$form->rec->_edited = TRUE;
