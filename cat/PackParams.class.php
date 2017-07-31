@@ -65,12 +65,14 @@ class cat_PackParams extends core_Manager
      */
     function description()
     {
+    	$this->FLD('title', 'varchar', 'caption=Заглавие');
     	$this->FLD('packagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Опаковка,mandatory');
     	$this->FLD('sizeWidth', 'cat_type_Size(min=0)', 'caption=Параметри->Ширина');
     	$this->FLD('sizeHeight', 'cat_type_Size(min=0)', 'caption=Параметри->Височина');
     	$this->FLD('sizeDepth', 'cat_type_Size(min=0)', 'caption=Параметри->Дълбочина');
     	$this->FLD('tareWeight', 'cat_type_Weight(min=0)', 'caption=Параметри->Тара');
     	
+    	$this->setDbUnique('title,packagingId');
     	$this->setDbIndex('packagingId');
     }
     
@@ -83,16 +85,21 @@ class cat_PackParams extends core_Manager
      */
     public function isUnique($rec, &$fields = array(), &$exRec = NULL)
     {
-    	$where = "#id != '{$rec->id}' AND #packagingId = {$rec->packagingId}";
+    	$where = "#id != '{$rec->id}' AND #packagingId = '{$rec->packagingId}'";
+    	
     	$where .= (!empty($rec->sizeWidth)) ? " AND #sizeWidth = {$rec->sizeWidth}" : " AND #sizeWidth IS NULL";
     	$where .= (!empty($rec->sizeHeight)) ? " AND #sizeHeight = {$rec->sizeHeight}" : " AND #sizeHeight IS NULL";
     	$where .= (!empty($rec->sizeDepth)) ? " AND #sizeDepth = {$rec->sizeDepth}" : " AND #sizeDepth IS NULL";
     	$where .= (!empty($rec->tareWeight)) ? " AND #tareWeight = {$rec->tareWeight}" : " AND #tareWeight IS NULL";
     	
+    	if(!empty($rec->title)){
+    		$where = "({$where}) OR (#packagingId = '{$rec->packagingId}' AND #title = '{$rec->title}')";
+    	}
+    	
     	$res = $this->fetch($where);
     	if($res){
     		$exRec = $res;
-    		$fields = array('packagingId', 'sizeWidth', 'sizeHeight', 'sizeDepth', 'tareWeight');
+    		$fields = array('title', 'packagingId', 'sizeWidth', 'sizeHeight', 'sizeDepth', 'tareWeight');
     		return FALSE;
     	}
     
@@ -129,12 +136,15 @@ class cat_PackParams extends core_Manager
     	$query = self::getQuery();
     	$query->where("#packagingId = {$packagingId} AND #state != 'closed'");
     	while($rec = $query->fetch()){
-    		$row = self::recToVerbal($rec, 'packagingId,sizeWidth,sizeHeight,sizeDepth,tareWeight');
+    		$title = $rec->title;
     		
-    		$title = new core_ET("[#packagingId#] <!--ET_BEGIN sizeWidth-->[#sizeWidth#]|<!--ET_END sizeWidth--><!--ET_BEGIN sizeHeight-->[#sizeHeight#]|<!--ET_END sizeHeight--><!--ET_BEGIN sizeDepth-->[#sizeDepth#]|<!--ET_END sizeDepth-->[#tareWeight#]");
-    		$title->placeObject($row);
+    		if(empty($rec->title)){
+    			$row = self::recToVerbal($rec, 'packagingId,sizeWidth,sizeHeight,sizeDepth,tareWeight');
+    			$title = new core_ET("[#packagingId#] <!--ET_BEGIN sizeWidth-->[#sizeWidth#]|<!--ET_END sizeWidth--><!--ET_BEGIN sizeHeight-->[#sizeHeight#]|<!--ET_END sizeHeight--><!--ET_BEGIN sizeDepth-->[#sizeDepth#]|<!--ET_END sizeDepth-->[#tareWeight#]");
+    			$title = $title->placeObject($row);
+    		}
     		
-    		$array[$rec->id] = $title->getContent();
+    		$array[$rec->id] = $title;
     	}
     	
     	return $array;
