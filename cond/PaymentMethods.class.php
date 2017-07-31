@@ -249,14 +249,14 @@ class cond_PaymentMethods extends core_Master
         
         if($paymentAfterInvoice > 0) {
             $res['paymentAfterInvoice']       = $paymentAfterInvoice;
-            $res['deadlineForBalancePayment'] = dt::addDays($rec->timeBalancePayment / (24 * 60 * 60), $invoiceDate, FALSE);
+            $res['deadlineForBalancePayment'] = dt::addSecs($rec->timeBalancePayment, $invoiceDate, FALSE);
         }
         
         // Ако плащането е на момента, крайната дата за плащане е подадената дата
         if($rec->sysId == 'COD'){
         	$res['deadlineForBalancePayment'] = dt::verbal2mysql($invoiceDate, FALSE);
         }
-        
+
         return $res;
     }
 

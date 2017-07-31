@@ -1845,9 +1845,27 @@ div.attachments {
   width: 100%;
   height: auto; }
 
+  .wide .video-rec .recordImage,
+  .wide .video-rec .recordImage img {
+    width: 260px;
+    height: 210px; }
+
+.narrow .video-rec {
+  display: block;
+  max-width: 450px; }
+  .narrow .video-rec tr,
+  .narrow .video-rec td,
+  .narrow .video-rec tbody {
+    display: block; }
+  .narrow .video-rec img {
+    max-width: 450px;
+    width: 100%;
+    height: auto; }
+  .narrow .video-rec .recordImage {
+    min-height: 250px; }
+
 .recordImage {
-  width: 240px;
-  height: 211px;
+  min-height: 211px;
   text-align: center;
   vertical-align: top;
   background-color: #e8e8e8; }
