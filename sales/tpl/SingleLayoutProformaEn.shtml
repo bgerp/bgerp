@@ -109,18 +109,10 @@
 					                        <span class='quiet'>Downpayment:</span> [#downpayment#]
 					                    </div>
 					                    <!--ET_END downpayment-->
-                                        <!--ET_BEGIN DUE_BLOCK-->
-                                           [#DUE_BLOCK#]
-                                        <div><span class='quiet'>Deadline:</span> [#dueTime#]</div>
-                                        <!--ET_END DUE_BLOCK--> 
                                         <!--ET_BEGIN deadline-->
                                         [#deadline#]
                                         <div>
-                                            <!--ET_BEGIN dueDate-->
-                                            <span class='quiet'>Deadline for payment:</span> [#dueDate#]<!--ET_END dueDate-->  &nbsp;&nbsp;
-                                            <!--ET_BEGIN OVERDUE_INTEREST_RATE-->
-                                            <span class="smallData">Interest for late payment: [#OVERDUE_INTEREST_RATE#] per day</span>
-                                            <!--ET_END OVERDUE_INTEREST_RATE-->
+                                            <!--ET_BEGIN dueDate--><span class='quiet'>Deadline for payment:</span> [#dueDate#]<!--ET_END dueDate-->  &nbsp;&nbsp;
                                         </div>
                                         <!--ET_END deadline-->
 

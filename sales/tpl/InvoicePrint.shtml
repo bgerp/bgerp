@@ -74,7 +74,6 @@
 <!--ET_BEGIN accountId--><p>IBAN: [#accountId#]<!--ET_END accountId-->
 <!--ET_BEGIN dueDate--><p b>Краен срок за плащане:
 <p b>[#dueDate#]<!--ET_END dueDate-->
-<!--ET_BEGIN OVERDUE_INTEREST_RATE--><p>Лихва за просрочено плащане: [#OVERDUE_INTEREST_RATE#] |на ден|*<!--ET_END OVERDUE_INTEREST_RATE-->
 <!--ET_BEGIN rate--><p>Курс: [#rate#]<!--ET_END rate-->
 <!--ET_BEGIN deliveryInfo-->
 <p><r32 ->
