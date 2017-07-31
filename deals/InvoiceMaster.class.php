@@ -614,7 +614,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		$form->rec->rate       = $aggregateInfo->get('rate');
     		$form->setSuggestions('displayRate', array('' => '', $aggregateInfo->get('rate') => $aggregateInfo->get('rate')));
     		
-    		if($aggregateInfo->get('paymentMethodId')){
+    		if($aggregateInfo->get('paymentMethodId') && !($mvc instanceof sales_Proformas)){
     			$paymentMethodId = $aggregateInfo->get('paymentMethodId');
     			$plan = cond_PaymentMethods::getPaymentPlan($paymentMethodId, $aggregateInfo->get('amount'), $form->rec->date);
     			
