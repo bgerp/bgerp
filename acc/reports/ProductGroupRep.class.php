@@ -177,7 +177,7 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
     		$fld->FLD('sellCost', 'double(smartRound,decimals=2)', 'smartCenter,caption=Приход');
 		    
 		    if(isset($rec->group)) {
-		        $fld->FLD('group', 'varchar', 'smartCenter,caption=Група');
+		        $fld->FLD('group', 'varchar', 'caption=Група');
 		    }
 
 		} else { 
