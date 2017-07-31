@@ -48,8 +48,8 @@ class store_reports_Documents extends frame2_driver_TableData
 	public function addFields(core_Fieldset &$fieldset)
 	{
 		$fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,after=title');
-		$fieldset->FLD('document', 'class(select=title)', 'caption=Документи,placeholder=Всички,after=storeId');
-		$fieldset->FLD('horizon', 'time', 'caption=Хоризонт,after=document');
+		$fieldset->FLD('documentType', 'class(select=title)', 'caption=Документи,placeholder=Всички,after=storeId');
+		$fieldset->FLD('horizon', 'time', 'caption=Хоризонт,after=documentType');
 	}
 	
 	
@@ -73,7 +73,7 @@ class store_reports_Documents extends frame2_driver_TableData
 			$classId = $className::getClassId();
 			$docOptions[$classId] = core_Classes::getTitleById($classId, FALSE);
 		}
-		$form->setOptions('document', array('' => '') + $docOptions);
+		$form->setOptions('documentType', array('' => '') + $docOptions);
 	}
 	
 	
@@ -110,9 +110,10 @@ class store_reports_Documents extends frame2_driver_TableData
 		$recs = array();
 		$storeIds = isset($rec->storeId) ? array($rec->storeId => $rec->storeId) : array_keys(self::getContableStores($rec));
 		if(!count($storeIds)) return $recs;
+		$documentFld = ($rec->documentType) ? 'documentType' : 'document';
 		
 		foreach (array('planning_ConsumptionNotes', 'planning_ReturnNotes') as $pDoc){
-			if(empty($rec->document) || ($rec->document == $pDoc::getClassId())){
+			if(empty($rec->{$documentFld}) || ($rec->{$documentFld} == $pDoc::getClassId())){
 				$cQuery = $pDoc::getQuery();
 				self::applyFilters($cQuery, $storeIds, $pDoc, $rec, 'deadline');
 				while($cRec = $cQuery->fetch()){
@@ -132,7 +133,7 @@ class store_reports_Documents extends frame2_driver_TableData
 		}
 		
 		foreach (array('store_ShipmentOrders', 'store_Receipts', 'store_Transfers') as $pDoc){
-			if(empty($rec->document) || ($rec->document == $pDoc::getClassId())){
+			if(empty($rec->{$documentFld}) || ($rec->{$documentFld} == $pDoc::getClassId())){
 				$Document = cls::get($pDoc);
 				
 				$sQuery = $Document->getQuery();
@@ -164,7 +165,7 @@ class store_reports_Documents extends frame2_driver_TableData
 			}
 		}
 		
-		if(empty($rec->document) || ($rec->document == planning_DirectProductionNote::getClassId())){
+		if(empty($rec->{$documentFld}) || ($rec->{$documentFld} == planning_DirectProductionNote::getClassId())){
 			$pQuery = planning_DirectProductionNote::getQuery();
 			$pQuery->where("#deadline IS NOT NULL");
 			self::applyFilters($pQuery, $storeIds, 'planning_DirectProductionNote', $rec, 'deadline');
@@ -266,7 +267,7 @@ class store_reports_Documents extends frame2_driver_TableData
 		}
 		
 		$handle = $Document->getHandle();
-		$row->document = "#{$handle}";
+		$row->documentType = "#{$handle}";
 		
 		if(!Mode::isReadOnly() && !$isPlain){
 			$singleUrl = $Document->getSingleUrlArray();
@@ -274,7 +275,7 @@ class store_reports_Documents extends frame2_driver_TableData
 				$singleUrl = $Document->getUrlWithAccess($Document->getInstance(), $Document->that);
 			}
 			
-			$row->document = ht::createLink("#{$handle}", $singleUrl, FALSE, "ef_icon={$Document->singleIcon}");
+			$row->documentType = ht::createLink("#{$handle}", $singleUrl, FALSE, "ef_icon={$Document->singleIcon}");
 		}
 		
 		if(!Mode::isReadOnly() && !$isPlain){
@@ -351,7 +352,7 @@ class store_reports_Documents extends frame2_driver_TableData
 	{
 		$fld = cls::get('core_FieldSet');
 		
-		$fld->FLD('document', 'varchar', 'caption=Документ');
+		$fld->FLD('documentType', 'varchar', 'caption=Документ');
 		if(empty($rec->storeId)){
 			$fld->FLD('stores', 'varchar', 'caption=Склад,tdClass=small');
 		}
