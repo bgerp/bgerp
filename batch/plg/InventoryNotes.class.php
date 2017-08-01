@@ -259,7 +259,6 @@ class batch_plg_InventoryNotes extends core_Plugin
 		$summary = array();
 		$combinedKeys = array_keys($batchesInDetail + $allBatches);
 		
-		//bp($allBatches, $batchesInDetail, $valior);
 		// Засичане
 		$expected = $expectedQuantity;
 		foreach ($combinedKeys as $batch){
@@ -279,7 +278,6 @@ class batch_plg_InventoryNotes extends core_Plugin
 			unset($summary['']);
 			$summary[''] = $noBatch;
 		}
-		
 		
 		return $summary;
 	}

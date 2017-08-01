@@ -280,6 +280,60 @@ class store_InventoryNoteSummary extends doc_Detail
     
     
     /**
+     * Помощна ф-я връщаща линкове към заявките в които участва артикула
+     * 
+     * @param date $valior
+     * @param int $storeId
+     * @return array $res
+     */
+    private static function getPendingDocuments($valior, $storeId)
+    {
+    	$res = array();
+    	$docArray = array('store_ShipmentOrderDetails', 'store_ReceiptDetails', 'store_TransfersDetails', 'planning_ConsumptionNoteDetails', 'planning_ReturnNoteDetails', 'store_ConsignmentProtocolDetailsReceived', 'store_ConsignmentProtocolDetailsSend', 'planning_DirectProductNoteDetails', 'planning_DirectProductionNote');
+    	
+    	// Извличат се контейнерите на всички складови документи в състояние заявка
+    	foreach ($docArray as $doc){
+    		$Doc = cls::get($doc);
+    		$dQuery = $Doc->getQuery();
+    		if($Doc instanceof core_Detail){
+    			$dQuery->EXT('valior', $Doc->Master->className, "externalName={$Doc->Master->valiorFld},externalKey={$Doc->masterKey}");
+    			$dQuery->EXT('state', $Doc->Master->className, "externalName=state,externalKey={$Doc->masterKey}");
+    			$dQuery->EXT('containerId', $Doc->Master->className, "externalName=containerId,externalKey={$Doc->masterKey}");
+    		}
+    		
+    		$valior = dt::addDays(-1, $valior);
+    		$valior = dt::verbal2mysql($valior, FALSE);
+    		$dQuery->where("#valior <= '{$valior}'");
+    		$dQuery->where("#state = 'pending'");
+    		if($Doc instanceof store_TransfersDetails){
+    			$dQuery->EXT('fromStore', $Doc->Master->className, "externalName=fromStore,externalKey={$Doc->masterKey}");
+    			$dQuery->EXT('toStore', $Doc->Master->className, "externalName=toStore,externalKey={$Doc->masterKey}");
+    			$dQuery->where("#fromStore = {$storeId} || #toStore = {$storeId}");
+    		} elseif($Doc instanceof store_ShipmentOrderDetails || $Doc instanceof store_ReceiptDetails){
+    			$dQuery->EXT('storeId', $Doc->Master->className, "externalName=storeId,externalKey={$Doc->masterKey}");
+    			$dQuery->where("#storeId = {$storeId}");
+    		} else {
+    			if(!$Doc->getField('storeId', FALSE)){
+    				$dQuery->EXT('storeId', $Doc->Master->className, "externalName=storeId,externalKey={$Doc->masterKey}");
+    				$dQuery->where("#storeId = {$storeId}");
+    			}
+    		}
+    		setIfNot($Doc->productFld, 'productId');
+    		$dQuery->show("containerId,{$Doc->productFld}");
+    		while($docRec = $dQuery->fetch()){
+    			$productId = $docRec->{$Doc->productFld};
+    			if(!isset($res[$docRec->{$Doc->productFld}][$docRec->containerId])){
+    				$link = doc_Containers::getDocument($docRec->containerId)->getLink(0)->getContent();
+    				$res[$docRec->{$Doc->productFld}][$docRec->containerId] = $link;
+    			}
+    		}
+    	}
+    	
+    	return $res;
+    }
+    
+    
+    /**
      *  Преди рендиране на лист таблицата
      */
     protected static function on_BeforeRenderListTable($mvc, &$res, $data)
@@ -290,6 +344,9 @@ class store_InventoryNoteSummary extends doc_Detail
     	$data->listTableMvc->FLD('measureId', 'varchar', 'tdClass=small-field nowrap');
     	$data->listTableMvc->setField('charge', 'tdClass=charge-td');
     	$masterRec = $data->masterData->rec;
+    	
+    	// Намиране на всички заявки ако има
+    	$pendingDocuments = self::getPendingDocuments($masterRec->valior, $masterRec->storeId);
     	
     	$filterByGroup = FALSE;
     	if(Mode::get('blank')){
@@ -341,6 +398,23 @@ class store_InventoryNoteSummary extends doc_Detail
     		
     		if(isset($rec) && $rec->isBatch !== TRUE){
     			$row->charge = static::renderCharge($rec);
+    			
+    			// Рендиране на заявките, в които участва артикула
+    			if(count($pendingDocuments[$rec->productId]) && !Mode::isReadOnly()){
+    				$btn = ht::createFnBtn("", NULL, NULL, array('ef_icon'=>'img/16/dots.png', 'class' => "more-btn linkWithIcon pending-docs-link", 'title' => 'Заявки в които се е избран артикула'));
+    				$bodyLayout = new ET("<div class='clearfix21 modal-toolbar'>[#LI#]</div>");
+    				foreach ($pendingDocuments[$rec->productId] as $link){
+    					$bodyLayout->append("<div style='padding-top:1px'>{$link}</div>", 'LI');
+    				}
+    				$layoutHtml = new core_ET("[#btn#][#text#][#productId#]");
+    				$layoutHtml->replace($btn, 'btn');
+    				$layoutHtml->replace($bodyLayout, 'text');
+    				$layoutHtml->replace($row->productId, 'productId');
+    				$layoutHtml->removeBlocks();
+    				$layoutHtml->removePlaces();
+    				
+    				$row->productId = $layoutHtml;
+    			}
     		}
     		
     		if($rec->blQuantity < 0){
