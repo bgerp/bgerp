@@ -179,6 +179,12 @@ class store_InventoryNotes extends core_Master
     
     
     /**
+     * На кой ред в тулбара да се показва бутона за принтиране
+     */
+    public $printBtnToolbarRow = 1;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -356,13 +362,13 @@ class store_InventoryNotes extends core_Master
     	if($rec->state != 'rejected'){
     		if($mvc->haveRightFor('single', $rec->id)){
     			$url = array($mvc, 'getBlankForm', $rec->id, 'ret_url' => TRUE);
-    			$data->toolbar->addBtn('Бланка||Blank', $url, 'ef_icon = img/16/print_go.png,title=Разпечатване на бланка,target=_blank');
+    			$data->toolbar->addBtn('Бланка||Blank', $url, 'ef_icon = img/16/print_go.png,title=Разпечатване на бланка за попълване,target=_blank');
     		}
     	}
     	
     	if($mvc->haveRightFor('makesale', $rec)){
     		$url = array($mvc, 'makeSale', $rec->id, 'ret_url' => TRUE);
-    		$data->toolbar->addBtn('Начет', $url, 'ef_icon = img/16/cart_go.png,title=Начисляване на излишъците на МОЛ-а');
+    		$data->toolbar->addBtn('Начет', $url, 'ef_icon = img/16/cart_go.png,title=Начисляване на излишъците на МОЛ');
     	}
     	
     	$data->toolbar->removeBtn('btnPrint');

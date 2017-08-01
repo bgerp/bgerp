@@ -127,13 +127,13 @@ class store_InventoryNoteSummary extends doc_Detail
      */
     function prepareDetail_($data)
     {
-    	if(!Mode::is('blank')){
+    	if(!Mode::is('printing')){
     		$data->TabCaption = 'Обобщение';
     		$data->Tab = 'top';
     	}
     	
     	$tab = Request::get($data->masterData->tabTopParam, 'varchar');
-    	if($tab == '' || $tab == get_called_class() || Mode::is('blank')){
+    	if($tab == '' || $tab == get_called_class() || Mode::is('printing')){
     		parent::prepareDetail_($data);
     	}
     	
@@ -631,7 +631,7 @@ class store_InventoryNoteSummary extends doc_Detail
     	// Проверяваме имали кеш за $data->rows
     	$cache = core_Cache::get($this->Master->className, $key);
     	$cacheRows = !empty($data->listFilter->rec->search) ? FALSE : TRUE;
-    	if(!empty($data->listFilter->rec->search) || Mode::is('blank')){
+    	if(!empty($data->listFilter->rec->search) || Mode::is('printing')){
     		$cacheRows = FALSE;
     		$cache = FALSE;
     	}
