@@ -543,34 +543,6 @@ abstract class deals_InvoiceMaster extends core_Master
     
     
     /**
-     * Добавя ключови думи за пълнотекстово търсене, това са името на
-     * документа или папката
-     */
-    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
-    {
-    	// Тук ще генерираме всички ключови думи
-    	$detailsKeywords = '';
-    
-    	// заявка към детайлите
-    	$Detail = cls::get($mvc->mainDetail);
-    	$query = $Detail->getQuery();
-    	
-    	// точно на тази фактура детайлите търсим
-    	$query->where("#{$Detail->masterKey} = '{$rec->id}'");
-    
-    	while ($recDetails = $query->fetch()){
-    		// взимаме заглавията на продуктите
-    		$productTitle = cat_Products::getTitleById($recDetails->productId);
-    		// и ги нормализираме
-    		$detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
-    	}
-    	 
-    	// добавяме новите ключови думи към основните
-    	$res = " " . $res . " " . $detailsKeywords;
-    }
-    
-    
-    /**
      * След подготовка на формата
      */
     protected static function prepareInvoiceForm($mvc, &$data)

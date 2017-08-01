@@ -47,7 +47,7 @@ class sales_Quotations extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, sales_Wrapper, doc_plg_Close, doc_EmailCreatePlg, acc_plg_DocumentSummary, plg_Search, doc_plg_HidePrices, doc_plg_TplManager,
-                    doc_DocumentPlg, plg_Printing, doc_ActivatePlg, plg_Clone, bgerp_plg_Blank, cond_plg_DefaultValues,doc_plg_SelectFolder,plg_LastUsedKeys';
+                    doc_DocumentPlg, plg_Printing, doc_ActivatePlg, plg_Clone, bgerp_plg_Blank, cond_plg_DefaultValues,doc_plg_SelectFolder,plg_LastUsedKeys,cat_plg_AddSearchKeywords';
     
     
     /**
@@ -940,33 +940,6 @@ class sales_Quotations extends core_Master
         
         return $res;
     }
-    
-    
-     /**
-      * Добавя ключови думи за пълнотекстово търсене, това са името на
-      * документа или папката
-      */
-     protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
-     {
-     	// Тук ще генерираме всички ключови думи
-     	$detailsKeywords = '';
-
-     	// заявка към детайлите
-     	$query = sales_QuotationsDetails::getQuery();
-     	
-     	// точно на тази оферта детайлите търсим
-     	$query->where("#quotationId  = '{$rec->id}'");
-     	
-	        while ($recDetails = $query->fetch()){
-	        	// взимаме заглавията на продуктите
-	        	$productTitle = cat_Products::getTitleById($recDetails->productId);
-	        	// и ги нормализираме
-	        	$detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
-	        }
-	         
-    	// добавяме новите ключови думи към основните
-    	$res = " " . $res . " " . $detailsKeywords;
-     }
      
      
 
@@ -1635,5 +1608,19 @@ class sales_Quotations extends core_Master
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
+     */
+    public function updateMaster_($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	 
+    	return $this->save($rec, 'modifiedOn,modifiedBy,searchKeywords');
     }
 }

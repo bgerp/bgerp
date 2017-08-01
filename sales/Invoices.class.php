@@ -52,7 +52,7 @@ class sales_Invoices extends deals_InvoiceMaster
      */
     public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Sorting, acc_plg_Contable, plg_Clone, doc_DocumentPlg, bgerp_plg_Export,
 					doc_EmailCreatePlg, doc_plg_MultiPrint, recently_Plugin, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,deals_plg_DpInvoice,
-                    doc_plg_HidePrices, doc_plg_TplManager, acc_plg_DocumentSummary, plg_Search, change_Plugin';
+                    doc_plg_HidePrices, doc_plg_TplManager, acc_plg_DocumentSummary, plg_Search, change_Plugin,cat_plg_AddSearchKeywords';
     
     
     /**

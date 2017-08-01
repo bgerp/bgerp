@@ -33,7 +33,7 @@ class cat_Listings extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_ActivatePlg, plg_Search, plg_Clone, doc_DocumentPlg, doc_plg_SelectFolder';
+    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_ActivatePlg, plg_Search, plg_Clone, doc_DocumentPlg, doc_plg_SelectFolder, cat_plg_AddSearchKeywords';
                     
     
     /**
@@ -58,6 +58,12 @@ class cat_Listings extends core_Master
      * Детайла, на модела
      */
     public $details = 'cat_ListingDetails';
+    
+    
+    /**
+     * Кой е основния детайл
+     */
+    public $mainDetail = 'cat_ListingDetails';
     
     
     /**
@@ -347,31 +353,6 @@ class cat_Listings extends core_Master
     
     	// Сортиране на записите по num
     	$data->query->orderBy('id');
-    }
-    
-    
-    /**
-     * Добавя ключови думи за пълнотекстово търсене, това са името на
-     * документа или папката
-     */
-    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
-    {
-    	// Тук ще генерираме всички ключови думи
-    	$detailsKeywords = '';
-    
-    	// Заявка към детайлите
-    	$query = cat_ListingDetails::getQuery();
-    	$query->where("#listId  = '{$rec->id}'");
-   
-    	while ($dRec = $query->fetch()){
-    		
-    		// взимаме заглавията на продуктите
-    		$productTitle = cat_Products::getTitleById($dRec->productId);
-    		$detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
-    	}
-    	
-    	// добавяме новите ключови думи към основните
-    	$res = " " . $res . " " . $detailsKeywords;
     }
     
     

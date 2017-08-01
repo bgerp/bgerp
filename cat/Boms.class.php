@@ -31,7 +31,7 @@ class cat_Boms extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Search, bgerp_plg_Blank, plg_Clone';
+    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Search, plg_Clone, cat_plg_AddSearchKeywords';
     
     
     /**
@@ -56,6 +56,12 @@ class cat_Boms extends core_Master
      * Детайла, на модела
      */
     public $details = 'cat_BomDetails';
+    
+    
+    /**
+     * Кой е основния детайл
+     */
+    public $mainDetail = 'cat_BomDetails';
     
     
     /**
@@ -172,26 +178,6 @@ class cat_Boms extends core_Master
     	$this->FLD('hash', 'varchar', 'input=none');
     	
     	$this->setDbIndex('productId');
-    }
-    
-    
-    /**
-     * Добавя ключови думи за пълнотекстово търсене
-     */
-    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
-    {
-    	if($rec->id){
-    		$detailsKeywords = '';
-    		
-    		// Добавяме данни от детайла към ключовите думи на документа
-    		$dQuery = cat_BomDetails::getQuery();
-    		$dQuery->where("#bomId = '{$rec->id}'");
-    		while($dRec = $dQuery->fetch()){
-    			$detailsKeywords .= " " . plg_Search::normalizeText(cat_Products::getTitleById($dRec->resourceId));
-    		}
-    		
-    		$res = " " . $res . " " . $detailsKeywords;
-    	}
     }
     
     
@@ -377,6 +363,8 @@ class cat_Boms extends core_Master
     			cat_Products::save($pRec);
     		}
     	}
+    	
+    	return $this->save($rec, 'modifiedOn,modifiedBy,searchKeywords');
     }
     
     
