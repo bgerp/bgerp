@@ -113,18 +113,7 @@
                                         
                                         <!--ET_BEGIN dueDate-->
                                         <div><span class='quiet'>Payment no later than:</span> [#dueDate#]</div>
-                                        <!--ET_END dueDate--> 
-                                        
-                                        <!--ET_BEGIN deadline-->
-                                        [#deadline#]
-                                        <div>
-                                            <!--ET_BEGIN DUE_DATE-->
-                                            <span class='quiet'>Deadline for payment:</span> [#DUE_DATE#]<!--ET_END DUE_DATE-->  &nbsp;&nbsp;  
-                                            <!--ET_BEGIN OVERDUE_INTEREST_RATE-->
-                                            <span class="smallData">Interest for late payment: [#OVERDUE_INTEREST_RATE#] |на ден|*</span>
-                                            <!--ET_END OVERDUE_INTEREST_RATE-->
-                                        </div>
-                                        <!--ET_END deadline-->
+                                        <!--ET_END dueDate-->
                                         <!--ET_BEGIN deadlineForBalancePayment-->
                                         <div><span class='quiet'>Finally till: </span>[#deadlineForBalancePayment#]</div>
                                         <!--ET_END deadlineForBalancePayment-->

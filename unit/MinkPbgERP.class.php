@@ -154,7 +154,7 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
             $browser->setValue('passNew', unit_Setup::get('DEFAULT_USER_PASS'));
             $browser->setValue('passRe', unit_Setup::get('DEFAULT_USER_PASS'));
-            $browser->setValue('names', unit_Setup::get('DEFAULT_USER'));
+            $browser->setValue('names', unit_Setup::get('DEFAULT_USER_NAME'));
             $browser->setValue('email', 'bgerp@experta.bg');
             $browser->setValue('country', 'България');
             $browser->press('Запис');

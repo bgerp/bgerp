@@ -543,34 +543,6 @@ abstract class deals_InvoiceMaster extends core_Master
     
     
     /**
-     * Добавя ключови думи за пълнотекстово търсене, това са името на
-     * документа или папката
-     */
-    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
-    {
-    	// Тук ще генерираме всички ключови думи
-    	$detailsKeywords = '';
-    
-    	// заявка към детайлите
-    	$Detail = cls::get($mvc->mainDetail);
-    	$query = $Detail->getQuery();
-    	
-    	// точно на тази фактура детайлите търсим
-    	$query->where("#{$Detail->masterKey} = '{$rec->id}'");
-    
-    	while ($recDetails = $query->fetch()){
-    		// взимаме заглавията на продуктите
-    		$productTitle = cat_Products::getTitleById($recDetails->productId);
-    		// и ги нормализираме
-    		$detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
-    	}
-    	 
-    	// добавяме новите ключови думи към основните
-    	$res = " " . $res . " " . $detailsKeywords;
-    }
-    
-    
-    /**
      * След подготовка на формата
      */
     protected static function prepareInvoiceForm($mvc, &$data)
@@ -614,7 +586,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		$form->rec->rate       = $aggregateInfo->get('rate');
     		$form->setSuggestions('displayRate', array('' => '', $aggregateInfo->get('rate') => $aggregateInfo->get('rate')));
     		
-    		if($aggregateInfo->get('paymentMethodId')){
+    		if($aggregateInfo->get('paymentMethodId') && !($mvc instanceof sales_Proformas)){
     			$paymentMethodId = $aggregateInfo->get('paymentMethodId');
     			$plan = cond_PaymentMethods::getPaymentPlan($paymentMethodId, $aggregateInfo->get('amount'), $form->rec->date);
     			
@@ -725,6 +697,14 @@ abstract class deals_InvoiceMaster extends core_Master
     				
     				// Стойността е променената сума
     				$rec->dealValue = $diff;
+    			}
+    		}
+    		
+    		if(!empty($rec->dueDate) && !empty($rec->dueTime)){
+    			$cDate = dt::addSecs($rec->dueTime, $rec->date);
+    			$cDate = dt::verbal2mysql($cDate, FALSE);
+    			if($cDate != $rec->dueDate){
+    				$form->setError('date,dueDate,dueTime', "Невъзможна стойност на датите");
     			}
     		}
     	}

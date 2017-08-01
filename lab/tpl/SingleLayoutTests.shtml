@@ -23,17 +23,9 @@
             </tr>
         </table>
     </div>
-    <div class='block_right'>
-        <!--ET_BEGIN note-->
-        <div class='clear_both'><b>|Описание|*</b></div>
-        <div class='clear_l note'>
-            [#note#]
-        </div>
-        <!--ET_END note-->                         
-    </div>
     <div class='scrolling-holder'>
         <div style='display:inline-block;margin-top:10px;'>
-            <div style='background-color:#ddd;border-top:solid 1px #999; border-left:solid 1px #999; border-right:solid 1px #999; padding:5px; font-size:1.2em;'>Измервания</div>
+            <div style='background-color:#ddd;border-top:solid 1px #999; border-left:solid 1px #999; border-right:solid 1px #999; padding:5px; font-size:1.2em;'>|Резултати от измерванията|*</div>
             <!--ET_BEGIN DETAILS-->
             <div class='details'>
                 [#DETAILS#]
@@ -41,7 +33,19 @@
             <!--ET_END DETAILS-->
         </div>
     </div>
+    
+    <div class='block_right'>
+        <!--ET_BEGIN note-->
+        <div class='clear_both'><b>|Заключение|*</b></div>
+        <div class='clear_l note'>
+            [#note#]
+        </div>
+        <!--ET_END note-->                         
+    </div>
+    
     <div style='clear: both;'></div>
+    <div style='clear: both;'></div>
+
     <div class='clear_l f_left block_subtitle mt_50px'>
         <div class='f_left w_100'>
             <br>
