@@ -32,8 +32,14 @@ class frame2_Reports extends embed_Manager
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_RowTools2, frame_Wrapper, doc_plg_Prototype, doc_DocumentPlg, doc_plg_SelectFolder, plg_Search, plg_Printing, bgerp_plg_Blank, doc_SharablePlg';
+    public $loadList = 'plg_RowTools2, frame_Wrapper, doc_plg_Prototype, doc_DocumentPlg, doc_plg_SelectFolder, plg_Search, plg_Printing, bgerp_plg_Blank, doc_SharablePlg, plg_Clone';
                       
+    
+    /**
+     * Кой има право да клонира?
+     */
+    public $canClonerec = 'powerUser';
+    
     
     /**
      * Да се показва антетка
@@ -183,6 +189,14 @@ class frame2_Reports extends embed_Manager
      * Дефолтен текст за нотификация
      */
     protected static $defaultNotificationText = "|*[#handle#] |има актуална версия от|* '[#lastRefreshed#]'";
+    
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'lastRefreshed';
     
     
     /**
@@ -576,7 +590,7 @@ class frame2_Reports extends embed_Manager
     	}
     	
     	// За модификация, потребителя трябва да има права и за драйвера
-    	if(in_array($action, array('edit', 'write', 'refresh', 'export')) && isset($rec->driverClass)){
+    	if(in_array($action, array('edit', 'write', 'refresh', 'export', 'clonerec')) && isset($rec->driverClass)){
     		if($Driver = $mvc->getDriver($rec)){
     			if(!$Driver->canSelectDriver($userId)){
     				$requiredRoles = 'no_one';

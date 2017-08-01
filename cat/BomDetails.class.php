@@ -116,6 +116,12 @@ class cat_BomDetails extends doc_Detail
     
     
     /**
+     * Поле за артикула
+     */
+    public $productFld = 'resourceId';
+    
+    
+    /**
      * Поле за количеството на заместващ артикул
      * 
      * @see planning_plg_ReplaceEquivalentProducts

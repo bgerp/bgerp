@@ -114,16 +114,7 @@
                                         <!--ET_BEGIN DUE_BLOCK-->
                                            [#DUE_BLOCK#]
                                         <div><span class='quiet'>|Срок за плащане|*:</span> [#dueTime#] (до [#dueDate#])</div>
-                                        <!--ET_END DUE_BLOCK--> 
-                                        
-                                        <!--ET_BEGIN deadline-->
-                                        [#deadline#]
-                                        <div>
-                                            <!--ET_BEGIN OVERDUE_INTEREST_RATE-->
-                                            <span class="smallData">|Лихва за просрочено плащане|*: [#OVERDUE_INTEREST_RATE#] |на ден|*</span>
-                                            <!--ET_END OVERDUE_INTEREST_RATE-->
-                                        </div>
-                                        <!--ET_END deadline-->
+                                        <!--ET_END DUE_BLOCK-->
                                         <!--ET_BEGIN deadlineForBalancePayment-->
                                         <div><span class='quiet'>|Окончателно до|*: </span>[#deadlineForBalancePayment#]</div>
                                         <!--ET_END deadlineForBalancePayment-->

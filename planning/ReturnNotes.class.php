@@ -41,7 +41,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 	 * Плъгини за зареждане
 	 */
 	public $loadList = 'plg_RowTools2, store_plg_StoreFilter, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
-                    doc_DocumentPlg, plg_Printing, plg_Clone, plg_Search, plg_Sorting,deals_plg_EditClonedDetails';
+                    doc_DocumentPlg, plg_Printing, plg_Clone, plg_Search, plg_Sorting,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords';
 	
 	
 	/**

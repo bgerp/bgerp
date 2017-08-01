@@ -3392,13 +3392,16 @@ fieldset.sharing-history {
 }
 
 .webdrv-preview {
-	display: block;
-	max-width: 100%;
-	height: auto;
 	margin-top: 5px;
 	&:first-child {
 		margin-top: 0;
 	}
+}
+
+.wide .webdrv-preview {
+	display: block;
+	max-width: 100%;
+	height: auto;
 }
 /*стилове за fileman*/
 
