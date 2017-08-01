@@ -371,7 +371,11 @@ class store_InventoryNotes extends core_Master
     		$data->toolbar->addBtn('Начет', $url, 'ef_icon = img/16/cart_go.png,title=Начисляване на излишъците на МОЛ');
     	}
     	
-    	$data->toolbar->removeBtn('btnPrint');
+    	if(core_Packs::isInstalled('batch')){
+    		if(batch_Movements::haveRightFor('list') && $data->rec->state == 'active'){
+    			$data->toolbar->addBtn('Партиди', array('batch_Movements', 'list', 'document' => $mvc->getHandle($data->rec->id)), 'ef_icon = img/16/wooden-box.png,title=Добавяне като ресурс,row=2');
+    		}
+    	}
     }
     
     
