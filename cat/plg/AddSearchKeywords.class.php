@@ -36,7 +36,7 @@ class cat_plg_AddSearchKeywords extends core_Plugin
 			
 			$res = " " . $res . " " . $detailsKeywords;
 			
-			core_Statuses::newStatus("$res", 'warning');
+			// core_Statuses::newStatus("$res", 'warning');
 		}
 	}
 }
