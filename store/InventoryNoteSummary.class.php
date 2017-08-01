@@ -303,7 +303,7 @@ class store_InventoryNoteSummary extends doc_Detail
     		
     		$valior = dt::addDays(-1, $valior);
     		$valior = dt::verbal2mysql($valior, FALSE);
-    		$dQuery->where("#valior <= '{$valior}'");
+    		$dQuery->where("#valior <= '{$valior}' AND #valior IS NOT NULL");
     		$dQuery->where("#state = 'pending'");
     		if($Doc instanceof store_TransfersDetails){
     			$dQuery->EXT('fromStore', $Doc->Master->className, "externalName=fromStore,externalKey={$Doc->masterKey}");
