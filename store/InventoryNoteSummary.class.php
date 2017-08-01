@@ -401,10 +401,10 @@ class store_InventoryNoteSummary extends doc_Detail
     			
     			// Рендиране на заявките, в които участва артикула
     			if(count($pendingDocuments[$rec->productId]) && !Mode::isReadOnly()){
-    				$btn = ht::createFnBtn("", NULL, NULL, array('ef_icon'=>'img/16/dots.png', 'class' => "more-btn linkWithIcon pending-docs-link", 'title' => 'Заявки в които се е избран артикула'));
+    				$btn = ht::createFnBtn("", NULL, NULL, array('class' => "more-btn linkWithIcon warningContextMenu", 'title' => 'Заявки, в които е избран артикула'));
     				$bodyLayout = new ET("<div class='clearfix21 modal-toolbar'>[#LI#]</div>");
     				foreach ($pendingDocuments[$rec->productId] as $link){
-    					$bodyLayout->append("<div style='padding-top:1px'>{$link}</div>", 'LI');
+    					$bodyLayout->append("<div style='padding: 3px 5px 2px 0px;'>{$link}</div>", 'LI');
     				}
     				$layoutHtml = new core_ET("[#btn#][#text#][#productId#]");
     				$layoutHtml->replace($btn, 'btn');
