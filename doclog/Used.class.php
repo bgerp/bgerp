@@ -77,6 +77,7 @@ class doclog_Used extends core_Manager
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption=Контейнер->Документ');
         $this->FLD('usedContainerId', 'key(mvc=doc_Containers)', 'caption=Контейнер->Използван');
         
+        $this->setDbIndex('containerId');
         $this->setDbUnique('containerId, usedContainerId');
     }
     
