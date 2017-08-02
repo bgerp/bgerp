@@ -86,7 +86,7 @@ class planning_Tasks extends tasks_Tasks
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'title, originId=Задание, progress, folderId,state,createdOn,createdBy';
+	public $listFields = 'title, originId=Задание, progress, folderId,state,modifiedOn,modifiedBy';
 	
 	
 	/**
