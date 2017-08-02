@@ -328,13 +328,14 @@ class frame2_Reports extends embed_Manager
      */
     public static function sendNotification($rec)
     {
+    	// Ако няма избрани потребители за нотифициране, не се прави нищо
     	$userArr = keylist::toArray($rec->sharedUsers);
     	if(!count($userArr)) return;
     	
     	$text = (!empty($rec->notificationText)) ? $rec->notificationText : self::$defaultNotificationText;
     	$msg = new core_ET($text);
     	
-    	// Заместване на параметрите
+    	// Заместване на параметрите в текста на нотификацията
     	if($Driver = self::getDriver($rec)){
     		$params = $Driver->getNotificationParams($rec);
     		if(is_array($params)){
@@ -342,8 +343,13 @@ class frame2_Reports extends embed_Manager
     		}
     	}
     	
-    	// Изпращане на нотификациите
-    	doc_Containers::notifyToSubscribedUsers($rec->containerId, $msg->getContent());
+    	$url = array('frame2_Reports', 'single', $rec->id);
+    	$msg = $msg->getContent();
+    	
+    	// На всеки от абонираните потребители се изпраща нотификацията за промяна на документа
+    	foreach ($userArr as $userId){
+    		bgerp_Notifications::add($msg, $url, $userId);
+    	}
     }
     
     

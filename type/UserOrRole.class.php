@@ -56,7 +56,7 @@ class type_UserOrRole extends type_User
     /**
      * Подготвя опциите според зададените параметри.
      */
-    public function prepareOptions()
+    public function prepareOptions($value = NULL)
     {
         $this->prepareSelOpt = FALSE;
         

@@ -48,7 +48,7 @@ class type_User extends type_Key
     /**
      * Подготвя опциите според зададените параметри.
      */
-    public function prepareOptions()
+    public function prepareOptions($value = NULL)
     {
         $mvc = cls::get($this->params['mvc']);
         
@@ -89,7 +89,11 @@ class type_User extends type_Key
             } else {
                 
                 $uQuery = core_Users::getQuery();
-                $uQuery->where("#state = 'active' OR #state = 'blocked' OR #state = 'closed'");
+                if($value > 0) { 
+                    $uQuery->where("#state = 'active' OR #state = 'blocked' OR #state = 'closed' OR #id = {$value}");
+                } else {
+                    $uQuery->where("#state = 'active' OR #state = 'blocked' OR #state = 'closed'");
+                }
                 $uQuery->orderBy("#names", 'ASC');
                 
                 // Потребителите, които ще покажем, трябва да имат посочените роли
@@ -151,7 +155,7 @@ class type_User extends type_Key
         if(isset($this->params['filter'])) {
             call_user_func($this->params['filter'], $this);
         }
-
+ 
         return $this->options;
     }
     
@@ -185,6 +189,8 @@ class type_User extends type_Key
             $value = self::getUserFromTeams($value);
             
             $value = reset($value);
+
+            $this->params['reserve'] = $value;
         }
         
         return parent::renderInput_($name, $value, $attr);

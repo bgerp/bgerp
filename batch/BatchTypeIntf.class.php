@@ -203,4 +203,15 @@ class batch_BatchTypeIntf extends embed_DriverIntf
     {
     	return $this->class->getName();
     }
+    
+    
+    /**
+     * Може ли потребителя да сменя уникалноста на партида/артикул
+     *
+     * @return boolean
+     */
+    public function canChangeBatchUniquePerProduct()
+    {
+    	return $this->class->canChangeBatchUniquePerProduct();
+    }
 }

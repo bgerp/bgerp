@@ -88,7 +88,9 @@ class batch_Templates extends embed_Manager {
     function description()
     {
     	$this->FLD('name', 'varchar', 'caption=Име,mandatory');
+    	
     	$this->FLD('autoAllocate', 'enum(yes=Да,no=Не)', 'caption=Автоматично разпределение в документи->Избор,notNull,value=yes,formOrder=1000');
+    	$this->FLD('uniqueProduct', 'enum(no=Не,yes=Да)', 'caption=Партидния № може да се използва само в един артикул->Избор,notNull,value=no,formOrder=1000');
     	
     	$this->setDbUnique('name');
     }
@@ -194,8 +196,15 @@ class batch_Templates extends embed_Manager {
     	if($rec->createdBy == core_Users::SYSTEM_USER && isset($rec->id)){
     		$fields = $form->selectFields("#input != 'none' AND #input != 'hidden'");
     		foreach ($fields as $name => $fld){
-    			if($name == 'autoAllocate') continue;
+    			if(in_array($name, array('autoAllocate', 'uniqueProduct'))) continue;
     			$form->setReadOnly($name);
+    		}
+    	}
+    	
+    	if(isset($rec->driverClass)){
+    		$Driver = static::getDriver($rec);
+    		if($Driver->canChangeBatchUniquePerProduct() !== TRUE){
+    			$form->setField('uniqueProduct', 'input=none');
     		}
     	}
     }

@@ -283,14 +283,19 @@ class store_reports_Documents extends frame2_driver_TableData
 		}
 		
 		if($isPlain){
-			$row->dueDate = frame_CsvLib::toCsvFormatData($dRec->dueDate);
+			if(!empty($dRec->dueDate)){
+				$row->dueDate = frame_CsvLib::toCsvFormatData($dRec->dueDate);
+			}
 			$row->createdOn = frame_CsvLib::toCsvFormatData($dRec->createdOn);
 		} else {
-			$DeliveryDate = new DateTime($dRec->dueDate);
-			$delYear = $DeliveryDate->format('Y');
-			$curYear = date('Y');
-			$mask = ($delYear == $curYear) ? 'd.M H:i:s' : 'd.M.y H:i:s';
-			$row->dueDate = dt::mysql2verbal($dRec->dueDate, $mask);
+			if(!empty($dRec->dueDate)){
+				$DeliveryDate = new DateTime($dRec->dueDate);
+				$delYear = $DeliveryDate->format('Y');
+				$curYear = date('Y');
+				$mask = ($delYear == $curYear) ? 'd.M H:i' : 'd.M.y H:i';
+				$row->dueDate = dt::mysql2verbal($dRec->dueDate, $mask);
+			}
+			
 			$row->createdOn = core_Type::getByName('datetime(format=smartTime)')->toVerbal($dRec->createdOn);
 		}
 		

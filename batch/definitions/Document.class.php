@@ -100,4 +100,15 @@ class batch_definitions_Document extends batch_definitions_Proto
 	{
 		ksort($batches);
 	}
+	
+	
+	/**
+	 * Може ли потребителя да сменя уникалноста на партида/артикул
+	 *
+	 * @return boolean
+	 */
+	public function canChangeBatchUniquePerProduct()
+	{
+		return FALSE;
+	}
 }

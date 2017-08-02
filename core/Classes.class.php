@@ -182,13 +182,13 @@ class core_Classes extends core_Manager
      */
     static function getOptionsByInterface($interface, $title = 'name')
     {
-        $params = array($interface, $title);
-
+        $params = array($interface, $title, core_Lg::getCurrent());
+ 
         return core_Cache::getOrCalc('getOptionsByInterface', $params, function($params)
         {
             $interface = $params[0];
             $title = $params[1];
-            
+
             $cC = cls::get('core_Classes');
 
             if($interface) {
