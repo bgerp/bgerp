@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   tasks
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Клас баща на документите за задачи
@@ -533,7 +533,6 @@ class tasks_Tasks extends embed_Manager
     			
     			// Ако предишно изчисленото очаквано начало е различно от текущото
     			if($expectedTimes[$rec->id] !== $max){
-    				//echo "<li><b>{$rec->id}</b> old: '{$expectedTimes[$rec->id]}' new: '{$max}'";
     		
     				// Записваме новото време
     				$expectedTimes[$rec->id] = $max;
@@ -542,10 +541,6 @@ class tasks_Tasks extends embed_Manager
     				$repeat = TRUE;
     			}
     		}
-    		
-    		if($repeat){
-    			//echo "<li>REPEAT";
-    		} 
     		
     	// Докато флага е сетнат преизчисляваме очакваното начало на задачите
     	// Докато спрат да се присвояват нови времена
