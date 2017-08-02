@@ -86,7 +86,7 @@ class planning_Tasks extends tasks_Tasks
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'name = Документ, originId=Задание, title, progress, state';
+	public $listFields = 'title, originId=Задание, progress, folderId,state,createdOn,createdBy';
 	
 	
 	/**
@@ -126,6 +126,9 @@ class planning_Tasks extends tasks_Tasks
 	public static function on_AfterPrepareEditForm($mvc, &$data)
 	{
 		$rec = &$data->form->rec;
+    
+    
+    
 		if(isset($rec->systemId)){
 			$data->form->setField('prototypeId', 'input=none');
 		}

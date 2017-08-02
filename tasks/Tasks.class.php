@@ -67,12 +67,6 @@ class tasks_Tasks extends embed_Manager
     
     
     /**
-     * Полета, които ще се показват в листов изглед
-     */
-    public $listFields = 'name = Документ, originId=Задание, title, expectedTimeStart,timeStart, timeDuration, timeEnd, progress, state';
-    
-    
-    /**
      * Кои колони да скриваме ако янма данни в тях
      */
     public $hideListFieldsIfEmpty = 'originId';
@@ -93,7 +87,7 @@ class tasks_Tasks extends embed_Manager
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    public $rowToolsSingleField = 'name';
+    public $rowToolsSingleField = 'title';
     
     
     /**
@@ -194,29 +188,34 @@ class tasks_Tasks extends embed_Manager
     
     
     /**
-     * Подготвяне на вербалните стойности
+     * Конвертира един запис в разбираем за човека вид
+     * Входният параметър $rec е оригиналният запис от модела
+     * резултата е вербалният еквивалент, получен до тук
      */
-    protected static function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function recToVerbal_($rec, &$fields = '*')
     {
+    	$row = parent::recToVerbal_($rec, $fields);
+    	$mvc = cls::get(get_called_class());
+    	
     	$red = new color_Object("#FF0000");
     	$blue = new color_Object("green");
     	$grey = new color_Object("#bbb");
-    	
+    	 
     	$progressPx = min(100, round(100 * $rec->progress));
     	$progressRemainPx = 100 - $progressPx;
-    	
+    	 
     	$color = ($rec->progress <= 1) ? $blue : $red;
     	$row->progressBar = "<div style='white-space: nowrap; display: inline-block;'><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$color}; width:{$progressPx}px;'> </div><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$grey};width:{$progressRemainPx}px;'></div></div>";
-    
+    	
     	$grey->setGradient($color, $rec->progress);
     	$row->progress = "<span style='color:{$grey};'>{$row->progress}</span>";
-    	
+    	 
     	$row->name = $mvc->getLink($rec->id, 0);
-    	
+    	 
     	if ($rec->timeEnd && ($rec->state != 'closed' && $rec->state != 'rejected')) {
     		$remainingTime = dt::mysql2timestamp($rec->timeEnd) - time();
     		$rec->remainingTime = cal_Tasks::roundTime($remainingTime);
-    	
+    		 
     		$typeTime = cls::get('type_Time');
     		if ($rec->remainingTime > 0) {
     			$row->remainingTime = ' (' . tr('остават') . ' ' . $typeTime->toVerbal($rec->remainingTime) . ')';
@@ -224,19 +223,21 @@ class tasks_Tasks extends embed_Manager
     			$row->remainingTime = ' (' . tr('просрочване с') . ' ' . $typeTime->toVerbal(-$rec->remainingTime) . ')';
     		}
     	}
-    	
+    	 
     	// Ако е изчислено очакваното начало и има продължителност, изчисляваме очаквания край
     	if(isset($rec->expectedTimeStart) && isset($rec->timeDuration)){
     		$rec->expectedTimeEnd = dt::addSecs($rec->timeDuration, $rec->expectedTimeStart);
     		$row->expectedTimeEnd = $mvc->getFieldType('expectedTimeStart')->toVerbal($rec->expectedTimeEnd);
     	}
-    	
+    	 
     	if($rec->originId){
     		$origin = doc_Containers::getDocument($rec->originId);
-    		$row->originId = $origin->getLink(0);
+    		$row->originId = $origin->getLink();
     	}
-    	
+    	 
     	$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+    
+    	return $row;
     }
     
     
