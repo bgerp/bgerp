@@ -86,7 +86,7 @@ class planning_Tasks extends tasks_Tasks
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'title, originId=Задание, progress, folderId,state,modifiedOn,modifiedBy';
+	public $listFields = 'expectedTimeStart,title, originId=Задание, progress, folderId,state,modifiedOn,modifiedBy';
 	
 	
 	/**
@@ -559,6 +559,8 @@ class planning_Tasks extends tasks_Tasks
     	if($departmentFolderId = $data->listFilter->rec->departmentId){
     		$folderId = hr_Departments::fetchField($departmentFolderId, 'folderId');
     		$data->query->where("#folderId = {$folderId}");
+    		
+    		unset($data->listFields['folderId']);
     	}
     	
     	if($assetId = $data->listFilter->rec->assetId){

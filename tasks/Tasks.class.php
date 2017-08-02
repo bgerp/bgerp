@@ -143,13 +143,13 @@ class tasks_Tasks extends embed_Manager
 	 * Групиране на документите
 	 */
 	public $newBtnGroup = "3.5|Производство";
-
+    
 	
 	/**
 	 * Поле за филтриране по дата
 	 */
-	public $filterDateField = 'createdOn, timeStart,timeEnd,expectedTimeStart,modifiedOn';
-    
+	public $filterDateField = 'expectedTimeStart,timeStart,createdOn';
+	
 	
     /**
      * Описание на модела (таблицата)
