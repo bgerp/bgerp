@@ -44,7 +44,7 @@ class planning_Tasks extends tasks_Tasks
 	/**
 	 * Плъгини за зареждане
 	 */
-	public $loadList = 'doc_plg_BusinessDoc,doc_plg_Prototype,doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Printing,plg_RowTools2,bgerp_plg_Blank';
+	public $loadList = 'doc_plg_BusinessDoc,doc_plg_Prototype,doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, plg_Clone, plg_Printing,plg_RowTools2,bgerp_plg_Blank';
 	
 	
 	/**
@@ -86,7 +86,7 @@ class planning_Tasks extends tasks_Tasks
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'name = Документ, originId=Задание, title, progress, state';
+	public $listFields = 'expectedTimeStart,title, originId=Задание, progress, folderId,state,modifiedOn,modifiedBy';
 	
 	
 	/**
@@ -110,6 +110,12 @@ class planning_Tasks extends tasks_Tasks
 	
 	
 	/**
+	 * Може ли да се редактират активирани документи
+	 */
+	public $canEditActivated = TRUE;
+	
+	
+	/**
 	 * След дефиниране на полетата на модела
 	 *
 	 * @param core_Mvc $mvc
@@ -117,6 +123,7 @@ class planning_Tasks extends tasks_Tasks
 	public static function on_AfterDescription(core_Master &$mvc)
 	{
 		expect(is_subclass_of($mvc->driverInterface, 'tasks_DriverIntf'), 'Невалиден интерфейс');
+		$mvc->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=code,makeLinks)', 'caption=Произвеждане->Оборудване,after=packagingId');
 	}
 	
 	
@@ -126,6 +133,7 @@ class planning_Tasks extends tasks_Tasks
 	public static function on_AfterPrepareEditForm($mvc, &$data)
 	{
 		$rec = &$data->form->rec;
+    
 		if(isset($rec->systemId)){
 			$data->form->setField('prototypeId', 'input=none');
 		}
@@ -537,10 +545,26 @@ class planning_Tasks extends tasks_Tasks
     		$data->listFilter->input('departmentId');
     	}
     	
+    	// Добавяне на оборудването към филтъра
+    	$fixedAssets = planning_AssetResources::makeArray4Select('name', "#state != 'rejected'");
+    	if(count($fixedAssets)){
+    		$data->listFilter->FLD('assetId', 'int', 'caption=Оборудване');
+    		$data->listFilter->setOptions('assetId', array('' => '') + $fixedAssets);
+    		$data->listFilter->showFields .= ',departmentId,assetId';
+    		
+    		$data->listFilter->input('assetId');
+    	}
+    	
     	// Филтър по департамент
     	if($departmentFolderId = $data->listFilter->rec->departmentId){
     		$folderId = hr_Departments::fetchField($departmentFolderId, 'folderId');
     		$data->query->where("#folderId = {$folderId}");
+    		
+    		unset($data->listFields['folderId']);
+    	}
+    	
+    	if($assetId = $data->listFilter->rec->assetId){
+    		$data->query->where("LOCATE('|{$assetId}|', #fixedAssets)");
     	}
     }
 }

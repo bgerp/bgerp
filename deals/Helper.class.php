@@ -486,7 +486,7 @@ abstract class deals_Helper
         }
 		
 		$shortUomName = cat_UoM::getShortName($measureId);
-		$res = ' <small class="quiet">' . $quantityInPack . $shortUomName . '</small>';
+		$res = ' <small class="quiet">' . $quantityInPack . tr($shortUomName) . '</small>';
 		$res = "<span class='nowrap'>{$res}</span>";
 
         return $res;

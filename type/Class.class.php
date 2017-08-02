@@ -30,7 +30,10 @@ class type_Class  extends type_Key {
     }
 
 
-    public function prepareOptions()
+    /**
+     * Подготвя масив с опции за показване в падащия списък
+     */
+    public function prepareOptions($value = NULL)
     {  
         Mode::push('text', 'plain');
         

@@ -110,10 +110,12 @@ class doc_plg_Prototype extends core_Plugin
 				}
 			} elseif($mvc instanceof embed_Manager){
 				if(isset($form->rec->{$mvc->driverClassField})){
-					if($Driver = cls::get($form->rec->{$mvc->driverClassField})){
-						$driverFields = arr::make(array_keys($mvc::getDriverFields($Driver)), TRUE);
-						if(count($driverFields)){
-							$fields += $driverFields;
+					if(cls::load($form->rec->{$mvc->driverClassField}, TRUE)){
+						if($Driver = cls::get($form->rec->{$mvc->driverClassField})){
+							$driverFields = arr::make(array_keys($mvc::getDriverFields($Driver)), TRUE);
+							if(count($driverFields)){
+								$fields += $driverFields;
+							}
 						}
 					}
 				}

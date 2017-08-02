@@ -50,7 +50,7 @@ class type_Users extends type_Keylist
      * Ако е посочен суфикс, извеждате се само интерфейсите
      * чието име завършва на този суфикс
      */
-    public function prepareOptions()
+    public function prepareOptions($value = NULL)
     {
         core_Debug::log('Start user options');
 

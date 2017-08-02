@@ -2,5 +2,6 @@
 Символи(32),batch_definitions_Varchar,active,"length=32"
 Символи(64),batch_definitions_Varchar,active,"length=64"
 Номер и дата на документ,batch_definitions_Document,active,
-Срок на годност(dd.mm.yyyy),batch_definitions_ExpirationDate,active,"format=d.m.Y"
-Срок на годност(mm.dd.yyyy),batch_definitions_ExpirationDate,active,"format=m.d.Y"
+Срок на годност(yyyymmdd),batch_definitions_ExpirationDate,active,"format=Ymd"
+Дата на доставка,batch_definitions_DeliveryDate,active,"format=Ymd"
+Дата на производство,batch_definitions_ProductionDate,active,"format=Ymd"

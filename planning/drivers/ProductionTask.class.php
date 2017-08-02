@@ -55,7 +55,6 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		
 		$fieldset->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'mandatory,caption=Произвеждане->Артикул,removeAndRefreshForm=packagingId,silent');
 		$fieldset->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'mandatory,caption=Произвеждане->Опаковка,after=productId,input=hidden,tdClass=small-field nowrap,removeAndRefreshForm,silent');
-		$fieldset->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=code,makeLinks)', 'caption=Произвеждане->Оборудване');
 		$fieldset->FLD('plannedQuantity', 'double(smartRound,Min=0)', 'mandatory,caption=Произвеждане->Планирано,after=packagingId');
 		$fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Произвеждане->Склад,input=none');
 		$fieldset->FLD("startTime", 'time(noSmart)', 'caption=Норма->Произ-во,smartCenter');
@@ -323,6 +322,14 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 				}
 			}
 		}
+		
+		if(isset($rec->id)){
+			if(planning_drivers_ProductionTaskDetails::fetch("#type = 'product' AND #taskId = {$rec->id}")){
+				$form->setReadOnly('productId');
+				$form->setReadOnly('packagingId');
+				$form->setReadOnly('fixedAssets');
+			}
+		}
 	}
 	
 	
@@ -339,6 +346,8 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		if($form->isSubmitted()){
 			$pInfo = cat_Products::getProductInfo($rec->productId);
     		$rec->quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
+		
+    		$rec->title = cat_Products::getTitleById($rec->productId);
 		}
 	}
 	
@@ -448,12 +457,12 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
         	$resArr['quantity']['val'] .= tr("|*<br> <span style='font-weight:normal'>|Общо тегло|*</span> [#totalWeight#]");
         }
         
-        if(isset($rec->startTime) || isset($rec->indTime)){
+        if(!empty($rec->startTime) || !empty($rec->indTime)){
         	if(isset($rec->startTime)){
         		$row->startTime .= "/" . tr($packagingId);
         	}
         	
-        	$resArr['times'] = array('name' => tr('Заработка'), 'val' => tr("|*<!--ET_BEGIN indTime--><div><span style='font-weight:normal'>|Произ-во|*</span>: [#startTime#]</div><!--ET_END indTime--><!--ET_END startTime--><!--ET_BEGIN indTime--><div><span style='font-weight:normal'>|Пускане|*</span>: [#indTime#]</div><!--ET_END indTime-->"));
+        	$resArr['times'] = array('name' => tr('Заработка'), 'val' => tr("|*<!--ET_BEGIN startTime--><div><span style='font-weight:normal'>|Произ-во|*</span>: [#startTime#]</div><!--ET_END startTime--><!--ET_BEGIN indTime--><div><span style='font-weight:normal'>|Пускане|*</span>: [#indTime#]</div><!--ET_END indTime-->"));
         }
         
         if(!empty($row->timeStart) || !empty($row->timeDuration) || !empty($row->timeEnd) || !empty($row->expectedTimeStart) || !empty($row->expectedTimeEnd)) {

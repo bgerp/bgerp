@@ -43,7 +43,7 @@ class type_Group extends type_Key
      * Ако е посочен суфикс, извеждате се само интерфейсите
      * чието име завършва на този суфикс
      */
-    public function prepareOptions()
+    public function prepareOptions($value = NULL)
     {
         expect($base = $this->params['base']);     // Базов модел
         expect($keylist = $this->params['keylist']);     // Името на keylist полето
