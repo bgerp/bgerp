@@ -108,8 +108,7 @@ class batch_definitions_Serial extends batch_definitions_Proto
 			}
 		}
 		
-		// Ако сме стигнали до тук всичко е наред
-		return TRUE;
+		return parent::isValid($value, $quantity, $msg);
 	}
 	
 	
@@ -252,5 +251,16 @@ class batch_definitions_Serial extends batch_definitions_Proto
 		$value = implode("\n", $value);
 		
 		return $value;
+	}
+	
+	
+	/**
+	 * Може ли потребителя да сменя уникалноста на партида/артикул
+	 *
+	 * @return boolean
+	 */
+	public function canChangeBatchUniquePerProduct()
+	{
+		return FALSE;
 	}
 }
