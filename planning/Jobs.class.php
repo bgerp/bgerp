@@ -717,6 +717,7 @@ class planning_Jobs extends core_Master
      */
     public static function getRecTitle($rec, $escaped = TRUE)
     {
+    	$rec = static::fetchRec($rec);
     	$self = cls::get(get_called_class());
     	$pTitle = cat_Products::getTitleById($rec->productId);
     	

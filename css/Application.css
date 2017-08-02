@@ -3807,7 +3807,8 @@ div.location.public {
   -webkit-border-radius: 5px !important;
   -ms-border-radius: 5px !important;
   border-radius: 5px !important;
-  padding: 10px !important; }
+  padding: 10px !important;
+  word-wrap: break-word; }
 
 #rss-feeds {
   padding: 30px; }

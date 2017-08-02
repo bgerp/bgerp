@@ -4222,6 +4222,7 @@ div.location.public {
 	background: #ffffff;
 	@include border-radius(5px !important);
 	padding: 10px !important;
+	word-wrap: break-word;
 }
 
 #rss-feeds {

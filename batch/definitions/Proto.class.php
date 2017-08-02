@@ -94,6 +94,17 @@ abstract class batch_definitions_Proto extends core_BaseClass
      */
     public function isValid($value, $quantity, &$msg)
     {
+    	if($this->rec->uniqueProduct != 'yes') return TRUE;
+    	
+    	// Ако артикула вече има партида за този артикул с тази стойност, се приема че е валидна
+    	if($eProductId = batch_Items::fetchField(array("#productId != {$this->rec->productId} AND #batch = '[#1#]'", $value), 'productId')){
+    		$eProductId = cat_Products::getTitleById($eProductId);
+    			
+    		$msg = "Въведеният партиден номер е наличен за артикул|* <b>{$eProductId}</b>";
+    			
+    		return FALSE;
+    	}
+    	
     	return TRUE;
     }
     
@@ -277,5 +288,16 @@ abstract class batch_definitions_Proto extends core_BaseClass
     public function getName()
     {
     	return (isset($this->rec->name)) ? $this->rec->name : cls::getTitle($this);
+    }
+    
+    
+    /**
+     * Може ли потребителя да сменя уникалноста на партида/артикул
+     * 
+     * @return boolean
+     */
+    public function canChangeBatchUniquePerProduct()
+    {
+    	return TRUE;
     }
 }

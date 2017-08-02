@@ -33,7 +33,7 @@ class deals_plg_SetTermDate extends core_Plugin
 		
 		// Ако има права показване на линка за редакция
 		if($mvc->haveRightFor('settermdate', $rec)){
-			$row->{$mvc->termDateFld} = $row->{$mvc->termDateFld} . "" . ht::createLink('', array($mvc, 'changeTermDate', $rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/edit.png,title=Задаване на нова дата');
+			$row->{$mvc->termDateFld} = $row->{$mvc->termDateFld} . "" . ht::createLink('', array($mvc, 'settermdate', $rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/edit.png,title=Задаване на нова дата');
 		}
 	}
 	
@@ -70,13 +70,13 @@ class deals_plg_SetTermDate extends core_Plugin
 	 */
 	public static function on_BeforeAction($mvc, &$res, $action)
 	{
-		if($action != 'changetermdate') return;
+		if($action != 'settermdate') return;
 		
 		// Проверка
-		$mvc->requireRightFor('changetermdate');
+		$mvc->requireRightFor('settermdate');
 		expect($id = Request::get('id', 'int'));
 		expect($rec = $mvc->fetch($id));
-		$mvc->requireRightFor('changetermdate', $rec);
+		$mvc->requireRightFor('settermdate', $rec);
 		
 		// Показване на формата за смяна на срока
 		$form = cls::get('core_Form');
@@ -95,7 +95,7 @@ class deals_plg_SetTermDate extends core_Plugin
 			$mvc->save_($rec, $mvc->termDateFld);
 			$mvc->touchRec($rec);
 			
-			followRetUrl(NULL, 'Успешна промяна');
+			followRetUrl(NULL, 'Промяната е направена успешно');
 		}
 		
 		$form->toolbar->addSbBtn('Промяна', 'save', 'ef_icon = img/16/disk.png');
