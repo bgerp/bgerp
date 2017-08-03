@@ -33,7 +33,7 @@ class cat_Listings extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_ActivatePlg, plg_Search, plg_Clone, doc_DocumentPlg, doc_plg_SelectFolder, cat_plg_AddSearchKeywords';
+    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_ActivatePlg, plg_Clone, doc_DocumentPlg, doc_plg_SelectFolder, cat_plg_AddSearchKeywords, plg_Search';
                     
     
     /**
