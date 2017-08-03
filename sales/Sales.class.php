@@ -681,12 +681,13 @@ class sales_Sales extends deals_DealMaster
      */
     function cron_CloseOldSales()
     {
-    	$conf = core_Packs::getConfig('sales');
-    	$olderThan = $conf->SALE_CLOSE_OLDER_THAN;
-    	$limit = $conf->SALE_CLOSE_OLDER_NUM;
+    	$conf        = core_Packs::getConfig('sales');
+    	$olderThan   = $conf->SALE_CLOSE_OLDER_THAN;
+    	$limit       = $conf->SALE_CLOSE_OLDER_NUM;
     	$ClosedDeals = cls::get('sales_ClosedDeals');
+    	$percent 	 = $conf->SALE_CLOSE_UNDELIVERED_OVER;
     	
-    	$this->closeOldDeals($olderThan, $ClosedDeals, $limit);
+    	$this->closeOldDeals($olderThan, $ClosedDeals, $limit, $percent);
     }
     
     
