@@ -1347,7 +1347,7 @@ abstract class deals_DealMaster extends deals_DealBase
     /**
      * Приключва остарялите сделки
      */
-    public function closeOldDeals($olderThan, $closeDocName, $limit, $percent)
+    public function closeOldDeals($olderThan, $closeDocName, $limit)
     {
     	$className = get_called_class();
     	
@@ -1375,6 +1375,11 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	// Закръглената оставаща сума за плащане
     	$query->XPR('toInvoice', 'double', 'ROUND(#amountDelivered - #amountInvoiced, 2)');
+    	$query->XPR('deliveredRound', 'double', 'ROUND(#amountDelivered, 2)');
+    	
+    	$percent = bgerp_Setup::get('CLOSE_UNDELIVERED_OVER');
+    	$percent = (!empty($percent)) ? $percent : 1;
+    	
     	$query->XPR('minDelivered', 'double', "ROUND(#amountDeal * {$percent}, 2)");
     	
     	// Само активни продажби
@@ -1382,7 +1387,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	$query->where("#amountDelivered IS NOT NULL AND #amountPaid IS NOT NULL");
     	 
     	// Пропускат се и тези по които има още да се експедира
-    	$query->where("#minDelivered <= #amountDelivered");
+    	$query->where("#minDelivered <= #deliveredRound");
     	
     	// На които треда им не е променян от определено време
     	$query->where("#threadModifiedOn <= '{$oldBefore}'");

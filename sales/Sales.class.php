@@ -685,9 +685,8 @@ class sales_Sales extends deals_DealMaster
     	$olderThan   = $conf->SALE_CLOSE_OLDER_THAN;
     	$limit       = $conf->SALE_CLOSE_OLDER_NUM;
     	$ClosedDeals = cls::get('sales_ClosedDeals');
-    	$percent 	 = $conf->SALE_CLOSE_UNDELIVERED_OVER;
     	
-    	$this->closeOldDeals($olderThan, $ClosedDeals, $limit, $percent);
+    	$this->closeOldDeals($olderThan, $ClosedDeals, $limit);
     }
     
     

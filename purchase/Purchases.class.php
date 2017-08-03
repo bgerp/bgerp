@@ -627,9 +627,8 @@ class purchase_Purchases extends deals_DealMaster
     	$olderThan   = $conf->PURCHASE_CLOSE_OLDER_THAN;
     	$limit 	     = $conf->PURCHASE_CLOSE_OLDER_NUM;
     	$ClosedDeals = cls::get('purchase_ClosedDeals');
-    	$percent 	 = $conf->PURCHASE_CLOSE_UNDELIVERED_OVER;
     	
-    	$this->closeOldDeals($olderThan, $ClosedDeals, $limit, $percent);
+    	$this->closeOldDeals($olderThan, $ClosedDeals, $limit);
     }
     
     

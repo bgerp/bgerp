@@ -134,12 +134,6 @@ defIfNot('SALES_ADD_BY_IMPORT_BTN', '');
 
 
 /**
- * При приключване на покупки да се затварят и недоставените над определен процент
- */
-defIfNot('SALE_CLOSE_UNDELIVERED_OVER', '0.9');
-
-
-/**
  * Продажби - инсталиране / деинсталиране
  *
  *
@@ -185,7 +179,6 @@ class sales_Setup extends core_ProtoSetup
 			'SALE_OVERDUE_CHECK_DELAY'        => array("time", "caption=Толеранс за просрочване на продажбата->Време"),
 			'SALE_CLOSE_OLDER_THAN'           => array("time(uom=days,suggestions=1 ден|2 дена|3 дена)", 'caption=Изчакване преди автоматично приключване на продажбата->Дни'),
 			'SALE_CLOSE_OLDER_NUM'            => array("int", 'caption=По колко продажби да се приключват автоматично на опит->Брой'),
-			'SALE_CLOSE_UNDELIVERED_OVER'    => array('percent(min=0)', 'caption=Допустим % "Недоставено" за автоматично приключване на сделка->Процент'),
 			'SALE_FISC_PRINTER_DRIVER'        => array('class(interface=sales_FiscPrinterIntf,allowEmpty,select=title)', 'caption=Фискален принтер->Драйвър'),
 			'SALE_INV_VAT_DISPLAY'            => array('enum(no=Не,yes=Да)', 'caption=Фактури изчисляване на ддс-то като процент от сумата без ддс->Избор'),
 			'SALE_INV_MIN_NUMBER1'            => array('int(min=0)', 'caption=Първи диапазон за номериране на фактури->Долна граница'),

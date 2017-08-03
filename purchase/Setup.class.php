@@ -50,12 +50,6 @@ defIfNot('PURCHASE_ADD_BY_LIST_BTN', '');
 
 
 /**
- * При приключване на покупки да се затварят и недоставените над определен процент
- */
-defIfNot('PURCHASE_CLOSE_UNDELIVERED_OVER', '0.9');
-
-
-/**
  * Покупки - инсталиране / деинсталиране
  *
  *
@@ -126,7 +120,6 @@ class purchase_Setup extends core_ProtoSetup
 		'PURCHASE_CLOSE_OLDER_NUM'           => array("int", 'caption=По колко покупки да се приключват автоматично на опит->Брой'),
 		'PURCHASE_USE_RATE_IN_CONTRACTS'     => array("enum(no=Не,yes=Да)", 'caption=Ръчно въвеждане на курс в покупките->Избор'),
 		'PURCHASE_INVOICE_DEFAULT_VALID_FOR' => array("time", 'caption=Срок за плащане по подразбиране->Срок'),
-		'PURCHASE_CLOSE_UNDELIVERED_OVER'    => array('percent', 'caption=Допустим % "Недоставено" за автоматично приключване на сделка->Процент'),
 		'PURCHASE_ADD_BY_PRODUCT_BTN' => array("keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Необходими роли за добавяне на артикули в покупка от->Артикул'),
 		'PURCHASE_ADD_BY_LIST_BTN'    => array("keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Необходими роли за добавяне на артикули в покупка от->Списък'),
 	);
