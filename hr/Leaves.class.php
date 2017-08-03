@@ -130,7 +130,7 @@ class hr_Leaves extends core_Master
     /**
      * Кой може да го активира?
      */
-    public $candDecline = 'ceo,hr,hrMaster';
+    public $canDecline = 'ceo,hr,hrMaster';
     
     
     /**
