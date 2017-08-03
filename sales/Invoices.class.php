@@ -270,7 +270,7 @@ class sales_Invoices extends deals_InvoiceMaster
     {
     	if(isset($form->rec->id)) return;
     	
-    	$unsetFields = array('id', 'number', 'state', 'searchKeywords', 'containerId', 'brState', 'lastUsedOn', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'dealValue', 'vatAmount', 'discountAmount', 'sourceContainerId', 'additionalInfo');
+    	$unsetFields = array('id', 'number', 'state', 'searchKeywords', 'containerId', 'brState', 'lastUsedOn', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'dealValue', 'vatAmount', 'discountAmount', 'sourceContainerId', 'additionalInfo', 'dueDate');
     	foreach ($unsetFields as $fld){
     		unset($proformaRec->{$fld});
     	}
