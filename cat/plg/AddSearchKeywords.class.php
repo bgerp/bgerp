@@ -33,10 +33,9 @@ class cat_plg_AddSearchKeywords extends core_Plugin
 				$detailsKeywords .= " " . plg_Search::normalizeText(cat_Products::getTitleById($dRec->{$Detail->productFld}));
 			}
 				
-			
-			$res = " " . $res . " " . $detailsKeywords;
-			
-			// core_Statuses::newStatus("$res", 'warning');
+			if(!empty($detailsKeywords)){
+				$res = " " . $res . " " . $detailsKeywords;
+			}
 		}
 	}
 }
