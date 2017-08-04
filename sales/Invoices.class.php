@@ -124,7 +124,7 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'number, folderId, id, contragentName';
+    public $searchFields = 'number, folderId, contragentName';
     
     
     /**
