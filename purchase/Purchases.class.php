@@ -35,7 +35,7 @@ class purchase_Purchases extends deals_DealMaster
      */
     public $loadList = 'plg_RowTools, purchase_Wrapper, acc_plg_Registry, plg_Sorting, doc_plg_MultiPrint, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
 				        cond_plg_DefaultValues, recently_Plugin, doc_plg_HidePrices, doc_SharablePlg, plg_Clone,
-				        doc_EmailCreatePlg, bgerp_plg_Blank, acc_plg_DocumentSummary, plg_Search, doc_plg_Close, plg_LastUsedKeys';
+				        doc_EmailCreatePlg, bgerp_plg_Blank, acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, plg_Search, doc_plg_Close, plg_LastUsedKeys';
     
     
     /**

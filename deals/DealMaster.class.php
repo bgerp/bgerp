@@ -814,13 +814,9 @@ abstract class deals_DealMaster extends deals_DealBase
     		}
     	}
     	
-    	$saveFields = 'searchKeywords';
-    	$rec->searchKeywords = $mvc->updateSearchKeywords($rec);
     	if($update === TRUE){
-    		$saveFields .= ',deliveryTermTime,deliveryAdress';
+    		$mvc->save_($rec, 'deliveryTermTime,deliveryAdress');
     	}
-    	
-    	$mvc->save_($rec, $saveFields);
     }
     
     
@@ -2097,37 +2093,5 @@ abstract class deals_DealMaster extends deals_DealBase
     	 
     	// Рендиране на формата
     	return $this->renderWrapping($form->renderHtml());
-    }
-    
-    /**
-     * Ъпдейтване на ключовите думи
-     * 
-     * @param stdClass $rec
-     * @param string $keywords
-     */
-    protected function updateSearchKeywords($rec)
-    {
-    	$detailsKeywords = '';
-    	
-    	// заявка към детайлите
-    	$Detail = cls::get($this->mainDetail);
-    	$query = $Detail->getQuery();
-    	$query->where("#{$Detail->masterKey}  = '{$rec->id}'");
-    	$query->show('productId,notes');
-    	
-    	while ($dRec = $query->fetch()){
-    		
-    		// взимаме заглавията на продуктите
-    		$productTitle = cat_Products::getTitleById($dRec->productId);
-    		$detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
-    		if(!empty($dRec->notes)){
-    			$detailsKeywords .= " " . plg_Search::normalizeText($dRec->notes);
-    		}
-    	}
-    	 
-    	// добавяме новите ключови думи към основните
-    	$rec->searchKeywords = " " . $rec->searchKeywords . " " . $detailsKeywords;
-    	
-    	return $rec->searchKeywords;
     }
 }
