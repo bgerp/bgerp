@@ -1703,7 +1703,7 @@ abstract class deals_DealMaster extends deals_DealBase
     		$exRec->quantity += $dRec->quantity;
     		$exRec->price = $nPrice;
     		$exRec->discount = (empty($nDiscount)) ? NULL : round($nDiscount, 2);
-    		$exRec->tolerance = (empty($nTolerance)) ? NULL : round($nTolerance, 2);
+    		$exRec->tolerance = (!isset($nTolerance)) ? NULL : round($nTolerance, 2);
     		
     		// Ъпдейтваме съществуващия запис
     		$id = $Detail->save($exRec);
