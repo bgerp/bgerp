@@ -241,8 +241,8 @@ class store_reports_Documents extends frame2_driver_TableData
 		$query->where("#state = 'pending'");	
 		
 		if(!empty($rec->horizon)){
-			$horizon = dt::addSecs($rec->horizon, dt::today());
-			$query->where("(#{$termDateField} IS NOT NULL AND ADDDATE(#{$termDateField}, INTERVAL {$rec->horizon} SECOND) <= '{$horizon}') OR #{$termDateField} IS NULL");
+			$horizon = dt::addSecs($rec->horizon, dt::today(), FALSE);
+			$query->where("(#{$termDateField} IS NOT NULL AND ADDDATE(#{$termDateField}, INTERVAL {$rec->horizon} SECOND) <= '{$horizon} 23:59:59') OR #{$termDateField} IS NULL");
 		}
 	}
 	
