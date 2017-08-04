@@ -935,7 +935,7 @@ abstract class deals_Helper
 	{
 		$hint = FALSE;
 		
-		if(empty($tolerance)){
+		if(!isset($tolerance)){
 			$tolerance = cat_Products::getTolerance($productId, $quantity);
 			if($tolerance){
 				$hint = TRUE;
