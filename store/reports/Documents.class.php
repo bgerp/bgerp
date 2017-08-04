@@ -242,7 +242,7 @@ class store_reports_Documents extends frame2_driver_TableData
 		
 		if(!empty($rec->horizon)){
 			$horizon = dt::addSecs($rec->horizon, dt::today());
-			$query->where("(#{$termDateField} IS NOT NULL AND ADDDATE(#{$termDateField}, INTERVAL {$rec->horizon} SECOND) > '{$horizon}') OR #{$termDateField} IS NULL");
+			$query->where("(#{$termDateField} IS NOT NULL AND ADDDATE(#{$termDateField}, INTERVAL {$rec->horizon} SECOND) <= '{$horizon}') OR #{$termDateField} IS NULL");
 		}
 	}
 	
