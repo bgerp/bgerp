@@ -57,6 +57,16 @@ class type_UserList extends type_Keylist
      */
     public function prepareSuggestions($ids = NULL)
     {
+        // Ако не е зададен параметъра
+        if(!isset($this->params['maxOptForOpenGroups'])) {
+            $conf = core_Setup::getConfig();
+            $maxOpt = $conf->_data['CORE_MAX_OPT_FOR_OPEN_GROUPS'];
+            if(!isset($maxOpt)) {
+                $maxOpt = CORE_MAX_OPT_FOR_OPEN_GROUPS;
+            } 
+            setIfNot($this->params['maxOptForOpenGroups'], $maxOpt);
+        }
+
         $mvc = cls::get($this->params['mvc']);
         
         $mvc->invoke('BeforePrepareSuggestions', array(&$this->suggestions, $this));

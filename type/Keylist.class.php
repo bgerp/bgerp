@@ -44,16 +44,6 @@ class type_Keylist extends core_Type {
     function init($params = array())
     {
         parent::init($params);
-        
-        // Ако не е зададен параметъра
-        if(!isset($this->params['maxOptForOpenGroups'])) {
-            $conf = core_Setup::getConfig();
-            $maxOpt = $conf->_data['CORE_MAX_OPT_FOR_OPEN_GROUPS'];
-            if(!isset($maxOpt)) {
-                $maxOpt = CORE_MAX_OPT_FOR_OPEN_GROUPS;
-            } 
-            setIfNot($this->params['maxOptForOpenGroups'], $maxOpt);
-        }
     }
     
     
@@ -435,6 +425,16 @@ class type_Keylist extends core_Type {
     {
         $mvc = cls::get($this->params['mvc']);
         
+        // Ако не е зададен параметъра
+        if(!isset($this->params['maxOptForOpenGroups'])) {
+            $conf = core_Setup::getConfig();
+            $maxOpt = $conf->_data['CORE_MAX_OPT_FOR_OPEN_GROUPS'];
+            if(!isset($maxOpt)) {
+                $maxOpt = CORE_MAX_OPT_FOR_OPEN_GROUPS;
+            } 
+            setIfNot($this->params['maxOptForOpenGroups'], $maxOpt);
+        }
+
         if (!isset($this->suggestions)) {
             $this->suggestions = array();
         }
