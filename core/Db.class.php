@@ -759,7 +759,7 @@ class core_Db extends core_BaseClass
             
                 // Грешка в базата данни
                 $dump =  array('query' => $this->query, 'mysqlErrCode' => $link->errno, 'mysqlErrMsg' => $link->error, 'dbLink' => $link);
-                throw new core_exception_Db("500 @Грешка при {$action}", TRUE), 'DB Грешка', $dump); //. var_export($dump, TRUE) . '<br>' . var_export(debug_backtrace()
+                throw new core_exception_Db("500 @Грешка при {$action}", 'DB Грешка', $dump);  //. var_export($dump, TRUE) . '<br>' . var_export(debug_backtrace()
         }
 
         return $link->errno;
