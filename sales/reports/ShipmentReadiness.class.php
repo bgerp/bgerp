@@ -609,7 +609,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 			} else {
 				if(isset($shippedProducts[$pId])){
 					if(!empty($shippedProducts[$pId]->quantity)){
-						if($q / $shippedProducts[$pId]->quantity > 0.9) continue;
+						if($shippedProducts[$pId]->quantity / $q > 0.9) continue;
 					}
 					
 					$quantity = $q - $shippedProducts[$pId]->quantity;

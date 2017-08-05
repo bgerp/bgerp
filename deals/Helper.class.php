@@ -486,7 +486,7 @@ abstract class deals_Helper
         }
 		
 		$shortUomName = cat_UoM::getShortName($measureId);
-		$res = ' <small class="quiet">' . $quantityInPack . $shortUomName . '</small>';
+		$res = ' <small class="quiet">' . $quantityInPack . tr($shortUomName) . '</small>';
 		$res = "<span class='nowrap'>{$res}</span>";
 
         return $res;
@@ -935,14 +935,14 @@ abstract class deals_Helper
 	{
 		$hint = FALSE;
 		
-		if(empty($tolerance)){
+		if(!isset($tolerance)){
 			$tolerance = cat_Products::getTolerance($productId, $quantity);
 			if($tolerance){
 				$hint = TRUE;
 			}
 		}
 		
-		if($tolerance) {
+		if(isset($tolerance)) {
 			$toleranceRow = core_Type::getByName('percent(smartRound)')->toVerbal($tolerance);
 			if($hint === TRUE){
 				$toleranceRow = ht::createHint($toleranceRow, 'Толерансът е изчислен автоматично на база количеството и параметрите на артикула');

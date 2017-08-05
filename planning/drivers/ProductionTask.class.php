@@ -457,12 +457,12 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
         	$resArr['quantity']['val'] .= tr("|*<br> <span style='font-weight:normal'>|Общо тегло|*</span> [#totalWeight#]");
         }
         
-        if(isset($rec->startTime) || isset($rec->indTime)){
+        if(!empty($rec->startTime) || !empty($rec->indTime)){
         	if(isset($rec->startTime)){
         		$row->startTime .= "/" . tr($packagingId);
         	}
         	
-        	$resArr['times'] = array('name' => tr('Заработка'), 'val' => tr("|*<!--ET_BEGIN indTime--><div><span style='font-weight:normal'>|Произ-во|*</span>: [#startTime#]</div><!--ET_END indTime--><!--ET_END startTime--><!--ET_BEGIN indTime--><div><span style='font-weight:normal'>|Пускане|*</span>: [#indTime#]</div><!--ET_END indTime-->"));
+        	$resArr['times'] = array('name' => tr('Заработка'), 'val' => tr("|*<!--ET_BEGIN startTime--><div><span style='font-weight:normal'>|Произ-во|*</span>: [#startTime#]</div><!--ET_END startTime--><!--ET_BEGIN indTime--><div><span style='font-weight:normal'>|Пускане|*</span>: [#indTime#]</div><!--ET_END indTime-->"));
         }
         
         if(!empty($row->timeStart) || !empty($row->timeDuration) || !empty($row->timeEnd) || !empty($row->expectedTimeStart) || !empty($row->expectedTimeEnd)) {
