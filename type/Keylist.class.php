@@ -1,10 +1,6 @@
 <?php
 
 
-/**
- * Броя на всички записи, над които групите ще са отворени по подразбиране
- */
-defIfNot('CORE_MAX_OPT_FOR_OPEN_GROUPS', 30);
 
 
 /**
@@ -50,7 +46,14 @@ class type_Keylist extends core_Type {
         parent::init($params);
         
         // Ако не е зададен параметъра
-        setIfNot($this->params['maxOptForOpenGroups'], CORE_MAX_OPT_FOR_OPEN_GROUPS);
+        if(!isset($this->params['maxOptForOpenGroups'])) {
+            $conf = core_Setup::getConfig();
+            $maxOpt = $conf->_data['CORE_MAX_OPT_FOR_OPEN_GROUPS'];
+            if(!isset($maxOpt)) {
+                $maxOpt = CORE_MAX_OPT_FOR_OPEN_GROUPS;
+            } 
+            setIfNot($this->params['maxOptForOpenGroups'], $maxOpt);
+        }
     }
     
     
