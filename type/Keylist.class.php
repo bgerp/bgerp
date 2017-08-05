@@ -431,7 +431,7 @@ class type_Keylist extends core_Type {
      * 
      * @return array
      */
-    public function prepareSuggestions()
+    public function prepareSuggestions($ids = NULL)
     {
         $mvc = cls::get($this->params['mvc']);
         
