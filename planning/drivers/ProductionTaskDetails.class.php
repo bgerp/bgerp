@@ -114,6 +114,8 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
     	$this->FNC('packagingId', 'int', 'smartCenter,tdClass=small-field nowrap');
     	$this->FLD('actionRecId', 'int', 'input=none');
+    	
+    	$this->setDbIndex('type');
     }
     
     
@@ -186,17 +188,15 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		}
     	}
     	
-    	// Добавяме мярката
+    	// Добавяне на мярката
     	if(isset($rec->taskProductId)){
     		$pRec = planning_drivers_ProductionTaskProducts::fetch($rec->taskProductId);
     		$unit = $pRec->packagingId;
     		$unit = cat_UoM::getShortName($unit);
     		
-    		
     		$planned = tr("Планирано|*: <b>") . planning_drivers_ProductionTaskProducts::getVerbal($pRec, 'plannedQuantity') . "</b>";
     		$real = tr("Изпълнено|*: <b>") . planning_drivers_ProductionTaskProducts::getVerbal($pRec, 'realQuantity') . "</b>";
     		$form->info = "{$planned}<br>$real";
-    		
     		
     		$form->setField('quantity', "unit={$unit}");
     	}
@@ -243,9 +243,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     			}
     		}
     		
-    		if($rec->type == 'start'){
-    			$rec->quantity = 1;
-    		}
+    		$rec->quantity = ($rec->type == 'start') ? 1 : $rec->quantity;
     	}
     }
 
@@ -282,8 +280,13 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	}
     	
     	if($rec->type != 'start'){
-    		$measureId = ($rec->taskProductId) ? planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'packagingId') : planning_Tasks::getTaskInfo($rec->taskId)->packagingId;
-    		$row->packagingId = cat_UoM::getShortName($measureId);
+    		if(isset($rec->taskProductId)){
+    			$pRec = planning_drivers_ProductionTaskProducts::fetch($rec->taskProductId, 'quantityInPack,packagingId,productId');
+    		} else {
+    			$pRec = planning_Tasks::getTaskInfo($rec->taskId);
+    		}
+    		$row->packagingId = cat_UoM::getShortName($pRec->packagingId);
+    		deals_Helper::getPackInfo($row->packagingId, $pRec->productId, $pRec->packagingId, $pRec->quantityInPack);
     	} else {
     		unset($row->quantity);
     	}
@@ -300,7 +303,6 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     			if(!Mode::isReadOnly()){
     				$url = planning_Tasks::getSingleUrlArray($taskId);
     				$url['Q'] = $rec->serial;
-    				 
     				$row->serial = ht::createLink($row->serial, $url, FALSE, "title=Към задачата от която е генериран серийния номер");
     			}
     		}
@@ -368,12 +370,12 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     				}
     			}
     		} elseif(isset($rec->actionRecId)) {
-    				
-    			 	// Ако е имало бракувано количество, но вече няма
-    				planning_TaskActions::delete($rec->actionRecId);
-    				$rec->actionRecId = NULL;
-    				$mvc->save_($rec);
-    			}
+    			
+    			// Ако е имало бракувано количество, но вече няма
+    			planning_TaskActions::delete($rec->actionRecId);
+    			$rec->actionRecId = NULL;
+    			$mvc->save_($rec);
+    		}
     	}
     }
     

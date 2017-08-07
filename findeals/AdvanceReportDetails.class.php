@@ -74,7 +74,7 @@ class findeals_AdvanceReportDetails extends deals_DeliveryDocumentDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId=Мярка, packQuantity, packPrice, discount, amount, quantityInPack';
+    public $listFields = 'productId, packagingId=Мярка, packQuantity, packPrice, discount, amount';
     
     
 	/**

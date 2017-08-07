@@ -346,7 +346,6 @@ class core_ProtoSetup
         
         if($userId > 0) {
             core_Users::sudo($userId);
-            Mode::set('ddd');
         }
 
         $conf = self::getConfig();

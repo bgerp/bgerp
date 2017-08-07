@@ -39,7 +39,7 @@ class tasks_Tasks extends embed_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, doc_DocumentPlg, planning_plg_StateManager, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone';
+    public $loadList = 'plg_RowTools2, doc_DocumentPlg, planning_plg_StateManager, acc_plg_DocumentSummary, plg_Search, plg_Clone';
 
     
     /**
@@ -335,7 +335,7 @@ class tasks_Tasks extends embed_Manager
     	// Добавяме поле за търсене по състояние
     	if(!Request::get('Rejected', 'int')){
     		$data->listFilter->setOptions('state', array('' => '') + arr::make('draft=Чернова, active=Активен, pendingandactive=Активни+Чакащи,closed=Приключен, stopped=Спрян, wakeup=Събуден,waiting=Чакащо', TRUE));
-    		$data->listFilter->setField('state', 'placeholder=Всички');
+    		$data->listFilter->setField('state', 'placeholder=Всички,formOrder=1000');
     		$data->listFilter->showFields .= ',state';
     		$data->listFilter->input('state');
     		 
@@ -721,7 +721,7 @@ class tasks_Tasks extends embed_Manager
     	$query->where("#originId = {$data->masterData->rec->containerId}");
     	$query->XPR('orderByState', 'int', "(CASE #state WHEN 'wakeup' THEN 1 WHEN 'active' THEN 2 WHEN 'stopped' THEN 3 WHEN 'closed' THEN 4 WHEN 'waiting' THEN 5 ELSE 6 END)");
     	$query->orderBy('#orderByState=ASC');
-    		
+    	
     	// Подготвяме данните
     	while($rec = $query->fetch()){
     		if(!cls::load($rec->classId, TRUE)) continue;

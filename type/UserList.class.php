@@ -55,8 +55,18 @@ class type_UserList extends type_Keylist
      * 
      * @return array
      */
-    public function prepareSuggestions()
+    public function prepareSuggestions($ids = NULL)
     {
+        // Ако не е зададен параметъра
+        if(!isset($this->params['maxOptForOpenGroups'])) {
+            $conf = core_Setup::getConfig();
+            $maxOpt = $conf->_data['CORE_MAX_OPT_FOR_OPEN_GROUPS'];
+            if(!isset($maxOpt)) {
+                $maxOpt = CORE_MAX_OPT_FOR_OPEN_GROUPS;
+            } 
+            setIfNot($this->params['maxOptForOpenGroups'], $maxOpt);
+        }
+
         $mvc = cls::get($this->params['mvc']);
         
         $mvc->invoke('BeforePrepareSuggestions', array(&$this->suggestions, $this));
@@ -102,16 +112,16 @@ class type_UserList extends type_Keylist
         
         // Броя на групите
         $cnt = $uQueryAll->count();
-        
+      
         // Ако броя е под максимално допустимите или са избрани всичките
         if ((trim($this->params['autoOpenGroups']) == '*') || ($cnt < $this->params['maxOptForOpenGroups'])) {
             
             // Отваряме всички групи
             $openAllGroups = TRUE;
         }
-
+ 
         $userArr = core_Users::getRolesWithUsers();
-        
+    
         $rolesArr = type_Keylist::toArray($roles);
         
         foreach($teams as $t) {  
@@ -155,6 +165,11 @@ class type_UserList extends type_Keylist
                         $this->suggestions[$key] =  html_entity_decode($this->suggestions[$key]);
                     }
                 }
+
+                if($uId == core_Users::getCurrent() && !$ids) {
+                    $group->autoOpen = TRUE;
+                    $haveOpenedGroup = TRUE;
+                }
             }
 
             if(!$teamMembers) {
@@ -177,10 +192,10 @@ class type_UserList extends type_Keylist
             $firstGroup = key($this->suggestions);
             
             // Ако е обект
-            if ($firstGroup && is_object($this->suggestions[$firstGroup])) {
+            if ($firstGroup && is_object($this->suggestions[$firstGroup]) && !$ids) {
                 
                 // Вдигама флаг да се отвори
-                // $this->suggestions[$firstGroup]->autoOpen = TRUE;
+                $this->suggestions[$firstGroup]->autoOpen = TRUE;
             }
         }
         
@@ -226,7 +241,7 @@ class type_UserList extends type_Keylist
      */
     function renderInput_($name, $value = "", &$attr = array())
     {
-        $this->prepareSuggestions();
+        $this->prepareSuggestions($value);
         
         if ($value) {
             
@@ -256,7 +271,7 @@ class type_UserList extends type_Keylist
             
             $value = $nValArr;
         }
-        
+    
         $res = parent::renderInput_($name, $value, $attr);
         
         return $res;

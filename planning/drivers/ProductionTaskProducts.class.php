@@ -101,7 +101,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	$this->FLD("packagingId", 'key(mvc=cat_UoM,select=shortName)', 'mandatory,caption=Мярка,smartCenter,tdClass=small-field nowrap');
     	$this->FLD("plannedQuantity", 'double(smartRound,Min=0)', 'mandatory,caption=Планирано к-во,smartCenter,oldFieldName=planedQuantity');
     	$this->FLD("storeId", 'key(mvc=store_Stores,select=name)', 'mandatory,caption=Склад');
-    	$this->FLD("quantityInPack", 'int', 'mandatory,input=none');
+    	$this->FLD("quantityInPack", 'double', 'mandatory,input=none');
     	$this->FLD("realQuantity", 'double(smartRound)', 'caption=Количество->Изпълнено,input=none,notNull,smartCenter');
     	$this->FLD("indTime", 'time(noSmart)', 'caption=Норма->Време,smartCenter');
     	$this->FNC('totalTime', 'time(noSmart)', 'caption=Норма->Общо,smartCenter');
@@ -178,6 +178,11 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     			$form->setField('storeId', "input=none");
     		} else {
     			$form->setDefault('storeId', store_Stores::getCurrent('id', FALSE));
+    		}
+    		
+    		if(empty($rec->id)){
+    			$caption = ($rec->type == 'input') ? 'Вложено' : 'Отпадък';
+    			$form->FLD('inputedQuantity', 'double(Min=0)', "caption={$caption},before=storeId");
     		}
     	} else {
     		$form->setField('packagingId', 'input=hidden');
@@ -330,6 +335,11 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
      */
     public static function on_AfterCreate($mvc, $rec)
     {
+    	if(!empty($rec->inputedQuantity)){
+    		$dRec = (object)array('taskId' => $rec->taskId, 'taskProductId' => $rec->id, 'type' => $rec->type, 'quantity' => $rec->inputedQuantity);
+    		planning_drivers_ProductionTaskDetails::save($dRec);
+    	}
+    	
     	// При добавянето на артикул за влагане/отпадък ако за него има чернова задача за произвеждането му
     	// искаме текущата задача да зависи от изпълнението на другата задача.Т.е да активираме задачата
     	// за влагането на артикула само след завършването на задачата за произвеждането му

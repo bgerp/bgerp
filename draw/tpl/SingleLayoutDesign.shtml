@@ -4,6 +4,14 @@
     <h3>
         <div style="padding:5px;" class=" [#STATE_CLASS#]">|Скрипт|* <b style="color:green;display:inline-block;">[#name#]</b></div>
     </h3>
+
+    [#hiddenScript#]
+    [#CODE#]
+    [#hiddenEndScript#]
+
+
+    [#hiddenMeta#]
+    <br>
     <!--ET_BEGIN lastUsedOn-->
     <table class="styled-table" style='width:99%'>
 
@@ -15,9 +23,6 @@
 
     </table>
     <!--ET_END lastUsedOn-->
-    [#CODE#]
-
-    <br>
     <!--ET_BEGIN modify-->
     [#modify#]
     <div><span class="quiet">|Модифициране|*: </span>|от|* [#modifiedBy#] |на|* [#modifiedOn#] </div>
@@ -29,5 +34,6 @@
         [#CHANGE_LOG#]
     </div>
     <!--ET_END CHANGE_LOG-->
+    [#hiddenEndMeta#]
 </div>
     [#DETAILS#]

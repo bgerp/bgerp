@@ -75,6 +75,7 @@
                     </table>
                 </div>
             </fieldset>
+            <!--ET_END SELECT_FIELD-->
             
             <!--ET_BEGIN store_Products-->
             <fieldset class="detail-info">
