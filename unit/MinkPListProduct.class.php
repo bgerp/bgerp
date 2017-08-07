@@ -271,7 +271,7 @@ class unit_MinkPListProduct extends core_Manager {
         $browser->press('Активиране');
          
         $browser->press('Активиране/Контиране');
-        if(strpos($browser->gettext(), 'Четири хиляди осемстотин петдесет и два BGN и 0,20')){ 
+        if(strpos($browser->gettext(), 'Четири хиляди шестстотин осемдесет и седем BGN и 0,04')){ 
         } else {
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
