@@ -2104,6 +2104,8 @@ class doclog_Documents extends core_Manager
             $data[$rec->containerId]->containerId = $rec->containerId;
         }
         
+        // Показваме използванията
+        $cArr = array();
         $contQuery = doc_Containers::getQuery();
         $contQuery->where("#threadId = {$threadId}");
         while ($cRec = $contQuery->fetch()) {
@@ -2112,7 +2114,12 @@ class doclog_Documents extends core_Manager
                 $data[$cRec->id]->containerId = $cRec->id;
             }
             
-            $data[$cRec->id]->summary[$used] = doclog_Used::getUsedCount($cRec->id);
+            $cArr[$cRec->id] = $cRec->id;
+        }
+        
+        $allUsedCount = doclog_Used::getAllUsedCount($cArr);
+        foreach ($allUsedCount as $cId => $cnt) {
+            $data[$cId]->summary[$used] = $cnt;
         }
         
         return $data;

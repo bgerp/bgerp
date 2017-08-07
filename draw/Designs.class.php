@@ -39,19 +39,26 @@ class draw_Designs extends core_Master
     /**
      * Кой може да променя записа
      */
-    var $canChangerec = 'draw,admin,ceo';
+    var $canChangerec = 'drawMaster,ceo,admin';
 
 
     /**
      * Кой може да променя записа
      */
-    var $canChangestate = 'draw,admin,ceo';
+    var $canChangestate = 'draw,ceo,admin';
 
 
     /**
      *
      */
     var $canEdit = 'no_one';
+
+
+    /**
+     * Кой може да оттегля документа
+     */
+    var $canReject = 'drawMaster, ceo,admin';
+
 
     /**
      * Заглавие
@@ -62,7 +69,7 @@ class draw_Designs extends core_Master
     /**
      * Права за писане
      */
-    var $canWrite = 'ceo,draw,admin';
+    var $canWrite = 'drawMaster, ceo,admin';
     
     
     /**
@@ -74,7 +81,7 @@ class draw_Designs extends core_Master
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'debug';
+    var $canDelete = 'debug, drawMaster';
     
     
     /**
@@ -718,6 +725,18 @@ class draw_Designs extends core_Master
         // Вземаме таблицата с попълнени данни
         $fields = 'createdOn=Дата, createdBy=От, Version=Версия';
         $data->row->CHANGE_LOG = $inst->get(change_Log::prepareLogRow($mvc->className, $data->rec->id), $fields);
+
+        // скрипта да се скрит с бутон за показване, ако потребителя е с по-малко права
+        if(!haveRole('drawMaster, ceo, admin')) {
+            $data->row->hiddenScript = "<a href=\"javascript:toggleDisplay('script-{$data->row->id}')\"  style=\"display: block; margin-bottom: 10px; background-repeat: no-repeat; font-weight:bold; background-image:url(" . sbf('img/16/toggle1.png', "'") . ");\" class=\" plus-icon more-btn\">Покажи скрипт</a>";
+            $data->row->hiddenScript .= "<div style='margin:10px 0; display:none' id='script-{$data->row->id}'>";
+            $data->row->hiddenEndScript = "</div>";
+        }
+
+        // скрит блок с метаинформация
+        $data->row->hiddenMeta = "<a href=\"javascript:toggleDisplay('meta-{$data->row->id}')\"  style=\"display: block; margin: 10px 0; background-repeat: no-repeat; font-weight:bold; background-image:url(" . sbf('img/16/toggle1.png', "'") . ");\" class=\" plus-icon more-btn\">Покажи версии</a>";
+        $data->row->hiddenMeta .= "<div style='margin:10px 0; display:none' id='meta-{$data->row->id}'>";
+        $data->row->hiddenEndMeta = "</div>";
 
         $error = '';
         $contex = new stdClass();

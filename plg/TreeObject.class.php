@@ -432,9 +432,17 @@ class plg_TreeObject extends core_Plugin
 						continue;
 					}
 				}
-					
+				
 				// задаваме свойството
 				$features[$keyVerbal] = $nameVerbal;
+				
+				// Ако е последното листо, то да си има стойност себе си
+				if($keyVerbal != $nameVerbal){
+					if(!$mvc->fetchField("#{$mvc->parentFieldName} = {$rec->id}")){
+						$keyVerbal .= " » {$nameVerbal}";
+						$features[$keyVerbal] = $nameVerbal;
+					}
+				}
 			}
 			
 			// Връщаме намерените свойства

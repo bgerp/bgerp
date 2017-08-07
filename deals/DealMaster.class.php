@@ -814,13 +814,9 @@ abstract class deals_DealMaster extends deals_DealBase
     		}
     	}
     	
-    	$saveFields = 'searchKeywords';
-    	$rec->searchKeywords = $mvc->updateSearchKeywords($rec);
     	if($update === TRUE){
-    		$saveFields .= ',deliveryTermTime,deliveryAdress';
+    		$mvc->save_($rec, 'deliveryTermTime,deliveryAdress');
     	}
-    	
-    	$mvc->save_($rec, $saveFields);
     }
     
     
@@ -1375,13 +1371,19 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	// Закръглената оставаща сума за плащане
     	$query->XPR('toInvoice', 'double', 'ROUND(#amountDelivered - #amountInvoiced, 2)');
-    	 
+    	$query->XPR('deliveredRound', 'double', 'ROUND(#amountDelivered, 2)');
+    	
+    	$percent = bgerp_Setup::get('CLOSE_UNDELIVERED_OVER');
+    	$percent = (!empty($percent)) ? $percent : 1;
+    	
+    	$query->XPR('minDelivered', 'double', "ROUND(#amountDeal * {$percent}, 2)");
+    	
     	// Само активни продажби
     	$query->where("#state = 'active'");
     	$query->where("#amountDelivered IS NOT NULL AND #amountPaid IS NOT NULL");
     	 
     	// Пропускат се и тези по които има още да се експедира
-    	$query->where("#amountDeal <= #amountDelivered");
+    	$query->where("#minDelivered <= #deliveredRound");
     	
     	// На които треда им не е променян от определено време
     	$query->where("#threadModifiedOn <= '{$oldBefore}'");
@@ -1397,7 +1399,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	// Лимитираме заявката
     	$query->limit($limit);
-    	 
+    	
     	// Всяка намерената сделка, се приключва като платена
     	while($rec = $query->fetch()){
     		
@@ -1697,7 +1699,7 @@ abstract class deals_DealMaster extends deals_DealBase
     		$exRec->quantity += $dRec->quantity;
     		$exRec->price = $nPrice;
     		$exRec->discount = (empty($nDiscount)) ? NULL : round($nDiscount, 2);
-    		$exRec->tolerance = (empty($nTolerance)) ? NULL : round($nTolerance, 2);
+    		$exRec->tolerance = (!isset($nTolerance)) ? NULL : round($nTolerance, 2);
     		
     		// Ъпдейтваме съществуващия запис
     		$id = $Detail->save($exRec);
@@ -2091,37 +2093,5 @@ abstract class deals_DealMaster extends deals_DealBase
     	 
     	// Рендиране на формата
     	return $this->renderWrapping($form->renderHtml());
-    }
-    
-    /**
-     * Ъпдейтване на ключовите думи
-     * 
-     * @param stdClass $rec
-     * @param string $keywords
-     */
-    protected function updateSearchKeywords($rec)
-    {
-    	$detailsKeywords = '';
-    	
-    	// заявка към детайлите
-    	$Detail = cls::get($this->mainDetail);
-    	$query = $Detail->getQuery();
-    	$query->where("#{$Detail->masterKey}  = '{$rec->id}'");
-    	$query->show('productId,notes');
-    	
-    	while ($dRec = $query->fetch()){
-    		
-    		// взимаме заглавията на продуктите
-    		$productTitle = cat_Products::getTitleById($dRec->productId);
-    		$detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
-    		if(!empty($dRec->notes)){
-    			$detailsKeywords .= " " . plg_Search::normalizeText($dRec->notes);
-    		}
-    	}
-    	 
-    	// добавяме новите ключови думи към основните
-    	$rec->searchKeywords = " " . $rec->searchKeywords . " " . $detailsKeywords;
-    	
-    	return $rec->searchKeywords;
     }
 }

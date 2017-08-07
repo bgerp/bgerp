@@ -259,8 +259,8 @@ class cat_ListingDetails extends doc_Detail
 						$vat = cat_Products::getVat($rec->productId);
 						$rate = currency_CurrencyRates::getRate($date, $listRec->currencyId, NULL);
 						
-						$row->price = deals_Helper::getDisplayPrice($policyInfo->price, $vat, $rate, $listRec->vat);
-						$row->price = $mvc->getFieldType('price')->toVerbal($row->price);
+						$rec->price = deals_Helper::getDisplayPrice($policyInfo->price, $vat, $rate, $listRec->vat);
+						$row->price = $mvc->getFieldType('price')->toVerbal($rec->price);
 						$row->price = ht::createHint($row->price, $hint2);
 					}
 				}

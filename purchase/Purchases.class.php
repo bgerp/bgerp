@@ -35,7 +35,7 @@ class purchase_Purchases extends deals_DealMaster
      */
     public $loadList = 'plg_RowTools, purchase_Wrapper, acc_plg_Registry, plg_Sorting, doc_plg_MultiPrint, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
 				        cond_plg_DefaultValues, recently_Plugin, doc_plg_HidePrices, doc_SharablePlg, plg_Clone,
-				        doc_EmailCreatePlg, bgerp_plg_Blank, acc_plg_DocumentSummary, plg_Search, doc_plg_Close, plg_LastUsedKeys';
+				        doc_EmailCreatePlg, bgerp_plg_Blank, acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, plg_Search, doc_plg_Close, plg_LastUsedKeys';
     
     
     /**
@@ -623,9 +623,9 @@ class purchase_Purchases extends deals_DealMaster
      */
     public function cron_CloseOldPurchases()
     {
-    	$conf = core_Packs::getConfig('purchase');
-    	$olderThan = $conf->PURCHASE_CLOSE_OLDER_THAN;
-    	$limit 	   = $conf->PURCHASE_CLOSE_OLDER_NUM;
+    	$conf        = core_Packs::getConfig('purchase');
+    	$olderThan   = $conf->PURCHASE_CLOSE_OLDER_THAN;
+    	$limit 	     = $conf->PURCHASE_CLOSE_OLDER_NUM;
     	$ClosedDeals = cls::get('purchase_ClosedDeals');
     	
     	$this->closeOldDeals($olderThan, $ClosedDeals, $limit);

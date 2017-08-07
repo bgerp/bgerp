@@ -88,6 +88,7 @@ class planning_TaskActions extends core_Manager
 		$this->setDbIndex('taskId');
 		$this->setDbIndex('taskId,type');
 		$this->setDbIndex('productId');
+		$this->setDbIndex('jobId');
 	}
 	
 	
