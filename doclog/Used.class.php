@@ -158,7 +158,36 @@ class doclog_Used extends core_Manager
         $query = self::getQuery();
         $query->where(array("#usedContainerId = '[#1#]'", $cid));
         
-        return $query->count();
+        $cnt = $query->count();
+        
+        return $cnt;
+    }
+    
+    
+    /**
+     * Връща броя на използваните документи за всичко контейнери
+     * 
+     * @param array $cArr
+     * 
+     * @return array
+     */
+    public static function getAllUsedCount($cArr)
+    {
+        $resArr = array();
+        
+        if (empty($cArr)) return $resArr;
+        
+        $query = self::getQuery();
+        $query->in('usedContainerId', $cArr);
+        $query->show('cnt, id, usedContainerId');
+        $query->XPR('cnt', 'int', 'count(#usedContainerId)');
+        
+        $query->groupBy('usedContainerId');
+        while ($rec = $query->fetch()) {
+            $resArr[$rec->usedContainerId] = $rec->cnt;
+        }
+        
+        return $resArr;
     }
     
     
