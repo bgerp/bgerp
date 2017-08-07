@@ -342,8 +342,6 @@ class cat_products_Packagings extends core_Detail
             }
         }
         
-        
-        
         if($kgPack = self::getPack($rec->productId, $kgId)){
         	if($kgPack != $rec->id){
         		
