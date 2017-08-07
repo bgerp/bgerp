@@ -73,7 +73,7 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
 		
 		// Ако партидата е изтекла оцветяваме я в червено
 		if(strtotime($mysqlValue) < $today){
-			$valueHint = ht::createHint($value, 'Крайният срок на партидата е изтекъл', 'warning');
+			$valueHint = ht::createHint($value, 'Срокът на годност на партидата е изтекъл', 'warning');
 			$value = new core_ET("<span class='red'>[#value#]</span>");
 			$value->replace($valueHint, 'value');
 		} else {
