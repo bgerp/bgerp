@@ -49,7 +49,7 @@ class core_CallOnTime extends core_Manager
     /**
      * Плъгините и враперите, които ще се използват
      */
-    public $loadList = 'plg_State,plg_SystemWrapper';
+    public $loadList = 'plg_State, plg_SystemWrapper, plg_RowTools2';
     
     
 	/**
