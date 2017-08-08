@@ -228,7 +228,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		// Ако няма код и операцията е 'произвеждане' задаваме дефолтния код
     		if($rec->type == 'product'){
     			if(empty($rec->serial)){
-    				$rec->serial = planning_TaskSerials::forceAutoNumber($rec->taskId, $productId);
+    				$rec->serial = planning_TaskSerials::forceAutoNumber($rec->taskId);
     			}
     		}
     		
