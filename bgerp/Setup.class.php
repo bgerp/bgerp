@@ -125,7 +125,7 @@ class bgerp_Setup extends core_ProtoSetup {
 
         'BGERP_START_OF_WORKING_DAY' => array ('enum(08:00,09:00,10:00,11:00,12:00)', 'caption=Начало на работния ден->Час'),
         
-        'BGERP_CLOSE_UNDELIVERED_OVER'    => array('percent(min=0)', 'caption=Допустим % "Недоставено" за автоматично приключване на сделка->Процент'),
+        'BGERP_CLOSE_UNDELIVERED_OVER'    => array('percent(min=0)', 'caption=Допустимо автоматично приключване на сделка при "Доставено" минимум->Процент'),
     );
     
     
