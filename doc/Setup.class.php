@@ -871,9 +871,9 @@ class doc_Setup extends core_ProtoSetup
         }
         
         if (!core_CallOnTime::fetch("#className = 'doc_Setup' AND #methodName = 'regenerateSearchKeywords' AND #state = 'draft'", '*', FALSE)) {
-            $callOn = dt::addSecs(60);
+            $callOn = dt::addSecs(55);
             core_CallOnTime::setCall('doc_Setup', 'regenerateSearchKeywords', NULL, $callOn);
-            core_Permanent::set($permanentKey, $to);
+            core_Permanent::set($permanentKey, $to, 100000);
         }
         
         $cQuery = doc_Containers::getQuery();
