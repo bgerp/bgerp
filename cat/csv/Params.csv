@@ -4,7 +4,7 @@
 Дебелина,cond_type_Double,см,thickness,,,yes,active,,yes
 Обем,cond_type_Double,куб.м,volume,,,no,active,"min=0",yes
 Обем,cond_type_Double,л,volumel,,,no,active,"min=0",yes
-Плътност,cond_type_Double,кг/м3,density,,,no,active,,yes
+Плътност,cond_type_Double,кг/м3,density,,,no,active,,no
 Цвят,cond_type_Varchar,,color,,,yes,active,,yes
 Митнически номер,cond_type_Varchar,,customsTariffNumber,,,no,active,,no
 Транспортно Тегло,cond_type_Double,кг,transportWeight,,,no,active,"min=0",no
