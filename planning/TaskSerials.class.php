@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'planning_TaskSerials' - Серийни номера по производствени операции
  *
@@ -10,7 +11,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -150,14 +151,16 @@ class planning_TaskSerials extends core_Manager
 	 * @param stdClass $row Това ще се покаже
 	 * @param stdClass $rec Това е записа в машинно представяне
 	 */
-	public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+	protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
 	{
 		$row->taskId = planning_Tasks::getHyperlink($rec->taskId, TRUE);
-		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
 		$row->ROW_ATTR['class'] = 'state-active';
+		
+		if(isset($rec->productId)){
+			$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
+		}
 	}
 	
-
 
 	/**
 	 * Проверява дали даден сериен номер е допустим
