@@ -19,13 +19,13 @@ class core_CallOnTime extends core_Manager
     /**
      * Кой има право да променя?
      */
-    protected $canEdit = 'no_one';
+    protected $canEdit = 'debug';
     
     
     /**
      * Кой има право да добавя?
      */
-    protected $canAdd = 'no_one';
+    protected $canAdd = 'debug';
     
     
     /**
@@ -37,7 +37,7 @@ class core_CallOnTime extends core_Manager
     /**
      * Кой има право да го изтрие?
      */
-    protected $canDelete = 'no_one';
+    protected $canDelete = 'debug';
 	
 
 	/**
