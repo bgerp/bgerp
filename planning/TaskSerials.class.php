@@ -46,7 +46,7 @@ class planning_TaskSerials extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId,taskId,serial=С. номер,labelNo,domain,createdOn,createdBy';
+    public $listFields = 'productId,taskId,serial=С. номер,labelNo,domain,packagingId,quantityInPack,createdOn,createdBy';
 
     
 	/**
@@ -55,6 +55,8 @@ class planning_TaskSerials extends core_Manager
 	function description()
 	{
 		$this->FLD('serial', 'bigint', 'caption=Брояч,mandatory');
+		$this->FLD('quantityInPack', 'double', 'caption=К-во в опаковка,mandatory');
+		$this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Опаковка,mandatory');
 		$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory');
 		$this->FLD('taskId', 'key(mvc=planning_Tasks,select=title)', 'caption=Задача,mandatory');
 		$this->FLD('labelNo', 'int', 'caption=Номер на етикета,mandatory');
@@ -97,7 +99,7 @@ class planning_TaskSerials extends core_Manager
 	 * @param int $taskId - ид на задача за прозиводство
 	 * @return string $serial - сериен номер
 	 */
-	public static function forceAutoNumber($taskId, $productId)
+	public static function forceAutoNumber($taskId)
 	{
 		$query = self::getQuery();
 		$query->where("#domain = 'auto'");
@@ -105,11 +107,15 @@ class planning_TaskSerials extends core_Manager
 		$labelNo = $query->fetch()->maxLabelNo;
 		$labelNo++;
 		
-		$rec = (object)array('taskId'    => $taskId, 
-							 'labelNo'   => $labelNo,
-							 'domain'    => 'auto',
-							 'productId' => $productId,
-							 'serial'    => self::getNextSerial());
+		$tInfo = planning_Tasks::getTaskInfo($taskId);
+		
+		$rec = (object)array('taskId'         => $taskId, 
+							 'labelNo'        => $labelNo,
+							 'domain'         => 'auto',
+							 'productId'      => $tInfo->productId,
+							 'packagingId'    => $tInfo->packagingId,
+							 'quantityInPack' => $tInfo->quantityInPack,
+							 'serial'         => self::getNextSerial());
 		
 		self::save($rec);
 		
@@ -118,25 +124,35 @@ class planning_TaskSerials extends core_Manager
 	
 	
 	/**
-	 * Форсираме сериен номер
+	 * Изпълнява се след подготвянето на формата за филтриране
+	 */
+	protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
+	{
+		$data->query->orderBy('id', 'DESC');
+	}
+	
+	
+	/**
+	 * Форсира сериен номер
 	 * 
-	 * @param int $taskId     - ид 
-	 * @param number $labelNo - номер на етикета
-	 * @param int $productId  - ид на артикул
+	 * @param int $taskId          - ид 
+	 * @param number $labelNo      - номер на етикета
 	 * @return int - намерения сериен номер
 	 */
-	public static function force($taskId, $labelNo = 0, $productId)
+	public static function force($taskId, $labelNo = 0)
 	{
 		if($rec = static::fetch(array("#taskId = [#1#] AND #labelNo = '[#2#]' AND #domain = 'labels'", $taskId, $labelNo))){
-			
 			return $rec->serial;
 		}
+		$tInfo = planning_Tasks::getTaskInfo($taskId);
 		
-		$rec = (object)array('taskId'    => $taskId, 
-						     'labelNo'   => $labelNo, 
-							 'domain'    => 'labels',
-							 'productId' => $productId,
-							 'serial'    => static::getNextSerial());
+		$rec = (object)array('taskId'         => $taskId, 
+						     'labelNo'        => $labelNo, 
+							 'domain'         => 'labels',
+							 'productId'      => $tInfo->productId,
+							 'packagingId'    => $tInfo->packagingId,
+							 'quantityInPack' => $tInfo->quantityInPack,
+							 'serial'         => static::getNextSerial());
 		
 		static::save($rec);
 		

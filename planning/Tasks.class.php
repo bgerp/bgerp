@@ -395,7 +395,7 @@ class planning_Tasks extends tasks_Tasks
 		$res['NAME'] = cat_Products::getTitleById($tInfo->productId);
 		
 		// Генериране на баркод
-		$serial = planning_TaskSerials::force($id, $labelNo, $tInfo->productId);
+		$serial = planning_TaskSerials::force($id, $labelNo);
 		$res['BARCODE'] = self::getBarcodeImg($serial)->getContent();
 		
 		// Информация за артикула
