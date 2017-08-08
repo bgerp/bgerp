@@ -250,7 +250,7 @@ class doc_Setup extends core_ProtoSetup
         'migrate::addCountryIn2LgFolders2',
         'migrate::addFirstDocClassAndId',
         'migrate::receiveEmailUnsortedN',
-        'migrate::regenerateSearchKeywords2'
+        'migrate::regenerateSearchKeywords'
     );
 	
     
@@ -839,17 +839,17 @@ class doc_Setup extends core_ProtoSetup
     /**
      * Миграция за регенеиране на ключови думи
      */
-    public static function regenerateSearchKeywords2()
+    public static function regenerateSearchKeywords()
     {
         $callOn = dt::addSecs(120);
-        core_CallOnTime::setCall('doc_Setup', 'regenerateSearchKeywords2', NULL, $callOn);
+        core_CallOnTime::setCall('doc_Setup', 'regenerateSearchKeywords', NULL, $callOn);
     }
     
     
     /**
      * Колбек функцията за регенериране на ключовите думи на документите
      */
-    public static function callback_regenerateSearchKeywords2()
+    public static function callback_regenerateSearchKeywords()
     {
         $permanentKey = 'regeneteSearchKeywordsFrom';
         
@@ -870,9 +870,9 @@ class doc_Setup extends core_ProtoSetup
             return;
         }
         
-        if (!core_CallOnTime::fetch("#className = 'doc_Setup' AND #methodName = 'regenerateSearchKeywords2' AND #state = 'draft'", '*', FALSE)) {
+        if (!core_CallOnTime::fetch("#className = 'doc_Setup' AND #methodName = 'regenerateSearchKeywords' AND #state = 'draft'", '*', FALSE)) {
             $callOn = dt::addSecs(60);
-            core_CallOnTime::setCall('doc_Setup', 'regenerateSearchKeywords2', NULL, $callOn);
+            core_CallOnTime::setCall('doc_Setup', 'regenerateSearchKeywords', NULL, $callOn);
             core_Permanent::set($permanentKey, $to);
         }
         
