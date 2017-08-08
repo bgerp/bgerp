@@ -130,7 +130,7 @@ class planning_Tasks extends tasks_Tasks
 	/**
 	 * Подготовка на формата за добавяне/редактиране
 	 */
-	public static function on_AfterPrepareEditForm($mvc, &$data)
+	protected static function on_AfterPrepareEditForm($mvc, &$data)
 	{
 		$rec = &$data->form->rec;
     
@@ -154,7 +154,7 @@ class planning_Tasks extends tasks_Tasks
 	 * @param stdClass $data
 	 * @return void
 	 */
-	public static function on_AfterPrepareTasks($mvc, &$data)
+	protected static function on_AfterPrepareTasks($mvc, &$data)
 	{
 		if(Mode::isReadOnly()) return;
 		$masterRec = $data->masterData->rec;
@@ -257,7 +257,7 @@ class planning_Tasks extends tasks_Tasks
 	/**
 	 * Преди запис на документ
 	 */
-	public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+	protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
 	{
 		$rec->classId = ($rec->classId) ? $rec->classId : $mvc->getClassId();
 		if(!$rec->productId) return;
