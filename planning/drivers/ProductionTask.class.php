@@ -571,6 +571,8 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     	$params = cat_Products::getParams($rec->productId);
     	if(is_array($params)){
     		foreach ($params as $k => $v){
+    			if(cat_Params::fetchField($k, 'showInTasks') != 'yes') continue;
+    			
     			$nRec = (object)array('paramId' => $k, 'paramValue' => $v, 'classId' => $tasksClassId, 'productId' => $rec->id);
     			if($id = cat_products_Params::fetchField("#classId = {$tasksClassId} AND #productId = {$rec->id} AND #paramId = {$k}", 'id')){
     				$nRec->id = $id;
