@@ -234,4 +234,29 @@ class cat_Params extends bgerp_ProtoParam
     	
     	return $tpl;
     }
+    
+    
+    /**
+     * Форсира параметър
+     *
+     * @param string $sysId             - систем ид на параметър
+     * @param string $name              - име на параметъра
+     * @param string $type              - тип на параметъра
+     * @param NULL|text $options        - опции на параметъра само за типовете enum и set
+     * @param NULL|string $suffix       - наставка
+     * @param NULL|boolean $showInTasks - може ли да се показва в производствена операция
+     * @return int                      - ид на параметъра
+     */
+    public static function force($sysId, $name, $type, $options = array(), $suffix = NULL, $showInTasks = FALSE)
+    {
+    	// Ако има параметър с това систем ид,връща се
+    	$id = self::fetchIdBySysId($sysId);
+    	if(!empty($id)) return $id;
+    	
+    	$nRec = static::makeNewRec($sysId, $name, $type, $options, $suffix);
+    	$nRec->showInTasks = ($showInTasks) ? 'yes' : 'no';
+    	
+    	// Създаване на параметъра
+    	return self::save($nRec);
+    }
 }
