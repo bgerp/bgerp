@@ -327,7 +327,10 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 			if(planning_drivers_ProductionTaskDetails::fetch("#type = 'product' AND #taskId = {$rec->id}")){
 				$form->setReadOnly('productId');
 				$form->setReadOnly('packagingId');
-				$form->setReadOnly('fixedAssets');
+				
+				if($data->action != 'clone'){
+					$form->setReadOnly('fixedAssets');
+				}
 			}
 		}
 	}
@@ -503,6 +506,21 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     public static function on_AfterGetDetailsToClone(tasks_BaseDriver $Driver, embed_Manager &$Embedder, &$details, $rec)
     {
     	$details['planning_drivers_ProductionTaskProducts'] = 'planning_drivers_ProductionTaskProducts';
+    }
+    
+    
+    /**
+     * След определяне на полетата, които да не се клонират
+     *
+     * @param tasks_BaseDriver $Driver
+     * @param embed_Manager $Embedder
+     * @param array $res
+     * @param stdClass $rec
+     */
+    public static function on_AfterGetFieldsNotToClone(tasks_BaseDriver $Driver, embed_Manager &$Embedder, &$res, $rec)
+    {
+    	$res['totalWeight'] = 'totalWeight';
+    	$res['totalQuantity'] = 'totalQuantity';
     }
     
     
