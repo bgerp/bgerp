@@ -18,6 +18,23 @@ class acc_plg_Contable extends core_Plugin
     
     
     /**
+     * Масив с класове и съответните роли, които се изискват за private single на документа
+     */
+    protected static $rolesAllMap = array(
+            'purchase_Invoices' => 'invoiceAll',
+            'sales_Invoices' => 'invoiceAll',
+            'sales_Proformas' => 'invoiceAll',
+            'store_Stores' => 'storeAll',
+            'bank_IncomeDocuments' => 'bankAll',
+            'bank_SpendingDocuments' => 'bankAll',
+            'cash_Pko' => 'cashAll',
+            'cash_Rko' => 'cashAll',
+            'sales_Sales' => 'saleAll',
+            'purchase_Purchases' => 'purchaseAll'
+    );
+    
+    
+    /**
      * Извиква се след описанието на модела
      *
      * @param core_Mvc $mvc
@@ -400,23 +417,11 @@ class acc_plg_Contable extends core_Plugin
             }
         }
         
+        // Проверка за права за частния сингъл
         if ($action == 'viewpsingle') {
-            $allowedClsArr = type_Keylist::toArray(acc_Setup::get('CLASSES_FOR_VIEW_ACCESS'));
-            
-            // Ако не е позволено в класа, да не може да се използва
-            if (!$allowedClsArr[$mvc->getClassId()]) {
+            $rolesAll = self::$rolesAllMap[$mvc->className];
+            if (!haveRole($rolesAll, $userId)) {
                 $requiredRoles = 'no_one';
-            } else {
-                // Заобиколяване за вземане на правата
-                $cRec = NULL;
-                if (is_object($rec)) {
-                    $cRec = clone $rec;
-                    $cRec->state = 'draft';
-                }
-                
-                if (!haveRole('accpsingle', $userId)) {
-                    $requiredRoles = $mvc->getRequiredRoles('conto', $cRec, $userId);
-                }
             }
         }
     }
