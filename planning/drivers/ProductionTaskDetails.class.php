@@ -638,12 +638,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     public static function getIndicatorValues($timeline)
     {
     	$query = self::getQuery();
-    	$query->where("#taskId = 103");
-        //$query->where("#modifiedOn >= '{$timeline}'");
-       
-        
-        //bp($query->fetchAll());
-        
+        $query->where("#modifiedOn >= '{$timeline}'");
         
         $iRec = hr_IndicatorNames::force('Време', __CLASS__, 1);
         $classId = planning_Tasks::getClassId();
