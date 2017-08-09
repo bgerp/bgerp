@@ -87,6 +87,30 @@ class core_Html
     
 
     /**
+     * Създаване на даталист с опции
+     * 
+     * @param int $id        - ид на даталиста
+     * @param array $options - опции на листа
+     * @param array $attr    - атрибути
+     * @return core_ET $tpl  - шаблон на даталиста
+     */
+    public static function createDataList($id, $options = array(), $attr = array())
+    {
+    	$tpl = new core_ET("");
+    	$tpl->append(self::createElement('datalist', array('id' => $id)));
+    	if(is_array($options)) {
+    		unset($options['']);
+    		foreach($options as $key => $v) {
+    			$tpl->append("\n" . self::createElement('option', array('value' => $v)));
+    		}
+    	}
+    	$tpl->append(self::createElement('/datalist'));
+    	
+    	return $tpl;
+    }
+    
+    
+    /**
      * Създава редактируем комбо-бокс, съчетавайки SELECT с INPUT
      */
     static function createCombo($name, $value, $attr = array(), $options = array())
@@ -96,24 +120,12 @@ class core_Html
         self::setUniqId($attr);
 
         if(Mode::is('javascript', 'no')) {
-            
             $listId = $attr['id'] . '_list';
 
             $attr['list'] = $listId;
-
             $tpl = self::createElement('input', $attr);
-            
-            $tpl->append(self::createElement('datalist', array('id' =>$listId)));
-            if(is_array($options)) {
-                unset($options['']);
-                foreach($options as $key => $v) {
-                    $tpl->append("\n" . self::createElement('option', array('value' => $v)));
-                }
-            }
-            $tpl->append(self::createElement('/datalist'));
-
+            $tpl->append(self::createDataList($listId, $options));
         } else {
-
             $tpl = new ET();
 
             // За съвместимост с IE
