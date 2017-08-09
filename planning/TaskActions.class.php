@@ -88,6 +88,7 @@ class planning_TaskActions extends core_Manager
 		$this->setDbIndex('taskId');
 		$this->setDbIndex('taskId,type');
 		$this->setDbIndex('productId');
+		$this->setDbIndex('jobId');
 	}
 	
 	
@@ -128,7 +129,6 @@ class planning_TaskActions extends core_Manager
 			$row->productId = cat_Products::getShortHyperlink($rec->productId);
 			$row->jobId = planning_Jobs::getLink($rec->jobId, 0);
 			$row->taskId = planning_Tasks::getLink($rec->taskId, 0);
-			$row->quantity .= " " . cat_UoM::getShortName($rec->packagingId);
 			
 			if(isset($rec->employees)){
 				$row->employees = planning_drivers_ProductionTaskDetails::getVerbalEmployees($rec->employees);
@@ -197,9 +197,7 @@ class planning_TaskActions extends core_Manager
 		$quantity = 0;
 		while($rec = $query->fetch()){
 			$sign = ($rec->action == 'reject') ? -1 : 1;
-			$q = isset($rec->quantityInPack) ? ($rec->quantity * $rec->quantityInPack) : $rec->quantity;
-			
-			$quantity += $sign * $q;
+			$quantity += $sign * $rec->quantity;
 		}
 		
 		if($quantity < 0){

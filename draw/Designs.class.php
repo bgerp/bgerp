@@ -157,6 +157,8 @@ class draw_Designs extends core_Master
         }
         $suggestions = array(
             'ArcTo(' => 'ArcTo(',
+            'Call(' => 'Call(',
+
             'CloseGroup(' => 'CloseGroup(',
             'CloseLayer(' => 'CloseLayer(',
             'ClosePath(' => 'ClosePath(',
@@ -258,10 +260,19 @@ class draw_Designs extends core_Master
         
  
         foreach($sArr as $parsedLine) {
-            
 
             list($cmd, $params, $l) = $parsedLine;
- 
+
+            if(is_array($contex->_if) && count($contex->_if)) {
+                $lastIf = array_pop($contex->_if);
+                $contex->_if[] = $lastIf;
+
+                if(!$lastIf && (strtolower($cmd) != "else" && strtolower($cmd) != "endif")) {
+                    //  bp($contex);
+                    continue;
+                }
+            }
+
             $method = "cmd_" . $cmd;
             
             if(!cls::existsMethod('draw_Designs', $method)) {
@@ -354,25 +365,105 @@ class draw_Designs extends core_Master
     }
 
 
+    public static function cmd_If($params, &$svg, &$contex, &$error)
+    {
+        if(isset($params[0])) {
+            $cond = self::calcExpr($params[0], $contex);
+            if($cond === self::CALC_ERROR) {
+                $error = "Грешка при изчисляване на: \"" . $params[0] . "\"";
+
+                return FALSE;
+            }
+        } else {
+            $cond = TRUE;
+        }
+        $contex->_if[] = $cond;
+    }
+
+
+    public static function cmd_Bp($params, &$svg, &$contex, &$error){
+        bp($contex);
+    }
+
+
+    public static function cmd_Else($params, &$svg, &$contex, &$error)
+    {
+
+        if(!is_array($contex->_if) || !count($contex->_if)) {
+            $error = "Грешка при ELSE";
+
+            return FALSE;
+        }
+        $cond = array_pop($contex->_if);
+        $contex->_if[] = !($cond);
+
+    }
+
+
+    public static function cmd_EndIf($params, &$svg, &$contex, &$error)
+    {
+        if(!is_array($contex->_if) || !count($contex->_if)) {
+            $error = "Грешка при затваряне на IF";
+
+            return FALSE;
+        }
+        array_pop($contex->_if);
+
+    }
+
+
+    public static function cmd_Call($params, &$svg, &$contex, &$error)
+    {
+
+        $contexNew = new stdClass();
+        $scriptName = $params[0];
+        unset($p[0]);
+
+        foreach($params as $p)
+        {
+            if(stripos($p, "=")){
+                list($varName, $exVarName) = explode("=", $p);
+            } else {
+                $exVarName = $varName = $p;
+            }
+            $varName = ltrim(trim($varName), '$');
+            $exVarName = ltrim(trim($exVarName), '$');
+
+            $contexNew->{$varName} = $contex->{$exVarName};
+        }
+
+        $rec = self::fetch(array("#name = '[#1#]'", $scriptName));
+
+        if(!$rec) {
+            $error = "Невалидно име на скрипт: \"" . $scriptName . "\"";
+
+            return FALSE;
+        }
+
+        self::runScript($rec->script, $svg, $contexNew, $error);
+    }
+
 
     public static function cmd_Input($params, &$svg, &$contex, &$error)
-    { 
+    {
         $varId = ltrim($params[0], '$ ');
         if(!preg_match("/^[a-z][a-z0-9_]{0,64}$/i", $varId)) {
             $error = "Невалидно име на променлива: \"" . $params[0] . "\"";
 
             return FALSE;
         }
-        
+
         $d = cls::get('type_Double');
 
         $val = $d->fromVerbal(Request::get($varId));
-        
+
          if($val === NULL || $val === FALSE) {
             $val = (float) $params[1];
         }
- 
-        $contex->{$varId} = $val;
+
+        if(!isset($contex->{$varId})) {
+            $contex->{$varId} = $val;
+        }
 
     }
 

@@ -125,7 +125,7 @@ class sales_Sales extends deals_DealMaster
      */
     public $listFields = 'valior, title=Документ, currencyId=Валута, amountDeal, amountDelivered, amountPaid, amountInvoiced,
                              dealerId, initiatorId,paymentState,
-                             createdOn, createdBy,searchKeywords';
+                             createdOn, createdBy';
 
 
     /**

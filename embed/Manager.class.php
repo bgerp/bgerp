@@ -333,20 +333,12 @@ class embed_Manager extends core_Master
                     $driverClass = $args[0]->{$this->driverClassField};
                     break;
                 case 'aftergetsearchkeywords';
-                	$driverClass = $args[1]->{$this->driverClassField};
-                	break;
                 case 'beforesaveclonerec':
-                	$driverClass = $args[1]->{$this->driverClassField};
-                	break;
                 case 'beforesave':
-                	$driverClass = $args[1]->{$this->driverClassField};
                 case 'aftercreate':
-                	$driverClass = $args[1]->{$this->driverClassField};
-                	break;
                 case 'aftergetdetailstoclone':
-                	$driverClass = $args[1]->{$this->driverClassField};
-                	break;
                 case 'aftergetfieldforletterhead':
+                case 'aftergetfieldsnottoclone':
                 	$driverClass = $args[1]->{$this->driverClassField};
                 	break;
             }

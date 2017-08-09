@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   rack
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -20,62 +20,55 @@ class rack_Pallets extends core_Manager
     /**
      * Заглавие
      */
-    var $title = 'Палети';
+    public $title = 'Палети';
     
-    var $singleTitle = 'Палет';
+    
+    /**
+     * Еденично заглавие
+     */
+    public $singleTitle = 'Палет';
+    
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools2, plg_Created, rack_Wrapper,plg_SaveAndNew,recently_Plugin,plg_Sorting';
+    public $loadList = 'plg_RowTools2, plg_Created, rack_Wrapper,plg_SaveAndNew,recently_Plugin,plg_Sorting';
     
     
     /**
      * Кои ключове да се тракват, кога за последно са използвани
      */
-    var $lastUsedKeys = 'storeId';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    var $canRead = 'ceo,rack';
+    public $lastUsedKeys = 'storeId';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,rack';
+    public $canEdit = 'ceo,rack';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,rack';
+    public $canAdd = 'ceo,rack';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,rack';
+	public $canList = 'ceo,rack';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,rack';
-    
-    
-    /**
-     * Кой може да го види?
-     */
-    var $canView = 'ceo,rack';
+	public $canSingle = 'ceo,rack';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,rack';
+    public $canDelete = 'ceo,rack';
     
     
     /**
@@ -87,7 +80,7 @@ class rack_Pallets extends core_Manager
     /**
      * Брой записи на страница
      */
-    var $listItemsPerPage = 50;
+    public $listItemsPerPage = 50;
     
 
     /**
@@ -139,7 +132,7 @@ class rack_Pallets extends core_Manager
         $form->setHidden('storeId', store_Stores::getCurrent());
         $form->FNC('positionTo', 'rack_PositionType', 'caption=Позиция на стелажите->Нова,input');
         $form->setField('position', 'caption=Позиция на стелажите->Текуща');
-        $form->FNC('movementCreate', 'enum(off,on)', 'caption=Движение->Задаване,input,autohide,remember');
+        $form->FNC('movementCreate', 'enum(off=Изключено,on=Включено)', 'caption=Движение->Задаване,input,autohide,remember');
         $form->FNC('movementInfo', 'varchar', 'caption=Движение->Информация,input,autohide,recently');
         
         if($rec->productId) {
@@ -265,7 +258,7 @@ class rack_Pallets extends core_Manager
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if($form->isSubmitted()) {
 
@@ -342,7 +335,6 @@ class rack_Pallets extends core_Manager
         if(!$order) {
             $data->query->orderBy('#createdOn', 'DESC');
         }
-
     }
 
 
@@ -352,7 +344,7 @@ class rack_Pallets extends core_Manager
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    public static function on_AfterSave($mvc, $id, $rec, $fields = NULL)
+    protected static function on_AfterSave($mvc, $id, $rec, $fields = NULL)
     { 
         if(($rec->position || $rec->positionTo) && ($rec->position != $rec->positionTo) && $rec->storeId && $rec->id) {
             
@@ -403,7 +395,7 @@ class rack_Pallets extends core_Manager
     /**
      * След изтриване на запис
      */
-    public static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    protected static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
     {
     	// Ако изтриваме етап, изтриваме всичките редове от този етап
     	foreach ($query->getDeletedRecs() as $id => $rec) {
@@ -549,7 +541,7 @@ class rack_Pallets extends core_Manager
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         if($mvc->haveRightFor('edit', $rec)) {
             if($rec->position) {
@@ -587,6 +579,4 @@ class rack_Pallets extends core_Manager
         
         return $res;
     }
-
- 
 }

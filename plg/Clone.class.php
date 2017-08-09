@@ -60,7 +60,7 @@ class plg_Clone extends core_Plugin
        	$form->rec->clonedFromId = $rec->id;
        
         // Проверяваме имали полета, които не искаме да се клонират
-        $dontCloneFields = arr::make($mvc->fieldsNotToClone, TRUE);
+        $dontCloneFields = $mvc->getFieldsNotToClone($rec);
         
         // Ако има махаме ги от $form->rec
         if(count($dontCloneFields)){
@@ -405,5 +405,20 @@ class plg_Clone extends core_Plugin
         if (isset($rec->clonedFromId)) {
             $res = $rec->clonedFromId;
         }
+    }
+    
+    
+    /**
+     * След взимане на полетата, които да не се клонират
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $rec
+     */
+    public static function on_AfterGetFieldsNotToClone($mvc, &$res, $rec)
+    {
+    	if(!$res){
+    		$res = arr::make($mvc->fieldsNotToClone, TRUE);
+    	}
     }
 }

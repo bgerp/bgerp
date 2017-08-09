@@ -468,9 +468,6 @@ abstract class deals_Helper
      */
     public static function getPackMeasure($measureId, $quantityInPack)
     {
-        $oMeasureId = $measureId;
-        $oQuantityInPack = $quantityInPack;
-
         if($quantityInPack < 1 && ($downMeasureId = cat_UoM::getMeasureByRatio($measureId, 0.001))){
 			$quantityInPack *= 1000;
 			$measureId = $downMeasureId;
@@ -810,8 +807,6 @@ abstract class deals_Helper
 		
 		// Данните на 'Моята фирма'
 		$ownCompanyData = crm_Companies::fetchOwnCompany();
-		
-		//$hideCountries = 
 		
 		// Името и адреса на 'Моята фирма'
 		$Companies = cls::get('crm_Companies');
