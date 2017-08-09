@@ -448,6 +448,7 @@ class frame2_Reports extends embed_Manager
     {
     	try{
     		expect($rec = self::fetch($data->id));
+    		if($rec->state == 'rejected') return;
     		self::refresh($rec);
     	} catch(core_exception_Expect $e){
     		reportException($e);
