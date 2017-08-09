@@ -183,9 +183,11 @@ class core_CallOnTime extends core_Manager
 	{
 		$hash = self::getHash($className, $methodName, $data);
 		
-		$query = self::getQuery("#hash = '{$hash}' AND #state = 'draft'");
+		$query = self::getQuery();
+		$query->where("#hash = '{$hash}' AND #state = 'draft'");
 		$query->orderBy('callOn', 'ASC');
 		$query->show('callOn');
+		
 		$callOn = $query->fetch()->callOn;
 		
 		return ($callOn) ? $callOn : NULL;
