@@ -207,14 +207,27 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		$form->setField('weight', 'input=none');
     	}
     	
-    	$measureId = cat_Products::fetchField($taskInfo->productId, 'measureId');
-    	$shortMeasure = cat_UoM::getShortName($measureId);
-    	if($measureId != $taskInfo->packagingId){
-    		$packName = $unit = cat_UoM::getShortName($taskInfo->packagingId);
-    		$unit = $shortMeasure . " " . tr('в') . " " . $packName;
-    		$form->setField('quantity', "unit={$unit}");
-    	} else {
-    		$form->setField('quantity', "unit={$shortMeasure}");
+    	$hideMeasure = FALSE;
+    	if($rec->type == 'product'){
+    		$hideMeasure = TRUE;
+    		$measureId = cat_Products::fetchField($taskInfo->productId, 'measureId');
+    		$packagingId = $taskInfo->packagingId;
+    	} elseif(isset($rec->taskProductId)) {
+    		$hideMeasure = TRUE;
+    		$pRec = planning_drivers_ProductionTaskProducts::fetch($rec->taskProductId);
+    		$measureId = cat_Products::fetchField($pRec->productId, 'measureId');
+    		$packagingId = $pRec->packagingId;
+    	}
+    	
+    	if($hideMeasure === TRUE){
+    		$shortMeasure = cat_UoM::getShortName($measureId);
+    		if($measureId != $packagingId){
+    			$packName = $unit = cat_UoM::getShortName($packagingId);
+    			$unit = $shortMeasure . " " . tr('в') . " " . $packName;
+    			$form->setField('quantity', "unit={$unit}");
+    		} else {
+    			$form->setField('quantity', "unit={$shortMeasure}");
+    		}
     	}
     }
     
