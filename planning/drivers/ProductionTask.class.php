@@ -327,8 +327,8 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 				$form->setReadOnly('productId');
 				$form->setReadOnly('packagingId');
 				
-				if($data->action != 'clone'){
-					//$form->setReadOnly('fixedAssets');
+				if($data->action != 'clone' && !empty($rec->fixedAssets)){
+					$form->setReadOnly('fixedAssets');
 				}
 			}
 		}
