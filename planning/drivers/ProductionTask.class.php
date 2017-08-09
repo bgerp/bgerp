@@ -369,7 +369,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		$dQuery->where("#state != 'rejected'");
 		$dQuery->XPR('sumQuantity', 'double', "SUM(#quantity / {$rec->quantityInPack})");
 		$dQuery->XPR('sumWeight', 'double', 'SUM(#weight)');
-		$dQuery->XPR('sumScrappedQuantity', 'double', 'SUM(#scrappedQuantity)');
+		$dQuery->XPR('sumScrappedQuantity', 'double', "SUM(#scrappedQuantity / {$rec->quantityInPack})");
 		$dQuery->show('sumQuantity,sumWeight,sumScrappedQuantity');
 		 
 		$res = $dQuery->fetch();
