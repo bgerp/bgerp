@@ -565,7 +565,7 @@ class doc_Containers extends core_Manager
                                         if (doc_HiddenContainers::$haveRecInModeOrDB) {
                                             $attr['class'] = 'settings-hide-document';
                                             $attr['ef_icon'] = 'img/16/toggle2.png';
-                                            $attr['title'] = 'Скриване на ръчно отворените нишки';
+                                            $attr['title'] = 'Скриване на ръчно отворените документи в нишката';
                                             $linkUrl['hide'] = TRUE;
                                         }
                                     }
