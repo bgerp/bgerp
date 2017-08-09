@@ -170,6 +170,28 @@ class core_CallOnTime extends core_Manager
 	}
 	
 	
+	/**
+	 * Връща времето на изпълнение
+	 *
+	 * @param string $className
+	 * @param string $methodName
+	 * @param mixed $data
+	 *
+	 * @return string
+	 */
+	public static function getNextCallTime($className, $methodName, $data)
+	{
+		$hash = self::getHash($className, $methodName, $data);
+		
+		$query = self::getQuery("#hash = '{$hash}' AND #state = 'draft'");
+		$query->orderBy('callOn', 'ASC');
+		$query->show('callOn');
+		$callOn = $query->fetch()->callOn;
+		
+		return ($callOn) ? $callOn : NULL;
+	}
+	
+	
     /**
      * Извикване на функцията по cron
      * 
