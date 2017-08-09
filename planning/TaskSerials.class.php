@@ -231,7 +231,7 @@ class planning_TaskSerials extends core_Manager
 					$productTaskOriginId = planning_Tasks::fetchField($serialRec->taskId, 'originId');
 					$taskOriginId = planning_Tasks::fetchField($taskId, 'originId');
 					
-					// Двете задачи трябва да са към едно и съще задание
+					// Двете задачи трябва да са към едно и също задание
 					// Не можем да влагаме заготовка която е произведена със задача по друго задание
 					if($taskOriginId != $productTaskOriginId){
 						$error = "Въведения сериен номер е по друга операция";

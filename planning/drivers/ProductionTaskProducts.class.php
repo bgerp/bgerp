@@ -10,7 +10,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -33,7 +33,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'type,productId,packagingId,plannedQuantity=Количества->Планирано,realQuantity=Количества->Изпълнено,storeId,indTime,totalTime';
+    public $listFields = 'type,productId,packagingId=Eдиница,plannedQuantity=Количества->Планирано,realQuantity=Количества->Изпълнено,measureId=Количества->Мярка,storeId,indTime,totalTime';
     
     
     /**
@@ -98,7 +98,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	$this->FLD("taskId", 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Задача');
     	$this->FLD("type", 'enum(input=Вложим,waste=Отпадък)', 'caption=Вид,remember,silent,input=hidden');
     	$this->FLD("productId", 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId,tdClass=productCell leftCol wrap');
-    	$this->FLD("packagingId", 'key(mvc=cat_UoM,select=shortName)', 'mandatory,caption=Мярка,smartCenter,tdClass=small-field nowrap');
+    	$this->FLD("packagingId", 'key(mvc=cat_UoM,select=shortName)', 'mandatory,caption=Пр. единица,smartCenter,tdClass=small-field nowrap');
     	$this->FLD("plannedQuantity", 'double(smartRound,Min=0)', 'mandatory,caption=Планирано к-во,smartCenter,oldFieldName=planedQuantity');
     	$this->FLD("storeId", 'key(mvc=store_Stores,select=name)', 'mandatory,caption=Склад');
     	$this->FLD("quantityInPack", 'double', 'mandatory,input=none');
@@ -118,9 +118,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
      */
     protected static function on_CalcTotalTime(core_Mvc $mvc, $rec)
     {
-    	if (empty($rec->indTime) || empty($rec->realQuantity)) {
-    		return;
-    	}
+    	if (empty($rec->indTime) || empty($rec->realQuantity)) return;
     
     	$rec->totalTime = $rec->indTime * $rec->realQuantity;
     }
@@ -184,17 +182,18 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     			$caption = ($rec->type == 'input') ? 'Вложено' : 'Отпадък';
     			$form->FLD('inputedQuantity', 'double(Min=0)', "caption={$caption},before=storeId");
     		}
+    		
+    		$taskInfo = planning_Tasks::getTaskInfo($data->masterRec);
+    		$Double = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')));
+    		$shortUom = cat_UoM::getShortName($taskInfo->packagingId);
+    		$measureUom = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
+    		$unit = tr($measureUom) . " " . tr('за') . " " . $Double->toVerbal($taskInfo->plannedQuantity) . " " . $shortUom;
+    		$unit = str_replace("&nbsp;", ' ', $unit);
+    		 
+    		$form->setField('plannedQuantity', array('unit' => $unit));
     	} else {
     		$form->setField('packagingId', 'input=hidden');
     	}
-    	
-    	$taskInfo = planning_Tasks::getTaskInfo($data->masterRec);
-    	$Double = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')));
-    	$shortUom = cat_UoM::getShortName($taskInfo->packagingId);
-    	$unit = tr('за') . " " . $Double->toVerbal($taskInfo->plannedQuantity) . " " . $shortUom;
-    	$unit = str_replace("&nbsp;", ' ', $unit);
-    	
-    	$form->setField('plannedQuantity', array('unit' => $unit));
     }
     
     
@@ -244,8 +243,8 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	
     	foreach ($data->rows as $id => $row){
     		$rec = $data->recs[$id];
+    		$row->measureId = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'), 'name');
     		
-    		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
     		if(isset($rec->storeId)){
     			$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
     		}
