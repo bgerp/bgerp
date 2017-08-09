@@ -369,10 +369,10 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 				
 			// Изчислява се готовността
 			$readiness = core_Cache::get('sales_reports_ShipmentReadiness', "c{$sRec->containerId}");
-			//if($readiness === FALSE) {
+			if($readiness === FALSE) {
 				$readiness = self::calcSaleReadiness($sRec);
 				core_Cache::set('sales_reports_ShipmentReadiness', "c{$sRec->containerId}", $readiness, 58);
-			//}
+			}
 			
 			$delTime = (!empty($sRec->deliveryTime)) ? $sRec->deliveryTime : (!empty($sRec->deliveryTermTime) ?  dt::addSecs($sRec->deliveryTermTime, $sRec->valior) : NULL);
 			if(empty($delTime)){
