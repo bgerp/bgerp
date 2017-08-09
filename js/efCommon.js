@@ -4137,17 +4137,28 @@ function showToast(data) {
 function render_setNewFilePreview(data) {
 	console.log(data);
 }
-
+var oldImageSrc, oldImageWidth, oldImageHeight;
 function changeZoomImage(el) {
     if($(el).attr("data-zoomed") == "no") {
         if($('body').hasClass('wide')){
             $(el).css("width",$(el).css("width"));
             $(el).css("height","auto");
+        } else {
+            oldImageSrc = $(el).attr("src");
+            oldImageWidth = $(el).attr("width");
+            oldImageHeight = $(el).attr("height");
         }
         $(el).attr("width", $(el).attr("data-bigwidth"));
         $(el).attr("height", $(el).attr("data-bigheight"));
         $(el).attr("src",$(el).attr("data-bigsrc"));
         $(el).attr("data-zoomed", "yes");
+    } else {
+        if($('body').hasClass('narrow')){
+            $(el).attr("src", oldImageSrc);
+            $(el).attr("width", oldImageWidth);
+            $(el).attr("height", oldImageHeight);
+            $(el).attr("data-zoomed", "no");
+        }
     }
 }
 
