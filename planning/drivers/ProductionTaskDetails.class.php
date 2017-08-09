@@ -163,21 +163,6 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		$form->setOptions('productId', array("{$taskInfo->productId}" => cat_Products::getTitleById($taskInfo->productId, FALSE)));
     		$form->setField('taskProductId', 'input=none');
     		
-    		if($rec->type != 'start'){
-    			
-    			$measureId = cat_Products::fetchField($taskInfo->productId, 'measureId');
-    			$shortMeasure = cat_UoM::getShortName($measureId);
-    			if($measureId != $taskInfo->packagingId){
-    				$packName = $unit = cat_UoM::getShortName($taskInfo->packagingId);
-    				$unit = $shortMeasure . " " . tr('в') . " " . $packName; 
-    				$form->setField('quantity', "unit={$unit}");
-    			} else {
-    				$form->setField('quantity', "unit={$shortMeasure}");
-    			}
-    		} else {
-    			$form->setField('quantity', "input=none");
-    		}
-    		
     		if(isset($rec->id)){
     			$form->setReadOnly('serial');
     			$form->setReadOnly('quantity');
@@ -190,6 +175,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		}
     		
     		if($rec->type == 'start'){
+    			$form->setField('quantity', "input=none");
     			$form->setField('weight', 'input=none');
     			$form->setField('notes', 'input=none');
     			$form->setField('serial', 'input=none');
@@ -219,6 +205,16 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	
     	if($taskInfo->showadditionalUom != 'yes'){
     		$form->setField('weight', 'input=none');
+    	}
+    	
+    	$measureId = cat_Products::fetchField($taskInfo->productId, 'measureId');
+    	$shortMeasure = cat_UoM::getShortName($measureId);
+    	if($measureId != $taskInfo->packagingId){
+    		$packName = $unit = cat_UoM::getShortName($taskInfo->packagingId);
+    		$unit = $shortMeasure . " " . tr('в') . " " . $packName;
+    		$form->setField('quantity', "unit={$unit}");
+    	} else {
+    		$form->setField('quantity', "unit={$shortMeasure}");
     	}
     }
     
@@ -275,7 +271,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     				$rec->quantity = $quantityInSerial;
     			}
     			 
-    			if(empty($rec->quantity)){
+    			if(empty($rec->quantity) && $rec->type != 'start'){
     				$form->setError('quantity', 'Трябва да въведете количество');
     			}
     		}
