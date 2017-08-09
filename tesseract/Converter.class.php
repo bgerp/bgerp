@@ -208,6 +208,8 @@ class tesseract_Converter extends core_Manager
      */
     static function getText($fileHnd, $params)
     {
+        core_App::setTimeLimit(300);
+        
         if (!$params['isPath']) {
             // Вземам записа за файла
             $fRec = fileman_Files::fetchByFh($fileHnd);
@@ -239,7 +241,14 @@ class tesseract_Converter extends core_Manager
             $pdfPathEsc = escapeshellarg($pdfPath);
             $tiffPathEsc = escapeshellarg($tiffPath);
             
-            exec("convert -background white -flatten +matte -density 300 {$pdfPathEsc} -depth 8 {$tiffPathEsc}");
+            $density = 300;
+            // Може и да е вектор или текст, тогава density трябва да е по-ниска стойност
+            // За да не се получават огромни файлове
+            if (!exec("grep -c -i '/image' {$pdfPathEsc}")) {
+                $density = 72;
+            }
+            
+            exec("convert -background white -flatten +matte -density {$density} {$pdfPathEsc} -depth 8 {$tiffPathEsc}");
             
             if (is_file($tiffPath)) {
                 $fileHnd = $tiffPath;
