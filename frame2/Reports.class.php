@@ -559,6 +559,10 @@ class frame2_Reports extends embed_Manager
     {
     	if($rec->state == 'draft'){
     		$rec->state = 'active';
+    	} elseif($rec->state == 'rejected'){
+    		$rec->removeSetUpdateTimes = TRUE;
+    	} elseif($rec->state == 'active' && $rec->brState == 'rejected'){
+    		$rec->updateRefreshTimes = TRUE;
     	}
     }
     
@@ -619,9 +623,9 @@ class frame2_Reports extends embed_Manager
     	$resArr = arr::make($resArr);
     	$resArr['title'] = array('name' => tr('Заглавие'), 'val' => $row->title);
     	
-    	if(!empty($rec->updateDays) || !empty($rec->updateTime)){
+    	if(!empty($rec->updateDays) || !empty($rec->updateTime) || !empty($row->nextUpdate)){
     		$resArr['update'] = array('name' => tr('Актуализиране'), 'val' => tr("|*<!--ET_BEGIN updateDays--><div><span style='font-weight:normal'>|Дни|*</span>: [#updateDays#]<br><!--ET_END updateDays-->
-        																		 <!--ET_BEGIN updateTime--><span style='font-weight:normal'>|Часове|*</span>: [#updateTime#]<!--ET_END updateTime-->"));										 
+        																		 <!--ET_BEGIN updateTime--><span style='font-weight:normal'>|Часове|*</span>: [#updateTime#]<!--ET_END updateTime--><!--ET_BEGIN nextUpdate--><div><span style='font-weight:normal'>|Следващо|*</span> [#nextUpdate#]</div><!--ET_END nextUpdate-->"));										 
     	}
     	
     	if(isset($rec->lastRefreshed)){
@@ -690,6 +694,11 @@ class frame2_Reports extends embed_Manager
     				}
     			}
     		}
+    		
+    		$callOn = $mvc->getNextRefreshTime($rec);
+    		if(!empty($callOn)){
+    			$row->nextUpdate = core_Type::getByName('datetime(format=smartTime)')->toVerbal($callOn);
+    		}
     	}
     }
     
@@ -726,9 +735,7 @@ class frame2_Reports extends embed_Manager
     	header("Content-Disposition: attachment; filename={$fileName}({$rec->id}).csv");
     	header("Pragma: no-cache");
     	header("Expires: 0");
-    	 
     	echo $csv;
-    
     	shutdown();
     }
     
@@ -778,6 +785,21 @@ class frame2_Reports extends embed_Manager
     	
     	if(haveRole('debug')){
     		status_Messages::newStatus("Зададени времена за обновяване");
+    	}
+    }
+    
+    
+    /**
+     * Следващото обновяване на отчета
+     * 
+     * @param stdClass $rec
+     * @return datetime|NULL
+     */
+    private function getNextRefreshTime($rec)
+    {
+    	foreach (range(0, 2) as $i){
+    		$callOn = core_CallOnTime::getNextCallTime(get_called_class(), 'refreshOnTime', (object)array('id' => (string)$rec->id, 'index' => (string)$i));
+    		if(!empty($callOn)) return $callOn;
     	}
     }
     
