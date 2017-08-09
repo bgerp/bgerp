@@ -190,7 +190,8 @@ class acc_Setup extends core_ProtoSetup
         array('cashAll'),
         array('saleAll'),
         array('purchaseAll'),
-    	array('accLimits')
+    	array('accLimits'),
+        array('accMaster', 'acc'),
     );
     
     
