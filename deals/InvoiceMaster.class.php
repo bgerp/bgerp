@@ -1191,6 +1191,13 @@ abstract class deals_InvoiceMaster extends core_Master
     {
     	if(!count($data->rows)) return;
     	$data->listTableMvc->FNC('valueNoVat', 'int');
+    	
+    	if(!Mode::get('printing')){ 
+    	    $Pager = cls::get('core_Pager',  array('itemsPerPage' => 20));
+    	    $Pager->setPageVar($data->masterMvc->className, $data->masterId);
+    	    $Pager->itemsCount = count($data->rows);
+    	    $data->pager = $Pager;
+    	}
     }
     
     
