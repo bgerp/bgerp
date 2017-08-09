@@ -543,6 +543,18 @@ abstract class deals_InvoiceMaster extends core_Master
     
     
     /**
+     * След подготовката на навигацията по сраници
+     */
+    public static function on_AfterPrepareListPager($mvc, &$data)
+    {
+
+        if(Mode::is('printing')){
+    	    unset($data->pager);
+    	}
+    }
+    
+    
+    /**
      * След подготовка на формата
      */
     protected static function prepareInvoiceForm($mvc, &$data)
