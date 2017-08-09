@@ -572,7 +572,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     							$nRec->taskId          = $rec->id;
     							$nRec->packagingId     = $p->packagingId;
     							$nRec->quantityInPack  = $p->quantityInPack;
-    							$nRec->plannedQuantity = $p->packQuantity * $rec->plannedQuantity * $rec->quantityInPack;
+    							$nRec->plannedQuantity = $p->packQuantity * $rec->plannedQuantity * $rec->quantityInPack * $p->quantityInPack;
     							$nRec->productId       = $p->productId;
     							$nRec->type			   = $type;
     							$nRec->storeId		   = $rec->storeId;
