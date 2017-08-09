@@ -884,7 +884,7 @@ class doc_Setup extends core_ProtoSetup
         $rArr = doc_Containers::regenerateSerchKeywords(FALSE, $cQuery, TRUE);
         
         if ($rArr) {
-            doc_Containers::logDebug("Регенерирани ключови думи на {$rArr[0]} документа");
+            doc_Containers::logDebug("Регенерирани ключови думи на {$rArr[0]} документа от {$from} до {$to}");
         }
     }
 }
