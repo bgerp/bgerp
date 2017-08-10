@@ -672,9 +672,6 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
                case 'start':
                     $time = planning_Tasks::getTaskInfo($rec->taskId)->indTime;
                     break;
-               default:
-                    $time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');
-                    break;
             }
             
             if(empty($time)) continue;
