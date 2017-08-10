@@ -64,6 +64,7 @@ class type_Table extends type_Blob {
 
             $selOpt = $field . '_opt';
             $suggestOpt = $field . '_sgt';
+            $readOnlyFld = $field . '_ro';
             
             if($this->params[$selOpt]) {
                 $opt = explode('|', $this->params[$selOpt]);
@@ -74,18 +75,28 @@ class type_Table extends type_Blob {
                 $row1 .= "<td>" . ht::createSelect($attr[$field]['name'], $opt[$field], $value[$field][0], $attr[$field]) . "</td>";
             } elseif($this->params[$suggestOpt]){
             	
-            	$opt = explode('|', $this->params[$suggestOpt]);
-            	foreach($opt as $o) {
-            		$opt[$field][$o] = $o;
+            	$sgt = explode('|', $this->params[$suggestOpt]);
+            	foreach($sgt as $o) {
+            		$sgt[$field][$o] = $o;
             	}
             	
-            	$datalistTpl = ht::createDataList('batchList', $opt[$field]);
+            	$datalistTpl = ht::createDataList('batchList', $sgt[$field]);
             	$attr[$field]['list'] = 'batchList';
-            	$tpl  .= "<td>" . ht::createCombo($attr[$field]['name'],  NULL, $attr[$field], $opt[$field]) . "</td>";
-            	$row1 .= "<td>" . ht::createCombo($attr[$field]['name'], $value[$field][0], $attr[$field], $opt[$field]) . "</td>";
+            	$tpl  .= "<td>" . ht::createCombo($attr[$field]['name'],  NULL, $attr[$field], $sgt[$field]) . "</td>";
+            	
+            	if($this->params[$readOnlyFld] == 'readonly' && isset($value[$field][0])){
+            		$row1 .= "<td>" . ht::createElement('span', $attr[$field] + array('style' => 'float:left;text-indent:2px'), $value[$field][0]) . "</td>";
+            	} else {
+            		$row1 .= "<td>" . ht::createCombo($attr[$field]['name'], $value[$field][0], $attr[$field], $sgt[$field]) . "</td>";
+            	}
             } else {
                 $tpl  .= "<td>" . ht::createElement('input', $attr[$field]) . "</td>";
-                $row1 .= "<td>" . ht::createElement('input', $attr[$field] + array('value' => $value[$field][0])) . "</td>";
+                
+                if($this->params[$readOnlyFld] == 'readonly' && isset($value[$field][0])){
+                	$row1 .= "<td>" . ht::createElement('span', $attr[$field] + array('style' => 'float:left;text-indent:2px'), $value[$field][0]) . "</td>";
+                } else {
+                	$row1 .= "<td>" . ht::createElement('input', $attr[$field] + array('value' => $value[$field][0])) . "</td>";
+                }
             }
         }
 		
@@ -99,7 +110,12 @@ class type_Table extends type_Blob {
                 if(isset($opt[$field])) {
                     $row .= "<td>" . ht::createSelect($attr[$field]['name'], $opt[$field], $value[$field][0], $attr[$field]) . "</td>";
                 } else {
-                    $row .= "<td>" . ht::createElement('input', $attr[$field] + array('value' => $value[$field][$i])) . "</td>";
+                	$readOnlyFld = $field . '_ro';
+                	if($this->params[$readOnlyFld] == 'readonly' && isset($value[$field][$i])){
+                		$row .= "<td>" . ht::createElement('span', $attr[$field] + array('style' => 'float:left;text-indent:2px'), $value[$field][$i]) . "</td>";
+                	} else {
+                		$row .= "<td>" . ht::createElement('input', $attr[$field] + array('value' => $value[$field][$i])) . "</td>";
+                	}
                 }
                 if(isset($value[$field][$i])) {
                     $used = TRUE;
