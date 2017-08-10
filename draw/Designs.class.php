@@ -176,6 +176,7 @@ class draw_Designs extends core_Master
             'PolarLineTo(' => 'PolarLineTo(',
             'SavePoint(' => 'SavePoint(',
             'Set(' => 'Set(',
+            'WriteText(' => 'WriteText(',
         );
         $id = Request::get("id", "int");
 
@@ -607,6 +608,44 @@ class draw_Designs extends core_Master
         self::drawMeasureAngle($svg, $x1, $y1, $x2, $y2, $x3, $y3);
     }
 
+
+    public static function cmd_WriteText($params, &$svg, &$contex, &$error)
+    {
+        $x =  self::calcExpr($params[0], $contex);
+        if($x === self::CALC_ERROR) {
+            $error = "Грешка при изчисляване на: \"" . $params[0] . "\"";
+
+            return FALSE;
+        }
+
+        $y =  self::calcExpr($params[1], $contex);
+        if($y === self::CALC_ERROR) {
+            $error = "Грешка при изчисляване на: \"" . $params[1] . "\"";
+
+            return FALSE;
+        }
+
+        $text =  trim($params[2]);
+
+        $rotation =  self::calcExpr($params[3], $contex);
+        if($rotation === self::CALC_ERROR) {
+            $error = "Грешка при изчисляване на: \"" . $params[3] . "\"";
+
+            return FALSE;
+        }
+
+        $textSize =  self::calcExpr($params[4], $contex);
+        if($textSize === self::CALC_ERROR) {
+            $error = "Грешка при изчисляване на: \"" . $params[4] . "\"";
+
+            return FALSE;
+        }
+
+        $svg->setAttr('font-size', $textSize);
+        $svg->setAttr('font-weight', 'bold');
+        $svg->setAttr('font-family', 'Verdana');
+        $svg->writeText( $x, $y, $text, $rotation);
+    }
 
 
 
