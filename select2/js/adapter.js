@@ -172,7 +172,7 @@ function modelMatcher (params, data)
     termArr.forEach(function(element) {
     	if (!element || !element.length) return true;
     	
-    	var regExpStr = "[ \"\'\(\[\-\s]" + escapeRegExp(element);
+    	var regExpStr = "[ \"'\\(\\[\\-\\s]" + escapeRegExp(element);
     	var regExp = new RegExp(regExpStr, "gi");
     	
     	if (!original.match(regExp)) {
@@ -188,7 +188,7 @@ function modelMatcher (params, data)
         	
         	if (!element || !element.length) return true;
         	
-        	var regExpStr = "[ \"\'\(\[\-\s]" + escapeRegExp(element);
+        	var regExpStr = "[ \"'\\(\\[\\-\\s]" + escapeRegExp(element);
         	var regExp = new RegExp(regExpStr, "gi");
         	
         	if (original.match(regExp)) {
