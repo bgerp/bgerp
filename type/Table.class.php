@@ -43,8 +43,7 @@ class type_Table extends type_Blob {
      */
     function renderInput_($name, $value = "", &$attrDiv = array())
     {
-
-        if(is_string($value)) {
+		if(is_string($value)) {
             $value = json_decode($value, TRUE);
         }
 
@@ -64,7 +63,8 @@ class type_Table extends type_Blob {
             }
 
             $selOpt = $field . '_opt';
-
+            $suggestOpt = $field . '_sgt';
+            
             if($this->params[$selOpt]) {
                 $opt = explode('|', $this->params[$selOpt]);
                 foreach($opt as $o) {
@@ -72,12 +72,23 @@ class type_Table extends type_Blob {
                 }
                 $tpl  .= "<td>" . ht::createSelect($attr[$field]['name'], $opt[$field], NULL, $attr[$field]) . "</td>";
                 $row1 .= "<td>" . ht::createSelect($attr[$field]['name'], $opt[$field], $value[$field][0], $attr[$field]) . "</td>";
+            } elseif($this->params[$suggestOpt]){
+            	
+            	$opt = explode('|', $this->params[$suggestOpt]);
+            	foreach($opt as $o) {
+            		$opt[$field][$o] = $o;
+            	}
+            	
+            	$datalistTpl = ht::createDataList('batchList', $opt[$field]);
+            	$attr[$field]['list'] = 'batchList';
+            	$tpl  .= "<td>" . ht::createCombo($attr[$field]['name'],  NULL, $attr[$field], $opt[$field]) . "</td>";
+            	$row1 .= "<td>" . ht::createCombo($attr[$field]['name'], $value[$field][0], $attr[$field], $opt[$field]) . "</td>";
             } else {
                 $tpl  .= "<td>" . ht::createElement('input', $attr[$field]) . "</td>";
                 $row1 .= "<td>" . ht::createElement('input', $attr[$field] + array('value' => $value[$field][0])) . "</td>";
             }
         }
-
+		
         $i = 1;
         $rows = '';
         do{
@@ -106,7 +117,7 @@ class type_Table extends type_Blob {
         
         $tpl = str_replace("\"", "\\\"", "<tr>{$tpl}</tr>");
         $tpl = str_replace("\n", "", $tpl);
- 
+    
         $id = 'table_' . $name;
         $btn = ht::createElement('input', array('type' => 'button', 'value' => '+ Нов ред', 'onclick' => "dblRow(\"{$id}\", \"{$tpl}\")"));  
         
@@ -122,6 +133,9 @@ class type_Table extends type_Blob {
         $res = ht::createElement('div', $attrDiv, $res);
         
         $res = new ET($res);
+        if(is_object($datalistTpl)){
+        	$res->append($datalistTpl);
+        }
         
         return $res;
     }
@@ -283,7 +297,4 @@ class type_Table extends type_Blob {
  
         return $res;
     }
-    
-    
-
 }
