@@ -85,7 +85,7 @@ class type_Table extends type_Blob {
             	$tpl  .= "<td>" . ht::createCombo($attr[$field]['name'],  NULL, $attr[$field], $sgt[$field]) . "</td>";
             	
             	if($this->params[$readOnlyFld] == 'readonly' && isset($value[$field][0])){
-            		$row1 .= "<td>" . ht::createElement('input', $attr[$field] + array('class' => 'readonly', 'style' => 'float:left;text-indent:2px', 'readonly' => 'readonly', 'value' => $value[$field][0])) . "</td>";
+            		$row1 .= "<td>" . ht::createElement('input', $attr[$field] + array('class' => 'readonlyInput', 'style' => 'float:left;text-indent:2px', 'readonly' => 'readonly', 'value' => $value[$field][0])) . "</td>";
             	} else {
             		$row1 .= "<td>" . ht::createCombo($attr[$field]['name'], $value[$field][0], $attr[$field], $sgt[$field]) . "</td>";
             	}
@@ -93,7 +93,7 @@ class type_Table extends type_Blob {
                 $tpl  .= "<td>" . ht::createElement('input', $attr[$field]) . "</td>";
                 
                 if($this->params[$readOnlyFld] == 'readonly' && isset($value[$field][0])){
-                	$row1 .= "<td>" . ht::createElement('input', $attr[$field] + array('class' => 'readonly', 'style' => 'float:left;text-indent:2px', 'readonly' => 'readonly', 'value' => $value[$field][0])) . "</td>";
+                	$row1 .= "<td>" . ht::createElement('input', $attr[$field] + array('class' => 'readonlyInput', 'style' => 'float:left;text-indent:2px', 'readonly' => 'readonly', 'value' => $value[$field][0])) . "</td>";
                 } else {
                 	$row1 .= "<td>" . ht::createElement('input', $attr[$field] + array('value' => $value[$field][0])) . "</td>";
                 }
@@ -112,7 +112,7 @@ class type_Table extends type_Blob {
                 } else {
                 	$readOnlyFld = $field . '_ro';
                 	if($this->params[$readOnlyFld] == 'readonly' && isset($value[$field][$i])){
-                		$row .= "<td>" . ht::createElement('input', $attr[$field] + array('class' => 'readonly', 'style' => 'float:left;text-indent:2px', 'readonly' => 'readonly', 'value' => $value[$field][$i])) . "</td>";
+                		$row .= "<td>" . ht::createElement('input', $attr[$field] + array('class' => 'readonlyInput', 'style' => 'float:left;text-indent:2px', 'readonly' => 'readonly', 'value' => $value[$field][$i])) . "</td>";
                 	} else {
                 		$row .= "<td>" . ht::createElement('input', $attr[$field] + array('value' => $value[$field][$i])) . "</td>";
                 	}
