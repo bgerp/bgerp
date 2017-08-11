@@ -971,8 +971,10 @@ class draw_Designs extends core_Master
             $tpl->append("<h3 style='color:red;'>" . $data->error . "</h3>", 'DETAILS');
         }
 
-        foreach($data->canvas->info as $c => $v){
-            $tpl->append("<div>$c = <b>$v</b></div>", 'INFO_BLOCK');
+        if($data->canvas->info) {
+            foreach($data->canvas->info as $c => $v){
+                $tpl->append("<div>$c = <b>$v</b></div>", 'INFO_BLOCK');
+            }
         }
     }
 
