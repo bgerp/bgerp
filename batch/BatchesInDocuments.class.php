@@ -326,7 +326,7 @@ class batch_BatchesInDocuments extends core_Manager
 		$dQuery = self::getQuery();
 		$dQuery->where("#detailClassId = {$detailClassId} AND #detailRecId = {$detailRecId}");
 		while ($dRec = $dQuery->fetch()){
-		    $foundBatches[$dRec->batch] = $dRec->batch;
+		    $foundBatches[$dRec->batch] = $dRec->quantity;
 		    if(!array_key_exists($dRec->batch, $batches)){
 				$batches[$dRec->batch] = $dRec->quantity;
 			}
@@ -347,15 +347,71 @@ class batch_BatchesInDocuments extends core_Manager
 		$form->info->replace($packName, 'packName');
 		$form->info->append(cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($recInfo->quantity / $recInfo->quantityInPack), 'quantity');
 		
+		$Def = batch_Defs::getBatchDef($recInfo->productId);
+		
+		if($Def instanceof batch_definitions_Serial){
+			
+			// Полетата излизат като списък
+			$suggestions = '';
+			foreach ($batches as $b => $q){
+				$verbal = strip_tags($Def->toVerbal($b));
+				$suggestions .= "{$b}={$verbal},";
+			}
+			$suggestions = trim($suggestions, ',');
+			
+			if(!empty($suggestions)){
+				$form->FLD('serials', "set({$suggestions})", 'caption=Партиди,maxRadio=2,class=batch-quantity-fields');
+			}
+			
+			if(count($foundBatches)){
+				$defaultBatches = $form->getFieldType('serials')->fromVerbal($foundBatches);
+				$form->setDefault('serials', $defaultBatches);
+			}
+			
+			
+		} else {
+			$i = $j = 0;
+			$tableRec = $exTableRec = array();
+			$batchesCount = count($batches);
+			foreach ($batches as $batch => $quantityInStore){
+				$tableRec['batch'][$i] = $batch;
+				if(array_key_exists($batch, $foundBatches)){
+					$tableRec['quantity'][$i] = $foundBatches[$batch];
+					$exTableRec['batch'][$j] = $batch;
+					$exTableRec['quantity'][$j] = $foundBatches[$batch];
+					$j++;
+				} else {
+					$tableRec['quantity'][$i] = "";
+				}
+					
+				$tableRec['quantity'][$i] = (array_key_exists($batch, $foundBatches)) ? $foundBatches[$batch] : "";
+				$i++;
+			}
+			
+			if($batchesCount > 50){
+				$tableRec = $exTableRec;
+			}
+		}
+		
+		// Добавяне на поле за нова партида
+		//$autohide = count($batches) ? 'autohide' : '';
+		$caption = ($Def->getFieldCaption()) ? $Def->getFieldCaption() : 'Партида';
+		$columns = ($Def instanceof batch_definitions_Serial) ? 'batch' : 'batch|quantity';
+		$captions = ($Def instanceof batch_definitions_Serial) ? 'Номер' : 'Номер|Количество';
+		$noCaptions = ($Def instanceof batch_definitions_Serial) ? 'noCaptions' : '';
+		
+		$sgt = implode('|', array_keys($batches));
+		$form->FLD('newArray', "table(columns={$columns},captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches,batch,batch_sgt={$sgt})", "caption=Нови партиди->{$caption},placeholder={$Def->placeholder},{$autohide}");
+		$form->setFieldTypeParams('newArray', array('batchDefinition' => $Def));
+		$form->setDefault('newArray', $tableRec);
+		
+		
 		// Какви са наличните партиди
 		$Def = batch_Defs::getBatchDef($recInfo->productId);
 		$batchCount = count($batches);
 		
-		// За всяка партида добавя се като поле
-		if(is_array($batches)){
-			
-			// Ако е сериен номер
-			if($Def instanceof batch_definitions_Serial){
+		// Ако е сериен номер
+			/*if($Def instanceof batch_definitions_Serial){
 				
 				// Полетата излизат като списък
 				$suggestions = '';
@@ -372,34 +428,7 @@ class batch_BatchesInDocuments extends core_Manager
 					$defaultBatches = $form->getFieldType('serials')->fromVerbal($foundBatches);
 					$form->setDefault('serials', $defaultBatches);
 				}
-			} else {
-				
-				// Ако не е сериен номер, всяка партида излиза като ново поле
-				$count = 0;
-				foreach ($batches as $batch => $quantity){
-					$verbal = strip_tags($Def->toVerbal($batch));
-					$form->FLD("quantity{$count}", "double(Min=0)", "caption=Налични партиди->{$verbal},unit={$packName},class=batch-quantity-fields");
-					if($q = self::fetchField("#detailClassId = {$recInfo->detailClassId} AND #detailRecId = {$recInfo->detailRecId} AND #productId = {$recInfo->productId} AND #batch = '{$batch}'", 'quantity')){
-						$form->setDefault("quantity{$count}", ($q / $recInfo->quantityInPack));
-					}
-				
-					$form->FLD("batch{$count}", 'varchar', "input=hidden");
-					$form->setDefault("batch{$count}", $batch);
-					$count++;
-				}
-			}
-		}
-		
-		// Добавяне на поле за нова партида
-		$autohide = count($batches) ? 'autohide' : '';
-		$caption = ($Def->getFieldCaption()) ? $Def->getFieldCaption() : 'Партида';
-		
-		$columns = ($Def instanceof batch_definitions_Serial) ? 'batch' : 'batch|quantity';
-		$captions = ($Def instanceof batch_definitions_Serial) ? 'Номер' : 'Номер|Количество';
-		$noCaptions = ($Def instanceof batch_definitions_Serial) ? 'noCaptions' : '';
-		
-		$form->FLD('newArray', "table(columns={$columns},captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Нови партиди->{$caption},placeholder={$Def->placeholder},{$autohide}");
-		$form->setFieldTypeParams('newArray', array('batchDefinition' => $Def));
+			}*/
 		
 		$form->input();
 		$saveBatches = array();
@@ -420,7 +449,7 @@ class batch_BatchesInDocuments extends core_Manager
 					if(empty($newBatches['batch'][$i])) continue;
 					$batch = $Def->normalize($newBatches['batch'][$i]);
 					if(array_key_exists($batch, $batches)){
-						$form->setError('newArray', 'Опитвате се да създадете съществуваща партида');
+						//$form->setError('newArray', 'Опитвате се да създадете съществуваща партида');
 					} 
 					
 					$Double = core_Type::getByName('double');
@@ -428,25 +457,28 @@ class batch_BatchesInDocuments extends core_Manager
 					    $newBatches['quantity'][$i] = 1;
 					}
 					
-					$quantity = $Double->fromVerbal($newBatches['quantity'][$i]);
-					
-					if(!$quantity){
-						$form->setError('newArray', 'Невалидно количество');
+					if(!empty($newBatches['quantity'][$i])){
+						$quantity = $Double->fromVerbal($newBatches['quantity'][$i]);
+							
+						if(!$quantity){
+							$form->setError('newArray', 'Невалидно количество');
+						} else {
+							$total += $quantity;
+						}
+							
+						$quantity = ($Def instanceof batch_definitions_Serial) ? 1 : $quantity;
+						$saveBatches[$batch] = $quantity  * $recInfo->quantityInPack;
+						
+						// Проверка на к-то
+						if(!deals_Helper::checkQuantity($recInfo->packagingId, $quantity, $warning)){
+							$form->setError("newArray", $warning);
+						}
 					} else {
-						$total += $quantity;
-					}
-					
-					$quantity = ($Def instanceof batch_definitions_Serial) ? 1 : $quantity;
-					$saveBatches[$batch] = $quantity  * $recInfo->quantityInPack;
-					
-					// Проверка на к-то
-					if(!deals_Helper::checkQuantity($recInfo->packagingId, $quantity, $warning)){
-						$form->setError("newArray", $warning);
+						$delete[] = $newBatches['batch'][$i];
 					}
 				}
 			}
 			
-			// Ако е сериен номер
 			if($Def instanceof batch_definitions_Serial){
 				$batches = type_Set::toArray($r->serials);
 				if(count($batches) > $recInfo->quantity){
@@ -462,27 +494,10 @@ class batch_BatchesInDocuments extends core_Manager
 				$fields[] = "serials";
 					
 				if(is_array($foundBatches)){
-					foreach ($foundBatches as $fb){
+					foreach ($foundBatches as $fb => $q){
 						if(!array_key_exists($fb, $batches)){
 							$delete[] = $fb;
 							unset($saveBatches[$fb]);
-						}
-					}
-				}
-			} else {
-					
-				// Обработка и проверка на записите
-				foreach (range(0, $batchCount-1) as $i){
-					if(empty($r->{"quantity{$i}"})){
-						$delete[] = $r->{"batch{$i}"};
-					} else {
-						$total += $r->{"quantity{$i}"};
-						$fields[] = "quantity{$i}";
-						$saveBatches[$r->{"batch{$i}"}] = $r->{"quantity{$i}"}  * $recInfo->quantityInPack;
-					
-						// Проверка на к-то
-						if(!deals_Helper::checkQuantity($recInfo->packagingId, $r->{"quantity{$i}"}, $warning)){
-							$form->setError("quantity{$i}", $warning);
 						}
 					}
 				}
@@ -497,7 +512,7 @@ class batch_BatchesInDocuments extends core_Manager
 			}
 			
 			if(!$form->gotErrors()){
-				
+			
 				if($form->cmd == 'auto'){
 				    $old = (count($foundBatches)) ? $foundBatches : array();
 					$saveBatches = $Def->allocateQuantityToBatches($recInfo->quantity, $storeId, $recInfo->date);
@@ -510,11 +525,10 @@ class batch_BatchesInDocuments extends core_Manager
 				if(count($saveBatches)){
 					self::saveBatches($detailClassId, $detailRecId, $saveBatches);
 				}
-					
+				
 				// Изтриване
 				if(count($delete)){
 					foreach ($delete as $b){
-						$id = is_numeric($o) ? $o : $o->id;
 						self::delete("#detailClassId = {$recInfo->detailClassId} AND #detailRecId = {$recInfo->detailRecId} AND #productId = {$recInfo->productId} AND #batch = '{$b}'");
 					}
 				}
@@ -569,10 +583,6 @@ class batch_BatchesInDocuments extends core_Manager
 		foreach ($batches as $key => $batch)
 		{
 			if(!empty($batch)){
-				if(empty($tableData['quantity'][$key]) && $isSerial === FALSE){
-					$error[] = "<b>{$batch}</b>: |Няма зададено количество|*";
-				}
-				
 				if($isSerial){
 					if(empty($tableData['quantity'][$key])){
 						$tableData['quantity'][$key] = 1;
