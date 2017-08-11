@@ -394,7 +394,6 @@ class batch_BatchesInDocuments extends core_Manager
 		}
 		
 		// Добавяне на поле за нова партида
-		//$autohide = count($batches) ? 'autohide' : '';
 		$caption = ($Def->getFieldCaption()) ? $Def->getFieldCaption() : 'Партида';
 		$columns = ($Def instanceof batch_definitions_Serial) ? 'batch' : 'batch|quantity';
 		$captions = ($Def instanceof batch_definitions_Serial) ? 'Номер' : 'Номер|Количество';
@@ -480,7 +479,7 @@ class batch_BatchesInDocuments extends core_Manager
 					
 				// Не може да е разпределено по-голямо количество от допустимото
 				if($total > ($recInfo->quantity / ($recInfo->quantityInPack))){
-					$form->setError(implode(',', $fields), 'Общото количество е над допустимото');
+					$form->setError('newArray', 'Общото количество е над допустимото');
 				}
 			}
 			
