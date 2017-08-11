@@ -1348,8 +1348,7 @@ a.tOld {
 .readonlyInput {
   border: none !important;
   background: none !important;
-  box-shadow: none !important;
-  font-weight: bold; }
+  box-shadow: none !important; }
 
   .productCell .halfTable .titleCol {
     width: 100px;
