@@ -179,7 +179,7 @@ class abbyyocr_Converter extends core_Manager
             
             if ($params['asynch']) {
                 // Добавяме съобщение
-                status_Messages::newStatus('|Процеса вече е бил стартиран');
+                status_Messages::newStatus('|В момента се прави тази обработка');
             }
         } else {
         
