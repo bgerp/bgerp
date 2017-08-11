@@ -608,8 +608,21 @@ class draw_Designs extends core_Master
         self::drawMeasureAngle($svg, $x1, $y1, $x2, $y2, $x3, $y3);
     }
 
+    // $caption, $val
+    public static function cmd_Info($params, &$svg, &$contex, &$error){
+        $y =  self::calcExpr($params[1], $contex);
 
-    public static function cmd_WriteText($params, &$svg, &$contex, &$error)
+        if($y === self::CALC_ERROR) {
+            $error = "Грешка при изчисляване на: \"" . $params[1] . "\"";
+
+            return FALSE;
+        }
+
+        $svg->info[$params[0]] = $y;
+    }
+
+
+    public static function cmd_WriteSizeText($params, &$svg, &$contex, &$error)
     {
         $x =  self::calcExpr($params[0], $contex);
         if($x === self::CALC_ERROR) {
@@ -625,18 +638,32 @@ class draw_Designs extends core_Master
             return FALSE;
         }
 
-        $text =  trim($params[2]);
+        $num1 =  self::calcExpr($params[2], $contex);
+        if($y === self::CALC_ERROR) {
+            $error = "Грешка при изчисляване на: \"" . $params[2] . "\"";
 
-        $rotation =  self::calcExpr($params[3], $contex);
-        if($rotation === self::CALC_ERROR) {
+            return FALSE;
+        }
+
+        $num2 =  self::calcExpr($params[3], $contex);
+        if($y === self::CALC_ERROR) {
             $error = "Грешка при изчисляване на: \"" . $params[3] . "\"";
 
             return FALSE;
         }
 
-        $textSize =  self::calcExpr($params[4], $contex);
-        if($textSize === self::CALC_ERROR) {
+        $text =  "{$num1}x{$num2}";
+
+        $rotation =  self::calcExpr($params[4], $contex);
+        if($rotation === self::CALC_ERROR) {
             $error = "Грешка при изчисляване на: \"" . $params[4] . "\"";
+
+            return FALSE;
+        }
+
+        $textSize =  self::calcExpr($params[5], $contex);
+        if($textSize === self::CALC_ERROR) {
+            $error = "Грешка при изчисляване на: \"" . $params[5] . "\"";
 
             return FALSE;
         }
@@ -944,7 +971,9 @@ class draw_Designs extends core_Master
             $tpl->append("<h3 style='color:red;'>" . $data->error . "</h3>", 'DETAILS');
         }
 
-
+        foreach($data->canvas->info as $c => $v){
+            $tpl->append("<div>$c = <b>$v</b></div>", 'INFO_BLOCK');
+        }
     }
 
 

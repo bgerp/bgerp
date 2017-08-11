@@ -35,5 +35,8 @@
     </div>
     <!--ET_END CHANGE_LOG-->
     [#hiddenEndMeta#]
+    <div class="antetka" style="display: inline-block; clear: both;">
+        [#INFO_BLOCK#]
+    </div>
 </div>
     [#DETAILS#]
