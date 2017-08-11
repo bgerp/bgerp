@@ -908,7 +908,7 @@ class draw_Designs extends core_Master
             $canvas = cls::get('cad2_SvgCanvas');
         }
 
-        $canvas->setPaper(210, 297, 10, 10, 10, 10);
+        $canvas->setPaper(210, 297, 0, 0, 0, 0);
 
         $res = self::runScript($data->rec->script, $canvas, $contex, $error);
 
