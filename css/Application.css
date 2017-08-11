@@ -1345,6 +1345,12 @@ a.tOld {
   .wide .halfTable .titleCol {
     width: 120px; }
 
+.readonlyInput {
+  border: none !important;
+  background: none !important;
+  box-shadow: none !important;
+  font-weight: bold; }
+
   .productCell .halfTable .titleCol {
     width: 100px;
     vertical-align: top; }
