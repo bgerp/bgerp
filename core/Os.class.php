@@ -91,6 +91,7 @@ class core_Os
      */
     static function deleteDir($dir)
     {
+        expect($dir && (strlen($dir) > 1));
 		foreach(glob(rtrim($dir, '/') . '/*') as $file) {
 		        if(is_dir($file))
 		            self::deleteDir($file);
