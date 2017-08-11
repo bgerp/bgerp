@@ -376,15 +376,13 @@ class batch_BatchesInDocuments extends core_Manager
 			foreach ($batches as $batch => $quantityInStore){
 				$tableRec['batch'][$i] = $batch;
 				if(array_key_exists($batch, $foundBatches)){
-					$tableRec['quantity'][$i] = $foundBatches[$batch];
+					$tableRec['quantity'][$i] = $foundBatches[$batch] / $recInfo->quantityInPack;
 					$exTableRec['batch'][$j] = $batch;
 					$exTableRec['quantity'][$j] = $foundBatches[$batch];
 					$j++;
 				} else {
 					$tableRec['quantity'][$i] = "";
 				}
-					
-				$tableRec['quantity'][$i] = (array_key_exists($batch, $foundBatches)) ? $foundBatches[$batch] : "";
 				$i++;
 			}
 			
@@ -488,7 +486,6 @@ class batch_BatchesInDocuments extends core_Manager
 				if($form->cmd == 'auto'){
 				    $old = (count($foundBatches)) ? $foundBatches : array();
 					$saveBatches = $Def->allocateQuantityToBatches($recInfo->quantity, $storeId, $recInfo->date);
-					
 					$intersect = array_diff_key($old, $saveBatches);
 					$delete = (count($intersect)) ? array_keys($intersect) : array();
 				}
