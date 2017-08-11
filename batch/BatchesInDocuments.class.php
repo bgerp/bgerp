@@ -524,7 +524,7 @@ class batch_BatchesInDocuments extends core_Manager
 		$attr = arr::make('warning=К-то ще бъде разпределено автоматично по наличните партиди,ef_icon = img/16/arrow_refresh.png, title = Автоматично разпределяне на количеството');
 		$attr['onclick'] = "$(this.form).find('.batch-quantity-fields').val('');";
 		$form->toolbar->addSbBtn('Това е количеството', 'updateQuantity', "ef_icon = img/16/disk.png,title = Обновяване на количеството");
-		
+		$operation = key($recInfo->operation);
 		if($operation == 'out'){
 			$form->toolbar->addSbBtn('Автоматично', 'auto', $attr);
 		}
