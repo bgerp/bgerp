@@ -84,18 +84,18 @@ class type_Table extends type_Blob {
             	$attr[$field]['list'] = 'batchList';
             	$tpl  .= "<td>" . ht::createCombo($attr[$field]['name'],  NULL, $attr[$field], $sgt[$field]) . "</td>";
             	
-            	if($this->params[$readOnlyFld] == 'readonly' && isset($value[$field][0])){
+            	if($this->params[$readOnlyFld] == 'readonly' && isset($value[$field][0]) && empty($this->errorFields[$field][0])){
             		$row1 .= "<td>" . ht::createElement('input', $attr[$field] + array('class' => 'readonlyInput', 'style' => 'float:left;text-indent:2px', 'readonly' => 'readonly', 'value' => $value[$field][0])) . "</td>";
             	} else {
-            		$row1 .= "<td>" . ht::createCombo($attr[$field]['name'], $value[$field][0], $attr[$field], $sgt[$field]) . "</td>";
+            		$row1 .= "<td>" . ht::createCombo($attr[$field]['name'], $value[$field][0], $attr[$field] + $this->getErrorArr($field, 0), $sgt[$field]) . "</td>";
             	}
             } else {
                 $tpl  .= "<td>" . ht::createElement('input', $attr[$field]) . "</td>";
                 
-                if($this->params[$readOnlyFld] == 'readonly' && isset($value[$field][0])){
+                if($this->params[$readOnlyFld] == 'readonly' && isset($value[$field][0]) && empty($this->errorFields[$field][0])){
                 	$row1 .= "<td>" . ht::createElement('input', $attr[$field] + array('class' => 'readonlyInput', 'style' => 'float:left;text-indent:2px', 'readonly' => 'readonly', 'value' => $value[$field][0])) . "</td>";
                 } else {
-                	$row1 .= "<td>" . ht::createElement('input', $attr[$field] + array('value' => $value[$field][0])) . "</td>";
+                	$row1 .= "<td>" . ht::createElement('input', $attr[$field] + array('value' => $value[$field][0]) + $this->getErrorArr($field, 0)) . "</td>";
                 }
             }
         }
@@ -111,10 +111,10 @@ class type_Table extends type_Blob {
                     $row .= "<td>" . ht::createSelect($attr[$field]['name'], $opt[$field], $value[$field][0], $attr[$field]) . "</td>";
                 } else {
                 	$readOnlyFld = $field . '_ro';
-                	if($this->params[$readOnlyFld] == 'readonly' && isset($value[$field][$i])){
+                	if($this->params[$readOnlyFld] == 'readonly' && isset($value[$field][$i]) && empty($this->errorFields[$field][$i])){
                 		$row .= "<td>" . ht::createElement('input', $attr[$field] + array('class' => 'readonlyInput', 'style' => 'float:left;text-indent:2px', 'readonly' => 'readonly', 'value' => $value[$field][$i])) . "</td>";
                 	} else {
-                		$row .= "<td>" . ht::createElement('input', $attr[$field] + array('value' => $value[$field][$i])) . "</td>";
+                		$row .= "<td>" . ht::createElement('input', $attr[$field] + array('value' => $value[$field][$i]) + $this->getErrorArr($field, $i)) . "</td>";
                 	}
                 }
                 if(isset($value[$field][$i])) {
@@ -156,6 +156,22 @@ class type_Table extends type_Blob {
         return $res;
     }
 
+    
+    /**
+     * Помощна ф-я сетваща определено поле като грешно
+     */
+    private function getErrorArr($field, $i)
+    {
+    	$errorArr = array();
+    	if(is_array($this->errorFields[$field]) && array_key_exists($i, $this->errorFields[$field])){
+    		$errorArr['class'] = ' inputError';
+    		$errorArr['errorClass'] = ' inputError';
+    	}
+    	
+    	return $errorArr;
+    }
+    
+    
     function isValid($value)
     {
         if(empty($value)) return NULL;
@@ -164,7 +180,11 @@ class type_Table extends type_Blob {
 
         	$valueToValidate = @json_decode($value, TRUE);
             $res = call_user_func_array($this->params['validate'], array($valueToValidate, $this));
-
+			
+            if(isset($res['errorFields'])){
+            	$this->errorFields = $res['errorFields'];
+            }
+            
             return $res;
         }
 
