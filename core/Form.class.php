@@ -220,7 +220,7 @@ class core_Form extends core_FieldSet
             // Правим проверка, дали избраната стойност е от множеството
             if (is_array($options) && !is_a($type, 'type_Key') && !is_a($type, 'type_Key2')) {
                 // Не могат да се селектират неща които не са опции  
-                if ((!isset($options[$value]) && $this->cmd != 'refresh') || (is_object($options[$value]) && $options[$value]->group)) {
+                if ((!array_key_exists($value, $options) && $this->cmd != 'refresh') || (is_object($options[$value]) && $options[$value]->group)) {
                     $this->setError($name, "Невъзможна стойност за полето" .
                         "|* <b>|{$captions}|*</b>!");
                     $this->fields[$name]->input = 'input';

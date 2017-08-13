@@ -181,10 +181,9 @@ class tesseract_Converter extends core_Manager
             
             if ($params['asynch']) {
                 // Добавяме съобщение
-                status_Messages::newStatus('|Процеса вече е бил стартиран');
+                status_Messages::newStatus('|В момента се прави тази обработка');
             }
         } else {
-        
             // Заключваме процеса за определено време
             if (core_Locks::get($params['lockId'], 300, 0, FALSE)) {
                 
@@ -208,6 +207,10 @@ class tesseract_Converter extends core_Manager
      */
     static function getText($fileHnd, $params)
     {
+        core_App::setTimeLimit(300);
+        
+        $convArr = array();
+        
         if (!$params['isPath']) {
             // Вземам записа за файла
             $fRec = fileman_Files::fetchByFh($fileHnd);
@@ -228,21 +231,100 @@ class tesseract_Converter extends core_Manager
         // Ако е pdf файл, тогава го преобразуваме в tiff
         if ($ext == 'pdf') {
             
+            $maxPageCnt = 9;
+            $midPageCnt = (int) ($maxPageCnt/3);
+            
             if (!$params['isPath']) {
                 $pdfPath = fileman::extract($fileHnd);
             } else {
                 $pdfPath = $fileHnd;
             }
             
-            $tiffPath = $pdfPath . '.tiff';
+            $tiffPath = $pdfPath . '-%d.tiff';
             
             $pdfPathEsc = escapeshellarg($pdfPath);
             $tiffPathEsc = escapeshellarg($tiffPath);
             
-            exec("convert -background white -flatten +matte -density 300 {$pdfPathEsc} -depth 8 {$tiffPathEsc}");
+            $density = 300;
+            // Може и да е вектор или текст, тогава density трябва да е по-ниска стойност
+            // За да не се получават огромни файлове
+            if (!@exec("grep -c -i '/image' {$pdfPathEsc}")) {
+                $density = 72;
+            } else {
+                $pdfPageCnt = @exec("pdfinfo {$pdfPathEsc}| grep Pages | awk '{print $2}'");
+                
+                // Защита от пускане на много голям PDF файл, който да срине системата
+                if ($pdfPageCnt && is_numeric($pdfPageCnt)) {
+                    
+                    if ($pdfPageCnt > 200){
+                        
+                        return '';
+                    } elseif ($pdfPageCnt > 100) {
+                        $density = 50;
+                    } elseif ($pdfPageCnt > 60) {
+                        $density = 72;
+                    } elseif ($pdfPageCnt > 30) {
+                        $density = 100;
+                    } elseif ($pdfPageCnt > fileman_Setup::get('FILEINFO_MAX_PREVIEW_PAGES', TRUE)) {
+                        $density = 150;
+                    }
+                }
+            }
             
-            if (is_file($tiffPath)) {
-                $fileHnd = $tiffPath;
+            exec("convert -background white +matte -density {$density} {$pdfPathEsc} -depth 8 {$tiffPathEsc}");
+            
+            $dir = dirname($pdfPath);
+            
+            // Вземаме всички файлове във временната директория
+            $allFilesArr = scandir(dirname($pdfPath));
+            
+            $bName = basename($pdfPath);
+            
+            // Шаблон за намиране на името на файла
+            $pattern = "/^" . preg_quote($bName, "/") . "\-(?'num'[0-9]+)\.tiff$" . "/i";
+            
+            $matchedFilesArr = array();
+                   
+            // От всички открити файлове вземаме само тези, които съвпадат с търсенето
+            foreach ((array)$allFilesArr as $file) {
+            
+                if (!preg_match($pattern, $file, $matches)) continue;
+                $matchedFilesArr[$matches['num']] = $file;
+            }
+            
+            ksort($matchedFilesArr);
+            
+            $arrCnt = count($matchedFilesArr);
+            
+            if ($arrCnt <= 1) {
+                // Ако е само един файл, използваме го
+                
+                reset($matchedFilesArr);
+                $fKey = key($matchedFilesArr);
+                
+                $convArr[] = $matchedFilesArr[$fKey];
+            } elseif ($arrCnt > $maxPageCnt) {
+                
+                // Вземаме по 3 от началото, средата и края
+                
+                $beginArr = array_slice($matchedFilesArr, 0, $midPageCnt);
+                $midArr = array_slice($matchedFilesArr, (int)($arrCnt/2) - 1, $midPageCnt);
+                $endArr = array_slice($matchedFilesArr, -1*$midPageCnt);
+                
+                $convArr = array_merge($convArr, $beginArr);
+                $convArr = array_merge($convArr, $midArr);
+                $convArr = array_merge($convArr, $endArr);
+            } else {
+                // Ако са между 1-9 файла, използваме ги тях
+                
+                $convArr = $matchedFilesArr;
+            }
+            
+            // Ако сме определили масив с файлове
+            if (!empty($convArr)) {
+                foreach ($convArr as &$cnvName) {
+                    $cnvName = $dir . '/' . $cnvName;
+                }
             }
             
             if (!$params['isPath']) {
@@ -250,72 +332,120 @@ class tesseract_Converter extends core_Manager
             }
         }
         
+        // Ако не сме определили файлове, използваме подадения
+        if (empty($convArr)) {
+            $convArr[] = $fileHnd;
+        }
+        
+        $convArrCnt = count($convArr);
+        
+        if ($convArrCnt > 1) {
+            $params['asynch'] = FALSE;
+        }
+        
         $ocrMode = tesseract_Setup::get('OCR_MODE');
         
-        // Инстанция на класа
-        $Script = cls::get(fconv_Script);
+        $resText = '';
         
-        // Пътя до файла, в който ще се записва получения текст
-        $outputFile = $Script->tempDir . 'text';
-        
-        // Задаваме файловете и параметрите
-        $Script->setFile('INPUTF', $fileHnd);
-        $Script->setFile('OUTPUTF', $outputFile);
-        
-        // Задаваме параметрите
-        $Script->setParam('LANGUAGE', tesseract_Setup::get('LANGUAGES'), TRUE);
-        $Script->setParam('PSM', tesseract_Setup::get('PAGES_MODE'), TRUE);
-        $Script->setParam('OEM', $ocrMode, TRUE);
-        
-        // Заместваме програмата с пътя от конфига
-        $Script->setProgram('tesseract', tesseract_Setup::get('PATH'));
-        $Script->setProgramPath(get_called_class(), 'fconvProgramPaths');
-        
-        $errFilePath = fileman_webdrv_Generic::getErrLogFilePath($outputFile);
-        
-        if ($ocrMode == -1) {
+        foreach ($convArr as $fileHnd) {
+            $Script = cls::get('fconv_Script');
             
-            $versionArr = tesseract_Setup::getVersionAndSubVersion();
+            // Пътя до файла, в който ще се записва получения текст
+            $outputFile = $Script->tempDir . 'text';
             
-            $inst = cls::get('tesseract_Converter');
+            // Задаваме файловете и параметрите
+            $Script->setFile('INPUTF', $fileHnd);
+            $Script->setFile('OUTPUTF', $outputFile);
             
-            if ($versionArr['version'] < 4) {
-                $inst->fconvLineExec = 'tesseract [#INPUTF#] [#OUTPUTF#] -l [#LANGUAGE#] -psm [#PSM#]';
+            // Задаваме параметрите
+            $Script->setParam('LANGUAGE', tesseract_Setup::get('LANGUAGES'), TRUE);
+            $Script->setParam('PSM', tesseract_Setup::get('PAGES_MODE'), TRUE);
+            $Script->setParam('OEM', $ocrMode, TRUE);
+            
+            // Заместваме програмата с пътя от конфига
+            $Script->setProgram('tesseract', tesseract_Setup::get('PATH'));
+            $Script->setProgramPath(get_called_class(), 'fconvProgramPaths');
+            
+            $errFilePath = fileman_webdrv_Generic::getErrLogFilePath($outputFile);
+            
+            if ($ocrMode == -1) {
+                
+                $versionArr = tesseract_Setup::getVersionAndSubVersion();
+                
+                $inst = cls::get('tesseract_Converter');
+                
+                if ($versionArr['version'] < 4) {
+                    $inst->fconvLineExec = 'tesseract [#INPUTF#] [#OUTPUTF#] -l [#LANGUAGE#] -psm [#PSM#]';
+                } else {
+                    $inst->fconvLineExec = 'tesseract [#INPUTF#] [#OUTPUTF#] -l [#LANGUAGE#] --psm [#PSM#]';
+                }
+            }
+            
+            // Скрипта, който ще конвертира
+            $Script->lineExec(get_called_class() . '::fconvLineExec', array('LANG' => 'en_US.UTF-8', 'HOME' => $Script->tempPath, 'errFilePath' => $errFilePath));
+            
+            // Функцията, която ще се извика след приключване на операцията, ако се стартира асинхронно
+            if ($params['asynch']) {
+                $Script->callBack($params['callBack']);
+            }
+            
+            $params['errFilePath'] = $errFilePath;
+            
+            // Други допълнителни параметри
+            $params['outFilePath'] = $outputFile . '.txt';
+            if (!$params['isPath']) {
+                $params['fh'] = $fileHnd;
+            }
+            $Script->params = $params;
+            
+            $Script->setCheckProgramsArr('tesseract');
+            // Стартираме скрипта
+            if ($Script->run($params['asynch']) === FALSE) {
+                fileman_Indexes::createError($params);
+            }
+            
+            $text = '';
+            if (!$params['asynch']) {
+                
+                // Ако ще се стартира синхронно, вземаме текстовата част
+                $text = @file_get_contents($params['outFilePath']);
+                $text = i18n_Charset::convertToUtf8($text, 'UTF-8');
+                
+                $resText .= ($resText) ? "\n" : '';
+                
+                if (core_Os::deleteDir($Script->tempDir)) {
+                    fconv_Processes::delete(array("#processId = '[#1#]'", $Script->id));
+                }
+                
+                $resText .= $text;
+                
+                core_Locks::release($params['lockId']);
             } else {
-                $inst->fconvLineExec = 'tesseract [#INPUTF#] [#OUTPUTF#] -l [#LANGUAGE#] --psm [#PSM#]';
+                // Добавяме съобщение
+                status_Messages::newStatus('|Стартирано е извличането на текст с OCR', 'success');
             }
         }
         
-        // Скрипта, който ще конвертира
-        $Script->lineExec(get_called_class() . '::fconvLineExec', array('LANG' => 'en_US.UTF-8', 'HOME' => $Script->tempPath, 'errFilePath' => $errFilePath));
-        
-        // Функцията, която ще се извика след приключване на операцията
-        $Script->callBack($params['callBack']);
-        
-        $params['errFilePath'] = $errFilePath;
-        
-        // Други допълнителни параметри
-        $params['outFilePath'] = $outputFile . '.txt';
-        if (!$params['isPath']) {
-            $params['fh'] = $fileHnd;
-        }
-        $Script->params = $params;
-        
-        $Script->setCheckProgramsArr('tesseract');
-        // Стартираме скрипта Aсинхронно
-        if ($Script->run($params['asynch']) === FALSE) {
-            fileman_Indexes::createError($params);
-        }
-        
-        $text = '';
+        // Ако е стартирано синхронно, изтриваме временните файлове
         if (!$params['asynch']) {
-            $text = @file_get_contents($params['outFilePath']);
-            $text = i18n_Charset::convertToUtf8($text, 'UTF-8');
-        
-            core_Locks::release($params['lockId']);
-        } else {
-            // Добавяме съобщение
-            status_Messages::newStatus('|Стартирано е извличането на текст с OCR', 'success');
+            if ($resText) {
+                $resText = trim($resText);
+            }
+            
+            $params['content'] = $resText;
+            
+            if (!$params['content'] && fileman_Indexes::haveErrors($params['outFilePath'], $params)) {
+                
+                core_Locks::release($params['lockId']);
+            } else {
+                fileman_Indexes::saveContent($params);
+                
+                core_Locks::release($params['lockId']);
+                
+                if ($params['delPath']) {
+                    fileman::deleteTempPath($params['delPath']);
+                }
+            }
         }
         
         return $text;
@@ -331,41 +461,24 @@ class tesseract_Converter extends core_Manager
      */
     function afterGetTextByTesseract($script)
     {
-        // Десериализираме нужните помощни данни
         $params = $script->params;
         
-        // Вземаме съдържанието на файла
         $params['content'] = @file_get_contents($params['outFilePath']);
-        
         $params['content'] = trim($params['content']);
         
-        // Проверяваме дали е имало грешка при предишното конвертиране
-        if (!$params['content'] && fileman_Indexes::haveErrors($params['outFilePath'], $params)) {
-        
-            // Отключваме процеса
-            core_Locks::release($params['lockId']);
-        
-            return FALSE;
-        }
-        
-        // Записваме данните
-        $saveId = fileman_Indexes::saveContent($params);
-        
-        // Отключваме процеса
-        core_Locks::release($params['lockId']);
-        
-        if ($saveId) {
-			
+        if ($params['content'] || !fileman_Indexes::haveErrors($params['outFilePath'], $params)) {
+            
+            // Записваме данните
+            fileman_Indexes::saveContent($params);
+            
             if ($params['delPath']) {
                 fileman::deleteTempPath($params['delPath']);
             }
-            
-            // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
-            // и записа от таблицата fconv_Process
-            return TRUE;
         }
         
-        return FALSE;
+        core_Locks::release($params['lockId']);
+        
+        return TRUE;
     }
     
     

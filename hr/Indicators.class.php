@@ -516,20 +516,21 @@ class hr_Indicators extends core_Manager
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
     	$data->listFilter->FLD('period', 'date(select2MinItems=11)', 'caption=Период,silent,placeholder=Всички');
+    	$data->listFilter->FLD('document', 'varchar', 'caption=Документ,silent,placeholder=Всички');
     	$data->listFilter->setOptions('period', array('' => '') + dt::getRecentMonths(10));
-    	$data->listFilter->showFields = 'period';
+    	$data->listFilter->showFields = 'period,document';
     	$data->query->orderBy('date', "DESC");
     	
     	if(isset($data->masterMvc)){
     		$data->listFilter->FLD('Tab', 'varchar', 'input=hidden');
     		$data->listFilter->setDefault('Tab', 'PersonsDetails');
     		$data->listFilter->setDefault('period', date('Y-m-01'));
-    		$data->listFilter->input('period,Tab');
+    		$data->listFilter->input('period,document,Tab');
     	} else {
     		$data->listFilter->setFieldTypeParams("personId", array('allowEmpty' => 'allowEmpty'));
     		$data->listFilter->setFieldTypeParams("indicatorId", array('allowEmpty' => 'allowEmpty'));
-    		$data->listFilter->showFields = 'period,personId,indicatorId';
-    		$data->listFilter->input('period,personId,indicatorId');
+    		$data->listFilter->showFields = 'period,document,personId,indicatorId';
+    		$data->listFilter->input('period,document,personId,indicatorId');
     	}
     	
     	$data->listFilter->view = 'horizontal';
@@ -548,6 +549,12 @@ class hr_Indicators extends core_Manager
     		if(isset($fRec->period)){
     			$to = dt::getLastDayOfMonth($fRec->period);
     			$data->query->where("#date >= '{$fRec->period}' AND #date <= '{$to}'");
+    		}
+    		
+    		if(!empty($fRec->document)){
+    			if($document = doc_Containers::getDocumentByHandle($fRec->document)){
+    				$data->query->where("#docClass = {$document->getClassId()} AND #docId = {$document->that}");
+    			}
     		}
     	}
     }

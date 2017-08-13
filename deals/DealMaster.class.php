@@ -1357,10 +1357,16 @@ abstract class deals_DealMaster extends deals_DealBase
     	$now = dt::mysql2timestamp(dt::now());
     	$oldBefore = dt::timestamp2mysql($now - $olderThan);
     	 
-    	// Всички нишки със заявка
+    	// Намират се контиращите класове
+    	$contoClasses = core_Classes::getOptionsByInterface('acc_TransactionSourceIntf');
+    	$contoClasses = array_keys($contoClasses);
+    	
+    	// Всички контиращи документи в заявка
     	$cQuery = doc_Containers::getQuery();
     	$cQuery->where("#state = 'pending'");
+    	$cQuery->in('docClass', $contoClasses);
     	$cQuery->show('threadId');
+    	
     	$cQuery->groupBy('threadId');
     	$threadIds = arr::extractValuesFromArray($cQuery->fetchAll(), 'threadId');
     	

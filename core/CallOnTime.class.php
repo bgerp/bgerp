@@ -19,13 +19,13 @@ class core_CallOnTime extends core_Manager
     /**
      * Кой има право да променя?
      */
-    protected $canEdit = 'no_one';
+    protected $canEdit = 'debug';
     
     
     /**
      * Кой има право да добавя?
      */
-    protected $canAdd = 'no_one';
+    protected $canAdd = 'debug';
     
     
     /**
@@ -37,7 +37,7 @@ class core_CallOnTime extends core_Manager
     /**
      * Кой има право да го изтрие?
      */
-    protected $canDelete = 'no_one';
+    protected $canDelete = 'debug';
 	
 
 	/**
@@ -49,7 +49,7 @@ class core_CallOnTime extends core_Manager
     /**
      * Плъгините и враперите, които ще се използват
      */
-    public $loadList = 'plg_State,plg_SystemWrapper';
+    public $loadList = 'plg_State, plg_SystemWrapper, plg_RowTools2';
     
     
 	/**
@@ -167,6 +167,30 @@ class core_CallOnTime extends core_Manager
 	    $hash = md5($className . ' ' . $methodName . ' ' . json_encode($data));
 	    
 	    return $hash;
+	}
+	
+	
+	/**
+	 * Връща времето на изпълнение
+	 *
+	 * @param string $className
+	 * @param string $methodName
+	 * @param mixed $data
+	 *
+	 * @return string
+	 */
+	public static function getNextCallTime($className, $methodName, $data)
+	{
+		$hash = self::getHash($className, $methodName, $data);
+		
+		$query = self::getQuery();
+		$query->where("#hash = '{$hash}' AND #state = 'draft'");
+		$query->orderBy('callOn', 'ASC');
+		$query->show('callOn');
+		
+		$callOn = $query->fetch()->callOn;
+		
+		return ($callOn) ? $callOn : NULL;
 	}
 	
 	

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'tasks_TaskDetails'
  *
@@ -9,7 +10,7 @@
  * @category  bgerp
  * @package   tasks
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */

@@ -597,8 +597,12 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 					$q = planning_Jobs::fetchField($closedJobId, 'quantity');
 					$amount = $q * $price;
 					
+					// Ако има експедирано и то е над 90% от заскалденото, ще се маха продажбата
 					if(isset($shippedProducts[$pId])){
-						$ignore = TRUE;
+						$produced = planning_Jobs::fetchField($closedJobId, 'quantityProduced');
+						if($shippedProducts[$pId]->quantity >= ($produced * 0.9)){
+							$ignore = TRUE;
+						}
 					}
 				}
 			}

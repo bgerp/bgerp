@@ -10,7 +10,7 @@
  * @category  bgerp
  * @package   tasks
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -81,7 +81,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'type=Операция,serial,taskProductId,quantity,scrappedQuantity,packagingId=Мярка,weight=Тегло (кг),employees,fixedAsset,modified=Модифицирано';
+    public $listFields = 'type=Операция,serial,taskProductId,quantity,shortUoM=Мярка,weight=Тегло (кг),employees,fixedAsset,modified=Модифицирано';
     
     
     /**
@@ -103,9 +103,9 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     {
     	$this->FLD("taskId", 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Задача');
     	$this->FLD('taskProductId', 'key(mvc=planning_drivers_ProductionTaskProducts,select=productId,allowEmpty)', 'caption=Артикул,mandatory,silent,refreshForm,tdClass=productCell leftCol wrap');
-    	$this->FLD('type', 'enum(input=Влагане,product=Произвеждане,waste=Отпадък,start=Пускане)', 'input=hidden,silent,smartCenter');
-    	$this->FLD('serial', 'varchar(32)', 'caption=С. номер,smartCenter,focus');
-    	$this->FLD('quantity', 'double(Min=0)', 'caption=Количество,mandatory,smartCenter');
+    	$this->FLD('type', 'enum(input=Влагане,product=Произв.,waste=Отпадък,start=Пускане)', 'input=hidden,silent,tdClass=small-field nowrap');
+    	$this->FLD('serial', 'varchar(32)', 'caption=Сер. №,smartCenter,focus');
+    	$this->FLD('quantity', 'double(Min=0)', 'caption=Количество');
     	$this->FLD('scrappedQuantity', 'double(Min=0)', 'caption=Брак,input=none');
     	$this->FLD('weight', 'double', 'caption=Тегло,smartCenter,unit=кг');
     	$this->FLD('employees', 'keylist(mvc=crm_Persons,select=id)', 'caption=Работници,smartCenter,tdClass=nowrap');
@@ -160,15 +160,8 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		}
     	} else {
     		$form->FNC('productId', 'int', 'caption=Артикул,input,before=serial');
-    		$form->setOptions('productId', array($taskInfo->productId = cat_Products::getTitleById($taskInfo->productId, FALSE)));
+    		$form->setOptions('productId', array("{$taskInfo->productId}" => cat_Products::getTitleById($taskInfo->productId, FALSE)));
     		$form->setField('taskProductId', 'input=none');
-    		
-    		if($rec->type != 'start'){
-    			$unit = cat_UoM::getShortName($taskInfo->packagingId);
-    			$form->setField('quantity', "unit={$unit}");
-    		} else {
-    			$form->setField('quantity', "input=none");
-    		}
     		
     		if(isset($rec->id)){
     			$form->setReadOnly('serial');
@@ -182,6 +175,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		}
     		
     		if($rec->type == 'start'){
+    			$form->setField('quantity', "input=none");
     			$form->setField('weight', 'input=none');
     			$form->setField('notes', 'input=none');
     			$form->setField('serial', 'input=none');
@@ -212,6 +206,29 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	if($taskInfo->showadditionalUom != 'yes'){
     		$form->setField('weight', 'input=none');
     	}
+    	
+    	$hideMeasure = FALSE;
+    	if($rec->type == 'product'){
+    		$hideMeasure = TRUE;
+    		$measureId = cat_Products::fetchField($taskInfo->productId, 'measureId');
+    		$packagingId = $taskInfo->packagingId;
+    	} elseif(isset($rec->taskProductId)) {
+    		$hideMeasure = TRUE;
+    		$pRec = planning_drivers_ProductionTaskProducts::fetch($rec->taskProductId);
+    		$measureId = cat_Products::fetchField($pRec->productId, 'measureId');
+    		$packagingId = $pRec->packagingId;
+    	}
+    	
+    	if($hideMeasure === TRUE){
+    		$shortMeasure = cat_UoM::getShortName($measureId);
+    		if($measureId != $packagingId){
+    			$packName = $unit = cat_UoM::getShortName($packagingId);
+    			$unit = $shortMeasure . " " . tr('в') . " " . $packName;
+    			$form->setField('quantity', "unit={$unit}");
+    		} else {
+    			$form->setField('quantity', "unit={$shortMeasure}");
+    		}
+    	}
     }
     
 
@@ -225,24 +242,54 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	if($form->isSubmitted()){
     		$productId = ($rec->taskProductId) ? planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'productId') : planning_Tasks::getTaskInfo($rec->taskId)->productId;
     		
-    		// Ако няма код и операцията е 'произвеждане' задаваме дефолтния код
-    		if($rec->type == 'product'){
-    			if(empty($rec->serial)){
-    				$rec->serial = planning_TaskSerials::forceAutoNumber($rec->taskId, $productId);
+    		if(empty($rec->serial)){
+    			if($rec->type == 'product'){
+    				$rec->serial = planning_TaskSerials::forceAutoNumber($rec->taskId);
     			}
     		}
     		
-    		if(empty($rec->serial)){
-    			$rec->serial = NULL;
-    		} else {
+    		if(!empty($rec->serial)){
     			
     			// Ако има въведен сериен номер, проверяваме дали е валиден
     			$type = ($rec->type == 'product') ? 'product' : 'input';
-    			if($error = planning_TaskSerials::isSerialinValid($rec->serial, $productId, $rec->taskId, $type)){
+    			if($error = planning_TaskSerials::isSerialinValid($rec->serial, $productId, $rec->taskId, $type, $rec->id)){
     				$form->setError('serial', $error);
     			}
     		}
     		
+    		if($rec->type == 'product'){
+    			if(self::fetchField("#taskId = {$rec->taskId} AND #serial = '{$rec->serial}' AND #id != '{$rec->id}'")){
+    				$form->setError('serial', 'Сер. № при произвеждане трябва да е уникален');
+    			}
+    		}
+    		
+    		if(!$form->gotErrors()){
+    			if(!empty($rec->serial) && empty($rec->quantity)){
+    				$quantityInSerial = NULL;
+    				if($rec->type == 'product'){
+    					$quantityInSerial = planning_TaskSerials::fetchField(array("#serial = '[#1#]'", $rec->serial), 'quantityInPack');
+    				} else {
+    					if($originId = planning_Tasks::fetchField($rec->taskId, 'originId')){
+    						$query = self::getQuery();
+    						$query->EXT('originId', 'planning_Tasks', 'externalName=originId,externalKey=taskId');
+    						$query->where("#originId = {$originId}");
+    						$query->where(array("#serial = '[#1#]' AND #type = 'product'", $rec->serial));
+    						$query->show('quantity');
+    						if($eRec = $query->fetch()){
+    							$quantityInSerial = $eRec->quantity;
+    						}
+    					}
+    				}
+    				
+    				$rec->quantity = $quantityInSerial;
+    			}
+    			 
+    			if(empty($rec->quantity) && $rec->type != 'start'){
+    				$form->setError('quantity', 'Трябва да въведете количество');
+    			}
+    		}
+    		
+    		$rec->serial = (empty($rec->serial)) ? NULL : $rec->serial;
     		$rec->quantity = ($rec->type == 'start') ? 1 : $rec->quantity;
     	}
     }
@@ -285,8 +332,22 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     		} else {
     			$pRec = planning_Tasks::getTaskInfo($rec->taskId);
     		}
-    		$row->packagingId = cat_UoM::getShortName($pRec->packagingId);
-    		deals_Helper::getPackInfo($row->packagingId, $pRec->productId, $pRec->packagingId, $pRec->quantityInPack);
+    		
+    		$measureId = cat_Products::fetchField($pRec->productId, 'measureId');
+    		$shortUom = cat_UoM::getShortName($measureId);
+    		if($measureId != $pRec->packagingId){
+    			$packagingId = cat_UoM::getShortName($pRec->packagingId);
+    			$row->type .= " " . tr($packagingId);
+    		} elseif($rec->type == 'product'){
+    			$row->type = tr('Произвеждане');
+    		}
+    		
+    		if(!empty($rec->scrappedQuantity)){
+    			$rec->quantity = $rec->quantity - $rec->scrappedQuantity;
+    			$row->scrappedQuantity = $mvc->getFieldType('scrappedQuantity')->toVerbal($rec->scrappedQuantity);
+    		}
+    		
+    		$row->shortUoM = tr($shortUom);
     	} else {
     		unset($row->quantity);
     	}
@@ -310,6 +371,29 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	
     	if(isset($rec->employees)){
     		$row->employees = self::getVerbalEmployees($rec->employees);
+    	}
+    }
+    
+    
+    /**
+     * Преди рендиране на таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+    	$rows = &$data->rows;
+    	if(!count($rows)) return;
+    
+    	foreach ($rows as $id => $row){
+    		$rec = $data->recs[$id];
+    			
+    		if(!empty($row->shortUoM)){
+    			$row->quantity = "<b>{$row->quantity}</b>";
+    			
+    			if(!empty($row->scrappedQuantity)){
+    				$hint = "Брак|* {$row->scrappedQuantity} {$row->shortUoM}";
+    				$row->quantity = ht::createHint($row->quantity, $hint, 'warning', FALSE, 'width=14px;height=14px');
+    			}
+    		}
     	}
     }
     
@@ -563,9 +647,8 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     public static function getIndicatorValues($timeline)
     {
     	$query = self::getQuery();
-   
         $query->where("#modifiedOn >= '{$timeline}'");
-       
+        
         $iRec = hr_IndicatorNames::force('Време', __CLASS__, 1);
         $classId = planning_Tasks::getClassId();
         $indicatorId = $iRec->id;
@@ -583,13 +666,11 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
                     $time = -planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');
                     break;
                case 'product':
-                    $time = planning_Tasks::getTaskInfo($rec->taskId)->startTime;
+               		$taskInfo = planning_Tasks::getTaskInfo($rec->taskId);
+               		$time = (!empty($taskInfo->startTime)) ? ($taskInfo->startTime / $taskInfo->quantityInPack) : NULL;
                     break;
                case 'start':
                     $time = planning_Tasks::getTaskInfo($rec->taskId)->indTime;
-                    break;
-               default:
-                    $time = planning_drivers_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');
                     break;
             }
             

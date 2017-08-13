@@ -179,7 +179,7 @@ class abbyyocr_Converter extends core_Manager
             
             if ($params['asynch']) {
                 // Добавяме съобщение
-                status_Messages::newStatus('|Процеса вече е бил стартиран');
+                status_Messages::newStatus('|В момента се прави тази обработка');
             }
         } else {
         
@@ -218,7 +218,7 @@ class abbyyocr_Converter extends core_Manager
         }
         
         // Инстанция на класа
-        $Script = cls::get(fconv_Script);
+        $Script = cls::get('fconv_Script');
         
         // Пътя до файла, в който ще се записва получения текст
         $textPath = $Script->tempDir . 'text.txt';
@@ -239,8 +239,10 @@ class abbyyocr_Converter extends core_Manager
         // Скрипта, който ще конвертира
         $Script->lineExec(get_called_class() . '::fconvLineExec', array('LANG' => 'en_US.UTF-8', 'HOME' => $Script->tempPath, 'errFilePath' => $errFilePath));
         
-        // Функцията, която ще се извика след приключване на операцията
-        $Script->callBack($params['callBack']);
+        if ($params['asynch']) {
+            // Функцията, която ще се извика след приключване на операцията
+            $Script->callBack($params['callBack']);
+        }
         
         $params['errFilePath'] = $errFilePath;
         
@@ -261,7 +263,11 @@ class abbyyocr_Converter extends core_Manager
         if (!$params['asynch']) {
             $text = @file_get_contents($params['outFilePath']);
             $text = i18n_Charset::convertToUtf8($text, 'UTF-8');
-        
+            
+            if (core_Os::deleteDir($Script->tempDir)) {
+                fconv_Processes::delete(array("#processId = '[#1#]'", $Script->id));
+            }
+            
             core_Locks::release($params['lockId']);
         } else {
             // Добавяме съобщение

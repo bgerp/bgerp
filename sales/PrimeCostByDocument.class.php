@@ -207,7 +207,6 @@ class sales_PrimeCostByDocument extends core_Manager
 	public static function getIndicatorQuery($timeline, &$masters)
 	{
 		$iQuery = self::getQuery();
-		
 		// Кои документи ще се проверяват дали са променяни
 		$documents = array('sales_Sales' => 'sales_SalesDetails', 'sales_Services' => 'sales_ServicesDetails', 'purchase_Services' => 'purchase_ServicesDetails', 'store_ShipmentOrders' => 'store_ShipmentOrderDetails', 'store_Receipts' => 'store_ReceiptDetails');
 		$or = FALSE;
@@ -227,7 +226,7 @@ class sales_PrimeCostByDocument extends core_Manager
 			$dQuery->EXT('modifiedOn', $Master, "externalName=modifiedOn,externalKey={$Detail->masterKey}");
 			$dQuery->where("#modifiedOn >= '{$timeline}'");
 			$dQuery->where("#state != 'draft' AND #state != 'pending' AND #state != 'stopped'");
-				
+			
 			$fields = "modifiedOn,state,containerId";
 			if($Master != 'sales_Sales'){
 				$dQuery->EXT('isReverse', $Master, "externalName=isReverse,externalKey={$Detail->masterKey}");
@@ -236,22 +235,22 @@ class sales_PrimeCostByDocument extends core_Manager
 				
 			$ids = array();
 			$dQuery->show($fields);
-				
+			
 			// Извличане на ид-та на детайлите му и кеш на мастър данните
 			while($dRec = $dQuery->fetch()){
+				
 				if(!isset($masters[$dRec->containerId])){
 					try{
 						$masters[$dRec->containerId] = array(doc_Containers::getDocument($dRec->containerId), $dRec->state, $dRec->isReverse);
 					} catch(core_exception_Expect $e){
 						reportException($e);
-						break;
+						continue;
 					}
-					
 				}
 		
 				$ids[$dRec->id] = $dRec->id;
 			}
-				
+			
 			// Ако има детайли от модела ще търсим точно записите от детайли на документи променяни след timeline
 			if(count($ids)){
 				$ids = implode(',', $ids);
@@ -394,6 +393,9 @@ class sales_PrimeCostByDocument extends core_Manager
 		
 		$productGroups = self::getAllProductGroups($indicatorRecs);
 		
+		$groupSumId = hr_IndicatorNames::force('GroupSum', __CLASS__, 3)->id;
+		$noGroupSumId = hr_IndicatorNames::force('NoGroupSum', __CLASS__, 4)->id;
+	
 		// За всеки запис
 		foreach ($indicatorRecs as $rec){
 			if(!$rec->dealerId) continue;
@@ -403,42 +405,71 @@ class sales_PrimeCostByDocument extends core_Manager
 			$diff = array_intersect_key($selectedGroups, $groups);
 			$delimiter = count($diff);
 			
-			// Ако не е в нито една група, пропуска се
-			if(!$delimiter) continue;
+			$Document = $masters[$rec->containerId][0];
+			$personFldValue = $personIds[$rec->dealerId];
+			$isRejected = ($masters[$rec->containerId][1] == 'rejected');
+			$sign = ($masters[$rec->containerId][2] == 'yes') ? -1 : 1;
 			
-			foreach ($diff as $groupId => $obj){
+			
+			if(!empty($delimiter)){
+				foreach ($diff as $groupId => $obj){
+					// Сумата е X / броя на групите в които се среща от тези, които се следят
+					$indicatorId = $selectedGroups[$groupId]->groupRec->id;
+					$value = $sign * (round(($rec->quantity * $rec->sellCost) / $delimiter, 2));
+					self::addIndicatorToArray($result, $rec->valior, $personFldValue, $Document->that, $Document->getClassId(), $indicatorId, $value, $isRejected);
 				
-				$Document = $masters[$rec->containerId][0];
-				$personFldValue = $personIds[$rec->dealerId];
-					
-				// Подготовка на ключа по-който ще се събират данните
-				$indicatorId = $selectedGroups[$groupId]->id;
-				$key = "{$personFldValue}|{$Document->getClassId()}|{$Document->that}|{$rec->valior}|{$indicatorId}";
-				$sign = ($masters[$rec->containerId][2] == 'yes') ? -1 : 1;
+					// Индикатор за делта по групите
+					$indicatorDeltaId = $selectedGroups[$groupId]->deltaRec->id;
+					$delta = $sign * (round($rec->delta / $delimiter, 2));
+					self::addIndicatorToArray($result, $rec->valior, $personFldValue, $Document->that, $Document->getClassId(), $indicatorDeltaId, $delta, $isRejected);
 				
-				// Сумата е X / броя на групите в които се среща от тези, които се следят
-				$value = $sign * (round($rec->quantity * $rec->sellCost, 2) / $delimiter);
-					
-				// Ако няма данни, добавят се
-				if(!array_key_exists($key, $result)){
-					$result[$key] = (object)array('date'        => $rec->valior,
-											      'personId'    => $personFldValue,
-							                      'docId'       => $Document->that,
-							                      'docClass'    => $Document->getClassId(),
-							                      'indicatorId' => $indicatorId,
-							                      'value'       => $value,
-							                      'isRejected'  => ($masters[$rec->containerId][1] == 'rejected'),);
-				} else {
-				
-					// Ако има вече се сумират
-					$ref = &$result[$key];
-					$ref->value += $value;
+					// Сумиране по индикатор на общата сума на групите
+					self::addIndicatorToArray($result, $rec->valior, $personFldValue, $Document->that, $Document->getClassId(), $groupSumId, $value, $isRejected);
 				}
+			} else {
+				
+				// Сумиране на индикатор без група
+				$value = $sign * (round(($rec->quantity * $rec->sellCost), 2));
+				self::addIndicatorToArray($result, $rec->valior, $personFldValue, $Document->that, $Document->getClassId(), $noGroupSumId, $value, $isRejected);
 			}
 		}
 		
 		// Връщане на индикаторите
 		return $result;
+	}
+	
+	
+	/**
+	 * Помощна ф-я за събиране на индикаторите в масив
+	 * 
+	 * @param array $result
+	 * @param datetime $valior
+	 * @param int $personId
+	 * @param int $docId
+	 * @param int $docClassId
+	 * @param int $indicatorId
+	 * @param double $value
+	 * @param boolean $isRejected
+	 */
+	private static function addIndicatorToArray(&$result, $valior, $personId, $docId, $docClassId, $indicatorId, $value, $isRejected)
+	{
+		$key = "{$personId}|{$docClassId}|{$docId}|{$valior}|{$indicatorId}";
+		
+		// Ако няма данни, добавят се
+		if(!array_key_exists($key, $result)){
+			$result[$key] = (object)array('date'        => $valior,
+					 					  'personId'    => $personId,
+										  'docId'       => $docId,
+										  'docClass'    => $docClassId,
+										  'indicatorId' => $indicatorId,
+										  'value'       => $value,
+										  'isRejected'  => $isRejected,);
+		} else {
+		
+			// Ако има вече се сумират
+			$ref = &$result[$key];
+			$ref->value += $value;
+		}
 	}
 	
 	
@@ -463,8 +494,15 @@ class sales_PrimeCostByDocument extends core_Manager
     	$groupNames = self::cacheGroupNames();
     	if(count($groupNames)){
     		foreach ($groupNames as $indRec){
-    			$result[$indRec->id] = $indRec->name;
+    			$result[$indRec->groupRec->id] = $indRec->groupRec->name;
+    			$result[$indRec->deltaRec->id] = $indRec->deltaRec->name;
     		}
+    		
+    		$rec = hr_IndicatorNames::force('GroupSum', __CLASS__, 3);
+    		$result[$rec->id] = $rec->name;
+    		
+    		$rec = hr_IndicatorNames::force('NoGroupSum', __CLASS__, 4);
+    		$result[$rec->id] = $rec->name;
     	}
     	
     	// Връщане на всички индикатори
@@ -491,7 +529,9 @@ class sales_PrimeCostByDocument extends core_Manager
     				$groupName = cat_Groups::getVerbal($groupId, 'name');
     				$rec = hr_IndicatorNames::force($groupName, __CLASS__, "group{$groupId}");
     				
-    				self::$groupNames[$groupId] = $rec;
+    				$groupName2 = 'Delta ' . $groupName;
+    				$rec2 = hr_IndicatorNames::force($groupName2, __CLASS__, "dgroup{$groupId}");
+    				self::$groupNames[$groupId] = (object)array('groupRec' => $rec, 'deltaRec' => $rec2);
     			}
     		}
     	}

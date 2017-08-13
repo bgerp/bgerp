@@ -298,24 +298,20 @@ abstract class bgerp_ProtoParam extends embed_Manager
 	
 	
 	/**
-	 * Форсира параметър
+	 * Подготвя запис за форсиране
 	 *
 	 * @param string $sysId       - систем ид на параметър
 	 * @param string $name        - име на параметъра
 	 * @param string $type        - тип на параметъра
 	 * @param NULL|text $options  - опции на параметъра само за типовете enum и set
 	 * @param NULL|string $suffix - наставка
-	 * @return number             - ид на параметъра
+	 * @return stdClass $nRec     - ид на параметъра
 	 */
-	public static function force($sysId, $name, $type, $options = array(), $suffix = NULL)
+	protected static function makeNewRec($sysId, $name, $type, $options = array(), $suffix = NULL)
 	{
-		// Ако има параметър с това систем ид,връща се
-		$id = self::fetchIdBySysId($sysId);
-		if(!empty($id)) return $id;
-		 
 		// Проверка дали типа е допустим
 		expect(in_array(strtolower($type), array('double', 'text', 'varchar', 'time', 'date', 'component', 'percent', 'int', 'delivery', 'paymentmethod', 'image', 'enum', 'set', 'file')));
-		 
+			
 		// Подготовка на записа на параметъра
 		expect($Type = cls::get("cond_type_{$type}"));
 		$nRec = new stdClass();
@@ -325,14 +321,13 @@ abstract class bgerp_ProtoParam extends embed_Manager
 		if(!empty($suffix)){
 			$nRec->suffix = $suffix;
 		}
-		 
+			
 		// Само за типовете enum и set, се искат опции
 		if($type == 'enum' || $type == 'set'){
 			$nRec->options = cond_type_abstract_Proto::options2text($options);
 		}
-		 
-		// Създаване на параметъра
-		return self::save($nRec);
+		
+		return $nRec;
 	}
 	
 	
