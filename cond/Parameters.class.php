@@ -157,4 +157,25 @@ class cond_Parameters extends bgerp_ProtoParam
     	
     	return $value;
     }
+    
+    
+    /**
+     * Форсира параметър
+     *
+     * @param string $sysId       - систем ид на параметър
+     * @param string $name        - име на параметъра
+     * @param string $type        - тип на параметъра
+     * @param NULL|text $options  - опции на параметъра само за типовете enum и set
+     * @param NULL|string $suffix - наставка
+     * @return number             - ид на параметъра
+     */
+    public static function force($sysId, $name, $type, $options = array(), $suffix = NULL)
+    {
+    	// Ако има параметър с това систем ид,връща се
+    	$id = self::fetchIdBySysId($sysId);
+    	if(!empty($id)) return $id;
+    		
+    	// Създаване на параметъра
+    	return self::save(self::makeNewRec($sysId, $name, $type, $options, $suffix));
+    }
 }

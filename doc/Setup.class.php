@@ -249,7 +249,8 @@ class doc_Setup extends core_ProtoSetup
         'migrate::showFiles',
         'migrate::addCountryIn2LgFolders2',
         'migrate::addFirstDocClassAndId',
-        'migrate::receiveEmailUnsortedN'
+        'migrate::receiveEmailUnsortedN',
+        'migrate::regenerateSearchKeywords'
     );
 	
     
@@ -831,6 +832,59 @@ class doc_Setup extends core_ProtoSetup
             }
             
             $uInst->save_($uRec, 'receiveEmail');
+        }
+    }
+    
+    
+    /**
+     * Миграция за регенеиране на ключови думи
+     */
+    public static function regenerateSearchKeywords()
+    {
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setCall('doc_Setup', 'regenerateSearchKeywords', NULL, $callOn);
+    }
+    
+    
+    /**
+     * Колбек функцията за регенериране на ключовите думи на документите
+     */
+    public static function callback_regenerateSearchKeywords()
+    {
+        $permanentKey = 'regeneteSearchKeywordsFrom';
+        
+        $from = core_Permanent::get($permanentKey);
+        
+        if (!$from) {
+            $from = dt::addDays(-100);
+            
+            doc_Containers::logDebug("Стартиране на регенериране на ключовите думи от " . $from);
+        }
+        
+        $to = dt::addSecs(7200, $from);
+        
+        if ($from > dt::now()) {
+            
+            doc_Containers::logDebug("Регенерирането на ключовите думи приключи");
+            
+            return;
+        }
+        
+        if (!core_CallOnTime::fetch("#className = 'doc_Setup' AND #methodName = 'regenerateSearchKeywords' AND #state = 'draft'", '*', FALSE)) {
+            $callOn = dt::addSecs(55);
+            core_CallOnTime::setCall('doc_Setup', 'regenerateSearchKeywords', NULL, $callOn);
+            core_Permanent::set($permanentKey, $to, 100000);
+        }
+        
+        $cQuery = doc_Containers::getQuery();
+        $cQuery->where(array("#modifiedOn >= '[#1#]'", $from));
+        $cQuery->where(array("#modifiedOn <= '[#1#]'", $to));
+        $cQuery->orderBy('modifiedOn', 'ASC');
+        
+        $rArr = doc_Containers::regenerateSerchKeywords(FALSE, $cQuery, TRUE);
+        
+        if ($rArr) {
+            doc_Containers::logDebug("Регенерирани ключови думи на {$rArr[0]} документа от {$from} до {$to}");
         }
     }
 }

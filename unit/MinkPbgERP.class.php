@@ -86,8 +86,10 @@ class unit_MinkPbgERP extends core_Manager {
         $res = '';
         $res .= 'MinkPbgERP ';
         $res .= " 0.".$this->act_DeinstallSelect2();
+        $res .= " 1.".$this->act_AddAddrBgerp();
         $res .= " 1.".$this->act_AddRoleCat();
         $res .= " 2.".$this->act_ModifySettings();
+        $res .= "  23.".$this->act_EditMyCompany();
         $res .= " 3.".$this->act_CreateUser1();
         $res .= "  4.".$this->act_CreateUser2();
         $res .= "  5.".$this->act_CreateStore();
@@ -186,6 +188,24 @@ class unit_MinkPbgERP extends core_Manager {
     }
     
     /**
+     * 1. Добавяне на адресни данни на Тестов потребител
+     */
+    //http://localhost/unit_MinkPbgERP/AddAddrBgerp/
+    function act_AddAddrBgerp()
+    {
+        // Логване
+        $browser = $this->SetUp();
+        $browser->click('Визитник');
+        $browser->click('Лица');
+        $browser->click('Тестов потребител');
+        $browser->setValue('pCode', '5140');
+        $browser->setValue('place', 'Лясковец');
+        $browser->setValue('address', 'ул.Янтра, №12');
+        $browser->press('Запис');
+    
+    }
+    
+    /**
      * 1. Добавяне на роли cat и seePrice на потребител bgerp
      */
     //http://localhost/unit_MinkPbgERP/AddRoleCat/
@@ -220,6 +240,35 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Запис');
      
     }
+    
+    /**
+     * 1. Добавяне на адресни данни на Моята фирма
+     */
+    //http://localhost/unit_MinkPbgERP/EditMyCompany/
+    function act_EditMyCompany()
+    {
+        // Логване
+        $browser = $this->SetUp();
+    
+        // Създаване на нова фирма
+        $browser->click('Визитник');
+        $browser->click('Моята Фирма ООД');
+        $browser->press('Редакция');
+        $browser->setValue('place', 'Велико Търново');
+        $browser->setValue('pCode', '5000');
+        $browser->setValue('address', 'ул. Царевец, №31');
+        $browser->setValue('fax', '062111111');
+        $browser->setValue('tel', '062111111');
+        $browser->press('Запис');
+        if (strpos($browser->getText(),"Предупреждение:")){
+            $browser->setValue('Ignore', 1);
+            $browser->press('Запис');
+        }
+        // Създаване на папка на новата фирма
+        $browser->press('Папка');
+        //return $browser->getHtml();
+    }
+    
     /**
      * 1. Създаване на потребител от Админ
      */

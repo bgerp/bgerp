@@ -1527,8 +1527,6 @@ a.tOld {
 		.group-by-field-row td {
 			padding: 5px !important;
 		}
-
-
 	}
 }
 .smallerTextInTable {
@@ -1556,6 +1554,11 @@ a.tOld {
 	}
 }
 
+.readonlyInput {
+	border: none !important;
+	background: none !important;
+	box-shadow: none !important;
+}
 
 .productCell .halfTable {
 	.titleCol {

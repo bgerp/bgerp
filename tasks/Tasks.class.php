@@ -33,7 +33,7 @@ class tasks_Tasks extends embed_Manager
     /**
      * Единично заглавие
      */
-    public $singleTitle = 'Пр. задача';
+    public $singleTitle = 'Задача';
     
     
     /**
@@ -100,12 +100,6 @@ class tasks_Tasks extends embed_Manager
      * Поле за крайна дата на търсене
      */
     public $filterFieldDateTo = 'timeEnd';
-    
-    
-    /**
-     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
-     */
-    public $searchFields = 'title';
     
     
     /**
@@ -426,7 +420,7 @@ class tasks_Tasks extends embed_Manager
     /**
      * Подготовка на формата за добавяне/редактиране
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	$rec = &$form->rec;

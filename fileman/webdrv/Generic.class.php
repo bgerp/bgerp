@@ -296,11 +296,15 @@ class fileman_webdrv_Generic extends core_Manager
                     $preview->append($thumbnailImg, 'THUMB_IMAGE');
                 }
             }
-            
-            $jqRun = 'wheelzoom(document.querySelectorAll(\'img.webdrv-preview\'), {zoom:1});';
+            if(Mode::is('screenMode', 'wide')) {
+                $jqRun = 'wheelzoom(document.querySelectorAll(\'img.webdrv-preview\'), {zoom:1});';
+                $action = "click";
+            } else {
+                $action = "dblclick";
+            }
             
             if ($multiplier > 1) {
-                $jqRun = '$("img.webdrv-preview").on("click", function(e){changeZoomImage(e.target)}); ' . $jqRun;
+                $jqRun = "$('img.webdrv-preview').on('{$action}', function(e){changeZoomImage(e.target)}); " . $jqRun;
             }
 
             $preview->push('js/wheelzoom.js', "JS");

@@ -284,11 +284,14 @@ class doc_Containers extends core_Manager
      * 
      * @return array
      */
-    public static function regenerateSerchKeywords($force = FALSE)
+    public static function regenerateSerchKeywords($force = FALSE, $query = NULL, $useCId = FALSE)
     {
         $docContainers = cls::get('doc_Containers');
-        $query = self::getQuery();
-        $query->groupBy('docClass');
+        
+        if (!isset($query)) {
+            $query = self::getQuery();
+            $query->groupBy('docClass');
+        }
         
         $resArr = array();
         
@@ -307,7 +310,15 @@ class doc_Containers extends core_Manager
             if (!isset($plugins['plg_Search'])) continue;
             
     		$clsQuery = $clsInst->getQuery();
-    		$clsQuery->show('searchKeywords, containerId');
+    		
+    		$show = 'searchKeywords, containerId';
+    		
+    		if ($useCId) {
+    		    $clsQuery->where(array("#containerId = '[#1#]'", $rec->id));
+    		    $show .= ',containerId';
+    		}
+    		
+    		$clsQuery->show($show);
     		
     		$i = 0;
     		while ($cRec = $clsQuery->fetch()) {
@@ -554,7 +565,7 @@ class doc_Containers extends core_Manager
                                         if (doc_HiddenContainers::$haveRecInModeOrDB) {
                                             $attr['class'] = 'settings-hide-document';
                                             $attr['ef_icon'] = 'img/16/toggle2.png';
-                                            $attr['title'] = 'Скриване на ръчно отворените нишки';
+                                            $attr['title'] = 'Скриване на ръчно отворените документи в нишката';
                                             $linkUrl['hide'] = TRUE;
                                         }
                                     }

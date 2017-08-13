@@ -39,21 +39,13 @@ class cat_products_Packagings extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'packagingId=Наименование, quantity=К-во, code=EAN, netWeight=, tareWeight=, weight=Тегло, 
-        sizeWidth=, sizeHeight=, sizeDepth=, dimention=Габарити, 
-        eanCode=';
-    
-    
-    /**
-     * Поле за редактиране
-     */
-    public $rowToolsField = 'tools';
+    public $listFields = 'packagingId=Наименование, quantity=К-во, code=EAN, netWeight=, tareWeight=, weight=Тегло, sizeWidth=, sizeHeight=, sizeDepth=, dimention=Габарити, eanCode=';
 
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'cat_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_AlignDecimals2, plg_Created';
+    public $loadList = 'cat_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_Created';
     
     
     /**
@@ -93,7 +85,7 @@ class cat_products_Packagings extends core_Detail
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden, silent');
         $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'tdClass=leftCol,caption=Опаковка,mandatory,smartCenter,removeAndRefreshForm,silent');
-        $this->FLD('quantity', 'double(Min=0)', 'input,caption=Количество,mandatory,smartCenter');
+        $this->FLD('quantity', 'double(Min=0,smartRound)', 'input,caption=Количество,mandatory,smartCenter');
         $this->FLD('isBase', 'enum(yes=Да,no=Не)', 'caption=Основна,mandatory,maxRadio=2');
         $this->FLD('netWeight', 'cat_type_Weight(min=0)', 'caption=Нето');
         $this->FLD('eanCode', 'gs1_TypeEan', 'caption=EAN');
@@ -111,7 +103,7 @@ class cat_products_Packagings extends core_Detail
     /**
      * Изпълнява се след въвеждане на данните от Request
      */
-    public static function on_AfterInputEditForm($mvc, $form)
+    protected static function on_AfterInputEditForm($mvc, $form)
     {
         if ($form->isSubmitted()){
             $rec = &$form->rec;
@@ -211,22 +203,6 @@ class cat_products_Packagings extends core_Detail
             }
         }
     }
-
-
-    /**
-     * Извиква се след подготовката на колоните ($data->listFields)
-     */
-    public static function on_AfterPrepareListFields($mvc, $data)
-    {
-        $data->query->orderBy('#id');
-        
-        if(isset($data->masterId)){
-            $measureId = cat_Products::getProductInfo($data->masterId)->productRec->measureId;
-            $shortMeasure = cat_UoM::getShortName($measureId);
-            
-            $data->listFields['quantity'] .= "|* ({$shortMeasure})";
-        }
-    }
     
     
     /**
@@ -236,7 +212,7 @@ class cat_products_Packagings extends core_Detail
      * @param stdClass $res
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditToolbar($mvc, $data)
+    protected static function on_AfterPrepareEditToolbar($mvc, $data)
     {
         if(!(count($mvc::getRemainingOptions($data->form->rec->productId)) - 1)){
             $data->form->toolbar->removeBtn('saveAndNew');
@@ -286,7 +262,7 @@ class cat_products_Packagings extends core_Detail
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    public static function on_AfterPrepareEditForm($mvc, $data)
+    protected static function on_AfterPrepareEditForm($mvc, $data)
     {
         $form = &$data->form;
         $rec = &$form->rec;
@@ -366,8 +342,6 @@ class cat_products_Packagings extends core_Detail
             }
         }
         
-        
-        
         if($kgPack = self::getPack($rec->productId, $kgId)){
         	if($kgPack != $rec->id){
         		
@@ -380,31 +354,25 @@ class cat_products_Packagings extends core_Detail
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        if($rec->sizeWidth == 0) {
-            $row->sizeWidth = '-';
-        }
-        
-        if($rec->sizeHeight == 0) {
-            $row->sizeHeight = '-';
-        }
-        
-        if($rec->sizeDepth == 0) {
-            $row->sizeDepth = '-';
+        foreach (array('sizeWidth', 'sizeHeight', 'sizeDepth') as $sizeFld){
+        	if($rec->{$sizeFld} == 0) {
+        		$row->{$sizeFld} = '-';
+        	}
         }
         
         $row->dimention = "{$row->sizeWidth} x {$row->sizeHeight} x {$row->sizeDepth}";
         
-        if($rec->eanCode){
+        if(!empty($rec->eanCode)){
             $row->code = $row->eanCode;
         }
         
-        if($rec->netWeight){
+        if(!empty($rec->netWeight)){
             $row->weight = tr("|Нето|*: ") . $row->netWeight . "<br>";
         }
         
-        if($rec->tareWeight){
+        if(!empty($rec->tareWeight)){
             $row->weight .= tr("|Тара|*: {$row->tareWeight}");
         }
         
@@ -421,9 +389,8 @@ class cat_products_Packagings extends core_Detail
      */
     public function preparePackagings($data)
     {
-        // Ако мастъра не е складируем, няма смисъл да показваме опаковките му
-        $productInfo = $data->masterMvc->getProductInfo($data->masterId);
-        if(empty($productInfo->meta['canStore'])){
+    	$masterRec = is_object($data->masterData->rec) ? $data->masterData->rec : $data->masterMvc->fetch($data->masterId);
+    	if($masterRec->canStore == 'no'){
             $data->notStorable = TRUE;
         }
         
@@ -439,15 +406,12 @@ class cat_products_Packagings extends core_Detail
         }
         
         if ($this->haveRightFor('add', (object)array('productId' => $data->masterId))) {
-            $data->addUrl = array(
-                    $this,
-                    'add',
-                    'productId' => $data->masterId,
-                    'ret_url' => getCurrentUrl() + array('#'=> get_class($this))
-            );
+            $data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'ret_url' => getCurrentUrl() + array('#'=> get_class($this)));
         }
         
         $data->listFields = arr::make($this->listFields, TRUE);
+        $shortMeasure = cat_UoM::getShortName($masterRec->measureId);
+        $data->listFields['quantity'] .= "|* <span class='small'>( {$shortMeasure} )</span>";
     }
     
     

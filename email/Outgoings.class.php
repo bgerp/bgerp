@@ -322,6 +322,10 @@ class email_Outgoings extends core_Master
                     $saveStr .= ',waiting';
                 }
                 
+                $saveStr .= ',state';
+                
+                $rec->state = 'pending';
+                
                 email_Outgoings::save($rec, $saveStr);
             } else {
                 status_Messages::newStatus('|Грешка при добавяне в списъка за отложено изпращане', 'error');
@@ -605,7 +609,7 @@ class email_Outgoings extends core_Master
             $saveArray['modifiedBy'] = 'modifiedBy';
             
             // Ако имейла е активен или чернова и не е въведено време за изчакване
-            if (!$options->waiting && ($rec->state == 'active' || $rec->state == 'draft')) {
+            if (!$options->waiting && ($rec->state == 'active' || $rec->state == 'draft' || $rec->state == 'pending')) {
                 
                 // Сменяме състоянието на затворено
                 $nRec->state = 'closed';
@@ -2306,7 +2310,7 @@ class email_Outgoings extends core_Master
         
         $data->lg = email_Outgoings::getLanguage($data->rec->originId, $data->rec->threadId, $data->rec->folderId, $data->rec->body);
         
-        if (!Mode::is('text', 'xhtml') && $data->rec->waiting && ($data->rec->state == 'waiting' || $data->rec->state == 'active')) {
+        if (!Mode::is('text', 'xhtml') && $data->rec->waiting && ($data->rec->state == 'waiting' || $data->rec->state == 'active' || $data->rec->state == 'pending')) {
             $notifyDate = dt::addSecs($data->rec->waiting, $data->rec->lastSendedOn);
             $data->row->notifyDate = dt::mysql2verbal($notifyDate, 'smartTime');
             $notifyUserId = $data->rec->lastSendedBy ? $data->rec->lastSendedBy : $data->rec->modifiedBy;
@@ -2802,7 +2806,7 @@ class email_Outgoings extends core_Master
         if ($action == 'close' && $rec) {
             
             // Ако не чакащо или събудено състояние, да не може да се затваря
-            if (($rec->state != 'waiting') && ($rec->state != 'wakeup')) {
+            if (($rec->state != 'waiting') && ($rec->state != 'wakeup') && ($rec->state != 'pending')) {
                 $requiredRoles = 'no_one';
             } else if (!haveRole('admin, ceo')) {
                 
@@ -2812,6 +2816,10 @@ class email_Outgoings extends core_Master
                     $requiredRoles = 'no_one';
                 }
             }
+        }
+        
+        if (($action == 'activate') && ($rec->state == 'pending')) {
+            $requiredRoles = 'no_one';
         }
     }
     
