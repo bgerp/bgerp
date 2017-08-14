@@ -348,6 +348,7 @@ class batch_BatchesInDocuments extends core_Manager
 		$form->info->append(cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($recInfo->quantity / $recInfo->quantityInPack), 'quantity');
 		
 		$Def = batch_Defs::getBatchDef($recInfo->productId);
+		$suggestions = array();
 		
 		if($Def instanceof batch_definitions_Serial){
 			
@@ -355,6 +356,7 @@ class batch_BatchesInDocuments extends core_Manager
 			$suggestions = '';
 			foreach ($batches as $b => $q){
 				$verbal = strip_tags($Def->toVerbal($b));
+				$suggestions[] = $verbal;
 				$suggestions .= "{$b}={$verbal},";
 			}
 			$suggestions = trim($suggestions, ',');
@@ -367,14 +369,13 @@ class batch_BatchesInDocuments extends core_Manager
 				$defaultBatches = $form->getFieldType('serials')->fromVerbal($foundBatches);
 				$form->setDefault('serials', $defaultBatches);
 			}
-			
-			
 		} else {
 			$i = $j = 0;
 			$tableRec = $exTableRec = array();
 			$batchesCount = count($batches);
 			foreach ($batches as $batch => $quantityInStore){
 				$vBatch = $Def->toVerbal($batch);
+				$suggestions[] = strip_tags($vBatch);
 				$tableRec['batch'][$i] = $vBatch;
 				if(array_key_exists($batch, $foundBatches)){
 					$tableRec['quantity'][$i] = $foundBatches[$batch] / $recInfo->quantityInPack;
@@ -398,8 +399,10 @@ class batch_BatchesInDocuments extends core_Manager
 		$captions = ($Def instanceof batch_definitions_Serial) ? 'Номер' : 'Номер|Количество';
 		$noCaptions = ($Def instanceof batch_definitions_Serial) ? 'noCaptions' : '';
 		
-		$sgt = implode('|', array_keys($batches));
-		$form->FLD('newArray', "table(columns={$columns},batch_ro=readonly,captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches,batch,batch_sgt={$sgt})", "caption=Нови партиди->{$caption},placeholder={$Def->placeholder},{$autohide}");
+		//$sgt = implode('|', array_keys($batches));
+		$form->FLD('newArray', "table(columns={$columns},batch_ro=readonly,captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Нови партиди->{$caption},placeholder={$Def->placeholder},{$autohide}");
+		
+		$form->setFieldTypeParams('newArray', array('batch_sgt' => $suggestions));
 		$form->setFieldTypeParams('newArray', array('batchDefinition' => $Def));
 		$form->setDefault('newArray', $tableRec);
 		
