@@ -522,6 +522,7 @@ class sales_Sales extends deals_DealMaster
     {
         $rec = $this->fetchRec($id);
         $actions = type_Set::toArray($rec->contoActions);
+        $detailId = sales_SalesDetails::getClassId();
         
         // Извличаме продуктите на продажбата
         $dQuery = sales_SalesDetails::getQuery();
@@ -619,6 +620,14 @@ class sales_Sales extends deals_DealMaster
             $p = new bgerp_iface_DealProduct();
             foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes') as $fld){
             	$p->{$fld} = $dRec->{$fld};
+            }
+            
+            if(core_Packs::isInstalled('batch')){
+            	$bQuery = batch_BatchesInDocuments::getQuery();
+            	$bQuery->where("#detailClassId = {$detailId}");
+            	$bQuery->where("#detailRecId = {$dRec->id}");
+            	$bQuery->where("#productId = {$dRec->productId}");
+            	$p->batches = $bQuery->fetchAll();
             }
             
             $agreed[] = $p;
