@@ -112,21 +112,21 @@ class unit_MinkPbgERP extends core_Manager {
         $res .= "  24.".$this->act_CreateCompany();
         $res .= "  25.".$this->act_EditCompany();
         //$res .= "  24.".$this->act_CreateLocation1();
-        $res .= "  25.".$this->act_CreateLocation2();
-        $res .= "  26.".$this->act_CreateEditCompany();
-        $res .= "  27.".$this->act_CreateInq();
-        $res .= "  28.".$this->act_CreateQuotation();
-        $res .= "  29.".$this->act_CreatePurchase();
-        $res .= "  30.".$this->act_CreatePurchaseC();
-        $res .= "  31.".$this->act_CreateSale();
-        $res .= "  32.".$this->act_CreateSaleC();
-        $res .= "  33.".$this->act_CreateTask();
-        $res .= "  34.".$this->act_CreateProductVAT9();
-        $res .= "  35.".$this->act_CreatePersonUSA();
-        $res .= "  36.".$this->act_CreateSupplier();
-        $res .= "  37.".$this->act_CreateContractorGroup();
-        $res .= "  38.".$this->act_CreatePaymentMethod();
-        $res .= "  39.".$this->act_CreateCondParameter();
+        $res .= "  27.".$this->act_CreateLocation2();
+        $res .= "  28.".$this->act_CreateEditCompany();
+        $res .= "  29.".$this->act_CreateInq();
+        $res .= "  30.".$this->act_CreateQuotation();
+        $res .= "  31.".$this->act_CreatePurchase();
+        $res .= "  32.".$this->act_CreatePurchaseC();
+        $res .= "  33.".$this->act_CreateSale();
+        $res .= "  34.".$this->act_CreateSaleC();
+        $res .= "  35.".$this->act_CreateTask();
+        $res .= "  36.".$this->act_CreateProductVAT9();
+        $res .= "  37.".$this->act_CreatePersonUSA();
+        $res .= "  38.".$this->act_CreateSupplier();
+        $res .= "  39.".$this->act_CreateContractorGroup();
+        $res .= "  40.".$this->act_CreatePaymentMethod();
+        $res .= "  41.".$this->act_CreateCondParameter();
         
         return $res;
     }
