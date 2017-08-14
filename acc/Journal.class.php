@@ -881,6 +881,10 @@ class acc_Journal extends core_Master
     	$msg = "Реконтиране на|* #{$origin->getHandle()}";
     	core_Statuses::newStatus($msg);
     
+    	// Инвалидиране на кеш
+    	doc_DocumentCache::cacheInvalidation($containerId);
+    	doc_DocumentCache::invalidateByOriginId($containerId);
+    	
     	return $success;
     }
 }
