@@ -128,7 +128,7 @@ class vtotal_Setup extends core_ProtoSetup
     public function checkConfig()
     {
         $command = escapeshellcmd(self::get('AVAST_COMMAND'));
-        exec($command . ' --help', $output, $code);
+        @exec($command . ' --help', $output, $code);
         
         if ($code == 127) {
             

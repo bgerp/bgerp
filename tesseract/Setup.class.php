@@ -124,7 +124,7 @@ class tesseract_Setup extends core_ProtoSetup
         $tesseract = escapeshellcmd(self::get('PATH'));
  		
         if (core_Os::isWindows()) {
-            $res = exec($tesseract . ' --help', $output, $code);
+            $res = @exec($tesseract . ' --help', $output, $code);
             if ($code != 0) {
                 $haveError = TRUE;
             }
