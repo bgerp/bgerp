@@ -74,8 +74,12 @@ class type_Table extends type_Blob {
                 $tpl  .= "<td>" . ht::createSelect($attr[$field]['name'], $opt[$field], NULL, $attr[$field]) . "</td>";
                 $row1 .= "<td>" . ht::createSelect($attr[$field]['name'], $opt[$field], $value[$field][0], $attr[$field]) . "</td>";
             } elseif($this->params[$suggestOpt]){
+            	if(!is_array($this->params[$suggestOpt])){
+            		$sgt = explode('|', $this->params[$suggestOpt]);
+            	} else {
+            		$sgt = $this->params[$suggestOpt];
+            	}
             	
-            	$sgt = explode('|', $this->params[$suggestOpt]);
             	foreach($sgt as $o) {
             		$sgt[$field][$o] = $o;
             	}
