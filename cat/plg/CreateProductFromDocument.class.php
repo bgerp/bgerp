@@ -247,6 +247,11 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				}
 				
 				$Driver->invoke('AfterPrepareEditForm', array($Products, (object)array('form' => $form)));
+				$defMetas = $Driver->getDefaultMetas();
+				if(isset($defMetas['canManifacture'])){
+					$form->setField('tolerance', 'input');
+					$form->setField('term', 'input');
+				}
 				
 				$form->input();
 				if(empty($form->rec->packagingId)){
