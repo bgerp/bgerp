@@ -217,7 +217,7 @@ abstract class store_DocumentMaster extends core_Master
     		// Ако документа е обратен не слагаме продукти по дефолт
     		if($rec->isReverse == 'yes') return;
     
-    		
+    		$copyBatches = FALSE;
     		$Detail = $mvc->mainDetail;
     		$aggregatedDealInfo = $origin->getAggregateDealInfo();
     		if($rec->importProducts != 'all'){
@@ -227,6 +227,7 @@ abstract class store_DocumentMaster extends core_Master
     			if(count($shippedProducts)){
     				$normalizedProducts = deals_Helper::normalizeProducts(array($agreedProducts), array($shippedProducts));
     			} else {
+    				$copyBatches = TRUE;
     				$agreedProducts = $aggregatedDealInfo->get('dealProducts');
     			}
     			
@@ -269,7 +270,28 @@ abstract class store_DocumentMaster extends core_Master
     				$shipProduct->notes       = $product->notes;
     				$shipProduct->quantityInPack = $product->quantityInPack;
     				
+    				if(core_Packs::isInstalled('batch') && $copyBatches === TRUE){
+    					$shipProduct->isEdited = FALSE;
+    					$shipProduct->_clonedWithBatches = TRUE;
+    				}
+    				
     				$Detail::save($shipProduct);
+    				
+    				// Копира партидата ако артикулите идат 1 към 1 от договора
+    				if(core_Packs::isInstalled('batch') && $copyBatches === TRUE){
+    					if(is_array($product->batches)){
+    						foreach ($product->batches as $bRec){
+    							unset($bRec->id);
+    							$bRec->detailClassId = $mvc->{$Detail}->getClassId();
+    							$bRec->detailRecId = $shipProduct->id;
+    							$bRec->containerId = $rec->containerId;
+    							$bRec->date = $rec->valior;
+    							$bRec->storeId = $rec->storeId;
+    							
+    							batch_BatchesInDocuments::save($bRec);
+    						}
+    					}
+    				}
     			}
     		}
     	}

@@ -188,7 +188,7 @@ class webkittopdf_Setup extends core_ProtoSetup
         $wkhtmltopdf = escapeshellcmd(self::get('WEBKIT_TO_PDF_BIN', TRUE));
         
         // Опитваме се да стартираме програмата
-        $res = exec($wkhtmltopdf . ' --help', $output, $code);
+        $res = @exec($wkhtmltopdf . ' --help', $output, $code);
         
         if ($code === 0) {
             

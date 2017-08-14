@@ -110,4 +110,10 @@ class bgerp_iface_DealProduct
      * Запис за разходи
      */
     public $expenseRecId;
+    
+    
+    /**
+     * Партиди
+     */
+    public $batches = array();
 }

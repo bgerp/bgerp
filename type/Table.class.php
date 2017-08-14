@@ -74,14 +74,18 @@ class type_Table extends type_Blob {
                 $tpl  .= "<td>" . ht::createSelect($attr[$field]['name'], $opt[$field], NULL, $attr[$field]) . "</td>";
                 $row1 .= "<td>" . ht::createSelect($attr[$field]['name'], $opt[$field], $value[$field][0], $attr[$field]) . "</td>";
             } elseif($this->params[$suggestOpt]){
+            	if(!is_array($this->params[$suggestOpt])){
+            		$sgt = explode('|', $this->params[$suggestOpt]);
+            	} else {
+            		$sgt = $this->params[$suggestOpt];
+            	}
             	
-            	$sgt = explode('|', $this->params[$suggestOpt]);
             	foreach($sgt as $o) {
             		$sgt[$field][$o] = $o;
             	}
             	
-            	$datalistTpl = ht::createDataList('batchList', $sgt[$field]);
-            	$attr[$field]['list'] = 'batchList';
+            	$datalistTpl = ht::createDataList("{$name}List", $sgt[$field]);
+            	$attr[$field]['list'] = "{$name}List";
             	$tpl  .= "<td>" . ht::createCombo($attr[$field]['name'],  NULL, $attr[$field], $sgt[$field]) . "</td>";
             	
             	if($this->params[$readOnlyFld] == 'readonly' && isset($value[$field][0]) && empty($this->errorFields[$field][0])){

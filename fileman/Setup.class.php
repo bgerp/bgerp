@@ -344,7 +344,7 @@ class fileman_Setup extends core_ProtoSetup
         $gs = escapeshellcmd($conf->FILEMAN_GHOSTSCRIPT_PATH);
         
         // Опитваме се да стартираме програмата
-        $res = exec($gs . ' --help', $output, $code);
+        $res = @exec($gs . ' --help', $output, $code);
         
         if ($code === 0) {
             

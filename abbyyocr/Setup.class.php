@@ -113,7 +113,7 @@ class abbyyocr_Setup extends core_ProtoSetup
         $abbyocr = escapeshellcmd($conf->ABBYYOCR_PATH);
  
         if (core_Os::isWindows()) {
-            $res = exec($abbyocr . ' --help', $output, $code);
+            $res = @exec($abbyocr . ' --help', $output, $code);
             if ($code != 0) {
                 $haveError = TRUE;
             }

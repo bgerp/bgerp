@@ -102,7 +102,7 @@ class acc_CostAllocations extends core_Manager
 				acc_Journal::reconto($rec->containerId);
 			}
 		} catch (core_exception_Expect $e){
-			
+			reportException($e);
 		}
 	}
 	
