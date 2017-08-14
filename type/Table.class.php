@@ -80,8 +80,8 @@ class type_Table extends type_Blob {
             		$sgt[$field][$o] = $o;
             	}
             	
-            	$datalistTpl = ht::createDataList('batchList', $sgt[$field]);
-            	$attr[$field]['list'] = 'batchList';
+            	$datalistTpl = ht::createDataList("{$name}List", $sgt[$field]);
+            	$attr[$field]['list'] = "{$name}List";
             	$tpl  .= "<td>" . ht::createCombo($attr[$field]['name'],  NULL, $attr[$field], $sgt[$field]) . "</td>";
             	
             	if($this->params[$readOnlyFld] == 'readonly' && isset($value[$field][0]) && empty($this->errorFields[$field][0])){
