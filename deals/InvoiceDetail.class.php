@@ -187,6 +187,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				$det->{$this->masterKey} = $id;
 				$det->amount = $det->price * $det->quantity;
 				$det->quantity /= $det->quantityInPack;
+				unset($det->batches);
 				
 				$this->save($det);
 			}

@@ -97,7 +97,7 @@ class tnef_Setup extends core_ProtoSetup
         $tnef = escapeshellcmd($conf->TNEF_PATH);
         
         if (core_Os::isWindows()) {
-            $res = exec($tnef . ' --help', $output, $code);
+            $res = @exec($tnef . ' --help', $output, $code);
             if ($code != 0) {
                 $haveError = TRUE;
             }

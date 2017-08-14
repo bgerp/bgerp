@@ -518,6 +518,14 @@ class purchase_Purchases extends deals_DealMaster
             $info = cat_Products::getProductInfo($p->productId);
             $p->expenseRecId = acc_CostAllocations::fetchField("#detailClassId = {$detailClassId} AND #detailRecId = {$dRec->id}");
             
+            if(core_Packs::isInstalled('batch')){
+            	$bQuery = batch_BatchesInDocuments::getQuery();
+            	$bQuery->where("#detailClassId = {$detailClassId}");
+            	$bQuery->where("#detailRecId = {$dRec->id}");
+            	$bQuery->where("#productId = {$dRec->productId}");
+            	$p->batches = $bQuery->fetchAll();
+            }
+            
             $agreed[] = $p;
             
             $p1 = clone $p;
