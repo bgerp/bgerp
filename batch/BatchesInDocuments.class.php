@@ -374,10 +374,11 @@ class batch_BatchesInDocuments extends core_Manager
 			$tableRec = $exTableRec = array();
 			$batchesCount = count($batches);
 			foreach ($batches as $batch => $quantityInStore){
-				$tableRec['batch'][$i] = $batch;
+				$vBatch = $Def->toVerbal($batch);
+				$tableRec['batch'][$i] = $vBatch;
 				if(array_key_exists($batch, $foundBatches)){
 					$tableRec['quantity'][$i] = $foundBatches[$batch] / $recInfo->quantityInPack;
-					$exTableRec['batch'][$j] = $batch;
+					$exTableRec['batch'][$j] = $vBatch;
 					$exTableRec['quantity'][$j] = $foundBatches[$batch];
 					$j++;
 				} else {
