@@ -132,10 +132,8 @@ class store_Products extends core_Detail
 	       }
 	       
 	       $row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
-	       if(isset($rec->reservedQuantity)){
-	       		$rec->freeQuantity = $rec->quantity - $rec->reservedQuantity;
-	       		$row->freeQuantity = $mvc->getFieldType('freeQuantity')->toVerbal($rec->freeQuantity);
-	       }
+	       $rec->freeQuantity = $rec->quantity - $rec->reservedQuantity;
+	       $row->freeQuantity = $mvc->getFieldType('freeQuantity')->toVerbal($rec->freeQuantity);
 	       
 	       $row->measureId = cat_UoM::getTitleById($rec->measureId);
         }
