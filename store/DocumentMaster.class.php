@@ -269,7 +269,11 @@ abstract class store_DocumentMaster extends core_Master
     				$shipProduct->discount    = $discount;
     				$shipProduct->notes       = $product->notes;
     				$shipProduct->quantityInPack = $product->quantityInPack;
-    				$shipProduct->isEdited = FALSE;
+    				
+    				if(core_Packs::isInstalled('batch') && $copyBatches === TRUE){
+    					$shipProduct->isEdited = FALSE;
+    					$shipProduct->_clonedWithBatches = TRUE;
+    				}
     				
     				$Detail::save($shipProduct);
     				
