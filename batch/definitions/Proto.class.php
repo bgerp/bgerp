@@ -186,13 +186,17 @@ abstract class batch_definitions_Proto extends core_BaseClass
      * 
      * @param varchar $value - номер на партидара
      * @return array - свойства на партидата
-     * 	масив с ключ ид на партидна дефиниция и стойност свойството
+     * 			o classId - ид на клас на партида
+     * 			o value  - стойност
      */
     public function getFeatures($value)
     {
     	$classId = $this->getClassId();
     	
-    	return array($classId => $value);
+    	$res = array();
+    	$res[] = (object)array('classId' => $classId, 'value' => $value);
+    	 
+    	return $res;
     }
     
     

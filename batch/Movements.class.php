@@ -287,7 +287,7 @@ class batch_Movements extends core_Detail {
     					$result = FALSE;
     					break;
     				}
-    			} catch(core_exception_Expect $e){
+    			} catch(core_exception_Expect $e){bp($doc,$e);
     				reportException($e);
     				
     				// Ако е изникнала грешка
@@ -299,6 +299,7 @@ class batch_Movements extends core_Detail {
 		// При грешка изтриваме всички записи до сега
 		if($result === FALSE){
 			self::removeMovement($doc->getInstance(), $doc->that);
+			core_Statuses::newStatus('Проблем със записването на партидите');
 		}
 		
 		// Връщаме резултата
@@ -367,5 +368,33 @@ class batch_Movements extends core_Detail {
     			}
     		}
     	}
+    }
+    
+    
+    /**
+     * Връща масив с линкове към движенията на партидите
+     * 
+     * @param int $productId
+     * @param varchar $batch
+     * @return array $batch
+     */
+    public static function getLinkArr($productId, $batch)
+    {
+    	// Партидите стават линкове
+    	$batch = batch_Defs::getBatchArray($productId, $batch);
+    	if(!is_array($batch)) return $batch;
+    	
+    	foreach ($batch as $key => &$b){
+    		if(!Mode::isReadOnly() && haveRole('powerUser')){
+    			if(!haveRole('batch,ceo')){
+    				Request::setProtected('batch');
+    			}
+    			$b = ht::createLink($b, array('batch_Movements', 'list', 'batch' => $key));
+    		}
+    	
+    		$b = ($b instanceof core_ET) ? $b->getContent() : $b;
+    	}
+    	
+    	return $batch;
     }
 }

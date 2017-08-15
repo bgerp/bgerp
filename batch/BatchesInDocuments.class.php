@@ -117,6 +117,30 @@ class batch_BatchesInDocuments extends core_Manager
 	}
 	
 	
+	public static function getBatchLinks($productId, $batch)
+	{
+		// Партидите стават линкове
+		$batchArr = batch_Defs::getBatchArray($productId, $batch);
+		foreach ($batchArr as $key => &$b){
+			if(!Mode::isReadOnly() && haveRole('powerUser')){
+				if(!haveRole('batch,ceo')){
+					Request::setProtected('batch');
+				}
+				$b = ht::createLink($b, array('batch_Movements', 'list', 'batch' => $key));
+			}
+		
+			// Проверка на реда
+			if($msg = self::checkBatchRow($detailClassId, $detailRecId, $key, $rec->quantity)){
+				$b = ht::createHint($b, $msg, 'warning');
+			}
+		
+			$b = ($b instanceof core_ET) ? $b->getContent() : $b;
+		}
+		
+		return $batchArr;
+	}
+	
+	
 	/**
 	 * Рендиране на партидите на даде обект
 	 * 
@@ -146,22 +170,14 @@ class batch_BatchesInDocuments extends core_Manager
 		
 		while($rec = $query->fetch()){
 			
-			// Партидите стават линкове
-			$batch = batch_Defs::getBatchArray($rec->productId, $rec->batch);
-			foreach ($batch as $key => &$b){
-				if(!Mode::isReadOnly() && haveRole('powerUser')){
-					if(!haveRole('batch,ceo')){
-						Request::setProtected('batch');
+			$batch = batch_Movements::getLinkArr($rec->productId, $rec->batch);
+			if(is_array($batch)){
+				foreach ($batch as $key => &$b){
+					if($msg = self::checkBatchRow($detailClassId, $detailRecId, $key, $rec->quantity)){
+						$b = ht::createHint($b, $msg, 'warning');
+						$b = $b->getContent();
 					}
-					$b = ht::createLink($b, array('batch_Movements', 'list', 'batch' => $key));
 				}
-				
-				// Проверка на реда
-				if($msg = self::checkBatchRow($detailClassId, $detailRecId, $key, $rec->quantity)){
-					$b = ht::createHint($b, $msg, 'warning');
-				}
-				
-				$b = ($b instanceof core_ET) ? $b->getContent() : $b;
 			}
 			
 			$string = '';

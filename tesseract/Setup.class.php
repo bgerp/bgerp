@@ -129,7 +129,7 @@ class tesseract_Setup extends core_ProtoSetup
                 $haveError = TRUE;
             }
         } else {
-            $res = exec('which ' . $tesseract, $output, $code);
+            $res = @exec('which ' . $tesseract, $output, $code);
             if (!$res) {
                 $haveError = TRUE;
             }
@@ -161,7 +161,7 @@ class tesseract_Setup extends core_ProtoSetup
     {
         $versionArr = array();
         $tesseract = escapeshellcmd(self::get('PATH'));
-        exec($tesseract . " --version", $resArr, $erroCode);
+        @exec($tesseract . " --version", $resArr, $erroCode);
         
         $tVerStr = $resArr[0];
         

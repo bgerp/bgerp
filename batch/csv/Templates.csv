@@ -5,3 +5,4 @@
 Срок на годност(yyyymmdd),batch_definitions_ExpirationDate,active,"format=Ymd"
 Дата на доставка,batch_definitions_DeliveryDate,active,"format=Ymd"
 Дата на производство,batch_definitions_ProductionDate,active,"format=Ymd"
+Символи/цифри,batch_definitions_Component,active,"delimiter=/,numberLetters=2"

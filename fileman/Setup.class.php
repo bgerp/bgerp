@@ -369,7 +369,7 @@ class fileman_Setup extends core_ProtoSetup
         $confWebkit = core_Packs::getConfig('fileman');
        
         // Опитваме се да вземем версията на ghostscript
-        exec(escapeshellarg($confWebkit->FILEMAN_GHOSTSCRIPT_PATH) . " --version", $resArr, $erroCode);
+        @exec(escapeshellarg($confWebkit->FILEMAN_GHOSTSCRIPT_PATH) . " --version", $resArr, $erroCode);
         
         $trimRes = trim($resArr[0]);
         

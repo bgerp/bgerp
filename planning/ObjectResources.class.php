@@ -303,6 +303,8 @@ class planning_ObjectResources extends core_Manager
      */
     public static function getSelfValue($objectId, $quantity = 1, $date = NULL)
     {
+    	if(empty($objectId)) return NULL;
+    	
     	// Проверяваме имали зададена търговска себестойност
     	$selfValue = cat_Products::getSelfValue($objectId, NULL, $quantity, $date);
     	

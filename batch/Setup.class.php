@@ -81,7 +81,7 @@ class batch_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "batch_definitions_Varchar,batch_definitions_Serial,batch_definitions_ExpirationDate,batch_definitions_Document,batch_definitions_DeliveryDate,batch_definitions_ProductionDate";
+    var $defClasses = "batch_definitions_Varchar,batch_definitions_Serial,batch_definitions_ExpirationDate,batch_definitions_Document,batch_definitions_DeliveryDate,batch_definitions_ProductionDate,batch_definitions_Component";
     
     
     /**
