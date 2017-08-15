@@ -369,4 +369,24 @@ class batch_Movements extends core_Detail {
     		}
     	}
     }
+    
+    public static function getLinkArr($productId, $batch)
+    {
+    	// Партидите стават линкове
+    	$batch = batch_Defs::getBatchArray($productId, $batch);
+    	if(!is_array($batch)) return $batch;
+    	
+    	foreach ($batch as $key => &$b){
+    		if(!Mode::isReadOnly() && haveRole('powerUser')){
+    			if(!haveRole('batch,ceo')){
+    				Request::setProtected('batch');
+    			}
+    			$b = ht::createLink($b, array('batch_Movements', 'list', 'batch' => $key));
+    		}
+    	
+    		$b = ($b instanceof core_ET) ? $b->getContent() : $b;
+    	}
+    	
+    	return $batch;
+    }
 }
