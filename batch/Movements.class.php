@@ -287,7 +287,7 @@ class batch_Movements extends core_Detail {
     					$result = FALSE;
     					break;
     				}
-    			} catch(core_exception_Expect $e){
+    			} catch(core_exception_Expect $e){bp($doc,$e);
     				reportException($e);
     				
     				// Ако е изникнала грешка
@@ -299,6 +299,7 @@ class batch_Movements extends core_Detail {
 		// При грешка изтриваме всички записи до сега
 		if($result === FALSE){
 			self::removeMovement($doc->getInstance(), $doc->that);
+			core_Statuses::newStatus('Проблем със записването на партидите');
 		}
 		
 		// Връщаме резултата
