@@ -37,7 +37,7 @@ abstract class cash_Document extends deals_PaymentDocument
     public $loadList = 'plg_RowTools2, cash_Wrapper, plg_Sorting, acc_plg_Contable,
                      plg_Clone,doc_DocumentPlg, plg_Printing,acc_plg_DocumentSummary,
                      plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, doc_plg_HidePrices,
-                     bgerp_DealIntf, doc_EmailCreatePlg, cond_plg_DefaultValues, doc_SharablePlg';
+                     doc_EmailCreatePlg, cond_plg_DefaultValues, doc_SharablePlg,deals_plg_SetTermDate';
     
     
     /**
