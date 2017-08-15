@@ -261,7 +261,7 @@ class docoffice_Office
         $port = 8100;
         
         // Докато не намери свободен порт
-        while (exec("netstat -tln | grep ':{$port}[^0-9]'")) {
+        while (@exec("netstat -tln | grep ':{$port}[^0-9]'")) {
             
             // Увеличаваме с единица
             $port++;        
