@@ -34,7 +34,7 @@ class batch_definitions_Component extends batch_definitions_Proto
 	public function addFields(core_Fieldset &$fieldset)
 	{
 		$fieldset->FLD('delimiter', 'enum(&#x20;=Интервал,.=Точка,&#44;=Запетая,/=Наклонена,&dash;=Тире)', 'caption=Разделител,mandatory');
-		$fieldset->FLD('numberLetters', 'int', 'caption=Брой букви в началото');
+		$fieldset->FLD('numberLetters', 'int(Min=0)', 'caption=Брой букви в началото');
 	}
 	
 	
