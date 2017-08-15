@@ -285,14 +285,14 @@ class planning_Jobs extends core_Master
     		$form->setDefault('packQuantity', $dRec->packQuantity);
     		
     		// Ако има данни от продажба, попълваме ги
+    		$form->setDefault('storeId', $saleRec->shipmentStoreId);
     		$form->setDefault('deliveryTermId', $saleRec->deliveryTermId);
     		$form->setDefault('deliveryDate', $saleRec->deliveryTime);
     		$form->setDefault('deliveryPlace', $saleRec->deliveryLocationId);
     		$locations = crm_Locations::getContragentOptions($saleRec->contragentClassId, $saleRec->contragentId);
     		$form->setOptions('deliveryPlace', $locations);
     		$caption = "|Данни от|* <b>" . sales_Sales::getRecTitle($rec->saleId) . "</b>";
-    		$caption = str_replace(', ', ' ', $caption);
-    		$caption = str_replace(',', ' ', $caption);
+    		$caption = str_replace(',', ' ', str_replace(', ', ' ', $caption));
     		
     		$form->setField('deliveryTermId', "caption={$caption}->Условие,changable");
     		$form->setField('deliveryDate', "caption={$caption}->Срок,changable");
