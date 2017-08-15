@@ -722,7 +722,7 @@ if($step == 3) {
         $requiredPrograms = array('wget');
         
         foreach($requiredPrograms as $program){
-            if (exec('which ' . escapeshellcmd($program))){
+            if (@exec('which ' . escapeshellcmd($program))){
                 $log[] = "inf:Налична програма: <b>`$program`</b>";
             } else {
                 $log[] = "wrn:Липсваща програма: <b>`$program`</b>";
@@ -804,7 +804,7 @@ if($step == 3) {
             if (EF_DB_USER == 'root' && EF_DB_PASS == 'USER_PASSWORD_FOR_DB') {
                 $passwordDB = getRandomString();
                 // Опитваме да сменим паролата на mysql-a
-                exec("mysqladmin -uroot -pUSER_PASSWORD_FOR_DB password {$passwordDB}", $output, $returnVar);
+                @exec("mysqladmin -uroot -pUSER_PASSWORD_FOR_DB password {$passwordDB}", $output, $returnVar);
                 if ($returnVar == 0) {
                     $src = str_replace('USER_PASSWORD_FOR_DB', $passwordDB, $src);
                     @file_put_contents($paths['config'], $src);
@@ -1140,7 +1140,7 @@ function linksToHtml($links)
  */
 function gitExec($cmd, &$output)
 {
-    exec(BGERP_GIT_PATH . " {$cmd}", $output, $returnVar);
+    @exec(BGERP_GIT_PATH . " {$cmd}", $output, $returnVar);
     
     return ($returnVar == 0);    
 }

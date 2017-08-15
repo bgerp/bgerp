@@ -215,7 +215,7 @@ class webkittopdf_Setup extends core_ProtoSetup
         $confWebkit = core_Packs::getConfig('webkittopdf');
         
         // Опитваме се да вземем версията на webkit
-        exec(escapeshellarg($confWebkit->WEBKIT_TO_PDF_BIN) . " -V", $resArr, $erroCode);
+        @exec(escapeshellarg($confWebkit->WEBKIT_TO_PDF_BIN) . " -V", $resArr, $erroCode);
         
         // От масива с резултата вземаме реда с версията
         foreach ((array)$resArr as $res) {
