@@ -587,6 +587,21 @@ class batch_Items extends core_Master {
     		$res[$rec->batch] += $sign * $rec->quantity;
     	}
     	
+    	// Добавяне и на партидите от активни документи в черновата на журнала
+    	$bQuery = batch_BatchesInDocuments::getQuery();
+    	$bQuery->EXT('state', 'doc_Containers', 'externalName=state,externalKey=containerId');
+    	$bQuery->where("#storeId = {$storeId} AND #productId = {$productId}");
+    	$bQuery->where("#state = 'active'");
+    	$bQuery->groupBy('batch');
+    	$bQuery->notIn('batch', array_keys($res));
+    	$bQuery->where("#date <= '{$date}'");
+    	$bQuery->show('batch');
+    	while($bRec = $bQuery->fetch()){
+    		if(!array_key_exists($bRec->batch, $res)){
+    			$res[$bRec->batch] = 0;
+    		}
+    	}
+    	
     	// Намерените партиди се подават на партидната дефиниция, ако иска да ги преподреди
     	$def->orderBatchesInStore($res, $storeId, $date);
     	
