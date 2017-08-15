@@ -193,6 +193,8 @@ class acc_Setup extends core_ProtoSetup
         array('saleAll'),
         array('purchaseAll'),
         array('planningAll'),
+        array('rep_acc'),
+
     );
     
     

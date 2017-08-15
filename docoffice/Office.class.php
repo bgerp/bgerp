@@ -260,11 +260,15 @@ class docoffice_Office
         // Порта по подразбиране
         $port = 8100;
         
+        $maxTrays = 30;
+        
         // Докато не намери свободен порт
-        while (exec("netstat -tln | grep ':{$port}[^0-9]'")) {
+        while (@exec("netstat -tln | grep ':{$port}[^0-9]'")) {
             
             // Увеличаваме с единица
-            $port++;        
+            $port++;
+            
+            if (!$maxTrays--) break;
         }
         
         return $port;

@@ -118,7 +118,7 @@ class abbyyocr_Setup extends core_ProtoSetup
                 $haveError = TRUE;
             }
         } else {
-            $res = exec('which ' . $abbyocr, $output, $code);
+            $res = @exec('which ' . $abbyocr, $output, $code);
             if (!$res) {
                 $haveError = TRUE;
             }

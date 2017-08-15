@@ -1997,6 +1997,16 @@ class email_Incomings extends core_Master
                 $mvc->makeRouterRules($rec);
             }
         }
+        
+        // Ако се е прекъснало нормалното рутиране по нишка
+        // Бием нотификация на създателя на документа
+        if ($rec->originId) {
+            $cRec = doc_Containers::fetch($rec->originId);
+            
+            if (email_Incomings::haveRightFor('single', $rec, $cRec->createdBy)) {
+                doc_Containers::addNotifications(array($cRec->createdBy => $cRec->createdBy), $mvc, $cRec, 'добави', FALSE);
+            }
+        }
     }
     
     
