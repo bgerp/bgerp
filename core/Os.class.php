@@ -400,6 +400,17 @@ class core_Os
         
         return $mem;
     }
+    
+    
+    /**
+     * Връща информация за диска в който се намира подадения път
+	 * За сега работи само под Linux
+     * 
+     * @param string $path
+     * @param boolean $percent
+     * 
+     * @return string|NULL
+     */
     public static function getFreePathSpace($path, $percent = FALSE)
     {
         $pathSpaceArr = self::getPathSpace($path);
