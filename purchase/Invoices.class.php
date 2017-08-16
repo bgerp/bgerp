@@ -341,7 +341,6 @@ class purchase_Invoices extends deals_InvoiceMaster
      */
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
-        wp($form);
     	$rec = &$form->rec;
     	
     	$unsetFields = FALSE;
