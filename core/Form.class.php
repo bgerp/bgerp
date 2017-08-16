@@ -241,7 +241,7 @@ class core_Form extends core_FieldSet
                     $value = $type->fromVerbal($value);
                 }
             } else {
-                if ($name == 'type') wp($value, Request::get($name), Request::$vars, Request::$vars);
+                if ($name == 'type') wp($value, Request::get($name), Request::$vars, Request::$protected);
                 $value = $type->fromVerbal($value);
                 
                 // Вдигаме грешка, ако стойността от Request 
