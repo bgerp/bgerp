@@ -971,7 +971,7 @@ class purchase_Invoices extends deals_InvoiceMaster
                 foreach ((array)$cRec as $f => $v) {
                     $pArr[$f] = $v;
                 }
-                
+                wp($data, $invForm, $cRec, $pArr);
                 Request::push($pArr);
                 $invForm->cmd = 'save';
                  
