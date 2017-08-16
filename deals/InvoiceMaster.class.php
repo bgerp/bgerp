@@ -558,7 +558,7 @@ abstract class deals_InvoiceMaster extends core_Master
      * След подготовка на формата
      */
     protected static function prepareInvoiceForm($mvc, &$data)
-    {
+    {wp($data);
     	$form = &$data->form;
     	$form->setDefault('date', dt::today());
     	if(empty($form->rec->id)){
