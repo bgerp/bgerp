@@ -85,7 +85,7 @@ class cat_type_Uom extends type_Varchar {
     		return $value;
     	}
     	
-    	if(empty($value['lP'])) return NULL;
+    	if(!strlen($value['lP'])) return NULL;
     	
     	// Ако стойността е масив
     	if(is_array($value)){
@@ -111,7 +111,7 @@ class cat_type_Uom extends type_Varchar {
 	    	// Конвертиране в основна мярка на числото от избраната мярка
 	    	$numPart = cat_UoM::convertToBaseUnit($numPart, $value['rP']);
 	    }
-	   
+	  
 	    // Връщане на сумата в основна мярка
 	    return $numPart;
     }
