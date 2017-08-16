@@ -2620,7 +2620,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('discount', 3);
         $browser->press('Запис и Нов');
         // Записваме артикула и добавяме нов
-        $browser->setValue('productId', 'Артикул ДДС 9');
+        $browser->setValue('productId', 'Чувал голям 50 L');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '08.0');
         $browser->setValue('packPrice', '2,13');
@@ -2657,7 +2657,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Известие');
         $browser->press('Чернова');
         //$browser->click('Редактиране на артикул');
-        $browser->click('edt30');
+        $browser->click('edt41');
         $browser->setValue('quantity', '0');
         $browser->press('Следващ');
         $browser->setValue('quantity', '0');
