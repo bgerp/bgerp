@@ -979,7 +979,7 @@ class purchase_Invoices extends deals_InvoiceMaster
                 $fields = $invForm->selectFields();
                 unset($fields['id']);
                 $invForm->input(implode(',', array_keys($fields)));
-                
+                wp($invForm, $fields);
                 $clsInst->invoke('AfterInputEditForm', array($invForm));
                 
                 // Инпутваме емулираната форма и ако няма грешки, записваме
