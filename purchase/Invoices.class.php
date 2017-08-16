@@ -963,7 +963,7 @@ class purchase_Invoices extends deals_InvoiceMaster
                 
                 $data = (object)array('form' => &$invForm);
                 $clsInst->invoke('AfterPrepareEditForm', array($data, $data));
-                wp($data);
+                
                 $pArr = array('Ignore' => 1);
                 
                 $cRec = clone $invForm->rec;
@@ -974,7 +974,7 @@ class purchase_Invoices extends deals_InvoiceMaster
                 
                 Request::push($pArr);
                 $invForm->cmd = 'save';
-                
+                 
                 // Ид-то не трябва да се инпутва
                 $fields = $invForm->selectFields();
                 unset($fields['id']);
