@@ -978,7 +978,6 @@ class purchase_Invoices extends deals_InvoiceMaster
                 // Ид-то не трябва да се инпутва
                 $fields = $invForm->selectFields();
                 unset($fields['id']);
-                wp($pArr, Request::$vars);
                 $invForm->input(implode(',', array_keys($fields)));
                 
                 $clsInst->invoke('AfterInputEditForm', array($invForm));
