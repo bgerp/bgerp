@@ -202,7 +202,7 @@ class purchase_Invoices extends deals_InvoiceMaster
      * След подготовка на формата
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
-    {wp($data);
+    {
 		$form = $data->form;
     	$rec = $form->rec;
     	$origin = $mvc->getOrigin($form->rec);
