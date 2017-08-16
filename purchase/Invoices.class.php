@@ -978,9 +978,8 @@ class purchase_Invoices extends deals_InvoiceMaster
                 // Ид-то не трябва да се инпутва
                 $fields = $invForm->selectFields();
                 unset($fields['id']);
-                $invBefore = clone $invForm;
                 $invForm->input(implode(',', array_keys($fields)));
-                wp($pArr, Request::$vars, $invForm, $invBefore);
+                
                 $clsInst->invoke('AfterInputEditForm', array($invForm));
                 
                 // Инпутваме емулираната форма и ако няма грешки, записваме
