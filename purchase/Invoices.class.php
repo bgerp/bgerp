@@ -974,9 +974,10 @@ class purchase_Invoices extends deals_InvoiceMaster
                 
                 Request::push($pArr);
                 $invForm->cmd = 'save';
-                 
+                $bSelect = clone $invForm;
                 // Ид-то не трябва да се инпутва
                 $fields = $invForm->selectFields();
+                wp($invForm, $bSelect);
                 unset($fields['id']);
                 $invForm->input(implode(',', array_keys($fields)));
                 
