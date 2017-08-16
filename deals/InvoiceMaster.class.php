@@ -585,8 +585,6 @@ abstract class deals_InvoiceMaster extends core_Master
     	}
     
     	$type = Request::get('type');
-    	wp($type, Request::$vars);
-    	
     	if(empty($type)){
     		$type = 'invoice';
     	}
