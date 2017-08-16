@@ -268,7 +268,6 @@ class purchase_Invoices extends deals_InvoiceMaster
     	    $fRec = fileman::fetchByFh($clonedFh);
     	    self::showOriginalFile($fRec, $form);
     	}
-    	wp($data);
     }
     
     
