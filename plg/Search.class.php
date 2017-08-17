@@ -284,7 +284,7 @@ class plg_Search extends core_Plugin
                     $w = trim($w, '%');
                     $query->where("#{$field} {$like} '%{$wordBegin}{$w}{$wordEnd}%'");
                 } else {
-                    if($minWordLen <= $minLenFTS || !empty($query->mvc->dbEngine) || $limit > 0) {  
+                    if (self::isStopWord($w) || $minWordLen <= $minLenFTS || !empty($query->mvc->dbEngine) || $limit > 0) {  
                         if($limit > 0 && $like == 'LIKE') {
                             $field1 =  "LEFT(#{$field}, {$limit})";
                         } else {
@@ -305,6 +305,47 @@ class plg_Search extends core_Plugin
                 }
             }
         }
+    }
+    
+    
+    /**
+     * Проверява дали думите са изключени от FullText търсене
+     * 
+     * @param string $word
+     * @param boolean $strict
+     * 
+     * @return boolean
+     */
+    public static function isStopWord($word, $strict = FALSE)
+    {
+        $word = trim($word);
+        
+        if (strlen($word) < 4) return FALSE;
+        
+        $type = 'sqlStopWord';
+        $handler = 'stopWords';
+        $keepMinutes = 10000;
+        $stopWordsArr = core_Cache::get($type, $handler, $keepMinutes);
+        
+        if (!$stopWordsArr) {
+            $inc = getFullPath('core/data/sqlStopWords.inc.php');
+            
+            // Инклудваме го, за да можем да му използваме променливите
+            include($inc);
+            
+            core_Cache::set($type, $handler, $stopWordsArr, $keepMinutes);
+        }
+        
+        if (isset($stopWordsArr[$word])) return TRUE;
+        
+        // Ако няма да се търси точната дума, гледаме и думите, които започват с подадения стринг
+        if (!$strict) {
+            $pattern = '/^' . preg_quote($word, '/') . '/i';
+            
+            if (preg_grep($pattern, $stopWordsArr)) return TRUE;
+        }
+        
+        return FALSE;
     }
     
     
