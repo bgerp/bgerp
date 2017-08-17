@@ -1,0 +1,138 @@
+{
+  "name": "bgerp/bgerp",
+  "version": "0.1.4",
+  "libraries": {
+    "xv": "^1.1.25"
+  },
+  "title": "bgERP",
+  "branch": "master",
+  "style": {
+    "name": "Default",
+    "componentSet": {
+      "nav": "nav/BasicNav",
+      "header": "header/BannerHeader",
+      "article": "article/BasicArticle",
+      "footer": "footer/BasicFooter"
+    },
+    "fontFamily": "-apple-system, BlinkMacSystemFont, sans-serif",
+    "fontWeight": 400,
+    "bold": 600,
+    "lineHeight": 1.5,
+    "typeScale": [
+      72,
+      48,
+      24,
+      20,
+      16,
+      14,
+      12
+    ],
+    "monospace": "Menlo, monospace",
+    "heading": {
+      "fontFamily": null,
+      "fontStyle": null,
+      "fontWeight": 600,
+      "lineHeight": 1.25,
+      "textTransform": null,
+      "letterSpacing": null
+    },
+    "h0": {},
+    "h1": {},
+    "h2": {},
+    "h3": {},
+    "h4": {},
+    "h5": {},
+    "h6": {},
+    "alternativeText": {},
+    "space": [
+      0,
+      8,
+      16,
+      32,
+      48,
+      64,
+      96
+    ],
+    "layout": {
+      "maxWidth": 1024,
+      "centered": false
+    },
+    "colors": {
+      "text": "#111",
+      "background": "#fff",
+      "primary": "#08e",
+      "secondary": "#059",
+      "highlight": "#e08",
+      "border": "#ddd",
+      "muted": "#eee"
+    },
+    "border": {
+      "width": 1,
+      "radius": 2
+    },
+    "link": {},
+    "button": {
+      "hover": {
+        "boxShadow": "inset 0 0 0 999px rgba(0, 0, 0, .125)"
+      }
+    },
+    "input": {},
+    "body": {
+      "margin": 0
+    },
+    "breakpoints": {
+      "xs": "@media screen and (max-width:40em)",
+      "sm": "@media screen and (min-width:40em)",
+      "md": "@media screen and (min-width:52em)",
+      "lg": "@media screen and (min-width:64em)"
+    }
+  },
+  "content": [
+    {
+      "component": "nav",
+      "links": [
+        {
+          "href": "https://github.com/bgerp/bgerp",
+          "text": "GitHub"
+        }
+      ]
+    },
+    {
+      "component": "header",
+      "heading": "bgerp",
+      "subhead": "Web-базирана система за управление на бизнеса",
+      "children": [
+        {
+          "component": "ui/TweetButton",
+          "text": "bgerp: Web-базирана система за управление на бизнеса",
+          "url": ""
+        },
+        {
+          "component": "ui/GithubButton",
+          "user": "bgerp",
+          "repo": "bgerp"
+        }
+      ]
+    },
+    {
+      "component": "article",
+      "metadata": {
+        "source": "github.readme"
+      },
+      "html": "\n<p><strong>bgERP</strong> is a web-based system for management of business process. It is written on [PHP] (<a href=\"http://bg.wikipedia.org/wiki/PHP\">http://bg.wikipedia.org/wiki/PHP</a>) and is distributed under the [GPL] (<a href=\"http://bg.wikipedia.org/wiki/GNU_General_Public_License\">http://bg.wikipedia.org/wiki/GNU_General_Public_License</a>) license. To work bgERP needs web-server [Apache] (<a href=\"http://bg.wikipedia.org/wiki/Apache\">http://bg.wikipedia.org/wiki/Apache</a>) and database server [MySQL] (<a href=\"http://www.mysql.com/\">http://www.mysql.com/</a>).</p>\n<p><strong>bgERP</strong>  integrated into one software for monitoring, analysis, planning, management and control of the company through a combination of interconnected modules covering a wide range of business processes, data and analysis: customer contacts, accounting, sales, supply planning, production, warehousing, human resources, document, finance, accounting, laboratory analysis, monitoring, etc.</p>\n<p><strong>bgERP</strong> &#x435; web-&#x431;&#x430;&#x437;&#x438;&#x440;&#x430;&#x43D;&#x430; &#x441;&#x438;&#x441;&#x442;&#x435;&#x43C;&#x430; &#x437;&#x430; &#x443;&#x43F;&#x440;&#x430;&#x432;&#x43B;&#x435;&#x43D;&#x438;&#x435; &#x43D;&#x430; &#x431;&#x438;&#x437;&#x43D;&#x435;&#x441;&#x430; &#x441; <a href=\"http://bg.wikipedia.org/wiki/%D0%A1%D0%BE%D1%84%D1%82%D1%83%D0%B5%D1%80_%D1%81_%D0%BE%D1%82%D0%B2%D0%BE%D1%80%D0%B5%D0%BD_%D0%BA%D0%BE%D0%B4\">&#x43E;&#x442;&#x432;&#x43E;&#x440;&#x435;&#x43D; &#x43A;&#x43E;&#x434;</a>. &#x422;&#x44F; &#x435; &#x43D;&#x430;&#x43F;&#x438;&#x441;&#x430;&#x43D;&#x430; &#x43D;&#x430; &#x435;&#x437;&#x438;&#x43A;&#x430; <a href=\"http://bg.wikipedia.org/wiki/PHP\">PHP</a> &#x438; &#x441;&#x435; &#x440;&#x430;&#x437;&#x43F;&#x440;&#x43E;&#x441;&#x442;&#x440;&#x430;&#x43D;&#x44F;&#x432;&#x430; &#x43F;&#x43E;&#x434; <a href=\"http://bg.wikipedia.org/wiki/GNU_General_Public_License\">GPL</a> &#x43B;&#x438;&#x446;&#x435;&#x43D;&#x437;. &#x417;&#x430; &#x440;&#x430;&#x431;&#x43E;&#x442;&#x430;&#x442;&#x430; &#x439; &#x435; &#x43D;&#x435;&#x43E;&#x431;&#x445;&#x43E;&#x434;&#x438;&#x43C; web-&#x441;&#x44A;&#x440;&#x432;&#x44A;&#x440; <a href=\"http://bg.wikipedia.org/wiki/Apache\">Apache</a> &#x438; &#x441;&#x44A;&#x440;&#x432;&#x44A;&#x440; &#x437;&#x430; &#x431;&#x430;&#x437;&#x430; &#x434;&#x430;&#x43D;&#x43D;&#x438; <a href=\"http://www.mysql.com/\">MySQL</a>. </p>\n<p><strong>bgERP</strong> &#x434;&#x430;&#x432;&#x430; &#x432;&#x44A;&#x437;&#x43C;&#x43E;&#x436;&#x43D;&#x43E;&#x441;&#x442; &#x437;&#x430; &#x43D;&#x430;&#x431;&#x43B;&#x44E;&#x434;&#x435;&#x43D;&#x438;&#x435;, &#x430;&#x43D;&#x430;&#x43B;&#x438;&#x437;, &#x43F;&#x43B;&#x430;&#x43D;&#x438;&#x440;&#x430;&#x43D;&#x435;, &#x443;&#x43F;&#x440;&#x430;&#x432;&#x43B;&#x435;&#x43D;&#x438;&#x435; &#x438; &#x43F;&#x44A;&#x43B;&#x435;&#x43D; &#x43A;&#x43E;&#x43D;&#x442;&#x440;&#x43E;&#x43B; &#x43D;&#x430; &#x434;&#x435;&#x439;&#x43D;&#x43E;&#x441;&#x442;&#x442;&#x430; &#x43D;&#x430; &#x444;&#x438;&#x440;&#x43C;&#x430;&#x442;&#x430;, &#x43F;&#x43E;&#x441;&#x440;&#x435;&#x434;&#x441;&#x442;&#x432;&#x43E;&#x43C; &#x441;&#x44A;&#x432;&#x43A;&#x443;&#x43F;&#x43D;&#x43E;&#x441;&#x442; &#x43E;&#x442; &#x43D;&#x430;&#x43F;&#x44A;&#x43B;&#x43D;&#x43E; &#x438;&#x43D;&#x442;&#x440;&#x435;&#x433;&#x440;&#x438;&#x440;&#x430;&#x43D;&#x438; &#x438; &#x432;&#x437;&#x430;&#x438;&#x43C;&#x43D;&#x43E;-&#x441;&#x432;&#x44A;&#x440;&#x437;&#x430;&#x43D;&#x438; &#x43C;&#x43E;&#x434;&#x443;&#x43B;&#x438;, &#x43F;&#x43E;&#x43A;&#x440;&#x438;&#x432;&#x430;&#x449;&#x438; &#x433;&#x43E;&#x43B;&#x44F;&#x43C; &#x441;&#x43F;&#x435;&#x43A;&#x442;&#x44A;&#x440; &#x43E;&#x442; &#x431;&#x438;&#x437;&#x43D;&#x435;&#x441; &#x43F;&#x440;&#x43E;&#x446;&#x435;&#x441;&#x438;, &#x434;&#x430;&#x43D;&#x43D;&#x438; &#x438; &#x430;&#x43D;&#x430;&#x43B;&#x438;&#x437;&#x438; - &#x43A;&#x43E;&#x43D;&#x442;&#x430;&#x43A;&#x442;&#x438; &#x441; &#x43A;&#x43B;&#x438;&#x435;&#x43D;&#x442;&#x438;, &#x43F;&#x43B;&#x430;&#x43D;&#x438;&#x440;&#x430;&#x43D;&#x435; &#x43D;&#x430; &#x434;&#x43E;&#x441;&#x442;&#x430;&#x432;&#x43A;&#x438;, &#x43F;&#x440;&#x43E;&#x438;&#x437;&#x432;&#x43E;&#x434;&#x441;&#x442;&#x432;&#x43E;, &#x441;&#x43A;&#x43B;&#x430;&#x434;&#x43E;&#x432;&#x43E; &#x441;&#x442;&#x43E;&#x43F;&#x430;&#x43D;&#x441;&#x442;&#x432;&#x43E;, &#x447;&#x43E;&#x432;&#x435;&#x448;&#x43A;&#x438; &#x440;&#x435;&#x441;&#x443;&#x440;&#x441;&#x438;, &#x434;&#x43E;&#x43A;&#x443;&#x43C;&#x435;&#x43D;&#x442;&#x43E;&#x43E;&#x431;&#x43E;&#x440;&#x43E;&#x442;, &#x444;&#x438;&#x43D;&#x430;&#x43D;&#x441;&#x438;, &#x441;&#x447;&#x435;&#x442;&#x43E;&#x432;&#x43E;&#x434;&#x43D;&#x430; &#x43E;&#x442;&#x447;&#x435;&#x442;&#x43D;&#x43E;&#x441;&#x442;, &#x43B;&#x430;&#x431;&#x43E;&#x440;&#x430;&#x442;&#x43E;&#x440;&#x43D;&#x438; &#x430;&#x43D;&#x430;&#x43B;&#x438;&#x437;&#x438;, &#x43D;&#x430;&#x431;&#x43B;&#x44E;&#x434;&#x435;&#x43D;&#x438;&#x435; &#x438; &#x43A;&#x43E;&#x43D;&#x442;&#x440;&#x43E;&#x43B; &#x438; &#x442;.&#x43D;.</p>\n"
+    },
+    {
+      "component": "footer",
+      "links": [
+        {
+          "href": "https://github.com/bgerp/bgerp",
+          "text": "GitHub"
+        },
+        {
+          "href": "https://github.com/bgerp",
+          "text": "bgerp"
+        }
+      ]
+    }
+  ]
+}
