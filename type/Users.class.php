@@ -94,8 +94,14 @@ class type_Users extends type_Keylist
                 $this->options = array();
                 
                 if(haveRole($this->params['rolesForAll'])) {
+                    
+                    $removeClosedGroups = TRUE;
+                    if ($this->params['showClosedGroups']) {
+                        $removeClosedGroups = FALSE;
+                    }
+                    
                     // Показваме всички екипи
-                    $teams = core_Roles::getRolesByType('team', 'keylist', TRUE);
+                    $teams = core_Roles::getRolesByType('team', 'keylist', $removeClosedGroups);
                     
                     // Добавя в началото опция за избор на всички потребители на системата
                     $all = new stdClass();

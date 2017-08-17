@@ -101,8 +101,13 @@ class type_User extends type_Key
                 $uQuery->likeKeylist('roles', $roles);
                 
                 if(haveRole($this->params['rolesForAll'])) {
+                    $removeClosedGroups = TRUE;
+                    if ($this->params['showClosedGroups']) {
+                        $removeClosedGroups = FALSE;
+                    }
+                    
                     // Показваме всички екипи
-                    $teams = core_Roles::getRolesByType('team', 'keylist', TRUE);
+                    $teams = core_Roles::getRolesByType('team', 'keylist', $removeClosedGroups);
                 } else {
                     // Показваме само екипите на потребителя
                     $teams = core_Users::getUserRolesByType(NULL, 'team');
