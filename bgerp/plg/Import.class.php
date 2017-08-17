@@ -252,15 +252,4 @@ class bgerp_plg_Import extends core_Plugin
         
         return $options;
     }
-    
-    
-    /**
-     * Извиква се след изчисляването на необходимите роли за това действие
-     */
-    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
-    {
-        if ($action == 'import') {
-            $res = 'admin';
-        }
-    }
 }
