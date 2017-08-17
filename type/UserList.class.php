@@ -37,6 +37,7 @@ class type_UserList extends type_Keylist
     {
         setIfNot($params['params']['mvc'], 'core_Users');
         setIfNot($params['params']['select'], 'nick');
+        setIfNot($params['params']['showClosedGroups'], 'showClosedGroups');
         
         parent::init($params);
         
@@ -93,7 +94,12 @@ class type_UserList extends type_Keylist
             $ownRoles = self::toArray($ownRoles); 
         }
         
-        $teams = core_Roles::getRolesByType('team');
+        $removeClosedGroups = TRUE;
+        if ($this->params['showClosedGroups']) {
+            $removeClosedGroups = FALSE;
+        }
+        
+        $teams = core_Roles::getRolesByType('team', 'keylist', $removeClosedGroups);
         $teams = self::toArray($teams);
 
         $roles = core_Roles::getRolesAsKeylist($this->params['roles']);

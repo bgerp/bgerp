@@ -1090,7 +1090,7 @@ abstract class deals_Helper
 		if($isStorable != 'yes') return NULL;
 		
 		// Ако няма тегло взима се 'live'
-		if(empty($value)){
+		if(!isset($value)){
 			if($type == 'weight'){
 				$value = cat_Products::getWeight($productId, $packagingId, $quantity);
 			} else {
