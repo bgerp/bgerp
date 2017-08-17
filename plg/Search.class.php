@@ -278,7 +278,7 @@ class plg_Search extends core_Plugin
                     $maxLen = PLG_SEARCH_MAX_KEYWORD_LEN ? PLG_SEARCH_MAX_KEYWORD_LEN : 10;
                     $w = substr($w, 0, $maxLen);
                 }
-
+                
                 if(strpos($w, '*') !== FALSE) {
                     $w = str_replace('*', '%', $w);
                     $w = trim($w, '%');
@@ -340,7 +340,18 @@ class plg_Search extends core_Plugin
         
         // Ако няма да се търси точната дума, гледаме и думите, които започват с подадения стринг
         if (!$strict) {
+            
+            $all = FALSE;
+            if (strpos($word, '*') !== FALSE) {
+                $word = str_replace('*', '%', $word);
+                $all = TRUE;
+            }
+            
             $pattern = '/^' . preg_quote($word, '/') . '/i';
+            
+            if ($all) {
+                $pattern = str_replace('%', '.*', $pattern);
+            }
             
             if (preg_grep($pattern, $stopWordsArr)) return TRUE;
         }
