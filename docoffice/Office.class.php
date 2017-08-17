@@ -43,7 +43,7 @@ class docoffice_Office
         $port = static::getOfficePort();
         
 //        pclose(popen(OFFICE_PACKET_PATH . "2>&1 >/dev/null &", "r"));
-        pclose(popen("nohup `" . OFFICE_PACKET_PATH . " -headless -accept='socket,host=localhost,port={$port};urp;StarOffice.ServiceManager' -nofirststartwizard -nologo` &", "r"));
+        @pclose(popen("nohup `" . OFFICE_PACKET_PATH . " -headless -accept='socket,host=localhost,port={$port};urp;StarOffice.ServiceManager' -nofirststartwizard -nologo` &", "r"));
         
         // Ако е стартиран успешно
         if (static::getStartedOfficePid()) {

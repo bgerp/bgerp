@@ -889,13 +889,17 @@ class purchase_Invoices extends deals_InvoiceMaster
                 }
             }
             
-            $form->setDefault('acceptance', $aSet);
+            $pAct = type_Set::toArray($pRec->contoActions); 
             
-            // Ако няма да се клонира
+            // Ако няма да се клонира или не е бърза
             if ($pRec->state == 'closed') {
                 $form->setField('acceptance', 'input=none');
                 $form->setField('invNum', 'input=none');
                 $form->setField('invDate', 'input=none');
+            } elseif ($pAct['ship']) {
+                $form->setField('acceptance', 'input=none');
+            } else {
+                $form->setDefault('acceptance', $aSet);
             }
         }
         

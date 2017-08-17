@@ -183,7 +183,7 @@ class core_Form extends core_FieldSet
         if (!count($fields)) return FALSE;
         
         foreach ($fields as $name => $field) {
-
+            
             expect($this->fields[$name], "Липсващо поле във формата '{$name}'");
             
             $value = Request::get($name);
@@ -219,6 +219,7 @@ class core_Form extends core_FieldSet
             
             // Правим проверка, дали избраната стойност е от множеството
             if (is_array($options) && !is_a($type, 'type_Key') && !is_a($type, 'type_Key2')) {
+                
                 // Не могат да се селектират неща които не са опции  
                 if ((!array_key_exists($value, $options) && $this->cmd != 'refresh') || (is_object($options[$value]) && $options[$value]->group)) {
                     $this->setError($name, "Невъзможна стойност за полето" .
@@ -240,7 +241,6 @@ class core_Form extends core_FieldSet
                     $value = $type->fromVerbal($value);
                 }
             } else {
-                
                 $value = $type->fromVerbal($value);
                 
                 // Вдигаме грешка, ако стойността от Request 

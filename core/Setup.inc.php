@@ -728,6 +728,47 @@ if($step == 3) {
                 $log[] = "wrn:Липсваща програма: <b>`$program`</b>";
             }
         }
+        
+        $log[] = 'h:Проверка за необходимите параметри на сървъра:';
+        
+        $minMemoryLimit = 1000000;
+        $memoryLimit = core_Os::getMemoryLimit();
+        if ($memoryLimit > $minMemoryLimit) {
+            $log[] = "inf:Достатъчна оперативна памет";
+        } else {
+            if ($memoryLimit < (($minMemoryLimit/2) + ($minMemoryLimit/40))) {
+                $log[] = "err:Оперативната памет е под допустимите минимални стойности";
+            } else {
+                $log[] = "wrn:Оперативната памет е под препоръчителните стойности";
+            }
+        }
+        
+        $freeMemory = core_Os::getFreeMemory();
+        if ($freeMemory > ($minMemoryLimit/10)) {
+            $log[] = "inf:Достатъчна свободна оперативна памет";
+        } else {
+            if ($memoryLimit < ($minMemoryLimit/20)) {
+                $log[] = "err:Свободната оперативната памет е под допустимите минимални стойности";
+            } else {
+                $log[] = "wrn:Свободната оперативната памет е под препоръчителните стойности";
+            }
+        }
+        
+        $minFreeSpace = 200000;
+        $freeRootSpace = core_Os::getFreePathSpace(EF_ROOT_PATH);
+        $freeSbfSpace = core_Os::getFreePathSpace(EF_SBF_PATH);
+        $freeTempSpace = core_Os::getFreePathSpace(EF_TEMP_PATH);
+        
+        $freeSpace = min(array($freeRootSpace, $freeSbfSpace, $freeTempSpace));
+        if ($freeSpace > $minFreeSpace) {
+            $log[] = "inf:Достатъчно свободно място в диска";
+        } else {
+            if ($freeSpace < $minFreeSpace/2) {
+                $log[] = "err:Свободното място в диска е под допустимите стойности";
+            } else {
+                $log[] = "wrn:Свободното място в диска е под препоръчителните стойности";
+            }
+        }
     }
     
     // Проверка за връзка с MySQL сървъра

@@ -82,7 +82,8 @@ class deals_plg_SetTermDate extends core_Plugin
 		$form = cls::get('core_Form');
 		$Field = $mvc->getField($mvc->termDateFld);
 		$form->title = core_Detail::getEditTitle($mvc, $id, $Field->caption, NULL);
-		$form->FLD('newTermDate', 'datetime', "caption={$Field->caption}");
+		$form->FLD('newTermDate', 'varchar', "caption={$Field->caption}");
+		$form->setFieldType('newTermDate', $mvc->getFieldType($mvc->termDateFld));
 		$form->setDefault('newTermDate', $rec->{$mvc->termDateFld});
 		$form->setDefault('newTermDate', date('Y-m-d H:i'));
 		$form->input();
