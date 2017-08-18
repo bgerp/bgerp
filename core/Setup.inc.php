@@ -768,7 +768,7 @@ if($step == 3) {
         
         if (isset($freeSpace)) {
             if ($freeSpace > $minFreeSpace) {
-                $log[] = "inf:Достатъчно свободно място в диска";
+                $log[] = "inf:Достатъчно свободно място на диска";
             } else {
                 if ($freeSpace < $minFreeSpace/2) {
                     $log[] = "err:Свободното място в диска е под допустимите стойности";
