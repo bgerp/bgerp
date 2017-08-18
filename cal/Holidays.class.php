@@ -370,7 +370,7 @@ class cal_Holidays extends core_Master
     {
     	
     	// Подготвяме пътя до файла с данните 
-    	$file = "bglocal/data/Holidais.csv";
+    	$file = "bglocal/data/Holidays.csv";
     	
     	// Кои колонки ще вкарваме
     	$fields = array( 
