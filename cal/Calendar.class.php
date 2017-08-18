@@ -1514,7 +1514,20 @@ class cal_Calendar extends core_Master
         $state->query->orWhere('#users IS NULL OR #users = ""');
         
         $state->query->orderBy('time', 'ASC');  
-		
+        
+		// Ако са избрани, кои събития да се показват
+        $showHoliday = cal_Setup::get('SHOW_HOLIDAY_TYPE');
+        if ($showHoliday) {
+            $showHolidaysArr = type_Set::toArray($showHoliday);
+            
+            $state->query->in('type', $showHolidaysArr);
+        }
+        
+		// Ако няма да се показва никое събитие
+        if ($showHoliday === FALSE) {
+            $state->query->where("1=2");
+        }
+        
 		while($rec = $state->query->fetch()){
 			$recState[] = $rec;
 		}
