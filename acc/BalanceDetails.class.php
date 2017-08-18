@@ -106,7 +106,13 @@ class acc_BalanceDetails extends core_Detail
      */
     public $title = 'Детайли на баланса';
     
+
+    /**
+     * По-голямо поле за id
+     */
+    protected $idType = 'bigint';
     
+
     /**
      * Описание на модела
      */
