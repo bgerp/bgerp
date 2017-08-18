@@ -24,10 +24,22 @@ class csv_Lib
     {   
         // Дефолт стойностите за форматирането по подразбиране
         setIfNot($format['length'], 0);
-        setIfNot($format['delimiter'], ',');
-        setIfNot($format['enclosure'], '"');
-        setIfNot($format['escape'], '\\');
-        setIfNot($format['skip'], '#');
+
+        if(!strlen($format['delimiter'])) {
+            $format['delimiter'] = ',';
+        }
+
+        if(!strlen($format['enclosure'])) {
+            $format['enclosure'] = '"';
+        }
+
+        if(!strlen($format['escape'])) {
+            $format['escape'] = '\\';
+        }
+
+        if(!strlen($format['skip'])) {
+            $format['skip'] = '#';
+        }
         
         $firstRow = TRUE; 
         $res    = (object) array('created' => 0, 'updated' => 0, 'skipped' =>0);
@@ -539,6 +551,7 @@ class csv_Lib
 
         // Определяне на формата
         if(strlen($delimiter)) {
+            $delimiter = str_replace('tab', "\t", $delimiter);
             $dArr = array($delimiter);
         } else {
             $dArr = array("|", "\t", ",", ";", ' ', ':');

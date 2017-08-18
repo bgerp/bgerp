@@ -189,8 +189,8 @@ class bgerp_plg_Import extends core_Plugin
         $exp->rule("#csvData", "getFileContentCsv(#csvFile)");
         
         // Полета за избиране на Разделител, ограждане и вида на първия ред
-        $exp->DEF('#delimiter=Разделител', 'varchar(1,size=3)', array('value' => ''), 'placeholder=автоматично');
-        $exp->SUGGESTIONS("#delimiter", array('' => '', ',' => ',', ';' => ';', ':' => ':', '|' => '|'));
+        $exp->DEF('#delimiter=Разделител', 'varchar(3,size=3)', array('value' => ''), 'placeholder=автоматично');
+        $exp->SUGGESTIONS("#delimiter", array('' => '', ',' => ',', ';' => ';', ':' => ':', '|' => '|', 'tab' => 'tab'));
         $exp->DEF('#enclosure=Ограждане', 'varchar(1,size=3)', array('value' => ''), 'placeholder=автоматично');
         $exp->SUGGESTIONS("#enclosure", array('' => '', '"' => '"', '\'' => '\''));
         $exp->DEF('#firstRow=Първи ред', 'enum(columnNames=Имена на колони,data=Данни)', 'mandatory');

@@ -46,6 +46,12 @@ class core_Mvc extends core_FieldSet
 
 
     /**
+     * По подразбиране типа на id полето е int
+     */
+    protected $idType = 'int';
+
+
+    /**
      * Името на класа, case sensitive
      */
     public $className;
@@ -148,7 +154,7 @@ class core_Mvc extends core_FieldSet
             // Задаваме таблицата по подразбиране
             $this->dbTableName = EF_DB_TABLE_PREFIX . str::phpToMysqlName($descrClass);
 
-            $this->FLD("id", "int", 'input=hidden,silent,caption=№,unsigned,notNull');
+            $this->FLD("id", $this->idType, 'input=hidden,silent,caption=№,unsigned,notNull');
 
             // Създаваме описанието на таблицата
             $this->description();
@@ -964,7 +970,7 @@ class core_Mvc extends core_FieldSet
                 $updateNotNull = $updateSigned = $updateDefault = $updateCollation = FALSE;
 
                 // Пропускаме PRI полето
-                if($name == 'id') continue;
+                if($name == 'id' && $this->idType == 'int') continue;
 
                 // Името на полето, така, както трябва да е в таблицата
                 $name = str::phpToMysqlName($name);

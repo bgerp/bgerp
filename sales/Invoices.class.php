@@ -165,7 +165,6 @@ class sales_Invoices extends deals_InvoiceMaster
     		'contragentAddress'   => 'clientData|lastDocUser|lastDoc',
     		'accountId'           => 'lastDocUser|lastDoc',
     		'template' 		      => 'lastDocUser|lastDoc|defMethod',
-    		'numlimit'			  => 'lastDocUser|lastDoc',
     );
     
     
