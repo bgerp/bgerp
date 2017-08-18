@@ -402,16 +402,16 @@ class cal_Calendar extends core_Master
             }
         // или ако нямаме достъп, правим елемент
         } else {
-        	$row->event = ht::createElement("span", $attr, $row->title);
             if($url['Ctr'] == 'crm_Persons' && ($url['id'])) {
+                $row->event = ht::createElement("span", $attr, $row->title);
+                
                 $pRec = crm_Persons::fetch($url['id']);
                 
                 if ($pRec->inCharge) {
                     $row->event .= ' (' . crm_Profiles::createLink($pRec->inCharge) . ')';
                 }
+                $row->event = "<div title='{$row->title}' style='margin-bottom: 5px;font-style=normal;'>" . $row->event . "</div>";
             }
-            $row->event = "<div title='{$row->title}' style='margin-bottom: 5px;font-style=normal;'>" . $row->event . "</div>";
-
         }
         
         // TODO
@@ -2437,8 +2437,8 @@ class cal_Calendar extends core_Master
         if($isLink){
             $event = ht::createLink($rec->title, $url, NULL, $attr);
         } else {
-            $event = ht::createElement("span", $attr, $rec->title);
             if($url['Ctr'] == 'crm_Persons' && ($url['id'])) {
+                $event = ht::createElement("span", $attr, $rec->title);
                 $pRec = crm_Persons::fetch($url['id']);
         
                 if ($pRec->inCharge) {
