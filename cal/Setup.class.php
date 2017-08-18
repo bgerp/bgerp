@@ -211,90 +211,11 @@ class cal_Setup extends core_ProtoSetup
      */
     public static function getHolidayTypeOptions()
     {
-        $type = 'holidayTypeOptions';
-        $handler = 'holidaysOptions';
-        $keepMinutes = 10000;
-        $depends = 'cal_Calendar';
+        $cal = cls::get('cal_Holidays');
+        $resArr = $cal->fields['type']->type->options;
         
-        $resArr = core_Cache::get($type, $handler, 1000, 'cal_Calendar');
+        unset($resArr[0]);
         
-        if ($resArr) return $resArr;
-        
-        $query = cal_Calendar::getQuery();
-        
-        $query->XPR('typeLen', 'int', 'CHAR_LENGTH(#type)');
-        $query->orderBy('typeLen', 'DESC');
-        
-        $query->orderBy('type', 'ASC');
-        
-        $query->groupBy('type');
-        
-        $res = array();
-        
-        while ($rec = $query->fetch()) {
-            
-            if (!$rec->type) continue;
-            
-            $tVerbal = '';
-            
-            if (strlen($rec->type) == 2) {
-                $tVerbal = drdata_Countries::getCountryName($rec->type);
-            }
-            
-            if (!$tVerbal) {
-                switch ($rec->type) {
-                    case 'international':
-                        $tVerbal = tr('Международни');
-                        break;
-                    case 'alarm_clock':
-                        $tVerbal = tr('Напомняния');
-                        break;
-                    case 'non-working':
-                        $tVerbal = tr('Почивни дни');
-                        break;
-                    case 'birthday':
-                        $tVerbal = tr('Рождени дни');
-                        break;
-                    case 'end-date':
-                        $tVerbal = tr('Краен срок');
-                        break;
-                    case 'orthodox':
-                        $tVerbal = tr('Християнски');
-                        break;
-                    case 'holiday':
-                        $tVerbal = tr('Празници');
-                        break;
-                    case 'sick':
-                        $tVerbal = tr('Болнични');
-                        break;
-                    case 'leaves':
-                        $tVerbal = tr('Отпуски');
-                        break;
-                    case 'working-travel':
-                        $tVerbal = tr('Командировки');
-                        break;
-                    case 'workday':
-                        $tVerbal = tr('Отработвания');
-                        break;
-                    case 'muslim':
-                        $tVerbal = tr('Мюсюлмански');
-                        break;
-                    case 'task':
-                        $tVerbal = tr('Задачи');
-                        break;
-                    default:
-                        $tVerbal = $rec->type;
-                        
-                        wp($tVerbal);
-                    break;
-                }
-            }
-            
-            $res[$rec->type] = $tVerbal;
-        }
-        
-        core_Cache::set($type, $handler, $res, $keepMinutes, $depends);
-        
-        return $res;
+        return $resArr;
     }
 }
