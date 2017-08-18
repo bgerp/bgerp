@@ -227,7 +227,7 @@ class cal_Holidays extends core_Master
 										PA=Панама,
 										PY=Парагвай,
 										PE=Перу,
-										PO=Полша,
+										PL=Полша,
 										PT=Португалия,
 										CG=Република Конго, 
 										RO=Румъния,
