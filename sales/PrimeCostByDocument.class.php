@@ -146,7 +146,11 @@ class sales_PrimeCostByDocument extends core_Manager
 	{
 		if(isset($fields['-list'])){
 			$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
-			$row->containerId = doc_Containers::getDocument($rec->containerId)->getLink(0);
+			try{
+				$row->containerId = doc_Containers::getDocument($rec->containerId)->getLink(0);
+			} catch(core_exception_Expect $e){
+				$row->containerId = "<span class='red'>" . tr('Проблем с показването') . "</span>";
+			}
 		}
 	}
 	

@@ -311,6 +311,33 @@ class fileman_Setup extends core_ProtoSetup
     {
         $conf = core_Packs::getConfig('fileman');
         
+        // Показваме предупреждение ако мястото за качване на файлове е намаляло
+        if (!defined('FILEMAN_UPLOADS_PATH')) {
+            if (cls::load('fileman_Files', TRUE)) {
+                cls::get('fileman_Files');
+            }
+        }
+        if (defined('FILEMAN_UPLOADS_PATH')) {
+            $freeUploadSpace = core_Os::getFreePathSpace(FILEMAN_UPLOADS_PATH);
+            
+            if (isset($freeUploadSpace)) {
+                if ($freeUploadSpace < 100000) {
+                    
+                    return "Много малко свободно място за качване на файлове в " . FILEMAN_UPLOADS_PATH;
+                }
+            }
+            
+            // Гледаме и процентно да не се доближаваме към запълване
+            $freeUploadSpacePercent = core_Os::getFreePathSpace(FILEMAN_UPLOADS_PATH, TRUE);
+            $freeUploadSpacePercent = rtrim($freeUploadSpacePercent, '%');
+            if ($freeUploadSpacePercent <= 100) {
+                if ($freeUploadSpacePercent >= 95) {
+                    
+                    return "Почти е запълнено мястото за качване на файлове в " . FILEMAN_UPLOADS_PATH . " - {$freeUploadSpacePercent}%";
+                }
+            }
+        }
+        
         // Ако не е инсталиране
         if (!static::isEnabled()) {
             
@@ -369,7 +396,7 @@ class fileman_Setup extends core_ProtoSetup
         $confWebkit = core_Packs::getConfig('fileman');
        
         // Опитваме се да вземем версията на ghostscript
-        exec(escapeshellarg($confWebkit->FILEMAN_GHOSTSCRIPT_PATH) . " --version", $resArr, $erroCode);
+        @exec(escapeshellarg($confWebkit->FILEMAN_GHOSTSCRIPT_PATH) . " --version", $resArr, $erroCode);
         
         $trimRes = trim($resArr[0]);
         

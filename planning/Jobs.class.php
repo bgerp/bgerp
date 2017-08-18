@@ -285,14 +285,14 @@ class planning_Jobs extends core_Master
     		$form->setDefault('packQuantity', $dRec->packQuantity);
     		
     		// Ако има данни от продажба, попълваме ги
+    		$form->setDefault('storeId', $saleRec->shipmentStoreId);
     		$form->setDefault('deliveryTermId', $saleRec->deliveryTermId);
     		$form->setDefault('deliveryDate', $saleRec->deliveryTime);
     		$form->setDefault('deliveryPlace', $saleRec->deliveryLocationId);
     		$locations = crm_Locations::getContragentOptions($saleRec->contragentClassId, $saleRec->contragentId);
     		$form->setOptions('deliveryPlace', $locations);
     		$caption = "|Данни от|* <b>" . sales_Sales::getRecTitle($rec->saleId) . "</b>";
-    		$caption = str_replace(', ', ' ', $caption);
-    		$caption = str_replace(',', ' ', $caption);
+    		$caption = str_replace(',', ' ', str_replace(', ', ' ', $caption));
     		
     		$form->setField('deliveryTermId', "caption={$caption}->Условие,changable");
     		$form->setField('deliveryDate', "caption={$caption}->Срок,changable");
@@ -681,6 +681,22 @@ class planning_Jobs extends core_Master
     			foreach ($departments as $dId){
     				$row->departments .= hr_Departments::getHyperlink($dId, TRUE) . "<br>";
     			}
+    		}
+    		
+    		// Ако има сделка и пакета за партиди е инсталиран показваме ги
+    		if(isset($rec->saleId) && core_Packs::isInstalled('batch')){
+    			$query = batch_BatchesInDocuments::getQuery();
+    			$saleContainerId = sales_Sales::fetchField($rec->saleId, 'containerId');
+    			$query->where("#containerId = {$saleContainerId} AND #productId = {$rec->productId}");
+    			$query->show('batch,productId');
+    			
+    			$batchArr = array();
+    			while($bRec = $query->fetch()){
+    				$batchArr = $batchArr + batch_Movements::getLinkArr($bRec->productId, $bRec->batch);
+    				
+    			}
+    			
+    			$row->batches = implode(', ', $batchArr);
     		}
     	}
     	

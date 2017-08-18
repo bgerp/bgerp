@@ -121,6 +121,10 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     		$storable = cat_Products::fetchField($rec->productId, 'canStore');
     		if($storable == 'yes'){
     			$form->setField('storeId', 'input');
+    			
+    			if(empty($rec->id) && isset($data->masterRec->inputStoreId)){
+    				$form->setDefault('storeId', $data->masterRec->inputStoreId);
+    			}
     		}
     	}
     	

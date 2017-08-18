@@ -102,7 +102,7 @@ class tnef_Setup extends core_ProtoSetup
                 $haveError = TRUE;
             }
         } else {
-            $res = exec('which ' . $tnef, $output, $code);
+            $res = @exec('which ' . $tnef, $output, $code);
             if (!$res) {
                 $haveError = TRUE;
             }

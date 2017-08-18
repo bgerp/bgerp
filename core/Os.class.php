@@ -336,16 +336,111 @@ class core_Os
     function getMemoryUsage()
     {
         if(!$this->isWindows()) {
-            $free = shell_exec('free');
-            $free = (string)trim($free);
-            $free_arr = explode("\n", $free);
-            $mem = explode(" ", $free_arr[1]);
-            $mem = array_filter($mem);
-            $mem = array_merge($mem);
+            $mem = $this->getFreeRes();
             $memory_usage = $mem[2]/$mem[1]*100;
         }
-
+		
         return $memory_usage;
+    }
+    
+    
+    /**
+     * Връща информация с колко памет разполага ОС
+     * За сега работи само под Linux
+     * 
+     * @return integer|NULL
+     */
+    public static function getMemoryLimit()
+    {
+        $memoryLimit = NULL;
+        if(!self::isWindows()) {
+            $mem = self::getFreeRes();
+            $memoryLimit = $mem[1];
+        }
+        
+        return $memoryLimit;
+    }
+    
+    
+    /**
+     * Връща информация с колко памет разполага ОС
+     * За сега работи само под Linux
+     * 
+     * @return integer|NULL
+     */
+    public static function getFreeMemory()
+    {
+        $memoryLimit = NULL;
+        if(!self::isWindows()) {
+            $mem = self::getFreeRes();
+            $memoryLimit = $mem[3];
+        }
+        
+        return $memoryLimit;
+    }
+    
+    
+    /**
+     * Помощна функция за вземане на стойностите на паметта
+     * За сега работи само под Linux
+     * 
+     * @return array
+     */
+    protected static function getFreeRes()
+    {
+        $mem = array();
+        if(!self::isWindows()) {
+            $free = shell_exec('free');
+            $free = (string)trim($free);
+            $freeArr = explode("\n", $free);
+            $mem = explode(" ", $freeArr[1]);
+            $mem = array_filter($mem);
+            $mem = array_merge($mem);
+        }
+        
+        return $mem;
+    }
+    
+    
+    /**
+     * Връща информация за диска в който се намира подадения път
+	 * За сега работи само под Linux
+     * 
+     * @param string $path
+     * @param boolean $percent
+     * 
+     * @return string|NULL
+     */
+    public static function getFreePathSpace($path, $percent = FALSE)
+    {
+        $pathSpaceArr = self::getPathSpace($path);
+        
+        if ($percent) {
+            
+            return $pathSpaceArr[4];
+        }
+        
+        return $pathSpaceArr[3];
+    }
+    
+    /**
+     * Връща информация за диска в който се намира подадения път
+	 * За сега работи само под Linux
+     * 
+     * @return array
+     */
+    protected static function getPathSpace($path)
+    {
+        if (!self::isWindows()) {
+            $df = shell_exec('df ' . escapeshellarg($path));
+            $df = (string)trim($df);
+            $dfArr = explode("\n", $df);
+            $pathSpaceArr = explode(" ", $dfArr[1]);
+            $pathSpaceArr = array_filter($pathSpaceArr);
+            $pathSpaceArr = array_merge($pathSpaceArr);
+        }
+        
+        return $pathSpaceArr;
     }
 
 

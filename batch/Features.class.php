@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   batch
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -61,7 +61,7 @@ class batch_Features extends core_Manager {
     	$this->FLD('classId', 'class(interface=batch_BatchTypeIntf,select=title)', 'caption=Клас,mandatory');
     	$this->FLD('value', 'varchar(128)', 'mandatory,caption=Стойност');
     	
-    	$this->setDbUnique('itemId,classId');
+    	$this->setDbUnique('itemId,classId,value');
     }
     
     
@@ -87,8 +87,8 @@ class batch_Features extends core_Manager {
     	$self = cls::get(get_called_class());
     	
     	$res = array();
-    	foreach ($features as $class => $feat){
-    		$obj = (object)array('itemId' => $itemRec->id, 'classId' => cls::get($class)->getClassId(), 'value' => $feat);
+    	foreach ($features as $class => $featObj){
+    		$obj = (object)array('itemId' => $itemRec->id, 'classId' => $featObj->classId, 'value' => $featObj->value);
     		
     		if(!$self->isUnique($obj, $fields, $exRec)){
     			$obj->id = $exRec->id;
@@ -99,5 +99,14 @@ class batch_Features extends core_Manager {
     	
     	// Запис на свойствата
     	$self->saveArray($res);
+    }
+    
+    
+    /**
+     * Изпълнява се след подготвянето на формата за филтриране
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    {
+    	$data->query->orderBy('id', "DESC");
     }
 }

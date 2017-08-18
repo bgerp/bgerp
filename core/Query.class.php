@@ -395,9 +395,12 @@ class core_Query extends core_FieldSet
     public function in($field, $values, $not = FALSE, $or = FALSE)
     {
     	$values = arr::make($values);
-    	
     	if (!$values) return ;
     	
+    	// Ескейпване на стойности
+    	array_walk($values, function (&$a) {$a = "'" . $a . "'";});
+    	
+    	// Обръщане на масива в стринг
     	$values = implode(',', $values);
     	
     	if(!$not){

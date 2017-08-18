@@ -307,6 +307,18 @@ class cat_Products extends embed_Manager {
 	public $protoFieldName = 'proto';
 	
 	
+	/**
+	 * Кой може да импортира записи?
+	 */
+	public $canImport = 'catImpEx, admin';
+	
+	
+	/**
+	 * Кой може да експортира записи?
+	 */
+	public $canExport = 'catImpEx, admin';
+	
+	
     /**
      * Описание на модела
      */

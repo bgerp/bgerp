@@ -152,6 +152,8 @@ class cat_Setup extends core_ProtoSetup
     		array('packEdit'),
     		array('catEdit', 'packEdit'),
     		array('cat', 'catEdit'),
+            array('rep_cat'),
+            array('catImpEx'),
     );
     
     

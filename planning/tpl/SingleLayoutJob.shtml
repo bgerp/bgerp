@@ -155,15 +155,7 @@
 				   <td class='quiet'>|Продажба|*</td>
 				   <td>[#saleId#]</td>
 				</tr>
-			    <!--ET_END saleId-->
-			       	
-			    <!--ET_BEGIN dealer-->
-			    <tr>
-				    <td class='quiet'>|Търговец|*</td>
-				    <td>[#dealer#]</td>
-				</tr>
-			    <!--ET_END dealer-->
-			       	
+			    <!--ET_END saleId--> 
 			    <!--ET_BEGIN deliveryTermId-->
 			    <tr>
 				   <td class='quiet'>|Условие на доставка|*</td>
@@ -183,6 +175,13 @@
 				    <td>[#deliveryDate#]</td>
 				</tr>
 			    <!--ET_END deliveryDate-->
+			    
+			    <!--ET_BEGIN batches-->
+			    <tr>
+				   <td class='quiet'>|Партиди|*</td>
+				   <td class='small'>[#batches#]</td>
+				</tr>
+			    <!--ET_END batches-->
 		     </table>         
 	       </td>
         </tr>

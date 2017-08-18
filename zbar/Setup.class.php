@@ -53,7 +53,7 @@ class zbar_Setup extends core_ProtoSetup
 	            $haveError = TRUE;
 	        }
 	    } else {
-	        $res = exec("which {$program}", $output, $code);
+	        $res = @exec("which {$program}", $output, $code);
 	        if (!$res) {
 	            $haveError = TRUE;
 	        }
