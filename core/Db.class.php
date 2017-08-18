@@ -596,6 +596,7 @@ class core_Db extends core_BaseClass
         if ($field->unsigned) {
             $unsigned = ' UNSIGNED';
         }
+
         
         if ($field->notNull) {
             $notNull = ' NOT NULL';
@@ -604,11 +605,17 @@ class core_Db extends core_BaseClass
         if ($field->default !== NULL) {
             $default = " DEFAULT '{$field->default}'";
         }
-        
+
+        if(strtolower($field->name) == 'id') {
+            $autoIncrement = ' AUTO_INCREMENT';
+            $default = '';
+            $notNull = '';
+        }  
+
         if ($field->field) {
-            return $this->query("ALTER TABLE `{$tableName}` CHANGE `{$field->field}` `{$field->name}` {$field->type}{$typeInfo}{$collation}{$unsigned}{$notNull}{$default}");
+            return $this->query("ALTER TABLE `{$tableName}` CHANGE `{$field->field}` `{$field->name}` {$field->type}{$typeInfo}{$collation}{$unsigned}{$autoIncrement}{$notNull}{$default}");
         } else {
-            return $this->query("ALTER TABLE `{$tableName}` ADD `{$field->name}` {$field->type}{$typeInfo}{$collation}{$unsigned}{$notNull}{$default}");
+            return $this->query("ALTER TABLE `{$tableName}` ADD `{$field->name}` {$field->type}{$typeInfo}{$collation}{$unsigned}{$autoIncrement}{$notNull}{$default}");
         }
     }
     
