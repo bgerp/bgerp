@@ -91,7 +91,6 @@ class core_Pager extends core_BaseClass
         } else {
             setIfNot($this->pagesAround, 3);
         }
-
     }
     
     
@@ -107,6 +106,10 @@ class core_Pager extends core_BaseClass
         
         if (!($this->itemsCount >= 0)) {
             $this->itemsPerPage = 0;
+        }
+        
+        if(Mode::is('printing')) {
+            $this->itemsPerPage = max(core_Setup::get('MAX_ROWS_FOR_PRINTING'), $this->itemsPerPage);
         }
         
         $maxPages = max(1, round($this->itemsCount / $this->itemsPerPage));
