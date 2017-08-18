@@ -262,7 +262,16 @@ class cal_Setup extends core_ProtoSetup
                         $tVerbal = tr('Християнски');
                         break;
                     case 'holiday':
+                        $tVerbal = tr('Празници');
+                        break;
+                    case 'sick':
+                        $tVerbal = tr('Болнични');
+                        break;
+                    case 'leaves':
                         $tVerbal = tr('Отпуски');
+                        break;
+                    case 'working-travel':
+                        $tVerbal = tr('Командировки');
                         break;
                     case 'workday':
                         $tVerbal = tr('Отработвания');
@@ -275,6 +284,8 @@ class cal_Setup extends core_ProtoSetup
                         break;
                     default:
                         $tVerbal = $rec->type;
+                        
+                        wp($tVerbal);
                     break;
                 }
             }
