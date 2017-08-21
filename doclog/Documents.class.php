@@ -1254,15 +1254,15 @@ class doclog_Documents extends core_Manager
             }
         }
         
+        // Записите да се подреждат по дата в обратен ред
+        $query->orderBy('createdOn', 'DESC');
+        
         // Ако е подаден обект за странициране
         if ($pager) {
             
             // Задаваме лимита за странициране
             $pager->setLimit($query);
         }
-        
-        // Записите да се подреждат по дата в обратен ред
-        $query->orderBy('createdOn', 'DESC');
         
         $recsArr = array();
         

@@ -125,14 +125,14 @@ class doclog_Used extends core_Manager
         $query = self::getQuery();
         $query->where(array("#usedContainerId = '[#1#]'", $cid));
         
+        $query->orderBy('createdOn', 'DESC');
+        
         // Ако е подаден обект за странициране
         if ($pager) {
             
             // Задаваме лимита за странициране
             $pager->setLimit($query);
         }
-        
-        $query->orderBy('createdOn', 'DESC');
         
         $rowsArr = array();
         

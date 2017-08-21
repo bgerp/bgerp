@@ -182,6 +182,12 @@ defIfNot('CORE_PORTAL_ARRANGE', 'notifyTaskRecentlyCal');
 
 
 /**
+ * Максимален брой редове при печат
+ */
+defIfNot('CORE_MAX_ROWS_FOR_PRINTING', 1000);
+
+
+/**
  * class 'core_Setup' - Начално установяване на пакета 'core'
  *
  *
@@ -258,6 +264,8 @@ class core_Setup extends core_ProtoSetup {
            'CORE_LOGIN_INFO'   => array ('varchar', 'caption=Информация във формата за логване->Текст'),
       
            'EF_MAX_EXPORT_CNT' => array ('int', 'caption=Възможен максимален брой записи при експорт->Брой записи'),
+           
+           'CORE_MAX_ROWS_FOR_PRINTING' => array ('int', 'caption=Размер на страницата при печат->Брой редове'),
            
            'PLG_SEACH_MAX_TEXT_LEN' => array ('int', 'caption=Максимален брой символи за генериране на ключови думи->Брой символи'),
            
