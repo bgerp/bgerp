@@ -2003,8 +2003,9 @@ class email_Incomings extends core_Master
         if ($rec->originId) {
             $cRec = doc_Containers::fetch($rec->originId);
             
-            if (email_Incomings::haveRightFor('single', $rec, $cRec->createdBy)) {
-                doc_Containers::addNotifications(array($cRec->createdBy => $cRec->createdBy), $mvc, $cRec, 'добави', FALSE);
+            if ($rec->containerId && email_Incomings::haveRightFor('single', $rec, $cRec->createdBy)) {
+                $newCRec = doc_Containers::fetch($rec->containerId);
+                doc_Containers::addNotifications(array($cRec->createdBy => $cRec->createdBy), $mvc, $newCRec, 'добави', FALSE);
             }
         }
     }
