@@ -1495,7 +1495,7 @@ class email_Incomings extends core_Master
                 $type = spas_Client::LEARN_SPAM;
                 
                 if (!$haveEmail) {
-                    $typeStr = "СПАМ (от няма такава кутия)";
+                    $typeStr = "СПАМ (липсваща имейл кутия)";
                 } else {
                     $typeStr = "СПАМ (от оттеглен имейл)";
                 }
