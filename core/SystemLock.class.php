@@ -128,7 +128,7 @@ class core_SystemLock
                     <h1 style='border-bottom:solid 1px white;padding-bottom:10px;'>bgERP system maintenance</h1>
                     <h2>We'll be back in {$afterEn}...</h2>
                     <h2>Ще сме на разположение след {$after}...</h2>
-                    <h2>{$msg}</h2>
+                    <p>{$msg}</p>
                     </div></body>";
             die;
         }
