@@ -3336,13 +3336,41 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
         	if((res.readyState == 0 || res.status == 0) && res.getAllResponseHeaders()) return;
 
         	var text = 'Connection error';
-
+    		var errType = 'error';
+    		var timeOut = 3000;
+        	
         	if (res.status == 404) {
         		text = 'Липсващ ресурс';
         	} else if (res.status == 500) {
         		text = 'Грешка в сървъра';
+        	} else if (res.status == 503) {
+        		text = res.responseText;
+        		text = text.replace(/<\/?[^>]+(>|$)/g, "\n");
+        		text = text.trim();
+        		text = text.replace(/(?:\r\n|\r|\n)+\s*/g, "<br>");
+        		
+        		errType = 'warning';
+        		timeOut = 1;
         	}
-
+        	
+        	var toastErrType = '.toast-type-' + errType;
+        	var connectionerrStatus = '.connection-' + errType + '-status';
+        	
+        	if (res.status == 503) {
+				
+            	// Ако е имало грешка, премахваме статуса за да покажем новия
+            	if (getEfae().AJAXHaveError) {
+					
+            		if ($(connectionerrStatus).length) {
+            			$(connectionerrStatus).remove();
+            		}
+					
+            		if ($(toastErrType).length) {
+            			$(toastErrType).remove();
+            		}
+            	}
+        	}
+        	
         	getEO().log('Грешка при извличане на данни по AJAX - ReadyStatus: ' + res.readyState + ' - Status: ' + res.status);
 
         	getEfae().AJAXHaveError = true;
@@ -3353,24 +3381,24 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
         		if (getEfae().AJAXErrorRepaired) return ;
 
 	        	if (typeof showToast != 'undefined' && $().toastmessage) {
-	        		if (!$(".toast-type-error").length) {
+	        		if (!$(toastErrType).length) {
 	        			showToast({
 		                    timeOut: 1,
 		                    text: text,
 		                    isSticky: true,
 		                    stayTime: 4000,
-		                    type: 'error'
+		                    type: errType
 		                });
 	        		}
 	            } else {
 	            	// Ако не е добавено съобщение за грешка
-	            	if (!$(".connection-error-status").length) {
+	            	if (!$(connectionerrStatus).length) {
 	            		// Ако възникне грешка
 	                    var errorData = {id: "statuses", html: "<div class='statuses-message statuses-error connection-error-status'>" + text +"</div>", replace: false};
 	                    render_html(errorData);
 	            	}
 	            }
-        	}, 3000);
+        	}, timeOut);
         }).always(function(res) {
 
         	// След приключване на процеса сваляме флага
@@ -3382,9 +3410,15 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
         		if ($('.connection-error-status').length) {
         			$('.connection-error-status').remove();
         		}
+        		if ($('.connection-warning-status').length) {
+        			$('.connection-warning-status').remove();
+        		}
 
         		if ($('.toast-type-error').length) {
         			$('.toast-type-error').remove();
+        		}
+        		if ($('.toast-type-warning').length) {
+        			$('.toast-type-warning').remove();
         		}
         	}
         });
