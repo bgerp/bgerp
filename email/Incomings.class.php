@@ -1495,7 +1495,7 @@ class email_Incomings extends core_Master
                 $type = spas_Client::LEARN_SPAM;
                 
                 if (!$haveEmail) {
-                    $typeStr = "СПАМ (от няма такава кутия)";
+                    $typeStr = "СПАМ (липсваща имейл кутия)";
                 } else {
                     $typeStr = "СПАМ (от оттеглен имейл)";
                 }
@@ -2003,8 +2003,9 @@ class email_Incomings extends core_Master
         if ($rec->originId) {
             $cRec = doc_Containers::fetch($rec->originId);
             
-            if (email_Incomings::haveRightFor('single', $rec, $cRec->createdBy)) {
-                doc_Containers::addNotifications(array($cRec->createdBy => $cRec->createdBy), $mvc, $cRec, 'добави', FALSE);
+            if (($cRec->createdBy > 0) && $rec->containerId && email_Incomings::haveRightFor('single', $rec, $cRec->createdBy)) {
+                $newCRec = doc_Containers::fetch($rec->containerId);
+                doc_Containers::addNotifications(array($cRec->createdBy => $cRec->createdBy), $mvc, $newCRec, 'добави', FALSE);
             }
         }
     }

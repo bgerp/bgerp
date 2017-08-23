@@ -14,6 +14,12 @@ defIfNot('BATCH_CLOSE_OLD_BATCHES', core_DateTime::SECONDS_IN_MONTH);
 
 
 /**
+ * Брой партиди които да се показват в прозореца за промяна на партидите
+ */
+defIfNot('BATCH_COUNT_IN_EDIT_WINDOW', 10);
+
+
+/**
  * class batch_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -23,7 +29,7 @@ defIfNot('BATCH_CLOSE_OLD_BATCHES', core_DateTime::SECONDS_IN_MONTH);
  * @category  bgerp
  * @package   batch
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -98,6 +104,7 @@ class batch_Setup extends core_ProtoSetup
     var $configDescription = array(
     		'BATCH_EXPIRYDATE_PERCENT' => array("percent", 'caption=Оцветяване на изтичащите партиди->Преди края'),
     		'BATCH_CLOSE_OLD_BATCHES'  => array('time', 'caption=Затваряне на изчерпани партиди->След'),
+    		'BATCH_COUNT_IN_EDIT_WINDOW' => array('int', 'caption=Колко партиди да се показват в прозореца за промяна->Брой'),
     );
     
     
