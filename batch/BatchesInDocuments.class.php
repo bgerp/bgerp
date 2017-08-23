@@ -404,7 +404,7 @@ class batch_BatchesInDocuments extends core_Manager
 				$i++;
 			}
 			
-			if($batchesCount > 50){
+			if($batchesCount > batch_Setup::get('COUNT_IN_EDIT_WINDOW')){
 				$tableRec = $exTableRec;
 			}
 		}
@@ -415,7 +415,6 @@ class batch_BatchesInDocuments extends core_Manager
 		$captions = ($Def instanceof batch_definitions_Serial) ? 'Номер' : 'Номер|Количество';
 		$noCaptions = ($Def instanceof batch_definitions_Serial) ? 'noCaptions' : '';
 		
-		//$sgt = implode('|', array_keys($batches));
 		$form->FLD('newArray', "table(columns={$columns},batch_ro=readonly,captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Нови партиди->{$caption},placeholder={$Def->placeholder},{$autohide}");
 		
 		$form->setFieldTypeParams('newArray', array('batch_sgt' => $suggestions));
