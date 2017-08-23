@@ -2960,6 +2960,18 @@ class cal_Tasks extends core_Master
             return new Redirect($redirectUrl);
         }
         
+        // Показваме оригиналния документ при създаване от задача
+        if ($document && $form->cmd != 'refresh') {
+            $form->layout = $form->renderLayout();
+            $tpl = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Документ") . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div>");
+            
+            $docHtml = $document->getInlineDocumentBody();
+            
+            $tpl->append($docHtml, 'DOCUMENT');
+            
+            $form->layout->append($tpl);
+        }
+        
         // Добавяме бутоните на формата
         $form->toolbar->addSbBtn('Продължи', 'save', NULL, 'ef_icon = img/16/next-img.png, title=Запис на документа');
         $form->toolbar->addBtn('Отказ', $retUrl, NULL, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
