@@ -146,6 +146,29 @@ class tesseract_Setup extends core_ProtoSetup
     
             // Добавяме съобщение
             return "Версията на tesseract e {$versionArr['version']}.{$versionArr['subVersion']}. За по-добро разпознаване трябва да инсталирате версия над 4.x";
+        } else {
+            
+            @exec($tesseract . ' -v', $outputArr, $code);
+            
+            // Проверка на версията на leptonica - под 1.74 не работи добре с невронна мрежа
+            if ($outputArr) {
+                foreach ($outputArr as $oStr) {
+                    if (stripos($oStr, 'leptonica') === FALSE) continue;
+                    
+                    list(,$lVersion) = explode('-', $oStr);
+                    
+                    $lVersion = trim($lVersion);
+                    
+                    if (!$lVersion) continue;
+                    
+                    list($v, $sv) = explode('.', $lVersion);
+                    
+                    if (($v <= 1) && ($sv < 74)) {
+                        
+                        return "Версията на 'leptonica' e {$lVersion}. С тази версия има проблем.";
+                    }
+                }
+            }
         }
     }
     

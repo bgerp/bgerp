@@ -72,7 +72,7 @@ class type_Table extends type_Blob {
                     $opt[$field][$o] = $o;
                 }
                 $tpl  .= "<td>" . ht::createSelect($attr[$field]['name'], $opt[$field], NULL, $attr[$field]) . "</td>";
-                $row1 .= "<td>" . ht::createSelect($attr[$field]['name'], $opt[$field], $value[$field][0], $attr[$field]) . "</td>";
+                $row1 .= "<td>" . ht::createSelect($attr[$field]['name'], $opt[$field], strip_tags($value[$field][0]), $attr[$field]) . "</td>";
             } elseif($this->params[$suggestOpt]){
             	if(!is_array($this->params[$suggestOpt])){
             		$sgt = explode('|', $this->params[$suggestOpt]);
@@ -81,7 +81,8 @@ class type_Table extends type_Blob {
             	}
             	
             	foreach($sgt as $o) {
-            		$sgt[$field][$o] = $o;
+            		$o1 = strip_tags($o);
+            		$sgt[$field][$o1] = $o1;
             	}
             	
             	$datalistTpl = ht::createDataList("{$name}List", $sgt[$field]);
@@ -89,7 +90,7 @@ class type_Table extends type_Blob {
             	$tpl  .= "<td>" . ht::createCombo($attr[$field]['name'],  NULL, $attr[$field], $sgt[$field]) . "</td>";
             	
             	if($this->params[$readOnlyFld] == 'readonly' && isset($value[$field][0]) && empty($this->errorFields[$field][0])){
-            		$row1 .= "<td>" . ht::createElement('input', $attr[$field] + array('class' => 'readonlyInput', 'style' => 'float:left;text-indent:2px', 'readonly' => 'readonly', 'value' => $value[$field][0])) . "</td>";
+            		$row1 .= "<td>" . ht::createElement('input', $attr[$field] + array('class' => 'readonlyInput', 'style' => 'float:left;text-indent:2px', 'readonly' => 'readonly', 'value' => strip_tags($value[$field][0]))) . "</td>";
             	} else {
             		$row1 .= "<td>" . ht::createCombo($attr[$field]['name'], $value[$field][0], $attr[$field] + $this->getErrorArr($field, 0), $sgt[$field]) . "</td>";
             	}
@@ -97,7 +98,7 @@ class type_Table extends type_Blob {
                 $tpl  .= "<td>" . ht::createElement('input', $attr[$field]) . "</td>";
                 
                 if($this->params[$readOnlyFld] == 'readonly' && isset($value[$field][0]) && empty($this->errorFields[$field][0])){
-                	$row1 .= "<td>" . ht::createElement('input', $attr[$field] + array('class' => 'readonlyInput', 'style' => 'float:left;text-indent:2px', 'readonly' => 'readonly', 'value' => $value[$field][0])) . "</td>";
+                	$row1 .= "<td>" . ht::createElement('input', $attr[$field] + array('class' => 'readonlyInput', 'style' => 'float:left;text-indent:2px', 'readonly' => 'readonly', 'value' => strip_tags($value[$field][0]))) . "</td>";
                 } else {
                 	$row1 .= "<td>" . ht::createElement('input', $attr[$field] + array('value' => $value[$field][0]) + $this->getErrorArr($field, 0)) . "</td>";
                 }
@@ -112,13 +113,13 @@ class type_Table extends type_Blob {
             $row = '';
             foreach($columns as $field => $fObj) {
                 if(isset($opt[$field])) {
-                    $row .= "<td>" . ht::createSelect($attr[$field]['name'], $opt[$field], $value[$field][0], $attr[$field]) . "</td>";
+                    $row .= "<td>" . ht::createSelect($attr[$field]['name'], $opt[$field], strip_tags($value[$field][0]), $attr[$field]) . "</td>";
                 } else {
                 	$readOnlyFld = $field . '_ro';
                 	if($this->params[$readOnlyFld] == 'readonly' && isset($value[$field][$i]) && empty($this->errorFields[$field][$i])){
-                		$row .= "<td>" . ht::createElement('input', $attr[$field] + array('class' => 'readonlyInput', 'style' => 'float:left;text-indent:2px', 'readonly' => 'readonly', 'value' => $value[$field][$i])) . "</td>";
+                		$row .= "<td>" . ht::createElement('input', $attr[$field] + array('class' => 'readonlyInput', 'style' => 'float:left;text-indent:2px', 'readonly' => 'readonly', 'value' => strip_tags($value[$field][$i]))) . "</td>";
                 	} else {
-                		$row .= "<td>" . ht::createElement('input', $attr[$field] + array('value' => $value[$field][$i]) + $this->getErrorArr($field, $i)) . "</td>";
+                		$row .= "<td>" . ht::createElement('input', $attr[$field] + array('value' => strip_tags($value[$field][$i])) + $this->getErrorArr($field, $i)) . "</td>";
                 	}
                 }
                 if(isset($value[$field][$i])) {
