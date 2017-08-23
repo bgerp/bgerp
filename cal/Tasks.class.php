@@ -614,9 +614,7 @@ class cal_Tasks extends core_Master
             
             $document->instance->requireRightFor('single', $dRec);
             
-            if ($document->haveRightFor('single')) {
-                self::showForeignDoc($document, $form);
-            }
+            self::showForeignDoc($document, $form);
         }
     }
 
@@ -2971,9 +2969,7 @@ class cal_Tasks extends core_Master
             return new Redirect($redirectUrl);
         }
         
-        if ($document->haveRightFor('single')) {
-            $this->showForeignDoc($document, $form);
-        }
+        $this->showForeignDoc($document, $form);
         
         // Добавяме бутоните на формата
         $form->toolbar->addSbBtn('Продължи', 'save', NULL, 'ef_icon = img/16/next-img.png, title=Запис на документа');
