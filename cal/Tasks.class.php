@@ -604,7 +604,7 @@ class cal_Tasks extends core_Master
             }
         }
         
-        if ($fId = Request::get('foreignId')) {
+        if ($fId = Request::get('foreignId', 'int')) {
             $form->rec->foreignId = $fId;
         }
         
@@ -2642,7 +2642,7 @@ class cal_Tasks extends core_Master
     {
         $this->requireRightFor('add');
         
-        $originId = Request::get('foreignId');
+        $originId = Request::get('foreignId', 'int');
         
         expect($originId);
         
