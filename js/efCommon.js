@@ -2876,7 +2876,7 @@ function scalePrintingDocument(pageHeight){
 		}
 	}
 	if($(".print-break").length){
-		checkForPrintBreak(580);
+		checkForPrintBreak(620);
 	}
 }
 
