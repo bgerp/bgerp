@@ -1391,6 +1391,9 @@ class doc_Containers extends core_Manager
     static function getDocument($id, $intf = NULL)
     {
         if (!is_object($id)) {
+            
+            $id = (int) $id;
+            
             $rec = doc_Containers::fetch($id, 'docId, docClass');
             
             // Ако няма id на документ, изчакваме една-две секунди, 
