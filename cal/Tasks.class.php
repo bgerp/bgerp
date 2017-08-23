@@ -607,6 +607,15 @@ class cal_Tasks extends core_Master
         if ($fId = Request::get('foreignId')) {
             $form->rec->foreignId = $fId;
         }
+        
+        if ($form->rec->foreignId) {
+            
+            $document = doc_Containers::getDocument($form->rec->foreignId);
+            
+            if ($document->haveRightFor('single')) {
+                self::showForeignDoc($document, $form);
+            }
+        }
     }
 
     
@@ -2960,16 +2969,8 @@ class cal_Tasks extends core_Master
             return new Redirect($redirectUrl);
         }
         
-        // Показваме оригиналния документ при създаване от задача
-        if ($document && $form->cmd != 'refresh') {
-            $form->layout = $form->renderLayout();
-            $tpl = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Документ") . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div>");
-            
-            $docHtml = $document->getInlineDocumentBody();
-            
-            $tpl->append($docHtml, 'DOCUMENT');
-            
-            $form->layout->append($tpl);
+        if ($document->haveRightFor('single')) {
+            $this->showForeignDoc($document, $form);
         }
         
         // Добавяме бутоните на формата
@@ -3021,5 +3022,27 @@ class cal_Tasks extends core_Master
         $tpl = $form->renderHtml();
         
         return self::renderWrapping($tpl);
+    }
+    
+    
+    /**
+     * Помощна функция за показване на документа, който е източник
+     * 
+     * @param core_ObjectReference $fDoc
+     * @param core_Form $form
+     */
+    protected static function showForeignDoc($fDoc, $form)
+    {
+        // Показваме оригиналния документ при създаване от задача
+        if ($fDoc && $form->cmd != 'refresh') {
+            $form->layout = $form->renderLayout();
+            $tpl = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Документ") . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div>");
+            
+            $docHtml = $fDoc->getInlineDocumentBody();
+            
+            $tpl->append($docHtml, 'DOCUMENT');
+            
+            $form->layout->append($tpl);
+        }
     }
 }
