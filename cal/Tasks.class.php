@@ -265,7 +265,7 @@ class cal_Tasks extends core_Master
         $this->FLD('description', 'richtext(bucket=calTasks, passage=Общи)', 'caption=Описание,changable');
 
         // Споделяне
-        $this->FLD('sharedUsers', 'userList', 'caption=Споделяне,changable');
+        $this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители,changable');
         
         // Отговорноици
         $this->FLD('assign', 'user(rolesForAll=powerUser,allowEmpty)', 'caption=Възложено на,changable');
