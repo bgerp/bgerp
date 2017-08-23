@@ -167,7 +167,7 @@ class store_ConsignmentProtocols extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'valior';
+    public $fieldsNotToClone = 'valior,snapshot';
     
     
     /**

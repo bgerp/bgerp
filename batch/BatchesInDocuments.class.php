@@ -371,17 +371,27 @@ class batch_BatchesInDocuments extends core_Manager
 			// Полетата излизат като списък
 			$suggestions = '';
 			foreach ($batches as $b => $q){
-				$verbal = strip_tags($Def->toVerbal($b));
-				$suggestions .= "{$b}={$verbal},";
+				$bArray = $Def->makeArray($b);
+				foreach ($bArray as $b1){
+					$verbal = strip_tags($Def->toVerbal($b1));
+					$suggestions .= "{$b1}={$verbal},";
+				}
 			}
 			$suggestions = trim($suggestions, ',');
-			
 			if(!empty($suggestions)){
 				$form->FLD('serials', "set({$suggestions})", 'caption=Партиди,maxRadio=2,class=batch-quantity-fields');
 			}
 			
 			if(count($foundBatches)){
-				$defaultBatches = $form->getFieldType('serials')->fromVerbal($foundBatches);
+				$foundArr = array();
+				foreach ($foundBatches as $f => $q){
+					$fArray = $Def->makeArray($f);
+					foreach ($fArray as $b2){
+						$foundArr[$b2] = $b2;
+					}
+				}
+				
+				$defaultBatches = $form->getFieldType('serials')->fromVerbal($foundArr);
 				$form->setDefault('serials', $defaultBatches);
 			}
 		} else {
