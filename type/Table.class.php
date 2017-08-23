@@ -81,7 +81,8 @@ class type_Table extends type_Blob {
             	}
             	
             	foreach($sgt as $o) {
-            		$sgt[$field][$o] = $o;
+            		$o1 = strip_tags($o);
+            		$sgt[$field][$o1] = $o1;
             	}
             	
             	$datalistTpl = ht::createDataList("{$name}List", $sgt[$field]);
