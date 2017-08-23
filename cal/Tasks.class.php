@@ -612,7 +612,7 @@ class cal_Tasks extends core_Master
             
             $document = doc_Containers::getDocument($form->rec->foreignId);
             
-            $document->instance->requireRightFor('single', $dRec);
+            $document->instance->requireRightFor('single', $document->that);
             
             self::showForeignDoc($document, $form);
         }
