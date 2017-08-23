@@ -514,4 +514,19 @@ class doc_plg_TplManager extends core_Plugin
             }
         }
     }
+    
+    
+    /**
+     * 
+     * @param core_Mvc $mvc
+     * @param core_ET $container
+     * @param integer $cnt
+     * @param stdObject $rec
+     */
+    public static function on_AfterRenderPrintCopy($mvc, &$container, $cnt, $rec)
+    {
+        if ($cnt > 1) {
+            $container->removeBlock('FORM_FIELDS');
+        }
+    }
 }
