@@ -372,7 +372,6 @@ class batch_BatchesInDocuments extends core_Manager
 			$suggestions = '';
 			foreach ($batches as $b => $q){
 				$verbal = strip_tags($Def->toVerbal($b));
-				$suggestions[] = $verbal;
 				$suggestions .= "{$b}={$verbal},";
 			}
 			$suggestions = trim($suggestions, ',');
