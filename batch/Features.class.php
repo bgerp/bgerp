@@ -121,4 +121,53 @@ class batch_Features extends core_Manager {
     {
     	$data->query->orderBy('id', "DESC");
     }
+    
+    
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    public static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	if(haveRole('admin,debug')){
+    		$data->toolbar->addBtn('Синхронизиране', array($mvc, 'sync', 'ret_url' => TRUE), NULL, 'warning=Наистина ли искате да ресинхронизирате свойствата,ef_icon = img/16/arrow_refresh.png,title=Ресинхронизиране на свойствата на перата');
+    	}
+    }
+    
+    
+    /**
+     * Синхронизиране на таблицата със свойствата
+     */
+    public function act_Sync()
+    {
+    	requireRole('ceo,admin');
+    	 
+    	// Синхронизира всички свойства на перата
+    	$this->syncAll();
+    	 
+    	// Записваме, че потребителя е разглеждал този списък
+    	$this->logWrite("Синхронизиране на свойствата на партидите");
+    	 
+    	// Редирект към списъка на свойствата
+    	return new Redirect(array($this, 'list'), 'Всички свойства са синхронизирани успешно');
+    }
+    
+    
+    /**
+     * Обновяване на всички свойства
+     * 
+     * @return void
+     */
+    public static function syncAll()
+    {
+    	self::truncate();
+    	 
+    	$iQuery = batch_Items::getQuery();
+    	while($iRec = $iQuery->fetch()){
+    		try{
+    			self::sync($iRec);
+    		} catch(core_exception_Expect $e){
+    			reportException($e);
+    		}
+    	}
+    }
 }

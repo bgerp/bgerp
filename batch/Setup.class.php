@@ -353,16 +353,7 @@ class batch_Setup extends core_ProtoSetup
     {
     	$Features = cls::get('batch_Features');
     	$Features->setupMvc();
-    	$Features->truncate();
     	
-    	$iQuery = batch_Items::getQuery();
-    	
-    	while($iRec = $iQuery->fetch()){
-			try{
-    			batch_Features::sync($iRec);
-    		} catch(core_exception_Expect $e){
-    			reportException($e);
-    		}
-    	}
+    	batch_Features::syncAll();
     }
 }
