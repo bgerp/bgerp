@@ -234,9 +234,8 @@ class batch_Movements extends core_Detail {
     /**
      * Записва движение на партида от документ
      * 
-     * @param mixed $class - ид на документ
-     * @param mixed $rec   - ид или запис на документа
-     * @return boolean     - успех или не
+     * @param mixed $containerId - ид на контейнер
+     * @return boolean           - успех или не
      */
     public static function saveMovement($containerId)
     {

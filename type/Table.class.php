@@ -27,6 +27,12 @@ class type_Table extends type_Blob {
 
 
     /**
+     * Индивидуални полета, в които има грешки
+     */
+    public $errorFields = array();
+    
+    
+    /**
      * Инициализиране на типа
      */
     function init($params = array())
