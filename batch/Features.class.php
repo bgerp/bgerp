@@ -31,7 +31,7 @@ class batch_Features extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'itemId,classId,value';
+    public $listFields = 'itemId,name,value';
     
     
     /**
@@ -58,10 +58,22 @@ class batch_Features extends core_Manager {
     function description()
     {
     	$this->FLD('itemId', 'key(mvc=batch_Items)', 'mandatory,caption=Перо');
-    	$this->FLD('classId', 'class(interface=batch_BatchTypeIntf,select=title)', 'caption=Клас,mandatory');
+    	$this->FLD('name', 'varchar', 'caption=Свойство,mandatory');
     	$this->FLD('value', 'varchar(128)', 'mandatory,caption=Стойност');
     	
-    	$this->setDbUnique('itemId,classId,value');
+    	$this->setDbUnique('itemId,name,value');
+    }
+    
+    
+    /**
+     * Канонизира името на свойството
+     * 
+     * @param string $name
+     * @return string
+     */
+    public static function canonize($name)
+    {
+    	return str::mbUcfirst($name);
     }
     
     
@@ -74,7 +86,7 @@ class batch_Features extends core_Manager {
     public static function sync($itemId)
     {
     	// Кое е перото и партидната дефиниция
-    	$itemRec = batch_Items::fetch($itemId);
+    	$itemRec = batch_Items::fetchRec($itemId);
     	$Def = batch_Defs::getBatchDef($itemRec->productId);
     	if(!is_object($Def)) return;
     	
@@ -88,7 +100,7 @@ class batch_Features extends core_Manager {
     	
     	$res = array();
     	foreach ($features as $class => $featObj){
-    		$obj = (object)array('itemId' => $itemRec->id, 'classId' => $featObj->classId, 'value' => $featObj->value);
+    		$obj = (object)array('itemId' => $itemRec->id, 'name' => self::canonize($featObj->name), 'value' => $featObj->value);
     		
     		if(!$self->isUnique($obj, $fields, $exRec)){
     			$obj->id = $exRec->id;

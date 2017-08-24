@@ -193,4 +193,23 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
 			$batches = $sorted;
 		}
 	}
+	
+	
+	/**
+	 * Какви са свойствата на партидата
+	 *
+	 * @param varchar $value - номер на партидара
+	 * @return array - свойства на партидата
+	 * 			o name - заглавие
+	 * 			o value  - стойност
+	 */
+	public function getFeatures($value)
+	{
+		$classId = $this->getClassId();
+			
+		$res = array();
+		$res[] = (object)array('name' => 'Срок на годност', 'value' => $value);
+	
+		return $res;
+	}
 }

@@ -263,4 +263,23 @@ class batch_definitions_Serial extends batch_definitions_Proto
 	{
 		return FALSE;
 	}
+	
+	
+	/**
+	 * Какви са свойствата на партидата
+	 *
+	 * @param varchar $value - номер на партидара
+	 * @return array - свойства на партидата
+	 * 			o name - заглавие
+	 * 			o value  - стойност
+	 */
+	public function getFeatures($value)
+	{
+		$classId = $this->getClassId();
+			
+		$res = array();
+		$res[] = (object)array('name' => 'Сериен номер', 'value' => $value);
+	
+		return $res;
+	}
 }
