@@ -556,8 +556,12 @@ class batch_BatchesInDocuments extends core_Manager
 		
 		$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 		 
+		$tpl = $this->renderWrapping($form->renderHtml());
+		$formId = $form->formAttr['id'] ;
+		jquery_Jquery::run($tpl, "preventDoubleSubmission('{$formId}');");
+		
 		// Рендиране на формата
-		return $this->renderWrapping($form->renderHtml());
+		return $tpl;
 	}
 	
 	
