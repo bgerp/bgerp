@@ -289,6 +289,7 @@ class batch_Items extends core_Master {
     	
     	// Сетване на новите опции
     	$data->listFilter->setOptions('filterState', $options);
+    	$data->listFilter->setDefault('filterState', 'active');
     	$data->listFilter->showFields = 'search,store,filterState';
     	$data->listFilter->input();
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
