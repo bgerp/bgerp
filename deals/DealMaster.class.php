@@ -379,10 +379,10 @@ abstract class deals_DealMaster extends deals_DealBase
 		$data->listFilter->input();
 		if($filter = $data->listFilter->rec) {
 		
-			$data->query->XPR('paidRound', 'double', 'ROUND(#amountPaid, 2)');
-			$data->query->XPR('dealRound', 'double', 'ROUND(#amountDeal, 2)');
-			$data->query->XPR('invRound', 'double', 'ROUND(#amountInvoiced, 2)');
-			$data->query->XPR('deliveredRound', 'double', 'ROUND(#amountDelivered , 2)');
+			$data->query->XPR('paidRound', 'double', 'ROUND(COALESCE(#amountPaid, 0), 2)');
+			$data->query->XPR('dealRound', 'double', 'ROUND(COALESCE(#amountDeal, 0), 2)');
+			$data->query->XPR('invRound', 'double', 'ROUND(COALESCE(#amountInvoiced, 0), 2)');
+			$data->query->XPR('deliveredRound', 'double', 'ROUND(COALESCE(#amountDelivered, 0), 2)');
 			
 			if($filter->type) {
 				switch($filter->type){
