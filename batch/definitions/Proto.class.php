@@ -192,8 +192,10 @@ abstract class batch_definitions_Proto extends core_BaseClass
      */
     public function getFeatures($value)
     {
+    	$classId = $this->getClassId();
+    	
     	$res = array();
-    	$res[] = (object)array('name' => core_Classes::getTitleById($classId), 'classId' => $this->getClassId(), 'value' => $value);
+    	$res[] = (object)array('name' => core_Classes::getTitleById($classId), 'classId' => $classId, 'value' => $value);
     	 
     	return $res;
     }
