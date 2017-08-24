@@ -184,7 +184,7 @@ class batch_Items extends core_Master {
     	}
     	
     	if(isset($rec->featureId)){
-    		$featRec = batch_Features::fetch($rec->featureId, 'classId,value');
+    		$featRec = batch_Features::fetch($rec->featureId, 'name,classId,value');
     		$row->featureId = cls::get($featRec->classId)->toVerbal($featRec->value);
     	}
     }

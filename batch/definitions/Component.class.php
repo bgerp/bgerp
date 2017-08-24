@@ -113,16 +113,17 @@ class batch_definitions_Component extends batch_definitions_Proto
      *
      * @param varchar $value - номер на партидара
      * @return array - свойства на партидата
-     * 			o name - заглавие
-     * 			o value  - стойност
+     * 			o name    - заглавие
+     * 			o classId - клас
+     * 			o value   - стойност
      */
     public function getFeatures($value)
     {
     	list($string, $number) = explode('|', $value);
     	
     	$res = array();
-    	$res[] = (object)array('name' => 'Партида', 'value' => $string);
-    	$res[] = (object)array('name' => 'Партида', 'value' => $number);
+    	$res[] = (object)array('name' => 'Партида', 'classId' => batch_definitions_Varchar::getClassId(), 'value' => $string);
+    	$res[] = (object)array('name' => 'Партида', 'classId' => batch_definitions_Varchar::getClassId(), 'value' => $number);
     	
     	return $res;
     }

@@ -75,7 +75,7 @@ class batch_Setup extends core_ProtoSetup
     		'migrate::migrateProdBatches',
     		'migrate::migrateDefs',
     		'migrate::migrateProdDetBatches',
-    		'migrate::updateFeatures2',
+    		'migrate::updateFeatures3',
         );
     
 
@@ -349,7 +349,7 @@ class batch_Setup extends core_ProtoSetup
     /**
      * Ъпдейт на свойствата на партидите
      */
-    public static function updateFeatures2()
+    public static function updateFeatures3()
     {
     	$Features = cls::get('batch_Features');
     	$Features->setupMvc();

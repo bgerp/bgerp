@@ -31,7 +31,7 @@ class batch_Features extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'itemId,name,value';
+    public $listFields = 'itemId,name,classId,value';
     
     
     /**
@@ -59,6 +59,7 @@ class batch_Features extends core_Manager {
     {
     	$this->FLD('itemId', 'key(mvc=batch_Items)', 'mandatory,caption=Перо');
     	$this->FLD('name', 'varchar', 'caption=Свойство,mandatory');
+    	$this->FLD('classId', 'class(interface=batch_BatchTypeIntf,select=title)', 'caption=Клас,mandatory');
     	$this->FLD('value', 'varchar(128)', 'mandatory,caption=Стойност');
     	
     	$this->setDbUnique('itemId,name,value');
@@ -100,7 +101,10 @@ class batch_Features extends core_Manager {
     	
     	$res = array();
     	foreach ($features as $class => $featObj){
-    		$obj = (object)array('itemId' => $itemRec->id, 'name' => self::canonize($featObj->name), 'value' => $featObj->value);
+    		$obj = (object)array('itemId'  => $itemRec->id, 
+    							 'name'    => self::canonize($featObj->name), 
+    							 'classId' => $featObj->classId,
+    							 'value'   => $featObj->value,);
     		
     		if(!$self->isUnique($obj, $fields, $exRec)){
     			$obj->id = $exRec->id;

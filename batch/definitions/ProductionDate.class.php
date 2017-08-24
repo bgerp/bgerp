@@ -52,19 +52,18 @@ class batch_definitions_ProductionDate extends batch_definitions_Date
 	
 	
 	/**
-	 * Какви са свойствата на партидата
-	 *
-	 * @param varchar $value - номер на партидара
-	 * @return array - свойства на партидата
-	 * 			o name - заглавие
-	 * 			o value  - стойност
-	 */
+     * Какви са свойствата на партидата
+     *
+     * @param varchar $value - номер на партидара
+     * @return array - свойства на партидата
+     * 			o name    - заглавие
+     * 			o classId - клас
+     * 			o value   - стойност
+     */
 	public function getFeatures($value)
 	{
-		$classId = $this->getClassId();
-			
 		$res = array();
-		$res[] = (object)array('name' => 'Дата на производство', 'value' => $value);
+		$res[] = (object)array('name' => 'Дата на производство', 'classId' => $this->getClassId(), 'value' => $value);
 	
 		return $res;
 	}

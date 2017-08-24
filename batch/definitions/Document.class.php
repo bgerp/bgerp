@@ -71,20 +71,21 @@ class batch_definitions_Document extends batch_definitions_Proto
 	
 	
 	/**
-	 * Какви са свойствата на партидата
-	 *
-	 * @param varchar $value - номер на партидара
-	 * @return array - свойства на партидата
-	 * 			o name - заглавие
-	 * 			o value  - стойност
-	 */
+     * Какви са свойствата на партидата
+     *
+     * @param varchar $value - номер на партидара
+     * @return array - свойства на партидата
+     * 			o name    - заглавие
+     * 			o classId - клас
+     * 			o value   - стойност
+     */
 	public function getFeatures($value)
 	{
 		list($date, $string) = explode('-', $value);
-		 
+		
 		$res = array();
-		$res[] = (object)array('name' => 'Документ', 'value' => $string);
-		$res[] = (object)array('name' => 'Дата', 'value' => $date);
+		$res[] = (object)array('name' => 'Документ', 'classId' => batch_definitions_Varchar::getClassId(), 'value' => $string);
+		$res[] = (object)array('name' => 'Дата', 'classId' => batch_definitions_ExpirationDate::getClassId(), 'value' => $date);
 		 
 		return $res;
 	}
