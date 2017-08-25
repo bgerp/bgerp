@@ -369,10 +369,10 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 				
 			// Изчислява се готовността
 			$readiness = core_Cache::get('sales_reports_ShipmentReadiness', "c{$sRec->containerId}");
-			if($readiness === FALSE) {
+			//if($readiness === FALSE) {
 				$readiness = self::calcSaleReadiness($sRec);
 				core_Cache::set('sales_reports_ShipmentReadiness', "c{$sRec->containerId}", $readiness, 58);
-			}
+			//}
 			
 			$delTime = (!empty($sRec->deliveryTime)) ? $sRec->deliveryTime : (!empty($sRec->deliveryTermTime) ?  dt::addSecs($sRec->deliveryTermTime, $sRec->valior) : NULL);
 			if(empty($delTime)){
@@ -568,6 +568,12 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 		// Взимане на договорените и експедираните артикули по продажбата (събрани по артикул)
 		$Sales = sales_Sales::getSingleton();
 		$dealInfo = $Sales->getAggregateDealInfo($saleRec);
+		$agreed = $dealInfo->get('amount');
+		$shippedAmount = $dealInfo->get('deliveryAmount');
+		
+		// Ако доставеното по сделката е над 90% от сумата и, то тя се пропуска
+		if($shippedAmount / $agreed > 0.9) return NULL;
+		
 		$agreedProducts = $dealInfo->get('products');
 		$shippedProducts = $dealInfo->get('shippedProducts');
 			
@@ -612,10 +618,6 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 				$quantity = 0;
 			} else {
 				if(isset($shippedProducts[$pId])){
-					if(!empty($shippedProducts[$pId]->quantity)){
-						if($shippedProducts[$pId]->quantity / $q > 0.9) continue;
-					}
-					
 					$quantity = $q - $shippedProducts[$pId]->quantity;
 				} else {
 					$quantity = $q;
