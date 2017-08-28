@@ -139,7 +139,9 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
 			
 			// Намиране на партидите със свойство 'срок на годност'
 			$featQuery = batch_Features::getQuery();
-			$featQuery->where("#classId = {$this->getClassId()}");
+			
+			$name = batch_Features::canonize('Срок на годност');
+			$featQuery->where("#name = '{$name}'");
 			$featQuery->orderBy('value', 'ASC');
 			$itemsIds = arr::extractValuesFromArray($featQuery->fetchAll(), 'itemId');
 			$query->in('id', $itemsIds);
@@ -192,5 +194,23 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
 			
 			$batches = $sorted;
 		}
+	}
+	
+	
+	/**
+     * Какви са свойствата на партидата
+     *
+     * @param varchar $value - номер на партидара
+     * @return array - свойства на партидата
+     * 			o name    - заглавие
+     * 			o classId - клас
+     * 			o value   - стойност
+     */
+	public function getFeatures($value)
+	{
+		$res = array();
+		$res[] = (object)array('name' => 'Срок на годност', 'classId' => $this->getClassId(), 'value' => $value);
+	
+		return $res;
 	}
 }

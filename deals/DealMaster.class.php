@@ -379,10 +379,10 @@ abstract class deals_DealMaster extends deals_DealBase
 		$data->listFilter->input();
 		if($filter = $data->listFilter->rec) {
 		
-			$data->query->XPR('paidRound', 'double', 'ROUND(#amountPaid, 2)');
-			$data->query->XPR('dealRound', 'double', 'ROUND(#amountDeal, 2)');
-			$data->query->XPR('invRound', 'double', 'ROUND(#amountInvoiced, 2)');
-			$data->query->XPR('deliveredRound', 'double', 'ROUND(#amountDelivered , 2)');
+			$data->query->XPR('paidRound', 'double', 'ROUND(COALESCE(#amountPaid, 0), 2)');
+			$data->query->XPR('dealRound', 'double', 'ROUND(COALESCE(#amountDeal, 0), 2)');
+			$data->query->XPR('invRound', 'double', 'ROUND(COALESCE(#amountInvoiced, 0), 2)');
+			$data->query->XPR('deliveredRound', 'double', 'ROUND(COALESCE(#amountDelivered, 0), 2)');
 			
 			if($filter->type) {
 				switch($filter->type){
@@ -1336,6 +1336,9 @@ abstract class deals_DealMaster extends deals_DealBase
     	// Рендиране на формата
     	$tpl = $this->renderWrapping($form->renderHtml());
     	
+    	$formId = $form->formAttr['id'] ;
+    	jquery_Jquery::run($tpl, "preventDoubleSubmission('{$formId}');");
+    	
     	return $tpl;
     }
     
@@ -1823,7 +1826,11 @@ abstract class deals_DealMaster extends deals_DealBase
     		plg_ProtoWrapper::changeWrapper($this, 'cms_ExternalWrapper');
     	}
     	
-    	return $this->renderWrapping($form->renderHtml());
+    	$tpl = $this->renderWrapping($form->renderHtml());
+    	$formId = $form->formAttr['id'] ;
+    	jquery_Jquery::run($tpl, "preventDoubleSubmission('{$formId}');");
+    	
+    	return $tpl;
     }
     
     

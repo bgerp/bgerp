@@ -30,6 +30,12 @@ class core_Master extends core_Manager
     
     
     /**
+     * Кой е основния детайл
+     */
+    public $mainDetail;
+    
+    
+    /**
      * Опашка на записите чакащи ъпдейт
      */
     protected $updateQueue = array();

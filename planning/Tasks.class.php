@@ -312,7 +312,7 @@ class planning_Tasks extends tasks_Tasks
 	/**
 	 * Информация за произведения артикул по задачата
 	 *
-	 * @param stdClass $rec
+	 * @param mixed $id
 	 * @return stdClass $arr
 	 * 			  o productId       - ид на артикула
 	 * 			  o packagingId     - ид на опаковката

@@ -730,6 +730,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$tpl = $form->renderHtml();
 		$tpl = $this->renderWrapping($tpl);
 		
+		$formId = $form->formAttr['id'] ;
+		jquery_Jquery::run($tpl, "preventDoubleSubmission('{$formId}');");
+		
 		return $tpl;
 	}
 	

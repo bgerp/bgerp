@@ -567,17 +567,52 @@ class bgerp_Notifications extends core_Manager
             expect(doc_Folders::haveRightFor('single', $folderId));
         }
         
-        expect($folderId || $threadId || $containerId, $rec);
+        expect($folderId || $threadId || $containerId, $rec, $url);
         
         $ctrInst = cls::get($ctr);
         
         $form = cls::get('core_Form');
         
+        // Подготвяме полето за бързо спиране на нотификации
+        $stopNotifySet = 'all=Всички,';
+        $stopNotifySetArr = array();
+        
+        if ($containerId && $threadId) {
+            $stopNotifySet .= 'notify=Нов документ в нишка,';
+            $stopNotifySetArr['notify'] = 'notify';
+        }
+        
+        if ($folderId) {
+            $stopNotifySet .= 'newDoc=Нов документ в папка, newThread=Нова тема, folOpenings=Отворена тема';
+            $stopNotifySetArr['newDoc'] = 'newDoc';
+            $stopNotifySetArr['newThread'] = 'newThread';
+            $stopNotifySetArr['folOpenings'] = 'folOpenings';
+        }
+        
+        if ($stopNotifySet) {
+            $form->FNC('stopNotify', "set({$stopNotifySet})", 'caption=Не искам да получавам известия при->Избор, input, removeAndRefreshForm=notify,newDoc,newThread,folOpenings');
+        }
+        
         $sArr = array();
         
         $enumChoise = 'enum(default=Автоматично, yes=Винаги, no=Никога)';
-        $enumTypeArr = array('input' => 'input', 'maxRadio' => 3, 'columns' => 3);
+        $enumTypeArr = array('input' => 'input', 'maxRadio' => 3, 'columns' => 3, 'autohide');
         
+        $form->input('stopNotify');
+        
+        // Ако се избере всички
+        if ($form->cmd == 'refresh') {
+            if (type_Set::isIn('all', $form->rec->stopNotify)) {
+                $stopNotifySetArr['all'] = 'all';
+                $form->rec->stopNotify = implode(',', $stopNotifySetArr);
+            }
+        }
+        
+        $notifyDefArr = array();
+        
+        $valsArr = array();
+        
+        // Настройки за папк
         if ($folderId) {
             $fKey = doc_Folders::getSettingsKey($folderId);
             
@@ -594,22 +629,16 @@ class bgerp_Notifications extends core_Manager
             $enumTypeArr['caption'] = $fCaption . '->Отворени теми';
             $form->FNC('folOpenings', $enumChoise, $enumTypeArr);
             
-            $enumTypeArr['caption'] = $fCaption . '->Личен имейл';
-            $form->FNC('personalEmailIncoming', $enumChoise, $enumTypeArr);
-            
-            $sArr[$fKey] = array('newDoc', 'newThread', 'folOpenings', 'personalEmailIncoming');
+            $sArr[$fKey] = array('newDoc', 'newThread', 'folOpenings');
             
             // Добавяме стойностите по подразбиране
-            $valsArr = core_Settings::fetchKeyNoMerge($fKey);
-            foreach ($valsArr as $valKey => $val) {
-                $form->setDefault($valKey, $val);
-            }
-            
-            foreach ($sArr[$fKey] as $v) {
-                $form->setDefault($v, 'default');
-            }
+            $valsArr[$fKey] = core_Settings::fetchKeyNoMerge($fKey);
+            setIfNot($valsArr[$fKey]['newDoc'], 'default');
+            setIfNot($valsArr[$fKey]['newThread'], 'default');
+            setIfNot($valsArr[$fKey]['folOpenings'], 'default');
         }
         
+        // Настройки за нишка
         if ($containerId && $threadId) {
             $tKey = doc_Threads::getSettingsKey($threadId);
             
@@ -622,21 +651,42 @@ class bgerp_Notifications extends core_Manager
             $sArr[$tKey] = array('notify');
             
             // Добавяме стойностите по подразбиране
-            $valsArr = core_Settings::fetchKeyNoMerge($tKey);
-            foreach ($valsArr as $valKey => $val) {
+            $valsArr[$tKey] = core_Settings::fetchKeyNoMerge($tKey);
+            setIfNot($valsArr[$fKey]['notify'], 'default');
+        }
+        
+        // Сетваме необходимите стойности
+        foreach ($sArr as $fKey => $fArr) {
+            foreach ($fArr as $valKey) {
+                
+                $val = $valsArr[$fKey][$valKey];
+                
+                // Ако е рефрешната формата чрез избор
+                if ($form->cmd == 'refresh') {
+                    if (type_Set::isIn($valKey, $form->rec->stopNotify)) {
+                        Request::push(array($valKey => 'no'));
+                    } else {
+                        Request::push(array($valKey => $valsArr[$fKey][$valKey]));
+                    }
+                } else {
+                    if ($val == 'no') {
+                        $notifyDefArr[$valKey] = $valKey;
+                    }
+                }
+                
                 $form->setDefault($valKey, $val);
             }
-            
-            foreach ($sArr[$tKey] as $v) {
-                $form->setDefault($v, 'default');
-            }
         }
+        
+        // По подразбиране да са избрани стойностите, които са Не
+        $form->setDefault('stopNotify', $notifyDefArr);
         
         $form->input();
         
         if ($form->isSubmitted()) {
+            
             foreach ($sArr as $key => $sArr) {
-                $vRecArr = array();
+                $vRecArr = $valsArr[$key];
                 foreach ($sArr as $rVal) {
                     $vRecArr[$rVal] = $form->rec->{$rVal};
                 }

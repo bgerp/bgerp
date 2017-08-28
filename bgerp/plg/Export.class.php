@@ -183,7 +183,7 @@ class bgerp_plg_Export extends core_Plugin
             }
             
             $form->toolbar->addSbBtn('Експорт', 'default', array('class' => 'btn-next'), 'ef_icon = img/16/export.png');
-            $form->toolbar->addBtn('Отказ', array($this, 'list'), 'ef_icon = img/16/close-red.png');
+            $form->toolbar->addBtn('Отказ', array($mvc, 'list'), 'ef_icon = img/16/close-red.png');
          
             $form = $form->renderHtml();
           

@@ -243,7 +243,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	
     	foreach ($data->rows as $id => $row){
     		$rec = $data->recs[$id];
-    		$row->measureId = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'), 'name');
+    		$row->measureId = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
     		
     		if(isset($rec->storeId)){
     			$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
@@ -368,7 +368,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     			$progress = ($tRec->plannedQuantity == 1) ? 1 : 0.1;
     			tasks_TaskConditions::add($taskRec, $tRec->taskId, $progress);
     		} catch(core_exception_Expect $e){
-    			
+    			reportException($e);
     		}
     	}
     }

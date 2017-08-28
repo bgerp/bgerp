@@ -27,6 +27,12 @@ class type_Table extends type_Blob {
 
 
     /**
+     * Индивидуални полета, в които има грешки
+     */
+    public $errorFields = array();
+    
+    
+    /**
      * Инициализиране на типа
      */
     function init($params = array())
@@ -75,7 +81,7 @@ class type_Table extends type_Blob {
                 $row1 .= "<td>" . ht::createSelect($attr[$field]['name'], $opt[$field], strip_tags($value[$field][0]), $attr[$field]) . "</td>";
             } elseif($this->params[$suggestOpt]){
             	if(!is_array($this->params[$suggestOpt])){
-            		$sgt = explode('|', $this->params[$suggestOpt]);
+            		$sgt = (strpos($this->params[$suggestOpt], '=') !== FALSE) ? arr::make($this->params[$suggestOpt]) : explode('|', $this->params[$suggestOpt]);
             	} else {
             		$sgt = $this->params[$suggestOpt];
             	}

@@ -362,8 +362,12 @@ abstract class deals_DealBase extends core_Master
     	$form->toolbar->addSbBtn('Обединяване', 'save', 'ef_icon = img/16/tick-circle-frame.png');
     	$form->toolbar->addBtn('Отказ', array($this, 'single', $id),  'ef_icon = img/16/close-red.png');
     	
+    	$tpl = $this->renderWrapping($form->renderHtml());
+    	$formId = $form->formAttr['id'] ;
+    	jquery_Jquery::run($tpl, "preventDoubleSubmission('{$formId}');");
+    	
     	// Рендиране на формата
-    	return $this->renderWrapping($form->renderHtml());
+    	return $tpl;
     }
     
     

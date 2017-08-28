@@ -642,14 +642,17 @@ abstract class deals_DealDetail extends doc_Detail
     			followRetUrl(NULL, 'Списъкът е импортиран успешно');
     		}
     	}
-    	 
+
     	// Добавяне на тулбар
     	$form->toolbar->addSbBtn('Импорт', 'save', 'ef_icon = img/16/import.png, title = Импорт');
     	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
     
     	// Рендиране на опаковката
     	$tpl = $this->renderWrapping($form->renderHtml());
-    	 
+
+		$formId = $form->formAttr['id'] ;
+		jquery_Jquery::run($tpl, "preventDoubleSubmission('{$formId}');");
+
     	return $tpl;
     }
     
