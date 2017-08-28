@@ -1125,6 +1125,10 @@ class planning_Jobs extends core_Master
     	$form = $form->renderHtml();
     	$tpl = $this->renderWrapping($form);
     	
+    	$formId = $form->formAttr['id'] ;
+    	jquery_Jquery::run($tpl, "preventDoubleSubmission('{$formId}');");
+    	
+    	
     	return $tpl;
     }
     

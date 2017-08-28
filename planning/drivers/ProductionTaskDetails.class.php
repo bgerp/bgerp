@@ -167,7 +167,6 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     			$form->setReadOnly('serial');
     			$form->setReadOnly('quantity');
     			$form->setField('scrappedQuantity', 'input');
-    			$form->setField('scrappedQuantity', "unit={$unit}");
     			$form->setFieldTypeParams('scrappedQuantity', array('max' => $rec->quantity, 'min' => 0));
     			$form->setField('employees', 'input=none');
     			$form->setField('fixedAsset', 'input=none');

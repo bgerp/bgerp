@@ -184,7 +184,7 @@ class batch_Items extends core_Master {
     	}
     	
     	if(isset($rec->featureId)){
-    		$featRec = batch_Features::fetch($rec->featureId, 'classId,value');
+    		$featRec = batch_Features::fetch($rec->featureId, 'name,classId,value');
     		$row->featureId = cls::get($featRec->classId)->toVerbal($featRec->value);
     	}
     }
@@ -289,6 +289,7 @@ class batch_Items extends core_Master {
     	
     	// Сетване на новите опции
     	$data->listFilter->setOptions('filterState', $options);
+    	$data->listFilter->setDefault('filterState', 'active');
     	$data->listFilter->showFields = 'search,store,filterState';
     	$data->listFilter->input();
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');

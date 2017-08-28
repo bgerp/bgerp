@@ -176,7 +176,7 @@ class pos_Cards extends core_Manager {
      * 
      * @param varchar $number - номер на карта
      * @param int $ctrClassId - ид на класа от който трябва да е контрагента
-     * @return core_ObjectReference - референция към контрагента
+     * @return FALSE|core_ObjectReference - референция към контрагента
      */
     public static function getContragent($number, $ctrClassId = NULL)
     {

@@ -190,9 +190,10 @@ class planning_TaskSerials extends core_Manager
 	 * @param int $productId       - ид на артикул, на който добавяме номера
 	 * @param int $taskId          - задача към която се опитваме да добавим номер в прогреса
 	 * @param product|input $type  - дали е за производим артикул или е за вложим/отпадък
+	 * @param int|NULL $id         - ид
 	 * @return FALSE|string $error - FALSE ако номера е допустим, или текст с какъв е проблема
 	 */
-	public static function isSerialinValid($serial, $productId, $taskId, $type)
+	public static function isSerialinValid($serial, $productId, $taskId, $type, $id = NULL)
 	{
 		// Трябва да има сериен номер
 		expect($serial);

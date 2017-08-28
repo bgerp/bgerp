@@ -2283,6 +2283,26 @@ class doc_DocumentPlg extends core_Plugin
         $isFromList = (int)Mode::is('forListRows');
         
         $res = array($mvc, 'pSingle', $docId, 'pUrl' => $clsId . '_' . $dId . '_' . $docId . '_' . $isFromList, 'ret_url' => TRUE);
+        
+        // Ако ще се показва в листов изглед
+        // Добавяме към масива с временен достъп до сингъл изгледа
+        if ($isFromList && $dId) {
+            $dRec = $mInst->fetch($dId);
+            
+            if ($dRec) {
+                $modeAllowedContainerIdName = $mvc->getAllowedContainerName();
+                
+                $allowedCidArr = Mode::get($modeAllowedContainerIdName);
+                
+                if (!isset($allowedCidArr)) {
+                    $allowedCidArr = array();
+                }
+                
+                $allowedCidArr[$dRec->containerId] = $dRec->containerId;
+                
+                Mode::setPermanent($modeAllowedContainerIdName, $allowedCidArr);
+            }
+        }
     }
     
     

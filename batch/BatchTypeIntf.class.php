@@ -117,11 +117,12 @@ class batch_BatchTypeIntf extends embed_DriverIntf
     
     /**
      * Какви са свойствата на партидата
-     * 
+     *
      * @param varchar $value - номер на партидара
      * @return array - свойства на партидата
-     * 			o classId - ид на клас на партида
-     * 			o value  - стойност
+     * 			o name    - заглавие
+     * 			o classId - клас
+     * 			o value   - стойност
      */
     public function getFeatures($value)
     {
