@@ -151,7 +151,7 @@ class support_Issues extends core_Master
     /**
      * 
      */
-    var $listFields = 'id, title, systemId, componentId, typeId, modifiedOn, modifiedBy, activatedOn';
+    var $listFields = 'id, title, systemId, componentId, typeId, modifiedOn, modifiedBy';
     
     
     /**
@@ -708,6 +708,7 @@ class support_Issues extends core_Master
     static function on_AfterPrepareListFilter($mvc, &$data)
     {
         // Подреждаме по дата по - новите по - напред
+        $data->query->orderBy('modifiedOn', 'DESC');
         $data->query->orderBy('createdOn', 'DESC');
         
         // Подреждаме сиганлите активните отпред, затворените отзад а другите по между им
