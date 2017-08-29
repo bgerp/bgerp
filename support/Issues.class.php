@@ -151,7 +151,7 @@ class support_Issues extends core_Master
     /**
      * 
      */
-    var $listFields = 'id, title, systemId, componentId, typeId';
+    var $listFields = 'id, title, systemId, componentId, typeId, modifiedOn, modifiedBy, activatedOn';
     
     
     /**
