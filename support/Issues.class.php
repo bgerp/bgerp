@@ -707,13 +707,13 @@ class support_Issues extends core_Master
      */
     static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        // Подреждаме по дата по - новите по - напред
-        $data->query->orderBy('modifiedOn', 'DESC');
-        $data->query->orderBy('createdOn', 'DESC');
-        
         // Подреждаме сиганлите активните отпред, затворените отзад а другите по между им
         $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 3 ELSE 2 END)");
         $data->query->orderBy('orderByState');
+        
+        // Подреждаме по дата по - новите по - напред
+        $data->query->orderBy('modifiedOn', 'DESC');
+        $data->query->orderBy('createdOn', 'DESC');
         
         // Задаваме на полета да имат възможност за задаване на празна стойност
         $data->listFilter->getField('systemId')->type->params['allowEmpty'] = TRUE;
