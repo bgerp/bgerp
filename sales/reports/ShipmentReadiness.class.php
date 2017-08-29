@@ -572,7 +572,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 		$shippedAmount = $dealInfo->get('deliveryAmount');
 		
 		// Ако доставеното по сделката е над 90% от сумата и, то тя се пропуска
-		if($shippedAmount / $agreed > 0.9) return NULL;
+		if ($agreed && ($shippedAmount / $agreed > 0.9)) return NULL;
 		
 		$agreedProducts = $dealInfo->get('products');
 		$shippedProducts = $dealInfo->get('shippedProducts');
