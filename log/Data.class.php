@@ -735,10 +735,11 @@ class log_Data extends core_Manager
             
             // Избрания обект да е на първо място
             if ($rec->object) {
-//                 $cQuery->orWhere(array("#objectId = '[#1#]'", $rec->object));
+                $cQuery->where(array("#objectId = '[#1#]'", $rec->object));
+                $cQuery->limit(1);
+            } else {
+                $cQuery->limit(100);
             }
-            
-            $cQuery->limit(100);
             
             $cQuery->show('classCrc, objectId');
             
