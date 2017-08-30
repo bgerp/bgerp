@@ -536,7 +536,6 @@ class cal_Tasks extends core_Master
      */
     protected static function on_AfterInputEditForm($mvc, $form)
     {
-        $cu = core_Users::getCurrent();
         $rec = $form->rec;
 
         $rec->allDay = (strlen($rec->timeStart) == 10) ? 'yes' : 'no';
@@ -554,7 +553,7 @@ class cal_Tasks extends core_Master
             if ($rec->timeStart && $rec->timeEnd && $rec->timeDuration) {
                 $form->setError('timeEnd,timeStart,timeDuration', 'Не може задачата да има едновременно начало, продължителност и край. Попълнете само две от тях');
             }
-
+            
             // при активиране на задачата
             if ($rec->state == 'active') {
 
@@ -574,11 +573,23 @@ class cal_Tasks extends core_Master
                     // правим заявка към базата
                     $query = self::getQuery();
 
-                    // търсим всички задачи, които са шернати на текущия потребител
+                    // Tърсим всички задачи, които са шернати на споделените и възложените потребители или на текущия потребител
                     // и имат някаква стойност за начало и край
                     // или за начало и продължителност
-                    $query->likeKeylist('sharedUsers', $rec->sharedUsers);
-
+                    
+                    $sharedUsersArr = keylist::toArray($rec->sharedUsers);
+                    
+                    if ($rec->assign) {
+                        $sharedUsersArr[$rec->assign] = $rec->assign;
+                    }
+                    
+                    if (empty($sharedUsersArr)) {
+                        $cu = core_Users::getCurrent();
+                        $sharedUsersArr[$cu] = $cu;
+                    }
+                    
+                    $query->likeKeylist('sharedUsers', $sharedUsersArr);
+                    
                     if ($rec->id) {
                         $query->where("#id != {$rec->id}");
                     }
@@ -593,13 +604,38 @@ class cal_Tasks extends core_Master
 
 
                     $query->where("#state = 'active'");
-
-                    // за всяка една задача отговаряща на условията проверяваме
-                    if ($recTask = $query->fetch()) {
-
-                        $link = ht::createLink($recTask->title, array('cal_Tasks', 'single', $recTask->id, 'ret_url' => TRUE, ''), NULL, "ef_icon=img/16/task-normal.png");
-                        // и изписваме предупреждение
-                        $form->setWarning('timeStart, timeDuration, timeEnd', "|Засичане по време с |*{$link}");
+                    
+                    doc_Threads::restrictAccess($query);
+                    
+                    $query->orderBy('modifiedOn', 'DESC');
+                    
+                    $cnt = $query->count();
+                    
+                    $limit = 10;
+                    
+                    $query->limit($limit);
+                    
+                    $link = '';
+                    
+                    // За всяка една задача отговаряща на условията проверяваме
+                    while ($recTask = $query->fetch()) {
+                        
+                        $link .= ($link) ? '<br>' : '';
+                        
+                        $link .= ht::createLink($recTask->title, $mvc->getSingleUrlArray($recTask->id), NULL, "ef_icon=img/16/task-normal.png");
+                    }
+                    
+                    if ($link) {
+                        
+                        if ($cnt > 1) {
+                            $link = '<br>' . $link;
+                        }
+                        
+                        if ($cnt > $limit) {
+                            $link .= "<br>" . ' +' . tr('oще') . ': ' . ($cnt - $limit);
+                        }
+                        
+                        $form->setWarning('timeStart, timeDuration, timeEnd', "|Засичане по време с|*: {$link}");
                     }
                 }
             }
@@ -860,8 +896,6 @@ class cal_Tasks extends core_Master
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $cu = core_Users::getCurrent();
-
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('from', 'date', 'caption=От,input=none');
         $data->listFilter->FNC('to', 'date', 'caption=До,input=none');
