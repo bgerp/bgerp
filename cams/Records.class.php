@@ -941,6 +941,8 @@ class cams_Records extends core_Master
     {
     	$conf = core_Packs::getConfig('cams');
     	
+        if(!file_exists(CAMS_VIDEOS_PATH) || !is_writable(CAMS_VIDEOS_PATH)) return;
+
         $freeSpace = disk_free_space(CAMS_VIDEOS_PATH);
         
         if($freeSpace < $conf->CAMS_MIN_DISK_SPACE) {
