@@ -340,11 +340,11 @@ class email_Setup extends core_ProtoSetup
             
             'EMAIL_STOP_SEND_TO' => array ('varchar', 'caption=Шаблон за имейли до които няма да се праща->Шаблон'),
             
-            'EMAIL_AUTO_REJECT_SPAM_SCORE_HEADERS' => array ('varchar', 'caption=Хедъри за проверка на СПАМ рейтинг->Хедъри'),
+            'EMAIL_AUTO_REJECT_SPAM_SCORE_HEADERS' => array ('varchar', 'caption=Проверка на СПАМ рейтинг->Хедъри'),
             
-            'EMAIL_AUTO_REJECT_SPAM_SCORE' => array ('varchar', 'caption=Автоматично оттегляне на спам->Рейтинг'),
+            'EMAIL_AUTO_REJECT_SPAM_SCORE' => array ('varchar', 'caption=Проверка на СПАМ рейтинг->Оттегляне'),
             
-            'EMAIL_WARNING_SPAM_SCORE' => array ('varchar', 'caption=Предупреждение за възможен спам->Рейтинг'),
+            'EMAIL_WARNING_SPAM_SCORE' => array ('varchar', 'caption=Проверка на СПАМ рейтинг->Предупреждение'),
         );
         
         
