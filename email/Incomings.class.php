@@ -1782,6 +1782,26 @@ class email_Incomings extends core_Master
             $rec->state = 'rejected';
             self::logNotice("Автоматично оттеглен имейл ({$rec->subject}) със СПАМ рейтинг = '{$score}'", $rec->id);
         }
+        
+        if ($rec->state != 'rejected') {
+            // Проверка на имейла за файл с вирус
+            $files = $rec->files;
+            $files = type_Keylist::addKey($files, $rec->emlFile);
+            $files = type_Keylist::addKey($files, $rec->htmlFile);
+            
+            $filesArr = type_Keylist::toArray($files);
+            if (!empty($filesArr)) {
+                $fQuery = fileman_Files::getQuery();
+                $fQuery->orWhereArr('id', $filesArr);
+                $fQuery->where("#dangerRate IS NOT NULL");
+                $fQuery->where("#dangerRate >= 0.001");
+                
+                if ($fQuery->count()) {
+                    $rec->state = 'rejected';
+                    self::logNotice("Автоматично оттеглен имейл ({$rec->subject}) с вирусен файл", $rec->id);
+                }
+            }
+        }
     }
     
     
