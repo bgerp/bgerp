@@ -443,34 +443,6 @@ class vtotal_Checks extends core_Master
                 
                 if ($result->positives) {
                     fileman_Data::logNotice('Файл с вирус', $rec->filemanDataId);
-					
-                    // Автоматично оттегляне на имейлите с вируси
-                    $eQuery = email_Incomings::getQuery();
-                    $eQuery->where("#state != 'rejected'");
-                    $eQuery->where(array("#emlFile = '[#1#]'", $rec->filemanDataId));
-                    $eQuery->orWhere(array("#htmlFile = '[#1#]'", $rec->filemanDataId));
-                    $eQuery->orLike('files', '|' . $rec->filemanDataId . '|');
-                    
-                    while ($eRec = $eQuery->fetch()) {
-                        if (email_Incomings::reject($eRec)) {
-                            
-                            if ($eRec->threadId) {
-                                $tRec = doc_Threads::fetch($eRec->threadId);
-                            }
-                            
-                            // Ако оттегляме първия документ в нишка, то оттегляме цялата нишка
-                            if ($tRec->firstContainerId == $eRec->containerId) {
-                                doc_Threads::rejectThread($eRec->threadId);
-                                
-                                doc_Threads::logWrite('Оттегляне на нишка с вирусусен имейл', $tRec->id);
-                                doc_Threads::logNotice('Оттегляне на нишка с вирусусен имейл', $tRec->id);
-                            } else {
-                                email_Incomings::logWrite('Оттегляне на имейл с вирус', $eRec->id);
-                            }
-                            
-                            email_Incomings::logNotice('Оттегляне на имейл с вирус', $eRec->id);
-                        }
-                    }
                 }
                 
                 while($fRec = $fsQuery->fetch())
@@ -487,6 +459,34 @@ class vtotal_Checks extends core_Master
                             $dangerExtensionsArr[$extensionFRec] = $extensionFRec;
                             
                             core_Packs::setConfig('vtotal', array('VTOTAL_DANGER_EXTENSIONS' => implode(',', $dangerExtensionsArr)));
+                        }
+                        
+                        // Автоматично оттегляне на имейлите с вируси
+                        $eQuery = email_Incomings::getQuery();
+                        $eQuery->where("#state != 'rejected'");
+                        $eQuery->where(array("#emlFile = '[#1#]'", $fRec->filemanDataId));
+                        $eQuery->orWhere(array("#htmlFile = '[#1#]'", $fRec->filemanDataId));
+                        $eQuery->orLike('files', '|' . $fRec->filemanDataId . '|');
+                        
+                        while ($eRec = $eQuery->fetch()) {
+                            if (email_Incomings::reject($eRec)) {
+                                
+                                if ($eRec->threadId) {
+                                    $tRec = doc_Threads::fetch($eRec->threadId);
+                                }
+                                
+                                // Ако оттегляме първия документ в нишка, то оттегляме цялата нишка
+                                if ($tRec->firstContainerId == $eRec->containerId) {
+                                    doc_Threads::rejectThread($eRec->threadId);
+                                    
+                                    doc_Threads::logWrite('Оттегляне на нишка с вирусусен имейл', $tRec->id);
+                                    doc_Threads::logNotice('Оттегляне на нишка с вирусусен имейл', $tRec->id);
+                                } else {
+                                    email_Incomings::logWrite('Оттегляне на имейл с вирус', $eRec->id);
+                                }
+                                
+                                email_Incomings::logNotice('Оттегляне на имейл с вирус', $eRec->id);
+                            }
                         }
                     }
                 }
