@@ -440,13 +440,19 @@ class vtotal_Checks extends core_Master
 
                 $fsQuery = fileman_Files::getQuery();
                 $fsQuery->where("#dataId = {$rec->filemanDataId}");
-
+                
+                if ($result->positives) {
+                    fileman_Data::logNotice('Файл с вирус', $rec->filemanDataId);
+                }
+                
                 while($fRec = $fsQuery->fetch())
                 {
                     $fRec->dangerRate = $dangerRate;
                     fileman_Files::save($fRec, 'dangerRate');
                     
                     if ($result->positives) {
+                        fileman_Files::logNotice('Файл с вирус', $fRec->id);
+                        
                         $extensionFRec = mb_strtolower(pathinfo($fRec->name, PATHINFO_EXTENSION));
                         
                         if (!$dangerExtensionsArr[$extensionFRec]) {
