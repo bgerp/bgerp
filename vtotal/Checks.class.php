@@ -463,12 +463,25 @@ class vtotal_Checks extends core_Master
                         
                         // Автоматично оттегляне на имейлите с вируси
                         $eQuery = email_Incomings::getQuery();
+                        $eQuery->where("#routeBy = 'country'");
+                        $eQuery->orWhere("#routeBy = 'toBox'");
+                        $eQuery->orWhere("#routeBy = 'fromTo'");
                         $eQuery->where("#state != 'rejected'");
-                        $eQuery->where(array("#emlFile = '[#1#]'", $fRec->filemanDataId));
-                        $eQuery->orWhere(array("#htmlFile = '[#1#]'", $fRec->filemanDataId));
-                        $eQuery->orLike('files', '|' . $fRec->filemanDataId . '|');
+                        $eQuery->where(array("#emlFile = '[#1#]'", $fRec->id));
+                        $eQuery->orWhere(array("#htmlFile = '[#1#]'", $fRec->id));
+                        $eQuery->orLike('files', '|' . $fRec->id . '|');
                         
                         while ($eRec = $eQuery->fetch()) {
+                            
+                            if ($eRec->routeBy == 'fromTo' && $eRec->folderId) {
+                                $coverClass = doc_Folders::getCover($eRec->folderId);
+                                
+                                // Ако ще се рутира към пощенска кутия или проект
+                                if ($coverClass) {
+                                    if ((!$coverClass->instance instanceof email_Inboxes) && (!$coverClass->instance instanceof doc_UnsortedFolders)) continue;
+                                }
+                            }
+                            
                             if (email_Incomings::reject($eRec)) {
                                 
                                 if ($eRec->threadId) {
