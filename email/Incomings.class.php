@@ -547,48 +547,12 @@ class email_Incomings extends core_Master
         // Преобразуваме в масив с хедъри и сериализираме
         $rec->headers = $mime->parseHeaders($headersStr);
         
-        $rec->spamScore = $this->getSpamScore($rec->headers);
+        $rec->spamScore = email_Spam::getSpamScore($rec->headers);
         
         // Записваме (и автоматично рутираме) писмото
         $saved = email_Incomings::save($rec);
 
         return $saved;
-    }
-    
-    
-    /**
-     * 
-     * @param array $headerArr
-     * @param boolean $notNull
-     */
-    public static function getSpamScore($headerArr, $notNull = TRUE)
-    {
-        $headersNames = email_Setup::get('AUTO_REJECT_SPAM_SCORE_HEADERS');
-        
-        $headersNamesArr = type_Set::toArray($headersNames);
-        
-        $score = NULL;
-        
-        // Проверяваме рейтинга във всички зададени хедъри
-        if ($headersNamesArr) {
-            
-            foreach ($headersNamesArr as $header) {
-                
-                $header = trim($header);
-                
-                if (!$header) continue;
-                
-                $score = email_Mime::getHeadersFromArr($headerArr, $header);
-                
-                if (isset($score)) break;
-            }
-        }
-        
-        if (!isset($score) && $notNull) {
-            $score = 0;
-        }
-        
-        return $score;
     }
     
     
@@ -910,13 +874,13 @@ class email_Incomings extends core_Master
         } else {
             
             // Показваме съответната икона в зависимост от СПАМ рейтинга
-            $rejectSpamRating = email_Setup::get('AUTO_REJECT_SPAM_SCORE');
-            $warningSpamRating = email_Setup::get('WARNING_SPAM_SCORE');
-            if (isset($rec->spamScore) && (($rec->spamScore >= $rejectSpamRating) || ($rec->spamScore >= $warningSpamRating))) {
+            $hardSpamRating = email_Setup::get('HARD_SPAM_SCORE');
+            $rejectSpamRating = email_Setup::get('REJECT_SPAM_SCORE');
+            if (isset($rec->spamScore) && (($rec->spamScore >= $hardSpamRating) || ($rec->spamScore >= $rejectSpamRating))) {
                 
                 $img = '/img/24/spam-warning.png';
                 
-                if ($rec->spamScore >= $rejectSpamRating) {
+                if ($rec->spamScore >= $hardSpamRating) {
                     $img = '/img/24/spam.png';
                 }
                 
@@ -1363,7 +1327,7 @@ class email_Incomings extends core_Master
              $headersArr = $rec->headers;
          }
          
-         $rec->spamScore = self::getSpamScore($headersArr);
+         $rec->spamScore = email_Spam::getSpamScore($headersArr);
          
          if ($rec->id && $saveIfNotExist) {
              $inst = cls::get(get_called_class());
@@ -1748,15 +1712,16 @@ class email_Incomings extends core_Master
                 // Рутиране по място (държава)
                 if(email_Router::doRuleCountry($rec)) {
                     
-                    // Автоматично оттегляне на имейлите, които са СПАМ
-                    self::checkSpamLevelAndReject($rec);
-                    
                     // Добавяме начина на рутиране
                     $rec->routeBy = 'country';
                     
-                    if (email_Router::checkRouteRules($rec, $rArr)) return;
+                    if (email_Router::checkRouteRules($rec, $rArr)) {
+                        // Автоматично оттегляне на имейлите, които са СПАМ
+                        self::checkSpamLevelAndReject($rec);
+                        
+                        return;
+                    }
                 }
-                
             } else {
                 
                 // Ако `boxTo` е частна кутия, то прилагаме `FromTo`
@@ -1765,7 +1730,21 @@ class email_Incomings extends core_Master
                     // Добавяме начина на рутиране
                     $rec->routeBy = 'fromTo';
                     
-                    if (email_Router::checkRouteRules($rec, $rArr)) return;
+                    if (email_Router::checkRouteRules($rec, $rArr)) {
+                        if ($rec->folderId) {
+                            $coverClass = doc_Folders::getCover($rec->folderId);
+                            
+                            // Ако ще се рутира към пощенска кутия или проект
+                            if ($coverClass) {
+                                if ($coverClass->instance instanceof email_Inboxes || $coverClass->instance instanceof doc_UnsortedFolders) {
+                                    
+                                    self::checkSpamLevelAndReject($rec, TRUE);
+                                }
+                            }
+                        }
+                        
+                        return;
+                    }
                 }
             }
         }
@@ -1794,14 +1773,34 @@ class email_Incomings extends core_Master
         
         $score = $rec->spamScore;
         if (!isset($score)) {
-            $score = self::getSpamScore($rec->headers, FALSE);
+            $score = email_Spam::getSpamScore($rec->headers, FALSE);
         }
         
-        $spamScore = email_Setup::get('AUTO_REJECT_SPAM_SCORE');
+        $spamScore = email_Setup::get('REJECT_SPAM_SCORE');
         
         if (isset($score) && ($score >= $spamScore)) {
             $rec->state = 'rejected';
             self::logNotice("Автоматично оттеглен имейл ({$rec->subject}) със СПАМ рейтинг = '{$score}'", $rec->id);
+        }
+        
+        if ($rec->state != 'rejected') {
+            // Проверка на имейла за файл с вирус
+            $files = $rec->files;
+            $files = type_Keylist::addKey($files, $rec->emlFile);
+            $files = type_Keylist::addKey($files, $rec->htmlFile);
+            
+            $filesArr = type_Keylist::toArray($files);
+            if (!empty($filesArr)) {
+                $fQuery = fileman_Files::getQuery();
+                $fQuery->orWhereArr('id', $filesArr);
+                $fQuery->where("#dangerRate IS NOT NULL");
+                $fQuery->where("#dangerRate >= 0.001");
+                
+                if ($fQuery->count()) {
+                    $rec->state = 'rejected';
+                    self::logNotice("Автоматично оттеглен имейл ({$rec->subject}) с вирусен файл", $rec->id);
+                }
+            }
         }
     }
     

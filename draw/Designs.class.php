@@ -158,6 +158,7 @@ class draw_Designs extends core_Master
         $suggestions = array(
             'ArcTo(' => 'ArcTo(',
             'Call(' => 'Call(',
+            'CallPHP(' => 'CallPHP(',
             'CloseGroup(' => 'CloseGroup(',
             'CloseLayer(' => 'CloseLayer(',
             'ClosePath(' => 'ClosePath(',
@@ -415,6 +416,9 @@ class draw_Designs extends core_Master
     }
 
 
+    /**
+     * Извъкване на скрипт-модул
+     */
     public static function cmd_Call($params, &$svg, &$contex, &$error)
     {
 
@@ -444,6 +448,48 @@ class draw_Designs extends core_Master
         }
 
         self::runScript($rec->script, $svg, $contexNew, $error);
+    }
+
+
+
+    /**
+     * Извъкване на външна функция
+     */
+    public static function cmd_CallPHP($params, &$svg, &$contex, &$error)
+    {
+
+        $contexNew = new stdClass();
+        
+        list($class, $method) = explode('::', $params[0]);
+        
+        if(!$class) {
+            $error = "Липсващо име на клас";
+
+            return FALSE;
+        }
+
+
+        if(!($cls = cls::get($class))) {
+            $error = "Невалидно име на клас: \"" . $class . "\"";
+
+            return FALSE;
+        }
+        
+        if(!$method) {
+            $error = "Липсващо име на метод";
+
+            return FALSE;
+        }
+
+        $method = 'draw_' . $method;
+
+        if(!cls::existsMethod($cls, $method)) {
+           $error = "Липсващ метод в клас: \"{$cls}::{$method}\"";
+
+            return FALSE;
+        }
+
+        call_user_func_array(array($cls, $method), array($contex));
     }
 
 
