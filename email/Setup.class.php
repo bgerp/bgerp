@@ -64,12 +64,6 @@ defIfNot('EMAIL_MAXIMUM_CID_LEN', 10240);
 
 
 /**
- * Ниво за score на SpamAssassin, над което писмото се обявява за твърд СПАМ
- */
-defIfNot('SPAM_SA_SCORE_LIMIT', 7);
-
-
-/**
  * След колко време (в секунди) след първото изпращане към един имейл да се взема в предвид, че е изпратено преди (Повторно изпращане) 
  * 
  * По подразбиране 12 часа
@@ -202,19 +196,19 @@ defIfNot('EMAIL_STOP_SEND_TO', 'no-reply@*,noreply@*');
 /**
  * Хедъри, които ще се проверяват за спам скоре
  */
-defIfNot('EMAIL_AUTO_REJECT_SPAM_SCORE_HEADERS', 'x-spam-score');
+defIfNot('EMAIL_CHECK_SPAM_SCORE_HEADERS', 'x-spam-status,x-spam-score');
 
 
 /**
  * Стойност, над която имейлите ще се приемат за спам и ще се оттеглят
  */
-defIfNot('EMAIL_AUTO_REJECT_SPAM_SCORE', 6);
+defIfNot('EMAIL_HARD_SPAM_SCORE', 7);
 
 
 /**
  * Стойност, над която имейлите ще се приемат за спам и ще се оттеглят
  */
-defIfNot('EMAIL_WARNING_SPAM_SCORE', 2);
+defIfNot('EMAIL_REJECT_SPAM_SCORE', 4);
 
 
 /**
@@ -290,9 +284,6 @@ class email_Setup extends core_ProtoSetup
             // Максималната големина на файловете, които ще се приемат за CID
             'EMAIL_MAXIMUM_CID_LEN' => array ('int', 'caption=Максималната големина на файловете|*&comma;| които ще се приемат за вградени изображения->Размер'),
             
-            // Ниво за score на SpamAssassin, над което писмото се обявява за твърд СПАМ
-            'SPAM_SA_SCORE_LIMIT' => array ('int', 'caption=Ниво за score на SpamAssassin|*&comma;| над което писмото се обявява за твърд СПАМ->Ниво'),
-            
             // След колко време (в секунди) след първото изпращане към един имейл да се взема в предвид, че е изпратено преди (Повторно изпращане) 
             'EMAIL_RESENDING_TIME' => array ('time(suggestions=1 часа|2 часа|3 часа|5 часа|7 часа|10 часа|12 часа)', 'caption=Време от първото изпращане на имейл|*&comma;| след което се маркира "Преизпращане"->Време'),
             
@@ -340,11 +331,11 @@ class email_Setup extends core_ProtoSetup
             
             'EMAIL_STOP_SEND_TO' => array ('varchar', 'caption=Шаблон за имейли до които няма да се праща->Шаблон'),
             
-            'EMAIL_AUTO_REJECT_SPAM_SCORE_HEADERS' => array ('varchar', 'caption=Хедъри за проверка на СПАМ рейтинг->Хедъри'),
+            'EMAIL_CHECK_SPAM_SCORE_HEADERS' => array ('varchar', 'caption=Проверка на СПАМ рейтинг->Хедъри'),
             
-            'EMAIL_AUTO_REJECT_SPAM_SCORE' => array ('varchar', 'caption=Автоматично оттегляне на спам->Рейтинг'),
+            'EMAIL_HARD_SPAM_SCORE' => array ('varchar', 'caption=Проверка на СПАМ рейтинг->Твърд спам'),
             
-            'EMAIL_WARNING_SPAM_SCORE' => array ('varchar', 'caption=Предупреждение за възможен спам->Рейтинг'),
+            'EMAIL_REJECT_SPAM_SCORE' => array ('varchar', 'caption=Проверка на СПАМ рейтинг->Оттегляне'),
         );
         
         
