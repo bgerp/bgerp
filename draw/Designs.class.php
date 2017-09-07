@@ -464,20 +464,17 @@ class draw_Designs extends core_Master
         
         if(!$class) {
             $error = "Липсващо име на клас";
-
             return FALSE;
         }
 
 
         if(!($cls = cls::get($class))) {
             $error = "Невалидно име на клас: \"" . $class . "\"";
-
             return FALSE;
         }
         
         if(!$method) {
             $error = "Липсващо име на метод";
-
             return FALSE;
         }
 
@@ -485,11 +482,10 @@ class draw_Designs extends core_Master
 
         if(!cls::existsMethod($cls, $method)) {
            $error = "Липсващ метод в клас: \"{$cls}::{$method}\"";
-
             return FALSE;
         }
 
-        call_user_func_array(array($cls, $method), array($contex));
+        call_user_func_array(array($cls, $method), array(&$contex));
     }
 
 
