@@ -486,7 +486,7 @@ class draw_Designs extends core_Master
 
         if(!cls::existsMethod($cls, $method)) {
            $error = "Липсващ метод в клас: \"{$cls}::{$method}\"";
-
+            wp($params,$contex,$error);
             return FALSE;
         }
 
