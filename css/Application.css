@@ -1794,7 +1794,9 @@ div.attachments {
 
 .dangerFile {
   background-image: url('../img/16/bug.png') !important;
-  color: red !important; }
+  color: red !important;
+  background-repeat: no-repeat;
+  padding-left: 18px; }
 
 .wide .em-holder {
   width: 68%; }
