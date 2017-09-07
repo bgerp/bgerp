@@ -485,6 +485,7 @@ class draw_Designs extends core_Master
             return FALSE;
         }
 
+        $cls = cls::get($cls);
         call_user_func_array(array($cls, $method), array($contex));
         wp($cls, $method, $contex);
     }
