@@ -458,7 +458,6 @@ class draw_Designs extends core_Master
     public static function cmd_CallPHP($params, &$svg, &$contex, &$error)
     {
 
-        bp($params,$contex,$error);
         $contexNew = new stdClass();
         
         list($class, $method) = explode('::', $params[0]);
