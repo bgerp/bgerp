@@ -506,9 +506,150 @@ class bgerp_Notifications extends core_Manager
         
         $this->logWrite($act . ' на нотификация', $rec->id);
         
+        // Вземаме необходимите параметри от URL-то
+        $url = self::getUrl($rec);
+        
+        $ctr = $url['Ctr'];
+        $act = $url['Act'];
+        $dId = $url['id'];
+        
+        if (cls::load($ctr, TRUE) && $ctr::haveRightFor($act, $dId)) {
+            
+            $folderId = $url['folderId'];
+            $threadId = $url['threadId'];
+            $containerId = $url['containerId'];
+            
+            if ($dId) {
+                if ($dRec = $ctr::fetch($dId)) {
+                    $folderId = $dRec->folderId;
+                    $threadId = $dRec->threadId;
+                    $containerId = $dRec->containerId;
+                }
+            }
+        }
+        
+        $stopNotifyArr = array();
+        
+        // В зависимост от текста определяме нотификациите, които да се изключат
+        $msg = mb_strtolower($rec->msg);
+        if (strpos($msg, '|отворени теми в|') !== FALSE) {
+            $stopNotifyArr['folOpenings'] = 'doc_Folders';
+        } elseif ((strpos($msg, '|добави|') !== FALSE) || (strpos($msg, '|хареса') !== FALSE) || (strpos($msg, '|промени|') !== FALSE)) {
+            if (strpos($msg, '|входящ имейл|') !== FALSE) {
+                $stopNotifyArr['personalEmailIncoming'] = 'doc_Folders';
+            }
+            $stopNotifyArr['notify'] = 'doc_Threads';
+            
+            // Ако е начало на нишка
+            if ($threadId && $containerId) {
+                $fCid = doc_Threads::getFirstContainerId($threadId);
+                if ($fCid == $containerId) {
+                    $stopNotifyArr['newThread'] = 'doc_Folders';
+                }
+            }
+        }
+        
+        $fKey = $tKey = NULL;
+        
+        $stoppedArr = $valsArr = array();
+        
+        // Определяме стойностите, които трябва да се изключат
+        foreach ($stopNotifyArr as $kVal => $kClass) {
+            
+            // За папките
+            if ($kClass == 'doc_Folders') {
+                if (!$folderId) continue;
+                
+                if (!doc_Folders::haveRightFor('single', $folderId)) continue;
+                
+                if (!$fKey) {
+                    
+                    $fKey = doc_Folders::getSettingsKey($folderId);
+                    
+                    $valsArr[$fKey] = core_Settings::fetchKeyNoMerge($fKey);
+                }
+                
+                $key = $fKey;
+            }
+            
+            // За нишките
+            if ($kClass == 'doc_Threads') {
+                if (!$threadId) continue;
+                
+                if (!doc_Threads::haveRightFor('single', $threadId)) continue;
+                
+                if (!$tKey) {
+                    
+                    $tKey = doc_Threads::getSettingsKey($threadId);
+                    
+                    $valsArr[$tKey] = core_Settings::fetchKeyNoMerge($tKey);
+                }
+                
+                $key = $tKey;
+            }
+            
+            // Ако преди това не е била забранане стойност
+            if (!$valsArr[$key][$kVal] || ($valsArr[$key][$kVal] != 'no')) {
+                $stoppedArr[$kClass][$kVal] = $valsArr[$key][$kVal];
+                $valsArr[$key][$kVal] = 'no';
+            }
+        }
+        
+        $notifyMsg = '';
+        
+        $modeKey = 'NotifySettings::' . $id;
+        
+        if ($rec->state == 'active') {
+            $stoppedArr = Mode::get($modeKey);
+        }
+        
+        // В зависимост от състоянието връщаме/спираме настройките за бъдещите нотификации
+        if (is_array($stoppedArr)) {
+            $notifyVerbMap = array('notify' => 'Нов документ', 'personalEmailIncoming' => 'Личен имейл', 'folOpenings' => 'Отворени теми', 'newThread' => 'Нова тема', 'newDoc' => 'Нов документ');
+            
+            foreach ($stoppedArr as $cls => $v) {
+                
+                if ($cls == 'doc_Folders') {
+                    $title = doc_Folders::getLinkForObject($folderId);
+                    $key = $fKey;
+                } elseif ($cls == 'doc_Threads') {
+                    $title = doc_Threads::getLinkForObject($threadId);
+                    $key = $tKey;
+                }
+                
+                $notifyMsg .= ($notifyMsg) ? '<br>' : '';
+                
+                if ($rec->state == 'active') {
+                    $txt = "|Върнати настройки за нотифициране в|*";
+                } else {
+                    $txt = "|Спряно нотифициране в|*";
+                }
+                
+                $notifyMsg .= "{$txt} \"{$title}\" |за|*:";
+                
+                foreach ($v as $kVal => $oldVal) {
+                    $notifyMsg .= "<br><span  style='color: green;'>" . $notifyVerbMap[$kVal] . '</span>';
+                    
+                    if ($rec->state == 'active') {
+                        $valsArr[$key][$kVal] = $oldVal;
+                    }
+                }
+                
+                core_Settings::setValues($key, $valsArr[$key]);
+                
+                if ($rec->state == 'active') {
+                    Mode::setPermanent($modeKey, array());
+                } else {
+                    Mode::setPermanent($modeKey, $stoppedArr);
+                }
+            }
+        }
+        
         if (!Request::get('ajax_mode')) {
             
-            return new Redirect(array('Portal', 'show'), "|Успепшно {$msg} нотификацията");
+            $notifyMsg = $notifyMsg ? "<br>" . $notifyMsg : '';
+            
+            return new Redirect(array('Portal', 'show'), "|Успепшно {$msg} нотификацията|*{$notifyMsg}");
         }
         
         $res = $this->action('render');
@@ -521,6 +662,12 @@ class bgerp_Notifications extends core_Manager
             $obj = new stdClass();
             $obj->func = 'notificationsCnt';
             $obj->arg = array('id'=>'nCntLink', 'cnt' => $notifCnt);
+            
+            if ($notifyMsg) {
+                $hitId = rand();
+                status_Messages::newStatus($notifyMsg, 'notice', NULL, 60, $hitId);
+                $res = array_merge($res, status_Messages::getStatusesData(Request::get('hitTime', 'int'), 0, $hitId));
+            }
             
             $res[] = $obj;
         }
