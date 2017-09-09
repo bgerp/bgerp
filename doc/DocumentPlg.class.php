@@ -482,10 +482,6 @@ class doc_DocumentPlg extends core_Plugin
             		$row->state .= $tpl->placeArray(array('user' => crm_Profiles::createLink($rec->modifiedBy), 'date' => dt::mysql2Verbal($rec->modifiedOn)));
             	}
             }
-            
-            if (Mode::is('screenMode', 'narrow')) {
-            	unset($row->state);
-            }
         }
         
         if($fields['-list']){
@@ -3976,7 +3972,7 @@ class doc_DocumentPlg extends core_Plugin
     {
     	// Ако документа е оттеглен се подсигуряваме че ще се покаже от кого е оттеглен и кога
     	if($data->rec->state == 'rejected') {
-    		$nTpl = new ET(tr('|* |от|* [#user#] |на|* [#date#]'));
+    	    $nTpl = new ET(tr('|* |от|* [#user#] |на|* [#date#]'));
     		$data->row->state .= $nTpl->placeArray(array('user' => crm_Profiles::createLink($data->rec->modifiedBy), 'date' => dt::mysql2Verbal($data->rec->modifiedOn)));
     	}
     	
