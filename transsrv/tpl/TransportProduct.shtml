@@ -1,4 +1,4 @@
-<table class="styled-table no-border halfTable">
+<table class="styled-table no-border halfTable" style="margin-bottom: 5px; font-size: 0.95em; line-height: 1.1em">
     <tr>
         <th colspan = "2" >|Натоварване|*</th>
     </tr>
@@ -46,7 +46,7 @@
     <!--ET_END loadingTime-->
 </table>
 
-<table class="styled-table no-border halfTable offsetLeft">
+<table class="styled-table no-border halfTable offsetLeft" style="margin-bottom: 5px; font-size: 0.95em; line-height: 1.1em">
     <tr>
         <th colspan = "2">|Разтоварване|*</th>
     </tr>
@@ -95,7 +95,7 @@
 </table>
 
 <div class="clearfix21"></div>
-<table class="styled-table no-border halfTable">
+<table class="styled-table no-border halfTable" style="margin-bottom: 5px; font-size: 0.95em; line-height: 1.1em">
     <tr>
         <th colspan = "2">|Информация за товара|*</th>
     </tr>
@@ -151,7 +151,7 @@
     </tr>
     <!--ET_BEGIN conditions-->
     <tr>
-        <td class="boldText" colspan = "2">[#conditions#]</td>
+        <td class="boldText" colspan = "2">[#conditions#]<!--ET_BEGIN auction--><div class="richtext">|Съгласно офериране|* [#auction#] |в|* trans.bid</div><!--ET_END auction--></td>
     </tr>
     <!--ET_END conditions-->
     <!--ET_BEGIN ourReff-->

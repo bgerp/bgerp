@@ -65,7 +65,7 @@
                <table class='shipment-table' style='width: 100%'>
                   <!--ET_BEGIN deliveryTime-->
                   <tr>
-                     <td class='quiet nowrap aright' style='width:1%'>|Срок до|*:</td>
+                     <td class='quiet nowrap aright' style='width:1%'>|Натоварване|*:</td>
                      <td>[#deliveryTime#]</td>
                   </tr>
                   <!--ET_END deliveryTime-->                            
@@ -101,10 +101,10 @@
                <!--ET_END delivery_table-->
                <div class='clearfix21' style='margin-bottom: 5px;'>
                   <div>
-                     <span class='half-col'>|Общо тегло|*:&nbsp;[#weight#]</span>  <span class='half-col'>|Общ обем|*:&nbsp;[#volume#]</span>
+                     <span class='half-col'>|Общо тегло|*:&nbsp;[#weight#]</span><span class='half-col'>|Общ обем|*:&nbsp;[#volume#]</span>
                   </div>
                   <div class='clearfix21'>
-                  <!--ET_BEGIN logisticInfo--><div style='margin-bottom:3px;margin-top:3px;'>|Logistic units|*:&nbsp;[#logisticInfo#]</div><!--ET_END logisticInfo--> 
+                  <!--ET_BEGIN logisticInfo--><div style='margin-bottom:3px;margin-top:3px;'>|Логистични единици|*:&nbsp;[#logisticInfo#]</div><!--ET_END logisticInfo--> 
                </div>
             </td>
             <td>

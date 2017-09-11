@@ -177,8 +177,10 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				// Взимаме от драйвера нужните полета
 				$proto = $form->rec->proto;
 				cat_Products::setAutoCloneFormFields($form, $proto, $form->rec->innerClass);
-				$form->setDefault('productId', $form->rec->proto);
-				$productFields = array_diff_key($form->fields, $detailFields);
+				
+                // $form->setDefault('productId', $form->rec->proto);
+				
+                $productFields = array_diff_key($form->fields, $detailFields);
 				
 				// Зареждаме данни от прототипа (или артикула който клонираме)
 				if($proto){
@@ -245,6 +247,11 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				}
 				
 				$Driver->invoke('AfterPrepareEditForm', array($Products, (object)array('form' => $form)));
+				$defMetas = $Driver->getDefaultMetas();
+				if(isset($defMetas['canManifacture'])){
+					$form->setField('tolerance', 'input');
+					$form->setField('term', 'input');
+				}
 				
 				$form->input();
 				if(empty($form->rec->packagingId)){
@@ -290,20 +297,38 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				$pRec->meta = $rec->meta;
 				
 				$productId = NULL;
-				$hash = cat_products::getHash($pRec);
-				
+				$hash = cat_Products::getHash($pRec);
+			 
 				// Ако артикула има хеш търси се имали друг артикул със същия хеш ако има се добавя
 				if(isset($hash)){
-					$pQuery = cat_Products::getQuery();
-					$pQuery->where("#innerClass = {$rec->innerClass}");
-					$pQuery->where("#state = 'active'");
-					while($eRec = $pQuery->fetch()){
-						$hash1 = cat_Products::getHash($eRec);
-						if($hash1 == $hash){
-							$productId = $eRec->id;
-							break;
-						}
-					}
+                    
+                    // Филтрираме id-тата само на детайла от текущия документ
+                    $ids = array();
+           
+                    $detDocs = array('quotationId' => 'sales_QuotationsDetails', 'requestId' => 'purchase_PurchasesDetails', 'saleId' => 'sales_SalesDetails');
+                    foreach($detDocs as $part => $detMvc) {
+                        if($rec->{$part}) {
+                            $detQuery = $detMvc::getQuery();
+                            while($detRec = $detQuery->fetch("#{$part} = " . $rec->{$part})) {
+                                $ids[] = $detRec->productId;
+                            }
+                        }
+                    }
+ 
+                    if(count($ids)) {  
+                        $pQuery = cat_Products::getQuery();
+                        $pQuery->where("#id IN (" . implode(',', $ids) . ')');
+                        $pQuery->where("#innerClass = {$rec->innerClass}");
+                        $pQuery->where("#state = 'active'");
+                        while($eRec = $pQuery->fetch()){
+                            $hash1 = cat_Products::getHash($eRec);
+                            
+                            if($hash1 == $hash){
+                                $productId = $eRec->id;
+                                break;
+                            }
+                        }
+                    }
 				}
 				
 				// Създаване на нов артикул само при нужда
@@ -315,6 +340,12 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				$dRec->productId = $productId;
 				$dRec->packagingId = $pRec->measureId;
 				$dRec->quantityInPack = 1;
+				
+				if(empty($rec->packQuantity) || $rec->defQuantity === TRUE){
+					$dRec->quantity = deals_Helper::getDefaultPackQuantity($productId, $pRec->measureId);
+				}
+				
+				$dRec->quantity = ($dRec->quantity) ? $dRec->quantity : 1;
 				
 				// Хакване на автоматично изчислена цена
 				if(!($mvc instanceof sales_QuotationsDetails)){

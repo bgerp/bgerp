@@ -95,7 +95,9 @@ class bgerp_RefreshRowsPlg extends core_Plugin
         // Ако заявката не е по ajax
         if (!$ajaxMode) return ;
         
-        $res = array();
+        if (!isset($res)) {
+            $res = array();
+        }
         
         // Изискваме да е логнат потребител
         requireRole('user');
@@ -141,8 +143,29 @@ class bgerp_RefreshRowsPlg extends core_Plugin
             $resObj = new stdClass();
             $resObj->func = 'html';
             $resObj->arg = array('id' => $divId, 'html' => $status, 'replace' => TRUE);
+            $res[] = $resObj;
             
-            $res = array($resObj);
+            // Форсираме рефреша след връщане назад
+            $resObjReload = new stdClass();
+            $resObjReload->func = 'forceReloadAfterBack';
+            $res[] = $resObjReload;
+            
+            // Стойности на плейсхолдера
+            $runAfterAjaxArr = $tpl->getArray('JQUERY_RUN_AFTER_AJAX');
+            
+            // Добавя всички функции в масива, които ще се виката
+            if (!empty($runAfterAjaxArr)) {
+            
+                // Да няма повтарящи се функции
+                $runAfterAjaxArr = array_unique($runAfterAjaxArr);
+            
+                foreach ((array)$runAfterAjaxArr as $runAfterAjax) {
+                    $jqResObj = new stdClass();
+                    $jqResObj->func = $runAfterAjax;
+            
+                    $res[] = $jqResObj;
+                }
+            }
         }
         
         return FALSE;

@@ -147,6 +147,12 @@ class doc_UnsortedFolders extends core_Master
      * Кой има право да променя системните данни?  
      */  
     public $canEditsysdata = 'admin';
+    
+    
+    /**  
+     * Кой има право да оттегля системните данни?  
+     */  
+    public $canRejectsysdata = 'admin';
   
     
     /**
@@ -211,9 +217,11 @@ class doc_UnsortedFolders extends core_Master
     public function description()
     {
         $this->FLD('name' , 'varchar(255)', 'caption=Наименование,mandatory');
-        $this->FLD('description' , 'richtext(rows=3, passage=Общи)', 'caption=Описание');
+        $this->FLD('description' , 'richtext(rows=3, passage=Общи,bucket=Notes)', 'caption=Описание');
         $this->FLD('closeTime' , 'time', 'caption=Автоматично затваряне на нишките след->Време, allowEmpty');
         $this->FLD('showDocumentsAsButtons' , 'keylist(mvc=core_Classes,select=title)', 'caption=Документи|*&#44; |които да се показват като бързи бутони в папката->Документи');
+        $this->FLD('receiveEmail', 'enum(no=Не, yes=Да)', 'caption=Получаване на имейли->Избор');
+        
         $this->setDbUnique('name');
     }
     
@@ -346,10 +354,9 @@ class doc_UnsortedFolders extends core_Master
         $res .= core_Cron::addOnce($rec);
     }
     
- 
 
     /**
-     * Метод за Cron за зареждане на валутите
+     * Метод за Cron затваряне на нишки в проекти
      */
     static function cron_SelfClosed()
     {   
@@ -812,21 +819,23 @@ class doc_UnsortedFolders extends core_Master
         }
         
         $titleFld = $params['titleFld'];
-        $query->XPR('searchFieldXpr', 'text', "CONCAT(' ', #{$titleFld})");
+        $query->XPR('searchFieldXpr', 'text', "LOWER(CONCAT(' ', #{$titleFld}))");
         
         if($q) {
             if($q{0} == '"') $strict = TRUE;
 			
             $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
             
+            $q = mb_strtolower($q);
+            
             if($strict) {
-                $qArr = array(str_replace(' ', '%', $q));
+                $qArr = array(str_replace(' ', '.*', $q));
             } else {
                 $qArr = explode(' ', $q);
             }
             
             foreach($qArr as $w) {
-                $query->where("#searchFieldXpr COLLATE {$query->mvc->db->dbCharset}_general_ci LIKE '% {$w}%'");
+                $query->where(array("#searchFieldXpr REGEXP '\ {1}[^a-z0-9\p{L}]?[#1#]'", $w));
             }
         }
  		

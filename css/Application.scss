@@ -462,15 +462,13 @@ div.folder-cover {
 	max-width: 720px;
 	min-width: 280px;
 	font-size: 0.9em;
+	display: block;
 	padding: 10px !important;
 	.block_title img {
 		vertical-align: baseline;
 	}
 	.detail-info {
 		padding: 3px 7px 7px 7px;
-	}
-	select {
-		font-size: 1.3em;
 	}
 	.tab-page {
 		padding: 0 !important;
@@ -767,7 +765,6 @@ div.productImage {
 	margin-top: 5px;
 	padding: 1px 5px;
 	cursor: pointer;
-	white-space: nowrap;
 	&:hover {
 		background-color: #f1f1f1;
 	}
@@ -899,7 +896,7 @@ div.crmImage {
 
 .narrow div.crmImage {
 	padding: 10px  8px  8px 0;
-	float: left;
+	float: none;
 }
 
 div.crm_Companies div.tab-row .tab.selected, div.crm_Companies  div.tab-page {
@@ -1193,7 +1190,17 @@ table.listTable > tbody > tr {
 		    float: left;
 		    margin-left: 6px;
         }
+
     }
+	.store_Products {
+		.listTopContainer {
+			min-width:500px;
+		}
+		.listTable {
+			font-size: 0.9em;
+			max-width: 700px !important;
+		}
+	}
 }
 /*край на детайли*/
 
@@ -1306,6 +1313,10 @@ td.portal-date {
 
 .detail-info.portal table.listTable { 
 	font-size:1em;
+	.frontToolip img{
+		height: 14px;
+		margin-top: -2px;
+	}
 }
 
 .shortTable .listTable {
@@ -1381,6 +1392,19 @@ a.tOld {
 }
 /*край на стилове при тредове*/
 
+.typeTable {
+	//width: 100%;
+	.formTypeTable {
+		text-align: center;
+		font-weight: bold;
+		font-size: 0.9em;
+	}
+	td  {
+		text-align: center;
+	}
+}
+
+
 /*стилове за документи*/
 .document {
 	width: 100%;
@@ -1409,6 +1433,10 @@ a.tOld {
 	}
 	.indent {
 		text-indent: 25px;
+	}
+	.custom-ul {
+		margin-top: 5px;
+		margin-bottom: 5px;
 	}
     h1 {
         margin: 0.5em 0;
@@ -1495,7 +1523,15 @@ a.tOld {
 		padding:3px !important ;
 		border:0px !important;
 	}
-
+	.reportHolder {
+		.group-by-field-row td {
+			padding: 5px !important;
+		}
+	}
+}
+.smallerTextInTable {
+	font-size:0.7em;
+	min-width:20em;
 }
 
 .small-padding td {
@@ -1518,6 +1554,11 @@ a.tOld {
 	}
 }
 
+.readonlyInput {
+	border: none !important;
+	background: none !important;
+	box-shadow: none !important;
+}
 
 .productCell .halfTable {
 	.titleCol {
@@ -1673,7 +1714,7 @@ a.tOld {
 .wide .approved {
 	position: absolute;
 	top:7px;
-	left: 2px;
+	right: 2px;
 }
 
 .centered {
@@ -1710,6 +1751,11 @@ td.rowtools-column {
 
 .large-field{
 	width: 50%;
+}
+
+.morePadding {
+	padding-left: 6px !important;
+	padding-right: 6px !important;
 }
 
 .amount-field {
@@ -2020,6 +2066,13 @@ div.attachments {
 	}
 }
 
+.dangerFile {
+	background-image: url('../img/16/bug.png') !important;
+	color:#f00 !important;
+	background-repeat: no-repeat;
+	padding-left: 18px;
+}
+
 .wide .em-holder {
 	width: 68%;
 }
@@ -2076,6 +2129,41 @@ div.attachments {
 	height: auto !important;
 	padding-top: 57%;
 }
+
+.narrow .imageProcesing {
+	width: 100%;
+	height: auto;
+}
+.wide .video-rec {
+	.recordImage, .recordImage img {
+		width: 260px;
+		height: 210px;
+	}
+}
+
+.narrow .video-rec {
+	display: block;
+	max-width: 450px;
+	tr, td, tbody {
+		display: block;
+	}
+	img {
+		max-width: 450px;
+		width: 100%;
+		height: auto;
+	}
+	.recordImage {
+		min-height: 250px;
+	}
+}
+
+.recordImage {
+	min-height:211px;
+	text-align:center;
+	vertical-align:top;
+	background-color:#e8e8e8;
+}
+
 .narrow .mejs-overlay, .narrow  .mejs-poster {
 	width: 100% !important;
 	height: 100% !important;
@@ -2182,8 +2270,14 @@ table.mc-header a {
 
 
 /*Стилове за счетоводството*/
-.legalscript h1 {
-	margin-bottom: 0.5em;
+.legalscript {
+	h1 {
+		margin-bottom: 0.5em;
+	}
+	.header span {
+		background-repeat: no-repeat;
+		padding-left: 23px;
+	}
 }
 
 .wide .level-1 td {
@@ -3209,7 +3303,7 @@ fieldset.sharing-history {
 .webdrvTabBody {
 	max-width: 900px;
 	min-width: 800px;
-	min-height: 600px;
+	min-height: 612px;
 	top: 10px;
 	position: relative;
 }
@@ -3223,7 +3317,7 @@ fieldset.sharing-history {
 .webdrvIframe {
 	width: 100%;
 	border: solid 0 transparent;
-	min-height: 625px;
+	min-height: 612px;
 }
 
 .narrow .webdrvIframe {
@@ -3231,7 +3325,7 @@ fieldset.sharing-history {
 }
 
 .wide .webdrvFieldset {
-	min-height: 620px;
+	min-height: 615px;
 	border: 1px solid #ccc;
 	padding: 15px 10px 10px;
 	@include border-radius(5px);
@@ -3303,13 +3397,16 @@ fieldset.sharing-history {
 }
 
 .webdrv-preview {
-	display: block;
-	max-width: 100%;
-	height: auto;
 	margin-top: 5px;
 	&:first-child {
 		margin-top: 0;
 	}
+}
+
+.wide .webdrv-preview {
+	display: block;
+	max-width: 100%;
+	height: auto;
 }
 /*стилове за fileman*/
 
@@ -3382,6 +3479,15 @@ fieldset.sharing-history {
 	overflow:visible !important;
 	_overflow: visible !important;
 	width:auto !important;
+}
+
+.narrow-scroll .single-thread {
+	.store_InventoryNoteDetails {
+		.listRowsDetail {
+			overflow: auto !important;
+			_overflow: auto !important;
+		}
+	}
 }
 
 .narrow-scroll .listRows::-webkit-scrollbar {
@@ -4093,7 +4199,13 @@ div.location.public {
 	width: 100%;
 	text-align: left;
 }
-
+.noTopBorder .listTable {
+	font-size: 0.9em;
+	border-top: none;
+	th {
+		border-top: none;
+	}
+}
 .custom-bg-block{
 	background-color: $gray2;
 	padding:0.2em;
@@ -4115,6 +4227,7 @@ div.location.public {
 	background: #ffffff;
 	@include border-radius(5px !important);
 	padding: 10px !important;
+	word-wrap: break-word;
 }
 
 #rss-feeds {
@@ -4270,9 +4383,12 @@ div.location.public {
 
 /*rack*/
 td.rack-hl {
-	background-color:yellow;
+	background-color:red;
 }
 
+td.rack-same {
+	background-color:yellow;
+}
 
 .app-name {
     display: block;
@@ -4874,6 +4990,13 @@ body.narrow {
 		font-size: 1.1em;
 		text-transform: uppercase;
 	}
+	.hideLink {
+		display: block;
+		margin-left: 10px;
+		font-size: 0.9em;
+		margin-bottom: 10px;
+		margin-top: -6px;
+	}
 }
 
 .wide .external .vertical .formTable {
@@ -4896,9 +5019,16 @@ body.narrow {
 
 /*стилове за принтиране*/
 @media print{
-	body
-	{
-		margin: 0px !important;
+	.wide .singleView {
+		display: block;
+	}
+
+	.noMediaPrint {
+        display: none;
+    }
+
+	.smaller-text {
+		font-size: 0.95em;
 	}
 	.document{
         min-width: 837px !important;
@@ -5039,6 +5169,7 @@ body.narrow {
     }
     body{
         background: white !important;
+		margin: 0px !important;
     }
     .external .document{
         margin: 0;
@@ -5088,6 +5219,9 @@ body.narrow {
 	}
 	thead {
 		display:table-row-group;
+	}
+	.external .hideLink {
+		display: none !important;
 	}
 }
 

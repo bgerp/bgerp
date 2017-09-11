@@ -1,7 +1,4 @@
 <?php
-
-
-
 /**
  * Мениджър на отчети от Задание за производство
  *
@@ -21,14 +18,11 @@ class cat_reports_BomsRep extends frame_BaseDriver
      * Заглавие
      */
     public $title = 'Артикули » Задание за производство';
-
     
     /**
      * Кои интерфейси имплементира
      */
     public $interfaces = 'frame_ReportSourceIntf';
-
-
     /**
      * Брой записи на страница
      */
@@ -69,7 +63,6 @@ class cat_reports_BomsRep extends frame_BaseDriver
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'cat,ceo,sales,purchase';
-
     
     
     /**
@@ -79,11 +72,10 @@ class cat_reports_BomsRep extends frame_BaseDriver
      */
     public function addEmbeddedFields(core_FieldSet &$form)
     {
-    	$form->FLD('saleId', 'keylist(mvc=sales_Sales, select=id)', 'caption=Договор за продажба,mandatory');
+    	$form->FLD('saleId', 'keylist(mvc=sales_Sales, select=id)', 'caption=Договор за продажба');
     	$form->FLD('groupId', 'keylist(mvc=cat_Groups,select=name)', 'caption=Група');
     }
       
-
     /**
      * Подготвя формата за въвеждане на данни за вътрешния обект
      *
@@ -92,7 +84,6 @@ class cat_reports_BomsRep extends frame_BaseDriver
     public function prepareEmbeddedForm(core_Form &$form)
     {
         $opt = $this->prepareOptions();
-
         $form->setSuggestions('saleId', array('' => '') + $opt);
     	
     	$this->invoke('AfterPrepareEmbeddedForm', array($form));
@@ -108,7 +99,6 @@ class cat_reports_BomsRep extends frame_BaseDriver
     {
     	    	 
     }  
-
     
     /**
      * 
@@ -116,64 +106,62 @@ class cat_reports_BomsRep extends frame_BaseDriver
      */
     public function prepareInnerState()
     {
+        $timeLimit = 3000;
+        core_App::setTimeLimit($timeLimit);
+        
     	$data = new stdClass();
         $data->articleCnt = array();
         $data->recs = array();
+        $data->component = array();
+        $dRecs = array();
         $fRec = $data->fRec = $this->innerForm;
-
         $this->prepareListFields($data);
        
         $salesArr = keylist::toArray($fRec->saleId);
         $salesArr = implode(',', $salesArr);
-        
-        $query = planning_Jobs::getQuery();
-
-        if(isset($salesArr)) { 
-            $query->where("#saleId IN ({$salesArr}) AND (#state = 'active' OR #state = 'wakeup')");
-        } else {
-            return $data;
-        }
-
-        $quantity = 0;
-        $propQuantity = 0;
-        $q = 0;
-        $index = 0;
-
-        // за всяко едно активно Задания за производство
-        while($rec = $query->fetch()) { 
        
-            // Намираме рецептата за артикула (ако има)
-            $bomId = cat_Products::getLastActiveBom($rec->productId, 'production')->id;
-            if(!$bomId) {
-                $bomId = cat_Products::getLastActiveBom($rec->productId, 'sales')->id;
-            }
-
-            if (isset($bomId)) { 
-                $queryDetail = cat_BomDetails::getQuery();
-                $queryDetail->where("#bomId = '{$bomId}'");
-                
-                $products = array();
-                $materials = array();
-                
-                while($recDetail = $queryDetail->fetch()) {
+        if(strlen($salesArr) > 0) { 
+            $query = planning_Jobs::getQuery();
+            $query->where("#saleId IN ({$salesArr}) AND (#state = 'active' OR #state = 'wakeup')");
         
-                    $index = $recDetail->resourceId;
+            $quantity = 0;
+            $propQuantity = 0;
+            $q = 0;
+            $index = 0;
+    
+            // за всяко едно активно Задания за производство
+            while($rec = $query->fetch()) { 
 
-                    $componentArr = cat_Products::prepareComponents($rec->productId); 
+                // Намираме рецептата за артикула (ако има)
+                $bomId = cat_Products::getLastActiveBom($rec->productId, 'production')->id;
+
+                if(!$bomId) {
+                    $bomId = cat_Products::getLastActiveBom($rec->productId, 'sales')->id;
+                }
+           
+                if (isset($bomId)) { 
+                    $queryDetail = cat_BomDetails::getQuery();
+                    $queryDetail->where("#bomId = '{$bomId}'");
                     
-                    $quantity = str_replace(",", ".", $rec->quantity);
-                    $propQuantity = str_replace(",", ".",$recDetail->propQuantity);
-                    
-                    if(is_array($componentArr)) {
+                    $products = array();
+                    $materials = array();
+            
+                    while($recDetail = $queryDetail->fetch()) {
+                        $index = $rec->saleId."|".$recDetail->resourceId;
+                     
+                        $componentArr = cat_Products::prepareComponents($rec->productId, $data->component, NULL, NULL,'production'); 
+    
+                        $quantity = str_replace(",", ".", $rec->quantity);
+                        $propQuantity = str_replace(",", ".",$recDetail->propQuantity);
+                        
                         foreach($componentArr as $component) { 
                             $divideBy = ($component->divideBy) ? $component->divideBy : 1;
                             $q = ($quantity * $propQuantity) / $divideBy;
                            
-                            if(!array_key_exists($index, $data->recs)){
-    
+                            if(!array_key_exists($index, $dRecs)){
                                 if(!$recDetail->parentId || $recDetail->type == 'stage') {
-                                    unset($mArr[$index]);
-                                    $data->recs[$index] =
+                                    
+                                    $dRecs[$index] =
                                     (object) array ('id' => $recDetail->id,
                                         'article' => $recDetail->resourceId,
                                         'articleCnt'	=> $q,
@@ -183,60 +171,97 @@ class cat_reports_BomsRep extends frame_BaseDriver
                                         'sal'=> $rec->saleId,
                                     );
                                 }
-                            };
+                            }
                         }
-                    }
-                    
-                    if(array_key_exists($index, $data->recs) && $data->recs[$index]->sal != $rec->saleId) {
-                        $obj = &$data->recs[$index]; 
-                        $obj->articleCnt += $q;
-                   }
-                } 
+    
+                        if(array_key_exists($index, $dRecs) && $dRecs[$index]->id != $recDetail->id) { 
+             
+                                $obj = &$dRecs[$index]; 
+                                $obj->articleCnt += $q;
+                       }
+                    } 
+                }
             }
         }
+
+
+        foreach($dRecs as $dId => $recD){
+            $sal = strstr($dId, "|", TRUE);
+            $prod = substr(strstr($dId, "|"),1);
+
+            if(!array_key_exists($prod, $data->recs)){
+                $data->recs[$prod] = $recD;
+            } else {
+                $aObj = &$data->recs[$prod];
+                $aObj->articleCnt += $recD->articleCnt;
+            }
+        }
+
 
         $i = 1;
-        if(is_array($data->recs)) {
-            foreach ($data->recs as $id=>$rec){ 
-    
-                $mArr = cat_Products::getMaterialsForProduction($rec->article,$rec->articleCnt, NULL,TRUE);
+        if(is_array($data->recs)) { 
+            foreach ($data->recs as $idRec=>$rec){ 
+
+                $mArr[$idRec] = cat_Products::getMaterialsForProduction($rec->article, $rec->articleCnt, NULL,TRUE);
+         
                 $rec->num = $i;
-                if(count($mArr) >=1) {
-                    foreach($mArr as $id=>$val){
-                        
-                        $rec->materials = array($id=>$id);
-                        $rec->mCnt = array($id=>$val['quantity']);
-                        $rec->mParams = key(cat_Products::getPacks($id));
-                       
-                    }
-                }
-                
+
                 $i++;
-            }
+            }  
         }
 
+        if(count($mArr) >=1) {
+            foreach($mArr as $id=>$val){ 
+                $data->recs[$id]->materials = array();
+                $data->recs[$id]->mCnt = array();
+                $data->recs[$id]->mParams = array();
+                foreach($val as $mat=>$matVal) { 
+                    $data->recs[$id]->materials[$matVal['productId']] = $matVal['productId'];
+                    $data->recs[$id]->mCnt[$matVal['productId']] = $matVal['quantity'];
+                    $data->recs[$id]->mParams[$matVal['productId']] = key(cat_Products::getPacks($matVal['productId']));   
+                }      
+            }
+        }
+        
         if(is_array($data->recs)) {
-            foreach($data->recs as $i=>$r){ 
-           
-                if(isset($fRec->groupId)) {
-                    if($r->materials != 0 || $r->materials != NULL) {
+            foreach($data->recs as $i=>$r){
+        
+                if(isset($fRec->groupId)) { 
+                    if(is_array($r->materials) && count($r->materials) != 0) {//bp($fRec->groupId);
                         $materialsArr = implode(',', $r->materials);
-         
-                        
+        
                         $queryProduct = cat_Products::getQuery();
                         $queryProduct->where("#id IN ({$materialsArr})");
                         $queryProduct->likeKeylist("groups", $fRec->groupId);
-                        
+        
                         if($queryProduct->fetch() == FALSE) {
                             unset($data->recs[$i]);
-                        }  
-                    }  else {
+        
+                        }
+                    } else {
                         unset($data->recs[$i]);
-                    } 
-                }    
+                    }
+                }
             }
         }
-
+        
+        if(is_array($data->recs) && isset($fRec->groupId)) {
+            foreach($data->recs as $rI=>$rC){
+                foreach($rC->materials as $mat) { 
+                    $groups = cat_Products::fetchField($mat,'groups');
+                    $groupsArr = keylist::toArray($groups);
+                    $fGroup = keylist::toArray($fRec->groupId);
+                    foreach($fGroup as $fg) {
+                        if(!array_key_exists($fg, $groupsArr)) {
+                            unset($data->recs[$rI]->materials[$mat]);
+                            unset($data->recs[$rI]->mCnt[$mat]);
+                            unset($data->recs[$rI]->mParams[$mat]);
+                        }
+                    }
+                }
+            }
+        }
+        
         return $data;
     }
     
@@ -246,14 +271,12 @@ class cat_reports_BomsRep extends frame_BaseDriver
      */
     public function on_AfterPrepareEmbeddedData($mvc, &$res)
     {
-
         // Подготвяме страницирането
     	$data = $res;
         
         $pager = cls::get('core_Pager',  array('itemsPerPage' => $mvc->listItemsPerPage));
         $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
         $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
-
         $pager->itemsCount = count($data->recs);
         $data->pager = $pager;
         
@@ -261,13 +284,11 @@ class cat_reports_BomsRep extends frame_BaseDriver
         foreach($data->recs as $rec){
             $recs[] = $rec;
         }
-
         if(count($recs)){
      
             foreach ($recs as $id => $r){ 
                 
                 $r->num = $id +1;
-
 				if(!$pager->isOnPage()) continue;
 				
 				$row = new stdClass();
@@ -276,7 +297,6 @@ class cat_reports_BomsRep extends frame_BaseDriver
                 
             }
         }
-
         $res = $data;
     }
     
@@ -286,7 +306,6 @@ class cat_reports_BomsRep extends frame_BaseDriver
      */
     protected function getVerbal_($rec)
     {
-
         $RichtextType = cls::get('type_Richtext');
         $Blob = cls::get('type_Blob');
         $Int = cls::get('type_Int');
@@ -296,7 +315,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
         
         $row->num = $Int->toVerbal($rec->num);
         $row->article = cat_Products::getShortHyperlink($rec->article);
-        $row->articleCnt = $Int->toVerbal($rec->articleCnt);
+        $row->articleCnt = $Double->toVerbal($rec->articleCnt);
         
         if(is_array($rec->params)) {
             unset($rec->params['$T']);
@@ -304,7 +323,6 @@ class cat_reports_BomsRep extends frame_BaseDriver
             foreach($rec->params as $name=>$val) {
              
                 //if(!is_numeric($val)) continue;
-
                 $name = cat_Params::getNormalizedName($name);
                 $name = str_replace("_", " ", $name);
          
@@ -318,7 +336,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
                     continue;
                 }
                 
-                if(strpos($name, "височина") !== FALSE) {
+                if(strpos($name, "дебелина") !== FALSE) {
                     $row->height = $val;
                     continue;
                 }
@@ -331,20 +349,21 @@ class cat_reports_BomsRep extends frame_BaseDriver
             }
         }
         
-        if(isset($rec->mParams)) {
-            $row->mParams = cat_UoM::getShortName($rec->mParams);
+        if(is_array($rec->mParams)) {
+            foreach ($rec->mParams as $mParams) {
+                $row->mParams .= cat_UoM::getShortName($mParams). "<br/>";
+            }
         }
         
         if(is_array($rec->mCnt)) {
             foreach ($rec->mCnt as $mCnt) { 
-                $row->mCnt = $Int->toVerbal($mCnt) . "<br/>";
+                $row->mCnt .= $Double->toVerbal($mCnt) . "<br/>";
             }
         }
-
+        
         return $row;
     }
     
-
     /**
      * Връща шаблона на репорта
      *
@@ -371,11 +390,11 @@ class cat_reports_BomsRep extends frame_BaseDriver
                              article=Детайл,
                              length=Параметри->Дължина,
     					     width=Параметри->Ширина,
-                             height=Параметри->Височина,
+                             height=Параметри->Дебелина,
                              articleCnt=Брой,
                              materials=Материали->Име,
                              mParams=Материали->Мярка,
-                             mCnt=Материали->К-во", TRUE);
+                             mCnt=Материали->Количество", TRUE);
   
     }
     
@@ -388,46 +407,34 @@ class cat_reports_BomsRep extends frame_BaseDriver
     public function renderEmbeddedData(&$embedderTpl, $data)
     {
     	
-    	if(empty($data)) return;
-    	 
+    	//if(empty($data)) return;
+    	//bp(count($data->recs));
     	$tpl = $this->getReportLayout();
     	
     	$title = explode(" » ", $this->title);
     	
     	$tpl->replace($title[1], 'TITLE');
+    	
+    	$this->prependStaticForm($tpl, 'FORM');
 
-    	$salesArr = keylist::toArray($data->fRec->saleId);
-    	
-    	if(is_array($salesArr)) {
-    	    foreach($salesArr as $id=>$sale){
-    	        $link .= sales_Sales::getShortHyperLink($sale). "<br/>";
-    	    }
-    	}
-    	
-        $tpl->replace($link, 'saleId');
-   
     	$tpl->placeObject($data->rec);
-
+    	
     	$f = cls::get('core_FieldSet');
     	
     	$f->FLD('num', 'int');
     	$f->FLD('article', 'varchar');
     	$f->FLD('articleCnt', 'int', 'tdClass=accItemClass,smartCenter');
-    	$f->FLD('length', 'varchar');
-    	$f->FLD('width', 'varchar');
-    	$f->FLD('height', 'varchar');
+    	$f->FLD('length', 'varchar','tdClass=smartCenter');
+    	$f->FLD('width', 'varchar','tdClass=smartCenter');
+    	$f->FLD('height', 'varchar','tdClass=smartCenter');
     	$f->FLD('materials', 'varchar');
     	$f->FLD('mParams', 'varchar');
     	$f->FLD('mCnt', 'int','tdClass=accItemClass,smartCenter');
-
     	$table = cls::get('core_TableView', array('mvc' => $f));
-
     	$tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
-
     	if($data->pager){
     	     $tpl->append($data->pager->getHtml(), 'PAGER');
     	}
-
     	$embedderTpl->append($tpl, 'data');
     } 
     
@@ -452,7 +459,6 @@ class cat_reports_BomsRep extends frame_BaseDriver
         $f->FLD('materials', 'key(mvc=cat_Products,select=name)');
         $f->FLD('mParams', 'key(mvc=cat_UoM,select=shortName)');
         $f->FLD('mCnt', 'int');
-
     
         return $f;
     }
@@ -472,7 +478,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
     					     articleCnt=Брой,
                              length=Параметри->Дължина,
                              width=Параметри->Ширина,
-                             height=Параметри->Височина,
+                             height=Параметри->Дебелина,
                              materials=Материали->Име,
     					     mParams=Материали->Мярка,
                              mCnt=Материали->Количество", TRUE);
@@ -489,7 +495,6 @@ class cat_reports_BomsRep extends frame_BaseDriver
     {
         $exportFields = $this->getExportFields();
         $fields = $this->getFields();
-
         $dataRec = array();
         foreach($this->innerState->recs as $id=>$rec){
             $dataRec[$id] = $rec; 
@@ -508,7 +513,6 @@ class cat_reports_BomsRep extends frame_BaseDriver
                 }
             }
         }
-
         $csv = csv_Lib::createCsv($dataRec, $fields, $exportFields);
          
         return $csv;
@@ -561,15 +565,15 @@ class cat_reports_BomsRep extends frame_BaseDriver
                     $valior = dt::mysql2verbal($recSale->valior, "d.m.y");
                     // контрагент
                     $Contragent = cls::get($recSale->contragentClassId);
-                    $contragent = $Contragent->getTitleById($recSale->contragentId);
-                    
+                    $contragent = $Contragent->getTitleById($recSale->contragentId, FALSE);
+                 
                     $string = $handle . "/" . $valior . " " . $contragent;
                     // правим масив с опции
                     $options[$recSale->id] = $string;
                 }
             }
         }
-    
+
         return $options;
     }
 }

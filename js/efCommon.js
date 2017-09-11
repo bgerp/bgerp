@@ -15,6 +15,7 @@ function spr(sel) {
         $("input[name*='to']").prop('disabled', true);
         $("input[name*='from']").closest('tr').fadeOut();
         $("input[name*='to']").closest('tr').fadeOut();
+        sel.form.submit();
     }
 
 }
@@ -353,6 +354,12 @@ function isIE()
     return /msie/i.test(navigator.userAgent) && !/opera/i.test(navigator.userAgent);
 }
 
+function isRaspBerryPi()
+{
+    var info = getUserAgent();
+    return info.indexOf("Linux armv7l") >= 0;
+}
+
 /**
  * Връща коя версия на IE е браузъра
  */
@@ -420,6 +427,7 @@ function comboSelectOnChange(id, value, selectId) {
     var selCombo = get$(selectId);
     selCombo.value = '?';
     $('#' + id).change();
+
 }
 
 
@@ -792,6 +800,12 @@ function createRicheditTable(textarea, newLine, tableCol, tableRow) {
     }
 }
 
+
+function dblRow(table, tpl){
+    $("#" + table).append(tpl);
+}
+
+
 /**
  * предпазване от субмит на формата, при натискане на enter във форма на richedit
  */
@@ -1071,11 +1085,17 @@ function prepareContextMenu() {
             'verAdjust': vertAdjust,
             'horAdjust': horAdjust
         });
+        
+        $('.modal-toolbar .button').on("click", function(){
+            $('.more-btn').contextMenu('close');
+        });
     });
 }
 
+var timeOfSettingTab, timeOfNotification, oldNotificationsCnt;
 function openCurrentTab(){
     if(!$('body').hasClass('modern-theme')) return;
+    oldNotificationsCnt = $('#nCntLink').text();
     var current;
     // взимаме данните за портала в бисквитката
     var portalTabs = getCookie('portalTabs');
@@ -1098,6 +1118,8 @@ function openCurrentTab(){
 
     portalTabsChange();
 }
+
+
 /**
  * Действия на табовете в мобилен
  */
@@ -1109,9 +1131,9 @@ function portalTabsChange() {
 
         $(this).addClass('activeTab');
         $("#"+tab_id).addClass('activeTab');
+        timeOfSettingTab = jQuery.now();
         setCookie('portalTabs', tab_id);
     });
-
 }
 
 // Скрива или показва съдържанието на div (или друг) елемент
@@ -1461,6 +1483,7 @@ function rgb2hex(rgb) {
  * Задава максиналната височина на опаковката и основното съдържание
  */
 function setMinHeight() {
+
     var ch = document.documentElement.clientHeight;
 
     if (document.getElementById('framecontentTop')) {
@@ -1489,6 +1512,7 @@ function setMinHeight() {
  * мащабиране на страницата при touch устройства с по-голяма ширина
  */
 function scaleViewport() {
+
     if (isTouchDevice()) {
         var pageWidth = $(window).width();
         var customWidth = 1024;
@@ -1632,6 +1656,8 @@ function setFormElementsWidth() {
         $('.formTable .select2-container').css('maxWidth', formElWidth);
         $('.formTable select').css('maxWidth', formElWidth);
 
+        $('.formTable .scrolling-holder').css('maxWidth', formElWidth);
+
         $('.formTable .hiddenFormRow select.w50').css('width', formElWidth);
         $('.formTable .hiddenFormRow select.w75').css('width', formElWidth);
         $('.formTable .hiddenFormRow select.w100').css('width', formElWidth);
@@ -1683,7 +1709,8 @@ function maxSelectWidth(){
 function setThreadElemWidth() {
 	var offsetWidth = 45;
     var threadWidth = parseInt($(window).width()) - offsetWidth;
-    $('.doc_Containers table.listTable > tbody > tr > td').css('maxWidth', threadWidth + 10);
+    $('#main-container .doc_Containers table.listTable.listAction > tbody > tr > td').css('maxWidth', threadWidth + 10);
+    $('.background-holder .doc_Containers table.listTable > tbody > tr > td').css('maxWidth', threadWidth + 10);
     $('.doc_Containers .scrolling-holder').css('maxWidth', threadWidth + 10);
 }
 
@@ -1865,6 +1892,7 @@ function saveSelectedTextToSession(handle, onlyHandle) {
 
         // Записваме в сесията празен стринг
         sessionStorage.selText = '';
+        sessionStorage.selHandle = '';
     }
 }
 
@@ -2366,9 +2394,9 @@ function prepareContextHtmlFromAjax() {
 function getContextMenuFromAjax() {
     prepareContextHtmlFromAjax();
 
-    $('.ajaxContext').on('mousedown', function() {
+    $('.ajaxContext').on('mousedown touchstart', function(e) {
         openAjaxMenu(this);
-    } );
+    });
 
     $('.ajaxContext').each(function(){
         var el = $(this);
@@ -2453,7 +2481,7 @@ function escapeRegExp(str) {
 	
 	if (!str.trim()) return ;
 	
-    return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+    return str.replace(/[\'\"\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
 }
 
 
@@ -2683,10 +2711,16 @@ function sumOfChildrenWidth() {
 				$('#main-container > div.tab-control > .tab-row ').scrollLeft(activeOffset.left);
 			}
 		}
-		if ($('.docStatistic div.alphabet div.tab-row .tab').length){
-			var sum=0;
-			$('.docStatistic div.alphabet div.tab-row .tab').each( function(){ sum += $(this).width() + 5; });
-			$('.docStatistic').css('min-width', sum);
+		if ($('.single-thread .docStatistic div.alphabet div.tab-row .tab').length){
+            var sumDocTab=0;
+            $('.docStatistic div.alphabet div.tab-row .tab').each( function(){ sumDocTab += $(this).width() + 5; });
+            var tableWidth = $('.docStatistic div.alphabet.tab-control .listTable').width();
+            var maxWidth = Math.max(tableWidth, sumDocTab);
+            $('.docStatistic div.tab-row').css('width',  sumDocTab);
+            $('.docStatistic  div.alphabet.tab-control .listTable').css('width',  sumDocTab);
+            $('.docStatistic').css('width',  maxWidth);
+            $('.docStatistic').css('display', 'table');
+            $('.docStatistic').css('overflow', 'scroll');
 		}
 	}
 }
@@ -2842,7 +2876,7 @@ function scalePrintingDocument(pageHeight){
 		}
 	}
 	if($(".print-break").length){
-		checkForPrintBreak(580);
+		checkForPrintBreak(620);
 	}
 }
 
@@ -3054,7 +3088,7 @@ function efae() {
     efae.prototype.increaseInterval = 100;
 
     // Горната граница (в милисекунди), до която може да се увеличи брояча
-    efae.prototype.maxIncreaseInterval = 60000;
+    efae.prototype.maxIncreaseInterval = 300000;
 
     // През колко време да се праща AJAX заяка към сървъра
     efae.prototype.ajaxInterval = efae.prototype.ajaxDefInterval = 5000;
@@ -3083,6 +3117,9 @@ function efae() {
 
     // Флаг, който указва дали все още се чака резултат от предишна AJAX заявка
     Experta.prototype.isWaitingResponse = false;
+	
+    // Флаг, който указва колко време да не може да се прави AJAX заявки по часовник
+    efae.prototype.waitPeriodicAjaxCall = 0;
 }
 
 
@@ -3111,13 +3148,16 @@ efae.prototype.run = function() {
     try {
         // Увеличаваме брояча
         this.increaseTimeout();
-
-        // Вземаме всички URL-та, които трябва да се извикат в този цикъл
-        var subscribedObj = this.getSubscribed();
-
-        // Стартираме процеса
-        this.process(subscribedObj);
-
+    	
+        if (this.waitPeriodicAjaxCall <= 0) {
+        	// Вземаме всички URL-та, които трябва да се извикат в този цикъл
+            var subscribedObj = this.getSubscribed();
+			
+            // Стартираме процеса
+            this.process(subscribedObj);
+        } else {
+        	this.waitPeriodicAjaxCall--;
+        }
     } catch (err) {
 
         // Ако възникне грешка
@@ -3296,13 +3336,41 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
         	if((res.readyState == 0 || res.status == 0) && res.getAllResponseHeaders()) return;
 
         	var text = 'Connection error';
-
+    		var errType = 'error';
+    		var timeOut = 3000;
+        	
         	if (res.status == 404) {
         		text = 'Липсващ ресурс';
         	} else if (res.status == 500) {
         		text = 'Грешка в сървъра';
+        	} else if (res.status == 503) {
+        		text = res.responseText;
+        		text = text.replace(/<\/?[^>]+(>|$)/g, "\n");
+        		text = text.trim();
+        		text = text.replace(/(?:\r\n|\r|\n)+\s*/g, "<br>");
+        		
+        		errType = 'warning';
+        		timeOut = 1;
         	}
-
+        	
+        	var toastErrType = '.toast-type-' + errType;
+        	var connectionerrStatus = '.connection-' + errType + '-status';
+        	
+        	if (res.status == 503) {
+				
+            	// Ако е имало грешка, премахваме статуса за да покажем новия
+            	if (getEfae().AJAXHaveError) {
+					
+            		if ($(connectionerrStatus).length) {
+            			$(connectionerrStatus).remove();
+            		}
+					
+            		if ($(toastErrType).length) {
+            			$(toastErrType).remove();
+            		}
+            	}
+        	}
+        	
         	getEO().log('Грешка при извличане на данни по AJAX - ReadyStatus: ' + res.readyState + ' - Status: ' + res.status);
 
         	getEfae().AJAXHaveError = true;
@@ -3313,24 +3381,24 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
         		if (getEfae().AJAXErrorRepaired) return ;
 
 	        	if (typeof showToast != 'undefined' && $().toastmessage) {
-	        		if (!$(".toast-type-error").length) {
+	        		if (!$(toastErrType).length) {
 	        			showToast({
 		                    timeOut: 1,
 		                    text: text,
 		                    isSticky: true,
 		                    stayTime: 4000,
-		                    type: 'error'
+		                    type: errType
 		                });
 	        		}
 	            } else {
 	            	// Ако не е добавено съобщение за грешка
-	            	if (!$(".connection-error-status").length) {
+	            	if (!$(connectionerrStatus).length) {
 	            		// Ако възникне грешка
 	                    var errorData = {id: "statuses", html: "<div class='statuses-message statuses-error connection-error-status'>" + text +"</div>", replace: false};
 	                    render_html(errorData);
 	            	}
 	            }
-        	}, 3000);
+        	}, timeOut);
         }).always(function(res) {
 
         	// След приключване на процеса сваляме флага
@@ -3342,9 +3410,15 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
         		if ($('.connection-error-status').length) {
         			$('.connection-error-status').remove();
         		}
+        		if ($('.connection-warning-status').length) {
+        			$('.connection-warning-status').remove();
+        		}
 
         		if ($('.toast-type-error').length) {
         			$('.toast-type-error').remove();
+        		}
+        		if ($('.toast-type-warning').length) {
+        			$('.toast-type-warning').remove();
         		}
         	}
         });
@@ -3830,6 +3904,7 @@ function render_redirect(data) {
 
 var oldTitle;
 var oldIconPath;
+var isChanged = false;
 var blinkerWorking = false;
 
 /**
@@ -3864,13 +3939,20 @@ function render_Notify(data) {
 
 	var interval = setInterval(function(){
 		// Задаваме новия текст и икона
-		setTitle(title);
-		setFavIcon(newIcon);
+
+        if(title != oldTitle && !isChanged) {
+            isChanged = true;
+            setTitle(title);
+            setFavIcon(newIcon);
+        }
 
 		// задаваме старите текст и икона след като изтече времето за показване
 		var timeOut = setTimeout(function(){
-			restoreTitle(oldTitle);
-			setFavIcon(oldIcon);
+            if(title != oldTitle && isChanged) {
+                isChanged = false;
+                restoreTitle(oldTitle);
+                setFavIcon(oldIcon);
+            }
 		}, 600);
 
 		counter++;
@@ -4016,7 +4098,6 @@ function changeTitleCnt(cnt) {
     document.title = title;
 }
 
-
 /**
  * Променя броя на нотификациите
  *
@@ -4034,11 +4115,20 @@ function changeNotificationsCnt(data) {
     var nCntLink = get$(data.id);
 
     if (nCntLink != null) {
-
-        if (parseInt(data.cnt) > 0) {
+        var notificationsCnt = parseInt(data.cnt);
+        if (notificationsCnt > 0) {
             nCntLink.className = 'haveNtf';
         } else {
             nCntLink.className = 'noNtf';
+        }
+
+        if($('body').hasClass('modern-theme') && oldNotificationsCnt != notificationsCnt) {
+            oldNotificationsCnt = notificationsCnt;
+            timeOfNotification = jQuery.now();
+
+            if(typeof timeOfSettingTab == "undefined" || (timeOfSettingTab < timeOfNotification)) {
+                setCookie('portalTabs', "notificationsPortal");
+            }
         }
     }
 }
@@ -4067,6 +4157,44 @@ function showToast(data) {
     }, data.timeOut);
 }
 
+
+/**
+ * Рендира новото изображение за превю на картина
+ * 
+ * @param object data - Обект с необходимите стойности
+ * data.data-url
+ * data.src
+ * data.width
+ * data.height
+ * data.fh
+ */
+function render_setNewFilePreview(data) {
+	console.log(data);
+}
+var oldImageSrc, oldImageWidth, oldImageHeight;
+function changeZoomImage(el) {
+    if($(el).attr("data-zoomed") == "no") {
+        if($('body').hasClass('wide')){
+            $(el).css("width",$(el).css("width"));
+            $(el).css("height","auto");
+        } else {
+            oldImageSrc = $(el).attr("src");
+            oldImageWidth = $(el).attr("width");
+            oldImageHeight = $(el).attr("height");
+        }
+        $(el).attr("width", $(el).attr("data-bigwidth"));
+        $(el).attr("height", $(el).attr("data-bigheight"));
+        $(el).attr("src",$(el).attr("data-bigsrc"));
+        $(el).attr("data-zoomed", "yes");
+    } else {
+        if($('body').hasClass('narrow')){
+            $(el).attr("src", oldImageSrc);
+            $(el).attr("width", oldImageWidth);
+            $(el).attr("height", oldImageHeight);
+            $(el).attr("data-zoomed", "no");
+        }
+    }
+}
 
 /**
  * Experta - Клас за функции на EF
@@ -4453,7 +4581,11 @@ Experta.prototype.setCoords = function(position) {
  * @param return
  */
 Experta.prototype.escape = function(str) {
-
+	
+	if (!str) return str;
+	
+	if (typeof str != 'string') return str;
+	
 	str = str.replace(/[&<>]/g, function(tag) {
 		var tagsToReplace = {
 			    '&': '&amp;',
@@ -4519,7 +4651,7 @@ Experta.prototype.checkBodyId = function(bodyId) {
 	}
 
 	var bodyIds = sessionStorage.getItem(this.bodyIdSessName);
-
+	
 	if (!bodyIds) return ;
 
 	bodyIds =  $.parseJSON(bodyIds);
@@ -4891,7 +5023,9 @@ function startUrlFromDataAttr(obj, stopOnClick)
 	}
 
 	getEfae().process(resObj);
-
+	
+	getEfae().waitPeriodicAjaxCall = 0;
+	
 	return false;
 }
 
@@ -4939,6 +5073,25 @@ function addParamsToBookmarkBtn(obj, parentUrl, localUrl)
 	var title = document.title;
 
     obj.setAttribute("href", parentUrl + '&url=' + url + '&title=' + title);
+}
+
+/**
+ * Вика по AJAX екшън, който добавя документа към последни
+ * 
+ * @param fh
+ */
+function copyFileToLast(fh)
+{
+	if (this.event) {
+		stopBtnDefault(this.event);
+	}
+	
+    getEfae().process({url: '/fileman_Files/CopyToLast/' + fh});
+    
+    // Затваряме прозореца
+    if ($('.iw-mTrigger').contextMenu) {
+    	$('.iw-mTrigger').contextMenu('close');
+    }
 }
 
 

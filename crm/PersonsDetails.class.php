@@ -18,6 +18,12 @@ class crm_PersonsDetails extends core_Manager
 	
 	
 	/**
+	 * Кой може да вижда личните индикатори на служителите
+	 */
+	public $canSeeindicators = 'powerUser';
+	
+	
+	/**
 	 * Подготвя ценовата информация за артикула
 	 */
 	public function preparePersonsDetails($data)
@@ -29,6 +35,12 @@ class crm_PersonsDetails extends core_Manager
 		if(keylist::isIn($employeeId, $data->masterData->rec->groupList)){
 			$data->Codes = cls::get('crm_ext_Employees');
 			$data->TabCaption = 'HR';
+		}
+		
+		// Подготовка на индикаторите
+		$data->Indicators = cls::get('hr_Indicators');
+		if($this->haveRightFor('seeindicators', (object)array('personId' => $data->masterId))){
+			$data->Indicators->preparePersonIndicators($data);
 		}
 		
 		$eQuery = crm_ext_Employees::getQuery();
@@ -45,7 +57,7 @@ class crm_PersonsDetails extends core_Manager
 		        }
 		    }
 		}
-
+		
 		$data->Cards = cls::get('crm_ext_IdCards');
 		$data->Cards->prepareIdCard($data);
 		
@@ -70,16 +82,26 @@ class crm_PersonsDetails extends core_Manager
 	{
 		$tpl = getTplFromFile('crm/tpl/PersonsData.shtml');
 		
+		// Показване на индикаторите
+		if(isset($data->IData)){
+			$resTpl = $data->Indicators->renderPersonIndicators($data);
+			$resTpl->removeBlocks();
+			$tpl->append($resTpl, 'INDICATORS_TABLE');
+		}
+		
+		// Показване на клиентските карти
 		$cardTpl = $data->Cards->renderIdCard($data);
 		$cardTpl->removeBlocks();
 		$tpl->append($cardTpl, 'IDCARD');
 		
+		// Показване на кода
 		if(isset($data->Codes)){
 			$resTpl = $data->Codes->renderData($data);
 			$resTpl->removeBlocks();
 			$tpl->append($resTpl, 'CODE');
 		}
 		
+		// Показване на работните цикли
 		if(isset($data->Cycles)){
 		    $resTpl = $data->Cycles->renderGrafic($data);
 		    $resTpl->removeBlock('legend');
@@ -90,11 +112,32 @@ class crm_PersonsDetails extends core_Manager
     		    // правим url  за принтиране
                 $url = array('hr_WorkingCycles', 'Print', 'Printing'=>'yes', 'masterId' => $data->Cycles->masterId, 'cal_month'=>$data->Cycles->month, 'cal_year'=>$data->Cycles->year, 'personId'=>$data->masterId);
                 $efIcon = 'img/16/printer.png';
-                $link = ht::createLink('', $url, FALSE, "title=Печат,ef_icon={$efIcon}");                
+                $link = ht::createLink('', $url, FALSE, "title=Печат,ef_icon={$efIcon},style=float:right; height: 16px;");
                 $tpl->append($link, 'print');
 		    }
 		}
 
 		return $tpl;
+	}
+	
+	
+	/**
+	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+	 *
+	 * @param core_Mvc $mvc
+	 * @param string $requiredRoles
+	 * @param string $action
+	 * @param stdClass $rec
+	 * @param int $userId
+	 */
+	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+	{
+		// Кой може да вижда индикаторите
+		if($action == 'seeindicators' && isset($rec)){
+			$personUserId = crm_Profiles::fetchField("#personId = {$rec->personId}", 'userId');
+			if($personUserId != $userId){
+				$requiredRoles = 'hr,ceo';
+			}
+		}
 	}
 }

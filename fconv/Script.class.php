@@ -457,7 +457,7 @@ class fconv_Script
                     
                     file_get_contents($url);
                     
-                    log_System::add('fconv_Remote', "Стартиран скрипт: " . $url, $rRec->id);
+                    log_System::add('fconv_Remote', "Отдалечен скрипт: " . $url, $rRec->id);
                     
                     return ;
                 }

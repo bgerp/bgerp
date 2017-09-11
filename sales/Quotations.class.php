@@ -46,8 +46,8 @@ class sales_Quotations extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, sales_Wrapper, doc_plg_Close, doc_EmailCreatePlg, acc_plg_DocumentSummary, plg_Search, doc_plg_HidePrices, doc_plg_TplManager,
-                    doc_DocumentPlg, plg_Printing, doc_ActivatePlg, crm_plg_UpdateContragentData, plg_Clone, bgerp_plg_Blank, cond_plg_DefaultValues,doc_plg_SelectFolder,plg_LastUsedKeys';
+    public $loadList = 'plg_RowTools2, sales_Wrapper, doc_plg_Close, doc_EmailCreatePlg, acc_plg_DocumentSummary, doc_plg_HidePrices, doc_plg_TplManager,
+                    doc_DocumentPlg, plg_Printing, doc_ActivatePlg, plg_Clone, bgerp_plg_Blank, cond_plg_DefaultValues,doc_plg_SelectFolder,plg_LastUsedKeys,cat_plg_AddSearchKeywords, plg_Search';
     
     
     /**
@@ -71,7 +71,7 @@ class sales_Quotations extends core_Master
     /**
      * Икона за единичния изглед
      */
-    public $singleIcon = 'img/16/document_quote.png';
+    public $singleIcon = 'img/16/quotation.png';
     
     
     /**
@@ -229,6 +229,7 @@ class sales_Quotations extends core_Master
         $this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Oсвободено от ДДС, no=Без начисляване на ДДС)','caption=Плащане->ДДС,oldFieldName=vat');
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTermSale');
         $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Място,hint=Изберете локация или въведете нова');
+        $this->FLD('deliveryAdress', 'varchar', 'caption=Доставка->Адрес,placeholder=Ако е празно се взима според условието на доставка');
         
 		$this->FLD('company', 'varchar', 'caption=Получател->Фирма, changable, class=contactData');
         $this->FLD('person', 'varchar', 'caption=Получател->Име, changable, class=contactData');
@@ -364,14 +365,21 @@ class sales_Quotations extends core_Master
     	}
     	
     	$dData = $data->sales_QuotationsDetails;
+    	
     	if($dData->countNotOptional && $dData->notOptionalHaveOneQuantity){
-    		$firstProductRow = $dData->rows[key($dData->rows)][0];
+    		$keys = array_keys($dData->rows);
+    		$firstProductRow = $dData->rows[$keys[0]][0];
+    		
     		if($firstProductRow->tolerance){
-    			$data->row->others .= "<li>" . tr('Толеранс:') ." {$firstProductRow->tolerance}</li>";
+    			$data->row->others .= "<li>" . tr('Толеранс к-во') .": {$firstProductRow->tolerance}</li>";
     		}
     		
     		if(isset($firstProductRow->term)){
-    			$data->row->others .= "<li>" . tr('Срок:') ." {$firstProductRow->term}</li>";
+    			$data->row->others .= "<li>" . tr('Срок за доставка') .": {$firstProductRow->term}</li>";
+    		}
+    		
+    		if(isset($firstProductRow->weight)){
+    			$data->row->others .= "<li>" . tr('Транспортно тегло') .": {$firstProductRow->weight}</li>";
     		}
     	}
     }
@@ -554,7 +562,7 @@ class sales_Quotations extends core_Master
     		
     		if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
     			if($rec->deliveryPlaceId){
-    				if($placeId = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id')){
+    				if($placeId = crm_Locations::fetchField(array("#title = '[#1#]'", $rec->deliveryPlaceId), 'id')){
     					$row->deliveryPlaceId = ht::createLinkRef($row->deliveryPlaceId, array('crm_Locations', 'single', $placeId), NULL, 'title=Към локацията');
     				}
     			}
@@ -566,6 +574,22 @@ class sales_Quotations extends core_Master
     			}
     		}
     		 
+    		$deliveryAdress = '';
+    		if(!empty($rec->deliveryAdress)){
+    			$deliveryAdress .= $mvc->getFieldType('deliveryAdress')->toVerbal($rec->deliveryAdress);
+    		} else {
+    			if(isset($rec->deliveryTermId)){
+    				$deliveryAdress .= cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, NULL, $placeId, $mvc);
+    				$deliveryAdress = ht::createHint($deliveryAdress, 'Адреса за доставка ще се запише при активиране');
+    			}
+    		}
+    		
+    		if(!empty($deliveryAdress)){
+				$deliveryAdress1 = (isset($rec->deliveryTermId)) ? (cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'codeName') . ": ") : "";
+				$deliveryAdress = $deliveryAdress1 . $deliveryAdress;
+				$row->deliveryTermId = $deliveryAdress;
+			}
+			
     		if(!empty($profRec)){
     			$createdRec = crm_Persons::fetch($profRec->id);
     		}
@@ -660,7 +684,7 @@ class sales_Quotations extends core_Master
     		$fee = tcost_Calcs::getTransportCost($rec->deliveryTermId, $p2->productId, $p2->packagingId, $p2->quantity, $totalWeight, $codeAndCountryArr['countryId'], $codeAndCountryArr['pCode']);
     
     		// Сумира се, ако е изчислен
-    		if(is_array($fee) && $fee['totalFee'] != tcost_CostCalcIntf::CALC_ERROR){
+    		if(is_array($fee) && $fee['totalFee'] > 0){
     			$expectedTransport += $fee['totalFee'];
     		}
     	}
@@ -826,10 +850,28 @@ class sales_Quotations extends core_Master
 		    }
 		}
 		
+		$updateFields = array();
+		
+		// Запис на адреса
+		if(empty($rec->deliveryAdress) && isset($rec->deliveryTermId)){
+			
+			$locationId = ($newLocation) ? $newLocation->id : NULL;
+			$rec->tplLang = $mvc->pushTemplateLg($rec->template);
+			$rec->deliveryAdress = cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, NULL, $locationId, $mvc);
+			$updateFields[] = 'deliveryAdress';
+			
+			core_Lg::pop($rec->tplLang);
+		}
+		
+		
 		// Ако няма дата попълваме текущата след активиране
 		if(empty($rec->date)){
+			$updateFields[] = 'date';
 			$rec->date = dt::today();
-			$mvc->save($rec, 'date');
+		}
+		
+		if(count($updateFields)){
+			$mvc->save($rec, $updateFields);
 		}
 		
 		// Ако запитването е в папка на контрагент вкарва се в група запитвания
@@ -889,42 +931,15 @@ class sales_Quotations extends core_Master
     function loadSetupData()
     {
     	$tplArr = array();
-    	$tplArr[] = array('name' => 'Оферта нормален изглед', 'content' => 'sales/tpl/QuotationHeaderNormal.shtml', 'lang' => 'bg');
+    	$tplArr[] = array('name' => 'Оферта нормален изглед', 'content' => 'sales/tpl/QuotationHeaderNormal.shtml', 'lang' => 'bg', 'narrowContent' => 'sales/tpl/QuotationHeaderNormalNarrow.shtml');
     	$tplArr[] = array('name' => 'Оферта изглед за писмо', 'content' => 'sales/tpl/QuotationHeaderLetter.shtml', 'lang' => 'bg');
-    	$tplArr[] = array('name' => 'Quotation', 'content' => 'sales/tpl/QuotationHeaderNormalEng.shtml', 'lang' => 'en');
+    	$tplArr[] = array('name' => 'Quotation', 'content' => 'sales/tpl/QuotationHeaderNormalEng.shtml', 'lang' => 'en', 'narrowContent' => 'sales/tpl/QuotationHeaderNormalEngNarrow.shtml');
     	
     	$res = '';
         $res .= doc_TplManager::addOnce($this, $tplArr);
         
         return $res;
     }
-    
-    
-     /**
-      * Добавя ключови думи за пълнотекстово търсене, това са името на
-      * документа или папката
-      */
-     protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
-     {
-     	// Тук ще генерираме всички ключови думи
-     	$detailsKeywords = '';
-
-     	// заявка към детайлите
-     	$query = sales_QuotationsDetails::getQuery();
-     	
-     	// точно на тази оферта детайлите търсим
-     	$query->where("#quotationId  = '{$rec->id}'");
-     	
-	        while ($recDetails = $query->fetch()){
-	        	// взимаме заглавията на продуктите
-	        	$productTitle = cat_Products::getTitleById($recDetails->productId);
-	        	// и ги нормализираме
-	        	$detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
-	        }
-	         
-    	// добавяме новите ключови думи към основните
-    	$res = " " . $res . " " . $detailsKeywords;
-     }
      
      
 
@@ -979,7 +994,13 @@ class sales_Quotations extends core_Master
     	);
     	
     	// Създаваме нова продажба от офертата
-    	return sales_Sales::createNewDraft($rec->contragentClassId, $rec->contragentId, $fields);
+    	$saleId = sales_Sales::createNewDraft($rec->contragentClassId, $rec->contragentId, $fields);
+    	if(isset($rec->bankAccountId)){
+    		$uRec = (object)array('id' => $saleId, 'bankAccountId' => bank_OwnAccounts::fetchField($rec->bankAccountId, 'bankAccountId'));
+    		cls::get('sales_Sales')->save_($uRec);
+    	}
+    	
+    	return $saleId;
     }
     
     
@@ -1482,7 +1503,7 @@ class sales_Quotations extends core_Master
     	$saveRecs = array();
     	$dQuery = sales_QuotationsDetails::getQuery();
     	$dQuery->where("#quotationId = {$quotationId}");
-    	$dQuery->where("#price IS NULL || #tolerance IS NULL || #term IS NULL");
+    	$dQuery->where("#price IS NULL || #tolerance IS NULL || #term IS NULL || #weight IS NULL");
     	while($dRec = $dQuery->fetch()){
     		if(!isset($dRec->price)){
     			sales_QuotationsDetails::calcLivePrice($dRec, $rec);
@@ -1507,6 +1528,10 @@ class sales_Quotations extends core_Master
     			}
     		}
     		
+    		if(!isset($dRec->weight)){
+    			$dRec->weight = cat_Products::getWeight($dRec->productId, $dRec->packagingId, $dRec->quantity);
+    		}
+    		
     		$saveRecs[] = $dRec;
     	}
     	
@@ -1521,5 +1546,81 @@ class sales_Quotations extends core_Master
     	}
     	
     	cls::get(sales_QuotationsDetails)->saveArray($saveRecs);
+    }
+    
+    
+    /**
+     * Връща заглавието на имейла
+     * 
+     * @param integer $id
+     * @param boolean $isForwarding
+     * 
+     * @return string
+     * 
+     * @see email_DocumentIntf
+     */
+    function getDefaultEmailSubject($id, $isForwarding = FALSE)
+    {
+        $res = '';
+        
+        if (!$id) return $res;
+        $rec = $this->fetch($id);
+        
+        if (!$rec) return $res;
+        
+        if ($rec->reff) {
+            $res = $rec->reff . ' ' . $this->getHandle($id);
+        } else {
+            $dQuery = sales_QuotationsDetails::getQuery();
+            $dQuery->where(array("#quotationId = '[#1#]'", $id));
+            
+            // Показваме кода на продукта с най високата сума
+            $maxAmount = NULL;
+            $productId = 0;
+            $pCnt = 0;
+            while($dRec = $dQuery->fetch()) {
+                $amount = $dRec->price * $dRec->quantity;
+                
+                if ($dRec->discount) {
+                    $amount = $amount * (1 - $dRec->discount);
+                    
+                }
+                
+                if (!isset($maxAmount) || ($amount > $maxAmount)) {
+                    $maxAmount = $amount;
+                    $productId = $dRec->productId;
+                }
+                
+                $pCnt++;
+            }
+            
+            $pCnt--;
+            if ($productId) {
+                $pRec = cat_products::fetch($productId);
+                cat_Products::setCodeIfEmpty($pRec);
+                
+                $res = $pRec->code;
+                
+                if ($pCnt > 0) {
+                    $res .= ' + ' . tr('още') . ' ' . $pCnt;
+                }
+            }
+        }
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
+     */
+    public function updateMaster_($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	 
+    	return $this->save($rec, 'modifiedOn,modifiedBy,searchKeywords');
     }
 }

@@ -93,6 +93,12 @@ class fileman_Indexes extends core_Manager
     
     
     /**
+     * Масив с файлови разширения, които ще се избягват при вземане на драйвер
+     */
+    protected static $ignoreExtArr = array('p7s');
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -117,8 +123,8 @@ class fileman_Indexes extends core_Manager
         $ext = fileman_Files::getExt($data->fRec->name);
         
         // Вземаме уеб-драйверите за това файлово разширение
-        $webdrvArr = self::getDriver($ext);
-
+        $webdrvArr = self::getDriver($ext, $data->fRec->name);
+        
         // Обикаляме всички открити драйвери
         foreach($webdrvArr as $drv) {
             
@@ -200,15 +206,39 @@ class fileman_Indexes extends core_Manager
     /**
      * Връща масив от инстанции на уеб-драйвери за съответното разширение
      * Първоначалните уеб-драйвери на файловете се намират в директорията 'fileman_webdrv'
+     * 
+     * @param string $ext
+     * @param NULL|string $fName
+     * @param array $pathArr
+     * 
+     * @return array
      */
-    static function getDriver_($ext, $pathArr = array('fileman_webdrv'))
+    static function getDriver_($ext, $fName = NULL, $pathArr = array('fileman_webdrv'))
     {   
         // Разширението на файла
         $ext = strtolower($ext);
-
+        
+        // Ако тово разширение трябва да се игнорира
+        $ignoreExtArr = arr::make(self::$ignoreExtArr, TRUE);
+        if ($ignoreExtArr[$ext]) {
+            $fArr = fileman_Files::getNameAndExt($fName);
+            
+            $nExt = fileman_Files::getExt($fArr['name']);
+            
+            if ($nExt && $fArr['name']) {
+                // Вземаме уеб-драйверите за това файлово разширение
+                $res = self::getDriver($nExt, $fArr['name'], $pathArr);
+                
+                if ($res[0] && ($res[0]->className != 'fileman_webdrv_Generic')) {
+                    
+                    return $res;
+                }
+            }
+        }
+        
         // Масив с инстанциите на всички драйвери, които отговарят за съответното разширение
         $res = array();
-
+        
         // Обхождаме масива с пътищата
         foreach($pathArr as $path) {
             
@@ -229,7 +259,7 @@ class fileman_Indexes extends core_Manager
             // Създаваме инстанция на прародителя на драйверите
             $res[] = cls::get('fileman_webdrv_Generic');
         }
-
+        
         // Връщаме масива
         return $res;
     }
@@ -252,7 +282,7 @@ class fileman_Indexes extends core_Manager
         $ext = fileman_Files::getExt($fRec->name);
         
         // Масив с всички драйвери
-        $drivers = static::getDriver($ext);
+        $drivers = static::getDriver($ext, $fRec->name);
         
         // Обхождаме намерените драйверо
         foreach ($drivers as $driver) {
@@ -425,18 +455,13 @@ class fileman_Indexes extends core_Manager
         $rec->createdBy = $params['createdBy'];
         $rec->content = static::prepareContent($params['content']);
         
-        $saveId = static::save($rec, NULL, 'IGNORE');
-        
-        if (!$saveId && !is_object($params['content'])) {
-            $recOld = self::fetch(array("#dataId = '[#1#]' AND #type = '[#2#]'", $rec->dataId, $rec->type));
-            
-            if ($recOld) {
-                $content = self::decodeContent($recOld->content);
-                if (is_object($content)) {
-                    $saveId = static::save($rec, NULL, 'REPLACE');
-                }
-            }
+        // Ако новата стойност не е грешка, презаписваме предишната
+        $saveType = 'IGNORE';
+        if (!is_object($params['content']) && !empty($params['content'])) {
+            $saveType = 'REPLACE';
         }
+        
+        $saveId = static::save($rec, NULL, $saveType);
         
         return $saveId;
     }
@@ -452,27 +477,34 @@ class fileman_Indexes extends core_Manager
      */
     static function haveErrors($file, $params)
     {
-        $haveErrFile = FALSE;
-        
         // Ако е файл в директория
         if (strstr($file, '/')) {
             
             // Ако е валиден файл
             $isValid = is_file($file);
             
-            // Ако няма валиден файл записваме грешката в лога
-            if (!$isValid) {
+            if (($errFilePath = $params['errFilePath']) && is_file($errFilePath)) {
                 
-                if (($errFilePath = $params['errFilePath']) && is_file($errFilePath)) {
+                $errContent = @file_get_contents($errFilePath);
+                
+                $errContent = trim($errContent);
+                
+                // Записваме грешката в дебъг лога
+                if ($errContent) {
                     
-                    $haveErrFile = TRUE;
-                    $errContent = file_get_contents($errFilePath);
+                    $fileContent = '';
+                    if ($isValid) {
+                        $fileContent = @file_get_contents($file);
+                        $fileContent = trim($fileContent);
+                    }
                     
-                    $errContent = trim($errContent);
-                    
-                    // Записваме грешката в дебъг лога
-                    if ($errContent) {
-                        fileman_Indexes::logErr($errContent);
+                    if (!$fileContent) {
+                        
+                        if ($isValid) {
+                            fileman_Indexes::logNotice($errContent);
+                        } else {
+                            fileman_Indexes::logErr($errContent);
+                        }
                     }
                 }
             }
@@ -679,10 +711,10 @@ class fileman_Indexes extends core_Manager
             
             // Ако от преди това е извличано текстовата част, използваме нея
             $content = self::getTextForIndex($hnd);
-            if ($content === FALSE) {
+            if ($content === FALSE || !trim($content)) {
                 
                 // Намираме драйвера
-                $drvInst = self::getDrvForMethod($ext, 'extractText');
+                $drvInst = self::getDrvForMethod($ext, 'extractText', $fName);
                 
                 if ($drvInst) {
                     try {
@@ -781,7 +813,7 @@ class fileman_Indexes extends core_Manager
             $ext = fileman_Files::getExt($fName);
             
             if (!$bGet) {
-                $drvInst = self::getDrvForMethod($ext, 'canGetBarcodes');
+                $drvInst = self::getDrvForMethod($ext, 'canGetBarcodes', $fName);
                 if ($drvInst && $drvInst->canGetBarcodes()) {
                     try {
                         usleep(500000);
@@ -794,7 +826,7 @@ class fileman_Indexes extends core_Manager
             }
             
             if (!$hGet) {
-                $drvInst = self::getDrvForMethod($ext, 'convertToHtml');
+                $drvInst = self::getDrvForMethod($ext, 'convertToHtml', $fName);
                 if ($drvInst) {
                     try {
                         usleep(500000);
@@ -820,11 +852,14 @@ class fileman_Indexes extends core_Manager
      * 
      * @param string $ext
      * @param string $methodName
+     * @param string|NULL $fName
+     * 
+     * 
      * @return FALSE|stdObject
      */
-    protected static function getDrvForMethod($ext, $methodName)
+    protected static function getDrvForMethod($ext, $methodName, $fName = NULL)
     {
-        $webdrvArr = self::getDriver($ext);
+        $webdrvArr = self::getDriver($ext, $fName);
         
         $drvInst = FALSE;
         

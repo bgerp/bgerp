@@ -118,7 +118,7 @@ class rack_Racks extends core_Master
         $this->FLD('num', 'int(max=100)', 'caption=Стелаж,mandatory,smartCenter');
         $this->FLD('rows', 'enum(A,B,C,D,E,F,G,H,I,J,K,L,M)', 'caption=Редове,mandatory,smartCenter');
         $this->FLD('columns', 'int(max=100)', 'caption=Колони,mandatory,smartCenter');
-        $this->FLD('comment', 'richtext(rows=5)', 'caption=Коментар');
+        $this->FLD('comment', 'richtext(rows=5, bucket=Comments)', 'caption=Коментар');
         $this->FLD('total', 'int', 'caption=Палет-места->Общо,smartCenter,input=none');
         $this->FLD('used', 'int', 'caption=Палет-места->Използвани,smartCenter,input=none');
         $this->FLD('reserved', 'int', 'caption=Палет-места->Запазени,smartCenter,input=none');
@@ -324,9 +324,16 @@ class rack_Racks extends core_Master
         $row = $rec->rows;
         $hlPos = Request::get('pos');
         
+
+        $hlFullPos = "{$rec->num}-{$hlPos}";
+
+        
         list($unusable, $reserved) = rack_RackDetails::getunUsableAndReserved();
         $used = rack_Pallets::getUsed();
         list($movedFrom, $movedTo) = rack_Movements::getExpected();
+        
+        $hlProdId = $used[$hlFullPos];
+
 
         while($row >= 'A') {
 
@@ -347,7 +354,8 @@ class rack_Racks extends core_Master
                 
                 $url = toUrl(array('rack_RackDetails', 'add', 'rackId' => $rec->id, 'row' => $row, 'col' => $i));
                 $attr['ondblclick'] = "document.location='{$url}';";
-                
+                $pId = NULL;
+
                 // Ако е заето с нещо
                 if(!isset($title) && ($pId = $used[$posFull])) {
                     $prodRec = rack_Products::fetch($pId);
@@ -400,6 +408,8 @@ class rack_Racks extends core_Master
 
                 if($pos == $hlPos) {
                     $attr['class'] .= ' rack-hl';
+                } elseif(isset($pId) && $hlProdId == $pId) {
+                    $attr['class'] .= ' rack-same';
                 }
                 
                 if($c = $rec->constrColumnsStep) {
@@ -643,4 +653,12 @@ class rack_Racks extends core_Master
         }
     }
 
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = TRUE)
+    {
+    	return tr('Стелаж') . " №{$rec->id}";
+    }
 }

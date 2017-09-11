@@ -42,50 +42,50 @@ class hr_Deductions extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_State, plg_SaveAndNew, doc_plg_TransferDoc, bgerp_plg_Blank,
+    public $loadList = 'plg_RowTools2, plg_State, plg_SaveAndNew, doc_plg_TransferDoc, bgerp_plg_Blank,plg_Sorting, 
     				 doc_DocumentPlg, doc_ActivatePlg,hr_Wrapper,acc_plg_DocumentSummary';
     
     
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,hr';
+    public $canRead = 'ceo,hrMaster';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,hr';
+    public $canEdit = 'ceo,hrMaster';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,hr';
+	public $canList = 'ceo,hrMaster';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,hr';
+	public $canSingle = 'ceo,hrMaster';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,hr';
+    public $canAdd = 'ceo,hrMaster';
     
     
     /**
      * Кой може да го види?
      */
-    public $canView = 'ceo,hr';
+    public $canView = 'ceo,hrMaster';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo,hr';
+    public $canDelete = 'ceo,hrMaster';
     
     
     /**
@@ -138,14 +138,20 @@ class hr_Deductions extends core_Master
     
     
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, date,modifiedOn';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
     	$this->FLD('date', 'date',     'caption=Дата,oldFieldName=periodId');
     	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител');
-    	$this->FLD('type', 'richtext',     'caption=Произход на удръжката');
-    	$this->FLD('sum', 'double',     'caption=Сума');
+    	$this->FLD('type', 'richtext(bucket=Notes)',     'caption=Произход на удръжката');
+    	$this->FLD('sum', 'double',     'caption=Сума,mandatory');
     	$this->FNC('title', 'varchar', 'column=none');
     }
     
@@ -216,16 +222,27 @@ class hr_Deductions extends core_Master
     
     
     /**
-     * Интерфейсен метод на hr_IndicatorsSourceIntf
-     *
-     * @param date $date
-     * @return array $result
-     */
+	 * Метод за вземане на резултатност на хората. За определена дата се изчислява
+     * успеваемостта на човека спрямо ресурса, които е изпозлвал 
+	 *
+	 * @param date $timeline  - Времето, след което да се вземат всички модифицирани/създадени записи
+	 * @return array $result  - масив с обекти
+	 *
+	 * 			o date        - дата на стайноста
+	 * 		    o personId    - ид на лицето
+	 *          o docId       - ид на документа
+	 *          o docClass    - клас ид на документа
+	 *          o indicatorId - ид на индикатора
+	 *          o value       - стойноста на инфикатора
+	 *          o isRejected  - оттеглена или не. Ако е оттеглена се изтрива от индикаторите
+	 */
     public static function getIndicatorValues($timeline)
     {
         $query = self::getQuery();
         $query->where("#modifiedOn  >= '{$timeline}' AND #state != 'draft' AND #state != 'template' AND #state != 'pending'");
     
+        $iRec = hr_IndicatorNames::force('Удръжка', __CLASS__, 1);
+        
         while($rec = $query->fetch()){
     
             $result[] = (object)array(
@@ -233,7 +250,7 @@ class hr_Deductions extends core_Master
                 'personId' => $rec->personId,
                 'docId'  => $rec->id,
                 'docClass' => core_Classes::getId('hr_Deductions'),
-                'indicatorId' => 1,
+                'indicatorId' => $iRec->id,
                 'value' => $rec->sum,
                 'isRejected' => $rec->state == 'rejected',
             );
@@ -253,7 +270,11 @@ class hr_Deductions extends core_Master
      */
     public static function getIndicatorNames()
     {
-        return array(1 => 'Удръжка');
+    	$result = array();
+    	$rec = hr_IndicatorNames::force('Удръжка', __CLASS__, 1);
+    	$result[$rec->id] = $rec->name;
+    	
+    	return $result;
     }
     
     

@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Начален номер на фактурите
  */
@@ -12,27 +13,29 @@ defIfNot('HR_EC_MIN', '1');
 defIfNot('HR_EC_MAX', '10000');
 
 
-
 /**
- * class dma_Setup
+ * class hr_Setup
  *
- * Инсталиране/Деинсталиране на
- * мениджъри свързани с DMA
+ * Инсталиране/Деинсталиране на човешки ресурси
  *
  *
  * @category  bgerp
  * @package   hr
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class hr_Setup extends core_ProtoSetup
 {
     
-    // Обновяване на индикаторите на всеки час
+	
+	/**
+	 * Колко често да се обновяват индикаторите
+	 */
     const INDICATORS_UPDATE_PERIOD = 60;
 
+    
     /**
      * Версия на пакета
      */
@@ -61,10 +64,8 @@ class hr_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
-    
     		'HR_EC_MIN'        => array('int(min=0)', 'caption=Диапазон за номериране на трудовите договори->Долна граница'),
     		'HR_EC_MAX'        => array('int(min=0)', 'caption=Диапазон за номериране на трудовите договори->Горна граница'),
-    
     );
     
     
@@ -79,6 +80,7 @@ class hr_Setup extends core_ProtoSetup
 			'hr_Positions',
             'hr_ContractTypes',
             'hr_EmployeeContracts',
+   			'hr_IndicatorNames',
             'hr_Indicators',
             'hr_Payroll',
             'hr_Leaves',
@@ -86,14 +88,18 @@ class hr_Setup extends core_ProtoSetup
             'hr_Trips',
             'hr_Bonuses',
             'hr_Deductions',
-   			'migrate::forceDepartmentFolders'
+   			'migrate::forceDepartmentFolders',
+   			'migrate::truncateIndicators'
         );
 
-        
+
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'hr';
+    var $roles = array(
+   		array('hr'),
+   		array('hrMaster', 'hr'),
+    );
     
     
     /**
@@ -125,14 +131,14 @@ class hr_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(2.31, 'Счетоводство', 'Персонал', 'hr_Indicators', 'default', "ceo, hr, admin"),
+            array(2.31, 'Счетоводство', 'Персонал', 'hr_Leaves', 'default', "ceo, hr, hrMaster, admin"),
         );
 
     
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "hr_reports_LeaveDaysPersons";
+    var $defClasses = "hr_reports_LeaveDaysPersons, hr_reports_LeaveDaysRep, hr_reports_IndicatorsRep";
     
     
     /**
@@ -212,7 +218,15 @@ class hr_Setup extends core_ProtoSetup
 
             }
         }
-
     }
   
+    
+    /**
+     * Изчистване на старите записи на индикаторите
+     */
+    public function truncateIndicators()
+    {
+    	hr_Indicators::truncate();
+    	hr_Payroll::truncate();
+    }
 }

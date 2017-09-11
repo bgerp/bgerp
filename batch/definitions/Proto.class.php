@@ -94,6 +94,17 @@ abstract class batch_definitions_Proto extends core_BaseClass
      */
     public function isValid($value, $quantity, &$msg)
     {
+    	if($this->rec->uniqueProduct != 'yes') return TRUE;
+    	
+    	// Ако артикула вече има партида за този артикул с тази стойност, се приема че е валидна
+    	if($eProductId = batch_Items::fetchField(array("#productId != {$this->rec->productId} AND #batch = '[#1#]'", $value), 'productId')){
+    		$eProductId = cat_Products::getTitleById($eProductId);
+    			
+    		$msg = "Въведеният партиден номер е наличен за артикул|* <b>{$eProductId}</b>";
+    			
+    		return FALSE;
+    	}
+    	
     	return TRUE;
     }
     
@@ -172,16 +183,21 @@ abstract class batch_definitions_Proto extends core_BaseClass
     
     /**
      * Какви са свойствата на партидата
-     * 
+     *
      * @param varchar $value - номер на партидара
      * @return array - свойства на партидата
-     * 	масив с ключ ид на партидна дефиниция и стойност свойството
+     * 			o name    - заглавие
+     * 			o classId - клас
+     * 			o value   - стойност
      */
     public function getFeatures($value)
     {
     	$classId = $this->getClassId();
     	
-    	return array($classId => $value);
+    	$res = array();
+    	$res[] = (object)array('name' => core_Classes::getTitleById($classId), 'classId' => $classId, 'value' => $value);
+    	 
+    	return $res;
     }
     
     
@@ -259,6 +275,17 @@ abstract class batch_definitions_Proto extends core_BaseClass
     
     
     /**
+     * Може ли автоматично да се разпределят к-та
+     *
+     * @return varchar
+     */
+    public function canAutoAllocate()
+    {
+    	return ($this->rec->autoAllocate) ? TRUE : FALSE;
+    }
+    
+    
+    /**
      * Връща името на дефиницията
      *
      * @return varchar - Името на дефиницията
@@ -266,5 +293,16 @@ abstract class batch_definitions_Proto extends core_BaseClass
     public function getName()
     {
     	return (isset($this->rec->name)) ? $this->rec->name : cls::getTitle($this);
+    }
+    
+    
+    /**
+     * Може ли потребителя да сменя уникалноста на партида/артикул
+     * 
+     * @return boolean
+     */
+    public function canChangeBatchUniquePerProduct()
+    {
+    	return TRUE;
     }
 }

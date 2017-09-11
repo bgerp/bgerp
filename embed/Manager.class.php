@@ -172,17 +172,34 @@ class embed_Manager extends core_Master
 	 * Преди запис в модела, компактираме полетата
 	 */
 	public function save_(&$rec, $fields = NULL, $mode = NULL)
-	{
+	{   
+        $saveDriverRec = FALSE;
+ 
 		if($driver = $this->getDriver($rec)){
+            $driverRec = array();
 			$addFields = self::getDriverFields($driver);
-			
+			 
 			foreach($addFields as $name => $caption) {
 				$driverRec[$name] = $rec->{$name};
+                $saveDriverRec = TRUE;
 			}
 			
 			$rec->driverRec = $driverRec;
 		}
-        
+
+        if($fields && (is_array($fields) || $fields != '*')) {
+            $fields = arr::make($fields, TRUE);
+            foreach($fields as $f => $dummy) {
+                if($addFields[$f] && !$this->getField($f, FALSE)) {
+                    unset($fields[$f]);
+                }
+            }
+        }
+
+        if($saveDriverRec && is_array($fields)) {
+            $fields['driverRec'] = 'driverRec';
+        }
+
         return parent::save_($rec, $fields, $mode);
 	}
 
@@ -316,20 +333,12 @@ class embed_Manager extends core_Master
                     $driverClass = $args[0]->{$this->driverClassField};
                     break;
                 case 'aftergetsearchkeywords';
-                	$driverClass = $args[1]->{$this->driverClassField};
-                	break;
                 case 'beforesaveclonerec':
-                	$driverClass = $args[1]->{$this->driverClassField};
-                	break;
                 case 'beforesave':
-                	$driverClass = $args[1]->{$this->driverClassField};
                 case 'aftercreate':
-                	$driverClass = $args[1]->{$this->driverClassField};
-                	break;
                 case 'aftergetdetailstoclone':
-                	$driverClass = $args[1]->{$this->driverClassField};
-                	break;
                 case 'aftergetfieldforletterhead':
+                case 'aftergetfieldsnottoclone':
                 	$driverClass = $args[1]->{$this->driverClassField};
                 	break;
             }

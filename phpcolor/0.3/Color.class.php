@@ -179,15 +179,9 @@ class Color {
         if(empty($rgb) || !isset($rgb["R"]) || !isset($rgb["G"]) || !isset($rgb["B"]) ) {
             throw new Exception("Param was not an RGB array");
         }
-
-        // Convert RGB to HEX
-        $hex[0] = dechex( $rgb['R'] );
-        $hex[1] = dechex( $rgb['G'] );
-        $hex[2] = dechex( $rgb['B'] );
-
-        return implode( '', $hex );
-
-  }
+ 
+        return sprintf("%02x%02x%02x", $rgb['R'], $rgb['G'], $rgb['B']);
+    }
 
 
     /**
@@ -226,6 +220,7 @@ class Color {
         $rgb2 = self::hexToRgb($hex2);
         $mixed = $this->_mix($this->_rgb, $rgb2, $amount);
         // Return as HEX
+     
         return self::rgbToHex($mixed);
     }
 

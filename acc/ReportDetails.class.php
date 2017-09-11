@@ -44,7 +44,9 @@ class acc_ReportDetails extends core_Manager
         setIfNot($data->masterMvc->canAddacclimits, 'ceo,accLimits');
         setIfNot($data->masterMvc->balanceRefShowZeroRows, TRUE);
         setIfNot($data->masterMvc->showAccReportsInTab, TRUE);
-        
+
+        $data->TabCaption = 'Счетоводство';
+
         $balanceRec = acc_Balances::getLastBalance();
         $data->balanceRec = $balanceRec;
         
@@ -64,21 +66,19 @@ class acc_ReportDetails extends core_Manager
         if(!$prepareTab || $prepareTab == 'AccReports'){
         	$data->prepareTab = TRUE;
         }
-        
+
         // Ако потребителя има достъп до репортите
-        if(haveRole($data->masterMvc->canReports)){
+        if(haveRole($data->masterMvc->canReports) && ($data->Tab == 'top' || $data->isCurrent)){
             
+
             // Извличане на счетоводните записи
             $this->prepareBalanceReports($data);
-            $data->Order = 1;
+            $data->renderReports = TRUE;
+            //$data->Order = 1;
         } else {
         	$data->renderReports = FALSE;
         }
-       
-        // Име на таба
-        if($data->renderReports === TRUE){
-        	$data->TabCaption = 'Счетоводство';
-        }
+
     }
     
     
@@ -272,7 +272,7 @@ class acc_ReportDetails extends core_Manager
     	
     	// Ако баланса се преизчислява в момента, показваме подходящо съобщение
     	if($data->balanceIsRecalculating === TRUE){
-    		$warning = "<span class='red'>" . tr('Баланса се преизчислява в момента|*! |Моля изчакайте|*.') . "</span>";
+    		$warning = "<span class='red'>" . tr('Балансът се преизчислява в момента|*. |Моля, изчакайте|*!') . "</span>";
         	$tpl->append($warning, 'CONTENT');
         	
         	return $tpl;

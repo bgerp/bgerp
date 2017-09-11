@@ -389,9 +389,10 @@ abstract class deals_Helper
 			$packQuantity = 1;
 		}
 		
-		$quantity = store_Products::fetchField("#productId = {$productId} AND #storeId = {$storeId}", 'quantity');
-		$quantity = ($quantity) ? $quantity : 0;
-			
+		$stRec = store_Products::fetch("#productId = {$productId} AND #storeId = {$storeId}", 'quantity,reservedQuantity');
+		
+		$quantity = $stRec->quantity - $stRec->reservedQuantity;
+		
 		$Double = cls::get('type_Double');
 		$Double->params['smartRound'] = 'smartRound';
 			
@@ -399,18 +400,25 @@ abstract class deals_Helper
 		$shortUom = cat_UoM::getShortName($pInfo->productRec->measureId);
 		$storeName = store_Stores::getTitleById($storeId);
 		$verbalQuantity = $Double->toVerbal($quantity);
+		
 		if($quantity < 0){
 			$verbalQuantity = "<span class='red'>{$verbalQuantity}</span>";
 		}
 		
-		$info = tr("|Количество в|* <b>{$storeName}</b> : {$verbalQuantity} {$shortUom}");
+		$text = "|Разполагаемо в|* <b>{$storeName}</b> : {$verbalQuantity} {$shortUom}";
+		if(!empty($stRec->reservedQuantity)){
+			$verbalReserved = $Double->toVerbal($stRec->reservedQuantity);
+			$text .= " " . "|*( |Запазено|* {$verbalReserved} {$shortUom} )";
+		}
+		
+		$info = tr($text);
 		$obj = (object)array('formInfo' => $info);
 		
 		$quantityInPack = ($pInfo->packagings[$packagingId]) ? $pInfo->packagings[$packagingId]->quantity : 1;
 		
 		// Показваме предупреждение ако наличното в склада е по-голямо от експедираното
 		if($packQuantity > ($quantity / $quantityInPack)){
-			$obj->warning = "Въведеното количество е по-голямо от наличното|* <b>{$verbalQuantity}</b> |в склада|*";
+			$obj->warning = "Въведеното количество е по-голямо от разполагаемо|* <b>{$verbalQuantity}</b> |в склада|*";
 		}
 		
 		return $obj;
@@ -422,6 +430,8 @@ abstract class deals_Helper
 	 */
 	public static function addNotesToProductRow(&$productRow, $notes)
 	{
+		if(!$notes) return;
+		
 		$RichText = cls::get('type_Richtext');
 		$notes = $RichText->toVerbal($notes);
 		if(is_string($productRow)){
@@ -458,9 +468,6 @@ abstract class deals_Helper
      */
     public static function getPackMeasure($measureId, $quantityInPack)
     {
-        $oMeasureId = $measureId;
-        $oQuantityInPack = $quantityInPack;
-
         if($quantityInPack < 1 && ($downMeasureId = cat_UoM::getMeasureByRatio($measureId, 0.001))){
 			$quantityInPack *= 1000;
 			$measureId = $downMeasureId;
@@ -476,7 +483,7 @@ abstract class deals_Helper
         }
 		
 		$shortUomName = cat_UoM::getShortName($measureId);
-		$res = ' <small class="quiet">' . $quantityInPack . $shortUomName . '</small>';
+		$res = ' <small class="quiet">' . $quantityInPack . tr($shortUomName) . '</small>';
 		$res = "<span class='nowrap'>{$res}</span>";
 
         return $res;
@@ -600,9 +607,17 @@ abstract class deals_Helper
 						foreach ($arr as $p){
 							$index = $p->productId;
 							
+							if(!empty($p->notes)){
+								$index .= "|" . serialize($p->notes) . "|";
+							}
+							
 							if(!isset($combined[$index])){
 								$combined[$index] = new stdClass();
 								$combined[$index]->productId = $p->productId;
+								
+								if(!empty($p->notes)){
+									$combined[$index]->notes = $p->notes;
+								}
 							}
 								
 							$d = &$combined[$index];
@@ -661,14 +676,15 @@ abstract class deals_Helper
 	public static function getQuantityHint($productId, $storeId, $quantity)
 	{
 		$hint = '';
-		$quantityInStore = store_Products::fetchField("#productId = {$productId} AND #storeId = {$storeId}", 'quantity');
+		$stRec = store_Products::fetch("#productId = {$productId} AND #storeId = {$storeId}", 'quantity,reservedQuantity');
+		$quantityInStore = $stRec->quantity - $stRec->reservedQuantity;
 		
 		if(is_null($quantityInStore)){
-			$hint = 'Налично количество в склада: н.д.';
+			$hint = 'Разполагаемо количество в склада: н.д.';
 		} elseif($quantityInStore < 0 || ($quantityInStore - $quantity) < 0) {
 			$quantityInStore = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($quantityInStore);
 			$measureName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));
-			$hint = "Налично количество в склада|*: {$quantityInStore} {$measureName}";
+			$hint = "Разполагаемо количество в склада|*: {$quantityInStore} {$measureName}";
 		}
 		
 		return $hint;
@@ -759,7 +775,7 @@ abstract class deals_Helper
 			// Ако документа е бил чернова не проверяваме дали потребителя може да избере обекта
 			if($action == 'restore' && $rec->brState == 'draft') return TRUE;
 			
-			// Ако има избран обект и потребитеяле не може да го избере връщаме FALSE
+			// Ако има избран обект и потребителя не може да го избере връщаме FALSE
 			if(isset($rec->{$objectIdField}) && !$ObjectManager::haveRightFor('select', $rec->{$objectIdField})){
 				return FALSE;
 			}
@@ -796,7 +812,6 @@ abstract class deals_Helper
 		$Companies = cls::get('crm_Companies');
 		$res['MyCompany'] = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
 		$res['MyCompany'] = transliterate(tr($res['MyCompany']));
-		$res['MyAddress'] = $Companies->getFullAdress($ownCompanyData->companyId, TRUE)->getContent();
 		
 		// ДДС и националния номер на 'Моята фирма'
 		$uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
@@ -810,9 +825,7 @@ abstract class deals_Helper
 			$ContragentClass = cls::get($contragentClass);
 			$cData = $ContragentClass->getContragentData($contragentId);
 			$res['contragentName'] = isset($contragentName) ? $contragentName : cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
-			$res['contragentAddress'] = $ContragentClass->getFullAdress($contragentId)->getContent();
-			$res['inlineContragentAddress'] = $ContragentClass->getFullAdress($contragentId)->getContent();
-			$res['inlineContragentAddress'] = str_replace('<br>', ',', $res['inlineContragentAddress']);
+			$res['inlineContragentName'] = $res['contragentName'];
 			
 			$res['vatNo'] = $cData->vatNo;
 		} elseif(isset($contragentName)){
@@ -831,6 +844,16 @@ abstract class deals_Helper
 				$res['contragentName'] = $res['contragentName']->getContent();
 			}
 		}
+		
+		$showCountries = ($ownCompanyData->countryId == $cData->countryId) ? FALSE : TRUE;
+		
+		if(isset($contragentClass) && isset($contragentId)){
+			$res['contragentAddress'] = $ContragentClass->getFullAdress($contragentId, FALSE, $showCountries)->getContent();
+			$res['inlineContragentAddress'] = $ContragentClass->getFullAdress($contragentId, FALSE, $showCountries)->getContent();
+			$res['inlineContragentAddress'] = str_replace('<br>', ',', $res['inlineContragentAddress']);
+		}
+		
+		$res['MyAddress'] = $Companies->getFullAdress($ownCompanyData->companyId, TRUE, $showCountries)->getContent();
 		
 		return $res;
 	}
@@ -907,14 +930,14 @@ abstract class deals_Helper
 	{
 		$hint = FALSE;
 		
-		if(empty($tolerance)){
+		if(!isset($tolerance)){
 			$tolerance = cat_Products::getTolerance($productId, $quantity);
 			if($tolerance){
 				$hint = TRUE;
 			}
 		}
 		
-		if($tolerance) {
+		if(isset($tolerance)) {
 			$toleranceRow = core_Type::getByName('percent(smartRound)')->toVerbal($tolerance);
 			if($hint === TRUE){
 				$toleranceRow = ht::createHint($toleranceRow, 'Толерансът е изчислен автоматично на база количеството и параметрите на артикула');
@@ -944,7 +967,7 @@ abstract class deals_Helper
 		if(isset($moq) && $quantity < $moq){
 			$moq /= $quantityInPack;
 			$verbal = core_Type::getByName('double(smartRound)')->toVerbal($moq);
-			if(haveRole('salesMaster,purchaseMaster,ceo')){
+			if(haveRole('powerUser')){
 				$form->setWarning($quantityField, "Минималното количество за поръчка в избраната мярка/опаковка e|*: <b>{$verbal}</b>");
 			} else {
 				$form->setError($quantityField, "Минималното количество за поръчка в избраната мярка/опаковка e|*: <b>{$verbal}</b>");
@@ -989,5 +1012,139 @@ abstract class deals_Helper
 		}
 		
 		return $res;
+	}
+	
+	
+	/**
+	 * Помощна ф-я връщаща дефолтното количество за артикула в бизнес документ
+	 * 
+	 * @param int $productId
+	 * @param int $packagingId
+	 * @return double|NULL $defQuantity
+	 */
+	public static function getDefaultPackQuantity($productId, $packagingId)
+	{
+		$defQuantity = cat_Products::getMoq($productId);
+		$defQuantity = !empty($defQuantity) ? $defQuantity : cat_UoM::fetchField($packagingId, 'defQuantity');
+	
+		return ($defQuantity) ? $defQuantity : NULL;
+	}
+	
+	
+	/**
+	 * Помощна ф-я за рекалкулиране на курса на бизнес документ
+	 * 
+	 * @param mixed $masterMvc
+	 * @param int $masterId
+	 * @param double $newRate
+	 * @param string $priceFld
+	 * @param string $rateFld
+	 */
+	public static function recalcRate($masterMvc, $masterId, $newRate, $priceFld = 'price', $rateFld = 'currencyRate')
+	{
+		$rec = $masterMvc->fetchRec($masterId);
+		$Detail = cls::get($masterMvc->mainDetail);
+    	$dQuery = $Detail->getQuery();
+    		
+    	$dQuery->where("#{$Detail->masterKey} = {$rec->id}");
+    	while($dRec = $dQuery->fetch()){
+    		if($masterMvc instanceof deals_InvoiceMaster){
+    			$rateFld = 'rate';
+    		}
+    		
+    		$dRec->{$priceFld} = ($dRec->{$priceFld} / $rec->{$rateFld}) * $newRate;
+    		
+    		if($masterMvc instanceof deals_InvoiceMaster){
+    			$dRec->packPrice = $dRec->{$priceFld} * $dRec->quantityInPack;
+    			$dRec->amount = $dRec->packPrice * $dRec->quantity;
+    		}
+    		
+    		$Detail->save($dRec);
+    	}
+    	
+    	$rec->{$rateFld} = $newRate;
+    	if($masterMvc instanceof deals_InvoiceMaster){
+    		$rec->displayRate = $newRate;
+    	}
+    	
+    	$masterMvc->save($rec);
+    	$masterMvc->updateMaster_($rec->id);
+    	
+    	if($rec->state == 'active'){
+    		acc_Journal::deleteTransaction($masterMvc->getClassId(), $rec->id);
+    		acc_Journal::saveTransaction($masterMvc->getClassId(), $rec->id, FALSE);
+    	}
+	}
+	
+	
+	/**
+	 * Помощна ф-я за намиране на транспортното тегло/обем
+	 */
+	private static function getMeasureRow($productId, $packagingId, $quantity, $type, $value = NULL)
+	{
+		expect(in_array($type, array('volume', 'weight')));
+		$hint = FALSE;
+		
+		// Ако артикула не е складируем не му се изчислява транспортно тегло
+		$isStorable = cat_products::fetchField($productId, 'canStore');
+		if($isStorable != 'yes') return NULL;
+		
+		// Ако няма тегло взима се 'live'
+		if(!isset($value)){
+			if($type == 'weight'){
+				$value = cat_Products::getWeight($productId, $packagingId, $quantity);
+			} else {
+				$value = cat_Products::getVolume($productId, $packagingId, $quantity);
+			}
+				
+			if(!empty($value)){
+				$hint = TRUE;
+				$value = deals_Helper::roundPrice($value, 3);
+			}
+		}
+		
+		// Ако няма тегло не се прави нищо
+		if(empty($value)) return NULL;
+		
+		$valueType = ($type == 'weight') ? 'cat_type_Weight' : 'cat_type_Volume';
+		
+		// Вербализиране на теглото
+		$valueRow = core_Type::getByName($valueType)->toVerbal($value);
+		if($hint === TRUE){
+			$hintType = ($type == 'weight') ? 'Транспортното тегло e прогнозно' : 'Транспортният обем е прогнозен';
+			$valueRow = ht::createHint($valueRow, "{$hintType} на база количеството");
+		}
+		
+		return $valueRow;
+	}
+	
+	
+	/**
+	 * Връща реда за транспортният обем на артикула
+	 *
+	 * @param int $productId      - артикул
+	 * @param int $packagingId    - ид на опаковка
+	 * @param int $quantity       - общо количество
+	 * @param double|NULL $weight - обем на артикула (ако няма се взима 'live')
+	 * @return core_ET|NULL       - шаблона за показване
+	 */
+	public static function getVolumeRow($productId, $packagingId, $quantity, $volume = NULL)
+	{
+		return self::getMeasureRow($productId, $packagingId, $quantity, 'volume', $volume);
+	}
+	
+	
+	/**
+	 * Връща реда за транспортното тегло на артикула
+	 * 
+	 * @param int $productId      - артикул
+	 * @param int $packagingId    - ид на опаковка
+	 * @param int $quantity       - общо количество
+	 * @param double|NULL $weight - тегло на артикула (ако няма се взима 'live')
+	 * @return core_ET|NULL       - шаблона за показване
+	 */
+	public static function getWeightRow($productId, $packagingId, $quantity, $weight = NULL)
+	{
+		return self::getMeasureRow($productId, $packagingId, $quantity, 'weight', $weight);
 	}
 }

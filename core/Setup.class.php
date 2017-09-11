@@ -51,6 +51,12 @@ defIfNot('TYPE_KEY_MAX_SUGGESTIONS', 1000);
 
 
 /**
+ * Пределен брой опции, за авто-отваряне групите на чек-лист
+ */
+defIfNot('CORE_MAX_OPT_FOR_OPEN_GROUPS', 30);
+
+
+/**
  * Езикът по подразбиране е български
  */
 defIfNot('EF_DEFAULT_LANGUAGE', 'bg');
@@ -176,6 +182,12 @@ defIfNot('CORE_PORTAL_ARRANGE', 'notifyTaskRecentlyCal');
 
 
 /**
+ * Максимален брой редове при печат
+ */
+defIfNot('CORE_MAX_ROWS_FOR_PRINTING', 1000);
+
+
+/**
  * class 'core_Setup' - Начално установяване на пакета 'core'
  *
  *
@@ -238,7 +250,11 @@ class core_Setup extends core_ProtoSetup {
            'EF_USER_LANG' => array( "enum()", 'caption=Език на интерфейса след логване->Език, customizeBy=user, optionsFunc=core_Lg::getLangOptions'),
             
            'TYPE_KEY_MAX_SUGGESTIONS'   => array ('int', 'caption=Критичен брой опции|*&comma;| над които търсенето става по ajax->Опции'), 
-    
+           
+           'CORE_MAX_OPT_FOR_OPEN_GROUPS'   => array ('int', 'caption=Критичен брой опции|*&comma;| под който се отварят групите->Опции'), 
+           
+           'CORE_AUTOHIDE_SHARED_USERS' => array ('int(min=0)', 'caption=Свиване на секцията за споделяне->При над,unit=потребителя'),
+
            'EF_APP_TITLE'   => array ('varchar(16)', 'caption=Наименование на приложението->Име'),
             
            'CORE_SYSTEM_NICK'   => array ('varchar(16)', 'caption=Ник на системния потребител->Ник'),
@@ -248,6 +264,8 @@ class core_Setup extends core_ProtoSetup {
            'CORE_LOGIN_INFO'   => array ('varchar', 'caption=Информация във формата за логване->Текст'),
       
            'EF_MAX_EXPORT_CNT' => array ('int', 'caption=Възможен максимален брой записи при експорт->Брой записи'),
+           
+           'CORE_MAX_ROWS_FOR_PRINTING' => array ('int', 'caption=Размер на страницата при печат->Брой редове'),
            
            'PLG_SEACH_MAX_TEXT_LEN' => array ('int', 'caption=Максимален брой символи за генериране на ключови думи->Брой символи'),
            
@@ -272,9 +290,6 @@ class core_Setup extends core_ProtoSetup {
            'CORE_RESET_PASSWORD_FROM_LOGIN_FORM' => array ('enum(yes=Да, no=Не)', 'caption=Дали да може да се ресетват пароли от логин формата->Избор'),
         
            'CORE_MIN_ALIGN_DIGITS' => array('int', 'caption=Минимален брой видими нули при подравняване->Брой'),
-           
-           'CORE_AUTOHIDE_SHARED_USERS' => array ('int(min=0)', 'caption=Свиване на секцията за споделяне->При над,unit=потребителя'),
-               
     );
     
     
@@ -299,10 +314,10 @@ class core_Setup extends core_ProtoSetup {
         'core_Settings',
         'core_Forwards',
         'core_Updates',
+    	'core_Permanent',
         'migrate::settigsDataFromCustomToCore',
         'migrate::movePersonalizationData',
         'migrate::repairUsersRolesInput',
-        'migrate::clearApcCache3',
         'migrate::removeFalseTranslate',
         'migrate::repairSearchKeywords'
     );
@@ -329,6 +344,7 @@ class core_Setup extends core_ProtoSetup {
      */
     var $systemActions = array(
         array('title' => 'Миграции', 'url' => array ('core_Packs', 'InvalidateMigrations', 'ret_url' => TRUE), 'params' => array('title' => 'Преглед и инвалидиране на миграциите')),
+        array('title' => 'Преводи', 'url' => array ('core_Lg', 'DeleteUsersTr', 'ret_url' => TRUE), 'params' => array('title' => 'Изтриване на преводите направени от различни потребители'))
     );
     
     
@@ -411,6 +427,18 @@ class core_Setup extends core_ProtoSetup {
         $rec->offset = mt_rand(8*60, 12*60);
         $rec->delay = 0;
         $rec->timeLimit = 300;
+        $html .= core_Cron::addOnce($rec);
+        
+        // Нагласяване на Крон да почиства кеша
+        $rec = new stdClass();
+        $rec->systemId = 'ClearPermCache';
+        $rec->description = 'Почистване на постоянния кеш';
+        $rec->controller = 'core_Permanent';
+        $rec->action = 'DeleteExpiredPermData';
+        $rec->period = 24 * 60;
+        $rec->offset = rand(60, 180); // от 1h до 3h
+        $rec->delay = 0;
+        $rec->timeLimit = 200;
         $html .= core_Cron::addOnce($rec);
         
         $html .= core_Classes::add('core_page_Internal');        
@@ -542,18 +570,6 @@ class core_Setup extends core_ProtoSetup {
             $rec->rolesInput = $rec->roles;
             
             core_Users::save($rec, 'rolesInput');
-        }
-    }
-    
-    
-    /**
-     * Изчисвта кеша на APC
-     */
-    static function clearApcCache3()
-    {
-        if (function_exists('apc_clear_cache')) {
-            apc_clear_cache('user');
-            apc_clear_cache();
         }
     }
     

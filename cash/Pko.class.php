@@ -72,6 +72,34 @@ class cash_Pko extends cash_Document
     
     
     /**
+     * Детайла, на модела
+     */
+    public $details = 'cash_NonCashPaymentDetails';
+    
+
+    /**
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     *
+     * @see plg_Clone
+     */
+    public $cloneDetails = 'cash_NonCashPaymentDetails';
+    
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'termDate';
+    
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, termDate,modifiedOn';
+
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -79,9 +107,85 @@ class cash_Pko extends cash_Document
     	// Зареждаме полетата от бащата
     	parent::getFields($this);
     	$this->FLD('depositor', 'varchar(255)', 'caption=Контрагент->Броил,mandatory');
-    	$this->FLD('paymentType', 'enum(cash=В брой,card=С карта)', 'caption=Допълнително->Плащане', 'notNull,value=cash');
     }
 
+    
+    /**
+     *  Обработка на формата за редакция и добавяне
+     */
+    public static function on_AfterPrepareEditForm($mvc, $res, $data)
+    {
+    	$form = &$data->form;
+    	$rec = &$form->rec;
+    	
+    	// Динамично добавяне на полета
+    	$paymentArr = cash_NonCashPaymentDetails::getPaymentsArr($rec->id, $mvc->getClassId());
+    	foreach ($paymentArr as $key => $obj){
+    		$caption = cond_Payments::getTitleById($obj->paymentId);
+    		$form->FLD($key, 'double(Min=0)', "caption=Безналично плащане->{$caption},before=contragentName,autohide");
+    		$form->setDefault($key, $obj->amount);
+    	}
+    }
+    
+    
+    /**
+     * Проверка и валидиране на формата
+     */
+    protected static function on_AfterSubmitInputEditForm($mvc, $form)
+    {
+    	$rec = &$form->rec;
+    	$rec->nonCashPayments = array();
+    	
+    	$arr = (array)$rec;
+    	$nonCashSum = 0;
+    	$keys = array();
+    	foreach ($arr  as $key => $value){
+    		if(strpos($key, '_payment') !== FALSE){
+    			$nonCashSum += $value;
+    			$keys[] = $key;
+    			$rec->nonCashPayments[$key] = $value;
+    		}
+    	}
+    		
+    	if($nonCashSum > $rec->amount){
+			$form->setError(implode(',', $keys), 'Общата сума на безналичните методи за плащане е над тази от ордера');
+		}
+    }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+    	if(is_array($rec->nonCashPayments)){
+    		$update = $delete = array();
+    		$paymentArr = cash_NonCashPaymentDetails::getPaymentsArr($rec->id, $mvc->getClassId());
+    		
+    		foreach ($rec->nonCashPayments as $key => $value){
+    			if(!empty($value)){
+    				$update[$key] = (object)array('documentId' => $rec->id, 'paymentId' => $paymentArr[$key]->paymentId, 'amount' => $value, 'id' => $paymentArr[$key]->id);
+    			} else {
+    				if(isset($paymentArr[$key]->id)){
+    					$delete[] = $paymentArr[$key]->id;
+    				}
+    			}
+    		}
+    		
+    		// Ъпдейт на нужните записи
+    		if(count($update)){
+    			cls::get('cash_NonCashPaymentDetails')->saveArray_($update);
+    		}
+    		
+    		// Изтриване на старите записи
+    		if(count($delete)){
+    			foreach ($delete as $id){
+    				cash_NonCashPaymentDetails::delete($id);
+    			}
+    		}
+    	}
+    }
+    
     
     /**
      * Връща платежните операции

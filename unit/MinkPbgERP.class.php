@@ -85,46 +85,48 @@ class unit_MinkPbgERP extends core_Manager {
         
         $res = '';
         $res .= 'MinkPbgERP ';
-        $res .= " 0.".$this->act_DeinstallSelect2();
-        $res .= " 1.".$this->act_AddRoleCat();
-        $res .= " 2.".$this->act_ModifySettings();
-        $res .= " 3.".$this->act_CreateUser1();
-        $res .= "  4.".$this->act_CreateUser2();
-        $res .= "  5.".$this->act_CreateStore();
-        $res .= "  6.".$this->act_CreateBankAcc1();
-        $res .= "  7.".$this->act_CreateBankAcc2();
-        $res .= "  8.".$this->act_CreateCase();
-        $res .= "  9.".$this->act_EditCms();
-        $res .= "  10.".$this->act_GetCurrencies();
-        $res .= "  11.".$this->act_CreateCategory();
-        $res .= "  12.".$this->act_CreateParam();
-        $res .= "  13.".$this->act_CreateMeasure();
-        $res .= "  14.".$this->act_CreatePackage();
-        $res .= "  15.".$this->act_CreateGroup();
-        $res .= "  16.".$this->act_CreateProject();
-        $res .= "  17.".$this->act_CreateCycle();
-        $res .= "  18.".$this->act_CreateDepartment1();
-        $res .= "  19.".$this->act_CreateDepartment2();
-        $res .= "  20.".$this->act_CreateProduct();
-        $res .= "  21.".$this->act_CreateEditPerson();
-        $res .= "  22.".$this->act_CreateCompany();
-        $res .= "  23.".$this->act_EditCompany();
-        $res .= "  24.".$this->act_CreateLocation1();
-        $res .= "  25.".$this->act_CreateLocation2();
-        $res .= "  26.".$this->act_CreateEditCompany();
-        $res .= "  27.".$this->act_CreateInq();
-        $res .= "  28.".$this->act_CreateQuotation();
-        $res .= "  29.".$this->act_CreatePurchase();
-        $res .= "  30.".$this->act_CreatePurchaseC();
-        $res .= "  31.".$this->act_CreateSale();
-        $res .= "  32.".$this->act_CreateSaleC();
-        $res .= "  33.".$this->act_CreateTask();
-        $res .= "  34.".$this->act_CreateProductVAT9();
-        $res .= "  35.".$this->act_CreatePersonUSA();
-        $res .= "  36.".$this->act_CreateSupplier();
-        $res .= "  37.".$this->act_CreateContractorGroup();
-        $res .= "  38.".$this->act_CreatePaymentMethod();
-        $res .= "  39.".$this->act_CreateCondParameter();
+        $res .= "  0.".$this->act_DeinstallSelect2();
+        $res .= "  1.".$this->act_AddAddrBgerp();
+        $res .= "  2.".$this->act_AddRoleCat();
+        $res .= "  3.".$this->act_ModifySettings();
+        $res .= "  4.".$this->act_EditMyCompany();
+        $res .= "  5.".$this->act_CreateUser1();
+        $res .= "  6.".$this->act_CreateUser2();
+        $res .= "  7.".$this->act_CreateStore();
+        $res .= "  8.".$this->act_CreateBankAcc1();
+        $res .= "  9.".$this->act_CreateBankAcc2();
+        $res .= "  10.".$this->act_CreateCase();
+        $res .= "  11.".$this->act_EditCms();
+        $res .= "  12.".$this->act_GetCurrencies();
+        $res .= "  13.".$this->act_CreateCategory();
+        $res .= "  14.".$this->act_CreateParam();
+        $res .= "  15.".$this->act_CreateMeasure();
+        $res .= "  16.".$this->act_CreatePackage();
+        $res .= "  17.".$this->act_CreateGroup();
+        $res .= "  18.".$this->act_CreateProject();
+        $res .= "  19.".$this->act_CreateCycle();
+        $res .= "  20.".$this->act_CreateDepartment1();
+        $res .= "  21.".$this->act_CreateDepartment2();
+        $res .= "  22.".$this->act_CreateProduct();
+        $res .= "  23.".$this->act_CreateEditPerson();
+        $res .= "  24.".$this->act_CreateCompany();
+        $res .= "  25.".$this->act_EditCompany();
+        //$res .= "  24.".$this->act_CreateLocation1();
+        $res .= "  27.".$this->act_CreateLocation2();
+        $res .= "  28.".$this->act_CreateEditCompany();
+        $res .= "  29.".$this->act_CreateInq();
+        $res .= "  30.".$this->act_CreateQuotation();
+        $res .= "  31.".$this->act_CreatePurchase();
+        $res .= "  32.".$this->act_CreatePurchaseC();
+        $res .= "  33.".$this->act_CreateSale();
+        $res .= "  34.".$this->act_CreateSaleC();
+        $res .= "  35.".$this->act_CreateTask();
+        $res .= "  36.".$this->act_CreateProductVAT9();
+        $res .= "  37.".$this->act_CreatePersonUSA();
+        $res .= "  38.".$this->act_CreateSupplier();
+        $res .= "  39.".$this->act_CreateContractorGroup();
+        $res .= "  40.".$this->act_CreatePaymentMethod();
+        $res .= "  41.".$this->act_CreateCondParameter();
         
         return $res;
     }
@@ -154,7 +156,7 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
             $browser->setValue('passNew', unit_Setup::get('DEFAULT_USER_PASS'));
             $browser->setValue('passRe', unit_Setup::get('DEFAULT_USER_PASS'));
-            $browser->setValue('names', unit_Setup::get('DEFAULT_USER'));
+            $browser->setValue('names', unit_Setup::get('DEFAULT_USER_NAME'));
             $browser->setValue('email', 'bgerp@experta.bg');
             $browser->setValue('country', 'България');
             $browser->press('Запис');
@@ -183,6 +185,28 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->open($host.'/core_Packs/deinstall/?pack=select2');
         //$browser->open('http://localhost/core_Packs/deinstall/?pack=select2');
         //return $browser->getHtml();
+    }
+    
+    /**
+     * 1. Добавяне на адресни данни на Тестов потребител
+     */
+    //http://localhost/unit_MinkPbgERP/AddAddrBgerp/
+    function act_AddAddrBgerp()
+    {
+        // Логване
+        $browser = $this->SetUp();
+        $browser->click('Визитник');
+        $browser->click('Лица');
+        $browser->click('T');
+        //$browser->click('Тестов потребител');
+        //return $browser->getHtml();
+        $browser->click('Редактиране на лице');
+        //return $browser->getHtml();
+        $browser->setValue('pCode', '5140');
+        $browser->setValue('place', 'Лясковец');
+        $browser->setValue('address', 'ул.Янтра, №12');
+        $browser->press('Запис');
+    
     }
     
     /**
@@ -220,6 +244,35 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Запис');
      
     }
+    
+    /**
+     * 1. Добавяне на адресни данни на Моята фирма
+     */
+    //http://localhost/unit_MinkPbgERP/EditMyCompany/
+    function act_EditMyCompany()
+    {
+        // Логване
+        $browser = $this->SetUp();
+    
+        // Създаване на нова фирма
+        $browser->click('Визитник');
+        $browser->click('Моята Фирма ООД');
+        $browser->press('Редакция');
+        $browser->setValue('place', 'Велико Търново');
+        $browser->setValue('pCode', '5000');
+        $browser->setValue('address', 'ул. Царевец, №31');
+        $browser->setValue('fax', '062111111');
+        $browser->setValue('tel', '062111111');
+        $browser->press('Запис');
+        if (strpos($browser->getText(),"Предупреждение:")){
+            $browser->setValue('Ignore', 1);
+            $browser->press('Запис');
+        }
+        // Създаване на папка на новата фирма
+        $browser->press('Папка');
+        //return $browser->getHtml();
+    }
+    
     /**
      * 1. Създаване на потребител от Админ
      */
@@ -235,7 +288,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('nick', 'User1');
         $browser->setValue('passNew', '123456');
         $browser->setValue('passRe', '123456');
-        $browser->setValue('names', 'User1');
+        $browser->setValue('names', 'Потребител 1');
         $browser->setValue('email', 'u1@abv.bg');
         $browser->setValue('roleRank', 'ceo');
         $browser->refresh('Запис');
@@ -660,7 +713,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('name', 'Производство 1');
         $browser->setValue('parentId', 'Завод');
         $browser->setValue('schedule','Дневен график');
-        //$browser->setValue('User1', True);
+        $browser->setValue('type', 'Цех');
         $browser->setValue('shared_13_2', '13_2');
         $browser->press('Запис');
          if (strpos($browser->getText(),'Непопълнено задължително поле')){
@@ -825,7 +878,9 @@ class unit_MinkPbgERP extends core_Manager {
         if(strpos($browser->gettext(), $Company)) {
             //има такава фирма - редакция
             $browser->click($Company);
+            $browser->click('Локации');
             $browser->click('Добавяне на нова локация');
+            //return $browser->getHtml();
             $browser->setValue('title', 'Офис Пловдив');
             $browser->setValue('type', 'Офис');
             $browser->setValue('place', 'Пловдив');
@@ -1027,8 +1082,8 @@ class unit_MinkPbgERP extends core_Manager {
         }
          
         //$browser->setValue('bankAccountId', '');
-        $browser->setValue('deliveryTermIdExtended', 'EXW');
-        $browser->setValue('deliveryLocationId', '1');
+        $browser->setValue('deliveryTermId', 'EXW');
+        //$browser->setValue('deliveryLocationId', '1');
         $browser->setValue('note', 'MinkPTestCreatePurchase');
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
@@ -1065,7 +1120,7 @@ class unit_MinkPbgERP extends core_Manager {
         } else {
             return $this->reportErr('Грешна обща сума', 'warning');
         }
-        if(strpos($browser->gettext(), 'Доставка: EXW 4000 Пловдив, ул.Родопи, №52')) {
+        if(strpos($browser->gettext(), 'Доставка: EXW: 4000 Пловдив, ул.Родопи, №52')) {
         } else {
             return $this->reportErr('Грешнo условие на доставка', 'warning');
         }
@@ -1153,7 +1208,7 @@ class unit_MinkPbgERP extends core_Manager {
         }
          
         //$browser->setValue('bankAccountId', '');
-        $browser->setValue('deliveryTermIdExtended', 'EXW');
+        $browser->setValue('deliveryTermId', 'EXW');
         $browser->setValue('note', 'MinkPTestCreatePurchaseC');
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         //$browser->setValue('chargeVat', "Oсвободено от ДДС"); //// Ако контрагентът е от България дава грешка.
@@ -1288,8 +1343,8 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '#BG11CREX92603114548401');
         $browser->setValue('note', 'MinkPbgErpCreateSale');
-        $browser->setValue('deliveryTermIdExtended', 'DDP');
-        $browser->setValue('deliveryLocationId', '1');
+        $browser->setValue('deliveryTermId', 'DDP');
+        //$browser->setValue('deliveryLocationId', '1');
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         // Записване черновата на продажбата
@@ -1329,7 +1384,7 @@ class unit_MinkPbgERP extends core_Manager {
         } else {
             return $this->reportErr('Грешна обща сума', 'warning');
         }
-        if(strpos($browser->gettext(), 'Доставка: DDP 4000 Пловдив, ул.Родопи, №52')) {
+        if(strpos($browser->gettext(), 'Доставка: DDP: 4000 Пловдив, ул.Родопи, №52')) {
         } else {
             return $this->reportErr('Грешнo условие на доставка', 'warning');
         }
@@ -1551,7 +1606,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('measureId', 'брой');
         $browser->setValue('info', 'черен');
         $browser->setValue('meta_canBuy', 'canBuy');
-        $browser->setValue('Ценова група » Промоция', 15);
+        $browser->setValue('Ценова група » Промоция',  True);
         $browser->press('Запис');
     
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
@@ -1562,7 +1617,7 @@ class unit_MinkPbgERP extends core_Manager {
         } else {
             $browser->click('Цени');
             $browser->click('Избор на ДДС група');
-            //$browser->refresh('Запис');
+            //не зарежда ДДС 9% от днешна дата
             $browser->setValue('vatGroup', 'Г - 9,00 %');
             $browser->press('Запис');
         }

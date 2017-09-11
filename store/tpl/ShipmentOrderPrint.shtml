@@ -53,7 +53,7 @@
 <p>Транспорт: [#lineId#]
 <!--ET_END lineId-->
 <!--ET_BEGIN weight-->
-<p>Общо тегло: [#weight#]
+<!-- <p>Общо тегло: [#weight#] --!>
 <!--ET_END weight-->
 <!--ET_BEGIN volume-->
 <p>Общ обем:[#volume#]

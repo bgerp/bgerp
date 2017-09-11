@@ -50,9 +50,9 @@ class sales_Proformas extends deals_InvoiceMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, sales_Wrapper, cond_plg_DefaultValues, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
-					doc_EmailCreatePlg, bgerp_plg_Blank, crm_plg_UpdateContragentData, plg_Printing, Sale=sales_Sales,
-                    doc_plg_HidePrices, doc_plg_TplManager, deals_plg_DpInvoice, doc_ActivatePlg, plg_Clone';
+    public $loadList = 'plg_RowTools2, sales_Wrapper, cond_plg_DefaultValues, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary,
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, Sale=sales_Sales,
+                    doc_plg_HidePrices, doc_plg_TplManager, deals_plg_DpInvoice, doc_ActivatePlg, plg_Clone,cat_plg_AddSearchKeywords, plg_Search';
     
     
     /**
@@ -181,6 +181,12 @@ class sales_Proformas extends deals_InvoiceMaster
     
     
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, date,dueDate,vatDate,modifiedOn';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -262,8 +268,14 @@ class sales_Proformas extends deals_InvoiceMaster
      */
     public static function on_BeforeSave($mvc, $id, $rec)
     {
-    	if(isset($rec->id) && empty($rec->folderId)){
-    		$rec->folderId = $mvc->fetchField($rec->id, 'folderId');
+    	if(isset($rec->id)){
+    		if(empty($rec->folderId)){
+    			$rec->folderId = $mvc->fetchField($rec->id, 'folderId');
+    		}
+    		
+    		if(empty($rec->dueDate) && $rec->state == 'active'){
+    			$rec->dueDate = $mvc->fetchField($rec->id, 'dueDate');
+    		}
     	}
     	
     	parent::beforeInvoiceSave($rec);

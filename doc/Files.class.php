@@ -83,6 +83,78 @@ class doc_Files extends core_Manager
     
     
     /**
+     * Връща най-доброто място където се намира файла
+     * 
+     * @param string $fh
+     * 
+     * @return array
+     */
+    public static function getBestContainer($fh, $fInterface = NULL)
+    {
+        $fRec = fileman::fetchByFh($fh);
+        
+        expect($fRec);
+        
+        $resArr = array();
+        
+        // Масив с баркодовете
+        $barcodesArr = fileman_Indexes::getInfoContentByFh($fRec->fileHnd, 'barcodes');
+        
+        // Ако има масив и съдържанието е празно
+        if (is_array($barcodesArr)) {
+            foreach ($barcodesArr as $barcodesArrPage) {
+                foreach ($barcodesArrPage as $barcodeObj) {
+        			
+                    // Вземаме cid'a на баркода
+                    $cid = doclog_Documents::getDocumentCidFromURL($barcodeObj->code);
+                    
+                    if ($cid) {
+                        
+                        $doc = doc_Containers::getDocument($cid);
+                        
+                        $dRec = $doc->fetch();
+                        
+                        if ($dRec->state == 'rejected') continue;
+                        
+                        if ($fInterface && $dRec->folderId) {
+                            $fRec = doc_Folders::fetchRec($dRec->folderId);
+                            
+                            if (!cls::haveInterface($fInterface, $fRec->coverClass)) continue;
+                        }
+                        
+                        $resArr['folderId'] = $dRec->folderId;
+                        $resArr['threadId'] = $dRec->threadId;
+                        $resArr['containerId'] = $dRec->containerId;
+                        
+                        break;
+                    }
+                }
+            }
+        }
+        
+        if (!empty($resArr)) return $resArr;
+        
+        $query = self::getQuery();
+        $query->where(array("#dataId = '[#1#]'", $fRec->dataId));
+        $query->orderBy("show", 'ASC');
+        
+        while ($rec = $query->fetch()) {
+            if ($fInterface && $rec->folderId) {
+                $fRec = doc_Folders::fetchRec($rec->folderId);
+                
+                if (!cls::haveInterface($fInterface, $fRec->coverClass)) continue;
+            }
+            
+            $resArr['folderId'] = $rec->folderId;
+            $resArr['threadId'] = $rec->threadId;
+            $resArr['containerId'] = $rec->containerId;
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
      * Преизчислява дали да се показват файловете или не
      * 
      * @param integer $cId
@@ -291,6 +363,52 @@ class doc_Files extends core_Manager
         }
         
         self::recalcFiles($containerId);
+    }
+    
+    
+    /**
+     * Връща контейнерите с документи, в които се използва съответния файл
+     * 
+     * @param intger $dataId
+     * @param intger|NULL $clsId
+     * @param integer $resLimit
+     * @param integer $qLimit
+     * @param boolean $restrictAccess
+     * @param boolean $restricViewAccess
+     * 
+     * @return array
+     */
+    public static function getCidWithFile($dataId, $clsId = NULL, $resLimit = 5, $qLimit = 100, $restrictAccess = TRUE, $restricViewAccess = TRUE)
+    {
+        $fQuery = self::getQuery();
+        $fQuery->where(array("#dataId = '[#1#]'", $dataId));
+        
+        if ($restrictAccess) {
+            doc_Threads::restrictAccess($fQuery, NULL, TRUE);
+        }
+        
+        $fQuery->limit($qLimit);
+        
+        $fQuery->orderBy('id', "DESC");
+        
+        $resArr = array();
+        
+        while ($fRec = $fQuery->fetch()) {
+            if (!$fRec->containerId) continue;
+            
+            $cRec = doc_Containers::fetch($fRec->containerId);
+            
+            if ($cRec->state == 'rejected') continue;
+            
+            if ($clsId && $cRec->docClass == $clsId) {
+                
+                $resArr[$fRec->containerId] = $fRec->containerId;
+            }
+            
+            if (!--$resLimit) break;
+        }
+        
+        return $resArr;
     }
     
     

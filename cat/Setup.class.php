@@ -44,6 +44,19 @@ defIfNot('CAT_DEFAULT_PRICELIST', price_ListRules::PRICE_LIST_CATALOG);
 
 
 /**
+ * Брой артикули в автоматичните списъци
+ */
+defIfNot('CAT_AUTO_LIST_PRODUCT_COUNT', 30);
+
+
+
+/**
+ * Артикулите от кои групи да влизат в последните продажби
+ */
+defIfNot('CAT_AUTO_LIST_ALLOWED_GROUPS', '');
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -109,6 +122,7 @@ class cat_Setup extends core_ProtoSetup
     		'cat_ProductTplCache',
     		'cat_Listings',
     		'cat_ListingDetails',
+    		'cat_PackParams',
     		'migrate::migrateGroups',
     		'migrate::migrateProformas',
     		'migrate::removeOldParams1',
@@ -122,14 +136,26 @@ class cat_Setup extends core_ProtoSetup
     		'migrate::updateParamStates',
     		'migrate::migratePrototypes',
     		'migrate::updateListings1',
+    		'migrate::updateLists',
+    		'migrate::migrateListings',
+    		'migrate::updateCatCache',
         );
-
-
+    
+    
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'cat,sales,purchase,techno,catEdit';
- 
+    var $roles = array(
+            array('listArt'),
+    		array('sales', 'listArt'),
+    		array('purchase'),
+    		array('packEdit'),
+    		array('catEdit', 'packEdit'),
+    		array('cat', 'catEdit'),
+            array('rep_cat'),
+            array('catImpEx'),
+    );
+    
     
     /**
      * Връзки от менюто, сочещи към модула
@@ -156,6 +182,8 @@ class cat_Setup extends core_ProtoSetup
     		'CAT_BOM_MAX_COMPONENTS_LEVEL'          => array("int(min=0)", 'caption=Вложени рецепти - нива с показване на компонентите->Макс. брой'),
     		'CAT_WAC_PRICE_PERIOD_LIMIT'            => array("int(min=1)", array('caption' => 'До колко периода назад да се търси складова себестойност, ако няма->Брой')),
             'CAT_DEFAULT_PRICELIST'                 => array("key(mvc=price_Lists,select=title,allowEmpty)", 'caption=Ценова политика по подразбиране->Избор,mandatory'),
+            'CAT_AUTO_LIST_PRODUCT_COUNT'           => array("int(min=1)", 'caption=Списъци от последно продавани артикули->Брой'),
+            'CAT_AUTO_LIST_ALLOWED_GROUPS'          => array("keylist(mvc=cat_Groups,select=name)", 'caption=Списъци от последно продавани артикули->Групи'),
     );
 
     
@@ -169,6 +197,16 @@ class cat_Setup extends core_ProtoSetup
     				'controller' => "cat_Products",
     				'action' => "closePrivateProducts",
     				'period' => 21600,
+    				'offset' => 60,
+    				'timeLimit' => 200
+    		),
+    		
+    		array(
+    				'systemId' => "Update Auto Sales List",
+    				'description' => "Обновяване на листовете с продажби",
+    				'controller' => "cat_Listings",
+    				'action' => "UpdateAutoLists",
+    				'period' => 1440,
     				'offset' => 60,
     				'timeLimit' => 200
     		),
@@ -565,5 +603,66 @@ class cat_Setup extends core_ProtoSetup
     	if(count($toSave)){
     		$Detail->saveArray($toSave);
     	}
+    }
+    
+    
+    /**
+     * Ъпдейт на валутите на листовете
+     */
+    function updateLists()
+    {
+    	$Lists = cls::get('cat_Listings');
+    	$Lists->setupMvc();
+    	
+    	if(!cat_Listings::count()) return;
+    	
+    	$query = $Lists->getQuery();
+    	$query->where('#currencyId IS NULL OR #currencyId = 0');
+    	while($rec = $query->fetch()){
+    	
+    		$Cover = doc_Folders::getCover($rec->folderId);
+    		if($Cover->haveInterface('crm_ContragentAccRegIntf')){
+    			$rec->currencyId = $Cover->getDefaultCurrencyId();
+    			$rec->vat = ($Cover->shouldChargeVat()) ? 'yes' : 'no';
+    			
+    		} else {
+    			$rec->currencyId = 'BGN';
+    			$rec->vat = 'yes';
+    		}
+    		
+    		$Lists->save_($rec, 'currencyId,vat');
+    	}
+    }
+    
+    
+    /**
+     * Миграция на листовете
+     */
+    function migrateListings()
+    {
+    	core_App::setTimeLimit(200);
+    	$Listings = cls::get('cat_ListingDetails');
+    	$lQuery = $Listings->getQuery();
+    	$lQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
+    	$lQuery->where("#code = #reff");
+    	$lQuery->show('id,listId,productId,reff,code');
+    	
+    	while($lRec = $lQuery->fetch()){
+    		try{
+    			$lRec->reff = NULL;
+    			$Listings->save_($lRec);
+    		} catch(core_exception_Expect $e){
+    			reportException($e);
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Изчистване на кеша
+     */
+    function updateCatCache()
+    {
+    	cat_ProductTplCache::delete("#type = 'title'");
     }
 }

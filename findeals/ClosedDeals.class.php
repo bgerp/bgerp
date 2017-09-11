@@ -54,7 +54,7 @@ class findeals_ClosedDeals extends deals_ClosedDeals
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,sales';
+    public $canAdd = 'ceo,findeals';
     
   
     /**

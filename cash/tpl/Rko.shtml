@@ -41,6 +41,10 @@
                 <tr>
                     <td class='aleft' style='padding-left:10px;padding-top: 10px;width:67%;'>
                         <div class='richtext-holder'><span class='quiet'>|Основание|*:</span>&nbsp;&nbsp;&nbsp;[#reason#]</div>
+                    
+                    	<!--ET_BEGIN termDate-->
+                     	<div class='richtext-holder'><span class='quiet'>|Срок|*:</span>&nbsp;&nbsp;&nbsp;[#termDate#]</div>
+                     	<!--ET_END termDate-->
                     </td>
                     <td style='padding-left:10px; padding-top: 10px;'>
                         <span style='font-size:20px'>|Сума|*:</span><span class='amount'><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></span>
@@ -88,7 +92,13 @@
                             </tr>
                             <tr>
                                 <td></td>
-                                <td><span class='sign_names nowrap'>( [#cashier#] )</span></td>
+                                <td>
+                                <span class='sign_names nowrap'>
+                                <!--ET_BEGIN activatedBy-->
+                                ( [#activatedBy#] )
+                                <!--ET_END activatedBy-->
+                                </span>
+                                </td>
                             </tr>
                         </table>
                     </td>

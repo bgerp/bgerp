@@ -85,6 +85,12 @@ class core_Query extends core_FieldSet
 
 
     /**
+     * Дали SELECT заявката да е приоритетна
+     */
+    var $highPriority = FALSE;
+
+
+    /**
      * Масив за хинтове на индекси
      */
     public $indexes = array();
@@ -297,12 +303,8 @@ class core_Query extends core_FieldSet
         $isFirst = TRUE;
 
         if(count($keylistArr)) {
-            foreach($keylistArr as $key => $value) {
-                if($regExp) $regExp .= '|';
-                $regExp .= '\\\|' . $key . '\\\|';
-            }
-
-            $this->where("#{$field} RLIKE '({$regExp})'", $or);
+            $regExp = implode('|', $keylistArr);
+            $this->where("#{$field} REGEXP '\\\|({$regExp})\\\|'", $or);
         }
 
         return $this;
@@ -393,9 +395,12 @@ class core_Query extends core_FieldSet
     public function in($field, $values, $not = FALSE, $or = FALSE)
     {
     	$values = arr::make($values);
-    	
     	if (!$values) return ;
     	
+    	// Ескейпване на стойности
+    	array_walk($values, function (&$a) {$a = "'" . $a . "'";});
+    	
+    	// Обръщане на масива в стринг
     	$values = implode(',', $values);
     	
     	if(!$not){
@@ -595,6 +600,10 @@ class core_Query extends core_FieldSet
         } else {
             $wh = $this->getWhereAndHaving();
             $query = "SELECT ";
+
+            if(($this->mvc->highPriority && $this->limit == 1) || $this->highPriority) {
+                $query .= " HIGH_PRIORITY ";
+            }
             
             if (!empty($this->_selectOptions)) {
                 $query .= implode(' ', $this->_selectOptions) . ' ';
@@ -637,50 +646,46 @@ class core_Query extends core_FieldSet
         
         $wh = $temp->getWhereAndHaving();
         
-        if (!$temp->useHaving && !$temp->getGroupBy()) {
-            
-            $options = '';
-            
-            if (!empty($this->_selectOptions)) {
-                $options = implode(' ', $this->_selectOptions);
-            }
-           
-            $query = "SELECT {$options}\n   count(*) AS `_count`";
-            if(count($this->selectFields("#kind == 'XPR' || #kind == 'EXT'"))) {
-                $fields = $temp->getShowFields();
-                $query .= ($fields ? ',' : '') . $fields;
-            }
-            
-            $query .= "\nFROM ";
-            $query .= $temp->getTables();
-
-            $query .= $wh->w;
-            $query .= $wh->h;
-            $query .= $temp->getLimit();
-
-            $db = $temp->mvc->db;
-            
-            DEBUG::startTimer(cls::getClassName($this->mvc) . ' COUNT ');
-            
-            $dbRes = $db->query($query);
-            
-            DEBUG::stopTimer(cls::getClassName($this->mvc) . ' COUNT ');
-            
-            $r = $db->fetchObject($dbRes);
-            
-            // Освобождаваме MySQL резултата
-            $db->freeResult($dbRes);
-            
-            // Връщаме брояча на редовете
-            return $r->_count;
-        } else {
-            
-            $temp->orderBy = array();
-
-            $i = $temp->select();
-            
-            return $i;
+        $options = '';
+        
+        if (!empty($this->_selectOptions)) {
+            $options = implode(' ', $this->_selectOptions);
         }
+        
+        $query = "SELECT {$options}\n   count(*) AS `_count`";
+        if(count($this->selectFields("#kind == 'XPR' || #kind == 'EXT'"))) {
+            $fields = $temp->getShowFields();
+            $query .= ($fields ? ',' : '') . $fields;
+        }
+        
+        $query .= "\nFROM ";
+        $query .= $temp->getTables();
+
+        $query .= $wh->w;
+        $query .= $wh->h;
+        $query .= $temp->getGroupBy();
+        $query .= $temp->getLimit();
+
+        if ($temp->useHaving || $temp->getGroupBy() || ($temp->limit)) {
+            $query =  str_replace("count(*) AS `_count`", "1 AS `fix_val`", $query);
+            $query = "SELECT COUNT(*) AS `_count` FROM ({$query}) as COUNT_TABLE";
+        }
+
+        $db = $temp->mvc->db;
+        
+        DEBUG::startTimer(cls::getClassName($this->mvc) . ' COUNT ');
+        
+        $dbRes = $db->query($query);
+        
+        DEBUG::stopTimer(cls::getClassName($this->mvc) . ' COUNT ');
+        
+        $r = $db->fetchObject($dbRes);
+        
+        // Освобождаваме MySQL резултата
+        $db->freeResult($dbRes);
+        
+        // Връщаме брояча на редовете
+        return $r->_count;
     }
     
     

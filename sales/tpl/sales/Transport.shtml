@@ -87,6 +87,9 @@
                 <!--ET_BEGIN notes-->
                 [#notes#]
                 <!--ET_END notes-->
+                <!--ET_BEGIN closedDocuments-->
+                   <li>|Обединява|*: [#closedDocuments#]</li>
+                <!--ET_END closedDocuments-->
             </ul>
         </td>
         <td class="topCell aright vtop">

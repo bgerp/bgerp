@@ -2,14 +2,12 @@
 
 
 /**
- * Позиции
- * Детайли, които определят в един отдел, какви длъжности
- * и на какви условия могат да бъдат назначавани
+ * Длъжности в организацията
  *
  * @category  bgerp
  * @package   hr
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -20,50 +18,49 @@ class hr_Positions extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Длъжности";
+    public $title = "Длъжности в организацията";
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Длъжност";
-    
+    public $singleTitle = "Длъжност";
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools2, hr_Wrapper, plg_Printing, plg_Created';
+    public $loadList = 'hr_Wrapper, plg_Printing, plg_Created, plg_RowTools2';
     
     
     /**
-     * Кой има право да чете?
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $canRead = 'ceo,hr';
+    public $rowToolsSingleField = 'name';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo,hr';
+    public $canList = 'ceo,hrMaster';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    var $canSingle = 'ceo,hr';
+    public $canSingle = 'ceo,hrMaster';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'ceo,hr';
+    public $canWrite = 'ceo,hrMaster';
     
       
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'name,nkpd';
+    public $listFields = 'name,nkpd,createdOn,createdBy';
     
     
     /**
@@ -71,11 +68,10 @@ class hr_Positions extends core_Master
      */
     function description()
     {
-        $this->FLD('name', 'varchar', 'caption=Наименование');
+        $this->FLD('name', 'varchar', 'caption=Наименование,mandatory');
         
         // Към кое звено на организацията е тази позиция
         $this->FLD('nkpd', 'key(mvc=bglocal_NKPD, select=title)', 'caption=НКПД, hint=Номер по НКПД');
-        
         
         // Възнаграждения
         $this->FLD('salaryBase', 'double(decimals=2)', 'caption=Възнаграждение->Основно');
@@ -101,7 +97,7 @@ class hr_Positions extends core_Master
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = $data->form;
 
@@ -113,7 +109,8 @@ class hr_Positions extends core_Master
                 $sugg[$n] = $n;
             }
         }
-
+        $sugg["$" . 'BaseSalary'] = "$" . 'BaseSalary';
+        
         $form->setSuggestions('formula', $sugg);
     }
 
@@ -142,13 +139,11 @@ class hr_Positions extends core_Master
         }
     }
     
-
- 
     
     /**
-     * @todo Чака за документация...
+     * Подготовка на длъжностите
      */
-    function preparePositions($data)
+    public function preparePositions($data)
     {
         $data->TabCaption = tr('Позиции');
         
@@ -163,7 +158,7 @@ class hr_Positions extends core_Master
     
     
     /**
-     * @todo Чака за документация...
+     * Рендиране на длъжностите
      */
     function renderPositions($data)
     {
@@ -184,9 +179,9 @@ class hr_Positions extends core_Master
 
 
     /**
-     *
+     * Вербално представяне
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    protected function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         if($mvc->haveRightFor('single', $rec)) {
             $row->id = ht::createLink($row->id, array($mvc, 'list', $rec->id));

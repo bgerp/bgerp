@@ -42,7 +42,7 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
      * var string|array
      */
     public $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_RowNumbering, plg_SaveAndNew, 
-                        plg_AlignDecimals2, LastPricePolicy=sales_SalesLastPricePolicy,plg_PrevAndNext';
+                        plg_AlignDecimals2, LastPricePolicy=sales_SalesLastPricePolicy,plg_PrevAndNext,store_plg_TransportDataDetail';
     
     
     /**
@@ -72,7 +72,7 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId=Върнато, packagingId, packQuantity, packPrice, amount';
+    public $listFields = 'productId=Върнато, packagingId, packQuantity, weight=Тегло,volume=Обем, packPrice, amount';
 
     
 	/**

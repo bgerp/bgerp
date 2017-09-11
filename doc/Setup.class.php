@@ -43,6 +43,12 @@ defIfNot('DOC_SEARCH_FOLDER_CNT', 5);
 
 
 /**
+ * Колко колко документа максимално да се показват
+ */
+defIfNot('DOC_SEARCH_LIMIT', 1000);
+
+
+/**
  * Време на отклонения за поправка на документ (в секунди)
  * Докумените създадени преди това време ще се проверяват за поправка
  */
@@ -77,6 +83,18 @@ defIfNot('DOC_NOTIFY_FOLDERS_SHARED_USERS', 'default');
  * Нотификация за създадени чакащи документи
  */
 defIfNot('DOC_NOTIFY_PENDING_DOC', 'default');
+
+
+/**
+ * Известяване при нов документ->Задължително
+ */
+defIfNot('DOC_NOTIFY_NEW_DOC_TYPE', '');
+
+
+/**
+ * Известяване при нов документ->Никога
+ */
+defIfNot('DOC_STOP_NOTIFY_NEW_DOC_TYPE', '');
 
 
 /**
@@ -185,10 +203,14 @@ class doc_Setup extends core_ProtoSetup
     	
         'DOC_REPAIR_ALL' => array ('enum(yes=Да (бавно), no=Не)', 'caption=Дали да се проверяват всички документи за поправка->Избор'),
         'DOC_SEARCH_FOLDER_CNT' => array ('int(Min=0)', 'caption=Колко папки от последно отворените да се показват при търсене->Брой'),
+        'DOC_SEARCH_LIMIT' => array ('int(Min=0)', 'caption=Колко документ/нишки да се показват при търсене->Брой'),
+
         'DOC_NOTIFY_FOR_NEW_DOC' => array ('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Нотификация за добавен документ в нишка->Избор, customizeBy=powerUser'),
+        'DOC_NOTIFY_NEW_DOC_TYPE' => array ('keylist(mvc=core_Classes, select=title)', 'caption=Известяване при нов документ->Задължително, customizeBy=powerUser, optionsFunc=doc_Setup::getAllDocClassOptions'),
+        'DOC_STOP_NOTIFY_NEW_DOC_TYPE' => array ('keylist(mvc=core_Classes, select=title)', 'caption=Известяване при нов документ->Никога, customizeBy=powerUser, optionsFunc=doc_Setup::getAllDocClassOptions'),
         'DOC_NOTIFY_FOLDERS_SHARED_USERS' => array ('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване на споделените потребители на папка->Избор, customizeBy=powerUser'),
         'DOC_NOTIFY_PENDING_DOC' => array ('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Нотификация за създадени чакащи документи->Избор, customizeBy=powerUser'),
-    
+        
         'DOC_SHOW_DOCUMENTS_BEGIN' => array ('int(Min=0)', 'caption=Задължително показване на документи в нишка->В началото, customizeBy=user'),
         'DOC_SHOW_DOCUMENTS_END' => array ('int(Min=0)', 'caption=Задължително показване на документи в нишка->В края, customizeBy=user'),
         'DOC_SHOW_DOCUMENTS_LAST_ON' => array ('time(suggestions=1 ден|3 дни|5 дни|1 седмица)', 'caption=Задължително показване на документи в нишка->По-нови от, customizeBy=user'),
@@ -219,6 +241,7 @@ class doc_Setup extends core_ProtoSetup
     	'doc_ExpensesSummary',
     	'doc_Prototypes',
     	'doc_UsedInDocs',
+    	'doc_View',
         'migrate::repairBrokenFolderId',
         'migrate::repairLikeThread',
         'migrate::repairFoldersKeywords',
@@ -226,6 +249,8 @@ class doc_Setup extends core_ProtoSetup
         'migrate::showFiles',
         'migrate::addCountryIn2LgFolders2',
         'migrate::addFirstDocClassAndId',
+        'migrate::receiveEmailUnsortedN',
+        'migrate::regenerateSearchKeywords'
     );
 	
     
@@ -366,6 +391,20 @@ class doc_Setup extends core_ProtoSetup
         $res = bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    /**
+     * 
+     * @param type_Keylist $type
+     * @param array $otherParams
+     * 
+     * @return array
+     */
+    public static function getAllDocClassOptions($type, $otherParams = array())
+    {
+        
+        return core_Classes::getOptionsByInterface('doc_DocumentIntf', 'title');
     }
     
     
@@ -671,6 +710,181 @@ class doc_Setup extends core_ProtoSetup
             $rec->firstDocId = $rec->docId;
             
             $Threads->save_($rec, 'firstDocClass, firstDocId');
+        }
+    }
+    
+    
+    /**
+     * Миграция за попълване на началните настройки за опциите за нотифициране
+     * за "Известяване при нов документ"
+     * 
+     * Задължително - Изходящ имейл
+     * Никога - Напомняне
+     */
+    public static function addDefaultNotifyOptions()
+    {
+        // Вземаме конфига
+        $conf = core_Packs::getConfig('doc');
+        
+        $data = array();
+        
+        if (!$conf->_data['DOC_NOTIFY_NEW_DOC_TYPE']) {
+            $emailId = core_Classes::getId('email_Incomings');
+            if ($emailId) {
+                $data['DOC_NOTIFY_NEW_DOC_TYPE'] = "|{$emailId}|";
+            }
+        }
+        
+        // Ако няма запис в модела
+        if (!$conf->_data['DOC_STOP_NOTIFY_NEW_DOC_TYPE']) {
+            $reminderId = core_Classes::getId('cal_Reminders');
+            if ($reminderId) {
+                $data['DOC_STOP_NOTIFY_NEW_DOC_TYPE'] = "|{$reminderId}|";
+            }
+        }
+        
+        if (!empty($data)) {
+            core_Packs::setConfig('doc', $data);
+        }
+    }
+    
+    
+    /**
+     * Миграция за попълване на visibleForPartners в нишките от първия документ
+     */
+    public static function threadsVisibleForPartners()
+    {
+        $threads = cls::get('doc_Threads');
+        $tQuery = $threads->getQuery();
+        
+        $tQuery->where('#visibleForPartners IS NULL');
+        
+        $tQuery->EXT('cVisible', 'doc_Containers', 'externalName=visibleForPartners,externalKey=firstContainerId');
+        $tQuery->EXT('cState', 'doc_Containers', 'externalName=state,externalKey=firstContainerId');
+        $tQuery->EXT('cCreatedBy', 'doc_Containers', 'externalName=createdBy,externalKey=firstContainerId');
+        
+        $tQuery->orderBy('modifiedOn', 'DESC');
+        
+        while ($tRec = $tQuery->fetch()) {
+            if ($tRec->cVisible === 'yes') {
+                $tRec->visibleForPartners = 'yes';
+            } else {
+                $tRec->visibleForPartners = 'no';
+            }
+            
+            // Ако е оттеглен документ|чернова и не е създаден от прартньори
+            if ($tRec->visibleForPartners == 'yes') {
+                if (($tRec->cState === 'rejected') || ($tRec->cState === 'draft')) {
+                    if (!$tRec->cCreatedBy || ($tRec->cCreatedBy < 1) || !core_Users::haveRole('partner', $tRec->cCreatedBy)) {
+                        $tRec->visibleForPartners = 'no';
+                    }
+                }
+            }
+            
+            $threads->save_($tRec, 'visibleForPartners');
+        }
+    }
+    
+    
+    /**
+     * Зареждане на данни
+     */
+    function loadSetupData($itr = '')
+    {
+        $res = parent::loadSetupData($itr);
+        
+        $res .= $this->callMigrate('threadsVisibleForPartners', 'doc');
+        $res .= $this->callMigrate('addDefaultNotifyOptions', 'doc');
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Миграция, която добавя в "Несортирани - " да може да се рутират имейли
+     */
+    public static function receiveEmailUnsortedN()
+    {
+        $uInst = cls::get('doc_UnsortedFolders');
+        $uQuery = $uInst->getQuery();
+        $uQuery->where("#receiveEmail IS NULL");
+        $uQuery->orWhere("#receiveEmail = 'no'");
+        
+        $namePattern = sprintf(email_Setup::get('UNSORTABLE_COUNTRY'), '');
+        
+        $emailInClsId = email_Incomings::getClassId();
+        $emailOutClsId = email_Outgoings::getClassId();
+        
+        while ($uRec = $uQuery->fetch()) {
+            
+            if (!$uRec->receiveEmail) {
+                if (stripos($uRec->name, $namePattern) === FALSE) {
+                    $uRec->receiveEmail = 'no';
+                } else {
+                    $uRec->receiveEmail = 'yes';
+                }
+            } elseif ($uRec->folderId && ($uRec->receiveEmail == 'no')) {
+                
+                // Ако има изпратени/получени имейли
+                if (doc_Containers::fetch(array("#folderId = '[#1#]' AND (#docClass = '[#2#]' OR #docClass = '[#3#]') AND #state != 'rejected'", $uRec->folderId, $emailInClsId, $emailOutClsId))) {
+                    $uRec->receiveEmail = 'yes';
+                }
+            }
+            
+            $uInst->save_($uRec, 'receiveEmail');
+        }
+    }
+    
+    
+    /**
+     * Миграция за регенеиране на ключови думи
+     */
+    public static function regenerateSearchKeywords()
+    {
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setCall('doc_Setup', 'regenerateSearchKeywords', NULL, $callOn);
+    }
+    
+    
+    /**
+     * Колбек функцията за регенериране на ключовите думи на документите
+     */
+    public static function callback_regenerateSearchKeywords()
+    {
+        $permanentKey = 'regeneteSearchKeywordsFrom';
+        
+        $from = core_Permanent::get($permanentKey);
+        
+        if (!$from) {
+            $from = dt::addDays(-100);
+            
+            doc_Containers::logDebug("Стартиране на регенериране на ключовите думи от " . $from);
+        }
+        
+        $to = dt::addSecs(7200, $from);
+        
+        if ($from > dt::now()) {
+            
+            doc_Containers::logDebug("Регенерирането на ключовите думи приключи");
+            
+            return;
+        }
+        
+        if (!core_CallOnTime::fetch("#className = 'doc_Setup' AND #methodName = 'regenerateSearchKeywords' AND #state = 'draft'", '*', FALSE)) {
+            $callOn = dt::addSecs(55);
+            core_CallOnTime::setCall('doc_Setup', 'regenerateSearchKeywords', NULL, $callOn);
+            core_Permanent::set($permanentKey, $to, 100000);
+        }
+        
+        $cQuery = doc_Containers::getQuery();
+        $cQuery->where(array("#modifiedOn >= '[#1#]'", $from));
+        $cQuery->where(array("#modifiedOn <= '[#1#]'", $to));
+        $cQuery->orderBy('modifiedOn', 'ASC');
+        
+        $rArr = doc_Containers::regenerateSerchKeywords(FALSE, $cQuery, TRUE);
+        
+        if ($rArr) {
+            doc_Containers::logDebug("Регенерирани ключови думи на {$rArr[0]} документа от {$from} до {$to}");
         }
     }
 }

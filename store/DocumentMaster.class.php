@@ -47,6 +47,18 @@ abstract class store_DocumentMaster extends core_Master
     
     
     /**
+     * Дата на очакване
+     */
+    public $termDateFld = 'deliveryTime';
+    
+    
+    /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
+    
+    
+    /**
      * След описанието на полетата
      */
     protected static function setDocFields(core_Master &$mvc)
@@ -67,7 +79,7 @@ abstract class store_DocumentMaster extends core_Master
     	
     	// Доставка
     	$mvc->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Обект до,silent');
-    	$mvc->FLD('deliveryTime', 'datetime', 'caption=Срок до');
+    	$mvc->FLD('deliveryTime', 'datetime');
     	$mvc->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транспорт');
     	
     	// Допълнително
@@ -95,13 +107,6 @@ abstract class store_DocumentMaster extends core_Master
     	
     	if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'store_Stores', 'storeId')){
     		$requiredRoles = 'no_one';
-    	}
-    	
-    	if($action == 'pending' && isset($rec)){
-    		$Detail = cls::get($mvc->mainDetail);
-    		if(!$Detail->fetchField("#{$Detail->masterKey} = {$rec->id}")){
-    			$requiredRoles = 'no_one';
-    		}
     	}
     }
     
@@ -183,10 +188,6 @@ abstract class store_DocumentMaster extends core_Master
     	$recs = $query->fetchAll();
     
     	deals_Helper::fillRecs($this, $recs, $rec);
-    	$measures = $this->getMeasures($recs);
-    	
-    	$rec->weight = $measures->weight;
-    	$rec->volume = $measures->volume;
     	
     	// ДДС-т е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
     	$amount = ($rec->chargeVat == 'separate') ? $this->_total->amount + $this->_total->vat : $this->_total->amount;
@@ -205,7 +206,10 @@ abstract class store_DocumentMaster extends core_Master
     public static function on_AfterCreate($mvc, $rec)
     {
     	$origin = $mvc::getOrigin($rec);
-    
+    	
+    	// Ако документа е клониран пропуска се
+    	if($rec->_isClone === TRUE) return;
+    	
     	// Ако новосъздадения документ има origin, който поддържа bgerp_AggregateDealIntf,
     	// използваме го за автоматично попълване на детайлите на документа
     	if ($origin->haveInterface('bgerp_DealAggregatorIntf')) {
@@ -213,12 +217,19 @@ abstract class store_DocumentMaster extends core_Master
     		// Ако документа е обратен не слагаме продукти по дефолт
     		if($rec->isReverse == 'yes') return;
     
+    		$copyBatches = FALSE;
     		$Detail = $mvc->mainDetail;
     		$aggregatedDealInfo = $origin->getAggregateDealInfo();
     		if($rec->importProducts != 'all'){
     			$agreedProducts = $aggregatedDealInfo->get('products');
     			$shippedProducts = $aggregatedDealInfo->get('shippedProducts');
-    			$normalizedProducts = deals_Helper::normalizeProducts(array($agreedProducts), array($shippedProducts));
+    			
+    			if(count($shippedProducts)){
+    				$normalizedProducts = deals_Helper::normalizeProducts(array($agreedProducts), array($shippedProducts));
+    			} else {
+    				$copyBatches = TRUE;
+    				$agreedProducts = $aggregatedDealInfo->get('dealProducts');
+    			}
     			
     			if($rec->importProducts == 'stocked'){
     				foreach ($agreedProducts as $i1 => $p1) {
@@ -229,16 +240,21 @@ abstract class store_DocumentMaster extends core_Master
     				}
     			}
     		} else {
-    			$agreedProducts = $aggregatedDealInfo->get('products');
-    			$normalizedProducts = deals_Helper::normalizeProducts(array($agreedProducts), array());
+    			$agreedProducts = $aggregatedDealInfo->get('dealProducts');
+    			$normalizedProducts = $aggregatedDealInfo->get('dealProducts');
     		}
     		
     		if(count($agreedProducts)){
     			foreach ($agreedProducts as $index => $product) {
     				$info = cat_Products::getProductInfo($product->productId);
     				
-    				$toShip = $normalizedProducts[$index]->quantity;
-    				$price = ($agreedProducts[$index]->price) ? $agreedProducts[$index]->price : $normalizedProducts[$index]->price;
+    				if(isset($normalizedProducts[$index])){
+    					$toShip = $normalizedProducts[$index]->quantity;
+    				} else {
+    					$toShip = $product->quantity;
+    				}
+    				
+    				$price = (isset($agreedProducts[$index]->price)) ? $agreedProducts[$index]->price : $normalizedProducts[$index]->price;
     				$discount = ($agreedProducts[$index]->discount) ? $agreedProducts[$index]->discount : $normalizedProducts[$index]->discount;
     				
     				// Пропускат се експедираните и нескладируемите продукти
@@ -251,12 +267,31 @@ abstract class store_DocumentMaster extends core_Master
     				$shipProduct->quantity    = $toShip;
     				$shipProduct->price       = $price;
     				$shipProduct->discount    = $discount;
-    				$shipProduct->weight      = $product->weight;
     				$shipProduct->notes       = $product->notes;
-    				$shipProduct->volume      = $product->volume;
     				$shipProduct->quantityInPack = $product->quantityInPack;
     				
+    				if(core_Packs::isInstalled('batch') && $copyBatches === TRUE){
+    					$shipProduct->isEdited = FALSE;
+    					$shipProduct->_clonedWithBatches = TRUE;
+    				}
+    				
     				$Detail::save($shipProduct);
+    				
+    				// Копира партидата ако артикулите идат 1 към 1 от договора
+    				if(core_Packs::isInstalled('batch') && $copyBatches === TRUE){
+    					if(is_array($product->batches)){
+    						foreach ($product->batches as $bRec){
+    							unset($bRec->id);
+    							$bRec->detailClassId = $mvc->{$Detail}->getClassId();
+    							$bRec->detailRecId = $shipProduct->id;
+    							$bRec->containerId = $rec->containerId;
+    							$bRec->date = $rec->valior;
+    							$bRec->storeId = $rec->storeId;
+    							
+    							batch_BatchesInDocuments::save($bRec);
+    						}
+    					}
+    				}
     			}
     		}
     	}
@@ -345,28 +380,14 @@ abstract class store_DocumentMaster extends core_Master
 	   			$row->lineId = trans_Lines::getHyperlink($rec->lineId);
 	   		}
 	   		
-	   		$weight = ($rec->weightInput) ? $rec->weightInput : $rec->weight;
-	   		if(!isset($weight)) {
-	   			$row->weight = "<span class='quiet'>N/A</span>";
-	   		} else {
-	   			$row->weight = $mvc->getFieldType('weight')->toVerbal($weight);
-	   		}
-	   		
-	   		$volume = ($rec->volumeInput) ? $rec->volumeInput : $rec->volume;
-	   		if(!isset($volume)) {
-	   			$row->volume = "<span class='quiet'>N/A</span>";
-	   		} else {
-	   			$row->volume = $mvc->getFieldType('volume')->toVerbal($volume);
-	   		}
-	   		
 	   		core_Lg::pop();
 	   		
 	   		if($rec->isReverse == 'yes'){
 	   			$row->operationSysId = tr('Връщане на стока');
 	   		}
-	   		
-	   		$row->valior = (isset($rec->valior)) ? $row->valior : ht::createHint('', 'Вальора ще бъде датата на контиране');
 	   	}
+	   	
+	   	$row->valior = (isset($rec->valior)) ? $row->valior : ht::createHint('', 'Вальора ще бъде датата на контиране');
    }
 
    
@@ -439,17 +460,6 @@ abstract class store_DocumentMaster extends core_Master
 
 
     /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    public static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	if(!empty($data->toolbar->buttons['btnAdd'])){
-    		$data->toolbar->removeBtn('btnAdd');
-    	}
-    }
-
-
-    /**
      * Помощен метод за показване на документа в транспортните линии
      * 
      * @param stdClass $rec - запис на документа
@@ -461,8 +471,6 @@ abstract class store_DocumentMaster extends core_Master
     	$fields = $this->selectFields();
     	$fields['-single'] = TRUE;
     	
-    	$rec->weight = ($rec->weightInput) ? $rec->weightInput : $rec->weight;
-    	$rec->volume = ($rec->volumeInput) ? $rec->volumeInput : $rec->volume;
     	$oldRow = $this->recToVerbal($rec, $fields);
     	
     	$amount = NULL;
@@ -480,11 +488,11 @@ abstract class store_DocumentMaster extends core_Master
     		$row->palletCount = $this->getFieldType('palletCount')->toVerbal($rec->palletCount);
     	}
     	
-    	if($rec->weight){
+    	if(!empty($rec->weight)){
     		$row->weight = $oldRow->weight;
     	}
     	
-    	if($rec->volume){
+    	if(!empty($rec->volume)){
     		$row->volume = $oldRow->volume;
     	}
     	
@@ -496,10 +504,14 @@ abstract class store_DocumentMaster extends core_Master
     	}
     	
     	$row->rowNumb = $rec->rowNumb;
-    	 
+        
+        $contragentClass = cls::get($rec->contragentClassId);
+        $contragentRec = $contragentClass->fetch($rec->contragentId);
+        $contragentTitle = $contragentClass->getVerbal($contragentRec, 'name');
+
     	$row->address = ($rec->locationId) ? crm_Locations::getAddress($rec->locationId) : $oldRow->contragentAddress;
     	$row->address = str_replace('<br>', ',', $row->address);
-    	$row->address = "<span style='font-size:0.8em'>{$row->address}</span>";
+    	$row->address = "<span style='font-size:0.8em'>{$contragentTitle}, {$row->address}</span>";
     	 
     	$row->storeId = store_Stores::getHyperlink($rec->storeId);
     	$row->ROW_ATTR['class'] = "state-{$rec->state}";
@@ -527,8 +539,18 @@ abstract class store_DocumentMaster extends core_Master
     		$arr[$dRec->id] = $this->prepareLineRows($dRec);
     		$i++;
     		
-    		$masterData->weight += $dRec->weight;
-    		$masterData->volume += $dRec->volume;
+    		if(!empty($dRec->weight) && $masterData->weight !== FALSE){
+    			$masterData->weight += $dRec->weight;
+    		} else {
+    			$masterData->weight = FALSE;
+    		}
+    		
+    		if(!empty($dRec->volume) && $masterData->volume !== FALSE){
+    			$masterData->volume += $dRec->volume;
+    		} else {
+    			$masterData->volume = FALSE;
+    		}
+    		
     		$masterData->palletCount += $dRec->palletCount;
     		$masterData->totalAmount += $dRec->amountDelivered;
     	}
@@ -546,35 +568,6 @@ abstract class store_DocumentMaster extends core_Master
     	$this->setTemplates($res);
     	
     	return $res;
-    }
-
-
-    /**
-     * Добавя ключови думи за пълнотекстово търсене, това са името на
-     * документа или папката
-     */
-    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
-    {
-    	// Тук ще генерираме всички ключови думи
-    	$detailsKeywords = '';
-    	$Detail = $mvc->mainDetail;
-    	
-    	// заявка към детайлите
-    	$query = $mvc->{$Detail}->getQuery();
-    	
-    	// точно на тази фактура детайлите търсим
-    	$query->where("#{$mvc->{$Detail}->masterKey} = '{$rec->id}'");
-    
-    	while ($recDetails = $query->fetch()){
-    		// взимаме заглавията на продуктите
-    		$productTitle = cat_Products::getTitleById($recDetails->productId);
-    		
-    		// и ги нормализираме
-    		$detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
-    	}
-    	 
-    	// добавяме новите ключови думи към основните
-    	$res = " " . $res . " " . $detailsKeywords;
     }
 
 
@@ -634,6 +627,7 @@ abstract class store_DocumentMaster extends core_Master
     public static function getRecTitle($rec, $escaped = TRUE)
     {
     	$self = cls::get(get_called_class());
+    	$rec = self::fetchRec($rec);
     	
     	return tr("|{$self->singleTitle}|* №") . $rec->id;
     }
@@ -671,6 +665,7 @@ abstract class store_DocumentMaster extends core_Master
      *   	string|NULL   ['toPerson']     - лице
      * 		datetime|NULL ['deliveryTime'] - дата на разтоварване
      * 		text|NULL 	  ['conditions']   - други условия
+     * 		varchar|NULL  ['ourReff']      - наш реф
      */
     function getLogisticData($rec)
     {
@@ -726,9 +721,10 @@ abstract class store_DocumentMaster extends core_Master
     		$res["{$contrPart}Address"]  = !empty($contragentData->address) ? $contragentData->address : NULL;
     		$res["{$contrPart}Person"]   = !empty($contragentData->person) ? $contragentData->person : NULL;
     	}
-    	 
-    	$res["deliveryTime"]  = $rec->deliveryTime;
-    	 
+    	
+    	$res["deliveryTime"]  = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : $rec->valior . " " . bgerp_Setup::get('START_OF_WORKING_DAY');
+    	$res['ourReff'] = "#" . $this->getHandle($rec);
+    	
     	return $res;
     }
 }

@@ -54,44 +54,51 @@ class plg_Printing extends core_Plugin
      */
     public static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
-        // Текущото URL
-    	$currUrl = getCurrentUrl();
-    	
-    	// Ако името на класа е текущото URL
-    	if (strtolower($mvc->className) == strtolower($currUrl['Ctr'])) {
-    	    
-    	    // Екшъна
-    	    $act = strtolower($currUrl['Act']);
-    	    
-    	    // Ако екшъна е single или list
-    	    if ($act == 'single' || $act == 'list') {
-    	        
-    	        // URL за принтиране
-    	        $url = $currUrl + array('Printing' => 'yes');
-    	    }
-    	}
-    	
-    	// Ако няма URL
-    	if (!$url) {
-    	    
-    	    // Създаваме го
-    	    $url = array(
-                $mvc,
-                'single',
-                $data->rec->id,
-                'Printing' => 'yes',
-            );
-    	}
-
-        self::addCmdParams($url);
-
-        if($mvc->haveRightFor('single', $data->rec)){
+        if (Mode::is('forceShowPrint') || !($data->rec->state == 'draft' ||
+            ($data->rec->state == 'rejected' && $data->rec->brState == 'draft') ||
+            ($data->rec->state == 'rejected' && $data->rec->brState != 'draft' && $mvc->printRejected === FALSE))) {
         	
-        	// По подразбиране бутона за принтиране се показва на втория ред на тулбара
-        	setIfNot($mvc->printBtnToolbarRow, 2);
-        	
-        	// Бутон за отпечатване
-        	$data->toolbar->addBtn('Печат', $url, "id=btnPrint,target=_blank,row={$mvc->printBtnToolbarRow}", 'ef_icon = img/16/printer.png,title=Печат на документа');
+            if($mvc->haveRightFor('single', $data->rec)){
+                // Текущото URL
+            	$currUrl = getCurrentUrl();
+            	
+            	// Ако името на класа е текущото URL
+            	if (strtolower($mvc->className) == strtolower($currUrl['Ctr'])) {
+            	    
+            	    // Екшъна
+            	    $act = strtolower($currUrl['Act']);
+            	    
+            	    // Ако екшъна е single или list
+            	    if ($act == 'single' || $act == 'list') {
+            	        
+            	        // URL за принтиране
+            	        $url = $currUrl + array('Printing' => 'yes');
+            	    }
+            	}
+            	
+            	// Ако няма URL
+            	if (!$url) {
+            	    
+            	    // Създаваме го
+            	    $url = array(
+                        $mvc,
+                        'single',
+                        $data->rec->id,
+                        'Printing' => 'yes',
+                    );
+            	}
+        		
+                self::addCmdParams($url);
+        		
+            	// По подразбиране бутона за принтиране се показва на втория ред на тулбара
+            	setIfNot($mvc->printBtnToolbarRow, 2);
+            	
+            	$attr = array('name' => 'btnPrint');
+            	ht::setUniqId($attr);
+            	
+            	// Бутон за отпечатване
+            	$data->toolbar->addBtn('Печат', $url, "id={$attr['id']},target=_blank,row={$mvc->printBtnToolbarRow}", 'ef_icon = img/16/printer.png,title=Печат на документа');
+            }
         }
     }
     
@@ -131,7 +138,7 @@ class plg_Printing extends core_Plugin
      */
     public static function on_BeforeRenderHtml($mvc, &$res)
     {
-        if(Request::get('Printing')) {
+        if (Request::get('Printing') && !Mode::get('forcePrinting')) {
             
             $res = NULL;
             

@@ -111,14 +111,6 @@
                 <!--ET_BEGIN dueDate-->
                 <div><span class='quiet'>Краен срок за плащане:</span> [#dueDate#]</div>
                 <!--ET_END dueDate-->
-                <!--ET_BEGIN deadline-->
-                [#deadline#]
-                <div>
-                    <!--ET_BEGIN OVERDUE_INTEREST_RATE-->
-                    <span class="smallData">Лихва за просрочено плащане: [#OVERDUE_INTEREST_RATE#] |на ден|*</span>
-                    <!--ET_END OVERDUE_INTEREST_RATE-->
-                </div>
-                <!--ET_END deadline-->
                 <!--ET_BEGIN accountId-->
                 <div>
                     <span class='quiet'>Банкова с-ка:</span> [#accountId#]
@@ -153,8 +145,9 @@
                 <div>|Получил|*: [#responsible#]</div>
                 <!--ET_END responsible-->
                 <!--ET_BEGIN username-->
-                <div>|Съставил|*:  [#username#]</div>
+                <div>|Съставил|*: [#username#]</div>
                 <!--ET_END username-->
+                <div class='small'>( |ПИК|*: [#userCode#] )</div>
             </td>
         </tr>
         <tr class='footerDocInfo'>

@@ -32,12 +32,6 @@ abstract class deals_InvoiceMaster extends core_Master
     /**
      * Поле за филтриране по дата
      */
-    public $filterDateField = 'date';
-    
-    
-    /**
-     * Поле за филтриране по дата
-     */
     public $valiorFld = 'date';
     
     
@@ -57,6 +51,32 @@ abstract class deals_InvoiceMaster extends core_Master
      * На кой ред в тулбара да се показва бутона за принтиране
      */
     public $printBtnToolbarRow = 1;
+    
+    
+    /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
+    
+    
+    /**
+     * Дата на очакване
+     */
+    public $termDateFld = 'dueDate';
+    
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn,date,dueDate';
+    
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'number,date,dueTime,dueDate,vatDate';
     
     
     /**
@@ -151,10 +171,10 @@ abstract class deals_InvoiceMaster extends core_Master
     public function updateMaster_($id, $save = TRUE)
     {
     	$rec = $this->fetchRec($id);
-    	$Detail = $this->mainDetail;
+    	$Detail = cls::get($this->mainDetail);
     	
-    	$query = $this->{$Detail}->getQuery();
-    	$query->where("#{$this->{$Detail}->masterKey} = '{$rec->id}'");
+    	$query = $Detail->getQuery();
+    	$query->where("#{$Detail->masterKey} = '{$rec->id}'");
     	$recs = $query->fetchAll();
     	
     	if(count($recs)){
@@ -163,7 +183,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		}
     	}
     	
-    	$this->{$Detail}->calculateAmount($recs, $rec);
+    	$Detail->calculateAmount($recs, $rec);
     	
     	$rate = ($rec->displayRate) ? $rec->displayRate : $rec->rate;
     	
@@ -407,17 +427,6 @@ abstract class deals_InvoiceMaster extends core_Master
 
 
    /**
-    * Извиква се след подготовката на toolbar-а за табличния изглед
-    */
-   public static function on_AfterPrepareListToolbar($mvc, &$data)
-   {
-	   	if(!empty($data->toolbar->buttons['btnAdd'])){
-	   		$data->toolbar->removeBtn('btnAdd');
-	   	}
-   }
-
-
-   /**
     * Документа не може да се активира ако има детайл с количество 0
     */
    public static function on_AfterCanActivate($mvc, &$res, $rec)
@@ -534,30 +543,14 @@ abstract class deals_InvoiceMaster extends core_Master
     
     
     /**
-     * Добавя ключови думи за пълнотекстово търсене, това са името на
-     * документа или папката
+     * След подготовката на навигацията по сраници
      */
-    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    public static function on_AfterPrepareListPager($mvc, &$data)
     {
-    	// Тук ще генерираме всички ключови думи
-    	$detailsKeywords = '';
-    
-    	// заявка към детайлите
-    	$Detail = cls::get($mvc->mainDetail);
-    	$query = $Detail->getQuery();
-    	
-    	// точно на тази фактура детайлите търсим
-    	$query->where("#{$Detail->masterKey} = '{$rec->id}'");
-    
-    	while ($recDetails = $query->fetch()){
-    		// взимаме заглавията на продуктите
-    		$productTitle = cat_Products::getTitleById($recDetails->productId);
-    		// и ги нормализираме
-    		$detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
+
+        if(Mode::is('printing')){
+    	    unset($data->pager);
     	}
-    	 
-    	// добавяме новите ключови думи към основните
-    	$res = " " . $res . " " . $detailsKeywords;
     }
     
     
@@ -605,13 +598,12 @@ abstract class deals_InvoiceMaster extends core_Master
     		$form->rec->rate       = $aggregateInfo->get('rate');
     		$form->setSuggestions('displayRate', array('' => '', $aggregateInfo->get('rate') => $aggregateInfo->get('rate')));
     		
-    		if($aggregateInfo->get('paymentMethodId')){
+    		if($aggregateInfo->get('paymentMethodId') && !($mvc instanceof sales_Proformas)){
     			$paymentMethodId = $aggregateInfo->get('paymentMethodId');
     			$plan = cond_PaymentMethods::getPaymentPlan($paymentMethodId, $aggregateInfo->get('amount'), $form->rec->date);
     			
     			if(!isset($form->rec->id)){
     				$form->setDefault('dueTime', $plan['timeBalancePayment']);
-    				$form->setDefault('dueDate', $plan['deadlineForBalancePayment']);
     			}
     		}
     		 
@@ -658,19 +650,8 @@ abstract class deals_InvoiceMaster extends core_Master
     	if ($form->isSubmitted()) {
     		$rec = &$form->rec;
     		
-    		if(isset($rec->dueDate) && isset($rec->dueTime)){
-    			$date = dt::addDays($rec->dueTime / (24 * 60 * 60), $rec->date, FALSE);
-     			
-                if($date != $rec->dueDate){
-    				$form->setError('date,dueDate,dueTime', "Невъзможна стойност на датите");
-    			}
-    		}
-    		
-    		$dueDate = ($rec->dueDate) ? $rec->dueDate : ((isset($rec->dueTime)) ? dt::verbal2mysql(dt::addSecs($rec->dueTime, $rec->date), FALSE): NULL);
-    		if(isset($dueDate)){
-    			if($dueDate < $rec->date){
-    				$form->setError('date,dueDate', "Крайната дата за плащане трябва да е след вальора");
-    			}
+    		if(isset($rec->dueDate) && $rec->dueDate < $rec->date){
+    			$form->setError('date,dueDate', "Крайната дата за плащане трябва да е след вальора");
     		}
     		
     		if(!$rec->displayRate){
@@ -730,6 +711,14 @@ abstract class deals_InvoiceMaster extends core_Master
     				$rec->dealValue = $diff;
     			}
     		}
+    		
+    		if(!empty($rec->dueDate) && !empty($rec->dueTime)){
+    			$cDate = dt::addSecs($rec->dueTime, $rec->date);
+    			$cDate = dt::verbal2mysql($cDate, FALSE);
+    			if($cDate != $rec->dueDate){
+    				$form->setError('date,dueDate,dueTime', "Невъзможна стойност на датите");
+    			}
+    		}
     	}
     	
     	$form->rec->_edited = TRUE;
@@ -768,6 +757,14 @@ abstract class deals_InvoiceMaster extends core_Master
     				$rec->place .= (($place) ? ", " : "") . $cCountry;
     			}
     		}
+    		
+    		if(empty($rec->dueDate)){
+    			$dueTime = ($rec->dueTime) ? $rec->dueTime : sales_Setup::get('INVOICE_DEFAULT_VALID_FOR');
+    		
+    			if($dueTime){
+    				$rec->dueDate = dt::verbal2mysql(dt::addSecs($dueTime, $rec->date), FALSE);
+    			}
+    		}
     	}
     }
     
@@ -791,7 +788,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	
     	if($fields['-list']){
     		if($rec->number){
-    			$row->number = ht::createLink($row->number, array($mvc, 'single', $rec->id),NULL, 'ef_icon=img/16/invoice.png');
+    			$row->number = ht::createLink($row->number, $mvc->getSingleUrlArray($rec->id), NULL, 'ef_icon=img/16/invoice.png');
     		}
     	
     		$total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
@@ -834,8 +831,12 @@ abstract class deals_InvoiceMaster extends core_Master
     		}
     	
     		$userRec = core_Users::fetch($rec->createdBy);
-    		$row->username = core_Lg::transliterate(core_Users::recToVerbal($userRec, 'names')->names);
-    	
+    		$usernames = core_Users::recToVerbal($userRec, 'names')->names;
+    		$row->username = core_Lg::transliterate($usernames);
+    		
+    		$row->userCode = crc32("{$usernames}|{$userRec->id}");
+    		$row->userCode = substr($row->userCode, 0, 6);
+    		
     		if($rec->type != 'invoice' && !($mvc instanceof sales_Proformas)){
     			$originRec = $mvc->getSourceOrigin($rec)->fetch();
     			$originRow = $mvc->recToVerbal($originRec);
@@ -1202,6 +1203,10 @@ abstract class deals_InvoiceMaster extends core_Master
     {
     	if(!count($data->rows)) return;
     	$data->listTableMvc->FNC('valueNoVat', 'int');
+    	
+    	if(Mode::is('printing')){ 
+    	    unset($data->pager);
+    	}
     }
     
     

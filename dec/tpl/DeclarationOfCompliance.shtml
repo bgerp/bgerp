@@ -2,38 +2,45 @@
     <div class='scrolling-holder'>
         <br>
             <div class='indent'>
-            The undersigned, <!--ET_BEGIN manager--><b>[#manager#]</b><!--ET_END manager-->, representing manufacturer/supplier: <b>[#MyCompany#]</b>, 
+            The undersigned, <!--ET_BEGIN manager--><b>[#manager#]</b><!--ET_END manager-->, representing <b>manufacturer/supplier: [#MyCompany#]</b>, 
             <!--ET_BEGIN MyCountry-->
-            with address [#MyCountry#], 
+            with address [#MyCountry#], <!--ET_END MyCountry-->
             <!--ET_BEGIN MyAddress-->[#MyAddress#],<!--ET_END MyAddress-->
-            <!--ET_END MyCountry-->
+    
             <!--ET_BEGIN MyCompanyVatNo--> with VAT ID <b>[#MyCompanyVatNo#]</b>, <!--ET_END MyCompanyVatNo-->
-            <!--ET_END MyCountry-->
+            <!--ET_BEGIN uicId--> UIK [#uicId#],<!--ET_END uicId-->
+            <!--ET_BEGIN explanation--> [#explanation#]<!--ET_END explanation-->
+   
         </div>
-         <br>
-        <p><b>HEREBY DECLARE THAT THE PRODUCTS</b></p>
+        <br>
+        <div class='centered'><b>HEREBY DECLARE THAT</b></div>
+        <div class='indent'><p><b>The products:</b></p></div>
         <!--ET_BEGIN products-->
         [#products#]
         <!--ET_END products-->        
-        <div>
-            <div>sold with invoice <b>№ [#invoiceNo#]</b> to <b>[#contragentCompany#]</b>, <!--ET_BEGIN contragentCountry-->with address [#contragentCountry#], <!--ET_END contragentCountry-->
-            <!--ET_BEGIN contragentAddress-->[#contragentAddress#],<!--ET_END contragentAddress--> 
-            <!--ET_BEGIN contragentCompanyVatNo-->with VAT ID <b>[#contragentCompanyVatNo#]</b>,<!--ET_END contragentCompanyVatNo--> <!--ET_BEGIN contragentUicId--> UIC [#contragentUicId#]<!--ET_END contragentUicId-->,
+        
+        <div class='indent'>Sold with invoice <b>№ [#invoiceNo#]</b> to <b>[#contragentCompany#]</b>, <!--ET_BEGIN contragentCountry-->with address [#contragentCountry#], <!--ET_END contragentCountry-->
+            <!--ET_BEGIN contragentAddress-->[#contragentAddress#],<!--ET_END contragentAddress-->
+            <!--ET_BEGIN contragentCompanyVatNo-->with VAT ID <b>[#contragentCompanyVatNo#]</b>,<!--ET_END contragentCompanyVatNo--> <!--ET_BEGIN contragentUicId--> UIC [#contragentUicId#],<!--ET_END contragentUicId-->
         </div>
         <br>
-        <p><b>MEET THE FOLLOWING:</b></p>
-        <ul>
+        <div class='indent'><p><b>are manufactures from:</b></p>
+
         <!--ET_BEGIN material-->
-         <li> The manufactures are made of [#material#] </li>
+        <ul> [#material#]</ul>
         <!--ET_END material-->
-        </ul>
-        <ul>
-        <!--ET_BEGIN statements-->
-        <li> The manufactures meet the requirements [#statements#]</li>
-        <!--ET_END statements-->
-        </ul>
+
+		<br>
+
+        <div class='indent'><p><b>meet the following</b></p></div>
+		
+		<!--ET_BEGIN statements-->
+		<ul> [#statements#] </ul>
+		<!--ET_END statements-->
+		
+        <br>
         <!--ET_BEGIN note-->
-        <div>
+        <div class='indent'>
             [#note#]
         </div>
         <!--ET_END note-->

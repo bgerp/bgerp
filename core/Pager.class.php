@@ -87,11 +87,10 @@ class core_Pager extends core_BaseClass
         setIfNot($this->itemsPerPage, 20);
         setIfNot($this->pageVar, 'P');
         if(Mode::is('screenMode', 'narrow')) {
-            setIfNot($this->pagesAround, 1);
-        } else {
             setIfNot($this->pagesAround, 2);
+        } else {
+            setIfNot($this->pagesAround, 3);
         }
-
     }
     
     
@@ -109,6 +108,10 @@ class core_Pager extends core_BaseClass
             $this->itemsPerPage = 0;
         }
         
+        if(Mode::is('printing')) {
+            $this->itemsPerPage = max(core_Setup::get('MAX_ROWS_FOR_PRINTING'), $this->itemsPerPage);
+        }
+        
         $maxPages = max(1, round($this->itemsCount / $this->itemsPerPage));
         
         if ($this->page > $maxPages) {
@@ -122,7 +125,7 @@ class core_Pager extends core_BaseClass
         }
         $this->rangeStart = 0;
         $this->rangeEnd = $this->itemsCount;
-        
+      
         $this->rangeStart = $this->itemsPerPage * ($this->page - 1);
         $this->rangeEnd = $this->rangeStart + $this->itemsPerPage;
         
@@ -197,6 +200,16 @@ class core_Pager extends core_BaseClass
     {
         // Дали да използва кеширане
         $useCache = $query->useCacheForPager;
+        
+        if($useCache) {
+            if($limit = doc_Setup::get('SEARCH_LIMIT')) {
+                $query->limit($limit);
+                $query->limitCnt = TRUE;
+            }
+        }
+        
+        // Приоритетна заявка
+        $query->highPriority = TRUE;
 
         $q = clone ($query);
         $qCnt = clone ($query);
@@ -366,13 +379,13 @@ class core_Pager extends core_BaseClass
         
         $start = $this->getPage() - $this->pagesAround;
         
-        if ($start < 5) {
+        if ($start < $this->pagesAround) {
             $start = 1;
         }
         
         $end = $this->getPage() + $this->pagesAround;
         
-        if (($end > $this->getPagesCount()) || ($this->getPagesCount() - $end) < 5) {
+        if (($end > $this->getPagesCount()) || ($this->getPagesCount() - $end) < $this->pagesAround) {
             $end = $this->getPagesCount();
         }
         

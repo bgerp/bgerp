@@ -671,6 +671,7 @@ select.combo {
 	position: absolute; 
     visibility: hidden;
     overflow: hidden;
+	cursor: text;
 }
 
 .checkbox, .radiobutton, input[type=checkbox], input[type=radio] { 
@@ -744,11 +745,11 @@ input[type=radio]:checked + label, input[type=checkbox]:checked + label {
 }
 
 tr.zebra0 { 
-    background-color: rgba(238, 238, 238, 0.5);
+    background-color: rgba(255, 245, 240, 0.5);
 }
 
 tr.zebra1 {
-    background-color: transparent;
+    background-color: rgba(240, 245, 255, 0.5);
 }
 
 .wide input[type=submit], .wide input[type=button] {
@@ -1513,19 +1514,29 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 
 /* Стилове за показване на формите */
 /*грешки и предупреждения*/
-.formError, .formNotice {
-    background-color: #ff6;
+.formError, .formNotice, .formWarning {
     font-size: 0.9em;
     padding: 10px; 
     margin-bottom: 10px;
   	@include border-radius(5px);
- }
+}
 
 .formNotice {
+	background-color: #ff6;
 	border: solid 1px green;
+    color:green;
 }
+
 .formError {
 	border: solid 1px red;
+	background-color: #ff6;
+    color:red;
+}
+
+.formWarning {
+	border: solid 1px blue;
+	background-color: #ff6;
+    color: blue;
 }
 
 .wide .formError {
@@ -1556,7 +1567,7 @@ form .inputAdvanced {
 }
 
 .inputWarning {
-    border: solid 1px $orange;
+    border: solid 1px blue;
 }
 
 span.inputLackOfChoice {
@@ -2028,6 +2039,56 @@ td.formElement {
 .flashElem.select2 > .selection > .select2-selection {
 	background-color: #fffa99 !important;
 }
+.multipleFiles {
+	font-weight: bold;
+}
+
+ .input_align_horizontal {
+	.multipleFiles {
+		margin-right: 10px;
+		display: block;
+		float: left;
+	}
+}
+.align_horizontal .fileHolder {
+	padding: 5px;
+}
+
+.align_vertical .fileHolder{
+	display: block;
+	padding: 1px;
+}
+
+.input_align_vertical_btn, .input_align_horizontal_btn {
+	float: left;
+}
+.align_vertical {
+	float: left;
+}
+.input_align_vertical{
+	float: left;
+	.multipleFiles {
+		clear: both;
+		float: left;
+		display: block;
+		padding: 0px;
+		.align_vertical, a {
+			display: inline-block;
+			padding: 1px;
+		}
+		.remove-file-link {
+			position: relative;
+			top: 3px;
+			margin-left: 2px;
+		}
+		.remove-file-link-new {
+			margin-top: 7px;
+			position: relative;
+			top: -2px;
+			display: inline-block;
+		}
+	}
+}
 /*край на хоризонтални форми*/
 .contextCursor {
 	cursor: context-menu;
@@ -2333,13 +2394,39 @@ div.alphabet div.tab-page {
 }
 
 .narrow div.alphabet  div.tab-row {
-	width: 340px;
 	float: left;
 	padding-bottom: 5px;
 }
 
 .docStatistic {
 	margin-top: 20px;
+}
+
+.single-thread .document .docStatistic .detail-info {
+	padding: 0;
+	margin-top: 0;
+	font-size: 0.85em;
+	border: none;
+	.listTable td {
+		background-color: $history-bg;
+	}
+	.row-state-returned td{
+		background-color:#fed6d6;
+	}
+	.stateIndicator,.inline-date {
+		display: inline-block;
+	}
+	.stateIndicator {
+		&.state-active {
+			background-color: #FED;
+		}
+		&.state-stopped {
+			background-color: #FEADAD;
+		}
+		&.state-closed {
+			background-color: $gray3;
+		}
+	}
 }
 
 /*вътрешни alphabet табовете в документ - изглеждат като основните, но по-малки*/
@@ -2383,20 +2470,6 @@ div.alphabet div.tab-page {
 			}
 			&:last-child{
 				border-radius: 0 0 5px 0;
-			}
-		}
-		.stateIndicator,.inline-date {
-			display: inline-block;
-		}
-		.stateIndicator {
-			&.state-active {
-				background-color: #FED;
-			}
-			&.state-stopped {
-				background-color: #FEADAD;
-			}
-			&.state-closed {
-				background-color: $gray3;
 			}
 		}
 		.listTable th {
@@ -2603,13 +2676,14 @@ div.tab-control.deal-history-tab, .single-thread .document .tab-top div.alphabet
 .narrow div.tab-control.deal-history-tab, .narrow .single-thread .document .tab-top div.alphabet{
 	.tab-row {
         float: none;
-        margin: 0px;
+        margin: 0px 5px;
         clear: both;
+
     }
     div.tab-row {
         .tab, .tab.selected {
-			margin: 1px 2px 1px 0 !important;
-			padding: 3px 2px 3px !important;
+			margin: 1px 0px 1px 3px !important;
+			padding: 4px 3px 2px !important;
 			font-size: 0.65em;
 	    }
     }

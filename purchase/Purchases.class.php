@@ -35,7 +35,7 @@ class purchase_Purchases extends deals_DealMaster
      */
     public $loadList = 'plg_RowTools, purchase_Wrapper, acc_plg_Registry, plg_Sorting, doc_plg_MultiPrint, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
 				        cond_plg_DefaultValues, recently_Plugin, doc_plg_HidePrices, doc_SharablePlg, plg_Clone,
-				        doc_EmailCreatePlg, bgerp_plg_Blank, acc_plg_DocumentSummary, plg_Search, doc_plg_Close, plg_LastUsedKeys';
+				        doc_EmailCreatePlg, bgerp_plg_Blank, acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, plg_Search, doc_plg_Close, plg_LastUsedKeys';
     
     
     /**
@@ -132,7 +132,7 @@ class purchase_Purchases extends deals_DealMaster
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'deliveryTermId, deliveryLocationId, deliveryTime, shipmentStoreId, paymentMethodId,
-    					 currencyId, bankAccountId, caseId, dealerId, folderId, id';
+    					 currencyId, bankAccountId, caseId, dealerId, folderId, note';
     
     
     /**
@@ -225,6 +225,12 @@ class purchase_Purchases extends deals_DealMaster
     
     
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, valior,modifiedOn';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -235,6 +241,41 @@ class purchase_Purchases extends deals_DealMaster
     	$this->setField('shipmentStoreId', 'caption=Доставка->В склад,notChangeableByContractor,salecondSysId=defaultStorePurchase');
     	$this->setField('deliveryTermId', 'salecondSysId=deliveryTermPurchase');
     	$this->setField('paymentMethodId', 'salecondSysId=paymentMethodPurchase');
+    }
+    
+    
+    /**
+     * Връща заглавието на покупката със сумата за фактуриране
+     * 
+     * @param integer $id
+     * @param boolean $showAmount
+     * 
+     * @return string
+     */
+    public static function getTitleWithAmount($id, $showAmount = TRUE)
+    {
+        if (!$id) return '';
+        $rec = self::fetch($id);
+        
+        if ($rec) {
+            $amountToInvoice = $rec->amountDelivered - $rec->amountInvoiced;
+            
+            if ($amountToInvoice) {
+                $amountToInvoice = round($amountToInvoice, 2);
+            }
+            
+            if ($amountToInvoice) {
+                $amountToInvoice .= ' ' . $rec->currencyId;
+            }
+        }
+        
+        $title = self::getTitleById($id);
+        
+        if ($amountToInvoice) {
+            $title .= ' ' . $amountToInvoice;
+        }
+        
+        return $title;
     }
     
     
@@ -465,7 +506,9 @@ class purchase_Purchases extends deals_DealMaster
             $result->setIfNot('shippedValior', $rec->valior);
         }
         
+        $detailClassId = purchase_PurchasesDetails::getClassId();
         $agreed = array();
+        $agreed2 = array();
         foreach ($detailRecs as $dRec) {
             $p = new bgerp_iface_DealProduct();
             foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes', 'expenseItemId') as $fld){
@@ -473,10 +516,21 @@ class purchase_Purchases extends deals_DealMaster
             }
            
             $info = cat_Products::getProductInfo($p->productId);
-            $p->weight  = cat_Products::getWeight($p->productId, $p->packagingId, $p->quantity);
-            $p->volume  = cat_Products::getVolume($p->productId, $p->packagingId, $p->quantity);
+            $p->expenseRecId = acc_CostAllocations::fetchField("#detailClassId = {$detailClassId} AND #detailRecId = {$dRec->id}");
+            
+            if(core_Packs::isInstalled('batch')){
+            	$bQuery = batch_BatchesInDocuments::getQuery();
+            	$bQuery->where("#detailClassId = {$detailClassId}");
+            	$bQuery->where("#detailRecId = {$dRec->id}");
+            	$bQuery->where("#productId = {$dRec->productId}");
+            	$p->batches = $bQuery->fetchAll();
+            }
             
             $agreed[] = $p;
+            
+            $p1 = clone $p;
+            unset($p1->notes);
+            $agreed2[] = $p1;
             
         	$push = TRUE;
             $index = $p->productId;
@@ -496,7 +550,7 @@ class purchase_Purchases extends deals_DealMaster
         }
        
         $result->set('dealProducts', $agreed);
-        $agreed = deals_Helper::normalizeProducts(array($agreed));
+        $agreed = deals_Helper::normalizeProducts(array($agreed2));
         $result->set('products', $agreed);
         $result->set('contoActions', $actions);
         $result->set('shippedProducts', purchase_transaction_Purchase::getShippedProducts($entries, $rec->id));
@@ -577,9 +631,9 @@ class purchase_Purchases extends deals_DealMaster
      */
     public function cron_CloseOldPurchases()
     {
-    	$conf = core_Packs::getConfig('purchase');
-    	$olderThan = $conf->PURCHASE_CLOSE_OLDER_THAN;
-    	$limit 	   = $conf->PURCHASE_CLOSE_OLDER_NUM;
+    	$conf        = core_Packs::getConfig('purchase');
+    	$olderThan   = $conf->PURCHASE_CLOSE_OLDER_THAN;
+    	$limit 	     = $conf->PURCHASE_CLOSE_OLDER_NUM;
     	$ClosedDeals = cls::get('purchase_ClosedDeals');
     	
     	$this->closeOldDeals($olderThan, $ClosedDeals, $limit);

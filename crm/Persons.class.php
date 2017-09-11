@@ -142,7 +142,7 @@ class crm_Persons extends core_Master
     /**
      * По кои сметки ще се правят справки
      */
-    public $balanceRefAccounts = '323,401,402,403,404,405,406,409,411,412,413,414,415,419';
+    public $balanceRefAccounts = '1511,1512,1513,1514,1521,1522,1523,1524,153,159,323,401,402,403,404,405,406,409,411,412,413,414,415,419';
     
     
     /**
@@ -207,8 +207,8 @@ class crm_Persons extends core_Master
      * 
      * @var string|array
      */
-    public $details = 'ContragentLocations=crm_Locations,
-                    ContragentBankAccounts=bank_Accounts,PersonsDetails=crm_PersonsDetails,AccReports=acc_ReportDetails,CommerceDetails=crm_CommerceDetails';
+    public $details = 'AccReports=acc_ReportDetails,ContragentLocations=crm_Locations,
+                    ContragentBankAccounts=bank_Accounts,PersonsDetails=crm_PersonsDetails,CommerceDetails=crm_CommerceDetails';
     
     
     /**
@@ -241,6 +241,12 @@ class crm_Persons extends core_Master
      * @see type_Key::filterByGroup
      */
     public $groupsField = 'groupList';
+    
+    
+    /**
+     * Как се казва полето за държава на контрагента
+     */
+    public $countryFieldName = 'country';
     
     
     /**
@@ -1846,6 +1852,8 @@ class crm_Persons extends core_Master
 			}
             $form->title = "Добавяне на служител към|* " . crm_Companies::getLinkToSingle($form->rec->buzCompanyId);
         }
+        
+        crm_Companies::autoChangeFields($form);
     }
 
 
@@ -2281,8 +2289,6 @@ class crm_Persons extends core_Master
     {
         $resStr = '';
         
-        if ($rec->id) return $resStr;
-        
         $similarsArr = self::getSimilarRecs($rec, $fields);
         
         if (!empty($similarsArr)) {
@@ -2351,8 +2357,6 @@ class crm_Persons extends core_Master
         
         $similarName = $similarEgn = FALSE;
         
-        if ($rec->id) return $similarsArr;
-        
         $fieldsArr = array();
         
         // Правим проверка за дублиране с друг запис
@@ -2369,6 +2373,8 @@ class crm_Persons extends core_Master
         }
         
         while($similarRec = $nQuery->fetch()) {
+            if ($rec->id && ($similarRec->id == $rec->id)) continue;
+            
             $similarsArr[$similarRec->id] = $similarRec;
             $fieldsArr['name'] = 'name';
         }
@@ -2380,7 +2386,9 @@ class crm_Persons extends core_Master
                 $eQuery = clone $oQuery;
                 $eQuery->where((array("#egn LIKE '[#1#]'", $egnNumb)));
             
-                while($similarRec = $eQuery->fetch) {
+                while($similarRec = $eQuery->fetch()) {
+                    if ($rec->id && ($similarRec->id == $rec->id)) continue;
+                    
                     $similarsArr[$similarRec->id] = $similarRec;
                 }
                 $fieldsArr['egn'] = 'egn';
@@ -2404,6 +2412,8 @@ class crm_Persons extends core_Master
                 }
                 
                 while($similarRec = $eQuery->fetch()) {
+                    if ($rec->id && ($similarRec->id == $rec->id)) continue;
+                    
                     $similarsArr[$similarRec->id] = $similarRec;
                     if ($rec->buzEmail) {
                         $fieldsArr['buzEmail'] = 'buzEmail';
@@ -2572,9 +2582,10 @@ class crm_Persons extends core_Master
      * 
      * @param int $id - ид на контрагент
      * @param boolean $translitarate - дали да се транслитерира адреса
+     * @param boolean|NULL $showCountry - да се показвали винаги държавата или Не, NULL означава че автоматично ще се определи
      * @return core_ET $tpl - адреса
      */
-    public function getFullAdress($id, $translitarate = FALSE)
+    public function getFullAdress($id, $translitarate = FALSE, $showCountry = NULL)
     {
     	expect($rec = $this->fetchRec($id));
     	
@@ -2582,11 +2593,15 @@ class crm_Persons extends core_Master
     	$tpl = new ET("<!--ET_BEGIN country-->[#country#]<br><!--ET_END country--> <!--ET_BEGIN pCode-->[#pCode#]<!--ET_END pCode--><!--ET_BEGIN place--> [#place#]<br><!--ET_END place--> [#address#]");
     	
     	// Показваме държавата само ако е различна от тази на моята компания
-    	if($rec->country){
-    		$ourCompany = crm_Companies::fetchOurCompany();
-    		if($ourCompany->country != $rec->country){
-    			$obj->country = $this->getVerbal($rec, 'country');
+    	if(!isset($showCountry)){
+    		if($rec->country){
+    			$ourCompany = crm_Companies::fetchOurCompany();
+    			if($ourCompany->country != $rec->country){
+    				$obj->country = $this->getVerbal($rec, 'country');
+    			}
     		}
+    	} elseif($showCountry === TRUE){
+    		$obj->country = $this->getVerbal($rec, 'country');
     	}
     
     	$Varchar = cls::get('type_Varchar');
@@ -2948,21 +2963,23 @@ class crm_Persons extends core_Master
         }
         
         $titleFld = $params['titleFld'];
-        $query->XPR('searchFieldXpr', 'text', "CONCAT(' ', #{$titleFld})");
+        $query->XPR('searchFieldXpr', 'text', "LOWER(CONCAT(' ', #{$titleFld}))");
         
         if($q) {
             if($q{0} == '"') $strict = TRUE;
 			
             $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
             
+            $q = mb_strtolower($q);
+            
             if($strict) {
-                $qArr = array(str_replace(' ', '%', $q));
+                $qArr = array(str_replace(' ', '.*', $q));
             } else {
                 $qArr = explode(' ', $q);
             }
             
             foreach($qArr as $w) {
-                $query->where("#searchFieldXpr COLLATE {$query->mvc->db->dbCharset}_general_ci LIKE '% {$w}%'");
+                $query->where(array("#searchFieldXpr REGEXP '\ {1}[^a-z0-9\p{L}]?[#1#]'", $w));
             }
         }
 		

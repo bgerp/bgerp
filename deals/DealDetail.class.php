@@ -109,7 +109,7 @@ abstract class deals_DealDetail extends doc_Detail
     	$mvc->FLD('term', 'time(uom=days,suggestions=1 ден|5 дни|7 дни|10 дни|15 дни|20 дни|30 дни)', 'caption=Срок,after=tolerance,before=showMode,input=none');
     	
     	$mvc->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Допълнително->Изглед,notNull,default=auto');
-    	$mvc->FLD('notes', 'richtext(rows=3)', 'caption=Допълнително->Забележки');
+    	$mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Забележки');
     }
     
     
@@ -297,10 +297,9 @@ abstract class deals_DealDetail extends doc_Detail
     	
     		// Извличане на информация за продукта - количество в опаковка, единична цена
     		if(!isset($rec->packQuantity)){
-    			$defQuantity = cat_UoM::fetchField($rec->packagingId, 'defQuantity');
-    			if(!empty($defQuantity)){
-    				$rec->packQuantity = $defQuantity;
-    			} else {
+    			$rec->defQuantity = TRUE;
+    			$form->setDefault('packQuantity', deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId));
+    			if(empty($rec->packQuantity)){
     				$form->setError('packQuantity', 'Не е въведено количество');
     			}
     		}
@@ -324,7 +323,7 @@ abstract class deals_DealDetail extends doc_Detail
     				$listId = ($masterRec->priceListId) ? $masterRec->priceListId : NULL;
     				$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat, $listId);
     				 
-    				if (empty($policyInfo->price) && empty($pRec)) {
+    				if (empty($policyInfo->price)) {
     					$form->setError('packPrice', 'Продуктът няма цена в избраната ценова политика');
     				} else {
     						
@@ -385,24 +384,14 @@ abstract class deals_DealDetail extends doc_Detail
     	
     	core_Lg::push($masterRec->tplLang);
     	$date = ($masterRec->state == 'draft') ? NULL : $masterRec->modifiedOn;
-    	$listSysId = ($mvc instanceof sales_SalesDetails) ? 'salesList' : 'purchaseList';
-    	$listId = cond_Parameters::getParameter($masterRec->contragentClassId, $masterRec->contragentId, $listSysId);
     	
     	foreach ($rows as $id => &$row){
     		$rec = $recs[$id];
     		core_RowToolbar::createIfNotExists($row->_rowTools); 
     		cat_Products::addButtonsToDocToolbar($rec->productId, $row->_rowTools, $mvc->className, $id);
-    		
-    		// Показване на вашия реф, ако има
-    		if(isset($listId)){
-    			$row->reff = cat_Listings::getReffByProductId($listId, $rec->productId, $rec->packagingId);
-    		}
-    		
     		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $masterRec->tplLang);
     		
-    		if($rec->notes){
-    			deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
-    		}
+    		deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     	}
     	
     	core_Lg::pop();
@@ -441,15 +430,7 @@ abstract class deals_DealDetail extends doc_Detail
     	$recs = &$data->recs;
     	$rows = &$data->rows;
     	
-    	// Скриване на полето "мярка"
-    	$data->listFields = array_diff_key($data->listFields, arr::make('quantityInPack', TRUE));
-    	
     	if(!count($recs)) return;
-    	arr::placeInAssocArray($data->listFields, array('reff' => 'Ваш номер'), 'productId');
-    	$data->listTableMvc->FNC('reff', 'varchar', 'smartCenter');
-    	
-        // Флаг дали има отстъпка
-        $haveDiscount = FALSE;
         
         if(count($data->rows)) {
             foreach ($data->rows as $i => &$row) {
@@ -468,7 +449,7 @@ abstract class deals_DealDetail extends doc_Detail
     
     
     /**
-	 * Инпортиране на артикул генериран от ред на csv файл
+	 * Импортиране на артикул генериран от ред на csv файл
 	 *  
 	 * @param int $masterId - ид на мастъра на детайла
 	 * @param array $row - Обект представляващ артикула за импортиране
@@ -526,6 +507,13 @@ abstract class deals_DealDetail extends doc_Detail
     	$recs = $query->fetchAll();
     	expect(count($listed));
     	
+    	
+    	foreach ($listed as &$list){
+    		$list->code = cat_Products::getVerbal($list->productId, 'code');
+    	}
+    	
+    	arr::natOrder($listed, 'code');
+    	
     	// Подготовка на полетата на формата
     	$this->prepareImportListForm($form, $listed, $recs, $saleRec);
     	$form->input();
@@ -553,12 +541,18 @@ abstract class deals_DealDetail extends doc_Detail
     			if(!isset($rec->id)){
     				$listId = ($saleRec->priceListId) ? $saleRec->priceListId : NULL;
     				
-    				$policyInfo = $Policy->getPriceInfo($saleRec->contragentClassId, $saleRec->contragentId, $productId, $packagingId, $quantity, $saleRec->valior, $saleRec->currencyRate, $saleRec->chargeVat, $listId);
+    				$policyInfo = (isset($lRec->price)) ? (object)array('price' => $lRec->price) : $Policy->getPriceInfo($saleRec->contragentClassId, $saleRec->contragentId, $productId, $packagingId, $quantity, $saleRec->valior, $saleRec->currencyRate, $saleRec->chargeVat, $listId);
+    				
     				if(!isset($policyInfo->price)){
     					$error[$lId] = "quantity{$lId}";
     				} else {
     					$vat = cat_Products::getVat($productId, $saleRec->valior);
-    					$price = deals_Helper::getPurePrice($policyInfo->price, $vat, $saleRec->currencyRate, $saleRec->chargeVat);
+    					if(isset($lRec->price)){
+    						$price = $lRec->price / $quantityInPack;
+    					} else {
+    						$price = deals_Helper::getPurePrice($policyInfo->price, $vat, $saleRec->currencyRate, $saleRec->chargeVat);
+    					}
+    					
     					$packPrice = $price * $quantityInPack;
     					$discount = $policyInfo->discount;
     				}
@@ -600,8 +594,7 @@ abstract class deals_DealDetail extends doc_Detail
     		}
     
     		if(count($error2)){
-    			$warningRoles = ($mvc instanceof sales_SalesDetails) ? 'salesMaster,ceo' : 'purchaseMaster,ceo';
-    			if(haveRole($warningRoles)){
+    			if(haveRole('powerUser')){
     				$form->setWarning(implode(',', $error2), "Количеството е под МКП");
     			} else {
     				$form->setError(implode(',', $error2), "Количеството е под МКП");
@@ -649,14 +642,17 @@ abstract class deals_DealDetail extends doc_Detail
     			followRetUrl(NULL, 'Списъкът е импортиран успешно');
     		}
     	}
-    	 
+
     	// Добавяне на тулбар
     	$form->toolbar->addSbBtn('Импорт', 'save', 'ef_icon = img/16/import.png, title = Импорт');
     	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
     
     	// Рендиране на опаковката
     	$tpl = $this->renderWrapping($form->renderHtml());
-    	 
+
+		$formId = $form->formAttr['id'] ;
+		jquery_Jquery::run($tpl, "preventDoubleSubmission('{$formId}');");
+
     	return $tpl;
     }
     

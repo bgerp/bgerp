@@ -38,6 +38,8 @@ class core_QueryCnts extends core_Manager
     {
         $me = cls::get('core_QueryCnts');
         $me->queries[self::getHash($query)] = $query;
+
+        //$me->on_Shutdown();
     }
 
 

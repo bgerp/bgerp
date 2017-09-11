@@ -1,10 +1,6 @@
 <?php
 
 
-/**
- * Броя на всички записи, над които групите ще са отворени по подразбиране
- */
-defIfNot('CORE_MAX_OPT_FOR_OPEN_GROUPS', 10);
 
 
 /**
@@ -48,9 +44,6 @@ class type_Keylist extends core_Type {
     function init($params = array())
     {
         parent::init($params);
-        
-        // Ако не е зададен параметъра
-        setIfNot($this->params['maxOptForOpenGroups'], CORE_MAX_OPT_FOR_OPEN_GROUPS);
     }
     
     
@@ -103,8 +96,11 @@ class type_Keylist extends core_Type {
                                 $name = ht::createLink($name, array($mvc, 'Single', $v), FALSE, $attr);
                             }
                         }
-                        
-                        $delimeter = (isset($this->params['classLink'])) ? " " : ", ";
+                        if(Mode::is('text-export', 'csv')) {
+                            $delimeter = '|';
+                        } else {
+                            $delimeter = (isset($this->params['classLink']) && !Mode::is('text', 'plain')) ? " " : ", ";
+                        }
                         $res .= ($res ? $delimeter : '') . $name;
                     }
                 }
@@ -425,10 +421,20 @@ class type_Keylist extends core_Type {
      * 
      * @return array
      */
-    public function prepareSuggestions()
+    public function prepareSuggestions($ids = NULL)
     {
         $mvc = cls::get($this->params['mvc']);
         
+        // Ако не е зададен параметъра
+        if(!isset($this->params['maxOptForOpenGroups'])) {
+            $conf = core_Setup::getConfig();
+            $maxOpt = $conf->_data['CORE_MAX_OPT_FOR_OPEN_GROUPS'];
+            if(!isset($maxOpt)) {
+                $maxOpt = CORE_MAX_OPT_FOR_OPEN_GROUPS;
+            } 
+            setIfNot($this->params['maxOptForOpenGroups'], $maxOpt);
+        }
+
         if (!isset($this->suggestions)) {
             $this->suggestions = array();
         }

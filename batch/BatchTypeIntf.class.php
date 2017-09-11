@@ -120,7 +120,9 @@ class batch_BatchTypeIntf extends embed_DriverIntf
      *
      * @param varchar $value - номер на партидара
      * @return array - свойства на партидата
-     * 	масив с ключ ид на партидна дефиниция и стойност свойството
+     * 			o name    - заглавие
+     * 			o classId - клас
+     * 			o value   - стойност
      */
     public function getFeatures($value)
     {
@@ -202,5 +204,16 @@ class batch_BatchTypeIntf extends embed_DriverIntf
     public function getName()
     {
     	return $this->class->getName();
+    }
+    
+    
+    /**
+     * Може ли потребителя да сменя уникалноста на партида/артикул
+     *
+     * @return boolean
+     */
+    public function canChangeBatchUniquePerProduct()
+    {
+    	return $this->class->canChangeBatchUniquePerProduct();
     }
 }

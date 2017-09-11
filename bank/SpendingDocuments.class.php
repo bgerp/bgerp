@@ -65,11 +65,24 @@ class bank_SpendingDocuments extends bank_Document
     
     
     /**
+     * Полета, които ще се показват в листов изглед
+     */
+    public $listFields = "termDate,valior=Вальор, title=Документ, reason, folderId, currencyId, amount, state, createdOn, createdBy";
+    
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, termDate,valior,modifiedOn';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
     {
         parent::getFields($this);
+        $this->setField('termDate', 'caption=Срок');
     }
     
     

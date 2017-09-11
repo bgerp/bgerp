@@ -112,16 +112,7 @@
                                         
                                         <!--ET_BEGIN dueDate-->
                                         <div><span class='quiet'>Краен срок за плащане:</span> [#dueDate#]</div>
-                                        <!--ET_END dueDate--> 
-                                        
-                                        <!--ET_BEGIN deadline-->
-                                        [#deadline#]
-                                        <div>
-                                            <!--ET_BEGIN OVERDUE_INTEREST_RATE-->
-                                            <span class="smallData">Лихва за просрочено плащане: [#OVERDUE_INTEREST_RATE#] |на ден|*</span>
-                                            <!--ET_END OVERDUE_INTEREST_RATE-->
-                                        </div>
-                                        <!--ET_END deadline-->
+                                        <!--ET_END dueDate-->
                                         <!--ET_BEGIN deliveryInfo-->
                                         <hr class='printVisible'>
                                         [#deliveryInfo#]
@@ -153,7 +144,7 @@
                                             </tr>
                                             <tr>
                                                 <td class='centered border-right' > <span class="sign_names nowrap">[#responsible#]</span></td>
-                                                <td class='centered'><span class="sign_names nowrap">[#username#]</span></td>
+                                                <td class='centered'><span class="sign_names nowrap"><span>[#username#]</span> <br><span class='small'>( ПИК: [#userCode#] )</span></span></td>
                                             </tr>
                                         </table>
                                     </td>

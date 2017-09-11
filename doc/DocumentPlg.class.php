@@ -127,6 +127,9 @@ class doc_DocumentPlg extends core_Plugin
         setIfNot($mvc->canExportdoc, 'user');
         setIfNot($mvc->canForceexpenseitem, 'ceo,acc,purchase');
         setIfNot($mvc->canPsingle, 'user');
+        setIfNot($mvc->pendingQueue, array());
+        setIfNot($mvc->canPending, 'no_one');
+        setIfNot($mvc->requireDetailForPending, TRUE);
         
         $mvc->setDbIndex('state');
         $mvc->setDbIndex('folderId');
@@ -318,11 +321,6 @@ class doc_DocumentPlg extends core_Plugin
                     ), 'ef_icon = img/16/task-normal.png, title=' . tr('Създаване на задача от документа'));
                 }
             }
-        } else {
-            //TODO да се "премахне" и оптимизира
-            if($data->rec->state == 'draft' || ($data->rec->state == 'rejected' && $data->rec->brState == 'draft') || ($data->rec->state == 'rejected' && $data->rec->brState != 'draft' && $mvc->printRejected === FALSE)){
-            	$data->toolbar->removeBtn('btnPrint');
-            }
         }
         
         if($mvc->haveRightFor('list') && $data->rec->state != 'rejected') { 
@@ -483,10 +481,6 @@ class doc_DocumentPlg extends core_Plugin
             		$tpl = new ET(tr('|* |от|* [#user#] |на|* [#date#]'));
             		$row->state .= $tpl->placeArray(array('user' => crm_Profiles::createLink($rec->modifiedBy), 'date' => dt::mysql2Verbal($rec->modifiedOn)));
             	}
-            }
-            
-            if (Mode::is('screenMode', 'narrow')) {
-            	unset($row->state);
             }
         }
         
@@ -661,6 +655,91 @@ class doc_DocumentPlg extends core_Plugin
                 $uDoc->instance->logRead($msg, $uDoc->that);
             }
         }
+        
+        if ($rec->pendingSaved === TRUE) {
+            $rec->pendingSaved = FALSE;
+        	$mvc->pendingQueue[$rec->id] = $rec;
+        	$mvc->invoke('AfterSavePendingDocument', array($rec));
+        }
+    }
+    
+    
+    /**
+     * Изпълнява се при шътдаун
+     */
+    public static function on_Shutdown($mvc)
+    {
+    	if(count($mvc->pendingQueue)) {
+    		foreach ($mvc->pendingQueue as $rec){
+    			$log = ($rec->state == 'pending') ? 'Документът става на заявка' : 'Документът се връща в чернова';
+    			$mvc->logInAct($log, $rec);
+    			
+    		    $notifyArr = array();
+    		    
+    			// Подготвяме потребителите, които ще получат нотификация за заявката
+    			if ($rec->folderId) {
+    				$fRec = doc_Folders::fetch($rec->folderId);
+    				$notifyArr = array($fRec->inCharge => $fRec->inCharge);
+    				 
+    				// Настройките на пакета
+    				$notifyPendingConf = doc_Setup::get('NOTIFY_PENDING_DOC');
+    				if ($notifyPendingConf == 'no') {
+    					$notifyArr = array();
+    				} elseif ($notifyPendingConf == 'yes') {
+    					$notifyArr += keylist::toArray($fRec->shared);
+    				}
+    			
+    				// Персоналните настройки на потребителите
+    				$pKey = crm_Profiles::getSettingsKey();
+    				$pName = 'DOC_NOTIFY_PENDING_DOC';
+    			
+    				$settingsNotifyArr = core_Settings::fetchUsers($pKey, $pName);
+    				 
+    				if ($settingsNotifyArr) {
+    					foreach ($settingsNotifyArr as $userId => $uConfArr) {
+    						if ($uConfArr[$pName] == 'no') {
+    							unset($notifyArr[$userId]);
+    						} elseif ($uConfArr[$pName] == 'yes') {
+    							if ($mvc->haveRightFor('single', $rec, $userId)) {
+    								$notifyArr[$userId] = $userId;
+    							}
+    						}
+    					}
+    				}
+    			}
+    			 
+    			$cu = core_Users::getCurrent();
+    			unset($notifyArr[$cu]);
+    			$urlArr = array($mvc, 'single', $rec->id);
+    			
+    			// Ако документа е станал чакащ, генерира се събитие
+    			if($rec->state == 'pending'){
+    				 
+    				// Нотифицираме потребителите за заявката
+    				$currUserNick = core_Users::getCurrent('nick');
+    				$currUserNick = type_Nick::normalize($currUserNick);
+    				 
+    				$docRow = $mvc->getDocumentRow($rec->id);
+    				$docTitle = $docRow->recTitle ? $docRow->recTitle : $docRow->title;
+    				$folderTitle = doc_Folders::getTitleById($rec->folderId, FALSE);
+    			
+    				$message = "{$currUserNick} |създаде заявка за|* \"|{$docTitle}|*\" |в папка|* \"{$folderTitle}\"";
+    				
+    				$pSettingsKey = crm_Profiles::getSettingsKey();
+    				$prop = 'DOC_STOP_NOTIFY_NEW_DOC_TYPE';
+    				$pSettingsNotifyArr = core_Settings::fetchUsers($pSettingsKey, $prop);
+    				
+    				foreach ($notifyArr as $uId) {
+    				    $uSelArr = $pSettingsNotifyArr[$uId];
+    				    
+    				    // Ако съответния потребител не иска да получава нотификация за документа, да не се праща
+    				    if ($uSelArr && ($propValStr = $uSelArr[$prop]) && (type_Keylist::isIn($mvc->getClassId(), $propValStr))) continue;
+    				    
+    					bgerp_Notifications::add($message, $urlArr, $uId);
+    				}
+    			}
+    		}
+    	}
     }
     
     
@@ -1000,89 +1079,13 @@ class doc_DocumentPlg extends core_Plugin
         	
         	$oldState = $rec->state;
         	$newState = ($oldState == 'pending') ? 'draft' : 'pending';
-        	$log = ($oldState == 'pending') ? 'Документът се връща в чернова' : 'Документът става на заявка';
         	
         	$rec->state = $newState;
         	$rec->brState = $oldState;
+        	$rec->pendingSaved = TRUE;
         	
         	$mvc->save($rec, 'state,brState');
-        	
         	$mvc->touchRec($rec->id);
-        	
-        	// Подготвяме потребителите, които ще получат нотификация за заявката
-        	if ($rec->folderId) {
-        	    $fRec = doc_Folders::fetch($rec->folderId);
-        	    
-        	    $notifyArr = array($fRec->inCharge => $fRec->inCharge);
-        	    
-        	    // Настройките на пакета
-        	    $notifyPendingConf = doc_Setup::get('NOTIFY_PENDING_DOC');
-        	    if ($notifyPendingConf == 'no') {
-        	        $notifyArr = array();
-        	    } elseif ($notifyPendingConf == 'yes') {
-        	        $notifyArr += keylist::toArray($fRec->shared);
-        	    }
-        	     
-        	    // Персоналните настройки на потребителите
-        	    $pKey = crm_Profiles::getSettingsKey();
-        	    $pName = 'DOC_NOTIFY_PENDING_DOC';
-        	     
-        	    $settingsNotifyArr = core_Settings::fetchUsers($pKey, $pName);
-        	    
-        	    if ($settingsNotifyArr) {
-        	        foreach ($settingsNotifyArr as $userId => $uConfArr) {
-        	            if ($uConfArr[$pName] == 'no') {
-        	                unset($notifyArr[$userId]);
-        	            } elseif ($uConfArr[$pName] == 'yes') {
-        	                if ($mvc->haveRightFor('single', $rec, $userId)) {
-        	                    $notifyArr[$userId] = $userId;
-        	                }
-        	            }
-        	        }
-        	    }
-        	}
-        	
-        	$cu = core_Users::getCurrent();
-        	unset($notifyArr[$cu]);
-        	
-        	$urlArr = array($mvc, 'single', $rec->id);
-        	
-        	// Ако документа е станал чакащ, генерира се събитие
-        	if($newState == 'pending'){
-        	    
-        	    // Нотифицираме потребителите за заявката
-        	    $currUserNick = core_Users::getCurrent('nick');
-        	    $currUserNick = type_Nick::normalize($currUserNick);
-        	    
-        	    $docRow = $mvc->getDocumentRow($rec->id);
-        	    
-        	    $docTitle = $docRow->recTitle ? $docRow->recTitle : $docRow->title;
-                
-                $folderTitle = doc_Folders::getTitleById($rec->folderId, FALSE);
-                
-        	    $message = "{$currUserNick} |създаде заявка за|* \"|{$docTitle}|*\" |в папка|* \"{$folderTitle}\"";
-        	    
-        	    foreach ($notifyArr as $uId) {
-        	        bgerp_Notifications::add($message, $urlArr, $uId);
-        	    }
-        	    
-        		$mvc->invoke('AfterSavePendingDocument', array($rec));
-        	} else {
-        	    doc_ThreadUsers::removeContainer($rec->containerId);
-        	    
-        	    $threadRec = doc_Threads::fetch($rec->threadId);
-        	    $threadRec->shared = keylist::fromArray(doc_ThreadUsers::getShared($rec->threadId));
-        	    doc_Threads::save($threadRec, 'shared');
-        	    
-//         	    bgerp_Recently::setHidden('document', $rec->containerId, 'no');
-                
-        	    foreach ($notifyArr as $uId) {
-        	        bgerp_Notifications::setHidden($urlArr, 'yes', $uId);
-        	    }
-        	    
-        	}
-        	
-        	$mvc->logInAct($log, $rec);
         	
         	if (!$res = getRetUrl()) {
         	    $res = $mvc->getSingleUrlArray($rec->id);
@@ -1228,6 +1231,8 @@ class doc_DocumentPlg extends core_Plugin
         doc_Threads::setModification($rec->threadId);
         
         doc_Files::recalcFiles($rec->containerId);
+        
+        bgerp_Notifications::hideNotificationsForSingle($mvc->className, $rec->id);
     }
     
     
@@ -1256,6 +1261,8 @@ class doc_DocumentPlg extends core_Plugin
         doc_Threads::setModification($rec->threadId);
         
         doc_Files::recalcFiles($rec->containerId);
+        
+        bgerp_Notifications::showNotificationsForSingle($mvc->className, $rec->id);
     }
     
 	
@@ -1472,18 +1479,20 @@ class doc_DocumentPlg extends core_Plugin
             $rec->threadId = $oRec->threadId;
             $rec->folderId = $oRec->folderId;
             
-            $data->form->layout = $data->form->renderLayout();
-            $tpl = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Оригинален документ") . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div>");
-            
-            // TODO: да се замени с интерфейсен метод
-            
-            $document = doc_Containers::getDocument($rec->originId);
-            
-            $docHtml = $document->getInlineDocumentBody();
-            
-            $tpl->append($docHtml, 'DOCUMENT');
-            
-            $data->form->layout->append($tpl);
+            if (!Mode::is('stopRenderOrigin')) {
+                $data->form->layout = $data->form->renderLayout();
+                $tpl = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Оригинален документ") . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div>");
+                
+                // TODO: да се замени с интерфейсен метод
+                
+                $document = doc_Containers::getDocument($rec->originId);
+                
+                $docHtml = $document->getInlineDocumentBody();
+                
+                $tpl->append($docHtml, 'DOCUMENT');
+                
+                $data->form->layout->append($tpl);
+            }
         }
         
         if($rec->threadId) {
@@ -1642,6 +1651,10 @@ class doc_DocumentPlg extends core_Plugin
         } else {
         	$data->form->toolbar->renameBtn('save', 'Запис');
         }
+        
+        if($mvc->haveRightFor('pending', $data->form->rec)){
+        	$data->form->toolbar->addSbBtn('Заявка', 'save_pending', 'id=btnPending,order=9.99989','ef_icon = img/16/tick-circle-frame.png');
+        }
     }
 
     
@@ -1716,6 +1729,11 @@ class doc_DocumentPlg extends core_Plugin
 	        if($form->cmd == 'save_new_thread' && $rec->threadId){
 		        unset($rec->threadId);
 		    }
+		    
+		    if($form->cmd == 'save_pending' && $mvc->haveRightFor('pending', $rec)){
+		    	$form->rec->state = 'pending';
+		    	$form->rec->pendingSaved = TRUE;
+		    }
         }
     }
     
@@ -1784,7 +1802,7 @@ class doc_DocumentPlg extends core_Plugin
                 }
             }
             // Временна промяна на текущия потребител на този, който е активирал документа
-            $bExitSudo = core_Users::sudo($userId);
+            $sudoUser = core_Users::sudo($userId);
         }
         
         // Ако възникне изключение
@@ -1798,25 +1816,17 @@ class doc_DocumentPlg extends core_Plugin
             $res  = $mvc->renderDocument($id, $data);
         } catch (core_exception_Expect $e) {
             
-            // Ако сме в SUDO режим
-            if ($bExitSudo) {
-                
-                // Възстановяване на текущия потребител
-                core_Users::exitSudo();
-            }
+            // Възстановяване на текущия потребител
+            core_Users::exitSudo($sudoUser);
             
             reportException($e);
             
             expect(FALSE, $e);
         }
         
-        // Ако сме в SUDO режим
-        if ($bExitSudo) {
-            
-            // Възстановяване на текущия потребител
-            core_Users::exitSudo();
-        }
-        
+        // Възстановяване на текущия потребител
+        core_Users::exitSudo($sudoUser);
+
         Mode::pop('inlineDocument');
         
         // Връщаме старата стойност на 'text'
@@ -1853,7 +1863,7 @@ class doc_DocumentPlg extends core_Plugin
                 }
             }
             // Временна промяна на текущия потребител на този, който е активирал документа
-            $bExitSudo = core_Users::sudo($userId);
+            $sudoUser = core_Users::sudo($userId);
         }
         
         // Ако възникне изключение
@@ -1863,23 +1873,14 @@ class doc_DocumentPlg extends core_Plugin
             $res  = $mvc->renderDocument($id, $data);
         } catch (core_exception_Expect $e) {
             
-            // Ако сме в SUDO режим
-            if ($bExitSudo) {
-                
-                // Възстановяване на текущия потребител
-                core_Users::exitSudo();
-            }
-            
+            // Възстановяване на текущия потребител
+            core_Users::exitSudo($sudoUser);
             expect(FALSE, $e);
         }
         
-        // Ако сме в SUDO режим
-        if ($bExitSudo) {
-            
-            // Възстановяване на текущия потребител
-            core_Users::exitSudo();
-        }
-        
+        // Възстановяване на текущия потребител
+        core_Users::exitSudo($sudoUser);
+         
         // Връщаме старата стойност на 'text'
         Mode::pop('text');
     }
@@ -1989,7 +1990,9 @@ class doc_DocumentPlg extends core_Plugin
             } elseif ($action == 'reject'  || $action == 'restore') {
                 if (doc_Threads::haveRightFor('single', $oRec->threadId, $userId)) {
                     if($requiredRoles != 'no_one'){
-                    	$requiredRoles = 'powerUser';
+                    	if(!$mvc->hasPlugin('acc_plg_Contable')){
+                    		$requiredRoles = 'powerUser';
+                    	}
                     }
                 } else {
                 	if(core_Packs::isInstalled('colab') && core_Users::haveRole('partner', $userId)){
@@ -2180,7 +2183,7 @@ class doc_DocumentPlg extends core_Plugin
         	if($requiredRoles != 'no_one'){
         		
         		// Само чакащите и черновите могат да стават от чакащи -> чернова или обратно
-        		if($rec->state != 'pending' && $rec->state != 'draft'){
+        		if(isset($rec->state) && $rec->state != 'pending' && $rec->state != 'draft'){
         			$requiredRoles = 'no_one';
         		} elseif(!$mvc->haveRightFor('single', $rec)){
         			$requiredRoles = 'no_one';
@@ -2236,6 +2239,15 @@ class doc_DocumentPlg extends core_Plugin
                 $requiredRoles = 'no_one';
             }
         }
+        
+        if($action == 'pending' && isset($rec)){
+        	if(isset($mvc->mainDetail) && $mvc->requireDetailForPending === TRUE){
+        		$Detail = cls::get($mvc->mainDetail);
+        		if(!$Detail->fetch("#{$Detail->masterKey} = '{$rec->id}'")){
+        			$requiredRoles = 'no_one';
+        		}
+        	}
+        }
     }
     
     
@@ -2267,6 +2279,26 @@ class doc_DocumentPlg extends core_Plugin
         $isFromList = (int)Mode::is('forListRows');
         
         $res = array($mvc, 'pSingle', $docId, 'pUrl' => $clsId . '_' . $dId . '_' . $docId . '_' . $isFromList, 'ret_url' => TRUE);
+        
+        // Ако ще се показва в листов изглед
+        // Добавяме към масива с временен достъп до сингъл изгледа
+        if ($isFromList && $dId) {
+            $dRec = $mInst->fetch($dId);
+            
+            if ($dRec) {
+                $modeAllowedContainerIdName = $mvc->getAllowedContainerName();
+                
+                $allowedCidArr = Mode::get($modeAllowedContainerIdName);
+                
+                if (!isset($allowedCidArr)) {
+                    $allowedCidArr = array();
+                }
+                
+                $allowedCidArr[$dRec->containerId] = $dRec->containerId;
+                
+                Mode::setPermanent($modeAllowedContainerIdName, $allowedCidArr);
+            }
+        }
     }
     
     
@@ -2387,12 +2419,51 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
-     * Изпълнява се, ако е дефиниран метод getContragentData
+     * Връща тялото на имейла генериран от документа
+     * 
+     * @param core_Mvc $mvc
+     * @param unknown NULL|string
+     * @param int $originId
+     * @param boolean $isForwarding
+     * 
+     * @see email_DocumentIntf
      */
-    function on_AfterGetDefaultEmailBody($mvc, $data, $id)
+    function on_AfterGetDefaultEmailBody($mvc, $data, $originId, $isForwarding = FALSE)
     {
         
-        return NULL;
+    }
+    
+    
+    /**
+     * Връща заглавието на имейла
+     * 
+     * @param core_Mvc $mvc
+     * @param NULL|string $res
+     * @param int $id
+     * @param boolean $isForwarding
+     * 
+     * @see email_DocumentIntf
+     */
+    function on_AfterGetDefaultEmailSubject($mvc, &$res, $id, $isForwarding = FALSE)
+    {
+        $title = '';
+        
+        if ($id) {
+            $row = $mvc->getDocumentRow($id);
+            $title = html_entity_decode($row->title, ENT_COMPAT | ENT_HTML401, 'UTF-8');
+        }
+        
+        if (!$isForwarding) {
+            if ($id) {
+                if ($mvc instanceof email_Incomings) {
+                    $res = 'Re: ' . $title;
+                } else {
+                    $res = $title;
+                }
+            }
+        } else {
+            $res = 'Fw: ' . $title;
+        }
     }
     
     
@@ -2865,6 +2936,16 @@ class doc_DocumentPlg extends core_Plugin
         
         $oCid = Mode::get('saveObjectsToCid');
         
+        $filesArr = NULL;
+        
+        // Ако сме пушнали, но няма запис за таблицата
+        if ($oCid) {
+            $filesArr = doc_UsedInDocs::getObjectVals($rec->containerId, core_Users::getCurrent(), 'files');
+            if (!isset($filesArr)) {
+                $oCid = NULL;
+            }
+        }
+        
         // Ако не са извлечени файловете или не сме в процес на извличане - форсираме процеса
         if ((!$oCid && $rec->containerId) || ($oCid && ($oCid != $rec->containerId))) {
             
@@ -2874,13 +2955,16 @@ class doc_DocumentPlg extends core_Plugin
                 if ($cRec->docClass) {
                     $docMvc = cls::get($cRec->docClass);
                 }
-                if (!($cRec->docId)) {
-                    $cRec->docId = $docMvc->fetchField("#containerId = {$cRec->id}", 'id');
-                    $cInst = cls::get('doc_Containers');
-                    $cInst->save_($cRec, 'docId');
-                }
                 
-                $docMvc->prepareDocument($cRec->docId);
+                if ($docMvc) {
+                    if (!($cRec->docId)) {
+                        $cRec->docId = $docMvc->fetchField("#containerId = {$cRec->id}", 'id');
+                        $cInst = cls::get('doc_Containers');
+                        $cInst->save_($cRec, 'docId');
+                    }
+                    
+                    $docMvc->prepareDocument($cRec->docId);
+                }
             } catch (Exception $e) {
                 reportException($e);
             }
@@ -2893,7 +2977,10 @@ class doc_DocumentPlg extends core_Plugin
         
         doc_UsedInDocs::flushArr();
         
-        $filesArr = doc_UsedInDocs::getObjectVals($rec->containerId, core_Users::getCurrent(), 'files');
+        if (!isset($filesArr)) {
+            $filesArr = doc_UsedInDocs::getObjectVals($rec->containerId, core_Users::getCurrent(), 'files');
+        }
+        
         if (is_array($filesArr)) {
             foreach ($filesArr as $fileHndArr) {
                 if (!is_array($fileHndArr)) continue;
@@ -2996,7 +3083,7 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
         
-        core_Users::sudo($userId);
+        $sudoUser = core_Users::sudo($userId);
         
         try {
             // Намираме прикачените документи
@@ -3013,12 +3100,12 @@ class doc_DocumentPlg extends core_Plugin
             
             $res = array_merge($attachedDocs, (array)$res);
         } catch (core_exception_Expect $e) {
-            core_Users::exitSudo();
+            core_Users::exitSudo($sudoUser);
             
             return ;
         }
         
-        core_Users::exitSudo();
+        core_Users::exitSudo($sudoUser);
     }
     
     
@@ -3162,6 +3249,13 @@ class doc_DocumentPlg extends core_Plugin
     {
         if(!$res) { 
             $res = $mvc->singleIcon;
+            if(log_Browsers::isRetina()) {
+                $icon2 = str_replace('/16/', '/32/', $res);
+
+                if(getFullPath($icon2)) {
+                    $res = $icon2;
+                }
+            }
         }
     }
     
@@ -3184,6 +3278,8 @@ class doc_DocumentPlg extends core_Plugin
         unset($nRec->modifiedOn);
         unset($nRec->modifiedBy);
         unset($nRec->brState);
+        unset($nRec->activatedBy);
+        unset($nRec->activatedOn);
         
         if (!core_Users::haveRole('partner')) {
             unset($nRec->state);
@@ -3293,6 +3389,13 @@ class doc_DocumentPlg extends core_Plugin
             $res = FALSE;
             
             return ;
+        }
+        
+        // Ако документа има отворена история - не се кешира
+        if($cRec->id == Request::get('Sid')) {
+        	$res = FALSE;
+        
+        	return ;
         }
         
         // Ако модела не допуска кеширане - ключ не се генерира
@@ -3497,6 +3600,8 @@ class doc_DocumentPlg extends core_Plugin
         $res['internal']['ident'] = TRUE;
         $res['internal']['createdBy'] = TRUE;
         $res['internal']['createdOn'] = TRUE;
+        
+        $res['external']['_lastFrom'] = TRUE;
     }
     
     
@@ -3522,6 +3627,30 @@ class doc_DocumentPlg extends core_Plugin
         
         $resArr['createdBy'] = array('name' => tr('Автор'), 'val' => '[#createdBy#]');
         $resArr['createdOn'] = array('name' => tr('Дата'), 'val' => '[#createdOn#]');
+        
+        // Ако е зададено да се показва действията в документа
+        if ($mvc->showLogTimeInHead) {
+            $showArr = arr::make($mvc->showLogTimeInHead);
+            if ($showArr) {
+                $keyArr = array();
+                foreach ($showArr as $str => $limit) {
+                    $keyArr += log_Data::getObjectRecs($mvc, $rec->id, NULL, 'Документът се връща в чернова', $limit);
+                }
+                
+                if ($keyArr) {
+                    $rowArr = log_Data::getRows($keyArr, array('actTime', 'userId'));
+                    $lastFromStr = '';
+                    foreach ($rowArr as $row) {
+                        $lastFromStr .= $lastFromStr ? '<br>' : '';
+                        $lastFromStr .= tr('от') . ' ' . $row->userId . ' ' . tr('на') . ' ' . $row->actTime;
+                    }
+                    
+                    if ($lastFromStr) {
+                        $resArr['_lastFrom'] = array('name' => tr('Последни промени'), 'val' => $lastFromStr);
+                    }
+                }
+            }
+        }
     }
     
     
@@ -3843,7 +3972,7 @@ class doc_DocumentPlg extends core_Plugin
     {
     	// Ако документа е оттеглен се подсигуряваме че ще се покаже от кого е оттеглен и кога
     	if($data->rec->state == 'rejected') {
-    		$nTpl = new ET(tr('|* |от|* [#user#] |на|* [#date#]'));
+    	    $nTpl = new ET(tr('|* |от|* [#user#] |на|* [#date#]'));
     		$data->row->state .= $nTpl->placeArray(array('user' => crm_Profiles::createLink($data->rec->modifiedBy), 'date' => dt::mysql2Verbal($data->rec->modifiedOn)));
     	}
     	

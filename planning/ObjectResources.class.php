@@ -71,7 +71,16 @@ class planning_ObjectResources extends core_Manager
     public $singleTitle = 'Заместващ артикул';
     
     
+    /**
+     * Работен кеш
+     */
     protected static $cache = array();
+    
+    
+    /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
     
     
     /**
@@ -287,15 +296,6 @@ class planning_ObjectResources extends core_Manager
     
     
     /**
-     * След подготовка на лист тулбара
-     */
-    public static function on_AfterPrepareListToolbar($mvc, $data)
-    {
-    	$data->toolbar->removeBtn('btnAdd');
-    }
-    
-    
-    /**
      * Връща себестойността на материала
      *
      * @param int $objectId - ид на артикула - материал
@@ -303,6 +303,8 @@ class planning_ObjectResources extends core_Manager
      */
     public static function getSelfValue($objectId, $quantity = 1, $date = NULL)
     {
+    	if(empty($objectId)) return NULL;
+    	
     	// Проверяваме имали зададена търговска себестойност
     	$selfValue = cat_Products::getSelfValue($objectId, NULL, $quantity, $date);
     	

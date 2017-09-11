@@ -122,6 +122,18 @@ class acc_ValueCorrections extends core_Master
 
     
     /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
+    
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'valior';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -249,7 +261,7 @@ class acc_ValueCorrections extends core_Master
     		$count++;
     	}
     	
-    	$listFields = arr::make("count=№,name=Артикул,amount=Сума,allocated=|Разпределено|* ({$data->row->baseCurrencyCode}) |без ДДС|*", TRUE);
+    	$listFields = arr::make("count=№,name=Артикул,amount=Сума,allocated=|Разпределени|* ({$data->row->baseCurrencyCode}) |без ДДС|*", TRUE);
     	
     	// Взависимост от признака на разпределяне, показваме колоната възоснова на която е разпределено
     	switch($data->rec->allocateBy){
@@ -289,15 +301,6 @@ class acc_ValueCorrections extends core_Master
     	$details->append($lastRowTpl, 'ROW_AFTER');
     	
     	$tpl->append($details, 'PRODUCTS_TABLE');
-    }
-    
-    
-    /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    protected static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	$data->toolbar->removeBtn('btnAdd');
     }
     
     

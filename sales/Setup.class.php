@@ -8,6 +8,12 @@ defIfNot('SALE_INV_MIN_NUMBER1', '0');
 
 
 /**
+ * 
+ */
+defIfNot('SALES_DELTA_CAT_GROUPS', '');
+
+
+/**
  * Краен номер на фактурите
  */
 defIfNot('SALE_INV_MAX_NUMBER1', '2000000');
@@ -46,7 +52,7 @@ defIfNot('SALES_INVOICE_DEFAULT_VALID_FOR', 60 * 60 * 24 * 3);
 /**
  * Колко продажби да се приключват автоматично брой
  */
-defIfNot('SALE_CLOSE_OLDER_NUM', 15);
+defIfNot('SALE_CLOSE_OLDER_NUM', 50);
 
 
 /**
@@ -195,6 +201,7 @@ class sales_Setup extends core_ProtoSetup
 			'SALES_ADD_BY_CREATE_BTN'  => array("keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Необходими роли за добавяне на артикули в продажба от->Създаване'),
 			'SALES_ADD_BY_LIST_BTN'    => array("keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Необходими роли за добавяне на артикули в продажба от->Списък'),
 			'SALES_ADD_BY_IMPORT_BTN'  => array("keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Необходими роли за добавяне на артикули в продажба от->Импорт'),
+			'SALES_DELTA_CAT_GROUPS'   => array('keylist(mvc=cat_Groups,select=name)', 'caption=Групи продажбени артикули за изчисляване на ТРЗ индикатори->Групи'),
 	);
 	
 	
@@ -218,6 +225,7 @@ class sales_Setup extends core_ProtoSetup
     		'migrate::cacheInvoicePaymentType',
     		'migrate::migrateRoles',
     		'migrate::updateDealFields1',
+    		'migrate::updateDeltaTable'
         );
 
     
@@ -253,7 +261,7 @@ class sales_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     var $roles = array(
-    		array('sales', 'invoicer,seePrice'),
+    		array('sales', 'invoicer,seePrice,dec'),
     		array('salesMaster', 'sales'),
     );
     
@@ -391,6 +399,38 @@ class sales_Setup extends core_ProtoSetup
     		if(count($update)){
     			$Deal->saveArray($update, 'id,productIdWithBiggestAmount');
     		}
+    	}
+    }
+    
+    
+    /**
+     * Миграция на сделките
+     */
+    function updateDeltaTable()
+    {
+    	$Class = cls::get('sales_PrimeCostByDocument');
+    	$Class->setupMvc();
+    	
+    	$update = array();
+    	$query = $Class->getQuery();
+    	while($rec = $query->fetch()){
+    		try{
+    			$Detail = cls::get($rec->detailClassId);
+    			$masterId = $Detail->fetchField($rec->detailRecId, "{$Detail->masterKey}");
+    			
+    			$rec->containerId = $Detail->Master->fetchField($masterId, 'containerId');
+    			$persons = sales_PrimeCostByDocument::getDealerAndInitiatorId($rec->containerId);
+    			$rec->dealerId = $persons['dealerId'];
+    			$rec->initiatorId = $persons['initiatorId'];
+    			
+    			$update[] = $rec;
+    		} catch(core_exception_Expect $e){
+    			reportException($e);
+    		}
+    	}
+    	
+    	if(count($update)){
+    		$Class->saveArray($update, 'id,containerId,dealerId,initiatorId');
     	}
     }
 }

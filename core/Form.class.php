@@ -155,7 +155,7 @@ class core_Form extends core_FieldSet
         $optionsFunc = $this->selectFields("#optionsFunc");
         if ($optionsFunc) {
             foreach ($optionsFunc as $name => $field) {
-                if ($field->type instanceof type_Varchar || $field->type instanceof type_Keylist) {
+                if ($field->type instanceof type_Varchar || $field->type instanceof type_Keylist || $field->type instanceof type_Set) {
                     $field->type->suggestions = cls::callFunctArr($field->optionsFunc, array($field->type, $field->type->suggestions));
                 } else {
                     $field->type->options = cls::callFunctArr($field->optionsFunc, array($field->type, $field->type->options));
@@ -183,7 +183,7 @@ class core_Form extends core_FieldSet
         if (!count($fields)) return FALSE;
         
         foreach ($fields as $name => $field) {
-
+            
             expect($this->fields[$name], "Липсващо поле във формата '{$name}'");
             
             $value = Request::get($name);
@@ -219,8 +219,9 @@ class core_Form extends core_FieldSet
             
             // Правим проверка, дали избраната стойност е от множеството
             if (is_array($options) && !is_a($type, 'type_Key') && !is_a($type, 'type_Key2')) {
+                
                 // Не могат да се селектират неща които не са опции  
-                if ((!isset($options[$value]) && $this->cmd != 'refresh') || (is_object($options[$value]) && $options[$value]->group)) {
+                if ((!array_key_exists($value, $options) && $this->cmd != 'refresh') || (is_object($options[$value]) && $options[$value]->group)) {
                     $this->setError($name, "Невъзможна стойност за полето" .
                         "|* <b>|{$captions}|*</b>!");
                     $this->fields[$name]->input = 'input';
@@ -240,7 +241,6 @@ class core_Form extends core_FieldSet
                     $value = $type->fromVerbal($value);
                 }
             } else {
-                
                 $value = $type->fromVerbal($value);
                 
                 // Вдигаме грешка, ако стойността от Request 
@@ -273,8 +273,8 @@ class core_Form extends core_FieldSet
                 
                 $this->setErrorFromResult($result, $field, $name);
             }
-           
-            if($this->cmd != 'refresh' || strlen($value)) {
+            
+            if($this->cmd != 'refresh' || is_array($value) || strlen($value)) {
                 $this->rec->{$name} = $value; 
             }
         }
@@ -308,7 +308,7 @@ class core_Form extends core_FieldSet
         if ($optionsFunc) {
             
             foreach ($optionsFunc as $name => $field) {
-                if ($field->type instanceof type_Varchar || $field->type instanceof type_Keylist) {
+                if ($field->type instanceof type_Varchar || $field->type instanceof type_Keylist || $field->type instanceof type_Set) {
                     $field->type->suggestions = cls::callFunctArr($field->optionsFunc, array($field->type, $field->type->suggestions));
                 } else {
                     $field->type->options = cls::callFunctArr($field->optionsFunc, array($field->type, $field->type->options));
@@ -441,7 +441,7 @@ class core_Form extends core_FieldSet
             $haveErr = TRUE;
             $this->setWarning($name, "Възможен проблем с полето|" .
                 "* <b>'|" . $captions .
-                "|*'</b>!<br><small style='color:red'>" . "|" .
+                "|*'</b>!<br><small>" . "|" .
                 $result['warning'] . "|*</small>");
         }
         
@@ -474,7 +474,7 @@ class core_Form extends core_FieldSet
                     "<form <!--ET_BEGIN CLASS-->class = '[#CLASS#]'<!--ET_END CLASS--> [#FORM_ATTR#] " .
                     "<!--ET_BEGIN ON_SUBMIT-->onSubmit=\"[#ON_SUBMIT#]\"<!--ET_END ON_SUBMIT-->>\n" .
                     "\n<div  class='clearfix21 horizontal' style='margin-top:5px;'>" .
-                    "<!--ET_BEGIN FORM_ERROR--><div class=\"formError\">[#FORM_ERROR#]</div><!--ET_END FORM_ERROR-->" .
+                    "<!--ET_BEGIN FORM_ERROR-->[#FORM_ERROR#]<!--ET_END FORM_ERROR-->" .
                     "<!--ET_BEGIN FORM_INFO--><div class=\"formInfo\">[#FORM_INFO#]</div><!--ET_END FORM_INFO-->" .
                     "<!--ET_BEGIN FORM_HIDDEN-->[#FORM_HIDDEN#]<!--ET_END FORM_HIDDEN-->" .
                     "\n" .
@@ -492,7 +492,7 @@ class core_Form extends core_FieldSet
                     "\n<table class=\"formTable\">\n" .
                     "\n<!--ET_BEGIN FORM_TITLE--><tr><td class=\"formTitle\">[#FORM_TITLE#]</td></tr><!--ET_END FORM_TITLE-->" .
                     "\n<tr><td class=\"formSection\">" .
-                    "<!--ET_BEGIN FORM_ERROR-->\n<div class=\"formError\">[#FORM_ERROR#]</div><!--ET_END FORM_ERROR-->" .
+                    "<!--ET_BEGIN FORM_ERROR-->\n[#FORM_ERROR#]<!--ET_END FORM_ERROR-->" .
                     "<!--ET_BEGIN FORM_INFO-->\n<div class=\"formInfo\">[#FORM_INFO#]</div><!--ET_END FORM_INFO-->" .
                     "<!--ET_BEGIN FORM_FIELDS-->\n<div class=\"formFields\">[#FORM_FIELDS#]</div><!--ET_END FORM_FIELDS-->" .
                     "<!--ET_BEGIN FORM_HIDDEN-->\n[#FORM_HIDDEN#]<!--ET_END FORM_HIDDEN-->" .
@@ -503,9 +503,7 @@ class core_Form extends core_FieldSet
                 
                 jquery_Jquery::run($this->layout, "setFormElementsWidth();");
                 jquery_Jquery::runAfterAjax($this->layout, "setFormElementsWidth");
-
                 jquery_Jquery::run($this->layout, "markElementsForRefresh();");
-
                 jquery_Jquery::run($this->layout, "$(window).resize(function(){setFormElementsWidth();});");
             }
             
@@ -544,13 +542,13 @@ class core_Form extends core_FieldSet
     {
         if (count($this->errors)) {
             $tpl = new ET("
-                <!--ET_BEGIN ERRORS_TITLE-->\n" .
+                <!--ET_BEGIN ERRORS_TITLE--><div class=\"formError\">\n" .
                 "<b>[#ERRORS_TITLE#]:</b><ul>[#ERROR_ROWS#]</ul>\n" .
-                "<!--ET_END ERRORS_TITLE-->" .
-                "<!--ET_BEGIN WARNINGS_TITLE-->\n" .
+                "<!--ET_END ERRORS_TITLE--></div>" .
+                "<!--ET_BEGIN WARNINGS_TITLE--><div class=\"formWarning\">\n" .
                 "<b>[#WARNINGS_TITLE#]:</b><ul>[#WARNING_ROWS#]</ul>\n" .
-                "<div style='border-top:solid 1px #aa7;padding-top:5px;'>[#IGNORE#]</div>\n" .
-                "<!--ET_END WARNINGS_TITLE-->\n");
+                "<div style='border-top:solid 1px blue;padding-top:5px;'>[#IGNORE#]</div>\n" .
+                "</div><!--ET_END WARNINGS_TITLE-->\n");
             
             $cntErr = 0;
             $cntWrn = 0;
@@ -1257,14 +1255,14 @@ class core_Form extends core_FieldSet
     /**
      * Вдига флаг за грешка на посоченото поле
      */
-    function setError($field, $msg, $ignorable = FALSE)
+    function setError($field, $msg, $ignorable = FALSE, $oncePerField = TRUE)
     {
         if(haveRole('no_one')) {
             $ignorable = TRUE;
         }
 
         // Премахваме дублиращи се съобщения
-        if(is_array($this->errors)) {
+        if(is_array($this->errors) && $oncePerField) {
             foreach($this->errors as $errRec) {
                 if(($errRec->msg == $msg) && ($ignorable == $errRec->ignorable)) {
                     $msg = FALSE;

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'planning_ReturnNotes' - Документ за Протокол за връщане
  *
@@ -10,7 +11,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -40,7 +41,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 	 * Плъгини за зареждане
 	 */
 	public $loadList = 'plg_RowTools2, store_plg_StoreFilter, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
-                    doc_DocumentPlg, plg_Printing, plg_Clone, doc_plg_BusinessDoc, plg_Search, bgerp_plg_Blank';
+                    doc_DocumentPlg, plg_Printing, plg_Clone, plg_Sorting,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search';
 	
 	
 	/**
@@ -132,12 +133,91 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 	
 	
 	/**
+	 * Кой може да го прави документа чакащ/чернова?
+	 */
+	public $canPending = 'ceo,planning,store';
+	
+	
+	/**
+	 * Поле за филтриране по дата
+	 */
+	public $filterDateField = 'createdOn, valior,deadline,modifiedOn';
+	
+	
+	/**
 	 * Описание на модела
 	 */
 	function description()
 	{
 		parent::setDocumentFields($this);
+		$this->FLD('departmentId', 'key(mvc=hr_Departments,select=name,allowEmpty)', 'caption=Департамент,before=note');
 		$this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Детайлно връщане->Избор,notNull,default=yes,maxRadio=2,before=note');
+	}
+	
+	
+	/**
+	 * Кои детайли да се клонират с промяна
+	 * 
+	 * @param stdClass $rec
+	 * @param mixed $Detail
+	 * @return array
+	 */
+	public function getDetailsToCloneAndChange($rec, &$Detail)
+	{
+		$Detail = cls::get($this->mainDetail);
+		$id = $rec->clonedFromId;
+		
+		if(isset($rec->originId) && empty($rec->id)){
+			$origin = doc_Containers::getDocument($rec->originId);
+			if($origin->isInstanceOf('planning_ConsumptionNotes')){
+				$Detail = cls::get('planning_ConsumptionNoteDetails');
+				$id = $origin->that;
+			}
+		}
+		
+		$dQuery = $Detail->getQuery();
+		$dQuery->where("#{$Detail->masterKey} = {$origin->that}");
+			
+		return $dQuery->fetchAll();
+	}
+	
+	
+	/**
+	 * Подготвя данните (в обекта $data) необходими за единичния изглед
+	 */
+	public function prepareEditForm_($data)
+	{
+		parent::prepareEditForm_($data);
+				
+		$form = &$data->form;
+		$rec = &$form->rec;
+		
+		// Ако ориджина е протокол за влагане
+		if(isset($rec->originId) && empty($rec->id)){
+			$origin = doc_Containers::getDocument($rec->originId);
+			if($origin->isInstanceOf('planning_ConsumptionNotes')){
+				$data->action = 'clone';
+				return $data;
+			}
+		}
+		
+		return $data;
+	}
+	
+	
+	/**
+	 * Преди показване на форма за добавяне/промяна
+	 */
+	protected static function on_AfterPrepareEditForm($mvc, &$data)
+	{
+		$form = &$data->form;
+		$rec = &$form->rec;
+		$form->setDefault('useResourceAccounts', planning_Setup::get('CONSUMPTION_USE_AS_RESOURCE'));
+		
+		$folderCover = doc_Folders::getCover($rec->folderId);
+		if($folderCover->isInstanceOf('hr_Departments')){
+			$form->setReadOnly('departmentId', $folderCover->that);
+		}
 	}
 	
 	
@@ -152,5 +232,9 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 	{
 		$row->useResourceAccounts = ($rec->useResourceAccounts == 'yes') ? 'Артикулите ще бъдат изписани от незавършеното производство един по един' : 'Артикулите ще бъдат изписани от незавършеното производството сумарно';
 		$row->useResourceAccounts = tr($row->useResourceAccounts);
+		
+		if(isset($rec->departmentId)){
+			$row->departmentId = hr_Departments::getHyperlink($rec->departmentId, TRUE);
+		}
 	}
 }

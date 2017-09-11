@@ -40,6 +40,9 @@ class core_App
             if (!core_Mode::is('screenMode')) {
                 core_Mode::set('screenMode', log_Browsers::detectMobile() ? 'narrow' : 'wide');
             }
+    
+            // Ако в момента се извършва инсталация - да не се изпълняват процесите
+            core_SystemLock::stopIfBlocked();
 
             // Генерираме съдържанието
             $content = core_Request::forward();
@@ -402,7 +405,7 @@ class core_App
         $realUsage = TRUE;
         
         $peakMemUsage = memory_get_peak_usage($realUsage);
-        if (is_numeric($memoryLimit)) {
+        if (is_numeric($memoryLimit) && $memoryLimit) {
             $peakMemUsagePercent = ($peakMemUsage / $memoryLimit) * 100;
             
             // Ако сме доближили до ограничението на паметта
@@ -412,7 +415,7 @@ class core_App
         }
         
         $memUsage = memory_get_usage($realUsage);
-        if (is_numeric($memUsage)) {
+        if (is_numeric($memUsage) && $memoryLimit) {
             $memUsagePercent = ($memUsage / $memoryLimit) * 100;
             
             // Ако сме доближили до ограничението на паметта
@@ -422,7 +425,7 @@ class core_App
         }
         
         $maxExecutionTime = ini_get('max_execution_time');
-        if (core_Debug::$startMicroTime) {
+        if ($maxExecutionTime && core_Debug::$startMicroTime) {
             if (core_Debug::$startMicroTime) {
                 $executionTime = core_DateTime::getMicrotime() - core_Debug::$startMicroTime;
                 

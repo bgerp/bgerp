@@ -19,13 +19,13 @@ class batch_Defs extends core_Manager {
 	/**
      * Заглавие
      */
-    public $title = 'Задавания на партиди';
+    public $title = 'Артикули с партиди';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, batch_Wrapper, plg_Modified, plg_Search, plg_Sorting, plg_SaveAndNew';
+    public $loadList = 'plg_RowTools2, batch_Wrapper, plg_Created, plg_Modified, plg_Search, plg_Sorting, plg_SaveAndNew';
     
     
     /**
@@ -43,7 +43,7 @@ class batch_Defs extends core_Manager {
     /**
      * Наименование на единичния обект
      */
-    public $singleTitle = "Задаване на партидa";
+    public $singleTitle = "Артикул с партида";
     
     
     /**
@@ -131,6 +131,7 @@ class batch_Defs extends core_Manager {
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
+    	$rec = &$form->rec;
     	
     	// От всички складируеми артикули, се махат тези които вече имат партидност
     	$storable = cat_Products::getByProperty('canStore');
@@ -139,29 +140,31 @@ class batch_Defs extends core_Manager {
     	$alreadyWithDefs = arr::extractValuesFromArray($query->fetchAll(), 'productId');
     	$storable = array_diff_key($storable, $alreadyWithDefs);
     	if($productId = Request::get('productId', 'key(mvc=cat_Products)')){
-    		$form->rec->productId = $productId;
+    		$rec->productId = $productId;
     	}
     	
-    	if(!array_key_exists($form->rec->productId, $storable)){
-    		$storable[$form->rec->productId] = cat_Products::getTitleById($form->rec->productId, FALSE);
+    	if(isset($rec->productId)){
+    		if(!array_key_exists($rec->productId, $storable)){
+    			$storable[$rec->productId] = cat_Products::getTitleById($rec->productId, FALSE);
+    		}
     	}
     	
     	$form->setOptions('productId', array('' => '') + $storable);
-    	if(isset($form->rec->id)){
+    	if(isset($rec->id)){
     		$form->setReadOnly('productId');
     	}
     	
-    	if(isset($form->rec->productId)){
-    		if(batch_Items::fetchField("#productId = {$form->rec->productId}")){
+    	if(isset($rec->productId)){
+    		if(batch_Items::fetchField("#productId = {$rec->productId}")){
     			$form->setReadOnly('productId');
     		}
     	}
     	
     	// Ако е избрана дефиниция, полето за заглавие на дефиницията се показва
-    	if(isset($form->rec->templateId)){
+    	if(isset($rec->templateId)){
     		$form->setField('batchCaption', 'input');
     		
-    		$Class = cls::get(batch_Templates::fetchField($form->rec->templateId, 'driverClass'));
+    		$Class = cls::get(batch_Templates::fetchField($rec->templateId, 'driverClass'));
     		if(isset($Class->fieldCaption)){
     			$form->setField('batchCaption', "placeholder={$Class->fieldCaption}");
     		}
@@ -298,6 +301,8 @@ class batch_Defs extends core_Manager {
     	
     	if($action == 'add' && isset($rec->productId)){
     		if(self::fetchField("#productId = {$rec->productId}")){
+    			$requiredRoles = 'no_one';
+    		} elseif(cat_Products::fetchField($rec->productId, 'canStore') != 'yes'){
     			$requiredRoles = 'no_one';
     		}
     	}

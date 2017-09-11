@@ -115,7 +115,7 @@ class crm_Companies extends core_Master
     /**
      * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
      */
-    var $searchFields = 'name,pCode,place,country,email,tel,fax,website,vatId,info,uicId,id';
+    var $searchFields = 'name,pCode,place,country,folderName,email,tel,fax,website,vatId,info,uicId,id';
     
 
     /**
@@ -187,14 +187,14 @@ class crm_Companies extends core_Master
     /**
      * Детайли, на модела
      */
-    var $details = 'CompanyExpandData=crm_Persons,ContragentLocations=crm_Locations,
-                    ContragentBankAccounts=bank_Accounts,CourtReg=crm_ext_CourtReg,AccReports=acc_ReportDetails,CommerceDetails=crm_CommerceDetails';
+    var $details = 'AccReports=acc_ReportDetails,CompanyExpandData=crm_Persons,ContragentLocations=crm_Locations,
+                    ContragentBankAccounts=bank_Accounts,CourtReg=crm_ext_CourtReg,CommerceDetails=crm_CommerceDetails';
     
     
     /**
      * По кои сметки ще се правят справки
      */
-    public $balanceRefAccounts = '323,401,402,403,404,405,406,409,411,412,413,414,415,419';
+    public $balanceRefAccounts = '1511,1512,1513,1514,1521,1522,1523,1524,153,159,323,401,402,403,404,405,406,409,411,412,413,414,415,419';
     
     
     /**
@@ -232,6 +232,12 @@ class crm_Companies extends core_Master
      * @see plg_ExpandInput
      */
     public $expandFieldName = 'groupList';
+    
+    
+    /**
+     * Как се казва полето за държава на контрагента
+     */
+    public $countryFieldName = 'country';
     
     
     /**
@@ -282,7 +288,8 @@ class crm_Companies extends core_Master
         // Допълнителна информация
         $this->FLD('info', 'richtext(bucket=crmFiles, passage=Общи)', 'caption=Бележки,height=150px,class=contactData,export=Csv');
         $this->FLD('logo', 'fileman_FileType(bucket=pictures)', 'caption=Лого,export=Csv');
-                
+        $this->FLD('folderName', 'varchar', 'caption=Име на папка');
+
         // В кои групи е?
         $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'persons\\\'AND #state !\\= \\\'rejected\\\',classLink=group-link)', 'caption=Групи->Групи,remember,silent,export=Csv');
         
@@ -407,7 +414,11 @@ class crm_Companies extends core_Master
             }
             foreach($data->recs as $rec) {
                 if($cnt[str::utf2ascii(trim($rec->name))]>=2) {
-                    $data->rows[$rec->id]->nameList .= $data->rows[$rec->id]->titleNumber;
+                    if($data->rows[$rec->id]->folderName) {
+                        $data->rows[$rec->id]->nameList .= $data->rows[$rec->id]->folderName;
+                    } else {
+                        $data->rows[$rec->id]->nameList .= $data->rows[$rec->id]->titleNumber;
+                    }
                 }
             }
 
@@ -460,6 +471,49 @@ class crm_Companies extends core_Master
             // Да има само 2 колони
             $data->form->setField($mvc->expandInputFieldName, array('maxColumns' => 2));    
         }
+        
+        $mvc->autoChangeFields($form);
+    }
+    
+    
+    /**
+     * Добавя стойности на полетата за автоматична промяна
+     * 
+     * @param core_Form $form
+     */
+    public static function autoChangeFields($form)
+    {
+        Request::setProtected('AutoChangeFields');
+        
+        if ($changeFieldsArr = Request::get('AutoChangeFields')) {
+            $changeFieldsArr = unserialize($changeFieldsArr);
+            
+            if ($changeFieldsArr) {
+                $oRec = clone ($form->rec);
+                
+                $oldValArr = array();
+                foreach ($changeFieldsArr as $fName => $fVal) {
+                    if ($form->rec->{$fName} == $fVal) continue;
+                    
+                    $oldValArr[$fName] = $form->rec->{$fName};
+                    $form->rec->{$fName} = $fVal;
+                }
+            
+                if ($oldValArr) {
+                    foreach ($oldValArr as $fName => $fVal) {
+                        if (!$form->fields[$fName]) continue;
+            
+                        if ($form->fields[$fName]->type instanceof type_Key || $form->fields[$fName]->type instanceof type_Keylist) {
+            
+                            $form->fields[$fName]->unit = '|*(' . $form->fields[$fName]->type->toVerbal($fVal) . ')';
+                        }
+            
+                        $form->fields[$fName]->hint = 'Предишна стойност|*: ' . $fVal;
+                        $form->fields[$fName]->class .= ' flashElem';
+                    }
+                }
+            }
+        }
     }
     
     
@@ -474,8 +528,6 @@ class crm_Companies extends core_Master
     public static function getSimilarWarningStr($rec, &$fields = '')
     {
         $resStr = '';
-        
-        if ($rec->id) return $resStr;
         
         $similarsArr = self::getSimilarRecs($rec, $fields);
         
@@ -543,36 +595,37 @@ class crm_Companies extends core_Master
 		
         $similarName = $similarVat = FALSE;
         
-        if ($rec->id) return $similarsArr;
-        
         $fieldsArr = array();
         
-        $nameL = "#" . plg_Search::normalizeText(STR::utf2ascii($rec->name)) . "#";
+        $nameL = "#" . mb_strtolower($rec->name) . "#";
         
         static $companyTypesArr = array();
         
         if (empty($companyTypesArr)) {
             $companyTypes = getFileContent('drdata/data/companyTypes.txt');
             $companyTypesArr = explode("\n", $companyTypes);
+            arr::combine($companyTypesArr, array('ет','еоод','сд', 'ад', 'еад'));
         }
-        
+   
         foreach($companyTypesArr as $word) {
             $word = trim($word, '|');
             $nameL = str_replace(array("#{$word}", "{$word}#"), array('', ''), $nameL);
         }
         
         $nameL = trim(str_replace('#', '', $nameL));
-        
+  
         $oQuery = self::getQuery();
         self::restrictAccess($oQuery); 
         
         $nQuery = clone $oQuery;
-        $nQuery->where(array("#searchKeywords LIKE '% [#1#] %'", $nameL));
+        $nQuery->where(array("CONCAT(' ', LOWER(#name), ' ') LIKE '% [#1#] %'", $nameL));
         if ($rec->country) {
             $nQuery->where(array("#country = '[#1#]'", $rec->country));
         }
         
         while($similarRec = $nQuery->fetch()) {
+            if ($rec->id && ($similarRec->id == $rec->id)) continue;
+            
             $similarsArr[$similarRec->id] = $similarRec;
             $fieldsArr['name'] = 'name';
         }
@@ -584,6 +637,8 @@ class crm_Companies extends core_Master
             $vQuery->where(array("#vatId LIKE '%[#1#]%'", $vatNumb));
             
             while($similarRec = $vQuery->fetch()) {
+                if ($rec->id && ($similarRec->id == $rec->id)) continue;
+                
                 $similarsArr[$similarRec->id] = $similarRec;
                 $fieldsArr['vatId'] = 'vatId';
             }
@@ -594,25 +649,24 @@ class crm_Companies extends core_Master
             
             if (!empty($emailArr)) {
                 foreach ($emailArr as $email) {
-                    $folderId = email_Router::route($email, NULL, email_Router::RuleFrom);
+                    $folderId = email_Router::route($email, NULL, email_Router::RuleFrom, FALSE);
                     
-
                     if($folderId) {
                         $fRec = doc_Folders::fetch($folderId);
                         
                         if($fRec->coverClass == core_Classes::getId('crm_Companies')) {
+                            if ($rec->id && ($fRec->coverId == $rec->id)) continue;
+                            
                             $similarsArr[$fRec->coverId] = self::fetch($fRec->coverId);
                             $fieldsArr['email'] = 'email';
                         }
                     }
                 } 
-                
             }
         }
-       
-
-        $fields = implode(',', $fieldsArr);
         
+        $fields = implode(',', $fieldsArr);
+      
         return $similarsArr;
     }
     
@@ -725,6 +779,10 @@ class crm_Companies extends core_Master
             
             $VatType = new drdata_VatType();
             $row->vat = $VatType->toVerbal($rec->vatId);
+
+            if($rec->folderName) {  
+                $row->title = $row->name;
+            }
         }
         
         
@@ -772,7 +830,15 @@ class crm_Companies extends core_Master
         $row->nameList = '<div class="namelist">'. $row->nameList . "<span class='icon'>". $row->folder .'</span></div>';
 		$row->id = $mvc->getVerbal($rec, 'id');  
         $row->nameList .= ($country ? "<div style='font-size:0.8em;margin-bottom:2px;margin-left: 4px;'>{$country}</div>" : ""); 
-        $row->title .=  $mvc->getTitleById($rec->id);
+
+        if(!$row->title) {
+            $row->title .=  $mvc->getTitleById($rec->id);
+        }
+ 
+        if($rec->folderName) {
+            $row->folderName = "<div style='color:blue;'>" . $mvc->getVerbal($rec, 'folderName') . "</div>";
+        }
+   
         $row->titleNumber = "<div class='number-block' style='display:inline'>№{$rec->id}</div>";
         
         if ($rec->vatId && $rec->uicId) {
@@ -836,15 +902,21 @@ class crm_Companies extends core_Master
     {
         $companyNameLen = mb_strlen($companyName);
         
-        if ($companyNameLen > 38) {
+        if ($companyNameLen > 37) {
             $companyFontSize = 100;
-        } elseif ($companyNameLen > 30) {
+        } elseif ($companyNameLen > 33) {
+            $companyFontSize = 110;
+        } elseif ($companyNameLen > 31) {
+            $companyFontSize = 120;
+        } elseif ($companyNameLen > 29) {
             $companyFontSize = 130;
-        } elseif ($companyNameLen > 24) {
+        } elseif ($companyNameLen > 25) {
+            $companyFontSize = 140;
+        } elseif ($companyNameLen > 23) {
             $companyFontSize = 150;
-        } elseif ($companyNameLen > 20) {
+        } elseif ($companyNameLen > 19) {
             $companyFontSize = 160;
-        } elseif ($companyNameLen > 18) {
+        } elseif ($companyNameLen > 17) {
             $companyFontSize = 190;
         } else {
             $companyFontSize = 220;
@@ -861,6 +933,26 @@ class crm_Companies extends core_Master
      */
     protected static function setCompanyLogo($companyConstName)
     {
+        $cRec = crm_Companies::fetchOwnCompany();
+        
+        $pngHnd = self::getCompanyLogoHnd($companyConstName, $cRec);
+        
+        if (!empty($pngHnd)) {
+            core_Packs::setConfig('bgerp', array($companyConstName => $pngHnd));
+        }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param string $fileName
+     * @param NULL|stdObjec $cRec
+     * 
+     * @return string
+     */
+    public static function getCompanyLogoHnd($fileName, $cRec = NULL)
+    {
         $baseColor = 'yellow';
         $activeColor = 'green';
         
@@ -876,7 +968,10 @@ class crm_Companies extends core_Master
         }
         
         $tpl = getTplFromFile('bgerp/tpl/companyBlank.svg');
-        $cRec = crm_Companies::fetchOwnCompany();
+        if (!isset($cRec)) {
+            $cRec = crm_Companies::fetchOwnCompany();
+        }
+        
         $cRec->company = trim($cRec->company);
         $companyName = transliterate(tr($cRec->company));
         $tpl->append($companyName, 'myCompanyName');
@@ -941,7 +1036,7 @@ class crm_Companies extends core_Master
         $pngHnd = '';
         
         try {
-            $pngHnd = fileman_webdrv_Inkscape::toPng($content, 'string', $companyConstName);
+            $pngHnd = fileman_webdrv_Inkscape::toPng($content, 'string', $fileName);
         } catch (ErrorException $e) {
             reportException($e);
         }
@@ -987,9 +1082,7 @@ class crm_Companies extends core_Master
             reportException($e);
         }
         
-        if (!empty($pngHnd)) {
-            core_Packs::setConfig('bgerp', array($companyConstName => $pngHnd));
-        }
+        return $pngHnd;
     }
     
     
@@ -1068,21 +1161,25 @@ class crm_Companies extends core_Master
         
         $titleFld = $params['titleFld'];
         $query->EXT($countryNameField, 'drdata_Countries', 'externalKey=country');  
-        $query->XPR('searchFieldXpr', 'text', "CONCAT(' ', #{$titleFld}, IF(#country = {$ownCountry}, IF(LENGTH(#place), CONCAT(' - ', #place), ''), CONCAT(' - ', #{$countryNameField})))");
+        $xpr = "CONCAT(' ', #{$titleFld}, IF(#country = {$ownCountry}, IF(LENGTH(#place), CONCAT(' - ', #place), ''), CONCAT(' - ', #{$countryNameField})))";
+        $query->XPR('searchFieldXpr', 'text', $xpr);
+        $query->XPR('searchFieldXprLower', 'text', "LOWER({$xpr})");
         
         if($q) {
             if($q{0} == '"') $strict = TRUE;
 
             $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
             
+            $q = mb_strtolower($q);
+            
             if($strict) {
-                $qArr = array(str_replace(' ', '%', $q));
+                $qArr = array(str_replace(' ', '.*', $q));
             } else {
                 $qArr = explode(' ', $q);
             }
             
             foreach($qArr as $w) {
-                $query->where("#searchFieldXpr COLLATE {$query->mvc->db->dbCharset}_general_ci LIKE '% {$w}%'");
+                $query->where(array("#searchFieldXprLower REGEXP '\ {1}[^a-z0-9\p{L}]?[#1#]'", $w));
             }
         }
  
@@ -1305,32 +1402,6 @@ class crm_Companies extends core_Master
     
     
     /**
-     * Ако е празна таблицата с контактите я инициализираме с един нов запис
-     * Записа е с id=1 и е с данните от файла bgerp.cfg.php
-     *
-     * @param unknown_type $mvc
-     * @param unknown_type $res
-     */
-    public static function on_AfterSetupMvc($mvc, &$res)
-    {
-        if(Request::get('Full')) {
-            
-            $query = $mvc->getQuery();
-            
-            while($rec = $query->fetch()) {
-                if($rec->id == crm_Setup::BGERP_OWN_COMPANY_ID) {
-                    $rec->state = 'active';
-                } elseif($rec->state == 'active') {
-                    $rec->state = 'closed';
-                }
-                
-                $mvc->save($rec, 'state');
-            }
-        }
-    }
-    
-
-    /**
      * Изпълнява се след инсталацията
      */
     public static function loadData()
@@ -1480,29 +1551,33 @@ class crm_Companies extends core_Master
      */
     public static function getRecTitle($rec, $escaped = TRUE)
     {
-        // Конфигурационните данните
-    	$conf = core_Packs::getConfig('crm');
-    	
-    	// Заглавието
-        $title = $rec->name;
-        
-        // Ако е зададена държава
-        if ($rec->country) {
+        if($rec->folderName) {
+            $title = $rec->folderName;
+        } else {
+            // Конфигурационните данните
+            $conf = core_Packs::getConfig('crm');
             
-            // Името на дръжавата
-            $commonName = mb_strtolower(drdata_Countries::fetchField($rec->country, 'commonName'));    
-            $country = self::getVerbal($rec, 'country');
-        }
-        
-        // Ако е зададен града и държавата не е същата
-        if($rec->place && ($commonName == mb_strtolower($conf->BGERP_OWN_COMPANY_COUNTRY))) {
+            // Заглавието
+            $title = $rec->name;
             
-            // Добавяме града
-            $title .= ' - ' . $rec->place;
-        } elseif ($country) {
+            // Ако е зададена държава
+            if ($rec->country) {
+                
+                // Името на дръжавата
+                $commonName = mb_strtolower(drdata_Countries::fetchField($rec->country, 'commonName'));    
+                $country = self::getVerbal($rec, 'country');
+            }
             
-            // Или ако има държава
-            $title .= ' - ' . $country;
+            // Ако е зададен града и държавата не е същата
+            if($rec->place && ($commonName == mb_strtolower($conf->BGERP_OWN_COMPANY_COUNTRY))) {
+                
+                // Добавяме града
+                $title .= ' - ' . $rec->place;
+            } elseif ($country) {
+                
+                // Или ако има държава
+                $title .= ' - ' . $country;
+            }
         }
         
         // Ако е зададено да се ескейпва
@@ -1966,9 +2041,10 @@ class crm_Companies extends core_Master
      * 
      * @param int $id - ид на контрагент
      * @param boolean $translitarate - дали да се транслитерира адреса
+     * @param boolean|NULL $showCountry - да се показвали винаги държавата или Не, NULL означава че автоматично ще се определи
      * @return core_ET $tpl - адреса
      */
-    public function getFullAdress($id, $translitarate = FALSE)
+    public function getFullAdress($id, $translitarate = FALSE, $showCountry = NULL)
     {
     	expect($rec = $this->fetchRec($id));
     	
@@ -1976,11 +2052,15 @@ class crm_Companies extends core_Master
     	$tpl = new ET("<!--ET_BEGIN country-->[#country#]<br><!--ET_END country--> <!--ET_BEGIN pCode-->[#pCode#]<!--ET_END pCode--><!--ET_BEGIN place--> [#place#]<br><!--ET_END place--> [#address#]");
     	
     	// Показваме държавата само ако е различна от тази на моята компания
-    	if($rec->country){
-    		$ourCompany = crm_Companies::fetchOurCompany();
-    		if($ourCompany->country != $rec->country){
-    			$obj->country = $this->getVerbal($rec, 'country');
+    	if(!isset($showCountry)){
+    		if($rec->country){
+    			$ourCompany = crm_Companies::fetchOurCompany();
+    			if($ourCompany->country != $rec->country){
+    				$obj->country = $this->getVerbal($rec, 'country');
+    			}
     		}
+    	} elseif($showCountry === TRUE){
+    		$obj->country = $this->getVerbal($rec, 'country');
     	}
     	
     	$Varchar = cls::get('type_Varchar');

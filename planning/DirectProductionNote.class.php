@@ -40,7 +40,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	 * Плъгини за зареждане
 	 */
 	public $loadList = 'plg_RowTools2, store_plg_StoreFilter, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
-                    doc_DocumentPlg, plg_Printing, plg_Clone, plg_Search, bgerp_plg_Blank,doc_plg_HidePrices';
+                    doc_DocumentPlg, plg_Printing, plg_Clone, bgerp_plg_Blank,doc_plg_HidePrices, deals_plg_SetTermDate, plg_Sorting,cat_plg_AddSearchKeywords, plg_Search';
 	
 	
 	/**
@@ -58,37 +58,43 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	/**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,planning,store';
+	public $canList = 'ceo,planning,store,production';
 	
 	
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,planning,store';
+	public $canSingle = 'ceo,planning,store,production';
 	
 	
 	/**
 	 * Кой има право да променя?
 	 */
-	public $canEdit = 'ceo,planning,store';
+	public $canEdit = 'ceo,planning,store,production';
+	
+	
+	/**
+	 * Дали в листовия изглед да се показва бутона за добавяне
+	 */
+	public $listAddBtn = FALSE;
 	
 	
 	/**
 	 * Кой има право да добавя?
 	 */
-	public $canAdd = 'ceo,planning,store';
+	public $canAdd = 'ceo,planning,store,production';
 	
 	
 	/**
 	 * Кой има право да чете?
 	 */
-	public $canConto = 'ceo,planning,store';
+	public $canConto = 'ceo,planning,store,production';
 	
 	
 	/**
 	 * Кой може да го прави документа чакащ/чернова?
 	 */
-	public $canPending = 'ceo,planning,store';
+	public $canPending = 'ceo,planning,store,production';
 	
 	
 	/**
@@ -140,7 +146,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'valior, title=Документ, productId, quantity=К-во, storeId=В склад,expenseItemId=Разход за, folderId, deadline, createdOn, createdBy';
+	public $listFields = 'valior, title=Документ, productId, packQuantity=К-во, packagingId=Мярка,storeId=В склад,expenseItemId=Разход за, folderId, deadline, createdOn, createdBy';
 	
 	
 	/**
@@ -158,15 +164,31 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	
 	
 	/**
+	 * Нужно ли е да има детайл, за да стане на 'Заявка'
+	 */
+	public $requireDetailForPending = FALSE;
+	
+	
+	/**
+	 * Поле за филтриране по дата
+	 */
+	public $filterDateField = 'createdOn, valior,modifiedOn';
+	
+	
+	/**
 	 * Описание на модела
 	 */
 	function description()
 	{
 		parent::setDocumentFields($this);
-		$this->setField('deadline', 'input=none');
 		$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,before=storeId');
 		$this->FLD('jobQuantity', 'double(smartRound)', 'caption=Задание,input=hidden,mandatory,after=productId');
-		$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=Количество,mandatory,after=jobQuantity');
+		
+		$this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','mandatory,input=hidden,before=packQuantity');
+		$this->FNC('packQuantity', 'double(Min=0,smartRound)', 'caption=Количество,input,mandatory,after=jobQuantity');
+		$this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
+		$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=Количество,input=none');
+		
 		$this->FLD('expenses', 'percent(Min=0)', 'caption=Реж. разходи,after=quantity');
 		$this->setField('storeId', 'caption=Складове->Засклаждане в,after=expenses,silent,removeAndRefreshForm');
 		$this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Складове->Влагане от,after=storeId,input');
@@ -178,29 +200,50 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	
 	
 	/**
+	 * Изчисляване на количеството на реда в брой опаковки
+	 */
+	public static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
+	{
+		if (empty($rec->quantity) || empty($rec->quantityInPack)) return;
+		
+		$rec->packQuantity = $rec->quantity / $rec->quantityInPack;
+	}
+	
+	
+	/**
 	 * Подготвя формата за редактиране
 	 */
 	public function prepareEditForm_($data)
 	{
 		parent::prepareEditForm_($data);
-		
 		$form = &$data->form;
-		
-		if(isset($form->rec->id)){
-			$form->setField('inputStoreId', 'input=none');
-		}
+		$rec = $form->rec;
 		
 		$originRec = doc_Containers::getDocument($form->rec->originId)->rec();
+		$form->setDefault('storeId', $originRec->storeId);
 		$form->setDefault('productId', $originRec->productId);
 		$form->setReadOnly('productId');
-		$shortUom = cat_UoM::getShortName(cat_Products::fetchField($originRec->productId, 'measureId'));
-		$form->setField('quantity', "unit={$shortUom}");
-		$form->setDefault('jobQuantity', $originRec->quantity);
 		
+		$packs = cat_Products::getPacks($rec->productId);
+		$form->setOptions('packagingId', $packs);
+		$form->setDefault('packagingId', $originRec->packagingId);
+		
+		// Ако артикула не е складируем, скриваме полето за мярка
+		$canStore = cat_Products::fetchField($rec->productId, 'canStore');
+		if($canStore == 'no'){
+			
+			$measureShort = cat_UoM::getShortName($rec->packagingId);
+			$form->setField('packQuantity', "unit={$measureShort}");
+		} else {
+			$form->setField('packagingId', 'input');
+		}
+		
+		$form->setDefault('jobQuantity', $originRec->quantity);
 		$quantityFromTasks = planning_TaskActions::getQuantityForJob($originRec->id, 'product');
 		$quantityToStore = $quantityFromTasks - $originRec->quantityProduced;
+		
 		if($quantityToStore > 0){
-			$form->setDefault('quantity', $quantityToStore);
+			$form->setDefault('packQuantity', $quantityToStore / $originRec->quantityInPack);
 		}
 		
 		$bomRec = cat_Products::getLastActiveBom($originRec->productId, 'production');
@@ -231,8 +274,18 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 			$form->setField('inputStoreId', array('caption' => 'Допълнително->Влагане от'));
 		}
 		
-		$curStore = store_Stores::getCurrent('id', FALSE);
-		$form->setDefault('storeId', $curStore);
+		$nQuery = self::getQuery();
+		$nQuery->where("#originId = {$rec->originId} AND (#state = 'active' || #state = 'pending')");
+		$nQuery->where("#id != '{$rec->id}'");
+		$nQuery->orderBy('id', 'DESC');
+		$nQuery->limit(1);
+		
+		if($lastRec = $nQuery->fetch()){
+			$form->setDefault('storeId', $lastRec->storeId);
+			$form->setDefault('inputStoreId', $lastRec->inputStoreId);
+		}
+		
+		$form->setDefault('storeId', store_Stores::getCurrent('id', FALSE));
 		
 		return $data;
 	}
@@ -255,6 +308,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 			} else {
 				$rec->dealId = NULL;
 			}
+			
+			$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+			$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
 		}
 	}
 	
@@ -279,6 +335,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		
 		$row->subTitle = (isset($rec->storeId)) ? 'Засклаждане на продукт' : 'Производство на услуга';
 		$row->subTitle = tr($row->subTitle);
+		
+		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+	
+		if(isset($rec->inputStoreId)){
+			$row->inputStoreId = store_Stores::getHyperlink($rec->inputStoreId, TRUE);
+		}
 	}
 	
 	
@@ -304,7 +366,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 						
 						// Което не е чернова или оттеглено
 						$state = $originDoc->fetchField('state');
-						if($state == 'rejected' || $state == 'draft'){
+						if($state == 'rejected' || $state == 'draft' || $state == 'closed'){
 							$requiredRoles = 'no_one';
 						} else {
 							
@@ -348,15 +410,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 				}
 			}
 		}
-	}
-	
-	
-	/**
-	 * Извиква се след подготовката на toolbar-а за табличния изглед
-	 */
-	protected static function on_AfterPrepareListToolbar($mvc, &$data)
-	{
-		$data->toolbar->removeBtn('btnAdd');
 	}
 	
 	
@@ -638,7 +691,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		
 		// Подготовка на формата
 		$form->title = "Въвеждане на себестойност за|* <b style='color:#ffffcc;'>{$docTitle}</b>";
-		$form->info = tr('Не може да се определи себестойноста, защото няма посочени материали');
+		$form->info = tr('Не може да се определи себестойността, защото няма посочени материали');
 		$form->FLD('debitPrice', 'double(Min=0)', 'caption=Ед. Себест-ст,mandatory');
 		
 		// Ако драйвера може да върне себестойност тя е избрана по дефолт
@@ -676,6 +729,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		
 		$tpl = $form->renderHtml();
 		$tpl = $this->renderWrapping($tpl);
+		
+		$formId = $form->formAttr['id'] ;
+		jquery_Jquery::run($tpl, "preventDoubleSubmission('{$formId}');");
 		
 		return $tpl;
 	}
@@ -746,16 +802,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		}
 		
 		return TRUE;
-	}
-	
-	
-	/**
-	 * Метод по пдоразбиране на getRowInfo за извличане на информацията от реда
-	 */
-	public static function on_AfterGetRowInfo($mvc, &$res, $rec)
-	{
-		$res->packagingId = cat_Products::fetchField($res->productId, 'measureId');
-		$res->quantityInPack = 1;
 	}
 	
 	

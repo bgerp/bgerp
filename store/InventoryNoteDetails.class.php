@@ -54,6 +54,18 @@ class store_InventoryNoteDetails extends doc_Detail
     
     
     /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'ceo, storeMaster';
+    
+    
+    /**
+     * Кой има право да променя системните данни?
+     */
+    public $canDeletesysdata = 'ceo, storeMaster';
+    
+    
+    /**
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo, storeMaster';
@@ -270,6 +282,8 @@ class store_InventoryNoteDetails extends doc_Detail
     		// Ако не е избрано за пазене на артикула, се цикли в следващия в списъка
     		if($rec->keepProduct != 'yes'){
     			$cache = store_InventoryNotes::fetchField($rec->noteId, 'cache');
+    			$cache = (array)json_decode($cache);
+    			
     			$keys = array_values($cache);
     			$i = array_search($rec->productId, $keys);
     			$key = $i + 1;
@@ -365,5 +379,79 @@ class store_InventoryNoteDetails extends doc_Detail
     	$data->listFilter->view = 'horizontal';
     	
     	$data->query->orderby('id', 'DESC');
+    }
+    
+    
+    /**
+     * Екшън за импорт на артикули от група
+     * 
+     * @return core_ET $tpl
+     */
+    function act_Import()
+    {
+    	// Проверки
+    	$this->requireRightFor('add');
+    	expect($noteId = Request::get('noteId', 'int'));
+    	expect($noteRec = store_InventoryNotes::fetch($noteId));
+    	$this->requireRightFor('add', (object)array('noteId' => $noteId));
+    	
+    	// Подготовка на формата
+    	$form = cls::get('core_Form');
+    	$form->title = 'Импортиране на артикули в|* <b>' . store_InventoryNotes::getHyperlink($noteId, TRUE) . "</b>";
+    	$form->FLD('group', 'key(mvc=cat_Groups,select=name,allowEmpty)', "caption=Група,mandatory,silent,removeAndRefreshForm=selected");
+    	$form->input(NULL, 'silent');
+    	$form->input();
+    	$rec = $form->rec;
+    	
+    	// Ако е избрана група извличат се складируемите артикули от нея, които ги няма в протокола
+    	if(isset($rec->group)){
+    		$inArr = cls::get('store_InventoryNotes')->getCurrentProducts($noteRec);
+    		$inArr = arr::extractValuesFromArray($inArr, 'productId');
+    		
+    		$query = cat_Products::getQuery();
+    		$query->likeKeylist('groups', $rec->group);
+    		if(count($inArr)){
+    			$query->notIn('id', $inArr);
+    		}
+    		
+    		$products = array();
+    		$query->where("#state = 'active'");
+    		$query->where("#canStore = 'yes'");
+    		$query->show('isPublic,folderId,meta,id,code,name');
+    		while($pRec = $query->fetch()){
+    			$products[$pRec->id] = static::getRecTitle($pRec, FALSE);
+    		}
+    		
+    		if(!count($products)){
+    			$form->setError('group', 'Няма нови артикули за импортиране от групата');
+    		} else {
+    			$set = cls::get('type_Set', array('suggestions' => $products));
+    			$form->FLD('selected', 'varchar', 'caption=Артикули,mandatory');
+    			$form->setFieldType('selected', $set);
+    			$form->input('selected');
+    			$form->setDefault('selected', $set->fromVerbal($products));
+    		}
+    	}
+    	
+    	// Ако формата е събмитната
+    	if($form->isSubmitted()){
+    		$products = type_Set::toArray($rec->selected);
+    		if(is_array($products)){
+    			$count = 0;
+    			foreach ($products as $pId){
+    				$rId = store_InventoryNoteSummary::force($noteId, $pId);
+    				$count++;
+    			}
+    			
+    			followRetUrl(NULL, "Импортирани са|* '{$count}' |артикула|*");
+    		}
+    	}
+    	
+    	$form->toolbar->addSbBtn('Импорт', 'save', 'ef_icon = img/16/import.png, title = Импорт');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+		
+		$tpl = $this->renderWrapping($form->renderHtml());
+		
+		return $tpl;
     }
 }

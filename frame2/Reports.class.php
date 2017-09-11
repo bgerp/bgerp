@@ -32,8 +32,14 @@ class frame2_Reports extends embed_Manager
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_RowTools2, frame_Wrapper, doc_plg_Prototype, doc_DocumentPlg, doc_plg_SelectFolder, plg_Search, plg_Printing, bgerp_plg_Blank, doc_SharablePlg';
+    public $loadList = 'plg_RowTools2, frame_Wrapper, doc_plg_Prototype, doc_DocumentPlg, doc_plg_SelectFolder, plg_Search, plg_Printing, bgerp_plg_Blank, doc_SharablePlg, plg_Clone';
                       
+    
+    /**
+     * Кой има право да клонира?
+     */
+    public $canClonerec = 'powerUser';
+    
     
     /**
      * Да се показва антетка
@@ -186,6 +192,14 @@ class frame2_Reports extends embed_Manager
     
     
     /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'lastRefreshed';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -209,6 +223,14 @@ class frame2_Reports extends embed_Manager
     	$form = &$data->form;
     	$form->setField('notificationText', array('placeholder' => self::$defaultNotificationText));
     	$form->setField('maxKeepHistory', array('placeholder' => self::MAX_VERSION_HISTORT_COUNT));
+    
+    	if($Driver = self::getDriver($form->rec)){
+    		$dates = $Driver->getNextRefreshDates($form->rec);
+    		if((is_array($dates) && count($dates)) || $dates === FALSE){
+    			$form->setField('updateDays', 'input=none');
+    			$form->setField('updateTime', 'input=none');
+    		}
+    	}
     }
     
     
@@ -230,13 +252,6 @@ class frame2_Reports extends embed_Manager
     			// и няма заглавие на отчета, прави се опит да се вземе от драйвера
     			if(empty($rec->title)){
     				$rec->title = $Driver->getTitle($rec);
-    			}
-    			
-    			// Ако отчета е за фиксирана дата и има опит за обновяване по разписание дава се грешка
-    			if(!empty($rec->updateTime) || !empty($rec->updateDays)){
-    				if(!$Driver->canBeRefreshedOnTime($rec)){
-    					$form->setError('updateDays,updateTime', 'Отчета е за фиксирана дата/период и не може да бъде опресняван по разписание');
-    				}
     			}
     			
     			$refresh = TRUE;
@@ -313,13 +328,14 @@ class frame2_Reports extends embed_Manager
      */
     public static function sendNotification($rec)
     {
+    	// Ако няма избрани потребители за нотифициране, не се прави нищо
     	$userArr = keylist::toArray($rec->sharedUsers);
     	if(!count($userArr)) return;
     	
     	$text = (!empty($rec->notificationText)) ? $rec->notificationText : self::$defaultNotificationText;
     	$msg = new core_ET($text);
     	
-    	// Заместване на параметрите
+    	// Заместване на параметрите в текста на нотификацията
     	if($Driver = self::getDriver($rec)){
     		$params = $Driver->getNotificationParams($rec);
     		if(is_array($params)){
@@ -327,8 +343,13 @@ class frame2_Reports extends embed_Manager
     		}
     	}
     	
-    	// Изпращане на нотификациите
-    	doc_Containers::notifyToSubscribedUsers($rec->containerId, $msg->getContent());
+    	$url = array('frame2_Reports', 'single', $rec->id);
+    	$msg = $msg->getContent();
+    	
+    	// На всеки от абонираните потребители се изпраща нотификацията за промяна на документа
+    	foreach ($userArr as $userId){
+    		bgerp_Notifications::add($msg, $url, $userId);
+    	}
     }
     
     
@@ -408,7 +429,7 @@ class frame2_Reports extends embed_Manager
     	
     	// Рендиране на данните
     	if($Driver = $mvc->getDriver($rec)){
-    		$tpl->append($Driver->renderData($rec), 'DRIVER_DATA');
+    		$tpl->replace($Driver->renderData($rec)->getContent(), 'DRIVER_DATA');
     	}
     	
     	// Връщане на оригиналния рек ако е пушнат
@@ -427,6 +448,7 @@ class frame2_Reports extends embed_Manager
     {
     	try{
     		expect($rec = self::fetch($data->id));
+    		if($rec->state == 'rejected') return;
     		self::refresh($rec);
     	} catch(core_exception_Expect $e){
     		reportException($e);
@@ -445,7 +467,7 @@ class frame2_Reports extends embed_Manager
     	
     	// Ако има драйвер
     	if($Driver = self::getDriver($rec)){
-    		$me = self::getSingleton();
+    		$me = cls::get(get_called_class());
     		
     		// Опресняват се данните му
     		$rec->data = $Driver->prepareData($rec);
@@ -538,6 +560,10 @@ class frame2_Reports extends embed_Manager
     {
     	if($rec->state == 'draft'){
     		$rec->state = 'active';
+    	} elseif($rec->state == 'rejected'){
+    		$rec->removeSetUpdateTimes = TRUE;
+    	} elseif($rec->state == 'active' && $rec->brState == 'rejected'){
+    		$rec->updateRefreshTimes = TRUE;
     	}
     }
     
@@ -549,7 +575,8 @@ class frame2_Reports extends embed_Manager
     {
     	if($action == 'refresh' && isset($rec)){
     		if($Driver = $mvc->getDriver($rec)){
-    			if(!$Driver->canBeRefreshedOnTime($rec)){
+    			$dates = $Driver->getNextRefreshDates($rec);
+    			if($dates === FALSE){
     				$requiredRoles = 'no_one';
     			}
     		}
@@ -574,7 +601,7 @@ class frame2_Reports extends embed_Manager
     	}
     	
     	// За модификация, потребителя трябва да има права и за драйвера
-    	if(in_array($action, array('edit', 'write', 'refresh', 'export')) && isset($rec->driverClass)){
+    	if(in_array($action, array('edit', 'write', 'refresh', 'export', 'clonerec')) && isset($rec->driverClass)){
     		if($Driver = $mvc->getDriver($rec)){
     			if(!$Driver->canSelectDriver($userId)){
     				$requiredRoles = 'no_one';
@@ -597,9 +624,9 @@ class frame2_Reports extends embed_Manager
     	$resArr = arr::make($resArr);
     	$resArr['title'] = array('name' => tr('Заглавие'), 'val' => $row->title);
     	
-    	if(!empty($rec->updateDays) || !empty($rec->updateTime)){
+    	if(!empty($rec->updateDays) || !empty($rec->updateTime) || !empty($row->nextUpdate)){
     		$resArr['update'] = array('name' => tr('Актуализиране'), 'val' => tr("|*<!--ET_BEGIN updateDays--><div><span style='font-weight:normal'>|Дни|*</span>: [#updateDays#]<br><!--ET_END updateDays-->
-        																		 <!--ET_BEGIN updateTime--><span style='font-weight:normal'>|Часове|*</span>: [#updateTime#]<!--ET_END updateTime-->"));										 
+        																		 <!--ET_BEGIN updateTime--><span style='font-weight:normal'>|Часове|*</span>: [#updateTime#]<!--ET_END updateTime--><!--ET_BEGIN nextUpdate--><div><span style='font-weight:normal'>|Следващо|*</span> [#nextUpdate#]</div><!--ET_END nextUpdate-->"));										 
     	}
     	
     	if(isset($rec->lastRefreshed)){
@@ -668,6 +695,11 @@ class frame2_Reports extends embed_Manager
     				}
     			}
     		}
+    		
+    		$callOn = $mvc->getNextRefreshTime($rec);
+    		if(!empty($callOn)){
+    			$row->nextUpdate = core_Type::getByName('datetime(format=smartTime)')->toVerbal($callOn);
+    		}
     	}
     }
     
@@ -704,9 +736,7 @@ class frame2_Reports extends embed_Manager
     	header("Content-Disposition: attachment; filename={$fileName}({$rec->id}).csv");
     	header("Pragma: no-cache");
     	header("Expires: 0");
-    	 
     	echo $csv;
-    
     	shutdown();
     }
     
@@ -732,9 +762,17 @@ class frame2_Reports extends embed_Manager
     public static function setAutoRefresh($id)
     {
     	$rec = self::fetchRec($id);
+    	$dates = NULL;
     	
-    	// Намира следващите три времена за обновяване
-    	$dates = self::getNextRefreshDates($rec);
+    	if($Driver = self::getDriver($rec)){
+    		$dates = $Driver->getNextRefreshDates($rec);
+    	}
+    	
+    	if(empty($dates)){
+    		
+    		// Намира следващите три времена за обновяване
+    		$dates = self::getNextRefreshDates($rec);
+    	}
     	
     	// Обхождане от 0 до 2
     	foreach (range(0, 2) as $i){
@@ -748,6 +786,21 @@ class frame2_Reports extends embed_Manager
     	
     	if(haveRole('debug')){
     		status_Messages::newStatus("Зададени времена за обновяване");
+    	}
+    }
+    
+    
+    /**
+     * Следващото обновяване на отчета
+     * 
+     * @param stdClass $rec
+     * @return datetime|NULL
+     */
+    private function getNextRefreshTime($rec)
+    {
+    	foreach (range(0, 2) as $i){
+    		$callOn = core_CallOnTime::getNextCallTime(get_called_class(), 'refreshOnTime', (object)array('id' => (string)$rec->id, 'index' => (string)$i));
+    		if(!empty($callOn)) return $callOn;
     	}
     }
     

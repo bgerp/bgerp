@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   cash
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -35,9 +35,9 @@ abstract class cash_Document extends deals_PaymentDocument
      * Неща, подлежащи на начално зареждане
      */
     public $loadList = 'plg_RowTools2, cash_Wrapper, plg_Sorting, acc_plg_Contable,
-                     doc_DocumentPlg, plg_Printing, doc_SequencerPlg,acc_plg_DocumentSummary,
+                     plg_Clone,doc_DocumentPlg, plg_Printing,acc_plg_DocumentSummary,
                      plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, doc_plg_HidePrices,
-                     bgerp_DealIntf, doc_EmailCreatePlg, cond_plg_DefaultValues, doc_SharablePlg';
+                     doc_EmailCreatePlg, cond_plg_DefaultValues, doc_SharablePlg,deals_plg_SetTermDate';
     
     
     /**
@@ -49,7 +49,7 @@ abstract class cash_Document extends deals_PaymentDocument
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "valior, title=Документ, reason, folderId, currencyId=Валута, amount,state, createdOn, createdBy";
+    public $listFields = "termDate=Очаквано,valior=Вальор, title=Документ, reason, folderId, currencyId=Валута, amount,state, createdOn, createdBy";
     
     
     /**
@@ -95,6 +95,12 @@ abstract class cash_Document extends deals_PaymentDocument
     
     
     /**
+     * Дата на очакване
+     */
+    public $termDateFld = 'termDate';
+    
+    
+    /**
      * Кой може да го контира?
      */
     public $canConto = 'cash, ceo';
@@ -103,7 +109,7 @@ abstract class cash_Document extends deals_PaymentDocument
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'number, valior, contragentName, reason, id';
+    public $searchFields = 'valior, contragentName, reason, id';
     
     
     /**
@@ -142,6 +148,12 @@ abstract class cash_Document extends deals_PaymentDocument
     
     
     /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
+    
+    
+    /**
      * Добавяне на дефолтни полета
      * 
      * @param core_Mvc $mvc
@@ -152,9 +164,8 @@ abstract class cash_Document extends deals_PaymentDocument
     	$mvc->FLD('operationSysId', 'varchar', 'caption=Операция,mandatory');
     	$mvc->FLD('amountDeal', 'double(decimals=2,max=2000000000,min=0)', 'caption=Платени,mandatory,silent');
     	$mvc->FLD('dealCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'input=hidden');
-    	$mvc->FLD('reason', 'richtext(rows=2)', 'caption=Основание,mandatory');
-    	$mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор');
-    	$mvc->FLD('number', 'int', 'caption=Номер');
+    	$mvc->FLD('reason', 'richtext(rows=2, bucket=Notes)', 'caption=Основание,mandatory');
+    	$mvc->FLD('termDate', 'date(format=d.m.Y)', 'caption=Очаквано на');
     	$mvc->FLD('peroCase', 'key(mvc=cash_Cases, select=name,allowEmpty)', 'caption=Каса,removeAndRefreshForm=currencyId|amount,silent');
     	$mvc->FLD('contragentName', 'varchar(255)', 'caption=Контрагент->Вносител,mandatory');
     	$mvc->FLD('contragentId', 'int', 'input=hidden,notNull');
@@ -168,12 +179,10 @@ abstract class cash_Document extends deals_PaymentDocument
     	$mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута (и сума) на плащането->Валута,silent,removeAndRefreshForm=rate|amount');
     	$mvc->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,summary=amount,input=hidden');
     	$mvc->FLD('rate', 'double(decimals=5)', 'caption=Валута (и сума) на плащането->Курс,input=none');
-    	$mvc->FLD('notes', 'richtext(bucket=Notes,rows=6)', 'caption=Допълнително->Бележки');
+    	$mvc->FLD('notes', 'richtext(bucket=Notes,rows=1)', 'caption=Допълнително->Бележки,autohide');
+    	$mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Допълнително->Вальор,autohide');
     	$mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)',	'caption=Статус, input=none');
     	$mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
-    	 
-    	// Поставяне на уникален индекс
-    	$mvc->setDbUnique('number');
     }
     
     
@@ -314,6 +323,8 @@ abstract class cash_Document extends deals_PaymentDocument
     		if($msg = currency_CurrencyRates::checkAmounts($rec->amount, $rec->amountDeal, $rec->valior, $currencyCode, $dealCurrencyCode)){
     			$form->setError('amountDeal', $msg);
     		}
+    		
+    		$mvc->invoke('AfterSubmitInputEditForm', array($form));
     	}
     }
     
@@ -349,23 +360,6 @@ abstract class cash_Document extends deals_PaymentDocument
     		$data->toolbar->addBtn('Контиране', array(), array('id' => 'btnConto', 'error' => 'Документа не може да бъде контиран, докато няма посочена каса|*!'), 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
     	}
     }
-    
-    
-    /**
-     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
-     */
-    public function getDocumentRow($id)
-    {
-    	$rec = $this->fetch($id);
-    	$row = new stdClass();
-    	$row->title = $this->singleTitle . " №{$id}";
-    	$row->authorId = $rec->createdBy;
-    	$row->author = $this->getVerbal($rec, 'createdBy');
-    	$row->state = $rec->state;
-    	$row->recTitle = $rec->reason;
-    
-    	return $row;
-    }
 
 
     /**
@@ -376,17 +370,6 @@ abstract class cash_Document extends deals_PaymentDocument
     	$self = cls::get(get_called_class());
     
     	return $self->singleTitle . " №$rec->id";
-    }
-
-
-    /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    protected static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	if(!empty($data->toolbar->buttons['btnAdd'])){
-    		$data->toolbar->removeBtn('btnAdd');
-    	}
     }
 
 
@@ -514,9 +497,11 @@ abstract class cash_Document extends deals_PaymentDocument
     		}
     
     		// Извличаме имената на създателя на документа (касиера)
-    		$cashierRec = core_Users::fetch($rec->createdBy);
-    		$cashierRow = core_Users::recToVerbal($cashierRec);
-    		$row->cashier = $cashierRow->names;
+    		if(isset($rec->activatedBy)){
+    			$cashierRec = core_Users::fetch($rec->activatedBy);
+    			$cashierRow = core_Users::recToVerbal($cashierRec);
+    			$row->activatedBy = $cashierRow->names;
+    		}
     
     		if(isset($rec->peroCase)){
     			$row->peroCase = cash_Cases::getHyperlink($rec->peroCase);

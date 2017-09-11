@@ -110,6 +110,12 @@ class accda_Documents extends core_Master
     
     
     /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
+    
+    
+    /**
      * Поле за търсене
      */
     var $searchFields = 'folderId, threadId, containerId';
@@ -164,14 +170,5 @@ class accda_Documents extends core_Master
         $row->recTitle = $rec->title;
         
         return $row;
-    }
-    
-    
-    /**
-     * След подготовката на туулбара на списъчния изглед
-     */
-    static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-        $data->toolbar->removeBtn('btnAdd');
     }
 }

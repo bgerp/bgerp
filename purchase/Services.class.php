@@ -39,9 +39,8 @@ class purchase_Services extends deals_ServiceMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, purchase_Wrapper, plg_Sorting, sales_plg_CalcPriceDelta, acc_plg_Contable, doc_DocumentPlg, plg_Printing,
-                    acc_plg_DocumentSummary,
-					doc_EmailCreatePlg, bgerp_plg_Blank, cond_plg_DefaultValues, doc_plg_TplManager, doc_plg_HidePrices,plg_Search, doc_SharablePlg';
+    public $loadList = 'plg_RowTools2, purchase_Wrapper, sales_plg_CalcPriceDelta, acc_plg_Contable, plg_Sorting,plg_Clone, doc_DocumentPlg, plg_Printing,
+                    acc_plg_DocumentSummary,doc_EmailCreatePlg, bgerp_plg_Blank, cond_plg_DefaultValues, doc_plg_TplManager, doc_plg_HidePrices, doc_SharablePlg,cat_plg_AddSearchKeywords,plg_Search';
 
     
     /**
@@ -160,6 +159,22 @@ class purchase_Services extends deals_ServiceMaster
      */
     public $mainDetail = 'purchase_ServicesDetails';
     
+
+    /**
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     *
+     * @see plg_Clone
+     */
+    public $cloneDetails = 'purchase_ServicesDetails';
+    
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'valior,amountDelivered,amountDiscount,amountDeliveredVat,deliveryTime';
+    
     
     /**
      * Основна операция
@@ -173,6 +188,12 @@ class purchase_Services extends deals_ServiceMaster
     public static $defaultStrategies = array(
     	'delivered' => 'lastDocUser|lastDoc',
     );
+    
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, valior,deliveryTime,modifiedOn';
     
     
     /**

@@ -33,7 +33,7 @@ class cat_Listings extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_ActivatePlg, plg_Search, doc_DocumentPlg, doc_plg_SelectFolder';
+    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_ActivatePlg, plg_Clone, doc_DocumentPlg, doc_plg_SelectFolder, cat_plg_AddSearchKeywords, plg_Search';
                     
     
     /**
@@ -61,6 +61,12 @@ class cat_Listings extends core_Master
     
     
     /**
+     * Кой е основния детайл
+     */
+    public $mainDetail = 'cat_ListingDetails';
+    
+    
+    /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'doc=Документ,title, folderId, createdOn, createdBy';
@@ -69,25 +75,25 @@ class cat_Listings extends core_Master
     /**
      * Кой може да го промени?
      */
-    public $canEdit = 'cat,ceo';
+    public $canEdit = 'listArt,ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'cat,ceo';
+    public $canAdd = 'listArt,ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'cat,ceo';
+    public $canList = 'listArt,ceo';
     
     
     /**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'cat,ceo';
+	public $canSingle = 'listing,ceo';
 
 
 	/**
@@ -112,18 +118,38 @@ class cat_Listings extends core_Master
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
     public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders,crm_ContragentAccRegIntf';
+
+    /**
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     *
+     * @see plg_Clone
+     */
+    public $cloneDetails = 'cat_ListingDetails';
     
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'title';
+
     
     /**
      * Описание на модела (таблицата)
      */
     function description()
     {
-    	$this->FLD('title', 'varchar', 'mandatory,caption=Заглавие');
+    	$this->FLD('title', 'varchar', 'mandatory,caption=Заглавие,ci');
     	$this->FLD('type', 'enum(canSell=Продаваеми,canBuy=Купуваеми)', 'mandatory,caption=Артикули,notNull,value=canSell');
     	$this->FLD('isPublic', 'enum(yes=Да,no=Не)', 'mandatory,caption=Публичен,input=none');
+    	$this->FLD('sysId', 'varchar', 'input=none');
     	
-    	$this->setDbUnique('title');
+    	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Допълнително->Валута');
+    	$this->FLD('vat', 'enum(yes=Включено,no=Без ДДС)', 'caption=Допълнително->ДДС');
+    	
+    	$this->setDbIndex('title,type');
+    	$this->setDbIndex('sysId');
     }
     
     
@@ -138,7 +164,15 @@ class cat_Listings extends core_Master
     	if(isset($rec->id)){
     		if(cat_ListingDetails::fetchField("#listId = {$rec->id}")){
     			$form->setReadOnly('type');
+    			$form->setReadOnly('currencyId');
+    			$form->setReadOnly('vat');
     		}
+    	}
+    	
+    	$Cover = doc_Folders::getCover($rec->folderId);
+    	if($Cover->haveInterface('crm_ContragentAccRegIntf')){
+    		$form->setDefault('currencyId', $Cover->getDefaultCurrencyId());
+    		$form->setDefault('vat', ($Cover->shouldChargeVat()) ? 'yes' : 'no');
     	}
     }
     
@@ -152,7 +186,7 @@ class cat_Listings extends core_Master
     	$row = new stdClass();
     	$title = $this->getVerbal($rec, 'title');
     	 
-    	$row->title    = tr($this->singleTitle) . " \"{$title}\"";
+    	$row->title    = $title . " №{$rec->id}";
     	$row->authorId = $rec->createdBy;
     	$row->author   = $this->getVerbal($rec, 'createdBy');
     	$row->recTitle = $row->title;
@@ -225,9 +259,10 @@ class cat_Listings extends core_Master
     			
     		// Кои са листваните артикули за контрагента
     		$query = cat_ListingDetails::getQuery();
+    		$query->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
     		$query->where("#listId = {$listRec->id}");
     		
-    		if(isset($instock) && is_array($instock)){
+    		if(is_array($instock) && count($instock)){
     			
     			// Артикулите се подреждат така че наличните в склада да са по-напред
     			$instock = implode(',', $instock);
@@ -244,12 +279,25 @@ class cat_Listings extends core_Master
     		
     		// Добавя се всеки запис, групиран според типа
     		while($rec = $query->fetch()){
-    			$obj = (object)array('productId' => $rec->productId, 'packagingId' => $rec->packagingId, 'reff' => $rec->reff, 'moq' => $rec->moq, 'multiplicity' => $rec->multiplicity);
+    			$reff = (!empty($rec->reff)) ? $rec->reff : $rec->code;
+    			$obj = (object)array('productId' => $rec->productId, 'packagingId' => $rec->packagingId, 'reff' => $reff, 'moq' => $rec->moq, 'multiplicity' => $rec->multiplicity, 'code' => $rec->code);
+    			if(isset($rec->price)){
+    				
+    				if($listRec->vat == 'yes'){
+    					$vat = cat_Products::getVat($rec->productId);
+    					$rec->price /= 1 + $vat;
+    				}
+    				
+    				$rate = currency_CurrencyRates::getRate(NULL, $listRec->currencyId, NULL);
+    				
+    				$price = $rec->price * $rate;
+    				$obj->price = $price;
+    			}
     			
     			self::$cache[$listRec->id][$rec->id] = $obj;
     		}
     	}
-    
+    	
     	// Връщане на кешираните данни
     	return self::$cache[$listRec->id];
     }
@@ -287,7 +335,7 @@ class cat_Listings extends core_Master
     
     	// Ако има намерен поне един запис се връща кода
     	$firstFound = $res[key($res)];
-    	$reff = (is_object($firstFound)) ? $firstFound->reff : NULL;
+    	$reff = (is_object($firstFound)) ? (($firstFound->reff != $firstFound->code) ? $firstFound->reff : NULL) : NULL;
     
     	// Връща се намерения код
     	return $reff;
@@ -305,31 +353,6 @@ class cat_Listings extends core_Master
     
     	// Сортиране на записите по num
     	$data->query->orderBy('id');
-    }
-    
-    
-    /**
-     * Добавя ключови думи за пълнотекстово търсене, това са името на
-     * документа или папката
-     */
-    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
-    {
-    	// Тук ще генерираме всички ключови думи
-    	$detailsKeywords = '';
-    
-    	// Заявка към детайлите
-    	$query = cat_ListingDetails::getQuery();
-    	$query->where("#listId  = '{$rec->id}'");
-   
-    	while ($dRec = $query->fetch()){
-    		
-    		// взимаме заглавията на продуктите
-    		$productTitle = cat_Products::getTitleById($dRec->productId);
-    		$detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
-    	}
-    	
-    	// добавяме новите ключови думи към основните
-    	$res = " " . $res . " " . $detailsKeywords;
     }
     
     
@@ -381,5 +404,161 @@ class cat_Listings extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->doc = $mvc->getLink($rec->id, 0);
+    }
+    
+    
+    /**
+     * Обновяване на листите за продажба
+     */
+    public function cron_UpdateAutoLists()
+    {
+    	core_Debug::$isLogging = FALSE;
+    	
+    	$from = dt::addDays(-60, NULL, FALSE);
+    	$today = dt::today();
+    	$now = dt::now();
+    	
+    	$cache = array();
+    	
+    	// Намират се последните продажби за месеца
+    	$query = sales_Sales::getQuery();
+    	$query->where("#valior >= '{$from}' AND #valior <= '{$today}' AND (#state = 'active' OR #state = 'closed')");
+    	$query->groupBy('folderId');
+    	$query->show('folderId');
+    	
+    	// Извличат се папките им
+    	$folders = arr::extractValuesFromArray($query->fetchAll(), 'folderId');
+    	$count = count($folders);
+    	if(!$count) return;
+    	
+    	core_App::setTimeLimit($count * 3);
+    	
+    	// За всяка папка
+    	foreach ($folders as $folderId){
+    		
+    		// Има ли зададено търговско условие за автоматичен лист
+    		$Cover = doc_Folders::getCover($folderId);
+    		if(!$Cover->haveInterface('crm_ContragentAccRegIntf')) continue;
+    		
+    		// Има ли зададено търговско условие
+    		$value = cond_Parameters::getParameter($Cover->getInstance(), $Cover->that, 'autoSalesMakeList');
+    		if($value !== 'yes') continue;
+    		
+    		// Задаване на списъка като търговско условие, ако няма такова за контрагента
+    		$paramId = cond_Parameters::fetchIdBySysId('salesList');
+    		
+    		// Ако за тази папка има избран лист не се създава
+    		$condId = cond_ConditionsToCustomers::fetchByCustomer($Cover->getClassId(), $Cover->that, $paramId);
+    		$autoListId = cat_Listings::fetchField("#sysId = 'auto{$folderId}'");
+    		
+    		if(!empty($condId) && empty($autoListId)) continue;
+
+    		$res = array();
+    		
+    		// Намират се всички продавани стандартни артикули от тази папка
+    		$dQuery = sales_SalesDetails::getQuery();
+    		$dQuery->XPR('count', 'int', 'count(#productId)');
+    		$dQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+    		$dQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
+    		$dQuery->EXT('canSell', 'cat_Products', 'externalName=canSell,externalKey=productId');
+    		$dQuery->EXT('valior', 'sales_Sales', 'externalName=valior,externalKey=saleId');
+    		$dQuery->EXT('folderId', 'sales_Sales', 'externalName=folderId,externalKey=saleId');
+    		$dQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
+    		$dQuery->EXT('state', 'sales_Sales', 'externalName=state,externalKey=saleId');
+    		$dQuery->where("#valior >= '{$from}' AND #valior <= '{$today}' AND (#state = 'active' OR #state = 'closed')");
+    		$dQuery->where("#folderId = {$folderId} AND #canSell = 'yes' AND #isPublic = 'yes'");
+    		
+    		// Ограничаване по групи, ако има
+    		$groupList = cat_Setup::get('AUTO_LIST_ALLOWED_GROUPS');
+    		if(!empty($groupList)){
+    			$dQuery->likeKeylist('groups', $groupList);
+    		}
+    		
+    		$dQuery->groupBy('productId,packagingId');
+    		$dQuery->show('productId,packagingId,code,count');
+    		$dQuery->orderBy('count,saleId', 'DESC');
+    		$all = $dQuery->fetchAll();
+    		
+    		if(!count($all)) continue;
+    		$products = arr::extractSubArray($all, 'productId,packagingId');
+    		
+    		// Форсира се системен лист
+    		$listId = self::forceAutoList($folderId, $Cover);
+    		
+    		if($listId && empty($condId)){
+    			cond_ConditionsToCustomers::force($Cover->getClassId(), $Cover->that, $paramId, $listId);
+    		}
+    		
+    		$newDetails = array();
+    		
+    		// За всеки артикул, подготвят се детайлите
+    		foreach ($products as $obj){
+    			if(array_key_exists($obj->productId, $newDetails)) continue;
+    			
+    			if(!array_key_exists($obj->productId, $cache)){
+    				$cache[$obj->productId] = array('reff' => cat_Products::fetchField($obj->productId, 'code'));
+    			}
+    			
+    			$newDetails[$obj->productId] = (object)array('listId'      => $listId,
+    												         'productId'   => $obj->productId, 
+    					                                     'reff'        => $cache[$obj->productId]['reff'],
+    													     'modifiedOn'  => $now,
+    													     'modifiedBy'  => core_Users::SYSTEM_USER,
+     					                                     'packagingId' => $obj->packagingId);
+    		}
+    		
+    		$limit = cat_Setup::get('AUTO_LIST_PRODUCT_COUNT');
+    		
+    		// Взимат се първите N записа
+    		$newDetails = array_slice($newDetails, 0, $limit, TRUE);
+    		
+    		// Досегашните записи на листа
+    		$lQuery = cat_ListingDetails::getQuery();
+    		$lQuery->where("#listId = {$listId}");
+    		$old = $lQuery->fetchAll();
+    		
+    		// Синхронизиране на новите записи
+    		$res = arr::syncArrays($newDetails, $old, 'productId,packagingId', 'packagingId');
+    		
+    		// Инсърт на новите
+    		if(count($res['insert'])){
+    			cat_ListingDetails::saveArray($res['insert']);
+    		}
+    		
+    		// Ъпдейт на старите
+    		if(count($res['update'])){
+    			cat_ListingDetails::saveArray($res['update'], 'packagingId');
+    		}
+    		
+    		// Изтриване на тези дето не се срещат
+    		if(count($res['delete'])){
+    			$delete = implode(',', $res['delete']);
+    			cat_ListingDetails::delete("#id IN ({$delete})");
+    		}
+    	}
+    	
+    	core_Debug::$isLogging = TRUE;
+    }
+    
+    
+    /**
+     * Форсира автоматичния лист на потребителя
+     * 
+     * @param int $folderId - ид на папка
+     * @return int $listid - ид на форсирания лист
+     */
+    private static function forceAutoList($folderId, $Cover)
+    {
+    	$folderName = doc_Folders::getTitleById($folderId);
+    	$title = "Списък от предишни продажби";
+    	$listId = cat_Listings::fetchField("#sysId = 'auto{$folderId}'");
+    	if(!$listId){
+    		$lRec = (object)array('title' => $title, 'type' => 'canSell', 'folderId' => $folderId, 'state' => 'active', 'isPublic' => 'no', 'sysId' => "auto{$folderId}");
+    		$lRec->currencyId = $Cover->getDefaultCurrencyId();
+    		$lRec->vat = ($Cover->shouldChargeVat()) ? 'yes' : 'no';
+    		$listId = self::save($lRec);
+    	}
+    	
+    	return $listId;
     }
 }

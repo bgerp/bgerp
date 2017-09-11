@@ -36,7 +36,7 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
      */
     public $loadList = 'plg_RowTools2, plg_Created, sales_Wrapper, plg_RowNumbering, plg_SaveAndNew, 
                         plg_AlignDecimals2, plg_Sorting, doc_plg_HidePrices, LastPricePolicy=sales_SalesLastPricePolicy,
-                        ReversePolicy=purchase_PurchaseLastPricePolicy,acc_plg_ExpenseAllocation, plg_PrevAndNext,doc_plg_HideMeasureAndQuantityColumns';
+                        ReversePolicy=purchase_PurchaseLastPricePolicy,acc_plg_ExpenseAllocation, plg_PrevAndNext,doc_plg_HideMeasureAndQuantityColumns,cat_plg_ShowCodes';
     
     
     /**
@@ -66,7 +66,7 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId=Мярка, packQuantity, packPrice, discount, amount,quantityInPack';
+    public $listFields = 'productId, packagingId=Мярка, packQuantity, packPrice, discount, amount';
     
         
     /**
@@ -136,9 +136,7 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
     		foreach ($data->rows as $i => &$row) {
     			$rec = &$data->recs[$i];
                 $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $data->masterData->rec->tplLang);
-                if($rec->notes){
-    				$row->productId .= "<div class='small'>{$mvc->getFieldType('notes')->toVerbal($rec->notes)}</div>";
-    			}
+                deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     		}
     	}
     	

@@ -13,7 +13,13 @@
  */
 class doc_DocumentCache extends core_Master
 {
-	
+    
+    
+    /**
+     * Масив с containerId, които да се инвалидират
+     */
+    static $invalidateCIdArr = array();
+    
 	
 	/**
 	 * Необходими плъгини
@@ -116,9 +122,8 @@ class doc_DocumentCache extends core_Master
  		    return $rec->cache;
 		} 
 	}
-
-
-
+    
+	
     /**
      * Записва документ в кеша
      */
@@ -241,4 +246,37 @@ class doc_DocumentCache extends core_Master
 		
 		return $deleted;
 	}
+	
+	/**
+	 * Добавя containerId, за инвалидиране в on_Shutdown
+	 * 
+	 * @param integer $cId
+	 */
+	public static function addToInvalidateCId($cId)
+	{
+	    if ($cId) {
+	        
+	        cls::get(get_called_class());
+	        
+	        self::$invalidateCIdArr[$cId] = $cId;
+	    }
+	}
+	
+	
+	/**
+	 * 
+	 * 
+	 * @param doc_DocumentCache $mvc
+	 */
+    public static function on_Shutdown($mvc)
+    {
+        if (empty(self::$invalidateCIdArr)) return ;
+        
+        foreach (self::$invalidateCIdArr as $cId) {
+            
+            if (!$cId) continue;
+            
+            self::cacheInvalidation($cId);
+        }
+    }
 }

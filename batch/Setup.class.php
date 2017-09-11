@@ -14,6 +14,12 @@ defIfNot('BATCH_CLOSE_OLD_BATCHES', core_DateTime::SECONDS_IN_MONTH);
 
 
 /**
+ * Брой партиди които да се показват в прозореца за промяна на партидите
+ */
+defIfNot('BATCH_COUNT_IN_EDIT_WINDOW', 10);
+
+
+/**
  * class batch_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -23,7 +29,7 @@ defIfNot('BATCH_CLOSE_OLD_BATCHES', core_DateTime::SECONDS_IN_MONTH);
  * @category  bgerp
  * @package   batch
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -34,31 +40,31 @@ class batch_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'batch_Items';
+    public $startCtr = 'batch_Items';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Партиди и серийни номера към складовите документи";
+    public $info = "Партиди и серийни номера към складовите документи";
             
         
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
             'batch_Defs',
     		'batch_Items',
     		'batch_Movements',
@@ -69,25 +75,26 @@ class batch_Setup extends core_ProtoSetup
     		'migrate::migrateProdBatches',
     		'migrate::migrateDefs',
     		'migrate::migrateProdDetBatches',
+    		'migrate::updateFeatures3',
         );
     
 
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'batch';
+    public $roles = 'batch';
     
 
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "batch_definitions_Varchar,batch_definitions_Serial,batch_definitions_ExpirationDate,batch_definitions_Document";
+    public $defClasses = "batch_definitions_Varchar,batch_definitions_Serial,batch_definitions_ExpirationDate,batch_definitions_Document,batch_definitions_DeliveryDate,batch_definitions_ProductionDate,batch_definitions_Component";
     
     
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
+    public $menuItems = array(
             array(3.4, 'Логистика', 'Партиди', 'batch_Items', 'default', "batch,ceo"),
         );
     
@@ -95,16 +102,17 @@ class batch_Setup extends core_ProtoSetup
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
+    public $configDescription = array(
     		'BATCH_EXPIRYDATE_PERCENT' => array("percent", 'caption=Оцветяване на изтичащите партиди->Преди края'),
     		'BATCH_CLOSE_OLD_BATCHES'  => array('time', 'caption=Затваряне на изчерпани партиди->След'),
+    		'BATCH_COUNT_IN_EDIT_WINDOW' => array('int', 'caption=Колко партиди да се показват в прозореца за промяна->Брой'),
     );
     
     
     /**
      * Настройки за Cron
      */
-    var $cronSettings = array(
+    public $cronSettings = array(
     		array(
     				'systemId' => "Close Old Batches",
     				'description' => "Затваряне на старите партиди по които не е имало движение",
@@ -335,5 +343,17 @@ class batch_Setup extends core_ProtoSetup
     	}
     	 
     	$Batches->saveArray($arr);
+    }
+    
+    
+    /**
+     * Ъпдейт на свойствата на партидите
+     */
+    public static function updateFeatures3()
+    {
+    	$Features = cls::get('batch_Features');
+    	$Features->setupMvc();
+    	
+    	batch_Features::syncAll();
     }
 }

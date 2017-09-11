@@ -46,6 +46,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		if(!$storeId) return;
 		
 		if($mvc->getBatchMovementDocument($rec) == 'out') return;
+		if(isset($rec->id)) return;
 		$form->FNC('batch', 'text', 'caption=Партида,after=productId,input=none');
 		
 		// Задаване на типа на партидата на полето
@@ -62,7 +63,11 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 				// Ако има налични партиди в склада да се показват като предложения
 				$exBatches = batch_Items::getBatchQuantitiesInStore($rec->{$mvc->productFieldName}, $storeId);
 				if(count($exBatches)){
-					$suggestions = array_combine(array_keys($exBatches), array_keys($exBatches));
+					$suggestions = array();
+					foreach ($exBatches as $b => $q){
+						$verbal = strip_tags($BatchClass->toVerbal($b));
+						$suggestions[$verbal] = $verbal;
+					}
 					$form->setSuggestions('batch', array('' => '') + $suggestions);
 				}
 				
@@ -96,6 +101,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 			$rec->isEdited = TRUE;
 			return;
 		}
+		if(isset($rec->id)) return;
 		
 		if(!$storeId) return;
 		
@@ -137,6 +143,8 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		// След създаване се прави опит за разпределяне на количествата според наличните партиди
 		$BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
 		if(is_object($BatchClass)){
+			if(!$BatchClass->canAutoAllocate()) return;
+			
 			$info = $mvc->getRowInfo($rec->id);
 			if(count($info->operation)){
 				$batches = $BatchClass->allocateQuantityToBatches($info->quantity, $info->operation['out'], $info->date);
@@ -152,7 +160,9 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 	public static function on_AfterCreate($mvc, $rec)
 	{
 		if($mvc->getBatchMovementDocument($rec) == 'out'){
-			self::autoAllocate($mvc, $rec);
+			if($rec->_clonedWithBatches !== TRUE){
+				self::autoAllocate($mvc, $rec);
+			}
 		} else {
 			
 			// Ако се създава нова партида, прави се опит за автоматичното и създаване
@@ -347,8 +357,6 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 			
 			if(!$storeId || !count($info->operation)){
 				$res = 'no_one';
-			} elseif($mvc->getBatchMovementDocument($rec) != 'out'){
-				$res = 'no_one';
 			} else {
 				$res = $mvc->getRequiredRoles('edit', $rec);
 			}
@@ -384,6 +392,14 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 		// Ако документа има сингъл добавя му се информацията за партидата
 		$row = &$data->row;
 		$rec = &$data->rec;
+		
+		if(batch_BatchesInDocuments::haveRightFor('modify', (object)array('detailClassId' => $mvc->getClassId(), 'detailRecId' => $rec->id, 'storeId' => $rec->{$mvc->storeFieldName}))){
+			if(!core_Mode::isReadOnly()){
+				core_Request::setProtected('detailClassId,detailRecId,storeId');
+				$url = array('batch_BatchesInDocuments', 'modify', 'detailClassId' => $mvc->getClassId(), 'detailRecId' => $rec->id, 'storeId' => $rec->{$mvc->storeFieldName}, 'ret_url' => TRUE);
+				$row->addBatchBtn = ht::createLink('', $url, FALSE, 'ef_icon=img/16/edit-icon.png,title=Промяна на партидите');
+			}
+		}
 		
 		if(!batch_Defs::getBatchDef($rec->{$mvc->productFieldName})) return;
 		$row->{$mvc->productFieldName} = new core_ET($row->{$mvc->productFieldName});

@@ -41,8 +41,6 @@ class planning_plg_StateManager extends core_Plugin
 	 */
 	public static function on_AfterDescription(core_Mvc $mvc)
 	{
-		setIfNot($mvc->canPending, 'no_one');
-		
 		// Ако липсва, добавяме поле за състояние
 		if (!$mvc->fields['state']) {
 			$mvc->FLD('state', 'enum(draft=Чернова, pending=Заявка,waiting=Чакащо,active=Активирано, rejected=Оттеглено, closed=Приключено, stopped=Спряно, wakeup=Събудено,template=Шаблон)', 'caption=Състояние, input=none');
@@ -50,10 +48,6 @@ class planning_plg_StateManager extends core_Plugin
 		
 		if (!$mvc->fields['timeClosed']) {
 			$mvc->FLD('timeClosed', 'datetime(format=smartTime)', 'caption=Времена->Затворено на,input=none');
-		}
-		
-		if (!$mvc->fields['timeActivated']) {
-			$mvc->FLD('timeActivated', 'datetime(format=smartTime)', 'caption=Времена->Активирано на,input=none');
 		}
 		
 		if(isset($mvc->demandReasonChangeState)){
@@ -75,7 +69,15 @@ class planning_plg_StateManager extends core_Plugin
 		// Добавяне на бутон за приключване
 		if($mvc->haveRightFor('close', $rec)){
 			$attr = array('ef_icon' => "img/16/gray-close.png", 'title' => "Приключване на документа", 'warning' => "Сигурни ли сте, че искате да приключите документа", 'order' => 30);
+			$attr['id'] = 'btnClose';
+			
 			if(isset($mvc->demandReasonChangeState) && isset($mvc->demandReasonChangeState['close'])){
+				unset($attr['warning']);
+			}
+			
+			$closeError = $mvc->getCloseBtnError($rec);
+			if(!empty($closeError)){
+				$attr['error'] = $closeError;
 				unset($attr['warning']);
 			}
 			
@@ -226,6 +228,11 @@ class planning_plg_StateManager extends core_Plugin
     			}
     		}
     		
+    		if($action == 'close'){
+    			$closeError = $mvc->getCloseBtnError($rec);
+    			expect(empty($closeError));
+    		}
+    		
 			switch($action){
     			case 'close':
     				$rec->brState = $rec->state;
@@ -253,12 +260,11 @@ class planning_plg_StateManager extends core_Plugin
     				$rec->brState = $rec->state;
     				$rec->state = ($mvc->activateNow($rec)) ? 'active' : 'waiting';
     				$logAction = 'Активиране';
-    				$rec->timeActivated = dt::now();
     			break;
     		}
     	
     		// Ако ще активираме: запалваме събитие, че ще активираме
-    		$saveFields = 'brState,state,modifiedOn,modifiedBy,timeClosed,timeActivated';
+    		$saveFields = 'brState,state,modifiedOn,modifiedBy,timeClosed';
     		if($action == 'activate'){
     			$mvc->invoke('BeforeActivation', array(&$rec));
     			$saveFields = NULL;
@@ -402,5 +408,14 @@ class planning_plg_StateManager extends core_Plugin
 			$mvc->invoke('AfterActivation', array($rec));
 			$mvc->logWrite('Активиране', $rec->id);
 		}
+	}
+	
+	
+	/**
+	 * След намиране на текста за грешка на бутона за 'Приключване'
+	 */
+	public static function on_AfterGetCloseBtnError($mvc, &$res, $rec)
+	{
+		$res = (!empty($res)) ? $res : NULL;
 	}
 }

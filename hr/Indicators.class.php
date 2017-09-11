@@ -3,25 +3,21 @@
 
 
 /**
- * Мениджър на заплати
+ * Мениджър на показатели за заплати
  *
  *
  * @category  bgerp
  * @package   hr
- * @author    Gabriela Petrova <gab4eto@gmail.com>
+ * @author    Gabriela Petrova <gab4eto@gmail.com> и Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Заплати
+ * @title     Показатели
  */
 class hr_Indicators extends core_Manager
 {
-    /**
-     * Старо име на класа
-     */
-    public $oldClassname = 'trz_SalaryIndicators';
     
-
+    
     /**
      * Заглавие
      */
@@ -37,13 +33,7 @@ class hr_Indicators extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_SaveAndNew, plg_RowTools2, hr_Wrapper';
-                   
-
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,hr';
+    public $loadList = 'plg_RowTools2, hr_Wrapper,plg_Sorting';
     
     
     /**
@@ -59,27 +49,15 @@ class hr_Indicators extends core_Manager
     
     
     /**
-     * Кой може да го види?
-     */
-    public $canView = 'ceo,hr';
-    
-    
-    /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,hr';
-
-
-    /**
-     * Кой може да разглежда сингъла на документите?
-     */
-    public $canSingle = 'ceo,hr';
+    public $canList = 'ceo,hrMaster';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo,hr';
+    public $canDelete = 'ceo,hrMaster';
 
     
     /**
@@ -87,7 +65,6 @@ class hr_Indicators extends core_Manager
      */
     public $listFields = 'date, docId=Документ, personId, indicatorId, value';
     
-     
     
     /**
      * Описание на модела (таблицата)
@@ -95,14 +72,11 @@ class hr_Indicators extends core_Manager
     public function description()
     {
         $this->FLD('date',    'date', 'caption=Дата,mandatory');
-
-        $this->FLD('docId',    'int', 'caption=Документ->№,mandatory');
+        $this->FLD('docId',    'int', 'caption=Документ->№,mandatory,tdClass=leftCol');
         $this->FLD('docClass', 'int', 'caption=Документ->Клас,silent,mandatory');
-
-        $this->FLD('personId',    'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител,mandatory');
-
-        $this->FLD('indicatorId',    'int', 'caption=Индикатор,smartCenter,mandatory');
-        $this->FLD('sourceClass',    'class(interface=hr_IndicatorsSourceIntf,select=title)', 'caption=Индикатор->Източник,smartCenter,mandatory');
+		$this->FLD('personId',    'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител,mandatory');
+		$this->FLD('indicatorId',    'key(mvc=hr_IndicatorNames,select=name)', 'caption=Показател,smartCenter,mandatory');
+        $this->FLD('sourceClass',    'class(interface=hr_IndicatorsSourceIntf,select=title)', 'caption=Показател->Източник,smartCenter,mandatory');
         $this->FLD('value',    'double(smartRound,decimals=2)', 'caption=Стойност,mandatory');
 
         $this->setDbUnique('date,docId,docClass,indicatorId,sourceClass,personId');
@@ -118,74 +92,13 @@ class hr_Indicators extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {   
-        // Подготвяме масив с имената на индикаторите
-        static $names;
-        if(!$names) {
-            $names = $mvc->getIndicatorNames();
-        }
-
         // Ако имаме права да видим визитката
         if(crm_Persons::haveRightFor('single', $rec->personId)){
             $name = crm_Persons::fetchField("#id = '{$rec->personId}'", 'name');
             $row->personId = ht::createLink($name, array ('crm_Persons', 'single', 'id' => $rec->personId), NULL, 'ef_icon = img/16/vcard.png');
         }
         
-        $dMvc = cls::get($rec->docClass); 
-        $row->docId = $dMvc->getLinkForObject($rec->docId);
-
-        $sMvc = cls::get($rec->sourceClass);
-        $row->indicatorId = $names[$rec->sourceClass][$rec->indicatorId];
-    }
- 
-    
-    /**
-     * Филтър на on_AfterPrepareListFilter()
-     * Малко манипулации след подготвянето на формата за филтриране
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
-     */
-    public static function on_AfterPrepareListFilter1($mvc, $data)
-    {
-        
-        // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('from', 'date', 'caption=Дата->От,input,silent, width = 150px');
-        $data->listFilter->FNC('to', 'date', 'caption=Дата->До,input,silent, width = 150px');
-        $data->listFilter->FNC('person', 'key(mvc=crm_Persons,select=name,group=employees, allowEmpty=true)', 'caption=Служител,input,silent, width = 150px');
-
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        
-        $data->listFilter->showFields = 'from, to, person, indicators';
-        $data->listFilter->input('from, to, person', 'silent');
-        
-        $from = $data->listFilter->rec->from;
-        $to = $data->listFilter->rec->to;
-        $person = $data->listFilter->rec->person;
-        $indicators = $data->listFilter->rec->indicators;
-        $group = $data->listFilter->rec->group;
-
-        if($from && $to){
-            if($from > $to){
-                $newFrom = $from;
-                $from = $to;
-                $to = $newFrom;
-            }
-            $data->query->where("#date >= '{$from}' AND #date <= '{$to}'");
-        }
-        
-        if($from){
-            $data->query->where("#date >= '{$from}'");
-            
-        }
-        
-        if($to){
-            $data->query->where("#date <= '{$to}'");
-        }
-        
-        if($person){
-            $data->query->where("#personId = '{$person}'");
-        }
-        
+        $row->docId = cls::get($rec->docClass)->getLink($rec->docId, 0);
     }
     
     
@@ -194,24 +107,85 @@ class hr_Indicators extends core_Manager
      */
     public static function cron_Update()
     { 
-        $timeline = dt::addSecs(-(hr_Setup::INDICATORS_UPDATE_PERIOD + 10000) * 60);
-       
-        $periods = self::saveIndicators($timeline);
-        foreach($periods as $id => $rec) {
-            self::calcPeriod($rec);
-        }
- 
+        $timeline = dt::addSecs(-(hr_Setup::INDICATORS_UPDATE_PERIOD * 60  + 10000));
+        
+    	self::recalc($timeline);
     }
     
      
     /**
+     * Екшън за преизчисляване на индикаторите след дадена дата
+     */
+    function act_Recalc()
+    {
+    	requireRole('ceo,hrMaster');
+    	
+    	$form = cls::get('core_Form');
+    	$form->FLD('timeline', 'datetime', 'caption=Oт кога');
+    	$form->input();
+    	
+    	if($form->isSubmitted()){
+    		$rec = $form->rec;
+    		
+    		$this->logWrite("Преизчисляване на индикаторите след '{$rec->timeline}'");
+    		self::recalc($rec->timeline);
+    		followRetUrl(NULL, 'Индикаторите са преизчислени');
+    	}
+    	
+    	// Добавяне на бутони
+    	$form->title = 'Преизчисляване на индикаторите';
+    	$form->toolbar->addSbBtn('Преизчисляване', 'save', 'ef_icon = img/16/arrow_refresh.png, title = Запис на документа');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+    	
+    	return $this->renderWrapping($form->renderHtml());
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	if(haveRole('ceo,hrMaster')){
+    		$data->toolbar->addBtn('Преизчисляване', array($mvc, 'recalc', 'ret_url' => TRUE), 'title=Преизчисляване на индикаторите,ef_icon=img/16/arrow_refresh.png');
+    	}
+    }
+    
+    
+    /**
+     * Рекалкулиране на индикаторите от определена дата
+     * 
+     * @param datetime $timeline
+     * @return void
+     */
+    private static function recalc($timeline)
+    {
+    	$periods = self::saveIndicators($timeline, $persons);
+    	
+    	// Форсиране на лицата в група 'Служители'
+    	if(is_array($persons)){
+    		foreach ($persons as $personId){
+    			crm_Persons::forceGroup($personId, 'employees');
+    		}
+    	}
+    	
+    	if(is_array($persons)){
+    		foreach($periods as $id => $rec) {
+    			self::calcPeriod($rec);
+    		}
+    	}
+    }
+    
+    
+    /**
      * Събиране на информация от всички класове
      * имащи интерфейс hr_IndicatorsSourceIntf
      * 
-     * @param date $date
-     * @return array $indicators
+     * @param date $timeline
+     * @param array $persons - лицата
+     * @return array $periods - засегнатите периоди
      */
-    public static function saveIndicators($timeline)
+    public static function saveIndicators($timeline, &$persons = array())
     {  
         // Записите за кои документи, трябва да почистим (id-та в ключовете), 
         // оставяйки определени записи (id-та в масива - стойност)
@@ -224,8 +198,8 @@ class hr_Indicators extends core_Manager
         $docArr = core_Classes::getOptionsByInterface('hr_IndicatorsSourceIntf');
         
         // Ако нямаме източници - нищо не правим
-        if(!is_array($docArr) || !count($docArr)) return;
-
+        if(!is_array($docArr) || !count($docArr)) return $periods;
+        
         // Зареждаме всеки един такъв клас
         foreach ($docArr as $class){
             
@@ -235,7 +209,7 @@ class hr_Indicators extends core_Manager
             $data = $sMvc->getIndicatorValues($timeline);
            
             if (is_array($data) && count($data)) {
-           
+           		
                 // Даваме време
                 core_App::setTimeLimit(count($data) + 10);
 
@@ -255,7 +229,7 @@ class hr_Indicators extends core_Manager
                     $periods[$periodRec->id] = $periodRec;
                     
                     // Оттеглените източници ги записваме само за почистване
-                    if($rec->state == 'rejected') continue;
+                    if($rec->isRejected === TRUE) continue;
                     
                     $rec->sourceClass = core_Classes::getId($class);
 
@@ -264,6 +238,8 @@ class hr_Indicators extends core_Manager
                                                 AND #indicatorId = '{$rec->indicatorId}' AND #sourceClass = {$rec->sourceClass}
                                                 AND #date = '{$rec->date}'"));
  
+                    $persons[$rec->personId] = $rec->personId;
+                     
                     if($exRec) {
                         $rec->id = $exRec->id;
                         $forClean[$key][$rec->id] = $rec->id;
@@ -294,10 +270,11 @@ class hr_Indicators extends core_Manager
         return $periods;
     }
     
+    
     /**
      * Калкулира заплащането на всички, които имат трудов договор за посочения период
      */
-    static function calcPeriod($pRec)
+    private static function calcPeriod($pRec)
     { 
         // Намираме последните, активни договори за назначения, които се засичат с периода
         $ecQuery = hr_EmployeeContracts::getQuery();
@@ -314,7 +291,6 @@ class hr_Indicators extends core_Manager
             }
         }
         
-
         $query = self::getQuery();
         $query->where("#date >= '{$pRec->start}' AND #date <= '{$pRec->end}'");
         $query->groupBy("personId");
@@ -323,38 +299,36 @@ class hr_Indicators extends core_Manager
                 $ecArr[$rec->personId] = new stdClass();
             }
         }
-
+        
         // Дали да извадим формулата от длъжността
         $replaceFormula = dt::now() < $pRec->end;
 
-
         // Подготвяме масив с нулеви стойности
         $names = self::getIndicatorNames();
+        $zeroInd = array('BaseSalary' => 0);
         foreach($names as $class => $nArr) {
             foreach($nArr as $n) {
                 $zeroInd[$n] = 0;
             }
         }
-
- 
+		
         // За всеки един договор, се опитваме да намерим формулата за заплащането от позицията.
         foreach($ecArr as $personId => $ecRec) {
-
             $res = (object) array(
                 'personId' => $personId,
                 'periodId' => $pRec->id,
                 );
             
             $sum = array();
- 
+            
             if(isset($ecRec->positionId)) {
                 $posRec = hr_Positions::fetch($ecRec->positionId);
-                if(!empty($ecRec->salaryBase)) {
-                    $sum['$BaseSalary'] = $ecRec->salaryBase;
+                $salaryBase = (!empty($ecRec->salaryBase)) ? $ecRec->salaryBase : $posRec->salaryBase;
+                if(!empty($salaryBase)) {
+                    $sum['BaseSalary'] = $salaryBase;
                 }
             }
-         
-            $names = self::getIndicatorNames();
+            
             $query = self::getQuery();
             $query->where("#date >= '{$pRec->start}' AND #date <= '{$pRec->end}'");
             $query->where("#personId = {$personId}");
@@ -364,18 +338,26 @@ class hr_Indicators extends core_Manager
             }
             
             $prlRec = hr_Payroll::fetch("#personId = {$personId} AND #periodId = {$pRec->id}");
-            
+           
             if(empty($prlRec)) {
                 $prlRec = new stdClass();
                 $prlRec->personId = $personId;
                 $prlRec->periodId = $pRec->id;
             }
             
-     
             if($replaceFormula && $ecRec->positionId) {  
                 $prlRec->formula = hr_Positions::fetchField($ecRec->positionId, 'formula');
             }
-
+			
+            // Ако няма формула. Няма смисъл да се изчислява ведомост
+            if(empty($prlRec->formula)){
+            	if(isset($prlRec->id)){
+            		hr_Payroll::delete($prlRec->id);
+            	}
+            	
+            	continue;
+            }
+            
             // Изчисляване на заплатата
             $prlRec->salary = NULL;
             if($prlRec->formula) {
@@ -390,7 +372,7 @@ class hr_Indicators extends core_Manager
 
                 // Заместваме променливите и индикаторите
                 $expr  = strtr($prlRec->formula, $contex);
-        
+        		
                 if(str::prepareMathExpr($expr) === FALSE) {
                     $prlRec->error = 'Невъзможно изчисление';
                 } else {
@@ -400,13 +382,10 @@ class hr_Indicators extends core_Manager
                         $prlRec->error = 'Грешка в калкулацията';
                     }
                 }
-
             } 
 
             $prlRec->indicators = $sum;
-
             hr_Payroll::save($prlRec);
-
         }
 
         // Ако не успеем - заплащането е базовото от договора
@@ -417,6 +396,7 @@ class hr_Indicators extends core_Manager
 
         // В записа записваме и формулата и заместените велични
     }
+    
     
     /**
      * Извличаме имената на идикаторите
@@ -440,5 +420,166 @@ class hr_Indicators extends core_Manager
         }
 
         return $names;
+    }
+    
+    
+    /**
+     * Подготовка на показателите
+     * 
+     * @param stdClass $data
+     */
+    public function preparePersonIndicators(&$data)
+    {
+    	$data->IData = new stdClass();
+    	$data->IData->masterMvc = $data->masterMvc;
+    	$data->IData->query = self::getQuery();
+    	
+    	// Позицията от трудовия договор
+    	$positionId = hr_EmployeeContracts::fetchField("#state = 'active' AND #personId = {$data->masterId}", 'positionId');
+    	if(!empty($positionId)){
+    		
+    		// Ако има формула за заплата
+    		$formula = hr_Positions::fetchField($positionId, 'formula');
+    		
+    		if(!empty($formula)){
+    			
+    			// Ще се показват само индикаторите участващи във формулата
+    			$indicators = self::getIndicatorsInFormula($formula);
+    			$indicators = array_keys($indicators);
+    			if(count($indicators)){
+    				$data->IData->query->in("indicatorId", $indicators);
+    			} else {
+    				
+    				// Ако няма такива няма да се рендира нищо
+    				$data->IData->render = FALSE;
+    				return;
+    			}
+    		}
+    	} else {
+    		// Ако няма такива няма да се рендира нищо
+    		$data->IData->render = FALSE;
+    		return;
+    	}
+    	
+    	// Подготовка на заявката
+    	$data->IData->query->where("#personId = {$data->masterId}");
+    	$data->IData->query->orderBy('date', 'DESC');
+    	$data->IData->recs = $data->IData->rows = array();
+    	
+    	// Подготивка на формата за търсене
+    	$this->prepareListFields($data->IData);
+    	$this->prepareListPager($data->IData);
+    	$this->prepareListFilter($data->IData);
+    	$data->IData->listFilter->method = 'GET';
+    	
+    	if ($data->IData->pager) {
+    		$data->IData->pager->setLimit($data->IData->query);
+    	}
+    	
+    	while($rec = $data->IData->query->fetch()){
+    		$data->IData->recs[$rec->id] = $rec;
+    		$data->IData->rows[$rec->id] = $this->recToVerbal($rec);
+    	}
+    }
+    
+    
+    /**
+     * Рендиране на индикаторите в корицата на служителите
+     * 
+     * @param stdClass $data
+     * @return core_ET $tpl
+     */
+    public function renderPersonIndicators($data)
+    {
+    	if($data->IData->render === FALSE) return new core_ET();
+    	
+    	$tpl = new core_ET("[#ListToolbarTop#][#listFilter#][#I_TABLE#][#ListToolbarBottom#]");
+    	$tpl->append($this->renderListFilter($data->IData), 'listFilter');
+    	
+    	unset($data->IData->listFields['personId']);
+    	$table = cls::get('core_TableView', array('mvc' => $this));
+    	$tpl->append($table->get($data->IData->rows, $data->IData->listFields), 'I_TABLE');
+    	
+    	if ($data->IData->pager) {
+    		$toolbarHtml = $data->IData->pager->getHtml();
+    		$tpl->append($toolbarHtml, 'ListToolbarTop');
+    		$tpl->append($toolbarHtml, 'ListToolbarBottom');
+    	}
+    	
+    	return $tpl;
+    }
+    
+    
+    /**
+     * Изпълнява се след подготвянето на формата за филтриране
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    {
+    	$data->listFilter->FLD('period', 'date(select2MinItems=11)', 'caption=Период,silent,placeholder=Всички');
+    	$data->listFilter->FLD('document', 'varchar', 'caption=Документ,silent,placeholder=Всички');
+    	$data->listFilter->setOptions('period', array('' => '') + dt::getRecentMonths(10));
+    	$data->listFilter->showFields = 'period,document';
+    	$data->query->orderBy('date', "DESC");
+    	
+    	if(isset($data->masterMvc)){
+    		$data->listFilter->FLD('Tab', 'varchar', 'input=hidden');
+    		$data->listFilter->setDefault('Tab', 'PersonsDetails');
+    		$data->listFilter->setDefault('period', date('Y-m-01'));
+    		$data->listFilter->input('period,document,Tab');
+    	} else {
+    		$data->listFilter->setFieldTypeParams("personId", array('allowEmpty' => 'allowEmpty'));
+    		$data->listFilter->setFieldTypeParams("indicatorId", array('allowEmpty' => 'allowEmpty'));
+    		$data->listFilter->showFields = 'period,document,personId,indicatorId';
+    		$data->listFilter->input('period,document,personId,indicatorId');
+    	}
+    	
+    	$data->listFilter->view = 'horizontal';
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    	
+    	// Филтриране на записите
+    	if($fRec = $data->listFilter->rec){
+    		if(isset($fRec->personId)){
+    			$data->query->where("#personId  = '{$fRec->personId}'");
+    		}
+    		
+    		if(isset($fRec->indicatorId)){
+    			$data->query->where("#indicatorId = '{$fRec->indicatorId}'");
+    		}
+    		
+    		if(isset($fRec->period)){
+    			$to = dt::getLastDayOfMonth($fRec->period);
+    			$data->query->where("#date >= '{$fRec->period}' AND #date <= '{$to}'");
+    		}
+    		
+    		if(!empty($fRec->document)){
+    			if($document = doc_Containers::getDocumentByHandle($fRec->document)){
+    				$data->query->where("#docClass = {$document->getClassId()} AND #docId = {$document->that}");
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Връща индикаторите, които са използвани във формула
+     * 
+     * @param text $formula
+     * @return array $res;
+     */
+    public static function getIndicatorsInFormula($formula)
+    {
+    	$names = self::getIndicatorNames();
+    	$res = array();
+    	array_walk_recursive($names, function ($value, $key) use (&$res){$res[$key] = $value;});
+    	
+    	// Подготвяме масив с нулеви стойности
+    	foreach($res as $id => $value) {
+    		
+    		if(strpos($formula, "$" . $value) === FALSE){
+    			unset($res[$id]);
+    		}
+    	}
+    	
+    	return $res;
     }
 }

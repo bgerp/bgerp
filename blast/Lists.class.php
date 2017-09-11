@@ -155,7 +155,13 @@ class blast_Lists extends core_Master
      */
     public $showLetterHead = TRUE;
     
+
+    /**
+     * Масив, където се записват списъците с ID-та за обновяване
+     */
+    protected $mustUpdate = array();
     
+
     /**
      * Описание на модела (таблицата)
      */
@@ -266,19 +272,30 @@ class blast_Lists extends core_Master
      */
     protected static function on_AfterUpdateDetail(core_Master $mvc, $id, core_Manager $detailMvc)
     {
-        $rec = $mvc->fetch($id);
-        $dQuery = $detailMvc->getQuery();
-        $dQuery->where("#listId = $id");
-        $rec->contactsCnt = $dQuery->count();
-        
-        // Определяме състоянието на база на количеството записи (контакти)
-        if($rec->state == 'draft' && $rec->contactsCnt > 0) {
-            $rec->state = 'closed';
-        } elseif ($rec->state == 'closed' && $rec->contactsCnt == 0) {
-            $rec->state = 'draft';
+        $mvc->mustUpdate[$id] = $detailMvc;
+    }
+
+
+    public static function on_Shutdown($mvc)
+    {
+        if(count($mvc->mustUpdate)) {
+            foreach($mvc->mustUpdate as $id => $detailMvc) {
+                $rec = $mvc->fetch($id);
+                $dQuery = $detailMvc->getQuery();
+                $dQuery->where("#listId = $id");
+                $rec->contactsCnt = $dQuery->count();
+                
+                // Определяме състоянието на база на количеството записи (контакти)
+                if($rec->state == 'draft' && $rec->contactsCnt > 0) {
+                    $rec->state = 'closed';
+                } elseif ($rec->state == 'closed' && $rec->contactsCnt == 0) {
+                    $rec->state = 'draft';
+                }
+                
+                $mvc->save($rec);
+            }
         }
-        
-        $mvc->save($rec);
+
     }
     
     

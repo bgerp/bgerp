@@ -34,20 +34,20 @@ class hr_Payroll extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Rejected,  plg_SaveAndNew, hr_Wrapper';
+    public $loadList = 'plg_RowTools2, plg_Rejected,  plg_SaveAndNew, hr_Wrapper, plg_GroupByField';
                     
     
-    
     /**
-     * Кой има право да чете?
+     * По кое поле да се групира
      */
-    public $canRead = 'ceo,hr';
+    public $groupByField = 'periodId';
+    
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,hr';
+    public $canEdit = 'ceo,hrMaster';
     
     
     /**
@@ -57,21 +57,15 @@ class hr_Payroll extends core_Manager
     
     
     /**
-     * Кой може да го види?
-     */
-    public $canView = 'ceo,hr';
-    
-    
-    /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,hr';
+	public $canList = 'ceo,hrMaster';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,hr';
+	public $canSingle = 'ceo,hrMaster';
     
     
     /**
@@ -87,23 +81,17 @@ class hr_Payroll extends core_Manager
     
     
     /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'id';
-    
-    
-    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
          // Ключ към мастъра
-    	 $this->FLD('periodId',    'key(mvc=acc_Periods, select=title, where=#state !\\= \\\'closed\\\', allowEmpty=true)', 'caption=Период,smartCenter');
-    	 $this->FLD('personId',    'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Лице,smartCenter');
+    	 $this->FLD('periodId',    'key(mvc=acc_Periods, select=title, where=#state !\\= \\\'closed\\\', allowEmpty=true)', 'caption=Период,tdClass=nowrap');
+    	 $this->FLD('personId',    'key(mvc=crm_Persons,select=name)', 'caption=Лице,tdClass=nowrap');
     	 $this->FLD('indicators',    'blob(serialize)', 'caption=Индикатори');
     	 $this->FLD('formula',    'text', 'caption=Формула');
     	 $this->FLD('salary',    'double', 'caption=Заплата,width=100%');
-   	    $this->FLD('status',    'varchar', 'caption=Статус,mandatory');
+   	     $this->FLD('status',    'varchar', 'caption=Статус,mandatory');
 
     	 $this->setDbUnique('periodId,personId');
     }
@@ -124,14 +112,16 @@ class hr_Payroll extends core_Manager
             }
             $row->data = "<div style='font-size:0.9em;'>{$row->data}</div>";
         }
-
-        if($rec->formula) {
+        
+        if(!empty($rec->formula)) {
             $row->data .= "<div>" . $mvc->getVerbal($rec, 'formula') . "</div";
+        } 
+        
+        if(!empty($rec->status)) {
+            $row->data .= "<div>{$rec->status}</div>";
         }
-
-        if($rec->status) {
-            $row->data .= "<div>{$rec->status}</div";
-        }
+        
+        $row->personId = crm_Persons::getHyperlink($rec->personId, TRUE);
     }
 
 }

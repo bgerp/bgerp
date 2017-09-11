@@ -301,7 +301,7 @@ class backup_Setup extends core_ProtoSetup
                 . $conf->BACKUP_MYSQL_HOST . " -u"
                         . $conf->BACKUP_MYSQL_USER_NAME . " -p"
                                 . $conf->BACKUP_MYSQL_USER_PASS . " " . EF_DB_NAME . " 2>&1";
-        exec($cmd, $output ,  $returnVar);
+        @exec($cmd, $output ,  $returnVar);
         
         if ($returnVar !== 0) {
 
@@ -309,21 +309,21 @@ class backup_Setup extends core_ProtoSetup
         }
         
         // Проверка дали gzip е наличен
-        exec("gzip --version", $output,  $returnVar);
+        @exec("gzip --version", $output,  $returnVar);
         if ($returnVar !== 0) {
 
             return "<li class='debug-error'>липсва gzip!</li>";
         }
         
         // Проверка дали tar е наличен
-        exec("tar --version", $output,  $returnVar);
+        @exec("tar --version", $output,  $returnVar);
         if ($returnVar !== 0) {
         
             return "<li class='debug-error'>липсва tar!</li>";
         }
         
         // Проверка дали МySql сървъра е настроен за binlog
-        $res = exec("mysql -u" . EF_DB_USER . "  -p" . EF_DB_PASS . " -N -B -e \"SHOW VARIABLES LIKE 'log_bin'\"");
+        $res = @exec("mysql -u" . EF_DB_USER . "  -p" . EF_DB_PASS . " -N -B -e \"SHOW VARIABLES LIKE 'log_bin'\"");
         // Премахваме всички табулации, нови редове и шпации - log_bin ON
         $res = strtolower(trim(preg_replace('/[\s\t\n\r\s]+/', '', $res)));
         if ($res != 'log_binon') {
@@ -331,7 +331,7 @@ class backup_Setup extends core_ProtoSetup
             return "<li class='debug-error'>MySQL-a не е настроен за binlog.</li>";
         }
     
-        $res = exec("mysql -u" . EF_DB_USER . "  -p" . EF_DB_PASS . " -N -B -e \"SHOW VARIABLES LIKE 'server_id'\"");
+        $res = @exec("mysql -u" . EF_DB_USER . "  -p" . EF_DB_PASS . " -N -B -e \"SHOW VARIABLES LIKE 'server_id'\"");
         // Премахваме всички табулации, нови редове и шпации - server_id 1
         $res = strtolower(trim(preg_replace('/[\s\t\n\r\s]+/', '', $res)));
         if ($res != 'server_id1') {

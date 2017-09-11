@@ -66,6 +66,12 @@ defIfNot('FILEINFO_MAX_ARCHIVE_LEN', 104857600);
 
 
 /**
+ * Максимален брой на страниците при показване на превю
+ */
+defIfNot('FILEINFO_MAX_PREVIEW_PAGES', 20);
+
+
+/**
  * Пътя до gs файла
  */
 defIfNot('FILEMAN_GHOSTSCRIPT_PATH', 'gs');
@@ -81,6 +87,12 @@ defIfNot('FILEMAN_INKSCAPE_PATH', defined('INKSCAPE_PATH') ? INKSCAPE_PATH : 'in
  * След колко време да се изтрие от индекса, записа (грешката) за съответния тип на файла
  */
 defIfNot('FILEMAN_WEBDRV_ERROR_CLEAN', 300);
+
+
+/**
+ * Увеличаване на размера на картинката при превю
+ */
+defIfNot('FILEMAN_WEBDRV_PREVIEW_MULTIPLIER', 2);
 
 
 /**
@@ -160,8 +172,12 @@ class fileman_Setup extends core_ProtoSetup
        'FILEINFO_MIN_FILE_LEN_BARCODE'   => array ('fileman_FileSize', 'caption=Размер на файловете|*&comma;| в който ще се търси баркод->Минимален, suggestions=5KB|15 KB|30 KB|50 KB'),
 
        'FILEINFO_MAX_FILE_LEN_BARCODE'   => array ('fileman_FileSize', 'caption=Размер на файловете|*&comma;| в който ще се търси баркод->Максимален, suggestions=500 KB|1 MB|2 MB|3 MB'),
+       
+       'FILEINFO_MAX_PREVIEW_PAGES'   => array ('int(min=1)', 'caption=Максимален брой на страниците|*&comma;| които ще се показват в изгледа->Брой'),
 
        'FILEMAN_WEBDRV_ERROR_CLEAN'   => array ('time(suggestions=1 мин.|5 мин.|10 мин.|30 мин.|1 час)', 'caption=Време за живот на грешка при интексиране на файл->Време'), 
+       
+       'FILEMAN_WEBDRV_PREVIEW_MULTIPLIER'   => array ('int(min=0, max=10)', 'caption=Увеличаване на размера на картинката при превю->Пъти'), 
 
        'FILEMAN_OCR' => array ('class(interface=fileman_OCRIntf,select=title, allowEmpty)', 'caption=Програма по подразбиране за OCR обработка->Програма'),
     );
@@ -295,6 +311,33 @@ class fileman_Setup extends core_ProtoSetup
     {
         $conf = core_Packs::getConfig('fileman');
         
+        // Показваме предупреждение ако мястото за качване на файлове е намаляло
+        if (!defined('FILEMAN_UPLOADS_PATH')) {
+            if (cls::load('fileman_Files', TRUE)) {
+                cls::get('fileman_Files');
+            }
+        }
+        if (defined('FILEMAN_UPLOADS_PATH')) {
+            $freeUploadSpace = core_Os::getFreePathSpace(FILEMAN_UPLOADS_PATH);
+            
+            if (isset($freeUploadSpace)) {
+                if ($freeUploadSpace < 100000) {
+                    
+                    return "Много малко свободно място за качване на файлове в " . FILEMAN_UPLOADS_PATH;
+                }
+            }
+            
+            // Гледаме и процентно да не се доближаваме към запълване
+            $freeUploadSpacePercent = core_Os::getFreePathSpace(FILEMAN_UPLOADS_PATH, TRUE);
+            $freeUploadSpacePercent = rtrim($freeUploadSpacePercent, '%');
+            if ($freeUploadSpacePercent <= 100) {
+                if ($freeUploadSpacePercent >= 95) {
+                    
+                    return "Почти е запълнено мястото за качване на файлове в " . FILEMAN_UPLOADS_PATH . " - {$freeUploadSpacePercent}%";
+                }
+            }
+        }
+        
         // Ако не е инсталиране
         if (!static::isEnabled()) {
             
@@ -328,7 +371,7 @@ class fileman_Setup extends core_ProtoSetup
         $gs = escapeshellcmd($conf->FILEMAN_GHOSTSCRIPT_PATH);
         
         // Опитваме се да стартираме програмата
-        $res = exec($gs . ' --help', $output, $code);
+        $res = @exec($gs . ' --help', $output, $code);
         
         if ($code === 0) {
             
@@ -353,7 +396,7 @@ class fileman_Setup extends core_ProtoSetup
         $confWebkit = core_Packs::getConfig('fileman');
        
         // Опитваме се да вземем версията на ghostscript
-        exec(escapeshellarg($confWebkit->FILEMAN_GHOSTSCRIPT_PATH) . " --version", $resArr, $erroCode);
+        @exec(escapeshellarg($confWebkit->FILEMAN_GHOSTSCRIPT_PATH) . " --version", $resArr, $erroCode);
         
         $trimRes = trim($resArr[0]);
         

@@ -42,7 +42,7 @@ class hr_Sickdays extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, doc_DocumentPlg,acc_plg_DocumentSummary,doc_plg_TransferDoc, 
+    public $loadList = 'plg_RowTools2, doc_DocumentPlg,acc_plg_DocumentSummary,doc_plg_TransferDoc, plg_Sorting, 
     				 doc_ActivatePlg, plg_Printing,doc_SharablePlg,bgerp_plg_Blank,change_Plugin, hr_Wrapper';
     
     
@@ -87,25 +87,25 @@ class hr_Sickdays extends core_Master
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,hr';
+    public $canRead = 'ceo,hrMaster';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,hr';
+    public $canEdit = 'ceo,hrMaster';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,hr';
+	public $canList = 'ceo,hrMaster';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,hr';
+	public $canSingle = 'ceo,hrMaster';
     
     
     /**
@@ -117,19 +117,19 @@ class hr_Sickdays extends core_Master
     /**
      * Кой може да го активира?
      */
-    public $canActivate = 'ceo,hr';
+    public $canActivate = 'ceo,hrMaster';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo,hr';
+    public $canDelete = 'ceo,hrMaster';
     
     
     /**
      * Кой има право да прави начисления
      */
-    public $canChangerec = 'ceo,hr';
+    public $canChangerec = 'ceo,hrMaster';
 
     
     public $canEdited = 'powerUser';
@@ -178,6 +178,12 @@ class hr_Sickdays extends core_Master
     
     
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, startDate,toDate,modifiedOn';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -198,7 +204,7 @@ class hr_Sickdays extends core_Master
 								   8=Бащинство до 15 дни,
 								   9=Бащинство до 410 дни,
 								   10=Гледа дете до 18 години)', 'caption=Информация->Причина');
-    	$this->FLD('note', 'richtext(rows=5)', 'caption=Информация->Бележки');
+    	$this->FLD('note', 'richtext(rows=5,bucket=Notes)', 'caption=Информация->Бележки');
     	$this->FLD('icdCode', 'varchar(5)', 'caption=Информация->MKB код, hint=Международна класификация на болестите');
     	$this->FLD('answerGSM', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на отсъствието->Отговаря на моб. телефон, maxRadio=3,columns=3,notNull,value=yes');
     	$this->FLD('answerSystem', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на отсъствието->Достъп до системата, maxRadio=3,columns=3,notNull,value=yes');

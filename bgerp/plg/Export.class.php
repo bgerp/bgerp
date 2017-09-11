@@ -112,6 +112,8 @@ class bgerp_plg_Export extends core_Plugin
                     $recs = $query->fetchAll();
                 }
                 
+                core_App::setTimeLimit(count($recs) / 100);
+
                 $cu = core_Users::getCurrent();
                 core_Cache::set($mvc->className, "exportRecs{$cu}", $recs, 20);
             }
@@ -126,15 +128,18 @@ class bgerp_plg_Export extends core_Plugin
             $form = cls::get('core_Form');
             $form->method = 'GET';
             $form->title = "Експортиране на {$mvc->title}";
-            $form->FNC('driver', 'class(interface=bgerp_ExportIntf,allowEmpty,select=title)', 'input,caption=Формат,mandatory,silent', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
-            
+            $form->FNC('driver', 'class(interface=bgerp_ExportIntf,allowEmpty,select=title)', "input,caption=Формат,mandatory,silent", array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
+   
             // Ако има опции за избор на драйвър слагаме ги, иначе правим полето readOnly
             if(count($options)){
-                $form->setOptions('driver', $options);
+                $form->setOptions('driver', array('' => '') + $options);
+                if(count($options) == 1) {
+                    $form->setDefault('driver', key($options));
+                }
             } else {
                 $form->setReadOnly('driver');
             }
-            
+             
             // Инпутваме тихите полета
             $form->input(NULL, 'silent');
             
@@ -178,10 +183,10 @@ class bgerp_plg_Export extends core_Plugin
             }
             
             $form->toolbar->addSbBtn('Експорт', 'default', array('class' => 'btn-next'), 'ef_icon = img/16/export.png');
-            $form->toolbar->addBtn('Отказ', array($this, 'list'), 'ef_icon = img/16/close-red.png');
-            
+            $form->toolbar->addBtn('Отказ', array($mvc, 'list'), 'ef_icon = img/16/close-red.png');
+         
             $form = $form->renderHtml();
-            
+          
             $tpl = $mvc->renderWrapping($form);
             
             return FALSE;

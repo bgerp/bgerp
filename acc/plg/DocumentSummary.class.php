@@ -61,6 +61,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         setIfNot($mvc->filterDateField, 'valior');
         setIfNot($mvc->filterCurrencyField, 'currencyId');
         setIfNot($mvc->filterFieldUsers, 'createdBy');
+        setIfNot($mvc->termDateFld, NULL);
         
         $mvc->filterRolesForTeam .= ',' . acc_Setup::get('SUMMARY_ROLES_FOR_TEAMS');
         $mvc->filterRolesForTeam = trim($mvc->filterRolesForTeam, ',');
@@ -108,6 +109,26 @@ class acc_plg_DocumentSummary extends core_Plugin
         $data->listFilter->FNC('from', 'date', 'width=6em,caption=От,silent');
         $data->listFilter->FNC('to', 'date', 'width=6em,caption=До,silent');
         
+        if(is_array($mvc->filterDateField) || strpos($mvc->filterDateField, ',')) {
+            $flds = arr::make($mvc->filterDateField);
+            $defaultFilterDateField = NULL;
+            foreach($flds as $f) {
+                if(!$defaultFilterDateField){
+                    $defaultFilterDateField = $f;
+                }
+                $caption = $mvc->getField($f)->caption;
+                if(strpos($caption, '->')) {
+                    list($l, $r) = explode('->', $caption);
+                    $caption = tr($l) . ' » ' . tr($r);
+                }
+                $opt[] = $f . '=' . $caption;
+            }  
+            $data->listFilter->FLD('filterDateField', 'enum(' . implode(',', $opt) . ')', 'width=6em,caption=Филтър по||Filter by,silent,input');
+            $showFilterDateField = ',filterDateField';
+        } else {
+            $showFilterDateField = NULL;
+        }
+
         if(!isset($data->listFilter->fields['Rejected'])) {
             $data->listFilter->FNC('Rejected', 'int', 'input=hidden');
         }
@@ -123,7 +144,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         if(isset($fields['search'])){
             $data->listFilter->showFields .= 'search,';
         }
-        $data->listFilter->showFields .= 'from, to';
+        $data->listFilter->showFields .= 'from, to' . $showFilterDateField;
         
         if($isDocument = cls::haveInterface('doc_DocumentIntf', $mvc)){
             $data->listFilter->FNC('users', "users(rolesForAll={$mvc->filterRolesForAll},rolesForTeams={$mvc->filterRolesForTeam})", 'caption=Потребители,silent,autoFilter,remember');
@@ -131,7 +152,7 @@ class acc_plg_DocumentSummary extends core_Plugin
             
             $haveUsers = FALSE;
             
-            if($lastUsers = core_Cache::get('userFilter',  $cKey)) {
+            if($lastUsers = core_Permanent::get('userFilter' . $cKey)) {
                 $type = $data->listFilter->getField('users')->type;
                 $type->prepareOptions();
                 foreach($type->options as $key => $optObj) {
@@ -142,14 +163,27 @@ class acc_plg_DocumentSummary extends core_Plugin
                     }
                 }
             }
-            
-            if (!$haveUsers) {
-                $data->listFilter->setDefault('users', keylist::addKey('', core_Users::getCurrent()));
-            } else {
-                $data->listFilter->setDefault('users', $lastUsers); 
+             
+            if($lastPeriod = core_Permanent::get('periodFilter' . $cKey)) {
+                if(!Request::get('selectPeriod')) {
+                    Request::push(array('selectPeriod' => $lastPeriod));
+                    list($from, $to) = plg_SelectPeriod::getFromTo($lastPeriod);
+                    if ($from && $to) {
+                        $data->listFilter->rec->from = $from;
+                        $data->listFilter->rec->to = $to;
+                    }
+                }
             }
-            
-            $data->listFilter->showFields .= ',users';
+
+            if($mvc->filterFieldUsers !== FALSE){
+            	if (!$haveUsers) {
+            		$data->listFilter->setDefault('users', keylist::addKey('', core_Users::getCurrent()));
+            	} else {
+            		$data->listFilter->setDefault('users', $lastUsers);
+            	}
+            	
+            	$data->listFilter->showFields .= ',users';
+            }
         }
         
         // Активиране на филтъра
@@ -163,7 +197,12 @@ class acc_plg_DocumentSummary extends core_Plugin
                 if(($requestUsers = Request::get('users')) && !is_numeric(str_replace('_', '', $requestUsers))) {
                     $usedUsers = $requestUsers;
                 }
-                core_Cache::set('userFilter',  $cKey, $usedUsers, 24*60*100);
+                core_Permanent::set('userFilter' . $cKey, $usedUsers, 24*60*100);
+            }
+
+            if(($thisPeriod = Request::get('selectPeriod')) && ($thisPeriod != $lastPeriod)) {
+
+                core_Permanent::set('periodFilter' . $cKey, $thisPeriod, 24*60*100);
             }
         	
             // Филтрираме по потребители
@@ -196,40 +235,34 @@ class acc_plg_DocumentSummary extends core_Plugin
             if (count($dateRange) == 2) {
                 sort($dateRange);
             }
-
-            $fromField = ($mvc->filterFieldDateTo) ? $mvc->filterFieldDateTo : $mvc->filterDateField;
-            $toField = ($mvc->filterFieldDateFrom) ? $mvc->filterFieldDateFrom : $mvc->filterDateField;
-
+ 
+            if($showFilterDateField) {
+                $fromField = $filter->filterDateField ? $filter->filterDateField : $defaultFilterDateField;
+                $toField = $fromField;
+                $data->query->orderBy($fromField, 'DESC');
+            } else {
+                $fromField = ($mvc->filterFieldDateTo) ? $mvc->filterFieldDateTo : $mvc->filterDateField;
+                $toField = ($mvc->filterFieldDateFrom) ? $mvc->filterFieldDateFrom : $mvc->filterDateField;
+            }
+         
             if($dateRange[0] && $dateRange[1]) {
+            	
+                //$extraFld1 = (!empty($mvc->termDateFld)) ? " AND #{$mvc->termDateFld} IS NULL" : '';
+            	
                 if($fromField) {
-                    $where = "((#{$fromField} >= '[#1#]' AND #{$fromField} <= '[#2#] 23:59:59') OR #{$fromField} IS NULL)";
+                    $where = "((#{$fromField} >= '[#1#]' AND #{$fromField} <= '[#2#] 23:59:59'))";
                 }
 
                 if($toField && $toField != $fromField) {
-                    $where .= " OR ((#{$toField} >= '[#1#]' AND #{$toField} <= '[#2#] 23:59:59') OR #{$toField} IS NULL)";
+                    $where .= " OR ((#{$toField} >= '[#1#]' AND #{$toField} <= '[#2#] 23:59:59'))";
                 }
-
-                
+         
+                if(!empty($mvc->termDateFld)){
+                //	$extraField = (!empty($mvc->termDateFld)) ? " OR (#{$mvc->termDateFld} >= '[#1#]' AND #{$mvc->termDateFld} <= '[#2#] 23:59:59')" : '';
+                //	$where .= $extraField;
+                }
+               
                $data->query->where(array($where, $dateRange[0], $dateRange[1]));
-
-            } else {
-                if($dateRange[0]) {
-                    
-                    $data->query->where(array("#{$fromField} >= '[#1#]' OR #{$fromField} IS NULL", $dateRange[0]));
-                    
-                    if($mvc->filterFieldDateTo){
-                        $data->query->orWhere(array("#{$fromField} IS NULL", $dateRange[0]));
-                    }
-                }
-                
-                if($dateRange[1]) {
-                    
-                    $data->query->where(array("#{$toField} <= '[#1#] 23:59:59' OR #{$toField} IS NULL", $dateRange[1]));
-                    
-                    if($mvc->filterFieldDateFrom){
-                        $data->query->orWhere(array("#{$toField} IS NULL", $dateRange[1]));
-                    }
-                }
             }
         }
     }
@@ -264,6 +297,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         
         // Преброяване на черновите документи
         $activeQuery = clone $data->listSummary->query;
+        $pendingQuery = clone $data->listSummary->query;
         $data->listSummary->query->where("#state = 'draft'");
         $draftCount = $data->listSummary->query->count();
         
@@ -271,11 +305,13 @@ class acc_plg_DocumentSummary extends core_Plugin
         $activeQuery->where("#state = 'active' OR #state = 'closed'");
         $activeCount = $activeQuery->count();
         
-        // Изчистване на клонираната заявка
-        unset($activeQuery);
+        // Преброяване на заявките
+        $pendingQuery->where("#state = 'pending'");
+        $pendingCount = $pendingQuery->count();
         
         // Добавяне в обобщението на броя активирани и броя чернови документи
         $data->listSummary->summary['countA'] = (object)array('caption' => "<span style='float:right'>" . tr('Активирани') . "</span>", 'measure' => tr('бр') . ".", 'quantity' => $activeCount);
+        $data->listSummary->summary['countC'] = (object)array('caption' => "<span style='float:right'>" . tr('Заявки') . "</span>", 'measure' => tr('бр') . ".", 'quantity' => $pendingCount);
         $data->listSummary->summary['countB'] = (object)array('caption' => "<span style='float:right'>" . tr('Чернови') . "</span>", 'measure' => tr('бр') . ".", 'quantity' => $draftCount);
     }
     

@@ -21,7 +21,7 @@ class planning_TaskActions extends core_Manager
 	/**
 	 * Заглавие
 	 */
-	public $title = 'Регистър на прогреса по задачите за производство';
+	public $title = 'Регистър на прогреса по производствените операции';
 	
 	
 	
@@ -46,7 +46,7 @@ class planning_TaskActions extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,type,action,serial,productId,taskId,jobId,quantity, employees,fixedAsset,modifiedOn,modifiedBy';
+    public $listFields = 'id,type,action,serial,productId,taskId,jobId,quantity, quantityInPack,employees,fixedAsset,modifiedOn,modifiedBy';
     		
     		
     /**
@@ -79,10 +79,16 @@ class planning_TaskActions extends core_Manager
 		$this->FLD('jobId', 'key(mvc=planning_Jobs)', 'input=none,mandatory,caption=Задание');
 		$this->FLD('quantity', 'double', 'input=none,mandatory,caption=Количество');
 		$this->FLD("packagingId", 'key(mvc=cat_UoM,select=shortName)');
+		$this->FLD("quantityInPack", 'double');
 		
 		$this->FLD('serial', 'varchar(32)', 'input=none,mandatory,caption=С. номер,smartCenter');
 		$this->FLD('employees', 'keylist(mvc=crm_Persons,select=id)', 'input=none,mandatory,caption=Служители');
 		$this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=code)', 'input=none,mandatory,caption=Обордуване');
+	
+		$this->setDbIndex('taskId');
+		$this->setDbIndex('taskId,type');
+		$this->setDbIndex('productId');
+		$this->setDbIndex('jobId');
 	}
 	
 	
@@ -123,7 +129,6 @@ class planning_TaskActions extends core_Manager
 			$row->productId = cat_Products::getShortHyperlink($rec->productId);
 			$row->jobId = planning_Jobs::getLink($rec->jobId, 0);
 			$row->taskId = planning_Tasks::getLink($rec->taskId, 0);
-			$row->quantity .= " " . cat_UoM::getShortName($rec->packagingId);
 			
 			if(isset($rec->employees)){
 				$row->employees = planning_drivers_ProductionTaskDetails::getVerbalEmployees($rec->employees);
@@ -146,23 +151,24 @@ class planning_TaskActions extends core_Manager
 	 * @param text $fixedAsset                      - оборудване
 	 * @return int
 	 */
-	public static function add($taskId, $productId, $action, $type, $packagingId, $quantity, $serial, $employees, $fixedAsset)
+	public static function add($taskId, $productId, $action, $type, $packagingId, $quantity, $quantityInPack, $serial, $employees, $fixedAsset)
 	{
 		if(!$productId) return;
 		
 		$taskOriginId = planning_Tasks::fetchField($taskId, 'originId');
 		$jobId = doc_Containers::getDocument($taskOriginId)->that;
 		
-		$rec = (object)array('taskId'      => $taskId,
-				             'productId'   => $productId,
-							 'action'      => $action,
-				             'type'        => $type,
-				             'quantity'    => $quantity,
-							 'serial'      => $serial,
-							 'employees'   => $employees,
-							 'fixedAsset'  => $fixedAsset,
-							 'packagingId' => $packagingId,
-							 'jobId'       => $jobId);
+		$rec = (object)array('taskId'         => $taskId,
+				             'productId'      => $productId,
+							 'action'         => $action,
+				             'type'           => $type,
+				             'quantity'       => $quantity,
+							 'serial'         => $serial,
+							 'employees'      => $employees,
+							 'fixedAsset'     => $fixedAsset,
+							 'quantityInPack' => $quantityInPack,
+							 'packagingId'    => $packagingId,
+							 'jobId'          => $jobId);
 		
 		return self::save($rec);
 	}
@@ -186,7 +192,7 @@ class planning_TaskActions extends core_Manager
 		$query->where("#type = '{$type}'");
 		$query->where("#jobId = {$jobId}");
 		$query->where("#productId = {$jobRec->productId}");
-		$query->show('quantity,action');
+		$query->show('quantity,action,quantityInPack');
 		
 		$quantity = 0;
 		while($rec = $query->fetch()){

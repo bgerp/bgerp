@@ -210,7 +210,7 @@ class email_Incomings extends core_Master
         $this->FLD("toBox", "email(link=no)", 'caption=До->Кутия');
         
         $this->FLD("headers", "blob(serialize,compress)", 'caption=Хедъри');
-        $this->FLD("textPart", "richtext(hndToLink=no, nickToLink=no)", 'caption=Текстова част');
+        $this->FLD("textPart", "richtext(hndToLink=no, nickToLink=no,bucket=Postings)", 'caption=Текстова част');
         $this->FLD("spam", "int", 'caption=Спам');
         $this->FLD("lg", "varchar", 'caption=Език');
         $this->FLD("date", "datetime(format=smartTime)", 'caption=Дата');
@@ -547,48 +547,12 @@ class email_Incomings extends core_Master
         // Преобразуваме в масив с хедъри и сериализираме
         $rec->headers = $mime->parseHeaders($headersStr);
         
-        $rec->spamScore = $this->getSpamScore($rec->headers);
+        $rec->spamScore = email_Spam::getSpamScore($rec->headers);
         
         // Записваме (и автоматично рутираме) писмото
         $saved = email_Incomings::save($rec);
 
         return $saved;
-    }
-    
-    
-    /**
-     * 
-     * @param array $headerArr
-     * @param boolean $notNull
-     */
-    public static function getSpamScore($headerArr, $notNull = TRUE)
-    {
-        $headersNames = email_Setup::get('AUTO_REJECT_SPAM_SCORE_HEADERS');
-        
-        $headersNamesArr = type_Set::toArray($headersNames);
-        
-        $score = NULL;
-        
-        // Проверяваме рейтинга във всички зададени хедъри
-        if ($headersNamesArr) {
-            
-            foreach ($headersNamesArr as $header) {
-                
-                $header = trim($header);
-                
-                if (!$header) continue;
-                
-                $score = email_Mime::getHeadersFromArr($headerArr, $header);
-                
-                if (isset($score)) break;
-            }
-        }
-        
-        if (!isset($score) && $notNull) {
-            $score = 0;
-        }
-        
-        return $score;
     }
     
     
@@ -910,14 +874,14 @@ class email_Incomings extends core_Master
         } else {
             
             // Показваме съответната икона в зависимост от СПАМ рейтинга
-            $rejectSpamRating = email_Setup::get('AUTO_REJECT_SPAM_SCORE');
-            $warningSpamRating = email_Setup::get('WARNING_SPAM_SCORE');
-            if (isset($rec->spamScore) && (($rec->spamScore >= $rejectSpamRating) || ($rec->spamScore >= $warningSpamRating))) {
+            $hardSpamRating = email_Setup::get('HARD_SPAM_SCORE');
+            $rejectSpamRating = email_Setup::get('REJECT_SPAM_SCORE');
+            if (isset($rec->spamScore) && (($rec->spamScore >= $hardSpamRating) || ($rec->spamScore >= $rejectSpamRating))) {
                 
-                $img = '/img/24/warning.png';
+                $img = '/img/24/spam-warning.png';
                 
-                if ($rec->spamScore >= $rejectSpamRating) {
-                    $img = '/img/24/danger.png';
+                if ($rec->spamScore >= $hardSpamRating) {
+                    $img = '/img/24/spam.png';
                 }
                 
                 $row->fromEml =  ht::createHint($row->fromEml, "Висок СПАМ рейтинг|*: {$rec->spamScore}", $img);
@@ -928,6 +892,15 @@ class email_Incomings extends core_Master
                 } else {
                     $row->fromEml = '<span class="textWithIcons">' . trim($row->fromName) . '</span>';
                 }
+            }
+        }
+        
+        // Показваме източника на първия документ в нишката
+        if ($rec->originId && $rec->threadId) {
+            $fCid = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
+            
+            if ($fCid == $rec->containerId) {
+                $row->inReplyToOrigin = doc_Containers::getLinkForSingle($rec->originId);
             }
         }
     }
@@ -1354,7 +1327,7 @@ class email_Incomings extends core_Master
              $headersArr = $rec->headers;
          }
          
-         $rec->spamScore = self::getSpamScore($headersArr);
+         $rec->spamScore = email_Spam::getSpamScore($headersArr);
          
          if ($rec->id && $saveIfNotExist) {
              $inst = cls::get(get_called_class());
@@ -1411,6 +1384,7 @@ class email_Incomings extends core_Master
      * Правила за обучение:
      * От последния час, оттеглени/възстановени от потребител и няма друг документ в нишката
      * В папки с корица на Е-Кутия и несортирани - за оттеглените
+     * Ако е пратен до имейл, който не е в системата
      */
     function cron_TrainSpas()
     {
@@ -1420,18 +1394,22 @@ class email_Incomings extends core_Master
         $query = self::getQuery();
         $before = dt::subtractSecs(3600);
         $query->where(array("#modifiedOn >= '[#1#]'", $before));
-        $query->where("#modifiedBy > 0");
-        $query->where("#state = 'rejected' AND #brState IS NOT NULL");
-        $query->orWhere("#brState = 'rejected'");
         $query->EXT('docCnt', 'doc_Threads', 'externalName=allDocCnt,remoteKey=firstContainerId, externalFieldName=containerId');
         $query->where("#docCnt <= 1");
         $query->where("#emlFile != ''");
         $query->where("#emlFile IS NOT NULL");
         
+        $allBoxesArr = email_Inboxes::getAllEmailsArr(FALSE);
+        $allBoxesArrNew = array();
+        foreach ((array)$allBoxesArr as $email) {
+            $email = strtolower($email);
+            $allBoxesArrNew[$email] = $email;
+        }
+        
         while($rec = $query->fetch()) {
             if (!$rec->emlFile) continue;
             
-            // Ако е оттеглен и има други документи в нишката
+            // Ако е оттеглен, проверяваме броя на документите
             if (($rec->state == 'rejected') && $rec->docCnt == 0) {
                 $cQuery = doc_Containers::getQuery();
                 $cQuery->where(array("#threadId = '[#1#]'", $rec->threadId));
@@ -1440,21 +1418,57 @@ class email_Incomings extends core_Master
                 if ($cQuery->count() > 1) continue;
             }
             
-            // Проверяваме имейлите само в Е-кутии и Несортирани
-            if ($rec->state == 'rejected') {
-                $cover = doc_Folders::getCover($rec->folderId);
-                if (!($cover->instance instanceof email_Inboxes) && !($cover->instance instanceof doc_UnsortedFolders)) continue;
+            $haveEmail = TRUE;
+            if (!$rec->userInboxes) {
+                $haveEmail = FALSE;
+                foreach ((array)$rec->toAndCc['allTo'] as $emailAddArr) {
+                    $email = strtolower(trim($emailAddArr['address']));
+                    if ($allBoxesArrNew[$email]) {
+                        $haveEmail = TRUE;
+                        break;
+                    }
+                }
+                
+                if (!$haveEmail) {
+                    foreach ((array)$rec->toAndCc['allCc'] as $emailAddArr) {
+                        $email = strtolower(trim($emailAddArr['address']));
+                        if ($allBoxesArrNew[$email]) {
+                            $haveEmail = TRUE;
+                            break;
+                        }
+                    }
+                }
+            } else {
+                // Оттеглните имейлите се проверяват само в Е-кутии и Несортирани
+                if ($rec->state == 'rejected') {
+                    $cover = doc_Folders::getCover($rec->folderId);
+                    if (!($cover->instance instanceof email_Inboxes) && !($cover->instance instanceof doc_UnsortedFolders)) continue;
+                }
+            }
+            
+            if ($haveEmail) {
+                if ($rec->modifiedBy <= 0) continue;
+                
+                if (!(($rec->state == 'rejected' && $rec->brState) || ($rec->brState == 'rejected'))) continue;
             }
             
             $type = spas_Client::LEARN_HAM;
-            $typeStr = 'НЕ Е СПАМ';
+            $typeStr = 'НЕ Е СПАМ (от възстановен имейл)';
             
-            if ($rec->state == 'rejected') {
+            if (!$haveEmail || ($rec->state == 'rejected')) {
                 $type = spas_Client::LEARN_SPAM;
-                $typeStr = "СПАМ";
+                
+                if (!$haveEmail) {
+                    $typeStr = "СПАМ (липсваща имейл кутия)";
+                } else {
+                    $typeStr = "СПАМ (от оттеглен имейл)";
+                }
             }
             
             $fh =  fileman_Files::fetchField($rec->emlFile, 'fileHnd');
+            
+            if (!$fh) continue;
+            
             $rawEmail = fileman_Files::getContent($fh);
             
             try {
@@ -1468,7 +1482,7 @@ class email_Incomings extends core_Master
                     $resStr = 'Проблем';
                 }
                 
-                email_Incomings::logDebug("Резултат от обучние за {$typeStr} - " . $resStr, $rec->id);
+                email_Incomings::logDebug("Резултат от обучение за {$typeStr} - " . $resStr, $rec->id);
             } catch(spas_client_Exception $e) {
                 reportException($e);
                 email_Incomings::logErr('Грешка при обучение на SPAS: ' . $e->getMessage());
@@ -1610,6 +1624,27 @@ class email_Incomings extends core_Master
             $rec->routeBy = 'file';
         }
         
+        $originId = $rec->originId;
+        
+        if (!$originId) {
+            
+            // Ако не е зададено originId - тогава е на последния документ 
+            if ($rec->threadId) {
+                $cQuery = doc_Containers::getQuery();
+                $cQuery->where(array("#threadId = '[#1#]'", $rec->threadId));
+                $cQuery->orderBy('#createdOn', 'DESC');
+                $cQuery->orderBy('#id', 'DESC');
+                $cQuery->limit(1);
+                $cQuery->show('id');
+                
+                $originId = $cQuery->fetch()->id;
+            }
+        }
+        $rArr = array('folderId' => NULL, 'threadId' => NULL, 'routeBy' => NULL, 'originId' => $originId);
+        
+        // Проверяваме дали може да се рутира тук
+        email_Router::checkRouteRules($rec, $rArr);
+        
         // Входящите имейли да не влизат в оттеглени нишки, в които има документи за контиране
         if ($rec->threadId && ($rec->routeBy == 'file' || $rec->routeBy == 'thread')) {
             $tRec = doc_Threads::fetch($rec->threadId);
@@ -1661,7 +1696,8 @@ class email_Incomings extends core_Master
                     // Добавяме начина на рутиране
                     $rec->routeBy = 'from';
                     
-                    return;
+                    // Проверяваме дали може да се рутира тук
+                    if (email_Router::checkRouteRules($rec, $rArr)) return;
                 }
                 
                 // Рутиране по домейn
@@ -1670,21 +1706,22 @@ class email_Incomings extends core_Master
                     // Добавяме начина на рутиране
                     $rec->routeBy = 'domain';
                     
-                    return;
+                    if (email_Router::checkRouteRules($rec, $rArr)) return;
                 }
                 
                 // Рутиране по място (държава)
                 if(email_Router::doRuleCountry($rec)) {
                     
-                    // Автоматично оттегляне на имейлите, които са СПАМ
-                    self::checkSpamLevelAndReject($rec);
-                    
                     // Добавяме начина на рутиране
                     $rec->routeBy = 'country';
                     
-                    return;
+                    if (email_Router::checkRouteRules($rec, $rArr)) {
+                        // Автоматично оттегляне на имейлите, които са СПАМ
+                        self::checkSpamLevelAndReject($rec);
+                        
+                        return;
+                    }
                 }
-                
             } else {
                 
                 // Ако `boxTo` е частна кутия, то прилагаме `FromTo`
@@ -1693,7 +1730,21 @@ class email_Incomings extends core_Master
                     // Добавяме начина на рутиране
                     $rec->routeBy = 'fromTo';
                     
-                    return;
+                    if (email_Router::checkRouteRules($rec, $rArr)) {
+                        if ($rec->folderId) {
+                            $coverClass = doc_Folders::getCover($rec->folderId);
+                            
+                            // Ако ще се рутира към пощенска кутия или проект
+                            if ($coverClass) {
+                                if ($coverClass->instance instanceof email_Inboxes || $coverClass->instance instanceof doc_UnsortedFolders) {
+                                    
+                                    self::checkSpamLevelAndReject($rec, TRUE);
+                                }
+                            }
+                        }
+                        
+                        return;
+                    }
                 }
             }
         }
@@ -1722,14 +1773,34 @@ class email_Incomings extends core_Master
         
         $score = $rec->spamScore;
         if (!isset($score)) {
-            $score = self::getSpamScore($rec->headers, FALSE);
+            $score = email_Spam::getSpamScore($rec->headers, FALSE);
         }
         
-        $spamScore = email_Setup::get('AUTO_REJECT_SPAM_SCORE');
+        $spamScore = email_Setup::get('REJECT_SPAM_SCORE');
         
         if (isset($score) && ($score >= $spamScore)) {
             $rec->state = 'rejected';
-            self::logNotice("Автоматично оттеглен имейл със СПАМ рейтинг = '{$score}'");
+            self::logNotice("Автоматично оттеглен имейл ({$rec->subject}) със СПАМ рейтинг = '{$score}'", $rec->id);
+        }
+        
+        if ($rec->state != 'rejected') {
+            // Проверка на имейла за файл с вирус
+            $files = $rec->files;
+            $files = type_Keylist::addKey($files, $rec->emlFile);
+            $files = type_Keylist::addKey($files, $rec->htmlFile);
+            
+            $filesArr = type_Keylist::toArray($files);
+            if (!empty($filesArr)) {
+                $fQuery = fileman_Files::getQuery();
+                $fQuery->orWhereArr('id', $filesArr);
+                $fQuery->where("#dangerRate IS NOT NULL");
+                $fQuery->where("#dangerRate >= 0.001");
+                
+                if ($fQuery->count()) {
+                    $rec->state = 'rejected';
+                    self::logNotice("Автоматично оттеглен имейл ({$rec->subject}) с вирусен файл", $rec->id);
+                }
+            }
         }
     }
     
@@ -1923,6 +1994,17 @@ class email_Incomings extends core_Master
             } elseif (($rec->routeBy != 'thread') && ($rec->routeBy != 'preroute') && ($rec->routeBy != 'file')) {
                 // Ако рутираме по нишка или потребителски филтър или файл да не се създават правила
                 $mvc->makeRouterRules($rec);
+            }
+        }
+        
+        // Ако се е прекъснало нормалното рутиране по нишка
+        // Бием нотификация на създателя на документа
+        if ($rec->originId) {
+            $cRec = doc_Containers::fetch($rec->originId);
+            
+            if (($cRec->createdBy > 0) && $rec->containerId && email_Incomings::haveRightFor('single', $rec, $cRec->createdBy)) {
+                $newCRec = doc_Containers::fetch($rec->containerId);
+                doc_Containers::addNotifications(array($cRec->createdBy => $cRec->createdBy), $mvc, $newCRec, 'добави', FALSE);
             }
         }
     }

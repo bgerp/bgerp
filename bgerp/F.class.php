@@ -130,7 +130,8 @@ class bgerp_F extends core_Manager
                 
                 $fRec = fileman_Files::fetchByFh($fh);
                 
-                if ($fRec->bucketId == $bucketId) {
+                // TODO - remove !isset($bucketId)
+                if (!isset($bucketId) || $fRec->bucketId == $bucketId) {
                     $resFileHnd = $fh;
                     
                     break;
@@ -145,7 +146,8 @@ class bgerp_F extends core_Manager
                 $fRec = fileman_Files::fetchByFh($fh);
                 
                 if (mb_strtolower($fRec->name) == $name) {
-                    if ($fRec->bucketId == $bucketId) {
+                    // TODO - remove !isset($bucketId)
+                    if (!isset($bucketId) || $fRec->bucketId == $bucketId) {
                         $resFileHnd = $fh;
                 
                         break;

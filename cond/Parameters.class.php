@@ -75,6 +75,7 @@ class cond_Parameters extends bgerp_ProtoParam
     			3 => "group",
     			4 => 'suffix',
     			5 => 'csv_roles',
+    			6 => 'options',
     	);
     	 
     	$cntObj = csv_Lib::importOnce($this, $file, $fields);
@@ -104,23 +105,27 @@ class cond_Parameters extends bgerp_ProtoParam
     	if(!isset($cClass) && !isset($cId)) return;
     	
     	expect($Class = cls::get($cClass));
-    	expect($Class::fetch($cId));
+    	expect($cRec = $Class::fetch($cId));
     	expect($condId = self::fetchIdBySysId($conditionSysId));
     	
     	// Връщаме стойността ако има директен запис за условието
-    	$value = cond_ConditionsToCustomers::fetchByCustomer($cClass, $cId, $condId);
+    	$value = cond_ConditionsToCustomers::fetchByCustomer($Class, $cId, $condId);
     	if($value) return $value;
     	
     	// Търси се метод дефиниран за връщане на стойността на условието
     	$method = "get{$conditionSysId}";
     	if(method_exists($Class, $method)) return $Class::$method($cId);
     	
-    	// Търсим имали дефинирано търговско условие за държавата на контрагента
-    	$contragentData = cls::get($cClass)->getContragentData($cId);
-    	$countryId = $contragentData->countryId;
-    	if($countryId){
-    		$value = cond_Countries::fetchField("#country = {$countryId} AND #conditionId = {$condId}", 'value');
-    		if(isset($value)) return $value;
+    	// Ако има поле за държава
+    	$countryFieldName = $Class->countryFieldName;
+    	if ($countryFieldName) {
+    		
+    		// Търсим имали дефинирано търговско условие за държавата на контрагента
+    		$countryId = $cRec->{$countryFieldName};
+    		if($countryId){
+    			$value = cond_Countries::fetchField("#country = {$countryId} AND #conditionId = {$condId}", 'value');
+    			if(isset($value)) return $value;
+    		}
     	}
     	
     	// От глобалния дефолт за всички държави
@@ -147,9 +152,30 @@ class cond_Parameters extends bgerp_ProtoParam
     		$cHtml = mb_strcut($value, 90);
     	
     		$value = $bHtml . "\n[hide=" . tr('Вижте още') . "]" . $value . "[/hide]";
-    		$value = cls::get('type_RichText')->toVerbal($value);
+    		$value = cls::get('type_Richtext')->toVerbal($value);
     	}
     	
     	return $value;
+    }
+    
+    
+    /**
+     * Форсира параметър
+     *
+     * @param string $sysId       - систем ид на параметър
+     * @param string $name        - име на параметъра
+     * @param string $type        - тип на параметъра
+     * @param NULL|text $options  - опции на параметъра само за типовете enum и set
+     * @param NULL|string $suffix - наставка
+     * @return number             - ид на параметъра
+     */
+    public static function force($sysId, $name, $type, $options = array(), $suffix = NULL)
+    {
+    	// Ако има параметър с това систем ид,връща се
+    	$id = self::fetchIdBySysId($sysId);
+    	if(!empty($id)) return $id;
+    		
+    	// Създаване на параметъра
+    	return self::save(self::makeNewRec($sysId, $name, $type, $options, $suffix));
     }
 }

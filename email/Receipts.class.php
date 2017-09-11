@@ -82,6 +82,8 @@ class email_Receipts extends email_ServiceEmails
             $rec->createdOn = dt::verbal2mysql();
 
             self::save($rec);
+            
+            self::logNotice('Получена обратна разписка', $rec->id);
         }
 
         return $isReceipt;

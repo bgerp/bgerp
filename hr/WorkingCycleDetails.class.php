@@ -61,14 +61,14 @@ class hr_WorkingCycleDetails extends core_Detail
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,hr';
+    public $canAdd = 'ceo,hrMaster';
     
     
     /**
      * Кой може да го изтрие?
      * 
      */
-    public $canDelete = 'ceo,hr';
+    public $canDelete = 'ceo,hrMaster';
     
     
     /**
@@ -115,6 +115,50 @@ class hr_WorkingCycleDetails extends core_Detail
         $data->query->orderBy('#day');
     }
     
+
+    /**
+     * Подготвя масив с дните в даден интервал, като за всеки ден 
+     *
+     * @param   int         $cycleId    id на цикъл
+     * @param   datetime    $startOn    Начало на работният цикъл
+     * @param   datetime    $from       Начална дата за периода
+     * @param   datetime    $to         Крайна дата за периода
+     */
+    public static function getDayArr($cycleId, $startOn, $from, $to)
+    {
+        $query = self::getQuery();
+        static $cycleDays = array();
+
+        if(!isset($cycleDays[$cycleId])) {
+            while($rec = $query->fetch("#cycleId = '{$cycleId}'")) {
+                $cycleDays[$cycleId][$rec->day] = (object) array(
+                                                    'start' => $rec->start,
+                                                    'duration' => $rec->duration,
+                                                    'break' => $rec->break,
+                                                    'type' => self::getWorkingShiftType($rec->start, $rec->duration),
+                                                 );
+            }
+        }
+        
+        $dayNo = dt::daysBetween($from, $startOn) + 1;
+        $cycleDuration = hr_WorkingCycles::fetch($cycleId)->cycleDuration;
+        $res = array();
+
+        while($from <= $to) {
+            $dayInd = $dayNo % $cycleDuration;
+            $res[$from] = cal_Calendar::getDayStatus($from);
+            
+            if(isset($cycleDays[$cycleId][$dayInd]) && isset($cycleDays[$cycleId][$dayInd]->duration)) {
+                $res[$from] = arr::copy($res[$from], $cycleDays[$cycleId][$dayInd]);
+            }
+            
+            $from = dt::addDays(1, $from);
+            $dayNo++;
+        }
+ 
+        return $res;
+    }
+
     
     /**
      * @todo Чака за документация...

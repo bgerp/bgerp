@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Базов драйвер за партиден клас 'срок на годност'
  *
@@ -13,14 +14,8 @@
  * @since     v 0.1
  * @title Срок на годност
  */
-class batch_definitions_ExpirationDate extends batch_definitions_Proto
+class batch_definitions_ExpirationDate extends batch_definitions_Date
 {
-	
-	
-	/**
-	 * Позволени формати
-	 */
-	private $formatSuggestions = 'm/d/y,m.d.y,d.m.Y,m/d/Y,d/m/Y,Ymd,Ydm,Y-m-d,dmY,ymd,ydm,m.d.Y';
 	
 	
 	/**
@@ -38,10 +33,8 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 	 */
 	public function addFields(core_Fieldset &$fieldset)
 	{
-		$fieldset->FLD('format', 'varchar(20)', 'caption=Формат,mandatory');
+		parent::addFields($fieldset);
 		$fieldset->FLD('time', 'time(suggestions=1 ден|2 дена|1 седмица|1 месец)', 'caption=Срок до,unit=след текущата дата');
-		
-		$fieldset->setOptions('format', array('' => '') + arr::make($this->formatSuggestions, TRUE));
 	}
 	
 	
@@ -68,55 +61,6 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 	
 	
 	/**
-	 * Проверява дали стойността е невалидна
-	 *
-	 * @param string $value - стойноста, която ще проверяваме
-	 * @param quantity $quantity - количеството
-	 * @param string &$msg - текста на грешката ако има
-	 * @return boolean - валиден ли е кода на партидата според дефиницията или не
-	 */
-	public function isValid($value, $quantity, &$msg)
-	{
-		// Ако артикула вече има партидаза този артикул с тази стойност, се приема че е валидна
-		if(batch_Items::fetchField(array("#productId = {$this->rec->productId} AND #batch = '[#1#]'", $value))){
-			return TRUE;
-		}
-		
-		// Карта
-		$map = array();
-		$map['m'] = "(?'month'[0-9]{2})";
-		$map['d'] = "(?'day'[0-9]{2})";
-		$map['y'] = "(?'yearShort'[0-9]{2})";
-		$map['Y'] = "(?'year'[0-9]{4})";
-		
-		// Генерираме регулярен израз спрямо картата
-		$expr = $this->rec->format;
-		$expr = preg_quote($expr, '/');
-		$expr = strtr($expr, $map);
-		
-		// Проверяваме дали датата отговаря на формата
-		if(!preg_match("/^{$expr}$/", $value, $matches)){
-			$msg = "|Партидата трябва да е във формат за дата|* <b>{$this->rec->format}</b>";
-			return FALSE;
-		}
-		
-		// Ако годината е кратка, правим я дълга
-		if(isset($matches['yearShort'])){
-			$matches['year'] = "20{$matches['yearShort']}";
-		}
-		
-		// Проверяваме дали датата е възможна
-		if(!checkdate($matches['month'], $matches['day'], $matches['year'])){
-			$msg = "|Партидата трябва да е във формат за дата|* <b>{$this->rec->format}</b>";
-			return FALSE;
-		}
-		
-		// Връщаме истина, ако не са се получили грешки
-		return TRUE;
-	}
-	
-	
-	/**
 	 * Кой може да избере драйвера
 	 */
 	public function toVerbal($value)
@@ -129,7 +73,7 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 		
 		// Ако партидата е изтекла оцветяваме я в червено
 		if(strtotime($mysqlValue) < $today){
-			$valueHint = ht::createHint($value, 'Крайният срок на партидата е изтекъл', 'warning');
+			$valueHint = ht::createHint($value, 'Срокът на годност на партидата е изтекъл', 'warning');
 			$value = new core_ET("<span class='red'>[#value#]</span>");
 			$value->replace($valueHint, 'value');
 		} else {
@@ -195,7 +139,9 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 			
 			// Намиране на партидите със свойство 'срок на годност'
 			$featQuery = batch_Features::getQuery();
-			$featQuery->where("#classId = {$this->getClassId()}");
+			
+			$name = batch_Features::canonize('Срок на годност');
+			$featQuery->where("#name = '{$name}'");
 			$featQuery->orderBy('value', 'ASC');
 			$itemsIds = arr::extractValuesFromArray($featQuery->fetchAll(), 'itemId');
 			$query->in('id', $itemsIds);
@@ -218,19 +164,6 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 		}
 		
 		$featureCaption = 'Срок на годност';
-	}
-	
-	
-	/**
-	 * Добавя записа
-	 *
-	 * @param stdClass $rec
-	 * @return void
-	 */
-	public function setRec($rec)
-	{
-		$this->fieldPlaceholder = $rec->format;
-		$this->rec = $rec;
 	}
 	
 	
@@ -261,5 +194,23 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 			
 			$batches = $sorted;
 		}
+	}
+	
+	
+	/**
+     * Какви са свойствата на партидата
+     *
+     * @param varchar $value - номер на партидара
+     * @return array - свойства на партидата
+     * 			o name    - заглавие
+     * 			o classId - клас
+     * 			o value   - стойност
+     */
+	public function getFeatures($value)
+	{
+		$res = array();
+		$res[] = (object)array('name' => 'Срок на годност', 'classId' => $this->getClassId(), 'value' => $value);
+	
+		return $res;
 	}
 }

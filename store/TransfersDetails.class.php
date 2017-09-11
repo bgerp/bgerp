@@ -38,7 +38,7 @@ class store_TransfersDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, plg_Sorting, store_Wrapper, plg_RowNumbering, plg_AlignDecimals, plg_PrevAndNext,plg_SaveAndNew';
+    public $loadList = 'plg_RowTools2, plg_Created, plg_Sorting, store_Wrapper, plg_RowNumbering, plg_AlignDecimals, plg_PrevAndNext,plg_SaveAndNew,cat_plg_ShowCodes,store_plg_TransportDataDetail';
     
     
     /**
@@ -68,7 +68,7 @@ class store_TransfersDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'newProductId, packagingId, packQuantity, weight, volume';
+    public $listFields = 'newProductId, packagingId, packQuantity, weight=Тегло, volume=Обем';
     
         
     /**
@@ -84,9 +84,27 @@ class store_TransfersDetails extends doc_Detail
     
     
     /**
-     * 
+     * Поле за артикула
      */
     public $productFieldName = 'newProductId';
+    
+    
+    /**
+     * Поле за артикула
+     */
+    public $productFld = 'newProductId';
+    
+    
+    /**
+     * Поле за главния склад в мастъра
+     */
+    public $masterStoreFld = 'fromStore';
+    
+    
+    /**
+     * Да се показва ли кода като в отделна колона
+     */
+    public $showCodeColumn = TRUE;
     
     
     /**
@@ -101,8 +119,6 @@ class store_TransfersDetails extends doc_Detail
         $this->FLD('quantity', 'double(Min=0)', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
         $this->FNC('packQuantity', 'double(decimals=2)', 'caption=Количество,input,mandatory');
-    	$this->FLD('weight', 'cat_type_Weight', 'input=hidden,caption=Тегло');
-        $this->FLD('volume', 'cat_type_Volume', 'input=hidden,caption=Обем');
     }
     
     
@@ -155,7 +171,10 @@ class store_TransfersDetails extends doc_Detail
         	
             foreach ($data->rows as $i => &$row) {
                 $rec = &$data->recs[$i];
-                $row->newProductId = cat_Products::getShortHyperlink($rec->newProductId);
+                
+                $singleUrl = cat_Products::getSingleUrlArray($rec->newProductId);
+                $row->newProductId = cat_Products::getVerbal($rec->newProductId, 'name');
+                $row->newProductId = ht::createLinkRef($row->newProductId, $singleUrl);
                 
                 // Показваме подробната информация за опаковката при нужда
                 deals_Helper::getPackInfo($row->packagingId, $rec->newProductId, $rec->packagingId, $rec->quantityInPack);
@@ -212,7 +231,6 @@ class store_TransfersDetails extends doc_Detail
     		$fromStoreId = store_Transfers::fetchField($rec->transferId, 'fromStore');
     		$storeInfo = deals_Helper::checkProductQuantityInStore($rec->newProductId, $rec->packagingId, $rec->packQuantity, $fromStoreId);
     		$form->info = $storeInfo->formInfo;
-    		$pInfo = cat_Products::getProductInfo($rec->newProductId);
     		
     		$packs = cat_Products::getPacks($rec->newProductId);
     		$form->setField('packagingId', 'input');
@@ -221,11 +239,10 @@ class store_TransfersDetails extends doc_Detail
     	}
     	
     	if ($form->isSubmitted()){
+    		$pInfo = cat_Products::getProductInfo($rec->newProductId);
     		$rec->quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
             
     		$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
-            $rec->weight = cat_Products::getWeight($rec->newProductId, $rec->packagingId, $rec->quantity);
-            $rec->volume = cat_Products::getVolume($rec->newProductId, $rec->packagingId, $rec->quantity);
     	}
     }
     

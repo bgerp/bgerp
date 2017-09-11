@@ -60,7 +60,7 @@ class sales_QuotationsDetails extends doc_Detail {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, sales_Wrapper, doc_plg_HidePrices, plg_SaveAndNew, LastPricePolicy=sales_SalesLastPricePolicy, cat_plg_CreateProductFromDocument';
+    public $loadList = 'plg_RowTools2, sales_Wrapper, doc_plg_HidePrices, plg_SaveAndNew, LastPricePolicy=sales_SalesLastPricePolicy, cat_plg_CreateProductFromDocument,cat_plg_ShowCodes';
     
     
     /**
@@ -72,7 +72,7 @@ class sales_QuotationsDetails extends doc_Detail {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, quantityInPack, packQuantity, packPrice, discount, tolerance, term, optional, amount, discAmount,quantity';
+    public $listFields = 'productId, packagingId, quantityInPack, packQuantity, packPrice, discount, tolerance, term, weight,optional, amount, discAmount,quantity';
     
     
     /**
@@ -104,7 +104,7 @@ class sales_QuotationsDetails extends doc_Detail {
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'price,tolerance,term';
+    public $fieldsNotToClone = 'price,tolerance,term,weight';
     
     
   	/**
@@ -122,13 +122,14 @@ class sales_QuotationsDetails extends doc_Detail {
         
         $this->FLD('quantity', 'double(Min=0)', 'caption=Количество,input=none');
     	$this->FLD('price', 'double(minDecimals=2,maxDecimals=4)', 'caption=Ед. цена, input=none');
-        $this->FLD('discount', 'percent(smartRound,min=0)', 'caption=Отстъпка,smartCenter');
+    	$this->FLD('discount', 'percent(smartRound,min=0)', 'caption=Отстъпка,smartCenter');
         $this->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс,input=none');
     	$this->FLD('term', 'time(uom=days,suggestions=1 ден|5 дни|7 дни|10 дни|15 дни|20 дни|30 дни)', 'caption=Срок,input=none');
+    	$this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
     	$this->FLD('vatPercent', 'percent(min=0,max=1,decimals=2)', 'caption=ДДС,input=none');
         $this->FLD('optional', 'enum(no=Не,yes=Да)', 'caption=Опционален,maxRadio=2,columns=2,input=hidden,silent,notNull,value=no');
         $this->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Изглед,notNull,default=auto');
-        $this->FLD('notes', 'richtext(rows=3)', 'caption=Забележки,formOrder=110001');
+        $this->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Забележки,formOrder=110001');
     	$this->setField('packPrice', 'silent');
     }
     
@@ -183,7 +184,7 @@ class sales_QuotationsDetails extends doc_Detail {
     		// Добавяне на транспортните разходи, ако има
     		$fee = tcost_Calcs::get('sales_Quotations', $rec->quotationId, $rec->id)->fee;
     		
-    		if(isset($fee) && $fee != tcost_CostCalcIntf::CALC_ERROR){
+    		if(isset($fee) && $fee > 0){
     			$rec->price += $fee / $rec->quantity;
     		}
     		
@@ -401,6 +402,12 @@ class sales_QuotationsDetails extends doc_Detail {
         }
     
     	if(isset($rec->productId)){
+    		$isStorable = cat_Products::fetchField($rec->productId, 'canStore');
+    		
+    		if($isStorable == 'yes'){
+    			$form->setField('weight', 'input');
+    		}
+    		
     		if(cat_Products::getTolerance($rec->productId, 1)){
     			$form->setField('tolerance', 'input');
     		}
@@ -449,10 +456,9 @@ class sales_QuotationsDetails extends doc_Detail {
     	
     	if($form->isSubmitted()){
     		if(!isset($form->rec->packQuantity)){
-    			$defQuantity = cat_UoM::fetchField($form->rec->packagingId, 'defQuantity');
-    			if(!empty($defQuantity)){
-    				$rec->packQuantity = $defQuantity;
-    			} else {
+    			$form->rec->defQuantity = TRUE;
+    			$form->setDefault('packQuantity', deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId));
+    			if(empty($rec->packQuantity)){
     				$form->setError('packQuantity', 'Не е въведено количество');
     			}
     		}
@@ -521,7 +527,7 @@ class sales_QuotationsDetails extends doc_Detail {
     		    }
     		  
     		    if($rec->productId){
-    		    	tcost_Calcs::prepareFee($rec, $form, $masterRec, array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId'));
+    		    	tcost_Calcs::prepareFee($rec, $form, $masterRec, array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId', 'countryId' => 'contragentCountryId'));
     		    }
     		}
 	    }
@@ -642,28 +648,36 @@ class sales_QuotationsDetails extends doc_Detail {
     		
     		$pId = $data->recs[$i]->productId;
     		$optional = $data->recs[$i]->optional;
-    		($optional == 'no') ? $zebra = &$dZebra : $zebra = &$oZebra;
     		
     		// Сездава се специален индекс на записа productId|optional, така
     		// резултатите са разделени по продукти и дали са опционални или не
     		$pId = $pId . "|{$optional}";
-    		if(array_key_exists($pId, $newRows)){
-    			
-    			// Ако има вече такъв продукт, го махаме от записа
-    			unset($row->productId);
-    			
-    			// Слагаме клас на клетките около rospan-а за улеснение на JS
-    			$row->rowspanId = $newRows[$pId][0]->rowspanId;
-    			$row->TR_CLASS = $newRows[$pId][0]->TR_CLASS;
-    		} else {
-    			// Слагаме уникален индекс на клетката с продукта
-    			$prot = md5($pId.$data->masterData->rec->id);
-	    		$row->rowspanId = $row->rowspanpId = "product-row{$prot}";
-	    		$zebra = $row->TR_CLASS = ($zebra == 'zebra0') ? 'zebra1' :'zebra0';
-    		}
     		
     		$newRows[$pId][] = $row;
-    		$newRows[$pId][0]->rowspan = count($newRows[$pId]);
+    	}
+    	
+    	// Подреждане на груприаните записи по к-ва
+    	foreach ($newRows as &$group){
+    		
+    		// Сортиране по к-во
+    		usort($group, function($a, $b) {
+    			return (str_replace('&nbsp;', '', $a->quantity) > str_replace('&nbsp;', '', $b->quantity)) ? 1 : -1;
+    		});
+    		
+    		$group = array_values($group);
+    		$group[0]->rowspan = count($group);
+    		
+    		foreach ($group as $index => $row){
+    			if($index != 0){
+    				unset($row->productId);
+    				$row->rowspanId = $group[0]->rowspanId;
+    				$row->TR_CLASS = $group[0]->TR_CLASS;
+    			} else {
+    				$prot = md5($pId.$data->masterData->rec->id);
+    				$row->rowspanId = $row->rowspanpId = "product-row{$prot}";
+    				$zebra = $row->TR_CLASS = ($zebra == 'zebra0') ? 'zebra1' :'zebra0';
+    			}
+    		}
     	}
     	
     	// Така имаме масив в който резултатите са групирани 
@@ -886,9 +900,7 @@ class sales_QuotationsDetails extends doc_Detail {
     		}
     		
     		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $masterRec->tplLang);
-    		if($rec->notes){
-    			deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
-    		}
+    		deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     		
     		// Ако е имало проблем при изчисляването на скрития транспорт, показва се хинт
     		$fee = tcost_Calcs::get($mvc->Master, $rec->quotationId, $rec->id)->fee;
@@ -932,10 +944,24 @@ class sales_QuotationsDetails extends doc_Detail {
     	}
     	
     	if(isset($term)){
-    		$row->term = core_Type::getByName('time')->toVerbal($term);
+    		$row->term = core_Type::getByName('time(uom=days,noSmart)')->toVerbal($term);
     		if($hintTerm === TRUE){
     			$row->term = ht::createHint($row->term, 'Срокът на доставка е изчислен автоматично на база количеството и параметрите на артикула');
     		}
+    	}
+    	
+    	// Показване на теглото при определени условия
+    	if($rec->showMode == 'detailed' || ($rec->showMode == 'auto' && cat_Products::fetchField($rec->productId, 'isPublic') == 'no')){
+    		
+    		// Показва се теглото, само ако мярката не е прозиводна на килограм
+    		$kgMeasures = cat_UoM::getSameTypeMeasures(cat_UoM::fetchBySysId('kg')->id);
+    		if(!array_key_exists($rec->packagingId, $kgMeasures)){
+    			$row->weight = deals_Helper::getWeightRow($rec->productId, $rec->packagingId, $rec->quantity, $rec->weight);
+    		} else {
+    			unset($row->weight);
+    		}
+    	} else {
+    		unset($row->weight);
     	}
     	
     	return $row;

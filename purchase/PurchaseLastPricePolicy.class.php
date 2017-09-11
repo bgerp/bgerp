@@ -53,7 +53,7 @@ class purchase_PurchaseLastPricePolicy extends core_Mvc
         $detailQuery->where("#contragentId = {$customerId}");
         $detailQuery->where("#valior <= '{$date}'");
         $detailQuery->where("#productId = '{$productId}'");
-        $detailQuery->where("#state = 'active' || #state = 'closed'");
+        $detailQuery->where("#state = 'active' OR #state = 'closed'");
         $detailQuery->orderBy('#valior,#id', 'DESC');
         $lastRec = $detailQuery->fetch();
         

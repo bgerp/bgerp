@@ -46,6 +46,12 @@ class core_Mvc extends core_FieldSet
 
 
     /**
+     * По подразбиране типа на id полето е int
+     */
+    protected $idType = 'int';
+
+
+    /**
      * Името на класа, case sensitive
      */
     public $className;
@@ -148,7 +154,7 @@ class core_Mvc extends core_FieldSet
             // Задаваме таблицата по подразбиране
             $this->dbTableName = EF_DB_TABLE_PREFIX . str::phpToMysqlName($descrClass);
 
-            $this->FLD("id", "int", 'input=hidden,silent,caption=№,unsigned,notNull');
+            $this->FLD("id", $this->idType, 'input=hidden,silent,caption=№,unsigned,notNull');
 
             // Създаваме описанието на таблицата
             $this->description();
@@ -514,13 +520,13 @@ class core_Mvc extends core_FieldSet
     /**
      * Преброява всички записи отговарящи на условието
      */
-    public static function count($cond = '1=1')
+    public static function count($cond = '1=1', $limit = NULL)
     {
         $me = cls::get(get_called_class());
 
         $query = $me->getQuery();
         
-  		$cnt = $query->count($cond);
+  		$cnt = $query->count($cond, $limit);
     	
 
         return $cnt;
@@ -576,21 +582,23 @@ class core_Mvc extends core_FieldSet
         }
         
         $titleFld = $params['titleFld'];
-        $query->XPR('searchFieldXpr', 'text', "CONCAT(' ', #{$titleFld})");
+        $query->XPR('searchFieldXpr', 'text', "LOWER(CONCAT(' ', #{$titleFld}))");
        
         if($q) {
             if($q{0} == '"') $strict = TRUE;
 
             $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
             
+            $q = mb_strtolower($q);
+            
             if($strict) {
-                $qArr = array(str_replace(' ', '%', $q));
+                $qArr = array(str_replace(' ', '.*', $q));
             } else {
                 $qArr = explode(' ', $q);
             }
             
             foreach($qArr as $w) {
-                $query->where("#searchFieldXpr COLLATE {$query->mvc->db->dbCharset}_general_ci LIKE '% {$w}%'");
+                $query->where(array("#searchFieldXpr REGEXP '\ {1}[^a-z0-9\p{L}]?[#1#]'", $w));
             }
         }
  
@@ -795,7 +803,7 @@ class core_Mvc extends core_FieldSet
 
         $rec = new stdClass();
 
-        try {$rec = $me->fetch($id);} catch(ErrorException $e) {}
+        try {$rec = $me->fetchRec($id);} catch(ErrorException $e) {}
         
         if(!$rec) return '??????????????';
 		
@@ -962,7 +970,7 @@ class core_Mvc extends core_FieldSet
                 $updateNotNull = $updateSigned = $updateDefault = $updateCollation = FALSE;
 
                 // Пропускаме PRI полето
-                if($name == 'id') continue;
+                if($name == 'id' && $this->idType == 'int') continue;
 
                 // Името на полето, така, както трябва да е в таблицата
                 $name = str::phpToMysqlName($name);
@@ -1267,11 +1275,11 @@ class core_Mvc extends core_FieldSet
 
         $me = cls::get($class);
 
-        Debug::log("Start $class->{$method}");
+        //Debug::log("Start $class->{$method}");
 
         $res = $me->__call($method, $args);
 
-        Debug::log("Finish $class->{$method}");
+        //Debug::log("Finish $class->{$method}");
 
         return $res;
     }

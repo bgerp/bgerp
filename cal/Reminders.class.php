@@ -32,7 +32,7 @@ class cal_Reminders extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = ' cal_Wrapper, doc_DocumentPlg, plg_RowTools2, plg_Printing, doc_ActivatePlg, doc_SharablePlg, 
+    public $loadList = ' cal_Wrapper, plg_Clone,doc_DocumentPlg, plg_RowTools2, plg_Printing, doc_ActivatePlg, doc_SharablePlg, 
     				  bgerp_plg_Blank, plg_Sorting, plg_State, change_Plugin,doc_plg_Close,doc_plg_SelectFolder';
     
 
@@ -184,6 +184,22 @@ class cal_Reminders extends core_Master
      * Масив с id на напомненията, които отварят нишки в този хит
      */
     static $opened = array();
+    
+    
+    /**
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     *
+     * @see plg_Clone
+     */
+    public $cloneDetails = 'cal_ReminderSnoozes';
+    
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'timeStart,timePreviously,repetitionEach,repetitionType,timeStart';
     
     
     /**
@@ -760,8 +776,8 @@ class cal_Reminders extends core_Master
 
     	 while($rec = $query->fetch()){
              
-    	 	 self::doUsefullyPerformance($rec);
-    	 	
+             $savedRec = clone($rec);
+
     	 	 if($rec->repetitionEach == 0){
     	 	 	$rec->notifySent = 'yes';
     	 	 	$rec->state = 'closed';
@@ -772,6 +788,8 @@ class cal_Reminders extends core_Master
              }
 
     	 	 self::save($rec, $fields);
+             
+             self::doUsefullyPerformance($savedRec);
     	 }
     }
     

@@ -306,7 +306,7 @@ class cat_products_Params extends doc_Detail
         $query->orderBy('group,order', 'ASC');
         
         // Ако подготвяме за външен документ, да се показват само параметрите за външни документи
-    	if($data->documentType === 'public'){
+    	if($data->documentType == 'public' || $data->documentType == 'invoice'){
     		$query->EXT('showInPublicDocuments', 'cat_Params', 'externalName=showInPublicDocuments,externalKey=paramId');
     		$query->where("#showInPublicDocuments = 'yes'");
     	}

@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   findeals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -40,7 +40,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, acc_plg_Registry, findeals_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_Contable, acc_plg_DocumentSummary, plg_Search, bgerp_plg_Blank, doc_plg_Close, cond_plg_DefaultValues, plg_Clone, doc_plg_Prototype';
+    public $loadList = 'plg_RowTools2, acc_plg_Registry, findeals_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_Contable, acc_plg_DocumentSummary, plg_Search, bgerp_plg_Blank, doc_plg_Close, cond_plg_DefaultValues, plg_Clone, doc_plg_Prototype, doc_plg_SelectFolder';
     
     
     /**
@@ -152,6 +152,24 @@ class findeals_Deals extends deals_DealBase
      
      
     /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = TRUE;
+    
+    
+    /**
+     * Кой има право да клонира?
+     */
+    public $canClonerec = 'ceo,findeals';
+    
+    
+    /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = 'crm_ContragentAccRegIntf';
+    
+    
+    /**
      * Позволени операции на последващите платежни документи
      */
     public  $allowedPaymentOperations = array(
@@ -222,7 +240,7 @@ class findeals_Deals extends deals_DealBase
     	$this->FLD('secondContragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=none');
     	$this->FLD('secondContragentId', 'int', 'input=none');
     	
-    	$this->FLD('description', 'richtext(rows=4)', 'caption=Допълнително->Описание,after=currencyRate');
+    	$this->FLD('description', 'richtext(rows=4,bucket=Notes)', 'caption=Допълнително->Описание,after=currencyRate');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Приключен,stopped=Спряно,template=Шаблон)','caption=Състояние, input=none');
     	
     	$this->FNC('detailedName', 'varchar', 'column=none,caption=Име');
@@ -451,9 +469,10 @@ class findeals_Deals extends deals_DealBase
     		}
     		
     		if(!$rec->currencyRate){
+    			$date = (isset($rec->valior)) ? $rec->valior : dt::now();
     			
     			// Изчисляваме курса към основната валута ако не е дефиниран
-    			$rec->currencyRate = currency_CurrencyRates::getRate(dt::now(), $rec->currencyId, NULL);
+    			$rec->currencyRate = currency_CurrencyRates::getRate($date, $rec->currencyId, NULL);
     			if(!$rec->currencyRate){
     				$form->setError('rate', "Не може да се изчисли курс");
     			}
@@ -524,7 +543,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * След подготовка на тулбара на единичен изглед
      */
-    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	$rec = $data->rec;
     	
@@ -789,7 +808,14 @@ class findeals_Deals extends deals_DealBase
     	
     	// Обновяваме крайното салдо на сметката на сделката
     	$entries = acc_Journal::getEntries(array($this->className, $rec->id));
-    	$blAmount = acc_Balances::getBlAmounts($entries, acc_Accounts::fetchField($rec->accountId, 'systemId'))->amount;
+    	
+    	$itemId = acc_Items::fetchItem($this, $rec->id)->id;
+    	$accSysId = acc_Accounts::fetchField($rec->accountId, 'systemId');
+    	$cItemId = acc_Items::fetchItem($rec->contragentClassId, $rec->contragentId)->id;
+    	$curItemId = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode($rec->currencyId))->id;
+    	
+    	$blAmount = acc_Balances::getBlAmounts($entries, $accSysId, NULL, NULL, array($cItemId, $itemId, $curItemId))->amount;
+    	
     	$paid = acc_Balances::getBlAmounts($entries, '501,503')->amount;
     	
     	$result->set('amount', 0);

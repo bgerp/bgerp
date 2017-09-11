@@ -26,6 +26,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
 	public static function on_AfterDescription(core_Mvc $mvc)
 	{
 		setIfNot($mvc->detailSellPriceFld, 'price');
+		setIfNot($mvc->detailDiscountPriceFld, 'discount');
 		setIfNot($mvc->detailQuantityFld, 'quantity');
 		setIfNot($mvc->detailProductFld, 'productId');
 		setIfNot($mvc->detailPackagingFld, 'packagingId');
@@ -90,15 +91,32 @@ class sales_plg_CalcPriceDelta extends core_Plugin
 				}
 			}
 			
+			$sellCost = $dRec->{$mvc->detailSellPriceFld};
+			if(isset($dRec->{$mvc->detailDiscountPriceFld})){
+				$sellCost = $sellCost * (1 - $dRec->{$mvc->detailDiscountPriceFld});
+			}
+			
+			// Ако артикулът е 'Надценка' няма себестойност
+			$code = cat_Products::fetchField($dRec->{$mvc->detailProductFld}, 'code');
+			if($code == 'surcharge'){
+				$primeCost = 0;
+			}
+			
 			// Изчисляване на цената по политика
 			$r = (object)array('valior'        => $valior,
 							   'detailClassId' => $detailClassId,
 					           'detailRecId'   => $dRec->id,
+							   'containerId'   => $rec->containerId,
 					           'quantity'      => $dRec->{$mvc->detailQuantityFld},
 					           'productId'     => $dRec->{$mvc->detailProductFld},
-					           'sellCost'      => $dRec->{$mvc->detailSellPriceFld},
+					           'sellCost'      => $sellCost,
 					           'primeCost'     => $primeCost);
-				
+			
+			$persons = sales_PrimeCostByDocument::getDealerAndInitiatorId($rec->containerId);
+			
+			$r->dealerId = $persons['dealerId'];
+			$r->initiatorId = $persons['initiatorId'];
+			
 			$id = sales_PrimeCostByDocument::fetchField("#detailClassId = {$detailClassId} AND #detailRecId = {$dRec->id}");
 			if(!empty($id)){
 				$r->id = $id;

@@ -55,10 +55,16 @@ class doc_plg_SelectFolder extends core_Plugin
             Request::get('cloneId', 'key(mvc=doc_Containers)') ||
     		($mvc->alwaysForceFolderIfEmpty === FALSE && Request::get('originId', 'key(mvc=doc_Containers)'))) {
             // Има основание - не правим нищо
-            
+    		
+    		$fId = Request::get('folderId', 'key(mvc=doc_Folders)');
+    		if(!empty($fId)){
+    			if(!$mvc->haveRightFor('add', (object)array('folderId' => $fId))){
+    				followRetUrl(array($mvc, 'list'), 'Документа не може да бъде създаден в папката', 'error');
+    			}
+    		}	
+    			
             return;
         }
-
 
         if($_companyId = Request::get('_companyId', 'key2(mvc=crm_Companies)')) {
             $cRec = crm_Companies::fetch($_companyId);
@@ -93,6 +99,8 @@ class doc_plg_SelectFolder extends core_Plugin
         
         if($folderId) {
             $allParams['folderId'] = $folderId;
+            
+           
             $tpl = new Redirect(
                 	// Редирект към създаването на документа в ясната папка
                     toUrl($allParams));

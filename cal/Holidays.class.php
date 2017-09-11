@@ -227,7 +227,7 @@ class cal_Holidays extends core_Master
 										PA=Панама,
 										PY=Парагвай,
 										PE=Перу,
-										PO=Полша,
+										PL=Полша,
 										PT=Португалия,
 										CG=Република Конго, 
 										RO=Румъния,
@@ -266,9 +266,9 @@ class cal_Holidays extends core_Master
 										ZA=ЮАР,
 										JM=Ямайка,
 										JP=Япония)', 'caption=Празник->Тип,placeholder=Тип на празника,export');
-        $this->FLD('info', 'richtext', 'caption=Празник->Данни,export');
+        $this->FLD('info', 'richtext(bucket=calTasks)', 'caption=Празник->Данни,export');
         
-        $this->FLD('nameday', 'richtext', 'caption=Именници,export');
+        $this->FLD('nameday', 'richtext(bucket=calTasks)', 'caption=Именници,export');
         
         $this->setDbUnique('key');
     }
@@ -370,7 +370,7 @@ class cal_Holidays extends core_Master
     {
     	
     	// Подготвяме пътя до файла с данните 
-    	$file = "bglocal/data/Holidais.csv";
+    	$file = "bglocal/data/Holidays.csv";
     	
     	// Кои колонки ще вкарваме
     	$fields = array( 

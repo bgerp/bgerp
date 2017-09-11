@@ -722,10 +722,59 @@ if($step == 3) {
         $requiredPrograms = array('wget');
         
         foreach($requiredPrograms as $program){
-            if (exec('which ' . escapeshellcmd($program))){
+            if (@exec('which ' . escapeshellcmd($program))){
                 $log[] = "inf:Налична програма: <b>`$program`</b>";
             } else {
                 $log[] = "wrn:Липсваща програма: <b>`$program`</b>";
+            }
+        }
+        
+        $log[] = 'h:Проверка за необходимите параметри на сървъра:';
+        
+        $minMemoryLimit = 1000000;
+        $memoryLimit = core_Os::getMemoryLimit();
+        
+        if (isset($memoryLimit)) {
+            if ($memoryLimit > $minMemoryLimit) {
+                $log[] = "inf:Достатъчна оперативна памет";
+            } else {
+                if ($memoryLimit < (($minMemoryLimit/2) + ($minMemoryLimit/40))) {
+                    $log[] = "err:Оперативната памет е под допустимите минимални стойности";
+                } else {
+                    $log[] = "wrn:Оперативната памет е под препоръчителните стойности";
+                }
+            }
+        }
+        
+        $freeMemory = core_Os::getFreeMemory();
+        if (isset($freeMemory)) {
+            if ($freeMemory > ($minMemoryLimit/10)) {
+                $log[] = "inf:Достатъчна свободна оперативна памет";
+            } else {
+                if ($memoryLimit < ($minMemoryLimit/20)) {
+                    $log[] = "err:Свободната оперативната памет е под допустимите минимални стойности";
+                } else {
+                    $log[] = "wrn:Свободната оперативната памет е под препоръчителните стойности";
+                }
+            }
+        }
+        
+        $minFreeSpace = 200000;
+        $freeRootSpace = core_Os::getFreePathSpace(EF_ROOT_PATH);
+        $freeSbfSpace = core_Os::getFreePathSpace(EF_SBF_PATH);
+        $freeTempSpace = core_Os::getFreePathSpace(EF_TEMP_PATH);
+        
+        $freeSpace = min(array($freeRootSpace, $freeSbfSpace, $freeTempSpace));
+        
+        if (isset($freeSpace)) {
+            if ($freeSpace > $minFreeSpace) {
+                $log[] = "inf:Достатъчно свободно място на диска";
+            } else {
+                if ($freeSpace < $minFreeSpace/2) {
+                    $log[] = "err:Свободното място в диска е под допустимите стойности";
+                } else {
+                    $log[] = "wrn:Свободното място в диска е под препоръчителните стойности";
+                }
             }
         }
     }
@@ -804,7 +853,7 @@ if($step == 3) {
             if (EF_DB_USER == 'root' && EF_DB_PASS == 'USER_PASSWORD_FOR_DB') {
                 $passwordDB = getRandomString();
                 // Опитваме да сменим паролата на mysql-a
-                exec("mysqladmin -uroot -pUSER_PASSWORD_FOR_DB password {$passwordDB}", $output, $returnVar);
+                @exec("mysqladmin -uroot -pUSER_PASSWORD_FOR_DB password {$passwordDB}", $output, $returnVar);
                 if ($returnVar == 0) {
                     $src = str_replace('USER_PASSWORD_FOR_DB', $passwordDB, $src);
                     @file_put_contents($paths['config'], $src);
@@ -881,7 +930,7 @@ if ($step == 'setup') {
     set_time_limit(1000);
 
     $calibrate = 1000;
-    $totalRecords = 205000; // 205 300
+    $totalRecords = 209972; // 205 300
     $totalTables = 365; //366
     $percents = $persentsBase = $persentsLog = 0;
     $total = $totalTables*$calibrate + $totalRecords;
@@ -944,7 +993,7 @@ if ($step == 'setup') {
         list($numTables, $numRows) = dataBaseStat(); 
 
         // От базата идват 80% от прогрес бара
-        $percentsBase = round(($numRows+$calibrate*$numTables*(4/5))/$total,2)*100;
+        $percentsBase = round(($numRows + $calibrate * $numTables*(4/5))/$total, 2)*100;
         
         // Изчитаме лог-а
         $setupLog = @file_get_contents(EF_TEMP_PATH . '/setupLog.html');
@@ -1140,7 +1189,7 @@ function linksToHtml($links)
  */
 function gitExec($cmd, &$output)
 {
-    exec(BGERP_GIT_PATH . " {$cmd}", $output, $returnVar);
+    @exec(BGERP_GIT_PATH . " {$cmd}", $output, $returnVar);
     
     return ($returnVar == 0);    
 }

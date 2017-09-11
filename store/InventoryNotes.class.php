@@ -39,37 +39,37 @@ class store_InventoryNotes extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,store';
+    public $canList = 'ceo,store,inventory';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,store';
+    public $canSingle = 'ceo,store,inventory';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,storeMaster';
+    public $canEdit = 'ceo,storeMaster,inventory';
     
     
     /**
      * Кой може да създава продажба към отговорника на склада?
      */
-    public $canMakesale = 'ceo,sale';
+    public $canMakesale = 'ceo,sale,inventory';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,storeMaster';
+    public $canAdd = 'ceo,storeMaster,inventory';
     
     
     /**
      * Кой може да го контира?
      */
-    public $canConto = 'ceo,storeMaster';
+    public $canConto = 'ceo,storeMaster,inventory';
     
     
     /**
@@ -93,7 +93,7 @@ class store_InventoryNotes extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_Wrapper,acc_plg_Contable,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search,bgerp_plg_Blank';
+    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_Wrapper,acc_plg_Contable,plg_Clone,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search,bgerp_plg_Blank';
     
     
     /**
@@ -118,7 +118,13 @@ class store_InventoryNotes extends core_Master
      * Файл за единичния изглед
      */
     public $singleLayoutFile = 'store/tpl/InventoryNote/SingleLayout.shtml';
-    
+
+
+	/**
+	 * Файл с шаблон за единичен изглед в мобилен
+	 */
+	public $singleLayoutFileNarrow = 'store/tpl/InventoryNote/SingleLayoutNarrow.shtml';
+
 
     /**
      * Да се забрани ли кеширането на документа
@@ -145,6 +151,40 @@ class store_InventoryNotes extends core_Master
     
     
     /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
+    
+
+    /**
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     *
+     * @see plg_Clone
+     */
+    public $cloneDetails = 'store_InventoryNoteSummary,store_InventoryNoteDetails';
+    
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'valior';
+    
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, valior,modifiedOn';
+    
+    
+    /**
+     * На кой ред в тулбара да се показва бутона за принтиране
+     */
+    public $printBtnToolbarRow = 1;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -152,8 +192,8 @@ class store_InventoryNotes extends core_Master
     	$this->FLD('valior', 'date', 'caption=Вальор, mandatory');
     	$this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад, mandatory');
     	$this->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Групи');
-    	$this->FLD('hideOthers', 'enum(yes=Да,no=Не)', 'caption=Показване само на избраните групи->Избор, mandatory, notNULL,value=yes,maxRadio=2');
-    	$this->FLD('cache', 'blob(serialize, compress)', 'input=none');
+    	$this->FLD('hideOthers', 'enum(yes=Да,no=Не)', 'caption=Показване само на избраните групи->Избор, mandatory, notNULL,value=no,maxRadio=2');
+    	$this->FLD('cache', 'blob', 'input=none');
     }
     
     
@@ -174,8 +214,8 @@ class store_InventoryNotes extends core_Master
     	}
     	
     	if(($action == 'add' || $action == 'edit') && isset($rec)){
-    		if(isset($rec->folderId)){
-    			if(!doc_Folders::haveRightToFolder($rec->folderId, $userId)){
+    		if(isset($rec->threadId)){
+    			if(!doc_Threads::haveRightFor('single', $rec->threadId)){
     				$requiredRoles = 'no_one';
     			}
     		}
@@ -216,7 +256,7 @@ class store_InventoryNotes extends core_Master
     	
     	$form->setDefault('storeId', doc_Folders::fetchCoverId($form->rec->folderId));
     	$form->setReadOnly('storeId');
-    	$form->setDefault('hideOthers', 'yes');
+    	$form->setDefault('hideOthers', 'no');
     	
     	if(isset($form->rec->id)){
     		$form->setReadOnly('storeId');
@@ -322,16 +362,20 @@ class store_InventoryNotes extends core_Master
     	if($rec->state != 'rejected'){
     		if($mvc->haveRightFor('single', $rec->id)){
     			$url = array($mvc, 'getBlankForm', $rec->id, 'ret_url' => TRUE);
-    			$data->toolbar->addBtn('Бланка||Blank', $url, 'ef_icon = img/16/print_go.png,title=Разпечатване на бланка,target=_blank');
+    			$data->toolbar->addBtn('Бланка||Blank', $url, 'ef_icon = img/16/print_go.png,title=Разпечатване на бланка за попълване,target=_blank');
     		}
     	}
     	
     	if($mvc->haveRightFor('makesale', $rec)){
     		$url = array($mvc, 'makeSale', $rec->id, 'ret_url' => TRUE);
-    		$data->toolbar->addBtn('Начет', $url, 'ef_icon = img/16/cart_go.png,title=Начисляване на излишъците на МОЛ-а');
+    		$data->toolbar->addBtn('Начет', $url, 'ef_icon = img/16/cart_go.png,title=Начисляване на излишъците на МОЛ');
     	}
     	
-    	$data->toolbar->removeBtn('btnPrint');
+    	if(core_Packs::isInstalled('batch')){
+    		if(batch_Movements::haveRightFor('list') && $data->rec->state == 'active'){
+    			$data->toolbar->addBtn('Партиди', array('batch_Movements', 'list', 'document' => $mvc->getHandle($data->rec->id)), 'ef_icon = img/16/wooden-box.png,title=Добавяне като ресурс,row=2');
+    		}
+    	}
     }
     
     
@@ -485,14 +529,14 @@ class store_InventoryNotes extends core_Master
      * @param stdClass $rec - ид или запис
      * @return array $res - масив с артикули
      */
-    private function getCurrentProducts($rec)
+    public function getCurrentProducts($rec)
     {
     	$res = array();
     	$rec = $this->fetchRec($rec);
     	
     	$query = store_InventoryNoteSummary::getQuery();
     	$query->where("#noteId = {$rec->id}");
-    	$query->show('noteId,productId,blQuantity,groups,modifiedOn');
+    	$query->show('noteId,productId,blQuantity,groups,modifiedOn,quantity');
     	
     	while($dRec = $query->fetch()){
     		$res[] = $dRec;
@@ -516,9 +560,6 @@ class store_InventoryNotes extends core_Master
     private function getProductsFromBalance($rec)
     {
     	$res = array();
-    	$rGroup = cat_Groups::getDescendantArray($rec->groups);
-    	$rGroup = keylist::toArray($rGroup);
-    	
     	$Summary = cls::get('store_InventoryNoteSummary');
     	
     	// Търсим артикулите от два месеца назад
@@ -549,7 +590,8 @@ class store_InventoryNotes extends core_Master
     								  "productId"  => $productId,
     								  "groups"     => NULL,
     								  "modifiedOn" => $now,
-    								  "blQuantity" => $bRec->blQuantity,);
+    								  "createdBy"  => core_Users::SYSTEM_USER,
+    								  "blQuantity" => $bRec->blQuantity);
     			$aRec->searchKeywords = $Summary->getSearchKeywords($aRec);
     			
     			$groups = cat_Products::fetchField($productId, 'groups');
@@ -557,18 +599,7 @@ class store_InventoryNotes extends core_Master
     				$aRec->groups = $groups;
     			}
     			
-    			$add = TRUE;
-    			
-    			// Ако е указано че искаме само артикулите с тези групи
-    			if($rec->hideOthers == 'yes'){
-    				if(!keylist::isIn($rGroup, $aRec->groups)){
-    					$add = FALSE;
-    				}
-    			}
-    			
-    			if($add === TRUE){
-    				$res[] = $aRec;
-    			}
+    			$res[] = $aRec;
     		}
     	}
     	
@@ -597,9 +628,31 @@ class store_InventoryNotes extends core_Master
     	// Извличаме текущите записи
     	$currentArr = $this->getCurrentProducts($rec);
     	 
+    	// Избраните групи
+    	$rGroup = cat_Groups::getDescendantArray($rec->groups);
+    	$rGroup = keylist::toArray($rGroup);
+    	$gCount = count($rGroup);
+    	
+    	// От наличните артикули, взимат се ид-та на тези с к-во
+    	$productArr = array();
+    	array_walk($currentArr, function ($a) use (&$productArr){
+    		if(isset($a->quantity)){
+    			$productArr[$a->productId] = $a->productId;
+    		}});
+    	
+    	// От артикулите от баланса, се махат тези, които нямат избраната група и нямат к-ва.
+    	// Целта е ако потребителя е въвел артикул, който не е в избраните групи с к-во, неговото очаквано
+    	// к-во да дойде от баланса
+    	foreach ($balanceArr as $id => $new){
+    		if($rec->hideOthers == 'yes'){
+    			if(!keylist::isIn($rGroup, $new->groups) && !in_array($new->productId, $productArr)){
+    				unset($balanceArr[$id]);
+    			}
+    		}
+    	}
+    	
     	// Синхронизираме двата масива
     	$syncedArr = arr::syncArrays($balanceArr, $currentArr, 'noteId,productId', 'blQuantity,groups,modifiedOn');
-    	 
     	$Summary = cls::get('store_InventoryNoteSummary');
     	
     	// Ако има нови артикули, добавяме ги
@@ -619,8 +672,9 @@ class store_InventoryNotes extends core_Master
     		foreach ($syncedArr['delete'] as $deleteId){
     			
     			// Трием само тези, които нямат въведено количество
-    			$quantity = store_InventoryNoteSummary::fetchField($deleteId, 'quantity');
-    			if(!isset($quantity)){
+    			$sRec = store_InventoryNoteSummary::fetch($deleteId, 'productId,quantity,createdBy');
+    			
+    			if(!isset($sRec->quantity) && ($sRec->createdBy == core_Users::SYSTEM_USER || empty($sRec->createdBy))){
     				$deleted++;
     				store_InventoryNoteSummary::delete($deleteId);
     			}
@@ -722,15 +776,6 @@ class store_InventoryNotes extends core_Master
     
     
     /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    protected static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	$data->toolbar->removeBtn('btnAdd');
-    }
-    
-    
-    /**
      * Рендиране на формата за избор на настройките на бланката
      * 
      * @return core_ET
@@ -807,7 +852,9 @@ class store_InventoryNotes extends core_Master
     {
     	$rec = $this->fetchRec($id);
     	
-    	$this->save($rec, 'isContable');
+    	if($rec->isContable != 'yes'){
+    		$this->save($rec, 'isContable');
+    	}
     }
     
     
@@ -869,7 +916,7 @@ class store_InventoryNotes extends core_Master
     
     
     /**
-     * Добавяне на ред към протокол за производство
+     * Добавяне на ред към протокол за инвентаризация
      * 
      * @param int $noteId                       - ид на протокол
      * @param int $productId                    - ид на артикул
@@ -895,7 +942,7 @@ class store_InventoryNotes extends core_Master
     	
     	$Double = cls::get('type_Double');
     	expect($quantityInPack = $Double->fromVerbal($quantityInPack));
-    	expect($foundPackQuantity = $Double->fromVerbal($foundPackQuantity));
+    	expect(($foundPackQuantity = $Double->fromVerbal($foundPackQuantity)) || !$foundPackQuantity);
     	$quantity = $quantityInPack * $foundPackQuantity;
     	if(isset($expectedPackQuantity)){
     		$exQuantity = $quantity * $expectedPackQuantity;
@@ -927,6 +974,7 @@ class store_InventoryNotes extends core_Master
     	}
     	
     	// Запис на реда
+    	core_Users::forceSystemUser();
     	store_InventoryNoteDetails::save($rec);
     	
     	// Задаване на очакваното количество
@@ -934,6 +982,7 @@ class store_InventoryNotes extends core_Master
     		$sId = store_InventoryNoteSummary::force($noteId, $productId);
     		store_InventoryNoteSummary::save((object)array('id' => $sId, 'blQuantity' => $expectedPackQuantity), 'id,blQuantity');
     	}
+    	core_Users::cancelSystemUser();
     	
     	// Връщане на записа
     	return $rec->id;

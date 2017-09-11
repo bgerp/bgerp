@@ -328,11 +328,7 @@ class price_Setup extends core_ProtoSetup
     		$query->where("#folderId IS NULL");
     		while($rec = $query->fetch()){
     		
-    			if($rec->createdBy == core_Users::SYSTEM_USER){
-    				core_Users::forceSystemUser();
-    			} else {
-    				core_Users::sudo($rec->createdBy);
-    			}
+    		    $sudoUser = core_Users::sudo($rec->createdBy);
     		
     			$folderId = (isset($rec->cClass) && isset($rec->cId)) ? cls::get($rec->cClass)->forceCoverAndFolder($rec->cId) : NULL;
     			$rec->folderId = $folderId;
@@ -341,14 +337,10 @@ class price_Setup extends core_ProtoSetup
     		
     			$Lists->save($rec);
     		
-    			if($rec->createdBy == core_Users::SYSTEM_USER){
-    				core_Users::cancelSystemUser();
-    			} else {
-    				core_Users::exitSudo();
-    			}
+    		    core_Users::exitSudo($sudoUser);
     		}
-    		
     	} catch(core_exception_Expect $e){
+            core_Users::exitSudo($sudoUser);
     		reportException($e);
     		expect(FALSE);
     	}

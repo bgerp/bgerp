@@ -253,7 +253,7 @@ class cal_Calendar extends core_Master
     	
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('from', 'date', 'caption=От,input,silent, width = 150px,autoFilter');
-        $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent,autoFilter');
+        $data->listFilter->FNC('selectedUsers', 'users(rolesForAll = ceo|hrMaster, rolesForTeams = manager|hr, showClosedGroups)', 'caption=Потребител,input,silent,autoFilter');
         $data->listFilter->setdefault('from', date('Y-m-d'));
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -325,9 +325,14 @@ class cal_Calendar extends core_Master
      * Входният параметър $rec е оригиналният запис от модела
      * резултата е вербалният еквивалент, получен до тук
      */
-    public static function recToVerbal(&$rec)
+    public static function recToVerbal(&$rec, $fields = NULL)
     {
-    	$row = parent::recToVerbal_($rec);
+        if(isset($fields) && $fields['-list']) {
+            $fields += arr::make('time,duration,type,title,priority', TRUE);
+            $row = parent::recToVerbal_($rec, $fields);
+        } else {
+    	    $row = parent::recToVerbal_($rec);
+        }
 
     	$lowerType = strtolower($rec->type);
        
@@ -397,16 +402,16 @@ class cal_Calendar extends core_Master
             }
         // или ако нямаме достъп, правим елемент
         } else {
-        	$row->event = ht::createElement("span", $attr, $row->title);
             if($url['Ctr'] == 'crm_Persons' && ($url['id'])) {
+                $row->event = ht::createElement("span", $attr, $row->title);
+                
                 $pRec = crm_Persons::fetch($url['id']);
                 
                 if ($pRec->inCharge) {
                     $row->event .= ' (' . crm_Profiles::createLink($pRec->inCharge) . ')';
                 }
+                $row->event = "<div title='{$row->title}' style='margin-bottom: 5px;font-style=normal;'>" . $row->event . "</div>";
             }
-            $row->event = "<div title='{$row->title}' style='margin-bottom: 5px;font-style=normal;'>" . $row->event . "</div>";
-
         }
         
         // TODO
@@ -1509,7 +1514,20 @@ class cal_Calendar extends core_Master
         $state->query->orWhere('#users IS NULL OR #users = ""');
         
         $state->query->orderBy('time', 'ASC');  
-		
+        
+		// Ако са избрани, кои събития да се показват
+        $showHoliday = cal_Setup::get('SHOW_HOLIDAY_TYPE');
+        if ($showHoliday) {
+            $showHolidaysArr = type_Set::toArray($showHoliday);
+            
+            $state->query->in('type', $showHolidaysArr);
+        }
+        
+		// Ако няма да се показва никое събитие
+        if ($showHoliday === FALSE) {
+            $state->query->where("1=2");
+        }
+        
 		while($rec = $state->query->fetch()){
 			$recState[] = $rec;
 		}
@@ -2432,8 +2450,8 @@ class cal_Calendar extends core_Master
         if($isLink){
             $event = ht::createLink($rec->title, $url, NULL, $attr);
         } else {
-            $event = ht::createElement("span", $attr, $rec->title);
             if($url['Ctr'] == 'crm_Persons' && ($url['id'])) {
+                $event = ht::createElement("span", $attr, $rec->title);
                 $pRec = crm_Persons::fetch($url['id']);
         
                 if ($pRec->inCharge) {

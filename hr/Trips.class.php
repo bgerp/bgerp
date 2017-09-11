@@ -37,7 +37,7 @@ class hr_Trips extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, doc_DocumentPlg,doc_plg_TransferDoc, acc_plg_DocumentSummary,
+    public $loadList = 'plg_RowTools2, doc_DocumentPlg,doc_plg_TransferDoc, acc_plg_DocumentSummary,plg_Sorting, 
     				 doc_ActivatePlg, plg_Printing,doc_SharablePlg,bgerp_plg_Blank,change_Plugin, hr_Wrapper';
     
     
@@ -50,19 +50,19 @@ class hr_Trips extends core_Master
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,hr';
+    public $canRead = 'ceo,hrMaster';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,hr';
+	public $canList = 'ceo,hrMaster';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,hr';
+	public $canSingle = 'ceo,hrMaster';
     
     
     /**
@@ -80,19 +80,19 @@ class hr_Trips extends core_Master
     /**
      * Кой може да го активира?
      */
-    public $canActivate = 'ceo,hr';
+    public $canActivate = 'ceo,hrMaster';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo,hr';
+    public $canDelete = 'ceo,hrMaster';
     
     
     /**
      * Кой има право да прави начисления
      */
-    public $canChangerec = 'ceo,hr';
+    public $canChangerec = 'ceo,hrMaster';
     
     
     /**
@@ -166,6 +166,12 @@ class hr_Trips extends core_Master
      * По кое поле ще се премества документа
      */
     public $transferFolderField = 'personId';
+    
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, startDate,toDate,modifiedOn';
     
     
     /**

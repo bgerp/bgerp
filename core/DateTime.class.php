@@ -711,22 +711,24 @@ class core_DateTime
 	/**
      * Добавя секунди към датата
      */
-    static function addSecs($secs, $date = NULL)
-    {
+    static function addSecs($secs, $date = NULL, $full = TRUE)
+    {  
         if (!$date) $date = dt::verbal2mysql();
         
         // Ако добавяме точно количество дни
         if($secs % (24*60*60) == 0) {
 
-            return self::addDays($secs / (24*60*60), $date);
+            return self::addDays($secs / (24*60*60), $date, $full);
         }
+        
+        // Оставащи секунди до точен брой месеци
+        $resDays = $secs % core_DateTime::SECONDS_IN_MONTH;
 
         // Ако добавяме точно количество месеци
-        if($secs % core_DateTime::SECONDS_IN_MONTH == 0) {
-            
-            return self::addMonths($secs / core_DateTime::SECONDS_IN_MONTH, $date);
-        }
+        if($resDays % (24*60*60) == 0) {
 
+            return self::addDays(floor($resDays / (24*60*60)), self::addMonths(floor($secs / core_DateTime::SECONDS_IN_MONTH), $date, $full), $full);
+        }
 
         $date = dt::mysql2timestamp($date);
         $date += $secs;
@@ -855,7 +857,7 @@ class core_DateTime
      * @param int $num - брой месеци, които ще се вадят/добавят
      * @param mixed $date - дата или NULL ако е текущата
      */
-    static function addMonths($num, $date = NULL)
+    static function addMonths($num, $date = NULL, $full = TRUE)
     {
     	if(!$date){
     		$date = dt::now();
@@ -889,6 +891,10 @@ class core_DateTime
         list($y, $m) = explode('-', $newMonth);
 
         $res = "{$y}-{$m}-{$day} {$t}";
+        
+        if(!$full) {
+            list($res, ) = explode(' ', $res);
+        }
 
         return $res;
     }
@@ -951,5 +957,27 @@ class core_DateTime
     	
     	// В краен случай се връща FALSE
     	return FALSE;
+    }
+    
+    
+    /**
+     * Връща масив с последните $n месеца
+     * 
+     * @param int $n         - колко месеца на зад (включително текущия)
+     * @param datetime $date - дата, NULL за текущата
+     * @return array $months - масив с месеците
+     */
+    public static function getRecentMonths($n, $date = NULL)
+    {
+    	$months = array();
+    	$date = new DateTime($date);
+    	foreach (range(1, $n) as $i){
+    		if($i != 1) $date->modify("last month");
+    	
+    		$thisMonth = $date->format('Y-m-01');
+    		$months[$thisMonth] = dt::mysql2verbal($thisMonth, 'M Y');
+    	}
+    	
+    	return $months;
     }
 }

@@ -41,6 +41,7 @@ class batch_definitions_Document extends batch_definitions_Proto
 		
 		$handle = mb_strtoupper($Class->getHandle($dRec->id));
 		$date = $dRec->{$Class->valiorFld};
+		$date = (!empty($date)) ? $date : dt::today();
 		$date = str_replace('-', '', $date);
 		
 		$res = "{$date}-{$handle}";
@@ -59,7 +60,7 @@ class batch_definitions_Document extends batch_definitions_Proto
 	 */
 	public function isValid($value, $quantity, &$msg)
 	{
-		if(!preg_match("/^[0-9]{8}[\-]{1}[A-Z]{3}[0-9]+/", $value, $matches)){
+		if(!preg_match("/^[0-9]{8}[\-]{1}[A-Z]{1,3}[0-9]+/", $value, $matches)){
 			$date = str_replace('-', '', dt::today());
 			$msg = "Формата трябва да е във вида на|* {$date}-SAL1";
 			return FALSE;
@@ -70,20 +71,23 @@ class batch_definitions_Document extends batch_definitions_Proto
 	
 	
 	/**
-	 * Какви са свойствата на партидата
-	 *
-	 * @param varchar $value - номер на партидара
-	 * @return array - свойства на партидата
-	 * 	масив с ключ ид на партидна дефиниция и стойност свойството
-	 */
+     * Какви са свойствата на партидата
+     *
+     * @param varchar $value - номер на партидара
+     * @return array - свойства на партидата
+     * 			o name    - заглавие
+     * 			o classId - клас
+     * 			o value   - стойност
+     */
 	public function getFeatures($value)
 	{
 		list($date, $string) = explode('-', $value);
-		 
-		$varcharClassId = batch_definitions_Varchar::getClassId();
-		$dateClassId = batch_definitions_ExpirationDate::getClassId();
 		
-		return array("{$varcharClassId}" => $string, "{$dateClassId}" => $date);
+		$res = array();
+		$res[] = (object)array('name' => 'Документ', 'classId' => batch_definitions_Varchar::getClassId(), 'value' => $string);
+		$res[] = (object)array('name' => 'Дата', 'classId' => batch_definitions_ExpirationDate::getClassId(), 'value' => $date);
+		 
+		return $res;
 	}
 	
 	
@@ -98,5 +102,16 @@ class batch_definitions_Document extends batch_definitions_Proto
 	public function orderBatchesInStore(&$batches, $storeId, $date = NULL)
 	{
 		ksort($batches);
+	}
+	
+	
+	/**
+	 * Може ли потребителя да сменя уникалноста на партида/артикул
+	 *
+	 * @return boolean
+	 */
+	public function canChangeBatchUniquePerProduct()
+	{
+		return FALSE;
 	}
 }

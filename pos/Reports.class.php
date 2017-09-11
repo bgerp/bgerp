@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   pos
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -62,12 +62,6 @@ class pos_Reports extends core_Master {
      * Брой продажби на страница
      */
     public $listDetailsPerPage = '50';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'pos, ceo';
     
     
 	/**
@@ -128,6 +122,12 @@ class pos_Reports extends core_Master {
      * Поле за филтриране по дата
      */
     public $filterDateField = 'createdOn';
+    
+    
+    /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
     
     
     /**
@@ -641,6 +641,13 @@ class pos_Reports extends core_Master {
     {
         if(!$res) { 
             $res = $mvc->singleIcon;
+			if(log_Browsers::isRetina()) {
+				$icon2 = str_replace('/16/', '/32/', $res);
+
+				if(getFullPath($icon2)) {
+					$res = $icon2;
+				}
+			}
         }
     }
     
@@ -711,15 +718,6 @@ class pos_Reports extends core_Master {
     	}
     	
     	return TRUE;
-    }
-    
-    
-    /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    protected static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	$data->toolbar->removeBtn('btnAdd');
     }
     
     

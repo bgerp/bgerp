@@ -151,7 +151,7 @@ class support_Issues extends core_Master
     /**
      * 
      */
-    var $listFields = 'id, title, systemId, componentId, typeId';
+    var $listFields = 'id, title, systemId, componentId, typeId, modifiedOn, modifiedBy';
     
     
     /**
@@ -707,12 +707,13 @@ class support_Issues extends core_Master
      */
     static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        // Подреждаме по дата по - новите по - напред
-        $data->query->orderBy('createdOn', 'DESC');
-        
         // Подреждаме сиганлите активните отпред, затворените отзад а другите по между им
         $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 3 ELSE 2 END)");
         $data->query->orderBy('orderByState');
+        
+        // Подреждаме по дата по - новите по - напред
+        $data->query->orderBy('modifiedOn', 'DESC');
+        $data->query->orderBy('createdOn', 'DESC');
         
         // Задаваме на полета да имат възможност за задаване на празна стойност
         $data->listFilter->getField('systemId')->type->params['allowEmpty'] = TRUE;
@@ -720,9 +721,11 @@ class support_Issues extends core_Master
          
         // Добавяме функционално поле за отговорници
         $data->listFilter->FNC('maintainers', 'type_Users(rolesForAll=support|ceo|admin)', 'caption=Отговорник,input,silent,autoFilter');
+        $data->listFilter->FNC('activatedFrom', 'date', 'caption=От,input,silent,autoFilter,title=Активирани от');
+        $data->listFilter->FNC('activatedTo', 'date', 'caption=До,input,silent,autoFilter,title=Активирани до');
         
         // Кои полета да се показват
-        $data->listFilter->showFields = 'systemId, componentId, maintainers';
+        $data->listFilter->showFields = 'systemId, componentId, maintainers, activatedFrom, activatedTo';
         
         // Добавяме бутон за филтриране
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -741,7 +744,6 @@ class support_Issues extends core_Master
         $data->listFilter->fields['componentId']->autoFilter = 'autoFilter';
         $data->listFilter->setField('systemId', array('mandatory' => FALSE));
         $data->listFilter->fields['systemId']->autoFilter = 'autoFilter';
-        
         
         // Инпутваме
         $data->listFilter->input();
@@ -817,6 +819,14 @@ class support_Issues extends core_Master
                 // Търсим по възложените потребители
                 $data->query->orWhereArr("assign", $maintainersArr, TRUE);
             }        
+        }
+        
+        if ($data->listFilter->rec->activatedFrom) {
+            $data->query->where(array("#activatedOn >= '[#1#]'", $data->listFilter->rec->activatedFrom));
+        }
+        
+        if ($data->listFilter->rec->activatedTo) {
+            $data->query->where(array("#activatedOn <= '[#1#] 23:59:59'", $data->listFilter->rec->activatedTo));
         }
     }
 

@@ -60,32 +60,32 @@ class hr_WorkingCycles extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,hr';
+    public $canList = 'ceo,hrMaster';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,hr';
+    public $canSingle = 'ceo,hrMaster';
     
     
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,hr';
+    public $canRead = 'ceo,hrMaster';
     
     
     /**
      * Кой може да пише?
      */
-    public $canWrite = 'ceo,hr';
+    public $canWrite = 'ceo,hrMaster';
     
     
     /**
      * Кой може да го изтрие?
      * 
      */
-    public $canDelete = 'ceo,hr';
+    public $canDelete = 'ceo,hrMaster';
     
     
     /**
@@ -212,6 +212,8 @@ class hr_WorkingCycles extends core_Master
         
         expect($data->masterId); 
         $shift = hr_Departments::fetchField($data->masterId, 'schedule');
+        
+        return;
         
         $customScheQuery = hr_CustomSchedules::getQuery();
         $custom = array();
@@ -448,7 +450,7 @@ class hr_WorkingCycles extends core_Master
                 // правим url  за принтиране
                 $url = array('hr_WorkingCycles', 'Print', 'Printing'=>'yes', 'masterId' => $data->masterId, 'cal_month'=>$prepareRecs->month, 'cal_year' =>$prepareRecs->year);
                 $efIcon = 'img/16/printer.png';
-                $link = ht::createLink('', $url, FALSE, "title=Печат,ef_icon={$efIcon}");                
+                $link = ht::createLink('', $url, FALSE, "title=Печат,ef_icon={$efIcon}");
                 $tpl->append($link, 'print');
             }
         }
@@ -560,38 +562,30 @@ class hr_WorkingCycles extends core_Master
      * @param datetime $leaveFrom
      * @param datetime $leaveTo
      */
-    static public function calcLeaveDaysBySchedule($id, $masterId, $leaveFrom, $leaveTo)
+    static public function calcLeaveDaysBySchedule($id, $departmentId, $leaveFrom, $leaveTo)
     {
         $nonWorking = $workDays = $allDays = 0;
+
+        $dRec = hr_Departments::fetch($departmentId);
         
-        // Взимаме конкретния работен график
-        $state = self::getQuery();
-        $state->where("#id='{$id}'");
-        $cycleDetails = $state->fetch();
-        
-        // Намираме кога започва графика
-        $startingOn = hr_Departments::fetchField($masterId, 'startingOn');
-       
-        $curDate = $leaveFrom;
-        
-        // От началната дата до крайната, проверяваме всеки ден
-        // дали е работен или не
-        while($curDate < dt::addDays(1, $leaveTo)){
-            
-            $dateType = static::getShiftDay($cycleDetails, $curDate, $startingOn);
-            
-            if($dateType == 0) {
-                $nonWorking++;
-            } else {
-                $workDays++;
+        if(!$dRec || !$dRec->startingOn || !$dRec->schedule) {
+            $res = cal_Calendar::calcLeaveDays($leaveFrom, $leaveTo);
+        } else { 
+            $days = hr_WorkingCycleDetails::getDayArr($dRec->schedule, $dRec->startingOn, $leaveFrom, $leaveTo);
+ 
+            foreach($days as $d) {
+                if($d && $d->duration > 0 && !$d->isHoliday) {
+                    $workDays++;
+                } else {
+                    $nonWorking++;
+                }
+                $allDays++;
             }
-            
-            $curDate = dt::addDays(1, $curDate);
-            
-            $allDays++;
+
+            $res = (object) array('nonWorking' => $nonWorking, 'workDays' => $workDays, 'allDays' => $allDays);
         }
-        
-        return (object) array('nonWorking'=>$nonWorking, 'workDays'=>$workDays, 'allDays'=>$allDays);
+
+        return $res;
     }
 
 

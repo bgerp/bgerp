@@ -62,6 +62,12 @@ defIfNot('PLANNING_TASK_LABEL_PREVIEW_HEIGHT', 170);
 
 
 /**
+ * Детайлно влагане по подразбиране
+ */
+defIfNot('PLANNING_CONSUMPTION_USE_AS_RESOURCE', 'yes');
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -91,13 +97,13 @@ class planning_Setup extends core_ProtoSetup
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'planning_Jobs';
+    var $startCtr = 'planning_Setup';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    var $startAct = 'getStartCtr';
     
     
     /**
@@ -120,6 +126,8 @@ class planning_Setup extends core_ProtoSetup
     		'PLANNING_TASK_LABEL_ROTATION'             => array('enum(yes=Да, no=Не)', 'caption=Шаблон за етикети на задачите->Ротация'),
     		'PLANNING_TASK_LABEL_PREVIEW_WIDTH'        => array('int', 'caption=Превю на артикула в етикета->Широчина,unit=px'),
     		'PLANNING_TASK_LABEL_PREVIEW_HEIGHT'       => array('int', 'caption=Превю на артикула в етикета->Височина,unit=px'),
+    		'PLANNING_CONSUMPTION_USE_AS_RESOURCE'     => array('enum(yes=Да,no=Не)', 'caption=Детайлно влагане по подразбиране->Избор'),
+    
     );
     
     
@@ -145,6 +153,8 @@ class planning_Setup extends core_ProtoSetup
     		'migrate::updateNotes',
     		'migrate::updateStoreIds',
     		'migrate::migrateJobs',
+    		'migrate::addPackToNotes',
+    		'migrate::addPackToJobs'
         );
 
         
@@ -152,6 +162,7 @@ class planning_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     var $roles = array(
+    		array('production'),
     		array('taskWorker'),
     		array('taskPlanning', 'taskWorker'),
     		array('planning', 'taskPlanning'),
@@ -163,7 +174,7 @@ class planning_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.21, 'Производство', 'Планиране', 'planning_DirectProductionNote', 'default', "planning, ceo, job, store"),
+            array(3.21, 'Производство', 'Планиране', 'planning_Wrapper', 'getStartCtr', "planning, ceo, job, store, taskWorker, taskPlanning"),
         );
     
     
@@ -296,6 +307,68 @@ class planning_Setup extends core_ProtoSetup
     		} catch (core_exception_Expect $e){
     			reportException($e);
     		}
+    	}
+    }
+    
+    
+    /**
+     * Добавя опаковки на протокола за производство
+     */
+    public function addPackToNotes()
+    {
+    	$Notes = cls::get('planning_DirectProductionNote');
+    	$Notes->setupMvc();
+    	
+    	if(!$Notes->count()) return;
+    	core_App::setTimeLimit(300);
+    	
+    	$toSave = array();
+    	$query = planning_DirectProductionNote::getQuery();
+    	$query->where("#packagingId IS NULL");
+    	
+    	while($rec = $query->fetch()){
+    		try{
+    			$rec->packagingId = cat_Products::fetchField($rec->productId, 'measureId');
+    			$rec->quantityInPack = 1;
+    			$toSave[] = $rec;
+    		} catch(core_exception_Expect $e){
+    			reportException($e);
+    		}
+    	}
+    	
+    	if(count($toSave)){
+    		$Notes->saveArray($toSave, 'id,packagingId,quantityInPack');
+    	}
+    }
+    
+    
+    /**
+     * Добавя опаковки на протокола за производство
+     */
+    public function addPackToJobs()
+    {
+    	$Job = cls::get('planning_Jobs');
+    	$Job->setupMvc();
+    	 
+    	if(!$Job->count()) return;
+    	core_App::setTimeLimit(300);
+    	 
+    	$toSave = array();
+    	$query = planning_Jobs::getQuery();
+    	$query->where("#packagingId IS NULL");
+    	 
+    	while($rec = $query->fetch()){
+    		try{
+    			$rec->packagingId = cat_Products::fetchField($rec->productId, 'measureId');
+    			$rec->quantityInPack = 1;
+    			$toSave[] = $rec;
+    		} catch(core_exception_Expect $e){
+    			reportException($e);
+    		}
+    	}
+    	 
+    	if(count($toSave)){
+    		$Job->saveArray($toSave, 'id,packagingId,quantityInPack');
     	}
     }
 }

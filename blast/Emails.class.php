@@ -533,16 +533,9 @@ class blast_Emails extends core_Master
                 
                 // Клонираме записа
                 $cRec = clone $rec;
-                
-                // Ако е системяния потребител, го спираме
-                $isSystemUser = core_Users::isSystemUser();
-                
-                if ($isSystemUser) {
-                    core_Users::cancelSystemUser();
-                }
-                
+
                 // Имейла да се рендира и да се праща с правата на активатора
-                core_Users::sudo($cRec->activatedBy);
+                $sudoUser = core_Users::sudo($cRec->activatedBy);
                 
                 // Задаваме екшъна за изпращането
                 doclog_Documents::pushAction(
@@ -586,15 +579,8 @@ class blast_Emails extends core_Master
                 doclog_Documents::flushActions();
                 
                 // Връщаме стария потребител
-                core_Users::exitSudo();
-                
-                // Ако е бил стартиран системия потребител, пак го стартираме
-                if ($isSystemUser) {
-                    
-                    //Стартираме системния потребител
-                    core_Users::forceSystemUser();
-                }
-                
+                core_Users::exitSudo($sudoUser);
+                                
                 // Ако имейлът е изпратен успешно, добавяме времето на изпращане
                 if ($status) {
                     
@@ -628,6 +614,7 @@ class blast_Emails extends core_Master
     {
         unset($nRec->progress);
         unset($nRec->activatedBy);
+        unset($nRec->errMsg);
     }
     
     
@@ -2020,12 +2007,30 @@ class blast_Emails extends core_Master
         
         if (!$haveNextStartTime) {
             
-            $nextStartDay = 7;
+            $nextStartDay = NULL;
             
             foreach ($sendingArr as $sendingDay) {
-                if ($sendingDay > $dayOfWeek) {
+                if ($sendingDay >= $dayOfWeek) {
+                    
+                    if ($sendingDay == $dayOfWeek) {
+                        if (dt::now() >= $sendingTo) continue;
+                    }
+                    
                     $nextStartDay = $sendingDay;
                     break;
+                }
+            }
+            
+            if (!isset($nextStartDay)) {
+                
+                if ($dw = $sendingArr[$dayOfWeek]) {
+                    if (!$sendingTo || ($nextStartTime < $sendingTo)) {
+                        $nextStartDay = $dw;
+                    }
+                }
+                
+                if (!isset($nextStartDay)) {
+                    $nextStartDay = 7 + min($sendingArr);
                 }
             }
             

@@ -12,6 +12,7 @@ en,"Имейл адреса, с_c775","Email address, corresponding of the accou
 en,"Имейли, които не могат да се парсират",Emails that are unparsable
 en,"Класове, имащи _436a",Classes with interfaces
 en,"Логнете се, за да видите нишката",Login to see the thread
+en,"Свали като PDF",Download as PDF
 en,"Можете да нaтиснете","You can click"
 en,"Моля, въведете _c6b3",Please enter the contact details of the company
 en,"Моля, въведете _dfd8",Please enter the contact details of the person
@@ -256,7 +257,7 @@ en,Ведомост,Payroll
 en,Великден,Easter
 en,Вербално ID,Verbal ID
 en,Версии,Versions
-en,Вече съществув_3488,Entry already exists with the same data
+en,Вече съществув_3488,There is already a record with the same data
 en,Вземи файла от _4ad6,Take the file from this URL
 en,Вземи,Take
 en,Вид документ,Document type
@@ -637,7 +638,7 @@ en,Заявки за това_2f537,Request for loading
 en,Заявки,Applications
 en,Звук,Sound
 en,Звуков сигнал _e1185,Notification sound
-en,Здравейте колеги,Dear Sirs
+en,Здравейте колеги,Hello colleagues
 en,Здравейте,Hello
 en,Зелен фон,Green background
 en,Зелени букви,Green letters
@@ -2004,7 +2005,7 @@ en,Търсене на про_ee600,Search product in warehouse
 en,Търсене на фирми,Search companies
 en,Търсене,Search
 en,Уважаема,Dear
-en,Уважаеми колеги,Dear Sirs
+en,Уважаеми колеги,Dear colleagues
 en,Уважаеми,Dear
 en,Удебелен текст,Bold
 en,Указател,Organizer
@@ -2185,6 +2186,7 @@ en,ден,day
 en,дена,days
 en,джаул,joule
 en,дни,days
+en,дн.,d.
 en,до,to
 en,добави,added
 en,добавяне на файл,adding new file
@@ -2394,3 +2396,6 @@ en,Клониране на артикула,Clone product
 en,Клониране на реда,Clone row
 en,Толеранс, Tolerance
 en,Включено ДДС в цените, Prices are with applied VAT
+en,До 1 месец след фактуриране, Until 1 month after invoicing
+en,50% авансово и 50% до 30 дни след фактуриране, 50% downpayment and 50% until 30 days after invoicing
+en,50% авансово и 50% до 10 дни след фактуриране, 50% downpayment and 50% until 10 days after invoicing

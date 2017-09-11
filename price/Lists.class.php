@@ -33,7 +33,7 @@ class price_Lists extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, price_Wrapper, plg_Search, doc_DocumentPlg, doc_plg_SelectFolder';
+    public $loadList = 'plg_RowTools2, price_Wrapper, plg_Search, plg_Clone, doc_DocumentPlg, doc_plg_SelectFolder';
                     
     
     /**
@@ -130,6 +130,14 @@ class price_Lists extends core_Master
      * Да се забрани ли кеширането на документа
      */
     public $preventCache = TRUE;
+    
+
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'title';
     
     
     /**

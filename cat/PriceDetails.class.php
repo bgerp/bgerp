@@ -97,7 +97,7 @@ class cat_PriceDetails extends core_Manager
     	// Може да се добавя нова себестойност, ако продукта е в група и може да се променя
     	$primeCostListId = price_ListRules::PRICE_LIST_COST;
     	
-    	if(price_ListRules::haveRightFor('add', (object)array('productId' => $data->masterId))){
+    	if(price_ListRules::haveRightFor('add', (object)array('productId' => $data->masterId, 'listId' => $primeCostListId))){
     		$data->addPriceUrl = array('price_ListRules', 'add', 'type' => 'value', 'listId' => $primeCostListId, 'productId' => $data->masterId, 'priority' => 1, 'ret_url' => TRUE);
     	}
     	
@@ -163,7 +163,7 @@ class cat_PriceDetails extends core_Manager
     	}
     	
     	if(haveRole('priceDealer,ceo')){
-    		if(price_ListRules::haveRightFor('add', (object)array('productId' => $data->masterId))){
+    		if(price_ListRules::haveRightFor('add', (object)array('productId' => $data->masterId, 'listId' => $primeCostListId))){
     			$btns = '';
     			$newCost = NULL;
     			if(isset($uRec->costValue)){
@@ -180,14 +180,15 @@ class cat_PriceDetails extends core_Manager
     			if(isset($uRec)){
     				if(price_Updates::haveRightFor('saveprimecost', $uRec)){
     					if($hideIcons === FALSE){
-    						$btns .= "<div style='text-align:left'>" . ht::createLink('Обновяване', array('price_Updates', 'saveprimecost', $uRec->id, 'ret_url' => TRUE), FALSE, 'title=Обновяване на себестойноста според зададеното правило'). "</div>";
+    						$btns .= "<div style='text-align:left'>" . ht::createLink('Обновяване', array('price_Updates', 'saveprimecost', $uRec->id, 'ret_url' => TRUE), FALSE, 'title=Обновяване на себестойността според зададеното правило'). "</div>";
     					}
     				}
     			}
     			
     			if(price_Lists::haveRightFor('single', $primeCostListId) && isset($primeCost)){
     				if($hideIcons === FALSE){
-    					$btns .= "<div style='text-align:left'>" . ht::createLink('Хронология', array('price_Lists', 'single', $primeCostListId, 'product' => $data->masterId), FALSE, 'title=Хронология на себестойноста на артикула'). "</div>";
+    					$threadId = price_Lists::fetchField($primeCostListId, 'threadId');
+    					$btns .= "<div style='text-align:left'>" . ht::createLink('Хронология', array('doc_Containers', 'list', 'threadId' => $threadId, 'product' => $data->masterId), FALSE, 'title=Хронология на себестойността на артикула'). "</div>";
     				}
     			}
     		}

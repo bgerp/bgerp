@@ -68,7 +68,7 @@ class marketing_Inquiries2 extends embed_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, marketing_Wrapper, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
+    public $loadList = 'plg_RowTools, marketing_Wrapper, plg_Sorting, plg_Clone, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,Router=marketing_InquiryRouter, drdata_PhonePlg';
     
     
@@ -166,6 +166,20 @@ class marketing_Inquiries2 extends embed_Manager
      * Кои външни(external) роли могат да създават/редактират документа в споделена папка
      */
     public $canWriteExternal = 'agent';
+    
+    
+    /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
+
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'title';
     
     
     /**
@@ -291,9 +305,15 @@ class marketing_Inquiries2 extends embed_Manager
             	$form->setOptions('proto', $protoProducts);
             }
     	}
-
-   	
+ 
     	$mvc->expandEditForm($data);
+    	if(cls::load($form->rec->innerClass, TRUE)){
+    		if($Driver = cls::get($form->rec->innerClass)){
+    			if($moq = $Driver->getMoq()){
+    				$form->rec->moq = $moq;
+    			}
+    		}
+    	}
     }
     
     
@@ -642,6 +662,7 @@ class marketing_Inquiries2 extends embed_Manager
     	$msg = '|Успешно препращане';
     	try {
     	    $this->sendNotificationEmail($rec);
+    	    $this->logWrite('Препращане', $rec->id);
     	} catch (core_exception_Expect $e) {
             $this->logErr("Грешка при изпращане", $rec->id);
             reportException($e);
@@ -744,18 +765,29 @@ class marketing_Inquiries2 extends embed_Manager
         core_Lg::push($lang);
 
     	if(count($proto)){
+            $sort = array();
     		foreach ($proto as $pId => &$name){
     			
     			// Ако прототипа е оттеглен или затворен, маха се от списъка
     			$pState = cat_Products::fetchField($pId, 'state');
     			if($pState != 'rejected' && $pState != 'closed'){
     				$name = cat_Products::getTitleById($pId, FALSE);
+                    $sort[$pId] = cat_Products::fetchField($pId, 'code');
     			} else {
     				unset($proto[$pId]);
     			}
     		}
+
+            // Сортиране на продуктите по код
+            asort($sort);
+            $res = array();
+            foreach($sort as $pId => $code) {
+                $res[$pId] = $proto[$pId];
+            }
+            $proto = $res;
     	}
     	
+
     	if($lg = Request::get('Lg')){
     		cms_Content::setLang($lg);
     		core_Lg::push($lg);
@@ -911,7 +943,7 @@ class marketing_Inquiries2 extends embed_Manager
     		}
     		
     		if(count($errorMoqs)){
-    			$form->setError(implode(',', $errorMoqs), "Количеството се повтаря||Duplicated quantity|* <b>{$moqVerbal}</b>");
+    			$form->setError(implode(',', $errorMoqs), "Количеството не трябва да е под||Quantity can't be bellow|* <b>{$moqVerbal}</b>");
     		}
     		
     		if(count($errorQuantities)){
@@ -1068,14 +1100,5 @@ class marketing_Inquiries2 extends embed_Manager
         }
         
         return $contrData;
-    }
-    
-    
-    /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    public static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	$data->toolbar->removeBtn('btnAdd');
     }
 }

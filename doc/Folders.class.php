@@ -30,8 +30,18 @@ class doc_Folders extends core_Master
     
     /**
      * 10 секунди време за опресняване на нишката
+     * 
+     * @see plg_RefreshRows
      */
     public $refreshRowsTime = 10000;
+    
+
+    /**
+     * Кое поле да се гледа за промяна и да се пуска обновяването
+     * 
+     * @see plg_RefreshRows
+     */
+    public $refreshRowsCheckField = 'last';
     
     
     /**
@@ -119,6 +129,12 @@ class doc_Folders extends core_Master
 
 
     /**
+     * Флаг, че заявките, които са към този модел лимитирани до 1 запис, ще са HIGH_PRIORITY
+     */
+    public $highPriority = TRUE;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -134,6 +150,7 @@ class doc_Folders extends core_Master
         $this->FLD('allThreadsCnt', 'int', 'caption=Нишки->Всички');
         $this->FLD('openThreadsCnt', 'int', 'caption=Нишки->Отворени');
         $this->FLD('last' , 'datetime(format=smartTime)', 'caption=Последно');
+        $this->FLD('statistic', 'blob(serialize,compress)', 'caption=Статистика, input=none');
         
         $this->setDbUnique('coverId,coverClass');
     }
@@ -493,8 +510,23 @@ class doc_Folders extends core_Master
                 // Запомняме броя на отворените теми до сега
                 $exOpenThreadsCnt = $rec->openThreadsCnt;
                 
-                $thQuery = doc_Threads::getQuery();
-                $rec->openThreadsCnt = $thQuery->count("#folderId = {$id} AND state = 'opened'");
+                $allThreadsCnt = $openThreadCnt = 0;
+                
+                $newStatisticArr = $mvc->updateStatistic($rec->id);
+                
+                foreach ((array)$newStatisticArr['_all'] as $key => $cntArr) {
+                    if (($key != '_notRejected') && ($key != 'opened')) continue;
+                    foreach ($cntArr as $cnt) {
+                        if ($key == 'opened') {
+                            $openThreadCnt += $cnt;
+                        } else {
+                            $allThreadsCnt += $cnt;
+                        }
+                    }
+                }
+                
+                $rec->allThreadsCnt = $allThreadsCnt;
+                $rec->openThreadsCnt = $openThreadCnt;
                 
                 // Възстановяване на корицата, ако е оттеглена.
                 self::getCover($rec)->restore();
@@ -506,9 +538,6 @@ class doc_Folders extends core_Master
                 		$rec->state = 'active';
                 	}
                 }
-                
-                $thQuery = doc_Threads::getQuery();
-                $rec->allThreadsCnt = $thQuery->count("#folderId = {$id} AND #state != 'rejected'");
                 
                 $thQuery = doc_Threads::getQuery();
                 $thQuery->orderBy("#last", 'DESC');
@@ -572,6 +601,68 @@ class doc_Folders extends core_Master
                 }
             }
         }
+    }
+    
+    
+    /**
+     * Връща статистиката за документите в папката
+     * 
+     * @param int $folderId
+     * 
+     * @return array
+     */
+    public static function getStatistic($folderId)
+    {
+        
+        return self::updateStatistic($folderId, FALSE);
+    }
+    
+    
+    /**
+     * Обновява и връща статистиката за документите в папката
+     * 
+     * @param int $folderId
+     * @param boolean $forced
+     * 
+     * @return array
+     */
+    public static function updateStatistic($folderId, $forced = TRUE)
+    {
+        $fRec = self::fetch($folderId);
+        
+        // Ако не е форсирано, при наличие на запис да не се обновява
+        if (!$forced) {
+            if (isset($fRec->statistic)) return $fRec->statistic;
+        }
+        
+        $tQuery = doc_Threads::getQuery();
+        $tQuery->where(array("#folderId = '[#1#]'", $folderId));
+        $tQuery->groupBy('visibleForPartners,state,firstDocClass');
+        
+        $tQuery->XPR('cnt', 'int', 'COUNT(#id)');
+        
+        $tQuery->show('visibleForPartners,state,firstDocClass,cnt');
+        
+        $statisticArr = array();
+        
+        while ($tRec = $tQuery->fetch()) {
+            $statisticArr[$tRec->visibleForPartners][$tRec->state][$tRec->firstDocClass] = $tRec->cnt;
+            
+            if ($tRec->state != 'rejected') {
+                $statisticArr[$tRec->visibleForPartners]['_notRejected'][$tRec->firstDocClass] += $tRec->cnt;
+                $statisticArr['_all']['_notRejected'][$tRec->firstDocClass] += $tRec->cnt;
+            }
+            
+            $statisticArr['_all'][$tRec->state][$tRec->firstDocClass] += $tRec->cnt;
+            $statisticArr['_all']['_all'][$tRec->firstDocClass] += $tRec->cnt;
+            $statisticArr['_all']['_all']['_all'] += $tRec->cnt;
+        }
+        
+        $fRec->statistic = $statisticArr;
+        
+        self::save($fRec, 'statistic');
+        
+        return $fRec->statistic;
     }
     
     
@@ -644,7 +735,14 @@ class doc_Folders extends core_Master
         unset($notifyArr[-1]);
         unset($notifyArr[$currUserId]);
         
-        $resArr[$rec->id] = $notifyArr;
+        $rNotifyArr = array();
+        foreach ($notifyArr as $kUId => $uId) {
+            if (doc_Folders::haveRightFor('single', $rec->folderId, $uId)) {
+                $rNotifyArr[$kUId] = $uId;
+            }
+        }
+        
+        $resArr[$rec->id] = $rNotifyArr;
         
         return $resArr[$rec->id];
     }
@@ -1645,9 +1743,10 @@ class doc_Folders extends core_Master
         $form->title = 'Настройка на|* ' . $row->title;
         
         // Добавяме функционални полета
+        $form->FNC('newDoc', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при->Нов документ, input=input');
+        $form->FNC('newThread', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при->Нова тема, input=input');
         $form->FNC('folOpenings', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при->Отворени теми, input=input');
         $form->FNC('personalEmailIncoming', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при->Личен имейл, input=input');
-        $form->FNC('newDoc', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при->Нов документ, input=input');
         $form->FNC('perPage', 'enum(default=Автоматично, 10=10, 20=20, 40=40, 100=100, 200=200)', 'caption=Теми на една страница->Брой, input=input');
 
         $form->FNC('ordering', 'enum(default=Автоматично, ' . doc_Threads::filterList . ')', 'caption=Подредба на темите->Правило, input=input');
@@ -1672,6 +1771,7 @@ class doc_Folders extends core_Master
         $form->setDefault('perPage', 'default');
         $form->setDefault('ordering', 'default');
         $form->setDefault('personalEmailIncoming', 'default');
+        $form->setDefault('newThread', 'default');
         $form->setDefault('newDoc', 'default');
         
         // Сетваме стринг за подразбиране
@@ -1783,21 +1883,23 @@ class doc_Folders extends core_Master
         
         $titleFld = $params['titleFld'];
         $query->EXT('class', 'core_Classes', 'externalKey=coverClass,externalName=title');
-        $query->XPR('searchFieldXpr', 'text', "CONCAT(' ', #{$titleFld})");
+        $query->XPR('searchFieldXpr', 'text', "LOWER(CONCAT(' ', #{$titleFld}))");
        
         if($q) {
             if($q{0} == '"') $strict = TRUE;
 
             $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
             
+            $q = mb_strtolower($q);
+            
             if($strict) {
-                $qArr = array(str_replace(' ', '%', $q));
+                $qArr = array(str_replace(' ', '.*', $q));
             } else {
                 $qArr = explode(' ', $q);
             }
             
             foreach($qArr as $w) {
-                $query->where("#searchFieldXpr COLLATE {$query->mvc->db->dbCharset}_general_ci LIKE '% {$w}%'");
+                $query->where(array("#searchFieldXpr REGEXP '\ {1}[^a-z0-9\p{L}]?[#1#]'", $w));
             }
         }
  
@@ -1805,12 +1907,12 @@ class doc_Folders extends core_Master
             $query->limit($limit);
         }
 
-        $query->show('id,searchFieldXpr,class');
+        $query->show("id,searchFieldXpr,class, {$titleFld}");
         
         $res = array();
         
         while($rec = $query->fetch()) {
-            $res[$rec->id] = trim($rec->searchFieldXpr) . ' (' . $rec->class . ')';
+            $res[$rec->id] = trim($rec->{$titleFld}) . ' (' . $rec->class . ')';
         }
  
         return $res;
@@ -1830,5 +1932,4 @@ class doc_Folders extends core_Master
         // Премахваме color стилове
         $status = preg_replace('/style\s*=\s*(\'|")color:\#[a-z0-9]{3,6}(\'|")/i', '', $status);
     }
-
 }

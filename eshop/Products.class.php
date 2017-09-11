@@ -163,7 +163,7 @@ class eshop_Products extends core_Master
     /**
      * Проверка за дублиран код
      */
-    protected static function on_AfterInputeditForm($mvc, $form)
+    protected static function on_AfterInputEditForm($mvc, $form)
     {
     	$rec = $form->rec;
     	
@@ -211,7 +211,18 @@ class eshop_Products extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-        if($rec->coMoq) {
+    	// Ако няма МКП. но има драйвер взимаме МКП-то от драйвера
+        if(empty($rec->coMoq) && isset($rec->coDriver)){
+            if(cls::load($rec->coDriver, TRUE)){
+            	if($Driver = cls::get($rec->coDriver)){
+            		if($moq = $Driver->getMoq()){
+            			$rec->coMoq = $moq;
+            		}
+            	}
+            }
+        }
+    	
+    	if($rec->coMoq) {
         	$row->coMoq = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($rec->coMoq);
         }
 
@@ -254,6 +265,13 @@ class eshop_Products extends core_Master
     public static function prepareAllProducts($data)
     {
         $gQuery = eshop_Groups::getQuery();
+
+        $groups = eshop_Groups::getGroupsByDomain();
+        if(count($groups)) {
+            $groupList = implode(',', array_keys($groups));
+            $gQuery->where("#id IN ({$groupList})");
+        }
+
         while($gRec = $gQuery->fetch("#state = 'active'")) {
             $data->groups[$gRec->id] = new stdClass();
             $data->groups[$gRec->id]->groupId = $gRec->id;
@@ -586,20 +604,18 @@ class eshop_Products extends core_Master
         $rec = $data->listFilter->input(NULL, 'silent');
 
  
+        $data->listFilter->setField('groupId', 'autoFilter');
+        
         if($rec->groupId) {
             $data->query->where("#groupId = {$rec->groupId}");
+        } else {
+
+            $groups = eshop_Groups::getGroupsByDomain();
+            if(count($groups)) {
+                $groupList = implode(',', array_keys($groups));
+                $data->query->where("#groupId IN ({$groupList})");
+                $data->listFilter->setOptions('groupId', $groups);
+            }
         }
-        $data->listFilter->setField('groupId', 'autoFilter');
-
-        $groups = eshop_Groups::getGroupsByDomain();
-        if(count($groups)) {
-            $groupList = implode(',', array_keys($groups));
-            $data->query->where("#groupId IN ({$groupList})");
-            $data->listFilter->setOptions('groupId', $groups);
-        }
-
-        
-
-        
     }
 }

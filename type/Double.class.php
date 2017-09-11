@@ -88,10 +88,10 @@ class type_Double extends core_Type {
 
         // Шаблон за намиране на повтарящи се знаци или изрази, които започват и/или завършват с тях
         $signP = '(\*|\/|\+|\-|\.|\,)';
-        $pattern = "/(^(\s*(\*|\/)\s*))|({$signP}{1}\s*{$signP}+)|((\s*{$signP}\s*)$|([^\.|\,]*(\.|\,)[^{$signP}]*(\.|\,)[^\.|\,]*))/";
+        $pattern = "/(^(\s*(\*|\/)\s*))|({$signP}{1}\s*{$signP}+)|((\s*{$signP}\s*)$|([^\.|\,]*(\.|\,)[^{$signP}]*(\.|\,)[^\.|\,]*))|\=|[^0-9]{1}[^0-9]{1}/";
         
         if(!preg_match($pattern, $value) && @eval('return TRUE;' . $code)) {
-            eval($code);
+            @eval($code);
             
             return (float) $val;
         } else {

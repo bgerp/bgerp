@@ -393,13 +393,12 @@ div.folder-cover {
   max-width: 720px;
   min-width: 280px;
   font-size: 0.9em;
+  display: block;
   padding: 10px !important; }
   .narrow .folder-cover .block_title img {
     vertical-align: baseline; }
   .narrow .folder-cover .detail-info {
     padding: 3px 7px 7px 7px; }
-  .narrow .folder-cover select {
-    font-size: 1.3em; }
   .narrow .folder-cover .tab-page {
     padding: 0 !important; }
   .narrow .folder-cover .tab-page .portal.detail-info {
@@ -680,8 +679,7 @@ div.productImage {
   border-radius: 4px;
   margin-top: 5px;
   padding: 1px 5px;
-  cursor: pointer;
-  white-space: nowrap; }
+  cursor: pointer; }
   .group-link:hover {
     background-color: #f1f1f1; }
 
@@ -790,7 +788,7 @@ div.crmImage {
 
 .narrow div.crmImage {
   padding: 10px 8px 8px 0;
-  float: left; }
+  float: none; }
 
 div.crm_Companies div.tab-row .tab.selected,
 div.crm_Companies  div.tab-page {
@@ -1045,6 +1043,11 @@ div.acc-detail {
       text-align: left;
       float: left;
       margin-left: 6px; }
+    .detail-info .store_Products .listTopContainer {
+      min-width: 500px; }
+    .detail-info .store_Products .listTable {
+      font-size: 0.9em;
+      max-width: 700px !important; }
 
 /*
  * край на детайли
@@ -1146,6 +1149,9 @@ td.portal-date {
 
 .detail-info.portal table.listTable {
   font-size: 1em; }
+  .detail-info.portal table.listTable .frontToolip img {
+    height: 14px;
+    margin-top: -2px; }
 
 .shortTable .listTable {
   width: 1%; }
@@ -1209,6 +1215,13 @@ a.tOld {
 /*
  * край на стилове при тредове
  */
+  .typeTable .formTypeTable {
+    text-align: center;
+    font-weight: bold;
+    font-size: 0.9em; }
+  .typeTable td {
+    text-align: center; }
+
 /*
  * стилове за документи
  */
@@ -1238,6 +1251,9 @@ a.tOld {
     line-height: 120%; }
   .document .indent {
     text-indent: 25px; }
+  .document .custom-ul {
+    margin-top: 5px;
+    margin-bottom: 5px; }
   .document h1 {
     margin: 0.5em 0;
     line-height: 1em; }
@@ -1307,6 +1323,12 @@ a.tOld {
   .document .business-doc-summary-table > tbody > tr > td {
     padding: 3px !important;
     border: 0px !important; }
+    .document .reportHolder .group-by-field-row td {
+      padding: 5px !important; }
+
+.smallerTextInTable {
+  font-size: 0.7em;
+  min-width: 20em; }
 
 .small-padding td {
   padding: 3px !important; }
@@ -1322,6 +1344,11 @@ a.tOld {
     margin-left: 50px; }
   .wide .halfTable .titleCol {
     width: 120px; }
+
+.readonlyInput {
+  border: none !important;
+  background: none !important;
+  box-shadow: none !important; }
 
   .productCell .halfTable .titleCol {
     width: 100px;
@@ -1481,7 +1508,7 @@ a.tOld {
 .wide .approved {
   position: absolute;
   top: 7px;
-  left: 2px; }
+  right: 2px; }
 
 .centered {
   text-align: center; }
@@ -1510,6 +1537,10 @@ td.rowtools-column {
 
 .large-field {
   width: 50%; }
+
+.morePadding {
+  padding-left: 6px !important;
+  padding-right: 6px !important; }
 
 .amount-field {
   min-width: 180px; }
@@ -1761,6 +1792,12 @@ div.attachments {
     display: block;
     margin-bottom: 2px; }
 
+.dangerFile {
+  background-image: url('../img/16/bug.png') !important;
+  color: red !important;
+  background-repeat: no-repeat;
+  padding-left: 18px; }
+
 .wide .em-holder {
   width: 68%; }
 
@@ -1810,6 +1847,35 @@ div.attachments {
   width: 100% !important;
   height: auto !important;
   padding-top: 57%; }
+
+.narrow .imageProcesing {
+  width: 100%;
+  height: auto; }
+
+  .wide .video-rec .recordImage,
+  .wide .video-rec .recordImage img {
+    width: 260px;
+    height: 210px; }
+
+.narrow .video-rec {
+  display: block;
+  max-width: 450px; }
+  .narrow .video-rec tr,
+  .narrow .video-rec td,
+  .narrow .video-rec tbody {
+    display: block; }
+  .narrow .video-rec img {
+    max-width: 450px;
+    width: 100%;
+    height: auto; }
+  .narrow .video-rec .recordImage {
+    min-height: 250px; }
+
+.recordImage {
+  min-height: 211px;
+  text-align: center;
+  vertical-align: top;
+  background-color: #e8e8e8; }
 
 .narrow .mejs-overlay,
 .narrow  .mejs-poster {
@@ -1906,8 +1972,11 @@ table.mc-header a {
 /*
  * Стилове за счетоводството
  */
-.legalscript h1 {
-  margin-bottom: 0.5em; }
+  .legalscript h1 {
+    margin-bottom: 0.5em; }
+  .legalscript .header span {
+    background-repeat: no-repeat;
+    padding-left: 23px; }
 
 .wide .level-1 td {
   background-color: #000088;
@@ -2889,7 +2958,7 @@ span.sharing-history-title {
 .webdrvTabBody {
   max-width: 900px;
   min-width: 800px;
-  min-height: 600px;
+  min-height: 612px;
   top: 10px;
   position: relative; }
 
@@ -2901,13 +2970,13 @@ span.sharing-history-title {
 .webdrvIframe {
   width: 100%;
   border: solid 0 rgba(0, 0, 0, 0);
-  min-height: 625px; }
+  min-height: 612px; }
 
 .narrow .webdrvIframe {
   min-height: 300px; }
 
 .wide .webdrvFieldset {
-  min-height: 620px;
+  min-height: 615px;
   border: 1px solid #cccccc;
   padding: 15px 10px 10px;
   -moz-border-radius: 5px;
@@ -2972,12 +3041,14 @@ span.sharing-history-title {
   margin-bottom: 15px; }
 
 .webdrv-preview {
-  display: block;
-  max-width: 100%;
-  height: auto;
   margin-top: 5px; }
   .webdrv-preview:first-child {
     margin-top: 0; }
+
+.wide .webdrv-preview {
+  display: block;
+  max-width: 100%;
+  height: auto; }
 
 /*
  * стилове за fileman
@@ -3042,6 +3113,10 @@ span.sharing-history-title {
   overflow: visible !important;
   _overflow: visible !important;
   width: auto !important; }
+
+    .narrow-scroll .single-thread .store_InventoryNoteDetails .listRowsDetail {
+      overflow: auto !important;
+      _overflow: auto !important; }
 
 .narrow-scroll .listRows::-webkit-scrollbar {
   -webkit-appearance: none;
@@ -3712,6 +3787,12 @@ div.location.public {
   width: 100%;
   text-align: left; }
 
+.noTopBorder .listTable {
+  font-size: 0.9em;
+  border-top: none; }
+  .noTopBorder .listTable th {
+    border-top: none; }
+
 .custom-bg-block {
   background-color: #e0e0e0;
   padding: 0.2em;
@@ -3733,7 +3814,8 @@ div.location.public {
   -webkit-border-radius: 5px !important;
   -ms-border-radius: 5px !important;
   border-radius: 5px !important;
-  padding: 10px !important; }
+  padding: 10px !important;
+  word-wrap: break-word; }
 
 #rss-feeds {
   padding: 30px; }
@@ -3873,6 +3955,9 @@ div.location.public {
  * rack
  */
 td.rack-hl {
+  background-color: red; }
+
+td.rack-same {
   background-color: yellow; }
 
 .app-name {
@@ -4448,6 +4533,12 @@ only screen and (max-width: 320px) {
     margin-bottom: 10px;
     font-size: 1.1em;
     text-transform: uppercase; }
+  .external .hideLink {
+    display: block;
+    margin-left: 10px;
+    font-size: 0.9em;
+    margin-bottom: 10px;
+    margin-top: -6px; }
 
 .wide .external .vertical .formTable {
   box-shadow: none !important; }
@@ -4465,8 +4556,14 @@ only screen and (max-width: 320px) {
  * стилове за принтиране
  */
 @media print {
-  body {
-    margin: 0px !important; }
+  .wide .singleView {
+    display: block; }
+
+  .noMediaPrint {
+    display: none; }
+
+  .smaller-text {
+    font-size: 0.95em; }
 
   .document {
     min-width: 837px !important;
@@ -4610,7 +4707,8 @@ only screen and (max-width: 320px) {
     display: none; }
 
   body {
-    background: white !important; }
+    background: white !important;
+    margin: 0px !important; }
 
   .external .document {
     margin: 0;
@@ -4660,7 +4758,10 @@ only screen and (max-width: 320px) {
     display: block; }
 
   thead {
-    display: table-row-group; } }
+    display: table-row-group; }
+
+  .external .hideLink {
+    display: none !important; } }
 
   .printing .specialLink {
     font-weight: bold; }

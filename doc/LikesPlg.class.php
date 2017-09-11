@@ -89,9 +89,17 @@ class doc_LikesPlg extends core_Plugin
         // Изчиства нотификацията при натискане на линка
         if ($action == 'single' && !(Request::get('Printing')) && !Mode::is('text', 'xhtml')) {
             
-            // Изчистваме нотификацията за харесване
-            $url = array($mvc, 'single', Request::get('id', 'int'), 'like' => TRUE);
-            bgerp_Notifications::clear($url);
+            $id = Request::get('id', 'int');
+            
+            if ($id) {
+                // Изчистваме нотификацията за харесване
+                $url = array($mvc, 'single', Request::get('id', 'int'), 'like' => TRUE);
+                bgerp_Notifications::clear($url);
+                
+                $rec = $mvc->fetch($id);
+                $url = array('doc_Threads', 'list', 'threadId' => $rec->threadId, 'like' => 1);
+                bgerp_Notifications::clear($url);
+            }
             
             return ;
         }
@@ -116,7 +124,8 @@ class doc_LikesPlg extends core_Plugin
             
             if (doc_Likes::like($rec->containerId, $rec->threadId)) {
                 $mvc->logWrite('Харесване', $rec->id);
-                $mvc->touchRec($rec->id);
+                
+                doc_DocumentCache::cacheInvalidation($rec->containerId);
                 
                 $mvc->notifyUsersForLike($rec);
             }
@@ -130,7 +139,8 @@ class doc_LikesPlg extends core_Plugin
             
             if (doc_Likes::dislike($rec->containerId)) {
                 $mvc->logWrite('Премахнато харесване', $rec->id);
-                $mvc->touchRec($rec->id);
+                
+                doc_DocumentCache::cacheInvalidation($rec->containerId);
                 
                 bgerp_Notifications::setHidden(array($mvc, 'single', $rec->id, 'like' => TRUE));
             }
@@ -236,8 +246,29 @@ class doc_LikesPlg extends core_Plugin
      */
     protected static function notifyUsers($notifyStr, $className, $userId, $rec)
     {
+        // Ако потребителя се е отписал за нови дикументи
+        if ($rec->folderId) {
+            $sKey = doc_Folders::getSettingsKey($rec->folderId);
+            $noNotifyArr = core_Settings::fetchUsers($sKey, 'newDoc', 'no');
+            
+            if ($noNotifyArr[$userId]) return ;
+        }
+        
+        // Ако потребителя се е отписал от нишката
+        if ($rec->threadId) {
+            $sKey = doc_Threads::getSettingsKey($rec->threadId);
+            $noNotifyArr = core_Settings::fetchUsers($sKey, 'notify', 'no');
+            
+            if ($noNotifyArr[$userId]) return ;
+        }
+        
         $clearUrl = $linkUrl = array($className, 'single', $rec->id);
         $clearUrl['like'] = TRUE;
+        
+        if ($rec->threadId) {
+            $clearUrl = array('doc_Threads', 'list', 'threadId' => $rec->threadId, 'like' => 1);
+        }
+        
         bgerp_Notifications::add($notifyStr, $clearUrl, $userId, 'normal', $linkUrl);
     }
     
@@ -416,7 +447,12 @@ class doc_LikesPlg extends core_Plugin
                         
                         $elemId = self::getElemId($rec);
                         
-                        $likesLink .= "<div class='additionalInfo-holder'><span class='additionalInfo' id='{$elemId}'></span></div>";
+                        $cssClass = 'additionalInfo';
+                        if ($likesCnt >= 5) {
+                            $cssClass .= ' bottom';
+                        }
+                        
+                        $likesLink .= "<div class='additionalInfo-holder'><span class='{$cssClass}' id='{$elemId}'></span></div>";
                     }
                     
                     if ($likesLink) {

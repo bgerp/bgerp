@@ -42,7 +42,7 @@ class hr_Leaves extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, hr_Wrapper, doc_plg_TransferDoc,bgerp_plg_Blank,
+    public $loadList = 'plg_RowTools2, hr_Wrapper, doc_plg_TransferDoc,bgerp_plg_Blank,plg_Sorting, 
     				 doc_DocumentPlg, acc_plg_DocumentSummary, doc_ActivatePlg,
     				 plg_Printing,doc_SharablePlg,plg_Search';
     
@@ -50,7 +50,7 @@ class hr_Leaves extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,personId, leaveFrom, leaveTo, note, useDaysFromYear, paid';
+    public $listFields = 'id,personId, leaveFrom, leaveTo, leaveDays, note, paid';
     
     
     /**
@@ -72,11 +72,18 @@ class hr_Leaves extends core_Master
     public $rowToolsSingleField = 'personId';
     
     
+    /**
+     * Брой записи на страница
+     *
+     * @var integer
+     */
+    public $listItemsPerPage = 300;
+    
     
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,hr';
+    public $canRead = 'ceo,hr,hrMaster';
     
     
     /**
@@ -94,7 +101,7 @@ class hr_Leaves extends core_Master
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,hr';
+	public $canList = 'ceo, hr, hrMaster, admin';
 
 
 	/**
@@ -118,7 +125,12 @@ class hr_Leaves extends core_Master
     /**
      * Кой може да го активира?
      */
-    public $canActivate = 'ceo,hr';
+    public $canActivate = 'ceo,hr,hrMaster';
+    
+    /**
+     * Кой може да го активира?
+     */
+    public $canDecline = 'ceo,hr,hrMaster';
     
     
     /**
@@ -176,6 +188,16 @@ class hr_Leaves extends core_Master
     
     
     static public $map = array('paid' => 'платен', 'unpaid' => 'неплатен');
+
+    // Дните от седмицата
+    static public $weekDays = array('Monday'=>'понеделник', 'Tuesday'=>'вторник', 'Wednesday'=>'сряда', 
+                             'Thursday'=>'четвъртък', 'Friday'=>'петък', 'Saturday'=>'събота', 'Sunday'=>'неделя');
+    
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, leaveFrom,leaveTo, modifiedOn';
     
     
     /**
@@ -185,7 +207,7 @@ class hr_Leaves extends core_Master
     {
     	$this->FLD('docType', 'enum(request=Молба за отпуск, order=Заповед за отпуск)', 'caption=Документ, input=none,column=none');
     	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител, mandatory');
-    	$this->FLD('leaveFrom', 'datetime', 'caption=Считано->От, mandatory');
+    	$this->FLD('leaveFrom', 'datetime(defaultTime=00:00:00)', 'caption=Считано->От, mandatory');
     	$this->FLD('leaveTo', 'datetime(defaultTime=23:59:59)', 'caption=Считано->До, mandatory');
     	$this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
     	$this->FLD('useDaysFromYear', 'int', 'caption=Информация->Ползване от,unit=година, input=none');
@@ -313,6 +335,12 @@ class hr_Leaves extends core_Master
      */
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
+        if(haveRole('ceo,hr,admin')) {
+            $ignorable = TRUE;
+        } else {
+            $ignorable = FALSE;
+        }
+
         $now = dt::now();
         // един месец назад
         $before30Days = dt::addMonths(-1, $now);
@@ -329,34 +357,27 @@ class hr_Leaves extends core_Master
             }
             
             if(isset($form->rec->leaveFrom) &&  ($form->rec->leaveFrom < $before30Days)) {
-                $form->setError('leaveFrom', "Началната дата трябва да е след {$before30DaysVerbal}г.");
+                $form->setError('leaveFrom', "Началната дата трябва да е след {$before30DaysVerbal}г.", $ignorable);
             }
             
             if(isset($form->rec->leaveFrom) && ($form->rec->leaveFrom > $after1year)) {
-                $form->setError('leaveFrom', "Началната дата трябва да е преди {$after1yearVerbal}г.");
+                $form->setError('leaveFrom', "Началната дата трябва да е преди {$after1yearVerbal}г.", $ignorable);
             }
             
             if(isset($form->rec->leaveTo) && ($form->rec->leaveTo > $after1year)) {
-                $form->setError('leaveTo', "Крайната дата трябва да е преди {$after1yearVerbal}г.");
+                $form->setError('leaveTo', "Крайната дата трябва да е преди {$after1yearVerbal}г.", $ignorable);
             }
             
             // изисляване на бр дни отпуска
             if($form->rec->leaveFrom &&  $form->rec->leaveTo){
                  
                 $state = hr_EmployeeContracts::getQuery();
-                $state->where("#personId='{$form->rec->personId}'");
-                 
+                $state->where("#personId='{$form->rec->personId}' AND #state = 'active'");
+              
                 if($employeeContractDetails = $state->fetch()){
-            
-                    $employeeContract = $employeeContractDetails->id;
-                    $department = $employeeContractDetails->departmentId;
-            
-                    $schedule = hr_EmployeeContracts::getWorkingSchedule($employeeContract);
-                    if($schedule){
-                        $days = hr_WorkingCycles::calcLeaveDaysBySchedule($schedule, $department, $form->rec->leaveFrom, $form->rec->leaveTo);
-                    } else {
-                        $days = cal_Calendar::calcLeaveDays($form->rec->leaveFrom, $form->rec->leaveTo);
-                    }
+           
+                    $days = hr_WorkingCycles::calcLeaveDaysBySchedule($schedule, $employeeContractDetails->departmentId, $form->rec->leaveFrom, $form->rec->leaveTo);
+
                 } else {
                      
                     $days = cal_Calendar::calcLeaveDays($form->rec->leaveFrom, $form->rec->leaveTo);
@@ -425,7 +446,7 @@ class hr_Leaves extends core_Master
 	         }
 	     }
 	     
-	     if ($action == 'add' || $action == 'reject') { 
+	     if ($action == 'add' || $action == 'reject'  || $action == 'decline') { 
 	         if ($rec->folderId) {
     	         $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
     	        
@@ -454,32 +475,34 @@ class hr_Leaves extends core_Master
      */
     public static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
-    	
-    	// Ако имаме права да създадем заповед за отпуск
-        if(haveRole('hr, ceo') && $data->rec->state == 'active') {
-            
-        	// Добавяме бутон
-            $data->toolbar->addBtn('Заповед', array('hr_Leaves', 'single', 'id' => $data->rec->id, 'Printing' => 'yes', 'Order'=>'yes'),
-            'ef_icon = img/16/btn-order.png, title=Създаване на заповед за отпуска', array('target' => '_blank'), array('class' => 'print'));
-        
-        }
-        
-        // Ако имаме права да създадем заповед за отпуск
-        if(haveRole('hr, ceo') && $data->rec->state == 'active') {
-        
-            // Добавяме бутон
-            $data->toolbar->addBtn('Заповед', array($mvc, 'single', 'id' => $data->rec->id, 'Printing' => 'yes', 'Order'=>'yes'),
-                'ef_icon = img/16/btn-order.png, title=Създаване на заповед за отпуска', array('target' => '_blank'), array('class' => 'print'));
-        
-        }
-        
+
         // Ако нямаме права за писане в треда
     	if(doc_Threads::haveRightFor('single', $data->rec->threadId) == FALSE){
     		
     		// Премахваме бутона за коментар
 	    	$data->toolbar->removeBtn('Коментар');
 	    }
+	   
+	         
+	    if ($mvc->haveRightFor('decline', $data->rec) && $data->rec->state != 'closed') {
+	            $data->toolbar->addBtn('Отказ',array(
+	                $mvc,
+	                'Decline',
+	                'id' => $data->rec->id,
+	                'ret_url' => array('hr_Leaves', 'single', $data->rec->id)
+	            ),
+	                array('ef_icon'=>'img/16/cancel16.png',
+	                    'title'=>'Отказ на молбата'
+	                ));
+        } 
+
+        // Ако нямаме права за писане в треда
+        if(doc_Threads::haveRightFor('single', $data->rec->threadId) && ($data->rec->state != 'draft' && $data->rec->state != 'pending')){
         
+            // Премахваме бутона за коментар
+            $data->toolbar->removeBtn('activate');
+            $data->toolbar->removeBtn('Отказ');
+        }
     }
     
     
@@ -499,7 +522,7 @@ class hr_Leaves extends core_Master
 
     	if(count($subscribedArr)) {
    	        foreach($subscribedArr as $userId) {
-    	        if($userId > 0  && doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
+    	        if($userId > 0  && doc_Threads::haveRightFor('single', $rec->threadId, $userId)) { 
     	            $rec->message  = "|Активирана е |* \"" . self::getRecTitle($rec) . "\"";
     	            $rec->url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
     	            $rec->customUrl = array($mvc, 'single',  $rec->id);
@@ -679,26 +702,138 @@ class hr_Leaves extends core_Master
     		}
     	}
     	
+    	
+    	
     	if($rec->leaveFrom){
+    	    
+    	    $tLeaveFrom = dt::mysql2timestamp($rec->leaveFrom);
+    	    $dayOfWeekFrom = date('l', $tLeaveFrom);
+    	    
     	    list($dateFrom,$hourFrom) = explode(" ", $rec->leaveFrom);
     	    
     	    if($hourFrom != "00:00:00") {
     	        $row->leaveFrom = $DateTime->mysql2verbal($rec->leaveFrom, "d.m.Y");
     	        $row->fromHour = $DateTime->mysql2verbal($rec->leaveFrom, "H:i");
-    	        
     	    }
+    	    
+    	    $row->dayFrom = static::$weekDays[$dayOfWeekFrom];
     	}
     	
     	if($rec->leaveTo){
+    	    
+    	    $tLeaveTo = dt::mysql2timestamp($rec->leaveTo);
+    	    $dayOfWeekTo = date('l', $tLeaveTo);
+    	    
     	    list($dateTo,$hourTo) = explode(" ", $rec->leaveTo);
     	    
     	    if($hourTo != "23:59:59") {
     	        $row->leaveTo = $DateTime->mysql2verbal($rec->leaveTo, "d.m.Y");
     	        $row->toHour = $DateTime->mysql2verbal($rec->leaveTo, "H:i");
     	    }
+    	    
+    	    $row->dayTo = static::$weekDays[$dayOfWeekTo];
     	}
 
         $myCompany = crm_Companies::fetchOurCompany();
         $row->myCompany = $myCompany->name;
     }
+    
+    
+    /**
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    {
+        if(isset($data->rec->leaveFrom) && isset($data->rec->leaveTo)) {
+            $leaveFrom =  strstr($data->rec->leaveFrom, " ", TRUE); 
+            $leaveTo = strstr($data->rec->leaveTo, " ", TRUE);
+        }
+   
+        if(trim($leaveFrom) == trim($leaveTo)) {
+            $tpl->removeBlock('leaveFrom');
+            $tpl->removeBlock('fromHour');
+            $tpl->removeBlock('dayFrom');
+            $tpl->removeBlock('to');
+
+        } else {
+            $tpl->removeBlock('on');
+        }
+
+        if($data->rec->state == 'closed') { 
+            $row = new stdClass();
+            $rowTpl = $tpl->getBlock("decline");
+       
+            if(isset($data->rec->modifiedOn)){
+                $row->modifiedOn = dt::mysql2verbal($data->rec->modifiedOn, 'd.m.Y');
+            }
+       
+            if(isset($data->rec->modifiedBy)){ 
+                $row->modifiedBy = core_Users::getVerbal($data->rec->modifiedBy, 'names');
+                if(!Mode::isReadOnly()){
+                    $row->modifiedBy = crm_Profiles::createLink($data->rec->modifiedBy, $row->modifiedBy);
+                }
+            }
+            
+            $rowTpl->placeObject($row);
+            $rowTpl->removeBlocks();
+            $rowTpl->append2master();
+            
+            $tpl->removeBlock('activatedBy');
+        } else {
+            $tpl->removeBlock('decline');
+        }
+    }
+    
+    
+    /**
+     * Метод за отказване на молбата за отпуск
+     */
+    public static function act_Decline()
+    {
+        
+        //Очакваме да има такъв запис
+        expect($id = Request::get('id', 'int'));
+        
+        expect($rec = hr_Leaves::fetch($id));
+        
+        // Очакваме да има права за записа
+        hr_Leaves::requireRightFor('decline', $rec);
+        
+        //Очакваме потребителя да има права за спиране
+        hr_Leaves::haveRightFor('decline', $rec);
+        
+        $link = array('hr_Leaves', 'single', $rec->id);
+        
+        //Променяме статуса на затворено
+        $recUpd = new stdClass();
+        $recUpd->id = $rec->id;
+        $recUpd->state = 'closed';
+        
+        hr_Leaves::save($recUpd);
+        
+        $subscribedArr = keylist::toArray($rec->sharedUsers);
+        
+        if(isset($rec->alternatePerson)) {
+            $alternatePersonId = crm_Profiles::fetchField("#personId = '{$rec->alternatePerson}'", 'userId');
+            $subscribedArr[$alternatePersonId] = $alternatePersonId;
+        }
+        
+        if(count($subscribedArr)) {
+            foreach($subscribedArr as $userId) {
+                if($userId > 0  && doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
+                    $rec->message  = "|Отказана е |* \"" . self::getRecTitle($rec) . "\"";
+                    $rec->url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+                    $rec->customUrl = array($mvc, 'single',  $rec->id);
+                    $rec->priority = 0;
+                     
+                    bgerp_Notifications::add($rec->message, $rec->url, $userId, $rec->priority, $rec->customUrl);
+                }
+            }
+        }
+
+        // Редиректваме
+        return new Redirect($link, "|Успешно отказахте молба за отпуска");
+        
+    }
+    
 }

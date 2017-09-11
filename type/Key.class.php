@@ -251,9 +251,9 @@ class type_Key extends type_Int
     
     
     /**
-     * 
+     * Подготвя масив с опциите
      */
-    public function prepareOptions()
+    public function prepareOptions($value = NULL)
     {
         Mode::push('text', 'plain');
         

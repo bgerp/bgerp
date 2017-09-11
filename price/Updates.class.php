@@ -76,6 +76,12 @@ class price_Updates extends core_Manager
 	public $canSaveprimecost = 'priceMaster,ceo';
 	
 	
+	/**
+	 * Дали в листовия изглед да се показва бутона за добавяне
+	 */
+	public $listAddBtn = FALSE;
+	
+	
     /**
      * Описание на модела (таблицата)
      */
@@ -247,7 +253,7 @@ class price_Updates extends core_Manager
     
     
     /**
-     * Записва себестойноста според правилото с ръчно обновяване
+     * Записва себестойността според правилото с ръчно обновяване
      */
     function act_Saveprimecost()
     {
@@ -256,7 +262,7 @@ class price_Updates extends core_Manager
     	expect($rec = $this->fetch($id));
     	$this->requireRightFor('saveprimecost', $rec);
     	
-    	// Записва себестойноста
+    	// Записва себестойността
     	$this->savePrimeCost($rec);
     	
     	// Редирект към списъчния изглед
@@ -321,7 +327,7 @@ class price_Updates extends core_Manager
     		// Обновяваме себестойностите само ако артикула е складируем,публичен,активен, купуваем или производим
     		if($pRec->state != 'active' || $pRec->canStore != 'yes' || $pRec->isPublic != 'yes'  || !($pRec->canBuy == 'yes' || $pRec->canManifacture == 'yes')) continue;
     		
-    		// Опитваме се да му изчислим себестойноста според източниците
+    		// Опитваме се да му изчислим себестойността според източниците
     		$primeCost = self::getPrimeCost($productId, $rec->costSource1, $rec->costSource2, $rec->costSource3, $rec->costAdd);
     		
     		// Намираме старата му себестойност (ако има)
@@ -336,7 +342,7 @@ class price_Updates extends core_Manager
     			// Ако старата себестойност е различна от новата
     			if($primeCost != $oldPrimeCost){
     				
-    				// Кешираме себестойноста, ако правилото не е за категория
+    				// Кешираме себестойността, ако правилото не е за категория
     				if($rec->type != 'category'){
     					$rec->costValue = $primeCost;
     					self::save($rec, 'costValue');
@@ -513,7 +519,6 @@ class price_Updates extends core_Manager
     	if(haveRole('debug')){
     		$data->toolbar->addBtn('Преизчисли', array($mvc, 'recalc'), NULL, 'ef_icon = img/16/arrow_refresh.png,title=Преизчисляване на себестойностите,target=_blank');
     	}
-    	$data->toolbar->removeBtn('btnAdd');
     }
     
     

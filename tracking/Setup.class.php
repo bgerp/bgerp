@@ -194,7 +194,7 @@ class tracking_Setup extends core_ProtoSetup
                     . " " . $conf->PORT
                     . " " . $conf->LOG_URL;
     
-            $pid = exec(sprintf("%s > /dev/null 2>&1 & echo $!", $cmd));
+            $pid = @exec(sprintf("%s > /dev/null 2>&1 & echo $!", $cmd));
 
             core_Packs::setConfig('tracking', array('PID'=>$pid, 'CMD'=>$cmd));
         }
@@ -235,7 +235,7 @@ class tracking_Setup extends core_ProtoSetup
         if (empty($pid)) return FALSE;
         
         // Парсираме резултата от ps -fp <PID> команда и взимаме командната линия на процеса
-        exec("ps -fp " . $pid, $output);
+        @exec("ps -fp " . $pid, $output);
         // Ако командата се съдържа в резултата от ps значи процеса е нашия
         if (strpos($output[1], $cmd) !== FALSE) {
     

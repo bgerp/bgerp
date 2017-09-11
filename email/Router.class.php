@@ -162,9 +162,11 @@ class email_Router extends core_Manager
      * @param string $toEmail има значение само при $type == email_Router::RuleFromTo, в противен
      * случай се игнорира (може да е NULL)
      * @param string $type email_Router::RuleFromTo | email_Router::RuleFrom | email_Router::RuleDomain
+     * @param boolean $bForce 
+     * 
      * @return int key(mvc=doc_Folders)
      */
-    public static function route($fromEmail, $toEmail, $type)
+    public static function route($fromEmail, $toEmail, $type, $bForce = TRUE)
     {
         $key = static::getRoutingKey($fromEmail, $toEmail, $type);
         
@@ -180,12 +182,12 @@ class email_Router extends core_Manager
                     break;
                 case 'person' :
                     if(crm_Persons::fetch($rec->objectId)) {
-                        $folderId = crm_Persons::forceCoverAndFolder($rec->objectId);
+                        $folderId = crm_Persons::forceCoverAndFolder($rec->objectId, $bForce);
                     }
                     break;
                 case 'company' :
                     if(crm_Companies::fetch($rec->objectId)) {
-                        $folderId = crm_Companies::forceCoverAndFolder($rec->objectId);
+                        $folderId = crm_Companies::forceCoverAndFolder($rec->objectId, $bForce);
                     }
                     break;
                 default :
@@ -379,6 +381,80 @@ class email_Router extends core_Manager
         }
 
         return $rec->folderId;
+    }
+    
+    
+    /**
+     * Проверява дали може да се рутира тук
+     * 
+     * @param stdObject $rec
+     * @param array $oldValArr
+     * 
+     * @return boolean
+     */
+    public static function checkRouteRules(&$rec, $oldValArr = array('folderId' => NULL, 'threadId' => NULL))
+    {
+        $rRoute = (email_Setup::get('RESTRICT_ROUTE') == 'yes') ? TRUE : FALSE; 
+        
+        $threadId = $rec->threadId;
+        $folderId = $rec->folderId;
+        
+        if (!$folderId && $threadId) {
+            $folderId = doc_Threads::fetchField($threadId, 'folderId');
+        }
+        
+        static $stopRoutingArr = array();
+        $key = $folderId;
+        
+        if (!isset($stopRoutingArr[$key])) {
+            $stopRoutingArr[$key] = FALSE;
+            
+            if ($folderId) {
+                
+                try {
+                    $cover = doc_Folders::getCover($folderId);
+                    $coverRec = $cover->fetch();
+                } catch (core_exception_Expect $e) {
+                    reportException($e);
+                    $coverRec = NULL;
+                }
+            
+                // Спираме рутирането до затворени папки
+                if ($coverRec && ($coverRec->state == 'closed')) {
+                    $stopRoutingArr[$key] = TRUE;
+                }
+                
+                // Спираме рутирането до проекти, които не са Несортирани
+                if (!$stopRoutingArr[$key] && $rRoute) {
+                    if ($coverRec && ($cover->instance instanceof doc_UnsortedFolders)) {
+                        if ($coverRec->receiveEmail != 'yes') {
+                            $stopRoutingArr[$key] = TRUE;
+                        }
+                    }
+                }
+                
+                // Спираме рутирането, ако няма да е до папка на контрагент или имейл кутия
+                if (!$stopRoutingArr[$key] && $rRoute) {
+                    if (!($cover->instance instanceof crm_Companies) && !($cover->instance instanceof crm_Persons)
+                        && !($cover->instance instanceof doc_UnsortedFolders) && !($cover->instance instanceof email_Inboxes)) {
+                        $stopRoutingArr[$key] = TRUE;
+                    }
+                }
+            }
+        }
+        
+        // Ако ще се спира рутирането
+        if ($stopRoutingArr[$key]) {
+            
+            // Задаваме новите стойности
+            foreach ($oldValArr as $k => $v) {
+                $rec->{$k} = $v;
+            }
+            
+            return FALSE;
+        }
+        
+        return TRUE;
     }
     
     

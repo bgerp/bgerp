@@ -24,6 +24,12 @@ abstract class deals_ServiceMaster extends core_Master
 	
 	
 	/**
+	 * Дали в листовия изглед да се показва бутона за добавяне
+	 */
+	public $listAddBtn = FALSE;
+	
+	
+	/**
 	 * Кои са задължителните полета за модела
 	 */
 	protected static function setServiceFields($mvc)
@@ -86,13 +92,16 @@ abstract class deals_ServiceMaster extends core_Master
 		
 		return $this->save($rec);
 	}
-
-
+	
+	
 	/**
 	 * След създаване на запис в модела
 	 */
 	public static function on_AfterCreate($mvc, $rec)
 	{
+		// Ако документа е клониран пропуска се
+		if($rec->_isClone === TRUE) return;
+		
 		$origin = $mvc->getOrigin($rec);
 	
 		// Ако новосъздадения документ има origin, който поддържа bgerp_AggregateDealIntf,
@@ -103,13 +112,23 @@ abstract class deals_ServiceMaster extends core_Master
 		$agreedProducts = $aggregatedDealInfo->get('products');
 		
 		$shippedProducts = $aggregatedDealInfo->get('shippedProducts');
-		$normalizedProducts = deals_Helper::normalizeProducts(array($agreedProducts), array($shippedProducts));
+		
+		
+		if(count($shippedProducts)){
+			$normalizedProducts = deals_Helper::normalizeProducts(array($agreedProducts), array($shippedProducts));
+		} else {
+			$agreedProducts = $aggregatedDealInfo->get('dealProducts');
+		}
 		
 		if(count($agreedProducts)){
 			foreach ($agreedProducts as $index => $product) {
 				$info = cat_Products::getProductInfo($product->productId);
 				
-				$toShip = $normalizedProducts[$index]->quantity;
+				if(isset($normalizedProducts[$index])){
+					$toShip = $normalizedProducts[$index]->quantity;
+				} else {
+					$toShip = $product->quantity;
+				}
 				
 				$price = ($agreedProducts[$index]->price) ? $agreedProducts[$index]->price : $normalizedProducts[$index]->price;
 				$discount = ($agreedProducts[$index]->discount) ? $agreedProducts[$index]->discount : $normalizedProducts[$index]->discount;
@@ -132,7 +151,19 @@ abstract class deals_ServiceMaster extends core_Master
 				}
 				
 				$Detail = $mvc->mainDetail;
-				$mvc->{$Detail}->save($shipProduct);
+				$dId = $mvc->{$Detail}->save($shipProduct);
+				
+				// Копиране на разпределените разходи
+				if(!empty($product->expenseRecId)){
+					$aRec = acc_CostAllocations::fetch($product->expenseRecId);
+					unset($aRec->id);
+					$aRec->detailRecId = $dId;
+					$aRec->detailClassId = $Detail::getClassId();
+					$aRec->containerId = $rec->containerId;
+					
+					acc_CostAllocations::save($aRec);
+					core_Statuses::newStatus($aRec->id);
+				}
 			}
 		}
 	}
@@ -335,45 +366,6 @@ abstract class deals_ServiceMaster extends core_Master
     		$aggregator->push('shippedPacks', $p, $index);
     	}
     }
-    
-    
-    /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    public static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	if(!empty($data->toolbar->buttons['btnAdd'])){
-    		$data->toolbar->removeBtn('btnAdd');
-    	}
-    }
-    
-    
-     /**
-      * Добавя ключови думи за пълнотекстово търсене, това са името на
-      * документа или папката
-      */
-     public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
-     {
-     	// Тук ще генерираме всички ключови думи
-     	$detailsKeywords = '';
-
-     	// заявка към детайлите
-     	$Detail = $mvc->mainDetail;
-     	$query = $mvc->{$Detail}->getQuery();
-     	
-     	// точно на тази фактура детайлите търсим
-     	$query->where("#{$mvc->{$Detail}->masterKey} = '{$rec->id}'");
-     	
-	        while ($recDetails = $query->fetch()){
-	        	// взимаме заглавията на продуктите
-	        	$productTitle = cat_Products::getTitleById($recDetails->productId);
-	        	// и ги нормализираме
-	        	$detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
-	        }
-	        
-    	// добавяме новите ключови думи към основните
-    	$res = " " . $res . " " . $detailsKeywords;
-     }
     
      
      /**

@@ -182,6 +182,12 @@ class email_Outgoings extends core_Master
     
     
     /**
+     * Масив с грешки, които ще се показват на потребителя при възникването им
+     */
+    protected static $errShowNotifyStr = array('recipients failed');
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -315,6 +321,10 @@ class email_Outgoings extends core_Master
                     $rec->waiting = $options->waiting + dt::secsBetween($delay, dt::now());
                     $saveStr .= ',waiting';
                 }
+                
+                $saveStr .= ',state';
+                
+                $rec->state = 'pending';
                 
                 email_Outgoings::save($rec, $saveStr);
             } else {
@@ -509,7 +519,8 @@ class email_Outgoings extends core_Master
                         array(
                             'encoding' => $options->encoding
                         ),
-                        $emailsCc
+                        $emailsCc,
+                        $error
                     );
                 } catch (core_exception_Expect $e) {
                     self::logErr("Грешка при изпращане", $rec->id);
@@ -552,8 +563,23 @@ class email_Outgoings extends core_Master
                 $success[] = $allEmailsToStr;
             } else {
                 
-                // Правим запис в лога за неуспех
-                static::logErr('Грешка при изпращане', $rec->id);
+                $errType = 'err';
+                foreach (email_Sent::$logErrToWarningArr as $v) {
+                    if (stripos($error, $v)) {
+                
+                        $errType = 'warning';
+                
+                        break;
+                    }
+                }
+                
+                $errStr = 'Грешка при изпращане: ' . $error;
+                if ($errType == 'warning') {
+                    static::logWarning($errStr, $rec->id);
+                } else {
+                    static::logErr($errStr, $rec->id);
+                }
+                
                 $failure[] = $allEmailsToStr;
             }
         }
@@ -583,7 +609,7 @@ class email_Outgoings extends core_Master
             $saveArray['modifiedBy'] = 'modifiedBy';
             
             // Ако имейла е активен или чернова и не е въведено време за изчакване
-            if (!$options->waiting && ($rec->state == 'active' || $rec->state == 'draft')) {
+            if (!$options->waiting && ($rec->state == 'active' || $rec->state == 'draft' || $rec->state == 'pending')) {
                 
                 // Сменяме състоянието на затворено
                 $nRec->state = 'closed';
@@ -633,6 +659,16 @@ class email_Outgoings extends core_Master
         // Ако има провалено изпращане
         if ($failure) {
             $msg = '|Грешка при изпращане до|*: ' . implode(', ', $failure);
+            
+            if ($error) {
+                foreach (self::$errShowNotifyStr as $v) {
+                    if (stripos($error, $v)) {
+                        $msg .= '<br>' . $error;
+                        break;
+                    }
+                }
+            }
+            
             $statusType = 'error';
             
             // Добавяме статус
@@ -1583,23 +1619,8 @@ class email_Outgoings extends core_Master
                 unset($rec->threadId);
             }
             
-            if ($rec->originId) {
-                $oDoc = doc_Containers::getDocument($rec->originId);
-                $oRow = $oDoc->getDocumentRow();
-                
-                // Заглавието на темата
-                $title = html_entity_decode($oRow->title, ENT_COMPAT | ENT_HTML401, 'UTF-8');
-            }
-            
             // Ако е отговор, на някой документ
             if (!$isForwarding) {
-                if ($rec->originId) {
-                    if ($oDoc->instance instanceof email_Incomings) {
-                        $rec->subject = 'Re: ' . $title;
-                    } else {
-                        $rec->subject = $title;
-                    }
-                }
                 
                 if (!$rec->threadId && $rec->originId) {
                     $rec->threadId = doc_Containers::fetchField($rec->originId, 'threadId');
@@ -1612,12 +1633,19 @@ class email_Outgoings extends core_Master
                 $emailLg = email_Outgoings::getLanguage($rec->originId, $rec->threadId, $rec->folderId);
                 $rec->forward = 'no';
             } else {
-                $rec->subject = 'Fw: ' . $title;
                 $emailLg = email_Outgoings::getLanguage(FALSE, FALSE, $rec->folderId);
                 $rec->forward = 'yes';
             }
             
+            if ($rec->originId) {
+                $oDoc = doc_Containers::getDocument($rec->originId);
+            }
+            
             core_Lg::push($emailLg);
+            
+            if ($rec->originId && $oDoc->haveInterface('email_DocumentIntf')) {
+                $rec->subject = $oDoc->getDefaultEmailSubject($isForwarding);
+            }
             
             $hintStr = tr('Смяна на езика');
             
@@ -1922,7 +1950,10 @@ class email_Outgoings extends core_Master
         
         if (!$contragentDataHeader['hello']) {
             if($contragentData->person) {
-                $contragentDataHeader['hello'] = tr('Здравейте');
+                $contragentDataHeader['hello'] = tr('Здравейте') . ',';
+                if (core_Lg::getCurrent() == 'bg') {
+                    $contragentDataHeader['lastChar'] = '!';
+                }
             } else {
                 $contragentDataHeader['hello'] = tr('Уважаеми колеги');
             }
@@ -2009,8 +2040,10 @@ class email_Outgoings extends core_Master
         // Ако последният символ не е пунктуация, добавяме запетая накрая
         $lastChar = mb_substr($content, -1);
         
+        setIfNot($headerDataArr['lastChar'], ',');
+        
         if (!core_String::isPunctuation($lastChar)) {
-            $content .= ',';
+            $content .= $headerDataArr['lastChar'];
         }
         
         return $content;
@@ -2278,7 +2311,7 @@ class email_Outgoings extends core_Master
         
         $data->lg = email_Outgoings::getLanguage($data->rec->originId, $data->rec->threadId, $data->rec->folderId, $data->rec->body);
         
-        if (!Mode::is('text', 'xhtml') && $data->rec->waiting && ($data->rec->state == 'waiting' || $data->rec->state == 'active')) {
+        if (!Mode::is('text', 'xhtml') && $data->rec->waiting && ($data->rec->state == 'waiting' || $data->rec->state == 'active' || $data->rec->state == 'pending')) {
             $notifyDate = dt::addSecs($data->rec->waiting, $data->rec->lastSendedOn);
             $data->row->notifyDate = dt::mysql2verbal($notifyDate, 'smartTime');
             $notifyUserId = $data->rec->lastSendedBy ? $data->rec->lastSendedBy : $data->rec->modifiedBy;
@@ -2774,7 +2807,7 @@ class email_Outgoings extends core_Master
         if ($action == 'close' && $rec) {
             
             // Ако не чакащо или събудено състояние, да не може да се затваря
-            if (($rec->state != 'waiting') && ($rec->state != 'wakeup')) {
+            if (($rec->state != 'waiting') && ($rec->state != 'wakeup') && ($rec->state != 'pending')) {
                 $requiredRoles = 'no_one';
             } else if (!haveRole('admin, ceo')) {
                 
@@ -2784,6 +2817,10 @@ class email_Outgoings extends core_Master
                     $requiredRoles = 'no_one';
                 }
             }
+        }
+        
+        if (($action == 'activate') && ($rec->state == 'pending')) {
+            $requiredRoles = 'no_one';
         }
     }
     

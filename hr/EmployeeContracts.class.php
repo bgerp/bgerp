@@ -54,8 +54,8 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, hr_Wrapper, doc_ActivatePlg, bgerp_plg_Blank, plg_Printing, acc_plg_DocumentSummary,
-                     acc_plg_Registry, doc_DocumentPlg, plg_Search,plg_Clone,
+    public $loadList = 'plg_RowTools2, hr_Wrapper, doc_plg_Close,doc_ActivatePlg, bgerp_plg_Blank, plg_Printing, acc_plg_DocumentSummary,
+                     acc_plg_Registry, doc_DocumentPlg, plg_Search,plg_Clone,plg_Sorting, 
                      doc_plg_SelectFolder, doc_SharablePlg, bgerp_plg_Blank';
     
     
@@ -74,37 +74,37 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,hr';
+    public $canRead = 'ceo,hrMaster';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,hr';
+    public $canList = 'ceo,hrMaster';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,hr';
+    public $canSingle = 'ceo,hrMaster';
     
     
     /**
      * Кой може да пише?
      */
-    public $canWrite = 'ceo,hr';
+    public $canWrite = 'ceo,hrMaster';
     
     
     /**
      * Кой може да пише?
      */
-    public $canEdit = 'ceo,hr';
+    public $canEdit = 'ceo,hrMaster';
     
 
     /**
      * Кой има право да клонира?
      */
-    public $canClonerec = 'ceo,hr';
+    public $canClonerec = 'ceo,hrMaster';
     
     
     /**
@@ -153,9 +153,15 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
-    public $coversAndInterfacesForNewDoc = 'crm_ContragentAccRegIntf';
+    public $coversAndInterfacesForNewDoc = 'crm_PersonAccRegIntf,doc_UnsortedFolders';
 
-
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, dateId,startFrom,endOn, modifiedOn';
+    
+    
     /**
      * Описание на модела
      */
@@ -182,9 +188,6 @@ class hr_EmployeeContracts extends core_Master
         // Позиция в отдела
         $this->FLD('positionId', 'key(mvc=hr_Positions,select=name)', 'caption=Работа->Длъжност,mandatory,autoFilter');
         
-        // Работен график
-        // $this->FLD('schedule', 'key(mvc=hr_WorkingCycles, select=name, allowEmpty=true)', "caption=Работa->График");
-
         // Възнаграждения
         $this->FLD('salaryBase', 'double(decimals=2)', "caption=Възнагражение->Основно");
         $this->FLD('forYearsOfService', 'percent(decimals=2)', "caption=Възнагражение->За стаж");
@@ -243,10 +246,11 @@ class hr_EmployeeContracts extends core_Master
             $data->form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
             $data->form->setReadonly('personId');
         }
+
         // по дефолт слагаме днешна дата
         $data->form->setDefault('dateId', dt::verbal2mysql());
         
-        // сладаме Управители
+        // избор за Управители
         $managers = $mvc->getManagers();
         $data->form->setOptions('managerId', $managers);
         
@@ -467,6 +471,10 @@ class hr_EmployeeContracts extends core_Master
 
     	if($rec->state == 'active'){
             
+            if(!$rec->personId) {
+                $rec->personId = self::fetch($rec->id)->personId;
+            }
+
             // Взимаме запълването до сега
             $employmentOccupied = hr_Positions::fetchField($position, 'employmentOccupied');
             
@@ -477,6 +485,24 @@ class hr_EmployeeContracts extends core_Master
             $recPosition = new stdClass();
             $recPosition->id = $position;
             
+            // Намираме всички останали активни рецепти
+            $query = static::getQuery();
+            $query->where("#state = 'active' AND #id != {$rec->id} AND #personId = {$rec->personId}");
+            
+            // Затваряме ги
+            $closed = array();
+            while($eRec = $query->fetch()){
+            	$eRec->state = 'closed';
+            	$eRec->brState = 'active';
+            	$eRec->modifiedOn = dt::now();
+            	$mvc->save($eRec, 'state,brState,modifiedOn');
+            	$closed[] = "#" . $mvc->getHandle($eRec->id);
+            }
+            
+            if(count($closed)){
+            	$msg = (count($closed) == 1) ? "Затворен е" : "Затворени са";
+            	core_Statuses::newStatus("|{$msg}|* " . implode(',', $closed));
+            }
         }
     }
     
@@ -756,22 +782,7 @@ class hr_EmployeeContracts extends core_Master
      ****************************************************************************************/
     
     
-    /**
-     * Проверка дали нов документ може да бъде добавен в
-     * посочената папка
-     *
-     * @param $folderId int ид на папката
-     */
-    public static function canAddToFolder($folderId)
-    {
-        $coverClass = doc_Folders::fetchCoverClassName($folderId);
-        
-        if (cls::haveInterface('crm_PersonAccRegIntf', $coverClass)) {
-            return TRUE;
-        }
-        
-        return FALSE;
-    }
+ 
     
     
     /**
@@ -791,16 +802,7 @@ class hr_EmployeeContracts extends core_Master
         return $row;
     }
     
-    
-    /**
-     * В кои корици може да се вкарва документа
-     * @return array - интерфейси, които трябва да имат кориците
-     */
-    public static function getCoversAndInterfacesForNewDoc()
-    {
-        return array('crm_PersonAccRegIntf');
-    }
-    
+ 
     
     /**
      * Дали подадения номер е в позволения диапазон за номера на фактури

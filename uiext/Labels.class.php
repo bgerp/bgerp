@@ -81,7 +81,7 @@ class uiext_Labels extends core_Manager
     	$this->FLD('title', 'varchar', 'caption=Заглавие, mandatory');
     	$this->FLD('color', 'color_Type()', 'caption=Фон, mandatory,tdClass=rightCol');
     	
-    	$this->setDbUnique('docClassId,title,color');
+    	$this->setDbUnique('docClassId,title');
     }
     
     
@@ -106,7 +106,7 @@ class uiext_Labels extends core_Manager
     public static function on_AfterInputEditForm($mvc, &$form)
     {
     	if(isset($form->rec->title)){
-    		$form->rec->title = mb_strtolower($form->rec->title);
+    		$form->rec->title = str::mbUcfirst($form->rec->title);
     	}
     }
     
@@ -178,7 +178,7 @@ class uiext_Labels extends core_Manager
     {
     	if(!is_array($rows)) return;
     	if(Mode::isReadOnly() || Mode::is('blank')) return;
-    	$fieldset->FLD('_tagField', 'varchar', 'tdClass=tagColumn');
+    	$fieldset->FLD('_tagField', 'varchar', 'tdClass=tagColumn small-field');
     	
     	$listFields = arr::make($listFields, TRUE);
     	$listFields['_tagField'] = $colName;
@@ -190,10 +190,22 @@ class uiext_Labels extends core_Manager
     		$hash = self::getHash($rec, $hashFields);
     		$row->_tagField = self::renderLabel($containerId, $classId, $hash);
     	}
-		
+    }
+    
+    
+    /**
+     * Активира нужните файлове за таговете
+     * 
+     * @param core_ET $tpl
+     * @return void
+     */
+    public static function enable(&$tpl)
+    {
     	// Зареждане на нужните файлове
-    	$tpl->push('uiext/js/Label.js', 'JS');
-    	jquery_Jquery::run($tpl, "labelActions();");
+    	if(core_Packs::isInstalled('uiext')){
+    		$tpl->push('uiext/js/Label.js', 'JS');
+    		jquery_Jquery::run($tpl, "labelActions();");
+    	}
     }
     
     

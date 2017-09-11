@@ -72,6 +72,8 @@ class email_Returned extends email_ServiceEmails
             $rec->createdOn = dt::verbal2mysql();
 
             self::save($rec);
+            
+            self::logNotice('Върнат имейл', $rec->id);
         }
 
         return $isReturnedMail;

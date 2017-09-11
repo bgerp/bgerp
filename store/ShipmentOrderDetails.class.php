@@ -1,4 +1,7 @@
 <?php
+
+
+
 /**
  * Клас 'store_ShipmentOrderDetails'
  *
@@ -7,7 +10,7 @@
  * @category  bgerp
  * @package   store
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -44,7 +47,13 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      */
     public $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_RowNumbering, plg_SaveAndNew, doc_plg_HidePrices,
                         plg_AlignDecimals2, plg_Sorting, doc_plg_TplManagerDetail, LastPricePolicy=sales_SalesLastPricePolicy,
-                        ReversePolicy=purchase_PurchaseLastPricePolicy, plg_PrevAndNext';
+                        ReversePolicy=purchase_PurchaseLastPricePolicy, plg_PrevAndNext,cat_plg_ShowCodes,store_plg_TransportDataDetail';
+    
+    
+    /**
+     * Да се показва ли кода като в отделна колона
+     */
+    public $showCodeColumn = TRUE;
     
     
     /**
@@ -82,7 +91,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'info=@Колети, productId, packagingId, packQuantity, packPrice, discount, amount, weight, volume,quantityInPack';
+    public $listFields = 'info=@Колети, productId, packagingId, packQuantity, packPrice, discount, amount, weight=Тегло, volume=Обем';
     
         
     /**
@@ -117,11 +126,9 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     	$this->FLD('shipmentId', 'key(mvc=store_ShipmentOrders)', 'column=none,notNull,silent,hidden,mandatory');
     	parent::setDocumentFields($this);
     	
-        $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
-        $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
         $this->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Изглед,notNull,default=short,value=short,after=notes');
-        $this->FLD('transUnit', 'varchar', 'caption=Логистични единици->Вид,autohide');
-        $this->FLD('info', "text(rows=2)", 'caption=Логистични единици->Номера,after=transUnit,autohide', array('hint' => 'Напишете номерата на колетите, в които се съдържа този продукт, разделени със запетая'));
+        $this->FLD('transUnit', 'varchar', 'caption=Логистични единици->Вид,autohide,after=volume');
+        $this->FLD('info', "text(rows=2)", 'caption=Логистични единици->Номера,after=transUnit,autohide,after=volume', array('hint' => 'Напишете номерата на колетите, в които се съдържа този продукт, разделени със запетая'));
     }
 
 
@@ -264,8 +271,18 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
 
         return $res;
     }
-
-
+    
+    
+    /**
+     * Преди подготовката на полетата за листовия изглед
+     */
+    public static function on_AfterPrepareListFields($mvc, &$res, &$data)
+    {
+    	if(!empty($data->masterData->rec->deliveryTime)){
+    		$data->showReffCode = TRUE;
+    	}
+    }
+    
     
     /**
      * След обработка на записите от базата данни
@@ -279,19 +296,36 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
             $totalLU = array();
     		foreach ($data->rows as $i => &$row) {
     			$rec = &$data->recs[$i];
-    			
-                $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $data->masterData->rec->tplLang);
-                if($rec->notes){
-    				deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
-    			}
+    	 
+                $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $data->masterData->rec->tplLang, 1, FALSE);
+                deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
+
+                $unit = $rec->transUnit ? $mvc->getVerbal($rec, 'transUnit') : 'Палет';
+                $unitTr = tr($unit);
                 
+                // Показване на разпределението
+                if(mb_strtolower($unitTr) == 'палет' || mb_strtolower($unitTr) == 'палети' ||  mb_strtolower($unitTr) == 'палетa') {
+                    $bigPackName = array('палет', 'палета');
+                    $unit = 'палет';
+                } elseif(mb_strtolower($unitTr) == 'pallet' || mb_strtolower($unitTr) == 'pallets') {
+                    $bigPackName = array('pallet', 'pallets');
+                    $unit = 'палет';
+                } elseif(mb_strtolower($unitTr) == 'кашон' || mb_strtolower($unitTr) == 'кашони' ||  mb_strtolower($unitTr) == 'кашона') {
+                    $bigPackName = array('кашон', 'кашона');
+                    $unit = 'палет';
+                } elseif(mb_strtolower($unitTr) == 'carton' || mb_strtolower($unitTr) == 'cartons') {
+                    $bigPackName = array('carton', 'cartons');
+                    $unit = 'carton';
+                } else {
+                    $bigPackName = $unitTr;
+                }
+
                 if($row->info) {
                     $numbers = self::getLUs($rec->info);
                     if(!is_array($numbers)) {
                         $row->info = $numbers;
-                    }elseif(count($numbers)) {
-                        $unit = tr($rec->transUnit ? $mvc->getVerbal($rec, 'transUnit') : 'Палети');
-                        $row->info = "<small>" . $unit . ': №' . implode(', №', $numbers) . "</small>";
+                    } elseif($bigPackCnt = count($numbers)) {
+                        $row->info = "<small>" .  $unitTr . ': №' . implode(', №', $numbers) . "</small>";
                         $haveTransInfo = TRUE;
                         if(!isset($totalLU[$unit])) {
                             $totalLU[$unit] = $numbers;
@@ -299,6 +333,34 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                             $totalLU[$unit] += $numbers;
                         }
                     }
+                }
+
+                $bigPackInQty = cat_products_Packagings::getQuantityInPack($rec->productId, $unit);
+                
+                if($bigPackInQty) {
+                   
+                    $medPackRec = cat_products_Packagings::getLowerPack($rec->productId, $bigPackInQty);
+
+                    if($medPackRec) {
+                        $medPackInQty = $medPackRec->quantity;
+                        $medPackName = tr(cat_UoM::fetchField($medPackRec->packagingId, 'name'));
+                        
+                        if(mb_strtolower($medPackName) == 'кашон' || mb_strtolower($medPackName) == 'кашони' ||  mb_strtolower($medPackName) == 'палетa') {
+                            $medPackName = array('кашон', 'кашона');
+                        } elseif(mb_strtolower($medPackName) == 'box' || mb_strtolower($medPackName) == 'boxes') {
+                            $medPackName = array('box', 'boxes');
+                        }  
+                    }
+
+                    if($row->info) {
+                        $row->info .= "\n<br>";
+                    }
+                    
+                    $uom = tr(cat_UoM::fetchField(cat_Products::fetch($rec->productId)->measureId, 'shortName'));
+                
+                    $row->info .= self::getDistribution($bigPackName, $bigPackInQty, $bigPackCnt, $medPackName, $medPackInQty, $rec->quantity, $uom); 
+                    
+                    $haveTransInfo = TRUE;
                 }
     		}
     	}
@@ -348,14 +410,88 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     	core_Lg::pop();
     }
     
-    
+
     /**
-     * Преди запис на продукт
+     * Разпределение по опаковки (автоматично генериране)
      */
-    public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
+    public static function getDistribution($bigPackName, $bigPackInQty, $bigPackCnt, $medPackName, $medPackInQty, $totalQuantity, $uom)
     {
-    	$rec->weight = cat_Products::getWeight($rec->productId, $rec->packagingId, $rec->quantity);
-    	$rec->volume = cat_Products::getVolume($rec->productId, $rec->packagingId, $rec->quantity);
+        if($totalQuantity == 0) return '';
+
+        expect($totalQuantity > 0, $totalQuantity);
+        expect($bigPackInQty > 0, $bigPackInQty);
+
+        $bigPackCntCalc = (int) ($totalQuantity / $bigPackInQty);
+        
+        // Колко остават за последния палет
+        $restCnt = $totalQuantity - $bigPackCntCalc * $bigPackInQty;
+        
+        if($restCnt > 0) {
+            if($bigPackCnt > 0 && $bigPackCnt == $bigPackCntCalc) {
+                $restCnt += $bigPackInQty;
+                $bigPackCntCalc--;
+            } elseif($bigPackCnt > 0 && ($bigPackCnt - 1) != $bigPackCntCalc) {
+ 
+                return FALSE;
+            }
+        } elseif($bigPackCnt > 0 && $bigPackCnt != $bigPackCntCalc) {
+  
+            return FALSE;
+        }
+        
+        if($bigPackCntCalc > 0) {
+            // Генерирамe първи ред
+            $fRow = "{$bigPackCntCalc} " . self::getPlural($bigPackName, $bigPackCntCalc);
+            
+            if($medPackInQty) {
+                $medPackCnt = round(($bigPackInQty * $bigPackCntCalc) / $medPackInQty, 3);
+
+                $fRow .= " / {$medPackCnt} " . self::getPlural($medPackName, $medPackCnt) . " x {$medPackInQty} {$uom}";
+            } else {
+                $fRow .= " x {$bigPackInQty} {uom}";
+            }
+
+            $fRow .= " = " . round($bigPackInQty * $bigPackCntCalc, 3) . " {$uom}";
+        }
+        
+        // Генериране на втори ред
+        if($restCnt > 0) {
+            $sRow = "1 " . self::getPlural($bigPackName, 1);
+            if($medPackInQty) {
+                $medPackCnt = (int) ($restCnt / $medPackInQty);
+                $medRest = $restCnt - $medPackCnt * $medPackInQty;
+                $sRow .= " / ";
+                if($medPackCnt > 0) {
+                    $sRow .= "{$medPackCnt} " . self::getPlural($medPackName, $medPackCnt) . " x {$medPackInQty} {$uom}";
+                    if($medRest > 0) {
+                        $sRow .= ' + ';
+                    }
+                }
+
+                if($medRest>0) {
+                    $sRow .= "1 " . self::getPlural($medPackName, 1) . " x {$medRest} {$uom}";
+                }
+
+            }
+
+            $sRow .= " = " . $restCnt . " {$uom}";
+        }
+        
+        return ($fRow ? "<small>{$fRow}</small>\n<br>" : '') . "<small>{$sRow}</small>";
+    }
+
+
+    /**
+     * Връща множествено чсило, ако имаме повече от един елемент в $name и $cnt е зададено
+     */
+    public static function getPlural($name, $cnt)
+    {
+        if(is_array($name)) {
+
+            return $name[min($cnt-1, count($name)-1)];
+        }
+
+        return $name;
     }
     
     

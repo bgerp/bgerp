@@ -77,6 +77,7 @@ class doclog_Used extends core_Manager
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption=Контейнер->Документ');
         $this->FLD('usedContainerId', 'key(mvc=doc_Containers)', 'caption=Контейнер->Използван');
         
+        $this->setDbIndex('usedContainerId');
         $this->setDbUnique('containerId, usedContainerId');
     }
     
@@ -124,14 +125,14 @@ class doclog_Used extends core_Manager
         $query = self::getQuery();
         $query->where(array("#usedContainerId = '[#1#]'", $cid));
         
+        $query->orderBy('createdOn', 'DESC');
+        
         // Ако е подаден обект за странициране
         if ($pager) {
             
             // Задаваме лимита за странициране
             $pager->setLimit($query);
         }
-        
-        $query->orderBy('createdOn', 'DESC');
         
         $rowsArr = array();
         
@@ -157,7 +158,36 @@ class doclog_Used extends core_Manager
         $query = self::getQuery();
         $query->where(array("#usedContainerId = '[#1#]'", $cid));
         
-        return $query->count();
+        $cnt = $query->count();
+        
+        return $cnt;
+    }
+    
+    
+    /**
+     * Връща броя на използваните документи за всичко контейнери
+     * 
+     * @param array $cArr
+     * 
+     * @return array
+     */
+    public static function getAllUsedCount($cArr)
+    {
+        $resArr = array();
+        
+        if (empty($cArr)) return $resArr;
+        
+        $query = self::getQuery();
+        $query->in('usedContainerId', $cArr);
+        $query->show('cnt, id, usedContainerId');
+        $query->XPR('cnt', 'int', 'count(#usedContainerId)');
+        
+        $query->groupBy('usedContainerId');
+        while ($rec = $query->fetch()) {
+            $resArr[$rec->usedContainerId] = $rec->cnt;
+        }
+        
+        return $resArr;
     }
     
     

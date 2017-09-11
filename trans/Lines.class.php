@@ -39,7 +39,7 @@ class trans_Lines extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, trans_Wrapper, plg_Sorting, plg_Printing,
+    public $loadList = 'plg_RowTools2, trans_Wrapper, plg_Sorting, plg_Printing, plg_Clone,
                     doc_DocumentPlg, bgerp_plg_Blank, plg_Search, change_Plugin, doc_ActivatePlg, doc_plg_SelectFolder';
 
     
@@ -156,6 +156,14 @@ class trans_Lines extends core_Master
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
     public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
+    
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'title,start,repeat';
     
     
     /**
@@ -320,11 +328,8 @@ class trans_Lines extends core_Master
      */
     public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
-    	$weight = ($data->weight) ? $data->weight : 0;
-    	$data->row->weight = cls::get('cat_type_Weight')->toVerbal($weight);
-    	
-    	$volume = ($data->volume) ? $data->volume : 0;
-    	$data->row->volume = cls::get('cat_type_Volume')->toVerbal($volume);
+    	$data->row->weight = (!empty($data->weight)) ? cls::get('cat_type_Weight')->toVerbal($data->weight) : "<span class='quiet'>N/A</span>";
+    	$data->row->volume = (!empty($data->volume)) ? cls::get('cat_type_Volume')->toVerbal($data->volume) : "<span class='quiet'>N/A</span>";
     	
     	$count = ($data->palletCount) ? $data->palletCount : 0;
     	$data->row->palletCount = cls::get('type_Int')->toVerbal($count);
@@ -387,9 +392,9 @@ class trans_Lines extends core_Master
     		
             if(self::getDocumentsCnt($rec->id, NULL, 1) || doc_Threads::fetchField($rec->threadId, 'allDocCnt') > 1) {
                 // Ако в старата линия има документи, създава и записва новата линия
-                core_Users::sudo($rec->createdBy);
+                $sudoUser = core_Users::sudo($rec->createdBy);
                 $this->save($newRec);
-                core_Users::exitSudo();
+                core_Users::exitSudo($sudoUser);
                 
                 // Линията се отбелязва като повторена
                 $rec->isRepeated = 'yes';

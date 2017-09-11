@@ -755,7 +755,7 @@ class acc_Journal extends core_Master
     		// Трябва баланса да е преизчислен за да продължим
     		if(core_Locks::isLocked(acc_Balances::saveLockKey)){
     			
-    			return followRetUrl(NULL, tr("Баланса се преизчислява в момента, моля изчакайте"));
+    			return followRetUrl(NULL, tr("Балансът се преизчислява в момента. Моля, изчакайте!"));
     		}
     		
     		if($rec->from > $rec->to){
@@ -881,6 +881,10 @@ class acc_Journal extends core_Master
     	$msg = "Реконтиране на|* #{$origin->getHandle()}";
     	core_Statuses::newStatus($msg);
     
+    	// Инвалидиране на кеш
+    	doc_DocumentCache::cacheInvalidation($containerId);
+    	doc_DocumentCache::invalidateByOriginId($containerId);
+    	
     	return $success;
     }
 }

@@ -53,7 +53,7 @@ class doc_SharablePlg extends core_Plugin
             
             $rec = &$form->rec;
             
-            $sharedUsersArr = array();
+            $sharedUsersArrAll = array();
             
             // Обхождаме всички полета от модела, за да разберем кои са ричтекст
             foreach ((array)$mvc->fields as $name => $field) {
@@ -66,17 +66,21 @@ class doc_SharablePlg extends core_Plugin
                     if (empty($sharedUsersArr)) continue;
                     
                     // Обединяваме всички потребители от споделянията
-                    $sharedUsersArr = array_merge($sharedUsersArr, $sharedUsersArr);
+                    $sharedUsersArrAll = array_merge($sharedUsersArrAll, $sharedUsersArr);
                 }
             }
             
             // Ако има споделяния
-            if (!empty($sharedUsersArr)) {
+            if (!empty($sharedUsersArrAll)) {
                 
                 // Добавяме id-тата на споделените потребители
-                foreach ((array)$sharedUsersArr as $nick) {
+                foreach ((array)$sharedUsersArrAll as $nick) {
                     $nick = strtolower($nick);
                     $id = core_Users::fetchField(array("LOWER(#nick) = '[#1#]'", $nick), 'id');
+                    
+                    // Партнюрите да не са споделение
+                    if (core_Users::haveRole('partner', $id)) continue;
+                    
                     $rec->sharedUsers = type_Keylist::addKey($rec->sharedUsers, $id);
                 }
             }
@@ -157,18 +161,11 @@ class doc_SharablePlg extends core_Plugin
             // Първо виждане на документа от страна на $userId
             $viewedBy[$userId] = dt::now(TRUE);
             $rec->sharedViews = serialize($viewedBy);
-            $rec->modifiedOn = dt::verbal2mysql();
             
-            if ($mvc->save_($rec, 'sharedViews,modifiedOn')) {
+            if ($mvc->save_($rec, 'sharedViews')) {
                 core_Cache::remove($mvc->className, $data->cacheKey . '%');
-                if($rec->containerId) {
-                    $cRec = new stdClass();
-                    $cRec->id = $rec->containerId;
-                    $cRec->modifiedOn = $rec->modifiedOn;
-                    $cRec->modifiedBy = $userId;
-                    $dCon = cls::get("doc_Containers");
-                    $dCon->save_($cRec, 'modifiedOn,modifiedBy');
-                }
+                
+                doc_DocumentCache::addToInvalidateCId($rec->containerId);
             }
         }
     }
@@ -373,28 +370,6 @@ class doc_SharablePlg extends core_Plugin
                     $sharedArr = $mvc->getDefaultShared($dRec, $dRec->originId);
                     $res += $sharedArr;
                 }
-            }
-        }
-        
-        // Ако потребителя се е отписал от папката, да не излиза при автоматично споделените
-        if ($rec->folderId) {
-            $sKey = doc_Folders::getSettingsKey($rec->folderId);
-            $noNotifyArr = core_Settings::fetchUsers($sKey, 'newDoc', 'no');
-            
-            if ($noNotifyArr) {
-                $keysArr = array_keys($noNotifyArr);
-                $res = array_diff($res, $keysArr);
-            }
-        }
-        
-        // Ако потребителя се е отписал от нишката, да не излиза при автоматично споделените
-        if ($rec->threadId) {
-            $sKey = doc_Threads::getSettingsKey($rec->threadId);
-            $noNotifyArr = core_Settings::fetchUsers($sKey, 'notify', 'no');
-            
-            if ($noNotifyArr) {
-                $keysArr = array_keys($noNotifyArr);
-                $res = array_diff($res, $keysArr);
             }
         }
     }

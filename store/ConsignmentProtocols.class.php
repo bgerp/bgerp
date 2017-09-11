@@ -49,13 +49,13 @@ class store_ConsignmentProtocols extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_Wrapper, doc_plg_BusinessDoc,plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
-                    doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, trans_plg_LinesPlugin, doc_plg_TplManager, plg_Search, bgerp_plg_Blank, doc_plg_HidePrices';
+                        plg_Clone, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, trans_plg_LinesPlugin, doc_plg_TplManager, plg_Search, bgerp_plg_Blank, doc_plg_HidePrices';
 
     
     /**
-     * Кой има право да чете?
+     * Кой може да го прави документа чакащ/чернова?
      */
-    public $canRead = 'ceo,store';
+    public $canPending = 'ceo,store';
     
     
     /**
@@ -85,7 +85,7 @@ class store_ConsignmentProtocols extends core_Master
     /**
      * Кой има право да променя?
      */
-    public $canChangeline = 'ceo,store';
+    public $canChangeline = 'ceo,store,trans';
     
     
     /**
@@ -149,11 +149,39 @@ class store_ConsignmentProtocols extends core_Master
     
     
     /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
+    
+
+    /**
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     *
+     * @see plg_Clone
+     */
+    public $cloneDetails = 'store_ConsignmentProtocolDetailsSend, store_ConsignmentProtocolDetailsReceived';
+    
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'valior,snapshot';
+    
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, valior,modifiedOn';
+
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
-    	$this->FLD('valior', 'date', 'caption=Дата, mandatory');
+    	$this->FLD('valior', 'date', 'caption=Вальор');
     	$this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
     	$this->FLD('contragentId', 'int', 'input=hidden,tdClass=leftCol');
     	
@@ -163,14 +191,11 @@ class store_ConsignmentProtocols extends core_Master
     	$this->FLD('lineId', 'key(mvc=trans_Lines,select=title, allowEmpty)', 'caption=Транспорт');
     	$this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
     	$this->FLD('state',
-    			'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно)',
+    			'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно,pending=Заявка)',
     			'caption=Статус, input=none'
     	);
     	$this->FLD('snapshot', 'blob(serialize, compress)', 'caption=Данни,input=none');
     	$this->FLD('responsible', 'varchar', 'caption=Получил');
-    	
-    	$this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
-    	$this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
     }
     
     
@@ -187,36 +212,6 @@ class store_ConsignmentProtocols extends core_Master
     
     
     /**
-     * Обновява данни в мастъра
-     *
-     * @param int $id първичен ключ на статия
-     * @return int $id ид-то на обновения запис
-     */
-    public function updateMaster_($id)
-    {
-    	$rec = $this->fetch($id);
-    	
-    	if (!$rec) return ;
-    	
-    	$dRec1 = store_ConsignmentProtocolDetailsReceived::getQuery();
-    	$dRec1->where("#protocolId = {$rec->id}");
-    	$measuresSend = $this->getMeasures($dRec1->fetchAll());
-    	 
-    	$dRec2 = store_ConsignmentProtocolDetailsSend::getQuery();
-    	$dRec2->where("#protocolId = {$rec->id}");
-    	
-    	$measuresReceived = $this->getMeasures($dRec2->fetchAll());
-    	$weight =  $measuresSend->weight + $measuresReceived->weight;
-    	$volume =  $measuresSend->volume + $measuresReceived->volume;
-    	 
-    	$rec->weight = $weight;
-    	$rec->volume = $volume;
-    	
-    	return $this->save($rec);
-    }
-    
-    
-    /**
      * След преобразуване на записа в четим за хора вид
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
@@ -226,6 +221,7 @@ class store_ConsignmentProtocols extends core_Master
     		$row->title = $mvc->getLink($rec->id, 0);
     	}
     	
+    	$row->valior = (isset($rec->valior)) ? $row->valior : ht::createHint('', 'Вальора ще бъде датата на контиране');
     	$headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId);
 		$row = (object)((array)$row + (array)$headerInfo);
 		
@@ -235,8 +231,6 @@ class store_ConsignmentProtocols extends core_Master
     			$row->lineId = trans_Lines::getHyperLink($rec->lineId);
     		}
     		
-    		$row->weight = ($row->weightInput) ? $row->weightInput : $row->weight;
-    		$row->volume = ($row->volumeInput) ? $row->volumeInput : $row->volume;
     		$row->username = core_Users::getVerbal($rec->createdBy, 'names');
     	}
     }
@@ -355,7 +349,6 @@ class store_ConsignmentProtocols extends core_Master
     	$form = &$data->form;
     	$rec  = &$form->rec;
     
-    	$form->setDefault('valior', dt::now());
     	$form->setDefault('storeId', store_Stores::getCurrent('id', FALSE));
     	$rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
     	$rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
@@ -467,16 +460,21 @@ class store_ConsignmentProtocols extends core_Master
     	
     	$count = 1;
     	while($rec = $query->fetch()){
+    		$row = $this->recToVerbal($rec);
     		
-    		$rec->weight = ($rec->weightInput) ? $rec->weightInput : $rec->weight;
-    		$rec->volume = ($rec->volumeInput) ? $rec->volumeInput : $rec->volume;
+    		if(!empty($rec->weight) && $data->masterData->weight !== FALSE){
+    			$data->masterData->weight += $rec->weight;
+    		} else {
+    			$data->masterData->weight = FALSE;
+    		}
     		
-    		$data->masterData->weight += $rec->weight;
-    		$data->masterData->volume += $rec->volume;
+    		if(!empty($rec->volume) && $data->masterData->volume !== FALSE){
+    			$data->masterData->volume += $rec->volume;
+    		} else {
+    			$data->masterData->volume = FALSE;
+    		}
+    		
     		$data->masterData->palletCount += $rec->palletCountInput;
-    		
-    		$row = $this->recToVerbal($rec, 'storeId,weight,volume,palletCountInput');
-    		
     		$row->docId = $this->getLink($rec->id, 0);
     		$row->contragentAddress = str_replace('<br>', ',', $row->contragentAddress);
     		$row->contragentAddress = "<span style='font-size:0.8em'>{$row->contragentAddress}</span>";
@@ -500,5 +498,40 @@ class store_ConsignmentProtocols extends core_Master
     		 
     		return $table->get($data->protocols, $fields);
     	}
+    }
+    
+    
+    /**
+     * Изчисляване на общото тегло и обем на документа
+     *
+     * @param stdClass $res
+     * 			- weight - теглото на реда
+     * 			- volume - теглото на реда
+     * @param int $id
+     * @param boolean $force
+     */
+    public function getTotalTransportInfo($id, $force = FALSE)
+    {
+    	$res1 = cls::get('store_ConsignmentProtocolDetailsReceived')->getTransportInfo($id, $force);
+    	$res2 = cls::get('store_ConsignmentProtocolDetailsSend')->getTransportInfo($id, $force);
+    	
+    	$weight = (!is_null($res1->weight) && !is_null($res2->weight)) ? $res1->weight + $res2->weight : NULL;
+    	$volume = (!is_null($res1->volume) && !is_null($res2->volume)) ? $res1->volume + $res2->volume : NULL;
+    	
+    	return (object)array('weight' => $weight, 'volume' => $volume);
+    }
+    
+    
+    /**
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
+     */
+    public function updateMaster_($id)
+    {
+    	$rec = $this->fetchRec($id);
+    
+    	return $this->save($rec);
     }
 }

@@ -60,8 +60,8 @@ class store_Receipts extends store_DocumentMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
-                    doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search, doc_plg_TplManager,
-					doc_EmailCreatePlg, bgerp_plg_Blank, trans_plg_LinesPlugin, doc_plg_HidePrices, doc_SharablePlg';
+                    plg_Clone,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, doc_plg_TplManager,
+					doc_EmailCreatePlg, bgerp_plg_Blank, trans_plg_LinesPlugin, doc_plg_HidePrices, doc_SharablePlg,deals_plg_SetTermDate,cat_plg_AddSearchKeywords, plg_Search';
 
     
     /**
@@ -82,7 +82,7 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Кой има право да променя?
      */
-    public $canChangeline = 'ceo,store';
+    public $canChangeline = 'ceo,store,trans';
     
     
     /**
@@ -124,7 +124,7 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valior, title=Документ, folderId, amountDelivered, weight, volume, createdOn, createdBy';
+    public $listFields = 'deliveryTime,valior, title=Документ, folderId, amountDelivered, weight, volume, createdOn, createdBy';
 
 
     /**
@@ -184,12 +184,41 @@ class store_Receipts extends store_DocumentMaster
     
     
     /**
+     * Показва броя на записите в лога за съответното действие в документа
+     */
+    public $showLogTimeInHead = 'Документът се връща в чернова=3';
+    
+    
+    /**
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     *
+     * @see plg_Clone
+     */
+    public $cloneDetails = 'store_ReceiptDetails';
+    
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'valior, amountDelivered, amountDeliveredVat, amountDiscount, deliveryTime,weight,volume,weightInput,volumeInput,palletCount';
+    
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, valior,deliveryTime,modifiedOn';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
         parent::setDocFields($this);
         $this->setField('storeId', 'caption=В склад');
+        $this->setField('deliveryTime', 'caption=Разтоварване');
     }
     
     
@@ -275,43 +304,5 @@ class store_Receipts extends store_DocumentMaster
     					  'toggleFields' => array('masterFld' => NULL, 'store_ReceiptDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
     	
         $res .= doc_TplManager::addOnce($this, $tplArr);
-    }
-    
-	
-    /**
-     * Добавя допълнителни полетата в антетката
-     *
-     * @param core_Master $mvc
-     * @param NULL|array $res
-     * @param object $rec
-     * @param object $row
-     */
-    public static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
-    {
-        $toDraftCnt = log_Data::getObjectCnt(get_called_class(), $rec->id, NULL, 'Документът се връща в чернова');
-        
-        if ($toDraftCnt) {
-            $resArr['_toDraft'] = array('name' => tr('Към чернова'), 'val' => $toDraftCnt);
-            $resArr['_lastFrom'] = array('name' => tr('Последно'), 'val' => tr('на') . " [#modifiedOn#] " . tr('от') . " [#modifiedBy#]");
-        }
-    }
-    
-    
-    /**
-     * Кои полета да са скрити във вътрешното показване
-     * 
-     * @param core_Master $mvc
-     * @param NULL|array $res
-     * @param object $rec
-     * @param object $row
-     */
-    public static function getHideArrForLetterHead_($rec, $row)
-    {
-        $hideArr = array();
-        
-        $hideArr['external']['_toDraft'] = TRUE;
-        $hideArr['external']['_lastFrom'] = TRUE;
-        
-        return $hideArr;
     }
 }

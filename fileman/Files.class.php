@@ -943,6 +943,17 @@ class fileman_Files extends core_Master
         return $res;
     }
     
+
+    /**
+     * Проверява дали аргумента е допустим файлов манипулатор
+     */
+    public static function isFileHnd($str)
+    {
+        $ptr = "/^[a-z][a-z0-9]{" . (FILEMAN_HANDLER_LEN-1) . "}\$/i";
+		
+        return preg_match($ptr, $str);
+    }
+    
     
     /**
      * Връща линк към сингъла на файла
@@ -1291,7 +1302,7 @@ class fileman_Files extends core_Master
         foreach ($fileVersionsArr as $fileHnd => $fileInfo) {
             
             // Линк към single' а на файла
-            $link = ht::createLink($fileInfo['fileName'], array('fileman_Files', 'single', $fileHnd), FALSE, array('title' => $fileInfo['versionInfo']));
+            $link = ht::createLink($fileInfo['fileName'], array('fileman_Files', 'single', $fileHnd), FALSE, array('title' => '|*' . $fileInfo['versionInfo']));
             
             // Всеки линк за файла да е на нов ред
             $text .= ($text) ? '<br />' . $link : $link;
@@ -1426,11 +1437,11 @@ class fileman_Files extends core_Master
 
         // Ограничаваме максиманата дължина на името на файла
         $nameFix = str::limitLen($name, 32);
-
+        
         if ($nameFix != $name) {
-            $attr['title'] = $name;
+            $attr['title'] = '|*' . $name;
         }
-
+        
         // Титлата пред файла в plain режим
         $linkFileTitlePlain = tr('Файл') . ": ";
         
@@ -1832,7 +1843,7 @@ class fileman_Files extends core_Master
     	$urlPreview['#'] = 'fileDetail';
     
     	$tpl = new core_ET();
-    	$preview = ht::createLink(tr('Преглед'), $urlPreview, NULL, array('ef_icon' => $icon, 'title' => 'Преглед на файла', "class" => "button"));
+    	$preview = ht::createLink(tr('Преглед'), $urlPreview, NULL, array('ef_icon' => $icon, 'target' => '_blank', 'title' => 'Преглед на файла', "class" => "button"));
     	$tpl->append($preview);
         
     	// Вземаме линка към сингъла на файла таб информация
@@ -1854,8 +1865,13 @@ class fileman_Files extends core_Master
     	$tpl->append($linkBtn);
         
     	$downloadUrl = toUrl(array('fileman_Download', 'Download', 'fh' => $fh, 'forceDownload' => TRUE), FALSE);
-    	$download  =  ht::createLink(tr('Сваляне') . " " . $fileLen, $downloadUrl, NULL, array('id' => 'btn-download', 'ef_icon' => 'img/16/down16.png', 'title' => 'Сваляне на файла', "class" => "button"));
+    	$download = ht::createLink(tr('Сваляне') . " " . $fileLen, $downloadUrl, NULL, array('ef_icon' => 'img/16/down16.png', 'title' => 'Сваляне на файла', "class" => "button"));
     	$tpl->append($download);
+    	
+    	if (core_Users::haveRole('user')) {
+    	    $copy = ht::createLink(tr('Копиране'), 'javascript:void(0);', NULL, array('ef_icon' => 'img/16/copy16.png', 'title' => 'Копиране на файла', "class" => "button", "onclick" => "copyFileToLast('{$fh}')"));
+    	    $tpl->append($copy);
+    	}
 
     	// Ако сме в AJAX режим
     	if(Request::get('ajax_mode')) {
@@ -1869,6 +1885,60 @@ class fileman_Files extends core_Master
     	} else {
     		return $tpl;
     	}
+    }
+    
+    
+    /**
+     * Копира документа в последни 
+     */
+    function act_CopyToLast()
+    {
+        expect(haveRole('user'));
+        
+        $id = Request::get('id');
+        
+        expect($id);
+        
+        $rec = $this->fetch($id);
+        
+        expect($rec);
+        
+        $lRec = fileman_Log::updateLogInfo($rec->fileHnd, 'preview');
+        
+        if ($lRec) {
+            
+            // Сетваме последно отворения таб
+            fileman_DialogWrapper::setLastUploadTab('fileman_Log');
+            Mode::setPermanent('filemanLogLastOpenedPage', 1);
+            
+            $msg = tr("Успешно добавихте файла към последни");
+        } else {
+            $msg = tr("Грешка при копиране");
+        }
+        
+        if (Request::get('ajax_mode')) {
+            $statusData = array();
+            $statusData['text'] = $msg;
+            $statusData['type'] = 'notice';
+            $statusData['timeOut'] = 700;
+            $statusData['isSticky'] = 0;
+            $statusData['stayTime'] = 5000;
+            
+            $statusObj = new stdClass();
+            $statusObj->func = 'showToast';
+            $statusObj->arg = $statusData;
+            
+            return array($statusObj);
+        } else {
+            
+            $retUrl = getRetUrl();
+            
+            if (empty($retUrl)) {
+                $retUrl = toUrl(array($this, 'single', $rec->fileHnd));
+            }
+            
+            return new Redirect($retUrl, $msg);
+        }
     }
     
     

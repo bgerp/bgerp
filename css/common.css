@@ -661,7 +661,8 @@ textarea {
 select.combo {
   position: absolute;
   visibility: hidden;
-  overflow: hidden; }
+  overflow: hidden;
+  cursor: text; }
 
 .checkbox,
 .radiobutton,
@@ -728,10 +729,10 @@ input[type=checkbox]:checked + label {
   table-layout: fixed; }
 
 tr.zebra0 {
-  background-color: rgba(238, 238, 238, 0.5); }
+  background-color: rgba(255, 245, 240, 0.5); }
 
 tr.zebra1 {
-  background-color: rgba(0, 0, 0, 0); }
+  background-color: rgba(240, 245, 255, 0.5); }
 
 .wide input[type=submit],
 .wide input[type=button] {
@@ -1418,8 +1419,8 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
  * грешки и предупреждения
  */
 .formError,
-.formNotice {
-  background-color: #ffff66;
+.formNotice,
+.formWarning {
   font-size: 0.9em;
   padding: 10px;
   margin-bottom: 10px;
@@ -1429,10 +1430,19 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
   border-radius: 5px; }
 
 .formNotice {
-  border: solid 1px green; }
+  background-color: #ffff66;
+  border: solid 1px green;
+  color: green; }
 
 .formError {
-  border: solid 1px red; }
+  border: solid 1px red;
+  background-color: #ffff66;
+  color: red; }
+
+.formWarning {
+  border: solid 1px blue;
+  background-color: #ffff66;
+  color: blue; }
 
 .wide .formError {
   text-align: left;
@@ -1456,7 +1466,7 @@ form .inputAdvanced {
   background-color: #ddffdd !important; }
 
 .inputWarning {
-  border: solid 1px #ff9900; }
+  border: solid 1px blue; }
 
 span.inputLackOfChoice {
   border: solid 1px #bbbbbb;
@@ -1860,6 +1870,49 @@ input:focus[type=button] {
 .flashElem.select2 > .selection > .select2-selection {
   background-color: #fffa99 !important; }
 
+.multipleFiles {
+  font-weight: bold; }
+
+  .input_align_horizontal .multipleFiles {
+    margin-right: 10px;
+    display: block;
+    float: left; }
+
+.align_horizontal .fileHolder {
+  padding: 5px; }
+
+.align_vertical .fileHolder {
+  display: block;
+  padding: 1px; }
+
+.input_align_vertical_btn,
+.input_align_horizontal_btn {
+  float: left; }
+
+.align_vertical {
+  float: left; }
+
+.input_align_vertical {
+  float: left; }
+  .input_align_vertical .multipleFiles {
+    clear: both;
+    float: left;
+    display: block;
+    padding: 0px; }
+    .input_align_vertical .multipleFiles .align_vertical,
+    .input_align_vertical .multipleFiles a {
+      display: inline-block;
+      padding: 1px; }
+    .input_align_vertical .multipleFiles .remove-file-link {
+      position: relative;
+      top: 3px;
+      margin-left: 2px; }
+    .input_align_vertical .multipleFiles .remove-file-link-new {
+      margin-top: 7px;
+      position: relative;
+      top: -2px;
+      display: inline-block; }
+
 /*
  * край на хоризонтални форми
  */
@@ -2140,12 +2193,30 @@ div.alphabet div.tab-page {
   padding: 10px 0 0 0; }
 
 .narrow div.alphabet  div.tab-row {
-  width: 340px;
   float: left;
   padding-bottom: 5px; }
 
 .docStatistic {
   margin-top: 20px; }
+
+.single-thread .document .docStatistic .detail-info {
+  padding: 0;
+  margin-top: 0;
+  font-size: 0.85em;
+  border: none; }
+  .single-thread .document .docStatistic .detail-info .listTable td {
+    background-color: #fefec2; }
+  .single-thread .document .docStatistic .detail-info .row-state-returned td {
+    background-color: #fed6d6; }
+  .single-thread .document .docStatistic .detail-info .stateIndicator,
+  .single-thread .document .docStatistic .detail-info .inline-date {
+    display: inline-block; }
+    .single-thread .document .docStatistic .detail-info .stateIndicator.state-active {
+      background-color: #ffeedd; }
+    .single-thread .document .docStatistic .detail-info .stateIndicator.state-stopped {
+      background-color: #feadad; }
+    .single-thread .document .docStatistic .detail-info .stateIndicator.state-closed {
+      background-color: #dddddd; }
 
 /*
  * вътрешни alphabet табовете в документ - изглеждат като основните, но по-малки
@@ -2184,15 +2255,6 @@ div.alphabet div.tab-page {
         border-radius: 0 0 0 5px; }
       .single-thread .document .docStatistic div.alphabet .tab-page .listTable tr:last-child td:last-child {
         border-radius: 0 0 5px 0; }
-    .single-thread .document .docStatistic div.alphabet .tab-page .stateIndicator,
-    .single-thread .document .docStatistic div.alphabet .tab-page .inline-date {
-      display: inline-block; }
-      .single-thread .document .docStatistic div.alphabet .tab-page .stateIndicator.state-active {
-        background-color: #ffeedd; }
-      .single-thread .document .docStatistic div.alphabet .tab-page .stateIndicator.state-stopped {
-        background-color: #feadad; }
-      .single-thread .document .docStatistic div.alphabet .tab-page .stateIndicator.state-closed {
-        background-color: #dddddd; }
     .single-thread .document .docStatistic div.alphabet .tab-page .listTable th {
       background-color: #fefec2;
       border-left: 1px solid rgba(0, 0, 0, 0);
@@ -2381,14 +2443,14 @@ div.alphabet div.tab-page {
   .narrow div.tab-control.deal-history-tab .tab-row,
   .narrow .single-thread .document .tab-top div.alphabet .tab-row {
     float: none;
-    margin: 0px;
+    margin: 0px 5px;
     clear: both; }
     .narrow div.tab-control.deal-history-tab div.tab-row .tab,
     .narrow div.tab-control.deal-history-tab div.tab-row .tab.selected,
     .narrow .single-thread .document .tab-top div.alphabet div.tab-row .tab,
     .narrow .single-thread .document .tab-top div.alphabet div.tab-row .tab.selected {
-      margin: 1px 2px 1px 0 !important;
-      padding: 3px 2px 3px !important;
+      margin: 1px 0px 1px 3px !important;
+      padding: 4px 3px 2px !important;
       font-size: 0.65em; }
   .narrow div.tab-control.deal-history-tab div.tab-page,
   .narrow .single-thread .document .tab-top div.alphabet div.tab-page {

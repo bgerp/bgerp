@@ -74,7 +74,7 @@ class batch_definitions_Serial extends batch_definitions_Proto
 			return FALSE;
 		}
 		
-		// Ако артикула вече има партидаза този артикул с тази стойност, се приема че е валидна
+		// Ако артикула вече има партида за този артикул с тази стойност, се приема че е валидна
 		if(batch_Items::fetchField(array("#productId = {$this->rec->productId} AND #batch = '[#1#]'", $value))){
 			return TRUE;
 		}
@@ -108,8 +108,7 @@ class batch_definitions_Serial extends batch_definitions_Proto
 			}
 		}
 		
-		// Ако сме стигнали до тук всичко е наред
-		return TRUE;
+		return parent::isValid($value, $quantity, $msg);
 	}
 	
 	
@@ -252,5 +251,34 @@ class batch_definitions_Serial extends batch_definitions_Proto
 		$value = implode("\n", $value);
 		
 		return $value;
+	}
+	
+	
+	/**
+	 * Може ли потребителя да сменя уникалноста на партида/артикул
+	 *
+	 * @return boolean
+	 */
+	public function canChangeBatchUniquePerProduct()
+	{
+		return FALSE;
+	}
+	
+	
+	/**
+     * Какви са свойствата на партидата
+     *
+     * @param varchar $value - номер на партидара
+     * @return array - свойства на партидата
+     * 			o name    - заглавие
+     * 			o classId - клас
+     * 			o value   - стойност
+     */
+	public function getFeatures($value)
+	{
+		$res = array();
+		$res[] = (object)array('name' => 'Сериен номер', 'classId' => $this->getClassId(), 'value' => $value);
+	
+		return $res;
 	}
 }

@@ -27,10 +27,20 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     	$mvc->FLD('packQuantity', 'double(Min=0)', 'caption=Количество,input=input,mandatory,smartCenter');
 		$mvc->FLD('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
 		$mvc->FNC('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
-		
-		// Допълнително
-		$mvc->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
-		$mvc->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
+		$mvc->FNC('quantity', 'double(minDecimals=2,maxDecimals=2)', 'caption=К-во,input=none');
+    }
+    
+    
+    /**
+     * Изчисляване на сумата на реда
+     */
+    public static function on_CalcQuantity(core_Mvc $mvc, $rec)
+    {
+    	if (empty($rec->quantityInPack) || empty($rec->packQuantity)) {
+    		return;
+    	}
+    
+    	$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
     }
     
     
@@ -74,6 +84,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     	
     	$masterRec  = $mvc->Master->fetch($rec->{$mvc->masterKey});
     	$currencyRate = $rec->currencyRate = currency_CurrencyRates::getRate($masterRec->valior, $masterRec->currencyId, acc_Periods::getBaseCurrencyCode($masterRec->valior));
+    
     	if(!$currencyRate){
     		$form->setError('currencyRate', 'Не може да се изчисли курс');
     	}
@@ -86,7 +97,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     		
     		// Слагаме цената от политиката за последна цена
     		if(isset($mvc->LastPricePolicy)){
-    			$policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, cat_Products::getClassId(), $rec->packagingId, $rec->packQuantity, $masterRec->valior, $currencyRate, $rec->chargeVat);
+    			$policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity, $masterRec->valior, $currencyRate, $rec->chargeVat);
     			if($policyInfoLast->price != 0){
     				$form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
     			}
@@ -111,7 +122,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     		}
     		
     		if(!isset($rec->packPrice)){
-    			$form->setError('packPrice', 'Продуктът няма цена в избраната ценова политика');
+    			$form->setError('packPrice', 'Продуктът няма цена в избраната ценова политика (3)');
     		}
     		
     		// Проверка на цената
@@ -125,9 +136,6 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     				unset($rec->packPrice);
     			}
     		}
-    		
-    		$rec->weight = cat_Products::getWeight($rec->productId, $rec->packagingId, $rec->quantity);
-    		$rec->volume = cat_Products::getVolume($rec->productId, $rec->packagingId, $rec->quantity);
     	}
     }
     
@@ -157,9 +165,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     		$rec = &$data->recs[$i];
     		$row->productId = cat_Products::getShortHyperlink($rec->productId);
     		
-    		if($rec->notes){
-    			deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
-    		}
+    		deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     		
     		// Показваме подробната информация за опаковката при нужда
     		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
@@ -194,20 +200,9 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     public static function on_AfterRenderDetail($mvc, &$tpl, $data)
     {
     	// Ако документа е активиран и няма записи съответния детайл не го рендираме
-    	if($data->masterData->rec->state != 'draft' && !$data->rows){
+    	if($data->masterData->rec->state != 'draft' && $data->masterData->rec->state != 'pending' && !$data->rows){
     		$tpl = new ET('');
     	}
-    }
-    
-    
-    /**
-     * Преди запис на продукт
-     */
-    public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
-    {
-    	$quantity = $rec->packQuantity * $rec->quantityInPack;
-    	$rec->weight = cat_Products::getWeight($rec->productId, $rec->packagingId, $quantity);
-    	$rec->volume = cat_Products::getVolume($rec->productId, $rec->packagingId, $quantity);
     }
     
     

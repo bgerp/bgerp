@@ -1,14 +1,8 @@
 <h1>[#TITLE#]</h1>
-<div>
-    <!--ET_BEGIN saleId-->
-       <span>|Договор|*: <b>[#saleId#]</b></span>
-    <!--ET_END saleId-->
-</div>
-<br>
+[#FORM#]
 [#PAGER#]
 <div class='overflow-scroll'>
    [#CONTENT#]
-    
 </div>
 [#PAGER#]
 <div style='clear: both;'></div>

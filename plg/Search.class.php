@@ -198,13 +198,19 @@ class plg_Search extends core_Plugin
             $minLenFTS = 4;
         }
         
+        $wCacheArr = array();
+        
         if ($words = static::parseQuery($search)) {
-            
+          
             usort($words, 'plg_Search::sortLength');
             
             foreach($words as $w) {
                 
                 $w = trim($w);
+                
+                // Предпазване от търсене на повтарящи се думи
+                if (isset($wCacheArr[$w])) continue;
+                $wCacheArr[$w] = $w;
                 
                 if(!$w) continue;
                 
@@ -247,33 +253,38 @@ class plg_Search extends core_Plugin
                     $like = "LIKE";
                     $equalTo = "";
                 }
-                
-                // Ако няма да се търси точно съвпадение, ограничаваме дължината на думите
-                if ($mode != '"') {
-                    $maxLen = PLG_SEARCH_MAX_KEYWORD_LEN ? PLG_SEARCH_MAX_KEYWORD_LEN : 10;
-                    $w = mb_substr($w, 0, $maxLen);
-                }
-                
-                $w = trim(static::normalizeText($w, array('*')));
+            
+                $w = trim(static::normalizeText($w, array('*'))); 
                 $minWordLen = strlen($w);
                 
+                // Ако търсената дума е празен интервал
+                $wTrim = trim($w);
+                if (!strlen($wTrim)) continue;
+                
                 if(strpos($w, ' ')) {
+                    
                     $mode = '"';
+            
                     $wArr = explode(' ', $w);
+                    $minWordLen = 0;
                     foreach($wArr as $part) {
                         $partLen = strlen($part);
-                        if($partLen < $minWordLen) {
-                            $minWordLen = $partLen;
-                        }
+                        $minWordLen = max($minWordLen, $partLen);
                     }
                 }
 
+                // Ако няма да се търси точно съвпадение, ограничаваме дължината на думите
+                if ($mode != '"') {
+                    $maxLen = PLG_SEARCH_MAX_KEYWORD_LEN ? PLG_SEARCH_MAX_KEYWORD_LEN : 10;
+                    $w = substr($w, 0, $maxLen);
+                }
+                
                 if(strpos($w, '*') !== FALSE) {
                     $w = str_replace('*', '%', $w);
                     $w = trim($w, '%');
                     $query->where("#{$field} {$like} '%{$wordBegin}{$w}{$wordEnd}%'");
                 } else {
-                    if($minWordLen <= $minLenFTS || !empty($query->mvc->dbEngine) || $limit > 0) {
+                    if (self::isStopWord($w) || $minWordLen <= $minLenFTS || !empty($query->mvc->dbEngine) || $limit > 0) {  
                         if($limit > 0 && $like == 'LIKE') {
                             $field1 =  "LEFT(#{$field}, {$limit})";
                         } else {
@@ -294,6 +305,58 @@ class plg_Search extends core_Plugin
                 }
             }
         }
+    }
+    
+    
+    /**
+     * Проверява дали думите са изключени от FullText търсене
+     * 
+     * @param string $word
+     * @param boolean $strict
+     * 
+     * @return boolean
+     */
+    public static function isStopWord($word, $strict = FALSE)
+    {
+        $word = trim($word);
+        
+        if (strlen($word) < 4) return FALSE;
+        
+        $type = 'sqlStopWord';
+        $handler = 'stopWords';
+        $keepMinutes = 10000;
+        $stopWordsArr = core_Cache::get($type, $handler, $keepMinutes);
+        
+        if (!$stopWordsArr) {
+            $inc = getFullPath('core/data/sqlStopWords.inc.php');
+            
+            // Инклудваме го, за да можем да му използваме променливите
+            include($inc);
+            
+            core_Cache::set($type, $handler, $stopWordsArr, $keepMinutes);
+        }
+        
+        if (isset($stopWordsArr[$word])) return TRUE;
+        
+        // Ако няма да се търси точната дума, гледаме и думите, които започват с подадения стринг
+        if (!$strict) {
+            
+            $all = FALSE;
+            if (strpos($word, '*') !== FALSE) {
+                $word = str_replace('*', '%', $word);
+                $all = TRUE;
+            }
+            
+            $pattern = '/^' . preg_quote($word, '/') . '/i';
+            
+            if ($all) {
+                $pattern = str_replace('%', '.*', $pattern);
+            }
+            
+            if (preg_grep($pattern, $stopWordsArr)) return TRUE;
+        }
+        
+        return FALSE;
     }
     
     
@@ -417,8 +480,9 @@ class plg_Search extends core_Plugin
         if(is_array($qArr)) {
             foreach($qArr as $q) {
                 if($q{0} == '-') continue;
-                $q = trim(str_replace("'", "\\'", $q), '"');
-                jquery_Jquery::run($text, "\n $('.{$class}').highlight('{$q}');", TRUE);
+                $q = trim($q);
+                $q = json_encode($q);
+                jquery_Jquery::run($text, "\n $('.{$class}').highlight({$q});", TRUE);
             }
         }
 

@@ -275,16 +275,7 @@ class core_Cron extends core_Manager
         }
         
         // Ако в момента се извършва инсталация - да не се изпълняват процесите
-        $slf = EF_TEMP_PATH . '/setupLog.html';
-        if(@file_exists($slf)) {
-            clearstatcache($slf);
-            $at = time() - filemtime($slf);
-            if($at >= 0 && $at < 120) {
-                halt('Cron is not started due to initialisation in last ' . $at . ' sec.');
-            } elseif(abs($at) > 36000) {
-                @unlink($slf);
-            }
-        }
+        core_SystemLock::stopIfBlocked();
 
         header('Cache-Control: no-cache, no-store');
         
@@ -415,7 +406,7 @@ class core_Cron extends core_Manager
         if ($rec->delay > 0) {
             core_App::setTimeLimit(30 + $rec->delay);
             sleep($rec->delay);
-            Debug::log("Sleep {$rec->delay} sec. in" . __CLASS__);
+            Debug::log("Sleep {$rec->delay} sec. in " . __CLASS__);
         }
         
         // Стартираме процеса

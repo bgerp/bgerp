@@ -386,7 +386,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 	
 	
 	/**
-	 * Може ли драйвера автоматично да си изчисли себестойноста
+	 * Може ли драйвера автоматично да си изчисли себестойността
 	 * 
 	 * @param mixed $productId - запис или ид
 	 * @return boolean
@@ -494,9 +494,16 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * Връща дефолтните опаковки за артикула
 	 *
 	 * @param mixed $rec - запис на артикула
-	 * @return array     - масив с дефолтни опаковки
-	 * 		o packagingId - ид на мярка/опаковка
-	 * 		o quantity    - к-во в опаковката
+	 * @return array     - масив с дефолтни данни за опаковките
+	 * 		
+	 * 		o boolean justGuess   - дали е задължителна
+	 * 		o int     packagingId - ид на мярка/опаковка
+	 * 		o double  quantity    - количество
+	 * 		o boolean isBase      - дали опаковката е основна
+	 * 		o double  tareWeight  - тара тегло
+	 * 		o double  sizeWidth   - широчина на опаковката
+	 * 		o double  sizeHeight  - височина на опаковката
+	 * 		o double  sizeDepth   - дълбочина на опаковката
 	 */
 	public function getDefaultPackagings($rec)
 	{
@@ -542,5 +549,30 @@ abstract class cat_ProductDriver extends core_BaseClass
 	public function getAdditionalLabelData($rec, $labelSourceClass = NULL)
 	{
 		return array();
+	}
+	
+	
+	/**
+	 * Връща допълнителен текст, който да се показва към забележките на показването на артикула в документ
+	 *
+	 * @param mixed $productId     - ид или запис на артикул
+	 * @param string $documentType - public или internal или invoice
+	 * @return string              - допълнителния текст, специфичен за документа
+	 */
+	public function getAdditionalNotesToDocument($productId, $documentType)
+	{
+		return NULL;
+	}
+	
+	
+	/**
+	 * Може ли в артикула да се начислява транспорт към цената му
+	 * 
+	 * @param mixed $productId - ид или запис на артикул
+	 * @return boolean
+	 */
+	public function canCalcTransportFee($productId)
+	{
+		return TRUE;
 	}
 }

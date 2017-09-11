@@ -37,25 +37,25 @@ class hr_Professions extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,hr';
+    var $canRead = 'ceo,hrMaster';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,hr';
+	var $canList = 'ceo,hrMaster';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,hr';
+	var $canSingle = 'ceo,hrMaster';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'ceo,hr';
+    var $canWrite = 'ceo,hrMaster';
     
     
     /**

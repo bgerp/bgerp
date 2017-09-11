@@ -279,7 +279,6 @@ class batch_plg_InventoryNotes extends core_Plugin
 			$summary[''] = $noBatch;
 		}
 		
-		
 		return $summary;
 	}
 	
@@ -365,6 +364,9 @@ class batch_plg_InventoryNotes extends core_Plugin
 		$valior = isset($rec->valior) ? $rec->valior : store_InventoryNotes::fetchField($rec->id, 'valior');
 		$obj = (object)array('docId' => $rec->id, 'docType' => store_InventoryNotes::getClassId(), 'date' => $valior);
 				
+		$valior = dt::addDays(-1, $valior);
+		$valior = dt::verbal2mysql($valior, FALSE);
+		
 		$dQuery = store_InventoryNoteSummary::getQuery();
 		$dQuery->where("#noteId = {$rec->id}");
 		while ($dRec = $dQuery->fetch()){

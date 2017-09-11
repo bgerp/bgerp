@@ -37,7 +37,9 @@ class plg_Rejected extends core_Plugin
 
         $mvc->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Модифициране->На,input=none,column=none,forceField');
 
-        $mvc->doWithSelected = arr::make($mvc->doWithSelected) + array('reject' => '*Оттегляне', 'restore' => '*Възстановяване'); 
+        $mvc->doWithSelected = arr::make($mvc->doWithSelected) + array('reject' => '*Оттегляне', 'restore' => '*Възстановяване');
+
+        setIfNot($invoker->canRejectsysdata, 'no_one');
     }
     
     
@@ -207,9 +209,13 @@ class plg_Rejected extends core_Plugin
             // Кога може да се оттеглят записи?
             if($action == 'reject') {
                 // Системните записи, оттеглените и тези, които могат да се изтриват
-                if($rec->createdBy == -1 || $rec->state == 'rejected' || $mvc->haveRightFor('delete', $rec, $userId)) {
+                if($rec->state == 'rejected' || $mvc->haveRightFor('delete', $rec, $userId)) {
                     
                     $requiredRoles = 'no_one';
+                }
+                
+                if (($requiredRoles != 'no_one') && ($rec->createdBy == core_Users::SYSTEM_USER)) {
+                    $requiredRoles = $mvc->getRequiredRoles('rejectsysdata', $rec, $userId);
                 }
             }
 

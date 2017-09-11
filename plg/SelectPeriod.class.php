@@ -94,7 +94,7 @@ class plg_SelectPeriod extends core_Plugin
     /**
      * Изчислява $from и $to
      */
-    private static function getFromTo($sel) 
+    public static function getFromTo($sel) 
     { 
         
         if(date('N') == 7){

@@ -44,7 +44,7 @@ class hr_Shifts extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,hr';
+    var $canRead = 'ceo,hrMaster';
     
     /**
      * @todo Чака за документация...
@@ -55,7 +55,7 @@ class hr_Shifts extends core_Master
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'ceo,hr';
+    var $canWrite = 'ceo,hrMaster';
     
     
     /**

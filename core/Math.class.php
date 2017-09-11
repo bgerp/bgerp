@@ -40,9 +40,9 @@ class core_Math
 
             $significantDigits = $conf->EF_ROUND_SIGNIFICANT_DIGITS;
         }
-	    
+        
         $r = 0;
-        if ($number) {
+        if (round($number, 10)) {
             $r = log10(abs($number));
         }
         

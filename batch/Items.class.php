@@ -184,7 +184,7 @@ class batch_Items extends core_Master {
     	}
     	
     	if(isset($rec->featureId)){
-    		$featRec = batch_Features::fetch($rec->featureId, 'classId,value');
+    		$featRec = batch_Features::fetch($rec->featureId, 'name,classId,value');
     		$row->featureId = cls::get($featRec->classId)->toVerbal($featRec->value);
     	}
     }
@@ -289,6 +289,7 @@ class batch_Items extends core_Master {
     	
     	// Сетване на новите опции
     	$data->listFilter->setOptions('filterState', $options);
+    	$data->listFilter->setDefault('filterState', 'active');
     	$data->listFilter->showFields = 'search,store,filterState';
     	$data->listFilter->input();
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -340,10 +341,18 @@ class batch_Items extends core_Master {
      */
     public static function getProductsWithDefs()
     {
-    	$storable = array();
-    	$dQuery = batch_Defs::getQuery();
-    	while($dRec = $dQuery->fetch()){
-    		$storable[$dRec->productId] = cat_Products::getTitleById($dRec->productId, FALSE);
+    	$storable = core_Cache::get('batch_Defs', 'products');
+    	
+    	if(!$storable){
+    		$storable = array();
+    		$dQuery = batch_Defs::getQuery();
+    		$dQuery->where("#productId IS NOT NULL");
+    		$dQuery->show('productId');
+    		while($dRec = $dQuery->fetch()){
+    			$pRec = cat_Products::fetch($dRec->productId, 'name,isPublic,code');
+    			$storable[$dRec->productId] = cat_Products::getRecTitle($pRec, FALSE);
+    		}
+    		core_Cache::set('batch_Defs', 'products', $storable, 60);
     	}
     	
     	return $storable;
@@ -577,6 +586,21 @@ class batch_Items extends core_Master {
     		
     		$sign = ($rec->operation == 'in') ? 1 : -1;
     		$res[$rec->batch] += $sign * $rec->quantity;
+    	}
+    	
+    	// Добавяне и на партидите от активни документи в черновата на журнала
+    	$bQuery = batch_BatchesInDocuments::getQuery();
+    	$bQuery->EXT('state', 'doc_Containers', 'externalName=state,externalKey=containerId');
+    	$bQuery->where("#storeId = {$storeId} AND #productId = {$productId}");
+    	$bQuery->where("#state = 'active'");
+    	$bQuery->groupBy('batch');
+    	$bQuery->notIn('batch', array_keys($res));
+    	$bQuery->where("#date <= '{$date}'");
+    	$bQuery->show('batch');
+    	while($bRec = $bQuery->fetch()){
+    		if(!array_key_exists($bRec->batch, $res)){
+    			$res[$bRec->batch] = 0;
+    		}
     	}
     	
     	// Намерените партиди се подават на партидната дефиниция, ако иска да ги преподреди

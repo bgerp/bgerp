@@ -94,11 +94,15 @@ class acc_CostAllocations extends core_Manager
 	 */
 	protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
 	{
-		$origin = doc_Containers::getDocument($rec->containerId);
-		if($origin->fetchField('state') == 'active'){
-			
-			// Реконтиране на документа
-			acc_Journal::reconto($rec->containerId);
+		try{
+			$origin = doc_Containers::getDocument($rec->containerId);
+			if($origin->fetchField('state') == 'active'){
+					
+				// Реконтиране на документа
+				acc_Journal::reconto($rec->containerId);
+			}
+		} catch (core_exception_Expect $e){
+			reportException($e);
 		}
 	}
 	
@@ -330,7 +334,7 @@ class acc_CostAllocations extends core_Manager
 			$singleUrl['Sid'] = $Register->fetchField('containerId');
 			$eItem = ht::createLink($eItem, $singleUrl);
 			if($iRec->state == 'closed'){
-				$eItem = ht::createHint($eItem, 'Перото е затворено', 'warning', FALSE, array('height' => 14, 'weight' => 14))->getContent();
+				$eItem = ht::createHint($eItem, 'Перото е затворено', 'warning', FALSE, array('height' => 14, 'width' => 14))->getContent();
 				$eItem = "<span class='state-closed' style='padding:3px'>{$eItem}</span>";
 			}
 		}
@@ -341,7 +345,7 @@ class acc_CostAllocations extends core_Manager
 		
 		$row->expenseItemId = "<b class='quiet'>" . tr("Разход за") . "</b>: {$eItem}";
 		if(isset($hint)){
-			$row->expenseItemId = ht::createHint($row->expenseItemId, $hint, 'warning', FALSE, array('height' => 14, 'weight' => 14))->getContent();
+			$row->expenseItemId = ht::createHint($row->expenseItemId, $hint, 'warning', FALSE, array('height' => 14, 'width' => 14))->getContent();
 			$row->expenseItemId = "<span style='opacity: 0.7;'>{$row->expenseItemId}</span>";
 		}
 	}

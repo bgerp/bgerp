@@ -94,6 +94,9 @@ class colab_FolderToPartners extends core_Manager
          
         // Поставяне на уникални индекси
         $this->setDbUnique('folderId,contractorId');
+
+        $this->setDbIndex('contractorId');
+        $this->setDbIndex('folderId');
     }
 
     
@@ -164,6 +167,8 @@ class colab_FolderToPartners extends core_Manager
      */
     public static function preparePartners($data)
     {
+        if(!$data->isCurrent) return;
+
         $data->partners = array();
         $folderId = $data->masterData->rec->folderId;
         if ($folderId) {

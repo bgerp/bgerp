@@ -46,7 +46,7 @@ class select2_PluginSelect extends core_Plugin
     {
         ht::setUniqId($attr);
         
-        $invoker->options = $invoker->prepareOptions();
+        $invoker->options = $invoker->prepareOptions($value);
         self::$optCnt = count($invoker->options);
         
         $maxSuggestions = $invoker->getMaxSuggestions();

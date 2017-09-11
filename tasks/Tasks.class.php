@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   tasks
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Клас баща на документите за задачи
@@ -39,7 +39,7 @@ class tasks_Tasks extends embed_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, doc_DocumentPlg, planning_plg_StateManager, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone';
+    public $loadList = 'plg_RowTools2, doc_DocumentPlg, planning_plg_StateManager, acc_plg_DocumentSummary, plg_Search, plg_Clone';
 
     
     /**
@@ -67,12 +67,6 @@ class tasks_Tasks extends embed_Manager
     
     
     /**
-     * Полета, които ще се показват в листов изглед
-     */
-    public $listFields = 'name = Документ, originId=Задание, title, expectedTimeStart,timeStart, timeDuration, timeEnd, progress, state';
-    
-    
-    /**
      * Кои колони да скриваме ако янма данни в тях
      */
     public $hideListFieldsIfEmpty = 'originId';
@@ -93,7 +87,7 @@ class tasks_Tasks extends embed_Manager
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    public $rowToolsSingleField = 'name';
+    public $rowToolsSingleField = 'title';
     
     
     /**
@@ -106,12 +100,6 @@ class tasks_Tasks extends embed_Manager
      * Поле за крайна дата на търсене
      */
     public $filterFieldDateTo = 'timeEnd';
-    
-    
-    /**
-     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
-     */
-    public $searchFields = 'title';
     
     
     /**
@@ -145,7 +133,18 @@ class tasks_Tasks extends embed_Manager
      */
     public $fieldsNotToClone = 'progress';
     
+    /**
+	 * Групиране на документите
+	 */
+	public $newBtnGroup = "3.5|Производство";
     
+	
+	/**
+	 * Поле за филтриране по дата
+	 */
+	public $filterDateField = 'expectedTimeStart,timeStart,createdOn';
+	
+	
     /**
      * Описание на модела (таблицата)
      */
@@ -183,29 +182,34 @@ class tasks_Tasks extends embed_Manager
     
     
     /**
-     * Подготвяне на вербалните стойности
+     * Конвертира един запис в разбираем за човека вид
+     * Входният параметър $rec е оригиналният запис от модела
+     * резултата е вербалният еквивалент, получен до тук
      */
-    protected static function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function recToVerbal_($rec, &$fields = '*')
     {
+    	$row = parent::recToVerbal_($rec, $fields);
+    	$mvc = cls::get(get_called_class());
+    	
     	$red = new color_Object("#FF0000");
     	$blue = new color_Object("green");
     	$grey = new color_Object("#bbb");
-    	
+    	 
     	$progressPx = min(100, round(100 * $rec->progress));
     	$progressRemainPx = 100 - $progressPx;
-    	
+    	 
     	$color = ($rec->progress <= 1) ? $blue : $red;
     	$row->progressBar = "<div style='white-space: nowrap; display: inline-block;'><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$color}; width:{$progressPx}px;'> </div><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$grey};width:{$progressRemainPx}px;'></div></div>";
-    
+    	
     	$grey->setGradient($color, $rec->progress);
     	$row->progress = "<span style='color:{$grey};'>{$row->progress}</span>";
-    	
+    	 
     	$row->name = $mvc->getLink($rec->id, 0);
-    	
+    	 
     	if ($rec->timeEnd && ($rec->state != 'closed' && $rec->state != 'rejected')) {
     		$remainingTime = dt::mysql2timestamp($rec->timeEnd) - time();
     		$rec->remainingTime = cal_Tasks::roundTime($remainingTime);
-    	
+    		 
     		$typeTime = cls::get('type_Time');
     		if ($rec->remainingTime > 0) {
     			$row->remainingTime = ' (' . tr('остават') . ' ' . $typeTime->toVerbal($rec->remainingTime) . ')';
@@ -213,19 +217,21 @@ class tasks_Tasks extends embed_Manager
     			$row->remainingTime = ' (' . tr('просрочване с') . ' ' . $typeTime->toVerbal(-$rec->remainingTime) . ')';
     		}
     	}
-    	
+    	 
     	// Ако е изчислено очакваното начало и има продължителност, изчисляваме очаквания край
     	if(isset($rec->expectedTimeStart) && isset($rec->timeDuration)){
     		$rec->expectedTimeEnd = dt::addSecs($rec->timeDuration, $rec->expectedTimeStart);
     		$row->expectedTimeEnd = $mvc->getFieldType('expectedTimeStart')->toVerbal($rec->expectedTimeEnd);
     	}
-    	
+    	 
     	if($rec->originId){
     		$origin = doc_Containers::getDocument($rec->originId);
-    		$row->originId = $origin->getLink(0);
+    		$row->originId = $origin->getLink();
     	}
-    	
+    	 
     	$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+    
+    	return $row;
     }
     
     
@@ -323,7 +329,7 @@ class tasks_Tasks extends embed_Manager
     	// Добавяме поле за търсене по състояние
     	if(!Request::get('Rejected', 'int')){
     		$data->listFilter->setOptions('state', array('' => '') + arr::make('draft=Чернова, active=Активен, pendingandactive=Активни+Чакащи,closed=Приключен, stopped=Спрян, wakeup=Събуден,waiting=Чакащо', TRUE));
-    		$data->listFilter->setField('state', 'placeholder=Всички');
+    		$data->listFilter->setField('state', 'placeholder=Всички,formOrder=1000');
     		$data->listFilter->showFields .= ',state';
     		$data->listFilter->input('state');
     		 
@@ -331,7 +337,7 @@ class tasks_Tasks extends embed_Manager
     			if($state != 'pendingandactive'){
     				$data->query->where("#state = '{$state}'");
     			} else {
-    				$data->query->where("#state = 'active' || #state = 'waiting'");
+    				$data->query->where("#state = 'active' OR #state = 'waiting'");
     			}
     		}
     	}
@@ -414,7 +420,7 @@ class tasks_Tasks extends embed_Manager
     /**
      * Подготовка на формата за добавяне/редактиране
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
@@ -491,7 +497,7 @@ class tasks_Tasks extends embed_Manager
     {
     	// Намираме чакащите и активните задачи от най-старата към най-новата
     	$query = self::getQuery();
-    	$query->where("#state = 'active' || #state = 'waiting' || #state = 'stopped'");
+    	$query->where("#state = 'active' OR #state = 'waiting' OR #state = 'stopped'");
     	$query->orderBy('id', 'ASC');
     	
     	$recs = $query->fetchAll();
@@ -521,7 +527,6 @@ class tasks_Tasks extends embed_Manager
     			
     			// Ако предишно изчисленото очаквано начало е различно от текущото
     			if($expectedTimes[$rec->id] !== $max){
-    				//echo "<li><b>{$rec->id}</b> old: '{$expectedTimes[$rec->id]}' new: '{$max}'";
     		
     				// Записваме новото време
     				$expectedTimes[$rec->id] = $max;
@@ -530,10 +535,6 @@ class tasks_Tasks extends embed_Manager
     				$repeat = TRUE;
     			}
     		}
-    		
-    		if($repeat){
-    			//echo "<li>REPEAT";
-    		} 
     		
     	// Докато флага е сетнат преизчисляваме очакваното начало на задачите
     	// Докато спрат да се присвояват нови времена
@@ -714,7 +715,7 @@ class tasks_Tasks extends embed_Manager
     	$query->where("#originId = {$data->masterData->rec->containerId}");
     	$query->XPR('orderByState', 'int', "(CASE #state WHEN 'wakeup' THEN 1 WHEN 'active' THEN 2 WHEN 'stopped' THEN 3 WHEN 'closed' THEN 4 WHEN 'waiting' THEN 5 ELSE 6 END)");
     	$query->orderBy('#orderByState=ASC');
-    		
+    	
     	// Подготвяме данните
     	while($rec = $query->fetch()){
     		if(!cls::load($rec->classId, TRUE)) continue;

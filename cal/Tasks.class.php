@@ -154,6 +154,11 @@ class cal_Tasks extends core_Master
      * Кой може да възлага задачата
      */
     public $canAssign = 'powerUser';
+    
+    /**
+     * Кой може да възлага задачата
+     */
+    public $canActivate = 'powerUser';
 
     
     /**
@@ -260,10 +265,10 @@ class cal_Tasks extends core_Master
         $this->FLD('description', 'richtext(bucket=calTasks, passage=Общи)', 'caption=Описание,changable');
 
         // Споделяне
-        $this->FLD('sharedUsers', 'userList', 'caption=Споделяне,changable');
+        $this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители,changable');
         
         // Отговорноици
-        $this->FLD('assign', 'user(role=powerUser,allowEmpty)', 'caption=Възложено на,changable,input=none');
+        $this->FLD('assign', 'user(rolesForAll=powerUser,allowEmpty)', 'caption=Възложено на,changable');
 
         // Начало на задачата
         $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00, format=smartTime)',
@@ -420,11 +425,17 @@ class cal_Tasks extends core_Master
         $after = dt::addDays(self::$taskShowPeriod, $now);
         
         $data->query->where("#state = 'active'");
+        $data->query->orWhere("#state = 'wakeup'");
         $data->query->orWhere(array("#state = 'waiting' AND #expectationTimeStart <= '[#1#]' AND #expectationTimeStart >= '[#2#]'", $after, $before));
         $data->query->orWhere(array("#state = 'closed' AND #timeClosed <= '[#1#]' AND #timeClosed >= '[#2#]'", $after, $before));
         
+        // Чакащите задачи под определено време да са в началото
+        $waitingShow = dt::addSecs(cal_Setup::get('WAITING_SHOW_TOP_TIME'), $now);
+        $data->query->XPR('waitingOrderTop', 'datetime', "IF((#state = 'waiting' AND (#expectationTimeStart) AND (#expectationTimeStart <= '{$waitingShow}')), -#expectationTimeStart, NULL)");
+        $data->query->orderBy("waitingOrderTop", "DESC");
+        
         // Време за подредба на записите в портала
-        $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'waiting' THEN 2 ELSE 3 END)");
+        $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'wakeup' THEN 1 WHEN 'waiting' THEN 2 ELSE 3 END)");
         $data->query->orderBy('#orderByState=ASC');
         
         // Чакащите задачи, ако имат начало първо по тях да се подреждат, после по последно
@@ -525,7 +536,6 @@ class cal_Tasks extends core_Master
      */
     protected static function on_AfterInputEditForm($mvc, $form)
     {
-        $cu = core_Users::getCurrent();
         $rec = $form->rec;
 
         $rec->allDay = (strlen($rec->timeStart) == 10) ? 'yes' : 'no';
@@ -543,7 +553,7 @@ class cal_Tasks extends core_Master
             if ($rec->timeStart && $rec->timeEnd && $rec->timeDuration) {
                 $form->setError('timeEnd,timeStart,timeDuration', 'Не може задачата да има едновременно начало, продължителност и край. Попълнете само две от тях');
             }
-
+            
             // при активиране на задачата
             if ($rec->state == 'active') {
 
@@ -563,11 +573,23 @@ class cal_Tasks extends core_Master
                     // правим заявка към базата
                     $query = self::getQuery();
 
-                    // търсим всички задачи, които са шернати на текущия потребител
+                    // Tърсим всички задачи, които са шернати на споделените и възложените потребители или на текущия потребител
                     // и имат някаква стойност за начало и край
                     // или за начало и продължителност
-                    $query->likeKeylist('sharedUsers', $rec->sharedUsers);
-
+                    
+                    $sharedUsersArr = keylist::toArray($rec->sharedUsers);
+                    
+                    if ($rec->assign) {
+                        $sharedUsersArr[$rec->assign] = $rec->assign;
+                    }
+                    
+                    if (empty($sharedUsersArr)) {
+                        $cu = core_Users::getCurrent();
+                        $sharedUsersArr[$cu] = $cu;
+                    }
+                    
+                    $query->likeKeylist('sharedUsers', $sharedUsersArr);
+                    
                     if ($rec->id) {
                         $query->where("#id != {$rec->id}");
                     }
@@ -582,24 +604,58 @@ class cal_Tasks extends core_Master
 
 
                     $query->where("#state = 'active'");
-
-                    // за всяка една задача отговаряща на условията проверяваме
-                    if ($recTask = $query->fetch()) {
-
-                        $link = ht::createLink($recTask->title, array('cal_Tasks', 'single', $recTask->id, 'ret_url' => TRUE, ''), NULL, "ef_icon=img/16/task-normal.png");
-                        // и изписваме предупреждение
-                        $form->setWarning('timeStart, timeDuration, timeEnd', "|Засичане по време с |*{$link}");
+                    
+                    doc_Threads::restrictAccess($query);
+                    
+                    $query->orderBy('modifiedOn', 'DESC');
+                    
+                    $cnt = $query->count();
+                    
+                    $limit = 10;
+                    
+                    $query->limit($limit);
+                    
+                    $link = '';
+                    
+                    // За всяка една задача отговаряща на условията проверяваме
+                    while ($recTask = $query->fetch()) {
+                        
+                        $link .= ($link) ? '<br>' : '';
+                        
+                        $link .= ht::createLink($recTask->title, $mvc->getSingleUrlArray($recTask->id), NULL, "ef_icon=img/16/task-normal.png");
+                    }
+                    
+                    if ($link) {
+                        
+                        if ($cnt > 1) {
+                            $link = '<br>' . $link;
+                        }
+                        
+                        if ($cnt > $limit) {
+                            $link .= "<br>" . ' +' . tr('oще') . ': ' . ($cnt - $limit);
+                        }
+                        
+                        $form->setWarning('timeStart, timeDuration, timeEnd', "|Засичане по време с|*: {$link}");
                     }
                 }
             }
         }
         
-        if ($fId = Request::get('foreignId')) {
+        if ($fId = Request::get('foreignId', 'int')) {
             $form->rec->foreignId = $fId;
+        }
+        
+        if ($form->rec->foreignId) {
+            
+            $document = doc_Containers::getDocument($form->rec->foreignId);
+            
+            $document->instance->requireRightFor('single', $document->that);
+            
+            self::showForeignDoc($document, $form);
         }
     }
 
-
+    
     /**
      *
      * След подготовка на тулбара на единичен изглед.
@@ -629,6 +685,26 @@ class cal_Tasks extends core_Master
             $taskStart = dt::now();
         }
         
+        // ако имаме задача в чернова, проверяваме дали може да се активира
+        if($data->rec->id) {
+            $sharedUsersArr = keylist::toArray($data->rec->sharedUsers);
+           
+            if ($data->rec->assign) {
+                $sharedUsersArr[$data->rec->assign] = $data->rec->assign;
+            }
+               
+            if (empty($sharedUsersArr)) {
+                // ако не може, слагаме бутон заявка
+                $data->toolbar->addBtn('Заявка', array($mvc, 'changePending', $data->rec->id), "id=btnRequest", 'ef_icon = img/16/tick-circle-frame.png,title=Превръщане на документа в заявка');
+                $data->toolbar->removeBtn('btnActivate');
+            } 
+        }
+        
+        if($data->rec->state == 'pending') {
+            $data->toolbar->removeBtn('btnRequest');
+            $data->toolbar->removeBtn('btnActivate');
+        }
+        
         // ако имаме зададена продължителност
         if ($data->rec->timeDuration) {
 
@@ -646,7 +722,7 @@ class cal_Tasks extends core_Master
         } 
 
         // ако имаме бутон "Активиране"
-        if (isset($data->toolbar->buttons['Активиране'])) {
+        if (isset($data->toolbar->buttons['Активиране'])) { 
 
             // заявка към базата
             $query = self::getQuery();
@@ -685,6 +761,10 @@ class cal_Tasks extends core_Master
             cal_TaskDocuments::add($rec->id, $rec->foreignId);
         }
  
+        if($rec->state == 'pending' && !$rec->sharedUsers) { 
+            core_Statuses::newStatus("|Не е избран потребител. Документа е приведен в състояние 'Заявка'|*");
+        } 
+        
         $mvc->updateTaskToCalendar($rec->id);
     }
 
@@ -721,7 +801,7 @@ class cal_Tasks extends core_Master
             }
         }
 
-        if ($action == 'edit') {
+        if ($action == 'edit') { 
             if ($rec->id) {
                 if (!cal_Tasks::haveRightFor('single', $rec)) {
                     $requiredRoles = 'no_one';
@@ -734,19 +814,6 @@ class cal_Tasks extends core_Master
                 if (!$mvc->haveRightFor('single', $rec->id, $userId)) {
                     $requiredRoles = 'no_one';
                }
-            }
-        }
-        
-        // Ако няма потребители, да не може да се активира - ще се промени състоянието на заявка
-        if ($action == 'activate' && $rec->id) {
-            $sharedUsersArr = keylist::toArray($rec->sharedUsers);
-            
-            if ($rec->assign) {
-                $sharedUsersArr[$rec->assign] = $rec->assign;
-            }
-            
-            if (empty($sharedUsersArr)) {
-                $requiredRoles = 'no_one';
             }
         }
     }
@@ -769,11 +836,19 @@ class cal_Tasks extends core_Master
         // проверяваме дали може да стане задачата в активно състояние
         $canActivate = self::canActivateTask($rec);
         
+        $sharedUsersArr = keylist::toArray($rec->sharedUsers);
+        
+        if ($rec->assign) {
+            $sharedUsersArr[$rec->assign] = $rec->assign;
+        }
+        
         if ($now >= $canActivate && $canActivate !== NULL) {
 
             $rec->timeCalc = $canActivate->calcTime;
 
-            // ако не може, задачата ставачакаща
+            // ако не може, задачата става заявка
+        } elseif(empty($sharedUsersArr)) {
+            $rec->state = 'pending';
         } else {
             $rec->state = 'waiting';
         }
@@ -821,8 +896,6 @@ class cal_Tasks extends core_Master
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $cu = core_Users::getCurrent();
-
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('from', 'date', 'caption=От,input=none');
         $data->listFilter->FNC('to', 'date', 'caption=До,input=none');
@@ -1301,26 +1374,26 @@ class cal_Tasks extends core_Master
             
             $row->subTitle .= $dTitle;
         }
+       
+        //Състояние
+        $row->state = $rec->state;
         
         $date = '';
         if ($rec->state == 'active' && $rec->timeEnd) {
-            $date = $rec->timeEnd;
+            $date = $rec->timeEnd; 
         }
         
         if ($rec->state = 'waiting' && $rec->timeStart) {
             $date = $rec->timeStart;
         }
-        
+    
         if ($date) {
             $row->subTitle .= $row->subTitle ? ' - ' : '';
             $row->subTitle .= dt::mysql2verbal($date, 'smartTime');
         }
-        
+
         //Създателя
-        $row->author = $this->getVerbal($rec, 'createdBy');
-        
-        //Състояние
-        $row->state = $rec->state;
+        $row->author = $this->getVerbal($rec, 'createdBy');   
         
         //id на създателя
         $row->authorId = $rec->createdBy;
@@ -1371,6 +1444,7 @@ class cal_Tasks extends core_Master
 		   self::updateTaskToCalendar($rec->id);
 		   // и проверяваме дали може да я активираме
 		   $canActivate = self::canActivateTask($rec);
+		   $exRec = $rec;
            
 		   if ($canActivate != FALSE) { 
 		   	   if ($now >= $canActivate) {  
@@ -1381,7 +1455,11 @@ class cal_Tasks extends core_Master
 				       
 				   // и да изпратим нотификация на потребителите
        			   self::doNotificationForActiveTasks($activatedTasks);
-		       }       
+		       } else {
+		           $rec->state = $exRec->state;
+		       }   
+		   } else {
+		       $rec->state = $exRec->state;
 		   }
 		   
 		   self::save($rec, 'state, timeActivated, expectationTimeEnd, expectationTimeStart');
@@ -2123,9 +2201,11 @@ class cal_Tasks extends core_Master
     {
         // Без отговорник да не може да се активират
         $sharedUsersArr = keylist::toArray($rec->sharedUsers);
+        
         if ($rec->assign) {
             $sharedUsersArr[$rec->assign] = $rec->assign;
         }
+        
         if (empty($sharedUsersArr)) {
             
             return ;
@@ -2560,8 +2640,13 @@ class cal_Tasks extends core_Master
         	unset($resArr['expectationTimeEnd']);
         }
 
-        if ($row->assign) {
-            $resArr['assign'] =  array('name' => tr('Възложено'), 'val' => tr('на') . " [#assign#] " . tr('от') . " [#assignedBy#] " . tr('в') . " [#assignedOn#]");
+        if ($row->assign) { 
+            
+            if($rec->assign && $rec->assignedBy) {
+                $resArr['assign'] =  array('name' => tr('Възложено'), 'val' => tr('на') . " [#assign#] " . tr('от') . " [#assignedBy#] " . tr('в') . " [#assignedOn#]");
+            } else {
+                $resArr['assign'] =  array('name' => tr('Възложено'), 'val' => tr('на') . " [#assign#] " . tr('от') . " [#createdBy#] " . tr('в') . " [#createdOn#]");
+            }
         }
     }
     
@@ -2592,7 +2677,7 @@ class cal_Tasks extends core_Master
     {
         $this->requireRightFor('add');
         
-        $originId = Request::get('foreignId');
+        $originId = Request::get('foreignId', 'int');
         
         expect($originId);
         
@@ -2623,6 +2708,10 @@ class cal_Tasks extends core_Master
         $toNewTask->title = 'Към нова задача';
         $toNewTask->group = TRUE;
         
+        $toPendingTask = new stdClass();
+        $toPendingTask->title = 'Към задача заявка';
+        $toPendingTask->group = TRUE;
+        
         $toWaitingTask = new stdClass();
         $toWaitingTask->title = 'Към чакаща задача';
         $toWaitingTask->group = TRUE;
@@ -2636,8 +2725,9 @@ class cal_Tasks extends core_Master
         $newPrefix = 'n' . $prefixDelim;
         $waitingPrefix = 'w' . $prefixDelim;
         $activePrefix = 'a' . $prefixDelim;
+        $pendingPrefix = 'p' . $prefixDelim;
         
-        $prefixTaskTypeArr = array($newPrefix => $toNewTask, $waitingPrefix => $toWaitingTask, $activePrefix => $toActiveTask);
+        $prefixTaskTypeArr = array($newPrefix => $toNewTask, $pendingPrefix => $toPendingTask, $waitingPrefix => $toWaitingTask, $activePrefix => $toActiveTask);
         
         $form->setDefault('taskType', $newPrefix . 'postPonned');
         
@@ -2658,6 +2748,7 @@ class cal_Tasks extends core_Master
         $query = $this->getQuery();
         $query->where("#state = 'waiting'");
         $query->orWhere("#state = 'active'");
+        $query->orWhere("#state = 'pending'");
         
         $query->EXT('recentlyLast', 'bgerp_Recently', 'externalName=last, externalKey=threadId, externalFieldName=threadId');
         $query->EXT('recentlyUserId', 'bgerp_Recently', 'externalName=userId, externalKey=threadId, externalFieldName=threadId');
@@ -2687,6 +2778,14 @@ class cal_Tasks extends core_Master
             if ($isTask && $rec->id == $document->that) continue; 
             
             $tArr[$rec->state][$rec->id] = $rec->title;
+        }
+        
+        // Чакащите задачи
+        if (is_array($tArr['pending']) && !empty($tArr['pending'])) {
+            $taskArr[$pendingPrefix] = $prefixTaskTypeArr[$pendingPrefix];
+            foreach ($tArr['pending'] as $id => $title) {
+                $taskArr[$pendingPrefix . $id] = $title;
+            }
         }
         
         // Чакащите задачи
@@ -2793,7 +2892,7 @@ class cal_Tasks extends core_Master
         if($form->isSubmitted() && $sTypePrefix) {
             
             // Ако е избрана задача, проверяваме дали документа е бил добавен вече
-            if (($sTypePrefix == $waitingPrefix) || ($sTypePrefix == $activePrefix)) {
+            if (($sTypePrefix == $waitingPrefix) || ($sTypePrefix == $activePrefix) || ($sTypePrefix == $pendingPrefix)) {
                 $taskId = $sSel;
                 
                 if ($taskId) {
@@ -2905,6 +3004,8 @@ class cal_Tasks extends core_Master
             return new Redirect($redirectUrl);
         }
         
+        $this->showForeignDoc($document, $form);
+        
         // Добавяме бутоните на формата
         $form->toolbar->addSbBtn('Продължи', 'save', NULL, 'ef_icon = img/16/next-img.png, title=Запис на документа');
         $form->toolbar->addBtn('Отказ', $retUrl, NULL, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
@@ -2913,9 +3014,68 @@ class cal_Tasks extends core_Master
         $form->title = "Създаване на задача от|* ";
         $form->title .= cls::get($document)->getFormTitleLink($document->that);
         
+        $dQuery = cal_TaskDocuments::getQuery();
+        $dQuery->where(array("#containerId = '[#1#]'", $originId));
+        $dQuery->orderBy('createdOn', 'DESC');
+        
+        // Ограничаваме да се показват само достъпните
+        $dQuery->EXT('threadId', 'cal_Tasks', 'externalKey=taskId');
+        $dQuery->EXT('folderId', 'cal_Tasks', 'externalKey=taskId');
+        $dQuery->EXT('tState', 'cal_Tasks', 'externalKey=taskId, externalName=state');
+        doc_Threads::restrictAccess($dQuery, NULL, TRUE);
+        
+        $dQuery->where("#tState != 'rejected'");
+        
+        $cnt = $dQuery->count();
+        $dQuery->limit(5);
+        
+        $lArr = array();
+        while ($dRec = $dQuery->fetch()) {
+            if (!$dRec->taskId) continue;
+            $cRec = cal_Tasks::fetch($dRec->taskId);
+            
+            if ($cRec->state == 'rejected') continue;
+            
+            if ($cRec->folderId) {
+                $fRec = doc_Folders::fetch($cRec->folderId);
+                $lArr[] = cal_Tasks::getLinkToSingle($dRec->taskId) . ' « ' . doc_Folders::recToVerbal($fRec, 'title')->title;
+            }
+        }
+        
+        if (!empty($lArr)) {
+            $form->info = tr("Добавено към");
+            if ($cnt > count($lArr)) {
+                $form->info .= " {$cnt} " . tr('задачи');
+            }
+            $form->info .= ":<br>";
+            $form->info .= implode('<br>', $lArr);
+        }
+        
         // Получаваме изгледа на формата
         $tpl = $form->renderHtml();
         
         return self::renderWrapping($tpl);
+    }
+    
+    
+    /**
+     * Помощна функция за показване на документа, който е източник
+     * 
+     * @param core_ObjectReference $fDoc
+     * @param core_Form $form
+     */
+    protected static function showForeignDoc($fDoc, $form)
+    {
+        // Показваме оригиналния документ при създаване от задача
+        if ($fDoc && $form->cmd != 'refresh') {
+            $form->layout = $form->renderLayout();
+            $tpl = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Документ") . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div>");
+            
+            $docHtml = $fDoc->getInlineDocumentBody();
+            
+            $tpl->append($docHtml, 'DOCUMENT');
+            
+            $form->layout->append($tpl);
+        }
     }
 }

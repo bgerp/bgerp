@@ -132,6 +132,13 @@ class bank_InternalMoneyTransfer extends core_Master
      */
     var $searchFields = 'valior, reason, creditBank, debitBank, id';
     
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'valior,createdOn,modifiedOn';
+    
+    
     /**
      * Позволени операции
      */

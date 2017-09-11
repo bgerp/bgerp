@@ -75,6 +75,9 @@ class batch_Movements extends core_Detail {
     	$this->FLD('docType', 'class(interface=doc_DocumentIntf)', 'caption=Документ вид');
     	$this->FLD('docId', 'int', 'caption=Документ номер');
     	$this->FLD('date', 'date', 'caption=Дата');
+    	
+    	$this->setDbIndex('itemId');
+    	$this->setDbIndex('operation');
     }
     
     
@@ -231,9 +234,8 @@ class batch_Movements extends core_Detail {
     /**
      * Записва движение на партида от документ
      * 
-     * @param mixed $class - ид на документ
-     * @param mixed $rec   - ид или запис на документа
-     * @return boolean     - успех или не
+     * @param mixed $containerId - ид на контейнер
+     * @return boolean           - успех или не
      */
     public static function saveMovement($containerId)
     {
@@ -262,7 +264,11 @@ class batch_Movements extends core_Detail {
     			
     			try{
     				$itemId = batch_Items::forceItem($jRec->productId, $key, $jRec->storeId);
-    				 
+    				if(empty($jRec->date)){
+    					$jRec->date = $doc->fetchField($doc->valiorFld);
+    					cls::get('batch_BatchesInDocuments')->save_($jRec, $date);
+    				}
+    				
     				// Движението, което ще запишем
     				$mRec = (object)array('itemId'    => $itemId,
     						              'quantity'  => $quantity,
@@ -280,7 +286,7 @@ class batch_Movements extends core_Detail {
     					$result = FALSE;
     					break;
     				}
-    			} catch(core_exception_Expect $e){
+    			} catch(core_exception_Expect $e){bp($doc,$e);
     				reportException($e);
     				
     				// Ако е изникнала грешка
@@ -292,6 +298,7 @@ class batch_Movements extends core_Detail {
 		// При грешка изтриваме всички записи до сега
 		if($result === FALSE){
 			self::removeMovement($doc->getInstance(), $doc->that);
+			core_Statuses::newStatus('Проблем със записването на партидите');
 		}
 		
 		// Връщаме резултата
@@ -360,5 +367,33 @@ class batch_Movements extends core_Detail {
     			}
     		}
     	}
+    }
+    
+    
+    /**
+     * Връща масив с линкове към движенията на партидите
+     * 
+     * @param int $productId
+     * @param varchar $batch
+     * @return array $batch
+     */
+    public static function getLinkArr($productId, $batch)
+    {
+    	// Партидите стават линкове
+    	$batch = batch_Defs::getBatchArray($productId, $batch);
+    	if(!is_array($batch)) return $batch;
+    	
+    	foreach ($batch as $key => &$b){
+    		if(!Mode::isReadOnly() && haveRole('powerUser')){
+    			if(!haveRole('batch,ceo')){
+    				Request::setProtected('batch');
+    			}
+    			$b = ht::createLink($b, array('batch_Movements', 'list', 'batch' => $key));
+    		}
+    	
+    		$b = ($b instanceof core_ET) ? $b->getContent() : $b;
+    	}
+    	
+    	return $batch;
     }
 }

@@ -116,6 +116,12 @@ class cat_BomDetails extends doc_Detail
     
     
     /**
+     * Поле за артикула
+     */
+    public $productFld = 'resourceId';
+    
+    
+    /**
      * Поле за количеството на заместващ артикул
      * 
      * @see planning_plg_ReplaceEquivalentProducts
@@ -145,7 +151,7 @@ class cat_BomDetails extends doc_Detail
     	
     	$this->FLD("position", 'int(Min=0)', 'caption=Позиция,smartCenter,tdClass=leftCol');
     	$this->FLD("propQuantity", 'text(rows=2)', 'caption=Формула,tdClass=accCell,mandatory');
-    	$this->FLD("description", 'richtext(rows=3)', 'caption=Допълнително->Описание');
+    	$this->FLD("description", 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Описание');
     	$this->FLD('type', 'enum(input=Влагане,pop=Отпадък,stage=Етап)', 'caption=Действие,silent,input=hidden');
     	$this->FLD("primeCost", 'double', 'caption=Себестойност,input=none,tdClass=accCell');
     	$this->FLD('params', 'blob(serialize, compress)', 'input=none');
@@ -601,7 +607,7 @@ class cat_BomDetails extends doc_Detail
     	if($rec->rowQuantity == static::CALC_ERROR){
     		$row->rowQuantity = "<span class='red'>???</span>";
     		$row->primeCost = "<span class='red'>???</span>";
-    		$row->primeCost = ht::createHint($row->primeCost, 'Не може да бъде изчислена себестойноста', 'warning', FALSE);
+    		$row->primeCost = ht::createHint($row->primeCost, 'Не може да бъде изчислена себестойността', 'warning', FALSE);
     	} else {
     		$row->rowQuantity = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($rec->rowQuantity);
     	}

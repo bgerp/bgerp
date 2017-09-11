@@ -330,8 +330,20 @@ class cat_UoM extends core_Manager
      */
     public static function convertValue($value, $from, $to)
     {
-    	expect($fromRec = static::fetch($from), 'Проблем при изчислението на първата валута');
-    	expect($toRec = static::fetch($to), 'Проблем при изчислението на втората валута');
+        if(is_string($from) && !is_numeric($from)) {
+            $fromRec = self::fetchBySinonim($from);
+        } else {
+            $fromRec = static::fetch($from);
+        }
+
+        if(is_string($to) && !is_numeric($to)) {
+            $toRec = self::fetchBySinonim($to);
+        } else {
+            $toRec = static::fetch($to);
+        }
+ 
+    	expect($fromRec, 'Проблем при изчислението на първата мярка');
+    	expect($toRec, 'Проблем при изчислението на втората мярка');
     	
     	($fromRec->baseUnitId) ? $baseFromId = $fromRec->baseUnitId : $baseFromId = $fromRec->id;
     	($toRec->baseUnitId) ? $baseToId = $toRec->baseUnitId : $baseToId = $toRec->id;
@@ -427,15 +439,29 @@ class cat_UoM extends core_Manager
      */
     public static function fetchBySinonim($unit)
     {
-    	$unitLat = strtolower(str::utf2ascii($unit));
-    	
-    	$query = static::getQuery();
-    	$query->likeKeylist('sinonims', "|{$unitLat}|");
-    	$query->orWhere(array("LOWER(#sysId) = LOWER('[#1#]')", $unitLat));
-        $query->orWhere(array("LOWER(#name) = LOWER('[#1#]')", $unit));
-        $query->orWhere(array("LOWER(#shortName) = LOWER('[#1#]')", $unit));
+        $unit = trim(mb_strtolower($unit));
 
-    	return $query->fetch();
+        $rec = self::fetch(array("LOWER(#sysId) = LOWER('[#1#]')", $unit));
+
+        if(!$rec) {
+            $rec = self::fetch(array("LOWER(#name) = LOWER('[#1#]')", $unit));
+        }
+
+        if(!$rec) {
+            $rec = self::fetch(array("LOWER(#shortName) = LOWER('[#1#]')", $unit));
+        }
+        
+        if(!$rec) {
+            $rec = self::fetch(array("LOWER(CONCAT('|', #name, '|', #shortName)) LIKE '%|[#1#]|%'", $unit));
+        }
+
+        if(!$rec) {
+            $unit = str::utf2ascii($unit);
+            $rec = self::fetch(array("LOWER(CONCAT('|', #sysId, #sinonims)) LIKE '%|[#1#]|%'", $unit));
+        }
+    	
+
+    	return $rec;
     }
     
     
