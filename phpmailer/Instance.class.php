@@ -48,7 +48,6 @@ class phpmailer_Instance extends core_BaseClass
         $PML->From      = $conf->PML_FROM_EMAIL;
         $PML->FromName  = $conf->PML_FROM_NAME;
         $PML->Sendmail  = $conf->SENDMAIL_PATH;
-        $PML->SingleTo  = $conf->PML_SINGLE_TO;
         $PML->Host      = $conf->PML_HOST;
         $PML->Port      = $conf->PML_PORT;
         $PML->SMTPAuth  = $conf->PML_SMTPAUTH;
