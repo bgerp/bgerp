@@ -168,10 +168,8 @@ class acc_plg_DocumentSummary extends core_Plugin
                 if(!Request::get('selectPeriod')) {
                     Request::push(array('selectPeriod' => $lastPeriod));
                     list($from, $to) = plg_SelectPeriod::getFromTo($lastPeriod);
-                    if ($from && $to) {
                         $data->listFilter->rec->from = $from;
                         $data->listFilter->rec->to = $to;
-                    }
                 }
             }
 
