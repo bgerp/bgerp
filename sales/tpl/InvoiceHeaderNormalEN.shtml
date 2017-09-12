@@ -108,7 +108,7 @@
                                         <div class='custom-bg-block'><b>Payment</b></div>
                                         
                                         <!--ET_BEGIN paymentType-->
-                                        <div>[#paymentType#]</div>
+                                        <div class="boldText">[#paymentType#]</div>
                                         <!--ET_END paymentType-->
                                         
                                         <!--ET_BEGIN dueDate-->
