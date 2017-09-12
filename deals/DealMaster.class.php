@@ -2066,8 +2066,6 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	return NULL;
     }
-<<<<<<< HEAD
-=======
     
     
     /**
