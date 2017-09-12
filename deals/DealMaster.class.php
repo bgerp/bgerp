@@ -2123,5 +2123,4 @@ abstract class deals_DealMaster extends deals_DealBase
     	// Рендиране на формата
     	return $this->renderWrapping($form->renderHtml());
     }
->>>>>>> refs/remotes/origin/DC1
 }
