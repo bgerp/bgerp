@@ -38,7 +38,7 @@ class batch_plg_DocumentMovement extends core_Plugin
 		$form = &$data->form;
 		
 		// Ако има вече разпределени партиди, склада не може да се сменя
-		if(isset($form->rec->containerId)){
+		if(isset($form->rec->containerId) && $data->action != 'clone'){
 			if(batch_BatchesInDocuments::fetchField("#containerId = {$form->rec->containerId}")){
 				$form->setField($mvc->storeFieldName, array('hint' => 'Склада не може да се смени, защото има разпределени партиди от него'));
 				$form->setReadOnly($mvc->storeFieldName);

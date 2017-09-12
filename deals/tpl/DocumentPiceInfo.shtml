@@ -84,7 +84,7 @@
    <tr class='nowrap'>
       <td class='aright'>|Общо|*:</td>
       <td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
-      <td class='aright'><b>[#total#]</b></td>
+      <td class='aright' style="font-size: 1.15em;"><b>[#total#]</b></td>
    </tr>
    <!--ET_BEGIN sayWords-->
    <tr>
