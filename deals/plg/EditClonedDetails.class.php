@@ -67,7 +67,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
 			$caption= str_replace(',', ' ', $caption);
 			$caption = "{$num}. {$caption}";
 			
-			if($installedBatch === TRUE){
+			if($installedBatch !== FALSE){
 				$Def = batch_Defs::getBatchDef($dRec->{$Detail->productFld});
 			}
 			

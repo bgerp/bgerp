@@ -3755,6 +3755,17 @@ function render_setFocus(data){
 
 
 /**
+ * Затваря отвореното контекстно меню
+ */
+function render_closeContextMenu(data)
+{
+    if ($('.iw-mTrigger').contextMenu) {
+    	$('.iw-mTrigger').contextMenu('close');
+    }
+}
+
+
+/**
  * Функция, която променя броя на нотификациите
  * Може да се комбинира с efae
  *
