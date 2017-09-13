@@ -366,9 +366,9 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 	/**
 	 * Връща фийлдсета на таблицата, която ще се рендира
 	 *
-	 * @param stdClass $rec      - записа
-	 * @param boolean $export    - таблицата за експорт ли е
-	 * @return core_FieldSet     - полетата
+	 * @param stdClass $rec   - записа
+	 * @param boolean $export - таблицата за експорт ли е
+	 * @return core_FieldSet  - полетата
 	 */
 	protected abstract function getTableFieldSet($rec, $export = FALSE);
 }
