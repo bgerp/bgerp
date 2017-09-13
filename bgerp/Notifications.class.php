@@ -449,6 +449,16 @@ class bgerp_Notifications extends core_Manager
 
     	$tpl->append($markBtn);
     	
+    	// Ако има записи за отабониране от нотификациите
+    	self::getAutoNotifyArr($rec, NULL, $haveStopped);
+    	if ($haveStopped) {
+    	    $unsubscribeUrl = array(get_called_class(), 'unsubscribe', $rec->id);
+    	    $attr = array('ef_icon' => "img/16/no-bell.png", 'title' => 'Автоматично отписване от нотификациите', "class" => "button", 'data-url' => toUrl($unsubscribeUrl, 'local'));
+    	    $attr['onclick'] = 'return startUrlFromDataAttr(this, true);';
+    	    $unsubscribeBtn = ht::createLink('Отписване', $unsubscribeUrl, NULL, $attr);
+    	    $tpl->append($unsubscribeBtn);
+    	}
+    	
     	// Бутон за настройки
     	$ctr = $url['Ctr'];
     	if ($ctr) {
@@ -479,32 +489,21 @@ class bgerp_Notifications extends core_Manager
     
     
     /**
-     * Екшън за маркиране/отмаркиране на нотификация
+     * Помощна функция за спиране и пускане на нотификациите
      * 
-     * @return Redirect
+     * @param stdClass|integer $rec
+     * @param NULL|string $update
+     * @param NULL|array $haveStopped
+     * 
+     * @return array
      */
-    function act_Mark()
+    protected static function getAutoNotifyArr($rec, $update = NULL, &$haveStopped = NULL)
     {
-        $id = Request::get('id', 'int');
-        expect($id);
+        $resValsArr = array();
         
-        expect($rec = $this->fetch($id));
+        $rec = self::fetchRec($rec);
         
-        expect($rec->userId == core_Users::getCurrent());
-        
-        if ($rec->state == 'active') {
-            $rec->state = 'closed';
-            $msg = 'отмаркирахте';
-            $act = 'Отмаркиране';
-        } else {
-            $rec->state = 'active';
-            $msg = 'маркирахте';
-            $act = 'Маркиране';
-        }
-        
-        self::save($rec, 'state, modifiedOn, modifiedBy');
-        
-        $this->logWrite($act . ' на нотификация', $rec->id);
+        if (!$rec) return $resValsArr;
         
         // Вземаме необходимите параметри от URL-то
         $url = self::getUrl($rec);
@@ -526,6 +525,10 @@ class bgerp_Notifications extends core_Manager
                     $containerId = $dRec->containerId;
                 }
             }
+            
+            $resValsArr['folderId'] = $folderId;
+            $resValsArr['threadId'] = $threadId;
+            $resValsArr['containerId'] = $containerId;
         }
         
         $stopNotifyArr = array();
@@ -549,9 +552,9 @@ class bgerp_Notifications extends core_Manager
             }
         }
         
-        $fKey = $tKey = NULL;
-        
         $stoppedArr = $valsArr = array();
+        
+        $fKey = $tKey = NULL;
         
         // Определяме стойностите, които трябва да се изключат
         foreach ($stopNotifyArr as $kVal => $kClass) {
@@ -595,19 +598,19 @@ class bgerp_Notifications extends core_Manager
             }
         }
         
-        $notifyMsg = '';
+        $modeKey = 'NotifySettings::' . $rec->id;
         
-        $modeKey = 'NotifySettings::' . $id;
-        
-        if ($rec->state == 'active') {
+        if ($update == 'revert') {
             $stoppedArr = Mode::get($modeKey);
         }
         
         // В зависимост от състоянието връщаме/спираме настройките за бъдещите нотификации
-        if (is_array($stoppedArr)) {
+        if (is_array($stoppedArr) && $update) {
             $notifyVerbMap = array('notify' => 'Нов документ', 'personalEmailIncoming' => 'Личен имейл', 'folOpenings' => 'Отворени теми', 'newThread' => 'Нова тема', 'newDoc' => 'Нов документ');
             
-            foreach ($stoppedArr as $cls => $v) {
+            $notifyMsg = '';
+            
+            foreach($stoppedArr as $cls => $v) {
                 
                 if ($cls == 'doc_Folders') {
                     $title = doc_Folders::getLinkForObject($folderId);
@@ -619,7 +622,7 @@ class bgerp_Notifications extends core_Manager
                 
                 $notifyMsg .= ($notifyMsg) ? '<br>' : '';
                 
-                if ($rec->state == 'active') {
+                if ($update == 'revert') {
                     $txt = "|Върнати настройки за нотифициране в|*";
                 } else {
                     $txt = "|Спряно нотифициране в|*";
@@ -627,23 +630,108 @@ class bgerp_Notifications extends core_Manager
                 
                 $notifyMsg .= "{$txt} \"{$title}\" |за|*:";
                 
+                $notifyTxt = '';
                 foreach ($v as $kVal => $oldVal) {
-                    $notifyMsg .= "<br><span  style='color: green;'>" . $notifyVerbMap[$kVal] . '</span>';
                     
-                    if ($rec->state == 'active') {
+                    $notifyTxt .= ($notifyTxt) ? ', ' : ' ';
+                    $notifyTxt .= $notifyVerbMap[$kVal];
+                    
+                    if ($update == 'revert') {
                         $valsArr[$key][$kVal] = $oldVal;
                     }
                 }
                 
+                $notifyMsg .= "<span  style='color: #00ff00;'>" . $notifyTxt . '</span>';;
+                
+                $resValsArr['notifyMsg'] = $notifyMsg;
+                
                 core_Settings::setValues($key, $valsArr[$key]);
                 
-                if ($rec->state == 'active') {
+                if ($update == 'revert') {
                     Mode::setPermanent($modeKey, array());
                 } else {
                     Mode::setPermanent($modeKey, $stoppedArr);
                 }
             }
         }
+        
+        if ($stoppedArr) {
+            $haveStopped = TRUE;
+        }
+        
+        return $resValsArr;
+    }
+    
+    
+    /**
+     * Екшън за автоматично отписване от нотификации
+     * 
+     * @return Redirect|array
+     */
+    function act_Unsubscribe()
+    {
+        $id = Request::get('id', 'int');
+        expect($id);
+        
+        expect($rec = $this->fetch($id));
+        
+        expect($rec->userId == core_Users::getCurrent());
+        
+        $valsArr = self::getAutoNotifyArr($rec, 'unsubscribe');
+        
+        if (!Request::get('ajax_mode')) {
+            
+            return new Redirect(array('Portal', 'show'), $valsArr['notifyMsg']);
+        }
+        
+        $res = array();
+        
+        if ($valsArr['notifyMsg']) {
+            $hitId = rand();
+            status_Messages::newStatus($valsArr['notifyMsg'], 'notice', NULL, 60, $hitId);
+            $res = status_Messages::getStatusesData(Request::get('hitTime', 'int'), 0, $hitId);
+        }
+        
+        $res[] = (object)array('func' => 'closeContextMenu');
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Екшън за маркиране/отмаркиране на нотификация
+     *
+     * @return Redirect
+     */
+    function act_Mark()
+    {
+        $id = Request::get('id', 'int');
+        expect($id);
+        
+        expect($rec = $this->fetch($id));
+        
+        expect($rec->userId == core_Users::getCurrent());
+        
+        if ($rec->state == 'active') {
+            $rec->state = 'closed';
+            $msg = 'отмаркирахте';
+            $act = 'Отмаркиране';
+        } else {
+            $rec->state = 'active';
+            $msg = 'маркирахте';
+            $act = 'Маркиране';
+        }
+        
+        self::save($rec, 'state, modifiedOn, modifiedBy');
+        
+        // Ако сме активирали нотификацията, връщаме автоматично нилираните настройки за нотифициране
+        if ($rec->state == 'active') {
+            $valsArr = self::getAutoNotifyArr($rec, 'revert');
+        }
+        
+        $this->logWrite($act . ' на нотификация', $rec->id);
+        
+        $notifyMsg = $valsArr['notifyMsg'];
         
         if (!Request::get('ajax_mode')) {
             
@@ -656,7 +744,7 @@ class bgerp_Notifications extends core_Manager
         
         // Добавяме резултата и броя на нотифиакциите
         if (is_array($res)) {
-			
+            
             $notifCnt = static::getOpenCnt();
             
             $obj = new stdClass();
