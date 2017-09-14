@@ -1620,27 +1620,8 @@ class cat_Products extends embed_Manager {
     			}
     		}
     		
-    		$groups = keylist::toArray($rec->groupsInput);
-    		if(count($groups)){
-    			$listUrl = array();
-    			
-    			$row->groupsInput = '';
-    			foreach ($groups as $grId){
-    				if($mvc->haveRightFor('list')){
-    					if(!Mode::isReadOnly()){
-    						$listUrl = array($mvc, 'list', 'groupId' => $grId);
-    					}
-    				}
-    				
-    				$groupTitle = cat_Groups::getVerbal($grId, 'name');
-    				$groupLink = ht::createLink($groupTitle, $listUrl, FALSE, "class=group-link,title=Филтриране на артикули по група|* '{$groupTitle}'");
-    				$row->groupsInput .= $groupLink . " ";
-    			}
-    			$row->groupsInput = trim($row->groupsInput, ' ');
-    			
-    		} else {
-    			$row->groupsInput = "<i>" . tr("Няма") . "</i>";
-    		}
+    		$groupLinks = cat_Groups::getLinks($rec->groupsInput);
+    		$row->groupsInput = (count($groupLinks)) ? implode(' ', $groupLinks) : "<i>" . tr("Няма") . "</i>";
     	}
         
         if($fields['-list']){

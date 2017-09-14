@@ -681,7 +681,13 @@ class bgerp_Notifications extends core_Manager
         
         if (!Request::get('ajax_mode')) {
             
-            return new Redirect(array('Portal', 'show'), $valsArr['notifyMsg']);
+            if ($rec->state == 'active') {
+                $retUrl = array(get_called_class(), 'mark', $rec->id);
+            } else {
+                $retUrl = array('Portal', 'show');
+            }
+            
+            return new Redirect($retUrl, $valsArr['notifyMsg']);
         }
         
         $res = array();
@@ -693,6 +699,11 @@ class bgerp_Notifications extends core_Manager
         }
         
         $res[] = (object)array('func' => 'closeContextMenu');
+        
+        // Ако се отписваме от активна нотификация - да не е болд
+        if ($rec->state == 'active') {
+            $res = array_merge(Request::forward(array(get_called_class(), 'mark', $rec->id)), $res);
+        }
         
         return $res;
     }
