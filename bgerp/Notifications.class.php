@@ -512,23 +512,27 @@ class bgerp_Notifications extends core_Manager
         $act = $url['Act'];
         $dId = $url['id'];
         
-        if (cls::load($ctr, TRUE) && $ctr::haveRightFor($act, $dId)) {
+        if (cls::load($ctr, TRUE)) {
             
-            $folderId = $url['folderId'];
-            $threadId = $url['threadId'];
-            $containerId = $url['containerId'];
+            $clsInst = cls::get($ctr);
             
-            if ($dId) {
-                if ($dRec = $ctr::fetch($dId)) {
-                    $folderId = $dRec->folderId;
-                    $threadId = $dRec->threadId;
-                    $containerId = $dRec->containerId;
+            if (($clsInst instanceof core_Manager) && ($ctr::haveRightFor($act, $dId))) {
+                $folderId = $url['folderId'];
+                $threadId = $url['threadId'];
+                $containerId = $url['containerId'];
+                
+                if ($dId) {
+                    if ($dRec = $ctr::fetch($dId)) {
+                        $folderId = $dRec->folderId;
+                        $threadId = $dRec->threadId;
+                        $containerId = $dRec->containerId;
+                    }
                 }
+                
+                $resValsArr['folderId'] = $folderId;
+                $resValsArr['threadId'] = $threadId;
+                $resValsArr['containerId'] = $containerId;
             }
-            
-            $resValsArr['folderId'] = $folderId;
-            $resValsArr['threadId'] = $threadId;
-            $resValsArr['containerId'] = $containerId;
         }
         
         $stopNotifyArr = array();
