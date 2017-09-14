@@ -93,7 +93,7 @@ class doc_TplManager extends core_Master
     /**
      * Файл с шаблон за единичен изглед
      */
-    var $singleLayoutFile = 'doc/tpl/SingleTemplateLayout.shtml';
+    public $singleLayoutFile = 'doc/tpl/SingleTemplateLayout.shtml';
     
     
     /**
@@ -101,6 +101,13 @@ class doc_TplManager extends core_Master
      */
     public $listFields = 'id, name, docClassId, createdOn, createdBy, state';
 
+    
+    /**
+     * Кеш на скриптовете
+     * @var array
+     */
+    protected static $cacheScripts = array();
+    
     
     /**
      * Описание на модела
@@ -488,6 +495,9 @@ class doc_TplManager extends core_Master
     {
     	// Ако няма шаблон
     	if(!$templateId) return FALSE;
+    	
+    	// Ако има кеширан в хита резултат за скрипта, връща се той
+    	if(isset(static::$cacheScripts[$templateId])) return static::$cacheScripts[$templateId];
     	
     	// Намираме пътя на файла генерирал шаблона
     	$filePath = doc_TplManager::fetchField($templateId, 'path');
