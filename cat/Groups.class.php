@@ -328,4 +328,33 @@ class cat_Groups extends core_Manager
  
         return $res;
     }
+    
+    
+    /**
+     * Връщане на списъка от групи като линк
+     * 
+     * @param string $keylist - списък от групи
+     * @param string $class   - клас на линковете
+     * @return array $res     - масив от линкове
+     */
+    public static function getLinks($keylist, $class = 'group-link')
+    {
+    	$res = array();
+    	$groups = (is_array($keylist)) ? $keylist : keylist::toArray($keylist);
+    	if(!count($groups)) return $res;
+    	
+    	$makeLink = (cat_Products::haveRightFor('list') && !Mode::isReadOnly()) ? TRUE : FALSE;
+    	foreach ($groups as $grId){
+    		if($makeLink === TRUE){
+    			$listUrl = array('cat_Products', 'list', 'groupId' => $grId);
+    		}
+    	
+    		$classAttr = "class={$class}";
+    		$groupTitle = self::getVerbal($grId, 'name');
+    		$groupLink = ht::createLink($groupTitle, $listUrl, FALSE, "{$classAttr},title=Филтриране на артикули по група|* '{$groupTitle}'");
+    		$res[] = $groupLink->getContent();
+    	}
+    	
+    	return $res;
+    }
 }

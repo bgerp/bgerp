@@ -89,7 +89,7 @@ class frame2_ReportVersions extends core_Detail
 	function description()
 	{
 		$this->FLD("reportId", "key(mvc=frame2_Reports)", "caption=Репорт");
-		$this->FLD("oldRec", "blob(serialize, compress)", "caption=Стар запис");
+		$this->FLD("oldRec", "blob(serialize, compress,size=20000000)", "caption=Стар запис");
 		$this->FLD("versionBefore", "int", "caption=Предишна версия");
 	}
 	
