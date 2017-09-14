@@ -285,7 +285,7 @@ class escpos_Helper
                 <btpDriver Command="DirectIO">
                     <title>[#title#]</title>
                 </btpDriver>';
-        } elseif (Request::get('bds')) {
+        } elseif (Request::get('bd')) {
             $tpl = '<?xml version="1.0" encoding="utf-8"?>
                 <btpDriver Command="DirectIO">
                     <title>[#title#]</title>
