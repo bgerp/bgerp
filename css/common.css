@@ -1149,7 +1149,7 @@ a.profile {
 
 .profile-state-tomorrow {
   text-decoration: underline !important;
-  text-decoration-style: dashed !important; }
+  text-decoration-style: dotted !important; }
 
 /*
  * край на хипервръзки към профилите на потребители
