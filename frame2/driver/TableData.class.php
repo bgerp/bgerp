@@ -142,7 +142,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 		$filterFields['_tagField'] = '_tagField';
 		
 		if(isset($data->groupByField)){
-			$this->groupRows($data->recs, $data->rows, $data->listFields, $data->groupByField);
+			$this->groupRows($data->recs, $data->rows, $data->listFields, $data->groupByField, $data);
 			$filterFields[$data->groupByField] = $data->groupByField;
 		}
 		
@@ -200,7 +200,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 	 * @param array $rows
 	 * @param array $listFields
 	 */
-	protected function groupRows($recs, &$rows, $listFields, $field)
+	protected function groupRows($recs, &$rows, $listFields, $field, $data)
 	{
 		if(!count($rows)) return;
 		$columns = count($listFields);
@@ -215,7 +215,8 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 		foreach ($groups as $groupId => $groupVerbal){
 			$groupVerbal = ($groupVerbal instanceof core_ET) ? $groupVerbal->getContent() : $groupVerbal;
 			$groupVerbal = $groupVerbal;
-			$groupVerbal = "<td style='padding-top:9px;padding-left:5px;' colspan='{$columns}'><b>" . $groupVerbal . "</b></td>";
+			
+			$groupVerbal = $this->getGroupedTr($columns, $groupId, $groupVerbal, $data);
 			
 			$newRows['|' . $groupId] = ht::createElement('tr', $rowAttr, $groupVerbal);
 			$newRows['|' . $groupId]->removeBlocks();
@@ -239,6 +240,22 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 		$rows = $newRows;
 	}
 	
+	
+	/**
+	 * Подготовка на реда за групиране
+	 *
+	 * @param int $columnsCount   - брой колони
+	 * @param string $groupValue  - невербалното име на групата
+	 * @param string $groupVerbal - вербалното име на групата
+	 * @param stdClass $data      - датата
+	 * @return string             - съдържанието на групиращия ред
+	 */
+	protected function getGroupedTr($columnsCount, $groupValue, $groupVerbal, &$data)
+	{
+		$groupVerbal = "<td style='padding-top:9px;padding-left:5px;' colspan='{$columnsCount}'><b>" . $groupVerbal . "</b></td>";
+	
+		return $groupVerbal;
+	}
 	
 	/**
 	 * Връща полетата за експортиране във csv
