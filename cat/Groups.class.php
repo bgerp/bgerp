@@ -360,8 +360,6 @@ class cat_Groups extends core_Manager
     	
     	$notAllowed = array();
     	foreach ($groups as $grId){
-    		
-    		// Ако текущия маркер е в недопустимите сетваме грешка
     		if(array_key_exists($grId, $notAllowed)) return TRUE;
     		 
     		// Иначе добавяме него и наследниците му към недопустимите групи
