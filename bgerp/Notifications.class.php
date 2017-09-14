@@ -512,7 +512,7 @@ class bgerp_Notifications extends core_Manager
         $act = $url['Act'];
         $dId = $url['id'];
         
-        if (cls::load($ctr, TRUE) && $ctr::haveRightFor($act, $dId)) {
+        if (cls::load($ctr, TRUE) && ($ctr instanceof core_Manager) && ($ctr::haveRightFor($act, $dId))) {
             
             $folderId = $url['folderId'];
             $threadId = $url['threadId'];
