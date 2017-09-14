@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -48,12 +48,6 @@ class cat_Groups extends core_Manager
     
     
     /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'id';
-    
-    
-    /**
      * Кои полета да се сумират за наследниците
      */
     public $fieldsToSumOnChildren = 'productCnt';
@@ -63,12 +57,6 @@ class cat_Groups extends core_Manager
      * Наименование на единичния обект
      */
     public $singleTitle = "Група";
-    
-    
-    /**
-     * Кой може да чете
-     */
-    public $canRead = 'cat,ceo';
     
     
     /**
@@ -356,5 +344,31 @@ class cat_Groups extends core_Manager
     	}
     	
     	return $res;
+    }
+    
+    
+    /**
+     * Има ли в подадените групи, такива които са наследници на друга група от списъка
+     * 
+     * @param mixed $groupList - масив или списък от групи
+     * @return boolean
+     */
+    public static function checkForNestedGroups($groupList)
+    {
+    	$groups = (is_array($groupList)) ? $groupList : keylist::toArray($groupList);
+    	if(!count($groups)) return FALSE;
+    	
+    	$notAllowed = array();
+    	foreach ($groups as $grId){
+    		
+    		// Ако текущия маркер е в недопустимите сетваме грешка
+    		if(array_key_exists($grId, $notAllowed)) return TRUE;
+    		 
+    		// Иначе добавяме него и наследниците му към недопустимите групи
+    		$descendant = cat_Groups::getDescendantArray($grId);
+    		$notAllowed += $descendant;
+    	}
+    	
+    	return FALSE;
     }
 }
