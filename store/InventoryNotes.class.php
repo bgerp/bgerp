@@ -57,7 +57,7 @@ class store_InventoryNotes extends core_Master
     /**
      * Кой може да създава продажба към отговорника на склада?
      */
-    public $canMakesale = 'ceo,sale,inventory';
+    public $canMakesale = 'ceo,sales,inventory';
     
     
     /**
@@ -274,31 +274,10 @@ class store_InventoryNotes extends core_Master
     {
     	if($form->isSubmitted()){
     		$rec = &$form->rec;
-    		if(isset($rec->groups)){
-    			$error = FALSE;
-    			
-    			// Кои са недопустимите групи
-    			$notAllowed = array();
-    			$groups = keylist::toArray($rec->groups);
-    			
-    			foreach ($groups as $grId){
-    				
-    				// Ако текущия маркер е в недопустимите сетваме грешка
-    				if(array_key_exists($grId, $notAllowed)){
-    					$error = TRUE;
-    					break;
-    				}
-    				
-    				// Иначе добавяме него и наследниците му към недопустимите групи
-    				$descendant = cat_Groups::getDescendantArray($grId);
-    				$notAllowed += $descendant;
-    			}
-    			
-    			if($error === TRUE){
-    				
-    				// Сетваме грешка ако са избрани групи, които са вложени един в друг
-    				$form->setError('groups', 'Избрани са вложени групи');
-    			}
+    		
+    		// Проверка имали избрани вложени групи
+    		if(cat_Groups::checkForNestedGroups($rec->groups)){
+    			$form->setError('groups', 'Избрани са вложени групи');
     		}
     	}
     }

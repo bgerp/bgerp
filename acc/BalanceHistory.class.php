@@ -317,7 +317,7 @@ class acc_BalanceHistory extends core_Manager
         	$ent = $data->rec->{"ent{$i}Id"};
         	if(isset($ent)){
         		$listRec = $data->accountInfo->groups[$i]->rec;
-        		$filter->FNC("ent{$i}Id", "acc_type_Item(lists={$listRec->num},select=titleLink,showAll)", "input,caption={$listRec->name}");
+        		$filter->FNC("ent{$i}Id", "acc_type_Item(lists={$listRec->num},select=titleLink,showAll)", "input,class=w75,caption={$listRec->name}");
         		$filter->showFields = "ent{$i}Id,{$filter->showFields}";
         	} else {
         		$filter->FNC("ent{$i}Id", 'int', 'input=hidden');
