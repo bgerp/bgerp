@@ -48,7 +48,7 @@ class doc_plg_TplManagerDetail extends core_Plugin
     /**
      * Извиква се след подготовката на колоните ($data->listFields)
      */
-    static function on_AfterPrepareListFields(core_Mvc $mvc, &$data)
+    public static function on_AfterPrepareListFields(core_Mvc $mvc, &$data)
     {
     	$masterRec = $data->masterData->rec;
     	$toggleFields = doc_TplManager::fetchField($masterRec->template, 'toggleFields');
@@ -76,7 +76,7 @@ class doc_plg_TplManagerDetail extends core_Plugin
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
-    function on_BeforeRenderListToolbar(core_Mvc $mvc, &$res, $data)
+    public function on_BeforeRenderListToolbar(core_Mvc $mvc, &$res, $data)
     {
     	// Маха се пушнатия език, за да може да се рендира тулбара нормално
     	core_Lg::pop();
@@ -86,7 +86,7 @@ class doc_plg_TplManagerDetail extends core_Plugin
 	/**
      * Извиква се преди рендирането на 'опаковката'
      */
-    function on_AfterRenderListToolbar(core_Mvc $mvc, &$res, $data)
+    public function on_AfterRenderListToolbar(core_Mvc $mvc, &$res, $data)
     {
     	// След рендиране на тулбара отново се пушва езика на шаблона
     	$lang = doc_TplManager::fetchField($data->masterData->rec->template, 'lang');
@@ -102,6 +102,28 @@ class doc_plg_TplManagerDetail extends core_Plugin
     	// Ако има скриптов клас за шаблона, подаваме му данните 
     	if($Script = doc_TplManager::getTplScriptClass($data->masterData->rec->template)){
     		$Script->modifyDetailData($mvc, $data);
+    	}
+    }
+    
+    
+    /**
+     * Преди рендиране на детайла
+     */
+    public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+    	if($Script = doc_TplManager::getTplScriptClass($data->masterData->rec->template)){
+    		$Script->beforeRenderListTable($mvc, $tpl, $data);
+    	}
+    }
+    
+    
+    /**
+     * След рендиране на детайла
+     */
+    public static function on_AfterRenderDetail($mvc, &$tpl, $data)
+    {
+    	if($Script = doc_TplManager::getTplScriptClass($data->masterData->rec->template)){
+    		$Script->modifyDetailTpl($mvc, $tpl, $data);
     	}
     }
 }

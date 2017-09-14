@@ -55,4 +55,30 @@ abstract class doc_TplScript {
 	{
 	
 	}
+	
+	
+	/**
+	 * Модифицира шаблона на детайла
+	 * 
+	 * @param core_Mvc $detail
+	 * @param core_ET $tpl
+	 * @param stdClass $data
+	 */
+	public function modifyDetailTpl(core_Mvc $detail, &$tpl, &$data)
+	{
+		
+	}
+	
+	
+	/**
+	 * Преди рендиране на шаблона на детайла
+	 *
+	 * @param core_Mvc $detail
+	 * @param core_ET $tpl
+	 * @param stdClass $data
+	 */
+	public function beforeRenderListTable(core_Mvc $detail, &$tpl, &$data)
+	{
+	
+	}
 }
