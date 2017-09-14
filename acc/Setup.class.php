@@ -157,7 +157,7 @@ class acc_Setup extends core_ProtoSetup
         'migrate::updateAllFL',
         'migrate::updateFeatureTitles',
     	'migrate::updateCostObjectDocuments1',
-    	'migrate::removeRoleAllGlobal'
+    	'migrate::removeRoleAllGlobal2'
     );
     
     
@@ -562,8 +562,10 @@ class acc_Setup extends core_ProtoSetup
     /**
      * 
      */
-    function removeRoleAllGlobal()
+    function removeRoleAllGlobal2()
     {
         core_Roles::removeRoles(array('removeRoles'));
+        
+        core_Roles::delete("#role = 'allGlobal'");
     }
 }
