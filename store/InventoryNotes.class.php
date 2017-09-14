@@ -57,7 +57,7 @@ class store_InventoryNotes extends core_Master
     /**
      * Кой може да създава продажба към отговорника на склада?
      */
-    public $canMakesale = 'ceo,sale,inventory';
+    public $canMakesale = 'ceo,sales,inventory';
     
     
     /**
