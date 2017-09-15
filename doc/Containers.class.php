@@ -688,8 +688,6 @@ class doc_Containers extends core_Manager
         
         expect($threadRec = doc_Threads::fetch($threadId));
         
-        expect(self::haveRightFor('single', $threadRec) || colab_Threads::haveRightFor('single', $threadRec));
-        
         $show = Request::get('show');
         $hide = Request::get('hide');
         
