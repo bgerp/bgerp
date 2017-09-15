@@ -81,7 +81,7 @@ class core_Roles extends core_Manager
     /**
      * 
      */
-    public $searchFields = 'role, inherit, type';
+    public $searchFields = 'role, inherit, inheritInput, type';
     
     
     /**
