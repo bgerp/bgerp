@@ -66,7 +66,7 @@ class store_reports_Documents extends frame2_driver_TableData
 		
 		$stores = self::getContableStores($form->rec);
 		$form->setOptions('storeId', array('' => '') + $stores);
-		$documents = array('planning_ConsumptionNotes', 'planning_ReturnNotes', 'store_Transfers', 'store_ShipmentOrders', 'store_Receipts', 'planning_DirectProductionNote');
+		$documents = array('planning_ConsumptionNotes', 'planning_ReturnNotes', 'store_Transfers', 'store_ShipmentOrders', 'store_Receipts', 'planning_DirectProductionNote', 'store_ConsignmentProtocols');
 	
 		$docOptions = array();
 		foreach ($documents as $className){
@@ -132,12 +132,13 @@ class store_reports_Documents extends frame2_driver_TableData
 			}
 		}
 		
-		foreach (array('store_ShipmentOrders', 'store_Receipts', 'store_Transfers') as $pDoc){
+		foreach (array('store_ShipmentOrders', 'store_Receipts', 'store_Transfers', 'store_ConsignmentProtocols') as $pDoc){
 			if(empty($rec->{$documentFld}) || ($rec->{$documentFld} == $pDoc::getClassId())){
 				$Document = cls::get($pDoc);
+				$deadlineFld = ($pDoc != 'store_ConsignmentProtocols') ? 'deliveryTime' : 'valior';
 				
 				$sQuery = $Document->getQuery();
-				self::applyFilters($sQuery, $storeIds, $pDoc, $rec, 'deliveryTime');
+				self::applyFilters($sQuery, $storeIds, $pDoc, $rec, $deadlineFld);
 				while($sRec = $sQuery->fetch()){
 					$linked = $this->getLinkedDocuments($sRec->containerId);
 					if(!empty($sRec->lineId)){

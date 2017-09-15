@@ -57,6 +57,12 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 	
 	
 	/**
+	 * Дали групиращото поле да е на отделен ред или не
+	 */
+	protected $groupedFieldOnNewRow = TRUE;
+	
+	
+	/**
 	 * Връща заглавието на отчета
 	 *
 	 * @param stdClass $rec - запис
@@ -83,6 +89,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 		$data = new stdClass();
 		$data->recs = $this->prepareRecs($rec, $data);
 		setIfNot($data->groupByField, $this->groupByField);
+		setIfNot($data->groupedFieldOnNewRow, $this->groupedFieldOnNewRow);
 		
 		return $data;
 	}
@@ -213,26 +220,33 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 		$newRows = $rowAttr = array();
 		$rowAttr['class'] = ' group-by-field-row';
 		foreach ($groups as $groupId => $groupVerbal){
-			$groupVerbal = ($groupVerbal instanceof core_ET) ? $groupVerbal->getContent() : $groupVerbal;
-			$groupVerbal = $groupVerbal;
+			if($data->groupedFieldOnNewRow === TRUE){
+				$groupVerbal = ($groupVerbal instanceof core_ET) ? $groupVerbal->getContent() : $groupVerbal;
+				$groupVerbal = $this->getGroupedTr($columns, $groupId, $groupVerbal, $data);
+					
+				$newRows['|' . $groupId] = ht::createElement('tr', $rowAttr, $groupVerbal);
+				$newRows['|' . $groupId]->removeBlocks();
+				$newRows['|' . $groupId]->removePlaces();
+			}
 			
-			$groupVerbal = $this->getGroupedTr($columns, $groupId, $groupVerbal, $data);
-			
-			$newRows['|' . $groupId] = ht::createElement('tr', $rowAttr, $groupVerbal);
-			$newRows['|' . $groupId]->removeBlocks();
-			$newRows['|' . $groupId]->removePlaces();
+			$firstRow = TRUE;
 			
 			// За всички записи
 			foreach ($rows as $index => $row1){
 				$r = $recs[$index];
 				if($r->{$field} == $groupId){
-					unset($rows[$index]->{$field});
+					if($data->groupedFieldOnNewRow === TRUE || ($data->groupedFieldOnNewRow === FALSE && $firstRow !== TRUE)){
+						unset($rows[$index]->{$field});
+					}
+					
 					if(is_object($rows[$index])){
 						$newRows[$index] = clone $rows[$index];
 							
 						// Веднъж групирано, премахваме записа от старите записи
 						unset($rows[$index]);
 					}
+					
+					$firstRow = FALSE;
 				}
 			}
 		}

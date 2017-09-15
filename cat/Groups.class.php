@@ -38,7 +38,7 @@ class cat_Groups extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,name,productCnt,orderProductBy';
+    public $listFields = 'name,productCnt,orderProductBy';
     
     
     /**
@@ -177,7 +177,7 @@ class cat_Groups extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if($fields['-list']){
+        if($fields['-list'] && cat_Products::haveRightFor('list')){
             $row->productCnt = ht::createLinkRef($row->productCnt, array('cat_Products', 'list', 'groupId' => $rec->id), FALSE, "title=Филтър на|* \"{$row->name}\"");
         }
     }
