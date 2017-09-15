@@ -214,7 +214,6 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 		$rowAttr['class'] = ' group-by-field-row';
 		foreach ($groups as $groupId => $groupVerbal){
 			$groupVerbal = ($groupVerbal instanceof core_ET) ? $groupVerbal->getContent() : $groupVerbal;
-			$groupVerbal = $groupVerbal;
 			
 			$groupVerbal = $this->getGroupedTr($columns, $groupId, $groupVerbal, $data);
 			
