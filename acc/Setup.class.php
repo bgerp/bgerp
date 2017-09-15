@@ -157,7 +157,7 @@ class acc_Setup extends core_ProtoSetup
         'migrate::updateAllFL',
         'migrate::updateFeatureTitles',
     	'migrate::updateCostObjectDocuments1',
-    	'migrate::removeRoleAllGlobal'
+    	'migrate::removeRoleAllGlobalNew'
     );
     
     
@@ -562,8 +562,8 @@ class acc_Setup extends core_ProtoSetup
     /**
      * Премахване на ролята `allGlobal`, защото наследява други
      */
-    function removeRoleAllGlobal()
+    function removeRoleAllGlobalNew()
     {
-        core_Roles::removeRoles(array('allGlobal'));
+        core_Roles::removeRoles(array(core_Roles::fetchByName('allGlobal')));
     }
 }
