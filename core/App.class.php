@@ -1149,16 +1149,17 @@ class core_App
      * Увеличава времето за изпълнение на скрипта, само ако
      * вече не е зададено по-голямо време
      * 
-     * @param int $time - времето за увеличение в секунди
+     * @param int $time      - времето за увеличение в секунди
      * @param boolean $force - форсиране или не
+     * @param int $minTime   - минимално време, iзползва се ако $time е по-малко от него
      * @return void
      */
-    public static function setTimeLimit($time, $force = FALSE)
+    public static function setTimeLimit($time, $force = FALSE, $minTime = 20)
     {
     	expect(is_numeric($time));
     	
     	// Подсигуряване че времето не е много малко
-    	$time = max($time, 20);
+    	$time = max($time, $min);
     	
     	$now = time();
     	
