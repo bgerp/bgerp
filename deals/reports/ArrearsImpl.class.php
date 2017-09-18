@@ -139,7 +139,7 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
                 if ($date <= $data->rec->from) { 
                     $days = dt::daysBetween($data->rec->from,$date);
                     
-                    if ($days >= 0 && $days <= 15) {
+                    if ($days >= 1 && $days <= 15) {
                         $delay1 = $recSale->amountBl;
                     }
                     
@@ -310,7 +310,7 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
     	        'invoice' => 'Фактура',
     	        'dealer' => 'Търговец',
        	        'uDelay' => 'Без закъснение',
-    	        'delay1' => '0-15 дни',
+    	        'delay1' => '1-15 дни',
     	        'delay2' => '16-60 дни',
     	        'delay3' => '60+ дни',
     	        'amount' => 'Общо',
@@ -321,7 +321,7 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
 	            'contragent' => 'Контрагент',
 	            'invoice' => 'Фактура',
 	            'uDelay' => 'Без закъснение',
-	            'delay1' => '0-15 дни',
+	            'delay1' => '1-15 дни',
 	            'delay2' => '16-60 дни',
 	            'delay3' => '60+ дни',
 	            'amount' => 'Общо',

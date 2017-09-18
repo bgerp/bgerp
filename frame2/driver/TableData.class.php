@@ -149,8 +149,16 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 		$filterFields['_tagField'] = '_tagField';
 		
 		if(isset($data->groupByField)){
-			$this->groupRows($data->recs, $data->rows, $data->listFields, $data->groupByField, $data);
-			$filterFields[$data->groupByField] = $data->groupByField;
+			$found = FALSE;
+			
+			// Групиране само ако има поне една стойност за групиране
+			$groupByField = $data->groupByField;
+			array_walk($data->recs, function ($r) use ($groupByField, &$found) {if(isset($r->{$groupByField})) {$found = TRUE;}});
+			
+			if($found === TRUE){
+				$this->groupRows($data->recs, $data->rows, $data->listFields, $data->groupByField, $data);
+				$filterFields[$data->groupByField] = $data->groupByField;
+			}
 		}
 		
 		$data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, implode(',', $filterFields));
