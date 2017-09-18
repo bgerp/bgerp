@@ -438,7 +438,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		// В определени случаи се позволява на потребителя да редактира в активно състояние
 		if($action == 'edit' && isset($rec)){
 			if($mvc->Master->haveRightFor('single', $masterRec) && $masterRec->state == 'active'){
-				if($masterRec->createdBy == $userId || haveRole('ceo,manager', $userId)){
+				if($masterRec->createdBy == $userId || haveRole('ceo,manager', $userId) || keylist::isIn($userId, core_Users::getTeammates($masterRec->createdBy))){
 					$res = 'powerUser';
 				}
 			}
