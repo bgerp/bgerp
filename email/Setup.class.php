@@ -86,7 +86,7 @@ defIfNot('EMAIL_THREAD_HANDLE_POS', 'BEFORE_SUBJECT');
 /**
  * Ограничава рутирането по папки до папките на контрагент и "Несортирани - %"
  */
-defIfNot('EMAIL_RESTRICT_ROUTE', 'yes');
+defIfNot('EMAIL_RESTRICT_ROUTE', 'no');
 
 
 /**
