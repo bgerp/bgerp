@@ -398,7 +398,7 @@ class frame2_Reports extends embed_Manager
     	}
     	
     	if($mvc->haveRightFor('export', $rec)){
-    		$data->toolbar->addBtn('Експорт в CSV', array($mvc, 'export', $rec->id), NULL, 'ef_icon=img/16/file_extension_xls.png, title=Сваляне на записите в CSV формат,row=2');
+    		$data->toolbar->addBtn('Експорт в CSV', array($mvc, 'export', $rec->id, 'ret_url' => TRUE), NULL, 'ef_icon=img/16/file_extension_xls.png, title=Сваляне на записите в CSV формат,row=2');
     	}
     }
     
@@ -722,9 +722,14 @@ class frame2_Reports extends embed_Manager
     	}
     	
     	// Подготовка на данните
-    	$Driver = $this->getDriver($rec);
-    	$csvExportRows = $Driver->getCsvExportRows($rec);
-    	$fields = $Driver->getCsvExportFieldset($rec);
+    	$csvExportRows = $fields = array();
+    	if($Driver = $this->getDriver($rec)){
+    		$csvExportRows = $Driver->getCsvExportRows($rec);
+    		$fields = $Driver->getCsvExportFieldset($rec);
+    	}
+    	
+    	// Проверка има ли данни за експорт
+    	if(!count($csvExportRows)) followRetUrl(NULL, 'Няма данни за експортиране');
     	
     	// Създаване на csv-то
     	$csv = csv_Lib::createCsv($csvExportRows, $fields);
