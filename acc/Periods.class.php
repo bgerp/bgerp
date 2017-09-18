@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  *
@@ -749,5 +749,32 @@ class acc_Periods extends core_Manager
     	
     	// Проверка дали периода е затворен
     	return $period->state == 'closed';
+    }
+    
+    
+    /**
+     * Връща всички периоди, с изчислен баланс
+     * 
+     * @param boolean $descending - възходящ или низходящ ред
+     * @return array $periods     - периодите с баланс
+     */
+    public static function getCalcedPeriods($descending = FALSE)
+    {
+    	$periods = array();
+    	
+    	$bQuery = acc_Balances::getQuery();
+    	$bQuery->where("#periodId IS NOT NULL");
+    	
+    	$orderBy = ($descending === TRUE) ? 'DESC' : "ASC";
+    	$bQuery->orderBy("#fromDate", $orderBy);
+    	$bQuery->show('periodId');
+    	$bQuery->groupBy('periodId');
+    	
+    	while ($bRec = $bQuery->fetch()) {
+    		$b = acc_Balances::recToVerbal($bRec, 'periodId');
+    		$periods[$bRec->periodId] = $b->periodId;
+    	}
+    	
+    	return $periods;
     }
 }
