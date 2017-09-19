@@ -764,7 +764,7 @@ class bgerp_Notifications extends core_Manager
             
             $obj = new stdClass();
             $obj->func = 'notificationsCnt';
-            $obj->arg = array('id'=>'nCntLink', 'cnt' => $notifCnt, 'notifyTime' => dt::mysql2timestamp());
+            $obj->arg = array('id'=>'nCntLink', 'cnt' => $notifCnt, 'notifyTime' => dt::mysql2timestamp(self::getLastNotificationTime(core_Users::getCurrent())));
 
             
             if ($notifyMsg) {
