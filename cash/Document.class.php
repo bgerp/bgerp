@@ -83,6 +83,12 @@ abstract class cash_Document extends deals_PaymentDocument
     
     
     /**
+     * Кой може да избира ф-ра по документа?
+     */
+    public $canSelectinvoice = 'cash, ceo, purchase, sales, acc';
+    
+    
+    /**
      * Кой може да го прави документа чакащ/чернова?
      */
     public $canPending = 'cash, ceo, purchase, sales';
@@ -121,9 +127,7 @@ abstract class cash_Document extends deals_PaymentDocument
     /**
      * Стратегии за дефолт стойностти
      */
-    public static $defaultStrategies = array(
-    	'depositor'      => 'lastDocUser|lastDoc',
-    );
+    public static $defaultStrategies = array('depositor' => 'lastDocUser|lastDoc',);
     
 
     /**
@@ -255,19 +259,6 @@ abstract class cash_Document extends deals_PaymentDocument
     	
     	if($contragentClassId == crm_Companies::getClassId()){
     		$form->setSuggestions($mvc->personDocumentField, crm_Companies::getPersonOptions($contragentId, FALSE));
-    	}
-    	
-    	if($fromDocument = Request::get('fromContainerId', 'int')){
-    		
-    		if(empty($form->rec->id)){
-    			$secondOrigin = doc_Containers::getDocument($fromDocument);
-    			if(is_subclass_of($secondOrigin->getInstance(), 'deals_InvoiceMaster')){
-    				$originRec = $secondOrigin->fetch();
-    				$title = ($originRec->type == 'dc_note') ? (($originRec->dealValue <= 0) ? 'Кредитно известие' : 'Дебитно известие') : $secondOrigin->singleTitle;
-    				$number = str_pad($originRec->number, 10, "0", STR_PAD_LEFT);
-    				$form->rec->notes = tr("Kъм|* ") . mb_strtolower($title) . " №{$number}";
-    			}
-    		}
     	}
     }
     

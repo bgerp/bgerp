@@ -404,27 +404,6 @@ abstract class bank_Document extends deals_PaymentDocument
 	
 	
 	/**
-	 *  Обработка на формата за редакция и добавяне
-	 */
-	protected static function on_AfterPrepareEditForm($mvc, $res, $data)
-	{
-		$form = &$data->form;
-		 
-		if($fromDocument = Request::get('fromContainerId', 'int')){
-			if(empty($form->rec->id)){
-				$secondOrigin = doc_Containers::getDocument($fromDocument);
-				if(is_subclass_of($secondOrigin->getInstance(), 'deals_InvoiceMaster')){
-					$originRec = $secondOrigin->fetch();
-					$title = ($originRec->type == 'dc_note') ? (($originRec->dealValue <= 0) ? 'Кредитно известие' : 'Дебитно известие') : $secondOrigin->singleTitle;
-					$number = str_pad($originRec->number, 10, "0", STR_PAD_LEFT);
-					$form->rec->reason = tr("Към|* ") . mb_strtolower($title) . " №{$number}";
-				}
-			}
-		}
-	}
-	
-	
-	/**
 	 * Задава стойности по подразбиране от продажба/покупка
 	 *
 	 * @param core_ObjectReference $origin - ориджин на документа

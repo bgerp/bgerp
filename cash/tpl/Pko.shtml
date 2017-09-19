@@ -39,9 +39,11 @@
             <div class='lines'></div>
             <table class='border-table'>
                 <tr>
-                    <td class='aleft' style='padding-left:10px;padding-top: 10px;width:67%;'>
-                        <div class='richtext-holder'><span class='quiet'>|Основание|*:</span>&nbsp;&nbsp;&nbsp;[#reason#]</div>
-                     
+                     <td class='aleft' style='padding-left:10px;padding-top: 10px;width:67%;'>
+                     <div class='richtext-holder'><span class='quiet'>|Основание|*:</span>&nbsp;&nbsp;&nbsp;[#reason#]</div>
+                     <!--ET_BEGIN fromContainerId-->
+                     <span class='quiet'>|Към фактура|*:&nbsp;&nbsp;&nbsp;[#fromContainerId#]</span>
+                     <!--ET_END fromContainerId-->
                      <!--ET_BEGIN termDate-->
                      <div class='richtext-holder'><span class='quiet'>|Очаквано на|*:</span>&nbsp;&nbsp;&nbsp;[#termDate#]</div>
                      <!--ET_END termDate-->
