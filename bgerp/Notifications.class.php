@@ -1105,7 +1105,7 @@ class bgerp_Notifications extends core_Manager
         
         if (!$resRec) return ;
         
-        return $resRec->{$fields};
+        return $resRec->{$field};
     }
     
     
