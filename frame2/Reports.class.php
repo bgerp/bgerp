@@ -430,6 +430,8 @@ class frame2_Reports extends embed_Manager
     	// Рендиране на данните
     	if($Driver = $mvc->getDriver($rec)){
     		$tpl->replace($Driver->renderData($rec)->getContent(), 'DRIVER_DATA');
+    	} else {
+    		$tpl->replace("<span class='red'><b>" . tr('Несъществуващ драйвер') . "</b></span>", 'DRIVER_DATA');
     	}
     	
     	// Връщане на оригиналния рек ако е пушнат
@@ -675,7 +677,7 @@ class frame2_Reports extends embed_Manager
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if(isset($fields['-single'])){
     		
