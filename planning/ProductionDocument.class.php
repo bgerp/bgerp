@@ -125,6 +125,7 @@ abstract class planning_ProductionDocument extends deals_ManifactureMaster
 	protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
 	{
 		$rec = $data->rec;
+		if(planning_Setup::get('PRODUCTION_NOTE_REJECTION') != 'no') return;
 		
 		if($rec->state == 'active'){
 			
@@ -152,7 +153,7 @@ abstract class planning_ProductionDocument extends deals_ManifactureMaster
 	public static function on_BeforeReject($mvc, &$res, $id)
 	{
 		$rec = $mvc->fetchRec($id);
-		if($rec->state == 'active'){
+		if($rec->state == 'active' && planning_Setup::get('PRODUCTION_NOTE_REJECTION') != 'yes'){
 			expect(!$mvc->getNewerProductionDocumentHandle($rec));
 		}
 	}
