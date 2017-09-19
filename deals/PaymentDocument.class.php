@@ -119,7 +119,7 @@ abstract class deals_PaymentDocument extends core_Master {
 		}
 	
 		// Добавяне на тулбар
-    	$form->toolbar->addSbBtn('Промяна', 'save', 'ef_icon = img/16/import.png, title = Импорт');
+    	$form->toolbar->addSbBtn('Промяна', 'save', 'ef_icon = img/16/disk.png, title = Импорт');
     	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
     
     	// Рендиране на опаковката
