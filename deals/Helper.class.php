@@ -1147,4 +1147,30 @@ abstract class deals_Helper
 	{
 		return self::getMeasureRow($productId, $packagingId, $quantity, 'weight', $weight);
 	}
+	
+	
+	/**
+	 * Връща масив с фактурите в треда
+	 * 
+	 * @param int $threadId        - ид на нишка
+	 * @param boolean $count       - дали да се върне само бройката
+	 * @return array|int $invoices - масив с ф-ри или броя намерени фактури
+	 */
+	public static function getInvoicesInThread($threadId, $count = FALSE)
+	{
+		$cQuery = doc_Containers::getQuery();
+		$cQuery->where("#threadId = {$threadId}");
+		$cQuery->where("#docClass = " . sales_Invoices::getClassId() . " OR #docClass = " . purchase_Invoices::getClassId());
+		$cQuery->where("#state = 'active'");
+		$cQuery->show("id");
+		
+		if($count === TRUE) return $cQuery->count();
+		
+		$invoices = array();
+		while($cRec = $cQuery->fetch()){
+			$invoices[$cRec->id] = "#" . doc_Containers::getDocument($cRec->id)->getHandle();
+		}
+		
+		return $invoices;
+	}
 }

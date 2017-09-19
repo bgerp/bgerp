@@ -107,21 +107,9 @@ abstract class deals_PaymentDocument extends core_Master {
 		$form->title = "Избор на фактура по която е|* <b>" . $this->getHyperlink($rec);
 		$form->FLD('fromContainerId', 'int', 'caption=За фактура');
 		
-		$invoices = array();
-		$cQuery = doc_Containers::getQuery();
-		$cQuery->where("#threadId = {$rec->threadId}");
-		$cQuery->where("#docClass = " . sales_Invoices::getClassId() . " OR #docClass = " . sales_Invoices::getClassId());
-		$cQuery->where("#state = 'active'");
-		while($cRec = $cQuery->fetch()){
-			$invoices[$cRec->id] = "#" . doc_Containers::getDocument($cRec->id)->getHandle();
-		}
-		
-		if(count($invoices)){
-			$form->setOptions('fromContainerId', array('' => '') + $invoices);
-			$form->setDefault('fromContainerId', $rec->fromContainerId);
-		} else {
-			$form->setReadOnly('fromContainerId');
-		}
+		$invoices = deals_Helper::getInvoicesInThread($rec->threadId);
+		$form->setOptions('fromContainerId', array('' => '') + $invoices);
+		$form->setDefault('fromContainerId', $rec->fromContainerId);
 		
 		$form->input();
 		if($form->isSubmitted()){
@@ -156,8 +144,8 @@ abstract class deals_PaymentDocument extends core_Master {
 	 */
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
-		if($action == 'selectinvoice'){
-			if($rec->state == 'rejected'){
+		if($action == 'selectinvoice' && isset($rec)){
+			if($rec->state == 'rejected' || !deals_Helper::getInvoicesInThread($rec->threadId, TRUE)){
 				$requiredRoles = 'no_one';
 			}
 		}
