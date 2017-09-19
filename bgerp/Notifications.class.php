@@ -1069,6 +1069,47 @@ class bgerp_Notifications extends core_Manager
     
     
     /**
+     * Връща времето на последната нотификация
+     * 
+     * @userId NULL|integer $userId
+     * @$state NULL|string $state
+     * @$state boolean $useHidden
+     * @$state string $order
+     * @$state string $field
+     * 
+     * @return NULL|datetime
+     */
+    public static function getLastNotificationTime($userId = NULL, $state = NULL, $useHidden = FALSE, $order = 'DESC', $field = 'modifiedOn')
+    {
+        $query = self::getQuery();
+        
+        if ($userId) {
+            $query->where(array("#userId = '[#1#]'", $userId));
+        }
+        
+        if ($state) {
+            $query->where(array("#state = '[#1#]'", $state));
+        }
+        
+        if (!$useHidden) {
+            $query->where("#hidden = 'no'");
+        }
+        
+        $query->limit(1);
+        
+        $query->orderBy($field, $order);
+        
+        $query->show($field);
+        
+        $resRec = $query->fetch();
+        
+        if (!$resRec) return ;
+        
+        return $resRec->{$fields};
+    }
+    
+    
+    /**
      * Рендира портала
      */
     function renderPortal($data)
