@@ -249,7 +249,7 @@ class bgerp_Notifications extends core_Manager
         while ($rec = $query->fetch()) {
             $usersArr[$rec->userId] = $rec->hidden;
         }
-        
+
         return $usersArr;
     }
     
@@ -756,7 +756,7 @@ class bgerp_Notifications extends core_Manager
         }
         
         $res = $this->action('render');
-        
+
         // Добавяме резултата и броя на нотифиакциите
         if (is_array($res)) {
             
@@ -764,7 +764,8 @@ class bgerp_Notifications extends core_Manager
             
             $obj = new stdClass();
             $obj->func = 'notificationsCnt';
-            $obj->arg = array('id'=>'nCntLink', 'cnt' => $notifCnt);
+            $obj->arg = array('id'=>'nCntLink', 'cnt' => $notifCnt, 'notifyTime' => dt::mysql2timestamp());
+
             
             if ($notifyMsg) {
                 $hitId = rand();
@@ -1298,7 +1299,7 @@ class bgerp_Notifications extends core_Manager
             // Добавяме резултата
             $obj = new stdClass();
             $obj->func = 'notificationsCnt';
-            $obj->arg = array('id'=>'nCntLink', 'cnt' => $notifCnt);
+            $obj->arg = array('id'=>'nCntLink', 'cnt' => $notifCnt, 'notifyTime' => dt::mysql2timestamp(self::getLastNotificationTime(core_Users::getCurrent())));
             
             $res[] = $obj;
 
