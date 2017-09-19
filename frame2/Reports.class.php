@@ -398,7 +398,7 @@ class frame2_Reports extends embed_Manager
     	}
     	
     	if($mvc->haveRightFor('export', $rec)){
-    		$data->toolbar->addBtn('Експорт в CSV', array($mvc, 'export', $rec->id), NULL, 'ef_icon=img/16/file_extension_xls.png, title=Сваляне на записите в CSV формат,row=2');
+    		$data->toolbar->addBtn('Експорт в CSV', array($mvc, 'export', $rec->id, 'ret_url' => TRUE), NULL, 'ef_icon=img/16/file_extension_xls.png, title=Сваляне на записите в CSV формат,row=2');
     	}
     }
     
@@ -430,6 +430,8 @@ class frame2_Reports extends embed_Manager
     	// Рендиране на данните
     	if($Driver = $mvc->getDriver($rec)){
     		$tpl->replace($Driver->renderData($rec)->getContent(), 'DRIVER_DATA');
+    	} else {
+    		$tpl->replace("<span class='red'><b>" . tr('Несъществуващ драйвер') . "</b></span>", 'DRIVER_DATA');
     	}
     	
     	// Връщане на оригиналния рек ако е пушнат
@@ -675,7 +677,7 @@ class frame2_Reports extends embed_Manager
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if(isset($fields['-single'])){
     		
@@ -722,9 +724,14 @@ class frame2_Reports extends embed_Manager
     	}
     	
     	// Подготовка на данните
-    	$Driver = $this->getDriver($rec);
-    	$csvExportRows = $Driver->getCsvExportRows($rec);
-    	$fields = $Driver->getCsvExportFieldset($rec);
+    	$csvExportRows = $fields = array();
+    	if($Driver = $this->getDriver($rec)){
+    		$csvExportRows = $Driver->getCsvExportRows($rec);
+    		$fields = $Driver->getCsvExportFieldset($rec);
+    	}
+    	
+    	// Проверка има ли данни за експорт
+    	if(!count($csvExportRows)) followRetUrl(NULL, 'Няма данни за експортиране');
     	
     	// Създаване на csv-то
     	$csv = csv_Lib::createCsv($csvExportRows, $fields);
