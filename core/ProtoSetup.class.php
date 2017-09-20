@@ -185,7 +185,7 @@ class core_ProtoSetup
         $key = "migration_{$packName}_{$method}";
         
         if(!core_Packs::getConfigKey('core', $key)) {
-            try {
+            //try {
                 $res = call_user_func(array($this, $method));
                 core_Packs::setConfig('core', array($key => TRUE));
                 if($res) {
@@ -193,10 +193,10 @@ class core_ProtoSetup
                 } else {
                     $html = "<li class='debug-new'>Миграцията {$packName}::{$method} беше приложена успешно</li>";
                 }
-            } catch(ErrorException $e) {
-                $html = "<li class='debug-error'>Миграцията {$packName}::{$method} не беше успешна</li>";
-                reportException($e);
-            }
+            //} catch(ErrorException $e) {
+               // $html = "<li class='debug-error'>Миграцията {$packName}::{$method} не беше успешна</li>";
+               // reportException($e);
+           // }
         }
         
         Mode::pop('isMigrate', TRUE);

@@ -168,7 +168,7 @@ abstract class cash_Document extends deals_PaymentDocument
     	$mvc->FLD('operationSysId', 'varchar', 'caption=Операция,mandatory');
     	$mvc->FLD('amountDeal', 'double(decimals=2,max=2000000000,min=0)', 'caption=Платени,mandatory,silent');
     	$mvc->FLD('dealCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'input=hidden');
-    	$mvc->FLD('reason', 'richtext(rows=2, bucket=Notes)', 'caption=Основание,mandatory');
+    	$mvc->FLD('reason', 'richtext(rows=2, bucket=Notes)', 'caption=Основани');
     	$mvc->FLD('termDate', 'date(format=d.m.Y)', 'caption=Очаквано на');
     	$mvc->FLD('peroCase', 'key(mvc=cash_Cases, select=name,allowEmpty)', 'caption=Каса,removeAndRefreshForm=currencyId|amount,silent');
     	$mvc->FLD('contragentName', 'varchar(255)', 'caption=Контрагент->Вносител,mandatory');
@@ -183,7 +183,6 @@ abstract class cash_Document extends deals_PaymentDocument
     	$mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута (и сума) на плащането->Валута,silent,removeAndRefreshForm=rate|amount');
     	$mvc->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,summary=amount,input=hidden');
     	$mvc->FLD('rate', 'double(decimals=5)', 'caption=Валута (и сума) на плащането->Курс,input=none');
-    	$mvc->FLD('notes', 'richtext(bucket=Notes,rows=1)', 'caption=Допълнително->Бележки,autohide');
     	$mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Допълнително->Вальор,autohide');
     	$mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)',	'caption=Статус, input=none');
     	$mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
@@ -209,9 +208,6 @@ abstract class cash_Document extends deals_PaymentDocument
     	
     	$options = $mvc->getOperations($pOperations);
     	expect(count($options));
-    	
-    	// Използваме помощната функция за намиране името на контрагента
-    	$form->setDefault('reason', "Към документ #{$origin->getHandle()}");
     	 
 		$cId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
     	$form->setDefault('dealCurrencyId', $cId);

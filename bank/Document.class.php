@@ -149,7 +149,7 @@ abstract class bank_Document extends deals_PaymentDocument
 		
 		$mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,input=hidden');
 		$mvc->FLD('rate', 'double(decimals=5)', 'caption=Курс,input=none');
-		$mvc->FLD('reason', 'richtext(bucket=Notes,rows=6)', 'caption=Основание,mandatory');
+		$mvc->FLD('reason', 'richtext(bucket=Notes,rows=6)', 'caption=Основание');
 		$mvc->FLD('contragentName', 'varchar(255)', 'caption=От->Контрагент,mandatory');
 		$mvc->FLD('contragentIban', 'iban_Type(64)', 'caption=От->Сметка');
 		$mvc->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=В->Сметка,silent,removeAndRefreshForm=currencyId|amount');
@@ -413,8 +413,7 @@ abstract class bank_Document extends deals_PaymentDocument
 	 */
 	protected function setDefaultsFromOrigin(core_ObjectReference $origin, core_Form &$form, &$options)
 	{
-		$form->setDefault('reason', "Към документ #{$origin->getHandle()}");
-        $dealInfo = $origin->getAggregateDealInfo();
+		$dealInfo = $origin->getAggregateDealInfo();
         
         $cId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
         $form->setDefault('dealCurrencyId', $cId);

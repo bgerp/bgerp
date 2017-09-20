@@ -53,8 +53,7 @@
 			            <table class='border-table'>
 			                <tr>
 			                    <td class='aleft' style='padding-left:10px;padding-top: 10px;width:67%;'>
-			                        <div class='richtext-holder'><span class='quiet'>|Основание|*:</span>&nbsp;&nbsp;&nbsp;[#reason#]</div>
-			                    	<!--ET_BEGIN fromContainerId-->
+			                        <!--ET_BEGIN fromContainerId-->
                     				<span class='quiet'>|Към фактура|*</span>:&nbsp;&nbsp;&nbsp;[#fromContainerId#]
                      				<!--ET_END fromContainerId-->
 			                    	<!--ET_BEGIN termDate-->
@@ -77,11 +76,11 @@
 			                    <td>
 			                        <table style='width:100%' class='no-border'>
 			                            <tr>
-			                                <!--ET_BEGIN notes-->
-			                                <td colspan='2'>
-			                                    <div class='richtext-holder'><span class='quiet'>|Бележки|*:</span> &nbsp;&nbsp;&nbsp;[#notes#]</div>
-			                                </td>
-			                                <!--ET_END notes-->
+			                                <!--ET_BEGIN reason-->
+		                               		<td colspan='2'>
+		                                		<div class='richtext-holder'><span class='quiet'>|Основание|*:</span> &nbsp;&nbsp;&nbsp;[#reason#]</div>
+		                                	</td>
+		                                	<!--ET_END reason-->
 			                                <!--ET_BEGIN amountDeal-->
 			                                <td style='vertical-align:middle !important'>
 			                                    <div class ='misc' style='float:right'>
