@@ -82,7 +82,8 @@ abstract class deals_PaymentDocument extends core_Master {
 		$row->valior = (isset($rec->valior)) ? $row->valior : ht::createHint('', 'Вальора ще бъде датата на контиране');
 		
 		if($rec->fromContainerId){
-			$row->fromContainerId = doc_Containers::getDocument($rec->fromContainerId)->getLink(0);
+			$Document = doc_Containers::getDocument($rec->fromContainerId);
+			$row->fromContainerId = "#" . $Document->abbr . $Document->fetchField('number');
 		}
 		
 		if(!Mode::isReadOnly()){

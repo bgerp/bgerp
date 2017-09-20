@@ -1168,7 +1168,8 @@ abstract class deals_Helper
 		
 		$invoices = array();
 		while($cRec = $cQuery->fetch()){
-			$invoices[$cRec->id] = "#" . doc_Containers::getDocument($cRec->id)->getHandle();
+			$Document = doc_Containers::getDocument($cRec->id);
+			$invoices[$cRec->id] = "#" . $Document->abbr . $Document->fetchField('number');
 		}
 		
 		return $invoices;
