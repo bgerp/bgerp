@@ -249,7 +249,7 @@ class bgerp_Notifications extends core_Manager
         while ($rec = $query->fetch()) {
             $usersArr[$rec->userId] = $rec->hidden;
         }
-        
+
         return $usersArr;
     }
     
@@ -756,7 +756,7 @@ class bgerp_Notifications extends core_Manager
         }
         
         $res = $this->action('render');
-        
+
         // Добавяме резултата и броя на нотифиакциите
         if (is_array($res)) {
             
@@ -764,7 +764,8 @@ class bgerp_Notifications extends core_Manager
             
             $obj = new stdClass();
             $obj->func = 'notificationsCnt';
-            $obj->arg = array('id'=>'nCntLink', 'cnt' => $notifCnt);
+            $obj->arg = array('id'=>'nCntLink', 'cnt' => $notifCnt, 'notifyTime' => 1000 * dt::mysql2timestamp(self::getLastNotificationTime(core_Users::getCurrent())));
+
             
             if ($notifyMsg) {
                 $hitId = rand();
@@ -1069,6 +1070,47 @@ class bgerp_Notifications extends core_Manager
     
     
     /**
+     * Връща времето на последната нотификация
+     * 
+     * @userId NULL|integer $userId
+     * @$state NULL|string $state
+     * @$state boolean $useHidden
+     * @$state string $order
+     * @$state string $field
+     * 
+     * @return NULL|datetime
+     */
+    public static function getLastNotificationTime($userId = NULL, $state = NULL, $useHidden = FALSE, $order = 'DESC', $field = 'modifiedOn')
+    {
+        $query = self::getQuery();
+        
+        if ($userId) {
+            $query->where(array("#userId = '[#1#]'", $userId));
+        }
+        
+        if ($state) {
+            $query->where(array("#state = '[#1#]'", $state));
+        }
+        
+        if (!$useHidden) {
+            $query->where("#hidden = 'no'");
+        }
+        
+        $query->limit(1);
+        
+        $query->orderBy($field, $order);
+        
+        $query->show($field);
+        
+        $resRec = $query->fetch();
+        
+        if (!$resRec) return ;
+        
+        return $resRec->{$field};
+    }
+    
+    
+    /**
      * Рендира портала
      */
     function renderPortal($data)
@@ -1257,7 +1299,7 @@ class bgerp_Notifications extends core_Manager
             // Добавяме резултата
             $obj = new stdClass();
             $obj->func = 'notificationsCnt';
-            $obj->arg = array('id'=>'nCntLink', 'cnt' => $notifCnt);
+            $obj->arg = array('id'=>'nCntLink', 'cnt' => $notifCnt, 'notifyTime' => 1000 * dt::mysql2timestamp(self::getLastNotificationTime(core_Users::getCurrent())));
             
             $res[] = $obj;
 

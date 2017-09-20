@@ -39,9 +39,10 @@
             <div class='lines'></div>
             <table class='border-table'>
                 <tr>
-                    <td class='aleft' style='padding-left:10px;padding-top: 10px;width:67%;'>
-                        <div class='richtext-holder'><span class='quiet'>|Основание|*:</span>&nbsp;&nbsp;&nbsp;[#reason#]</div>
-                     
+                     <td class='aleft' style='padding-left:10px;padding-top: 10px;width:67%;'>
+                     <!--ET_BEGIN fromContainerId-->
+                     <span class='quiet'>|Към фактура|*</span>:&nbsp;&nbsp;&nbsp;[#fromContainerId#]
+                     <!--ET_END fromContainerId-->
                      <!--ET_BEGIN termDate-->
                      <div class='richtext-holder'><span class='quiet'>|Очаквано на|*:</span>&nbsp;&nbsp;&nbsp;[#termDate#]</div>
                      <!--ET_END termDate-->
@@ -68,11 +69,11 @@
                     <td colspan='2'>
                         <table style='width:100%' class="no-border">
                             <tr>
-                                <!--ET_BEGIN notes-->
+                                <!--ET_BEGIN reason-->
                                 <td colspan='2' class='notes-block' style='height: auto; padding:10px;'>
-                                	<div class='richtext-holder'><span class='quiet'>|Бележки|*:</span> &nbsp;&nbsp;&nbsp;[#notes#]</div>
+                                	<span class='quiet'>|Основание|*:</span> &nbsp;&nbsp;&nbsp;[#reason#]
                                 </td>
-                                <!--ET_END notes-->
+                                <!--ET_END reason-->
                                 <!--ET_BEGIN amountDeal-->
                                 <td style='vertical-align:middle !important'>
                                     <div class ='misc' style='float:right'>

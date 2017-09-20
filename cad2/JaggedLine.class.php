@@ -68,7 +68,9 @@ class cad2_JaggedLine  extends cad2_Shape {
         }
         
         $nb = round($ab->r / ($md * 2)) * 2;
-        $md = ($ab->r / $nb) ;
+
+        $md = ($nb != 0) ? ($ab->r / $nb) : 0 ;
+
         if(!$td) $td = $md/2;
        
         $spacer = min(0.4 * $md, $spacer);

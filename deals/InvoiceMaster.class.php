@@ -114,6 +114,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$mvc->FLD('vatAmount', 'double(decimals=2)', 'caption=ДДС, input=none,summary=amount');
     	$mvc->FLD('discountAmount', 'double(decimals=2)', 'caption=Отстъпка->Обща, input=none,summary=amount');
     	$mvc->FLD('sourceContainerId', 'key(mvc=doc_Containers,allowEmpty)', 'input=hidden,silent');
+    	$mvc->FLD('paymentMethodId', 'int', 'input=hidden,silent');
     }
     
     
@@ -611,6 +612,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		if($aggregateInfo->get('deliveryLocation')){
     			$form->setDefault('deliveryPlaceId', $aggregateInfo->get('deliveryLocation'));
     		}
+    		$form->setDefault('paymentMethodId', $aggregateInfo->paymentMethodId);
     		
     		$data->aggregateInfo = $aggregateInfo;
     		$form->aggregateInfo = $aggregateInfo;

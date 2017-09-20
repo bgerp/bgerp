@@ -449,7 +449,7 @@ class fileman_webdrv_Generic extends core_Manager
 		}
 		
 		$dangerRate = '';
-		if (fileman_Files::isDanger($fRec)) {
+		if (fileman_Files::isDanger($fRec, 0.00001)) {
 		    $dangerRate = fileman_Files::getVerbal($fRec, 'dangerRate');
 		    $dangerRate = '<span class = "dangerFile">' . tr("Ниво на опасност|*: ") . $dangerRate . "</span>\n";
 		}

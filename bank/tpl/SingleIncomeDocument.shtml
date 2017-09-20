@@ -57,6 +57,13 @@
                                         <td> [#reason#]</td>
                                     </tr>
                                     
+                                    <!--ET_BEGIN fromContainerId-->
+                                    <tr>
+                                        <td>|Към фактура|*: </td>
+                                        <td>[#fromContainerId#]</td>
+                                    </tr>
+                     				<!--ET_END fromContainerId-->
+                     				
                                     <!--ET_BEGIN termDate-->
                                     <tr>
                                         <td>|Очаквано на|*: </td>
