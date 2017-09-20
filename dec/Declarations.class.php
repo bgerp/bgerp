@@ -125,7 +125,11 @@ class dec_Declarations extends core_Master
         'materials' => 'lastDocUser|lastDoc|LastDocSameCuntry',
     );
     
-    
+    function act_Test()
+    {
+    	$threadId = '61323';
+    	deals_Helper::getInvoicePayments($threadId);
+    }
     /**
      * Описание на модела
      */
