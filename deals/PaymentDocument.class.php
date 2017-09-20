@@ -114,7 +114,10 @@ abstract class deals_PaymentDocument extends core_Master {
 		$form->input();
 		if($form->isSubmitted()){
 			$rec->fromContainerId = $form->rec->fromContainerId;
-			$this->save_($rec, 'fromContainerId');
+			$rec->modifiedOn = dt::now();
+			$rec->modifiedBy = core_Users::getCurrent();
+			$this->save_($rec, 'fromContainerId,modifiedOn,modifiedBy');
+			
 			followRetUrl(NULL, 'Промяната е записана успешно');
 		}
 	
