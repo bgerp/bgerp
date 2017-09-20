@@ -1158,18 +1158,25 @@ abstract class deals_Helper
 	 */
 	public static function getInvoicesInThread($threadId, $count = FALSE)
 	{
-		$cQuery = doc_Containers::getQuery();
-		$cQuery->where("#threadId = {$threadId}");
-		$cQuery->where("#docClass = " . sales_Invoices::getClassId() . " OR #docClass = " . purchase_Invoices::getClassId());
-		$cQuery->where("#state = 'active'");
-		$cQuery->show("id");
-		
-		if($count === TRUE) return $cQuery->count();
+		if($count === TRUE){
+			$cQuery = doc_Containers::getQuery();
+			$cQuery->where("#threadId = {$threadId} AND #state = 'active'");
+			$cQuery->where("#docClass = " . sales_Invoices::getClassId() . " OR #docClass = " . purchase_Invoices::getClassId());
+			
+			return $cQuery->count();
+		}
 		
 		$invoices = array();
-		while($cRec = $cQuery->fetch()){
-			$Document = doc_Containers::getDocument($cRec->id);
-			$invoices[$cRec->id] = "#" . $Document->abbr . $Document->fetchField('number');
+		foreach (array('sales_Invoices', 'purchase_Invoices') as $class){
+			$Cls = cls::get($class);
+			$iQuery = $Cls->getQuery();
+			$iQuery->where("#threadId = {$threadId} AND #state = 'active'");
+			$iQuery->orderBy('date,number', 'ASC');
+			$iQuery->show('number,containerId');
+			
+			while($iRec = $iQuery->fetch()){
+				$invoices[$iRec->containerId] = "#{$Cls->abbr}{$iRec->number}";
+			}
 		}
 		
 		return $invoices;
