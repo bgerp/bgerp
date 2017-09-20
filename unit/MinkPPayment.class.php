@@ -347,6 +347,8 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('numlimit', '2000000 - 3000000');
         //$browser->setValue('numlimit', '0 - 2000000');
         $browser->press('Чернова');
+        $browser->setValue('Ignore', 1);
+        $browser->press('Чернова');
         $browser->press('Контиране');
         
         // ПКО
@@ -742,6 +744,8 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('numlimit', '2000000 - 3000000');
         //$browser->setValue('numlimit', '0 - 2000000');
         $browser->press('Чернова');
+        $browser->setValue('Ignore', 1);
+        $browser->press('Чернова');
         $browser->press('Контиране');
         
         if(strpos($browser->gettext(), 'Чакащо плащане: Има')) {
@@ -923,6 +927,8 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('date', date('d-m-Y', $valior));
         $browser->setValue('numlimit', '2000000 - 3000000');
         //$browser->setValue('numlimit', '0 - 2000000');
+        $browser->press('Чернова');
+        $browser->setValue('Ignore', 1);
         $browser->press('Чернова');
         $browser->press('Контиране');
          
