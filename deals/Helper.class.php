@@ -1173,4 +1173,20 @@ abstract class deals_Helper
 		
 		return $invoices;
 	}
+	
+	
+	/**
+	 * Връща начина на плащане във фактурата
+	 * 
+	 * @param strint $paymentType
+	 * @param int $paymentMethodId
+	 * @return string
+	 */
+	public static function getInvoicePaymentType($paymentType, $paymentMethodId)
+	{
+		if(isset($paymentType)) return $paymentType;
+		if(isset($paymentMethodId)) return cond_PaymentMethods::fetchField($paymentMethodId, 'type');
+		
+		return NULL;
+	}
 }
