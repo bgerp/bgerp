@@ -411,6 +411,12 @@ class sales_Invoices extends deals_InvoiceMaster
     				}
     			}
     		}
+    		
+    		// Предупреждение при плащане в брой и банкова сметка
+    		$paymentType = deals_Helper::getInvoicePaymentType($rec->paymentType, $rec->paymentMethodId);
+    		if($paymentType == 'cash' && isset($rec->accountId)){
+    			$form->setWarning('accountId', "Избрана е банкова сметка при начин на плащане в брой|*?");
+    		}
     	}
 	}
     

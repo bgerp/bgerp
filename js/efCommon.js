@@ -1094,8 +1094,7 @@ function prepareContextMenu() {
 
 var timeOfSettingTab, timeOfNotification, oldNotificationsCnt;
 function openCurrentTab(){
-    if(!$('body').hasClass('modern-theme')) return;
-    oldNotificationsCnt = $('#nCntLink').text();
+    if(!$('body').hasClass('modern-theme') || $('body').hasClass('wide')) return;
     var current;
     // взимаме данните за портала в бисквитката
     var portalTabs = getCookie('portalTabs');
@@ -1112,6 +1111,9 @@ function openCurrentTab(){
     $(current).siblings().removeClass('activeTab');
 
     var id = $(current).attr('id');
+    setCookie('portalTabs', id);
+    timeOfSettingTab =  jQuery.now();
+
     var tab = $('li[data-tab="' + id + '"]');
     $(tab).addClass('activeTab');
     $(tab).siblings().removeClass('activeTab');
@@ -4133,11 +4135,10 @@ function changeNotificationsCnt(data) {
             nCntLink.className = 'noNtf';
         }
 
-        if($('body').hasClass('modern-theme') && oldNotificationsCnt != notificationsCnt) {
-            oldNotificationsCnt = notificationsCnt;
-            timeOfNotification = jQuery.now();
+        if($('body').hasClass('modern-theme') && $('body').hasClass('narrow')  && data.notifyTime) {
+            timeOfNotification = data.notifyTime;
 
-            if(typeof timeOfSettingTab == "undefined" || (timeOfSettingTab < timeOfNotification)) {
+            if(timeOfSettingTab < timeOfNotification) {
                 setCookie('portalTabs', "notificationsPortal");
             }
         }
