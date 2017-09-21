@@ -94,86 +94,88 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
 	    // Обикаляме по Фактурите
 	    $this->prepareQuery($query, $data, $period, 'sales_Invoices', 'sales_InvoiceDetails', 'invoiceId');
 	    
-	    foreach($data->recs as $pRec) {
-
-	        $quantity = 0;
-	        $amount = 0;
-	       
-    	    switch (strstr($pRec->doc,"|", TRUE)) {
-    	        case 'sales_Sales':
-    	            $quantity += $pRec->quantity;
-    	            $amount += $pRec->amount;
-    	            break;
+	    if(is_array($data->recs)) {
+    	    foreach($data->recs as $pRec) {
+    
+    	        $quantity = 0;
+    	        $amount = 0;
+    	       
+        	    switch (strstr($pRec->doc,"|", TRUE)) {
+        	        case 'sales_Sales':
+        	            $quantity += $pRec->quantity;
+        	            $amount += $pRec->amount;
+        	            break;
+        	            
+        	        case 'store_ShipmentOrders':
+        	            $quantity += $pRec->quantity;
+        	            $amount += $pRec->amount;
+        	            break;
+        	        
+        	        case 'store_Receipts':
+        	            $quantity -= $pRec->quantity;
+        	            $amount -= $pRec->amount;
+        	            break;
+    
+        	    }
+    
+    
+    	        if(!array_key_exists($pRec->article, $recs)) {
+    	           $recs[$pRec->article] = (object) array ('code' => $pRec->code,
+                                        'article' => $pRec->article,
+                                        'price' => "",
+                                        'measure' => $pRec->measure,
+                                        'quantity' => $quantity,
+                                        'amount' => $amount,
+                                        'quantityInv' => '',
+                                        'amountInv' => '',
+                                        'amountVat' => '',
+                                        'amountVatInv' => '');
+    	        } else {
+    	            $obj = &$recs[$pRec->article];
     	            
-    	        case 'store_ShipmentOrders':
-    	            $quantity += $pRec->quantity;
-    	            $amount += $pRec->amount;
-    	            break;
-    	        
-    	        case 'store_Receipts':
-    	            $quantity -= $pRec->quantity;
-    	            $amount -= $pRec->amount;
-    	            break;
-
+    	            switch (strstr($pRec->doc,"|", TRUE)) {
+    	                case 'sales_Sales':
+    	                    $obj->quantity += $pRec->quantity;
+    	                    $obj->amount += $pRec->amount;
+    	                    break;
+    	                     
+    	                case 'store_ShipmentOrders':
+    	                    $obj->quantity += $pRec->quantity;
+    	                    $obj->amount += $pRec->amount;
+    	                    break;
+    	                     
+    	                case 'store_Receipts':
+    	                    $obj->quantity -= $pRec->quantity;
+    	                    $obj->amount -= $pRec->amount;
+    	                    break;
+    	            } 
+    	        }
     	    }
-
-
-	        if(!array_key_exists($pRec->article, $recs)) {
-	           $recs[$pRec->article] = (object) array ('code' => $pRec->code,
-                                    'article' => $pRec->article,
-                                    'price' => "",
-                                    'measure' => $pRec->measure,
-                                    'quantity' => $quantity,
-                                    'amount' => $amount,
-                                    'quantityInv' => '',
-                                    'amountInv' => '',
-                                    'amountVat' => '',
-                                    'amountVatInv' => '');
-	        } else {
-	            $obj = &$recs[$pRec->article];
-	            
-	            switch (strstr($pRec->doc,"|", TRUE)) {
-	                case 'sales_Sales':
-	                    $obj->quantity += $pRec->quantity;
-	                    $obj->amount += $pRec->amount;
-	                    break;
-	                     
-	                case 'store_ShipmentOrders':
-	                    $obj->quantity += $pRec->quantity;
-	                    $obj->amount += $pRec->amount;
-	                    break;
-	                     
-	                case 'store_Receipts':
-	                    $obj->quantity -= $pRec->quantity;
-	                    $obj->amount -= $pRec->amount;
-	                    break;
-	            } 
-	        }
-	    }
-
-	    foreach($recs as $id=>$r) {
-	        $r->amount = round($r->amount,2);
-	        foreach($data->recs as $idDr=>$dRec){
-	    
-	            if($r->article == $dRec->article) {
-	                $r->quantityInv = $dRec->quantityInv;
-	                $r->amountInv = $dRec->amountInv;
-	            }
-	        }
-	        
-	        $r->amountVat = $r->amount + ($r->amount * 0.2); 
-	        
-	        if(isset($r->amount) && isset($r->quantity)) {
-	           $r->price = $r->amount / $r->quantity;
-	        }
-	        
-	        if(isset($r->amountInv)) {
-	           $r->amountVatInv = $r->amountInv + ($r->amountInv * 0.2); 
-	           
-	        }
-
-	        $r->priceVat = $r->price + ($r->price * 0.2); 
-
+    
+    	    foreach($recs as $id=>$r) {
+    	        $r->amount = round($r->amount,2);
+    	        foreach($data->recs as $idDr=>$dRec){
+    	    
+    	            if($r->article == $dRec->article) {
+    	                $r->quantityInv = $dRec->quantityInv;
+    	                $r->amountInv = $dRec->amountInv;
+    	            }
+    	        }
+    	        
+    	        $r->amountVat = $r->amount + ($r->amount * 0.2); 
+    	        
+    	        if(isset($r->amount) > 0 && isset($r->quantity) > 0) {
+    	           $r->price = $r->amount / $r->quantity;
+    	        }
+    	        
+    	        if(isset($r->amountInv)) {
+    	           $r->amountVatInv = $r->amountInv + ($r->amountInv * 0.2); 
+    	           
+    	        }
+    
+    	        $r->priceVat = $r->price + ($r->price * 0.2); 
+    
+    	    }
 	    }
 
 	    return $recs;
