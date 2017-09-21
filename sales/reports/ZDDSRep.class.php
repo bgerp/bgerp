@@ -185,6 +185,11 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
     
     	    }
 	    }
+	    
+	    usort($recs, function($a, $b) {
+	        	
+	        return strnatcmp(mb_strtolower($a->code, 'UTF-8'), mb_strtolower($b->code, 'UTF-8'));
+	    });
 
 	    return $recs;
 	}
