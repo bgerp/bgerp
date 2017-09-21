@@ -49,7 +49,7 @@ class email_Fingerprints extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,hash,accountId,uid,status';
+    var $listFields = 'id,hash,accountId,uid,status,downloadedOn,deleted';
     
     
     /**
@@ -79,6 +79,8 @@ class email_Fingerprints extends core_Manager
         $this->FLD('accountId', 'key(mvc=email_Accounts,select=email,allowEmpty)', 'caption=Сметка, autoFilter');
         $this->FLD('uid', 'int', 'caption=Имейл UID');
         $this->FLD('status', 'enum(returned,receipt,spam,incoming,misformatted)', 'caption=Статус,notNull');
+        $this->FLD('downloadedOn', 'datetime(format=smartTime)', 'caption=Свалено на,notNull');
+        $this->FLD('deleted', 'enum(no=Не, yes=Да)', 'caption=Изтрито,notNull');
 
         $this->setDbUnique('hash');
         $this->setDbIndex('accountId,uid');
@@ -200,6 +202,10 @@ class email_Fingerprints extends core_Manager
         $rec->uid = $uid;
 
         $rec->status = $status;
+        
+        $rec->downloadedOn = dt::now();
+        
+        $rec->deleted = 'no';
 
         self::save($rec);
 

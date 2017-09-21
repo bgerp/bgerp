@@ -51,10 +51,12 @@
                                 <td><b>[#contragentIban#]</b> </td>
                             </tr>
                             <!--ET_END contragentIban-->
+                             <!--ET_BEGIN reason-->
                             <tr>
                                 <td>|Основание|*: </td>
                                 <td> [#reason#]</td>
                             </tr>
+                             <!--ET_END reason-->
                             <!--ET_BEGIN fromContainerId-->
                             <tr>
                                <td>|Към фактура|*: </td>
