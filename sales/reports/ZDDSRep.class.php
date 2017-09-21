@@ -276,7 +276,7 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
 	 */
 	protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
 	{
-	    if(isset($data->rec->periodId)){
+	    if(isset($rec->periodId)){
 	       $row->periodId = acc_Periods::getTitleById($rec->periodId);
 	    }
 	}
