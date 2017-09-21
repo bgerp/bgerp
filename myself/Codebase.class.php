@@ -1,29 +1,4 @@
 
-<!DOCTYPE html>
-<html>
-<head>
-    <style>
-        tr {}
-        td  {border: solid black 1px;height: 20px;}
-        p    {color: red;}
-    </style>
-</head>
-<body>
-
-
-</body>
-</html>
-
-
-
-
-
-
-
-
-
-
-
 <?php
 /**
  * Анализа кода по брой редове, брой празни редове,
