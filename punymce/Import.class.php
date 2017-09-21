@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class punymce_PunyMCE {
+class punymce_Import {
     
     
     /**

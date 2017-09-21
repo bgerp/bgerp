@@ -83,7 +83,10 @@ abstract class deals_PaymentDocument extends core_Master {
 		
 		if($rec->fromContainerId){
 			$Document = doc_Containers::getDocument($rec->fromContainerId);
-			$row->fromContainerId = "#" . $Document->abbr . $Document->fetchField('number');
+			$number = str_pad($Document->fetchField('number'), '10', '0', STR_PAD_LEFT);
+			$row->fromContainerId = "#{$Document->abbr}{$number}";
+		} elseif(!Mode::isReadOnly()) {
+			$row->fromContainerId = "<div class=border-field></div>";
 		}
 		
 		if(!Mode::isReadOnly()){
