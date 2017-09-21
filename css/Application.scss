@@ -1489,6 +1489,11 @@ a.tOld {
 	.border-table th{
 	   background-color: $gray2;
 	}
+	.border-field {
+		display: inline-block;
+		width: 120px;
+		border-bottom: 1px solid #aaa;
+	}
 	.no-border-bottom{
 		border-bottom: none !important;
 	}
