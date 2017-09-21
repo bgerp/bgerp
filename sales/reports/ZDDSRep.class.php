@@ -126,8 +126,8 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
                                         'measure' => $pRec->measure,
                                         'quantity' => $quantity,
                                         'amount' => $amount,
-                                        'quantityInv' => '',
-                                        'amountInv' => '',
+                                        'quantityInv' => $pRec->quantityInv,
+                                        'amountInv' => $pRec->amountInv,
                                         'amountVat' => '',
                                         'amountVatInv' => '');
     	        } else {
@@ -149,18 +149,25 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
     	                    $obj->amount -= $pRec->amount;
     	                    break;
     	            } 
+    	            
+    	            $obj->quantityInv += $pRec->quantityInv;
+    	            
+    	            if(isset($type) == 'dc_note') {
+    	                if($pRec->amountInv < 0){
+    	                    $obj->amountInv -= $pRec->amountInv;
+    	                } else {
+    	                    $obj->amountInv += $pRec->amountInv;
+    	                }
+    	            } 
+    	            
+    	            if(isset($type) == 'invoice') {
+    	               $obj->amountInv += $pRec->amountInv;
+    	            }
     	        }
     	    }
     
     	    foreach($recs as $id=>$r) {
     	        $r->amount = round($r->amount,2);
-    	        foreach($data->recs as $idDr=>$dRec){
-    	    
-    	            if($r->article == $dRec->article) {
-    	                $r->quantityInv = $dRec->quantityInv;
-    	                $r->amountInv = $dRec->amountInv;
-    	            }
-    	        }
     	        
     	        $vat = cat_Products::getVat($r->article, $r->valior);
     	
@@ -172,7 +179,6 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
     	        
     	        if(isset($r->amountInv)) {
     	           $r->amountVatInv = $r->amountInv + ($r->amountInv * $vat); 
-    	           
     	        }
     
     	        $r->priceVat = $r->price + ($r->price * $vat); 
@@ -380,7 +386,7 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
         }
         
         if($class == 'sales_Invoices') { 
-        
+
             if (isset($recDetail->discount)) {
                 $amountInv = $recDetail->amount - ($recDetail->amount*$recDetail->discount);
             } else {
@@ -391,6 +397,10 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
                 $quantityInv = $recDetail->packQuantity;
             } else {
                 $quantityInv = $recDetail->quantity;
+            }
+            
+            if(isset($rec->type)) {
+                $type = $rec->type;
             }
         }
         
@@ -409,6 +419,7 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
                                     'quantityInv' => $quantityInv,
                                     'amountInv' => $amountInv,
                                     'amountVat' => '',
-                                    'amountVatInv' => '');
+                                    'amountVatInv' => '',
+                                    'type' => $type);
     }
 }
