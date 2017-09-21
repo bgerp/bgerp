@@ -164,7 +164,7 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
     	        
     	        $r->amountVat = $r->amount + ($r->amount * 0.2); 
     	        
-    	        if(isset($r->amount) > 0 && isset($r->quantity) > 0) {
+    	        if($r->amount && $r->quantity > 0) {
     	           $r->price = $r->amount / $r->quantity;
     	        }
     	        
