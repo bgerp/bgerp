@@ -1,3 +1,4 @@
+
 <?php
 
 /**
@@ -12,6 +13,7 @@
  * @since     v 0.1
  * @title     Документи » Създадени документи по роля
  */
+
 class doc_reports_DocsByRols extends frame2_driver_TableData
 {
 
@@ -131,10 +133,11 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
 
 
         //$row->value = $Int->toVerbal($dRec['cnt']);
-
+        $row->document .= '<table style="width: 100%;">';
         foreach ($dRec['classes'] as $docId => $cnt) {
 
-            $row->document .= cls::get($docId)->title .' ('.cls::get($docId)->className .') '.' : ' . $cnt . '<br>';
+            $row->document .='<tr>'.'<td style="border: none">'.cls::get($docId)->title.
+                ' ('.cls::get($docId)->className .')'.'</td>'.'<td style="min-width: 7%;border: none">'. $cnt.'</td>'.'</tr>';
 
             /**
              * Общ брой създадени документи от този потребител
@@ -142,12 +145,12 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
             $cntx += $cnt;
 
             /**
-             * Видове създадени документи
+             * Видове създадени документи(брой)
              */
             $cnty++;
 
         }
-
+        $row->document.='</table>';
         $row->value = $cntx . ' от ' . $cnty;
 
         return $row;
