@@ -61,7 +61,7 @@
                                     
                                     <!--ET_BEGIN fromContainerId-->
                                     <tr>
-                                        <td>|Към фактура|*: </td>
+                                        <td class="nowrap">|Към фактура|*: </td>
                                         <td>[#fromContainerId#]</td>
                                     </tr>
                      				<!--ET_END fromContainerId-->
