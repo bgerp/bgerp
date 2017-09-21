@@ -162,18 +162,20 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
     	            }
     	        }
     	        
-    	        $r->amountVat = $r->amount + ($r->amount * 0.2); 
+    	        $vat = cat_Products::getVat($r->article, $r->valior);
+    	
+    	        $r->amountVat = $r->amount + ($r->amount * $vat); 
     	        
     	        if($r->amount && $r->quantity > 0) {
     	           $r->price = $r->amount / $r->quantity;
     	        }
     	        
     	        if(isset($r->amountInv)) {
-    	           $r->amountVatInv = $r->amountInv + ($r->amountInv * 0.2); 
+    	           $r->amountVatInv = $r->amountInv + ($r->amountInv * $vat); 
     	           
     	        }
     
-    	        $r->priceVat = $r->price + ($r->price * 0.2); 
+    	        $r->priceVat = $r->price + ($r->price * $vat); 
     
     	    }
 	    }
@@ -373,6 +375,10 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
             }
         }
         
+        if(isset($rec->valior)) {
+            $valior = $rec->valior;
+        }
+        
         if($class == 'sales_Invoices') { 
         
             if (isset($recDetail->discount)) {
@@ -393,6 +399,7 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
         $data->recs[] = (object) array ( 
                                     'doc'=> $class . "|" . $rec->id,
                                     'docNum'=> $rec->id,
+                                    'valior'=> $valior,
                                     'code' => cat_Products::fetchField($recDetail->productId, 'code'),
                                     'article' => $recDetail->productId,
                                     'measure' =>cat_Products::getProductInfo($recDetail->productId)->productRec->measureId,
