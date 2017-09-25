@@ -1199,4 +1199,82 @@ abstract class deals_Helper
 		
 		return NULL;
 	}
+	
+	
+	/**
+	 * Помощен метод връщащ разпределението на плащанията по фактури
+	 * 
+	 * @param int $threadId - ид на тред
+	 * @return array $paid  - масив с разпределените плащания
+	 */
+	public static function getInvoicePayments($threadId)
+	{
+		expect($threadId);
+		$invoicesArr = self::getInvoicesInThread($threadId);
+		if(!count($invoicesArr)) return array();
+	
+		$paid = $invoices = $payDocuments = array();
+		foreach (array('cash_Pko', 'cash_Rko', 'bank_IncomeDocuments', 'bank_SpendingDocuments') as $Pay){
+			$Pdoc = cls::get($Pay);
+			$pQuery = $Pdoc->getQuery();
+			$pQuery->where("#threadId = {$threadId} AND #state = 'active'");
+			$pQuery->show('containerId,amountDeal,fromContainerId,isReverse');
+			
+			while($pRec = $pQuery->fetch()){
+				$type = ($Pay == 'cash_Pko' || $Pay == 'cash_Rko') ? 'cash' : 'bank';
+				$payDocuments[$pRec->containerId] = (object)array('amount' => round($pRec->amountDeal, 2), 'type' => $type, 'toInvoice' => $pRec->fromContainerId, 'isReverse' => ($pRec->isReverse == 'yes'));
+			}
+		}
+	
+		$notAllocated = array_filter($payDocuments, function($a){return empty($a->toInvoice);});
+		
+		foreach ($invoicesArr as $containerId => $hnd){
+			$Document = doc_Containers::getDocument($containerId);
+			$iRec = $Document->fetch('dealValue,discountAmount,vatAmount,rate,type');
+			$amount = round((($iRec->dealValue - $iRec->discountAmount) + $iRec->vatAmount) / $iRec->rate, 2);
+			$amount = abs($amount);
+			$isCreditNote = ($iRec->type == 'dc_note' && $iRec->dealValue < 0);
+			$rest = abs($amount);
+			$paid[$containerId] = array();
+			$totalPercent = 1;
+			
+			$found = array_filter($payDocuments, function($a) use ($containerId){return $a->toInvoice == $containerId;});
+			if(count($found)){
+				foreach ($found as $fId => $obj){
+					$rest -= $obj->amount;
+					$percent = min(round($obj->amount / $amount, 2), 1);
+					$totalPercent -= $percent;
+					
+					$paid[$containerId][$fId] = (object)array('containerId' => $fId, 'percent' => $percent, 'type' => $obj->type);
+				}
+			}
+			
+			if(count($notAllocated)){
+				foreach ($notAllocated as $nId => &$obj1){
+					if($rest <= 0) continue;
+					if($isCreditNote !== TRUE && $obj1->isReverse === TRUE) continue;
+					if($isCreditNote === TRUE && $obj1->isReverse !== TRUE) continue;
+					
+					$unset = FALSE;
+					if($obj1->amount > $rest){
+						$percent = $totalPercent;
+						$obj1->amount -= $rest;
+						$rest = 0;
+					} else {
+						$percent = min(round($obj1->amount / $amount, 2), 1);
+						$totalPercent -= $percent;
+						$rest -= $obj1->amount;
+						$unset = TRUE;
+					}
+					
+					$paid[$containerId][$nId] = (object)array('containerId' => $nId, 'percent' => $percent, 'amount' =>$obj1->amount, 'type' => $obj1->type);
+					if($unset === TRUE){
+						unset($notAllocated[$nId]);
+					}
+				}
+			}
+		}
+		
+		return $paid;
+	}
 }
