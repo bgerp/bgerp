@@ -1218,11 +1218,11 @@ abstract class deals_Helper
 			$Pdoc = cls::get($Pay);
 			$pQuery = $Pdoc->getQuery();
 			$pQuery->where("#threadId = {$threadId} AND #state = 'active'");
-			$pQuery->show('containerId,amountDeal,fromContainerId,isReverse,activatedOn');
+			$pQuery->show('containerId,amountDeal,fromContainerId,isReverse,activatedOn,valior');
 			
 			while($pRec = $pQuery->fetch()){
 				$type = ($Pay == 'cash_Pko' || $Pay == 'cash_Rko') ? 'cash' : 'bank';
-				$payDocuments[$pRec->containerId] = (object)array('activatedOn' => $pRec->activatedOn,'amount' => round($pRec->amountDeal, 2), 'type' => $type, 'toInvoice' => $pRec->fromContainerId, 'isReverse' => ($pRec->isReverse == 'yes'));
+				$payDocuments[$pRec->containerId] = (object)array('valior' => $pRec->valior, 'activatedOn' => $pRec->activatedOn,'amount' => round($pRec->amountDeal, 2), 'type' => $type, 'toInvoice' => $pRec->fromContainerId, 'isReverse' => ($pRec->isReverse == 'yes'));
 			}
 		}
 	
