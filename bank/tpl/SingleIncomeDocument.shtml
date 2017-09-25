@@ -52,11 +52,20 @@
                                         <td><b>[#ownAccount#]</b> </td>
                                     </tr>
                                     
+                                    <!--ET_BEGIN reason-->
                                     <tr>
                                         <td>|Основание|*: </td>
                                         <td> [#reason#]</td>
                                     </tr>
+                                    <!--ET_END reason-->
                                     
+                                    <!--ET_BEGIN fromContainerId-->
+                                    <tr>
+                                        <td class="nowrap">|Към фактура|*: </td>
+                                        <td>[#fromContainerId#]</td>
+                                    </tr>
+                     				<!--ET_END fromContainerId-->
+                     				
                                     <!--ET_BEGIN termDate-->
                                     <tr>
                                         <td>|Очаквано на|*: </td>

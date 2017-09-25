@@ -73,7 +73,7 @@ class unit_MinkPListProduct extends core_Manager {
         $browser->click('N');
         $Company = 'NEW INTERNATIONAL GMBH';
         $browser->click($Company);
-        //$browser->press('Папка');
+        $browser->press('Папка');
         return $browser;
     }
     
@@ -182,9 +182,8 @@ class unit_MinkPListProduct extends core_Manager {
         $browser = $this->SetUp();
     
         //Отваряне папката на фирмата
-         $browser = $this->SetFirm();
-      
-         $browser->press('Папка');
+        $browser = $this->SetFirm();
+        $browser->press('Папка');
          
         // нова продажба - проверка има ли бутон
         if(strpos($browser->gettext(), 'Продажба')) {
@@ -240,7 +239,6 @@ class unit_MinkPListProduct extends core_Manager {
     
         //Отваряне папката на фирмата
         $browser = $this->SetFirm();
-    
         $browser->press('Папка');
          
         // нова покупка - проверка има ли бутон
@@ -289,7 +287,7 @@ class unit_MinkPListProduct extends core_Manager {
         $browser = $this->SetUp();
         //Отваряне корицата на фирмата
         $browser = $this->SetFirmEUR();
-        $browser->press('Папка');
+        //$browser->press('Папка');
         $browser->press('Нов...');
         $browser->press('Листване на артикули');
         $browser->setValue('title', 'За продажба NEW INTERNATIONAL');
@@ -334,8 +332,7 @@ class unit_MinkPListProduct extends core_Manager {
     
         //Отваряне папката на фирмата
         $browser = $this->SetFirmEUR();
-    
-        $browser->press('Папка');
+        //$browser->press('Папка');
          
         // нова продажба - проверка има ли бутон
         if(strpos($browser->gettext(), 'Продажба')) {

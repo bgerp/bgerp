@@ -176,7 +176,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 		}
 		
 		$dQuery = $Detail->getQuery();
-		$dQuery->where("#{$Detail->masterKey} = {$origin->that}");
+		$dQuery->where("#{$Detail->masterKey} = {$id}");
 			
 		return $dQuery->fetchAll();
 	}

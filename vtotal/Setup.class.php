@@ -34,7 +34,7 @@ defIfNot('VTOTAL_BETWEEN_TIME_SCANS', '864000'); // Десет дена
 /**
  * 
  */
-defIfNot('VTOTAL_DANGER_EXTENSIONS', 'exe,pif,application,gadget,msi,msp,com,scr,hta,cpl,msc,jar,bat,cmd,vb,vbs,js,jse,ws,wsh,wsc,wsf,ps1,ps1xml,ps2,ps2xml,psc1,psc2,scf,lnk,inf,reg,doc,xls,ppt,docm,dotm,xlsm,xltm,xlam,pptm,potm,ppam,ppsm,sldm');
+defIfNot('VTOTAL_DANGER_EXTENSIONS', 'exe,pif,application,gadget,msi,msp,com,scr,hta,cpl,msc,jar,bat,cmd,vb,vbs,js,jse,ws,wsh,wsc,wsf,ps1,ps1xml,ps2,ps2xml,psc1,psc2,scf,lnk,inf,reg,doc,xls,ppt,docm,dotm,xlsm,xltm,xlam,pptm,potm,ppam,ppsm,sldm,pdf,ace');
 
 
 

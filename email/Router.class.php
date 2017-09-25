@@ -425,9 +425,9 @@ class email_Router extends core_Manager
                 }
                 
                 // Спираме рутирането до проекти, които не са Несортирани
-                if (!$stopRoutingArr[$key] && $rRoute) {
+                if (!$stopRoutingArr[$key]) {
                     if ($coverRec && ($cover->instance instanceof doc_UnsortedFolders)) {
-                        if ($coverRec->receiveEmail != 'yes') {
+                        if ($coverRec->receiveEmail == 'no') {
                             $stopRoutingArr[$key] = TRUE;
                         }
                     }

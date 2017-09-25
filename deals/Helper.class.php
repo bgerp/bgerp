@@ -1147,4 +1147,56 @@ abstract class deals_Helper
 	{
 		return self::getMeasureRow($productId, $packagingId, $quantity, 'weight', $weight);
 	}
+	
+	
+	/**
+	 * Връща масив с фактурите в треда
+	 * 
+	 * @param int $threadId        - ид на нишка
+	 * @param boolean $count       - дали да се върне само бройката
+	 * @return array|int $invoices - масив с ф-ри или броя намерени фактури
+	 */
+	public static function getInvoicesInThread($threadId, $count = FALSE)
+	{
+		if($count === TRUE){
+			$cQuery = doc_Containers::getQuery();
+			$cQuery->where("#threadId = {$threadId} AND #state = 'active'");
+			$cQuery->where("#docClass = " . sales_Invoices::getClassId() . " OR #docClass = " . purchase_Invoices::getClassId());
+			
+			return $cQuery->count();
+		}
+		
+		$invoices = array();
+		foreach (array('sales_Invoices', 'purchase_Invoices') as $class){
+			$Cls = cls::get($class);
+			$iQuery = $Cls->getQuery();
+			$iQuery->where("#threadId = {$threadId} AND #state = 'active'");
+			$iQuery->orderBy('date,number', 'ASC');
+			$iQuery->show('number,containerId');
+			
+			while($iRec = $iQuery->fetch()){
+				$Document = doc_Containers::getDocument($iRec->containerId);
+				$number = str_pad($Document->fetchField('number'), '10', '0', STR_PAD_LEFT);
+				$invoices[$iRec->containerId] = "#{$Document->abbr}{$number}";
+			}
+		}
+		
+		return $invoices;
+	}
+	
+	
+	/**
+	 * Връща начина на плащане във фактурата
+	 * 
+	 * @param strint $paymentType
+	 * @param int $paymentMethodId
+	 * @return string
+	 */
+	public static function getInvoicePaymentType($paymentType, $paymentMethodId)
+	{
+		if(isset($paymentType)) return $paymentType;
+		if(isset($paymentMethodId)) return cond_PaymentMethods::fetchField($paymentMethodId, 'type');
+		
+		return NULL;
+	}
 }

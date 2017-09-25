@@ -411,6 +411,12 @@ class sales_Invoices extends deals_InvoiceMaster
     				}
     			}
     		}
+    		
+    		// Предупреждение при плащане в брой и банкова сметка
+    		$paymentType = deals_Helper::getInvoicePaymentType($rec->paymentType, $rec->paymentMethodId);
+    		if($paymentType == 'cash' && isset($rec->accountId)){
+    			$form->setWarning('accountId', "Избрана е банкова сметка при начин на плащане в брой|*?");
+    		}
     	}
 	}
     
@@ -590,43 +596,6 @@ class sales_Invoices extends deals_InvoiceMaster
     public static function canAddToFolder($folderId)
     {
         return FALSE;
-    }
-    
-    
-   /**
-    * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
-    */
-    public static function getHandle($id)
-    {
-        $self = cls::get(get_called_class());
-        $rec = $self->fetch($id);
-        
-        if (!$rec->number) {
-            $hnd = $self->abbr . $rec->id;
-        } else {
-            $number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
-            $hnd = $self->abbr . $number;
-        }
-        
-        return $hnd;
-    } 
-    
-    
-   /**
-    * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
-    */
-    public static function fetchByHandle($parsedHandle)
-    {
-        if ($parsedHandle['endDs'] && (strlen($parsedHandle['id']) != 10)) {
-            $rec = static::fetch($parsedHandle['id']);
-        } else {
-            $number = ltrim($parsedHandle['id'], '0');
-            if ($number) {
-                $rec = static::fetch("#number = '{$number}'");
-            }
-        }
-    	
-        return $rec;
     }
     
     
@@ -998,5 +967,42 @@ class sales_Invoices extends deals_InvoiceMaster
    			$me->save_($rec, 'autoPaymentType');
    			doc_DocumentCache::cacheInvalidation($rec->containerId);
    		}
+   	}
+   	
+   	
+   	/**
+   	 * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
+   	 */
+   	public static function getHandle($id)
+   	{
+   		$self = cls::get(get_called_class());
+   		$rec = $self->fetch($id);
+   	
+   		if (!$rec->number) {
+   			$hnd = $self->abbr . $rec->id;
+   		} else {
+   			$number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
+   			$hnd = $self->abbr . $number;
+   		}
+   	
+   		return $hnd;
+   	}
+   	
+   	
+   	/**
+   	 * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
+   	 */
+   	public static function fetchByHandle($parsedHandle)
+   	{
+   		if ($parsedHandle['endDs'] && (strlen($parsedHandle['id']) != 10)) {
+   			$rec = static::fetch($parsedHandle['id']);
+   		} else {
+   			$number = ltrim($parsedHandle['id'], '0');
+   			if ($number) {
+   				$rec = static::fetch("#number = '{$number}'");
+   			}
+   		}
+   	
+   		return $rec;
    	}
 }

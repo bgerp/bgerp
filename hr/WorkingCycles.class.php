@@ -751,6 +751,15 @@ class hr_WorkingCycles extends core_Master
                     $obj->stateDateTo = $recSick->toDate;
                     $obj->date = $newDate;
                 }
+                
+                // ако има събитие 2 последователни събития, то ги обединяваме
+                if(dt::daysBetween(strstr($newDate, " ", TRUE), strstr($obj->date, " ", TRUE)))
+                {
+                    //ъпдейтване на събитието
+                    $obj->stateInfo = 'sickDay';
+                    $obj->stateDateTo = $recSick->toDate;
+                    $obj->date = $newDate;
+                }
             }
         }
     
@@ -817,6 +826,15 @@ class hr_WorkingCycles extends core_Master
                     $obj->stateDateTo = $recTrip->toDate;
                     $obj->date = $newDate;
                 }
+                
+                // ако има събитие 2 последователни събития, то ги обединяваме
+                if(dt::daysBetween(strstr($newDate, " ", TRUE), strstr($obj->date, " ", TRUE)))
+                {
+                    //ъпдейтване на събитието
+                    $obj->stateInfo = 'tripDay';
+                    $obj->stateDateTo = $recTrip->toDate;
+                    $obj->date = $newDate;
+                }
             }
         }
     
@@ -854,7 +872,7 @@ class hr_WorkingCycles extends core_Master
                     'stateDateTo' => $recLeave->leaveTo,
                     'date' => $date
                 );
-    
+  
                 // в противен случай го ъпдейтваме
             } else {
                  
@@ -873,19 +891,28 @@ class hr_WorkingCycles extends core_Master
                 } else {
                     $newDate = $recLeave->leaveTo;
                 }
-    
+                
                 // новата дата на събитието по-малак ли е от текущата дата?
-                if($newDate <= $obj->date) {
+                if($newDate <= $obj->date ) { 
     
                     //ъпдейтване на събитието
                     $obj->stateInfo = 'leaveDay';
                     $obj->stateDateFrom = $recLeave->leaveFrom;
                     $obj->stateDateTo = $recLeave->leaveTo;
                     $obj->date = $newDate;
+                } 
+                
+                // ако има събитие 2 последователни събития, то ги обединяваме
+                if(dt::daysBetween(strstr($newDate, " ", TRUE), strstr($obj->date, " ", TRUE)))
+                {
+                    //ъпдейтване на събитието
+                    $obj->stateInfo = 'leaveDay';
+                    $obj->stateDateTo = $recLeave->leaveTo;
+                    $obj->date = $newDate;
                 }
             }
         }
-    
+
         // взимаме всички профили
         $query = crm_Profiles::getQuery();
         // които са активни

@@ -196,7 +196,7 @@ class core_ProtoSetup
             } catch(ErrorException $e) {
                 $html = "<li class='debug-error'>Миграцията {$packName}::{$method} не беше успешна</li>";
                 reportException($e);
-            }
+           }
         }
         
         Mode::pop('isMigrate', TRUE);

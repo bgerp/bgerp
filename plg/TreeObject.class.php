@@ -336,9 +336,11 @@ class plg_TreeObject extends core_Plugin
 			if($mvc->haveRightFor('add', (object)array($mvc->parentFieldName => $rec->id))){
 				$url = array($mvc, 'add', $mvc->parentFieldName => $rec->id, 'ret_url' => TRUE);
 				$img = ht::createElement('img', array('src' => sbf('img/16/add-sub.png', ''), 'style' => 'width: 13px; padding: 0px 2px;'));
+				$parentTitle = $mvc->getVerbal($rec, $mvc->nameField);
 				
-                $parentTitle = $mvc->getVerbal($rec, $mvc->nameField);
-				$row->_addBtn = ht::createLink($img, $url, FALSE, "title=Добави ново подниво на |*'{$parentTitle}'");
+				if(!$mvc->hasPlugin('plg_RowTools2')){
+					$row->_addBtn = ht::createLink($img, $url, FALSE, "title=Добави ново подниво на |*'{$parentTitle}'");
+				}
                 
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 $row->_rowTools->addLink('Подниво||Sublevel', $url, "ef_icon=img/16/add-sub.png, title=title=Добави ново подниво на |*'{$parentTitle}'");
@@ -381,7 +383,9 @@ class plg_TreeObject extends core_Plugin
 	 */
 	public static function on_AfterPrepareListFields($mvc, $data)
 	{
-		arr::placeInAssocArray($data->listFields, array('_addBtn' => ' '), NULL, $mvc->nameField);
+		if(!$mvc->hasPlugin('plg_RowTools2')){
+			arr::placeInAssocArray($data->listFields, array('_addBtn' => ' '), NULL, $mvc->nameField);
+		}
 	}
 	
 	

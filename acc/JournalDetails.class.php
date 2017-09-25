@@ -244,12 +244,7 @@ class acc_JournalDetails extends core_Detail
                 expect(ctype_digit((string)$itemId));
                 
                 // .. и перото да участва на произволна позиция
-                $query->where("#debitItem1 = {$itemId}");
-                $query->orWhere("#debitItem2 = {$itemId}");
-                $query->orWhere("#debitItem3 = {$itemId}");
-                $query->orWhere("#creditItem1 = {$itemId}");
-                $query->orWhere("#creditItem2 = {$itemId}");
-                $query->orWhere("#creditItem3 = {$itemId}");
+                $query->where("#debitItem1 = {$itemId} OR #debitItem2 = {$itemId} OR #debitItem3 = {$itemId} OR #creditItem1 = {$itemId} OR #creditItem2 = {$itemId} OR #creditItem3 = {$itemId}");
             }
         }
         

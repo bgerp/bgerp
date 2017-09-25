@@ -156,7 +156,8 @@ class acc_Setup extends core_ProtoSetup
     	'migrate::updateItemsEarliestUsedOn',
         'migrate::updateAllFL',
         'migrate::updateFeatureTitles',
-    	'migrate::updateCostObjectDocuments1'
+    	'migrate::updateCostObjectDocuments1',
+    	'migrate::removeRoleAllGlobalNew'
     );
     
     
@@ -185,22 +186,22 @@ class acc_Setup extends core_ProtoSetup
     	array('accJournal'),
     	array('acc', 'accJournal,invoicer,seePrice'),
         array('accMaster', 'acc'),
-    	array('accLimits'),
+        array('accLimits'),
+        array('allGlobal'),
         array('invoiceAll'),
-        array('invoiceAllGlobal', 'invoiceAll'),
+        array('invoiceAllGlobal', 'invoiceAll, allGlobal'),
         array('storeAll'),
-        array('storeaAllGlobal', 'storeAll'),
+        array('storeaAllGlobal', 'storeAll, allGlobal'),
         array('bankAll'),
-        array('bankAllGlobal', 'bankAll'),
+        array('bankAllGlobal', 'bankAll, allGlobal'),
         array('cashAll'),
-        array('cashAllGlobal', 'cashAll'),
+        array('cashAllGlobal', 'cashAll, allGlobal'),
         array('saleAll'),
-        array('saleAllGlobal', 'saleAll'),
+        array('saleAllGlobal', 'saleAll, allGlobal'),
         array('purchaseAll'),
-        array('purchaseAllGlobal', 'purchaseAll'),
+        array('purchaseAllGlobal', 'purchaseAll, allGlobal'),
         array('planningAll'),
-        array('planningAllGlobal', 'planningAll'),
-        array('allGlobal', 'invoiceAllGlobal, storeaAllGlobal, bankAllGlobal, cashAllGlobal, saleAllGlobal, purchaseAllGlobal, planningAllGlobal'),
+        array('planningAllGlobal', 'planningAll, allGlobal'),
         array('rep_acc'),
 
     );
@@ -555,5 +556,14 @@ class acc_Setup extends core_ProtoSetup
         while($fRec = $fQuery->fetch()) {  
             acc_Features::save($fRec);
         }
+    }
+    
+    
+    /**
+     * Премахване на ролята `allGlobal`, защото наследява други
+     */
+    function removeRoleAllGlobalNew()
+    {
+        core_Roles::removeRoles(array(core_Roles::fetchByName('allGlobal')));
     }
 }

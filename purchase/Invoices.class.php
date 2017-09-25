@@ -321,18 +321,26 @@ class purchase_Invoices extends deals_InvoiceMaster
             // Комбиниране всички открити табове
             $tabsArr = arr::combine($tabsArr, $drv->getTabs($fRec));
         }
-         
-        if ($tabsArr['text']) {
-            $defTab = 'text';
-        }
-        setIfNot($defTab, $tabsArr['__defaultTab'], 'info');
-         
-        if ($tabsArr[$defTab]) {
-            $preview = $tabsArr[$defTab]->html;
+        
+        $defTab = Request::get('currentTab');
+        
+        if (!$defTab) {
+            if ($tabsArr['text']) {
+                $defTab = 'text';
+            }
+            setIfNot($defTab, $tabsArr['__defaultTab'], 'info');
         }
         
+        $Indexes = cls::get('fileman_Indexes');
+        $d = new stdClass();
+        $d->tabs = $tabsArr;
+        $d->currentTab = $defTab;
+        $d->rec = $fRec;
+        $d->fhName = 'fh';
+        $d->retUrl = getRetUrl();
+        
         $form->layout = $form->renderLayout();
-        $form->layout->append($preview);
+        $form->layout->append($Indexes->render($d));
     }
     
     

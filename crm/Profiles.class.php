@@ -1047,16 +1047,20 @@ class crm_Profiles extends core_Master
                 $dateTo = $profRec->stateDateTo;
                 $dayBeforeNow = dt::addDays(-1, $date);
             }
-            
-            if($profRec && $profRec->stateInfo) { 
-                if(strstr(dt::now(), " ", TRUE) >= strstr($dayBeforeNow, " ", TRUE) && 
-                   strstr(dt::now(), " ", TRUE) <= strstr($dateTo, " ", TRUE)) {
+
+
+            if($profRec && $profRec->stateInfo) {
+                if(strstr(dt::now(), " ", TRUE) >= strstr($dayBeforeNow, " ", TRUE) &&
+                    strstr(dt::now(), " ", TRUE) < strstr($date, " ", TRUE )) {
+                    $attr['class'] .= ' profile profile-state-tomorrow';
+                } else if( strstr(dt::now(), " ", TRUE) >= strstr($date, " ", TRUE) &&
+                    strstr(dt::now(), " ", TRUE) <= strstr($dateTo, " ", TRUE)) {
                     $attr['class'] .= ' profile profile-state';
                 } else {
                     $attr['class'] .= ' profile';
                 }
             } else {
-    	       $attr['class'] .= ' profile';
+                $attr['class'] .= ' profile';
             }
 
     		$profileId = self::getProfileId($userId);
