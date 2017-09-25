@@ -93,85 +93,104 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
 	    $this->prepareQuery($query, $data, $period, 'store_Receipts', 'store_ReceiptDetails', 'receiptId');
 	    // Обикаляме по Фактурите
 	    $this->prepareQuery($query, $data, $period, 'sales_Invoices', 'sales_InvoiceDetails', 'invoiceId');
-	    
-	    foreach($data->recs as $pRec) {
-
-	        $quantity = 0;
-	        $amount = 0;
-	       
-    	    switch (strstr($pRec->doc,"|", TRUE)) {
-    	        case 'sales_Sales':
-    	            $quantity += $pRec->quantity;
-    	            $amount += $pRec->amount;
-    	            break;
+	    //bp($data->recs);
+	    if(is_array($data->recs)) {
+    	    foreach($data->recs as $pRec) {
+    
+    	        $quantity = 0;
+    	        $amount = 0;
+    	       
+        	    switch (strstr($pRec->doc,"|", TRUE)) {
+        	        case 'sales_Sales':
+        	            $quantity += $pRec->quantity;
+        	            $amount += $pRec->amount;
+        	            break;
+        	            
+        	        case 'store_ShipmentOrders':
+        	            $quantity += $pRec->quantity;
+        	            $amount += $pRec->amount;
+        	            break;
+        	        
+        	        case 'store_Receipts':
+        	            $quantity -= $pRec->quantity;
+        	            $amount -= $pRec->amount;
+        	            break;
+    
+        	    }
+    
+    
+    	        if(!array_key_exists($pRec->article, $recs)) {
+    	           $recs[$pRec->article] = (object) array ('code' => $pRec->code,
+                                        'article' => $pRec->article,
+                                        'price' => "",
+                                        'measure' => $pRec->measure,
+                                        'quantity' => $quantity,
+                                        'amount' => $amount,
+                                        'quantityInv' => $pRec->quantityInv,
+                                        'amountInv' => $pRec->amountInv,
+                                        'amountVat' => '',
+                                        'amountVatInv' => '');
+    	        } else {
+    	            $obj = &$recs[$pRec->article];
     	            
-    	        case 'store_ShipmentOrders':
-    	            $quantity += $pRec->quantity;
-    	            $amount += $pRec->amount;
-    	            break;
-    	        
-    	        case 'store_Receipts':
-    	            $quantity -= $pRec->quantity;
-    	            $amount -= $pRec->amount;
-    	            break;
+    	            switch (strstr($pRec->doc,"|", TRUE)) {
+    	                case 'sales_Sales':
+    	                    $obj->quantity += $pRec->quantity;
+    	                    $obj->amount += $pRec->amount;
+    	                    break;
+    	                     
+    	                case 'store_ShipmentOrders':
+    	                    $obj->quantity += $pRec->quantity;
+    	                    $obj->amount += $pRec->amount;
+    	                    break;
+    	                     
+    	                case 'store_Receipts':
+    	                    $obj->quantity -= $pRec->quantity;
+    	                    $obj->amount -= $pRec->amount;
+    	                    break;
+    	            } 
 
+    	            if(isset($pRec->type) && $pRec->type == 'dc_note') { 
+    	                if($pRec->dealValue < 0){
+    	                    $obj->amountInv += $pRec->dealValue;
+    	                    $obj->quantityInv += $pRec->vatAmount;
+    	                } else { 
+    	                    $obj->amountInv += $pRec->dealValue;
+    	                    $obj->quantityInv += $pRec->vatAmount;
+    	                }
+    	            } 
+    	            
+    	            if(isset($pRec->type) && $pRec->type == 'invoice') { 
+    	               $obj->amountInv += $pRec->amountInv;
+    	               $obj->quantityInv += $pRec->quantityInv;
+    	            }
+    	        }
     	    }
-
-
-	        if(!array_key_exists($pRec->article, $recs)) {
-	           $recs[$pRec->article] = (object) array ('code' => $pRec->code,
-                                    'article' => $pRec->article,
-                                    'price' => "",
-                                    'measure' => $pRec->measure,
-                                    'quantity' => $quantity,
-                                    'amount' => $amount,
-                                    'quantityInv' => '',
-                                    'amountInv' => '',
-                                    'amountVat' => '',
-                                    'amountVatInv' => '');
-	        } else {
-	            $obj = &$recs[$pRec->article];
-	            
-	            switch (strstr($pRec->doc,"|", TRUE)) {
-	                case 'sales_Sales':
-	                    $obj->quantity += $pRec->quantity;
-	                    $obj->amount += $pRec->amount;
-	                    break;
-	                     
-	                case 'store_ShipmentOrders':
-	                    $obj->quantity += $pRec->quantity;
-	                    $obj->amount += $pRec->amount;
-	                    break;
-	                     
-	                case 'store_Receipts':
-	                    $obj->quantity -= $pRec->quantity;
-	                    $obj->amount -= $pRec->amount;
-	                    break;
-	            } 
-	        }
+    
+    	    foreach($recs as $id=>$r) {
+    	        $r->amount = round($r->amount,2);
+    	        
+    	        $vat = cat_Products::getVat($r->article, $r->valior);
+    	
+    	        $r->amountVat = $r->amount + ($r->amount * $vat); 
+    	        
+    	        if($r->amount && $r->quantity > 0) {
+    	           $r->price = $r->amount / $r->quantity;
+    	        }
+    	        
+    	        if(isset($r->amountInv)) {
+    	           $r->amountVatInv = $r->amountInv + ($r->amountInv * $vat); 
+    	        }
+    
+    	        $r->priceVat = $r->price + ($r->price * $vat); 
+    
+    	    }
 	    }
-
-	    foreach($recs as $id=>$r) {
-	        $r->amount = round($r->amount,2);
-	        foreach($data->recs as $idDr=>$dRec){
 	    
-	            if($r->article == $dRec->article) {
-	                $r->quantityInv = $dRec->quantityInv;
-	                $r->amountInv = $dRec->amountInv;
-	            }
-	        }
-	        
-	        $r->amountVat = $r->amount + ($r->amount * 0.2); 
-	        $r->price = $r->amount / $r->quantity;
-	        
-	        if(isset($r->amountInv)) {
-	           $r->amountVatInv = $r->amountInv + ($r->amountInv * 0.2); 
-	           
-	        }
-
-	        $r->priceVat = $r->price + ($r->price * 0.2); 
-
-	    }
+	    usort($recs, function($a, $b) {
+	        	
+	        return strnatcmp(mb_strtolower($a->code, 'UTF-8'), mb_strtolower($b->code, 'UTF-8'));
+	    });
 
 	    return $recs;
 	}
@@ -258,7 +277,7 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
 	 */
 	protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
 	{
-	    if(isset($data->rec->periodId)){
+	    if(isset($rec->periodId)){
 	       $row->periodId = acc_Periods::getTitleById($rec->periodId);
 	    }
 	}
@@ -368,8 +387,12 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
             }
         }
         
-        if($class == 'sales_Invoices') { 
+        if(isset($rec->valior)) {
+            $valior = $rec->valior;
+        }
         
+        if($class == 'sales_Invoices') { 
+
             if (isset($recDetail->discount)) {
                 $amountInv = $recDetail->amount - ($recDetail->amount*$recDetail->discount);
             } else {
@@ -381,6 +404,16 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
             } else {
                 $quantityInv = $recDetail->quantity;
             }
+            
+            if(isset($rec->type)) {
+                $type = $rec->type;
+                
+                if($type == 'dc_note') {
+                    $dealValue = $rec->dealValue;
+                    $vatAmount = $rec->vatAmount;
+
+                }
+            }
         }
         
         $id = $recDetail->productId;
@@ -388,6 +421,7 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
         $data->recs[] = (object) array ( 
                                     'doc'=> $class . "|" . $rec->id,
                                     'docNum'=> $rec->id,
+                                    'valior'=> $valior,
                                     'code' => cat_Products::fetchField($recDetail->productId, 'code'),
                                     'article' => $recDetail->productId,
                                     'measure' =>cat_Products::getProductInfo($recDetail->productId)->productRec->measureId,
@@ -397,6 +431,9 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
                                     'quantityInv' => $quantityInv,
                                     'amountInv' => $amountInv,
                                     'amountVat' => '',
-                                    'amountVatInv' => '');
+                                    'amountVatInv' => '',
+                                    'type' => $type,
+                                    'dealValue' => $dealValue,
+                                    'vatAmount' => $vatAmount);
     }
 }

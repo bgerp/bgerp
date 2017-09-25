@@ -16,6 +16,12 @@ abstract class store_InternalDocumentDetail extends doc_Detail
 {
     
     
+	/**
+	 * Поле за артикула
+	 */
+	public $productFieldName = 'productId';
+	
+	
     /**
      * Описание на модела (таблицата)
      */

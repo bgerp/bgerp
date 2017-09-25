@@ -33,7 +33,8 @@ class deals_plg_SetTermDate extends core_Plugin
 		
 		// Ако има права показване на линка за редакция
 		if($mvc->haveRightFor('settermdate', $rec)){
-			$row->{$mvc->termDateFld} = $row->{$mvc->termDateFld} . "<div class=border-field></div>" . ht::createLink('', array($mvc, 'settermdate', $rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/edit.png,title=Задаване на нова дата');
+			$row->{$mvc->termDateFld} .= (!empty($row->{$mvc->termDateFld})) ? '' : "<div class=border-field></div>";
+			$row->{$mvc->termDateFld} = $row->{$mvc->termDateFld} . ht::createLink('', array($mvc, 'settermdate', $rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/edit.png,title=Задаване на нова дата');
 		}
 	}
 	
