@@ -723,7 +723,7 @@ class marketing_Inquiries2 extends embed_Manager
     	$date = dt::mysql2verbal($rec->createdOn, 'd-M');
     	$time = dt::mysql2verbal($rec->createdOn, 'H:i');
     	
-    	$tpl = new ET(tr("|Благодаря за Вашето запитване|*, |получено на|* {$date} |в|* {$time} |чрез нашия уеб сайт|*"));
+    	$tpl = new ET(tr("|Благодаря за Вашето запитване|*, |получено на|* {$date} |в|* {$time} |чрез нашия уеб сайт|*."));
     
     	return $tpl->getContent();
     }
