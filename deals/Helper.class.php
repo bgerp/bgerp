@@ -1218,14 +1218,15 @@ abstract class deals_Helper
 			$Pdoc = cls::get($Pay);
 			$pQuery = $Pdoc->getQuery();
 			$pQuery->where("#threadId = {$threadId} AND #state = 'active'");
-			$pQuery->show('containerId,amountDeal,fromContainerId,isReverse');
+			$pQuery->show('containerId,amountDeal,fromContainerId,isReverse,activatedOn');
 			
 			while($pRec = $pQuery->fetch()){
 				$type = ($Pay == 'cash_Pko' || $Pay == 'cash_Rko') ? 'cash' : 'bank';
-				$payDocuments[$pRec->containerId] = (object)array('amount' => round($pRec->amountDeal, 2), 'type' => $type, 'toInvoice' => $pRec->fromContainerId, 'isReverse' => ($pRec->isReverse == 'yes'));
+				$payDocuments[$pRec->containerId] = (object)array('activatedOn' => $pRec->activatedOn,'amount' => round($pRec->amountDeal, 2), 'type' => $type, 'toInvoice' => $pRec->fromContainerId, 'isReverse' => ($pRec->isReverse == 'yes'));
 			}
 		}
 	
+		uasort($payDocuments, function($a, $b){ if($a->valior == $b->valior) {return ($a->activatedOn < $b->activatedOn) ? -1 : 1;} return ($a->valior < $b->valior) ? -1 : 1;});
 		$notAllocated = array_filter($payDocuments, function($a){return empty($a->toInvoice);});
 		
 		foreach ($invoicesArr as $containerId => $hnd){
