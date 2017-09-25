@@ -875,7 +875,12 @@ class core_String
         
         if(strlen($expr)) {
             $last = error_reporting(0);
-            $success = @eval('$result = ' . $expr . ';');
+            try {
+                eval('$result = ' . $expr . ';');
+            } catch (Throwable $t) {
+                $result = NULL;
+                $success = FALSE;
+            }
 
         }
 
