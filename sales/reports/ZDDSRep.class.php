@@ -93,7 +93,7 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
 	    $this->prepareQuery($query, $data, $period, 'store_Receipts', 'store_ReceiptDetails', 'receiptId');
 	    // Обикаляме по Фактурите
 	    $this->prepareQuery($query, $data, $period, 'sales_Invoices', 'sales_InvoiceDetails', 'invoiceId');
-	    
+	    //bp($data->recs);
 	    if(is_array($data->recs)) {
     	    foreach($data->recs as $pRec) {
     
@@ -149,19 +149,20 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
     	                    $obj->amount -= $pRec->amount;
     	                    break;
     	            } 
-    	            
-    	            $obj->quantityInv += $pRec->quantityInv;
-    	            
-    	            if(isset($type) == 'dc_note') {
-    	                if($pRec->amountInv < 0){
-    	                    $obj->amountInv -= $pRec->amountInv;
-    	                } else {
-    	                    $obj->amountInv += $pRec->amountInv;
+
+    	            if(isset($pRec->type) && $pRec->type == 'dc_note') { 
+    	                if($pRec->dealValue < 0){
+    	                    $obj->amountInv += $pRec->dealValue;
+    	                    $obj->quantityInv += $pRec->vatAmount;
+    	                } else { 
+    	                    $obj->amountInv += $pRec->dealValue;
+    	                    $obj->quantityInv += $pRec->vatAmount;
     	                }
     	            } 
     	            
-    	            if(isset($type) == 'invoice') {
+    	            if(isset($pRec->type) && $pRec->type == 'invoice') { 
     	               $obj->amountInv += $pRec->amountInv;
+    	               $obj->quantityInv += $pRec->quantityInv;
     	            }
     	        }
     	    }
@@ -406,6 +407,12 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
             
             if(isset($rec->type)) {
                 $type = $rec->type;
+                
+                if($type == 'dc_note') {
+                    $dealValue = $rec->dealValue;
+                    $vatAmount = $rec->vatAmount;
+
+                }
             }
         }
         
@@ -425,6 +432,8 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
                                     'amountInv' => $amountInv,
                                     'amountVat' => '',
                                     'amountVatInv' => '',
-                                    'type' => $type);
+                                    'type' => $type,
+                                    'dealValue' => $dealValue,
+                                    'vatAmount' => $vatAmount);
     }
 }
