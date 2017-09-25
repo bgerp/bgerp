@@ -93,7 +93,7 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
 	    $this->prepareQuery($query, $data, $period, 'store_Receipts', 'store_ReceiptDetails', 'receiptId');
 	    // Обикаляме по Фактурите
 	    $this->prepareQuery($query, $data, $period, 'sales_Invoices', 'sales_InvoiceDetails', 'invoiceId');
-	    //bp($data->recs);
+	
 	    if(is_array($data->recs)) {
     	    foreach($data->recs as $pRec) {
     
@@ -149,14 +149,14 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
     	                    $obj->amount -= $pRec->amount;
     	                    break;
     	            } 
-
+    	            
     	            if(isset($pRec->type) && $pRec->type == 'dc_note') { 
+    	                $obj->amountInv += $pRec->dealValue;
+    	                
     	                if($pRec->dealValue < 0){
-    	                    $obj->amountInv += $pRec->dealValue;
-    	                    $obj->quantityInv += $pRec->vatAmount;
+    	                    $obj->quantityInv -= $pRec->qM;
     	                } else { 
-    	                    $obj->amountInv += $pRec->dealValue;
-    	                    $obj->quantityInv += $pRec->vatAmount;
+    	                    $obj->quantityInv += $pRec->qP;
     	                }
     	            } 
     	            
@@ -390,9 +390,10 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
         if(isset($rec->valior)) {
             $valior = $rec->valior;
         }
-        
+        $quantityInv = 0;
         if($class == 'sales_Invoices') { 
-
+            $Details = cls::get('sales_InvoiceDetails');
+//chargeVat
             if (isset($recDetail->discount)) {
                 $amountInv = $recDetail->amount - ($recDetail->amount*$recDetail->discount);
             } else {
@@ -408,10 +409,24 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
             if(isset($rec->type)) {
                 $type = $rec->type;
                 
-                if($type == 'dc_note') {
+                if($type == 'dc_note') { 
                     $dealValue = $rec->dealValue;
                     $vatAmount = $rec->vatAmount;
-
+                    if(count($recDetail)){
+                        $cnt = 0;
+                        $cache = $Details->Master->getInvoiceDetailedInfo($rec->originId); 
+                     
+                        
+                        if($rec->dealValue < 0) {
+                            
+                            $qM = $cache->recs[$cnt][$recDetail->productId]['quantity'] - $quantityInv;        
+                        } else {
+                            
+                            $qP = $quantityInv - $cache->recs[$cnt][$recDetail->productId]['quantity'];
+                        }
+                        
+                        $cnt++;
+                    }
                 }
             }
         }
@@ -434,6 +449,8 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
                                     'amountVatInv' => '',
                                     'type' => $type,
                                     'dealValue' => $dealValue,
-                                    'vatAmount' => $vatAmount);
+                                    'vatAmount' => $vatAmount,
+                                    'qM' => $qM,
+                                    'qP' => $qP);
     }
 }
