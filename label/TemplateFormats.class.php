@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Детайл на шаблоните за етикетите.
  * Съдържа типа на плейсхолдерите в шаблона
@@ -8,7 +9,7 @@
  * @category  bgerp
  * @package   label
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -29,12 +30,6 @@ class label_TemplateFormats extends core_Detail
     
     
     /**
-     * Кой има право да чете?
-     */
-    var $canRead = 'label, admin, ceo';
-    
-    
-    /**
      * Кой има право да променя?
      */
     var $canEdit = 'labelMaster, admin, ceo';
@@ -44,12 +39,6 @@ class label_TemplateFormats extends core_Detail
      * Кой има право да добавя?
      */
     var $canAdd = 'labelMaster, admin, ceo';
-    
-    
-    /**
-     * Кой има право да го види?
-     */
-    var $canView = 'label, admin, ceo';
     
     
     /**
@@ -91,7 +80,7 @@ class label_TemplateFormats extends core_Detail
     /**
      * Данни за тип
      */
-    protected static $typeEnumOpt = 'caption=Надпис,counter=Брояч,image=Картинка,html=HTML';
+    protected static $typeEnumOpt = 'caption=Надпис,counter=Брояч,image=Картинка,html=HTML,barcode=Баркод';
     
     
     /**
@@ -148,7 +137,7 @@ class label_TemplateFormats extends core_Detail
         if ($mvc->haveRightFor('add', $rec)) {
             
             // URL за добавяне
-            $captionUrl = $counterUrl = $imageUrl = $htmlUrl = array(
+            $captionUrl = $counterUrl = $imageUrl = $htmlUrl = $barcodeUrl = array(
                     $mvc,
                     'add',
                     $masterKey => $data->masterId,
@@ -185,6 +174,13 @@ class label_TemplateFormats extends core_Detail
             // Добавяме бутона
             $data->toolbar->addBtn('Нов HTML', $htmlUrl,
                 'id=btnAddHTML', 'ef_icon = img/16/star_2.png, title=Създаване на нов HTML'
+            );
+            
+            $barcodeUrl['type'] = 'barcode';
+            
+            // Добавяме бутона
+            $data->toolbar->addBtn('Нов баркод', $barcodeUrl,
+            		'id=btnAddBarcode', 'ef_icon = img/16/star_2.png, title=Създаване на нов баркод'
             );
         }
     }
@@ -428,6 +424,23 @@ class label_TemplateFormats extends core_Detail
                 // Максимална дължина на символите
                 $form->FNC('MaxLength', 'int(min=1, max=5000)', 'caption=Макс. символи, input=input');
             break;
+            
+            case 'barcode':
+            	// Вземаем всички баркодове, които можем да генерираме
+            	$barcodesArr = barcode_Generator::getAllowedBarcodeTypesArr();
+            	$barcodesArr = array('' => '') + $barcodesArr;
+            	
+            	// Вид показване на баркода
+            	$form->FNC('Showing', 'enum(barcodeAndStr=Баркод и стринг, string=Стринг, barcode=Баркод)', 'title=Показване на баркод, caption=Показване, input=input,mandatory');
+            	
+            	// Вид баркод
+            	$form->FNC('BarcodeType', cls::get(('type_Enum'), array('options' => $barcodesArr)), 'caption=Тип баркод, input=input,mandatory');
+            	$form->FNC('Ratio', 'enum(1=1,2=2,3=3,4=4)', 'caption=Съотношение, input=input,mandatory');
+            	$form->FNC('Width', 'int(min=1, max=5000)', 'caption=Широчина, input=input, unit=px,mandatory');
+            	$form->FNC('Height', 'int(min=1, max=5000)', 'caption=Височина, input=input, unit=px,mandatory');
+            	$form->FNC('Format', 'varchar', 'caption=Формат, input=input,mandatory');
+            	$form->FNC('Rotation', 'enum(yes=Да, no=Не)', 'caption=Ротация, input=input, mandatory,mandatory');
+        	break;
             
             default:
                 
@@ -702,6 +715,27 @@ class label_TemplateFormats extends core_Detail
                 // Добавяме в масива
                 $verbalValArr[$valStr] = $Html->toVerbal($val);
             }
+        } elseif($type == 'barcode'){
+        	$barcodeType = $rec->formatParams['BarcodeType'];
+        	$minWidthAndHeight = barcode_Generator::getMinWidthAndHeight($barcodeType, $val);
+        	$width = max($minWidthAndHeight['width'], $rec->formatParams['Width']);
+        	$height = max($minWidthAndHeight['height'], $rec->formatParams['Height']);
+        	
+        	$size = array('width' => $width, 'height' => $height);
+        	$attr['ratio'] = $rec->formatParams['Ratio'];
+        	if ($rec->formatParams['Rotation'] == 'yes') {
+        		$attr['angle'] = 90;
+        	}
+        	
+        	if ($rec->formatParams['Showing'] == 'barcodeAndStr') {
+        		$attr['addText'] = array();
+        	}
+        	
+        	// Генериране на баркод от серийния номер, според зададените параметри
+        	$Html = cls::get('type_Html');
+        	$barcode = barcode_Generator::getLink($barcodeType, $val, $size, $attr)->getContent();
+        	
+        	$verbalValArr[$valStr] = $Html->toVerbal($barcode);
         }
         
         return $verbalValArr[$valStr];
