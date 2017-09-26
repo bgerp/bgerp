@@ -113,7 +113,7 @@ class frame_Reports extends core_Embedder
     /**
      * Групиране на документите
      */
-    public $newBtnGroup = "18.9|Други";
+    public $newBtnGroup = FALSE;
 
 
     /**

@@ -134,7 +134,7 @@ class frame2_Reports extends embed_Manager
     /**
      * Групиране на документите
      */
-    public $newBtnGroup = "1.6|Общи";
+    public $newBtnGroup = FALSE;
 
 
     /**
