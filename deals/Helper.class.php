@@ -1269,7 +1269,7 @@ abstract class deals_Helper
 						$o1->amount -= $newInvoiceArr[$k]['current'];
 						$newInvoiceArr[$k]['current'] = 0;
 					} else {
-						$percent = min(round($o1->amount / $amount, 2), 1);
+						$percent = min(round($o1->amount / $newInvoiceArr[$k]['total'], 2), 1);
 						$totalPercent -= $percent;
 						$newInvoiceArr[$k]['current'] -= $o1->amount;
 						$unset = TRUE;
