@@ -93,7 +93,12 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
 	    $this->prepareQuery($query, $data, $period, 'store_Receipts', 'store_ReceiptDetails', 'receiptId');
 	    // Обикаляме по Фактурите
 	    $this->prepareQuery($query, $data, $period, 'sales_Invoices', 'sales_InvoiceDetails', 'invoiceId');
-	
+	    // Обикаляме по Предавателни
+	    $this->prepareQuery($query, $data, $period, 'sales_Services', 'sales_ServicesDetails', 'shipmentId');
+	    // Обикаляме по Приемателни
+	    $this->prepareQuery($query, $data, $period, 'purchase_Services', 'purchase_ServicesDetails', 'shipmentId');
+
+	    
 	    if(is_array($data->recs)) {
     	    foreach($data->recs as $pRec) {
     
@@ -115,7 +120,16 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
         	            $quantity -= $pRec->quantity;
         	            $amount -= $pRec->amount;
         	            break;
-    
+        	            
+        	        case 'sales_Services':
+        	            $quantity += $pRec->quantity;
+        	            $amount += $pRec->amount;
+        	            break;
+        	                	
+        	        case 'purchase_Services':
+        	            $quantity -= $pRec->quantity;
+        	            $amount -= $pRec->amount;
+        	            break;
         	    }
     
     
@@ -145,6 +159,16 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
     	                    break;
     	                     
     	                case 'store_Receipts':
+    	                    $obj->quantity -= $pRec->quantity;
+    	                    $obj->amount -= $pRec->amount;
+    	                    break;
+    	                    
+    	                case 'sales_Services':
+    	                    $obj->quantity += $pRec->quantity;
+    	                    $obj->amount += $pRec->amount;
+    	                    break;
+    	                    
+    	                case 'purchase_Services':
     	                    $obj->quantity -= $pRec->quantity;
     	                    $obj->amount -= $pRec->amount;
     	                    break;
@@ -390,10 +414,18 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
         if(isset($rec->valior)) {
             $valior = $rec->valior;
         }
+
         $quantityInv = 0;
         if($class == 'sales_Invoices') { 
             $Details = cls::get('sales_InvoiceDetails');
-//chargeVat
+            $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+            //yes=Включено,no=Без,separate=Отделно,export=Експорт
+            $chargeVat = $firstDoc->fetchField('chargeVat');
+            
+            if($chargeVat == 'no') {
+                continue;
+            }
+            
             if (isset($recDetail->discount)) {
                 $amountInv = $recDetail->amount - ($recDetail->amount*$recDetail->discount);
             } else {
