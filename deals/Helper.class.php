@@ -1152,27 +1152,25 @@ abstract class deals_Helper
 	/**
 	 * Връща масив с фактурите в треда
 	 * 
-	 * @param int $threadId        - ид на нишка
-	 * @param boolean $count       - дали да се върне само бройката
-	 * @return array|int $invoices - масив с ф-ри или броя намерени фактури
+	 * @param int $threadId           - ид на нишка
+	 * @param boolean $onlyCreditNote - дали да са само КИ
+	 * @return array|int $invoices    - масив с ф-ри или броя намерени фактури
 	 */
-	public static function getInvoicesInThread($threadId, $count = FALSE)
+	public static function getInvoicesInThread($threadId, $onlyCreditNote = FALSE)
 	{
-		if($count === TRUE){
-			$cQuery = doc_Containers::getQuery();
-			$cQuery->where("#threadId = {$threadId} AND #state = 'active'");
-			$cQuery->where("#docClass = " . sales_Invoices::getClassId() . " OR #docClass = " . purchase_Invoices::getClassId());
-			
-			return $cQuery->count();
-		}
-		
 		$invoices = array();
 		foreach (array('sales_Invoices', 'purchase_Invoices') as $class){
 			$Cls = cls::get($class);
 			$iQuery = $Cls->getQuery();
 			$iQuery->where("#threadId = {$threadId} AND #state = 'active'");
-			$iQuery->orderBy('date,number', 'ASC');
+			$iQuery->orderBy('date,number,type,dealValue', 'ASC');
 			$iQuery->show('number,containerId');
+			
+			if($onlyCreditNote === TRUE){
+				$iQuery->where("#type = 'dc_note' && #dealValue < 0");
+			} else {
+				$iQuery->where("#type = 'invoice' || (#type = 'dc_note' && #dealValue >= 0)");
+			}
 			
 			while($iRec = $iQuery->fetch()){
 				$Document = doc_Containers::getDocument($iRec->containerId);
