@@ -848,8 +848,8 @@ abstract class deals_InvoiceMaster extends core_Master
     		$hasCash = $hasBank = FALSE;
     		
     		array_walk($paidArr, function($a) use (&$hasCash, &$hasBank){
-    			if($a->type == 'cash' && $a->isReverse === FALSE) {$hasCash = TRUE;}
-    			elseif($a->type == 'bank' && $a->isReverse === FALSE){$hasBank = TRUE;}
+    			if($a->type == 'cash' && $a->isReverse !== TRUE) {$hasCash = TRUE;}
+    			elseif($a->type == 'bank' && $a->isReverse !== TRUE){$hasBank = TRUE;}
     		});
     		
     		if($hasCash == TRUE && $hasBank === FALSE) return 'cash';

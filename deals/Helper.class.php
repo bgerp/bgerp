@@ -1236,7 +1236,7 @@ abstract class deals_Helper
 					$percent = min(round($o->amount / $newInvoiceArr[$k]['total'], 2), 1);
 					$totalPercent -= $percent;
 				
-					$paid[$k][$fId] = (object)array('containerId' => $fId, 'percent' => $percent, 'type' => $o->type, 'isReverse' => $o1->isReverse);
+					$paid[$k][$fId] = (object)array('containerId' => $fId, 'percent' => $percent, 'type' => $o->type, 'isReverse' => $o->isReverse);
 				}
 			}
 			
