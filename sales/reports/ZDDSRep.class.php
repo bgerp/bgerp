@@ -422,10 +422,6 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
             //yes=Включено,no=Без,separate=Отделно,export=Експорт
             $chargeVat = $firstDoc->fetchField('chargeVat');
             
-            if($chargeVat == 'no') {
-                continue;
-            }
-            
             if (isset($recDetail->discount)) {
                 $amountInv = $recDetail->amount - ($recDetail->amount*$recDetail->discount);
             } else {
