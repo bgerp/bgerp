@@ -1186,22 +1186,6 @@ abstract class deals_Helper
 	
 	
 	/**
-	 * Връща начина на плащане във фактурата
-	 * 
-	 * @param strint $paymentType
-	 * @param int $paymentMethodId
-	 * @return string
-	 */
-	public static function getInvoicePaymentType($paymentType, $paymentMethodId)
-	{
-		if(isset($paymentType)) return $paymentType;
-		if(isset($paymentMethodId)) return cond_PaymentMethods::fetchField($paymentMethodId, 'type');
-		
-		return NULL;
-	}
-	
-	
-	/**
 	 * Помощен метод връщащ разпределението на плащанията по фактури
 	 * 
 	 * @param int $threadId - ид на тред
@@ -1224,7 +1208,7 @@ abstract class deals_Helper
 			while($pRec = $pQuery->fetch()){
 				$type = ($Pay == 'cash_Pko' || $Pay == 'cash_Rko') ? 'cash' : 'bank';
 				$sign = ($pRec->isReverse == 'yes') ? -1 : 1;
-				$payDocuments[$pRec->containerId] = (object)array('valior' => $pRec->valior, 'activatedOn' => $pRec->activatedOn, 'amount' => $sign * round($pRec->amountDeal, 2), 'type' => $type, 'toInvoice' => $pRec->fromContainerId);
+				$payDocuments[$pRec->containerId] = (object)array('valior' => $pRec->valior, 'activatedOn' => $pRec->activatedOn, 'amount' => $sign * round($pRec->amountDeal, 2), 'type' => $type, 'toInvoice' => $pRec->fromContainerId, 'isReverse' => ($pRec->isReverse == 'yes'));
 			}
 		}
 	
@@ -1254,7 +1238,7 @@ abstract class deals_Helper
 					$percent = min(round($o->amount / $newInvoiceArr[$k]['total'], 2), 1);
 					$totalPercent -= $percent;
 				
-					$paid[$k][$fId] = (object)array('containerId' => $fId, 'percent' => $percent, 'type' => $o->type);
+					$paid[$k][$fId] = (object)array('containerId' => $fId, 'percent' => $percent, 'type' => $o->type, 'isReverse' => $o1->isReverse);
 				}
 			}
 			
@@ -1275,7 +1259,7 @@ abstract class deals_Helper
 						$unset = TRUE;
 					}
 						
-					$paid[$k][$nId] = (object)array('containerId' => $nId, 'percent' => $percent, 'type' => $o1->type);
+					$paid[$k][$nId] = (object)array('containerId' => $nId, 'percent' => $percent, 'type' => $o1->type, 'isReverse' => $o1->isReverse);
 					if($unset === TRUE){
 						unset($notAllocated[$nId]);
 					}

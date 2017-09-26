@@ -222,7 +222,6 @@ class sales_Setup extends core_ProtoSetup
     		'sales_Proformas',
     		'sales_ProformaDetails',
     		'sales_PrimeCostByDocument',
-    		'migrate::cacheInvoicePaymentType',
     		'migrate::migrateRoles',
     		'migrate::updateDealFields1',
     		'migrate::updateDeltaTable'
@@ -336,33 +335,6 @@ class sales_Setup extends core_ProtoSetup
     		foreach (array('SALES_ADD_BY_PRODUCT_BTN', 'SALES_ADD_BY_CREATE_BTN', 'SALES_ADD_BY_LIST_BTN', 'SALES_ADD_BY_IMPORT_BTN') as $const){
     			$keylist = core_Roles::getRolesAsKeylist('sales,ceo');
     			core_Packs::setConfig('sales', array($const => $keylist));
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Ъпдейт на кеширването на начина на плащане на ф-те
-     */
-    function cacheInvoicePaymentType()
-    {
-    	core_App::setTimeLimit(300);
-    	$Invoice = cls::get('sales_Invoices');
-    	$Invoice->setupMvc();
-    	
-    	$iQuery = $Invoice->getQuery();
-    	$iQuery->where("#autoPaymentType IS NULL");
-    	$iQuery->where("#threadId IS NOT NULL");
-    	$iQuery->show('threadId,dueDate,date,folderId');
-    	
-    	while($rec = $iQuery->fetch()){
-    		try{
-    			$rec->autoPaymentType = $Invoice->getAutoPaymentType($rec);
-    			if($rec->autoPaymentType){
-    				$Invoice->save_($rec, 'autoPaymentType');
-    			}
-    		} catch(core_exception_Expect $e){
-    			reportException($e);
     		}
     	}
     }

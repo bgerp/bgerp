@@ -115,6 +115,10 @@ abstract class deals_InvoiceMaster extends core_Master
     	$mvc->FLD('discountAmount', 'double(decimals=2)', 'caption=Отстъпка->Обща, input=none,summary=amount');
     	$mvc->FLD('sourceContainerId', 'key(mvc=doc_Containers,allowEmpty)', 'input=hidden,silent');
     	$mvc->FLD('paymentMethodId', 'int', 'input=hidden,silent');
+    	
+    	$mvc->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг)', 'placeholder=Автоматично,caption=Плащане->Начин,before=accountId');
+    	$mvc->FLD('autoPaymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,mixed=Смесено)', 'placeholder=Автоматично,caption=Плащане->Начин,input=none');
+    
     }
     
     
@@ -129,14 +133,39 @@ abstract class deals_InvoiceMaster extends core_Master
     		$data->listFilter->showFields .= ',invState';
     		$data->listFilter->input();
     		$data->listFilter->setDefault('invState', 'all');
-    		 
-    		if($rec = $data->listFilter->rec){
+    	}
+    	
+    	if(!$data->listFilter->getField('invType', FALSE)){
+    		$data->listFilter->FNC('invType', 'enum(all=Всички, invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 'caption=Вид,input,silent');
+    	}
+    	 
+    	$data->listFields['paymentType'] = 'Плащане';
+    	$data->listFilter->FNC('payType', 'enum(all=Всички,cash=В брой,bank=По банка,intercept=С прихващане,card=С карта,factoring=Факторинг)', 'caption=Начин на плащане,input');
+    	$data->listFilter->showFields .= ",payType,invType";
+    	 
+    	$data->listFilter->input(NULL, 'silent');
+    	 
+    	if($rec = $data->listFilter->rec){
     		
-    			// Филтър по състояние
-    			if($rec->invState){
-    				if($rec->invState != 'all'){
-    					$data->query->where("#state = '{$rec->invState}'");
-    				}
+    		// Филтър по състояние
+    		if($rec->invState){
+    			if($rec->invState != 'all'){
+    				$data->query->where("#state = '{$rec->invState}'");
+    			}
+    		}
+    		
+    		if($rec->invType){
+    			if($rec->invType != 'all'){
+    				$data->query->where("#type = '{$rec->invType}'");
+    	
+    				$sign = ($rec->invType == 'credit_note') ? "<=" : ">";
+    				$data->query->orWhere("#type = 'dc_note' AND #dealValue {$sign} 0");
+    			}
+    		}
+    	
+    		if($rec->payType){
+    			if($rec->payType != 'all'){
+    				$data->query->where("#paymentType = '{$rec->payType}' OR (#paymentType IS NULL AND #autoPaymentType = '{$rec->payType}')");
     			}
     		}
     	}
@@ -602,7 +631,8 @@ abstract class deals_InvoiceMaster extends core_Master
     		if($aggregateInfo->get('paymentMethodId') && !($mvc instanceof sales_Proformas)){
     			$paymentMethodId = $aggregateInfo->get('paymentMethodId');
     			$plan = cond_PaymentMethods::getPaymentPlan($paymentMethodId, $aggregateInfo->get('amount'), $form->rec->date);
-    			
+    			$type = cond_PaymentMethods::fetchField($paymentMethodId, 'type');
+    			$form->setDefault('paymentType', $type);
     			if(!isset($form->rec->id)){
     				$form->setDefault('dueTime', $plan['timeBalancePayment']);
     			}
@@ -721,6 +751,10 @@ abstract class deals_InvoiceMaster extends core_Master
     				$form->setError('date,dueDate,dueTime', "Невъзможна стойност на датите");
     			}
     		}
+    		
+    		if($rec->paymentType == 'cash' && isset($rec->accountId)){
+    			$form->setWarning('accountId', "Избрана е банкова сметка при начин на плащане в брой|*?");
+    		}
     	}
     	
     	$form->rec->_edited = TRUE;
@@ -768,6 +802,62 @@ abstract class deals_InvoiceMaster extends core_Master
     			}
     		}
     	}
+    	
+    	// Първоначално изчислен начин на плащане
+    	if(empty($rec->id)){
+    		$rec->autoPaymentType = cls::get(get_called_class())->getAutoPaymentType($rec, FALSE);
+    	}
+    }
+    
+    
+    /**
+     * Намира автоматичния метод на плащане
+     *
+     * Проверява се какъв тип документи за плащане (активни) имаме в нишката.
+     * Ако е бърза продажба е в брой.
+     * Ако имаме само ПКО - полето е "В брой", ако имаме само "ПБД" - полето е "По банков път", ако имаме само Прихващания - полето е "С прихващане".
+     * ако във фактурата имаме плащане с по-късна дата от сегашната - "По банка"
+     * каквото е било плащането в предишната фактура на същия контрагент
+     * ако по никакъв начин не може да се определи
+    
+     * @param stdClass $rec - запис
+     * @return string - дефолтния начин за плащане в брой, по банка, с прихващане
+     * или NULL ако не може да бъде намерено
+     */
+    public function getAutoPaymentType($rec, $fromCache = TRUE)
+    {
+    	if($this instanceof sales_Proformas) return NULL;
+    	
+    	$rec = $this->fetchRec($rec);
+    	if($fromCache === TRUE){
+    		$invoicePayments = core_Cache::get('threadInvoices', "t{$rec->threadId}");
+    		if($invoicePayments === FALSE){
+    			$invoicePayments = deals_Helper::getInvoicePayments($rec->threadId);
+    		}
+    	} else {
+    		$invoicePayments = deals_Helper::getInvoicePayments($rec->threadId);
+    	}
+    	
+    	$containerId = $rec->containerId;
+    	if($rec->type == 'dc_note'){
+    		$containerId = $rec->originId;
+    	}
+    	
+    	$paidArr = $invoicePayments[$containerId];
+    	if(count($paidArr) && isset($paidArr)){
+    		$hasCash = $hasBank = FALSE;
+    		
+    		array_walk($paidArr, function($a) use (&$hasCash, &$hasBank){
+    			if($a->type == 'cash' && $a->isReverse === FALSE) {$hasCash = TRUE;}
+    			elseif($a->type == 'bank' && $a->isReverse === FALSE){$hasBank = TRUE;}
+    		});
+    		
+    		if($hasCash == TRUE && $hasBank === FALSE) return 'cash';
+    		if($hasBank == TRUE && $hasCash === FALSE) return 'bank';
+    		if($hasBank == TRUE && $hasCash === TRUE) return 'mixed';
+    	}
+    	 
+    	return NULL;
     }
     
     
@@ -892,6 +982,19 @@ abstract class deals_InvoiceMaster extends core_Master
     		$headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId, $row->contragentName);
     		foreach (array('MyCompany', 'MyAddress', 'MyCompanyVatNo', 'uicId', 'contragentName') as $fld){
     			$row->{$fld} = $headerInfo[$fld];
+    		}
+    		if($rec->paymentType == 'factoring'){
+    			$row->accountId = tr('ФАКТОРИНГ');
+    			unset($row->bank);
+    			unset($row->bic);
+    		}
+    		 
+    		if(!empty($rec->paymentType)){
+    			$row->paymentType = tr("Плащане " . mb_strtolower($row->paymentType));
+    		}
+    		
+    		if(isset($rec->autoPaymentType) && isset($rec->paymentType) && $rec->paymentType != $rec->autoPaymentType){
+    			$row->paymentType = ht::createHint($row->paymentType, 'Избрания начин на плащане не отговаря на реалния', 'warning');
     		}
     		
     		core_Lg::pop();
