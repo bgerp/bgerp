@@ -110,7 +110,9 @@
                                         [#payment_block#]
                                         <hr class='printVisible'>
                                         <div class='custom-bg-block'><b>|Плащане|*</b></div>
-                                        
+                                        <!--ET_BEGIN paymentType-->
+                                        <div class="boldText">[#paymentType#]</div>
+                                        <!--ET_END paymentType-->
                                         <!--ET_BEGIN DUE_BLOCK-->
                                            [#DUE_BLOCK#]
                                         <div><span class='quiet'>|Краен срок за плащане|*:</span> [#dueDate#]</div>

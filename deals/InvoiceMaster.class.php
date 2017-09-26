@@ -997,6 +997,9 @@ abstract class deals_InvoiceMaster extends core_Master
     			$row->paymentType = ht::createHint($row->paymentType, 'Избрания начин на плащане не отговаря на реалния', 'warning');
     		}
     		
+    		if(haveRole('debug')){
+    			$row->paymentType = ht::createHint($row->paymentType, "Автоматично '{$rec->autoPaymentType}'", 'img/16/bug.png');
+    		}
     		core_Lg::pop();
     	}
     }
