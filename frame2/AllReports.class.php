@@ -273,7 +273,7 @@ class frame2_AllReports extends core_Master
         if ($action == 'add' && $requiredRoles != 'no_one') {
             if (!frame2_Reports::haveRightFor('add', $rec, $userId) && !frame_Reports::haveRightFor('add', $rec, $userId)) {
                 
-                $requiredRoles == 'no_one';
+                $requiredRoles = 'no_one';
             }
         }
     }
