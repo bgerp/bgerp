@@ -20,61 +20,61 @@ class label_TemplateFormats extends core_Detail
     /**
      * Заглавие на модела
      */
-    var $title = 'Формати за параметрите';
+    public $title = 'Формати за параметрите';
     
     
     /**
      * 
      */
-    var $singleTitle = 'Формати';
+    public $singleTitle = 'Формати';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'labelMaster, admin, ceo';
+    public $canEdit = 'labelMaster, admin, ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'labelMaster, admin, ceo';
+    public $canAdd = 'labelMaster, admin, ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'label, admin, ceo';
+    public $canList = 'label, admin, ceo';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'labelMaster, admin, ceo';
+    public $canDelete = 'labelMaster, admin, ceo';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'label_Wrapper, plg_RowTools';
+    public $loadList = 'label_Wrapper, plg_RowTools';
     
     
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
-    var $masterKey = 'templateId';
+    public $masterKey = 'templateId';
     
     
     /**
      * 
      */
-    var $listFields = 'type, placeHolder, formatParams';
+    public $listFields = 'type, placeHolder, formatParams';
     
     
     /**
      * 
      */
-    var $rowToolsField = 'type';
+    public $rowToolsField = 'type';
     
     
     /**
@@ -84,7 +84,7 @@ class label_TemplateFormats extends core_Detail
     
     
     /**
-     * 
+     * Кофа
      */
     protected static $bucket = 'label';
     
@@ -92,7 +92,7 @@ class label_TemplateFormats extends core_Detail
     /**
      * Активен таб
      */
-    var $currentTab = 'Шаблони';
+    public $currentTab = 'Шаблони';
     
     
 	/**
@@ -115,7 +115,7 @@ class label_TemplateFormats extends core_Detail
      * @param unknown_type $mvc
      * @param unknown_type $data
      */
-    static function on_AfterPrepareListToolbar($mvc, &$data)
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         // Премахваме бутона за добавяне на нов
         $data->toolbar->removeBtn('btnAdd');
@@ -192,7 +192,7 @@ class label_TemplateFormats extends core_Detail
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         // Ако не е зададен тип в записа
         if (!($type = $data->form->rec->type)) {
@@ -321,7 +321,7 @@ class label_TemplateFormats extends core_Detail
      * @param label_TemplateFormats $mvc
      * @param core_Form $form
      */
-    static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
         // Ако формата е субмитната
         if ($form->isSubmitted()) {
@@ -758,7 +758,7 @@ class label_TemplateFormats extends core_Detail
      * @param unknown_type $row
      * @param unknown_type $rec
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Масив с шаблоните
         static $fieldsArr = array();
@@ -838,7 +838,7 @@ class label_TemplateFormats extends core_Detail
      * @param unknown_type $mvc
      * @param unknown_type $res
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    protected static function on_AfterSetupMvc($mvc, &$res)
     {
         // Инстанция на класа
         $Bucket = cls::get('fileman_Buckets');
@@ -857,7 +857,7 @@ class label_TemplateFormats extends core_Detail
      * @param stdClass $rec
      * @param int $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Ако има запис
         if ($rec) {
@@ -906,7 +906,7 @@ class label_TemplateFormats extends core_Detail
      * 
      * @param integer $templateId - id на шаблона
      */
-    static function activateCounters($templateId)
+    public static function activateCounters($templateId)
     {
         // Вземаме всички броячи използвани в този шаблон
         $query = static::getQuery();
