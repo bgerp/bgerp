@@ -627,7 +627,7 @@ class label_Templates extends core_Master
     			if(is_array($arr)){
     				foreach ($arr as $placeholder){
     					$type = (in_array($placeholder, array('BARCODE', 'PREVIEW'))) ? 'html' : 'caption';
-    					echo "<li> {$tRec->id} -> a" . label_TemplateFormats::addToTemplate($tRec->id, $placeholder, $type);
+    					label_TemplateFormats::addToTemplate($tRec->id, $placeholder, $type);
     				}
     			}
     			$modified ++;
