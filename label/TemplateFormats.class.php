@@ -117,6 +117,7 @@ class label_TemplateFormats extends core_Detail
      * @param varchar $placeholder - име на плейсхолдъра
      * @param string $type         - тип на параметъра (caption, counter, image, html, barcode)
      * @param array|NULL $params   - допълнителни параметри
+     * @return int
      */
     public static function addToTemplate($templateId, $placeholder, $type, $params = NULL)
     {
@@ -148,7 +149,7 @@ class label_TemplateFormats extends core_Detail
             $newRec->id = $exRec->id;
     	}       
     	
-    	$self->save($newRec);
+    	return $self->save($newRec);
     }
     
     
