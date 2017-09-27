@@ -109,6 +109,49 @@ class label_TemplateFormats extends core_Detail
     }
     
     
+    
+    /**
+     * Добавяне на параметър към шаблон за етикети
+     * 
+     * @param int $templateId      - ид на шаблона
+     * @param varchar $placeholder - име на плейсхолдъра
+     * @param string $type         - тип на параметъра (caption, counter, image, html, barcode)
+     * @param array|NULL $params   - допълнителни параметри
+     */
+    public static function addToTemplate($templateId, $placeholder, $type, $params = NULL)
+    {
+    	expect(label_Templates::fetchField($templateId), 'Несъществуващ шаблон');
+    	expect($placeholder, 'Липсва плейсхолдър');
+    	$types = arr::make(self::$typeEnumOpt);
+    	expect(array_key_exists($type, $types), "Невалиден тип '{$type}'");
+    	expect(is_null($params) || is_array($params));
+    	if($type == 'counter' || $type == 'barcode'){
+    		
+    		expect(in_array($params['Showing'], array('barcodeAndStr', 'string', 'barcode')), $params['Showing']);
+    		setIfNot($params['Rotation'], 'no');
+    		expect(in_array($params['Rotation'], array('yes', 'no')), $params['Rotation']);
+    		expect(array_key_exists($params['BarcodeType'], barcode_Generator::getAllowedBarcodeTypesArr()), $params['BarcodeType']);
+    		expect(type_Int::isInt($params['Width']), $params['Width']);
+    		expect(type_Int::isInt($params['Height']), $params['Height']);
+    		setIfNot($params['Ratio'], '1');
+    		expect(in_array($params['Ratio'], array('1', '2', '3', '4')), $params['Ratio']);
+    		
+    		if($type == 'counter'){
+    			expect(label_Counters::fetchField($params['CounterId']));
+    		}
+    	}
+    	
+    	$newRec = (object)array('templateId' => $templateId, 'placeHolder' => $placeholder, 'type' => $type, 'formatParams' => $params);
+    	
+    	$self = cls::get(get_called_class());
+    	if(!$self->isUnique($newRec, $fields, $exRec)){
+            $newRec->id = $exRec->id;
+    	}       
+    	
+    	$self->save($newRec);
+    }
+    
+    
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      * 
