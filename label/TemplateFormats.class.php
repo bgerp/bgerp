@@ -728,6 +728,8 @@ class label_TemplateFormats extends core_Detail
                 $height = max($minWidthAndHeight['height'], $rec->formatParams['Height']);
                 
                 $size = array('width' => $width, 'height' => $height);
+                
+                $attr = array();
                 $attr['ratio'] = $rec->formatParams['Ratio'];
                 if ($rec->formatParams['Rotation'] == 'yes') {
                     $attr['angle'] = 90;
