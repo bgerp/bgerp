@@ -107,7 +107,7 @@ abstract class deals_PaymentDocument extends core_Master {
 		$this->requireRightFor('selectinvoice', $rec);
 		
 		$form = cls::get('core_Form');
-		$form->title = "Избор на фактура по която е|* <b>" . $this->getHyperlink($rec);
+		$form->title = core_Detail::getEditTitle($this, $rec->id, 'информация', $rec->id);
 		$form->FLD('fromContainerId', 'int', 'caption=За фактура');
 		
 		$isReverse = ($rec->isReverse == 'yes');
