@@ -852,9 +852,9 @@ abstract class deals_InvoiceMaster extends core_Master
     			elseif($a->type == 'bank' && $a->isReverse !== TRUE){$hasBank = TRUE;}
     		});
     		
-    		if($hasCash == TRUE && $hasBank === FALSE) return 'cash';
-    		if($hasBank == TRUE && $hasCash === FALSE) return 'bank';
-    		if($hasBank == TRUE && $hasCash === TRUE) return 'mixed';
+    		if($hasCash === TRUE && $hasBank === FALSE) return 'cash';
+    		if($hasBank === TRUE && $hasCash === FALSE) return 'bank';
+    		if($hasBank === TRUE && $hasCash === TRUE) return 'mixed';
     	}
     	 
     	return NULL;

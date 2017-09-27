@@ -1154,7 +1154,7 @@ abstract class deals_Helper
 	 * 
 	 * @param int $threadId           - ид на нишка
 	 * @param boolean $onlyCreditNote - дали да са само КИ
-	 * @return array|int $invoices    - масив с ф-ри или броя намерени фактури
+	 * @return array $invoices    - масив с ф-ри или броя намерени фактури
 	 */
 	public static function getInvoicesInThread($threadId, $onlyCreditNote = FALSE)
 	{
