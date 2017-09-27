@@ -656,6 +656,7 @@ class label_Templates extends core_Master
     			       'defaultTplPackiningList' => array('title' => 'Packaging List label', 'path' => 'label/tpl/DefaultLabelPallet.shtml', 'lang' => 'en', 'class' => 'store_ShipmentOrders', 'sizes' => array('170', '105')),
     	);
     	
+    	core_Users::forceSystemUser();
     	foreach ($array as $sysId => $cArr){
     		$tRec = self::addFromFile($cArr['title'], $cArr['path'], $sysId, $cArr['sizes'], $cArr['lang'], $cArr['class']);
     		if($tRec !== FALSE){
@@ -672,6 +673,7 @@ class label_Templates extends core_Master
     			$skipped ++;
     		}
     	}
+    	core_Users::cancelSystemUser();
     	
     	$class = ($modified > 0) ? ' class="green"' : '';
     	$res = "<li{$class}>Променени са са {$modified} шаблона за етикети, пропуснати са {$skipped}</li>";
