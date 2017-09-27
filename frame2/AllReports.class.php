@@ -104,6 +104,34 @@ class frame2_AllReports extends core_Master
     
     
     /**
+     * Проверка дали нов документ може да бъде добавен в посочената папка като начало на нишка
+     * 
+     * @param $folderId int - key(mvc=doc_Folders)
+     * 
+     * @return boolean
+     */
+    public static function canAddToFolder($folderId)
+    {
+        
+        return (boolean)(frame2_Reports::canAddToFolder($folderId) || frame_Reports::canAddToFolder($folderId));
+    }
+    
+    
+    /**
+     * Проверка дали нов документ може да бъде добавен в посочената нишка
+     *
+     * @param int $threadId - key(mvc=doc_Threads)
+     * 
+     * @return boolean
+     */
+    public static function canAddToThread($threadId)
+    {
+        
+        return (boolean)(frame2_Reports::canAddToThread($threadId) || frame_Reports::canAddToThread($threadId));
+    }
+    
+    
+    /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param core_Manager $mvc
