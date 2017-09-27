@@ -438,7 +438,7 @@ class label_TemplateFormats extends core_Detail
             	$form->FNC('Ratio', 'enum(1=1,2=2,3=3,4=4)', 'caption=Съотношение, input=input,mandatory');
             	$form->FNC('Width', 'int(min=1, max=5000)', 'caption=Широчина, input=input, unit=px,mandatory');
             	$form->FNC('Height', 'int(min=1, max=5000)', 'caption=Височина, input=input, unit=px,mandatory');
-            	$form->FNC('Format', 'varchar', 'caption=Формат, input=input,mandatory');
+            	$form->FNC('Format', 'varchar', 'caption=Формат, input=input');
             	$form->FNC('Rotation', 'enum(yes=Да, no=Не)', 'caption=Ротация, input=input, mandatory,mandatory');
         	break;
             
@@ -722,13 +722,13 @@ class label_TemplateFormats extends core_Detail
         	$height = max($minWidthAndHeight['height'], $rec->formatParams['Height']);
         	
         	$size = array('width' => $width, 'height' => $height);
-        	$attr['ratio'] = $rec->formatParams['Ratio'];
+        	
         	if ($rec->formatParams['Rotation'] == 'yes') {
         		$attr['angle'] = 90;
         	}
         	
         	if ($rec->formatParams['Showing'] == 'barcodeAndStr') {
-        		$attr['addText'] = array();
+        		$attr['addText'] = array('');
         	}
         	
         	// Генериране на баркод от серийния номер, според зададените параметри
