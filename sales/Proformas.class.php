@@ -413,6 +413,8 @@ class sales_Proformas extends deals_InvoiceMaster
     			cond_PaymentMethods::preparePaymentPlan($data, $methodId, $total, $rec->date, $rec->currencyId);
     			core_Lg::pop();
     		}
+    	} else {
+    		unset($data->row->paymentMethodId);
     	}
     }
     
