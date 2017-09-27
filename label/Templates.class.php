@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   label
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -119,6 +119,14 @@ class label_Templates extends core_Master
     
     
     /**
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     *
+     * @see plg_Clone
+     */
+    public $cloneDetails = 'label_TemplateFormats';
+    
+    
+    /**
      * Работен кеш
      */
     public static $cache = array();
@@ -129,7 +137,7 @@ class label_Templates extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'sysId';
+    public $fieldsNotToClone = 'sysId,state,exState,lastUsedOn,createdOn,createdBy';
     
     
 	/**
@@ -530,52 +538,6 @@ class label_Templates extends core_Master
                 
                 // Никой да не може да създава
                 $requiredRoles = 'no_one';
-            }
-        }
-    }
-    
-    
-    /**
-     * Премахваме някои полета преди да клонираме
-     * @see plg_Clone
-     * 
-     * @param label_Labels $mvc
-     * @param object $rec
-     * @param object $nRec
-     */
-    protected static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
-    {
-        unset($nRec->state);
-        unset($nRec->exState);
-        unset($nRec->lastUsedOn);
-        unset($nRec->searchKeywords);
-        unset($nRec->createdOn);
-        unset($nRec->createdBy);
-    }
-    
-    
-    /**
-     * Премахваме някои полета преди да клонираме
-     * @see plg_Clone
-     * @todo да се премахне след като се добави тази функционалността в плъгина
-     * 
-     * @param label_Labels $mvc
-     * @param object $rec
-     * @param object $nRec
-     */
-    protected static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
-    {
-        // Клонира и детайлите след клониране на мастера
-        $detailsArr = arr::make($mvc->details);
-        foreach ($detailsArr as $detail) {
-            $detailInst = cls::get($detail);
-            $query = $detailInst->getQuery();
-            $masterKey = $mvc->{$detail}->masterKey;
-            $query->where("#{$masterKey} = {$rec->id}");
-            while($dRec = $query->fetch()) {
-                unset($dRec->id);
-                $dRec->{$masterKey} = $nRec->id;
-                $detailInst->save($dRec);
             }
         }
     }
