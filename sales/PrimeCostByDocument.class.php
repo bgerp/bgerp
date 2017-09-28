@@ -103,7 +103,7 @@ class sales_PrimeCostByDocument extends core_Manager
 	 * @param core_Mvc $mvc
 	 * @param stdClass $rec
 	 */
-	public static function on_CalcDelta(core_Mvc $mvc, $rec)
+	protected static function on_CalcDelta(core_Mvc $mvc, $rec)
 	{
 		if(isset($rec->primeCost)){
 			$rec->delta = ($rec->sellCost - $rec->primeCost) * $rec->quantity;
@@ -142,7 +142,7 @@ class sales_PrimeCostByDocument extends core_Manager
 	 * @param stdClass $rec Това е записа в машинно представяне
 	 * @param array $fields - полета
 	 */
-	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+	protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 		if(isset($fields['-list'])){
 			$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
@@ -377,7 +377,6 @@ class sales_PrimeCostByDocument extends core_Manager
 		// Връщане на всички индикатори
         return $result;
 	}
-	
 	
 	
 	/**
