@@ -367,14 +367,14 @@ class label_Templates extends core_Master
         // Добавяме бутон
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        $form->FNC('fState', 'enum(, draft=Чернови, active=Използвани)', 'caption=Състояние, allowEmpty,autoFilter');
-        
-        // Показваме само това поле. Иначе и другите полета 
-        // на модела ще се появят
-        $form->showFields = 'search, fState';
-        
-        // Инпутваме полетата
-        $form->input('fState', 'silent');
+        $form->showFields = 'search';
+        if(!core_Request::get('Rejected', 'int')){
+        	$form->FNC('fState', 'enum(, draft=Чернови, active=Използвани)', 'caption=Всички, allowEmpty,autoFilter');
+        	$form->showFields .= ', fState';
+        	
+        	// Инпутваме полетата
+        	$form->input('fState', 'silent');
+        }
         
         // Подреждаме по състояние
         $data->query->orderBy('#state=ASC');
