@@ -109,7 +109,7 @@ class cash_NonCashPaymentDetails extends core_Manager
 	 * @param stdClass $row Това ще се покаже
 	 * @param stdClass $rec Това е записа в машинно представяне
 	 */
-	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+	protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 		if($rec->paymentId == -1){
 			$row->paymentId = tr('В брой');
