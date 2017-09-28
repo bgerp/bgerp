@@ -22,6 +22,8 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
      */
     public $canSelectDriver = 'manager,ceo';
 
+    public $listFields = 'person,document,value,roleId,from,to,documents';
+
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -34,6 +36,9 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
         $fieldset->FLD('from', 'datetime', 'caption=Период->От,mandatory,after=role');
         $fieldset->FLD('to', 'datetime', 'caption=Период->До,mandatory');
         $fieldset->FLD('documents', 'keylist(mvc=core_Classes,select=name)', 'caption=Документи,after=to');
+        $fieldset->FLD('order', 'enum(cnt=брой използвания,letter=азбучен ред)', 'caption=Подреди по,after=documents,mandatory,column=none');
+
+
     }
 
     /**
@@ -71,12 +76,6 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
             $recs[$doc->createdBy]['classes'][$doc->docClass]++;
 
             $recs[$doc->createdBy]['cnt']++;
-
-        }
-
-        foreach ($recs as &$r){
-
-            arsort($r['classes']);
 
         }
 
@@ -120,36 +119,79 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
      */
     protected function detailRecToVerbal($rec, &$dRec)
     {
+
         $cntx = 0;
 
         $cnty = 0;
 
-      //  $Int = cls::get('type_Int');
+        //  $Int = cls::get('type_Int');
 
         $row = new stdClass();
 
         $row->person = crm_Profiles::createLink($dRec['user']);
 
+        $vClassArr = array();
+        $vClsNameArr = array();
+        foreach ($dRec['classes'] as $key => $value){
 
-        //$row->value = $Int->toVerbal($dRec['cnt']);
-        $row->document .= '<table style="width: 100%;">';
-        foreach ($dRec['classes'] as $docId => $cnt) {
 
-            $row->document .='<tr>'.'<td style="border: none">'.cls::get($docId)->title.
-                ' ('.cls::get($docId)->className .')'.'</td>'.'<td style="min-width: 7%;border: none">'. $cnt.'</td>'.'</tr>';
+            if (!cls::load($key, TRUE)) {
+                $title = $key;
+                $clsName = $key;
+            } else {
+                $inst = cls::get($key);
+                $title = $inst->title;
+                $clsName = $inst->className;
+            }
 
-            /**
-             * Общ брой създадени документи от този потребител
-             */
-            $cntx += $cnt;
+            $vClassArr[$key] = $title;
 
-            /**
-             * Видове създадени документи(брой)
-             */
-            $cnty++;
+
+            $vClsNameArr[$key] = $clsName;
 
         }
-        $row->document.='</table>';
+
+        if($rec->order == 'cnt') {
+
+            arsort($dRec['classes']);
+
+        } elseif ($rec->order == 'letter') {
+
+            asort($vClassArr);
+
+            $nArr = array();
+
+            foreach ($vClassArr as $key => $dummy) {
+
+                $nArr[$key] = $dRec['classes'][$key];
+            }
+
+            $dRec['classes'] = $nArr;
+
+        }
+
+        //$row->value = $Int->toVerbal($dRec['cnt']);
+
+            $row->document .= '<table style="width: 100%;">';
+            foreach ($dRec['classes'] as $docId => $cnt) {
+
+                $row->document .='<tr>'.'<td style="border: none">'. $vClassArr[$docId].
+                    ' ('. $vClsNameArr[$docId] .')'.'</td>'.'<td style="min-width: 7%;border: none">'. $cnt.'</td>'.'</tr>';
+
+                /**
+                 * Общ брой създадени документи от този потребител
+                 */
+                $cntx += $cnt;
+
+                /**
+                 * Видове създадени документи(брой)
+                 */
+                $cnty++;
+
+            }
+
+            $row->document.='</table>';
+
         $row->value = $cntx . ' от ' . $cnty;
 
         return $row;

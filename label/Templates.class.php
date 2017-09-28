@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   label
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -119,6 +119,14 @@ class label_Templates extends core_Master
     
     
     /**
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     *
+     * @see plg_Clone
+     */
+    public $cloneDetails = 'label_TemplateFormats';
+    
+    
+    /**
      * Работен кеш
      */
     public static $cache = array();
@@ -129,7 +137,7 @@ class label_Templates extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'sysId';
+    public $fieldsNotToClone = 'sysId,state,exState,lastUsedOn,createdOn,createdBy';
     
     
 	/**
@@ -536,48 +544,65 @@ class label_Templates extends core_Master
     
     
     /**
-     * Премахваме някои полета преди да клонираме
-     * @see plg_Clone
+     * Добавя шаблон от файл. Обновява съществуващ файл само ако има промяна в някой от параметрите му
      * 
-     * @param label_Labels $mvc
-     * @param object $rec
-     * @param object $nRec
+     * @param string $title     - име на шаблона
+     * @param string $filePath  - път към файла на шаблона
+     * @param string $sysId     - систем ид на шаблона
+     * @param array $sizes      - размери на шаблона, масив с 2 елемента: широчина и височина
+     * @param string|NULL $lang - език на шаблона
+     * @param mixed $class      - клас към който да е шаблона
+     * @return stdClass|FALSE   - записа на шаблона или FALSE ако не е променян
      */
-    protected static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
+    public static function addFromFile($title, $filePath, $sysId, $sizes = array(), $lang = 'bg', $class = NULL)
     {
-        unset($nRec->state);
-        unset($nRec->exState);
-        unset($nRec->lastUsedOn);
-        unset($nRec->searchKeywords);
-        unset($nRec->createdOn);
-        unset($nRec->createdBy);
-    }
-    
-    
-    /**
-     * Премахваме някои полета преди да клонираме
-     * @see plg_Clone
-     * @todo да се премахне след като се добави тази функционалността в плъгина
-     * 
-     * @param label_Labels $mvc
-     * @param object $rec
-     * @param object $nRec
-     */
-    protected static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
-    {
-        // Клонира и детайлите след клониране на мастера
-        $detailsArr = arr::make($mvc->details);
-        foreach ($detailsArr as $detail) {
-            $detailInst = cls::get($detail);
-            $query = $detailInst->getQuery();
-            $masterKey = $mvc->{$detail}->masterKey;
-            $query->where("#{$masterKey} = {$rec->id}");
-            while($dRec = $query->fetch()) {
-                unset($dRec->id);
-                $dRec->{$masterKey} = $nRec->id;
-                $detailInst->save($dRec);
-            }
-        }
+    	// Проверки на данните
+    	expect(in_array($lang, array('bg', 'en')), $lang);
+    	expect(is_array($sizes) && count($sizes) == 2, $sizes);
+    	$sizes = array_values($sizes);
+    	$sizes = implode('x', $sizes) . " mm";
+    	expect($path = getFullPath($filePath), $path);
+    	$templateHash = md5_file($path);
+    	
+    	// Има ли шаблон с това систем ид
+    	$exRec = self::fetch(array("#sysId = '[#1#]'", $sysId));
+    	if(!$exRec){
+    		$exRec = new stdClass();
+    		$exRec->sysId = $sysId;
+    	}
+    	
+    	if(isset($class)){
+    		$classId = cls::get($class)->getClassId();
+    	}
+    	
+    	$isContentTheSame = md5($exRec->template) == $templateHash;
+    	
+    	// Ако подадените параметри са същите като съществуващите, не се обновява/създава нищо
+    	if($isContentTheSame && $exRec->title == $title && $exRec->title == $title && $exRec->sizes == $sizes && $exRec->lang == $lang && $exRec->classId == $classId){
+    		return FALSE;
+    	}
+    	
+    	// Обновяване на контента, ако има промяна
+    	if($isContentTheSame !== TRUE){
+    		$exRec->template = getFileContent($path);
+    	}
+    	
+    	if(isset($classId)){
+    		$exRec->classId = $classId;
+    	}
+    	$exRec->title = $title;
+    	$exRec->sizes = $sizes;
+    	$exRec->lang = $lang;
+    	$exRec->state = 'active';
+    	
+    	if(isset($classId)){
+    		$exRec->classId = $classId;
+    	}
+    	
+    	// Създаване/обновяване на шаблона
+    	static::save($exRec);
+    	
+    	return $exRec;
     }
     
     
@@ -587,71 +612,33 @@ class label_Templates extends core_Master
     function loadSetupData()
     {
     	$res = '';
-    	$added = $skipped = $updated = 0;
+    	$modified = $skipped = 0;
+    	$array = array('defaultTpl' => array('title' => 'Базов шаблон за етикети', 'path' => 'label/tpl/DefaultLabelBG.shtml', 'lang' => 'bg', 'class' => 'planning_Tasks', 'sizes' => array('100', '72')),
+    				   'defaultTplEn' => array('title' => 'Default label template', 'path' => 'label/tpl/DefaultLabelEN.shtml', 'lang' => 'en', 'class' => 'planning_Tasks', 'sizes' => array('100', '72')),
+    			       'defaultTplPackiningList' => array('title' => 'Packaging List label', 'path' => 'label/tpl/DefaultLabelPallet.shtml', 'lang' => 'en', 'class' => 'store_ShipmentOrders', 'sizes' => array('170', '105')),
+    	);
     	
-    	// Добавяне на дефолтни шаблони
-    	$templateArr = array('defaultTpl' => 'label/tpl/DefaultLabelBG.shtml', 'defaultTplEn' => 'label/tpl/DefaultLabelEN.shtml', 'defaultTplPackiningList' => 'label/tpl/DefaultLabelPallet.shtml');
-    	foreach ($templateArr as $sysId => $tplPath){
-    		$title = ($sysId == 'defaultTpl') ? 'Базов шаблон за етикети' : (($sysId == 'defaultTplEn') ? 'Default label template' : 'Packaging List label');
-    		$lang = ($sysId == 'defaultTpl') ? 'bg' : 'en';
-    		
-    		// Ако няма запис
-    		$exRec = self::fetch("#sysId = '{$sysId}'");
-    		
-    		if(!$exRec){
-    			$exRec = new stdClass();
-    			$exRec->sysId = $sysId;
-    			$exRec->title = $title;
-    			
-    			if($sysId == 'defaultTplPackiningList'){
-    				core_Classes::add('store_ShipmentOrders');
-    				$exRec->classId = store_ShipmentOrders::getClassId();
-    			} else {
-    				core_Classes::add('planning_Tasks');
-    				$exRec->classId = planning_Tasks::getClassId();
-    			}
-    		}
-    		
-    		if($sysId == 'defaultTplPackiningList'){
-    			$exRec->sizes = '170x105 mm';
-    		} else {
-    			$exRec->sizes = '100x72 mm';
-    		}
-    		
-    		$exRec->state = 'active';
-    		$exRec->lang = $lang;
-    		
-    		// Ако има промяна в шаблона, ъпдейтва се
-    		$templateHash = md5_file(getFullPath($tplPath));
-    		if(md5($exRec->template) != $templateHash || $exRec->title != $title){
-    			($exRec->id) ? $updated++ : $added;
-    			$exRec->template = getFileContent($tplPath);
-    			
-    			if(isset($exRec->id)){
-    				label_TemplateFormats::delete("#templateId = {$exRec->id}");
-    			}
-    			
-    			core_Users::forceSystemUser();
-    			self::save($exRec);
-    			
-    			// Добавяне на плейсхолдърите
-    			$arr = $this->getPlaceholders($exRec->template);
+    	core_Users::forceSystemUser();
+    	foreach ($array as $sysId => $cArr){
+    		$tRec = self::addFromFile($cArr['title'], $cArr['path'], $sysId, $cArr['sizes'], $cArr['lang'], $cArr['class']);
+    		if($tRec !== FALSE){
+    			label_TemplateFormats::delete("#templateId = {$tRec->id}");
+    			$arr = $this->getPlaceholders($tRec->template);
     			if(is_array($arr)){
     				foreach ($arr as $placeholder){
     					$type = (in_array($placeholder, array('BARCODE', 'PREVIEW'))) ? 'html' : 'caption';
-    					$dRec = (object)array('placeHolder' => $placeholder, 'type' => $type, 'templateId' => $exRec->id);
-    					label_TemplateFormats::save($dRec);
+    					label_TemplateFormats::addToTemplate($tRec->id, $placeholder, $type);
     				}
     			}
-    			
-    			core_Users::cancelSystemUser();
+    			$modified ++;
     		} else {
-    			$skipped++;
+    			$skipped ++;
     		}
     	}
+    	core_Users::cancelSystemUser();
     	
-    	$class = ($added > 0 || $updated > 0) ? ' class="green"' : '';
-    	$res = "<li{$class}>Добавени са {$added} шаблона за етикети, обновени са {$updated}, пропуснати са {$skipped}</li>";
+    	$class = ($modified > 0) ? ' class="green"' : '';
+    	$res = "<li{$class}>Променени са са {$modified} шаблона за етикети, пропуснати са {$skipped}</li>";
     	 
     	return $res;
     }

@@ -226,6 +226,7 @@ class sales_Proformas extends deals_InvoiceMaster
     	$form = &$data->form;
     	parent::prepareInvoiceForm($mvc, $data);
     	
+    	$form->setField('paymentType', 'input=none');
     	foreach (array('responsible', 'deliveryPlaceId', 'vatDate', 'contragentCountryId', 'contragentName') as $fld){
     		$form->setField($fld, 'input=hidden');
     	}
@@ -412,6 +413,8 @@ class sales_Proformas extends deals_InvoiceMaster
     			cond_PaymentMethods::preparePaymentPlan($data, $methodId, $total, $rec->date, $rec->currencyId);
     			core_Lg::pop();
     		}
+    	} else {
+    		unset($data->row->paymentMethodId);
     	}
     }
     

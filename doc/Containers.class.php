@@ -1620,6 +1620,8 @@ class doc_Containers extends core_Manager
                     
                 $mvc = cls::get($class);
                 
+                if ($mvc->newBtnGroup === FALSE) continue;
+                
                 list($order, $group) = explode('|', $mvc->newBtnGroup);
                 
                 // debug::log('Start HaveRight:' . $mvc->className);
