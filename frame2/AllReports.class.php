@@ -100,6 +100,9 @@ class frame2_AllReports extends core_Master
     {
         $this->FNC('source', 'class(allowEmpty, select=title)', 'caption=Вид, allowempty, mandatory, input, refreshForm, silent');
         $this->FNC('folderId', 'key(mvc=doc_Folders)', 'input=hidden, silent');
+        $this->FNC('threadId', 'key(mvc=doc_Threads)', 'input=hidden, silent');
+        $this->FNC('originId', 'key(mvc=doc_Containers)', 'input=hidden, silent');
+        $this->FNC('containerId', 'key(mvc=doc_Containers)', 'input=hidden, silent');
     }
     
     
@@ -141,8 +144,14 @@ class frame2_AllReports extends core_Master
     {
         $intf = array();
         
-        $interfaces2 = frame2_Reports::getAvailableDriverOptions();
-        $interfaces = core_Classes::getOptionsByInterface(cls::get('frame_Reports')->innerObjectInterface, 'title');
+        $interfaces = $interfaces2 = array();
+        if (frame2_Reports::haveRightFor('add', $data->form->rec)) {
+            $interfaces2 = frame2_Reports::getAvailableDriverOptions();
+        }
+        
+        if (frame_Reports::haveRightFor('add', $data->form->rec)) {
+            $interfaces = core_Classes::getOptionsByInterface(cls::get('frame_Reports')->innerObjectInterface, 'title');
+        }
         
         $intf = (array) $interfaces2 + (array) $interfaces;
         
