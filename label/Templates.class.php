@@ -83,6 +83,12 @@ class label_Templates extends core_Master
     
     
     /**
+     * Кой може да променя състоянието на валутата
+     */
+    public $canChangestate = 'labelMaster, admin, ceo';
+    
+    
+    /**
      * Кой има право да го изтрие?
      */
     public $canDelete = 'no_one';
@@ -91,13 +97,13 @@ class label_Templates extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'label_Wrapper, plg_RowTools2, plg_Created, plg_State, plg_Search, plg_Rejected, plg_Clone, plg_Sorting';
+    public $loadList = 'label_Wrapper, plg_RowTools2, plg_Created, plg_State2, plg_Search, plg_Rejected, plg_Clone, plg_Sorting';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title, sizes, template=Шаблон, lang=Език, classId, createdOn, createdBy';
+    public $listFields = 'title, sizes, template=Шаблон, lang=Език, classId, createdOn, createdBy, state';
 
     
     /**
@@ -361,14 +367,14 @@ class label_Templates extends core_Master
         // Добавяме бутон
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        $form->FNC('fState', 'enum(, draft=Чернови, active=Използвани)', 'caption=Състояние, allowEmpty,autoFilter');
-        
-        // Показваме само това поле. Иначе и другите полета 
-        // на модела ще се появят
-        $form->showFields = 'search, fState';
-        
-        // Инпутваме полетата
-        $form->input('fState', 'silent');
+        $form->showFields = 'search';
+        if(!core_Request::get('Rejected', 'int')){
+        	$form->FNC('fState', 'enum(, draft=Чернови, active=Използвани)', 'caption=Всички, allowEmpty,autoFilter');
+        	$form->showFields .= ', fState';
+        	
+        	// Инпутваме полетата
+        	$form->input('fState', 'silent');
+        }
         
         // Подреждаме по състояние
         $data->query->orderBy('#state=ASC');
@@ -651,17 +657,26 @@ class label_Templates extends core_Master
      * @param boolean $onlyIds
      * @return array $res
      */
-    public static function getTemplatesByDocument($class, $onlyIds = FALSE)
+    public static function getTemplatesByDocument($class, $objectId, $onlyIds = FALSE)
     {
     	$Class = cls::get($class);
     	$tQuery = label_Templates::getQuery();
-    	$tQuery->where("#classId = '{$Class->getClassId()}' AND #state != 'rejected'");
-    	
+    	$tQuery->where("#classId = '{$Class->getClassId()}' AND #state != 'rejected' AND #state != 'closed'");
     	if($onlyIds === TRUE){
     		$tQuery->show('id');
-    		$res = arr::extractValuesFromArray($tQuery->fetchAll(), 'id');
-    	} else {
-    		$res = $tQuery->fetchAll();
+    	}
+    	
+    	$intfInst = cls::getInterface('label_SequenceIntf', $class);
+    	
+    	$res = array();
+    	while($tRec = $tQuery->fetch()){
+    		if($intfInst->canSelectTemplate($objectId, $tRec->id)){
+    			$res[$tRec->id] = $tRec;
+    		}
+    	}
+    	
+    	if($onlyIds === TRUE){
+    		$res = arr::extractValuesFromArray($res, 'id');
     	}
     	
     	return $res;

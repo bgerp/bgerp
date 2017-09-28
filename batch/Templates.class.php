@@ -188,7 +188,7 @@ class batch_Templates extends embed_Manager {
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	$rec = &$form->rec;

@@ -96,7 +96,7 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
 					$percentToCompare = 1 - $confPercent;
 					
 					if($percent >= $percentToCompare){
-						$valueHint = ht::createHint($value, 'Партидата ще изтече скоро', 'warning');
+						$valueHint = ht::createHint($value, 'Партидата изтича скоро', 'warning');
 						$value = new core_ET("<span style='color:orange'>[#value#]</span>");
 						$value->replace($valueHint, 'value');
 					}

@@ -24,7 +24,7 @@ class frame2_AllReports extends core_Master
     /**
      * Заглавие на мениджъра
      */
-    public $title = "Справки";
+    public $title = "Справки и отчети";
     
     
     /**
@@ -207,7 +207,7 @@ class frame2_AllReports extends core_Master
         
         $intf = (array) $interfaces2 + (array) $interfaces;
         
-        if ($intf) {
+        if (!empty($intf)) {
             asort($intf);
             $intf = self::prepareOptFor($intf);
         }
