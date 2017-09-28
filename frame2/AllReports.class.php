@@ -142,47 +142,13 @@ class frame2_AllReports extends core_Master
         $intf = array();
         
         $interfaces2 = frame2_Reports::getAvailableDriverOptions();
-        if ($interfaces2) {
-            
-            $newOptions = self::prepareOptFor($interfaces2);
-            
-            if ($newOptions) {
-                $intf['frame2'] = (object)array(
-                        'title' => 'Динамични отчети',
-                        'group' => TRUE,
-                );
-                
-                $intf += $newOptions;
-            }
-        }
-        
-        // Извличаме класовете с посочения интерфейс
         $interfaces = core_Classes::getOptionsByInterface(cls::get('frame_Reports')->innerObjectInterface, 'title');
-        if ($interfaces) {
-            foreach ($interfaces as $id => $int){
-                if(!cls::load($id, TRUE)) continue;
-                
-                $Driver = cls::get($id);
-                
-                // Ако потребителя не може да го избира, махаме го от масива
-                if(!$Driver->canSelectInnerObject()){
-                    unset($interfaces[$id]);
-                }
-            }
-        }
         
-        if ($interfaces) {
-            
-            $newOptions = self::prepareOptFor($interfaces);
-            
-            if ($newOptions) {
-                $intf['frame'] = (object)array(
-                        'title' => 'Статични отчети',
-                        'group' => TRUE,
-                );
-                
-                $intf += $newOptions;
-            }
+        $intf = (array) $interfaces2 + (array) $interfaces;
+        
+        if ($intf) {
+            asort($intf);
+            $intf = self::prepareOptFor($intf);
         }
         
         $data->form->setOptions('source', $intf);
