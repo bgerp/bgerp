@@ -18,7 +18,7 @@ class frame2_AllReports extends core_Master
     /**
      * Заглавие
      */
-    public $singleTitle = 'Справка и отчет';
+    public $singleTitle = 'Справка';
    
     
     /**
@@ -144,7 +144,7 @@ class frame2_AllReports extends core_Master
         //Добавяме текст по подразбиране за титлата на формата
         if ($form->rec->folderId) {
             $fRec = doc_Folders::fetch($form->rec->folderId);
-            $title = tr("справка");
+            $title = tr(mb_strtolower($mvc->singleTitle));
             if(core_Users::getCurrent('id', FALSE)){
                 list($t,) = explode('<div', doc_Folders::recToVerbal($fRec)->title);
                 $title .= ' |в|* ' . $t;
