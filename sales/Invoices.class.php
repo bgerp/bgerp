@@ -491,7 +491,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	}
     	
     	if($rec->state == 'active'){
-    		$amount = ($rec->dealValue - $rec->discountAmount) + $rec->vatAmount;
+    		$amount = ($rec->dealValue - $rec->discountAmount) + $rec->vatAmount - 0.005;
     		$amount /= ($rec->displayRate) ? $rec->displayRate : $rec->rate;
     		$amount = round($amount, 2);
     		
