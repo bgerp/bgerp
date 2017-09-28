@@ -100,6 +100,8 @@ class frame2_AllReports extends core_Master
     {
         $this->FNC('source', 'class(allowEmpty, select=title)', 'caption=Вид, allowempty, mandatory, input, refreshForm, silent');
         $this->FNC('folderId', 'key(mvc=doc_Folders)', 'input=hidden, silent');
+        $this->FNC('threadId', 'key(mvc=doc_Threads)', 'input=hidden, silent');
+        $this->FNC('originId', 'key(mvc=doc_Containers)', 'input=hidden, silent');
     }
     
     
@@ -141,8 +143,26 @@ class frame2_AllReports extends core_Master
     {
         $intf = array();
         
-        $interfaces2 = frame2_Reports::getAvailableDriverOptions();
-        $interfaces = core_Classes::getOptionsByInterface(cls::get('frame_Reports')->innerObjectInterface, 'title');
+        $interfaces = $interfaces2 = array();
+        if (frame2_Reports::haveRightFor('add', $data->form->rec)) {
+            $interfaces2 = frame2_Reports::getAvailableDriverOptions();
+        }
+        
+        if (frame_Reports::haveRightFor('add', $data->form->rec)) {
+            $interfaces = core_Classes::getOptionsByInterface(cls::get('frame_Reports')->innerObjectInterface, 'title');
+            
+            foreach ((array)$interfaces as $id => $int){
+                if(!cls::load($id, TRUE)) continue;
+                
+                $Driver = cls::get($id);
+                
+                // Ако има права за добавяне на поне 1 отчет
+                if(!$Driver->canSelectInnerObject()){
+                    
+                    unset($interfaces[$id]);
+                }
+            }
+        }
         
         $intf = (array) $interfaces2 + (array) $interfaces;
         
@@ -216,7 +236,18 @@ class frame2_AllReports extends core_Master
                     $urlArr = array('frame_Reports', 'add', 'source' => $form->rec->source);
                 }
                 
-                $urlArr['folderId'] = $form->rec->folderId;
+                if ($form->rec->folderId) {
+                    $urlArr['folderId'] = $form->rec->folderId;
+                }
+                
+                if ($form->rec->threadId) {
+                    $urlArr['threadId'] = $form->rec->threadId;
+                }
+                
+                if ($form->rec->originId) {
+                    $urlArr['originId'] = $form->rec->originId;
+                }
+                
                 $urlArr['ret_url'] = array($mvc, 'add', 'source' => $form->rec->source, 'folderId' => $form->rec->folderId, 'ret_url' => $form->rec->ret_url);
                 
                 return redirect($urlArr);
