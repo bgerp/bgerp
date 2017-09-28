@@ -236,19 +236,25 @@ class frame2_AllReports extends core_Master
                     $urlArr = array('frame_Reports', 'add', 'source' => $form->rec->source);
                 }
                 
+                $retUrl = array($mvc, 'add', 'source' => $form->rec->source, 'ret_url' => $form->rec->ret_url);
+                
                 if ($form->rec->folderId) {
                     $urlArr['folderId'] = $form->rec->folderId;
+                    $retUrl['folderId'] = $form->rec->folderId;
                 }
                 
                 if ($form->rec->threadId) {
                     $urlArr['threadId'] = $form->rec->threadId;
+                    $retUrl['threadId'] = $form->rec->threadId;
                 }
                 
                 if ($form->rec->originId) {
                     $urlArr['originId'] = $form->rec->originId;
+                    $retUrl['originId'] = $form->rec->originId;
                 }
                 
-                $urlArr['ret_url'] = array($mvc, 'add', 'source' => $form->rec->source, 'folderId' => $form->rec->folderId, 'ret_url' => $form->rec->ret_url);
+                
+                $urlArr['ret_url'] = $retUrl;
                 
                 return redirect($urlArr);
             }
