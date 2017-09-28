@@ -102,7 +102,6 @@ class frame2_AllReports extends core_Master
         $this->FNC('folderId', 'key(mvc=doc_Folders)', 'input=hidden, silent');
         $this->FNC('threadId', 'key(mvc=doc_Threads)', 'input=hidden, silent');
         $this->FNC('originId', 'key(mvc=doc_Containers)', 'input=hidden, silent');
-        $this->FNC('containerId', 'key(mvc=doc_Containers)', 'input=hidden, silent');
     }
     
     
@@ -237,7 +236,18 @@ class frame2_AllReports extends core_Master
                     $urlArr = array('frame_Reports', 'add', 'source' => $form->rec->source);
                 }
                 
-                $urlArr['folderId'] = $form->rec->folderId;
+                if ($form->rec->folderId) {
+                    $urlArr['folderId'] = $form->rec->folderId;
+                }
+                
+                if ($form->rec->threadId) {
+                    $urlArr['threadId'] = $form->rec->threadId;
+                }
+                
+                if ($form->rec->originId) {
+                    $urlArr['originId'] = $form->rec->originId;
+                }
+                
                 $urlArr['ret_url'] = array($mvc, 'add', 'source' => $form->rec->source, 'folderId' => $form->rec->folderId, 'ret_url' => $form->rec->ret_url);
                 
                 return redirect($urlArr);
