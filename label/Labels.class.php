@@ -359,7 +359,7 @@ class label_Labels extends core_Master
         $optArr = array();
         
         if (!empty($labelDataArr)) {
-        	$templates = label_Templates::getTemplatesByDocument($classId);
+        	$templates = label_Templates::getTemplatesByDocument($classId, $objId);
             if (!count($templates)) return new Redirect($retUrl, '|Няма шаблон, който да се използва');
             
             foreach ($templates as $tRec){

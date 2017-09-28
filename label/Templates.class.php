@@ -651,17 +651,26 @@ class label_Templates extends core_Master
      * @param boolean $onlyIds
      * @return array $res
      */
-    public static function getTemplatesByDocument($class, $onlyIds = FALSE)
+    public static function getTemplatesByDocument($class, $objectId, $onlyIds = FALSE)
     {
     	$Class = cls::get($class);
     	$tQuery = label_Templates::getQuery();
     	$tQuery->where("#classId = '{$Class->getClassId()}' AND #state != 'rejected'");
-    	
     	if($onlyIds === TRUE){
     		$tQuery->show('id');
-    		$res = arr::extractValuesFromArray($tQuery->fetchAll(), 'id');
-    	} else {
-    		$res = $tQuery->fetchAll();
+    	}
+    	
+    	$intfInst = cls::getInterface('label_SequenceIntf', $class);
+    	
+    	$res = array();
+    	while($tRec = $tQuery->fetch()){
+    		if($intfInst->canSelectTemplate($objectId, $tRec->id)){
+    			$res[$tRec->id] = $tRec;
+    		}
+    	}
+    	
+    	if($onlyIds === TRUE){
+    		$res = arr::extractValuesFromArray($res, 'id');
     	}
     	
     	return $res;
