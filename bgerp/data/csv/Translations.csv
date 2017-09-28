@@ -2008,7 +2008,7 @@ en,Търсене на про_ee600,Search product in warehouse
 en,Търсене на фирми,Search companies
 en,Търсене,Search
 en,Уважаема,Dear
-en,Уважаеми колеги,Dear colleagues
+en,Уважаеми колеги,Dear Colleagues
 en,Уважаеми,Dear
 en,Удебелен текст,Bold
 en,Указател,Organizer
@@ -2398,7 +2398,11 @@ en,толеранс к-во,Qty tolerance
 en,Клониране на артикула,Clone product
 en,Клониране на реда,Clone row
 en,Толеранс, Tolerance
+en,тегло,weight
+en,дължина,length
+en,Дължина,Length
 en,Включено ДДС в цените, Prices are with applied VAT
 en,До 1 месец след фактуриране, Until 1 month after invoicing
 en,50% авансово и 50% до 30 дни след фактуриране, 50% downpayment and 50% until 30 days after invoicing
 en,50% авансово и 50% до 10 дни след фактуриране, 50% downpayment and 50% until 10 days after invoicing
+en,По проформа,From pro forma

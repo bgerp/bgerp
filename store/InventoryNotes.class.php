@@ -394,6 +394,9 @@ class store_InventoryNotes extends core_Master
     		$fields = array('shipmentStoreId' => $rec->storeId, 'valior' => $rec->valior, 'originId' => $rec->containerId);
     		$saleId = sales_Sales::createNewDraft('crm_Persons', $personId, $fields);
     		
+    		$saleRec = sales_Sales::fetch($saleId, 'threadId,containerId');
+    		doc_ThreadUsers::addShared($saleRec->threadId, $saleRec->containerId, $rec->createdBy);
+    		
     		// Добавяме редовете, които са за неговото начисляване
     		$dQuery = store_InventoryNoteSummary::getResponsibleRecsQuery($rec->id);
     		$dQuery->where("#charge = {$userId}");

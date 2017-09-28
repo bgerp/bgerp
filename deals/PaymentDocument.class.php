@@ -33,7 +33,7 @@ abstract class deals_PaymentDocument extends core_Master {
 	{
 		// Обновяваме автоматично изчисления метод на плащане на всички фактури в нишката на документа
 		$threadId = ($rec->threadId) ? $rec->threadId : $mvc->fetchField($rec->id, 'threadId');
-		sales_Invoices::updateAutoPaymentTypeInThread($threadId);
+		deals_Helper::updateAutoPaymentTypeInThread($threadId);
 	}
 	
 	
@@ -47,7 +47,7 @@ abstract class deals_PaymentDocument extends core_Master {
 			
 			// Обновяваме автоматично изчисления метод на плащане на всички фактури в нишката на документа
 			$threadId = ($rec->threadId) ? $rec->threadId : $mvc->fetchField($id, 'threadId');
-			sales_Invoices::updateAutoPaymentTypeInThread($threadId);
+			deals_Helper::updateAutoPaymentTypeInThread($threadId);
 		}
 	}
 	
@@ -85,12 +85,11 @@ abstract class deals_PaymentDocument extends core_Master {
 			$Document = doc_Containers::getDocument($rec->fromContainerId);
 			$number = str_pad($Document->fetchField('number'), '10', '0', STR_PAD_LEFT);
 			$row->fromContainerId = "#{$Document->abbr}{$number}";
-		} elseif(!Mode::isReadOnly()) {
-			$row->fromContainerId = "<div class=border-field></div>";
 		}
 		
 		if(!Mode::isReadOnly()){
 			if($mvc->haveRightFor('selectinvoice', $rec)){
+				$row->fromContainerId = (!empty($rec->fromContainerId)) ? $row->fromContainerId : "<div class=border-field></div>";
 				$row->fromContainerId = $row->fromContainerId . ht::createLink('', array($mvc, 'selectInvoice', $rec->id, 'ret_url' => TRUE), FALSE, 'title=Смяна на фактурата към която е документа,ef_icon=img/16/edit.png');
 			}
 		}
@@ -108,10 +107,11 @@ abstract class deals_PaymentDocument extends core_Master {
 		$this->requireRightFor('selectinvoice', $rec);
 		
 		$form = cls::get('core_Form');
-		$form->title = "Избор на фактура по която е|* <b>" . $this->getHyperlink($rec);
+		$form->title = core_Detail::getEditTitle($this, $rec->id, 'информация', $rec->id);
 		$form->FLD('fromContainerId', 'int', 'caption=За фактура');
 		
-		$invoices = deals_Helper::getInvoicesInThread($rec->threadId);
+		$isReverse = ($rec->isReverse == 'yes');
+		$invoices = deals_Helper::getInvoicesInThread($rec->threadId, $isReverse);
 		$form->setOptions('fromContainerId', array('' => '') + $invoices);
 		$form->setDefault('fromContainerId', $rec->fromContainerId);
 		
@@ -152,7 +152,8 @@ abstract class deals_PaymentDocument extends core_Master {
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
 		if($action == 'selectinvoice' && isset($rec)){
-			if($rec->state == 'rejected' || !deals_Helper::getInvoicesInThread($rec->threadId, TRUE)){
+			$isReverse = ($rec->isReverse == 'yes');
+			if($rec->state == 'rejected' || !deals_Helper::getInvoicesInThread($rec->threadId, $isReverse)){
 				$requiredRoles = 'no_one';
 			}
 		}

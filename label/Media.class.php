@@ -299,7 +299,7 @@ class label_Media extends core_Manager
      * @param stdClass $rec
      * @param int $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Активните записи да не може да се редактират или изтриват
         if ($rec && ($action == 'edit' || $action == 'delete')) {
@@ -311,13 +311,9 @@ class label_Media extends core_Manager
     
     
     /**
-     * 
-     * 
-     * @param label_Labels $mvc
-     * @param object $row
-     * @param object $rec
+     * След подготовка на вербалното представяне
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->title = $row->title . " " . self::getSize($row->width, $row->height);
     }
