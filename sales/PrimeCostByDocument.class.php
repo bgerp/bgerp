@@ -360,6 +360,7 @@ class sales_PrimeCostByDocument extends core_Manager
 		
 		// Всички записи
 		$indicatorRecs = $iQuery->fetchAll();
+		core_App::setTimeLimit(count($indicatorRecs) * 0.8);
 		
 		// Връщане на индикаторите за делта на търговеца и инициатора
 		$result1 = self::getDeltaIndicators($indicatorRecs, $masters, $personIds);
