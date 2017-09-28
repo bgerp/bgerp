@@ -340,15 +340,18 @@ class label_Labels extends core_Master
         
         $labelDataArr = array();
         
+        // Вземаме формата към този модел
+        $form = $this->getForm();
+        $form->title = "Избор на шаблон";
+        
         if ($classId && $objId) {
+        	$form->title = 'Избор на шаблон за печат на етикети от|* ' . cls::get($classId)->getFormTitleLink($objId);
+        	
             $intfInst = cls::getInterface('label_SequenceIntf', $classId);
             $labelDataArr = (array) $intfInst->getLabelPlaceholders($objId);
             $labelDataArr = arr::make($labelDataArr, TRUE);
         }
        
-        // Вземаме формата към този модел
-        $form = $this->getForm();
-        
         // Добавяме функционално поле
         $form->FNC('selectTemplateId', 'key(mvc=label_Templates, select=title, where=#state !\\= \\\'rejected\\\')', 'caption=Шаблон');
         
@@ -437,9 +440,6 @@ class label_Labels extends core_Master
             // Редиректваме към екшъна за добавяне
             return new Redirect($redirectUrl);
         }
-        
-        // Заглавие на шаблона
-        $form->title = "Избор на шаблон";
         
         // Задаваме да се показват само полетата, които ни интересуват
         $form->showFields = 'selectTemplateId';
