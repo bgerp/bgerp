@@ -151,6 +151,18 @@ class frame2_AllReports extends core_Master
         
         if (frame_Reports::haveRightFor('add', $data->form->rec)) {
             $interfaces = core_Classes::getOptionsByInterface(cls::get('frame_Reports')->innerObjectInterface, 'title');
+            
+            foreach ((array)$interfaces as $id => $int){
+                if(!cls::load($id, TRUE)) continue;
+                
+                $Driver = cls::get($id);
+                
+                // Ако има права за добавяне на поне 1 отчет
+                if(!$Driver->canSelectInnerObject()){
+                    
+                    unset($interfaces[$id]);
+                }
+            }
         }
         
         $intf = (array) $interfaces2 + (array) $interfaces;
