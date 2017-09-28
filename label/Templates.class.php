@@ -83,6 +83,12 @@ class label_Templates extends core_Master
     
     
     /**
+     * Кой може да променя състоянието на валутата
+     */
+    public $canChangestate = 'labelMaster, admin, ceo';
+    
+    
+    /**
      * Кой има право да го изтрие?
      */
     public $canDelete = 'no_one';
@@ -91,13 +97,13 @@ class label_Templates extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'label_Wrapper, plg_RowTools2, plg_Created, plg_State, plg_Search, plg_Rejected, plg_Clone, plg_Sorting';
+    public $loadList = 'label_Wrapper, plg_RowTools2, plg_Created, plg_State2, plg_Search, plg_Rejected, plg_Clone, plg_Sorting';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title, sizes, template=Шаблон, lang=Език, classId, createdOn, createdBy';
+    public $listFields = 'title, sizes, template=Шаблон, lang=Език, classId, createdOn, createdBy, state';
 
     
     /**
@@ -655,7 +661,7 @@ class label_Templates extends core_Master
     {
     	$Class = cls::get($class);
     	$tQuery = label_Templates::getQuery();
-    	$tQuery->where("#classId = '{$Class->getClassId()}' AND #state != 'rejected'");
+    	$tQuery->where("#classId = '{$Class->getClassId()}' AND #state != 'rejected' AND #state != 'closed'");
     	if($onlyIds === TRUE){
     		$tQuery->show('id');
     	}
