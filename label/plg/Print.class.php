@@ -35,7 +35,7 @@ class label_plg_Print extends core_Plugin
 	public static function on_AfterPrepareSingleToolbar($mvc, &$data)
 	{
 		if($mvc->haveRightFor('printlabel', $data->rec)){
-			$templates = label_Templates::getTemplatesByDocument($mvc, TRUE);
+			$templates = label_Templates::getTemplatesByDocument($mvc, $data->rec->id, TRUE);
 			$error = '';
 			if(!count($templates)){
 				$error = ",error=Няма наличен шаблон за етикети от \"{$mvc->title}\"";
@@ -64,6 +64,19 @@ class label_plg_Print extends core_Plugin
 			if(in_array($rec->state, array('rejected', 'draft', 'template'))){
 				$requiredRoles = 'no_one';
 			}
+		}
+	}
+	
+	
+	/**
+	 * Реализация по подразбиране
+	 * 
+	 * @see label_SequenceIntf::canSelectTemplate($id, $templateId)
+	 */
+	public static function on_AfterCanSelectTemplate($mvc, &$res, $objectId, $templateId)
+	{
+		if(is_null($res)) {
+			$res = TRUE;
 		}
 	}
 }

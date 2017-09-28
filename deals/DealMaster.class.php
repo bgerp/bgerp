@@ -956,7 +956,7 @@ abstract class deals_DealMaster extends deals_DealBase
 			} else {
 				if(isset($rec->deliveryTermId)){
 					$deliveryAdress .= cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $mvc);
-					$deliveryAdress = ht::createHint($deliveryAdress, 'Адреса за доставка ще се запише при активиране');
+					$deliveryAdress = ht::createHint($deliveryAdress, 'Адреса за доставка ще бъде записан при активиране');
 				}
 			}
 			

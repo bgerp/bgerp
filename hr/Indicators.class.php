@@ -8,7 +8,7 @@
  *
  * @category  bgerp
  * @package   hr
- * @author    Gabriela Petrova <gab4eto@gmail.com> и Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
@@ -33,7 +33,7 @@ class hr_Indicators extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, hr_Wrapper,plg_Sorting';
+    public $loadList = 'plg_RowTools2, hr_Wrapper, plg_Sorting';
     
     
     /**
@@ -71,15 +71,16 @@ class hr_Indicators extends core_Manager
      */
     public function description()
     {
-        $this->FLD('date',    'date', 'caption=Дата,mandatory');
-        $this->FLD('docId',    'int', 'caption=Документ->№,mandatory,tdClass=leftCol');
+        $this->FLD('date', 'date', 'caption=Дата,mandatory');
+        $this->FLD('docId', 'int', 'caption=Документ->№,mandatory,tdClass=leftCol');
         $this->FLD('docClass', 'int', 'caption=Документ->Клас,silent,mandatory');
-		$this->FLD('personId',    'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител,mandatory');
-		$this->FLD('indicatorId',    'key(mvc=hr_IndicatorNames,select=name)', 'caption=Показател,smartCenter,mandatory');
-        $this->FLD('sourceClass',    'class(interface=hr_IndicatorsSourceIntf,select=title)', 'caption=Показател->Източник,smartCenter,mandatory');
-        $this->FLD('value',    'double(smartRound,decimals=2)', 'caption=Стойност,mandatory');
+		$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител,mandatory');
+		$this->FLD('indicatorId', 'key(mvc=hr_IndicatorNames,select=name)', 'caption=Показател,smartCenter,mandatory');
+        $this->FLD('sourceClass', 'class(interface=hr_IndicatorsSourceIntf,select=title)', 'caption=Показател->Източник,smartCenter,mandatory');
+        $this->FLD('value', 'double(smartRound,decimals=2)', 'caption=Стойност,mandatory');
 
         $this->setDbUnique('date,docId,docClass,indicatorId,sourceClass,personId');
+        $this->setDbIndex('docClass,docId');
     }
     
     
@@ -90,7 +91,7 @@ class hr_Indicators extends core_Manager
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {   
         // Ако имаме права да видим визитката
         if(crm_Persons::haveRightFor('single', $rec->personId)){
@@ -371,7 +372,7 @@ class hr_Indicators extends core_Manager
                 uksort($contex, "str::sortByLengthReverse");
 
                 // Заместваме променливите и индикаторите
-                $expr  = strtr($prlRec->formula, $contex);
+                $expr = strtr($prlRec->formula, $contex);
         		
                 if(str::prepareMathExpr($expr) === FALSE) {
                     $prlRec->error = 'Невъзможно изчисление';
@@ -387,14 +388,6 @@ class hr_Indicators extends core_Manager
             $prlRec->indicators = $sum;
             hr_Payroll::save($prlRec);
         }
-
-        // Ако не успеем - заплащането е базовото от договора
-
-        // Извличаме и сумираме всички индикатори за дадения човек, за дадения период
-
-        // Заместваме във формулата и получаваме  резултата
-
-        // В записа записваме и формулата и заместените велични
     }
     
     
