@@ -134,6 +134,47 @@ class frame2_AllReports extends core_Master
     
     
     /**
+     * След подготовката на заглавието на формата
+     */
+    public static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+        $form = &$data->form;
+        $rec = &$form->rec;
+        
+        //Добавяме текст по подразбиране за титлата на формата
+        if ($form->rec->folderId) {
+            $fRec = doc_Folders::fetch($form->rec->folderId);
+            $title = tr(mb_strtolower($mvc->singleTitle));
+            if(core_Users::getCurrent('id', FALSE)){
+                list($t,) = explode('<div', doc_Folders::recToVerbal($fRec)->title);
+                $title .= ' |в|* ' . $t;
+            }
+        }
+        
+        $rec = $form->rec;
+        
+        if($rec->threadId) {
+            $form->title = 'Добавяне на|* ';
+        } else {
+            $form->title = 'Създаване на|* ';
+        }
+        
+        if($rec->threadId) {
+            $thRec = doc_Threads::fetch($form->rec->threadId);
+            setIfNot($data->singleTitle, $mvc->singleTitle);
+            
+            if($thRec->firstContainerId != $form->rec->containerId) {
+                $firstDoc = doc_Containers::getDocument($thRec->firstContainerId);
+                $form->title = core_Detail::getEditTitle($firstDoc->getInstance(), $firstDoc->that, $data->singleTitle, $rec->id, NULL, 50);
+                unset($title);
+            }
+        }
+        
+        $form->title .= $title;
+    }
+    
+    
+    /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param core_Manager $mvc
