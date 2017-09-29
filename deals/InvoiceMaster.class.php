@@ -901,6 +901,10 @@ abstract class deals_InvoiceMaster extends core_Master
     		}
     	}
     	
+    	if(empty($rec->paymentType) && isset($rec->autoPaymentType)){
+    		$row->paymentType = $mvc->getFieldType('paymentType')->toVerbal($rec->autoPaymentType);
+    	}
+    	
     	if($fields['-single']){
     		if(empty($rec->vatReason)){
     			if(!drdata_Countries::isEu($rec->contragentCountryId)){
@@ -983,13 +987,14 @@ abstract class deals_InvoiceMaster extends core_Master
     		foreach (array('MyCompany', 'MyAddress', 'MyCompanyVatNo', 'uicId', 'contragentName') as $fld){
     			$row->{$fld} = $headerInfo[$fld];
     		}
+    		
     		if($rec->paymentType == 'factoring'){
     			$row->accountId = tr('ФАКТОРИНГ');
     			unset($row->bank);
     			unset($row->bic);
     		}
     		 
-    		if(!empty($rec->paymentType)){
+    		if(!empty($row->paymentType)){
     			$row->paymentType = tr("Плащане " . mb_strtolower($row->paymentType));
     		}
     		
