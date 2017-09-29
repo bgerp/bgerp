@@ -256,6 +256,7 @@ class deals_plg_DpInvoice extends core_Plugin
     	if(empty($form->dealInfo)) return;
     	
     	if ($form->isSubmitted()) {
+    		$changeAct = (core_Request::get('Act') == 'changefields');
     		
         	$rec = &$form->rec;
         	
@@ -284,7 +285,7 @@ class deals_plg_DpInvoice extends core_Plugin
 	    		}
 	    		
 	    		$downpayment = core_Math::roundNumber($downpayment / $rec->rate);
-	    		if($rec->dpAmount > ($downpayment * 1.05 + 1)){
+	    		if($rec->dpAmount > ($downpayment * 1.05 + 1) && $changeAct !== TRUE){
 	    			$dVerbal = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($downpayment);
 	    			$warning = ($downpayment === (double)0) ? "Зададена е сума, без да се очаква аванс по сделката" : "|Въведения аванс е по-голям от очаквания|* <b>{$dVerbal} {$rec->currencyId}</b> |{$warningUnit}|*";
 	    			
@@ -295,16 +296,18 @@ class deals_plg_DpInvoice extends core_Plugin
 	    	if(isset($rec->amountDeducted)){
 	    		$rec->dpOperation = 'deducted';
 
-	    		if(empty($invoicedDp) || $invoicedDp == $deductedDp){
-	    			if(!($mvc instanceof sales_Proformas)){
-	    				$form->setWarning('amountDeducted', 'Избрано е приспадане на аванс, без да има начислен такъв');
+	    		if($changeAct !== TRUE){
+	    			if(empty($invoicedDp) || $invoicedDp == $deductedDp){
+	    				if(!($mvc instanceof sales_Proformas)){
+	    					$form->setWarning('amountDeducted', 'Избрано е приспадане на аванс, без да има начислен такъв');
+	    				}
+	    			} else {
+	    				if(abs($rec->dpAmount) > core_Math::roundNumber($invoicedDp - $deductedDp)){
+	    					$downpayment = core_Math::roundNumber(($invoicedDp - $deductedDp) / $rec->rate);
+	    					$dVerbal = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($downpayment);
+	    					$form->setWarning('amountDeducted', "|Въведеният за приспадане аванс е по-голям от начисления|* <b>{$dVerbal} {$rec->currencyId}</b> |{$warningUnit}|*");
+	    				}
 	    			}
-	    		} else {
-	    			if(abs($rec->dpAmount) > core_Math::roundNumber($invoicedDp - $deductedDp)){
-						$downpayment = core_Math::roundNumber(($invoicedDp - $deductedDp) / $rec->rate);
-						$dVerbal = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($downpayment);
-	    				$form->setWarning('amountDeducted', "|Въведеният за приспадане аванс е по-голям от начисления|* <b>{$dVerbal} {$rec->currencyId}</b> |{$warningUnit}|*");
-					}
 	    		}
 	    		
 	    		if(!$form->gotErrors()){
