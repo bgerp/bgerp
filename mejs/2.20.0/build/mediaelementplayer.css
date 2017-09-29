@@ -192,7 +192,8 @@
 	position: absolute;
 	height: 16px;
 	width: 16px;
-	border: 0;
+	border: 0 !important;
+	box-shadow: none;
 	background: transparent url(controls.svg) no-repeat;
 }
 
@@ -234,15 +235,15 @@
 
 /* Start: Play/Pause/Stop */
 .mejs-controls .mejs-play button {
-	background-position: 0 0;
+	background-position: 0 0 !important;
 }
 
 .mejs-controls .mejs-pause button {
-	background-position: 0 -16px;
+	background-position: 0 -16px !important;
 }
 
 .mejs-controls .mejs-stop button {
-	background-position: -112px 0;
+	background-position: -112px 0 !important;
 }
 /* Start: Play/Pause/Stop */
 
@@ -397,11 +398,11 @@
 
 /* Start: Fullscreen */
 .mejs-controls .mejs-fullscreen-button button {
-	background-position: -32px 0;
+	background-position: -32px 0 !important;
 }
 
 .mejs-controls .mejs-unfullscreen button {
-	background-position: -32px -16px;
+	background-position: -32px -16px !important;
 }
 /* End: Fullscreen */
 
@@ -411,11 +412,11 @@
 }
 
 .mejs-controls .mejs-mute button {
-	background-position: -16px -16px;
+	background-position: -16px -16px !important;
 }
 
 .mejs-controls .mejs-unmute button {
-	background-position: -16px 0;
+	background-position: -16px 0 !important;
 }
 
 .mejs-controls .mejs-volume-button {
