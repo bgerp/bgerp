@@ -86,7 +86,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	
 	
 	/**
-	 * Кой има право да чете?
+	 * Кой има право да контира?
 	 */
 	public $canConto = 'ceo,planning,store,production';
 	
