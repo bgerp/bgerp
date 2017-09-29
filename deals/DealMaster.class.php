@@ -1590,10 +1590,8 @@ abstract class deals_DealMaster extends deals_DealBase
     	$fields['paymentState'] = 'pending';
     	
     	// Опиваме се да запишем мастъра на сделката
-    	if($id = $me->save((object)$fields)){
-    		
-    		// Ако е успешно, споделяме текущия потребител към новосъздадената нишка
-    		$rec = $me->fetchField($id);
+    	$rec = (object)$fields;
+    	if($id = $me->save($rec)){
     		doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, core_Users::getCurrent());
     
     		return $id;
