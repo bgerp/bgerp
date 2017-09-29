@@ -1038,7 +1038,7 @@ abstract class deals_InvoiceMaster extends core_Master
  
     	setIfNot($dueDate, $rec->dueDate, $rec->date);
     	
-    	$aggregator->push('invoices', array('dueDate' => $dueDate, 'total' => $total));
+    	$aggregator->push('invoices', array('dueDate' => $dueDate, 'total' => $total, 'type' => $rec->type));
     	$aggregator->sum('invoicedAmount', $total);
     	$aggregator->setIfNot('invoicedValior', $rec->date);
     	
