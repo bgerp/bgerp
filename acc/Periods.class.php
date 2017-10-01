@@ -555,7 +555,7 @@ class acc_Periods extends core_Manager
     /**
      * Създава бъдещи (3 месеца напред) счетоводни периоди
      */
-    protected function cron_CreateFuturePeriods()
+    public function cron_CreateFuturePeriods()
     {
         $this->forcePeriod(dt::getLastDayOfMonth(NULL, 3));
         $this->updateExistingPeriodsState();
