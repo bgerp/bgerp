@@ -9,22 +9,27 @@
  * @category  bgerp
  * @package   cms
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class cms_ObjectPlg extends core_Plugin
 {
 
-    function on_AfterDescription($mvc)
+	
+	/**
+     * След дефиниране на полетата на модела
+     */
+    public static function on_AfterDescription($mvc)
     {
-        $mvc->interfaces = arr::combine($mvc->interfaces, 'cms_ObjectSourceIntf');
+    	$mvc->declareInterface('cms_ObjectSourceIntf');
     }
+    
     
     /**
      * Прихваща рендирането на главната опаковка (страницата)
      */
-    function on_AfterPrepareSingleToolbar($mvc, &$data)
+    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         if(haveRole('cms,admin,ceo') && $data->rec->state != 'rejected' ) {
             
@@ -40,24 +45,22 @@ class cms_ObjectPlg extends core_Plugin
     }
 
 
-    // Реализация по подразбиране на интерфейсните методи
-
     /**
-     *
+     * След подготовка на обекта
      */
-     function on_AfterPrepareCmsObject($mvc, &$res, &$data)
-    {
+     public static function on_AfterPrepareCmsObject($mvc, &$res, &$data)
+     {
         if($data->cmsType == 'object') { 
             $data->rec = $mvc->fetch($data->cmsObjectId);
             $mvc->prepareSingle($data);  
         }
-    }
+     }
     
     
     /**
      *
      */
-    function on_AfterRenderCmsObject($mvc, &$res, $data, $tpl)
+    public static function on_AfterRenderCmsObject($mvc, &$res, $data, $tpl)
     {
         if(!$res) {
             $data->singleLayout = $tpl;
@@ -69,7 +72,7 @@ class cms_ObjectPlg extends core_Plugin
     /**
      *
      */
-    function on_AfterGetDefaultCmsTpl($mvc, &$res, $data)
+    public static function on_AfterGetDefaultCmsTpl($mvc, &$res, $data)
     {
     	if(isset($mvc->singleLayoutFile)) {
     		$file = str_replace(".shtml", "Public.shtml", $mvc->singleLayoutFile);
@@ -83,5 +86,4 @@ class cms_ObjectPlg extends core_Plugin
             $res = $mvc->renderSingleLayout($data);
        	}
     }
-
 }
