@@ -465,10 +465,10 @@ class unit_MinkPSales extends core_Manager {
          
         //$browser->hasText('Създаване на продажба');
         $browser->setValue('reff', 'MinkP');
-        $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPSaleVatInclude');
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('bankAccountId', '#BG11CREX92603114548401');
+        $browser->setValue('caseId', '');
         $browser->setValue('chargeVat', "Включено ДДС в цените");
         // Записване черновата на продажбата
         $browser->press('Чернова');
@@ -522,6 +522,11 @@ class unit_MinkPSales extends core_Manager {
             return unit_MinkPbgERP::reportErr('Грешно ДДС във фактура', 'warning');
         }
         
+        if(strpos($browser->gettext(), 'Плащане по банков път')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешен начин на плащане', 'warning');
+        }
+        
         // Клониране
         $browser->press('Клониране');
         $browser->press('Запис');
@@ -531,6 +536,7 @@ class unit_MinkPSales extends core_Manager {
         }    
         // активиране на продажбата
         $browser->press('Активиране');
+        $browser->press('Активиране/Контиране');
         
     }
        

@@ -385,7 +385,7 @@ class email_Salutations extends core_Manager
             $docRow = $doc->getDocumentRow();
             
             // Документа да е линк към single' а на документа
-            $row->threadId = ht::createLink(str::limitLen($docRow->title, 35), array($doc->className, 'single', $doc->that), NULL);
+            $row->threadId = ht::createLink(str::limitLen($docRow->title, 35), $doc->instance->getSingleUrlArray($doc->that), NULL);
         } catch(core_exception_Expect $e) {
             $row->threadId = "<span style='color:red'>" . tr('Проблем с показването') . ' #' . $rec->containerId . "</span>";
         }

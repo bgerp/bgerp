@@ -103,14 +103,13 @@ abstract class deals_DealMaster extends deals_DealBase
 		// Ако имаме фактури към сделката
 		if(count($aggregateDealInfo->invoices)){
 			
-			
 			$today = dt::today();
 			$invoices = $aggregateDealInfo->invoices;
 			
 			// Намираме непадежиралите фактури, тези с вальор >= на днес
 			$sum = 0;
 			$res = array_filter($invoices, function (&$e) use ($today, &$sum) {
-				if($e['dueDate'] >= $today){
+				if($e['dueDate'] >= $today && $e['total'] > 0){
 					$sum += $e['total'];
 					return TRUE;
 				}
@@ -1591,10 +1590,8 @@ abstract class deals_DealMaster extends deals_DealBase
     	$fields['paymentState'] = 'pending';
     	
     	// Опиваме се да запишем мастъра на сделката
-    	if($id = $me->save((object)$fields)){
-    		
-    		// Ако е успешно, споделяме текущия потребител към новосъздадената нишка
-    		$rec = $me->fetchField($id);
+    	$rec = (object)$fields;
+    	if($id = $me->save($rec)){
     		doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, core_Users::getCurrent());
     
     		return $id;

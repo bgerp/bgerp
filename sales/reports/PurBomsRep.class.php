@@ -250,7 +250,6 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 		$fld = cls::get('core_FieldSet');
 	
 		if($export === FALSE){
-			$fld->FLD('num', 'varchar','caption=№');
 			$fld->FLD('pur', 'varchar', 'caption=Договор->№');
 	    	$fld->FLD('purDate', 'varchar', 'caption=Договор->Дата');
 		    $fld->FLD('dealerId', 'varchar', 'smartCenter,caption=Търговец');
@@ -258,7 +257,6 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 	    	$fld->FLD('quantity', 'varchar', 'smartCenter,caption=К-во');
 	    	$fld->FLD('deliveryTime', 'varchar', 'caption=Доставка');
 		} else {
-			$fld->FLD('num', 'varchar','caption=№');
        		$fld->FLD('pur', 'varchar','caption=Договор->№');
        		$fld->FLD('purDate', 'varchar','caption=Договор->Дата');
         	$fld->FLD('dealerId', 'varchar','caption=Търговец');
