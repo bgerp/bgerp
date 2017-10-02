@@ -245,6 +245,7 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
     protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
         $groArr = array();
+        $groupbyArr = array();
 
         $row->groupBy = $groupbyArr[$rec->groupBy];
         
