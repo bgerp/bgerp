@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -227,7 +227,7 @@ class sales_Proformas extends deals_InvoiceMaster
     	parent::prepareInvoiceForm($mvc, $data);
     	
     	$form->setField('paymentType', 'input=none');
-    	foreach (array('responsible', 'deliveryPlaceId', 'vatDate', 'contragentCountryId', 'contragentName') as $fld){
+    	foreach (array('deliveryPlaceId', 'vatDate') as $fld){
     		$form->setField($fld, 'input=hidden');
     	}
     	
@@ -404,13 +404,11 @@ class sales_Proformas extends deals_InvoiceMaster
     	if(empty($rec->dpAmount)) {
     		$total = $this->_total->amount- $this->_total->discount;
     		$total = $total + $this->_total->vat;
-    		$origin = $this->getOrigin($rec);
-    		$methodId = $origin->fetchField('paymentMethodId');
     		
-    		if($methodId){
+    		if($rec->paymentMethodId){
     			core_Lg::push($rec->tplLang);
-    			$data->row->paymentMethodId = cond_PaymentMethods::getVerbal($methodId, 'title');
-    			cond_PaymentMethods::preparePaymentPlan($data, $methodId, $total, $rec->date, $rec->currencyId);
+    			$data->row->paymentMethodId = tr(cond_PaymentMethods::getVerbal($rec->paymentMethodId, 'title'));
+    			cond_PaymentMethods::preparePaymentPlan($data, $rec->paymentMethodId, $total, $rec->date, $rec->currencyId);
     			core_Lg::pop();
     		}
     	} else {
