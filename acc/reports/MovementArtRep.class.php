@@ -39,11 +39,11 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
       
 
 	/**
-	 * След изпращане на формата
+	 * Преди показване на форма за добавяне/промяна.
 	 *
 	 * @param frame2_driver_Proto $Driver $Driver
 	 * @param embed_Manager $Embedder
-	 * @param core_Form $form
+	 * @param stdClass $data
 	 */
 	protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
 	{
@@ -296,6 +296,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
 	 */
 	protected function getGroupedTr($columnsCount, $groupValue, $groupVerbal, &$data)
 	{
+		$baseQuantity = $blQuantity = $delivered = $converted = $sold = '';
 		foreach (array('baseQuantity', 'blQuantity', 'delivered', 'converted', 'sold') as $totalFld){
 			${$totalFld} = core_Type::getByName('double(decimals=2)')->toVerbal($data->totals[$groupValue][$totalFld]);
 			if($data->totals[$groupValue][$totalFld] < 0){
@@ -388,13 +389,14 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
     
     
     /**
-     * След рендиране на единичния изглед
-     *
-     * @param frame2_driver_Proto $Driver
-     * @param embed_Manager $Embedder
-     * @param core_ET $tpl
-     * @param stdClass $data
-     */
+	 * След вербализирането на данните
+	 *
+	 * @param frame2_driver_Proto $Driver
+	 * @param embed_Manager $Embedder
+	 * @param stdClass $row
+	 * @param stdClass $rec
+	 * @param array $fields
+	 */
     protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
         // Показване на избраните групи
