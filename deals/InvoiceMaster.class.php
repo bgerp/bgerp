@@ -995,7 +995,8 @@ abstract class deals_InvoiceMaster extends core_Master
     		}
     		 
     		if(!empty($row->paymentType)){
-    			$row->paymentType = tr("Плащане " . mb_strtolower($row->paymentType));
+    			$arr = array('cash' => 'в брой', 'bank' => 'по банков път', 'card' => 'с карта', 'factoring' => 'факторинг', 'intercept' => 'с прихващане');
+    			$row->paymentType = tr("Плащане " . $arr[$rec->paymentType]);
     		}
     		
     		if(isset($rec->autoPaymentType) && isset($rec->paymentType) && $rec->paymentType != $rec->autoPaymentType){
