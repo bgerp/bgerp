@@ -1359,7 +1359,7 @@ class sales_Quotations extends core_Master
     	// Срока на валидност
     	$newRec->validFor = (isset($fields['validFor'])) ? $fields['validFor'] : NULL;
     	if(isset($newRec->validFor)){
-    		expect(type_Int::isInt($newRec->validFor), 'Срока ан валидност трябва да е в секунди');
+    		expect(type_Int::isInt($newRec->validFor), 'Срока на валидност трябва да е в секунди');
     	}
     	
     	// Адресните данни
@@ -1384,7 +1384,12 @@ class sales_Quotations extends core_Master
     	// Създаване на запис
     	self::route($newRec);
     	
-    	return self::save($newRec);
+    	// Опиваме се да запишем мастъра на офертата
+    	if($id = self::save($newRec)){
+    		doc_ThreadUsers::addShared($newRec->threadId, $newRec->containerId, core_Users::getCurrent());
+    	
+    		return $id;
+    	}
     }
     
     

@@ -343,8 +343,8 @@ class planning_Jobs extends core_Master
     	$data->listFilter->setField("selectPeriod", "caption=Падеж");
     	$contragentsWithJobs = self::getContragentsWithJobs();
     	if(count($contragentsWithJobs)){
-    		$enum = arr::fromArray($contragentsWithJobs);
-    		$data->listFilter->FLD('contragent', "enum(,{$enum})", 'caption=Контрагенти,input,silent');
+    		$data->listFilter->FLD('contragent', "int", 'caption=Контрагенти,input,silent');
+    		$data->listFilter->setOptions('contragent', array('' => '') + $contragentsWithJobs);
     		$data->listFilter->input('contragent', 'silent');
     	}
     	
@@ -434,18 +434,25 @@ class planning_Jobs extends core_Master
      */
     private static function getContragentsWithJobs()
     {
-    	$options = core_Cache::get("planning_Jobs", 'contragentsWithJobs');
-    	if($options === FALSE) {
-    		$options = array();
-    		$query = self::getQuery();
-    		$query->where("#saleId IS NOT NULL");
-    		while($jRec = $query->fetch()){
-    			$sRec = sales_Sales::fetch($jRec->saleId, 'folderId');
-    			$options[$sRec->folderId] = doc_Folders::getTitleById($sRec->folderId);
-    		}
+    	$oldOptions = core_Cache::get("planning_Jobs", 'contragentsWithJobs');
+    	$options = ($oldOptions === FALSE) ? array() : $oldOptions;
     	
+    	$query = self::getQuery();
+    	$query->EXT('sFolderId', 'sales_Sales', 'externalName=folderId,externalKey=saleId');
+    	$query->where("#saleId IS NOT NULL");
+    	
+    	if(count($options)){
+    		$query->notIn("sFolderId", array_keys($options));
+    	}
+    	
+    	while($jRec = $query->fetch()){
+    		$sRec = sales_Sales::fetch($jRec->saleId, 'folderId');
+    		$options[$sRec->folderId] = doc_Folders::getTitleById($sRec->folderId);
+    	}
+    	
+    	if($oldOptions !== $options){
     		self::logInfo("Кеширане на папките на контрагентите със задания");
-    		core_Cache::set("planning_Jobs", 'contragentsWithJobs', $options, 20);
+    		core_Cache::set("planning_Jobs", 'contragentsWithJobs', $options, 120);
     	}
     	
     	return $options;

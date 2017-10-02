@@ -146,7 +146,13 @@ class spcheck_Dictionary extends core_Manager
                 $wArr[$key] = TRUE;
             }
         } else {
-            $pspellLink = @pspell_new($lg);
+            if (function_exists('pspell_new')) {
+                $pspellLink = @pspell_new($lg);
+            } else {
+                self::logErr("Не е инсталиран PHP модулът 'pspell'");
+                
+                return TRUE;
+            }
             
             if (!$pspellLink) {
                 self::logWarning('Не е инсталиран речник за езика - ' . $lg);
