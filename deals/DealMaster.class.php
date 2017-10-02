@@ -1269,9 +1269,6 @@ abstract class deals_DealMaster extends deals_DealBase
     	// Извличане на позволените операции
     	$options = $this->getContoOptions($rec);
     	$hasSelectedBankAndCase = !empty($rec->bankAccountId) && !empty($rec->caseId);
-    	if($hasSelectedBankAndCase === TRUE){
-    		$form->info .= tr("|*<br><span style='color:darkgreen'>|Избрани са едновременно каса и банкова сметка! Потвърдете че плащането е на момента или редактирайте сделката|*.</span>");
-    	}
     	
     	// Трябва да има избор на действие
     	expect(count($options));
@@ -1295,6 +1292,10 @@ abstract class deals_DealMaster extends deals_DealBase
     	if($options['pay'] && $rec->caseId){
     		if($rec->caseId === $curCaseId && $hasSelectedBankAndCase === FALSE){
     			$selected[] = 'pay';
+    		}
+    		
+    		if($hasSelectedBankAndCase === TRUE){
+    			$form->info .= tr("|*<br><span style='color:darkgreen'>|Избрани са едновременно каса и банкова сметка! Потвърдете че плащането е на момента или редактирайте сделката|*.</span>");
     		}
     	}
     	

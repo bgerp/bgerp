@@ -16,7 +16,6 @@
 class doc_reports_DocsByRols extends frame2_driver_TableData
 {
 
-
     /**
      * Кой може да избира драйвъра
      */
@@ -33,11 +32,10 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
     {
 
         $fieldset->FLD('roleId', 'key(mvc=core_Roles,select=role,allowEmpty)', 'caption=Роля,after=title,mandatory');
-        $fieldset->FLD('from', 'datetime', 'caption=Период->От,mandatory,after=role');
-        $fieldset->FLD('to', 'datetime', 'caption=Период->До,mandatory');
+        $fieldset->FLD('from', 'date', 'caption=Период->От,mandatory,after=role');
+        $fieldset->FLD('to', 'date', 'caption=Период->До,mandatory');
         $fieldset->FLD('documents', 'keylist(mvc=core_Classes,select=name)', 'caption=Документи,after=to');
-        $fieldset->FLD('order', 'enum(cnt=брой използвания,letter=азбучен ред)', 'caption=Подреди по,after=documents,mandatory,column=none');
-
+        $fieldset->FLD('order', 'enum(cnt=брой документи,letter=азбучен ред)', 'caption=Подреди по,after=documents,mandatory,column=none');
 
     }
 
@@ -53,7 +51,7 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
 
         $query = doc_Containers::getQuery();
 
-        $query->where(array("#createdOn >= '[#1#]' AND #createdOn <= '[#2#]'", $rec->from, $rec->to ));
+        $query->where(array("#createdOn >= '[#1#]' AND #createdOn <= '[#2#]'", $rec->from, $rec->to . ' 23:59:59'));
 
         $query->where("#state != 'rejected'");
 
@@ -64,22 +62,70 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
             $query->whereArr("docClass", $documentsForCheck, TRUE);
 
         }
-
-        $query->in('createdBy', core_Users::getByRole($rec->roleId));
-
         $recs = array();
 
-        foreach ($query->fetchAll() as $doc){
+        if(core_Users::getByRole($rec->roleId)) {
 
-            $recs[$doc->createdBy]['user'] = $doc->createdBy;
+            $query->in('createdBy', core_Users::getByRole($rec->roleId));
 
-            $recs[$doc->createdBy]['classes'][$doc->docClass]++;
+            $documentsForCheck = $query->fetchAll();
 
-            $recs[$doc->createdBy]['cnt']++;
+            foreach ($documentsForCheck as $doc) {
 
-        }
+                $recs[$doc->createdBy]['user'] = $doc->createdBy;
+
+                $recs[$doc->createdBy]['classes'][$doc->docClass]++;
+
+                $recs[$doc->createdBy]['cnt']++;
+
+                $dDoc[$doc->createdBy][$doc->docClass][$doc->docId] = $doc->docId;
+
+                foreach ($dDoc[$doc->createdBy] as $clsId => $objArr) {
+
+                    $clsInst = cls::get($clsId);
+
+                    if ($clsInst->details) {
+
+                        $clsInst->details = arr::make($clsInst->details);
+
+                        foreach ($clsInst->details as $detail) {
+
+                            $detailEnd = strtolower(substr($detail, -7));
+
+                            if($detailEnd == 'details') {
+
+                                $dInst = cls::get($detail);
+
+                                $masterKey = $dInst->masterKey;
+
+                                if (!$masterKey) continue;
+
+                                $dQuery = $dInst->getQuery();
+
+                                $dQuery->in($masterKey, $objArr);
+
+                                $cnt = $dQuery->count();
+
+                                if (!$cnt) continue;
+
+                                $dArr[$clsId][$detail] = $cnt;
+
+                                $recs[$doc->createdBy]['details'][$clsId]= $cnt;
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        } //проверка за наличие на роля//
 
         return $recs;
+
     }
 
     /**
@@ -94,13 +140,13 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
 
         if($export === FALSE){
-          //  $fld->FLD('num', 'varchar','caption=№');
+            //  $fld->FLD('num', 'varchar','caption=№');
             $fld->FLD('person', 'varchar', 'caption=Служител');
             $fld->FLD('document', 'varchar', 'caption=Тип документ');
             $fld->FLD('value', 'double(smartRound,decimals=2)', 'smartCenter,caption=Брой');
 
         } else {
-        //    $fld->FLD('num', 'varchar','caption=№');
+            //    $fld->FLD('num', 'varchar','caption=№');
             $fld->FLD('person', 'varchar', 'caption=Служител');
             $fld->FLD('document', 'varchar', 'caption=Тип документ');
             $fld->FLD('value', 'double(smartRound,decimals=2)', 'smartCenter,caption=Брой');
@@ -119,6 +165,7 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
      */
     protected function detailRecToVerbal($rec, &$dRec)
     {
+        // bp($dRec);
 
         $cntx = 0;
 
@@ -172,25 +219,33 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
 
         //$row->value = $Int->toVerbal($dRec['cnt']);
 
-            $row->document .= '<table style="width: 100%;">';
-            foreach ($dRec['classes'] as $docId => $cnt) {
+        $row->document .= '<table style="width: 100%;">';
 
-                $row->document .='<tr>'.'<td style="border: none">'. $vClassArr[$docId].
-                    ' ('. $vClsNameArr[$docId] .')'.'</td>'.'<td style="min-width: 7%;border: none">'. $cnt.'</td>'.'</tr>';
+        foreach ($dRec['classes'] as $docId => $cnt) {
 
-                /**
-                 * Общ брой създадени документи от този потребител
-                 */
-                $cntx += $cnt;
+            $row->document .='<tr>'.'<td style="border: none">'.$vClassArr[$docId]
+                                    .' ('.$vClsNameArr[$docId].')'.'</td>'
+                                    .'<td style="min-width: 7%;border: none">'.$cnt.'</td>';
 
-                /**
-                 * Видове създадени документи(брой)
-                 */
-                $cnty++;
+            if($dRec['details'][$docId]){ $row->document .='<td style="min-width: 3%;border: none">'.':'.'</td>';}
 
-            }
+            elseif(!$dRec['details'][$docId]){ $row->document .='<td style="min-width: 3%;border: none">'.' '.'</td>';};
 
-            $row->document.='</table>';
+            $row->document .='<td style="min-width: 7%;border: none">'.$dRec['details'][$docId].'</td>'.'</tr>';
+
+            /**
+             * Общ брой създадени документи от този потребител
+             */
+            $cntx += $cnt;
+
+            /**
+             * Видове създадени документи(брой)
+             */
+            $cnty++;
+
+        }
+
+        $row->document.='</table>';
 
         $row->value = $cntx . ' от ' . $cnty;
 

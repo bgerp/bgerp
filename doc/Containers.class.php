@@ -695,7 +695,6 @@ class doc_Containers extends core_Manager
         
         $cQuery = doc_Containers::getQuery();
         $cQuery->where(array("#threadId = '[#1#]'", $threadId));
-        $cQuery->where("#state != 'rejected'");
         
         while ($cRec = $cQuery->fetch()) {
             

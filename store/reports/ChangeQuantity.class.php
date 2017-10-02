@@ -234,16 +234,18 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
     
     
     /**
-     * След рендиране на единичния изглед
-     *
-     * @param frame2_driver_Proto $Driver
-     * @param embed_Manager $Embedder
-     * @param core_ET $tpl
-     * @param stdClass $data
-     */
+	 * След вербализирането на данните
+	 *
+	 * @param frame2_driver_Proto $Driver
+	 * @param embed_Manager $Embedder
+	 * @param stdClass $row
+	 * @param stdClass $rec
+	 * @param array $fields
+	 */
     protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
         $groArr = array();
+        $groupbyArr = array();
 
         $row->groupBy = $groupbyArr[$rec->groupBy];
         
