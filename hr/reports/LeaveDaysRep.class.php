@@ -259,20 +259,6 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
     /**
      * След рендиране на единичния изглед
      *
-     * @param frame2_driver_Proto $Driver
-     * @param embed_Manager $Embedder
-     * @param core_ET $tpl
-     * @param stdClass $data
-     */
-    protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
-    {
-
-    }
-    
-    
-    /**
-     * След рендиране на единичния изглед
-     *
      * @param cat_ProductDriver $Driver
      * @param embed_Manager $Embedder
      * @param core_ET $tpl
@@ -284,7 +270,6 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
 							    <small><div><!--ET_BEGIN dealers-->|Търговци|*: [#dealers#]<!--ET_END dealers--></div></small></fieldset><!--ET_END BLOCK-->"));
       
-
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
     
