@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   deals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -989,7 +989,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		}
     		
     		if($rec->paymentType == 'factoring'){
-    			$row->accountId = tr('ФАКТОРИНГ');
+    			$row->accountId = mb_strtoupper(tr('факторинг'));
     			unset($row->bank);
     			unset($row->bic);
     		}
@@ -1245,13 +1245,8 @@ abstract class deals_InvoiceMaster extends core_Master
     	$origin = NULL;
     	$rec = static::fetchRec($rec);
     
-    	if($rec->originId) {
-    		return doc_Containers::getDocument($rec->originId);
-    	}
-    
-    	if($rec->threadId){
-    		return doc_Threads::getFirstDocument($rec->threadId);
-    	}
+    	if($rec->originId) return doc_Containers::getDocument($rec->originId);
+    	if($rec->threadId) return doc_Threads::getFirstDocument($rec->threadId);
     	 
     	return $origin;
     }
