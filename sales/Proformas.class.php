@@ -82,12 +82,6 @@ class sales_Proformas extends deals_InvoiceMaster
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,sales';
-    
-    
-    /**
      * Кой има право да променя?
      */
     public $canEdit = 'ceo,sales';
