@@ -52,7 +52,7 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
         $query = doc_Containers::getQuery();
 
         $query->where(array("#createdOn >= '[#1#]' AND #createdOn <= '[#2#]'", $rec->from, $rec->to . ' 23:59:59'));
-bp($query->where);
+
         $query->where("#state != 'rejected'");
 
         if(isset($rec->documents)){
