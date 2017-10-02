@@ -1,4 +1,3 @@
-
 <?php
 
 /**
@@ -33,8 +32,8 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
     {
 
         $fieldset->FLD('roleId', 'key(mvc=core_Roles,select=role,allowEmpty)', 'caption=Роля,after=title,mandatory');
-        $fieldset->FLD('from', 'datetime', 'caption=Период->От,mandatory,after=role');
-        $fieldset->FLD('to', 'datetime', 'caption=Период->До,mandatory');
+        $fieldset->FLD('from', 'date', 'caption=Период->От,mandatory,after=role');
+        $fieldset->FLD('to', 'date', 'caption=Период->До,mandatory');
         $fieldset->FLD('documents', 'keylist(mvc=core_Classes,select=name)', 'caption=Документи,after=to');
         $fieldset->FLD('order', 'enum(cnt=брой документи,letter=азбучен ред)', 'caption=Подреди по,after=documents,mandatory,column=none');
 
@@ -52,8 +51,8 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
 
         $query = doc_Containers::getQuery();
 
-        $query->where(array("#createdOn >= '[#1#]' AND #createdOn <= '[#2#]'", $rec->from, $rec->to ));
-
+        $query->where(array("#createdOn >= '[#1#]' AND #createdOn <= '[#2#]'", $rec->from, $rec->to . ' 23:59:59'));
+bp($query->where);
         $query->where("#state != 'rejected'");
 
         if(isset($rec->documents)){
