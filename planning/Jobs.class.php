@@ -179,7 +179,7 @@ class planning_Jobs extends core_Master
     function description()
     {
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул');
-    	$this->FLD('oldJobId', 'int', 'silent,after=productId,caption=Старо задание,removeAndRefreshForm=notes|department|sharedUsers|packagingId|quantityInPack|storeId,input=none');
+    	$this->FLD('oldJobId', 'int', 'silent,after=productId,caption=Предишно задание,removeAndRefreshForm=notes|department|sharedUsers|packagingId|quantityInPack|storeId,input=none');
     	$this->FLD('dueDate', 'date(smartTime)', 'caption=Падеж,mandatory');
     	
     	$this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','smartCenter,mandatory,input=hidden,before=packQuantity');
@@ -600,9 +600,7 @@ class planning_Jobs extends core_Master
     		$measureId = cat_Products::fetchField($rec->productId, 'measureId');
     		$shortUom = cat_UoM::getShortName($measureId);
     		$rec->quantityFromTasks = planning_TaskActions::getQuantityForJob($rec->id, 'product');
-    		
     		$rec->quantityFromTasks /= $rec->quantityInPack;
-    		
     		$row->quantityFromTasks = $Double->toVerbal($rec->quantityFromTasks);
     	}
     	
@@ -667,6 +665,10 @@ class planning_Jobs extends core_Master
     		
     		if(isset($rec->deliveryPlace)){
     			$row->deliveryPlace = crm_Locations::getHyperlink($rec->deliveryPlace, TRUE);
+    		}
+    		
+    		if(isset($rec->oldJobId)){
+    			$row->oldJobId = planning_Jobs::getLink($rec->oldJobId, 0);
     		}
     		
     		if($sBomId = cat_Products::getLastActiveBom($rec->productId, 'sales')->id){
