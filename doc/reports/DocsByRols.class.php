@@ -228,9 +228,9 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
                                     .' ('.$vClsNameArr[$docId].')'.'</td>'
                                     .'<td style="min-width: 7%;border: none">'.$cnt.'</td>';
 
-            if($dRec['details'][$docId]){ $row->document .='<td style="min-width: 7%;border: none">'.':'.'</td>';}
+            if($dRec['details'][$docId]){ $row->document .='<td style="min-width: 3%;border: none">'.':'.'</td>';}
 
-            elseif(!$dRec['details'][$docId]){ $row->document .='<td style="min-width: 7%;border: none">'.' '.'</td>';};
+            elseif(!$dRec['details'][$docId]){ $row->document .='<td style="min-width: 3%;border: none">'.' '.'</td>';};
 
             $row->document .='<td style="min-width: 7%;border: none">'.$dRec['details'][$docId].'</td>'.'</tr>';
 

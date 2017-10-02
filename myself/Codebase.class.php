@@ -49,6 +49,7 @@ class myself_Codebase extends core_Manager
     function act_ReadFiles()
     {
 
+
         /**
          * Установява необходима роля за да се стартира екшъна
          */
@@ -121,43 +122,51 @@ class myself_Codebase extends core_Manager
         arsort($onMethods);
         $onMethodsCount = count($onMethods);
 
-//bp(count($onMethods),$onMethods);
+        $idicatorsTable = "<table style='width: 50%; border: solid 1px'>
+                                <tr>
+                                    <td style='border: solid black 1px;height: 20px;' >Общо файлове</td>
+                                    <td style='border: solid black 1px;height: 20px;'>$filesCounter</td>
+                                </tr>
+                                <tr>
+                                    <td style='border: solid black 1px;height: 20px;'>Брой линии</td>
+                                    <td style='border: solid black 1px;height: 20px;'>$totalLines</td>
+                                </tr>
+                                <tr>
+                                    <td style='border: solid black 1px;height: 20px;'>Брой празни редове </td>
+                                    <td style='border: solid black 1px;height: 20px;'>$emptyLineCounter</td>
+                                </tr>
+                                <tr>
+                                    <td style='border: solid black 1px;height: 20px;'>Брой заредени класове</td>
+                                    <td style='border: solid black 1px;height: 20px;'>$totalLoadClasses</td>
+                                </tr>
+                                <tr>
+                                    <td style='border: solid black 1px;height: 20px;'>Брой методи</td>
+                                    <td style='border: solid black 1px;height: 20px;'>$totalMethods</td>
+                                </tr>
+                                <tr>
+                                    <td style='border: solid black 1px;height: 20px;'>Брой '_on'- методи</td>
+                                    <td style='border: solid black 1px;height: 20px;'>$onMethodsCount</td>
+                                </tr>
+                            </table>";
 
+        $onMethodsString = "<table>";
         foreach ($onMethods as $key=>$value){
 
-            $onMethodsString.=$key.' - '.$value."<br>";
+            $onMethodsString.="<tr><td>$key</td>
+                               <td>$value</td></tr>";
         }
-//        return "<table style='width: 50%; border: solid 1px'>
-//                    <tr>
-//                        <td>Общо файлове</td>
-//                        <td>$filesCounter</td>
-//                    </tr>
-//                    <tr>
-//                        <td>Брой линии</td>
-//                        <td>$totalLines</td>
-//                    </tr>
-//                    <tr>
-//                        <td>Брой празни редове </td>
-//                        <td>$emptyLineCounter</td>
-//                    </tr>
-//                    <tr>
-//                        <td>Брой заредени класове</td>
-//                        <td>$totalLoadClasses</td>
-//                    </tr>
-//                    <tr>
-//                        <td>Брой методи</td>
-//                        <td>$totalMethods</td>
-//                    </tr>
-//                    <tr>
-//                        <td style='vertical-align: text-top;'>Брой '_on'- методи</td>
-//                        <td style='vertical-align: text-top;'>$onMethodsCount</td>
-//                    </tr>
-//                </table>";
-//
 
-        return 'Общо файлове :'.$filesCounter.'<br>'.'Брой линии : '.$totalLines."<br>".'Брой празни редове :'.$emptyLineCounter
-        .'<br>'.' Брой заредени класове  : '.$totalLoadClasses."<br>".'Не успях да заредя следните PHP-класове :'.$couldntLoadsClasses
-        ."<br>".'Брой методи : '.$totalMethods."<br>".'on_Methods :'.count($onMethods).'<br>'.'<br>'.$onMethodsString;
+        $onMethodsString.="</table>";
+
+        return"$idicatorsTable $onMethodsString";
+               
+
+
+
+
+//        return 'Общо файлове :'.$filesCounter.'<br>'.'Брой линии : '.$totalLines."<br>".'Брой празни редове :'.$emptyLineCounter
+//        .'<br>'.' Брой заредени класове  : '.$totalLoadClasses."<br>".'Не успях да заредя следните PHP-класове :'.$couldntLoadsClasses
+//        ."<br>".'Брой методи : '.$totalMethods."<br>".'on_Methods :'.count($onMethods).'<br>'.'<br>'.$onMethodsString;
 
     }
 
