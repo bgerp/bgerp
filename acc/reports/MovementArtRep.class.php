@@ -396,7 +396,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
 	 * @param stdClass $row
 	 * @param stdClass $rec
 	 * @param array $fields
-	 */
+     */
     protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
         // Показване на избраните групи
