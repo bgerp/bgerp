@@ -186,6 +186,7 @@ class planning_Tasks extends tasks_Tasks
 	 */
 	public function prepareTasks($data)
 	{
+		$masterRec = $data->masterData->rec;
 		$containerId = $data->masterData->rec->containerId;
 		$data->recs = $data->rows = array();
 		$data->rows = $this->prepareExistingTaskRows($containerId);
@@ -254,6 +255,11 @@ class planning_Tasks extends tasks_Tasks
 		
 			$data->rows[] = $row;
 		}
+		
+		// Бутон за клониране на задачи от задания
+		if(planning_Jobs::haveRightFor('cloneTasks', $data->masterId)){
+			$data->cloneTaskUrl = array('planning_Jobs', 'cloneTasks', $data->masterId, 'ret_url' => TRUE);
+		}
 	}
 	
 	
@@ -278,7 +284,12 @@ class planning_Tasks extends tasks_Tasks
 			$btn = ht::createBtn('Производствена операция', $data->addUrlArray, FALSE, FALSE, "title=Създаване на производствена операция към задание,ef_icon={$this->singleIcon}");
 			$tpl->append($btn, 'btnTasks');
 		}
-		 
+		
+		if(isset($data->cloneTaskUrl)){
+			$btn = ht::createBtn('Предишни операции', $data->cloneTaskUrl, FALSE, FALSE, "title=Клониране на производствените операции от старото задание,ef_icon=img/16/clone.png");
+			$tpl->append($btn, 'btnTasks');
+		}
+		
 		// Връщаме шаблона
 		return $tpl;
 	}
@@ -616,5 +627,19 @@ class planning_Tasks extends tasks_Tasks
     	if($assetId = $data->listFilter->rec->assetId){
     		$data->query->where("LOCATE('|{$assetId}|', #fixedAssets)");
     	}
+    }
+    
+    
+    public static function getTasksByJob($jobId)
+    {
+    	$res = array();
+    	$oldContainerId = planning_Jobs::fetchField($jobId, 'containerId');
+    	$query = static::getQuery();
+    	$query->where("#originId = {$oldContainerId} AND #state != 'rejected' AND #state != 'draft'");
+    	while($rec = $query->fetch()){
+    		$res[$rec->id] = static::getHandle($rec->id);
+    	}
+    	
+    	return $res;
     }
 }

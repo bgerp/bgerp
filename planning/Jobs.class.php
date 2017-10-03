@@ -75,7 +75,13 @@ class planning_Jobs extends core_Master
     
     
     /**
-     * Койможе да създава задание от продажба
+     * Кой може да създава задание от продажба
+     */
+    public $canClonetasks = 'taskPlanning,ceo';
+    
+    
+    /**
+     * Кой може да създава задание от продажба
      */
     public $canCreatejobfromsale = 'ceo, job';
     
@@ -846,6 +852,17 @@ class planning_Jobs extends core_Master
     			$res = 'no_one';
     		}
     	}
+    	
+    	if($action == 'clonetasks' && isset($rec)){
+    		if(empty($rec->oldJobId) || ($rec->state != 'wakeup' && $rec->state != 'active')){
+    			$res = 'no_one';
+    		} else {
+    			$tasks = planning_Tasks::getTasksByJob($rec->oldJobId);
+    			if(!count($tasks)){
+    				$res = 'no_one';
+    			}
+    		}
+    	}
     }
     
     
@@ -1118,6 +1135,61 @@ class planning_Jobs extends core_Master
     	jquery_Jquery::run($tpl, "preventDoubleSubmission('{$formId}');");
     	
     	
+    	return $tpl;
+    }
+    
+    
+    /**
+     * Екшън клониращ задачите от предишно задание
+     */
+    public function act_CloneTasks()
+    {
+    	$this->requireRightFor('cloneTasks');
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	$this->requireRightFor('cloneTasks', $rec);
+    	
+    	$form = cls::get('core_Form');
+    	$form->title = 'Клониране на пр. операции от предишно задание|* <b>' . self::getHyperlink($rec->oldJobId, TRUE) . "</b>";
+    	$tasks = planning_Tasks::getTasksByJob($rec->oldJobId);
+    	$form->FLD('tasks', 'keylist(mvc=planning_Tasks,select=id)', 'caption=Пр. операции,mandatory');
+    	$form->setSuggestions('tasks', $tasks);
+    	$form->setDefault('tasks', keylist::fromArray($tasks));
+    	$form->input();
+    	if($form->isSubmitted()){
+    		$Tasks = cls::get('planning_Tasks');
+    		$arr = keylist::toArray($form->rec->tasks);
+    		
+    		$count = 0;
+    		foreach ($arr as $taskId){
+    			$taskRec = planning_Tasks::fetch($taskId);
+    			$newTask = clone $taskRec;
+    			plg_Clone::unsetFieldsNotToClone($Tasks, $newTask, $taskRec);
+    			$newTask->_isClone = TRUE;
+    			$newTask->originId = $rec->containerId;
+    			$newTask->state = 'draft';
+    			unset($newTask->id);
+    			unset($newTask->threadId);
+    			unset($newTask->containerId);
+    			
+    			if ($Tasks->save($newTask)) {
+    				$Tasks->invoke('AfterSaveCloneRec', array($taskRec, &$newTask));
+    				$count++;
+    			}
+    		}
+    		
+    		followRetUrl(NULL, "|Клонирани задачи|*: {$count}");
+    	}
+    	
+    	$form->toolbar->addSbBtn('Клониране на избраните', 'default', 'ef_icon = img/16/clone.png, title=Създаване на ново задание');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+    	 
+    	$form = $form->renderHtml();
+    	$tpl = $this->renderWrapping($form);
+    	 
+    	$formId = $form->formAttr['id'] ;
+    	jquery_Jquery::run($tpl, "preventDoubleSubmission('{$formId}');");
+    	 
     	return $tpl;
     }
     
