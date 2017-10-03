@@ -58,16 +58,7 @@ class plg_Clone extends core_Plugin
         $mvc->prepareEditForm_($data);
         $form = &$data->form;
        	$form->rec->clonedFromId = $rec->id;
-       
-        // Проверяваме имали полета, които не искаме да се клонират
-        $dontCloneFields = $mvc->getFieldsNotToClone($rec);
-        
-        // Ако има махаме ги от $form->rec
-        if(count($dontCloneFields)){
-        	foreach ($dontCloneFields as $unsetField){
-        		unset($form->rec->{$unsetField});
-        	}
-        }
+       	self::unsetFieldsNotToClone($mvc, $form->rec, $rec);
         
         // Инвоукваме ръчно ивента за подготовка на формата, след като сме махнали от
         // $form->rec -а полетата, които не искаме да се копират, така ако в ивента
@@ -173,6 +164,25 @@ class plg_Clone extends core_Plugin
         jquery_Jquery::run($res, "preventDoubleSubmission('{$formId}');");
         
         return FALSE;
+    }
+    
+    
+    /**
+     * Метод премахващ ненужните полета
+     */
+    public static function unsetFieldsNotToClone($mvc, &$newRec, $oldRec)
+    {
+    	$mvc = cls::get($mvc);
+    	
+    	// Проверяваме имали полета, които не искаме да се клонират
+    	$dontCloneFields = $mvc->getFieldsNotToClone($oldRec);
+    	
+    	// Ако има махаме ги от $form->rec
+    	if(count($dontCloneFields)){
+    		foreach ($dontCloneFields as $unsetField){
+    			unset($newRec->{$unsetField});
+    		}
+    	}
     }
     
     
