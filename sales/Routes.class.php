@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -43,15 +43,8 @@ class sales_Routes extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Created,
-    	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, plg_Rejected, plg_State';
+    public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Created, plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, plg_Rejected, plg_State2';
 
-    
-    /**
-     * Кой може да чете
-     */
-    public $canRead = 'sales,ceo';
-    
     
     /**
      * Кой може да пише
@@ -104,9 +97,6 @@ class sales_Routes extends core_Manager {
     	$this->FLD('salesmanId', 'user(roles=sales|ceo,select=nick)', 'caption=Търговец,mandatory');
     	$this->FLD('dateFld', 'date', 'caption=Посещения->Дата,hint=Кога е първото посещение,mandatory');
     	$this->FLD('repeat', 'time(suggestions=|1 седмица|2 седмици|3 седмици|1 месец)', 'caption=Посещения->Период, hint=на какъв период да е повторението на маршрута');
-    	$this->FLD('state',
-    			'enum(active=Активен,rejected=Оттеглен)',
-    			'caption=Видимост,input=none,notSorting,notNull,value=active');
     	
     	// Изчислимо поле за кога е следващото посещение
     	$this->FNC('nextVisit', 'date(format=d.m.Y D)', 'caption=Посещения->Следващо');
@@ -114,20 +104,6 @@ class sales_Routes extends core_Manager {
         $this->setDbIndex('locationId,dateFld');
         $this->setDbIndex('locationId');
         $this->setDbIndex('salesmanId');
-    }
-    
-    
-    /**
-     * Преди запис на документ, изчислява стойността на полето `isContable`
-     *
-     * @param core_Manager $mvc
-     * @param stdClass $rec
-     */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
-    {
-    	if($rec->state == 'draft'){
-    		$rec->state = 'active';
-    	}
     }
     
     
@@ -298,7 +274,7 @@ class sales_Routes extends core_Manager {
 	/**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {   
      	$row->locationId = ht::createLink($row->locationId, array('crm_Locations', 'single', $rec->locationId, 'ret_url' => TRUE), NULL, array('ef_icon' => "img/16/location_pin.png"));
     	$locationState = crm_Locations::fetchField($rec->locationId, 'state');
@@ -308,7 +284,6 @@ class sales_Routes extends core_Manager {
     	}
     	
     	$locationRec = crm_Locations::fetch($rec->locationId);
-    	
     	$row->contragent = cls::get($locationRec->contragentCls)->getHyperLink($locationRec->contragentId); 
     	
     	if($rec->state == 'active'){
@@ -438,7 +413,7 @@ class sales_Routes extends core_Manager {
     /**
      * Модификация на ролите
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{
 		if ($action == 'edit' && $rec->id) {
 			if ($rec->state != 'active') {
