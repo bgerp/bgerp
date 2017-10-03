@@ -582,8 +582,6 @@ class planning_Jobs extends core_Master
     	// Записваме в историята на действията, че кога и от кого е създаден документа
     	self::addToHistory($rec->history, 'created', $rec->createdOn, $rec->createdBy);
     	$mvc->save($rec, 'history');
-    	
-    	core_Cache::remove("planning_Jobs", 'contragentsWithJobs');
     }
     
     
