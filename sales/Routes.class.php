@@ -31,7 +31,7 @@ class sales_Routes extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'contragent=Клиент,locationId,salesmanId,dateFld=Посещения->Начало,repeat=Посещения->Период,nextVisit=Посещения->Следващо';
+    public $listFields = 'dateFld=Посещения->Начало,repeat=Посещения->Период,nextVisit=Посещения->Следващо,salesmanId,contragent=Клиент,locationId,state';
     
     
 	/**
@@ -276,15 +276,15 @@ class sales_Routes extends core_Manager {
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {   
-     	$row->locationId = ht::createLink($row->locationId, array('crm_Locations', 'single', $rec->locationId, 'ret_url' => TRUE), NULL, array('ef_icon' => "img/16/location_pin.png"));
+     	$row->locationId = crm_Locations::getHyperLink($rec->locationId, TRUE);
     	$locationState = crm_Locations::fetchField($rec->locationId, 'state');
     	
     	if(!$rec->repeat){
-    		$row->repeat = tr('еднократно');
+    		$row->repeat = "<span class='quiet'>" . tr('еднократно') . "</span>";
     	}
     	
     	$locationRec = crm_Locations::fetch($rec->locationId);
-    	$row->contragent = cls::get($locationRec->contragentCls)->getHyperLink($locationRec->contragentId); 
+    	$row->contragent = cls::get($locationRec->contragentCls)->getHyperLink($locationRec->contragentId, TRUE); 
     	
     	if($rec->state == 'active'){
     		if(!Mode::isReadOnly()){
