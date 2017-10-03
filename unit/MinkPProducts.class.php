@@ -72,7 +72,7 @@ class unit_MinkPProducts extends core_Manager {
         $browser->click('Чувал голям 50 L');
         $browser->press('Редакция');
         $browser->setValue('info', 'прозрачен');
-        $browser->setValue('Ценова група » 0', 12);
+        $browser->setValue('Продукти', 7);
         $browser->press('Запис');
        
         //return $browser->getHtml();

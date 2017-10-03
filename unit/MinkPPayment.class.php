@@ -936,6 +936,10 @@ class unit_MinkPPayment extends core_Manager {
         } else {
             return unit_MinkPbgERP::reportErr('Грешно чакащо плащане', 'warning');
         }
+        if(strpos($browser->gettext(), 'Плащане в брой')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешен начин на плащане', 'warning');
+        }
     }
     
     /**
@@ -1546,5 +1550,5 @@ class unit_MinkPPayment extends core_Manager {
             return unit_MinkPbgERP::reportErr('Грешно чакащо плащане', 'warning');
         }
     }
-     
+    
 }
