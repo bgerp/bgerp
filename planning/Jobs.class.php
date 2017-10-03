@@ -243,7 +243,7 @@ class planning_Jobs extends core_Master
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
@@ -462,7 +462,7 @@ class planning_Jobs extends core_Master
     /**
      * След подготовка на сингъла
      */
-    public static function on_AfterRenderSingle($mvc, &$tpl, &$data)
+    protected static function on_AfterRenderSingle($mvc, &$tpl, &$data)
     {
     	$tpl->push('planning/tpl/styles.css', "CSS");
     	
@@ -521,7 +521,7 @@ class planning_Jobs extends core_Master
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
     	$rec = &$form->rec;
     	
@@ -562,7 +562,7 @@ class planning_Jobs extends core_Master
     /**
      * Изчисляване на количеството на реда в брой опаковки
      */
-    public static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
+    protected static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
     {
     	if (empty($rec->quantity) || empty($rec->quantityInPack)) return;
     
@@ -573,7 +573,7 @@ class planning_Jobs extends core_Master
     /**
      * Изпълнява се след създаване на нов запис
      */
-    public static function on_AfterCreate($mvc, $rec)
+    protected static function on_AfterCreate($mvc, $rec)
     {
     	// Споделяме текущия потребител със нишката на заданието
     	$cu = core_Users::getCurrent();
@@ -588,7 +588,7 @@ class planning_Jobs extends core_Master
     /**
      * След преобразуване на записа в четим за хора вид
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->title = $mvc->getLink($rec->id);
     	$row->quantity = $mvc->getFieldType('quantity')->toVerbal($rec->quantityFromTasks);
@@ -850,24 +850,6 @@ class planning_Jobs extends core_Master
     
     
     /**
-     * Връща масив от използваните документи в даден документ (като цитат или са включени в детайлите му)
-     * 
-     * @param int $id - запис
-     * @return param $res - масив с използваните документи
-     * 					[class] - инстанция на документа
-     * 					[id] - ид на документа
-     */
-    function getUsedDocs_($id)
-    {
-    	$rec = $this->fetchRec($id);
-    	$cid = cat_Products::fetchField($rec->productId, 'containerId');
-    	$res[$cid] = $cid;
-    
-    	return $res;
-    }
-    
-    
-    /**
      * Добавя действие към историята
      * 
      * @param array $history - масив с историята
@@ -894,7 +876,7 @@ class planning_Jobs extends core_Master
     /**
      * Функция, която се извиква след активирането на документа
      */
-    public static function on_AfterActivation($mvc, &$rec)
+    protected static function on_AfterActivation($mvc, &$rec)
     {
     	// След активиране на заданието, добавяме артикула като перо
     	$listId = acc_Lists::fetchBySystemId('catProducts')->id;
@@ -916,7 +898,7 @@ class planning_Jobs extends core_Master
     /**
      * След подготовка на сингъла
      */
-    public static function on_AfterPrepareSingle($mvc, &$res, $data)
+    protected static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
     	// Подготвяме данните на историята за показване
     	$data->row->history = array();
@@ -950,7 +932,7 @@ class planning_Jobs extends core_Master
     /**
      * След промяна на състоянието
      */
-    public static function on_AfterChangeState($mvc, &$rec, $action)
+    protected static function on_AfterChangeState($mvc, &$rec, $action)
     {
     	// Записваме в историята действието
     	self::addToHistory($rec->history, $action, $rec->modifiedOn, $rec->modifiedBy, $rec->_reason);
