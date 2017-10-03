@@ -630,6 +630,12 @@ class planning_Tasks extends tasks_Tasks
     }
     
     
+    /**
+     * Връща масив от задачи към дадено задание
+     * 
+     * @param int $jobId
+     * @return array $res
+     */
     public static function getTasksByJob($jobId)
     {
     	$res = array();
