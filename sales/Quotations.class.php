@@ -139,12 +139,6 @@ class sales_Quotations extends core_Master
     
     
     /**
-     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-     */
-    public $rowToolsSingleField = 'title';
-    
-    
-    /**
      * Кой може да клонира
      */
     public $canClonerec = 'ceo, sales';
@@ -160,7 +154,6 @@ class sales_Quotations extends core_Master
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-    
     	'validFor'            => 'lastDocUser|lastDoc',
     	'paymentMethodId'     => 'clientCondition|lastDocUser|lastDoc',
         'currencyId'          => 'lastDocUser|lastDoc|CoverMethod',
@@ -435,7 +428,7 @@ class sales_Quotations extends core_Master
     /**
      * Изпълнява се след създаване на нов запис
      */
-    public static function on_AfterCreate($mvc, $rec)
+    protected static function on_AfterCreate($mvc, $rec)
     {
     	if(isset($rec->originId)){
     		
@@ -1499,7 +1492,7 @@ class sales_Quotations extends core_Master
      * @param unknown_type $mvc
      * @param unknown_type $rec
      */
-    public static function on_BeforeActivation($mvc, $res)
+    protected static function on_BeforeActivation($mvc, $res)
     {
     	$quotationId = $res->id;
     	$rec = $mvc->fetch($quotationId);
