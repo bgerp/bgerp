@@ -152,12 +152,12 @@ class planning_Tasks extends tasks_Tasks
 	 * Връща масив със съществуващите задачи
 	 * 
 	 * @param int $containerId
-	 * @return array $rows
+	 * @param stdClass $data
+	 * @return void
 	 */
-	protected function prepareExistingTaskRows($containerId)
+	protected function prepareExistingTaskRows($containerId, &$data)
 	{
 		// Намираме всички задачи към задание
-		$rows = array();
 		$query = $this->getQuery();
 		$query->where("#state != 'rejected'");
 		
@@ -174,10 +174,8 @@ class planning_Tasks extends tasks_Tasks
 			$row = $Class->recToVerbal($rec);
 			$row->modified = $row->modifiedOn . " " . tr('от||by') . " " . $row->modifiedBy;
 			$row->modified = "<div style='text-align:center'> {$row->modified} </div>";
-			$rows[$rec->id] = $row;
+			$data->rows[$rec->id] = $row;
 		}
-		
-		return $rows;
 	}
 	
 	
@@ -189,7 +187,7 @@ class planning_Tasks extends tasks_Tasks
 		$masterRec = $data->masterData->rec;
 		$containerId = $data->masterData->rec->containerId;
 		$data->recs = $data->rows = array();
-		$data->rows = $this->prepareExistingTaskRows($containerId);
+		$this->prepareExistingTaskRows($containerId, $data);
 		
 		// Ако потребителя може да добавя задача от съответния тип, ще показваме бутон за добавяне
 		if($this->haveRightFor('add', (object)array('originId' => $containerId))){
