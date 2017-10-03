@@ -144,7 +144,7 @@ class planning_Jobs extends core_Master
     /**
      * Детайла, на модела
      */
-    public $details = 'Tasks=tasks_Tasks';
+    public $details = 'Tasks=planning_Tasks';
     
     
     /**

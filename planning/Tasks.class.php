@@ -149,22 +149,55 @@ class planning_Tasks extends tasks_Tasks
 	
 	
 	/**
-	 * След рендиране на задачи към задание
+	 * Връща масив със съществуващите задачи
 	 * 
-	 * @param core_Manager $mvc
-	 * @param stdClass $data
-	 * @return void
+	 * @param int $containerId
+	 * @return array $rows
 	 */
-	protected static function on_AfterPrepareTasks($mvc, &$data)
+	protected function prepareExistingTaskRows($containerId)
 	{
-		if(Mode::isReadOnly()) return;
-		$masterRec = $data->masterData->rec;
+		// Намираме всички задачи към задание
+		$rows = array();
+		$query = $this->getQuery();
+		$query->where("#state != 'rejected'");
+		
+		$query->where("#originId = {$containerId}");
+		$query->XPR('orderByState', 'int', "(CASE #state WHEN 'wakeup' THEN 1 WHEN 'active' THEN 2 WHEN 'stopped' THEN 3 WHEN 'closed' THEN 4 WHEN 'waiting' THEN 5 ELSE 6 END)");
+		$query->orderBy('#orderByState=ASC');
+			
+		// Подготвяме данните
+		while($rec = $query->fetch()){
+			if(!cls::load($rec->classId, TRUE)) continue;
+			$Class = cls::get($rec->classId);
+		
+			$data->recs[$rec->id] = $rec;
+			$row = $Class->recToVerbal($rec);
+			$row->modified = $row->modifiedOn . " " . tr('от||by') . " " . $row->modifiedBy;
+			$row->modified = "<div style='text-align:center'> {$row->modified} </div>";
+			$rows[$rec->id] = $row;
+		}
+		
+		return $rows;
+	}
+	
+	
+	/**
+	 * Подготвя задачите към заданията
+	 */
+	public function prepareTasks($data)
+	{
 		$containerId = $data->masterData->rec->containerId;
-		$defDriver = planning_drivers_ProductionTask::getClassId();
+		$data->recs = $data->rows = array();
+		$data->rows = $this->prepareExistingTaskRows($containerId);
+		
+		// Ако потребителя може да добавя задача от съответния тип, ще показваме бутон за добавяне
+		if($this->haveRightFor('add', (object)array('originId' => $containerId))){
+			$data->addUrlArray = array($this, 'add', 'originId' => $containerId, 'ret_url' => TRUE);
+		}
 		
 		// Може ли на артикула да се добавят задачи за производство
+		$defDriver = planning_drivers_ProductionTask::getClassId();
 		$defaultTasks = cat_Products::getDefaultProductionTasks($data->masterData->rec->productId, $data->masterData->rec->quantity);
-		
 		$departments = keylist::toArray($masterRec->departments);
 		if(!count($departments) && !count($defaultTasks)){
 			$departments = array('' => NULL);
@@ -176,17 +209,12 @@ class planning_Tasks extends tasks_Tasks
 		foreach ($departments as $depId){
 			$depFolderId = isset($depId) ? hr_Departments::forceCoverAndFolder($depId) : NULL;
 			if(!doc_Folders::haveRightFor('single', $depFolderId)) continue;
-			
-			$r = new stdClass();
-			$r->folderId    = $depFolderId;
-			$r->title       = cat_Products::getTitleById($masterRec->productId);
-			$r->systemId    = $sysId;
-			$r->driverClass = $defDriver;
-			
-			if(!$sysId){
+			$r = (object)array('folderId' => $depFolderId, 'title' => cat_Products::getTitleById($masterRec->productId), 'systemId' => $sysId, 'driverClass' => $defDriver);
+				
+			if(empty($sysId)){
 				$r->productId = $masterRec->productId;
 			}
-			
+				
 			$draftRecs[]    = $r;
 		}
 		
@@ -200,38 +228,59 @@ class planning_Tasks extends tasks_Tasks
 		
 				// Ако има не показваме дефолтната задача
 				if(is_array($foundObject) && count($foundObject)) continue;
-			
-				$r = new stdClass();
-				$r->title       = $taskInfo->title;
-				$r->systemId    = $index;
-				$r->driverClass = $taskInfo->driver;
-				$draftRecs[]    = $r;
+				$draftRecs[] = (object)array('title' => $taskInfo->title, 'systemId' => $index, 'driverClass' => $taskInfo->driver);
 			}
 		}
 		
 		// Вербализираме дефолтните записи
 		foreach ($draftRecs as $draft){
-			if(!$mvc->haveRightFor('add', (object)array('originId' => $containerId, 'driverClass' => $draft->driverClass))) continue;
-		
+			if(!$this->haveRightFor('add', (object)array('originId' => $containerId, 'driverClass' => $draft->driverClass))) continue;
 			$url = array('planning_Tasks', 'add', 'folderId' => $draft->folderId, 'originId' => $containerId, 'driverClass' => $draft->driverClass, 'title' => $draft->title, 'ret_url' => TRUE);
 			if(isset($draft->systemId)){
 				$url['systemId'] = $draft->systemId;
 			} else {
 				$url['productId'] = $draft->productId;
 			}
-			
+				
 			$row = new stdClass();
 			core_RowToolbar::createIfNotExists($row->_rowTools);
 			$row->_rowTools->addLink('', $url, array('ef_icon' => 'img/16/add.png', 'title' => "Добавяне на нова задача за производство"));
-				
+		
 			$row->title = cls::get('type_Varchar')->toVerbal($draft->title);
 			$row->ROW_ATTR['style'] .= 'background-color:#f8f8f8;color:#777';
 			if(isset($draft->folderId)){
 				$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($draft->folderId))->title;
 			}
-				
+		
 			$data->rows[] = $row;
 		}
+	}
+	
+	
+	/**
+	 * Рендира задачите на заданията
+	 */
+	public function renderTasks($data)
+	{
+		$tpl = new ET("");
+	
+		// Ако няма намерени записи, не се рендира нищо
+		// Рендираме таблицата с намерените задачи
+		$table = cls::get('core_TableView', array('mvc' => $this));
+		$fields = 'name=Документ,progress=Прогрес,title=Заглавие,folderId=Папка,expectedTimeStart=Очаквано начало, timeDuration=Продължителност, timeEnd=Край, modified=Модифицирано';
+		$data->listFields = core_TableView::filterEmptyColumns($data->rows, $fields, 'timeStart,timeDuration,timeEnd,expectedTimeStart');
+		$this->invoke('BeforeRenderListTable', array($tpl, &$data));
+		 
+		$tpl = $table->get($data->rows, $data->listFields);
+		 
+		// Имали бутони за добавяне
+		if(isset($data->addUrlArray)){
+			$btn = ht::createBtn('Производствена операция', $data->addUrlArray, FALSE, FALSE, "title=Създаване на производствена операция към задание,ef_icon={$this->singleIcon}");
+			$tpl->append($btn, 'btnTasks');
+		}
+		 
+		// Връщаме шаблона
+		return $tpl;
 	}
 	
 	
