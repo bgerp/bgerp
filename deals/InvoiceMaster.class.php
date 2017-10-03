@@ -18,12 +18,6 @@ abstract class deals_InvoiceMaster extends core_Master
 	
 	
 	/**
-	 * Поле за единичния изглед
-	 */
-	public $rowToolsSingleField = 'number';
-    
-    
-    /**
      * Полета свързани с цени
      */
     public $priceFields = 'dealValue,vatAmount,baseAmount,total,vatPercent,discountAmount';
@@ -118,7 +112,6 @@ abstract class deals_InvoiceMaster extends core_Master
     	
     	$mvc->FLD('paymentType', 'enum(cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг)', 'caption=Плащане->Начин,before=accountId,mandatory');
     	$mvc->FLD('autoPaymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,mixed=Смесено)', 'placeholder=Автоматично,caption=Плащане->Начин,input=none');
-    
     }
     
     
@@ -248,9 +241,7 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     public static function on_ValidateVatDate(core_Mvc $mvc, $rec, core_Form $form)
     {
-    	if (empty($rec->vatDate)) {
-    		return;
-    	}
+    	if (empty($rec->vatDate)) return;
     
     	// Датата на ДС не може да бъде след датата на фактурата, нито на повече от 5 дни преди нея.
     	if ($rec->vatDate > $rec->date || dt::addDays(5, $rec->vatDate) < $rec->date) {
@@ -577,8 +568,7 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     public static function on_AfterPrepareListPager($mvc, &$data)
     {
-
-        if(Mode::is('printing')){
+		if(Mode::is('printing')){
     	    unset($data->pager);
     	}
     }
@@ -947,7 +937,6 @@ abstract class deals_InvoiceMaster extends core_Master
     		if(!$row->vatAmount){
     			$coreConf = core_Packs::getConfig('core');
     			$pointSign = $coreConf->EF_NUMBER_DEC_POINT;
-    			
     			$row->vatAmount = "<span class='quiet'>0" . $pointSign . "00</span>";
     		}
     		
@@ -999,7 +988,7 @@ abstract class deals_InvoiceMaster extends core_Master
     			$row->paymentType = tr("Плащане " . $arr[$rec->paymentType]);
     		}
     		
-    		if(isset($rec->autoPaymentType) && isset($rec->paymentType) && $rec->paymentType != $rec->autoPaymentType){
+    		if(isset($rec->autoPaymentType) && isset($rec->paymentType) && ($rec->paymentType != $rec->autoPaymentType && !($rec->paymentType == 'card' && $rec->autoPaymentType == 'cash'))){
     			$row->paymentType = ht::createHint($row->paymentType, 'Избрания начин на плащане не отговаря на реалния', 'warning');
     		}
     		
