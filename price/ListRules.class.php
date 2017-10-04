@@ -404,7 +404,7 @@ class price_ListRules extends core_Detail
     {
     	$price = $rec->price;
     	
-    	$listRec = price_Lists::fetch($rec->listId);
+    	$listRec = price_Lists::fetch($rec->listId, 'currency,createdOn,vat');
     	list($date, $time) = explode(' ', $datetime);
     	
     	// В каква цена е този ценоразпис?
