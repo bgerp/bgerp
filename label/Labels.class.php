@@ -179,7 +179,8 @@ class label_Labels extends core_Master
              $classId = Request::get('classId');
              $objId = Request::get('objId');
              if ($classId && $objId) {
-                  $clsInst = cls::get($classId);
+             	  $clsInst = cls::getInterface('label_SequenceIntf', $classId);
+             	
                   $arr = (array) $clsInst->getLabelPlaceholders($objId);
                   $readOnlyArr = $dataArr = arr::make($arr, TRUE);
                     
