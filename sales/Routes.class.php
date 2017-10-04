@@ -31,7 +31,7 @@ class sales_Routes extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'dateFld=Посещения->Начало,repeat=Посещения->Период,nextVisit=Посещения->Следващо,salesmanId,contragent=Клиент,locationId,state';
+    public $listFields = 'dateFld=Посещения->Начало,repeat=Посещения->Период,nextVisit=Посещения->Следващо,salesmanId,contragent=Клиент,locationId,state,createdOn,createdBy';
     
     
 	/**
@@ -99,7 +99,7 @@ class sales_Routes extends core_Manager {
     	$this->FLD('repeat', 'time(suggestions=|1 седмица|2 седмици|3 седмици|1 месец)', 'caption=Посещения->Период, hint=на какъв период да е повторението на маршрута');
     	
     	// Изчислимо поле за кога е следващото посещение
-    	$this->FNC('nextVisit', 'date(format=d.m.Y D)', 'caption=Посещения->Следващо');
+    	$this->FLD('nextVisit', 'date(format=d.m.Y D)', 'caption=Посещения->Следващо,input=none');
 
         $this->setDbIndex('locationId,dateFld');
         $this->setDbIndex('locationId');
@@ -119,26 +119,12 @@ class sales_Routes extends core_Manager {
     
     
     /**
-     * Изчисление на следващото посещение ако може
-     */
-    protected static function on_CalcNextVisit(core_Mvc $mvc, $rec) 
-    {
-    	if (empty($rec->dateFld)) return;
-    	
-    	if($next = $mvc->getNextVisit($rec)){
-    		$rec->nextVisit = $next;
-    	}
-    }
-    
-    
-    /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
     protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $form = &$data->form;
         $form->setDefault('dateFld', dt::today());
-        
         $form->setOptions('locationId', $mvc->getLocationOptions($form->rec));
         $form->setDefault('salesmanId', $mvc->getDefaultSalesman($form->rec));
     }
@@ -223,16 +209,10 @@ class sales_Routes extends core_Manager {
     	$query->orderBy('#id', 'DESC');
     	$query->where("#createdBy = {$currentUserId}");
     	$lastRoute = $query->fetch();
-    	if ($lastRoute) {
-    	    
-    		return $lastRoute->salesmanId;
-    	}
+    	if($lastRoute) return $lastRoute->salesmanId;
     	
     	// Текущия потребител ако има права
-    	if (self::haveRightFor('add', NULL, $currentUserId)) {
-            // ... има право да създава продажби
-            return $currentUserId;
-        }
+    	if(self::haveRightFor('add', NULL, $currentUserId)) return $currentUserId;
         
         // NULL ако никое от горните не е изпълнено
         return NULL;
@@ -249,23 +229,19 @@ class sales_Routes extends core_Manager {
 		$data->listFilter->FNC('user', 'user(roles=sales|ceo,allowEmpty)', 'input,caption=Търговец,placeholder=Търговец,silent,autoFilter');
         $data->listFilter->FNC('date', 'date', 'input,caption=Дата,silent');
 
-        $data->listFilter->showFields = 'search,user, date';
-		
+        $data->listFilter->showFields = 'search,user,date';
         $data->listFilter->input();
 		
-		$data->query->orderBy("#state");
+		$data->query->orderBy("nextVisit", 'DESC');
+		$data->query->orderBy("state");
 		
+		// Филтриране по дата
     	if ($data->listFilter->rec->date) {
-    			
-    		// Изчисляваме дните между датата от модела и търсената
-    		$data->query->XPR("dif", 'int', "DATEDIFF (#dateFld , '{$data->listFilter->rec->date}')");
-    		$data->query->where("#dateFld = '{$data->listFilter->rec->date}'");
-    		$data->query->orWhere("MOD(#dif, round(#repeat / 86400 )) = 0");
+    		$data->query->where("#nextVisit >= '{$data->listFilter->rec->date}'");
     	}
     	
+    	// Филтриране по продавач
     	if ($data->listFilter->rec->user) {
-    			
-    		// Филтриране по продавач
     		$data->query->where(array("#salesmanId = [#1#]", $data->listFilter->rec->user));
     	}
 	}
@@ -331,7 +307,6 @@ class sales_Routes extends core_Manager {
     	if ($this->haveRightFor('add', (object)(array('locationId' => $data->masterData->rec->id)))) {
 	    	$data->addUrl = array('sales_Routes', 'add', 'locationId' => $data->masterData->rec->id, 'ret_url' => TRUE);
     	}
-    	
     }
     
     
@@ -354,10 +329,8 @@ class sales_Routes extends core_Manager {
     	} else {
     		if (!$rec->repeat) {
                 if ($rec->dateFld == date('Y-m-d')) {
-                	
                     return $rec->dateFld;
                 } else {
-                	
     			    return FALSE;
                 }
     		}
@@ -415,14 +388,20 @@ class sales_Routes extends core_Manager {
      */
     protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{
-		if ($action == 'edit' && $rec->id) {
-			if ($rec->state != 'active') {
+		if($action == 'edit' && $rec->id) {
+			if ($rec->state == 'rejected') {
 				$res = 'no_one';
 			}
 		}
 		
-		if (($action == 'add' || $action == 'restore') && isset($rec->locationId)) {
+		if(($action == 'add' || $action == 'restore') && isset($rec->locationId)) {
 			if (crm_Locations::fetchField($rec->locationId, 'state') == 'rejected') {
+				$res = 'no_one';
+			}
+		}
+		
+		if($action == 'reject' && isset($rec)){
+			if($rec->state == 'closed'){
 				$res = 'no_one';
 			}
 		}
@@ -497,5 +476,69 @@ class sales_Routes extends core_Manager {
 		
 		// Връщаме най-новия запис с най-малка разлика
 		return $salesmanId;
+	}
+	
+	
+	/**
+	 * Изчисляване на следващото посещение по разписание
+	 */
+	function cron_calcNextVisit()
+	{
+		$today = dt::today();
+		
+		$delayDays = sales_Setup::get('ROUTES_CLOSE_DELAY');
+		$before = dt::addSecs(-1 * 60 * 60* 24 * $delayDays, $today);
+		$before = dt::verbal2mysql($before, FALSE);
+		
+		$updateState = $updateNextVisit = array();
+		$query = self::getQuery();
+		$query->where("#state = 'active'");
+		
+		// Дигане на тайм лимита
+		$count = $query->count();
+		core_App::setTimeLimit(0.7 * $count);
+		
+		// За всеки запис
+		while($rec = $query->fetch()){
+			if(empty($rec->repeat) && $rec->dateFld < $before){
+				
+				// Ако е еднократен и е минал, затваря се
+				$rec->state = 'closed';
+				$updateState[$rec->id] = $rec;
+			} elseif(!empty($rec->repeat)) {
+				
+				// Ако има повторение прави се опит за изчисляване на следващото посещение
+				if($next = $this->getNextVisit($rec)){
+    				$rec->nextVisit = $next;
+    				$updateNextVisit[$rec->id] = $rec;
+    			}
+			}
+		}
+		
+		// Обновяване на състоянията
+		if(count($updateState)){
+			$this->saveArray($updateState, 'id,state');
+		}
+		
+		// Обновяване на следващото изпълнение
+		if(count($updateNextVisit)){
+			$this->saveArray($updateNextVisit, 'id,nextVisit');
+		}
+	}
+	
+	
+	/**
+	 * Преди запис на документ, изчислява стойността на полето `isContable`
+	 *
+	 * @param core_Manager $mvc
+	 * @param stdClass $rec
+	 */
+	protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+	{
+		if($rec->state != 'rejected' || $rec->state != 'closed'){
+			if($next = $mvc->getNextVisit($rec)){
+				$rec->nextVisit = $next;
+			}
+		}
 	}
 }
