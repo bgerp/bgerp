@@ -506,7 +506,9 @@ class planning_Tasks extends tasks_Tasks
     	$query = static::getQuery();
     	$query->where("#originId = {$oldContainerId} AND #state != 'rejected' AND #state != 'draft'");
     	while($rec = $query->fetch()){
-    		$res[$rec->id] = static::getHandle($rec->id);
+    		$title = cat_Products::getTitleById($rec->productId);
+    		$createdBy = core_Users::getVerbal($rec->createdBy, 'names');
+    		$res[$rec->id] = $title . " / " . $createdBy;
     	}
     	
     	return $res;
