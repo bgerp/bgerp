@@ -475,7 +475,7 @@ class unit_MinkPbgERP extends core_Manager {
         }
     }
     /**
-     * 1. Зареждане на валутни курсове 
+     * 1. Зареждане на валутни курсове и добавяне на валута и курс
      */
     //http://localhost/unit_MinkPbgERP/GetCurrencies/
     function act_GetCurrencies()
@@ -483,9 +483,22 @@ class unit_MinkPbgERP extends core_Manager {
         // Логване
         $browser = $this->SetUp();
         $browser->click('Валути');
+        //$browser->click('Списък');
+        //$browser->click('Активиране'); - 
         $browser->click('Валутни курсове');
         $browser->press('Зареди от ECB');
-         
+        $browser->click('Списък');
+        $browser->press('Нова валута');
+        $browser->setValue('name', 'Сръбски динар');
+        $browser->setValue('code', 'RSD');
+        $browser->press('Запис');
+        $browser->press('Нов запис');
+        $browser->setValue('baseCurrencyId', 'BGN');
+        $dateCur=strtotime("-1 Day");
+        $browser->setValue('date', date('d-m-Y', $dateCur));
+        $browser->setValue('rate', 61);
+        $browser->press('Запис');
+        
     }
     
     /**
