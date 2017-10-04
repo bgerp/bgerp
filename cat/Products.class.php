@@ -2660,9 +2660,10 @@ class cat_Products extends embed_Manager {
      * 5. Ако не открие връща NULL
      * 
      * @param string $code
+     * @param boolean $onlyManager
      * @return NULL|double $primeCost
      */
-    public static function getPrimeCostByCode($code)
+    public static function getPrimeCostByCode($code, $onlyManager = FALSE)
     {
     	// Имали такъв артикул?
     	$product = self::getByCode($code);
@@ -2673,6 +2674,8 @@ class cat_Products extends embed_Manager {
     	// Мениджърската му себестойност, ако има
     	$primeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $productId);
     	if(!empty($primeCost)) return $primeCost;
+    	
+    	if($onlyManager === TRUE) return;
     	
     	$pRec = cat_Products::fetch($productId, 'canConvert,canManifacture,canStore');
     	
