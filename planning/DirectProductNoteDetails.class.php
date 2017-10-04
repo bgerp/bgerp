@@ -44,12 +44,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     
     
     /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
-    
-    
-    /**
      * Кой има право да променя?
      */
     public $canEdit = 'ceo,planning,store,production';
@@ -345,7 +339,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Метод по пдоразбиране на getRowInfo за извличане на информацията от реда
      */
-    public static function on_AfterGetRowInfo($mvc, &$res, $rec)
+    protected static function on_AfterGetRowInfo($mvc, &$res, $rec)
     {
     	$rec = $mvc->fetchRec($rec);
     	if(empty($rec->storeId)){

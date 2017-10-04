@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'planning_DirectProductionNote' - Документ за производство
  *
@@ -202,7 +203,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	/**
 	 * Изчисляване на количеството на реда в брой опаковки
 	 */
-	public static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
+	protected static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
 	{
 		if (empty($rec->quantity) || empty($rec->quantityInPack)) return;
 		
@@ -795,10 +796,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		if(isset($rec->id)){
 			$input = planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #type = 'input'", 'id');
 			$pop = planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #type = 'pop'", 'id');
-			if($pop && !$input){
-			
-				return FALSE;
-			}
+			if($pop && !$input) return FALSE;
 		}
 		
 		return TRUE;
@@ -808,7 +806,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	/**
 	 * Извиква се след като документа стане разходен обект
 	 */
-	public static function on_AfterForceCostObject($mvc, $rec)
+	protected static function on_AfterForceCostObject($mvc, $rec)
 	{
 		// Реконтиране на документа
 		acc_Journal::reconto($rec->containerId);
