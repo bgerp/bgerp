@@ -1081,7 +1081,7 @@ class cat_Products extends embed_Manager {
     	$res = new stdClass();
     	
     	// Проверяваме имали опаковка с този код: вътрешен или баркод
-    	$catPack = cat_products_Packagings::fetch(array("#eanCode = '[#1#]'", $code));
+    	$catPack = cat_products_Packagings::fetch(array("#eanCode = '[#1#]'", $code), 'productId,packagingId');
     	
     	if(!empty($catPack)) {
     		
@@ -1091,16 +1091,15 @@ class cat_Products extends embed_Manager {
     	} else {
     		
     		// Проверяваме имали продукт с такъв код
-            $rec = self::fetch(array("#code = '[#1#]'", $code));
+            $rec = self::fetch(array("#code = '[#1#]'", $code), 'id');
             if(!$rec) {
-                $rec = self::fetch(array("LOWER(#code) = LOWER('[#1#]')", $code));
+                $rec = self::fetch(array("LOWER(#code) = LOWER('[#1#]')", $code), 'id');
             }
+            
     		if($rec) {
     			$res->productId = $rec->id;
     			$res->packagingId = NULL;
     		} else {
-    			
-    			// Ако няма продукт
     			return FALSE;
     		}
     	}
