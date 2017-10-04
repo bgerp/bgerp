@@ -41,12 +41,6 @@ class label_Labels extends core_Master
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'label, admin, ceo';
-    
-    
-    /**
      * Кой има право да променя?
      */
     public $canEdit = 'label, admin, ceo';
