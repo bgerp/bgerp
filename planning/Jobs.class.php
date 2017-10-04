@@ -1154,7 +1154,6 @@ class planning_Jobs extends core_Master
     	$tasks = planning_Tasks::getTasksByJob($rec->oldJobId);
     	$form->FLD('tasks', 'keylist(mvc=planning_Tasks,select=id)', 'caption=Пр. операции,mandatory');
     	$form->setSuggestions('tasks', $tasks);
-    	$form->setDefault('tasks', keylist::fromArray($tasks));
     	$form->input();
     	if($form->isSubmitted()){
     		$Tasks = cls::get('planning_Tasks');
