@@ -294,13 +294,8 @@ class sales_Routes extends core_Manager {
     	
     	$results = array();
      	while ($rec = $query->fetch()) {
-            if(!isset($rec->nextVisit)) continue;
 			$data->rows[$rec->id] = static::recToVerbal($rec);
     	}
-
-        if(is_array($data->rows) && count($data->rows) > 1) {
-            arr::order($data->rows, 'nextVisit');
-        }
     		
     	if ($this->haveRightFor('add', (object)(array('locationId' => $data->masterData->rec->id)))) {
 	    	$data->addUrl = array('sales_Routes', 'add', 'locationId' => $data->masterData->rec->id, 'ret_url' => TRUE);
