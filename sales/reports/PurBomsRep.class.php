@@ -141,7 +141,7 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 
 		// За всяка
 		while($sRec = $sQuery->fetch()){
-if($sRec->id == 103) {
+
 			// Взимане на договорените и експедираните артикули по продажбата (събрани по артикул)
 			$dealerId = ($sRec->dealerId) ? $sRec->dealerId : (($sRec->activatedBy) ? $sRec->activatedBy : $sRec->createdBy);
 			$dealInfo = $Sales->getAggregateDealInfo($sRec);
@@ -239,7 +239,7 @@ if($sRec->id == 103) {
 				}
 			}
 		}
-		}		
+	
 		return $recs;
 	}
 	
