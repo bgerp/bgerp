@@ -31,7 +31,7 @@ class sales_Routes extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'dateFld=Посещения->Начало,repeat=Посещения->Период,nextVisit=Посещения->Следващо,salesmanId,contragent=Клиент,locationId,state,createdOn,createdBy';
+    public $listFields = 'nextVisit=Посещения->Следващо,repeat=Посещения->Период,dateFld=Посещения->Начало,salesmanId,contragent=Клиент,locationId,state,createdOn,createdBy';
     
     
 	/**
@@ -231,9 +231,7 @@ class sales_Routes extends core_Manager {
 
         $data->listFilter->showFields = 'search,user,date';
         $data->listFilter->input();
-		
-        $data->query->XPR('date1', 'datetime', "(CASE WHEN #nextVisit IS NULL THEN #dateFld ELSE #nextVisit END)");
-		$data->query->orderBy("#date1", 'DESC');
+		$data->query->orderBy("#nextVisit", 'DESC');
 		
 		// Филтриране по дата
     	if ($data->listFilter->rec->date) {
@@ -505,7 +503,7 @@ class sales_Routes extends core_Manager {
 				// Ако е еднократен и е минал, затваря се
 				$rec->state = 'closed';
 				$updateState[$rec->id] = $rec;
-			} elseif(!empty($rec->repeat)) {
+			} else {
 				
 				// Ако има повторение прави се опит за изчисляване на следващото посещение
 				if($next = $this->getNextVisit($rec)){
