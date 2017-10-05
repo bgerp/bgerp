@@ -522,7 +522,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	parent::getVerbalInvoice($mvc, $rec, $row, $fields);
     	
     	if($fields['-single']){
-    		if($rec->accountId){
+    		if($rec->accountId && $rec->paymentType != 'factoring'){
     			$Varchar = cls::get('type_Varchar');
     			$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
     			

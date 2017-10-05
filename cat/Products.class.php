@@ -1081,7 +1081,7 @@ class cat_Products extends embed_Manager {
     	$res = new stdClass();
     	
     	// Проверяваме имали опаковка с този код: вътрешен или баркод
-    	$catPack = cat_products_Packagings::fetch(array("#eanCode = '[#1#]'", $code));
+    	$catPack = cat_products_Packagings::fetch(array("#eanCode = '[#1#]'", $code), 'productId,packagingId');
     	
     	if(!empty($catPack)) {
     		
@@ -1091,16 +1091,15 @@ class cat_Products extends embed_Manager {
     	} else {
     		
     		// Проверяваме имали продукт с такъв код
-            $rec = self::fetch(array("#code = '[#1#]'", $code));
+            $rec = self::fetch(array("#code = '[#1#]'", $code), 'id');
             if(!$rec) {
-                $rec = self::fetch(array("LOWER(#code) = LOWER('[#1#]')", $code));
+                $rec = self::fetch(array("LOWER(#code) = LOWER('[#1#]')", $code), 'id');
             }
+            
     		if($rec) {
     			$res->productId = $rec->id;
     			$res->packagingId = NULL;
     		} else {
-    			
-    			// Ако няма продукт
     			return FALSE;
     		}
     	}
@@ -2660,9 +2659,10 @@ class cat_Products extends embed_Manager {
      * 5. Ако не открие връща NULL
      * 
      * @param string $code
+     * @param boolean $onlyManager
      * @return NULL|double $primeCost
      */
-    public static function getPrimeCostByCode($code)
+    public static function getPrimeCostByCode($code, $onlyManager = FALSE)
     {
     	// Имали такъв артикул?
     	$product = self::getByCode($code);
@@ -2673,6 +2673,8 @@ class cat_Products extends embed_Manager {
     	// Мениджърската му себестойност, ако има
     	$primeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $productId);
     	if(!empty($primeCost)) return $primeCost;
+    	
+    	if($onlyManager === TRUE) return;
     	
     	$pRec = cat_Products::fetch($productId, 'canConvert,canManifacture,canStore');
     	

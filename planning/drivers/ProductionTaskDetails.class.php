@@ -466,7 +466,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     /**
      * Изпълнява се преди възстановяването на документа
      */
-    public static function on_BeforeRestore(core_Mvc $mvc, &$res, $id)
+    protected static function on_BeforeRestore(core_Mvc $mvc, &$res, $id)
     {
     	// Отбелязваме че реда се редактира
     	$id->isRestored = TRUE;
@@ -486,7 +486,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     /**
      * Реакция в счетоводния журнал при оттегляне на счетоводен документ
      */
-    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    protected static function on_AfterReject(core_Mvc $mvc, &$res, $id)
     {
     	// Записване че е имало оттегляне
     	$rec = static::fetchRec($id);
@@ -497,7 +497,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     /**
      * Реакция в счетоводния журнал при възстановяване на оттеглен счетоводен документ
      */
-    public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
+    protected static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
     {
     	// Записване че е имало възстановяване
     	$rec = static::fetchRec($id);
@@ -573,6 +573,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     {
     	// Искаме да показваме и оттеглените детайли
     	$data->query->orWhere("#state = 'rejected'");
+    	$data->query->orderBy('createdOn', 'DESC');
     }
     
     

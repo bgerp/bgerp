@@ -382,6 +382,20 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
      */
     private  function addRecs(&$data, $rec, $recDetail, $class)
     {
+        $firstDoc = doc_Threads::getFirstDocument($rec->threadId); 
+        //yes=Включено,no=Без,separate=Отделно,export=Експорт
+        $chargeVat = $firstDoc->fetchField('chargeVat');
+        
+        if(!$firstDoc->instance instanceof sales_Sales) { 
+            return;
+        }
+        
+        if(isset($chargeVat)) {
+            if($chargeVat == 'no') {
+                return;
+            }
+        }
+
         if (isset($recDetail->discount)) {
             $amount = $recDetail->amount - ($recDetail->amount*$recDetail->discount);
             
@@ -418,10 +432,7 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
         $quantityInv = 0;
         if($class == 'sales_Invoices') { 
             $Details = cls::get('sales_InvoiceDetails');
-            $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-            //yes=Включено,no=Без,separate=Отделно,export=Експорт
-            $chargeVat = $firstDoc->fetchField('chargeVat');
-            
+           
             if (isset($recDetail->discount)) {
                 $amountInv = $recDetail->amount - ($recDetail->amount*$recDetail->discount);
             } else {
@@ -436,24 +447,24 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
             
             if(isset($rec->type)) {
                 $type = $rec->type;
-                
+                //обработката на записите на КИ и ДИ
                 if($type == 'dc_note') { 
                     $dealValue = $rec->dealValue;
                     $vatAmount = $rec->vatAmount;
-                    if(count($recDetail)){
-                        $cnt = 0;
-                        $cache = $Details->Master->getInvoiceDetailedInfo($rec->originId); 
-                     
-                        
-                        if($rec->dealValue < 0) {
-                            
-                            $qM = $cache->recs[$cnt][$recDetail->productId]['quantity'] - $quantityInv;        
-                        } else {
-                            
-                            $qP = $quantityInv - $cache->recs[$cnt][$recDetail->productId]['quantity'];
+                    // Намираме оригиналните к-ва и цени
+                    $cache = $Details->Master->getInvoiceDetailedInfo($rec->originId); 
+                    
+                    foreach($cache->recs as $cachRec) {
+                        foreach($cachRec as $id=>$cRec) { 
+                            if($rec->dealValue < 0 && $id == $recDetail->productId) {
+                                // ще ги вадим
+                                $qM = $cRec['quantity'] - $quantityInv;
+                                
+                            } else {
+                                // ще ги добавяме
+                                $qP = $quantityInv - $cRec['quantity'];
+                            }   
                         }
-                        
-                        $cnt++;
                     }
                 }
             }
