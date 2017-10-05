@@ -93,7 +93,13 @@ class store_InventoryNotes extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_Wrapper,acc_plg_Contable,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search,bgerp_plg_Blank';
+    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_Wrapper,plg_Clone,acc_plg_Contable,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search,bgerp_plg_Blank';
+    
+    
+    /**
+     * Кой има право да клонира?
+     */
+    public $canClonerec = 'ceo,storeMaster,inventory';
     
     
     /**
@@ -684,7 +690,7 @@ class store_InventoryNotes extends core_Master
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
     	// Синхронизираме данните само в чернова
-    	if($rec->state == 'draft'){
+    	if($rec->state == 'draft' && $rec->_isClone !== TRUE){
     		$mvc->sync($rec);
     	} elseif($rec->state == 'active' || ($rec->state == 'rejected' && $rec->brState == 'active')) {
     		cls::get('store_InventoryNoteDetails')->invoke('AfterContoOrReject', array($rec));
