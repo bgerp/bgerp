@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'store_InventoryNotes'
  *
@@ -258,11 +259,7 @@ class store_InventoryNotes extends core_Master
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
-    	
-    	if(empty($form->rec->clonedFromId)){
-    		$form->setDefault('valior', dt::today());
-    		$form->setField('valior', 'mandatory');
-    	}
+    	$form->setDefault('valior', dt::today());
     	
     	$form->setDefault('storeId', doc_Folders::fetchCoverId($form->rec->folderId));
     	$form->setReadOnly('storeId');
@@ -280,7 +277,7 @@ class store_InventoryNotes extends core_Master
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
     	if($form->isSubmitted()){
     		$rec = &$form->rec;
@@ -288,18 +285,6 @@ class store_InventoryNotes extends core_Master
     		// Проверка имали избрани вложени групи
     		if(cat_Groups::checkForNestedGroups($rec->groups)){
     			$form->setError('groups', 'Избрани са вложени групи');
-    		}
-    		
-    		if(empty($rec->valior) && isset($rec->clonedFromId)){
-    			$valior = $mvc->fetchField($rec->clonedFromId, 'valior');
-    			$valior = dt::mysql2verbal($valior);
-    			$form->setError("valior", $valior);
-    		}
-    		
-    		if(!$form->gotErrors()){
-    			if(empty($rec->valior)){
-    				$form->setError("valior", 'aaaaaa');
-    			}
     		}
     	}
     }
@@ -770,7 +755,7 @@ class store_InventoryNotes extends core_Master
     /**
      * Документа не може да се активира ако има детайл с количество 0
      */
-    public static function on_AfterCanActivate($mvc, &$res, $rec)
+    protected static function on_AfterCanActivate($mvc, &$res, $rec)
     {
     	$res = TRUE;
     }
@@ -862,7 +847,7 @@ class store_InventoryNotes extends core_Master
     /**
      * Ре-контиране на счетоводен документ
      */
-    public static function on_AfterReConto(core_Mvc $mvc, &$res, $id)
+    protected static function on_AfterReConto(core_Mvc $mvc, &$res, $id)
     {
     	$rec = $mvc->fetchRec($id);
     	cls::get('store_InventoryNoteDetails')->invoke('AfterContoMaster', array($rec));
@@ -872,7 +857,7 @@ class store_InventoryNotes extends core_Master
     /**
      * Контиране на счетоводен документ
      */
-    public static function on_AfterConto(core_Mvc $mvc, &$res, $id)
+    protected static function on_AfterConto(core_Mvc $mvc, &$res, $id)
     {
     	$rec = $mvc->fetchRec($id);
     	cls::get('store_InventoryNoteDetails')->invoke('AfterContoMaster', array($rec));
@@ -882,7 +867,7 @@ class store_InventoryNotes extends core_Master
     /**
      * Оттегляне на документ
      */
-    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    protected static function on_AfterReject(core_Mvc $mvc, &$res, $id)
     {
     	$rec = $mvc->fetchRec($id);
     	cls::get('store_InventoryNoteDetails')->invoke('AfterRejectMaster', array($rec));
