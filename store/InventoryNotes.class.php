@@ -195,7 +195,7 @@ class store_InventoryNotes extends core_Master
      */
     public function description()
     {
-    	$this->FLD('valior', 'date', 'caption=Вальор, mandatory');
+    	$this->FLD('valior', 'date', 'caption=Вальор');
     	$this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад, mandatory');
     	$this->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Групи');
     	$this->FLD('hideOthers', 'enum(yes=Да,no=Не)', 'caption=Показване само на избраните групи->Избор, mandatory, notNULL,value=no,maxRadio=2');
@@ -258,7 +258,11 @@ class store_InventoryNotes extends core_Master
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
-    	$form->setDefault('valior', dt::today());
+    	
+    	if(empty($form->rec->clonedFromId)){
+    		$form->setDefault('valior', dt::today());
+    		$form->setField('valior', 'mandatory');
+    	}
     	
     	$form->setDefault('storeId', doc_Folders::fetchCoverId($form->rec->folderId));
     	$form->setReadOnly('storeId');
@@ -284,6 +288,17 @@ class store_InventoryNotes extends core_Master
     		// Проверка имали избрани вложени групи
     		if(cat_Groups::checkForNestedGroups($rec->groups)){
     			$form->setError('groups', 'Избрани са вложени групи');
+    		}
+    		
+    		if(empty($rec->valior) && isset($rec->clonedFromId)){
+    			$valior = $mvc->fetchField($rec->clonedFromId, 'valior');
+    			$form->setError("valior", $valior);
+    		}
+    		
+    		if(!$form->gotErrors()){
+    			if(empty($rec->valior)){
+    				$form->setError("valior", 'aaaaaa');
+    			}
     		}
     	}
     }
