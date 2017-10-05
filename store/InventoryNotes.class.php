@@ -99,7 +99,7 @@ class store_InventoryNotes extends core_Master
     /**
      * Кой има право да клонира?
      */
-    public $canClonerec = 'ceo,storeMaster,inventory';
+    public $canClonerec = 'debug';
     
     
     /**
