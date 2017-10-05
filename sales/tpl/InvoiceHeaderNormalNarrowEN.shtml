@@ -138,7 +138,7 @@
                 <div>[#additionalInfo#]</div>
                 <!--ET_END additionalInfo-->
                 <hr>
-                [#/deals/tpl/DocumentPiceInfo.shtml#]
+                [#/deals/tpl/DocumentPriceInfoInvoice.shtml#]
                 <hr>
                 <!--ET_BEGIN responsible-->
                 <div>Received by: [#responsible#]</div>
