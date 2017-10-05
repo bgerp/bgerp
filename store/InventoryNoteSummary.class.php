@@ -97,6 +97,14 @@ class store_InventoryNoteSummary extends doc_Detail
     
     
     /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'blQuantity';
+    
+    
+    /**
      * Брой записи на страница
      *
      * @var integer
