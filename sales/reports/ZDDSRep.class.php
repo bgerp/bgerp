@@ -436,24 +436,24 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
             
             if(isset($rec->type)) {
                 $type = $rec->type;
-                
+                //обработката на записите на КИ и ДИ
                 if($type == 'dc_note') { 
                     $dealValue = $rec->dealValue;
                     $vatAmount = $rec->vatAmount;
-                    if(count($recDetail)){
-                        $cnt = 0;
-                        $cache = $Details->Master->getInvoiceDetailedInfo($rec->originId); 
-                     
-                        
-                        if($rec->dealValue < 0) {
-                            
-                            $qM = $cache->recs[$cnt][$recDetail->productId]['quantity'] - $quantityInv;        
-                        } else {
-                            
-                            $qP = $quantityInv - $cache->recs[$cnt][$recDetail->productId]['quantity'];
+                    // Намираме оригиналните к-ва и цени
+                    $cache = $Details->Master->getInvoiceDetailedInfo($rec->originId); 
+                    
+                    foreach($cache->recs as $cachRec) {
+                        foreach($cachRec as $id=>$cRec) { 
+                            if($rec->dealValue < 0 && $id == $recDetail->productId) {
+                                // ще ги вадим
+                                $qM = $cRec['quantity'] - $quantityInv;
+                                
+                            } else {
+                                // ще ги добавяме
+                                $qP = $quantityInv - $cRec['quantity'];
+                            }   
                         }
-                        
-                        $cnt++;
                     }
                 }
             }
