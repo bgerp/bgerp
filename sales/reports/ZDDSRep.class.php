@@ -382,6 +382,20 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
      */
     private  function addRecs(&$data, $rec, $recDetail, $class)
     {
+        $firstDoc = doc_Threads::getFirstDocument($rec->threadId); 
+        //yes=Включено,no=Без,separate=Отделно,export=Експорт
+        $chargeVat = $firstDoc->fetchField('chargeVat');
+        
+        if(!$firstDoc->instance instanceof sales_Sales) { 
+            return;
+        }
+        
+        if(isset($chargeVat)) {
+            if($chargeVat == 'no') {
+                return;
+            }
+        }
+
         if (isset($recDetail->discount)) {
             $amount = $recDetail->amount - ($recDetail->amount*$recDetail->discount);
             
@@ -418,10 +432,7 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
         $quantityInv = 0;
         if($class == 'sales_Invoices') { 
             $Details = cls::get('sales_InvoiceDetails');
-            $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-            //yes=Включено,no=Без,separate=Отделно,export=Експорт
-            $chargeVat = $firstDoc->fetchField('chargeVat');
-            
+           
             if (isset($recDetail->discount)) {
                 $amountInv = $recDetail->amount - ($recDetail->amount*$recDetail->discount);
             } else {
