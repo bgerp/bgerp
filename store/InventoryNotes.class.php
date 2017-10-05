@@ -292,6 +292,7 @@ class store_InventoryNotes extends core_Master
     		
     		if(empty($rec->valior) && isset($rec->clonedFromId)){
     			$valior = $mvc->fetchField($rec->clonedFromId, 'valior');
+    			$valior = dt::mysql2verbal($valior);
     			$form->setError("valior", $valior);
     		}
     		
