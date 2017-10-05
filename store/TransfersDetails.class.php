@@ -116,16 +116,16 @@ class store_TransfersDetails extends doc_Detail
         $this->FLD('newProductId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,mandatory,silent,refreshForm,tdClass=productCell leftCol wrap');
         $this->FLD('productId', 'key(mvc=store_Products,select=productId)', 'caption=Продукт,input=none,mandatory,silent,refreshForm');
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,smartCenter,input=hidden,tdClass=small-field nowrap');
-        $this->FLD('quantity', 'double(Min=0)', 'caption=Количество,input=none');
+        $this->FLD('quantity', 'double', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
-        $this->FNC('packQuantity', 'double(decimals=2)', 'caption=Количество,input,mandatory');
+        $this->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input,mandatory');
     }
     
     
     /**
      * Изчисляване на количеството на реда в брой опаковки
      */
-    public function on_CalcPackQuantity(core_Mvc $mvc, $rec)
+    protected function on_CalcPackQuantity(core_Mvc $mvc, $rec)
     {
         if (empty($rec->quantity) || empty($rec->quantityInPack)) {
             return;
@@ -138,7 +138,7 @@ class store_TransfersDetails extends doc_Detail
     /**
      * Извиква се след успешен запис в модела
      */
-    public static function on_AfterSave($mvc, &$id, $rec, $fieldsList = NULL)
+    protected static function on_AfterSave($mvc, &$id, $rec, $fieldsList = NULL)
     {
         // Подсигуряваме наличието на ключ към мастър записа
         if (empty($rec->{$mvc->masterKey})) {
@@ -163,7 +163,7 @@ class store_TransfersDetails extends doc_Detail
     /**
      * След обработка на записите от базата данни
      */
-    public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
+    protected static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
         $rows = $data->rows;
         
@@ -186,7 +186,7 @@ class store_TransfersDetails extends doc_Detail
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
     	if(!count($data->recs)) return;
     	 
@@ -205,7 +205,7 @@ class store_TransfersDetails extends doc_Detail
     /**
      * Преди показване на форма за добавяне/промяна
      */
-    public static function on_AfterPrepareEditForm($mvc, $data)
+    protected static function on_AfterPrepareEditForm($mvc, $data)
     {
         $form = &$data->form;
         $rec = &$form->rec;
@@ -223,7 +223,7 @@ class store_TransfersDetails extends doc_Detail
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
-    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     { 
     	$rec = &$form->rec;
     	
@@ -250,7 +250,7 @@ class store_TransfersDetails extends doc_Detail
 	/**
      * След подготовка на лист тулбара
      */
-    public static function on_AfterPrepareListToolbar($mvc, $data)
+    protected static function on_AfterPrepareListToolbar($mvc, $data)
     {
     	if (!empty($data->toolbar->buttons['btnAdd'])) {
 			unset($data->toolbar->buttons['btnAdd']);
@@ -269,7 +269,7 @@ class store_TransfersDetails extends doc_Detail
     /**
      * Метод по пдоразбиране на getRowInfo за извличане на информацията от реда
      */
-    public static function on_AfterGetRowInfo($mvc, &$res, $rec)
+    protected static function on_AfterGetRowInfo($mvc, &$res, $rec)
     {
     	$rec = $mvc->fetchRec($rec);
     	$toStoreId = store_Transfers::fetchField($rec->transferId, 'toStore');

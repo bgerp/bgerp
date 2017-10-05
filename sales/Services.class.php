@@ -1,4 +1,7 @@
 <?php
+
+
+
 /**
  * Клас 'sales_Services'
  *
@@ -8,7 +11,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -48,12 +51,6 @@ class sales_Services extends deals_ServiceMaster
      * @see doc_SharablePlg
      */
     public $shareUserRoles = 'ceo, sales';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,sales';
     
     
     /**
@@ -144,12 +141,6 @@ class sales_Services extends deals_ServiceMaster
      * Икона на единичния изглед
      */
     public $singleIcon = 'img/16/shipment.png';
-    
-    
-    /**
-     * Кой може да сторнира
-     */
-    public $canRevert = 'salesMaster, ceo';
     
     
     /**
