@@ -39,7 +39,20 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
 
     }
 
-    /**
+    protected static function on_AfterInputEditForm($mvc, $cls, $form)
+    {
+
+        if ($form->isSubmitted()) {
+//            bp($form->rec);
+
+            if ($form->rec->from > $form->rec->to) {
+                $form->setError('from, to', 'Началната дата не може да бъде по-голяма от крайната дата');
+            }
+        }
+    }
+
+
+            /**
      * Кои записи ще се показват в таблицата
      *
      * @param stdClass $rec
