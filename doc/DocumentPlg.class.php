@@ -306,19 +306,24 @@ class doc_DocumentPlg extends core_Plugin
             	),
             			'onmouseup=saveSelectedTextToSession("' . $mvc->getHandle($data->rec->id) . '")', 'ef_icon = img/16/comment_add.png,title=' . tr('Добавяне на коментар към документа'));
             }
-            
+        }
+        
+        if ($data->rec->state != 'rejected') {
             // Добавяме бутон за създаване на задача
-            if (cal_Tasks::haveRightFor('add') && $data->rec->containerId) {
+            if ($data->rec->containerId) {
+                
+                Request::setProtected(array('inType', 'foreignId'));
                 
                 $doc = doc_Containers::getDocument($data->rec->containerId);
                 
                 if ($doc->haveRightFor('single')) {
-                    $data->toolbar->addBtn('Задача', array(
-                            'cal_Tasks',
-                            'AddDocument',
+                    $data->toolbar->addBtn('Връзка', array(
+                            'doc_Linked',
+                            'Link',
                             'foreignId' => $data->rec->containerId,
+                            'inType' => 'doc',
                             'ret_url'=> $retUrl
-                    ), 'ef_icon = img/16/task-normal.png, title=' . tr('Създаване на задача от документа'));
+                    ), 'ef_icon = img/16/doc_tag.png, title=Връзка към документа');
                 }
             }
         }
@@ -660,6 +665,18 @@ class doc_DocumentPlg extends core_Plugin
             $rec->pendingSaved = FALSE;
         	$mvc->pendingQueue[$rec->id] = $rec;
         	$mvc->invoke('AfterSavePendingDocument', array($rec));
+        }
+        
+        if ($rec->linkedHashKey) {
+            $lRec = core_Permanent::get($rec->linkedHashKey);
+            $lRec->inVal = $rec->containerId;
+            
+            doc_Linked::save($lRec);
+            
+            try {
+                $outDoc = doc_Containers::getDocument($lRec->outVal);
+                $outDoc->instance->logRead('Създаден документ', $outDoc->that);
+            } catch (core_exception_Expect $e) { }
         }
     }
     
@@ -1142,9 +1159,6 @@ class doc_DocumentPlg extends core_Plugin
                 
                 expect(is_numeric($docId));
                 
-                // Трябва да има съответните права
-                $mvc->requireRightFor('viewpsingle', $docId);
-                
                 if ($fromList) {
                     // Трябва да може да се вижда документа
                     $nQuery = $mvc->getQuery();
@@ -1442,6 +1456,25 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
+        // Помощно поле при линкване на документи
+        if (!$data->form->fields['foreignId']) {
+            $data->form->FNC('foreignId', 'key(mvc=doc_Containers)', 'caption=Оригинален документ, silent, input=hidden');
+            $fId = Request::get('foreignId', 'int');
+            if ($fId) {
+                $data->form->setDefault('foreignId', $fId);
+            }
+        }
+        
+        // Помощно поле при линкване на документи
+        if (!$data->form->fields['linkedHashKey']) {
+            $data->form->FNC('linkedHashKey', 'varchar', 'caption=Линк хеш, silent, input=hidden');
+            
+            $lHash = Request::get('linkedHashKey');
+            if ($lHash) {
+                $data->form->setDefault('linkedHashKey', $lHash);
+            }
+        }
+        
         $rec = $data->form->rec;
         
         // Ако редактираме запис
@@ -1478,15 +1511,20 @@ class doc_DocumentPlg extends core_Plugin
             
             $rec->threadId = $oRec->threadId;
             $rec->folderId = $oRec->folderId;
+        }
+        
+        $oDocId = $rec->originId;
+        if (!$oDocId) {
+            $oDocId = $rec->foreignId;
+        }
+        
+        if ($oDocId && !Mode::is('stopRenderOrigin')) {
+            $data->form->layout = $data->form->renderLayout();
+            $tpl = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Оригинален документ") . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div>");
             
-            if (!Mode::is('stopRenderOrigin')) {
-                $data->form->layout = $data->form->renderLayout();
-                $tpl = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Оригинален документ") . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div>");
-                
-                // TODO: да се замени с интерфейсен метод
-                
-                $document = doc_Containers::getDocument($rec->originId);
-                
+            $document = doc_Containers::getDocument($oDocId);
+            
+            if ($document->haveRightFor('single')) {
                 $docHtml = $document->getInlineDocumentBody();
                 
                 $tpl->append($docHtml, 'DOCUMENT');
@@ -2404,6 +2442,12 @@ class doc_DocumentPlg extends core_Plugin
             // Причината е, резултата от този метод (а следователно и конкретната стокност на MID)
             // в някои случаи се кешира, а това не бива да се случва!
             $tpl->content = str_replace(static::getMidPlace(), $data->__MID__, $tpl->content);
+        }
+        
+        if (!Mode::isReadOnly()) {
+            $linkTpl = doc_Linked::getListView('doc', $data->rec->containerId);
+            
+            $tpl->append($linkTpl, 'DETAILS');
         }
     }
     

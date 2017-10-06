@@ -323,7 +323,7 @@ class doc_Comments extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        if($action == 'add' && empty($rec)){
+        if($action == 'add' && (isset($rec) && empty($rec))){
             $requiredRoles = 'no_one';
         }
     }

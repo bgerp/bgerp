@@ -645,7 +645,7 @@ class doc_Files extends core_Manager
      */
     static function updateRec($cRec)
     {
-        // Ако няма containerId не се прави ништо
+        // Ако няма containerId не се прави нищо
         if (!$cRec->containerId) return ;
 
         // Вземаем всички записи от модела от съответния контейнер
