@@ -57,7 +57,7 @@ class cal_Tasks extends core_Master
     /**
      * Какви детайли има този мастер
      */
-    public $details = 'cal_TaskProgresses, cal_TaskConditions, cal_TaskDocuments';
+    public $details = 'cal_TaskProgresses, cal_TaskConditions';
 
 
     /**
@@ -314,8 +314,6 @@ class cal_Tasks extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-        $data->form->FNC('foreignId', 'key(mvc=doc_Containers)', 'silent, input=hidden');
-        
         $cu = core_Users::getCurrent();
         $data->form->setDefault('priority', 'normal');
         
@@ -640,19 +638,6 @@ class cal_Tasks extends core_Master
                 }
             }
         }
-        
-        if ($fId = Request::get('foreignId', 'int')) {
-            $form->rec->foreignId = $fId;
-        }
-        
-        if ($form->rec->foreignId) {
-            
-            $document = doc_Containers::getDocument($form->rec->foreignId);
-            
-            $document->instance->requireRightFor('single', $document->that);
-            
-            self::showForeignDoc($document, $form);
-        }
     }
 
     
@@ -739,16 +724,6 @@ class cal_Tasks extends core_Master
                 $data->toolbar->buttons['Активиране']->warning = "По същото време има и други задачи с някои от същите споделени потребители";
             }
         }
-        
-        // Добавяме бутон за създаване на задача
-        if (($data->rec->state != 'rejected') && cal_TaskDocuments::haveRightFor('add')) {
-            $data->toolbar->addBtn('Документ', array(
-                    'cal_TaskDocuments',
-                    'add',
-                    'taskId' => $data->rec->id,
-                    'ret_url'=> TRUE
-            ), 'ef_icon = img/16/doc_stand.png, title=Добавяне на документ към задачата, row=2, order=19.99');
-        }
     }
 
     
@@ -757,10 +732,6 @@ class cal_Tasks extends core_Master
      */
     static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
-        if ($rec->foreignId) {
-            cal_TaskDocuments::add($rec->id, $rec->foreignId);
-        }
- 
         if($rec->state == 'pending' && !$rec->sharedUsers) { 
             core_Statuses::newStatus("|Не е избран потребител. Документа е приведен в състояние 'Заявка'|*");
         } 
@@ -1358,21 +1329,6 @@ class cal_Tasks extends core_Master
             // В заглавието добавяме потребителя
             $row->subTitle = $Users->toVerbal(type_userList::fromArray($usersArr));
             $row->subTitle .= $othersStr;
-        }
-        
-        // Добавяме първия документ в subTitle
-        if ($fCid = cal_TaskDocuments::getFirstDocumentCid($rec->id)) {
-            $document = doc_Containers::getDocument($fCid);
-            
-            if ($document->instance instanceof cal_Tasks) {
-                $dTitle = $document->getVerbal('title');
-            } else {
-                $dTitle = doc_Containers::getDocTitle($fCid);
-            }
-            
-            $row->subTitle .= $row->subTitle ? ' - ' : '';
-            
-            $row->subTitle .= $dTitle;
         }
        
         //Състояние
@@ -2672,6 +2628,7 @@ class cal_Tasks extends core_Master
     
     /**
      * Създаване на задача от документ
+     * @deprecated
      */
     function act_AddDocument()
     {
@@ -3063,6 +3020,8 @@ class cal_Tasks extends core_Master
      * 
      * @param core_ObjectReference $fDoc
      * @param core_Form $form
+     * 
+     * @deprecated
      */
     protected static function showForeignDoc($fDoc, $form)
     {
