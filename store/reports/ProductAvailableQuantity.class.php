@@ -28,10 +28,26 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Артикул,mandatory');
-        $fieldset->FLD('store', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,mandatory');
-        $fieldset->FLD('quantityMin', 'double(decimals=2)', 'caption=Минимално количество');
-        $fieldset->FLD('quantityMax', 'double(decimals=2)', 'caption=Максимално количество');
+        $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,after=title');
+        $fieldset->FLD('minQuantity', 'double(decimals=2)', 'caption=Мин к-во');
+        $fieldset->FLD('maxQuantity', 'double(decimals=2)', 'caption=Макс к-во');
     }
+
+    protected static function on_AfterInputEditForm($mvc, $cls, $form)
+    {
+
+        if ($form->isSubmitted()) {
+
+            if ($form->rec->minQuantity < 0 || $form->rec->maxQuantity<0) {
+                $form->setError('minQuantity, maxQuantity', 'Количествата трябва  да са положителни');
+            }
+
+            if ($form->rec->maxQuantity<$form->rec->minQuantity) {
+                $form->setError('minQuantity, maxQuantity', 'Максималното количество не може да бъде по-малко от минималното');
+            }
+        }
+    }
+
 
     /**
      * Кои записи ще се показват в таблицата
@@ -43,6 +59,54 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = NULL)
     {
         $recs = array();
+
+        $query = store_Products::getQuery();
+
+        $query->where("#productId = $rec->productId");
+
+        $quantityMark = '';
+        $conditionColor = '';
+
+        while($recProduct = $query->fetch())
+        {
+            $id = $recProduct->productId;
+
+
+            $quantity = store_Products::getQuantity($id,$storeId = $rec->storeId, $onlyFree = FALSE);
+
+            if($quantity<$rec->minQuantity)
+            {
+                $quantityMark = 'под минимум';
+            }
+
+            elseif ($quantity>$rec->maxQuantity){
+                $quantityMark = 'свръх наличност';
+            }
+
+            else{$quantityMark = 'ok';}
+
+            if(!array_key_exists($id,$recs)) {
+                $recs[$id]=
+                    (object) array (
+
+    //                    'kod' => cat_Products::fetchField($recProduct->productId, 'code'),
+                        'measure' => cat_Products::getProductInfo($recProduct->productId)->productRec->measureId,
+                        'productId' => $recProduct->productId,
+                        'storeId' => $rec->storeId,
+                        'quantity' => $quantity,
+                        'minQuantity'=> $rec->minQuantity,
+                        'maxQuantity'=> $rec->maxQuantity,
+                        'conditionQuantity' => $quantityMark,
+                        'conditionColor' => $conditionColor
+                    );
+            } else {
+                $obj = &$recs[$id];
+                $obj->quantity += $recProduct->quantity;
+
+            }
+
+        }
+
         return $recs;
     }
 
@@ -59,27 +123,28 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
 
         if($export === FALSE){
-            $fld->FLD('kod', 'varchar','caption=Код');
+      //      $fld->FLD('kod', 'varchar','caption=Код');
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
-            $fld->FLD('measure', 'varchar', 'caption=Мярка');
-            $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Наличност');
-            $fld->FLD('reservedQuantity', 'double', 'caption=Запазено');
-            $fld->FLD('freeQuantity', 'double', 'caption=Разполагаемо');
-            $fld->FLD('changeQuantity', 'double', 'caption=Промяна');
+            $fld->FLD('storeId', 'varchar', 'caption=Склад,tdClass=centered');
+            $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
+            $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Наличност,smartCenter');
+            $fld->FLD('minQuantity', 'double', 'caption=Минимално,smartCenter');
+            $fld->FLD('maxQuantity', 'double', 'caption=Максимално,smartCenter');
+            $fld->FLD('conditionQuantity', 'text', 'caption=Състояние,tdClass=centered');
 
         } else {
-            $fld->FLD('kod', 'varchar','caption=Код');
+      //      $fld->FLD('kod', 'varchar','caption=Код');
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
-            $fld->FLD('measure', 'varchar', 'caption=Мярка');
-            $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Наличност');
-            $fld->FLD('reservedQuantity', 'double', 'caption=Запазено');
-            $fld->FLD('freeQuantity', 'double', 'caption=Разполагаемо');
-            $fld->FLD('changeQuantity', 'double', 'caption=Промяна');
+            $fld->FLD('storeId', 'varchar', 'caption=Склад,tdClass=centered');
+            $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
+            $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Наличност,smartCenter');
+            $fld->FLD('minQuantity', 'double', 'caption=Минимално,smartCenter');
+            $fld->FLD('maxQuantity', 'double', 'caption=Максимално,smartCenter');
+            $fld->FLD('conditionQuantity', 'text', 'caption=Състояние,tdClass=centered');
         }
 
         return $fld;
     }
-
 
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
@@ -91,7 +156,43 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     protected function detailRecToVerbal($rec, &$dRec)
     {
 
+        if($dRec->quantity<$dRec->minQuantity){
+            $conditionColor = 'red';
+        }
+        elseif ($dRec->quantity>$dRec->maxQuantity) {
+            $conditionColor = 'blue';
+        }else{$conditionColor = 'green';}
+
         $row = new stdClass();
+
+        if(isset($dRec->productId)) {
+            $row->productId =  cat_Products::getShortHyperlink($dRec->productId);
+        }
+
+        if(isset($dRec->quantity)) {
+            $row->quantity = $dRec->quantity;
+        }
+
+        if(isset($dRec->storeId)) {
+            $row->storeId = store_Stores::getShortHyperlink($dRec->storeId);
+        }
+
+        if(isset($dRec->measure)) {
+            $row->measure = cat_UoM::fetchField($dRec->measure,'shortName');
+        }
+
+        if(isset($dRec->minQuantity)) {
+            $row->minQuantity = $dRec->minQuantity;
+        }
+
+        if(isset($dRec->maxQuantity)) {
+            $row->maxQuantity = $dRec->maxQuantity;
+        }
+
+        if(isset($dRec->conditionQuantity)) {
+            $row->conditionQuantity = "<span style='color: $conditionColor'>{$dRec->conditionQuantity}</span>";
+        }
+
 
         return $row;
     }
