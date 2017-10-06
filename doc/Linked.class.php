@@ -289,7 +289,7 @@ class doc_Linked extends core_Manager
                     
                     $mandatory = '';
                     
-                    if (!$dInst->canAddToFolder($form->rec->linkFolderId)) {
+                    if (!$dInst->canAddToFolder($form->rec->linkFolderId) && !$dInst->haveRightFor('add', (object) array('folderId' => $form->rec->linkFolderId))) {
                         $mandatory = ' ,mandatory';
                     }
                     
@@ -561,7 +561,7 @@ class doc_Linked extends core_Manager
             if (!$limit--) break;
             
             if ($docTypeInst) {
-                if ($docTypeInst->onlyFirstInThread && !$docTypeInst->canAddToFolder($rec->id)) continue;
+                if ($docTypeInst->onlyFirstInThread && !$docTypeInst->canAddToFolder($rec->id) && !$docTypeInst->haveRightFor('add', (object) array('folderId' => $rec->id))) continue;
             }
             
             $title = trim($rec->{$titleFld});
@@ -639,6 +639,8 @@ class doc_Linked extends core_Manager
             
             if ($docTypeInst) {
                 if ($docTypeInst->onlyFirstInThread || !$docTypeInst->canAddToThread($rec->id)) continue;
+                
+                if (!$docTypeInst->haveRightFor('add', (object) array('threadId' => $rec->id))) continue;
             }
             
             $title = $rec->id;
