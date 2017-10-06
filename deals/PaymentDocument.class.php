@@ -81,10 +81,13 @@ abstract class deals_PaymentDocument extends core_Master {
 	{
 		$row->valior = (isset($rec->valior)) ? $row->valior : ht::createHint('', 'Вальора ще бъде датата на контиране');
 		
-		if($rec->fromContainerId){
+		if(isset($rec->fromContainerId)){
 			$Document = doc_Containers::getDocument($rec->fromContainerId);
 			$number = str_pad($Document->fetchField('number'), '10', '0', STR_PAD_LEFT);
 			$row->fromContainerId = "#{$Document->abbr}{$number}";
+			if(!Mode::isReadOnly()){
+				$row->fromContainerId = ht::createLink($row->fromContainerId, $Document->getSingleurlArray());
+			}
 		}
 		
 		if(!Mode::isReadOnly()){
@@ -107,7 +110,7 @@ abstract class deals_PaymentDocument extends core_Master {
 		$this->requireRightFor('selectinvoice', $rec);
 		
 		$form = cls::get('core_Form');
-		$form->title = "Избор на фактура по която е|* <b>" . $this->getHyperlink($rec);
+		$form->title = core_Detail::getEditTitle($this, $rec->id, 'информация', $rec->id);
 		$form->FLD('fromContainerId', 'int', 'caption=За фактура');
 		
 		$isReverse = ($rec->isReverse == 'yes');

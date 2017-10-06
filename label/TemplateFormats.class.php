@@ -20,61 +20,61 @@ class label_TemplateFormats extends core_Detail
     /**
      * Заглавие на модела
      */
-    var $title = 'Формати за параметрите';
+    public $title = 'Формати за параметрите';
     
     
     /**
      * 
      */
-    var $singleTitle = 'Формати';
+    public $singleTitle = 'Формати';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'labelMaster, admin, ceo';
+    public $canEdit = 'labelMaster, admin, ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'labelMaster, admin, ceo';
+    public $canAdd = 'labelMaster, admin, ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'label, admin, ceo';
+    public $canList = 'label, admin, ceo';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'labelMaster, admin, ceo';
+    public $canDelete = 'labelMaster, admin, ceo';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'label_Wrapper, plg_RowTools';
+    public $loadList = 'label_Wrapper, plg_RowTools';
     
     
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
-    var $masterKey = 'templateId';
+    public $masterKey = 'templateId';
     
     
     /**
      * 
      */
-    var $listFields = 'type, placeHolder, formatParams';
+    public $listFields = 'type, placeHolder, formatParams';
     
     
     /**
      * 
      */
-    var $rowToolsField = 'type';
+    public $rowToolsField = 'type';
     
     
     /**
@@ -84,7 +84,7 @@ class label_TemplateFormats extends core_Detail
     
     
     /**
-     * 
+     * Кофа
      */
     protected static $bucket = 'label';
     
@@ -92,7 +92,7 @@ class label_TemplateFormats extends core_Detail
     /**
      * Активен таб
      */
-    var $currentTab = 'Шаблони';
+    public $currentTab = 'Шаблони';
     
     
 	/**
@@ -109,13 +109,57 @@ class label_TemplateFormats extends core_Detail
     }
     
     
+    
+    /**
+     * Добавяне на параметър към шаблон за етикети, или обновяване на съществуващ
+     * 
+     * @param int $templateId      - ид на шаблона
+     * @param varchar $placeholder - име на плейсхолдъра
+     * @param string $type         - тип на параметъра (caption, counter, image, html, barcode)
+     * @param array|NULL $params   - допълнителни параметри
+     * @return int
+     */
+    public static function addToTemplate($templateId, $placeholder, $type, $params = NULL)
+    {
+    	expect(label_Templates::fetchField($templateId), 'Несъществуващ шаблон');
+    	expect($placeholder, 'Липсва плейсхолдър');
+    	$types = arr::make(self::$typeEnumOpt);
+    	expect(array_key_exists($type, $types), "Невалиден тип '{$type}'");
+    	expect(is_null($params) || is_array($params));
+    	if($type == 'counter' || $type == 'barcode'){
+    		
+    		expect(in_array($params['Showing'], array('barcodeAndStr', 'string', 'barcode')), $params['Showing']);
+    		setIfNot($params['Rotation'], 'no');
+    		expect(in_array($params['Rotation'], array('yes', 'no')), $params['Rotation']);
+    		expect(array_key_exists($params['BarcodeType'], barcode_Generator::getAllowedBarcodeTypesArr()), $params['BarcodeType']);
+    		expect(type_Int::isInt($params['Width']), $params['Width']);
+    		expect(type_Int::isInt($params['Height']), $params['Height']);
+    		setIfNot($params['Ratio'], '1');
+    		expect(in_array($params['Ratio'], array('1', '2', '3', '4')), $params['Ratio']);
+    		
+    		if($type == 'counter'){
+    			expect(label_Counters::fetchField($params['CounterId']));
+    		}
+    	}
+    	
+    	$newRec = (object)array('templateId' => $templateId, 'placeHolder' => $placeholder, 'type' => $type, 'formatParams' => $params);
+    	
+    	$self = cls::get(get_called_class());
+    	if(!$self->isUnique($newRec, $fields, $exRec)){
+            $newRec->id = $exRec->id;
+    	}       
+    	
+    	return $self->save($newRec);
+    }
+    
+    
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      * 
      * @param unknown_type $mvc
      * @param unknown_type $data
      */
-    static function on_AfterPrepareListToolbar($mvc, &$data)
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         // Премахваме бутона за добавяне на нов
         $data->toolbar->removeBtn('btnAdd');
@@ -192,7 +236,7 @@ class label_TemplateFormats extends core_Detail
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         // Ако не е зададен тип в записа
         if (!($type = $data->form->rec->type)) {
@@ -321,7 +365,7 @@ class label_TemplateFormats extends core_Detail
      * @param label_TemplateFormats $mvc
      * @param core_Form $form
      */
-    static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
         // Ако формата е субмитната
         if ($form->isSubmitted()) {
@@ -438,7 +482,7 @@ class label_TemplateFormats extends core_Detail
             	$form->FNC('Ratio', 'enum(1=1,2=2,3=3,4=4)', 'caption=Съотношение, input=input,mandatory');
             	$form->FNC('Width', 'int(min=1, max=5000)', 'caption=Широчина, input=input, unit=px,mandatory');
             	$form->FNC('Height', 'int(min=1, max=5000)', 'caption=Височина, input=input, unit=px,mandatory');
-            	$form->FNC('Format', 'varchar', 'caption=Формат, input=input,mandatory');
+            	$form->FNC('Format', 'varchar', 'caption=Формат, input=input');
             	$form->FNC('Rotation', 'enum(yes=Да, no=Не)', 'caption=Ротация, input=input, mandatory,mandatory');
         	break;
             
@@ -517,6 +561,8 @@ class label_TemplateFormats extends core_Detail
                 }
                 
                 $form->FNC($placeHolderField, $type, "caption={$caption}, input=input, silent");
+            } elseif ($rec->type == 'barcode') {
+                $form->FNC($placeHolderField, 'text', "caption={$caption}, input=input, silent");
             }
         }
     }
@@ -715,27 +761,34 @@ class label_TemplateFormats extends core_Detail
                 // Добавяме в масива
                 $verbalValArr[$valStr] = $Html->toVerbal($val);
             }
-        } elseif($type == 'barcode'){
-        	$barcodeType = $rec->formatParams['BarcodeType'];
-        	$minWidthAndHeight = barcode_Generator::getMinWidthAndHeight($barcodeType, $val);
-        	$width = max($minWidthAndHeight['width'], $rec->formatParams['Width']);
-        	$height = max($minWidthAndHeight['height'], $rec->formatParams['Height']);
-        	
-        	$size = array('width' => $width, 'height' => $height);
-        	$attr['ratio'] = $rec->formatParams['Ratio'];
-        	if ($rec->formatParams['Rotation'] == 'yes') {
-        		$attr['angle'] = 90;
-        	}
-        	
-        	if ($rec->formatParams['Showing'] == 'barcodeAndStr') {
-        		$attr['addText'] = array();
-        	}
-        	
-        	// Генериране на баркод от серийния номер, според зададените параметри
-        	$Html = cls::get('type_Html');
-        	$barcode = barcode_Generator::getLink($barcodeType, $val, $size, $attr)->getContent();
-        	
-        	$verbalValArr[$valStr] = $Html->toVerbal($barcode);
+        } elseif ($type == 'barcode') {
+            
+            $valStr = $val . '|' . $updateTempData . '|' . serialize($rec->formatParams) . '|' . $rec->type;
+            
+            if (!$verbalValArr[$valStr]) {
+                $barcodeType = $rec->formatParams['BarcodeType'];
+                $minWidthAndHeight = barcode_Generator::getMinWidthAndHeight($barcodeType, $val);
+                $width = max($minWidthAndHeight['width'], $rec->formatParams['Width']);
+                $height = max($minWidthAndHeight['height'], $rec->formatParams['Height']);
+                
+                $size = array('width' => $width, 'height' => $height);
+                
+                $attr = array();
+                $attr['ratio'] = $rec->formatParams['Ratio'];
+                if ($rec->formatParams['Rotation'] == 'yes') {
+                    $attr['angle'] = 90;
+                }
+                
+                if ($rec->formatParams['Showing'] == 'barcodeAndStr') {
+                    $attr['addText'] = array();
+                }
+                
+                // Генериране на баркод от серийния номер, според зададените параметри
+                $Html = cls::get('type_Html');
+                $barcode = barcode_Generator::getLink($barcodeType, $val, $size, $attr)->getContent();
+                
+                $verbalValArr[$valStr] = $Html->toVerbal($barcode);
+            }
         }
         
         return $verbalValArr[$valStr];
@@ -749,7 +802,7 @@ class label_TemplateFormats extends core_Detail
      * @param unknown_type $row
      * @param unknown_type $rec
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Масив с шаблоните
         static $fieldsArr = array();
@@ -829,7 +882,7 @@ class label_TemplateFormats extends core_Detail
      * @param unknown_type $mvc
      * @param unknown_type $res
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    protected static function on_AfterSetupMvc($mvc, &$res)
     {
         // Инстанция на класа
         $Bucket = cls::get('fileman_Buckets');
@@ -848,7 +901,7 @@ class label_TemplateFormats extends core_Detail
      * @param stdClass $rec
      * @param int $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Ако има запис
         if ($rec) {
@@ -897,7 +950,7 @@ class label_TemplateFormats extends core_Detail
      * 
      * @param integer $templateId - id на шаблона
      */
-    static function activateCounters($templateId)
+    public static function activateCounters($templateId)
     {
         // Вземаме всички броячи използвани в този шаблон
         $query = static::getQuery();

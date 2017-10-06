@@ -75,7 +75,13 @@ class planning_Jobs extends core_Master
     
     
     /**
-     * Койможе да създава задание от продажба
+     * Кой може да създава задание от продажба
+     */
+    public $canClonetasks = 'taskPlanning,ceo';
+    
+    
+    /**
+     * Кой може да създава задание от продажба
      */
     public $canCreatejobfromsale = 'ceo, job';
     
@@ -144,7 +150,7 @@ class planning_Jobs extends core_Master
     /**
      * Детайла, на модела
      */
-    public $details = 'Tasks=tasks_Tasks';
+    public $details = 'Tasks=planning_Tasks';
     
     
     /**
@@ -179,7 +185,7 @@ class planning_Jobs extends core_Master
     function description()
     {
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул');
-    	$this->FLD('oldJobId', 'int', 'silent,after=productId,caption=Старо задание,removeAndRefreshForm=notes|department|sharedUsers|packagingId|quantityInPack|storeId,input=none');
+    	$this->FLD('oldJobId', 'int', 'silent,after=productId,caption=Предишно задание,removeAndRefreshForm=notes|department|sharedUsers|packagingId|quantityInPack|storeId,input=none');
     	$this->FLD('dueDate', 'date(smartTime)', 'caption=Падеж,mandatory');
     	
     	$this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','smartCenter,mandatory,input=hidden,before=packQuantity');
@@ -243,7 +249,7 @@ class planning_Jobs extends core_Master
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
@@ -343,8 +349,8 @@ class planning_Jobs extends core_Master
     	$data->listFilter->setField("selectPeriod", "caption=Падеж");
     	$contragentsWithJobs = self::getContragentsWithJobs();
     	if(count($contragentsWithJobs)){
-    		$enum = arr::fromArray($contragentsWithJobs);
-    		$data->listFilter->FLD('contragent', "enum(,{$enum})", 'caption=Контрагенти,input,silent');
+    		$data->listFilter->FLD('contragent', "int", 'caption=Контрагенти,input,silent');
+    		$data->listFilter->setOptions('contragent', array('' => '') + $contragentsWithJobs);
     		$data->listFilter->input('contragent', 'silent');
     	}
     	
@@ -434,18 +440,25 @@ class planning_Jobs extends core_Master
      */
     private static function getContragentsWithJobs()
     {
-    	$options = core_Cache::get("planning_Jobs", 'contragentsWithJobs');
-    	if($options === FALSE) {
-    		$options = array();
-    		$query = self::getQuery();
-    		$query->where("#saleId IS NOT NULL");
-    		while($jRec = $query->fetch()){
-    			$sRec = sales_Sales::fetch($jRec->saleId, 'folderId');
-    			$options[$sRec->folderId] = doc_Folders::getTitleById($sRec->folderId);
-    		}
+    	$oldOptions = core_Cache::get("planning_Jobs", 'contragentsWithJobs');
+    	$options = ($oldOptions === FALSE) ? array() : $oldOptions;
     	
+    	$query = self::getQuery();
+    	$query->EXT('sFolderId', 'sales_Sales', 'externalName=folderId,externalKey=saleId');
+    	$query->where("#saleId IS NOT NULL");
+    	
+    	if(count($options)){
+    		$query->notIn("sFolderId", array_keys($options));
+    	}
+    	
+    	while($jRec = $query->fetch()){
+    		$sRec = sales_Sales::fetch($jRec->saleId, 'folderId');
+    		$options[$sRec->folderId] = doc_Folders::getTitleById($sRec->folderId);
+    	}
+    	
+    	if($oldOptions !== $options){
     		self::logInfo("Кеширане на папките на контрагентите със задания");
-    		core_Cache::set("planning_Jobs", 'contragentsWithJobs', $options, 20);
+    		core_Cache::set("planning_Jobs", 'contragentsWithJobs', $options, 120);
     	}
     	
     	return $options;
@@ -455,7 +468,7 @@ class planning_Jobs extends core_Master
     /**
      * След подготовка на сингъла
      */
-    public static function on_AfterRenderSingle($mvc, &$tpl, &$data)
+    protected static function on_AfterRenderSingle($mvc, &$tpl, &$data)
     {
     	$tpl->push('planning/tpl/styles.css', "CSS");
     	
@@ -514,7 +527,7 @@ class planning_Jobs extends core_Master
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
     	$rec = &$form->rec;
     	
@@ -555,7 +568,7 @@ class planning_Jobs extends core_Master
     /**
      * Изчисляване на количеството на реда в брой опаковки
      */
-    public static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
+    protected static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
     {
     	if (empty($rec->quantity) || empty($rec->quantityInPack)) return;
     
@@ -566,7 +579,7 @@ class planning_Jobs extends core_Master
     /**
      * Изпълнява се след създаване на нов запис
      */
-    public static function on_AfterCreate($mvc, $rec)
+    protected static function on_AfterCreate($mvc, $rec)
     {
     	// Споделяме текущия потребител със нишката на заданието
     	$cu = core_Users::getCurrent();
@@ -575,15 +588,13 @@ class planning_Jobs extends core_Master
     	// Записваме в историята на действията, че кога и от кого е създаден документа
     	self::addToHistory($rec->history, 'created', $rec->createdOn, $rec->createdBy);
     	$mvc->save($rec, 'history');
-    	
-    	core_Cache::remove("planning_Jobs", 'contragentsWithJobs');
     }
     
     
     /**
      * След преобразуване на записа в четим за хора вид
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->title = $mvc->getLink($rec->id);
     	$row->quantity = $mvc->getFieldType('quantity')->toVerbal($rec->quantityFromTasks);
@@ -593,9 +604,7 @@ class planning_Jobs extends core_Master
     		$measureId = cat_Products::fetchField($rec->productId, 'measureId');
     		$shortUom = cat_UoM::getShortName($measureId);
     		$rec->quantityFromTasks = planning_TaskActions::getQuantityForJob($rec->id, 'product');
-    		
     		$rec->quantityFromTasks /= $rec->quantityInPack;
-    		
     		$row->quantityFromTasks = $Double->toVerbal($rec->quantityFromTasks);
     	}
     	
@@ -660,6 +669,10 @@ class planning_Jobs extends core_Master
     		
     		if(isset($rec->deliveryPlace)){
     			$row->deliveryPlace = crm_Locations::getHyperlink($rec->deliveryPlace, TRUE);
+    		}
+    		
+    		if(isset($rec->oldJobId)){
+    			$row->oldJobId = planning_Jobs::getLink($rec->oldJobId, 0);
     		}
     		
     		if($sBomId = cat_Products::getLastActiveBom($rec->productId, 'sales')->id){
@@ -839,24 +852,17 @@ class planning_Jobs extends core_Master
     			$res = 'no_one';
     		}
     	}
-    }
-    
-    
-    /**
-     * Връща масив от използваните документи в даден документ (като цитат или са включени в детайлите му)
-     * 
-     * @param int $id - запис
-     * @return param $res - масив с използваните документи
-     * 					[class] - инстанция на документа
-     * 					[id] - ид на документа
-     */
-    function getUsedDocs_($id)
-    {
-    	$rec = $this->fetchRec($id);
-    	$cid = cat_Products::fetchField($rec->productId, 'containerId');
-    	$res[$cid] = $cid;
-    
-    	return $res;
+    	
+    	if($action == 'clonetasks' && isset($rec)){
+    		if(empty($rec->oldJobId) || ($rec->state != 'wakeup' && $rec->state != 'active')){
+    			$res = 'no_one';
+    		} else {
+    			$tasks = planning_Tasks::getTasksByJob($rec->oldJobId);
+    			if(!count($tasks)){
+    				$res = 'no_one';
+    			}
+    		}
+    	}
     }
     
     
@@ -887,7 +893,7 @@ class planning_Jobs extends core_Master
     /**
      * Функция, която се извиква след активирането на документа
      */
-    public static function on_AfterActivation($mvc, &$rec)
+    protected static function on_AfterActivation($mvc, &$rec)
     {
     	// След активиране на заданието, добавяме артикула като перо
     	$listId = acc_Lists::fetchBySystemId('catProducts')->id;
@@ -909,7 +915,7 @@ class planning_Jobs extends core_Master
     /**
      * След подготовка на сингъла
      */
-    public static function on_AfterPrepareSingle($mvc, &$res, $data)
+    protected static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
     	// Подготвяме данните на историята за показване
     	$data->row->history = array();
@@ -943,7 +949,7 @@ class planning_Jobs extends core_Master
     /**
      * След промяна на състоянието
      */
-    public static function on_AfterChangeState($mvc, &$rec, $action)
+    protected static function on_AfterChangeState($mvc, &$rec, $action)
     {
     	// Записваме в историята действието
     	self::addToHistory($rec->history, $action, $rec->modifiedOn, $rec->modifiedBy, $rec->_reason);
@@ -1129,6 +1135,60 @@ class planning_Jobs extends core_Master
     	jquery_Jquery::run($tpl, "preventDoubleSubmission('{$formId}');");
     	
     	
+    	return $tpl;
+    }
+    
+    
+    /**
+     * Екшън клониращ задачите от предишно задание
+     */
+    public function act_CloneTasks()
+    {
+    	$this->requireRightFor('cloneTasks');
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	$this->requireRightFor('cloneTasks', $rec);
+    	
+    	$form = cls::get('core_Form');
+    	$form->title = 'Клониране на пр. операции от предишно задание|* <b>' . self::getHyperlink($rec->oldJobId, TRUE) . "</b>";
+    	$tasks = planning_Tasks::getTasksByJob($rec->oldJobId);
+    	$form->FLD('tasks', 'keylist(mvc=planning_Tasks,select=id)', 'caption=Пр. операции,mandatory');
+    	$form->setSuggestions('tasks', $tasks);
+    	$form->input();
+    	if($form->isSubmitted()){
+    		$Tasks = cls::get('planning_Tasks');
+    		$arr = keylist::toArray($form->rec->tasks);
+    		
+    		$count = 0;
+    		foreach ($arr as $taskId){
+    			$taskRec = planning_Tasks::fetch($taskId);
+    			$newTask = clone $taskRec;
+    			plg_Clone::unsetFieldsNotToClone($Tasks, $newTask, $taskRec);
+    			$newTask->_isClone = TRUE;
+    			$newTask->originId = $rec->containerId;
+    			$newTask->state = 'draft';
+    			unset($newTask->id);
+    			unset($newTask->threadId);
+    			unset($newTask->containerId);
+    			
+    			if ($Tasks->save($newTask)) {
+    				$Tasks->invoke('AfterSaveCloneRec', array($taskRec, &$newTask));
+    				$count++;
+    			}
+    		}
+    		
+    		followRetUrl(NULL, "|Клонирани задачи|*: {$count}");
+    	}
+    	
+    	$form->toolbar->addSbBtn('Клониране на избраните', 'default', 'ef_icon = img/16/clone.png, title=Създаване на ново задание');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+    	 
+    	$form = $form->renderHtml();
+    	$tpl = $this->renderWrapping($form);
+    	 
+    	$formId = $form->formAttr['id'] ;
+    	jquery_Jquery::run($tpl, "preventDoubleSubmission('{$formId}');");
+    	 
     	return $tpl;
     }
     

@@ -98,7 +98,7 @@ class batch_Movements extends core_Detail {
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	if(cls::load($rec->docType, TRUE)){
     		$row->document = cls::get($rec->docType)->getLink($rec->docId, 0);
@@ -354,7 +354,7 @@ class batch_Movements extends core_Detail {
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'list'){
     		

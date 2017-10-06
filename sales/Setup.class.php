@@ -38,6 +38,12 @@ defIfNot('SALE_OVERDUE_CHECK_DELAY', 60 * 60 * 6);
 
 
 /**
+ * Колко дена да се изчаква преди да се затворят миналите еднократни маршрути
+ */
+defIfNot('SALES_ROUTES_CLOSE_DELAY', 3);
+
+
+/**
  * Колко време да се изчака след активиране на продажба, да се приключва автоматично
  */
 defIfNot('SALE_CLOSE_OLDER_THAN', 60 * 60 * 24 * 3);
@@ -202,6 +208,7 @@ class sales_Setup extends core_ProtoSetup
 			'SALES_ADD_BY_LIST_BTN'    => array("keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Необходими роли за добавяне на артикули в продажба от->Списък'),
 			'SALES_ADD_BY_IMPORT_BTN'  => array("keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Необходими роли за добавяне на артикули в продажба от->Импорт'),
 			'SALES_DELTA_CAT_GROUPS'   => array('keylist(mvc=cat_Groups,select=name)', 'caption=Групи продажбени артикули за изчисляване на ТРЗ индикатори->Групи'),
+			'SALES_ROUTES_CLOSE_DELAY'   => array('int(min=1)', 'caption=Изчакване преди да се затворят изпълнените търговски маршрути->Дни'),
 	);
 	
 	
@@ -224,7 +231,8 @@ class sales_Setup extends core_ProtoSetup
     		'sales_PrimeCostByDocument',
     		'migrate::migrateRoles',
     		'migrate::updateDealFields1',
-    		'migrate::updateDeltaTable'
+    		'migrate::updateDeltaTable',
+    		'migrate::updateRoutes',
         );
 
     
@@ -251,6 +259,14 @@ class sales_Setup extends core_ProtoSetup
     			  'description' => "Затваряне на остарелите оферти",
     			  'controller'  => "sales_Quotations",
     			  'action'      => "CloseQuotations",
+    			  'period'      => 1440,
+    			  'timeLimit'   => 360,
+    		),
+    		array('systemId'    => "Update Routes Next Visit",
+    			  'description' => "Изчисляване на посещенията на търговските маршрути",
+    			  'controller'  => "sales_Routes",
+    			  'action'      => "calcNextVisit",
+    			  'offset'      => 140,
     			  'period'      => 1440,
     			  'timeLimit'   => 360,
     		),
@@ -405,5 +421,16 @@ class sales_Setup extends core_ProtoSetup
     	if(count($update)){
     		$Class->saveArray($update, 'id,containerId,dealerId,initiatorId');
     	}
+    }
+    
+    
+    /**
+     * Ъпдейт на търговските маршрути
+     */
+    function updateRoutes()
+    {
+    	$Routes = cls::get('sales_Routes');
+    	$Routes->setupMvc();
+    	$Routes->cron_calcNextVisit();
     }
 }

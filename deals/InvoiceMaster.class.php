@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   deals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -18,12 +18,6 @@ abstract class deals_InvoiceMaster extends core_Master
 	
 	
 	/**
-	 * Поле за единичния изглед
-	 */
-	public $rowToolsSingleField = 'number';
-    
-    
-    /**
      * Полета свързани с цени
      */
     public $priceFields = 'dealValue,vatAmount,baseAmount,total,vatPercent,discountAmount';
@@ -116,9 +110,8 @@ abstract class deals_InvoiceMaster extends core_Master
     	$mvc->FLD('sourceContainerId', 'key(mvc=doc_Containers,allowEmpty)', 'input=hidden,silent');
     	$mvc->FLD('paymentMethodId', 'int', 'input=hidden,silent');
     	
-    	$mvc->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг)', 'placeholder=Автоматично,caption=Плащане->Начин,before=accountId');
+    	$mvc->FLD('paymentType', 'enum(cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг)', 'caption=Плащане->Начин,before=accountId,mandatory');
     	$mvc->FLD('autoPaymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,mixed=Смесено)', 'placeholder=Автоматично,caption=Плащане->Начин,input=none');
-    
     }
     
     
@@ -248,9 +241,7 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     public static function on_ValidateVatDate(core_Mvc $mvc, $rec, core_Form $form)
     {
-    	if (empty($rec->vatDate)) {
-    		return;
-    	}
+    	if (empty($rec->vatDate)) return;
     
     	// Датата на ДС не може да бъде след датата на фактурата, нито на повече от 5 дни преди нея.
     	if ($rec->vatDate > $rec->date || dt::addDays(5, $rec->vatDate) < $rec->date) {
@@ -577,8 +568,7 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     public static function on_AfterPrepareListPager($mvc, &$data)
     {
-
-        if(Mode::is('printing')){
+		if(Mode::is('printing')){
     	    unset($data->pager);
     	}
     }
@@ -852,9 +842,9 @@ abstract class deals_InvoiceMaster extends core_Master
     			elseif($a->type == 'bank' && $a->isReverse !== TRUE){$hasBank = TRUE;}
     		});
     		
-    		if($hasCash == TRUE && $hasBank === FALSE) return 'cash';
-    		if($hasBank == TRUE && $hasCash === FALSE) return 'bank';
-    		if($hasBank == TRUE && $hasCash === TRUE) return 'mixed';
+    		if($hasCash === TRUE && $hasBank === FALSE) return 'cash';
+    		if($hasBank === TRUE && $hasCash === FALSE) return 'bank';
+    		if($hasBank === TRUE && $hasCash === TRUE) return 'mixed';
     	}
     	 
     	return NULL;
@@ -901,6 +891,10 @@ abstract class deals_InvoiceMaster extends core_Master
     		}
     	}
     	
+    	if(empty($rec->paymentType) && isset($rec->autoPaymentType)){
+    		$row->paymentType = $mvc->getFieldType('paymentType')->toVerbal($rec->autoPaymentType);
+    	}
+    	
     	if($fields['-single']){
     		if(empty($rec->vatReason)){
     			if(!drdata_Countries::isEu($rec->contragentCountryId)){
@@ -943,7 +937,6 @@ abstract class deals_InvoiceMaster extends core_Master
     		if(!$row->vatAmount){
     			$coreConf = core_Packs::getConfig('core');
     			$pointSign = $coreConf->EF_NUMBER_DEC_POINT;
-    			
     			$row->vatAmount = "<span class='quiet'>0" . $pointSign . "00</span>";
     		}
     		
@@ -983,17 +976,19 @@ abstract class deals_InvoiceMaster extends core_Master
     		foreach (array('MyCompany', 'MyAddress', 'MyCompanyVatNo', 'uicId', 'contragentName') as $fld){
     			$row->{$fld} = $headerInfo[$fld];
     		}
+    		
     		if($rec->paymentType == 'factoring'){
-    			$row->accountId = tr('ФАКТОРИНГ');
+    			$row->accountId = mb_strtoupper(tr('факторинг'));
     			unset($row->bank);
     			unset($row->bic);
     		}
     		 
-    		if(!empty($rec->paymentType)){
-    			$row->paymentType = tr("Плащане " . mb_strtolower($row->paymentType));
+    		if(!empty($row->paymentType)){
+    			$arr = array('cash' => 'в брой', 'bank' => 'по банков път', 'card' => 'с карта', 'factoring' => 'факторинг', 'intercept' => 'с прихващане');
+    			$row->paymentType = tr("Плащане " . $arr[$rec->paymentType]);
     		}
     		
-    		if(isset($rec->autoPaymentType) && isset($rec->paymentType) && $rec->paymentType != $rec->autoPaymentType){
+    		if(isset($rec->autoPaymentType) && isset($rec->paymentType) && ($rec->paymentType != $rec->autoPaymentType && !($rec->paymentType == 'card' && $rec->autoPaymentType == 'cash'))){
     			$row->paymentType = ht::createHint($row->paymentType, 'Избрания начин на плащане не отговаря на реалния', 'warning');
     		}
     		
@@ -1038,7 +1033,7 @@ abstract class deals_InvoiceMaster extends core_Master
  
     	setIfNot($dueDate, $rec->dueDate, $rec->date);
     	
-    	$aggregator->push('invoices', array('dueDate' => $dueDate, 'total' => $total));
+    	$aggregator->push('invoices', array('dueDate' => $dueDate, 'total' => $total, 'type' => $rec->type));
     	$aggregator->sum('invoicedAmount', $total);
     	$aggregator->setIfNot('invoicedValior', $rec->date);
     	
@@ -1239,13 +1234,8 @@ abstract class deals_InvoiceMaster extends core_Master
     	$origin = NULL;
     	$rec = static::fetchRec($rec);
     
-    	if($rec->originId) {
-    		return doc_Containers::getDocument($rec->originId);
-    	}
-    
-    	if($rec->threadId){
-    		return doc_Threads::getFirstDocument($rec->threadId);
-    	}
+    	if($rec->originId) return doc_Containers::getDocument($rec->originId);
+    	if($rec->threadId) return doc_Threads::getFirstDocument($rec->threadId);
     	 
     	return $origin;
     }

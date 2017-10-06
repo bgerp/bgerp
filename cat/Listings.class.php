@@ -219,7 +219,7 @@ class cat_Listings extends core_Master
      * @param core_Manager $mvc
      * @param stdClass $rec
      */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
     	if(isset($rec->folderId)){
     		$Cover = doc_Folders::getCover($rec->folderId);
@@ -345,7 +345,7 @@ class cat_Listings extends core_Master
     /**
      * Подредба на записите
      */
-    public static function on_AfterPrepareListFilter($mvc, &$data)
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
     	$data->listFilter->view = 'horizontal';
     	$data->listFilter->showFields = 'search';
@@ -373,7 +373,7 @@ class cat_Listings extends core_Master
     /**
      * Изпълнява се преди оттеглянето на документа
      */
-    public static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
+    protected static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
     {
     	$rec = $mvc->fetchRec($id);
     	

@@ -251,7 +251,7 @@ class sales_Invoices extends deals_InvoiceMaster
     			'narrowContent' =>  'sales/tpl/InvoiceHeaderNormalNarrowEN.shtml', 'lang' => 'en' , 'oldName' => 'Фактурa EN');
         $tplArr[] = array('name' => 'Invoice short', 'content' => 'sales/tpl/InvoiceHeaderShortEN.shtml', 
         		'narrowContent' =>  'sales/tpl/InvoiceHeaderShortNarrowEN.shtml', 'lang' => 'en');
-        $tplArr[] = array('name' => 'Фактура с цени във евро', 'content' => 'sales/tpl/InvoiceHeaderEuro.shtml', 'lang' => 'bg');
+        $tplArr[] = array('name' => 'Фактура с цени в евро', 'content' => 'sales/tpl/InvoiceHeaderEuro.shtml', 'lang' => 'bg');
         
     	$res = '';
         $res .= doc_TplManager::addOnce($this, $tplArr);
@@ -267,7 +267,7 @@ class sales_Invoices extends deals_InvoiceMaster
     {
     	if(isset($form->rec->id)) return;
     	
-    	$unsetFields = array('id', 'number', 'state', 'searchKeywords', 'containerId', 'brState', 'lastUsedOn', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'dealValue', 'vatAmount', 'discountAmount', 'sourceContainerId', 'additionalInfo', 'dueDate', 'dueTime');
+    	$unsetFields = array('id', 'number', 'state', 'searchKeywords', 'containerId', 'brState', 'lastUsedOn', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'dealValue', 'vatAmount', 'discountAmount', 'sourceContainerId', 'additionalInfo', 'dueDate', 'dueTime', 'template');
     	foreach ($unsetFields as $fld){
     		unset($proformaRec->{$fld});
     	}
@@ -296,7 +296,9 @@ class sales_Invoices extends deals_InvoiceMaster
     			if($proformaRec = $Source->fetch()){
     				$mvc->prepareFromProforma($proformaRec, $form);
     				$handle = sales_Proformas::getHandle($Source->that);
+    				$mvc->pushTemplateLg($form->rec->template);
     				$defInfo .= (($defInfo) ? ' ' : '') . tr("По проформа|* #") . $handle . "\n";
+    				core_Lg::pop();
     			}
     		}
     	}
@@ -489,7 +491,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	}
     	
     	if($rec->state == 'active'){
-    		$amount = ($rec->dealValue - $rec->discountAmount) + $rec->vatAmount;
+    		$amount = ($rec->dealValue - $rec->discountAmount) + $rec->vatAmount - 0.005;
     		$amount /= ($rec->displayRate) ? $rec->displayRate : $rec->rate;
     		$amount = round($amount, 2);
     		
@@ -520,7 +522,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	parent::getVerbalInvoice($mvc, $rec, $row, $fields);
     	
     	if($fields['-single']){
-    		if($rec->accountId){
+    		if($rec->accountId && $rec->paymentType != 'factoring'){
     			$Varchar = cls::get('type_Varchar');
     			$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
     			

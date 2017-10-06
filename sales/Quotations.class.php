@@ -139,12 +139,6 @@ class sales_Quotations extends core_Master
     
     
     /**
-     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-     */
-    public $rowToolsSingleField = 'title';
-    
-    
-    /**
      * Кой може да клонира
      */
     public $canClonerec = 'ceo, sales';
@@ -160,7 +154,6 @@ class sales_Quotations extends core_Master
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-    
     	'validFor'            => 'lastDocUser|lastDoc',
     	'paymentMethodId'     => 'clientCondition|lastDocUser|lastDoc',
         'currencyId'          => 'lastDocUser|lastDoc|CoverMethod',
@@ -435,7 +428,7 @@ class sales_Quotations extends core_Master
     /**
      * Изпълнява се след създаване на нов запис
      */
-    public static function on_AfterCreate($mvc, $rec)
+    protected static function on_AfterCreate($mvc, $rec)
     {
     	if(isset($rec->originId)){
     		
@@ -580,7 +573,7 @@ class sales_Quotations extends core_Master
     		} else {
     			if(isset($rec->deliveryTermId)){
     				$deliveryAdress .= cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, NULL, $placeId, $mvc);
-    				$deliveryAdress = ht::createHint($deliveryAdress, 'Адреса за доставка ще се запише при активиране');
+    				$deliveryAdress = ht::createHint($deliveryAdress, 'Адреса за доставка ще бъде записан при активиране');
     			}
     		}
     		
@@ -1359,7 +1352,7 @@ class sales_Quotations extends core_Master
     	// Срока на валидност
     	$newRec->validFor = (isset($fields['validFor'])) ? $fields['validFor'] : NULL;
     	if(isset($newRec->validFor)){
-    		expect(type_Int::isInt($newRec->validFor), 'Срока ан валидност трябва да е в секунди');
+    		expect(type_Int::isInt($newRec->validFor), 'Срока на валидност трябва да е в секунди');
     	}
     	
     	// Адресните данни
@@ -1384,7 +1377,12 @@ class sales_Quotations extends core_Master
     	// Създаване на запис
     	self::route($newRec);
     	
-    	return self::save($newRec);
+    	// Опиваме се да запишем мастъра на офертата
+    	if($id = self::save($newRec)){
+    		doc_ThreadUsers::addShared($newRec->threadId, $newRec->containerId, core_Users::getCurrent());
+    	
+    		return $id;
+    	}
     }
     
     
@@ -1494,7 +1492,7 @@ class sales_Quotations extends core_Master
      * @param unknown_type $mvc
      * @param unknown_type $rec
      */
-    public static function on_BeforeActivation($mvc, $res)
+    protected static function on_BeforeActivation($mvc, $res)
     {
     	$quotationId = $res->id;
     	$rec = $mvc->fetch($quotationId);

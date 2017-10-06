@@ -103,14 +103,13 @@ abstract class deals_DealMaster extends deals_DealBase
 		// Ако имаме фактури към сделката
 		if(count($aggregateDealInfo->invoices)){
 			
-			
 			$today = dt::today();
 			$invoices = $aggregateDealInfo->invoices;
 			
 			// Намираме непадежиралите фактури, тези с вальор >= на днес
 			$sum = 0;
 			$res = array_filter($invoices, function (&$e) use ($today, &$sum) {
-				if($e['dueDate'] >= $today){
+				if($e['dueDate'] >= $today && $e['total'] > 0){
 					$sum += $e['total'];
 					return TRUE;
 				}
@@ -956,7 +955,7 @@ abstract class deals_DealMaster extends deals_DealBase
 			} else {
 				if(isset($rec->deliveryTermId)){
 					$deliveryAdress .= cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $mvc);
-					$deliveryAdress = ht::createHint($deliveryAdress, 'Адреса за доставка ще се запише при активиране');
+					$deliveryAdress = ht::createHint($deliveryAdress, 'Адреса за доставка ще бъде записан при активиране');
 				}
 			}
 			
@@ -1270,9 +1269,6 @@ abstract class deals_DealMaster extends deals_DealBase
     	// Извличане на позволените операции
     	$options = $this->getContoOptions($rec);
     	$hasSelectedBankAndCase = !empty($rec->bankAccountId) && !empty($rec->caseId);
-    	if($hasSelectedBankAndCase === TRUE){
-    		$form->info .= tr("|*<br><span style='color:darkgreen'>|Избрани са едновременно каса и банкова сметка! Потвърдете че плащането е на момента или редактирайте сделката|*.</span>");
-    	}
     	
     	// Трябва да има избор на действие
     	expect(count($options));
@@ -1296,6 +1292,10 @@ abstract class deals_DealMaster extends deals_DealBase
     	if($options['pay'] && $rec->caseId){
     		if($rec->caseId === $curCaseId && $hasSelectedBankAndCase === FALSE){
     			$selected[] = 'pay';
+    		}
+    		
+    		if($hasSelectedBankAndCase === TRUE){
+    			$form->info .= tr("|*<br><span style='color:darkgreen'>|Избрани са едновременно каса и банкова сметка! Потвърдете че плащането е на момента или редактирайте сделката|*.</span>");
     		}
     	}
     	
@@ -1591,10 +1591,8 @@ abstract class deals_DealMaster extends deals_DealBase
     	$fields['paymentState'] = 'pending';
     	
     	// Опиваме се да запишем мастъра на сделката
-    	if($id = $me->save((object)$fields)){
-    		
-    		// Ако е успешно, споделяме текущия потребител към новосъздадената нишка
-    		$rec = $me->fetchField($id);
+    	$rec = (object)$fields;
+    	if($id = $me->save($rec)){
     		doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, core_Users::getCurrent());
     
     		return $id;

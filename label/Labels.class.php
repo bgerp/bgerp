@@ -41,12 +41,6 @@ class label_Labels extends core_Master
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'label, admin, ceo';
-    
-    
-    /**
      * Кой има право да променя?
      */
     public $canEdit = 'label, admin, ceo';
@@ -179,7 +173,8 @@ class label_Labels extends core_Master
              $classId = Request::get('classId');
              $objId = Request::get('objId');
              if ($classId && $objId) {
-                  $clsInst = cls::get($classId);
+             	  $clsInst = cls::getInterface('label_SequenceIntf', $classId);
+             	
                   $arr = (array) $clsInst->getLabelPlaceholders($objId);
                   $readOnlyArr = $dataArr = arr::make($arr, TRUE);
                     
@@ -340,23 +335,26 @@ class label_Labels extends core_Master
         
         $labelDataArr = array();
         
+        // Вземаме формата към този модел
+        $form = $this->getForm();
+        $form->title = "Избор на шаблон";
+        
         if ($classId && $objId) {
+        	$form->title = 'Избор на шаблон за печат на етикети от|* ' . cls::get($classId)->getFormTitleLink($objId);
+        	
             $intfInst = cls::getInterface('label_SequenceIntf', $classId);
             $labelDataArr = (array) $intfInst->getLabelPlaceholders($objId);
             $labelDataArr = arr::make($labelDataArr, TRUE);
         }
        
-        // Вземаме формата към този модел
-        $form = $this->getForm();
-        
         // Добавяме функционално поле
-        $form->FNC('selectTemplateId', 'key(mvc=label_Templates, select=title, where=#state !\\= \\\'rejected\\\')', 'caption=Шаблон');
+        $form->FNC('selectTemplateId', 'key(mvc=label_Templates, select=title, where=#state !\\= \\\'rejected\\\' AND #state !\\= \\\'closed\\\')', 'caption=Шаблон');
         
         $redirect = FALSE;
         $optArr = array();
         
         if (!empty($labelDataArr)) {
-        	$templates = label_Templates::getTemplatesByDocument($classId);
+        	$templates = label_Templates::getTemplatesByDocument($classId, $objId);
             if (!count($templates)) return new Redirect($retUrl, '|Няма шаблон, който да се използва');
             
             foreach ($templates as $tRec){
@@ -437,9 +435,6 @@ class label_Labels extends core_Master
             // Редиректваме към екшъна за добавяне
             return new Redirect($redirectUrl);
         }
-        
-        // Заглавие на шаблона
-        $form->title = "Избор на шаблон";
         
         // Задаваме да се показват само полетата, които ни интересуват
         $form->showFields = 'selectTemplateId';

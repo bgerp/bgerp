@@ -507,6 +507,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     public static function on_AfterGetDetailsToClone(tasks_BaseDriver $Driver, embed_Manager &$Embedder, &$details, $rec)
     {
     	$details['planning_drivers_ProductionTaskProducts'] = 'planning_drivers_ProductionTaskProducts';
+    	$details['cat_products_Params'] = 'cat_products_Params';
     }
     
     
@@ -552,6 +553,9 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
      */
     public static function on_AfterCreate(tasks_BaseDriver $Driver, embed_Manager $Embedder, &$rec)
     {
+    	// Ако записа е създаден с клониране не се прави нищо
+    	if($rec->_isClone === TRUE) return;
+    	
     	if(isset($rec->originId)){
     		$originDoc = doc_Containers::getDocument($rec->originId);
     		$originRec = $originDoc->fetch();

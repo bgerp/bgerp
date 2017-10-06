@@ -162,7 +162,7 @@
                                         </table>
                                     </td>
                                     <td id='invoice-info' style='width:40%;'>
-                                        [#/deals/tpl/DocumentPiceInfo.shtml#]
+                                        [#/deals/tpl/DocumentPriceInfoInvoice.shtml#]
                                     </td>
                                 </tr>
                                 <tr class='footerDocInfo'>

@@ -154,18 +154,24 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 
 			// Колко е очакваното авансово плащане
 			$downPayment = $dealInfo->agreedDownpayment;
-			// Колко е платено
+			// Колко е oчакваното платено
 			$downpayment = $dealInfo->downpayment;
-			//$downpayment = $dealInfo->amountPaid;
-		
+			// колко е платено
+			$downpaymentAmount = $dealInfo->amountPaid;
+		    
+			if(empty($downpayment)) {
+			    $dPayment = $downpaymentAmount;
+			} else {
+			    $dPayment = $downpayment;
+			}
 			// ако имаме зададено авансово плащане
 			// дали имаме поне 95% авансово плащане
-			if(isset($rec->precision)) {
-			    if($downpayment < $downPayment * $rec->precision)  continue;
-			} else {
-			    if($downpayment < $downPayment * 0.95)  continue;
+			if(isset($rec->precision)) { 
+			    if($dPayment < $downPayment * $rec->precision)  continue;
+			} else { 
+			    if($dPayment < $downPayment * 0.95)  continue;
 			}
-			 
+			
 			// артикулите
 			$agreedProducts = $dealInfo->get('products');
 
@@ -233,7 +239,7 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 				}
 			}
 		}
-		
+	
 		return $recs;
 	}
 	
@@ -250,7 +256,6 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 		$fld = cls::get('core_FieldSet');
 	
 		if($export === FALSE){
-			$fld->FLD('num', 'varchar','caption=№');
 			$fld->FLD('pur', 'varchar', 'caption=Договор->№');
 	    	$fld->FLD('purDate', 'varchar', 'caption=Договор->Дата');
 		    $fld->FLD('dealerId', 'varchar', 'smartCenter,caption=Търговец');
@@ -258,7 +263,6 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 	    	$fld->FLD('quantity', 'varchar', 'smartCenter,caption=К-во');
 	    	$fld->FLD('deliveryTime', 'varchar', 'caption=Доставка');
 		} else {
-			$fld->FLD('num', 'varchar','caption=№');
        		$fld->FLD('pur', 'varchar','caption=Договор->№');
        		$fld->FLD('purDate', 'varchar','caption=Договор->Дата');
         	$fld->FLD('dealerId', 'varchar','caption=Търговец');

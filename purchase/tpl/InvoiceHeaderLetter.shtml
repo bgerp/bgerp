@@ -95,7 +95,7 @@
                                         <!--ET_END additionalInfo-->
                                     </td>
                                     <td id='invoice-info' style='width:40%'>
-                                        [#/deals/tpl/DocumentPiceInfo.shtml#]
+                                        [#/deals/tpl/DocumentPriceInfoInvoice.shtml#]
                                         <!--ET_BEGIN fileHnd-->
                                         <hr>
                                         <div class='custom-bg-block'><b>|Оригинален документ|*</b></div>

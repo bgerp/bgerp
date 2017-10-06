@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'store_InventoryNotes'
  *
@@ -93,7 +94,13 @@ class store_InventoryNotes extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_Wrapper,acc_plg_Contable,plg_Clone,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search,bgerp_plg_Blank';
+    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_Wrapper,plg_Clone,acc_plg_Contable,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search,bgerp_plg_Blank';
+    
+    
+    /**
+     * Кой има право да клонира?
+     */
+    public $canClonerec = 'ceo,storeMaster,inventory';
     
     
     /**
@@ -189,7 +196,7 @@ class store_InventoryNotes extends core_Master
      */
     public function description()
     {
-    	$this->FLD('valior', 'date', 'caption=Вальор, mandatory');
+    	$this->FLD('valior', 'date', 'caption=Вальор');
     	$this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад, mandatory');
     	$this->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Групи');
     	$this->FLD('hideOthers', 'enum(yes=Да,no=Не)', 'caption=Показване само на избраните групи->Избор, mandatory, notNULL,value=no,maxRadio=2');
@@ -270,7 +277,7 @@ class store_InventoryNotes extends core_Master
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
     	if($form->isSubmitted()){
     		$rec = &$form->rec;
@@ -684,7 +691,7 @@ class store_InventoryNotes extends core_Master
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
     	// Синхронизираме данните само в чернова
-    	if($rec->state == 'draft'){
+    	if($rec->state == 'draft' && $rec->_isClone !== TRUE){
     		$mvc->sync($rec);
     	} elseif($rec->state == 'active' || ($rec->state == 'rejected' && $rec->brState == 'active')) {
     		cls::get('store_InventoryNoteDetails')->invoke('AfterContoOrReject', array($rec));
@@ -748,7 +755,7 @@ class store_InventoryNotes extends core_Master
     /**
      * Документа не може да се активира ако има детайл с количество 0
      */
-    public static function on_AfterCanActivate($mvc, &$res, $rec)
+    protected static function on_AfterCanActivate($mvc, &$res, $rec)
     {
     	$res = TRUE;
     }
@@ -840,7 +847,7 @@ class store_InventoryNotes extends core_Master
     /**
      * Ре-контиране на счетоводен документ
      */
-    public static function on_AfterReConto(core_Mvc $mvc, &$res, $id)
+    protected static function on_AfterReConto(core_Mvc $mvc, &$res, $id)
     {
     	$rec = $mvc->fetchRec($id);
     	cls::get('store_InventoryNoteDetails')->invoke('AfterContoMaster', array($rec));
@@ -850,7 +857,7 @@ class store_InventoryNotes extends core_Master
     /**
      * Контиране на счетоводен документ
      */
-    public static function on_AfterConto(core_Mvc $mvc, &$res, $id)
+    protected static function on_AfterConto(core_Mvc $mvc, &$res, $id)
     {
     	$rec = $mvc->fetchRec($id);
     	cls::get('store_InventoryNoteDetails')->invoke('AfterContoMaster', array($rec));
@@ -860,7 +867,7 @@ class store_InventoryNotes extends core_Master
     /**
      * Оттегляне на документ
      */
-    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    protected static function on_AfterReject(core_Mvc $mvc, &$res, $id)
     {
     	$rec = $mvc->fetchRec($id);
     	cls::get('store_InventoryNoteDetails')->invoke('AfterRejectMaster', array($rec));

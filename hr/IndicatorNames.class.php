@@ -69,7 +69,7 @@ class hr_IndicatorNames extends core_Manager
         $this->FLD('uniqueId', 'varchar', 'caption=Обект,mandatory');
         $this->FLD('classId', 'class(interface=hr_IndicatorsSourceIntf,select=title)', 'caption=Клас,mandatory');
         
-        $this->setDbUnique('uniqueId,classId');
+        $this->setDbUnique('classId,uniqueId');
     }
 
     

@@ -614,10 +614,10 @@ class purchase_Invoices extends deals_InvoiceMaster
     	$rec = $data->rec;
     	
     	if($rec->state == 'active'){
-    		$amount = $rec->dealValue + $rec->vatAmount;
+    		$amount = ($rec->dealValue - $rec->discountAmount) + $rec->vatAmount - 0.005;
     		$amount /= ($rec->displayRate) ? $rec->displayRate : $rec->rate;
     		$amount = round($amount, 2);
-    
+    		
     		if($amount < 0){
     			if(cash_Pko::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
     				$data->toolbar->addBtn("ПКО", array('cash_Pko', 'add', 'originId' => $rec->containerId, 'amountDeal' => abs($amount), 'fromContainerId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/money_delete.png,title=Създаване на нов приходен касов ордер към документа');
