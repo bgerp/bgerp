@@ -46,7 +46,7 @@ class purchase_Invoices extends deals_InvoiceMaster
      */
     public $loadList = 'plg_RowTools2, purchase_Wrapper, doc_plg_TplManager, plg_Sorting, acc_plg_Contable,plg_Clone, doc_DocumentPlg,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,deals_plg_DpInvoice,
-                    doc_plg_HidePrices, acc_plg_DocumentSummary,cat_plg_AddSearchKeywords, plg_Search';
+                    doc_plg_HidePrices, acc_plg_DocumentSummary,cat_plg_AddSearchKeywords, plg_Search,change_Plugin';
     
     
     /**
@@ -134,6 +134,13 @@ class purchase_Invoices extends deals_InvoiceMaster
     
     
     /**
+     * Кой може да променя активирани записи
+     * @see change_Plugin
+     */
+    public $canChangerec = 'acc, ceo';
+    
+    
+    /**
      * Кой е основния детайл
      */
     public $mainDetail = 'purchase_InvoiceDetails';
@@ -176,7 +183,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     function description()
     {
     	parent::setInvoiceFields($this);
-    	
+    	$this->FLD('journalDate', 'date', 'caption=Сч. дата,changable,after=date');
     	$this->FLD('number', 'varchar', 'caption=Номер, export=Csv,hint=Номера с който идва фактурата,after=place');
     	$this->FLD('fileHnd', 'fileman_FileType(bucket=Documents)', 'caption=Документ,after=number');
     	
@@ -409,6 +416,15 @@ class purchase_Invoices extends deals_InvoiceMaster
     	parent::inputInvoiceForm($mvc, $form);
     	
     	if($form->isSubmitted()){
+    		
+    		// Ако има въведена сч. дата тя се проверява
+    		if(isset($rec->journalDate) && core_Request::get('Act') == 'changefields'){
+    			$periodState = acc_Periods::fetchByDate($rec->journalDate)->state;
+    			if($periodState == 'closed' || $periodState == 'draft' || is_null($periodState)){
+    				$form->setError('journalDate', 'Сч. дата е в затворен, бъдещ или несъществуващ период');
+    			}
+    		}
+    		
     		if($rec->contragentSource == 'newContragent'){
     			$cRec = self::getContragentRec($rec);
     			
@@ -524,13 +540,13 @@ class purchase_Invoices extends deals_InvoiceMaster
     			$row->bank = $Varchar->toVerbal($ownAcc->bank);
     			$row->bic = $Varchar->toVerbal($ownAcc->bic);
     		}
+    		
+    		if(isset($rec->journalDate) && $rec->journalDate != $rec->date){
+    			$msg = "Сч. дата е|*: " . $mvc->getFieldType('date')->toVerbal($rec->journalDate);
+    			$row->date = ht::createHint($row->date, $msg);
+    		}
     	}
     }
-
-
-    /*
-     * Реализация на интерфейса doc_DocumentIntf
-     */
     
     
     /**
@@ -1124,5 +1140,35 @@ class purchase_Invoices extends deals_InvoiceMaster
         jquery_Jquery::run($tpl, "preventDoubleSubmission('{$formId}');");
         
         return $tpl;
+    }
+    
+    
+    /**
+     * Прихваща извикването на AfterSaveLogChange в change_Plugin
+     * Добавя нотификация след промяна на документа
+     *
+     * @param core_MVc $mvc
+     * @param array $recsArr - Масив със записаните данни
+     */
+    protected static function on_AfterSaveLogChange($mvc, $recsArr)
+    {
+    	if(is_array($recsArr)){
+    		expect($fRec = $recsArr[0]);
+    		$containerId = $mvc->fetchField($fRec->docId, 'containerId');
+    		acc_Journal::reconto($containerId);
+    	}
+    }
+    
+    
+    /**
+     * Връща вальора на документа по подразбиране
+     *
+     * @param core_Mvc $mvc
+     * @param date $res
+     * @param mixed $rec
+     */
+    public static function getValiorValue($rec)
+    {
+    	return (!empty($rec->journalDate)) ? $rec->journalDate : $rec->date;
     }
 }

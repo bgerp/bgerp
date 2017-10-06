@@ -1,13 +1,14 @@
 <?php
 
 
+
 /**
  * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа purchase_Invoices
  *
  * @category  bgerp
  * @package   purchase
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * 
@@ -35,10 +36,11 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
     	// Извличаме записа
     	expect($rec = $this->class->fetchRec($id));
     	$cloneRec = clone $rec;
-    
+    	setIfNot($date, $rec->journalDate, $rec->date);
+    	
     	$result = (object)array(
     			'reason'  => "Входяща фактура №{$rec->number}", // основанието за ордера
-    			'valior'  => $rec->date,   // датата на ордера
+    			'valior'  => $date,   // датата на ордера
     			'entries' => array(),
     	);
     
