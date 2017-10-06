@@ -36,11 +36,11 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
     	// Извличаме записа
     	expect($rec = $this->class->fetchRec($id));
     	$cloneRec = clone $rec;
-    	setIfNot($date, $rec->journalDate, $rec->date);
+    	setIfNot($rec->journalDate, $this->class->getDefaultAccDate($rec->date));
     	
     	$result = (object)array(
     			'reason'  => "Входяща фактура №{$rec->number}", // основанието за ордера
-    			'valior'  => $date,   // датата на ордера
+    			'valior'  => $rec->journalDate,   // датата на ордера
     			'entries' => array(),
     	);
     

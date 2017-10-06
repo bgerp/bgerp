@@ -1171,4 +1171,38 @@ class purchase_Invoices extends deals_InvoiceMaster
     {
     	return (!empty($rec->journalDate)) ? $rec->journalDate : $rec->date;
     }
+    
+    
+    /**
+     * Връща сч. дата по подразбиране спрямо, датата на входящата фактура
+     * 
+     * @param date $date - дата
+     * @return date
+     */
+    public function getDefaultAccDate($date)
+    {
+    	$today = dt::today();
+    	$cLastDay = dt::getLastDayOfMonth($today);
+    	$prevLastDay = dt::getLastDayOfMonth($today, -1);
+    	$day = dt::getLastDayOfMonth($date);
+    	$numOfDay = dt::mysql2verbal($date, 'd');
+    	
+    	// Ако датата на фактурата (ДФ) е в текущия месец - СД = ДФ
+    	if($day == $cLastDay) return $date;
+    	$nDay = acc_Setup::get('DATE_FOR_INVOICE_DATE');
+    	
+    	// Ако ДФ е от предходния месец:
+    	if($day == $prevLastDay) {
+    		
+    		// Ако текущата дата е ДО $nDay-о число включително - СД = ДФ;
+    		// Ако текущата дата е СЛЕД $nDay-о число - СД е първо число на текущия месец 
+    		return ($numOfDay <= $nDay) ? $date : dt::mysql2verbal($today, "Y-m-01");
+    	}
+    	
+    	// Ако ДФ е по-назад (т.е. не е в текущия или предходния месец):
+    	// Ако текущата дата е ДО 12-о число включително - СД е първо число на предходния месец;
+    	// Ако текущата дата е СЛЕД 12-о число - СД е първо число на текущия месец 
+    	return ($numOfDay <= $nDay) ? dt::mysql2verbal($prevLastDay, "Y-m-01") : dt::mysql2verbal($today, "Y-m-01");
+    }
 }
+
