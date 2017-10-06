@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'store_InventoryNoteDetails'
  *
@@ -230,7 +231,7 @@ class store_InventoryNoteDetails extends doc_Detail
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
     	$rec = $form->rec;
     	
@@ -257,7 +258,7 @@ class store_InventoryNoteDetails extends doc_Detail
     /**
      * Подготовка на бутоните на формата за добавяне/редактиране
      */
-    public static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
     	// Подсигуряване че запис и нов го има дори и при редакция
     	if(isset($data->form->rec->id)) {
@@ -272,7 +273,7 @@ class store_InventoryNoteDetails extends doc_Detail
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareRetUrl($mvc, $data)
+    protected static function on_AfterPrepareRetUrl($mvc, $data)
     {
     	if(!isset($data->form) || !$data->form->isSubmitted()) return;
     	
@@ -307,7 +308,7 @@ class store_InventoryNoteDetails extends doc_Detail
      * @param int $id първичния ключ на направения запис
      * @param stdClass $rec всички полета, които току-що са били записани
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
     	if(is_null($rec->quantity)){
     		$mvc->delete($rec->id);
@@ -339,7 +340,7 @@ class store_InventoryNoteDetails extends doc_Detail
     /**
      * Изчиства записите, заопашени за запис
      */
-    public static function on_Shutdown($mvc)
+    protected static function on_Shutdown($mvc)
     {
     	if(count($mvc->cache)){
     		foreach ($mvc->cache as $noteId) {
