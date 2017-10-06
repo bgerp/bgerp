@@ -2980,6 +2980,8 @@ class doc_Containers extends core_Manager
         
         $form->input('repair, from, to', TRUE);
         
+        $form->setDefault('from', dt::addDays(-3));
+        
         if ($form->isSubmitted()) {
             
             $conf = core_Packs::getConfig('doc');
