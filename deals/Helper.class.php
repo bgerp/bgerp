@@ -303,6 +303,12 @@ abstract class deals_Helper
 			}
 		}
 		
+		// Дефолтни стойности ако няма записи
+		if($invoice && empty($values)){
+			$arr['vat02BaseAmount'] = "0.00";
+			$arr['vat02BaseCurrencyId'] = $baseCurrency;
+		}
+		
 		return (object)$arr;
 	}
 	
