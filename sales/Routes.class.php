@@ -235,7 +235,7 @@ class sales_Routes extends core_Manager {
         
 		// Филтриране по дата
     	if ($data->listFilter->rec->date) {
-    		$data->query->where("#nextVisit >= '{$data->listFilter->rec->date}'");
+    		$data->query->where("#nextVisit = '{$data->listFilter->rec->date}'");
     	}
     	
     	// Филтриране по продавач
