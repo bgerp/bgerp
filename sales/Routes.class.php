@@ -231,8 +231,8 @@ class sales_Routes extends core_Manager {
 
         $data->listFilter->showFields = 'search,user,date';
         $data->listFilter->input();
-		$data->query->orderBy("#nextVisit", 'DESC');
-		
+        $data->query->orderBy("#nextVisit", 'ASC');
+        
 		// Филтриране по дата
     	if ($data->listFilter->rec->date) {
     		$data->query->where("#nextVisit >= '{$data->listFilter->rec->date}'");
