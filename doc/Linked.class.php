@@ -558,11 +558,11 @@ class doc_Linked extends core_Manager
         
         while($rec = $query->fetch()) {
             
-            if (!$limit--) break;
-            
             if ($docTypeInst) {
                 if ($docTypeInst->onlyFirstInThread && !$docTypeInst->canAddToFolder($rec->id) && !$docTypeInst->haveRightFor('add', (object) array('folderId' => $rec->id))) continue;
             }
+            
+            if (!$limit--) break;
             
             $title = trim($rec->{$titleFld});
             $title = str::limitLen($title, 35);
@@ -635,13 +635,13 @@ class doc_Linked extends core_Manager
         
         while($rec = $query->fetch()) {
             
-            if (!$limit--) break;
-            
             if ($docTypeInst) {
                 if ($docTypeInst->onlyFirstInThread || !$docTypeInst->canAddToThread($rec->id)) continue;
                 
                 if (!$docTypeInst->haveRightFor('add', (object) array('threadId' => $rec->id))) continue;
             }
+            
+            if (!$limit--) break;
             
             $title = $rec->id;
             
