@@ -369,6 +369,11 @@ abstract class deals_DealMaster extends deals_DealBase
     	} elseif($defVat == 'no' && in_array($rec->chargeVat, array('yes', 'separate'))){
     		$form->setWarning('chargeVat', 'Избран е режим за начисляване на ДДС, при очакван без ДДС');
     	}
+    	
+    	$defCurrency = cls::get($rec->contragentClassId)->getDefaultCurrencyId($rec->contragentId);
+    	if($defCurrency != $rec->currencyId){
+    		$form->setWarning('currencyId', "Избрана e различна валута от очакваната|* {$defCurrency}");
+    	}
     }
 
     
