@@ -279,6 +279,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 		return $groupVerbal;
 	}
 	
+	
 	/**
 	 * Връща полетата за експортиране във csv
 	 *
@@ -359,8 +360,10 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 	
 		// Ако няма предпоследна, бие се нотификация
 		if(!count($all)) return TRUE;
+		
+		if(empty($this->newFieldToCheck)) return FALSE;
+		
 		$oldRec = $all[key($all)]->oldRec;
-	
 		$dataRecsNew = $rec->data->recs;
 		$dataRecsOld = $oldRec->data->recs;
 	

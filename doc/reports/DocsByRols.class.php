@@ -1,5 +1,7 @@
 <?php
 
+
+
 /**
  * Мениджър на отчети за създадени документи от служители
  * с избрана роля.
@@ -23,6 +25,7 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
 
     public $listFields = 'person,document,value,roleId,from,to,documents';
 
+
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -38,6 +41,24 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
         $fieldset->FLD('order', 'enum(cnt=брой документи,letter=азбучен ред)', 'caption=Подреди по,after=documents,mandatory,column=none');
 
     }
+
+
+    /**
+     * @param frame2_driver_Proto $Driver
+     * @param embed_Manager $Embedder
+     * @param $form
+     */
+    protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
+    {
+
+        if ($form->isSubmitted()) {
+
+            if ($form->rec->from > $form->rec->to) {
+                $form->setError('from, to', 'Началната дата не може да бъде по-голяма от крайната дата');
+            }
+        }
+    }
+
 
     /**
      * Кои записи ще се показват в таблицата
@@ -127,6 +148,7 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
         return $recs;
 
     }
+
 
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
