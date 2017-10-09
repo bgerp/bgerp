@@ -22,7 +22,7 @@ class blast_ListDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'blast_Wrapper, plg_RowNumbering, plg_RowTools2, plg_Select,expert_Plugin, plg_Created, plg_Sorting, plg_State, plg_PrevAndNext, plg_SaveAndNew';
+    var $loadList = 'blast_Wrapper, plg_RowNumbering, plg_RowTools2, plg_Select, expert_Plugin, plg_Created, plg_Sorting, plg_State, plg_PrevAndNext, plg_SaveAndNew';
     
     
     /**
@@ -677,7 +677,11 @@ class blast_ListDetails extends doc_Detail
                     }
                     
                     $rec->data = serialize($data);
-
+                    
+                    // Да се попълват полетата, които се попълват в плъгина, защото не се прекъсва записа
+                    setIfNot($rec->createdOn, dt::verbal2Mysql());
+                    setIfNot($rec->createdBy, core_Users::getCurrent());
+                    
                     $this->save_($rec);
                 }
 
