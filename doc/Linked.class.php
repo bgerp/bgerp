@@ -79,6 +79,7 @@ class doc_Linked extends core_Manager
         $this->FLD('inType', 'enum(doc=Документ,file=Файл)', 'caption=Входящ->Тип');
         $this->FLD('inVal', 'int', 'caption=Входящ->Стойност');
         $this->FLD('comment', 'varchar', 'caption=Пояснения');
+        $this->FLD('actType', 'varchar(16)', 'caption=Действие, input=none');
         $this->FLD('state', 'enum(active=Активно, rejected=Оттеглено)', 'caption=Състояние, input=none');
         
         $this->setDbUnique('outType, outVal, inType, inVal');
@@ -313,6 +314,7 @@ class doc_Linked extends core_Manager
             $nRec->outVal = $originFId;
             $nRec->comment = $form->rec->comment;
             $nRec->state = 'active';
+            $nRec->actType = $form->rec->act;
             
             if ($act == 'linkDoc') {
                 $nRec->inType = 'doc';
