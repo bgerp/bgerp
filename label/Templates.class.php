@@ -41,12 +41,6 @@ class label_Templates extends core_Master
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'label, admin, ceo';
-    
-    
-    /**
      * Кой има право да променя?
      */
     public $canEdit = 'labelMaster, admin, ceo';
@@ -346,7 +340,8 @@ class label_Templates extends core_Master
     protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Вземаме шаблона с вкарания css
-        $row->template = static::templateWithInlineCSS($row->template, $rec->css);
+    	$row->STATE_CLASS .= " state-{$rec->state}";
+    	$row->template = static::templateWithInlineCSS($row->template, $rec->css);
     }
     
     
