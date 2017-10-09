@@ -16,12 +16,6 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	
 	
 	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'techno2_SpecificationDriverIntf';
-	
-	
-	/**
 	 * Инстанция на класа имплементиращ интерфейса
 	 */
 	public $class;

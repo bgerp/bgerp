@@ -69,7 +69,6 @@ class cal_Setup extends core_ProtoSetup
         	'cal_Reminders',
             'cal_ReminderSnoozes',
     		'cal_TaskConditions',
-    		'cal_TaskDocuments',
             'migrate::windUpRem',
             //'migrate::reCalcNextStart'
         );

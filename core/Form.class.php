@@ -1417,4 +1417,18 @@ class core_Form extends core_FieldSet
  
         return $res;
     }
+    
+    
+    /**
+     * Спиране на двойния субмит при инпут на форма
+     * 
+     * @param core_ET $tpl    - шаблон
+     * @param core_Form $form - форма
+     * @return void
+     */
+    public static function preventDoubleSubmission(core_ET &$tpl, core_Form $form)
+    {
+    	$formId = $form->formAttr['id'];
+    	jquery_Jquery::run($tpl, "preventDoubleSubmission('{$formId}');");
+    }
 }

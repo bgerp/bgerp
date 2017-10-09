@@ -361,6 +361,19 @@ abstract class deals_DealMaster extends deals_DealBase
     	if(isset($rec->deliveryTermTime) && isset($rec->deliveryTime)){
     		$form->setError('deliveryTime,deliveryTermTime', 'Трябва да е избран само един срок на доставка');
     	}
+    	
+    	// Предупреждение, ако има разминаване в очаквания и избрания режим на ДДС
+    	$defVat = $mvc->getDefaultChargeVat($rec);
+    	if($defVat == 'yes' && in_array($rec->chargeVat, array('exempt', 'no'))){
+    		$form->setWarning('chargeVat', 'Избран е режим за неначисляване на ДДС, при очакван с ДДС');
+    	} elseif($defVat == 'no' && in_array($rec->chargeVat, array('yes', 'separate'))){
+    		$form->setWarning('chargeVat', 'Избран е режим за начисляване на ДДС, при очакван без ДДС');
+    	}
+    	
+    	$defCurrency = cls::get($rec->contragentClassId)->getDefaultCurrencyId($rec->contragentId);
+    	if($defCurrency != $rec->currencyId){
+    		$form->setWarning('currencyId', "Избрана e различна валута от очакваната|* {$defCurrency}");
+    	}
     }
 
     
@@ -571,19 +584,10 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
-        // Премахваме някои от полетата в listFields. Те са оставени там за да ги намерим в 
-        // тук в $rec/$row, а не за да ги показваме
-        $data->listFields = array_diff_key(
-            $data->listFields, 
-            arr::make('initiatorId,contragentId', TRUE)
-        );
-        
-        $data->listFields['dealerId'] = 'Търговец';
-        
         if (count($data->rows)) {
-            foreach ($data->rows as $i=>&$row) {
+            foreach ($data->rows as $i => $row) {
                 $rec = $data->recs[$i];
-    
+ 
                 // Търговец (чрез инициатор)
                 if (!empty($rec->initiatorId)) {
                     $row->dealerId .= ' <small><span class="quiet">чрез</span> ' . $row->initiatorId . "</small>";
@@ -1335,9 +1339,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	 
     	// Рендиране на формата
     	$tpl = $this->renderWrapping($form->renderHtml());
-    	
-    	$formId = $form->formAttr['id'] ;
-    	jquery_Jquery::run($tpl, "preventDoubleSubmission('{$formId}');");
+    	core_Form::preventDoubleSubmission($tpl, $form);
     	
     	return $tpl;
     }
@@ -1825,8 +1827,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	}
     	
     	$tpl = $this->renderWrapping($form->renderHtml());
-    	$formId = $form->formAttr['id'] ;
-    	jquery_Jquery::run($tpl, "preventDoubleSubmission('{$formId}');");
+    	core_Form::preventDoubleSubmission($tpl, $form);
     	
     	return $tpl;
     }

@@ -462,7 +462,6 @@ class store_Products extends core_Detail
     	core_App::setTimeLimit(200);
     	
     	$docArr = array('store_ShipmentOrders'          => array('storeFld' => 'storeId', 'Detail' => 'store_ShipmentOrderDetails'), 
-    					'store_Transfers'               => array('storeFld' => 'fromStore', 'Detail' => 'store_TransfersDetails'), 
     					'planning_ConsumptionNotes'     => array('storeFld' => 'storeId', 'Detail' => 'planning_ConsumptionNoteDetails'),
     					'store_ConsignmentProtocols'    => array('storeFld' => 'storeId', 'Detail' => 'store_ConsignmentProtocolDetailsSend'),
     	);

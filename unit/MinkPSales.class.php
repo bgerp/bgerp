@@ -514,7 +514,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Фактура');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 27,66')) {
+        if(strpos($browser->gettext(), 'Данъчна основа: BGN 27,66')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактура', 'warning');
         }
@@ -703,7 +703,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('amountDeducted', '3.3');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Tax base 0%: BGN 0,00')) {
+        if(strpos($browser->gettext(), 'Tax base: BGN 0,00')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактура 2', 'warning');
         }
@@ -798,7 +798,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Известие');
         $browser->press('Чернова');
         //$browser->click('Редактиране на артикул');
-        $browser->click('edt8');
+        $browser->click('edt10');
         //намира арт. от фактурата
         $browser->setValue('quantity', '20');
         
@@ -814,7 +814,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Известие');
         $browser->press('Чернова');
         //$browser->click('Редактиране на артикул');
-        $browser->click('edt9');
+        $browser->click('edt11');
         $browser->setValue('packPrice', '1.4444');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -836,7 +836,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Известие');
         $browser->press('Чернова');
         //$browser->click('Редактиране на артикул');
-        $browser->click('edt10');
+        $browser->click('edt12');
         $browser->setValue('quantity', '50');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -848,7 +848,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Известие');
         $browser->press('Чернова');
         //$browser->click('Редактиране на артикул');
-        $browser->click('edt11');
+        $browser->click('edt13');
         $browser->setValue('packPrice', '2.5556');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -945,7 +945,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Известие');
         $browser->press('Чернова');
         //$browser->click('Edit');
-        $browser->click('edt13');
+        $browser->click('edt15');
         $browser->setValue('quantity', '20');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -958,7 +958,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Известие');
         $browser->press('Чернова');
         //$browser->click('Edit');
-        $browser->click('edt14');
+        $browser->click('edt16');
         $browser->setValue('packPrice', '1.4444');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -985,7 +985,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Известие');
         $browser->press('Чернова');
         //$browser->click('Edit');
-        $browser->click('edt15');
+        $browser->click('edt17');
         $browser->setValue('quantity', '50');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -998,7 +998,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Известие');
         $browser->press('Чернова');
         //$browser->click('Edit');
-        $browser->click('edt16');
+        $browser->click('edt18');
         $browser->setValue('packPrice', '2.6667');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1095,7 +1095,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Известие');
         $browser->press('Чернова');
         //$browser->click('Edit');
-        $browser->click('edt18');
+        $browser->click('edt20');
         $browser->setValue('quantity', '20');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1108,7 +1108,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Известие');
         $browser->press('Чернова');
         //$browser->click('Edit');
-        $browser->click('edt19');
+        $browser->click('edt21');
         $browser->setValue('packPrice', '1.4444');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1135,7 +1135,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Известие');
         $browser->press('Чернова');
         //$browser->click('Edit');
-        $browser->click('edt20');
+        $browser->click('edt22');
         $browser->setValue('quantity', '50');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1148,7 +1148,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Известие');
         $browser->press('Чернова');
         //$browser->click('Edit');
-        $browser->click('edt21');
+        $browser->click('edt23');
         $browser->setValue('packPrice', '2.6667');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1248,7 +1248,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Известие');
         $browser->press('Чернова');
         //$browser->click('Edit');
-        $browser->click('edt23');
+        $browser->click('edt25');
         $browser->setValue('quantity', '20');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1261,7 +1261,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Известие');
         $browser->press('Чернова');
         //$browser->click('Edit');
-        $browser->click('edt24');
+        $browser->click('edt26');
         $browser->setValue('packPrice', '0.8');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1288,7 +1288,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Известие');
         $browser->press('Чернова');
         //$browser->click('Edit');
-        $browser->click('edt25');
+        $browser->click('edt27');
         $browser->setValue('quantity', '100');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1301,7 +1301,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Известие');
         $browser->press('Чернова');
         //$browser->click('Edit');
-        $browser->click('edt26');
+        $browser->click('edt28');
         $browser->setValue('packPrice', '1.3');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1474,7 +1474,7 @@ class unit_MinkPSales extends core_Manager {
             return unit_MinkPbgERP::reportErr('Грешка в текста на фактурата', 'warning');
         }
         
-        if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 25,25')) {
+        if(strpos($browser->gettext(), 'Данъчна основа: BGN 25,25')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактура 1', 'warning');
         }
@@ -1649,7 +1649,7 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна сума за приспадане', 'warning');
         }
-        if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 145,79')) {
+        if(strpos($browser->gettext(), 'Данъчна основа: BGN 145,79')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактура', 'warning');
         }
@@ -1870,7 +1870,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Фактура');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 64,80')) {
+        if(strpos($browser->gettext(), 'Данъчна основа: BGN 64,80')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна Грешна данъчна основа 20%', 'warning');
         }
@@ -2662,7 +2662,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Фактура');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 591,42')) {
+        if(strpos($browser->gettext(), 'Данъчна основа: BGN 591,42')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна сума във фактура', 'warning');
         }
@@ -2825,7 +2825,7 @@ class unit_MinkPSales extends core_Manager {
         }
         
         //1 стотинка
-        //if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 816,67')) {
+        //if(strpos($browser->gettext(), 'Данъчна основа: BGN 816,67')) {
         //} else {
         //    return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактура', 'warning');
         //}

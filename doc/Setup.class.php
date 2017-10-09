@@ -242,6 +242,7 @@ class doc_Setup extends core_ProtoSetup
     	'doc_Prototypes',
     	'doc_UsedInDocs',
     	'doc_View',
+    	'doc_Linked',
         'migrate::repairBrokenFolderId',
         'migrate::repairLikeThread',
         'migrate::repairFoldersKeywords',
@@ -250,7 +251,8 @@ class doc_Setup extends core_ProtoSetup
         'migrate::addCountryIn2LgFolders2',
         'migrate::addFirstDocClassAndId',
         'migrate::receiveEmailUnsortedN',
-        'migrate::regenerateSearchKeywords'
+        'migrate::regenerateSearchKeywords',
+        'migrate::taskDocumentsToLinked'
     );
 	
     
@@ -885,6 +887,49 @@ class doc_Setup extends core_ProtoSetup
         
         if ($rArr) {
             doc_Containers::logDebug("Регенерирани ключови думи на {$rArr[0]} документа от {$from} до {$to}");
+        }
+    }
+    
+    
+    /**
+     * Мигрира записите от cal_TaskDocuments в doc_Linked
+     */
+    public static function taskDocumentsToLinked()
+    {
+        // Ако класа не съществува
+        if (!cls::load('cal_TaskDocuments', TRUE)) return ;
+        $tDocuments = cls::get('cal_TaskDocuments');
+        
+        // Ако таблицата не е създадена
+        if (!$tDocuments->db->tableExists($tDocuments->dbTableName)) return ;
+        
+        $tQuery = $tDocuments->getQuery();
+        
+        $tQuery->orderBy('createdOn', 'DESC');
+        
+        while ($dRec = $tQuery->fetch()) {
+            
+            if (!$dRec->containerId) continue;
+            
+            if (!$tRec = cal_Tasks::fetch($dRec->taskId)) continue;
+            
+            if (!$tRec->containerId) continue;
+            
+            $nRec = new stdClass();
+            $nRec->outType = 'doc';
+            $nRec->outVal = $tRec->containerId;
+            $nRec->inType = 'doc';
+            $nRec->inVal = $dRec->containerId;
+            $nRec->createdOn = $dRec->createdOn;
+            $nRec->createdBy = $dRec->createdBy;
+            $nRec->comment = $dRec->comment;
+            
+            $nRec->state = 'active';
+            if ($dRec->state == 'rejected') {
+                $nRec->state = 'rejected';
+            }
+            
+            doc_Linked::save($nRec, NULL, 'IGNORE');
         }
     }
 }

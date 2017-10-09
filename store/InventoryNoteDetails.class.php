@@ -453,6 +453,7 @@ class store_InventoryNoteDetails extends doc_Detail
     	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 		
 		$tpl = $this->renderWrapping($form->renderHtml());
+		core_Form::preventDoubleSubmission($tpl, $form);
 		
 		return $tpl;
     }

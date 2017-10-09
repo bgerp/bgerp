@@ -41,12 +41,6 @@ class label_Templates extends core_Master
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'label, admin, ceo';
-    
-    
-    /**
      * Кой има право да променя?
      */
     public $canEdit = 'labelMaster, admin, ceo';
@@ -346,7 +340,8 @@ class label_Templates extends core_Master
     protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Вземаме шаблона с вкарания css
-        $row->template = static::templateWithInlineCSS($row->template, $rec->css);
+    	$row->STATE_CLASS .= " state-{$rec->state}";
+    	$row->template = static::templateWithInlineCSS($row->template, $rec->css);
     }
     
     
@@ -627,13 +622,19 @@ class label_Templates extends core_Master
     	core_Users::forceSystemUser();
     	foreach ($array as $sysId => $cArr){
     		$tRec = self::addFromFile($cArr['title'], $cArr['path'], $sysId, $cArr['sizes'], $cArr['lang'], $cArr['class']);
+    		
     		if($tRec !== FALSE){
     			label_TemplateFormats::delete("#templateId = {$tRec->id}");
     			$arr = $this->getPlaceholders($tRec->template);
     			if(is_array($arr)){
     				foreach ($arr as $placeholder){
-    					$type = (in_array($placeholder, array('BARCODE', 'PREVIEW'))) ? 'html' : 'caption';
-    					label_TemplateFormats::addToTemplate($tRec->id, $placeholder, $type);
+    					if($placeholder == 'BARCODE'){
+    						$params = array('Showing' => 'barcodeAndStr', 'BarcodeType' => 'code128', 'Ratio' => '4', 'Width' => '160', 'Height' => '60', 'Rotation' => 'yes');
+    						label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
+    					} else {
+    						$type = ($placeholder == 'PREVIEW') ? 'html' : 'caption';
+    						label_TemplateFormats::addToTemplate($tRec->id, $placeholder, $type);
+    					}
     				}
     			}
     			$modified ++;

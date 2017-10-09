@@ -274,7 +274,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 			}
 			
 			if($Driver = cat_Products::getDriver($rec->productId)){
-				$driverCost = $Driver->getPrice($rec->productId, $rec->jobQuantity, 0, 0, $rec->valior);
+				$driverCost = $Driver->getPrice($rec->productId, $rec->quantity, 0, 0, $rec->valior);
 				
 				if(isset($driverCost)){
 					$driverAmount = $driverCost * $rec->quantity;

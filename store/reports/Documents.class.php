@@ -209,19 +209,29 @@ class store_reports_Documents extends frame2_driver_TableData
 	 * Връща линкнатите документи към контейнера
 	 * 
 	 * @param int $containerId
+	 * 
 	 * @return array $linked
 	 */
 	private function getLinkedDocuments($containerId)
 	{
 		$linked = array();
+        
+		$cQuery = doc_Linked::getQuery();
+		$cQuery->where(array("#outVal = '[#1#]'", $containerId));
+		$cQuery->where("#outType = 'doc'");
+		$cQuery->where("#inType = 'doc'");
 		
-		$cQuery = cal_TaskDocuments::getQuery();
-		$cQuery->EXT('taskContainerId', 'cal_Tasks', 'externalName=containerId,externalKey=taskId');
-		$cQuery->EXT('taskState', 'cal_Tasks', 'externalName=state,externalKey=taskId');
-		$cQuery->where("#containerId = {$containerId} AND #taskState != 'rejected'");
-		$cQuery->show('taskId,taskContainerId');
+		$cQuery->where("#state != 'rejected'");
+		
+		$cQuery->EXT('cState', 'doc_Containers', 'externalName=state,externalKey=inVal');
+		$cQuery->where("#cState != 'rejected'");
+		
+		$cQuery->show('inVal');
+		
+		$cQuery->orderBy('createdOn', 'DESC');
+		
 		while($cRec = $cQuery->fetch()){
-			$linked[$cRec->taskContainerId] = $cRec->taskContainerId;
+		    $linked[$cRec->inVal] = $cRec->inVal;
 		}
 		
 		return $linked;

@@ -733,7 +733,6 @@ class pos_Reports extends core_Master {
     	if($action == 'add'){
     		if($pointId = Request::get('pointId', 'key(mvc=pos_Points)')){
     			if(!self::canMakeReport($pointId)){
-    				 
     				return followRetUrl(NULL, 'Не може да се направи отчет');
     			}
     		}

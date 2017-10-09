@@ -279,6 +279,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 		return $groupVerbal;
 	}
 	
+	
 	/**
 	 * Връща полетата за експортиране във csv
 	 *

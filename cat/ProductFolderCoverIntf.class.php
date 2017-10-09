@@ -19,12 +19,6 @@ class cat_ProductFolderCoverIntf extends doc_FolderIntf
 	
 	
 	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'techno2_SpecificationFolderCoverIntf';
-	
-	
-	/**
      * Връща мета дефолт мета данните на папката
      * 
      * @param int $id - ид на корицата

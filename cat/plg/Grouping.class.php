@@ -167,6 +167,7 @@ class cat_plg_Grouping extends core_Plugin
 				$res = new Redirect($retUrl, $msg);
 			} else {
 				$res = $mvc->renderWrapping($form->renderHtml());
+				core_Form::preventDoubleSubmission($res, $form);
 			}
 			 
 			return FALSE;

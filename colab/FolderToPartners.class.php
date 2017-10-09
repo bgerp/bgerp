@@ -406,7 +406,8 @@ class colab_FolderToPartners extends core_Manager
     	$form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close-red.png', 'title=Прекратяване на действията');
     	 
     	$tpl = $this->renderWrapping($form->renderHtml());
-    	 
+    	core_Form::preventDoubleSubmission($tpl, $form);
+    	
     	return $tpl;
     }
     
@@ -585,6 +586,8 @@ class colab_FolderToPartners extends core_Manager
     	} else {
     		$tpl = $form->renderHtml();
     	}
+    	core_Form::preventDoubleSubmission($tpl, $form);
+    	
     	
     	return $tpl;
     }
