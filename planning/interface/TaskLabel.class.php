@@ -98,7 +98,7 @@ class planning_interface_TaskLabel
 	
 		// Генериране на баркод
 		$serial = planning_TaskSerials::force($id, $labelNo);
-		$res['BARCODE'] = planning_Tasks::getBarcodeImg($serial)->getContent();
+		$res['BARCODE'] = $serial; //planning_Tasks::getBarcodeImg($serial)->getContent();
 	
 		// Информация за артикула
 		$measureId = cat_Products::fetchField($tInfo->productId, 'measureId');
