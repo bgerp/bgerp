@@ -584,15 +584,10 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
-        // Премахваме някои от полетата в listFields. Те са оставени там за да ги намерим в 
-        // тук в $rec/$row, а не за да ги показваме
-        $data->listFields = array_diff_key($data->listFields, arr::make('initiatorId,contragentId', TRUE));
-        $data->listFields['dealerId'] = 'Търговец';
-        
         if (count($data->rows)) {
-            foreach ($data->rows as $i=>&$row) {
+            foreach ($data->rows as $i => $row) {
                 $rec = $data->recs[$i];
-    
+ 
                 // Търговец (чрез инициатор)
                 if (!empty($rec->initiatorId)) {
                     $row->dealerId .= ' <small><span class="quiet">чрез</span> ' . $row->initiatorId . "</small>";
