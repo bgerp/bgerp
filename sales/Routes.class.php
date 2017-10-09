@@ -486,6 +486,7 @@ class sales_Routes extends core_Manager {
 		$updateState = $updateNextVisit = array();
 		$query = self::getQuery();
 		$query->where("#state = 'active'");
+		$query->where("#nextVisit IS NULL OR #nextVisit != '{$today}'");
 		
 		// Дигане на тайм лимита
 		$count = $query->count();
