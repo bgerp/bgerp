@@ -1457,7 +1457,7 @@ class bgerp_Notifications extends core_Manager
                         
                         if (!$rec->cnt) continue;
                         
-                        if ($cRec->state == 'rejected') continue;
+                        if (!$cRec || ($cRec->state == 'rejected')) continue;
                         
                         $rec->hidden = 'no';
                         self::save($rec, 'hidden');
