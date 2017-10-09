@@ -38,11 +38,6 @@ class purchase_Purchases extends deals_DealMaster
 				        doc_EmailCreatePlg, bgerp_plg_Blank, acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, plg_Search, doc_plg_Close, plg_LastUsedKeys';
     
     
-    /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    public $oldClassName = 'purchase_Requests';
-    
     
     /**
      * Абревиатура
@@ -145,7 +140,6 @@ class purchase_Purchases extends deals_DealMaster
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-    
     	'deliveryTermId'     => 'clientCondition|lastDocUser|lastDoc',
     	'paymentMethodId'    => 'clientCondition|lastDocUser|lastDoc',
     	'currencyId'         => 'lastDocUser|lastDoc|CoverMethod',
