@@ -1128,12 +1128,8 @@ class planning_Jobs extends core_Master
     	$form->toolbar->addSbBtn('Ново задание', 'default', array('class' => 'btn-next fright'), 'ef_icon = img/16/move.png, title=Създаване на ново задание');
     	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
     	
-    	$form = $form->renderHtml();
-    	$tpl = $this->renderWrapping($form);
-    	
-    	$formId = $form->formAttr['id'] ;
-    	jquery_Jquery::run($tpl, "preventDoubleSubmission('{$formId}');");
-    	
+    	$tpl = $this->renderWrapping($form->renderHtml());
+    	core_Form::preventDoubleSubmission($tpl, $form);
     	
     	return $tpl;
     }
@@ -1183,11 +1179,8 @@ class planning_Jobs extends core_Master
     	$form->toolbar->addSbBtn('Клониране на избраните', 'default', 'ef_icon = img/16/clone.png, title=Създаване на ново задание');
     	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
     	 
-    	$form = $form->renderHtml();
-    	$tpl = $this->renderWrapping($form);
-    	 
-    	$formId = $form->formAttr['id'] ;
-    	jquery_Jquery::run($tpl, "preventDoubleSubmission('{$formId}');");
+    	$tpl = $this->renderWrapping($form->renderHtml());
+    	core_Form::preventDoubleSubmission($tpl, $form);
     	 
     	return $tpl;
     }

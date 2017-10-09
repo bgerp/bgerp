@@ -159,9 +159,7 @@ class plg_Clone extends core_Plugin
         
         // Рендираме опаковката
         $res = $mvc->renderWrapping($form->renderHtml());
-        
-        $formId = $form->formAttr['id'] ;
-        jquery_Jquery::run($res, "preventDoubleSubmission('{$formId}');");
+        core_Form::preventDoubleSubmission($res, $form);
         
         return FALSE;
     }

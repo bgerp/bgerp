@@ -728,11 +728,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$form->toolbar->addSbBtn('Контиране', 'save', 'ef_icon = img/16/tick-circle-frame.png, title = Контиране на документа');
 		$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 		
-		$tpl = $form->renderHtml();
-		$tpl = $this->renderWrapping($tpl);
-		
-		$formId = $form->formAttr['id'] ;
-		jquery_Jquery::run($tpl, "preventDoubleSubmission('{$formId}');");
+		$tpl = $this->renderWrapping($form->renderHtml());
+		core_Form::preventDoubleSubmission($tpl, $form);
 		
 		return $tpl;
 	}

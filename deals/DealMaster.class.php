@@ -1339,9 +1339,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	 
     	// Рендиране на формата
     	$tpl = $this->renderWrapping($form->renderHtml());
-    	
-    	$formId = $form->formAttr['id'] ;
-    	jquery_Jquery::run($tpl, "preventDoubleSubmission('{$formId}');");
+    	core_Form::preventDoubleSubmission($tpl, $form);
     	
     	return $tpl;
     }
@@ -1829,8 +1827,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	}
     	
     	$tpl = $this->renderWrapping($form->renderHtml());
-    	$formId = $form->formAttr['id'] ;
-    	jquery_Jquery::run($tpl, "preventDoubleSubmission('{$formId}');");
+    	core_Form::preventDoubleSubmission($tpl, $form);
     	
     	return $tpl;
     }

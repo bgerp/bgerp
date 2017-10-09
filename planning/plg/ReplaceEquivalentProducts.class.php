@@ -95,6 +95,7 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
 			// Рендиране на формата
 			$form = $form->renderHtml();
 			$res = $mvc->renderWrapping($form);
+			core_Form::preventDoubleSubmission($res, $form);
 			
 			// ВАЖНО: спираме изпълнението на евентуални други плъгини
 			return FALSE;

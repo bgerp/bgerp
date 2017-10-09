@@ -132,7 +132,8 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 			
 			// Рендиране на опаковката
 			$tpl = $mvc->renderWrapping($form->renderHtml());
-	
+			core_Form::preventDoubleSubmission($tpl, $form);
+			
 			return FALSE;
 		}
 	}

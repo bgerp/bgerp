@@ -1135,9 +1135,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         }
         
         $tpl = $this->renderWrapping($form->renderHtml());
-        
-        $formId = $form->formAttr['id'] ;
-        jquery_Jquery::run($tpl, "preventDoubleSubmission('{$formId}');");
+        core_Form::preventDoubleSubmission($tpl, $form);
         
         return $tpl;
     }
