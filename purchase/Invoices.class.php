@@ -1185,7 +1185,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     	$cLastDay = dt::getLastDayOfMonth($today);
     	$prevLastDay = dt::getLastDayOfMonth($today, -1);
     	$day = dt::getLastDayOfMonth($date);
-    	$numOfDay = dt::mysql2verbal($date, 'd');
+    	$numOfDay = dt::mysql2verbal($today, 'd');
     	
     	// Ако датата на фактурата (ДФ) е в текущия месец - СД = ДФ
     	if($day == $cLastDay) return $date;
