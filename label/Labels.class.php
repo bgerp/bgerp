@@ -305,6 +305,12 @@ class label_Labels extends core_Master
         // Показваме линк към обекта, от който е създаден етикета
         if (isset($rec->classId) && isset($rec->objId)) {
         	if(cls::load($rec->classId, TRUE)) {
+        		if(!cls::haveInterface('label_SequenceIntf', $rec->classId)){
+        			$row->title = strip_tags($row->title);
+        			$row->title = ht::createHint($row->title, 'Проблем при печатането на етикета', 'error', FALSE);
+        			unset($row->_rowTools);
+        		}
+        		
         		$intfInst = cls::get($rec->classId);
         		if(($intfInst instanceof core_Master) && $intfInst->haveRightFor('single', $rec->objId)) {
         			$row->Object = $intfInst->getLinkToSingle($rec->objId);
