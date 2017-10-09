@@ -1673,7 +1673,7 @@ class doc_DocumentPlg extends core_Plugin
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    public static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
         if (empty($data->form->rec->id) && $data->form->rec->threadId && $data->form->rec->originId) {
             
@@ -1690,7 +1690,7 @@ class doc_DocumentPlg extends core_Plugin
         	$data->form->toolbar->renameBtn('save', 'Запис');
         }
         
-        if($mvc->haveRightFor('pending', $data->form->rec)){
+        if($mvc->haveRightFor('pending', $data->form->rec) && $data->form->rec->state != 'pending'){
         	$data->form->toolbar->addSbBtn('Заявка', 'save_pending', 'id=btnPending,order=9.99989','ef_icon = img/16/tick-circle-frame.png');
         }
     }
@@ -1746,9 +1746,12 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
-     *
+     * След изпращане на формата
+     * 
+     * @param core_Mvc $mvc
+     * @param core_Form $form
      */
-    static function on_AfterInputEditForm($mvc, $form)
+    public static function on_AfterInputEditForm($mvc, $form)
     {  
         $rec = &$form->rec;
         
@@ -1771,6 +1774,13 @@ class doc_DocumentPlg extends core_Plugin
 		    if($form->cmd == 'save_pending' && $mvc->haveRightFor('pending', $rec)){
 		    	$form->rec->state = 'pending';
 		    	$form->rec->pendingSaved = TRUE;
+		    }
+		    
+		    // Ако документа е бил на заявка преди, обръща се в чернова
+		    if(isset($rec->id) && $rec->state == 'pending'){
+		    	$rec->state = 'draft';
+		    	$rec->brState = 'pending';
+		    	$rec->pendingSaved = TRUE;
 		    }
         }
     }
@@ -1999,7 +2009,7 @@ class doc_DocumentPlg extends core_Plugin
             
             if ($action == 'delete') {
                 $requiredRoles = 'no_one';
-            } elseif(($action == 'edit') && ($oRec->state != 'draft')) {
+            } elseif(($action == 'edit') && ($oRec->state != 'draft' && $oRec->state != 'pending')) {
             	if(!(($oRec->state == 'active'  || $oRec->state == 'template') && $mvc->canEditActivated === TRUE)){
             		$requiredRoles = 'no_one';
             	} else {
