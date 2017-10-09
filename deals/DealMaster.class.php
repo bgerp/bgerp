@@ -361,6 +361,14 @@ abstract class deals_DealMaster extends deals_DealBase
     	if(isset($rec->deliveryTermTime) && isset($rec->deliveryTime)){
     		$form->setError('deliveryTime,deliveryTermTime', 'Трябва да е избран само един срок на доставка');
     	}
+    	
+    	// Предупреждение, ако има разминаване в очаквания и избрания режим на ДДС
+    	$defVat = $mvc->getDefaultChargeVat($rec);
+    	if($defVat == 'yes' && in_array($rec->chargeVat, array('exempt', 'no'))){
+    		$form->setWarning('chargeVat', 'Избран е режим за неначисляване на ДДС, при очакван с ДДС');
+    	} elseif($defVat == 'no' && in_array($rec->chargeVat, array('yes', 'separate'))){
+    		$form->setWarning('chargeVat', 'Избран е режим за начисляване на ДДС, при очакван без ДДС');
+    	}
     }
 
     
@@ -573,11 +581,7 @@ abstract class deals_DealMaster extends deals_DealBase
     {
         // Премахваме някои от полетата в listFields. Те са оставени там за да ги намерим в 
         // тук в $rec/$row, а не за да ги показваме
-        $data->listFields = array_diff_key(
-            $data->listFields, 
-            arr::make('initiatorId,contragentId', TRUE)
-        );
-        
+        $data->listFields = array_diff_key($data->listFields, arr::make('initiatorId,contragentId', TRUE));
         $data->listFields['dealerId'] = 'Търговец';
         
         if (count($data->rows)) {
