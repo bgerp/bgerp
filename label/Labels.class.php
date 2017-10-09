@@ -300,18 +300,20 @@ class label_Labels extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        if (label_Templates::haveRightFor('single', $rec->templateId)) {
-            $row->templateId = ht::createLink($row->templateId, array('label_Templates', 'single', $rec->templateId));
-        }
+    	$row->templateId = label_Templates::getHyperlink($rec->templateId, TRUE);
         
         // Показваме линк към обекта, от който е създаден етикета
-        if ($rec->classId && $rec->objId) {
-            $intfInst = cls::getInterface('label_SequenceIntf', $rec->classId);
-            if (($intfInst->class instanceof core_Master) && $intfInst->class->haveRightFor('single', $rec->objId)) {
-                $row->Object = $intfInst->class->getLinkToSingle($rec->objId);
-            } else {
-                $row->Object = $intfInst->class->title;
-            }
+        if (isset($rec->classId) && isset($rec->objId)) {
+        	if(cls::load($rec->classId, TRUE)) {
+        		$intfInst = cls::get($rec->classId);
+        		if(($intfInst instanceof core_Master) && $intfInst->haveRightFor('single', $rec->objId)) {
+        			$row->Object = $intfInst->getLinkToSingle($rec->objId);
+        		} else {
+        			$row->Object = $intfInst->title;
+        		}
+        	} else {
+        		$row->Object = tr('Проблем при зареждането на класа');
+        	}
         }
     }
     
