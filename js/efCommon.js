@@ -1,7 +1,7 @@
 var shortURL;
 
 
-function spr(sel) {
+function spr(sel, refresh = true) {
      if(sel.value == 'select') {
         $("input[name*='from']").closest('tr').fadeIn();
         $("input[name*='to']").closest('tr').fadeIn();
@@ -15,7 +15,9 @@ function spr(sel) {
         $("input[name*='to']").prop('disabled', true);
         $("input[name*='from']").closest('tr').fadeOut();
         $("input[name*='to']").closest('tr').fadeOut();
-        sel.form.submit();
+        if(refresh) {
+            sel.form.submit();
+        }
     }
 
 }
