@@ -1424,7 +1424,6 @@ class bgerp_Notifications extends core_Manager
     function cron_HideInaccesable()
     {
         $query = self::getQuery();
-        $query->where("#hidden = 'no'");
         
         $query->orderBy('modifiedOn', 'DESC');
         
@@ -1444,14 +1443,27 @@ class bgerp_Notifications extends core_Manager
                 
                 if (!$ctr) continue;
                 
-                if ((!cls::load($ctr, TRUE)) || ($urlArr['id'] && !$ctr::fetch($urlArr['id']))) {
+                if ((!cls::load($ctr, TRUE)) || ($urlArr['id'] && !($cRec = $ctr::fetch($urlArr['id'])))) {
                     self::delete($rec->id);
-                    self::logDebug("Изтрита нотифакаци за премахнат ресурс", $rec->id);
-                } elseif (!$ctr::haveRightFor($act, $urlArr['id'], $rec->userId)) {
-                    $rec->hidden = 'yes';
-                    self::save($rec, 'hidden,modifiedOn,modifiedBy');
-                    
-                    self::logDebug("Скрит недостъпен ресурс", $rec->id);
+                    self::logInfo("Изтрита нотификация за премахнат ресурс", $rec->id);
+                } else{
+                    $haveRight = $ctr::haveRightFor($act, $urlArr['id'], $rec->userId);
+                    if (!$haveRight && ($rec->hidden == 'no')) {
+                        $rec->hidden = 'yes';
+                        self::save($rec, 'hidden,modifiedOn,modifiedBy');
+                        
+                        self::logInfo("Скрит недостъпен ресурс", $rec->id);
+                    } elseif ($haveRight && ($rec->hidden == 'yes')) {
+                        
+                        if (!$rec->cnt) continue;
+                        
+                        if (!$cRec || ($cRec->state == 'rejected')) continue;
+                        
+                        $rec->hidden = 'no';
+                        self::save($rec, 'hidden');
+                        
+                        self::logInfo("Показан достъпен ресурс", $rec->id);
+                    }
                 }
             } catch (core_exception_Expect $e) {
                 reportException($e);

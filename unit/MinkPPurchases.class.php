@@ -1308,11 +1308,11 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('date', date('d-m-Y', $startdate));
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 400,00')) {
+        if(strpos($browser->gettext(), 'Данъчна основа: BGN 400,00')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа 20%', 'warning');
         }
-        if(strpos($browser->gettext(), 'Данъчна основа 9%: BGN 81,00')) {
+        if(strpos($browser->gettext(), 'Данъчна основа: BGN 81,00')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа 9%', 'warning');
         }
@@ -1324,11 +1324,17 @@ class unit_MinkPPurchases extends core_Manager {
         //$browser->click('Редактиране на артикул');
         $browser->click('edt29');
         $browser->setValue('quantity', '18');
+        $browser->press('Следващ');
+        $browser->setValue('quantity', '4');
         $browser->press('Запис');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), ' Минус четиридесет и осем BGN')) {
+        if(strpos($browser->gettext(), 'Минус деветдесет и седем BGN и 0,05')) {
         } else {
             return "Грешна сума в КИ - количество";
+        }
+        if(strpos($browser->gettext(), 'ДДС 9% 	ДДС: BGN -4,05')) {
+        } else {
+            return "Грешно ДДС 9%";
         }
         
         // Кредитно известие - цена

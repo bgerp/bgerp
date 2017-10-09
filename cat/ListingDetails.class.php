@@ -443,6 +443,7 @@ class cat_ListingDetails extends doc_Detail
 			
 		// Рендиране на опаковката
 		$tpl = $this->renderWrapping($form->renderHtml());
+		core_Form::preventDoubleSubmission($tpl, $form);
 		
 		return $tpl;
 	}
