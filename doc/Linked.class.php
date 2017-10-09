@@ -261,7 +261,7 @@ class doc_Linked extends core_Manager
             
             $form->FNC('linkContainerId', 'key2(mvc=doc_Containers, titleFld=id, maxSuggestions=100, selectSourceArr=doc_Linked::prepareLinkDocId, allowEmpty, docType=' . $form->rec->linkDocType . ', folderId=' . $form->rec->linkFolderId . ')', 'caption=Документ, input, mandatory, refreshForm');
         } elseif ($act == 'linkFile') {
-            $form->FNC('linkFileId', 'fileman_FileType(bucket=Linked)', 'caption=Файл, input');
+            $form->FNC('linkFileId', 'fileman_FileType(bucket=Linked)', 'caption=Файл, input, mandatory');
         } elseif ($act == 'newDoc') {
             $form->FNC('linkDocType', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Вид, input, mandatory, removeAndRefreshForm=linkFolderId|linkThreadId');
             
