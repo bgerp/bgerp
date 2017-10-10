@@ -56,7 +56,7 @@ class fileman_Mimes extends core_Mvc {
      */
     static function loadMime2Ext()
     {
-        if(!self::$mime2ext) {
+        if (!self::$mime2ext) {
             //Вземаме цялото име на файла
             $inc = getFullPath('fileman/data/mime2ext.inc.php');
             
@@ -74,7 +74,7 @@ class fileman_Mimes extends core_Mvc {
      */
     static function getMimeByExt($ext)
     {
-        if(!$ext) return;
+        if (!$ext) return;
 
         self::loadExt2Mime();
 
@@ -118,7 +118,7 @@ class fileman_Mimes extends core_Mvc {
      */
     static function getExtByMime($mime)
     {
-        if(!$mime) return;
+        if (!$mime) return;
 
         self::loadMime2Ext();
 

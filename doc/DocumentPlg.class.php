@@ -1467,7 +1467,7 @@ class doc_DocumentPlg extends core_Plugin
                 if ($mvc->fields['title']) {
                     $titleFld = 'title';
                 } elseif ($mvc->fields['subject']) {
-                    $titleFld = 'title';
+                    $titleFld = 'subject';
                 }
                 
                 if ($titleFld) {

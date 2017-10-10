@@ -558,12 +558,7 @@ class cal_Calendar extends core_Master
         }
     
         $monthOpt = self::prepareMonthOptions();
-    
-        //currentM
-        //bp(self::prepareMonthOptions());
-        //$options = self::prepareMonthOptions();
-        //tuk
-        
+
         $select = ht::createSelect('dropdown-cal', $monthOpt->opt, $monthOpt->currentM, array('onchange' => "javascript:location.href = this.value;", 'class' => 'portal-select'));
      
         // правим заглавието на календара, 
@@ -2027,7 +2022,7 @@ class cal_Calendar extends core_Master
             }
         
         }
-        //bp($options, $currentMonth, $prevtLink,$prevMonth,$nextLink,  $nextMonth);
+   
         return (object) array('opt' => $options, 'currentM' =>$currentMonth,  
                               'prevtLink'=>$prevtLink, 'nextLink'=>$nextLink, 
                               'nextMonth'=>$nextMonth,'prevMonth' =>$prevMonth);
