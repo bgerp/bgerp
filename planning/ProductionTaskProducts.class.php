@@ -305,7 +305,7 @@ class planning_ProductionTaskProducts extends core_Detail
     	$rec = self::fetch($taskProductId);
     	$rec->realQuantity = 0;
     	
-    	$query = planning_drivers_ProductionTaskDetails::getQuery();
+    	$query = planning_ProductionTaskDetails::getQuery();
     	$query->where("#taskId = {$rec->taskId}");
     	$query->where("#type = '{$rec->type}'");
     	$query->where("#taskProductId = {$taskProductId}");
