@@ -175,21 +175,9 @@ class core_Url
                                'xn--vermgensberatung-pwb', 'xn--vhquv', 'xn--vuq861b', 'xn--w4r85el8fhu5dnra', 'xn--w4rs40l', 
                                'xn--wgbh1c', 'xn--wgbl6a', 'xn--xhq521b', 'xn--xkc2al3hye2a', 'xn--xkc2dl3a5ee0h', 'xn--y9a3aq', 
                                'xn--yfro4i67o', 'xn--ygbi2ammx', 'xn--zfr164b', 'xperia', 'xxx', 'xyz', 'yachts', 'yahoo', 
-                               'yamaxun', 'yandex', 'ye', 'yodobashi', 'yoga', 'yokohama', 'you', 'youtube', 'yt', 'yun', 'za', 'zappos', 'zara', 'zero', 'zip', 'zippo', 'zm', 'zone', 'zuerich', 'zw');
+                               'yamaxun', 'yandex', 'ye', 'yodobashi', 'yoga', 'yokohama', 'you', 'youtube', 'yt', 'yun', 'za', 
+                               'zappos', 'zara', 'zero', 'zip', 'zippo', 'zm', 'zone', 'zuerich', 'zw');
     
-     /**
-      * @todo Чака за документация...
-      */
-     static function getTldPtr()
-     {
-         $valideTld = self::$valideTld;
-         $tdl = implode("|", $valideTld);
-         $tdlPtr = str_replace("--", "\\-\\-", $tdl);
-         
-         return $tdlPtr;
-     }
-     
-     
     /**
      * @todo Чака за документация...
      */
@@ -273,11 +261,9 @@ class core_Url
         
         $parts['scheme'] = strtolower($parts['scheme']);
         
-        $tdlPtr = core_Url::getTldPtr();
-        
         if ($parts['host']) {
             $parts['host'] = strtolower($parts['host']);
-            $domainPttr = "/(?P<domain>[a-z0-9][a-z0-9\-]{1,63}\.(?P<tld>+\.({$tdlPtr}))$/i";
+            $domainPttr = "/(?P<domain>[a-z0-9][a-z0-9\-]{1,63}\.(?P<tld>[a-z\.]{2,6}))$/i";
             
             if (preg_match($domainPttr, $parts['host'], $match)) {
                 $parts['domain'] = $match['domain'];
