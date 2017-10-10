@@ -395,7 +395,7 @@ class html2text_Html2Text
         if($this->simple) {
             $text = preg_replace($this->search, $this->replaceSimple, $text);
         } else {
-//             bp($this->search, $this->replace, $text);
+
             $text = preg_replace($this->search, $this->replace, $text);
         }
         

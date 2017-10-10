@@ -369,7 +369,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
             $allNum = array();  
             foreach($totalLU as $lu => $luArr) {  
                 if(strlen($luInfo)) $luInfo .= ';';
-                $luInfo .=  ' <strong>' . count($luArr) . '</strong>&nbsp;' . mb_strtolower($lu);
+                $luInfo .=  ' <strong>' . count($luArr) . '</strong>&nbsp;' . tr(mb_strtolower($lu));
                 foreach($luArr as $i) {
                     if(isset($allNum[$i])) {
                         $err = "Логистичната единица|* №{$i} |не може едновремено да бъде|* " . $allNum[$i] . " |и|* " . $lu;

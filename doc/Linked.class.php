@@ -246,7 +246,12 @@ class doc_Linked extends core_Manager
         $actTypeArr = array('' => '', 'linkDoc' => 'Връзка с документ', 'linkFile' => 'Връзка с файл', 'newDoc' => 'Нов документ');
         $enumInst = cls::get('type_Enum');
         $enumInst->options = $actTypeArr;
-        $form->FNC('act', $enumInst, 'caption=Действие, input, refreshForm, mandatory');
+        $form->FNC('act', $enumInst, 'caption=Действие, input, refreshForm, mandatory, silent');
+        
+        $defAct = $this->getDefaultActionFor($originFId, $type);
+        if ($defAct) {
+            $form->setDefault('act', $defAct);
+        }
         
         $form->input();
         
@@ -256,7 +261,7 @@ class doc_Linked extends core_Manager
             $form->FNC('linkDocType', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Вид, input, removeAndRefreshForm=linkContainerId');
             $form->input();
             
-            $form->FNC('linkFolderId', 'key2(mvc=doc_Folders, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ')', 'caption=Папка, input, removeAndRefreshForm=linkContainerId');
+            $form->FNC('linkFolderId', 'key2(mvc=doc_Folders, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ', showWithDocs)', 'caption=Папка, input, removeAndRefreshForm=linkContainerId');
             $form->input();
             
             $form->FNC('linkContainerId', 'key2(mvc=doc_Containers, titleFld=id, maxSuggestions=100, selectSourceArr=doc_Linked::prepareLinkDocId, allowEmpty, docType=' . $form->rec->linkDocType . ', folderId=' . $form->rec->linkFolderId . ')', 'caption=Документ, input, mandatory, refreshForm');
@@ -334,7 +339,7 @@ class doc_Linked extends core_Manager
                     $url['threadId'] = $form->rec->linkThreadId;
                 }
                 
-                $url['linkedHashKey'] = substr(md5(serialize($nRec) . '|' . dt::now() . '|' . core_Users::getCurrent()), 0, 8);
+                $url['linkedHashKey'] = 'linkedHashKey_' . substr(md5(serialize($nRec) . '|' . dt::now() . '|' . core_Users::getCurrent()), 0, 8);
                 
                 $url['ret_url'] = TRUE;
                 
@@ -409,6 +414,125 @@ class doc_Linked extends core_Manager
         $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
         return $this->renderWrapping($form->renderHtml());
+    }
+    
+    
+    /**
+     * Връща възможно най-добрият екшън за съответния документ
+     * 
+     * @param integer $docId
+     * @param string $type
+     * @param integer|NULL $folderId
+     * @param integer|NULL $userId
+     * 
+     * @return string|mixed
+     */
+    protected static function getDefaultActionFor($docId, $type, $folderId = NULL, $userId = NULL)
+    {
+        $qLimit = 3;
+        $minBestCnt = $qLimit - 1;
+        
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        if (!$folderId) {
+            if ($type == 'doc') {
+                $docInst = doc_Containers::getDocument($docId);
+                
+                $folderId = $docInst->fetchField('folderId');
+            }
+        }
+        
+        $query = self::getQuery();
+        $query->state = 'active';
+        $query->orderBy('createdOn', 'DESC');
+        $query->limit($qLimit);
+        
+        $query->where(array("#outType = '[#1#]'", $type));
+		
+        if ($type == 'doc') {
+            
+            // Подобен файл - от същия клас
+            
+            $document = doc_Containers::getDocument($docId);
+            $docClsId = $document->instance->getClassId();
+            
+            $query->EXT('cDocClass', 'doc_Containers', 'externalKey=outVal, externalName=docClass');
+            $query->where(array("#cDocClass = '[#1#]'", $docClsId));
+        } elseif ($type == 'file') {
+            $fRec = fileman_Files::fetch($docId);
+            $ext = fileman_Files::getExt($fRec->name);
+            $query->EXT('fileName', 'fileman_Files', 'externalKey=outVal, externalName=name');
+            
+            $mimeType = fileman_Mimes::getMimeByExt($ext);
+            
+            // Подобни файлове - от миме типа
+            $extArr = array();
+            if ($mimeType) {
+                $extArr = fileman_Mimes::getExtByMime($mimeType);
+            }
+            
+            if (array_search($ext, $extArr) === FALSE) {
+                $extArr[] = $ext;
+            }
+            
+            $or = FALSE;
+            foreach ($extArr as $ext) {
+                $query->where(array("#fileName LIKE '%.[#1#]'", $ext), $or);
+                $or = TRUE;
+            }
+        }
+        
+        // Същия тим документ или папка +
+        // 1 - потребител и папка
+        // 2 - потребител
+        // 3 - папка
+        
+        $qArr = array();
+        
+        $qArr[2] = clone $query;
+        $qArr[2]->where(array("#createdBy = '[#1#]'", $userId));
+        
+        if ($folderId) {
+            
+            $qArr[1] = clone $query;
+            
+            $qArr[1]->EXT('folderId', 'doc_Containers', 'externalKey=outVal, externalName=folderId');
+            $qArr[1]->where(array("#folderId = '[#1#]'", $folderId));
+            
+            $qArr[3] = clone $qArr[1];
+            
+            $qArr[1]->where(array("#createdBy = '[#1#]'", $userId));
+        }
+        
+        ksort($qArr);
+        
+        $actStr = '';
+        foreach ($qArr as $q) {
+            $actTypeArr = array();
+            while ($rec = $q->fetch()) {
+                
+                if (!$rec->actType) continue;
+                $actTypeArr[$rec->actType]++;
+            }
+            
+            if (empty($actTypeArr)) continue;
+            
+            arsort($actTypeArr);
+            if ($actTypeArr) {
+                reset($actTypeArr);
+                $firstElemKey = key($actTypeArr);
+                
+                if ($actTypeArr[$firstElemKey] >= $minBestCnt) {
+                    $actStr = $firstElemKey;
+                    
+                    break;
+                }
+            }
+        }
+        
+        return $actStr;
     }
     
     
@@ -549,6 +673,38 @@ class doc_Linked extends core_Manager
             
             foreach($qArr as $w) {
                 $query->where(array("#searchFieldXpr REGEXP '\ {1}[^a-z0-9\p{L}]?[#1#]'", $w));
+            }
+        }
+        
+        // Ако е зададено да се показват папките в които има такива документи
+        if ($params['showWithDocs'] && $docTypeInst) {
+            
+            $pKey = 'linkedDocFolders_' . substr(md5($docTypeInst->className . '|' . core_Users::getCurrent()), 0, 8);
+            
+            $cacheTime = 5;
+            
+            $minCreatedOn = dt::subtractSecs($cacheTime * 60);
+            $fArr = core_Permanent::get($pKey, $minCreatedOn);
+            
+            if (!isset($fArr) || !is_array($fArr)) {
+                $dQuery = $docTypeInst->getQuery();
+                
+                doc_Folders::restrictAccess($dQuery, NULL, FALSE);
+                
+                $dQuery->groupBy('folderId');
+                
+                $dQuery->show('folderId');
+                
+                $fArr = array();
+                while ($dRec = $dQuery->fetch()) {
+                    $fArr[$dRec->folderId] = $dRec->folderId;
+                }
+                
+                core_Permanent::set($pKey, $fArr, $cacheTime);
+            }
+            
+            if (!empty($fArr)) {
+                $query->in('id', $fArr);
             }
         }
         

@@ -192,7 +192,7 @@ class hr_Bonuses extends core_Master
     		$name = crm_Persons::fetchField("#id = '{$rec->personId}'", 'name');
     		$row->personId = ht::createLink($name, array ('crm_Persons', 'single', 'id' => $rec->personId), NULL, 'ef_icon = img/16/vcard.png');
     	}
-    	//bp($rec, date, );
+ 
     	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
     	$row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->from);
     	

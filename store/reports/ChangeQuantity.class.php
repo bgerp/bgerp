@@ -109,7 +109,7 @@ class store_reports_ChangeQuantity extends frame2_driver_TableData
 
 	    $num = 1;
     	// за всеки един индикатор
-    	while($recMaterial = $query->fetch()){  //bp($recMaterial);
+    	while($recMaterial = $query->fetch()){  
 
     	   $id = $recMaterial->productId;
             

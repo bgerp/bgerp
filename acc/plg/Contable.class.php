@@ -750,6 +750,19 @@ class acc_plg_Contable extends core_Plugin
     {
     	if(!count($userArr)) return;
     	
+    	// Ако глобално в настройките е зададено да се нотифицира или не
+    	$docSettings = doc_Setup::get('NOTIFY_FOR_CONTO');
+    	if ($docSettings == 'no') {
+    	    $userArr = array();
+    	} elseif ($docSettings == 'yes') {
+    	    $userArr = core_Users::getByRole('powerUser');
+    	}
+    	
+    	$pSettingsKey = crm_Profiles::getSettingsKey();
+    	
+    	// Ако е зададено в персоналните настройки на потребителя за всички папки
+    	doc_Containers::prepareUsersArrForNotifications($userArr, $pSettingsKey, 'DOC_NOTIFY_FOR_CONTO', $rec->threadId);
+    	
     	$currUserNick = core_Users::getCurrent('nick');
     	$currUserNick = type_Nick::normalize($currUserNick);
     	
@@ -759,6 +772,9 @@ class acc_plg_Contable extends core_Plugin
     	
     	$message = "{$currUserNick} |контира|* \"|{$docTitle}|*\" |в нишка|* \"{$folderTitle}\"";
     	foreach ($userArr as $uId) {
+    	    
+    	    if (!$mvc->haveRightFor('single', $rec->id)) continue;
+    	    
     		bgerp_Notifications::add($message, array($mvc, 'single', $rec->id), $uId);
     	}
     }
