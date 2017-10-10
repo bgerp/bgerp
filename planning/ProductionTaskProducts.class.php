@@ -3,7 +3,7 @@
 
 
 /**
- * Клас 'planning_drivers_ProductionTaskProducts'
+ * Клас 'planning_ProductionTaskProducts'
  *
  * Детайли на задачите за производство
  *
@@ -14,10 +14,16 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
+class planning_ProductionTaskProducts extends core_Detail
 {
     
 
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'planning_drivers_ProductionTaskProducts';
+	
+	
     /**
      * Заглавие в единствено число
      */
@@ -91,6 +97,14 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     
     
     /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'realQuantity';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -130,7 +144,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
@@ -183,11 +197,11 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     			$form->FLD('inputedQuantity', 'double(Min=0)', "caption={$caption},before=storeId");
     		}
     		
-    		$taskInfo = planning_Tasks::getTaskInfo($data->masterRec);
+    		$masterRec = planning_Tasks::fetch($data->masterRec);
     		$Double = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')));
-    		$shortUom = cat_UoM::getShortName($taskInfo->packagingId);
+    		$shortUom = cat_UoM::getShortName($masterRec->packagingId);
     		$measureUom = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
-    		$unit = tr($measureUom) . " " . tr('за') . " " . $Double->toVerbal($taskInfo->plannedQuantity) . " " . $shortUom;
+    		$unit = tr($measureUom) . " " . tr('за') . " " . $Double->toVerbal($masterRec->plannedQuantity) . " " . $shortUom;
     		$unit = str_replace("&nbsp;", ' ', $unit);
     		 
     		$form->setField('plannedQuantity', array('unit' => $unit));
@@ -203,7 +217,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
     	$rec = &$form->rec;
     	
@@ -273,7 +287,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	if($requiredRoles == 'no_one') return;
     	
     	if(($action == 'delete' || $action == 'edit') && isset($rec->taskId) && isset($rec->id)){
-    		if(planning_drivers_ProductionTaskDetails::fetchField("#taskId = {$rec->taskId} AND #taskProductId = {$rec->id}")){
+    		if(planning_ProductionTaskDetails::fetchField("#taskId = {$rec->taskId} AND #taskProductId = {$rec->id}")){
     			$requiredRoles = 'no_one';
     		}
     	}
@@ -332,7 +346,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     /**
      * Изпълнява се след създаване на нов запис
      */
-    public static function on_AfterCreate($mvc, $rec)
+    protected static function on_AfterCreate($mvc, $rec)
     {
     	if(!empty($rec->inputedQuantity)){
     		$dRec = (object)array('taskId' => $rec->taskId, 'taskProductId' => $rec->id, 'type' => $rec->type, 'quantity' => $rec->inputedQuantity);
@@ -350,7 +364,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	if(!isset($taskRec->originId)) return;
     	
     	// Търсим дали има друга чернова задача за произвеждането на артикула, който влагаме/отпадък
-    	$tQuery = planning_drivers_ProductionTaskProducts::getQuery();
+    	$tQuery = planning_ProductionTaskProducts::getQuery();
     	$tQuery->where("#type = 'product' AND #productId = {$rec->productId}");
     	$tQuery->EXT('state', 'planning_Tasks', 'externalName=state,externalKey=taskId');
     	$tQuery->EXT('originId', 'planning_Tasks', 'externalName=originId,externalKey=taskId');
@@ -407,14 +421,5 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     {
     	$rec = &$data->form->rec;
     	$data->singleTitle = ($rec->type == 'input') ? 'артикул за влагане' : 'отпадъчен артикул';
-    }
-    
-    
-    /**
-     * Изпълнява се преди клониране
-     */
-    protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
-    {
-    	unset($rec->realQuantity);
     }
 }

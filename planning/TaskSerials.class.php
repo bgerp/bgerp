@@ -107,7 +107,7 @@ class planning_TaskSerials extends core_Manager
 		$labelNo = $query->fetch()->maxLabelNo;
 		$labelNo++;
 		
-		$tInfo = planning_Tasks::getTaskInfo($taskId);
+		$tInfo = planning_Tasks::fetch($taskId);
 		
 		$rec = (object)array('taskId'         => $taskId, 
 							 'labelNo'        => $labelNo,
@@ -144,7 +144,7 @@ class planning_TaskSerials extends core_Manager
 		if($rec = static::fetch(array("#taskId = [#1#] AND #labelNo = '[#2#]' AND #domain = 'labels'", $taskId, $labelNo))){
 			return $rec->serial;
 		}
-		$tInfo = planning_Tasks::getTaskInfo($taskId);
+		$tInfo = planning_Tasks::fetch($taskId);
 		
 		$rec = (object)array('taskId'         => $taskId, 
 						     'labelNo'        => $labelNo, 

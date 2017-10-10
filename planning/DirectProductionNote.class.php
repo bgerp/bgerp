@@ -240,7 +240,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		}
 		
 		$form->setDefault('jobQuantity', $originRec->quantity);
-		$quantityFromTasks = planning_TaskActions::getQuantityForJob($originRec->id, 'product');
+		$quantityFromTasks = planning_ProductionTaskDetails::getQuantityForJob($originRec->id, 'product');
 		$quantityToStore = $quantityFromTasks - $originRec->quantityProduced;
 		
 		if($quantityToStore > 0){
@@ -490,8 +490,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$originRec = doc_Containers::getDocument($rec->originId)->rec();
 		
 		// Намираме всички непроизводствени действия от задачи
-		//@TODO да не се гледа само от този модел
-		$aQuery = planning_drivers_ProductionTaskProducts::getQuery();
+		$aQuery = planning_ProductionTaskProducts::getQuery();
 		$aQuery->EXT('taskState', 'planning_Tasks', 'externalName=state,externalKey=taskId');
 		$aQuery->EXT('originId', 'planning_Tasks', 'externalName=originId,externalKey=taskId');
 		$aQuery->where("#originId = {$rec->originId}");

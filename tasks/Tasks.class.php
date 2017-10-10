@@ -181,77 +181,10 @@ class tasks_Tasks extends embed_Manager
     }
     
     
-    /**
-     * Конвертира един запис в разбираем за човека вид
-     * Входният параметър $rec е оригиналният запис от модела
-     * резултата е вербалният еквивалент, получен до тук
-     */
-    public static function recToVerbal_($rec, &$fields = '*')
-    {
-    	$row = parent::recToVerbal_($rec, $fields);
-    	$mvc = cls::get(get_called_class());
-    	
-    	$red = new color_Object("#FF0000");
-    	$blue = new color_Object("green");
-    	$grey = new color_Object("#bbb");
-    	 
-    	$progressPx = min(100, round(100 * $rec->progress));
-    	$progressRemainPx = 100 - $progressPx;
-    	 
-    	$color = ($rec->progress <= 1) ? $blue : $red;
-    	$row->progressBar = "<div style='white-space: nowrap; display: inline-block;'><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$color}; width:{$progressPx}px;'> </div><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$grey};width:{$progressRemainPx}px;'></div></div>";
-    	
-    	$grey->setGradient($color, $rec->progress);
-    	$row->progress = "<span style='color:{$grey};'>{$row->progress}</span>";
-    	 
-    	$row->name = $mvc->getLink($rec->id, 0);
-    	 
-    	if ($rec->timeEnd && ($rec->state != 'closed' && $rec->state != 'rejected')) {
-    		$remainingTime = dt::mysql2timestamp($rec->timeEnd) - time();
-    		$rec->remainingTime = cal_Tasks::roundTime($remainingTime);
-    		 
-    		$typeTime = cls::get('type_Time');
-    		if ($rec->remainingTime > 0) {
-    			$row->remainingTime = ' (' . tr('остават') . ' ' . $typeTime->toVerbal($rec->remainingTime) . ')';
-    		} else {
-    			$row->remainingTime = ' (' . tr('просрочване с') . ' ' . $typeTime->toVerbal(-$rec->remainingTime) . ')';
-    		}
-    	}
-    	 
-    	// Ако е изчислено очакваното начало и има продължителност, изчисляваме очаквания край
-    	if(isset($rec->expectedTimeStart) && isset($rec->timeDuration)){
-    		$rec->expectedTimeEnd = dt::addSecs($rec->timeDuration, $rec->expectedTimeStart);
-    		$row->expectedTimeEnd = $mvc->getFieldType('expectedTimeStart')->toVerbal($rec->expectedTimeEnd);
-    	}
-    	 
-    	if($rec->originId){
-    		$origin = doc_Containers::getDocument($rec->originId);
-    		$row->originId = $origin->getLink();
-    	}
-    	 
-    	$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-    
-    	return $row;
-    }
     
     
-    /**
-     * Интерфейсен метод на doc_DocumentInterface
-     */
-    public function getDocumentRow($id)
-    {
-    	$rec = $this->fetch($id);
-    	$row = new stdClass();
     
-    	$row->title    = self::getRecTitle($rec);
-    	$row->authorId = $rec->createdBy;
-    	$row->author   = $this->getVerbal($rec, 'createdBy');
-    	$row->recTitle = $row->title;
-    	$row->state    = $rec->state;
-    	$row->subTitle = self::getVerbal($rec, 'title');
-    	
-    	return $row;
-    }
+    
     
     
     /**
