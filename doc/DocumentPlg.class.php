@@ -1459,6 +1459,23 @@ class doc_DocumentPlg extends core_Plugin
             $fId = Request::get('foreignId', 'int');
             if ($fId) {
                 $data->form->setDefault('foreignId', $fId);
+                
+                $document = doc_Containers::getDocument($fId);
+                $document->instance->requireRightFor('single', $document->that);
+                
+                $titleFld = '';
+                if ($mvc->fields['title']) {
+                    $titleFld = 'title';
+                } elseif ($mvc->fields['subject']) {
+                    $titleFld = 'title';
+                }
+                
+                if ($titleFld) {
+                    $oRow = $document->getDocumentRow();
+                    $for = tr('За|*: ');
+                    $title = $for . html_entity_decode($oRow->title, ENT_COMPAT | ENT_HTML401, 'UTF-8');
+                    $data->form->setDefault($titleFld, $title);
+                }
             }
         }
         
@@ -1513,13 +1530,13 @@ class doc_DocumentPlg extends core_Plugin
         $oDocId = $rec->originId;
         if (!$oDocId) {
             $oDocId = $rec->foreignId;
+        } else {
+            $document = doc_Containers::getDocument($oDocId);
         }
         
-        if ($oDocId && !Mode::is('stopRenderOrigin')) {
+        if ($document && $oDocId && !Mode::is('stopRenderOrigin')) {
             $data->form->layout = $data->form->renderLayout();
             $tpl = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Оригинален документ") . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div>");
-            
-            $document = doc_Containers::getDocument($oDocId);
             
             if ($document->haveRightFor('single')) {
                 $docHtml = $document->getInlineDocumentBody();
