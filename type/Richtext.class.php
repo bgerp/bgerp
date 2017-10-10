@@ -348,10 +348,9 @@ class type_Richtext extends type_Blob
         
         // Обработваме хипервръзките, зададени в явен вид
         $html = preg_replace_callback(self::URL_PATTERN, array($this, '_catchUrls'), $html);
-        $tdlPtr = core_Url::getTldPtr();
         
         // Обработваме имейлите, зададени в явен вид
-        $html = preg_replace_callback("/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.({$tdlPtr})\b/i", array($this, '_catchEmails'), $html);
+        $html = preg_replace_callback("/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b/i", array($this, '_catchEmails'), $html);
 
         if(!Mode::is('text', 'plain')) {
             Debug::startTimer('RichtextReplaceIntervals');
