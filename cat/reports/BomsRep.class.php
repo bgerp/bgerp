@@ -227,7 +227,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
             foreach($data->recs as $i=>$r){
         
                 if(isset($fRec->groupId)) { 
-                    if(is_array($r->materials) && count($r->materials) != 0) {//bp($fRec->groupId);
+                    if(is_array($r->materials) && count($r->materials) != 0) {
                         $materialsArr = implode(',', $r->materials);
         
                         $queryProduct = cat_Products::getQuery();
@@ -408,7 +408,7 @@ class cat_reports_BomsRep extends frame_BaseDriver
     {
     	
     	//if(empty($data)) return;
-    	//bp(count($data->recs));
+    	
     	$tpl = $this->getReportLayout();
     	
     	$title = explode(" » ", $this->title);
