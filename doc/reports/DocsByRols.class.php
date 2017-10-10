@@ -187,7 +187,6 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
      */
     protected function detailRecToVerbal($rec, &$dRec)
     {
-        // bp($dRec);
 
         $cntx = 0;
 
