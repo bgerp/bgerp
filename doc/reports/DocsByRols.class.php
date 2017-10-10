@@ -129,8 +129,6 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
 
                                 if (!$cnt) continue;
 
-                                $dArr[$clsId][$detail] = $cnt;
-
                                 $recs[$doc->createdBy]['details'][$clsId]= $cnt;
 
                             }
