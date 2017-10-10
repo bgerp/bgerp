@@ -748,6 +748,27 @@ class doc_Linked extends core_Manager
     
     
     /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc $mvc
+     * @param int $id първичния ключ на направения запис
+     * @param stdClass $rec всички полета, които току-що са били записани
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+        if ($rec->outType == 'doc') {
+            $doc = doc_Containers::getDocument($rec->outVal);
+            $doc->touchRec();
+        }
+        
+        if ($rec->inType == 'doc') {
+            $doc = doc_Containers::getDocument($rec->inVal);
+            $doc->touchRec();
+        }
+    }
+    
+    
+    /**
      * След инсталация на класа
      *
      * @param doc_linked $mvc
