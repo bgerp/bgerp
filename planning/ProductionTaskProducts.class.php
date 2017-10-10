@@ -373,18 +373,6 @@ class planning_ProductionTaskProducts extends core_Detail
     	$tQuery->where("#state NOT IN ('closed', 'rejected')");
     	$tQuery->where("#taskId != '{$taskRec->id}'");
     	$tQuery->show('taskId,plannedQuantity');
-    	
-    	// За всяка от намерените задачи
-    	while($tRec = $tQuery->fetch()){
-    		try{
-    			
-    			// Добавяме текущата задача да зависи от нея
-    			$progress = ($tRec->plannedQuantity == 1) ? 1 : 0.1;
-    			tasks_TaskConditions::add($taskRec, $tRec->taskId, $progress);
-    		} catch(core_exception_Expect $e){
-    			reportException($e);
-    		}
-    	}
     }
     
     

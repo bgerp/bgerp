@@ -12,7 +12,7 @@
  * @since     v 0.1
  * @title     Интерфейс за драйвери на производствени задачи
  */
-class planning_DriverIntf extends tasks_DriverIntf
+class planning_DriverIntf
 {
 	
 	
