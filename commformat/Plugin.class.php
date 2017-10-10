@@ -47,7 +47,6 @@ class commformat_Plugin extends core_Plugin
 	       		 // искаме да намерим изрази като Email|E-mail|Mail|@ , за да сложим пред тях икона
 		         $html = preg_replace_callback("/^\s*((Имейл|Емайл|Е-майл|Email|E-mail|Mail|@)\.?\:? *)(([\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+)/umi", array($this, 'catchCommunicationEmailFormat'), $html);
 		         //$html = preg_replace_callback("/^\s*(([\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+)/umi", array($this, 'catchCommunicationEmailFormat'), $html);
-		        // bp($html);
 	       }
 	       
 	       if (in_array('icq', $format)) {
