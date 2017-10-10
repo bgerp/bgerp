@@ -261,7 +261,7 @@ class doc_Linked extends core_Manager
             $form->FNC('linkDocType', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Вид, input, removeAndRefreshForm=linkContainerId');
             $form->input();
             
-            $form->FNC('linkFolderId', 'key2(mvc=doc_Folders, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ')', 'caption=Папка, input, removeAndRefreshForm=linkContainerId');
+            $form->FNC('linkFolderId', 'key2(mvc=doc_Folders, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ', showWithDocs)', 'caption=Папка, input, removeAndRefreshForm=linkContainerId');
             $form->input();
             
             $form->FNC('linkContainerId', 'key2(mvc=doc_Containers, titleFld=id, maxSuggestions=100, selectSourceArr=doc_Linked::prepareLinkDocId, allowEmpty, docType=' . $form->rec->linkDocType . ', folderId=' . $form->rec->linkFolderId . ')', 'caption=Документ, input, mandatory, refreshForm');
@@ -339,7 +339,7 @@ class doc_Linked extends core_Manager
                     $url['threadId'] = $form->rec->linkThreadId;
                 }
                 
-                $url['linkedHashKey'] = substr(md5(serialize($nRec) . '|' . dt::now() . '|' . core_Users::getCurrent()), 0, 8);
+                $url['linkedHashKey'] = 'linkedHashKey_' . substr(md5(serialize($nRec) . '|' . dt::now() . '|' . core_Users::getCurrent()), 0, 8);
                 
                 $url['ret_url'] = TRUE;
                 
@@ -673,6 +673,38 @@ class doc_Linked extends core_Manager
             
             foreach($qArr as $w) {
                 $query->where(array("#searchFieldXpr REGEXP '\ {1}[^a-z0-9\p{L}]?[#1#]'", $w));
+            }
+        }
+        
+        // Ако е зададено да се показват папките в които има такива документи
+        if ($params['showWithDocs'] && $docTypeInst) {
+            
+            $pKey = 'linkedDocFolders_' . substr(md5($docTypeInst->className . '|' . core_Users::getCurrent()), 0, 8);
+            
+            $cacheTime = 5;
+            
+            $minCreatedOn = dt::subtractSecs($cacheTime * 60);
+            $fArr = core_Permanent::get($pKey, $minCreatedOn);
+            
+            if (!isset($fArr) || !is_array($fArr)) {
+                $dQuery = $docTypeInst->getQuery();
+                
+                doc_Folders::restrictAccess($dQuery, NULL, FALSE);
+                
+                $dQuery->groupBy('folderId');
+                
+                $dQuery->show('folderId');
+                
+                $fArr = array();
+                while ($dRec = $dQuery->fetch()) {
+                    $fArr[$dRec->folderId] = $dRec->folderId;
+                }
+                
+                core_Permanent::set($pKey, $fArr, $cacheTime);
+            }
+            
+            if (!empty($fArr)) {
+                $query->in('id', $fArr);
             }
         }
         
