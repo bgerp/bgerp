@@ -751,8 +751,7 @@ class doc_DocumentPlg extends core_Plugin
     				    
     				    // Ако съответния потребител не иска да получава нотификация за документа, да не се праща
     				    if ($uSelArr && ($propValStr = $uSelArr[$prop]) && (type_Keylist::isIn($mvc->getClassId(), $propValStr))) continue;
-    				    
-    					bgerp_Notifications::add($message, $urlArr, $uId);
+    				    bgerp_Notifications::add($message, $urlArr, $uId);
     				}
     			}
     		}
@@ -1095,9 +1094,7 @@ class doc_DocumentPlg extends core_Plugin
         	$mvc->requireRightFor('pending', $rec);
         	
         	$oldState = $rec->state;
-        	$newState = ($oldState == 'pending') ? 'draft' : 'pending';
-        	
-        	$rec->state = $newState;
+        	$rec->state = 'pending';
         	$rec->brState = $oldState;
         	$rec->pendingSaved = TRUE;
         	
@@ -1675,23 +1672,26 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
-        if (empty($data->form->rec->id) && $data->form->rec->threadId && $data->form->rec->originId) {
-            
-            $folderId = ($data->form->rec->folderId) ? $data->form->rec->folderId : doc_Threads::fetch($data->form->rec->threadId)->folderId;
+        $form = &$data->form;
+        $rec = &$form->rec;
+    	
+    	if (empty($rec->id) && $rec->threadId && $rec->originId) {
+            $folderId = ($rec->folderId) ? $rec->folderId : doc_Threads::fetch($rec->threadId)->folderId;
         	
             if(($mvc->canAddToFolder($folderId) !== FALSE) && $mvc->onlyFirstInThread !== FALSE){
-            	$data->form->toolbar->addSbBtn('Нова нишка', 'save_new_thread', 'id=btnNewThread,order=9.99985','ef_icon = img/16/save_and_new.png');
+            	$form->toolbar->addSbBtn('Нова нишка', 'save_new_thread', 'id=btnNewThread,order=9.99985','ef_icon = img/16/save_and_new.png');
             }
         }
         
-        if(haveRole('powerUser')){
-        	$data->form->toolbar->renameBtn('save', 'Чернова');
-        } else {
-        	$data->form->toolbar->renameBtn('save', 'Запис');
+        $saveBtnName = (haveRole('powerUser')) ? 'Чернова' : 'Запис';
+        $form->toolbar->renameBtn('save', $saveBtnName);
+        
+        if($rec->state == 'pending'){
+        	$form->toolbar->setWarning('save', 'Наистина ли искате да направите документа чернова|*?');
         }
         
-        if($mvc->haveRightFor('pending', $data->form->rec) && $data->form->rec->state != 'pending'){
-        	$data->form->toolbar->addSbBtn('Заявка', 'save_pending', 'id=btnPending,order=9.99989','ef_icon = img/16/tick-circle-frame.png');
+        if($mvc->haveRightFor('pending', $form->rec) || $rec->state == 'pending'){
+        	$form->toolbar->addSbBtn('Заявка', 'save_pending', 'id=btnPending,order=9.99989','ef_icon = img/16/tick-circle-frame.png');
         }
     }
 
@@ -1771,16 +1771,16 @@ class doc_DocumentPlg extends core_Plugin
 		        unset($rec->threadId);
 		    }
 		    
-		    if($form->cmd == 'save_pending' && $mvc->haveRightFor('pending', $rec)){
-		    	$form->rec->state = 'pending';
-		    	$form->rec->pendingSaved = TRUE;
-		    }
-		    
 		    // Ако документа е бил на заявка преди, обръща се в чернова
 		    if(isset($rec->id) && $rec->state == 'pending'){
 		    	$rec->state = 'draft';
 		    	$rec->brState = 'pending';
 		    	$rec->pendingSaved = TRUE;
+		    }
+		    
+		    if($form->cmd == 'save_pending' && ($mvc->haveRightFor('pending', $rec) || $rec->state == 'pending')){
+		    	$form->rec->state = 'pending';
+		    	$form->rec->pendingSaved = TRUE;
 		    }
         }
     }
@@ -2231,7 +2231,7 @@ class doc_DocumentPlg extends core_Plugin
         	if($requiredRoles != 'no_one'){
         		
         		// Само чакащите и черновите могат да стават от чакащи -> чернова или обратно
-        		if(isset($rec->state) && $rec->state != 'pending' && $rec->state != 'draft'){
+        		if(isset($rec->state) && $rec->state != 'draft'){
         			$requiredRoles = 'no_one';
         		} elseif(!$mvc->haveRightFor('single', $rec)){
         			$requiredRoles = 'no_one';
