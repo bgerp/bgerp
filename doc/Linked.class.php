@@ -471,6 +471,10 @@ class doc_Linked extends core_Manager
             $extArr = array();
             if ($mimeType) {
                 $extArr = fileman_Mimes::getExtByMime($mimeType);
+                
+                if (!isset($extArr)) {
+                    $extArr = array();
+                }
             }
             
             if (array_search($ext, $extArr) === FALSE) {
@@ -520,7 +524,7 @@ class doc_Linked extends core_Manager
             if (empty($actTypeArr)) continue;
             
             arsort($actTypeArr);
-            if ($actTypeArr) {
+            if (!empty($actTypeArr)) {
                 reset($actTypeArr);
                 $firstElemKey = key($actTypeArr);
                 
