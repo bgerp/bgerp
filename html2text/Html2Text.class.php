@@ -417,8 +417,6 @@ class html2text_Html2Text
         
         $this->text = $text;
         
-        //echo("<BR><PRE>$text</PRE>");
-        
         $this->_converted = TRUE;
     }
     
