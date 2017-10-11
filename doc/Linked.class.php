@@ -246,7 +246,7 @@ class doc_Linked extends core_Manager
         $actTypeArr = array('' => '', 'linkDoc' => 'Връзка с документ', 'linkFile' => 'Връзка с файл', 'newDoc' => 'Нов документ');
         $enumInst = cls::get('type_Enum');
         $enumInst->options = $actTypeArr;
-        $form->FNC('act', $enumInst, 'caption=Действие, input, refreshForm, mandatory, silent');
+        $form->FNC('act', $enumInst, 'caption=Действие, input, removeAndRefreshForm=linkContainerId|linkFolderId|linkThreadId|linkDocType, mandatory, silent');
         
         $defAct = $this->getDefaultActionFor($originFId, $type);
         if ($defAct) {
@@ -258,7 +258,7 @@ class doc_Linked extends core_Manager
         $act = trim($form->rec->act);
         
         if ($act == 'linkDoc') {
-            $form->FNC('linkDocType', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Вид, input, removeAndRefreshForm=linkContainerId');
+            $form->FNC('linkDocType', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Вид, input, removeAndRefreshForm=linkContainerId|linkFolderId');
             $form->input();
             
             $form->FNC('linkFolderId', 'key2(mvc=doc_Folders, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ', showWithDocs)', 'caption=Папка, input, removeAndRefreshForm=linkContainerId');
@@ -705,6 +705,9 @@ class doc_Linked extends core_Manager
             
             if (!empty($fArr)) {
                 $query->in('id', $fArr);
+            } else {
+                // Да не се показва нищо, ако няма документ
+                $query->where("1=2");
             }
         }
         

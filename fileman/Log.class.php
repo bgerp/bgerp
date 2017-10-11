@@ -101,6 +101,9 @@ class fileman_Log extends core_Manager
         $this->FLD("dataId", "key(mvc=fileman_Data)", 'caption=Данни');
         
         $this->setDbUnique('dataId,userId');
+        
+        $this->setDbIndex('lastOn');
+        $this->setDbIndex('userId,fileId');
     }
     
     
