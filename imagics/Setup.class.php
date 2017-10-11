@@ -56,7 +56,7 @@ class imagics_Setup extends core_ProtoSetup
         $Plugins = cls::get('core_Plugins');
         
         // Инсталираме плъгина за аватари
-        $html .= $Plugins->installPlugin('IM identify', 'imagics_Identify', 'fileman_Files', 'private');
+        $html .= $Plugins->installPlugin('IM identify', 'imagics_Identify', 'fileman_Files', 'private', 'active', TRUE);
         
         return $html;
     }
