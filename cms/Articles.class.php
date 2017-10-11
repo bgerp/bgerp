@@ -189,7 +189,7 @@ class cms_Articles extends core_Master
             cms_Domains::selectCurrent($cRec->domainId);
         }
 
-        $data->form->setOptions('menuId', arr::combine( array('' => ''), cms_Content::getMenuOpt($mvc))); // echo($data->form->renderHtml()); die;
+        $data->form->setOptions('menuId', arr::combine( array('' => ''), cms_Content::getMenuOpt($mvc))); 
     }
 
 

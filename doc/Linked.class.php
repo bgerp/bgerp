@@ -689,6 +689,8 @@ class doc_Linked extends core_Manager
             if (!isset($fArr) || !is_array($fArr)) {
                 $dQuery = $docTypeInst->getQuery();
                 
+                $dQuery->where("#state != 'rejected'");
+                
                 doc_Folders::restrictAccess($dQuery, NULL, FALSE);
                 
                 $dQuery->groupBy('folderId');
