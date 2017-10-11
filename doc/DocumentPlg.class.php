@@ -3305,10 +3305,11 @@ class doc_DocumentPlg extends core_Plugin
      * @param core_Mvc   $mvc     Мениджър на документи
      * @param void       $res     Резултат - не се използва
      * @param core_Query $query   Заявка към doc_Folders
+     * @param boolean $viewAccess
      */
-    function on_AfterRestrictQueryOnlyFolderForDocuments($mvc, &$res, $query)
+    function on_AfterRestrictQueryOnlyFolderForDocuments($mvc, &$res, $query, $viewAccess = FALSE)
     {
-    	$query = doc_Folders::restrictAccess($query, NULL, FALSE);
+        $query = doc_Folders::restrictAccess($query, NULL, $viewAccess);
     }
     
     
