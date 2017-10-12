@@ -700,6 +700,14 @@ abstract class deals_InvoiceMaster extends core_Master
     			$form->setError('contragentVatNo,uicNo', 'Трябва да е въведен поне един от номерата');
     		}
     		 
+    		foreach (array('contragentVatNo', 'uicNo') as $numFld){
+    			if(!empty($rec->{$numFld})){
+    				if(!preg_match("/^[a-zA-Z0-9_]*$/iu", $rec->{$numFld})){
+    					$form->setError($numFld, 'Лоши символи в номера');
+    				}
+    			}
+    		}
+    		
     		// Ако е ДИ или КИ
     		if($rec->type != 'invoice'){
     			if(isset($rec->changeAmount)){
