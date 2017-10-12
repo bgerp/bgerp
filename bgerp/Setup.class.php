@@ -160,7 +160,7 @@ class bgerp_Setup extends core_ProtoSetup {
                     'action' => "HideInaccesable",
                     'period' => 1440,
                     'offset' => 50,
-                    'timeLimit' => 200
+                    'timeLimit' => 300
             ),
     );
     

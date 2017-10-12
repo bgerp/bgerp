@@ -78,7 +78,7 @@ class core_SystemLock
             $at = time() - filemtime($setupLockFile);
             
             list($startTime, $lockTime, $msg) = explode("\n", @file_get_contents($setupLockFile), 3);
-            //bp($startTime, $lockTime, $msg);
+    
             if(!$lockTime > 0) {
                 $lockTime = BGERP_SYSTEM_LOCK_TIME;
             }

@@ -74,6 +74,12 @@ defIfNot('DOC_NOTIFY_FOR_NEW_DOC', 'default');
 
 
 /**
+ * Нотификация за добавен контиран документ
+ */
+defIfNot('DOC_NOTIFY_FOR_CONTO', 'default');
+
+
+/**
  * Известяване на споделените потребители на папка
  */
 defIfNot('DOC_NOTIFY_FOLDERS_SHARED_USERS', 'default');
@@ -208,6 +214,7 @@ class doc_Setup extends core_ProtoSetup
         'DOC_NOTIFY_FOR_NEW_DOC' => array ('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Нотификация за добавен документ в нишка->Избор, customizeBy=powerUser'),
         'DOC_NOTIFY_NEW_DOC_TYPE' => array ('keylist(mvc=core_Classes, select=title)', 'caption=Известяване при нов документ->Задължително, customizeBy=powerUser, optionsFunc=doc_Setup::getAllDocClassOptions'),
         'DOC_STOP_NOTIFY_NEW_DOC_TYPE' => array ('keylist(mvc=core_Classes, select=title)', 'caption=Известяване при нов документ->Никога, customizeBy=powerUser, optionsFunc=doc_Setup::getAllDocClassOptions'),
+        'DOC_NOTIFY_FOR_CONTO' => array ('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при контиране->Избор, customizeBy=powerUser'),
         'DOC_NOTIFY_FOLDERS_SHARED_USERS' => array ('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване на споделените потребители на папка->Избор, customizeBy=powerUser'),
         'DOC_NOTIFY_PENDING_DOC' => array ('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Нотификация за създадени чакащи документи->Избор, customizeBy=powerUser'),
         

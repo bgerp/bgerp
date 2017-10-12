@@ -480,7 +480,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 		    'amountToPaid' => $Double->toVerbal($data->sum->toPaid),
 		    'amountArrears' => $Double->toVerbal($data->sum->arrears)
 		);
-		//bp($res);
+
 		$res = $data;
 	}
 	
@@ -523,7 +523,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
     	$f = $this->getFields();
     	
     	$table = cls::get('core_TableView', array('mvc' => $f));
-    	//bp($data->rows, $data->listFields);
+    
     	$tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
 
         if (count($data->summary) ) {

@@ -1062,7 +1062,7 @@ class cams_Records extends core_Master
         $query->limit(60);
 
         while ($rec = $query->fetch()) {
-            $paths = $this->getFilePaths($rec->startTime, $rec->cameraId); //bp($paths);
+            $paths = $this->getFilePaths($rec->startTime, $rec->cameraId);
             $Script[$rec->id] = cls::get('fconv_Script');
             $Script[$rec->id]->setFile('INPUTF', $paths->videoFile);
             $Script[$rec->id]->setFile('OUTPUTF', "/shot_" . $rec->id . "_%03d.jpg");

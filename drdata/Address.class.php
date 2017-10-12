@@ -540,8 +540,6 @@ class drdata_Address extends core_MVC
             preg_match_all("/\b([0-9]{1,3}[a-zA-Z]{0,3})\b/", $aL, $matches);
             $streetAddrCnt = count($matches[1]);  
 
-            //echo "<li>$titleCaseCnt $upperCaseCnt $aL </li>";
-
             $wordsCnt = count($words);
 
             if($wordsCnt > 0 && $wordsCnt <10) {
@@ -557,12 +555,12 @@ class drdata_Address extends core_MVC
                     }
                     
                     if(strpos($companyWords, "|$w|")) {
-                        // echo "<li>  $w $l";
+       
                         $companyCnt += 1;
                     }
                     
                     if($strlen > 3 && strpos($givenNames, "|$w|")) { 
-                        $nameCnt += $strlen > 5 ? 1.5 : 1.2; // echo "<li> $w $l";
+                        $nameCnt += $strlen > 5 ? 1.5 : 1.2; 
                     }
 
                     if($strlen <= 3 && substr($w, -1) == '.') {
@@ -574,7 +572,7 @@ class drdata_Address extends core_MVC
                     }
                    
                     if(preg_match("/[a-zA-Z]{2,15}(ov|ova|ev|eva)$/", $w) ) { 
-                        $nameCnt += $strlen > 6 ? 0.6 : 0.4; //echo "<li> $w $l";
+                        $nameCnt += $strlen > 6 ? 0.6 : 0.4;
                     }
                     
                     if(preg_match("/(zdravey|zdraveyte|dear|hi|uvazhaemi|hello)$/", $w) ) { 
@@ -584,7 +582,7 @@ class drdata_Address extends core_MVC
                     if(strpos($addresses, "|$w|")) {  
                         $addressCnt += $strlen > 1 ? 1 : 0.2;
                     }
-                    // echo "<li> $w";
+      
                     if(strpos($regards, "|$w|")) {  
                         $regardsCnt += $strlen > 6 ? 1.2 : 1;
                     }
@@ -688,7 +686,7 @@ class drdata_Address extends core_MVC
                 }
                 
                 if(($r = ($addressCnt)/$i + ($expected['address'] ? 0.2 : 0)) > 0.6) {
-                    //echo "<li> $addressCnt + min($streetAddrCnt,2))/$i + {$expected['address']} $l";
+
                     $res[$id]->add('address', array(trim($l)), round($r, 2));
                 }
 
@@ -798,7 +796,7 @@ class drdata_Address extends core_MVC
             $total = 0;
             foreach($points as $name => $score) {
                 if(count($b[$name])) {
-                    //echo "<li> $name {$b[$name][0]} $total";
+               
                     $total += $score;
                 }
             }

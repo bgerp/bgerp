@@ -1,4 +1,5 @@
-<table class='no-border paddingCells business-doc-summary-table' style='float:right;width:100%;'>
+<div class="clearfix21"></div>
+<table class='no-border paddingCells business-doc-summary-table' style='width:100%;'>
    <tr class='nowrap'>
       <td class='aright' colspan="2">|Стойност|*:</td>
       <td class='info-right' style='width:1%;'><span class='cCode'>[#currencyId#]</span></td>

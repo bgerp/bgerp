@@ -364,12 +364,12 @@ class cond_plg_DefaultValues extends core_Plugin
                         $fContrData = $inst->fetch($fRec->coverId);
                         
                         foreach ($mvc::$updateContragentdataField as $cName => $name) {
-                        
-                            if (!$rec->{$name}) continue;
+                            
+                            if (!trim($rec->{$name})) continue;
                             
                             if (!($inst->fields[$cName])) continue;
                             
-                            if ((isset($rec->{$name})) && ($rec->{$name} != $fContrData->{$cName})) {
+                            if ((isset($rec->{$name})) && (trim($rec->{$name}) != trim($fContrData->{$cName}))) {
                                 
                                 $changedRecArr[$cName] = $rec->{$name};
                             }

@@ -254,7 +254,7 @@ class unit_MinkPbgERP extends core_Manager {
         // Логване
         $browser = $this->SetUp();
     
-        // Създаване на нова фирма
+        // Редакция на Моята фирма
         $browser->click('Визитник');
         $browser->click('Моята Фирма ООД');
         $browser->press('Редакция');
@@ -268,7 +268,7 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->setValue('Ignore', 1);
             $browser->press('Запис');
         }
-        // Създаване на папка на новата фирма
+        // Създаване на папка на Моята фирма
         $browser->press('Папка');
         //return $browser->getHtml();
     }
@@ -1420,6 +1420,8 @@ class unit_MinkPbgERP extends core_Manager {
         // Фактура
         $browser->press('Фактура');
         $browser->setValue('numlimit', '0 - 2000000');
+        $dateInv=strtotime("-1 Day");
+        $browser->setValue('date', date('d-m-Y', $dateInv));
         $browser->press('Чернова');
         //echo $browser->getHtml();
         //$browser->setValue('paymentType', 'По банков път');
@@ -1543,8 +1545,9 @@ class unit_MinkPbgERP extends core_Manager {
         // Фактура
         $browser->press('Фактура');
         $browser->setValue('numlimit', '0 - 2000000');
+        $dateInv=strtotime("-1 Day");
+        $browser->setValue('date', date('d-m-Y', $dateInv));
         $browser->press('Чернова');
-        //return 'paymentType';
         //$browser->setValue('paymentType', 'По банков път');
         $browser->press('Контиране');
     
@@ -1730,8 +1733,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('discountPercent', '2');
         $browser->setValue('discountPeriod', '5');
         $browser->press('Запис');
-        //return $browser->getHtml();
-    
+     
     }
     
     /**
@@ -1749,7 +1751,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Нов запис');
         $browser->setValue('country', 'Германия');
         $browser->setValue('conditionId', 'Начин на плащане (4)');
-        $browser->setValue('value', '16');
+        $browser->setValue('value', '19');
         $browser->press('Запис');
         if (strpos($browser->getText(),"До 1 месец след фактуриране")){
         } else {
