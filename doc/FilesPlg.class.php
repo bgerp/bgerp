@@ -310,7 +310,7 @@ class doc_FilesPlg extends core_Plugin
     function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
         // Добавяме бутон за създаване на задача
-        if ($data->rec->id) {
+        if ($data->rec->id && haveRole('powerUser')) {
             
             Request::setProtected(array('inType', 'foreignId'));
             
