@@ -273,7 +273,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     	    $form->setDefault('fileHnd', $clonedFh);
     	
     	    $fRec = fileman::fetchByFh($clonedFh);
-    	    self::showOriginalFile($fRec, $form);
+    	    doc_DocumentPlg::showOriginalFile($fRec, $form);
     	}
     }
     
