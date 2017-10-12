@@ -951,8 +951,7 @@ class planning_Tasks extends core_Master
 	{
 		// Кои са параметрите на артикула
 		$classId = planning_Tasks::getClassId();
-		$tInfo = planning_Tasks::getTaskInfo($rec);
-		$productParams = cat_Products::getParams($tInfo->productId, NULL, TRUE);
+		$productParams = cat_Products::getParams($rec->productId, NULL, TRUE);
 		
 		// Кои са параметрите на задачата
 		$params = array();

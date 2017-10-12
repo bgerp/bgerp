@@ -62,9 +62,8 @@ class planning_interface_TaskLabel
 		$fields = array_merge($fields, $params);
 	
 		// Добавяне на допълнителни плейсхолдъри от драйвера на артикула
-		$tInfo = planning_Tasks::getTaskInfo($rec);
-		if($Driver = cat_Products::getDriver($tInfo->productId)){
-			$additionalFields = $Driver->getAdditionalLabelData($tInfo->productId, $this->class);
+		if($Driver = cat_Products::getDriver($rec->productId)){
+			$additionalFields = $Driver->getAdditionalLabelData($rec->productId, $this->class);
 			if(count($additionalFields)){
 				$fields = array_merge($fields, array_keys($additionalFields));
 			}
@@ -90,13 +89,12 @@ class planning_interface_TaskLabel
 		expect($rec = planning_Tasks::fetchRec($id));
 		expect($origin = doc_Containers::getDocument($rec->originId));
 		$jobRec = $origin->fetch();
-		$tInfo = planning_Tasks::getTaskInfo($rec);
 	
 		// Информация за артикула и заданието
 		$res['JOB'] = "#" . $origin->getHandle();
-		$res['NAME'] = cat_Products::getTitleById($tInfo->productId);
+		$res['NAME'] = cat_Products::getTitleById($rec->productId);
 		
-		$pRec = cat_Products::fetch($tInfo->productId, 'name,code');
+		$pRec = cat_Products::fetch($rec->productId, 'name,code');
 		$res['SIMPLE_NAME'] = cat_Products::getVerbal($pRec, 'name');
 		$res['PRODUCT_CODE'] = (!empty($pRec->code)) ? cat_Products::getVerbal($pRec, 'code') : "Art{$pRec->id}";
 		
@@ -105,9 +103,9 @@ class planning_interface_TaskLabel
 		$res['BARCODE'] = $serial; //planning_Tasks::getBarcodeImg($serial)->getContent();
 	
 		// Информация за артикула
-		$measureId = cat_Products::fetchField($tInfo->productId, 'measureId');
+		$measureId = cat_Products::fetchField($rec->productId, 'measureId');
 		$res['MEASURE_ID'] = tr(cat_UoM::getShortName($measureId));
-		$res['QUANTITY'] = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($tInfo->quantityInPack);
+		$res['QUANTITY'] = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($rec->quantityInPack);
 		if(isset($jobRec->saleId)){
 			$res['ORDER'] =  "#" . sales_Sales::getHandle($jobRec->saleId);
 			$logisticData = cls::get('sales_Sales')->getLogisticData($jobRec->saleId);
@@ -134,7 +132,7 @@ class planning_interface_TaskLabel
 		} else {
 				
 			// Иначе се взима от дефолтния параметър
-			$preview = cat_Products::getPreview($tInfo->productId, array($previewWidth, $previewHeight));
+			$preview = cat_Products::getPreview($rec->productId, array($previewWidth, $previewHeight));
 		}
 	
 		if(!empty($preview)){
@@ -146,8 +144,8 @@ class planning_interface_TaskLabel
 		$res['DATE'] = dt::mysql2verbal(dt::today(), 'm/y');
 	
 		// Ако от драйвера идват още параметри, добавят се с приоритет
-		if($Driver = cat_Products::getDriver($tInfo->productId)){
-			$additionalFields = $Driver->getAdditionalLabelData($tInfo->productId, $this->class);
+		if($Driver = cat_Products::getDriver($rec->productId)){
+			$additionalFields = $Driver->getAdditionalLabelData($rec->productId, $this->class);
 			if(count($additionalFields)){
 				$res = $additionalFields + $res;
 			}
@@ -171,8 +169,8 @@ class planning_interface_TaskLabel
 	public function getEstimateCnt($id, &$allowSkip)
 	{
 		// Планираното количество
-		$tInfo = planning_Tasks::getTaskInfo($id);
+		$rec = planning_Tasks::fetch($id);
 	
-		return $tInfo->plannedQuantity;
+		return $rec->plannedQuantity;
 	}
 }
