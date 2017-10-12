@@ -47,7 +47,7 @@ class planning_interface_TaskLabel
 	public function getLabelPlaceholders($id)
 	{
 		expect($rec = planning_Tasks::fetchRec($id));
-		$fields = array('JOB', 'NAME', 'BARCODE', 'MEASURE_ID', 'QUANTITY', 'ИЗГЛЕД', 'PREVIEW', 'SIZE_UNIT', 'DATE');
+		$fields = array('JOB', 'NAME', 'BARCODE', 'MEASURE_ID', 'QUANTITY', 'ИЗГЛЕД', 'PREVIEW', 'SIZE_UNIT', 'DATE', 'SIMPLE_NAME', 'PRODUCT_CODE');
 		expect($origin = doc_Containers::getDocument($rec->originId));
 		$jobRec = $origin->fetch();
 		if(isset($jobRec->saleId)){
@@ -95,7 +95,11 @@ class planning_interface_TaskLabel
 		// Информация за артикула и заданието
 		$res['JOB'] = "#" . $origin->getHandle();
 		$res['NAME'] = cat_Products::getTitleById($tInfo->productId);
-	
+		
+		$pRec = cat_Products::fetch($tInfo->productId, 'name,code');
+		$res['SIMPLE_NAME'] = cat_Products::getVerbal($pRec, 'name');
+		$res['PRODUCT_CODE'] = (!empty($pRec->code)) ? cat_Products::getVerbal($pRec, 'code') : "Art{$pRec->id}";
+		
 		// Генериране на баркод
 		$serial = planning_TaskSerials::force($id, $labelNo);
 		$res['BARCODE'] = $serial; //planning_Tasks::getBarcodeImg($serial)->getContent();
