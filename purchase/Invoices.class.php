@@ -307,51 +307,6 @@ class purchase_Invoices extends deals_InvoiceMaster
     
     
     /**
-     * Помощна функция за показване на текста на оригиналния файл във формата
-     * 
-     * @param stdObject $fRec
-     * @param stdObject $form
-     */
-    protected static function showOriginalFile($fRec, $form)
-    {
-        $ext = fileman::getExt($fRec->name);
-         
-        // Вземаме уеб-драйверите за това файлово разширение
-        $webdrvArr = fileman_Indexes::getDriver($ext, $fRec->name);
-         
-        // Обикаляме всички открити драйвери
-        foreach($webdrvArr as $drv) {
-             
-            // Стартираме процеса за извличане на данни
-            $drv->startProcessing($fRec);
-             
-            // Комбиниране всички открити табове
-            $tabsArr = arr::combine($tabsArr, $drv->getTabs($fRec));
-        }
-        
-        $defTab = Request::get('currentTab');
-        
-        if (!$defTab) {
-            if ($tabsArr['text']) {
-                $defTab = 'text';
-            }
-            setIfNot($defTab, $tabsArr['__defaultTab'], 'info');
-        }
-        
-        $Indexes = cls::get('fileman_Indexes');
-        $d = new stdClass();
-        $d->tabs = $tabsArr;
-        $d->currentTab = $defTab;
-        $d->rec = $fRec;
-        $d->fhName = 'fh';
-        $d->retUrl = getRetUrl();
-        
-        $form->layout = $form->renderLayout();
-        $form->layout->append($Indexes->render($d));
-    }
-    
-    
-    /**
      * След изпращане на формата
      */
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
@@ -1131,7 +1086,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         // Показваме превю на файла
         
         if ($form->cmd != 'refresh') {
-            $this->showOriginalFile($fRec, $form);
+            doc_DocumentPlg::showOriginalFile($fRec, $form);
         }
         
         $tpl = $this->renderWrapping($form->renderHtml());

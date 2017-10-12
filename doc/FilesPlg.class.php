@@ -302,4 +302,25 @@ class doc_FilesPlg extends core_Plugin
             break;
         }
     }
+    
+    
+    /**
+     * Добавя бутони
+     */
+    function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
+    {
+        // Добавяме бутон за създаване на задача
+        if ($data->rec->id) {
+            
+            Request::setProtected(array('inType', 'foreignId'));
+            
+            $data->toolbar->addBtn('Връзка', array(
+                    'doc_Linked',
+                    'Link',
+                    'foreignId' => $data->rec->id,
+                    'inType' => 'file',
+                    'ret_url'=> array($mvc, 'single', $data->rec->id)
+            ), 'ef_icon = img/16/doc_tag.png, title=Връзка към документа,order=18');
+        }
+    }
 }

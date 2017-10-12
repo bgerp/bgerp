@@ -315,7 +315,7 @@ class doc_Linked extends core_Manager
             $retUrl = getRetUrl();
             
             $nRec = new stdClass();
-            $nRec->outType = 'doc';
+            $nRec->outType = $type;
             $nRec->outVal = $originFId;
             $nRec->comment = $form->rec->comment;
             $nRec->state = 'active';
@@ -333,13 +333,13 @@ class doc_Linked extends core_Manager
                 
                 $nRec->inType = 'doc';
                 
-                $url = array(cls::get($form->rec->linkDocType), 'add', 'folderId' => $form->rec->linkFolderId, 'foreignId' => $originFId);
+                $url = array(cls::get($form->rec->linkDocType), 'add', 'folderId' => $form->rec->linkFolderId);
                 
                 if ($form->rec->linkThreadId) {
                     $url['threadId'] = $form->rec->linkThreadId;
                 }
                 
-                $url['linkedHashKey'] = 'linkedHashKey_' . substr(md5(serialize($nRec) . '|' . dt::now() . '|' . core_Users::getCurrent()), 0, 8);
+                $url['linkedHashKey'] = 'LHK_' . substr(md5(serialize($nRec) . '|' . dt::now() . '|' . core_Users::getCurrent()), 0, 8);
                 
                 $url['ret_url'] = TRUE;
                 
