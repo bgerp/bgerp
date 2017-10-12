@@ -2,8 +2,10 @@ var shortURL;
 
 
 function spr(sel, refresh) {
-     refresh = refresh || true;
-     if(sel.value == 'select') {
+    if(refresh === undefined) {
+        refresh = true;
+    }
+    if(sel.value == 'select') {
         $("input[name*='from']").closest('tr').fadeIn();
         $("input[name*='to']").closest('tr').fadeIn();
         $("input[name*='from']").prop('disabled', false);
