@@ -110,7 +110,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$mvc->FLD('sourceContainerId', 'key(mvc=doc_Containers,allowEmpty)', 'input=hidden,silent');
     	$mvc->FLD('paymentMethodId', 'int', 'input=hidden,silent');
     	
-    	$mvc->FLD('paymentType', 'enum(cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг)', 'caption=Плащане->Начин,before=accountId,mandatory');
+    	$mvc->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг)', 'caption=Плащане->Начин,before=accountId,mandatory');
     	$mvc->FLD('autoPaymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,mixed=Смесено)', 'placeholder=Автоматично,caption=Плащане->Начин,input=none');
     }
     
