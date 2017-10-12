@@ -148,6 +148,7 @@ class trans_plg_LinesPlugin extends core_Plugin
     	// Рендиране на формата
     	$res = $form->renderHtml();
     	$res = $mvc->renderWrapping($res);
+    	core_Form::preventDoubleSubmission($res, $form);
     	
     	// ВАЖНО: спираме изпълнението на евентуални други плъгини
     	return FALSE;

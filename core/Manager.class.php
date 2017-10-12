@@ -354,9 +354,7 @@ class core_Manager extends core_Mvc
         
         // Получаваме изгледа на формата
         $tpl = $data->form->renderHtml();
-        
-        $formId = $data->form->formAttr['id'];
-        jquery_Jquery::run($tpl, "preventDoubleSubmission('{$formId}');");
+        core_Form::preventDoubleSubmission($tpl, $data->form);
         
         // Опаковаме изгледа
         $tpl = $this->renderWrapping($tpl, $data);

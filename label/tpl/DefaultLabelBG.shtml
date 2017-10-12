@@ -74,6 +74,7 @@
         float: none !important;
     }
 </style>
+
 <div class="label-holder">
     <table cellpadding="0"><tr><td class="top-descr no-border-left no-border-top bold">
         [#JOB#] [#DATE#]

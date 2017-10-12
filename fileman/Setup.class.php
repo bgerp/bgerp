@@ -267,8 +267,8 @@ class fileman_Setup extends core_ProtoSetup
         
         // Инсталираме
         if($conf->FILEMAN_FILE_COMMAND) {
-            $html .= $Plugins->installPlugin('SetExtension', 'fileman_SetExtensionPlg', 'fileman_Files', 'private');
-            $html .= $Plugins->installPlugin('SetExtension2', 'fileman_SetExtensionPlg2', 'fileman_Files', 'private');
+            $html .= $Plugins->installPlugin('SetExtension', 'fileman_SetExtensionPlg', 'fileman_Files', 'private', 'active', TRUE);
+            $html .= $Plugins->installPlugin('SetExtension2', 'fileman_SetExtensionPlg2', 'fileman_Files', 'private', 'active', TRUE);
         }
         
         // Инсталираме плъгина за качване на файлове в RichEdit
@@ -281,24 +281,6 @@ class fileman_Setup extends core_ProtoSetup
         $html .= $Buckets->createBucket('fileIndex', 'Генерирани от разглеждането на файловете', '', '100MB', 'user', 'user');
         
         return $html;
-    }
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    function deinstall()
-    {
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
-        
-        // Премахваме от type_Keylist полета
-        $Plugins->deinstallPlugin('fileman_SetExtensionPlg');
-        
-        // Деинсталираме плъгина от type_RichEdit
-        $Plugins->deinstallPlugin('fileman_RichTextPlg');
-        
-        return "<h4>Пакета fileman е деинсталиран</h4>";
     }
     
     

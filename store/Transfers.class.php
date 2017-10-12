@@ -326,6 +326,17 @@ class store_Transfers extends core_Master
         if(!trans_Lines::count("#state = 'active'")){
         	$data->form->setField('lineId', 'input=none');
         }
+        
+        // При редакция, ако няма права до склада, да е избрано
+        if ($data->form->rec->id) {
+            foreach (array('fromStore', 'toStore') as $fName) {
+                $optArr = $data->form->fields[$fName]->type->prepareOptions();
+                if (!$optArr[$data->form->rec->{$fName}]) {
+                    $data->form->setOptions($fName, array($data->form->rec->{$fName} => store_Stores::getVerbal($data->form->rec->{$fName}, 'name')));
+                    $data->form->setDefault($fName, $data->form->rec->{$fName});
+                }
+            }
+        }
     }
     
     

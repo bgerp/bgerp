@@ -992,7 +992,7 @@ class doc_Containers extends core_Manager
      * @param string $property
      * @param integer|NULL $threadId
      */
-    protected static function prepareUsersArrForNotifications(&$usersArr, $settingsKey, $property, $threadId = NULL)
+    public static function prepareUsersArrForNotifications(&$usersArr, $settingsKey, $property, $threadId = NULL)
     {
         $settingsNotifyArr = core_Settings::fetchUsers($settingsKey, $property);
         

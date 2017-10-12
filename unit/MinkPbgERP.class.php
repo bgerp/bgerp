@@ -254,7 +254,7 @@ class unit_MinkPbgERP extends core_Manager {
         // Логване
         $browser = $this->SetUp();
     
-        // Създаване на нова фирма
+        // Редакция на Моята фирма
         $browser->click('Визитник');
         $browser->click('Моята Фирма ООД');
         $browser->press('Редакция');
@@ -268,7 +268,7 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->setValue('Ignore', 1);
             $browser->press('Запис');
         }
-        // Създаване на папка на новата фирма
+        // Създаване на папка на Моята фирма
         $browser->press('Папка');
         //return $browser->getHtml();
     }
@@ -875,7 +875,7 @@ class unit_MinkPbgERP extends core_Manager {
     }
     
     /**
-     * 2. Локация от фирма
+     * 2. Локация от фирма - намира общия таб "Локации", а не този от клиента
      */
     //http://localhost/unit_MinkPbgERP/CreateLocation1/
     function act_CreateLocation1()
@@ -893,7 +893,6 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->click($Company);
             $browser->click('Локации');
             $browser->click('Добавяне на нова локация');
-            //return $browser->getHtml();
             $browser->setValue('title', 'Офис Пловдив');
             $browser->setValue('type', 'Офис');
             $browser->setValue('place', 'Пловдив');
@@ -923,7 +922,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('title', 'Централен офис');
         $browser->setValue('type', 'Главна квартира');
         $browser->setValue('dateFld', date('d-m-Y'));
-        $browser->setValue('repeat', '1 мес.');
+        $browser->setValue('repeat', '24 седм.');
         $browser->press('Запис');
         //Създаване на папка на фирмата
         $Company = 'Фирма с локация';
@@ -1133,10 +1132,10 @@ class unit_MinkPbgERP extends core_Manager {
         } else {
             return $this->reportErr('Грешна обща сума', 'warning');
         }
-        if(strpos($browser->gettext(), 'Доставка: EXW: 4000 Пловдив, ул.Родопи, №52')) {
-        } else {
-            return $this->reportErr('Грешнo условие на доставка', 'warning');
-        }
+        //if(strpos($browser->gettext(), 'Доставка: EXW: 4000 Пловдив, ул.Родопи, №52')) {
+        //} else {
+        //    return $this->reportErr('Грешнo условие на доставка', 'warning');
+        //}
         // Складова разписка
         // Когато няма автом. избиране
         //$browser->press('Засклаждане');
@@ -1164,7 +1163,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('number', '11776');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 29,60')) {
+        if(strpos($browser->gettext(), 'Данъчна основа: BGN 29,60')) {
         } else {
             return $this->reportErr('Грешна данъчна основа', 'warning');
         }
@@ -1293,7 +1292,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('vatReason', 'чл.53 от ЗДДС – ВОД');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Данъчна основа 0%: BGN 57,89')) {
+        if(strpos($browser->gettext(), 'Данъчна основа: BGN 57,89')) {
         } else {
             return $this->reportErr('Грешна данъчна основа', 'warning');
         }
@@ -1397,10 +1396,10 @@ class unit_MinkPbgERP extends core_Manager {
         } else {
             return $this->reportErr('Грешна обща сума', 'warning');
         }
-        if(strpos($browser->gettext(), 'Доставка: DDP: 4000 Пловдив, ул.Родопи, №52')) {
-        } else {
-            return $this->reportErr('Грешнo условие на доставка', 'warning');
-        }
+        //if(strpos($browser->gettext(), 'Доставка: DDP: 4000 Пловдив, ул.Родопи, №52')) {
+        //} else {
+        //    return $this->reportErr('Грешнo условие на доставка', 'warning');
+        //}
         // Проформа
         $browser->press('Проформа');
         $browser->press('Чернова');
@@ -1421,6 +1420,8 @@ class unit_MinkPbgERP extends core_Manager {
         // Фактура
         $browser->press('Фактура');
         $browser->setValue('numlimit', '0 - 2000000');
+        $dateInv=strtotime("-1 Day");
+        $browser->setValue('date', date('d-m-Y', $dateInv));
         $browser->press('Чернова');
         //echo $browser->getHtml();
         //$browser->setValue('paymentType', 'По банков път');
@@ -1544,8 +1545,9 @@ class unit_MinkPbgERP extends core_Manager {
         // Фактура
         $browser->press('Фактура');
         $browser->setValue('numlimit', '0 - 2000000');
+        $dateInv=strtotime("-1 Day");
+        $browser->setValue('date', date('d-m-Y', $dateInv));
         $browser->press('Чернова');
-        //return 'paymentType';
         //$browser->setValue('paymentType', 'По банков път');
         $browser->press('Контиране');
     
@@ -1731,8 +1733,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('discountPercent', '2');
         $browser->setValue('discountPeriod', '5');
         $browser->press('Запис');
-        //return $browser->getHtml();
-    
+     
     }
     
     /**
@@ -1750,7 +1751,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Нов запис');
         $browser->setValue('country', 'Германия');
         $browser->setValue('conditionId', 'Начин на плащане (4)');
-        $browser->setValue('value', '16');
+        $browser->setValue('value', '19');
         $browser->press('Запис');
         if (strpos($browser->getText(),"До 1 месец след фактуриране")){
         } else {

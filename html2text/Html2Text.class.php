@@ -395,7 +395,7 @@ class html2text_Html2Text
         if($this->simple) {
             $text = preg_replace($this->search, $this->replaceSimple, $text);
         } else {
-//             bp($this->search, $this->replace, $text);
+
             $text = preg_replace($this->search, $this->replace, $text);
         }
         
@@ -416,8 +416,6 @@ class html2text_Html2Text
         $text = wordwrap($text, $this->width);
         
         $this->text = $text;
-        
-        //echo("<BR><PRE>$text</PRE>");
         
         $this->_converted = TRUE;
     }

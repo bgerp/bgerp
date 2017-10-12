@@ -70,6 +70,7 @@
     clear: both;
 }
 </style>
+
 <div class="label-holder">
     <table cellpadding="0">
         <tr>
