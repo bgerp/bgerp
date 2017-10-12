@@ -407,7 +407,7 @@ class doc_Linked extends core_Manager
             }
         }
         
-        $form->title = "Срързване на файлове и документи с|* " . $clsInst->getLinkToSingle($fId);
+        $form->title = "Свързване на файлове и документи с|* " . $clsInst->getLinkToSingle($fId);
         
         // Добавяне на бутони
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Добавяне на връзка');
