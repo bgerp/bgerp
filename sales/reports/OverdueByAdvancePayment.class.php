@@ -154,14 +154,14 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
                 $recs[$id] = (object)array(
                     'documentId' => $inDocs->id,
                     'clsName' => 'bank_IncomeDocuments',
-                    'dealer'=> $firstDocument->fetch()->dealerId,
+                    'dealer'=> $dealerId,
                     'state' => $inDocs->state,
                     'amount' => $inDocs->amount,
                     'curency' => $inDocs->currencyId,
                     'termDate' => $inDocs->termDate,
                     'folder' => $firstDocument->fetch()->folderId,
                     'condition' => $condition,
-
+                    'cntDealers'=> count($dealers)
                 );
 
             }
@@ -190,6 +190,7 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
             $fld->FLD('amount', 'varchar', 'smartCenter,caption=Сума');
             $fld->FLD('termDate', 'varchar', 'caption=Краен срок,smartCenter');
             $fld->FLD('condition', 'varchar', 'caption=Състояние,smartCenter');
+
         } else {
             $fld->FLD('documentId', 'varchar', 'smartCenter,caption=Документ');
             $fld->FLD('folder', 'varchar', 'caption=Папка,smartCenter');
@@ -215,12 +216,16 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
         $isPlain = Mode::is('text', 'plain');
         $Int = cls::get('type_Int');
         $Date = cls::get('type_Date');
+        if($dRec->condition == 'просрочен'){
+            $conditionColor = 'red';
+        }else{$conditionColor = 'green';}
+
 
         $row = new stdClass();
 
 
         if (isset($dRec->documentId)) {
-            $row->documentId = $dRec->clsName::getLinkToSingle($dRec->documentId);
+            $row->documentId = ($dRec->clsName)::getLinkToSingle($dRec->documentId);
         }
 
         if (isset($dRec->folder)) {
@@ -236,7 +241,7 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
         }
 
         if (isset($dRec->condition)) {
-            $row->condition = $dRec->condition;
+            $row->condition = "<span style='color: $conditionColor'>{$dRec->condition}</span>";
         }
 
         return $row;
