@@ -323,6 +323,7 @@ class planning_Setup extends core_ProtoSetup
     {
     	$Tasks = cls::get('planning_Tasks');
     	$Tasks->setupMvc();
+    	if(!$Tasks->count()) return;
     	
     	$Details = cls::get('planning_ProductionTaskDetails');
     	$Details->setupMvc();
@@ -336,5 +337,7 @@ class planning_Setup extends core_ProtoSetup
     	$query = doc_Containers::getQuery();
     	$query->where("#docClass = {$taskClassId}");
     	$query->delete();
+    	
+    	bp();
     }
 }
