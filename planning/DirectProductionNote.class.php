@@ -426,7 +426,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		
 		// Намираме детайлите от задачите и рецеоптите
 		$bomDetails = $this->getDefaultDetailsFromBom($rec, $bomId);
-		$taskDetails = $this->getDefaultDetailsFromTasks($rec);
+		$taskDetails = array();//$this->getDefaultDetailsFromTasks($rec);
 		
 		// Ако има рецепта
 		if($bomId){
