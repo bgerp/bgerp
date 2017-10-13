@@ -240,10 +240,29 @@ class doc_Linked extends core_Manager
         
         $form = cls::get('core_Form');
         
-        // @todo intf
+        $intfName = 'doc_LinkedIntf';
+        
+        $intfArr = core_Classes::getOptionsByInterface($intfName);
+
+        // Добавяме екшъните от интерфейсите
+        $actTypeIntfArr = array();
+        foreach ($intfArr as &$intfCls) {
+            $intfCls = cls::get($intfCls, $intfName);
+        }
+        
+        foreach ($intfArr as $intfCls) {
+            if ($type == 'doc') {
+                $actTypeIntfArr = $intfCls->getActivitiesForDocument($originFId);
+            } elseif ($type == 'file') {
+                $actTypeIntfArr = $intfCls->getActivitiesForFile($originFId);
+            }
+        }
         
         // Вид връзка
         $actTypeArr = array('' => '', 'linkDoc' => 'Връзка с документ', 'linkFile' => 'Връзка с файл', 'newDoc' => 'Нов документ');
+        
+        $actTypeArr += $actTypeIntfArr;
+        
         $enumInst = cls::get('type_Enum');
         $enumInst->options = $actTypeArr;
         $form->FNC('act', $enumInst, 'caption=Действие, input, removeAndRefreshForm=linkContainerId|linkFolderId|linkThreadId|linkDocType, mandatory, silent');
@@ -303,7 +322,14 @@ class doc_Linked extends core_Manager
                 }
             }
         } else {
-            // @todo intf
+            // Подготвяме формата от интерфейсните методи
+            foreach ($intfArr as $intfCls) {
+                if ($type == 'doc') {
+                    $actTypeIntfArr = $intfCls->prepareFormForDocument($form, $originFId, $act);
+                } elseif ($type == 'file') {
+                    $actTypeIntfArr = $intfCls->prepareFormForFile($form, $originFId, $act);
+                }
+            }
         }
         
         $form->FNC('comment', 'varchar', 'caption=Пояснение, input');
@@ -347,7 +373,14 @@ class doc_Linked extends core_Manager
                 
                 return new Redirect($url);
             } else {
-                // @todo - интерфейс
+                // Субмитваме формата от интерфейсни методи
+                foreach ($intfArr as $intfCls) {
+                    if ($type == 'doc') {
+                        $actTypeIntfArr = $intfCls->doActivityForDocument($form, $originFId, $act);
+                    } elseif ($type == 'file') {
+                        $actTypeIntfArr = $intfCls->doActivityForFile($form, $originFId, $act);
+                    }
+                }
             }
             
             // Прави необходимите проверки и добавя запис
