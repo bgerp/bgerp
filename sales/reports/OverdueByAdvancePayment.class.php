@@ -225,7 +225,8 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
 
 
         if (isset($dRec->documentId)) {
-            $row->documentId = ($dRec->clsName)::getLinkToSingle($dRec->documentId);
+            $clsName = $dRec->clsName;
+            $row->documentId = $clsName::getLinkToSingle($dRec->documentId);
         }
 
         if (isset($dRec->folder)) {
