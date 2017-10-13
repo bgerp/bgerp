@@ -89,7 +89,15 @@ class type_User extends type_Key
             } else {
                 
                 $uQuery = core_Users::getQuery();
-                if($value > 0) { 
+                if($value > 0) {
+                    if ($value && (strpos($value, '_') !== FALSE)) {
+                        list(,$userId) = explode('_', $value);
+                        
+                        if ($userId) {
+                            $value = $userId;
+                        }
+                    }
+                    
                     $uQuery->where("#state = 'active' OR #state = 'blocked' OR #state = 'closed' OR #id = {$value}");
                 } else {
                     $uQuery->where("#state = 'active' OR #state = 'blocked' OR #state = 'closed'");

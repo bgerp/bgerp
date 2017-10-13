@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   doc
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -17,7 +17,11 @@ class doc_plg_Prototype extends core_Plugin
 {
 	
 	
-	
+	/**
+	 * Полета които да се ънсетват при зареждане на данни
+	 * 
+	 * @var array
+	 */
 	public static $unsetFields = array('id', 
 									   'threadId', 
 			                           'folderId', 
@@ -45,6 +49,7 @@ class doc_plg_Prototype extends core_Plugin
 	public static function on_AfterDescription(&$mvc)
 	{
 		$mvc->declareInterface('doc_PrototypeSourceIntf');
+		setIfNot($mvc->protoFieldName, 'prototypeId');
 		setIfNot($mvc->protoFieldName, 'prototypeId');
 		
 		$after = ($mvc instanceof embed_Manager) ? $mvc->driverClassField : (($mvc instanceof core_Embedder) ? $mvc->driverClassField : 'id');
@@ -214,8 +219,23 @@ class doc_plg_Prototype extends core_Plugin
 	{
 		if(!isset($res)){
 			$rec = $mvc->fetchRec($id);
-			
 			$res = ($rec->state == 'draft');
+		}
+	}
+	
+	
+	/**
+	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+	 */
+	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+	{
+		if($requiredRoles == 'no_one') return;
+		
+		if($action == 'changerec' && isset($rec)){
+			if($rec->state == 'template'){
+				$pRec = doc_Prototypes::fetch("#originId = {$rec->containerId}");
+				$requiredRoles = doc_Prototypes::getRequiredRoles('edit', $pRec);
+			}
 		}
 	}
 }

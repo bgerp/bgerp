@@ -298,7 +298,7 @@ class type_Key extends type_Int
                     
                     $arrForSelect = (array) $mvc->makeArray4select($field, $where, $keyIndex, $this->params['orderBy']);
 
-                    if($value && !isset($arrForSelect[$value])) {
+                    if($value && !isset($arrForSelect[$value]) && get_class($this) == 'type_Key') {
                         $arrForSelect[$value] = $mvc->gettitleById($value, FALSE);
                     }
 

@@ -857,10 +857,10 @@ class planning_Jobs extends core_Master
     		if(empty($rec->oldJobId) || ($rec->state != 'wakeup' && $rec->state != 'active')){
     			$res = 'no_one';
     		} else {
-    			$tasks = planning_Tasks::getTasksByJob($rec->oldJobId);
+    			/*$tasks = planning_Tasks::getTasksByJob($rec->oldJobId);
     			if(!count($tasks)){
     				$res = 'no_one';
-    			}
+    			}*/
     		}
     	}
     }
@@ -958,13 +958,14 @@ class planning_Jobs extends core_Master
     	// Ако заданието е затворено, затваряме и задачите към него
     	if($rec->state == 'closed'){
     		$count = 0;
+    		/*
     		$tQuery = planning_Tasks::getQuery();
     		$tQuery->where("#originId = {$rec->containerId} AND #state != 'draft' AND #state != 'rejected' AND #state != 'stopped'");
     		while($tRec = $tQuery->fetch()){
     			$tRec->state = 'closed';
     			cls::get('planning_Tasks')->save_($tRec, 'state');
     			$count++;
-    		}
+    		}*/
     		
     		core_Statuses::newStatus(tr("|Затворени са|* {$count} |задачи по заданието|*"));
     	}

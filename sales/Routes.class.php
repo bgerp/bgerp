@@ -31,7 +31,7 @@ class sales_Routes extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'nextVisit=Посещения->Следващо,repeat=Посещения->Период,dateFld=Посещения->Начало,salesmanId,contragent=Клиент,locationId,state,createdOn,createdBy';
+    public $listFields = 'contragent=Клиент,locationId,nextVisit=Посещения->Следващо,repeat=Посещения->Период,dateFld=Посещения->Начало,salesmanId,state,createdOn,createdBy';
     
     
 	/**
@@ -236,11 +236,19 @@ class sales_Routes extends core_Manager {
 		// Филтриране по дата
     	if ($data->listFilter->rec->date) {
     		$data->query->where("#nextVisit = '{$data->listFilter->rec->date}'");
+    		$data->query->XPR("dif", 'int', "DATEDIFF (#dateFld , '{$data->listFilter->rec->date}')");
+    		$data->query->orWhere("MOD(#dif, round(#repeat / 86400 )) = 0");
     	}
     	
     	// Филтриране по продавач
     	if ($data->listFilter->rec->user) {
     		$data->query->where(array("#salesmanId = [#1#]", $data->listFilter->rec->user));
+    	}
+    	
+    	if(Mode::isReadOnly()){
+    		unset($data->listFields['state']);
+    		unset($data->listFields['createdOn']);
+    		unset($data->listFields['createdBy']);
     	}
 	}
 	

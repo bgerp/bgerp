@@ -1,8 +1,11 @@
 var shortURL;
 
 
-function spr(sel, refresh = true) {
-     if(sel.value == 'select') {
+function spr(sel, refresh) {
+    if(refresh === undefined) {
+        refresh = true;
+    }
+    if(sel.value == 'select') {
         $("input[name*='from']").closest('tr').fadeIn();
         $("input[name*='to']").closest('tr').fadeIn();
         $("input[name*='from']").prop('disabled', false);
@@ -1094,7 +1097,7 @@ function prepareContextMenu() {
     });
 }
 
-var timeOfSettingTab, timeOfNotification, oldNotificationsCnt;
+var timeOfSettingTab, timeOfNotification, oldNotificationsCnt,oldTimeOfNotification;
 function openCurrentTab(){
     if(!$('body').hasClass('modern-theme') || $('body').hasClass('wide')) return;
     var current;
@@ -4141,7 +4144,10 @@ function changeNotificationsCnt(data) {
             timeOfNotification = data.notifyTime;
 
             if(timeOfSettingTab < timeOfNotification) {
-                setCookie('portalTabs', "notificationsPortal");
+                if( oldTimeOfNotification != timeOfNotification) {
+                    oldTimeOfNotification = timeOfNotification;
+                    setCookie('portalTabs', "notificationsPortal");
+                }
             }
         }
     }
