@@ -233,7 +233,6 @@ class unit_MinkPProducts extends core_Manager {
     
     /**
      * 5. Създава задание за производство
-     * (Ако има предишно задание, трябва да се приключи)
      */
     //http://localhost/unit_MinkPProducts/CreatePlanningJob/
     function act_CreatePlanningJob()
@@ -269,7 +268,6 @@ class unit_MinkPProducts extends core_Manager {
             $browser->press('Чернова');
             $browser->press('Активиране');
            
-            
             //Произвеждане и влагане
             $browser->press('Произвеждане'); 
             //$browser->press('Добавяне на произведен артикул');
@@ -299,9 +297,6 @@ class unit_MinkPProducts extends core_Manager {
             $browser->setValue('note', 'Test');
             $browser->setValue('packQuantity', '200');
             $browser->press('Чернова');
-            return $browser->getHtml();
-            $browser->press('Контиране');
-            
             $browser->press('Контиране');
             $browser->press('Приключване');
         } else {
