@@ -4147,9 +4147,6 @@ function changeNotificationsCnt(data) {
                 if( oldTimeOfNotification != timeOfNotification) {
                     oldTimeOfNotification = timeOfNotification;
                     setCookie('portalTabs', "notificationsPortal");
-
-                    console.log(timeOfSettingTab + "   <  " + timeOfNotification);
-                    console.log('change', timeOfNotification);
                 }
             }
         }
