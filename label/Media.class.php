@@ -75,8 +75,8 @@ class label_Media extends core_Manager
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие, mandatory, width=100%, silent');
         
-        $this->FLD('width', 'int(min=1, max=1000)', 'caption=Размер->Широчина, unit=mm, notNull, mandatory');
-        $this->FLD('height', 'int(min=1, max=1000)', 'caption=Размер->Височина, unit=mm, notNull, mandatory');
+        $this->FLD('width', 'double(Min=0, max=1000, decimals=1, smartRound)', 'caption=Размер->Широчина, unit=mm, notNull, mandatory');
+        $this->FLD('height', 'double(Min=0, max=1000, decimals=1, smartRound)', 'caption=Размер->Височина, unit=mm, notNull, mandatory');
         
         $this->FLD('fieldUp', 'int', 'caption=Отстъпи->Отгоре, value=0, title=Поле на листа отгоре, unit=mm, notNull');
         $this->FLD('fieldLeft', 'int', 'caption=Отстъпи->Отляво, value=0, title=Поле на листа отляво, unit=mm, notNull');
