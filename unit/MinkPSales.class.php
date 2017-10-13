@@ -1282,11 +1282,12 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('bankAccountId', '#BG22UNCR70001519562302');
         $browser->setValue('chargeVat', 'yes');
-        // Записване черновата на продажбата
-        $browser->setValue('Ignore', 1);
-        return $browser->getHtml();
+        // Записване черновата на продажбата, игнориране предупреждението за ДДС
+        
         $browser->press('Чернова');
-       
+        $browser->setValue('Ignore', '1');
+        $browser->press('Чернова');
+        
         // Добавяне на артикул
         $browser->press('Артикул');
         $browser->setValue('productId', 'Други стоки');
@@ -2837,7 +2838,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Известие');
         $browser->press('Чернова');
         //$browser->click('Редактиране на артикул');
-        $browser->click('edt41');
+        $browser->click('edt44');
         $browser->setValue('quantity', '0');
         $browser->press('Следващ');
         $browser->setValue('quantity', '0');
