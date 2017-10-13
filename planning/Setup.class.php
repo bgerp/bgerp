@@ -337,7 +337,5 @@ class planning_Setup extends core_ProtoSetup
     	$query = doc_Containers::getQuery();
     	$query->where("#docClass = {$taskClassId}");
     	$query->delete();
-    	
-    	bp();
     }
 }
