@@ -155,6 +155,12 @@ class purchase_Invoices extends deals_InvoiceMaster
 
 
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn,date,dueDate,journalDate';
+    
+    
+    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
@@ -169,12 +175,6 @@ class purchase_Invoices extends deals_InvoiceMaster
     		'accountId'           => 'lastDocUser|lastDoc',
     		'template' 		      => 'lastDocUser|lastDoc|LastDocSameCuntry',
     );
-    
-    
-    /**
-     * Поле за филтриране по дата
-     */
-    public $filterDateField = 'createdOn, date,dueDate,vatDate, modifiedOn';
     
     
     /**
