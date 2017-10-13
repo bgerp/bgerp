@@ -126,13 +126,13 @@ class planning_Tasks extends core_Master
 	/**
 	 * Кой може да го добавя?
 	 */
-	public $canAdd = 'no_one';
+	public $canAdd = 'taskPlanning,ceo';
 	
 	
 	/**
 	 * Кой може да го редактира?
 	 */
-	public $canEdit = 'no_one';
+	public $canEdit = 'taskPlanning,ceo';
 	
 	
 	/**

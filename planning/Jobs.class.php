@@ -857,10 +857,10 @@ class planning_Jobs extends core_Master
     		if(empty($rec->oldJobId) || ($rec->state != 'wakeup' && $rec->state != 'active')){
     			$res = 'no_one';
     		} else {
-    			/*$tasks = planning_Tasks::getTasksByJob($rec->oldJobId);
+    			$tasks = planning_Tasks::getTasksByJob($rec->oldJobId);
     			if(!count($tasks)){
     				$res = 'no_one';
-    			}*/
+    			}
     		}
     	}
     }
