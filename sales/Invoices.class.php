@@ -224,9 +224,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	parent::setInvoiceFields($this);
     	
     	$this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=title, allowEmpty)', 'caption=Плащане->Банкова с-ка, changable');
-    	
     	$this->FLD('numlimit', 'enum(1,2)', 'caption=Диапазон, after=template,input=hidden,notNull,default=1');
-    	
     	$this->FLD('number', 'bigint(21)', 'caption=Номер, after=place,input=none');
     	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно)', 'caption=Статус, input=none');
         $this->FLD('type', 'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие,dc_note=Известие)', 'caption=Вид, input=hidden');
@@ -606,7 +604,7 @@ class sales_Invoices extends deals_InvoiceMaster
     		}
     	}
     	
-    	// Само ceo,salesmaster и acc могат да оттеглят контирана фактура
+    	// Само ceo,sales,invoicer могат да оттеглят контирана фактура
     	if($action == 'reject' && isset($rec)){
     		if($rec->state == 'active'){
     			if(!haveRole('ceo,sales,invoicer', $userId)){
@@ -615,20 +613,13 @@ class sales_Invoices extends deals_InvoiceMaster
     		}
     	}
     	
-    	// Само ceo,salesmaster и acc могат да възстановят фактура
+    	// Само ceo,sales,invoicer могат да възстановят фактура
     	if($action == 'restore' && isset($rec)){
     		if($rec->brState == 'active'){
     			if(!haveRole('ceo,sales,invoicer', $userId)){
     				$res = 'no_one';
     			}
     		}
-    	}
-    	
-    	if ($action == 'changerec' && $rec) {
-    	    $period = acc_Periods::fetchByDate($rec->date);
-    	    if (!$period || $period->state == 'closed') {
-    	        $res = 'no_one';
-    	    }
     	}
     }
     

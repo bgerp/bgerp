@@ -70,6 +70,13 @@ class doc_Linked extends core_Manager
     
     
     /**
+     * Брой записи, които ще се гледат в bgerp_Recently - за подредба
+     * @var integer
+     */
+    protected static $recentlyLimit = 10;
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -209,6 +216,14 @@ class doc_Linked extends core_Manager
         
         expect($type && $fId);
         
+        $form = cls::get('core_Form');
+        
+        $floatedClassName = '';
+        if (Mode::is('screenMode', 'wide')) {
+            $floatedClassName = "floatedElement";
+            $form->class .= " {$floatedClassName} ";
+        }
+        
         if ($type == 'doc') {
             $docInst = doc_Containers::getDocument($fId);
             expect($docInst->instance);
@@ -237,8 +252,6 @@ class doc_Linked extends core_Manager
         if (empty($retUrl)) {
             $retUrl = array($clsInst, 'single', $fId);
         }
-        
-        $form = cls::get('core_Form');
         
         $intfName = 'doc_LinkedIntf';
         
@@ -274,16 +287,37 @@ class doc_Linked extends core_Manager
         
         $form->input();
         
+        if ($form->cmd != 'refresh') {
+            if ($type == 'file') {
+                doc_DocumentPlg::showOriginalFile($rec, $form);
+            } elseif ($type == 'doc') {
+                
+                $form->layout = $form->renderLayout();
+                
+                $tpl = new ET("<div class='preview-holder {$floatedClassName}'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Източник") . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div><div class='clearfix21'></div>");
+                
+                $docHtml = $clsInst->getInlineDocumentBody($fId);
+                
+                $tpl->replace($docHtml, 'DOCUMENT');
+                
+                $form->layout->append($tpl);
+            }
+        }
+        
         $act = trim($form->rec->act);
         
         if ($act == 'linkDoc') {
             $form->FNC('linkDocType', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Вид, input, removeAndRefreshForm=linkContainerId|linkFolderId');
             $form->input();
             
-            $form->FNC('linkFolderId', 'key2(mvc=doc_Folders, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ', showWithDocs)', 'caption=Папка, input, removeAndRefreshForm=linkContainerId');
+            if ($type == 'doc') {
+                $unsetStr = ",unsetId={$originFId}";
+            }
+            
+            $form->FNC('linkFolderId', 'key2(mvc=doc_Folders, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ", showWithDocs{$unsetStr})", 'caption=Папка, input, removeAndRefreshForm=linkContainerId');
             $form->input();
             
-            $form->FNC('linkContainerId', 'key2(mvc=doc_Containers, titleFld=id, maxSuggestions=100, selectSourceArr=doc_Linked::prepareLinkDocId, allowEmpty, docType=' . $form->rec->linkDocType . ', folderId=' . $form->rec->linkFolderId . ')', 'caption=Документ, input, mandatory, refreshForm');
+            $form->FNC('linkContainerId', 'key2(mvc=doc_Containers, titleFld=id, maxSuggestions=100, selectSourceArr=doc_Linked::prepareLinkDocId, allowEmpty, docType=' . $form->rec->linkDocType . ', folderId=' . $form->rec->linkFolderId . "{$unsetStr})", 'caption=Документ, input, mandatory, refreshForm');
         } elseif ($act == 'linkFile') {
             $form->FNC('linkFileId', 'fileman_FileType(bucket=Linked)', 'caption=Файл, input, mandatory');
         } elseif ($act == 'newDoc') {
@@ -428,7 +462,8 @@ class doc_Linked extends core_Manager
         // Показва избрания документ, когато ще се прикача към него
         if ($act == 'linkDoc' && $form->rec->linkContainerId) {
             $form->layout = $form->renderLayout();
-            $tpl = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Документ") . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div>");
+            
+            $tpl = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Документ") . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div><div class='clearfix21'></div>");
             
             $document = doc_Containers::getDocument($form->rec->linkContainerId);
             if ($document->haveRightFor('single')) {
@@ -446,7 +481,10 @@ class doc_Linked extends core_Manager
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Добавяне на връзка');
         $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
-        return $this->renderWrapping($form->renderHtml());
+        $formTpl = $this->renderWrapping($form->renderHtml());
+        core_Form::preventDoubleSubmission($formTpl, $form);
+        
+        return $formTpl;
     }
     
     
@@ -592,8 +630,6 @@ class doc_Linked extends core_Manager
         
         doc_Threads::restrictAccess($cQuery);
         
-        $cQuery->orderBy('modifiedOn', 'DESC');
-        
         setIfNot($limit, $params['maxSuggestions'], 100);
         
         $cQuery->limit($limit);
@@ -626,6 +662,14 @@ class doc_Linked extends core_Manager
         if ($params['folderId']) {
             $cQuery->where(array("#folderId = '[#1#]'", $params['folderId']));
         }
+        
+        if ($params['unsetId']) {
+            $cQuery->where(array("#id != '[#1#]'", $params['unsetId']));
+        }
+        
+        self::orderRecentlyDoc($cQuery, 'document', 'threadId');
+        
+        $cQuery->orderBy('modifiedOn', 'DESC');
         
         $sArr = array();
         while ($cRec = $cQuery->fetchAndCache()) {
@@ -664,7 +708,6 @@ class doc_Linked extends core_Manager
         }
         
         $query = doc_Folders::getQuery();
-        $query->orderBy("last", "DESC");
         
         doc_Folders::restrictAccess($query, NULL, FALSE);
         
@@ -716,7 +759,7 @@ class doc_Linked extends core_Manager
         // Ако е зададено да се показват папките в които има такива документи
         if ($params['showWithDocs'] && $docTypeInst) {
             
-            $pKey = 'linkedDocFolders_' . substr(md5($docTypeInst->className . '|' . core_Users::getCurrent()), 0, 8);
+            $pKey = 'linkedDocFolders_' . substr(md5($docTypeInst->className . '|' . core_Users::getCurrent()), 0, 8) . '|' . $params['unsetId'];
             
             $cacheTime = 5;
             
@@ -727,6 +770,10 @@ class doc_Linked extends core_Manager
                 $dQuery = $docTypeInst->getQuery();
                 
                 $dQuery->where("#state != 'rejected'");
+                
+                if ($params['unsetId']) {
+                    $dQuery->where(array("#containerId != '[#1#]'", $params['unsetId']));
+                }
                 
                 doc_Folders::restrictAccess($dQuery, NULL, FALSE);
                 
@@ -755,6 +802,10 @@ class doc_Linked extends core_Manager
         $res = array();
         
         setIfNot($limit, $params['maxSuggestions'], 100);
+        
+        self::orderRecentlyDoc($query);
+        
+        $query->orderBy("last", "DESC");
         
         while($rec = $query->fetch()) {
             
@@ -797,8 +848,6 @@ class doc_Linked extends core_Manager
         $query = doc_Threads::getQuery();
         $query->where(array("#folderId = '[#1#]'", $folderId));
         
-        $query->orderBy("last", "DESC");
-        
         doc_Threads::restrictAccess($query);
         
         if (!$includeHiddens) {
@@ -834,6 +883,10 @@ class doc_Linked extends core_Manager
         
         setIfNot($limit, $params['maxSuggestions'], 100);
         
+        self::orderRecentlyDoc($query, 'document');
+        
+        $query->orderBy("last", "DESC");
+        
         while($rec = $query->fetch()) {
             
             if ($docTypeInst) {
@@ -863,6 +916,50 @@ class doc_Linked extends core_Manager
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Подрежда заявките по последно посетени
+     *
+     * @param core_Query $query
+     * @param string $type
+     */
+    protected static function orderRecentlyDoc($query, $type = 'folder', $fName = 'id')
+    {
+        $rQuery = bgerp_Recently::getQuery();
+        $rQuery->where(array("#type = '[#1#]'", $type));
+        $rQuery->where(array("#userId = '[#1#]'", core_Users::getCurrent()));
+        $rQuery->where("#objectId IS NOT NULL");
+        $rQuery->where("#objectId != ''");
+        $rQuery->where("#objectId != 0");
+        $rQuery->orderBy('last', 'DESC');
+        $rQuery->limit(self::$recentlyLimit);
+        
+        $show = 'objectId';
+        if ($type == 'document') {
+            $show = 'threadId';
+        }
+        
+        $rQuery->show($show);
+        
+        $w = '';
+        $i = 1;
+        while($rRec = $rQuery->fetch()) {
+            
+            if (!$rRec->{$show}) continue;
+            
+            $w .= "WHEN '{$rRec->{$show}}' THEN {$i} ";
+            
+            $i++;
+        }
+        
+        $i++;
+        
+        if ($w) {
+            $query->XPR('orderByRecently', 'int', "(CASE #{$fName} {$w} ELSE {$i} END)");
+            $query->orderBy('#orderByRecently=ASC');
+        }
     }
     
     

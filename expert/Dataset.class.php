@@ -243,8 +243,9 @@ class expert_Dataset extends core_BaseClass {
             $expr = strtr($expr, $replace);
         }
 
-        $code = "return {$expr};";
- 
+        //$code = "return {$expr};";
+        $code = 'return ' . $expr. ';';
+        
         if(!@eval('return TRUE;' . $code)) {
             // Некоректен израз
             bp($code);
