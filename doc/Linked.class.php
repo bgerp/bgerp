@@ -310,12 +310,12 @@ class doc_Linked extends core_Manager
             $form->FNC('linkDocType', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Вид, input, removeAndRefreshForm=linkContainerId|linkFolderId');
             $form->input();
             
-            $form->FNC('linkFolderId', 'key2(mvc=doc_Folders, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ', showWithDocs)', 'caption=Папка, input, removeAndRefreshForm=linkContainerId');
-            $form->input();
-            
             if ($type == 'doc') {
                 $unsetStr = ",unsetId={$originFId}";
             }
+            
+            $form->FNC('linkFolderId', 'key2(mvc=doc_Folders, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ", showWithDocs{$unsetStr})", 'caption=Папка, input, removeAndRefreshForm=linkContainerId');
+            $form->input();
             
             $form->FNC('linkContainerId', 'key2(mvc=doc_Containers, titleFld=id, maxSuggestions=100, selectSourceArr=doc_Linked::prepareLinkDocId, allowEmpty, docType=' . $form->rec->linkDocType . ', folderId=' . $form->rec->linkFolderId . "{$unsetStr})", 'caption=Документ, input, mandatory, refreshForm');
         } elseif ($act == 'linkFile') {
@@ -759,7 +759,7 @@ class doc_Linked extends core_Manager
         // Ако е зададено да се показват папките в които има такива документи
         if ($params['showWithDocs'] && $docTypeInst) {
             
-            $pKey = 'linkedDocFolders_' . substr(md5($docTypeInst->className . '|' . core_Users::getCurrent()), 0, 8);
+            $pKey = 'linkedDocFolders_' . substr(md5($docTypeInst->className . '|' . core_Users::getCurrent()), 0, 8) . '|' . $params['unsetId'];
             
             $cacheTime = 5;
             
@@ -770,6 +770,10 @@ class doc_Linked extends core_Manager
                 $dQuery = $docTypeInst->getQuery();
                 
                 $dQuery->where("#state != 'rejected'");
+                
+                if ($params['unsetId']) {
+                    $dQuery->where(array("#containerId != '[#1#]'", $params['unsetId']));
+                }
                 
                 doc_Folders::restrictAccess($dQuery, NULL, FALSE);
                 
