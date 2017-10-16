@@ -124,12 +124,6 @@ class sales_Proformas extends deals_InvoiceMaster
     
     
     /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    public $oldClassName = 'sales_Proforma';
-    
-    
-    /**
      * Икона за фактура
      */
     public $singleIcon = 'img/16/proforma.png';
@@ -167,10 +161,9 @@ class sales_Proformas extends deals_InvoiceMaster
     /**
      * Кои полета ако не са попълнени във визитката на контрагента да се попълнят след запис
      */
-    public static $updateContragentdataField = array(
-    		'vatId'   => 'contragentVatNo',
-    		'uicId'   => 'uicNo',
-    		'egn'     => 'uicNo',
+    public static $updateContragentdataField = array('vatId'   => 'contragentVatNo',
+    												 'uicId'   => 'uicNo',
+    												 'egn'     => 'uicNo',
     );
     
     
@@ -327,7 +320,6 @@ class sales_Proformas extends deals_InvoiceMaster
     			core_Lg::push($rec->tplLang);
     			$row->bank = transliterate(tr($Varchar->toVerbal($ownAcc->bank)));
     			core_Lg::pop();
-    			
     			$row->bic = $Varchar->toVerbal($ownAcc->bic);
     		}
     	}

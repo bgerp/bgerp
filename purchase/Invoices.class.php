@@ -552,32 +552,6 @@ class purchase_Invoices extends deals_InvoiceMaster
     
     
     /**
-     *  Подготовка на филтър формата
-     */
-    public static function on_AfterPrepareListFilter($mvc, $data)
-    {
-    	if(!$data->listFilter->getField('invType', FALSE)){
-    		$data->listFilter->FNC('invType', 'enum(all=Всички, invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 'caption=Вид,input,silent');
-    	}
-    	 
-    	$data->listFilter->showFields .= ',invType';
-    	 
-    	$data->listFilter->input(NULL, 'silent');
-    	 
-    	if($rec = $data->listFilter->rec){
-    		if($rec->invType){
-    			if($rec->invType != 'all'){
-   					$data->query->where("#type = '{$rec->invType}'");
-   					
-   					$sign = ($rec->invType == 'credit_note') ? "<=" : ">";
-   					$data->query->orWhere("#type = 'dc_note' AND #dealValue {$sign} 0");
-   				}
-    		}
-    	}
-    }
-    
-    
-    /**
      * След подготовка на тулбара на единичен изглед.
      */
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
