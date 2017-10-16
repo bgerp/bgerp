@@ -209,6 +209,14 @@ class doc_Linked extends core_Manager
         
         expect($type && $fId);
         
+        $form = cls::get('core_Form');
+        
+        $floatedClassName = '';
+        if (Mode::is('screenMode', 'wide')) {
+            $floatedClassName = "floatedElement";
+            $form->class .= " {$floatedClassName} ";
+        }
+        
         if ($type == 'doc') {
             $docInst = doc_Containers::getDocument($fId);
             expect($docInst->instance);
@@ -237,8 +245,6 @@ class doc_Linked extends core_Manager
         if (empty($retUrl)) {
             $retUrl = array($clsInst, 'single', $fId);
         }
-        
-        $form = cls::get('core_Form');
         
         $intfName = 'doc_LinkedIntf';
         
@@ -273,6 +279,23 @@ class doc_Linked extends core_Manager
         }
         
         $form->input();
+        
+        if ($form->cmd != 'refresh') {
+            if ($type == 'file') {
+                doc_DocumentPlg::showOriginalFile($rec, $form);
+            } elseif ($type == 'doc') {
+                
+                $form->layout = $form->renderLayout();
+                
+                $tpl = new ET("<div class='preview-holder {$floatedClassName}'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Източник") . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div><div class='clearfix21'></div>");
+                
+                $docHtml = $clsInst->getInlineDocumentBody($fId);
+                
+                $tpl->replace($docHtml, 'DOCUMENT');
+                
+                $form->layout->append($tpl);
+            }
+        }
         
         $act = trim($form->rec->act);
         
@@ -428,7 +451,8 @@ class doc_Linked extends core_Manager
         // Показва избрания документ, когато ще се прикача към него
         if ($act == 'linkDoc' && $form->rec->linkContainerId) {
             $form->layout = $form->renderLayout();
-            $tpl = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Документ") . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div>");
+            
+            $tpl = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Документ") . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div><div class='clearfix21'></div>");
             
             $document = doc_Containers::getDocument($form->rec->linkContainerId);
             if ($document->haveRightFor('single')) {
@@ -446,7 +470,10 @@ class doc_Linked extends core_Manager
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Добавяне на връзка');
         $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
-        return $this->renderWrapping($form->renderHtml());
+        $formTpl = $this->renderWrapping($form->renderHtml());
+        core_Form::preventDoubleSubmission($formTpl, $form);
+        
+        return $formTpl;
     }
     
     
