@@ -313,7 +313,11 @@ class doc_Linked extends core_Manager
             $form->FNC('linkFolderId', 'key2(mvc=doc_Folders, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ', showWithDocs)', 'caption=Папка, input, removeAndRefreshForm=linkContainerId');
             $form->input();
             
-            $form->FNC('linkContainerId', 'key2(mvc=doc_Containers, titleFld=id, maxSuggestions=100, selectSourceArr=doc_Linked::prepareLinkDocId, allowEmpty, docType=' . $form->rec->linkDocType . ', folderId=' . $form->rec->linkFolderId . ')', 'caption=Документ, input, mandatory, refreshForm');
+            if ($type == 'doc') {
+                $unsetStr = ",unsetId={$originFId}";
+            }
+            
+            $form->FNC('linkContainerId', 'key2(mvc=doc_Containers, titleFld=id, maxSuggestions=100, selectSourceArr=doc_Linked::prepareLinkDocId, allowEmpty, docType=' . $form->rec->linkDocType . ', folderId=' . $form->rec->linkFolderId . "{$unsetStr})", 'caption=Документ, input, mandatory, refreshForm');
         } elseif ($act == 'linkFile') {
             $form->FNC('linkFileId', 'fileman_FileType(bucket=Linked)', 'caption=Файл, input, mandatory');
         } elseif ($act == 'newDoc') {
@@ -657,6 +661,10 @@ class doc_Linked extends core_Manager
         
         if ($params['folderId']) {
             $cQuery->where(array("#folderId = '[#1#]'", $params['folderId']));
+        }
+        
+        if ($params['unsetId']) {
+            $cQuery->where(array("#id != '[#1#]'", $params['unsetId']));
         }
         
         self::orderRecentlyDoc($cQuery, 'document', 'threadId');
