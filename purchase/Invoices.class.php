@@ -662,6 +662,10 @@ class purchase_Invoices extends deals_InvoiceMaster
         
         $form = cls::get('core_Form');
         
+        if (Mode::is('screenMode', 'wide')) {
+            $form->class .= ' floatedElement ';
+        }
+        
         $showClosedLimit = 3;
         $maxLimitForShow = 300;
         
