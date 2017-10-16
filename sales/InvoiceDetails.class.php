@@ -59,7 +59,7 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
     /**
      * Кой може да пише?
      */
-    public $canWrite = 'invoicer, ceo';
+    public $canWrite = 'powerUser';
     
     
     /**

@@ -151,6 +151,52 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
+     * Помощна функция за показване на текста на оригиналния файл във формата
+     *
+     * @param stdObject $fRec
+     * @param stdObject $form
+     */
+    public static function showOriginalFile($fRec, $form)
+    {
+        $ext = fileman::getExt($fRec->name);
+        
+        // Вземаме уеб-драйверите за това файлово разширение
+        $webdrvArr = fileman_Indexes::getDriver($ext, $fRec->name);
+        
+        // Обикаляме всички открити драйвери
+        foreach($webdrvArr as $drv) {
+            
+            // Стартираме процеса за извличане на данни
+            $drv->startProcessing($fRec);
+            
+            // Комбиниране всички открити табове
+            $tabsArr = arr::combine($tabsArr, $drv->getTabs($fRec));
+        }
+        
+        $defTab = Request::get('currentTab');
+        
+        if (!$defTab) {
+            if ($tabsArr['text']) {
+                $defTab = 'text';
+            }
+            setIfNot($defTab, $tabsArr['__defaultTab'], 'info');
+        }
+        
+        $Indexes = cls::get('fileman_Indexes');
+        $d = new stdClass();
+        $d->tabs = $tabsArr;
+        $d->currentTab = $defTab;
+        $d->rec = $fRec;
+        $d->fhName = 'fh';
+        $d->retUrl = getRetUrl();
+        $d->localUrl = toUrl(getCurrentUrl(), 'local');
+        
+        $form->layout = $form->renderLayout();
+        $form->layout->append($Indexes->render($d));
+    }
+    
+    
+    /**
      * След промяна в журнала със свързаното перо
      */
     public static function on_AfterJournalItemAffect($mvc, $rec, $item)
@@ -310,7 +356,7 @@ class doc_DocumentPlg extends core_Plugin
         
         if ($data->rec->state != 'rejected') {
             // Добавяме бутон за създаване на задача
-            if ($data->rec->containerId) {
+            if ($data->rec->containerId && haveRole('powerUser')) {
                 
                 Request::setProtected(array('inType', 'foreignId'));
                 
@@ -1453,31 +1499,9 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-        // Помощно поле при линкване на документи
-        if (!$data->form->fields['foreignId']) {
-            $data->form->FNC('foreignId', 'key(mvc=doc_Containers)', 'caption=Оригинален документ, silent, input=hidden');
-            $fId = Request::get('foreignId', 'int');
-            if ($fId) {
-                $data->form->setDefault('foreignId', $fId);
-                
-                $document = doc_Containers::getDocument($fId);
-                $document->instance->requireRightFor('single', $document->that);
-                
-                $titleFld = '';
-                if ($mvc->fields['title']) {
-                    $titleFld = 'title';
-                } elseif ($mvc->fields['subject']) {
-                    $titleFld = 'subject';
-                }
-                
-                if ($titleFld) {
-                    $oRow = $document->getDocumentRow();
-                    $for = tr('За|*: ');
-                    $title = $for . html_entity_decode($oRow->title, ENT_COMPAT | ENT_HTML401, 'UTF-8');
-                    $data->form->setDefault($titleFld, $title);
-                }
-            }
-        }
+        $fType = 'doc';
+        $oDocId = NULL;
+        $document = NULL;
         
         // Помощно поле при линкване на документи
         if (!$data->form->fields['linkedHashKey']) {
@@ -1486,6 +1510,50 @@ class doc_DocumentPlg extends core_Plugin
             $lHash = Request::get('linkedHashKey');
             if ($lHash) {
                 $data->form->setDefault('linkedHashKey', $lHash);
+                
+                $lRec = core_Permanent::get($lHash);
+                
+                $fType = $lRec->outType;
+
+                $oDocId = $lRec->outVal;
+                
+                if ($fType == 'doc') {
+                    Request::push(array('foreignId' => $oDocId));
+                } elseif ($fType == 'file') {
+                    $fRec = fileman::fetch($lRec->outVal);
+                    Request::push(array('fh' => $fRec->fileHnd));
+                }
+            }
+        }
+        
+        if ($fType == 'doc') {
+            // Помощно поле при линкване на документи
+            if (!$data->form->fields['foreignId']) {
+                $data->form->FNC('foreignId', 'key(mvc=doc_Containers)', 'caption=Оригинален документ, silent, input=hidden');
+                
+                $fId = Request::get('foreignId', 'int');
+                if ($fId) {
+                    $data->form->setDefault('foreignId', $fId);
+                    
+                    if ($fType == 'doc') {
+                        $document = doc_Containers::getDocument($fId);
+                        $document->instance->requireRightFor('single', $document->that);
+                        
+                        $titleFld = '';
+                        if ($mvc->fields['title']) {
+                            $titleFld = 'title';
+                        } elseif ($mvc->fields['subject']) {
+                            $titleFld = 'subject';
+                        }
+                        
+                        if ($titleFld) {
+                            $oRow = $document->getDocumentRow();
+                            $for = tr('За|*: ');
+                            $title = $for . html_entity_decode($oRow->title, ENT_COMPAT | ENT_HTML401, 'UTF-8');
+                            $data->form->setDefault($titleFld, $title);
+                        }
+                    }
+                }
             }
         }
         
@@ -1527,23 +1595,32 @@ class doc_DocumentPlg extends core_Plugin
             $rec->folderId = $oRec->folderId;
         }
         
-        $oDocId = $rec->originId;
-        if (!$oDocId) {
-            $oDocId = $rec->foreignId;
-        } else {
-            $document = doc_Containers::getDocument($oDocId);
+        if ($rec->originId || $rec->foreignId) {
+            $fType = 'doc';
+            $oDocId = $rec->originId;
+            
+            if (!$oDocId) {
+                $oDocId = $rec->foreignId;
+            } else {
+                $document = doc_Containers::getDocument($oDocId);
+            }
         }
         
-        if ($document && $oDocId && !Mode::is('stopRenderOrigin')) {
-            $data->form->layout = $data->form->renderLayout();
-            $tpl = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Оригинален документ") . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div>");
+        if ($oDocId && !Mode::is('stopRenderOrigin')) {
             
-            if ($document->haveRightFor('single')) {
-                $docHtml = $document->getInlineDocumentBody();
+            if ($document) {
+                $data->form->layout = $data->form->renderLayout();
+                $tpl = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Оригинален документ") . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div>");
                 
-                $tpl->append($docHtml, 'DOCUMENT');
-                
-                $data->form->layout->append($tpl);
+                if ($document->haveRightFor('single')) {
+                    $docHtml = $document->getInlineDocumentBody();
+                    
+                    $tpl->append($docHtml, 'DOCUMENT');
+                    
+                    $data->form->layout->append($tpl);
+                }
+            } elseif ($fType == 'file') {
+                self::showOriginalFile($fRec, $data->form);
             }
         }
         

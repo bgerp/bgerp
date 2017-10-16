@@ -391,7 +391,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('number', '1');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 27,66')) {
+        if(strpos($browser->gettext(), 'Данъчна основа: BGN 27,66')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактурата', 'warning');
         }
@@ -465,7 +465,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('number', '101');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Данъчна основа 0%: BGN 64,91')) {
+        if(strpos($browser->gettext(), 'Данъчна основа: BGN 64,91')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактурата', 'warning');
         }
@@ -545,7 +545,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('number', '102');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Данъчна основа 0%: BGN 6,45')) {
+        if(strpos($browser->gettext(), 'Данъчна основа: BGN 6,45')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактурата', 'warning');
         }
@@ -642,7 +642,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('number', '4');
         $browser->press('Чернова');
         //$browser->click('Редактиране на артикул');
-        $browser->click('edt9');
+        $browser->click('edt11');
         $browser->setValue('quantity', '20');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -656,7 +656,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('number', '5');
         $browser->press('Чернова');
         //$browser->click('Редактиране на артикул');
-        $browser->click('edt10');
+        $browser->click('edt12');
         $browser->setValue('packPrice', '1.4444');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -679,7 +679,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->press('Известие');
         $browser->setValue('number', '7');
         $browser->press('Чернова');
-        $browser->click('edt11');
+        $browser->click('edt13');
         //$browser->click('Редактиране на артикул');
         $browser->setValue('quantity', '50');
         $browser->press('Запис');
@@ -693,7 +693,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('number', '8');
         $browser->press('Чернова');
         //$browser->click('Редактиране на артикул');
-        $browser->click('edt12');
+        $browser->click('edt14');
         $browser->setValue('packPrice', '2.5556');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -785,7 +785,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('number', '105');
         $browser->press('Чернова');
         //$browser->click('Редактиране на артикул');
-        $browser->click('edt14');
+        $browser->click('edt16');
         $browser->setValue('quantity', '20');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -798,7 +798,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->press('Известие');
         $browser->setValue('number', '106');
         $browser->press('Чернова');
-        $browser->click('edt15');
+        $browser->click('edt17');
         //$browser->click('Редактиране на артикул');
         $browser->setValue('packPrice', '1.4444');
         $browser->press('Запис');
@@ -824,7 +824,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('number', '108');
         $browser->press('Чернова');
         //$browser->click('Редактиране на артикул');
-        $browser->click('edt16');
+        $browser->click('edt18');
         $browser->setValue('quantity', '50');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -838,7 +838,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('number', '109');
         $browser->press('Чернова');
         //$browser->click('Редактиране на артикул');
-        $browser->click('edt17');
+        $browser->click('edt19');
         $browser->setValue('packPrice', '2.6667');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -928,7 +928,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('number', '112');
         $browser->press('Чернова');
         //$browser->click('Редактиране на артикул');
-        $browser->click('edt19');
+        $browser->click('edt21');
         $browser->setValue('quantity', '20');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -942,7 +942,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('number', '113');
         $browser->press('Чернова');
         //$browser->click('Редактиране на артикул');
-        $browser->click('edt20');
+        $browser->click('edt22');
         $browser->setValue('packPrice', '1.4444');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -967,7 +967,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('number', '115');
         $browser->press('Чернова');       
         //$browser->click('Редактиране на артикул');
-        $browser->click('edt21');
+        $browser->click('edt23');
         $browser->setValue('quantity', '50');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -981,7 +981,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('number', '116');
         $browser->press('Чернова');
         //$browser->click('Редактиране на артикул');
-        $browser->click('edt22');
+        $browser->click('edt24');
         $browser->setValue('packPrice', '2.6667');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1322,7 +1322,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('date', date('d-m-Y', $startdate));
         $browser->press('Чернова');
         //$browser->click('Редактиране на артикул');
-        $browser->click('edt29');
+        $browser->click('edt31');
         $browser->setValue('quantity', '18');
         $browser->press('Следващ');
         $browser->setValue('quantity', '4');
@@ -1343,7 +1343,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('date', date('d-m-Y', $startdate));
         $browser->press('Чернова');
         //$browser->click('Редактиране на артикул');
-        $browser->click('edt31');
+        $browser->click('edt33');
         $browser->setValue('packPrice', '15');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1357,7 +1357,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('date', date('d-m-Y', $startdate));
         $browser->press('Чернова');
         //$browser->click('Редактиране на артикул');
-        $browser->click('edt33');
+        $browser->click('edt35');
         $browser->setValue('quantity', '21');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1372,7 +1372,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('date', date('d-m-Y', $startdate));
         $browser->press('Чернова');
         //$browser->click('Редактиране на артикул');
-        $browser->click('edt35');
+        $browser->click('edt37');
         $browser->setValue('packPrice', '20,14');
         $browser->press('Запис');
         $browser->press('Контиране');
@@ -1502,7 +1502,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('number', '18');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 36,88')) {
+        if(strpos($browser->gettext(), 'Данъчна основа: BGN 36,88')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактурата', 'warning');
         }
@@ -1589,7 +1589,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('number', '19');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 29,52')) {
+        if(strpos($browser->gettext(), 'Данъчна основа: BGN 29,52')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактурата', 'warning');
         }
@@ -1680,7 +1680,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('number', '20');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 38,81')) {
+        if(strpos($browser->gettext(), 'Данъчна основа: BGN 38,81')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактурата', 'warning');
         }
@@ -1773,7 +1773,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('number', '21');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 228,00')) {
+        if(strpos($browser->gettext(), 'Данъчна основа: BGN 228,00')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактурата', 'warning');
         }
@@ -1858,7 +1858,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->setValue('number', '2222');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 32,33')) {
+        if(strpos($browser->gettext(), 'Данъчна основа: BGN 32,33')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактурата', 'warning');
         }

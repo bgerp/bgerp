@@ -395,7 +395,6 @@ class cal_Tasks extends core_Master
      */
     static function renderPortal($userId = NULL)
     {
-
         if (empty($userId)) {
             $userId = core_Users::getCurrent();
         }
@@ -872,7 +871,7 @@ class cal_Tasks extends core_Master
         $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent,autoFilter');
         $data->listFilter->FNC('Chart', 'varchar', 'caption=Таблица,input=hidden,silent,autoFilter');
         $data->listFilter->FNC('View', 'varchar', 'caption=Изглед,input=hidden,silent,autoFilter');
-        $data->listFilter->FNC('stateTask', 'enum(all=Всички,active=Активни,draft=Чернови,waiting=Чакащи,actPend=Активни+Чакащи,closed=Приключени)', 'caption=Състояние,input,silent,autoFilter');
+        $data->listFilter->FNC('stateTask', 'enum(all=Всички,active=Активни,draft=Чернови,waiting=Чакащи,pending=Заявка,actPend=Активни+Чакащи,closed=Приключени)', 'caption=Състояние,input,silent,autoFilter');
         
         $options = array();
         

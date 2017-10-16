@@ -296,7 +296,12 @@ class type_Key extends type_Int
                     
                     $keyIndex = $this->getKeyField();
                     
-                    $arrForSelect = (array) $mvc->makeArray4select($field, $where, $keyIndex, $this->params['orderBy']);  
+                    $arrForSelect = (array) $mvc->makeArray4select($field, $where, $keyIndex, $this->params['orderBy']);
+
+                    if($value && !isset($arrForSelect[$value]) && get_class($this) == 'type_Key') {
+                        $arrForSelect[$value] = $mvc->gettitleById($value, FALSE);
+                    }
+
                     foreach($arrForSelect as $id => $v) {
                         $options[$id] = $v;
                     }
@@ -562,7 +567,7 @@ class type_Key extends type_Int
         $options = $this->options;
 
         if(!is_array($options) || !count($options)) {
-            $options = $this->prepareOptions();
+            $options = $this->prepareOptions($value);
         }
         
         if(($div = $this->params['groupByDiv'])) {
