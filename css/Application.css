@@ -4708,6 +4708,11 @@ only screen and (max-width: 320px) {
     .print-break.print-nobreak {
       page-break-after: avoid; }
 
+  .footer-notes,
+  .print-block,
+  .footerDocTable,
+  .footerDocBlock {
+    page-break-inside: avoid; }
 
   #statuses,
   .toast-container {

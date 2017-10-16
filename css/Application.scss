@@ -5179,7 +5179,7 @@ body.narrow {
         }
     }
     .footer-notes, .print-block, .footerDocTable, .footerDocBlock{
-       //	 page-break-inside: avoid;
+       	 page-break-inside: avoid;
     }
 	#statuses, .toast-container{
        display: none;
