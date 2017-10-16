@@ -25,6 +25,46 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
 
     /**
+     * Брой записи на страница
+     *
+     * @var int
+     */
+    protected $listItemsPerPage = 30;
+
+
+    /**
+     * Полета от таблицата за скриване, ако са празни
+     *
+     * @var int
+     */
+    protected $filterEmptyListFields;
+
+
+    /**
+     * Полета за хеширане на таговете
+     *
+     * @see uiext_Labels
+     * @var varchar
+     */
+    protected $hashField;
+
+
+    /**
+     * Кое поле от $data->recs да се следи, ако има нов във новата версия
+     *
+     * @var varchar
+     */
+    protected $newFieldToCheck = 'conditionQuantity';
+
+
+    /**
+     * По-кое поле да се групират листовите данни
+     */
+    protected $groupByField;
+
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
