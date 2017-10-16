@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   purchase
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -89,12 +89,6 @@ class purchase_Invoices extends deals_InvoiceMaster
      * Кой има право да създава от файл?
      */
     public $canCreatefromfile = 'ceo,invoicer';
-    
-    
-    /**
-     * Кой може да сторнира
-     */
-    public $canRevert = 'purchaseMaster, ceo';
     
     
     /**
@@ -178,12 +172,18 @@ class purchase_Invoices extends deals_InvoiceMaster
     
     
     /**
+     * Кои полета да могат да се променят след активация
+     */
+    public $changableFields = 'journalDate,number,fileHnd,responsible,contragentCountryId, contragentPCode, contragentPlace, contragentAddress, dueTime, dueDate, additionalInfo,accountId,paymentType,template';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
     {
     	parent::setInvoiceFields($this);
-    	$this->FLD('journalDate', 'date', 'caption=Сч. дата,changable,after=date');
+    	$this->FLD('journalDate', 'date', 'caption=Сч. дата,after=date');
     	$this->FLD('number', 'varchar', 'caption=Номер, export=Csv,hint=Номера с който идва фактурата,after=place');
     	$this->FLD('fileHnd', 'fileman_FileType(bucket=Documents)', 'caption=Документ,after=number');
     	
@@ -488,8 +488,8 @@ class purchase_Invoices extends deals_InvoiceMaster
     {
     	parent::getVerbalInvoice($mvc, $rec, $row, $fields);
     	
-    	if($fields['-single']){
-    		if($rec->accountId){
+    	if(isset($fields['-single'])){
+    		if(!empty($rec->accountId)){
     			$Varchar = cls::get('type_Varchar');
     			$ownAcc = bank_Accounts::fetch($rec->accountId);
     			$row->bank = $Varchar->toVerbal($ownAcc->bank);
@@ -497,7 +497,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     		}
     		
     		if(isset($rec->journalDate) && $rec->journalDate != $rec->date){
-    			$msg = "Сч. дата е|*: " . $mvc->getFieldType('date')->toVerbal($rec->journalDate);
+    			$msg = "Датата на счетоводната операция е|*: " . $mvc->getFieldType('date')->toVerbal($rec->journalDate);
     			$row->date = ht::createHint($row->date, $msg);
     		}
     	}
