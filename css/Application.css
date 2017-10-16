@@ -1330,6 +1330,14 @@ a.tOld {
     .document .reportHolder .group-by-field-row td {
       padding: 5px !important; }
 
+#packWrapper > .floatedElement {
+  float: left; }
+  #packWrapper > .floatedElement.preview-holder {
+    margin-top: -20px !important; }
+
+#packWrapper form.floatedElement {
+  margin-right: 20px; }
+
 .smallerTextInTable {
   font-size: 0.7em;
   min-width: 20em; }
@@ -4700,11 +4708,6 @@ only screen and (max-width: 320px) {
     .print-break.print-nobreak {
       page-break-after: avoid; }
 
-  .footer-notes,
-  .print-block,
-  .footerDocTable,
-  .footerDocBlock {
-    page-break-inside: avoid; }
 
   #statuses,
   .toast-container {
