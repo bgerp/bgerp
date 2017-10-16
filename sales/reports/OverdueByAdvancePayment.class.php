@@ -54,7 +54,7 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
      *
      * @var varchar
      */
-    protected $newFieldToCheck;
+    protected $newFieldToCheck = 'condition';
 
 
     /**
@@ -86,7 +86,7 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
 
-        $fieldset->FLD('dealers', 'keylist(mvc=core_Users,select=nick)', 'caption=Търговци,after=title');
+        $fieldset->FLD('dealers', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Търговци,after=title');
 
         $fieldset->FLD('tolerance', 'int', 'caption=Толеранс[дни],after=dealers');
 
