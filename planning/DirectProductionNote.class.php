@@ -240,7 +240,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		}
 		
 		$form->setDefault('jobQuantity', $originRec->quantity);
-		$quantityFromTasks = planning_TaskActions::getQuantityForJob($originRec->id, 'product');
+		$quantityFromTasks = 0;//planning_TaskActions::getQuantityForJob($originRec->id, 'product');
 		$quantityToStore = $quantityFromTasks - $originRec->quantityProduced;
 		
 		if($quantityToStore > 0){
@@ -426,7 +426,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		
 		// Намираме детайлите от задачите и рецеоптите
 		$bomDetails = $this->getDefaultDetailsFromBom($rec, $bomId);
-		$taskDetails = $this->getDefaultDetailsFromTasks($rec);
+		$taskDetails = array();//$this->getDefaultDetailsFromTasks($rec);
 		
 		// Ако има рецепта
 		if($bomId){

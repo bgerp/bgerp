@@ -1693,7 +1693,7 @@ class core_Users extends core_Manager
     {
         static $teamMates;
         
-        if(!$teamMates) {
+        if(!$teamMates[$userId]) {
             $teams = core_Users::getUserRolesByType($userId, 'team');
             
             if(!$teams) return NULL;
@@ -1701,14 +1701,15 @@ class core_Users extends core_Manager
             $query = self::getQuery();
             $query->likeKeylist('roles', $teams);
             
+            $res = array();
             while($rec = $query->fetch()) {
                 $res[$rec->id] = $rec->id;
             }
             
-            $teamMates = keylist::fromArray($res);
+            $teamMates[$userId] = keylist::fromArray($res);
         }
         
-        return $teamMates;
+        return $teamMates[$userId];
     }
 
 

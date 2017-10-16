@@ -12,6 +12,7 @@
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
+ * @deprecated
  * @title     Производствени операции
  */
 class planning_Tasks extends tasks_Tasks
@@ -107,7 +108,19 @@ class planning_Tasks extends tasks_Tasks
 	/**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,planning,taskWorker';
+	public $canList = 'no_one';
+	
+	
+	/**
+	 * Кой може да го добавя?
+	 */
+	public $canAdd = 'no_one';
+	
+	
+	/**
+	 * Кой може да го редактира?
+	 */
+	public $canEdit = 'no_one';
 	
 	
 	/**

@@ -113,13 +113,12 @@ class planning_Setup extends core_ProtoSetup
     		'planning_ReturnNotes',
     		'planning_ReturnNoteDetails',
     		'planning_ObjectResources',
-    		'planning_Tasks',
+    		//'planning_Tasks',
     		'planning_AssetResources',
     		'planning_drivers_ProductionTaskDetails',
     		'planning_drivers_ProductionTaskProducts',
-    		'planning_TaskActions',
-    		'planning_TaskSerials',
-    		'migrate::updateTasks',
+    		//'planning_TaskActions',
+    		//'planning_TaskSerials',
     		'migrate::updateNotes',
     		'migrate::updateStoreIds',
     		'migrate::migrateJobs',
@@ -151,7 +150,7 @@ class planning_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "planning_reports_PlanningImpl,planning_reports_PurchaseImpl,planning_drivers_ProductionTask, planning_reports_MaterialsImpl";
+    var $defClasses = "planning_reports_PlanningImpl,planning_reports_PurchaseImpl, planning_reports_MaterialsImpl";
     
     
     /**
@@ -163,32 +162,6 @@ class planning_Setup extends core_ProtoSetup
         $res = bgerp_Menu::remove($this);
         
         return $res;
-    }
-    
-    
-    /**
-     * Миграция на старите задачи
-     */
-    function updateTasks()
-    {
-    	core_Classes::add('planning_Tasks');
-    	$PlanningTasks = planning_Tasks::getClassId();
-    	 
-    	if(!tasks_Tasks::count()) return;
-    	
-    	$tQuery = tasks_Tasks::getQuery();
-    	$tQuery->where('#classId IS NULL || #classId = 0');
-    	while($tRec = $tQuery->fetch()){
-    		if(cls::get('tasks_Tasks')->getDriver($tRec->id)){
-    			$tRec->classId = $PlanningTasks;
-    			tasks_Tasks::save($tRec);
-    		}
-    	}
-    	
-    	if($cRec = core_Classes::fetch("#name = 'tasks_Tasks'")){
-    		$cRec->state = 'closed';
-    		core_Classes::save($cRec);
-    	}
     }
     
     

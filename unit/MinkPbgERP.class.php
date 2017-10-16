@@ -254,7 +254,7 @@ class unit_MinkPbgERP extends core_Manager {
         // Логване
         $browser = $this->SetUp();
     
-        // Създаване на нова фирма
+        // Редакция на Моята фирма
         $browser->click('Визитник');
         $browser->click('Моята Фирма ООД');
         $browser->press('Редакция');
@@ -268,7 +268,7 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->setValue('Ignore', 1);
             $browser->press('Запис');
         }
-        // Създаване на папка на новата фирма
+        // Създаване на папка на Моята фирма
         $browser->press('Папка');
         //return $browser->getHtml();
     }

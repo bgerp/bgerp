@@ -178,10 +178,16 @@ class fileman_Indexes extends core_Manager
             // Ако не е таб
             if (strpos($name, '__') === 0) continue;
             
-            $urlArr = array($data->fhName => $data->rec->fileHnd, 'currentTab' => $name, '#' => 'fileDetail');
-            
-            if ($data->retUrl) {
-                $urlArr['ret_url'] = $data->retUrl;
+            if ($data->localUrl) {
+                $urlArr = core_App::parseLocalUrl($data->localUrl);
+                $urlArr['currentTab'] = $name;
+                $urlArr['#'] = 'fileDetail';
+            } else {
+                $urlArr = array($data->fhName => $data->rec->fileHnd, 'currentTab' => $name, '#' => 'fileDetail');
+                
+                if ($data->retUrl) {
+                    $urlArr['ret_url'] = $data->retUrl;
+                }
             }
             
             // Ако е текущия таб таб

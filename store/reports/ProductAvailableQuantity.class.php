@@ -90,7 +90,6 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         {
             $id = $recProduct->productId;
 
-
             $quantity = store_Products::getQuantity($id, $recProduct->storeId, FALSE);
 
             if(($quantity < $rec->minQuantity)){
@@ -227,7 +226,6 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         if((isset($dRec->conditionQuantity) && ((isset($dRec->minQuantity)) || (isset($dRec->maxQuantity))))){
             $row->conditionQuantity = "<span style='color: $conditionColor'>{$dRec->conditionQuantity}</span>";
          }
-
 
         return $row;
     }
