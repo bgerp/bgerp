@@ -70,6 +70,13 @@ class doc_Linked extends core_Manager
     
     
     /**
+     * Брой записи, които ще се гледат в bgerp_Recently - за подредба
+     * @var integer
+     */
+    protected static $recentlyLimit = 10;
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -619,8 +626,6 @@ class doc_Linked extends core_Manager
         
         doc_Threads::restrictAccess($cQuery);
         
-        $cQuery->orderBy('modifiedOn', 'DESC');
-        
         setIfNot($limit, $params['maxSuggestions'], 100);
         
         $cQuery->limit($limit);
@@ -653,6 +658,10 @@ class doc_Linked extends core_Manager
         if ($params['folderId']) {
             $cQuery->where(array("#folderId = '[#1#]'", $params['folderId']));
         }
+        
+        self::orderRecentlyDoc($cQuery, 'document', 'threadId');
+        
+        $cQuery->orderBy('modifiedOn', 'DESC');
         
         $sArr = array();
         while ($cRec = $cQuery->fetchAndCache()) {
@@ -691,7 +700,6 @@ class doc_Linked extends core_Manager
         }
         
         $query = doc_Folders::getQuery();
-        $query->orderBy("last", "DESC");
         
         doc_Folders::restrictAccess($query, NULL, FALSE);
         
@@ -783,6 +791,10 @@ class doc_Linked extends core_Manager
         
         setIfNot($limit, $params['maxSuggestions'], 100);
         
+        self::orderRecentlyDoc($query);
+        
+        $query->orderBy("last", "DESC");
+        
         while($rec = $query->fetch()) {
             
             if ($docTypeInst) {
@@ -824,8 +836,6 @@ class doc_Linked extends core_Manager
         $query = doc_Threads::getQuery();
         $query->where(array("#folderId = '[#1#]'", $folderId));
         
-        $query->orderBy("last", "DESC");
-        
         doc_Threads::restrictAccess($query);
         
         if (!$includeHiddens) {
@@ -861,6 +871,10 @@ class doc_Linked extends core_Manager
         
         setIfNot($limit, $params['maxSuggestions'], 100);
         
+        self::orderRecentlyDoc($query, 'document');
+        
+        $query->orderBy("last", "DESC");
+        
         while($rec = $query->fetch()) {
             
             if ($docTypeInst) {
@@ -890,6 +904,50 @@ class doc_Linked extends core_Manager
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Подрежда заявките по последно посетени
+     *
+     * @param core_Query $query
+     * @param string $type
+     */
+    protected static function orderRecentlyDoc($query, $type = 'folder', $fName = 'id')
+    {
+        $rQuery = bgerp_Recently::getQuery();
+        $rQuery->where(array("#type = '[#1#]'", $type));
+        $rQuery->where(array("#userId = '[#1#]'", core_Users::getCurrent()));
+        $rQuery->where("#objectId IS NOT NULL");
+        $rQuery->where("#objectId != ''");
+        $rQuery->where("#objectId != 0");
+        $rQuery->orderBy('last', 'DESC');
+        $rQuery->limit(self::$recentlyLimit);
+        
+        $show = 'objectId';
+        if ($type == 'document') {
+            $show = 'threadId';
+        }
+        
+        $rQuery->show($show);
+        
+        $w = '';
+        $i = 1;
+        while($rRec = $rQuery->fetch()) {
+            
+            if (!$rRec->{$show}) continue;
+            
+            $w .= "WHEN '{$rRec->{$show}}' THEN {$i} ";
+            
+            $i++;
+        }
+        
+        $i++;
+        
+        if ($w) {
+            $query->XPR('orderByRecently', 'int', "(CASE #{$fName} {$w} ELSE {$i} END)");
+            $query->orderBy('#orderByRecently=ASC');
+        }
     }
     
     
