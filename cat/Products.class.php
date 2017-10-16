@@ -260,7 +260,7 @@ class cat_Products extends embed_Manager {
 	/**
 	 * Стратегии за дефолт стойностти
 	 */
-	public static $defaultStrategies = array('groups'  => 'lastDocUser');
+	public static $defaultStrategies = array('groups' => 'lastDocUser');
 	
 	
 	/**
@@ -562,8 +562,7 @@ class cat_Products extends embed_Manager {
 			    }
     		}
     		
-    		// Ако артикулът е в папка на контрагент, и има вече артикул,
-    		// със същото име сетваме предупреждение
+    		// Ако артикулът е в папка на контрагент, и има вече артикул, със същото се сетва предупреждение
     		if(isset($rec->folderId)){
     			$Cover = doc_Folders::getCover($rec->folderId);
     			if($Cover->haveInterface('crm_ContragentAccRegIntf')){
@@ -612,7 +611,6 @@ class cat_Products extends embed_Manager {
     	}
     	
     	$rec->code = ($rec->code == '') ? NULL : $rec->code;
-    	
     }
     
     
@@ -874,8 +872,11 @@ class cat_Products extends embed_Manager {
        							canSell=Продаваеми,
                                 canBuy=Купуваеми,
                                 canStore=Складируеми,
+    							services=Услуги,
                                 canConvert=Вложими,
                                 fixedAsset=Дълготрайни активи,
+    							fixedAssetStorable=Дълготрайни материални активи,
+    							fixedAssetNotStorable=Дълготрайни НЕматериални активи,
         					    canManifacture=Производими)', 'input,autoFilter');
         $data->listFilter->showFields = 'search,order,meta1,groupId';
         $data->listFilter->input('order,groupId,search,meta1', 'silent');
@@ -916,8 +917,23 @@ class cat_Products extends embed_Manager {
         }
         
         // Филтър по свойства
-        if ($data->listFilter->rec->meta1 && $data->listFilter->rec->meta1 != 'all') {
-        	$data->query->like("meta", $data->listFilter->rec->meta1);
+        if ($data->listFilter->rec->meta1) {
+        	switch($data->listFilter->rec->meta1){
+        		case 'services':
+        			$data->query->where("#canStore = 'no'");
+        			break;
+        		case 'fixedAssetStorable':
+        			$data->query->where("#canStore = 'yes' and #fixedAsset = 'yes'");
+        			break;
+        		case 'fixedAssetNotStorable':
+        			$data->query->where("#canStore = 'no' and #fixedAsset = 'yes'");
+        			break;
+        		case 'all':
+        			break;
+        		default:
+        			$data->query->like("meta", $data->listFilter->rec->meta1);
+        			break;
+        	}
         }
         
         if ($data->listFilter->rec->groupId) {
@@ -2152,10 +2168,7 @@ class cat_Products extends embed_Manager {
     	$maxTry = core_Packs::getConfigValue('cat', 'CAT_WAC_PRICE_PERIOD_LIMIT');
     	$amount = acc_strategy_WAC::getAmount($quantity, $date, '321', $item1, $item2, NULL, $maxTry);
     	
-    	if(isset($amount)){
-    		
-    		return round($amount, 4);
-    	}
+    	if(isset($amount)) return round($amount, 4);
     	
     	// Връщаме сумата
     	return $amount;
@@ -2739,7 +2752,7 @@ class cat_Products extends embed_Manager {
     	// Ако има драйвър, питаме него за стойността
     	if($Driver = static::getDriver($id)){
     		$tolerance = $Driver->getTolerance($id, $quantity);
-    		return ($tolerance) ? $tolerance : NULL;
+    		return (!empty($tolerance)) ? $tolerance : NULL;
     	}
     	
     	return NULL;
@@ -2758,7 +2771,7 @@ class cat_Products extends embed_Manager {
     	// Ако има драйвър, питаме него за стойността
     	if($Driver = static::getDriver($id)){
     		$term = $Driver->getDeliveryTime($id, $quantity);
-    		return ($term) ? $term : NULL;
+    		return (!empty($term)) ? $term : NULL;
     	}
     	
     	return NULL;
@@ -2778,7 +2791,7 @@ class cat_Products extends embed_Manager {
     	
     	if($Driver = static::getDriver($id)){
     		$moq = $Driver->getMoq($id);
-    		return ($moq) ? $moq : NULL;
+    		return (!empty($moq)) ? $moq : NULL;
     	}
     	 
     	return NULL;
@@ -2858,7 +2871,7 @@ class cat_Products extends embed_Manager {
      * @param string $newState - ново състояние
      * @return mixed
      */
-    public static function on_BeforeChangeState(core_Mvc $mvc, &$rec, $newState)
+    protected static function on_BeforeChangeState(core_Mvc $mvc, &$rec, $newState)
     {
     	if($newState == 'closed' && $mvc->isUsedInActiveDeal($rec)){
     		core_Statuses::newStatus("Артикулът не може да бъде затворен, докато се използва в активни договори", 'error');
@@ -2870,7 +2883,7 @@ class cat_Products extends embed_Manager {
     /**
      * Изпълнява се преди оттеглянето на документа
      */
-    public static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
+    protected static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
     {
     	if($mvc->isUsedInActiveDeal($id)){
     		core_Statuses::newStatus("Артикулът не може да бъде оттеглен, докато се използва в активни договори", 'error');
