@@ -190,11 +190,14 @@ class doc_DocumentPlg extends core_Plugin
         $d->fhName = 'fh';
         $d->retUrl = getRetUrl();
         $d->localUrl = toUrl(getCurrentUrl(), 'local');
-        
+
+        if(Mode::is('screenMode', 'wide') ) {
+            $className = " floatedElement ";
+        }
         $form->layout = $form->renderLayout();
-        $form->layout->append($Indexes->render($d));
+        $form->layout->append("<div class='{$className}'>" . $Indexes->render($d) . "</div>");
     }
-    
+
     
     /**
      * След промяна в журнала със свързаното перо
@@ -1499,6 +1502,11 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
+        // Добавяме клас, за да може формата да застане до привюто на документа/файла
+        if(Mode::is('screenMode', 'wide') ) {
+            $data->form->class .= " floatedElement ";
+        }
+
         $fType = 'doc';
         $oDocId = NULL;
         $document = NULL;
@@ -1609,8 +1617,12 @@ class doc_DocumentPlg extends core_Plugin
         if ($oDocId && !Mode::is('stopRenderOrigin')) {
             
             if ($document) {
+                // Добавяме клас, за да може формата да застане до привюто на документа/файла
+                if(Mode::is('screenMode', 'wide')) {
+                    $className = " floatedElement ";
+                }
                 $data->form->layout = $data->form->renderLayout();
-                $tpl = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Оригинален документ") . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div>");
+                $tpl = new ET("<div class='preview-holder {$className}'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Оригинален документ") . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div><div class='clearfix21'></div>");
                 
                 if ($document->haveRightFor('single')) {
                     $docHtml = $document->getInlineDocumentBody();

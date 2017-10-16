@@ -408,8 +408,10 @@ class hr_Indicators extends core_Manager
         // Зареждаме всеки един такъв клас
         foreach ($docArr as $class){
             $sourceClass = core_Classes::getId($class);
-            $sMvc = cls::get($class);
-            $names[$sourceClass] = $sMvc->getIndicatorNames();
+            if(cls::load($class, TRUE)){
+            	$sMvc = cls::get($class);
+            	$names[$sourceClass] = $sMvc->getIndicatorNames();
+            }
         }
 
         return $names;

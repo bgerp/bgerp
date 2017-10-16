@@ -101,9 +101,9 @@ class doc_Prototypes extends core_Manager
     	$this->FLD('classId', 'class(interface=doc_PrototypeSourceIntf)', 'caption=Документ,mandatory,input=hidden,silent');
     	$this->FLD('docId', 'int', 'caption=Документ,mandatory,input=hidden,silent,tdClass=leftColImportant');
     	$this->FLD('driverClassId', 'class', 'caption=Документ,input=hidden');
+    	$this->FLD('sharedFolders', 'key2(mvc=doc_Folders, name=title, allowEmpty)', 'caption=Споделяне->Папка');
     	$this->FLD('sharedWithRoles', 'keylist(mvc=core_Roles,select=role,groupBy=type,orderBy=orderByRole)', 'caption=Споделяне->Роли');
     	$this->FLD('sharedWithUsers', 'userList', 'caption=Споделяне->Потребители');
-    	$this->FLD('sharedFolders', 'key2(mvc=doc_Folders, name=title, allowEmpty)', 'caption=Споделяне->Папка');
     	$this->FLD('fields', 'blob(serialize, compress)', 'input=none');
     	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено,closed=Затворено)','caption=Състояние,column=none,input=none,notNull,value=active');
     	

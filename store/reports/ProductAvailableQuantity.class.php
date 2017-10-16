@@ -25,13 +25,53 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
 
     /**
+     * Брой записи на страница
+     *
+     * @var int
+     */
+    protected $listItemsPerPage = 30;
+
+
+    /**
+     * Полета от таблицата за скриване, ако са празни
+     *
+     * @var int
+     */
+    protected $filterEmptyListFields;
+
+
+    /**
+     * Полета за хеширане на таговете
+     *
+     * @see uiext_Labels
+     * @var varchar
+     */
+    protected $hashField;
+
+
+    /**
+     * Кое поле от $data->recs да се следи, ако има нов във новата версия
+     *
+     * @var varchar
+     */
+    protected $newFieldToCheck = 'conditionQuantity';
+
+
+    /**
+     * По-кое поле да се групират листовите данни
+     */
+    protected $groupByField;
+
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Артикул,mandatory');
+        $fieldset->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Артикул');
         $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,after=title');
         $fieldset->FLD('minQuantity', 'double(decimals=2)', 'caption=Мин к-во');
         $fieldset->FLD('maxQuantity', 'double(decimals=2)', 'caption=Макс к-во');
@@ -75,6 +115,10 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = NULL)
     {
         $recs = array();
+
+        if (!isset($rec->productId)){
+            $rec->productId =0;
+        }
 
         $query = store_Products::getQuery();
 

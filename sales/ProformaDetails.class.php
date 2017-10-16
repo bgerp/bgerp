@@ -1,30 +1,31 @@
 <?php
+
+
+
 /**
- * Клас 'sales_SalesDetails'
+ * Клас 'sales_ProformaDetails'
  *
- * Детайли на мениджър на документи за продажба на продукти (@see sales_Sales)
+ * Детайли на мениджър на документи за продажба на продукти (@see sales_pROFORMAS)
  *
  * @category  bgerp
  * @package   sales
- * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class sales_ProformaDetails extends deals_InvoiceDetail
 {
+    
+    
     /**
      * Заглавие
-     * 
-     * @var string
      */
     public $title = 'Детайли на проформата';
 
 
     /**
      * Заглавие в единствено число
-     *
-     * @var string
      */
     public $singleTitle = 'Артикул';
     
@@ -47,32 +48,18 @@ class sales_ProformaDetails extends deals_InvoiceDetail
     
     /**
      * Активен таб на менюто
-     * 
-     * @var string
      */
     public $menuPage = 'Търговия:Продажби';
     
     
     /**
-     * Кой има право да чете?
-     * 
-     * @var string|array
-     */
-    public $canRead = 'ceo, sales';
-    
-    
-    /**
      * Кой има право да променя?
-     * 
-     * @var string|array
      */
     public $canEdit = 'ceo, sales';
     
     
     /**
      * Кой има право да добавя?
-     * 
-     * @var string|array
      */
     public $canAdd = 'ceo, sales';
     
