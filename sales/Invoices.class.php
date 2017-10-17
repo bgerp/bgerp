@@ -737,7 +737,7 @@ class sales_Invoices extends deals_InvoiceMaster
    		$query->orderBy('number', 'ASC');
    		$queryAfter->where("#date > '{$rec->date}' AND #state = 'active' AND #number <= {$number} AND #id != '{$rec->id}'");
    		if($iAfter = $queryAfter->fetch()){
-   			$numberA = $this->recToVerbal($iBefore, 'number')->number;
+   			$numberA = $this->recToVerbal($iAfter, 'number')->number;
    			$msg = "|Фактурата не може да се възстанови|* - |фактура|* №{$numberA} |е с по-малък номер и по-голяма дата в диапазона|*";
    			return FALSE;
    		}
