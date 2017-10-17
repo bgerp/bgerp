@@ -761,7 +761,7 @@ class sales_Invoices extends deals_InvoiceMaster
      * Текст за грешка при бутон за контиране
      */
     public static function on_AfterGetContoBtnErrStr($mvc, &$res, $rec)
-    {return;
+    {
     	if($rec->date > dt::today()){
     		$res = 'Фактурата е с бъдещата дата и не може да бъде контирана';
     	} elseif(!$mvc->isAllowedToBePosted($rec, $error)){
