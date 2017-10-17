@@ -571,7 +571,8 @@ class acc_plg_Contable extends core_Plugin
         		// Ре-контиране на документа след възстановяването му
             	$mvc->reConto($id);
         	} catch (acc_journal_RejectRedirect $e){
-        		 
+        		$mvc->reject($rec);
+        		
         		$url = $mvc->getSingleUrlArray($rec->id);
         		redirect($url, FALSE, '|' . $e->getMessage(), 'error');
         	}
