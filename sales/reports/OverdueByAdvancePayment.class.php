@@ -181,7 +181,6 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = NULL)
     {
 
-
         $recs = array();
 
         $dealers = keylist::toArray($rec->dealers);
@@ -216,11 +215,21 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
 
 //bp($dealerId,$dealers);
 
-            if (strtotime(date('Y/m/d')) > strtotime (date('Y-m-d', strtotime($inDocs->termDate. "+ $rec->tolerance days" )))){
+            $today = date_create(date('Y-m-d'));
+
+            $tolerance = abs($rec->tolerance);
+
+            if($rec->tolerance < 0) {
+                $marker = "-";
+            }else{$marker = "+";}
+
+            $markDay = date_create( (date('Y-m-d', strtotime($inDocs->termDate. "$marker $tolerance days") )));
+
+            if (($today) >($markDay)){
 
                 $condition = 'просрочен';
 
-            }else{$condition = 'ok';}
+            } else{$condition = 'ok';}
 
             if(in_array($dealerId,$dealers)) {
 
