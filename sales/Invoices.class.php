@@ -723,9 +723,9 @@ class sales_Invoices extends deals_InvoiceMaster
    		}
    		
    		$number = (isset($rec->number)) ? $rec->number : $this->getNextNumber($rec);
-   		$query->orderBy('number', 'DESC');
    		
    		$queryBefore = clone $query;
+   		$query->orderBy('number', 'DESC');
    		$queryBefore->where("#date < '{$rec->date}' AND #state = 'active' AND #number > {$number} AND #id != '{$rec->id}'");
    		if($iBefore = $queryBefore->fetch()){
    			$numberB = $this->recToVerbal($iBefore, 'number')->number;
@@ -733,8 +733,8 @@ class sales_Invoices extends deals_InvoiceMaster
    			return FALSE;
    		}
    		
-   		
    		$queryAfter = clone $query;
+   		$query->orderBy('number', 'ASC');
    		$queryAfter->where("#date > '{$rec->date}' AND #state = 'active' AND #number <= {$number} AND #id != '{$rec->id}'");
    		if($iAfter = $queryAfter->fetch()){
    			$numberA = $this->recToVerbal($iBefore, 'number')->number;
