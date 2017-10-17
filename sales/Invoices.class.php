@@ -729,7 +729,7 @@ class sales_Invoices extends deals_InvoiceMaster
    		$queryBefore->where("#date < '{$rec->date}' AND #state = 'active' AND #number > {$number} AND #id != '{$rec->id}'");
    		if($iBefore = $queryBefore->fetch()){
    			$numberB = $this->recToVerbal($iBefore, 'number')->number;
-   			$msg = "|Фактурата не може да се възстанови|* - |фактура|* №{$numberB} |е с по-голям номер и по-малка дата|*";
+   			$msg = "|Фактурата не може да се възстанови|* - |фактура|* №{$numberB} |е с по-голям номер и по-малка дата в диапазона|*";
    			return FALSE;
    		}
    		
@@ -738,7 +738,7 @@ class sales_Invoices extends deals_InvoiceMaster
    		$queryAfter->where("#date > '{$rec->date}' AND #state = 'active' AND #number <= {$number} AND #id != '{$rec->id}'");
    		if($iAfter = $queryAfter->fetch()){
    			$numberA = $this->recToVerbal($iBefore, 'number')->number;
-   			$msg = "|Фактурата не може да се възстанови|* - |фактура|* №{$numberA} |е с по-малък номер и по-голяма дата|*";
+   			$msg = "|Фактурата не може да се възстанови|* - |фактура|* №{$numberA} |е с по-малък номер и по-голяма дата в диапазона|*";
    			return FALSE;
    		}
    		
