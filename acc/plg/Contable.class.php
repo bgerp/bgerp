@@ -173,7 +173,7 @@ class acc_plg_Contable extends core_Plugin
     {
         $rec = &$data->rec;
         
-        $error = $mvc->getBtnErrStr($rec);
+        $error = $mvc->getContoBtnErrStr($rec);
         $error = $error ? ",error={$error}" : '';
         
         if(haveRole('debug')) {
@@ -237,17 +237,28 @@ class acc_plg_Contable extends core_Plugin
             $journalUrl = array('acc_Journal', 'single', $journalRec->id, 'ret_url' => TRUE);
             $data->toolbar->addBtn('Журнал', $journalUrl, "row=2,ef_icon=img/16/book.png,title=Преглед на контировката на документа в журнала{$error}");
         }
+        
+        if($data->toolbar->hasBtn("btnRestore{$rec->containerId}")){
+        	if($error = $mvc->getRestoreBtnErrStr($rec)){
+        		$data->toolbar->setError("btnRestore{$rec->containerId}", $error);
+        	}
+        }
     }
     
     
     /**
-     * 
-     * 
-     * @param core_Manager $mvc
-     * @param string|NULL $res
-     * @param stdObject $rec
+     * Взимане на грешка в бутона за възстановяване
      */
-    public static function on_AfterGetBtnErrStr($mvc, &$res, $rec)
+    public static function on_AfterGetRestoreBtnErrStr($mvc, &$res, $rec)
+    {
+    	
+    }
+    
+    
+    /**
+     * Взимане на грешка в бутона за контиране
+     */
+    public static function on_AfterGetContoBtnErrStr($mvc, &$res, $rec)
     {
         if ($mvc->haveRightFor('conto', $rec)) {
             if(!self::checkPeriod($mvc->getValiorValue($rec), $error)){
