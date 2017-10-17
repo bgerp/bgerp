@@ -314,7 +314,7 @@ class doc_Linked extends core_Manager
         $act = trim($form->rec->act);
         
         if ($act == 'linkDoc') {
-            $form->FNC('linkDocType', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Вид, input, removeAndRefreshForm=linkContainerId|linkFolderId');
+            $form->FNC('linkDocType', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Вид, class=w100, input, removeAndRefreshForm=linkContainerId|linkFolderId');
             $form->input();
             
             if ($type == 'doc') {
