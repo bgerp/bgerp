@@ -13,6 +13,7 @@
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
+ * @deprecated
  */
 class sales_SaleRequests extends core_Master
 {

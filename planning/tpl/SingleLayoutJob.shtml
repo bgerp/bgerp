@@ -102,6 +102,13 @@
                     </tr>
                     <!--ET_END pBomId-->
                     <!--ET_END RECEIPTS-->
+                    
+                    <!--ET_BEGIN oldJobId-->
+                    <tr>
+                        <td class='quiet' style='text-align: left;white-space: nowrap;'>|Предишно задание|*:</td>
+                        <td>[#oldJobId#]</td>
+                    </tr>
+                    <!--ET_END oldJobId-->
                 </table>
 	       </td>
 	       <td style='padding: 0'>
@@ -199,6 +206,7 @@
     [#PACKAGINGS#]
     </div>
     <!--ET_END PACKAGINGS-->
+    <!--ET_BEGIN Tasks-->
     <div class='scrolling-holder'>
 		<div class='job-head1' style='margin-top:10px;padding-top:8px;padding-bottom:8px'>
 		     <b>|Производствени операции|*</b>
@@ -208,4 +216,5 @@
 		       <div style='margin-top:6px'>[#btnTasks#]</div>
 		</div>
     </div>
+    <!--ET_END Tasks-->
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

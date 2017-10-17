@@ -97,6 +97,14 @@ class store_InventoryNoteSummary extends doc_Detail
     
     
     /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'blQuantity';
+    
+    
+    /**
      * Брой записи на страница
      *
      * @var integer
@@ -258,7 +266,7 @@ class store_InventoryNoteSummary extends doc_Detail
      * @param string $groupName       - вътршното представяне на групата
      * @param string $groupVerbalName - текущото вербално име на групата
      */
-    public static function on_AfterRenderGroupName($mvc, &$res, $data, $groupName, $groupVerbalName)
+    protected static function on_AfterRenderGroupName($mvc, &$res, $data, $groupName, $groupVerbalName)
     {
     	$blankUrl = array();
     	$masterRec = $data->masterData->rec;
@@ -536,7 +544,7 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * След извличане на записите от базата данни
      */
-    public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
+    protected static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
     {
     	if(!count($data->recs)) return;
     	

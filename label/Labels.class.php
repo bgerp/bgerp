@@ -41,12 +41,6 @@ class label_Labels extends core_Master
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'label, admin, ceo';
-    
-    
-    /**
      * Кой има право да променя?
      */
     public $canEdit = 'label, admin, ceo';
@@ -163,11 +157,14 @@ class label_Labels extends core_Master
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
+    	$form = &$data->form;
+        $rec = &$form->rec;
+    	
         // Вземаме данните от предишния запис
-        $readOnlyArr = $dataArr = $data->form->rec->params;
+        $readOnlyArr = $dataArr = $rec->params;
         
         // Ако формата не е субмитната и не я редактираме
-        if (!$data->form->rec->id) {
+        if (!$rec->id) {
              // id на шаблона
              $templateId = Request::get('templateId', 'int');
                 
@@ -179,22 +176,23 @@ class label_Labels extends core_Master
              $classId = Request::get('classId');
              $objId = Request::get('objId');
              if ($classId && $objId) {
-                  $clsInst = cls::get($classId);
-                  $arr = (array) $clsInst->getLabelPlaceholders($objId);
+             	  $clsInst = cls::getInterface('label_SequenceIntf', $classId);
+             	
+                  $arr = (array)$clsInst->getLabelPlaceholders($objId);
                   $readOnlyArr = $dataArr = arr::make($arr, TRUE);
                     
-                  $data->form->setDefault('classId', $objId);
-                  $data->form->setDefault('objId', $classId);
+                  $form->setDefault('classId', $objId);
+                  $form->setDefault('objId', $classId);
                     
                   $title = cls::get($classId)->getHandle($objId);
                   $title = "#{$title}/" . dt::mysql2verbal(dt::now(), 'd.m.y H:i:s');
-                  $data->form->setDefault('title', $title);
+                  $form->setDefault('title', $title);
               }
          } else {
              // Полетата, които идват от обекта, да не могат да се редактират
-             if ($data->form->rec->classId && $data->form->rec->objId) {
-                  $clsInst = cls::get($data->form->rec->classId);
-                  $readOnlyArr = (array)$clsInst->getLabelPlaceholders($data->form->rec->objId);
+             if ($rec->classId && $rec->objId) {
+                  $clsInst = cls::getInterface('label_SequenceIntf', $rec->classId);
+                  $readOnlyArr = (array)$clsInst->getLabelPlaceholders($rec->objId);
                   $readOnlyArr = arr::make($readOnlyArr, TRUE);
              }
         }
@@ -203,7 +201,7 @@ class label_Labels extends core_Master
         if (!$templateId) {
             
             // Вземаме от записа
-            $templateId = $data->form->rec->templateId;
+            $templateId = $rec->templateId;
             
             // Очакваме вече да има
             expect($templateId);
@@ -218,12 +216,12 @@ class label_Labels extends core_Master
             $fieldName = label_TemplateFormats::getPlaceholderFieldName($fieldName);
         	
             // Добавяме данните от записите
-            $data->form->rec->$fieldName = $value;
+            $rec->{$fieldName} = $value;
             
             // Стойностите, които идват от интерфейса не се очаква да ги попълва потребителя
-            if ($data->form->rec->objId && $data->form->rec->classId) {
-                if ($data->form->fields[$fieldName] && isset($readOnlyArr[$oFieldName])) {
-                    $data->form->setField($fieldName, 'input=none');
+            if ($rec->objId && $rec->classId) {
+                if ($form->fields[$fieldName] && isset($readOnlyArr[$oFieldName])) {
+                    $form->setField($fieldName, 'input=none');
                 }
             }
         }
@@ -302,18 +300,26 @@ class label_Labels extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        if (label_Templates::haveRightFor('single', $rec->templateId)) {
-            $row->templateId = ht::createLink($row->templateId, array('label_Templates', 'single', $rec->templateId));
-        }
+    	$row->templateId = label_Templates::getHyperlink($rec->templateId, TRUE);
         
         // Показваме линк към обекта, от който е създаден етикета
-        if ($rec->classId && $rec->objId) {
-            $intfInst = cls::getInterface('label_SequenceIntf', $rec->classId);
-            if (($intfInst->class instanceof core_Master) && $intfInst->class->haveRightFor('single', $rec->objId)) {
-                $row->Object = $intfInst->class->getLinkToSingle($rec->objId);
-            } else {
-                $row->Object = $intfInst->class->title;
-            }
+        if (isset($rec->classId) && isset($rec->objId)) {
+        	if(cls::load($rec->classId, TRUE)) {
+        		if(!cls::haveInterface('label_SequenceIntf', $rec->classId)){
+        			$row->title = strip_tags($row->title);
+        			$row->title = ht::createHint($row->title, 'Проблем при печатането на етикета', 'error', FALSE);
+        			unset($row->_rowTools);
+        		}
+        		
+        		$intfInst = cls::get($rec->classId);
+        		if(($intfInst instanceof core_Master) && $intfInst->haveRightFor('single', $rec->objId)) {
+        			$row->Object = $intfInst->getLinkToSingle($rec->objId);
+        		} else {
+        			$row->Object = $intfInst->title;
+        		}
+        	} else {
+        		$row->Object = tr('Проблем при зареждането на класа');
+        	}
         }
     }
     
@@ -340,23 +346,26 @@ class label_Labels extends core_Master
         
         $labelDataArr = array();
         
+        // Вземаме формата към този модел
+        $form = $this->getForm();
+        $form->title = "Избор на шаблон";
+        
         if ($classId && $objId) {
+        	$form->title = 'Избор на шаблон за печат на етикети от|* ' . cls::get($classId)->getFormTitleLink($objId);
+        	
             $intfInst = cls::getInterface('label_SequenceIntf', $classId);
             $labelDataArr = (array) $intfInst->getLabelPlaceholders($objId);
             $labelDataArr = arr::make($labelDataArr, TRUE);
         }
        
-        // Вземаме формата към този модел
-        $form = $this->getForm();
-        
         // Добавяме функционално поле
-        $form->FNC('selectTemplateId', 'key(mvc=label_Templates, select=title, where=#state !\\= \\\'rejected\\\')', 'caption=Шаблон');
+        $form->FNC('selectTemplateId', 'key(mvc=label_Templates, select=title, where=#state !\\= \\\'rejected\\\' AND #state !\\= \\\'closed\\\')', 'caption=Шаблон');
         
         $redirect = FALSE;
         $optArr = array();
         
         if (!empty($labelDataArr)) {
-        	$templates = label_Templates::getTemplatesByDocument($classId);
+        	$templates = label_Templates::getTemplatesByDocument($classId, $objId);
             if (!count($templates)) return new Redirect($retUrl, '|Няма шаблон, който да се използва');
             
             foreach ($templates as $tRec){
@@ -437,9 +446,6 @@ class label_Labels extends core_Master
             // Редиректваме към екшъна за добавяне
             return new Redirect($redirectUrl);
         }
-        
-        // Заглавие на шаблона
-        $form->title = "Избор на шаблон";
         
         // Задаваме да се показват само полетата, които ни интересуват
         $form->showFields = 'selectTemplateId';

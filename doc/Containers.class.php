@@ -688,8 +688,6 @@ class doc_Containers extends core_Manager
         
         expect($threadRec = doc_Threads::fetch($threadId));
         
-        expect(self::haveRightFor('single', $threadRec) || colab_Threads::haveRightFor('single', $threadRec));
-        
         $show = Request::get('show');
         $hide = Request::get('hide');
         
@@ -697,7 +695,6 @@ class doc_Containers extends core_Manager
         
         $cQuery = doc_Containers::getQuery();
         $cQuery->where(array("#threadId = '[#1#]'", $threadId));
-        $cQuery->where("#state != 'rejected'");
         
         while ($cRec = $cQuery->fetch()) {
             
@@ -995,7 +992,7 @@ class doc_Containers extends core_Manager
      * @param string $property
      * @param integer|NULL $threadId
      */
-    protected static function prepareUsersArrForNotifications(&$usersArr, $settingsKey, $property, $threadId = NULL)
+    public static function prepareUsersArrForNotifications(&$usersArr, $settingsKey, $property, $threadId = NULL)
     {
         $settingsNotifyArr = core_Settings::fetchUsers($settingsKey, $property);
         
@@ -1621,6 +1618,8 @@ class doc_Containers extends core_Manager
             foreach($docArr as $id => $class) {
                     
                 $mvc = cls::get($class);
+                
+                if ($mvc->newBtnGroup === FALSE) continue;
                 
                 list($order, $group) = explode('|', $mvc->newBtnGroup);
                 
@@ -2980,6 +2979,8 @@ class doc_Containers extends core_Manager
         $form->FNC('to', 'datetime', 'caption=До, input=input');
         
         $form->input('repair, from, to', TRUE);
+        
+        $form->setDefault('from', dt::addDays(-3));
         
         if ($form->isSubmitted()) {
             

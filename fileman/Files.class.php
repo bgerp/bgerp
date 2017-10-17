@@ -1524,16 +1524,15 @@ class fileman_Files extends core_Master
      * Проверява дали файла е опасен
      * 
      * @param stdObject $rec
+     * @param double $minDangerLevel
      * 
      * @return boolean
      */
-    public static function isDanger($rec)
+    public static function isDanger($rec, $minDangerLevel = 0.1)
     {
         expect(is_object($rec));
         
-        $dangerLevel = 0.1; // 10%
-        
-        if (isset($rec->dangerRate) && ($rec->dangerRate > $dangerLevel)) return TRUE;
+        if (isset($rec->dangerRate) && ($rec->dangerRate > $minDangerLevel)) return TRUE;
         
         return FALSE;
     }

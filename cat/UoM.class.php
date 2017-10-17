@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -126,7 +126,7 @@ class cat_UoM extends core_Manager
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	if(empty($rec->showContents)){
     		$row->showContents = $mvc->getFieldType('showContents')->toVerbal('no');
@@ -257,9 +257,9 @@ class cat_UoM extends core_Manager
      */
     public static function convertFromBaseUnit($amount, $unitId)
     {
-        $rec = static::fetch($unitId);
+        $rec = static::fetch($unitId, 'baseUnitId,baseUnitRatio');
         
-        if ($rec->baseUnitId == null) {
+        if (is_null($rec->baseUnitId)) {
             $ratio = 1;
         } else {
             $ratio = $rec->baseUnitRatio;
@@ -286,6 +286,7 @@ class cat_UoM extends core_Manager
     	($rec->baseUnitId) ? $baseId = $rec->baseUnitId : $baseId = $rec->id;
     	$query->where("#baseUnitId = {$baseId}");
     	$query->orWhere("#id = {$baseId}");
+    	$query->show('shortName,name');
     	
     	$options = array("" => "");
     	while($op = $query->fetch()){
@@ -378,7 +379,7 @@ class cat_UoM extends core_Manager
     /**
      * Изпълнява се преди запис
      */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
     	// Ако се импортира от csv файл, заместваме основната
     	// единица с ид-то и от системата
@@ -568,7 +569,7 @@ class cat_UoM extends core_Manager
     /**
      * Пренасочва URL за връщане след запис към сингъл изгледа
      */
-    public static function on_AfterPrepareRetUrl($mvc, $res, $data)
+    protected static function on_AfterPrepareRetUrl($mvc, $res, $data)
     {
     	// Рет урл-то не сочи към мастъра само ако е натиснато 'Запис и Нов'
     	if (isset($data->form) && ($data->form->cmd === 'save' || is_null($data->form->cmd))) {
@@ -597,7 +598,7 @@ class cat_UoM extends core_Manager
      * @param mixed $res
      * @param string $action
      */
-    public static function on_BeforeAction($mvc, &$res, $action)
+    protected static function on_BeforeAction($mvc, &$res, $action)
     {
     	if($action == 'default'){
     		$type = Request::get('type', 'enum(uom,packaging)');

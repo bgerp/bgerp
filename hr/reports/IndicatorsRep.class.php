@@ -152,9 +152,9 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	/**
 	 * Връща фийлдсета на таблицата, която ще се рендира
 	 *
-	 * @param stdClass $rec      - записа
-	 * @param boolean $export    - таблицата за експорт ли е
-	 * @return core_FieldSet     - полетата
+	 * @param stdClass $rec   - записа
+	 * @param boolean $export - таблицата за експорт ли е
+	 * @return core_FieldSet  - полетата
 	 */
 	protected function getTableFieldSet($rec, $export = FALSE)
 	{
@@ -223,13 +223,14 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
     
     
     /**
-     * След рендиране на единичния изглед
-     *
-     * @param frame2_driver_Proto $Driver
-     * @param embed_Manager $Embedder
-     * @param core_ET $tpl
-     * @param stdClass $data
-     */
+	 * След вербализирането на данните
+	 *
+	 * @param frame2_driver_Proto $Driver
+	 * @param embed_Manager $Embedder
+	 * @param stdClass $row
+	 * @param stdClass $rec
+	 * @param array $fields
+	 */
     protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
         // потребителите

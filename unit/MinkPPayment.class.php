@@ -347,6 +347,8 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('numlimit', '2000000 - 3000000');
         //$browser->setValue('numlimit', '0 - 2000000');
         $browser->press('Чернова');
+        $browser->setValue('Ignore', 1);
+        $browser->press('Чернова');
         $browser->press('Контиране');
         
         // ПКО
@@ -417,7 +419,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('action_ship', False);
         $browser->press('Активиране/Контиране');
        
-        if(strpos($browser->gettext(), 'ДДС 20%: BGN 112,86')) {
+        if(strpos($browser->gettext(), 'ДДС: BGN 112,86')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешно ДДС', 'warning');
         }
@@ -464,7 +466,7 @@ class unit_MinkPPayment extends core_Manager {
         //$browser->setValue('valior', date('d-m-Y', $valior));
         //$browser->press('Чернова');
         //$browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Данъчна основа 20%: BGN 461,34')) {
+        if(strpos($browser->gettext(), 'Данъчна основа: BGN 461,34')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа', 'warning');
         }
@@ -742,6 +744,8 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('numlimit', '2000000 - 3000000');
         //$browser->setValue('numlimit', '0 - 2000000');
         $browser->press('Чернова');
+        $browser->setValue('Ignore', 1);
+        $browser->press('Чернова');
         $browser->press('Контиране');
         
         if(strpos($browser->gettext(), 'Чакащо плащане: Има')) {
@@ -924,11 +928,17 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('numlimit', '2000000 - 3000000');
         //$browser->setValue('numlimit', '0 - 2000000');
         $browser->press('Чернова');
+        $browser->setValue('Ignore', 1);
+        $browser->press('Чернова');
         $browser->press('Контиране');
          
         if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешно чакащо плащане', 'warning');
+        }
+        if(strpos($browser->gettext(), 'Плащане в брой')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешен начин на плащане', 'warning');
         }
     }
     
@@ -1540,5 +1550,5 @@ class unit_MinkPPayment extends core_Manager {
             return unit_MinkPbgERP::reportErr('Грешно чакащо плащане', 'warning');
         }
     }
-     
+    
 }

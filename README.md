@@ -1,6 +1,6 @@
 # bgERP
 
-**bgERP** is a web-based system for management of business process. It is written on [PHP] (http://bg.wikipedia.org/wiki/PHP) and is distributed under the [GPL] (http://bg.wikipedia.org/wiki/GNU_General_Public_License) license. To work bgERP needs web-server [Apache] (http://bg.wikipedia.org/wiki/Apache) and database server [MySQL] (http://www.mysql.com/).
+**bgERP** is a web-based system for management of business process. It is written on [PHP](http://bg.wikipedia.org/wiki/PHP) and is distributed under the [GPL](http://bg.wikipedia.org/wiki/GNU_General_Public_License) license. To work bgERP needs web-server [Apache](http://bg.wikipedia.org/wiki/Apache) and database server [MySQL](http://www.mysql.com/).
 
 **bgERP**  integrated into one software for monitoring, analysis, planning, management and control of the company through a combination of interconnected modules covering a wide range of business processes, data and analysis: customer contacts, accounting, sales, supply planning, production, warehousing, human resources, document, finance, accounting, laboratory analysis, monitoring, etc.
 

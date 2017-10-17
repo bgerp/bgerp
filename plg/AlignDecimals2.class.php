@@ -123,6 +123,6 @@ class plg_AlignDecimals2 extends core_Plugin
     	
     	if(!count($recs)) return;
     	
-    	self::alignDecimals($mvc, $recs, $rows);
+    	self::alignDecimals($data->listTableMvc, $recs, $rows);
     }
 }

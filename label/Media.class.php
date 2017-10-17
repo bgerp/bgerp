@@ -75,8 +75,8 @@ class label_Media extends core_Manager
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие, mandatory, width=100%, silent');
         
-        $this->FLD('width', 'int(min=1, max=1000)', 'caption=Размер->Широчина, unit=mm, notNull, mandatory');
-        $this->FLD('height', 'int(min=1, max=1000)', 'caption=Размер->Височина, unit=mm, notNull, mandatory');
+        $this->FLD('width', 'double(Min=0, max=1000, decimals=1, smartRound)', 'caption=Размер->Широчина, unit=mm, notNull, mandatory');
+        $this->FLD('height', 'double(Min=0, max=1000, decimals=1, smartRound)', 'caption=Размер->Височина, unit=mm, notNull, mandatory');
         
         $this->FLD('fieldUp', 'int', 'caption=Отстъпи->Отгоре, value=0, title=Поле на листа отгоре, unit=mm, notNull');
         $this->FLD('fieldLeft', 'int', 'caption=Отстъпи->Отляво, value=0, title=Поле на листа отляво, unit=mm, notNull');
@@ -299,7 +299,7 @@ class label_Media extends core_Manager
      * @param stdClass $rec
      * @param int $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Активните записи да не може да се редактират или изтриват
         if ($rec && ($action == 'edit' || $action == 'delete')) {
@@ -311,13 +311,9 @@ class label_Media extends core_Manager
     
     
     /**
-     * 
-     * 
-     * @param label_Labels $mvc
-     * @param object $row
-     * @param object $rec
+     * След подготовка на вербалното представяне
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->title = $row->title . " " . self::getSize($row->width, $row->height);
     }

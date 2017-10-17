@@ -101,9 +101,9 @@ class doc_Prototypes extends core_Manager
     	$this->FLD('classId', 'class(interface=doc_PrototypeSourceIntf)', 'caption=Документ,mandatory,input=hidden,silent');
     	$this->FLD('docId', 'int', 'caption=Документ,mandatory,input=hidden,silent,tdClass=leftColImportant');
     	$this->FLD('driverClassId', 'class', 'caption=Документ,input=hidden');
+    	$this->FLD('sharedFolders', 'key2(mvc=doc_Folders, name=title, allowEmpty)', 'caption=Споделяне->Папка');
     	$this->FLD('sharedWithRoles', 'keylist(mvc=core_Roles,select=role,groupBy=type,orderBy=orderByRole)', 'caption=Споделяне->Роли');
     	$this->FLD('sharedWithUsers', 'userList', 'caption=Споделяне->Потребители');
-    	$this->FLD('sharedFolders', 'key2(mvc=doc_Folders, name=title, allowEmpty)', 'caption=Споделяне->Папка');
     	$this->FLD('fields', 'blob(serialize, compress)', 'input=none');
     	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено,closed=Затворено)','caption=Състояние,column=none,input=none,notNull,value=active');
     	
@@ -167,9 +167,18 @@ class doc_Prototypes extends core_Manager
     
     
     /**
+     * Изпълнява се след подготвянето на формата за филтриране
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    {
+    	$data->query->orderBy('createdOn', "DESC");
+    }
+    
+    
+    /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    public static function on_AfterPrepareListToolbar($mvc, &$data)
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
     	if(!empty($data->toolbar->buttons['btnAdd'])){
     		$data->toolbar->removeBtn('btnAdd');
@@ -180,7 +189,7 @@ class doc_Prototypes extends core_Manager
     /**
      * Преди показване на форма за добавяне/промяна
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = $data->form;
     	expect($origin = doc_Containers::getDocument($form->rec->originId));
@@ -204,7 +213,7 @@ class doc_Prototypes extends core_Manager
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
     	$rec = &$form->rec;
     	
@@ -222,7 +231,7 @@ class doc_Prototypes extends core_Manager
     /**
      * Изпълнява се след създаване на нов запис
      */
-    public static function on_AfterCreate($mvc, $rec)
+    protected static function on_AfterCreate($mvc, $rec)
     {
     	// След като се създаде шаблон, оригиналния документ минава в състояние шаблон
     	$nRec = (object)array('id' => $rec->docId, 'state' => 'template');
@@ -231,10 +240,9 @@ class doc_Prototypes extends core_Manager
     
     
     /**
-     * 
      * След преобразуване на записа в четим за хора вид
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if(isset($fields['-list'])){
     		$row->docId = doc_Containers::getDocument($rec->originId)->getLink(0);

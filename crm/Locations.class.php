@@ -730,6 +730,7 @@ class crm_Locations extends core_Master {
         }
         
     	$tpl = $this->renderWrapping($form->renderHtml());
+    	core_Form::preventDoubleSubmission($tpl, $form);
     	
     	return $tpl;
     }

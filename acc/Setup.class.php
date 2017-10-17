@@ -78,6 +78,12 @@ defIfNot('ACC_CLASSES_FOR_VIEW_ACCESS_NAME', 'bank_ExchangeDocument, bank_Income
 
 
 /**
+ * Ден от месеца за изчисляване на Счетоводна дата на входяща фактура
+ */
+defIfNot('ACC_DATE_FOR_INVOICE_DATE', '10');
+
+
+/**
  * class acc_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -156,7 +162,8 @@ class acc_Setup extends core_ProtoSetup
     	'migrate::updateItemsEarliestUsedOn',
         'migrate::updateAllFL',
         'migrate::updateFeatureTitles',
-    	'migrate::updateCostObjectDocuments1'
+    	'migrate::updateCostObjectDocuments1',
+    	'migrate::removeRoleAllGlobalNew'
     );
     
     
@@ -172,7 +179,8 @@ class acc_Setup extends core_ProtoSetup
     	'ACC_COST_OBJECT_DOCUMENTS'           => array('keylist(mvc=core_Classes,select=name)', "caption=Кои документи могат да бъдат разходни обекти->Документи,optionsFunc=acc_Setup::getDocumentOptions"),
         'ACC_SUMMARY_ROLES_FOR_TEAMS'         => array('varchar', 'caption=Роли за екипите при филтриране->Роли'),
         'ACC_SUMMARY_ROLES_FOR_ALL'           => array('varchar', 'caption=Роли за всички при филтриране->Роли'),
-        'ACC_CLASSES_FOR_VIEW_ACCESS'           => array('keylist(mvc=core_Classes, select=title)', 'caption=Класове|*&#44; |*които ще разширяват правата за контиране на документи->Класове, optionsFunc=acc_Setup::getAccessClassOptions', array('data-role' => 'list')),
+        'ACC_CLASSES_FOR_VIEW_ACCESS'         => array('keylist(mvc=core_Classes, select=title)', 'caption=Класове|*&#44; |*които ще разширяват правата за контиране на документи->Класове, optionsFunc=acc_Setup::getAccessClassOptions', array('data-role' => 'list')),
+		'ACC_DATE_FOR_INVOICE_DATE'			  => array('int(min=1,max=31)', 'caption=Ден от месеца за изчисляване на Счетоводна дата на входяща фактура->Ден'),
     );
     
     
@@ -185,22 +193,22 @@ class acc_Setup extends core_ProtoSetup
     	array('accJournal'),
     	array('acc', 'accJournal,invoicer,seePrice'),
         array('accMaster', 'acc'),
-    	array('accLimits'),
+        array('accLimits'),
+        array('allGlobal'),
         array('invoiceAll'),
-        array('invoiceAllGlobal', 'invoiceAll'),
+        array('invoiceAllGlobal', 'invoiceAll, allGlobal'),
         array('storeAll'),
-        array('storeaAllGlobal', 'storeAll'),
+        array('storeaAllGlobal', 'storeAll, allGlobal'),
         array('bankAll'),
-        array('bankAllGlobal', 'bankAll'),
+        array('bankAllGlobal', 'bankAll, allGlobal'),
         array('cashAll'),
-        array('cashAllGlobal', 'cashAll'),
+        array('cashAllGlobal', 'cashAll, allGlobal'),
         array('saleAll'),
-        array('saleAllGlobal', 'saleAll'),
+        array('saleAllGlobal', 'saleAll, allGlobal'),
         array('purchaseAll'),
-        array('purchaseAllGlobal', 'purchaseAll'),
+        array('purchaseAllGlobal', 'purchaseAll, allGlobal'),
         array('planningAll'),
-        array('planningAllGlobal', 'planningAll'),
-        array('allGlobal', 'invoiceAllGlobal, storeaAllGlobal, bankAllGlobal, cashAllGlobal, saleAllGlobal, purchaseAllGlobal, planningAllGlobal'),
+        array('planningAllGlobal', 'planningAll, allGlobal'),
         array('rep_acc'),
 
     );
@@ -280,7 +288,7 @@ class acc_Setup extends core_ProtoSetup
     					acc_reports_CorespondingImpl,acc_reports_SaleArticles,acc_reports_SaleContractors,acc_reports_OweProviders,
     					acc_reports_ProfitArticles,acc_reports_ProfitContractors,acc_reports_MovementContractors,acc_reports_TakingCustomers,
     					acc_reports_ManufacturedProducts,acc_reports_PurchasedProducts,acc_reports_BalancePeriodImpl, acc_reports_ProfitSales,
-                        acc_reports_MovementsBetweenAccounts,acc_reports_ProductGroupRep";
+                        acc_reports_MovementsBetweenAccounts,acc_reports_ProductGroupRep,acc_reports_MovementArtRep";
     
     
     /**
@@ -555,5 +563,14 @@ class acc_Setup extends core_ProtoSetup
         while($fRec = $fQuery->fetch()) {  
             acc_Features::save($fRec);
         }
+    }
+    
+    
+    /**
+     * Премахване на ролята `allGlobal`, защото наследява други
+     */
+    function removeRoleAllGlobalNew()
+    {
+        core_Roles::removeRoles(array(core_Roles::fetchByName('allGlobal')));
     }
 }

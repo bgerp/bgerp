@@ -57,12 +57,12 @@
                                      <td style='width:98px'  class='nowrap'>|Към сметка|*:</td>
                                      <td><b>[#ownAccount#]</b> </td>
                                  </tr>
-                                 
+                                  <!--ET_BEGIN reason-->
                                  <tr>
                                      <td>|Основание|*: </td>
                                      <td> [#reason#]</td>
                                  </tr>
-                                 
+                                  <!--ET_END reason-->
                                  <!--ET_BEGIN termDate-->
                                     <tr>
                                         <td>|Очаквано на|*: </td>

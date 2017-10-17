@@ -16,12 +16,6 @@ class cat_ProductTplCache extends core_Master
 	
 	
 	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'techno2_SpecTplCache';
-	
-	
-	/**
 	 * Необходими плъгини
 	 */
 	public $loadList = 'plg_RowTools2, cat_Wrapper';

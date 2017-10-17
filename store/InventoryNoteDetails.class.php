@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'store_InventoryNoteDetails'
  *
@@ -126,7 +127,7 @@ class store_InventoryNoteDetails extends doc_Detail
     {
         $this->FLD('noteId', 'key(mvc=store_InventoryNotes)', 'column=none,notNull,silent,hidden,mandatory');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,silent,removeAndRefreshForm=packagingId|quantity|quantityInPack|packQuantity|batch');
-        $this->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,smartCenter,tdClass=small-field nowrap,removeAndRefreshForm=quantity|quantityInPack|packQuantity|batch,remember,silent');
+        $this->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,tdClass=small-field nowrap,removeAndRefreshForm=quantity|quantityInPack|packQuantity|batch,remember,silent');
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double(decimals=2)', 'input=hidden,column=none');
         $this->FNC('packQuantity', 'double(decimals=2,min=0)', 'caption=Количество,input');
@@ -230,7 +231,7 @@ class store_InventoryNoteDetails extends doc_Detail
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
     	$rec = $form->rec;
     	
@@ -257,7 +258,7 @@ class store_InventoryNoteDetails extends doc_Detail
     /**
      * Подготовка на бутоните на формата за добавяне/редактиране
      */
-    public static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
     	// Подсигуряване че запис и нов го има дори и при редакция
     	if(isset($data->form->rec->id)) {
@@ -272,7 +273,7 @@ class store_InventoryNoteDetails extends doc_Detail
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareRetUrl($mvc, $data)
+    protected static function on_AfterPrepareRetUrl($mvc, $data)
     {
     	if(!isset($data->form) || !$data->form->isSubmitted()) return;
     	
@@ -307,7 +308,7 @@ class store_InventoryNoteDetails extends doc_Detail
      * @param int $id първичния ключ на направения запис
      * @param stdClass $rec всички полета, които току-що са били записани
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
     	if(is_null($rec->quantity)){
     		$mvc->delete($rec->id);
@@ -339,7 +340,7 @@ class store_InventoryNoteDetails extends doc_Detail
     /**
      * Изчиства записите, заопашени за запис
      */
-    public static function on_Shutdown($mvc)
+    protected static function on_Shutdown($mvc)
     {
     	if(count($mvc->cache)){
     		foreach ($mvc->cache as $noteId) {
@@ -358,6 +359,7 @@ class store_InventoryNoteDetails extends doc_Detail
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
+    	$row->packagingId = cat_UoM::getShortName($rec->packagingId);
     	$row->productId = cat_Products::getShortHyperlink($rec->productId);
     	deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
     }
@@ -451,6 +453,7 @@ class store_InventoryNoteDetails extends doc_Detail
     	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 		
 		$tpl = $this->renderWrapping($form->renderHtml());
+		core_Form::preventDoubleSubmission($tpl, $form);
 		
 		return $tpl;
     }

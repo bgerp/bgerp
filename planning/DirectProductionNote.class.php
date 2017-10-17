@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'planning_DirectProductionNote' - Документ за производство
  *
@@ -86,7 +87,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	
 	
 	/**
-	 * Кой има право да чете?
+	 * Кой има право да контира?
 	 */
 	public $canConto = 'ceo,planning,store,production';
 	
@@ -202,7 +203,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	/**
 	 * Изчисляване на количеството на реда в брой опаковки
 	 */
-	public static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
+	protected static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
 	{
 		if (empty($rec->quantity) || empty($rec->quantityInPack)) return;
 		
@@ -239,7 +240,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		}
 		
 		$form->setDefault('jobQuantity', $originRec->quantity);
-		$quantityFromTasks = planning_TaskActions::getQuantityForJob($originRec->id, 'product');
+		$quantityFromTasks = 0;//planning_TaskActions::getQuantityForJob($originRec->id, 'product');
 		$quantityToStore = $quantityFromTasks - $originRec->quantityProduced;
 		
 		if($quantityToStore > 0){
@@ -425,7 +426,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		
 		// Намираме детайлите от задачите и рецеоптите
 		$bomDetails = $this->getDefaultDetailsFromBom($rec, $bomId);
-		$taskDetails = $this->getDefaultDetailsFromTasks($rec);
+		$taskDetails = array();//$this->getDefaultDetailsFromTasks($rec);
 		
 		// Ако има рецепта
 		if($bomId){
@@ -727,11 +728,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		$form->toolbar->addSbBtn('Контиране', 'save', 'ef_icon = img/16/tick-circle-frame.png, title = Контиране на документа');
 		$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 		
-		$tpl = $form->renderHtml();
-		$tpl = $this->renderWrapping($tpl);
-		
-		$formId = $form->formAttr['id'] ;
-		jquery_Jquery::run($tpl, "preventDoubleSubmission('{$formId}');");
+		$tpl = $this->renderWrapping($form->renderHtml());
+		core_Form::preventDoubleSubmission($tpl, $form);
 		
 		return $tpl;
 	}
@@ -795,10 +793,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		if(isset($rec->id)){
 			$input = planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #type = 'input'", 'id');
 			$pop = planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #type = 'pop'", 'id');
-			if($pop && !$input){
-			
-				return FALSE;
-			}
+			if($pop && !$input) return FALSE;
 		}
 		
 		return TRUE;
@@ -808,7 +803,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	/**
 	 * Извиква се след като документа стане разходен обект
 	 */
-	public static function on_AfterForceCostObject($mvc, $rec)
+	protected static function on_AfterForceCostObject($mvc, $rec)
 	{
 		// Реконтиране на документа
 		acc_Journal::reconto($rec->containerId);

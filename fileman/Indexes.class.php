@@ -144,9 +144,11 @@ class fileman_Indexes extends core_Manager
     {
         // Масив с всички табове
         $tabsArr = $data->tabs;
-
+        
         if(! count($data->tabs)) return FALSE;
-
+        
+        setIfNot($data->fhName, 'id');
+        
         // Подреждаме масивити според order
         $tabsArr = static::orderTabs($tabsArr);
 
@@ -175,17 +177,29 @@ class fileman_Indexes extends core_Manager
            
             // Ако не е таб
             if (strpos($name, '__') === 0) continue;
-
+            
+            if ($data->localUrl) {
+                $urlArr = core_App::parseLocalUrl($data->localUrl);
+                $urlArr['currentTab'] = $name;
+                $urlArr['#'] = 'fileDetail';
+            } else {
+                $urlArr = array($data->fhName => $data->rec->fileHnd, 'currentTab' => $name, '#' => 'fileDetail');
+                
+                if ($data->retUrl) {
+                    $urlArr['ret_url'] = $data->retUrl;
+                }
+            }
+            
             // Ако е текущия таб таб
             if($name == $currentTab) {
-                 $tabs->TAB($name, $rec->title,  array('currentTab' => $name, 'id' => $data->rec->fileHnd, '#' => 'fileDetail'));
+                $tabs->TAB($name, $rec->title, $urlArr);
                  
                  // Вземаме съдържанеито на тялот
                  $body = $rec->html;
             } else {
 
                 // Създаваме таб
-                $tabs->TAB($name, $rec->title, array('currentTab' => $name, 'id' => $data->rec->fileHnd, '#' => 'fileDetail'));
+                $tabs->TAB($name, $rec->title, $urlArr);
             }
         }
         

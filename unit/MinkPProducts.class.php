@@ -72,7 +72,7 @@ class unit_MinkPProducts extends core_Manager {
         $browser->click('Чувал голям 50 L');
         $browser->press('Редакция');
         $browser->setValue('info', 'прозрачен');
-        $browser->setValue('Ценова група » 0', 12);
+        $browser->setValue('Продукти', 7);
         $browser->press('Запис');
        
         //return $browser->getHtml();
@@ -233,7 +233,6 @@ class unit_MinkPProducts extends core_Manager {
     
     /**
      * 5. Създава задание за производство
-     * (Ако има предишно задание, трябва да се приключи)
      */
     //http://localhost/unit_MinkPProducts/CreatePlanningJob/
     function act_CreatePlanningJob()
@@ -259,13 +258,16 @@ class unit_MinkPProducts extends core_Manager {
             $browser->setValue('notes', 'CreatePlanningJob');
             $browser->press('Чернова');
             $browser->press('Активиране');
-            //Добавяне на задача
+            
+            /*
+            Добавяне на задача - временно спряно
             $browser->click('Добавяне на нова задача за производство');
             $browser->setValue('hrdepartmentId', 'Производство');
             $browser->press('Напред');
             $browser->setValue('storeId', 'Склад 1');
             $browser->press('Чернова');
             $browser->press('Активиране');
+           
             //Произвеждане и влагане
             $browser->press('Произвеждане'); 
             //$browser->press('Добавяне на произведен артикул');
@@ -284,20 +286,23 @@ class unit_MinkPProducts extends core_Manager {
             $browser->press('Запис');
             // Приключване на задачата - когато са в една нишка, разпознава бутона за приключване на заданието, защото са с еднакви имена
             $browser->press('Приключване');
+                        
             //Протокол за производство - в заданието
             $browser->click('Задание за производство №');
+            */
             
             //$browser->press('Създаване на протокол за производство от заданието');
             $browser->press('Произвеждане');
             $browser->setValue('storeId', 'Склад 1');
             $browser->setValue('note', 'Test');
+            $browser->setValue('packQuantity', '200');
             $browser->press('Чернова');
             $browser->press('Контиране');
             $browser->press('Приключване');
         } else {
         return unit_MinkPbgERP::reportErr('Няма такъв артикул', 'info');
         }
-        //return $browser->getHtml();
+        //
     }
  
     /**

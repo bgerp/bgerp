@@ -66,7 +66,7 @@ class store_reports_Documents extends frame2_driver_TableData
 		
 		$stores = self::getContableStores($form->rec);
 		$form->setOptions('storeId', array('' => '') + $stores);
-		$documents = array('planning_ConsumptionNotes', 'planning_ReturnNotes', 'store_Transfers', 'store_ShipmentOrders', 'store_Receipts', 'planning_DirectProductionNote');
+		$documents = array('planning_ConsumptionNotes', 'planning_ReturnNotes', 'store_Transfers', 'store_ShipmentOrders', 'store_Receipts', 'planning_DirectProductionNote', 'store_ConsignmentProtocols');
 	
 		$docOptions = array();
 		foreach ($documents as $className){
@@ -132,12 +132,13 @@ class store_reports_Documents extends frame2_driver_TableData
 			}
 		}
 		
-		foreach (array('store_ShipmentOrders', 'store_Receipts', 'store_Transfers') as $pDoc){
+		foreach (array('store_ShipmentOrders', 'store_Receipts', 'store_Transfers', 'store_ConsignmentProtocols') as $pDoc){
 			if(empty($rec->{$documentFld}) || ($rec->{$documentFld} == $pDoc::getClassId())){
 				$Document = cls::get($pDoc);
+				$deadlineFld = ($pDoc != 'store_ConsignmentProtocols') ? 'deliveryTime' : 'valior';
 				
 				$sQuery = $Document->getQuery();
-				self::applyFilters($sQuery, $storeIds, $pDoc, $rec, 'deliveryTime');
+				self::applyFilters($sQuery, $storeIds, $pDoc, $rec, $deadlineFld);
 				while($sRec = $sQuery->fetch()){
 					$linked = $this->getLinkedDocuments($sRec->containerId);
 					if(!empty($sRec->lineId)){
@@ -208,19 +209,29 @@ class store_reports_Documents extends frame2_driver_TableData
 	 * Връща линкнатите документи към контейнера
 	 * 
 	 * @param int $containerId
+	 * 
 	 * @return array $linked
 	 */
 	private function getLinkedDocuments($containerId)
 	{
 		$linked = array();
+        
+		$cQuery = doc_Linked::getQuery();
+		$cQuery->where(array("#outVal = '[#1#]'", $containerId));
+		$cQuery->where("#outType = 'doc'");
+		$cQuery->where("#inType = 'doc'");
 		
-		$cQuery = cal_TaskDocuments::getQuery();
-		$cQuery->EXT('taskContainerId', 'cal_Tasks', 'externalName=containerId,externalKey=taskId');
-		$cQuery->EXT('taskState', 'cal_Tasks', 'externalName=state,externalKey=taskId');
-		$cQuery->where("#containerId = {$containerId} AND #taskState != 'rejected'");
-		$cQuery->show('taskId,taskContainerId');
+		$cQuery->where("#state != 'rejected'");
+		
+		$cQuery->EXT('cState', 'doc_Containers', 'externalName=state,externalKey=inVal');
+		$cQuery->where("#cState != 'rejected'");
+		
+		$cQuery->show('inVal');
+		
+		$cQuery->orderBy('createdOn', 'DESC');
+		
 		while($cRec = $cQuery->fetch()){
-			$linked[$cRec->taskContainerId] = $cRec->taskContainerId;
+		    $linked[$cRec->inVal] = $cRec->inVal;
 		}
 		
 		return $linked;
@@ -348,10 +359,10 @@ class store_reports_Documents extends frame2_driver_TableData
 	/**
 	 * Връща фийлдсета на таблицата, която ще се рендира
 	 *
-	 * @param stdClass $rec      - записа
-	 * @param boolean $export    - таблицата за експорт ли е
-	 * @return core_FieldSet     - полетата
-	*/
+	 * @param stdClass $rec   - записа
+	 * @param boolean $export - таблицата за експорт ли е
+	 * @return core_FieldSet  - полетата
+	 */
 	protected function getTableFieldSet($rec, $export = FALSE)
 	{
 		$fld = cls::get('core_FieldSet');

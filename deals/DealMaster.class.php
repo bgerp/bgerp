@@ -103,14 +103,13 @@ abstract class deals_DealMaster extends deals_DealBase
 		// Ако имаме фактури към сделката
 		if(count($aggregateDealInfo->invoices)){
 			
-			
 			$today = dt::today();
 			$invoices = $aggregateDealInfo->invoices;
 			
 			// Намираме непадежиралите фактури, тези с вальор >= на днес
 			$sum = 0;
 			$res = array_filter($invoices, function (&$e) use ($today, &$sum) {
-				if($e['dueDate'] >= $today){
+				if($e['dueDate'] >= $today && $e['total'] > 0){
 					$sum += $e['total'];
 					return TRUE;
 				}
@@ -362,6 +361,19 @@ abstract class deals_DealMaster extends deals_DealBase
     	if(isset($rec->deliveryTermTime) && isset($rec->deliveryTime)){
     		$form->setError('deliveryTime,deliveryTermTime', 'Трябва да е избран само един срок на доставка');
     	}
+    	
+    	// Предупреждение, ако има разминаване в очаквания и избрания режим на ДДС
+    	$defVat = $mvc->getDefaultChargeVat($rec);
+    	if($defVat == 'yes' && in_array($rec->chargeVat, array('exempt', 'no'))){
+    		$form->setWarning('chargeVat', 'Избран е режим за неначисляване на ДДС, при очакван с ДДС');
+    	} elseif($defVat == 'no' && in_array($rec->chargeVat, array('yes', 'separate'))){
+    		$form->setWarning('chargeVat', 'Избран е режим за начисляване на ДДС, при очакван без ДДС');
+    	}
+    	
+    	$defCurrency = cls::get($rec->contragentClassId)->getDefaultCurrencyId($rec->contragentId);
+    	if($defCurrency != $rec->currencyId){
+    		$form->setWarning('currencyId', "Избрана e различна валута от очакваната|* {$defCurrency}");
+    	}
     }
 
     
@@ -572,19 +584,10 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
-        // Премахваме някои от полетата в listFields. Те са оставени там за да ги намерим в 
-        // тук в $rec/$row, а не за да ги показваме
-        $data->listFields = array_diff_key(
-            $data->listFields, 
-            arr::make('initiatorId,contragentId', TRUE)
-        );
-        
-        $data->listFields['dealerId'] = 'Търговец';
-        
         if (count($data->rows)) {
-            foreach ($data->rows as $i=>&$row) {
+            foreach ($data->rows as $i => $row) {
                 $rec = $data->recs[$i];
-    
+ 
                 // Търговец (чрез инициатор)
                 if (!empty($rec->initiatorId)) {
                     $row->dealerId .= ' <small><span class="quiet">чрез</span> ' . $row->initiatorId . "</small>";
@@ -957,7 +960,7 @@ abstract class deals_DealMaster extends deals_DealBase
 			} else {
 				if(isset($rec->deliveryTermId)){
 					$deliveryAdress .= cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $mvc);
-					$deliveryAdress = ht::createHint($deliveryAdress, 'Адреса за доставка ще се запише при активиране');
+					$deliveryAdress = ht::createHint($deliveryAdress, 'Адреса за доставка ще бъде записан при активиране');
 				}
 			}
 			
@@ -1271,9 +1274,6 @@ abstract class deals_DealMaster extends deals_DealBase
     	// Извличане на позволените операции
     	$options = $this->getContoOptions($rec);
     	$hasSelectedBankAndCase = !empty($rec->bankAccountId) && !empty($rec->caseId);
-    	if($hasSelectedBankAndCase === TRUE){
-    		$form->info .= tr("|*<br><span style='color:darkgreen'>|Избрани са едновременно каса и банкова сметка! Потвърдете че плащането е на момента или редактирайте сделката|*.</span>");
-    	}
     	
     	// Трябва да има избор на действие
     	expect(count($options));
@@ -1297,6 +1297,10 @@ abstract class deals_DealMaster extends deals_DealBase
     	if($options['pay'] && $rec->caseId){
     		if($rec->caseId === $curCaseId && $hasSelectedBankAndCase === FALSE){
     			$selected[] = 'pay';
+    		}
+    		
+    		if($hasSelectedBankAndCase === TRUE){
+    			$form->info .= tr("|*<br><span style='color:darkgreen'>|Избрани са едновременно каса и банкова сметка! Потвърдете че плащането е на момента или редактирайте сделката|*.</span>");
     		}
     	}
     	
@@ -1336,9 +1340,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	 
     	// Рендиране на формата
     	$tpl = $this->renderWrapping($form->renderHtml());
-    	
-    	$formId = $form->formAttr['id'] ;
-    	jquery_Jquery::run($tpl, "preventDoubleSubmission('{$formId}');");
+    	core_Form::preventDoubleSubmission($tpl, $form);
     	
     	return $tpl;
     }
@@ -1592,10 +1594,8 @@ abstract class deals_DealMaster extends deals_DealBase
     	$fields['paymentState'] = 'pending';
     	
     	// Опиваме се да запишем мастъра на сделката
-    	if($id = $me->save((object)$fields)){
-    		
-    		// Ако е успешно, споделяме текущия потребител към новосъздадената нишка
-    		$rec = $me->fetchField($id);
+    	$rec = (object)$fields;
+    	if($id = $me->save($rec)){
     		doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, core_Users::getCurrent());
     
     		return $id;
@@ -1828,8 +1828,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	}
     	
     	$tpl = $this->renderWrapping($form->renderHtml());
-    	$formId = $form->formAttr['id'] ;
-    	jquery_Jquery::run($tpl, "preventDoubleSubmission('{$formId}');");
+    	core_Form::preventDoubleSubmission($tpl, $form);
     	
     	return $tpl;
     }

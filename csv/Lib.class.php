@@ -621,8 +621,6 @@ class csv_Lib
                 $points -= $soloUse;
                 $points += 0.6 * ($soloUse == 1);
 
-               // bp($deCntL, $deCntR, $soloUse, $points);
- 
                 if(!isset($best) || $best < $points) {
                     $delimiter = $d;
                     $enclosure = $e;

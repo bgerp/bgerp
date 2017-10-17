@@ -1297,6 +1297,10 @@ a.tOld {
     padding: 3px; }
   .document .border-table th {
     background-color: #e0e0e0; }
+  .document .border-field {
+    display: inline-block;
+    width: 120px;
+    border-bottom: 1px solid #aaaaaa; }
   .document .no-border-bottom {
     border-bottom: none !important; }
   .document .no-border td,
@@ -1325,6 +1329,14 @@ a.tOld {
     border: 0px !important; }
     .document .reportHolder .group-by-field-row td {
       padding: 5px !important; }
+
+#packWrapper > .floatedElement {
+  float: left; }
+  #packWrapper > .floatedElement.preview-holder {
+    margin-top: -20px !important; }
+
+#packWrapper form.floatedElement {
+  margin-right: 20px; }
 
 .smallerTextInTable {
   font-size: 0.7em;

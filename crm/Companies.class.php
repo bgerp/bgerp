@@ -176,8 +176,20 @@ class crm_Companies extends core_Master
      * Кой може да го възстанови?
      */
     var $canRestore = 'powerUser';
-
-
+    
+    
+    /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'admin, ceo';
+    
+    
+    /**
+     * Кой има право да оттегля системните данни?
+     */
+    public $canRejectsysdata = 'admin, ceo';
+    
+	
     /**
      * Поле, в което да се постави връзка към папката в листови изглед
      */

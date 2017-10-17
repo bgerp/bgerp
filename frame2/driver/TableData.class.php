@@ -57,6 +57,12 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 	
 	
 	/**
+	 * Дали групиращото поле да е на отделен ред или не
+	 */
+	protected $groupedFieldOnNewRow = TRUE;
+	
+	
+	/**
 	 * Връща заглавието на отчета
 	 *
 	 * @param stdClass $rec - запис
@@ -83,6 +89,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 		$data = new stdClass();
 		$data->recs = $this->prepareRecs($rec, $data);
 		setIfNot($data->groupByField, $this->groupByField);
+		setIfNot($data->groupedFieldOnNewRow, $this->groupedFieldOnNewRow);
 		
 		return $data;
 	}
@@ -142,8 +149,16 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 		$filterFields['_tagField'] = '_tagField';
 		
 		if(isset($data->groupByField)){
-			$this->groupRows($data->recs, $data->rows, $data->listFields, $data->groupByField);
-			$filterFields[$data->groupByField] = $data->groupByField;
+			$found = FALSE;
+			
+			// Групиране само ако има поне една стойност за групиране
+			$groupByField = $data->groupByField;
+			array_walk($data->recs, function ($r) use ($groupByField, &$found) {if(isset($r->{$groupByField})) {$found = TRUE;}});
+			
+			if($found === TRUE){
+				$this->groupRows($data->recs, $data->rows, $data->listFields, $data->groupByField, $data);
+				$filterFields[$data->groupByField] = $data->groupByField;
+			}
 		}
 		
 		$data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, implode(',', $filterFields));
@@ -200,7 +215,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 	 * @param array $rows
 	 * @param array $listFields
 	 */
-	protected function groupRows($recs, &$rows, $listFields, $field)
+	protected function groupRows($recs, &$rows, $listFields, $field, $data)
 	{
 		if(!count($rows)) return;
 		$columns = count($listFields);
@@ -213,30 +228,55 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 		$newRows = $rowAttr = array();
 		$rowAttr['class'] = ' group-by-field-row';
 		foreach ($groups as $groupId => $groupVerbal){
-			$groupVerbal = ($groupVerbal instanceof core_ET) ? $groupVerbal->getContent() : $groupVerbal;
-			$groupVerbal = $groupVerbal;
-			$groupVerbal = "<td style='padding-top:9px;padding-left:5px;' colspan='{$columns}'><b>" . $groupVerbal . "</b></td>";
+			if($data->groupedFieldOnNewRow === TRUE){
+				$groupVerbal = ($groupVerbal instanceof core_ET) ? $groupVerbal->getContent() : $groupVerbal;
+				$groupVerbal = $this->getGroupedTr($columns, $groupId, $groupVerbal, $data);
+					
+				$newRows['|' . $groupId] = ht::createElement('tr', $rowAttr, $groupVerbal);
+				$newRows['|' . $groupId]->removeBlocks();
+				$newRows['|' . $groupId]->removePlaces();
+			}
 			
-			$newRows['|' . $groupId] = ht::createElement('tr', $rowAttr, $groupVerbal);
-			$newRows['|' . $groupId]->removeBlocks();
-			$newRows['|' . $groupId]->removePlaces();
+			$firstRow = TRUE;
 			
 			// За всички записи
 			foreach ($rows as $index => $row1){
 				$r = $recs[$index];
 				if($r->{$field} == $groupId){
-					unset($rows[$index]->{$field});
+					if($data->groupedFieldOnNewRow === TRUE || ($data->groupedFieldOnNewRow === FALSE && $firstRow !== TRUE)){
+						unset($rows[$index]->{$field});
+					}
+					
 					if(is_object($rows[$index])){
 						$newRows[$index] = clone $rows[$index];
 							
 						// Веднъж групирано, премахваме записа от старите записи
 						unset($rows[$index]);
 					}
+					
+					$firstRow = FALSE;
 				}
 			}
 		}
 		
 		$rows = $newRows;
+	}
+	
+	
+	/**
+	 * Подготовка на реда за групиране
+	 *
+	 * @param int $columnsCount   - брой колони
+	 * @param string $groupValue  - невербалното име на групата
+	 * @param string $groupVerbal - вербалното име на групата
+	 * @param stdClass $data      - датата
+	 * @return string             - съдържанието на групиращия ред
+	 */
+	protected function getGroupedTr($columnsCount, $groupValue, $groupVerbal, &$data)
+	{
+		$groupVerbal = "<td style='padding-top:9px;padding-left:5px;' colspan='{$columnsCount}'><b>" . $groupVerbal . "</b></td>";
+	
+		return $groupVerbal;
 	}
 	
 	
@@ -320,8 +360,10 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 	
 		// Ако няма предпоследна, бие се нотификация
 		if(!count($all)) return TRUE;
+		
+		if(empty($this->newFieldToCheck)) return FALSE;
+		
 		$oldRec = $all[key($all)]->oldRec;
-	
 		$dataRecsNew = $rec->data->recs;
 		$dataRecsOld = $oldRec->data->recs;
 	
@@ -366,9 +408,9 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 	/**
 	 * Връща фийлдсета на таблицата, която ще се рендира
 	 *
-	 * @param stdClass $rec      - записа
-	 * @param boolean $export    - таблицата за експорт ли е
-	 * @return core_FieldSet     - полетата
+	 * @param stdClass $rec   - записа
+	 * @param boolean $export - таблицата за експорт ли е
+	 * @return core_FieldSet  - полетата
 	 */
 	protected abstract function getTableFieldSet($rec, $export = FALSE);
 }

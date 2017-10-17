@@ -242,8 +242,8 @@ class dec_Declarations extends core_Master
         $row->MyCompany = transliterate(tr($row->MyCompany));
         
         // държавата
-        $row->MyCountry = $ownCompanyData->country;
-        $row->MyCountry = transliterate(tr($row->MyCountry));
+        $fld = ($rec->tplLang == 'bg') ? 'commonNameBg' : 'commonName'; 
+        $row->MyCountry = drdata_Countries::getVerbal($ownCompanyData->countryId, $fld);
         
         // адреса
         $row->MyAddress = $Varchar->toVerbal($address);
@@ -338,8 +338,8 @@ class dec_Declarations extends core_Master
             $row->contragentCompany = cls::get($recOrigin->contragentClassId)->getTitleById($recOrigin->contragentId);
             $row->contragentCompany = transliterate(tr($row->contragentCompany));
             
-            $row->contragentCountry = drdata_Countries::fetchField($recOrigin->contragentCountryId, 'commonNameBg');
-            $row->contragentCountry = transliterate(tr($row->contragentCountry));
+            $fld = ($rec->tplLang == 'bg') ? 'commonNameBg' : 'commonName';
+            $row->contragentCountry = drdata_Countries::getVerbal($recOrigin->contragentCountryId, $fld);
             
             $row->contragentAddress = $Varchar->toVerbal($addressContragent);
             $row->contragentAddress = transliterate(tr($row->contragentAddress));

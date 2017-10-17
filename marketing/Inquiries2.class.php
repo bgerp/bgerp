@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   marketing
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -60,28 +60,22 @@ class marketing_Inquiries2 extends embed_Manager
     
     
     /**
-     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-     */
-    public $rowToolsSingleField = 'title';
-    
-    
-    /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, marketing_Wrapper, plg_Sorting, plg_Clone, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
+    public $loadList = 'plg_RowTools2, marketing_Wrapper, plg_Sorting, plg_Clone, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,Router=marketing_InquiryRouter, drdata_PhonePlg';
     
     
     /**
      * @see marketin
      */
-    public $Router;
+    protected $Router;
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,title=Заглавие, name, company, email, folderId, createdOn, createdBy';
+    public $listFields = 'title=Заглавие, name, company, email, folderId, createdOn, createdBy';
     
     
     /**
@@ -96,12 +90,6 @@ class marketing_Inquiries2 extends embed_Manager
 	public $canList = 'ceo,marketing';
 	
 	
-	/**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    public $oldClassName = 'sales_Inquiries';
-    
-    
 	/**
      * Дали може да бъде само в началото на нишка
      */
@@ -294,7 +282,7 @@ class marketing_Inquiries2 extends embed_Manager
     /**
      * Преди показване на форма за добавяне/промяна
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
 
@@ -334,7 +322,7 @@ class marketing_Inquiries2 extends embed_Manager
     /**
      * След преобразуване на записа в четим за хора вид
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if(empty($rec->createdBy)){
     		$row->createdBy = '@anonym';
@@ -410,7 +398,7 @@ class marketing_Inquiries2 extends embed_Manager
     /**
      * Изпълнява се след създаване на нов запис
      */
-    public static function on_AfterCreate($mvc, $rec)
+    protected static function on_AfterCreate($mvc, $rec)
     {
     	$mvc->sendNotificationEmailQueue[$rec->id] = $rec;
     	
@@ -612,7 +600,7 @@ class marketing_Inquiries2 extends embed_Manager
     /**
      * След подготовка на тулбара на единичен изглед
      */
-    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	$rec = &$data->rec;
     	 
@@ -723,7 +711,7 @@ class marketing_Inquiries2 extends embed_Manager
     	$date = dt::mysql2verbal($rec->createdOn, 'd-M');
     	$time = dt::mysql2verbal($rec->createdOn, 'H:i');
     	
-    	$tpl = new ET(tr("|Благодарим за Вашето запитване|*, |получено на|* {$date} |в|* {$time} |чрез нашия уеб сайт|*"));
+    	$tpl = new ET(tr("|Благодаря за Вашето запитване|*, |получено на|* {$date} |в|* {$time} |чрез нашия уеб сайт|*."));
     
     	return $tpl->getContent();
     }
@@ -906,7 +894,7 @@ class marketing_Inquiries2 extends embed_Manager
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
     	if($form->isSubmitted()){
     		$rec = $form->rec;
@@ -1054,7 +1042,7 @@ class marketing_Inquiries2 extends embed_Manager
     /**
      * Изпълнява се преди запис
      */
-    public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
+    protected static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
     {
     	// Ако има оригинална дата на създаване, подменяме нея с текущата
     	if(isset($rec->oldCreatedOn)){
@@ -1078,7 +1066,7 @@ class marketing_Inquiries2 extends embed_Manager
      *
      * @return NULL|object
      */
-    static function getContragentData($id)
+    public static function getContragentData($id)
     {
         if (!$id) return ;
         

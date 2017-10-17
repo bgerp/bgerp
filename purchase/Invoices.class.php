@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   purchase
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -46,7 +46,7 @@ class purchase_Invoices extends deals_InvoiceMaster
      */
     public $loadList = 'plg_RowTools2, purchase_Wrapper, doc_plg_TplManager, plg_Sorting, acc_plg_Contable,plg_Clone, doc_DocumentPlg,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,deals_plg_DpInvoice,
-                    doc_plg_HidePrices, acc_plg_DocumentSummary,cat_plg_AddSearchKeywords, plg_Search';
+                    doc_plg_HidePrices, acc_plg_DocumentSummary,cat_plg_AddSearchKeywords, plg_Search,change_Plugin';
     
     
     /**
@@ -92,12 +92,6 @@ class purchase_Invoices extends deals_InvoiceMaster
     
     
     /**
-     * Кой може да сторнира
-     */
-    public $canRevert = 'purchaseMaster, ceo';
-    
-    
-    /**
      * Кой може да го контира?
      */
     public $canConto = 'ceo,invoicer';
@@ -134,6 +128,13 @@ class purchase_Invoices extends deals_InvoiceMaster
     
     
     /**
+     * Кой може да променя активирани записи
+     * @see change_Plugin
+     */
+    public $canChangerec = 'acc, ceo';
+    
+    
+    /**
      * Кой е основния детайл
      */
     public $mainDetail = 'purchase_InvoiceDetails';
@@ -147,6 +148,12 @@ class purchase_Invoices extends deals_InvoiceMaster
     public $cloneDetails = 'purchase_InvoiceDetails';
 
 
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn,date,dueDate,journalDate';
+    
+    
     /**
      * Стратегии за дефолт стойностти
      */
@@ -165,9 +172,9 @@ class purchase_Invoices extends deals_InvoiceMaster
     
     
     /**
-     * Поле за филтриране по дата
+     * Кои полета да могат да се променят след активация
      */
-    public $filterDateField = 'createdOn, date,dueDate,vatDate, modifiedOn';
+    public $changableFields = 'journalDate,number,fileHnd,responsible,contragentCountryId, contragentPCode, contragentPlace, contragentAddress, dueTime, dueDate, additionalInfo,accountId,paymentType,template';
     
     
     /**
@@ -176,7 +183,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     function description()
     {
     	parent::setInvoiceFields($this);
-    	
+    	$this->FLD('journalDate', 'date', 'caption=Сч. дата,after=date');
     	$this->FLD('number', 'varchar', 'caption=Номер, export=Csv,hint=Номера с който идва фактурата,after=place');
     	$this->FLD('fileHnd', 'fileman_FileType(bucket=Documents)', 'caption=Документ,after=number');
     	
@@ -266,7 +273,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     	    $form->setDefault('fileHnd', $clonedFh);
     	
     	    $fRec = fileman::fetchByFh($clonedFh);
-    	    self::showOriginalFile($fRec, $form);
+    	    doc_DocumentPlg::showOriginalFile($fRec, $form);
     	}
     }
     
@@ -296,43 +303,6 @@ class purchase_Invoices extends deals_InvoiceMaster
                 }
             }
         }
-    }
-    
-    
-    /**
-     * Помощна функция за показване на текста на оригиналния файл във формата
-     * 
-     * @param stdObject $fRec
-     * @param stdObject $form
-     */
-    protected static function showOriginalFile($fRec, $form)
-    {
-        $ext = fileman::getExt($fRec->name);
-         
-        // Вземаме уеб-драйверите за това файлово разширение
-        $webdrvArr = fileman_Indexes::getDriver($ext, $fRec->name);
-         
-        // Обикаляме всички открити драйвери
-        foreach($webdrvArr as $drv) {
-             
-            // Стартираме процеса за извличане на данни
-            $drv->startProcessing($fRec);
-             
-            // Комбиниране всички открити табове
-            $tabsArr = arr::combine($tabsArr, $drv->getTabs($fRec));
-        }
-         
-        if ($tabsArr['text']) {
-            $defTab = 'text';
-        }
-        setIfNot($defTab, $tabsArr['__defaultTab'], 'info');
-         
-        if ($tabsArr[$defTab]) {
-            $preview = $tabsArr[$defTab]->html;
-        }
-        
-        $form->layout = $form->renderLayout();
-        $form->layout->append($preview);
     }
     
     
@@ -401,6 +371,15 @@ class purchase_Invoices extends deals_InvoiceMaster
     	parent::inputInvoiceForm($mvc, $form);
     	
     	if($form->isSubmitted()){
+    		
+    		// Ако има въведена сч. дата тя се проверява
+    		if(isset($rec->journalDate) && core_Request::get('Act') == 'changefields'){
+    			$periodState = acc_Periods::fetchByDate($rec->journalDate)->state;
+    			if($periodState == 'closed' || $periodState == 'draft' || is_null($periodState)){
+    				$form->setError('journalDate', 'Сч. дата е в затворен, бъдещ или несъществуващ период');
+    			}
+    		}
+    		
     		if($rec->contragentSource == 'newContragent'){
     			$cRec = self::getContragentRec($rec);
     			
@@ -509,20 +488,20 @@ class purchase_Invoices extends deals_InvoiceMaster
     {
     	parent::getVerbalInvoice($mvc, $rec, $row, $fields);
     	
-    	if($fields['-single']){
-    		if($rec->accountId){
+    	if(isset($fields['-single'])){
+    		if(!empty($rec->accountId)){
     			$Varchar = cls::get('type_Varchar');
     			$ownAcc = bank_Accounts::fetch($rec->accountId);
     			$row->bank = $Varchar->toVerbal($ownAcc->bank);
     			$row->bic = $Varchar->toVerbal($ownAcc->bic);
     		}
+    		
+    		if(isset($rec->journalDate) && $rec->journalDate != $rec->date){
+    			$msg = "Датата на счетоводната операция е|*: " . $mvc->getFieldType('date')->toVerbal($rec->journalDate);
+    			$row->date = ht::createHint($row->date, $msg);
+    		}
     	}
     }
-
-
-    /*
-     * Реализация на интерфейса doc_DocumentIntf
-     */
     
     
     /**
@@ -573,32 +552,6 @@ class purchase_Invoices extends deals_InvoiceMaster
     
     
     /**
-     *  Подготовка на филтър формата
-     */
-    public static function on_AfterPrepareListFilter($mvc, $data)
-    {
-    	if(!$data->listFilter->getField('invType', FALSE)){
-    		$data->listFilter->FNC('invType', 'enum(all=Всички, invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 'caption=Вид,input,silent');
-    	}
-    	 
-    	$data->listFilter->showFields .= ',invType';
-    	 
-    	$data->listFilter->input(NULL, 'silent');
-    	 
-    	if($rec = $data->listFilter->rec){
-    		if($rec->invType){
-    			if($rec->invType != 'all'){
-   					$data->query->where("#type = '{$rec->invType}'");
-   					
-   					$sign = ($rec->invType == 'credit_note') ? "<=" : ">";
-   					$data->query->orWhere("#type = 'dc_note' AND #dealValue {$sign} 0");
-   				}
-    		}
-    	}
-    }
-    
-    
-    /**
      * След подготовка на тулбара на единичен изглед.
      */
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
@@ -606,10 +559,10 @@ class purchase_Invoices extends deals_InvoiceMaster
     	$rec = $data->rec;
     	
     	if($rec->state == 'active'){
-    		$amount = $rec->dealValue + $rec->vatAmount;
+    		$amount = ($rec->dealValue - $rec->discountAmount) + $rec->vatAmount - 0.005;
     		$amount /= ($rec->displayRate) ? $rec->displayRate : $rec->rate;
     		$amount = round($amount, 2);
-    
+    		
     		if($amount < 0){
     			if(cash_Pko::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
     				$data->toolbar->addBtn("ПКО", array('cash_Pko', 'add', 'originId' => $rec->containerId, 'amountDeal' => abs($amount), 'fromContainerId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/money_delete.png,title=Създаване на нов приходен касов ордер към документа');
@@ -708,6 +661,10 @@ class purchase_Invoices extends deals_InvoiceMaster
         expect($this->canKeepDoc($fRec->name, $fRec->fileLen));
         
         $form = cls::get('core_Form');
+        
+        if (Mode::is('screenMode', 'wide')) {
+            $form->class .= ' floatedElement ';
+        }
         
         $showClosedLimit = 3;
         $maxLimitForShow = 300;
@@ -1107,14 +1064,76 @@ class purchase_Invoices extends deals_InvoiceMaster
         // Показваме превю на файла
         
         if ($form->cmd != 'refresh') {
-            $this->showOriginalFile($fRec, $form);
+            doc_DocumentPlg::showOriginalFile($fRec, $form);
         }
         
         $tpl = $this->renderWrapping($form->renderHtml());
-        
-        $formId = $form->formAttr['id'] ;
-        jquery_Jquery::run($tpl, "preventDoubleSubmission('{$formId}');");
+        core_Form::preventDoubleSubmission($tpl, $form);
         
         return $tpl;
     }
+    
+    
+    /**
+     * Прихваща извикването на AfterSaveLogChange в change_Plugin
+     * Добавя нотификация след промяна на документа
+     *
+     * @param core_MVc $mvc
+     * @param array $recsArr - Масив със записаните данни
+     */
+    protected static function on_AfterSaveLogChange($mvc, $recsArr)
+    {
+    	if(is_array($recsArr)){
+    		expect($fRec = $recsArr[0]);
+    		$containerId = $mvc->fetchField($fRec->docId, 'containerId');
+    		acc_Journal::reconto($containerId);
+    	}
+    }
+    
+    
+    /**
+     * Връща вальора на документа по подразбиране
+     *
+     * @param core_Mvc $mvc
+     * @param date $res
+     * @param mixed $rec
+     */
+    public static function getValiorValue($rec)
+    {
+    	return (!empty($rec->journalDate)) ? $rec->journalDate : $rec->date;
+    }
+    
+    
+    /**
+     * Връща сч. дата по подразбиране спрямо, датата на входящата фактура
+     * 
+     * @param date $date - дата
+     * @return date
+     */
+    public function getDefaultAccDate($date)
+    {
+    	$today = dt::today();
+    	$cLastDay = dt::getLastDayOfMonth($today);
+    	$prevLastDay = dt::getLastDayOfMonth($today, -1);
+    	$day = dt::getLastDayOfMonth($date);
+    	$numOfDay = dt::mysql2verbal($today, 'd');
+    	
+    	// Ако датата на фактурата (ДФ) е в текущия месец - СД = ДФ
+    	if($day == $cLastDay) return $date;
+    	$nDay = acc_Setup::get('DATE_FOR_INVOICE_DATE');
+    	
+    	// Ако ДФ е от предходния месец:
+    	if($day == $prevLastDay) {
+    		
+    		// Ако текущата дата е ДО $nDay-о число включително - СД = ДФ;
+    		// Ако текущата дата е СЛЕД $nDay-о число - СД е първо число на текущия месец 
+    		return ($numOfDay <= $nDay) ? $date : dt::mysql2verbal($today, "Y-m-01");
+    	}
+    	
+    	// Ако ДФ е по-назад (т.е. не е в текущия или предходния месец):
+    	// Ако текущата дата е ДО 12-о число включително - СД е първо число на предходния месец;
+    	// Ако текущата дата е СЛЕД 12-о число - СД е първо число на текущия месец 
+    	return ($numOfDay <= $nDay) ? dt::mysql2verbal($prevLastDay, "Y-m-01") : dt::mysql2verbal($today, "Y-m-01");
+    }
 }
+

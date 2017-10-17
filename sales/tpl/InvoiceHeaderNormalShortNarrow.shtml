@@ -105,7 +105,7 @@
                 <hr class='printVisible'>
                 <div class='custom-bg-block'><b>Плащане</b></div>
                 <!--ET_BEGIN paymentType-->
-                <div>[#paymentType#]</div>
+                <div class="boldText">[#paymentType#]</div>
                 <!--ET_END paymentType-->
                 <!--ET_BEGIN dueDate-->
                 <div><span class='quiet'>Краен срок за плащане:</span> [#dueDate#]</div>
@@ -127,7 +127,7 @@
                 <div>[#additionalInfo#]</div>
                 <!--ET_END additionalInfo-->
                 <hr>
-                [#/deals/tpl/DocumentPiceInfo.shtml#]
+                [#/deals/tpl/DocumentPriceInfoInvoice.shtml#]
                 <hr>
                 <!--ET_BEGIN responsible-->
                 <div>|Получил|*: [#responsible#]</div>

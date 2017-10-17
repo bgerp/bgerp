@@ -86,7 +86,7 @@ defIfNot('EMAIL_THREAD_HANDLE_POS', 'BEFORE_SUBJECT');
 /**
  * Ограничава рутирането по папки до папките на контрагент и "Несортирани - %"
  */
-defIfNot('EMAIL_RESTRICT_ROUTE', 'yes');
+defIfNot('EMAIL_RESTRICT_ROUTE', 'no');
 
 
 /**
@@ -647,5 +647,33 @@ class email_Setup extends core_ProtoSetup
             
             $cls->save($eRec, 'delaySendOn');
         }
+    }
+    
+    
+    /**
+     * Зареждане на данни
+     */
+    function loadSetupData($itr = '')
+    {
+        $res = parent::loadSetupData($itr);
+        
+        $res .= $this->callMigrate('repairDownloadedOn', 'email');
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Миграция за задаване на текущото време на свалените имейли
+     */
+    public static function repairDownloadedOn()
+    {
+        $Fingerprints = cls::get('email_Fingerprints');
+        
+        $downOnFiled = str::phpToMysqlName('downloadedOn');
+        
+        $now = dt::now();
+        
+        $Fingerprints->db->query("UPDATE `{$Fingerprints->dbTableName}` SET `{$downOnFiled}` = '{$now}'");
     }
 }

@@ -1,7 +1,9 @@
 <?php
 
 
-// Кои сч. сметки ще се използват за синхронизиране със склада
+/**
+ * Кои сч. сметки ще се използват за синхронизиране със склада
+ */
 defIfNot('STORE_ACC_ACCOUNTS', '');
 
 
@@ -115,7 +117,7 @@ class store_Setup extends core_ProtoSetup
 	/**
 	 * Дефинирани класове, които имат интерфейси
 	 */
-	var $defClasses = 'store_reports_Documents';
+	var $defClasses = 'store_reports_Documents,store_reports_ChangeQuantity,store_reports_ProductAvailableQuantity';
 	
 	
 	/**

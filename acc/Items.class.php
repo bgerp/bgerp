@@ -724,6 +724,9 @@ class acc_Items extends core_Manager
             	$listName = acc_Lists::getVerbal($listId, 'name');
             	$title = ($count == 1) ? $Class->singleTitle : $Class->title;
             	$title = mb_strtolower($title);
+            	
+            	$this->logWrite("Добавяне на обекти, като пера", $rec->id);
+            	
                 return followRetUrl(NULL, "Добавяне на|* {$count} |{$title}|* |в номенклатура|* '{$listName}'");
             }
         }
@@ -733,7 +736,7 @@ class acc_Items extends core_Manager
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
         // Записваме, че потребителя е разглеждал този списък
-        $this->logWrite("Добавяне на обекти, като пера");
+        $this->logInfo("Разглеждане на формата за добавяне на пера към номенклатура");
        
         return $this->renderWrapping($form->renderHtml());
     }

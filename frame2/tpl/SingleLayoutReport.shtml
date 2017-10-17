@@ -12,7 +12,7 @@
 	[#DRIVER_FIELDS#]
 </table>
 <!--ET_END DRIVER_FIELDS-->
-<div style="margin-top: 15px" class="scrolling-holder reportHolder">
+<div style="margin-top: 15px" class="overflow-scroll reportHolder">
 [#DRIVER_DATA#]
 </div>
 

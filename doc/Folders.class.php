@@ -1878,7 +1878,7 @@ class doc_Folders extends core_Master
         if($threadId = $params['moveThread']) {
             $tRec = doc_Threads::fetch($threadId);
             expect($doc = doc_Containers::getDocument($tRec->firstContainerId));
-            $doc->getInstance()->restrictQueryOnlyFolderForDocuments($query);
+            $doc->getInstance()->restrictQueryOnlyFolderForDocuments($query, $viewAccess);
         }
         
         $titleFld = $params['titleFld'];

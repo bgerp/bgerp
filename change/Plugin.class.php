@@ -670,8 +670,7 @@ class change_Plugin extends core_Plugin
     public static function on_AfterCanChangeRec($mvc, &$res, $rec)
     {
         // Чернова и затворени документи не могат да се променят
-        if ($res !== FALSE && $rec->state != 'draft' && $rec->state != 'closed') {
-            
+        if ($res !== FALSE && (!in_array($rec->state, array('rejected', 'draft', 'pending')))) {
             $res = TRUE;
         } 
     }

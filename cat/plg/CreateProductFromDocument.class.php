@@ -409,7 +409,8 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				
 			// Рендиране на опаковката
 			$tpl = $mvc->renderWrapping($form->renderHtml());
-
+			core_Form::preventDoubleSubmission($tpl, $form);
+			
 			// Връщаме FALSE за да се прекъсне ивента
 			return FALSE;
 		}

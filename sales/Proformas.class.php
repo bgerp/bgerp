@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -82,12 +82,6 @@ class sales_Proformas extends deals_InvoiceMaster
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,sales';
-    
-    
-    /**
      * Кой има право да променя?
      */
     public $canEdit = 'ceo,sales';
@@ -130,12 +124,6 @@ class sales_Proformas extends deals_InvoiceMaster
     
     
     /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    public $oldClassName = 'sales_Proforma';
-    
-    
-    /**
      * Икона за фактура
      */
     public $singleIcon = 'img/16/proforma.png';
@@ -173,10 +161,9 @@ class sales_Proformas extends deals_InvoiceMaster
     /**
      * Кои полета ако не са попълнени във визитката на контрагента да се попълнят след запис
      */
-    public static $updateContragentdataField = array(
-    		'vatId'   => 'contragentVatNo',
-    		'uicId'   => 'uicNo',
-    		'egn'     => 'uicNo',
+    public static $updateContragentdataField = array('vatId'   => 'contragentVatNo',
+    												 'uicId'   => 'uicNo',
+    												 'egn'     => 'uicNo',
     );
     
     
@@ -226,7 +213,8 @@ class sales_Proformas extends deals_InvoiceMaster
     	$form = &$data->form;
     	parent::prepareInvoiceForm($mvc, $data);
     	
-    	foreach (array('responsible', 'deliveryPlaceId', 'vatDate', 'contragentCountryId', 'contragentName') as $fld){
+    	$form->setField('paymentType', 'input=none');
+    	foreach (array('deliveryPlaceId', 'vatDate') as $fld){
     		$form->setField($fld, 'input=hidden');
     	}
     	
@@ -332,7 +320,6 @@ class sales_Proformas extends deals_InvoiceMaster
     			core_Lg::push($rec->tplLang);
     			$row->bank = transliterate(tr($Varchar->toVerbal($ownAcc->bank)));
     			core_Lg::pop();
-    			
     			$row->bic = $Varchar->toVerbal($ownAcc->bic);
     		}
     	}
@@ -403,15 +390,15 @@ class sales_Proformas extends deals_InvoiceMaster
     	if(empty($rec->dpAmount)) {
     		$total = $this->_total->amount- $this->_total->discount;
     		$total = $total + $this->_total->vat;
-    		$origin = $this->getOrigin($rec);
-    		$methodId = $origin->fetchField('paymentMethodId');
     		
-    		if($methodId){
+    		if($rec->paymentMethodId){
     			core_Lg::push($rec->tplLang);
-    			$data->row->paymentMethodId = cond_PaymentMethods::getVerbal($methodId, 'title');
-    			cond_PaymentMethods::preparePaymentPlan($data, $methodId, $total, $rec->date, $rec->currencyId);
+    			$data->row->paymentMethodId = tr(cond_PaymentMethods::getVerbal($rec->paymentMethodId, 'title'));
+    			cond_PaymentMethods::preparePaymentPlan($data, $rec->paymentMethodId, $total, $rec->date, $rec->currencyId);
     			core_Lg::pop();
     		}
+    	} else {
+    		unset($data->row->paymentMethodId);
     	}
     }
     

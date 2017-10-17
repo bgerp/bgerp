@@ -441,15 +441,23 @@ class fileman_webdrv_Generic extends core_Manager
         }
         
         try {
+            // Опитваме се да вземем, документите, в които се използва файла
+            $documentWithFile = fileman_Files::getDocumentsWithFile($fRec, static::$metaInfoDocLimit);
+            $documentWithFile2 = doc_Linked::getListView('file', $fRec->id, 'file', TRUE, 20);
 		    
-		    // Опитваме се да вземем, документите, в които се използва файла
-		    $documentWithFile = fileman_Files::getDocumentsWithFile($fRec, static::$metaInfoDocLimit);    
+		    if ($documentWithFile && $documentWithFile2) {
+		        $documentWithFile .= "\n" . $documentWithFile2;
+		    }
+		    
+		    if (!$documentWithFile && $documentWithFile2) {
+		        $documentWithFile = $documentWithFile2;
+		    }
 		} catch (core_exception_Expect $e) {
 	        // Няма да се показват документите
 		}
 		
 		$dangerRate = '';
-		if (fileman_Files::isDanger($fRec)) {
+		if (fileman_Files::isDanger($fRec, 0.00001)) {
 		    $dangerRate = fileman_Files::getVerbal($fRec, 'dangerRate');
 		    $dangerRate = '<span class = "dangerFile">' . tr("Ниво на опасност|*: ") . $dangerRate . "</span>\n";
 		}

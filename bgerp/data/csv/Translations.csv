@@ -6,7 +6,10 @@ en, за месец, for month
 en,"Адреси, на коит_9359",List of unsubscribes
 en,"Ако не желаете да получавате повече информация от нас, използвайте следната връзка", "If you no longer want to receive information from us, follow the link"
 en,"Ако не желаете да получавате повече информация от нас, моля натиснете","If you no longer want to receive information from us, please click"
-en,"Благодарим за Вашето запитване, получено на [#1#] в [#2#] чрез нашия уеб сайт.","Thank you for your inquiry received on [#1#] at [#2#] through our web site."
+en,"Благодаря за Вашето запитване","Thank you for your inquiry"
+en,"получено на","received on"
+en,"получено на","received on"
+en,"чрез нашия уеб сайт","through our web site"
 en,"Възможен е проблем с домейна","Possible problem with the domain"
 en,"Имейл адреса, с_c775","Email address, corresponding of the account"
 en,"Имейли, които не могат да се парсират",Emails that are unparsable
@@ -2005,7 +2008,7 @@ en,Търсене на про_ee600,Search product in warehouse
 en,Търсене на фирми,Search companies
 en,Търсене,Search
 en,Уважаема,Dear
-en,Уважаеми колеги,Dear colleagues
+en,Уважаеми колеги,Dear Colleagues
 en,Уважаеми,Dear
 en,Удебелен текст,Bold
 en,Указател,Organizer
@@ -2395,7 +2398,11 @@ en,толеранс к-во,Qty tolerance
 en,Клониране на артикула,Clone product
 en,Клониране на реда,Clone row
 en,Толеранс, Tolerance
+en,тегло,weight
+en,дължина,length
+en,Дължина,Length
 en,Включено ДДС в цените, Prices are with applied VAT
 en,До 1 месец след фактуриране, Until 1 month after invoicing
 en,50% авансово и 50% до 30 дни след фактуриране, 50% downpayment and 50% until 30 days after invoicing
 en,50% авансово и 50% до 10 дни след фактуриране, 50% downpayment and 50% until 10 days after invoicing
+en,По проформа,From pro forma

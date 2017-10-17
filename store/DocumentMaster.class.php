@@ -59,6 +59,12 @@ abstract class store_DocumentMaster extends core_Master
     
     
     /**
+     * Нужно ли е да има детайл, за да стане на 'Заявка'
+     */
+    public $requireDetailForPending = FALSE;
+    
+    
+    /**
      * След описанието на полетата
      */
     protected static function setDocFields(core_Master &$mvc)

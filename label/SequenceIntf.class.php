@@ -60,4 +60,17 @@ class label_SequenceIntf
     {
         return $this->class->getEstimateCnt($id, $allowSkip);
     }
+    
+    
+    /**
+     * Може ли шаблона да бъде избран от класа
+     *
+     * @param int $id         - ид на обект от класа
+     * @param int $templateId - ид на шаблон
+     * @return boolean
+     */
+    public function canSelectTemplate($id, $templateId)
+    {
+    	return $this->class->canSelectTemplate($id, $templateId);
+    }
 }

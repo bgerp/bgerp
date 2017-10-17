@@ -110,7 +110,9 @@
                                         [#payment_block#]
                                         <hr class='printVisible'>
                                         <div class='custom-bg-block'><b>|Плащане|*</b></div>
-                                        
+                                        <!--ET_BEGIN paymentType-->
+                                        <div class="boldText">[#paymentType#]</div>
+                                        <!--ET_END paymentType-->
                                         <!--ET_BEGIN DUE_BLOCK-->
                                            [#DUE_BLOCK#]
                                         <div><span class='quiet'>|Краен срок за плащане|*:</span> [#dueDate#]</div>
@@ -154,7 +156,7 @@
                                         <!--ET_END additionalInfo-->
                                     </td>
                                     <td id='invoice-info' style='width:40%'>
-                                        [#/deals/tpl/DocumentPiceInfo.shtml#]
+                                        [#/deals/tpl/DocumentPriceInfoInvoice.shtml#]
                                         <!--ET_BEGIN fileHnd-->
                                         <hr>
                                         <div class='custom-bg-block'><b>|Оригинален документ|*</b></div>

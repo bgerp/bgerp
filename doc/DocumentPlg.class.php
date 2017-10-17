@@ -151,6 +151,55 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
+     * Помощна функция за показване на текста на оригиналния файл във формата
+     *
+     * @param stdObject $fRec
+     * @param stdObject $form
+     */
+    public static function showOriginalFile($fRec, $form)
+    {
+        $ext = fileman::getExt($fRec->name);
+        
+        // Вземаме уеб-драйверите за това файлово разширение
+        $webdrvArr = fileman_Indexes::getDriver($ext, $fRec->name);
+        
+        // Обикаляме всички открити драйвери
+        foreach($webdrvArr as $drv) {
+            
+            // Стартираме процеса за извличане на данни
+            $drv->startProcessing($fRec);
+            
+            // Комбиниране всички открити табове
+            $tabsArr = arr::combine($tabsArr, $drv->getTabs($fRec));
+        }
+        
+        $defTab = Request::get('currentTab');
+        
+        if (!$defTab) {
+            if ($tabsArr['text']) {
+                $defTab = 'text';
+            }
+            setIfNot($defTab, $tabsArr['__defaultTab'], 'info');
+        }
+        
+        $Indexes = cls::get('fileman_Indexes');
+        $d = new stdClass();
+        $d->tabs = $tabsArr;
+        $d->currentTab = $defTab;
+        $d->rec = $fRec;
+        $d->fhName = 'fh';
+        $d->retUrl = getRetUrl();
+        $d->localUrl = toUrl(getCurrentUrl(), 'local');
+
+        if(Mode::is('screenMode', 'wide') ) {
+            $className = " floatedElement ";
+        }
+        $form->layout = $form->renderLayout();
+        $form->layout->append("<div class='{$className}'>" . $Indexes->render($d) . "</div>");
+    }
+
+    
+    /**
      * След промяна в журнала със свързаното перо
      */
     public static function on_AfterJournalItemAffect($mvc, $rec, $item)
@@ -306,19 +355,24 @@ class doc_DocumentPlg extends core_Plugin
             	),
             			'onmouseup=saveSelectedTextToSession("' . $mvc->getHandle($data->rec->id) . '")', 'ef_icon = img/16/comment_add.png,title=' . tr('Добавяне на коментар към документа'));
             }
-            
+        }
+        
+        if ($data->rec->state != 'rejected') {
             // Добавяме бутон за създаване на задача
-            if (cal_Tasks::haveRightFor('add') && $data->rec->containerId) {
+            if ($data->rec->containerId && haveRole('powerUser')) {
+                
+                Request::setProtected(array('inType', 'foreignId'));
                 
                 $doc = doc_Containers::getDocument($data->rec->containerId);
                 
                 if ($doc->haveRightFor('single')) {
-                    $data->toolbar->addBtn('Задача', array(
-                            'cal_Tasks',
-                            'AddDocument',
+                    $data->toolbar->addBtn('Връзка', array(
+                            'doc_Linked',
+                            'Link',
                             'foreignId' => $data->rec->containerId,
+                            'inType' => 'doc',
                             'ret_url'=> $retUrl
-                    ), 'ef_icon = img/16/task-normal.png, title=' . tr('Създаване на задача от документа'));
+                    ), 'ef_icon = img/16/doc_tag.png, title=Връзка към документа');
                 }
             }
         }
@@ -661,6 +715,18 @@ class doc_DocumentPlg extends core_Plugin
         	$mvc->pendingQueue[$rec->id] = $rec;
         	$mvc->invoke('AfterSavePendingDocument', array($rec));
         }
+        
+        if ($rec->linkedHashKey) {
+            $lRec = core_Permanent::get($rec->linkedHashKey);
+            $lRec->inVal = $rec->containerId;
+            
+            doc_Linked::save($lRec);
+            
+            try {
+                $outDoc = doc_Containers::getDocument($lRec->outVal);
+                $outDoc->instance->logRead('Създаден документ', $outDoc->that);
+            } catch (core_exception_Expect $e) { }
+        }
     }
     
     
@@ -734,8 +800,7 @@ class doc_DocumentPlg extends core_Plugin
     				    
     				    // Ако съответния потребител не иска да получава нотификация за документа, да не се праща
     				    if ($uSelArr && ($propValStr = $uSelArr[$prop]) && (type_Keylist::isIn($mvc->getClassId(), $propValStr))) continue;
-    				    
-    					bgerp_Notifications::add($message, $urlArr, $uId);
+    				    bgerp_Notifications::add($message, $urlArr, $uId);
     				}
     			}
     		}
@@ -1078,9 +1143,7 @@ class doc_DocumentPlg extends core_Plugin
         	$mvc->requireRightFor('pending', $rec);
         	
         	$oldState = $rec->state;
-        	$newState = ($oldState == 'pending') ? 'draft' : 'pending';
-        	
-        	$rec->state = $newState;
+        	$rec->state = 'pending';
         	$rec->brState = $oldState;
         	$rec->pendingSaved = TRUE;
         	
@@ -1141,9 +1204,6 @@ class doc_DocumentPlg extends core_Plugin
             if ($clsId == $mvc->getClassId() && ($docId == $recId)) {
                 
                 expect(is_numeric($docId));
-                
-                // Трябва да има съответните права
-                $mvc->requireRightFor('viewpsingle', $docId);
                 
                 if ($fromList) {
                     // Трябва да може да се вижда документа
@@ -1442,6 +1502,69 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
+        // Добавяме клас, за да може формата да застане до привюто на документа/файла
+        if(Mode::is('screenMode', 'wide') ) {
+            $data->form->class .= " floatedElement ";
+        }
+
+        $fType = 'doc';
+        $oDocId = NULL;
+        $document = NULL;
+        
+        // Помощно поле при линкване на документи
+        if (!$data->form->fields['linkedHashKey']) {
+            $data->form->FNC('linkedHashKey', 'varchar', 'caption=Линк хеш, silent, input=hidden');
+            
+            $lHash = Request::get('linkedHashKey');
+            if ($lHash) {
+                $data->form->setDefault('linkedHashKey', $lHash);
+                
+                $lRec = core_Permanent::get($lHash);
+                
+                $fType = $lRec->outType;
+
+                $oDocId = $lRec->outVal;
+                
+                if ($fType == 'doc') {
+                    Request::push(array('foreignId' => $oDocId));
+                } elseif ($fType == 'file') {
+                    $fRec = fileman::fetch($lRec->outVal);
+                    Request::push(array('fh' => $fRec->fileHnd));
+                }
+            }
+        }
+        
+        if ($fType == 'doc') {
+            // Помощно поле при линкване на документи
+            if (!$data->form->fields['foreignId']) {
+                $data->form->FNC('foreignId', 'key(mvc=doc_Containers)', 'caption=Оригинален документ, silent, input=hidden');
+                
+                $fId = Request::get('foreignId', 'int');
+                if ($fId) {
+                    $data->form->setDefault('foreignId', $fId);
+                    
+                    if ($fType == 'doc') {
+                        $document = doc_Containers::getDocument($fId);
+                        $document->instance->requireRightFor('single', $document->that);
+                        
+                        $titleFld = '';
+                        if ($mvc->fields['title']) {
+                            $titleFld = 'title';
+                        } elseif ($mvc->fields['subject']) {
+                            $titleFld = 'subject';
+                        }
+                        
+                        if ($titleFld) {
+                            $oRow = $document->getDocumentRow();
+                            $for = tr('За|*: ');
+                            $title = $for . html_entity_decode($oRow->title, ENT_COMPAT | ENT_HTML401, 'UTF-8');
+                            $data->form->setDefault($titleFld, $title);
+                        }
+                    }
+                }
+            }
+        }
+        
         $rec = $data->form->rec;
         
         // Ако редактираме запис
@@ -1478,20 +1601,38 @@ class doc_DocumentPlg extends core_Plugin
             
             $rec->threadId = $oRec->threadId;
             $rec->folderId = $oRec->folderId;
+        }
+        
+        if ($rec->originId || $rec->foreignId) {
+            $fType = 'doc';
+            $oDocId = $rec->originId;
             
-            if (!Mode::is('stopRenderOrigin')) {
+            if (!$oDocId) {
+                $oDocId = $rec->foreignId;
+            } else {
+                $document = doc_Containers::getDocument($oDocId);
+            }
+        }
+        
+        if ($oDocId && !Mode::is('stopRenderOrigin')) {
+            
+            if ($document) {
+                // Добавяме клас, за да може формата да застане до привюто на документа/файла
+                if(Mode::is('screenMode', 'wide')) {
+                    $className = " floatedElement ";
+                }
                 $data->form->layout = $data->form->renderLayout();
-                $tpl = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Оригинален документ") . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div>");
+                $tpl = new ET("<div class='preview-holder {$className}'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Оригинален документ") . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div><div class='clearfix21'></div>");
                 
-                // TODO: да се замени с интерфейсен метод
-                
-                $document = doc_Containers::getDocument($rec->originId);
-                
-                $docHtml = $document->getInlineDocumentBody();
-                
-                $tpl->append($docHtml, 'DOCUMENT');
-                
-                $data->form->layout->append($tpl);
+                if ($document->haveRightFor('single')) {
+                    $docHtml = $document->getInlineDocumentBody();
+                    
+                    $tpl->append($docHtml, 'DOCUMENT');
+                    
+                    $data->form->layout->append($tpl);
+                }
+            } elseif ($fType == 'file') {
+                self::showOriginalFile($fRec, $data->form);
             }
         }
         
@@ -1635,25 +1776,28 @@ class doc_DocumentPlg extends core_Plugin
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    public static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
-        if (empty($data->form->rec->id) && $data->form->rec->threadId && $data->form->rec->originId) {
-            
-            $folderId = ($data->form->rec->folderId) ? $data->form->rec->folderId : doc_Threads::fetch($data->form->rec->threadId)->folderId;
+        $form = &$data->form;
+        $rec = &$form->rec;
+    	
+    	if (empty($rec->id) && $rec->threadId && $rec->originId) {
+            $folderId = ($rec->folderId) ? $rec->folderId : doc_Threads::fetch($rec->threadId)->folderId;
         	
             if(($mvc->canAddToFolder($folderId) !== FALSE) && $mvc->onlyFirstInThread !== FALSE){
-            	$data->form->toolbar->addSbBtn('Нова нишка', 'save_new_thread', 'id=btnNewThread,order=9.99985','ef_icon = img/16/save_and_new.png');
+            	$form->toolbar->addSbBtn('Нова нишка', 'save_new_thread', 'id=btnNewThread,order=9.99985','ef_icon = img/16/save_and_new.png');
             }
         }
         
-        if(haveRole('powerUser')){
-        	$data->form->toolbar->renameBtn('save', 'Чернова');
-        } else {
-        	$data->form->toolbar->renameBtn('save', 'Запис');
+        $saveBtnName = (haveRole('powerUser')) ? 'Чернова' : 'Запис';
+        $form->toolbar->renameBtn('save', $saveBtnName);
+        
+        if($rec->state == 'pending'){
+        	$form->toolbar->setWarning('save', 'Наистина ли искате да направите документа чернова|*?');
         }
         
-        if($mvc->haveRightFor('pending', $data->form->rec)){
-        	$data->form->toolbar->addSbBtn('Заявка', 'save_pending', 'id=btnPending,order=9.99989','ef_icon = img/16/tick-circle-frame.png');
+        if($mvc->haveRightFor('pending', $form->rec) || $rec->state == 'pending'){
+        	$form->toolbar->addSbBtn('Заявка', 'save_pending', 'id=btnPending,order=9.99989','ef_icon = img/16/tick-circle-frame.png');
         }
     }
 
@@ -1708,9 +1852,12 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
-     *
+     * След изпращане на формата
+     * 
+     * @param core_Mvc $mvc
+     * @param core_Form $form
      */
-    static function on_AfterInputEditForm($mvc, $form)
+    public static function on_AfterInputEditForm($mvc, $form)
     {  
         $rec = &$form->rec;
         
@@ -1730,7 +1877,14 @@ class doc_DocumentPlg extends core_Plugin
 		        unset($rec->threadId);
 		    }
 		    
-		    if($form->cmd == 'save_pending' && $mvc->haveRightFor('pending', $rec)){
+		    // Ако документа е бил на заявка преди, обръща се в чернова
+		    if(isset($rec->id) && $rec->state == 'pending'){
+		    	$rec->state = 'draft';
+		    	$rec->brState = 'pending';
+		    	$rec->pendingSaved = TRUE;
+		    }
+		    
+		    if($form->cmd == 'save_pending' && ($mvc->haveRightFor('pending', $rec) || $rec->state == 'pending')){
 		    	$form->rec->state = 'pending';
 		    	$form->rec->pendingSaved = TRUE;
 		    }
@@ -1961,7 +2115,7 @@ class doc_DocumentPlg extends core_Plugin
             
             if ($action == 'delete') {
                 $requiredRoles = 'no_one';
-            } elseif(($action == 'edit') && ($oRec->state != 'draft')) {
+            } elseif(($action == 'edit') && ($oRec->state != 'draft' && $oRec->state != 'pending')) {
             	if(!(($oRec->state == 'active'  || $oRec->state == 'template') && $mvc->canEditActivated === TRUE)){
             		$requiredRoles = 'no_one';
             	} else {
@@ -2183,7 +2337,7 @@ class doc_DocumentPlg extends core_Plugin
         	if($requiredRoles != 'no_one'){
         		
         		// Само чакащите и черновите могат да стават от чакащи -> чернова или обратно
-        		if(isset($rec->state) && $rec->state != 'pending' && $rec->state != 'draft'){
+        		if(isset($rec->state) && $rec->state != 'draft'){
         			$requiredRoles = 'no_one';
         		} elseif(!$mvc->haveRightFor('single', $rec)){
         			$requiredRoles = 'no_one';
@@ -2404,6 +2558,12 @@ class doc_DocumentPlg extends core_Plugin
             // Причината е, резултата от този метод (а следователно и конкретната стокност на MID)
             // в някои случаи се кешира, а това не бива да се случва!
             $tpl->content = str_replace(static::getMidPlace(), $data->__MID__, $tpl->content);
+        }
+        
+        if (!Mode::isReadOnly()) {
+            $linkTpl = doc_Linked::getListView('doc', $data->rec->containerId);
+            
+            $tpl->append($linkTpl, 'DETAILS');
         }
     }
     
@@ -3234,10 +3394,11 @@ class doc_DocumentPlg extends core_Plugin
      * @param core_Mvc   $mvc     Мениджър на документи
      * @param void       $res     Резултат - не се използва
      * @param core_Query $query   Заявка към doc_Folders
+     * @param boolean $viewAccess
      */
-    function on_AfterRestrictQueryOnlyFolderForDocuments($mvc, &$res, $query)
+    function on_AfterRestrictQueryOnlyFolderForDocuments($mvc, &$res, $query, $viewAccess = FALSE)
     {
-    	$query = doc_Folders::restrictAccess($query, NULL, FALSE);
+        $query = doc_Folders::restrictAccess($query, NULL, $viewAccess);
     }
     
     

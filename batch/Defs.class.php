@@ -94,7 +94,7 @@ class batch_Defs extends core_Manager {
     /**
      * Добавя ключови думи за пълнотекстово търсене
      */
-    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
     	if($rec->productId){
     		$res = " " . plg_Search::normalizeText(cat_Products::getTitleById($rec->productId));
@@ -105,7 +105,7 @@ class batch_Defs extends core_Manager {
     /**
      * Подредба на записите
      */
-    public static function on_AfterPrepareListFilter($mvc, &$data)
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
     	$data->listFilter->FLD('type', "class(interface=batch_BatchTypeIntf,select=title,allowEmpty)", 'caption=Тип,silent');
     	$data->listFilter->view = 'horizontal';
@@ -128,7 +128,7 @@ class batch_Defs extends core_Manager {
     /**
      * Преди показване на форма за добавяне/промяна
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
@@ -175,7 +175,7 @@ class batch_Defs extends core_Manager {
     /**
      * След преобразуване на записа в четим за хора вид
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected  static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
     	$row->ROW_ATTR['class'] = 'state-active';
@@ -291,7 +291,7 @@ class batch_Defs extends core_Manager {
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'delete' && isset($rec->productId)){
     		if(batch_Items::fetchField("#productId = {$rec->productId}")){

@@ -414,9 +414,22 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	
 			if(empty($hasType) || (isset($hasType)  && $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'type') == 'invoice')){
 				$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
+				
 				if($masterRec->state != 'draft'){
-					$res = 'no_one';
+					if($action == 'edit'){
+						if($masterRec->state == 'active'){
+							if($masterRec->createdBy == $userId || haveRole('ceo,manager', $userId) || keylist::isIn($userId, core_Users::getTeammates($masterRec->createdBy))){
+								$res = 'powerUser';
+							} 
+						}
+					}
+					
+					
 				} else {
+					if(!haveRole('invoicer, ceo', $userId)){
+						$res = 'no_one';
+					}
+					
 					// При начисляване на авансово плащане не може да се добавят други продукти
 					if($masterRec->dpOperation == 'accrued'){
 						$res = 'no_one';
@@ -424,7 +437,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				}
 			} elseif(isset($hasType) && $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'type') == 'dc_note') {
 				
-				// На ДИ и КИ не можем да изтривсме и добавяме
+				// На ДИ и КИ не можем да изтриваме и добавяме
 				if($action == 'add' || $action == 'delete'){
 					$res = 'no_one';
 				}
@@ -433,15 +446,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		
 		if($action == 'importfromdeal'){
 			$res = $mvc->getRequiredRoles('add', $rec, $userId);
-		}
-		
-		// В определени случаи се позволява на потребителя да редактира в активно състояние
-		if($action == 'edit' && isset($rec)){
-			if($mvc->Master->haveRightFor('single', $masterRec) && $masterRec->state == 'active'){
-				if($masterRec->createdBy == $userId || haveRole('ceo,manager', $userId)){
-					$res = 'powerUser';
-				}
-			}
 		}
 	}
 	
@@ -467,7 +471,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		$masterRec  = $mvc->Master->fetch($rec->{$mvc->masterKey});
 		
 		if($form->rec->productId && $masterRec->type != 'dc_note' && $form->editActive !== TRUE){
-			$vat = cat_Products::getVat($rec->productId);
+			$vat = cat_Products::getVat($rec->productId, $masterRec->date);
 			$productInfo = cat_Products::getProductInfo($rec->productId);
 			
 			$packs = cat_Products::getPacks($rec->productId);

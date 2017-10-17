@@ -61,18 +61,6 @@ abstract class deals_DealBase extends core_Master
 	
 	
 	/**
-	 * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-	 */
-	public $rowToolsField = 'tools';
-	
-	
-	/**
-	 * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-	 */
-	public $rowToolsSingleField = 'title';
-	
-	
-	/**
 	 * Кой може да обединява сделките
 	 */
 	public $canClosewith = 'ceo,dealJoin';
@@ -334,37 +322,53 @@ abstract class deals_DealBase extends core_Master
     		$rec->contoActions = 'activate';
     		$rec->state = 'active';
     		if(!empty($form->rec->closeWith)){
+    			$deals1 = keylist::toArray($form->rec->closeWith);
+    			$err = array();
+    			foreach ($deals1 as $d1){
+    				$threadId = $this->fetchField($d1, 'threadId');
+    				if(doc_Containers::fetchField("#threadId = {$threadId} AND #state = 'pending'")){
+    					$err[] = $this->getLink($d1, 0);
+    				}
+    			}
+    			
+    			if(count($err)){
+    				$msg = "|В следните " . mb_strtolower($this->title) . " има документи в заявка|*: " . implode(",", $err);
+    				$form->setError('closeWith', $msg);
+    			}
+    			
     			$rec->closedDocuments = $form->rec->closeWith;
     		}
-    		$this->save($rec);
-    		$this->invoke('AfterActivation', array($rec));
-    	   
-    		if(!empty($form->rec->closeWith)){
-    			core_App::setTimeLimit(1000);
-    			
-    			$CloseDoc = cls::get($this->closeDealDoc);
-    			$deals = keylist::toArray($form->rec->closeWith);
-    			foreach ($deals as $dealId){
-    					 
-    				// Създаване на приключващ документ-чернова
-    				$dRec = $this->fetch($dealId);
-    				$clId = $CloseDoc->create($this->className, $dRec, $id);
-    				$CloseDoc->conto($clId);
-    			}
-    		}
-    	   
-    		// Записваме, че потребителя е разглеждал този списък
-    		$this->logWrite("Приключване на сделка с друга сделка", $id);
     		
-    		return new Redirect(array($this, 'single', $id));
+    		if(!$form->gotErrors()){
+    			$this->save($rec);
+    			$this->invoke('AfterActivation', array($rec));
+    			
+    			if(!empty($form->rec->closeWith)){
+    				core_App::setTimeLimit(1000);
+    				 
+    				$CloseDoc = cls::get($this->closeDealDoc);
+    				$deals = keylist::toArray($form->rec->closeWith);
+    				foreach ($deals as $dealId){
+    			
+    					// Създаване на приключващ документ-чернова
+    					$dRec = $this->fetch($dealId);
+    					$clId = $CloseDoc->create($this->className, $dRec, $id);
+    					$CloseDoc->conto($clId);
+    				}
+    			}
+    			
+    			// Записваме, че потребителя е разглеждал този списък
+    			$this->logWrite("Приключване на сделка с друга сделка", $id);
+    			
+    			return new Redirect(array($this, 'single', $id));
+    		}
     	}
     
     	$form->toolbar->addSbBtn('Обединяване', 'save', 'ef_icon = img/16/tick-circle-frame.png');
     	$form->toolbar->addBtn('Отказ', array($this, 'single', $id),  'ef_icon = img/16/close-red.png');
     	
     	$tpl = $this->renderWrapping($form->renderHtml());
-    	$formId = $form->formAttr['id'] ;
-    	jquery_Jquery::run($tpl, "preventDoubleSubmission('{$formId}');");
+    	core_Form::preventDoubleSubmission($tpl, $form);
     	
     	// Рендиране на формата
     	return $tpl;

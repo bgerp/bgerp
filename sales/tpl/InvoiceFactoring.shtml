@@ -107,7 +107,7 @@
                                         <div class='custom-bg-block'><b>Плащане</b></div>
                                         
                                         <!--ET_BEGIN paymentType-->
-                                        <div>[#paymentType#]</div>
+                                        <div class="boldText">[#paymentType#]</div>
                                         <!--ET_END paymentType-->
                                         
                                         <!--ET_BEGIN dueDate-->
@@ -131,7 +131,7 @@
                                         <!--ET_END additionalInfo-->
                                     </td>
                                     <td id='invoice-info' style='width:40%;'>
-                                        [#/deals/tpl/DocumentPiceInfo.shtml#]
+                                        [#/deals/tpl/DocumentPriceInfoInvoice.shtml#]
                                         <hr>
                                         <table class='centered special-borders' style='width:100%;'>
                                             <tr>

@@ -28,7 +28,7 @@ class planning_TaskActions extends core_Manager
 	/**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,planning';
+	public $canList = 'no_one';
 	
 	
 	/**

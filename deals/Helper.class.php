@@ -303,6 +303,12 @@ abstract class deals_Helper
 			}
 		}
 		
+		// Дефолтни стойности ако няма записи
+		if($invoice && empty($values)){
+			$arr['vat02BaseAmount'] = "0.00";
+			$arr['vat02BaseCurrencyId'] = $baseCurrency;
+		}
+		
 		return (object)$arr;
 	}
 	
@@ -1146,5 +1152,153 @@ abstract class deals_Helper
 	public static function getWeightRow($productId, $packagingId, $quantity, $weight = NULL)
 	{
 		return self::getMeasureRow($productId, $packagingId, $quantity, 'weight', $weight);
+	}
+	
+	
+	/**
+	 * Връща масив с фактурите в треда
+	 * 
+	 * @param int $threadId           - ид на нишка
+	 * @param boolean $onlyCreditNote - дали да са само КИ
+	 * @return array $invoices    - масив с ф-ри или броя намерени фактури
+	 */
+	public static function getInvoicesInThread($threadId, $onlyCreditNote = FALSE)
+	{
+		$invoices = array();
+		foreach (array('sales_Invoices', 'purchase_Invoices') as $class){
+			$Cls = cls::get($class);
+			$iQuery = $Cls->getQuery();
+			$iQuery->where("#threadId = {$threadId} AND #state = 'active'");
+			$iQuery->orderBy('date,number,type,dealValue', 'ASC');
+			$iQuery->show('number,containerId');
+			
+			if($onlyCreditNote === TRUE){
+				$iQuery->where("#type = 'dc_note' && #dealValue < 0");
+			} else {
+				$iQuery->where("#type = 'invoice' || (#type = 'dc_note' && #dealValue >= 0)");
+			}
+			
+			while($iRec = $iQuery->fetch()){
+				$Document = doc_Containers::getDocument($iRec->containerId);
+				$number = str_pad($Document->fetchField('number'), '10', '0', STR_PAD_LEFT);
+				$invoices[$iRec->containerId] = "#{$Document->abbr}{$number}";
+			}
+		}
+		
+		return $invoices;
+	}
+	
+	
+	/**
+	 * Помощен метод връщащ разпределението на плащанията по фактури
+	 * 
+	 * @param int $threadId - ид на тред
+	 * @return array $paid  - масив с разпределените плащания
+	 */
+	public static function getInvoicePayments($threadId)
+	{
+		expect($threadId);
+		
+		$invoicesArr = self::getInvoicesInThread($threadId);
+		if(!count($invoicesArr)) return array();
+	
+		$paid = $invoices = $payDocuments = array();
+		foreach (array('cash_Pko', 'cash_Rko', 'bank_IncomeDocuments', 'bank_SpendingDocuments') as $Pay){
+			$Pdoc = cls::get($Pay);
+			$pQuery = $Pdoc->getQuery();
+			$pQuery->where("#threadId = {$threadId} AND #state = 'active'");
+			$pQuery->show('containerId,amountDeal,fromContainerId,isReverse,activatedOn,valior');
+			
+			while($pRec = $pQuery->fetch()){
+				$type = ($Pay == 'cash_Pko' || $Pay == 'cash_Rko') ? 'cash' : 'bank';
+				$sign = ($pRec->isReverse == 'yes') ? -1 : 1;
+				$payDocuments[$pRec->containerId] = (object)array('valior' => $pRec->valior, 'activatedOn' => $pRec->activatedOn, 'amount' => $sign * round($pRec->amountDeal, 2), 'type' => $type, 'toInvoice' => $pRec->fromContainerId, 'isReverse' => ($pRec->isReverse == 'yes'));
+			}
+		}
+	
+		uasort($payDocuments, function($a, $b){ if($a->valior == $b->valior) {return ($a->activatedOn < $b->activatedOn) ? -1 : 1;} return ($a->valior < $b->valior) ? -1 : 1;});
+		$notAllocated = array_filter($payDocuments, function($a){return empty($a->toInvoice);});
+		
+		$cache = array();
+		$newInvoiceArr = array();
+		foreach ($invoicesArr as $containerId => $hnd){
+			$Document = doc_Containers::getDocument($containerId);
+			$iRec = $Document->fetch('dealValue,discountAmount,vatAmount,rate,type,originId,containerId');
+			$cache[$containerId] = $iRec;
+			$amount = round((($iRec->dealValue - $iRec->discountAmount) + $iRec->vatAmount) / $iRec->rate, 2);
+			
+			$key = ($iRec->type != 'dc_note') ? $containerId : $iRec->originId;
+			$newInvoiceArr[$key]['total'] += $amount;
+			$newInvoiceArr[$key]['current'] += $amount;
+		}
+		
+		foreach ($newInvoiceArr as $k => $o){
+			$found = array_filter($payDocuments, function($a) use ($k, $cache){return $a->toInvoice == $k || $cache[$a->toInvoice]->originId == $k;});
+			$totalPercent = 1;
+			
+			if(count($found)){
+				foreach ($found as $fId => $o){
+					$newInvoiceArr[$k]['current'] -= $o->amount;
+					$percent = min(round($o->amount / $newInvoiceArr[$k]['total'], 2), 1);
+					$totalPercent -= $percent;
+				
+					$paid[$k][$fId] = (object)array('containerId' => $fId, 'percent' => $percent, 'type' => $o->type, 'isReverse' => $o->isReverse);
+				}
+			}
+			
+			if($newInvoiceArr[$k]['current'] <= 0) continue;
+			
+			if(count($notAllocated)){
+				foreach ($notAllocated as $nId => &$o1){
+					
+					$unset = FALSE;
+					if($o1->amount > $newInvoiceArr[$k]['current']){
+						$percent = $totalPercent;
+						$o1->amount -= $newInvoiceArr[$k]['current'];
+						$newInvoiceArr[$k]['current'] = 0;
+					} else {
+						$percent = min(round($o1->amount / $newInvoiceArr[$k]['total'], 2), 1);
+						$totalPercent -= $percent;
+						$newInvoiceArr[$k]['current'] -= $o1->amount;
+						$unset = TRUE;
+					}
+						
+					$paid[$k][$nId] = (object)array('containerId' => $nId, 'percent' => $percent, 'type' => $o1->type, 'isReverse' => $o1->isReverse);
+					if($unset === TRUE){
+						unset($notAllocated[$nId]);
+					}
+				}
+			}
+		}
+		
+		return $paid;
+	}
+	
+	
+	/**
+	 * Ъпдейтва начина на плащане на фактурите в нишката
+	 *
+	 * @param int $threadId - ид на крака
+	 * @return void
+	 */
+	public static function updateAutoPaymentTypeInThread($threadId)
+	{
+		// Разпределените начини на плащане
+		core_Cache::remove('threadInvoices', "t{$threadId}");
+		$invoicePayments = deals_Helper::getInvoicePayments($threadId);
+		core_Cache::set('threadInvoices', "t{$threadId}", $invoicePayments, 1440);
+	
+		// Всички ф-ри в нишката
+		$invoices = self::getInvoicesInThread($threadId);
+		if(!count($invoices)) return;
+		
+		foreach ($invoices as $containerId => $hnd){
+			$Doc = doc_Containers::getDocument($containerId);
+			$rec = $Doc->fetch();
+			$rec->autoPaymentType = $Doc->getAutoPaymentType();
+			
+			$Doc->getInstance()->save_($rec, 'autoPaymentType');
+			doc_DocumentCache::cacheInvalidation($rec->containerId);
+		}
 	}
 }
