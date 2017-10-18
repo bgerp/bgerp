@@ -481,6 +481,12 @@ class cat_Boms extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+    	if(empty($rec->showInProduct)){
+    		$showInProduct = cat_Setup::get('SHOW_BOM_IN_PRODUCT');
+    		$row->showInProduct = $mvc->getFieldType('showInProduct')->toVerbal($showInProduct);
+    		$row->showInProduct = ht::createHint($row->showInProduct, "По подразбиране");
+    	}
+    	
     	$row->productId = cat_Products::getShortHyperlink($rec->productId);
     	$row->title = $mvc->getLink($rec->id, 0);
     	$row->singleTitle = ($rec->type == 'sales') ? tr('Търговска рецепта') : ('Работна рецепта');
