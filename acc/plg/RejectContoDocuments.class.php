@@ -51,7 +51,11 @@ class acc_plg_RejectContoDocuments extends core_Plugin
      */
     public static function on_AfterCanRejectOrRestore($mvc, &$res, $id, $ignoreArr = array())
     {
-    	$closedItems = $mvc->getClosedItemsInTransaction($id);
+    	try{
+    		$closedItems = $mvc->getClosedItemsInTransaction($id);
+    	} catch (acc_journal_RejectRedirect $e){
+    		return;
+    	}
         
         // Ако има пера за игнориране, игнорираме ги
         if(count($ignoreArr)){

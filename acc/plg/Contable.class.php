@@ -173,7 +173,7 @@ class acc_plg_Contable extends core_Plugin
     {
         $rec = &$data->rec;
         
-        $error = $mvc->getBtnErrStr($rec);
+        $error = $mvc->getContoBtnErrStr($rec);
         $error = $error ? ",error={$error}" : '';
         
         if(haveRole('debug')) {
@@ -235,19 +235,30 @@ class acc_plg_Contable extends core_Plugin
         
         if(($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'pending' || $rec->state == 'stopped') && acc_Journal::haveRightFor('read') && $journalRec) {
             $journalUrl = array('acc_Journal', 'single', $journalRec->id, 'ret_url' => TRUE);
-            $data->toolbar->addBtn('Журнал', $journalUrl, "row=2,ef_icon=img/16/book.png,title=Преглед на контировката на документа в журнала{$error}");
+            $data->toolbar->addBtn('Журнал', $journalUrl, "row=2,ef_icon=img/16/book.png,title=Преглед на контировката на документа в журнала");
+        }
+        
+        if($data->toolbar->hasBtn("btnRestore{$rec->containerId}")){
+        	if($error = $mvc->getRestoreBtnErrStr($rec)){
+        		$data->toolbar->setError("btnRestore{$rec->containerId}", $error);
+        	}
         }
     }
     
     
     /**
-     * 
-     * 
-     * @param core_Manager $mvc
-     * @param string|NULL $res
-     * @param stdObject $rec
+     * Взимане на грешка в бутона за възстановяване
      */
-    public static function on_AfterGetBtnErrStr($mvc, &$res, $rec)
+    public static function on_AfterGetRestoreBtnErrStr($mvc, &$res, $rec)
+    {
+    	
+    }
+    
+    
+    /**
+     * Взимане на грешка в бутона за контиране
+     */
+    public static function on_AfterGetContoBtnErrStr($mvc, &$res, $rec)
     {
         if ($mvc->haveRightFor('conto', $rec)) {
             if(!self::checkPeriod($mvc->getValiorValue($rec), $error)){
@@ -472,14 +483,7 @@ class acc_plg_Contable extends core_Plugin
         // Контирането е позволено само в съществуващ активен/чакащ/текущ период;
         $period = acc_Periods::fetchByDate($rec->valior);
         expect($period && ($period->state != 'closed' && $period->state != 'draft'), 'Не може да се контира в несъществуващ, бъдещ или затворен период');
-        
-        try{
-       		$cRes = acc_Journal::saveTransaction($mvc->getClassId(), $rec);
-        } catch (acc_journal_RejectRedirect $e){
-        	
-        	$url = $mvc->getSingleUrlArray($rec->id);
-        	redirect($url, FALSE, '|' . $e->getMessage(), 'error');
-        }
+        $cRes = acc_Journal::saveTransaction($mvc->getClassId(), $rec);
         
         if(empty($cRes)){
         	$handle = $mvc->getHandle($rec->id);
@@ -502,7 +506,15 @@ class acc_plg_Contable extends core_Plugin
      */
     public static function on_AfterConto(core_Mvc $mvc, &$res, $id)
     {
-        self::conto($mvc, $id);
+    	$rec = $mvc->fetchRec($id);
+    	
+    	try{
+    		self::conto($mvc, $rec);
+    	} catch (acc_journal_RejectRedirect $e){
+    		 
+    		$url = $mvc->getSingleUrlArray($rec->id);
+    		redirect($url, FALSE, '|' . $e->getMessage(), 'error');
+    	}
     }
     
     
@@ -553,8 +565,17 @@ class acc_plg_Contable extends core_Plugin
         $rec = $mvc->fetchRec($id);
         
         if($rec->state == 'active' || $rec->state == 'closed'){
-            // Ре-контиране на документа след възстановяването му
-            $mvc->reConto($id);
+        	$rec = $mvc->fetchRec($id);
+        	 
+        	try{
+        		// Ре-контиране на документа след възстановяването му
+            	$mvc->reConto($id);
+        	} catch (acc_journal_RejectRedirect $e){
+        		$mvc->reject($rec);
+        		
+        		$url = $mvc->getSingleUrlArray($rec->id);
+        		redirect($url, FALSE, '|' . $e->getMessage(), 'error');
+        	}
         }
     }
     

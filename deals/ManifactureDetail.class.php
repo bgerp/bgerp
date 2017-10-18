@@ -1,13 +1,14 @@
 <?php
 
 
+
 /**
  * Клас 'deals_ManifactureDetail' - базов клас за детайли на производствени документи
  *
  * @category  bgerp
  * @package   mp
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -69,9 +70,8 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	 */
 	public static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
 	{
-		if (empty($rec->quantity) || empty($rec->quantityInPack)) {
-			return;
-		}
+		if (empty($rec->quantity) || empty($rec->quantityInPack)) return;
+		
 		$rec->packQuantity = $rec->quantity / $rec->quantityInPack;
 	}
 	
@@ -86,15 +86,13 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	{
 		$form = &$data->form;
 		setIfNot($data->defaultMeta, $mvc->defaultMeta);
-		
 		if(!$data->defaultMeta) return;
 		
 		$products = cat_Products::getByProperty($data->defaultMeta);
+		$data->form->setOptions('productId', array('' => ' ') + $products);
 		
-		if (empty($form->rec->id)) {
-			$data->form->setOptions('productId', array('' => ' ') + $products);
-		} else {
-			$data->form->setOptions('productId', array($form->rec->productId => $products[$form->rec->productId]));
+		if (isset($form->rec->id)) {
+			$data->form->setReadOnly('productId');
 		}
 	}
 	

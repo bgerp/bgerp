@@ -400,6 +400,18 @@ class frame2_Reports extends embed_Manager
     	if($mvc->haveRightFor('export', $rec)){
     		$data->toolbar->addBtn('Експорт в CSV', array($mvc, 'export', $rec->id, 'ret_url' => TRUE), NULL, 'ef_icon=img/16/file_extension_xls.png, title=Сваляне на записите в CSV формат,row=2');
     	}
+    	
+    	$url = array($mvc, 'single', $rec->id);
+    	$icon = 'img/16/checked.png';
+    	if(!Request::get('vId', 'int')){
+    		$url['vId'] = $rec->id;
+    		$icon = 'img/16/checkbox_no.png';
+    	}
+    	
+    	$vCount = frame2_ReportVersions::count("#reportId = {$rec->id}");
+    	if($vCount > 1){
+    		$data->toolbar->addBtn("Версии ({$vCount})", $url, NULL, "ef_icon={$icon}, title=Показване на предишни версии,row=1");
+    	}
     }
     
     
@@ -498,7 +510,7 @@ class frame2_Reports extends embed_Manager
     public static function on_Shutdown($mvc)
     {
     	// Ако е имало опреснени отчети
-    	if(count($mvc->refreshReports)){
+    	if(is_array($mvc->refreshReports)){
     		foreach ($mvc->refreshReports as $rec) {
     			if($Driver = $mvc->getDriver($rec)){
     				
@@ -513,7 +525,7 @@ class frame2_Reports extends embed_Manager
     	}
     	
     	// Задаване на нови времена за обновяване
-    	if(count($mvc->setNewUpdateTimes)){
+    	if(is_array($mvc->setNewUpdateTimes)){
     		foreach ($mvc->setNewUpdateTimes as $rec) {
     			self::setAutoRefresh($rec->id);
     		}
@@ -528,9 +540,8 @@ class frame2_Reports extends embed_Manager
      * @param int $id първичния ключ на направения запис
      * @param stdClass $rec всички полета, които току-що са били записани
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-    	// Данни
     	if($rec->refreshData === TRUE){
     		self::refresh($rec);
     	}
@@ -558,7 +569,7 @@ class frame2_Reports extends embed_Manager
      * @param core_Manager $mvc
      * @param stdClass $rec
      */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
     	if($rec->state == 'draft'){
     		$rec->state = 'active';
@@ -621,7 +632,7 @@ class frame2_Reports extends embed_Manager
      * @param object $rec
      * @param object $row
      */
-    public static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
+    protected static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
     {
     	$resArr = arr::make($resArr);
     	$resArr['title'] = array('name' => tr('Заглавие'), 'val' => $row->title);
@@ -658,7 +669,7 @@ class frame2_Reports extends embed_Manager
     /**
      * Преди подготовка на сингъла
      */
-    public static function on_BeforePrepareSingle(core_Mvc $mvc, &$res, $data)
+    protected static function on_BeforePrepareSingle(core_Mvc $mvc, &$res, $data)
     {
     	// Ако има избрана версия записа се подменя преди да се е подготвил
     	if($versionId = self::getSelectedVersionId($data->rec->id)){
@@ -775,9 +786,8 @@ class frame2_Reports extends embed_Manager
     		$dates = $Driver->getNextRefreshDates($rec);
     	}
     	
+    	// Намира следващите три времена за обновяване
     	if(empty($dates)){
-    		
-    		// Намира следващите три времена за обновяване
     		$dates = self::getNextRefreshDates($rec);
     	}
     	

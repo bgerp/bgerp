@@ -2405,7 +2405,7 @@ class cat_Products extends embed_Manager {
     		$rec = $bQuery->fetch();
     	}
     	
-    	if(!$rec) return $res;
+    	if(!$rec || cat_Boms::showInProduct($rec) === FALSE) return $res;
     	
     	// Кои детайли от нея ще показваме като компоненти
     	$details = cat_BomDetails::getOrderedBomDetails($rec->id);

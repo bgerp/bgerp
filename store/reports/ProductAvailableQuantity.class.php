@@ -71,10 +71,10 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Артикул');
+        $fieldset->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Артикул,after=storeId');
         $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,after=title');
-        $fieldset->FLD('minQuantity', 'double(decimals=2)', 'caption=Мин к-во');
-        $fieldset->FLD('maxQuantity', 'double(decimals=2)', 'caption=Макс к-во');
+        $fieldset->FLD('minQuantity', 'double(decimals=2)', 'caption=Мин к-во,after=productId');
+        $fieldset->FLD('maxQuantity', 'double(decimals=2)', 'caption=Макс к-во, after=minQuantity');
     }
 
 

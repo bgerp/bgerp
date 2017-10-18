@@ -181,7 +181,6 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = NULL)
     {
 
-
         $recs = array();
 
         $dealers = keylist::toArray($rec->dealers);
@@ -216,11 +215,21 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
 
 //bp($dealerId,$dealers);
 
-            if (strtotime(date('Y/m/d')) > strtotime (date('Y-m-d', strtotime($inDocs->termDate. "+ $rec->tolerance days" )))){
+            $today = date_create(date('Y-m-d'));
+
+            $tolerance = abs($rec->tolerance);
+
+            if($rec->tolerance < 0) {
+                $marker = "-";
+            }else{$marker = "+";}
+
+            $markDay = date_create( (date('Y-m-d', strtotime($inDocs->termDate. "$marker $tolerance days") )));
+
+            if (($today) >($markDay)){
 
                 $condition = 'просрочен';
 
-            }else{$condition = 'ok';}
+            } else{$condition = 'ok';}
 
             if(in_array($dealerId,$dealers)) {
 
@@ -264,23 +273,23 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
                 $fld->FLD('dealer', 'varchar', 'caption=Търговец,smartCenter');
             }
 
-            $fld->FLD('documentId', 'varchar', 'smartCenter,caption=Документ');
-            $fld->FLD('folder', 'varchar', 'caption=Папка,smartCenter');
-            $fld->FLD('amount', 'varchar', 'smartCenter,caption=Сума');
-            $fld->FLD('termDate', 'varchar', 'caption=Краен срок,smartCenter');
-            $fld->FLD('condition', 'varchar', 'caption=Състояние,smartCenter');
+            $fld->FLD('documentId', 'varchar', 'caption=Документ');
+            $fld->FLD('folder', 'varchar', 'caption=Папка');
+            $fld->FLD('amount', 'double(decimals=2)', 'caption=Сума,smartCenter');
+            $fld->FLD('termDate', 'varchar', 'caption=Краен срок');
+            $fld->FLD('condition', 'varchar', 'caption=Състояние,tdClass=centered');
 
 
         } else {
             if ($cntDealers > 1){
-                $fld->FLD('dealer', 'varchar', 'caption=Търговец,smartCenter');
+                $fld->FLD('dealer', 'varchar', 'caption=Търговец,');
             }
 
-            $fld->FLD('documentId', 'varchar', 'smartCenter,caption=Документ');
-            $fld->FLD('folder', 'varchar', 'caption=Папка,smartCenter');
-            $fld->FLD('amount', 'varchar', 'smartCenter,caption=Сума');
-            $fld->FLD('termDate', 'varchar', 'caption=Краен срок,smartCenter');
-            $fld->FLD('condition', 'varchar', 'caption=Състояние,smartCenter');
+            $fld->FLD('documentId', 'varchar', 'caption=Документ');
+            $fld->FLD('folder', 'varchar', 'caption=Папка');
+            $fld->FLD('amount', 'double(decimals=2)', 'caption=Сума,smartCenter');
+            $fld->FLD('termDate', 'varchar', 'caption=Краен срок');
+            $fld->FLD('condition', 'varchar', 'caption=Състояние,tdClass=centered');
 
         }
 

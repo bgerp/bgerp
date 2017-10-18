@@ -122,7 +122,7 @@ class sales_QuotationsDetails extends doc_Detail {
         
         $this->FLD('quantity', 'double(Min=0)', 'caption=Количество,input=none');
     	$this->FLD('price', 'double(minDecimals=2,maxDecimals=4)', 'caption=Ед. цена, input=none');
-    	$this->FLD('discount', 'percent(smartRound,min=0)', 'caption=Отстъпка,smartCenter');
+    	$this->FLD('discount', 'percent(smartRound,min=0,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=Отстъпка,smartCenter');
         $this->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс,input=none');
     	$this->FLD('term', 'time(uom=days,suggestions=1 ден|5 дни|7 дни|10 дни|15 дни|20 дни|30 дни)', 'caption=Срок,input=none');
     	$this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
@@ -142,9 +142,7 @@ class sales_QuotationsDetails extends doc_Detail {
      */
     public static function on_CalcPackPrice(core_Mvc $mvc, $rec)
     {
-    	if (!isset($rec->price) || empty($rec->quantityInPack)) {
-    		return;
-    	}
+    	if (!isset($rec->price) || empty($rec->quantityInPack)) return;
     
     	$rec->packPrice = $rec->price * $rec->quantityInPack;
     }
@@ -158,9 +156,7 @@ class sales_QuotationsDetails extends doc_Detail {
      */
     public static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
     {
-    	if (empty($rec->quantity) || empty($rec->quantityInPack)) {
-    		return;
-    	}
+    	if (empty($rec->quantity) || empty($rec->quantityInPack)) return;
     
     	$rec->packQuantity = $rec->quantity / $rec->quantityInPack;
     }
@@ -362,21 +358,12 @@ class sales_QuotationsDetails extends doc_Detail {
         $masterRec = $data->masterRec;
         
         $products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts);
-        expect(count($products));
-        $data->form->setSuggestions('discount', array('' => '') + arr::make('5 %,10 %,15 %,20 %,25 %,30 %', TRUE));
-        
-        if (empty($rec->id)) {
-        	$data->form->setOptions('productId', array('' => ' ') + $products);
-        	 
-        } else {
-        	// Нямаме зададена ценова политика. В този случай задъжително трябва да имаме
-        	// напълно определен продукт (клас и ид), който да не може да се променя във формата
-        	// и полето цена да стане задължително
-        	$data->form->setOptions('productId', array($rec->productId => $products[$rec->productId]));
+        $data->form->setOptions('productId', array('' => ' ') + $products);
+        if (isset($rec->id)) {
+        	$data->form->setReadOnly('productId');
         }
         
         if (!empty($rec->packPrice)) {
-        	
         	if(Request::get('Act') != 'CreateProduct'){
         		$vat = cat_Products::getVat($rec->productId, $masterRec->valior);
         	} else {
