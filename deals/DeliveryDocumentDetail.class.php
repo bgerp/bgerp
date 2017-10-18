@@ -36,7 +36,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		$mvc->FNC('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
 		$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,smartCenter,input=input');
 		$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
-		$mvc->FLD('discount', 'percent(min=0,max=1)', 'caption=Отстъпка,smartCenter');
+		$mvc->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=Отстъпка,smartCenter');
 		$mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Забележки');
 	}
 	
@@ -61,8 +61,6 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		if (isset($rec->id)) {
 			$data->form->setReadOnly('productId');
 		}
-		
-		$data->form->setSuggestions('discount', array('' => '') + arr::make('5 %,10 %,15 %,20 %,25 %,30 %', TRUE));
 		
 		if (!empty($rec->packPrice)) {
 			$vat = cat_Products::getVat($rec->productId, $masterRec->valior);
