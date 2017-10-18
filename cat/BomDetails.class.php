@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -60,33 +60,27 @@ class cat_BomDetails extends doc_Detail
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,cat,techno,sales';
-    
-    
-    /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,cat,techno,sales';
+    public $canEdit = 'ceo,cat,sales';
     
     
     /**
      * Кой има право да разгъва?
      */
-    public $canExpand = 'ceo,cat,techno,sales';
+    public $canExpand = 'ceo,cat,sales';
     
     
     /**
      * Кой има право да свива?
      */
-    public $canShrink = 'ceo,cat,techno,sales';
+    public $canShrink = 'ceo,cat,sales';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,cat,techno,sales';
+    public $canAdd = 'ceo,cat,sales';
     
     
     /**
@@ -186,7 +180,7 @@ class cat_BomDetails extends doc_Detail
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
@@ -371,7 +365,7 @@ class cat_BomDetails extends doc_Detail
      * @param cat_BomDetails $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
     	$rec = &$form->rec;
     	$masterProductId = cat_Boms::fetchField($rec->bomId, 'productId');
@@ -546,7 +540,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * След преобразуване на записа в четим за хора вид
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	// Показваме подробната информация за опаковката при нужда
     	deals_Helper::getPackInfo($row->packagingId, $rec->resourceId, $rec->packagingId, $rec->quantityInPack);
@@ -701,14 +695,6 @@ class cat_BomDetails extends doc_Detail
     		$masterRec = cat_Boms::fetch($rec->bomId, 'state,originId');
     		if($masterRec->state != 'draft'){
     			$requiredRoles = 'no_one';
-    		} else {
-    			// Само ceo и techno могат да редактират ред от работна рецепта
-    			$firstDocument = doc_Containers::getDocument($masterRec->originId);
-    			if($firstDocument->isInstanceOf('planning_Jobs')){
-    				if(!haveRole('techno,ceo', $userId)){
-    					$requiredRoles = 'no_one';
-    				}
-    			}
     		}
     	}
     	
@@ -851,7 +837,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * След извличане на записите от базата данни
      */
-    public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
+    protected static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
     {
     	if(!count($data->recs)) return;
     	
@@ -898,7 +884,7 @@ class cat_BomDetails extends doc_Detail
      * @param core_Manager $mvc
      * @param stdClass $rec
      */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
     	// Ако сме добавили нов етап
     	if(empty($rec->id) && $rec->type == 'stage'){
@@ -931,7 +917,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Извиква се след успешен запис в модела
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
     	// Ако има позиция, шифтваме всички с по-голяма или равна позиция напред
     	if(isset($rec->position)){
@@ -1094,7 +1080,7 @@ class cat_BomDetails extends doc_Detail
      * @param int $toBomId
      * @return void
      */
-    public function cloneDetails($fromBomId, $toBomId)
+    protected function cloneDetails($fromBomId, $toBomId)
     {
     	$fromBomRec = cat_Boms::fetchRec($fromBomId);
     	cat_BomDetails::addProductComponents($fromBomRec->productId, $toBomId, NULL);
@@ -1104,7 +1090,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * След изтриване на запис
      */
-    public static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    protected static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
     {
     	// Ако изтриваме етап, изтриваме всичките редове от този етап
     	foreach ($query->getDeletedRecs() as $id => $rec) {
