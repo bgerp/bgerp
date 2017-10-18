@@ -323,11 +323,11 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
 
         if (isset($dRec->documentId)) {
             $clsName = $dRec->clsName;
-            $row->documentId = $clsName::getLinkToSingle($dRec->documentId);
+            $row->documentId = $clsName::getLink($dRec->documentId, 0);
         }
 
         if (isset($dRec->folder)) {
-            $row->folder = doc_Folders::getShortHyperlink($dRec-> folder);
+            $row->folder = doc_Folders::recToVerbal(doc_Folders::fetch($dRec->folder))->title;
         }
 
         if (isset($dRec->termDate)) {
@@ -335,7 +335,7 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
         }
 
         if (isset($dRec->amount)) {
-            $row->amount = $dRec->amount;
+            $row->amount = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->amount);
         }
 
         if (isset($dRec->condition)) {
