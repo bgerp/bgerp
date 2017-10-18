@@ -120,6 +120,7 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
+    	
     	if(!Request::get('Rejected', 'int')){
     		$data->listFilter->FNC('invState', 'enum(all=Всички, draft=Чернова, active=Контиран)', 'caption=Състояние,input,silent');
     		 
@@ -128,14 +129,15 @@ abstract class deals_InvoiceMaster extends core_Master
     		$data->listFilter->setDefault('invState', 'all');
     	}
     	
-    	if(!$data->listFilter->getField('invType', FALSE)){
+    	$type = '';
+    	if($mvc->getField('type', FALSE)){
     		$data->listFilter->FNC('invType', 'enum(all=Всички, invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 'caption=Вид,input,silent');
+    		$type = ',invType';
     	}
     	 
     	$data->listFields['paymentType'] = 'Плащане';
     	$data->listFilter->FNC('payType', 'enum(all=Всички,cash=В брой,bank=По банка,intercept=С прихващане,card=С карта,factoring=Факторинг)', 'caption=Начин на плащане,input');
-    	$data->listFilter->showFields .= ",payType,invType";
-    	 
+    	$data->listFilter->showFields .= ",payType{$type}";
     	$data->listFilter->input(NULL, 'silent');
     	 
     	if($rec = $data->listFilter->rec){
@@ -150,7 +152,6 @@ abstract class deals_InvoiceMaster extends core_Master
     		if($rec->invType){
     			if($rec->invType != 'all'){
     				$data->query->where("#type = '{$rec->invType}'");
-    	
     				$sign = ($rec->invType == 'credit_note') ? "<=" : ">";
     				$data->query->orWhere("#type = 'dc_note' AND #dealValue {$sign} 0");
     			}
@@ -214,7 +215,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$rec->vatAmount = $this->_total->vat * $rate;
     	$rec->discountAmount = $this->_total->discount * $rate;
     	
-    	if($save){
+    	if($save === TRUE){
     		return $this->save($rec);
     	}
     }
@@ -713,7 +714,6 @@ abstract class deals_InvoiceMaster extends core_Master
     			if(isset($rec->changeAmount)){
     				if($rec->changeAmount == 0){
     					$form->setError('changeAmount', 'Не може да се създаде известие с нулева стойност');
-    					
     					return;
     				}
     			}
@@ -1264,10 +1264,7 @@ abstract class deals_InvoiceMaster extends core_Master
     public static function getSourceOrigin($rec)
     {
     	$rec = static::fetchRec($rec);
-    	
-    	if($rec->sourceContainerId) {
-    		return doc_Containers::getDocument($rec->sourceContainerId);
-    	}
+    	if($rec->sourceContainerId) return doc_Containers::getDocument($rec->sourceContainerId);
     	
     	return static::getOrigin($rec);
     }

@@ -224,9 +224,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	parent::setInvoiceFields($this);
     	
     	$this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=title, allowEmpty)', 'caption=Плащане->Банкова с-ка, changable');
-    	
     	$this->FLD('numlimit', 'enum(1,2)', 'caption=Диапазон, after=template,input=hidden,notNull,default=1');
-    	
     	$this->FLD('number', 'bigint(21)', 'caption=Номер, after=place,input=none');
     	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно)', 'caption=Статус, input=none');
         $this->FLD('type', 'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие,dc_note=Известие)', 'caption=Вид, input=hidden');
@@ -287,16 +285,17 @@ class sales_Invoices extends deals_InvoiceMaster
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
+    	$rec = &$form->rec;
     	
     	$defInfo = "";
     	
-    	if($form->rec->sourceContainerId){
-    		$Source = doc_Containers::getDocument($form->rec->sourceContainerId);
+    	if($rec->sourceContainerId){
+    		$Source = doc_Containers::getDocument($rec->sourceContainerId);
     		if($Source->isInstanceOf('sales_Proformas')){
     			if($proformaRec = $Source->fetch()){
     				$mvc->prepareFromProforma($proformaRec, $form);
     				$handle = sales_Proformas::getHandle($Source->that);
-    				$mvc->pushTemplateLg($form->rec->template);
+    				$mvc->pushTemplateLg($rec->template);
     				$defInfo .= (($defInfo) ? ' ' : '') . tr("По проформа|* #") . $handle . "\n";
     				core_Lg::pop();
     			}
@@ -331,21 +330,21 @@ class sales_Invoices extends deals_InvoiceMaster
     		}
     	}
     	
-    	if($form->rec->vatRate != 'yes' && $form->rec->vatRate != 'separate'){
-    		if($form->rec->contragentCountryId == drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id')){
+    	if($rec->vatRate != 'yes' && $rec->vatRate != 'separate'){
+    		if($rec->contragentCountryId == drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id')){
     			$form->setField('vatReason', 'mandatory');
     		}
     	}
     	
-    	$firstDoc = doc_Threads::getFirstDocument($form->rec->threadId);
+    	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
     	$firstRec = $firstDoc->rec();
     	 
-    	$tLang = doc_TplManager::fetchField($form->rec->template, 'lang');
+    	$tLang = doc_TplManager::fetchField($rec->template, 'lang');
     	core_Lg::push($tLang);
     	
     	$showSale = core_Packs::getConfigValue('sales', 'SALE_INVOICES_SHOW_DEAL');
     	
-    	if($showSale == 'yes' && empty($form->rec->sourceContainerId)){
+    	if($showSale == 'yes' && empty($rec->sourceContainerId)){
     		// Ако продажбата приключва други продажби също ги попълва в забележката
     		if($firstRec->closedDocuments){
     			$docs = keylist::toArray($firstRec->closedDocuments);
@@ -389,7 +388,6 @@ class sales_Invoices extends deals_InvoiceMaster
     	
     	// Задаваме дефолтния текст
     	$form->setDefault('additionalInfo', $defInfo);
-    	
     }
     
     
@@ -402,6 +400,10 @@ class sales_Invoices extends deals_InvoiceMaster
     	parent::inputInvoiceForm($mvc, $form);
     	
     	if($form->isSubmitted()){
+    		if(!$mvc->isAllowedToBePosted($rec, $warning)){
+    			$form->setError('date', $warning);
+    		}
+    		
     		if($rec->type != 'dc_note' && empty($rec->accountId)){
     			if($paymentMethodId = doc_Threads::getFirstDocument($rec->threadId)->fetchField('paymentMethodId')){
     				$paymentPlan = cond_PaymentMethods::fetch($paymentMethodId);
@@ -599,14 +601,7 @@ class sales_Invoices extends deals_InvoiceMaster
     		}
     	}
     	
-    	if($action == 'restore' && isset($rec)){
-    		$lastDate = $mvc->getNewestInvoiceDate($rec->numlimit);
-    		if($lastDate > $rec->date) {
-    			$res = 'no_one';
-    		}
-    	}
-    	
-    	// Само ceo,salesmaster и acc могат да оттеглят контирана фактура
+    	// Само ceo,sales,invoicer могат да оттеглят контирана фактура
     	if($action == 'reject' && isset($rec)){
     		if($rec->state == 'active'){
     			if(!haveRole('ceo,sales,invoicer', $userId)){
@@ -615,20 +610,13 @@ class sales_Invoices extends deals_InvoiceMaster
     		}
     	}
     	
-    	// Само ceo,salesmaster и acc могат да възстановят фактура
+    	// Само ceo,sales,invoicer могат да възстановят фактура
     	if($action == 'restore' && isset($rec)){
     		if($rec->brState == 'active'){
     			if(!haveRole('ceo,sales,invoicer', $userId)){
     				$res = 'no_one';
     			}
     		}
-    	}
-    	
-    	if ($action == 'changerec' && $rec) {
-    	    $period = acc_Periods::fetchByDate($rec->date);
-    	    if (!$period || $period->state == 'closed') {
-    	        $res = 'no_one';
-    	    }
     	}
     }
     
@@ -706,71 +694,82 @@ class sales_Invoices extends deals_InvoiceMaster
    		return round($amount, 2);
    	}
 
-
-	/**
-   	 * Връща датата на последната ф-ра
-   	 */
-   	protected function getNewestInvoiceDate($diapason)
-   	{
-   		$query = $this->getQuery();
-   		$query->where("#state = 'active'");
-   		$query->where("#numlimit = {$diapason}");
-   		$query->orderBy('date', 'DESC');
-   		$query->limit(1);
-   		$lastRec = $query->fetch();
-   		 
-   		return $lastRec->date;
-   	}
-   	
    	
    	/**
-   	 * Валидиране на полето 'date' - дата на фактурата
-   	 * Предупреждение ако има фактура с по-нова дата (само при update!)
+   	 * Може ли ф-та да бъде контирана/възстановена
+   	 * 
+   	 * @param stdClass $rec
+   	 * @param string|NULL $msg
+   	 * @param boolean $restore
+   	 * @return boolean
    	 */
-   	public static function on_ValidateDate(core_Mvc $mvc, $rec, core_Form $form)
+   	public function isAllowedToBePosted($rec, &$msg, $restore = FALSE)
    	{
-   		// Ако фактурата е вече контирана не правим проверка за дата
-   		if($form->rec->state == 'active') return;
+   		$query = $this->getQuery();
+   		$query->where("#state = 'active' AND #numlimit = {$rec->numlimit}");
+   		$query->limit(1);
    		
-   		$newDate = $mvc->getNewestInvoiceDate($rec->numlimit);
-   		if($newDate > $rec->date) {
+   		if($restore === FALSE){
+   			$query->orderBy('date', 'DESC');
+   			$newDate = $query->fetch()->date;
    			
-   			// Най-новата валидна ф-ра в БД е по-нова от настоящата.
-   			$form->setError('date',
-   					'Не може да се запише фактура с дата по-малка от последната активна фактура в диапазона|* (' .
-   					dt::mysql2verbal($newDate, 'd.m.y') .
-   					')'
-   			);
+   			if($newDate > $rec->date) {
+   				$newDate = dt::mysql2verbal($newDate, 'd.m.y');
+   				$msg = 'Не може да се запише фактура с дата по-малка от последната активна фактура в диапазона|* (' . $newDate .')';
+   				return FALSE;
+   			}
+   			
+   			return TRUE;
    		}
+   		
+   		$number = (isset($rec->number)) ? $rec->number : $this->getNextNumber($rec);
+   		
+   		$queryBefore = clone $query;
+   		$query->orderBy('number', 'DESC');
+   		$queryBefore->where("#date < '{$rec->date}' AND #state = 'active' AND #number > {$number} AND #id != '{$rec->id}'");
+   		if($iBefore = $queryBefore->fetch()){
+   			$numberB = $this->recToVerbal($iBefore, 'number')->number;
+   			$msg = "|Фактурата не може да се възстанови|* - |фактура|* №{$numberB} |е с по-голям номер и по-малка дата в диапазона|*";
+   			return FALSE;
+   		}
+   		
+   		$queryAfter = clone $query;
+   		$query->orderBy('number', 'ASC');
+   		$queryAfter->where("#date > '{$rec->date}' AND #state = 'active' AND #number <= {$number} AND #id != '{$rec->id}'");
+   		if($iAfter = $queryAfter->fetch()){
+   			$numberA = $this->recToVerbal($iAfter, 'number')->number;
+   			$msg = "|Фактурата не може да се възстанови|* - |фактура|* №{$numberA} |е с по-малък номер и по-голяма дата в диапазона|*";
+   			return FALSE;
+   		}
+   		
+   		return TRUE;
    	}
     
-    
+   	
+   	/**
+   	 * Взимане на грешка в бутона за възстановяване
+   	 */
+   	public static function on_AfterGetRestoreBtnErrStr($mvc, &$res, $rec)
+   	{
+   		if(!$mvc->isAllowedToBePosted($rec, $error, TRUE)){
+   			$res = $error;
+    	}
+   	}
+   	
+   	
     /**
      * Текст за грешка при бутон за контиране
      */
-    public static function on_AfterGetBtnErrStr($mvc, &$res, $rec)
+    public static function on_AfterGetContoBtnErrStr($mvc, &$res, $rec)
     {
-    	if (empty($rec->number) && $rec->state != 'active' && $mvc->haveRightFor('conto', $rec)) {
-            
-            if ($rec->numlimit && $rec->date) {
-                $newDate = $mvc->getNewestInvoiceDate($rec->numlimit);
-                
-                if ($newDate && ($newDate > $rec->date)) {
-                    $res = 'Не може да се запише фактура с дата по-малка от последната активна фактура в диапазона|* (' .
-                                    dt::mysql2verbal($newDate, 'd.m.y') .
-                                    ')';
-                }
-            }
-        }
-        
-        if(empty($res)){
-        	if($rec->date > dt::today()){
-        		$res = 'Фактурата е с бъдещата дата и не може да бъде контирана';
-        	}
-        }
+    	if($rec->date > dt::today()){
+    		$res = 'Фактурата е с бъдещата дата и не може да бъде контирана';
+    	} elseif(!$mvc->isAllowedToBePosted($rec, $error)){
+    		$res = $error;
+    	}
     }
-   	
-   	
+    
+    
    	/**
    	 * Метод по подразбиране за намиране на дефолт шаблона
    	 */

@@ -176,7 +176,15 @@ class frame2_ReportVersions extends core_Detail
 		
 		// Бутон за избор на текуща версия
 		if($mvc->haveRightFor('checkout', $rec->id)){
-			$url = array($mvc, 'checkout', $rec->id, 'ret_url' => frame2_Reports::getSingleUrlArray($rec->reportId));
+			
+			// Правилно рет урл
+			$singleUrl = frame2_Reports::getSingleUrlArray($rec->reportId);
+			$vId = Request::get('vId', 'int');
+			if($vId == $rec->reportId){
+				$singleUrl['vId'] = $vId;
+			}
+			
+			$url = array($mvc, 'checkout', $rec->id, 'ret_url' => $singleUrl);
 			$icon = ($rec->id == $selectedId) ? 'img/16/radio-button.png' : 'img/16/radio-button-uncheck.png ';
 			$row->createdOn = ht::createLink($row->createdOn, $url, FALSE, "ef_icon={$icon},title=Избор на версия");
 		}
@@ -204,12 +212,27 @@ class frame2_ReportVersions extends core_Detail
     
     
 	/**
+	 * Подготовка на Детайлите
+	 */
+	function prepareDetail_($data)
+	{
+		$vId = Request::get('vId', 'int');
+		if(empty($vId) || $vId != $data->masterId){
+			$data->render = FALSE;
+			return;
+		}
+		
+		parent::prepareDetail_($data);
+	}
+	
+	
+	/**
 	 * Рендиране на детайла
 	 */
 	public function renderDetail_($data)
 	{
 		// Не се рендира детайла, ако има само една версия или режима е само за показване
-		if(count($data->recs) == 1 || Mode::isReadOnly() || $data->masterData->rec->state == 'rejected') return;
+		if($data->render === FALSE || count($data->recs) == 1 || Mode::isReadOnly() || $data->masterData->rec->state == 'rejected') return new core_ET("");
 	
 		return parent::renderDetail_($data);
 	}

@@ -400,6 +400,17 @@ class frame2_Reports extends embed_Manager
     	if($mvc->haveRightFor('export', $rec)){
     		$data->toolbar->addBtn('Експорт в CSV', array($mvc, 'export', $rec->id, 'ret_url' => TRUE), NULL, 'ef_icon=img/16/file_extension_xls.png, title=Сваляне на записите в CSV формат,row=2');
     	}
+    	
+    	$url = array($mvc, 'single', $rec->id);
+    	$icon = 'img/16/checked.png';
+    	if(!Request::get('vId', 'int')){
+    		$url['vId'] = $rec->id;
+    		$icon = 'img/16/checkbox_no.png';
+    	}
+    	
+    	$vCount = frame2_ReportVersions::count("#reportId = {$rec->id}");
+    	$vCount = ($vCount > 1) ? "({$vCount})" : "";
+    	$data->toolbar->addBtn("Версии {$vCount}", $url, NULL, "ef_icon={$icon}, title=Показване на предишни версии,row=1");
     }
     
     

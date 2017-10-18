@@ -5,8 +5,8 @@
  *
  * @category  bgerp
  * @package   tests
- * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @author    Pavlinka Dainovska <pdainovska@gmail.com>
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -531,10 +531,8 @@ class unit_MinkPSales extends core_Manager {
         
         }
     
-    
-     
     /**
-     * 8. Продажба - включено ДДС в цените, клониране
+     * 9. Продажба - включено ДДС в цените, клониране Sal12
      */
      
     //http://localhost/unit_MinkPSales/CreateSaleVatInclude/
@@ -607,7 +605,7 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактура', 'warning');
         }
-        if(strpos($browser->gettext(), 'ДДС 20%: BGN 5,53')) {
+        if(strpos($browser->gettext(), 'ДДС: BGN 5,53')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешно ДДС във фактура', 'warning');
         }
@@ -631,7 +629,7 @@ class unit_MinkPSales extends core_Manager {
     }
        
     /**
-    * 9. Продажба EUR - освободена от ДДС
+    * 10. Продажба EUR - освободена от ДДС - Sal13
     */
          
     //http://localhost/unit_MinkPSales/CreateSaleEURVatFree3/
@@ -699,7 +697,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('vatReason', 'чл.53 от ЗДДС – ВОД');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Tax base 0%: BGN 64,91')) {
+        if(strpos($browser->gettext(), 'Tax base: BGN 64,91')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактурата', 'warning');
         }
@@ -707,7 +705,7 @@ class unit_MinkPSales extends core_Manager {
     }
     
     /**
-     * 10. Продажба EUR - освободена от ДДС, авансово пл.
+     * 11. Продажба EUR - освободена от ДДС, авансово пл. Sal14
      */
      
     //http://localhost/unit_MinkPSales/CreateSaleEURVatFreeAdv/
@@ -764,7 +762,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('amountAccrued', '3.3');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Tax base 0%: BGN 6,45')) {
+        if(strpos($browser->gettext(), 'Tax base: BGN 6,45')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактура 1', 'warning');
         }
@@ -1282,11 +1280,12 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('bankAccountId', '#BG22UNCR70001519562302');
         $browser->setValue('chargeVat', 'yes');
-        // Записване черновата на продажбата
-        $browser->setValue('Ignore', 1);
-        return $browser->getHtml();
+        // Записване черновата на продажбата, игнориране предупреждението за ДДС
+        
         $browser->press('Чернова');
-       
+        $browser->setValue('Ignore', '1');
+        $browser->press('Чернова');
+        
         // Добавяне на артикул
         $browser->press('Артикул');
         $browser->setValue('productId', 'Други стоки');
@@ -1744,7 +1743,7 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактура', 'warning');
         }
-        if(strpos($browser->gettext(), 'ДДС 20%: BGN 29,15')) {
+        if(strpos($browser->gettext(), 'ДДС: BGN 29,15')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешно ДДС във фактура', 'warning');
         }    
@@ -1972,7 +1971,6 @@ class unit_MinkPSales extends core_Manager {
        
         */
     }
-    
      
     /**
      * 19. Проверка извънредни приходи
@@ -2687,7 +2685,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('vatReason', 'чл.53 от ЗДДС – ВОД');
         $browser->press('Чернова');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Tax base 0%: BGN 498,74')) {
+        if(strpos($browser->gettext(), 'Tax base: BGN 498,74')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа във фактурата', 'warning');
         }
@@ -2837,7 +2835,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Известие');
         $browser->press('Чернова');
         //$browser->click('Редактиране на артикул');
-        $browser->click('edt41');
+        $browser->click('edt44');
         $browser->setValue('quantity', '0');
         $browser->press('Следващ');
         $browser->setValue('quantity', '0');
