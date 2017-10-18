@@ -93,18 +93,11 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		$data->form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? "|с ДДС|*" : "|без ДДС|*";
 	
 		$products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts);
-		expect(count($products));
-	
+		$data->form->setOptions('productId', array('' => ' ') + $products);
 		$data->form->setSuggestions('discount', array('' => '') + arr::make('5 %,10 %,15 %,20 %,25 %,30 %', TRUE));
 	
-		if (empty($rec->id)) {
-			$data->form->setOptions('productId', array('' => ' ') + $products);
-			 
-		} else {
-			// Нямаме зададена ценова политика. В този случай задъжително трябва да имаме
-			// напълно определен продукт (клас и ид), който да не може да се променя във формата
-			// и полето цена да стане задължително
-			$data->form->setOptions('productId', array($rec->productId => $products[$rec->productId]));
+		if (isset($rec->id)) {
+			$data->form->setReadOnly('productId');
 		}
 		
 		if($masterRec->type === 'dc_note'){

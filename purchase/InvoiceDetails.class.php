@@ -1,6 +1,7 @@
 <?php 
 
 
+
 /**
  * Детайли на фактурите
  *
@@ -8,7 +9,7 @@
  * @category  bgerp
  * @package   purchase
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -28,12 +29,6 @@ class purchase_InvoiceDetails extends deals_InvoiceDetail
      * @var string
      */
     public $singleTitle = 'Артикул';
-    
-    
-    /**
-     * Старо име на класа
-     */
-    public $oldClassName = 'acc_InvoiceDetails';
     
     
     /**
