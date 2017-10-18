@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Мениджър за технологични рецепти на артикули
  *
@@ -99,19 +100,13 @@ class cat_Boms extends core_Master
     /**
      * Кой може да пише?
      */
-    public $canEdit = 'cat,ceo,techno,sales';
+    public $canEdit = 'cat,ceo,sales';
     
     
     /**
      * Кой може да добавя?
      */
-    public $canAdd = 'cat,ceo,techno,sales';
-    
-    
-    /**
-     * Кой може да го отхвърли?
-     */
-    public $canReject = 'cat,ceo,techno,sales';
+    public $canAdd = 'cat,ceo,sales';
     
     
     /**
@@ -174,10 +169,26 @@ class cat_Boms extends core_Master
     	$this->FLD('expenses', 'percent(Мin=0)', 'caption=Общи режийни');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен)', 'caption=Статус, input=none');
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
+    	$this->FLD('showInProduct', 'enum(,yes=Да,no=Не)', 'caption=Показване в артикула,placeholder=Автоматично');
     	$this->FLD('quantityForPrice', 'double(smartRound,min=0)', 'caption=Изчисляване на себестойност->При тираж,silent');
     	$this->FLD('hash', 'varchar', 'input=none');
     	
     	$this->setDbIndex('productId');
+    }
+    
+    
+    /**
+     * Показване на рецептата в артикула
+     * 
+     * @param int $bomId
+     * @return boolean
+     */
+    public static function showInProduct($id)
+    {
+    	$rec = self::fetchRec($id);
+    	if(!empty($rec->showInProduct)) return ($rec->showInProduct == 'yes') ? TRUE : FALSE;
+    	
+    	return cat_Setup::get('SHOW_BOM_IN_PRODUCT');
     }
     
     
