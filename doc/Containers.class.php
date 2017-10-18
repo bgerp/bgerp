@@ -3364,7 +3364,7 @@ class doc_Containers extends core_Manager
     	// Обхождаме параметрите от масива и търсим само нужните ни
     	if(is_array($url)){
     		foreach ($url as $key => $val){
-    			if(strpos($key, 'Tab') !== FALSE || $key == 'P_doclog_Documents' || $key == 'Q' || $key == 'Cid' || $key == 'P' || strpos($key, 'P_') !== FALSE || $key == 'Nid' || $key == 'Sid' || $key == 'ОnlyMeet'){
+    			if(strpos($key, 'Tab') !== FALSE || $key == 'P_doclog_Documents' || $key == 'Q' || $key == 'Cid' || $key == 'P' || strpos($key, 'P_') !== FALSE || $key == 'Nid' || $key == 'Sid' || $key == 'ОnlyMeet' || $key == 'vId'){
     				$arr[$key] = $val;
     			}
     		}

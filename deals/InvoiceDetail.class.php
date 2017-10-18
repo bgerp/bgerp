@@ -76,7 +76,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		$mvc->FLD('price', 'double', 'caption=Цена, input=none');
 		$mvc->FLD('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
 		$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
-		$mvc->FLD('discount', 'percent(min=0,max=1)', 'caption=Отстъпка,smartCenter');
+		$mvc->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=Отстъпка,smartCenter');
 		$mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Забележки,formOrder=110001');
 	}
 	
@@ -93,18 +93,10 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		$data->form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? "|с ДДС|*" : "|без ДДС|*";
 	
 		$products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts);
-		expect(count($products));
+		$data->form->setOptions('productId', array('' => ' ') + $products);
 	
-		$data->form->setSuggestions('discount', array('' => '') + arr::make('5 %,10 %,15 %,20 %,25 %,30 %', TRUE));
-	
-		if (empty($rec->id)) {
-			$data->form->setOptions('productId', array('' => ' ') + $products);
-			 
-		} else {
-			// Нямаме зададена ценова политика. В този случай задъжително трябва да имаме
-			// напълно определен продукт (клас и ид), който да не може да се променя във формата
-			// и полето цена да стане задължително
-			$data->form->setOptions('productId', array($rec->productId => $products[$rec->productId]));
+		if (isset($rec->id)) {
+			$data->form->setReadOnly('productId');
 		}
 		
 		if($masterRec->type === 'dc_note'){

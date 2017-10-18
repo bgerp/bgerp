@@ -437,6 +437,7 @@ class support_Issues extends core_Master
      * посочената папка като начало на нишка
      *
      * @param int $folderId - id на папката
+     * 
      * @return boolean
      */
     public static function canAddToFolder($folderId)
@@ -446,6 +447,8 @@ class support_Issues extends core_Master
         
         // Ако не support_systems, не може да се добави
         if (strtolower($coverClassName) != 'support_systems') return FALSE;
+        
+        return TRUE;
     }
     
     

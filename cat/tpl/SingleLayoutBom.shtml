@@ -7,6 +7,10 @@
     <!--ET_BEGIN expenses-->
     	<div style='margin-top:5px'><span class='quiet'>|Режийни разходи|*</span>: <b>[#expenses#]</b></div>
     <!--ET_END expenses-->
+    
+    <!--ET_BEGIN showInProduct-->
+    	<div style='margin-top:5px'><span class='quiet'>|Показване в артикула|*</span>: <b>[#showInProduct#]</b></div>
+    <!--ET_END showInProduct-->
      
 	<div class="scrolling-holder" style='margin:10px 0'>
 	    [#cat_BomDetails#]

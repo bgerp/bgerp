@@ -183,7 +183,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     function description()
     {
     	parent::setInvoiceFields($this);
-    	$this->FLD('journalDate', 'date', 'caption=Сч. дата,after=date');
+    	$this->FLD('journalDate', 'date', 'caption=Данъчни параметри->Сч. дата,after=vatReason');
     	$this->FLD('number', 'varchar', 'caption=Номер, export=Csv,hint=Номера с който идва фактурата,after=place');
     	$this->FLD('fileHnd', 'fileman_FileType(bucket=Documents)', 'caption=Документ,after=number');
     	

@@ -45,8 +45,8 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
     	);
     	
     	if(Mode::get('saveTransaction')){
-    		$error = $this->class->getBtnErrStr($rec);
-    		if($error){
+    		$restore = ($rec->state == 'draft') ? FALSE : TRUE;
+    		if(!$this->class->isAllowedToBePosted($rec, $error, TRUE)){
     			acc_journal_RejectRedirect::expect(FALSE, $error);
     		}
     	}
