@@ -90,7 +90,7 @@ class type_Percent extends type_Double {
 
         // Възможност за задаване на предложения
         if (!$this->suggestions) {
-        	if($this->params['suggestions']) {
+        	if(!empty($this->params['suggestions'])) {
         		$this->suggestions = array('' => '') + arr::make(explode('|', $this->params['suggestions']), TRUE);
         	}
         }
