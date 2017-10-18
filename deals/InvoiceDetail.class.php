@@ -136,6 +136,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	{
 		if (!empty($data->toolbar->buttons['btnAdd'])) {
 			unset($data->toolbar->buttons['btnAdd']);
+			$masterRec = $data->masterData->rec;
 			
 			$error = '';
 			if(!count(cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts, NULL, 1))){
@@ -223,7 +224,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	/**
 	 * Помощна ф-я за обработката на записите на КИ и ДИ
 	 * 
-	 * @param stdClass $recs
+	 * @param array $recs
 	 * @param stdClass $rec
 	 */
 	public static function modifyDcDetails(&$recs, $rec, $mvc)
@@ -321,10 +322,9 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	
 	/**
 	 * След преобразуване на записа в четим за хора вид.
-	 *
+	 * 
 	 * @param core_Mvc $mvc
-	 * @param stdClass $row Това ще се покаже
-	 * @param stdClass $rec Това е записа в машинно представяне
+	 * @param stdClass $data
 	 */
 	public static function on_AfterPrepareListRows($mvc, &$data)
 	{
@@ -481,7 +481,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			if(isset($mvc->LastPricePolicy)){
 				$policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $masterRec->rate);
 					
-				if($policyInfo->price != 0){
+				if($policyInfoLast->price != 0){
 					$form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
 				}
 			}
@@ -540,7 +540,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				}
 				
 				// Ако няма последна покупна цена и не се обновява запис в текущата покупка
-				if (empty($policyInfo->price) && empty($pRec)) {
+				if (empty($policyInfo->price)) {
 					$form->setError('packPrice', 'Продуктът няма цена в избраната ценова политика (3)');
 				} else {
 							

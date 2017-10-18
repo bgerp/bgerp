@@ -764,11 +764,11 @@ abstract class deals_Helper
 	 * използва се за проверка дали при контиране/възстановяване/оттегляне дали потребителя
 	 * може да избере посочения обект: каса/б. сметка/склад
 	 * 
-	 * @param string $action             - действие с документа
-	 * @param stdClass $rec              - запис на документа
+	 * @param string $action        - действие с документа
+	 * @param stdClass $rec         - запис на документа
 	 * @param string $ObjectManager - мениджър на обекта, който ще проверяваме можели да се избере
-	 * @param string $objectIdField      - поле на ид-то на обекта, който ще проверяваме можели да се избере
-	 * @return void|boolean              - можели да се избере обекта или не
+	 * @param string $objectIdField - поле на ид-то на обекта, който ще проверяваме можели да се избере
+	 * @return boolean              - можели да се избере обекта или не
 	 */
 	public static function canSelectObjectInDocument($action, $rec, $ObjectManager, $objectIdField)
 	{

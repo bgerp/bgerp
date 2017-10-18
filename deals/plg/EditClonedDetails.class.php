@@ -50,6 +50,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
 		$form = &$data->form;
 		$rec = $form->rec;
 		
+		$Detail = NULL;
 		$detailsToClone = $mvc->getDetailsToCloneAndChange($rec, $Detail);
 		setIfNot($Detail, cls::get($mvc->mainDetail));
 		if(!count($detailsToClone)) return;
