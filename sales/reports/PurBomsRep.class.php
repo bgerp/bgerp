@@ -255,21 +255,12 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 	{
 		$fld = cls::get('core_FieldSet');
 	
-		if($export === FALSE){
-			$fld->FLD('pur', 'varchar', 'caption=Договор->№');
-	    	$fld->FLD('purDate', 'varchar', 'caption=Договор->Дата');
-		    $fld->FLD('dealerId', 'varchar', 'smartCenter,caption=Търговец');
-		    $fld->FLD('article', 'varchar', 'caption=Артикул');
-	    	$fld->FLD('quantity', 'double', 'smartCenter,caption=К-во');
-	    	$fld->FLD('deliveryTime', 'varchar', 'caption=Доставка');
-		} else {
-       		$fld->FLD('pur', 'varchar','caption=Договор->№');
-       		$fld->FLD('purDate', 'varchar','caption=Договор->Дата');
-        	$fld->FLD('dealerId', 'varchar','caption=Търговец');
-        	$fld->FLD('article', 'varchar','caption=Артикул');
-       		$fld->FLD('quantity', 'double','caption=Количество');
-        	$fld->FLD('deliveryTime', 'varchar','caption=Доставка');
-		}
+		$fld->FLD('pur', 'varchar','caption=Договор->№');
+       	$fld->FLD('purDate', 'varchar','caption=Договор->Дата');
+        $fld->FLD('dealerId', 'varchar','caption=Търговец');
+        $fld->FLD('article', 'varchar','caption=Артикул');
+       	$fld->FLD('quantity', 'double','caption=Количество');
+        $fld->FLD('deliveryTime', 'varchar','caption=Доставка');
 	
 		return $fld;
 	}
@@ -307,9 +298,9 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 		    $row->num = $Int->toVerbal($dRec->num);
 		}
 
-		//if(isset($dRec->deliveryTime)) {
+		if(isset($dRec->deliveryTime)) {
 		    $row->deliveryTime = ($isPlain) ? frame_CsvLib::toCsvFormatData($dRec->deliveryTime) : dt::mysql2verbal($dRec->deliveryTime);
-		//}
+		}
 		
 		if(isset($dRec->pur)) {
 			$row->pur = ($isPlain) ? sales_Sales::getTitleById($dRec->pur) : sales_Sales::getLink($dRec->pur, 0);
