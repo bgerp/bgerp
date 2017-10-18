@@ -28,9 +28,8 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 	 */
 	public static function setDocumentFields($mvc)
 	{
-		$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,notNull,mandatory', 'tdClass=productCell leftCol wrap,silent');
+		$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,notNull,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId|batch');
 		$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка,smartCenter,tdClass=small-field nowrap,after=productId,mandatory,silent,removeAndRefreshForm=packPrice|discount,input=hidden');
-		
 		$mvc->FLD('quantity', 'double', 'caption=Количество,input=none');
 		$mvc->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
 		$mvc->FLD('price', 'double(decimals=2)', 'caption=Цена,input=none');
@@ -58,13 +57,9 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		$data->form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? "|с ДДС|*" : "|без ДДС|*";
 		
 		$products = $mvc->getProducts($masterRec);
-		expect(count($products));
-			
-		if (empty($rec->id)) {
-			$data->form->setField('productId', "removeAndRefreshForm=packPrice|discount|packagingId|batch");
-			$data->form->setOptions('productId', array('' => ' ') + $products);
-		} else {
-			$data->form->setOptions('productId', array($rec->productId => $products[$rec->productId]));
+		$data->form->setOptions('productId', array('' => ' ') + $products);
+		if (isset($rec->id)) {
+			$data->form->setReadOnly('productId');
 		}
 		
 		$data->form->setSuggestions('discount', array('' => '') + arr::make('5 %,10 %,15 %,20 %,25 %,30 %', TRUE));
@@ -277,9 +272,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 	 */
 	public static function on_CalcPackPrice(core_Mvc $mvc, $rec)
 	{
-		if (!isset($rec->price) || empty($rec->quantity) || empty($rec->quantityInPack)) {
-			return;
-		}
+		if (!isset($rec->price) || empty($rec->quantity) || empty($rec->quantityInPack)) return;
 	
 		$rec->packPrice = $rec->price * $rec->quantityInPack;
 	}
@@ -290,9 +283,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 	 */
 	public static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
 	{
-		if (!isset($rec->price) || empty($rec->quantity) || empty($rec->quantityInPack)) {
-			return;
-		}
+		if (!isset($rec->price) || empty($rec->quantity) || empty($rec->quantityInPack)) return;
 	
 		$rec->packQuantity = $rec->quantity / $rec->quantityInPack;
 	}
@@ -303,9 +294,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 	 */
 	public static function on_CalcAmount(core_Mvc $mvc, $rec)
 	{
-		if (empty($rec->price) || empty($rec->quantity)) {
-			return;
-		}
+		if (empty($rec->price) || empty($rec->quantity)) return;
 	
 		$rec->amount = $rec->price * $rec->quantity;
 	}
