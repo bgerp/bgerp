@@ -260,14 +260,14 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 	    	$fld->FLD('purDate', 'varchar', 'caption=Договор->Дата');
 		    $fld->FLD('dealerId', 'varchar', 'smartCenter,caption=Търговец');
 		    $fld->FLD('article', 'varchar', 'caption=Артикул');
-	    	$fld->FLD('quantity', 'varchar', 'smartCenter,caption=К-во');
+	    	$fld->FLD('quantity', 'double', 'smartCenter,caption=К-во');
 	    	$fld->FLD('deliveryTime', 'varchar', 'caption=Доставка');
 		} else {
        		$fld->FLD('pur', 'varchar','caption=Договор->№');
        		$fld->FLD('purDate', 'varchar','caption=Договор->Дата');
         	$fld->FLD('dealerId', 'varchar','caption=Търговец');
         	$fld->FLD('article', 'varchar','caption=Артикул');
-       		$fld->FLD('quantity', 'varchar','caption=Количество');
+       		$fld->FLD('quantity', 'double','caption=Количество');
         	$fld->FLD('deliveryTime', 'varchar','caption=Доставка');
 		}
 	
@@ -286,6 +286,7 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 	{
 		$isPlain = Mode::is('text', 'plain');
 		$Int = cls::get('type_Int');
+		$Double = core_Type::getByName('double(smartRound)');
 		$Date = cls::get('type_Date');
 		$row = new stdClass();
 
@@ -323,7 +324,7 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 		}
 		
 		if(isset($dRec->quantity)) {
-			$row->quantity = ($isPlain) ? frame_CsvLib::toCsvFormatDouble($dRec->quantity) : $Int->toVerbal($dRec->quantity);
+			$row->quantity = ($isPlain) ? frame_CsvLib::toCsvFormatDouble($dRec->quantity) : $Double->toVerbal($dRec->quantity);
 		}
 
 		return $row;
