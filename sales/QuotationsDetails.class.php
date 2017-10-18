@@ -142,9 +142,7 @@ class sales_QuotationsDetails extends doc_Detail {
      */
     public static function on_CalcPackPrice(core_Mvc $mvc, $rec)
     {
-    	if (!isset($rec->price) || empty($rec->quantityInPack)) {
-    		return;
-    	}
+    	if (!isset($rec->price) || empty($rec->quantityInPack)) return;
     
     	$rec->packPrice = $rec->price * $rec->quantityInPack;
     }
@@ -158,9 +156,7 @@ class sales_QuotationsDetails extends doc_Detail {
      */
     public static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
     {
-    	if (empty($rec->quantity) || empty($rec->quantityInPack)) {
-    		return;
-    	}
+    	if (empty($rec->quantity) || empty($rec->quantityInPack)) return;
     
     	$rec->packQuantity = $rec->quantity / $rec->quantityInPack;
     }
@@ -362,20 +358,12 @@ class sales_QuotationsDetails extends doc_Detail {
         $masterRec = $data->masterRec;
         
         $products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts);
-        expect(count($products));
-        
-        if (empty($rec->id)) {
-        	$data->form->setOptions('productId', array('' => ' ') + $products);
-        	 
-        } else {
-        	// Нямаме зададена ценова политика. В този случай задъжително трябва да имаме
-        	// напълно определен продукт (клас и ид), който да не може да се променя във формата
-        	// и полето цена да стане задължително
-        	$data->form->setOptions('productId', array($rec->productId => $products[$rec->productId]));
+        $data->form->setOptions('productId', array('' => ' ') + $products);
+        if (isset($rec->id)) {
+        	$data->form->setReadOnly('productId');
         }
         
         if (!empty($rec->packPrice)) {
-        	
         	if(Request::get('Act') != 'CreateProduct'){
         		$vat = cat_Products::getVat($rec->productId, $masterRec->valior);
         	} else {
