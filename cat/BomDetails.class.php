@@ -1090,7 +1090,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * След изтриване на запис
      */
-    protected static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    public static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
     {
     	// Ако изтриваме етап, изтриваме всичките редове от този етап
     	foreach ($query->getDeletedRecs() as $id => $rec) {
