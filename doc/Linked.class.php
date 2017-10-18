@@ -762,6 +762,7 @@ class doc_Linked extends core_Manager
      */
     public static function prepareFoldersForDoc($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
     {
+        $maxTrays = 500;
         setIfNot($limit, $params['maxSuggestions'], 100);
         $res = array();
         
@@ -911,6 +912,18 @@ class doc_Linked extends core_Manager
         $query->orderBy("last", "DESC");
         
         while($rec = $query->fetch()) {
+            
+            // Това е защита от увисване
+            if ($maxTrays-- < 0 && (!empty($res))) {
+                
+                $group = new stdClass();
+                $group->title = tr('За още резултати, въведете част от името');
+                $group->attr = array('class' => 'team');
+                $group->group = TRUE;
+                $res['more'] = $group;
+                
+                break;
+            }
             
             if ($res[$rec->id]) continue;
             
