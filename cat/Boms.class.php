@@ -195,7 +195,7 @@ class cat_Boms extends core_Master
     /**
      * Преди подготвяне на едит формата
      */
-    public static function on_BeforePrepareEditForm($mvc, &$res, $data)
+    protected static function on_BeforePrepareEditForm($mvc, &$res, $data)
     {
     	$type = Request::get('type');
     	if(!$type) return;
@@ -210,7 +210,7 @@ class cat_Boms extends core_Master
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	
@@ -240,7 +240,7 @@ class cat_Boms extends core_Master
     /**
      * Преди запис
      */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
     	if(isset($rec->threadId)){
     		$rec->type = 'sales';
@@ -256,7 +256,7 @@ class cat_Boms extends core_Master
     /**
      * Преди запис на клониран запис
      */
-    public static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
+    protected static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
     {
     	$nRec->cloneDetails = TRUE;
     }
@@ -265,7 +265,7 @@ class cat_Boms extends core_Master
     /**
      * Изпълнява се след създаване на нов запис
      */
-    public static function on_AfterCreate($mvc, $rec)
+    protected static function on_AfterCreate($mvc, $rec)
     {
     	if($rec->cloneDetails === TRUE) return;
     	
@@ -309,7 +309,7 @@ class cat_Boms extends core_Master
      * @param int $id първичния ключ на направения запис
      * @param stdClass $rec всички полета, които току-що са били записани
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
     	// При оттегляне или затваряне, ако преди документа е бил активен
     	if($rec->state == 'closed' || $rec->state == 'rejected'){
@@ -382,7 +382,7 @@ class cat_Boms extends core_Master
     /**
      * Подготовка на бутоните на формата за добавяне/редактиране
      */
-    public static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
     	// Документа не може да се създава  в нова нишка, ако е възоснова на друг
     	if(!empty($data->form->toolbar->buttons['btnNewThread'])){
@@ -479,7 +479,7 @@ class cat_Boms extends core_Master
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->productId = cat_Products::getShortHyperlink($rec->productId);
     	$row->title = $mvc->getLink($rec->id, 0);
@@ -555,7 +555,7 @@ class cat_Boms extends core_Master
     /**
      * Функция, която се извиква преди активирането на документа
      */
-    public static function on_BeforeActivation($mvc, $res)
+    protected static function on_BeforeActivation($mvc, $res)
     {
     	if($res->id){
     		$dQuery = cat_BomDetails::getQuery();
