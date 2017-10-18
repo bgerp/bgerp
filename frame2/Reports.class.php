@@ -540,7 +540,7 @@ class frame2_Reports extends embed_Manager
      * @param int $id първичния ключ на направения запис
      * @param stdClass $rec всички полета, които току-що са били записани
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
     	if($rec->refreshData === TRUE){
     		self::refresh($rec);
@@ -569,7 +569,7 @@ class frame2_Reports extends embed_Manager
      * @param core_Manager $mvc
      * @param stdClass $rec
      */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
     	if($rec->state == 'draft'){
     		$rec->state = 'active';
@@ -632,7 +632,7 @@ class frame2_Reports extends embed_Manager
      * @param object $rec
      * @param object $row
      */
-    public static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
+    protected static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
     {
     	$resArr = arr::make($resArr);
     	$resArr['title'] = array('name' => tr('Заглавие'), 'val' => $row->title);
