@@ -230,12 +230,15 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
 
                 $condition = 'просрочен';
 
+                if(!$inDocs->termDate){
+                    $condition = 'ok';
+                }
+
             } else{$condition = 'ok';}
 
             if(in_array($dealerId,$dealers)) {
 
-                if (($today) > ($markDay)) {
-
+                if ($condition == 'просрочен') {
                     $overRecs[$id] = (object)array(
                         'documentId' => $inDocs->id,
                         'clsName' => 'bank_IncomeDocuments',
