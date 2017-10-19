@@ -877,10 +877,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	}
     	
     	if($fields['-list']){
-    		if($rec->number){
-    			$row->number = ht::createLink($row->number, $mvc->getSingleUrlArray($rec->id), NULL, 'ef_icon=img/16/invoice.png');
-    		}
-    	
+    		$row->number = ($rec->number) ? ht::createLink($row->number, $mvc->getSingleUrlArray($rec->id), NULL, 'ef_icon=img/16/invoice.png') : $mvc->getLink($rec->id, 0); 
     		$total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
     		$noVat = $rec->dealValue - $rec->discountAmount;
     		
