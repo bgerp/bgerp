@@ -205,7 +205,7 @@ class doc_LinkedTemplates extends core_Master
             
             if (preg_match('/[^a-z]/', $ext)) continue;
             
-            $query->orWhere("#fileType REGEXP '(([^a-z])|\s|^)+{$ext}(([^a-z])|\s|$)+'", $or);
+            $query->orWhere("#fileType REGEXP '(([^a-z])|\s|^)+{$ext}(([^a-z])|\s|$)+'");
         }
         
         $res = $this->getResForActivities($query);
@@ -238,7 +238,7 @@ class doc_LinkedTemplates extends core_Master
     function prepareFormForFile(&$form, $cId, $activity)
     {
         
-        return $this->prepareFormFor($form, $cId, $activity, $file);
+        return $this->prepareFormFor($form, $cId, $activity, 'file');
     }
     
     
