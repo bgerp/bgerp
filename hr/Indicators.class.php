@@ -483,8 +483,8 @@ class hr_Indicators extends core_Manager
     public function renderPersonIndicators($data)
     {
     	if($data->IData->render === FALSE) return new core_ET();
-    	
-    	$tpl = new core_ET("[#ListToolbarTop#][#listFilter#][#I_TABLE#][#ListToolbarBottom#]");
+
+    	$tpl = new core_ET("[#ListToolbarTop#]<div class='fleft'>[#listFilter#]</div>[#I_TABLE#][#ListToolbarBottom#]");
     	$tpl->append($this->renderListFilter($data->IData), 'listFilter');
     	
     	unset($data->IData->listFields['personId']);
@@ -506,8 +506,10 @@ class hr_Indicators extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
-    	$data->listFilter->FLD('period', 'date(select2MinItems=11)', 'caption=Период,silent,placeholder=Всички');
-    	$data->listFilter->FLD('document', 'varchar(16)', 'caption=Документ,silent,placeholder=Всички');
+        $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
+
+    	$data->listFilter->FNC('period', 'date(select2MinItems=11)', 'caption=Период,silent,placeholder=Всички');
+    	$data->listFilter->FNC('document', 'varchar(16)', 'caption=Документ,silent,placeholder=Всички');
     	$data->listFilter->setOptions('period', array('' => '') + dt::getRecentMonths(10));
     	$data->listFilter->showFields = 'period,document';
     	$data->query->orderBy('date', "DESC");
@@ -523,7 +525,8 @@ class hr_Indicators extends core_Manager
     		$data->listFilter->showFields = 'period,document,personId,indicatorId';
     		$data->listFilter->input('period,document,personId,indicatorId');
     	}
-    	
+
+        // В хоризонтален вид
     	$data->listFilter->class = 'simpleForm';
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     	
