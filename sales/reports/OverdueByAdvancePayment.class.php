@@ -88,7 +88,7 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
 
         $fieldset->FLD('dealers', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Търговци,after=title');
 
-        $fieldset->FLD('tolerance', 'int', 'caption=Толеранс[дни],after=dealers');
+        $fieldset->FLD('tolerance', 'int', 'caption=Толеранс,unit= дни,after=dealers');
 
     }
 
