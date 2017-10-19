@@ -29,6 +29,18 @@ abstract class store_DocumentMaster extends core_Master
     
     
     /**
+     * Поле в което се замества шаблона от doc_TplManager
+     */
+    public $templateFld = 'SINGLE_CONTENT';
+    
+    
+    /**
+     * Флаг, който указва, че документа е партньорски
+     */
+    public $visibleForPartners = TRUE;
+    
+    
+    /**
      * На кой ред в тулбара да се показва бутона за принтиране
      */
     public $printBtnToolbarRow = 1;
@@ -120,7 +132,7 @@ abstract class store_DocumentMaster extends core_Master
     /**
      * Преди показване на форма за добавяне/промяна
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	$rec  = &$form->rec;
@@ -153,7 +165,7 @@ abstract class store_DocumentMaster extends core_Master
     /**
      * След изпращане на формата
      */
-    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
     	if ($form->isSubmitted()) {
     		$rec = &$form->rec;
@@ -209,7 +221,7 @@ abstract class store_DocumentMaster extends core_Master
     /**
      * След създаване на запис в модела
      */
-    public static function on_AfterCreate($mvc, $rec)
+    protected static function on_AfterCreate($mvc, $rec)
     {
     	$origin = $mvc::getOrigin($rec);
     	
@@ -307,7 +319,7 @@ abstract class store_DocumentMaster extends core_Master
     /**
      * След рендиране на сингъла
      */
-   public static function on_AfterRenderSingle($mvc, $tpl, $data)
+   protected static function on_AfterRenderSingle($mvc, $tpl, $data)
    {
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');
@@ -333,7 +345,7 @@ abstract class store_DocumentMaster extends core_Master
    /**
     * След преобразуване на записа в четим за хора вид
     */
-   public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+   protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
    {
 	   	if(!empty($rec->currencyRate)){
 	   		$amountDelivered = $rec->amountDelivered / $rec->currencyRate;
@@ -647,7 +659,7 @@ abstract class store_DocumentMaster extends core_Master
     /**
      * Преди запис на документ
      */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
     	if(empty($rec->originId)){
     		$rec->originId = doc_Threads::getFirstContainerId($rec->threadId);

@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -23,12 +23,6 @@ class store_Receipts extends store_DocumentMaster
      * Заглавие
      */
     public $title = 'Складови разписки';
-
-
-    /**
-     * Флаг, който указва, че документа е партньорски
-     */
-    public $visibleForPartners = TRUE;
     
     
     /**
@@ -41,12 +35,6 @@ class store_Receipts extends store_DocumentMaster
      * Файл за единичния изглед
      */
     public $singleLayoutFile = 'store/tpl/SingleStoreDocument.shtml';
-    
-    
-    /**
-     * Поле в което се замества шаблона от doc_TplManager
-     */
-    public $templateFld = 'SINGLE_CONTENT';
     
     
     /**
@@ -130,7 +118,7 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'folderId';
+    public $searchFields = 'folderId,storeId,note';
 
     
     /**
@@ -172,9 +160,7 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Стратегии за дефолт стойностти
      */
-    public static $defaultStrategies = array(
-    		'template' => 'lastDocUser|lastDoc|LastDocSameCuntry',
-    );
+    public static $defaultStrategies = array('template' => 'lastDocUser|lastDoc|LastDocSameCuntry',);
 	
 	
     /**
@@ -225,7 +211,7 @@ class store_Receipts extends store_DocumentMaster
 	/**
      * След изпращане на формата
      */
-    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
         if ($form->isSubmitted()) {
         	$rec = &$form->rec;
@@ -242,7 +228,7 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Преди показване на форма за добавяне/промяна
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$data->form->setField('locationId', 'caption=Обект от');
     }

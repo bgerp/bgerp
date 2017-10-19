@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov<ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -25,12 +25,6 @@ class store_ShipmentOrders extends store_DocumentMaster
      * @var string
      */
     public $title = 'Експедиционни нареждания';
-
-
-    /**
-     * Флаг, който указва, че документа е партньорски
-     */
-    public $visibleForPartners = TRUE;
     
     
     /**
@@ -120,7 +114,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'folderId,currencyId';
+    public $searchFields = 'folderId,locationId,company,person,tel,pCode,place,address,note';
     
     
     /**
@@ -166,21 +160,9 @@ class store_ShipmentOrders extends store_DocumentMaster
     
     
     /**
-     * Поле в което се замества шаблона от doc_TplManager
-     */
-    public $templateFld = 'SINGLE_CONTENT';
-    
-    
-    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array('template' => 'lastDocUser|lastDoc|LastDocSameCuntry');
-    
-    
-    /**
-     * Да се показва антетка
-     */
-    public $showLetterHead = TRUE;
     
     
     /**
@@ -245,7 +227,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Преди показване на форма за добавяне/промяна
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	if(!isset($data->form->rec->id)){
     		$origin = static::getOrigin($data->form->rec);
@@ -259,7 +241,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * След рендиране на сингъла
      */
-    public static function on_AfterRenderSingle($mvc, $tpl, $data)
+    protected static function on_AfterRenderSingle($mvc, $tpl, $data)
     {
     	$tpl->append(sbf('img/16/toggle1.png', "'"), 'iconPlus');
     	if($data->rec->country){
@@ -286,7 +268,7 @@ class store_ShipmentOrders extends store_DocumentMaster
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
     {
     	core_Lg::push($rec->tplLang);
     	
@@ -341,7 +323,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * След изпращане на формата
      */
-    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
         if ($form->isSubmitted()) {
         	$rec = &$form->rec;
