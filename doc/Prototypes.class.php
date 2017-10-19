@@ -193,8 +193,9 @@ class doc_Prototypes extends core_Manager
     {
     	$form = $data->form;
     	expect($origin = doc_Containers::getDocument($form->rec->originId));
+    	$templateTitle = doc_Prototypes::getTemplateTitle($origin->getInstance(), $origin->that);
     	
-    	$form->setDefault('title', $origin->getTitleById());
+    	$form->setDefault('title', $templateTitle);
     	$form->setDefault('classId', $origin->getClassId());
     	$form->setDefault('docId', $origin->that);
     	
@@ -319,7 +320,8 @@ class doc_Prototypes extends core_Manager
     	
     	// Ако има записи, се връщат ид-та на документите
     	while($rec = $query->fetch()){
-    		$arr[$rec->docId] = $rec->title;
+    		$title = (strpos($rec->title, '||') !== FALSE) ? tr($rec->title) : $rec->title;
+    		$arr[$rec->docId] = $title;
     	}
     	
     	// Връщане на намерените шаблони
@@ -339,13 +341,9 @@ class doc_Prototypes extends core_Manager
     public static function getProtoRec($class, $docId, $field = NULL)
     {
         $Class = cls::get($class);
-        
         $cond = array("#classId = '[#1#]' AND #docId = '[#2#]'", $Class->getClassId(), $docId);
         
-        if ($field) {
-            
-            return self::fetchField($cond, $field);
-        }
+        if($field) return self::fetchField($cond, $field);
         
         return self::fetch($cond);
     }
@@ -381,5 +379,27 @@ class doc_Prototypes extends core_Manager
     	}
     	
     	doc_Prototypes::save($rec);
+    }
+    
+    
+    /**
+     * Връща дефолтното име на шаблона
+     * 
+     * @param mixed $classId
+     * @param int $docId
+     * @return string
+     */
+    public static function getTemplateTitle($classId, $docId)
+    {
+    	$Class = cls::get($classId);
+    	if($Class->getField('title', FALSE)){
+    		$title = $Class->fetchField($docId, 'title');
+    	} elseif($Class->getField('name', FALSE)){
+    		$title = $Class->fetchField($docId, 'name');
+    	} else {
+    		$title = $Class->getTitleById($docId);
+    	}
+    	
+    	return $title;
     }
 }
