@@ -175,7 +175,7 @@ class cat_ProductTplCache extends core_Master
 	 * Връща кешираните данни на артикула за дадено време ако има
 	 * 
 	 * @param int $productId - ид на артикул
-	 * @param datetime $time - време
+	 * @param datetime|NULL $time - време
 	 * @return mixed
 	 */
 	public static function getCache($productId, $time, $type, $documentType, $lang)

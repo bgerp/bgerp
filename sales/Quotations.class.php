@@ -1305,7 +1305,7 @@ class sales_Quotations extends core_Master
      *   o $fields['place']           - град
      *   o $fields['address']         - адрес
      *  
-     * @return mixed $id/FALSE       - ид на запис или FALSE
+     * @return mixed                  - ид на запис или FALSE
      */
     public static function createNewDraft($contragentClass, $contragentId, $date = NULL, $fields = array())
     {
@@ -1383,6 +1383,8 @@ class sales_Quotations extends core_Master
     	
     		return $id;
     	}
+    	
+    	return FALSE;
     }
     
     

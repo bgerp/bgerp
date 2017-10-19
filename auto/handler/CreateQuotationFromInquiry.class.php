@@ -62,7 +62,7 @@ class auto_handler_CreateQuotationFromInquiry {
     		marketing_Inquiries2::logDebug("Проблем при опит за създаване на автоматичен артикул към запитване", $marketingRec->id);
     		return;
     	} else {
-    		marketing_Inquiries2::logInfo("Успешно създаден артикул от автоматизация '{$rec->event}'", $marketingRec->id);
+    		marketing_Inquiries2::logInfo("Успешно създаден артикул от автоматизация '{$event}'", $marketingRec->id);
     	}
     	
     	// Имали подадени количества
@@ -80,7 +80,7 @@ class auto_handler_CreateQuotationFromInquiry {
     		core_Users::forceSystemUser();
     		$fields = array('originId' => cat_Products::fetchField($productId, 'containerId'));
     		$quoteId = sales_Quotations::createNewDraft($Cover->getInstance()->getClassId(), $Cover->that, NULL, $fields);
-    		if(!$quoteId){
+    		if(empty($quoteId)){
     			cat_Products::logDebug("Проблем при опит за създаване на автоматичен оферта към артикул", $productId);
     			return;
     		} else {

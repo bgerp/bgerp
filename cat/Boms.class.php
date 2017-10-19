@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Мениджър за технологични рецепти на артикули
  *
@@ -99,19 +100,13 @@ class cat_Boms extends core_Master
     /**
      * Кой може да пише?
      */
-    public $canEdit = 'cat,ceo,techno,sales';
+    public $canEdit = 'cat,ceo,sales';
     
     
     /**
      * Кой може да добавя?
      */
-    public $canAdd = 'cat,ceo,techno,sales';
-    
-    
-    /**
-     * Кой може да го отхвърли?
-     */
-    public $canReject = 'cat,ceo,techno,sales';
+    public $canAdd = 'cat,ceo,sales';
     
     
     /**
@@ -174,6 +169,7 @@ class cat_Boms extends core_Master
     	$this->FLD('expenses', 'percent(Мin=0)', 'caption=Общи режийни');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен)', 'caption=Статус, input=none');
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
+    	$this->FLD('showInProduct', 'enum(,yes=Да,no=Не)', 'caption=Показване в артикула,placeholder=Автоматично');
     	$this->FLD('quantityForPrice', 'double(smartRound,min=0)', 'caption=Изчисляване на себестойност->При тираж,silent');
     	$this->FLD('hash', 'varchar', 'input=none');
     	
@@ -182,9 +178,24 @@ class cat_Boms extends core_Master
     
     
     /**
+     * Показване на рецептата в артикула
+     * 
+     * @param int $bomId
+     * @return boolean
+     */
+    public static function showInProduct($id)
+    {
+    	$rec = self::fetchRec($id);
+    	if(!empty($rec->showInProduct)) return ($rec->showInProduct == 'yes') ? TRUE : FALSE;
+    	
+    	return cat_Setup::get('SHOW_BOM_IN_PRODUCT');
+    }
+    
+    
+    /**
      * Преди подготвяне на едит формата
      */
-    public static function on_BeforePrepareEditForm($mvc, &$res, $data)
+    protected static function on_BeforePrepareEditForm($mvc, &$res, $data)
     {
     	$type = Request::get('type');
     	if(!$type) return;
@@ -199,7 +210,7 @@ class cat_Boms extends core_Master
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	
@@ -229,7 +240,7 @@ class cat_Boms extends core_Master
     /**
      * Преди запис
      */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
     	if(isset($rec->threadId)){
     		$rec->type = 'sales';
@@ -245,7 +256,7 @@ class cat_Boms extends core_Master
     /**
      * Преди запис на клониран запис
      */
-    public static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
+    protected static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
     {
     	$nRec->cloneDetails = TRUE;
     }
@@ -254,7 +265,7 @@ class cat_Boms extends core_Master
     /**
      * Изпълнява се след създаване на нов запис
      */
-    public static function on_AfterCreate($mvc, $rec)
+    protected static function on_AfterCreate($mvc, $rec)
     {
     	if($rec->cloneDetails === TRUE) return;
     	
@@ -298,7 +309,7 @@ class cat_Boms extends core_Master
      * @param int $id първичния ключ на направения запис
      * @param stdClass $rec всички полета, които току-що са били записани
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
     	// При оттегляне или затваряне, ако преди документа е бил активен
     	if($rec->state == 'closed' || $rec->state == 'rejected'){
@@ -371,7 +382,7 @@ class cat_Boms extends core_Master
     /**
      * Подготовка на бутоните на формата за добавяне/редактиране
      */
-    public static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
     	// Документа не може да се създава  в нова нишка, ако е възоснова на друг
     	if(!empty($data->form->toolbar->buttons['btnNewThread'])){
@@ -468,8 +479,14 @@ class cat_Boms extends core_Master
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+    	if(empty($rec->showInProduct)){
+    		$showInProduct = cat_Setup::get('SHOW_BOM_IN_PRODUCT');
+    		$row->showInProduct = $mvc->getFieldType('showInProduct')->toVerbal($showInProduct);
+    		$row->showInProduct = ht::createHint($row->showInProduct, "По подразбиране");
+    	}
+    	
     	$row->productId = cat_Products::getShortHyperlink($rec->productId);
     	$row->title = $mvc->getLink($rec->id, 0);
     	$row->singleTitle = ($rec->type == 'sales') ? tr('Търговска рецепта') : ('Работна рецепта');
@@ -544,7 +561,7 @@ class cat_Boms extends core_Master
     /**
      * Функция, която се извиква преди активирането на документа
      */
-    public static function on_BeforeActivation($mvc, $res)
+    protected static function on_BeforeActivation($mvc, $res)
     {
     	if($res->id){
     		$dQuery = cat_BomDetails::getQuery();
@@ -885,9 +902,7 @@ class cat_Boms extends core_Master
     		}
     	}
     	
-    	if(count($res)){
-    		return array($productId => $res);
-    	}
+    	if(count($res)) return array($productId => $res);
     	
     	return $res;
     }
