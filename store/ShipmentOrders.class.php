@@ -577,7 +577,7 @@ class store_ShipmentOrders extends store_DocumentMaster
      * 		text|NULL 	  ['conditions']   - други условия
      * 		varchar|NULL  ['ourReff']      - наш реф
      */
-    function getLogisticData($rec)
+    public function getLogisticData($rec)
     {
     	$rec = $this->fetchRec($rec);
     	$res = parent::getLogisticData($rec);

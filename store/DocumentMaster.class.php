@@ -379,6 +379,11 @@ abstract class store_DocumentMaster extends core_Master
 	   				$row->deliveryLocationAddress = $gln . ", " . $row->deliveryLocationAddress;
 	   				$row->deliveryLocationAddress = trim($row->deliveryLocationAddress, ", ");
 	   			}
+	   			
+	   			if($locTel = crm_Locations::fetchField($rec->locationId, 'tel')){
+	   				$locTel = core_Type::getByName('varchar')->toVerbal($locTel);
+	   				$row->deliveryLocationAddress .= ", {$locTel}";
+	   			}
 	   		}
 	   		
 	   		$row->storeId = store_Stores::getHyperlink($rec->storeId);
@@ -673,7 +678,7 @@ abstract class store_DocumentMaster extends core_Master
      * 		text|NULL 	  ['conditions']   - други условия
      * 		varchar|NULL  ['ourReff']      - наш реф
      */
-    function getLogisticData($rec)
+    public function getLogisticData($rec)
     {
     	$rec = $this->fetchRec($rec);
     	$ownCompany = crm_Companies::fetchOurCompany();
