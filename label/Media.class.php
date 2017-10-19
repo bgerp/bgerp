@@ -78,14 +78,14 @@ class label_Media extends core_Manager
         $this->FLD('width', 'double(Min=0, max=1000, decimals=1, smartRound)', 'caption=Размер->Широчина, unit=mm, notNull, mandatory');
         $this->FLD('height', 'double(Min=0, max=1000, decimals=1, smartRound)', 'caption=Размер->Височина, unit=mm, notNull, mandatory');
         
-        $this->FLD('fieldUp', 'int', 'caption=Отстъпи->Отгоре, value=0, title=Поле на листа отгоре, unit=mm, notNull');
-        $this->FLD('fieldLeft', 'int', 'caption=Отстъпи->Отляво, value=0, title=Поле на листа отляво, unit=mm, notNull');
+        $this->FLD('fieldUp', 'double(min=-1000, max=1000, decimals=1, smartRound)', 'caption=Отстъпи->Отгоре, value=0, title=Поле на листа отгоре, unit=mm, notNull');
+        $this->FLD('fieldLeft', 'double(min=-1000, max=1000, decimals=1, smartRound)', 'caption=Отстъпи->Отляво, value=0, title=Поле на листа отляво, unit=mm, notNull');
         
         $this->FLD('columnsCnt', 'int(min=1, max=10)', 'caption=Колони->Брой, value=1, title=Брой колони в един лист, mandatory, notNull');
-        $this->FLD('columnsDist', 'int(min=-20, max=200)', 'caption=Колони->Междина, value=0, title=Разстояние на колоните в един лист, unit=mm, notNull');
+        $this->FLD('columnsDist', 'double(min=-20, max=200, decimals=1, smartRound)', 'caption=Колони->Междина, value=0, title=Разстояние на колоните в един лист, unit=mm, notNull');
         
         $this->FLD('linesCnt', 'int(min=1, max=50)', 'caption=Редове->Брой, value=1, title=Брой редове в един лист, mandatory, notNull');
-        $this->FLD('linesDist', 'int(min=-20, max=200)', 'caption=Редове->Междина, value=0, title=Разстояние на редовете в един лист, unit=mm, notNull');
+        $this->FLD('linesDist', 'double(min=-20, max=200, decimals=1, smartRound)', 'caption=Редове->Междина, value=0, title=Разстояние на редовете в един лист, unit=mm, notNull');
         
         $this->setDbUnique('title');
     }
@@ -226,14 +226,14 @@ class label_Media extends core_Manager
         setIfNot($data->pageLayout->linesCnt, 1);
         
         // Отместване на цялата страница
-        $data->pageLayout->up = (int) ($rec->fieldUp) . 'mm';
-        $data->pageLayout->left = (int) ($rec->fieldLeft) . 'mm';
+        $data->pageLayout->up = $rec->fieldUp . 'mm';
+        $data->pageLayout->left = $rec->fieldLeft . 'mm';
 
         // Отместване на колона
-        $data->pageLayout->columnsDist = (int) $rec->columnsDist . 'mm';
+        $data->pageLayout->columnsDist = $rec->columnsDist . 'mm';
         
         // Отместване на ред 
-        $data->pageLayout->linesDist = (int) $rec->linesDist . 'mm';
+        $data->pageLayout->linesDist = $rec->linesDist . 'mm';
     }
 
     
