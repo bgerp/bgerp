@@ -68,6 +68,12 @@ class doc_Prototypes extends core_Manager
     
     
     /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'officer';
+    
+    
+    /**
      * Кой може да редактира
      */
     public $canDelete  = 'no_one';
