@@ -1080,7 +1080,7 @@ class cat_BomDetails extends doc_Detail
      * @param int $toBomId
      * @return void
      */
-    protected function cloneDetails($fromBomId, $toBomId)
+    public function cloneDetails($fromBomId, $toBomId)
     {
     	$fromBomRec = cat_Boms::fetchRec($fromBomId);
     	cat_BomDetails::addProductComponents($fromBomRec->productId, $toBomId, NULL);

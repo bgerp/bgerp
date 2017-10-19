@@ -124,6 +124,15 @@ class core_Mvc extends core_FieldSet
      */
     public $makeArray4selectCache = array();
 
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone;
+    
+    
     /**
      * Конструктора на таблицата. По подразбиране работи със singleton
      * адаптор за база данни на име "db". Разчита, че адапторът
