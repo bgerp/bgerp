@@ -425,9 +425,7 @@ class store_InventoryNoteSummary extends doc_Detail
     			}
     		}
     		
-    		if($rec->blQuantity < 0){
-    			$row->blQuantity = "<span class='red'>{$row->blQuantity}</span>";
-    		}
+    		$row->blQuantity = ht::styleIfNegative($row->blQuantity, $rec->blQuantity);
     	}
     	
     	plg_RowTools2::on_BeforeRenderListTable($mvc, $res, $data);
