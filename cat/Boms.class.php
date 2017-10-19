@@ -902,9 +902,7 @@ class cat_Boms extends core_Master
     		}
     	}
     	
-    	if(count($res)){
-    		return array($productId => $res);
-    	}
+    	if(count($res)) return array($productId => $res);
     	
     	return $res;
     }

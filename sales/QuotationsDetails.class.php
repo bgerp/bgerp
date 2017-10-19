@@ -140,7 +140,7 @@ class sales_QuotationsDetails extends doc_Detail {
      * @param core_Mvc $mvc
      * @param stdClass $rec
      */
-    public static function on_CalcPackPrice(core_Mvc $mvc, $rec)
+    protected static function on_CalcPackPrice(core_Mvc $mvc, $rec)
     {
     	if (!isset($rec->price) || empty($rec->quantityInPack)) return;
     
@@ -154,7 +154,7 @@ class sales_QuotationsDetails extends doc_Detail {
      * @param core_Mvc $mvc
      * @param stdClass $rec
      */
-    public static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
+    protected static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
     {
     	if (empty($rec->quantity) || empty($rec->quantityInPack)) return;
     
@@ -588,7 +588,7 @@ class sales_QuotationsDetails extends doc_Detail {
     			$error = "error=Няма продаваеми артикули,";
     		}
     	
-    		$data->addNotOptionalBtn = ht::createBtn('Добавяне',  array($this, 'add', 'quotationId' => $data->masterId, 'optional' => 'no', 'ret_url' => TRUE), FALSE, FALSE, "{$error} ef_icon = img/16/shopping.png, title=Добавяне на артикул към офертата");
+    		$data->addNotOptionalBtn = ht::createBtn('Артикул',  array($this, 'add', 'quotationId' => $data->masterId, 'optional' => 'no', 'ret_url' => TRUE), FALSE, FALSE, "{$error} ef_icon = img/16/shopping.png, title=Добавяне на артикул към офертата");
     		$data->addOptionalBtn = ht::createBtn('Опционален артикул',  array($this, 'add', 'quotationId' => $data->masterId, 'optional' => 'yes', 'ret_url' => TRUE),  FALSE, FALSE, "{$error} ef_icon = img/16/shopping.png, title=Добавяне на опционален артикул към офертата");
     		
     		if($this->haveRightFor('createProduct', (object)array('quotationId' => $data->masterId))){

@@ -69,7 +69,7 @@ class cat_ProductDriverIntf extends embed_DriverIntf
      * @param string $id      - ид на записа
      * @param string $name    - име на параметъра, или NULL ако искаме всички
      * @param boolean $verbal - дали да са вербални стойностите
-     * @return mixed  $params - стойност или FALSE ако няма
+     * @return mixed  $params - стойност или NULL ако няма
      */
 	public function getParams($classId, $id, $name = NULL, $verbal = FALSE)
 	{

@@ -257,6 +257,7 @@ class cat_ListingDetails extends doc_Detail
 						$row->productId = ht::createElement("span", array('style' => 'color:#755101'), $row->productId);
 					} else {
 						$vat = cat_Products::getVat($rec->productId);
+						$date = NULL;
 						$rate = currency_CurrencyRates::getRate($date, $listRec->currencyId, NULL);
 						
 						$rec->price = deals_Helper::getDisplayPrice($policyInfo->price, $vat, $rate, $listRec->vat);
@@ -269,7 +270,7 @@ class cat_ListingDetails extends doc_Detail
 			if(!empty($listRec->type)){
 				$type = cat_Products::fetchField($rec->productId, $listRec->type);
 				if($type != 'yes'){
-					$vType = ($masterType == 'canBuy') ? 'купуваем' : 'продаваем';
+					$vType = ($listRec->type == 'canBuy') ? 'купуваем' : 'продаваем';
 					$row->productId = "<span class='red'>{$row->productId}</span>";
 					$row->productId = ht::createHint($row->productId, "Артикулът вече не е {$vType}", 'error', FALSE);
 				}

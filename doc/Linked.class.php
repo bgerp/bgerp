@@ -16,6 +16,12 @@ class doc_Linked extends core_Manager
     
     
     /**
+     * Възможните действия във формата
+     */
+    public static $actArr = array('' => '', 'linkDoc' => 'Връзка с документ', 'linkFile' => 'Връзка с файл', 'newDoc' => 'Нов документ');
+    
+    
+    /**
      * Брой записи, които ще се гледат в bgerp_Recently - за подредба
      * @var integer
      */
@@ -279,8 +285,7 @@ class doc_Linked extends core_Manager
         }
         
         // Вид връзка
-        $actTypeArr = array('' => '', 'linkDoc' => 'Връзка с документ', 'linkFile' => 'Връзка с файл', 'newDoc' => 'Нов документ');
-        
+        $actTypeArr = doc_Linked::$actArr;
         $actTypeArr += $actTypeIntfArr;
         
         $enumInst = cls::get('type_Enum');
@@ -366,9 +371,9 @@ class doc_Linked extends core_Manager
             // Подготвяме формата от интерфейсните методи
             foreach ($intfArr as $intfCls) {
                 if ($type == 'doc') {
-                    $actTypeIntfArr = $intfCls->prepareFormForDocument($form, $originFId, $act);
+                    $intfCls->prepareFormForDocument($form, $originFId, $act);
                 } elseif ($type == 'file') {
-                    $actTypeIntfArr = $intfCls->prepareFormForFile($form, $originFId, $act);
+                    $intfCls->prepareFormForFile($form, $originFId, $act);
                 }
             }
         }
@@ -417,9 +422,9 @@ class doc_Linked extends core_Manager
                 // Субмитваме формата от интерфейсни методи
                 foreach ($intfArr as $intfCls) {
                     if ($type == 'doc') {
-                        $actTypeIntfArr = $intfCls->doActivityForDocument($form, $originFId, $act);
+                        $intfCls->doActivityForDocument($form, $originFId, $act);
                     } elseif ($type == 'file') {
-                        $actTypeIntfArr = $intfCls->doActivityForFile($form, $originFId, $act);
+                        $intfCls->doActivityForFile($form, $originFId, $act);
                     }
                 }
             }

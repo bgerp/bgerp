@@ -947,7 +947,7 @@ class store_InventoryNotes extends core_Master
     	);
     	
     	// Валидация на партидния номер ако има
-    	if($batch){
+    	if(!empty($batch)){
     		if(core_Packs::isInstalled('batch')){
     			expect($Def = batch_Defs::getBatchDef($productId), "Опит за задаване на партида на артикул без партида");
     			$Def->isValid($batch, $quantity, $msg);
