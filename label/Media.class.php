@@ -226,14 +226,14 @@ class label_Media extends core_Manager
         setIfNot($data->pageLayout->linesCnt, 1);
         
         // Отместване на цялата страница
-        $data->pageLayout->up = $rec->fieldUp . 'mm';
-        $data->pageLayout->left = $rec->fieldLeft . 'mm';
+        $data->pageLayout->up = (double) $rec->fieldUp . 'mm';
+        $data->pageLayout->left = (double) $rec->fieldLeft . 'mm';
 
         // Отместване на колона
-        $data->pageLayout->columnsDist = $rec->columnsDist . 'mm';
+        $data->pageLayout->columnsDist = (double) $rec->columnsDist . 'mm';
         
         // Отместване на ред 
-        $data->pageLayout->linesDist = $rec->linesDist . 'mm';
+        $data->pageLayout->linesDist = (double) $rec->linesDist . 'mm';
     }
 
     
