@@ -408,6 +408,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
 				
 				if($masterRec->state != 'draft'){
+					$res = 'no_one';
+					
 					if($action == 'edit'){
 						if($masterRec->state == 'active'){
 							if($masterRec->createdBy == $userId || haveRole('ceo,manager', $userId) || keylist::isIn($userId, core_Users::getTeammates($masterRec->createdBy))){
@@ -415,8 +417,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
 							} 
 						}
 					}
-					
-					
 				} else {
 					if(!haveRole('invoicer, ceo', $userId)){
 						$res = 'no_one';

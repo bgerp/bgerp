@@ -127,7 +127,7 @@ class rfid_Ownerships extends core_Manager {
     {
     	 $tpl = new core_ET("");
     	 $fields = $this->listFields;
-    	 bp($fields);
+    	 expect(FALSE, $fields);
     	 
     	 return $tpl;
     }

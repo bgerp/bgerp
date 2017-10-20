@@ -56,6 +56,6 @@ class cad2_MeasureAngle  extends cad2_Shape {
         $vectorAngle = abs($AB->a - $CB->a);
         $angleGrad = rad2deg($vectorAngle);
 
-        bp($angleGrad);
+        expect(FALSE, $angleGrad);
     }
 }
