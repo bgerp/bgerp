@@ -89,20 +89,53 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
         if ($form->isSubmitted()) {
 
-         $details = (json_decode($form->rec->driverRec['additional']));
+         $details = (json_decode($form->rec->additional));
+            foreach ($details->code as $v) {
 
-            if(!$details->code || $details->code == 0){$form->setError('additional', 'Моля въведете код на артикула');}
+                $v = trim($v);
 
-            if ($form->rec->minQuantity < 0 || $form->rec->maxQuantity < 0) {
-                $form->setError('minQuantity, maxQuantity', 'Количествата трябва  да са положителни');
-            }
-
-            if(isset($form->rec->minQuantity,$form->rec->maxQuantity)) {
-
-                if ($form->rec->maxQuantity < $form->rec->minQuantity) {
-                    $form->setError('minQuantity, maxQuantity', 'Максималното количество не може да бъде по-малко от минималното');
+                if (!$v) {
+                    $form->setError('additional', 'Не попълнен код на артикул');
+                } else {
+                    if (!cat_Products::getByCode($v)) {
+                        $form->setError('additional', 'Не съществуващ артикул с код: ' . $v);
+                    }
                 }
+
             }
+
+            foreach ($details->minQuantity as $v) {
+
+                $v = (int)trim($v);
+
+                if ($v< 0) {
+                    $form->setError('additional', 'Количествата трябва  да са положителни');
+
+                }
+
+            }
+            foreach ($details->maxQuantity as $v) {
+
+                $v = (int)trim($v);
+
+                if ($v< 0) {
+                    $form->setError('additional', 'Количествата трябва  да са положителни');
+
+                }
+
+            }
+
+            foreach ($details->code as $key => $v) {
+
+              // bp($details->minQuantity[$key],$details->maxQuantity[$key] );
+
+                if ($details->minQuantity[$key] > $details->maxQuantity[$key] ) {
+                    $form->setError('additional', 'Максималното количество не може да бъде по-малко от минималното');
+
+                }
+
+            }
+
         }
     }
 
