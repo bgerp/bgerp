@@ -317,20 +317,15 @@ class core_Cron extends core_Manager
 
             // Колко минути остават до следващото стартиране
             $remainMinutes = floor(($currentMinute - $rec->offset) / $rec->period ) * $rec->period + $rec->period + $rec->offset - $currentMinute;
-            // echo "<li> $rec->systemId | $lastStarting | $lastSchedule | $now  | $remainMinutes | $rec->period | ";
             
             if( (($currentMinute % $rec->period) == $rec->offset) || ($rec->period > 60 && $lastSchedule > $lastStarting && $rec->period/2 < $remainMinutes)) {
                
-                // echo "OK------";
-
                 $i++;
                 fopen(toUrl(array(
                             'Act' => 'ProcessRun',
                             'id' => str::addHash($rec->id)
                         ), 'absolute-force'), 'r');
             
-            } else {
-                // echo "NO";
             }
         }
 

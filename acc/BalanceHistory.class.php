@@ -314,10 +314,11 @@ class acc_BalanceHistory extends core_Manager
         $data->accountInfo = acc_Accounts::getAccountInfo($data->rec->accountId);
         
         foreach (array(3, 2, 1) as $i){
+            
         	$ent = $data->rec->{"ent{$i}Id"};
-        	if(isset($ent)){
+        	if(is_object($data->accountInfo->groups[$i])){
         		$listRec = $data->accountInfo->groups[$i]->rec;
-        		$filter->FNC("ent{$i}Id", "acc_type_Item(lists={$listRec->num},select=titleLink,showAll)", "input,class=w75,caption={$listRec->name}");
+        		$filter->FNC("ent{$i}Id", "acc_type_Item(lists={$listRec->num},select=titleLink,showAll,allowEmpty)", "input,class=w75,caption={$listRec->name}");
         		$filter->showFields = "ent{$i}Id,{$filter->showFields}";
         	} else {
         		$filter->FNC("ent{$i}Id", 'int', 'input=hidden');
@@ -411,7 +412,7 @@ class acc_BalanceHistory extends core_Manager
         
         // Извличаме хронологията за перата
         $isGrouped = ($data->isGrouped !== 'yes') ? FALSE : TRUE;
-        $balHistory = acc_ActiveShortBalance::getBalanceHystory($accSysId, $data->fromDate, $data->toDate, $rec->ent1Id, $rec->ent2Id, $rec->ent3Id, $isGrouped);
+        $balHistory = acc_ActiveShortBalance::getBalanceHystory($accSysId, $data->fromDate, $data->toDate, $rec->ent1Id, $rec->ent2Id, $rec->ent3Id, $isGrouped, FALSE);
         $data->recs = $balHistory['history'];
         
         $rec->baseAmount = $balHistory['summary']['baseAmount'];

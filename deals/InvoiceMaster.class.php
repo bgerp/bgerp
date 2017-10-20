@@ -877,10 +877,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	}
     	
     	if($fields['-list']){
-    		if($rec->number){
-    			$row->number = ht::createLink($row->number, $mvc->getSingleUrlArray($rec->id), NULL, 'ef_icon=img/16/invoice.png');
-    		}
-    	
+    		$row->number = ($rec->number) ? ht::createLink($row->number, $mvc->getSingleUrlArray($rec->id), NULL, 'ef_icon=img/16/invoice.png') : $mvc->getLink($rec->id, 0); 
     		$total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
     		$noVat = $rec->dealValue - $rec->discountAmount;
     		
@@ -892,11 +889,9 @@ abstract class deals_InvoiceMaster extends core_Master
     		$row->valueNoVat = $mvc->getFieldType('dealValue')->toVerbal($novatToVerbal);
     		$row->vatAmount = $mvc->getFieldType('dealValue')->toVerbal($amountToVerbal);
     		
-    		if($total < 0){
-    			$row->dealValue = "<span class='red'>{$row->dealValue}</span>";
-    			$row->valueNoVat = "<span class='red'>{$row->valueNoVat}</span>";
-    			$row->vatAmount = "<span class='red'>{$row->vatAmount}</span>";
-    		}
+    		$row->dealValue = ht::styleIfNegative($row->dealValue, $total);
+    		$row->valueNoVat = ht::styleIfNegative($row->valueNoVat, $total);
+    		$row->vatAmount = ht::styleIfNegative($row->vatAmount, $total);
     	}
     	
     	if(empty($rec->paymentType) && isset($rec->autoPaymentType)){

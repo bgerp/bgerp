@@ -33,7 +33,7 @@ class hr_Indicators extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, hr_Wrapper, plg_Sorting';
+    public $loadList = 'plg_RowTools2, hr_Wrapper, plg_Sorting, plg_StyleNumbers';
     
     
     /**
@@ -109,7 +109,6 @@ class hr_Indicators extends core_Manager
     public static function cron_Update()
     { 
         $timeline = dt::addSecs(-(hr_Setup::INDICATORS_UPDATE_PERIOD * 60  + 10000));
-        
     	self::recalc($timeline);
     }
     
@@ -244,10 +243,9 @@ class hr_Indicators extends core_Manager
                     if($exRec) {
                         $rec->id = $exRec->id;
                         $forClean[$key][$rec->id] = $rec->id;
-                        if($rec->value == $exRec->value) {
-                            // Ако съществува идентичен стар запис - прескачаме
-                            continue;
-                        }
+
+                        // Ако съществува идентичен стар запис - прескачаме
+                        if($rec->value == $exRec->value) continue;
                     }
            
                     // Ако имаме уникален запис го записваме
@@ -315,10 +313,8 @@ class hr_Indicators extends core_Manager
 		
         // За всеки един договор, се опитваме да намерим формулата за заплащането от позицията.
         foreach($ecArr as $personId => $ecRec) {
-            $res = (object) array(
-                'personId' => $personId,
-                'periodId' => $pRec->id,
-                );
+            $res = (object) array('personId' => $personId,
+            					  'periodId' => $pRec->id);
             
             $sum = array();
             
@@ -487,7 +483,7 @@ class hr_Indicators extends core_Manager
     public function renderPersonIndicators($data)
     {
     	if($data->IData->render === FALSE) return new core_ET();
-    	
+
     	$tpl = new core_ET("[#ListToolbarTop#][#listFilter#][#I_TABLE#][#ListToolbarBottom#]");
     	$tpl->append($this->renderListFilter($data->IData), 'listFilter');
     	
@@ -510,8 +506,10 @@ class hr_Indicators extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
+        $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
+
     	$data->listFilter->FLD('period', 'date(select2MinItems=11)', 'caption=Период,silent,placeholder=Всички');
-    	$data->listFilter->FLD('document', 'varchar', 'caption=Документ,silent,placeholder=Всички');
+    	$data->listFilter->FLD('document', 'varchar(16)', 'caption=Документ,silent,placeholder=Всички');
     	$data->listFilter->setOptions('period', array('' => '') + dt::getRecentMonths(10));
     	$data->listFilter->showFields = 'period,document';
     	$data->query->orderBy('date', "DESC");
@@ -527,8 +525,9 @@ class hr_Indicators extends core_Manager
     		$data->listFilter->showFields = 'period,document,personId,indicatorId';
     		$data->listFilter->input('period,document,personId,indicatorId');
     	}
-    	
-    	$data->listFilter->view = 'horizontal';
+
+        // В хоризонтален вид
+    	$data->listFilter->class = 'simpleForm fleft';
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     	
     	// Филтриране на записите
@@ -569,12 +568,37 @@ class hr_Indicators extends core_Manager
     	
     	// Подготвяме масив с нулеви стойности
     	foreach($res as $id => $value) {
-    		
     		if(strpos($formula, "$" . $value) === FALSE){
     			unset($res[$id]);
     		}
     	}
     	
     	return $res;
+    }
+    
+    
+    /**
+     * След подготовка на записите
+     */
+    protected static function on_AfterPrepareListSummary($mvc, &$res, &$data)
+    {
+    	$data->listSummary->query->XPR('sum', 'double', 'SUM(#value)');
+    	$sum = $data->listSummary->query->fetch()->sum;
+    	$sum = (!empty($sum)) ? $sum : 0;
+    	$data->listSummary->summary = (object)array('sumRec' => $sum, 'sumRow' => core_Type::getByName('double(decimals=2)')->toVerbal($sum));
+    }
+    
+    
+    /**
+     * След рендиране на List Summary-то
+     */
+    protected static function on_AfterRenderListSummary($mvc, &$tpl, $data)
+    {
+    	if(isset($data->listSummary->summary)){
+    		$tpl = new ET(tr('|*' . getFileContent("acc/plg/tpl/Summary.shtml")));
+    		$tpl->append(tr('Стойност'), 'caption');
+    		$tpl->append($data->listSummary->summary->sumRow, 'quantity');
+    		$tpl->append(acc_Periods::getBaseCurrencyCode(), 'measure');
+    	}
     }
 }

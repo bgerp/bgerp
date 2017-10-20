@@ -455,8 +455,6 @@ class drdata_Phones extends core_Manager {
                         $error = TRUE;
                     }
                     
-                    //    print_r($obj);
-                    
                     if(!$error) {
                         // Няма грешка засега
                         $res[] = $obj;

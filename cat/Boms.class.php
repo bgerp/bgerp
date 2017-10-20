@@ -169,7 +169,7 @@ class cat_Boms extends core_Master
     	$this->FLD('expenses', 'percent(Мin=0)', 'caption=Общи режийни');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен)', 'caption=Статус, input=none');
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
-    	$this->FLD('showInProduct', 'enum(,yes=Да,no=Не)', 'caption=Показване в артикула,placeholder=Автоматично');
+    	$this->FLD('showInProduct', 'enum(,auto=Автоматично,yes=Да,no=Не)', 'caption=Показване в артикула');
     	$this->FLD('quantityForPrice', 'double(smartRound,min=0)', 'caption=Изчисляване на себестойност->При тираж,silent');
     	$this->FLD('hash', 'varchar', 'input=none');
     	
@@ -186,7 +186,11 @@ class cat_Boms extends core_Master
     public static function showInProduct($id)
     {
     	$rec = self::fetchRec($id);
-    	if(!empty($rec->showInProduct)) return ($rec->showInProduct == 'yes') ? TRUE : FALSE;
+    	if(!empty($rec->showInProduct)) {
+    		if($rec->showInProduct == 'auto') return (cat_Products::fetchField($rec->productId, 'fixedAsset') == 'yes'); 
+    		
+    		return ($rec->showInProduct == 'yes') ? TRUE : FALSE;
+    	}
     	
     	return cat_Setup::get('SHOW_BOM_IN_PRODUCT');
     }

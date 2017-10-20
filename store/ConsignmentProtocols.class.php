@@ -327,9 +327,7 @@ class store_ConsignmentProtocols extends core_Master
     			$row->count = $Int->toVerbal($count);
     			$row->productId = acc_Items::getVerbal($b['ent2Id'], 'titleLink');
     			$row->blQuantity = $Double->toVerbal($b['blQuantity']);
-    			if($b['baseQuantity'] < 0){
-    				$row->blQuantity = "<span class='red'>{$row->blQuantity}</span>";
-    			}
+    			$row->blQuantity = ht::styleIfNegative($row->blQuantity, $b['baseQuantity']);
     		
     			$count++;
     			$rows[] = $row;

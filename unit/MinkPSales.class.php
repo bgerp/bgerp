@@ -497,7 +497,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('additionalInfo', 'за оттегляне и контрол след възстановяване');
         $browser->press('Чернова');
         $browser->press('Контиране');
-    
+        
         // Фактура с вчерашна дата - контрол, грешка и отказ
         $browser->press('Фактура');
         $dateInv=strtotime("-1 Day");
@@ -512,7 +512,7 @@ class unit_MinkPSales extends core_Manager {
         $browser->press('Отказ');
         
         // Оттегляне на фактурата с днешна дата
-        $browser->press('btnDelete50');
+        $browser->press('btnDelete53');
         
         // Фактура с вчерашна дата - контиране
         $browser->press('Фактура');
@@ -528,11 +528,11 @@ class unit_MinkPSales extends core_Manager {
         //$browser->press(btnRestore50);
         if(strpos($browser->gettext(), 'Фактурата не може да се възстанови - фактура')) {
         } else {
-            return unit_MinkPbgERP::reportErr('Не излиза съобщение за грешка - фактура с по-голям номер', 'warning');
+            return unit_MinkPbgERP::reportErr('Не излиза съобщение за грешка - Фактурата не може да се възстанови', 'warning');
         }
         if(strpos($browser->gettext(), 'по-голям номер и по-малка дата в диапазона')) {
         } else {
-            return unit_MinkPbgERP::reportErr('Не излиза съобщение за грешка - фактура с по-голям номер', 'warning');
+            return unit_MinkPbgERP::reportErr('Не излиза съобщение за грешка - фактура с по-голям номер и по-малка дата', 'warning');
         }
         //return $browser->getHtml();
         
@@ -1409,7 +1409,7 @@ class unit_MinkPSales extends core_Manager {
         
     }
     /**
-     * 15. Продажба - Кредитно известие за цялата сума с различно ДДС (валута)
+     * 15. Продажба - Кредитно известие за цялата сума с различно ДДС (валута) - не се ползва
      */
      
     //http://localhost/unit_MinkPSales/CreateCreditInvoiceDiffVATYes/
@@ -1443,7 +1443,6 @@ class unit_MinkPSales extends core_Manager {
         $browser->setValue('chargeVat', 'yes');
         // Записване черновата на продажбата
         $browser->press('Чернова');
-    
         // Добавяне на артикул
         $browser->press('Артикул');
         $browser->setValue('productId', 'Други стоки');
