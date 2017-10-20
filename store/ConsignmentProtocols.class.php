@@ -306,6 +306,7 @@ class store_ConsignmentProtocols extends core_Master
     				'accs' => '323',
     				'item1' => $contragentItem->id,
     				'strict' => TRUE,
+    				'keepUnique' => TRUE,
     				'cacheBalance' => FALSE));
     		 
     		// Изчлисляваме в момента, какъв би бил крания баланс по сметката в края на деня

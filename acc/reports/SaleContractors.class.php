@@ -94,7 +94,6 @@ class acc_reports_SaleContractors extends acc_reports_BalanceImpl
         $form->setHidden('action');
 
         foreach (range(1, 3) as $i) {
-
             $form->setHidden("feat{$i}");
             $form->setHidden("grouping{$i}");
 

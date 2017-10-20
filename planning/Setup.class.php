@@ -123,7 +123,8 @@ class planning_Setup extends core_ProtoSetup
     		'migrate::updateStoreIds',
     		'migrate::migrateJobs',
     		'migrate::addPackToNotes',
-    		'migrate::addPackToJobs'
+    		'migrate::addPackToJobs',
+    		'migrate::deleteTaskCronUpdate',
         );
 
         
@@ -313,5 +314,14 @@ class planning_Setup extends core_ProtoSetup
     	if(count($toSave)){
     		$Job->saveArray($toSave, 'id,packagingId,quantityInPack');
     	}
+    }
+    
+    
+    /**
+     * Изтриване на крон метод
+     */
+    public function deleteTaskCronUpdate()
+    {
+    	core_Cron::delete("#systemId = 'Update Tasks States'");
     }
 }

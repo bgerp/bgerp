@@ -1482,7 +1482,7 @@ class email_Incomings extends core_Master
                     $resStr = 'Проблем';
                 }
                 
-                email_Incomings::logDebug("Резултат от обучение за {$typeStr} - " . $resStr, $rec->id);
+                email_Incomings::logNotice("Резултат от обучение за {$typeStr} - " . $resStr, $rec->id);
             } catch(spas_client_Exception $e) {
                 reportException($e);
                 email_Incomings::logErr('Грешка при обучение на SPAS: ' . $e->getMessage());
