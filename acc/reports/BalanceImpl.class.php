@@ -174,10 +174,10 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
         $this->prepareListFields($data);
         
         $accSysId = acc_Accounts::fetchField($data->rec->accountId, 'systemId');
-        $Balance = new acc_ActiveShortBalance(array('from' => $data->rec->from, 'to' => $data->rec->to, 'accs' => $accSysId, 'cacheBalance' => FALSE));
+        $Balance = new acc_ActiveShortBalance(array('from' => $data->rec->from, 'to' => $data->rec->to, 'accs' => $accSysId, 'cacheBalance' => FALSE, 'keepUnique' => TRUE));
 
         $data->recs = $Balance->getBalance($accSysId);
-      
+      	
         $productPosition = acc_Lists::getPosition($accSysId, 'cat_ProductAccRegIntf');
         
         foreach ($data->recs as $id => $rec) {
