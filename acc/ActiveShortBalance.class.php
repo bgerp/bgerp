@@ -227,13 +227,16 @@ class acc_ActiveShortBalance {
                     if(empty($this->params['item3'])) $bRec->ent3Id = '';
                 }
 
-
-
                 // Натруваме в $newBalance
                 $index = $bRec->accountId . "|" . $bRec->ent1Id . "|" . $bRec->ent2Id . "|" . $bRec->ent3Id;
-                
                 $bRec = (array)$bRec;
-                $newBalance[$index] = $bRec;
+                
+                if(!array_key_exists($index, $newBalance)){
+                	$newBalance[$index] = $bRec;
+                } else {
+                	$newBalance[$index]['blAmount'] += $bRec['blAmount'];
+                	$newBalance[$index]['blQuantity'] += $bRec['blQuantity'];
+                }
             }
           
             $newFrom = dt::addDays(1, $balanceRec->toDate);
