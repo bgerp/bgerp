@@ -221,6 +221,14 @@ class acc_ActiveShortBalance {
                 // Ако има подадени сметки и сметката на записа не е в масива пропускаме
                 if(count($accArr) && !in_array($bRec->accountId, $accArr)) continue;
                 
+                if(is_array($this->params)) {
+                    if(empty($this->params['item1'])) $bRec->ent1Id = '';
+                    if(empty($this->params['item2'])) $bRec->ent2Id = '';
+                    if(empty($this->params['item3'])) $bRec->ent3Id = '';
+                }
+
+
+
                 // Натруваме в $newBalance
                 $index = $bRec->accountId . "|" . $bRec->ent1Id . "|" . $bRec->ent2Id . "|" . $bRec->ent3Id;
                 
