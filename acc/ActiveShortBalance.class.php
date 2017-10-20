@@ -203,7 +203,7 @@ class acc_ActiveShortBalance {
             // Извличаме неговите записи
             $bQuery = acc_BalanceDetails::getQuery();
             $bQuery->show('accountId,ent1Id,ent2Id,ent3Id,blAmount,blQuantity');
-            acc_BalanceDetails::filterQuery($bQuery, $balanceRec->id, $accs, $this->params['itemsAll'], $this->params['item1'], $this->params['item2'], $this->params['item3']);
+            acc_BalanceDetails::filterQuery($bQuery, $balanceRec->id, $accs, $this->params['itemsAll'], $this->params['item1'], $this->params['item2'], $this->params['item3'], FALSE);
             $bQuery->where('#blQuantity != 0 OR #blAmount != 0');
            
             while($bRec = $bQuery->fetch()){
@@ -237,7 +237,7 @@ class acc_ActiveShortBalance {
         
         // Извличаме всички записи които са между последния баланс и избраната дата за начало на търсенето
         $jQuery = acc_JournalDetails::getQuery();
-        acc_JournalDetails::filterQuery($jQuery, $newFrom, $newTo, $accs, $this->params['itemsAll'], $this->params['item1'], $this->params['item2'], $this->params['item3']);
+        acc_JournalDetails::filterQuery($jQuery, $newFrom, $newTo, $accs, $this->params['itemsAll'], $this->params['item1'], $this->params['item2'], $this->params['item3'], FALSE);
         
         // Натрупваме им сумите към началния баланс
         $this->calcBalance($jQuery->fetchAll(), $newBalance);
