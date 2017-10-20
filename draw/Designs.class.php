@@ -386,7 +386,7 @@ class draw_Designs extends core_Master
 
 
     public static function cmd_Bp($params, &$svg, &$contex, &$error){
-        bp($contex);
+        expect(FALSE, $contex);
     }
 
 
