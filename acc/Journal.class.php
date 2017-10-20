@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -57,12 +57,6 @@ class acc_Journal extends core_Master
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'ceo,acc';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,acc';
     
     
     /**
@@ -114,22 +108,14 @@ class acc_Journal extends core_Master
     {
         // Ефективна дата
         $this->FLD('valior', 'date', 'caption=Вальор,mandatory');
-        
-        // Пораждащ документ
         $this->FLD('docType', 'class(interface=acc_TransactionSourceIntf)', 'caption=Документ,input=none');
         $this->FLD('docId', 'int', 'input=none,column=none');
-        
-        // Обща сума
         $this->FLD('totalAmount', 'double(decimals=2)', 'caption=Оборот,input=none');
-        
-        // Основание за транзакцията
         $this->FLD('reason', 'varchar', 'caption=Основание,input=none');
-        
-        // Състояние
         $this->FLD('state', 'enum(draft=Чернова,active=Активна,revert=Сторнирана)', 'caption=Състояние,input=none');
         
         $this->setDbUnique('docType,docId,state');
-        
+        $this->setDbIndex('docType,docId');
         $this->setDbIndex('valior');
     }
     
@@ -142,11 +128,12 @@ class acc_Journal extends core_Master
         $data->listFilter->class = 'simpleForm';
         $data->listFilter->FNC('dateFrom', 'date', 'input,caption=От');
         $data->listFilter->FNC('dateTo', 'date', 'input,caption=До');
+        $data->listFilter->FNC('accounts', 'acc_type_Accounts', 'input,caption=Сметки');
         
         $data->listFilter->setDefault('dateFrom', date('Y-m-01'));
         $data->listFilter->setDefault('dateTo', date("Y-m-t", strtotime(dt::now())));
         
-        $data->listFilter->showFields = 'search,dateFrom,dateTo';
+        $data->listFilter->showFields = 'search,dateFrom,dateTo,accounts';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list', 'show' => Request::get('show')), 'id=filter', 'ef_icon = img/16/funnel.png');
         
         // Активиране на филтъра
@@ -185,6 +172,24 @@ class acc_Journal extends core_Master
             // Филтър по крайна дата
             if($rec->dateTo){
                 $data->query->where(array("#valior <= '[#1#] 23:59:59'", $rec->dateTo));
+            }
+            
+            // Ако има филтър по сметки
+            if(!empty($rec->accounts)){
+            	$accounts = implode(',', keylist::toArray($rec->accounts));
+            	$dQuery = acc_JournalDetails::getQuery();
+            	$dQuery->where("#debitAccId IN ({$accounts}) || #creditAccId IN ({$accounts})");
+            	$dQuery->show('journalId');
+            	$dQuery->groupBy('journalId');
+            	$foundIds = arr::extractValuesFromArray($dQuery->fetchAll(), 'journalId');
+            	
+            	// Само записите, в чиито детайли участват избраните сметки
+            	if(count($foundIds)){
+            		$foundIds = implode(',', $foundIds);
+            		$data->query->where("#id IN ({$foundIds})");
+            	} else {
+            		$data->query->where("1 = 2");
+            	}
             }
         }
     }
