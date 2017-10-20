@@ -25,13 +25,13 @@ class doc_LinkedTemplates extends core_Master
     /**
      * Заглавие
      */
-    public $title = "Шаблони за връзка с документи и файлове";
+    public $title = "Шаблони за връзки между документи";
     
     
     /**
      * Сингъл заглавие
      */
-    public $singleTitle = "Шаблон за връзка с документи и файлове";
+    public $singleTitle = "Шаблон за връзки между документи";
     
     
     /**
@@ -73,7 +73,7 @@ class doc_LinkedTemplates extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'doc_Wrapper, plg_Created, plg_State2, plg_Rejected, plg_RowTools2, plg_Modified';
+    public $loadList = 'cond_Wrapper, plg_Created, plg_State2, plg_Rejected, plg_RowTools2, plg_Modified';
     
     
     /**
