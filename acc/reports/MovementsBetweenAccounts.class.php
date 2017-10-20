@@ -101,7 +101,7 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
     public function prepareEmbeddedForm(core_Form &$form)
     {
         // Информация, че справката не е готова
-        $form->info = "<div style='margin:10px;color:red; background-color:yellow; border: dotted 1px red; padding:5px; font-size:1.3em;'>Тази спревка е в процес на разработка</div>";
+        $form->info = "<div style='margin:10px;color:red; background-color:yellow; border: dotted 1px red; padding:5px; font-size:1.3em;'>Тази справка е в процес на разработка</div>";
 
         // Поставяме удобни опции за избор на период
         $op = acc_Periods::getPeriodOptions();
