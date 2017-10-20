@@ -100,9 +100,9 @@ abstract class deals_InvoiceMaster extends core_Master
     	$mvc->FLD('displayRate', 'double(decimals=5)', 'caption=Плащане->Курс,before=dueTime');
     	$mvc->FLD('deliveryId', 'key(mvc=cond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие,input=hidden');
     	$mvc->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Място,hint=Избор измежду въведените обекти на контрагента');
+    	$mvc->FLD('vatReason', 'varchar(255)', 'caption=Данъчни параметри->Основание,recently,Основание за размера на ДДС');
     	$mvc->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъчни параметри->Дата на ДС,hint=Дата на възникване на данъчното събитие');
     	$mvc->FLD('vatRate', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Данъчни параметри->ДДС,input=hidden');
-    	$mvc->FLD('vatReason', 'varchar(255)', 'caption=Данъчни параметри->Основание,recently,Основание за размера на ДДС');
     	$mvc->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки');
     	$mvc->FLD('dealValue', 'double(decimals=2)', 'caption=Без ДДС, input=hidden,summary=amount');
     	$mvc->FLD('vatAmount', 'double(decimals=2)', 'caption=ДДС, input=none,summary=amount');
@@ -877,10 +877,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	}
     	
     	if($fields['-list']){
-    		if($rec->number){
-    			$row->number = ht::createLink($row->number, $mvc->getSingleUrlArray($rec->id), NULL, 'ef_icon=img/16/invoice.png');
-    		}
-    	
+    		$row->number = ($rec->number) ? ht::createLink($row->number, $mvc->getSingleUrlArray($rec->id), NULL, 'ef_icon=img/16/invoice.png') : $mvc->getLink($rec->id, 0); 
     		$total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
     		$noVat = $rec->dealValue - $rec->discountAmount;
     		
@@ -892,11 +889,9 @@ abstract class deals_InvoiceMaster extends core_Master
     		$row->valueNoVat = $mvc->getFieldType('dealValue')->toVerbal($novatToVerbal);
     		$row->vatAmount = $mvc->getFieldType('dealValue')->toVerbal($amountToVerbal);
     		
-    		if($total < 0){
-    			$row->dealValue = "<span class='red'>{$row->dealValue}</span>";
-    			$row->valueNoVat = "<span class='red'>{$row->valueNoVat}</span>";
-    			$row->vatAmount = "<span class='red'>{$row->vatAmount}</span>";
-    		}
+    		$row->dealValue = ht::styleIfNegative($row->dealValue, $total);
+    		$row->valueNoVat = ht::styleIfNegative($row->valueNoVat, $total);
+    		$row->vatAmount = ht::styleIfNegative($row->vatAmount, $total);
     	}
     	
     	if(empty($rec->paymentType) && isset($rec->autoPaymentType)){

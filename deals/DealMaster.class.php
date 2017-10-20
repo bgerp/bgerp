@@ -328,7 +328,7 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // Показване и на артикула с най-голяма стойност в продажбата
         if(isset($rec->productIdWithBiggestAmount)){
-        	$pName = mb_substr($rec->productIdWithBiggestAmount, 0, 16);
+        	$pName = mb_substr($rec->productIdWithBiggestAmount, 0, 20);
         	$title .= "/{$pName}";
         }
         
@@ -456,6 +456,12 @@ abstract class deals_DealMaster extends deals_DealBase
 		}
     }
     
+    
+    /**
+     * Кои сделки, могат да се заторрят с други сделки
+     * 
+     * @return array $res
+     */
     protected function getDealsClosedWithOtherDeals()
     {
     	$res = array();
@@ -1655,7 +1661,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	// Броя еденици в опаковка, се определя от информацията за продукта
     	$productInfo = cat_Products::getProductInfo($productId);
-    	if(!$packagingId){
+    	if(empty($packagingId)){
     		$packagingId = $productInfo->productRec->measureId;
     	}
     	

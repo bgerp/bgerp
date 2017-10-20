@@ -1332,5 +1332,25 @@ class core_Html
         return $attr;
     }
 
-
+	
+    /**
+     * Обграждане на стринга, ако подадения стринг е отрицателно число
+     * 
+     * @param mixed $verbal
+     * @param string|double $notVerbal
+     * @return string|core_ET $verbal
+     */
+    public static function styleIfNegative($verbal, $notVerbal)
+    {
+    	if($notVerbal < 0){
+    		if($verbal instanceof core_ET){
+    			$verbal->prepend("<span class='red'>");
+    			$verbal->append("</span>");
+    		} else {
+    			$verbal = "<span class='red'>{$verbal}</span>";
+    		}
+    	}
+    	
+    	return $verbal;
+    }
 }

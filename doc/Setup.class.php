@@ -250,6 +250,7 @@ class doc_Setup extends core_ProtoSetup
     	'doc_UsedInDocs',
     	'doc_View',
     	'doc_Linked',
+    	'doc_LinkedTemplates',
         'migrate::repairBrokenFolderId',
         'migrate::repairLikeThread',
         'migrate::repairFoldersKeywords',
@@ -804,6 +805,7 @@ class doc_Setup extends core_ProtoSetup
         
         $res .= $this->callMigrate('threadsVisibleForPartners', 'doc');
         $res .= $this->callMigrate('addDefaultNotifyOptions', 'doc');
+        $res .= $this->callMigrate('showDocumentsAsButtonsFrame', 'doc');
         
         return $res;
     }
@@ -937,6 +939,48 @@ class doc_Setup extends core_ProtoSetup
             }
             
             doc_Linked::save($nRec, NULL, 'IGNORE');
+        }
+    }
+    
+    
+    /**
+     * Замества всички зададени бързи бутони за отчетите с новия
+     */
+    public function showDocumentsAsButtonsFrame()
+    {
+        $uQuery = doc_UnsortedFolders::getQuery();
+        
+        $kArr = array();
+        if (core_Packs::isInstalled('frame2')) {
+            $fId = frame2_Reports::getClassId();
+            $kArr[$fId] = $fId;
+            
+            $allReportsId = frame2_AllReports::getClassId();
+        } else {
+            
+            return ;
+        }
+        
+        if (core_Packs::isInstalled('frame')) {
+            $fId = frame_Reports::getClassId();
+            $kArr[$fId] = $fId;
+        }
+        
+        $uQuery->orLikeKeylist('showDocumentsAsButtons', $kArr);
+        
+        $uQuery->show('showDocumentsAsButtons');
+        
+        while ($rec = $uQuery->fetch()) {
+            
+            foreach ($kArr as $kId) {
+                $rec->showDocumentsAsButtons = type_Keylist::removeKey($rec->showDocumentsAsButtons, $kId);
+            }
+            
+            $rec->showDocumentsAsButtons = type_Keylist::addKey($rec->showDocumentsAsButtons, $allReportsId);
+            
+            doc_UnsortedFolders::save($rec, 'showDocumentsAsButtons');
+            
+            doc_UnsortedFolders::logNotice('Сменени бързи бутони за справки, към общия отчет', $rec->id);
         }
     }
 }

@@ -181,8 +181,12 @@ class type_Key2 extends type_Int
         if(!$this->params['maxSuggestions']) {
             $maxSuggestions = $this->params['maxSuggestions'] = core_Setup::get('TYPE_KEY_MAX_SUGGESTIONS', TRUE);
         }
- 
-        $options = $this->getOptions($maxSuggestions);
+        
+        $options = array();
+        
+        if (!$this->params['forceAjax']) {
+            $options = $this->getOptions($maxSuggestions);
+        }
         
         if(ctype_digit("{$value}")) {
             $currentOpt = $this->getOptions(1, '', $value, TRUE);
@@ -208,7 +212,7 @@ class type_Key2 extends type_Int
 
         $this->setFieldWidth($attr, NULL, $options);
 
-        if(core_Packs::isInstalled('select2') && !Mode::is('javascript', 'no')) {
+        if (core_Packs::isInstalled('select2') && !Mode::is('javascript', 'no')) {
             
             // Показваме Select2
             ht::setUniqId($attr);
@@ -216,7 +220,7 @@ class type_Key2 extends type_Int
             
             $ajaxUrl = '';
             $handler = $this->getHandler();
-            if ($optionsCnt >= $maxSuggestions) {
+            if ($this->params['forceAjax'] || ($optionsCnt >= $maxSuggestions)) {
                 $ajaxUrl = toUrl(array($this, 'getOptions', 'hnd' => $handler, 'maxSugg' => $maxSuggestions, 'ajax_mode' => 1), 'absolute');
             }
             
@@ -228,7 +232,7 @@ class type_Key2 extends type_Int
             // Добавяме необходимите файлове и стартирам select2
             select2_Adapter::appendAndRun($tpl, $attr['id'], $attr['placeholder'], $allowClear, NULL, $ajaxUrl);
 
-        } elseif($optionsCnt >= $maxSuggestions && !Mode::is('javascript', 'no')) {
+        } elseif ($this->params['forceAjax'] || ($optionsCnt >= $maxSuggestions && !Mode::is('javascript', 'no'))) {
             // Показваме Combobox
             
             $this->params['inputType'] = 'combo';

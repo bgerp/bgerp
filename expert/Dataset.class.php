@@ -248,7 +248,7 @@ class expert_Dataset extends core_BaseClass {
         
         if(!@eval('return TRUE;' . $code)) {
             // Некоректен израз
-            bp($code);
+            expect(FALSE, $code);
         }
 
         $res = eval($code);
@@ -316,16 +316,12 @@ class expert_Dataset extends core_BaseClass {
             }
             
             if($bestRule) {  
-//if($this->vars['W'] && $bestRule->name == 'WeightTotal') bp($this->rules, $rated);
                 $this->setVar($bestRule->name, $bestRule->value, $bestRule->trust, "[{$bestRule->expr}]" . ($bestRule->cond ?  " ({$bestRule->cond})":''));
                 $bestRule->state = 'used';
             }
 
         } while($bestRule);
         
-        if($this->vars['W']) {
-        //     bp($this->rules);
-        }
         return $this->vars;
     }
 }

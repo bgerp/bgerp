@@ -16,6 +16,26 @@ class doc_Linked extends core_Manager
     
     
     /**
+     * Възможните действия във формата
+     */
+    public static $actArr = array('' => '', 'linkDoc' => 'Връзка с документ', 'linkFile' => 'Връзка с файл', 'newDoc' => 'Нов документ');
+    
+    
+    /**
+     * Брой записи, които ще се гледат в bgerp_Recently - за подредба
+     * @var integer
+     */
+    protected static $recentlyLimit = 20;
+    
+    
+    /**
+     * Дължина на селект полето
+     * @var integer
+     */
+    protected static $titleLen = 50;
+    
+    
+    /**
      * Заглавие
      */
     public $title = "Свързани документи и файлове";
@@ -70,13 +90,6 @@ class doc_Linked extends core_Manager
     
     
     /**
-     * Брой записи, които ще се гледат в bgerp_Recently - за подредба
-     * @var integer
-     */
-    protected static $recentlyLimit = 10;
-    
-    
-    /**
      * Описание на модела
      */
     function description()
@@ -86,7 +99,7 @@ class doc_Linked extends core_Manager
         $this->FLD('inType', 'enum(doc=Документ,file=Файл)', 'caption=Входящ->Тип');
         $this->FLD('inVal', 'int', 'caption=Входящ->Стойност');
         $this->FLD('comment', 'varchar', 'caption=Пояснения');
-        $this->FLD('actType', 'varchar(16)', 'caption=Действие, input=none');
+        $this->FLD('actType', 'varchar(64)', 'caption=Действие, input=none');
         $this->FLD('state', 'enum(active=Активно, rejected=Оттеглено)', 'caption=Състояние, input=none');
         
         $this->setDbUnique('outType, outVal, inType, inVal');
@@ -272,8 +285,7 @@ class doc_Linked extends core_Manager
         }
         
         // Вид връзка
-        $actTypeArr = array('' => '', 'linkDoc' => 'Връзка с документ', 'linkFile' => 'Връзка с файл', 'newDoc' => 'Нов документ');
-        
+        $actTypeArr = doc_Linked::$actArr;
         $actTypeArr += $actTypeIntfArr;
         
         $enumInst = cls::get('type_Enum');
@@ -306,64 +318,17 @@ class doc_Linked extends core_Manager
         
         $act = trim($form->rec->act);
         
-        if ($act == 'linkDoc') {
-            $form->FNC('linkDocType', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Вид, input, removeAndRefreshForm=linkContainerId|linkFolderId');
-            $form->input();
-            
-            if ($type == 'doc') {
-                $unsetStr = ",unsetId={$originFId}";
-            }
-            
-            $form->FNC('linkFolderId', 'key2(mvc=doc_Folders, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ", showWithDocs{$unsetStr})", 'caption=Папка, input, removeAndRefreshForm=linkContainerId');
-            $form->input();
-            
-            $form->FNC('linkContainerId', 'key2(mvc=doc_Containers, titleFld=id, maxSuggestions=100, selectSourceArr=doc_Linked::prepareLinkDocId, allowEmpty, docType=' . $form->rec->linkDocType . ', folderId=' . $form->rec->linkFolderId . "{$unsetStr})", 'caption=Документ, input, mandatory, refreshForm');
-        } elseif ($act == 'linkFile') {
-            $form->FNC('linkFileId', 'fileman_FileType(bucket=Linked)', 'caption=Файл, input, mandatory');
-        } elseif ($act == 'newDoc') {
-            $form->FNC('linkDocType', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Вид, input, mandatory, removeAndRefreshForm=linkFolderId|linkThreadId');
-            
-            // Махаме документите, които не можем да създадем
-            $optArr = $form->fields['linkDocType']->type->prepareOptions();
-            foreach ($optArr as $optClsId => $title) {
-                $optClsInst = cls::get($optClsId);
-                
-                if (!$optClsInst->haveRightFor('add')) {
-                    
-                    unset($optArr[$optClsId]);
-                }
-            }
-            $form->fields['linkDocType']->type->options = $optArr;
-            
-            $form->input();
-            
-            if ($form->rec->linkDocType) {
-                $form->FNC('linkFolderId', 'key2(mvc=doc_Folders, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ')', 'caption=Папка, input, mandatory, removeAndRefreshForm=linkThreadId');
-                $form->input();
-                
-                $dInst = cls::get($form->rec->linkDocType);
-                
-                // Ако документа може да се създаде в съществуваща нишка, показваме избор
-                if ($form->rec->linkFolderId && !$dInst->onlyFirstInThread) {
-                    
-                    $mandatory = '';
-                    
-                    if (!$dInst->canAddToFolder($form->rec->linkFolderId) || !$dInst->haveRightFor('add', (object) array('folderId' => $form->rec->linkFolderId))) {
-                        $mandatory = ' ,mandatory';
-                    }
-                    
-                    $form->FNC('linkThreadId', 'key2(mvc=doc_Threads, titleFld=firstContainerId, maxSuggestions=100, selectSourceArr=doc_Linked::prepareThreadsForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ', folderId=' . $form->rec->linkFolderId . ')', "caption=Нишка, input, refreshForm{$mandatory}");
-                }
-            }
-        } else {
+        if ($act && !doc_Linked::$actArr[$act]) {
             // Подготвяме формата от интерфейсните методи
             foreach ($intfArr as $intfCls) {
                 if ($type == 'doc') {
-                    $actTypeIntfArr = $intfCls->prepareFormForDocument($form, $originFId, $act);
+                    $intfCls->prepareFormForDocument($form, $originFId, $act);
                 } elseif ($type == 'file') {
-                    $actTypeIntfArr = $intfCls->prepareFormForFile($form, $originFId, $act);
+                    $intfCls->prepareFormForFile($form, $originFId, $act);
                 }
             }
+        } else {
+            $this->prepareFormForAct($form, $act, $type, $originFId);
         }
         
         $form->FNC('comment', 'varchar', 'caption=Пояснение, input');
@@ -371,91 +336,26 @@ class doc_Linked extends core_Manager
         $form->input();
         
         if ($form->isSubmitted()) {
-            
-            $retUrl = getRetUrl();
-            
-            $nRec = new stdClass();
-            $nRec->outType = $type;
-            $nRec->outVal = $originFId;
-            $nRec->comment = $form->rec->comment;
-            $nRec->state = 'active';
-            $nRec->actType = $form->rec->act;
-            
-            if ($act == 'linkDoc') {
-                $nRec->inType = 'doc';
-                $nRec->inVal = $form->rec->linkContainerId;
-            } elseif ($act == 'linkFile') {
-                $nRec->inType = 'file';
-                $nRec->inVal = fileman_Files::fetchByFh($form->rec->linkFileId)->id;
-            } elseif ($act == 'newDoc') {
-                
-                // Ако се създава нов документ, записваме в кеша и след създаване добавяме запис
-                
-                $nRec->inType = 'doc';
-                
-                $url = array(cls::get($form->rec->linkDocType), 'add', 'folderId' => $form->rec->linkFolderId);
-                
-                if ($form->rec->linkThreadId) {
-                    $url['threadId'] = $form->rec->linkThreadId;
-                }
-                
-                $url['linkedHashKey'] = 'LHK_' . substr(md5(serialize($nRec) . '|' . dt::now() . '|' . core_Users::getCurrent()), 0, 8);
-                
-                $url['ret_url'] = TRUE;
-                
-                core_Permanent::set($url['linkedHashKey'], $nRec, 120);
-                
-                return new Redirect($url);
-            } else {
+            if ($act && !doc_Linked::$actArr[$act]) {
                 // Субмитваме формата от интерфейсни методи
                 foreach ($intfArr as $intfCls) {
                     if ($type == 'doc') {
-                        $actTypeIntfArr = $intfCls->doActivityForDocument($form, $originFId, $act);
+                        $intfRes = $intfCls->doActivityForDocument($form, $originFId, $act);
                     } elseif ($type == 'file') {
-                        $actTypeIntfArr = $intfCls->doActivityForFile($form, $originFId, $act);
+                        $intfRes = $intfCls->doActivityForFile($form, $originFId, $act);
+                    }
+                    
+                    if (isset($intfRes)) {
+                        $res = $intfRes;
                     }
                 }
+            } else {
+                $res = $this->onSubmitFormForAct($form, $act, $type, $originFId);
             }
             
-            // Прави необходимите проверки и добавя запис
-            $fieldsArr = array();
-            if (!$this->isUnique($nRec, $fieldsArr)) {
-                $form->setError($fieldsArr, "Вече съществува запис със същите данни");
-            } else {
+            if ($res) {
                 
-                if ($nRec->inVal && ($nRec->inType == $nRec->outType) && ($nRec->inVal == $nRec->outVal)) {
-                    $errMsg = 'Избрали сте същия ';
-                    if ($nRec->inType == 'doc') {
-                        $errMsg .= 'документ';
-                    } else {
-                        $errMsg .= 'файл';
-                    }
-                    $form->setError('linkContainerId', $errMsg);
-                } else {
-                    $this->save($nRec);
-                    
-                    try {
-                        $strType = 'документ';
-                        if ($nRec->outType == 'doc') {
-                            if ($nRec->inType == 'file') {
-                                $strType = 'файл';
-                            }
-                            $outDoc = doc_Containers::getDocument($nRec->outVal);
-                            $outDoc->instance->logRead("Добавена връзка към {$strType}", $outDoc->that);
-                        }
-                        
-                        $strType = 'документ';
-                        if ($nRec->inType == 'doc') {
-                            if ($nRec->outType == 'file') {
-                                $strType = 'файл';
-                            }
-                            $inDoc = doc_Containers::getDocument($nRec->inVal);
-                            $inDoc->instance->logRead("Добавена връзка от {$strType}", $inDoc->that);
-                        }
-                    } catch (core_exception_Expect $e) { }
-                    
-                    return new Redirect($retUrl);
-                }
+                return $res;
             }
         }
         
@@ -485,6 +385,145 @@ class doc_Linked extends core_Manager
         core_Form::preventDoubleSubmission($formTpl, $form);
         
         return $formTpl;
+    }
+    
+    
+    public static function prepareFormForAct(&$form, $act, $type = 'doc', $originFId = NULL)
+    {
+        if ($act == 'linkDoc') {
+            $form->FNC('linkDocType', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Вид, class=w100, input, removeAndRefreshForm=linkContainerId|linkFolderId');
+            $form->input();
+            
+            if ($type == 'doc' && $originFId) {
+                $unsetStr = ",unsetId={$originFId}";
+            }
+            
+            $form->FNC('linkFolderId', 'key2(forceAjax, mvc=doc_Folders, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ", showWithDocs{$unsetStr})", 'caption=Папка, class=w100, input, removeAndRefreshForm=linkContainerId');
+            $form->input();
+            
+            $form->FNC('linkContainerId', 'key2(forceAjax, mvc=doc_Containers, titleFld=id, maxSuggestions=100, selectSourceArr=doc_Linked::prepareLinkDocId, allowEmpty, docType=' . $form->rec->linkDocType . ', folderId=' . $form->rec->linkFolderId . "{$unsetStr})", 'caption=Документ, class=w100, input, mandatory, refreshForm');
+        } elseif ($act == 'linkFile') {
+            $form->FNC('linkFileId', 'fileman_FileType(bucket=Linked)', 'caption=Файл, input, mandatory');
+        } elseif ($act == 'newDoc') {
+            $form->FNC('linkDocType', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Вид, input, mandatory, removeAndRefreshForm=linkFolderId|linkThreadId');
+            
+            // Махаме документите, които не можем да създадем
+            $optArr = $form->fields['linkDocType']->type->prepareOptions();
+            foreach ($optArr as $optClsId => $title) {
+                $optClsInst = cls::get($optClsId);
+                
+                if (!$optClsInst->haveRightFor('add')) {
+                    
+                    unset($optArr[$optClsId]);
+                }
+            }
+            $form->fields['linkDocType']->type->options = $optArr;
+            
+            $form->input();
+            
+            if ($form->rec->linkDocType) {
+                $form->FNC('linkFolderId', 'key2(forceAjax, mvc=doc_Folders, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ')', 'caption=Папка, class=w100, input, mandatory, removeAndRefreshForm=linkThreadId');
+                $form->input();
+                
+                $dInst = cls::get($form->rec->linkDocType);
+                
+                // Ако документа може да се създаде в съществуваща нишка, показваме избор
+                if ($form->rec->linkFolderId && !$dInst->onlyFirstInThread) {
+                    
+                    $mandatory = '';
+                    
+                    if (!$dInst->canAddToFolder($form->rec->linkFolderId) || !$dInst->haveRightFor('add', (object) array('folderId' => $form->rec->linkFolderId))) {
+                        $mandatory = ' ,mandatory';
+                    }
+                    
+                    $form->FNC('linkThreadId', 'key2(forceAjax, mvc=doc_Threads, titleFld=firstContainerId, maxSuggestions=100, selectSourceArr=doc_Linked::prepareThreadsForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ', folderId=' . $form->rec->linkFolderId . ')', "caption=Нишка, class=w100, input, refreshForm{$mandatory}");
+                }
+            }
+        }
+    }
+    
+    public function onSubmitFormForAct($form, $act, $type, $originFId, $actType = NULL)
+    {
+        if (!isset($actType)) {
+            $actType = $act;
+        }
+        
+        $nRec = new stdClass();
+        $nRec->actType = $actType;
+        $nRec->outType = $type;
+        $nRec->outVal = $originFId;
+        $nRec->comment = $form->rec->comment;
+        $nRec->state = 'active';
+        
+        $retUrl = getRetUrl();
+        
+        if ($act == 'linkDoc') {
+            $nRec->inType = 'doc';
+            $nRec->inVal = $form->rec->linkContainerId;
+        } elseif ($act == 'linkFile') {
+            $nRec->inType = 'file';
+            $nRec->inVal = fileman_Files::fetchByFh($form->rec->linkFileId)->id;
+        } elseif ($act == 'newDoc') {
+            
+            // Ако се създава нов документ, записваме в кеша и след създаване добавяме запис
+            
+            $nRec->inType = 'doc';
+            
+            $url = array(cls::get($form->rec->linkDocType), 'add', 'folderId' => $form->rec->linkFolderId);
+            
+            if ($form->rec->linkThreadId) {
+                $url['threadId'] = $form->rec->linkThreadId;
+            }
+            
+            $url['linkedHashKey'] = 'LHK_' . substr(md5(serialize($nRec) . '|' . dt::now() . '|' . core_Users::getCurrent()), 0, 8);
+            
+            $url['ret_url'] = TRUE;
+            
+            core_Permanent::set($url['linkedHashKey'], $nRec, 120);
+            
+            return new Redirect($url);
+        }
+        
+        // Прави необходимите проверки и добавя запис
+        $fieldsArr = array();
+        
+        if (!$this->isUnique($nRec, $fieldsArr)) {
+            $form->setError($fieldsArr, "Вече съществува такава връзка");
+        } else {
+            if ($nRec->inVal && ($nRec->inType == $nRec->outType) && ($nRec->inVal == $nRec->outVal)) {
+                $errMsg = 'Избрали сте същия ';
+                if ($nRec->inType == 'doc') {
+                    $errMsg .= 'документ';
+                } else {
+                    $errMsg .= 'файл';
+                }
+                $form->setError('linkContainerId', $errMsg);
+            } else {
+                $this->save($nRec);
+                
+                try {
+                    $strType = 'документ';
+                    if ($nRec->outType == 'doc') {
+                        if ($nRec->inType == 'file') {
+                            $strType = 'файл';
+                        }
+                        $outDoc = doc_Containers::getDocument($nRec->outVal);
+                        $outDoc->instance->logRead("Добавена връзка към {$strType}", $outDoc->that);
+                    }
+                    
+                    $strType = 'документ';
+                    if ($nRec->inType == 'doc') {
+                        if ($nRec->outType == 'file') {
+                            $strType = 'файл';
+                        }
+                        $inDoc = doc_Containers::getDocument($nRec->inVal);
+                        $inDoc->instance->logRead("Добавена връзка от {$strType}", $inDoc->that);
+                    }
+                } catch (core_exception_Expect $e) { }
+                
+                return new Redirect($retUrl);
+            }
+        }
     }
     
     
@@ -554,7 +593,13 @@ class doc_Linked extends core_Manager
             
             $or = FALSE;
             foreach ($extArr as $ext) {
-                $query->where(array("#fileName LIKE '%.[#1#]'", $ext), $or);
+                
+                $ext = mb_strtolower($ext);
+                $ext = trim($ext);
+                
+                if (!$ext) continue;
+                
+                $query->where(array("#fileName LIKE LOWER('%.[#1#]')", $ext), $or);
                 $or = TRUE;
             }
         }
@@ -624,15 +669,14 @@ class doc_Linked extends core_Manager
      */
     public static function prepareLinkDocId($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
     {
+        setIfNot($limit, $params['maxSuggestions'], 100);
+        $sArr = array();
+        
         $cInst = cls::get($params['mvc']);
         
         $cQuery = $cInst->getQuery();
         
         doc_Threads::restrictAccess($cQuery);
-        
-        setIfNot($limit, $params['maxSuggestions'], 100);
-        
-        $cQuery->limit($limit);
         
         if(!$includeHiddens) {
             $cQuery->where("#state != 'rejected'");
@@ -653,6 +697,56 @@ class doc_Linked extends core_Manager
         
         if ($q) {
             plg_Search::applySearch($q, $cQuery, 'searchKeywords');
+        } else {
+            
+            // Показваме последните записи в началото
+            if ($limit != 1) {
+                if (isset($limit) && ($limit < self::$recentlyLimit)) {
+                    self::$recentlyLimit = $limit;
+                }
+                
+                $recentlyArr = self::getLastObjectsFromRecently('document');
+                
+                if (!empty($recentlyArr)) {
+                    foreach ($recentlyArr as $cId) {
+                        
+                        if (!$cId) continue;
+                        
+                        $cRec = doc_Containers::fetch($cId);
+                        
+                        if (!$cRec) continue;
+                        
+                        if ($cRec->state == 'rejected') continue;
+                        
+                        if ($params['docType']) {
+                            if ($cRec->docClass != $params['docType']) continue;
+                        }
+                        
+                        if ($params['folderId']) {
+                            if ($cRec->folderId != $params['folderId']) continue;
+                        }
+                        
+                        if ($params['unsetId']) {
+                            if ($cRec->id == $params['unsetId']) continue;
+                        }
+                        
+                        try {
+                            $dInst = cls::get($cRec->docClass);
+                            
+                            if (!$dInst->haveRightFor('single', $cRec->docId)) continue;
+                            
+                            $oRow = $dInst->getDocumentRow($cRec->docId);
+                            $title = $oRow->recTitle ? $oRow->recTitle : $oRow->title;
+                            $title = trim($title);
+                            $title = str::limitLen($title, self::$titleLen);
+                            $sArr[$cRec->id] = $title . ' (' . $dInst->getHandle($cRec->docId) . ')';
+                        } catch (core_exception_Expect $e) {
+                            reportException($e);
+                            continue;
+                        }
+                    }
+                }
+            }
         }
         
         if ($params['docType']) {
@@ -667,18 +761,21 @@ class doc_Linked extends core_Manager
             $cQuery->where(array("#id != '[#1#]'", $params['unsetId']));
         }
         
-        self::orderRecentlyDoc($cQuery, 'document', 'threadId');
+        $limit -= count($sArr);
+        $cQuery->limit($limit);
         
         $cQuery->orderBy('modifiedOn', 'DESC');
         
-        $sArr = array();
         while ($cRec = $cQuery->fetchAndCache()) {
+            
+            if ($sArr[$cRec->id]) continue;
+            
             try {
                 $dInst = cls::get($cRec->docClass);
                 $oRow = $dInst->getDocumentRow($cRec->docId);
                 $title = $oRow->recTitle ? $oRow->recTitle : $oRow->title;
                 $title = trim($title);
-                $title = str::limitLen($title, 35);
+                $title = str::limitLen($title, self::$titleLen);
                 $sArr[$cRec->id] = $title . ' (' . $dInst->getHandle($cRec->docId) . ')';
             } catch (core_exception_Expect $e) {
                 reportException($e);
@@ -703,6 +800,10 @@ class doc_Linked extends core_Manager
      */
     public static function prepareFoldersForDoc($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
     {
+        $maxTrays = 500;
+        setIfNot($limit, $params['maxSuggestions'], 100);
+        $res = array();
+        
         if ($params['docType']) {
             $docTypeInst = cls::get($params['docType']);
         }
@@ -754,6 +855,45 @@ class doc_Linked extends core_Manager
             foreach($qArr as $w) {
                 $query->where(array("#searchFieldXpr REGEXP '\ {1}[^a-z0-9\p{L}]?[#1#]'", $w));
             }
+        } else {
+            
+            if (isset($limit) && ($limit < self::$recentlyLimit)) {
+                self::$recentlyLimit = $limit;
+            }
+            
+            if ($limit != 1) {
+                // Подреждаме последно посетените папки в началото
+                $recentlyArr = self::getLastObjectsFromRecently();
+                if (!empty($recentlyArr)) {
+                    foreach ($recentlyArr as $fId) {
+                        
+                        if (!$fId) continue;
+                        
+                        if ($docTypeInst) {
+                            if ($docTypeInst->onlyFirstInThread && (!$docTypeInst->canAddToFolder($fId) || !$docTypeInst->haveRightFor('add', (object) array('folderId' => $fId)))) continue;
+                        }
+                        
+                        $fRec = doc_Folders::fetch($fId);
+                        
+                        if (!$fRec) continue;
+                        
+                        if (($fRec->state == 'rejected') || ($fRec->state == 'closed')) continue;
+                        
+                        if (!doc_Folders::haveRightFor('single', $fRec)) continue;
+                        
+                        $fTitle = doc_Folders::fetchField($fId, 'title');
+                        $fTitle = trim($fTitle);
+                        $fTitle = str::limitLen($fTitle, self::$titleLen);
+                        
+                        if ($fRec->coverClass) {
+                            $clsTitle = core_Classes::fetchField($fRec->coverClass, 'title');
+                            $fTitle .= ' (' . $clsTitle . ')';
+                        }
+                        
+                        $res[$fId] = $fTitle;
+                    }
+                }
+            }
         }
         
         // Ако е зададено да се показват папките в които има такива документи
@@ -795,19 +935,35 @@ class doc_Linked extends core_Manager
                 // Да не се показва нищо, ако няма документ
                 $query->where("1=2");
             }
+            
+            // Премахваме папките, които нямат такъв документ
+            foreach ($res as $fId => $fTitle) {
+                if (!isset($fArr[$fId])) {
+                    unset($res[$fId]);
+                }
+            }
         }
         
         $query->show($show);
         
-        $res = array();
-        
-        setIfNot($limit, $params['maxSuggestions'], 100);
-        
-        self::orderRecentlyDoc($query);
-        
+        $limit -= count($res);
         $query->orderBy("last", "DESC");
         
         while($rec = $query->fetch()) {
+            
+            // Това е защита от увисване
+            if ($maxTrays-- < 0 && (!empty($res))) {
+                
+                $group = new stdClass();
+                $group->title = tr('За още резултати, въведете част от името');
+                $group->attr = array('class' => 'team');
+                $group->group = TRUE;
+                $res['more'] = $group;
+                
+                break;
+            }
+            
+            if ($res[$rec->id]) continue;
             
             if ($docTypeInst) {
                 
@@ -817,7 +973,7 @@ class doc_Linked extends core_Manager
             if (!$limit--) break;
             
             $title = trim($rec->{$titleFld});
-            $title = str::limitLen($title, 35);
+            $title = str::limitLen($title, self::$titleLen);
             
             $res[$rec->id] = $title . ' (' . $rec->class . ')';
         }
@@ -839,6 +995,9 @@ class doc_Linked extends core_Manager
      */
     public static function prepareThreadsForDoc($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
     {
+        setIfNot($limit, $params['maxSuggestions'], 100);
+        $res = array();
+        
         if ($params['docType']) {
             $docTypeInst = cls::get($params['docType']);
         }
@@ -846,7 +1005,10 @@ class doc_Linked extends core_Manager
         $folderId = $params['folderId'];
         
         $query = doc_Threads::getQuery();
-        $query->where(array("#folderId = '[#1#]'", $folderId));
+        
+        if ($folderId) {
+            $query->where(array("#folderId = '[#1#]'", $folderId));
+        }
         
         doc_Threads::restrictAccess($query);
         
@@ -874,20 +1036,62 @@ class doc_Linked extends core_Manager
             $show .= ' ,searchKeywords';
             
             plg_Search::applySearch($q, $query, 'searchKeywords');
+        } else {
+            if ($limit != 1) {
+                if (isset($limit) && ($limit < self::$recentlyLimit)) {
+                    self::$recentlyLimit = $limit;
+                }
+                
+                $recentlyArr = self::getLastObjectsFromRecently('document', 'threadId');
+                if (!empty($recentlyArr)) {
+                    foreach ($recentlyArr as $tId) {
+                        if (!$tId) continue;
+                        
+                        if ($docTypeInst) {
+                            if ($docTypeInst->onlyFirstInThread || !$docTypeInst->canAddToThread($tId)) continue;
+                            
+                            if (!$docTypeInst->haveRightFor('add', (object) array('threadId' => $tId))) continue;
+                        }
+                        
+                        $title = $tId;
+                        
+                        $tRec = doc_Threads::fetch($tId);
+                        
+                        if (!$tRec) continue;
+                        
+                        if ($tRec->state == 'rejected') continue;
+                        
+                        if ($folderId && $tRec->folderId != $folderId) continue;
+                        
+                        if (!doc_Threads::haveRightFor('single', $tRec)) continue;
+                        
+                        if ($tRec->firstDocClass) {
+                            try {
+                                $dInst = cls::get($tRec->firstDocClass);
+                                
+                                $oRow = $dInst->getDocumentRow($tRec->firstDocId);
+                                $title = $oRow->recTitle ? $oRow->recTitle : $oRow->title;
+                                $title = trim($title);
+                                $title = str::limitLen($title, self::$titleLen);
+                            } catch (core_exception_Expect $e) {
+                                // Не се променя title
+                            }
+                        }
+                        
+                        $res[$tId] = $title;
+                    }
+                }
+            }
         }
-        
         
         $query->show($show);
         
-        $res = array();
-        
-        setIfNot($limit, $params['maxSuggestions'], 100);
-        
-        self::orderRecentlyDoc($query, 'document');
-        
+        $limit -= count($res);
         $query->orderBy("last", "DESC");
         
         while($rec = $query->fetch()) {
+            
+            if ($res[$rec->id]) continue;
             
             if ($docTypeInst) {
                 if ($docTypeInst->onlyFirstInThread || !$docTypeInst->canAddToThread($rec->id)) continue;
@@ -906,7 +1110,7 @@ class doc_Linked extends core_Manager
                     $oRow = $dInst->getDocumentRow($rec->firstDocId);
                     $title = $oRow->recTitle ? $oRow->recTitle : $oRow->title;
                     $title = trim($title);
-                    $title = str::limitLen($title, 50);
+                    $title = str::limitLen($title, self::$titleLen);
                 } catch (core_exception_Expect $e) {
                     // Не се променя title
                 }
@@ -920,46 +1124,38 @@ class doc_Linked extends core_Manager
     
     
     /**
-     * Подрежда заявките по последно посетени
-     *
-     * @param core_Query $query
+     * Връща последните записи от bgerp_Recently
+     * 
      * @param string $type
+     * @param string $show
+     * @param NULL|integer $userId
+     * 
+     * @return array
      */
-    protected static function orderRecentlyDoc($query, $type = 'folder', $fName = 'id')
+    protected static function getLastObjectsFromRecently($type = 'folder', $show = 'objectId', $userId = NULL)
     {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
         $rQuery = bgerp_Recently::getQuery();
         $rQuery->where(array("#type = '[#1#]'", $type));
-        $rQuery->where(array("#userId = '[#1#]'", core_Users::getCurrent()));
+        $rQuery->where(array("#userId = '[#1#]'", $userId));
         $rQuery->where("#objectId IS NOT NULL");
         $rQuery->where("#objectId != ''");
         $rQuery->where("#objectId != 0");
         $rQuery->orderBy('last', 'DESC');
         $rQuery->limit(self::$recentlyLimit);
         
-        $show = 'objectId';
-        if ($type == 'document') {
-            $show = 'threadId';
-        }
-        
         $rQuery->show($show);
         
-        $w = '';
-        $i = 1;
+        $resArr = array();
         while($rRec = $rQuery->fetch()) {
-            
             if (!$rRec->{$show}) continue;
-            
-            $w .= "WHEN '{$rRec->{$show}}' THEN {$i} ";
-            
-            $i++;
+            $resArr[$rRec->{$show}] = $rRec->{$show};
         }
         
-        $i++;
-        
-        if ($w) {
-            $query->XPR('orderByRecently', 'int', "(CASE #{$fName} {$w} ELSE {$i} END)");
-            $query->orderBy('#orderByRecently=ASC');
-        }
+        return $resArr;
     }
     
     

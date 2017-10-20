@@ -78,6 +78,8 @@ class doc_LinkedIntf
      * @param core_Form $form
      * @param integer $cId
      * @param string $activity
+     * 
+     * @return mixed
      */
     function doActivityForDocument($form, $cId, $activity)
     {
@@ -92,6 +94,8 @@ class doc_LinkedIntf
      * @param core_Form $form
      * @param integer $cId
      * @param string $activity
+     * 
+     * @return mixed
      */
     function doActivityForFile($form, $cId, $activity)
     {

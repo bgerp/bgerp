@@ -581,7 +581,8 @@ class colab_FolderToPartners extends core_Manager
     	    $form->toolbar->addBtn('Отказ', $retUrl,  'id=cancel, ef_icon = img/16/close-red.png', 'title=Прекратяване на действията');
     	}
     	
-    	if ($cu = core_Users::getCurrent('id', FALSE) && core_Users::haveRole('powerUser', $cu)) {
+    	$cu = core_Users::getCurrent('id', FALSE);
+    	if ($cu && core_Users::haveRole('powerUser', $cu)) {
     		$tpl = $this->renderWrapping($form->renderHtml());
     	} else {
     		$tpl = $form->renderHtml();

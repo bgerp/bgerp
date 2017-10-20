@@ -79,6 +79,7 @@ class doc_Files extends core_Manager
         $this->setDbIndex('folderId');
         $this->setDbIndex('dataId, folderId');
         $this->setDbIndex('show');
+        $this->setDbIndex('show, fileHnd');
     }
     
     

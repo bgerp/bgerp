@@ -153,20 +153,20 @@ class deals_plg_DpInvoice extends core_Plugin
     	
     	// Ако е проформа
     	if($mvc instanceof sales_Proformas){
-    		$accruedProformaRec = sales_Proformas::fetch("#threadId = {$rec->threadId} AND #state = 'active' AND #dpOperation = 'accrued'");
+    		//$accruedProformaRec = sales_Proformas::fetch("#threadId = {$rec->threadId} AND #state = 'active' AND #dpOperation = 'accrued'");
     		$hasDeductedProforma = sales_Proformas::fetchField("#threadId = {$rec->threadId} AND #state = 'active' AND #dpOperation = 'deducted'");
     		
     		// Ако има проформа за аванс и няма таква за приспадане, тази приспада
-    		if(!empty($accruedProformaRec) && empty($hasDeductedProforma)){
+    		if(empty($hasDeductedProforma)){
     			
-    			$dpAmount = (($accruedProformaRec->dealValue - $accruedProformaRec->discountAmount)+ $accruedProformaRec->vatAmount);
-    			$dpAmount = core_Math::roundNumber($dpAmount);
+    			//$dpAmount = (($accruedProformaRec->dealValue - $accruedProformaRec->discountAmount)+ $accruedProformaRec->vatAmount);
+    			$dpAmount = core_Math::roundNumber($invoicedDp);
     			$dpOperation = 'deducted';
     			$flag = FALSE;
+    		} else {
+    			// Ако има проформа за начисляване на аванс и за приспадане, не задаваме дефолти
+    			if($hasDeductedProforma) return;
     		}
-    		
-    		// Ако има проформа за начисляване на аванс и за приспадане, не задаваме дефолти
-    		if($accruedProformaRec && $hasDeductedProforma) return;
     	}
     	
     	if($flag === TRUE){
