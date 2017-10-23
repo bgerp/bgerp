@@ -145,7 +145,7 @@ abstract class bank_Document extends deals_PaymentDocument
 		$mvc->FLD('operationSysId', 'varchar', 'caption=Операция,mandatory');
 		$mvc->FLD('amountDeal', 'double(decimals=2,max=2000000000,min=0)', 'caption=Платени,mandatory,silent');
 		$mvc->FLD('dealCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'input=hidden');
-		$mvc->FLD('termDate', 'date(format=d.m.Y)', 'caption=Очаквано на');
+		$mvc->FLD('termDate', 'date(format=d.m.Y)', 'caption=Очаквано на,silent');
 		
 		$mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,input=hidden');
 		$mvc->FLD('rate', 'double(decimals=5)', 'caption=Курс,input=none');
