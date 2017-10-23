@@ -559,7 +559,7 @@ class store_InventoryNotes extends core_Master
     	
     	// Изчисляваме баланс за подадения период за склада
     	$storeItemId = acc_Items::fetchItem('store_Stores', $rec->storeId)->id;
-    	$Balance = new acc_ActiveShortBalance(array('from' => $from, 'to' => $to, 'accs' => '321', 'cacheBalance' => FALSE, 'item1' => $storeItemId));
+    	$Balance = new acc_ActiveShortBalance(array('from' => $from, 'to' => $to, 'accs' => '321', 'cacheBalance' => FALSE, 'item1' => $storeItemId, 'keepUnique' => TRUE));
     	$bRecs = $Balance->getBalance('321');
     	
     	$productPositionId = acc_Lists::getPosition('321', 'cat_ProductAccRegIntf');

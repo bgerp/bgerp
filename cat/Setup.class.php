@@ -4,7 +4,7 @@
 /**
  * Да се показвали рецептата в описанието на артикула
  */
-defIfNot('CAT_SHOW_BOM_IN_PRODUCT', 'yes');
+defIfNot('CAT_SHOW_BOM_IN_PRODUCT', 'auto');
 
 
 /**
@@ -190,7 +190,7 @@ class cat_Setup extends core_ProtoSetup
             'CAT_DEFAULT_PRICELIST'                 => array("key(mvc=price_Lists,select=title,allowEmpty)", 'caption=Ценова политика по подразбиране->Избор,mandatory'),
             'CAT_AUTO_LIST_PRODUCT_COUNT'           => array("int(min=1)", 'caption=Списъци от последно продавани артикули->Брой'),
             'CAT_AUTO_LIST_ALLOWED_GROUPS'          => array("keylist(mvc=cat_Groups,select=name)", 'caption=Списъци от последно продавани артикули->Групи'),
-            'CAT_SHOW_BOM_IN_PRODUCT'               => array("enum(yes=Да,no=Не)", 'caption=Показване на рецептата в описанието на артикула->Показване'),
+            'CAT_SHOW_BOM_IN_PRODUCT'               => array("enum(auto=Автоматично,yes=Да,no=Не)", 'caption=Показване на рецептата в описанието на артикула->Показване'),
     );
 
     

@@ -109,7 +109,7 @@ class acc_ActiveShortBalance {
                     $item2 = $rec->{"{$type}Item2"};
                     $item3 = $rec->{"{$type}Item3"};
                     
-                    if(is_array($this->params)) {
+                    if(is_array($this->params) && $this->params['keepUnique'] !== TRUE) {
                         if(empty($this->params['item1'])) $item1 = '';
                         if(empty($this->params['item2'])) $item2 = '';
                         if(empty($this->params['item3'])) $item3 = '';
@@ -203,7 +203,7 @@ class acc_ActiveShortBalance {
             // Извличаме неговите записи
             $bQuery = acc_BalanceDetails::getQuery();
             $bQuery->show('accountId,ent1Id,ent2Id,ent3Id,blAmount,blQuantity');
-            acc_BalanceDetails::filterQuery($bQuery, $balanceRec->id, $accs, $this->params['itemsAll'], $this->params['item1'], $this->params['item2'], $this->params['item3'], FALSE);
+            acc_BalanceDetails::filterQuery($bQuery, $balanceRec->id, $accs, $this->params['itemsAll'], $this->params['item1'], $this->params['item2'], $this->params['item3']);
             $bQuery->where('#blQuantity != 0 OR #blAmount != 0');
            
             while($bRec = $bQuery->fetch()){
@@ -221,19 +221,22 @@ class acc_ActiveShortBalance {
                 // Ако има подадени сметки и сметката на записа не е в масива пропускаме
                 if(count($accArr) && !in_array($bRec->accountId, $accArr)) continue;
                 
-                if(is_array($this->params)) {
+                if(is_array($this->params) && $this->params['keepUnique'] !== TRUE) {
                     if(empty($this->params['item1'])) $bRec->ent1Id = '';
                     if(empty($this->params['item2'])) $bRec->ent2Id = '';
                     if(empty($this->params['item3'])) $bRec->ent3Id = '';
                 }
 
-
-
                 // Натруваме в $newBalance
                 $index = $bRec->accountId . "|" . $bRec->ent1Id . "|" . $bRec->ent2Id . "|" . $bRec->ent3Id;
-                
                 $bRec = (array)$bRec;
-                $newBalance[$index] = $bRec;
+                
+                if(!array_key_exists($index, $newBalance)){
+                	$newBalance[$index] = $bRec;
+                } else {
+                	$newBalance[$index]['blAmount'] += $bRec['blAmount'];
+                	$newBalance[$index]['blQuantity'] += $bRec['blQuantity'];
+                }
             }
           
             $newFrom = dt::addDays(1, $balanceRec->toDate);
