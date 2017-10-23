@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   deals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -27,6 +27,26 @@ abstract class deals_ServiceMaster extends core_Master
 	 * Дали в листовия изглед да се показва бутона за добавяне
 	 */
 	public $listAddBtn = FALSE;
+	
+	
+	/**
+	 * Полета свързани с цени
+	 */
+	public $priceFields = 'amountDelivered';
+	
+	
+	/**
+	 * Поле за филтриране по дата
+	 */
+	public $filterDateField = 'createdOn, valior,deliveryTime,modifiedOn';
+	
+	
+	/**
+	 * Полета, които при клониране да не са попълнени
+	 *
+	 * @see plg_Clone
+	 */
+	public $fieldsNotToClone = 'valior,amountDelivered,amountDiscount,amountDeliveredVat,deliveryTime';
 	
 	
 	/**
@@ -97,7 +117,7 @@ abstract class deals_ServiceMaster extends core_Master
 	/**
 	 * След създаване на запис в модела
 	 */
-	public static function on_AfterCreate($mvc, $rec)
+	protected static function on_AfterCreate($mvc, $rec)
 	{
 		// Ако документа е клониран пропуска се
 		if($rec->_isClone === TRUE) return;
@@ -169,10 +189,21 @@ abstract class deals_ServiceMaster extends core_Master
 	}
     
     
+	/**
+	 * Връща разбираемо за човека заглавие, отговарящо на записа
+	 */
+	public static function getRecTitle($rec, $escaped = TRUE)
+	{
+		$self = cls::get(get_called_class());
+    
+    	return $self->singleTitle . " №$rec->id";
+	}
+	
+	
     /**
      * След рендиране на сингъла
      */
-    public static function on_AfterRenderSingle($mvc, $tpl, $data)
+    protected static function on_AfterRenderSingle($mvc, $tpl, $data)
     {
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');
@@ -198,7 +229,7 @@ abstract class deals_ServiceMaster extends core_Master
 	/**
 	 * Преди показване на форма за добавяне/промяна
 	 */
-	public static function on_AfterPrepareEditForm($mvc, &$data)
+	protected static function on_AfterPrepareEditForm($mvc, &$data)
 	{
 		// Задаване на стойности на полетата на формата по подразбиране
 		$form = &$data->form;
@@ -234,7 +265,7 @@ abstract class deals_ServiceMaster extends core_Master
 	/**
      * След преобразуване на записа в четим за хора вид
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if(isset($fields['-list'])){
     		if($rec->amountDeliveredVat || $rec->amountDelivered){
@@ -401,7 +432,7 @@ abstract class deals_ServiceMaster extends core_Master
      * @param boolean $forward
      * @return string - тялото на имейла
      */
-    public function getDefaultEmailBody($id, $forward = FALSE)
+     public function getDefaultEmailBody($id, $forward = FALSE)
      {
      	$handle = $this->getHandle($id);
      	$title = tr(mb_strtolower($this->singleTitle));
