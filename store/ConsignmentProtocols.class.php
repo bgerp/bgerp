@@ -366,7 +366,9 @@ class store_ConsignmentProtocols extends core_Master
      */
     public static function getRecTitle($rec, $escaped = TRUE)
     {
-    	return tr("|Протокол за отговорно пазене|* №") . $rec->id;
+    	$self = cls::get(get_called_class());
+    	 
+    	return tr("|{$self->singleTitle}|* №") . $rec->id;
     }
     
     

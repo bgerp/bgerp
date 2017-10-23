@@ -195,8 +195,8 @@ abstract class deals_ServiceMaster extends core_Master
 	public static function getRecTitle($rec, $escaped = TRUE)
 	{
 		$self = cls::get(get_called_class());
-    
-    	return $self->singleTitle . " №$rec->id";
+    	 
+    	return tr("|{$self->singleTitle}|* №") . $rec->id;
 	}
 	
 	

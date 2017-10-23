@@ -261,10 +261,9 @@ class accda_Da extends core_Master
      */
     public static function getRecTitle($rec, $escaped = TRUE)
     {
-    	$me = cls::get(get_called_class());
-    	$title = $me->singleTitle . " №{$rec->id}";
-    	
-    	return $title;
+    	$self = cls::get(get_called_class());
+    
+    	return $self->singleTitle . " №$rec->id";
     }
     
     

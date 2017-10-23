@@ -355,8 +355,8 @@ abstract class cash_Document extends deals_PaymentDocument
     public static function getRecTitle($rec, $escaped = TRUE)
     {
     	$self = cls::get(get_called_class());
-    
-    	return $self->singleTitle . " №$rec->id";
+    	 
+    	return tr("|{$self->singleTitle}|* №") . $rec->id;
     }
 
 

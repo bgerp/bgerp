@@ -375,7 +375,9 @@ class sales_Proformas extends deals_InvoiceMaster
      */
     public static function getRecTitle($rec, $escaped = TRUE)
     {
-    	return tr("|Проформа фактура|* №") . $rec->id;
+    	$self = cls::get(get_called_class());
+    	 
+    	return tr("|{$self->singleTitle}|* №") . $rec->id;
     }
     
     
