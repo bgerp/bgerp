@@ -487,7 +487,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     			}
     		}
     		
-    		if($rec->state == 'active' || $rec->state == 'draft'){
+    		if($rec->state == 'active' || $rec->state == 'draft' || $rec->state == 'pending'){
     			
     			// Ако има фактура към протокола, правим линк към нея, иначе бутон за създаване на нова
     			if($iRec = sales_Invoices::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")){

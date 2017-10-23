@@ -84,8 +84,9 @@ class doc_LinkedTemplates extends core_Master
         $this->FLD('title', 'varchar', 'caption=Заглавие, class=w100, mandatory');
         $this->FLD('docType', 'keylist(mvc=core_Classes,select=title,allowEmpty)', 'caption=Вид, placeholder=Вид на изходящия документ, class=w100');
         $this->FLD('fileType', 'varchar(128)', 'caption=Тип, placeholder=Тип на файла, class=w50');
-        $this->FLD('users', 'users(rolesForAll=admin, rolesForTeams=admin, allowEmpty)', 'caption=Потребители, allowEmpty');
+        $this->FLD('users', 'users(rolesForAll=admin, rolesForTeams=admin)', 'caption=Потребители, allowEmpty');
         $this->FLD('roles', 'keylist(mvc=core_Roles, select=role)', 'caption=Роли');
+        $this->FLD('submit', 'enum(waiting=Изчакване, auto=Автоматично)', 'caption=Продължаване');
         
         $actTypeArr = doc_Linked::$actArr;
         $enumInst = cls::get('type_Enum');
@@ -93,6 +94,7 @@ class doc_LinkedTemplates extends core_Master
         $this->FLD('formAct', $enumInst, 'caption=Настройки на формата->Действие, class=w50, mandatory, removeAndRefreshForm=formFolder');
         $this->FLD('formDocType', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Настройки на формата->Вид документ, class=w100, removeAndRefreshForm=formFolder');
         $this->FLD('formFolder', 'key2(forceAjax, mvc=doc_Folders, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, showWithDocs)', 'caption=Настройки на формата->Папка, class=w100');
+        $this->FLD('formComment', 'varchar', 'caption=Настройки на формата->Пояснения');
     }
     
     
@@ -106,6 +108,10 @@ class doc_LinkedTemplates extends core_Master
     {
         $suggestions = core_Classes::getOptionsByInterface('doc_DocumentIntf', 'title');
         $data->form->setSuggestions('docType', $suggestions);
+        
+        if (!$data->form->rec->id) {
+            $data->form->setDefault('users', 'all_users');
+        }
     }
     
     
@@ -119,6 +125,36 @@ class doc_LinkedTemplates extends core_Master
     {
         if ($form->rec->formDocType && $form->rec->formAct != 'newDoc') {
             $form->fields['formFolder']->type->params['docType'] = $form->rec->formDocType;
+        }
+        
+        if ($form->rec->formAct && $form->rec->formAct != 'newDoc') {
+            $form->setReadOnly('submit', 'waiting');
+        }
+        
+        if ($form->isSubmitted()) {
+            if ($form->rec->formAct == 'newDoc') {
+                if ($form->isSubmitted()) {
+                    if ($form->rec->formFolder && !$form->rec->formDocType) {
+                        $form->setError('formDocType', 'Трябва да има избран вид документ');
+                    }
+                }
+            }
+            
+            if ($form->rec->submit == 'auto') {
+                if (!$form->rec->formFolder) {
+                    $form->setError('formFolder', 'Трябва да има избрана папка');
+                }
+            }
+        }
+        
+        if ($form->rec->submit == 'auto') {
+            if ($form->isSubmitted()) {
+                $docInst = cls::get($form->rec->formDocType);
+                
+                if (!$docInst->canAddToFolder($form->rec->formFolder) || !$docInst->haveRightFor('add', (object) array('folderId' => $form->rec->formFolder))) {
+                    $form->setError('submit', 'Не може да има автоматично действие');
+                }
+            }
         }
     }
     
@@ -364,6 +400,10 @@ class doc_LinkedTemplates extends core_Master
             $form->setDefault('linkFolderId', $rec->formFolder);
         }
         
+        if ($rec->formComment) {
+            $form->setDefault('comment', $rec->formComment);
+        }
+        
         if ($rec->formAct) {
             doc_Linked::prepareFormForAct($form, $rec->formAct, $type);
         }
@@ -385,6 +425,8 @@ class doc_LinkedTemplates extends core_Master
         $rec = $this->getRecForActivity($activity);
         
         if (!$rec) return ;
+        
+        if (!$form->isSubmitted() && $rec->submit != 'auto') return ;
         
         $linkedInst = cls::get('doc_Linked');
         

@@ -306,6 +306,7 @@ class store_ConsignmentProtocols extends core_Master
     				'accs' => '323',
     				'item1' => $contragentItem->id,
     				'strict' => TRUE,
+    				'keepUnique' => TRUE,
     				'cacheBalance' => FALSE));
     		 
     		// Изчлисляваме в момента, какъв би бил крания баланс по сметката в края на деня
@@ -365,7 +366,9 @@ class store_ConsignmentProtocols extends core_Master
      */
     public static function getRecTitle($rec, $escaped = TRUE)
     {
-    	return tr("|Протокол за отговорно пазене|* №") . $rec->id;
+    	$self = cls::get(get_called_class());
+    	 
+    	return tr("|{$self->singleTitle}|* №") . $rec->id;
     }
     
     

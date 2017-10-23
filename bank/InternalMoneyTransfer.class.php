@@ -450,9 +450,9 @@ class bank_InternalMoneyTransfer extends core_Master
      */
     public static function getRecTitle($rec, $escaped = TRUE)
     {
-        $self = cls::get(__CLASS__);
-        
-        return $self->singleTitle . " №$rec->id";
+        $self = cls::get(get_called_class());
+    	 
+    	return tr("|{$self->singleTitle}|* №") . $rec->id;
     }
     
     
