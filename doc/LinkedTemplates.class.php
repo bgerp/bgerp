@@ -84,7 +84,7 @@ class doc_LinkedTemplates extends core_Master
         $this->FLD('title', 'varchar', 'caption=Заглавие, class=w100, mandatory');
         $this->FLD('docType', 'keylist(mvc=core_Classes,select=title,allowEmpty)', 'caption=Вид, placeholder=Вид на изходящия документ, class=w100');
         $this->FLD('fileType', 'varchar(128)', 'caption=Тип, placeholder=Тип на файла, class=w50');
-        $this->FLD('users', 'users(rolesForAll=admin, rolesForTeams=admin, allowEmpty)', 'caption=Потребители, allowEmpty');
+        $this->FLD('users', 'users(rolesForAll=admin, rolesForTeams=admin)', 'caption=Потребители, allowEmpty');
         $this->FLD('roles', 'keylist(mvc=core_Roles, select=role)', 'caption=Роли');
         
         $actTypeArr = doc_Linked::$actArr;
@@ -106,6 +106,10 @@ class doc_LinkedTemplates extends core_Master
     {
         $suggestions = core_Classes::getOptionsByInterface('doc_DocumentIntf', 'title');
         $data->form->setSuggestions('docType', $suggestions);
+        
+        if (!$data->form->rec->id) {
+            $data->form->setDefault('users', 'all_users');
+        }
     }
     
     
