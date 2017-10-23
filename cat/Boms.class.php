@@ -186,13 +186,11 @@ class cat_Boms extends core_Master
     public static function showInProduct($id)
     {
     	$rec = self::fetchRec($id);
-    	if(!empty($rec->showInProduct)) {
-    		if($rec->showInProduct == 'auto') return (cat_Products::fetchField($rec->productId, 'fixedAsset') == 'yes'); 
-    		
-    		return ($rec->showInProduct == 'yes') ? TRUE : FALSE;
-    	}
+    	$showInProduct = !empty($rec->showInProduct) ? $rec->showInProduct : cat_Setup::get('SHOW_BOM_IN_PRODUCT');
     	
-    	return cat_Setup::get('SHOW_BOM_IN_PRODUCT');
+    	if($showInProduct == 'auto') return (cat_Products::fetchField($rec->productId, 'fixedAsset') == 'yes'); 
+    		
+    	return ($showInProduct == 'yes') ? TRUE : FALSE;
     }
     
     
