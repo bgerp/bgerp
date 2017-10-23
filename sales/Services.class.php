@@ -306,7 +306,7 @@ class sales_Services extends deals_ServiceMaster
     					$data->toolbar->addBtn('Проформа', array('sales_Proformas', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на проформа фактура към предавателния протокол,ef_icon=img/16/proforma.png');
     				}
     			}
-    		} elseif($rec->state == 'active'){
+    		} elseif($rec->state == 'active' || $rec->state == 'pending'){
     			
     			// Ако има фактура към протокола, правим линк към нея, иначе бутон за създаване на нова
     			if($iRec = sales_Invoices::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")){

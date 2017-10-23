@@ -1211,7 +1211,7 @@ abstract class deals_InvoiceMaster extends core_Master
     			if($Source->isInstanceOf('deals_InvoiceMaster')){
     				$boolRes = $sourceState != 'active';
     			} else {
-    				$boolRes = $sourceState != 'active' && $sourceState != 'draft';
+    				$boolRes = $sourceState != 'active' && $sourceState != 'draft' && $sourceState != 'pending';
     			}
     			
     			if($boolRes){
