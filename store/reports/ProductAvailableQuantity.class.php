@@ -71,7 +71,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('additional', 'table(columns=code|minQuantity|maxQuantity,captions=Код на атикула|Мин к-во|Макс к-во,widths=8em|8em|8em|8em,render=eprod_proto_Product::renderAdditional,                                validate=eprod_proto_Product::validateAdditional)', "caption=Артикули||Additional,autohide,advanced,after=title");
+        $fieldset->FLD('additional', 'table(columns=code|minQuantity|maxQuantity,captions=Код на атикула|Мин к-во|Макс к-во,widths=8em|8em|8em|8em,render=eprod_proto_Product::renderAdditional,                                validate=eprod_proto_Product::validateAdditional)', "caption=Артикули||Additional,autohide,advanced,after=storeId,single=none");
         $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,after=title');
     }
 
@@ -127,11 +127,13 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
             foreach ($details->code as $key => $v) {
 
-              // bp($details->minQuantity[$key],$details->maxQuantity[$key] );
+                // bp($details->minQuantity[$key],$details->maxQuantity[$key] );
+                if ($details->minQuantity[$key] && $details->maxQuantity[$key]) {
 
-                if ($details->minQuantity[$key] > $details->maxQuantity[$key] ) {
-                    $form->setError('additional', 'Максималното количество не може да бъде по-малко от минималното');
+                    if ($details->minQuantity[$key] > $details->maxQuantity[$key]) {
+                        $form->setError('additional', 'Максималното количество не може да бъде по-малко от минималното');
 
+                    }
                 }
 
             }
@@ -190,8 +192,10 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                     $quantityMark = 'ok';
                 }
 
-                if(!isset($products->maxQuantity[$key])){
-                    if($quantity > (int)$products->minQuantity[$key]){
+                if(!($products->maxQuantity[$key])){
+
+                   // bp($quantity,$products->minQuantity[$key],$key);
+                    if($quantity > $products->minQuantity[$key]){
                         $quantityMark = 'ok';
                     }
                 }
@@ -222,6 +226,8 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
         }
 
+       // bp($recs);
+
         return $recs;
     }
 
@@ -240,32 +246,20 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
         if($export === FALSE){
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
-            $fld->FLD('storeId', 'varchar', 'caption=Склад,tdClass=centered');
+          //  $fld->FLD('storeId', 'varchar', 'caption=Склад,tdClass=centered');
             $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
             $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Наличност,smartCenter');
-        //    if(isset($rec->minQuantity)) {
-                $fld->FLD('minQuantity', 'double', 'caption=Минимално,smartCenter');
-        //    }
-        //    if(isset($rec->maxQuantity)) {
-                $fld->FLD('maxQuantity', 'double', 'caption=Максимално,smartCenter');
-        //    }
-         //   if((isset($rec->minQuantity)) || (isset($rec->maxQuantity))) {
-                $fld->FLD('conditionQuantity', 'text', 'caption=Състояние,tdClass=centered');
-         //   }
+            $fld->FLD('minQuantity', 'double', 'caption=Минимално,smartCenter');
+            $fld->FLD('maxQuantity', 'double', 'caption=Максимално,smartCenter');
+            $fld->FLD('conditionQuantity', 'text', 'caption=Състояние,tdClass=centered');
         } else {
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
-            $fld->FLD('storeId', 'varchar', 'caption=Склад,tdClass=centered');
+          //  $fld->FLD('storeId', 'varchar', 'caption=Склад,tdClass=centered');
             $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
             $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Наличност,smartCenter');
-            //    if(isset($rec->minQuantity)) {
             $fld->FLD('minQuantity', 'double', 'caption=Минимално,smartCenter');
-            //    }
-            //    if(isset($rec->maxQuantity)) {
             $fld->FLD('maxQuantity', 'double', 'caption=Максимално,smartCenter');
-            //    }
-            //   if((isset($rec->minQuantity)) || (isset($rec->maxQuantity))) {
             $fld->FLD('conditionQuantity', 'text', 'caption=Състояние,tdClass=centered');
-            //   }
         }
 
         return $fld;
@@ -281,6 +275,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      */
     protected function detailRecToVerbal($rec, &$dRec)
     {
+        $Int = cls::get('type_Int');
 
         if($dRec->quantity<$dRec->minQuantity){
             $conditionColor = 'red';
@@ -296,23 +291,23 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         }
 
         if(isset($dRec->quantity)) {
-            $row->quantity = $dRec->quantity;
+            $row->quantity =  core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity);
         }
 
         if(isset($dRec->storeId)) {
             $row->storeId = store_Stores::getShortHyperlink($dRec->storeId);
-        }
+        }else{$row->storeId ='Общо';}
 
         if(isset($dRec->measure)) {
             $row->measure = cat_UoM::fetchField($dRec->measure,'shortName');
         }
 
         if(isset($dRec->minQuantity)) {
-            $row->minQuantity = $dRec->minQuantity;
+            $row->minQuantity = $Int->toVerbal($dRec->minQuantity);
         }
 
         if(isset($dRec->maxQuantity)) {
-            $row->maxQuantity = $dRec->maxQuantity;
+            $row->maxQuantity =$Int->toVerbal($dRec->maxQuantity);
         }
 
         if((isset($dRec->conditionQuantity) && ((isset($dRec->minQuantity)) || (isset($dRec->maxQuantity))))){
