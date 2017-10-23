@@ -86,6 +86,7 @@ class doc_LinkedTemplates extends core_Master
         $this->FLD('fileType', 'varchar(128)', 'caption=Тип, placeholder=Тип на файла, class=w50');
         $this->FLD('users', 'users(rolesForAll=admin, rolesForTeams=admin)', 'caption=Потребители, allowEmpty');
         $this->FLD('roles', 'keylist(mvc=core_Roles, select=role)', 'caption=Роли');
+        $this->FLD('submit', 'enum(waiting=Изчакване, auto=Автоматично)', 'caption=Продължаване');
         
         $actTypeArr = doc_Linked::$actArr;
         $enumInst = cls::get('type_Enum');
@@ -124,6 +125,36 @@ class doc_LinkedTemplates extends core_Master
     {
         if ($form->rec->formDocType && $form->rec->formAct != 'newDoc') {
             $form->fields['formFolder']->type->params['docType'] = $form->rec->formDocType;
+        }
+        
+        if ($form->rec->formAct && $form->rec->formAct != 'newDoc') {
+            $form->setReadOnly('submit', 'waiting');
+        }
+        
+        if ($form->isSubmitted()) {
+            if ($form->rec->formAct == 'newDoc') {
+                if ($form->isSubmitted()) {
+                    if ($form->rec->formFolder && !$form->rec->formDocType) {
+                        $form->setError('formDocType', 'Трябва да има избран вид документ');
+                    }
+                }
+            }
+            
+            if ($form->rec->submit == 'auto') {
+                if (!$form->rec->formFolder) {
+                    $form->setError('formFolder', 'Трябва да има избрана папка');
+                }
+            }
+        }
+        
+        if ($form->rec->submit == 'auto') {
+            if ($form->isSubmitted()) {
+                $docInst = cls::get($form->rec->formDocType);
+                
+                if (!$docInst->canAddToFolder($form->rec->formFolder) || !$docInst->haveRightFor('add', (object) array('folderId' => $form->rec->formFolder))) {
+                    $form->setError('submit', 'Не може да има автоматично действие');
+                }
+            }
         }
     }
     
@@ -394,6 +425,8 @@ class doc_LinkedTemplates extends core_Master
         $rec = $this->getRecForActivity($activity);
         
         if (!$rec) return ;
+        
+        if (!$form->isSubmitted() && $rec->submit != 'auto') return ;
         
         $linkedInst = cls::get('doc_Linked');
         
