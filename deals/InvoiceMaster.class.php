@@ -644,6 +644,11 @@ abstract class deals_InvoiceMaster extends core_Master
     	if($origin->className  == $mvc->className){
     		$mvc->populateNoteFromInvoice($form, $origin);
     		$data->flag = TRUE;
+    	} elseif($origin->className == 'store_ShipmentOrders'){
+    		$originValior = $origin->fetchField('valior');
+    		if($originValior < $form->rec->date){
+    			$form->setDefault('vatDate', $originValior);
+    		}
     	}
     	 
     	if(empty($data->flag)){
