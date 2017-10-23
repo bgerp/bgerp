@@ -136,8 +136,8 @@ abstract class deals_ManifactureMaster extends core_Master
 	public static function getRecTitle($rec, $escaped = TRUE)
 	{
 		$self = cls::get(get_called_class());
-		
-		return tr("|{$self->singleTitle}|* №") . $rec->id;
+    	 
+    	return tr("|{$self->singleTitle}|* №") . $rec->id;
 	}
 	
 	

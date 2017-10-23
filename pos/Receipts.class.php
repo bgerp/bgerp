@@ -1550,9 +1550,9 @@ class pos_Receipts extends core_Master {
      */
     public static function getRecTitle($rec, $escaped = TRUE)
     {
-    	$me = cls::get(get_called_class());
-    	
-    	return $me->singleTitle . " №{$rec->id}";
+    	$self = cls::get(get_called_class());
+    	 
+    	return tr("|{$self->singleTitle}|* №") . $rec->id;
     }
     
     

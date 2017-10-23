@@ -169,7 +169,7 @@ abstract class cash_Document extends deals_PaymentDocument
     	$mvc->FLD('amountDeal', 'double(decimals=2,max=2000000000,min=0)', 'caption=Платени,mandatory,silent');
     	$mvc->FLD('dealCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'input=hidden');
     	$mvc->FLD('reason', 'richtext(rows=2, bucket=Notes)', 'caption=Основание');
-    	$mvc->FLD('termDate', 'date(format=d.m.Y)', 'caption=Очаквано на');
+    	$mvc->FLD('termDate', 'date(format=d.m.Y)', 'caption=Очаквано на,silent');
     	$mvc->FLD('peroCase', 'key(mvc=cash_Cases, select=name,allowEmpty)', 'caption=Каса,removeAndRefreshForm=currencyId|amount,silent');
     	$mvc->FLD('contragentName', 'varchar(255)', 'caption=Контрагент->Вносител,mandatory');
     	$mvc->FLD('contragentId', 'int', 'input=hidden,notNull');
@@ -355,8 +355,8 @@ abstract class cash_Document extends deals_PaymentDocument
     public static function getRecTitle($rec, $escaped = TRUE)
     {
     	$self = cls::get(get_called_class());
-    
-    	return $self->singleTitle . " №$rec->id";
+    	 
+    	return tr("|{$self->singleTitle}|* №") . $rec->id;
     }
 
 

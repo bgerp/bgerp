@@ -207,8 +207,6 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
 
             };
 
-            $contragentId[] = array($id=> $firstDocument->fetch()->contragentId);
-
             $dealerId = $firstDocument->fetch()->dealerId;
 
             if(!$dealerId){
@@ -224,15 +222,15 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
                 $marker = "-";
             }else{$marker = "+";}
 
-            $markDay = date_create( (date('Y-m-d', strtotime($inDocs->termDate. "$marker $tolerance days") )));
+            if(!$inDocs->termDate){
+                $termDate =  date('Y-m-d', strtotime($firstDocument->fetch()->createdOn. ' + 3 days'));
+            }else{$termDate = $inDocs->termDate;}
+
+            $markDay =date_create(date('Y-m-d', strtotime($termDate. "$marker $tolerance days")));
 
             if (($today) >($markDay)){
 
                 $condition = 'просрочен';
-
-                if(!$inDocs->termDate){
-                    $condition = 'ok';
-                }
 
             } else{$condition = 'ok';}
 
@@ -246,7 +244,7 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
                         'state' => $inDocs->state,
                         'amount' => $inDocs->amount,
                         'curency' => $inDocs->currencyId,
-                        'termDate' => $inDocs->termDate,
+                        'termDate' => $termDate,
                         'folder' => $firstDocument->fetch()->folderId,
                         'condition' => $condition,
                         'cntDealers' => count($dealers)
@@ -259,7 +257,7 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
                         'state' => $inDocs->state,
                         'amount' => $inDocs->amount,
                         'curency' => $inDocs->currencyId,
-                        'termDate' => $inDocs->termDate,
+                        'termDate' => $termDate,
                         'folder' => $firstDocument->fetch()->folderId,
                         'condition' => $condition,
                         'cntDealers' => count($dealers)
