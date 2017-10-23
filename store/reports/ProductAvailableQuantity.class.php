@@ -71,7 +71,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('additional', 'table(columns=code|minQuantity|maxQuantity,captions=Код на атикула|Мин к-во|Макс к-во,widths=8em|8em|8em|8em,render=eprod_proto_Product::renderAdditional,                                validate=eprod_proto_Product::validateAdditional)', "caption=Артикули||Additional,autohide,advanced,after=title");
+        $fieldset->FLD('additional', 'table(columns=code|minQuantity|maxQuantity,captions=Код на атикула|Мин к-во|Макс к-во,widths=8em|8em|8em|8em,render=eprod_proto_Product::renderAdditional,                                validate=eprod_proto_Product::validateAdditional)', "caption=Артикули||Additional,autohide,advanced,after=title,single=none");
         $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,after=title');
     }
 
@@ -127,11 +127,13 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
             foreach ($details->code as $key => $v) {
 
-              // bp($details->minQuantity[$key],$details->maxQuantity[$key] );
+                // bp($details->minQuantity[$key],$details->maxQuantity[$key] );
+                if ($details->minQuantity[$key] && $details->maxQuantity[$key]) {
 
-                if ($details->minQuantity[$key] > $details->maxQuantity[$key] ) {
-                    $form->setError('additional', 'Максималното количество не може да бъде по-малко от минималното');
+                    if ($details->minQuantity[$key] > $details->maxQuantity[$key]) {
+                        $form->setError('additional', 'Максималното количество не може да бъде по-малко от минималното');
 
+                    }
                 }
 
             }
@@ -190,8 +192,10 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                     $quantityMark = 'ok';
                 }
 
-                if(!isset($products->maxQuantity[$key])){
-                    if($quantity > (int)$products->minQuantity[$key]){
+                if(!($products->maxQuantity[$key])){
+
+                   // bp($quantity,$products->minQuantity[$key],$key);
+                    if($quantity > $products->minQuantity[$key]){
                         $quantityMark = 'ok';
                     }
                 }
@@ -221,6 +225,8 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             }//цикъл за добавяне
 
         }
+
+       // bp($recs);
 
         return $recs;
     }
