@@ -1169,7 +1169,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	// Не може да се оттеглят документи, към които има създадени КИ и ДИ
     	if($action == 'reject' && isset($rec)){
     		if(!($mvc instanceof sales_Proformas)){
-    			if($mvc->fetch("#originId = {$rec->containerId} AND #state = 'active'")){
+    			if($mvc->fetch("#originId = '{$rec->containerId}' AND #state = 'active'")){
     				$res = 'no_one';
     			}
     		}
