@@ -118,12 +118,13 @@ class planning_Setup extends core_ProtoSetup
     		'planning_ProductionTaskDetails',
     		'planning_ProductionTaskProducts',
     		'planning_TaskSerials',
+    		'planning_AssetGroups',
     		'migrate::updateNotes',
     		'migrate::updateStoreIds',
     		'migrate::migrateJobs',
     		'migrate::addPackToNotes',
     		'migrate::addPackToJobs',
-    		'migrate::deleteTasks2',
+    		'migrate::deleteTasks3',
     		'migrate::deleteTaskCronUpdate',
         );
 
@@ -136,6 +137,7 @@ class planning_Setup extends core_ProtoSetup
     		array('taskWorker'),
     		array('taskPlanning', 'taskWorker'),
     		array('planning', 'taskPlanning'),
+    		array('planningMaster', 'planning'),
     		array('job'),
     );
 
@@ -320,7 +322,7 @@ class planning_Setup extends core_ProtoSetup
     /**
      * Изтрива старите производствени операции
      */
-    public static function deleteTasks2()
+    public static function deleteTasks3()
     {
     	$Tasks = cls::get('planning_Tasks');
     	$Tasks->setupMvc();
@@ -338,6 +340,10 @@ class planning_Setup extends core_ProtoSetup
     	$query = doc_Containers::getQuery();
     	$query->where("#docClass = {$taskClassId}");
     	$query->delete();
+    	
+    	$Assets = cls::get('planning_AssetResources');
+    	$Assets->setupMvc();
+    	$Assets->truncate();
     }
     
     
