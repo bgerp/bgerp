@@ -1,5 +1,5 @@
 .document{
-	width:850px;
+	min-width:850px;
 }
 
 .linkWithIcon {
@@ -12,10 +12,6 @@
 
 div.richtextHide {
 	display:block !important;
-}
-
-.richtext {
-	font-family: default !important;
 }
 
 code, kbd, pre, samp {
@@ -50,4 +46,6 @@ thead {
 
 .products-table td , .quote-header td{
   border: 1px solid #ccc;
+  padding: 5px !important;
+  vertical-align: top;
 }

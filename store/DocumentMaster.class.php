@@ -401,6 +401,11 @@ abstract class store_DocumentMaster extends core_Master
 	   				$locTel = core_Type::getByName('varchar')->toVerbal($locTel);
 	   				$row->deliveryLocationAddress .= ", {$locTel}";
 	   			}
+	   			
+	   			if($locMol = crm_Locations::fetchField($rec->locationId, 'mol')){
+	   				$locMol = core_Type::getByName('varchar')->toVerbal($locMol);
+	   				$row->deliveryLocationAddress .= ", {$locMol}";
+	   			}
 	   		}
 	   		
 	   		$row->storeId = store_Stores::getHyperlink($rec->storeId);
