@@ -197,7 +197,7 @@ class planning_Tasks extends core_Master
 		$this->FLD('description', 'richtext(rows=2,bucket=Notes)', 'caption=Описание');
 		$this->FLD('showadditionalUom', 'enum(no=Не,yes=Да)', 'caption=Доп. мярка');
 		
-		$this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'mandatory,caption=Произвеждане->Артикул,removeAndRefreshForm=packagingId,silent');
+		$this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'mandatory,caption=Произвеждане->Артикул,removeAndRefreshForm=packagingId|inputInTask,silent');
 		$this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'mandatory,caption=Произвеждане->Опаковка,after=productId,input=hidden,tdClass=small-field nowrap,removeAndRefreshForm,silent');
 		$this->FLD('plannedQuantity', 'double(smartRound,Min=0)', 'mandatory,caption=Произвеждане->Планирано,after=packagingId');
 		$this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Произвеждане->Склад,input=none');
@@ -215,6 +215,7 @@ class planning_Tasks extends core_Master
 		$this->FLD('expectedTimeStart', 'datetime(format=smartTime)', 'input=hidden,caption=Очаквано начало');
 		$this->FLD('additionalFields', 'blob(serialize, compress)', 'caption=Данни,input=none');
 		$this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=fullName,makeLinks)', 'caption=Произвеждане->Оборудване,after=packagingId');
+		$this->FLD('inputInTask', 'int', 'caption=Влагане в задача,input=none,after=totalQuantity');
 	}
 	
 	
@@ -722,8 +723,17 @@ class planning_Tasks extends core_Master
 				
 			$measureId = ($originRec->productId == $rec->productId) ? $originRec->packagingId : cat_Products::fetchField($rec->productId, 'measureId');
 			$form->setDefault('packagingId', $measureId);
-				
 			$productInfo = cat_Products::getProductInfo($rec->productId);
+			
+			// Ако артикула е вложим, може да се влага по друга задача
+			if(isset($productInfo->meta['canConvert'])){
+				$tasks = self::getTasksByJob($origin->that);
+				if(count($tasks)){
+					$form->setField('inputInTask', 'input');
+					$form->setOptions('inputInTask', array('' => '') + $tasks);
+				}
+			}
+			
 			$measureShort = cat_UoM::getShortName($rec->packagingId);
 			if(!isset($productInfo->meta['canStore'])){
 				$form->setField('plannedQuantity', "unit={$measureShort}");
@@ -1020,7 +1030,6 @@ class planning_Tasks extends core_Master
     		$data->listFilter->FLD('assetId', 'int', 'caption=Оборудване');
     		$data->listFilter->setOptions('assetId', array('' => '') + $fixedAssets);
     		$data->listFilter->showFields .= ',departmentId,assetId';
-    		
     		$data->listFilter->input('assetId');
     	}
     	

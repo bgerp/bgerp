@@ -95,7 +95,7 @@ class planning_AssetResources extends core_Master
     function description()
     {
     	$this->FLD('name', 'varchar', 'caption=Име,mandatory');
-    	$this->FLD('groupId', 'key(mvc=planning_AssetGroups,select=name,allowEmpty)', 'caption=Група,mandatory,silent');
+    	$this->FLD('groupId', 'key(mvc=planning_AssetGroups,select=name,allowEmpty)', 'caption=Вид,mandatory,silent');
     	$this->FLD('code', 'varchar(16)', 'caption=Код,mandatory');
     	$this->FLD('protocolId', 'key(mvc=accda_Da,select=id)', 'caption=Протокол за пускане в експлоатация,silent,input=hidden');
     	$this->FLD('departments', 'keylist(mvc=hr_Departments,select=name,makeLinks)', 'caption=Структура');

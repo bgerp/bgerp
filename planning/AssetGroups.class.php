@@ -20,7 +20,7 @@ class planning_AssetGroups extends core_Master
 	/**
 	 * Заглавие
 	 */
-	public $title = 'Групи на оборудването';
+	public $title = 'Видове оборудване';
 	
 	
 	/**
@@ -62,7 +62,7 @@ class planning_AssetGroups extends core_Master
 	/**
 	 * Заглавие в единствено число
 	 */
-	public $singleTitle = 'Група';
+	public $singleTitle = 'Вид';
 	
 	
 	/**

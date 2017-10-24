@@ -76,7 +76,7 @@ class planning_AssetResourcesNorms extends core_Detail
 	 */
 	public function description()
 	{
-		$this->FLD('groupId', 'key(mvc=planning_AssetGroups,select=name,allowEmpty)', 'caption=Група,mandatory,silent');
+		$this->FLD('groupId', 'key(mvc=planning_AssetGroups,select=name,allowEmpty)', 'caption=Вид,mandatory,silent');
 		$this->FLD("productId", 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул');
 		$this->FLD("indTime", 'time(noSmart)', 'caption=Норма,smartCenter,mandatory');
 		$this->FLD("packagingId", 'key(mvc=cat_UoM,select=shortName)', 'caption=Опаковка,smartCenter,input=hidden');
