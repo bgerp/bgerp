@@ -1628,8 +1628,8 @@ a.tOld {
 	padding:5px;
 }
 
-.products-table > tbody > tr > td{
-	border:1px solid #ccc;
+.products-table  td {
+	border:1px solid #ccc !important;
 	padding:5px;
 	vertical-align:top !important;
 }
