@@ -874,6 +874,7 @@ class cat_Products extends embed_Manager {
                                 canStore=Складируеми,
     							services=Услуги,
                                 canConvert=Вложими,
+    							canConvertServices=Вложими услуги,
                                 fixedAsset=Дълготрайни активи,
     							fixedAssetStorable=Дълготрайни материални активи,
     							fixedAssetNotStorable=Дълготрайни НЕматериални активи,
@@ -927,6 +928,9 @@ class cat_Products extends embed_Manager {
         			break;
         		case 'fixedAssetNotStorable':
         			$data->query->where("#canStore = 'no' and #fixedAsset = 'yes'");
+        			break;
+        		case 'canConvertServices':
+        			$data->query->where("#canConvert = 'yes' and #canStore = 'no'");
         			break;
         		case 'all':
         			break;
