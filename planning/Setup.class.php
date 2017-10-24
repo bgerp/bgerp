@@ -125,7 +125,7 @@ class planning_Setup extends core_ProtoSetup
     		'migrate::migrateJobs',
     		'migrate::addPackToNotes',
     		'migrate::addPackToJobs',
-    		'migrate::deleteTasks3',
+    		'migrate::deleteTasks4',
     		'migrate::deleteTaskCronUpdate',
         );
 
@@ -323,7 +323,7 @@ class planning_Setup extends core_ProtoSetup
     /**
      * Изтрива старите производствени операции
      */
-    public static function deleteTasks3()
+    public static function deleteTasks4()
     {
     	$Tasks = cls::get('planning_Tasks');
     	$Tasks->setupMvc();
@@ -337,6 +337,7 @@ class planning_Setup extends core_ProtoSetup
     	$Product->setupMvc();
     	$Product->truncate();
     	
+    	$Tasks->truncate();
     	$taskClassId = planning_Tasks::getClassId();
     	$query = doc_Containers::getQuery();
     	$query->where("#docClass = {$taskClassId}");

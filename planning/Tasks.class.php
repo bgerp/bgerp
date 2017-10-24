@@ -40,7 +40,7 @@ class planning_Tasks extends core_Master
 	/**
 	 * Плъгини за зареждане
 	 */
-	public $loadList = 'doc_plg_BusinessDoc,doc_plg_Prototype,doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, plg_Clone, plg_Printing,plg_RowTools2,bgerp_plg_Blank';
+	public $loadList = 'doc_plg_BusinessDoc, doc_plg_Prototype, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, plg_Clone, plg_Printing, plg_RowTools2';
 	
 	
 	/**
@@ -100,7 +100,7 @@ class planning_Tasks extends core_Master
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'expectedTimeStart,title, originId=Задание, progress, folderId,state,modifiedOn,modifiedBy';
+	public $listFields = 'title, originId=Задание, progress, folderId, state, modifiedOn, modifiedBy';
 	
 	
 	/**
@@ -120,19 +120,19 @@ class planning_Tasks extends core_Master
 	/**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'no_one';
+	public $canList = 'ceo, taskWorker';
 	
 	
 	/**
 	 * Кой може да го добавя?
 	 */
-	public $canAdd = 'taskPlanning,ceo';
+	public $canAdd = 'ceo, taskPlanning';
 	
 	
 	/**
 	 * Кой може да го редактира?
 	 */
-	public $canEdit = 'taskPlanning,ceo';
+	public $canEdit = 'ceo, taskPlanning';
 	
 	
 	/**
@@ -150,7 +150,13 @@ class planning_Tasks extends core_Master
 	/**
 	 * Поле за филтриране по дата
 	 */
-	public $filterDateField = 'expectedTimeStart,timeStart,createdOn';
+	public $filterDateField = 'timeStart,createdOn';
+	
+	
+	/**
+	 * Дали в листовия изглед да се показва бутона за добавяне
+	 */
+	public $listAddBtn = FALSE;
 	
 	
 	/**
@@ -176,12 +182,17 @@ class planning_Tasks extends core_Master
 	
 	
 	/**
+	 * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+	 */
+	public $rowToolsSingleField = 'title';
+	
+	
+	/**
 	 * Описание на модела (таблицата)
 	 */
 	function description()
 	{
 		$this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,changable,silent');
-		
 		$this->FLD('totalWeight', 'cat_type_Weight', 'caption=Общо тегло,input=none');
 		$this->FLD('description', 'richtext(rows=2,bucket=Notes)', 'caption=Описание');
 		$this->FLD('showadditionalUom', 'enum(no=Не,yes=Да)', 'caption=Доп. мярка');
@@ -203,7 +214,7 @@ class planning_Tasks extends core_Master
 		$this->FLD('systemId', 'int', 'silent,input=hidden');
 		$this->FLD('expectedTimeStart', 'datetime(format=smartTime)', 'input=hidden,caption=Очаквано начало');
 		$this->FLD('additionalFields', 'blob(serialize, compress)', 'caption=Данни,input=none');
-		$this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=code,makeLinks)', 'caption=Произвеждане->Оборудване,after=packagingId');
+		$this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=fullName,makeLinks)', 'caption=Произвеждане->Оборудване,after=packagingId');
 	}
 	
 	
@@ -377,7 +388,6 @@ class planning_Tasks extends core_Master
 				}
 			}
 		
-		
 		return $row;
 	}
 	
@@ -408,7 +418,7 @@ class planning_Tasks extends core_Master
 	{
 		$me = cls::get(get_called_class());
 		 
-		return $me->singleTitle . " №{$rec->id}";
+		return tr($me->singleTitle) . " №{$rec->id}";
 	}
 	
 	
@@ -420,7 +430,7 @@ class planning_Tasks extends core_Master
 		$rec = &$form->rec;
 		
 		if($form->isSubmitted()){
-			if ($rec->timeStart && $rec->timeEnd && ($rec->timeStart > $rec->timeEnd)) {
+			if($rec->timeStart && $rec->timeEnd && ($rec->timeStart > $rec->timeEnd)) {
 				$form->setError('timeEnd', 'Крайният срок трябва да е след началото на задачата');
 			}
 	
@@ -430,9 +440,14 @@ class planning_Tasks extends core_Master
 				}
 			}
 			
+			if(isset($rec->fixedAssets)){
+				bp($rec);
+			}
+			
+			
+			
 			$pInfo = cat_Products::getProductInfo($rec->productId);
 			$rec->quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
-			
 			$rec->title = cat_Products::getTitleById($rec->productId);
 		}
 	}
@@ -656,7 +671,7 @@ class planning_Tasks extends core_Master
 		$rec = $form->rec;
     
 		if(isset($rec->systemId)){
-			$data->form->setField('prototypeId', 'input=none');
+			$form->setField('prototypeId', 'input=none');
 		}
 		
 		if(empty($rec->id)){
@@ -691,7 +706,6 @@ class planning_Tasks extends core_Master
 		
 		// Ако задачата е дефолтна за артикула, задаваме и дефолтите
 		if(isset($rec->systemId)){
-				
 			$tasks = cat_Products::getDefaultProductionTasks($originRec->productId, $originRec->quantity);
 			if(isset($tasks[$rec->systemId])){
 				foreach (array('plannedQuantity', 'productId', 'quantityInPack', 'packagingId') as $fld){
@@ -752,6 +766,9 @@ class planning_Tasks extends core_Master
 				}
 			}
 		}
+		
+		$fixedAssets = planning_AssetResources::getAvailableAssets($rec->folderId);
+		$form->setSuggestions('fixedAssets', array('' => '') + $fixedAssets);
 	}
 	
 	
@@ -767,7 +784,6 @@ class planning_Tasks extends core_Master
 		// Намираме всички задачи към задание
 		$query = $this->getQuery();
 		$query->where("#state != 'rejected'");
-		
 		$query->where("#originId = {$containerId}");
 		$query->XPR('orderByState', 'int', "(CASE #state WHEN 'wakeup' THEN 1 WHEN 'active' THEN 2 WHEN 'stopped' THEN 3 WHEN 'closed' THEN 4 WHEN 'waiting' THEN 5 ELSE 6 END)");
 		$query->orderBy('#orderByState=ASC');
@@ -920,36 +936,6 @@ class planning_Tasks extends core_Master
 		}
 		 
 		$rec->additionalFields = count($rec->additionalFields) ? $rec->additionalFields : NULL;
-	}
-	
-	
-	/**
-	 * Генерира баркод изображение от даден сериен номер
-	 * 
-	 * @param string $serial - сериен номер
-	 * @return core_ET $img - баркода
-	 */
-	public static function getBarcodeImg($serial)
-	{
-		$attr = array();
-		
-		$conf = core_Packs::getConfig('planning');
-		$barcodeType = $conf->PLANNING_TASK_LABEL_COUNTER_BARCODE_TYPE;
-		$size = array('width' => $conf->PLANNING_TASK_LABEL_WIDTH, 'height' => $conf->PLANNING_TASK_LABEL_HEIGHT);
-		$attr['ratio'] = $conf->PLANNING_TASK_LABEL_RATIO;
-		if ($conf->PLANNING_TASK_LABEL_ROTATION == 'yes') {
-			$attr['angle'] = 90;
-		}
-		
-		if ($conf->PLANNING_TASK_LABEL_COUNTER_SHOWING == 'barcodeAndStr') {
-			$attr['addText'] = array();
-		}
-		
-		// Генериране на баркод от серийния номер, според зададените параметри
-		$img = barcode_Generator::getLink($barcodeType, $serial, $size, $attr);
-		
-		// Връщане на генерираното изображение
-		return $img;
 	}
     
     

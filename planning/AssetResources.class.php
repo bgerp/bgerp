@@ -183,4 +183,25 @@ class planning_AssetResources extends core_Master
     		$data->query->where("#groupId = {$data->listFilter->rec->groupId}");
     	}
     }
+    
+    
+    /**
+     * Избор на наличното оборудване в подадената папка
+     * 
+     * @param int $folderId - папка
+     * @return array $res   - налично оборудване
+     */
+    public static function getAvailableAssets($folderId)
+    {
+    	$departmentId = hr_Departments::fetchField("#folderId = {$folderId}", 'id');
+    	
+    	$res = array();
+    	$query = self::getQuery();
+    	$query->where("#departments IS NULL || #departments LIKE '%|{$departmentId}|%'");
+    	while($rec = $query->fetch()){
+    		$res[$rec->id] = $rec->fullName;
+    	}
+    	
+    	return $res;
+    }
 }

@@ -111,4 +111,11 @@ class planning_AssetGroups extends core_Master
 			}
 		}
 	}
+	
+	
+	public static function haveSameGroup($assets)
+	{
+		$assets = is_array($assets) ? $assets : keylist::toArray($assets);
+		if(!count()) return;
+	}
 }
