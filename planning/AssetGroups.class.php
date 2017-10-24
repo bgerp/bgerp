@@ -128,7 +128,9 @@ class planning_AssetGroups extends core_Master
 		$aQuery->in("id", $assets);
 		$aQuery->show('groupId');
 		$aQuery->groupBy('groupId');
+		$found = $aQuery->fetchAll();
+		$found = is_array($aQuery->fetchAll()) ? $aQuery->fetchAll() : array();
 		
-		return count($aQuery->fetchAll()) === 1;
+		return count($found) == 1;
 	}
 }
