@@ -175,9 +175,9 @@ abstract class bank_Document extends deals_PaymentDocument
 	{
 		$rec = &$form->rec;
 		
-		if($form->rec->currencyId != $form->rec->dealCurrencyId){
-			if(isset($form->rec->ownAccount)){
-				$ownAcc = bank_OwnAccounts::getOwnAccountInfo($form->rec->ownAccount);
+		if($rec->currencyId != $rec->dealCurrencyId){
+			if(isset($rec->ownAccount)){
+				$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->ownAccount);
 				if(isset($ownAcc->currencyId)){
 					$code = currency_Currencies::getCodeById($ownAcc->currencyId);
 					$form->setField('amount', "unit={$code}");
@@ -225,7 +225,7 @@ abstract class bank_Document extends deals_PaymentDocument
 	/**
 	 * Извиква се след успешен запис в модела
 	 */
-	public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+	protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
 	{
 		// Ако няма такава банкова сметка, тя автоматично се записва
 		if($rec->contragentIban){

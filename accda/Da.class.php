@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   accda
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Дълготрайни активи
@@ -62,12 +62,6 @@ class accda_Da extends core_Master
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,accda';
-    
-    
-    /**
      * Кой има право да променя?
      */
     public $canEdit = 'ceo,accda';
@@ -77,12 +71,6 @@ class accda_Da extends core_Master
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo,accda';
-    
-    
-    /**
-     * Кой може да го види?
-     */
-    public $canView = 'ceo,accda';
     
     
     /**
@@ -181,7 +169,7 @@ class accda_Da extends core_Master
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
@@ -194,7 +182,7 @@ class accda_Da extends core_Master
     		$form->setReadOnly('productId');
     	}
     	
-    	if($rec->productId){
+    	if(isset($rec->productId)){
     		$pInfo = cat_Products::getProductInfo($rec->productId);
     		$rec->title = $pInfo->productRec->name;
     		
@@ -291,7 +279,7 @@ class accda_Da extends core_Master
     /**
      * След подготовка на сингъла
      */
-    public static function on_AfterPrepareSingle($mvc, &$res, &$data)
+    protected static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
         $data->row->createdByName = core_Users::getVerbal($data->rec->createdBy, 'names');
         
@@ -320,7 +308,7 @@ class accda_Da extends core_Master
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
-    public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    protected static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
         if(Mode::is('printing') || Mode::is('text', 'xhtml')){
             $tpl->removeBlock('header');
@@ -334,7 +322,7 @@ class accda_Da extends core_Master
      * @param core_Manager $mvc
      * @param stdClass $rec
      */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
     	if(empty($rec->id)){
     		$rec->isContable = 'yes';
@@ -345,7 +333,7 @@ class accda_Da extends core_Master
     /**
      * Дали документа има приключени пера в транзакцията му
      */
-    public static function on_AfterGetClosedItemsInTransaction($mvc, &$res, $id)
+    protected static function on_AfterGetClosedItemsInTransaction($mvc, &$res, $id)
     {
     	$rec = $mvc->fetchRec($id);
     
@@ -360,7 +348,7 @@ class accda_Da extends core_Master
     /**
      * След преобразуване на записа в четим за хора вид
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$row->handler = $mvc->getLink($rec->id, 0);
     }
@@ -372,7 +360,7 @@ class accda_Da extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareSingleToolbar($mvc, $data)
+    protected static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
     	if(planning_AssetResources::haveRightFor('add', (object)array('protocolId' => $data->rec->id))){
     		$data->toolbar->addBtn('Ресурс', array('planning_AssetResources', 'add', 'protocolId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/star_2.png,title=Добавяне като ресурс');

@@ -21,7 +21,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo,manager,store';
+    public $canSelectDriver = 'ceo,manager,store,planing';
 
 
     /**
@@ -71,7 +71,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('additional', 'table(columns=code|minQuantity|maxQuantity,captions=Код на атикула|Мин к-во|Макс к-во,widths=8em|8em|8em|8em,render=eprod_proto_Product::renderAdditional,                                validate=eprod_proto_Product::validateAdditional)', "caption=Артикули||Additional,autohide,advanced,after=storeId,single=none");
+        $fieldset->FLD('additional', 'table(columns=code|minQuantity|maxQuantity,captions=Код на атикула|Мин к-во|Макс к-во,widths=8em|8em|8em|8em)', "caption=Артикули||Additional,autohide,advanced,after=storeId,single=none");
         $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,after=title');
     }
 
