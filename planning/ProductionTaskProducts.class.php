@@ -197,7 +197,7 @@ class planning_ProductionTaskProducts extends core_Detail
     			$form->FLD('inputedQuantity', 'double(Min=0)', "caption={$caption},before=storeId");
     		}
     		
-    		$masterRec = planning_Tasks::fetch($data->masterRec);
+    		$masterRec = planning_Tasks::fetch($data->masterId);
     		$Double = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')));
     		$shortUom = cat_UoM::getShortName($masterRec->packagingId);
     		$measureUom = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
@@ -350,7 +350,7 @@ class planning_ProductionTaskProducts extends core_Detail
     {
     	if(!empty($rec->inputedQuantity)){
     		$dRec = (object)array('taskId' => $rec->taskId, 'taskProductId' => $rec->id, 'type' => $rec->type, 'quantity' => $rec->inputedQuantity);
-    		planning_drivers_ProductionTaskDetails::save($dRec);
+    		planning_ProductionTaskDetails::save($dRec);
     	}
     	
     	// При добавянето на артикул за влагане/отпадък ако за него има чернова задача за произвеждането му
