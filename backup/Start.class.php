@@ -75,11 +75,16 @@ class backup_Start extends core_Manager
             
             shutdown();
         }
+        // Заключваме цялата система
+        core_SystemLock::block("Процес на архивиране на данните", $time = 1800); // 30 мин.
         
         exec("mysqldump --lock-tables --delete-master-logs -u"
             . self::$conf->BACKUP_MYSQL_USER_NAME . " -p" . self::$conf->BACKUP_MYSQL_USER_PASS . " " . EF_DB_NAME
             . " | gzip -9 >" . EF_TEMP_PATH . "/" . self::$backupFileName
             , $output, $returnVar);
+        
+        // Освобождаваме системата
+        core_SystemLock::remove();
         
         if ($returnVar !== 0) {
             self::logErr("Грешка при FullBackup");
@@ -371,13 +376,17 @@ class backup_Start extends core_Manager
      */
     private static function saveFileMan()
     {
-        $unArchived = fileman_Data::getUnArchived(100);
+        $unArchived = fileman_Data::getUnArchived(self::$conf->BACKUP_FILEMAN_COUNT_FILES);
 
         foreach ($unArchived as $fileObj) {
-            if (self::$storage->putFile($fileObj->path, BACKUP_FILEMAN_PATH)) {
-                fileman_Data::setArchived($fileObj->id);
+            if (file_exists($fileObj->path)) {
+                if (self::$storage->putFile($fileObj->path, BACKUP_FILEMAN_PATH)) {
+                    fileman_Data::setArchived($fileObj->id);
+                } else {
+                    self::logErr("backup не записва файл {$fileObj->path} в " . "backup_" . self::$conf->BACKUP_STORAGE_TYPE);
+                }
             } else {
-                self::logErr("backup не записва файл {$fileObj->path} в " . "backup_" . self::$conf->BACKUP_STORAGE_TYPE);
+                self::logWarning("backup: несъществуващ файл във файлмен-а: {$fileObj->path}");
             }
         }
     }
@@ -508,4 +517,19 @@ class backup_Start extends core_Manager
         
         return self::saveConf();
     }
+    
+    /**
+     * Връща линк към подадения обект
+     * Тук нямаме обект - предефинираме я за да се излиза коректно име в лог-а на класа
+     *
+     * @param integer $objId
+     *
+     * @return core_ET
+     */
+    
+    public static function getLinkForObject($objId)
+    {
+
+        return new ET(get_called_class());
+    }    
 }

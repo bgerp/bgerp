@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   bank
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -46,7 +46,7 @@ class cash_InternalMoneyTransfer extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools2, cash_Wrapper,acc_plg_Contable, acc_plg_DocumentSummary,
-     	plg_Sorting,doc_DocumentPlg, plg_Printing, plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable, doc_SharablePlg';
+     	plg_Sorting,plg_Clone,doc_DocumentPlg, plg_Printing, plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable, doc_SharablePlg';
     
     
     /**
@@ -92,12 +92,6 @@ class cash_InternalMoneyTransfer extends core_Master
     
     
     /**
-     * Кой има право да чете?
-     */
-    var $canRead = 'cash, ceo';
-    
-    
-    /**
      * Кой може да пише?
      */
     var $canWrite = 'cash, ceo';
@@ -106,13 +100,13 @@ class cash_InternalMoneyTransfer extends core_Master
     /**
      * Кой може да го контира?
      */
-    var $canConto = 'ceo, acc, cash';
+    var $canConto = 'ceo, acc, cash, bank';
     
     
     /**
-     * Кой може да сторнира
+     * Кой може да го прави заявка?
      */
-    var $canRevert = 'cash, ceo';
+    var $canPending = 'ceo, acc, cash, bank';
     
     
     /**
@@ -130,14 +124,30 @@ class cash_InternalMoneyTransfer extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'reason,creditCase,debitBank,debitCase, id';
+    var $searchFields = 'reason,creditCase,debitBank,debitCase';
     
     
     /**
      * Позволени операции
      */
     public $allowedOperations = array('case2case' => array('debit' => '501', 'credit' => '501'),
-    							   'case2bank' => array('debit' => '503', 'credit' => '501'));
+    							      'case2bank' => array('debit' => '503', 'credit' => '501'),
+    								  'nonecash2bank' => array('debit' => '503', 'credit' => '502'),
+    );
+    
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'valior';
+    
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'valior,createdOn,modifiedOn';
     
     
 	/**
@@ -145,18 +155,19 @@ class cash_InternalMoneyTransfer extends core_Master
      */
     function description()
     {
-    	$this->FLD('operationSysId', 'enum(case2case=Вътрешeн касов трансфер,case2bank=Захранване на банкова сметка)', 'caption=Операция,mandatory,silent');
+    	$this->FLD('operationSysId', 'enum(case2case=Вътрешeн касов трансфер,case2bank=Захранване на банкова сметка,nonecash2bank=Инкасирани безналични плащания)', 'caption=Операция,mandatory,silent');
     	$this->FLD('amount', 'double(decimals=2)', 'caption=Сума,mandatory,summary=amount');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута');
     	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,input,mandatory');
     	$this->FLD('creditAccId', 'acc_type_Account()','caption=Кредит,input=none');
     	$this->FLD('creditCase', 'key(mvc=cash_Cases, select=name)','caption=От->Каса');
+    	$this->FLD('paymentId', 'key(mvc=cond_Payments, select=title)','caption=От->Безналично плащане,input=none');
     	$this->FLD('debitAccId', 'acc_type_Account()','caption=Дебит,input=none');
         $this->FLD('debitCase', 'key(mvc=cash_Cases, select=name)','caption=Към->Каса,input=none');
     	$this->FLD('debitBank', 'key(mvc=bank_OwnAccounts, select=bankAccountId)','caption=Към->Банк. сметка,input=none');
     	$this->FLD('state', 
-            'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Контиран)', 
+            'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Контиран,stopped=Спряно, pending=Заявка)', 
             'caption=Статус, input=none'
         );
         $this->FLD('sharedUsers', 'userList', 'input=none,caption=Споделяне->Потребители');
@@ -169,8 +180,21 @@ class cash_InternalMoneyTransfer extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($requiredRoles == 'no_one') return;
-    	if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'cash_Cases', 'creditCase')){
-    		$requiredRoles = 'no_one';
+    	
+    	if(isset($rec)){
+    		if($rec->operationSysId == 'case2bank'){
+    			if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'bank_OwnAccounts', 'debitBank')){
+    				$requiredRoles = 'no_one';
+    			}
+    		} elseif($rec->operationSysId == 'case2case'){
+    			if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'cash_Cases', 'debitCase')){
+    				$requiredRoles = 'no_one';
+    			}
+    		} elseif($rec->operationSysId == 'nonecash2bank'){
+    			if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'bank_OwnAccounts', 'debitBank')){
+    				$requiredRoles = 'no_one';
+    			}
+    		}
     	}
     }
     
@@ -223,11 +247,11 @@ class cash_InternalMoneyTransfer extends core_Master
     {
     	$form = cls::get('core_Form');
     	$form->method = 'GET';
-    	$form->FNC('operationSysId', 'enum(case2case=Вътрешeн касов трансфер,case2bank=Захранване на банкова сметка)', 'input,caption=Операция');
+    	$form->FNC('operationSysId', 'enum(case2case=Вътрешeн касов трансфер,case2bank=Захранване на банкова сметка,nonecash2bank=Инкасирани безналични плащания)', 'input,caption=Операция');
     	$form->FNC('folderId', 'key(mvc=doc_Folders,select=title)', 'input=hidden,caption=Папка');
     	$form->title = 'Нов вътрешен касов трансфер';
         $form->toolbar->addSbBtn('Напред', '', 'ef_icon = img/16/move.png, title=Продължете напред');
-        $form->toolbar->addBtn('Отказ', toUrl(array('cash_InternalMoneyTransfer', 'list')),  'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+        $form->toolbar->addBtn('Отказ', toUrl(array('cash_InternalMoneyTransfer', 'list')),  'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
        	$folderId = cash_Cases::forceCoverAndFolder(cash_Cases::getCurrent());
        	if(!doc_Folders::haveRightToObject($folderId)){
@@ -259,6 +283,13 @@ class cash_InternalMoneyTransfer extends core_Master
         		$form->setField("debitCase", "input");
         		break;
         	case "case2bank":
+        		$form->setField("debitBank", "input");
+        		$form->setOptions("debitBank", bank_OwnAccounts::getOwnAccounts());
+        		break;
+        	case "nonecash2bank":
+        		$form->setField("paymentId", "input");
+        		$form->setField("currencyId", "input=hidden");
+        		
         		$form->setField("debitBank", "input");
         		$form->setOptions("debitBank", bank_OwnAccounts::getOwnAccounts());
         		break;
@@ -296,7 +327,7 @@ class cash_InternalMoneyTransfer extends core_Master
      */
     protected static function on_BeforeRoute($mvc, &$res, $rec)
     {
-    	if($rec->operationSysId == 'case2bank'){
+    	if($rec->operationSysId == 'case2bank' || $rec->operationSysId == 'nonecash2bank'){
     		$rec->folderId = bank_OwnAccounts::fetchField($rec->debitBank, 'folderId');
     	} elseif($rec->operationSysId == 'case2case'){
     		$rec->folderId = cash_Cases::fetchField($rec->debitCase, 'folderId');
@@ -338,7 +369,12 @@ class cash_InternalMoneyTransfer extends core_Master
     		if($debitInfo->currencyId != $rec->currencyId) {
     			$form->setError("debitBank", 'Банковата сметка е в друга валута !!!');
     		}
-    	} 
+    	}  elseif($rec->operationSysId == 'nonecash2bank') {
+    		$debitInfo = bank_OwnAccounts::getOwnAccountInfo($rec->debitBank);
+    		if($debitInfo->currencyId != $rec->currencyId) {
+    			$form->setError("debitBank", 'Банковата сметка е в друга валута !!!');
+    		}
+    	}
     }
     
     
@@ -414,9 +450,9 @@ class cash_InternalMoneyTransfer extends core_Master
      */
     public static function getRecTitle($rec, $escaped = TRUE)
     {
-    	$self = cls::get(__CLASS__);
-    
-    	return $self->singleTitle . " №$rec->id";
+    	$self = cls::get(get_called_class());
+    	 
+    	return tr("|{$self->singleTitle}|* №") . $rec->id;
     }
     
     

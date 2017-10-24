@@ -27,7 +27,7 @@ class lab_Parameters extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_Created, plg_State2,
-                             plg_RowTools, plg_Printing, lab_Wrapper,
+                             plg_RowTools2, plg_Printing, lab_Wrapper,
                              plg_Sorting, fileman_Files';
     
     

@@ -82,6 +82,12 @@ class callcenter_Talks extends core_Master
     
     
     /**
+	 * Кой може да архивира разговорите?
+	 */
+	var $canArchivetalk = 'powerUser';
+    
+    
+    /**
      * Необходими роли за оттегляне на документа
      */
     var $canReject = 'powerUser';
@@ -342,6 +348,66 @@ class callcenter_Talks extends core_Master
             Request::setProtected('srcId, srcClass');
             $row->_rowTools->addLink('Сигнал', array('support_Issues', 'add', 'srcId' => $rec->id, 'srcClass' => $mvc->className, 'ret_url' => TRUE), 'ef_icon=img/16/support.png, title=Създаване на сигнал от обаждане');
         }
+        
+        if ($mvc->haveRightFor('archivetalk', $rec)) {
+            $row->_rowTools->addLink('Архивиране', array($mvc, 'archive', $rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/upload.png, title=Архивиране на обаждането');
+        }
+    }
+    
+    
+    /**
+     * Екшън за архивиране на обаждането
+     */
+    function act_Archive()
+    {
+        $id = Request::get('id', 'int');
+        
+        expect($id);
+        
+        $rec = self::fetch($id);
+        
+        expect($rec);
+        
+        $this->requireRightFor('archivetalk', $rec);
+        
+        $archivePlacesArr = self::getDataForArchive($rec);
+        
+        $nRec = callcenter_Numbers::getRecForInternalNum($rec->internalNum);
+        
+        $fh = callcenter_Hosts::archiveTalk($nRec->host, $archivePlacesArr);
+        
+        if ($fh === FALSE) {
+            
+            $retUrl = getRetUrl();
+            
+            if (empty($retUrl)) {
+                $retUrl = array($this, 'single', $id);
+            }
+            
+            return new Redirect($retUrl, '|Грешка при архивиране на обаждането', 'error');
+        } else {
+            
+            return new Redirect(array('fileman_Files', 'single', $fh), '|Успешно архивирахте обаждането');
+        }
+    }
+    
+    
+    /**
+     * Връща масив с данни, които ще се използват за определяне на файла при архивиране
+     * 
+     * @param stdObject $rec
+     * 
+     * @return array
+     */
+    protected static function getDataForArchive($rec) 
+    {
+        $recArr = (array)$rec;
+        
+        if (empty($recArr)) return $recArr;
+        
+        list($recArr['uniqId']) = explode('|', $recArr['uniqId']);
+        
+        return $recArr;
     }
     
     
@@ -1357,7 +1423,7 @@ class callcenter_Talks extends core_Master
         $data->listFilter->FNC('number', 'drdata_PhoneType', 'caption=Номер,input,silent, recently');
         
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent,autoFilter');
+        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo|callcenter, rolesForTeams=ceo|manager|callcenter)', 'caption=Потребител,input,silent,autoFilter');
         
         // Функционално поле за търсене по статус и тип на разговора
         $data->listFilter->FNC('dialStatusType', 'enum()', 'caption=Състояние,input,autoFilter');
@@ -1457,30 +1523,24 @@ class callcenter_Talks extends core_Master
             if ($filter->usersSearch) {
                 
     			// Ако се търси по всички и има права admin или ceo
-    			if (strpos($filter->usersSearch, '|-1|') !== FALSE) {
+    			if (strpos($filter->usersSearch, '|-1|') === FALSE) {
+    			    // Масив с потребителите
+    			    $usersArr = type_Keylist::toArray($filter->usersSearch);
     			    
-    			    if (!(haveRole('ceo'))) {
-                        $data->query->where("1=2");
+    			    // Масив с номерата на съответните потребители
+    			    $numbersArr = callcenter_Numbers::getInternalNumbersForUsers($usersArr);
+    			    
+    			    // Ако има такива номера
+    			    if (count((array)$numbersArr)) {
+    			    
+    			        // Показваме обажданията към и от тях
+    			        $data->query->orWhereArr('internalNum', $numbersArr);
+    			    } else {
+    			    
+    			        // Не показваме нищо
+    			        $data->query->where("1=2");
     			    }
-    			    // Търсим всичко
-                } else {
-                    
-                    // Масив с потребителите
-                    $usersArr = type_Keylist::toArray($filter->usersSearch);
-                    
-                    // Масив с номерата на съответните потребители
-                    $numbersArr = callcenter_Numbers::getInternalNumbersForUsers($usersArr);
-                    
-                    // Ако има такива номера
-                    if (count((array)$numbersArr)) {
-                        
-                        // Показваме обажданията към и от тях
-        			    $data->query->orWhereArr('internalNum', $numbersArr);
-                    } else {
-                        
-                        // Не показваме нищо
-                        $data->query->where("1=2");
-                    }
+    			    
                 }
     		}
     		
@@ -1646,22 +1706,22 @@ class callcenter_Talks extends core_Master
     /**
      * 
      * 
-     * @param unknown_type $mvc
-     * @param unknown_type $requiredRoles
-     * @param unknown_type $action
-     * @param unknown_type $rec
-     * @param unknown_type $userId
+     * @param callcenter_Talks $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param NULL|stdObject $rec
+     * @param NULL|integer $userId
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Ако искаме да отворим сингъла на документа
         if ($rec->id && $action == 'single' && $userId) {
             
             // Ако нямаме роля CEO
-            if (!haveRole('ceo')) {
+            if (!haveRole('ceo, callcenter', $userId)) {
                 
                 // Ако сме мениджър
-                if (haveRole('manager')) {
+                if (haveRole('manager', $userId)) {
                     
                     // Вземаме хората от нашия екип
                     $teemMates = core_Users::getTeammates($userId);
@@ -1685,7 +1745,23 @@ class callcenter_Talks extends core_Master
                     $requiredRoles = 'no_one';
                 }
             }
-        } 
+        }
+        
+        if ($requiredRoles != 'no_one') {
+            if ($action == 'archivetalk') {
+                if (!$mvc->haveRightFor('single', $rec, $userId)) {
+                    $requiredRoles = 'no_one';
+                } else {
+                    if (!$rec->internalNum) {
+                        $requiredRoles = 'no_one';
+                    } else {
+                        if (!callcenter_Numbers::canUseHostForNum($rec->internalNum)) {
+                            $requiredRoles = 'no_one';
+                        }
+                    }
+                }
+            }
+        }
     }
 
     
@@ -1880,7 +1956,7 @@ class callcenter_Talks extends core_Master
         
         // Добавяне на бутони
         $form->toolbar->addSbBtn('Добави', 'save', 'ef_icon = img/16/add.png, title=Запис на документа');
-        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
         return $this->renderWrapping($form->renderHtml());
     }

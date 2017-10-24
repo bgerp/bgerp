@@ -19,13 +19,13 @@ class core_CallOnTime extends core_Manager
     /**
      * Кой има право да променя?
      */
-    protected $canEdit = 'no_one';
+    protected $canEdit = 'debug';
     
     
     /**
      * Кой има право да добавя?
      */
-    protected $canAdd = 'no_one';
+    protected $canAdd = 'debug';
     
     
     /**
@@ -37,7 +37,7 @@ class core_CallOnTime extends core_Manager
     /**
      * Кой има право да го изтрие?
      */
-    protected $canDelete = 'no_one';
+    protected $canDelete = 'debug';
 	
 
 	/**
@@ -49,7 +49,7 @@ class core_CallOnTime extends core_Manager
     /**
      * Плъгините и враперите, които ще се използват
      */
-    public $loadList = 'plg_State,plg_SystemWrapper';
+    public $loadList = 'plg_State, plg_SystemWrapper, plg_RowTools2';
     
     
 	/**
@@ -138,6 +138,22 @@ class core_CallOnTime extends core_Manager
 	
 	
 	/**
+	 * Изтриване на вече зададен запис, който все още не е изпълнен
+	 * 
+	 * @param string $className
+	 * @param string $methodName
+	 * @param mixed $data
+	 * @return void
+	 */
+	public static function remove($className, $methodName, $data)
+	{
+		$hash = self::getHash($className, $methodName, $data);
+		
+		self::delete("#hash = '{$hash}' AND #state = 'draft'");
+	}
+	
+	
+	/**
 	 * Връща хеша за записа
 	 * 
 	 * @param string $className
@@ -151,6 +167,30 @@ class core_CallOnTime extends core_Manager
 	    $hash = md5($className . ' ' . $methodName . ' ' . json_encode($data));
 	    
 	    return $hash;
+	}
+	
+	
+	/**
+	 * Връща времето на изпълнение
+	 *
+	 * @param string $className
+	 * @param string $methodName
+	 * @param mixed $data
+	 *
+	 * @return string
+	 */
+	public static function getNextCallTime($className, $methodName, $data)
+	{
+		$hash = self::getHash($className, $methodName, $data);
+		
+		$query = self::getQuery();
+		$query->where("#hash = '{$hash}' AND #state = 'draft'");
+		$query->orderBy('callOn', 'ASC');
+		$query->show('callOn');
+		
+		$callOn = $query->fetch()->callOn;
+		
+		return ($callOn) ? $callOn : NULL;
 	}
 	
 	
@@ -182,10 +222,24 @@ class core_CallOnTime extends core_Manager
                 
                 // Изтриваме след като се изпълни веднъж
                 self::delete($rec->id);
+                
+                sleep(1);
             } catch (core_exception_Expect $e) {
                 $res .= "Грешка при извикване на '{$rec->className}->callback_{$rec->methodName}'";
                 self::logErr("Грешка при извикване на функция", $rec->id);
             }
+        }
+        
+        // Ако някой процес е гръмнал и е останал в чакащо състояние го оправяме
+        $pQuery = self::getQuery();
+        $pQuery->where("#state = 'pending'");
+        $before = dt::subtractSecs(10000);
+        $pQuery->where("#callOn <= '{$before}'");
+        $pQuery->limit(1);
+        while($pRec = $pQuery->fetch()) {
+            $pRec->state = 'draft';
+            self::save($pRec, 'state');
+            self::logNotice('Променено състояние', $pRec->id);
         }
         
         return $res;

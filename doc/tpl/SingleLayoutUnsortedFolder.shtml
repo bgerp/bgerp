@@ -21,6 +21,12 @@
                             <td>|Автоматично след|* [#closeTime#]</td>
                         </tr>
                         <!--ET_END closeTime-->
+                        <!--ET_BEGIN receiveEmail-->
+                        <tr>
+                            <td class='dt'>|Получаване на имейл|*:</td>
+                            <td>[#receiveEmail#]</td>
+                        </tr>
+                        <!--ET_END receiveEmail-->
                     </table>
                 </div>
             </fieldset>

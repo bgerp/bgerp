@@ -1,5 +1,5 @@
 <li>
-    <table class='no-border' style='width:100%'>
+    <table style='width:100%; margin-bottom: 20px;' class="forumThread noPadding">
         <tr>
             <td  class='forum-table'>
                 <div class='forum-icon case'>[#ICON#]</div>
@@ -7,7 +7,7 @@
                     <b>[#title#]</b>
                     <span class='forum-counts forum-count-info'>[#themesCnt#], [#commentsCnt#]</span>
                 </div>
-                <div class='last-info-block'>
+                <div class='last-info-block' style="padding-bottom: 5px;">
                     <!--ET_BEGIN lastCommentedTheme-->     
                     <span class='last-theme'>в:&nbsp;[#lastCommentedTheme#]</span>
                     <!--ET_END lastCommentedTheme-->

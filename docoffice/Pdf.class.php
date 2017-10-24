@@ -24,6 +24,8 @@ class docoffice_Pdf
      * 				$params['ext'] - Разширението, от което се конвертира /Разширението на файла/
      * 				$params['fileInfoId'] - id към bgerp_FileInfo
      * 				$params['asynch'] - Дали скрипта да се стартира асинхронно или не
+     * 
+     * @return NULL|string
      */
     static function convertPdfToTxt($fileHnd, $params=array())
     {
@@ -46,19 +48,29 @@ class docoffice_Pdf
         $Script->callBack($params['callBack']);
         
         // Други необходими променливи
+        $Script->params = serialize($params);
         $Script->fileInfoId = $params['fileInfoId'];
         $Script->outFilePath = $outFilePath;
-        $Script->fh = $fileHnd;
         
         $params['errFilePath'] = $errFilePath;
         
-        fileman_Indexes::haveErrors($outFilePath, $params);
+        if (!$params['isPath']) {
+            $Script->fh = $fileHnd;
+        }
         
         $Script->setCheckProgramsArr('pdftotext');
         // Стартираме скрипта синхронно
         if ($Script->run($params['asynch']) === FALSE) {
             fileman_Indexes::createError($params);
         }
+        
+        $text = '';
+        if (!$params['asynch']) {
+            $text = @file_get_contents($outFilePath);
+            $text = i18n_Charset::convertToUtf8($text, 'UTF-8');
+        }
+        
+        return $text;
     }
     
     

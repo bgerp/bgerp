@@ -31,9 +31,9 @@ class sens_OverviewDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, 
+    var $loadList = 'plg_Created, plg_RowTools2, 
                           plg_Printing, sens_Wrapper, plg_Sorting, 
-                          Overviews=sens_Overviews';
+                          Overviews=sens_Overviews,plg_PrevAndNext, plg_SaveAndNew';
     
     
     /**
@@ -45,14 +45,8 @@ class sens_OverviewDetails extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'overviewId, blockTitle, tools=Ред';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'tools';
-    
+    var $listFields = 'overviewId, blockTitle';
+
     
     /**
      * Активния таб в случай, че wrapper-а е таб контрол..

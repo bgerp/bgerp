@@ -2,7 +2,7 @@
 
 
 /**
- * URL за изпращане на СМС-и през clickatell
+ * URL за изпращане на SMS-и през clickatell
  */
 defIfNot('CLICKATELL_URL', 'https://api.clickatell.com/http/sendmsg?callback=2&api_id=[#APIID#]&user=[#USERNAME#]&password=[#PASSWORD#]&to=[#PHONE#]&text=[#MESSAGE#]&from=[#FROM#]');
 
@@ -79,7 +79,7 @@ class clickatell_Setup extends core_ProtoSetup
      * 
      */
     var $configDescription = array (
-        'CLICKATELL_URL' => array('url', 'caption=Адрес за изпращане на СМС-и->URL адрес'),
+        'CLICKATELL_URL' => array('url', 'caption=Адрес за изпращане на SMS-и->URL адрес'),
         'CLICKATELL_CHECK_URL' => array('url', 'caption=Адрес за проверка на връзката с clickatell->URL адрес'),
         'CLICKATELL_APIID' => array('varchar', 'mandatory, caption=Идентификатор на приложението->API_ID'),
         'CLICKATELL_USERNAME' => array('varchar', 'mandatory,caption=Потребителско име->Ник'),

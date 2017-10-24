@@ -38,13 +38,25 @@ class email_Returned extends email_ServiceEmails
     static function process($mime, $accId, $uid)
     {
         // Извличаме информация за вътрешния системен адрес, към когото е насочено писмото
-        $soup = $mime->getHeader('X-Original-To', '*') .
-                $mime->getHeader('Delivered-To', '*') .
+        $soup = $mime->getHeader('X-Original-To', '*') . ' ' .
+                $mime->getHeader('Delivered-To', '*') . ' ' .
                 $mime->getHeader('To', '*');
-
+        
         if (!preg_match('/^.+\+returned=([a-z]+)@/i', $soup, $matches)) {
             
-            return;
+            if ($accId && preg_match('/^.+returned=([a-z]+)@/i', $soup) && ($accRec = email_Accounts::fetch($accId))) {
+                if ($accRec->email) {
+                    list($accEmail) = explode('@', $accRec->email);
+                }
+                
+                if ($accEmail) {
+                    $accEmail = preg_quote($accEmail, '/');
+                    
+                    preg_match("/^.+{$accEmail}returned=([a-z]+)@/i", $soup, $matches);
+                }
+            }
+            
+            if (empty($matches)) return;
         }
         
         $mid = $matches[1];
@@ -72,6 +84,8 @@ class email_Returned extends email_ServiceEmails
             $rec->createdOn = dt::verbal2mysql();
 
             self::save($rec);
+            
+            self::logNotice('Върнат имейл', $rec->id);
         }
 
         return $isReturnedMail;

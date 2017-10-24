@@ -32,13 +32,13 @@ class eshop_Products extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, eshop_Wrapper, plg_State2, cms_VerbalIdPlg, plg_Search';
+    public $loadList = 'plg_Created, plg_RowTools2, eshop_Wrapper, plg_State2, cms_VerbalIdPlg, plg_Search, plg_Sorting';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name,groupId,state';
+    public $listFields = 'code,name,groupId,state';
     
     
     /**
@@ -119,7 +119,8 @@ class eshop_Products extends core_Master
     function description()
     {
         $this->FLD('code', 'varchar(10)', 'caption=Код');
-        $this->FLD('groupId', 'key(mvc=eshop_Groups,select=name)', 'caption=Група, mandatory, silent');
+        $this->FLD('order', 'int', 'caption=Подредба');
+        $this->FLD('groupId', 'key(mvc=eshop_Groups,select=name,allowEmpty)', 'caption=Група, mandatory, silent');
         $this->FLD('name', 'varchar(64)', 'caption=Продукт, mandatory,width=100%');
         
         $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация1');
@@ -162,13 +163,13 @@ class eshop_Products extends core_Master
     /**
      * Проверка за дублиран код
      */
-    protected static function on_AfterInputeditForm($mvc, $form)
+    protected static function on_AfterInputEditForm($mvc, $form)
     {
     	$rec = $form->rec;
     	
     	$isMandatoryMeasure = FALSE;
     	if($form->rec->coDriver){
-    		$protoProducts = cat_Categories::getProtoOptions($form->rec->coDriver);
+    		$protoProducts = doc_Prototypes::getPrototypes('cat_Products', $form->rec->coDriver);
     	
     		if(count($protoProducts)){
     			$form->setField('proto', 'input');
@@ -210,17 +211,24 @@ class eshop_Products extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-        if($rec->code) {
-            $row->code = "<span>" . tr('Код') . ": <b>{$row->code}</b></span>";
+    	// Ако няма МКП. но има драйвер взимаме МКП-то от драйвера
+        if(empty($rec->coMoq) && isset($rec->coDriver)){
+            if(cls::load($rec->coDriver, TRUE)){
+            	if($Driver = cls::get($rec->coDriver)){
+            		if($moq = $Driver->getMoq()){
+            			$rec->coMoq = $moq;
+            		}
+            	}
+            }
         }
- 
-        if($rec->coMoq) {
+    	
+    	if($rec->coMoq) {
         	$row->coMoq = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($rec->coMoq);
         }
 
         if($rec->coDriver) {
             if(marketing_Inquiries2::haveRightFor('new')){
-            	$title = tr('Изпратете запитване за') . ' ' . tr($rec->name);
+            	$title = 'Изпратете запитване за|* ' . tr($rec->name);
             	Request::setProtected('title,drvId,protos,moq,quantityCount,lg,measureId');
             	$lg = cms_Content::getLang();
             	if(cls::load($rec->coDriver, TRUE)){
@@ -231,7 +239,10 @@ class eshop_Products extends core_Master
             			$defUom = NULL;
             		}
             		
-            		setIfNot($uomId, $mvc->getUomFromDriver($rec), $rec->measureId, $defUom, cat_UoM::fetchBySysId('pcs')->id);
+            		setIfNot($uomId, $mvc->getUomFromDriver($rec), $rec->measureId, $defUom);
+            		if(empty($rec->proto) && !isset($uomId)){
+            			$uomId = cat_UoM::fetchBySysId('pcs')->id;
+            		}
             		$url['measureId'] = $uomId;
             		$row->coInquiry = ht::createLink(tr('Запитване'), $url, NULL, "ef_icon=img/16/button-question-icon.png,title={$title}");
             	}
@@ -242,7 +253,7 @@ class eshop_Products extends core_Master
             $row->name = ht::createLink($row->name, self::getUrl($rec), NULL, 'ef_icon=img/16/monitor.png');
         }
         
-        if(!cls::load($rec->coDriver, TRUE)){
+        if(isset($rec->coDriver) && !cls::load($rec->coDriver, TRUE)){
         	$row->coDriver = "<span class='red'>" . tr('Несъществуващ клас') . "</span>";
         }
     }
@@ -254,6 +265,13 @@ class eshop_Products extends core_Master
     public static function prepareAllProducts($data)
     {
         $gQuery = eshop_Groups::getQuery();
+
+        $groups = eshop_Groups::getGroupsByDomain();
+        if(count($groups)) {
+            $groupList = implode(',', array_keys($groups));
+            $gQuery->where("#id IN ({$groupList})");
+        }
+
         while($gRec = $gQuery->fetch("#state = 'active'")) {
             $data->groups[$gRec->id] = new stdClass();
             $data->groups[$gRec->id]->groupId = $gRec->id;
@@ -269,7 +287,7 @@ class eshop_Products extends core_Master
     public static function prepareGroupList($data)
     {
         $pQuery = self::getQuery();
-        $pQuery->orderBy("#code");
+        $pQuery->orderBy("#order,#code");
         while($pRec = $pQuery->fetch("#state = 'active' AND #groupId = {$data->groupId}")) {
             $data->recs[] = $pRec;
             $pRow = $data->rows[] = self::recToVerbal($pRec, 'name,info,image,code,coMoq');
@@ -579,8 +597,25 @@ class eshop_Products extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-    	$data->listFilter->showFields = 'search';
+    	$data->listFilter->showFields = 'search,groupId';
     	$data->listFilter->view = 'horizontal';
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        $rec = $data->listFilter->input(NULL, 'silent');
+
+ 
+        $data->listFilter->setField('groupId', 'autoFilter');
+        
+        if($rec->groupId) {
+            $data->query->where("#groupId = {$rec->groupId}");
+        } else {
+
+            $groups = eshop_Groups::getGroupsByDomain();
+            if(count($groups)) {
+                $groupList = implode(',', array_keys($groups));
+                $data->query->where("#groupId IN ({$groupList})");
+                $data->listFilter->setOptions('groupId', $groups);
+            }
+        }
     }
 }

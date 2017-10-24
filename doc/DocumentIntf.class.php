@@ -210,10 +210,11 @@ class doc_DocumentIntf
      * в които може да бъде добавен документ от типа на $mvc
      * 
      * @param core_Query $query   Заявка към doc_Folders
+     * @param boolean $viewAccess
      */
-    function restrictQueryOnlyFolderForDocuments($query)
+    function restrictQueryOnlyFolderForDocuments($query, $viewAccess = FALSE)
     {
-    	return $this->class->restrictQueryOnlyFolderForDocuments($query);
+        return $this->class->restrictQueryOnlyFolderForDocuments($query, $viewAccess);
     }
     
     

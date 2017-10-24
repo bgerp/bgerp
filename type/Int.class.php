@@ -101,10 +101,10 @@ class type_Int extends core_Type {
 
         // Шаблон за намиране на повтарящи се знаци или изрази, които започват и/или завършват с тях
         $signP = '(\*|\/|\+|\-|\.|\,)';
-        $pattern = "/(^(\s*(\*|\/)\s*))|({$signP}{1}\s*{$signP}+)|((\s*{$signP}\s*)$|([^\.|\,]*(\.|\,)[^{$signP}]*(\.|\,)[^\.|\,]*))/";
+        $pattern = "/(^(\s*(\*|\/)\s*))|({$signP}{1}\s*{$signP}+)|((\s*{$signP}\s*)$|([^\.|\,]*(\.|\,)[^{$signP}]*(\.|\,)[^\.|\,]*))|\=|[^0-9\(\)]{1}[^0-9\(\)]{1}/";
         
         if(!preg_match($pattern, $val) && @eval('return TRUE;' . $code)) {
-            eval($code);
+            @eval($code);
             
             return (int) $val;
         } else {
@@ -166,7 +166,8 @@ class type_Int extends core_Type {
         $conf = core_Packs::getConfig('core');
         
         if(strlen($value) > 4) {
-            $value = number_format($value, 0, html_entity_decode($conf->EF_NUMBER_DEC_POINT), html_entity_decode($conf->EF_NUMBER_THOUSANDS_SEP));
+            $ts = Mode::is('forSearch') ? '' : $conf->EF_NUMBER_THOUSANDS_SEP;
+            $value = number_format($value, 0, html_entity_decode($conf->EF_NUMBER_DEC_POINT), html_entity_decode($ts));
         }
         
     	if(!Mode::is('text', 'plain')) {

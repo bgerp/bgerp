@@ -13,7 +13,7 @@ defIfNot("SENDER_EMAIL", 'team@example.com');
 
 
 /**
- * Стандартен и-мейл на изпращача
+ * Стандартен код на държавата
  */
 defIfNot("COUNTRY_PHONE_CODE", '359');
 
@@ -39,13 +39,13 @@ defIfNot('TEL_LINK_NARROW', 'yes');
 /**
  * Кеширане на информацията за VAT номерата
  */
-defIfNot('DRDATA_VAT_TTL', 2 * type_Time::SECONDS_IN_MONTH);
+defIfNot('DRDATA_VAT_TTL', 2 * core_DateTime::SECONDS_IN_MONTH);
 
 
 /**
  * До колко време след последното използване да се проверяват
  */
-defIfNot('DRDATA_LAST_USED_EXP', type_Time::SECONDS_IN_MONTH);
+defIfNot('DRDATA_LAST_USED_EXP', core_DateTime::SECONDS_IN_MONTH);
 
 
 /**

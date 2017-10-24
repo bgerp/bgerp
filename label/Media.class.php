@@ -75,17 +75,17 @@ class label_Media extends core_Manager
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие, mandatory, width=100%, silent');
         
-        $this->FLD('width', 'int(min=1, max=1000)', 'caption=Размер->Широчина, unit=mm, notNull, mandatory');
-        $this->FLD('height', 'int(min=1, max=1000)', 'caption=Размер->Височина, unit=mm, notNull, mandatory');
+        $this->FLD('width', 'double(Min=0, max=1000, decimals=1, smartRound)', 'caption=Размер->Широчина, unit=mm, notNull, mandatory');
+        $this->FLD('height', 'double(Min=0, max=1000, decimals=1, smartRound)', 'caption=Размер->Височина, unit=mm, notNull, mandatory');
         
-        $this->FLD('fieldUp', 'int', 'caption=Отстъпи->Отгоре, value=0, title=Поле на листа отгоре, unit=mm, notNull');
-        $this->FLD('fieldLeft', 'int', 'caption=Отстъпи->Отляво, value=0, title=Поле на листа отляво, unit=mm, notNull');
+        $this->FLD('fieldUp', 'double(min=-1000, max=1000, decimals=1, smartRound)', 'caption=Отстъпи->Отгоре, value=0, title=Поле на листа отгоре, unit=mm, notNull');
+        $this->FLD('fieldLeft', 'double(min=-1000, max=1000, decimals=1, smartRound)', 'caption=Отстъпи->Отляво, value=0, title=Поле на листа отляво, unit=mm, notNull');
         
         $this->FLD('columnsCnt', 'int(min=1, max=10)', 'caption=Колони->Брой, value=1, title=Брой колони в един лист, mandatory, notNull');
-        $this->FLD('columnsDist', 'int(min=-20, max=200)', 'caption=Колони->Междина, value=0, title=Разстояние на колоните в един лист, unit=mm, notNull');
+        $this->FLD('columnsDist', 'double(min=-20, max=200, decimals=1, smartRound)', 'caption=Колони->Междина, value=0, title=Разстояние на колоните в един лист, unit=mm, notNull');
         
         $this->FLD('linesCnt', 'int(min=1, max=50)', 'caption=Редове->Брой, value=1, title=Брой редове в един лист, mandatory, notNull');
-        $this->FLD('linesDist', 'int(min=-20, max=200)', 'caption=Редове->Междина, value=0, title=Разстояние на редовете в един лист, unit=mm, notNull');
+        $this->FLD('linesDist', 'double(min=-20, max=200, decimals=1, smartRound)', 'caption=Редове->Междина, value=0, title=Разстояние на редовете в един лист, unit=mm, notNull');
         
         $this->setDbUnique('title');
     }
@@ -226,14 +226,14 @@ class label_Media extends core_Manager
         setIfNot($data->pageLayout->linesCnt, 1);
         
         // Отместване на цялата страница
-        $data->pageLayout->up = (int) ($rec->fieldUp) . 'mm';
-        $data->pageLayout->left = (int) ($rec->fieldLeft) . 'mm';
+        $data->pageLayout->up = (double) $rec->fieldUp . 'mm';
+        $data->pageLayout->left = (double) $rec->fieldLeft . 'mm';
 
         // Отместване на колона
-        $data->pageLayout->columnsDist = (int) $rec->columnsDist . 'mm';
+        $data->pageLayout->columnsDist = (double) $rec->columnsDist . 'mm';
         
         // Отместване на ред 
-        $data->pageLayout->linesDist = (int) $rec->linesDist . 'mm';
+        $data->pageLayout->linesDist = (double) $rec->linesDist . 'mm';
     }
 
     
@@ -299,7 +299,7 @@ class label_Media extends core_Manager
      * @param stdClass $rec
      * @param int $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Активните записи да не може да се редактират или изтриват
         if ($rec && ($action == 'edit' || $action == 'delete')) {
@@ -311,13 +311,9 @@ class label_Media extends core_Manager
     
     
     /**
-     * 
-     * 
-     * @param label_Labels $mvc
-     * @param object $row
-     * @param object $rec
+     * След подготовка на вербалното представяне
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->title = $row->title . " " . self::getSize($row->width, $row->height);
     }

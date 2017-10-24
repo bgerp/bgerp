@@ -47,13 +47,7 @@ defIfNot('SENDMAIL_PATH', '/usr/sbin/sendmail');
 /**
  * Дефинираме пътя до кода на PHP_Mailer
  */
-defIfNot('PML_VERSION', '5.2');
-
-
-/**
- * Да изпраща ли по единично писмата от адресите в 'To:'
- */
-defIfNot('PML_SINGLE_TO', 0);
+defIfNot('PML_VERSION', '5.2.8');
 
 
 /**
@@ -129,7 +123,6 @@ class phpmailer_Setup extends core_ProtoSetup
             'PML_CHARSET'   => array ('varchar', 'mandatory, caption=Имейл съобщение->Kодировка'),
             'PML_FROM_EMAIL'   => array ('email', 'mandatory, caption=Имейл съобщение->Адрес `From`'),
             'PML_FROM_NAME'  => array ('varchar', 'mandatory, caption=Имейл съобщение->Име `From`'),
-    		'PML_SINGLE_TO' => array('enum(1=Индивидуални имейли, 0=Общ имейл)', 'caption=При повече от един адрес в `To`->Изпращане като,row=2'),
             'PML_MAILER' => array ('enum(mail=mail, sendmail=sendmail, smtp=smtp)', 'caption=Изпращане на писма->Метод'),  
             'SENDMAIL_PATH'  => array ('varchar', 'caption=Sendmail->Пътя до папката'),
             'PML_HOST'  => array ('varchar', 'caption=Smtp->Хост'),
@@ -138,7 +131,7 @@ class phpmailer_Setup extends core_ProtoSetup
     		'PML_USERNAME'  => array ('varchar', 'caption=Smtp->Потребител'),
     		'PML_PASSWORD'  => array ('varchar', 'caption=Smtp->Парола'),
     		'PML_SMTPSECURE'  => array ('enum(tls=TLS, ssl=SSL, 0=няма)', 'caption=Smtp->Криптиране'),
-    		'PML_VERSION'  => array ('enum(5.2, 5.2.8)', 'caption=PML->Версия'),
+    		'PML_VERSION'  => array ('enum(5.2.8, 5.2.22)', 'caption=PML->Версия'),
         );
 
         

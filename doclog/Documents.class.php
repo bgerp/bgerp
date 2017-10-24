@@ -222,7 +222,7 @@ class doclog_Documents extends core_Manager
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption=Контейнер');
         
         // MID на документа
-        $this->FLD('mid', 'varchar', 'input=none,caption=Ключ,column=none');
+        $this->FLD('mid', 'varchar(8,ci)', 'input=none,caption=Ключ,column=none');
         
         $this->FLD('parentId', 'key(mvc=doclog_Documents, select=action)', 'input=none,caption=Основание');
         
@@ -246,7 +246,9 @@ class doclog_Documents extends core_Manager
         $this->FNC('service', 'class(interface=email_SentFaxIntf, select=title)', 'input=none');
         
         $this->setDbIndex('containerId');
-        
+        $this->setDbIndex('mid');
+        $this->setDbIndex('threadId');
+
         $this->setDbUnique('containerId, action, mid');
     } 
     
@@ -1252,15 +1254,15 @@ class doclog_Documents extends core_Manager
             }
         }
         
+        // Записите да се подреждат по дата в обратен ред
+        $query->orderBy('createdOn', 'DESC');
+        
         // Ако е подаден обект за странициране
         if ($pager) {
             
             // Задаваме лимита за странициране
             $pager->setLimit($query);
         }
-        
-        // Записите да се подреждат по дата в обратен ред
-        $query->orderBy('createdOn', 'DESC');
         
         $recsArr = array();
         
@@ -1863,11 +1865,6 @@ class doclog_Documents extends core_Manager
             static::pushAction($rec);
         }
         
-        // Съобщение в лога
-        $doc = doc_Containers::getDocument($rec->containerId);
-		$docInst = $doc->getInstance();
-		$docInst->logWrite("Промяна", $doc->that, DOCLOG_DOCUMENTS_DAYS);
-        
         return $rec;
     }
     
@@ -2107,6 +2104,8 @@ class doclog_Documents extends core_Manager
             $data[$rec->containerId]->containerId = $rec->containerId;
         }
         
+        // Показваме използванията
+        $cArr = array();
         $contQuery = doc_Containers::getQuery();
         $contQuery->where("#threadId = {$threadId}");
         while ($cRec = $contQuery->fetch()) {
@@ -2115,7 +2114,12 @@ class doclog_Documents extends core_Manager
                 $data[$cRec->id]->containerId = $cRec->id;
             }
             
-            $data[$cRec->id]->summary[$used] = doclog_Used::getUsedCount($cRec->id);
+            $cArr[$cRec->id] = $cRec->id;
+        }
+        
+        $allUsedCount = doclog_Used::getAllUsedCount($cArr);
+        foreach ($allUsedCount as $cId => $cnt) {
+            $data[$cId]->summary[$used] = $cnt;
         }
         
         return $data;
@@ -2253,7 +2257,7 @@ class doclog_Documents extends core_Manager
                 if ($data->containerId) {
                     $document = doc_Containers::getDocument($data->containerId);
                 }
-                if($document->haveRightFor('single') && !core_Users::haveRole('collaborator')){
+                if($document->haveRightFor('single') && !core_Users::haveRole('partner')){
                     $linkArr = static::getLinkToSingle($data->containerId, $actionToTab[$action]);
                 }
             } catch (core_exception_Expect $e) {
@@ -2419,33 +2423,25 @@ class doclog_Documents extends core_Manager
      * 
      * @param URL $url - URL от системата, в който ще се търси
      * 
-     * @return integer $cid - Container id на документа
+     * @return integer|NULL $cid - Container id на документа
      */
     static function getDocumentCidFromURL($url)
     {
         // Проверяваме дали URL' то е от нашата система
-        if (!static::isOurURL($url)) {
-            
-            return ;
-        }
+        if (!core_Url::isLocal($url, $rest)) return ;
         
-        // Вземаме cid'a и mid' а от URL' то
-        $cidAndMidArr = static::getCidAndMidFromUrl($url);
+        $urlArr = type_Richtext::parseInternalUrl($rest);
         
-        // Ако няма cid или мид
-        if (!count($cidAndMidArr)) {
-            
-            return ;
-        }
+        $cid = $urlArr['id'];
+        $mid = $urlArr['m'];
+        
+        if (!$cid || !$mid) return ;
         
         // Вземам записа за съответния документ в лога
-        $rec = doclog_Documents::fetchHistoryFor($cidAndMidArr['cid'], $cidAndMidArr['mid']);
+        $rec = doclog_Documents::fetchHistoryFor($cid, $mid);
         
         // Ако няма запис - mid' а не е правилен
-        if (!$rec) {
-            
-            return ;
-        }
+        if (!$rec) return ;
         
         // Ако записа има parentId
         if ($rec->parentId) {
@@ -2458,64 +2454,6 @@ class doclog_Documents extends core_Manager
         }
         
         return $cid;
-    }
-    
-    
-    /**
-     * Проверява подаденото URL далу е от системата.
-     * 
-     * @param URL $url - Линка, който ще се проверява
-     * 
-     * @return boolean - Ако открие съвпадение връща TRUE
-     */
-    static function isOurURL($url)
-    {
-        // Изчистваме URL' то от празни символи
-        $url = trim($url);
-        
-        // Ако открием търсенто URL в позиция 0
-        if (stripos($url, core_App::getBoot(TRUE)) === 0) {
-            return TRUE;
-        }
-        
-        return FALSE;
-    }
-    
-    
-    /**
-     * Връща cid' а и mid' а от подаденото URL
-     * 
-     * @param string $url - Линка, в който ще се търси
-     * 
-     * @return array $res - Масив с ['cid'] и ['mid']
-     */
-    static function getCidAndMidFromUrl($url)
-    {
-        $bootUrl = core_App::getBoot(TRUE);
-        
-        // Ескейпваме името на директорията. Също така, допълнително ескейпваме и '/'
-        $bootUrlEsc = preg_quote($bootUrl, '/');
-        
-        // Шаблон за намиране на mid'a и cid'а в URL
-        // Шаблона работи само ако:
-        // Класа е L
-        // Екшъна е B или S
-        // Веднага след тях следва ?m= за мида
-        $pattern = "/(?'boot'{$bootUrlEsc}{1})\/(?'ctr'[L]{1})\/(?'act'[B|S]{1})\/(?'cid'[^\/]+)\/\?m\=(?'mid'[^$]+)/i";
-
-        // Проверявама дали има съвпадение
-        preg_match($pattern, $url, $matches);
-        
-        $res = array();
-        
-        // Ако намери cid и mid
-        if (($matches['cid']) && ($matches['mid'])) {
-            
-            $res['cid'] = $matches['cid'];
-            $res['mid'] = $matches['mid'];
-        }
-
-        return $res;
     }
     
     

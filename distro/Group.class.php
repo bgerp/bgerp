@@ -96,7 +96,8 @@ class distro_Group extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'distro_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_RowTools, plg_Search, plg_Printing, bgerp_plg_Blank, doc_SharablePlg, plg_Clone';
+    public $loadList = 'distro_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_RowTools2, plg_Search, plg_Printing, 
+                        bgerp_plg_Blank, doc_SharablePlg, plg_Clone,doc_plg_SelectFolder';
     
     
     /**
@@ -149,6 +150,12 @@ class distro_Group extends core_Master
         $this->FLD('title', 'varchar(128,ci)', 'caption=Заглавие, mandatory, width=100%');
         $this->FLD('repos', 'keylist(mvc=distro_Repositories, select=name, where=#state !\\= \\\'rejected\\\', select2MinItems=6)', 'caption=Хранилища, mandatory, width=100%, maxColumns=3');
     }
+    
+    
+    /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
     
     
     /**

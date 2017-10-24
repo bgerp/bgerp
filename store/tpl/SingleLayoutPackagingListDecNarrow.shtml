@@ -2,8 +2,8 @@
    <table class="innerTable border-table paddingCells">
         <tbody>
             <tr>
-                <td colspan="2" class='centered'>
-                    <div class="document-title">PACKAGING LIST</div>
+                <td class='centered'>
+                    <div class="document-title">PACKING LIST</div>
                     <!--ET_BEGIN operationSysId-->
                     <small>( [#operationSysId#] )</small>
                     <!--ET_END operationSysId-->
@@ -16,8 +16,7 @@
                 </td>
             </tr>
             <tr>
-                <td class="cell custom-header-bg"  style="width: 50%"><b>Receiver</b></td>
-                <td class="cell custom-header-bg"><b>Supplier</b></td>
+                <td class="cell custom-header-bg"><b>Receiver</b></td>
             </tr>
             <tr>
                 <td class="cell">
@@ -33,6 +32,11 @@
                     </div>
                     <!--ET_END locationId-->
                 </td>
+            </tr>
+            <tr>
+                <td class="cell custom-header-bg"><b>Supplier</b></td>
+            </tr>
+            <tr>
                 <td class="cell">
                     <b>[#MyCompany#]</b>
                     <div class='address-block'>
@@ -64,7 +68,7 @@
                      <table class='shipment-table' style='width: 100%'>
                         <!--ET_BEGIN deliveryTime-->
                         <tr>
-                            <td style='width:1%' class='nowrap quiet aright'>Delivery time:</td>
+                            <td style='width:1%' class='nowrap quiet aright'>Loading time:</td>
                             <td>[#deliveryTime#]</td>
                         </tr>
                         <!--ET_END deliveryTime-->
@@ -93,8 +97,11 @@
                         <!--ET_END note-->
                     </table>
                     <hr>
-                    <div class='clearfix21' style='margin-bottom: 5px;'><span class='half-col'>Total weight:&nbsp;[#weight#]</span>  <span class='half-col'>Total volume:&nbsp;[#volume#]</span>
-                        <!--ET_BEGIN colletsCount--><span class='half-col'>Collets count calced:&nbsp;[#colletsCount#]</span><!--ET_END colletsCount--> <!--ET_BEGIN palletCountInput--><span class='half-col'>Collets count: [#palletCountInput#]</span><!--ET_END palletCountInput--></div>
+                    <div class='clearfix21' style='margin-bottom: 5px;'>
+                        <span class='half-col'>Total weight:&nbsp;[#weight#]</span>  <span class='half-col'>Total volume:&nbsp;[#volume#]</span>
+                    </div>
+                    <div class='clearfix21'>
+                    <!--ET_BEGIN logisticInfo--><div style='margin-bottom:3px;margin-top:3px;'>|Logistic units|*:&nbsp;[#logisticInfo#]</div><!--ET_END logisticInfo--> 
 
                     <hr>
                     <!--ET_BEGIN responsible-->
@@ -115,15 +122,10 @@
 </div>
 <div style='margin-top:20px'>
     <a href="javascript:toggleDisplay([#id#])"  style="font-weight:bold; background-image:url([#iconPlus#]);"
-        class="linkWithIcon">Delivery confirmation</a>
+       class="linkWithIcon more-btn">Delivery confirmation</a>
     <div class='clearfix21 richtextHide' id='[#id#]'>
-        <div>We, [#contragentName#]</div>
-        <div>address: <br>[#contragentAddress#]</div>
-        <div>VAT ID: [#vatNo#]</div>
-        <br>
-        <div>confirm that the goods shown in invoice № <b>.......</b> were received on the following address:</div>
-        <div>[#deliveryAddress#]</div>
-        <br>
+        <div class="indent">We, [#toCompany#]<!--ET_BEGIN inlineContragentAddress-->, address: [#inlineContragentAddress#]<!--ET_END inlineContragentAddress--><!--ET_BEGIN vatNo-->, VAT ID: [#vatNo#]<!--ET_END vatNo-->,</div>
+        <div>confirm that the goods <!--ET_BEGIN invoiceHandler-->shown in invoice № <b>[#invoiceHandler#]</b><!--ET_END invoiceHandler--> were received<!--ET_BEGIN inlineDeliveryAddress--> on the following address: [#inlineDeliveryAddress#]<!--ET_END inlineDeliveryAddress-->.</div>
         <table class="fleft signature-table" style='width: 30%'>
             <tr>
                 <td style='width:1%;'>Date:  </td>
@@ -136,7 +138,7 @@
         </table>
         <table class="fright signature-table" style='width: 45%'>
             <tr>
-                <td>company stamp and signature:  </td>
+                <td>Company stamp and signature:  </td>
                 <td></td>
             </tr>
             <tr>
@@ -145,5 +147,5 @@
             </tr>
         </table>
         <div class='clearfix21'></div>
-        </div>
+    </div>
 </div>

@@ -12,7 +12,7 @@
             <!--ET_BEGIN state-->
             <div class="state [#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
             <!--ET_END state-->
-            <small class='quiet2'>( |наличности към|* <b>[#toDate#]</b> )</small>
+            <small class='quiet2'>( |наличности към края на|* <b>[#toDate#]</b> )</small>
          </td>
          <td class="cell custom-header-bg vtop" style='width:33%;'><b>|Организация|*</b></td>
       </tr>
@@ -47,6 +47,7 @@
       [#store_InventoryNoteSummary#]
    </div>
 </div>
+<!--ET_BEGIN COUNTER-->
 <div class="lines"></div>
 <table style="width: 100%;" class="table-border">
     <tr>
@@ -75,7 +76,7 @@
             </span>
         </td>
     </tr>
-
 </table>
+<!--ET_END COUNTER-->
 <div class="clearfix21"></div>
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

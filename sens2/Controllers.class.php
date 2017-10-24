@@ -20,7 +20,7 @@ class sens2_Controllers extends core_Master
     /**
      * Необходими плъгини
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, plg_State2, plg_Rejected, sens2_Wrapper';
+    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools2, plg_State2, plg_Rejected, sens2_Wrapper';
                       
     
     /**
@@ -529,7 +529,7 @@ class sens2_Controllers extends core_Master
     /**
 	 * За да не могат да се изтриват активните контролери
 	 */
-    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{  
    		if($action == 'delete') {
 	    	if($rec->state != 'closed'){

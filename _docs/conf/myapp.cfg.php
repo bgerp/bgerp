@@ -32,8 +32,8 @@ DEFINE('EF_DB_PASS', 'USER_PASSWORD_FOR_DB');
 // Сървъра за на базата данни
 DEFINE('EF_DB_HOST', 'localhost');
  
-// Кодировка на забата данни
-DEFINE('EF_DB_CHARSET', 'utf8');
+// Кодировка на базата данни
+// DEFINE('EF_DB_CHARSET', 'utf8');
 
 
 /**
@@ -62,6 +62,10 @@ DEFINE('EF_APP_TITLE', 'bgERP');
 * Някои от другите възможни константи              *
 *                                                  *
 ****************************************************/ 
+
+// Път до gs файла
+# DEFINE('FILEMAN_GHOSTSCRIPT_PATH', '/var/www/ghostscript-9.20-linux-x86_64/gs-920-linux_x86_64');
+
 
 // Базова директория, където се намират по-директориите за
 // временните файлове. По подразбиране е в

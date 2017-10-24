@@ -13,7 +13,7 @@
  * @since     v 0.1
  * @title     Символи
  */
-class cond_type_Varchar extends cond_type_Proto
+class cond_type_Varchar extends cond_type_abstract_Proto
 {
 	
 	
@@ -38,12 +38,14 @@ class cond_type_Varchar extends cond_type_Proto
 	 * Връща инстанция на типа
 	 *
 	 * @param stdClass $rec      - запис на параметъра
+	 * @param mixed $domainClass - клас на домейна
+	 * @param mixed $domainId    - ид на домейна
 	 * @param NULL|string $value - стойност
 	 * @return core_Type         - готовия тип
 	 */
-	public function getType($rec, $value = NULL)
+	public function getType($rec, $domainClass = NULL, $domainId = NULL, $value = NULL)
 	{
-		$Type = parent::getType($rec);
+		$Type = parent::getType($rec, $domainClass, $domainId, $value);
 	
 		if(isset($rec->lenght)){
 			$Type = cls::get($Type, array('params' => array('size' => $rec->lenght)));

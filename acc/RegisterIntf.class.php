@@ -41,18 +41,6 @@ class acc_RegisterIntf
     
     
     /**
-     * Хипервръзка към този обект
-     *
-     * @param int $objectId ид на обект от регистъра, имплементиращ този интерфейс
-     * @return mixed string или ET (@see ht::createLink())
-     */
-    function getLinkToObj($objectId)
-    {
-        return $this->class->getLinkToObj($objectId);
-    }
-    
-    
-    /**
      * Нотифицира регистъра, че обекта е станал (или престанал да бъде) перо
      *
      * @param int $objectId ид на обект от регистъра, имплементиращ този интерфейс
@@ -61,5 +49,17 @@ class acc_RegisterIntf
     function itemInUse($objectId, $inUse)
     {
         return $this->class->itemInUse($objectId, $inUse);
+    }
+    
+    
+    /**
+     * Връща сметките, върху които може да се задават лимити на перото
+     * 
+     * @param stdClass $rec
+     * @return array
+     */
+    public static function getLimitAccounts($rec)
+    {
+    	return $this->class->getLimitAccounts($rec);
     }
 }

@@ -31,12 +31,13 @@ class plg_State extends core_Plugin
     {
         if (!$mvc->fields['state']) {
             $mvc->FLD('state',
-                'enum(draft=Чернова,
-                  pending=Чакащ,
+                 'enum(draft=Чернова,
+                  pending=Заявка,
+            	  waiting=Чакащ,
                   active=Активен,
                   opened=Отворен,
-                  closed=Приключен,
-                  hidden=Скрито,
+                  closed=Закрит,
+                  hidden=Скрит,
                   rejected=Оттеглен,
                   stopped=Спрян,
                   wakeup=Събуден,

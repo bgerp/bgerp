@@ -38,22 +38,8 @@ class tasks_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
-    		'tasks_TaskConditions',
+    		//'tasks_TaskConditions',
         );
-    
-    
-    /**
-     * Настройки за Cron
-     */
-    var $cronSettings = array(
-    		array(
-    				'systemId'    => "Update Tasks States",
-    				'description' => "Промяна на състоянията на задачите",
-    				'controller'  => "tasks_Tasks",
-    				'action'      => "UpdateTasksStates",
-    				'period'      => 1,
-    		)
-    );
     
     
     /**

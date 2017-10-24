@@ -42,7 +42,7 @@ class cond_Payments extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools, plg_State2, cond_Wrapper, acc_plg_Registry';
+    public $loadList = 'plg_Created, plg_RowTools2, plg_State2, cond_Wrapper, acc_plg_Registry';
 
     
     /**
@@ -52,39 +52,33 @@ class cond_Payments extends core_Manager {
     
     
     /**
-     * Кой може да го прочете?
-     */
-    public $canRead = 'ceo, cond';
-    
-    
-    /**
      * Кой може да променя?
      */
-    public $canWrite = 'ceo, cond';
+    public $canWrite = 'no_one';
     
     
     /**
 	 * Кой може да променя състоянието на валутата
 	 */
-    public $canChangestate = 'ceo,cond,admin';
+    public $canChangestate = 'no_one';
     
     
     /**
      * Кой може да го отхвърли?
      */
-    public $canReject = 'ceo, cond';
+    public $canReject = 'ceo,admin';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,cond';
+	public $canList = 'ceo,admin';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,cond';
+	public $canSingle = 'ceo,admin';
 	
 	
 	/**

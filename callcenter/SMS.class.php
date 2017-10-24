@@ -382,6 +382,7 @@ class callcenter_SMS extends core_Master
         return $uid;
     }
     
+    
     /**
      * Подготвя текстовата част
      * 
@@ -620,7 +621,7 @@ class callcenter_SMS extends core_Master
         
         // Добавяме бутоните на формата
         $form->toolbar->addSbBtn('Изпрати', 'save', 'ef_icon = img/16/sms_icon.png');
-        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png');
         
         // Добавяме титлата на формата
         $form->title = "Изпращане на SMS";
@@ -866,6 +867,195 @@ class callcenter_SMS extends core_Master
                 }
             }
         } 
+    }
+    
+    
+    /**
+     * Екшън за изпращане на циркулярни съобщения от източник на данни
+     */
+    function act_blastSms()
+    {
+        Request::setProtected(array('perSrcClassId', 'perSrcObjectId'));
+        
+        $objId = Request::get('perSrcObjectId', 'int');
+        $clsId = Request::get('perSrcClassId', 'int');
+        
+        expect($objId && $clsId);
+        
+        $clsInst = cls::get($clsId);
+        
+        expect($clsInst->canUsePersonalization($objId));
+        
+        $objRec = $clsInst->fetch($objId);
+        
+        expect($objRec);
+        
+        callcenter_SMS::requireRightFor('send');
+        
+        $groupChoiseArr = $clsInst->getPersonalizationOptionsForId($objId);
+        expect($groupChoiseArr);
+        
+        foreach ($groupChoiseArr as &$groupName) {
+            $groupName = str::mbUcfirst($groupName);
+        }
+        
+        $form = cls::get('core_Form');
+        $form->title = "Изпращане на циркулярни SMS-и";
+        
+        $form->FNC('service', 'class(interface=callcenter_SentSMSIntf, select=title)', 'caption=Услуга, mandatory,silent,input=input');
+        $form->FNC('type', 'enum()', 'caption=Към,mandatory,silent,input=input');
+        $form->FNC('message', 'text', 'caption=Съобщение,mandatory,silent,input=input');
+        
+        $form->setOptions('type', $groupChoiseArr);
+        
+        $service = self::getDefaultService();
+        if ($service) {
+            $form->setDefault('service', $service);
+        }
+        
+        $form->toolbar->addSbBtn('Изпрати', 'save', 'ef_icon = img/16/sms_icon.png, title = Избор');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+        
+        $form->input();
+        
+        $retUrl = getRetUrl($retUrl);
+        
+        if (empty($retUrl)) {
+            $retUrl = array($clsInst, 'single', $objId);
+        }
+        
+        $pArr = array();
+        if ($form->isSubmitted()) {
+            $pArr = $clsInst->getPresonalizationArr($form->rec->type);
+            if (empty($pArr)) {
+                $form->setError('type', 'Няма данни за изпращане');
+            }
+        }
+        
+        // Проверка дали всички плейсхолдери са коректни и дали няма да има проблем с дължината
+        if ($form->isSubmitted()) {
+            $fKey = key($pArr);
+            $fArr = $pArr[$fKey];
+            
+            $msgTpl = new ET($form->rec->message);
+            $msgTpl = $msgTpl->placeArray($fArr);
+            $placeArr = $msgTpl->getPlaceholders();
+            
+            if (!empty($placeArr)) {
+                $form->setError('message', 'Плейсхолдерите липсват в източника|*: ' . implode(', ', $placeArr));
+            }
+            
+            $serviceInst = cls::get($form->rec->service);
+            
+            // Вземаме масива с параметрите
+            $sParams = $serviceInst->getParams();
+            
+            $msgContent = $msgTpl->getContent();
+            
+            if ($sParams['utf8'] != 'yes') {
+                $msgContent = str::utf2ascii($msgContent);
+            }
+            
+            if (mb_strlen($msgContent) > $sParams['maxStrLen']) {
+                $form->setError('message', 'Дължината на съобщението е над допустимите|* ' . $sParams['maxStrLen'] . ' |символа');
+            }
+        }
+        
+        if ($form->isSubmitted()) {
+            
+            $sendCnt = $errCnt = $notMobileCnt = 0;
+            
+            $sendArr = array();
+            
+            $type = $groupChoiseArr[$form->rec->type];
+            
+            $paramsArr = array();
+            if ($sParams['utf8'] != 'yes') {
+                $paramsArr['encoding'] = 'ascii';
+            }
+            
+            $paramsArr['service'] = $form->rec->service;
+            
+            $countryCode = drdata_Setup::get('COUNTRY_PHONE_CODE', TRUE);
+            
+            foreach ($pArr as $pId => $p) {
+                
+                // Опитваме се да определим мобилния номер на получателя
+                $tel = '';
+                if (trim($p['mobile'])) {
+                    $tel .= $p['mobile'];
+                }
+                
+                if (trim($p['tel'])) {
+                    $tel .= $tel ? ', ' : '';
+                    $tel .= $p['tel'];
+                }
+                
+                if (!trim($tel)) continue;
+                
+                $Phones = cls::get('drdata_Phones');
+                $parsedTel = $Phones->parseTel($tel, $countryCode);
+                
+                if (empty($parsedTel)) continue;
+                
+                $mobileNum = '';
+                foreach ($parsedTel as $t) {
+                    if (!$t->mobile) continue;
+                    
+                    $mobileNum = '00' . $t->countryCode . $t->areaCode . $t->number;
+                    
+                    break;
+                }
+                
+                // Ако не открием мобилен номер, няма да се праща съобщение
+                if (!$mobileNum) {
+                    $notMobileCnt++;
+                    $clsInst->logNotice("Kъм '{$type}:$pId' не e изпратено циркулярно съобщение, защото няма мобилен номер: ", $objId);
+                    continue;
+                }
+                
+                // Защитата, за да не се праща няколко пъти
+                if ($sendArr[$mobileNum]) continue;
+                
+                $sendArr[$mobileNum] = TRUE;
+                
+                $send = NULL;
+                try {
+                    
+                    // Изпращаме съобщението, като заместваме плейсхолдерите в него
+                    // По този начин в изпращанията ще се запише без да са заместени плейсхолдерите
+                    $msgArr = $p;
+                    $msgArr[0] = $form->rec->message;
+                    $send = callcenter_SMS::sendSmart($mobileNum, $msgArr, $paramsArr);
+                } catch (ErrorException $e) {
+                    $clsInst->logWarning("Грешка при изпращане на циркулярно съобщение към '{$type}:$pId': " . $e->getMessage());
+                    $errCnt++;
+                }
+                
+                if ($send) $sendCnt++;
+            }
+            
+            // Генерираме информационни съобщения
+            if ($send) {
+                $msg = "|Изпратени съобщения|*: {$sendCnt}";
+            } else {
+                $msg = "|Не е изпратено нито едно съобщение";
+            }
+            
+            if ($errCnt) {
+                $msg .= "|*<br>|Грешки при изпращане|*: {$errCnt}";
+            }
+            
+            if ($notMobileCnt) {
+                $msg .= "|*<br>|Пропуснати контрагенти поради липса на мобилен номер|*: {$notMobileCnt}";
+            }
+            
+            return new Redirect($retUrl, $msg);
+        }
+        
+        $tpl = $this->renderWrapping($form->renderHtml());
+         
+        return $tpl;
     }
     
     

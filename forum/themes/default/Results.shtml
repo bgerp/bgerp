@@ -16,7 +16,7 @@
             </tr>
         </table>
     </div>
-    <table class="forum-themes no-border" style='width:100%'>
+    <table class="forum-themes" style='width:100%'>
         <!--ET_BEGIN ROW-->	
         [#ROW#]
         <tr class='theme-row'>
@@ -28,9 +28,9 @@
                     <!--ET_END type-->
                     <span class='theme-title'>[#title#]</span>
                     [#THEME_PAGER#]
-                    <!--ET_BEGIN LOCKED-->
+                    <!--ET_BEGIN locked-->
                     <span class='locked'>[#locked#]</span>
-                    <!--ET_END LOCKED-->
+                    <!--ET_END locked-->
                     <span class='authored'>|започната от|*:&nbsp;&nbsp;[#createdBy#],&nbsp;&nbsp;[#createdOn#]</span>
                 </div>
             </td>

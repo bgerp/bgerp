@@ -30,11 +30,12 @@ class cms_DefaultTheme extends core_ProtoInner {
      */
     public function addEmbeddedFields(core_FieldSet &$form)
     {
-        $form->FLD('wImg1', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Заглавни картинки за десктоп (1000x288px)->Изображение 1");
-        $form->FLD('wImg2', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Заглавни картинки за десктоп (1000x288px)->Изображение 2");
-        $form->FLD('wImg3', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Заглавни картинки за десктоп (1000x288px)->Изображение 3");
-        $form->FLD('wImg4', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Заглавни картинки за десктоп (1000x288px)->Изображение 4");
-        $form->FLD('wImg5', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Заглавни картинки за десктоп (1000x288px)->Изображение 5");
+        $form->FLD('wImg1', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Ротиращи се картинки за десктоп (1000x288px)->Изображение 1");
+        $form->FLD('wImg2', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Ротиращи се картинки за десктоп (1000x288px)->Изображение 2");
+        $form->FLD('wImg3', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Ротиращи се картинки за десктоп (1000x288px)->Изображение 3");
+        $form->FLD('wImg4', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Ротиращи се картинки за десктоп (1000x288px)->Изображение 4");
+        $form->FLD('wImg5', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Ротиращи се картинки за десктоп (1000x288px)->Изображение 5");
+        $form->FLD('interframeImage', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Ротиращи се картинки за десктоп (1000x288px)->Междинна");
         $form->FLD('fadeDelay', 'int', "caption=Превключване на картинките->Задържане,suggestions=3000|5000|7000");
         $form->FLD('fadeTransition', 'int', "caption=Превключване на картинките->Транзиция,suggestions=500|1000|1500");
         $form->FLD('nImg', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Заглавна картинка за мобилен (360x104px)->Изображение 1");
@@ -100,12 +101,12 @@ class cms_DefaultTheme extends core_ProtoInner {
         if(phpcolor_Adapter::checkColor($baseColor, 'dark')) {
             $mixColor = "#aaa";
             $css .= "\n    .foorterAdd, #cmsMenu a {color:#fff !important; text-shadow: 0px 0px 2px #000}";
-            $css .= "\n    .vertical .formTitle, .vertical .formGroup, .vertical form[method=post] input[type=submit], form[method=post] input:first-child[type=submit] {color:#fff !important;}";
+            $css .= "\n    .vertical .formTitle, .vertical .formGroup, .vertical form[method=post] input[type=submit], form[method=post] .formTable input:first-child[type=submit] {color:#fff !important;}";
         } else {
             $mixColor = "#666";
             // стилове за тъмен цвят
             $css .= "\n    .foorterAdd, #cmsMenu a {color:#000 !important; text-shadow: none}";
-            $css .= "\n    .vertical .formTitle, .vertical .formGroup, .vertical form[method=post] input[type=submit], form[method=post] input:first-child[type=submit] {color:#000 !important;}";
+            $css .= "\n    .vertical .formTitle, .vertical .formGroup, .vertical form[method=post] input[type=submit], form[method=post] .formTable input:first-child[type=submit] {color:#000 !important;}";
         }
 
         if ($this->innerForm->activeColor) {
@@ -193,7 +194,7 @@ class cms_DefaultTheme extends core_ProtoInner {
         $css .= "\n    #cmsMenu {border-top:1px solid #{$bordercolor} !important; border-bottom:1px solid #{$bordercolor} !important;}";
 
         // цветове на формите в зависимост от основния цвят
-        $css .= "\n    .vertical form[method=post] input[type=submit], form[method=post] input:first-child[type=submit] {background-color:#{$baseColor} !important; border: 1px solid #{$bordercolor} !important}";
+        $css .= "\n    .vertical form[method=post] input[type=submit], form[method=post] .formTable input:first-child[type=submit] {background-color:#{$baseColor} !important; border: 1px solid #{$bordercolor} !important}";
         $css .= "\n    .vertical .formTitle, .vertical .formGroup {background-color:#{$baseColor} !important; border-color:#{$bordercolor};}";
 
         $linkBorder =  phpcolor_Adapter::changeColor($bgcolorActive, 'mix', 5, $bordercolor);
@@ -230,24 +231,34 @@ class cms_DefaultTheme extends core_ProtoInner {
 
             if(count($imgs) > 1) {
                 $conf = core_Packs::getConfig('core');
-                $baner = "<div class=\"fadein\">"; 
+                
+                $banner = ''; 
+              
+                if($this->innerForm->interframeImage) {
+                    $img = new thumb_Img(array($this->innerForm->interframeImage, 1000, 288, 'fileman', 'isAbsolute' => TRUE, 'mode' => 'large-no-change'));
+                    $imageURL = $img->getUrl('forced');
+                    $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 1000, 'height' => 288, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg', 'style' => 'position:absolute'));
+                    $banner .= $hImage;
+                }
+
+                $banner .= "<div class=\"fadein\">"; 
                 foreach($imgs as $iHash) {
                     $img = new thumb_Img(array($iHash, 1000, 288, 'fileman', 'isAbsolute' => TRUE, 'mode' => 'large-no-change'));
                     $imageURL = $img->getUrl('forced');
                     $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 1000, 'height' => 288, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg', 'style' => $style));
-                    $baner .= "\n{$hImage}";
+                    $banner .= "\n{$hImage}";
                     $style = 'display:none;';
                 }
-                $baner .= "</div>";
-                $baner = new ET($baner);
+                $banner .= "</div>";
+                $banner = new ET($banner);
                 $fadeTransition = $this->innerForm->fadeTransition ? $this->innerForm->fadeTransition : 1500;
                 $fadeDelay = $this->innerForm->fadeDelay ? $this->innerForm->fadeDelay : 5000;
-                $baner->append(".fadein { position:relative; display:block; max-height:100%; max-width:100%} .fadein img {position:relative; left:0; top:0;}", "STYLES");
-                jquery_Jquery::run($baner, "fadeImages({$fadeTransition}, {$fadeDelay});", TRUE);
+                $banner->append(".fadein { position:relative; display:block; max-height:100%; max-width:100%} .fadein img {position:relative; left:0; top:0;}", "STYLES");
+                jquery_Jquery::run($banner, "fadeImages({$fadeTransition}, {$fadeDelay});", TRUE);
              	
                 $this->haveOwnHeaderImages = TRUE;
 
-                return $baner;
+                return $banner;
             }
 
         } else {

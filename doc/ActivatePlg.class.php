@@ -20,17 +20,6 @@ class doc_ActivatePlg extends core_Plugin
     
     
 	/**
-	 * Извиква се след описанието на модела
-	 *
-	 * @param core_Mvc $mvc
-	 */
-	public static function on_AfterDescription(core_Mvc $mvc)
-	{
-		setIfNot($mvc->canPending, 'no_one');
-	}
-	
-	
-    /**
      * Подготвя полетата threadId и folderId, ако има originId и threadId
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
@@ -54,7 +43,7 @@ class doc_ActivatePlg extends core_Plugin
      */
     public static function on_AfterInputEditForm($mvc, $form)
     {
-        if($form->isSubmitted() && $mvc->className != 'doc_Tasks') {
+        if($form->isSubmitted()) {
             if($form->cmd == 'active') {
                 $form->rec->state = 'active';
                 $mvc->invoke('BeforeActivation', array($form->rec));

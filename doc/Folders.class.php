@@ -30,8 +30,18 @@ class doc_Folders extends core_Master
     
     /**
      * 10 секунди време за опресняване на нишката
+     * 
+     * @see plg_RefreshRows
      */
     public $refreshRowsTime = 10000;
+    
+
+    /**
+     * Кое поле да се гледа за промяна и да се пуска обновяването
+     * 
+     * @see plg_RefreshRows
+     */
+    public $refreshRowsCheckField = 'last';
     
     
     /**
@@ -119,6 +129,12 @@ class doc_Folders extends core_Master
 
 
     /**
+     * Флаг, че заявките, които са към този модел лимитирани до 1 запис, ще са HIGH_PRIORITY
+     */
+    public $highPriority = TRUE;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -128,12 +144,13 @@ class doc_Folders extends core_Master
         $this->FLD('coverId' , 'int', 'caption=Корица->Обект');
         
         // Информация за папката
-        $this->FLD('title' , 'varchar(255,ci)', 'caption=Заглавие');
+        $this->FLD('title' , 'varchar(255,ci)', 'caption=Заглавие, tdClass=folderListTitle');
         $this->FLD('status' , 'varchar(128)', 'caption=Статус');
         $this->FLD('state' , 'enum(active=Активно,opened=Отворено,rejected=Оттеглено,closed=Затворено)', 'caption=Състояние');
         $this->FLD('allThreadsCnt', 'int', 'caption=Нишки->Всички');
         $this->FLD('openThreadsCnt', 'int', 'caption=Нишки->Отворени');
         $this->FLD('last' , 'datetime(format=smartTime)', 'caption=Последно');
+        $this->FLD('statistic', 'blob(serialize,compress)', 'caption=Статистика, input=none');
         
         $this->setDbUnique('coverId,coverClass');
     }
@@ -191,9 +208,10 @@ class doc_Folders extends core_Master
      */
     public static function logRead($action, $objectId = NULL, $lifeDays = 180)
     {
-        self::logToFolder('read', $action, $objectId, $lifeDays);
-        
-        return parent::logRead($action, $objectId, $lifeDays);
+        if (!self::logToFolder('read', $action, $objectId, $lifeDays)) {
+            
+            return parent::logRead($action, $objectId, $lifeDays);
+        }
     }
     
     
@@ -208,9 +226,10 @@ class doc_Folders extends core_Master
      */
     public static function logWrite($action, $objectId = NULL, $lifeDays = 360)
     {
-        self::logToFolder('write', $action, $objectId, $lifeDays);
-        
-        return parent::logWrite($action, $objectId, $lifeDays);
+        if (!self::logToFolder('write', $action, $objectId, $lifeDays)) {
+            
+            return parent::logWrite($action, $objectId, $lifeDays);
+        }
     }
     
     
@@ -385,7 +404,7 @@ class doc_Folders extends core_Master
         $row->title = str::limitLen($row->title, self::maxLenTitle);
         
         $haveRight = $mvc->haveRightFor('single', $rec);
-        if(core_Packs::isInstalled('colab') && core_Users::haveRole('collaborator')){
+        if(core_Packs::isInstalled('colab') && core_Users::haveRole('partner')){
         	$haveRight = colab_Folders::haveRightFor('single', $rec);
         }
         
@@ -401,7 +420,7 @@ class doc_Folders extends core_Master
         
         if($haveRight) {
             $attr['style'] = 'background-image:url(' . $img . ');';
-            if(!(core_Packs::isInstalled('colab') && core_Users::haveRole('collaborator'))){
+            if(!(core_Packs::isInstalled('colab') && core_Users::haveRole('partner'))){
             	$link = array('doc_Threads', 'list', 'folderId' => $rec->id);
             } else {
             	$link = array('colab_Threads', 'list', 'folderId' => $rec->id);
@@ -447,15 +466,15 @@ class doc_Folders extends core_Master
     static function on_AfterPrepareListToolbar($mvc, $data)
     {
     	if(crm_Companies::haveRightFor('add')){
-    		$data->toolbar->addBtn('Нова фирма', array('crm_Companies', 'add', 'ret_url' => TRUE), 'ef_icon=img/16/group.png', 'title=Създаване на нова визитка на фирма');
+    		$data->toolbar->addBtn('Нова фирма', array('crm_Companies', 'add', 'ret_url' => TRUE), 'ef_icon=img/16/office-building-add.png', 'title=Създаване на нова визитка на фирма');
     	}
        
     	if(crm_Persons::haveRightFor('add')){
-    		$data->toolbar->addBtn('Ново лице', array('crm_Persons', 'add', 'ret_url' => TRUE), 'ef_icon=img/16/vcard.png', 'title=Създаване на нова визитка на лице');
+    		$data->toolbar->addBtn('Ново лице', array('crm_Persons', 'add', 'ret_url' => TRUE), 'ef_icon=img/16/vcard-add.png', 'title=Създаване на нова визитка на лице');
     	}
        
     	if(doc_UnsortedFolders::haveRightFor('add')){
-    		$data->toolbar->addBtn('Нов проект', array('doc_UnsortedFolders', 'add', 'ret_url' => TRUE), 'ef_icon=img/16/basket.png', 'title=Създаване на нов проект');
+    		$data->toolbar->addBtn('Нов проект', array('doc_UnsortedFolders', 'add', 'ret_url' => TRUE), 'ef_icon=img/16/project-archive-add.png', 'title=Създаване на нов проект');
     	}
     }
     
@@ -491,8 +510,23 @@ class doc_Folders extends core_Master
                 // Запомняме броя на отворените теми до сега
                 $exOpenThreadsCnt = $rec->openThreadsCnt;
                 
-                $thQuery = doc_Threads::getQuery();
-                $rec->openThreadsCnt = $thQuery->count("#folderId = {$id} AND state = 'opened'");
+                $allThreadsCnt = $openThreadCnt = 0;
+                
+                $newStatisticArr = $mvc->updateStatistic($rec->id);
+                
+                foreach ((array)$newStatisticArr['_all'] as $key => $cntArr) {
+                    if (($key != '_notRejected') && ($key != 'opened')) continue;
+                    foreach ($cntArr as $cnt) {
+                        if ($key == 'opened') {
+                            $openThreadCnt += $cnt;
+                        } else {
+                            $allThreadsCnt += $cnt;
+                        }
+                    }
+                }
+                
+                $rec->allThreadsCnt = $allThreadsCnt;
+                $rec->openThreadsCnt = $openThreadCnt;
                 
                 // Възстановяване на корицата, ако е оттеглена.
                 self::getCover($rec)->restore();
@@ -504,9 +538,6 @@ class doc_Folders extends core_Master
                 		$rec->state = 'active';
                 	}
                 }
-                
-                $thQuery = doc_Threads::getQuery();
-                $rec->allThreadsCnt = $thQuery->count("#folderId = {$id} AND #state != 'rejected'");
                 
                 $thQuery = doc_Threads::getQuery();
                 $thQuery->orderBy("#last", 'DESC');
@@ -574,6 +605,68 @@ class doc_Folders extends core_Master
     
     
     /**
+     * Връща статистиката за документите в папката
+     * 
+     * @param int $folderId
+     * 
+     * @return array
+     */
+    public static function getStatistic($folderId)
+    {
+        
+        return self::updateStatistic($folderId, FALSE);
+    }
+    
+    
+    /**
+     * Обновява и връща статистиката за документите в папката
+     * 
+     * @param int $folderId
+     * @param boolean $forced
+     * 
+     * @return array
+     */
+    public static function updateStatistic($folderId, $forced = TRUE)
+    {
+        $fRec = self::fetch($folderId);
+        
+        // Ако не е форсирано, при наличие на запис да не се обновява
+        if (!$forced) {
+            if (isset($fRec->statistic)) return $fRec->statistic;
+        }
+        
+        $tQuery = doc_Threads::getQuery();
+        $tQuery->where(array("#folderId = '[#1#]'", $folderId));
+        $tQuery->groupBy('visibleForPartners,state,firstDocClass');
+        
+        $tQuery->XPR('cnt', 'int', 'COUNT(#id)');
+        
+        $tQuery->show('visibleForPartners,state,firstDocClass,cnt');
+        
+        $statisticArr = array();
+        
+        while ($tRec = $tQuery->fetch()) {
+            $statisticArr[$tRec->visibleForPartners][$tRec->state][$tRec->firstDocClass] = $tRec->cnt;
+            
+            if ($tRec->state != 'rejected') {
+                $statisticArr[$tRec->visibleForPartners]['_notRejected'][$tRec->firstDocClass] += $tRec->cnt;
+                $statisticArr['_all']['_notRejected'][$tRec->firstDocClass] += $tRec->cnt;
+            }
+            
+            $statisticArr['_all'][$tRec->state][$tRec->firstDocClass] += $tRec->cnt;
+            $statisticArr['_all']['_all'][$tRec->firstDocClass] += $tRec->cnt;
+            $statisticArr['_all']['_all']['_all'] += $tRec->cnt;
+        }
+        
+        $fRec->statistic = $statisticArr;
+        
+        self::save($fRec, 'statistic');
+        
+        return $fRec->statistic;
+    }
+    
+    
+    /**
      * Връща масив с потребители, които ще се нотифицират за действия в папката
      * 
      * @param stdObject $rec
@@ -582,13 +675,42 @@ class doc_Folders extends core_Master
      */
     public static function getUsersArrForNotify($rec)
     {
-        $resArr = array();
+        static $resArr = array();
         
         if ($resArr[$rec->id]) $resArr[$rec->id];
         
         $notifyArr = array();
         $notifyArr[$rec->inCharge] = $rec->inCharge;
-        $notifyArr += keylist::toArray($rec->shared);
+        
+        $oSharedArr = keylist::toArray($rec->shared);
+        
+        // Настройките на пакета
+        $notifySharedConf = doc_Setup::get('NOTIFY_FOLDERS_SHARED_USERS');
+        if ($notifySharedConf == 'no') {
+            $sharedArr = array();
+        } else {
+            $sharedArr = $oSharedArr;
+        }
+        
+        // Персоналните настройки на потребителите
+        $pKey = crm_Profiles::getSettingsKey();
+        $pName = 'DOC_NOTIFY_FOLDERS_SHARED_USERS';
+        
+        $settingsNotifyArr = core_Settings::fetchUsers($pKey, $pName);
+        
+        if ($settingsNotifyArr) {
+            foreach ($settingsNotifyArr as $userId => $uConfArr) {
+                if ($uConfArr[$pName] == 'no') {
+                    unset($sharedArr[$userId]);
+                } elseif ($uConfArr[$pName] == 'yes') {
+                    if ($oSharedArr[$userId]) {
+                        $sharedArr[$userId] = $userId;
+                    }
+                }
+            }
+        }
+        
+        $notifyArr += $sharedArr;
         
         $key = doc_Folders::getSettingsKey($rec->id);
         $folOpeningNotifications = core_Settings::fetchUsers($key, 'folOpenings');
@@ -599,22 +721,28 @@ class doc_Folders extends core_Master
             if ($folOpening['folOpenings'] == 'no') {
                 unset($notifyArr[$userId]);
             } else if ($folOpening['folOpenings'] == 'yes') {
-                $notifyArr[$userId] = $userId;
+                
+                // Може да е абониран, но да няма права
+                if (doc_Folders::haveRightFor('single', $rec->folderId, $userId)) {
+                    $notifyArr[$userId] = $userId;
+                }
             }
         }
         
         $currUserId = core_Users::getCurrent();
-        
-        // Ако няма права за дебъг, няма да се нотифицира текущия потребител
-        if (!haveRole('debug', $currUserId)) {
-            unset($notifyArr[$currUserId]);
-        }
-        
-        // Премахваме анонимния и системния потребител
+        // Премахваме анонимния, системния и текущия потребител
         unset($notifyArr[0]);
         unset($notifyArr[-1]);
+        unset($notifyArr[$currUserId]);
         
-        $resArr[$rec->id] = $notifyArr;
+        $rNotifyArr = array();
+        foreach ($notifyArr as $kUId => $uId) {
+            if (doc_Folders::haveRightFor('single', $rec->folderId, $uId)) {
+                $rNotifyArr[$kUId] = $uId;
+            }
+        }
+        
+        $resArr[$rec->id] = $rNotifyArr;
         
         return $resArr[$rec->id];
     }
@@ -926,7 +1054,7 @@ class doc_Folders extends core_Master
         $haveRight = static::haveRightFor('single', $rec);
         
         if (!$haveRight && strtolower($params['Ctr']) == 'colab_threads') {
-            if (core_Users::haveRole('collaborator') && core_Packs::isInstalled('colab')) {
+            if (core_Users::haveRole('partner') && core_Packs::isInstalled('colab')) {
                 $haveRight = colab_Folders::haveRightFor('single', $rec);
             }
         }
@@ -1454,11 +1582,21 @@ class doc_Folders extends core_Master
         
         // Дали линка да е абсолютен
         $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
-        
-        // Връщаме sbf линка до иконата
-        $sbfImg = sbf('img/16/' . $img, '"', $isAbsolute);
 
-        return $sbfImg;        
+
+        // Връщаме sbf линка до иконата
+        $imgSrc = 'img/16/' . $img;
+
+        if(log_Browsers::isRetina()) {
+            $tempIcon = 'img/32/' . $img;
+            if(getFullPath($tempIcon)) {
+                $imgSrc = $tempIcon;
+            }
+        }
+
+        $sbfImg = sbf($imgSrc, '"', $isAbsolute);
+
+        return $sbfImg;
     }
 
     /**
@@ -1519,6 +1657,14 @@ class doc_Folders extends core_Master
         }
         
         $searchKeywords .= " " . plg_Search::normalizeText($title);
+        
+        // Добавя ключовии думи за държавата и на bg и на en
+        if(($class->className == 'crm_Companies' || $class->className == 'crm_Persons') && $rec->coverId) {
+            $countryId = $class->fetchField($rec->coverId, 'country');
+            if($countryId) {
+                $searchKeywords = drdata_Countries::addCountryInBothLg($countryId, $searchKeywords);
+            }
+        } 
     }
     
     
@@ -1597,13 +1743,15 @@ class doc_Folders extends core_Master
         $form->title = 'Настройка на|* ' . $row->title;
         
         // Добавяме функционални полета
-        $form->FNC('folOpenings', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Отворени теми->Известяване, input=input');
+        $form->FNC('newDoc', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при->Нов документ, input=input');
+        $form->FNC('newThread', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при->Нова тема, input=input');
+        $form->FNC('folOpenings', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при->Отворени теми, input=input');
+        $form->FNC('personalEmailIncoming', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при->Личен имейл, input=input');
         $form->FNC('perPage', 'enum(default=Автоматично, 10=10, 20=20, 40=40, 100=100, 200=200)', 'caption=Теми на една страница->Брой, input=input');
 
         $form->FNC('ordering', 'enum(default=Автоматично, ' . doc_Threads::filterList . ')', 'caption=Подредба на темите->Правило, input=input');
 
         $form->FNC('defaultEmail', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Адрес|* `From` за изходящите писма от тази папка->Имейл, input=input');
-        $form->FNC('personalEmailIncoming', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Получен личен имейл->Известяване, input=input');
         
         // Изходящ имейл по-подразбиране за съответната папка
         try {
@@ -1623,6 +1771,8 @@ class doc_Folders extends core_Master
         $form->setDefault('perPage', 'default');
         $form->setDefault('ordering', 'default');
         $form->setDefault('personalEmailIncoming', 'default');
+        $form->setDefault('newThread', 'default');
+        $form->setDefault('newDoc', 'default');
         
         // Сетваме стринг за подразбиране
         $defaultStr = 'По подразбиране|*: ';
@@ -1688,17 +1838,28 @@ class doc_Folders extends core_Master
         $query = self::getQuery();
 	    $query->orderBy("last=DESC");
 
+	    // Ако има зададен интерфейс за кориците, взимат се само тези папки, чиито корици имат интерфейса
+	    if(isset($params['coverInterface'])){
+	    	$coverClasses = core_Classes::getOptionsByInterface($params['coverInterface'], 'title');
+	    	$coverClasses = array_keys($coverClasses);
+	    	$query->in('coverClass', $coverClasses);
+	    }
+	    
         $viewAccess = TRUE;
 	    if ($params['restrictViewAccess'] == 'yes') {
 	        $viewAccess = FALSE;
 	    }
 
-        $me = cls::get('crm_Companies');
+        $me = cls::get(get_called_class());
 	       
 	    $me->restrictAccess($query, NULL, $viewAccess);
 	    
         if(!$includeHiddens) {
             $query->where("#state != 'rejected' AND #state != 'closed'");
+        }
+
+        if($params['where']) {
+            $query->where($params['where']);
         }
 	       
         if(is_array($onlyIds)) {
@@ -1717,26 +1878,28 @@ class doc_Folders extends core_Master
         if($threadId = $params['moveThread']) {
             $tRec = doc_Threads::fetch($threadId);
             expect($doc = doc_Containers::getDocument($tRec->firstContainerId));
-            $doc->getInstance()->restrictQueryOnlyFolderForDocuments($query);
+            $doc->getInstance()->restrictQueryOnlyFolderForDocuments($query, $viewAccess);
         }
         
         $titleFld = $params['titleFld'];
         $query->EXT('class', 'core_Classes', 'externalKey=coverClass,externalName=title');
-        $query->XPR('searchFieldXpr', 'text', "CONCAT(' ', #{$titleFld})");
+        $query->XPR('searchFieldXpr', 'text', "LOWER(CONCAT(' ', #{$titleFld}))");
        
         if($q) {
             if($q{0} == '"') $strict = TRUE;
 
             $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
             
+            $q = mb_strtolower($q);
+            
             if($strict) {
-                $qArr = array(str_replace(' ', '%', $q));
+                $qArr = array(str_replace(' ', '.*', $q));
             } else {
                 $qArr = explode(' ', $q);
             }
             
             foreach($qArr as $w) {
-                $query->where("#searchFieldXpr COLLATE UTF8_GENERAL_CI LIKE '% {$w}%'");
+                $query->where(array("#searchFieldXpr REGEXP '\ {1}[^a-z0-9\p{L}]?[#1#]'", $w));
             }
         }
  
@@ -1744,18 +1907,18 @@ class doc_Folders extends core_Master
             $query->limit($limit);
         }
 
-        $query->show('id,searchFieldXpr,class');
+        $query->show("id,searchFieldXpr,class, {$titleFld}");
         
         $res = array();
         
         while($rec = $query->fetch()) {
-            $res[$rec->id] = trim($rec->searchFieldXpr) . ' (' . $rec->class . ')';
+            $res[$rec->id] = trim($rec->{$titleFld}) . ' (' . $rec->class . ')';
         }
  
         return $res;
     }
     
-    
+
     /**
      * Връща хеша за листовия изглед. Вика се от bgerp_RefreshRowsPlg
      *

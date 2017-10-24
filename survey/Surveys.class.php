@@ -31,8 +31,8 @@ class survey_Surveys extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, survey_Wrapper,  plg_Printing,plg_Clone,
-     	  doc_DocumentPlg, bgerp_plg_Blank, doc_ActivatePlg, cms_ObjectPlg';
+    public $loadList = 'plg_RowTools2, survey_Wrapper,  plg_Printing,plg_Clone,
+     	  doc_DocumentPlg, bgerp_plg_Blank, doc_ActivatePlg, cms_ObjectPlg, doc_plg_SelectFolder';
     
     
     /**
@@ -120,6 +120,12 @@ class survey_Surveys extends core_Master {
     
     
     /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
+
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -204,7 +210,7 @@ class survey_Surveys extends core_Master {
     /**
 	 * Модификация на ролите, които могат да видят избраната тема
 	 */
-    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{  
    		//  Кой може да обобщава резултатите
 		if($action == 'summarise' && isset($rec->id) ) {
@@ -247,7 +253,7 @@ class survey_Surveys extends core_Master {
     	$url = getCurrentUrl();
     	if($mvc::haveRightFor('summarise', $data->rec->id) && !$summary) {
     		$url['summary'] = 'ok';
-    		$data->toolbar->addBtn('Обобщение', $url, 'ef_icon=img/16/chart16.png, title=Виж резултатите от анкетата');
+    		$data->toolbar->addBtn('Обобщение', $url, 'ef_icon=img/16/chart_pie.png, title=Виж резултатите от анкетата');
     	} 
     	
     	if($summary && $data->rec->state == 'active') {

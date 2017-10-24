@@ -33,6 +33,12 @@
                         <td>[#fromIp#]</td>
                     </tr>
                     <!--ET_END fromIp-->
+                    <!--ET_BEGIN inReplyToOrigin-->          
+                    <tr>
+                        <td  class='aright'>|В отговор на|*:</td>
+                        <td>[#inReplyToOrigin#]</td>
+                    </tr>
+                    <!--ET_END inReplyToOrigin-->
                 </table>
             </div>
         </div>
@@ -40,7 +46,7 @@
         <div class="sm-att" >
             <div class='attachments small'>
                 <div class="aHeader">|Прикачени файлове|*:</div>
-                <div style='display:block; margin:5px 0'>[#files#]</div>
+                <div style='display:block; margin:5px 0; max-height: 198px; overflow-y: auto;'>[#files#]</div>
             </div>
         </div>
         <!--ET_END files--> 

@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -22,7 +22,7 @@ class cat_UoM extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_State2, plg_AlignDecimals, plg_Sorting, plg_Translate';
+    public $loadList = 'plg_Created, plg_RowTools2, cat_Wrapper, plg_State2, plg_AlignDecimals, plg_Sorting, plg_Translate';
     
     
     /**
@@ -35,6 +35,13 @@ class cat_UoM extends core_Manager
 	 * Кой може да разглежда сингъла на документите?
 	 */
 	public $canSingle = 'cat,ceo';
+	
+	
+	/**
+	 * Кой може сменя състоянието
+	 * @see plg_State2
+	 */
+	public $canChangestate = 'cat,ceo';
 
     
     /**
@@ -78,7 +85,13 @@ class cat_UoM extends core_Manager
      */
     public $canEditsysdata = 'cat,ceo';
     
+
+    /**
+     * Шаблон за заглавието
+     */
+    public $recTitleTpl = '[#shortName#]';
     
+
     /**
      * Работен кеш
      */
@@ -103,6 +116,21 @@ class cat_UoM extends core_Manager
         
         $this->setDbUnique('name');
         $this->setDbUnique('shortName');
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+    	if(empty($rec->showContents)){
+    		$row->showContents = $mvc->getFieldType('showContents')->toVerbal('no');
+    	}
     }
     
     
@@ -171,14 +199,23 @@ class cat_UoM extends core_Manager
     		if($uomRec->baseUnitId){
     			
     			/*
-    			 * Ако има базова мярка, тогава да е спрямо точността на базовата мярка. bp($round);
+    			 * Ако има базова мярка, тогава да е спрямо точността на базовата мярка.
     			 * Например ако базовата мярка е килограм и имаме нова мярка - грам, която 
     			 * е 1/1000 от базовата, то точността по подразбиране е 3/3 = 1, където числителя 
     			 * е точността на мярката килограм, а в знаменателя - log(1000).
     			 */
     			$baseRound = static::fetchField($uomRec->baseUnitId, 'round');
-    			$round = $baseRound / log10(pow($uomRec->baseUnitRatio, -1));
-    			$round = abs($round);
+    			
+    			$bRatio = log10(pow($uomRec->baseUnitRatio, -1));
+    			
+    			if (!is_infinite($bRatio) && $bRatio) {
+    			    $round = $baseRound / $bRatio;
+    			    $round = abs($round);
+    			}
+    			
+    			if (!isset($round)) {
+    			    $round = 0;
+    			}
     		} else {
     			
     			// Ако няма базова мярка и няма зададено закръгляне значи е 0
@@ -220,9 +257,9 @@ class cat_UoM extends core_Manager
      */
     public static function convertFromBaseUnit($amount, $unitId)
     {
-        $rec = static::fetch($unitId);
+        $rec = static::fetch($unitId, 'baseUnitId,baseUnitRatio');
         
-        if ($rec->baseUnitId == null) {
+        if (is_null($rec->baseUnitId)) {
             $ratio = 1;
         } else {
             $ratio = $rec->baseUnitRatio;
@@ -249,6 +286,7 @@ class cat_UoM extends core_Manager
     	($rec->baseUnitId) ? $baseId = $rec->baseUnitId : $baseId = $rec->id;
     	$query->where("#baseUnitId = {$baseId}");
     	$query->orWhere("#id = {$baseId}");
+    	$query->show('shortName,name');
     	
     	$options = array("" => "");
     	while($op = $query->fetch()){
@@ -257,6 +295,29 @@ class cat_UoM extends core_Manager
     	}
     	
     	return $options;
+    }
+
+
+    /**
+     * Връща, (ако има) мярка, която е в отношение ratio спрямо текущата
+     */
+    public static function getMeasureByRatio($measureId, $ratio = 0.001)
+    {
+        static $res = array();
+        $key = $measureId. '|' . $ratio;
+        if(!isset($res[$key])) {
+            $res[$key] = FALSE;
+            $mArr = self::getSameTypeMeasures($measureId);
+            foreach($mArr as $id => $name) {
+                if($id == $measureId || empty($id)) continue;
+                if(self::convertValue(1, $id, $measureId) . '' == $ratio . '') {
+                    $res[$key] = $id;
+                    break;
+                }
+            }
+        }
+        
+        return $res[$key];
     }
     
     
@@ -270,8 +331,20 @@ class cat_UoM extends core_Manager
      */
     public static function convertValue($value, $from, $to)
     {
-    	expect($fromRec = static::fetch($from), 'Проблем при изчислението на първата валута');
-    	expect($toRec = static::fetch($to), 'Проблем при изчислението на втората валута');
+        if(is_string($from) && !is_numeric($from)) {
+            $fromRec = self::fetchBySinonim($from);
+        } else {
+            $fromRec = static::fetch($from);
+        }
+
+        if(is_string($to) && !is_numeric($to)) {
+            $toRec = self::fetchBySinonim($to);
+        } else {
+            $toRec = static::fetch($to);
+        }
+ 
+    	expect($fromRec, 'Проблем при изчислението на първата мярка');
+    	expect($toRec, 'Проблем при изчислението на втората мярка');
     	
     	($fromRec->baseUnitId) ? $baseFromId = $fromRec->baseUnitId : $baseFromId = $fromRec->id;
     	($toRec->baseUnitId) ? $baseToId = $toRec->baseUnitId : $baseToId = $toRec->id;
@@ -306,7 +379,7 @@ class cat_UoM extends core_Manager
     /**
      * Изпълнява се преди запис
      */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
     	// Ако се импортира от csv файл, заместваме основната
     	// единица с ид-то и от системата
@@ -367,15 +440,29 @@ class cat_UoM extends core_Manager
      */
     public static function fetchBySinonim($unit)
     {
-    	$unitLat = strtolower(str::utf2ascii($unit));
-    	
-    	$query = static::getQuery();
-    	$query->likeKeylist('sinonims', "|{$unitLat}|");
-    	$query->orWhere(array("LOWER(#sysId) = LOWER('[#1#]')", $unitLat));
-        $query->orWhere(array("LOWER(#name) = LOWER('[#1#]')", $unit));
-        $query->orWhere(array("LOWER(#shortName) = LOWER('[#1#]')", $unit));
+        $unit = trim(mb_strtolower($unit));
 
-    	return $query->fetch();
+        $rec = self::fetch(array("LOWER(#sysId) = LOWER('[#1#]')", $unit));
+
+        if(!$rec) {
+            $rec = self::fetch(array("LOWER(#name) = LOWER('[#1#]')", $unit));
+        }
+
+        if(!$rec) {
+            $rec = self::fetch(array("LOWER(#shortName) = LOWER('[#1#]')", $unit));
+        }
+        
+        if(!$rec) {
+            $rec = self::fetch(array("LOWER(CONCAT('|', #name, '|', #shortName)) LIKE '%|[#1#]|%'", $unit));
+        }
+
+        if(!$rec) {
+            $unit = str::utf2ascii($unit);
+            $rec = self::fetch(array("LOWER(CONCAT('|', #sysId, #sinonims)) LIKE '%|[#1#]|%'", $unit));
+        }
+    	
+
+    	return $rec;
     }
     
     
@@ -406,7 +493,7 @@ class cat_UoM extends core_Manager
         	$val = cat_UoM::convertFromBaseUnit($val, $typeUom->id);
         	$val = ($verbal) ? $Double->toVerbal($val) : $val;
         	
-        	return ($asObject) ? (object)(array('value' => $val, 'measure' => $typeUom->id)) : $val . " " . $typeUom->shortName;
+        	return ($asObject) ? (object)(array('value' => $val, 'measure' => $typeUom->id)) : $val . " " . tr($typeUom->shortName);
         }
         
         // При повече от една мярка, изчисляваме, колко е конвертираната сума на всяка една
@@ -424,7 +511,7 @@ class cat_UoM extends core_Manager
 	        if($amount >= 1){
 	        	$all[$mId] = ($verbal) ? $Double->toVerbal($all[$mId]) : $all[$mId];
 	        	
-	        	return ($asObject) ? (object)(array('value' => $all[$mId], 'measure' => $mId)) : $all[$mId] . " " . static::getShortName($mId); 
+	        	return ($asObject) ? (object)(array('value' => $all[$mId], 'measure' => $mId)) : $all[$mId] . " " . tr(static::getShortName($mId)); 
         	}
         }
         
@@ -434,7 +521,7 @@ class cat_UoM extends core_Manager
         
         $all[$mId] = ($verbal) ? $Double->toVerbal($all[$mId]) : $all[$mId];
         
-        return ($asObject) ? (object)(array('value' => $all[$uomId], 'measure' => $mId)) : $all[$uomId] . " " . static::getShortName($mId);
+        return ($asObject) ? (object)(array('value' => $all[$uomId], 'measure' => $mId)) : $all[$uomId] . " " . tr(static::getShortName($mId));
     }
     
     
@@ -468,6 +555,8 @@ class cat_UoM extends core_Manager
     		$data->form->setField('name', 'caption=Опаковка');
     	}
     	
+    	$data->form->setDefault('showContents', 'no');
+    	
     	// Ако записа е създаден от системния потребител, може да се 
     	if($rec->createdBy == core_Users::SYSTEM_USER){
     		foreach (array('name', 'shortName', 'baseUnitId', 'baseUnitRatio', 'sysId', 'sinonims') as $fld){
@@ -480,7 +569,7 @@ class cat_UoM extends core_Manager
     /**
      * Пренасочва URL за връщане след запис към сингъл изгледа
      */
-    public static function on_AfterPrepareRetUrl($mvc, $res, $data)
+    protected static function on_AfterPrepareRetUrl($mvc, $res, $data)
     {
     	// Рет урл-то не сочи към мастъра само ако е натиснато 'Запис и Нов'
     	if (isset($data->form) && ($data->form->cmd === 'save' || is_null($data->form->cmd))) {
@@ -509,7 +598,7 @@ class cat_UoM extends core_Manager
      * @param mixed $res
      * @param string $action
      */
-    public static function on_BeforeAction($mvc, &$res, $action)
+    protected static function on_BeforeAction($mvc, &$res, $action)
     {
     	if($action == 'default'){
     		$type = Request::get('type', 'enum(uom,packaging)');

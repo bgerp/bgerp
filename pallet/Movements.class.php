@@ -113,9 +113,7 @@ class pallet_Movements extends core_Manager
         $this->FNC('position', 'varchar(32)', 'caption=Палет място->Текущо');
         $this->FLD('positionNew', 'varchar(32)', 'caption=Палет място->Ново');
         
-        $this->FLD('state', 'enum(pending, active, closed)', 'caption=Състояние, input=hidden');
-        
-        // $this->XPR('orderBy',      'int', "(CASE #state WHEN 'pending' THEN 1 WHEN 'active' THEN 2 WHEN 'closed' THEN 3 END)");
+        $this->FLD('state', 'enum(pending, active, closed, waiting)', 'caption=Състояние, input=hidden');
         $this->FLD('workerId', 'key(mvc=core_Users, select=names)', 'caption=Товарач');
     }
     
@@ -129,7 +127,7 @@ class pallet_Movements extends core_Manager
      * @param stdClass|NULL $rec
      * @param int|NULL $userId
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($rec->id && ($action == 'delete')) {
             $rec = $mvc->fetch($rec->id);
@@ -185,7 +183,7 @@ class pallet_Movements extends core_Manager
     {
         // $row->state
         switch($rec->state) {
-            case 'pending' :
+            case 'waiting' :
                 $row->state = Ht::createBtn('Вземи', array($mvc, 'setPalletActive', $rec->id));
                 $row->state .= Ht::createBtn('Отказ', array($mvc, 'denyPalletMovement', $rec->id));
                 break;
@@ -235,7 +233,7 @@ class pallet_Movements extends core_Manager
             $row->positionOld = $rec->positionOld;
         }
         
-        if ($rec->state == 'pending' || $rec->state == 'active') {
+        if ($rec->state == 'waiting' || $rec->state == 'active') {
             $row->positionView = $position . " -> " . $row->positionNew;
         } else {
             $row->positionView = $row->positionOld . " -> " . $row->positionNew;
@@ -281,7 +279,7 @@ class pallet_Movements extends core_Manager
                 $form->showFields = 'palletPlaceHowto,completed';
                 
                 $form->setHidden('palletId', $palletId);
-                $form->setHidden('state', 'pending');
+                $form->setHidden('state', 'waiting');
                 
                 // Действие
                 $form->setHidden('do', 'palletUp');
@@ -319,7 +317,7 @@ class pallet_Movements extends core_Manager
                 
                 // $form->setHidden('positionNew', 'На пода');
                 $form->setHidden('palletId', $palletId);
-                $form->setHidden('state', 'pending');
+                $form->setHidden('state', 'waiting');
                 
                 // Действие
                 $form->setHidden('do', 'palletDown');
@@ -350,7 +348,7 @@ class pallet_Movements extends core_Manager
                 $form->setSuggestions('palletPlaceHowto', $palletPlaceHowto);
                 
                 $form->setHidden('palletId', $palletId);
-                $form->setHidden('state', 'pending');
+                $form->setHidden('state', 'waiting');
                 
                 // Действие
                 $form->setHidden('do', 'palletMove');
@@ -442,7 +440,7 @@ class pallet_Movements extends core_Manager
                 
                 case "palletDown" :
                     $rec->positionNew = 'Зона: ' . $rec->zone;
-                    $rec->state = 'pending';
+                    $rec->state = 'waiting';
                     break;
                 
                 case "palletMove" :
@@ -533,7 +531,7 @@ class pallet_Movements extends core_Manager
         if ($rec->do && in_array($rec->do, array('palletUp', 'palletDown', 'palletMove'))) {
             $recPallets = pallet_Pallets::fetch($rec->palletId);
             
-            $recPallets->state = 'pending';
+            $recPallets->state = 'waiting';
             pallet_Pallets::save($recPallets);
             
             redirect(array('pallet_Pallets'));
@@ -624,7 +622,7 @@ class pallet_Movements extends core_Manager
         $data->listFilter->title = 'Търсене';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->FNC('stateFilter', 'enum(pending, active, closed,)', 'caption=Състояние');
+        $data->listFilter->FNC('stateFilter', 'enum(waiting, active, closed,)', 'caption=Състояние');
         $data->listFilter->setDefault('stateFilter', '');
         $data->listFilter->FNC('palletIdFilter', 'key(mvc=pallet_Pallets, select=id, allowEmpty=true)', 'caption=Палет');
         $data->listFilter->FNC('productIdFilter', 'key(mvc=store_Products, select=productId, allowEmpty=true)', 'caption=Продукт');

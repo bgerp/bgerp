@@ -28,21 +28,24 @@ class blast_Lists extends core_Master
     
     
     /**
-     * Полета, които ще се клонират
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     *
+     * @see plg_Clone
      */
-    var $cloneFields = 'title, keyField, fields';
+    public $cloneDetails = 'blast_ListDetails';
     
     
     /**
      * Кой има право да клонира?
      */
-    protected $canClone = 'ceo, blast, admin';
+    public $canClonerec = 'ceo, blast, admin';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'blast_Wrapper,plg_RowTools,doc_DocumentPlg, plg_Search, bgerp_plg_Blank';
+    var $loadList = 'blast_Wrapper,plg_RowTools2,doc_DocumentPlg, plg_Search, 
+                     bgerp_plg_Blank, plg_Clone';
     
     
     /**
@@ -115,12 +118,12 @@ class blast_Lists extends core_Master
      * Детайла, на модела
      */
     var $details = 'blast_ListDetails';
-    
-    
+	
+	
     /**
      * Икона за единичния изглед
      */
-    var $singleIcon = 'img/16/application_view_list.png';
+    var $singleIcon = 'img/16/address-book.png';
     
     
     /**
@@ -152,7 +155,13 @@ class blast_Lists extends core_Master
      */
     public $showLetterHead = TRUE;
     
+
+    /**
+     * Масив, където се записват списъците с ID-та за обновяване
+     */
+    protected $mustUpdate = array();
     
+
     /**
      * Описание на модела (таблицата)
      */
@@ -263,26 +272,37 @@ class blast_Lists extends core_Master
      */
     protected static function on_AfterUpdateDetail(core_Master $mvc, $id, core_Manager $detailMvc)
     {
-        $rec = $mvc->fetch($id);
-        $dQuery = $detailMvc->getQuery();
-        $dQuery->where("#listId = $id");
-        $rec->contactsCnt = $dQuery->count();
-        
-        // Определяме състоянието на база на количеството записи (контакти)
-        if($rec->state == 'draft' && $rec->contactsCnt > 0) {
-            $rec->state = 'closed';
-        } elseif ($rec->state == 'closed' && $rec->contactsCnt == 0) {
-            $rec->state = 'draft';
+        $mvc->mustUpdate[$id] = $detailMvc;
+    }
+
+
+    public static function on_Shutdown($mvc)
+    {
+        if(count($mvc->mustUpdate)) {
+            foreach($mvc->mustUpdate as $id => $detailMvc) {
+                $rec = $mvc->fetch($id);
+                $dQuery = $detailMvc->getQuery();
+                $dQuery->where("#listId = $id");
+                $rec->contactsCnt = $dQuery->count();
+                
+                // Определяме състоянието на база на количеството записи (контакти)
+                if($rec->state == 'draft' && $rec->contactsCnt > 0) {
+                    $rec->state = 'closed';
+                } elseif ($rec->state == 'closed' && $rec->contactsCnt == 0) {
+                    $rec->state = 'draft';
+                }
+                
+                $mvc->save($rec);
+            }
         }
-        
-        $mvc->save($rec);
+
     }
     
     
     /**
      * Изпълнява се след подготовката на ролите, необходимо за това действие
      */
-    static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec)
+    public static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec = NULL, $userId = NULL)
     {
         if(($action == 'edit' || $action == 'delete') && $rec->state != 'draft' && isset($rec->state)) {
             $roles = 'no_one';

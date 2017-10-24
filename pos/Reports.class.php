@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   pos
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -64,12 +64,6 @@ class pos_Reports extends core_Master {
     public $listDetailsPerPage = '50';
     
     
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'pos, ceo';
-    
-    
 	/**
      * Абревиатура
      */
@@ -112,6 +106,12 @@ class pos_Reports extends core_Master {
     public $listFields = 'id, title=Заглавие, pointId, total, paid, state, createdOn, createdBy';
     
     
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'pointId';
+    
+    
 	/**
      * Групиране на документите
      */
@@ -125,6 +125,12 @@ class pos_Reports extends core_Master {
     
     
     /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -132,8 +138,9 @@ class pos_Reports extends core_Master {
     	$this->FLD('pointId', 'key(mvc=pos_Points, select=name)', 'caption=Точка, width=9em, mandatory,silent');
     	$this->FLD('paid', 'double(decimals=2)', 'caption=Сума->Платено, input=none, value=0, summary=amount');
     	$this->FLD('total', 'double(decimals=2)', 'caption=Сума->Продадено, input=none, value=0, summary=amount');
-    	$this->FLD('state', 'enum(draft=Чернова,active=Активиран,rejected=Оттеглена,closed=Приключен)', 'caption=Състояние,input=none,width=8em');
+    	$this->FLD('state', 'enum(draft=Чернова,active=Активиран,rejected=Оттеглена,closed=Приключен,stopped=Спряно)', 'caption=Състояние,input=none,width=8em');
     	$this->FLD('details', 'blob(serialize,compress)', 'caption=Данни,input=none');
+    	$this->FLD('closedOn', 'datetime', 'input=none');
     }
     
     
@@ -458,7 +465,7 @@ class pos_Reports extends core_Master {
     	$details = $receipts = array();
     	$query = pos_Receipts::getQuery();
     	$query->where("#pointId = {$pointId}");
-    	$query->where("#state = 'pending'");
+    	$query->where("#state = 'waiting'");
     	
     	// извличаме нужната информация за продажбите и плащанията
     	$this->fetchReceiptData($query, $details, $receipts);
@@ -565,7 +572,7 @@ class pos_Reports extends core_Master {
     			$nextState = 'closed';
     			$msg = 'Приключени';
     		} else {
-    			$nextState = 'pending';
+    			$nextState = 'waiting';
     			$msg = 'Активирани';
     		}
     	
@@ -590,7 +597,7 @@ class pos_Reports extends core_Master {
     /**
      * След обработка на ролите
      */
-	protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+	public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{
 		// Никой не може да редактира бележка
 		if($action == 'activate' && !$rec) {
@@ -634,6 +641,13 @@ class pos_Reports extends core_Master {
     {
         if(!$res) { 
             $res = $mvc->singleIcon;
+			if(log_Browsers::isRetina()) {
+				$icon2 = str_replace('/16/', '/32/', $res);
+
+				if(getFullPath($icon2)) {
+					$res = $icon2;
+				}
+			}
         }
     }
     
@@ -673,9 +687,9 @@ class pos_Reports extends core_Master {
      */
     public static function getRecTitle($rec, $escaped = TRUE)
     {
-    	$self = cls::get(__CLASS__);
-    
-    	return "{$self->singleTitle} №{$rec->id}";
+    	$self = cls::get(get_called_class());
+    	 
+    	return tr("|{$self->singleTitle}|* №") . $rec->id;
     }
     
     
@@ -692,7 +706,7 @@ class pos_Reports extends core_Master {
     {
     	
     	// Ако няма нито една активна бележка за посочената каса и касиер, не може да се създаде отчет
-    	if(!pos_Receipts::fetch("#pointId = {$pointId} AND #state = 'pending'")){
+    	if(!pos_Receipts::fetch("#pointId = {$pointId} AND #state = 'waiting'")){
     		
     		return FALSE;
     	}
@@ -708,15 +722,6 @@ class pos_Reports extends core_Master {
     
     
     /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    protected static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	$data->toolbar->removeBtn('btnAdd');
-    }
-    
-    
-    /**
      * Извиква се преди изпълняването на екшън
      *
      * @param core_Mvc $mvc
@@ -728,7 +733,6 @@ class pos_Reports extends core_Master {
     	if($action == 'add'){
     		if($pointId = Request::get('pointId', 'key(mvc=pos_Points)')){
     			if(!self::canMakeReport($pointId)){
-    				 
     				return followRetUrl(NULL, 'Не може да се направи отчет');
     			}
     		}
@@ -753,11 +757,13 @@ class pos_Reports extends core_Master {
     	$query->where("#state = 'active'");
     	$query->where("#createdOn <= '{$oldBefore}'");
     	$query->limit($conf->POS_CLOSE_REPORTS_PER_TRY);
+    	$now = dt::now();
     	
     	// Затваряме всеки отчет, след затварянето автоматично ще му се затвори и перото
     	while($rec = $query->fetch()){
     		$rec->state = 'closed';
-    		$this->save($rec, 'state');
+    		$rec->closedOn = dt::addSecs(-1 * $conf->POS_CLOSE_REPORTS_OLDER_THAN, $now);
+    		$this->save($rec, 'state,closedOn');
     	}
     }
 }

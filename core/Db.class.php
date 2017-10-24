@@ -20,19 +20,26 @@ defIfNot('CORE_SQL_DEFAULT_ENGINE', 'MYISAM');
 /**
  * Задава кодировката на базата данни по подразбиране
  */
-defIfNot('EF_DB_CHARSET', 'utf8');
+defIfNot('EF_DB_CHARSET', 'utf8mb4');
 
 
 /**
  * Задава колацията на базата данни по подразбиране
  */
-defIfNot('EF_DB_COLLATION', 'utf8_bin');
+defIfNot('EF_DB_COLLATION',  EF_DB_CHARSET == 'utf8mb4' ? 'utf8mb4_bin' : 'utf8_bin');
 
 
 /**
  * Задава кодировката на клиента (PHP скрипта) за базата данни по подразбиране
  */
-defIfNot('EF_DB_CHARSET_CLIENT', 'utf8');
+defIfNot('EF_DB_CHARSET_CLIENT', EF_DB_CHARSET);
+
+
+/**
+ * С колко максимално символа да участват в индексите полетата varchar
+ */
+defIfNot('EF_DB_VARCHAR_INDEX_PREFIX', EF_DB_CHARSET == 'utf8mb4' ? 100 : 255);
+
 
 
 /**
@@ -130,6 +137,7 @@ class core_Db extends core_BaseClass
         $this->dbCharset = EF_DB_CHARSET;
         $this->dbCollation = EF_DB_COLLATION;
         $this->dbCharsetClient = EF_DB_CHARSET_CLIENT;
+        $this->varcharIndexPrefix = EF_DB_VARCHAR_INDEX_PREFIX;
         
         parent::init($params);
     }
@@ -172,7 +180,7 @@ class core_Db extends core_BaseClass
             if (defined('EF_DB_SET_PARAMS') && (EF_DB_SET_PARAMS !== FALSE)) {
                 $link->query("SET CHARACTER_SET_RESULTS={$this->dbCharset}, COLLATION_CONNECTION={$this->dbCollation}, CHARACTER_SET_CLIENT={$this->dbCharsetClient}, {$sqlMode};");
             }
-            
+
             // Избираме указаната база от данни на сървъра
             if (!$link->select_db("{$this->dbName}")) {
                 // Грешка при избиране на база
@@ -214,8 +222,7 @@ class core_Db extends core_BaseClass
      */
     function query($sqlQuery, $silent = FALSE)
     {
-
-     //   if(stripos($sqlQuery, "`hr_") && stripos($sqlQuery, "SET")) bp($sqlQuery);
+        if(isDebug() && ($fnd = Request::get('_bp')) &&  stripos(preg_replace('!\\s+!', ' ', $sqlQuery), $fnd) !== FALSE) bp($sqlQuery);
 
         DEBUG::startTimer("DB::query()");
         DEBUG::log("$sqlQuery");
@@ -401,8 +408,8 @@ class core_Db extends core_BaseClass
         // Установяване на параметрите по подразбиране
         setIfNot($params, array(
                 'ENGINE' => CORE_SQL_DEFAULT_ENGINE,
-                'CHARACTER' => 'utf8',
-                'COLLATION' => 'utf8_bin'
+                'CHARACTER' => $this->dbCharset,
+                'COLLATION' => $this->dbCollation
             ));
 
         // Ако таблицата съществува, връщаме сигнал, че нищо не сме направили
@@ -529,7 +536,7 @@ class core_Db extends core_BaseClass
             } else {
                 $rest = explode(")", $rest);
                 
-                $res->size = (int) $rest[0];
+                $res->size = trim($rest[0]);
                 
                 if($rest[1]) {
                     $res->unsigned = (strpos(strtolower($rest[1]), 'unsigned') !== FALSE);
@@ -554,7 +561,7 @@ class core_Db extends core_BaseClass
     {
         $types['can_be_unsigned'] = arr::make('TINYINT,SMALLINT,MEDIUMINT,INT,INTEGER,BIGINT,FLOAT,DOUBLE,DOUBLE PRECISION,REAL,DECIMAL');
         $types['have_options'] = arr::make('ENUM,SET');
-        $types['have_len'] = arr::make('CHAR,VARCHAR');
+        $types['have_len'] = arr::make('CHAR,VARCHAR,DECIMAL');
         $types['have_collation'] = arr::make('TINYTEXT,TEXT,MEDIUMTEXT,LONGTEXT,CHAR,VARCHAR,ENUM');
         
         expect($types[$param], 'Wrong param for isType', $param);
@@ -589,6 +596,7 @@ class core_Db extends core_BaseClass
         if ($field->unsigned) {
             $unsigned = ' UNSIGNED';
         }
+
         
         if ($field->notNull) {
             $notNull = ' NOT NULL';
@@ -597,11 +605,17 @@ class core_Db extends core_BaseClass
         if ($field->default !== NULL) {
             $default = " DEFAULT '{$field->default}'";
         }
-        
+
+        if(strtolower($field->name) == 'id') {
+            $autoIncrement = ' AUTO_INCREMENT';
+            $default = '';
+            $notNull = '';
+        }  
+
         if ($field->field) {
-            return $this->query("ALTER TABLE `{$tableName}` CHANGE `{$field->field}` `{$field->name}` {$field->type}{$typeInfo}{$collation}{$unsigned}{$notNull}{$default}");
+            return $this->query("ALTER TABLE `{$tableName}` CHANGE `{$field->field}` `{$field->name}` {$field->type}{$typeInfo}{$collation}{$unsigned}{$autoIncrement}{$notNull}{$default}");
         } else {
-            return $this->query("ALTER TABLE `{$tableName}` ADD `{$field->name}` {$field->type}{$typeInfo}{$collation}{$unsigned}{$notNull}{$default}");
+            return $this->query("ALTER TABLE `{$tableName}` ADD `{$field->name}` {$field->type}{$typeInfo}{$collation}{$unsigned}{$autoIncrement}{$notNull}{$default}");
         }
     }
     
@@ -631,8 +645,15 @@ class core_Db extends core_BaseClass
         
         if (count($fieldsList)) {
             foreach ($fieldsList as $f) {
-                $f = str::phpToMysqlName($f);
-                $fields .= ($fields ? "," : "") . "`{$f}`\n";
+                list($name, $len) = explode('(', $f);
+
+                $name = str::phpToMysqlName($name);
+
+                if($len) {
+                    $fields .= ($fields ? "," : "") . "`{$name}`({$len}\n";
+                } else {
+                    $fields .= ($fields ? "," : "") . "`{$name}`\n";
+                }
             }
             
             // Създаване на Индекса
@@ -680,6 +701,7 @@ class core_Db extends core_BaseClass
         
         if ($this->numRows($dbRes)) {
             while ($rec = $this->fetchObject($dbRes)) {
+
                 $name = $rec->Key_name;
                 
                 if ($name == 'PRIMARY') {
@@ -692,7 +714,7 @@ class core_Db extends core_BaseClass
                     $type = 'UNIQUE';
                 }
                 
-                $indexes[$name][$type][str::mysqlToPhpName($rec->Column_name)] = TRUE;
+                $indexes[$name][$type][str::mysqlToPhpName($rec->Column_name)] = $rec->Sub_part ? $rec->Sub_part : TRUE;
             }
         }
   

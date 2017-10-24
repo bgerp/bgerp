@@ -1,4 +1,7 @@
 <?php
+
+
+
 /**
  * Клас 'acc_VatGroups'
  *
@@ -6,12 +9,15 @@
  * @category  bgerp
  * @package   acc
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class acc_VatGroups extends core_Manager
 {
+    
+    
+    
     /**
      * Заглавие в множествено число
      * 
@@ -26,14 +32,6 @@ class acc_VatGroups extends core_Manager
      * var string|array
      */
     public $loadList = 'acc_WrapperSettings,plg_RowTools2,plg_Created,plg_Modified,plg_State2';
-    
-    
-    /**
-     * Кой има право да чете?
-     * 
-     * @var string|array
-     */
-    public $canRead = 'acc,ceo';
     
     
     /**
@@ -73,15 +71,6 @@ class acc_VatGroups extends core_Manager
      */
     public $listFields = 'title,vat,createdOn,createdBy,modifiedOn,modifiedBy,state';
     
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     * 
-     * @var string
-     * @see plg_RowTools
-     */
-    public $rowToolsField = 'tools';
-    
 
     /**
      * Заглавие в единствено число
@@ -98,7 +87,6 @@ class acc_VatGroups extends core_Manager
     {
     	// Информация за нишката
     	$this->FLD('title', 'varchar(3)', 'caption=Заглавие,mandatory');
-    	//$this->FLD('countryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,remember,class=contactData,mandatory');
     	$this->FLD('vat', 'percent', 'caption=ДДС,mandatory');
     	$this->FLD('sysId', 'varchar(3)', 'caption=Систем ID, input=hidden');
     	

@@ -37,15 +37,15 @@ class trz_Requests extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, trz_Wrapper, doc_plg_TransferDoc,
+    public $loadList = 'plg_RowTools2, trz_Wrapper, doc_plg_TransferDoc,bgerp_plg_Blank,
     				 doc_DocumentPlg, acc_plg_DocumentSummary, doc_ActivatePlg,
-    				 plg_Printing,doc_SharablePlg,bgerp_plg_Blank';
+    				 plg_Printing,doc_SharablePlg';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,personId, leaveFrom, leaveTo, note, useDaysFromYear, paid';
+    public $listFields = 'id,personId, leaveFrom, leaveTo, note, paid';
     
     
     /**
@@ -77,7 +77,7 @@ class trz_Requests extends core_Master
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,trz';
+    public $canEdit = 'powerUser';
     
     
     /**
@@ -96,12 +96,24 @@ class trz_Requests extends core_Master
 	 * Кой може да разглежда сингъла на документите?
 	 */
 	public $canSingle = 'ceo,trz';
+	
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	public $canReject = 'ceo,trz';
+	
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	public $canRestore = 'ceo,trz';
     
     
     /**
-     * Кой може да го види?
+     * Кой може да го активира?
      */
-    public $canView = 'powerUser';
+    public $canActivate = 'ceo,trz';
     
     
     /**
@@ -109,12 +121,6 @@ class trz_Requests extends core_Master
      */
     public $canDelete = 'powerUser';
 
-    
-    /**
-     * Икона за единичния изглед
-     */
-    //var $singleIcon = 'img/16/money.png';
-    
     
     /**
      * Единична икона
@@ -157,6 +163,7 @@ class trz_Requests extends core_Master
      */
     public $transferFolderField = 'personId';
     
+    
     static public $map = array('paid' => 'платен', 'unpaid' => 'неплатен');
     
     
@@ -170,7 +177,7 @@ class trz_Requests extends core_Master
     	$this->FLD('leaveFrom', 'datetime', 'caption=Считано->От, mandatory');
     	$this->FLD('leaveTo', 'datetime(defaultTime=23:59:59)', 'caption=Считано->До, mandatory');
     	$this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
-    	$this->FLD('useDaysFromYear', 'int', 'caption=Информация->Ползване от,unit=година');
+    	$this->FLD('useDaysFromYear', 'int', 'caption=Информация->Ползване от,unit=година, input=none');
     	$this->FLD('paid', 'enum(paid=платен, unpaid=неплатен)', 'caption=Информация->Вид, maxRadio=2,columns=2,notNull,value=paid');
     	$this->FLD('note', 'richtext(rows=5, bucket=Notes, shareUsersRoles=trz|ceo)', 'caption=Информация->Бележки');
     	$this->FLD('answerGSM', 'enum(yes=да, no=не, partially=частично)', 'caption=По време на отсъствието->Отговаря на моб. телефон, maxRadio=3,columns=3,notNull,value=yes');
@@ -187,27 +194,26 @@ class trz_Requests extends core_Master
      */
     public static function on_BeforeSave($mvc, &$id, $rec)
     {
-        if($rec->leaveFrom &&  $rec->leaveTo){
-        	
-        	$state = hr_EmployeeContracts::getQuery();
-	        $state->where("#personId='{$rec->personId}'");
-	        
-	        if($employeeContractDetails = $state->fetch()){
-	           
-	        	$employeeContract = $employeeContractDetails->id;
-	        	$department = $employeeContractDetails->departmentId;
-	        	
-	        	$schedule = hr_EmployeeContracts::getWorkingSchedule($employeeContract);
-	        	if($schedule == FALSE){ 
-	        		$days = hr_WorkingCycles::calcLeaveDaysBySchedule($schedule, $department, $rec->leaveFrom, $rec->leaveTo);
-	        	} else {
-	        		$days = cal_Calendar::calcLeaveDays($rec->leaveFrom, $rec->leaveTo);
-	        	}
-	        } else {
-        	
-	    		$days = cal_Calendar::calcLeaveDays($rec->leaveFrom, $rec->leaveTo);
-	        }
-	    	$rec->leaveDays = $days->workDays;
+        
+    }
+    
+    
+    /**
+     * Изпълнява се преди опаковане на съдаржанието от мениджъра
+     *
+     * @param core_Mvc $mvc
+     * @param null|string|core_ET $res
+     * @param string|core_ET $tpl
+     * @param stdClass $data
+     *
+     * @return boolean
+     */
+    protected static function on_BeforeRenderSingleLayout($mvc, &$res, &$tpl = NULL, $data = NULL)
+    {
+        $curUrl = getCurrentUrl();
+        
+        if($curUrl['Order'] == 'yes') {
+            $mvc->singleLayoutFile = 'trz/tpl/SingleLayoutOrders.shtml';
         }
     }
     
@@ -230,7 +236,7 @@ class trz_Requests extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
-    	$data->listFilter->FLD('employeeId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител,silent,before=paid');
+    	$data->listFilter->FLD('employeeId', 'key(mvc=crm_Persons,select=name,allowEmpty,group=employees)', 'caption=Служител,silent,before=paid');
     	$data->listFilter->showFields = $data->listFilter->showFields . ',employeeId';
     	$data->listFilter->input('employeeId', 'silent');
     	
@@ -261,21 +267,23 @@ class trz_Requests extends core_Master
     	$rec = &$form->rec;
     	
     	$nowYear = dt::mysql2Verbal(dt::now(),'Y');
-    	for($i = 0; $i < 5; $i++){
+    	for($i = 0; $i <= 1; $i++){
     		$years[$nowYear - $i] = $nowYear - $i;
     	} 
     	$form->setSuggestions('useDaysFromYear', $years);
-    	$form->setDefault('useDaysFromYear', $years[$nowYear]);
-    	
+    	//$form->setDefault('useDaysFromYear', $years[$nowYear]);
 
     	// Намират се всички служители
     	$employees = crm_Persons::getEmployeesOptions();
+    	unset($employees[$rec->personId]);
+   
     	if(count($employees)){
-    		$form->setOptions('personId', crm_Persons::getEmployeesOptions());
+    		$form->setOptions('personId', $employees);
+    		$form->setOptions('alternatePerson', $employees);
     	} else {
     		redirect(array('crm_Persons', 'list'), FALSE, "|Липсва избор за служители|*");
     	}
-    	
+
     	$folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
 
         if($rec->folderId && $folderClass == 'crm_Persons') {
@@ -294,12 +302,90 @@ class trz_Requests extends core_Master
      */
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
+        $now = dt::now();
+        // един месец назад
+        $before30Days = dt::addMonths(-1, $now);
+        $before30DaysVerbal = dt::mysql2verbal($before30Days,"d.m.Y");
 
-        if ($form->isSubmitted()) { 
+        // една година напред
+        $after1year = dt::addMonths(12, $now);
+        $after1yearVerbal = dt::mysql2verbal($after1year,"d.m.Y");
+
+        if ($form->isSubmitted()) {
             // Размяна, ако периодите са объркани
             if(isset($form->rec->leaveFrom) && isset($form->rec->leaveTo) && ($form->rec->leaveFrom > $form->rec->leaveTo)) { 
-                $form->setError('startDate, toDate', "Началната дата трябва да е по-малка от крайната");
+                $form->setError('leaveFrom, leaveTo', "Началната дата трябва да е по-малка от крайната");
             }
+            
+            if(isset($form->rec->leaveFrom) &&  ($form->rec->leaveFrom < $before30Days)) {
+                $form->setError('leaveFrom', "Началната дата трябва да е след {$before30DaysVerbal}г.");
+            }
+            
+            if(isset($form->rec->leaveFrom) && ($form->rec->leaveFrom > $after1year)) {
+                $form->setError('leaveFrom', "Началната дата трябва да е преди {$after1yearVerbal}г.");
+            }
+            
+            if(isset($form->rec->leaveTo) && ($form->rec->leaveTo > $after1year)) {
+                $form->setError('leaveTo', "Крайната дата трябва да е преди {$after1yearVerbal}г.");
+            }
+            
+            // изисляване на бр дни отпуска
+            if($form->rec->leaveFrom &&  $form->rec->leaveTo){
+                 
+                $state = hr_EmployeeContracts::getQuery();
+                $state->where("#personId='{$form->rec->personId}'");
+                 
+                if($employeeContractDetails = $state->fetch()){
+            
+                    $employeeContract = $employeeContractDetails->id;
+                    $department = $employeeContractDetails->departmentId;
+            
+                    $schedule = hr_EmployeeContracts::getWorkingSchedule($employeeContract);
+                    if($schedule == FALSE){
+                        $days = hr_WorkingCycles::calcLeaveDaysBySchedule($schedule, $department, $form->rec->leaveFrom, $form->rec->leaveTo);
+                    } else {
+                        $days = cal_Calendar::calcLeaveDays($form->rec->leaveFrom, $form->rec->leaveTo);
+                    }
+                } else {
+                     
+                    $days = cal_Calendar::calcLeaveDays($form->rec->leaveFrom, $form->rec->leaveTo);
+                }
+            
+                $form->rec->leaveDays = $days->workDays;
+            }
+          
+            // ако не са изчислени дните за отпуска или са по-малко от 1, даваме грешка
+            if(!$form->rec->leaveDays || isset($form->rec->leaveDays) < 1) {
+                $form->setError('leaveDays', "Броят  неприсъствени дни е 0");
+            }
+            
+            // правим заявка към базата
+            $query = self::getQuery();
+            
+            // търсим всички молби, които са за текущия потребител
+            $query->where("#personId='{$form->rec->personId}'");
+   
+            if ($form->rec->id) { 
+                $query->where("#id != {$form->rec->id}");
+            }
+            
+            // търсим времево засичане
+            $query->where("(#leaveFrom <= '{$form->rec->leaveFrom}' AND #leaveTo >= '{$form->rec->leaveFrom}')
+            OR
+            (#leaveFrom <= '{$form->rec->leaveTo}' AND #leaveTo >= '{$form->rec->leaveTo}')");
+            
+            $query->where("#state = 'active'");
+            
+            // за всяка една молба отговаряща на условията проверяваме
+            if ($recReq = $query->fetch()) {
+            
+                $link = ht::createLink("Молба за отпуска №{$recReq->id}", array('trz_Requests', 'single', $recReq->id, 'ret_url' => TRUE, ''), NULL, "ef_icon=img/16/leaves.png");
+                // и изписваме предупреждение
+            	$form->setError('leaveFrom, leaveTo', "|Засичане по време с |*{$link}");
+            
+            }
+            
+            
         }
     }
  
@@ -313,18 +399,39 @@ class trz_Requests extends core_Master
      * @param stdClass $rec
      * @param int $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-    	// Ако се опитваме да направим заповед за отпуска
-	    if($action == 'order'){ 
-			if ($rec->id) {
-				    // и нямаме нужните права
-					if(!Users::haveRole('ceo') || !Users::haveRole('trz') ) {
-				        // то не може да я направим
-						$requiredRoles = 'no_one';
-				}
-		    }
-	    }
+
+	     if ($rec->id) {
+	         $oRec = $mvc->fetch($rec->id);
+	        
+	         if ($action == 'order') {
+	             // и нямаме нужните права
+	             if(!Users::haveRole('ceo') || !Users::haveRole('trz') ) {
+	                 // то не може да я направим
+	                 $requiredRoles = 'no_one';
+	             }
+	         }
+	     }
+	     
+	     if ($action == 'add' || $action == 'reject') { 
+	         if ($rec->folderId) {
+    	         $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
+    	        
+    	         if($rec->folderId && $folderClass == 'crm_Persons') { 
+    	             $personId = doc_Folders::fetchCoverId($rec->folderId);
+    	             $inCharge = crm_Profiles::fetchField("#personId = '{$personId}'", 'userId');
+    	             //$inCharge = doc_Folders::fetchField($rec->folderId, 'inCharge');
+    	       
+    	             if($inCharge != $userId) { 
+                        if(!Users::haveRole('ceo') && !Users::haveRole('trz')){
+    	                 // то не може да я направим
+    	                 $requiredRoles = 'no_one';
+                        }
+    	             }
+    	         }
+	         }
+	     }
      }
 
     
@@ -341,7 +448,20 @@ class trz_Requests extends core_Master
         if(haveRole('trz, ceo') && $data->rec->state == 'active') {
             
         	// Добавяме бутон
-            $data->toolbar->addBtn('Заповед', array('trz_Requests', 'Print', 'id' => $data->rec->id, 'Printing' => 'yes'), 'ef_icon = img/16/btn-order.png, title=Създаване на заповед за отпуска');
+            //$data->toolbar->addBtn('Заповед', array('trz_Requests', 'Print', 'id' => $data->rec->id, 'Printing' => 'yes'), 'ef_icon = img/16/btn-order.png, title=Създаване на заповед за отпуска');
+            $data->toolbar->addBtn('Заповед', array('trz_Requests', 'single', 'id' => $data->rec->id, 'Printing' => 'yes', 'Order'=>'yes'),
+            'ef_icon = img/16/btn-order.png, title=Създаване на заповед за отпуска', array('target' => '_blank'), array('class' => 'print'));
+        
+        }
+        
+        // Ако имаме права да създадем заповед за отпуск
+        if(haveRole('trz, ceo') && $data->rec->state == 'active') {
+        
+            // Добавяме бутон
+            //$data->toolbar->addBtn('Заповед', array('trz_Requests', 'Print', 'id' => $data->rec->id, 'Printing' => 'yes'), 'ef_icon = img/16/btn-order.png, title=Създаване на заповед за отпуска');
+            $data->toolbar->addBtn('Заповед', array('trz_Requests', 'single', 'id' => $data->rec->id, 'Printing' => 'yes', 'Order'=>'yes'),
+                'ef_icon = img/16/btn-order.png, title=Създаване на заповед за отпуска', array('target' => '_blank'), array('class' => 'print'));
+        
         }
         
         // Ако нямаме права за писане в треда
@@ -355,36 +475,30 @@ class trz_Requests extends core_Master
     
     
     /**
-     * Извиква се след изпълняването на екшън
+     * Функция, която прихваща след активирането на документа
      */
-    public static function on_AfterAction(&$invoker, &$tpl, $act)
+    public static function on_AfterActivation($mvc, &$rec)
     {
-    	if (strtolower($act) == 'single' && haveRole('trz,ceo') && !Mode::is('printing')) {
-    		
-    		// Взимаме ид-то на молбата
-    		$id = Request::get('id', 'int');
-    		
-    		// намираме, кой е текущия потребител
-    		$cu =  core_Users::getCurrent();
-    		
-    		// взимаме записа от модела
-    		$rec = self::fetch($id);
-    		
-    		// превръщаме кей листа на споделените потребители в масив
-    		$sharedUsers = type_Keylist::toArray($rec->sahredUsers);
-    		
-    		// добавяме текущия потребител
-    		$sharedUsers[$cu] = $cu;
-    		
-    		// връщаме в кей лист масива
-    		$rec->sharedUsers =  keylist::fromArray($sharedUsers);
-    		    		
-    		self::save($rec, 'sharedUsers');
-    		
-            doc_ThreadUsers::removeContainer($rec->containerId);
-            doc_Threads::updateThread($rec->threadId);
-            
-    		redirect(array('doc_Containers', 'list', 'threadId'=>$rec->threadId));
+        //
+        $rec = $mvc->fetchRec($rec);
+        $subscribedArr = keylist::toArray($rec->sharedUsers);
+        
+        if(isset($rec->alternatePerson)) { 
+            $alternatePersonId = crm_Profiles::fetchField("#personId = '{$rec->alternatePerson}'", 'userId');
+            $subscribedArr[$alternatePersonId] = $alternatePersonId;
+        }
+
+    	if(count($subscribedArr)) {
+   	        foreach($subscribedArr as $userId) {
+    	        if($userId > 0  && doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
+    	            $rec->message  = "|Активирана е |* \"" . self::getRecTitle($rec) . "\"";
+    	            $rec->url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+    	            $rec->customUrl = array('trz_Requests', 'single',  $rec->id);
+    	            $rec->priority = 0;
+    	
+    	            bgerp_Notifications::add($rec->message, $rec->url, $userId, $rec->priority, $rec->customUrl);
+    	        }
+    	    }
     	}
     }
 
@@ -412,7 +526,7 @@ class trz_Requests extends core_Master
 
         $curDate = $rec->leaveFrom;
     	
-    	while($curDate < dt::addDays(1, $rec->leaveTo)){
+    	while($curDate < $rec->leaveTo){
         // Подготвяме запис за началната дата
 	        if($curDate && $curDate >= $fromDate && $curDate <= $toDate && $rec->state == 'active') {
 	            
@@ -432,8 +546,8 @@ class trz_Requests extends core_Master
 	
 	            $personName = crm_Persons::fetchField($rec->personId, 'name');
 	            // Заглавие за записа в календара
-	            $calRec->title = "Отпуск:{$personName}";
-	            
+	            $calRec->title = "Отпуск: {$personName}";
+	
 	            $personProfile = crm_Profiles::fetch("#personId = '{$rec->personId}'");
 	            $personId = array($personProfile->userId => 0);
 	            $user = keylist::fromArray($personId);
@@ -525,65 +639,5 @@ class trz_Requests extends core_Master
         $title = tr('Молба за отпуска  №|*'. $rec->id . ' на|* ') . $me->getVerbal($rec, 'personId');
          
         return $title;
-    }
-
-    
-    /**
-     * Разпечатва заповед
-     */
-    public function act_Print()
-    {
-        $id = Request::get('id');
-        $recs = array();
-        $recs[] = self::fetch($id);
-
-        $tpl = self::printOrder($recs);
-
-        return  $this->renderWrapping($tpl);
-    }
-    
-    
-    /**
-     * Подготвя заповед за разпечатване
-     *
-     * @param array $res - Масив от записи за показване
-     * @return core_ET $tpl - Шаблон на обобщението
-     */
-    private static function printOrder($res)
-    {
-        // Зареждаме и подготвяме шаблона
-        $tpl = new ET(tr('|*' . getFileContent("trz/tpl/SingleLayoutOrders.shtml")));
-        
-        $Int = cls::get('type_Int');
-        $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 2;
-        $Text = cls::get(type_Text);
-        $Date = cls::get(type_Date); 
-        $Datetime = cls::get(type_Datetime);
-        $Datetime->params['defaultTime'] = "23:59:59";
-        $me = cls::get(get_called_class());
-        
-        if(count($res)) {
-            foreach($res as $rec) { 
-                $row = new stdClass();
-                $row->id = $Int->toVerbal($rec->id);
-                $row->createdDate =  $Date->toVerbal($rec->createdOn);
-                $row->isPaid = static::$map[$rec->isPaid];
-                $row->personId = $me->getVerbal($rec, 'personId');
-                $row->leaveDays = $Int->toVerbal($rec->leaveDays);
-                $row->useDaysFromYear = $Int->toVerbal($rec->useDaysFromYear);
-                $row->leaveFrom = $Datetime->toVerbal($rec->leaveFrom);
-                $row->leaveTo =  $Datetime->toVerbal($rec->leaveTo);
-                $row->amount = $Double->toVerbal($rec->amount);
-                $row->note = $Text->toVerbal($rec->note);
-                $row->baseCurrencyId = $rec->baseCurrencyId;
-            }
-
-            $tpl->placeObject($row);
-            $tpl->removeBlocks();
-            $tpl->append2master();
-        } 
-
-        return $tpl;
     }
 }

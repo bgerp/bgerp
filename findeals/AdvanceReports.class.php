@@ -41,26 +41,20 @@ class findeals_AdvanceReports extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, findeals_Wrapper, plg_Printing, acc_plg_Contable, 
-                    doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
+                    doc_DocumentPlg, acc_plg_DocumentSummary,cat_plg_AddSearchKeywords, plg_Search,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices';
-
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,pettyCashReport';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,pettyCashReport';
+	public $canList = 'ceo,pettyCashReport,acc';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,pettyCashReport';
+	public $canSingle = 'ceo,pettyCashReport,acc';
     
     
     /**
@@ -85,6 +79,12 @@ class findeals_AdvanceReports extends core_Master
      * Кой може да го изтрие?
      */
     public $canConto = 'ceo,pettyCashReport';
+    
+    
+    /**
+     * Кой може да сторнира
+     */
+    public $canRevert = 'pettyCashReport, ceo';
     
     
     /**
@@ -154,6 +154,18 @@ class findeals_AdvanceReports extends core_Master
     
     
     /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
+    
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, valior,modifiedOn';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -167,7 +179,7 @@ class findeals_AdvanceReports extends core_Master
     	$this->FLD('amountDiscount', 'double(decimals=2)', 'input=none');
     	
     	$this->FLD('creditAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
-    	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен)', 'caption=Статус, input=none');
+    	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно)', 'caption=Статус, input=none');
     	$this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden');
     	$this->FLD('contragentId', 'int', 'input=hidden');
     	$this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Oсвободено от ДДС, no=Без начисляване на ДДС)', 'caption=Допълнително->ДДС');
@@ -271,9 +283,9 @@ class findeals_AdvanceReports extends core_Master
      */
     public static function getRecTitle($rec, $escaped = TRUE)
     {
-    	$self = cls::get(__CLASS__);
+    	$self = cls::get(get_called_class());
     	 
-    	return "{$self->singleTitle} №{$rec->id}";
+    	return tr("|{$self->singleTitle}|* №") . $rec->id;
     }
     	
     
@@ -317,17 +329,6 @@ class findeals_AdvanceReports extends core_Master
     	}
     	 
     	return $options;
-    }
-    
-    
-    /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    protected static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	if(!empty($data->toolbar->buttons['btnAdd'])){
-    		$data->toolbar->removeBtn('btnAdd');
-    	}
     }
     
     

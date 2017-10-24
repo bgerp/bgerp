@@ -1,0 +1,11 @@
+<table class='listTable'>
+<tr><td colspan=2><strong>[#summaryVrb#]</strong></td></tr>
+<!--ET_BEGIN dtstartVrb--><tr><td align="right">|Начало|*:</td><td>[#dtstartVrb#]</td></tr><!--ET_END dtstartVrb-->
+<!--ET_BEGIN dtendVrb--><tr><td align="right">|Край|*:</td><td>[#dtendVrb#]</td></tr><!--ET_END dtendVrb-->
+<!--ET_BEGIN durationVrb--><tr><td align="right">|Продължителност|*:</td><td>[#durationVrb#]</td></tr><!--ET_END durationVrb-->
+<!--ET_BEGIN locationVrb--><tr><td align="right">|Локация|*:</td><td>[#locationVrb#]</td></tr><!--ET_END locationVrb-->
+<!--ET_BEGIN descriptionVrb--><tr><td align="right">|Описание|*:</td><td>[#descriptionVrb#]</td></tr><!--ET_END descriptionVrb-->
+<!--ET_BEGIN organizerVrb--><tr><td align="right">|Организатор|*:</td><td>[#organizerVrb#]</td></tr><!--ET_END organizerVrb-->
+<!--ET_BEGIN attendeeVrb--><tr><td align="right">|Участници|*:</td><td>[#attendeeVrb#]</td></tr><!--ET_END attendeeVrb-->
+<!--ET_BEGIN statusVrb--><tr><td align="right">|Статус|*:</td><td>[#statusVrb#]</td></tr><!--ET_END statusVrb-->
+</table>

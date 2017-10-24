@@ -10,7 +10,7 @@
  * @category  bgerp
  * @package   tracking
  * @author    Dimitar Minekov <mitko@extrapack.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -28,22 +28,27 @@ class tracking_Vehicles extends core_Manager
      *
      * var string|array
      */
-    public $loadList = 'plg_Created, plg_Rejected, plg_RowTools, plg_State2, tracking_Wrapper';
+    public $loadList = 'plg_Created, plg_Rejected, plg_RowTools2, plg_State2, tracking_Wrapper';
     
     /**
      * Права
      */
     public $canWrite = 'tracking,admin,ceo';
     
+    
     public $canRead = 'tracking,admin,ceo';
+    
     
     public $canList = 'tracking,admin,ceo';
     
 //     public $canAdd = 'tracking, admin, ceo';
     
-     public $canEdit = 'tracking, admin, ceo';
     
+    public $canEdit = 'tracking, admin, ceo';
+    
+     
     public $canDelete = 'no_one';
+    
     
     //public $canSingle = 'tracking,admin,ceo';
     

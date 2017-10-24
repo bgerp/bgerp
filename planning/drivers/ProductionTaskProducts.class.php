@@ -10,7 +10,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -27,13 +27,13 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     /**
      * Заглавие
      */
-    public $title = 'Детайл на задача за производство';
+    public $title = 'Детайл на производствените операции';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'type,productId,packagingId,plannedQuantity=Количества->Планирано,realQuantity=Количества->Изпълнено,storeId,indTime,totalTime';
+    public $listFields = 'type,productId,packagingId=Eдиница,plannedQuantity=Количества->Планирано,realQuantity=Количества->Изпълнено,measureId=Количества->Мярка,storeId,indTime,totalTime';
     
     
     /**
@@ -87,7 +87,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     /**
      * Активен таб на менюто
      */
-    public $currentTab = 'Задачи';
+    public $currentTab = 'Операции';
     
     
     /**
@@ -98,10 +98,10 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	$this->FLD("taskId", 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Задача');
     	$this->FLD("type", 'enum(input=Вложим,waste=Отпадък)', 'caption=Вид,remember,silent,input=hidden');
     	$this->FLD("productId", 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId,tdClass=productCell leftCol wrap');
-    	$this->FLD("packagingId", 'key(mvc=cat_UoM,select=shortName)', 'mandatory,caption=Мярка,smartCenter,tdClass=small-field nowrap');
+    	$this->FLD("packagingId", 'key(mvc=cat_UoM,select=shortName)', 'mandatory,caption=Пр. единица,smartCenter,tdClass=small-field nowrap');
     	$this->FLD("plannedQuantity", 'double(smartRound,Min=0)', 'mandatory,caption=Планирано к-во,smartCenter,oldFieldName=planedQuantity');
     	$this->FLD("storeId", 'key(mvc=store_Stores,select=name)', 'mandatory,caption=Склад');
-    	$this->FLD("quantityInPack", 'int', 'mandatory,input=none');
+    	$this->FLD("quantityInPack", 'double', 'mandatory,input=none');
     	$this->FLD("realQuantity", 'double(smartRound)', 'caption=Количество->Изпълнено,input=none,notNull,smartCenter');
     	$this->FLD("indTime", 'time(noSmart)', 'caption=Норма->Време,smartCenter');
     	$this->FNC('totalTime', 'time(noSmart)', 'caption=Норма->Общо,smartCenter');
@@ -118,9 +118,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
      */
     protected static function on_CalcTotalTime(core_Mvc $mvc, $rec)
     {
-    	if (empty($rec->indTime) || empty($rec->realQuantity)) {
-    		return;
-    	}
+    	if (empty($rec->indTime) || empty($rec->realQuantity)) return;
     
     	$rec->totalTime = $rec->indTime * $rec->realQuantity;
     }
@@ -179,17 +177,23 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     		} else {
     			$form->setDefault('storeId', store_Stores::getCurrent('id', FALSE));
     		}
+    		
+    		if(empty($rec->id)){
+    			$caption = ($rec->type == 'input') ? 'Вложено' : 'Отпадък';
+    			$form->FLD('inputedQuantity', 'double(Min=0)', "caption={$caption},before=storeId");
+    		}
+    		
+    		$taskInfo = planning_Tasks::getTaskInfo($data->masterRec);
+    		$Double = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')));
+    		$shortUom = cat_UoM::getShortName($taskInfo->packagingId);
+    		$measureUom = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
+    		$unit = tr($measureUom) . " " . tr('за') . " " . $Double->toVerbal($taskInfo->plannedQuantity) . " " . $shortUom;
+    		$unit = str_replace("&nbsp;", ' ', $unit);
+    		 
+    		$form->setField('plannedQuantity', array('unit' => $unit));
     	} else {
     		$form->setField('packagingId', 'input=hidden');
     	}
-    	
-    	$taskInfo = planning_Tasks::getTaskInfo($data->masterRec);
-    	$Double = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')));
-    	$shortUom = cat_UoM::getShortName($taskInfo->packagingId);
-    	$unit = tr('за') . " " . $Double->toVerbal($taskInfo->plannedQuantity) . " " . $shortUom;
-    	$unit = str_replace("&nbsp;", ' ', $unit);
-    	
-    	$form->setField('plannedQuantity', array('unit' => $unit));
     }
     
     
@@ -239,8 +243,8 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     	
     	foreach ($data->rows as $id => $row){
     		$rec = $data->recs[$id];
+    		$row->measureId = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
     		
-    		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
     		if(isset($rec->storeId)){
     			$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
     		}
@@ -257,7 +261,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     {
     	if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec->taskId)){
     		$state = $mvc->Master->fetchField($rec->taskId, 'state');
-    		if($state == 'active' || $state == 'pending' || $state == 'wakeup' || $state == 'draft'){
+    		if($state == 'active' || $state == 'waiting' || $state == 'wakeup' || $state == 'draft'){
     			if($action == 'add'){
     				$requiredRoles = $mvc->getRequiredRoles('addtoactive', $rec);
     			}
@@ -330,6 +334,11 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
      */
     public static function on_AfterCreate($mvc, $rec)
     {
+    	if(!empty($rec->inputedQuantity)){
+    		$dRec = (object)array('taskId' => $rec->taskId, 'taskProductId' => $rec->id, 'type' => $rec->type, 'quantity' => $rec->inputedQuantity);
+    		planning_drivers_ProductionTaskDetails::save($dRec);
+    	}
+    	
     	// При добавянето на артикул за влагане/отпадък ако за него има чернова задача за произвеждането му
     	// искаме текущата задача да зависи от изпълнението на другата задача.Т.е да активираме задачата
     	// за влагането на артикула само след завършването на задачата за произвеждането му
@@ -359,7 +368,7 @@ class planning_drivers_ProductionTaskProducts extends tasks_TaskDetails
     			$progress = ($tRec->plannedQuantity == 1) ? 1 : 0.1;
     			tasks_TaskConditions::add($taskRec, $tRec->taskId, $progress);
     		} catch(core_exception_Expect $e){
-    			
+    			reportException($e);
     		}
     	}
     }

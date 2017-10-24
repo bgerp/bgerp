@@ -46,7 +46,6 @@ class jqueryui_Ui
         $jsPath = "jqueryui/" . $conf->JQUERYUI_VERSION . "/jquery-ui.js";
         
         $tpl->push($jsPath, "JS");
-        //bp($jsPath);
     }
     
     

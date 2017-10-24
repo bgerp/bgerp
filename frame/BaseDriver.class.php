@@ -44,7 +44,7 @@ abstract class frame_BaseDriver extends core_ProtoInner
 	 */
 	public static function on_AfterRestore($mvc, &$is, &$rec)
 	{
-		if($rec->state == 'draft' || $rec->state == 'pending'){
+		if($rec->state == 'draft' || $rec->state == 'waiting'){
 			unset($rec->data);
 			frame_Reports::save($rec);
 		}

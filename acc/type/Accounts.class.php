@@ -40,7 +40,7 @@ class acc_type_Accounts extends type_Keylist
      *
      * `$this->params['root']` е префикс, който трябва да имат номерата на всички сметки-опции
      */
-    public function prepareOptions()
+    public function prepareOptions($value = NULL)
     {
         if (isset($this->options)) {
             

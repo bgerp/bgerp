@@ -206,7 +206,7 @@ class plg_TreeObject extends core_Plugin
 		foreach ($data->recs as $br){
 			$tree[$br->parentId][] = $br;
 		}
-		//bp($data->recs,$tree);
+
 		// Подготвяме дървото започвайки от обектите без бащи (корените)
 		$tree = self::createTree($tree, $tree[NULL]);
 		
@@ -336,9 +336,11 @@ class plg_TreeObject extends core_Plugin
 			if($mvc->haveRightFor('add', (object)array($mvc->parentFieldName => $rec->id))){
 				$url = array($mvc, 'add', $mvc->parentFieldName => $rec->id, 'ret_url' => TRUE);
 				$img = ht::createElement('img', array('src' => sbf('img/16/add-sub.png', ''), 'style' => 'width: 13px; padding: 0px 2px;'));
+				$parentTitle = $mvc->getVerbal($rec, $mvc->nameField);
 				
-                $parentTitle = $mvc->getVerbal($rec, $mvc->nameField);
-				$row->_addBtn = ht::createLink($img, $url, FALSE, "title=Добави ново подниво на |*'{$parentTitle}'");
+				if(!$mvc->hasPlugin('plg_RowTools2')){
+					$row->_addBtn = ht::createLink($img, $url, FALSE, "title=Добави ново подниво на |*'{$parentTitle}'");
+				}
                 
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 $row->_rowTools->addLink('Подниво||Sublevel', $url, "ef_icon=img/16/add-sub.png, title=title=Добави ново подниво на |*'{$parentTitle}'");
@@ -365,7 +367,7 @@ class plg_TreeObject extends core_Plugin
 			
 			// Ако обекта има деца, добавяме бутоните за скриване/показване
 			if($rec->_childrenCount > 0){
-				$plusIcon = sbf('img/16/toggle-expand.png', '');
+				$plusIcon = sbf('img/16/toggle1.png', '');
 				$minusIcon = sbf('img/16/toggle2.png', '');
 				$plus = "<img class='toggleBtn plus' src='{$plusIcon}' alt='' width='13' height='13' title='" . tr('Показване на наследниците') . "'/>";
 				$minus = "<img class='toggleBtn minus' src='{$minusIcon}' alt='' width='13' height='13' title='" . tr('Скриване на наследниците') . "'/>";
@@ -381,7 +383,9 @@ class plg_TreeObject extends core_Plugin
 	 */
 	public static function on_AfterPrepareListFields($mvc, $data)
 	{
-		arr::placeInAssocArray($data->listFields, array('_addBtn' => ' '), NULL, $mvc->nameField);
+		if(!$mvc->hasPlugin('plg_RowTools2')){
+			arr::placeInAssocArray($data->listFields, array('_addBtn' => ' '), NULL, $mvc->nameField);
+		}
 	}
 	
 	
@@ -432,9 +436,17 @@ class plg_TreeObject extends core_Plugin
 						continue;
 					}
 				}
-					
+				
 				// задаваме свойството
 				$features[$keyVerbal] = $nameVerbal;
+				
+				// Ако е последното листо, то да си има стойност себе си
+				if($keyVerbal != $nameVerbal){
+					if(!$mvc->fetchField("#{$mvc->parentFieldName} = {$rec->id}")){
+						$keyVerbal .= " » {$nameVerbal}";
+						$features[$keyVerbal] = $nameVerbal;
+					}
+				}
 			}
 			
 			// Връщаме намерените свойства
@@ -515,6 +527,30 @@ class plg_TreeObject extends core_Plugin
 	
 	
 	/**
+	 * Помощна ф-я връщаща масив със всички записи, които са наследници на даден запис
+	 */
+	private static function getParents($mvc, $id, $allRecs, &$res = array())
+	{
+		$descendants = array();
+		foreach ($allRecs as $key => $cRec){
+			if($cRec->{$mvc->parentFieldName} == $id){
+				$descendants[$key] = $cRec;
+			}
+		}
+	
+		$res = array_merge($res, $descendants);
+	
+		if(count($descendants)){
+			foreach ($descendants as $dRec){
+				self::getDescendants($mvc, $dRec->id, $allRecs, $res);
+			}
+		}
+	
+		return $res;
+	}
+	
+	
+	/**
 	 * Метод по подразбиране, връщащ обединението на множествата на записите, които
 	 * са наследници на друга група от записи
 	 * 
@@ -558,6 +594,45 @@ class plg_TreeObject extends core_Plugin
 			}
 			
 			// Връщаме намерените резултати
+			$res = $array;
+		}
+	}
+	
+	
+	/**
+	 * Метод по подразбиране, връщащ обединението на множествата на записите, и техните бащи
+	 *
+	 * @param core_Mvc $mvc         - мениджър
+	 * @param array|NULL $res       - намереното обединение
+	 * @param array|string $keylist - кейлист с записи, чиито наследници търсим
+	 */
+	public static function on_AfterGetParentsArray($mvc, &$res, $keylist)
+	{
+		if(!$res){
+				
+			// Подсигуряваме се че работим с масив
+			if(!is_array($keylist)){
+				$keylist = keylist::toArray($keylist);
+			}
+				
+			$array = array();
+				
+			// За всяко от подадените ид-та
+			foreach ($keylist as $id){
+				
+				// Добавяме го към множеството
+				$array[$id] = $id;
+				$rec = $mvc->fetch($id);
+				
+				// Добавяме и всички негови бащи
+				$parent = $rec->{$mvc->parentFieldName};
+				
+				while($parent && ($pRec = $mvc->fetch("#id = {$parent}", "id,{$mvc->parentFieldName}"))) {
+					$array[$pRec->id] = $pRec->id;
+					$parent = $pRec->{$mvc->parentFieldName};
+				}
+			}
+			
 			$res = $array;
 		}
 	}

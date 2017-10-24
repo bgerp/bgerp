@@ -80,6 +80,12 @@ class bank_CashWithdrawOrders extends bank_DocumentBlank
     
     
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'valior,createdOn';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -180,7 +186,7 @@ class bank_CashWithdrawOrders extends bank_DocumentBlank
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'add' && isset($rec)){
     		

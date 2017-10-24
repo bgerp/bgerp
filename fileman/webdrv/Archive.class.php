@@ -68,7 +68,7 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
         static::checkArchiveLen($fRec->dataId);
         
         // Връщаме инстанцията
-        return cls::get('archive_Adapter', $fRec->fileHnd);
+        return cls::get('archive_Adapter', array('fileHnd' => $fRec->fileHnd));
     }
     
     
@@ -122,5 +122,184 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
         
         // Връщаме манипулатора на файла
         return $fh;
+    }
+
+
+    /**
+     * Извлича текстовата част от файла
+     *
+     * @param object|string $fRec - Записите за файла
+     * 
+     * @return string|NULL
+     */
+    static function extractText($fRec)
+    {
+        core_App::setTimeLimit(300);
+        
+        // Максимален брой файлове, на които ще се прави обработка
+        $maxFileExtractCnt = 20;
+        
+        $params = array();
+        $params['type'] = 'text';
+        
+        $dId = self::prepareLockId($fRec);
+        $params['lockId'] = self::getLockId('text', $dId);
+        
+        if (is_object($fRec)) {
+            $params['dataId'] = $fRec->dataId;
+        }
+        
+        if (fileman_Indexes::isProcessStarted($params) || !core_Locks::get($params['lockId'], 1000, 0, FALSE)) return ;
+        
+        // Дали ще се проверява съдържанието на архива
+        $checInnerArchive = TRUE;
+        if (!is_object($fRec)) {
+            $checInnerArchive = FALSE;
+        }
+        
+        if (is_object($fRec)) {
+            try {
+                $archiveInst = cls::get('archive_Adapter', array('fileHnd' => $fRec->fileHnd));
+                
+                $dataRec = fileman_Data::fetch($params['dataId']);
+                $fLen = $dataRec->fileLen;
+            } catch (ErrorException $e) {
+                $archiveInst = FALSE;
+            }
+        } else {
+            try {
+                $archiveInst = cls::get('archive_Adapter', array('path' => $fRec));
+                $fLen = @filesize($fRec);
+            } catch (ErrorException $e) {
+                $archiveInst = FALSE;
+            }
+        }
+        
+        $maxArchiveLen = fileman_Setup::get('FILEINFO_MAX_ARCHIVE_LEN', TRUE);
+        
+        $text = '';
+        
+        // Ако не е над допустимия размер
+        if ($archiveInst && ($maxArchiveLen > $fLen)) {
+
+            try {
+                $entriesArr = $archiveInst->getEntries();
+            } catch (ErrorException $e) {
+                self::logWarning("Грешка при обработка на архив - {$dId}: " . $e->getMessage());
+                $entriesArr = array();
+            }
+            
+            $text = '';
+            
+            $extractedCnt = 0;
+            
+            // Всички файлове в архива
+            foreach ($entriesArr as $key => $entry) {
+                
+                // Гледаме размера след разархивиране да не е много голям
+                // Защита от "бомби" - от препълване на сървъра
+                if ($size > ARCHIVE_MAX_FILE_SIZE_AFTER_EXTRACT) continue;
+                
+                $path = $entry->getPath();
+                
+                $text .= ' ' . $path;
+                
+                // Ако достигнем лимита, останалите файлове да не се проверяват
+                if ($extractedCnt > $maxFileExtractCnt) continue;
+                
+                try {
+                    $extractedPath = $archiveInst->extractEntry($path);
+                } catch (ErrorException $e) {
+                    continue;
+                }
+            
+                $ext = fileman_Files::getExt($path);
+            
+                $webdrvArr = fileman_Indexes::getDriver($ext);
+                if (empty($webdrvArr)) continue;
+            
+                $drvInst = FALSE;
+                foreach ($webdrvArr as $drv) {
+                    if (!$drv) continue;
+                     
+                    if (!method_exists($drv, 'extractText')) continue;
+            
+                    // За да не зацикля, когато има много архиви в самите архиви
+                    if (!$checInnerArchive && ($drv instanceof fileman_webdrv_Archive)) continue;
+            
+                    $drvInst = $drv;
+                     
+                    break;
+                }
+            
+                if (!$drvInst) continue;
+                
+                $eText = '';
+                try {
+                    $extractedCnt++;
+                    // Извличаме текстовата част от драйвера
+                    $eText = $drvInst->extractText($extractedPath);
+                } catch (ErrorException $e) {
+                    reportException($e);
+                }
+                
+                // Ако няма текст, правим опит да направим OCR
+                if (!trim($eText)) {
+                    $minSize = fileman_Indexes::$ocrIndexArr[$ext];
+                    $eFileLen = @filesize($extractedPath);
+                    if (isset($minSize) && ($eFileLen > $minSize) && ($eFileLen < fileman_Indexes::$ocrMax)) {
+                        
+                        $filemanOcr = fileman_Setup::get('OCR');
+                        
+                        if ($filemanOcr && cls::load($filemanOcr, TRUE)) {
+                            $intf = cls::getInterface('fileman_OCRIntf', $filemanOcr);
+                            
+                            if ($intf && $intf->canExtract($extractedPath) && $intf->haveTextForOcr($extractedPath)) {
+                                try {
+                                    $eText = $intf->getTextByOcr($extractedPath);
+                                    
+                                    fileman_Data::logDebug('OCR обработка на файл в архив - ' . $path, $params['dataId']);
+                                } catch (ErrorException $e) {
+                                    reportException($e);
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                $text .= ' ' . $eText;
+                
+                // Изтриваме директорията, където е екстрактнат файла
+                if (is_file($extractedPath) && is_readable($extractedPath)) {
+                    if (isset($archiveInst->dir) && is_dir($archiveInst->dir)) {
+                        if (pathinfo($archiveInst->path, PATHINFO_DIRNAME) != $archiveInst->dir) {
+                            core_Os::deleteDir($archiveInst->dir);
+                        }
+                    }
+                }
+            }
+            
+            // Изтриваме временните файлове
+            if (is_object($fRec)) {
+                $archiveInst->deleteTempPath();
+            } else {
+                if (isset($archiveInst->dir) && is_dir($archiveInst->dir)) {
+                    if (pathinfo($archiveInst->path, PATHINFO_DIRNAME) != $archiveInst->dir) {
+                        core_Os::deleteDir($archiveInst->dir);
+                    }
+                }
+            }
+        }
+        
+        if (is_object($fRec)) {
+            // Обновяваме данните за запис във fileman_Indexes
+            $params['createdBy'] = core_Users::getCurrent('id');
+            $params['content'] = $text;
+            fileman_Indexes::saveContent($params);
+        }
+        
+        core_Locks::release($params['lockId']);
+        
+        return $text;
     }
 }

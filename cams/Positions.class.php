@@ -21,7 +21,7 @@ class cams_Positions extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cams_Wrapper';
+    var $loadList = 'plg_Created, plg_RowTools2, cams_Wrapper';
     
     
     /**

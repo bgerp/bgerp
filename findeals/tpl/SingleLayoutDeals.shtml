@@ -65,10 +65,14 @@
 		            <td>|Сметка|*</td>
 		            <td>[#accountId#]</td>
 		        </tr>
+		        
+		        <!--ET_BEGIN currencyRate-->
 		        <tr>
 		            <td>|Курс|*</td>
 		            <td>[#currencyRate#]</td>
 		        </tr>
+		        <!--ET_END currencyRate-->
+		        
 		        <!--ET_BEGIN description-->
 		        <tr>
 		            <td>|Описание|*</td>

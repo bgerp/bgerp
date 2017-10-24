@@ -102,7 +102,7 @@ class cms_VerbalIdPlg extends core_Plugin
             $i++;
             $recVid = $baseVid . '-' . $i;
             if(is_numeric($recVid)) $recVid .= '_'; 
-            if($i>3000) bp($recVid, $rec, $i);
+            if($i>3000) expect(FALSE, $recVid, $rec, $i);
         }
 
         expect($rec->{$fieldName});
@@ -123,7 +123,7 @@ class cms_VerbalIdPlg extends core_Plugin
             
             $vid = urldecode($vid);
 
-            $id = $mvc->fetchField(array("#vid COLLATE utf8_general_ci LIKE '[#1#]'", $vid), 'id');
+            $id = $mvc->fetchField(array("#vid COLLATE {$mvc->db->dbCharset}_general_ci LIKE '[#1#]'", $vid), 'id');
 
             if(!$id) {
                 $id = cms_VerbalId::fetchId($vid, $mvc);

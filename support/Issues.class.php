@@ -120,8 +120,8 @@ class support_Issues extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'support_Wrapper, doc_DocumentPlg, plg_RowTools, plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, plg_Search, 
-    				doc_SharablePlg, doc_AssignPlg, plg_Sorting, change_Plugin, doc_plg_BusinessDoc';
+    var $loadList = 'support_Wrapper, doc_DocumentPlg, plg_RowTools2, plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, plg_Search, 
+    				doc_SharablePlg, doc_AssignPlg, plg_Sorting, change_Plugin, doc_plg_BusinessDoc, plg_Clone';
     
     
     /**
@@ -151,7 +151,7 @@ class support_Issues extends core_Master
     /**
      * 
      */
-    var $listFields = 'id, title, systemId, componentId, typeId';
+    var $listFields = 'id, title, systemId, componentId, typeId, modifiedOn, modifiedBy';
     
     
     /**
@@ -161,15 +161,9 @@ class support_Issues extends core_Master
     
     
     /**
-     * 
-     */
-    var $cloneFields = 'componentId, typeId, title, description, priority';
-    
-    
-    /**
      * Кой има право да клонира?
      */
-    protected $canClone = 'powerUser';
+    public $canClonerec = 'powerUser';
 	
     
     /**
@@ -347,7 +341,7 @@ class support_Issues extends core_Master
     	
     	$form->toolbar->addSbBtn('Изпрати', 'save', 'id=save, ef_icon = img/16/ticket.png,title=Изпращане на сигнала');
         if(count(getRetUrl())) {
-            $form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close16.png,title=Oтказ');
+            $form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close-red.png,title=Oтказ');
         }
         $tpl = $form->renderHtml();
     	
@@ -443,6 +437,7 @@ class support_Issues extends core_Master
      * посочената папка като начало на нишка
      *
      * @param int $folderId - id на папката
+     * 
      * @return boolean
      */
     public static function canAddToFolder($folderId)
@@ -452,6 +447,8 @@ class support_Issues extends core_Master
         
         // Ако не support_systems, не може да се добави
         if (strtolower($coverClassName) != 'support_systems') return FALSE;
+        
+        return TRUE;
     }
     
     
@@ -713,12 +710,13 @@ class support_Issues extends core_Master
      */
     static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        // Подреждаме по дата по - новите по - напред
-        $data->query->orderBy('createdOn', 'DESC');
-        
         // Подреждаме сиганлите активните отпред, затворените отзад а другите по между им
         $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 3 ELSE 2 END)");
         $data->query->orderBy('orderByState');
+        
+        // Подреждаме по дата по - новите по - напред
+        $data->query->orderBy('modifiedOn', 'DESC');
+        $data->query->orderBy('createdOn', 'DESC');
         
         // Задаваме на полета да имат възможност за задаване на празна стойност
         $data->listFilter->getField('systemId')->type->params['allowEmpty'] = TRUE;
@@ -726,9 +724,11 @@ class support_Issues extends core_Master
          
         // Добавяме функционално поле за отговорници
         $data->listFilter->FNC('maintainers', 'type_Users(rolesForAll=support|ceo|admin)', 'caption=Отговорник,input,silent,autoFilter');
+        $data->listFilter->FNC('activatedFrom', 'date', 'caption=От,input,silent,autoFilter,title=Активирани от');
+        $data->listFilter->FNC('activatedTo', 'date', 'caption=До,input,silent,autoFilter,title=Активирани до');
         
         // Кои полета да се показват
-        $data->listFilter->showFields = 'systemId, componentId, maintainers';
+        $data->listFilter->showFields = 'systemId, componentId, maintainers, activatedFrom, activatedTo';
         
         // Добавяме бутон за филтриране
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -748,7 +748,6 @@ class support_Issues extends core_Master
         $data->listFilter->setField('systemId', array('mandatory' => FALSE));
         $data->listFilter->fields['systemId']->autoFilter = 'autoFilter';
         
-        
         // Инпутваме
         $data->listFilter->input();
         
@@ -757,13 +756,8 @@ class support_Issues extends core_Master
         
         // Ако е избрана система
         if ($systemId) {
-            
-            // Добавяме външно поле за търсене
-            $data->query->EXT("systemId", 'support_Components', "externalName=systemId");
-
             // Да се показват само сигнали от избраната система
             $data->query->where("#systemId = '{$systemId}'");
-            $data->query->where("#componentId = `support_components`.`id`");
         }
         
         // Вземаме всички компоненти от избраната система
@@ -828,6 +822,14 @@ class support_Issues extends core_Master
                 // Търсим по възложените потребители
                 $data->query->orWhereArr("assign", $maintainersArr, TRUE);
             }        
+        }
+        
+        if ($data->listFilter->rec->activatedFrom) {
+            $data->query->where(array("#activatedOn >= '[#1#]'", $data->listFilter->rec->activatedFrom));
+        }
+        
+        if ($data->listFilter->rec->activatedTo) {
+            $data->query->where(array("#activatedOn <= '[#1#] 23:59:59'", $data->listFilter->rec->activatedTo));
         }
     }
 
@@ -930,7 +932,7 @@ class support_Issues extends core_Master
      * 
      * @return array - интерфейси, които трябва да имат кориците
      */
-    public static function getAllowedFolders()
+    public static function getCoversAndInterfacesForNewDoc()
     {
         
     	return array('support_IssueIntf');
@@ -1068,7 +1070,7 @@ class support_Issues extends core_Master
         }
         
         if ($row->assign) {
-            $resArr['assign'] =  array('name' => tr('Възложено'), 'val' => tr('на') . " <i>[#assign#]</i> " . tr('от') . " <i>[#assignedBy#]</i> " . tr('в') . " [#assignedOn#]");
+            $resArr['assign'] =  array('name' => tr('Възложено'), 'val' => tr('на') . " [#assign#] " . tr('от') . " [#assignedBy#] " . tr('в') . " [#assignedOn#]");
         }
     }
 }

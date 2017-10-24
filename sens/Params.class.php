@@ -20,7 +20,7 @@ class sens_Params extends core_Manager
     /**
      * Необходими мениджъри
      */
-    var $loadList = 'plg_Created, plg_RowTools, sens_Wrapper';
+    var $loadList = 'plg_Created, plg_RowTools2, sens_Wrapper';
     
     
     /**

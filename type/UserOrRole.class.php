@@ -56,7 +56,7 @@ class type_UserOrRole extends type_User
     /**
      * Подготвя опциите според зададените параметри.
      */
-    public function prepareOptions()
+    public function prepareOptions($value = NULL)
     {
         $this->prepareSelOpt = FALSE;
         
@@ -88,6 +88,8 @@ class type_UserOrRole extends type_User
             
             // Вземаме всички роли
             $rQuery = core_Roles::getQuery();
+            
+//             $rQuery->where("#state != 'closed'");
             
             if ($this->params['rolesType']) {
                 $this->params['rolesType'] = arr::make($this->params['rolesType']);

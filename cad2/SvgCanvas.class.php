@@ -348,7 +348,7 @@ class cad2_SvgCanvas extends cad2_Canvas {
     /**
      * Изписва текст
      */
-    public function writeText($x, $y, $text, $rotation = 0, $absolute = TRUE)
+    public function writeText($x, $y, $text, $rotation = 0, $absolute = TRUE, $link = NULL)
     {
         $this->closePath(FALSE);
 
@@ -592,8 +592,10 @@ class cad2_SvgCanvas extends cad2_Canvas {
                 "\n version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n";
 
         // Генериране на съдържанието
-        foreach($this->content as $tag) {
-            $res .= $this->getXML($tag);
+        if(is_array($this->content)) {
+            foreach($this->content as $tag) {
+                $res .= $this->getXML($tag);
+            }
         }
         
         $res .= "</svg>\n";
@@ -715,8 +717,6 @@ class cad2_SvgCanvas extends cad2_Canvas {
             if ($tag->attr && count($tag->attr)) {
                 foreach ($tag->attr as $name => $val) {
                   
-                  //if(is_array($val)) bp($tag);
-
                     if(strlen($val) == 0) continue;
 
                     if (is_string($val)) {

@@ -42,19 +42,31 @@ class trz_Setup extends core_ProtoSetup
     
     
     /**
+     * Дали да се пропусне, като избор за инсталиране
+     */
+    public $noInstall = TRUE;
+    
+    
+    /**
+     * Дали се спира поддръжката на този пакет
+     */
+    public $deprecated = TRUE;
+    
+    
+    /**
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
             'trz_Payroll',
             'trz_PayrollDetails',
             'trz_SalaryPayroll',
+            'trz_SalaryIndicatorNames',
 		    'trz_SalaryIndicators',
 		    'trz_SalaryRules',
             'trz_Bonuses',
             'trz_Sickdays',
             'trz_Trips',
             'trz_Fines',
-            'trz_Orders',
             'trz_Requests',
         );
 
@@ -65,12 +77,40 @@ class trz_Setup extends core_ProtoSetup
     var $roles = 'trz';
 
     
+     
     /**
-     * Връзки от менюто, сочещи към модула
+     * Настройки за Cron
      */
-    var $menuItems = array(
-            array(2.32, 'Персонал', 'ТРЗ', 'trz_SalaryPayroll', 'default', "trz, ceo"),
-        );
+    var $cronSettings = array(
+        array(
+            'systemId' => "Salary Rules",
+            'description' => "Правила за формиране на работна заплата",
+            'controller' => "trz_SalaryRules",
+            'action' => "SalaryRules",
+            'period' => 180,
+            'offset' => 15,
+            'timeLimit' => 100
+        ),
+
+        array(
+            'systemId' => "CollectIndicators",
+            'description' => "Изпращане на данните към показателите за заплатите",
+            'controller' => "trz_SalaryIndicators",
+            'action' => "Indicators",
+            'period' => 180,
+            'offset' => 60,
+        ),
+        
+        array(
+            'systemId' => 'CalculateSalary',
+            'description' => 'Изчисляване на заработката',
+            'controller' => 'trz_SalaryPayroll',
+            'action' => 'CalcSalaryPay',
+            'period' => 1440,
+            'offset' => 23,
+            'timeLimit' => 600,
+        ),
+    );
 
         
     /**

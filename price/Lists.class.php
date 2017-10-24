@@ -33,7 +33,7 @@ class price_Lists extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, price_Wrapper, plg_Search, doc_DocumentPlg';
+    public $loadList = 'plg_RowTools2, price_Wrapper, plg_Search, plg_Clone, doc_DocumentPlg, doc_plg_SelectFolder';
                     
     
     /**
@@ -121,6 +121,26 @@ class price_Lists extends core_Master
     
     
     /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = 'crm_ContragentAccRegIntf,doc_UnsortedFolders';
+    
+    
+    /**
+     * Да се забрани ли кеширането на документа
+     */
+    public $preventCache = TRUE;
+    
+
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'title';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -132,7 +152,7 @@ class price_Lists extends core_Master
         $this->FLD('vat', 'enum(yes=Включено,no=Без ДДС)', 'caption=ДДС'); 
         $this->FLD('cId', 'int', 'caption=Клиент->Id,input=hidden,silent');
         $this->FLD('cClass', 'class(select=title,interface=crm_ContragentAccRegIntf)', 'caption=Клиент->Клас,input=hidden,silent');
-        $this->FLD('discountCompared', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Показване на отстъпка в документите спрямо->Ценоразпис');
+        $this->FLD('discountCompared', 'key(mvc=price_Lists,select=title,where=#state !\\= \\\'rejected\\\',allowEmpty)', 'caption=Показване на отстъпка в документите спрямо->Ценоразпис');
         $this->FLD('significantDigits', 'double(smartRound)', 'caption=Закръгляне->Значещи цифри');
         $this->FLD('minDecimals', 'double(smartRound)', 'caption=Закръгляне->Мин. знаци');
         $this->FLD('defaultSurcharge', 'percent(min=-1,max=1)', 'caption=Надценка/Отстъпка по подразбиране->Процент');
@@ -510,7 +530,7 @@ class price_Lists extends core_Master
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if($requiredRoles == 'no_one') return;
     	
@@ -611,8 +631,13 @@ class price_Lists extends core_Master
     	 
     	$rInfo = static::$cache[$listRec->id];
     	
-    	// Колко да е точността на разкъглянето
-    	$precision =  max($rInfo->minDecimals, round($rInfo->significantDigits - log10(abs($price))));
+    	$p = 0;
+    	if ($price) {
+    	    $p = log10(abs($price));
+    	}
+    	
+    	// Колко да е точността на закръгляне
+    	$precision =  max($rInfo->minDecimals, round($rInfo->significantDigits - $p));
     	
     	if($verbal === TRUE){
     		$Double = cls::get('type_Double', array('params' => array('decimals' => $precision)));
@@ -623,30 +648,5 @@ class price_Lists extends core_Master
     	
     	// Връщаме закръглената цена
     	return $price;
-    }
-    
-    
-    /**
-     * Проверка дали нов документ може да бъде добавен в
-     * посочената папка като начало на нишка
-     */
-    public static function canAddToFolder($folderId)
-    {
-    	$cover = doc_Folders::getCover($folderId);
-    	
-    	if($cover->haveInterface('crm_ContragentAccRegIntf') || $cover->haveInterface('price_PriceListFolderCoverIntf')){
-    		return TRUE;
-    	}
-    	
-    	return FALSE;
-    }
-    
-    
-    /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    protected static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	$data->toolbar->removeBtn('btnAdd');
     }
 }

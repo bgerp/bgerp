@@ -171,7 +171,7 @@ class plg_Select extends core_Plugin
             
             foreach($selArr as $id) {
                 if($mvc->haveRightFor($act, $id)) {
-                    Request::push(array('id' => $id, 'Selected' => FALSE, 'Cf' => core_Request::getSessHash($id)));
+                    Request::push(array('id' => $id, 'Selected' => FALSE, 'Cf' => core_Request::getSessHash($act . $id)));
                     Request::forward();
                     Request::pop();
                     $processed++;

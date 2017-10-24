@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   doc
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -38,7 +38,15 @@ class doc_Prototypes extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "docId,title,sharedWithRoles,sharedWithUsers,state,createdOn,createdBy,modifiedOn,modifiedBy";
+    public $listFields = "docId,title,sharedWithRoles,sharedWithUsers,sharedFolders,state,modifiedOn,modifiedBy";
+    
+    
+    /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     *
+     *  @var string
+     */
+    public $hideListFieldsIfEmpty = 'sharedWithRoles,sharedWithUsers,sharedFolders';
     
     
     /**
@@ -60,6 +68,12 @@ class doc_Prototypes extends core_Manager
     
     
     /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'officer';
+    
+    
+    /**
      * Кой може да редактира
      */
     public $canDelete  = 'no_one';
@@ -75,8 +89,14 @@ class doc_Prototypes extends core_Manager
      * Кой може да възстановява
      */
     public $canRestore  = 'no_one';
-    
-    
+
+
+    /**
+     * Кой е текущия таб
+     */
+	public $currentTab = "Нишка";
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -85,12 +105,13 @@ class doc_Prototypes extends core_Manager
     	$this->FLD('title', 'varchar', 'caption=Заглавие,mandatory');
     	$this->FLD('originId', 'key(mvc=doc_Containers)', 'caption=Документ,mandatory,input=hidden,silent');
     	$this->FLD('classId', 'class(interface=doc_PrototypeSourceIntf)', 'caption=Документ,mandatory,input=hidden,silent');
-    	$this->FLD('docId', 'int', 'caption=Документ,mandatory,input=hidden,silent');
+    	$this->FLD('docId', 'int', 'caption=Документ,mandatory,input=hidden,silent,tdClass=leftColImportant');
     	$this->FLD('driverClassId', 'class', 'caption=Документ,input=hidden');
+    	$this->FLD('sharedFolders', 'key2(mvc=doc_Folders, name=title, allowEmpty)', 'caption=Споделяне->Папка');
     	$this->FLD('sharedWithRoles', 'keylist(mvc=core_Roles,select=role,groupBy=type,orderBy=orderByRole)', 'caption=Споделяне->Роли');
     	$this->FLD('sharedWithUsers', 'userList', 'caption=Споделяне->Потребители');
     	$this->FLD('fields', 'blob(serialize, compress)', 'input=none');
-    	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено)','caption=Състояние,column=none,input=none,notNull,value=active');
+    	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено,closed=Затворено)','caption=Състояние,column=none,input=none,notNull,value=active');
     	
     	$this->setDbUnique('classId,title');
     	$this->setDbUnique('originId');
@@ -119,7 +140,9 @@ class doc_Prototypes extends core_Manager
     					$requiredRoles = 'no_one';
     				} elseif(acc_Journal::fetchByDoc($doc->getClassId(), $doc->that)){
     					$requiredRoles = 'no_one';
-    				} elseif($doc->fetchField('state') != 'draft'){
+    				} elseif(!$doc->canBeTemplate()){
+    					$requiredRoles = 'no_one';
+    				} elseif(acc_Items::fetchItem($doc->getInstance(), $doc->that)){
     					$requiredRoles = 'no_one';
     				}
     			}
@@ -134,13 +157,14 @@ class doc_Prototypes extends core_Manager
     	if(($action == 'add' || $action == 'edit') && isset($rec->originId)){
     		if($requiredRoles != 'no_one'){
     			$doc = doc_Containers::getDocument($rec->originId);
+    			$state = $doc->fetchField('state');
     			
     			// Трябва потребителя да има достъп до документа
     			if(!$doc->haveRightFor('single')){
     				$requiredRoles = 'no_one';
     				
     				// И документа да не е оттеглен
-    			} elseif($doc->fetchField('state') == 'rejected'){
+    			} elseif($state == 'rejected' || $state == 'closed'){
     				$requiredRoles = 'no_one';
     			}
     		}
@@ -149,9 +173,18 @@ class doc_Prototypes extends core_Manager
     
     
     /**
+     * Изпълнява се след подготвянето на формата за филтриране
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    {
+    	$data->query->orderBy('createdOn', "DESC");
+    }
+    
+    
+    /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    public static function on_AfterPrepareListToolbar($mvc, &$data)
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
     	if(!empty($data->toolbar->buttons['btnAdd'])){
     		$data->toolbar->removeBtn('btnAdd');
@@ -162,12 +195,13 @@ class doc_Prototypes extends core_Manager
     /**
      * Преди показване на форма за добавяне/промяна
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = $data->form;
     	expect($origin = doc_Containers::getDocument($form->rec->originId));
+    	$templateTitle = doc_Prototypes::getTemplateTitle($origin->getInstance(), $origin->that);
     	
-    	$form->setDefault('title', $origin->getTitleById());
+    	$form->setDefault('title', $templateTitle);
     	$form->setDefault('classId', $origin->getClassId());
     	$form->setDefault('docId', $origin->that);
     	
@@ -181,20 +215,41 @@ class doc_Prototypes extends core_Manager
     
     
     /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	$rec = &$form->rec;
+    	
+    	if($form->isSubmitted()){
+    		if(isset($rec->sharedFolders)){
+    			$origin = doc_Containers::getDocument($rec->originId);
+    			if(!$origin->getInstance()->canAddToFolder($rec->sharedFolders)){
+    				$form->setError('sharedFolders', "Документа не може да бъде създаден в избраната папка");
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
      * Изпълнява се след създаване на нов запис
      */
-    public static function on_AfterCreate($mvc, $rec)
+    protected static function on_AfterCreate($mvc, $rec)
     {
     	// След като се създаде шаблон, оригиналния документ минава в състояние шаблон
     	$nRec = (object)array('id' => $rec->docId, 'state' => 'template');
-    	cls::get($rec->classId)->save($nRec, 'state');
+    	cls::get($rec->classId)->save_($nRec, 'state');
     }
     
     
     /**
      * След преобразуване на записа в четим за хора вид
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if(isset($fields['-list'])){
     		$row->docId = doc_Containers::getDocument($rec->originId)->getLink(0);
@@ -215,7 +270,8 @@ class doc_Prototypes extends core_Manager
     	$origin = doc_Containers::getDocument($containerId);
     	
     	// Ако оригиналния документ се оттегли, оттегля се и шаблона
-    	$newState = ($origin->fetchField('state') == 'rejected') ? 'rejected' : 'active';
+    	$state = $origin->fetchField('state');
+    	$newState = ($state == 'rejected') ? 'rejected' : (($state == 'closed') ? 'closed' : 'active');
     	self::save((object)array('id' => $rec->id, 'state' => $newState), 'state');
     }
     
@@ -227,21 +283,25 @@ class doc_Prototypes extends core_Manager
      * @param mixed $driver - драйвер, ако има
      * @return array $arr   - намерените шаблони
      */
-    public static function getPrototypes($class, $driver = NULL)
+    public static function getPrototypes($class, $driver = NULL, $folderId = NULL)
     {
     	$arr = array();
     	$Class = cls::get($class);
     	
     	// Намират се всички активни шаблони за този клас/драйвер
     	$query = self::getQuery();
-    	$condition = "#classId = {$Class->getClassId()} AND #state != 'rejected'";
-    	if(isset($driver)){
+    	$condition = "#classId = {$Class->getClassId()} AND #state = 'active'";
+    	if(isset($driver) && cls::load($driver, TRUE)){
     		$Driver = cls::get($driver);
     		$condition .= " AND #driverClassId = '{$Driver->getClassId()}'";
     	}
     	
-    	$query->where($condition);
+    	// Ако е подадена и папка се взимат всички които са до тази папка или са до всички папки
+    	if(isset($folderId)){
+    		$condition .= " AND (#sharedFolders IS NULL OR #sharedFolders = {$folderId})";
+    	}
     	
+    	$query->where($condition);
     	$cu = core_Users::getCurrent();
     	
     	// Ако потребителя не е 'ceo'
@@ -266,10 +326,86 @@ class doc_Prototypes extends core_Manager
     	
     	// Ако има записи, се връщат ид-та на документите
     	while($rec = $query->fetch()){
-    		$arr[$rec->docId] = $rec->title;
+    		$title = (strpos($rec->title, '||') !== FALSE) ? tr($rec->title) : $rec->title;
+    		$arr[$rec->docId] = $title;
     	}
     	
     	// Връщане на намерените шаблони
     	return $arr;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param mixed $class
+     * @param integer $docId
+     * @param string|NULL $field
+     * 
+     * @return stdObject|string
+     */
+    public static function getProtoRec($class, $docId, $field = NULL)
+    {
+        $Class = cls::get($class);
+        $cond = array("#classId = '[#1#]' AND #docId = '[#2#]'", $Class->getClassId(), $docId);
+        
+        if(!empty($field)) return self::fetchField($cond, $field);
+        
+        return self::fetch($cond);
+    }
+    
+    
+    /**
+     * Създаване на шаблон + смяна на състоянието на документа в 'шаблон'
+     * 
+     * @param string $title                 - име на шаблона
+     * @param mixed $class                  - клас на документа
+     * @param int $docId                    - ид на документа
+     * @param int|NULL $driverClassId       - ид на класа на драйвера
+     * @param string|NULL $sharedWithRoles  - споделени роли
+     * @param string|NULL $sharedWithUsers  - споделени потребители
+     */
+    public static function add($title, $class, $docId, $driverClassId = NULL, $sharedWithRoles = NULL, $sharedWithUsers = NULL)
+    {
+    	$Class = cls::get($class);
+    	
+    	$rec = (object)array('title'           => $title,
+    						 'originId'        => $Class->fetchField($docId, 'containerId'),
+    						 'classId'         => $Class->getClassId(),
+    			             'docId'           => $docId,
+    			             'driverClassId'   => $driverClassId,
+    						 'sharedWithRoles' => $sharedWithRoles,
+    						 'sharedWithUsers' => $sharedWithUsers,
+    			             'state'           => 'active',
+    	);
+    	
+    	cls::get(get_called_class())->isUnique($rec, $fields, $exRec);
+    	if($exRec){
+    		$rec->id = $rec->id;
+    	}
+    	
+    	doc_Prototypes::save($rec);
+    }
+    
+    
+    /**
+     * Връща дефолтното име на шаблона
+     * 
+     * @param mixed $classId
+     * @param int $docId
+     * @return string
+     */
+    public static function getTemplateTitle($classId, $docId)
+    {
+    	$Class = cls::get($classId);
+    	if($Class->getField('title', FALSE)){
+    		$title = $Class->fetchField($docId, 'title');
+    	} elseif($Class->getField('name', FALSE)){
+    		$title = $Class->fetchField($docId, 'name');
+    	} else {
+    		$title = $Class->getTitleById($docId);
+    	}
+    	
+    	return $title;
     }
 }

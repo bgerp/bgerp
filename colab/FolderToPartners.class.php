@@ -94,6 +94,9 @@ class colab_FolderToPartners extends core_Manager
          
         // Поставяне на уникални индекси
         $this->setDbUnique('folderId,contractorId');
+
+        $this->setDbIndex('contractorId');
+        $this->setDbIndex('folderId');
     }
 
     
@@ -106,10 +109,8 @@ class colab_FolderToPartners extends core_Manager
 	{
 		$uQuery = core_Users::getQuery();
 		$uQuery->where("#state = 'active'");
-		$cId = core_Roles::fetchByName('contractor');
-		$pUserId = core_Roles::fetchByName('powerUser');
+		$cId = core_Roles::fetchByName('partner');
 		$uQuery->like('roles', "|{$cId}|");
-		$uQuery->like('roles', "|{$pUserId}|", FALSE);
 		$uQuery->show('id,names');
 		
 		$options = array();
@@ -166,6 +167,8 @@ class colab_FolderToPartners extends core_Manager
      */
     public static function preparePartners($data)
     {
+        if(!$data->isCurrent) return;
+
         $data->partners = array();
         $folderId = $data->masterData->rec->folderId;
         if ($folderId) {
@@ -279,7 +282,7 @@ class colab_FolderToPartners extends core_Manager
     public static function renderPartners($data, &$tpl)
     {
 		//if(!cls::haveInterface('crm_ContragentAccRegIntf', $data->masterMvc)) return;
-     
+  
 		$me = cls::get(get_called_class());
 		
 		$dTpl = getTplFromFile('colab/tpl/PartnerDetail.shtml');
@@ -381,7 +384,9 @@ class colab_FolderToPartners extends core_Manager
             tr("моля последвай този||please follow this") .
             " [link=[#link#]]" . tr("линк||link") . "[/link] - " . 
             tr("изтича след 7 дена||it expired after 7 days"));
-		$body->replace($companyName, 'company');
+		
+    	$companyName = str_replace(array('&lt;', '&amp;'), array("<", "&"), $companyName);
+    	$body->replace($companyName, 'company');
 		$body->replace($url, 'link');
 		
 		$footer = cls::get('email_Outgoings')->getFooter($companyRec->country);
@@ -398,10 +403,11 @@ class colab_FolderToPartners extends core_Manager
     	}
     	
     	$form->toolbar->addSbBtn('Изпращане', 'save', 'id=save, ef_icon = img/16/lightning.png', 'title=Изпращане на имейл за регистрация на парньори');
-    	$form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close16.png', 'title=Прекратяване на действията');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close-red.png', 'title=Прекратяване на действията');
     	 
     	$tpl = $this->renderWrapping($form->renderHtml());
-    	 
+    	core_Form::preventDoubleSubmission($tpl, $form);
+    	
     	return $tpl;
     }
     
@@ -494,12 +500,10 @@ class colab_FolderToPartners extends core_Manager
     	}
     	
     	$form = $Users->getForm();
-    	$form->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,mandatory,after=names');
-    	$companyName = crm_Companies::getVerbal($companyId, 'name');
+    	$companyName = crm_Companies::getHyperlink($companyId, TRUE);
     	$form->title = "Нов партньор от|* <b>{$companyName}</b>";
     	
     	$form->setDefault('country', $companyRec->country);
-    	$form->setDefault('country', crm_Companies::fetchOwnCompany()->countryId);
 
         // Ако имаме хора от crm_Persons, които принадлежат на тази компания, и нямат свързани профили,
         // добавяме поле, преди nick, за избор на такъв човек. Ако той се подаде, данните за потребителя се вземат частично
@@ -521,16 +525,20 @@ class colab_FolderToPartners extends core_Manager
     	
     	// Задаваме дефолтните роли
     	$defRoles = array();
-    	foreach (array('contractor') as $role){
+    	foreach (array('partner') as $role){
     		$id = core_Roles::fetchByName($role);
     		$defRoles[$id] = $id;
     	}
     	
+    	$form->setDefault('roleRank', core_Roles::fetchByName('partner'));
     	$Users->invoke('AfterPrepareEditForm', array((object)array('form' => $form), (object)array('form' => $form)));
     	$form->setDefault('state', 'active');
+    	$form->setField('roleRank', 'input=hidden');
+    	$form->setField('roleOthers', "caption=Достъп за външен потребител->Роли");
     	
     	if(!$Users->haveRightFor('add')){
     		$form->setField('rolesInput', 'input=hidden');
+    		$form->setField('roleOthers', 'input=hidden');
     		$form->setField('state', 'input=hidden');
     	}
     	
@@ -570,14 +578,17 @@ class colab_FolderToPartners extends core_Manager
     	$form->toolbar->addSbBtn('Запис', 'save', 'id=save, ef_icon = img/16/disk.png', 'title=Запис');
     	
     	if ($retUrl = getRetUrl()) {
-    	    $form->toolbar->addBtn('Отказ', $retUrl,  'id=cancel, ef_icon = img/16/close16.png', 'title=Прекратяване на действията');
+    	    $form->toolbar->addBtn('Отказ', $retUrl,  'id=cancel, ef_icon = img/16/close-red.png', 'title=Прекратяване на действията');
     	}
     	
-    	if ($cu = core_Users::getCurrent('id', FALSE) && core_Users::haveRole('powerUser', $cu)) {
+    	$cu = core_Users::getCurrent('id', FALSE);
+    	if ($cu && core_Users::haveRole('powerUser', $cu)) {
     		$tpl = $this->renderWrapping($form->renderHtml());
     	} else {
     		$tpl = $form->renderHtml();
     	}
+    	core_Form::preventDoubleSubmission($tpl, $form);
+    	
     	
     	return $tpl;
     }

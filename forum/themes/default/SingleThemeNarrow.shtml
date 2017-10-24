@@ -1,0 +1,52 @@
+<div class='forum-index'>
+    <div class='navigation'>
+        [#NAVIGATION#]
+    </div>
+    <ul class='thread-list'>
+        <li>
+            [#SEARCH_FORM#]
+        </li>
+        <li class='toolbar'>
+            <div>
+                [#ANSWER#]
+            </div>
+        </li>
+        <li class='thread-header'>
+            <table class="header-table" style='width:100%'>
+                <tr>
+                    <td style='min-width: 80px;width:15%;'>[#THREAD_HEADER#]</td>
+
+                </tr>
+            </table>
+        </li>
+        <li class='post-body'>
+            <table class="forumThread" style='width:100%'>
+                <tr>
+                    <td >
+                        <div class='user-info' >
+                            <!--ET_BEGIN avatar-->
+                            <div class='avatar'>[#avatar#]</div>
+                            <!--ET_END avatar-->
+                            <div class="userBlock">
+                                <div class='author'>[#createdBy#]</div>
+                                <div class='published-on'>[#createdOn#]</div>
+                            </div>
+                            <div class="clearfix21"></div>
+                        </div>
+                        [#body#]
+                    </td>
+                </tr>
+            </table>
+        </li>
+        <!--ET_BEGIN COMMENTS-->
+        [#COMMENTS#]
+        <!--ET_END COMMENTS-->
+        <li style='height:20px'>
+            <div class='bottom-pager'>[#PAGER#]</div>
+        </li>
+
+        <li class='comment-form'>
+            [#COMMENT_FORM#]
+        </li>
+    </ul>
+</div>

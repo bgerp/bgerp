@@ -66,14 +66,16 @@ class bgerp_Bookmark extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'bgerp_Wrapper, plg_Created, plg_Modified, plg_RowTools, plg_Search, plg_Sorting';
+    public $loadList = 'bgerp_Wrapper, plg_Created, plg_Modified, plg_RowTools2, plg_Search, plg_Sorting';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, url = Линк, modifiedOn = Последно';
+    public $listFields = 'url=Линк, color, modifiedOn=Последно';
     
+
+    static $curRec;
     
     /**
      * Полета на модела
@@ -82,10 +84,34 @@ class bgerp_Bookmark extends core_Manager
     {
         $this->FLD('user', 'user(roles=powerUser, rolesForTeams=admin, rolesForAll=ceo)', 'caption=Потребител, mandatory');
         $this->FLD('title', 'varchar', 'caption=Заглавие, silent, mandatory');
-        $this->FLD('url', 'varchar', 'caption=URL, silent, mandatory');
-        
+        $this->FLD('url', 'text', 'caption=URL, silent, mandatory');
+        $this->FLD('color', 'color_Type', 'caption=Цвят');
+
         $this->setDbUnique('user, title');
     }
+
+
+    /**
+     * Рендира основното меню на страницата
+     */
+    static function renderBookmarks()
+    {
+        $tpl = new ET("<div class='sideBarTitle'>[#BOOKMARK_TITLE#][#BOOKMARK_BTN#]</div><div class='bookmark-links'>[#BOOKMARK_LINKS#]</div>");
+        
+        $cur = new stdClass();
+        
+        $links = bgerp_Bookmark::getLinks();
+        $title = bgerp_Bookmark::getTitle();
+        $btn = bgerp_Bookmark::getBtn();
+        
+        $tpl->append($title, 'BOOKMARK_TITLE');
+        $tpl->append($links, 'BOOKMARK_LINKS');
+        $tpl->append($btn, 'BOOKMARK_BTN');
+        
+        
+        return $tpl;
+    }
+
     
     
     /**
@@ -101,7 +127,7 @@ class bgerp_Bookmark extends core_Manager
             $url = array(get_called_class(), 'list');
         }
 
-        $img =  ht::createElement('img', array('src' => sbf('img/32/table-bg2.png', ''), 'title' => 'Редактиране на връзките', 'width' => 20, 'height' => 20, 'alt' => 'edit bookmark'));
+        $img =  ht::createElement('img', array('src' => sbf('img/32/table-bg.png', ''), 'title' => 'Редактиране на връзките', 'width' => 20, 'height' => 20, 'alt' => 'edit bookmark'));
         $list = ht::createLink($img , $url, NULL, array('class' => 'bookmarkLink listBookmarkLink'));
         $title = "<span class='bookmarkText'>" . tr('Отметки') . "</span>".  $list ;
         
@@ -119,12 +145,20 @@ class bgerp_Bookmark extends core_Manager
             $sUrl = addslashes($url);
             
             $localUrl = addslashes(toUrl(getCurrentUrl(), 'local'));
-            
+            $icon = 'star-bg.png';
+
+            if(self::$curRec) {  
+                $url = toUrl(array(get_called_class(), 'edit', self::$curRec->id, 'ret_url' => TRUE));
+                $sUrl = addslashes($url);
+                $icon = 'edit-fav2.png';
+            }
+
+
             $attr = array();
             $attr['onclick'] = "addParamsToBookmarkBtn(this, '{$sUrl}', '{$localUrl}'); return ;";
 
             $attr['class'] = 'bookmarkLink addBookmarkLink';
-            $img =  ht::createElement('img', array('src' => sbf('img/32/star-bg.png', ''), 'title' => tr('Добавяне на връзка'), 'width' => 20, 'height' => 20, 'alt' => 'add bookmark'));
+            $img =  ht::createElement('img', array('src' => sbf('img/32/' . $icon, ''), 'title' => tr('Добавяне на връзка'), 'width' => 20, 'height' => 20, 'alt' => 'add bookmark'));
             $tpl = ht::createLink($img, $url, FALSE, $attr);
         }
         
@@ -157,15 +191,33 @@ class bgerp_Bookmark extends core_Manager
 	    if ($limit) {
 	        $query->limit((int) $limit);
 	    }
-
+        
+        $localUrl = str_replace('/default', '', toUrl(getCurrentUrl(), 'local'));
+ 
 	    $res = '<ul>';
 	    while ($rec = $query->fetch()) {
 	        
 	        $title = self::getVerbal($rec, 'title');
-            $link = self::getLinkFromUrl($rec->url, $title);
-	        
-	        $res .= "<li>" . $link . "</li>";
+            
+            $attr = array();
+
+            if($rec->color) {
+                $attr['style'] = "color:" . $rec->color;
+            }
+
+            //$attr = array();
+
+            $link = self::getLinkFromUrl($rec->url, $title, $attr);
+
+            if(stripos($rec->url, $localUrl) !== FALSE) {
+   	            $attr['class'] = 'active';
+   	            $attr['style'] .= ';background-color:#503A66';
+                self::$curRec = $rec;
+            }  
+            $res .= ht::createElement('li', $attr, $link); 
+            
 	    }
+
 	    $res .= '</ul>';
 	    return $res;
 	}
@@ -191,27 +243,48 @@ class bgerp_Bookmark extends core_Manager
 	 * 
 	 * @return string
 	 */
-    public static function getLinkFromUrl($url, $title = NULL)
+    public static function getLinkFromUrl($url, $title = NULL, $attr = array())
     {
         if (!preg_match('/^http[s]?\:\/\//i', $url) && (strpos($url, Request::get('App')) === 0)) {
-            
-            $attr = array();
-            
             try {
-                
                 $urlArr = parseLocalUrl($url);
-                
                 $lUrl = toUrl($urlArr);
-                
                 $attr['class'] = 'bookmark-local-url';
             } catch (core_exception_Expect $e) {
                 $lUrl = array();
-                
                 $attr['class'] = 'bookmark-wrong-url';
             }
 	    } else {
+            if(core_Packs::isInstalled('remote')) {
+                
+                static $auths;
+
+                expect($cu = core_Users::getCurrent());
+                if(!$auths) {
+                    $aQuery = remote_Authorizations::getQuery();
+                    while($aRec = $aQuery->fetch("#userId = {$cu}")) {
+                        if(is_object($aRec->data) && $aRec->data->lKeyCC) {
+                            $aUrl = rtrim(strtolower($aRec->url), '/ ');
+                            $auths[$aRec->id] = $aUrl;
+                        }
+                    }
+                }
+                
+                if($auths && is_array($auths)) {
+                    foreach($auths as $id => $aUrl) {
+                        if(strpos($url, $aUrl) === 0) {
+                            $url =  array('remote_BgerpDriver', 'Autologin', $id, 'url' => $url);
+                            $target = NULL;
+                            break;
+                        }
+                    }
+                }
+            }
+
 	        $lUrl = $url;
-	        
+            if($target) {
+	            $attr['target'] = $target;
+            }
             $attr['class'] = 'bookmark-external-url';
 	    }
 	    

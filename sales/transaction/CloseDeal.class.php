@@ -48,6 +48,10 @@ class sales_transaction_CloseDeal extends deals_ClosedDealTransaction
     	
     	$dealItem = acc_Items::fetchItem('sales_Sales', $firstDoc->that);
     	
+    	if(Mode::get('saveTransaction')){
+    		acc_journal_RejectRedirect::expect(!doc_Containers::fetchField("#threadId = {$rec->threadId} AND #state = 'pending'"), tr("Към продажбата има документ в състояние|* '|Заявка|*'"));
+    	}
+    	
     	// Създаване на обекта за транзакция
     	$result = (object)array(
     			'reason'      => $rec->notes,

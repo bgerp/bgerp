@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Продуктови параметри
@@ -33,7 +33,7 @@ class cat_Params extends bgerp_ProtoParam
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, cat_Wrapper, plg_Search, plg_State2';
+    public $loadList = 'plg_Created, plg_RowTools2, cat_Wrapper, plg_Search, plg_State2,plg_SaveAndNew';
     
     
     /**
@@ -73,14 +73,26 @@ class cat_Params extends bgerp_ProtoParam
     
     
     /**
+     * Полета, които ще се показват в листов изглед
+     */
+    public $listFields = 'typeExt,order,driverClass=Тип,state,roles,showInPublicDocuments=Показване в документи->Външни,showInTasks=Показване в документи->Пр. операции';
+    
+    
+    /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'ceo,admin';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
     {
     	parent::setFields($this);
-    	$this->FLD('showInPublicDocuments', 'enum(no=Не,yes=Да)', 'caption=Показване във външни документи->Показване,notNull,value=yes,maxRadio=2');
+    	$this->FLD('showInPublicDocuments', 'enum(no=Не,yes=Да)', 'caption=Показване на параметъра->Външни документи,notNull,value=yes,maxRadio=2');
+    	$this->FLD('showInTasks', 'enum(no=Не,yes=Да)', 'caption=Показване на параметъра->Пр. операции,notNull,value=no,maxRadio=2');
     }
-    
     
     
     /**
@@ -92,6 +104,10 @@ class cat_Params extends bgerp_ProtoParam
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$data->form->setDefault('showInPublicDocuments', 'yes');
+    	
+    	if(isset($data->form->rec->sysId)){
+    		$data->form->setReadOnly('showInTasks');
+    	}
     }
     
     
@@ -111,6 +127,7 @@ class cat_Params extends bgerp_ProtoParam
     			6 => "showInPublicDocuments",
     			7 => "state",
     			8 => 'csv_params',
+    			9 => 'showInTasks',
     	);
     	 
     	$cntObj = csv_Lib::importOnce($this, $file, $fields);
@@ -216,5 +233,30 @@ class cat_Params extends bgerp_ProtoParam
     	}
     	
     	return $tpl;
+    }
+    
+    
+    /**
+     * Форсира параметър
+     *
+     * @param string $sysId             - систем ид на параметър
+     * @param string $name              - име на параметъра
+     * @param string $type              - тип на параметъра
+     * @param NULL|text $options        - опции на параметъра само за типовете enum и set
+     * @param NULL|string $suffix       - наставка
+     * @param NULL|boolean $showInTasks - може ли да се показва в производствена операция
+     * @return int                      - ид на параметъра
+     */
+    public static function force($sysId, $name, $type, $options = array(), $suffix = NULL, $showInTasks = FALSE)
+    {
+    	// Ако има параметър с това систем ид,връща се
+    	$id = self::fetchIdBySysId($sysId);
+    	if(!empty($id)) return $id;
+    	
+    	$nRec = static::makeNewRec($sysId, $name, $type, $options, $suffix);
+    	$nRec->showInTasks = ($showInTasks) ? 'yes' : 'no';
+    	
+    	// Създаване на параметъра
+    	return self::save($nRec);
     }
 }

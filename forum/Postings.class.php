@@ -31,7 +31,7 @@ class forum_Postings extends core_Detail {
 	/**
 	 * Зареждане на необходимите плъгини
 	 */
-	public $loadList = 'plg_RowTools, plg_Created, plg_Modified, forum_Wrapper, plg_Search';
+	public $loadList = 'plg_RowTools2, plg_Created, plg_Modified, forum_Wrapper, plg_Search';
 	
 	
 	/** 
@@ -50,18 +50,12 @@ class forum_Postings extends core_Detail {
 	 * Кой може да разглежда сингъла на документите?
 	 */
 	public $canSingle = 'forum, ceo, admin, cms';
-	
-	
-	/**
-	 * Поле за лентата с инструменти
-	 */
-	public $rowToolsField = 'tools';
-	
+
 	
 	/**
 	 * Полета за изглед
 	 */
-	public $listFields = 'tools=Пулт, id, title, type, boardId, postingsCnt, views, last, lastWho, createdBy, createdOn';
+	public $listFields = 'id, title, type, boardId, postingsCnt, views, last, lastWho, createdBy, createdOn';
 	
 	
 	/**
@@ -201,7 +195,7 @@ class forum_Postings extends core_Detail {
 		$tpl = $data->ForumTheme->getThemeLayout();
 		
 		// Иконките на отключените и заключените теми взети от текущата тема
-		$openIcon = $data->ForumTheme->getImage('unlocked.png', '32');
+		$openIcon = $data->ForumTheme->getImage('forum-theme.png', '32');
 		$lockedIcon = $data->ForumTheme->getImage('locked.png', '32');
 		
 		// Ако имаме теми в дъската ние ги рендираме
@@ -337,7 +331,7 @@ class forum_Postings extends core_Detail {
 			$data->postForm->setField('status', 'input=none');
 			$data->postForm->setHidden('themeId', $data->rec->id);
 			$data->postForm->setHidden('boardId', $data->rec->boardId);
-			$data->postForm->toolbar->addSbBtn('Добави');
+			$data->postForm->toolbar->addSbBtn('Добави', 'default', 'class=forumbtn addComment');
 			
 			// Котва към формата за коментар
 			$data->formAnchor =  array($this, 'Theme', $data->rec->id, '#'=>'comment');
@@ -398,11 +392,7 @@ class forum_Postings extends core_Detail {
         $tpl->push($data->ForumTheme->getStyles(), 'CSS');
 		$tpl->replace($this->Master->renderNavigation($data), 'NAVIGATION');
 		$tpl->replace($this->Master->renderSearchForm($data), 'SEARCH_FORM');
-		 
-		$topIcon = $data->ForumTheme->getImage('top.png', '32');
-		$topLink = ht::createLink('Нагоре', getCurrentUrl(), NULL, array('class' => 'forumbtn gotop'));
-		
-		$tpl->replace($topLink, 'topLink');
+
         return $tpl;
 	}
 	
@@ -473,7 +463,7 @@ class forum_Postings extends core_Detail {
 		}
 		
 		$form->setAction($this, 'new');
-		$form->toolbar->addSbBtn('Нова тема');
+		$form->toolbar->addSbBtn('Нова тема', 'default', 'class=forumbtn addComment');
 		$data->form = $form;
 		
 		// Заглавие на формата
@@ -717,7 +707,7 @@ class forum_Postings extends core_Detail {
 		$data->form->setDefault('boardTo', $data->board->id);
 		$data->form->title = "Местене на тема|* : <b>{$data->row->title}</b>";
 		$data->form->toolbar->addSbBtn('Премести', array($this, 'move', 'themeId' => $data->rec->id), 'ef_icon = img/16/move.png');
-		$data->form->toolbar->addBtn('Отказ', array($this, 'Topic', $data->rec->id), 'ef_icon = img/16/close16.png');
+		$data->form->toolbar->addBtn('Отказ', array($this, 'Topic', $data->rec->id), 'ef_icon = img/16/close-red.png');
 		
 		$data->navigation = $this->Master->prepareNavigation($data->board->categoryId, $data->rec->boardId, $data->rec->id);
 	}
@@ -1033,7 +1023,7 @@ class forum_Postings extends core_Detail {
 	           	  } 
    	 		 } 
    	 	} else {
-   	 		if(!$this->masterMVC) {
+   	 		if(!$mvc->masterMVC) {
    	 			if($fields['-list']) {
    	 				$row->type = 'коментар';
    	 				$commentURL = array($this, 'Topic', $rec->themeId, '#' => "C{$rec->id}");

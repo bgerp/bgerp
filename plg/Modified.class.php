@@ -34,11 +34,13 @@ class plg_Modified extends core_Plugin
      */
     public static function on_BeforeSave(&$invoker, &$id, &$rec, &$fields = NULL)
     {
-        // Определяме кой е модифицирал записа
-        $rec->modifiedBy = Users::getCurrent();
-        
-        // Записваме момента на създаването
-        $rec->modifiedOn = dt::verbal2Mysql();
+        if(!$rec->_notModified) {
+            // Определяме кой е модифицирал записа
+            $rec->modifiedBy = Users::getCurrent();
+            
+            // Записваме момента на създаването
+            $rec->modifiedOn = dt::verbal2Mysql();
+        }
     }
     
     

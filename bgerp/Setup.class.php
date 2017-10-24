@@ -58,6 +58,18 @@ defIfNot('BGERP_SOUND_ON_NOTIFICATION', 'scanner');
 
 
 /**
+ * Кога е началото на работния ден
+ */
+defIfNot('BGERP_START_OF_WORKING_DAY', '08:00');
+
+
+/**
+ * Допустим % "Недоставено" за автоматично приключване на сделка
+ */
+defIfNot('BGERP_CLOSE_UNDELIVERED_OVER', '1');
+
+
+/**
  * class 'bgerp_Setup' - Начално установяване на 'bgerp'
  *
  *
@@ -111,7 +123,10 @@ class bgerp_Setup extends core_ProtoSetup {
         
         'BGERP_RECENTLY_KEEP_DAYS' => array ('time(suggestions=180 дни|360 дни|540 дни,unit=days)', 'caption=Време за съхранение на историята в "Последно"->Време'),
 
-     );
+        'BGERP_START_OF_WORKING_DAY' => array ('enum(08:00,09:00,10:00,11:00,12:00)', 'caption=Начало на работния ден->Час'),
+        
+        'BGERP_CLOSE_UNDELIVERED_OVER'    => array('percent(min=0)', 'caption=Допустимо автоматично приключване на сделка при "Доставено" минимум->Процент'),
+    );
     
     
     /**
@@ -124,6 +139,30 @@ class bgerp_Setup extends core_ProtoSetup {
      * Дали пакета е системен
      */
     public $isSystem = TRUE;
+
+
+    /**
+     * Списък с мениджърите, които съдържа пакета
+     */
+    var $managers = array(
+            'migrate::addThreadIdToRecently',
+        );
+    
+    
+    /**
+     * Настройки за Cron
+     */
+    var $cronSettings = array(
+            array(
+                    'systemId' => "Hide Inaccesable",
+                    'description' => "Скрива на недостъпните нотификации",
+                    'controller' => "bgerp_Notifications",
+                    'action' => "HideInaccesable",
+                    'period' => 1440,
+                    'offset' => 50,
+                    'timeLimit' => 300
+            ),
+    );
     
     
     /**
@@ -134,6 +173,9 @@ class bgerp_Setup extends core_ProtoSetup {
         // Предотвратяваме логването в Debug режим
         Debug::$isLogging = FALSE;
         
+        // Блокираме други процеси
+        core_SystemLock::block("Prepare bgERP installation...");
+
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         $html = $Plugins->repair();
@@ -152,10 +194,13 @@ class bgerp_Setup extends core_ProtoSetup {
         $instances = array();
         
         foreach ($managers as $manager) {
+            core_SystemLock::block("Install {$manager}");
             $instances[$manager] = &cls::get($manager);
             $html .= $instances[$manager]->setupMVC();
         }
         
+        core_SystemLock::block("Starting bgERP installation...");
+
         // Инстанция на мениджъра на пакетите
         $Packs = cls::get('core_Packs');
         
@@ -164,10 +209,10 @@ class bgerp_Setup extends core_ProtoSetup {
         
         // Списък на основните модули на bgERP
         $packs = "core,log,fileman,drdata,bglocal,editwatch,recently,thumb,doc,acc,cond,currency,cms,
-                  email,crm, cat, trans, price, blast,hr,trz,lab,sales,planning,marketing,store,cash,bank,
-                  budget,tcost,purchase,accda,permanent,sens2,cams,frame,cal,fconv,doclog,fconv,cms,blogm,forum,deals,findeals,tasks,
+                  email,crm, cat, trans, price, blast,hr,trz,lab,dec,sales,planning,marketing,store,cash,bank,
+                  budget,tcost,purchase,accda,permanent,sens2,cams,frame,frame2,cal,fconv,doclog,fconv,cms,blogm,forum,deals,findeals,tasks,
                   vislog,docoffice,incoming,support,survey,pos,change,sass,
-                  callcenter,social,hyphen,dec,status,phpmailer,label,webkittopdf,jqcolorpicker";
+                  callcenter,social,hyphen,status,phpmailer,label,webkittopdf,jqcolorpicker";
         
         // Ако има private проект, добавяме и инсталатора на едноименния му модул
         if (defined('EF_PRIVATE_PATH')) {
@@ -203,13 +248,27 @@ class bgerp_Setup extends core_ProtoSetup {
         
         $haveError = array();
         
+        core_SystemLock::block("Clearing cache");
+
         core_Debug::$isLogging = FALSE;
+        $Cache = cls::get('core_Cache');
+        $Cache->eraseFull();
+        core_Cache::$stopCaching = TRUE;
 
         do {
             $loop++;
             
+            $packArr = arr::make($packs);
+
+            $packCnt = count($packArr);
+            $i = 1;
+
             // Извършваме инициализирането на всички включени в списъка пакети
-            foreach (arr::make($packs) as $p) {
+            foreach ($packArr as $p) {
+                
+                $i++;
+                core_SystemLock::block("Load Setup Data For {$p} ({$i}/{$packCnt})");
+
                 if (cls::load($p . '_Setup', TRUE) && !$isSetup[$p]) {
                     try {
                         $html .= $Packs->setupPack($p);
@@ -248,6 +307,9 @@ class bgerp_Setup extends core_ProtoSetup {
         
 
         core_Debug::$isLogging = TRUE;
+        
+        
+        core_SystemLock::block("Finishing bgERP Installation");
 
         $html .= implode("\n", $haveError);
         
@@ -281,11 +343,6 @@ class bgerp_Setup extends core_ProtoSetup {
         // Да се изтрият необновените менюта
         $Menu->deleteNotInstalledMenu = TRUE;
         
-        $html .= bgerp_Menu::addOnce(1.62, 'Система', 'Админ', 'core_Packs', 'default', 'admin');
-        
-        $html .= bgerp_Menu::addOnce(1.66, 'Система', 'Файлове', 'fileman_Log', 'default', 'powerUser');
-
-
         $rec = new stdClass();
         $rec->systemId = "DeleteOldRecently";
         $rec->description = "Изтриване на изтеклите Recently";
@@ -315,6 +372,9 @@ class bgerp_Setup extends core_ProtoSetup {
         
         $html .= core_Classes::add('bgerp_plg_CsvExport');
         
+        $html .= parent::install();
+
+        core_SystemLock::remove();
         return $html;
     }
 
@@ -327,25 +387,40 @@ class bgerp_Setup extends core_ProtoSetup {
      *
      * @return array                Грешки
      */
-    function loadSetupDataProc($packs, &$haveError = array(), $html = '', $itr = '')
+    function loadSetupDataProc($packs, &$haveError = array(), &$html = '', $itr = '')
     {
         // Кои пакети дотук сме засели с данни
         $isLoad = array();
         
         // Инстанции на пакетите;
         $packsInst = array();
+        
+        $packArr = arr::make($packs);
+
+        $packCnt = count($packArr);
+        $i = 1;
 
         // Извършваме инициализирането на всички включени в списъка пакети
-        foreach (arr::make($packs) as $p) {
+        foreach ($packArr as $p) {
+            
+            $i++;
+            core_SystemLock::block("Load Setup Data For {$p} ({$i}/{$packCnt})");
+
             if (cls::load($p . '_Setup', TRUE) && !$isLoad[$p]) {
                 $packsInst[$p] = cls::get($p . '_Setup');
                 
                 if (method_exists($packsInst[$p], 'loadSetupData')) {
                     try {
-                        $html .= "<h2>Инициализиране на $p</h2>";
-                        $html .= "<ul>";
-                        $html .= $packsInst[$p]->loadSetupData($itr);
-                        $html .= "</ul>";
+                        
+                        $loadRes = $packsInst[$p]->loadSetupData($itr);
+                        
+                        if ($loadRes) {
+                            $html .= "<h2>Инициализиране на $p</h2>";
+                            $html .= "<ul>";
+                            $html .= $loadRes;
+                            $html .= "</ul>";
+                        }
+                        
                         $isLoad[$p] = TRUE;
                         
                         // Махаме грешките, които са възникнали, но все пак са се поправили
@@ -359,9 +434,47 @@ class bgerp_Setup extends core_ProtoSetup {
                         $haveError[$p] .= "<h3 class='debug-error'>Грешка при зареждане данните на пакета {$p} <br>" . $exp->getMessage() . " " . date('H:i:s') . "</h3>";
                         reportException($exp);
                     }
+                    
+                    global $setupFlag;
+
+                    if ($setupFlag) {
+                        // Махаме <h2> тага на заглавието
+                       // $res = substr($res, strpos($res, "</h2>"), strlen($res));
+
+                        do {
+                            $res = @file_put_contents(EF_TEMP_PATH . '/setupLog.html', $res, FILE_APPEND|LOCK_EX);
+                            if($res !== FALSE) break;
+                            usleep(1000);
+                        } while($i++ < 100);
+                        
+                        unset($res);
+                    }
+
                 }
             }
         }
     }
+    
+    
+    /**
+     * Миграция за добавяне на threadId на документите
+     */
+    public static function addThreadIdToRecently()
+    {
+        $Recently = cls::get(bgerp_Recently);
+        $rQuery = $Recently->getQuery();
+        $rQuery->where("#threadId IS NULL");
+        $rQuery->where("#objectId IS NOT NULL");
+        $rQuery->where("#objectId != ''");
+        $rQuery->where("#objectId != 0");
+        $rQuery->where("#type = 'document'");
+        
+        while($rec = $rQuery->fetch()) {
+            try {
+                $Recently->save($rec, 'threadId');
+            } catch (Exception $e) {
+                continue;
+            }
+        }
+    }
 }
-

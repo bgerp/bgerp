@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -26,7 +26,7 @@ class acc_Items extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_State2, plg_RowTools, editwatch_Plugin, plg_Search,
+    var $loadList = 'plg_Created, plg_State2, editwatch_Plugin, plg_Search,
                      plg_SaveAndNew, acc_WrapperSettings, Lists=acc_Lists, plg_Sorting';
     
     
@@ -57,19 +57,19 @@ class acc_Items extends core_Manager
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,acc';
+    var $canEdit = 'no_one';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,acc';
+    var $canDelete = 'no_one';
     
     
     /**
-     * Кой е може да го администрира?
+     * Кой може да променя състоянието на валутата
      */
-    var $canAdmin = 'ceo,acc';
+    public $canChangestate = 'acc,admin';
     
     
     /**
@@ -81,13 +81,7 @@ class acc_Items extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'titleLink=Наименование,num,uomId,lastUseOn,tools=Пулт,createdBy,createdOn,state,closedOn,earliestUsedOn';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'tools';
+    var $listFields = 'id,titleLink=Наименование,num,uomId,lastUseOn,createdBy,createdOn,state,closedOn,earliestUsedOn';
     
     
     /**
@@ -161,6 +155,7 @@ class acc_Items extends core_Manager
         $this->FNC('titleNum', 'varchar', 'column=none');
         
         $this->setDbUnique('objectId,classId');
+        $this->setDbIndex('earliestUsedOn');
     }
     
     
@@ -171,6 +166,10 @@ class acc_Items extends core_Manager
      */
     protected static function on_CalcTitleNum($mvc, $rec)
     {
+    	if(strpos($rec->title, '||') !== FALSE){
+    		$rec->title = tr($rec->title);
+    	}
+    	
     	$rec->titleNum = $rec->title . " ({$rec->num})";
     }
     
@@ -182,7 +181,11 @@ class acc_Items extends core_Manager
      */
     protected static function on_CalcTitleLink($mvc, $rec)
     {
-        $title = $mvc->getVerbal($rec, 'title');
+    	if(strpos($rec->title, '||') !== FALSE){
+    		$rec->title = tr($rec->title);
+    	}
+    	
+    	$title = $mvc->getVerbal($rec, 'title');
         $num = $mvc->getVerbal($rec, 'num');
         $rec->titleLink = $title . " ($num)";
     }
@@ -203,8 +206,9 @@ class acc_Items extends core_Manager
         		
         		$id = (is_object($rec)) ? $rec->id : $rec;
         		$tooltipUrl = toUrl(array('acc_Items', 'showItemInfo', $id, 'unique' => $unique), 'local');
-        		
-        		$arrow = ht::createElement("span", array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => tr('Информация за перото')), "", TRUE);
+
+                $arrowImg = ht::createElement("img", array("src" => sbf("img/16/anchor-image.png", "")));
+        		$arrow = ht::createElement("span", array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => tr('Информация за перото')), $arrowImg, TRUE);
         		$arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='info{$unique}'></span>{$arrow}</span>";
         		$num .= "&nbsp;{$arrow}";
         	}
@@ -367,7 +371,7 @@ class acc_Items extends core_Manager
     /**
      * След подготовка на ролите
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
         if(($action == 'add' || $action == 'edit') && isset($rec->classId)){
             if(cls::load($rec->classId, TRUE)){
@@ -545,9 +549,11 @@ class acc_Items extends core_Manager
             $register = cls::get($register);
         }
         
+        core_Lg::push(EF_DEFAULT_LANGUAGE);
         if (!$regRec = $register->getItemRec($objectId)) {
             return FALSE;
         }
+        core_Lg::pop();
         
         if ($regRec) {
             $itemRec->num      = $regRec->num;
@@ -718,16 +724,19 @@ class acc_Items extends core_Manager
             	$listName = acc_Lists::getVerbal($listId, 'name');
             	$title = ($count == 1) ? $Class->singleTitle : $Class->title;
             	$title = mb_strtolower($title);
+            	
+            	$this->logWrite("Добавяне на обекти, като пера", $rec->id);
+            	
                 return followRetUrl(NULL, "Добавяне на|* {$count} |{$title}|* |в номенклатура|* '{$listName}'");
             }
         }
        
         // Добавяне на бутони
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
         // Записваме, че потребителя е разглеждал този списък
-        $this->logWrite("Добавяне на обекти, като пера");
+        $this->logInfo("Разглеждане на формата за добавяне на пера към номенклатура");
        
         return $this->renderWrapping($form->renderHtml());
     }
@@ -799,7 +808,7 @@ class acc_Items extends core_Manager
         	while ($cRec = $query->fetch()){
             
             	// Ако е документ и е чернова, не може да стане перо
-            	if($isDoc && $cRec->state == 'draft') continue;
+            	if($isDoc && $cRec->state != 'active') continue;
             	$suggestions[$cRec->id] = $Class->getRecTitle($cRec);
         	}
         	core_Mode::pop('text');
@@ -921,9 +930,7 @@ class acc_Items extends core_Manager
             $AccRegister = cls::get($rec->classId);
             
             // Ако го има интерфейсния метод
-            if(method_exists($AccRegister, 'getLinkToObj')) {
-                $row->link = $AccRegister->getLinkToObj($rec->objectId);
-            } elseif(method_exists($AccRegister, 'act_Single')) {
+            if(method_exists($AccRegister, 'act_Single')) {
                 $row->link = $AccRegister->getHyperLink($rec->objectId, TRUE);
             } else {
             	$row->link = "<div style='color:darkgreen'>" . tr('Не е обвързан с обект') . "</div>";
@@ -938,7 +945,7 @@ class acc_Items extends core_Manager
         if(is_array($features)){
         	$row->features = '';
         	foreach ($features as $key => $value){
-        		$row->features .= "{$key}: <i>{$value}</i><br>";
+        		$row->features .= "{$key}: <b><i class='quiet'>{$value}</i></b><br>";
         	}
         }
         
@@ -1070,6 +1077,7 @@ class acc_Items extends core_Manager
     	$listId = acc_Lists::fetchField("#systemId = '{$listSystemId}'", 'id');
     	$query->like('lists', "|{$listId}|");
     	$query->show('id');
+    	$query->limit(1);
     	
     	$res = ($query->fetch()) ? TRUE : FALSE;
     	

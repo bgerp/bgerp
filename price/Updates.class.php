@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Правила за обновяване на себестойностите
  *
@@ -8,7 +9,7 @@
  * @category  bgerp
  * @package   price
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -62,18 +63,18 @@ class price_Updates extends core_Manager
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'priceMaster,ceo';
-
-
-	/**
-	 * Кой може да го разглежда?
-	 */
-	public $canRead = 'priceMaster,ceo';
 	
 	
 	/**
 	 * Кой може ръчно да обновява себестойностите?
 	 */
 	public $canSaveprimecost = 'priceMaster,ceo';
+	
+	
+	/**
+	 * Дали в листовия изглед да се показва бутона за добавяне
+	 */
+	public $listAddBtn = FALSE;
 	
 	
     /**
@@ -207,7 +208,7 @@ class price_Updates extends core_Manager
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'saveprimecost' && isset($rec)){
     		if($rec->updateMode != 'manual'){
@@ -247,7 +248,7 @@ class price_Updates extends core_Manager
     
     
     /**
-     * Записва себестойноста според правилото с ръчно обновяване
+     * Записва себестойността според правилото с ръчно обновяване
      */
     function act_Saveprimecost()
     {
@@ -256,7 +257,7 @@ class price_Updates extends core_Manager
     	expect($rec = $this->fetch($id));
     	$this->requireRightFor('saveprimecost', $rec);
     	
-    	// Записва себестойноста
+    	// Записва себестойността
     	$this->savePrimeCost($rec);
     	
     	// Редирект към списъчния изглед
@@ -321,7 +322,7 @@ class price_Updates extends core_Manager
     		// Обновяваме себестойностите само ако артикула е складируем,публичен,активен, купуваем или производим
     		if($pRec->state != 'active' || $pRec->canStore != 'yes' || $pRec->isPublic != 'yes'  || !($pRec->canBuy == 'yes' || $pRec->canManifacture == 'yes')) continue;
     		
-    		// Опитваме се да му изчислим себестойноста според източниците
+    		// Опитваме се да му изчислим себестойността според източниците
     		$primeCost = self::getPrimeCost($productId, $rec->costSource1, $rec->costSource2, $rec->costSource3, $rec->costAdd);
     		
     		// Намираме старата му себестойност (ако има)
@@ -336,7 +337,7 @@ class price_Updates extends core_Manager
     			// Ако старата себестойност е различна от новата
     			if($primeCost != $oldPrimeCost){
     				
-    				// Кешираме себестойноста, ако правилото не е за категория
+    				// Кешираме себестойността, ако правилото не е за категория
     				if($rec->type != 'category'){
     					$rec->costValue = $primeCost;
     					self::save($rec, 'costValue');
@@ -513,7 +514,6 @@ class price_Updates extends core_Manager
     	if(haveRole('debug')){
     		$data->toolbar->addBtn('Преизчисли', array($mvc, 'recalc'), NULL, 'ef_icon = img/16/arrow_refresh.png,title=Преизчисляване на себестойностите,target=_blank');
     	}
-    	$data->toolbar->removeBtn('btnAdd');
     }
     
     
@@ -567,7 +567,7 @@ class price_Updates extends core_Manager
     {
     	// Рендираме таблицата
     	$table = cls::get('core_TableView', array('mvc' => 'price_Updates'));
-    	$fields = 'tools=Пулт,costSource1=Източник->Първи,costSource2=Източник->Втори,costSource3=Източник->Трети,costAdd=Добавка,costValue=Стойност,updateMode=Обновяване';
+    	$fields = 'tools=Пулт,costSource1=Източник->Първи,costSource2=Източник->Втори,costSource3=Източник->Трети,costAdd=Добавка,costValue=Стойност,updateMode=Обновяване,createdOn=Създаване->На,createdBy=Създаване->От';
     	$fields = core_TableView::filterEmptyColumns($data->rows, $fields, 'costAdd');
     	$details = $table->get($data->rows, $fields);
     	

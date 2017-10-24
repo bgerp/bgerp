@@ -5,4 +5,14 @@
   <br>
   <!--ET_END description-->
   [#PARAMS#]
+  
+  <!--ET_BEGIN ADDITIONAL-->
+      [#ADDITIONAL#]
+      <div>
+      <!--ET_BEGIN ADDITIONAL_VALUE-->
+      [#ADDITIONAL_VALUE#]
+          <div><span class='quiet'>[#field#]</span>: [#value#]</div>
+      <!--ET_END ADDITIONAL_VALUE-->
+     </div>
+      <!--ET_END ADDITIONAL-->
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

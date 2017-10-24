@@ -37,20 +37,13 @@ class social_Sharings extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'social_Wrapper, plg_Created, plg_State2, plg_RowTools';
-    
-    
+    var $loadList = 'social_Wrapper, plg_Created, plg_State2, plg_RowTools2';
+
    
     /**
      * Полета за листовия изглед
      */
-    var $listFields = '✍,name,url,icon,sharedCnt,state,order';
-
-
-    /**
-     * Поле за инструментите на реда
-     */
-    var $rowToolsField = '✍';
+    var $listFields = 'name,url,icon,sharedCnt,state,order';
     
     
     /**
@@ -190,7 +183,7 @@ class social_Sharings extends core_Master
         $urlDecoded = urldecode($url);
 
         // Очакваме в началото на url-то за споделяне да има валиден протокол
-        expect(strpos($urlDecoded, 'http://') === 0 || strpos($urlDecoded, 'https://') === 0);
+        expect(strpos($urlDecoded, 'http://') === 0 || strpos($urlDecoded, 'https://') === 0, $urlDecoded, $rec);
         
     	// Заглавието на обекта
     	$title = Request::get('socTitle');
@@ -251,6 +244,7 @@ class social_Sharings extends core_Master
 					    	"newsvine.com"=>"newsvine",
 					    	"ping.fm"=>"pingfm",
 					    	"evernote.com"=>"evernote",
+							"youtube.com"=>"youtube",
 					    	"friendfeed.com"=>"friendfeed");
     	    	 
     	foreach($services as $servic=>$nameServic){

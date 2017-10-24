@@ -8,21 +8,24 @@
  * @category  bgerp
  * @package   sens2
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class sens2_Scripts extends core_Master
 {
 
+    
     const CALC_ERROR = "Грешка при изчисляване";
 
+    
     public $oldClassName = 'sens2_Logics';
+    
     
     /**
      * Необходими плъгини
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, plg_State2, plg_Rejected, sens2_Wrapper';
+    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools2, plg_State2, plg_Rejected, sens2_Wrapper';
                       
     
     /**
@@ -66,6 +69,7 @@ class sens2_Scripts extends core_Master
      */
     var $details = 'sens2_ScriptDefinedVars,sens2_ScriptActions';
 
+    
     /**
      * Полето "Наименование" да е хипервръзка към единичния изглед
      */
@@ -89,7 +93,6 @@ class sens2_Scripts extends core_Master
      */
     var $listFields = 'order,name,state,lastRun';
 
-    var $rowToolsField = 'order';
 
     /**
      * Описание на модела
@@ -195,13 +198,6 @@ class sens2_Scripts extends core_Master
     }
     
 
-    /**
-     * Помощна функция за сортиране на масив
-     */
-    private static function sortByLengthReverse($a, $b)
-    {
-        return strlen($b) - strlen($a);
-    }
     
     /**
      * Изчислкяване на числов израз. Могат да участват индикаторите и променливите от даден скрипт
@@ -211,7 +207,7 @@ class sens2_Scripts extends core_Master
         // Намираме и сортираме контекста
         $contex = sens2_Indicators::getContex();
         $contex += sens2_ScriptDefinedVars::getContex($scriptId);
-        uksort($contex, "self::sortByLengthReverse");
+        uksort($contex, "str::sortByLengthReverse");
 
         // Заместваме променливите и индикаторите
         $expr  = strtr($expr, $contex);
@@ -276,7 +272,7 @@ class sens2_Scripts extends core_Master
     /**
 	 * За да не могат да се изтриват активните скриптове
 	 */
-    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{  
    		if($action == 'delete') {
 	    	if($rec->state != 'closed'){

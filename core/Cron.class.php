@@ -50,6 +50,13 @@ class core_Cron extends core_Manager
 	 * Кой може да го разглежда?
 	 */
 	var $canList = 'admin';
+	
+	
+	/**
+	 * Кой може да променя състояниет?
+	 * @see plg_State2
+	 */
+	var $canChangestate = 'admin';
     
     
     /**  
@@ -75,7 +82,19 @@ class core_Cron extends core_Manager
      */
     var $refreshRowsTime = 5000;
     
-    
+
+    /**
+     * Максимално време в Unix time, до което може да се изпълнява процеса
+     */
+     static $timeDeadline = 0;
+
+
+    /**
+     * $systemId na последния стартиран процес
+     */
+    static $lastSystemId;
+
+
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
@@ -114,12 +133,34 @@ class core_Cron extends core_Manager
      */
     public static function getTimeLimit($systemId = NULL)
     {
-    	$rec = self::getRecForSystemId($systemId);
+        if(!$systemId) {
+            $systemId = self::$lastSystemId;
+        }
+        
+        if($systemId) {
+    	    $rec = self::getRecForSystemId($systemId);
     	
-    	return $rec->timeLimit;
+    	    return $rec->timeLimit;
+        }
+
+        return FALSE;
     }
     
-    
+
+    /**
+     * Връща секундите, които оставят до края на прозореца за изпълнение
+     */
+    public static function getTimeLeft()
+    {
+        if(self::$timeDeadline) {
+
+            return max(self::$timeDeadline - time(), 0);
+        }
+
+        return FALSE;
+    }
+
+
     /**
      * Връща времето на последно стартиране на процес
      * 
@@ -234,16 +275,7 @@ class core_Cron extends core_Manager
         }
         
         // Ако в момента се извършва инсталация - да не се изпълняват процесите
-        $slf = EF_TEMP_PATH . '/setupLog.html';
-        if(@file_exists($slf)) {
-            clearstatcache($slf);
-            $at = time() - filemtime($slf);
-            if($at >= 0 && $at < 120) {
-                halt('Cron is not started due to initialisation in last ' . $at . ' sec.');
-            } elseif(abs($at) > 36000) {
-                @unlink($slf);
-            }
-        }
+        core_SystemLock::stopIfBlocked();
 
         header('Cache-Control: no-cache, no-store');
         
@@ -285,20 +317,15 @@ class core_Cron extends core_Manager
 
             // Колко минути остават до следващото стартиране
             $remainMinutes = floor(($currentMinute - $rec->offset) / $rec->period ) * $rec->period + $rec->period + $rec->offset - $currentMinute;
-            // echo "<li> $rec->systemId | $lastStarting | $lastSchedule | $now  | $remainMinutes | $rec->period | ";
             
             if( (($currentMinute % $rec->period) == $rec->offset) || ($rec->period > 60 && $lastSchedule > $lastStarting && $rec->period/2 < $remainMinutes)) {
                
-                // echo "OK------";
-
                 $i++;
                 fopen(toUrl(array(
                             'Act' => 'ProcessRun',
                             'id' => str::addHash($rec->id)
                         ), 'absolute-force'), 'r');
             
-            } else {
-                // echo "NO";
             }
         }
 
@@ -324,8 +351,13 @@ class core_Cron extends core_Manager
             ob_start();
             session_write_close();
             header("Content-Length: 0");
-            @ob_end_flush();
-            flush();
+            
+            if(function_exists('fastcgi_finish_request')) {
+                fastcgi_finish_request();
+            } else {
+                @ob_end_flush();
+                flush();
+            }
         } else {
             header ('Content-type: text/html; charset=utf-8');
         }
@@ -367,8 +399,9 @@ class core_Cron extends core_Manager
         
         // Изчакваме преди началото на процеса, ако е зададено 
         if ($rec->delay > 0) {
+            core_App::setTimeLimit(30 + $rec->delay);
             sleep($rec->delay);
-            Debug::log("Sleep {$rec->delay} sec. in" . __CLASS__);
+            Debug::log("Sleep {$rec->delay} sec. in " . __CLASS__);
         }
         
         // Стартираме процеса
@@ -380,12 +413,14 @@ class core_Cron extends core_Manager
         
         if (is_a($handlerObject, $class)) {
             if (method_exists($handlerObject, $act)) {
-                self::logInfo("Стартиран процес: " . $rec->action, $rec->id);
+                self::logInfo("Стартиран процес: " . $rec->action, $rec->id, 3);
                 
                 // Ако е зададено максимално време за изпълнение, 
                 // задаваме го към PHP , като добавяме 5 секунди
                 if ($rec->timeLimit) {
-                    set_time_limit($rec->timeLimit + 5);
+                    core_App::setTimeLimit($rec->timeLimit + 5);
+                    self::$timeDeadline =time() + $rec->timeLimit;
+                    self::$lastSystemId = $rec->systemId;
                 }
                 
                 $startingMicroTime = $this->getMicrotime();
@@ -406,7 +441,7 @@ class core_Cron extends core_Manager
                 
                 $workingTime = round($this->getMicrotime() - $startingMicroTime, 2);
                 
-                self::logInfo("Процесът '{$rec->action}' е изпълнен успешно за {$workingTime} секунди", $rec->id);
+                self::logInfo("Процесът '{$rec->action}' е изпълнен успешно за {$workingTime} секунди", $rec->id, 3);
             } else {
                 $this->unlockProcess($rec);
                 $this->logThenStop("Няма такъв екшън в класа", $rec->id, 'err');
@@ -432,7 +467,12 @@ class core_Cron extends core_Manager
      */
     function logThenStop($msg, $id = NULL, $type = 'info')
     {
-        log_System::add(get_called_class(), $msg, $id, $type, 7);
+        $lifeDays = 7;
+        if ($type == 'info') {
+            $lifeDays = 3;
+        }
+        
+        log_System::add(get_called_class(), $msg, $id, $type, $lifeDays);
         if(haveRole('admin,debug')) {
             echo(core_Debug::getLog());
         }

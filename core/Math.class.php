@@ -40,9 +40,9 @@ class core_Math
 
             $significantDigits = $conf->EF_ROUND_SIGNIFICANT_DIGITS;
         }
-	    
+        
         $r = 0;
-        if ($number) {
+        if (round($number, 10)) {
             $r = log10(abs($number));
         }
         
@@ -69,5 +69,24 @@ class core_Math
 		}
 	    
 	    return $number;
+	}
+	
+	
+	/**
+	 * Функция намираща остатъка на делението на две реални числа
+	 * 
+	 * @param double $x
+	 * @param double $y
+	 * @return double $r
+	 */
+	public static function fmod($x, $y)
+	{
+		$x = (double)$x;
+		$y = (double)$y;
+		expect($y != 0, 'Опит за деление на нула');
+		
+		$r = $x - floor($x / $y) * $y;
+		
+		return $r;
 	}
 }

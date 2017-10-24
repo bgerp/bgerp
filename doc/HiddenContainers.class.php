@@ -18,7 +18,7 @@ class doc_HiddenContainers extends core_Manager
     /**
      * Заглавие
      */
-    public $title = "Адреси, на които не се изпращат циркулярни имейли";
+    public $title = "Скриване/показване на документи в нишка";
     
     
     /**
@@ -26,10 +26,12 @@ class doc_HiddenContainers extends core_Manager
      */
     protected $canRead = 'admin, debug';
     
+    
     /**
      * Кой има право да променя?
      */
     protected $canEdit = 'debug';
+    
     
     /**
      * Кой има право да добавя?
@@ -41,15 +43,18 @@ class doc_HiddenContainers extends core_Manager
      */
     protected $canView = 'admin, debug';
     
+    
     /**
      * Кой може да го разглежда?
      */
     protected $canList = 'admin, debug';
     
+    
     /**
      * Кой може да го изтрие?
      */
     protected $canDelete = 'admin, debug';
+    
     
     /**
      * Плъгини за зареждане
@@ -64,6 +69,12 @@ class doc_HiddenContainers extends core_Manager
     
     
     /**
+     * 
+     */
+    public static $haveRecInModeOrDB = FALSE;
+    
+    
+    /**
      * Описание на модела
      */
     protected function description()
@@ -72,11 +83,7 @@ class doc_HiddenContainers extends core_Manager
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption=Контейнер');
         $this->FLD('state', 'enum(opened=Отворено, closed=Затворено)', 'caption=Състояние');
         
-        $this->setDbIndex('userId');
-        $this->setDbIndex('containerId');
-        $this->setDbIndex('state');
-        
-        $this->setDbUnique('userId, containerId, state');
+        $this->setDbIndex('containerId,userId');
     }
     
 
@@ -123,51 +130,73 @@ class doc_HiddenContainers extends core_Manager
             // Първия, да не се скрива, и да не може да се скрива
             if ($cId && ($cId == $firstCid)) continue;
             
-            $rec = self::fetch("#containerId = '{$cId}' AND #userId = '{$userId}'");
+            $mName = self::getModeName($cId, $userId);
+            $modeStatus = Mode::get($mName);
+            $rec = FALSE;
+            
+            if (!$modeStatus) {
+                $rec = self::fetch("#containerId = '{$cId}' AND #userId = '{$userId}'");
+            }
             
             $hide = TRUE;
             
             // Ако е зададено да се показва в модела
-            if ($rec) {
-                if ($rec->state == 'opened') {
+            if ($rec || $modeStatus) {
+                self::$haveRecInModeOrDB = TRUE;
+                if ($rec->state == 'opened' || $modeStatus == 'opened') {
                     $hide = FALSE;
                 }
             } else {
                 
-                if ($cRec->state != 'rejected') {
-                    
-                    // Ако следващия документ е създаден от същия потребител
-                    // Не е оттеглен и съдържанието е идентично
-                    // Скриваме текущия документ, ако не е бил показан изрично
-                    if (($nextRec && $nextRec->state != 'rejected') 
-                        && ($nextRec->docClass == $cRec->docClass)
-                        && ($cRec->createdBy == $nextRec->createdBy)
-                        && (cls::load($cRec->docClass, TRUE))) {
-                            $clsInst = cls::get($cRec->docClass);
-                            
-                            $cContentHash = $clsInst->getDocContentHash($cRec->docId);
-                            $nContentHash = $clsInst->getDocContentHash($nextRec->docId);
-                            
-                            if ($cContentHash == $nContentHash) {
-                                self::$hiddenDocsArr[$cId] = TRUE;
-                                continue;
-                            }
+                if ($cId) {
+                    $rec = doc_Containers::fetch($cId, 'docClass');
+                    if ($rec->docClass && cls::load($rec->docClass, TRUE)) {
+                        $dInst = cls::get($rec->docClass);
                     }
+                }
+                
+                // Скриваме само оттеглени, затворение и активни документи
+                // Документи, на които им е зададено да не се скриват автоматично и тя нама да се скриват
+                if (((($cRec->state == 'closed') || ($cRec->state == 'active')) && ($dInst->autoHideDoc !== FALSE)) || (($cRec->state == 'rejected'))) {
                     
-                    // По новите от да не се показват
-                    if ($cRec->modifiedOn > $from) {
-                        $hide = FALSE;
+                    if ($cRec->state != 'rejected') {
+                        
+                        // Ако следващия документ е създаден от същия потребител
+                        // Не е оттеглен и съдържанието и състоянието е идентично
+                        // Скриваме текущия документ, ако не е бил показан изрично
+                        if (($nextRec && $nextRec->state != 'rejected') 
+                            && ($nextRec->docClass == $cRec->docClass)
+                            && ($cRec->createdBy == $nextRec->createdBy)
+                            && ($cRec->state == $nextRec->state)
+                            && (cls::load($cRec->docClass, TRUE))) {
+                                $clsInst = cls::get($cRec->docClass);
+                                
+                                $cContentHash = $clsInst->getDocContentHash($cRec->docId);
+                                $nContentHash = $clsInst->getDocContentHash($nextRec->docId);
+                                
+                                if ($cContentHash == $nContentHash) {
+                                    self::$hiddenDocsArr[$cId] = TRUE;
+                                    continue;
+                                }
+                        }
+                        
+                        // По новите от да не се показват
+                        if ($cRec->modifiedOn > $from) {
+                            $hide = FALSE;
+                        }
+                        
+                        // Първите да не се скриват
+                        if ($begin >= $i) {
+                            $hide = FALSE;
+                        }
+                        
+                        // Последните да не се скриват
+                        if ($end < $i) {
+                            $hide = FALSE;
+                        }
                     }
-                    
-                    // Първите да не се скриват
-                    if ($begin >= $i) {
-                        $hide = FALSE;
-                    }
-                    
-                    // Последните да не се скриват
-                    if ($end < $i) {
-                        $hide = FALSE;
-                    }
+                } else {
+                    $hide = FALSE;
                 }
             }
             
@@ -182,8 +211,88 @@ class doc_HiddenContainers extends core_Manager
      */
     public static function isHidden($cId)
     {
+        $q = Request::get('Q');
+        if (isset($q)) return FALSE;
         
         return self::$hiddenDocsArr[$cId];
+    }
+    
+    
+    /**
+     * Помощна функция, която показва дали има скрити/показани документи
+     * 
+     * @param boolean|NULL $type
+     * 
+     * @return boolean
+     */
+    public static function haveHiddenOrShowedDoc($type = NULL)
+    {
+        if (empty(self::$hiddenDocsArr)) return FALSE;
+        
+        if (!isset($type)) return TRUE;
+        
+        if (array_search($type, self::$hiddenDocsArr)) return TRUE;
+        
+        return FALSE;
+    }
+    
+    
+    /**
+     * Премахва записа за съответното действие
+     * 
+     * @param integer $cId
+     * @param string $userId
+     * @param NULL|string $state
+     * @param boolean $forced
+     */
+    public static function removeFromTemp($cId, $userId = NULL, $state = 'opened', $forced = TRUE)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        $name = self::getModeName($cId, $userId);
+        
+        $delFlag = TRUE;
+        if ($state) {
+            $delFlag = FALSE;
+            $modeStatus = Mode::get($name);
+            
+            if ($modeStatus == 'opened') {
+                $delFlag = TRUE;
+            }
+        }
+        
+        if ($delFlag) {
+            Mode::setPermanent($name, NULL);
+        }
+        
+        if ($forced) {
+            self::deleteFromDb($cId, $userId, $state);
+        }
+    }
+    
+    
+    /**
+     * Премахва записа за съответното действие от модела
+     * 
+     * @param integer $cId
+     * @param string $userId
+     * @param NULL|string $state
+     */
+    public static function deleteFromDb($cId, $userId = NULL, $state = 'opened')
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        if ($state) {
+            
+            return self::delete(array("#containerId = '[#1#]' AND #userId = '[#2#]' AND #state = '[#3#]'", $cId, $userId, $state));
+        } else {
+            
+            return self::delete(array("#containerId = '[#1#]' AND #userId = '[#2#]'", $cId, $userId));
+        }
     }
     
     
@@ -192,34 +301,77 @@ class doc_HiddenContainers extends core_Manager
      * 
      * @param integer $id
      * @param boolean|NULL $hide
+     * @param boolean $temp
+     * @param NULL|integer $userId
      */
-    public static function showOrHideDocument($cId, $hide = FALSE)
+    public static function showOrHideDocument($cId, $hide = FALSE, $temp = FALSE, $userId = NULL)
     {
-        $userId = core_Users::getCurrent();
-        
-        if (!$userId) return ;
-        
-        $rec = self::fetch(("#containerId = '{$cId}' AND #userId = '{$userId}'"));
-        
-        if (!$rec) {
-            $rec = new stdClass();
-            $rec->userId = $userId;
-            $rec->containerId = $cId;
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
         }
         
-        if ($hide) {
-            $rec->state = 'closed';
-            self::save($rec);
-            self::$hiddenDocsArr[$cId] = TRUE;
-        } elseif ($hide === FALSE) {
-            $rec->state = 'opened';
-            self::save($rec);
-            self::$hiddenDocsArr[$cId] = FALSE;
+        if ($userId < 1) return ;
+        
+        // Когато документа трябва да е отворен/затворен само временно
+        $name = self::getModeName($cId, $userId);
+        
+        if ($temp) {
+            if ($hide) {
+                Mode::setPermanent($name, 'closed');
+                self::$hiddenDocsArr[$cId] = TRUE;
+            } elseif ($hide === FALSE) {
+                Mode::setPermanent($name, 'opened');
+                self::$hiddenDocsArr[$cId] = FALSE;
+            } else {
+                Mode::setPermanent($name, NULL);
+            }
         } else {
-            if ($rec->id) {
-                self::delete($rec->id);
+            
+            // Изтрваме временните настройки за показване на документа
+            Mode::setPermanent($name, NULL);
+            
+            $rec = self::fetch(("#containerId = '{$cId}' AND #userId = '{$userId}'"));
+            
+            if (!$rec) {
+                $rec = new stdClass();
+                $rec->userId = $userId;
+                $rec->containerId = $cId;
+            }
+            
+            if ($hide) {
+                $rec->state = 'closed';
+                self::save($rec);
+                self::$hiddenDocsArr[$cId] = TRUE;
+            } elseif ($hide === FALSE) {
+                $rec->state = 'opened';
+                self::save($rec);
+                self::$hiddenDocsArr[$cId] = FALSE;
+            } else {
+                if ($rec->id) {
+                    self::delete($rec->id);
+                }
             }
         }
+    }
+    
+    
+    /**
+     * Връща името за името на сесията
+     * 
+     * @param integer $cId
+     * @param integer|NULL $userId
+     * 
+     * @return string
+     */
+    protected static function getModeName($cId, $userId = NULL)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        $name = 'HIDE_CONTAINERS_' . $cId . '|' . $userId;
+        
+        return $name;
     }
     
     

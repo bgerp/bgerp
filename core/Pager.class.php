@@ -87,11 +87,10 @@ class core_Pager extends core_BaseClass
         setIfNot($this->itemsPerPage, 20);
         setIfNot($this->pageVar, 'P');
         if(Mode::is('screenMode', 'narrow')) {
-            setIfNot($this->pagesAround, 1);
-        } else {
             setIfNot($this->pagesAround, 2);
+        } else {
+            setIfNot($this->pagesAround, 3);
         }
-
     }
     
     
@@ -109,6 +108,10 @@ class core_Pager extends core_BaseClass
             $this->itemsPerPage = 0;
         }
         
+        if(Mode::is('printing')) {
+            $this->itemsPerPage = max(core_Setup::get('MAX_ROWS_FOR_PRINTING'), $this->itemsPerPage);
+        }
+        
         $maxPages = max(1, round($this->itemsCount / $this->itemsPerPage));
         
         if ($this->page > $maxPages) {
@@ -122,7 +125,7 @@ class core_Pager extends core_BaseClass
         }
         $this->rangeStart = 0;
         $this->rangeEnd = $this->itemsCount;
-        
+      
         $this->rangeStart = $this->itemsPerPage * ($this->page - 1);
         $this->rangeEnd = $this->rangeStart + $this->itemsPerPage;
         
@@ -197,6 +200,16 @@ class core_Pager extends core_BaseClass
     {
         // Дали да използва кеширане
         $useCache = $query->useCacheForPager;
+        
+        if($useCache) {
+            if($limit = doc_Setup::get('SEARCH_LIMIT')) {
+                $query->limit($limit);
+                $query->limitCnt = TRUE;
+            }
+        }
+        
+        // Приоритетна заявка
+        $query->highPriority = TRUE;
 
         $q = clone ($query);
         $qCnt = clone ($query);
@@ -216,14 +229,16 @@ class core_Pager extends core_BaseClass
                 $this->itemsCount = $resCntCache;
             }
         }
-
+ 
         $this->calc();
 
         // Подготовка на заявката за извличане на id
         $limit = $this->rangeEnd - $this->rangeStart + round(0.5 * $this->itemsPerPage);  
+        $query->show('id');
+        $rQuery = clone $query;
         $query->limit($limit);
         $query->startFrom($this->rangeStart);
-        $query->show('id');
+        
 
         while($rec = $query->fetch()) {
             $ids[] = $rec->id;
@@ -280,133 +295,50 @@ class core_Pager extends core_BaseClass
         expect(isset($resCnt));
 
         $this->itemsCount = $resCnt;
+        $query = $qWork;
+ 
         
- 
-       $query = $qWork;
- 
+        $exRangeStart = $this->rangeStart;
+
         $this->calc();
+        
+        if($exRangeStart != $this->rangeStart) {
+
+            $rQuery->limit($this->rangeEnd - $this->rangeStart);
+            $rQuery->startFrom($this->rangeStart);
+            $ids = array();
+
+            while($rec = $rQuery->fetch()) {
+                $ids[] = $rec->id;
+            }
+            $idCnt = count($ids);
+        }
+
         if($idCnt) {
             $ids = array_slice($ids, 0, $this->rangeEnd - $this->rangeStart);
-
-           //if($query->mvc->className == 'bgerp_Recently')  bp($ids, $this->rangeEnd - $this->rangeStart);
             $ids = implode(',', $ids);
             $query->where("#id IN ($ids)");
+
+            foreach($query->where as $i => $cond) {
+                if((stripos($cond, 'match(')  !== FALSE) || (stripos($cond, 'locate(') !== FALSE)) {
+                    unset($query->where[$i]);
+                }
+            }
         } else {
-            //$this->itemsCount = 0;
             $this->calc();
             $query->limit(0);
         }
-
-        return;
-
-
-        // Вземаме резултатите за станица и половина
- 
-        if($query->mvc->db->countRows($query->mvc->dbTableName) < 50000) {
-            
-            $qCnt = clone ($query);
-            $qCnt->orderBy = array();
-
-            $qCnt->show('id');
-            $this->itemsCount = $qCnt->count();
-            $this->calc();
-            if (isset($this->rangeStart) && isset($this->rangeEnd)) {
-                $q->limit($this->rangeEnd - $this->rangeStart);
-                $q->startFrom($this->rangeStart);
-                $q->show('id');
-                $q->select();
-                while($rec = $q->fetch()) {
-                    $ids[] = $rec->id;
+        
+        if($ui = Request::get('useIndex')) {
+            $uiArr = explode(",", $ui);
+            foreach($uiArr as $ind) {  
+                if($query->mvc->dbIndexes[$ind]) {  
+                    $query->useIndex($ind); 
                 }
-            }
-            if(count($ids)) {
-                $ids = implode(',', $ids);
-                $query = $query->mvc->getQuery();
-                $query->where("#id IN ($ids)");
-            } else {
-                $this->itemsCount = 0;
-                $this->calc();
-                $query->limit(0);
-            } 
-        } elseif((!Request::get('V')) || Request::get('V') == 2) {
-            $qCnt = clone ($query);
-            
-            setIfNot($this->page, Request::get($this->pageVar, 'int'), 1);
-    
-            // Опитваме да извлечем резултатите от кеша
-            $cntAll = core_QueryCnts::getFromChache($qCnt);
-            if($cntAll === FALSE) {
-                $cntAll = $this->itemsPerPage*($this->page+9);
-                $autoCnt = TRUE;
-            } elseif($cntAll === 0) {
-                $cntAll = $this->itemsPerPage;
-                $autoCnt = FALSE;
-            }
-
-            $this->itemsCount = $cntAll;
-            $this->calc(); 
-            if (isset($this->rangeStart) && isset($this->rangeEnd)) {
-                $q->limit($this->rangeEnd - $this->rangeStart);
-                $q->startFrom($this->rangeStart);
-                $q->show('id');
-                $q->select();
-                while($rec = $q->fetch()) {
-                    $ids[] = $rec->id;
-                }
-            }
-
-            if($cntIds = count($ids)) {
-                $ids = implode(',', $ids);
-                $query = $query->mvc->getQuery();
-                $query->where("#id IN ($ids)");
-            } else {
-                $this->itemsCount = 0;
-                $this->calc();
-                $query->limit(0);
-            }
-            
-            // Точно сме определили колко резултата имаме
-            if(($cntIds > 0 && $cntIds < $this->rangeEnd - $this->rangeStart) || ($cntIds == 0 && $this->rangeStart == 0)) {
-                $cntAll = $this->rangeStart + $cntIds;
-                $this->itemsCount = $cntAll;
-                $this->calc(); 
-                core_QueryCnts::set($qCnt, $cntAll);
-            } else {
-                // Залагаме да броим резултатите
-                $Cache = cls::get('core_Cache');
-                core_QueryCnts::delayCount($qCnt);
-
-                if($autoCnt && $cntIds > 0 && $cntIds == $this->rangeEnd - $this->rangeStart) {
-                    $this->autoCnt = TRUE;
-                }
-            }
-
-
-       } elseif(Request::get('V') == 3) {
-            $q = clone ($query);
-
-            $this->itemsCount = 100000000;
-            $this->calc();
-            if (isset($this->rangeStart) && isset($this->rangeEnd)) {
-                $q->limit(1000);
-                $q->startFrom($this->rangeStart); 
-                $cnt = $this->rangeStart + $q->select();
-                $i = 0;
-                while(($rec = $q->fetch()) && $i++ < ($this->rangeEnd-$this->rangeStart)) {
-                    $ids[] = $rec->id;
-                }
-            }
-            
-            $this->itemsCount  = $cnt;  
-            $this->calc();
-            
-            if(count($ids)) {
-                $ids = implode(',', $ids);
-                $query->where("#id IN ($ids)");
-            } else {
-                $query->limit(0);
             }
         }
+ 
+        return;
     }
 
 
@@ -447,13 +379,13 @@ class core_Pager extends core_BaseClass
         
         $start = $this->getPage() - $this->pagesAround;
         
-        if ($start < 5) {
+        if ($start < $this->pagesAround) {
             $start = 1;
         }
         
         $end = $this->getPage() + $this->pagesAround;
         
-        if (($end > $this->getPagesCount()) || ($this->getPagesCount() - $end) < 5) {
+        if (($end > $this->getPagesCount()) || ($this->getPagesCount() - $end) < $this->pagesAround) {
             $end = $this->getPagesCount();
         }
         

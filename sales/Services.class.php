@@ -1,4 +1,7 @@
 <?php
+
+
+
 /**
  * Клас 'sales_Services'
  *
@@ -8,7 +11,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -37,9 +40,8 @@ class sales_Services extends deals_ServiceMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Sorting, acc_plg_Contable, doc_DocumentPlg, plg_Printing,
-                    acc_plg_DocumentSummary, plg_Search,
-					doc_EmailCreatePlg, bgerp_plg_Blank, cond_plg_DefaultValues, doc_plg_TplManager, doc_plg_HidePrices, doc_SharablePlg';
+    public $loadList = 'plg_RowTools2, sales_Wrapper, sales_plg_CalcPriceDelta, acc_plg_Contable, plg_Sorting, doc_DocumentPlg, plg_Printing,
+                    acc_plg_DocumentSummary,doc_EmailCreatePlg, bgerp_plg_Blank, cond_plg_DefaultValues, doc_plg_TplManager, doc_plg_HidePrices, doc_SharablePlg,cat_plg_AddSearchKeywords, plg_Search';
 
     
     /**
@@ -49,12 +51,6 @@ class sales_Services extends deals_ServiceMaster
      * @see doc_SharablePlg
      */
     public $shareUserRoles = 'ceo, sales';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,sales';
     
     
     /**
@@ -94,6 +90,12 @@ class sales_Services extends deals_ServiceMaster
     
     
     /**
+     * Кой може да го прави документа чакащ/чернова?
+     */
+    public $canPending = 'ceo,sales';
+    
+    
+    /**
      * Кой може да го изтрие?
      */
     public $canConto = 'ceo,sales';
@@ -127,12 +129,6 @@ class sales_Services extends deals_ServiceMaster
      * Групиране на документите
      */
     public $newBtnGroup = "3.81|Търговия";
-   
-    
-    /**
-     * Полета свързани с цени
-     */
-    public $priceFields = 'amountDelivered';
     
     
     /**
@@ -162,9 +158,7 @@ class sales_Services extends deals_ServiceMaster
     /**
      * Стратегии за дефолт стойностти
      */
-    public static $defaultStrategies = array(
-    		'received' => 'lastDocUser|lastDoc',
-    );
+    public static $defaultStrategies = array('received' => 'lastDocUser|lastDoc');
     
     
     /**
@@ -179,7 +173,7 @@ class sales_Services extends deals_ServiceMaster
     /**
      * Преди показване на форма за добавяне/промяна
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$data->form->setDefault('delivered', core_Users::getCurrent('names'));
     }
@@ -206,21 +200,12 @@ class sales_Services extends deals_ServiceMaster
        
         $res .= doc_TplManager::addOnce($this, $tplArr);
     }
-     
-     
-	/**
-     * Връща разбираемо за човека заглавие, отговарящо на записа
-     */
-    static function getRecTitle($rec, $escaped = TRUE)
-    {
-        return tr("|Предавателен протокол|* №") . $rec->id;
-    }
     
     
     /**
      * След изпращане на формата
      */
-    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
     	if ($form->isSubmitted()) {
     		$rec = &$form->rec;
@@ -298,7 +283,7 @@ class sales_Services extends deals_ServiceMaster
     					$data->toolbar->addBtn('Проформа', array('sales_Proformas', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на проформа фактура към предавателния протокол,ef_icon=img/16/proforma.png');
     				}
     			}
-    		} elseif($rec->state == 'active'){
+    		} elseif($rec->state == 'active' || $rec->state == 'pending'){
     			
     			// Ако има фактура към протокола, правим линк към нея, иначе бутон за създаване на нова
     			if($iRec = sales_Invoices::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")){
@@ -319,7 +304,7 @@ class sales_Services extends deals_ServiceMaster
     /**
      * Преди запис на документ
      */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
     	if(empty($rec->originId)){
     		$rec->originId = doc_Threads::getFirstContainerId($rec->threadId);

@@ -48,9 +48,9 @@ class pos_Points extends core_Master {
     
     
     /**
-     * Кой може да го прочете?
+     * Да се създаде папка при създаване на нов запис
      */
-    public $canRead = 'ceo, pos';
+    public $autoCreateFolder = 'instant';
     
     
     /**
@@ -80,7 +80,7 @@ class pos_Points extends core_Master {
     /**
      * Икона за единичен изглед
      */
-    public $singleIcon = 'img/16/cash-register-icon.png';
+    public $singleIcon = 'img/16/cash-register.png';
     
     
     /**
@@ -256,7 +256,7 @@ class pos_Points extends core_Master {
 	/**
 	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
 	 */
-	protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
 		if($action == 'select' && isset($rec)){
 			if(!self::canSelectPos($rec, $userId)){

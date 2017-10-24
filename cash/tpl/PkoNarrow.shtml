@@ -3,7 +3,7 @@
             <table class="innerTable border-table paddingCells">
                 <tbody>
                     <tr>
-                        <td colspan = "2" class='centered'>  
+                        <td class='centered'>
                             <div class="document-title">|приходен касов ордер|*</div>
                             <!--ET_BEGIN operationSysId-->
                             <small>( [#operationSysId#] )</small>
@@ -17,17 +17,21 @@
                         </td>
                     </tr>
                     <tr>
-                        <td class="cell custom-header-bg" style='width:50%;'><b>|Вносител|*</b></td>
+                        <td class="cell custom-header-bg"><b>|Вносител|*</b></td>
+					</tr>
+					<tr>
+						<td>
+							<b>[#contragentName#]</b>
+							<div class='address-block'>
+								[#contragentAddress#]
+							</div>
+							[#creditAccounts#]
+						</td>
+					</tr>
+					<tr>
                         <td class="cell custom-header-bg"><b>|Получател|*</b></td>
                     </tr>
                     <tr>
-                        <td>
-                            <b>[#contragentName#]</b>
-                            <div class='address-block'>
-                                [#contragentAddress#]
-                            </div>
-                            [#creditAccounts#]
-                        </td>
                         <td>
                             <b>[#MyCompany#]</b>
                             <div class='address-block'>
@@ -50,11 +54,19 @@
 			            <table class='border-table' style='width:100%;'>
 			                <tr>
 			                    <td class='aleft' style='padding-left:10px;padding-top: 10px;width:67%;'>
-			                    	<div><span class='quiet'>|Плащане|*:</span>&nbsp;&nbsp;&nbsp;[#paymentType#]</div>
-			                        <div class='richtext-holder'><span class='quiet'>|Основание|*:</span>&nbsp;&nbsp;&nbsp;[#reason#]</div>
+			                    	<!--ET_BEGIN fromContainerId-->
+                     				<span class='quiet nowrap'>|Към фактура|*</span>:&nbsp;&nbsp;&nbsp;[#fromContainerId#]
+                     				<!--ET_END fromContainerId-->
+			                   		<!--ET_BEGIN termDate-->
+                     				<div class='richtext-holder'><span class='quiet'>|Очаквано на|*:</span>&nbsp;&nbsp;&nbsp;[#termDate#]</div>
+                     				<!--ET_END termDate-->
 			                   	</td>
 			                    <td style='padding-left:10px; padding-top: 10px;'>
-			                        <span style='font-size:20px'>|Сума|*:</span><span class='amount'><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></span>
+			                        <div><span style='font-size:20px'>|Сума|*:</span><span class='amount'><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></span></div>
+			                    	<!--ET_BEGIN cash_NonCashPaymentDetails-->
+                        				<hr />
+                        				[#cash_NonCashPaymentDetails#]
+                        			<!--ET_END cash_NonCashPaymentDetails-->
 			                    </td>
 			                </tr>
 			            </table>
@@ -69,11 +81,11 @@
 		                    <td>
 		                        <table style='width:100%' class='no-border'>
 		                            <tr>
-		                                <!--ET_BEGIN notes-->
+		                                <!--ET_BEGIN reason-->
 		                                <td colspan='2'>
-		                                	<div class='richtext-holder'><span class='quiet'>|Бележки|*:</span> &nbsp;&nbsp;&nbsp;[#notes#]</div>
+		                                	<div class='richtext-holder'><span class='quiet'>|Основание|*:</span> &nbsp;&nbsp;&nbsp;[#reason#]</div>
 		                                </td>
-		                                <!--ET_END notes-->
+		                                <!--ET_END reason-->
 		                                <!--ET_BEGIN amountDeal-->
 		                                <td style='vertical-align:middle !important'>
 		                                    <div class ='misc' style='float:right'>
@@ -94,9 +106,9 @@
 		                    <!--ET_BEGIN depositor-->
                               <div>|Броил|*: [#depositor#]</div>
                             <!--ET_END depositor-->
-                            <!--ET_BEGIN cashier-->
-                              <div>|Касиер|*: [#cashier#]</div>
-                             <!--ET_END cashier-->
+                            <!--ET_BEGIN activatedBy-->
+                              <div>|Касиер|*: [#activatedBy#]</div>
+                             <!--ET_END activatedBy-->
 		                    </td>
 		                </tr>
 		            </table>

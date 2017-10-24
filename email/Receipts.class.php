@@ -51,13 +51,24 @@ class email_Receipts extends email_ServiceEmails
     {
         if ($forcedMid === FALSE) {
             // Извличаме информация за вътрешния системен адрес, към когото е насочено писмото
-            $soup = $mime->getHeader('X-Original-To', '*') .
-                    $mime->getHeader('Delivered-To', '*') .
+            $soup = $mime->getHeader('X-Original-To', '*') . ' ' .
+                    $mime->getHeader('Delivered-To', '*') . ' ' .
                     $mime->getHeader('To', '*');
-    
+            
             if (!preg_match('/^.+\+received=([a-z]+)@/i', $soup, $matches)) {
+                if ($accId && preg_match('/^.+received=([a-z]+)@/i', $soup) && ($accRec = email_Accounts::fetch($accId))) {
+                    if ($accRec->email) {
+                        list($accEmail) = explode('@', $accRec->email);
+                    }
+                    
+                    if ($accEmail) {
+                        $accEmail = preg_quote($accEmail, '/');
+                        
+                        preg_match("/^.+{$accEmail}received=([a-z]+)@/i", $soup, $matches);
+                    }
+                }
                 
-                return;
+                if (empty($matches)) return;
             }
             
             $mid = $matches[1];
@@ -67,12 +78,12 @@ class email_Receipts extends email_ServiceEmails
         
         // Намираме датата на писмото
         $date = $mime->getSendingTime();
-
+		
         // Намираме ip-то на изпращача
         $ip = $mime->getSenderIp();
-            
+        
         $isReceipt = doclog_Documents::received($mid, $date, $ip);
-
+        
         if($isReceipt) {
             $rec = new stdClass();
             // Само първите 100К от писмото
@@ -82,6 +93,8 @@ class email_Receipts extends email_ServiceEmails
             $rec->createdOn = dt::verbal2mysql();
 
             self::save($rec);
+            
+            self::logNotice('Получена обратна разписка', $rec->id);
         }
 
         return $isReceipt;
@@ -149,7 +162,9 @@ class email_Receipts extends email_ServiceEmails
         $autoSubmitted = strtolower($autoSubmitted);
         $autoSubmitted = trim($autoSubmitted);
         
-        if ($autoSubmitted == 'auto-replied') return TRUE;
+        if (!$autoSubmitted) return FALSE;
+        
+        if (stripos($autoSubmitted, 'auto-replied') !== FALSE) return TRUE;
         
         return FALSE;
     }

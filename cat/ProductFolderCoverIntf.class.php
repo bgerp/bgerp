@@ -4,7 +4,7 @@
 
 /**
  * Клас 'cat_ProductFolderCoverIntf' - Интерфейс за корици на папки, 
- * в които могат да се създават документи спецификации
+ * в които могат да се създават документи артикули
  *
  *
  * @category  bgerp
@@ -16,12 +16,6 @@
  */
 class cat_ProductFolderCoverIntf extends doc_FolderIntf
 {
-	
-	
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'techno2_SpecificationFolderCoverIntf';
 	
 	
 	/**
@@ -47,5 +41,17 @@ class cat_ProductFolderCoverIntf extends doc_FolderIntf
     public function getDefaultProductParams($id)
     {
     	return $this->class->getDefaultProductParams($id);
+    }
+    
+    
+    /**
+     * Дали артикулът създаден в папката трябва да е публичен (стандартен) или не
+     * 
+     * @param mixed $id - ид или запис
+     * @return public|private|template - Стандартен / Нестандартен / Шаблон
+     */
+    public function getProductType($id)
+    {
+    	return $this->class->getProductType($id);
     }
 }

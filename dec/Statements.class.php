@@ -37,7 +37,7 @@ class dec_Statements extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'sales_Wrapper, plg_Created, plg_RowTools, plg_State2, plg_Printing, plg_SaveAndNew';
+    var $loadList = 'sales_Wrapper, plg_Created, plg_RowTools2, plg_State2, plg_Printing, plg_SaveAndNew';
     
     
     /**
@@ -62,13 +62,7 @@ class dec_Statements extends core_Master
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     var $rowToolsSingleField = 'title';
-    
-    /**
-     * Шаблон за единичния изглед
-     */
-    //var $singleLayoutFile = 'hr/tpl/SingleLayoutShift.shtml';
-    
-    
+
     
     /**
      * Описание на модела
@@ -76,7 +70,7 @@ class dec_Statements extends core_Master
     function description()
     {
         $this->FLD('title', 'varchar', 'caption=Заглавие, width=100%');
-        $this->FLD('text', 'richtext', 'caption=Текст');
+        $this->FLD('text', 'richtext(bucket=Notes)', 'caption=Текст');
     }
     
     

@@ -35,15 +35,9 @@ class doc_Comments extends core_Master
     
     
     /**
-     * Полета, които ще се клонират
-     */
-    var $cloneFields = 'subject, body';
-    
-    
-    /**
      * Кой има право да клонира?
      */
-    protected $canClone = 'user';
+    public $canClonerec = 'user';
     
     
     /**
@@ -111,7 +105,7 @@ class doc_Comments extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'doc_Wrapper, doc_SharablePlg, doc_DocumentPlg, plg_RowTools, 
-        plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, change_Plugin';
+        plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, change_Plugin, plg_Clone';
     
     
     /**
@@ -219,7 +213,7 @@ class doc_Comments extends core_Master
                 $cid = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
             }
             
-            if ($cid && !Request::get('clone')) {
+            if ($cid && $data->action != 'clone') {
                 
                 //Добавяме в полето Относно отговор на съобщението
                 $oDoc = doc_Containers::getDocument($cid);
@@ -302,7 +296,7 @@ class doc_Comments extends core_Master
 	    
 	    if (core_Packs::isInstalled('colab')) {
 	        $rec = self::fetch($id);
-	        if (core_Users::haveRole('collaborator', $rec->createdB)) {
+	        if (core_Users::haveRole('partner', $rec->createdB)) {
 	            $res = 'opened';
 	        } elseif (core_Users::isPowerUser($rec->createdBy) && self::isVisibleForPartners($rec)) {
 	            $res = 'closed';
@@ -321,16 +315,5 @@ class doc_Comments extends core_Master
         //инсталиране на кофата
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('Comments', 'Прикачени файлове в коментарите', NULL, '300 MB', 'user', 'user');
-    }
-    
-    
-    /**
-     * Изпълнява се след подготовката на ролите
-     */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-    {
-        if($action == 'add' && empty($rec)){
-            $requiredRoles = 'no_one';
-        }
     }
 }

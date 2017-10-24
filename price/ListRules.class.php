@@ -50,7 +50,7 @@ class price_ListRules extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, price_Wrapper, plg_SaveAndNew';
+    public $loadList = 'plg_Created, plg_RowTools2, price_Wrapper, plg_SaveAndNew, plg_PrevAndNext';
                     
  
     /**
@@ -108,6 +108,8 @@ class price_ListRules extends core_Detail
     
         $this->setDbIndex('priority');
         $this->setDbIndex('validFrom');
+        $this->setDbIndex('productId');
+        $this->setDbIndex('groupId');
     }
      
     
@@ -181,11 +183,11 @@ class price_ListRules extends core_Detail
     		expect($validUntill = dt::verbal2mysql($validUntill));
     		$rec->validUntil = $validUntill;
     	}
-    	
-    	if($type != 'groupDiscount'){
+ 
+        if($type != 'groupDiscount'){
     		expect($productRec = cat_Products::getByCode($productCode));
     		$productRec = cat_Products::fetch($productRec->productId);
-    		expect($productRec->canSell == 'yes', 'Артикулът не е продаваем');
+    		// expect($productRec->canSell == 'yes', 'Артикулът не е продаваем');
     		$rec->productId = $productRec->id;
     		$rec->priority = 1;
     	}
@@ -267,7 +269,7 @@ class price_ListRules extends core_Detail
         $data->listFilter->setDefault('threadId', $data->masterData->rec->threadId);
         $data->listFilter->showFields = 'product';
 		
-        $options = self::getProductOptions();
+        $options = self::getProductOptions($data->masterId);
         $data->listFilter->setOptions('product', array('' => '') + $options);
         $data->listFilter->input(NULL, 'silent');
         
@@ -319,7 +321,7 @@ class price_ListRules extends core_Detail
         $query->limit(1);
        
         $rec = $query->fetch();
-       	$listRec = price_Lists::fetch($listId, 'parent,vat,defaultSurcharge');
+       	$listRec = price_Lists::fetch($listId, 'parent,vat,defaultSurcharge,significantDigits,minDecimals');
         $round = TRUE;
        	
         if($rec) {
@@ -402,7 +404,7 @@ class price_ListRules extends core_Detail
     {
     	$price = $rec->price;
     	
-    	$listRec = price_Lists::fetch($rec->listId);
+    	$listRec = price_Lists::fetch($rec->listId, 'currency,createdOn,vat');
     	list($date, $time) = explode(' ', $datetime);
     	
     	// В каква цена е този ценоразпис?
@@ -450,7 +452,11 @@ class price_ListRules extends core_Detail
         if(Request::get('productId') && $form->rec->type == 'value' && $form->cmd != 'refresh'){
         	$form->setReadOnly('productId');
         } else {
-        	$availableProducts = self::getProductOptions();
+        	$availableProducts = self::getProductOptions($form->rec->listId);
+        	if(isset($rec->productId) && !array_key_exists($rec->productId, $availableProducts)){
+        		$availableProducts[$rec->productId] = cat_Products::getRecTitle(cat_Products::fetch($rec->productId, 'id,name,isPublic,code,createdOn'), FALSE);
+        	}
+        	
         	if(count($availableProducts)){
         		$form->setOptions('productId', array('' => '') + $availableProducts);
         	} else {
@@ -529,7 +535,7 @@ class price_ListRules extends core_Detail
                 $rec->validFrom = $now;
                 Mode::setPermanent('PRICE_VALID_FROM', NULL);
             }
-            
+           
             // Проверка за грешки и изчисляване на отстъпката, ако е зададена само желаната цена
             if($rec->type == 'discount' || $rec->type == 'groupDiscount') {
                 if(!isset($rec->discount) && !isset($rec->targetPrice)) {
@@ -604,7 +610,7 @@ class price_ListRules extends core_Detail
      * @param stdClass $rec
      * @param int $userId
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'delete' && isset($rec->validFrom)) {
     		if($rec->validFrom <= dt::verbal2mysql()) {
@@ -617,7 +623,7 @@ class price_ListRules extends core_Detail
         		$requiredRoles = 'no_one';
         	} else {
         		$isPublic = cat_Products::fetchField($rec->productId, 'isPublic');
-        		if($isPublic == 'no'){
+        		if($isPublic == 'no' && $rec->listId != price_ListRules::PRICE_LIST_COST){
         			$requiredRoles = 'no_one';
         		}
         	}
@@ -665,7 +671,8 @@ class price_ListRules extends core_Detail
         }
 
         // Ако цената има повече от 2 дробни цифри, показва се до 5-я знак, иначе до втория
-        if(strlen(substr(strrchr($rec->price, "."), 1) > 2)){
+        $strlen = strlen(substr(strrchr($rec->price, "."), 1));
+        if($strlen > 2){
         	$mvc->getFieldType('price')->params['decimals'] = 5;
         } else {
         	$mvc->getFieldType('price')->params['decimals'] = 2;
@@ -675,7 +682,7 @@ class price_ListRules extends core_Detail
         
         // Област
         if($rec->productId) {
-        	$row->domain = cat_Products::getHyperlink($rec->productId, TRUE);
+        	$row->domain = cat_Products::getShortHyperlink($rec->productId);
         	
         	if(cat_Products::fetchField($rec->productId, 'state') == 'rejected'){
         		$row->domain = "<span class= 'state-rejected-link'>{$row->domain}</span>";
@@ -721,16 +728,24 @@ class price_ListRules extends core_Detail
                 break;
         }        
         
-        if($state == 'active') {
-            $row->rule = "<b>{$row->rule}</b>";
-        }
-
         // Линк към продукта
         if(isset($rec->productId)) {
             $row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
         }
 
+        if($rec->productId) {
+        	$isPublic = cat_Products::fetchField($rec->productId, 'isPublic');
+        	if($isPublic == 'no'){
+        		$row->domain = ht::createHint($row->domain, 'Артикулът е нестандартен и цената му вече не се определя от ценовата политика', 'warning', FALSE);
+        		$state = 'closed';
+        	}
+        }
+        
         $row->ROW_ATTR['class'] .= " state-{$state}";
+        
+        if($state == 'active') {
+        	$row->rule = "<b>{$row->rule}</b>";
+        }
     }
 	
 	
@@ -744,8 +759,16 @@ class price_ListRules extends core_Detail
 	 * @param yes|no $vat          - с ДДС или без
 	 * @return int				   - ид на създадения запис
 	 */
-	public static function savePrimeCost($productId, $primeCost, $validFrom, $currencyCode, $vat = 'no')
+	public static function savePrimeCost($productId, $primeCost, $validFrom, $currencyCode = NULL, $vat = 'no')
 	{
+        // По подразбиране задаваме в текуща валута
+        if(empty($currencyCode)) {
+            $currencyCode = acc_Periods::getBaseCurrencyCode();
+        }
+        
+        // Във всяка API функция проверките за входните параметри са задължителни
+        expect(!empty($productId) && !empty($validFrom) && !empty($primeCost), $productId, $primeCost, $validFrom, $currencyCode, $vat);
+ 
 		$obj = (object)array('productId' => $productId,
 				             'type'      => 'value',
 				             'validFrom' => $validFrom,
@@ -903,19 +926,19 @@ class price_ListRules extends core_Detail
 	 * 
 	 * @return array $options - масив с артикули за избор
 	 */
-	public static function getProductOptions()
+	public static function getProductOptions($listId)
 	{
 		$options = array();
 		$pQuery = cat_Products::getQuery();
-		$pQuery->where("#isPublic = 'yes' AND #state = 'active' AND #canSell = 'yes'");
+		$pQuery->where("#state = 'active'");
+		if($listId != self::PRICE_LIST_COST){
+			$pQuery->where("#isPublic = 'yes' AND #canSell = 'yes'");
+		}
+		
 		$pQuery->show('id,name,isPublic,code,createdOn');
 		
 		while($pRec = $pQuery->fetch()){
 			$options[$pRec->id] = cat_Products::getRecTitle($pRec, FALSE);
-		}
-		
-		if(count($options)){
-			$options = array('pu' => (object)array('group' => TRUE, 'title' => tr('Стандартни'))) + $options;
 		}
 		
 		return $options;
@@ -930,9 +953,8 @@ class price_ListRules extends core_Detail
 		// Ако няма правила създаваме дефолтни
 		if(!self::count()){
 			cls::get('cat_Groups')->setupMvc();
-			
 			$path = getFullPath('price/csv/CatalogRules.csv');
-			$csv = csv_Lib::getCsvRowsFromFile($path, array('firstRow' => FALSE));
+			$csv = csv_Lib::getCsvRowsFromFile(file_get_contents($path), array('firstRow' => FALSE, 'delimiter' => ','));
 			$csvRows = $csv['data'];
 			if(is_array($csvRows)){
 				foreach ($csvRows as $row){

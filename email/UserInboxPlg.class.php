@@ -78,7 +78,7 @@ class email_UserInboxPlg extends core_Plugin
             
             // Опитваме се да вземем от request
             $personId = Request::get('personId', 'int');
-        }
+        }  
         
         if ($personId) {
            crm_Profiles::save(
@@ -86,7 +86,10 @@ class email_UserInboxPlg extends core_Plugin
                    'personId' => $personId,
                    'userId'   => $user->id
                )
-           ); 
+           );
+
+           // Обратно синхронизиране
+           crm_Profiles::syncUser(crm_Persons::fetch($personId));
         }
     }
     
@@ -95,11 +98,16 @@ class email_UserInboxPlg extends core_Plugin
      * Изпълнява се след обновяване на информацията за потребител
      */
     public static function on_AfterUpdate($mvc, $rec, $fields = NULL)
-    {   
+    {
         $fieldsArr = $mvc->prepareSaveFields($fields, $rec);
-        if (($personId = crm_Profiles::fetchField("#userId = {$rec->id}", 'personId')) && $fieldsArr['nick']) { 
-            crm_Profiles::syncPerson($personId, $rec);
-        }
+
+        if($fieldsArr['nick'] && $rec->nick) {
+            if (($personId = crm_Profiles::fetchField("#userId = {$rec->id}", 'personId'))) { 
+                crm_Profiles::syncPerson($personId, $rec);
+            } else {
+                self::on_AfterCreate($mvc, $rec);
+            }
+        } 
     }
     
     
@@ -116,7 +124,7 @@ class email_UserInboxPlg extends core_Plugin
             }
             
             //Проверяваме дали имаме папка със същото име и дали някой е собственик
-            expect (!$this->checkFolderCharge($rec), "Моля въведете друг Ник. Папката е заета от друг потребител.");
+            expect (core_Users::isContractor($rec) || !$this->checkFolderCharge($rec), "Моля въведете друг Ник. Папката е заета от друг потребител.");
         }
     } 
     
@@ -128,38 +136,6 @@ class email_UserInboxPlg extends core_Plugin
     {
         //Ако формата е субмитната
         if ($form->isSubmitted()) {
-
-            if (core_Users::fetch('1=1')) {
-
-                //Вземаме броя на срещанията на всички типове роли
-                $expandedRoles  = core_Roles::expand($form->rec->rolesInput);
-                $rolesByTypeArr = core_Roles::countRolesByType($expandedRoles);
-
-                if ($rolesByTypeArr['rang'] < 1 && $form->rec->state == 'active') {
-                    $form->setError('roles', "Потребителят трябва да има поне една роля за ранг!");
-                }
-                
-                if (!empty($expandedRoles)) {
-                    $buyerRoleId = core_Roles::fetchByName('buyer');
-                    $powerUserRoleId = core_Roles::fetchByName('powerUser');
-                
-                    if ($rolesByTypeArr['team'] < 1 && $form->rec->state == 'active') {
-                        $isContractor = (boolean)(in_array($buyerRoleId, $expandedRoles) && !in_array($powerUserRoleId, $expandedRoles));
-                        
-                        if (!$isContractor) {
-                            $form->setError('rolesInput', "Потребителят трябва да има поне една роля за екип!");
-                        }
-                    }
-                    
-                	// Проверка дали потребителя ще е едновременно 'buyer' и 'powerUser'
-                	$notAllowedRoleCombination = (in_array($buyerRoleId, $expandedRoles) && in_array($powerUserRoleId, $expandedRoles));
-                	
-                	// Ако е сетва се грешка
-                	if($notAllowedRoleCombination === TRUE){
-                		$form->setError('rolesInput', "Потребителя не може да е 'powerUser' и 'buyer'!");
-                	}
-                }
-            }
             
             //Ако редактираме данните във формата
             $inCharge = $this->checkFolderCharge($form->rec);
@@ -167,29 +143,47 @@ class email_UserInboxPlg extends core_Plugin
             //Ако имаме inCharge
             if ($inCharge) {
                 //Ако потребителя не е собственик на новата папка показваме грешка
-                if ($form->rec->id != $inCharge) {
+                if (core_Users::isPowerUser($form->rec) && ($form->rec->id != $inCharge)) {
                     $form->setError('nick', "Моля въведете друг|* '{$form->fields['nick']->caption}'. |Папката е заета от друг потребител.");
                 }
             }
         }
     }
     
-    
+
+    /**
+     * Попълва данните на формата със подадената визитка
+     */
     public static function on_AfterPrepareEditForm(core_Users $mvc, $data)
-    {
+    {   
+        $data->form->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Лице->Държава,mandatory,after=email');
+        $data->form->setDefault('country', crm_Companies::fetchOwnCompany()->countryId);
+
         if (empty($data->form->rec->id)) {
             $personId  = Request::get('personId', 'int');
             if (!empty($personId) && $personRec = crm_Persons::fetch($personId)) {
               
-                $emails = type_Emails::toArray($personRec->email, type_Emails::VALID);
+                $emails = type_Emails::toArray($personRec->email . ' ' . $personRec->buzEmail, type_Emails::VALID);
                 $email  = $nick = '';
                 if (!empty($emails[0])) {
                     $email = $emails[0];
-                    $nick  = substr($email, strpos($email, '@'));
+                    $data->form->setDefault('email', $email);
+                }
+                
+                $emails = type_Emails::toArray($personRec->buzEmail . ' ' . $personRec->email, type_Emails::VALID);
+                if (!empty($emails[0])) {
+                    $tN = cls::get('type_Nick');
+                    list($nick, ) = explode('@', $emails[0]);
+
+                    if($nick) {
+                        $nick = $tN->normalize($nick);
+                        if($tN->isValid($nick) && !core_Users::fetch(array("LOWER(#nick) = '[#1#]'", $nick))) { 
+                            $data->form->setDefault('nick', $nick);
+                        }
+                    }
                 }
                 
                 $data->form->setDefault('names', $personRec->name);
-                $data->form->setDefault('email', $email);
 
                 Request::push(array('names' => $personRec->name, 'email' => $personRec->email));
                 $data->form->setField('names', 'input=hidden');
@@ -241,10 +235,10 @@ class email_UserInboxPlg extends core_Plugin
     /**
      * Определяне на правата за действия над потребителите
      */
-    function on_AfterGetRequiredRoles($mvc, &$roles, $action, $uRec, $user = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $uRec, $user = NULL)
     {
         if($action == 'delete') {
-            if(is_object($uRec) && ($uRec->state != 'draft')) {
+            if(is_object($uRec) && (($uRec->state != 'draft') || $uRec->lastLoginTime || doc_Folders::fetch("#inCharge = {$uRec->id}"))) {
                 $roles = 'no_one';
             }
         }

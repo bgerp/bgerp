@@ -92,6 +92,11 @@ defIfNot('BACKUP_FILEMAN_OFFSET', 0);
  */
 defIfNot('BACKUP_FILEMAN_PATH', 'fileman');
 
+/**
+ * Поддиректория където ще се архивират файловете от fileman-a
+ */
+defIfNot('BACKUP_FILEMAN_COUNT_FILES', 100);
+
 
 /**
  * Път до масива за съхранение на файлове
@@ -169,6 +174,7 @@ class backup_Setup extends core_ProtoSetup
         'BACKUP_PREFIX'   => array ('varchar', 'caption=Имена на архивираните файлове->Префикс'),
         'BACKUP_STORAGE_TYPE'   => array ('enum(local=Локално, amazon=S3Amazon)', 'caption=Място за съхранение на архива->Тип'),
         'BACKUP_LOCAL_PATH' => array ('varchar', 'notNull, value=/storage, caption=Локален архив->Път'),
+        'BACKUP_FILEMAN_COUNT_FILES' => array ('int', 'caption=По колко файла да се архивират наведнъж->Брой'),
         'BACKUP_MYSQL_USER_NAME'   => array ('varchar', 'caption=Връзка към MySQL (с права за бекъп)->Потребител, hint=(SELECT, RELOAD, SUPER)'),
         'BACKUP_MYSQL_USER_PASS'   => array ('password', 'caption=Връзка към MySQL (с права за бекъп)->Парола'),
         'BACKUP_MYSQL_HOST'     => array ('varchar', 'caption=Връзка към MySQL->Хост'),
@@ -295,7 +301,7 @@ class backup_Setup extends core_ProtoSetup
                 . $conf->BACKUP_MYSQL_HOST . " -u"
                         . $conf->BACKUP_MYSQL_USER_NAME . " -p"
                                 . $conf->BACKUP_MYSQL_USER_PASS . " " . EF_DB_NAME . " 2>&1";
-        exec($cmd, $output ,  $returnVar);
+        @exec($cmd, $output ,  $returnVar);
         
         if ($returnVar !== 0) {
 
@@ -303,21 +309,21 @@ class backup_Setup extends core_ProtoSetup
         }
         
         // Проверка дали gzip е наличен
-        exec("gzip --version", $output,  $returnVar);
+        @exec("gzip --version", $output,  $returnVar);
         if ($returnVar !== 0) {
 
             return "<li class='debug-error'>липсва gzip!</li>";
         }
         
         // Проверка дали tar е наличен
-        exec("tar --version", $output,  $returnVar);
+        @exec("tar --version", $output,  $returnVar);
         if ($returnVar !== 0) {
         
             return "<li class='debug-error'>липсва tar!</li>";
         }
         
         // Проверка дали МySql сървъра е настроен за binlog
-        $res = exec("mysql -u" . EF_DB_USER . "  -p" . EF_DB_PASS . " -N -B -e \"SHOW VARIABLES LIKE 'log_bin'\"");
+        $res = @exec("mysql -u" . EF_DB_USER . "  -p" . EF_DB_PASS . " -N -B -e \"SHOW VARIABLES LIKE 'log_bin'\"");
         // Премахваме всички табулации, нови редове и шпации - log_bin ON
         $res = strtolower(trim(preg_replace('/[\s\t\n\r\s]+/', '', $res)));
         if ($res != 'log_binon') {
@@ -325,7 +331,7 @@ class backup_Setup extends core_ProtoSetup
             return "<li class='debug-error'>MySQL-a не е настроен за binlog.</li>";
         }
     
-        $res = exec("mysql -u" . EF_DB_USER . "  -p" . EF_DB_PASS . " -N -B -e \"SHOW VARIABLES LIKE 'server_id'\"");
+        $res = @exec("mysql -u" . EF_DB_USER . "  -p" . EF_DB_PASS . " -N -B -e \"SHOW VARIABLES LIKE 'server_id'\"");
         // Премахваме всички табулации, нови редове и шпации - server_id 1
         $res = strtolower(trim(preg_replace('/[\s\t\n\r\s]+/', '', $res)));
         if ($res != 'server_id1') {

@@ -131,7 +131,7 @@ class distro_DeleteDriver extends core_Mvc
     public function getLinkParams()
     {
         
-        return array('ef_icon' => 'img/16/delete16.png', 'warning' => 'Сигурни ли сте, че искате да изтриете файла?');
+        return array('ef_icon' => 'img/16/delete.png', 'warning' => 'Сигурни ли сте, че искате да изтриете файла?');
     }
     
     

@@ -34,7 +34,7 @@ class price_Groups extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, price_Wrapper';
+    var $loadList = 'plg_Created, plg_RowTools2, price_Wrapper';
    
     
     /**

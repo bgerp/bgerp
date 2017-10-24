@@ -25,7 +25,7 @@ class hr_Departments extends core_Master
     /**
      * Детайли на този мастер
      */
-    public $details = 'AccReports=acc_ReportDetails,Grafic=hr_WorkingCycles,Positions=hr_Positions';
+    public $details = 'AccReports=acc_ReportDetails,Grafic=hr_WorkingCycles';
     
     
     /**
@@ -62,43 +62,44 @@ class hr_Departments extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, hr_Wrapper, doc_FolderPlg, plg_Printing, plg_State, plg_Rejected,
-                     plg_Created, WorkingCycles=hr_WorkingCycles,acc_plg_Registry, plg_SaveAndNew, plg_TreeObject, plg_Modified, bgerp_plg_Blank';
+                        plg_Created, WorkingCycles=hr_WorkingCycles,acc_plg_Registry, plg_SaveAndNew, 
+                        plg_TreeObject, plg_Modified, bgerp_plg_Blank';
     
     
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,hr';
+    public $canRead = 'ceo,hrMaster';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,hr';
+    public $canList = 'ceo,hrMaster';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,hr';
+    public $canSingle = 'ceo,hrMaster';
     
     
     /**
      * Кой може да пише?
      */
-    public $canWrite = 'ceo,hr';
+    public $canWrite = 'ceo,hrMaster';
     
     
     /**
      * Кой може да оттегля
      */
-    public $canReject = 'ceo,hr';
+    public $canReject = 'ceo,hrMaster';
     
     
     /**
      * Кой може да го възстанови?
      */
-    public $canRestore = 'ceo,hr';
+    public $canRestore = 'ceo,hrMaster';
     
     
     /**
@@ -140,14 +141,15 @@ class hr_Departments extends core_Master
     /**
      * Видове графики
      */
-    public static $chartTypes = array('List' => 'Tаблица', 'StructureChart' => 'Графика',);
+    //public static $chartTypes = array('List' => 'Tаблица', 'StructureChart' => 'Графика',);
     
     
     /**
-     * Активен таб
+     * Полето, което ще се разширява
+     * @see plg_ExpandInput
      */
-    public $currentTab = 'Структура->Таблица';
-    
+    //public $expandFieldName = 'parentId';
+     
     
     /**
      * Кои полета да се сумират за наследниците
@@ -178,6 +180,7 @@ class hr_Departments extends core_Master
                                  plant=Завод,
                                  workshop=Цех,
                                  store=Склад,
+				                 shop=Магазин,
                                  unit=Звено,
                                  brigade=Бригада,
                                  shift=Смяна,
@@ -188,8 +191,8 @@ class hr_Departments extends core_Master
         $this->FLD('nkid', 'key(mvc=bglocal_NKID, select=title,allowEmpty=true)', 'caption=Служители->НКИД, hint=Номер по НКИД');
         $this->FLD('employmentTotal', 'int', "caption=Служители->Щат, input=none");
         $this->FLD('employmentOccupied', 'int', "caption=Служители->Назначени, input=none");
-        $this->FLD('schedule', 'key(mvc=hr_WorkingCycles, select=name, allowEmpty=true)', "caption=Работен график->Цикъл");
-        $this->FLD('startingOn', 'datetime', "caption=Работен график->Начало");
+        $this->FLD('schedule', 'key(mvc=hr_WorkingCycles, select=name, allowEmpty=true)', "caption=Работен график->График,mandatory");
+        $this->FLD('startingOn', 'datetime', "caption=Работен график->От");
         $this->FLD('orderStr', 'varchar', "caption=Подредба,input=none,column=none");
         // Състояние
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
@@ -240,6 +243,8 @@ class hr_Departments extends core_Master
     	if(!$mvc->count("#id != {$undefinedDepId}") || (isset($fRec->id) && $fRec->id != $undefinedDepId && empty($fRec->parentId))){
     		$data->form->setField('parentId', 'input=none');
     	}
+
+    	$data->form->setOptions('locationId', crm_Locations::getOwnLocations());
     }
     
     
@@ -285,24 +290,14 @@ class hr_Departments extends core_Master
     }
     
     
-    /**
-     * Добавя след таблицата
-     */
-    protected static function on_AfterRenderListTable($mvc, &$tpl, $data)
+ 
+    
+    function act_Migrate()
     {
-        $chartType = Request::get('Chart');
-        
-        if($chartType == 'Structure') {
-            
-            $tpl = static::getChart($data);
-            
-            $mvc->currentTab = "Структура->Графика";
-        } else {
-            $mvc->currentTab = "Структура->Таблица";
-        }
+        $s = cls::get('hr_Setup');
+        $s->setPositionName();
     }
-    
-    
+
     /**
      * След преобразуване на записа в четим за хора вид
      */
@@ -492,5 +487,23 @@ class hr_Departments extends core_Master
     			$requiredRoles = 'no_one';
     		}
     	}
+    }
+    
+    
+    /**
+     * Добавя след таблицата
+     */
+    protected static function on_AfterRenderListTable($mvc, &$tpl, $data)
+    {
+        $chartType = Request::get('Chart');
+    
+        if($chartType == 'Structure') {
+    
+            $tpl = static::getChart($data);
+    
+            $mvc->currentTab = "Структура->Графика";
+        } else {
+            $mvc->currentTab = "Структура->Таблица";
+        }
     }
 }

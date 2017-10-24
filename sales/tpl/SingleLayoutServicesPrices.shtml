@@ -82,8 +82,8 @@
                                         <td></td>
                                     </tr>
                                     <tr>
-                                        <td class='centered' style='border-right:1px solid #999'> <span class="sign_names nowrap">[#received#]</span></td>
-                                        <td class='centered'><span class="sign_names nowrap">[#delivered#]</span></td>
+                                        <td class='centered' style='border-right:1px solid #999'> <span class="sign_names nowrap [#receivedClass#]">[#received#]</span></td>
+                                        <td class='centered'><span class="sign_names nowrap [#deliveredClass#]">[#delivered#]</span></td>
                                     </tr>
                                  </table>
                               </td>

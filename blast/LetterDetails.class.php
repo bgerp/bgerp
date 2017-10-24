@@ -20,7 +20,7 @@ class blast_LetterDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'blast_Wrapper, plg_RowNumbering, plg_RowTools, plg_Select, plg_Created, plg_Sorting, plg_State';
+    var $loadList = 'blast_Wrapper, plg_RowNumbering, plg_RowTools2, plg_Select, plg_Created, plg_Sorting, plg_State, plg_PrevAndNext, plg_SaveAndNew';
     
     
     /**
@@ -86,7 +86,7 @@ class blast_LetterDetails extends doc_Detail
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'RowNumb';
+    //var $rowToolsField = 'RowNumb';
     
     
     /**

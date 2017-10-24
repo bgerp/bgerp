@@ -64,7 +64,13 @@ class bank_PaymentOrders extends bank_DocumentBlank
      */
     public $searchFields = 'valior, reason, beneficiaryName, ordererIban, beneficiaryIban';
 
-
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'valior,createdOn,modifiedOn';
+    
+    
     /**
      * Описание на модела
      */

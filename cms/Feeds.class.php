@@ -330,10 +330,16 @@ class cms_Feeds extends core_Manager {
 		
 		// Подготвяме иконка с линк към публичния лист на хранилката
 		$url = array('cms_Feeds', 'feeds');
-		
-        $src = sbf("cms/img/rss_icon_glass_gray24.PNG", "");
 
-        $img = ht::createElement('img', array('src' => $src, 'alt' => 'RSS Feeds'));
+		if(log_Browsers::isRetina()) {
+			$size = 48;
+		} else {
+			$size = 24;
+		}
+
+        $src = sbf("cms/img/{$size}/rss.png", "");
+
+        $img = ht::createElement('img', array('src' => $src, 'alt' => 'RSS Feeds', 'width' => 24, 'height' =>24));
 
 		$link = ht::createLink($img, $url, NULL, array('class' => 'soc-following noSelect'));
 		

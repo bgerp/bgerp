@@ -32,19 +32,13 @@ class acc_ClosePeriods extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools, acc_Wrapper, acc_plg_Contable, doc_DocumentPlg, doc_plg_HidePrices';
+    public $loadList = 'plg_RowTools2, acc_Wrapper, acc_plg_Contable, doc_DocumentPlg, doc_plg_HidePrices, doc_plg_SelectFolder';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "tools=Пулт,title=Заглавие,periodId,state,createdOn,createdBy";
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
+    public $listFields = "title=Заглавие,periodId,state,createdOn,createdBy";
     
     
     /**
@@ -141,6 +135,12 @@ class acc_ClosePeriods extends core_Master
     
     
     /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
+
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -156,7 +156,7 @@ class acc_ClosePeriods extends core_Master
     	$this->FLD("amountKeepBalance", 'double(decimals=2,min=0)', 'caption=Други разходи->Салдо за поддържане,notNull,default=0');
     	
     	$this->FLD('state',
-    			'enum(draft=Чернова, active=Активиран, rejected=Оттеглен)',
+    			'enum(draft=Чернова, active=Активиран, rejected=Оттеглен,stopped=Спряно)',
     			'caption=Статус, input=none'
     	);
     }
@@ -175,7 +175,7 @@ class acc_ClosePeriods extends core_Master
     	
     	$data->form->addAttr('periodId', array('onchange' => "addCmdRefresh(this.form);this.form.submit();"));
     	
-    	$options = acc_Periods::makeArray4Select(NULL, array("#state = 'active' || #state = 'pending'", $root));
+    	$options = acc_Periods::makeArray4Select(NULL, array("#state = 'active' OR #state = 'pending'", $root));
     	$data->form->setOptions('periodId', $options);
     	
     	if(empty($data->form->rec->id)){
@@ -332,8 +332,9 @@ class acc_ClosePeriods extends core_Master
     public static function getRecTitle($rec, $escaped = TRUE)
     {
     	$self = cls::get(get_called_class());
-    
-    	return $self->singleTitle . " №{$rec->id}";
+    	$title = acc_Periods::fetchField($rec->periodId, 'title');
+    	
+    	return tr("Приключване на|* \"{$title}\"");
     }
     
     

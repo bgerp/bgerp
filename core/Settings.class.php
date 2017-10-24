@@ -473,12 +473,17 @@ class core_Settings extends core_Manager
             // Записваме данните
             self::setValues($key, (array)$recArr, $userOrRole);
             
+            $pKey = self::prepareKey($key);
+            $rec = self::fetch(array("#key = '[#1#]' AND #userOrRole = '[#2#]'", $pKey, $userOrRole));
+            
+            $this->logWrite('Промяна на настройките', $rec);
+            
             return new Redirect($retUrl);
         }
         
         // Добавяме бутоните на формата
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png');
         
         // Добавяме класа
         $data = new stdClass();
@@ -495,7 +500,7 @@ class core_Settings extends core_Manager
      * 
      * @return string
      */
-    protected static function prepareKey($key)
+    public static function prepareKey($key)
     {
         $key = str::convertToFixedKey($key, 16, 4);
         
@@ -588,8 +593,9 @@ class core_Settings extends core_Manager
         if (!$data->cClass) return ;
        
         // Ако текущия потребител е контрактор, показваме обвивката на външната част
-        if(core_Users::haveRole('contractor') && !core_Users::isPowerUser()){
+        if(core_Users::haveRole('partner')){
         	plg_ProtoWrapper::changeWrapper($this, 'cms_ExternalWrapper');
+        	$mvc->currentTab = 'Профил';
         } else {
         	// Рендираме изгледа
         	$res = $data->cClass->renderWrapping($tpl, $data);

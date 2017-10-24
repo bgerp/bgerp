@@ -22,10 +22,11 @@ class plg_SystemWrapper extends plg_ProtoWrapper
      */
     function description()
     {
-        $this->pageMenu = 'Система';
+        $this->pageMenu = 'Настройки';
         
-        $this->TAB('core_Packs', 'Пакети->Списък', 'admin');
-        $this->TAB('core_Updates', 'Пакети->Версии', 'admin');
+        $this->TAB('core_Packs', 'Код->Пакети', 'admin');
+        $this->TAB('core_Updates', 'Код->Обновяване', 'admin');
+        $this->TAB('core_Maintenance', 'Код->Миграции', 'admin');
         $this->TAB('core_Users', 'Потребители', 'admin');
         $this->TAB('core_Roles', 'Роли', 'admin');
         $this->TAB('core_Lg', 'Превод', 'admin');
@@ -42,6 +43,8 @@ class plg_SystemWrapper extends plg_ProtoWrapper
         $this->TAB('core_Cron', 'Крон');
         $this->TAB('core_Plugins', 'Плъгини', 'admin');
         $this->TAB('core_Cache', 'Вътрешни->Кеш', 'debug');
+        $this->TAB('core_Permanent', 'Вътрешни->Постоянен кеш', 'debug');
+        
         $this->TAB('core_Classes', 'Вътрешни->Класове', 'debug');
         $this->TAB('core_Interfaces', 'Вътрешни->Интерфейси', 'debug');
         $this->TAB('core_Locks', 'Вътрешни->Заключвания', 'debug');

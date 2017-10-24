@@ -45,20 +45,14 @@ class bank_InternalMoneyTransfer extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, bank_Wrapper, acc_plg_Contable,
+    var $loadList = 'plg_RowTools2, bank_Wrapper, acc_plg_Contable,
          plg_Sorting, doc_DocumentPlg, plg_Printing, doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_DocumentSummary, plg_Search, doc_SharablePlg';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт, valior, title=Документ, reason, folderId, currencyId, amount, state, createdOn, createdBy, modifiedOn, modifiedBy";
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'tools';
+    var $listFields = "valior, title=Документ, reason, folderId, currencyId, amount, state, createdOn, createdBy, modifiedOn, modifiedBy";
     
     
     /**
@@ -86,9 +80,15 @@ class bank_InternalMoneyTransfer extends core_Master
     
     
     /**
-     * Кой има право да чете?
+     * Кой може да го контира?
      */
-    var $canRead = 'bank, ceo';
+    var $canConto = 'ceo, acc, cash, bank';
+    
+    
+    /**
+     * Кой може да го прави заявка?
+     */
+    var $canPending = 'ceo, acc, cash, bank';
     
     
     /**
@@ -107,12 +107,6 @@ class bank_InternalMoneyTransfer extends core_Master
      * Кой може да разглежда сингъла на документите?
      */
     var $canSingle = 'bank,ceo';
-    
-    
-    /**
-     * Кой може да го контира?
-     */
-    var $canConto = 'acc, bank, ceo';
     
     
     /**
@@ -138,6 +132,13 @@ class bank_InternalMoneyTransfer extends core_Master
      */
     var $searchFields = 'valior, reason, creditBank, debitBank, id';
     
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'valior,createdOn,modifiedOn';
+    
+    
     /**
      * Позволени операции
      */
@@ -161,7 +162,7 @@ class bank_InternalMoneyTransfer extends core_Master
         $this->FLD('debitCase', 'key(mvc=cash_Cases, select=name)', 'caption=Към->Каса,input=none');
         $this->FLD('debitBank', 'key(mvc=bank_OwnAccounts, select=bankAccountId)', 'caption=Към->Банк. сметка,input=none');
         $this->FLD('state',
-            'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Контиран)',
+            'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Контиран,stopped=Спряно, pending=Заявка)',
             'caption=Статус, input=none'
         );
         $this->FLD('sharedUsers', 'userList', 'input=none,caption=Споделяне->Потребители');
@@ -174,8 +175,17 @@ class bank_InternalMoneyTransfer extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($requiredRoles == 'no_one') return;
-    	if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'bank_OwnAccounts', 'creditBank')){
-    		$requiredRoles = 'no_one';
+    	
+    	if(isset($rec)){
+    		if($rec->operationSysId == 'bank2bank'){
+    			if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'bank_OwnAccounts', 'debitBank')){
+    				$requiredRoles = 'no_one';
+    			}
+    		} elseif($rec->operationSysId == 'bank2case'){
+    			if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'cash_Cases', 'debitCase')){
+    				$requiredRoles = 'no_one';
+    			}
+    		}
     	}
     }
     
@@ -232,7 +242,7 @@ class bank_InternalMoneyTransfer extends core_Master
         $form->FNC('folderId', 'key(mvc=doc_Folders,select=title)', 'input=hidden,caption=Папка');
         $form->title = 'Нов вътрешен банков трансфер';
         $form->toolbar->addSbBtn('Напред', '', array('class'=>'fright'), 'ef_icon = img/16/move.png');
-        $form->toolbar->addBtn('Отказ', toUrl(array('bank_InternalMoneyTransfer', 'list')), 'ef_icon = img/16/close16.png');
+        $form->toolbar->addBtn('Отказ', toUrl(array('bank_InternalMoneyTransfer', 'list')), 'ef_icon = img/16/close-red.png');
         
         $folderId = bank_OwnAccounts::forceCoverAndFolder(bank_OwnAccounts::getCurrent());
         if(!doc_Folders::haveRightToObject($folderId)){
@@ -440,9 +450,9 @@ class bank_InternalMoneyTransfer extends core_Master
      */
     public static function getRecTitle($rec, $escaped = TRUE)
     {
-        $self = cls::get(__CLASS__);
-        
-        return $self->singleTitle . " №$rec->id";
+        $self = cls::get(get_called_class());
+    	 
+    	return tr("|{$self->singleTitle}|* №") . $rec->id;
     }
     
     

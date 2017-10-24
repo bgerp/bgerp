@@ -22,7 +22,7 @@ class blast_ListDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'blast_Wrapper, plg_RowNumbering, plg_RowTools, plg_Select,expert_Plugin, plg_Created, plg_Sorting, plg_State, plg_PrevAndNext, plg_SaveAndNew';
+    var $loadList = 'blast_Wrapper, plg_RowNumbering, plg_RowTools2, plg_Select, expert_Plugin, plg_Created, plg_Sorting, plg_State, plg_PrevAndNext, plg_SaveAndNew';
     
     
     /**
@@ -428,8 +428,8 @@ class blast_ListDetails extends doc_Detail
      */
     function on_AfterGetQuery($mvc, $query)
     {
-        $query->orderBy('state');
-        $query->orderBy('createdOn', 'DESC');
+          $query->orderBy('state');
+          $query->orderBy('createdOn', 'DESC');
     }
     
     
@@ -504,7 +504,9 @@ class blast_ListDetails extends doc_Detail
      * Импортиране на контактен списък от друго място (визитника или външен източник)
      */
     function exp_Import($exp)
-    {
+    {   
+        core_App::setTimeLimit(50);
+
         $exp->functions['getcsvcolnames'] = 'blast_ListDetails::getCsvColNames';
         $exp->functions['getfilecontentcsv'] = 'blast_ListDetails::getFileContent';
         $exp->functions['getcsvcolumnscnt'] = 'blast_ListDetails::getCsvColumnsCnt';
@@ -581,6 +583,7 @@ class blast_ListDetails extends doc_Detail
             
             $qFields .= ($qFields ? ',' : '') . "#col{$name}";
         }
+
         $exp->DEF('#priority=Приоритет', 'enum(update=Новите данни да обновят съществуващите,data=Съществуващите данни да се запазят)', 'mandatory');
         $exp->question("#priority", tr("Какъв да бъде приоритета в случай, че има нов контакт с дублирано съдържание на полето") . " <span class=\"green\">'" . $fieldsArr[$listRec->keyField] . "'</span> ?", TRUE, 'title=' . tr('Приоритет на данните'));
         
@@ -606,12 +609,14 @@ class blast_ListDetails extends doc_Detail
                 unset($csvRows[0]);
             }
             
-            // Приемаме, че сървъра може да импортва по минимум 20 записа в секунда
-            set_time_limit(round(count($csvRows) / 20) + 10);
+            $time = round(count($csvRows) / 5) + 10;
+            
+            core_App::setTimeLimit($time);
             
             $newCnt = $skipCnt = $updateCnt = 0;
+
             $errLinesArr = array();
-            
+       
             if(count($csvRows)) {
                 foreach($csvRows as $row) {
                     $rowArr = str_getcsv($row, $delimiter, $enclosure);
@@ -620,11 +625,11 @@ class blast_ListDetails extends doc_Detail
                     foreach($fieldsArr as $name => $caption) {
                         $id = $exp->getValue("#col{$name}");
                         
-                        if($id == NULL) continue;
+                        if($id === NULL) continue;
                         $rec->{$name} = trim($rowArr[$id-1]);
                     }
                     
-                    $err = $this->normalizeRec($rec);
+                    $err = $this->normalizeRec($rec); ;
                     $keyField = $listRec->keyField;
                     
                     // Вземаме стойността на ключовото поле;
@@ -647,7 +652,7 @@ class blast_ListDetails extends doc_Detail
                     $rec->key = str::convertToFixedKey($key);
                     $rec->listId = $listId;
                     $rec->state = 'active';
-                    
+                   
                     if($exRec = $this->fetch(array("#listId = {$listId} AND #key = '[#1#]'", $rec->key))) {
                         // Ако имаме съществуващ $exRec със същия ключ, имаме две възможности
                         // 1. Да го обновим с новите данни
@@ -672,14 +677,20 @@ class blast_ListDetails extends doc_Detail
                     }
                     
                     $rec->data = serialize($data);
-                    $this->save($rec);
+                    
+                    // Да се попълват полетата, които се попълват в плъгина, защото не се прекъсва записа
+                    setIfNot($rec->createdOn, dt::verbal2Mysql());
+                    setIfNot($rec->createdBy, core_Users::getCurrent());
+                    
+                    $this->save_($rec);
                 }
+
                 $exp->message = tr("Добавени са") . " {$newCnt} " . tr("нови записа") . ", " . tr("обновени") . " - {$updateCnt}, " . tr("пропуснати") . " - {$skipCnt}";
                 
                 // Ако има грешни линни да се добавят в 'csv' файл
                 if (!empty($errLinesArr)) {
                     $fh = fileman::absorbStr(implode("\n", $errLinesArr), 'exportCsv', 'listDetailsExpErr.csv');
-                    status_Messages::newStatus('|Пропуснатите линии са добави в|*: ' . fileman::getLinkToSingle($fh));
+                    status_Messages::newStatus('|Пропуснатите линии са добавени в|*: ' . fileman::getLinkToSingle($fh));
                 }
             } else {
                 $exp->message = tr("Липсват данни за добавяне");

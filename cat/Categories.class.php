@@ -166,8 +166,16 @@ class cat_Categories extends core_Master
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
+    	$form = &$data->form;
+    	
     	$suggestions = cat_UoM::getUomOptions();
-    	$data->form->setSuggestions('measures', $suggestions);
+    	$form->setSuggestions('measures', $suggestions);
+    	
+    	if(isset($form->rec->folderId)){
+    		if(cat_Products::fetchField("#folderId = {$form->rec->folderId}")){
+    			$form->setReadOnly('useAsProto');
+    		}
+    	}
     }
     
     
@@ -207,7 +215,7 @@ class cat_Categories extends core_Master
      * @param stdClass $rec
      * @param int $userId
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Ако групата е системна или в нея има нещо записано - не позволяваме да я изтриваме
         if($action == 'delete' && ($rec->sysId || $rec->productCnt)) {
@@ -221,18 +229,22 @@ class cat_Categories extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	if(empty($rec->useAsProto)){
-    		$rec->useAsProto = 'no';
-    		$row->useAsProto = $mvc->getFieldType('useAsProto')->toVerbal($rec->useAsProto);
-    	}
-    	
     	if($fields['-list']){
     		$row->name .= " {$row->folder}";
-    		
     		$count = cat_Products::count("#folderId = '{$rec->folderId}'");
     		
     		$row->count = cls::get('type_Int')->toVerbal($count);
     		$row->count = "<span style='float:right'>{$row->count}</span>";
+    		
+    		if(empty($rec->useAsProto)){
+    			$row->useAsProto = $mvc->getFieldType('useAsProto')->toVerbal('no');
+    		}
+    	}
+    	
+    	if($fields['-single']){
+    		if($rec->useAsProto == 'yes'){
+    			$row->protoFolder = tr('Всички артикули в папката са шаблони');
+    		}
     	}
     }
     
@@ -306,7 +318,7 @@ class cat_Categories extends core_Master
     /**
      * Връща мета дефолт мета данните на папката
      *
-     * @param int $id - ид на спецификация папка
+     * @param int $id - ид на категория
      * @return array $meta - масив с дефолт мета данни
      */
     public function getDefaultMeta($id)
@@ -383,48 +395,39 @@ class cat_Categories extends core_Master
     }
     
     
-    
     /**
-     * Връща възможните за избор прототипни артикули с дадения драйвер
+     * Връща възможните за избор прототипни артикули с дадения драйвер и свойства
      * 
      * @param int|NULL $driverId - Ид на продуктов драйвер
-     * @param string|NULL $meta  - Мета свойства на артикулите
-     * @param int|NULL $limit - Ограничаване на резултатите
-     * @return array $opt - прототипните артикули
+     * @param string|NULL $meta  - Мета свойствo на артикулите
+     * @param int|NULL $limit    - Ограничаване на резултатите
+     * @param int|NULL $folderId - Папка
+     * @return array $newOptions - прототипните артикули
      */
-    public static function getProtoOptions($driverId = NULL, $meta = NULL, $limit = NULL)
+    public static function getProtoOptions($driverId = NULL, $meta = NULL, $limit = NULL, $folderId = NULL)
     {
-    	$opt = $cArr = array();
+    	// Извличане на всички прототипни артикули
+    	$options = doc_Prototypes::getPrototypes('cat_Products', $driverId, $folderId);
+    	$newOptions = array();
     	
-    	// Извличаме папките за прототипи
-    	$cArr = static::getProtoFolders();
-    	
-    	// Ако има такива, извличаме активните артикули със същия драйвер
-    	if(count($cArr)) {
-    		$catList = implode(',', $cArr);
-    		$Products = cls::get('cat_Products');
+    	$count = 0;
+    	foreach ($options as $productId => $name){
     		
-    		$query = cat_Products::getQuery();
-    		if(isset($driverId)){
-    			$query->where("#{$Products->driverClassField} = {$driverId}");
-    		}
-    		
-    		$query->where("#state = 'active' AND #folderId IN ({$catList})");
-    		if(isset($limit)){
-    			$query->limit($limit);
-    		}
-    		
+    		// Ако има изискване за свойство, махат се тези които нямат свойството
     		if(isset($meta)){
-    			$query->where("#{$meta} = 'yes'");
+    			$pMeta = cat_Products::fetchField($productId, $meta);
+    			if($pMeta == "no") continue;
     		}
+    		$count++;
     		
-    		while($pRec = $query->fetch()) {
-    			$opt[$pRec->id] = cat_Products::getRecTitle($pRec, FALSE);
-    		}
+    		// Ако има лимит, проверка дали е достигнат
+    		if(isset($limit) && $count > $limit) break;
+    		
+    		// Ако е стигнато до тук, артикулът се добавя към резултатите
+    		$newOptions[$productId] = $name;
     	}
     	
-    	// Връщаме готовите опции
-    	return $opt;
+    	return $newOptions;
     }
     
     
@@ -438,7 +441,7 @@ class cat_Categories extends core_Master
     protected static function on_AfterPrepareThreadFilter($mvc, core_Form &$threadFilter, core_Query &$threadQuery)
     {
     	// Добавяме поле за избор на групи
-    	$threadFilter->FLD('group', 'key(mvc=cat_Groups,select=name)', 'caption=Група');
+    	$threadFilter->FLD('group', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група');
     	$threadFilter->showFields .= ",group";
     	$threadFilter->input('group');
     	
@@ -463,9 +466,30 @@ class cat_Categories extends core_Master
     			$catQuery->show('id');
     			$productIds = array_map(create_function('$o', 'return $o->id;'), $catQuery->fetchAll());
     			
-    			// Искаме от нишките да останат само тези за въпросните артикули
-    			$threadQuery->in('docId', $productIds);
+    			if (empty($productIds)) {
+    			    // Искаме от нишките да останат само тези за въпросните артикули
+    			    $threadQuery->where('1=2');
+    			} else {
+    			    // Искаме от нишките да останат само тези за въпросните артикули
+    			    $threadQuery->in('docId', $productIds);
+    			}
     		}
     	}
+    }
+    
+    
+    /**
+     * Дали артикулът създаден в папката трябва да е публичен (стандартен) или не
+     *
+     * @param mixed $id - ид или запис
+     * @return public|private|template - Стандартен / Нестандартен / Шаблон
+     */
+    public function getProductType($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	
+    	if($rec->useAsProto == 'yes') return 'template';
+    	
+    	return 'public';
     }
 }

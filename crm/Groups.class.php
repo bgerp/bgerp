@@ -355,7 +355,7 @@ class crm_Groups extends core_Master
         // END масив с данни за инициализация
         
         
-        $nAffected = 0;
+        $nAffected = $nUpdated = 0;
         
         // BEGIN За всеки елемент от масива
         foreach ($data as $newData) {
@@ -363,13 +363,16 @@ class crm_Groups extends core_Master
             $newRec = (object) $newData;
             
             $rec = $mvc->fetch("#sysId = '{$newRec->sysId}'");
-            
+            $flagChange = FALSE;
+
             if(!$rec) {
                 $rec = $mvc->fetch("LOWER(#name) = LOWER('{$newRec->name}')");
+                $flagChange = TRUE;
             }
             
             if(!$rec) {
                 $rec = $mvc->fetch("LOWER(#name) = LOWER('{$newRec->exName}')");
+                $flagChange = TRUE;
             }
             
             if(!$rec) {
@@ -387,15 +390,24 @@ class crm_Groups extends core_Master
             if(!$rec->id) {
                 $nAffected++;
             }
+
+            if($flagChange) {
+                $nUpdated++;
+            }
             
-            $mvc->save($rec, NULL, 'IGNORE');
+            $mvc->save($rec);
         }
         
         // END За всеки елемент от масива
         
         if ($nAffected) {
-            $res .= "<li style='color:green;'>Добавени са {$nAffected} групи.</li>";
+            $res .= "<li class='debug-new'>Добавени са {$nAffected} групи.</li>";
         }
+
+        if ($flagChange) {
+            $res .= "<li class='debug-new'>Обновени са {$nUpdated} групи.</li>";
+        }
+
     }
     
     
@@ -430,6 +442,64 @@ class crm_Groups extends core_Master
         }
         
         return $rec->id;
+    }
+    
+    
+    /**
+     * Форсира група от визитника
+     * @TODO в cat_Groups има същата функция да се изнесе някъде най-добре
+     *
+     * @param   string  $name       Име на групата. Съдържа целия път
+     * @param   int     $parentId   Id на родител
+     * @param   boolean $force
+     *
+     * @return  int|NULL            id на групата
+     */
+    public static function force($name, $parentId = NULL, $force = TRUE)
+    {
+    	static $groups = array();
+    	$parentIdNumb = (int) $parentId;
+    
+    	if(!($res = $groups[$parentIdNumb][$name])) {
+    
+    		if(strpos($name, '»')) {
+    			$gArr = explode('»', $name);
+    			foreach($gArr as $gName) {
+    				$gName = trim($gName);
+    				$parentId = self::force($gName, $parentId, $force);
+    			}
+    
+    			$res = $parentId;
+    		} else {
+    
+    			if($parentId === NULL) {
+    				$cond = "AND #parentId IS NULL";
+    			} else {
+    				expect(is_numeric($parentId), $parentId);
+    
+    				$cond = "AND #parentId = {$parentId}";
+    			}
+    
+    			$gRec = self::fetch(array("LOWER(#name) = LOWER('[#1#]'){$cond}", $name));
+    
+    			if(isset($gRec->name)) {
+    				$res = $gRec->id;
+    			} else {
+    				if ($force) {
+    					$gRec = (object) array('name' => $name, 'companiesCnt' => 0, 'personsCnt' => 0, 'parentId' => $parentId);
+  						self::save($gRec);
+    
+    					$res = $gRec->id;
+    				} else {
+    					$res = NULL;
+    				}
+    			}
+    		}
+    
+    		$groups[$parentIdNumb][$name] = $res;
+    	}
+    
+    	return $res;
     }
     
     
@@ -475,7 +545,7 @@ class crm_Groups extends core_Master
      * 
      * @return array
      */
-    protected function getFielsFor($p)
+    protected function getFieldsFor($p)
     {
         $arr = array();
         
@@ -585,7 +655,7 @@ class crm_Groups extends core_Master
     {
         list(, $p) = explode('_', $id);
         
-        $filedsArr = (array)$this->getFielsFor($p);
+        $filedsArr = (array)$this->getFieldsFor($p);
         $keysArr = array_keys($filedsArr);
         $nArr = array_combine($keysArr, $keysArr);
         
@@ -609,7 +679,7 @@ class crm_Groups extends core_Master
         list($id, $p) = explode('_', $id);
         
         // Вземаме всички полета
-        $fieldsArr = (array)$this->getFielsFor($p);
+        $fieldsArr = (array)$this->getFieldsFor($p);
         
         $allClass = array();
         
@@ -628,6 +698,10 @@ class crm_Groups extends core_Master
             if ($limit) {
                 $query->limit($limit);
             }
+            
+            // Премахваме оттеглените и спрените
+            $query->where("#state != 'rejected'");
+            $query->where("#state != 'closed'");
             
             while ($rec = $query->fetch()) {
                 foreach ((array)$fArr as $name => $fieldName)
@@ -826,123 +900,10 @@ class crm_Groups extends core_Master
             }
             
             if (callcenter_SMS::haveRightFor('send')) {
-                $data->toolbar->addBtn('Циркулярен SMS', array($mvc, 'blastSms', $data->rec->id, 'ret_url' => TRUE), 'id=btnSms','ef_icon = img/16/sms.png,title=Създаване на циркулярен SMS');
+                Request::setProtected(array('perSrcClassId', 'perSrcObjectId'));
+                $data->toolbar->addBtn('Циркулярен SMS', array('callcenter_SMS', 'blastSms', 'perSrcClassId' => $mvc->getClassId(), 'perSrcObjectId' => $data->rec->id, 'ret_url' => TRUE), 'id=btnSms','ef_icon = img/16/sms.png,title=Създаване на циркулярен SMS');
             }
         }
-    }
-    
-    
-    /**
-     * Екшън за избор на типа на циркулярен имейл за група
-     */
-    function act_blastSms()
-    {
-        $id = Request::get('id', 'int');
-        
-        $this->requireRightFor('single');
-        
-        $rec = $this->fetch($id);
-        
-        expect($rec);
-        
-        $this->requireRightFor('single', $rec);
-        
-        callcenter_SMS::requireRightFor('send');
-        
-        $groupChoiseArr = $this->getGroupsChoise($id, FALSE, FALSE);
-        expect($groupChoiseArr);
-        
-        foreach ($groupChoiseArr as &$groupName) {
-            $groupName = str::mbUcfirst($groupName);
-        }
-        
-        $form = cls::get('core_Form');
-        $form->title = "Изпращане на циркулярни SMS-и";
-         
-        $form->FNC('type', 'enum()', 'caption=Към,mandatory,silent,input=input');
-        $form->FNC('message', 'text(160)', 'caption=Съобщение,mandatory,silent,input=input');
-        
-        $form->setOptions('type', $groupChoiseArr);
-         
-        $form->toolbar->addSbBtn('Изпрати', 'save', 'ef_icon = img/16/sms_icon.png, title = Избор');
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
-        
-        $form->input();
-        
-        $retUrl = getRetUrl($retUrl);
-        
-        if (empty($retUrl)) {
-            $retUrl = array($this, 'single', $id);
-        }
-        
-        if ($form->isSubmitted()) {
-            $pArr = $this->getPresonalizationArr($form->rec->type);
-            
-            if (empty($pArr)) return new Redirect($retUrl, '|Няма данни за изпращане');
-            
-            $sendCnt = 0;
-            
-            $sendArr = array();
-            
-            foreach ($pArr as $pId => $p) {
-                $tel = '';
-                if (trim($p['mobile'])) {
-                    $tel .= $p['mobile'];
-                }
-                
-                if (trim($p['tel'])) {
-                    $tel .= $tel ? ', ' : '';
-                    $tel .= $p['tel'];
-                }
-                
-                if (!trim($tel)) continue;
-                
-                $Phones = cls::get('drdata_Phones');
-                $code = '359';
-                $parsedTel = $Phones->parseTel($tel, $code);
-                
-                if (empty($parsedTel)) continue;
-                
-                $mobileNum = '';
-                foreach ($parsedTel as $t) {
-                    if (!$t->mobile) continue;
-                    
-                    $mobileNum = '00' . $t->countryCode . $t->areaCode . $t->number;
-                    
-                    break;
-                }
-                
-                if (!$mobileNum) continue;
-                
-                // Защитата, за да не се праща няколко пъти
-                if ($sendArr[$mobileNum]) continue;
-                
-                $sendArr[$mobileNum] = TRUE;
-                
-                $send = NULL;
-                try {
-                    $message = $form->rec->message;
-                    $message = str::utf2ascii($message);
-                    $send = callcenter_SMS::sendSmart($mobileNum, $message);
-                } catch (ErrorException $e) {
-                    $this->logWarning('Грешка при изпращане на масово съобщение: ' . $e->getMessage());
-                }
-                
-                if ($send) $sendCnt++;
-            }
-            
-            if ($send) {
-                $msg = "|Изпратени съобщения|*: {$sendCnt}";
-            } else {
-                $msg = "|Не е изпратено нито едно съобщение";
-            }
-            
-            return new Redirect($retUrl, $msg);
-        }
-        
-        $tpl = $this->renderWrapping($form->renderHtml());
-         
-        return $tpl;
     }
     
     
@@ -987,7 +948,7 @@ class crm_Groups extends core_Master
     	$form->setOptions('type', $groupChoiseArr);
     	
         $form->toolbar->addSbBtn('Избор', 'save', 'ef_icon = img/16/disk.png, title = Избор');
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
         $form->input();
         

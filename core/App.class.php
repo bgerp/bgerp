@@ -40,6 +40,9 @@ class core_App
             if (!core_Mode::is('screenMode')) {
                 core_Mode::set('screenMode', log_Browsers::detectMobile() ? 'narrow' : 'wide');
             }
+    
+            // Ако в момента се извършва инсталация - да не се изпълняват процесите
+            core_SystemLock::stopIfBlocked();
 
             // Генерираме съдържанието
             $content = core_Request::forward();
@@ -156,8 +159,8 @@ class core_App
 
             // Премахваме последният елемент
             $cnt = count($vUrl);
-
-            if (empty($vUrl[$cnt - 1])) {
+            
+            if (!strlen($vUrl[$cnt - 1])) {
                 unset($vUrl[$cnt - 1]);
             } else {
                 if ($vUrl[0] != EF_SBF && (strpos($vUrl[$cnt - 1], '?') === FALSE)) {
@@ -229,14 +232,14 @@ class core_App
                     $name = $prm;
                 }
             }
-
+            
             // Вкарваме получените параметри от $_POST заявката
             // или от виртуалното URL в $_GET заявката
             foreach ($q as $var => $value) {
                 if (!isset($_GET[$var]) || !$_GET[$var]) {
                     if (isset($_POST[$var]) && !empty($_POST[$var])) {
                         $_GET[$var] = $_POST[$var];
-                    } elseif (isset($q[$var]) && !empty($q[$var])) {
+                    } elseif (isset($q[$var]) && (strlen($q[$var]))) {
                         $_GET[$var] = $q[$var];
                     }
                 }
@@ -289,7 +292,7 @@ class core_App
         // Зареждаме конфигурационния файл на приложението. 
         // Ако липсва - показваме грешка.
         // Шаблон за този файл има в директорията [_docs]
-        if ((include EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php') === FALSE) {
+        if ( (include EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php') === FALSE) {
             halt('Error in boot.php: Missing configuration file: ' .
                 EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php');
         }
@@ -318,14 +321,27 @@ class core_App
         /**
          * Базова директория, където се намират под-директориите с качените файлове
          */
-        defIfNot('EF_UPLOADS_BASE_PATH', EF_ROOT_PATH . '/uploads');
+        if(defined('EF_ROOT_PATH')) {
+            defIfNot('EF_UPLOADS_BASE_PATH', EF_ROOT_PATH . '/uploads');
+        }
 
 
         /**
          * Директорията с качените и генерираните файлове
          */
-        defIfNot('EF_UPLOADS_PATH', EF_UPLOADS_BASE_PATH . '/' . EF_APP_NAME); 
- 
+        if(defined('EF_UPLOADS_BASE_PATH')) {
+            defIfNot('EF_UPLOADS_PATH', EF_UPLOADS_BASE_PATH . '/' . EF_APP_NAME);
+        }
+
+        
+        if(!defined('EF_UPLOADS_PATH')) {
+            die('Not possible to determine constant `EF_UPLOADS_PATH`');
+        }
+        
+        if(!is_dir(EF_UPLOADS_PATH)) {
+            die('It is not a directory: "' .  EF_UPLOADS_PATH . '" (EF_UPLOADS_PATH)');
+        }
+
         
         /**
          * Времева зона
@@ -389,7 +405,7 @@ class core_App
         $realUsage = TRUE;
         
         $peakMemUsage = memory_get_peak_usage($realUsage);
-        if (is_numeric($memoryLimit)) {
+        if (is_numeric($memoryLimit) && $memoryLimit) {
             $peakMemUsagePercent = ($peakMemUsage / $memoryLimit) * 100;
             
             // Ако сме доближили до ограничението на паметта
@@ -399,7 +415,7 @@ class core_App
         }
         
         $memUsage = memory_get_usage($realUsage);
-        if (is_numeric($memUsage)) {
+        if (is_numeric($memUsage) && $memoryLimit) {
             $memUsagePercent = ($memUsage / $memoryLimit) * 100;
             
             // Ако сме доближили до ограничението на паметта
@@ -409,9 +425,9 @@ class core_App
         }
         
         $maxExecutionTime = ini_get('max_execution_time');
-        if (core_Debug::$startMicroTime) {
+        if ($maxExecutionTime && core_Debug::$startMicroTime) {
             if (core_Debug::$startMicroTime) {
-                $executionTime = core_Datetime::getMicrotime() - core_Debug::$startMicroTime;
+                $executionTime = core_DateTime::getMicrotime() - core_Debug::$startMicroTime;
                 
                 $maxExecutionTimePercent = ($executionTime / $maxExecutionTime) * 100;
                 
@@ -656,13 +672,19 @@ class core_App
                     $get[$key[0]][$key[1]] = $value;
                 } else {
                     // Повече от едномерен масив в URL-то не се поддържа
-                    bp($key);
+                    error("Повече от едномерен масив в URL-то не се поддържа", $key);
                 }
             }
             
             // Премахваме защитата на id-то, ако има такава
             if($get['id'] && $unprotect) {
                 expect($get['id'] = Request::unprotectId($get['id'], $get['Ctr']), $get, core_Request::get('ret_url'));
+            }
+
+            if($get['App']) {
+                if($app = Request::get('App')) {
+                    $get['App'] = $app;
+                }
             }
         }
         
@@ -1106,7 +1128,7 @@ class core_App
             'url' => 'core_Url',
             'users' => 'core_Users',
             'ut' => 'unit_Tests',
-            'fileman' => 'fileman_Files2',
+            'fileman' => 'fileman_Files',
         );
         
         if(isset($aliases[strtolower($className)]) && $fullName = $aliases[strtolower($className)]) {
@@ -1127,16 +1149,17 @@ class core_App
      * Увеличава времето за изпълнение на скрипта, само ако
      * вече не е зададено по-голямо време
      * 
-     * @param int $time - времето за увеличение в секунди
+     * @param int $time      - времето за увеличение в секунди
      * @param boolean $force - форсиране или не
+     * @param int $minTime   - минимално време, iзползва се ако $time е по-малко от него
      * @return void
      */
-    public static function setTimeLimit($time, $force = FALSE)
+    public static function setTimeLimit($time, $force = FALSE, $minTime = 20)
     {
     	expect(is_numeric($time));
     	
     	// Подсигуряване че времето не е много малко
-    	$time = max($time, 20);
+    	$time = max($time, $minTime);
     	
     	$now = time();
     	

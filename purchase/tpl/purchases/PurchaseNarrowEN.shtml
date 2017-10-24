@@ -2,7 +2,7 @@
     <table class="innerTable border-table paddingCells">
             <tbody>
                 <tr>
-                    <td colspan="2" class='centered'>  
+                    <td class='centered'>
                         <div class="document-title">PURCHASE CONTRACT</div> 
                         <!--ET_BEGIN operationSysId-->
                         <small>( [#operationSysId#] )</small>
@@ -16,8 +16,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="cell custom-header-bg"  style="width: 50%"><b>Receiver</b></td>
-                    <td class="cell custom-header-bg"><b>Supplier</b></td>
+                    <td class="cell custom-header-bg"><b>Receiver</b></td>
                 </tr>
                 <tr>
                     <td>
@@ -32,7 +31,11 @@
                         </div>
                         <!--ET_END shipmentStoreId-->
                     </td>
-                    
+                </tr>
+                <tr>
+                    <td class="cell custom-header-bg"><b>Supplier</b></td>
+                </tr>
+                <tr>
                     <td>
                         <b>[#contragentName#]</b>
                         <div class='address-block'>
@@ -95,7 +98,7 @@
                             <ol style = 'margin-top:1px'>
                                 <!--ET_END deliveryTime-->
                                 <!--ET_BEGIN withVat-->
-                                <li>Prices are with apllied VAT[#withVat#]</li>
+                                <li>Prices are with applied VAT[#withVat#]</li>
                                 <!--ET_END withVat-->
                                 <!--ET_BEGIN sepVat-->
                                 <li>Prices are with separate VAT[#sepVat#]</li>
@@ -113,8 +116,11 @@
                                 [#deliveryBlock#]
                                 <li>Delivery: [#deliveryTermId#]<!--ET_BEGIN deliveryTime--> till [#deliveryTime#]<!--ET_END deliveryTime--></li>
                                 <!--ET_END deliveryBlock-->
+                                <!--ET_BEGIN deliveryTermTime-->
+                            	<li>Delivery time up to [#deliveryTermTime#] after starting the order</li>
+                           		<!--ET_END deliveryTermTime--> 
                                 <!--ET_BEGIN commonCondition-->
-                            	<li>[#commonCondition#]</li>
+                            	<li>Common conditions for purchase: [#commonCondition#]</li>
                             	<!--ET_END commonCondition-->
                             </ol>
                         </div>

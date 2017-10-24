@@ -176,7 +176,7 @@ class tasks_TaskConditions extends tasks_TaskDetails
     {
     	if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec->taskId)){
     		$state = $mvc->Master->fetchField($rec->taskId, 'state');
-    		if($state != 'pending' && $state != 'draft' && $state != 'active'){
+    		if($state != 'waiting' && $state != 'draft' && $state != 'active'){
     			$requiredRoles = 'no_one';
     		}
     		

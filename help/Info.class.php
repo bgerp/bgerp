@@ -31,20 +31,14 @@ class help_Info extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'help_Wrapper, plg_Created, plg_State2, plg_RowTools';
+    var $loadList = 'help_Wrapper, plg_Created, plg_State2, plg_RowTools2';
     
    
     /**
      * Полета за листовия изглед
      */
-    var $listFields = '✍,class,action,lg,text,createdOn,createdBy';
+    var $listFields = 'class,action,lg,text,createdOn,createdBy';
 
-
-    /**
-     * Поле за инструментите на реда
-     */
-    var $rowToolsField = '✍';
-    
     
     /**
      * Кой има право да чете?
@@ -68,7 +62,7 @@ class help_Info extends core_Master
 		$this->FLD('class', 'varchar(64)', 'caption=Име на класа,mandatory,silent');
 		$this->FLD('action', 'varchar(13)', 'caption=Метод,mandatory,silent');
         $this->FLD('lg', 'varchar(2)', 'caption=Език,mandatory,silent');
-		$this->FLD('text', 'richtext', 'caption=Помощна информацията, hint=Текст на информацията за помощ');
+		$this->FLD('text', 'richtext(bucket=Notes)', 'caption=Помощна информацията, hint=Текст на информацията за помощ');
 
         $this->setDbUnique('class,lg,action');
     }

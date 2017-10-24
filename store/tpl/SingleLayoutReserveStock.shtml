@@ -1,0 +1,57 @@
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+    <table style='width:100%;'>
+        <tbody>
+            <tr>
+                <td>
+                    <div class='scrolling-holder'>
+                        <div class='display-table'>
+                            <table class="innerTable border-table paddingCells">
+                                <tbody>
+                                    <tr>
+                                       <td class="cell centered" rowspan='4' style='width:32%;'>
+                                            <div class="document-title">|резервиране на складови наличности|*</div>
+                                            <div style="padding-top:5px;">
+                                                № <span class="bigData">[#id#]</span> / 
+                                                <span class="bigData">[#activatedOn#]</span>
+                                            </div>
+                                            <!--ET_BEGIN state-->
+                                            <div class="state [#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
+                                            <!--ET_END state-->
+                                        </td>
+                                         <td class="cell custom-header-bg" style='width:35%;'><b>|Резервиране|*</b></td>
+                                    </tr>
+                                    <tr>
+                                       <td>
+                                       		<table class='no-border' style='float:left'>
+                                       			<tr>
+                                       				<td class='quiet'>|От склад|*:</td>
+                                       				<td>[#storeId#]</td>
+                                       			</tr>
+                                       			<tr>
+                                       				<td class='quiet'>|За документ|*:</td>
+                                       				<td>[#originId#]</td>
+                                       			</tr>
+                                       			<!--ET_BEGIN note-->
+                                       			<tr>
+                                       				<td class='quiet' colspan='2'>|Забележки|*:</td>
+                                       			</tr>
+                                       			<tr>
+                                       				<td colspan='2'>[#note#]</td>
+                                       			</tr>
+                                       			<!--ET_END note-->
+                                       		</table>
+                                       </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="lines"></div>
+                            <div class="details">
+                                [#store_ReserveStockDetails#]
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

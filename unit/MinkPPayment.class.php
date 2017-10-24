@@ -6,8 +6,8 @@
  *
  * @category  bgerp
  * @package   tests
- * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @author    Pavlinka Dainovska <pdainovska@gmail.com>
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -39,7 +39,7 @@ class unit_MinkPPayment extends core_Manager {
         $res .= "  12.".$this->act_CreatePurchaseWait();
         $res .= "  13.".$this->act_CreatePurchaseOverpaid();
         $res .= "  14.".$this->act_CreatePurchase3();
-        $res .= "  14.".$this->act_CreatePurchaseMoment();
+        $res .= "  15.".$this->act_CreatePurchaseMoment();
            
         return $res;
     }
@@ -49,7 +49,9 @@ class unit_MinkPPayment extends core_Manager {
     public function SetUp()
     {
         $browser = cls::get('unit_Browser');
-        $browser->start('http://localhost/');
+        //$browser->start('http://localhost/');
+        $host = unit_Setup::get('DEFAULT_HOST');
+        $browser->start($host);
         //Потребител DEFAULT_USER (bgerp)
         $browser->click('Вход');
         $browser->setValue('nick', unit_Setup::get('DEFAULT_USER'));
@@ -122,7 +124,6 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Запис');
         // активираме продажбата
         $browser->press('Активиране');
-        //return  $browser->getHtml();
         $browser->press('Активиране/Контиране');
         if(strpos($browser->gettext(), 'ДДС 20%: BGN 81,64')) {
         } else {
@@ -138,6 +139,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('date', date('d-m-Y', $valior));
         $valior=strtotime("now");
         $browser->setValue('dueDate', date('d-m-Y', $valior));
+        $browser->setValue('dueTime', Null);
         $browser->setValue('numlimit', '2000000 - 3000000');
         //$browser->setValue('numlimit', '0 - 2000000');
         $browser->press('Чернова');
@@ -160,6 +162,11 @@ class unit_MinkPPayment extends core_Manager {
         if(strpos($browser->gettext(), 'Чакащо плащане: Има')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешно чакащо плащане в деня на падеж', 'warning');
+        }
+        //Проверка на статистиката
+        if(strpos($browser->gettext(), '489,81 489,81 200,00 489,81')) {
+        } else {
+            return $this->reportErr('Грешни суми в мастера', 'warning');
         }
         //return $browser->getHtml();
     }
@@ -244,7 +251,9 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('dueDate', date('d-m-Y', $valior));
         $browser->setValue('numlimit', '2000000 - 3000000');
         //$browser->setValue('numlimit', '0 - 2000000');
+       
         $browser->press('Чернова');
+        //return $browser->getHtml();
         $browser->press('Контиране');
     
         // ПКО
@@ -292,7 +301,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('valior', date('d-m-Y', $valior));
         $browser->setValue('reff', 'MomentOverdue');
         $browser->setValue('note', 'MinkPPaymentSaleMomentOverdue');
-        $browser->setValue('paymentMethodId', "На момента");
+        $browser->setValue('paymentMethodId', "В брой при получаване");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         $browser->setValue('template', "Договор за продажба");
         // Записваме черновата на продажбата
@@ -304,7 +313,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '010,0+03*08');//34
         $browser->setValue('packPrice', '01,00+3*0.8');//3.4
-        $browser->setValue('discount', '3+1,2');//4.2
+        $browser->setValue('discount', '3.5*1.2');//4.2
         // Записваме артикула и добавяме нов - услуга
         $browser->press('Запис и Нов');
         $browser->setValue('productId', 'Други услуги');
@@ -317,7 +326,7 @@ class unit_MinkPPayment extends core_Manager {
         // активираме продажбата
         $browser->press('Активиране');
         // Изключваме плащането
-        $browser->setValue('action_pay', False);
+        //$browser->setValue('action_pay', False);
         $browser->setValue('action_ship', 'ship');
         $browser->press('Активиране/Контиране');
         if(strpos($browser->gettext(), 'ДДС 20%: BGN 49,45')) {
@@ -337,6 +346,8 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('dueDate', null);
         $browser->setValue('numlimit', '2000000 - 3000000');
         //$browser->setValue('numlimit', '0 - 2000000');
+        $browser->press('Чернова');
+        $browser->setValue('Ignore', 1);
         $browser->press('Чернова');
         $browser->press('Контиране');
         
@@ -358,7 +369,7 @@ class unit_MinkPPayment extends core_Manager {
     /**     
      * 2.
      * Проверка състояние плащане - просрочено, част. доставено, част.платено и фактурирано
-     * Нова продажба на съществуваща фирма с папка 3448.13
+     * Нова продажба на съществуваща фирма с папка 
      */
     //http://localhost/unit_MinkPPayment/CreateSaleExped/
     function act_CreateSaleExped()
@@ -375,7 +386,6 @@ class unit_MinkPPayment extends core_Manager {
             $browser->press('Нов...');
             $browser->press('Продажба');
         }
-         
         $valior=strtotime("-4 Days");
         $browser->setValue('valior', date('d-m-Y', $valior));
         $browser->setValue('reff', 'exp');
@@ -392,29 +402,28 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('productId', 'Други продукти');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '010+03*08');//34
-        $browser->setValue('packPrice', '066-3*0.8');//63,6
+        $browser->setValue('packPrice', '016-3*0.8');//13,6
         $browser->setValue('discount', '0.23');
         // Записваме артикула и добавяме нов - услуга
         $browser->press('Запис и Нов');
         $browser->setValue('productId', 'Транспорт');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '140 / 05-03*08');//4
-        $browser->setValue('packPrice', '100/05+3*08');//44
+        $browser->setValue('packPrice', '10/05+3*08');//26
         $browser->setValue('discount', 1);
         // Записваме артикула
         $browser->press('Запис');
         // активираме продажбата
         $browser->press('Активиране');
-        //return  $browser->getHtml();
         // Изключваме експедирането
         $browser->setValue('action_ship', False);
         $browser->press('Активиране/Контиране');
        
-        if(strpos($browser->gettext(), 'ДДС 20%: BGN 466,34')) {
+        if(strpos($browser->gettext(), 'ДДС 20%:BGN 112,86')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешно ДДС', 'warning');
         }
-        if(strpos($browser->gettext(), 'Две хиляди седемстотин деветдесет и осем BGN и 0,01')) {
+        if(strpos($browser->gettext(), 'Шестстотин седемдесет и седем BGN и 0,16')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
@@ -438,6 +447,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Експедиране');
         $browser->setValue('valior', date('d-m-Y', $valior));
         $browser->setValue('storeId', 'Склад 1');
+        $browser->setValue('template', 'Експедиционно нареждане');
         $browser->press('Чернова');
         $browser->press('Контиране');
     
@@ -456,13 +466,24 @@ class unit_MinkPPayment extends core_Manager {
         //$browser->setValue('valior', date('d-m-Y', $valior));
         //$browser->press('Чернова');
         //$browser->press('Контиране');
-        
+        if(strpos($browser->gettext(), 'Данъчна основа: BGN 461,34')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешна данъчна основа', 'warning');
+        }
+        if(strpos($browser->gettext(), 'ДДС 20%: BGN 92,27')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешно ДДС', 'warning');
+        }
+        if(strpos($browser->gettext(), 'Петстотин петдесет и три BGN и 0,61')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
+        }
         if(strpos($browser->gettext(), 'Чакащо плащане: Просрочено')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешно чакащо плащане', 'warning');
         }
     }
-    
+       
     /**
      * 2.
      * Проверка състояние плащане - просрочено, доставено и нефактурирано
@@ -495,7 +516,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('template', "Договор за продажба");
         // Записваме черновата на продажбата
         $browser->press('Чернова');
-        // Добавяме нов артикул
+        // Добавяме артикул
         // За да смята добре с водещи нули - апостроф '023+045*03', '013+091*02'
         $browser->press('Артикул');
         $browser->setValue('productId', 'Други продукти');
@@ -547,10 +568,10 @@ class unit_MinkPPayment extends core_Manager {
         //$browser->setValue('storeId', 'Склад 1');
         //$browser->press('Чернова');
         //$browser->press('Контиране');
-        //if(strpos($browser->gettext(), 'Чакащо плащане: Просрочено')) {
-        //} else {
-        //    return unit_MinkPbgERP::reportErr('Грешно чакащо плащане', 'warning');
-        //}
+        if(strpos($browser->gettext(), 'Чакащо плащане: Просрочено')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешно чакащо плащане', 'warning');
+        }
     }
     
     /**
@@ -671,7 +692,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('reff', 'MomentWaitP');
         $browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPPaymentSaleMomentWait3');
-        $browser->setValue('paymentMethodId', "На момента");
+        $browser->setValue('paymentMethodId', "В брой при получаване");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         $browser->setValue('template', "Договор за продажба");
         // Записваме черновата на продажбата
@@ -697,10 +718,13 @@ class unit_MinkPPayment extends core_Manager {
         // активираме продажбата
         $browser->press('Активиране');
         // Изключваме плащането
-        $browser->setValue('action_pay', False);
-        //return  $browser->getHtml();
+        //$browser->setValue('action_pay', False);
+        //Изключваме експедирането
+        //$browser->setValue('action_ship', False);
+        
+       //return  $browser->getHtml();
         $browser->press('Активиране/Контиране');
-        ////Да се изключи експедирането!
+        
          
         if(strpos($browser->gettext(), 'ДДС 20%: BGN 87,05')) {
         } else {
@@ -719,6 +743,8 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('dueDate', null);
         $browser->setValue('numlimit', '2000000 - 3000000');
         //$browser->setValue('numlimit', '0 - 2000000');
+        $browser->press('Чернова');
+        $browser->setValue('Ignore', 1);
         $browser->press('Чернова');
         $browser->press('Контиране');
         
@@ -850,7 +876,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('note', 'MinkPPaymentSaleMoment');
         $browser->setValue('caseId', 1);
         $browser->setValue('shipmentStoreId', 1);
-        $browser->setValue('paymentMethodId', "На момента");
+        $browser->setValue('paymentMethodId', "В брой при получаване");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         $browser->setValue('template', "Договор за продажба");
          
@@ -883,7 +909,7 @@ class unit_MinkPPayment extends core_Manager {
         //'Експедиране на продукти от склад "Склад 1"'
         //'Прието плащане в брой в каса "КАСА 2"'
         $browser->setValue('action_ship', 'ship');
-        $browser->setValue('action_pay', 'pay');
+        //$browser->setValue('action_pay', 'pay');
         $browser->press('Активиране/Контиране');
     
         if(strpos($browser->gettext(), 'ДДС 20%: BGN 26,75')) {
@@ -891,7 +917,7 @@ class unit_MinkPPayment extends core_Manager {
             return unit_MinkPbgERP::reportErr('Грешно ДДС', 'warning');
         }
     
-        if(strpos($browser->gettext(), 'Сто и шестдесет BGN и 0,47 ')) {
+        if(strpos($browser->gettext(), 'Сто и шестдесет BGN и 0,47')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
@@ -902,11 +928,17 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('numlimit', '2000000 - 3000000');
         //$browser->setValue('numlimit', '0 - 2000000');
         $browser->press('Чернова');
+        $browser->setValue('Ignore', 1);
+        $browser->press('Чернова');
         $browser->press('Контиране');
          
         if(strpos($browser->gettext(), 'Чакащо плащане: Няма')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешно чакащо плащане', 'warning');
+        }
+        if(strpos($browser->gettext(), 'Плащане в брой')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешен начин на плащане', 'warning');
         }
     }
     
@@ -1061,6 +1093,8 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('note', 'MinkPPaymentPurchaseOverdue');
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
+        $browser->setValue('template', "Договор за покупка");
+        
         $browser->press('Чернова');
         // Записваме черновата на покупката
         // Добавяме нов артикул
@@ -1466,7 +1500,7 @@ class unit_MinkPPayment extends core_Manager {
          
         //$browser->setValue('bankAccountId', '');
         $browser->setValue('note', 'MinkPPaymentPurchaseMoment');
-        $browser->setValue('paymentMethodId', "На момента");
+        $browser->setValue('paymentMethodId', "В брой при получаване");
         $browser->setValue('chargeVat', "Включено ДДС в цените");
         $browser->press('Чернова');
         // Записваме черновата на покупката
@@ -1476,7 +1510,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('productId', 'Чувал голям 50 L');
         $browser->refresh('Запис');
         $browser->setValue('packQuantity', '008+03*08');//32
-        $browser->setValue('packPrice', '010+3*0,8');//12.4
+        $browser->setValue('packPrice', '006-7*0,8');//0.4
         $browser->setValue('discount', 3);
         // Записваме артикула и добавяме нов - услуга
         $browser->press('Запис и Нов');
@@ -1491,12 +1525,12 @@ class unit_MinkPPayment extends core_Manager {
         $browser->press('Активиране');
         $browser->press('Активиране/Контиране');
          
-        if(strpos($browser->gettext(), 'Отстъпка: BGN 133,59')) {
+        if(strpos($browser->gettext(), 'Отстъпка: BGN 122,07')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна отстъпка', 'warning');
         }
     
-        if(strpos($browser->gettext(), 'Хиляда четиристотин шестдесет и един BGN и 0,01')) {
+        if(strpos($browser->gettext(), 'Хиляда осемдесет и осем BGN и 0,53')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
@@ -1516,5 +1550,5 @@ class unit_MinkPPayment extends core_Manager {
             return unit_MinkPbgERP::reportErr('Грешно чакащо плащане', 'warning');
         }
     }
-     
+    
 }

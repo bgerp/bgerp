@@ -38,7 +38,7 @@ class eshop_Groups extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, eshop_Wrapper, plg_State2, cms_VerbalIdPlg,plg_Search';
+    var $loadList = 'plg_Created, plg_RowTools2, eshop_Wrapper, plg_State2, cms_VerbalIdPlg,plg_Search';
     
     
     /**
@@ -51,13 +51,7 @@ class eshop_Groups extends core_Master
      * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
      */
     var $searchFields = 'name';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'id';
-    
+
     
     /**
      * Наименование на единичния обект
@@ -701,6 +695,28 @@ class eshop_Groups extends core_Master
     {
         
         $data->title .= cms_Domains::getCurrentDomainInTitle();
+    }
+
+
+    /**
+     * Връща масив с групите, които оттоварят на посочения или на текущия домейн
+     */
+    public static function getGroupsByDomain($domainId = NULL)
+    {
+        if(!$domainId) {
+            $domainId = cms_Domains::getPublicDomain('id');
+        }
+
+        $query = self::getQuery();
+        $query->EXT('domainId', 'cms_Content', 'externalKey=menuId');
+        $query->where("#domainId = {$domainId} AND #state = 'active'");
+        
+        $res = array();
+        while($rec = $query->fetch()) {
+            $res[$rec->id] = $rec->name;
+        }
+
+        return $res;
     }
 
 }

@@ -91,6 +91,10 @@ class type_Set extends core_Type {
         $i = 0; $html = ''; $trOpen = TRUE;
         
         if(count($this->suggestions)) {
+            if(count($this->suggestions) == 1 && $value === NULL && $this->params['mandatory']) {
+                $key = key($this->suggestions);
+                $values[$key] = $key;
+            }
             foreach($this->suggestions as $key => $v) {
                 
                 // Ако имаме група, правим ред и пишем името на групата

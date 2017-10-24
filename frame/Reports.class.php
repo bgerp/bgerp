@@ -23,7 +23,7 @@ class frame_Reports extends core_Embedder
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_RowTools, frame_Wrapper, doc_plg_Prototype,doc_DocumentPlg, plg_Search, plg_Printing, doc_plg_HidePrices, bgerp_plg_Blank, doc_EmailCreatePlg';
+    public $loadList = 'plg_RowTools2, frame_Wrapper, doc_plg_Prototype,doc_DocumentPlg, doc_plg_SelectFolder, plg_Search, plg_Printing, doc_plg_HidePrices, bgerp_plg_Blank, doc_EmailCreatePlg';
                       
     
     /**
@@ -113,7 +113,7 @@ class frame_Reports extends core_Embedder
     /**
      * Групиране на документите
      */
-    public $newBtnGroup = "18.9|Други";
+    public $newBtnGroup = FALSE;
 
 
     /**
@@ -156,6 +156,12 @@ class frame_Reports extends core_Embedder
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id,title=Документ,source,earlyActivationOn,createdOn,createdBy,modifiedOn,modifiedBy';
+    
+    
+    /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
     
     
     /**
@@ -239,7 +245,7 @@ class frame_Reports extends core_Embedder
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = NULL, $mode = NULL)
     {
-    	if(is_null($fields) && ($rec->state == 'draft' || $rec->state == 'pending')){
+    	if(is_null($fields) && ($rec->state == 'draft' || $rec->state == 'waiting')){
     		
     		// Обновяваме датата на кога най-рано може да се активира
     		$Source = $mvc->getDriver($rec);
@@ -286,20 +292,6 @@ class frame_Reports extends core_Embedder
     }
     
     
-    /**
-     * Проверка дали нов документ може да бъде добавен в
-     * посочената папка като начало на нишка
-     *
-     * @param $folderId int ид на папката
-     */
-    public static function canAddToFolder($folderId)
-    {
-    	$folderCover = doc_Folders::getCover($folderId);
-       
-       return ($folderCover->haveInterface('frame_FolderCoverIntf')) ? TRUE : FALSE;
-    }
-    
-    
 	/**
      * Проверка дали нов документ може да бъде добавен в
      * посочената нишка
@@ -310,9 +302,8 @@ class frame_Reports extends core_Embedder
 	public static function canAddToThread($threadId)
     {
         $threadRec = doc_Threads::fetch($threadId);
-        $folderCover = doc_Folders::getCover($threadRec->folderId);
         
-    	return ($folderCover->haveInterface('frame_FolderCoverIntf')) ? TRUE : FALSE;
+    	return self::canAddToFolder($threadRec->folderId);
     }
     
     
@@ -404,7 +395,7 @@ class frame_Reports extends core_Embedder
     	
     	// Намираме всички отчети които са чакащи и им е пресрочена датата на активация
     	$query = $this->getQuery();
-    	$query->where("#state = 'pending'");
+    	$query->where("#state = 'waiting'");
     	$query->where("#earlyActivationOn <= '{$now}'");
     	$query->orWhere("#earlyActivationOn IS NULL");
     	
@@ -482,7 +473,7 @@ class frame_Reports extends core_Embedder
     	}
     	
     	// Ако сега сме преди датата за активиране, правим го 'чакащ' иначе директно се 'активира'
-    	$rec->state = ($when < $rec->earlyActivationOn) ? 'pending' : 'active';
+    	$rec->state = ($when < $rec->earlyActivationOn) ? 'waiting' : 'active';
     	$this->save($rec, 'state');
     	 
     	// Ако сме го активирали, генерираме събитие, че е бил активиран
@@ -535,7 +526,7 @@ class frame_Reports extends core_Embedder
     	// Ако отчета е чакащ, може да се редактира
     	if($action == 'edit' && isset($rec)){
     		$state = (!isset($rec->state)) ? $mvc->fetchField($rec->id, 'state') : $rec->state;
-    		if($state == 'pending'){
+    		if($state == 'waiting'){
     			$requiredRoles = $mvc->getRequiredRoles('edit');
     		}
     	}

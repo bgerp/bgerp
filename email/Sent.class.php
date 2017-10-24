@@ -23,9 +23,15 @@ class email_Sent
     
     
     /**
+     * Масив с грешки, които ще се приемат за предупреждения
+     */
+    public static $logErrToWarningArr = array('recipients failed');
+    
+    
+    /**
      * Изпраща имейл
      */
-    static function sendOne($boxFrom, $emailsTo, $subject, $body, $options, $emailsCc = NULL)
+    static function sendOne($boxFrom, $emailsTo, $subject, $body, $options, $emailsCc = NULL, &$error = NULL)
     {
         if ($options['encoding'] == 'ascii') {
             $body->html = str::utf2ascii($body->html);
@@ -68,7 +74,7 @@ class email_Sent
      
         static::prepareMessage($message, $sentRec, $options['is_fax']);
     
-        return static::doSend($message, $emailsTo, $emailsCc);
+        return static::doSend($message, $emailsTo, $emailsCc, $error);
     }
     
     
@@ -111,9 +117,11 @@ class email_Sent
      * @param stdClass $message
      * @param string $emailFrom
      * @param string $emailTo
+     * @param string $error
+     * 
      * @return bool
      */
-    protected static function doSend($message, $emailsTo, $emailsCc = NULL)
+    protected static function doSend($message, $emailsTo, $emailsCc = NULL, &$error = NULL)
     {
         expect($emailsTo);
         expect($message->emailFrom);
@@ -203,15 +211,25 @@ class email_Sent
         if (!$isSended) {
             $error = trim($PML->ErrorInfo);
             if (isset($error)) {
-                log_System::add('phpmailer_Instance', "PML error: " . $error, NULL, 'err');
+                
+                $errType = 'err';
+                
+                foreach (self::$logErrToWarningArr as $v) {
+                    if (stripos($error, $v)) {
+                        
+                        $errType = 'warning';
+                        
+                        break;
+                    }
+                }
+                
+                log_System::add('phpmailer_Instance', "PML error: " . $error, NULL, $errType);
             }
         }
         
         return $isSended;
     }
-
-
-     
+    
     
     /**
      * Вкарва всички статични изображения, като cid' ове

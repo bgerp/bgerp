@@ -89,7 +89,7 @@ class permanent_Settings extends core_Manager
         Request::setProtected('objCls,objId,wrapper');
         
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-        $form->toolbar->addBtn('Отказ', $retUrl,  'ef_icon = img/16/close16.png');
+        $form->toolbar->addBtn('Отказ', $retUrl,  'ef_icon = img/16/close-red.png');
         
         $form->input();
         

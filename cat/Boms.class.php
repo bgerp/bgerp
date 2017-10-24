@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Мениджър за технологични рецепти на артикули
  *
@@ -8,18 +9,12 @@
  * @category  bgerp
  * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class cat_Boms extends core_Master
 {
-   
-	
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'techno2_Boms';
 	
 	
    /**
@@ -37,25 +32,19 @@ class cat_Boms extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Search, bgerp_plg_Blank, plg_Clone';
+    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Clone, cat_plg_AddSearchKeywords, plg_Search';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "tools=Пулт,title=Документ,productId=За артикул,type,state,createdOn,createdBy,modifiedOn,modifiedBy";
+    public $listFields = "title=Документ,productId=За артикул,type,state,createdOn,createdBy,modifiedOn,modifiedBy";
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'productId,notes';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
     
     
     /**
@@ -68,6 +57,12 @@ class cat_Boms extends core_Master
      * Детайла, на модела
      */
     public $details = 'cat_BomDetails';
+    
+    
+    /**
+     * Кой е основния детайл
+     */
+    public $mainDetail = 'cat_BomDetails';
     
     
     /**
@@ -105,31 +100,25 @@ class cat_Boms extends core_Master
     /**
      * Кой може да пише?
      */
-    public $canEdit = 'cat,ceo,techno,sales';
+    public $canEdit = 'cat,ceo,sales';
     
     
     /**
      * Кой може да добавя?
      */
-    public $canAdd = 'cat,ceo,techno,sales';
-    
-    
-    /**
-     * Кой може да го отхвърли?
-     */
-    public $canReject = 'cat,ceo,techno,sales';
+    public $canAdd = 'cat,ceo,sales';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,cat';
+    public $canList = 'ceo,cat,sales';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,cat';
+    public $canSingle = 'ceo,cat,sales';
     
     
     /**
@@ -164,17 +153,24 @@ class cat_Boms extends core_Master
     
     
     /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
+    
+    
+    /**
      * Описание на модела
      */
     function description()
     {
     	$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За,silent,mandatory');
     	$this->FLD('type', 'enum(sales=Търговска,production=Работна)', 'caption=Вид,input=none');
-    	$this->FLD('notes', 'richtext(rows=4)', 'caption=Забележки');
-    	$this->FLD('expenses', 'percent(min=0)', 'caption=Общи режийни');
+    	$this->FLD('notes', 'richtext(rows=4,bucket=Notes)', 'caption=Забележки');
+    	$this->FLD('expenses', 'percent(Мin=0)', 'caption=Общи режийни');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен)', 'caption=Статус, input=none');
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
-    	$this->FLD('quantityForPrice', 'double(smartRound,min=0)', 'caption=Изчисляване на себестойност->При тираж');
+    	$this->FLD('showInProduct', 'enum(,auto=Автоматично,yes=Да,no=Не)', 'caption=Показване в артикула');
+    	$this->FLD('quantityForPrice', 'double(smartRound,min=0)', 'caption=Изчисляване на себестойност->При тираж,silent');
     	$this->FLD('hash', 'varchar', 'input=none');
     	
     	$this->setDbIndex('productId');
@@ -182,29 +178,26 @@ class cat_Boms extends core_Master
     
     
     /**
-     * Добавя ключови думи за пълнотекстово търсене
+     * Показване на рецептата в артикула
+     * 
+     * @param int $bomId
+     * @return boolean
      */
-    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    public static function showInProduct($id)
     {
-    	if($rec->id){
-    		$detailsKeywords = '';
+    	$rec = self::fetchRec($id);
+    	$showInProduct = !empty($rec->showInProduct) ? $rec->showInProduct : cat_Setup::get('SHOW_BOM_IN_PRODUCT');
+    	
+    	if($showInProduct == 'auto') return (cat_Products::fetchField($rec->productId, 'fixedAsset') == 'yes'); 
     		
-    		// Добавяме данни от детайла към ключовите думи на документа
-    		$dQuery = cat_BomDetails::getQuery();
-    		$dQuery->where("#bomId = '{$rec->id}'");
-    		while($dRec = $dQuery->fetch()){
-    			$detailsKeywords .= " " . plg_Search::normalizeText(cat_Products::getTitleById($dRec->resourceId));
-    		}
-    		
-    		$res = " " . $res . " " . $detailsKeywords;
-    	}
+    	return ($showInProduct == 'yes') ? TRUE : FALSE;
     }
     
     
     /**
      * Преди подготвяне на едит формата
      */
-    public static function on_BeforePrepareEditForm($mvc, &$res, $data)
+    protected static function on_BeforePrepareEditForm($mvc, &$res, $data)
     {
     	$type = Request::get('type');
     	if(!$type) return;
@@ -219,7 +212,7 @@ class cat_Boms extends core_Master
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	
@@ -228,6 +221,13 @@ class cat_Boms extends core_Master
     	$form->setField('quantity', "unit={$shortUom}");
     	$form->setField('quantityForPrice', "unit={$shortUom}");
     	
+    	// К-то е дефолтното от заданието
+    	if(isset($form->rec->originId)){
+    		$origin = doc_Containers::getDocument($form->rec->originId);
+    		if($origin->isInstanceOf('planning_Jobs')){
+    			$form->setDefault('quantity', $origin->fetchField('quantity'));
+    		}
+    	}
     	$form->setDefault('quantity', 1);
     	
     	// При създаване на нова рецепта
@@ -242,7 +242,7 @@ class cat_Boms extends core_Master
     /**
      * Преди запис
      */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
     	if(isset($rec->threadId)){
     		$rec->type = 'sales';
@@ -258,7 +258,7 @@ class cat_Boms extends core_Master
     /**
      * Преди запис на клониран запис
      */
-    public static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
+    protected static function on_BeforeSaveCloneRec($mvc, $rec, &$nRec)
     {
     	$nRec->cloneDetails = TRUE;
     }
@@ -267,7 +267,7 @@ class cat_Boms extends core_Master
     /**
      * Изпълнява се след създаване на нов запис
      */
-    public static function on_AfterCreate($mvc, $rec)
+    protected static function on_AfterCreate($mvc, $rec)
     {
     	if($rec->cloneDetails === TRUE) return;
     	
@@ -311,7 +311,7 @@ class cat_Boms extends core_Master
      * @param int $id първичния ключ на направения запис
      * @param stdClass $rec всички полета, които току-що са били записани
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
     	// При оттегляне или затваряне, ако преди документа е бил активен
     	if($rec->state == 'closed' || $rec->state == 'rejected'){
@@ -376,13 +376,15 @@ class cat_Boms extends core_Master
     			cat_Products::save($pRec);
     		}
     	}
+    	
+    	return $this->save($rec, 'modifiedOn,modifiedBy,searchKeywords');
     }
     
     
     /**
      * Подготовка на бутоните на формата за добавяне/редактиране
      */
-    public static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
     	// Документа не може да се създава  в нова нишка, ако е възоснова на друг
     	if(!empty($data->form->toolbar->buttons['btnNewThread'])){
@@ -402,18 +404,18 @@ class cat_Boms extends core_Master
     		if(empty($rec->productId)){
     			$res = 'no_one';
     		} else {
-    			$productRec = cat_Products::fetch($rec->productId, 'state,canManifacture');
-    			
-    			// Трябва да е активиран
-    			if($productRec->state != 'active'){
+    			$productRec = cat_Products::fetch($rec->productId, 'state,canManifacture,threadId');
+    			if($rec->type != 'production' && !doc_Threads::haveRightFor('single', $productRec->threadId)){
     				$res = 'no_one';
-    			}
-    			
-    			// Трябва и да е производим
-    			if($res != 'no_one'){
+    			} else {
     				
-    				if($productRec->canManifacture == 'no'){
+    				// Трябва да е активиран
+    				if($productRec->state != 'active' && $productRec->state != 'template'){
     					$res = 'no_one';
+    				} else {
+    					if($productRec->canManifacture == 'no'){
+    						$res = 'no_one';
+    					}
     				}
     			}
     		}
@@ -470,17 +472,23 @@ class cat_Boms extends core_Master
      */
     public static function getRecTitle($rec, $escaped = TRUE)
     {
-    	$self = cls::get(__CLASS__);
-    
-    	return "{$self->singleTitle} №{$rec->id}";
+    	$self = cls::get(get_called_class());
+    	 
+    	return tr("|{$self->singleTitle}|* №") . $rec->id;
     }
     
     
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+    	if(empty($rec->showInProduct)){
+    		$showInProduct = cat_Setup::get('SHOW_BOM_IN_PRODUCT');
+    		$row->showInProduct = $mvc->getFieldType('showInProduct')->toVerbal($showInProduct);
+    		$row->showInProduct = ht::createHint($row->showInProduct, "По подразбиране");
+    	}
+    	
     	$row->productId = cat_Products::getShortHyperlink($rec->productId);
     	$row->title = $mvc->getLink($rec->id, 0);
     	$row->singleTitle = ($rec->type == 'sales') ? tr('Търговска рецепта') : ('Работна рецепта');
@@ -511,17 +519,6 @@ class cat_Boms extends core_Master
     				$row->primeCost .= ht::createLink('', array($mvc, 'RecalcSelfValue', $rec->id), FALSE, 'ef_icon=img/16/arrow_refresh.png,title=Преизчисляване на себестойността');
     			}
     		}
-    	}
-    }
-    
-    
-    /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    public static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	if(!empty($data->toolbar->buttons['btnAdd'])){
-    		$data->toolbar->removeBtn('btnAdd');
     	}
     }
     
@@ -566,7 +563,7 @@ class cat_Boms extends core_Master
     /**
      * Функция, която се извиква преди активирането на документа
      */
-    public static function on_BeforeActivation($mvc, $res)
+    protected static function on_BeforeActivation($mvc, $res)
     {
     	if($res->id){
     		$dQuery = cat_BomDetails::getQuery();
@@ -668,7 +665,7 @@ class cat_Boms extends core_Master
     	$rec->modifiedOn = dt::now();
     	$this->save($rec, 'modifiedOn');
     	
-    	return new Redirect(array($this, 'single', $id), '|Себестойността е преизчислена успешно');
+    	return new Redirect(array($this, 'single', $id), 'Себестойността е преизчислена');
     }
     
     
@@ -787,22 +784,17 @@ class cat_Boms extends core_Master
     public function prepareBoms(&$data)
     {
     	$data->rows = array();
-    	$data->hideToolsCol = TRUE;
     	
     	// Намираме неоттеглените задания
     	$query = cat_Boms::getQuery();
+    	$query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 2 ELSE 3 END)");
+    	
     	$query->where("#productId = {$data->masterId}");
     	$query->where("#state != 'rejected'");
-    	$query->orderBy("id", 'DESC');
+    	$query->orderBy("orderByState", 'ASC');
     	while($rec = $query->fetch()){
+    		$data->recs[$rec->id] = $rec;
     		$data->rows[$rec->id] = $this->recToVerbal($rec);
-    		if($this->haveRightFor('edit', $rec)){
-    			$data->hideToolsCol = FALSE;
-    		}
-    	}
-    	 
-    	if(Mode::isReadOnly()){
-    		$data->hideToolsCol = TRUE;
     	}
     	
     	$masterInfo = cat_Products::getProductInfo($data->masterId);
@@ -844,13 +836,10 @@ class cat_Boms extends core_Master
     	 	$tpl->append($addBtn, 'title');
     	 }
     	 
-    	 $listFields = arr::make('tools=Пулт,title=Рецепта,type=Вид,quantity=Количество,createdBy=Oт||By,createdOn=На');
-    	 if($data->hideToolsCol){
-    	 	unset($listFields['tools']);
-    	 }
-    	 
-    	 $table = cls::get('core_TableView', array('mvc' => $this));
-    	 $details = $table->get($data->rows, $listFields);
+    	 $data->listFields = arr::make('title=Рецепта,type=Вид,quantity=Количество,createdBy=Oт||By,createdOn=На');
+		 $table = cls::get('core_TableView', array('mvc' => $this));
+    	 $this->invoke('BeforeRenderListTable', array($tpl, &$data));
+    	 $details = $table->get($data->rows, $data->listFields);
     	 
     	 // Ако артикула не е производим, показваме в детайла
     	 if($data->notManifacturable === TRUE){
@@ -915,9 +904,7 @@ class cat_Boms extends core_Master
     		}
     	}
     	
-    	if(count($res)){
-    		return array($productId => $res);
-    	}
+    	if(count($res)) return array($productId => $res);
     	
     	return $res;
     }
@@ -1127,7 +1114,7 @@ class cat_Boms extends core_Master
     		// Записваме намерената цена
     		if($savePriceCost === TRUE){
     			$primeCost = ($price === FALSE) ? NULL : $price;
-    			$params1 = (!is_numeric($rec->propQuantity)) ? $scope : NULL;
+    			$params1 = $scope;
     			
     			// Ъпдейтваме кешираните стойност и параметри само при промяна
     			if(trim($rec->primeCost) != trim($primeCost) || serialize($rec->params) != serialize($params1)){
@@ -1181,7 +1168,7 @@ class cat_Boms extends core_Master
     		// Кешираме параметрите само при нужда
     		if($savePriceCost === TRUE){
     			$scope = static::getScope($params);
-    			$params1 = (!is_numeric($rec->propQuantity)) ? $scope : NULL;
+    			$params1 = $scope;
     			
     			if(serialize($rec->params) != serialize($params1)){
     				$rec->params = $params1;
@@ -1267,13 +1254,13 @@ class cat_Boms extends core_Master
     			// Ако мин и макс делта са различни изчисляваме редовете за двата тиража
     			if($minDelta != $maxDelta){
     				
-    				$params['$T'] = $t1;
+    				$params[$rec->productId]['$T'] = $t1;
     				$rowCost1 = self::getRowCost($dRec, $params, $t1, $q, $date, $priceListId);
     				
     				if($rowCost1 === FALSE) $canCalcPrimeCost = FALSE;
     				$primeCost1 += $rowCost1;
     					
-    				$params['$T'] = $t2;
+    				$params[$rec->productId]['$T'] = $t2;
     				$rowCost2 = self::getRowCost($dRec, $params, $t2, $q, $date, $priceListId);
     				if($rowCost2 === FALSE) $canCalcPrimeCost = FALSE;
     				$primeCost2 += $rowCost2;
@@ -1292,7 +1279,9 @@ class cat_Boms extends core_Master
     		$price = $primeCost1 * (1 + $minDelta);
     
     	} else {
-    	
+    		$primeCost1 *= $t1;
+    		$primeCost2 *= $t2;
+    		
 	    	// Изчисляваме началната и пропорционалната сума
 	    	$basePrice = ($primeCost2 * $t1 - $primeCost1 * $t2) / ($t1 - $t2); 
 	    	$propPrice = ($primeCost1 - $primeCost2) / ($t1 - $t2);
@@ -1441,18 +1430,69 @@ class cat_Boms extends core_Master
     {
     	$rec = &$form->rec;
     	if ($form->isSubmitted()){
-    		$roundQuantity = cat_UoM::round($rec->quantity, $rec->productId);
     		
-    		if($roundQuantity == 0){
-    			$form->setError('packQuantity', 'Не може да бъде въведено количество, което след закръглянето указано в|* <b>|Артикули|* » |Каталог|* » |Мерки/Опаковки|*</b> |ще стане|* 0');
-    			return;
-    		}
-    
-    		if($roundQuantity != $rec->quantity){
-    			$form->setWarning('quantity', 'Количеството ще бъде закръглено до указаното в |*<b>|Артикули » Каталог » Мерки|*</b>|');
+    		// Проверка на к-то
+    		$measureId = cat_Products::fetchField($rec->productId, 'measureId');
+    		if(!deals_Helper::checkQuantity($measureId, $rec->quantity, $warning)){
+    			$form->setError('quantity', $warning);
     		}
     		
-    		$rec->quantity = $roundQuantity;
+    		$firstDocument = doc_Containers::getDocument($rec->originId);
+    		if(empty($rec->id) && $firstDocument->isInstanceOf('planning_Jobs')){
+    			
+    			// Ако има търговска рецепта за друго количество, при създаване на работната
+    			// се добавя предупреждение, ако има разминаване в к-та
+    			$bRec = cat_Products::getLastActiveBom($rec->productId, 'sales');
+    			if(!empty($bRec)){
+    				if($bRec->quantity != $rec->quantity){
+    					$q1 = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($bRec->quantity);
+    					$q2 = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($rec->quantity);
+    					$uom = cat_Uom::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
+    					$handle = cat_Boms::getLink($bRec->id, 0);
+    					
+    					$form->setWarning('quantity', "|Данните от търговската рецепта|* {$handle} |няма да се прехвърлят защото тя е за|* <b>{$q1} {$uom}</b>, |а работната рецепта е за|* <b>{$q2} {$uom}</b>");
+    				}
+    			}
+    		}
     	}
+    }
+    
+    
+    /**
+     * Връща складируемите материали по-рецепта, ако е подаден склад се
+     * отсяват само ненулевите количества
+     * 
+     * @param int $bomId
+     * @param double $quantity
+     * @param int $storeId
+     * @return array $res
+     * 			['productId']      - ид на артикул
+     * 		    ['packagingId']    - ид на опаковка
+     * 		    ['quantity']       - к-во
+     * 			['quantityInPack'] - к-во в опаковка
+     */
+    public static function getBomMaterials($bomId, $quantity, $storeId = NULL)
+    {
+    	$res = array();
+    	$bomInfo = cat_Boms::getResourceInfo($bomId, $quantity, dt::now());
+    	if(!count($bomInfo['resources'])) return $res;
+    	
+    	foreach ($bomInfo['resources'] as $pRec){
+    		$canStore = cat_Products::fetchField($pRec->productId, 'canStore');
+    		if($canStore != 'yes' || $pRec->type != 'input') continue;
+    		
+    		// Ако има склад се отсяват артикулите, които имат нулева наличност
+    		if(isset($storeId)){
+    			$quantity = store_Products::getQuantity($pRec->productId, $storeId);
+    			if(empty($quantity)) continue;
+    		}
+    		
+    		$res[] = (object)array('productId'      => $pRec->productId,
+    				               'packagingId'    => $pRec->packagingId,
+    				               'quantity'       => $pRec->propQuantity,
+    				               'quantityInPack' => $pRec->quantityInPack);
+    	}
+    	
+    	return $res;
     }
 }

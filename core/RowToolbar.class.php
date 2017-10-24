@@ -61,11 +61,6 @@ class core_RowToolbar extends core_BaseClass
     {
         $params = arr::combine($params, $moreParams);
         
-        if($params['target']) {
-            $btn->newWindow = $params['target'];
-            unset($params['target']);
-        }
-        
         if($params['warning']) {
             $btn->warning = $params['warning'];
             unset($params['warning']);
@@ -238,5 +233,22 @@ class core_RowToolbar extends core_BaseClass
     public function hasBtn($id)
     {
     	return isset($this->links[$id]);
+    }
+    
+    
+    /**
+     * Подменя урл-то на бутон, ако съществува
+     * 
+     * @param int $id - ид на бутон
+     * @param array $newUrl - нов бутон
+     */
+    public function replaceBtnUrl($id, $newUrl)
+    {
+    	if($this->hasBtn($id)){
+    		if(is_array($this->links[$id]->url)){
+    			expect(is_array($newUrl));
+    			$this->links[$id]->url = $newUrl;
+    		}
+    	}
     }
 }

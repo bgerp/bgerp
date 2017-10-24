@@ -1,9 +1,10 @@
 <?php
 
+
+/**
+ * 
+ */
 defIfNot('GMAP3_VERSION', '6.0');
-
-
-cls::load('type_Blob');
 
 
 /**
@@ -17,16 +18,20 @@ cls::load('type_Blob');
  * @license   GPL 3
  * @since     v 0.1
  */
-class location_Paths { 
+class location_Paths
+{
     
-
+    
     /**
-     * Празната стойност има смисъл на NULL
+     * Рендира показване на координати с google map
+     * 
+     * @param array $vArr - двумерен масив
+     * array(array('coords' => array(array('coordStr')), info => 'str'))
+     * @param array $attr
+     * 
+     * @return ET
      */
-    var $nullIfEmpty = TRUE;
-
-
-    static function renderView($value, $attr = array())
+    static function renderView($vArr, $attr = array())
     {
         static $n;
 
@@ -52,8 +57,8 @@ class location_Paths {
         $res->push("location/js/generateLocation.js", 'JS');
         $res->push('location/' . GMAP3_VERSION . '/gmap3.js', 'JS');
 		
-        $value = json_encode($value);
-        jquery_Jquery::run($res, "generatePath({$value},{$id});");
+        $vArr = json_encode($vArr);
+        jquery_Jquery::run($res, "generatePath({$vArr},{$id});");
         
         return $res;
     }

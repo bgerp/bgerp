@@ -110,13 +110,14 @@ class core_Debug
     static function init()
     {
         if (!self::$startMicroTime) {
-            self::$startMicroTime = core_DateTime::getMicrotime();
+            list($usec, $sec) = explode(" ", microtime());
+            self::$startMicroTime = (float) $usec + (float) $sec;
             self::$lastMicroTime = 0;
-        	self::$debugTime[] = (object) array('start' => 0, 'name' => 'Начало');
+        	self::$debugTime[] = (object) array('start' => 0, 'name' => 'Начало ' . date("Y-m-d H:i:s", time()));
         }
     }
-    
-    
+
+
     /**
      * Пускаме хронометъра за посоченото име
      */
@@ -131,7 +132,7 @@ class core_Debug
         	self::$timers[$name] = new stdClass();
         }
         
-        self::$timers[$name]->start = core_Datetime::getMicrotime();
+        self::$timers[$name]->start = core_DateTime::getMicrotime();
     }
     
     
@@ -146,7 +147,7 @@ class core_Debug
         self::init();
   
         if (self::$timers[$name]->start) {
-            $workingTime = core_Datetime::getMicrotime() - self::$timers[$name]->start;
+            $workingTime = core_DateTime::getMicrotime() - self::$timers[$name]->start;
             self::$timers[$name]->workingTime += $workingTime;
             self::$timers[$name]->start = NULL;
         }
@@ -164,7 +165,7 @@ class core_Debug
         self::init();
         
         $rec = new stdClass();
-        $rec->start = core_Datetime::getMicrotime() - self::$startMicroTime;
+        $rec->start = core_DateTime::getMicrotime() - self::$startMicroTime;
         $rec->name  = $name;
 
         self::$debugTime[] = $rec;
@@ -177,7 +178,7 @@ class core_Debug
     static function getExecutionTime()
     {
         self::init();
-        return number_format((core_Datetime::getMicrotime() - self::$startMicroTime), 5);
+        return number_format((core_DateTime::getMicrotime() - self::$startMicroTime), 5);
     }
 
 
@@ -191,7 +192,7 @@ class core_Debug
         $html = '';
 
         if (count(self::$debugTime)) {
-            self::log('End');
+            self::log('Край ' . core_DateTime::now());
 
             $html .= "\n<div class='debug_block' style=''>" .
             "\n<div style='background-color:#FFFF33; padding:5px; color:black;'>Debug log</div><ul><li style='padding:15px 0px 15px 0px;'>";
@@ -221,6 +222,8 @@ class core_Debug
             $html .= "\n<div style='padding:5px; margin:10px; border:solid 1px #777; background-color:#FFFF99; display:table;color:black;'>" .
             "\n<div style='background-color:#FFFF33; padding:5px;color:black;'>Timers info</div><ol>";
             
+            arsort(self::$timers);
+
             foreach (self::$timers as $name => $t) {
                 $html .= "\n<li> '{$name}' => " . number_format($t->workingTime, 5) . ' sec.';
             }
@@ -351,8 +354,10 @@ class core_Debug
      * @return string|boolean FALSE при проблем, иначе пълно URL
      */
     private static function getGithubSourceUrl($file, $line)
-    {
-        $file = str_replace(array("\\", EF_APP_PATH), array('/', ''), $file);
+    { 
+        $selfPath = str_replace("\\", '/', dirname(dirname(__FILE__)));
+
+        $file = str_replace(array("\\", $selfPath), array('/', ''), $file);
 
         if(defined('BGERP_GIT_BRANCH')) {
             $branch = BGERP_GIT_BRANCH;
@@ -379,7 +384,11 @@ class core_Debug
         } elseif (is_bool($v)) {
             $result = ($v) ? "TRUE" : "FALSE";
         } elseif (is_object($v)) {
-            $result = get_class($v);
+            if(get_class($v) == 'stdClass') {
+                $result = ht::createElement('span', array('title' => self::arrayToString($v)), get_class($v));
+            } else {
+                $result =  get_class($v);
+            }
         } elseif (is_resource($v)) {
             $result = get_resource_type($v);
         } else {
@@ -390,11 +399,35 @@ class core_Debug
     }
 
     private static function arrayToString($arr)
-    {
+    {   
         $nArr = array();
-        
-        foreach ($arr as $i=>$v) {
-            $nArr[$i] = self::formatValue($v);
+
+        if(is_object($arr)) {
+            $arrNew = (array) $arr;
+            foreach($arrNew as $key => $part) {
+                if(isset($part)) {
+                    if(is_scalar($part)) {
+                        if($part === FALSE) {
+                            $part = 'FALSE';
+                        } elseif($part === TRUE) {
+                            $part = 'TRUE';
+                        } elseif(is_string($part) && empty($part)) {
+                            $part = "'" . $part . "'";
+                        }
+                        $nArr[] = "{$key}={$part}";
+                    } else {
+                        if(is_object($part)) {
+                            $nArr[] = "{$key}=" . get_class($part);
+                        } else {
+                            $nArr[] = "{$key}=" . gettype($part);
+                        }
+                    }
+                }
+            }
+        } else {
+            foreach ($arr as $i=>$v) {
+                $nArr[$i] = self::formatValue($v);
+            }
         }
 
         return '[' . implode(', ', $nArr) . ']';
@@ -430,7 +463,7 @@ class core_Debug
             $l = str_pad($i+1, $padding, " ", STR_PAD_LEFT);
             $style = '';
             if($i+1 == $line) {
-                $style = " class='debugErrLine'; style='background-color:#ff9;'";
+                $style = " class='debugErrLine' style='background-color:#ff9;'";
             }
             $l = "<span{$style}><span style='border-right:solid 1px #999;padding-right:5px;'>$l</span> ". 
                 str_replace(array('&', '<'), array('&amp', '&lt;'), rtrim($lines[$i])) . "</span>\n";
@@ -652,7 +685,7 @@ class core_Debug
             $contex['MAX_EXECUTION_TIME'] = ini_get('max_execution_time');
             
             if (self::$startMicroTime) {
-                $contex['DEBUG_LAST_TIMER'] = core_Datetime::getMicrotime() - self::$startMicroTime;
+                $contex['DEBUG_LAST_TIMER'] = core_DateTime::getMicrotime() - self::$startMicroTime;
                 if ($contex['MAX_EXECUTION_TIME']) {
                     $contex['EXECUTION_TIME_PERCENT'] = number_format(($contex['DEBUG_LAST_TIMER'] / $contex['MAX_EXECUTION_TIME']) * 100, 2) . '%';
                 }

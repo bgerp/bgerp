@@ -70,7 +70,7 @@ class rfid_Tags extends Core_Manager {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created,plg_RowTools,rfid_Wrapper';
+    var $loadList = 'plg_Created,plg_RowTools2,rfid_Wrapper';
     
     
     /**
@@ -79,11 +79,11 @@ class rfid_Tags extends Core_Manager {
     function description()
     {
         
-        $this->FLD('rfid_55d', 'varchar(16)', 'caption=Rfid номер->WEG32 55d');
-        $this->FLD('rfid_10d', 'varchar(16)', 'caption=Rfid номер->1:1 10d');
+        $this->FLD('rfid55d', 'varchar(16)', 'caption=Rfid номер->WEG32 55d, oldFieldName=rfid_55d');
+        $this->FLD('rfid10d', 'varchar(16)', 'caption=Rfid номер->1:1 10d, oldFieldName=rfid_10d');
         
-        $this->setDbUnique('rfid_55d');
-        $this->setDbUnique('rfid_10d');
+        $this->setDbUnique('rfid55d');
+        $this->setDbUnique('rfid10d');
     }
     
     
@@ -92,12 +92,12 @@ class rfid_Tags extends Core_Manager {
      */
     static function on_BeforeSave($mvc, &$id, $rec)
     {
-        if (!empty($rec->rfid_55d)) {
-            $rec->rfid_10d = $mvc->convert55dTo10d($rec->rfid_55d);
-            $rec->rfid_55d = (int) $rec->rfid_55d;
-        } elseif (!empty($rec->rfid_10d)) {
-            $rec->rfid_55d = $mvc->convert10dTo55d($rec->rfid_10d);
-            $rec->rfid_10d = (int) $rec->rfid_10d;
+        if (!empty($rec->rfid55d)) {
+            $rec->rfid10d = $mvc->convert55dTo10d($rec->rfid55d);
+            $rec->rfid55d = (int) $rec->rfid55d;
+        } elseif (!empty($rec->rfid10d)) {
+            $rec->rfid55d = $mvc->convert10dTo55d($rec->rfid10d);
+            $rec->rfid10d = (int) $rec->rfid10d;
         }
     }
     

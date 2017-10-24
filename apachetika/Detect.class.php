@@ -24,6 +24,8 @@ class apachetika_Detect
      * $params['callBack'] - Класа и функцията, която ще се извикат след приключване на конвертирането
      * $params['fileInfoId'] - id към bgerp_FileInfo
      * $params['asynch'] - Дали скрипта да се стартира асинхронно или не
+     * 
+     * @return string
      */
     static function extract($fileHnd, $params = array())
     {
@@ -94,7 +96,10 @@ class apachetika_Detect
         // Други допълнителни параметри
         $Script->outFilePath = $textPath;
         $Script->params = serialize($params);
-        $Script->fh = $fileHnd;
+        
+        if (!$params['isPath']) {
+            $Script->fh = $fileHnd;
+        }
         
         $Script->setCheckProgramsArr('java');
         // Стартираме скрипта Aсинхронно
@@ -107,6 +112,16 @@ class apachetika_Detect
                 fileman_Indexes::createError($params);
             }
         }
+        
+        $text = '';
+        if (!$params['asynch']) {
+            $text = @file_get_contents($textPath);
+            $text = i18n_Charset::convertToUtf8($text, 'UTF-8');
+            
+            core_Locks::release($params['lockId']);
+        }
+        
+        return $text;
     }
     
     

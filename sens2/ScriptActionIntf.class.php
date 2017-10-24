@@ -46,17 +46,17 @@ class sens2_ScriptActionIntf
     /**
      * Показва вербално представяне на действието
      */
-    function toVerbal($data)
+    function toVerbal($rec)
     {
-        return $this->class->process($data);
+        return $this->class->process($rec);
     }
 
 
     /**
      * Извършва действието, с параметрите, които са в $rec
      */
-    function process($data)
+    function run($data)
     {
-        return $this->class->process($data);
+        return $this->class->run($data);
     }
 }

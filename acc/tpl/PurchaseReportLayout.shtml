@@ -2,40 +2,6 @@
 <div class='inline-form'>
 	[#FORM#]
 </div>
-<div class='summary-block' style='margin-top: 5px;'>
-    <table style='min-width:200px;'>
-            <tr>
-                <th>|Текущ период|*</th>
-                <th>|К-во|*</th>
-                <th>|Сума|*</th>
-                <th></th>
-            </tr>
-             
-            <!--ET_BEGIN bl-->
-            <tr>
-                <td class='aright'></td>
-                <td class='summary-cell aright'><b>[#blQuantity#]</b></td>
-                <td class='summary-cell aright'><b>[#blAmount#]</b></td>
-                <td class='summary-cell aright'><span class='cCode'>[#baseCurrencyCode#]</span></td>
-            </tr>
-             <!--ET_BEGIN bl-->
-            
-             <!--ET_BEGIN summeryAll-->
-             <tr>
-             <th>|Предх. период|*</th>
-                <th>|К-во|*</th>
-                <th>|Сума|*</th>
-                <th></th>
-             </tr>
-            <tr>
-                <td class='aright'></td>
-                <td class='summary-cell aright'><b>[#blQuantityNew#]</b></td>
-                <td class='summary-cell aright'><b>[#blAmountNew#]</b></td>
-                <td class='summary-cell aright'><span class='cCode'>[#baseCurrencyCode#]</span></td>
-            </tr>
-            <!--ET_END summeryAll-->
-        </table>
-</div>
 <div class='clearfix21'></div>
 
 <!--ET_BEGIN article-->
@@ -50,8 +16,8 @@
        <span><br>|Контрагент:|* [#contragent#]</span>
 <!--ET_END contragent-->
 
-[#PAGER#]
+[#PAGER_TOP#]
 <div class='overflow-scroll'>
     [#CONTENT#]
 </div>
-[#PAGER#]
+[#PAGER_BOTTOM#]

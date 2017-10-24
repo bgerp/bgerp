@@ -31,7 +31,7 @@ class tcost_Zones extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, tcost_Wrapper";
+    public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, tcost_Wrapper, plg_SaveAndNew";
 
 
     /**
@@ -94,9 +94,9 @@ class tcost_Zones extends core_Detail
     public function description()
     {
         $this->FLD('zoneId', 'key(mvc=tcost_FeeZones, select=name)', 'caption=Зона, recently, mandatory,smartCenter');
-        $this->FLD('countryId', 'key(mvc = drdata_Countries, select = letterCode2)', 'caption=Държава, mandatory,smartCenter');
+        $this->FLD('countryId', 'key(mvc = drdata_Countries, select = commonName)', 'caption=Държава, mandatory,smartCenter');
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode,smartCenter, notNull');
-    }
+ 	}
 
 
     /**
@@ -107,8 +107,9 @@ class tcost_Zones extends core_Detail
      * @param string $pCode - пощенски код
      * 
      * @return array
-     * ['zoneId'] - id на намерената зона
-     * ['zoneName'] - име на намерената зона
+     * 			['zoneId']       - id на намерената зона
+     * 			['zoneName']     - име на намерената зона
+     * 			['deliveryTime'] - срок на доставка (ако има)
      */
     public static function getZoneIdAndDeliveryTerm($deliveryTermId, $countryId, $pCode = "")
     {
@@ -117,9 +118,9 @@ class tcost_Zones extends core_Detail
         $query->where(array("#deliveryTermId = '[#1#]'", $deliveryTermId));
         
         if(empty($pCode)){
-            $query->where(array("#countryId = [#1#] AND #pCode = '[#2#]'", $countryId, $pCode));
+            $query->where(array("#countryId = [#1#] AND (#pCode = '' OR #pCode IS NULL)", $countryId, $pCode));
             $rec = $query->fetch();
-            $bestZone = $rec;
+            $bestZone = $rec;  
         } else{
         	// Обхождане на tcost_Zones базата и намиране на най-подходящата зона
         	$query->where(array('#countryId = [#1#]', $countryId));
@@ -132,14 +133,15 @@ class tcost_Zones extends core_Detail
                 }
             }
         }
-        
+
         // Ако няма зона NULL
         if(empty($bestZone)) return NULL;
         
         // Намиране на името на намерената зона
+        $deliveryTime = tcost_FeeZones::fetchField($bestZone->zoneId, 'deliveryTime');
         $zoneName = tcost_FeeZones::getVerbal($bestZone->zoneId, 'name');
 
-        return array('zoneId' => $bestZone->zoneId, 'zoneName' => $zoneName);
+        return array('zoneId' => $bestZone->zoneId, 'zoneName' => $zoneName, 'deliveryTime' => $deliveryTime);
     }
 
     
@@ -151,7 +153,7 @@ class tcost_Zones extends core_Detail
      * @return  int     Брой съвпадения
      */
     private static function strNearPCode($pc1, $pc2)
-    {
+    { 
         if(strlen($pc1) > strlen($pc2)) {
         	list($pc1, $pc2) = array($pc2, $pc1);
         }
@@ -162,7 +164,14 @@ class tcost_Zones extends core_Detail
         for($i= 0; $i < $cycleNumber; $i++)
         {
             if($pc1{$i} != $pc2{$i}) {
-                return $i;
+
+                if($i == 0 && strlen($pc1) && strlen($pc2)) {
+ 
+                    return -1;
+                } else {
+
+                    return $i;
+                }
             }
         }
         
@@ -223,4 +232,19 @@ class tcost_Zones extends core_Detail
     		}
     	}
     }
+
+
+    /**
+     * Преди извличане на записите от БД
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    public static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    {
+        $data->query->orderBy('#countryId,#pCode');
+    }
+
+
 }

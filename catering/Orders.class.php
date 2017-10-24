@@ -26,7 +26,7 @@ class catering_Orders extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Created, catering_Wrapper, plg_Printing,
+    var $loadList = 'plg_RowTools2, plg_Created, catering_Wrapper, plg_Printing,
                              Menu=catering_Menu,    
                              Requests=catering_Requests,
                              RequestDetails=catering_RequestDetails,
@@ -39,14 +39,8 @@ class catering_Orders extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'requestId, companyId, tools=Пулт';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'tools';
-    
+    var $listFields = 'requestId, companyId';
+
     
     /**
      * Права

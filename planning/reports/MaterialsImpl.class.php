@@ -114,6 +114,8 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
         	$query->orWhere("#dueDate <= '{$time}' AND #state = 'active'");
         }
         $store = "";
+        $materials = array();
+        
 	    // за всеки един активен договор за продажба
 	    while($rec = $query->fetch()) {
 
@@ -135,7 +137,6 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
 	        }
 	        
 	        $materials[] = cat_Products::getMaterialsForProduction($productId,$rec->quantity);
-	        
 	    }
 	    
 	    $mArr = array ();

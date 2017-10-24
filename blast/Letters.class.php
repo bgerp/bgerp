@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   blast
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @see       https://github.com/bgerp/bgerp/issues/148
@@ -117,7 +117,13 @@ class blast_Letters extends core_Master
     /**
      * Плъгините и враперите, които ще се използват
      */
-    var $loadList = 'blast_Wrapper, plg_State, plg_RowTools, plg_Rejected, doc_DocumentPlg, bgerp_plg_Blank, change_Plugin, plg_Printing';
+    var $loadList = 'blast_Wrapper, plg_State, plg_RowTools, doc_DocumentPlg, bgerp_plg_Blank, change_Plugin, plg_Printing, plg_Clone';
+    
+
+    /**
+     * Кой може да оттелгя имейла
+     */
+    protected $canReject = 'ceo, blast';
     
     
     /**
@@ -163,15 +169,9 @@ class blast_Letters extends core_Master
     
     
     /**
-     * Полета, които ще се клонират
-     */
-    var $cloneFields = 'listId, group, subject, body, numLetters, template, recipient, attn, country, pcode, place, address,position';
-    
-    
-    /**
      * Кой има право да клонира?
      */
-    protected $canClone = 'ceo, blast';
+    public $canClonerec = 'ceo, blast';
     
     
     /**
@@ -181,8 +181,8 @@ class blast_Letters extends core_Master
     {
         $this->FLD('listId', 'key(mvc=blast_Lists, select=title)', 'caption=Списък, mandatory');
         $this->FLD('group', 'enum(company=Фирми, personBiz=Лица (Бизнес данни), person=Лица (Частни данни))', 'caption=Група, mandatory, input=none');
-        $this->FLD('subject', 'richtext(rows=3)', 'caption=Заглавие, mandatory, changable');
-        $this->FLD('body', 'richtext', 'caption=Текст, oldFieldName=text, mandatory, changable');
+        $this->FLD('subject', 'richtext(rows=3, bucket=Blast)', 'caption=Заглавие, mandatory, changable');
+        $this->FLD('body', 'richtext(bucket=Blast)', 'caption=Текст, oldFieldName=text, mandatory, changable');
         $this->FLD('numLetters', 'int(min=1, max=100)', 'caption=Печат, mandatory, input=none, hint=Колко писма ще се печатат едновременно');
         $this->FLD('template', 'enum(triLeft=3 части - ляво,
             triRight=3 части - дясно, oneRightUp = 1 част горе - дясно)', 'caption=Шаблон, mandatory, changable');
@@ -300,7 +300,7 @@ class blast_Letters extends core_Master
         }
         
         // Ако създваме
-        if ((!$rec->id) && (!Request::get('clone'))) {
+        if ((!$rec->id) && ($data->action != 'clone')) {
             
             // Задваме стойности по подразбиране
             $rec->recipient = '[#company#]';
@@ -783,7 +783,7 @@ class blast_Letters extends core_Master
         
         // Добавяме бутоните на формата
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png');
         
         // Добавяме титлата на формата
         $form->title = "Активиране на писмо за печат";

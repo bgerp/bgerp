@@ -20,7 +20,7 @@ class currency_CurrencyGroups extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, currency_Wrapper';
+    var $loadList = 'plg_Created, plg_RowTools2, currency_Wrapper';
     
     
     /**

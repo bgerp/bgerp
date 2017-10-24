@@ -2,13 +2,13 @@
 
 
 /**
- * Урл за изпращане на СМС-и
+ * Урл за изпращане на SMS-и
  */
 defIfNot('NETFINITY_URL', 'http://api.smspro.bg/bsms/send?apikey=[#apikey#]&msisdn=[#number#]&text=[#message#]&id=[#msgid#]');
 
 
 /**
- * Урл за изпращане на СМС-и
+ * Урл за изпращане на SMS-и
  */
 defIfNot('NETFINITY_APIKEY', '');
 
@@ -62,7 +62,7 @@ class netfinity_Setup extends core_ProtoSetup
      * 
      */
     var $configDescription = array (
-        'NETFINITY_URL' => array('url', 'mandatory, caption=Адрес за изпращане на СМС-и през Нетфинити->URL адрес'),
+        'NETFINITY_URL' => array('url', 'mandatory, caption=Адрес за изпращане на SMS-и през Нетфинити->URL адрес'),
         'NETFINITY_APIKEY' => array('varchar', 'mandatory, caption=Ключ за достъп до услугата->Стринг'),
         'NETFINITY_SUPPORT_UTF8' => array('enum(no=Не, yes=Да)', 'caption=Дали поддържа UTF-8->Избор'),
         'NETFINITY_MAX_STRING_LEN' => array('int',  'caption=Максималната дължина на стринга->Бр. символи'),

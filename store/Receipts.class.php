@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -23,12 +23,6 @@ class store_Receipts extends store_DocumentMaster
      * Заглавие
      */
     public $title = 'Складови разписки';
-
-
-    /**
-     * Флаг, който указва, че документа е партньорски
-     */
-    public $visibleForPartners = TRUE;
     
     
     /**
@@ -44,24 +38,18 @@ class store_Receipts extends store_DocumentMaster
     
     
     /**
-     * Поле в което се замества шаблона от doc_TplManager
-     */
-    public $templateFld = 'SINGLE_CONTENT';
-    
-    
-    /**
      * Поддържани интерфейси
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf,
-                          acc_TransactionSourceIntf=store_transaction_Receipt, bgerp_DealIntf,batch_MovementSourceIntf=batch_movements_Shipments';
+                          acc_TransactionSourceIntf=store_transaction_Receipt, bgerp_DealIntf,trans_LogisticDataIntf';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_Wrapper, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
-                    doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search, doc_plg_TplManager,
-					doc_EmailCreatePlg, bgerp_plg_Blank, trans_plg_LinesPlugin, doc_plg_HidePrices, doc_SharablePlg';
+    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
+                    plg_Clone,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, doc_plg_TplManager,
+					doc_EmailCreatePlg, bgerp_plg_Blank, trans_plg_LinesPlugin, doc_plg_HidePrices, doc_SharablePlg,deals_plg_SetTermDate,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search';
 
     
     /**
@@ -74,15 +62,15 @@ class store_Receipts extends store_DocumentMaster
     
     
     /**
-     * Кой има право да чете?
+     * Кой може да сторнира
      */
-    public $canRead = 'ceo,store';
+    public $canRevert = 'storeMaster, ceo';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canChangeline = 'ceo,store';
+    public $canChangeline = 'ceo,store,trans';
     
     
     /**
@@ -94,7 +82,7 @@ class store_Receipts extends store_DocumentMaster
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,store';
+	public $canSingle = 'ceo,store,sales,purchase';
     
     
     /**
@@ -110,6 +98,12 @@ class store_Receipts extends store_DocumentMaster
     
     
     /**
+     * Кой може да го прави документа чакащ/чернова?
+     */
+    public $canPending = 'ceo,store,sales,purchase';
+    
+    
+    /**
      * Кой може да го изтрие?
      */
     public $canConto = 'ceo,store';
@@ -118,9 +112,15 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valior, title=Документ, folderId, amountDelivered, weight, volume, createdOn, createdBy';
+    public $listFields = 'deliveryTime,valior, title=Документ, folderId, amountDelivered, weight, volume, createdOn, createdBy';
 
 
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'folderId,storeId,note';
+
+    
     /**
      * Детайла, на модела
      */
@@ -160,17 +160,41 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Стратегии за дефолт стойностти
      */
-    public static $defaultStrategies = array(
-    		'template' => 'lastDocUser|lastDoc|LastDocSameCuntry',
-    );
+    public static $defaultStrategies = array('template' => 'lastDocUser|lastDoc|LastDocSameCuntry',);
+	
+	
+    /**
+     * Да се показва антетка
+     */
+    public $showLetterHead = TRUE;
     
     
     /**
-     * Какво движение на партида поражда документа в склада
-     *
-     * @param out|in|stay - тип движение (излиза, влиза, стои)
+     * Показва броя на записите в лога за съответното действие в документа
      */
-    public $batchMovementDocument = 'in';
+    public $showLogTimeInHead = 'Документът се връща в чернова=3';
+    
+    
+    /**
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     *
+     * @see plg_Clone
+     */
+    public $cloneDetails = 'store_ReceiptDetails';
+    
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'valior, amountDelivered, amountDeliveredVat, amountDiscount, deliveryTime,weight,volume,weightInput,volumeInput,palletCount';
+    
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, valior,deliveryTime,modifiedOn';
     
     
     /**
@@ -180,13 +204,14 @@ class store_Receipts extends store_DocumentMaster
     {
         parent::setDocFields($this);
         $this->setField('storeId', 'caption=В склад');
+        $this->setField('deliveryTime', 'caption=Разтоварване');
     }
     
     
 	/**
      * След изпращане на формата
      */
-    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
         if ($form->isSubmitted()) {
         	$rec = &$form->rec;
@@ -203,7 +228,7 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Преди показване на форма за добавяне/промяна
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$data->form->setField('locationId', 'caption=Обект от');
     }

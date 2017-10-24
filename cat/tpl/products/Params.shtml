@@ -1,4 +1,6 @@
+<!--ET_BEGIN addParamBtn-->
 <div class='groupTitle'><span class='quiet'>|Параметри|*</span> [#addParamBtn#]</div>
+<!--ET_END addParamBtn-->
   <div class='groupList'>
     [#NO_ROWS#]
     <!--ET_BEGIN PARAM_BLOCK-->

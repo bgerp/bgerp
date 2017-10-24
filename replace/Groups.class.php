@@ -15,7 +15,7 @@ class replace_Groups extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created,plg_RowTools,plg_State2,replace_Wrapper';
+    var $loadList = 'plg_Created,plg_RowTools2,plg_State2,replace_Wrapper';
     
     
     /**
@@ -50,6 +50,6 @@ class replace_Groups extends core_Manager
     function description()
     {
         $this->FLD('name' , 'varchar', 'caption=Наименование,width=100%');
-        $this->FLD('info' , 'richtext', 'caption=информация');
+        $this->FLD('info' , 'richtext(bucket=Notes)', 'caption=информация');
     }
 }

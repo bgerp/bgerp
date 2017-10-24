@@ -3,7 +3,7 @@
          <table class="innerTable border-table paddingCells">
                 <tbody>
                     <tr>
-                        <td colspan = "2" class='centered'>  
+                        <td class='centered'>
                             <div class="document-title">|приходен банков документ|*</div>
                             <!--ET_BEGIN operationSysId-->
                             <small>( [#operationSysId#] )</small>
@@ -17,16 +17,20 @@
                         </td>
                     </tr>
                     <tr>
-                        <td class="cell custom-header-bg" style='width:35%;'><b>|Платец|*</b></td>
-                        <td class="cell custom-header-bg" style='width:35%;'><b>|Получател|*</b></td>
+                        <td class="cell custom-header-bg"><b>|Платец|*</b></td>
                     </tr>
                     <tr>
                         <td>
                             <b>[#contragentName#]</b>
-                             <div class='address-block'>
-                             [#contragentAddress#]
-                             </div>
+                            <div class='address-block'>
+                                [#contragentAddress#]
+                            </div>
                         </td>
+                    </tr>
+                    <tr>
+                        <td class="cell custom-header-bg"><b>|Получател|*</b></td>
+                    </tr>
+                    <tr>
                         <td>
                             <b>[#MyCompany#]</b>
                         	<div class='address-block'>
@@ -53,11 +57,18 @@
                                      <td style='width:98px'  class='nowrap'>|Към сметка|*:</td>
                                      <td><b>[#ownAccount#]</b> </td>
                                  </tr>
-                                 
+                                  <!--ET_BEGIN reason-->
                                  <tr>
                                      <td>|Основание|*: </td>
                                      <td> [#reason#]</td>
                                  </tr>
+                                  <!--ET_END reason-->
+                                 <!--ET_BEGIN termDate-->
+                                    <tr>
+                                        <td>|Очаквано на|*: </td>
+                                        <td>[#termDate#]</td>
+                                    </tr>
+                                    <!--ET_END termDate-->
                              </table>
                          
                          </td>

@@ -37,8 +37,7 @@ class sales_ClosedDeals extends deals_ClosedDeals
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'sales_Wrapper, acc_plg_Contable, plg_RowTools, plg_Sorting,
-                    doc_DocumentPlg, doc_plg_HidePrices, plg_Search';
+    public $loadList = 'sales_Wrapper, acc_plg_Contable, plg_RowTools, plg_Sorting,doc_DocumentPlg, doc_plg_HidePrices, plg_Search';
     
     
     /**
@@ -100,7 +99,22 @@ class sales_ClosedDeals extends deals_ClosedDeals
      */
     public $searchFields = 'notes,docId,classId, id';
     
+
+    /**
+     * Списък с роли на потребители, при действията на които с дадения документ
+     * абонираните потребители не се нотифицират
+     */
+    public $muteNotificationsBy = 'system';
     
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'valior';
+    
+
     /**
      * Връща разликата с която ще се приключи сделката
      * @param mixed  $threadId - ид на нишката или core_ObjectReference

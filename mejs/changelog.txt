@@ -1,0 +1,2 @@
+Променени стилове 2.11.0.0: https://github.com/bgerp/bgerp/commit/670603707829d5b3903bb8f9f2ea3f2e3822af7c
+Променени стилове 2.20.0: https://github.com/bgerp/bgerp/commit/48b73cbdfe9830d3f16784d306df3c227bbb308c

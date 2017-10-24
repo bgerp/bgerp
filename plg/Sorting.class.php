@@ -47,14 +47,14 @@ class plg_Sorting extends core_Plugin
                 if($mvc->fields[$f]) {
                     if($mvc->fields[$f]->sortingLike) {
                         $dbField = $mvc->fields[$f]->sortingLike;
-                    } elseif($mvc->fields[$f]->kind != 'FNC' && is_a($mvc->fields[$f]->type, 'type_Key')) {
+                    } elseif($mvc->fields[$f]->kind != 'FNC' && strtolower(get_class($mvc->fields[$f]->type)) == 'type_key') {
                         $type = $mvc->fields[$f]->type;
                         if(($kField = $type->params['select']) && ($kMvc = $type->params['mvc'])) {
                             $dbField = $f . '_' . 'sort';
                         } else {
                             continue;
                         }
-                    } elseif($mvc->fields[$f]->kind != 'FNC' && is_a($mvc->fields[$f]->type, 'type_Key2')) {
+                    } elseif($mvc->fields[$f]->kind != 'FNC' && strtolower(get_class($mvc->fields[$f]->type)) == 'type_key2') {
                         $type = $mvc->fields[$f]->type;
                         if(($kField = $type->params['titleFld']) && ($kMvc = $type->params['mvc'])) {
                             $dbField = $f . '_' . 'sort';

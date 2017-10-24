@@ -174,7 +174,7 @@ class core_Array
     static function order(&$array, $field = 'order', $mode = 'ASC')
     {
         if($mode == 'ASC') {
-            usort($array, function($a, $b) use ($field) {
+            uasort($array, function($a, $b) use ($field) {
             		$a = (object)$a;
             		$b = (object)$b;
             		
@@ -183,7 +183,7 @@ class core_Array
                     return $a->{$field} > $b->{$field} ? 1 : -1;
                 });
         } else {
-            usort($array, function($a, $b) use ($field) {
+            uasort($array, function($a, $b) use ($field) {
 	            	$a = (object)$a;
 	            	$b = (object)$b;
             	
@@ -395,9 +395,11 @@ class core_Array
                 $arr1[$fld] = $vars[$fld];
             } else {
                 // Некоректен параметър
-                bp($arr1);
+                error('Некоректен параметър', $arr1);
             }
         }
+
+        return $arr1;
     }
     
     
@@ -422,7 +424,7 @@ class core_Array
     			 
     			foreach($array as $exName => $exFld) {
     			
-    				if($before == $exName) {
+    				if((string)$before == (string)$exName) {
     					$isSet = TRUE;
     					$newFields[$key] = $value;
     				}
@@ -431,7 +433,7 @@ class core_Array
     					$newFields[$exName] = &$array[$exName];
     				}
     			
-    				if($after == $exName) {
+    				if((string)$after == (string)$exName) {
     					$newFields[$key] = $value;
     					$isSet = TRUE;
     				}
@@ -594,5 +596,70 @@ class core_Array
     	}
     	
     	return $result;
+    }
+    
+    
+    /**
+     * Извлича масив със стойности от масив със други стойности
+     *
+     * @param array $arr      - масив от който ще се извличат стойностите
+     * @param varchar $fields - полета
+     * @return array $res     - екстракнатите стойности, в масив
+     */
+    public static function extractSubArray($arr, $fields)
+    {
+    	$fields = arr::make($fields, TRUE);
+    	expect(count($fields));
+    	$res = array_values(array_map(function($obj) use ($fields){
+    		$res = new stdClass();
+    		foreach ($fields as $fld){
+    			$res->{$fld} = is_object($obj) ? $obj->{$fld} : $obj[$fld];
+    		}
+
+    		return $res;
+    	}, $arr));
+    	
+    	return $res;
+    }
+    
+    
+    /**
+     * Ф-я проверяваща дали два масива/обекта имат еднакви ключове/стойности, без да е нужно да са в
+     * същата последователност
+     * 
+     * @param array|stdClass $array1
+     * @param array|stdClass $array2
+     * @return boolean $res
+     */
+    public static function areEqual($array1, $array2)
+    {
+    	$a = (array)$array1;
+    	$b = (array)$array2;
+    	
+    	$res = (is_array($a) && is_array($b) && count($a) == count($b) && array_diff($a, $b) === array_diff($b, $a));
+    	
+    	return $res;
+    }
+
+
+    /**
+     * Вмъкване на подмасив в масив
+     * @param array      $array     Оригинален масив
+     * @param int|string $position  Стрингов индекс или числова позиция
+     * @param mixed      $insert    Какво ще вмъкваме
+     * @param bool       $after     След или преди позицията
+     */
+    public static function insert(&$array, $position, $insert, $after = FALSE)
+    {
+        if (is_int($position)) {
+            array_splice($array, $position, 0, $insert);
+        } else {
+            $pos   = array_search($position, array_keys($array)) + $after;
+            $array = array_merge(
+                array_slice($array, 0, $pos),
+                $insert,
+                array_slice($array, $pos)
+            );
+        }
     }
 }

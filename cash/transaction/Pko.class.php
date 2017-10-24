@@ -45,6 +45,8 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
     		$entry = $this->getEntry($rec, $origin);
     	}
     	
+    	$rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
+    	
     	// Подготвяме информацията която ще записваме в Журнала
     	$result = (object)array(
     			'reason' => $rec->reason, // основанието за ордера
@@ -86,6 +88,29 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
 				    			'quantity' => $sign * $rec->amountDeal),);
     	$entry = array($entry);
     	 
+    	if($reverse === FALSE){
+    		$dQuery = cash_NonCashPaymentDetails::getQuery();
+    		$dQuery->where("#documentId = '{$rec->id}'");
+    		
+    		while ($dRec = $dQuery->fetch()){
+    			$amount = $dRec->amount * $rec->rate;
+    			$type = cond_Payments::getTitleById($dRec->paymentId);
+    			
+    			$entry[] = array('amount' => $sign * $amount,
+    							'debit' => array('502',
+    										array('cash_Cases', $rec->peroCase),
+    										array('cond_Payments', $dRec->paymentId),
+    										'quantity' => $sign * $amount),
+    					 
+    							'credit' => array($rec->debitAccount,
+    											array('cash_Cases', $rec->peroCase),
+    											array('currency_Currencies', $rec->currencyId),
+    											'quantity' => $sign * $dRec->amount),
+    							'reason' => "Плащане с '{$type}'",
+    							);
+    		}
+    	}
+    	
     	return $entry;
     }
     

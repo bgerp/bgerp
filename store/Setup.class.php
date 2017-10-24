@@ -1,7 +1,9 @@
 <?php
 
 
-// Кои сч. сметки ще се използват за синхронизиране със склада
+/**
+ * Кои сч. сметки ще се използват за синхронизиране със склада
+ */
 defIfNot('STORE_ACC_ACCOUNTS', '');
 
 
@@ -74,20 +76,28 @@ class store_Setup extends core_ProtoSetup
     		'store_ConsignmentProtocols',
     		'store_ConsignmentProtocolDetailsSend',
     		'store_ConsignmentProtocolDetailsReceived',
-    		'store_InventoryNoteDetails',
-    		'store_InventoryNoteSummary',
     		'store_InventoryNotes',
+    		'store_InventoryNoteSummary',
+    		'store_InventoryNoteDetails',
+    		'store_ReserveStocks',
+    		'store_ReserveStockDetails',
     		'migrate::updateConfig',
     		'migrate::updateTransfers',
+    		'migrate::inventoryNotes'
         );
     
 
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'storeWorker';
+    var $roles = array(
+    		array('storeWorker'),
+            array('inventory'),
+    		array('store', 'storeWorker'),
+    		array('storeMaster', 'store'),
+    );
     
-
+    
     /**
      * Връзки от менюто, сочещи към модула
      */
@@ -104,32 +114,46 @@ class store_Setup extends core_ProtoSetup
 	);
 	
 	
+	/**
+	 * Дефинирани класове, които имат интерфейси
+	 */
+	var $defClasses = 'store_reports_Documents,store_reports_ChangeQuantity,store_reports_ProductAvailableQuantity';
+	
+	
+	/**
+     * Настройки за Cron
+     */
+    var $cronSettings = array(
+        array(
+            'systemId' => "Update Reserved Stocks",
+            'description' => "Обновяване на резервираните наличности",
+            'controller' => "store_Products",
+            'action' => "CalcReservedQuantity",
+            'period' => 5,
+        	'offset' => 1,
+            'timeLimit' => 100
+        ),
+    );
+    
+	
     /**
      * Инсталиране на пакета
      */
     function install()
     {
-        $html = parent::install();      
-        
-        // Забравена миграция
-    	if($roleRec = core_Roles::fetch("#role = 'masterStore'")){
-    		core_Roles::delete("#role = 'masterStore'");
-    	}
+        $html = parent::install();
     	
     	// Закачане на плъгина за прехвърляне на собственотст на системни папки към core_Users
     	$Plugins = cls::get('core_Plugins');
     	$html .= $Plugins->installPlugin('Синхронизиране на складовите наличности', 'store_plg_BalanceSync', 'acc_Balances', 'private');
     	
-        // Добавяне на роля за старши складажия
-        $html .= core_Roles::addOnce('store', 'storeWorker');
-    	$html .= core_Roles::addOnce('storeMaster', 'store');
-		
-    	
-    	
     	return $html;
     }
     
 
+    /**
+     * Зареждане на данните
+     */
     function loadSetupData($itr = '')
     {
         $res = parent::loadSetupData($itr);
@@ -221,6 +245,48 @@ class store_Setup extends core_ProtoSetup
     		} catch(core_exception_Expect $e){
     			reportException($e);
     		}
+    	}
+    }
+    
+    
+    /**
+     * Миграция на инвентаризацията
+     */
+    public function inventoryNotes()
+    {
+    	$Note = cls::get('store_InventoryNotes');
+    	$Note->setupMvc();
+    	
+    	$Sum = cls::get('store_InventoryNoteSummary');
+    	$Sum->setupMvc();
+    	
+    	$Details = cls::get('store_InventoryNoteDetails');
+    	$Details->setupMvc();
+    	
+    	try{
+    		$query = $Note->getQuery();
+    		while($rec = $query->fetch()){
+    			$dQuery = $Details->getQuery();
+    			$dQuery->where("#noteId = {$rec->id}");
+    		
+    			$save = array();
+    			while($dRec = $dQuery->fetch()){
+    				$clone = new stdClass();
+    				$clone->id = $dRec->id;
+    				$clone->createdOn  = $rec->createdOn;
+    				$clone->createdBy  = $rec->createdBy;
+    				$clone->modifiedOn = $rec->createdOn;
+    				$clone->modifiedBy = $rec->createdBy;
+    				 
+    				$save[] = $clone;
+    			}
+    		
+    			if(count($save)){
+    				$Details->saveArray($save, 'id,createdOn,createdBy,modifiedOn,modifiedBy');
+    			}
+    		}
+    	} catch(core_exception_Expect $e){
+    		reportException($e);
     	}
     }
 }

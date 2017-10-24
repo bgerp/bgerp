@@ -37,7 +37,7 @@ class cms_page_External extends core_page_Active
         $this->prepend(cms_Domains::getSeoTitle(), 'PAGE_TITLE');
 
         // Ако е логнат потребител
-        if (!core_Users::haveRole('buyer')) {
+        if (!core_Users::haveRole('partner')) {
             
             // Абонираме за промяна на броя на нотификациите
             bgerp_Notifications::subscribeCounter($this);
@@ -94,7 +94,7 @@ class cms_page_External extends core_page_Active
         $this->replace(cms_Content::getLayout(), 'CMS_LAYOUT');
         
         // Ако е логнат потребител, който не е powerUser
-        if(core_Users::haveRole('buyer') && !core_Users::isPowerUser()){
+        if(core_Users::haveRole('partner')){
         	$this->placeExternalUserData();
         }
     }

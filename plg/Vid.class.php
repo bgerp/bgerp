@@ -81,8 +81,8 @@ class plg_Vid extends core_Plugin
             $i++;
             $recVid = $baseVid . '-' . $i;
             if(is_numeric($recVid)) $recVid .= '_'; 
-            if($i>3) {
-                bp($recVid, $rec, $i);
+            if($i>10) {
+                expect(FALSE, $recVid, $rec, $i);
             }
         }
 

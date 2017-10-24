@@ -88,7 +88,7 @@ class trz_PayrollDetails extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,periodId,personId,salary,bonus,sickday,order,trip,fines,amount';
+    public $listFields = 'id,personId,salary,bonus,sickday,order,trip,fines,amount';
     
     
     /**
@@ -223,31 +223,6 @@ class trz_PayrollDetails extends core_Detail
                 $obj->periodId = $masterRec->periodId;
                 $obj->personId = $recSickday->personId;
                 $obj->sickday += $recSickday->paidByEmployer;
-            }
-        }
-        
-        $qOrder = trz_Orders::getQuery();
-        $qOrder->where("#leaveFrom >= '{$period->start}' AND #leaveTo <= '{$period->end}'");
-        
-        while($recOrder = $qOrder->fetch()){
-            $debug['order'][] = $recOrder;
-            $index = $masterRec->periodId . "|" . $recOrder->personId;
-        
-            if(!array_key_exists($index, $recs)){
-                $recs[$index] =
-                (object) array ('payrollId' => $masterRec->id,
-                    'periodId' => $masterRec->periodId,
-                    'personId' => $recOrder->personId,
-                    'order' => $recOrder->amount,
-                );
-            }
-            else {
-                 
-                $obj = &$recs[$index];
-                $obj->payrollId = $masterRec->id;
-                $obj->periodId = $masterRec->periodId;
-                $obj->personId = $recOrder->personId;
-                $obj->order += $recOrder->amount;
             }
         }
         

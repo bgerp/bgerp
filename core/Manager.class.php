@@ -82,6 +82,12 @@ class core_Manager extends core_Mvc
     var $canAdmin = 'admin';
     
     
+    /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = TRUE;
+    
+    
     /****************************************************************************************
      *                                                                                      *
      *       ПРЕДЕФИНИРАНИ ДЕЙСТВИЯ (ЕКШЪНИ) НА МЕНИДЖЪРА                                   *
@@ -348,9 +354,7 @@ class core_Manager extends core_Mvc
         
         // Получаваме изгледа на формата
         $tpl = $data->form->renderHtml();
-        
-        $formId = $data->form->formAttr['id'];
-        jquery_Jquery::run($tpl, "preventDoubleSubmission('{$formId}');");
+        core_Form::preventDoubleSubmission($tpl, $data->form);
         
         // Опаковаме изгледа
         $tpl = $this->renderWrapping($tpl, $data);
@@ -374,11 +378,15 @@ class core_Manager extends core_Mvc
      * Логва действието
      * 
      * @param string $msg
-     * @param NULL|stdClass $rec
+     * @param NULL|stdClass|integer $rec
      * @param string $type
      */
     function logInAct($msg, $rec = NULL, $type = 'write')
     {
+        if (is_numeric($rec)) {
+            $rec = $this->fetch($rec);
+        }
+        
         $id = NULL;
         
         if ($rec) {
@@ -459,6 +467,10 @@ class core_Manager extends core_Mvc
                 'toolbar' => ht::createSbBtn('Филтър')
             );
             $data->listFilter = $this->getForm($formParams);
+            $mf = $data->listFilter->selectFields('#mandatory');
+            foreach($mf as $name => $field) {
+                $data->listFilter->setField($name, array('mandatory' => NULL));
+            }
         }
         
         if ($data->ListId) {
@@ -523,7 +535,7 @@ class core_Manager extends core_Mvc
     {
         $data->toolbar = cls::get('core_Toolbar');
         
-        if ($this->haveRightFor('add')) {
+        if ($this->haveRightFor('add') && $this->listAddBtn !== FALSE) {
             $data->toolbar->addBtn('Нов запис', array(
                     $this,
                     'add'
@@ -637,7 +649,7 @@ class core_Manager extends core_Mvc
     function prepareEditToolbar_($data)
     {
         $data->form->toolbar->addSbBtn('Запис', 'save', 'id=save, ef_icon = img/16/disk.png', 'title=Запис на документа');
-        $data->form->toolbar->addBtn('Отказ', $data->retUrl,  'id=cancel, ef_icon = img/16/close16.png', 'title=Прекратяване на действията');
+        $data->form->toolbar->addBtn('Отказ', $data->retUrl,  'id=cancel, ef_icon = img/16/close-red.png', 'title=Прекратяване на действията');
         
         return $data;
     }
@@ -659,13 +671,27 @@ class core_Manager extends core_Mvc
                     'id' => $data->form->rec->id
                 );
             } else {
-                $data->retUrl = array($this, 'list');
+                if(is_a($this, 'core_Detail')) {
+                    if(($masterKey = $this->masterKey) && ($masterId = $data->form->rec->{$masterKey})) {
+                        $master = $mvc->masterClass;
+                        if(!$master) {
+                            $master = $this->getFieldTypeParam($masterKey, 'mvc');
+                        }
+                        if($master) {
+                            $data->retUrl = array($master, 'single', $masterId);
+                        }
+                    }
+                } 
+                
+                if(!$data->retUrl) {
+                    $data->retUrl = array($this, 'list');
+                }
             }
         }
 
         $idPlaceholder = self::getUrlPlaceholder('id');
 
-        if($id && is_array($data->retUrl)) {
+        if(is_array($data->retUrl)) {
             foreach($data->retUrl as $key => $value) {
                 if($value == $idPlaceholder) {
                     $data->retUrl[$key] = $id;

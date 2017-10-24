@@ -107,7 +107,13 @@ class bgerp_iface_DealProduct
     
     
     /**
-     * Разходно перо
+     * Запис за разходи
      */
-    public $expenseItemId;
+    public $expenseRecId;
+    
+    
+    /**
+     * Партиди
+     */
+    public $batches = array();
 }

@@ -84,20 +84,4 @@ class vtotal_Api extends core_Master
 
         return $interval < 10 ? 1 : -1;
     }
-
-
-
-
-
-    public function act_Test()
-    {
-        $result = self::VTGetReport("6a227ca6085bbc2543b4e3c5ac2809f094b4e59961ebec0619de887ab0846217");
-        bp($result);
-
-        bp($result);
-        $dangerRate = $this->getDangerRateVTResponse($result);
-        $scanDate = $this->getLastCheckVTResponse($result);
-
-        bp($dangerRate,$scanDate);
-    }
 }

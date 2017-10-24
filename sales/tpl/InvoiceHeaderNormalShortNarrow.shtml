@@ -3,7 +3,7 @@
     <table class="innerTable border-table paddingCells">
         <tbody>
         <tr>
-            <td colspan="2" class='centered'>
+            <td class='centered'>
                 <div class="document-title">[#type#]</div>
                 <div style="padding-top:5px;">
                         <span class="state [#STATE_CLASS#]">
@@ -23,8 +23,7 @@
             </td>
         </tr>
         <tr>
-            <td class="cell custom-header-bg"  style="width: 50%"><b>|Получател|*</b></td>
-            <td class="cell custom-header-bg"><b>|Доставчик|*</b></td>
+            <td class="cell custom-header-bg"><b>|Получател|*</b></td>
         </tr>
         <tr>
             <td>
@@ -50,6 +49,11 @@
                     </tbody>
                 </table>
             </td>
+        </tr>
+        <tr>
+            <td class="cell custom-header-bg"><b>|Доставчик|*</b></td>
+        </tr>
+        <tr>
             <td>
                 <b>[#MyCompany#]</b>
                 <div class='address-block'>
@@ -101,19 +105,11 @@
                 <hr class='printVisible'>
                 <div class='custom-bg-block'><b>Плащане</b></div>
                 <!--ET_BEGIN paymentType-->
-                <div>[#paymentType#]</div>
+                <div class="boldText">[#paymentType#]</div>
                 <!--ET_END paymentType-->
                 <!--ET_BEGIN dueDate-->
                 <div><span class='quiet'>Краен срок за плащане:</span> [#dueDate#]</div>
                 <!--ET_END dueDate-->
-                <!--ET_BEGIN deadline-->
-                [#deadline#]
-                <div>
-                    <!--ET_BEGIN OVERDUE_INTEREST_RATE-->
-                    <span class="smallData">Лихва за просрочено плащане: [#OVERDUE_INTEREST_RATE#] |на ден|*</span>
-                    <!--ET_END OVERDUE_INTEREST_RATE-->
-                </div>
-                <!--ET_END deadline-->
                 <!--ET_BEGIN deliveryInfo-->
                 <hr class='printVisible'>
                 [#deliveryInfo#]
@@ -131,7 +127,7 @@
                 <div>[#additionalInfo#]</div>
                 <!--ET_END additionalInfo-->
                 <hr>
-                [#/deals/tpl/DocumentPiceInfo.shtml#]
+                [#/deals/tpl/DocumentPriceInfoInvoice.shtml#]
                 <hr>
                 <!--ET_BEGIN responsible-->
                 <div>|Получил|*: [#responsible#]</div>
@@ -139,6 +135,7 @@
                 <!--ET_BEGIN username-->
                 <div>|Съставил|*:  [#username#]</div>
                 <!--ET_END username-->
+                <div class='small'>( ПИК: [#userCode#] )</div>
             </td>
         </tr>
         <tr class='footerDocInfo'>

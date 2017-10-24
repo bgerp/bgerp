@@ -87,6 +87,30 @@ class core_Html
     
 
     /**
+     * Създаване на даталист с опции
+     * 
+     * @param int $id        - ид на даталиста
+     * @param array $options - опции на листа
+     * @param array $attr    - атрибути
+     * @return core_ET $tpl  - шаблон на даталиста
+     */
+    public static function createDataList($id, $options = array(), $attr = array())
+    {
+    	$tpl = new core_ET("");
+    	$tpl->append(self::createElement('datalist', array('id' => $id)));
+    	if(is_array($options)) {
+    		unset($options['']);
+    		foreach($options as $key => $v) {
+    			$tpl->append("\n" . self::createElement('option', array('value' => $v)));
+    		}
+    	}
+    	$tpl->append(self::createElement('/datalist'));
+    	
+    	return $tpl;
+    }
+    
+    
+    /**
      * Създава редактируем комбо-бокс, съчетавайки SELECT с INPUT
      */
     static function createCombo($name, $value, $attr = array(), $options = array())
@@ -96,24 +120,12 @@ class core_Html
         self::setUniqId($attr);
 
         if(Mode::is('javascript', 'no')) {
-            
             $listId = $attr['id'] . '_list';
 
             $attr['list'] = $listId;
-
             $tpl = self::createElement('input', $attr);
-            
-            $tpl->append(self::createElement('datalist', array('id' =>$listId)));
-            if(is_array($options)) {
-                unset($options['']);
-                foreach($options as $key => $v) {
-                    $tpl->append("\n" . self::createElement('option', array('value' => $v)));
-                }
-            }
-            $tpl->append(self::createElement('/datalist'));
-
+            $tpl->append(self::createDataList($listId, $options));
         } else {
-
             $tpl = new ET();
 
             // За съвместимост с IE
@@ -167,6 +179,10 @@ class core_Html
             }
 
             unset($attr['size'], $attr['onkeypress'], $attr['onclick'], $attr['ondblclick']);
+            
+            if(!Mode::is('javascript', 'no')) {
+                $attr['style'] .= ';visibility: hidden;';
+            }
 
             $tpl->prepend(self::createSelect($name, $options, $value, $attr));
         }
@@ -209,8 +225,6 @@ class core_Html
                 $groups[$lastGroup = trim($group)][$index] = trim($caption);
         	}
             
-            // bp($groups);
-
         	// Ако има поне една намерена OPTGROUP на класовете, Иначе не правим нищо
         	if(count($groups)){
         		if(isset($groups[''])) {
@@ -507,16 +521,31 @@ class core_Html
             Request::doProtect($hiddens);
 
             foreach ($hiddens as $name => $value) {
+                if(is_array($value)) {
+                    foreach($value as $key => $v) {
+                        self::addHiden($tpl, $name . '[' . $key . ']', $v);
+                    }
+                    continue;
+                }
                 expect(is_scalar($value) || !($value), gettype($value));
-                $attr = array();
-                $attr['name'] = $name;
-                $attr['value'] = $value;
-                $attr['type'] = 'hidden';
-                $tpl->append(self::createElement('input', $attr));
+                self::addHiden($tpl, $name, $value);
             }
         }
 
         return $tpl;
+    }
+    
+
+    /**
+     * Добавя hidden input към шаблона
+     */
+    static function addHiden($tpl, $name, $value) 
+    {
+        $attr = array();
+        $attr['name'] = $name;
+        $attr['value'] = $value;
+        $attr['type'] = 'hidden';
+        $tpl->append(self::createElement('input', $attr));
     }
 
 
@@ -564,7 +593,7 @@ class core_Html
     static function createBtn($title, $url = array(), $warning = FALSE, $newWindow = FALSE, $attr = array())
     {
         $attr = self::prepareLinkAndBtnAttr($attr, $warning);
-        
+       
         $title = tr($title);
 
         // Ако URL-то е празно - забраняваме бутона
@@ -574,7 +603,7 @@ class core_Html
         
         // URL с потвърждение
         if(is_array($url) && $warning) {
-            $content = $url['id'] ? $url['id'] : $url[2]; 
+            $content = $url[1] . ($url['id'] ? $url['id'] : $url[2]); 
             if($content) {
                 $url['Cf'] = core_Request::getSessHash($content); 
             }
@@ -606,11 +635,11 @@ class core_Html
 
         // Добавяме икона на бутона, ако има
         if (!Mode::is('screenMode', 'narrow') ) {
-            $attr = self::addBackgroundIcon($attr);
+            $attr = self::addBackgroundIcon($attr); 
         } else {
             unset($attr['ef_icon']);
         }
-
+ 
         // Ако нямаме JavaScript правим хипервръзка
         if ( Mode::is('javascript', 'no') ) {
             
@@ -749,7 +778,7 @@ class core_Html
         
         // URL с потвърждение
         if(is_array($url) && $warning) {
-            $content = $url['id'] ? $url['id'] : $url[2]; 
+            $content = $url[1] . ($url['id'] ? $url['id'] : $url[2]); 
             if($content) {
                 $url['Cf'] = core_Request::getSessHash($content); 
             }
@@ -771,7 +800,7 @@ class core_Html
         if($url) {
             if($warning) {
                 $attr['onclick'] .= " document.location='{$url}'";
-                $attr['href'] = '#';
+                $attr['href'] = 'javascript:void(0)';
             } else {
                 $attr['href'] = $url;
             }
@@ -786,13 +815,16 @@ class core_Html
 
                 if(log_Browsers::isRetina()) {
                     $icon2 = str_replace('/16/', '/32/', $icon);
+
                     if(getFullPath($icon2)) {
                         $srcset = sbf($icon2, '', Mode::is('text', 'xhtml')) . ' 2x';
                     }
                 }
                 $icon    = "<img src='$iconSrc' {$srcset} width='16' height='16' style='float:left;margin:1px 5px -3px 6px;' alt=''>";
-                $title   = "<span class='linkWithIconSpan no-spell-check'>{$icon}{$title}</span>";
+                $title   = "<span class='linkWithIconSpan'>{$icon}{$title}</span>";
             } else {
+
+
                 // Добавяме икона на бутона, ако има
                 $attr = self::addBackgroundIcon($attr);
             }
@@ -817,8 +849,6 @@ class core_Html
         	}
         }
         
-        $attr['class'] .= ' no-spell-check';
-        
         $tpl = self::createElement($url ? 'a' : 'span', $attr, $title, TRUE);
 
         return $tpl;
@@ -836,11 +866,12 @@ class core_Html
 			$title = "{$icon} {$title}";
 			unset($attr['ef_icon']);
 		}
-		
+
 		if ($url !== FALSE && (is_string($url) || (is_array($url) && count($url)))) {
-			$link = self::createLink("<span class='anchor-arrow'></span>", $url, $warning, $attr);
+            $arrowImg = ht::createElement("img", array("src" => sbf("img/16/anchor-image.png", "")));
+			$link = self::createLink("<span class='anchor-arrow'>{$arrowImg}</span>", $url, $warning, $attr);
 		}
-		
+
 		return "{$title}&nbsp;{$link}";
 	}
 	
@@ -952,7 +983,7 @@ class core_Html
     	
     	$hint = strip_tags(tr($hint));
  
-    	$iconPath = ($icon == 'notice') ? 'img/16/info-gray.png' : (($icon == 'warning') ? 'img/dialog_warning-small.png' : (($icon == 'error') ? 'img/dialog_error-small.png' : $icon));
+    	$iconPath = ($icon == 'notice') ? 'img/16/info-gray.png' : (($icon == 'warning') ? 'img/16/dialog_warning.png' : (($icon == 'error') ? 'img/16/dialog_error.png' : $icon));
     	expect(is_string($iconPath), $iconPath);
     	
     	$attr = arr::make($attr, TRUE) + array('src' => sbf($iconPath, ''));
@@ -1248,7 +1279,7 @@ class core_Html
 
         if(!empty($icon) && getFullPath($icon)) {
 
-            $attr['class'] .= ($attr['class'] ? ' ' : '') . 'linkWithIcon no-spell-check';
+            $attr['class'] .= ($attr['class'] ? ' ' : '') . 'linkWithIcon';
             
             $attr['style'] = self::getIconStyle($icon, $attr['style']);
         }
@@ -1261,20 +1292,18 @@ class core_Html
      * Връща стил с включен бекграунд за икона
      */
     static function getIconStyle($icon, $style = 'background-size:16px 16px;')
-    {
+    {   
         if(!empty($icon)) {
             if(log_Browsers::isRetina()) {
                 $icon2 = str_replace('/16/', '/32/', $icon);
+               
                 if(getFullPath($icon2)) {
                     $icon = $icon2;
                 }
             }
 
             $iconSrc = sbf($icon, '', Mode::is('text', 'xhtml'));
-            
-            $attr = array();
-            $attr['class'] .= ($attr['class'] ? ' ' : '') . 'linkWithIcon no-spell-check';
-            
+
             $style = rtrim($style, ' ;');
 
             $style .= ($style ? '; ' : '') . "background-image:url('{$iconSrc}');";
@@ -1303,5 +1332,25 @@ class core_Html
         return $attr;
     }
 
-
+	
+    /**
+     * Обграждане на стринга, ако подадения стринг е отрицателно число
+     * 
+     * @param mixed $verbal
+     * @param string|double $notVerbal
+     * @return string|core_ET $verbal
+     */
+    public static function styleIfNegative($verbal, $notVerbal)
+    {
+    	if($notVerbal < 0){
+    		if($verbal instanceof core_ET){
+    			$verbal->prepend("<span class='red'>");
+    			$verbal->append("</span>");
+    		} else {
+    			$verbal = "<span class='red'>{$verbal}</span>";
+    		}
+    	}
+    	
+    	return $verbal;
+    }
 }

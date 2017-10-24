@@ -53,7 +53,11 @@ class core_Cls
         }
 
         static $classNames = array();
-
+        
+        if (!stripos($className, '_')) {
+            $className = ucfirst($className);
+        }
+        
         $cln = $className;
 
         if(!isset($classNames[$cln])) {
@@ -105,7 +109,7 @@ class core_Cls
             
             if (!$silent) {
                 // Няма такъв клас
-                bp($className);
+                error('Няма такъв клас', $className);
             }
             
             return FALSE;
@@ -191,6 +195,11 @@ class core_Cls
             $obj = &core_Cls::$singletons[$class];
         } else {
             $obj = &cls::createObject($class, $initArr);
+        }
+
+        if(isset($obj->newClassName)) {
+
+            return self::get($obj->newClassName, $initArr);
         }
         
         return $obj;
@@ -432,22 +441,26 @@ class core_Cls
         
         // Ако има такъв метод в класа или неговото име с долна черта
         if(method_exists($classObj, $methodName) || method_exists($classObj, "{$methodName}_")){
-        	return TRUE;
+        	
+            return TRUE;
         }
         
         // Ако има on_After метод по подразбиране
         if(method_exists($classObj, "on_After{$methodName}")){
-        	return TRUE;
+        	
+            return TRUE;
         }
         
-        $plugins = $classObj->getPlugins();
-        
-        if(count($plugins)){
-        	foreach ($plugins as $name){
-        		if(method_exists($name, "on_After{$methodName}")){
-        			return TRUE;
-        		}
-        	}
+        if(is_a($classObj, 'core_BaseClass')) {
+            $plugins = $classObj->getPlugins();
+            
+            if(count($plugins)){
+                foreach ($plugins as $name){
+                    if(method_exists($name, "on_After{$methodName}")){
+                        return TRUE;
+                    }
+                }
+            }
         }
         
         return FALSE;

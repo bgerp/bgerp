@@ -47,7 +47,6 @@ class commformat_Plugin extends core_Plugin
 	       		 // искаме да намерим изрази като Email|E-mail|Mail|@ , за да сложим пред тях икона
 		         $html = preg_replace_callback("/^\s*((Имейл|Емайл|Е-майл|Email|E-mail|Mail|@)\.?\:? *)(([\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+)/umi", array($this, 'catchCommunicationEmailFormat'), $html);
 		         //$html = preg_replace_callback("/^\s*(([\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+)/umi", array($this, 'catchCommunicationEmailFormat'), $html);
-		        // bp($html);
 	       }
 	       
 	       if (in_array('icq', $format)) {
@@ -103,7 +102,7 @@ class commformat_Plugin extends core_Plugin
         $icon = sbf("img/16/world_link.png", '', $isAbsolute);
 	         	    
         // добавяме иконата пред името на услугата
-        $this->mvc->_htmlBoard[$place] =  "<span class = 'linkWithIcon no-spell-check' style = 'background-image:url({$icon})'>" .$match[2]. "</span>";
+        $this->mvc->_htmlBoard[$place] =  "<span style=\"" . ht::getIconStyle('img/16/world_link.png') . "\">" .$match[2]. "</span>";
       
         $communicationFormat = str_replace($match[2], "[#{$place}#]", $match[0]);
 
@@ -278,26 +277,26 @@ class commformat_Plugin extends core_Plugin
         		$icon = sbf("img/16/msn.png", '', $isAbsolute);
 
         	case 'msn' :
-        		$this->mvc->_htmlBoard[$place] =  "<span class = 'linkWithIcon no-spell-check' style = 'background-image:url({$icon})'><a class='url' href='msnim:chat?contact={$match[3]}' title='MSN'>{$match[1]}</a></span>{$email}";
+        		$this->mvc->_htmlBoard[$place] =  "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'><a class='url' href='msnim:chat?contact={$match[3]}' title='MSN'>{$match[1]}</a></span>{$email}";
         		break;
 
         	case 'xmpp' :
         	case 'jabber' :
-        		$this->mvc->_htmlBoard[$place] =  "<span class = 'linkWithIcon no-spell-check' style = 'background-image:url({$icon})'><a class='url' href='xmpp:{$match[3]}' title='{$match[2]}'>{$match[1]}</a></span>{$email}";
+        		$this->mvc->_htmlBoard[$place] =  "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'><a class='url' href='xmpp:{$match[3]}' title='{$match[2]}'>{$match[1]}</a></span>{$email}";
         	    break;
         		 
 	        case 'skype' : 
 		        $skypeUser = trim($match[3]);
         	
-        		$this->mvc->_htmlBoard[$place] =  "<span class = 'linkWithIcon no-spell-check' style = 'background-image:url({$icon})'>{$match[1]}<a class='url' href='skype:{$skypeUser}?call' title='Skype'>{$match[3]}</a></span>";
+        		$this->mvc->_htmlBoard[$place] =  "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'>{$match[1]}<a class='url' href='skype:{$skypeUser}?call' title='Skype'>{$match[3]}</a></span>";
 		        break;
 		        
 	        case 'aim' : 
-		        $this->mvc->_htmlBoard[$place] =  "<span class = 'linkWithIcon no-spell-check' style = 'background-image:url({$icon})'><a class='url' href='aim:goim?screenname={$match[3]}' title='AOL Instant Messenger (AIM)'>{$match[1]}</a></span>{$email}";
+		        $this->mvc->_htmlBoard[$place] =  "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'><a class='url' href='aim:goim?screenname={$match[3]}' title='AOL Instant Messenger (AIM)'>{$match[1]}</a></span>{$email}";
 		        break;
 		        
 	        case 'yim' :
-		        $this->mvc->_htmlBoard[$place] =  "<span class = 'linkWithIcon no-spell-check' style = 'background-image:url({$icon})'><a class='url' href='ymsgr:sendIM?{$match[3]}' title='Yahoo! Messenger'>{$match[1]}</a></span>{$email}";
+		        $this->mvc->_htmlBoard[$place] =  "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'><a class='url' href='ymsgr:sendIM?{$match[3]}' title='Yahoo! Messenger'>{$match[1]}</a></span>{$email}";
 		        break;
 		 		        
         }        
@@ -322,7 +321,7 @@ class commformat_Plugin extends core_Plugin
         if(!trim($match[3])) {
             return $match[0];
         }
-        //bp($match);
+
         // намираме мястото, което ще заместваме
         $place = $this->mvc->getPlace();
         
@@ -335,7 +334,7 @@ class commformat_Plugin extends core_Plugin
         // Иконата на класа
         $icon = sbf("img/16/{$matchElement}.png", '', $isAbsolute);
     
-		$this->mvc->_htmlBoard[$place] = "<span class = 'linkWithIcon no-spell-check' style = 'background-image:url({$icon})'><a class='url' type='application/x-icq' 
+		$this->mvc->_htmlBoard[$place] = "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'><a class='url' type='application/x-icq' 
 		href='http://www.icq.com/people/cmd.php?uin={$match[3]}&action=message'>{$match[3]}</a></span>";
 		
 	    // линк е мачнатия елемент, не името на услугата
@@ -376,7 +375,7 @@ class commformat_Plugin extends core_Plugin
 	    	$email = $Email->toVerbal($match[3]);
 	    	
 	    	// добавяме иконата пред името на услугата
-        	$this->mvc->_htmlBoard[$place] =  "<span class = 'linkWithIcon no-spell-check' style = 'background-image:url({$icon})'>" . $match[1]. " " . $email . "</span>";
+        	$this->mvc->_htmlBoard[$place] =  "<span class = 'linkWithIcon' style = 'background-image:url({$icon})'>" . $match[1]. " " . $email . "</span>";
 	    } else {
 	    	return $match[0];
 	    }

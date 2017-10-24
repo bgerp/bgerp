@@ -187,7 +187,6 @@ class log_System extends core_Manager
         $data->listFilter->input($data->listFilter->showFields, 'silent'); 
 
     	$query = $data->query;
-        $query->orderBy('#id=DESC');
         
         // Заявка за филтриране
         $fRec = $data->listFilter->rec;
@@ -212,7 +211,11 @@ class log_System extends core_Manager
         // Добавяме класовете, за които има запис в търсения резултат
         $classSuggArr = array();
         $cQuery = clone $query;
+        
         $cQuery->groupBy('className');
+        $cQuery->show('className');
+        $cQuery->orderBy('#className', 'ASC');
+        
         while ($cRec = $cQuery->fetch()) {
             
             $className = trim($cRec->className);
@@ -236,6 +239,8 @@ class log_System extends core_Manager
         if (trim($fRec->type)) {
             $query->where(array("#type = '[#1#]'", $fRec->type));
         }
+        
+        $query->orderBy('#id', 'DESC');
     }
     
     
@@ -246,7 +251,9 @@ class log_System extends core_Manager
     {
         $row->ROW_ATTR['class'] = "logs-type-{$rec->type}";
         
-        $row->what = log_Data::prepareText($rec->detail, $rec->className, $rec->objectId);
+        $detail = core_Type::escape($rec->detail);
+        
+        $row->what = log_Data::prepareText($detail, $rec->className, $rec->objectId);
     }
     
     

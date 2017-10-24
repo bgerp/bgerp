@@ -76,6 +76,8 @@ class bgerp_F extends core_Manager
         // Името на файла
         $name = Request::get('n');
         
+        $bucketId = Request::get('b');
+        
         // Името в долен регистър
         $name = mb_strtolower($name);
         
@@ -109,48 +111,58 @@ class bgerp_F extends core_Manager
         // Ако докъмента е отхвърлен, да не се показва на нерегистрирани потребители
         if ($docRec->state == 'rejected') {
             
-            requireRole('user');
+            requireRole('powerUser');
         }
+        
+        Mode::push('saveObjectsToCid', $actRec->containerId);
         
         // Вземаме линкнатите файлове в документите
         $linkedFiles = $doc->getLinkedFiles();
         
-        // Имената на файловете в долен регистър
-        $linkedFiles = array_map('mb_strtolower', $linkedFiles);
+        Mode::pop('saveObjectsToCid');
         
-        // Ако няма такъв файл
-        if (!$fh = array_search($name, $linkedFiles)) {
+        $resFileHnd = '';
+        
+        foreach ((array)$linkedFiles as $fh => $fName) {
+            $fName = mb_strtolower($fName);
             
-            // Обхождаме масива с файловете в документа
-            foreach ($linkedFiles as $fh => $dummy) {
+            if ($name == $fName) {
                 
-                // Вземаме записа
                 $fRec = fileman_Files::fetchByFh($fh);
                 
-                // Ако името съвпада
-                if (mb_strtolower($fRec->name) == $name) {
+                // TODO - remove !isset($bucketId)
+                if (!isset($bucketId) || $fRec->bucketId == $bucketId) {
+                    $resFileHnd = $fh;
                     
-                    // Флаг
-                    $exist = TRUE;
-                    
-                    // Прекъсваме
                     break;
                 }
             }
-            
-            // Ако файла съществува в масива
-            expect($exist, 'Няма такъв файл.');
-        } else {
-            
-            // Записите за файла
-            $fRec = fileman_Files::fetchByFh($fh);
         }
         
+        // Ако файлът липсва в подадения масив
+        // Проверяваме записите 
+        if (!$resFileHnd) {
+            foreach ((array)$linkedFiles as $fh => $fName) {
+                $fRec = fileman_Files::fetchByFh($fh);
+                
+                if (mb_strtolower($fRec->name) == $name) {
+                    // TODO - remove !isset($bucketId)
+                    if (!isset($bucketId) || $fRec->bucketId == $bucketId) {
+                        $resFileHnd = $fh;
+                
+                        break;
+                    }
+                }
+            }
+        }
+        
+        expect($resFileHnd, 'Няма такъв файл');
+        
         // В зависимост от това дали има права за разгреждане - линк към сингъла или за сваляне
-        $url = fileman_Files::generateUrl_($fh, TRUE);
+        $url = fileman_Files::generateUrl_($resFileHnd, TRUE);
         
         // Записваме в лога за файлове, информация за свалянето
-        doclog_Documents::downloaded($mid, $fh);
+        doclog_Documents::downloaded($mid, $resFileHnd);
         
         // Редиректваме към линка
         return new Redirect($url);
@@ -203,7 +215,7 @@ class bgerp_F extends core_Manager
             if ($docRec->state == 'rejected') {
                 
                 // Само логнати могат да разглеждат
-                requireRole('user');
+                requireRole('powerUser');
             }
             
             // Вземаме линкнатите файлове в документите
@@ -214,11 +226,11 @@ class bgerp_F extends core_Manager
         }
         
         // Запис за картинката
-        $imgRec = fileman_GalleryImages::fetch(array("#title = '[#1#]'", $name));
+        $imgRec = cms_GalleryImages::fetch(array("#title = '[#1#]'", $name));
         expect($imgRec, 'Няма информация за файла');
         
         // Запис за групата
-        $groupRec = fileman_GalleryGroups::fetch($imgRec->groupId);
+        $groupRec = cms_GalleryGroups::fetch($imgRec->groupId);
         expect($groupRec, 'Няма информация за файла');
         
         // Широчината и височината на картинката
@@ -239,7 +251,7 @@ class bgerp_F extends core_Manager
             // Форсираме свалянето му
             $Img->forceDownload();
         } else {
-            if (fileman_GalleryImages::haveRightFor('single', $imgRec)) {
+            if (cms_GalleryImages::haveRightFor('single', $imgRec)) {
                 
                 // Вземаме деферед URL
                 $url = $Img->getUrl('deferred');
@@ -342,7 +354,7 @@ class bgerp_F extends core_Manager
         
             $host = defined('BGERP_ABSOLUTE_HTTP_HOST') ? BGERP_ABSOLUTE_HTTP_HOST : $_SERVER['HTTP_HOST'];
         
-            $form->info = "<div class='formNotice'>" . tr("Внимание|*! |Понеже линкът сочи към локален адрес|* ({$host}), |той няма да е достъпен от други компютри в интернет|*.") . "</div>";
+            $form->info = "<div class='formNotice'>" . tr("Внимание|*! |Понеже линкът сочи към локален адрес|* ({$host}), |той няма да е достъпен от други компютри в Интернет|*.") . "</div>";
         }
         
         if ($form->isSubmitted()) {
@@ -360,14 +372,14 @@ class bgerp_F extends core_Manager
             
             $form->setField('validity', 'input=none');
             	
-            $form->toolbar->addBtn('Затваряне', $retUrl, 'ef_icon = img/16/close16.png, title=' . tr('Връщане към файла') . ', class=fright');
+            $form->toolbar->addBtn('Затваряне', $retUrl, 'ef_icon = img/16/close-red.png, title=' . tr('Връщане към файла') . ', class=fright');
             
             $form->title = "Линк за сваляне активен|* " . $this->getVerbal($rec, 'validity');
             
             fileman::updateLastUse($fRec, dt::addSecs($form->rec->validity));
         } else {
             $form->toolbar->addSbBtn('Генериране', 'save', 'ef_icon = img/16/world_link.png, title = ' . tr('Генериране на линк за сваляне'));
-            $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png, title= ' . tr('Прекратяване на действията'));
+            $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png, title= ' . tr('Прекратяване на действията'));
         }
         
         Mode::set('pageMenu', 'Система');

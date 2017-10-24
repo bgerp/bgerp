@@ -16,4 +16,16 @@
  */
 class doc_PrototypeSourceIntf
 {
+	
+	
+	/**
+	 * Дали документа може да бъде направен на шаблон
+	 * 
+	 * @param mixed $id
+	 * @return boolean
+	 */
+	function canBeTemplate($id)
+	{
+		return $this->class->canBeTemplate($id);
+	}
 }

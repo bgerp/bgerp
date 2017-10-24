@@ -50,127 +50,143 @@ class type_Users extends type_Keylist
      * Ако е посочен суфикс, извеждате се само интерфейсите
      * чието име завършва на този суфикс
      */
-    public function prepareOptions()
+    public function prepareOptions($value = NULL)
     {
         core_Debug::log('Start user options');
 
         $mvc = cls::get($this->params['mvc']);
-        
-        $mvc->invoke('BeforePrepareKeyOptions', array(&$this->options, $this));
-        
-        if (isset($this->options)) {
-            
-            return $this->options;
-        }
-        
-        // Вариант 1: Потребителя няма права да вижда екипите
-        // Тогава евентуално можем да покажем само една опция, и тя е с текущия потребител
-        if(!haveRole($this->params['rolesForTeams'])) {
-            if(haveRole($this->params['roles'])) {
-                $key = static::getUserWithFirstTeam(core_Users::getCurrent());
-                $this->options[$key] = new stdClass();
-                $this->options[$key]->title = core_Users::getCurrent('names') . ' (' . type_Nick::normalize(core_Users::getCurrent('nick')) . ')';
-                $this->options[$key]->keylist = '|' . core_Users::getCurrent() . '|';
-            } else {
-                $this->options = array();
+                
+        if(!isset($this->options)) {
+         
+            // Към екипните роли добавяме ролите за всички потребители
+            if ($this->params['rolesForAll'] && $this->params['rolesForAll'] != 'no_one') {
+                $rolesForAll = arr::make($this->params['rolesForAll'], TRUE);
+                $rolesForTeams = arr::make($this->params['rolesForTeams'], TRUE);
+                
+                $rolesForTeams += $rolesForAll;
+                
+                $this->params['rolesForTeams'] = implode(',', $rolesForTeams);
             }
             
-            return;
-        } else {
-            
-            $uQuery = core_Users::getQuery();
-            $uQuery->orderBy("#names", 'ASC');
-            
-            // Потребителите, които ще покажем, трябва да имат посочените роли
-            $roles = core_Roles::getRolesAsKeylist($this->params['roles']);
-            $uQuery->likeKeylist('roles', $roles);
-            
-            // Масива, където ще пълним опциите
-            $this->options = array();
-            
-            if(haveRole($this->params['rolesForAll'])) {
-                // Показваме всички екипи
-                $teams = core_Roles::getRolesByType('team');
-                
-                // Добавя в началото опция за избор на всички потребители на системата
-                $all = new stdClass();
-                $all->title = tr("Всички потребители");
-                $all->attr = array('class' => 'all-users', 'style' => 'color:#777;');
-                $uQueryCopy = clone($uQuery);
-                $allUsers = '';
-                
-                while($uRec = $uQueryCopy->fetchAndCache()) {  
-                    $allUsers .= $allUsers ? '|' . $uRec->id : $uRec->id;
-                }
-                $all->keylist = keylist::normalize("|{$allUsers}|-1|0|");
-                $this->options['all_users'] = $all;
-            } else {
-                // Показваме само екипите на потребителя
-                $teams = core_Users::getUserRolesByType(NULL, 'team');
-            }
-            
-            $teams = keylist::toArray($teams);
-            
-            $userArr = core_Users::getRolesWithUsers();
-
-           // bp($res);
-
-            foreach($teams as $t) {
-                $group = new stdClass();
-                $tRole = core_Roles::fetchById($t);
-                $group->title = tr('Екип') . " \"" . $tRole . "\"";
-                $group->attr = array('class' => 'team', 'style' => 'background-color:#000;color:#fc0');
-                
-                $this->options[$t . ' team'] = $group;
-                              
-                $teamMembers = '';
-                
-                $haveTeamMembers = FALSE;
-              
-                foreach((array)$userArr[$t] as $uId) {
-                    
-                    $uRec = $userArr['r'][$uId];
-                    $uRec->id = $uId;
-
-                    if ($uRec->state != 'rejected') {
-                        $key = $t . '_' . $uId;
-                        $this->options[$key] = new stdClass();
-                        $this->options[$key]->title = $uRec->nick . " (" . $uRec->names . ")";
-                        $this->options[$key]->keylist = '|' . $uId . '|';
-                        $haveTeamMembers = TRUE;
-                    } else {
-                        $rejected .= $rejected ? '|' . $uId : $uId;
-                    }
-                    
-                    $teamMembers .= $teamMembers ? '|' . $uId : $uId;
-                }
-                
-                if($haveTeamMembers) {
-                    // Добавка за да има все пак разлика между един потребител и екип,
-                    // в който само той е участник
-                    if(strpos($teamMembers, '|') === FALSE) {
-                        $teamMembers = "{$teamMembers}|{$teamMembers}";
-                    }
-                    $this->options[$t . ' team']->keylist = keylist::normalize("|{$teamMembers}|");
+            // Вариант 1: Потребителя няма права да вижда екипите
+            // Тогава евентуално можем да покажем само една опция, и тя е с текущия потребител
+            if(!haveRole($this->params['rolesForTeams'])) {
+                if(haveRole($this->params['roles'])) {
+                    $key = static::getUserWithFirstTeam(core_Users::getCurrent());
+                    $this->options[$key] = new stdClass();
+                    $this->options[$key]->title = core_Users::getCurrent('names') . ' (' . type_Nick::normalize(core_Users::getCurrent('nick')) . ')';
+                    $this->options[$key]->keylist = '|' . core_Users::getCurrent() . '|';
                 } else {
-                    unset($this->options[$t . ' team']);
+                    $this->options = array();
                 }
-
-
+                
+                return;
+            } else {
+                
+                $uQuery = core_Users::getQuery();
+                $uQuery->orderBy("#names", 'ASC');
+                
+                // Потребителите, които ще покажем, трябва да имат посочените роли
+                $roles = core_Roles::getRolesAsKeylist($this->params['roles']);
+                $uQuery->likeKeylist('roles', $roles);
+                
+                // Масива, където ще пълним опциите
+                $this->options = array();
+                
+                if(haveRole($this->params['rolesForAll'])) {
+                    
+                    $removeClosedGroups = TRUE;
+                    if ($this->params['showClosedGroups']) {
+                        $removeClosedGroups = FALSE;
+                    }
+                    
+                    // Показваме всички екипи
+                    $teams = core_Roles::getRolesByType('team', 'keylist', $removeClosedGroups);
+                    
+                    // Добавя в началото опция за избор на всички потребители на системата
+                    $all = new stdClass();
+                    $all->title = tr("Всички потребители");
+                    $all->attr = array('class' => 'all-users', 'style' => 'color:#777;');
+                    $uQueryCopy = clone($uQuery);
+                    $allUsers = '';
+                    
+                    while($uRec = $uQueryCopy->fetchAndCache()) {  
+                        $allUsers .= $allUsers ? '|' . $uRec->id : $uRec->id;
+                    }
+                    $all->keylist = keylist::normalize("|{$allUsers}|-1|0|");
+                    $this->options['all_users'] = $all;
+                } else {
+                    // Показваме само екипите на потребителя
+                    $teams = core_Users::getUserRolesByType(NULL, 'team');
+                }
+                
+                $teams = keylist::toArray($teams);
+                
+                $rolesArr = type_Keylist::toArray($roles);
+                
+                $userArr = core_Users::getRolesWithUsers();
+                
+                foreach($teams as $t) {
+                    $group = new stdClass();
+                    $tRole = core_Roles::fetchById($t);
+                    $group->title = tr('Екип') . " \"" . $tRole . "\"";
+                    $group->attr = array('class' => 'team', 'style' => 'background-color:#000;color:#fc0');
+                    
+                    $this->options[$t . ' team'] = $group;
+                                  
+                    $teamMembers = '';
+                    
+                    $haveTeamMembers = FALSE;
+                  
+                    foreach((array)$userArr[$t] as $uId) {
+                        
+                        $uRec = $userArr['r'][$uId];
+                        $uRec->id = $uId;
+                        
+                        if (!empty($rolesArr)) {
+                            if (!type_Keylist::isIn($rolesArr, $uRec->roles)) continue;
+                        }
+                        
+                        if ($uRec->state != 'rejected') {
+                            $key = $t . '_' . $uId;
+                            $this->options[$key] = new stdClass();
+                            $this->options[$key]->title = $uRec->nick . " (" . $uRec->names . ")";
+                            $this->options[$key]->keylist = '|' . $uId . '|';
+                            $haveTeamMembers = TRUE;
+                        } else {
+                            $rejected .= $rejected ? '|' . $uId : $uId;
+                        }
+                        
+                        $teamMembers .= $teamMembers ? '|' . $uId : $uId;
+                    }
+                    
+                    if($haveTeamMembers) {
+                        // Добавка за да има все пак разлика между един потребител и екип,
+                        // в който само той е участник
+                        if(strpos($teamMembers, '|') === FALSE) {
+                            $teamMembers = "{$teamMembers}|{$teamMembers}";
+                        }
+                        $this->options[$t . ' team']->keylist = keylist::normalize("|{$teamMembers}|");
+                    } else {
+                        unset($this->options[$t . ' team']);
+                    }
+                }
+            }
+            
+            // Добавка за оттеглените потребители
+            if($rejected) {
+                $key = 'rejected';
+                $this->options[$key] = new stdClass();
+                $this->options[$key]->title = tr("Оттеглени потребители");
+                $this->options[$key]->keylist = '|' . $rejected . '|';
+                $this->options[$key]->attr = array('class' => 'team');
             }
         }
-        
-        // Добавка за оттеглените потребители
-        if($rejected) {
-            $key = 'rejected';
-            $this->options[$key] = new stdClass();
-            $this->options[$key]->title = tr("Оттеглени потребители");
-            $this->options[$key]->keylist = '|' . $rejected . '|';
-            $this->options[$key]->attr = array('class' => 'team');
+
+        if(isset($this->params['filter'])) {
+            call_user_func($this->params['filter'], $this);
         }
-       
-        $mvc->invoke('AfterPrepareKeyOptions', array(&$this->options, $this));
-        
+               
         core_Debug::log('Stop user options');
 
         return $this->options;
@@ -230,8 +246,23 @@ class type_Users extends type_Keylist
     function fromVerbal_($value)
     {
         $this->prepareOptions();
-       
+        
         if (isset($value) && !$this->options[$value]) {
+            if(strpos($value, '_')) {
+                list($gr, $value) = explode('_', $value);
+            }
+            if(is_numeric($value)) {
+                foreach($this->options as $key => $opt) { 
+                    if(strpos($key, '_')) { 
+                        list($gr, $usr) = explode('_', $key);
+                        if($usr == $value) {
+
+                            return $opt->keylist;
+                        }
+                    }
+                }
+            }
+
             $this->error = 'Некоректна стойност';
             
             return FALSE;

@@ -78,7 +78,7 @@ class support_Setup extends core_ProtoSetup
         
         //инсталиране на кофата
         $Bucket = cls::get('fileman_Buckets');
-        $html .= $Bucket->createBucket('Support', 'Прикачени файлове в поддръжка', NULL, '300 MB', 'user', 'user');
+        $html .= $Bucket->createBucket('Support', 'Прикачени файлове в поддръжка', NULL, '300 MB', 'powerUser', 'every_one');
         
         return $html;
     }

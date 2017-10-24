@@ -29,7 +29,7 @@ class sens2_Indicators extends core_Manager
     /**
      * Необходими мениджъри
      */
-    var $loadList = 'plg_RowTools, sens2_Wrapper, plg_AlignDecimals, plg_RefreshRows, plg_Rejected, plg_State';
+    var $loadList = 'plg_RowTools2, sens2_Wrapper, plg_AlignDecimals, plg_RefreshRows, plg_Rejected, plg_State';
     
     
     /**
@@ -213,15 +213,15 @@ class sens2_Indicators extends core_Manager
 
         self::save($rec);
 	
-	if(!$rec->error) {
-            // Записваме и в контекста, ако има такъв
-            if(self::$contex) {
-            $title = self::getRecTitle($rec);
-                self::$contex[$title] = $value;
-            }
-	
-            return $rec->id;
-	}
+        if(!$rec->error) {
+                // Записваме и в контекста, ако има такъв
+                if(self::$contex) {
+                $title = self::getRecTitle($rec);
+                    self::$contex[$title] = $value;
+                }
+        
+                return $rec->id;
+        }
     }
 
 

@@ -56,8 +56,8 @@ class purchase_Offers extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Rejected, plg_State2, plg_SaveAndNew, doc_plg_BusinessDoc, acc_plg_DocumentSummary,
-						purchase_Wrapper, doc_DocumentPlg, doc_EmailCreatePlg, doc_ActivatePlg';
+    var $loadList = 'plg_RowTools2, plg_Rejected, plg_State2, plg_SaveAndNew, doc_plg_BusinessDoc, acc_plg_DocumentSummary,
+						purchase_Wrapper,plg_Clone, doc_DocumentPlg, doc_EmailCreatePlg, doc_ActivatePlg';
 
     
     
@@ -65,6 +65,12 @@ class purchase_Offers extends core_Master
      * Кой има право да чете?
      */
     var $canRead = 'ceo,purchase';
+    
+    
+    /**
+     * Име на документа в бързия бутон за добавяне в папката
+     */
+    public $buttonInFolderTitle = 'Вх. оферта';
     
     
     /**
@@ -120,6 +126,15 @@ class purchase_Offers extends core_Master
     
     
     var $filterDateField = 'date';
+
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'sum,date';
+    
     
     /**
      * Описание на модела (таблицата)
@@ -183,7 +198,7 @@ class purchase_Offers extends core_Master
      * В кои корици може да се вкарва документа
      * @return array - интерфейси, които трябва да имат кориците
      */
-    public static function getAllowedFolders()
+    public static function getCoversAndInterfacesForNewDoc()
     {
     	return array('crm_ContragentAccRegIntf');
     }

@@ -72,7 +72,7 @@ class support_Components extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'support_Wrapper, plg_RowTools, plg_Sorting, plg_State';
+    var $loadList = 'support_Wrapper, plg_RowTools2, plg_Sorting, plg_State';
     
     
     /**

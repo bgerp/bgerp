@@ -23,7 +23,7 @@ class avatar_Plugin extends core_Plugin
     function on_AfterDescription(&$mvc)
     {
         if(!$mvc->fields['avatar']) {
-            $mvc->FLD('avatar', 'fileman_FileType(bucket=Avatars)', 'caption=Аватар');
+            $mvc->FLD('avatar', 'fileman_FileType(bucket=Avatars)', 'caption=Лице->Аватар,after=email');
         }
     }
     

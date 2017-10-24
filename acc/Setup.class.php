@@ -52,6 +52,37 @@ defIfNot('ACC_VAT_REASON_IN_EU', 'чл.53 от ЗДДС – ВОД');
 defIfNot('ACC_VAT_REASON_OUTSIDE_EU', 'чл.28 от ЗДДС – износ извън ЕС');
 
 
+
+/**
+ * Роли за всички при филтриране
+ */
+defIfNot('ACC_SUMMARY_ROLES_FOR_ALL', 'ceo,admin');
+
+
+/**
+ * Роли за екипите при филтриране
+ */
+defIfNot('ACC_SUMMARY_ROLES_FOR_TEAMS', 'ceo,admin,manager');
+
+
+/**
+ * Класове, които ще разширяват правата за контиране на документ
+ */
+defIfNot('ACC_CLASSES_FOR_VIEW_ACCESS', '');
+
+
+/**
+ * Класове по-подразбиране, които ще пълнята ACC_CLASSES_FOR_VIEW_ACCESS, ако няма стойност
+ */
+defIfNot('ACC_CLASSES_FOR_VIEW_ACCESS_NAME', 'bank_ExchangeDocument, bank_IncomeDocuments, bank_InternalMoneyTransfer, cash_InternalMoneyTransfer, purchase_Services, planning_DirectProductionNote, planning_ConsumptionNotes, planning_ReturnNotes, cash_Pko, cash_Rko, store_ShipmentOrders, sales_Services, store_ConsignmentProtocols, store_Receipts, store_Transfers');
+
+
+/**
+ * Ден от месеца за изчисляване на Счетоводна дата на входяща фактура
+ */
+defIfNot('ACC_DATE_FOR_INVOICE_DATE', '10');
+
+
 /**
  * class acc_Setup
  *
@@ -131,6 +162,8 @@ class acc_Setup extends core_ProtoSetup
     	'migrate::updateItemsEarliestUsedOn',
         'migrate::updateAllFL',
         'migrate::updateFeatureTitles',
+    	'migrate::updateCostObjectDocuments1',
+    	'migrate::removeRoleAllGlobalNew'
     );
     
     
@@ -144,6 +177,10 @@ class acc_Setup extends core_ProtoSetup
     	'ACC_VAT_REASON_OUTSIDE_EU'           => array('varchar', 'caption=Основание за неначисляване на ДДС за контрагент->Извън ЕС'),
     	'ACC_VAT_REASON_IN_EU'                => array('varchar', 'caption=Основание за неначисляване на ДДС за контрагент->От ЕС'),
     	'ACC_COST_OBJECT_DOCUMENTS'           => array('keylist(mvc=core_Classes,select=name)', "caption=Кои документи могат да бъдат разходни обекти->Документи,optionsFunc=acc_Setup::getDocumentOptions"),
+        'ACC_SUMMARY_ROLES_FOR_TEAMS'         => array('varchar', 'caption=Роли за екипите при филтриране->Роли'),
+        'ACC_SUMMARY_ROLES_FOR_ALL'           => array('varchar', 'caption=Роли за всички при филтриране->Роли'),
+        'ACC_CLASSES_FOR_VIEW_ACCESS'         => array('keylist(mvc=core_Classes, select=title)', 'caption=Класове|*&#44; |*които ще разширяват правата за контиране на документи->Класове, optionsFunc=acc_Setup::getAccessClassOptions', array('data-role' => 'list')),
+		'ACC_DATE_FOR_INVOICE_DATE'			  => array('int(min=1,max=31)', 'caption=Ден от месеца за изчисляване на Счетоводна дата на входяща фактура->Ден'),
     );
     
     
@@ -151,10 +188,29 @@ class acc_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     var $roles = array(
+    	array('seePrice'),
+    	array('invoicer'),
     	array('accJournal'),
-    	array('acc', 'accJournal'),
+    	array('acc', 'accJournal,invoicer,seePrice'),
         array('accMaster', 'acc'),
-    	array('accLimits'),
+        array('accLimits'),
+        array('allGlobal'),
+        array('invoiceAll'),
+        array('invoiceAllGlobal', 'invoiceAll, allGlobal'),
+        array('storeAll'),
+        array('storeaAllGlobal', 'storeAll, allGlobal'),
+        array('bankAll'),
+        array('bankAllGlobal', 'bankAll, allGlobal'),
+        array('cashAll'),
+        array('cashAllGlobal', 'cashAll, allGlobal'),
+        array('saleAll'),
+        array('saleAllGlobal', 'saleAll, allGlobal'),
+        array('purchaseAll'),
+        array('purchaseAllGlobal', 'purchaseAll, allGlobal'),
+        array('planningAll'),
+        array('planningAllGlobal', 'planningAll, allGlobal'),
+        array('rep_acc'),
+
     );
     
     
@@ -163,7 +219,7 @@ class acc_Setup extends core_ProtoSetup
      */
     var $menuItems = array(
         array(2.1, 'Счетоводство', 'Книги', 'acc_Balances', 'default', "acc, ceo"),
-        array(2.3, 'Счетоводство', 'Настройки', 'acc_Periods', 'default', "acc, ceo"),
+        array(2.3, 'Счетоводство', 'Настройки', 'acc_Periods', 'default', "acc, ceo, admin"),
     );
     
     
@@ -232,7 +288,7 @@ class acc_Setup extends core_ProtoSetup
     					acc_reports_CorespondingImpl,acc_reports_SaleArticles,acc_reports_SaleContractors,acc_reports_OweProviders,
     					acc_reports_ProfitArticles,acc_reports_ProfitContractors,acc_reports_MovementContractors,acc_reports_TakingCustomers,
     					acc_reports_ManufacturedProducts,acc_reports_PurchasedProducts,acc_reports_BalancePeriodImpl, acc_reports_ProfitSales,
-                        acc_reports_MovementsBetweenAccounts";
+                        acc_reports_MovementsBetweenAccounts,acc_reports_ProductGroupRep,acc_reports_MovementArtRep";
     
     
     /**
@@ -257,20 +313,79 @@ class acc_Setup extends core_ProtoSetup
     	
     	// Ако потребителя не е избрал документи, които могат да са разходни пера
     	if(strlen($docs) === 0){
-    		$docArr = array();
-    		foreach (array('cal_Tasks', 'sales_Sales', 'purchase_Purchases', 'accda_Da', 'findeals_Deals', 'findeals_AdvanceDeals') as $doc){
-    			if(core_Classes::add($doc)){
-    				$id = $doc::getClassId();
-    				$docArr[$id] = $id;
-    			}
-    		}
-    
-    		// Записват се ид-та на дефолт сметките за синхронизация
-    		core_Packs::setConfig('acc', array('ACC_COST_OBJECT_DOCUMENTS' => keylist::fromArray($docArr)));
+    		$this->getCostObjectDocuments();
     		$res .= "<li style='color:green'>Добавени са дефолт документи за разходни пера</li>";
     	}
-    
+    	
+    	$viewAccess = self::get('CLASSES_FOR_VIEW_ACCESS');
+    	
+    	// Ако не е сетната стойност, задаваме класовете от константата
+    	if (!strlen($viewAccess)) {
+    	    $viewAccessNameArr = type_Set::toArray(self::get('CLASSES_FOR_VIEW_ACCESS_NAME'));
+    	    if (!empty($viewAccessNameArr)) {
+    	        
+    	        $clsIdArr = array();
+    	        
+    	        foreach ($viewAccessNameArr as $clsName) {
+    	            
+    	            $clsName = trim($clsName);
+    	            if (!$clsName) continue;
+    	            
+    	            if (!cls::load($clsName, TRUE)) continue;
+    	            
+    	            $clsId = core_Classes::getId($clsName);
+    	            
+    	            $clsIdArr[$clsId] = $clsId;
+    	        }
+    	        
+    	        $clsIds = type_Keylist::fromArray($clsIdArr);
+    	        
+    	        core_Packs::setConfig('acc', array('ACC_CLASSES_FOR_VIEW_ACCESS' => $clsIds));
+    	    }
+    	}
+    	
     	return $res;
+    }
+    
+    
+    /**
+     * 
+     * @param core_Type $type
+     * @param array $otherParams
+     * 
+     * @return array
+     */
+    public static function getAccessClassOptions($type, $otherParams)
+    {
+        
+        return core_Classes::getOptionsByInterface('acc_TransactionSourceIntf', 'title');
+    }
+    
+    
+    /**
+     * Кои документи по дефолт да са разходни обекти
+     */
+    function getCostObjectDocuments()
+    {
+    	$docArr = array();
+    	foreach (array('cal_Tasks', 'sales_Sales', 'purchase_Purchases', 'accda_Da', 'findeals_Deals', 'findeals_AdvanceDeals', 'planning_DirectProductionNote', 'store_Transfers') as $doc){
+    		if(core_Classes::add($doc)){
+    			$id = $doc::getClassId();
+    			$docArr[$id] = $id;
+    		}
+    	}
+    	 
+    	// Записват се ид-та на дефолт сметките за синхронизация
+    	core_Packs::setConfig('acc', array('ACC_COST_OBJECT_DOCUMENTS' => keylist::fromArray($docArr)));
+    }
+    
+    
+    /**
+     * Функция за обноявяване на разходните обекти
+     */
+    function updateCostObjectDocuments1()
+    {
+    	$this->getCostObjectDocuments();
     }
     
     
@@ -448,5 +563,14 @@ class acc_Setup extends core_ProtoSetup
         while($fRec = $fQuery->fetch()) {  
             acc_Features::save($fRec);
         }
+    }
+    
+    
+    /**
+     * Премахване на ролята `allGlobal`, защото наследява други
+     */
+    function removeRoleAllGlobalNew()
+    {
+        core_Roles::removeRoles(array(core_Roles::fetchByName('allGlobal')));
     }
 }

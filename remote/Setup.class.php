@@ -1,6 +1,11 @@
 <?php
 
 
+/**
+ * Получаване на нотификации от отдалечени системи
+ */
+defIfNot('REMOTE_RECEIVE_NOTIFICATIONS', 'yes');
+
 
 /**
  * class newsbar_Setup
@@ -42,6 +47,14 @@ class remote_Setup extends core_ProtoSetup
      * Описание на модула
      */
     var $info = "Оторизация от и към външни услуги";
+    
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+        'REMOTE_RECEIVE_NOTIFICATIONS' => array ('enum(yes=Да,no=Не)', 'caption=Получаване на нотификации от отдалечени системи->Избор, customizeBy=powerUser'),
+        );
 
     
     /**
@@ -76,7 +89,6 @@ class remote_Setup extends core_ProtoSetup
     	 
         $html .= core_Classes::add('remote_BgerpDriver');
 
-        
         $rec = new stdClass();
         $rec->systemId = "UpdateRemoteNotification";
         $rec->description = "Обновяване на отдалечени нотификации";

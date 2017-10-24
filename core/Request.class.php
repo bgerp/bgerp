@@ -132,7 +132,9 @@ class core_Request
     static function isConfirmed()
     {
         $id = self::get('id');
-        if(self::get('Cf') === self::getSessHash($id)) {
+        $act = self::get('Act');
+
+        if(self::get('Cf') === self::getSessHash($act . $id)) {
 
             return TRUE;
         }

@@ -66,7 +66,7 @@ class email_SendOnTime extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, object=Документ, sendOn=Изпращане->На, createdBy=Изпращане->От, boxFrom=Изпращане->Адрес, emailsTo, emailsCc, faxTo, faxService, sentOn';
+    var $listFields = 'id, object=Документ, delaySendOn=Изпращане->На, createdBy=Изпращане->От, boxFrom=Изпращане->Адрес, emailsTo, emailsCc, faxTo, faxService, sentOn';
     
     
     /**
@@ -77,11 +77,10 @@ class email_SendOnTime extends core_Manager
         $this->FLD('class', 'varchar(64, ci)', 'caption=Клас, oldFieldName=classId');
         $this->FLD('objectId', 'int', 'caption=Обект');
         $this->FLD('data', 'blob(serialize, compress)', 'caption=Данни');
-        $this->FLD('delay', 'time', 'caption=Отлагане');
+        $this->FLD('delaySendOn', 'datetime(format=smartTime)', 'caption=Изпращане на');
         $this->FLD('sentOn', 'datetime(format=smartTime)', 'caption=Изпратено на');
-        $this->FLD('state', 'enum(pending=Чакащо,stopped=Спряно,closed=Приключено)', 'caption=Състояние, notNull');
+        $this->FLD('state', 'enum(waiting=Чакащо,stopped=Спряно,closed=Приключено)', 'caption=Състояние, notNull');
         
-        $this->FNC('sendOn', 'datetime(format=smartTime)', 'caption=Изпращане->На');
         $this->FNC('emailsTo', 'emails', 'caption=Изпращане->До');
         $this->FNC('emailsCc', 'emails', 'caption=Изпращане->Копие');
         $this->FNC('faxTo', 'drdata_PhoneType', 'caption=Изпращане->Факс');
@@ -96,7 +95,7 @@ class email_SendOnTime extends core_Manager
      * @param integer $class
      * @param integer $objectId
      * @param array $data
-     * @param integer $delay
+     * @param datetime $delay
      * 
      * @return integer
      */
@@ -106,8 +105,8 @@ class email_SendOnTime extends core_Manager
         $rec->class = $class;
         $rec->objectId = $objectId;
         $rec->data = $data;
-        $rec->delay = $delay;
-        $rec->state = 'pending';
+        $rec->delaySendOn = $delay;
+        $rec->state = 'waiting';
         
         return self::save($rec);
     }
@@ -125,8 +124,8 @@ class email_SendOnTime extends core_Manager
         $query = self::getQuery();
         $query->where(array("#objectId = [#1#]", $objectId));
         
-        $query->where("#state = 'pending'");
-        $query->orderBy('delay', 'ASC');
+        $query->where("#state = 'waiting'");
+        $query->orderBy('delaySendOn', 'ASC');
         $resArr = array();
         
         while ($rec = $query->fetch()) {
@@ -142,14 +141,39 @@ class email_SendOnTime extends core_Manager
     
     
     /**
+     * Спира разпращането
      * 
+     * @param stdObject|int $id
      * 
-     * @param email_SendOnTime $mvc
-     * @param stdObject $rec
+     * @return array
      */
-    static function on_CalcSendOn($mvc, $rec)
+    public static function stopSending($id)
     {
-        $rec->sendOn = dt::addSecs($rec->delay, $rec->createdOn);
+        $rec = self::fetchRec($id);
+        
+        expect($rec);
+        
+        $res = array();
+        
+        if ($rec->state != 'waiting') return $res;
+        
+        $rec->state = 'stopped';
+        
+        $msg = 'Спряно изпращане';
+        $type = 'notice';
+        if (self::save($rec, 'state')) {
+            email_Outgoings::logWrite($msg, $rec->objectId);
+            email_Outgoings::touchRec($rec->objectId);
+        } else {
+            $msg = 'Грешка при спиране на изпращането';
+            $type = 'error';
+            email_Outgoings::logErr($msg, $rec->objectId);
+        }
+        
+        $res['msg'] = $msg;
+        $res['type'] = $type;
+        
+        return $res;
     }
     
     
@@ -218,30 +242,21 @@ class email_SendOnTime extends core_Manager
      */
     function act_Stop()
     {
-        self::requireRightFor('stop');
+        $this->requireRightFor('stop');
         
         $id = Request::get('id', 'int');
         
-        self::requireRightFor('stop', $id);
+        $rec = $this->fetch($id);
         
-        expect($rec = self::fetch($id));
+        expect($rec);
         
-        expect($rec->state == 'pending');
+        expect($rec->state == 'waiting');
         
-        $rec->state = 'stopped';
+        $this->requireRightFor('stop', $rec);
         
-        $msg = 'Спряно изпращане';
-        $type = 'notice';
-        if (self::save($rec, 'state')) {
-            email_Outgoings::logWrite($msg, $rec->objectId);
-            email_Outgoings::touchRec($rec->objectId);
-        } else {
-            $msg = 'Грешка при спиране на изпращането';
-            $type = 'error';
-            email_Outgoings::logErr($msg, $rec->objectId);
-        }
+        $msgArr = $this->stopSending($id);
         
-        return new Redirect(array('email_Outgoings', 'single', $rec->objectId), '|' . $msg, $type);
+        return new Redirect(email_Outgoings::getSingleUrlArray($rec->objectId), '|' . $msgArr['msg'], $msgArr['type']);
     }
     
     
@@ -289,9 +304,9 @@ class email_SendOnTime extends core_Manager
      */
     static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'pending' THEN 1 WHEN 'closed' THEN 3 ELSE 2 END)");
+        $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'waiting' THEN 1 WHEN 'closed' THEN 3 ELSE 2 END)");
         $data->query->orderBy('orderByState', 'ASC');
-        $data->query->orderBy('delay', 'ASC');
+        $data->query->orderBy('delaySendOn', 'ASC');
     }
     
     
@@ -301,21 +316,15 @@ class email_SendOnTime extends core_Manager
     function cron_SendEmails()
     {
         $query = self::getQuery();
-        $now = dt::verbal2mysql();
-        $query->where("DATE_ADD(#createdOn, INTERVAL #delay SECOND) <= '{$now}'");
-        $query->where("#state != 'closed'");
+        $now = dt::now();
+        $query->where("#delaySendOn <= '{$now}'");
+        $query->where("#state = 'waiting'");
         
         $cnt = 0;
         
         while ($rec = $query->fetch()) {
             
-            // Трябва да спрем системния потребител
-            $isSystemUser = core_Users::isSystemUser();
-            if ($isSystemUser) {
-                core_Users::cancelSystemUser();
-            }
-            
-            core_Users::sudo($rec->createdBy);
+            $sudoUser = core_Users::sudo($rec->createdBy);
             try {
                 $inst = cls::get($rec->class);
                 $inst->send($rec->data['rec'], $rec->data['options'], $rec->data['lg']);
@@ -324,11 +333,7 @@ class email_SendOnTime extends core_Manager
                 reportException($e);
                 self::logErr('Грешка при изпращане', $rec->id);
             }
-            core_Users::exitSudo();
-            
-            if ($isSystemUser) {
-                core_Users::forceSystemUser();
-            }
+            core_Users::exitSudo($sudoUser);
             
             $rec->state = 'closed';
             $rec->sentOn = dt::now();

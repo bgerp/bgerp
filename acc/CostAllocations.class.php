@@ -66,12 +66,6 @@ class acc_CostAllocations extends core_Manager
 	
 	
 	/**
-	 * Опашка от чакащите документи за реконтиране
-	 */
-	private $recontoQueue = array();
-	
-	
-	/**
 	 * Кои полета да се извличат при изтриване
 	 */
 	public $fetchFieldsBeforeDelete = 'containerId';
@@ -100,11 +94,15 @@ class acc_CostAllocations extends core_Manager
 	 */
 	protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
 	{
-		$origin = doc_Containers::getDocument($rec->containerId);
-		if($origin->fetchField('state') == 'active'){
-			
-			// Реконтиране на документа
-			self::reconto($rec->containerId);
+		try{
+			$origin = doc_Containers::getDocument($rec->containerId);
+			if($origin->fetchField('state') == 'active'){
+					
+				// Реконтиране на документа
+				acc_Journal::reconto($rec->containerId);
+			}
+		} catch (core_exception_Expect $e){
+			reportException($e);
 		}
 	}
 	
@@ -120,36 +118,9 @@ class acc_CostAllocations extends core_Manager
 			if($origin->fetchField('state') == 'active'){
 				
 				// Реконтиране на документа
-				self::reconto($rec->containerId);
+				acc_Journal::reconto($rec->containerId);
 			}
 		}
-	}
-	
-	
-	/**
-	 * Реконтиране на документ по контейнер
-	 * 
-	 * @param int $containerId - ид на контейнер
-	 * @return boolean $success - резултат
-	 */
-	private static function reconto($containerId)
-	{
-		// Оригиналния документ трябва да не е в затворен период
-		$origin = doc_Containers::getDocument($containerId);
-		if(acc_Periods::isClosed($origin->fetchField($origin->valiorFld))) return;
-		
-		// Изтриване на старата транзакция на документа
-		acc_Journal::deleteTransaction($origin->getClassId(), $origin->that);
-			
-		// Записване на новата транзакция на документа
-		$success = acc_Journal::saveTransaction($origin->getClassId(), $origin->that, FALSE);
-		expect($success, $success);
-			
-		// Нотифициране на потребителя
-		$msg = "Реконтиране на|* #{$origin->getHandle()}";
-		core_Statuses::newStatus($msg);
-		
-		return $success;
 	}
 	
 	
@@ -249,9 +220,8 @@ class acc_CostAllocations extends core_Manager
 		
 		// Ако има избрано разходно перо, и то е на покупка/продажба, показва се и полето за разпределяне
 		if(isset($rec->expenseItemId)){
-			$itemRec = acc_Items::fetch($rec->expenseItemId, 'classId,objectId');
-			
-			if($itemRec->classId == sales_Sales::getClassId() || $itemRec->classId == purchase_Purchases::getClassId()){
+			$itemClassId = acc_Items::fetchField($rec->expenseItemId, 'classId');
+			if(cls::haveInterface('acc_AllowArticlesCostCorrectionDocsIntf', $itemClassId)){
 				$form->setField('allocationBy', 'input');
 				$form->setDefault('allocationBy', 'no');
 			}
@@ -270,10 +240,14 @@ class acc_CostAllocations extends core_Manager
 		$rec = &$form->rec;
 		 
 		if(isset($rec->expenseItemId)){
-			if(isset($rec->allocationBy) && $rec->allocationBy != 'no'){
-				$itemRec = acc_Items::fetch($rec->expenseItemId, 'classId,objectId');
-				$origin = new core_ObjectReference($itemRec->classId, $itemRec->objectId);
-				acc_ValueCorrections::addProductsFromOriginToForm($form, $origin);
+			$itemClassId = acc_Items::fetchField($rec->expenseItemId, 'classId');
+			
+			if(cls::haveInterface('acc_AllowArticlesCostCorrectionDocsIntf', $itemClassId)){
+				if(isset($rec->allocationBy) && $rec->allocationBy != 'no'){
+					$itemRec = acc_Items::fetch($rec->expenseItemId, 'classId,objectId');
+					$origin = new core_ObjectReference($itemRec->classId, $itemRec->objectId);
+					acc_ValueCorrections::addProductsFromOriginToForm($form, $origin);
+				}
 			}
 		}
 		
@@ -298,19 +272,9 @@ class acc_CostAllocations extends core_Manager
 				// Проверяване дали е въведено допустимо к-во само ако реда не е за 1 брой
 				if(!($maxQuantity == 1 && $uomId == cat_UoM::fetchBySinonim('pcs')->id)){
 					
-					// Проверка дали въведеното к-во е допустимо
-					$roundQuantity = cat_UoM::round($rec->quantity, $rec->productId);
-					if($roundQuantity == 0){
-						$form->setError('quantity', 'Не може да бъде въведено количество, което след закръглянето указано в|* <b>|Артикули|* » |Каталог|* » |Мерки/Опаковки|*</b> |ще стане|* 0');
-						return;
-					}
-						
-					if(trim($roundQuantity) != trim($rec->quantity)){
-						$form->setWarning('quantity', 'Количеството ще бъде закръглено до указаното в |*<b>|Артикули » Каталог » Мерки/Опаковки|*</b>|');
-							
-						if(!$form->gotErrors()){
-							$rec->quantity = $roundQuantity;
-						}
+					// Проверка на к-то
+					if(!deals_Helper::checkQuantity($uomId, $rec->quantity, $warning)){
+						$form->setError('quantity', $warning);
 					}
 				}
 			}
@@ -362,14 +326,15 @@ class acc_CostAllocations extends core_Manager
 		
 		// Линк към обекта на перото
 		$eItem = acc_Items::getVerbal($rec->expenseItemId, 'titleNum');
+		
 		$iRec = acc_Items::fetch($rec->expenseItemId);
 		$Register = new core_ObjectReference($iRec->classId, $iRec->objectId);
-		if(method_exists($Register->getInstance(), 'getSingleUrlArray') && !Mode::isReadOnly()){
+		if(method_exists($Register->getInstance(), 'getSingleUrlArray_') && !Mode::isReadOnly()){
 			$singleUrl = $Register->getSingleUrlArray();
 			$singleUrl['Sid'] = $Register->fetchField('containerId');
 			$eItem = ht::createLink($eItem, $singleUrl);
 			if($iRec->state == 'closed'){
-				$eItem = ht::createHint($eItem, 'Перото е затворено', 'warning', FALSE, array('height' => 14, 'weight' => 14))->getContent();
+				$eItem = ht::createHint($eItem, 'Перото е затворено', 'warning', FALSE, array('height' => 14, 'width' => 14))->getContent();
 				$eItem = "<span class='state-closed' style='padding:3px'>{$eItem}</span>";
 			}
 		}
@@ -380,7 +345,7 @@ class acc_CostAllocations extends core_Manager
 		
 		$row->expenseItemId = "<b class='quiet'>" . tr("Разход за") . "</b>: {$eItem}";
 		if(isset($hint)){
-			$row->expenseItemId = ht::createHint($row->expenseItemId, $hint, 'warning', FALSE, array('height' => 14, 'weight' => 14))->getContent();
+			$row->expenseItemId = ht::createHint($row->expenseItemId, $hint, 'warning', FALSE, array('height' => 14, 'width' => 14))->getContent();
 			$row->expenseItemId = "<span style='opacity: 0.7;'>{$row->expenseItemId}</span>";
 		}
 	}
@@ -395,6 +360,9 @@ class acc_CostAllocations extends core_Manager
 	{
 		$rec = &$data->rec;
 		$data->recs = $data->rows = array();
+		
+		// Да не се показват ако режима е за четене
+		if(Mode::isReadOnly()) return;
 		
 		// Какви разходи са отчетени към реда
 		$query = self::getQuery();
@@ -599,10 +567,11 @@ class acc_CostAllocations extends core_Manager
 	
 				// Задаване на к-то и приспадане
 				$r->quantity = $dRec->quantity;
-				 
+				
 				// Какво к-во остава за разпределяне
 				$quantity -= $r->quantity;
-				 
+				$quantity = round($quantity, 8);
+				
 				// Ако няма следващ обект и цялото к-во е разпределено
 				if(!is_object($nextRec) && $quantity <= 0){
 	
@@ -623,7 +592,7 @@ class acc_CostAllocations extends core_Manager
 				// Добавяне на редовете
 				$res[] = $r;
 			}
-	
+			
 			// Ако има неразпределено количество
 			if($quantity > 0){
 				 

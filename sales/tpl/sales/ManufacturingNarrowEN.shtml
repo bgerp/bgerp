@@ -2,7 +2,7 @@
     <table class="innerTable border-table paddingCells">
         <tbody>
         <tr>
-            <td colspan = "2" class='centered'>
+            <td class='centered'>
                 <div class="document-title">MANUFACTURING CONTRACT</div>
                 <div style="padding-top:5px;">
                         <span class="state [#STATE_CLASS#]">
@@ -16,17 +16,11 @@
             </td>
         </tr>
         <tr>
-            <td class="cell custom-header-bg" style='width:50%;'>
+            <td class="cell custom-header-bg">
                 <b>Recipient</b>
                 <!--ET_BEGIN isPaid-->
                 <div class='stamp fright'>[#isPaid#]</div>
                 <!--ET_END isPaid-->
-            </td>
-            <td class="cell custom-header-bg" style='width:50%;'>
-                <b>Supplier</b>
-                <!--ET_BEGIN isDelivered-->
-                <div class='stamp fright'>[#isDelivered#]</div>
-                <!--ET_END isDelivered-->
             </td>
         </tr>
         <tr>
@@ -45,6 +39,16 @@
                 </div>
                 <!--ET_END vatId-->
             </td>
+        </tr>
+        <tr>
+            <td class="cell custom-header-bg">
+                <b>Supplier</b>
+                <!--ET_BEGIN isDelivered-->
+                <div class='stamp fright'>[#isDelivered#]</div>
+                <!--ET_END isDelivered-->
+            </td>
+        </tr>
+        <tr>
             <td>
                 <!--ET_BEGIN MyCompany-->
                 <b>[#MyCompany#]</b>
@@ -106,7 +110,7 @@
             <b>Conditions:</b>
             <ol style = 'margin-top:1px'>
                 <!--ET_BEGIN withVat-->
-                <li>Prices are with apllied VAT[#withVat#]</li>
+                <li>Prices are with applied VAT[#withVat#]</li>
                 <!--ET_END withVat-->
                 <!--ET_BEGIN sepVat-->
                 <li>Prices are with separate VAT[#sepVat#]</li>
@@ -131,7 +135,7 @@
                 <li>Delivery time up to [#deliveryTermTime#] after starting the order</li>
                 <!--ET_END deliveryTermTime-->
                 <!--ET_BEGIN commonConditionQuote-->
-                <li>[#commonConditionQuote#]</li>
+                <li>General Terms and Conditions of Sale: [#commonConditionQuote#]</li>
                 <!--ET_END commonConditionQuote-->
             </ol>
             <!--ET_END conditions-->

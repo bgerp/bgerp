@@ -119,7 +119,7 @@ class pallet_Pallets extends core_Manager
         $this->FLD('quantity', 'int', 'caption=Количество');
         $this->FLD('comment', 'varchar', 'caption=Коментар');
         $this->FLD('dimensions', 'key(mvc=pallet_PalletTypes,select=title)', 'caption=Габарити');
-        $this->FLD('state', 'enum(pending=Чакащ движение,
+        $this->FLD('state', 'enum(pending,waiting=Чакащ движение,
                                           active=Работи се, 
                                           closed=На място)', 'caption=Състояние');
         $this->FLD('position', 'varchar(16)', 'caption=Позиция->Текуща');
@@ -136,7 +136,7 @@ class pallet_Pallets extends core_Manager
      * @param stdClass|NULL $rec
      * @param int|NULL $userId
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($rec->id && ($action == 'delete')) {
             $rec = $mvc->fetch($rec->id);
@@ -211,7 +211,7 @@ class pallet_Pallets extends core_Manager
                 'style' => 'float: right; margin-left: 5px;'));
         $imgEdit = ht::createElement('img', array('src' => sbf('img/edit.png', ''), 'width' => '16px', 'height' => '16px',
                 'style' => 'float: right; margin-left: 5px;'));
-        $imgDel = ht::createElement('img', array('src' => sbf('img/16/delete16.png', ''), 'width' => '16px', 'height' => '16px',
+        $imgDel = ht::createElement('img', array('src' => sbf('img/16/delete.png', ''), 'width' => '16px', 'height' => '16px',
                 'style' => 'float: right; margin-left: 5px;
                                                                                                                       margin-top: 2px '));
         
@@ -248,8 +248,8 @@ class pallet_Pallets extends core_Manager
             $row->move .= " " . Ht::createLink($imgMove, array('pallet_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'palletMove', 'position' => $rec->position));
         }
         
-        // Ако state е 'pending'
-        if ($rec->state == 'pending') {
+        // Ако state е 'waiting'
+        if ($rec->state == 'waiting') {
             $positionNew = pallet_Movements::fetchField("#palletId = {$rec->id}", 'positionNew');
             
             /* if ($positionNew != 'На пода') { */
@@ -494,7 +494,7 @@ class pallet_Pallets extends core_Manager
                 // При достатъчно количество за пакетиране
                 switch ($rec->palletPlaceHowto) {
                     case 'Автоматично' :
-                        $rec->state = 'pending';
+                        $rec->state = 'waiting';
                         $rec->position = 'Зона: ' . $rec->zone;
                         
                         if ($rec->palletsCnt > 1) {
@@ -512,7 +512,7 @@ class pallet_Pallets extends core_Manager
                     default : // Ръчно въведено палет място или на пода в зона
                     if ($rec->palletPlaceHowto != '' && $rec->palletPlaceHowto != 'Автоматично') {
                         // Ръчно въведено
-                        $rec->state = 'pending';
+                        $rec->state = 'waiting';
                         $rec->position = 'Зона: ' . $rec->zone;
                     } else {
                         // На пода в зона
@@ -588,7 +588,7 @@ class pallet_Pallets extends core_Manager
                 $recMovements->palletId = $palletId;
                 $recMovements->positionOld = 'Зона: ' . $rec->zone;
                 $recMovements->positionNew = $palletPlaceAuto;
-                $recMovements->state = 'pending';
+                $recMovements->state = 'waiting';
                 
                 // Записва движение
                 pallet_Movements::save($recMovements);
@@ -613,7 +613,7 @@ class pallet_Pallets extends core_Manager
                 $recMovements->palletId = $palletId;
                 $recMovements->positionOld = 'Зона: - ';
                 $recMovements->positionNew = $rec->palletPlaceHowto;
-                $recMovements->state = 'pending';
+                $recMovements->state = 'waiting';
                 
                 // Записва движение
                 pallet_Movements::save($recMovements);

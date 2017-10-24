@@ -65,6 +65,12 @@ class deals_OpenDeals extends core_Manager {
 	
 	
 	/**
+	 * Поле за филтриране по дата
+	 */
+	public $filterDateField = 'valior';
+	
+	
+	/**
      * Описание на модела
      */
     function description()
@@ -76,7 +82,7 @@ class deals_OpenDeals extends core_Manager {
     	$this->FLD('amountPaid', 'double(decimals=2)', 'caption=Сума->Платено, summary = amount');
     	$this->FLD('amountDelivered', 'double(decimals=2)', 'caption=Сума->Доставено, summary = amount');
     	$this->FLD('expectedPayment', 'double(decimals=2)', 'caption=Сума->Очаквано плащане,oldFieldName=expectedDownpayment');
-    	$this->FLD('state', 'enum(active=Активно, closed=Приключено, rejected=Оттеглено)', 'caption=Състояние');
+    	$this->FLD('state', 'enum(active=Активно, closed=Приключено, rejected=Оттеглено, stopped=Спряно, pending=Чакащи)', 'caption=Състояние');
     	
     	$this->setDbUnique('docClass,docId');
         $this->setDbIndex('valior');
@@ -228,7 +234,7 @@ class deals_OpenDeals extends core_Manager {
 	    		
 	    		// Ако потребителя има достъп до документа, той излиза като линк
 	    		$icon = $DocClass->getIcon($rec->docId);
-	    		$attr['style'] = 'background-image:url(' . sbf($icon) . ');';
+	    		$attr['ef_icon'] = $icon;
 	    		$row->docId = ht::createLink($row->docId, array($DocClass, 'single', $rec->docId), NULL, $attr);
 	    	
 	    		// Ако документа е активен и потребителя има достъп до него, може да генерира документи

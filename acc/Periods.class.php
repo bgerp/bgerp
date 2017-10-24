@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  *
@@ -26,67 +26,61 @@ class acc_Periods extends core_Manager
     /**
      * Заглавие
      */
-    var $title = "Счетоводни периоди";
+    public $title = "Счетоводни периоди";
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = 'Период';
+    public $singleTitle = 'Период';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, acc_WrapperSettings, plg_State, plg_Sorting';
+    public $loadList = 'plg_Created, plg_RowTools2, acc_WrapperSettings, plg_State, plg_Sorting';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "id, title, start=Начало, end, vatRate, baseCurrencyId, state, close=Приключване";
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    var $canRead = 'ceo,acc';
+    public $listFields = "id, title, start=Начало, end, vatRate, baseCurrencyId, state, close=Приключване";
     
     
     /**
      * Кой може да пише?
      */
-    var $canEdit = 'ceo,acc';
+    public $canEdit = 'ceo,acc';
     
     
     /**
      * Кой може да пише?
      */
-    var $canClose = 'ceo,accMaster';
+    public $canClose = 'ceo,accMaster';
     
     
     /**
      * Кой може да редактира системните данни
      */
-    var $canEditsysdata = 'ceo,accMaster';
+    public $canEditsysdata = 'ceo,accMaster';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo,acc';
+    public $canList = 'ceo,acc';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'no_one';
+    public $canDelete = 'no_one';
     
     
     /**
      * Кой може да добавя?
      */
-    var $canAdd = 'no_one';
+    public $canAdd = 'no_one';
     
     
     /**
@@ -112,7 +106,7 @@ class acc_Periods extends core_Manager
     /**
      * Изчислява полето 'start' - начало на периода
      */
-    static function on_CalcStart($mvc, $rec)
+    protected static function on_CalcStart($mvc, $rec)
     {
         $rec->start = dt::mysql2verbal($rec->end, 'Y-m-01');
     }
@@ -121,7 +115,7 @@ class acc_Periods extends core_Manager
     /**
      * Изчислява полето 'title' - заглавие на периода
      */
-    static function on_CalcTitle($mvc, $rec)
+    protected static function on_CalcTitle($mvc, $rec)
     {
         $rec->title = dt::mysql2verbal($rec->end, "F Y", NULL, FALSE);
     }
@@ -130,7 +124,7 @@ class acc_Periods extends core_Manager
     /**
      * Сортира записите по поле end
      */
-    static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->query->orderBy('end', 'DESC');
     }
@@ -144,7 +138,7 @@ class acc_Periods extends core_Manager
      * @param stdCLass $row
      * @param stdCLass $rec
      */
-    public static function on_AfterRecToVerbal($mvc, $row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Дали може да затворим периода
     	if($mvc->haveRightFor('close', $rec)) {
@@ -157,7 +151,7 @@ class acc_Periods extends core_Manager
         			if(acc_ClosePeriods::fetchField("#periodId = {$rec->id} AND #state = 'active'")){
         				 
         				// Ако има, периода може да се приключи
-        				$row->close = ht::createBtn('Приключване', array($mvc, 'Close', $rec->id), 'Наистина ли желаете да приключите периода?', NULL, 'ef_icon=img/16/lock.png,title=Приключване на периода');
+        				$row->close = ht::createBtn('Приключване', array($mvc, 'Close', $rec->id, 'ret_url' => TRUE), 'Наистина ли желаете да приключите периода?', NULL, 'ef_icon=img/16/lock.png,title=Приключване на периода');
         			} else {
         				 
         				// Ако няма не може докато не бъде контиран такъв
@@ -166,7 +160,7 @@ class acc_Periods extends core_Manager
         		} else {
         		
         			// Ако няма записи, то периода може спокойно да се приключи
-        			$row->close = ht::createBtn('Приключване', array($mvc, 'Close', $rec->id), 'Наистина ли желаете да приключите периода?', NULL, 'ef_icon=img/16/lock.png,title=Приключване на периода');
+        			$row->close = ht::createBtn('Приключване', array($mvc, 'Close', $rec->id, 'ret_url' => TRUE), 'Наистина ли желаете да приключите периода?', NULL, 'ef_icon=img/16/lock.png,title=Приключване на периода');
         		}
         	}
         }
@@ -180,6 +174,12 @@ class acc_Periods extends core_Manager
         if($rec->end == $curPerEnd){
             $row->id = ht::createElement('img', array('src' => sbf('img/16/control_play.png', ''), 'style' => 'display:inline-block; float: left; margin-right:5px', 'title' => 'Текущ период')) . $row->id;
         }
+        
+        if($rec->state == 'closed'){
+        	if($docId = acc_ClosePeriods::fetchField("#periodId = {$rec->id} AND #state = 'active'", 'id')){
+        		$row->close = acc_ClosePeriods::getLink($docId, 0);
+        	}
+        }
     }
     
     
@@ -191,17 +191,22 @@ class acc_Periods extends core_Manager
      */
     public static function fetchByDate($date = NULL)
     {
+        static $periods = array();
+
         $lastDayOfMonth = dt::getLastdayOfMonth($date);
-        $rec = self::fetch("#end = '{$lastDayOfMonth}'");
+
+        if(!$periods[$lastDayOfMonth]) {
+            $periods[$lastDayOfMonth] = self::fetch("#end = '{$lastDayOfMonth}'");
+        }
         
-        return $rec;
+        return $periods[$lastDayOfMonth];
     }
     
     
     /**
      * Изпълнява се след създаване на нов запис
      */
-    public static function on_AfterCreate($mvc, $rec)
+    protected static function on_AfterCreate($mvc, $rec)
     {
         // Форсираме перо за месеца и годината на периода
         static::forceYearItem($rec->end);
@@ -392,7 +397,7 @@ class acc_Periods extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm(core_Mvc $mvc, $data)
+    protected static function on_AfterPrepareEditForm(core_Mvc $mvc, $data)
     {
         if ($data->form->rec->id) {
             $data->form->setReadOnly('end');
@@ -476,12 +481,10 @@ class acc_Periods extends core_Manager
         
         $res .= "<br>|Активен е период|* <span style=\"color:red;\">{$activeRec->title}</span>";
         
-        $res = new Redirect(array('acc_Periods'), $res);
-        
         // Записваме, че потребителя е разглеждал този списък
         $this->logWrite("Затваряне на период", $id);
         
-        return $res;
+        return followRetUrl(NULL, $res);
     }
     
     
@@ -490,7 +493,7 @@ class acc_Periods extends core_Manager
      * Ако няма дефинирани периоди дефинира период, чийто край е последния ден от предходния
      * месец със state='closed' и период, който е за текущия месец и е със state='active'
      */
-    function loadSetupData2()
+    public function loadSetupData2()
     {
         // Форсира създаването на периоди от текущия месец до ACC_FIRST_PERIOD_START
         $this->forcePeriod(dt::verbal2mysql());
@@ -504,7 +507,7 @@ class acc_Periods extends core_Manager
     /**
      * Обновява състоянията на съществуващите чернови периоди
      */
-    function updateExistingPeriodsState()
+    protected function updateExistingPeriodsState()
     {
         $curPerEnd = static::getPeriodEnd();
         $activeRec = $this->forceActive();
@@ -552,7 +555,7 @@ class acc_Periods extends core_Manager
     /**
      * Създава бъдещи (3 месеца напред) счетоводни периоди
      */
-    function cron_CreateFuturePeriods()
+    public function cron_CreateFuturePeriods()
     {
         $this->forcePeriod(dt::getLastDayOfMonth(NULL, 3));
         $this->updateExistingPeriodsState();
@@ -733,12 +736,39 @@ class acc_Periods extends core_Manager
      * @param date $date - дата
      * @return boolean - Затворен ли е периода в който е датата
      */
-    public static function  isClosed($date)
+    public static function isClosed($date)
     {
     	// В кой период е датата
     	$period = self::fetchByDate($date);
     	
     	// Проверка дали периода е затворен
     	return $period->state == 'closed';
+    }
+    
+    
+    /**
+     * Връща всички периоди, с изчислен баланс
+     * 
+     * @param boolean $descending - възходящ или низходящ ред
+     * @return array $periods     - периодите с баланс
+     */
+    public static function getCalcedPeriods($descending = FALSE)
+    {
+    	$periods = array();
+    	
+    	$bQuery = acc_Balances::getQuery();
+    	$bQuery->where("#periodId IS NOT NULL");
+    	
+    	$orderBy = ($descending === TRUE) ? 'DESC' : "ASC";
+    	$bQuery->orderBy("#fromDate", $orderBy);
+    	$bQuery->show('periodId');
+    	$bQuery->groupBy('periodId');
+    	
+    	while ($bRec = $bQuery->fetch()) {
+    		$b = acc_Balances::recToVerbal($bRec, 'periodId');
+    		$periods[$bRec->periodId] = $b->periodId;
+    	}
+    	
+    	return $periods;
     }
 }

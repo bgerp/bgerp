@@ -9,15 +9,12 @@
  * Преминаванията от състояние в състояние са следните:
  * 
  * Чернова    (draft)    -> чакащо, активно или оттеглено
- * Чакащо     (pending)  -> активно или оттеглено
+ * Чакащо     (waiting)  -> активно или оттеглено
  * Активно    (active)   -> спряно, приключено или оттеглено
  * Приключено (closed)   -> събудено или оттеглено
  * Спряно     (stopped)  -> активно или събудено
  * Събудено   (wakeup)   -> приключено, спряно или оттеглено
  * Оттеглено  (rejected) -> възстановено до някое от горните състояния
- * 
- * При активиране (от чернова) документа става активен, ако искаме да се премине в друго състояние
- * например чакащо в мениджъра трябва да има метод $mvc->getActivatedState($rec) който да върне 'pending'
  *
  *
  * @category  bgerp
@@ -46,7 +43,7 @@ class planning_plg_StateManager extends core_Plugin
 	{
 		// Ако липсва, добавяме поле за състояние
 		if (!$mvc->fields['state']) {
-			$mvc->FLD('state', 'enum(draft=Чернова, pending=Чакащо,active=Активирано, rejected=Оттеглено, closed=Приключено, stopped=Спряно, wakeup=Събудено,template=Шаблон)', 'caption=Състояние, input=none');
+			$mvc->FLD('state', 'enum(draft=Чернова, pending=Заявка,waiting=Чакащо,active=Активирано, rejected=Оттеглено, closed=Приключено, stopped=Спряно, wakeup=Събудено,template=Шаблон)', 'caption=Състояние, input=none');
 		}
 		
 		if (!$mvc->fields['timeClosed']) {
@@ -72,7 +69,15 @@ class planning_plg_StateManager extends core_Plugin
 		// Добавяне на бутон за приключване
 		if($mvc->haveRightFor('close', $rec)){
 			$attr = array('ef_icon' => "img/16/gray-close.png", 'title' => "Приключване на документа", 'warning' => "Сигурни ли сте, че искате да приключите документа", 'order' => 30);
+			$attr['id'] = 'btnClose';
+			
 			if(isset($mvc->demandReasonChangeState) && isset($mvc->demandReasonChangeState['close'])){
+				unset($attr['warning']);
+			}
+			
+			$closeError = $mvc->getCloseBtnError($rec);
+			if(!empty($closeError)){
+				$attr['error'] = $closeError;
 				unset($attr['warning']);
 			}
 			
@@ -111,13 +116,24 @@ class planning_plg_StateManager extends core_Plugin
 		
 		// Добавяне на бутон запървоначално активиране
 		if($mvc->haveRightFor('activate', $rec)){
-			$attr = array('ef_icon' => "img/16/lightning.png", 'title' => "Активиране на документа", 'warning'=> "Сигурни ли сте, че искате да активирате документа|*?", 'order' => 30);
+			$attr = array('ef_icon' => "img/16/lightning.png", 'title' => "Активиране на документа", 'warning'=> "Сигурни ли сте, че искате да активирате документа|*?", 'order' => 30, 'id' => 'btnActivate');
 			if(isset($mvc->demandReasonChangeState) && isset($mvc->demandReasonChangeState['activate'])){
 				unset($attr['warning']);
 			}
 			
 			$data->toolbar->addBtn("Активиране", array($mvc, 'changeState', $rec->id, 'type' => 'activate', 'ret_url' => TRUE, ), $attr);
 		}
+		
+		// Бутон за заявка
+		if($mvc->haveRightFor('pending', $rec)){
+			if($rec->state != 'pending'){
+				$r = $data->toolbar->hasBtn('btnActivate') ? 2 : 1;
+				$data->toolbar->addBtn('Заявка', array($mvc, 'changePending', $rec->id), "id=btnRequest,warning=Наистина ли желаете документът да стане заявка?,row={$r}", 'ef_icon = img/16/tick-circle-frame.png,title=Превръщане на документа в заявка');
+			} else{
+				$data->toolbar->addBtn('Чернова', array($mvc, 'changePending', $rec->id), "id=btnDraft,warning=Наистина ли желаете да върнете възможността за редакция?", 'ef_icon = img/16/arrow-undo.png,title=Връщане на възможността за редакция');
+			}
+		}
+		
 	}
 	
 	
@@ -153,14 +169,14 @@ class planning_plg_StateManager extends core_Plugin
 				case 'activateagain':
 	
 					// Дали може да бъде активирана отново, след като е било променено състоянието
-					if($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'wakeup' || $rec->state == 'rejected' || $rec->state == 'draft' || $rec->state == 'pending' || $rec->state == 'template'){
+					if($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'wakeup' || $rec->state == 'rejected' || $rec->state == 'draft' || $rec->state == 'waiting' || $rec->state == 'template' || $rec->state == 'pending'){
 						$requiredRoles = 'no_one';
 					}
 					break;
 				case 'activate':
 					
 					// Само приключените могат да бъдат събудени
-					if($rec->state != 'draft' && isset($rec->state)){
+					if(($rec->state != 'draft' && $rec->state != 'pending') && isset($rec->state)){
 						$requiredRoles = 'no_one';
 					}
 					break;
@@ -212,6 +228,11 @@ class planning_plg_StateManager extends core_Plugin
     			}
     		}
     		
+    		if($action == 'close'){
+    			$closeError = $mvc->getCloseBtnError($rec);
+    			expect(empty($closeError));
+    		}
+    		
 			switch($action){
     			case 'close':
     				$rec->brState = $rec->state;
@@ -237,7 +258,7 @@ class planning_plg_StateManager extends core_Plugin
     				break;
     			case 'activate':
     				$rec->brState = $rec->state;
-    				$rec->state = ($mvc->activateNow($rec)) ? 'active' : 'pending';
+    				$rec->state = ($mvc->activateNow($rec)) ? 'active' : 'waiting';
     				$logAction = 'Активиране';
     			break;
     		}
@@ -326,7 +347,7 @@ class planning_plg_StateManager extends core_Plugin
 		}
 			
 		$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
-		$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+		$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 			
 		$res = $form->renderHtml();
 		$res = $mvc->renderWrapping($res);
@@ -369,7 +390,7 @@ class planning_plg_StateManager extends core_Plugin
 	{
 		if($form->isSubmitted()) {
 			if($form->cmd == 'active') {
-				$form->rec->state = ($mvc->activateNow($form->rec)) ? 'active' : 'pending';
+				$form->rec->state = ($mvc->activateNow($form->rec)) ? 'active' : 'waiting';
 				$mvc->invoke('BeforeActivation', array($form->rec));
 				$form->rec->_isActivated = TRUE;
 			}
@@ -387,5 +408,14 @@ class planning_plg_StateManager extends core_Plugin
 			$mvc->invoke('AfterActivation', array($rec));
 			$mvc->logWrite('Активиране', $rec->id);
 		}
+	}
+	
+	
+	/**
+	 * След намиране на текста за грешка на бутона за 'Приключване'
+	 */
+	public static function on_AfterGetCloseBtnError($mvc, &$res, $rec)
+	{
+		$res = (!empty($res)) ? $res : NULL;
 	}
 }

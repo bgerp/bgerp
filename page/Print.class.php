@@ -25,10 +25,14 @@ class page_Print extends page_Html {
     	$conf = core_Packs::getConfig('core');
     	
         parent::__construct();
+        
+        $this->append("\n<meta name=\"robots\" content=\"noindex,nofollow\">", 'HEAD');
+        
         $this->replace("UTF-8", 'ENCODING');
         
         $this->push('css/common.css','CSS');
         $this->push('css/Application.css','CSS');
+        $this->push('css/internalTheme.css','CSS');
         
         jquery_Jquery::run($this, "window.print();");
         

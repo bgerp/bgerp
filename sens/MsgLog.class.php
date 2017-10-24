@@ -21,7 +21,7 @@ class sens_MsgLog extends core_Manager
     /**
      * Необходими мениджъри
      */
-    var $loadList = 'plg_RowTools, plg_Sorting,sens_Wrapper,
+    var $loadList = 'plg_RowTools2, plg_Sorting,sens_Wrapper,
                       plg_RefreshRows';
     
     

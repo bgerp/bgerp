@@ -1,5 +1,5 @@
 function portalSearch() {
-	
+	if($('body').hasClass('narrow')) return;
 	// Скриваме формите за търсене ако те са празни, при зареждане на страницата
 	$.each( $(".portal-filter .hFormField"), function(){
 		if($(this).children("input").val() == ''){

@@ -31,7 +31,7 @@ class tcost_Fees extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, tcost_Wrapper, plg_AlignDecimals2";
+    public $loadList = "plg_Created, plg_Sorting, plg_RowTools2, tcost_Wrapper, plg_AlignDecimals2, plg_SaveAndNew";
 
 
     /**
@@ -120,7 +120,22 @@ class tcost_Fees extends core_Detail
     	$form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
     }
     
-    
+
+
+    /**
+     * Преди извличане на записите от БД
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    public static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    {
+        $data->query->orderBy('#weight');
+     }
+
+
+
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
@@ -156,6 +171,7 @@ class tcost_Fees extends core_Detail
      * [0] - Обработената цена, за доставката на цялото количество
      * [1] - Резултат за подадената единица $singleWeight
      * [2] - Id на зоната
+     * [3] - Срока на доставка з
      */
     public static function calcFee($deliveryTermId, $countryId, $pCode, $totalWeight, $singleWeight = 1)
     {
@@ -165,9 +181,9 @@ class tcost_Fees extends core_Detail
     	
         // Определяне на зоната на транспорт, за зададеното условие на доставка
         $zone = tcost_Zones::getZoneIdAndDeliveryTerm($deliveryTermId, $countryId, $pCode);
-		
+       
         // Ако не се намери зона се връща 0
-        if(is_null($zone)) return tcost_CostCalcIntf::CALC_ERROR;
+        if(is_null($zone)) return tcost_CostCalcIntf::ZONE_FIND_ERROR;
 
         // Асоциативен масив от тегло(key) и цена(value) -> key-value-pair
         $arrayOfWeightPrice = array();
@@ -180,82 +196,61 @@ class tcost_Fees extends core_Detail
         // Преглеждаме базата за зоните, чиито id съвпада с въведенето
         $query = self::getQuery();
         $query->where(array("#feeId = [#1#]", $zone['zoneId']));
-		
+        $query->orderBy('#weight');
+        
         while($rec = $query->fetch()){
-            // Определяме следните променливи - $weightsLeft, $weightsRight, $smallestWeight, $biggestWeight
-            if (!isset($smallestWeight) || $smallestWeight > $rec->weight) {
-                $smallestWeight = $rec->weight;
-            }
-            if (!isset($biggestWeight) || $biggestWeight < $rec->weight) {
-                $biggestWeight = $rec->weight;
-            }
-            if($rec->weight >= $weightsLeft && $rec->weight <= $totalWeight){
-              $weightsLeft = $rec->weight;
-            }
-            if ($rec->weight <= $weightsRight && $rec->weight >= $totalWeight) {
-                $weightsRight = $rec->weight;
-            }
-
             // Слагаме получените цени за по-късно ползване в асоциативния масив
             $price = self::getTotalPrice($rec);
-            $arrayOfWeightPrice[$rec->weight] = $price;
+            $arrayOfWeightPrice[round($rec->weight)] = $price;
         }
+        // дотук имаме масив Тегло -> Сума
+
+
+ 
+
        
         //Създаваме вече индексиран масив от ключовете на по горния асоциативен маскив
         $indexedArray = array_keys($arrayOfWeightPrice);
 
-        //Покриване на специалните случаи, които въведеното тегло е най-малко
-        if(!isset($weightsLeft)){
-            $weightsLeft = 0;
+        // Разглеждаме 4 случая
+        // Търсеното тегло е по-малко от най-малкото в масива. Тогава Общата цена е най-малката
+
+
+        $minWeight = min($indexedArray);
+        $maxWeight = max($indexedArray);
+        $totalWeight = round($totalWeight);
+
+        if($totalWeight < $minWeight) {
+            $finalPrice = $arrayOfWeightPrice[$minWeight];
+        } elseif($totalWeight > $maxWeight) {
+            $finalPrice = $arrayOfWeightPrice[$maxWeight] * ($totalWeight / $maxWeight);
+        } elseif(isset($arrayOfWeightPrice[$totalWeight])) {
+            $finalPrice = $arrayOfWeightPrice[$totalWeight];
+        } else {
+            $x = $totalWeight;
+            foreach($arrayOfWeightPrice as $x2 => $y2) {
+                if(isset($x1) && $x > $x1 && $x < $x2) {
+                    $b = ($y1 - $y2) / ($x1 - $x2);
+                    $a = $y1 - $x1 * $b;
+                    $y = $a + $b * $x;
+                    $finalPrice = $y;
+                    break;
+                }
+                $x1 = $x2;
+                $y1 = $y2;
+            }
         }
 
-        // Покриване на специалните случаи, които въведеното тегло е най-голямо
-        if($biggestWeight < $weightsRight){
-            end($indexedArray);
-            $key = key($indexedArray);
-            $weightsRight = $indexedArray[$key];
-            $weightsLeft = $indexedArray[$key - 1];
-        }
-
-        $finalPrice = NULL;
-        //Ако е въведеното тегло е по-малко от най-малкото тегло в базата,то трябва да се върне отношение 1:1
-       
-        //Ако съществува точно такова тегло, трябва да се върне цената директно цената за него
-        if($totalWeight == $weightsLeft){
-            $finalPrice = $arrayOfWeightPrice[$weightsLeft];
-        } elseif($totalWeight == $smallestWeight){
-            $finalPrice =  $totalWeight;
-        } else{
-        	//Ако нищо от посоченото по-горе не се осъществи значи апроксимираме
-            
-            /** Формули за сметката
-             * y = price
-             * x = weight
-             * y1 = a*x1 + b
-             * y2 = a*x2 + b
-             * a = (y1 - y2) / (x1 - x2)
-             * b = y1 - ((y1 - y2) / (x1 - x2) * x1);
-             * y3 = a*x3 + b // y3 = finalPrice
-             * Възможно е float да се запази като string, така че ги преобразяваме
-             */
-
-            $weightsLeft = floatval($weightsLeft);
-            $weightsRight = floatval($weightsRight);
-            $priceLeft = floatval($arrayOfWeightPrice[$weightsLeft]);
-            $priceRight = floatval($arrayOfWeightPrice[$weightsRight]);
-
-            $a = ($priceLeft - $priceRight) / ($weightsLeft - $weightsRight);
-            $b = $priceLeft - (($priceLeft - $priceRight) / ($weightsLeft - $weightsRight) * $weightsLeft);
-
-            $finalPrice = $a * $totalWeight + $b;
-        }
-        
         // Резултата се получава, като получената цена разделяме на $totalweight и умножаваме по $singleWeight.
         $finalPrice = round($finalPrice, 2);
-        $result = round($finalPrice / $totalWeight * $singleWeight, 2);
+        if($totalWeight){
+        	$result = round($finalPrice / $totalWeight * $singleWeight, 2);
+        } else {
+        	$result = 0;
+        }
 
         // Връща се получената цена и отношението цена/тегло в определен $singleWeight и зоната към която принадлежи
-        return array($finalPrice, $result, $zone['zoneId']);
+        return array($finalPrice, $result, $zone['zoneId'], $zone['deliveryTime']);
     }
     
     
@@ -268,8 +263,17 @@ class tcost_Fees extends core_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
+        static $lastPrice;
+
     	$rec->total = self::getTotalPrice($rec);
     	$row->total = $mvc->getFieldType('total')->toVerbal($rec->total);
+
+        if($lastPrice >= $rec->price) {
+            $row->ROW_ATTR = array('style' => 'color:red;');
+        }
+
+ 
+        $lastPrice = $rec->price;
     }
     
     

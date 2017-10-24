@@ -71,20 +71,11 @@ class bgerp_plg_FLB extends core_Plugin
 		$form->setSuggestions($mvc->canSelectRoleFld, $roles);
 		$form->setSuggestions($mvc->canActivateRoleFld, $roles);
 		
+		// Отговорника на папката трябва да има нужните роли, или да е админ
 		$roles = arr::make($mvc->canActivate);
-		
-		// Отсяване само на потребителите с избраните роли
-		$inCharge = array();
-		foreach ($roles as $role){
-			$roleId = core_Roles::fetchByName($role);
-			$usersWithRole = core_Users::getByRole($roleId);
-			foreach ($usersWithRole as $userId){
-				$inCharge[$userId] = core_Users::fetchField($userId, 'nick');
-			}
-		}
-		
-		// Задаване на потребители по подразбиране за отговорници
-		$form->setOptions('inCharge', $inCharge);
+		$roles[] = 'admin';
+		$roles = implode('|', $roles);
+		$form->setFieldType('inCharge', "user(roles={$roles}, rolesForAll=officer)");
 	}
 	
 	
@@ -113,7 +104,7 @@ class bgerp_plg_FLB extends core_Plugin
 		$rec = $mvc->fetchRec($rec);
 		
 		// Ако потребителя е ceo винаги има достъп
-		if(core_Users::haveRole('ceo')) return TRUE;
+		if(core_Users::haveRole('ceo', $userId)) return TRUE;
 		
 		// Отговорника на папката винаги може да прави всичко с нея
 		if($rec->inCharge == $userId) return TRUE;
@@ -182,18 +173,16 @@ class bgerp_plg_FLB extends core_Plugin
 	 */
 	public static function on_AfterPrepareListFilter($mvc, &$data)
 	{
-		$allowEmpty = (haveRole('ceo')) ? 'allowEmpty' : '';
 		$data->listFilter->view = 'horizontal';
-		$data->listFilter->FLD('users', "users(rolesForAll=ceo|admin,rolesForAll=ceo|manager|admin,{$allowEmpty})", 'caption=Потребител,silent,autoFilter,remember');
+		$data->listFilter->FLD('users', "users(rolesForAll=ceo|admin,rolesForTeams=officer|admin)", 'caption=Потребител,silent,autoFilter,remember');
 		$data->listFilter->showFields = 'users';
 		$data->listFilter->input('users', 'silent');
 		
-		if((!haveRole('ceo'))){
-			$data->listFilter->setDefault('users', core_Users::getCurrent());
-		}
+		$default = $data->listFilter->getField('users')->type->fitInDomain('all_users');
+		$data->listFilter->setDefault('users', $default);
 		
 		// Скриване на записите до които няма достъп
-		if($selectedUsers = $data->listFilter->rec->users){
+		if($selectedUsers = $data->listFilter->rec->users) {
 			self::addUserFilterToQuery($mvc, $data->query, $selectedUsers);
 		}
 	}

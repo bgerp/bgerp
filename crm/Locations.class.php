@@ -37,19 +37,13 @@ class crm_Locations extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "title, contragent=Контрагент, type";
-
-
-    /**
-     * Кой може да чете и записва локации?
-     */
-    var $canRead  = 'ceo';
+    var $listFields = "title, contragent=Контрагент, type, createdOn, createdBy";
     
     
     /**
-     *  Поле за rowTools
+     * Дали в листовия изглед да се показва бутона за добавяне
      */
-    //var $rowToolsField = 'tools';
+    public $listAddBtn = FALSE;
     
     
     /**
@@ -125,7 +119,7 @@ class crm_Locations extends core_Master {
     {
         $this->FLD('contragentCls', 'class(interface=crm_ContragentAccRegIntf)', 'caption=Собственик->Клас,input=hidden,silent');
         $this->FLD('contragentId', 'int', 'caption=Собственик->Id,input=hidden,silent');
-        $this->FLD('title', 'varchar', 'caption=Наименование');
+        $this->FLD('title', 'varchar', 'caption=Наименование,silent');
         $this->FLD('type', 'varchar(32)', 'caption=Тип,mandatory');
         $this->FLD('countryId', 'key(mvc=drdata_Countries, select=commonName, selectBg=commonNameBg, allowEmpty)', 'caption=Държава,class=contactData,mandatory');
         $this->FLD('place', 'varchar(64)', 'caption=Град,oldFieldName=city,class=contactData');
@@ -135,7 +129,7 @@ class crm_Locations extends core_Master {
         $this->FLD('tel', 'drdata_PhoneType', 'caption=Телефони,class=contactData');
         $this->FLD('email', 'emails', 'caption=Имейли,class=contactData');
         $this->FLD('gln', 'gs1_TypeEan(gln)', 'caption=GLN код');
-        $this->FLD('gpsCoords', 'location_Type', 'caption=Координати');
+        $this->FLD('gpsCoords', 'location_Type(geolocation=mobile)', 'caption=Координати');
         $this->FLD('image', 'fileman_FileType(bucket=location_Images)', 'caption=Снимка');
         $this->FLD('comment', 'richtext(bucket=Notes, rows=4)', 'caption=@Информация');
 
@@ -171,16 +165,37 @@ class crm_Locations extends core_Master {
     
     
     /**
+     * Извиква се преди подготовката на формата за редактиране/добавяне $data->form
+     * 
+     * @param crm_Locations $mvc
+     * @param stdObject $res
+     * @param stdObject $data
+     */
+    protected static function on_BeforePrepareEditForm($mvc, &$res, $data)
+    {
+        Request::setProtected(array('contragentCls', 'contragentId'));
+    }
+    
+    
+    /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
+     * 
+     * @param crm_Locations $mvc
+     * @param stdObject $res
+     * @param stdObject $data
      */
     protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $rec = $data->form->rec;
         
+        expect($rec->contragentCls);
+        
         $Contragents = cls::get($rec->contragentCls);
         expect($Contragents instanceof core_Master);
         
         $contragentRec = $Contragents->fetch($rec->contragentId);
+        
+        $Contragents->requireRightFor('edit', $contragentRec);
         
         $data->form->setDefault('countryId', $contragentRec->country);
         $data->form->setDefault('place', $contragentRec->place);
@@ -297,6 +312,10 @@ class crm_Locations extends core_Master {
      */
     public function prepareContragentLocations($data)
     {
+        $data->TabCaption = 'Локации';
+
+		if($data->isCurrent === FALSE) return;
+
         expect($data->masterId);
         expect($data->contragentCls = core_Classes::getId($data->masterMvc));
         
@@ -306,16 +325,6 @@ class crm_Locations extends core_Master {
             $data->rows[$rec->id] = $this->recToVerbal($rec);
         }
 
-        $data->TabCaption = 'Локации';
-    }
-
-
-    /**
-     * Премахване на бутона за добавяне на нова локация от лист изгледа
-     */
-    protected static function on_BeforeRenderListToolbar($mvc, &$tpl, &$data)
-    {
-        $data->toolbar->removeBtn('btnAdd');
     }
     
     
@@ -391,6 +400,9 @@ class crm_Locations extends core_Master {
         
         if(!Mode::is('printing')) {
             if ($data->masterMvc->haveRightFor('edit', $data->masterId)) {
+                
+                Request::setProtected(array('contragentCls', 'contragentId'));
+                
                 $url = array($this, 'add', 'contragentCls' => $data->contragentCls, 'contragentId' => $data->masterId, 'ret_url' => TRUE);
                 $img = "<img src=" . sbf('img/16/add.png') . " width='16' height='16'>";
                 $tpl->append(ht::createLink($img, $url, FALSE, 'title=Добавяне на нова локация'), 'title');
@@ -404,7 +416,7 @@ class crm_Locations extends core_Master {
     /**
      * След обработка на ролите
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if($requiredRoles == 'no_one') return;
         
@@ -414,11 +426,19 @@ class crm_Locations extends core_Master {
         }
         
     	if (($action == 'edit' || $action == 'delete') && isset($rec)) {
-    		$cState = cls::get($rec->contragentCls)->fetchField($rec->contragentId, 'state');
+    	    
+    	    $contragentCls = cls::get($rec->contragentCls);
+    	    
+    		$cState = $contragentCls->fetchField($rec->contragentId, 'state');
             
         	if ($cState == 'rejected') {
                 $requiredRoles = 'no_one';
-            } 
+            }
+            
+            // Ако няма права за редактиране на мастъра, да не може да редактира и локацията
+            if (($requiredRoles != 'no_one') && !$contragentCls->haveRightFor('edit', $rec->contragentId)) {
+                 $requiredRoles = 'no_one';
+            }
         }
         
         if($action == 'createsale' && isset($rec)){
@@ -519,9 +539,10 @@ class crm_Locations extends core_Master {
      * Ф-я връщаща пълния адрес на локацията: Държава, ПКОД, град, адрес
      * 
      * @param int $id
+     * @param boolen $translitarate
      * @return core_ET $tpl 
      */
-    public static function getAddress($id)
+    public static function getAddress($id, $translitarate = FALSE)
     {
     	expect($rec = static::fetch($id));
     	$row = static::recToVerbal($rec);
@@ -532,6 +553,11 @@ class crm_Locations extends core_Master {
     		if($ourCompany->country != $rec->countryId){
     			$string .= "{$row->countryId}, ";
     		}
+    	}
+    	
+    	if($translitarate === TRUE){
+    		$row->place = transliterate($row->place);
+    		$row->address = transliterate($row->address);
     	}
     	
     	$string .= "{$row->pCode} {$row->place}, {$row->address}";
@@ -549,6 +575,7 @@ class crm_Locations extends core_Master {
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     	$data->listFilter->view = 'horizontal';
     	$data->listFilter->showFields = 'search';
+        $data->query->orderBy('#createdOn', 'DESC');
     }
     
     
@@ -643,7 +670,7 @@ class crm_Locations extends core_Master {
         $form->FLD('place', 'varchar(64)', 'caption=Локация->Град,class=contactData');
         $form->FLD('pCode', 'varchar(16)', 'caption=Локация->П. код,class=contactData');
         $form->FLD('address', 'varchar(255)', 'caption=Локация->Адрес,class=contactData');
-        $form->FLD('gpsCoords', 'location_Type', 'caption=Локация->Координати');
+        $form->FLD('gpsCoords', 'location_Type(geolocation=mobile)', 'caption=Локация->Координати');
         $form->FLD('image', 'fileman_FileType(bucket=location_Images)', 'caption=Локация->Снимка');
         $form->FLD('comment', 'richtext(bucket=Notes, rows=4)', 'caption=Локация->Информация');
         
@@ -653,7 +680,7 @@ class crm_Locations extends core_Master {
         $form->FLD('repeat', 'time(suggestions=|1 седмица|2 седмици|3 седмици|1 месец)', 'caption=Маршрут->Период');
         
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на търговския обект');
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
         $form->setDefault('country', crm_Companies::fetchOwnCompany()->countryId);
         $form->input();
@@ -703,6 +730,7 @@ class crm_Locations extends core_Master {
         }
         
     	$tpl = $this->renderWrapping($form->renderHtml());
+    	core_Form::preventDoubleSubmission($tpl, $form);
     	
     	return $tpl;
     }

@@ -30,7 +30,7 @@ class blogm_Comments extends core_Detail {
 	/**
 	 * Зареждане на необходимите плъгини
 	 */
-	var $loadList = 'plg_RowTools, plg_Created, blogm_Wrapper, plg_State, plg_Sorting, plg_LastUsedKeys, plg_RowNumbering, plg_Rejected';
+	var $loadList = 'plg_RowTools2, plg_Created, blogm_Wrapper, plg_State, plg_Sorting, plg_LastUsedKeys, plg_RowNumbering, plg_Rejected';
 	
     
 	/**

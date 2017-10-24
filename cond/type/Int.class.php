@@ -13,7 +13,7 @@
  * @since     v 0.1
  * @title     Цяло число
  */
-class cond_type_Int extends cond_type_Proto
+class cond_type_Int extends cond_type_abstract_Proto
 {
 	
 	
@@ -39,12 +39,14 @@ class cond_type_Int extends cond_type_Proto
 	 * Връща инстанция на типа
 	 *
 	 * @param stdClass $rec      - запис на параметъра
+	 * @param mixed $domainClass - клас на домейна
+	 * @param mixed $domainId    - ид на домейна
 	 * @param NULL|string $value - стойност
 	 * @return core_Type         - готовия тип
 	 */
-	public function getType($rec, $value = NULL)
+	public function getType($rec, $domainClass = NULL, $domainId = NULL, $value = NULL)
 	{
-		$Type = parent::getType($rec);
+		$Type = parent::getType($rec, $domainClass, $domainId, $value);
 		$params = array();
 	
 		if(isset($rec->min)){

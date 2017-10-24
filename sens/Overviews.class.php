@@ -38,7 +38,7 @@ class sens_Overviews extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Created, plg_Sorting, 
+    var $loadList = 'plg_RowTools2, plg_Created, plg_Sorting, 
                              sens_Wrapper,
                              OverviewDetails=sens_OverviewDetails 
                            ';
@@ -47,14 +47,8 @@ class sens_Overviews extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title=Заглавие, tools=Пулт';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'tools';
-    
+    var $listFields = 'id, title=Заглавие';
+
     
     /**
      * Детайла, на модела

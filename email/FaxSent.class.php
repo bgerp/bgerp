@@ -234,7 +234,7 @@ class email_FaxSent extends core_Manager
         if (count($rec->attachmentsFh)) {
             
             //Вземаме id'тата на файловете вместо манупулатора име
-            $attachments = fileman_Files::getIdFromFh($rec->attachmentsFh);
+            $attachments = fileman::fhKeylistToIds($rec->attachmentsFh);
 
             //Записваме прикачените файлове
             $rec->attachments = keylist::fromArray($attachments);
@@ -300,7 +300,7 @@ class email_FaxSent extends core_Manager
             // .. ако имаме прикачени документи ...
             if (count($rec->documentsFh)) {
                 //Вземаме id'тата на файловете вместо манипулаторите
-                $documents = fileman_Files::getIdFromFh($rec->documentsFh);
+                $documents = fileman::fhKeylistToIds($rec->documentsFh);
             
                 //Записваме прикачените файлове
                 $rec->documents = keylist::fromArray($documents);
@@ -386,7 +386,7 @@ class email_FaxSent extends core_Manager
             $data->form->toolbar->addBtn('Имейл', array('email_Outgoings', 'send', $id, 'ret_url'=>getRetUrl()), 'ef_icon = img/16/email_go.png', 'title=Обратно към имейла');    
         }
         
-        $data->form->toolbar->addBtn('Отказ', getRetUrl(),  'ef_icon = img/16/close16.png', 'title=Прекратяване на изпращането');
+        $data->form->toolbar->addBtn('Отказ', getRetUrl(),  'ef_icon = img/16/close-red.png', 'title=Прекратяване на изпращането');
 
         $data->form->input(NULL, 'silent');
 

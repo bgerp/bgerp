@@ -104,6 +104,7 @@ class bulmar_InvoiceExport extends core_Manager {
     	}
     	
     	$data = $this->prepareExportData($recs);
+    	
     	$content = $this->prepareFileContent($data);
     	$content = iconv('utf-8', 'CP1251', $content);
     	
@@ -157,7 +158,7 @@ class bulmar_InvoiceExport extends core_Manager {
     		$baseAmount += abs($rec->dpAmount);
     	}
     	
-    	$byProducts = $baseAmount;
+    	$byProducts = $byServices = 0;
     	$dQuery = sales_InvoiceDetails::getQuery();
     	$dQuery->where("#invoiceId = {$rec->id}");
     	
@@ -167,12 +168,14 @@ class bulmar_InvoiceExport extends core_Manager {
     		}
     		
     		$pInfo = $this->cache[$dRec->productId];
+    		$dRec->amount = round($dRec->packPrice * $dRec->quantity, 2);
+    		
     		if(empty($pInfo->meta['canStore'])){
-    			$byProducts -= $dRec->amount * (1 - $dRec->discount);
+    			$byServices += $dRec->amount * (1 - $dRec->discount);
+    		} else {
+    			$byProducts += $dRec->amount * (1 - $dRec->discount);
     		}
     	}
-    	
-    	$byServices = $baseAmount - $byProducts;
     	
     	if($rec->type != 'invoice'){
     		$origin = $this->Invoices->getOrigin($rec);

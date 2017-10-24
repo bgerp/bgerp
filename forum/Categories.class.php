@@ -24,7 +24,7 @@ class forum_Categories extends core_Manager {
 	/**
 	 * Зареждане на необходимите плъгини
 	 */
-	var $loadList = 'plg_RowTools, forum_Wrapper';
+	var $loadList = 'plg_RowTools2, forum_Wrapper';
 	
 	
 	/**
@@ -71,6 +71,9 @@ class forum_Categories extends core_Manager {
 		$this->FLD('title', 'varchar(40)', 'caption=Заглавие, mandatory');
 		$this->FLD('order', 'int', 'caption=Подредба');
 		$this->FLD('boardCnt', 'int', 'caption=Дъски, input=none, value=0');
+		
+        // Към кой домейн е дадената категория
+        $this->FLD('domainId', 'key(mvc=cms_Domains, select=*)', 'caption=Домейн,notNull,defValue=bg,mandatory,autoFilter');
 
 		// Поставяне на уникални индекси
 		$this->setDbUnique('title, order');
@@ -100,7 +103,10 @@ class forum_Categories extends core_Manager {
 		// Ако е сетнато $data->category, то връщаме само тази категория
 		if($data->category) {
 			$query->where($data->category);
-		}
+		} else {
+            $domainId = cms_Domains::getPublicDomain('id');
+            $query->where("#domainId = {$domainId}");
+        }
 		
 		while($rec = $query->fetch()) {
            

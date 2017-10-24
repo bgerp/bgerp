@@ -26,8 +26,8 @@ class lab_Tests extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, doc_ActivatePlg,
-                     doc_DocumentPlg, plg_Printing, lab_Wrapper, plg_Sorting, bgerp_plg_Blank';
+    var $loadList = 'plg_RowTools2, doc_ActivatePlg, plg_Clone, doc_DocumentPlg, plg_Printing,
+                     lab_Wrapper, plg_Sorting, bgerp_plg_Blank, doc_plg_SelectFolder';
     
     
     /**
@@ -40,14 +40,8 @@ class lab_Tests extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id, title,type,batch,origin,
-                       assignor,activatedOn=Активиран,lastChangedOn=Последно,tools=Пулт';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'tools';
-    
+                       assignor,activatedOn=Активиран,lastChangedOn=Последно';
+
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
@@ -119,6 +113,28 @@ class lab_Tests extends core_Master
      * Групиране на документите
      */
     var $newBtnGroup = "18.1|Други";
+    
+    
+    /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
+    
+
+    /**
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     *
+     * @see plg_Clone
+     */
+    public $cloneDetails = 'lab_TestDetails';
+    
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'title';
     
     
     /**
@@ -515,21 +531,27 @@ class lab_Tests extends core_Master
     /**
      * Извиква се след изчисляването на необходимите роли за това действие
      */
-    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         
-        if(is_object($rec)) {
             
-            if ($action == 'activate') {
+        if ($action == 'activate') {
                 
+            if(is_object($rec) && $rec->id) {
+
                 $haveDetail = is_object(lab_TestDetails::fetch("#testId = {$rec->id}"));
-                
-                if ($rec->state != 'draft' || !$haveDetail) {
-                    $requiredRoles = 'no_one';
-                    
-                    return;
-                }
+            } else {
+                $haveDetail = FALSE;
             }
+                
+            if (!$rec->id || $rec->state != 'draft' || !$haveDetail) {
+                $requiredRoles = 'no_one';
+                    
+                return;
+            }
+        }
+        
+        if(is_object($rec)) {
             
             if ($action == 'compare') {
                 
@@ -564,4 +586,5 @@ class lab_Tests extends core_Master
         
         return $row;
     }
+
 }

@@ -110,6 +110,8 @@ class cms_Setup extends core_ProtoSetup
         	'cms_Feeds',
             'cms_Includes',
             'cms_VerbalId',
+            'cms_GalleryGroups',
+            'cms_GalleryImages',
             'migrate::contentOrder6',
             'migrate::updateSearchKeywords',
          );
@@ -152,6 +154,9 @@ class cms_Setup extends core_ProtoSetup
         // Инсталираме плъгина  
         $html .= $Plugins->forcePlugin('Показване на обекти', 'cms_ObjectsInRichtextPlg', 'type_Richtext', 'private');
         $html .= $Plugins->forcePlugin('Копиране с линк към страницата', 'cms_CopyTextPlg', 'cms_page_External', 'private');
+        
+        // Замества абсолютните линкове с титлата на документа
+        $html .= $Plugins->installPlugin('Галерии и картинки в RichText', 'cms_GalleryRichTextPlg', 'type_Richtext', 'private');
         
         $html .= $Bucket->createBucket('cmsFiles', 'Прикачени файлове в CMS', NULL, '104857600', 'user', 'user');
 

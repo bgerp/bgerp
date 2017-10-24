@@ -2,6 +2,12 @@
 
 
 /**
+ * Да се показвали рецептата в описанието на артикула
+ */
+defIfNot('CAT_SHOW_BOM_IN_PRODUCT', 'auto');
+
+
+/**
  * Коя да е основната мярка на универсалните артикули
  */
 defIfNot('CAT_DEFAULT_MEASURE_ID', '');
@@ -41,6 +47,19 @@ defIfNot('CAT_WAC_PRICE_PERIOD_LIMIT', 3);
  * Ценова политика по подразбиране
  */
 defIfNot('CAT_DEFAULT_PRICELIST', price_ListRules::PRICE_LIST_CATALOG);
+
+
+/**
+ * Брой артикули в автоматичните списъци
+ */
+defIfNot('CAT_AUTO_LIST_PRODUCT_COUNT', 30);
+
+
+
+/**
+ * Артикулите от кои групи да влизат в последните продажби
+ */
+defIfNot('CAT_AUTO_LIST_ALLOWED_GROUPS', '');
 
 
 /**
@@ -107,6 +126,9 @@ class cat_Setup extends core_ProtoSetup
     		'cat_Boms',
     		'cat_BomDetails',
     		'cat_ProductTplCache',
+    		'cat_Listings',
+    		'cat_ListingDetails',
+    		'cat_PackParams',
     		'migrate::migrateGroups',
     		'migrate::migrateProformas',
     		'migrate::removeOldParams1',
@@ -118,14 +140,28 @@ class cat_Setup extends core_ProtoSetup
     		'migrate::addClassIdToParams',
     		'migrate::updateBomType',
     		'migrate::updateParamStates',
+    		'migrate::migratePrototypes',
+    		'migrate::updateListings1',
+    		'migrate::updateLists',
+    		'migrate::migrateListings',
+    		'migrate::updateCatCache',
         );
-
-
+    
+    
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'cat,sales,purchase,techno';
- 
+    var $roles = array(
+            array('listArt'),
+    		array('sales', 'listArt'),
+    		array('purchase'),
+    		array('packEdit'),
+    		array('catEdit', 'packEdit'),
+    		array('cat', 'catEdit'),
+            array('rep_cat'),
+            array('catImpEx'),
+    );
+    
     
     /**
      * Връзки от менюто, сочещи към модула
@@ -138,7 +174,7 @@ class cat_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "cat_GeneralProductDriver, cat_reports_SalesArticle";
+    var $defClasses = "cat_GeneralProductDriver, cat_reports_SalesArticle, cat_reports_BomsRep";
 
 
     /**
@@ -152,6 +188,9 @@ class cat_Setup extends core_ProtoSetup
     		'CAT_BOM_MAX_COMPONENTS_LEVEL'          => array("int(min=0)", 'caption=Вложени рецепти - нива с показване на компонентите->Макс. брой'),
     		'CAT_WAC_PRICE_PERIOD_LIMIT'            => array("int(min=1)", array('caption' => 'До колко периода назад да се търси складова себестойност, ако няма->Брой')),
             'CAT_DEFAULT_PRICELIST'                 => array("key(mvc=price_Lists,select=title,allowEmpty)", 'caption=Ценова политика по подразбиране->Избор,mandatory'),
+            'CAT_AUTO_LIST_PRODUCT_COUNT'           => array("int(min=1)", 'caption=Списъци от последно продавани артикули->Брой'),
+            'CAT_AUTO_LIST_ALLOWED_GROUPS'          => array("keylist(mvc=cat_Groups,select=name)", 'caption=Списъци от последно продавани артикули->Групи'),
+            'CAT_SHOW_BOM_IN_PRODUCT'               => array("enum(auto=Автоматично,yes=Да,no=Не)", 'caption=Показване на рецептата в описанието на артикула->Показване'),
     );
 
     
@@ -165,6 +204,16 @@ class cat_Setup extends core_ProtoSetup
     				'controller' => "cat_Products",
     				'action' => "closePrivateProducts",
     				'period' => 21600,
+    				'offset' => 60,
+    				'timeLimit' => 200
+    		),
+    		
+    		array(
+    				'systemId' => "Update Auto Sales List",
+    				'description' => "Обновяване на листовете с продажби",
+    				'controller' => "cat_Listings",
+    				'action' => "UpdateAutoLists",
+    				'period' => 1440,
     				'offset' => 60,
     				'timeLimit' => 200
     		),
@@ -466,5 +515,161 @@ class cat_Setup extends core_ProtoSetup
     		$rec->state = 'active';
     		$Params->save_($rec, 'state');
     	}
+    }
+    
+    
+    /**
+     * Миграция на шаблонните артикули
+     */
+    public function migratePrototypes()
+    {
+    	try{
+    		cls::get('cat_Products')->setupMvc();
+    		$folders = array();
+    		 
+    		// В кои категории може да има прототипни артикули
+    		$query = cat_Categories::getQuery();
+    		$query->where("#useAsProto = 'yes'");
+    		$query->show('folderId');
+    		while($cRec = $query->fetch()) {
+    			$folders[$cRec->folderId] = $cRec->folderId;
+    		}
+    		 
+    		if(count($folders)){
+    			core_App::setTimeLimit(300);
+    			
+    			foreach ($folders as $folderId){
+    				$cQuery = cat_Products::getQuery();
+    				$cQuery->where("#state = 'active'");
+    				$cQuery->where("#folderId = {$folderId}");
+    			
+    				while($rec = $cQuery->fetch()){
+    					$title = cat_Products::getTitleById($rec->id);
+    					doc_Prototypes::add($title, 'cat_Products', $rec->id, $rec->innerClass);
+    				}
+    			}
+    		}
+    	} catch(core_exception_Expect $e){
+    		reportException($e);
+    	}
+    }
+    
+    
+    /**
+     * Ъпдейт на листингите
+     */
+    function updateListings1()
+    {
+    	$Lists = cls::get('cat_Listings');
+    	$Lists->setupMvc();
+    	core_Classes::add('cat_Listings');
+    	
+    	$Detail = cls::get('cat_ListingDetails');
+    	$Detail->setupMvc();
+    	
+    	if(!$Detail::count()) return;
+    	
+    	$new = $toSave = array();
+    	$query = $Detail->getQuery();
+    	$query->FLD('contragentClassId', 'int');
+    	$query->FLD('contragentId', 'int');
+    	$query->where("#listId IS NULL");
+    	
+    	while($rec = $query->fetch()){
+    		if(!(isset($rec->contragentClassId) && isset($rec->contragentId))) continue;
+    		
+    		$folderId = cls::get($rec->contragentClassId)->forceCoverAndFolder($rec->contragentId);
+    			 
+    		if(!isset($new[$folderId])){
+    			$name = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
+    	
+    			if($exRec = cat_Listings::fetch("#title = '{$name}'")){
+    				$lId = $exRec->id;
+    			} else {
+    				$n = (object)array('title' => $name, 'folderId' => $folderId, 'createdBy' => $rec->modifiedBy, 'createdOn' => $rec->modifiedOn);
+    				
+    				core_Users::sudo($rec->modifiedBy);
+    				$listId = cat_Listings::save($n);
+    				core_Users::exitSudo();
+    				
+    				$new[$folderId] = $listId;
+    			}
+    	
+    			$new[$folderId] = $lId;
+    		}
+    			 
+    		$rec->listId = $new[$folderId];
+    			 
+    		$pRec = cat_Products::fetch($rec->productId, 'canBuy,canSell');
+    		$rec->canSell = $pRec->canSell;
+    		$rec->canBuy = $pRec->canBuy;
+    			 
+    		$toSave[] = $rec;
+    	}
+    	 
+    	if(count($toSave)){
+    		$Detail->saveArray($toSave);
+    	}
+    }
+    
+    
+    /**
+     * Ъпдейт на валутите на листовете
+     */
+    function updateLists()
+    {
+    	$Lists = cls::get('cat_Listings');
+    	$Lists->setupMvc();
+    	
+    	if(!cat_Listings::count()) return;
+    	
+    	$query = $Lists->getQuery();
+    	$query->where('#currencyId IS NULL OR #currencyId = 0');
+    	while($rec = $query->fetch()){
+    	
+    		$Cover = doc_Folders::getCover($rec->folderId);
+    		if($Cover->haveInterface('crm_ContragentAccRegIntf')){
+    			$rec->currencyId = $Cover->getDefaultCurrencyId();
+    			$rec->vat = ($Cover->shouldChargeVat()) ? 'yes' : 'no';
+    			
+    		} else {
+    			$rec->currencyId = 'BGN';
+    			$rec->vat = 'yes';
+    		}
+    		
+    		$Lists->save_($rec, 'currencyId,vat');
+    	}
+    }
+    
+    
+    /**
+     * Миграция на листовете
+     */
+    function migrateListings()
+    {
+    	core_App::setTimeLimit(200);
+    	$Listings = cls::get('cat_ListingDetails');
+    	$lQuery = $Listings->getQuery();
+    	$lQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
+    	$lQuery->where("#code = #reff");
+    	$lQuery->show('id,listId,productId,reff,code');
+    	
+    	while($lRec = $lQuery->fetch()){
+    		try{
+    			$lRec->reff = NULL;
+    			$Listings->save_($lRec);
+    		} catch(core_exception_Expect $e){
+    			reportException($e);
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Изчистване на кеша
+     */
+    function updateCatCache()
+    {
+    	cat_ProductTplCache::delete("#type = 'title'");
     }
 }

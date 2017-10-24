@@ -39,8 +39,8 @@ class accda_Da extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, accda_Wrapper, acc_plg_Contable, acc_plg_DocumentSummary, plg_Printing, doc_DocumentPlg, plg_Search,
-                     bgerp_plg_Blank, acc_plg_Registry, plg_Sorting, plg_SaveAndNew, plg_Search, doc_plg_BusinessDoc';
+    public $loadList = 'plg_RowTools2, accda_Wrapper, acc_plg_Contable, acc_plg_DocumentSummary, plg_Printing, plg_Clone, doc_DocumentPlg, plg_Search,
+                     bgerp_plg_Blank, acc_plg_Registry, plg_Sorting, plg_SaveAndNew, plg_Search, doc_plg_SelectFolder';
     
     
     /**
@@ -124,19 +124,33 @@ class accda_Da extends core_Master
     /**
      * Полета за показване в списъчния изглед
      */
-    public $listFields = 'tools=Пулт,valior,handler=Документ,title,num,serial,createdOn,createdBy';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
-    
+    public $listFields = 'valior,handler=Документ,title,num,serial,createdOn,createdBy';
+
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     public $rowToolsSingleField = 'handler';
+    
+    
+    /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
+    
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'valior,title,num';
+    
+
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'valior, createdOn';
     
     
     /**
@@ -233,20 +247,6 @@ class accda_Da extends core_Master
     
     
     /**
-     * Проверка дали нов документ може да бъде добавен в
-     * посочената папка като начало на нишка
-     *
-     * @param $folderId int ид на папката
-     */
-    public static function canAddToFolder($folderId)
-    {
-        $folderCover = doc_Folders::getCover($folderId);
-        
-        return $folderCover->haveInterface('accda_DaFolderCoverIntf');
-    }
-    
-    
-    /**
      * @see crm_ContragentAccRegIntf::itemInUse
      * @param int $objectId
      */
@@ -261,10 +261,9 @@ class accda_Da extends core_Master
      */
     public static function getRecTitle($rec, $escaped = TRUE)
     {
-    	$me = cls::get(get_called_class());
-    	$title = $me->singleTitle . " №{$rec->id}";
-    	
-    	return $title;
+    	$self = cls::get(get_called_class());
+    
+    	return $self->singleTitle . " №$rec->id";
     }
     
     
@@ -326,15 +325,6 @@ class accda_Da extends core_Master
         if(Mode::is('printing') || Mode::is('text', 'xhtml')){
             $tpl->removeBlock('header');
         }
-    }
-    
-    
-    /**
-     * В корици на папки с какви интерфейси може да се слага
-     */
-    public static function getAllowedFolders()
-    {
-        return array('accda_DaFolderCoverIntf');
     }
     
     

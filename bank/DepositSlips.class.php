@@ -26,7 +26,7 @@ class bank_DepositSlips extends bank_DocumentBlank
      * Неща, подлежащи на начално зареждане
      */
     public $loadList = 'plg_RowTools2, bank_Wrapper,
-         plg_Sorting, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, doc_ActivatePlg,
+         plg_Sorting, plg_Clone, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, doc_ActivatePlg,
          plg_Search, doc_plg_MultiPrint, cond_plg_DefaultValues, doc_EmailCreatePlg';
     
     
@@ -67,6 +67,14 @@ class bank_DepositSlips extends bank_DocumentBlank
     
     
     /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'amount,valior';
+    
+    
+    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
@@ -79,6 +87,12 @@ class bank_DepositSlips extends bank_DocumentBlank
         'beneficiaryBank' => 'lastDocUser|lastDoc',
         'depositor'       => 'lastDocUser|lastDoc',
     );
+    
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'valior,createdOn';
     
     
     /**

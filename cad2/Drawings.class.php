@@ -17,7 +17,7 @@ class cad2_Drawings extends embed_Manager {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Clone, plg_Created, cad2_Wrapper, plg_Search';  
+    public $loadList = 'plg_RowTools2, plg_Clone, plg_Created, cad2_Wrapper, plg_Search';  
                     
 
     
@@ -176,8 +176,8 @@ class cad2_Drawings extends embed_Manager {
     protected static function on_AfterPrepareSingleToolbar($mvc, $res, $data)
     {
         if(TRUE || $mvc->haveRightFor('update', $data->rec)) {
-            $data->toolbar->addBtn('SVG', array($mvc, 'DownloadSvg', $data->rec->id), NULL, 'ef_icon=fileman/icons/svg.png');
-            $data->toolbar->addBtn('PDF', array($mvc, 'DownloadPdf', $data->rec->id), NULL, 'ef_icon=fileman/icons/pdf.png');
+            $data->toolbar->addBtn('SVG', array($mvc, 'DownloadSvg', $data->rec->id), NULL, 'ef_icon=fileman/icons/16/svg.png');
+            $data->toolbar->addBtn('PDF', array($mvc, 'DownloadPdf', $data->rec->id), NULL, 'ef_icon=fileman/icons/16/pdf.png');
         }
     }
 

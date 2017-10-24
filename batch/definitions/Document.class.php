@@ -13,30 +13,35 @@
  * @since     v 0.1
  * @title Хендлър на документ с дата
  */
-class batch_definitions_Document extends batch_definitions_Varchar
+class batch_definitions_Document extends batch_definitions_Proto
 {
 	
 	
 	/**
-	 * Автоматичен стринг
+	 * Плейсхолдър на полето
+	 *
+	 * @param string
 	 */
-	const AUTO_VALUE_STRING = 'yyyymmdd-abbr№';
+	public $fieldPlaceholder = 'yyyymmdd-abbr№';
 	
 	
 	/**
 	 * Връща автоматичния партиден номер според класа
-	 *
+	 * 
 	 * @param mixed $documentClass - класа за който ще връщаме партидата
-	 * @param int $id - ид на документа за който ще връщаме партидата
-	 * @return mixed $value - автоматичния партиден номер, ако може да се генерира
+	 * @param int $id              - ид на документа за който ще връщаме партидата
+	 * @param int $storeId         - склад
+	 * @param date|NULL $date      - дата
+	 * @return mixed $value        - автоматичния партиден номер, ако може да се генерира
 	 */
-	public function getAutoValue($documentClass, $id)
+	public function getAutoValue($documentClass, $id, $storeId, $date = NULL)
 	{
 		$Class = cls::get($documentClass);
 		expect($dRec = $Class->fetchRec($id));
 		
 		$handle = mb_strtoupper($Class->getHandle($dRec->id));
 		$date = $dRec->{$Class->valiorFld};
+		$date = (!empty($date)) ? $date : dt::today();
 		$date = str_replace('-', '', $date);
 		
 		$res = "{$date}-{$handle}";
@@ -55,13 +60,10 @@ class batch_definitions_Document extends batch_definitions_Varchar
 	 */
 	public function isValid($value, $quantity, &$msg)
 	{
-		if($value != self::AUTO_VALUE_STRING){
-			if(!preg_match("/^[0-9]{8}[\-]{1}[A-Z]{3}[0-9]+/", $value, $matches)){
-				$date = str_replace('-', '', dt::today());
-					
-				$msg = "Формата трябва да е във вида на|* {$date}-SAL1";
-				return FALSE;
-			}
+		if(!preg_match("/^[0-9]{8}[\-]{1}[A-Z]{1,3}[0-9]+/", $value, $matches)){
+			$date = str_replace('-', '', dt::today());
+			$msg = "Формата трябва да е във вида на|* {$date}-SAL1";
+			return FALSE;
 		}
 		
 		return parent::isValid($value, $quantity, $msg);
@@ -69,28 +71,47 @@ class batch_definitions_Document extends batch_definitions_Varchar
 	
 	
 	/**
-	 * Проверява дали стойността е невалидна
-	 *
-	 * @return core_Type - инстанция на тип
-	 */
-	public function getBatchClassType()
+     * Какви са свойствата на партидата
+     *
+     * @param varchar $value - номер на партидара
+     * @return array - свойства на партидата
+     * 			o name    - заглавие
+     * 			o classId - клас
+     * 			o value   - стойност
+     */
+	public function getFeatures($value)
 	{
-		$Type = parent::getBatchClassType();
-	
-		$autoConst = $this->getAutoValueConst();
-		$Type->suggestions = array('' => '', $autoConst => $autoConst);
+		list($date, $string) = explode('-', $value);
 		
-		return $Type;
+		$res = array();
+		$res[] = (object)array('name' => 'Документ', 'classId' => batch_definitions_Varchar::getClassId(), 'value' => $string);
+		$res[] = (object)array('name' => 'Дата', 'classId' => batch_definitions_ExpirationDate::getClassId(), 'value' => $date);
+		 
+		return $res;
 	}
 	
 	
 	/**
-     * Каква е стойноста, която означава че партидата трябва да се генерира автоматично
-     *
-     * @return string
-     */
-	public function getAutoValueConst()
+	 * Подрежда подадените партиди
+	 *
+	 * @param array $batches - наличните партиди
+	 * 		['batch_name'] => ['quantity']
+	 * @param date|NULL $date
+	 * return void
+	 */
+	public function orderBatchesInStore(&$batches, $storeId, $date = NULL)
 	{
-		return static::AUTO_VALUE_STRING;
+		ksort($batches);
+	}
+	
+	
+	/**
+	 * Може ли потребителя да сменя уникалноста на партида/артикул
+	 *
+	 * @return boolean
+	 */
+	public function canChangeBatchUniquePerProduct()
+	{
+		return FALSE;
 	}
 }

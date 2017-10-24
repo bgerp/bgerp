@@ -43,7 +43,7 @@ class survey_Options extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools,  plg_Created, survey_Wrapper, plg_SaveAndNew';
+    var $loadList = 'plg_RowTools2,  plg_Created, survey_Wrapper, plg_SaveAndNew';
     
     
     /**
@@ -153,7 +153,7 @@ class survey_Options extends core_Manager {
     /**
 	 * Модификация на ролите, които могат да видят избраната тема
 	 */
-    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{  
    		if(($action == 'edit' || $action == 'delete' || $action == 'add') && isset($rec->alternativeId)) {
    			$surveyState = survey_Surveys::fetchField(survey_Alternatives::fetchField($rec->alternativeId, 'surveyId'), 'state');

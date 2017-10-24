@@ -129,6 +129,7 @@ class change_Plugin extends core_Plugin
         
         // Всички полета, които ще се показват да се инпутват
         foreach ($fieldsArrShow as $f) {
+            expect(is_object($form->fields[$f]), "Липсващо поле '{$f}'", $form->fields);
             $form->fields[$f]->input = 'input';
         }
         
@@ -233,7 +234,9 @@ class change_Plugin extends core_Plugin
                 
                 // Записваме промени
                 $mvc->save($fRec);
-            
+                
+                $mvc->logInAct('Промяна', $fRec);
+                
                 // Записваме лога на промените
                 $savedRecsArr = change_Log::create($mvc->className, $fieldsArrLogSave, $rec, $fRec);
                 
@@ -299,7 +302,7 @@ class change_Plugin extends core_Plugin
         
         // Добавяме бутоните на формата
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png');
         
         $form->title = 'Промяна';
         
@@ -460,7 +463,7 @@ class change_Plugin extends core_Plugin
             $firstCreatedOnDate = dt::mysql2verbal($firstSelVerArr['createdOn'], $dateMask);
             
             if ($firstCreatedOnDate == $lastCreatedOnDate) {
-                $dateMask = 'd-m-y H:m:s';
+                $dateMask = 'd-m-y H:i:s';
             }
         }
         
@@ -528,25 +531,25 @@ class change_Plugin extends core_Plugin
         // Масива, който ще връщаме
         $allowedFieldsArr = array();
         
+        // Преобразуваме в масив
+        $changableFieldsArr = arr::make($changableFields, TRUE);
+        
         // Обхождаме всички полета
         foreach ($form->fields as $field => $filedClass) {
             
             // Ако могат да се променят
-            if ($filedClass->changable) {
+            if ($filedClass->changable || in_array($field, $changableFieldsArr)) {
                 
                 // Добавяме в масива
                 $allowedFieldsArr[$field] = $field;
             }
+
+            if($filedClass->changable == 'ifInput' && $filedClass->input == 'none') {
+                unset($allowedFieldsArr[$field]);
+            }
         }
         
-        // Преобразуваме в масив
-        $changableFieldsArr = arr::make($changableFields, TRUE);
-        
-        // Събираме двата масива
-        $allowedFieldsArr += $changableFieldsArr;
-        
         return $allowedFieldsArr;
-        
     }
     
     
@@ -615,8 +618,13 @@ class change_Plugin extends core_Plugin
         // URL' то за промяна
         $changeUrl = $mvc->getChangeUrl($id);
 
+        $iconSize = 16;
+        if(log_Browsers::isRetina()) {
+            $iconSize = 32;
+        }
+
         // Създаваме линк с загллавието
-        $res = ht::createLink($title, $changeUrl, NULL, "ef_icon=img/16/edit.png"); 
+        $res = ht::createLink($title, $changeUrl, NULL, "ef_icon=img/{$iconSize}/edit.png");
     }
     
     
@@ -662,8 +670,7 @@ class change_Plugin extends core_Plugin
     public static function on_AfterCanChangeRec($mvc, &$res, $rec)
     {
         // Чернова и затворени документи не могат да се променят
-        if ($res !== FALSE && $rec->state != 'draft' && $rec->state != 'closed') {
-            
+        if ($res !== FALSE && (!in_array($rec->state, array('rejected', 'draft', 'pending')))) {
             $res = TRUE;
         } 
     }

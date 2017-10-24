@@ -49,14 +49,16 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
 				'order' => 2,
 			);
         
-        // URL за показване на текстовата част на файловете
-        $textPart = toUrl(array('fileman_webdrv_Pdf', 'text', $fRec->fileHnd), TRUE);
-        
-        // Таб за текстовата част
-		$tabsArr['text'] = new stdClass();
-        $tabsArr['text']->title = 'Текст';
-        $tabsArr['text']->html = "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("Текст") . "</div><iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'></div></iframe></div>";
-        $tabsArr['text']->order = 4;
+		if (self::canShowTab($fRec->fileHnd, 'text') || self::canShowTab($fRec->fileHnd, 'textOcr', TRUE, TRUE)) {
+		    // URL за показване на текстовата част на файловете
+            $textPart = toUrl(array('fileman_webdrv_Pdf', 'text', $fRec->fileHnd), TRUE);
+            
+            // Таб за текстовата част
+    		$tabsArr['text'] = new stdClass();
+            $tabsArr['text']->title = 'Текст';
+            $tabsArr['text']->html = "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("Текст") . "</div><iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'></div></iframe></div>";
+            $tabsArr['text']->order = 4;
+		}
         
         return $tabsArr;
     }
@@ -86,70 +88,37 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
     {
         // Параметри необходими за конвертирането
         $params = array(
-            'callBack' => 'fileman_webdrv_Image::afterExtractText',
-            'dataId' => $fRec->dataId,
-        	'asynch' => TRUE,
             'createdBy' => core_Users::getCurrent('id'),
             'type' => 'text',
         );
         
+        $dId = self::prepareLockId($fRec);
+        
+        if (is_object($fRec)) {
+            $params['dataId'] = $fRec->dataId;
+        }
+        
         // Променливата, с която ще заключим процеса
-        $params['lockId'] = static::getLockId($params['type'], $fRec->dataId);
+        $params['lockId'] = self::getLockId('text', $dId);
         
         // Проверявама дали няма извлечена информация или не е заключен
         if (fileman_Indexes::isProcessStarted($params)) return ;
         
         // Заключваме процеса за определено време
         if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
-            
-            $script = new stdClass();
-            $script->params = serialize($params);
-    
-            // Това е направено с цел да се запази логиката на работа на системата и възможност за раширение в бъдеще
-            static::afterExtractText($script);    
-        }
-    }
-    
-    
-    /**
-     * Извиква се след приключване на извличането на текстовата част
-     * 
-     * @param object $script - Данни необходими за извличането и записването на текста
-     * 
-     * @return TRUE - Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
-     * и записа от таблицата fconv_Process
-     * 
-     * @access protected
-     */
-    static function afterExtractText($script)
-    {
-        // Десериализираме нужните помощни данни
-        $params = unserialize($script->params);
-        
-//        // Проверяваме дали е имало грешка при предишното конвертиране
-//        if (fileman_Indexes::haveErrors($script->outFilePath, $params)) {
-//            
-//            // Отключваме процеса
-//            core_Locks::release($params['lockId']);
-//            
-//            return FALSE;
-//        }
-        
-        
-        // Текстовата част
-        $params['content'] = '';
-
-        // Обновяваме данните за запис във fileman_Indexes
-        $savedId = fileman_Indexes::saveContent($params);
-        
-        // Отключваме процеса
-        core_Locks::release($params['lockId']);
-        
-        if ($savedId) {
-
-            // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
-            // и записа от таблицата fconv_Process
-            return TRUE;
+        	
+            $text = '';
+        	
+            if (is_object($fRec)) {
+                // Обновяваме данните за запис във fileman_Indexes
+                $params['content'] = $text;
+                fileman_Indexes::saveContent($params);
+            }
+        	
+            // Отключваме процеса
+            core_Locks::release($params['lockId']);
+        	
+            return $text;
         }
     }
     
@@ -248,7 +217,7 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         $allFilesArr = scandir($script->tempDir);
         
         // Шаблон за намиране на името на файла
-        $pattern = "/" . preg_quote($script->fName, "/") . "\-(?'num'[0-9]+)\.jpg" . "/i";
+        $pattern = "/^" . preg_quote($script->fName, "/") . "\-(?'num'[0-9]+)\.jpg$" . "/i";
         
         $matchedFilesArr = array();
         
@@ -261,13 +230,11 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         
         ksort($matchedFilesArr);
         
-        $Fileman = cls::get('fileman_Files');
-        
         foreach ($matchedFilesArr as $file) {
             
             try {
                 // Качваме файла в кофата и му вземаме манипулатора
-                $fileHnd = $Fileman->addNewFile($script->tempDir . $file, 'fileIndex'); 
+                $fileHnd = fileman::absorb($script->tempDir . $file, 'fileIndex'); 
             } catch (core_exception_Expect $e) {
                 continue;
             }

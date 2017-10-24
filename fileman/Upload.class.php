@@ -228,7 +228,7 @@ class fileman_Upload extends core_Manager
         $uploadUrl = toUrl($currUrl);
         $uploadUrl = json_encode($uploadUrl);
         
-        $crossImg = sbf('img/16/cross.png', "");
+        $crossImg = sbf('img/16/delete.png', "");
         $crossImg = json_encode($crossImg);
         
         $uploadErrStr = tr('Грешка при качване на файл') . ': ';

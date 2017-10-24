@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Базов драйвер за партиден клас 'срок на годност'
  *
@@ -13,14 +14,16 @@
  * @since     v 0.1
  * @title Срок на годност
  */
-class batch_definitions_ExpirationDate extends batch_definitions_Proto
+class batch_definitions_ExpirationDate extends batch_definitions_Date
 {
 	
 	
 	/**
-	 * Позволени формати
+	 * Име на полето за партида в документа
+	 *
+	 * @param string
 	 */
-	private $formatSuggestions = 'm/d/y,m.d.y,d.m.Y,m/d/Y,d/m/Y,Ymd,Ydm,Y-m-d,dmY,ymd,ydm';
+	public $fieldCaption = 'Ср. год.';
 	
 	
 	/**
@@ -30,21 +33,21 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 	 */
 	public function addFields(core_Fieldset &$fieldset)
 	{
-		$fieldset->FLD('format', 'varchar(20)', 'caption=Формат,mandatory');
+		parent::addFields($fieldset);
 		$fieldset->FLD('time', 'time(suggestions=1 ден|2 дена|1 седмица|1 месец)', 'caption=Срок до,unit=след текущата дата');
-		
-		$fieldset->setOptions('format', array('' => '') + arr::make($this->formatSuggestions, TRUE));
 	}
 	
 	
 	/**
 	 * Връща автоматичния партиден номер според класа
-	 *
+	 * 
 	 * @param mixed $documentClass - класа за който ще връщаме партидата
-	 * @param int $id - ид на документа за който ще връщаме партидата
-	 * @return mixed $value - автоматичния партиден номер, ако може да се генерира
+	 * @param int $id              - ид на документа за който ще връщаме партидата
+	 * @param int $storeId         - склад
+	 * @param date|NULL $date      - дата
+	 * @return mixed $value        - автоматичния партиден номер, ако може да се генерира
 	 */
-	public function getAutoValue($documentClass, $id)
+	public function getAutoValue($documentClass, $id, $storeId, $date = NULL)
 	{
 		$date = dt::today();
 		if(isset($this->rec->time)){
@@ -58,62 +61,19 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 	
 	
 	/**
-	 * Проверява дали стойността е невалидна
-	 *
-	 * @param string $value - стойноста, която ще проверяваме
-	 * @param quantity $quantity - количеството
-	 * @param string &$msg - текста на грешката ако има
-	 * @return boolean - валиден ли е кода на партидата според дефиницията или не
-	 */
-	public function isValid($value, $quantity, &$msg)
-	{
-		if($value == $this->getAutoValueConst()) return TRUE;
-		
-		// Карта
-		$map = array();
-		$map['m'] = "(?'month'[0-9]{2})";
-		$map['d'] = "(?'day'[0-9]{2})";
-		$map['y'] = "(?'yearShort'[0-9]{2})";
-		$map['Y'] = "(?'year'[0-9]{4})";
-		
-		// Генерираме регулярен израз спрямо картата
-		$expr = $this->rec->format;
-		$expr = preg_quote($expr, '/');
-		$expr = strtr($expr, $map);
-		
-		// Проверяваме дали датата отговаря на формата
-		if(!preg_match("/^{$expr}$/", $value, $matches)){
-			$msg = "|Партидата трябва да е във формат за дата|* <b>{$this->rec->format}</b>";
-			return FALSE;
-		}
-		
-		// Ако годината е кратка, правим я дълга
-		if(isset($matches['yearShort'])){
-			$matches['year'] = "20{$matches['yearShort']}";
-		}
-		
-		// Проверяваме дали датата е възможна
-		if(!checkdate($matches['month'], $matches['day'], $matches['year'])){
-			$msg = "|Партидата трябва да е във формат за дата|* <b>{$this->rec->format}</b>";
-			return FALSE;
-		}
-		
-		// Връщаме истина, ако не са се получили грешки
-		return TRUE;
-	}
-	
-	
-	/**
 	 * Кой може да избере драйвера
 	 */
 	public function toVerbal($value)
 	{
-		$mysqlValue = dt::verbal2mysql($value, FALSE);
-		$today = dt::today();
+		if(Mode::isReadOnly()) return cls::get('type_Html')->toVerbal($value);
+		
+		$today = strtotime(dt::today());
+		
+		$mysqlValue = dt::getMysqlFromMask($value, $this->rec->format);
 		
 		// Ако партидата е изтекла оцветяваме я в червено
-		if($mysqlValue < $today){
-			$valueHint = ht::createHint($value, 'Крайният срок на партидата е изтекъл', 'warning');
+		if(strtotime($mysqlValue) < $today){
+			$valueHint = ht::createHint($value, 'Срокът на годност на партидата е изтекъл', 'warning');
 			$value = new core_ET("<span class='red'>[#value#]</span>");
 			$value->replace($valueHint, 'value');
 		} else {
@@ -136,7 +96,7 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 					$percentToCompare = 1 - $confPercent;
 					
 					if($percent >= $percentToCompare){
-						$valueHint = ht::createHint($value, 'Партидата ще изтече скоро', 'warning');
+						$valueHint = ht::createHint($value, 'Партидата изтича скоро', 'warning');
 						$value = new core_ET("<span style='color:orange'>[#value#]</span>");
 						$value->replace($valueHint, 'value');
 					}
@@ -149,28 +109,108 @@ class batch_definitions_ExpirationDate extends batch_definitions_Proto
 	
 	
 	/**
-	 * Проверява дали стойността е невалидна
+	 * Връща масив с опции за лист филтъра на партидите
 	 *
-	 * @return core_Type - инстанция на тип
+	 * @return array - масив с опции
+	 * 		[ключ_на_филтъра] => [име_на_филтъра]
 	 */
-	public function getBatchClassType()
+	public function getListFilterOptions()
 	{
-		$Type = parent::getBatchClassType();
-	
-		$autoConst = $this->getAutoValueConst();
-		$Type->suggestions = array('' => '', $autoConst => $autoConst);
-	
-		return $Type;
+		return array('expiration' => 'Срок на годност');
 	}
 	
 	
 	/**
-     * Каква е стойноста, която означава че партидата трябва да се генерира автоматично
+	 * Добавя филтър към заявката към  batch_Items възоснова на избраната опция (@see getListFilterOptions)
+	 *
+	 * @param core_Query $query - заявка към batch_Items
+	 * @param varchar $value -стойност на филтъра
+	 * @param string $featureCaption - Заглавие на колоната на филтъра
+	 * @return void
+	 */
+	public function filterItemsQuery(core_Query &$query, $value, &$featureCaption)
+	{
+		expect($query->mvc instanceof batch_Items, 'Невалидна заявка');
+		$options = $this->getListFilterOptions();
+		expect(array_key_exists($value, $options), "Няма такава опция|* '{$value}'");
+		
+		// Ако е избран филтър за срок на годност
+		if($value == 'expiration'){
+			
+			// Намиране на партидите със свойство 'срок на годност'
+			$featQuery = batch_Features::getQuery();
+			
+			$name = batch_Features::canonize('Срок на годност');
+			$featQuery->where("#name = '{$name}'");
+			$featQuery->orderBy('value', 'ASC');
+			$itemsIds = arr::extractValuesFromArray($featQuery->fetchAll(), 'itemId');
+			$query->in('id', $itemsIds);
+			
+			// Ако има ще бъдат подредени по стойноста на срока им
+			if(is_array($itemsIds)){
+				$count = 1;
+				$case = "CASE #id WHEN ";
+				foreach ($itemsIds as $id){
+					$when = ($count == 1) ? '' : ' WHEN ';
+					$case .= "{$when}{$id} THEN {$count}";
+					$count++;
+				}
+				$case .= " END";
+				$query->XPR('orderById', 'int', "({$case})");
+				$query->orderBy('orderById');
+			}
+			
+			$query->EXT('featureId', 'batch_Features', 'externalName=id,remoteKey=itemId');
+		}
+		
+		$featureCaption = 'Срок на годност';
+	}
+	
+	
+	/**
+	 * Подрежда подадените партиди
+	 *
+	 * @param array $batches - наличните партиди
+	 * 		['batch_name'] => ['quantity']
+	 * @param date|NULL $date
+	 * return void
+	 */
+	public function orderBatchesInStore(&$batches, $storeId, $date = NULL)
+	{
+		$dates = array_keys($batches);
+		
+		if(is_array($dates)){
+			usort($dates, function($a, $b) {
+				$aString = dt::getMysqlFromMask($a, $this->rec->format);
+				$bString = dt::getMysqlFromMask($b, $this->rec->format);
+				
+				return (strtotime($aString) < strtotime($bString)) ? -1 : 1;
+			});
+			
+			$sorted = array();
+			foreach ($dates as $date){
+				$sorted[$date] = $batches[$date];
+			}
+			
+			$batches = $sorted;
+		}
+	}
+	
+	
+	/**
+     * Какви са свойствата на партидата
      *
-     * @return string
+     * @param varchar $value - номер на партидара
+     * @return array - свойства на партидата
+     * 			o name    - заглавие
+     * 			o classId - клас
+     * 			o value   - стойност
      */
-    public function getAutoValueConst()
-    {
-		return $this->rec->format;
+	public function getFeatures($value)
+	{
+		$res = array();
+		$res[] = (object)array('name' => 'Срок на годност', 'classId' => $this->getClassId(), 'value' => $value);
+	
+		return $res;
 	}
 }

@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   batch
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @todo да се разработи
@@ -25,8 +25,10 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 	 */
 	public static function on_AfterDescription(core_Mvc $mvc)
 	{
-		$mvc->FLD('batch', 'text', 'input=hidden,caption=Партиден №,after=productId,forceField');
 		setIfNot($mvc->productFieldName, 'productId');
+		setIfNot($mvc->storeFieldName, 'storeId');
+		setIfNot($mvc->batchMovementDocument, 'out');
+		$mvc->declareInterface('batch_MovementSourceIntf');
 	}
 	
 	
@@ -38,7 +40,48 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 	 */
 	public static function on_AfterPrepareEditForm($mvc, &$data)
 	{
-		$data->form->setField('batch', 'input=hidden');
+		$form = &$data->form;
+		$rec = &$form->rec;
+		$storeId = ($mvc instanceof core_Detail) ? ($mvc->Master->fetchField($rec->{$mvc->masterKey}, $mvc->Master->storeFieldName)) : $rec->{$mvc->storeFieldName};
+		if(!$storeId) return;
+		
+		if($mvc->getBatchMovementDocument($rec) == 'out') return;
+		if(isset($rec->id)) return;
+		$form->FNC('batch', 'text', 'caption=Партида,after=productId,input=none');
+		
+		// Задаване на типа на партидата на полето
+		if(isset($rec->{$mvc->productFieldName})){
+			$BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
+			if($BatchClass){
+				$form->setField('batch', 'input');
+				$form->setFieldType('batch', $BatchClass->getBatchClassType());
+				
+				if(isset($BatchClass->fieldPlaceholder)){
+					$form->setField('batch', "placeholder={$BatchClass->fieldPlaceholder}");
+				}
+				
+				// Ако има налични партиди в склада да се показват като предложения
+				$exBatches = batch_Items::getBatchQuantitiesInStore($rec->{$mvc->productFieldName}, $storeId);
+				if(count($exBatches)){
+					$suggestions = array();
+					foreach ($exBatches as $b => $q){
+						$verbal = strip_tags($BatchClass->toVerbal($b));
+						$suggestions[$verbal] = $verbal;
+					}
+					$form->setSuggestions('batch', array('' => '') + $suggestions);
+				}
+				
+				$fieldCaption = $BatchClass->getFieldCaption();
+				if(!empty($fieldCaption)){
+					$form->setField('batch', "caption={$fieldCaption}");
+				}
+				
+				if(isset($rec->id)){
+					$batch = batch_BatchesInDocuments::fetchField("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$rec->id}", 'batch');
+					$form->setDefault('batch', $batch);
+				}
+			}
+		}
 	}
 	
 	
@@ -51,26 +94,23 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 	public static function on_AfterInputEditForm($mvc, &$form)
 	{
 		$rec = &$form->rec;
-		$storeId = $mvc->Master->fetchField($rec->{$mvc->masterKey}, $mvc->Master->storeFieldName);
+		$storeId = ($mvc instanceof core_Detail) ? ($mvc->Master->fetchField($rec->{$mvc->masterKey}, $mvc->Master->storeFieldName)) : $rec->{$mvc->storeFieldName};
+		if(haveRole('partner')) return;
+		
+		if($mvc->getBatchMovementDocument($rec) == 'out') {
+			$rec->isEdited = TRUE;
+			return;
+		}
+		if(isset($rec->id)) return;
+		
+		if(!$storeId) return;
 		
 		if(isset($rec->{$mvc->productFieldName})){
 			$BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
 			if($BatchClass){
 				$form->setField('batch', 'input,class=w50');
-				$options = batch_Items::getBatches($rec->{$mvc->productFieldName}, $storeId);
-				
-				$form->setFieldType('batch', $BatchClass->getBatchClassType());
-				
 				if(!empty($rec->batch)){
 					$rec->batch = $BatchClass->denormalize($rec->batch);
-				}
-				
-				if($mvc->Master->batchMovementDocument == 'out'){
-					if(count($options)){
-						$form->setOptions('batch', array('' => '') + $options);
-					} else {
-						$form->setField('batch', 'input=none');
-					}
 				}
 			} else {
 				$form->setField('batch', 'input=none');
@@ -78,6 +118,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 			}
 			
 			if($form->isSubmitted()){
+				$rec->isEdited = TRUE;
 				if(is_object($BatchClass)){
 					if(!empty($rec->batch)){
 						$productInfo = cat_Products::getProductInfo($rec->{$mvc->productFieldName});
@@ -95,20 +136,71 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 	
 	
 	/**
+	 * Преразпределяне на партидите
+	 */
+	private static function autoAllocate($mvc, $rec)
+	{
+		// След създаване се прави опит за разпределяне на количествата според наличните партиди
+		$BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
+		if(is_object($BatchClass)){
+			if(!$BatchClass->canAutoAllocate()) return;
+			
+			$info = $mvc->getRowInfo($rec->id);
+			if(count($info->operation)){
+				$batches = $BatchClass->allocateQuantityToBatches($info->quantity, $info->operation['out'], $info->date);
+				batch_BatchesInDocuments::saveBatches($mvc, $rec->id, $batches);
+			}
+		}
+	}
+	
+	
+	/**
+	 * Изпълнява се след създаване на нов запис
+	 */
+	public static function on_AfterCreate($mvc, $rec)
+	{
+		if($mvc->getBatchMovementDocument($rec) == 'out'){
+			if($rec->_clonedWithBatches !== TRUE){
+				self::autoAllocate($mvc, $rec);
+			}
+		} else {
+			
+			// Ако се създава нова партида, прави се опит за автоматичното и създаване
+			if(empty($rec->batch)){
+				$BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
+				if(is_object($BatchClass)){
+					if($mvc instanceof core_Master){
+						$rec->batch = $BatchClass->getAutoValue($mvc, $rec->id, $rec->{$mvc->storeFieldName}, $rec->{$mvc->valiorFld});
+					} else {
+						$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey}, "{$mvc->Master->storeFieldName},{$mvc->Master->valiorFld}");
+						$rec->batch = $BatchClass->getAutoValue($mvc->Master, $rec->{$mvc->masterKey}, $masterRec->{$mvc->Master->storeFieldName}, $masterRec->{$mvc->Master->valiorFld});
+					}
+				}
+			}
+		}
+	}
+	
+	
+	/**
 	 * Преди запис на документ
 	 */
 	public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
 	{
 		// Нормализираме полето за партидата
 		if(!empty($rec->batch)){
-			$BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
+			$BatchClass = batch_Defs::getBatchDef($rec->productId);
 			if(is_object($BatchClass)){
-				if($rec->batch != $BatchClass->getAutoValueConst()){
-					$rec->batch = $BatchClass->normalize($rec->batch);
-				}
+				$rec->batch = $BatchClass->normalize($rec->batch);
 			}
 		} else {
 			$rec->batch = NULL;
+		}
+		
+		// Ако записа е редактиран и к-то е променено
+		if($rec->isEdited === TRUE && isset($rec->id)){
+			if($rec->quantity != $mvc->fetchField($rec->id, 'quantity') && batch_Defs::getBatchDef($rec->productId)){
+				$rec->autoAllocate = TRUE;
+			}
 		}
 	}
 	
@@ -122,99 +214,53 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 	 */
 	public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
 	{
-		// След запис ако партидата е за автоматично обновяване, обновява се
-		if(!empty($rec->batch)){
-			$BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
-			if(is_object($BatchClass)){
-				if($rec->batch == $BatchClass->getAutoValueConst()){
-					$rec->batch = $BatchClass->getAutoValue($mvc->Master, $rec->{$mvc->masterKey});
-					$mvc->save_($rec, 'batch');
+		if($mvc->getBatchMovementDocument($rec) == 'out') {
+			if($rec->autoAllocate === TRUE){
+				batch_BatchesInDocuments::delete("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$rec->id}");
+				self::autoAllocate($mvc, $rec);
+				core_Statuses::newStatus('Преразпределени партиди, поради променено количество');
+			}
+			
+			return;
+		}
+		
+		if($rec->isEdited === TRUE){
+			if(empty($rec->batch)){
+				batch_BatchesInDocuments::delete("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$rec->id}");
+			} else {
+				if(!isset($rec->quantity)){
+					$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
 				}
+				
+				batch_BatchesInDocuments::saveBatches($mvc, $rec->id, array($rec->batch => $rec->quantity), TRUE);
 			}
 		}
 	}
 	
 	
 	/**
-	 * Проверка дали всичко с реда на детайла е ок откъм партидите
-	 * 
-	 * @param core_Detail $mvc
-	 * @param mixed $id - ид или запис
-	 * @return FALSE|string - грешката или FALSE ако няма
+	 * Преди подготовка на полетата за показване в списъчния изглед
 	 */
-	public static function getBatchRecInvalidMessage(core_Detail $mvc, $id)
+	public static function on_AfterPrepareListRows($mvc, $data)
 	{
-		$rec = $mvc->fetchRec($id);
-		$msg = FALSE;
+		// Само за детайли
+		if($mvc instanceof core_Master) return;
 		
-		// Кой е избрания склад в мастъра
-		$storeName = $mvc->Master->storeFieldName;
+		if(!count($data->rows) || haveRole('partner')) return;
 		
-		$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
-
-		// Ако реда има партидност
-		$BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
-		if(is_object($BatchClass)){
+		foreach ($data->rows as $id => &$row){
+			$rec = &$data->recs[$id];
 			
-			// Ако не е въведена партида, сетваме грешка
-			if(empty($rec->batch)){
-				$msg = 'Не е въведен партиден номер';
-			} elseif($BatchClass instanceof batch_definitions_Serial){
-				
-				// Ако има сериен номер, проверяваме другите детайли
-				$query = $mvc->getQuery();
-				$query->where("#{$mvc->masterKey} = {$rec->{$mvc->masterKey}}");
-				$query->where("#id != {$rec->id}");
-				$query->where("#batch IS NOT NULL AND #batch != ''");
-				
-				// За всеки
-				while($oRec = $query->fetch()){
-					$DbatchClass = batch_Defs::getBatchDef($oRec->{$mvc->productFieldName});
-					
-					// Чийто клас на партидата също е сериен номер
-					if(!($DbatchClass instanceof batch_definitions_Serial)) continue;
-					
-					// Засичаме серийните номера
-					$oSerials = $BatchClass->makeArray($rec->batch);
-					$serials = batch_Defs::getBatchArray($oRec->{$mvc->productFieldName}, $oRec->batch);
-					
-					// Проверяваме имали дублирани
-					$intersectArr = array_intersect($oSerials, $serials);
-					$intersect = count($intersectArr);
-					
-					// Ако има казваме, кои се повтарят
-					// един сериен номер не може да е на повече от един ред
-					if($intersect){
-						$imploded = implode(',', $intersectArr);
-						if($intersect == 1){
-							$msg = "|Серийният номер|*: {$imploded}| се повтаря в документа|*";
-						} else {
-							$msg = "|Серийните номера|*: {$imploded}| се повтарят в документа|*";
-						}
-					}
-				}
-			}
+			$storeId = (isset($rec->{$mvc->storeFieldName})) ? $rec->{$mvc->storeFieldName} : $data->masterData->rec->{$mvc->Master->storeFieldName};
 			
-			// Ако има склад и партида
-			if($masterRec->state == 'draft' && isset($masterRec->{$storeName}) && !empty($rec->batch) && $mvc->Master->batchMovementDocument == 'out'){
-				$batchArr = $BatchClass->makeArray($rec->batch);
-				
-				foreach ($batchArr as $key => $b){
-					$batchQuantity = batch_Items::getQuantity($rec->{$mvc->productFieldName}, $key, $masterRec->{$storeName});
-					$quantity = $rec->quantity / count($batchQuantity);
-					
-					// Ако текущото количество е по-голямо от експедираното сетваме грешка
-					if($quantity > $batchQuantity){
-						$msg2 = 'Няма достатъчно количество от избраната партида в склада';
-						$msg = ($msg === FALSE) ? $msg2 : $msg . "<br>" . $msg2;
-						break;
-					}
-				}
+			if(batch_BatchesInDocuments::haveRightFor('modify', (object)array('detailClassId' => $mvc->getClassId(), 'detailRecId' => $rec->id, 'storeId' => $storeId))){
+				core_RowToolbar::createIfNotExists($row->_rowTools);
+				core_Request::setProtected('detailClassId,detailRecId,storeId');
+				$url = array('batch_BatchesInDocuments', 'modify', 'detailClassId' => $mvc->getClassId(), 'detailRecId' => $rec->id, 'storeId' => $storeId, 'ret_url' => TRUE);
+				$row->_rowTools->addLink('Партиди', $url, array('ef_icon' => "img/16/wooden-box.png", 'title' => "Избор на партиди"));
+				core_Request::removeProtected('detailClassId,detailRecId,storeId');
 			}
 		}
-		
-		// Връщаме съобщението за грешка ако има
-		return $msg;
 	}
 	
 	
@@ -223,17 +269,140 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 	 */
 	public static function on_BeforeRenderListTable($mvc, &$res, &$data)
 	{
-		if(!count($data->rows)) return;
+		if($mvc instanceof core_Master) return;
+		if(!count($data->rows) || haveRole('partner')) return;
 		
 		$rows = &$data->rows;
 		
 		foreach ($rows as $id => &$row){
 			$rec = &$data->recs[$id];
 			
-			// Ако има проблем с партидите, показваме грешката и маркираме реда
-			if($msg = self::getBatchRecInvalidMessage($mvc, $rec)){
-				$row->{$mvc->productFieldName} = ht::createHint($row->{$mvc->productFieldName}, tr($msg), 'warning');
+			$storeId = (isset($rec->{$mvc->storeFieldName})) ? $rec->{$mvc->storeFieldName} : $data->masterData->rec->{$mvc->Master->storeFieldName};
+			if(!$storeId) return;
+			
+			if(!batch_Defs::getBatchDef($rec->{$mvc->productFieldName})) continue;
+			
+			$row->{$mvc->productFieldName} = new core_ET($row->{$mvc->productFieldName});
+			$row->{$mvc->productFieldName}->append(batch_BatchesInDocuments::renderBatches($mvc, $rec->id, $storeId));
+		}
+	}
+	
+	
+	
+	/**
+	 * Метод по реализация на определянето на движението генерирано от реда
+	 * 
+	 * @param core_Mvc $mvc
+	 * @param string $res
+	 * @param stdClass $rec
+	 * @return void
+	 */
+	public static function on_AfterGetBatchMovementDocument($mvc, &$res, $rec)
+	{
+		if(!$res){
+			$res = $mvc->batchMovementDocument;
+		}
+	}
+	
+	
+	/**
+	 * Метод по пдоразбиране на getRowInfo за извличане на информацията от реда
+	 */
+	public static function on_AfterGetRowInfo($mvc, &$res, $rec)
+	{
+		if(isset($res)) return;
+		
+		$rec = $mvc->fetchRec($rec);
+		if(isset($mvc->rowInfo[$rec->id])){
+			$res = $mvc->rowInfo[$rec->id];
+			return;
+		}
+		
+		$operation = ($mvc->getBatchMovementDocument($rec) == 'out') ? 'out' : 'in';
+		if($mvc instanceof core_Detail){
+			$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey}, "{$mvc->Master->storeFieldName},containerId,{$mvc->Master->valiorFld},state");
+			$Master = $mvc->Master;
+		} else {
+			$masterRec = $rec;
+			$Master = $mvc;
+		}
+		
+		$res = (object)array('productId'      => $rec->{$mvc->productFieldName},
+		                     'packagingId'    => $rec->packagingId,
+		                     'quantity'       => $rec->quantity,
+		                     'quantityInPack' => $rec->quantityInPack,
+		                     'containerId'    => $masterRec->containerId,
+		                     'date'           => $masterRec->{$Master->valiorFld},
+		                     'state'          => $masterRec->state,
+		                     'operation'      => array($operation => $masterRec->{$Master->storeFieldName}),
+		                     );
+		
+		$mvc->rowInfo[$rec->id] = $res;
+		$res = $mvc->rowInfo[$rec->id];
+	}
+	
+	
+	/**
+	 * Кои роли могат да променят групово партидите на изходящите документи
+	 */
+	public static function on_AfterGetRolesToModfifyBatches($mvc, &$res, $rec)
+	{
+		$rec = $mvc->fetchRec($rec);
+		if(!batch_Defs::getBatchDef($rec->{$mvc->productFieldName})){
+			$res = 'no_one';
+		} else {
+			// Ако има склад и документа е входящ, не може
+			$info = $mvc->getRowInfo($rec);
+			$storeId = (isset($rec->{$mvc->storeFieldName})) ? $rec->{$mvc->storeFieldName} : $mvc->Master->fetchField($rec->{$mvc->masterKey}, $mvc->Master->storeFieldName);
+			
+			if(!$storeId || !count($info->operation)){
+				$res = 'no_one';
+			} else {
+				$res = $mvc->getRequiredRoles('edit', $rec);
 			}
 		}
+	}
+	
+	
+	/**
+	 * Филтриране по подразбиране на наличните партиди
+	 */
+	public static function on_AfterFilterBatches($mvc, &$res, $rec, &$batches)
+	{
+		
+	}
+	
+	
+	/**
+	 * След изтриване на запис
+	 */
+	protected static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+	{
+		foreach ($query->getDeletedRecs() as $id => $rec) {
+			batch_BatchesInDocuments::delete("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$id}");
+		}
+	}
+	
+	
+	/**
+	 * След подготовка на сингъла
+	 */
+	public static function on_AfterPrepareSingle($mvc, &$res, $data)
+	{
+		// Ако документа има сингъл добавя му се информацията за партидата
+		$row = &$data->row;
+		$rec = &$data->rec;
+		
+		if(batch_BatchesInDocuments::haveRightFor('modify', (object)array('detailClassId' => $mvc->getClassId(), 'detailRecId' => $rec->id, 'storeId' => $rec->{$mvc->storeFieldName}))){
+			if(!core_Mode::isReadOnly()){
+				core_Request::setProtected('detailClassId,detailRecId,storeId');
+				$url = array('batch_BatchesInDocuments', 'modify', 'detailClassId' => $mvc->getClassId(), 'detailRecId' => $rec->id, 'storeId' => $rec->{$mvc->storeFieldName}, 'ret_url' => TRUE);
+				$row->addBatchBtn = ht::createLink('', $url, FALSE, 'ef_icon=img/16/edit-icon.png,title=Промяна на партидите');
+			}
+		}
+		
+		if(!batch_Defs::getBatchDef($rec->{$mvc->productFieldName})) return;
+		$row->{$mvc->productFieldName} = new core_ET($row->{$mvc->productFieldName});
+		$row->{$mvc->productFieldName}->append(batch_BatchesInDocuments::renderBatches($mvc, $rec->id, $rec->{$mvc->storeFieldName}));
 	}
 }

@@ -13,6 +13,7 @@
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
+ * @deprecated
  */
 class sales_SaleRequests extends core_Master
 {
@@ -95,6 +96,12 @@ class sales_SaleRequests extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id, folderId, amountDeal, state, createdOn, createdBy';
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'contragentClassId,contragentId,folderId,others,paymentMethodId,currencyId,chargeVat,deliveryTermId,deliveryPlaceId';
     
     
 	/**
@@ -182,7 +189,7 @@ class sales_SaleRequests extends core_Master
 	/**
      * След проверка на ролите
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
     	if(($action == 'add') && isset($rec)){
     		if(!$rec->originId){
@@ -333,17 +340,6 @@ class sales_SaleRequests extends core_Master
 				unset($row->currencyRate);
 			}
 	    }
-    }
-    
-    
-    /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    protected static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	if(!empty($data->toolbar->buttons['btnAdd'])){
-    		$data->toolbar->removeBtn('btnAdd');
-    	}
     }
     
     

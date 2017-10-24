@@ -71,6 +71,18 @@ class bank_IncomeDocuments extends bank_Document
     
     
     /**
+     * Полета, които ще се показват в листов изглед
+     */
+    public $listFields = "termDate,valior=Вальор, title=Документ, reason, folderId, currencyId, amount, state, createdOn, createdBy";
+    
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, termDate,valior,modifiedOn';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -93,12 +105,11 @@ class bank_IncomeDocuments extends bank_Document
         $form->setDefault('contragentClassId', $contragentClassId);
         
         expect($origin = $mvc->getOrigin($form->rec));
-       $form->setOptions('ownAccount', bank_OwnAccounts::getOwnAccounts(FALSE));
+        $form->setOptions('ownAccount', bank_OwnAccounts::getOwnAccounts(FALSE));
         
         $mvc->setDefaultsFromOrigin($origin, $form, $options);
         
         $form->setSuggestions('contragentIban', bank_Accounts::getContragentIbans($form->rec->contragentId, $form->rec->contragentClassId));
-        $form->setDefault('valior', $today);
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
         
         $form->setOptions('operationSysId', $options);

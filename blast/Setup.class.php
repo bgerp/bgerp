@@ -44,9 +44,9 @@ defIfNot('BLAST_EMAILS_CRON_TIME_LIMIT', '50');
 
 
 /**
- * Повторна проверка за валидност на имейли след
+ * Повторна проверка за валидност на имейли след - 1 седмица
  */
-defIfNot('BLAST_RECHECK_EMAILS_AFTER', type_Time::SECONDS_IN_MONTH);
+defIfNot('BLAST_RECHECK_EMAILS_AFTER', 604800);
 
 
 /**
@@ -142,7 +142,6 @@ class blast_Setup extends core_ProtoSetup
         'blast_Letters',
         'blast_LetterDetails',
         'blast_EmailSend',
-        'migrate::fixListId',
         'migrate::fixEmails',
         'migrate::addEmailSendHash',
         'migrate::updateListLg2',
@@ -190,82 +189,6 @@ class blast_Setup extends core_ProtoSetup
         $res = bgerp_Menu::remove($this);
         
         return $res;
-    }
-    
-    
-    /**
-     * Миграция за blast_EmailSend таблицата
-     */
-    static function fixListId()
-    {
-        $cls = cls::get('blast_EmailSend');
-        
-        $cls->db->connect();
-        
-        $listDetailId = str::phpToMysqlName('listDetailId');
-        
-        if (!$cls->db->isFieldExists($cls->dbTableName, $listDetailId)) return ;
-        
-        $cls->FLD('listDetailId', 'key(mvc=blast_ListDetails, select=key)', 'caption=Имейл');
-        
-        // Всички записи, които имат listDetailId
-        $query = $cls->getQuery();
-        $query->where("#listDetailId IS NOT NULL");
-        
-        while ($rec = $query->fetch()) {
-            
-            // Ако няма listDetailId
-            if (!($rec->listDetailId > 0)) continue;
-            
-            // Ако е обработен записа
-            if (blast_EmailSend::fetch(array("#emailId = '[#1#]' AND #dataId = '[#2#]'", $rec->emailId, $rec->listDetailId))) continue;
-            
-            // Данните за детайла
-            $detRec = blast_ListDetails::fetch($rec->listDetailId);
-            
-            // Добавяме данните, за новия запис
-            $nRec = new stdClass();
-            
-            if ($detRec->data) {
-                $nRec->data = unserialize($detRec->data);
-            } else {
-                $nRec->data = array();
-            }
-            $nRec->id = $rec->id;
-            $nRec->dataId = $detRec->id;
-            $nRec->emailId = $rec->emailId;
-            $nRec->sentOn = $rec->sentOn;
-            
-            if ($rec->sentOn) {
-                $nRec->state = 'sended';
-            } else {
-                $nRec->state = 'pending';
-            }
-            
-            $emailStr = '';
-            
-            foreach ((array)$nRec->data as $name => $val) {
-                if ($name != 'email') continue;
-                $emailsArr = type_Emails::toArray($val);
-                $emailStr = $emailsArr[0];
-            }
-            $nRec->email = $emailStr;
-            
-            // След успешен запис
-            if (blast_EmailSend::save($nRec, NULL, 'UPDATE')) {
-                
-                // Обновяваме стойността за детайла в лога
-                $masterRec = blast_Emails::fetch($nRec->emailId);
-                $lQuery = doclog_Documents::getQuery();
-                $lQuery->where("#containerId = '{$masterRec->containerId}'");
-                
-                while ($lRec = $lQuery->fetch()) {
-                    if ($lRec->data->detId != $rec->listDetailId) continue;
-                    $lRec->data->detId = $nRec->id;
-                    doclog_Documents::save($lRec, 'dataBlob', 'UPDATE');
-                }
-            }
-        }
     }
     
     

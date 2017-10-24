@@ -18,7 +18,7 @@ class email_Accounts extends core_Master
     /**
      * Плъгини за работа
      */
-    var $loadList = 'email_Wrapper, plg_State, plg_Created, plg_Modified, plg_RowTools, plg_CryptStore';
+    var $loadList = 'email_Wrapper, plg_State, plg_Created, plg_Modified, plg_RowTools2, plg_CryptStore';
     
     
     /**
@@ -331,6 +331,18 @@ class email_Accounts extends core_Master
     function on_AfterInputEditForm($mvc, $form)
     {
         $rec = $form->rec;
+        
+        // Да не може да се добавя повече от една активна корпоративна сметка
+        if ($form->isSubmitted()) {
+            if ($form->rec->type == 'corporate' && ($form->rec->state != 'stopped')) {
+                
+                $cAcc = $mvc->getCorporateAcc();
+                
+                if ($cAcc && (!$form->rec->id || $form->rec->id != $cAcc->id)) {
+                    $form->setError('type', 'Можете да имате само една активна корпоративна сметка');
+                }
+            }
+        }
         
         if($form->isSubmitted()) {
             if (email_Router::isPublicDomain(type_Email::domain($rec->email))) {

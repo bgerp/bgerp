@@ -1871,6 +1871,10 @@
 				}
 				inst.prevDate = plugin.newDate(date);
 				this._updateInput(elem);
+
+				// добавено, за да сработи onchange
+				$(elem).trigger("change");
+
 				if (inst.inline || inst.pickingRange || inst.selectedDates.length <
 						(inst.options.multiSelect || (inst.options.rangeSelect ? 2 : 1))) {
 					this._update(elem);

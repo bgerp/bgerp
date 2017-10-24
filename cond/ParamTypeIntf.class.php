@@ -25,11 +25,13 @@ class cond_ParamTypeIntf extends embed_DriverIntf
 	 * Връща инстанция на типа
 	 *
 	 * @param stdClass $rec      - запис на параметъра
+	 * @param mixed $domainClass - клас на домейна
+	 * @param mixed $domainId    - ид на домейна
 	 * @param NULL|string $value - стойност
 	 * @return core_Type         - готовия тип
 	 */
-	public function getType($rec, $value = NULL)
+	public function getType($rec, $domainClass = NULL, $domainId = NULL, $value = NULL)
 	{
-		$this->class->getType($rec, $value);
+		$this->class->getType($rec, $domainClass, $domainId, $value);
 	}
 }

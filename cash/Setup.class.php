@@ -57,8 +57,10 @@ class cash_Setup extends core_ProtoSetup
         	'cash_Rko',
         	'cash_InternalMoneyTransfer',
         	'cash_ExchangeDocument',
+    		'cash_NonCashPaymentDetails',
     		'migrate::updateDocumentStates',
-    		'migrate::updateDocuments'
+    		'migrate::updateDocuments',
+    		'migrate::updateOrders'
     		
         );
 
@@ -66,7 +68,10 @@ class cash_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'cash';
+    var $roles = array(
+    		array('cash', 'seePrice'),
+    		array('cashMaster', 'cash'),
+    );
 
     
     /**
@@ -81,30 +86,6 @@ class cash_Setup extends core_ProtoSetup
      * Дефинирани класове, които имат интерфейси
      */
     var $defClasses = "cash_reports_CashImpl";
-    
-    
-    /**
-     * Път до css файла
-     */
-//    var $commonCSS = 'cash/tpl/styles.css';
-    
-    
-    /**
-     * Инсталиране на пакета
-     */
-    function install()
-    {
-        $html = parent::install();
-        
-    	if($roleRec = core_Roles::fetch("#role = 'masterCash'")){
-    		core_Roles::delete("#role = 'masterCash'");
-    	}
-    	
-        // Добавяне на роля за старши касиер
-        $html .= core_Roles::addOnce('cashMaster', 'cash');
-    	
-        return $html;
-    }
     
     
     /**
@@ -176,6 +157,34 @@ class cash_Setup extends core_ProtoSetup
     				$rec->dealCurrencyId = $dealCurrencyId;
     				 
     				$Doc->save_($rec, 'amountDeal,dealCurrencyId');
+    			} catch(core_exception_Expect $e){
+    				reportException($e);
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Миграция на платежните документи
+     */
+    public function updateOrders()
+    {
+    	$arr = array('cash_Pko', 'cash_Rko');
+    	foreach ($arr as $class){
+    		$Cls = cls::get($class);
+    		if(!$Cls::count()) continue;
+    
+    		$query = $Cls->getQuery();
+    		$query->FLD('notes', 'richtext(bucket=Notes,rows=1)');
+    		$query->where("#notes IS NOT NULL OR #notes != '' OR #notes != ' '");
+    
+    		while($rec = $query->fetch()){
+    			if(empty($rec->notes)) continue;
+    
+    			try{
+    				$rec->reason .= " \n" . $rec->notes;
+    				$Cls->save_($rec, 'reason');
     			} catch(core_exception_Expect $e){
     				reportException($e);
     			}

@@ -374,7 +374,7 @@ class core_BaseClass
         $me = get_called_class();
 
         if(isset($var)) {
-            expect($var instanceOf $me);
+            expect($var instanceOf $me, $var);
             return;
         }
 

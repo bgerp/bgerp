@@ -70,6 +70,10 @@ class location_Type extends type_Varchar {
         } else {
             $stopGeolocation = TRUE;
         }
+
+        if($this->params['geolocation'] == 'mobile' && !Mode::is('screenMode', 'narrow')) {
+            $stopGeolocation = TRUE;
+        }
         
         $tpl = parent::createInput($name, $value, $attr);        
         

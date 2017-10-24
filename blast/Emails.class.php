@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   blast
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
  *
@@ -29,105 +29,120 @@ class blast_Emails extends core_Master
      */
     public $defaultFolder = 'Циркулярни имейли';
     
-    /**
-     * Полета, които ще се клонират
-     */
-    public $cloneFields = 'perSrcClassId, perSrcObjectId, from, subject, body, recipient, attn, email, tel, fax, country, pcode, place, address, attachments, encoding';
     
     /**
      * Заглавие на таблицата
      */
     public $title = "Циркулярни имейли";
     
+    
     /**
      * Наименование на единичния обект
      */
     public $singleTitle = "Циркулярен имейл";
+    
     
     /**
      * Икона за единичния изглед
      */
     public $singleIcon = 'img/16/emails.png';
     
+    
     /**
      * Абревиатура
      */
     public $abbr = 'Inf';
+    
     
     /**
      * Полето "Относно" да е хипервръзка към единичния изглед
      */
     public $rowToolsSingleField = 'subject';
     
+    
     /**
      * Дали може да бъде само в началото на нишка
      */
     public $onlyFirstInThread = TRUE;
+    
     
     /**
      * Кой има право да чете?
      */
     protected $canRead = 'ceo, blast';
     
+    
     /**
      * Кой има право да променя?
      */
     protected $canEdit = 'ceo, blast';
     
+    
     /**
      * Кой има право да клонира?
      */
-    protected $canClone = 'ceo, blast';
+    public $canClonerec = 'ceo, blast';
+    
     
     /**
      * Кой има право да добавя?
      */
     protected $canAdd = 'ceo, blast';
     
+    
     /**
      * Кой може да го види?
      */
     protected $canView = 'ceo, blast';
+    
     
     /**
      * Кой може да го разглежда?
      */
     protected $canList = 'ceo, blast';
     
+    
     /**
      * Кой може да разглежда сингъла на документите?
      */
     protected $canSingle = 'ceo, blast';
+    
     
     /**
      * Кой може да оттелгя имейла
      */
     protected $canReject = 'ceo, blast';
     
+    
     /**
      * Кой може да активира имейла
      */
     protected $canActivate = 'ceo, blast';
+    
     
     /**
      * Кой може да обновява списъка с детайлите
      */
     protected $canUpdate = 'ceo, blast';
     
+    
     /**
      * Кой може да спира имейла
      */
     protected $canStop = 'ceo, blast';
+   
     
     /**
      * Кой може да го изтрие?
      */
     protected $canDelete = 'no_one';
     
+    
     /**
      * Кой може да праша информационните съобщения?
      */
     protected $canBlast = 'ceo, blast';
+    
     
     /**
      * Кой може да променя активирани записи
@@ -135,15 +150,18 @@ class blast_Emails extends core_Master
      */
     protected $canChangerec = 'blast, ceo';
     
+    
     /**
      * Какви интерфейси поддържа този мениджър
      */
     public $interfaces = 'email_DocumentIntf';
     
+    
     /**
      * Плъгините и враперите, които ще се използват
      */
-    public $loadList = 'blast_Wrapper, doc_DocumentPlg, plg_RowTools, bgerp_plg_blank, change_Plugin, plg_Search';
+    public $loadList = 'blast_Wrapper, doc_DocumentPlg, plg_RowTools2, bgerp_plg_blank, change_Plugin, plg_Search, plg_Clone';
+    
     
     /**
      * Полета от които се генерират ключови думи за търсене
@@ -151,25 +169,30 @@ class blast_Emails extends core_Master
      */
     public $searchFields = 'subject, body';
     
+    
     /**
      * Полета, които ще се показват в листов изглед
      */
     protected $listFields = 'id, subject, srcLink, from, sendPerCall, sendingDay, sendingFrom, sendingTo';
+    
     
     /**
      * Детайла, на модела
      */
     public $details = 'blast_EmailSend';
     
+    
     /**
      * Нов темплейт за показване
      */
     protected $singleLayoutFile = 'blast/tpl/SingleLayoutEmails.shtml';
     
+    
     /**
      * Групиране на документите
      */
     public $newBtnGroup = "2.2|Циркулярни";
+    
     
     /**
      * id на системата в крона
@@ -387,7 +410,7 @@ class blast_Emails extends core_Master
         $query = blast_Emails::getQuery();
         
         $query->where("#state = 'active'");
-        $query->orWhere("#state = 'pending'");
+        $query->orWhere("#state = 'waiting'");
         
         $conf = core_Packs::getConfig('blast');
         
@@ -424,7 +447,7 @@ class blast_Emails extends core_Master
             // Вземаме секундите между сегашното време и времето на стартиране
             $sec = dt::secsBetween($nextStartTime, $now);
             
-            if ($rec->state == 'pending') {
+            if ($rec->state == 'waiting') {
                 if (($sec <= 0) || ($sec <= $period)) {
                     $rec->state = 'active';
                     $this->save($rec, 'state');
@@ -434,7 +457,7 @@ class blast_Emails extends core_Master
                 }
             } elseif ($rec->state == 'active') {
                 if ($sec > $period) {
-                    $rec->state = 'pending';
+                    $rec->state = 'waiting';
                     $this->save($rec, 'state');
                     $this->touchRec($rec->id);
                 } elseif ($sec) {
@@ -510,16 +533,9 @@ class blast_Emails extends core_Master
                 
                 // Клонираме записа
                 $cRec = clone $rec;
-                
-                // Ако е системяния потребител, го спираме
-                $isSystemUser = core_Users::isSystemUser();
-                
-                if ($isSystemUser) {
-                    core_Users::cancelSystemUser();
-                }
-                
+
                 // Имейла да се рендира и да се праща с правата на активатора
-                core_Users::sudo($cRec->activatedBy);
+                $sudoUser = core_Users::sudo($cRec->activatedBy);
                 
                 // Задаваме екшъна за изпращането
                 doclog_Documents::pushAction(
@@ -563,15 +579,8 @@ class blast_Emails extends core_Master
                 doclog_Documents::flushActions();
                 
                 // Връщаме стария потребител
-                core_Users::exitSudo();
-                
-                // Ако е бил стартиран системия потребител, пак го стартираме
-                if ($isSystemUser) {
-                    
-                    //Стартираме системния потребител
-                    core_Users::forceSystemUser();
-                }
-                
+                core_Users::exitSudo($sudoUser);
+                                
                 // Ако имейлът е изпратен успешно, добавяме времето на изпращане
                 if ($status) {
                     
@@ -589,6 +598,23 @@ class blast_Emails extends core_Master
             $this->save($rec, 'progress');
             $this->touchRec($rec->id);
         }
+    }
+
+
+    /**
+     * Преди записване на клонирания запис
+     *
+     * @param core_Mvc $mvc
+     * @param object $rec
+     * @param object $nRec
+     *
+     * @see plg_Clone
+     */
+    function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
+    {
+        unset($nRec->progress);
+        unset($nRec->activatedBy);
+        unset($nRec->errMsg);
     }
     
     
@@ -781,8 +807,8 @@ class blast_Emails extends core_Master
             $body->documentsFh = (array)$docsFhArr;
             
             //id' тата на прикачените файлове с техните
-            $body->attachments = keylist::fromArray(fileman_Files::getIdFromFh($attFhArr));
-            $body->documents = keylist::fromArray(fileman_Files::getIdFromFh($docsFhArr));
+            $body->attachments = keylist::fromArray(fileman::fhKeylistToIds($attFhArr));
+            $body->documents = keylist::fromArray(fileman::fhKeylistToIds($docsFhArr));
         }
         
         // Други необходими данни за изпращането на имейла
@@ -1045,7 +1071,7 @@ class blast_Emails extends core_Master
             } else {
                 
                 // Сменя статуса на чакащ
-                $form->rec->state = 'pending';
+                $form->rec->state = 'waiting';
             }
             
             $form->rec->errMsg = NULL;
@@ -1089,7 +1115,7 @@ class blast_Emails extends core_Master
         
         // Добавяме бутоните на формата
         $form->toolbar->addSbBtn('Запис', 'save', NULL, 'ef_icon = img/16/disk.png, title=Запис на документа');
-        $form->toolbar->addBtn('Отказ', $retUrl, NULL, 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+        $form->toolbar->addBtn('Отказ', $retUrl, NULL, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
         // Добавяме титлата на формата
         $form->title = "Стартиране на масово разпращане";
@@ -1140,7 +1166,7 @@ class blast_Emails extends core_Master
             
             $host = defined('BGERP_ABSOLUTE_HTTP_HOST') ? BGERP_ABSOLUTE_HTTP_HOST : $_SERVER['HTTP_HOST'];
             
-            $err = "Внимание|*! |Понеже системата работи на локален адрес|* ({$host}), |то линковете в изходящото писмо няма да са достъпни от други компютри в интернет|*.";
+            $err = "Внимание|*! |Понеже системата работи на локален адрес|* ({$host}), |то линковете в изходящото писмо няма да са достъпни от други компютри в Интернет|*.";
             
             $form->setWarning($errField, $err);
         }
@@ -1511,7 +1537,7 @@ class blast_Emails extends core_Master
         // Ако създаваме нов, тогава попълва данните за адресата по - подразбиране
         $rec = $data->form->rec;
         
-        if ((!$rec->id) && (!Request::get('clone'))) {
+        if ((!$rec->id) && $data->action != 'clone') {
             
             // По подразбиране да е избран текущия имейл на потребителя
             $form->setDefault('from', email_Outgoings::getDefaultInboxId($rec->folderId));
@@ -1590,7 +1616,14 @@ class blast_Emails extends core_Master
                         $str = "файлове";
                     }
                     
-                    $form->setWarning('attachments', "Размерът на прикачените {$str} е|*: " . $docAndFilesSizeVerbal);
+                    $FileSize = cls::get('fileman_FileSize');
+                    $allowedSize = $mvc->getMaxAttachFileSizeLimit();
+                    $allowedSize = $FileSize->toVerbal($allowedSize);
+                    
+                    $errStr = "Размерът на прикачените {$str} е|*: " . $docAndFilesSizeVerbal;
+                    $errStr .= "<br>|Допустимият размер е|*: {$allowedSize}";
+                    
+                    $form->setError('attachments', $errStr);
                 }
             }
         }
@@ -1729,6 +1762,20 @@ class blast_Emails extends core_Master
     
     
     /**
+     * Връща допустимия размер на прикачените файлове/докумети
+     * 
+     * @return integer
+     */
+    public static function getMaxAttachFileSizeLimit_()
+    {
+        // 1 МБ
+        $res = 1048576;
+        
+        return $res;
+    }
+    
+    
+    /**
      * Изпълнява се след подготовката на ролите, необходимо за това действие
      *
      * @param blast_Emails $mvc
@@ -1736,7 +1783,7 @@ class blast_Emails extends core_Master
      * @param string $action
      * @param object $rec
      */
-    static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec)
+    public static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec = NULL, $userId = NULL)
     {
         // Трябва да има права за сингъла на документа, за да може да активира, спира и/или обновява
         if ((($action == 'activate') || ($action == 'stop') || ($action == 'update')) && $rec) {
@@ -1812,14 +1859,14 @@ class blast_Emails extends core_Master
         } else {
             
             // Добавяме бутона Спри, ако състоянието е активно или изчакване
-            if (($state == 'pending') || ($state == 'active')) {
+            if (($state == 'waiting') || ($state == 'active')) {
                 if ($mvc->haveRightFor('stop', $rec->rec)) {
                     $data->toolbar->addBtn('Спиране', array($mvc, 'Stop', $rec->id), 'ef_icon = img/16/gray-close.png, title=Прекратяване на действието');
                 }
             }
             
             // Добавяме бутон за обновяване в, ако състоянието е активно, изчакване или затворено
-            if (($state == 'pending') || ($state == 'active') || ($state == 'closed')) {
+            if (($state == 'waiting') || ($state == 'active') || ($state == 'closed')) {
                 if ($mvc->haveRightFor('update', $rec->rec)) {
                     $data->toolbar->addBtn('Обновяване', array($mvc, 'Update', $rec->id), NULL, array('ef_icon'=>'img/16/update-icon.png', 'row'=>'1', 'title'=>'Добави новите имейли към списъка'));
                 }
@@ -1908,7 +1955,7 @@ class blast_Emails extends core_Master
             }
             
             // Ако състоянието е активирано или чернов
-            if ($rec->state == 'active' || $rec->state == 'pending') {
+            if ($rec->state == 'active' || $rec->state == 'waiting') {
                 
                 $nextStartTime = self::getNextStartTime($rec, core_Cron::getNextStartTime(self::$cronSytemId));
                 
@@ -1960,12 +2007,30 @@ class blast_Emails extends core_Master
         
         if (!$haveNextStartTime) {
             
-            $nextStartDay = 7;
+            $nextStartDay = NULL;
             
             foreach ($sendingArr as $sendingDay) {
-                if ($sendingDay > $dayOfWeek) {
+                if ($sendingDay >= $dayOfWeek) {
+                    
+                    if ($sendingDay == $dayOfWeek) {
+                        if (dt::now() >= $sendingTo) continue;
+                    }
+                    
                     $nextStartDay = $sendingDay;
                     break;
+                }
+            }
+            
+            if (!isset($nextStartDay)) {
+                
+                if ($dw = $sendingArr[$dayOfWeek]) {
+                    if (!$sendingTo || ($nextStartTime < $sendingTo)) {
+                        $nextStartDay = $dw;
+                    }
+                }
+                
+                if (!isset($nextStartDay)) {
+                    $nextStartDay = 7 + min($sendingArr);
                 }
             }
             
@@ -2009,7 +2074,7 @@ class blast_Emails extends core_Master
      * @param core_ET $res
      * @param integer $id
      * @param string $mode
-     * @param object $options
+     * @param object|NULL $options
      */
     function on_BeforeGetDocumentBody($mvc, &$res, $id, $mode = 'html', $options = NULL)
     {
@@ -2023,6 +2088,10 @@ class blast_Emails extends core_Master
         core_Lg::push(self::getLanguage($emailRec->body, $emailRec->lg));
         
         $detDataArr = array();
+        
+        if (is_null($options)) {
+            $options = new stdClass();
+        }
         
         // Опитваме се да извлечен масива с данните
         if ($options->__detArr) {

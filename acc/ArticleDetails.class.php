@@ -38,21 +38,15 @@ class acc_ArticleDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, acc_Wrapper, plg_RowNumbering, plg_StyleNumbers, plg_AlignDecimals2, doc_plg_HidePrices,
-        Accounts=acc_Accounts, Lists=acc_Lists, Items=acc_Items, plg_SaveAndNew';
+    var $loadList = 'plg_Created, plg_RowTools2, acc_Wrapper, plg_RowNumbering, plg_StyleNumbers, plg_AlignDecimals2, doc_plg_HidePrices,
+        Accounts=acc_Accounts, Lists=acc_Lists, Items=acc_Items, plg_SaveAndNew, plg_PrevAndNext';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, debitAccId, debitQuantity=Дебит->К-во, debitPrice=Дебит->Цена, creditAccId, creditQuantity=Кредит->К-во, creditPrice=Кредит->Цена, amount=Сума, reason=Информация';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'tools';
-    
+    var $listFields = 'debitAccId, debitQuantity=Дебит->К-во, debitPrice=Дебит->Цена, creditAccId, creditQuantity=Кредит->К-во, creditPrice=Кредит->Цена, amount=Сума, reason=Информация';
+ 
     
     /**
      * Активен таб
@@ -69,7 +63,7 @@ class acc_ArticleDetails extends doc_Detail
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,accMaster';
+    var $canEdit = 'ceo,acc';
     
     
     /**
@@ -87,7 +81,7 @@ class acc_ArticleDetails extends doc_Detail
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,accMaster';
+    var $canDelete = 'ceo,acc';
     
     
     /**
@@ -166,21 +160,6 @@ class acc_ArticleDetails extends doc_Detail
                         "</table>";
                     }
                 }
-            }
-        }
-    }
-    
-    
-    /**
-     * Извиква се след рендиране на Toolbar-а
-     */
-    protected static function on_AfterRenderListToolbar($mvc, &$tpl, $data)
-    {
-        if ($data->accSelectToolbar) {
-            $form = $data->accSelectToolbar->renderHtml();
-            
-            if($form) {
-                $tpl = $form;
             }
         }
     }

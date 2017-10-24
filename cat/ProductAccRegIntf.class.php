@@ -153,19 +153,7 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     
     /**
-     * Връща последното не оттеглено или чернова задание за спецификацията
-     * 
-     * @param mixed $id - ид или запис
-     * @return mixed $res - записа на заданието или FALSE ако няма
-     */
-    public function getLastJob($id)
-    {
-    	return $this->class->getLastJob($id);
-    }
-    
-    
-    /**
-     * Връща последната активна рецепта на спецификацията
+     * Връща последната активна рецепта на артикула
      *
      * @param mixed $id - ид или запис
      * @param sales|production $type - вид работна или търговска
@@ -194,5 +182,84 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     public function getDefaultProductionTasks($id, $quantity = 1)
     {
     	return $this->class->getDefaultProductionTasks($id, $quantity);
+    }
+    
+    
+    /**
+     * Метод позволяващ на артикула да добавя бутони към rowtools-а на документ
+     *
+     * @param int $id - ид на артикул
+     * @param core_RowToolbar $toolbar - тулбара
+     * @param mixed $detailClass - класа на детайла на документа
+     * @param int $detailId - ид на реда от детайла на документа
+     * @return void
+     */
+    public function addButtonsToDocToolbar($id, core_RowToolbar &$toolbar, $detailClass, $detailId)
+    {
+    	return $this->class->addButtonsToDocToolbar($id, $toolbar, $detailClass, $detailId);
+    }
+    
+    
+    /**
+     * Колко е толеранса
+     *
+     * @param int $id          - ид на артикул
+     * @param double $quantity - к-во
+     * @return double|NULL     - толеранс или NULL, ако няма
+     */
+    public function getTolerance($id, $quantity)
+    {
+    	return $this->class->getTolerance($id, $quantity);
+    }
+    
+    
+    /**
+     * Колко е срока на доставка
+     *
+     * @param int $id          - ид на артикул
+     * @param double $quantity - к-во
+     * @return double|NULL     - срока на доставка в секунди или NULL, ако няма
+     */
+    public function getDeliveryTime($id, $quantity)
+    {
+    	return $this->class->getDeliveryTime($id, $quantity);
+    }
+    
+    
+    /**
+     * Връща минималното количество за поръчка
+     *
+     * @param int|NULL $id - ид на артикул
+     * @return double|NULL - минималното количество в основна мярка, или NULL ако няма
+     */
+    public function getMoq($id)
+    {
+    	return $this->class->getMoq($id);
+    }
+    
+    
+    /**
+     * Допълнителните условия за дадения продукт,
+     * които автоматично се добавят към условията на договора
+     *
+     * @param mixed $rec       - ид или запис на артикул
+     * @param double $quantity - к-во
+     * @return array           - Допълнителните условия за дадения продукт
+     */
+    public function getConditions($rec, $quantity)
+    {
+    	return $this->class->getConditions($rec, $quantity);
+    }
+    
+    
+    /**
+     * Връща хеша на артикула (стойност която показва дали е уникален)
+     *
+     * @param mixed $rec     - ид или запис на артикул
+     * @return NULL|varchar  - Допълнителните условия за дадения продукт
+     */
+    public static function getHash($rec)
+    {
+    	return $this->class->getHash($rec);
     }
 }

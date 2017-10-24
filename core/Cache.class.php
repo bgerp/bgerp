@@ -83,8 +83,14 @@ class core_Cache extends core_Manager
      * Кои полета ще извличаме, преди изтриване на заявката
      */
     public $fetchFieldsBeforeDelete = 'id,key';
-
     
+
+    /**
+     * Дали да се използва кеширане в хита
+     */
+    static $stopCaching = FALSE;
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -141,7 +147,7 @@ class core_Cache extends core_Manager
      * Записва обект в кеша
      */
     static function set($type, $handler, $value, $keepMinutes = 1, $depends = array())
-    {
+    {   
         $Cache = cls::get('core_Cache');
         
         Debug::log("Cache::set $type, $handler");
@@ -285,17 +291,23 @@ class core_Cache extends core_Manager
         return $msg;
     }
     
-    
+
     /**
-     * Инсталация на MVC манипулатора
+     * Изтрива целия кеш
      */
-    static function on_AfterSetupMVC($mvc, &$res)
+    public static function eraseFull()
     {
         // Почистване на всичкия изтекъл Кеш
-        $res .= $mvc->cron_DeleteExpiredData(TRUE);
+        $cache = cls::get('core_Cache');
+        $res .= $cache->cron_DeleteExpiredData(TRUE);
+        if (function_exists('apcu_clear_cache')) {
+            apcu_clear_cache();
+        } elseif(function_exists('apc_clear_cache')) {
+            apc_clear_cache();
+        }
     }
     
-    
+
     /**
      * Подреждане - най-отгоре са последните записи
      */
@@ -351,11 +363,14 @@ class core_Cache extends core_Manager
      * Връща съдържанието записано на дадения ключ
      */
     function getData($key, $keepMinutes = NULL)
-    {   
-        if (function_exists('apc_fetch')) {
-            $res = apc_fetch($key);
+    {
+
+        if(function_exists('apcu_fetch')) {
+            $res = @apcu_fetch($key);
+        } elseif(function_exists('apc_fetch')) {
+            $res = @apc_fetch($key);
         } elseif (function_exists('xcache_get')) {
-            $res = xcache_get($key);
+            $res = @xcache_get($key);
             if($res) {
                 $res = unserialize($res);
             }
@@ -392,10 +407,12 @@ class core_Cache extends core_Manager
      */
     function deleteData($key, $onlyInMemory = FALSE)
     {
-        if (function_exists('apc_delete')) {
-            apc_delete($key);
+        if(function_exists('apcu_delete')) {
+            @apcu_delete($key);
+        } elseif(function_exists('apc_delete')) {
+            @apc_delete($key);
         } elseif (function_exists('xcache_unset')) {
-            xcache_unset($key);
+            @xcache_unset($key);
         }
 
         if($onlyInMemory) return;
@@ -408,17 +425,24 @@ class core_Cache extends core_Manager
      * Задава съдържанието на посочения ключ
      */
     function setData($key, $data, $keepMinutes)
-    {   
+    {
+        if(self::$stopCaching) return FALSE;
+
         $saved = FALSE;
         $keepSeconds = $keepMinutes * 60;
 
-        if (function_exists('apc_store')) {
-            $saved = apc_store($key, $data, $keepSeconds);
+        if(function_exists('apcu_store')) {
+            $saved = @apcu_store($key, $data, $keepSeconds);
+            if (!$saved) {
+                self::logNotice('Грешка при записване в APCU_STORE');
+            }
+        } elseif(function_exists('apc_store')) {
+            $saved = @apc_store($key, $data, $keepSeconds);
             if (!$saved) {
                 self::logNotice('Грешка при записване в APC_STORE');
             }
         } elseif (function_exists('xcache_set')) {
-            $saved = xcache_set($key, serialize($data), $keepSeconds);
+            $saved = @xcache_set($key, serialize($data), $keepSeconds);
             if (!$saved) {
                 self::logNotice('Грешка при записване в XCACHE');
             }
@@ -444,5 +468,34 @@ class core_Cache extends core_Manager
         $rec->lifetime = time() + $keepSeconds;
         
         $this->save($rec, NULL, 'REPLACE');
+    }
+
+
+    /**
+     * Метоз за кратковременно кеширане с аргумент
+     * - фукция, която извлича резултата
+     */
+    public static function getOrCalc($name, $param, $fn)
+    {   
+        if(is_scalar($param)) {
+            $key = md5(EF_DB_NAME . '|' . CORE_CACHE_PREFIX_SALT . "{$name}{$param}");
+        } else {
+            $key = md5(EF_DB_NAME . '|' . CORE_CACHE_PREFIX_SALT . $name . '|' . json_encode($param));
+        }
+
+        $Cache = cls::get('core_Cache');
+
+        if($resObj = $Cache->getData($key)) {
+            $res = $resObj->res;
+        } else {
+            $res = $fn($param);
+
+            $resObj = new stdClass();
+            $resObj->res = $res;
+            
+            $Cache->setData($key, $resObj, 120);
+        }
+ 
+        return $res;
     }
 }

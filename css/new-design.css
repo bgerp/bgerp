@@ -195,6 +195,25 @@ body {
     box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.1);
     margin-bottom: 20px; }
 
+.narrow .portal {
+  box-shadow: none;
+  border: none !important; }
+  .narrow .portal .legend {
+    background: white !important;
+    border: 1px solid #cccccc;
+    box-shadow: none; }
+  .narrow .portal .portal-filter {
+    margin-bottom: 3px;
+    margin-left: -6px; }
+  .narrow .portal .hFormField {
+    border-color: #e1e1e1; }
+  .narrow .portal input {
+    padding: 2px 5px;
+    height: auto !important;
+    box-shadow: none; }
+  .narrow .portal .SearchBtnPortal {
+    margin-right: 5px !important; }
+
 .portal.acc-summary {
   background: none !important;
   box-shadow: none; }
@@ -396,6 +415,8 @@ body {
           color: #febb44; }
       .bookmark-links ul a:hover {
         color: #fefdd6; }
+      .bookmark-links ul a.out {
+        background: url("../img/12/star-out.png") 4px 3px no-repeat; }
 
 .bookmark-wrong-url {
   color: #bb1111; }
@@ -792,9 +813,11 @@ button {
 .narrow .dimension input.button {
   border: none !important; }
 
-input.linkWithIcon,
-a.linkWithIcon {
+input.linkWithIcon {
   padding-left: 25px !important; }
+
+a.linkWithIcon {
+  padding-left: 22px !important; }
 
 .small .linkWithIcon {
   height: 16px !important;
@@ -846,6 +869,11 @@ form[method="post"] input[type="submit"] {
     background-color: #999999; }
     form[method="post"] input[type="submit"]:hover.btn-disabled {
       background-color: #888888; }
+
+.inner-form form[method="post"] input[type="submit"] {
+  background-color: #dddddd; }
+  .inner-form form[method="post"] input[type="submit"]:hover {
+    background-color: #e5e5e5; }
 
   .toolbar form[method=post] input[type=button],
   .toolbar form[method=post] a.button {
@@ -926,9 +954,6 @@ table.listTable > tbody > tr > td {
 
 input[type="button"].more-btn {
   padding-right: 0.1em !important; }
-
-div.tab-control.alphabet div.tab-row {
-  margin-top: 4px; }
 
 div.tab-control.alphabet div.tab-row .tab {
   float: left;

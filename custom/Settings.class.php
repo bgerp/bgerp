@@ -343,7 +343,7 @@ class custom_Settings extends core_Manager
         
         // Добавяме бутоните на формата
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png');
         
         // Ако в класа не са дефинирани права за модифициране по подразбиране
         if (!$class->canModifydefault) {

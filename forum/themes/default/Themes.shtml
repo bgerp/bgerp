@@ -4,7 +4,7 @@
         <th style='width:21%'>|Последно|*</th>
     </tr>
 </table>
-<table class='no-border' style='width:100%' id='forum-themes'>
+<table class='forumThread' style='width:100%; margin-bottom: 25px;'>
     <!--ET_BEGIN ROW-->	
     <tr class='theme-row'>
         <td class='theme-row-title' style='width:67%'>
@@ -15,9 +15,9 @@
                 <!--ET_END type-->
                 <span class='theme-title'>[#title#]</span>
                 [#THEME_PAGER#]
-                <!--ET_BEGIN LOCKED-->
+                <!--ET_BEGIN locked-->
                 <span class='locked'>[#locked#]</span>
-                <!--ET_END LOCKED-->
+                <!--ET_END locked-->
                 <span class='authored'>|започната от|*:&nbsp;&nbsp;[#createdBy#],&nbsp;&nbsp;[#createdOn#]</span>
             </div>
         </td>

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'findeals_AdvanceDeals'
  *
@@ -10,7 +11,7 @@
  * @category  bgerp
  * @package   findeals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -55,6 +56,18 @@ class findeals_AdvanceDeals extends findeals_Deals
     
     
     /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = 'crm_PersonAccRegIntf';
+
+    
+    /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = TRUE;
+    
+    
+    /**
      * Може ли документа да се добави в посочената папка?
      *
      * Документи-финансови сделки могат да се добавят само в папки с корица контрагент.
@@ -65,8 +78,12 @@ class findeals_AdvanceDeals extends findeals_Deals
     public static function canAddToFolder($folderId)
     {
     	$coverClass = doc_Folders::fetchCoverClassName($folderId);
-    
-    	return cls::haveInterface('crm_PersonAccRegIntf', $coverClass);
+        
+        if (cls::haveInterface('crm_PersonAccRegIntf', $coverClass)) {
+            return TRUE;
+        }
+        
+        return FALSE;
     }
     
     

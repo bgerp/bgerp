@@ -101,6 +101,9 @@ class fileman_Log extends core_Manager
         $this->FLD("dataId", "key(mvc=fileman_Data)", 'caption=Данни');
         
         $this->setDbUnique('dataId,userId');
+        
+        $this->setDbIndex('lastOn');
+        $this->setDbIndex('userId,fileId');
     }
     
     
@@ -341,24 +344,27 @@ class fileman_Log extends core_Manager
             // Добавяме бутон за филтриране
             $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
             
+            $form->FNC('search', 'varchar', 'caption=Търсене,input,silent,recently');
+            
             // Показваме полетата
-            $form->showFields = 'fileName, Protected';
+            $form->showFields = 'search, Protected';
             
             // Инпутваме стойностите
-            $form->input('fileName, Protected', 'silent');
+            $form->input('search, Protected', 'silent');
             
             // Последно избраното търсене, да е по-подразбиране
-            if (is_null($form->rec->fileName)) {
-                $form->rec->fileName = Mode::get('filemanLogFileNameSearch');
+            if (is_null($form->rec->search)) {
+                if (Mode::get('dialogOpened')) {
+                    $form->rec->search = Mode::get('filemanLogFileLogSearch');
+                }
             } else {
-                Mode::setPermanent('filemanLogFileNameSearch', $form->rec->fileName);
+                Mode::setPermanent('filemanLogFileLogSearch', $form->rec->search);
             }
             
             // Ако има текст за търсене
-            if(trim($form->rec->fileName)) {
-                
-                // Задаваме условие, името да съдържа текста
-            	$data->query->like('fileName', trim($form->rec->fileName));
+            if($search = trim($form->rec->search)) {
+                $data->query->EXT('searchKeywords', 'fileman_Data', 'externalKey=dataId');
+                plg_Search::applySearch($search, $data->query, 'searchKeywords');
             }
         }
     }

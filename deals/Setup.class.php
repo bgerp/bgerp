@@ -69,6 +69,12 @@ class deals_Setup extends core_ProtoSetup
     var $defClasses = "deals_reports_ArrearsImpl";
     
     
+     /**
+     * Роли за достъп до модула
+     */
+    var $roles = 'dealJoin';
+    
+    
     /**
      * Де-инсталиране на пакета
      */

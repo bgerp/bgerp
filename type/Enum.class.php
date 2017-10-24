@@ -74,6 +74,14 @@ class type_Enum extends core_Type {
     {
         // TODO: да се махне хака със <style>
         if(count($this->options)) {
+
+            if(count($this->options) == 2) {
+                if($this->options['off'] == 'off' && $this->options['off'] == 'off') {
+                    $tpl = "<input type='checkbox' name='{$name}'  class='checkbox'" . ($value == 'on'? ' checked ' : '') . ">";
+
+                    return $tpl;
+                }
+            }
             $options = $this->options;
             if($div = $this->params['groupByDiv']) {
                 $options = ht::groupOptions($this->options, $div);

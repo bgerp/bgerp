@@ -4,16 +4,17 @@
 	</legend>
 	
 	<div class="groupList" id="profileActionLog" style=' background: none;'>
-	    <table style='min-width:440px; width: 100%;'>
-	       <!--ET_BEGIN log-->
-	       <tr class='[#logClass#]'>
-	           <td>[#userId#]</td>
-	           <td>[#actTime#]</td>
-	           <td>[#actionCrc#]</td>
-	       </tr>
-	       <!--ET_END log-->
-	    </table>
-	    
+		<div class="scrolling-holder">
+			<table style='min-width:440px; width: 100%;'>
+			   <!--ET_BEGIN log-->
+			   <tr class='[#logClass#]'>
+				   <td>[#userId#]</td>
+				   <td>[#actTime#]</td>
+				   <td>[#actionCrc#]</td>
+			   </tr>
+			   <!--ET_END log-->
+			</table>
+		</div>
 	    <!--ET_BEGIN pager-->[#pager#]<!--ET_END pager-->
 	    
 	    <!--ET_BEGIN ActionLogLink-->[#actionLogLink#]<!--ET_END ActionLogLink-->

@@ -29,19 +29,13 @@ class forum_Boards extends core_Master {
 	/**
 	 * Зареждане на необходимите плъгини
 	 */
-	var $loadList = 'plg_RowTools, plg_Created, plg_Modified, forum_Wrapper, plg_Sorting'; 
-	
-	
-	/**
-	 * Поле за лентата с инструменти
-	 */
-	var $rowToolsField = 'tools';
-	
+	var $loadList = 'plg_RowTools2, plg_Created, plg_Modified, forum_Wrapper, plg_Sorting'; 
+
 	
 	/**
 	 * Полета за листов изглед 
 	 */
-	var $listFields = 'tools=Пулт, title, category, shortDesc, themesCnt, commentsCnt, boardType, shared, lastComment, lastCommentedTheme, lastCommentBy, createdOn, createdBy';
+	var $listFields = 'title, category, shortDesc, themesCnt, commentsCnt, boardType, shared, lastComment, lastCommentedTheme, lastCommentBy, createdOn, createdBy';
 	
 	
 	/**
@@ -204,7 +198,6 @@ class forum_Boards extends core_Master {
 		// Тема по подразбиране
 		$conf = core_Packs::getConfig('forum');
         $data->ForumTheme = static::getThemeClass();
-        $data->title = tr($conf->FORUM_GREETING_MESSAGE);
         $data->action = 'forum';
         $data->display = 'public';
         $data->category = Request::get('cat');
@@ -270,7 +263,7 @@ class forum_Boards extends core_Master {
 		}
 		
 		// Линк към началото на форума
-		$arr[] = ht::createLink(tr('Форуми'), $url);
+		$arr[] = ht::createLink(tr('Форум'), $url);
 		
 		if($boardId){
 			$url = array($this, 'single', $boardId);
@@ -388,14 +381,13 @@ class forum_Boards extends core_Master {
 	function renderForum($data)
 	{
 		$tpl = $data->ForumTheme->getIndexLayout();
- 		$tpl->replace('<h2>' . $data->title . '</h2>', 'GREETING');
 		$boards = $data->ForumTheme->getBoardsLayout();
 		
 		if(count($data->categories)) {
         	
         	// Зареждаме шаблоните веднъж в паметта и после само ги клонирваме
         	$categoryTpl = $tpl->getBlock("category");
-            $icon = $data->ForumTheme->getImage('Card-file-icon.png', '40');
+            $icon = $data->ForumTheme->getImage('forum-boards.png', '40');
         	
             foreach($data->categories as $category) {
                 
@@ -539,7 +531,7 @@ class forum_Boards extends core_Master {
     /**
 	 * Модификация на ролите, които могат да видят избраната тема
 	 */
-    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{  
 		if($action == 'read' && isset($rec->id)) {
 			

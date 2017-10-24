@@ -72,12 +72,18 @@ class core_Lg extends core_Manager
     
     
     /**
+     * 
+     */
+    protected static $keyStringLen = 32;
+    
+    
+    /**
      * Описание на полетата на модела
      */
     function description()
     {
         $this->FLD('lg', 'varchar(2)', 'caption=Език,export,mandatory,optionsFunc=core_Lg::getLangOptions, suggestions=');
-        $this->FLD('kstring', 'varchar', 'caption=Стринг,export, width=100%, mandatory');
+        $this->FLD('kstring', 'varchar(' . static::$keyStringLen . ')', 'caption=Стринг,export, width=100%, mandatory');
         $this->FLD('translated', 'text',  'caption=Превод,export, width=100%, class=translated, mandatory');
 
         $this->setDbUnique('kstring,lg');
@@ -198,12 +204,16 @@ class core_Lg extends core_Manager
         if (!$lg) {
             $lg = core_Lg::getCurrent();
         }
+        
+        $this->prepareDictForLg($lg);
+
 
         if (!$key) {
             // Разбиваме стринга на участъци, който са разделени със символа '|'
             $strArr = explode('|', $kstring);
             
             if (count($strArr) > 1) {
+                
                 $translated = array();
                 
                 // Ако последната или първата фраза са празни - махаме ги
@@ -215,29 +225,29 @@ class core_Lg extends core_Manager
                     unset($strArr[0]);
                 }
                 
+                // Подготвяме масива с английските думи
+                $this->prepareDictForLg('en');
+                
+                // Обикаляме и добавяме в речника фразите на английски и фразите, които не се превеждат
                 foreach ($strArr as $i => $phrase) {
-                    
-                    // Две черти една до друга означават, че последващата фраза е превод на английски на предходната
-                    if ($phrase === '') {
-                        $followEn = TRUE; 
+                    if ($phrase === '' && $i >= 1) {
+                        $pKey = static::prepareKey($strArr[$i-1]);
+                        $this->dict['en'][$pKey] = $strArr[$i+1];
+                        if ($lg != 'en' && !isset($this->dict[$lg][$pKey])) {
+                            $this->dict[$lg][$pKey] = $strArr[$i-1];
+                        }
+                        unset($strArr[$i], $strArr[$i+1]);
                         continue;
                     }
-                                        
-                    // Ако фразата започва с '*' не се превежда
-                    if ($phrase{0} === '*') {
+                }
+                
+                foreach ($strArr as $i => $phrase) {
+                    
+                    if($phrase{0} === '*') {
                         $translated[] = substr($phrase, 1);
                         continue;
                     }
-
-                    if($followEn) {
-                        if($lg == 'en') {
-                            $this->dict[$lg][static::prepareKey($translated[count($translated)-1])] = $phrase;
-                            $translated[count($translated)-1] = $phrase;
-                        }
-                        $followEn = FALSE;
-                        continue;
-                    }
-                    
+           
                     $ascii = (mb_detect_encoding($phrase, 'ASCII', TRUE) == 'ASCII');
 
                     if($ascii && (!preg_match("/[a-z]/i", $phrase) || $lg != 'en') ) {
@@ -245,8 +255,6 @@ class core_Lg extends core_Manager
                     }  else {
                         $translated[] = $this->translate($phrase);
                     }
-
-                    
                 }
                 
                 return implode('', $translated);
@@ -260,22 +268,11 @@ class core_Lg extends core_Manager
         
         $key = static::prepareKey($key);
         
-        if (!is_array($this->dict[$lg]) || empty($this->dict[$lg])) {
-            $this->dict[$lg] = core_Cache::get('translationLG', $lg, 2 * 60 * 24, array('core_Lg'));
-            
-            if(!$this->dict[$lg]) {
-                $query = self::getQuery();
-                
-                while($rec = $query->fetch(array("#lg = '[#1#]'", $lg))) {
-                    $this->dict[$lg][$rec->kstring] = type_Varchar::escape($rec->translated);
-                }
-                core_Cache::set('translationLG', $lg, $this->dict[$lg], 2 * 60 * 24, array('core_Lg'));
-            }
-        }
-        
         // Ако имаме превода в речника, го връщаме
         if (isset($this->dict[$lg][$key])) {
             $res = $this->dict[$lg][$key];
+        } elseif(is_array($this->dict[$lg]) && in_array($kstring, $this->dict[$lg])) {
+            $res = $kstring;
         } else {
             // Ако и в базата нямаме превода, тогава приемаме, 
             // че превода не променя ключовия стринг
@@ -298,14 +295,43 @@ class core_Lg extends core_Manager
             
             $res = $this->dict[$lg][$key];
         }
-
+        
         // Ако превеждаме на английски и в крайния текст има все-пак думи с кирилски символи,
         // опитваме се да преведем фразите // /\b([а-яА-Я ]*[а-яА-Я][а-яА-Я ]*)\b/u
         
         return $res;
     }
+    
+    function act_Test()
+    {
+        bp(tr("|*<small>|Произведено|*</small>"));
+    }
 
-
+    /**
+     * Подготвяме думите в речника
+     * 
+     * @param string|NULL $lg
+     */
+    protected function prepareDictForLg($lg = NULL)
+    {
+        if (!$lg) {
+            $lg = core_Lg::getCurrent();
+        }
+        
+        if (!is_array($this->dict[$lg]) || empty($this->dict[$lg])) {
+            $this->dict[$lg] = core_Cache::get('translationLG', $lg, 2 * 60 * 24, array('core_Lg'));
+        
+            if(!$this->dict[$lg]) {
+                $query = self::getQuery();
+        
+                while($rec = $query->fetch(array("#lg = '[#1#]'", $lg))) {
+                    $this->dict[$lg][$rec->kstring] = type_Varchar::escape($rec->translated);
+                }
+                core_Cache::set('translationLG', $lg, $this->dict[$lg], 2 * 60 * 24, array('core_Lg'));
+            }
+        }
+    }
+    
     
     /**
      * Връща текущия език
@@ -481,7 +507,7 @@ class core_Lg extends core_Manager
      */
     static function prepareKey($key)
     {
-        $key = str::convertToFixedKey($key, 32, 4);
+        $key = str::convertToFixedKey($key, self::$keyStringLen, 4);
         
         return $key;
     }
@@ -593,5 +619,56 @@ class core_Lg extends core_Manager
         }
         
         return $langArr;
+    }
+    
+    
+    /**
+     * Екшън за изтриване на записи от превода
+     */
+    function act_DeleteUsersTr()
+    {
+        requireRole('admin');
+        
+        $retUrl = getRetUrl();
+        
+        if (!$retUrl) {
+            $retUrl = array($this);
+        }
+        
+        $form = cls::get('core_Form');
+        
+        $form->title = "Изтриване на преводи";
+         
+        $form->FLD('users', 'users', 'caption=Тип,mandatory,silent');
+        
+        $form->toolbar->addSbBtn('Изтриване', 'save', 'ef_icon = img/16/delete.png, title = Изтрива преводите за съответния потребител');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+        
+        $form->input();
+        
+        // Ако е събмитната формата
+        if($form->isSubmitted()){
+            $rec = $form->rec;
+            
+            // Премахваме системния потребител
+            $rec->users = type_Keylist::removeKey($rec->users, -1);
+            
+            $in = type_Keylist::toArray($rec->users);
+            
+            $delCnt = 0;
+            
+            if (!empty($in)) {
+                $inStr = implode(',', $in);
+                
+                $delCnt = $this->delete("#createdBy IN ({$inStr}) AND LEFT(#kstring, 10) = LEFT(#translated, 10)");
+            }
+            
+            return new Redirect($retUrl, "Изтрити записи: {$delCnt}");
+            
+        }
+        
+        $tpl = $this->renderWrapping($form->renderHtml());
+         
+        return $tpl;
     }
 }

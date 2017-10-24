@@ -38,13 +38,13 @@ class acc_BalanceRepairDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, acc_Wrapper, plg_RowNumbering, plg_StyleNumbers, plg_AlignDecimals';
+    var $loadList = 'plg_Created, plg_RowTools2, acc_Wrapper, plg_RowNumbering, plg_StyleNumbers, plg_AlignDecimals,plg_SaveAndNew, plg_PrevAndNext';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, accountId, blQuantity,blAmount,reason';
+    var $listFields = 'accountId, blQuantity,blAmount,reason';
     
     
     /**

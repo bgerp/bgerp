@@ -26,7 +26,7 @@ class drdata_Emails extends core_BaseClass
     /**
      * Изглежда ли стринга като валиден имейл или не.
      */
-    function isWrongEmail($email)
+    static function isWrongEmail($email)
     {
         $regExp = "/^((\\\"[^\\\"\\f\\n\\r\\t\\b]+\\\")|([A-Za-z0-9_][A-Za-z0-9_\\!\\#\\$\\%\\&\\'\\*\\+\\-\\~\\/\\^\\`\\|\\{\\}]*(\\.[A-Za-z0-9_\\!\\#\\$\\%\\&\\'\\*\\+\\-\\~\\/\\^\\`\\|\\{\\}]*)*))@((\\[(((25[0-5])|(2[0-4][0-9])|([0-1]?[0-9]?[0-9]))\\.((25[0-5])|(2[0-4][0-9])|([0-1]?[0-9]?[0-9]))\\.((25[0-5])|(2[0-4][0-9])|([0-1]?[0-9]?[0-9]))\\.((25[0-5])|(2[0-4][0-9])|([0-1]?[0-9]?[0-9])))\\])|(((25[0-5])|(2[0-4][0-9])|([0-1]?[0-9]?[0-9]))\\.((25[0-5])|(2[0-4][0-9])|([0-1]?[0-9]?[0-9]))\\.((25[0-5])|(2[0-4][0-9])|([0-1]?[0-9]?[0-9]))\\.((25[0-5])|(2[0-4][0-9])|([0-1]?[0-9]?[0-9])))|((([A-Za-z0-9])(([A-Za-z0-9\\-])*([A-Za-z0-9]))?(\\.(?=[A-Za-z0-9\\-]))?)+[A-Za-z]+))$/D";
         $regExp = '/^[_A-z0-9-]+((\.|\+|\/)[_A-z0-9-]+)*@[A-z0-9-]+(\.[A-z0-9-]+)*(\.[A-z]{2,4})$/';
@@ -40,7 +40,7 @@ class drdata_Emails extends core_BaseClass
     /**
      * Нормализиране на стойността
      */
-    function normalize($email)
+    static function normalize($email)
     {
         return trim(strtolower($email));
     }
@@ -50,11 +50,11 @@ class drdata_Emails extends core_BaseClass
      * Основна функция на класа
      * /
      */
-    function validate($email, &$result)
+    static function validate($email, &$result)
     {
     	$conf = core_Packs::getConfig('drdata');
     	
-        $email = $this->normalize($email);
+        $email = self::normalize($email);
         
         $result['value'] = $email;
         
@@ -63,26 +63,25 @@ class drdata_Emails extends core_BaseClass
         }
         
         // Ако визуалната проверка не е вярна връщаме грешката
-        if ($result['error'] = $this->isWrongEmail($email)) {
+        if ($result['error'] = self::isWrongEmail($email)) {
             
             return;
         }
         
         // Проверка на MX записа на домейна
         list($user, $domain) = explode('@', $email);
-        
-//        if (($mxhosts = $this->mxRecordsValidate($domain)) === FALSE) {
-        if (($mxhosts = $this->mxAndARecordsValidate($domain)) === FALSE) {
+     
+        if (($mxhosts = self::mxAndARecordsValidate($domain)) === FALSE) {
             $result['warning'] = "Възможен е проблем с домейна|* {$user}@<b>{$domain}</b>";
-            
+         
             return;
         }
         
-        if ($this->isInNeverLogged($domain)) {
+        if (self::isInNeverLogged($domain)) {
             $result['warning'] = "Възможен е проблем със сървъра|* <b>{$domain}</b>";
         }
         
-        if ($this->isInAlwaysOK($domain)) {
+        if (self::isInAlwaysOK($domain)) {
             
             return;
         }
@@ -99,8 +98,8 @@ class drdata_Emails extends core_BaseClass
      */
     public static function mxAndARecordsValidate($domain)
     {
-        $hosts = dns_get_record($domain, DNS_A + DNS_MX, $audthns, $addtl);
-        
+        $hosts = @dns_get_record($domain, DNS_A + DNS_MX, $audthns, $addtl);
+  
         if (!$hosts) {
             
             return FALSE;
@@ -113,7 +112,7 @@ class drdata_Emails extends core_BaseClass
     /**
      * Връща масив с MX записите на домейна, ако няма такива връща FALSE
      */
-    function mxRecordsValidate($domain)
+    static function mxRecordsValidate($domain)
     {
         if (getmxrr($domain, $mxhosts, $mx_weight)) {
             if ($mxhosts === array(0 => '')) {
@@ -130,7 +129,7 @@ class drdata_Emails extends core_BaseClass
     /**
      * @todo Чака за документация...
      */
-    function smtpSend($sock, $cmd)
+    static function smtpSend($sock, $cmd)
     {
         if ($cmd) {
             if (@fwrite($sock, $cmd . "\r\n") === FALSE) {
@@ -151,9 +150,9 @@ class drdata_Emails extends core_BaseClass
     /**
      * @todo Чака за документация...
      */
-    function stmpResultCode($sock, $cmd)
+    static function stmpResultCode($sock, $cmd)
     {
-        if (($r = $this->smtpSend($sock, $cmd)) === FALSE) {
+        if (($r = self::smtpSend($sock, $cmd)) === FALSE) {
             
             return FALSE;
         }
@@ -166,7 +165,7 @@ class drdata_Emails extends core_BaseClass
      * Връща TRUE ако домейна фигурира в списъка с домейни на които пощенските
      * сървъри винаги отговарят с ОК на запитване за потребител.
      */
-    function isInAlwaysOK($domain)
+    static function isInAlwaysOK($domain)
     {
         $domainsOK = array(
             "yahoo.com",
@@ -391,7 +390,7 @@ class drdata_Emails extends core_BaseClass
     /**
      * Връща TRUE ако домейна фигурира в списъка с домейни от които никога не се е логвал потребител.
      */
-    function isInNeverLogged($domain)
+    static function isInNeverLogged($domain)
     {
         $domainsNeverLogged = array(
             "gmail.bg",

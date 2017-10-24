@@ -49,7 +49,7 @@ class cms_Profiles extends core_Master
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'buyer';
+    public $canRead = 'partner';
     
     
     /**
@@ -61,7 +61,7 @@ class cms_Profiles extends core_Master
     /**
      * Кой има достъп до единичния изглед
      */
-    public $canSingle = 'contractor';
+    public $canSingle = 'partner,powerUser';
     
     
 	/**
@@ -70,7 +70,7 @@ class cms_Profiles extends core_Master
     function act_Default()
     {
         // Изискваме да е логнат потребител
-        requireRole('contractor');
+        requireRole('partner,powerUser');
         
         // Редиректваме
         return new Redirect(array($this, 'Single'));
@@ -115,7 +115,7 @@ class cms_Profiles extends core_Master
         // Промяна на някой данни, след подготовката на профила
         $this->modifyProfile($data);
         
-        if(core_Users::haveRole('collaborator')){
+        if(core_Users::haveRole('partner')){
         	unset($data->row->createdOn);
         	unset($data->row->createdBy);
         	unset($data->User->row->roles);
@@ -158,7 +158,7 @@ class cms_Profiles extends core_Master
      */
     public function act_ChangePassword()
     {
-    	requireRole('contractor');
+    	requireRole('partner,powerUser');
 
         $form = $this->Profile->prepareChangePassword();
         $form->input();

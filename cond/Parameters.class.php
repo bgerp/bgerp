@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   cond
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -20,13 +20,13 @@ class cond_Parameters extends bgerp_ProtoParam
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, cond_Wrapper, plg_State2, plg_Search, plg_Clone';
+    public $loadList = 'plg_Created, cond_Wrapper, plg_State2, plg_Search';
     
     
     /**
      * Заглавие
      */
-    public $title = 'Търговски условия';
+    public $title = 'Видове търговски условия';
     
     
     /**
@@ -38,33 +38,19 @@ class cond_Parameters extends bgerp_ProtoParam
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,cond';
+	public $canList = 'ceo,admin';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,cond';
+	public $canSingle = 'ceo,admin';
     
     
     /**
      * Кой може да пише
      */
-    public $canWrite = 'ceo,cond';
-    
-    
-    /**
-     * Кой може да добавя
-     */
-    public $canAdd = 'ceo,cond';
-    
-    
-    /**
-     * Полета, които при клониране да не са попълнени
-     *
-     * @see plg_Clone
-     */
-    public $fieldsNotToClone = 'sysId';
+    public $canWrite = 'no_one';
     
     
     /**
@@ -73,30 +59,6 @@ class cond_Parameters extends bgerp_ProtoParam
     function description()
     {
     	parent::setFields($this);
-    }
-    
-    
-    /**
-     * Преди показване на форма за добавяне/промяна.
-     *
-     * @param core_Manager $mvc
-     * @param stdClass $data
-     */
-    protected static function on_AfterPrepareEditForm($mvc, &$data)
-    {
-    	$data->form->setField('driverClass', 'caption=Тип,input');
-    }
-    
-    
-    /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     */
-    protected static function on_AfterInputEditForm($mvc, &$form)
-    {
-    	if($form->isSubmitted()){
-    		$rec = &$form->rec;
-    		$rec->name = str::mbUcfirst($rec->name);
-    	}
     }
     
     
@@ -112,7 +74,8 @@ class cond_Parameters extends bgerp_ProtoParam
     			2 => "sysId",
     			3 => "group",
     			4 => 'suffix',
-    			5 => 'default',
+    			5 => 'csv_roles',
+    			6 => 'options',
     	);
     	 
     	$cntObj = csv_Lib::importOnce($this, $file, $fields);
@@ -127,8 +90,9 @@ class cond_Parameters extends bgerp_ProtoParam
      * според следните приоритети
      * 	  1. Директен запис в cond_ConditionsToCustomers
      * 	  2. Дефолт метод "get{$conditionSysId}" дефиниран в модела
-     *    3. Супер дефолта на параметъра дефиниран в cond_Parameters
-     *    4. NULL ако нищо не е намерено
+     *    3. От условието за конкретната държава на контрагента
+     *    4. От условието за всички държави за контрагенти
+     *    5. NULL ако нищо не е намерено
      * 
      * @param int $cClass            - клас на контрагента
      * @param int $cId               - ид на контрагента
@@ -141,29 +105,77 @@ class cond_Parameters extends bgerp_ProtoParam
     	if(!isset($cClass) && !isset($cId)) return;
     	
     	expect($Class = cls::get($cClass));
-    	expect($Class::fetch($cId));
+    	expect($cRec = $Class::fetch($cId));
     	expect($condId = self::fetchIdBySysId($conditionSysId));
     	
     	// Връщаме стойността ако има директен запис за условието
-    	$value = cond_ConditionsToCustomers::fetchByCustomer($cClass, $cId, $condId);
+    	$value = cond_ConditionsToCustomers::fetchByCustomer($Class, $cId, $condId);
     	if($value) return $value;
-    	
-    	// Търсим имали дефинирано търговско условие за държавата на контрагента
-    	$contragentData = cls::get($cClass)->getContragentData($cId);
-    	$countryId = $contragentData->countryId;
-    	if($countryId){
-    		$value = cond_Countries::fetchField("#country = {$countryId} AND #conditionId = {$condId}", 'value');
-    		if($value) return $value;
-    	}
     	
     	// Търси се метод дефиниран за връщане на стойността на условието
     	$method = "get{$conditionSysId}";
     	if(method_exists($Class, $method)) return $Class::$method($cId);
     	
-    	// Връща се супер дефолта на параметъра;
-    	$default = static::fetchField($condId, 'default');
-    	if(isset($default)) return $default;
+    	// Ако има поле за държава
+    	$countryFieldName = $Class->countryFieldName;
+    	if ($countryFieldName) {
+    		
+    		// Търсим имали дефинирано търговско условие за държавата на контрагента
+    		$countryId = $cRec->{$countryFieldName};
+    		if($countryId){
+    			$value = cond_Countries::fetchField("#country = {$countryId} AND #conditionId = {$condId}", 'value');
+    			if(isset($value)) return $value;
+    		}
+    	}
+    	
+    	// От глобалния дефолт за всички държави
+    	$value = cond_Countries::fetchField("#country IS NULL AND #conditionId = {$condId}", 'value');
+    	
+    	if(isset($value)) return $value;
     	
     	return NULL;
+    }
+    
+    
+    /**
+     * Ограничаване на символите на стойноста, ако е текст
+     * 
+     * @param mixed $driverClass
+     * @param mixed $value
+     * @return mixed $value
+     */
+    public static function limitValue($driverClass, $value)
+    {
+    	$driverClass = cls::get($driverClass);
+    	if(($driverClass instanceof cond_type_Text) && mb_strlen($value) > 90){
+    		$bHtml = mb_strcut($value, 0, 90);
+    		$cHtml = mb_strcut($value, 90);
+    	
+    		$value = $bHtml . "\n[hide=" . tr('Вижте още') . "]" . $value . "[/hide]";
+    		$value = cls::get('type_Richtext')->toVerbal($value);
+    	}
+    	
+    	return $value;
+    }
+    
+    
+    /**
+     * Форсира параметър
+     *
+     * @param string $sysId       - систем ид на параметър
+     * @param string $name        - име на параметъра
+     * @param string $type        - тип на параметъра
+     * @param NULL|text $options  - опции на параметъра само за типовете enum и set
+     * @param NULL|string $suffix - наставка
+     * @return number             - ид на параметъра
+     */
+    public static function force($sysId, $name, $type, $options = array(), $suffix = NULL)
+    {
+    	// Ако има параметър с това систем ид,връща се
+    	$id = self::fetchIdBySysId($sysId);
+    	if(!empty($id)) return $id;
+    		
+    	// Създаване на параметъра
+    	return self::save(self::makeNewRec($sysId, $name, $type, $options, $suffix));
     }
 }

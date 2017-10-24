@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   support
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -23,15 +23,9 @@ class support_Ratings extends core_Master
     
     
     /**
-     * Полета, които ще се клонират
-     */
-    var $cloneFields = 'subject, body';
-    
-    
-    /**
      * Кой има право да клонира?
      */
-    protected $canClone = 'powerUser';
+    public $canClonerec = 'powerUser';
     
     
     /**
@@ -91,8 +85,8 @@ class support_Ratings extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'support_Wrapper, doc_SharablePlg, doc_DocumentPlg, plg_RowTools, 
-        plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, change_Plugin';
+    var $loadList = 'support_Wrapper, doc_SharablePlg, doc_DocumentPlg, plg_RowTools2, 
+        plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, change_Plugin, plg_Clone';
     
     
     /**
@@ -111,13 +105,7 @@ class support_Ratings extends core_Master
      * Нов темплейт за показване
      */
     var $singleLayoutFile = 'support/tpl/SingleLayoutRatings.shtml';
-    
-    /**
-     * Икона по подразбиране за единичния обект
-     */
-    //    var $singleIcon = 'img/16/xxx.png';
-    
-    
+
     
     /**
      * Абревиатура

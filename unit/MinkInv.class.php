@@ -47,32 +47,6 @@ class unit_MinkInv extends core_Manager {
     }
     
     /**
-     * Проверка за дублиране - не работи
-     */
-    public function CheckDublicate()
-    {   
-        $browser = $this->SetUp();
-       
-        if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
-            $browser->press('Отказ');
-            $result='Дублиране';
-        }
-        return $result;
-    }
-    /**
-     * Задаване на стойности - не работи
-     */
-    public function SetVal($name,$suffix)
-    { 
-        $browser = $this->SetUp();
-        echo $name;
-        echo $suffix;
-        $browser->setValue('name', $name);
-        $browser->setValue('suffix', $suffix);
-        return $browser;
-    }
-    
-    /**
      *  Създаване на параметър - текст.
      */
     //http://localhost/unit_MinkInv/CreateParam/
@@ -88,16 +62,11 @@ class unit_MinkInv extends core_Manager {
         $browser->setValue('driverClass', 'Текст');
         $browser->refresh('Запис');
         $browser->setValue('name', '<FONT COLOR=RED>!!!red BUG !!!</FONT>;\'[#title#]');
-        
         $browser->setValue('suffix', 'text');
         $browser->setValue('default', '<FONT COLOR=RED>!!! redBUG !!!</FONT> " &lt; &#9829; \' [#title#]');
         $browser->setValue('rows', '2');
-        //$browser = $this->SetVal(ime,suf);
-        //$browser = self::SetVal(ime,suf);
         $browser->press('Запис');
         //return $browser->getHtml();
-        //$browser=$this->CheckDublicate();
-        //$browser=self::CheckDublicate();
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){
             $browser->press('Отказ');
             return Дублиране;

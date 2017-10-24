@@ -261,7 +261,7 @@ class doc_AssignPlg extends core_Plugin
     /**
      * Извиква се след изчисляването на необходимите роли за това действие
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Определяме правата за възлагане
         if ($action == 'assign') {

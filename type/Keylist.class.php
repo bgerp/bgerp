@@ -1,10 +1,6 @@
 <?php
 
 
-/**
- * Броя на всички записи, над които групите ще са отворени по подразбиране
- */
-defIfNot('CORE_MAX_OPT_FOR_OPEN_GROUPS', 10);
 
 
 /**
@@ -48,9 +44,6 @@ class type_Keylist extends core_Type {
     function init($params = array())
     {
         parent::init($params);
-        
-        // Ако не е зададен параметъра
-        setIfNot($this->params['maxOptForOpenGroups'], CORE_MAX_OPT_FOR_OPEN_GROUPS);
     }
     
     
@@ -59,37 +52,60 @@ class type_Keylist extends core_Type {
      */
     function toVerbal_($value)
     {
+        static $cache;
+
         if(empty($value)) return NULL;
         
-        $vals = explode($value{0}, $value);
+        $value = trim($value);
+
+        // Очакваме валиден keylist
+        if(preg_match("/^[0-9\\|]*$/", $value)) {
+            $div = '|';
+        } elseif(preg_match("/^[0-9\\,]*$/", $value)) {
+            $div = ',';
+        } else {
+            error('500 Очакваме валиден keylist');
+        }
+        
+        $value = trim($value, $div);
+
+        $vals = explode($div, $value);
         
         $mvc = cls::get($this->params['mvc']);
-        $div = $value{0};
-        $ids = str_replace($div, ',', trim($value, $div));
+       
+        $ids = str_replace($div, ',', $value);
+        
         if($ids) {  
-            $query = $mvc->getQuery();
-            $query->where("#id IN ($ids)");
-            while($query->fetchAndCache()) {}
-        }
-
-        foreach($vals as $v) {
-            if($v) { 
-                $name = $this->getVerbal($v);
-                if((!Mode::is('text', 'xhtml')) && (!Mode::is('text', 'plain')) && (!Mode::is('printing')) && $mvc instanceof core_Master && $mvc->haveRightFor('single', $v)) {
-                	$attr = array();
-                	if(isset($this->params['classLink'])){
-                		$attr = array('class' => $this->params['classLink']);
-                	}
-                	
-                	if($this->params['makeLinks'] === 'short'){
-                		$name = ht::createLinkRef($name, array($mvc, 'Single', $v), FALSE, $attr);
-                	} else {
-                		$name = ht::createLink($name, array($mvc, 'Single', $v), FALSE, $attr);
-                	}
+            if(($res = $cache[$mvc->className][$ids]) === NULL) {
+                $query = $mvc->getQuery();
+                //$query->where("#id IN ($ids)");
+                //while($query->fetchAndCache()) {}
+ 
+                foreach($vals as $v) {
+                    if($v) { 
+                        $name = $this->getVerbal($v);
+                        if((!Mode::is('text', 'xhtml')) && (!Mode::is('text', 'plain')) && (!Mode::is('printing')) && $mvc instanceof core_Master && $mvc->haveRightFor('single', $v)) {
+                            $attr = array();
+                            if(isset($this->params['classLink'])){
+                                $attr = array('class' => $this->params['classLink']);
+                            }
+                            
+                            if($this->params['makeLinks'] === 'short'){
+                                $name = ht::createLinkRef($name, array($mvc, 'Single', $v), FALSE, $attr);
+                            } else {
+                                $name = ht::createLink($name, array($mvc, 'Single', $v), FALSE, $attr);
+                            }
+                        }
+                        if(Mode::is('text-export', 'csv')) {
+                            $delimeter = '|';
+                        } else {
+                            $delimeter = (isset($this->params['classLink']) && !Mode::is('text', 'plain')) ? " " : ", ";
+                        }
+                        $res .= ($res ? $delimeter : '') . $name;
+                    }
                 }
-                
-                $delimeter = (isset($this->params['classLink'])) ? " " : ", ";
-                $res .= ($res ? $delimeter : '') . $name;
+
+                $cache[$mvc->className][$ids] = $res;
             }
         }
         
@@ -168,6 +184,10 @@ class type_Keylist extends core_Type {
         if(!isset($this->suggestions)) {
             $this->prepareSuggestions();
         }
+
+        if($value === NULL) {
+            $emptyValue = TRUE;
+        }
         
         if(!$value) {
             $values = array();
@@ -196,6 +216,11 @@ class type_Keylist extends core_Type {
         	
         	$groupOpen = 0;
         	$addKeylistWide = FALSE;
+
+            if(count($this->suggestions) == 1 && $this->params['mandatory'] && $emptyValue) {
+                $key = key($this->suggestions);
+                $values[$key] = $key;
+            }
         	
             foreach($this->suggestions as $key => $v) {
                 
@@ -396,10 +421,20 @@ class type_Keylist extends core_Type {
      * 
      * @return array
      */
-    public function prepareSuggestions()
+    public function prepareSuggestions($ids = NULL)
     {
         $mvc = cls::get($this->params['mvc']);
         
+        // Ако не е зададен параметъра
+        if(!isset($this->params['maxOptForOpenGroups'])) {
+            $conf = core_Setup::getConfig();
+            $maxOpt = $conf->_data['CORE_MAX_OPT_FOR_OPEN_GROUPS'];
+            if(!isset($maxOpt)) {
+                $maxOpt = CORE_MAX_OPT_FOR_OPEN_GROUPS;
+            } 
+            setIfNot($this->params['maxOptForOpenGroups'], $maxOpt);
+        }
+
         if (!isset($this->suggestions)) {
             $this->suggestions = array();
         }
@@ -656,13 +691,21 @@ class type_Keylist extends core_Type {
      * 
      * @return type_Keylist $newKlist
      */
-    static function merge($klist1, $klist2)
+    static function merge($klist1, $klist2, $klist3 = NULL, $klist4 = NULL)
     {
         $klist1Arr = self::toArray($klist1);
         $klist2Arr = self::toArray($klist2);
         
         $newArr = $klist1Arr + $klist2Arr;
+
+        if($klist3) {
+            $newArr += self::toArray($klist3);
+        }
         
+        if($klist4) {
+            $newArr += self::toArray($klist4);
+        }
+      
         $newKlist = self::fromArray($newArr);
         
         return $newKlist;

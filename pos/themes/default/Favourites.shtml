@@ -19,7 +19,7 @@
 	 
 		<!--ET_BEGIN ITEM-->
 		[#ITEM#]
-			<div class='pos-product' data-id='[#productId#]' data-url = '[#url#]' data-cat='[#catId#]' title='Добавете [#name#]'>
+			<div class='pos-product' data-id='[#productId#]' data-pack='[#packagingId#]' data-url = '[#url#]' data-cat='[#catId#]' title='Добавете [#name#]'>
 				<!--ET_BEGIN image-->
 					[#image#]
 				<!--ET_END image-->

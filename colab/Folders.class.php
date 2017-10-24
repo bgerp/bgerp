@@ -2,7 +2,7 @@
 
 
 /**
- * Прокси на 'colab_Folders' позволяващ на потребител с роля 'collaborator' да вижда споделените му папки
+ * Прокси на 'colab_Folders' позволяващ на потребител с роля 'partner' да вижда споделените му папки
  *
  * @category  bgerp
  * @package   colab
@@ -54,7 +54,7 @@ class colab_Folders extends core_Manager
 	/**
 	 * Кой има право да чете?
 	 */
-	var $canRead = 'collaborator';
+	var $canRead = 'partner';
 	
 	
 	/**
@@ -180,7 +180,7 @@ class colab_Folders extends core_Manager
 		if($requiredRoles != 'no_one'){
 			
 			// Ако потребителя няма роля партньор, не му е работата тук
-			if(!core_Users::haveRole('collaborator', $userId)){
+			if(!core_Users::haveRole('partner', $userId)){
 				$requiredRoles = 'no_one';
 			}
 		}
@@ -237,9 +237,9 @@ class colab_Folders extends core_Manager
 	
 	
 	/**
-	 * Броя на записите
+	 * Броя на споделените папки на потребителя
 	 */
-	public static function count($cond = '1=1')
+	public static function getSharedFoldersCount()
 	{
 		$cu = core_Users::getCurrent('id');
 		

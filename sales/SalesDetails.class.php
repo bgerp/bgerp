@@ -45,8 +45,8 @@ class sales_SalesDetails extends deals_DealDetail
      * 
      * var string|array
      */
-    public $loadList = 'plg_RowTools2, plg_Created, sales_Wrapper, plg_RowNumbering, plg_SaveAndNew,
-                        plg_AlignDecimals2, plg_Sorting, deals_plg_ImportDealDetailProduct, doc_plg_HidePrices, LastPricePolicy=sales_SalesLastPricePolicy,cat_plg_CreateProductFromDocument';
+    public $loadList = 'plg_RowTools2, plg_Created, sales_Wrapper, plg_RowNumbering, plg_SaveAndNew, plg_PrevAndNext,
+                        plg_AlignDecimals2, plg_Sorting, deals_plg_ImportDealDetailProduct, doc_plg_HidePrices, LastPricePolicy=sales_SalesLastPricePolicy,cat_plg_CreateProductFromDocument,doc_plg_HideMeasureAndQuantityColumns,cat_plg_ShowCodes';
     
     
     /**
@@ -58,19 +58,19 @@ class sales_SalesDetails extends deals_DealDetail
     
     
     /**
-     * Кой има право да чете?
-     * 
-     * @var string|array
-     */
-    public $canRead = 'ceo, sales';
-    
-    
-    /**
      * Кой има право да променя?
      * 
      * @var string|array
      */
-    public $canEdit = 'ceo, sales, collaborator';
+    public $canEdit = 'sales,ceo,partner';
+    
+    
+    /**
+     * Кой има право да променя?
+     *
+     * @var string|array
+     */
+    public $canImportlisted = 'user';
     
     
     /**
@@ -78,7 +78,7 @@ class sales_SalesDetails extends deals_DealDetail
      * 
      * @var string|array
      */
-    public $canAdd = 'ceo, sales, collaborator';
+    public $canAdd = 'user';
     
     
     /**
@@ -86,7 +86,7 @@ class sales_SalesDetails extends deals_DealDetail
      * 
      * @var string|array
      */
-    public $canDelete = 'ceo, sales, collaborator';
+    public $canDelete = 'sales,ceo,partner';
     
     
     /**
@@ -94,7 +94,16 @@ class sales_SalesDetails extends deals_DealDetail
      *
      * @var string|array
      */
-    public $canImport = 'ceo, sales';
+    public $canImport = 'user';
+    
+    
+    /**
+     * Кой може да го импортира артикули?
+     *
+     * @var string|array
+     */
+    public $canCreateproduct = 'user';
+    
     
     
     /**
@@ -114,7 +123,7 @@ class sales_SalesDetails extends deals_DealDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, packQuantity, packPrice, discount, amount, quantityInPack';
+    public $listFields = 'productId, packagingId, packQuantity, packPrice, discount, amount';
     
 
     /**
@@ -137,7 +146,6 @@ class sales_SalesDetails extends deals_DealDetail
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'column=none,notNull,silent,hidden,mandatory');
         
         parent::getDealDetailFields($this);
-        $this->FLD('term', 'time(uom=days,suggestions=1 ден|5 дни|7 дни|10 дни|15 дни|20 дни|30 дни)', 'caption=Срок,after=tolerance,input=none');
 		$this->setField('packPrice', 'silent');
     }
     
@@ -194,38 +202,15 @@ class sales_SalesDetails extends deals_DealDetail
     		}
     		
     		if($rec->price < cat_Products::getSelfValue($rec->productId, NULL, $rec->quantity)){
-    			$row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning', FALSE);
+    			if(!core_Users::haveRole('partner')){
+    				$row->packPrice = ht::createHint($row->packPrice, 'Цената е под себестойността', 'warning', FALSE);
+    			}
     		}
     		
     		// Ако е имало проблем при изчисляването на скрития транспорт, показва се хинт
     		$fee = tcost_Calcs::get($mvc->Master, $rec->saleId, $rec->id)->fee;
     		$vat = cat_Products::getVat($rec->productId, $masterRec->valior);
     		$row->amount = tcost_Calcs::getAmountHint($row->amount, $fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
-    	}
-    }
-    
-    
-    /**
-     * Преди показване на форма за добавяне/промяна
-     */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
-    {
-    	$rec = &$data->form->rec;
-    	$form = &$data->form;
-    	
-    	if(isset($rec->productId)){
-    		
-    		// Ако в артикула има срок на доставка, показва се полето
-    		$term = cat_Products::getParams($rec->productId, 'term');
-    		if(!empty($term) && !core_Users::haveRole('collaborator')){
-    			$form->setField('term', 'input');
-    			if(empty($rec->id)){
-    				$form->setDefault('term', $term);
-    			}
-    			
-    			$termVerbal = $mvc->getFieldType('term')->toVerbal($term);
-    			$form->setSuggestions('term', array('' => '', $termVerbal => $termVerbal));
-    		}
     	}
     }
     
@@ -239,46 +224,29 @@ class sales_SalesDetails extends deals_DealDetail
      */
     public static function prepareJobInfo($rec, $masterRec)
     {
-    	$row = new stdClass();
-    	$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
-    	$row->quantity = $row->quantityFromTasks = $row->quantityProduced = 0;
-    	$jobRec = NULL;
+    	$res = array();
+    	$jQuery = planning_Jobs::getQuery();
+    	$jQuery->where("#productId = {$rec->productId}");
+    	$jQuery->where("#saleId IS NULL OR #saleId = {$masterRec->id}");
+    	$jQuery->XPR('order', 'int', "(CASE #state WHEN 'draft' THEN 1 WHEN 'active' THEN 2 WHEN 'stopped' THEN 3 WHEN 'wakeup' THEN 4 WHEN 'closed' THEN 5 ELSE 3 END)");
+		$jQuery->orderBy('order', 'ASC');
     	
-    	$pRec = cat_Products::fetch($rec->productId);
-    	
-    	// Имаме ли активно задание по тази продажба
-    	$jobRec = planning_Jobs::fetch("#productId = {$rec->productId} AND #saleId = {$masterRec->id} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')");
-    	
-    	// Ако няма търсим, имаме ли активно задание
-    	if(!$jobRec){
-    		$jobRec = planning_Jobs::fetch("#productId = {$rec->productId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')");
-    	}
-    	
-    	// Ако и такова няма намираме последното задание-чернова към тази продажба
-    	if(!$jobRec){
-    		$jQuery = planning_Jobs::getQuery();
-    		$jQuery->where("#productId = {$rec->productId} AND #saleId = {$masterRec->id} AND #state = 'draft'");
-    		$jQuery->orderBy("id", 'DESC');
-    		$jobRec = planning_Jobs::fetch("#productId = {$rec->productId} AND #state = 'draft'");
-    	}
-    	
-    	if(!empty($jobRec)){
+    	while($jRec = $jQuery->fetch()){
+    		$row = (object)array('quantity' => 0, 'quantityFromTasks' => 0, 'quantityProduced' => 0);
+    		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
+    		$row->ROW_ATTR['class'] = "state-{$jRec->state}";
+    		
     		$Double = cls::get('type_Double', (object)array('params' => array('smartRound' => TRUE)));
-    		$row->quantity = $Double->toVerbal($jobRec->quantity);
-    		$row->quantityFromTasks = $Double->toVerbal(planning_TaskActions::getQuantityForJob($jobRec->id, 'product'));
-    		$row->quantityProduced = $Double->toVerbal($jobRec->quantityProduced);
+    		$row->quantity = $Double->toVerbal($jRec->quantity);
+    		//$row->quantityFromTasks = $Double->toVerbal(planning_TaskActions::getQuantityForJob($jRec->id, 'product'));
+    		$row->quantityProduced = $Double->toVerbal($jRec->quantityProduced);
+    		$row->dueDate = cls::get('type_Date')->toVerbal($jRec->dueDate);
+    		$row->jobId = planning_Jobs::getLink($jRec->id, 0);
     		
-    		if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
-    			$row->dueDate = cls::get('type_Date')->toVerbal($jobRec->dueDate);
-    			$row->dueDate = ht::createLink($row->dueDate, array('cal_Calendar', 'day', 'from' => $row->dueDate, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
-    		}
-    		
-    		$row->jobId = "#" . planning_Jobs::getHandle($jobRec->id);
-    		$row->jobId = ht::createLink($row->jobId, planning_Jobs::getSingleUrlArray($jobRec->id), FALSE, 'ef_icon=img/16/clipboard_text.png');
-    		$row->ROW_ATTR['class'] = "state-{$jobRec->state}";
-    	
-    		return $row;
+    		$res[] = $row;
     	}
+    	
+    	return $res;
     }
     
     
@@ -288,9 +256,10 @@ class sales_SalesDetails extends deals_DealDetail
     protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
     {
     	// Преди клониране клонира се и сумата на цената на транспорта
-    	$fee = tcost_Calcs::get($mvc->Master, $oldRec->saleId, $oldRec->id)->fee;
-    	if(isset($fee)){
-    		$rec->fee = $fee;
+    	$cRec = tcost_Calcs::get($mvc->Master, $oldRec->saleId, $oldRec->id);
+    	if(isset($cRec)){
+    		$rec->fee = $cRec->fee;
+    		$rec->deliveryTimeFromFee = $cRec->deliveryTime;
     		$rec->syncFee = TRUE;
     	}
     }
@@ -303,7 +272,7 @@ class sales_SalesDetails extends deals_DealDetail
     {
     	// Синхронизиране на сумата на транспорта
     	if($rec->syncFee === TRUE){
-    		tcost_Calcs::sync($mvc->Master, $rec->{$mvc->masterKey}, $rec->id, $rec->fee);
+    		tcost_Calcs::sync($mvc->Master, $rec->{$mvc->masterKey}, $rec->id, $rec->fee, $rec->deliveryTimeFromFee);
     	}
     }
     
@@ -325,12 +294,19 @@ class sales_SalesDetails extends deals_DealDetail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-    	if(($action == 'add' || $action == 'delete' || $action == 'edit') && isset($rec)){
-    		
-    		if(core_Users::isPowerUser()){
-    			if(!haveRole('ceo,sales')){
+    	if(($action == 'add') && isset($rec)){
+    		if($requiredRoles != 'no_one'){
+    			$roles = sales_Setup::get('ADD_BY_PRODUCT_BTN');
+    			if(!haveRole($roles, $userId)){
     				$requiredRoles = 'no_one';
     			}
+    		}
+    	}
+    	
+    	if($action == 'importlisted'){
+    		$roles = sales_Setup::get('ADD_BY_LIST_BTN');
+    		if(!haveRole($roles, $userId)){
+    			$requiredRoles = 'no_one';
     		}
     	}
     }

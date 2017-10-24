@@ -33,7 +33,7 @@ class budget_Balances extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Created, plg_SaveAndNew, 
+    var $loadList = 'plg_RowTools2, plg_Created, plg_SaveAndNew, 
                     budget_Wrapper';
     
     
@@ -76,7 +76,7 @@ class budget_Balances extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, fromDate, toDate, state, accountId,
+    var $listFields = 'fromDate, toDate, state, accountId,
                        baseQuantity, baseAmount, debitQuantity, debitAmount, creditQuantity, 
                        creditAmount, blQuantity, blAmount';
     

@@ -33,7 +33,7 @@ class budget_Reports extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Created, plg_SaveAndNew, 
+    var $loadList = 'plg_RowTools2, plg_Created, plg_SaveAndNew, 
                     budget_Wrapper';
     
     
@@ -76,15 +76,9 @@ class budget_Reports extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, location, department, activity, fromDate, toDate, state, accountId,
+    var $listFields = 'location, department, activity, fromDate, toDate, state, accountId,
                        baseQuantity, baseAmount, debitQuantity, debitAmount';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'tools';
-    
+
     
     /**
      * Описание на модела (таблицата)

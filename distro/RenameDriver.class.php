@@ -126,18 +126,13 @@ class distro_RenameDriver extends core_Mvc
             $fRec->info = $rec->newFileInfo;
         }
         
-        $sudo = FALSE;
-        
-        
         if ($rec->createdBy > 0) {
-            $sudo = core_Users::sudo($rec->createdBy);
+            $sudoUser = core_Users::sudo($rec->createdBy);
         }
         
         distro_Files::save($fRec, 'name, info, modifiedOn, modifiedBy');
         
-        if ($sudo) {
-            core_Users::exitSudo();
-        }
+        core_Users::exitSudo($sudoUser);
     }
     
     
@@ -151,7 +146,7 @@ class distro_RenameDriver extends core_Mvc
     public function getLinkParams()
     {
         
-        return array('ef_icon' => 'img/16/edit16.png');
+        return array('ef_icon' => 'img/16/edit-icon.png');
     }
     
     

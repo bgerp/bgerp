@@ -46,6 +46,8 @@ class incoming_Setup extends core_ProtoSetup
      */
     var $managers = array(
             'incoming_Documents',
+            'incoming_Types',
+            'migrate::addTypes',
         );
     
 
@@ -69,13 +71,7 @@ class incoming_Setup extends core_ProtoSetup
     function install()
     {
         $html = parent::install();
-    	
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
-        
-        // Добавяне на плъгина за създаване на входящи документи
-        $html .= $Plugins->installPlugin('Създаване на входящ документ', 'incoming_CreateDocumentPlg', 'fileman_Files', 'private');  
-        
+    	        
         return $html;
     }
     
@@ -89,5 +85,31 @@ class incoming_Setup extends core_ProtoSetup
         $res = bgerp_Menu::remove($this);
         
         return $res;
+    }
+
+
+    /**
+     * Миграция за включването на типовете документи
+     */
+    static function addTypes()
+    {   
+        $ID = cls::get('incoming_Documents');
+
+        if($ID->db->isfieldExists($ID->dbTableName, 'title')) {
+            $query = incoming_Documents::getQuery();
+            $query->FLD('title', 'varchar', 'caption=Заглавие');
+            while($rec = $query->fetch()) {
+                if($rec->title) {
+                    $tRec = incoming_Types::fetch(array("LOWER(#name) = LOWER('[#1#]')", $rec->title));
+                    if(!$tRec) {
+                        $tRec = new stdClass();
+                        $tRec->name = $rec->title;
+                        incoming_Types::save($tRec);
+                    }
+                    $rec->typeId = $tRec->id;
+                    $ID->save_($rec, 'typeId');
+                }
+            }
+        }
     }
 }

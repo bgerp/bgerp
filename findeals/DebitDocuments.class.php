@@ -39,21 +39,27 @@ class findeals_DebitDocuments extends deals_Document
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools, findeals_Wrapper, plg_Sorting, acc_plg_Contable,
+    public $loadList = 'plg_RowTools2, findeals_Wrapper, plg_Sorting, acc_plg_Contable,
                      doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary,doc_plg_HidePrices,
                      plg_Search, bgerp_plg_Blank,bgerp_DealIntf, doc_EmailCreatePlg';
     
     
     /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'operationSysId, name,dealId,dealHandler,currencyId,description,contragentId,contragentClassId';
+    
+    
+    /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo, findealsMaster';
+	public $canList = 'ceo, findeals, acc';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo, findeals';
+	public $canSingle = 'ceo, findeals, acc';
     
     
     /**
@@ -69,27 +75,21 @@ class findeals_DebitDocuments extends deals_Document
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'findeals, ceo';
-    
-    
-    /**
      * Кой може да пише?
      */
     public $canWrite = 'findeals, ceo';
     
     
     /**
-     * Кой може да го контира?
+     * Кой може да сторнира
      */
-    public $canConto = 'findeals, ceo';
+    public $canRevert = 'findeals, ceo';
     
     
     /**
-     * Кой може да го оттегля
+     * Кой може да го контира?
      */
-    public $canRevert = 'findeals, ceo';
+    public $canConto = 'findeals, ceo';
     
     
     /**

@@ -52,24 +52,27 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         // URL за показване на текстовата част на файловете
         $textPart = toUrl(array('fileman_webdrv_Office', 'text', $fRec->fileHnd), TRUE);
         
-        // Таб за текстовата част
-        $tabsArr['text'] = (object) 
-			array(
-				'title' => 'Текст',
-				'html'  => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("Текст") . "</div> <iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
-				'order' => 4,
-			);
+        if (self::canShowTab($fRec->fileHnd, 'text') || self::canShowTab($fRec->fileHnd, 'textOcr', TRUE, TRUE)) {
+            // Таб за текстовата част
+            $tabsArr['text'] = (object)
+            array(
+                    'title' => 'Текст',
+                    'html'  => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("Текст") . "</div> <iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
+                    'order' => 4,
+            );
+        }
         
-		$htmlUrl = toUrl(array('fileman_webdrv_Office', 'html', $fRec->fileHnd), TRUE);	
-			
-		// Таб за информация
-        $tabsArr['html'] = (object) 
-			array(
-				'title' => 'HTML',
-				'html'  => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("HTML") . "</div> <iframe src='{$htmlUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
-				'order' => 3,
-			);
-
+	    if (self::canShowTab($fRec->fileHnd, 'html')) {
+	        $htmlUrl = toUrl(array('fileman_webdrv_Office', 'html', $fRec->fileHnd), TRUE);
+	        	
+	        // Таб за информация
+	        $tabsArr['html'] = (object)
+	        array(
+	                'title' => 'HTML',
+	                'html'  => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("HTML") . "</div> <iframe src='{$htmlUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
+	                'order' => 3,
+	        );
+	    }
 
         return $tabsArr;
     }
@@ -99,28 +102,27 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
      */
     static function extractText($fRec)
     {
-        /*
-         * @todo
-         * @see https://github.com/dagwieers/unoconv/issues/73
-           Версия на unoconv 0.3-6
-           Има проблвем с конвертирането на файлове, които съдържат латиница.
-		   Когато се конвертира от .odt или .doc към .txt формат вместо текста се изписват въпросителни.
-		   При конвертиране към .pdf формат или някой друг всичко си работи коректно.
-		   Временно решение може да е да се конвертира към .pdf и от него да се извлече текстовата част.
-         */
-        
-        
         // Параметри необходими за конвертирането
         $params = array(
-            'callBack' => 'fileman_webdrv_Office::afterExtractText',
-            'dataId' => $fRec->dataId,
-        	'asynch' => TRUE,
-            'createdBy' => core_Users::getCurrent('id'),
-            'type' => 'text',
+                'callBack' => 'fileman_webdrv_Office::afterExtractText',
+                'createdBy' => core_Users::getCurrent('id'),
+                'type' => 'text',
         );
         
+        if (is_object($fRec)) {
+            $params['dataId'] = $fRec->dataId;
+            $params['asynch'] = TRUE;
+            $file = $fRec->fileHnd;
+        } else {
+            $params['asynch'] = FALSE;
+            $params['isPath'] = TRUE;
+            $file = $fRec;
+        }
+        
+        $lId = self::prepareLockId($fRec);
+        
         // Променливата, с която ще заключим процеса
-        $params['lockId'] = static::getLockId($params['type'], $fRec->dataId);
+        $params['lockId'] = static::getLockId($params['type'], $lId);
 
         // Проверявама дали няма извлечена информация или не е заключен
         if (fileman_Indexes::isProcessStarted($params)) return ;
@@ -128,19 +130,8 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         // Заключваме процеса за определено време
         if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
             
-            // Конфигурационните константи
-//            $conf = core_Packs::getConfig('docoffice');
-            // Класа, който ще конвертира
-//            $ConvClass = $conf->OFFICE_CONVERTER_CLASS;
-            
-            // Инстанция на класа
-//            $inst = cls::get($ConvClass);
-            
-            // Стартираме конвертирането
-//            $inst->convertDoc($fRec->fileHnd, 'txt', $params); 
-
             // Извличаме текстовата част с Apache Tika
-            apachetika_Detect::extract($fRec->fileHnd, $params);
+            return apachetika_Detect::extract($file, $params);
         }
     }
     
@@ -374,11 +365,8 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         // Вземаме всички файлове във временната директория
         $files = scandir($script->tempDir);
 
-        // Инстанция на класа
-        $Fileman = cls::get('fileman_Files');
-        
         // Шаблон за намиране на името на файла
-        $pattern = "/" . preg_quote($script->fName, "/") . "\-(?'num'[0-9]+)\.jpg" . "/i";
+        $pattern = "/^" . preg_quote($script->fName, "/") . "\-(?'num'[0-9]+)\.jpg$/i";
         
         $filesArr = array();
         
@@ -396,13 +384,25 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         // Сортираме масива по ключ
         ksort($filesArr);
         
+        $maxFilesCnt = fileman_Setup::get('FILEINFO_MAX_PREVIEW_PAGES', TRUE);
+        
+        $otherFilesCnt = 0;
+        
         foreach ($filesArr as $file) {
+            
+            // При достигане на лимита, спираме качването
+            if ($maxFilesCnt-- <= 0) {
+                
+                $otherFilesCnt++;
+                
+                continue;
+            }
             
             // Ако възникне грешка при качването на файла (липса на права)
             try {
                 
                 // Качваме файла в кофата и му вземаме манипулатора
-                $fileHnd = $Fileman->addNewFile($script->tempDir . $file, 'fileIndex'); 
+                $fileHnd = fileman::absorb($script->tempDir . $file, 'fileIndex'); 
             } catch (core_exception_Expect $e) {
                 continue;
             }
@@ -411,6 +411,10 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
             if ($fileHnd) {
                 $fileHndArr[$fileHnd] = $fileHnd;    
             }
+        }
+        
+        if ($otherFilesCnt) {
+            $fileHndArr['otherPagesCnt'] = $otherFilesCnt;
         }
         
         // Десериализираме нужните помощни данни

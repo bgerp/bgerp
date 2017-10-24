@@ -45,8 +45,8 @@ class price_ListDocs extends core_Master
      /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, price_Wrapper, doc_DocumentPlg, doc_EmailCreatePlg,
-    	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, doc_ActivatePlg, doc_plg_BusinessDoc';
+    public $loadList = 'plg_RowTools2, price_Wrapper, plg_Clone, doc_DocumentPlg, doc_EmailCreatePlg,
+    	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, doc_ActivatePlg, doc_plg_SelectFolder';
     	
     
     
@@ -77,19 +77,19 @@ class price_ListDocs extends core_Master
     /**
      * Кой може да го промени?
      */
-    public $canWrite = 'priceMaster, ceo';
+    public $canWrite = 'price, ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'priceMaster,ceo';
+    public $canList = 'price, ceo';
     
     
     /**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'sales,priceMaster,ceo';
+	public $canSingle = 'price, ceo';
     
     
     /**
@@ -129,6 +129,20 @@ class price_ListDocs extends core_Master
     
     
     /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = 'crm_ContragentAccRegIntf,doc_UnsortedFolders';
+
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'date';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -142,6 +156,9 @@ class price_ListDocs extends core_Master
     	$this->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Продукти->Опаковки,columns=3');
     	$this->FLD('products', 'blob(serialize,compress)', 'caption=Данни,input=none');
     	$this->FLD('showUoms', 'enum(yes=Ценоразпис (пълен),no=Ценоразпис без основна мярка)', 'caption=Шаблон,notNull,default=yes');
+    
+    	$this->FLD('round', 'int', 'caption=Закръгляне на цена->В мярка');
+    	$this->FLD('roundPack', 'int', 'caption=Закръгляне на цена->В опаковка');
     }
     
     
@@ -210,6 +227,7 @@ class price_ListDocs extends core_Master
     {
     	$options = array();
     	$polQuery = price_Lists::getQuery();
+    	$polQuery->show('title');
     	while($polRec = $polQuery->fetch()){
     		if(price_Lists::haveRightFor('single', $polRec)){
     			$options[$polRec->id] = price_Lists::getTitleById($polRec->id, FALSE);
@@ -349,8 +367,9 @@ class price_ListDocs extends core_Master
     		$data->rec->date .= ' 23:59:59';
     	}
     	
-    	$customerProducts = price_ListRules::getProductOptions();
+    	$customerProducts = price_ListRules::getProductOptions($data->rec->policyId);
     	unset($customerProducts['pu']);
+    	
     	$aGroups = cat_Groups::getDescendantArray($rec->productGroups);
     	
     	if($customerProducts){
@@ -365,7 +384,8 @@ class price_ListDocs extends core_Master
 		    	}
 		    	
 		    	$arr = cat_Products::fetchField($productRec->id, 'groups');
-		    	($arr) ? $arr = keylist::toArray($arr) : $arr = array('0' => '0');
+		    	$arr = cat_Groups::getParentsArray($arr);
+		    	(count($arr)) ? $arr = keylist::toArray($arr) : $arr = array('0' => '0');
 		    	
 		    	$rec->details->products[$productRec->id] = (object)array(
 		    								   'productId' => $productRec->id,
@@ -518,7 +538,7 @@ class price_ListDocs extends core_Master
 			}
 			
     		$row->pack = $this->cache[$rec->pack];
-    		$row->pack .= "&nbsp;({$Double->toVerbal($rec->perPack)}&nbsp;{$measureShort})";
+    		$row->pack .= deals_Helper::getPackMeasure($rec->measureId, $rec->perPack);
 		}
     	
 		$row->code = $Varchar->toVerbal($rec->code);
@@ -564,19 +584,23 @@ class price_ListDocs extends core_Master
     private function alignPrices(&$data)
     {
     	$Double = cls::get('type_Double');
+    	
+    	$roundM = $data->rec->round;
+    	$roundP = $data->rec->roundPack;
+    	
     	foreach ($data->rec->products->rows as $groupId => &$products2){
 			foreach ($products2 as $index => &$row){
 				$rec = $data->rec->products->recs[$groupId][$index];
 				
 				if($row->priceM){
 					$round = strlen(substr(strrchr($rec->priceM, "."), 1));
-					$Double->params['decimals'] = ($round < 2) ? 2 : $round;
+					$Double->params['decimals'] = (isset($roundM)) ? $roundM : (($round < 2) ? 2 : $round);
 					$row->priceM = $Double->toVerbal($rec->priceM);
 				}
 				
 				if($row->priceP){
 					$round = strlen(substr(strrchr($rec->priceP, "."), 1));
-					$Double->params['decimals'] = ($round < 2) ? 2 : $round;
+					$Double->params['decimals'] = (isset($roundP)) ? $roundP : (($round < 2) ? 2 : $round);
 					$row->priceP = $Double->toVerbal($rec->priceP);
 				}
 			}
@@ -598,8 +622,13 @@ class price_ListDocs extends core_Master
     	}
     	
     	$fieldset = cls::get('core_FieldSet');
-    	$fieldset->FLD('priceM', 'double(decimals=6)');
-    	$fieldset->FLD('priceP', 'double(decimals=6)');
+    	if(!isset($roundM)){
+    		$fieldset->FLD('priceM', 'double(decimals=6)');
+    	}
+    	
+    	if(!isset($roundP)){
+    		$fieldset->FLD('priceP', 'double(decimals=6)');
+    	}
     	
     	plg_AlignDecimals2::alignDecimals($fieldset, $recs1, $rows1);
     }
@@ -623,7 +652,7 @@ class price_ListDocs extends core_Master
 					// Слагаме името на групата
 					$groupTpl = clone $detailTpl;
 					if($groupId){
-						$groupTpl->replace(cat_Groups::getTitleById($groupId), 'GROUP_NAME');
+						$groupTpl->replace(cat_Groups::getVerbal($groupId, 'name'), 'GROUP_NAME');
 					} else {
 						$groupTpl->replace(tr('Без група'), 'GROUP_NAME');
 					}
@@ -815,36 +844,7 @@ class price_ListDocs extends core_Master
     {
         // Добавяме тези документи само в персонални папки
         $threadRec = doc_Threads::fetch($threadId);
-
+		
         return self::canAddToFolder($threadRec->folderId);
-    }
-
-    
-	/**
-     * В кои корици може да се вкарва документа
-     * @return array - интерфейси, които трябва да имат кориците
-     */
-    public static function getAllowedFolders()
-    {
-    	return array('crm_ContragentAccRegIntf', 'price_PriceListFolderCoverIntf');
-    }
-    
-    
-    /**
-     * Проверка дали нов документ може да бъде добавен в
-     * посочената папка като начало на нишка
-     *
-     * @param $folderId int ид на папката
-     */
-    public static function canAddToFolder($folderId)
-    {
-    	$allowedIntfs = static::getAllowedFolders();
-    	$cover = doc_Folders::getCover($folderId);
-    	foreach ($allowedIntfs as $intf){
-    		if($cover->haveInterface($intf)){
-    			return TRUE;
-    		}
-    	}
-    	return FALSE;
     }
 }

@@ -138,14 +138,14 @@ class ssh_Actions
      */
     public function getContents($remoteFileName)
     {
-        if (!($localFileName = tempnam(EF_TEMP_PATH, $remoteFileName))) {
+        if (!($localFileName = @tempnam(EF_TEMP_PATH, $remoteFileName))) {
         	throw new core_exception_Expect("@Грешка при създаване на временен файл.");
         }
         
-        if (!ssh2_scp_recv($this->connection, $remoteFileName, $localFileName)) {
+        if (!@ssh2_scp_recv($this->connection, $remoteFileName, $localFileName)) {
             throw new core_exception_Expect("@Грешка при сваляне на файл от отдалечен хост.");
         }
-        $contents = file_get_contents($localFileName);
+        $contents = @file_get_contents($localFileName);
         @unlink($localFileName);
         
         return $contents;

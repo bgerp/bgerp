@@ -23,15 +23,9 @@ class support_Preventions extends core_Master
     
     
     /**
-     * Полета, които ще се клонират
-     */
-    var $cloneFields = 'subject, body';
-    
-    
-    /**
      * Кой има право да клонира?
      */
-    protected $canClone = 'powerUser';
+    public $canClonerec = 'powerUser';
     
     
     /**
@@ -91,8 +85,8 @@ class support_Preventions extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'support_Wrapper, doc_SharablePlg, doc_DocumentPlg, plg_RowTools, 
-        plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, change_Plugin';
+    var $loadList = 'support_Wrapper, doc_SharablePlg, doc_DocumentPlg, plg_RowTools2, 
+        plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, change_Plugin, plg_Clone';
     
     
     /**

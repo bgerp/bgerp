@@ -60,7 +60,7 @@ class core_Packs extends core_Manager
     
     
     /**
-     * 
+     * Плъгини за зареждане
      */
     public $loadList = 'plg_Created, plg_SystemWrapper, plg_Search, plg_State';
     
@@ -99,11 +99,23 @@ class core_Packs extends core_Manager
      * 
      * @return id|FALSE
      */
-    static function isInstalled($name)
+    static function isInstalled($name, $rightNow = FALSE)
     {
         static $isInstalled = array();
         
+        $name = trim(strtolower($name));
+        
+        // Дали в момента не се инсталира?
+        if($rightNow) {
+            if($this->alreadySetup[$name . TRUE] || $this->alreadySetup[$name . TRUE]) {
+
+                return TRUE;
+            }
+        }
+
         if (!isset($isInstalled[$name])) {
+
+            
             $rec = static::fetch(array("#name = '[#1#]'", $name));
             
             if ($rec && $rec->state == 'active') {
@@ -240,6 +252,82 @@ class core_Packs extends core_Manager
         return new Redirect($retUrl, $res);
     }
     
+
+
+    public function act_InvalidateMigrations()
+    {
+        $data = self::getConfig('core')->_data;
+        
+        $migrations = $nonValid = array();
+
+
+        $form = cls::get('core_Form');
+        $form->FLD('migrations', 'set()', 'caption=Миграции->Успешни');
+        $form->FLD('nonValid', 'set()', 'caption=Миграции->Невалидни');
+
+        $rec = $form->input();
+        
+        $retUrl = getRetUrl();
+         
+        // Ако формата е успешно изпратена - запис, лог, редирект
+        if ($form->isSubmitted()) {    
+
+            $inv = arr::make($rec->migrations);
+            foreach($inv as $key) {
+                $migName = 'migration_' . $key;
+                $data[$migName] = FALSE;
+            }
+            $inv = arr::make($rec->nonValid);
+            foreach($inv as $key) {
+                $migName = 'migration_' . $key;
+                $data[$migName] = TRUE;
+            }
+      
+            self::setConfig('core', $data);
+        }
+        
+        foreach($data as $key => $true) {
+            if(substr($key, 0, 10) == 'migration_') {
+                $key = substr($key, 10);
+                if($true) {
+                    $migrations[$key] = $key;
+                } else {
+                    $nonValid[$key] = $key;
+                }
+            }
+        }
+        
+        if(count($migrations)) {
+            $form->setSuggestions('migrations', $migrations);
+        } else {
+            $form->setField('migrations', 'input=none');
+        }
+        
+        if(count($nonValid)) {
+            $form->setSuggestions('nonValid', $nonValid);
+        } else {
+            $form->setField('nonValid', 'input=none');
+        }
+
+        if(count($migrations) || count($nonValid)) {
+            $form->toolbar->addSbBtn('Инвалидирай');
+        } else {
+            $form->info = "Все още няма минали миграции";
+        }
+
+        $form->title = 'Инвалидиране на избраните миграции';
+
+        $form->toolbar->addBtn('Отказ', $retUrl);
+        
+        
+        $res = $form->renderHtml();
+        
+        $this->currentTab = 'Пакети->Миграции';
+
+        return $this->renderWrapping($res, $form);
+
+
+    }
     
     /**
      * Връща масив с имената на всички инсталирани пакети
@@ -520,7 +608,7 @@ class core_Packs extends core_Manager
                 }
             } else {
                 // Не може да се отвори директорията
-                bp($dir, $dh);
+                error('Не може да се отвори директорията', $dir, $dh);
             }
         }
         
@@ -783,10 +871,10 @@ class core_Packs extends core_Manager
 
         // Започваме самото инсталиране
         if ($setup->startCtr && !$setupFlag) {
-            $res .= "<h2>Инсталиране на пакета \"<a href=\"" .
+            $res .= "<h2>Инициализиране на пакета \"<a href=\"" .
             toUrl(array($setup->startCtr, $setup->startAct)) . "\"><b>{$pack}</b></a>\"&nbsp;";
         } else {
-            $res .= "<h2>Инсталиране на пакета \"<b>{$pack}</b>\"&nbsp;";
+            $res .= "<h2>Инициализиране на пакета \"<b>{$pack}</b>\"&nbsp;";
         }
 
         try {
@@ -1019,6 +1107,7 @@ class core_Packs extends core_Manager
     
     /**
      * Задаваме стойност за ключ от пакета, ако не е зададен
+     * Може и да се форсира
      * 
      * @param string $pack
      * @param string $dataKey
@@ -1026,7 +1115,7 @@ class core_Packs extends core_Manager
      * 
      * @return boolean
      */
-    static function setIfNotConfigKey($pack, $dataKey, $dataVal)
+    static function setIfNotConfigKey($pack, $dataKey, $dataVal, $force = FALSE)
     {
         // Вземаме конфига
         $confWebkit = core_Packs::getConfig($pack);
@@ -1034,7 +1123,7 @@ class core_Packs extends core_Manager
         $oldVal = core_Packs::getConfigKey($confWebkit, $dataKey);
         
         // Ако не е избрана нищо
-        if (!isset($oldVal)) {
+        if (!isset($oldVal) || $force) {
             
             $data[$dataKey] = $dataVal;
             
@@ -1092,7 +1181,9 @@ class core_Packs extends core_Manager
             $typeInst = core_Type::getByName($type);
 
             if (defined($field)) {
+                Mode::push('text', 'plain');
                 $defVal = $typeInst->toVerbal(constant($field));
+                Mode::pop('text');
                 $params['hint'] .= ($params['hint'] ? "\n" : '') . 'Стойност по подразбиране|*: "' . $defVal . '"';
             }
 
@@ -1165,7 +1256,7 @@ class core_Packs extends core_Manager
             }
         }
         
-        $form->toolbar->addBtn('Отказ', $retUrl,  'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+        $form->toolbar->addBtn('Отказ', $retUrl,  'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
         if (method_exists($setup, 'checkConfig') && ($errMsg = $setup->checkConfig())) {
             $errMsg = tr($errMsg);
@@ -1274,4 +1365,5 @@ class core_Packs extends core_Manager
     	
     	return FALSE; 
     }
+
 }

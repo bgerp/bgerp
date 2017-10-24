@@ -158,7 +158,7 @@ class bank_Accounts extends core_Master {
     /**
      * След проверка на ролите
      */
-    protected static function on_AfterGetRequiredRoles(core_Mvc $mvc, &$requiredRoles, $action, $rec)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if (($action == 'edit' || $action == 'delete') && isset($rec->contragentCls)) {
             $productState = cls::get($rec->contragentCls)->fetchField($rec->contragentId, 'state');
@@ -273,6 +273,10 @@ class bank_Accounts extends core_Master {
      */
     public function prepareContragentBankAccounts($data)
     {
+        $data->TabCaption = 'Банка';
+ 
+        if(!$data->isCurrent) return;
+
         expect($data->contragentCls = core_Classes::getId($data->masterMvc));
         expect($data->masterId);
         $query = $this->getQuery();
@@ -306,7 +310,6 @@ class bank_Accounts extends core_Master {
             }
         }
         
-        $data->TabCaption = 'Банка';
     }
     
     
@@ -336,9 +339,13 @@ class bank_Accounts extends core_Master {
                     $row->title .= ", {$row->bank}";
                 }
                 
+                $row->title = core_ET::escape($row->title);
+               
                 $tpl->append("<div style='padding:3px;white-space:normal;font-size:0.9em;'>", 'content');
-                $tpl->append("{$row->title} <span style='position:relative;top:4px'>" . $row->_rowTools->renderHtml() . "</span>", 'content');
-                
+                $tools = new core_ET("{$row->title} <span style='position:relative;top:4px'>[#tools#]</span>");
+                $tools->replace($row->_rowTools->renderHtml(), 'tools');
+               
+                $tpl->append($tools, 'content');
                 $tpl->append("</div>", 'content');
             }
         } else {

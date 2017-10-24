@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -68,7 +68,7 @@ class cat_products_SharedInFolders extends core_Manager
     /**
      * Кой може да добавя
      */
-    public $canAdd = 'ceo,cat';
+    public $canAdd = 'ceo,cat,sales,purchase';
     
     
     /**
@@ -86,7 +86,7 @@ class cat_products_SharedInFolders extends core_Manager
     /**
      * Кой може да изтрива
      */
-    public $canDelete = 'ceo,cat';
+    public $canDelete = 'ceo,cat,sales,purchase';
     
     
     /**
@@ -95,7 +95,7 @@ class cat_products_SharedInFolders extends core_Manager
     function description()
     {
     	$this->FLD('productId', 'key(mvc=cat_Products)', 'caption=Артикул,mandatory,silent,input=hidden');
-    	$this->FLD('folderId', 'key(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Сподели в,mandatory');
+    	$this->FLD('folderId', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Споделено с,mandatory');
     
     	$this->setDbUnique('productId,folderId');
     }
@@ -123,26 +123,20 @@ class cat_products_SharedInFolders extends core_Manager
     
     
     /**
-     * Преди показване на форма за добавяне/промяна.
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
-     * @param core_Manager $mvc
-     * @param stdClass $data
+     * @param core_Mvc $mvc
+     * @param core_Form $form
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    public static function on_AfterInputEditForm($mvc, &$form)
     {
-    	$form = &$data->form;
-    	
-    	$query = self::getQuery();
-    	$query->where("#productId = {$form->rec->productId}");
-    	$masterRec = cat_Products::fetch($form->rec->productId);
-    	
-    	$ignore = array($masterRec->folderId => $masterRec->folderId);
-    	while($dRec = $query->fetch()){
-    		$ignore[$dRec->folderId] = $dRec->folderId;
+    	if($form->isSubmitted()){
+    		$rec = $form->rec;
+    		$productFolderId = cat_Products::fetchField($rec->productId, 'folderId');
+    		if($productFolderId == $rec->folderId){
+    			$form->setError('folderId', 'Вече съществува запис със същите данни');
+    		}
     	}
-    	
-    	$folderOptions = doc_Folders::getOptionsByCoverInterface('crm_ContragentAccRegIntf', $ignore);
-    	$form->setOptions('folderId', $folderOptions);
     }
     
     
@@ -170,6 +164,23 @@ class cat_products_SharedInFolders extends core_Manager
     			$requiredRoles = 'no_one';
     		}
     	}
+    	
+    	if($action == 'changepublicstate'){
+    		$pRec = (isset($rec->productId)) ? cat_Products::fetch($rec->productId) : NULL;
+    		$requiredRoles = cat_Products::getRequiredRoles('edit', $pRec, $userId);
+    		
+    		if($requiredRoles != 'no_one' && isset($rec->productId)){
+    			$pRec = cat_Products::fetch($rec->productId, 'state,folderId');
+    			if($pRec->state != 'active'){
+    				$requiredRoles = 'no_one';
+    			} else{
+    				$folderCover = doc_Folders::fetchCoverClassName($pRec->folderId);
+    				if(!cls::haveInterface('crm_ContragentAccRegIntf', $folderCover)){
+    					$requiredRoles = 'no_one';
+    				}
+    			}
+    		}
+    	}
     }
     
     
@@ -179,11 +190,15 @@ class cat_products_SharedInFolders extends core_Manager
     public function prepareShared($data)
     {
     	$masterRec = $data->masterData->rec;
+    	$data->isProto = ($masterRec->state == 'template' || $masterRec->brState == 'template');
     	
-    	$folders = cat_Categories::getProtoFolders();
-    	$data->isProto = in_array($masterRec->folderId, $folders);
+    	if(!Mode::isReadOnly()){
+    		if($this->haveRightFor('changepublicstate', (object)array('productId' => $masterRec->id))){
+    			$data->changeStateUrl = array($this, 'changePublicState', 'productId' => $masterRec->id, 'ret_url' => TRUE);
+    		}
+    	}
     	
-    	if(($masterRec->isPublic == 'yes' && !$data->isProto) && !self::fetch("#productId = {$masterRec->id}")){
+    	if(($masterRec->isPublic == 'yes' && !$data->isProto && !isset($data->changeStateUrl)) && !self::fetch("#productId = {$masterRec->id}")){
     		$data->hide = TRUE;
     		return;
     	}
@@ -209,10 +224,28 @@ class cat_products_SharedInFolders extends core_Manager
     	
     	unset($data->rows[0]->tools);
     	
-    	if($this->haveRightFor('add', (object)array('productId' => $masterRec->id))){
-    		$data->addUrl = array($this, 'add', 'productId' => $masterRec->id, 'ret_url' => TRUE);
+    	if(!Mode::isReadOnly()){
+    		if($this->haveRightFor('add', (object)array('productId' => $masterRec->id))){
+    			$data->addUrl = array($this, 'add', 'productId' => $masterRec->id, 'ret_url' => TRUE);
+    		}
     	}
     }
+    
+    
+    function act_ChangePublicState()
+    {
+    	$this->requireRightFor('changepublicstate');
+    	expect($productId = Request::get('productId', 'int'));
+    	expect($pRec = cat_Products::fetch($productId));
+    	$this->requireRightFor('changepublicstate', (object)array('productId' => $productId));
+    	
+    	$pRec->isPublic = ($pRec->isPublic == 'yes') ? 'no' : 'yes';
+    	$title = ($pRec->isPublic == 'yes') ? 'стандартен' : 'нестандартен';
+    	cls::get('cat_Products')->save_($pRec, 'isPublic');
+    	
+    	return followRetUrl(array('cat_Products', 'single', $productId), " Артикулат вече е {$title}");
+    }
+    
     
     
     /**
@@ -235,7 +268,7 @@ class cat_products_SharedInFolders extends core_Manager
     	
     	if($data->masterData->rec->isPublic == 'yes'){
     		if($data->isProto === TRUE){
-    			$tpl->append("<div style='margin-bottom:5px'><b>" . tr('Създадените на база прототипа артикули, ще са споделени в папките на') . "</b></div>", 'content');
+    			$tpl->append("<div style='margin-bottom:5px'><b>" . tr('Създадените на база прототипа артикули, ще са споделени в следните папки') . ":</b></div>", 'content');
     		} else {
     			$tpl->append("<div><b>" . tr('Артикулът е стандартен и е достъпен във всички папки.') . "</b></div>", 'content');
     			$tpl->append("<div style='margin-bottom:5px'><i><small>" . tr('Като частен е бил споделен в папките на:') . "</small></i></div>", 'content');
@@ -250,6 +283,17 @@ class cat_products_SharedInFolders extends core_Manager
     		
     			$tpl->append($dTpl, 'content');
     		}
+    	}
+    	
+    	if(isset($data->changeStateUrl)){
+    		$bTitle = ($data->masterData->rec->isPublic == 'no') ? 'стандартен' : 'нестандартен';
+    		$title = "Направи артикула {$bTitle}";
+    		$warning = "Наистина ли искате артикула да стане {$bTitle}";
+    		
+    		$ht = ht::createBtn(str::mbUcfirst($bTitle), $data->changeStateUrl, $warning, NULL, "title={$title},ef_icon=img/16/arrow_refresh.png");
+    		$ht->prepend("<br>");
+    		
+    		$tpl->append($ht, 'content');
     	}
     	
     	return $tpl;

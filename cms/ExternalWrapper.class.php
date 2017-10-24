@@ -31,7 +31,7 @@ class cms_ExternalWrapper extends plg_ProtoWrapper
     function description()
     { 
     	if(core_Packs::isInstalled('colab')){
-    		if(core_Users::haveRole('collaborator')){
+    		if(core_Users::haveRole('partner')){
     			$this->getContractorTabs();
     		}
     	}
@@ -40,7 +40,7 @@ class cms_ExternalWrapper extends plg_ProtoWrapper
     		//@TODO кошница за уеб магазина
     	}
     	
-    	$this->TAB(array('cms_Profiles', 'Single'), 'Профил', 'contractor');
+    	$this->TAB(array('cms_Profiles', 'Single'), 'Профил', 'partner,powerUser');
     }
     
     
@@ -54,8 +54,8 @@ class cms_ExternalWrapper extends plg_ProtoWrapper
     	$threadId = Request::get('threadId', 'int');
     	$folderId = Request::get('folderId', 'key(mvc=doc_Folders,select=title)');
     	
-    	if(colab_Folders::count() > 1){
-    		$this->TAB('colab_Folders', 'Папки', 'collaborator');
+    	if(colab_Folders::getSharedFoldersCount() > 1){
+    		$this->TAB('colab_Folders', 'Папки', 'partner');
     	} else {
     		$query = colab_Folders::getQuery();
     		$folderId = $query->fetch()->id;
@@ -84,8 +84,8 @@ class cms_ExternalWrapper extends plg_ProtoWrapper
     		}
     	}
     	
-    	$this->TAB($threadsUrl, 'Теми', 'collaborator');
-    	$this->TAB($containersUrl, 'Нишка', 'collaborator');
+    	$this->TAB($threadsUrl, 'Теми', 'partner');
+    	$this->TAB($containersUrl, 'Нишка', 'partner');
     }
     
     

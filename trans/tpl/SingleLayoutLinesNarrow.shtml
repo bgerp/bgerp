@@ -3,7 +3,7 @@
 		<table class="innerTable border-table paddingCells">
 	        <tbody>
 	            <tr>
-	                <td colspan = "2" class='centered'>  
+	                <td class='centered'>
 	                    <div class="document-title">|транспортна линия|*</div>
 	                    <div style="padding-top:5px;">
 	                        <span class="state [#STATE_CLASS#]">
@@ -18,16 +18,20 @@
 	                </td>
 	            </tr>
 	            <tr>
-	                <td class="cell custom-header-bg" style='width:50%;'><b>|Възложител|*</b>
+	                <td class="cell custom-header-bg"><b>|Възложител|*</b>
 	                </td>
-	                <td class="cell custom-header-bg" style='width:50%;'><b>|Изпълнител|*</b>
+				</tr>
+				<tr>
+					<td>
+						<!--ET_BEGIN myCompany--><div style='margin-bottom: 5px;'><b>[#myCompany#]</b></div><!--ET_END myCompany-->
+						<!--ET_BEGIN logistic--><div style='margin-bottom: 5px;'>|Логистик|*: [#logistic#]</div><!--ET_END logistic-->
+					</td>
+				</tr>
+				<tr>
+	                <td class="cell custom-header-bg"><b>|Изпълнител|*</b>
 	                </td>
 	            </tr>
 	            <tr>
-	                <td>
-	                       <!--ET_BEGIN myCompany--><div style='margin-bottom: 5px;'><b>[#myCompany#]</b></div><!--ET_END myCompany-->
-	                       <!--ET_BEGIN logistic--><div style='margin-bottom: 5px;'>|Логистик|*: [#logistic#]</div><!--ET_END logistic-->
-	                </td>
 	                <td>
 						<!--ET_BEGIN forwarderId--><div style='margin-bottom: 5px;'><b>[#forwarderId#]</b></div><!--ET_END forwarderId-->
 						<!--ET_BEGIN vehicleId--><div style='margin-bottom: 5px;'>|Превозно средство|*: [#vehicleId#]</div><!--ET_END vehicleId-->
@@ -78,23 +82,24 @@
 		<!--ET_BEGIN TOTAL-->
 		<div class='line-detail'>
 			[#TOTAL#]
-            <table class="listTable">
-                <thead>
-                    <tr>
-                        <th>|Общо тегло|*</th>
-                        <th>|Общ обем|*</th>
-                        <th>|Общ брой палети|*</th>
-                        <th>|Общa сума|*</th>
-                    </tr>
-                </thead>
-                <tr>
-                    <td class="centered">[#weight#]</td>
-                    <td class="centered">[#volume#]</td>
-                    <td class="centered">[#palletCount#]</td>
-                    <td class="centered">[#totalAmount#]</td>
-                </tr>
-
-            </table>
+			<div class="scrolling-holder">
+				<table class="listTable">
+					<thead>
+						<tr>
+							<th>|Общо тегло|*</th>
+							<th>|Общ обем|*</th>
+							<th>|Общ брой палети|*</th>
+							<th>|Общa сума|*</th>
+						</tr>
+					</thead>
+					<tr>
+						<td class="centered">[#weight#]</td>
+						<td class="centered">[#volume#]</td>
+						<td class="centered">[#palletCount#]</td>
+						<td class="centered">[#totalAmount#]</td>
+					</tr>
+				</table>
+			</div>
 		</div>
 		<!--ET_END TOTAL-->
 		

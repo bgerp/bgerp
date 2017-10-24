@@ -135,14 +135,16 @@ class plg_PrevAndNext extends core_Plugin
 
         $selKey = static::getModeKey($mvc);
         $selArr = Mode::get($selKey);
-		
-        if(!count($selArr)) return;
-        $selId = array_search($id, $selArr);
-        if($selId === FALSE) return;
+		$res = NULL;
 
-        $selNeighbourId = $selId + $dir;
+        if(count($selArr)) {
+            $selId = array_search($id, $selArr);
+            if($selId === FALSE) return;
+            $selNeighbourId = $selId + $dir;
+            $res = $selArr[$selNeighbourId];
+        } 
 
-        return $selArr[$selNeighbourId];
+        return $res;
     }
  
     
@@ -163,7 +165,7 @@ class plg_PrevAndNext extends core_Plugin
             // Зареждаме id-то на първия запис за редактиране
             expect(ctype_digit($id = $selArr[0]));
             
-            Request::push(array('id' => $id));
+            Request::push(array('id' => $id));  
             
         } 
     }
@@ -181,21 +183,41 @@ class plg_PrevAndNext extends core_Plugin
         $selKey = static::getModeKey($mvc);
         
         $Cmd = Request::get('Cmd');
+        
+        $selArr = array();
+        
+        if(is_a($mvc, 'core_Detail')) {
+            if($id = Request::get('id', 'int')) {
+                $rec = $mvc->fetch($id);
+                $key = $mvc->masterKey;
+                if($key && ($masterId = $rec->{$key})) {
+                    $query = $mvc->getQuery();
+                    $query->orderBy('id');
+                    while($dRec = $query->fetch("#{$key} = $masterId")) {
+                        $selArr[] = $dRec->id;
+                    }
+                }
+            }
+        }
 
+   
         if($sel = Request::get('Selected')) {
-
             // Превръщаме в масив, списъка с избраниуте id-та
             $selArr = arr::make($sel);
-			
+        }
+
+        if(!empty($selArr)) {
+ 
             // Записваме масива в сесията, под уникален за модела ключ
             Mode::setPermanent($selKey, $selArr);
             
             // Зареждаме id-то на първия запис за редактиране
-            expect(ctype_digit($id = $selArr[0]));
+            if(!$id) {
+                expect(ctype_digit($id = $selArr[0]), $selArr);
+            }
             
-            // Извличаме записа
-            expect($data->form->rec = $mvc->fetch($id));
-            
+            expect($exRec = $mvc->fetch($id));
+            $data->form->rec = (object)arr::fillMissingKeys($exRec, $data->form->rec);
             $mvc->requireRightFor('edit', $data->form->rec);
             
         } elseif( !($data->form->cmd == 'save_n_next' || $data->form->cmd == 'save_n_prev' || Request::get('PrevAndNext'))) {
@@ -226,19 +248,22 @@ class plg_PrevAndNext extends core_Plugin
     {
         $selKey = static::getModeKey($mvc);
         
-        if(Mode::is($selKey)  ) {
-            if (isset($data->buttons->nextId)) {
-                $data->form->toolbar->addSbBtn('»»»', 'save_n_next', 'class=noicon fright,order=30, title = Следващ');
-            } else {
-                $data->form->toolbar->addSbBtn('»»»', 'save_n_next', 'class=btn-disabled noicon fright,disabled,order=30, title = Следващ');
-            }
-            
-            $data->form->toolbar->addFnBtn($data->prevAndNextIndicator, '', 'class=noicon fright,order=30');
+        if($selArr = Mode::get($selKey)) {
 
-            if (isset($data->buttons->prevId)) {
-                $data->form->toolbar->addSbBtn('«««', 'save_n_prev', 'class=noicon fright,order=30, title = Предишен');
-            } else {
-                $data->form->toolbar->addSbBtn('«««', 'save_n_prev', 'class=btn-disabled noicon fright,disabled,order=30, title = Предишен');
+            if(count($selArr) > 1) {
+                if (isset($data->buttons->nextId)) {
+                    $data->form->toolbar->addSbBtn('»»»', 'save_n_next', 'class=noicon fright,order=30, title = Следващ');
+                } else {
+                    $data->form->toolbar->addSbBtn('»»»', 'save_n_next', 'class=btn-disabled noicon fright,disabled,order=30, title = Следващ');
+                }
+                
+                $data->form->toolbar->addFnBtn($data->prevAndNextIndicator, '', 'class=noicon fright,order=30');
+
+                if (isset($data->buttons->prevId)) {
+                    $data->form->toolbar->addSbBtn('«««', 'save_n_prev', 'class=noicon fright,order=30, title = Предишен');
+                } else {
+                    $data->form->toolbar->addSbBtn('«««', 'save_n_prev', 'class=btn-disabled noicon fright,disabled,order=30, title = Предишен');
+                }
             }
 
             $data->form->setHidden('ret_url', Request::get('ret_url'));
@@ -256,10 +281,10 @@ class plg_PrevAndNext extends core_Plugin
     {
      	$selKey = static::getModeKey($mvc);
         
-        if(Mode::is($selKey)) {
+        if($selArr = Mode::get($selKey)) {
         	$action = Request::get('Act');
         	
-        	if($action == 'browse'){
+        	if($action == 'browse' && count($selArr)) {
         		if (isset($data->buttons->nextId)) {
         			$data->toolbar->addBtn('»»»', array($mvc, 'browse', $data->buttons->nextId), 'class=noicon fright,title = Следващ');
         		} else {

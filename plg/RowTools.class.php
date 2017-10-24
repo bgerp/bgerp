@@ -44,9 +44,8 @@ class plg_RowTools extends core_Plugin
             $icon = $mvc->getIcon($rec->id);
             
             if($singleField = $mvc->rowToolsSingleField) {
-                
                 $attr1['class'] = 'linkWithIcon';
-                $attr1['style'] = 'background-image:url(' . sbf($icon) . ');';
+                $attr1['ef_icon'] = $icon;
                 $row->{$singleField} = str::limitLen(strip_tags($row->{$singleField}), 70);
                 $row->{$singleField} = ht::createLink($row->{$singleField}, $singleUrl, NULL, $attr1);  
             } else {
@@ -65,16 +64,20 @@ class plg_RowTools extends core_Plugin
         $singleTitle = $mvc->singleTitle;
         $singleTitle = tr($singleTitle);
         $singleTitle = mb_strtolower($singleTitle);
+        $iconSize = 16;
+        if(log_Browsers::isRetina()) {
+            $iconSize = 32;
+        }
         
         if ($mvc->haveRightFor('edit', $rec)) {
             $editUrl = $mvc->getEditUrl($rec);
-            $editImg = "<img src=" . sbf('img/16/edit-icon.png') . " alt=\"" . tr('Редакция') . "\">";
+            $editImg = "<img src=" . sbf("img/{$iconSize}/edit-icon.png") . " width=16  height=16 alt=\"" . tr('Редакция') . "\">";
 
             $editLink = ht::createLink($editImg, $editUrl, NULL, "id=edt{$rec->id},title=" . tr("Редактиране на") . ' ' . $singleTitle);
         }
         
          if ($mvc->haveRightFor('delete', $rec)) {
-            $deleteImg = "<img src=" . sbf('img/16/delete.png') . " alt=\"" . tr('Изтриване') . "\">";
+            $deleteImg = "<img src=" . sbf("img/{$iconSize}/delete.png") . " width=16  height=16 alt=\"" . tr('Изтриване') . "\">";
             $deleteUrl = array(
 	            $mvc,
 	            'delete',
@@ -88,7 +91,7 @@ class plg_RowTools extends core_Plugin
         	$loadList = arr::make($mvc->loadList);
         	if(in_array('plg_Rejected', $loadList)){
         		if($rec->state != 'rejected' && $mvc->haveRightFor('reject', $rec->id) && !($mvc instanceof core_Master)){
-        			$deleteImg = "<img src=" . sbf('img/16/reject.png') . " alt=\"" . tr('Оттегляне') . "\">";
+        			$deleteImg = "<img src=" . sbf("img/{$iconSize}/reject.png") . " width=16  height=16 alt=\"" . tr('Оттегляне') . "\">";
         			$deleteUrl = array(
 			            $mvc,
 			            'reject',
@@ -98,7 +101,7 @@ class plg_RowTools extends core_Plugin
                 		tr('Наистина ли желаете записът да бъде оттеглен?'), "id=rej{$rec->id},title=" . tr("Оттегляне на") . ' ' . $singleTitle);
         			
         		} elseif($rec->state == 'rejected' && $mvc->haveRightFor('restore', $rec->id)){
-        			$restoreImg = "<img src=" . sbf('img/16/restore.png') . " alt=\"" . tr('Възстановяване') . "\">";
+        			$restoreImg = "<img src=" . sbf("img/{$iconSize}/restore.png") . " width=16  height=16 alt=\"" . tr('Възстановяване') . "\">";
         				
         			$restoreUrl = array(
 			            $mvc,
@@ -146,6 +149,13 @@ class plg_RowTools extends core_Plugin
     {
         if(!$res) { 
             $res = $mvc->singleIcon;
+            if(log_Browsers::isRetina()) {
+                $icon2 = str_replace('/16/', '/32/', $res);
+
+                if(getFullPath($icon2)) {
+                    $res = $icon2;
+                }
+            }
         }
     }
 

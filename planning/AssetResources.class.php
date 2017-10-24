@@ -26,7 +26,7 @@ class planning_AssetResources extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, planning_Wrapper, plg_State2, plg_Search, plg_SaveAndNew';
+    public $loadList = 'plg_RowTools2, plg_Created, planning_Wrapper, plg_State2, plg_Search, plg_SaveAndNew';
     
     
     /**
@@ -62,14 +62,8 @@ class planning_AssetResources extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,code,name,protocolId,departments,quantity=К-во,createdOn,createdBy,state';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
-    
+    public $listFields = 'code,name,protocolId,departments,quantity=К-во,createdOn,createdBy,state';
+
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него

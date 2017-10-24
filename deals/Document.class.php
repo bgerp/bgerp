@@ -39,6 +39,12 @@ abstract class deals_Document extends deals_PaymentDocument
 	public $priceFields = 'amount';
 	
 	
+	/**
+	 * Дали в листовия изглед да се показва бутона за добавяне
+	 */
+	public $listAddBtn = FALSE;
+	
+	
     /**
      * @param core_Mvc $mvc
      */
@@ -58,7 +64,7 @@ abstract class deals_Document extends deals_PaymentDocument
     	$mvc->FLD('debitAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
     	$mvc->FLD('contragentId', 'int', 'input=hidden,notNull');
     	$mvc->FLD('contragentClassId', 'key(mvc=core_Classes,select=name)', 'input=hidden,notNull');
-    	$mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен)', 'caption=Статус, input=none');
+    	$mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно)', 'caption=Статус, input=none');
     	$mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
 
     	$mvc->setDbIndex('valior');
@@ -174,8 +180,8 @@ abstract class deals_Document extends deals_PaymentDocument
 	public static function getRecTitle($rec, $escaped = TRUE)
 	{
 		$self = cls::get(get_called_class());
-		 
-		return "{$self->singleTitle} №{$rec->id}";
+    	 
+    	return tr("|{$self->singleTitle}|* №") . $rec->id;
 	}
     
     
@@ -258,15 +264,6 @@ abstract class deals_Document extends deals_PaymentDocument
 			
 			$row->dealCurrencyId = $origin->fetchField('currencyId');
 		}
-	}
-    
-    
-	/**
-	 * Извиква се след подготовката на toolbar-а за табличния изглед
-	 */
-	public static function on_AfterPrepareListToolbar($mvc, &$data)
-	{
-		$data->toolbar->removeBtn('btnAdd');
 	}
 	
 	

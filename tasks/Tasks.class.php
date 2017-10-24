@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   tasks
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Клас баща на документите за задачи
@@ -39,7 +39,7 @@ class tasks_Tasks extends embed_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, doc_DocumentPlg, planning_plg_StateManager, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone';
+    public $loadList = 'plg_RowTools2, doc_DocumentPlg, planning_plg_StateManager, acc_plg_DocumentSummary, plg_Search, plg_Clone';
 
     
     /**
@@ -67,12 +67,6 @@ class tasks_Tasks extends embed_Manager
     
     
     /**
-     * Полета, които ще се показват в листов изглед
-     */
-    public $listFields = 'name = Документ, originId=Задание, title, expectedTimeStart,timeStart, timeDuration, timeEnd, progress, state';
-    
-    
-    /**
      * Кои колони да скриваме ако янма данни в тях
      */
     public $hideListFieldsIfEmpty = 'originId';
@@ -93,7 +87,7 @@ class tasks_Tasks extends embed_Manager
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    public $rowToolsSingleField = 'name';
+    public $rowToolsSingleField = 'title';
     
     
     /**
@@ -106,12 +100,6 @@ class tasks_Tasks extends embed_Manager
      * Поле за крайна дата на търсене
      */
     public $filterFieldDateTo = 'timeEnd';
-    
-    
-    /**
-     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
-     */
-    public $searchFields = 'title';
     
     
     /**
@@ -145,7 +133,18 @@ class tasks_Tasks extends embed_Manager
      */
     public $fieldsNotToClone = 'progress';
     
+    /**
+	 * Групиране на документите
+	 */
+	public $newBtnGroup = "3.5|Производство";
     
+	
+	/**
+	 * Поле за филтриране по дата
+	 */
+	public $filterDateField = 'expectedTimeStart,timeStart,createdOn';
+	
+	
     /**
      * Описание на модела (таблицата)
      */
@@ -162,6 +161,7 @@ class tasks_Tasks extends embed_Manager
     	$this->FLD('expectedTimeStart', 'datetime(format=smartTime)', 'input=hidden,caption=Очаквано начало');
     	
     	$this->FLD('classId', 'key(mvc=core_Classes)', 'input=none,notNull');
+    	$this->FLD('additionalFields', 'blob(serialize, compress)', 'caption=Данни,input=none');
     	
     	$this->setDbIndex('classId');
     	
@@ -182,29 +182,34 @@ class tasks_Tasks extends embed_Manager
     
     
     /**
-     * Подготвяне на вербалните стойности
+     * Конвертира един запис в разбираем за човека вид
+     * Входният параметър $rec е оригиналният запис от модела
+     * резултата е вербалният еквивалент, получен до тук
      */
-    protected static function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function recToVerbal_($rec, &$fields = '*')
     {
+    	$row = parent::recToVerbal_($rec, $fields);
+    	$mvc = cls::get(get_called_class());
+    	
     	$red = new color_Object("#FF0000");
     	$blue = new color_Object("green");
     	$grey = new color_Object("#bbb");
-    	
+    	 
     	$progressPx = min(100, round(100 * $rec->progress));
     	$progressRemainPx = 100 - $progressPx;
-    	
+    	 
     	$color = ($rec->progress <= 1) ? $blue : $red;
     	$row->progressBar = "<div style='white-space: nowrap; display: inline-block;'><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$color}; width:{$progressPx}px;'> </div><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$grey};width:{$progressRemainPx}px;'></div></div>";
-    
+    	
     	$grey->setGradient($color, $rec->progress);
     	$row->progress = "<span style='color:{$grey};'>{$row->progress}</span>";
-    	
+    	 
     	$row->name = $mvc->getLink($rec->id, 0);
-    	
+    	 
     	if ($rec->timeEnd && ($rec->state != 'closed' && $rec->state != 'rejected')) {
     		$remainingTime = dt::mysql2timestamp($rec->timeEnd) - time();
     		$rec->remainingTime = cal_Tasks::roundTime($remainingTime);
-    	
+    		 
     		$typeTime = cls::get('type_Time');
     		if ($rec->remainingTime > 0) {
     			$row->remainingTime = ' (' . tr('остават') . ' ' . $typeTime->toVerbal($rec->remainingTime) . ')';
@@ -212,19 +217,21 @@ class tasks_Tasks extends embed_Manager
     			$row->remainingTime = ' (' . tr('просрочване с') . ' ' . $typeTime->toVerbal(-$rec->remainingTime) . ')';
     		}
     	}
-    	
+    	 
     	// Ако е изчислено очакваното начало и има продължителност, изчисляваме очаквания край
     	if(isset($rec->expectedTimeStart) && isset($rec->timeDuration)){
     		$rec->expectedTimeEnd = dt::addSecs($rec->timeDuration, $rec->expectedTimeStart);
     		$row->expectedTimeEnd = $mvc->getFieldType('expectedTimeStart')->toVerbal($rec->expectedTimeEnd);
     	}
-    	
+    	 
     	if($rec->originId){
     		$origin = doc_Containers::getDocument($rec->originId);
-    		$row->originId = $origin->getLink(0);
+    		$row->originId = $origin->getLink();
     	}
-    	
+    	 
     	$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+    
+    	return $row;
     }
     
     
@@ -321,8 +328,8 @@ class tasks_Tasks extends embed_Manager
     	
     	// Добавяме поле за търсене по състояние
     	if(!Request::get('Rejected', 'int')){
-    		$data->listFilter->setOptions('state', array('' => '') + arr::make('draft=Чернова, active=Активен, pending=Чакащ, pendingandactive=Активни+Чакащи,closed=Приключен, stopped=Спрян, wakeup=Събуден', TRUE));
-    		$data->listFilter->setField('state', 'placeholder=Всички');
+    		$data->listFilter->setOptions('state', array('' => '') + arr::make('draft=Чернова, active=Активен, pendingandactive=Активни+Чакащи,closed=Приключен, stopped=Спрян, wakeup=Събуден,waiting=Чакащо', TRUE));
+    		$data->listFilter->setField('state', 'placeholder=Всички,formOrder=1000');
     		$data->listFilter->showFields .= ',state';
     		$data->listFilter->input('state');
     		 
@@ -330,7 +337,7 @@ class tasks_Tasks extends embed_Manager
     			if($state != 'pendingandactive'){
     				$data->query->where("#state = '{$state}'");
     			} else {
-    				$data->query->where("#state = 'active' || #state = 'pending'");
+    				$data->query->where("#state = 'active' OR #state = 'waiting'");
     			}
     		}
     	}
@@ -344,7 +351,7 @@ class tasks_Tasks extends embed_Manager
     {
     	// Може да се променя само ако състоянието на задачата е активно или чакащо
     	if($action == 'changerec' && isset($rec)){
-    		if($rec->state != 'pending' && $rec->state != 'active'){
+    		if($rec->state != 'waiting' && $rec->state != 'active'){
     			$requiredRoles = 'no_one';
     		}
     	}
@@ -402,7 +409,7 @@ class tasks_Tasks extends embed_Manager
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	if($data->rec->state == 'active' || $data->rec->state == 'pending'){
+    	if($data->rec->state == 'active' || $data->rec->state == 'waiting'){
     		if(cal_Reminders::haveRightFor('add', (object)array('originId' => $data->rec->containerId))){
     			$data->toolbar->addBtn('Напомняне', array('cal_Reminders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), 'ef_icon=img/16/rem-plus.png, row=2', 'title=Създаване на ново напомняне');
     		}
@@ -413,7 +420,7 @@ class tasks_Tasks extends embed_Manager
     /**
      * Подготовка на формата за добавяне/редактиране
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
@@ -490,7 +497,7 @@ class tasks_Tasks extends embed_Manager
     {
     	// Намираме чакащите и активните задачи от най-старата към най-новата
     	$query = self::getQuery();
-    	$query->where("#state = 'active' || #state = 'pending' || #state = 'stopped'");
+    	$query->where("#state = 'active' OR #state = 'waiting' OR #state = 'stopped'");
     	$query->orderBy('id', 'ASC');
     	
     	$recs = $query->fetchAll();
@@ -520,7 +527,6 @@ class tasks_Tasks extends embed_Manager
     			
     			// Ако предишно изчисленото очаквано начало е различно от текущото
     			if($expectedTimes[$rec->id] !== $max){
-    				//echo "<li><b>{$rec->id}</b> old: '{$expectedTimes[$rec->id]}' new: '{$max}'";
     		
     				// Записваме новото време
     				$expectedTimes[$rec->id] = $max;
@@ -529,10 +535,6 @@ class tasks_Tasks extends embed_Manager
     				$repeat = TRUE;
     			}
     		}
-    		
-    		if($repeat){
-    			//echo "<li>REPEAT";
-    		} 
     		
     	// Докато флага е сетнат преизчисляваме очакваното начало на задачите
     	// Докато спрат да се присвояват нови времена
@@ -554,7 +556,7 @@ class tasks_Tasks extends embed_Manager
     		$rec1->expectedTimeStart = $expectedTimes[$rec1->id];
     		
     		// Ако условията са изпълнени за активиране, активираме задачата иначе я правим чакаща
-    		$rec1->state = ($this->activateNow($rec1)) ? 'active' : 'pending';
+    		$rec1->state = ($this->activateNow($rec1)) ? 'active' : 'waiting';
     	}
     	
     	$this->saveArray($recs);
@@ -699,91 +701,10 @@ class tasks_Tasks extends embed_Manager
     
     
     /**
-     * Подготвя задачите към заданията
-     */
-    public function prepareTasks($data)
-    {
-    	$data->recs = $data->rows = array();
-    	
-    	// Намираме всички задачи към задание
-    	$query = $this->getQuery();
-    	$query->where("#state != 'rejected'");
-    
-    	$containerId = $data->masterData->rec->containerId;
-    	$query->where("#originId = {$data->masterData->rec->containerId}");
-    	$query->XPR('orderByState', 'int', "(CASE #state WHEN 'wakeup' THEN 1 WHEN 'active' THEN 2 WHEN 'stopped' THEN 3 WHEN 'closed' THEN 4 WHEN 'pending' THEN 5 ELSE 6 END)");
-    	$query->orderBy('#orderByState=ASC');
-    		
-    	// Подготвяме данните
-    	while($rec = $query->fetch()){
-    		if(!cls::load($rec->classId, TRUE)) continue;
-    		$Class = cls::get($rec->classId);
-    		
-    		$data->recs[$rec->id] = $rec;
-    		$row = $Class->recToVerbal($rec);
-    		$row->modified = $row->modifiedOn . " " . tr('от||by') . " " . $row->modifiedBy;
-    		$row->modified = "<div style='text-align:center'> {$row->modified} </div>";
-    		$data->rows[$rec->id] = $row;
-    	}
-    	
-    	// Намираме всички задачи, които наследяват task_Tasks
-    	$documents = core_Classes::getOptionsByInterface('tasks_TaskIntf');
-    	
-    	foreach ($documents as $doc){
-    		if(cls::load($doc, TRUE)){
-    			$Doc = cls::get($doc);
-    			
-    			// Нотифицираме ги че рендираме задачите към задание
-    			$Doc->invoke('AfterPrepareTasks', array(&$data));
-    			
-    			// Ако потребителя може да добавя задача от съответния тип, ще показваме бутон за добавяне
-    			if($Doc->haveRightFor('add', (object)array('originId' => $containerId))){
-    				$data->addUrlArray[$Doc->className] = array($Doc, 'add', 'originId' => $containerId, 'ret_url' => TRUE);
-    			}
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Рендира задачите на заданията
-     */
-    public function renderTasks($data)
-    {
-    	$tpl = new ET("");
-    		
-    	// Ако няма намерени записи, не се рендира нищо
-    	// Рендираме таблицата с намерените задачи
-    	$table = cls::get('core_TableView', array('mvc' => $this));
-    	$fields = 'name=Документ,progress=Прогрес,title=Заглавие,folderId=Папка,expectedTimeStart=Очаквано начало, timeDuration=Продължителност, timeEnd=Край, modified=Модифицирано';
-    	$data->listFields = core_TableView::filterEmptyColumns($data->rows, $fields, 'timeStart,timeDuration,timeEnd,expectedTimeStart');
-    	$this->invoke('BeforeRenderListTable', array($tpl, &$data));
-    	
-    	$tpl = $table->get($data->rows, $data->listFields);
-    	
-    	// Имали бутони за добавяне
-    	if(is_array($data->addUrlArray)){
-    		foreach ($data->addUrlArray as $class => $url){
-    			 
-    			// За всеки рендираме бутон за добавяне на задача от съответния тип
-    			$Doc = cls::get($class);
-    			$titleLower = mb_strtolower($Doc->singleTitle);
-    			$btn = ht::createBtn($Doc->singleTitle, $url, FALSE, FALSE, "title=Създаване на {$titleLower} към задание,ef_icon={$Doc->singleIcon}");
-    			
-    			$tpl->append($btn, 'btnTasks');
-    		}
-    	}
-    
-    	// Връщаме шаблона
-    	return $tpl;
-    }
-    
-    
-    /**
      * В кои корици може да се вкарва документа
      * @return array - интерфейси, които трябва да имат кориците
      */
-    public static function getAllowedFolders()
+    public static function getCoversAndInterfacesForNewDoc()
     {
     	return array('hr_DepartmentAccRegIntf');
     }

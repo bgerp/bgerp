@@ -46,12 +46,6 @@ class pos_Receipts extends core_Master {
 	 * Детайли на бележката
 	 */
 	public $details = 'pos_ReceiptDetails';
-	
-	
-    /**
-     * Кой може да го прочете?
-     */
-    public $canRead = 'ceo, pos';
     
     
     /**
@@ -145,6 +139,12 @@ class pos_Receipts extends core_Master {
     
     
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, valior,modifiedOn';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -159,7 +159,7 @@ class pos_Receipts extends core_Master {
     	$this->FLD('change', 'double(decimals=2)', 'caption=Ресто, input=none, value=0, summary=amount');
     	$this->FLD('tax', 'double(decimals=2)', 'caption=Такса, input=none, value=0');
     	$this->FLD('state', 
-            'enum(draft=Чернова, active=Контиран, rejected=Оттеглен, closed=Затворен,pending=Чакащ)', 
+            'enum(draft=Чернова, active=Контиран, rejected=Оттеглен, closed=Затворен,waiting=Чакащ,pending)', 
             'caption=Статус, input=none'
         );
     	$this->FLD('transferedIn', 'key(mvc=sales_Sales)', 'input=none');
@@ -401,7 +401,7 @@ class pos_Receipts extends core_Master {
     /**
 	 * Модификация на ролите
 	 */
-    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{ 
 		// Само черновите бележки могат да се редактират в терминала
 		if($action == 'terminal' && isset($rec)) {
@@ -1213,6 +1213,16 @@ class pos_Receipts extends core_Master {
     		return $this->pos_ReceiptDetails->returnError($receiptId);
     	}
     	 
+    	if($packId = Request::get('packId', 'int')){
+    		if(!cat_UoM::fetch($packId)){
+    			core_Statuses::newStatus('|Невалидна опаковка|*!', 'error');
+    			return $this->pos_ReceiptDetails->returnError($receiptId);
+    		}
+    	
+    		$rec->value = $packId;
+    	}
+    	
+    	
     	// Намираме нужната информация за продукта
     	$this->pos_ReceiptDetails->getProductInfo($rec);
     	
@@ -1224,7 +1234,10 @@ class pos_Receipts extends core_Master {
     
     	// Ако няма цена
     	if(!$rec->price) {
-    		core_Statuses::newStatus('|Артикулът няма цена|*!', 'error');
+    		$createdOn = pos_Receipts::fetchField($rec->receiptId, 'createdOn');
+    		$createdOn = dt::mysql2verbal($createdOn, 'd.m.Y H:i');
+    		
+    		core_Statuses::newStatus("|Артикулът няма цена към|* <b>{$createdOn}</b>", 'error');
     		return $this->pos_ReceiptDetails->returnError($receiptId);
     	}
     	
@@ -1277,7 +1290,7 @@ class pos_Receipts extends core_Master {
     	
     	$this->requireRightFor('close', $rec);
     	
-    	$rec->state = 'pending';
+    	$rec->state = 'waiting';
     	if($this->save($rec)){
     		
     		// Обновяваме складовите наличности
@@ -1537,9 +1550,9 @@ class pos_Receipts extends core_Master {
      */
     public static function getRecTitle($rec, $escaped = TRUE)
     {
-    	$me = cls::get(get_called_class());
-    	
-    	return $me->singleTitle . " №{$rec->id}";
+    	$self = cls::get(get_called_class());
+    	 
+    	return tr("|{$self->singleTitle}|* №") . $rec->id;
     }
     
     
@@ -1555,22 +1568,30 @@ class pos_Receipts extends core_Master {
     	
     	$query = $this->getQuery();
     	$query->where("#pointId = {$data->masterId}");
-    	$query->where("#state = 'pending' OR #state = 'draft'");
+    	$query->where("#state = 'waiting' OR #state = 'draft'");
     	$query->orderBy("#state");
     	
-    	$conf =core_Packs::getConfig('pos');
+    	$conf = core_Packs::getConfig('pos');
     	
     	while($rec = $query->fetch()){
     		$num = substr($rec->id, -1 * $conf->POS_SHOW_RECEIPT_DIGITS);
-    		$stateClass = ($rec->state == 'draft') ? "state-opened" : "state-active";
+    		$stateClass = ($rec->state == 'draft') ? "state-draft" : "state-waiting";
     		
-    		if($this->haveRightFor('terminal', $rec)){
-    			$num = ht::createLink($num, array($this, 'terminal', $rec->id));
-    		} elseif($this->haveRightFor('single', $rec)){
-    			$num = ht::createLink($num, array($this, 'single', $rec->id));
+    		if(!Mode::isReadOnly()){
+    			if($this->haveRightFor('terminal', $rec)){
+    				$num = ht::createLink($num, array($this, 'terminal', $rec->id));
+    			} elseif($this->haveRightFor('single', $rec)){
+    				$num = ht::createLink($num, array($this, 'single', $rec->id));
+    			}
     		}
     		
-    		$num = " <span class='open-note {$stateClass}'>{$num}</span>";
+    		if($rec->state == 'draft'){
+    			if($rec->total != 0){
+    				$num = ht::createHint($num, 'Бележката е започната, но не е приключена', 'warning', FALSE);
+    			}
+    		}
+    		$num = " <span class='open-note {$stateClass}' style='border:1px solid #a6a8a7'>{$num}</span>";
+    		
     		$data->rows[$rec->id] = $num;
     	}
     }
@@ -1585,7 +1606,7 @@ class pos_Receipts extends core_Master {
     public function renderReceipts($data)
     {
     	$tpl = new ET('');
-    	$str = implode(',', $data->rows);
+    	$str = implode('', $data->rows);
         $tpl->append($str);	
          
     	return $tpl;

@@ -23,7 +23,7 @@ class colab_plg_VisibleForPartners extends core_Plugin
     public static function on_AfterDescription($mvc)
     {
         if (!$mvc->fields['visibleForPartners']) {
-            $mvc->FLD('visibleForPartners', 'enum(no=Не,yes=Да)', 'caption=Споделяне->С партньори, input=none');
+            $mvc->FLD('visibleForPartners', 'enum(no=Не,yes=Да)', 'caption=Споделяне->С партньори,input=none');
         }
     }
     
@@ -43,20 +43,19 @@ class colab_plg_VisibleForPartners extends core_Plugin
             // Ако няма originId или ако originId е към документ, който е видим от колаборатор
             if (colab_FolderToPartners::fetch(array("#folderId = '[#1#]'", $rec->folderId))) {
                 if (!$rec->originId || ($doc = doc_Containers::getDocument($rec->originId)) && ($doc->isVisibleForPartners())) {
-                    if (core_Users::haveRole('collaborator')) {
+                    if (core_Users::haveRole('partner')) {
                         // Ако текущия потребител е контрактор, полето да е скрито
                         $data->form->setField('visibleForPartners', 'input=hidden');
                         $data->form->setDefault('visibleForPartners', 'yes');
                     } else {
-                        $data->form->setField('visibleForPartners', 'input=input');
+                        $data->form->setField('visibleForPartners', 'input=input,before=sharedUsers');
                     }
                     
                     if ($rec->originId) {
                         $dRec = $doc->fetch();
                         
                         // Ако документа е създаден от контрактор, тогава да е споделен по-подразбиране
-                        if (!$rec->id && core_Users::haveRole('collaborator', $dRec->createdBy)) {
-                            $data->form->setField('visibleForPartners', 'formOrder=0.9');
+                        if (!$rec->id && core_Users::haveRole('partner', $dRec->createdBy)) {
                             $data->form->setDefault('visibleForPartners', 'yes');
                         }
                     }
@@ -68,13 +67,15 @@ class colab_plg_VisibleForPartners extends core_Plugin
                 }
             }
         }
-        
+
+        $data->form->setField('visibleForPartners', 'changable=ifInput');
+
         // Сетваме стойността, ако не е зададена
         if (!$rec->id && !$rec->visibleForPartners) {
             $data->form->setDefault('visibleForPartners', 'no');
         }
         
-        if(core_Users::haveRole('collaborator')) {
+        if(core_Users::haveRole('partner')) {
             $mvc->currentTab = 'Нишка';
             plg_ProtoWrapper::changeWrapper($mvc, 'cms_ExternalWrapper');
         }
@@ -106,7 +107,7 @@ class colab_plg_VisibleForPartners extends core_Plugin
     public static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
     	// Контрактора да не може да създава чернова, а директно да активира
-    	if (core_Users::haveRole('collaborator')) {
+    	if (core_Users::haveRole('partner')) {
     		
     		if($data->form->toolbar->hasBtn('activate')){
     			$data->form->toolbar->removeBtn('save');

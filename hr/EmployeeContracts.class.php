@@ -54,9 +54,9 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, hr_Wrapper, doc_ActivatePlg, bgerp_plg_Blank, plg_Printing, acc_plg_DocumentSummary,
-                     acc_plg_Registry, doc_DocumentPlg, plg_Search,
-                     doc_plg_BusinessDoc, doc_SharablePlg, bgerp_plg_Blank';
+    public $loadList = 'plg_RowTools2, hr_Wrapper, doc_plg_Close,doc_ActivatePlg, bgerp_plg_Blank, plg_Printing, acc_plg_DocumentSummary,
+                     acc_plg_Registry, doc_DocumentPlg, plg_Search,plg_Clone,plg_Sorting, 
+                     doc_plg_SelectFolder, doc_SharablePlg, bgerp_plg_Blank';
     
     
     /**
@@ -74,31 +74,37 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,hr';
+    public $canRead = 'ceo,hrMaster';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,hr';
+    public $canList = 'ceo,hrMaster';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,hr';
+    public $canSingle = 'ceo,hrMaster';
     
     
     /**
      * Кой може да пише?
      */
-    public $canWrite = 'ceo,hr';
+    public $canWrite = 'ceo,hrMaster';
     
     
     /**
      * Кой може да пише?
      */
-    public $canEdit = 'ceo,hr';
+    public $canEdit = 'ceo,hrMaster';
+    
+
+    /**
+     * Кой има право да клонира?
+     */
+    public $canClonerec = 'ceo,hrMaster';
     
     
     /**
@@ -116,9 +122,9 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Поле за търсене
      */
-    public $searchFields = 'typeId,dateId, managerId, personId, specialty, 
+    public $searchFields = 'typeId, numId, dateId, managerId, personId, specialty, 
                          departmentId, positionId, startFrom, 
-                         endOn, folderId, threadId, containerId';
+                         endOn, folderId';
     
     
     /**
@@ -129,13 +135,13 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,dateId,title=Документ,personId=Имена,typeId,numId,positionId=Позиция,startFrom,endOn';
+    public $listFields = 'numId,dateId,typeId,personId=Имена,numId,positionId=Позиция,startFrom,endOn';
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    public $rowToolsSingleField = 'title';
+    public $rowToolsSingleField = 'numId';
     
     
     /**
@@ -145,33 +151,42 @@ class hr_EmployeeContracts extends core_Master
     
     
     /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = 'crm_PersonAccRegIntf,doc_UnsortedFolders';
+
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, dateId,startFrom,endOn, modifiedOn';
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
     {
+        $this->FLD('numId', 'int', 'caption=Договор->Номер');
+        $this->FLD('dateId', 'date(format=d.m.Y)', 'caption=Договор->Дата, mandatory');
         $this->FLD('typeId', 'key(mvc=hr_ContractTypes,select=name)', "caption=Договор->Тип");
         
         $this->FLD('managerId', 'key(mvc=crm_Persons, select=name,group=managers)', 'caption=Договор->Управител, mandatory');
         
-        $this->FLD('numId', 'int', 'caption=Договор->Номер');
-        $this->FLD('dateId', 'date(format=d.m.Y)', 'caption=Договор->Дата, mandatory');
         
         // Служител
-        $this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител->Имена, mandatory,width=100%');
-        $this->FLD('education', 'varchar', 'caption=Служител->Образование,width=100%');
-        $this->FLD('specialty', 'varchar', 'caption=Служител->Специалност,width=100%');
-        $this->FLD('diplomId', 'varchar', 'caption=Служител->Диплома №,width=100%');
-        $this->FLD('diplomIssuer', 'varchar', 'caption=Служител->Издадена от,width=100%');
-        $this->FLD('lengthOfService', 'time(suggestions=1 мес|2 мес|3 мес|4 мес|5 мес|6 мес|7 мес|8 мес|9 мес|10 мес|11 мес|12 мес|2 год|3 год|5 год,uom=months,allowEmpty)', 'caption=Служител->Трудов стаж, unit=мес');
-        
+        $this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител->Имена, mandatory');
+        $this->FLD('education', 'varchar', 'caption=Служител->Образование');
+        $this->FLD('specialty', 'varchar', 'caption=Служител->Специалност');
+        $this->FLD('diplomId', 'varchar', 'caption=Служител->Диплома №');
+        $this->FLD('diplomIssuer', 'varchar', 'caption=Служител->Издадена от');
+        $this->FLD('lengthOfService', 'time(suggestions=1 мес|2 мес|3 мес|4 мес|5 мес|6 мес|7 мес|8 мес|9 мес|10 мес|11 мес|12 мес|2 год|3 год|5 год,uom=months,allowEmpty)', 'caption=Служител->Трудов стаж');
+                
         // Отдел - външно поле от модела hr_Positions
-        $this->EXT('departmentId', 'hr_Positions', 'externalKey=positionId,caption=Отдел');
-        
-        // Отдел - външно поле от модела hr_Positions
-        $this->EXT('professionId', 'hr_Positions', 'externalKey=positionId,caption=Отдел');
-        
-        // Позиция
-        $this->FLD('positionId', 'key(mvc=hr_Positions,select=name)', 'caption=Работа->Позиция, mandatory,oldField=possitionId,autoFilter');
+        $this->FLD('departmentId', 'key(mvc=hr_Departments,select=name)', 'caption=Работа->Отдел,mandatory,autoFilter');
+
+        // Позиция в отдела
+        $this->FLD('positionId', 'key(mvc=hr_Positions,select=name)', 'caption=Работа->Длъжност,mandatory,autoFilter');
         
         // Възнаграждения
         $this->FLD('salaryBase', 'double(decimals=2)', "caption=Възнагражение->Основно");
@@ -182,10 +197,10 @@ class hr_EmployeeContracts extends core_Master
         // Срокове
         $this->FLD('startFrom', 'date(format=d.m.Y)', "caption=Време->Начало,mandatory");
         $this->FLD('endOn', 'date(format=d.m.Y)', "caption=Време->Край");
-        $this->FLD('term', 'time(suggestions=3 мес|6 мес|9 мес|12 мес|24 мес,uom=months,allowEmpty)', "caption=Време->Продължителност, unit=мес");
-        $this->FLD('annualLeave', 'time(suggestions=10 дни|15 дни|20 дни|22 дни|25 дни,uom=days,allowEmpty)', "caption=Време->Годишен отпуск,unit=дни");
-        $this->FLD('notice', 'time(suggestions=10 дни|15 дни|20 дни|30 дни,uom=days,allowEmpty)', "caption=Време->Предизвестие,unit=дни");
-        $this->FLD('probation', 'time(suggestions=1 мес|2 мес|3 мес|6 мес|9 мес|12 мес,uom=month,allowEmpty)', "caption=Време->Изпитателен срок, unit=мес");
+        $this->FLD('term', 'time(suggestions=3 мес|6 мес|9 мес|12 мес|24 мес,uom=months,allowEmpty)', "caption=Време->Продължителност");
+        $this->FLD('annualLeave', 'time(suggestions=10 дни|15 дни|20 дни|22 дни|25 дни,uom=days,allowEmpty)', "caption=Време->Годишен отпуск");
+        $this->FLD('notice', 'time(suggestions=10 дни|15 дни|20 дни|30 дни,uom=days,allowEmpty)', "caption=Време->Предизвестие");
+        $this->FLD('probation', 'time(suggestions=1 мес|2 мес|3 мес|6 мес|9 мес|12 мес,uom=month,allowEmpty)', "caption=Време->Изпитателен срок");
         
         $this->FLD('descriptions', 'richtext(bucket=humanResources, shareUsersRoles=trz|ceo)', 'caption=Условия->Допълнителни');
         
@@ -196,22 +211,7 @@ class hr_EmployeeContracts extends core_Master
     }
     
     
-    /**
-     * След подготовка на тулбара на единичен изглед.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
-     */
-    public static function on_AfterPrepareSingleToolbar($mvc, $data)
-    {
-        // Ако нямаме права за писане в треда
-        if(doc_Threads::haveRightFor('single', $data->rec->threadId) == FALSE){
-            
-            // Премахваме бутона за коментар
-            $data->toolbar->removeBtn('Коментар');
-        }
-    }
-    
+
     
     /**
      * Филтър на on_AfterPrepareListFilter()
@@ -222,56 +222,6 @@ class hr_EmployeeContracts extends core_Master
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->FNC('department', 'key(mvc=hr_Departments,select=name,allowEmpty)', 'width=6em,caption=Отдел,silent');
-        $data->listFilter->FNC('profession', 'key(mvc=hr_Professions,select=name,allowEmpty)', 'width=6em,caption=Професия,silent');
-
-        // Показваме само това поле. Иначе и другите полета 
-        // на модела ще се появят
-        $data->listFilter->showFields .= ' ,department, profession';
-            
-        $data->listFilter->input();
-            
-        if($filterRec = $data->listFilter->rec){
-        	if($filterRec->department){
-            	$data->query->where(array("#departmentId = '[#1#]'", $filterRec->department));
-            }
-                
-            if($filterRec->profession){
-            	$data->query->where(array("#professionId = '[#1#]'", $filterRec->profession));
-            }
-        }
-    }
-    
-    
-    /**
-     * Извиква се след изпълняването на екшън
-     */
-    public static function on_AfterAction(&$invoker, &$tpl, $act)
-    {
-        if (strtolower($act) == 'single' && haveRole('hr,ceo') && !Mode::is('printing')) {
-            
-            // Взимаме ид-то на молбата
-            $id = Request::get('id', 'int');
-            
-            // намираме, кой е текущия потребител
-            $cu =  core_Users::getCurrent();
-            
-            // взимаме записа от модела
-            $rec = self::fetch($id);
-            
-            // превръщаме кей листа на споделените потребители в масив
-            $sharedUsers = type_Keylist::toArray($rec->sahredUsers);
-            
-            // добавяме текущия потребител
-            $sharedUsers[$cu] = $cu;
-            
-            // връщаме в кей лист масива
-            $rec->sharedUsers =  keylist::fromArray($sharedUsers);
-            
-            self::save($rec, 'sharedUsers');
-            
-            redirect(array('doc_Containers', 'list', 'threadId'=>$rec->threadId));
-        }
     }
     
     
@@ -296,10 +246,11 @@ class hr_EmployeeContracts extends core_Master
             $data->form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
             $data->form->setReadonly('personId');
         }
+
         // по дефолт слагаме днешна дата
         $data->form->setDefault('dateId', dt::verbal2mysql());
         
-        // сладаме Управители
+        // избор за Управители
         $managers = $mvc->getManagers();
         $data->form->setOptions('managerId', $managers);
         
@@ -317,7 +268,7 @@ class hr_EmployeeContracts extends core_Master
     public static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         $row->personId = crm_Persons::getHyperLink($rec->personId, TRUE);
-        $row->positionId = ht::createLink($row->positionId, array('hr_Departments', 'Single', $rec->departmentId, 'Tab' => 'Positions'));
+        $row->positionId = hr_Positions::getLinkForObject($rec->positionId);
     
         if(isset($fields['-list'])){
         	$row->title = $mvc->getLink($rec->id, 0);
@@ -385,8 +336,6 @@ class hr_EmployeeContracts extends core_Master
         $position = hr_Positions::recToVerbal(hr_Positions::fetch($rec->positionId, 'name, salaryBase, forYearsOfService, compensations,
                                                     annualLeave, notice, probation'));
         
-        // Вземаме данните за Структурата
-        $department = hr_Departments::recToVerbal(hr_Departments::fetch($rec->departmentId, 'nkid, type'));
         
         if((!$rec->salaryBase || !$rec->forYearsOfService || !$rec->compensations) &&
             (!$rec->annualLeave || !$rec->notice || !$rec->probation)) { ;
@@ -420,7 +369,7 @@ class hr_EmployeeContracts extends core_Master
         $row->frequensity =  $position->frequensity;
         
         // Извличане на данните за професията
-        $nkpd = hr_Professions::fetchField($rec->professionId, 'nkpd');
+        $nkpd = hr_Positions::fetchField($rec->positionId, 'nkpd');
         
         // Национална класификация на професиите и длъжностите
         $row->professionsRec = new stdClass();
@@ -522,6 +471,10 @@ class hr_EmployeeContracts extends core_Master
 
     	if($rec->state == 'active'){
             
+            if(!$rec->personId) {
+                $rec->personId = self::fetch($rec->id)->personId;
+            }
+
             // Взимаме запълването до сега
             $employmentOccupied = hr_Positions::fetchField($position, 'employmentOccupied');
             
@@ -532,17 +485,24 @@ class hr_EmployeeContracts extends core_Master
             $recPosition = new stdClass();
             $recPosition->id = $position;
             
-            // Ако работната седмица е над 35ч е един щат
-            if($houres >= 35){
-                $recPosition->employmentOccupied = $employmentOccupied + 1;
-            } else {
-                
-                // в противен случай е половин щат
-                $recPosition->employmentOccupied = $employmentOccupied + 0.5;
+            // Намираме всички останали активни рецепти
+            $query = static::getQuery();
+            $query->where("#state = 'active' AND #id != {$rec->id} AND #personId = {$rec->personId}");
+            
+            // Затваряме ги
+            $closed = array();
+            while($eRec = $query->fetch()){
+            	$eRec->state = 'closed';
+            	$eRec->brState = 'active';
+            	$eRec->modifiedOn = dt::now();
+            	$mvc->save($eRec, 'state,brState,modifiedOn');
+            	$closed[] = "#" . $mvc->getHandle($eRec->id);
             }
             
-            // записваме новата стойност
-            hr_Positions::save($recPosition, 'employmentOccupied');
+            if(count($closed)){
+            	$msg = (count($closed) == 1) ? "Затворен е" : "Затворени са";
+            	core_Statuses::newStatus("|{$msg}|* " . implode(',', $closed));
+            }
         }
     }
     
@@ -592,7 +552,7 @@ class hr_EmployeeContracts extends core_Master
         if($query->fetchAll() == FALSE){
             
             // Ако няма, изискваме от потребителя да въведе
-            redirect(array('hr_Departments', 'list'), FALSE, "|Не сте въвели позиция");
+            redirect(array('hr_Departments', 'list'), FALSE, "|Не сте въвели длъжност");
         }
         
         // трудовият договор, не може да се създаде без да е обявено работното време в него
@@ -737,15 +697,15 @@ class hr_EmployeeContracts extends core_Master
     public static function houresForAWeek($id)
     {
         // Кой е графика
-        $scheduleId = static::getWorkingSchedule($id);
+        // $scheduleId = static::getWorkingSchedule($id);
         
         // Каква продължителност има
-        if($scheduleId){
+        if($scheduleId){ 
           $duration = hr_WorkingCycles::fetchField($scheduleId, 'cycleDuration');
         }
         
-        if (!$duration) {
-        	redirect(array('hr_WorkingCycles', 'list'), FALSE, '|Не сте въвели продължителност на графика!');
+        if (!$duration) { 
+        //	redirect(array('hr_WorkingCycles', 'list'), FALSE, '|Не сте въвели продължителност на графика!');
         }
         
         // Извличане на данните за циклите
@@ -822,22 +782,7 @@ class hr_EmployeeContracts extends core_Master
      ****************************************************************************************/
     
     
-    /**
-     * Проверка дали нов документ може да бъде добавен в
-     * посочената папка
-     *
-     * @param $folderId int ид на папката
-     */
-    public static function canAddToFolder($folderId)
-    {
-        $coverClass = doc_Folders::fetchCoverClassName($folderId);
-        
-        if (cls::haveInterface('crm_PersonAccRegIntf', $coverClass)) {
-            return TRUE;
-        }
-        
-        return FALSE;
-    }
+ 
     
     
     /**
@@ -857,16 +802,7 @@ class hr_EmployeeContracts extends core_Master
         return $row;
     }
     
-    
-    /**
-     * В кои корици може да се вкарва документа
-     * @return array - интерфейси, които трябва да имат кориците
-     */
-    public static function getAllowedFolders()
-    {
-        return array('crm_PersonAccRegIntf');
-    }
-    
+ 
     
     /**
      * Дали подадения номер е в позволения диапазон за номера на фактури

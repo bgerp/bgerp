@@ -17,7 +17,7 @@
 class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDetail
 {
     
-    
+	
     /**
      * Заглавие
      */
@@ -41,8 +41,8 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
      * 
      * var string|array
      */
-    public $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_RowNumbering, plg_SaveAndNew, 
-                        plg_AlignDecimals2, LastPricePolicy=sales_SalesLastPricePolicy';
+    public $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_RowNumbering, plg_SaveAndNew, 
+                        plg_AlignDecimals2, LastPricePolicy=sales_SalesLastPricePolicy,plg_PrevAndNext,store_plg_TransportDataDetail';
     
     
     /**
@@ -72,19 +72,21 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId=Върнато, packagingId, packQuantity, packPrice, amount';
-    
-        
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'RowNumb';
-    
+    public $listFields = 'productId=Получено от Клиент/Доставчик, packagingId, packQuantity, weight=Тегло,volume=Обем, packPrice, amount';
+
     
 	/**
      * Полета свързани с цени
      */
     public $priceFields = 'price, amount, discount, packPrice';
+    
+    
+    /**
+     * Какво движение на партида поражда документа в склада
+     *
+     * @param out|in|stay - тип движение (излиза, влиза, стои)
+     */
+    public $batchMovementDocument = 'in';
     
     
     /**

@@ -22,9 +22,7 @@ class cams_tpl_ViewSingleLayoutOverview extends core_ET
      * Инициализиране на обекта
      */
     public function init($params = array())
-    {
-        // bp($params['recParameters']->name);
-        
+    {        
         // Prepare 'act_Overview' params
         $overviewId = Request::get('id', 'int');
         $panWidth = $params['data']->rec->panWidth;

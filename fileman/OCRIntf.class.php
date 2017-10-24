@@ -11,28 +11,42 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class fileman_OCRIntf
+class fileman_OCRIntf extends fileman_FileActionsIntf
 {
-
+    
     
     /**
-     * Добавя бутон в тулбара за стартиране на OCR процеса
+     * Проверка дали може да се пуска OCR обработка
      * 
-     * @param core_Toolbar $toolbar
+     * @param stdObject|string $fRec
      */
-    function addOcrBtn($toolbar)
+    function canExtract($fRec)
     {
         
-        return $this->class->convertDoc($toolbar);
+        return $this->class->canExtract($fRec);
+    }
+    
+    
+    /**
+     * Функция за извличане на текст
+     * 
+     * @param stdObject|string $fRec
+     */
+    function getTextByOcr($fRec)
+    {
+        
+        return $this->class->getTextByOcr($fRec);
     }
 
     
     /**
-     * Екшъна за извличане на текст чрез OCR
+     * Бърза проврка дали има смисъл от OCR-ване на текста
+     * 
+     * @param stdObject|string $fRec
      */
-    function act_getTextByOcr()
+    function haveTextForOcr($fRec)
     {
         
-        return $this->class->acr_getTextByOcr();
+        return $this->class->haveTextForOcr($fRec);
     }
 }

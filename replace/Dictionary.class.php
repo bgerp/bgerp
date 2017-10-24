@@ -15,7 +15,7 @@ class replace_Dictionary extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created,plg_RowTools,plg_State2,replace_Wrapper';
+    var $loadList = 'plg_Created,plg_RowTools2,plg_State2,replace_Wrapper';
     
     
     /**
@@ -47,8 +47,8 @@ class replace_Dictionary extends core_Manager
      */
     function description()
     {
-        $this->FLD('from' , 'richtext(rows=3)', 'caption=Текст->Оригинал');
-        $this->FLD('to' , 'richtext(rows=3)', 'caption=Текст->Заместване');
+        $this->FLD('from' , 'richtext(rows=3,bucket=Notes)', 'caption=Текст->Оригинал');
+        $this->FLD('to' , 'richtext(rows=3,bucket=Notes)', 'caption=Текст->Заместване');
         $this->FLD('groupId' , 'key(mvc=replace_Groups,select=name)', 'caption=Групи');
     }
     

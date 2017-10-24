@@ -37,57 +37,51 @@ class hr_ContractTypes extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools, hr_Wrapper, plg_Printing,
+    public $loadList = 'plg_Created, plg_RowTools2, hr_Wrapper, plg_Printing,
                      plg_SaveAndNew, WorkingCycles=hr_WorkingCycles, plg_Modified';
     
     
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,hr';
+    public $canRead = 'ceo,hrMaster';
     
     
     /**
      * Кой може да пише?
      */
-    public $canWrite = 'ceo,hr';
+    public $canWrite = 'ceo,hrMaster';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,hr';
+    public $canList = 'ceo,hrMaster';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,hr';
+    public $canSingle = 'ceo,hrMaster';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,hr';
+    public $canEdit = 'ceo,hrMaster';
     
     
     /**
      * Кой има право да променя системните данни?
      */
-    public $canEditsysdata = 'ceo,hr';
+    public $canEditsysdata = 'ceo,hrMaster';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id, name,createdBy,modifiedOn';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'id';
-    
+
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
@@ -230,7 +224,7 @@ class hr_ContractTypes extends core_Master
      * @param stdClass $rec
      * @param int $userId
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Ако методът е редакция и вече имаме rec
         if($action == 'edit' && isset($rec)){

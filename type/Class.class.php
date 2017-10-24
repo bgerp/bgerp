@@ -30,8 +30,11 @@ class type_Class  extends type_Key {
     }
 
 
-    public function prepareOptions()
-    {
+    /**
+     * Подготвя масив с опции за показване в падащия списък
+     */
+    public function prepareOptions($value = NULL)
+    {  
         Mode::push('text', 'plain');
         
         expect($this->params['mvc'], $this);
@@ -120,7 +123,11 @@ class type_Class  extends type_Key {
     function toVerbal($value)
     {
         if (is_numeric($value)) {
-            $value = parent::toVerbal($value);
+        	$value = parent::toVerbal($value);
+        	
+        	if(strpos($value, '||') !== FALSE){
+        		$value = tr($value);
+        	}
         }
         
         return $value;
@@ -137,7 +144,9 @@ class type_Class  extends type_Key {
         if (!isset($value)) return $value;
         
         $error = FALSE;
-        
+
+        $savedOpt = $this->options;
+
         $interface = $this->params['interface'];
         $mvc = cls::get($this->params['mvc']);
         $this->options = $mvc->getOptionsByInterface($interface, $this->params['select']);
@@ -163,7 +172,9 @@ class type_Class  extends type_Key {
         if ($error) {
             $this->error = 'Несъществуващ клас';
         }
-        
+
+        $this->options = $savedOpt;
+
         return $value;
     }
     

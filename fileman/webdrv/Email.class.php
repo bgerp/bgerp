@@ -158,7 +158,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
     {
         // Текстовата част
         $textPart = $mime->justTextPart;
-         
+        
         if(!$textPart && $mime->textPart) {
             Mode::push('text', 'plain');
             $rt = new type_Richtext();
@@ -238,6 +238,11 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         // Инстанция на класа
         $mime = cls::get('email_Mime');
         
+        // Вземаме съдържанието на eml файла
+        $source = static::getSource($fRec);
+        
+        $mime->parseAll($source);
+        
         // В зависимост от типа пускаме различни методи
         switch ($type) {
             
@@ -310,5 +315,65 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
     static function checkTextPart($mime)
     {
         if (trim($mime->getJustTextPart())) return TRUE;
+    }
+    
+    
+	/**
+     * Извлича текстовата част от файла
+     * 
+     * @param object $fRec - Записите за файла
+     */
+    static function extractText($fRec)
+    {
+        // Параметри необходими за конвертирането
+        $params = array(
+            'createdBy' => core_Users::getCurrent('id'),
+            'type' => 'text',
+        );
+        
+        $dId = self::prepareLockId($fRec);
+        
+        if (is_object($fRec)) {
+            $params['dataId'] = $fRec->dataId;
+            $params['fileHnd'] = $fRec->fileHnd;
+        }
+        
+        // Променливата, с която ще заключим процеса
+        $params['lockId'] = self::getLockId('text', $dId);
+        
+        // Проверявама дали няма извлечена информация или не е заключен
+        if (fileman_Indexes::isProcessStarted($params)) return ;
+        
+        // Заключваме процеса за определено време
+        if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
+        	
+            // Вземаме текстовата част
+            if (is_object($fRec)) {
+                $textPart = self::getInfoContentByFh($fRec->fileHnd, 'text');
+            } else {
+                // Записите за съответния файл
+                $source = !@file_get_contents($fRec);
+                
+                // Инстанция на класа
+                $mime = cls::get('email_Mime');
+                
+                $mime->parseAll($source);
+                $textPart = static::getTextPart($mime, FALSE);
+            }
+        	
+            $textPart = mb_strcut($textPart, 0, 1000000);
+            $textPart = i18n_Charset::convertToUtf8($textPart);
+        	
+            if ($params['fileHnd']) {
+                // Обновяваме данните за запис във fileman_Indexes
+                $params['content'] = $textPart;
+                fileman_Indexes::saveContent($params);
+            }
+        	
+            // Отключваме процеса
+            core_Locks::release($params['lockId']);
+        	
+            return $textPart;
+        }
     }
 }

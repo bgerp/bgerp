@@ -35,12 +35,6 @@ class type_Time extends type_Varchar {
     
 
     /**
-     * Колко секунди има средно в един месец
-     */
-    const SECONDS_IN_MONTH = 2629746;
-
-
-    /**
      * Клас за <td> елемент, който показва данни от този тип
      */
     var $tdClass = 'centerCol';
@@ -87,10 +81,10 @@ class type_Time extends type_Varchar {
         if(is_numeric($val)) {
             switch($this->params['uom']) {
             	case 'years':
-                    $val = $val * 12 * self::SECONDS_IN_MONTH;
+                    $val = $val * 12 * core_DateTime::SECONDS_IN_MONTH;
                     break;
                case 'months':
-                    $val = $val * self::SECONDS_IN_MONTH;
+                    $val = $val * core_DateTime::SECONDS_IN_MONTH;
                     break;
                 case 'weeks': 
                     $val = $val * 7 * 24 * 60 * 60;
@@ -102,8 +96,9 @@ class type_Time extends type_Varchar {
                     $val = $val * 60 * 60;
                     break;
                 case 'minutes':
-                default:
                     $val = $val * 60;
+                    break;
+                default:
                     break;
             }
 
@@ -163,13 +158,13 @@ class type_Time extends type_Varchar {
             $hours = $matches[1];
             $minutes = $matches[2];
         }
-        
+
         // На колко е равна една година и един месец?
-        if($secundes || $minutes || $hours || $days || $weeks) {
+        if($secundes || $minutes || $hours) {
             $monthDuration = 30 * 24 * 60 * 60;
             $yearDuration  = 365 * 24 * 60 * 60;
         } else {
-            $monthDuration = self::SECONDS_IN_MONTH;
+            $monthDuration = core_DateTime::SECONDS_IN_MONTH;
             $yearDuration  = $monthDuration * 12;
         }
 
@@ -229,10 +224,13 @@ class type_Time extends type_Varchar {
             }
         }
 
-        $this->params['size'] = 10;
-        
+        $this->params['size'] = 13;
+
+        $uom = $this->params['uom'];
+        unset($this->params['uom']);
         $this->fromVerbalSuggestions($value);
-        
+        $this->params['uom'] = $uom;
+
         return parent::renderInput_($name, $value, $attr);
     }
     
@@ -245,9 +243,11 @@ class type_Time extends type_Varchar {
         if(!isset($value) || !is_numeric($value)) return NULL;
         
         $v = abs($value);
-        
-        if(($v % self::SECONDS_IN_MONTH) == 0) {
-            $months =  $v / self::SECONDS_IN_MONTH;
+        $restDays = ($v % core_DateTime::SECONDS_IN_MONTH);
+
+        if(($restDays % (24*60*60)) == 0) {
+            $days = $restDays / (24 * 60 * 60);
+            $months =  floor($v / core_DateTime::SECONDS_IN_MONTH);
             $years  = floor($months / 12);
             $months = $months - $years * 12;
         } else {
@@ -263,11 +263,11 @@ class type_Time extends type_Varchar {
         	
         	switch($uom) {
         		case 'years':
-        			$v = $v / (12 * self::SECONDS_IN_MONTH);
+        			$v = $v / (12 * core_DateTime::SECONDS_IN_MONTH);
         			$suffix = tr('год.');
         			break;
         		case 'months':
-        			$v = $v / self::SECONDS_IN_MONTH;
+        			$v = $v / core_DateTime::SECONDS_IN_MONTH;
         			$suffix = tr('мес.');
         			break;
         		case 'weeks':

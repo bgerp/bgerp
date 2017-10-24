@@ -21,7 +21,7 @@ class prosms_Dlr extends core_Manager
     /**
      * Заглавие
      */
-    var $title = 'Обратна връзка от Про-СМС';
+    var $title = 'Обратна връзка от Про-SMS';
     
     
     /**

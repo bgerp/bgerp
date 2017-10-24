@@ -29,12 +29,14 @@ class fileman_webdrv_Jpg extends fileman_webdrv_Image
         // Вземаме табовете от родителя
         $tabsArr = parent::getTabs($fRec);
         
-        $barcodeUrl = toUrl(array('fileman_webdrv_Jpg', 'barcodes', $fRec->fileHnd), TRUE);
-        
-		$tabsArr['barcodes'] = new stdClass();
-        $tabsArr['barcodes']->title = 'Баркодове';
-        $tabsArr['barcodes']->html = "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("Баркодове") . "</div> <iframe src='{$barcodeUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>";
-        $tabsArr['barcodes']->order = 6;
+        if (self::canShowTab($fRec->fileHnd, 'barcodes')){
+            $barcodeUrl = toUrl(array('fileman_webdrv_Jpg', 'barcodes', $fRec->fileHnd), TRUE);
+            
+            $tabsArr['barcodes'] = new stdClass();
+            $tabsArr['barcodes']->title = 'Баркодове';
+            $tabsArr['barcodes']->html = "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("Баркодове") . "</div> <iframe src='{$barcodeUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>";
+            $tabsArr['barcodes']->order = 6;
+        }
 
         return $tabsArr;
     }
@@ -52,5 +54,17 @@ class fileman_webdrv_Jpg extends fileman_webdrv_Image
     {
         parent::startProcessing($fRec);
         static::getBarcodes($fRec);
+    }
+    
+    
+    /**
+     * Дали може да се извлича баркод
+     * 
+     * @return boolean
+     */
+    public static function canGetBarcodes()
+    {
+        
+        return TRUE;
     }
 }

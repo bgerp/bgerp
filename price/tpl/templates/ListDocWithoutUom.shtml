@@ -33,9 +33,24 @@
         <!--ET_BEGIN createdOn-->
         <tr>
             <td>|Създаване|* </td>
-            <td>[#createdBy#], [#createdOn#]</td>
+            <td>[#createdOn#] |от|* [#createdBy#]</td>
         </tr>
         <!--ET_END createdOn-->
+        
+        <!--ET_BEGIN round-->
+        <tr>
+            <td>|Закръгляне на цена за основна мярка|*</td>
+            <td>[#round#]</td>
+        </tr>
+        <!--ET_END round-->
+        
+        <!--ET_BEGIN roundPack-->
+        <tr>
+            <td>|Закръгляне на цена за опаковка|*</td>
+            <td>[#roundPack#]</td>
+        </tr>
+        <!--ET_END roundPack-->
+        
         <!--ET_BEGIN printHeader-->
         <tr>
             <td colspan = '2'><span class = 'print-header'>[#printHeader#]</span><br>

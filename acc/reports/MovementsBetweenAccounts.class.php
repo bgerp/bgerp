@@ -64,7 +64,13 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
      */
     public $cache3 = array();
     
-    
+
+    /**
+     * Кеш за имената на фичърсите
+     */
+    private $features = array();
+
+
     /**
      * Добавя полетата на вътрешния обект
      *
@@ -80,8 +86,7 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
             array('caption' => "|*<span style='color:#ffccaa'>|Дебит|*</span>->|Сметка"));
         $form->FLD('cAcc', 'acc_type_Account(allowEmpty)', 'mandatory,silent,removeAndRefreshForm=cf1|cf2|cf3',
             array('caption' => "|*<span style='color:#aaccff'>|Кредит|*</span>->|Сметка"));
-        $form->FLD('orderBy', 'enum(DESC=Низходящо,ASC=Възходящо)', 'caption=Сортиране->Вид,silent,removeAndRefreshForm=orderField,formOrder=100');
-        $form->FLD('orderField', 'enum(debitQuantity=Дебит к-во,debitAmount=Дебит сума,creditQuantity=Кредит к-во,creditAmount=Кредит сума,blQuantity=Остатък к-во,blAmount=Остатък сума)', 'caption=Сортиране->Поле,formOrder=101');
+        $form->FLD('order', 'enum(,DESC=Низходящо,ASC=Възходящо)', 'caption=Сортиране->Вид,silent,formOrder=100');
         
         
         $this->invoke('AfterAddEmbeddedFields', array($form));
@@ -96,7 +101,7 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
     public function prepareEmbeddedForm(core_Form &$form)
     {
         // Информация, че справката не е готова
-        $form->info = "<div style='margin:10px;color:red; background-color:yellow; border: dotted 1px red; padding:5px; font-size:1.3em;'>Тази спревка е в процес на разработка</div>";
+        $form->info = "<div style='margin:10px;color:red; background-color:yellow; border: dotted 1px red; padding:5px; font-size:1.3em;'>Тази справка е в процес на разработка</div>";
 
         // Поставяме удобни опции за избор на период
         $op = acc_Periods::getPeriodOptions();
@@ -174,7 +179,7 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
             $items = acc_Items::fetchUsedItems($form->rec->from, $form->rec->to, $listId);
                         
             $features = acc_Features::getFeatureOptions(array_keys($items));
-            $features = array('' => '') + $features + array('*' => "[{$listName}]");
+            $features = array('' => '') + array('*' => "[{$listName}]") + $features;
             $form->setOptions($field, $features);
 
 
@@ -191,8 +196,9 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
                     $form->FLD($valField, "keylist(mvc=acc_Features,select=value)", "placeholder=Всички", array('caption' => "|*{$caption}->|Стойности", 'after' => $field));
                     $form->setSuggestions($valField, $featureValuesOpt);
                 }
+                
                 $field = $actField = $field . 'Act';
-                $form->FLD($actField, 'enum(group=Групиране,filter=Филтриране)', array('caption' => "|*{$caption}->|Действие", 'after' => $valField));
+                $form->FLD($actField, 'enum(group=Групиране по признаци,groupItems=Групиране по пера,filter=Филтриране)', array('caption' => "|*{$caption}->|Действие", 'after' => $valField));
             }
 
 
@@ -241,13 +247,115 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
         
     
     /**
+     * Връща ключ за иникланост
+     */
+    function getJKey($rec)
+    {   
+        $p = array();
+
+        foreach(array('debitItem1' => 'dFeat1', 'debitItem2' => 'dFeat2', 'debitItem3' => 'dFeat3', 'creditItem1' => 'cFeat1', 'creditItem2' => 'cFeat2', 'creditItem3' => 'cFeat3') as $partItem => $partFeat) {
+            $p[] = $r= self::getPeroKey($rec, $partItem, $partFeat);
+            if($r === FALSE) return FALSE;
+        }
+
+        $key = implode('|', $p);
+        
+        return $key;
+    }
+
+
+    /**
+     * Връща ключа за посочената част
+     */
+    function getPeroKey($rec, $partItem, $partFeat)
+    {
+        $formRec = $this->innerForm;
+ 
+        if(!($itemId = $rec->{$partItem})) return '';
+
+        if(!($featTitle = $formRec->{$partFeat})) return '';
+        
+        $valPart = $partFeat . 'Val';
+
+        $vArr = keylist::toArray($formRec->{$valPart});
+
+        // Филтриране или групиране
+        $actPart = $partFeat . 'Act';
+        
+        if($featTitle == '*') {
+            $res = $rec->{$partItem};
+        } else {
+            $fTitleRec = acc_FeatureTitles::fetch(array("#title = '[#1#]'", $featTitle));
+            expect($fTitleRec, $featTitle);
+            $fRec = acc_Features::fetch("#itemId = {$itemId} AND #featureTitleId = {$fTitleRec->id}");
+
+            if($fRec) {
+                if(!($fId = $this->features[$fRec->value])) {
+                    $fId = $this->features[$fRec->value] = $fRec->id;
+                }
+                $res = -$fId;
+
+                //expect($res != 0, $features, $features[$fRec->value], $fid);
+            } else {
+                $res = 0;
+            }
+        }
+ 
+        if($formRec->{$actPart} == 'group' || $formRec->{$actPart} == 'groupItems') {
+                
+            if(count($vArr) && !$vArr[abs($res)]) {
+                $res = '0';
+            }
+
+            if($res < 0 && $formRec->{$actPart} == 'groupItems') {
+                $res = $rec->{$partItem};
+            }
+
+        } else {
+            expect($formRec->{$actPart} == 'filter', $formRec, $actPart);
+            
+            if(count($vArr) && !$vArr[abs($res)]) {
+                $res = FALSE;
+            } else {
+                $res = '';
+            }
+        }
+        
+        return $res;
+    }
+
+
+    /**
+     * Превръща във вербален запис перо или фичърс
+     */
+    function idToVerbal($id)
+    {
+        if($id < 0) {
+
+            return array_search(-$id, $this->features) ;
+        } elseif($id == 0) {
+            if($id === '') {
+
+                return '';
+            } else {
+
+                return tr("Други");
+            }
+        } else {
+
+            return acc_Items::fetch($id)->title;
+        }
+    }
+
+
+    /**
      * Филтрира заявката
      */
     protected function prepareFilterQuery(&$query, $form)
     {
         acc_JournalDetails::filterQuery($query, $form->from, $form->to);
-        $query->where("#debitAccId = {$form->baseAccountId} AND #creditAccId = {$form->corespondentAccountId}");
-        $query->orWhere("#debitAccId = {$form->corespondentAccountId} AND #creditAccId = {$form->baseAccountId}");
+
+        $query->where("#debitAccId = {$form->dAcc} AND #creditAccId = {$form->cAcc}");
     }
     
     
@@ -255,120 +363,96 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
      * Подготвя вътрешното състояние, на база въведените данни
      */
     public function prepareInnerState()
-    {
+    {  
         core_App::setTimeLimit(300);
         $data = new stdClass();
         $data->summary = (object)array('debitQuantity' => 0, 'debitAmount' => 0, 'creditQuantity' => 0, 'creditAmount' => 0, 'blQuantity' => 0, 'blAmount' => 0);
         $data->hasSameAmounts = TRUE;
         $data->rows = $data->recs = array();
         $data->rowsOld = $data->recsOld = array();
-        $form = $this->innerForm;
-        
-        $date = acc_Periods::comparePeriod($form->from, $form->to, $form->compare);
-    	$data->toOld = $date->to;
-    	$data->fromOld = $date->from;
+        $form = &$this->innerForm;
+    
 
-        $data->groupBy = array();
-        foreach (range(1, 6) as $i){
-            if(!empty($form->{"feat{$i}"})){
-                $data->groupBy[$form->{"list{$i}"}] = $form->{"list{$i}"};
-            }
+        if($form->from > $form->to) {
+            list($form->from, $form->to) = array($form->from, $form->to);
         }
         
-        $data->groupBy = array_values($data->groupBy);
-        array_unshift($data->groupBy, NULL);
-        unset($data->groupBy[0]);
+        if(!$form->dFeat1) {
+            $form->dFeat1Act = '';
+            $form->dFeat1Val = '';
+        }
+
+        if(!$form->dFeat2) {
+            $form->dFeat2Act = '';
+            $form->dFeat2Val = '';
+        }
+
+        if(!$form->dFeat3) {
+            $form->dFeat3Act = '';
+            $form->dFeat3Val = '';
+        }
         
-        $this->prepareListFields($data);
-        
+        if(!$form->cFeat1) {
+            $form->cFeat1Act = '';
+            $form->cFeat1Val = '';
+        }
+
+        if(!$form->cFeat2) {
+            $form->cFeat2Act = '';
+            $form->cFeat2Val = '';
+        }
+
+        if(!$form->cFeat3) {
+            $form->cFeat3Act = '';
+            $form->cFeat3Val = '';
+        }
+
+         
         $jQuery = acc_JournalDetails::getQuery();
         
         // Извличаме записите от журнала за периода, където участват основната и кореспондиращата сметка
         $this->prepareFilterQuery($jQuery, $form);
         
         // За всеки запис добавяме го към намерените резултати
-        $recs = $jQuery->fetchAll();
-        $allItems = array();
-        
-        if(is_array($recs)){
+        $all = array();
+
+        while($rec = $jQuery->fetch()) {
+            $key = $this->getJKey($rec);
             
-            // проверяваме имали избрано групиране по свойство което не е името на перото
-            $groupByFeatures = FALSE;
-            foreach (range(1, 3) as $i){
-                $groupByFeatures = $groupByFeatures || !empty($form->{"feat{$i}"});
-            }
-            
-            // Ако има
-            if($groupByFeatures === TRUE){
-                
-                // Намираме всички пера участващи в заявката
-                foreach ($recs as $rec1){
-                    foreach(array('debit', 'credit') as $type){
-                        foreach (range(1, 3) as $i){
-                            if($item = $rec1->{"{$type}Item{$i}"}){
-                                $allItems[$item] = $item;
-                            }
-                        }
-                    }
-                }
-                
-                // Извличаме им свойствата
-                $features = acc_Features::getFeaturesByItems($allItems);
-            } else {
-                $features = array();
-            }
-        }
-        
-        foreach ($recs as $jRec){
-            $this->addEntry($form->baseAccountId, $jRec, $data, $form->groupBy, $form, $features, $data->recs);
-        }
-        
-        // Ако има намерени записи
-        if(count($data->recs)){ 
-            
-            // За всеки запис
-            foreach ($data->recs as &$rec){
-                
-                // Изчисляваме окончателния остатък (дебит - кредит)
-                $rec->blQuantity = $rec->debitQuantity - $rec->creditQuantity;
-                $rec->blAmount = $rec->debitAmount - $rec->creditAmount;
-                
-                foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld){
-                    $data->summary->{$fld} += $rec->{$fld};
-                }
-                
-                // Проверка дали сумата и к-то са еднакви
-                if($rec->blQuantity != $rec->blAmount){
-                    $data->hasSameAmounts = FALSE;
-                }
-            }
-            
-            foreach ($data->recs as &$rec1){
-                $fld = ($form->side == 'credit') ? 'creditAmount' : (($form->side == 'debit') ? 'debitAmount' : 'blAmount');
-                if(!empty($data->summary->{$fld})){
-                	$rec1->delta = round($rec1->{$fld} / $data->summary->{$fld}, 5);
-                } else {
-                	$rec1->delta = 0;
-                }
-                
-                $rec1->delta = cls::get('type_Percent')->toVerbal($rec1->delta);
+            if(!$key) continue;
+
+            if(!isset($all[$key])) {
+                $all[$key] = new stdClass();
             }
 
+            $all[$key]->creditQuantity += $rec->creditQuantity;
+            $all[$key]->debitQuantity += $rec->debitQuantity;
+            $all[$key]->amount += $rec->amount;
+            $all[$key]->docs[$rec->docType . ':' . $rec->docId] = $rec->reason;
         }
         
-        // Ако не се групира по размерна сметка, не показваме количества
-        if(count($data->groupBy)){
-            $data->hasDimensional = FALSE;
-            foreach ($data->groupBy as $grId){
-                if(acc_Lists::fetchField($grId, 'isDimensional') == 'yes'){
-                    $data->hasDimensional = TRUE;
-                }
+        if($form->order) {
+            arr::order($all, 'amount', $form->order);
+        }
+
+        $p = array();
+
+        foreach($all as $key => $rec) {
+            list($p['d1'], $p['d2'], $p['d3'], $p['c1'], $p['c2'], $p['c3']) = explode('|', $key);
+
+            foreach($p as $part => $id) {
+                $rec->{$part} = $this->idToVerbal($id);
             }
+
+            $rec->amount = round($rec->amount, 2);
+            $rec->creditQuantity = round($rec->creditQuantity, 2);
+            $rec->debitQuantity = round($rec->debitQuantity, 2);
+
+            $data->rows[] = $rec;
         }
-        
-        // Обработваме обобщената информация
-        $this->prepareSummary($data);
-        
+       
+        $data->form = $form;
+
         return $data;
     }
     
@@ -423,9 +507,10 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
     public function renderEmbeddedData(&$embedderTpl, $data)
     {
         if(empty($data)) return;
-        
+     
+
         $tpl = $this->getReportLayout();
-        $tpl->replace($this->getReportTitle(), 'TITLE');
+        // $tpl->replace($this->getReportTitle(), 'TITLE');
         
         $tpl->placeObject($data->summary);
         $tpl->replace(acc_Periods::getBaseCurrencyCode(), 'baseCurrencyCode');
@@ -451,40 +536,78 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
                 $tpl->replace($btns->buttonList, 'buttonList');
                 $tpl->replace($btns->buttonPie, 'buttonPie');
             }
-        
         }
 
         $curUrl = getCurrentUrl();
         
         $pageVar = core_Pager::getPageVar($this->EmbedderRec->className, $this->EmbedderRec->that);
         
-        $pagePie = $pageVar . "_pie";
-        $pageBar = $pageVar . "_bar";
+        $f = cls::get('core_FieldSet');
 
-        if ($curUrl[$pagePie] == $this->EmbedderRec->that) {
-
-            $chart = $this->getChartPie($data);
-            $tpl->append($chart, 'CONTENT');
             
-        } elseif($curUrl[$pageBar] == $this->EmbedderRec->that){
-            $chart = $this->getChartBar($data);
-            $tpl->append($chart, 'CONTENT');
-
-        } else {
+        $formRec = $this->innerForm;
  
-            $f = cls::get('core_FieldSet');
-            $f->FLD('item1', 'varchar', 'tdClass=itemClass');
-            $f->FLD('item2', 'varchar', 'tdClass=itemClass');
-            $f->FLD('item3', 'varchar', 'tdClass=itemClass');
-            $f->FLD('item4', 'varchar', 'tdClass=itemClass');
-            $f->FLD('item5', 'varchar', 'tdClass=itemClass');
-            $f->FLD('item6', 'varchar', 'tdClass=itemClass');
-            foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount', 'delta',
-                           'debitQuantityCompare', 'debitAmountCompare', 'creditQuantityCompare', 'creditAmountCompare', 
-                           'blQuantityCompare', 'blAmountCompare', 'deltaCompare') as $fld){
-                $f->FLD($fld, 'int', 'tdClass=accCell');
-            }
-             
+        $dAccRec = acc_Accounts::fetch($formRec->dAcc);
+        
+        if($dAccRec->groupId1 && $formRec->dFeat1Act) {
+            if(($caption1d = $formRec->dFeat1) == '*') {
+                $caption1d = acc_Lists::fetch($dAccRec->groupId1)->name;
+            } 
+
+            $f->FLD('d1', 'varchar', "tdClass=itemClass,caption={$caption1d}");
+        }
+
+        if($dAccRec->groupId2 && $formRec->dFeat2Act) {
+            if(($caption2d = $formRec->dFeat2) == '*') {
+                $caption2d = acc_Lists::fetch($dAccRec->groupId2)->name;
+            } 
+
+            $f->FLD('d2', 'varchar', "tdClass=itemClass,caption={$caption2d}");
+        }
+
+        if($dAccRec->groupId3 && $formRec->dFeat3Act) {
+            if(($caption3d = $formRec->dFeat3) == '*') {
+                $caption3d = acc_Lists::fetch($dAccRec->groupId3)->name;
+            } 
+
+            $f->FLD('d3', 'varchar', "tdClass=itemClass,caption={$caption3d}");
+        }
+
+        $cAccRec = acc_Accounts::fetch($formRec->cAcc);
+        
+        if($cAccRec->groupId1 && $formRec->cFeat1Act) {
+            if(($caption1c = $formRec->cFeat1) == '*') {
+                $caption1c = acc_Lists::fetch($cAccRec->groupId1)->name;
+            } 
+
+            $f->FLD('c1', 'varchar', "tdClass=itemClass,caption={$caption1c}");
+        }
+
+        if($cAccRec->groupId2 && $formRec->cFeat2Act) {
+            if(($caption2c = $formRec->cFeat2) == '*') {
+                $caption2c = acc_Lists::fetch($cAccRec->groupId2)->name;
+            } 
+
+            $f->FLD('c2', 'varchar', "tdClass=itemClass,caption={$caption2c}");
+        }
+
+        if($cAccRec->groupId3 && $formRec->cFeat3Act) {
+            if(($caption3c = $formRec->cFeat3) == '*') {
+                $caption3c = acc_Lists::fetch($cAccRec->groupId3)->name;
+            } 
+
+            $f->FLD('c3', 'varchar', "tdClass=itemClass,caption={$caption3c}");
+        }
+
+
+        foreach (array('debitQuantity' => "Количество->Дебит", 'creditQuantity' => "Количество->Кредит", 'amount' => "Сума") as $fld => $caption){
+            $f->FLD($fld, 'int', 'tdClass=accCell,caption=' . $caption);
+        }
+        
+        foreach($f->fields as $name => $fRec) {
+            $data->listFields[$name] = $fRec->caption;
+        }
+ 
             // Рендираме таблицата
             $table = cls::get('core_TableView', array('mvc' => $f));
             $tableHtml = $table->get($data->rows, $data->listFields);
@@ -499,12 +622,10 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
             // Показваме данните от формата
             $form = cls::get('core_Form');
             $this->addEmbeddedFields($form);
-            $form->setField('baseAccountId', 'caption=Основна с-ка');
-            $form->setField('corespondentAccountId', 'caption=Кореспондент с-ка');
+
             $form->rec = $this->innerForm;
             $form->class = 'simpleForm';
-        }
-    
+     
         $this->prependStaticForm($tpl, 'FORM');
          
         $embedderTpl->append($tpl, 'data');
@@ -937,7 +1058,7 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
         $urlPie = $curUrl;
         
         $btnPie = ht::createBtn('Графика', $urlPie, NULL, NULL,
-                'ef_icon = img/16/chart16.png');
+                'ef_icon = img/16/chart_pie.png');
         
         $realUrl[$pageBar] = $this->EmbedderRec->that;
         $urlBar = $realUrl;

@@ -412,7 +412,8 @@ class drdata_Vats extends core_Manager
             default : 
                 return FALSE;
         }
-        //bp(preg_match($regex, $vat), $regex, $vat);
+
+
         return preg_match($regex, $vat);
     }
     

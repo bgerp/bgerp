@@ -89,7 +89,7 @@ class core_NT extends core_BaseClass
             $this->content = strtr($this->content, $fromTo);
         } else {
             // Все още не е реализирано
-            bp($this, $data, $place, $mode);
+            error('Все още не е реализирано', $this, $data, $place, $mode);
         }
 
         $this->removeUnchangedBlocks();

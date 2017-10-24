@@ -53,16 +53,18 @@ class fileman_webdrv_Text extends fileman_webdrv_Generic
         // Вземаме табовете от родителя
         $tabsArr = parent::getTabs($fRec);
         
-        // URL за показване на текстовата част на файловете
-        $textPart = toUrl(array('fileman_webdrv_Office', 'text', $fRec->fileHnd), TRUE);
-        
-        // Таб за текстовата част
-        $tabsArr['text'] = (object) 
-			array(
-				'title' => 'Текст',
-				'html'  => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("Текст") . "</div> <iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
-				'order' => 4,
-			);
+        if (self::canShowTab($fRec->fileHnd, 'text') || self::canShowTab($fRec->fileHnd, 'textOcr', TRUE, TRUE)) {
+            // URL за показване на текстовата част на файловете
+            $textPart = toUrl(array('fileman_webdrv_Office', 'text', $fRec->fileHnd), TRUE);
+            
+            // Таб за текстовата част
+            $tabsArr['text'] = (object)
+            array(
+                    'title' => 'Текст',
+                    'html'  => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("Текст") . "</div> <iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
+                    'order' => 4,
+            );
+        }
         
         return $tabsArr;
     }
@@ -71,85 +73,54 @@ class fileman_webdrv_Text extends fileman_webdrv_Generic
 	/**
      * Извлича текстовата част от файла
      * 
-     * @param object $fRec - Записите за файла
+     * @param object|string $fRec - Записите за файла
+     * 
+     * @return NULL|string
      */
     static function extractText($fRec)
     {
         // Параметри необходими за конвертирането
         $params = array(
-//            'callBack' => 'fileman_webdrv_Txt::afterExtractText',
-            'dataId' => $fRec->dataId,
-//        	'asynch' => TRUE,
             'createdBy' => core_Users::getCurrent('id'),
             'type' => 'text',
-            'fileHnd' => $fRec->fileHnd,
         );
         
+        $dId = self::prepareLockId($fRec);
+        
+        if (is_object($fRec)) {
+            $params['dataId'] = $fRec->dataId;
+            $params['fileHnd'] = $fRec->fileHnd;
+        }
+        
         // Променливата, с която ще заключим процеса
-        $params['lockId'] = static::getLockId($params['type'], $fRec->dataId);
-
+        $params['lockId'] = self::getLockId('text', $dId);
+        
         // Проверявама дали няма извлечена информация или не е заключен
         if (fileman_Indexes::isProcessStarted($params)) return ;
         
         // Заключваме процеса за определено време
         if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
             
-            $script = new stdClass();
-            $script->params = serialize($params);
+            // Вземаме съдържанието на файла
+            if ($params['fileHnd']) {
+                $text = fileman_Files::getContent($params['fileHnd']);
+            } else {
+                $text = @file_get_contents($fRec);
+            }
             
-            // Това е направено с цел да се запази логиката на работа на системата и възможност за раширение в бъдеще
-            static::afterExtractText($script);    
-        }
-    }
-    
-	
-	
-	/**
-     * Извиква се след приключване на извличането на текстовата част
-     * 
-     * @param object $script - Данни необходими за извличането и записването на текста
-     * 
-     * @return TRUE - Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
-     * и записа от таблицата fconv_Process
-     * 
-     * @access protected
-     */
-    static function afterExtractText($script)
-    {
-        
-        // Десериализираме нужните помощни данни
-        $params = unserialize($script->params);
-
-        // Проверяваме дали е имало грешка при предишното конвертиране
-        if (fileman_Indexes::haveErrors($params['fileHnd'], $params)) {
+            $text = mb_strcut($text, 0, 1000000);
+            $text = i18n_Charset::convertToUtf8($text);
             
-            // Отключваме предишния процес
+            if ($params['fileHnd']) {
+                // Обновяваме данните за запис във fileman_Indexes
+                $params['content'] = $text;
+                fileman_Indexes::saveContent($params);
+            }
+            
+            // Отключваме процеса
             core_Locks::release($params['lockId']);
             
-            return FALSE;
-        }
-        
-        // Вземаме съдържанието на файла
-        $text = fileman_Files::getContent($params['fileHnd']);
-        
-        $text = mb_strcut($text, 0, 1000000);
-        
-        $text = i18n_Charset::convertToUtf8($text);
-        
-        // Текстовата част
-        $params['content'] = $text;
-
-        // Обновяваме данните за запис във fileman_Indexes
-        $savedId = fileman_Indexes::saveContent($params);
-        
-        // Отключваме процеса
-        core_Locks::release($params['lockId']);
-        
-        if ($savedId) {
-
-            // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
-            // и записа от таблицата fconv_Process
-            return TRUE;
+            return $text;
         }
     }
 }

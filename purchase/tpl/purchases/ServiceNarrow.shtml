@@ -2,7 +2,7 @@
     <table class="innerTable border-table paddingCells">
             <tbody>
                 <tr>
-                    <td colspan="2" class='centered'>  
+                    <td class='centered'>
                         <div class="document-title">|ДОГОВОР ЗА ПОКУПКА НА УСЛУГА|*</div> 
                         <!--ET_BEGIN operationSysId-->
                         <small>( [#operationSysId#] )</small>
@@ -16,8 +16,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="cell custom-header-bg"  style="width: 50%"><b>|Получател|*</b></td>
-                    <td class="cell custom-header-bg"><b>|Доставчик|*</b></td>
+                    <td class="cell custom-header-bg"><b>|Получател|*</b></td>
                 </tr>
                 <tr>
                     <td>
@@ -32,7 +31,11 @@
                         </div>
                         <!--ET_END shipmentStoreId-->
                     </td>
-                    
+                </tr>
+                <tr>
+                    <td class="cell custom-header-bg"><b>|Доставчик|*</b></td>
+                </tr>
+                <tr>
                     <td>
                         <b>[#contragentName#]</b>
                         <div class='address-block'>
@@ -120,8 +123,11 @@
                         <li>|Доставка|*: [#deliveryTermId#]
                             <!--ET_BEGIN deliveryTime-->|до|* [#deliveryTime#]<!--ET_END deliveryTime--></li>
                         <!--ET_END deliveryBlock-->
+                        <!--ET_BEGIN deliveryTermTime-->
+                            <li>|Срок за доставка|* [#deliveryTermTime#] |след стартиране на договора|*</li>
+                            <!--ET_END deliveryTermTime--> 
                         <!--ET_BEGIN commonCondition-->
-                        <li>[#commonCondition#]</li>
+                        <li>|Общи условия по покупка|*: [#commonCondition#]</li>
                         <!--ET_END commonCondition-->
                     </ol>
                     <!--ET_BEGIN isDelivered-->

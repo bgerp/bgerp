@@ -149,7 +149,7 @@ class pos_Stocks extends core_Manager {
     	$receiptDetailsQuery = pos_ReceiptDetails::getQuery();
     	$receiptDetailsQuery->EXT('state', 'pos_Receipts', 'externalName=state,externalKey=receiptId');
     	$receiptDetailsQuery->EXT('pointId', 'pos_Receipts', 'externalName=pointId,externalKey=receiptId');
-    	$receiptDetailsQuery->where("#state = 'pending'");
+    	$receiptDetailsQuery->where("#state = 'waiting'");
     	$receiptDetailsQuery->where("#action LIKE '%sale%'");
     	$receiptDetailsQuery->show("state,productId,pointId,quantity,value,receiptId");
     	
@@ -265,7 +265,7 @@ class pos_Stocks extends core_Manager {
     
     
     /**
-     * След подготовка на туклбара на списъчния изглед
+     * След подготовка на тулбара на списъчния изглед
      *
      * @param core_Mvc $mvc
      * @param stdClass $data

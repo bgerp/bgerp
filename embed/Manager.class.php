@@ -72,9 +72,15 @@ class embed_Manager extends core_Master
 		// Извличаме позволените за избор опции
 		$interfaces = static::getAvailableDriverOptions();
 		
+		// Ако има избран вече склад, но го няма в опциите добавя се
+		if($rec->{$this->driverClassField} && !array_key_exists($rec->{$this->driverClassField}, $interfaces)) {
+			$name = core_Classes::fetchField($rec->{$this->driverClassField}, 'title');
+			$interfaces[$rec->{$this->driverClassField}] = core_Classes::translateClassName($name);
+		}
+		
 		// Ако няма достъпни драйвери редирект със съобщение
 		if(!count($interfaces)) {
-			redirect(array($this), FALSE, '|Липсват възможни видове|* ' . $mvc->title);
+			followRetUrl(NULL, '|Липсват възможни видове|* ' . $this->title, 'error');
 		} else {
 			$form->setOptions($this->driverClassField, $interfaces);
 			
@@ -128,7 +134,7 @@ class embed_Manager extends core_Master
 				$driver = cls::get($id, array('Embedder' => $me));
 		
 				// Ако потребителя не може да го избира, махаме го от масива
-				if(!$driver->canSelectDriver($userId)){
+				if(cls::existsMethod($driver, 'canSelectDriver') && !$driver->canSelectDriver($userId)){
 					unset($interfaces[$id]);
 				}
 			}
@@ -166,17 +172,34 @@ class embed_Manager extends core_Master
 	 * Преди запис в модела, компактираме полетата
 	 */
 	public function save_(&$rec, $fields = NULL, $mode = NULL)
-	{
+	{   
+        $saveDriverRec = FALSE;
+ 
 		if($driver = $this->getDriver($rec)){
+            $driverRec = array();
 			$addFields = self::getDriverFields($driver);
-			
+			 
 			foreach($addFields as $name => $caption) {
 				$driverRec[$name] = $rec->{$name};
+                $saveDriverRec = TRUE;
 			}
 			
 			$rec->driverRec = $driverRec;
 		}
-        
+
+        if($fields && (is_array($fields) || $fields != '*')) {
+            $fields = arr::make($fields, TRUE);
+            foreach($fields as $f => $dummy) {
+                if($addFields[$f] && !$this->getField($f, FALSE)) {
+                    unset($fields[$f]);
+                }
+            }
+        }
+
+        if($saveDriverRec && is_array($fields)) {
+            $fields['driverRec'] = 'driverRec';
+        }
+
         return parent::save_($rec, $fields, $mode);
 	}
 
@@ -238,9 +261,10 @@ class embed_Manager extends core_Master
 	 * 
 	 * @param core_BaseClass $driver - драйвер
 	 * @param boolean $onlySingleFields - дали да са само полетата за сингъл
+	 * @param boolean $returnAsFieldSet - дали да се върнат като фийлд сетове
 	 * @return array $res - добавените полета от драйвера
 	 */
-    public static function getDriverFields($driver, $onlySingleFields = FALSE)
+    public static function getDriverFields($driver, $onlySingleFields = FALSE, $returnAsFieldSet = FALSE)
     {
         $fieldset = cls::get('core_Fieldset');
         $driver->addFields($fieldset);
@@ -249,7 +273,8 @@ class embed_Manager extends core_Master
         if(is_array($fieldset->fields)) {
             foreach($fieldset->fields as $name => $f) {
             	if($onlySingleFields === TRUE && $f->single == 'none') continue;
-                $res[$name] = $f->caption;
+            	
+            	$res[$name] = ($returnAsFieldSet === FALSE) ? $f->caption : $f;
             }
         }
 
@@ -308,17 +333,12 @@ class embed_Manager extends core_Master
                     $driverClass = $args[0]->{$this->driverClassField};
                     break;
                 case 'aftergetsearchkeywords';
-                	$driverClass = $args[1]->{$this->driverClassField};
-                	break;
                 case 'beforesaveclonerec':
-                	$driverClass = $args[1]->{$this->driverClassField};
-                	break;
                 case 'beforesave':
-                	$driverClass = $args[1]->{$this->driverClassField};
                 case 'aftercreate':
-                	$driverClass = $args[1]->{$this->driverClassField};
-                	break;
                 case 'aftergetdetailstoclone':
+                case 'aftergetfieldforletterhead':
+                case 'aftergetfieldsnottoclone':
                 	$driverClass = $args[1]->{$this->driverClassField};
                 	break;
             }

@@ -66,10 +66,10 @@ class doc_plg_HidePrices extends core_Plugin
     protected static function canSeePriceFields($rec)
     {
     	// Ако има изброените роли, може да вижда цените
-    	if(haveRole('manager,ceo,officer,sales,store,purchase,acc')) return TRUE;
+    	if(haveRole('ceo,seePrice')) return TRUE;
     	
     	// Ако е контрактор, и е инсталиран пакета за контрактови и имаме тред
-    	if(core_Users::haveRole('collaborator') && core_Packs::isInstalled('colab') && $rec->threadId){
+    	if(core_Users::haveRole('partner') && core_Packs::isInstalled('colab') && $rec->threadId){
     		
     		// Ако контрактора може да види треда от външната част, то може и да види цялата ценова информация
     		$threadRec = doc_Threads::fetch($rec->threadId);

@@ -22,14 +22,27 @@ class planning_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {
+    	$this->TAB('planning_DirectProductionNote', 'Протоколи->Производство', 'ceo,planning,store');
+    	$this->TAB('planning_ConsumptionNotes', 'Протоколи->Влагане', 'ceo,planning,store');
+    	$this->TAB('planning_ReturnNotes', 'Протоколи->Връщане', 'ceo,planning,store');
     	$this->TAB('planning_Jobs', 'Задания', 'ceo,planning,job');
-    	$this->TAB('planning_ConsumptionNotes', 'Протоколи->Влагане', 'ceo,planning');
-    	$this->TAB('planning_ReturnNotes', 'Протоколи->Връщане', 'ceo,planning');
-    	$this->TAB('planning_DirectProductionNote', 'Протоколи->Производство', 'ceo,planning');
-    	$this->TAB('planning_Tasks', 'Задачи->Списък', 'ceo,planning');
-    	$this->TAB('planning_TaskActions', 'Задачи->Действия', 'ceo,planning');
     	$this->TAB('planning_AssetResources', 'Оборудване', 'ceo,planning');
     	
         $this->title = 'Планиране';
+    }
+    
+    
+    /**
+     * Дефолтен контролър
+     */
+    function act_getStartCtr()
+    {
+    	if(haveRole('ceo,planning,store')){
+    		redirect(array('planning_DirectProductionNote', 'list'));
+    	} elseif(haveRole('job')){
+    		redirect(array('planning_Jobs', 'list'));
+    	} else {
+    		redirect(array('planning_Tasks', 'list'));
+    	}
     }
 }

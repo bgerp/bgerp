@@ -30,6 +30,7 @@ class deals_plg_DpInvoice extends core_Plugin
 	    	
 	    	// Операция с авансовото плащане начисляване/намаляване
 	    	$mvc->FLD('dpOperation', 'enum(accrued=Начисляване, deducted=Приспадане, none=Няма)', 'caption=Авансово плащане->Операция,input=none,before=contragentName');
+	    	$mvc->FLD('dpReason', 'text(rows=2)', 'caption=Аванс->Основание,after=amountDeducted,autohide');
     	}
     }
     
@@ -112,6 +113,26 @@ class deals_plg_DpInvoice extends core_Plugin
     
     
     /**
+     * Функция, която прихваща след активирането на документа
+     */
+    public static function on_AfterActivation($mvc, &$rec)
+    {
+    	if(empty($rec->dpAmount) || empty($rec->dpOperation)) return;
+    	
+    	// Ако потребителя не е в група доставчици го включваме
+    	$rec = $mvc->fetchRec($rec);
+    	
+    	// Записване на основанието за аванс
+    	if(empty($rec->dpReason)){
+    		$rec->tplLang = $mvc->pushTemplateLg($rec->template);
+    		$rec->dpReason = self::getReasonText($rec, $rec->dpOperation);
+    		$mvc->save_($rec, 'dpReason');
+    		core_Lg::pop($rec->tplLang);
+    	}
+    }
+    
+    
+    /**
      * Подготвя дефолт стойностите за авансовите плащания
      * 
      * @param core_Form $form
@@ -132,20 +153,20 @@ class deals_plg_DpInvoice extends core_Plugin
     	
     	// Ако е проформа
     	if($mvc instanceof sales_Proformas){
-    		$accruedProformaRec = sales_Proformas::fetch("#threadId = {$rec->threadId} AND #state = 'active' AND #dpOperation = 'accrued'");
+    		//$accruedProformaRec = sales_Proformas::fetch("#threadId = {$rec->threadId} AND #state = 'active' AND #dpOperation = 'accrued'");
     		$hasDeductedProforma = sales_Proformas::fetchField("#threadId = {$rec->threadId} AND #state = 'active' AND #dpOperation = 'deducted'");
     		
     		// Ако има проформа за аванс и няма таква за приспадане, тази приспада
-    		if(!empty($accruedProformaRec) && empty($hasDeductedProforma)){
+    		if(empty($hasDeductedProforma)){
     			
-    			$dpAmount = (($accruedProformaRec->dealValue - $accruedProformaRec->discountAmount)+ $accruedProformaRec->vatAmount);
-    			$dpAmount = core_Math::roundNumber($dpAmount);
+    			//$dpAmount = (($accruedProformaRec->dealValue - $accruedProformaRec->discountAmount)+ $accruedProformaRec->vatAmount);
+    			$dpAmount = core_Math::roundNumber($invoicedDp);
     			$dpOperation = 'deducted';
     			$flag = FALSE;
+    		} else {
+    			// Ако има проформа за начисляване на аванс и за приспадане, не задаваме дефолти
+    			if($hasDeductedProforma) return;
     		}
-    		
-    		// Ако има проформа за начисляване на аванс и за приспадане, не задаваме дефолти
-    		if($accruedProformaRec && $hasDeductedProforma) return;
     	}
     	
     	if($flag === TRUE){
@@ -235,6 +256,7 @@ class deals_plg_DpInvoice extends core_Plugin
     	if(empty($form->dealInfo)) return;
     	
     	if ($form->isSubmitted()) {
+    		$changeAct = (core_Request::get('Act') == 'changefields');
     		
         	$rec = &$form->rec;
         	
@@ -263,7 +285,7 @@ class deals_plg_DpInvoice extends core_Plugin
 	    		}
 	    		
 	    		$downpayment = core_Math::roundNumber($downpayment / $rec->rate);
-	    		if($rec->dpAmount > $downpayment){
+	    		if($rec->dpAmount > ($downpayment * 1.05 + 1) && $changeAct !== TRUE){
 	    			$dVerbal = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($downpayment);
 	    			$warning = ($downpayment === (double)0) ? "Зададена е сума, без да се очаква аванс по сделката" : "|Въведения аванс е по-голям от очаквания|* <b>{$dVerbal} {$rec->currencyId}</b> |{$warningUnit}|*";
 	    			
@@ -274,16 +296,18 @@ class deals_plg_DpInvoice extends core_Plugin
 	    	if(isset($rec->amountDeducted)){
 	    		$rec->dpOperation = 'deducted';
 
-	    		if(empty($invoicedDp) || $invoicedDp == $deductedDp){
-	    			if(!($mvc instanceof sales_Proformas)){
-	    				$form->setWarning('amountDeducted', 'Избрано е приспадане на аванс, без да има начислен такъв');
+	    		if($changeAct !== TRUE){
+	    			if(empty($invoicedDp) || $invoicedDp == $deductedDp){
+	    				if(!($mvc instanceof sales_Proformas)){
+	    					$form->setWarning('amountDeducted', 'Избрано е приспадане на аванс, без да има начислен такъв');
+	    				}
+	    			} else {
+	    				if(abs($rec->dpAmount) > core_Math::roundNumber($invoicedDp - $deductedDp)){
+	    					$downpayment = core_Math::roundNumber(($invoicedDp - $deductedDp) / $rec->rate);
+	    					$dVerbal = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($downpayment);
+	    					$form->setWarning('amountDeducted', "|Въведеният за приспадане аванс е по-голям от начисления|* <b>{$dVerbal} {$rec->currencyId}</b> |{$warningUnit}|*");
+	    				}
 	    			}
-	    		} else {
-	    			if(abs($rec->dpAmount) > core_Math::roundNumber($invoicedDp - $deductedDp)){
-						$downpayment = core_Math::roundNumber(($invoicedDp - $deductedDp) / $rec->rate);
-						$dVerbal = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($downpayment);
-	    				$form->setWarning('amountDeducted', "|Въведеният за приспадане аванс е по-голям от начисления|* <b>{$dVerbal} {$rec->currencyId}</b> |{$warningUnit}|*");
-					}
 	    		}
 	    		
 	    		if(!$form->gotErrors()){
@@ -369,46 +393,90 @@ class deals_plg_DpInvoice extends core_Plugin
     		$tpl->removeBlock('NO_ROWS');
     	}
     	
-    	$firstDoc = doc_Threads::getFirstDocument($data->masterData->rec->threadId);
-    	$valior = $firstDoc->getVerbal('valior');
+    	$reason = (!empty($data->masterData->rec->dpReason)) ? $data->masterData->rec->dpReason : self::getReasonText($data->masterData->rec, $data->dpInfo->dpOperation);
     	
     	if($data->dpInfo->dpOperation == 'accrued'){
     		$colspan = count($data->listFields) - 1;
-    		$lastRow = new ET("<tr><td colspan='{$colspan}' style='text-indent:20px'>" . tr('Авансово плащане') . " " . tr('по договор') . " №{$firstDoc->that} " . tr('от') . " {$valior} <td style='text-align:right'>[#dpAmount#]</td></td></tr>");
+    		$lastRow = new ET("<tr><td colspan='{$colspan}' style='text-indent:20px'>" . tr('Авансово плащане') . " " . $reason . "<td style='text-align:right'>[#dpAmount#]</td></td></tr>");
     	} else {
     		$fields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $mvc->hideListFieldsIfEmpty);
     		
-    		$iQuery = $mvc->Master->getQuery();
-    		$iQuery->where("#state = 'active' AND #dpOperation = 'accrued'");
-    		$iQuery->where("#id != '{$rec->invoiceId}'");
-    		$iQuery->where("#threadId = '{$firstDoc->fetchField('threadId')}'");
-    		
-    		$handleArr = array();
-    		while($iRec = $iQuery->fetch()){
-    			$handleArr[$iRec->id] = "№" . $mvc->Master->recToVerbal($iRec)->number;
-    		}
-    		$accruedInvoices = count($handleArr);
-    		$handleString = implode(', ', $handleArr);
     		$colspan = count($fields) - 2;
-    		
-    		if($accruedInvoices == 1){
-    			$docTitle = ($mvc->Master instanceof sales_Proformas) ? 'по проформа' : 'по фактура';
-    			$misc = tr($docTitle) . " {$handleString}";
-    		} elseif($accruedInvoices) {
-    			$docTitle = ($mvc->Master instanceof sales_Proformas) ? 'по проформи' : 'по фактури';
-    			$misc = tr($docTitle) . " {$handleString}";
-    		} else {
-    			$misc = tr("по договор|* №{$firstDoc->that} |от|* {$valior}");
-    		}
-    		
     		$colspan1 = isset($fields['reff']) ? 2 : 1;
-    		$colspan = isset($fields['reff']) ? $colspan-1 : $colspan;
-    		$lastRow = new ET("<tr><td colspan={$colspan1}></td><td colspan='{$colspan}'>" . tr("Приспадане на авансово плащане") . " " . $misc . " <td style='text-align:right'>[#dpAmount#]</td></td></tr>");
+    		$colspan = isset($fields['reff']) ? $colspan - 1 : $colspan;
+    		
+    		$lastRow = new ET("<tr><td colspan={$colspan1}></td><td colspan='{$colspan}'>" . tr("Приспадане на авансово плащане") . " " . $reason . " <td style='text-align:right'>[#dpAmount#]</td></td></tr>");
     	}
     	
     	$lastRow->placeObject($data->dpInfo);
-    	
     	$tpl->append($lastRow, 'ROW_AFTER');
+    }
+    
+    
+    /**
+     * Връща дефолтното основание на аванса
+     * 
+     * @param stdClass $masterRec
+     * @param varchar $dpOperation
+     * @return string
+     */
+    private static function getReasonText($masterRec, $dpOperation)
+    {
+    	$firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
+    	$valior = $firstDoc->getVerbal('valior');
+    	 
+    	$deals = array();
+    	if($firstDoc->isInstanceOf('deals_DealMaster')){
+    		$closedDeals = $firstDoc->fetchField('closedDocuments');
+    		$closedDeals = keylist::toArray($closedDeals);
+    		foreach ($closedDeals as $id){
+    			$deals[] = "№{$id}";
+    		}
+    		$caption = 'договори';
+    	}
+    	 
+    	if(!count($deals)){
+    		$deals[] = "№{$firstDoc->that} " . tr("от|* {$valior}");
+    		$caption = 'договор';
+    	}
+    	
+    	if($data->dpInfo->dpOperation == 'accrued'){
+    		return tr("по {$caption}|* ") . implode(', ', $deals);
+    	}
+    		
+    	$iQuery = sales_Invoices::getQuery();
+    	$iQuery->where("#state = 'active' AND #dpOperation = 'accrued' AND #id != '{$masterRec->id}'");
+    	$iQuery->where("#threadId = '{$firstDoc->fetchField('threadId')}'");
+    		
+    	$pArr = $invArr = array();
+    	while($iRec = $iQuery->fetch()){
+    		$invArr[$iRec->id] = "№" . sales_Invoices::recToVerbal($iRec)->number;
+    	}
+    		
+    	$pQuery = sales_Proformas::getQuery();
+    	$pQuery->where("#state = 'active' AND #dpOperation = 'accrued' AND #id != '{$masterRec->id}'");
+    	$pQuery->where("#threadId = '{$firstDoc->fetchField('threadId')}'");
+    		 
+    	while($pRec = $pQuery->fetch()){
+    		$pArr[$pRec->id] = "№" . sales_Invoices::recToVerbal($pRec)->number;
+    	}
+    		
+    	$handleArr = count($invArr) ? $invArr : $pArr;
+    	$handleString = implode(', ', $handleArr);
+    		 
+    	$accruedInvoices = count($handleArr);
+    		
+    	if($accruedInvoices == 1){
+    		$docTitle = count($invArr) ? 'по фактура' : 'по проформа';
+    		$misc = tr($docTitle) . " {$handleString}";
+    	} elseif($accruedInvoices) {
+    		$docTitle = count($invArr) ? 'по фактури' : 'по проформи';
+    		$misc = tr($docTitle) . " {$handleString}";
+    	} else {
+    		$misc = tr("по {$caption}|* ") . implode(', ', $deals);
+    	}
+    		
+    	return $misc;
     }
     
     

@@ -25,13 +25,13 @@
 			<fieldset class="detail-info">
 				<legend class="groupTitle">|Настройки|*</legend>
 				
+				<!--ET_BEGIN protoFolder-->
+				<div class="groupList">[#protoFolder#]</div>
+			    <!--ET_END protoFolder-->
+			
 				<!--ET_BEGIN prefix-->
 					<div class="groupList"><span class='quiet'>|Начало код|*</span>: [#prefix#]</div>
 				<!--ET_END prefix-->
-				
-				<!--ET_BEGIN useAsProto-->
-					<div class="groupList"><span class='quiet'>|Използване на артикулите като прототипи|*</span>: [#useAsProto#]</div>
-				<!--ET_END useAsProto-->
 				
 				<!--ET_BEGIN measures-->
 					<div class="groupList"><span class='quiet'>|Мерки|*</span>: [#measures#]</div>

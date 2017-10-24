@@ -10,7 +10,7 @@
  * @category  bgerp
  * @package   ssh
  * @author    Dimitar Minekov <mitko@experta.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2016 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -21,7 +21,7 @@ class ssh_Hosts extends core_Master
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_Created, plg_Rejected, plg_RowTools, plg_State2, ssh_Wrapper';
+    public $loadList = 'plg_Created, plg_Rejected, plg_RowTools2, plg_State2, ssh_Wrapper';
                       
     
     /**
@@ -59,15 +59,11 @@ class ssh_Hosts extends core_Master
 	 */
 	public $canSingle = 'ceo, remote, admin';
 
+	
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'tools=Пулт,name=Име,state=Състояние,ip,port,user,createdBy';
-	
-	/**
-	 * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-	 */
-	public $rowToolsField = 'tools';
+	public $listFields = 'name=Име,state=Състояние,ip,port,user,createdBy';
 	
     
     /**
@@ -128,13 +124,6 @@ class ssh_Hosts extends core_Master
         $row->user = $rec->config['user'];
     }
     
-    /**
-     * Извлича запис по име
-     */
-//     public static function fetchByName($name)
-//     {
-//         return self::fetch(array ("#name = '[#1#]' COLLATE utf8_general_ci", $name));
-//     }
     
     /**
      * Връща конфигурацията на хост по id

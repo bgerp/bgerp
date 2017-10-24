@@ -31,20 +31,14 @@ class social_Followers extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'social_Wrapper, plg_Created, plg_State2, plg_RowTools, cms_DomainPlg';
+    var $loadList = 'social_Wrapper, plg_Created, plg_State2, plg_RowTools2, cms_DomainPlg';
     
     
     /**
      * Полета за листовия изглед
      */
-    var $listFields = '✍,title,url,icon,followersCnt,state,order';
+    var $listFields = 'title,url,icon,followersCnt,state,order';
 
-
-    /**
-     * Поле за инструментите на реда
-     */
-    var $rowToolsField = '✍';
-    
     
     /**
      * Кой има право да чете?
@@ -109,13 +103,22 @@ class social_Followers extends core_Master
 					
 				// Намираме името на функцията
 				$name = social_Sharings::getServiceNameByUrl($socUrl);
-					
+
+
+
+                if(log_Browsers::isRetina()) {
+                    $size = 48;
+                } else {
+                    $size = 24;
+                }
+
 				// Намираме иконата в sbf папката
-				$icon = sbf("cms/img/24/{$name}.png",'');
+				$icon = sbf("cms/img/{$size}/{$name}.png",'');
+
 			}
 				
 			// Създаваме иконата за бутона
-			$img = ht::createElement('img', array('src' => $icon, 'alt' => $socialNetwork->title));
+			$img = ht::createElement('img', array('src' => $icon, 'alt' => $socialNetwork->title, 'width' => 24, 'height' => 24));
 				
 			// Генерираме URL-то на бутона
 			$url = array('social_Followers', 'Redirect', $socialNetwork->id);

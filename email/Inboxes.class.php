@@ -28,7 +28,7 @@ class email_Inboxes extends core_Master
      */
     var $loadList = 'email_Wrapper, plg_State, plg_Created, 
     				 plg_Modified, doc_FolderPlg, plg_RowTools2, 
-    				 plg_Rejected';
+    				 plg_Rejected, doc_plg_Close';
     
     
     /**
@@ -52,7 +52,7 @@ class email_Inboxes extends core_Master
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin, email, manager';
+    var $canEdit = 'admin, email, manager, powerUser';
     
     
     /**
@@ -176,7 +176,7 @@ class email_Inboxes extends core_Master
     {
         $this->FLD("email", "email(link=no)", "caption=Имейл, mandatory, silent");
         $this->FLD("accountId", "key(mvc=email_Accounts, select=email)", 'caption=Сметка, refreshForm, mandatory, notNull, silent');
-        $this->FLD("notifyForEmail", "enum(yes=Винаги,no=Стандартно за системата)", 'caption=Нотификация за получен имейл->Избор, notNull');
+        $this->FLD("notifyForEmail", "enum(yes=Винаги,no=Стандартно за системата)", 'caption=Нотифициране на отговорниците за получен имейл->Избор, notNull');
         
         $this->setDbUnique('email');
     }
@@ -267,13 +267,13 @@ class email_Inboxes extends core_Master
     static function on_AfterPrepareEditForm($mvc, &$data)
     {
         // Вземам всички акаунти за които може да се създаде имейл
-        if ($data->form->rec->id) {
+        if ($data->form->rec->id && $data->form->rec->accountId) {
             $allAccounts = array();
             $allAccounts[$data->form->rec->accountId] = email_Accounts::fetch($data->form->rec->accountId);
         } else {
             $allAccounts = email_Accounts::getActiveAccounts(array('corporate', 'common'));
         }
-        
+
         if (empty($allAccounts)) {
             if (email_Accounts::haveRightFor('add')) {
                 
@@ -305,6 +305,14 @@ class email_Inboxes extends core_Master
             list(, $domain) = explode('@', $accRec->email);
             $data->form->setParams('email', array('placeholder' => '...@' . $domain));
         }
+        
+        if ($data->form->rec->id) {
+            if (!haveRole('admin, manager, email')) {
+                $data->form->setReadonly('email');
+                $data->form->setReadonly('accountId');
+                $data->form->setReadonly('notifyForEmail');
+            }
+        }
     }
     
     
@@ -334,21 +342,38 @@ class email_Inboxes extends core_Master
     /**
      * Връща масив с ключове - кутите (имейлите) и стойности - id-тата на сметките към които са
      * Ако е зададена $accId филтрира и оставя само кутиите, които са към посочената сметка
+     * 
+     * @param int $accId
+     * @param boolean $removeClosed
+     * @param boolean $removeRejected
+     * 
+     * @return array
      */
-    static function getAllInboxes($acId = 0)
+    static function getAllInboxes($accId = 0, $removeClosed = TRUE, $removeRejected = TRUE)
     {
-        if (!self::$allBoxes[$acId]) {
+        $key = $accId . '|' . $removeClosed . '|' . $removeRejected;
+        if (!self::$allBoxes[$key]) {
             $query = static::getQuery();
             $query->show('id, email, accountId');
             
+            if ($removeRejected) {
+                $query->where("#state != 'rejected'");
+            }
+
+            if ($removeClosed) {
+                $query->where("#state != 'closed'");
+            }
+            
+            self::$allBoxes[$key] = array();
+            
             while ($rec = $query->fetch()) {
                 if(($accId == 0) || ($accId == $rec->accountId)) {
-                    self::$allBoxes[$acId][$rec->email] = $rec->accountId;
+                    self::$allBoxes[$key][$rec->email] = $rec->accountId;
                 }
             }
         }
         
-        return  self::$allBoxes[$acId];
+        return self::$allBoxes[$key];
     }
     
     
@@ -362,7 +387,7 @@ class email_Inboxes extends core_Master
         // Ако сметката е частна, то $toBox е нейния имейл
         if($accRec->type == 'single') {
 
-            return $accRec->email;
+            return self::replaceDomains($accRec->email);
         }
         
         // Вземаме всички имейли
@@ -375,7 +400,7 @@ class email_Inboxes extends core_Master
         // Ако няма никакви имейли, към които е изпратено писмото, $toBox е имейла на сметката
         if (!is_array($emailsArr) || !count($emailsArr)) {
 
-            return $accRec->email;
+            return self::replaceDomains($accRec->email);
         }
 
         // Всички вътрешни кутии към тази сметка
@@ -387,7 +412,7 @@ class email_Inboxes extends core_Master
             // Първия имейл, който отговаря на кутия е $toBox
             if ($allBoxes[$eml]) {
                     
-                return $eml;
+                return self::replaceDomains($eml);
             }
         }
         
@@ -426,18 +451,51 @@ class email_Inboxes extends core_Master
                     
                     self::save($rec);
 
-                    return $rec->email;
+                    return self::replaceDomains($rec->email);
                 }
             }            
         }
         
         if ($bestEmail = self::getClosest($emailsArr)) {
             
-            return $bestEmail;
+            return self::replaceDomains($bestEmail);
         }
         
         // По подразбиране, $toBox е емейла на кутията от където се тегли писмото
-        return $accRec->email;
+        return self::replaceDomains($accRec->email);
+    }
+
+
+    /**
+     * В дадения имейл, замества alias-ите на домейните, които са посочени за замяна във web-конфигурацията
+     * 
+     * @param string $toEmail
+     * 
+     * @return string
+     */
+    public static function replaceDomains($toEmail)
+    {
+        static $replaceDomainArr;
+        if(!isset($replaceDomainArr)) {
+            $replaceDomainArr = strtolower(trim(email_Setup::get('REPLACE_DOMAINS')));
+            if($replaceDomainArr) {
+                $replaceDomainArr = arr::make($replaceDomainArr, TRUE);
+            } else {
+                $replaceDomainArr = FALSE;
+            }
+        }
+
+        if($replaceDomainArr && count($replaceDomainArr)) {
+            list($toNick, $toDomain) = explode('@', $toEmail);
+            foreach($replaceDomainArr as $fromReplace => $toReplace) {
+                if(strtolower($toDomain) == $fromReplace) {
+                    $toEmail = "{$toNick}@{$toReplace}";
+                    break;
+                }
+            }
+        }
+        
+        return $toEmail;
     }
     
     
@@ -554,7 +612,7 @@ class email_Inboxes extends core_Master
         $email = strtolower(trim($email));
 
         $rec = static::fetch("#email = '{$email}'");
-        
+      
         if (!$rec) {
             // Ако това е корпоративен имейл - създава кутията и папката към нея
             
@@ -565,11 +623,12 @@ class email_Inboxes extends core_Master
             if(!$corpAccRec) return FALSE;
             
             list($user, $domain) = explode('@', $email);
-            
+    
             if($domain == $corpAccRec->domain) {
-                $powerUsers = email_Inboxes::getPowerUsers();
+                $powerUsers = email_Inboxes::getPowerUsers(); 
+            
                 if($userRec = $powerUsers[$user]) {
-
+ 
                     $rec = new stdClass();
                     $rec->email = $email;
                     $rec->accountId = $corpAccRec;
@@ -772,7 +831,8 @@ class email_Inboxes extends core_Master
         $query->orWhereArr('id', $idsArr);
         
         if ($onlyWithNotify) {
-            $query->where("#notifyForEmail != 'no'");
+            $query->where("#notifyForEmail = 'yes'");
+            $query->where("#state != 'rejected'");
         }
         
         while ($rec = $query->fetch()) {
@@ -1021,8 +1081,9 @@ class email_Inboxes extends core_Master
             $userQuery = core_Users::getQuery();
             $powerRoles = core_Roles::getRolesAsKeylist('executive,officer,manager,ceo');
             $userQuery->likeKeylist('roles', $roles);
+            $userQuery->where("#state != 'rejected'");
             while($uRec = $userQuery->fetch()) {
-                $powerUsers[$uRec->nick] = $uRec;
+                $powerUsers[strtolower($uRec->nick)] = $uRec;
             }
         }
 
@@ -1034,13 +1095,14 @@ class email_Inboxes extends core_Master
      * Връща масив с всички имейл кутии
      * 
      * @param boolean $removeRejected
+     * @param boolean $removeClosed
      * 
      * @return array
      */
-    public static function getAllEmailsArr($removeRejected = FALSE)
+    public static function getAllEmailsArr($removeClosed = TRUE, $removeRejected = TRUE)
     {
         $cacheType = 'emailInboxes';
-        $cacheHandle = 'allEmails' . $removeRejected;
+        $cacheHandle = 'allEmails_' . $removeRejected . '_' . $removeClosed;
         $keepMinutes = 1000;
         $depends = array('email_Inboxes', 'email_Accounts');
         
@@ -1050,6 +1112,10 @@ class email_Inboxes extends core_Master
             
             if ($removeRejected) {
                 $query->where("#state != 'rejected'");
+            }
+            
+            if ($removeClosed) {
+                $query->where("#state != 'closed'");
             }
             
             $allEmailsArr = array();
@@ -1073,7 +1139,7 @@ class email_Inboxes extends core_Master
      */
     static function removeOurEmails($emailsArr)
     {
-        $emailForRemove = self::getAllEmailsArr(TRUE);
+        $emailForRemove = self::getAllEmailsArr();
         
         // Премахваме нашите имейли
         $allEmailsArr = array_diff($emailsArr, $emailForRemove);

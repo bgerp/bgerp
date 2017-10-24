@@ -1,16 +1,18 @@
-Дължина,cond_type_Double,см,length,,,yes,active
-Височина,cond_type_Double,см,height,,,yes,active
-Тегло,cond_type_Double,кг,weightKg,,,no,active,"min=0"
-Дебелина,cond_type_Double,см,thickness,,,yes,active
-Обем,cond_type_Double,куб.м,volume,,,no,active,"min=0"
-Обем,cond_type_Double,л,volumel,,,no,active,"min=0"
-Плътност,cond_type_Double,кг/м3,density,,,no,active
-Цвят,cond_type_Varchar,,color,,,yes,active
-Транспортно Тегло,cond_type_Double,кг,transportWeight,,,no,active,"min=0"
-Транспортен Обем,cond_type_Double,куб.м,transportVolume,,,no,active,"min=0"
-Толеранс,cond_type_Percent,,tolerance,,,no,active
-Срок,cond_type_Time,,term,,,no,active
-Широчина,cond_type_Double,см,width,,,yes,active
-Режийни разходи,cond_type_Percent,,expenses,,,no,active
-Изглед||Preview,cond_type_Image,,preview,,,no,active
-На етикета||Label text,cond_type_Text,,labelText,,,no,active
+Дължина,cond_type_Double,см,length,,,yes,active,"min=0",yes
+Височина,cond_type_Double,см,height,,,yes,active,"min=0",yes
+Тегло,cond_type_Double,кг,weightKg,,,no,active,"min=0",yes
+Дебелина,cond_type_Double,см,thickness,,,yes,active,,yes
+Обем,cond_type_Double,куб.м,volume,,,no,active,"min=0",yes
+Обем,cond_type_Double,л,volumel,,,no,active,"min=0",yes
+Плътност,cond_type_Double,кг/м3,density,,,no,active,,no
+Цвят,cond_type_Varchar,,color,,,yes,active,,yes
+Митнически номер,cond_type_Varchar,,customsTariffNumber,,,no,active,,no
+Транспортно Тегло,cond_type_Double,кг,transportWeight,,,no,active,"min=0",no
+Транспортен Обем,cond_type_Double,куб.м,transportVolume,,,no,active,"min=0",no
+Толеранс,cond_type_Percent,,tolerance,,,no,active,,no
+Срок на доставка,cond_type_Time,,term,,,no,active,,no
+Широчина,cond_type_Double,см,width,,,yes,active,,yes
+Режийни разходи,cond_type_Percent,,expenses,,,no,active,,no
+Изглед||Preview,cond_type_Image,,preview,,,no,active,,no
+На етикета||Label text,cond_type_Text,,labelText,,,no,active,,yes
+Спецификация,cond_type_Text,,specTpl,,,no,active,,no

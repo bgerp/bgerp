@@ -19,9 +19,8 @@
 class iban_Type extends type_Varchar
 {
     
-    function __construct()
+    static function loadCode()
     {
-        
         require_once('php-iban-' . iban_Setup::get('CODE_VERSION') . '/php-iban.php');
     }
     
@@ -40,6 +39,8 @@ class iban_Type extends type_Varchar
      */
     function isValid($value)
     {
+        self::loadCode();
+
         $value = trim($value);
         
         $res = new stdClass();
@@ -66,7 +67,9 @@ class iban_Type extends type_Varchar
      * Връща двубуквеното означение на държавата от където е този IBAN
      */
     static function getCountryPart($iban)
-    {
+    {   
+        self::loadCode();
+
         $self = cls::get(get_called_class());
         
     	$validIban = $self->isValid($iban);
@@ -83,7 +86,9 @@ class iban_Type extends type_Varchar
      * Връща кода на банката от IBAN номера
      */
     static function getBankPart($iban)
-    {
+    {   
+        self::loadCode();
+
         $self = cls::get(get_called_class());
         
     	$validIban = $self->isValid($iban);
@@ -101,6 +106,8 @@ class iban_Type extends type_Varchar
      */
     static function getParts($iban)
     {
+        self::loadCode();
+
         $self = cls::get(get_called_class());
         
     	$validIban = $self->isValid($iban);
@@ -160,7 +167,9 @@ class iban_Type extends type_Varchar
      * Връща каноническа форма на IBAN номера
      */
     function canonize($iban)
-    {
+    {   
+        self::loadCode();
+
         if($iban{0} == '#') {
             return trim(str_replace(array(' ', '-'), array('', ''), $iban));
         } else {

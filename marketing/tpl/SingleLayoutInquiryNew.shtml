@@ -25,7 +25,7 @@
 		    <table>
             <!--ET_BEGIN quantity1-->
             <tr>
-                <td class='quiet'>|Количество|*:</td>
+                <td class='quiet'>|Количество|* [#q1Number#]:</td>
                 <td  style='text-align:right'>[#quantity1#]</td>
             </tr>
             <!--ET_END quantity1-->

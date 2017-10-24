@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   doc
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -17,7 +17,11 @@ class doc_plg_Prototype extends core_Plugin
 {
 	
 	
-	
+	/**
+	 * Полета които да се ънсетват при зареждане на данни
+	 * 
+	 * @var array
+	 */
 	public static $unsetFields = array('id', 
 									   'threadId', 
 			                           'folderId', 
@@ -30,7 +34,8 @@ class doc_plg_Prototype extends core_Plugin
 			                           'modifiedOn', 
 			                           'searchKeywords', 
 			                           'lastUsedOn',
-									   'prototypeId', 
+									   'prototypeId',
+									   'proto', 
 									   'version',
 									   'subVersion', 
 									   'changeModifiedOn', 
@@ -44,9 +49,11 @@ class doc_plg_Prototype extends core_Plugin
 	public static function on_AfterDescription(&$mvc)
 	{
 		$mvc->declareInterface('doc_PrototypeSourceIntf');
+		setIfNot($mvc->protoFieldName, 'prototypeId');
+		setIfNot($mvc->protoFieldName, 'prototypeId');
 		
 		$after = ($mvc instanceof embed_Manager) ? $mvc->driverClassField : (($mvc instanceof core_Embedder) ? $mvc->driverClassField : 'id');
-		$mvc->FLD('prototypeId', "int", "caption=Шаблон,forceField,input=none,silent,removeAndRefreshForm=chargeVat,after={$after}");
+		$mvc->FLD($mvc->protoFieldName, "int", "caption=Шаблон,forceField,input=none,silent,after={$after}");
 	}
 	
 	
@@ -84,20 +91,20 @@ class doc_plg_Prototype extends core_Plugin
 		
 		if($mvc instanceof embed_Manager){
 			if(isset($form->rec->{$mvc->driverClassField})){
-				$prototypes = doc_Prototypes::getPrototypes($mvc, $form->rec->{$mvc->driverClassField});
+				$prototypes = doc_Prototypes::getPrototypes($mvc, $form->rec->{$mvc->driverClassField}, $form->rec->folderId);
 			}
 		} elseif($mvc instanceof core_Embedder){
 			if(isset($form->rec->{$mvc->innerClassField})){
-				$prototypes = doc_Prototypes::getPrototypes($mvc, $form->rec->{$mvc->innerClassField});
+				$prototypes = doc_Prototypes::getPrototypes($mvc, $form->rec->{$mvc->innerClassField}, $form->rec->folderId);
 			}
 		} else{
-			$prototypes = doc_Prototypes::getPrototypes($mvc);
+			$prototypes = doc_Prototypes::getPrototypes($mvc, NULL, $form->rec->folderId);
 		}
 		
 		// Ако има прототипи
 		if(count($prototypes)){
-			$form->setField('prototypeId', 'input');
-			$form->setOptions('prototypeId', array('' => '') + $prototypes);
+			$form->setField($mvc->protoFieldName, 'input');
+			$form->setOptions($mvc->protoFieldName, array('' => '') + $prototypes);
 				
 			// Определяне на кои полета ще се попълват от прототипа
 			$fields = arr::make(array_keys($mvc->selectFields()), TRUE);
@@ -108,10 +115,12 @@ class doc_plg_Prototype extends core_Plugin
 				}
 			} elseif($mvc instanceof embed_Manager){
 				if(isset($form->rec->{$mvc->driverClassField})){
-					if($Driver = cls::get($form->rec->{$mvc->driverClassField})){
-						$driverFields = arr::make(array_keys($mvc::getDriverFields($Driver)), TRUE);
-						if(count($driverFields)){
-							$fields += $driverFields;
+					if(cls::load($form->rec->{$mvc->driverClassField}, TRUE)){
+						if($Driver = cls::get($form->rec->{$mvc->driverClassField})){
+							$driverFields = arr::make(array_keys($mvc::getDriverFields($Driver)), TRUE);
+							if(count($driverFields)){
+								$fields += $driverFields;
+							}
 						}
 					}
 				}
@@ -126,12 +135,12 @@ class doc_plg_Prototype extends core_Plugin
 			// Добавяне на рефреш на полето
 			if(count($fields)){
 				$refresh = implode('|', array_keys($fields));
-				$form->setField('prototypeId', "removeAndRefreshForm={$refresh}");
+				$form->setField($mvc->protoFieldName, "removeAndRefreshForm={$refresh}");
 			}
 				
 			// При редакция прототипа не може да се сменя
 			if(isset($form->rec->id)){
-				$form->setField('prototypeId', 'input=hidden');
+				$form->setField($mvc->protoFieldName, 'input=hidden');
 			}
 		}
 		
@@ -139,7 +148,7 @@ class doc_plg_Prototype extends core_Plugin
 		if(empty($form->rec->id)){
 			
 			// И има избран прототип
-			if($proto = $form->rec->prototypeId) {
+			if($proto = $form->rec->{$mvc->protoFieldName}) {
 				if($protoRec = $mvc->fetch($proto)) {
 					$isCoreEmbedder = $mvc instanceof core_Embedder;
 					
@@ -171,7 +180,7 @@ class doc_plg_Prototype extends core_Plugin
         // Бутон за редакция на шаблона, ако има такъв
         if($pRec = doc_Prototypes::fetch("#originId = {$rec->containerId}")){
         	if(doc_Prototypes::haveRightFor('edit', $pRec)){
-        		$data->toolbar->addBtn('Шаблон', array('doc_Prototypes', 'edit', $pRec->id, 'ret_url' => TRUE), 'ef_icon=img/16/edit-icon.png, title=Редактиране на шаблона');
+        		$data->toolbar->addBtn('Шаблон', array('doc_Prototypes', 'edit', $pRec->id, 'ret_url' => TRUE), 'ef_icon=img/16/edit.png, title=Редактиране на шаблона');
         	}
         }
 	}
@@ -182,12 +191,52 @@ class doc_plg_Prototype extends core_Plugin
 	 */
 	public static function on_AfterCreate($mvc, $rec)
 	{
-		if(isset($rec->prototypeId) && ($rec->_isClone !== TRUE)){
-			$oldRec = (object)array('id' => $rec->prototypeId);
+		if(isset($rec->{$mvc->protoFieldName}) && ($rec->_isClone !== TRUE)){
+			$oldRec = (object)array('id' => $rec->{$mvc->protoFieldName});
 			
 			// След създаване на документ с избран прототип, клонират се детайлите му
 			$Details = $mvc->getDetailsToClone($rec);
-			plg_Clone::cloneDetails($Details, $rec->prototypeId, $rec->id);
+			plg_Clone::cloneDetails($Details, $rec->{$mvc->protoFieldName}, $rec->id);
+		}
+		
+		// Ако документа може да се добави като шаблон след създаването
+		if($rec->state == 'template'){
+			
+			// Създаване на шаблон
+			$driverClassId = ($mvc instanceof embed_Manager) ? $rec->{$mvc->driverClassField} : (($mvc instanceof core_Embedder) ? $rec->{$mvc->innerClassField} : NULL);
+			$templateTitle = doc_Prototypes::getTemplateTitle($mvc, $rec->id);
+			doc_Prototypes::add($templateTitle, $mvc, $rec->id, $driverClassId);
+			
+			$handle = $mvc->getHandle($rec->id);
+			core_Statuses::newStatus("|*#{$handle} |е добавен като шаблон|*");
+		}
+	}
+	
+	
+	/**
+	 * Метод по подразбиране дали документа може да бъде прототип
+	 */
+	public static function on_AfterCanBeTemplate($mvc, &$res, $id)
+	{
+		if(!isset($res)){
+			$rec = $mvc->fetchRec($id);
+			$res = ($rec->state == 'draft');
+		}
+	}
+	
+	
+	/**
+	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+	 */
+	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+	{
+		if($requiredRoles == 'no_one') return;
+		
+		if($action == 'changerec' && isset($rec)){
+			if($rec->state == 'template'){
+				$pRec = doc_Prototypes::fetch("#originId = {$rec->containerId}");
+				$requiredRoles = doc_Prototypes::getRequiredRoles('edit', $pRec);
+			}
 		}
 	}
 }

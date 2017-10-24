@@ -31,7 +31,7 @@ class core_Ajax extends core_Mvc
             
             // Очаквае заявката да е по AJAX - да има такъв хедър
             if (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) != 'xmlhttprequest') {
-                self::logWarning("Стартиране на core_Ajax::get() извън AJAX");
+                self::logNotice("Стартиране на core_Ajax::get() извън AJAX" . core_Type::mixedToString(Request::$vars) . '. IP: ' . core_Users::getRealIpAddr() . ' BRID: ' . log_Browsers::getBrid());
                 expect(FALSE);
             }
         }
@@ -115,7 +115,7 @@ class core_Ajax extends core_Mvc
                 $errMsg = "Грешка при вземане на данни от {$url} - {$e->getMessage()}";
                 
                 // Записваме в лога
-                self::logWarning($errMsg, NULL, self::$logKeepDays);
+                self::logNotice($errMsg, NULL, self::$logKeepDays);
                 
                 // Ако сме в дебъг режим и сме логнат
                 if (isDebug() && haveRole('user')) {

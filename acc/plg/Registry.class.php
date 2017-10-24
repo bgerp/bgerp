@@ -78,7 +78,7 @@ class acc_plg_Registry extends core_Plugin
     	if(!$added){
     		
     		// Ако е активно състоянието и обекта е перо
-    		if($rec->state != 'closed' && $rec->state != 'rejected'){
+    		if($rec->state != 'closed' && $rec->state != 'rejected' && $rec->state != 'stopped'){
     			
     			// Активираме перото
     			if($itemRec = acc_Items::fetchItem($mvc, $rec->id)){
@@ -99,7 +99,7 @@ class acc_plg_Registry extends core_Plugin
     	
     	// Ако обекта е затворен или оттеглен
     	// Отбелязваме перото му, че е за затваряне
-    	if($rec->state == 'rejected' || $rec->state == 'closed'){
+    	if($rec->state == 'rejected' || $rec->state == 'closed' || $rec->state == 'stopped'){
     		$mvc->closeItems[$rec->id] = $rec; 
     	}
     }
@@ -153,5 +153,16 @@ class acc_plg_Registry extends core_Plugin
                 $res = 'no_one';
             }
         }
+    }
+    
+    
+    /**
+     * Метод по подразбиране за връщане на сметките, върху които може да се задават лимити на перото
+     */
+    public static function on_AfterGetLimitAccounts($mvc, &$res, $rec)
+    {
+    	if(!$res){
+    		$res = (isset($mvc->balanceRefAccounts)) ? arr::make($mvc->balanceRefAccounts, TRUE) : array();
+    	}
     }
 }

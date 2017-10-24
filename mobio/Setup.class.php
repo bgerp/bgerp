@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Урл за изпращане на СМС-и през Мобио
+ * Урл за изпращане на SMS-и през Мобио
  */
 defIfNot('MOBIO_URL', '');
 
@@ -54,7 +54,7 @@ class mobio_Setup extends core_ProtoSetup
     
 
     var $configDescription = array (
-        'MOBIO_URL' => array('url', 'mandatory, caption=Адрес за изпращане на СМС-и през Мобио->URL адрес'),
+        'MOBIO_URL' => array('url', 'mandatory, caption=Адрес за изпращане на SMS-и през Мобио->URL адрес'),
     
         'MOBIO_SUPPORT_UTF8' => array('enum(no=Не, yes=Да)', 'caption=Дали поддържа UTF-8->Да/Не'),
         'MOBIO_MAX_STRING_LEN' => array('int',  'caption=Максималната дължина на стринга->Бр. символи'),

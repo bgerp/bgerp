@@ -1,0 +1,26 @@
+<!--ET_BEGIN BATCH-->
+[#BATCH#]
+<div class='small'>
+	<div class='richtext'>
+	[#btn#]
+	<div style='[#BATCH_STYLE#]'>
+	<table class='no-border' >
+		<tr>
+		   <td>
+		   	<!--ET_BEGIN BLOCK-->
+			[#BLOCK#]
+		   	[#batch#]
+		   	<!--ET_END BLOCK-->
+		   	</td>
+		</tr>
+		<!--ET_BEGIN NO_BATCH-->
+		[#NO_BATCH#]
+		<tr>
+		   <td>[#nobatch#]</td>
+		   <td style='padding-left:8px'>[#nobatchquantity#]</td>
+		</tr>
+		<!--ET_END NO_BATCH-->
+	</table></div>
+	</div>
+</div>
+<!--ET_END BATCH-->

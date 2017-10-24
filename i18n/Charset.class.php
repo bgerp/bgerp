@@ -523,6 +523,8 @@ class i18n_Charset extends core_MVC {
     {
         if(!($len = strlen($text))) return FALSE;
         
+        $maxTrays = 50000;
+        
         static $parts = array();
         $crc = crc32($text);
         
@@ -544,8 +546,10 @@ class i18n_Charset extends core_MVC {
                 $strCntArr = array();
         		
                 $p = 0;
+                $trays = 0;
                 while ('' != ($char = self::nextChar($text, $p))) {
-        			
+                    $trays++;
+                    
                     // В зависимост от положениети на маркера, определяме ключа
                     if ($p <= $partLen) {
                         $k = 'begin';
@@ -570,7 +574,7 @@ class i18n_Charset extends core_MVC {
                         // Ако сме намерили стринга, няма нужда да ходим до края в интервала
                         // Прескачаме на следващия интервал или, ако сме в края - прекъсваме
                         // Това е за бързодействие при стрингове със съдържание на символи различни от 7 бита
-                        if ($bitStr == $not7BitStr) {
+                        if ($bitStr == $not7BitStr || $trays > $maxTrays) {
                             if ($k == 'begin') {
                                 $p = $partLen;
                             } elseif ($k == 'mid') {
@@ -578,6 +582,7 @@ class i18n_Charset extends core_MVC {
                             } elseif ($k == 'end') {
                                 break;
                             }
+                            $trays = 0;
                         }
                     }
                 }

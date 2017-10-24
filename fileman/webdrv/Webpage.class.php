@@ -49,21 +49,26 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
         
         // Подготвяме табовете
         
-        // Таб за информация
-        $tabsArr['html'] = (object) 
-			array(
-				'title' => 'HTML',
-                'html'  => $htmlPart,
-				'order' => 3,
-			);
+        if (trim($htmlPart)) {
+            // Таб за информация
+            $tabsArr['html'] = (object)
+            array(
+                    'title' => 'HTML',
+                    'html'  => $htmlPart,
+                    'order' => 3,
+            );
+        }
         
-        // Таб за текстовата част
-        $tabsArr['text'] = (object) 
-			array(
-				'title' => 'Текст',
-				'html'  => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("Текст") . "</div>{$textPart}</div></div>",
-				'order' => 4,
-			);
+        $tPart = strip_tags($textPart);
+        if (trim($tPart)) {
+            // Таб за текстовата част
+            $tabsArr['text'] = (object)
+            array(
+                    'title' => 'Текст',
+                    'html'  => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("Текст") . "</div>{$textPart}</div></div>",
+                    'order' => 4,
+            );
+        }
 			
         return $tabsArr;
     }
@@ -99,9 +104,14 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
         
         // Инстанция на richtext типа
         $richText = cls::get('type_Richtext');
-
+        
         // Вземаме текстовата част в richEdit тип
-        $textPart = $richText->toVerbal(html2text_Converter::toRichText($content));
+        
+        $textPart = html2text_Converter::toRichText($content);
+        
+        $textPart = mb_substr($textPart, 0, 100000);
+        
+        $textPart = $richText->toVerbal($textPart);
         
         return $textPart;
     }
@@ -116,8 +126,12 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
      */
     static function getTextPart($fRec)
     {
-        // Съдържанието на файла
-        $content = fileman_Files::getContent($fRec->fileHnd);
+        if (is_object($fRec)) {
+            // Съдържанието на файла
+            $content = fileman_Files::getContent($fRec->fileHnd);
+        } elseif (is_file($fRec)) {
+            $content = @file_get_contents($fRec);
+        }
         
         // Интанция към класа
         $html2text = cls::get('html2text_Html2Text');
@@ -160,5 +174,58 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
         }
         
         return $content;
+    }
+    
+    
+	/**
+     * Извлича текстовата част от файла
+     * 
+     * @param object $fRec - Записите за файла
+     */
+    static function extractText($fRec)
+    {
+        // Параметри необходими за конвертирането
+        $params = array(
+            'createdBy' => core_Users::getCurrent('id'),
+            'type' => 'text',
+        );
+        
+        $dId = self::prepareLockId($fRec);
+        
+        if (is_object($fRec)) {
+            $params['dataId'] = $fRec->dataId;
+            $params['fileHnd'] = $fRec->fileHnd;
+        }
+        
+        // Променливата, с която ще заключим процеса
+        $params['lockId'] = self::getLockId('text', $dId);
+        
+        // Проверявама дали няма извлечена информация или не е заключен
+        if (fileman_Indexes::isProcessStarted($params)) return ;
+        
+        // Заключваме процеса за определено време
+        if (core_Locks::get($params['lockId'], 100, 0, FALSE)) {
+        	
+            // Вземаме текстовата част
+            if ($params['fileHnd']) {
+                $htmlPart = self::getInfoContentByFh($fRec->fileHnd, 'text');
+            } else {
+                $htmlPart = self::getTextPart($fRec);
+            }
+        	
+            $htmlPart = mb_strcut($htmlPart, 0, 1000000);
+            $htmlPart = i18n_Charset::convertToUtf8($htmlPart);
+        	
+            if ($params['fileHnd']) {
+                // Обновяваме данните за запис във fileman_Indexes
+                $params['content'] = $htmlPart;
+                fileman_Indexes::saveContent($params);
+            }
+        	
+            // Отключваме процеса
+            core_Locks::release($params['lockId']);
+        	
+            return $htmlPart;
+        }
     }
 }

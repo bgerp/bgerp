@@ -1,6 +1,6 @@
 <div class="singleView">
 [#SingleToolbar#]
-<div class='scrolling-holder'>
+<div>
 	<div class="folder-cover [#STATE_CLASS#]">
 		<div class="inner-folder">
 			<div class="block_title state-active special-title">[#SingleIcon#] [#name#]</div>
@@ -10,15 +10,15 @@
 						<table>
 							<tr>
 								<td class='dt'>|Каса|*:</td>
-								<td> <b>[#caseId#]</b></td>
+								<td>[#caseId#]</td>
 							</tr>
 							<tr>
 								<td class='dt'>|Склад|*:</td>
-								<td> <b>[#storeId#]</b></td>
+								<td>[#storeId#]</td>
 							</tr>
 							<tr>
 								<td class='dt'>|Политика|*:</td>
-								<td> [#policyId#]</td>
+								<td>[#policyId#]</td>
 							</tr>
 						</table>
 				</div>

@@ -65,6 +65,12 @@ class pos_Cards extends core_Manager {
     
     
     /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -86,15 +92,6 @@ class pos_Cards extends core_Manager {
     	if(isset($rec->contragentClassId) && isset($rec->contragentId)){
     		$data->form->title = core_Detail::getEditTitle($rec->contragentClassId, $rec->contragentId, $mvc->singleTitle, $rec->id, $mvc->formTitlePreposition);
     	}
-    }
-    
-    
-	/**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    protected static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-        $data->toolbar->removeBtn('btnAdd');
     }
     
     
@@ -140,9 +137,8 @@ class pos_Cards extends core_Manager {
     	}
     	
     	if($Contragent->haveRightFor('edit', $data->masterId) && $this->haveRightFor('add')){
-        	$img = sbf('img/16/add.png');
 		    $addUrl = array($this, 'add', 'contragentClassId' => $Contragent->getClassId(), 'contragentId' => $data->masterId, 'ret_url' => TRUE);
-		    $data->addBtn = ht::createLink('', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addSalecond', 'title' => 'Добавяне на нова клиентска карта')); 
+		    $data->addBtn = ht::createLink('', $addUrl, NULL, array('ef_icon' => 'img/16/add.png', 'class' => 'addSalecond', 'title' => 'Добавяне на нова клиентска карта')); 
         }
     }
     
@@ -180,7 +176,7 @@ class pos_Cards extends core_Manager {
      * 
      * @param varchar $number - номер на карта
      * @param int $ctrClassId - ид на класа от който трябва да е контрагента
-     * @return core_ObjectReference - референция към контрагента
+     * @return FALSE|core_ObjectReference - референция към контрагента
      */
     public static function getContragent($number, $ctrClassId = NULL)
     {
@@ -195,5 +191,18 @@ class pos_Cards extends core_Manager {
     	}
     	
     	return FALSE;
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec)){
+    		if(!cls::get($rec->contragentClassId)->haveRightFor('edit', $rec->contragentId)){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
     }
 }

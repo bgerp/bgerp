@@ -3,7 +3,7 @@
    <table class="innerTable border-table paddingCells">
       <tbody>
          <tr>
-            <td colspan="2" class='centered'>
+            <td class='centered'>
                <div class="document-title">|междускладов трансфер|*</div>
                <!--ET_BEGIN operationSysId-->
                <small>( [#operationSysId#] )</small>
@@ -17,8 +17,7 @@
             </td>
          </tr>
          <tr>
-            <td class="cell custom-header-bg"  style="width: 50%"><b>|От склад|*</b></td>
-            <td class="cell custom-header-bg"><b>|До склад|*</b></td>
+            <td class="cell custom-header-bg"><b>|От склад|*</b></td>
          </tr>
          <tr>
             <td>
@@ -27,6 +26,11 @@
                   [#fromAdress#]
                </div>
             </td>
+         </tr>
+         <tr>
+            <td class="cell custom-header-bg"><b>|До склад|*</b></td>
+         </tr>
+         <tr>
             <td>
                <b>[#toStore#]</b>
                <div class='address-block'>
@@ -53,7 +57,7 @@
             <table class='shipment-table' style='width:100%;'>
                <!--ET_BEGIN deliveryTime-->
                <tr>
-                  <td class='quiet nowrap aright' style='width:1%;'>|Срок до|*:</td>
+                  <td class='quiet nowrap aright' style='width:1%;'>|Натоварване|*:</td>
                   <td>[#deliveryTime#]</td>
                </tr>
                <!--ET_END deliveryTime-->

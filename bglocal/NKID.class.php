@@ -31,7 +31,7 @@ class bglocal_NKID extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, bglocal_Wrapper, plg_Printing,
+    var $loadList = 'plg_RowTools2, bglocal_Wrapper, plg_Printing,
                        plg_SaveAndNew';
     
     

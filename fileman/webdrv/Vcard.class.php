@@ -455,4 +455,15 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
 	    
 	    return $str;
 	}
+    
+    
+	/**
+     * Извлича текстовата част от файла
+     * 
+     * @param object $fRec - Записите за файла
+     */
+    static function extractText($fRec)
+    {
+        fileman_webdrv_Text::extractText($fRec);
+    }
 }
