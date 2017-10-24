@@ -462,10 +462,6 @@ class planning_ProductionTaskDetails extends core_Detail
     		if($mvc->haveRightFor('add', (object)array('taskId' => $data->masterId, 'type' => 'waste'))){
     			$data->toolbar->addBtn('Отпадък', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'waste', 'ret_url' => TRUE), FALSE, 'ef_icon = img/16/recycle.png,title=Добавяне на отпаден артикул');
     		}
-    		
-    		if($mvc->haveRightFor('add', (object)array('taskId' => $data->masterId, 'type' => 'start'))){
-    			$data->toolbar->addBtn('Пускане', array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'start', 'ret_url' => TRUE), FALSE, 'ef_icon = img/16/media_playback_start.png,title=Пускане на произведения артикул');
-    		}
     	}
     	
     	// Махане на кошчето
@@ -524,17 +520,6 @@ class planning_ProductionTaskDetails extends core_Detail
     			$requiredRoles = 'no_one';
     		}
     	}
-    	
-    	// Ограничаване на броя на пусканията, според конфигурацията
-    	if(($action == 'add' || $action == 'restore') && $rec->type == 'start'){
-    		$counter = core_Packs::getConfigValue('planning', 'PLANNING_TASK_START_COUNTER');
-    		$count = self::count("#taskId = {$rec->taskId} AND #type = 'start' AND #state != 'rejected'");
-    		
-    		// Не може да бъде надминат максималния брой пускания
-    		if($count >= $counter){
-    			$requiredRoles = 'no_one';
-    		}
-    	}
     }
 
 
@@ -544,7 +529,7 @@ class planning_ProductionTaskDetails extends core_Detail
     protected static function on_BeforePrepareEditTitle($mvc, &$res, $data)
     {
     	$rec = &$data->form->rec;
-    	$data->singleTitle = ($rec->type == 'input') ? 'влагане' : (($rec->type == 'waste') ? 'отпадък' : (($rec->type == 'start') ? 'пускане' : 'произвеждане'));
+    	$data->singleTitle = ($rec->type == 'input') ? 'влагане' : (($rec->type == 'waste') ? 'отпадък' : 'произвеждане');
     }
     
     
@@ -587,9 +572,6 @@ class planning_ProductionTaskDetails extends core_Detail
                case 'product':
                		$taskInfo = planning_Tasks::fetch($rec->taskId);
                		$time = (!empty($taskInfo->startTime)) ? ($taskInfo->startTime / $taskInfo->quantityInPack) : NULL;
-                    break;
-               case 'start':
-                    $time = planning_Tasks::fetch($rec->taskId)->indTime;
                     break;
             }
             

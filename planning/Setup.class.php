@@ -2,12 +2,6 @@
 
 
 /**
- *  Колко пъти задачата за производство може да се пуска
- */
-defIfNot('PLANNING_TASK_START_COUNTER', 1);
-
-
-/**
  *  Стартов сериен номер при производствените операции
  */
 defIfNot('PLANNING_TASK_SERIAL_COUNTER', 1000);
@@ -93,7 +87,6 @@ class planning_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
     		'PLANNING_TASK_SERIAL_COUNTER'         => array('int', 'caption=Производствени операции->Стартов сериен номер'),
-    		'PLANNING_TASK_START_COUNTER'          => array('int', 'caption=Производствени операции->Макс. брой стартирания'),
     		'PLANNING_TASK_LABEL_PREVIEW_WIDTH'    => array('int', 'caption=Превю на артикула в етикета->Широчина,unit=px'),
     		'PLANNING_TASK_LABEL_PREVIEW_HEIGHT'   => array('int', 'caption=Превю на артикула в етикета->Височина,unit=px'),
     		'PLANNING_CONSUMPTION_USE_AS_RESOURCE' => array('enum(yes=Да,no=Не)', 'caption=Детайлно влагане по подразбиране->Избор'),
