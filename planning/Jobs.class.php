@@ -196,7 +196,7 @@ class planning_Jobs extends core_Master
     	$this->FLD('quantityFromTasks', 'double(decimals=2)', 'input=none,caption=Количество->Произведено,notNull,value=0');
     	$this->FLD('quantityProduced', 'double(decimals=2)', 'input=none,caption=Количество->Заскладено,notNull,value=0');
     	$this->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Забележки');
-    	$this->FLD('tolerance', 'percent', 'caption=Толеранс,silent');
+    	$this->FLD('tolerance', 'percent(suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=Толеранс,silent');
     	$this->FLD('department', 'key(mvc=hr_Departments,select=name,allowEmpty)', 'caption=Структурно звено');
     	$this->FLD('deliveryDate', 'date(smartTime)', 'caption=Данни от договора->Срок');
     	$this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Данни от договора->Условие');
@@ -277,8 +277,6 @@ class planning_Jobs extends core_Master
     	} else {
     		$form->setField('packagingId', 'input');
     	}
-    	
-    	$form->setSuggestions('tolerance', array('' => '') + arr::make('5 %,10 %,15 %,20 %,25 %,30 %', TRUE));
     	
 		if($tolerance = cat_Products::getParams($rec->productId, 'tolerance')){
     		$form->setDefault('tolerance', $tolerance);

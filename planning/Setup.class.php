@@ -123,7 +123,8 @@ class planning_Setup extends core_ProtoSetup
     		'migrate::migrateJobs',
     		'migrate::addPackToNotes',
     		'migrate::addPackToJobs',
-    		'migrate::deleteTasks1'
+    		'migrate::deleteTasks2',
+    		'migrate::deleteTaskCronUpdate',
         );
 
         
@@ -319,7 +320,7 @@ class planning_Setup extends core_ProtoSetup
     /**
      * Изтрива старите производствени операции
      */
-    public static function deleteTasks1()
+    public static function deleteTasks2()
     {
     	$Tasks = cls::get('planning_Tasks');
     	$Tasks->setupMvc();
@@ -337,5 +338,14 @@ class planning_Setup extends core_ProtoSetup
     	$query = doc_Containers::getQuery();
     	$query->where("#docClass = {$taskClassId}");
     	$query->delete();
+    }
+    
+    
+    /**
+     * Изтриване на крон метод
+     */
+    public function deleteTaskCronUpdate()
+    {
+    	core_Cron::delete("#systemId = 'Update Tasks States'");
     }
 }

@@ -204,7 +204,8 @@ class doc_plg_Prototype extends core_Plugin
 			
 			// Създаване на шаблон
 			$driverClassId = ($mvc instanceof embed_Manager) ? $rec->{$mvc->driverClassField} : (($mvc instanceof core_Embedder) ? $rec->{$mvc->innerClassField} : NULL);
-			doc_Prototypes::add($mvc->getTitleById($rec->id), $mvc, $rec->id, $driverClassId);
+			$templateTitle = doc_Prototypes::getTemplateTitle($mvc, $rec->id);
+			doc_Prototypes::add($templateTitle, $mvc, $rec->id, $driverClassId);
 			
 			$handle = $mvc->getHandle($rec->id);
 			core_Statuses::newStatus("|*#{$handle} |е добавен като шаблон|*");

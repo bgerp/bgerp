@@ -1729,7 +1729,7 @@ class cat_Products extends embed_Manager {
      */
     public static function getRecTitle($rec, $escaped = TRUE)
     {
-    	$rec->name = static::getDisplayName($rec);
+    	$rec->name = self::getDisplayName($rec);
     	static::setCodeIfEmpty($rec);
     	
     	return parent::getRecTitle($rec, $escaped);
@@ -2019,7 +2019,7 @@ class cat_Products extends embed_Manager {
      * Връща хендлъра на изображението представящо артикула, ако има такова
      * 
      * @param mixed $id - ид или запис
-     * @return fileman_FileType $hnd - файлов хендлър на изображението
+     * @return string - файлов хендлър на изображението
      */
     public function getIcon($id)
     {
@@ -2160,7 +2160,7 @@ class cat_Products extends embed_Manager {
     	if(!$item2) return NULL;
     	
     	$item1 = '*';
-    	if($storeId){
+    	if(!empty($storeId)){
     		$item1 = acc_Items::fetchItem('store_Stores', $storeId)->id;
     	}
     	
@@ -2380,37 +2380,32 @@ class cat_Products extends embed_Manager {
     
     /**
      * Подготвя обект от компонентите на даден артикул
-     *
+     * 
      * @param int $productId
-     * @param str $typeBom
      * @param array $res
-     * @param int $level
-     * @param string $code
-     * @return void
+     * @param string $documentType
+     * @param number $componentQuantity
+     * @param string $typeBom
+     * @return array
      */
-    public static function prepareComponents($productId, &$res = array(), $documentType = 'internal', $compontQuantity = 1, $typeBom = NULL)
+    public static function prepareComponents($productId, &$res = array(), $documentType = 'internal', $componentQuantity = 1, $typeBom = NULL)
     {
-        if($typeBom) { 
-        	// Имали последна активна търговска рецепта за артикула?
-        	$rec = cat_Products::getLastActiveBom($productId, $typeBom);
-        } else { 
-            $rec = cat_Products::getLastActiveBom($productId, 'sales');
-        }
+    	$typeBom = (!empty($typeBom)) ? $typeBom : 'sales';
+    	$rec = cat_Products::getLastActiveBom($productId, $typeBom);
     	
     	// Ако няма последна активна рецепта, и сме на 0-во ниво ще показваме от черновите ако има
-    	if(!$rec && $level == 0){
+    	if(empty($rec)){
     		$bQuery = cat_Boms::getQuery();
     		$bQuery->where("#productId = {$productId} AND #state = 'draft' AND #type = 'sales'");
     		$bQuery->orderBy('id', 'DESC');
     		$rec = $bQuery->fetch();
     	}
     	
-    	if(!$rec) return $res;
+    	if(!$rec || cat_Boms::showInProduct($rec) === FALSE) return $res;
     	
     	// Кои детайли от нея ще показваме като компоненти
     	$details = cat_BomDetails::getOrderedBomDetails($rec->id);
-    	$qQuantity = $compontQuantity;
-    	
+    	$qQuantity = $componentQuantity;
     	
     	if(is_array($details)){
     		$fields = cls::get('cat_BomDetails')->selectFields();
@@ -2433,7 +2428,6 @@ class cat_Products extends embed_Manager {
     			
     			$obj->title = cat_Products::getTitleById($dRec->resourceId);
     			$obj->measureId = $row->packagingId;
-    			
     			$obj->quantity = ($dRec->rowQuantity == cat_BomDetails::CALC_ERROR) ? $dRec->rowQuantity : $dRec->rowQuantity;
     			
     			$obj->level = substr_count($obj->code, '.');

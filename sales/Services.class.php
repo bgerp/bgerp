@@ -129,12 +129,6 @@ class sales_Services extends deals_ServiceMaster
      * Групиране на документите
      */
     public $newBtnGroup = "3.81|Търговия";
-   
-    
-    /**
-     * Полета свързани с цени
-     */
-    public $priceFields = 'amountDelivered';
     
     
     /**
@@ -164,15 +158,7 @@ class sales_Services extends deals_ServiceMaster
     /**
      * Стратегии за дефолт стойностти
      */
-    public static $defaultStrategies = array(
-    		'received' => 'lastDocUser|lastDoc',
-    );
-    
-    
-    /**
-     * Поле за филтриране по дата
-     */
-    public $filterDateField = 'createdOn, valior,deliveryTime,modifiedOn';
+    public static $defaultStrategies = array('received' => 'lastDocUser|lastDoc');
     
     
     /**
@@ -187,7 +173,7 @@ class sales_Services extends deals_ServiceMaster
     /**
      * Преди показване на форма за добавяне/промяна
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$data->form->setDefault('delivered', core_Users::getCurrent('names'));
     }
@@ -214,21 +200,12 @@ class sales_Services extends deals_ServiceMaster
        
         $res .= doc_TplManager::addOnce($this, $tplArr);
     }
-     
-     
-	/**
-     * Връща разбираемо за човека заглавие, отговарящо на записа
-     */
-    static function getRecTitle($rec, $escaped = TRUE)
-    {
-        return tr("|Предавателен протокол|* №") . $rec->id;
-    }
     
     
     /**
      * След изпращане на формата
      */
-    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
     	if ($form->isSubmitted()) {
     		$rec = &$form->rec;
@@ -306,7 +283,7 @@ class sales_Services extends deals_ServiceMaster
     					$data->toolbar->addBtn('Проформа', array('sales_Proformas', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на проформа фактура към предавателния протокол,ef_icon=img/16/proforma.png');
     				}
     			}
-    		} elseif($rec->state == 'active'){
+    		} elseif($rec->state == 'active' || $rec->state == 'pending'){
     			
     			// Ако има фактура към протокола, правим линк към нея, иначе бутон за създаване на нова
     			if($iRec = sales_Invoices::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")){
@@ -327,7 +304,7 @@ class sales_Services extends deals_ServiceMaster
     /**
      * Преди запис на документ
      */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
     	if(empty($rec->originId)){
     		$rec->originId = doc_Threads::getFirstContainerId($rec->threadId);

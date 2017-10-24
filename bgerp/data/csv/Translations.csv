@@ -2393,11 +2393,10 @@ en,незабавно,immediately
 en,Ваш номер,Your number
 en,Предупреждения,Warnings
 en,Игнорирай предупрежденията,Ignore warnings
-en,срок за д-ка,Delivery time
-en,толеранс к-во,Qty tolerance
+en,Толеранс к-во,Q-ty tolerance
 en,Клониране на артикула,Clone product
 en,Клониране на реда,Clone row
-en,Толеранс, Tolerance
+en,23.10.2017 г., Tolerance
 en,тегло,weight
 en,дължина,length
 en,Дължина,Length
@@ -2406,3 +2405,4 @@ en,До 1 месец след фактуриране, Until 1 month after invoic
 en,50% авансово и 50% до 30 дни след фактуриране, 50% downpayment and 50% until 30 days after invoicing
 en,50% авансово и 50% до 10 дни след фактуриране, 50% downpayment and 50% until 10 days after invoicing
 en,По проформа,From pro forma
+en,Срок за д-ка,Delivery time

@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -23,12 +23,6 @@ class store_Receipts extends store_DocumentMaster
      * Заглавие
      */
     public $title = 'Складови разписки';
-
-
-    /**
-     * Флаг, който указва, че документа е партньорски
-     */
-    public $visibleForPartners = TRUE;
     
     
     /**
@@ -44,16 +38,10 @@ class store_Receipts extends store_DocumentMaster
     
     
     /**
-     * Поле в което се замества шаблона от doc_TplManager
-     */
-    public $templateFld = 'SINGLE_CONTENT';
-    
-    
-    /**
      * Поддържани интерфейси
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf,
-                          acc_TransactionSourceIntf=store_transaction_Receipt, bgerp_DealIntf,trans_LogisticDataIntf';
+                          acc_TransactionSourceIntf=store_transaction_Receipt, bgerp_DealIntf,trans_LogisticDataIntf,deals_InvoiceSourceIntf';
     
     
     /**
@@ -130,7 +118,7 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'folderId';
+    public $searchFields = 'folderId,storeId,note';
 
     
     /**
@@ -168,21 +156,7 @@ class store_Receipts extends store_DocumentMaster
      */
     protected static $defOperationSysId = 'delivery';
     
-    
-    /**
-     * Стратегии за дефолт стойностти
-     */
-    public static $defaultStrategies = array(
-    		'template' => 'lastDocUser|lastDoc|LastDocSameCuntry',
-    );
 	
-	
-    /**
-     * Да се показва антетка
-     */
-    public $showLetterHead = TRUE;
-    
-    
     /**
      * Показва броя на записите в лога за съответното действие в документа
      */
@@ -225,7 +199,7 @@ class store_Receipts extends store_DocumentMaster
 	/**
      * След изпращане на формата
      */
-    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
         if ($form->isSubmitted()) {
         	$rec = &$form->rec;
@@ -242,7 +216,7 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Преди показване на форма за добавяне/промяна
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$data->form->setField('locationId', 'caption=Обект от');
     }
@@ -304,5 +278,34 @@ class store_Receipts extends store_DocumentMaster
     					  'toggleFields' => array('masterFld' => NULL, 'store_ReceiptDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
     	
         $res .= doc_TplManager::addOnce($this, $tplArr);
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	$rec = $data->rec;
+    	 
+    	if($rec->isReverse == 'no'){
+    		if($rec->state == 'active' || $rec->state == 'draft' || $rec->state == 'pending'){
+    			 
+    			// Ако има фактура към протокола, правим линк към нея, иначе бутон за създаване на нова
+    			if($iRec = purchase_Invoices::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")){
+    				if(purchase_Invoices::haveRightFor('single', $iRec)){
+    					$arrow = html_entity_decode('&#9660;', ENT_COMPAT | ENT_HTML401, 'UTF-8');
+    					$data->toolbar->addBtn("Вх. фактура|* {$arrow}", array('purchase_Invoices', 'single', $iRec->id, 'ret_url' => TRUE), 'title=Отваряне на входящата фактура издадена към складова разписка,ef_icon=img/16/invoice.png');
+    				}
+    			} else {
+    				if(purchase_Invoices::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'sourceContainerId' => $rec->containerId))){
+    					$data->toolbar->addBtn('Вх. фактура', array('purchase_Invoices', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на входяща фактура към складова разписка,ef_icon=img/16/invoice.png,row=2');
+    				}
+    			}
+    		}
+    	}
     }
 }

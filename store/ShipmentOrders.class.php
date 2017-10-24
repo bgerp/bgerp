@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov<ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -25,12 +25,6 @@ class store_ShipmentOrders extends store_DocumentMaster
      * @var string
      */
     public $title = 'Експедиционни нареждания';
-
-
-    /**
-     * Флаг, който указва, че документа е партньорски
-     */
-    public $visibleForPartners = TRUE;
     
     
     /**
@@ -43,7 +37,7 @@ class store_ShipmentOrders extends store_DocumentMaster
      * Поддържани интерфейси
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf,
-                          acc_TransactionSourceIntf=store_transaction_ShipmentOrder, bgerp_DealIntf,deals_InvoiceSourceIntf,trans_LogisticDataIntf,label_SequenceIntf';
+                          acc_TransactionSourceIntf=store_transaction_ShipmentOrder, bgerp_DealIntf,trans_LogisticDataIntf,label_SequenceIntf';
     
     
     /**
@@ -120,7 +114,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'folderId,currencyId';
+    public $searchFields = 'folderId,locationId,company,person,tel,pCode,place,address,note';
     
     
     /**
@@ -164,23 +158,6 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     protected static $defOperationSysId = 'delivery';
     
-    
-    /**
-     * Поле в което се замества шаблона от doc_TplManager
-     */
-    public $templateFld = 'SINGLE_CONTENT';
-    
-    
-    /**
-     * Стратегии за дефолт стойностти
-     */
-    public static $defaultStrategies = array('template' => 'lastDocUser|lastDoc|LastDocSameCuntry');
-    
-    
-    /**
-     * Да се показва антетка
-     */
-    public $showLetterHead = TRUE;
     
     
     /**
@@ -245,7 +222,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Преди показване на форма за добавяне/промяна
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	if(!isset($data->form->rec->id)){
     		$origin = static::getOrigin($data->form->rec);
@@ -259,7 +236,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * След рендиране на сингъла
      */
-    public static function on_AfterRenderSingle($mvc, $tpl, $data)
+    protected static function on_AfterRenderSingle($mvc, $tpl, $data)
     {
     	$tpl->append(sbf('img/16/toggle1.png', "'"), 'iconPlus');
     	if($data->rec->country){
@@ -286,7 +263,7 @@ class store_ShipmentOrders extends store_DocumentMaster
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
     {
     	core_Lg::push($rec->tplLang);
     	
@@ -341,7 +318,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * След изпращане на формата
      */
-    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
         if ($form->isSubmitted()) {
         	$rec = &$form->rec;
@@ -439,91 +416,6 @@ class store_ShipmentOrders extends store_DocumentMaster
     
     
     /**
-     * Артикули които да се заредят във фактурата/проформата, когато е създадена от
-     * определен документ
-     *
-     * @param mixed $id - ид или запис на документа
-     * @param deals_InvoiceMaster $forMvc - клас наследник на deals_InvoiceMaster в който ще наливаме детайлите
-     * @return array $details - масив с артикули готови за запис
-     * 				  o productId      - ид на артикул
-     * 				  o packagingId    - ид на опаковка/основна мярка
-     * 				  o quantity       - количество опаковка
-     * 				  o quantityInPack - количество в опаковката
-     * 				  o discount       - отстъпка
-     * 				  o price          - цена за единица от основната мярка
-     */
-    public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc)
-    {
-    	$details = array();
-    	$rec = static::fetchRec($id);
-    	 
-    	$query = store_ShipmentOrderDetails::getQuery();
-    	$query->where("#shipmentId = {$rec->id}");
-    	
-    	while($dRec = $query->fetch()){
-    		$dRec->quantity /= $dRec->quantityInPack;
-    		if(!($forMvc instanceof sales_Proformas)){
-    			$dRec->price -= $dRec->price * $dRec->discount;
-    			unset($dRec->discount);
-    		}
-    		unset($dRec->id);
-    		unset($dRec->shipmentId);
-    		unset($dRec->createdOn);
-    		unset($dRec->createdBy);
-    		$details[] = $dRec;
-    	}
-    	
-    	return $details;
-    }
-    
-    
-    /**
-     * След подготовка на тулбара на единичен изглед.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
-     */
-    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
-    {
-    	$rec = $data->rec;
-    	 
-    	if($rec->isReverse == 'no'){
-    		
-    		// Към чернова може да се генерират проформи, а към контиран фактури
-    		if($rec->state == 'draft'){
-    			
-    			// Ако има проформа към протокола, правим линк към нея, иначе бутон за създаване на нова
-    			if($iRec = sales_Proformas::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")){
-    				if(sales_Proformas::haveRightFor('single', $iRec)){
-    					$arrow = html_entity_decode('&#9660;', ENT_COMPAT | ENT_HTML401, 'UTF-8');
-    					$data->toolbar->addBtn("Проформа|* {$arrow}", array('sales_Proformas', 'single', $iRec->id, 'ret_url' => TRUE), 'title=Отваряне на проформа фактура издадена към експедиционното нареждането,ef_icon=img/16/proforma.png');
-    				}
-    			} else {
-    				if(sales_Proformas::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'sourceContainerId' => $rec->containerId))){
-    					$data->toolbar->addBtn('Проформа', array('sales_Proformas', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на проформа фактура към експедиционното нареждане,ef_icon=img/16/proforma.png');
-    				}
-    			}
-    		}
-    		
-    		if($rec->state == 'active' || $rec->state == 'draft'){
-    			
-    			// Ако има фактура към протокола, правим линк към нея, иначе бутон за създаване на нова
-    			if($iRec = sales_Invoices::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")){
-    				if(sales_Invoices::haveRightFor('single', $iRec)){
-    					$arrow = html_entity_decode('&#9660;', ENT_COMPAT | ENT_HTML401, 'UTF-8');
-    					$data->toolbar->addBtn("Фактура|* {$arrow}", array('sales_Invoices', 'single', $iRec->id, 'ret_url' => TRUE), 'title=Отваряне на фактурата издадена към експедиционното нареждането,ef_icon=img/16/invoice.png');
-    				}
-    			} else {
-    				if(sales_Invoices::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'sourceContainerId' => $rec->containerId))){
-    					$data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на фактура към експедиционното нареждане,ef_icon=img/16/invoice.png,row=2');
-    				}
-    			}
-    		}
-    	}
-    }
-    
-    
-    /**
      * Изчислява броя колети в ЕН-то ако има
      * 
      * @param int $id - ид на ЕН
@@ -577,7 +469,7 @@ class store_ShipmentOrders extends store_DocumentMaster
      * 		text|NULL 	  ['conditions']   - други условия
      * 		varchar|NULL  ['ourReff']      - наш реф
      */
-    function getLogisticData($rec)
+    public function getLogisticData($rec)
     {
     	$rec = $this->fetchRec($rec);
     	$res = parent::getLogisticData($rec);

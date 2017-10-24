@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Абстрактен клас за наследяване на складови документи
  *
@@ -8,7 +9,7 @@
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -29,6 +30,18 @@ abstract class store_DocumentMaster extends core_Master
     
     
     /**
+     * Поле в което се замества шаблона от doc_TplManager
+     */
+    public $templateFld = 'SINGLE_CONTENT';
+    
+    
+    /**
+     * Флаг, който указва, че документа е партньорски
+     */
+    public $visibleForPartners = TRUE;
+    
+    
+    /**
      * На кой ред в тулбара да се показва бутона за принтиране
      */
     public $printBtnToolbarRow = 1;
@@ -38,6 +51,12 @@ abstract class store_DocumentMaster extends core_Master
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'title';
+    
+    
+    /**
+     * Стратегии за дефолт стойностти
+     */
+    public static $defaultStrategies = array('template' => 'lastDocUser|lastDoc|LastDocSameCuntry');
     
     
     /**
@@ -109,8 +128,6 @@ abstract class store_DocumentMaster extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-    	if($requiredRoles == 'no_one') return;
-    	
     	if(!deals_Helper::canSelectObjectInDocument($action, $rec, 'store_Stores', 'storeId')){
     		$requiredRoles = 'no_one';
     	}
@@ -120,7 +137,7 @@ abstract class store_DocumentMaster extends core_Master
     /**
      * Преди показване на форма за добавяне/промяна
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	$rec  = &$form->rec;
@@ -153,7 +170,7 @@ abstract class store_DocumentMaster extends core_Master
     /**
      * След изпращане на формата
      */
-    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
     	if ($form->isSubmitted()) {
     		$rec = &$form->rec;
@@ -209,7 +226,7 @@ abstract class store_DocumentMaster extends core_Master
     /**
      * След създаване на запис в модела
      */
-    public static function on_AfterCreate($mvc, $rec)
+    protected static function on_AfterCreate($mvc, $rec)
     {
     	$origin = $mvc::getOrigin($rec);
     	
@@ -307,7 +324,7 @@ abstract class store_DocumentMaster extends core_Master
     /**
      * След рендиране на сингъла
      */
-   public static function on_AfterRenderSingle($mvc, $tpl, $data)
+   protected static function on_AfterRenderSingle($mvc, $tpl, $data)
    {
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');
@@ -333,7 +350,7 @@ abstract class store_DocumentMaster extends core_Master
    /**
     * След преобразуване на записа в четим за хора вид
     */
-   public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+   protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
    {
 	   	if(!empty($rec->currencyRate)){
 	   		$amountDelivered = $rec->amountDelivered / $rec->currencyRate;
@@ -378,6 +395,11 @@ abstract class store_DocumentMaster extends core_Master
 	   			if($gln = crm_Locations::fetchField($rec->locationId, 'gln')){
 	   				$row->deliveryLocationAddress = $gln . ", " . $row->deliveryLocationAddress;
 	   				$row->deliveryLocationAddress = trim($row->deliveryLocationAddress, ", ");
+	   			}
+	   			
+	   			if($locTel = crm_Locations::fetchField($rec->locationId, 'tel')){
+	   				$locTel = core_Type::getByName('varchar')->toVerbal($locTel);
+	   				$row->deliveryLocationAddress .= ", {$locTel}";
 	   			}
 	   		}
 	   		
@@ -633,8 +655,7 @@ abstract class store_DocumentMaster extends core_Master
     public static function getRecTitle($rec, $escaped = TRUE)
     {
     	$self = cls::get(get_called_class());
-    	$rec = self::fetchRec($rec);
-    	
+    	 
     	return tr("|{$self->singleTitle}|* №") . $rec->id;
     }
     
@@ -642,7 +663,7 @@ abstract class store_DocumentMaster extends core_Master
     /**
      * Преди запис на документ
      */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
     	if(empty($rec->originId)){
     		$rec->originId = doc_Threads::getFirstContainerId($rec->threadId);
@@ -673,7 +694,7 @@ abstract class store_DocumentMaster extends core_Master
      * 		text|NULL 	  ['conditions']   - други условия
      * 		varchar|NULL  ['ourReff']      - наш реф
      */
-    function getLogisticData($rec)
+    public function getLogisticData($rec)
     {
     	$rec = $this->fetchRec($rec);
     	$ownCompany = crm_Companies::fetchOurCompany();
@@ -732,5 +753,45 @@ abstract class store_DocumentMaster extends core_Master
     	$res['ourReff'] = "#" . $this->getHandle($rec);
     	
     	return $res;
+    }
+    
+    
+    /**
+     * Артикули които да се заредят във фактурата/проформата, когато е създадена от
+     * определен документ
+     *
+     * @param mixed $id - ид или запис на документа
+     * @param deals_InvoiceMaster $forMvc - клас наследник на deals_InvoiceMaster в който ще наливаме детайлите
+     * @return array $details - масив с артикули готови за запис
+     * 				  o productId      - ид на артикул
+     * 				  o packagingId    - ид на опаковка/основна мярка
+     * 				  o quantity       - количество опаковка
+     * 				  o quantityInPack - количество в опаковката
+     * 				  o discount       - отстъпка
+     * 				  o price          - цена за единица от основната мярка
+     */
+    public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc)
+    {
+    	$details = array();
+    	$rec = static::fetchRec($id);
+    
+    	$Detail = cls::get($this->mainDetail);
+    	$query = $Detail->getQuery();
+    	$query->where("#{$Detail->masterKey} = {$rec->id}");
+    	 
+    	while($dRec = $query->fetch()){
+    		$dRec->quantity /= $dRec->quantityInPack;
+    		if(!($forMvc instanceof sales_Proformas)){
+    			$dRec->price -= $dRec->price * $dRec->discount;
+    			unset($dRec->discount);
+    		}
+    		unset($dRec->id);
+    		unset($dRec->shipmentId);
+    		unset($dRec->createdOn);
+    		unset($dRec->createdBy);
+    		$details[] = $dRec;
+    	}
+    	 
+    	return $details;
     }
 }

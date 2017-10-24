@@ -406,10 +406,7 @@ abstract class deals_Helper
 		$shortUom = cat_UoM::getShortName($pInfo->productRec->measureId);
 		$storeName = store_Stores::getTitleById($storeId);
 		$verbalQuantity = $Double->toVerbal($quantity);
-		
-		if($quantity < 0){
-			$verbalQuantity = "<span class='red'>{$verbalQuantity}</span>";
-		}
+		$verbalQuantity = ht::styleIfNegative($verbalQuantity, $quantity);
 		
 		$text = "|Разполагаемо в|* <b>{$storeName}</b> : {$verbalQuantity} {$shortUom}";
 		if(!empty($stRec->reservedQuantity)){
@@ -764,11 +761,11 @@ abstract class deals_Helper
 	 * използва се за проверка дали при контиране/възстановяване/оттегляне дали потребителя
 	 * може да избере посочения обект: каса/б. сметка/склад
 	 * 
-	 * @param string $action             - действие с документа
-	 * @param stdClass $rec              - запис на документа
+	 * @param string $action        - действие с документа
+	 * @param stdClass $rec         - запис на документа
 	 * @param string $ObjectManager - мениджър на обекта, който ще проверяваме можели да се избере
-	 * @param string $objectIdField      - поле на ид-то на обекта, който ще проверяваме можели да се избере
-	 * @return void|boolean              - можели да се избере обекта или не
+	 * @param string $objectIdField - поле на ид-то на обекта, който ще проверяваме можели да се избере
+	 * @return boolean              - можели да се избере обекта или не
 	 */
 	public static function canSelectObjectInDocument($action, $rec, $ObjectManager, $objectIdField)
 	{
@@ -1105,7 +1102,7 @@ abstract class deals_Helper
 				
 			if(!empty($value)){
 				$hint = TRUE;
-				$value = deals_Helper::roundPrice($value, 3);
+				$value = round($value, 2);
 			}
 		}
 		

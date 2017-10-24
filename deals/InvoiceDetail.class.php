@@ -76,7 +76,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		$mvc->FLD('price', 'double', 'caption=Цена, input=none');
 		$mvc->FLD('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
 		$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
-		$mvc->FLD('discount', 'percent(min=0,max=1)', 'caption=Отстъпка,smartCenter');
+		$mvc->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=Отстъпка,smartCenter');
 		$mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Забележки,formOrder=110001');
 	}
 	
@@ -93,18 +93,10 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		$data->form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? "|с ДДС|*" : "|без ДДС|*";
 	
 		$products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts);
-		expect(count($products));
+		$data->form->setOptions('productId', array('' => ' ') + $products);
 	
-		$data->form->setSuggestions('discount', array('' => '') + arr::make('5 %,10 %,15 %,20 %,25 %,30 %', TRUE));
-	
-		if (empty($rec->id)) {
-			$data->form->setOptions('productId', array('' => ' ') + $products);
-			 
-		} else {
-			// Нямаме зададена ценова политика. В този случай задъжително трябва да имаме
-			// напълно определен продукт (клас и ид), който да не може да се променя във формата
-			// и полето цена да стане задължително
-			$data->form->setOptions('productId', array($rec->productId => $products[$rec->productId]));
+		if (isset($rec->id)) {
+			$data->form->setReadOnly('productId');
 		}
 		
 		if($masterRec->type === 'dc_note'){
@@ -144,6 +136,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	{
 		if (!empty($data->toolbar->buttons['btnAdd'])) {
 			unset($data->toolbar->buttons['btnAdd']);
+			$masterRec = $data->masterData->rec;
 			
 			$error = '';
 			if(!count(cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts, NULL, 1))){
@@ -231,7 +224,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	/**
 	 * Помощна ф-я за обработката на записите на КИ и ДИ
 	 * 
-	 * @param stdClass $recs
+	 * @param array $recs
 	 * @param stdClass $rec
 	 */
 	public static function modifyDcDetails(&$recs, $rec, $mvc)
@@ -329,10 +322,9 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	
 	/**
 	 * След преобразуване на записа в четим за хора вид.
-	 *
+	 * 
 	 * @param core_Mvc $mvc
-	 * @param stdClass $row Това ще се покаже
-	 * @param stdClass $rec Това е записа в машинно представяне
+	 * @param stdClass $data
 	 */
 	public static function on_AfterPrepareListRows($mvc, &$data)
 	{
@@ -416,6 +408,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
 				
 				if($masterRec->state != 'draft'){
+					$res = 'no_one';
+					
 					if($action == 'edit'){
 						if($masterRec->state == 'active'){
 							if($masterRec->createdBy == $userId || haveRole('ceo,manager', $userId) || keylist::isIn($userId, core_Users::getTeammates($masterRec->createdBy))){
@@ -423,8 +417,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
 							} 
 						}
 					}
-					
-					
 				} else {
 					if(!haveRole('invoicer, ceo', $userId)){
 						$res = 'no_one';
@@ -489,7 +481,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			if(isset($mvc->LastPricePolicy)){
 				$policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $masterRec->rate);
 					
-				if($policyInfo->price != 0){
+				if($policyInfoLast->price != 0){
 					$form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
 				}
 			}
@@ -548,7 +540,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				}
 				
 				// Ако няма последна покупна цена и не се обновява запис в текущата покупка
-				if (empty($policyInfo->price) && empty($pRec)) {
+				if (empty($policyInfo->price)) {
 					$form->setError('packPrice', 'Продуктът няма цена в избраната ценова политика (3)');
 				} else {
 							

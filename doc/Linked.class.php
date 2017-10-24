@@ -16,6 +16,12 @@ class doc_Linked extends core_Manager
     
     
     /**
+     * Възможните действия във формата
+     */
+    public static $actArr = array('' => '', 'linkDoc' => 'Връзка с документ', 'linkFile' => 'Връзка с файл', 'newDoc' => 'Нов документ');
+    
+    
+    /**
      * Брой записи, които ще се гледат в bgerp_Recently - за подредба
      * @var integer
      */
@@ -93,7 +99,7 @@ class doc_Linked extends core_Manager
         $this->FLD('inType', 'enum(doc=Документ,file=Файл)', 'caption=Входящ->Тип');
         $this->FLD('inVal', 'int', 'caption=Входящ->Стойност');
         $this->FLD('comment', 'varchar', 'caption=Пояснения');
-        $this->FLD('actType', 'varchar(16)', 'caption=Действие, input=none');
+        $this->FLD('actType', 'varchar(64)', 'caption=Действие, input=none');
         $this->FLD('state', 'enum(active=Активно, rejected=Оттеглено)', 'caption=Състояние, input=none');
         
         $this->setDbUnique('outType, outVal, inType, inVal');
@@ -279,13 +285,12 @@ class doc_Linked extends core_Manager
         }
         
         // Вид връзка
-        $actTypeArr = array('' => '', 'linkDoc' => 'Връзка с документ', 'linkFile' => 'Връзка с файл', 'newDoc' => 'Нов документ');
-        
+        $actTypeArr = doc_Linked::$actArr;
         $actTypeArr += $actTypeIntfArr;
         
         $enumInst = cls::get('type_Enum');
         $enumInst->options = $actTypeArr;
-        $form->FNC('act', $enumInst, 'caption=Действие, input, removeAndRefreshForm=linkContainerId|linkFolderId|linkThreadId|linkDocType, mandatory, silent');
+        $form->FNC('act', $enumInst, 'caption=Действие, input, removeAndRefreshForm=linkContainerId|linkFolderId|linkThreadId|linkDocType|comment, mandatory, silent');
         
         $defAct = $this->getDefaultActionFor($originFId, $type);
         if ($defAct) {
@@ -313,11 +318,96 @@ class doc_Linked extends core_Manager
         
         $act = trim($form->rec->act);
         
+        if ($act && !doc_Linked::$actArr[$act]) {
+            // Подготвяме формата от интерфейсните методи
+            foreach ($intfArr as $intfCls) {
+                if ($type == 'doc') {
+                    $intfCls->prepareFormForDocument($form, $originFId, $act);
+                } elseif ($type == 'file') {
+                    $intfCls->prepareFormForFile($form, $originFId, $act);
+                }
+            }
+        } else {
+            $this->prepareFormForAct($form, $act, $type, $originFId);
+        }
+        
+        $form->FNC('comment', 'varchar', 'caption=Пояснение, input');
+        
+        $form->input();
+        
+        $res = NULL;
+        
+        if ($act && !doc_Linked::$actArr[$act]) {
+            // Субмитваме формата от интерфейсни методи
+            foreach ($intfArr as $intfCls) {
+                if ($type == 'doc') {
+                    $intfRes = $intfCls->doActivityForDocument($form, $originFId, $act);
+                } elseif ($type == 'file') {
+                    $intfRes = $intfCls->doActivityForFile($form, $originFId, $act);
+                }
+                
+                if (isset($intfRes)) {
+                    $res = $intfRes;
+                }
+            }
+        }
+        
+        // Ако формата е субмитната
+        if ($form->isSubmitted()) {
+            if (!$act || doc_Linked::$actArr[$act]) {
+                $res = $this->onSubmitFormForAct($form, $act, $type, $originFId);
+            }
+        }
+        
+        if ($res) {
+            
+            return $res;
+        }
+        
+        // Показва избрания документ, когато ще се прикача към него
+        if ($act == 'linkDoc' && $form->rec->linkContainerId) {
+            $form->layout = $form->renderLayout();
+            
+            $tpl = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Документ") . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div><div class='clearfix21'></div>");
+            
+            $document = doc_Containers::getDocument($form->rec->linkContainerId);
+            if ($document->haveRightFor('single')) {
+                $docHtml = $document->getInlineDocumentBody();
+                
+                $tpl->replace($docHtml, 'DOCUMENT');
+                
+                $form->layout->append($tpl);
+            }
+        }
+        
+        $form->title = "Свързване на файлове и документи с|* " . $clsInst->getLinkToSingle($fId);
+        
+        // Добавяне на бутони
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Добавяне на връзка');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+        
+        $formTpl = $this->renderWrapping($form->renderHtml());
+        core_Form::preventDoubleSubmission($formTpl, $form);
+        
+        return $formTpl;
+    }
+    
+    
+    /**
+     * Помощна функция, за подготовка на формата
+     * 
+     * @param core_Form $form
+     * @param string $act
+     * @param string $type
+     * @param NULL|string $originFId
+     */
+    public static function prepareFormForAct(&$form, $act, $type = 'doc', $originFId = NULL)
+    {
         if ($act == 'linkDoc') {
             $form->FNC('linkDocType', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Вид, class=w100, input, removeAndRefreshForm=linkContainerId|linkFolderId');
             $form->input();
             
-            if ($type == 'doc') {
+            if ($type == 'doc' && $originFId) {
                 $unsetStr = ",unsetId={$originFId}";
             }
             
@@ -362,136 +452,103 @@ class doc_Linked extends core_Manager
                     $form->FNC('linkThreadId', 'key2(forceAjax, mvc=doc_Threads, titleFld=firstContainerId, maxSuggestions=100, selectSourceArr=doc_Linked::prepareThreadsForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ', folderId=' . $form->rec->linkFolderId . ')', "caption=Нишка, class=w100, input, refreshForm{$mandatory}");
                 }
             }
+        }
+    }
+    
+    
+    /**
+     * Помощна функция, която се вика след субмитване на формата
+     * 
+     * @param core_Form $form
+     * @param string $act
+     * @param string $type
+     * @param integer $originFId
+     * @param NULL|string $actType
+     * 
+     * @return Redirect
+     */
+    public function onSubmitFormForAct($form, $act, $type, $originFId, $actType = NULL)
+    {
+        if (!isset($actType)) {
+            $actType = $act;
+        }
+        
+        $nRec = new stdClass();
+        $nRec->actType = $actType;
+        $nRec->outType = $type;
+        $nRec->outVal = $originFId;
+        $nRec->comment = $form->rec->comment;
+        $nRec->state = 'active';
+        
+        $retUrl = getRetUrl();
+        
+        if ($act == 'linkDoc') {
+            $nRec->inType = 'doc';
+            $nRec->inVal = $form->rec->linkContainerId;
+        } elseif ($act == 'linkFile') {
+            $nRec->inType = 'file';
+            $nRec->inVal = fileman_Files::fetchByFh($form->rec->linkFileId)->id;
+        } elseif ($act == 'newDoc') {
+            
+            // Ако се създава нов документ, записваме в кеша и след създаване добавяме запис
+            
+            $nRec->inType = 'doc';
+            
+            $url = array(cls::get($form->rec->linkDocType), 'add', 'folderId' => $form->rec->linkFolderId);
+            
+            if ($form->rec->linkThreadId) {
+                $url['threadId'] = $form->rec->linkThreadId;
+            }
+            
+            $url['linkedHashKey'] = 'LHK_' . substr(md5(serialize($nRec) . '|' . dt::now() . '|' . core_Users::getCurrent()), 0, 8);
+            
+            $url['ret_url'] = TRUE;
+            
+            core_Permanent::set($url['linkedHashKey'], $nRec, 120);
+            
+            return new Redirect($url);
+        }
+        
+        // Прави необходимите проверки и добавя запис
+        $fieldsArr = array();
+        
+        if (!$this->isUnique($nRec, $fieldsArr)) {
+            $form->setError($fieldsArr, "Вече съществува такава връзка");
         } else {
-            // Подготвяме формата от интерфейсните методи
-            foreach ($intfArr as $intfCls) {
-                if ($type == 'doc') {
-                    $actTypeIntfArr = $intfCls->prepareFormForDocument($form, $originFId, $act);
-                } elseif ($type == 'file') {
-                    $actTypeIntfArr = $intfCls->prepareFormForFile($form, $originFId, $act);
-                }
-            }
-        }
-        
-        $form->FNC('comment', 'varchar', 'caption=Пояснение, input');
-        
-        $form->input();
-        
-        if ($form->isSubmitted()) {
-            
-            $retUrl = getRetUrl();
-            
-            $nRec = new stdClass();
-            $nRec->outType = $type;
-            $nRec->outVal = $originFId;
-            $nRec->comment = $form->rec->comment;
-            $nRec->state = 'active';
-            $nRec->actType = $form->rec->act;
-            
-            if ($act == 'linkDoc') {
-                $nRec->inType = 'doc';
-                $nRec->inVal = $form->rec->linkContainerId;
-            } elseif ($act == 'linkFile') {
-                $nRec->inType = 'file';
-                $nRec->inVal = fileman_Files::fetchByFh($form->rec->linkFileId)->id;
-            } elseif ($act == 'newDoc') {
-                
-                // Ако се създава нов документ, записваме в кеша и след създаване добавяме запис
-                
-                $nRec->inType = 'doc';
-                
-                $url = array(cls::get($form->rec->linkDocType), 'add', 'folderId' => $form->rec->linkFolderId);
-                
-                if ($form->rec->linkThreadId) {
-                    $url['threadId'] = $form->rec->linkThreadId;
-                }
-                
-                $url['linkedHashKey'] = 'LHK_' . substr(md5(serialize($nRec) . '|' . dt::now() . '|' . core_Users::getCurrent()), 0, 8);
-                
-                $url['ret_url'] = TRUE;
-                
-                core_Permanent::set($url['linkedHashKey'], $nRec, 120);
-                
-                return new Redirect($url);
-            } else {
-                // Субмитваме формата от интерфейсни методи
-                foreach ($intfArr as $intfCls) {
-                    if ($type == 'doc') {
-                        $actTypeIntfArr = $intfCls->doActivityForDocument($form, $originFId, $act);
-                    } elseif ($type == 'file') {
-                        $actTypeIntfArr = $intfCls->doActivityForFile($form, $originFId, $act);
-                    }
-                }
-            }
-            
-            // Прави необходимите проверки и добавя запис
-            $fieldsArr = array();
-            if (!$this->isUnique($nRec, $fieldsArr)) {
-                $form->setError($fieldsArr, "Вече съществува запис със същите данни");
-            } else {
-                
-                if ($nRec->inVal && ($nRec->inType == $nRec->outType) && ($nRec->inVal == $nRec->outVal)) {
-                    $errMsg = 'Избрали сте същия ';
-                    if ($nRec->inType == 'doc') {
-                        $errMsg .= 'документ';
-                    } else {
-                        $errMsg .= 'файл';
-                    }
-                    $form->setError('linkContainerId', $errMsg);
+            if ($nRec->inVal && ($nRec->inType == $nRec->outType) && ($nRec->inVal == $nRec->outVal)) {
+                $errMsg = 'Избрали сте същия ';
+                if ($nRec->inType == 'doc') {
+                    $errMsg .= 'документ';
                 } else {
-                    $this->save($nRec);
-                    
-                    try {
-                        $strType = 'документ';
-                        if ($nRec->outType == 'doc') {
-                            if ($nRec->inType == 'file') {
-                                $strType = 'файл';
-                            }
-                            $outDoc = doc_Containers::getDocument($nRec->outVal);
-                            $outDoc->instance->logRead("Добавена връзка към {$strType}", $outDoc->that);
-                        }
-                        
-                        $strType = 'документ';
-                        if ($nRec->inType == 'doc') {
-                            if ($nRec->outType == 'file') {
-                                $strType = 'файл';
-                            }
-                            $inDoc = doc_Containers::getDocument($nRec->inVal);
-                            $inDoc->instance->logRead("Добавена връзка от {$strType}", $inDoc->that);
-                        }
-                    } catch (core_exception_Expect $e) { }
-                    
-                    return new Redirect($retUrl);
+                    $errMsg .= 'файл';
                 }
+                $form->setError('linkContainerId', $errMsg);
+            } else {
+                $this->save($nRec);
+                
+                try {
+                    $strType = 'документ';
+                    if ($nRec->outType == 'doc') {
+                        if ($nRec->inType == 'file') {
+                            $strType = 'файл';
+                        }
+                        $outDoc = doc_Containers::getDocument($nRec->outVal);
+                        $outDoc->instance->logRead("Добавена връзка към {$strType}", $outDoc->that);
+                    }
+                    
+                    $strType = 'документ';
+                    if ($nRec->inType == 'doc') {
+                        if ($nRec->outType == 'file') {
+                            $strType = 'файл';
+                        }
+                        $inDoc = doc_Containers::getDocument($nRec->inVal);
+                        $inDoc->instance->logRead("Добавена връзка от {$strType}", $inDoc->that);
+                    }
+                } catch (core_exception_Expect $e) { }
+                
+                return new Redirect($retUrl);
             }
         }
-        
-        // Показва избрания документ, когато ще се прикача към него
-        if ($act == 'linkDoc' && $form->rec->linkContainerId) {
-            $form->layout = $form->renderLayout();
-            
-            $tpl = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Документ") . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div><div class='clearfix21'></div>");
-            
-            $document = doc_Containers::getDocument($form->rec->linkContainerId);
-            if ($document->haveRightFor('single')) {
-                $docHtml = $document->getInlineDocumentBody();
-                
-                $tpl->replace($docHtml, 'DOCUMENT');
-                
-                $form->layout->append($tpl);
-            }
-        }
-        
-        $form->title = "Свързване на файлове и документи с|* " . $clsInst->getLinkToSingle($fId);
-        
-        // Добавяне на бутони
-        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Добавяне на връзка');
-        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
-        
-        $formTpl = $this->renderWrapping($form->renderHtml());
-        core_Form::preventDoubleSubmission($formTpl, $form);
-        
-        return $formTpl;
     }
     
     
@@ -561,7 +618,13 @@ class doc_Linked extends core_Manager
             
             $or = FALSE;
             foreach ($extArr as $ext) {
-                $query->where(array("#fileName LIKE '%.[#1#]'", $ext), $or);
+                
+                $ext = mb_strtolower($ext);
+                $ext = trim($ext);
+                
+                if (!$ext) continue;
+                
+                $query->where(array("#fileName LIKE LOWER('%.[#1#]')", $ext), $or);
                 $or = TRUE;
             }
         }
@@ -762,6 +825,7 @@ class doc_Linked extends core_Manager
      */
     public static function prepareFoldersForDoc($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
     {
+        $maxTrays = 500;
         setIfNot($limit, $params['maxSuggestions'], 100);
         $res = array();
         
@@ -911,6 +975,18 @@ class doc_Linked extends core_Manager
         $query->orderBy("last", "DESC");
         
         while($rec = $query->fetch()) {
+            
+            // Това е защита от увисване
+            if ($maxTrays-- < 0 && (!empty($res))) {
+                
+                $group = new stdClass();
+                $group->title = tr('За още резултати, въведете част от името');
+                $group->attr = array('class' => 'team');
+                $group->group = TRUE;
+                $res['more'] = $group;
+                
+                break;
+            }
             
             if ($res[$rec->id]) continue;
             

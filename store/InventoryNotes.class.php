@@ -559,7 +559,7 @@ class store_InventoryNotes extends core_Master
     	
     	// Изчисляваме баланс за подадения период за склада
     	$storeItemId = acc_Items::fetchItem('store_Stores', $rec->storeId)->id;
-    	$Balance = new acc_ActiveShortBalance(array('from' => $from, 'to' => $to, 'accs' => '321', 'cacheBalance' => FALSE, 'item1' => $storeItemId));
+    	$Balance = new acc_ActiveShortBalance(array('from' => $from, 'to' => $to, 'accs' => '321', 'cacheBalance' => FALSE, 'item1' => $storeItemId, 'keepUnique' => TRUE));
     	$bRecs = $Balance->getBalance('321');
     	
     	$productPositionId = acc_Lists::getPosition('321', 'cat_ProductAccRegIntf');
@@ -947,7 +947,7 @@ class store_InventoryNotes extends core_Master
     	);
     	
     	// Валидация на партидния номер ако има
-    	if($batch){
+    	if(!empty($batch)){
     		if(core_Packs::isInstalled('batch')){
     			expect($Def = batch_Defs::getBatchDef($productId), "Опит за задаване на партида на артикул без партида");
     			$Def->isValid($batch, $quantity, $msg);

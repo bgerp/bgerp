@@ -1007,7 +1007,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Чернова');
         // Създаване на нов артикул по запитването
         $browser->press('Артикул');
-        $browser->setValue('name', 'Артикул по запитване1');
+        $browser->setValue('name', 'Артикул по запитване');
         $browser->press('Запис');
         $browser->press('Оферта');
         
@@ -1015,7 +1015,7 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->setValue('row1[cR]', '3,1234');
         $browser->setValue('validFor', '10 дни');
         $browser->press('Чернова');
-        $browser->press('Добавяне');
+        $browser->press('Артикул');
         $browser->setValue('productId', 'Артикул по запитване');
         $browser->press('Refresh');
         //$browser->refresh('Запис');
@@ -1569,7 +1569,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Чернова');
         //$browser->setValue('paymentType', 'По банков път');
         $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'VAT 0% VAT: BGN	0,00')) {
+        if(strpos($browser->gettext(), 'VAT 0% VAT: BGN 0,00')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна ставка ДДС', 'warning');
         }

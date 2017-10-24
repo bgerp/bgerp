@@ -103,7 +103,7 @@ abstract class deals_DealDetail extends doc_Detail
     	
     	// Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма packagingId)
     	$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
-    	$mvc->FLD('discount', 'percent(min=0,max=1)', 'caption=Отстъпка,smartCenter');
+    	$mvc->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=Отстъпка,smartCenter');
     	
     	$mvc->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс,input=none');
     	$mvc->FLD('term', 'time(uom=days,suggestions=1 ден|5 дни|7 дни|10 дни|15 дни|20 дни|30 дни)', 'caption=Срок,after=tolerance,before=showMode,input=none');
@@ -189,8 +189,6 @@ abstract class deals_DealDetail extends doc_Detail
        	
        	$form->fields['packPrice']->unit = "|*" . $masterRec->currencyId . ", ";
         $form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? "|с ДДС|*" : "|без ДДС|*";
-       
-        $form->setSuggestions('discount', array('' => '') + arr::make('5 %,10 %,15 %,20 %,25 %,30 %', TRUE));
         
         if (empty($rec->id)) {
         	$products = array();

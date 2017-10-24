@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'purchase_Services'
  *
@@ -10,7 +11,7 @@
  * @category  bgerp
  * @package   purchase
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -53,12 +54,6 @@ class purchase_Services extends deals_ServiceMaster
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo, purchase';
-    
-    
-    /**
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'ceo, purchase';
@@ -95,12 +90,6 @@ class purchase_Services extends deals_ServiceMaster
     
     
     /**
-     * Кой може да сторнира
-     */
-    public $canRevert = 'purchaseMaster, ceo';
-    
-    
-    /**
      * Кои роли могат да филтрират потребителите по екип в листовия изглед
      */
     public $filterRolesForTeam = 'ceo, purchaseMaster, manager';
@@ -134,12 +123,6 @@ class purchase_Services extends deals_ServiceMaster
      * Групиране на документите
      */
     public $newBtnGroup = "4.5|Логистика";
-   
-    
-    /**
-     * Полета свързани с цени
-     */
-    public $priceFields = 'amountDelivered';
     
     
     /**
@@ -169,14 +152,6 @@ class purchase_Services extends deals_ServiceMaster
     
     
     /**
-     * Полета, които при клониране да не са попълнени
-     *
-     * @see plg_Clone
-     */
-    public $fieldsNotToClone = 'valior,amountDelivered,amountDiscount,amountDeliveredVat,deliveryTime';
-    
-    
-    /**
      * Основна операция
      */
     protected static $defOperationSysId = 'buyServices';
@@ -185,15 +160,7 @@ class purchase_Services extends deals_ServiceMaster
     /**
      * Стратегии за дефолт стойностти
      */
-    public static $defaultStrategies = array(
-    	'delivered' => 'lastDocUser|lastDoc',
-    );
-    
-    
-    /**
-     * Поле за филтриране по дата
-     */
-    public $filterDateField = 'createdOn, valior,deliveryTime,modifiedOn';
+    public static $defaultStrategies = array('delivered' => 'lastDocUser|lastDoc',);
     
     
     /**
@@ -202,15 +169,6 @@ class purchase_Services extends deals_ServiceMaster
     public function description()
     {
         parent::setServiceFields($this);
-    }
-    
-    
-	/**
-     * Връща разбираемо за човека заглавие, отговарящо на записа
-     */
-    static function getRecTitle($rec, $escaped = TRUE)
-    {
-        return tr("|Приемателен протокол|* №") . $rec->id;
     }
     
     
@@ -239,7 +197,7 @@ class purchase_Services extends deals_ServiceMaster
     /**
      * Преди показване на форма за добавяне/промяна
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$dealInfo = static::getOrigin($data->form->rec)->getAggregateDealInfo();
     	$data->form->dealInfo = $dealInfo;
@@ -250,7 +208,7 @@ class purchase_Services extends deals_ServiceMaster
     /**
      * След изпращане на формата
      */
-    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
     	if ($form->isSubmitted()) {
     		$rec = &$form->rec;

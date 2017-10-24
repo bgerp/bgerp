@@ -24,13 +24,13 @@
              <td class='misc-info quote-col[#OPT#] nowrap aright vtop'>
                <span class="maxwidth boldText" data-col="[#DATA_COL_ATTR#]">[#packQuantity#] [#packagingId#]</span>
                 <!--ET_BEGIN tolerance-->
-                <div class='quiantity-misc centered' style='font-size:0.8em'>|толеранс к-во|*:&nbsp;<b>&#177;[#tolerance#]</b></div>
+                <div class='quiantity-misc centered' style='font-size:0.8em'>|Толеранс к-во|*:&nbsp;<b>&#177;[#tolerance#]</b></div>
                 <!--ET_END tolerance-->
                 <!--ET_BEGIN term-->
-                <div class='quiantity-misc centered' style='font-size:0.8em'>|срок за д-ка|*:&nbsp;<b>[#term#]</b></div>
+                <div class='quiantity-misc centered' style='font-size:0.8em'>|Срок за д-ка|*:&nbsp;<b>[#term#]</b></div>
                 <!--ET_END term-->
                 <!--ET_BEGIN weight-->
-                <div class='quiantity-misc centered' style='font-size:0.8em'>|тегло|*:&nbsp;~&nbsp;<b>[#weight#]</b></div>
+                <div class='quiantity-misc centered' style='font-size:0.8em'>|Тегло|*:&nbsp;~&nbsp;<b>[#weight#]</b></div>
                 <!--ET_END weight-->
             </td>
             <td class='misc-info nowrap aright vtop'>

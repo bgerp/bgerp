@@ -1353,9 +1353,13 @@ class core_Form extends core_FieldSet
         }
         
         unset($field->type->params['allowEmpty']);
-
+        
         Mode::push('text', 'plain');
-        $verbal = $field->type->toVerbal($value);
+        if(isset($field->type->options[$value])){
+        	$verbal = $field->type->options[$value];
+        } else {
+        	$verbal = $field->type->toVerbal($value);
+        }
         Mode::pop();
 
         $this->setOptions($name, array(

@@ -286,7 +286,7 @@ class batch_Movements extends core_Detail {
     					$result = FALSE;
     					break;
     				}
-    			} catch(core_exception_Expect $e){bp($doc,$e);
+    			} catch(core_exception_Expect $e){
     				reportException($e);
     				
     				// Ако е изникнала грешка

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Правила за обновяване на себестойностите
  *
@@ -8,7 +9,7 @@
  * @category  bgerp
  * @package   price
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -62,12 +63,6 @@ class price_Updates extends core_Manager
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'priceMaster,ceo';
-
-
-	/**
-	 * Кой може да го разглежда?
-	 */
-	public $canRead = 'priceMaster,ceo';
 	
 	
 	/**
@@ -572,7 +567,7 @@ class price_Updates extends core_Manager
     {
     	// Рендираме таблицата
     	$table = cls::get('core_TableView', array('mvc' => 'price_Updates'));
-    	$fields = 'tools=Пулт,costSource1=Източник->Първи,costSource2=Източник->Втори,costSource3=Източник->Трети,costAdd=Добавка,costValue=Стойност,updateMode=Обновяване';
+    	$fields = 'tools=Пулт,costSource1=Източник->Първи,costSource2=Източник->Втори,costSource3=Източник->Трети,costAdd=Добавка,costValue=Стойност,updateMode=Обновяване,createdOn=Създаване->На,createdBy=Създаване->От';
     	$fields = core_TableView::filterEmptyColumns($data->rows, $fields, 'costAdd');
     	$details = $table->get($data->rows, $fields);
     	

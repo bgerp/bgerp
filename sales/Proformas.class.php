@@ -51,7 +51,7 @@ class sales_Proformas extends deals_InvoiceMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, sales_Wrapper, cond_plg_DefaultValues, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, Sale=sales_Sales,
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing,
                     doc_plg_HidePrices, doc_plg_TplManager, deals_plg_DpInvoice, doc_ActivatePlg, plg_Clone,cat_plg_AddSearchKeywords, plg_Search';
     
     
@@ -375,7 +375,9 @@ class sales_Proformas extends deals_InvoiceMaster
      */
     public static function getRecTitle($rec, $escaped = TRUE)
     {
-    	return tr("|Проформа фактура|* №") . $rec->id;
+    	$self = cls::get(get_called_class());
+    	 
+    	return tr("|{$self->singleTitle}|* №") . $rec->id;
     }
     
     
