@@ -45,9 +45,7 @@ thead {
 }
 
 .products-table, .quote-header{
-  > tbody > tr > td {
-    border: 1px solid #ccc;
-    padding: 5px !important;
-    vertical-align: top;
-  }
+  border: 1px solid #ccc;
+  padding: 5px !important;
+  vertical-align: top;
 }
