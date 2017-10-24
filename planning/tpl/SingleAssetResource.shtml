@@ -28,5 +28,14 @@
                 <!--ET_END quantity-->
             </ul>
         </fieldset>
+        
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Създаване|*</legend>
+            <ul>
+                <li class="info">
+                    <span class="gray-title">|Създаване на|* [#createdOn#] |от|* [#createdBy#]</span>
+                </li>
+            </ul>
+        </fieldset>
     </div>
 </div>

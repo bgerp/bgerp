@@ -50,7 +50,7 @@ class planning_AssetResources extends core_Master
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo, planningMaster';
+	public $canList = 'ceo, planning';
     
     
     /**

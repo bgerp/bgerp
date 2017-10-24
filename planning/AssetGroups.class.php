@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class planning_AssetGroups extends core_Manager
+class planning_AssetGroups extends core_Master
 {
 	
 	
@@ -50,7 +50,7 @@ class planning_AssetGroups extends core_Manager
 	/**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo, planningMaster';
+	public $canList = 'ceo, planning';
 	
 	
 	/**
@@ -63,6 +63,18 @@ class planning_AssetGroups extends core_Manager
 	 * Заглавие в единствено число
 	 */
 	public $singleTitle = 'Група';
+	
+	
+	/**
+	 * Детайли
+	 */
+	public $details = 'planning_AssetResourcesNorms';
+	
+	
+	/**
+	 * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+	 */
+	public $rowToolsSingleField = 'name';
 	
 	
 	/**
@@ -84,7 +96,7 @@ class planning_AssetGroups extends core_Manager
 	{
 		$count = planning_AssetResources::count("#groupId = {$rec->id} AND #state = 'active'");
 		$row->count = core_Type::getByName('int')->toVerbal($count);
-		$row->name = ht::createLink($row->name, array('planning_AssetResources', 'list', 'groupId' => $rec->id));
+		$row->count = ht::createLinkRef($row->count, array('planning_AssetResources', 'list', 'groupId' => $rec->id));
 	}
 	
 	

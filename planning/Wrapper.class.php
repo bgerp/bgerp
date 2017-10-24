@@ -29,6 +29,7 @@ class planning_Wrapper extends plg_ProtoWrapper
     	$this->TAB('planning_Tasks', 'Операции->Списък', 'ceo,planning,taskWorker');
     	$this->TAB('planning_AssetResources', 'Оборудване->Оборудване', 'ceo,planning');
     	$this->TAB('planning_AssetGroups', 'Оборудване->Групи', 'ceo,planning');
+    	$this->TAB('planning_AssetResourcesNorms', 'Оборудване->Норми', 'ceo,planning');
     	
         $this->title = 'Планиране';
     }
