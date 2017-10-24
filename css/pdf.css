@@ -38,8 +38,8 @@ thead {
 .staticFormView .formFieldValue {
   border: solid 1px #bbbbbb; }
 
-.products-table td,
-.quote-header td {
+.products-table,
+.quote-header {
   border: 1px solid #cccccc;
   padding: 5px !important;
   vertical-align: top; }

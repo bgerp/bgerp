@@ -44,7 +44,7 @@ thead {
 	border: solid 1px #bbbbbb;
 }
 
-.products-table td , .quote-header td{
+.products-table, .quote-header{
   border: 1px solid #ccc;
   padding: 5px !important;
   vertical-align: top;
