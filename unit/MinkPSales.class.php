@@ -494,7 +494,7 @@ class unit_MinkPSales extends core_Manager {
     
         // Фактура с днешна дата
         $browser->press('Фактура');
-        $browser->setValue('additionalInfo', 'за оттегляне и контрол след възстановяване');
+        $browser->setValue('additionalInfo', 'за оттегляне и контрол да не може да се възстанови');
         $browser->press('Чернова');
         $browser->press('Контиране');
         
@@ -525,15 +525,20 @@ class unit_MinkPSales extends core_Manager {
         // Опит за възстановяване на фактурата с днешна дата и по-малък номер от тази с вчерашна дата
         $browser->click('Показване на целия документ');
         $browser->press('Възстановяване');
-        //$browser->press(btnRestore50);
-        if(strpos($browser->gettext(), 'Фактурата не може да се възстанови - фактура')) {
+        //return $browser->getHtml();
+        //$browser->press(btnRestore53);
+        if(strpos($browser->gettext(), '979,99 979,99 0,00 979,99')) {
         } else {
-            return unit_MinkPbgERP::reportErr('Не излиза съобщение за грешка - Фактурата не може да се възстанови', 'warning');
+            return unit_MinkPbgERP::reportErr('Грешка - Възстановяване', 'warning');
         }
-        if(strpos($browser->gettext(), 'по-голям номер и по-малка дата в диапазона')) {
-        } else {
-            return unit_MinkPbgERP::reportErr('Не излиза съобщение за грешка - фактура с по-голям номер и по-малка дата', 'warning');
-        }
+        //if(strpos($browser->gettext(), 'Фактурата не може да се възстанови - фактура')) {
+        //} else {
+        //    return unit_MinkPbgERP::reportErr('Не излиза съобщение за грешка - Фактурата не може да се възстанови', 'warning');
+        //}
+        //if(strpos($browser->gettext(), 'по-голям номер и по-малка дата в диапазона')) {
+        //} else {
+        //    return unit_MinkPbgERP::reportErr('Не излиза съобщение за грешка - фактура с по-голям номер и по-малка дата', 'warning');
+        //}
         //return $browser->getHtml();
         
         }

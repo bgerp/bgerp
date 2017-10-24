@@ -5,8 +5,8 @@
  *
  * @category  bgerp
  * @package   tests
- * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @author    Pavlinka Dainovska <pdainovska@gmail.com>
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -1332,7 +1332,7 @@ class unit_MinkPPurchases extends core_Manager {
         } else {
             return "Грешна сума в КИ - количество";
         }
-        if(strpos($browser->gettext(), 'ДДС 9% 	ДДС: BGN -4,05')) {
+        if(strpos($browser->gettext(), 'ДДС 9% ДДС: BGN -4,05')) {
         } else {
             return "Грешно ДДС 9%";
         }
@@ -1453,7 +1453,7 @@ class unit_MinkPPurchases extends core_Manager {
         $browser->click('Информация за перото');
         
         // ID на покупка 1, за да се избере при разпр. на разход 
-        $purId = "66";
+        $purId = "68";
         $purId = $purId .'.17';
         
         //Покупка 2 - услуги
