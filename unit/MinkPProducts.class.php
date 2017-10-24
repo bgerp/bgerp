@@ -6,8 +6,8 @@
  *
  * @category  bgerp
  * @package   tests
- * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @author    Pavlinka Dainovska <pdainovska@gmail.com>
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -188,8 +188,7 @@ class unit_MinkPProducts extends core_Manager {
         $browser->press('Запис');
         $browser->press('Активиране');
         //return $browser->getHtml();
-        
-        //Добавяне на опаковка - 
+                
     }
     
     /**
@@ -284,7 +283,7 @@ class unit_MinkPProducts extends core_Manager {
             $browser->setValue('taskProductId', 'Друг труд');
             $browser->setValue('quantity', '1010');
             $browser->press('Запис');
-            // Приключване на задачата - когато са в една нишка, разпознава бутона за приключване на заданието, защото са с еднакви имена
+            // Приключване на задачата
             $browser->press('Приключване');
                         
             //Протокол за производство - в заданието
@@ -302,7 +301,7 @@ class unit_MinkPProducts extends core_Manager {
         } else {
         return unit_MinkPbgERP::reportErr('Няма такъв артикул', 'info');
         }
-        //
+        
     }
  
     /**
@@ -406,7 +405,6 @@ class unit_MinkPProducts extends core_Manager {
         // Добавяме артикул
         $browser->press('Артикул');
         $browser->setValue('productId', 'Чувал голям 50 L');
-        //$browser->refresh('Запис');
         $browser->press('Refresh');
         // Записваме артикула
         $browser->press('Запис');
