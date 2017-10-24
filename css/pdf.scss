@@ -44,8 +44,10 @@ thead {
 	border: solid 1px #bbbbbb;
 }
 
-.products-table td , .quote-header td{
-  border: 1px solid #ccc;
-  padding: 5px !important;
-  vertical-align: top;
+.products-table, .quote-header{
+  > tbody > tr > td {
+    border: 1px solid #ccc;
+    padding: 5px !important;
+    vertical-align: top;
+  }
 }
