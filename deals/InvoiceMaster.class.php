@@ -928,7 +928,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		$usernames = core_Users::recToVerbal($userRec, 'names')->names;
     		$row->username = core_Lg::transliterate($usernames);
     		
-    		$row->userCode = crc32("{$usernames}|{$userRec->id}");
+    		$row->userCode = abs(crc32("{$usernames}|{$userRec->id}"));
     		$row->userCode = substr($row->userCode, 0, 6);
     		
     		if($rec->type != 'invoice' && !($mvc instanceof sales_Proformas)){

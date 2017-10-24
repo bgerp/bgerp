@@ -738,8 +738,6 @@ class sales_Quotations extends core_Master
     	if($hasTransport === FALSE || $isReadOnlyMode || core_Users::haveRole('partner')){
     		$tpl->removeBlock('TRANSPORT_BAR');
     	}
-    	
-    	$tpl->push('sales/tpl/styles.css', 'CSS');
     }
     
     

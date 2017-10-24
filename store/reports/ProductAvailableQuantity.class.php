@@ -21,7 +21,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo,manager,store,planing';
+    public $canSelectDriver = 'ceo,manager,store,planing,purchase';
 
 
     /**
