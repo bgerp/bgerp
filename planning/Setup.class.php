@@ -119,6 +119,7 @@ class planning_Setup extends core_ProtoSetup
     		'planning_ProductionTaskProducts',
     		'planning_TaskSerials',
     		'planning_AssetGroups',
+    		'planning_AssetResourcesNorms',
     		'migrate::updateNotes',
     		'migrate::updateStoreIds',
     		'migrate::migrateJobs',
