@@ -440,11 +440,12 @@ class planning_Tasks extends core_Master
 				}
 			}
 			
+			// Може да се избират само оборудвания от една група
 			if(isset($rec->fixedAssets)){
-				bp($rec);
+				if(!planning_AssetGroups::haveSameGroup($rec->fixedAssets)){
+					$form->setError('fixedAssets', 'Оборудванията са от различни групи');
+				}
 			}
-			
-			
 			
 			$pInfo = cat_Products::getProductInfo($rec->productId);
 			$rec->quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;

@@ -113,9 +113,22 @@ class planning_AssetGroups extends core_Master
 	}
 	
 	
+	/**
+	 * Дали оборудванията са от една и съща група
+	 * 
+	 * @param array|string $assets - ид-та на оборудвания
+	 * @return boolean
+	 */
 	public static function haveSameGroup($assets)
 	{
 		$assets = is_array($assets) ? $assets : keylist::toArray($assets);
-		if(!count()) return;
+		if(!count($assets)) return TRUE;
+		
+		$aQuery = planning_AssetResources::getQuery();
+		$aQuery->in("id", $assets);
+		$aQuery->show('groupId');
+		$aQuery->groupBy('groupId');
+		
+		return count($aQuery->fetchAll()) === 1;
 	}
 }
