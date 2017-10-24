@@ -13,7 +13,7 @@
    <td class='centered dark-gray'>[#neto#]</td>
    <td class='centered dark-gray'>
    	 [#chargeVat#]
-      <table style="margin: 0 auto" >
+      <table class="no-border" style="margin: 0 auto" >
          <!--ET_BEGIN vat02Amount-->
          <tr>
             <td class="aright" style="padding-right: 5px;"><b>[#vat02#]</b> </td>
