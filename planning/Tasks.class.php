@@ -300,7 +300,6 @@ class planning_Tasks extends core_Master
 		 
 		$grey->setGradient($color, $rec->progress);
 		$row->progress = "<span style='color:{$grey};'>{$row->progress}</span>";
-		$row->name = $mvc->getLink($rec->id, 0);
 	
 		if ($rec->timeEnd && ($rec->state != 'closed' && $rec->state != 'rejected')) {
 			$remainingTime = dt::mysql2timestamp($rec->timeEnd) - time();
@@ -795,7 +794,7 @@ class planning_Tasks extends core_Master
 	 */
 	protected function prepareExistingTaskRows($containerId, &$data)
 	{
-		// Намираме всички задачи към задание
+		// Всички създадени задачи към заданието
 		$query = $this->getQuery();
 		$query->where("#state != 'rejected'");
 		$query->where("#originId = {$containerId}");
@@ -804,11 +803,8 @@ class planning_Tasks extends core_Master
 			
 		// Подготвяме данните
 		while($rec = $query->fetch()){
-			if(!cls::load($rec->classId, TRUE)) continue;
-			$Class = cls::get($rec->classId);
-		
 			$data->recs[$rec->id] = $rec;
-			$row = $Class->recToVerbal($rec);
+			$row = planning_Tasks::recToVerbal($rec);
 			$row->modified = $row->modifiedOn . " " . tr('от||by') . " " . $row->modifiedBy;
 			$row->modified = "<div style='text-align:center'> {$row->modified} </div>";
 			$data->rows[$rec->id] = $row;
@@ -907,7 +903,7 @@ class planning_Tasks extends core_Master
 		// Ако няма намерени записи, не се рендира нищо
 		// Рендираме таблицата с намерените задачи
 		$table = cls::get('core_TableView', array('mvc' => $this));
-		$fields = 'name=Документ,progress=Прогрес,title=Заглавие,folderId=Папка,expectedTimeStart=Очаквано начало, timeDuration=Продължителност, timeEnd=Край, modified=Модифицирано';
+		$fields = 'title=Заглавие,progress=Прогрес,folderId=Папка,expectedTimeStart=Очаквано начало, timeDuration=Продължителност, timeEnd=Край, modified=Модифицирано';
 		$data->listFields = core_TableView::filterEmptyColumns($data->rows, $fields, 'timeStart,timeDuration,timeEnd,expectedTimeStart');
 		$this->invoke('BeforeRenderListTable', array($tpl, &$data));
 		 
@@ -934,9 +930,6 @@ class planning_Tasks extends core_Master
 	 */
 	protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
 	{
-		$rec->classId = ($rec->classId) ? $rec->classId : $mvc->getClassId();
-		if(!$rec->productId) return;
-		
 		$productFields = self::getFieldsFromProductDriver($rec->productId);
 		$rec->additionalFields = array();
 		 
