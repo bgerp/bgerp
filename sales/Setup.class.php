@@ -2,6 +2,12 @@
 
 
 /**
+ * Дефолтна валидност на офертата
+ */
+defIfNot('SALES_DEFAULT_VALIDITY_OF_QUOTATION', '2592000');
+
+
+/**
  * Начален номер на фактурите
  */
 defIfNot('SALE_INV_MIN_NUMBER1', '0');
@@ -209,6 +215,7 @@ class sales_Setup extends core_ProtoSetup
 			'SALES_ADD_BY_IMPORT_BTN'  => array("keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Необходими роли за добавяне на артикули в продажба от->Импорт'),
 			'SALES_DELTA_CAT_GROUPS'   => array('keylist(mvc=cat_Groups,select=name)', 'caption=Групи продажбени артикули за изчисляване на ТРЗ индикатори->Групи'),
 			'SALES_ROUTES_CLOSE_DELAY'   => array('int(min=1)', 'caption=Изчакване преди да се затворят изпълнените търговски маршрути->Дни'),
+			'SALES_DEFAULT_VALIDITY_OF_QUOTATION' => array('time', 'caption=Оферти->Валидност'),
 	);
 	
 	
