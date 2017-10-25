@@ -34,7 +34,7 @@ class planning_Tasks extends core_Master
 	/**
 	 * Полета от които се генерират ключови думи за търсене (@see plg_Search)
 	 */
-	public $searchFields = 'title';
+	public $searchFields = 'title,fixedAssets,description,productId';
 	
 	
 	/**
@@ -170,7 +170,7 @@ class planning_Tasks extends core_Master
 	 *
 	 * @see plg_Clone
 	 */
-	public $cloneDetails = 'planning_ProductionTaskDetails,planning_ProductionTaskProducts,cat_products_Params';
+	public $cloneDetails = 'planning_ProductionTaskProducts,cat_products_Params';
 	
 	
 	/**
@@ -178,7 +178,7 @@ class planning_Tasks extends core_Master
 	 *
 	 * @see plg_Clone
 	 */
-	public $fieldsNotToClone = 'progress,totalWeight,systemId,scrappedQuantity';
+	public $fieldsNotToClone = 'progress,totalWeight,systemId,scrappedQuantity,inputInTask';
 	
 	
 	/**
@@ -201,7 +201,7 @@ class planning_Tasks extends core_Master
 		$this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'mandatory,caption=Произвеждане->Опаковка,after=productId,input=hidden,tdClass=small-field nowrap,removeAndRefreshForm,silent');
 		$this->FLD('plannedQuantity', 'double(smartRound,Min=0)', 'mandatory,caption=Произвеждане->Планирано,after=packagingId');
 		$this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Произвеждане->Склад,input=none');
-		$this->FLD("startTime", 'time(noSmart)', 'caption=Норма->Произ-во,smartCenter');
+		$this->FLD("startTime", 'time(noSmart)', 'caption=Произвеждане->Норма,smartCenter');
 		$this->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Количество,after=packagingId,input=none');
 		$this->FLD('quantityInPack', 'double(smartRound)', 'input=none');
 		$this->FLD('scrappedQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Брак,input=none');
@@ -214,7 +214,7 @@ class planning_Tasks extends core_Master
 		$this->FLD('expectedTimeStart', 'datetime(format=smartTime)', 'input=hidden,caption=Очаквано начало');
 		$this->FLD('additionalFields', 'blob(serialize, compress)', 'caption=Данни,input=none');
 		$this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=fullName,makeLinks)', 'caption=Произвеждане->Оборудване,after=packagingId');
-		$this->FLD('inputInTask', 'int', 'caption=Влагане в задача,input=none,after=totalQuantity');
+		$this->FLD('inputInTask', 'int', 'caption=Произвеждане->Влагане в,input=none,after=startTime');
 	}
 	
 	
@@ -470,7 +470,7 @@ class planning_Tasks extends core_Master
 		$resArr['info'] = array('name' => tr('Информация'), 'val' => tr("|*<span style='font-weight:normal'>|Задание|*</span>: [#originId#]<br>
         																 <span style='font-weight:normal'>|Артикул|*</span>: [#productId#]<br>
 																	     <!--ET_BEGIN inputInTask--><span style='font-weight:normal'>|Влагане в|*</span>: [#inputInTask#]<br><!--ET_END inputInTask-->
-        																 <span style='font-weight:normal'>|Склад|*: [#storeId#]</span>
+        																 <span style='font-weight:normal'>|Склад|*</span>: [#storeId#]
         																 <!--ET_BEGIN fixedAssets--><br><span style='font-weight:normal'>|Оборудване|*</span>: [#fixedAssets#]<!--ET_END fixedAssets-->
         																 <br>[#progressBar#] [#progress#]"));
 		$packagingId = cat_UoM::getTitleById($rec->packagingId);
@@ -1118,13 +1118,8 @@ class planning_Tasks extends core_Master
     	
     	$detailsKeywords = '';
     	while($dRec = $dQuery->fetch()){
-    		
     		if($dRec->serial){
     			$detailsKeywords .= " " . plg_Search::normalizeText($Detail->getVerbal($dRec, 'serial'));
-    		}
-    		
-    		if($dRec->fixedAsset){
-    			$detailsKeywords .= " " . plg_Search::normalizeText($Detail->getVerbal($dRec, 'fixedAsset'));
     		}
     	}
     	
