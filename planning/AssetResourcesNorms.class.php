@@ -20,13 +20,13 @@ class planning_AssetResourcesNorms extends core_Detail
 	/**
 	 * Заглавие
 	 */
-	public $title = 'Норми';
+	public $title = 'Артикули за влагане';
 	
 	
 	/**
 	 * Заглавие в единствено число
 	 */
-	public $singleTitle = 'Норма';
+	public $singleTitle = 'Артикул за влагане';
 	
 	
 	/**
