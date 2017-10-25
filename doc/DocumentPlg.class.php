@@ -1032,9 +1032,24 @@ class doc_DocumentPlg extends core_Plugin
             
             $id  = Request::get('id', 'int');
             $rec = $mvc->fetch($id);
-           
+            $tRec = doc_Threads::fetch($rec->threadId);
+            
+            // Ако документа е първи в нишката, проверка може ли потребителя да оттегля всички документи в нишката
+            if($tRec->firstContainerId == $rec->containerId) {
+            	if(!doc_Threads::haveRightForAllDocs('reject', $rec->threadId)){
+            		core_Statuses::newStatus('Нямате права да оттеглите всички документи в нишката', 'error');
+            		
+            		if (!$res = getRetUrl()) {
+            			$res = array($mvc, 'single', $id);
+            		}
+            		$res = new Redirect($res);
+            		
+            		return FALSE;
+            	}
+            }
+            
             if (isset($rec->id) && $rec->state != 'rejected' && $mvc->haveRightFor('reject', $rec)) {
-            	$tRec = doc_Threads::fetch($rec->threadId);
+            	
             	
             	// Ако потребителя трябва да избере действие преди оттегляне
             	if($mvc->haveRightFor('selectaction', $rec) && !Request::get('stop', 'int')){;
@@ -1087,11 +1102,25 @@ class doc_DocumentPlg extends core_Plugin
             
             $id  = Request::get('id', 'int');
             $rec = $mvc->fetch($id);
+            $tRec = doc_Threads::fetch($rec->threadId);
+            
+            // Ако документа е първи в нишката, проверка може ли потребителя да оттегля всички документи в нишката
+            if($tRec->firstContainerId == $rec->containerId) {
+            	if(!doc_Threads::haveRightForAllDocs('restore', $rec->threadId)){
+            		core_Statuses::newStatus('Нямате права да възстановите всички документи в нишката', 'error');
+            
+            		if (!$res = getRetUrl()) {
+            			$res = array($mvc, 'single', $id);
+            		}
+            		$res = new Redirect($res);
+            
+            		return FALSE;
+            	}
+            }
             
             if ($rec->state == 'rejected' && $mvc->haveRightFor('restore', $rec)) {
                 // Възстановяваме документа + нишката, ако се налага
                 if ($mvc->restore($rec)) {
-                    $tRec = doc_Threads::fetch($rec->threadId);
                     
                     // Ако възстановяваме първия документ в нишка, то възстановяваме цялата нишка
                     if ($tRec->firstContainerId == $rec->containerId) {
