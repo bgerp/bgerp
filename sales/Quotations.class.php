@@ -560,14 +560,14 @@ class sales_Quotations extends core_Master
     					$row->deliveryPlaceId = ht::createLinkRef($row->deliveryPlaceId, array('crm_Locations', 'single', $placeId), NULL, 'title=Към локацията');
     				}
     			}
-    			
-    			if(isset($rec->bankAccountId)){
-    				$ownAccount = bank_OwnAccounts::getOwnAccountInfo($rec->bankAccountId);
-    				$url = bank_OwnAccounts::getSingleUrlArray($rec->bankAccountId);
-    				$row->bankAccountId = ht::createLink($ownAccount->iban, $url);
-    			}
     		}
     		 
+    		if(isset($rec->bankAccountId)){
+    			$ownAccount = bank_OwnAccounts::getOwnAccountInfo($rec->bankAccountId);
+    			$url = bank_OwnAccounts::getSingleUrlArray($rec->bankAccountId);
+    			$row->bankAccountId = ht::createLink($ownAccount->iban, $url);
+    		}
+    		
     		$deliveryAdress = '';
     		if(!empty($rec->deliveryAdress)){
     			$deliveryAdress .= $mvc->getFieldType('deliveryAdress')->toVerbal($rec->deliveryAdress);
