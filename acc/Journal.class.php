@@ -48,6 +48,12 @@ class acc_Journal extends core_Master
     
     
     /**
+     * Кой има право да чете?
+     */
+    public $canRead = 'ceo,acc';
+    
+    
+    /**
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,acc';

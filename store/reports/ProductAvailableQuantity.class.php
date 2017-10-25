@@ -158,8 +158,6 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
         foreach ($products->code as $key => $code){
 
-       //     unset($id,$query,$recProduct);
-
             if (!isset($products->code[$key])){
                 $products->code[$key] =0;
             }
@@ -194,7 +192,6 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
                 if(!($products->maxQuantity[$key])){
 
-                   // bp($quantity,$products->minQuantity[$key],$key);
                     if($quantity > $products->minQuantity[$key]){
                         $quantityMark = 'ok';
                     }
@@ -225,8 +222,6 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             }//цикъл за добавяне
 
         }
-
-       // bp($recs);
 
         return $recs;
     }
