@@ -1048,7 +1048,9 @@ class crm_Companies extends core_Master
         $pngHnd = '';
         
         try {
-            $pngHnd = fileman_webdrv_Inkscape::toPng($content, 'string', $fileName);
+            if (!core_Os::isWindows()) {
+                $pngHnd = fileman_webdrv_Inkscape::toPng($content, 'string', $fileName);
+            }
         } catch (ErrorException $e) {
             reportException($e);
         }
