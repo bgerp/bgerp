@@ -21,7 +21,7 @@ class hr_FormCv extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    public $interfaces = 'doc_DocumentIntf, doc_FolderIntf';
+    public $interfaces = 'doc_DocumentIntf';
 
 
 
