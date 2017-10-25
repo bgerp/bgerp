@@ -56,7 +56,7 @@ class planning_AssetGroups extends core_Master
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'name,count,createdOn,createdBy';
+	public $listFields = 'name,createdOn,createdBy';
 	
 	
 	/**
@@ -66,9 +66,15 @@ class planning_AssetGroups extends core_Master
 	
 	
 	/**
+	 * Файл за единичния изглед
+	 */
+	public $singleLayoutFile = 'planning/tpl/SingleLayoutAssetGroup.shtml';
+	
+	
+	/**
 	 * Детайли
 	 */
-	public $details = 'planning_AssetResourcesNorms';
+	public $details = 'planning_AssetResourcesNorms,planning_AssetResources';
 	
 	
 	/**
@@ -83,20 +89,8 @@ class planning_AssetGroups extends core_Master
 	public function description()
 	{
 		$this->FLD('name', 'varchar(64,ci)', 'caption=Наименование, mandatory');
-		$this->FNC('count', 'int', 'caption=Оборудване');
 		
 		$this->setDbUnique('name');
-	}
-	
-	
-	/**
-	 * След преобразуване на записа в четим за хора вид
-	 */
-	protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
-	{
-		$count = planning_AssetResources::count("#groupId = {$rec->id} AND #state = 'active'");
-		$row->count = core_Type::getByName('int')->toVerbal($count);
-		$row->count = ht::createLinkRef($row->count, array('planning_AssetResources', 'list', 'groupId' => $rec->id));
 	}
 	
 	

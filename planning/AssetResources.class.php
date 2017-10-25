@@ -94,7 +94,7 @@ class planning_AssetResources extends core_Master
      */
     function description()
     {
-    	$this->FLD('name', 'varchar', 'caption=Име,mandatory');
+    	$this->FLD('name', 'varchar', 'caption=Оборудване,mandatory');
     	$this->FLD('groupId', 'key(mvc=planning_AssetGroups,select=name,allowEmpty)', 'caption=Вид,mandatory,silent');
     	$this->FLD('code', 'varchar(16)', 'caption=Код,mandatory');
     	$this->FLD('protocolId', 'key(mvc=accda_Da,select=id)', 'caption=Протокол за пускане в експлоатация,silent,input=hidden');
@@ -138,6 +138,7 @@ class planning_AssetResources extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$row->STATE_CLASS = "state-{$rec->state}";
+    	$row->groupId = planning_AssetGroups::getHyperlink($rec->groupId, TRUE);
     	if(isset($rec->protocolId)){
     		$row->protocolId = accda_Da::getHyperlink($rec->protocolId, TRUE);
     	}
@@ -203,5 +204,56 @@ class planning_AssetResources extends core_Master
     	}
     	
     	return $res;
+    }
+    
+    
+    /**
+     * Подготовка на детайла
+     *
+     * @param stdClass $data
+     */
+    public function prepareDetail_($data)
+    {
+    	// Подготовка на записите
+    	$query = self::getQuery();
+    	$query->where("#groupId = {$data->masterId}");
+    	$data->recs = $data->rows = array();
+    	while ($rec = $query->fetch()){
+    		$data->recs[$rec->id] = $rec;
+    		$data->rows[$rec->id] = $this->recToVerbal($rec);
+    	}
+    	
+    	// Има ли права за добавяне на ново оборудване
+    	if($this->haveRightFor('add', (object)array('groupId' => $data->masterId))){
+    		$data->addUrl = array($this, 'add', 'groupId' => $data->masterId, 'ret_url' => TRUE);
+    	}
+    	
+    	return $data;
+    }
+    
+    
+    /**
+     * Рендиране на детайла
+     *
+     * @param stdClass $data
+     * @return core_ET $tpl
+     */
+    public function renderDetail_($data)
+    {
+    	$tpl = new core_ET("");
+    	
+    	// Рендиране на таблицата с оборудването
+    	$data->listFields = arr::make("fullName=Оборудване,departments=Звена,quantity=К-во,createdOn=Създадено->На,createdBy=Създадено->От,state=Състояние");
+    	$table = cls::get('core_TableView', array('mvc' => $this));
+    	$this->invoke('BeforeRenderListTable', array($tpl, &$data));
+    	$tpl->append($table->get($data->rows, $data->listFields));
+    	
+    	// Бутон за добавяне на ново оборудване
+    	if(isset($data->addUrl)){
+    		$btn = ht::createBtn('Ново оборудване', $data->addUrl, FALSE, FALSE, "ef_icon={$this->singleIcon},title=Добавяне на ново оборудване към вида");
+    		$tpl->replace($btn, 'addAssetBtn');
+    	}
+    	
+    	return $tpl;
     }
 }

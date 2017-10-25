@@ -93,6 +93,7 @@ class planning_AssetResourcesNorms extends core_Detail
 	{
 		$form = &$data->form;
 		 
+		// Добавяне само на вложимите услуги
 		$productOptions = cat_Products::getByProperty('canConvert', 'canStore');
 		$form->setOptions('productId', array('' => '') + $productOptions);
 	}
@@ -125,7 +126,7 @@ class planning_AssetResourcesNorms extends core_Detail
 	/**
 	 * Преди подготовката на полетата за листовия изглед
 	 */
-	public static function on_AfterPrepareListFields($mvc, &$res, &$data)
+	protected static function on_AfterPrepareListFields($mvc, &$res, &$data)
 	{
 		if(isset($data->masterMvc)){
 			unset($data->listFields['groupId']);
