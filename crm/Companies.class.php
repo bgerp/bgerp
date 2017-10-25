@@ -1048,7 +1048,9 @@ class crm_Companies extends core_Master
         $pngHnd = '';
         
         try {
-            $pngHnd = fileman_webdrv_Inkscape::toPng($content, 'string', $fileName);
+            if (!core_Os::isWindows()) {
+                $pngHnd = fileman_webdrv_Inkscape::toPng($content, 'string', $fileName);
+            }
         } catch (ErrorException $e) {
             reportException($e);
         }
@@ -1457,6 +1459,7 @@ class crm_Companies extends core_Master
             $eRec->website = 'http://experta.bg';
             $eRec->tel = '062/611-539, 062/611-540';
             $eRec->vatId = 'BG104066415';
+            $eRec->uicId = '104066415';
             $eRec->email = 'team@experta.bg';
             $eRec->info = 'Разработчик и консултант за внедряване на bgERP';
             

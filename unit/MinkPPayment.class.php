@@ -419,7 +419,7 @@ class unit_MinkPPayment extends core_Manager {
         $browser->setValue('action_ship', False);
         $browser->press('Активиране/Контиране');
        
-        if(strpos($browser->gettext(), 'ДДС 20%:BGN 112,86')) {
+        if(strpos($browser->gettext(), 'ДДС 20%: BGN 112,86')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешно ДДС', 'warning');
         }
@@ -470,7 +470,7 @@ class unit_MinkPPayment extends core_Manager {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна данъчна основа', 'warning');
         }
-        if(strpos($browser->gettext(), 'ДДС 20%: BGN 92,27')) {
+        if(strpos($browser->gettext(), 'ДДС: BGN 92,27')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешно ДДС', 'warning');
         }

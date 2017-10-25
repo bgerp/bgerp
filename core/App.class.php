@@ -338,11 +338,6 @@ class core_App
             die('Not possible to determine constant `EF_UPLOADS_PATH`');
         }
         
-        if(!is_dir(EF_UPLOADS_PATH)) {
-            die('It is not a directory: "' .  EF_UPLOADS_PATH . '" (EF_UPLOADS_PATH)');
-        }
-
-        
         /**
          * Времева зона
          */

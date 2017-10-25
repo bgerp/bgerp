@@ -837,10 +837,41 @@ class email_Incomings extends core_Master
                 
                 if (!empty($badIpArr)) {
                     $countryCode = $badIpArr[$rec->fromIp];
-                    $errIpCountryName = ' - ' . drdata_Countries::getCountryName($countryCode, core_Lg::getCurrent());
                     
-                    $row->fromEml = self::addErrToEmailStr($row->fromEml, "Писмото е от IP в рискова зона|*{$errIpCountryName}!", 'error');
-                    $haveErr = TRUE;
+                    $badIp = TRUE;
+                    
+                    // Ако домейна е от същата дърава
+                    if ($countryCode) {
+                        if (($dotPos = strrpos($rec->fromEml, '.')) !== FALSE) {
+                            $tld = substr($rec->fromEml, $dotPos + 1);
+                            
+                            if (strtolower($tld) == strtolower($countryCode)) {
+                                $badIp = FALSE;
+                            }
+                        }
+                    }
+                    
+                    // Ако в текста се съдържа държавата - на системния език или en
+                    if ($badIp) {
+                        $countryLocal = drdata_Countries::getCountryName($countryCode, core_Lg::getDefaultLang());
+                        
+                        if (mb_stripos($rec->textPart, $countryLocal) === FALSE) {
+                            $countryEn = drdata_Countries::getCountryName($countryCode, 'en');
+                            
+                            if (stripos($rec->textPart, $countryEn) !== FALSE) {
+                                $badIp = FALSE;
+                            }
+                        } else {
+                            $badIp = FALSE;
+                        }
+                    }
+                    
+                    if ($badIp) {
+                        $errIpCountryName = ' - ' . drdata_Countries::getCountryName($countryCode, core_Lg::getCurrent());
+                        
+                        $row->fromEml = self::addErrToEmailStr($row->fromEml, "Писмото е от IP в рискова зона|*{$errIpCountryName}!", 'error');
+                        $haveErr = TRUE;
+                    }
                 }
             }
         }

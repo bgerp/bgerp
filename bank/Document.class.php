@@ -145,7 +145,7 @@ abstract class bank_Document extends deals_PaymentDocument
 		$mvc->FLD('operationSysId', 'varchar', 'caption=Операция,mandatory');
 		$mvc->FLD('amountDeal', 'double(decimals=2,max=2000000000,min=0)', 'caption=Платени,mandatory,silent');
 		$mvc->FLD('dealCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'input=hidden');
-		$mvc->FLD('termDate', 'date(format=d.m.Y)', 'caption=Очаквано на');
+		$mvc->FLD('termDate', 'date(format=d.m.Y)', 'caption=Очаквано на,silent');
 		
 		$mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,input=hidden');
 		$mvc->FLD('rate', 'double(decimals=5)', 'caption=Курс,input=none');
@@ -175,9 +175,9 @@ abstract class bank_Document extends deals_PaymentDocument
 	{
 		$rec = &$form->rec;
 		
-		if($form->rec->currencyId != $form->rec->dealCurrencyId){
-			if(isset($form->rec->ownAccount)){
-				$ownAcc = bank_OwnAccounts::getOwnAccountInfo($form->rec->ownAccount);
+		if($rec->currencyId != $rec->dealCurrencyId){
+			if(isset($rec->ownAccount)){
+				$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->ownAccount);
 				if(isset($ownAcc->currencyId)){
 					$code = currency_Currencies::getCodeById($ownAcc->currencyId);
 					$form->setField('amount', "unit={$code}");
@@ -225,7 +225,7 @@ abstract class bank_Document extends deals_PaymentDocument
 	/**
 	 * Извиква се след успешен запис в модела
 	 */
-	public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+	protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
 	{
 		// Ако няма такава банкова сметка, тя автоматично се записва
 		if($rec->contragentIban){
@@ -322,8 +322,8 @@ abstract class bank_Document extends deals_PaymentDocument
 	public static function getRecTitle($rec, $escaped = TRUE)
 	{
 		$self = cls::get(get_called_class());
-	
-		return $self->singleTitle . " №$rec->id";
+    	 
+    	return tr("|{$self->singleTitle}|* №") . $rec->id;
 	}
 
 

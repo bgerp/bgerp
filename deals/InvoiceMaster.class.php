@@ -644,6 +644,11 @@ abstract class deals_InvoiceMaster extends core_Master
     	if($origin->className  == $mvc->className){
     		$mvc->populateNoteFromInvoice($form, $origin);
     		$data->flag = TRUE;
+    	} elseif($origin->className == 'store_ShipmentOrders'){
+    		$originValior = $origin->fetchField('valior');
+    		if($originValior < $form->rec->date){
+    			$form->setDefault('vatDate', $originValior);
+    		}
     	}
     	 
     	if(empty($data->flag)){
@@ -923,7 +928,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		$usernames = core_Users::recToVerbal($userRec, 'names')->names;
     		$row->username = core_Lg::transliterate($usernames);
     		
-    		$row->userCode = crc32("{$usernames}|{$userRec->id}");
+    		$row->userCode = abs(crc32("{$usernames}|{$userRec->id}"));
     		$row->userCode = substr($row->userCode, 0, 6);
     		
     		if($rec->type != 'invoice' && !($mvc instanceof sales_Proformas)){
@@ -1164,7 +1169,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	// Не може да се оттеглят документи, към които има създадени КИ и ДИ
     	if($action == 'reject' && isset($rec)){
     		if(!($mvc instanceof sales_Proformas)){
-    			if($mvc->fetch("#originId = {$rec->containerId} AND #state = 'active'")){
+    			if($mvc->fetch("#originId = '{$rec->containerId}' AND #state = 'active'")){
     				$res = 'no_one';
     			}
     		}
@@ -1206,7 +1211,7 @@ abstract class deals_InvoiceMaster extends core_Master
     			if($Source->isInstanceOf('deals_InvoiceMaster')){
     				$boolRes = $sourceState != 'active';
     			} else {
-    				$boolRes = $sourceState != 'active' && $sourceState != 'draft';
+    				$boolRes = $sourceState != 'active' && $sourceState != 'draft' && $sourceState != 'pending';
     			}
     			
     			if($boolRes){

@@ -290,7 +290,7 @@ class doc_Linked extends core_Manager
         
         $enumInst = cls::get('type_Enum');
         $enumInst->options = $actTypeArr;
-        $form->FNC('act', $enumInst, 'caption=Действие, input, removeAndRefreshForm=linkContainerId|linkFolderId|linkThreadId|linkDocType, mandatory, silent');
+        $form->FNC('act', $enumInst, 'caption=Действие, input, removeAndRefreshForm=linkContainerId|linkFolderId|linkThreadId|linkDocType|comment, mandatory, silent');
         
         $defAct = $this->getDefaultActionFor($originFId, $type);
         if ($defAct) {
@@ -335,28 +335,33 @@ class doc_Linked extends core_Manager
         
         $form->input();
         
-        if ($form->isSubmitted()) {
-            if ($act && !doc_Linked::$actArr[$act]) {
-                // Субмитваме формата от интерфейсни методи
-                foreach ($intfArr as $intfCls) {
-                    if ($type == 'doc') {
-                        $intfRes = $intfCls->doActivityForDocument($form, $originFId, $act);
-                    } elseif ($type == 'file') {
-                        $intfRes = $intfCls->doActivityForFile($form, $originFId, $act);
-                    }
-                    
-                    if (isset($intfRes)) {
-                        $res = $intfRes;
-                    }
+        $res = NULL;
+        
+        if ($act && !doc_Linked::$actArr[$act]) {
+            // Субмитваме формата от интерфейсни методи
+            foreach ($intfArr as $intfCls) {
+                if ($type == 'doc') {
+                    $intfRes = $intfCls->doActivityForDocument($form, $originFId, $act);
+                } elseif ($type == 'file') {
+                    $intfRes = $intfCls->doActivityForFile($form, $originFId, $act);
                 }
-            } else {
+                
+                if (isset($intfRes)) {
+                    $res = $intfRes;
+                }
+            }
+        }
+        
+        // Ако формата е субмитната
+        if ($form->isSubmitted()) {
+            if (!$act || doc_Linked::$actArr[$act]) {
                 $res = $this->onSubmitFormForAct($form, $act, $type, $originFId);
             }
+        }
+        
+        if ($res) {
             
-            if ($res) {
-                
-                return $res;
-            }
+            return $res;
         }
         
         // Показва избрания документ, когато ще се прикача към него
@@ -388,6 +393,14 @@ class doc_Linked extends core_Manager
     }
     
     
+    /**
+     * Помощна функция, за подготовка на формата
+     * 
+     * @param core_Form $form
+     * @param string $act
+     * @param string $type
+     * @param NULL|string $originFId
+     */
     public static function prepareFormForAct(&$form, $act, $type = 'doc', $originFId = NULL)
     {
         if ($act == 'linkDoc') {
@@ -442,6 +455,18 @@ class doc_Linked extends core_Manager
         }
     }
     
+    
+    /**
+     * Помощна функция, която се вика след субмитване на формата
+     * 
+     * @param core_Form $form
+     * @param string $act
+     * @param string $type
+     * @param integer $originFId
+     * @param NULL|string $actType
+     * 
+     * @return Redirect
+     */
     public function onSubmitFormForAct($form, $act, $type, $originFId, $actType = NULL)
     {
         if (!isset($actType)) {

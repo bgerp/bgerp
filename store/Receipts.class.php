@@ -41,7 +41,7 @@ class store_Receipts extends store_DocumentMaster
      * Поддържани интерфейси
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf,
-                          acc_TransactionSourceIntf=store_transaction_Receipt, bgerp_DealIntf,trans_LogisticDataIntf';
+                          acc_TransactionSourceIntf=store_transaction_Receipt, bgerp_DealIntf,trans_LogisticDataIntf,deals_InvoiceSourceIntf';
     
     
     /**
@@ -156,19 +156,7 @@ class store_Receipts extends store_DocumentMaster
      */
     protected static $defOperationSysId = 'delivery';
     
-    
-    /**
-     * Стратегии за дефолт стойностти
-     */
-    public static $defaultStrategies = array('template' => 'lastDocUser|lastDoc|LastDocSameCuntry',);
 	
-	
-    /**
-     * Да се показва антетка
-     */
-    public $showLetterHead = TRUE;
-    
-    
     /**
      * Показва броя на записите в лога за съответното действие в документа
      */
@@ -290,5 +278,34 @@ class store_Receipts extends store_DocumentMaster
     					  'toggleFields' => array('masterFld' => NULL, 'store_ReceiptDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
     	
         $res .= doc_TplManager::addOnce($this, $tplArr);
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	$rec = $data->rec;
+    	 
+    	if($rec->isReverse == 'no'){
+    		if($rec->state == 'active' || $rec->state == 'draft' || $rec->state == 'pending'){
+    			 
+    			// Ако има фактура към протокола, правим линк към нея, иначе бутон за създаване на нова
+    			if($iRec = purchase_Invoices::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")){
+    				if(purchase_Invoices::haveRightFor('single', $iRec)){
+    					$arrow = html_entity_decode('&#9660;', ENT_COMPAT | ENT_HTML401, 'UTF-8');
+    					$data->toolbar->addBtn("Вх. фактура|* {$arrow}", array('purchase_Invoices', 'single', $iRec->id, 'ret_url' => TRUE), 'title=Отваряне на входящата фактура издадена към складова разписка,ef_icon=img/16/invoice.png');
+    				}
+    			} else {
+    				if(purchase_Invoices::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'sourceContainerId' => $rec->containerId))){
+    					$data->toolbar->addBtn('Вх. фактура', array('purchase_Invoices', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на входяща фактура към складова разписка,ef_icon=img/16/invoice.png,row=2');
+    				}
+    			}
+    		}
+    	}
     }
 }
