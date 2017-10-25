@@ -201,7 +201,7 @@ class planning_Tasks extends core_Master
 		$this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'mandatory,caption=Произвеждане->Опаковка,after=productId,input=hidden,tdClass=small-field nowrap,removeAndRefreshForm,silent');
 		$this->FLD('plannedQuantity', 'double(smartRound,Min=0)', 'mandatory,caption=Произвеждане->Планирано,after=packagingId');
 		$this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Произвеждане->Склад,input=none');
-		$this->FLD("startTime", 'time(noSmart)', 'caption=Произвеждане->Норма,smartCenter');
+		$this->FLD("indTime", 'time(noSmart)', 'caption=Произвеждане->Норма,smartCenter');
 		$this->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Количество,after=packagingId,input=none');
 		$this->FLD('quantityInPack', 'double(smartRound)', 'input=none');
 		$this->FLD('scrappedQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Брак,input=none');
@@ -214,7 +214,7 @@ class planning_Tasks extends core_Master
 		$this->FLD('expectedTimeStart', 'datetime(format=smartTime)', 'input=hidden,caption=Очаквано начало');
 		$this->FLD('additionalFields', 'blob(serialize, compress)', 'caption=Данни,input=none');
 		$this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=fullName,makeLinks)', 'caption=Произвеждане->Оборудване,after=packagingId');
-		$this->FLD('inputInTask', 'int', 'caption=Произвеждане->Влагане в,input=none,after=startTime');
+		$this->FLD('inputInTask', 'int', 'caption=Произвеждане->Влагане в,input=none,after=indTime');
 	}
 	
 	
@@ -479,18 +479,15 @@ class planning_Tasks extends core_Master
 				<tr><td style='font-weight:normal'>|Произведено|*:</td><td>[#totalQuantity#]</td></tr>
 				<tr><td style='font-weight:normal'>|Бракувано|*:</td><td>[#scrappedQuantity#]</td></tr>
 				<tr><td style='font-weight:normal'>|Произв. ед.|*:</td><td>&nbsp;{$packagingId}</td></tr>
+				<!--ET_BEGIN indTime--><tr><td style='font-weight:normal'>|Заработка|*:</td><td>[#indTime#]</td></tr><!--ET_END indTime-->
 				</table>"));
 		
 				if($rec->showadditionalUom == 'yes'){
 				$resArr['quantity']['val'] .= tr("|*<br> <span style='font-weight:normal'>|Общо тегло|*</span> [#totalWeight#]");
 		}
 		
-		if(!empty($rec->startTime)){
-        	if(isset($rec->startTime)){
-        		$row->startTime .= "/" . tr($packagingId);
-		}
-		 
-		$resArr['times'] = array('name' => tr('Заработка'), 'val' => tr("|*<!--ET_BEGIN startTime--><div><span style='font-weight:normal'>|Произ-во|*</span>: [#startTime#]</div><!--ET_END startTime-->"));
+		if(!empty($rec->indTime)){
+        	$row->indTime .= "/" . tr($packagingId);
         }
 		
         if(!empty($row->timeStart) || !empty($row->timeDuration) || !empty($row->timeEnd) || !empty($row->expectedTimeStart) || !empty($row->expectedTimeEnd)) {
@@ -742,7 +739,7 @@ class planning_Tasks extends core_Master
 			} else {
 				$form->setField('packagingId', 'input');
 			}
-			$form->setField('startTime', "unit=|за|* 1 {$measureShort}");
+			$form->setField('indTime', "unit=|за|* 1 {$measureShort}");
 				
 			if($rec->productId == $originRec->productId){
 				$toProduce = ($originRec->quantity - $originRec->quantityProduced) / $originRec->quantityInPack;
