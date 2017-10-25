@@ -325,6 +325,10 @@ class planning_Tasks extends core_Master
 			$row->originId = $origin->getLink();
 		}
 	
+		if(isset($rec->inputInTask)){
+			$row->inputInTask = planning_Tasks::getLink($rec->inputInTask);
+		}
+		
 		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
 		$row->productId = cat_Products::getShortHyperlink($rec->productId);
 		$shortUom = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
@@ -466,10 +470,10 @@ class planning_Tasks extends core_Master
 	{
 		$resArr['info'] = array('name' => tr('Информация'), 'val' => tr("|*<span style='font-weight:normal'>|Задание|*</span>: [#originId#]<br>
         																 <span style='font-weight:normal'>|Артикул|*</span>: [#productId#]<br>
+																	     <!--ET_BEGIN inputInTask--><span style='font-weight:normal'>|Влагане в|*</span>: [#inputInTask#]<br><!--ET_END inputInTask-->
         																 <span style='font-weight:normal'>|Склад|*: [#storeId#]</span>
         																 <!--ET_BEGIN fixedAssets--><br><span style='font-weight:normal'>|Оборудване|*</span>: [#fixedAssets#]<!--ET_END fixedAssets-->
         																 <br>[#progressBar#] [#progress#]"));
-		
 		$packagingId = cat_UoM::getTitleById($rec->packagingId);
 		$resArr['quantity'] = array('name' => tr("Количества"), 'val' => tr("|*<table>
 				<tr><td style='font-weight:normal'>|Планирано|*:</td><td>[#plannedQuantity#]</td></tr>
