@@ -202,7 +202,6 @@ class planning_Tasks extends core_Master
 		$this->FLD('plannedQuantity', 'double(smartRound,Min=0)', 'mandatory,caption=Произвеждане->Планирано,after=packagingId');
 		$this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Произвеждане->Склад,input=none');
 		$this->FLD("startTime", 'time(noSmart)', 'caption=Норма->Произ-во,smartCenter');
-		$this->FLD("indTime", 'time(noSmart)', 'caption=Норма->Пускане,smartCenter');
 		$this->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Количество,after=packagingId,input=none');
 		$this->FLD('quantityInPack', 'double(smartRound)', 'input=none');
 		$this->FLD('scrappedQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Брак,input=none');
@@ -483,12 +482,12 @@ class planning_Tasks extends core_Master
 				$resArr['quantity']['val'] .= tr("|*<br> <span style='font-weight:normal'>|Общо тегло|*</span> [#totalWeight#]");
 		}
 		
-		if(!empty($rec->startTime) || !empty($rec->indTime)){
+		if(!empty($rec->startTime)){
         	if(isset($rec->startTime)){
         		$row->startTime .= "/" . tr($packagingId);
 		}
 		 
-		$resArr['times'] = array('name' => tr('Заработка'), 'val' => tr("|*<!--ET_BEGIN startTime--><div><span style='font-weight:normal'>|Произ-во|*</span>: [#startTime#]</div><!--ET_END startTime--><!--ET_BEGIN indTime--><div><span style='font-weight:normal'>|Пускане|*</span>: [#indTime#]</div><!--ET_END indTime-->"));
+		$resArr['times'] = array('name' => tr('Заработка'), 'val' => tr("|*<!--ET_BEGIN startTime--><div><span style='font-weight:normal'>|Произ-во|*</span>: [#startTime#]</div><!--ET_END startTime-->"));
         }
 		
         if(!empty($row->timeStart) || !empty($row->timeDuration) || !empty($row->timeEnd) || !empty($row->expectedTimeStart) || !empty($row->expectedTimeEnd)) {
