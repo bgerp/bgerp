@@ -106,7 +106,7 @@ class planning_AssetGroups extends core_Master
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
 		if($action == 'delete' && isset($rec)){
-			if(planning_AssetResources::fetchField("#groupId = {$rec->id} AND #state = 'active'")){
+			if(planning_AssetResources::fetchField("#groupId = {$rec->id} AND #state = 'active'") || planning_AssetResourcesNorms::fetchField("#groupId = {$rec->id}")){
 				$requiredRoles = 'no_one';
 			}
 		}
