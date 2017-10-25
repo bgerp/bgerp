@@ -1409,8 +1409,8 @@ a.tOld {
   background-color: #e0e0e0 !important;
   padding: 5px; }
 
-.products-table > tbody > tr > td {
-  border: 1px solid #cccccc;
+.products-table  td {
+  border: 1px solid #cccccc !important;
   padding: 5px;
   vertical-align: top !important; }
 
