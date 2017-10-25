@@ -2008,9 +2008,14 @@ class doc_Threads extends core_Manager
     	$firstDocument = doc_Threads::getFirstDocument($rec->id);
     	$this->requireRightFor('startthread', $rec);
     	
+    	$returnUrl = array($firstDocument->getInstance(), 'single', $firstDocument->that);
+    	if(!self::haveRightForAllDocs('restore', $id)){
+    		followRetUrl($returnUrl, 'Нямате права да контирате част от документите в нишката', 'error');
+    	}
+    	
     	self::startDocuments($rec->id);
     	
-    	return new redirect(array($firstDocument->getInstance(), 'single', $firstDocument->that), 'Бизнес документите в нишката са успешно пуснати');
+    	return new redirect($returnUrl, 'Бизнес документите в нишката са успешно пуснати');
     }
     
     
@@ -2959,5 +2964,43 @@ class doc_Threads extends core_Manager
         
         // Премахваме ненужните класове, при промяната на които да не се обновява
         $status = preg_replace('/(class\s*=\s*)(\'|")(.*?)\s*(tSighted|tUnsighted|active|inactive)\s*(.*?)(\'|")/i', '$1$2$3$5$6', $status);
+    }
+    
+    
+    /**
+     * Дали потребителя има права за екшъна за всички документи в нишката
+     * 
+     * @param string $action      - екшън
+     * @param int $threadId       - ид на тред
+     * @param string|NULL $userId - ид на потребител, или ако няма текущия
+     * @return boolean            - резултат
+     */
+    public static function haveRightForAllDocs($action, $threadId, $userId = NULL)
+    {
+    	expect(in_array($action, array('reject', 'restore')));
+    	
+    	if(!$userId){
+    		$userId = core_Users::getCurrent();
+    	}
+    	
+    	// Намиране на всички документи в нишката
+    	$res = TRUE;
+    	$cQuery = doc_Containers::getQuery();
+    	$cQuery->where("#threadId = {$threadId}");
+    	if($action == 'reject'){
+    		$cQuery->where("#state != 'rejected'");
+    	} else {
+    		$cQuery->where("#state = 'rejected'");
+    	}
+    	
+    	// Проверка за всички документи в нишката дали могат да се $action
+    	$cQuery->show('docClass,docId');
+    	while($cRec = $cQuery->fetch()){
+    		if(!cls::get($cRec->docClass)->haveRightFor($action, $cRec->docId, $userId)){
+    			$res = FALSE;
+    		}
+    	}
+    	
+    	return $res;
     }
 }

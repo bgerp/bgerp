@@ -311,8 +311,6 @@ class sales_Quotations extends core_Master
        if(!$rec->person){
        	  $form->setSuggestions('person', crm_Companies::getPersonOptions($rec->contragentId, FALSE));
        }
-       
-       $form->setDefault('bankAccountId', bank_OwnAccounts::getCurrent('id', FALSE));
     }
     
     
