@@ -718,7 +718,7 @@ class core_Debug
             $contex['EF_TIMEZONE'] = EF_TIMEZONE;
             
             $contex['GIT_BRANCH'] = BGERP_GIT_BRANCH;
-            $contex['BGERP_LAST_STABLE_VERSION'] = '16.44-Pascal';
+            $contex['BGERP_LAST_STABLE_VERSION'] = '17.43-Orelyak';
         }
         
         $state = array( 'errType'   => $errType, 
