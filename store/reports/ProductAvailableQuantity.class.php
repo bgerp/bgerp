@@ -101,6 +101,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
+        $details = (json_decode($form->rec->additional));
 
 
 //        bp($form->rec);
@@ -162,7 +163,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
                 $rQuery = cat_Products::getQuery();
 
-                $codes = array();
+                $codes = (array) $details;
 
                 $rQuery->where("#groups Like'%|{$rec->groupId}|%'");
 
@@ -181,6 +182,8 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
 
         }
+
+
 
     }
 
