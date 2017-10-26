@@ -426,7 +426,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		
 		// Намираме детайлите от задачите и рецеоптите
 		$bomDetails = $this->getDefaultDetailsFromBom($rec, $bomId);
-		$taskDetails = array();//$this->getDefaultDetailsFromTasks($rec);
+		$taskDetails = $this->getDefaultDetailsFromTasks($rec);
 		
 		// Ако има рецепта
 		if($bomId){
@@ -487,18 +487,14 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 	protected function getDefaultDetailsFromTasks($rec)
 	{
 		$details = array();
-		$originRec = doc_Containers::getDocument($rec->originId)->rec();
 		
 		// Намираме всички непроизводствени действия от задачи
-		$aQuery = planning_ProductionTaskProducts::getQuery();
+		$aQuery = planning_ProductionTaskDetails::getQuery();
 		$aQuery->EXT('taskState', 'planning_Tasks', 'externalName=state,externalKey=taskId');
 		$aQuery->EXT('originId', 'planning_Tasks', 'externalName=originId,externalKey=taskId');
-		$aQuery->where("#originId = {$rec->originId}");
-		
-		// Сумираме ги по тип и ид на продукт
-		$aQuery->where("#taskState != 'rejected'");
-		$aQuery->XPR('sumQuantity', 'double', "SUM(#realQuantity)");
-		$aQuery->groupBy("productId,type");
+		$aQuery->where("#originId = {$rec->originId} AND #type != 'production' AND (#taskState = 'active' || #taskState = 'stopped' || #taskState = 'wakeup')");
+		$aQuery->XPR('sumQuantity', 'double', "SUM(#quantity)");
+		$aQuery->groupBy('productId,type');
 		
 		// Събираме ги в масив
 		while($aRec = $aQuery->fetch()){
