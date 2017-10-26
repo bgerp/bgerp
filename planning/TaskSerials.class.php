@@ -37,7 +37,7 @@ class planning_TaskSerials extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created';
+    public $loadList = 'plg_Created,planning_Wrapper';
 	
 	
     /**
