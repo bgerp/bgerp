@@ -67,7 +67,7 @@ class planning_ProductionTaskProducts extends core_Detail
     
     
     /**
-     * Кой има право да добавя артикули към активна задача?
+     * Кой има право да добавя артикули към активна операция?
      */
     public $canAddtoactive = 'taskPlanning,ceo';
     
@@ -109,7 +109,7 @@ class planning_ProductionTaskProducts extends core_Detail
      */
     public function description()
     {
-    	$this->FLD("taskId", 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Задача');
+    	$this->FLD("taskId", 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Операция');
     	$this->FLD("type", 'enum(input=Вложим,waste=Отпадък,production=Производим)', 'caption=Вид,remember,silent,input=hidden');
     	$this->FLD("productId", 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId,tdClass=productCell leftCol wrap');
     	$this->FLD("packagingId", 'key(mvc=cat_UoM,select=shortName)', 'mandatory,caption=Пр. единица,smartCenter,tdClass=small-field nowrap');
@@ -310,7 +310,7 @@ class planning_ProductionTaskProducts extends core_Detail
     
     
     /**
-     * Намира всички допустими артикули от дадения тип за една задача
+     * Намира всички допустими артикули от дадения тип за една операция
      * 
      * @param int $taskId
      * @param input|product|waste $type
@@ -367,9 +367,9 @@ class planning_ProductionTaskProducts extends core_Detail
     
     
     /**
-     * Информация за артикула в задачата
+     * Информация за артикула в операцията
      * 
-     * @param mixed $taskId  - ид или запис на задача
+     * @param mixed $taskId  - ид или запис на операция
      * @param int $productId - ид на артикул
      * @param string $type   - вид на действието
      * @return stdClass
@@ -384,7 +384,7 @@ class planning_ProductionTaskProducts extends core_Detail
     {
     	expect(in_array($type, array('input', 'waste', 'production')));
     	
-    	// Ако артикула е същия като от задачата, връща се оттам
+    	// Ако артикула е същия като от операцията, връща се оттам
     	$taskRec = planning_Tasks::fetchRec($taskId, 'totalQuantity,fixedAssets,productId,indTime,packagingId,quantityInPack');
     	if($taskRec->productId == $productId) return $taskRec;
     	
@@ -394,7 +394,7 @@ class planning_ProductionTaskProducts extends core_Detail
     	$query->show('productId,indTime,packagingId,quantityInPack,plannedQuantity,totalQuantity');
     	if($rec = $query->fetch()) return $rec;
     	
-    	// Ако е влагане и артикула в избран като вложим за тая задача, връща се оттам
+    	// Ако е влагане и артикула в избран като вложим за тая операция, връща се оттам
     	if($type == 'input'){
     		$tQuery = planning_Tasks::getQuery();
     		$tQuery->where("#productId = {$productId} AND #inputInTask = {$taskRec->id} AND #state != 'rejected' AND #state != 'closed' AND #state != 'draft' AND #state != 'pending'");

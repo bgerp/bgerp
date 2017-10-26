@@ -434,7 +434,7 @@ class planning_Tasks extends core_Master
 		
 		if($form->isSubmitted()){
 			if($rec->timeStart && $rec->timeEnd && ($rec->timeStart > $rec->timeEnd)) {
-				$form->setError('timeEnd', 'Крайният срок трябва да е след началото на задачата');
+				$form->setError('timeEnd', 'Крайният срок трябва да е след началото на операцията');
 			}
 	
 			if(!empty($rec->timeStart) && !empty($rec->timeDuration) && !empty($rec->timeEnd)){
@@ -596,7 +596,7 @@ class planning_Tasks extends core_Master
 		
 		if($action == 'reject' && isset($rec)){
 		
-			// Ако има прогрес, задачата не може да се оттегля
+			// Ако има прогрес, операцията не може да се оттегля
 			if(planning_ProductionTaskDetails::fetchField("#taskId = {$rec->id} AND #state != 'rejected'")){
 				$requiredRoles = 'no_one';
 			}
@@ -622,7 +622,7 @@ class planning_Tasks extends core_Master
 				if(isset($tasks[$rec->systemId])){
 					$def = $tasks[$rec->systemId];
 					 
-					// Намираме на коя дефолтна задача отговаря и извличаме продуктите от нея
+					// Намираме на коя дефолтна операция отговаря и извличаме продуктите от нея
 					$r = array();
 					foreach (array('production' => 'product', 'input' => 'input', 'waste' => 'waste') as $var => $type){
 						if(is_array($def->products[$var])){
@@ -645,7 +645,7 @@ class planning_Tasks extends core_Master
 			}
 		}
 		 
-		// Копиране на параметрите на артикула към задачата
+		// Копиране на параметрите на артикула към операцията
 		$tasksClassId = planning_Tasks::getClassId();
 		$params = cat_Products::getParams($rec->productId);
 		if(is_array($params)){
@@ -705,7 +705,7 @@ class planning_Tasks extends core_Master
 			$form->setDefault('productId', key($products));
 		}
 		
-		// Ако задачата е дефолтна за артикула, задаваме и дефолтите
+		// Ако операцията е дефолтна за артикула, задаваме и дефолтите
 		if(isset($rec->systemId)){
 			$tasks = cat_Products::getDefaultProductionTasks($originRec->productId, $originRec->quantity);
 			if(isset($tasks[$rec->systemId])){
@@ -724,7 +724,7 @@ class planning_Tasks extends core_Master
 			$form->setDefault('packagingId', $measureId);
 			$productInfo = cat_Products::getProductInfo($rec->productId);
 			
-			// Ако артикула е вложим, може да се влага по друга задача
+			// Ако артикула е вложим, може да се влага по друга операция
 			if(isset($productInfo->meta['canConvert'])){
 				$tasks = self::getTasksByJob($origin->that);
 				unset($tasks[$rec->id]);
@@ -820,7 +820,7 @@ class planning_Tasks extends core_Master
 		$data->recs = $data->rows = array();
 		$this->prepareExistingTaskRows($containerId, $data);
 		
-		// Ако потребителя може да добавя задача от съответния тип, ще показваме бутон за добавяне
+		// Ако потребителя може да добавя операция от съответния тип, ще показваме бутон за добавяне
 		if($this->haveRightFor('add', (object)array('originId' => $containerId))){
 			$data->addUrlArray = array($this, 'add', 'originId' => $containerId, 'ret_url' => TRUE);
 		}
@@ -855,7 +855,7 @@ class planning_Tasks extends core_Master
 					return $a->systemId == $index;
 				});
 		
-				// Ако има не показваме дефолтната задача
+				// Ако има не показваме дефолтната операция
 				if(is_array($foundObject) && count($foundObject)) continue;
 				$draftRecs[] = (object)array('title' => $taskInfo->title, 'systemId' => $index, 'driverClass' => $taskInfo->driver);
 			}
@@ -873,7 +873,7 @@ class planning_Tasks extends core_Master
 				
 			$row = new stdClass();
 			core_RowToolbar::createIfNotExists($row->_rowTools);
-			$row->_rowTools->addLink('', $url, array('ef_icon' => 'img/16/add.png', 'title' => "Добавяне на нова задача за производство"));
+			$row->_rowTools->addLink('', $url, array('ef_icon' => 'img/16/add.png', 'title' => "Добавяне на нова операция за производство"));
 		
 			$row->title = cls::get('type_Varchar')->toVerbal($draft->title);
 			$row->ROW_ATTR['style'] .= 'background-color:#f8f8f8;color:#777';
@@ -945,11 +945,11 @@ class planning_Tasks extends core_Master
     
     
 	/**
-	 * Помощна функция извличаща параметрите на задачата
+	 * Помощна функция извличаща параметрите на операцията
 	 * 
 	 * @param stdClass $rec     - запис
 	 * @param boolean $verbal   - дали параметрите да са вербални
-	 * @return array $params    - масив с обеднението на параметрите на задачата и тези на артикула
+	 * @return array $params    - масив с обеднението на параметрите на операцията и тези на артикула
 	 */
 	public static function getTaskProductParams($rec, $verbal = FALSE)
 	{
@@ -957,7 +957,7 @@ class planning_Tasks extends core_Master
 		$classId = planning_Tasks::getClassId();
 		$productParams = cat_Products::getParams($rec->productId, NULL, TRUE);
 		
-		// Кои са параметрите на задачата
+		// Кои са параметрите на операцията
 		$params = array();
 		$query = cat_products_Params::getQuery();
 		$query->where("#classId = {$classId} AND #productId = {$rec->id}");
@@ -967,7 +967,7 @@ class planning_Tasks extends core_Master
 			$params[$dRec->paramId] = $dRec->paramValue;
 		}
 		
-		// Обединяване на параметрите на задачата с тези на артикула
+		// Обединяване на параметрите на операцията с тези на артикула
 		$params = $params + $productParams;
 		
 		// Връщане на параметрите

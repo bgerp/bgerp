@@ -55,7 +55,7 @@ class planning_TaskSerials extends core_Manager
 		$this->FLD('quantityInPack', 'double', 'caption=К-во в опаковка,mandatory');
 		$this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Опаковка,mandatory');
 		$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory');
-		$this->FLD('taskId', 'key(mvc=planning_Tasks,select=title)', 'caption=Задача,mandatory');
+		$this->FLD('taskId', 'key(mvc=planning_Tasks,select=title)', 'caption=Операция,mandatory');
 		$this->FLD('labelNo', 'int', 'caption=Номер на етикета,mandatory');
 		$this->FLD('domain', 'enum(auto,labels)', 'caption=Домейн,mandatory,notNull,value=auto');
 		
@@ -93,7 +93,7 @@ class planning_TaskSerials extends core_Manager
 	/**
 	 * Връща следващия сериен номер, автоинкрементиран
 	 *
-	 * @param int $taskId - ид на задача за прозиводство
+	 * @param int $taskId - ид на операция за прозиводство
 	 * @return string $serial - сериен номер
 	 */
 	public static function forceAutoNumber($rec)
@@ -178,14 +178,14 @@ class planning_TaskSerials extends core_Manager
 	/**
 	 * Проверява дали даден сериен номер е допустим
 	 * Допустими са само серийни номера генерирани от системата (автоматично или чрез разпечатване
-	 * на етикети от задачата). Трябва серийния номер да отговаря на Артикула.
-	 * Ако номера е за произведен артикул, той трябва да е генериран от същата задача
-	 * Ако влагаме то номера трябва да е генериран от задача към същото задание
+	 * на етикети от операцията). Трябва серийния номер да отговаря на Артикула.
+	 * Ако номера е за произведен артикул, той трябва да е генериран от същата операция
+	 * Ако влагаме то номера трябва да е генериран от операция към същото задание
 	 * 
 	 * 
 	 * @param bigint $serial       - сериен номер
 	 * @param int $productId       - ид на артикул, на който добавяме номера
-	 * @param int $taskId          - задача към която се опитваме да добавим номер в прогреса
+	 * @param int $taskId          - операция към която се опитваме да добавим номер в прогреса
 	 * @param production|input $type  - дали е за производим артикул или е за вложим/отпадък
 	 * @param int|NULL $id         - ид
 	 * @return FALSE|string $error - FALSE ако номера е допустим, или текст с какъв е проблема
@@ -216,7 +216,7 @@ class planning_TaskSerials extends core_Manager
 				// И произвеждаме
 				if($type == 'production'){
 					
-					// То серийния номер на производимия артикул трябва да е по същата задача
+					// То серийния номер на производимия артикул трябва да е по същата операция
 					// Ако е по друга сетваме подходяща грешка
 					if($serialRec->taskId != $taskId){
 						$error = "Въведения сериен номер е по друга операция";
@@ -225,12 +225,12 @@ class planning_TaskSerials extends core_Manager
 				} else {
 					// Ако влагаме
 					
-					// намираме заданията по които са породени задачата от номера и текущата задача
+					// намираме заданията по които са породени операцията от номера и текущата операция
 					$productTaskOriginId = planning_Tasks::fetchField($serialRec->taskId, 'originId');
 					$taskOriginId = planning_Tasks::fetchField($taskId, 'originId');
 					
 					// Двете задачи трябва да са към едно и също задание
-					// Не можем да влагаме заготовка която е произведена със задача по друго задание
+					// Не можем да влагаме заготовка която е произведена със операция по друго задание
 					if($taskOriginId != $productTaskOriginId){
 						$error = "Въведения сериен номер е по друга операция";
 						$error .= "|* " . planning_Tasks::getLink($serialRec->taskId, 0);
@@ -250,7 +250,7 @@ class planning_TaskSerials extends core_Manager
 	
 	
 	/**
-	 * Връща серийния номер като линк, ако е от друга задача
+	 * Връща серийния номер като линк, ако е от друга операция
 	 * 
 	 * @param int $taskId                    - в коя операция ще се показва
 	 * @param string $serial                 - серийния номер
@@ -265,7 +265,7 @@ class planning_TaskSerials extends core_Manager
 			if(!Mode::isReadOnly()){
 				$url = planning_Tasks::getSingleUrlArray($serialTaskId);
 				$url['Q'] = $serial;
-				$serialVerbal = ht::createLink($serialVerbal, $url, FALSE, "title=Към задачата от която е генериран серийния номер");
+				$serialVerbal = ht::createLink($serialVerbal, $url, FALSE, "title=Към операцията от която е генериран серийния номер");
 			}
 		}
 		
