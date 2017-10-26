@@ -27,7 +27,7 @@ class core_SystemLock
      */
     static function getPath()
     {   
-        $file = str_replace('/', DIRECTORY_SEPARATOR, EF_TEMP_PATH . '/systemLock.txt');
+        $file = str_replace('/', DIRECTORY_SEPARATOR, EF_TEMP_PATH . '/' . EF_DB_NAME . '_systemLock.txt');
          
         return $file;
     }
