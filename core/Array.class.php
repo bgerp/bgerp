@@ -662,4 +662,27 @@ class core_Array
             );
         }
     }
+    
+    
+    /**
+     * Връща нов масив само с посочените стойности от подадения масив
+     * 
+     * @param stdClass|array $arr  - обект
+     * @param string|array $fields - кои стойностти да се върнат
+     * @return stdClass $resObj    - резултатен обект
+     */
+    public static function getSubArray($arr, $fields)
+    {
+    	$res = array();
+    	$arr1 = (array)$arr;
+    	
+    	$fields = arr::make($fields, TRUE);
+    	if(is_array($fields)){
+    		foreach ($fields as $fld){
+    			$res[$fld] = $arr1[$fld];
+    		}
+    	}
+    	
+    	return $res;
+    }
 }
