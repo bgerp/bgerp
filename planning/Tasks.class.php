@@ -511,9 +511,7 @@ class planning_Tasks extends core_Master
 		 
 		// Колко е общото к-во досега
 		$dQuery = planning_ProductionTaskDetails::getQuery();
-		$dQuery->where("#taskId = {$rec->id}");
-		$dQuery->where("#type = 'product'");
-		$dQuery->where("#state != 'rejected'");
+		$dQuery->where("#taskId = {$rec->id} AND #productId = {$rec->productId} AND #type = 'production' AND #state != 'rejected'");
 		$dQuery->XPR('sumQuantity', 'double', "SUM(#quantity / {$rec->quantityInPack})");
 		$dQuery->XPR('sumWeight', 'double', 'SUM(#weight)');
 		$dQuery->XPR('sumScrappedQuantity', 'double', "SUM(#scrappedQuantity / {$rec->quantityInPack})");
@@ -527,15 +525,12 @@ class planning_Tasks extends core_Master
 		$rec->scrappedQuantity = $res->sumScrappedQuantity;
 		
 		// Изчисляваме колко % от зададеното количество е направено
-		$rec->progress = 0;
 		if (!empty($rec->plannedQuantity)) {
 			$percent = ($rec->totalQuantity - $rec->scrappedQuantity) / $rec->plannedQuantity;
 			$rec->progress = round($percent, 2);
 		}
 		
-		if($rec->progress < 0){
-			$rec->progress = 0;
-		}
+		$rec->progress = max(array($rec->progress, 0));
 		
 		return $this->save($rec);
 	}
@@ -578,11 +573,9 @@ class planning_Tasks extends core_Master
 				if($state == 'closed' || $state == 'draft' || $state == 'rejected'){
 					$requiredRoles = 'no_one';
 				}
+			} else {
+				$requiredRoles = 'no_one';
 			}
-		}
-		
-		if(isset($rec) && empty($rec->originId)){
-			$requiredRoles = 'no_one';
 		}
 		
 		if($action == 'add' && isset($rec->originId)){
@@ -594,9 +587,8 @@ class planning_Tasks extends core_Master
 			}
 		}
 		
+		// Ако има прогрес, операцията не може да се оттегля
 		if($action == 'reject' && isset($rec)){
-		
-			// Ако има прогрес, операцията не може да се оттегля
 			if(planning_ProductionTaskDetails::fetchField("#taskId = {$rec->id} AND #state != 'rejected'")){
 				$requiredRoles = 'no_one';
 			}
@@ -693,12 +685,6 @@ class planning_Tasks extends core_Master
 		
 		// Добавяме допустимите опции
 		$products = cat_Products::getByProperty('canManifacture');
-		if(isset($rec->productId)){
-			if(!isset($products[$rec->productId])){
-				$products[$rec->productId] = cat_Products::getTitleById($rec->productId, FALSE);
-			}
-		}
-		
 		$form->setOptions('productId', array('' => '') + $products);
 		
 		if(count($products) == 1){

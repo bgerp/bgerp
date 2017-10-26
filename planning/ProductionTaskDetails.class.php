@@ -233,13 +233,10 @@ class planning_ProductionTaskDetails extends core_Detail
     	$rec = &$form->rec;
     	 
     	if($form->isSubmitted()){
-    		if(empty($rec->serial)){
-    			if($rec->type == 'production'){
-    				$rec->serial = planning_TaskSerials::forceAutoNumber($rec);
-    			}
+    		if(empty($rec->serial) && $rec->type == 'production'){
+    			$rec->serial = planning_TaskSerials::forceAutoNumber($rec);
     		}
     		
-
     		// Ако има въведен сериен номер, проверяваме дали е валиден
     		if(!empty($rec->serial)){
     			$type = ($rec->type == 'production') ? 'production' : 'input';
@@ -384,9 +381,7 @@ class planning_ProductionTaskDetails extends core_Detail
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-    	if(isset($rec->taskProductId)){
-    		planning_ProductionTaskProducts::updateRealQuantity($rec->taskProductId);
-    	}
+    	planning_ProductionTaskProducts::updateTotalQuantity($rec->taskId, $rec->productId, $rec->type);
     }
     
     

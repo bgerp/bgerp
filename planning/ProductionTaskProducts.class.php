@@ -57,19 +57,19 @@ class planning_ProductionTaskProducts extends core_Detail
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'taskPlanning,ceo';
+    public $canEdit = 'taskPlanning, ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'taskPlanning,ceo';
+    public $canAdd = 'taskPlanning, ceo';
     
     
     /**
      * Кой има право да добавя артикули към активна операция?
      */
-    public $canAddtoactive = 'taskPlanning,ceo';
+    public $canAddtoactive = 'taskPlanning, ceo';
     
     
     /**
@@ -264,7 +264,7 @@ class planning_ProductionTaskProducts extends core_Detail
     {
     	if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec->taskId)){
     		$state = $mvc->Master->fetchField($rec->taskId, 'state');
-    		if($state == 'active' || $state == 'waiting' || $state == 'wakeup' || $state == 'draft'){
+    		if(in_array($state, array('active', 'waiting', 'wakeup', 'draft'))){
     			if($action == 'add'){
     				$requiredRoles = $mvc->getRequiredRoles('addtoactive', $rec);
     			}
@@ -273,37 +273,34 @@ class planning_ProductionTaskProducts extends core_Detail
     		}
     	}
     	
-    	if($requiredRoles == 'no_one') return;
-    	
     	if(($action == 'delete' || $action == 'edit') && isset($rec->taskId) && isset($rec->id)){
-    		//if(planning_ProductionTaskDetails::fetchField("#taskId = {$rec->taskId} AND #taskProductId = {$rec->id}")){
-    			//$requiredRoles = 'no_one';
-    		//}
+    		if(planning_ProductionTaskDetails::fetchField("#taskId = {$rec->taskId} AND #productId = {$rec->productId}")){
+    			$requiredRoles = 'no_one';
+    		}
     	}
     }
     
     
     /**
-     * Ъпдейтва реалното количество
+     * Обновяване на изпълненото количество
      * 
-     * @param int $taskProductId - ид на ред за ъпдейт
+     * @param int $taskId    - ид на задача
+     * @param int $productId - ид на артикул
+     * @param string $type   - вид на действието
      * @return void
      */
-    public static function updateRealQuantity($taskProductId)
+    public static function updateTotalQuantity($taskId, $productId, $type)
     {
-    	$rec = self::fetch($taskProductId);
-    	$rec->totalQuantity = 0;
+    	$rec = self::fetch("#taskId = {$taskId} AND #productId = {$productId} AND #type = '{$type}'");
+    	if(empty($rec)) return;
     	
     	$query = planning_ProductionTaskDetails::getQuery();
-    	$query->where("#taskId = {$rec->taskId}");
-    	$query->where("#type = '{$rec->type}'");
-    	$query->where("#taskProductId = {$taskProductId}");
-    	$query->where("#state != 'rejected'");
-    	$query->show('quantity');
+    	$query->where("#taskId = {$taskId} AND #productId = {$productId} AND #type = '{$type}' AND #state != 'rejected'");
+    	$query->XPR('sum', 'double', 'SUM(#quantity)');
+    	$query->show('quantity,sum');
     	
-    	while($dRec = $query->fetch()){
-    		$rec->totalQuantity += $dRec->quantity;
-    	}
+    	$sum = $query->fetch()->sum;
+    	$rec->totalQuantity = (!empty($sum)) ? $sum : 0;
     	
     	self::save($rec, 'totalQuantity');
     }
@@ -355,11 +352,6 @@ class planning_ProductionTaskProducts extends core_Detail
     			$options[$taskRec->productId] = cat_Products::getTitleById($taskRec->productId, FALSE);
     		}
     	}
-    	
-    	
-    	//bp($options);
-    	
-    	
     	
     	return $options;
     }
@@ -463,8 +455,7 @@ class planning_ProductionTaskProducts extends core_Detail
      */
     protected static function on_BeforePrepareEditTitle($mvc, &$res, $data)
     {
-    	$rec = &$data->form->rec;
-    	$data->singleTitle = ($rec->type == 'input') ? 'артикул за влагане' : (($rec->type == 'waste') ? 'отпадъчен артикул' : 'заготовка');
+    	$data->singleTitle = ($data->form->rec->type == 'input') ? 'артикул за влагане' : (($data->form->rec->type == 'waste') ? 'отпадъчен артикул' : 'заготовка');
     }
     
     
