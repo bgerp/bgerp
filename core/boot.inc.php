@@ -81,6 +81,9 @@ try {
 
     require_once(EF_APP_PATH . "/setup/Controller.class.php");
 
+    // Файл за лога на сетъп процеса
+    define(EF_SETUP_LOG_PATH, EF_TEMP_PATH . '/setupLog_' . md5(__FILE__) . '.html');
+
     // Стартира Setup, ако в заявката присъства верен SetupKey
     if (isset($_GET['SetupKey'])) {
         require_once(EF_APP_PATH . "/core/Setup.inc.php");
