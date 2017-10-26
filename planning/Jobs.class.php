@@ -23,7 +23,10 @@ class planning_Jobs extends core_Master
      */
     public $interfaces = 'doc_DocumentIntf,store_iface_ReserveStockSourceIntf,hr_IndicatorsSourceIntf';
     
-    
+    /**
+     * Може ли да се редактират активирани документи
+     */
+    public $canEditActivated = TRUE;
     /**
      * Заглавие
      */
@@ -684,14 +687,8 @@ class planning_Jobs extends core_Master
     		$date = ($rec->state == 'draft') ? NULL : $rec->modifiedOn;
     		$lg = core_Lg::getCurrent();
     		$row->origin = cat_Products::getAutoProductDesc($rec->productId, $date, 'detailed', 'internal', $lg, $rec->quantity);
-    		
-    		if(isset($rec->departments)){
-    			
-    			$row->departments = '';
-    			$departments = keylist::toArray($rec->departments);
-    			foreach ($departments as $dId){
-    				$row->departments .= hr_Departments::getHyperlink($dId, TRUE) . "<br>";
-    			}
+    		if(isset($rec->department)){
+    			$row->department = hr_Departments::getHyperlink($rec->department, TRUE);
     		}
     		
     		// Ако има сделка и пакета за партиди е инсталиран показваме ги
