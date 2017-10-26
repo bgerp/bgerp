@@ -478,7 +478,7 @@ class planning_Tasks extends core_Master
 				<tr><td style='font-weight:normal'>|Планирано|*:</td><td>[#plannedQuantity#]</td></tr>
 				<tr><td style='font-weight:normal'>|Произведено|*:</td><td>[#totalQuantity#]</td></tr>
 				<tr><td style='font-weight:normal'>|Бракувано|*:</td><td>[#scrappedQuantity#]</td></tr>
-				<tr><td style='font-weight:normal'>|Произв. ед.|*:</td><td>&nbsp;{$packagingId}</td></tr>
+				<tr><td style='font-weight:normal'>|Произв. ед.|*:</td><td>{$packagingId}</td></tr>
 				<!--ET_BEGIN indTime--><tr><td style='font-weight:normal'>|Заработка|*:</td><td>[#indTime#]</td></tr><!--ET_END indTime-->
 				</table>"));
 		
@@ -573,8 +573,6 @@ class planning_Tasks extends core_Master
 				if($state == 'closed' || $state == 'draft' || $state == 'rejected'){
 					$requiredRoles = 'no_one';
 				}
-			} else {
-				$requiredRoles = 'no_one';
 			}
 		}
 		
