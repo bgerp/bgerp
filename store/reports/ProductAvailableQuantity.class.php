@@ -73,10 +73,25 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     {
         $fieldset->FLD('additional', 'table(columns=code|minQuantity|maxQuantity,captions=Код на атикула|Мин к-во|Макс к-во,widths=8em|8em|8em|8em)', "caption=Артикули||Additional,autohide,advanced,after=storeId,single=none");
         $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,after=title');
+        $fieldset->FLD('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,after=storeId,silent,removeAndRefreshForm');
+
+    }
+
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param frame2_driver_Proto $Driver $Driver
+     * @param embed_Manager $Embedder
+     * @param stdClass $data
+     */
+
+    protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
+    {
+
     }
 
 
-    /**
+        /**
      * След рендиране на единичния изглед
      *
      * @param cat_ProductDriver $Driver
@@ -87,9 +102,12 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
 
+
+//        bp($form->rec);
         if ($form->isSubmitted()) {
 
          $details = (json_decode($form->rec->additional));
+
             foreach ($details->code as $v) {
 
                 $v = trim($v);
@@ -127,7 +145,6 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
             foreach ($details->code as $key => $v) {
 
-                // bp($details->minQuantity[$key],$details->maxQuantity[$key] );
                 if ($details->minQuantity[$key] && $details->maxQuantity[$key]) {
 
                     if ($details->minQuantity[$key] > $details->maxQuantity[$key]) {
@@ -138,7 +155,33 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
             }
 
+        }else{
+            $rec = $form->rec;
+
+            if ($form->cmd == 'refresh' && $rec->groupId) {
+
+                $rQuery = cat_Products::getQuery();
+
+                $codes = array();
+
+                $rQuery->where("#groups Like'%|{$rec->groupId}|%'");
+
+                while($grProduct = $rQuery->fetch()){
+
+                    $codes['code'][] = $grProduct->code;
+
+                }
+
+                $jCodes = json_encode($codes);
+
+                $form->rec->additional = $jCodes;
+
+            }
+
+
+
         }
+
     }
 
 
@@ -152,9 +195,23 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = NULL)
     {
         $recs = array();
-        $products = array();
+        $tempProducts = array();
 
         $products = (json_decode($rec->additional, false));
+
+        //bp($products);
+
+        foreach ($products->code as $k => $v){
+
+           if (in_array($v,$tempProducts))continue;
+
+            $tempProducts[$k] = $v;
+
+        }
+
+        $products->code = $tempProducts;
+
+       // bp($tempProducts, $products);
 
         foreach ($products->code as $key => $code){
 
