@@ -5,9 +5,6 @@
 /**
  * Клас 'planning_TaskSerials' - Серийни номера по производствени операции
  *
- * 
- *
- *
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
@@ -189,7 +186,7 @@ class planning_TaskSerials extends core_Manager
 	 * @param bigint $serial       - сериен номер
 	 * @param int $productId       - ид на артикул, на който добавяме номера
 	 * @param int $taskId          - задача към която се опитваме да добавим номер в прогреса
-	 * @param product|input $type  - дали е за производим артикул или е за вложим/отпадък
+	 * @param production|input $type  - дали е за производим артикул или е за вложим/отпадък
 	 * @param int|NULL $id         - ид
 	 * @return FALSE|string $error - FALSE ако номера е допустим, или текст с какъв е проблема
 	 */
@@ -217,7 +214,7 @@ class planning_TaskSerials extends core_Manager
 				// Ако серийния номер е за същия артикул
 				
 				// И произвеждаме
-				if($type == 'product'){
+				if($type == 'production'){
 					
 					// То серийния номер на производимия артикул трябва да е по същата задача
 					// Ако е по друга сетваме подходяща грешка

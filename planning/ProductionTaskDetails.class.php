@@ -256,26 +256,10 @@ class planning_ProductionTaskDetails extends core_Detail
     		
     		if(!$form->gotErrors()){
     			if(!empty($rec->serial) && empty($rec->quantity)){
-    				$quantityInSerial = NULL;
-    				if($rec->type == 'production'){
-    					$quantityInSerial = planning_TaskSerials::fetchField(array("#serial = '[#1#]'", $rec->serial), 'quantityInPack');
-    				} else {
-    					if($originId = planning_Tasks::fetchField($rec->taskId, 'originId')){
-    						$query = self::getQuery();
-    						$query->EXT('originId', 'planning_Tasks', 'externalName=originId,externalKey=taskId');
-    						$query->where("#originId = {$originId}");
-    						$query->where(array("#serial = '[#1#]' AND #type = 'product'", $rec->serial));
-    						$query->show('quantity');
-    						if($eRec = $query->fetch()){
-    							$quantityInSerial = $eRec->quantity;
-    						}
-    					}
-    				}
-    				
-    				$rec->quantity = $quantityInSerial;
+    				$rec->quantity = planning_TaskSerials::fetchField(array("#serial = '[#1#]'", $rec->serial), 'quantityInPack');
     			}
     			 
-    			if(empty($rec->quantity) && $rec->type != 'start'){
+    			if(empty($rec->quantity)){
     				$form->setError('quantity', 'Трябва да въведете количество');
     			}
     		}
