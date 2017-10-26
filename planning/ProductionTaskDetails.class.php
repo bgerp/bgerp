@@ -169,6 +169,7 @@ class planning_ProductionTaskDetails extends core_Detail
     		$form->setDefault('productId', $masterRec->productId);
     		
     		if(isset($rec->id)){
+    			$form->setReadOnly('productId');
     			$form->setReadOnly('serial');
     			$form->setReadOnly('quantity');
     			$form->setField('scrappedQuantity', 'input');

@@ -377,7 +377,7 @@ class planning_ProductionTaskProducts extends core_Detail
     	expect(in_array($type, array('input', 'waste', 'production')));
     	
     	// Ако артикула е същия като от операцията, връща се оттам
-    	$taskRec = planning_Tasks::fetchRec($taskId, 'totalQuantity,fixedAssets,productId,indTime,packagingId,quantityInPack');
+    	$taskRec = planning_Tasks::fetchRec($taskId, 'totalQuantity,fixedAssets,productId,indTime,packagingId,quantityInPack,plannedQuantity');
     	if($taskRec->productId == $productId) return $taskRec;
     	
     	// Ако има запис в артикули за него, връща се оттам
