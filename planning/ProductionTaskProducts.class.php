@@ -328,23 +328,42 @@ class planning_ProductionTaskProducts extends core_Detail
     	}
     	
     	if($type == 'input'){
+    		
+    		// Всички избрани вложими артикули от задачи към същото задание
     		$tQuery = planning_Tasks::getQuery();
     		$tQuery->EXT('canConvert', 'cat_Products', 'externalName=canConvert,externalKey=productId');
     		$tQuery->notIn('productId', array_keys($options));
-    		$tQuery->where("#originId = {$taskRec->originId} AND #id != {$taskRec->id} AND #canConvert = 'yes'");
+    		$tQuery->where("#originId = {$taskRec->originId} AND #inputInTask = {$taskRec->id} AND #state != 'draft' AND #state != 'rejected' AND #state != 'pending'");
     		$tQuery->show('productId');
+    		
+    		$taskOptions = array();
     		while($tRec = $tQuery->fetch()){
-    			$options[$tRec->productId] = cat_Products::getTitleById($tRec->productId, FALSE);
+    			$taskOptions[$tRec->productId] = cat_Products::getTitleById($tRec->productId, FALSE);
     		}
     		
+    		if(count($taskOptions)){
+    			$options += array('t' => (object)array('group' => TRUE, 'title' => tr('Задачи'))) + $taskOptions;
+    		}
+    		
+    		// Ако има избрано оборудване
     		if(!empty($taskRec->fixedAssets)){
+    			
+    			// Извличане на артикулите от групата му
     			$norms = planning_AssetResourcesNorms::getNorms($taskRec->fixedAssets);
+    			
+    			// Имали такива, които ги няма в масива
+    			$addOptions = array();
     			if(is_array($norms)){
     				foreach ($norms as $nRec){
-    					if(!array_key_exists($nRec->productId, $options)){
-    						$options[$nRec->productId] = cat_Products::getTitleById($nRec->productId, FALSE);
+    					if(isset($nRec->productId) && !array_key_exists($nRec->productId, $options)){
+    						$addOptions[$nRec->productId] = cat_Products::getTitleById($nRec->productId, FALSE);
     					}
     				}
+    			}
+    			
+    			// Ако има добавят се с групата на оборудването в опциите
+    			if(count($addOptions)){
+    				$options += array($norms['g']) + $addOptions;
     			}
     		}
     	} elseif($type == 'production'){

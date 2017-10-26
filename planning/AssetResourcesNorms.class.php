@@ -20,13 +20,13 @@ class planning_AssetResourcesNorms extends core_Detail
 	/**
 	 * Заглавие
 	 */
-	public $title = 'Артикули за влагане';
+	public $title = 'Норми за артикули';
 	
 	
 	/**
 	 * Заглавие в единствено число
 	 */
-	public $singleTitle = 'Артикул за влагане';
+	public $singleTitle = 'Норма за артикул';
 	
 	
 	/**
@@ -106,7 +106,7 @@ class planning_AssetResourcesNorms extends core_Detail
 	{
 		$rec = $form->rec;
 		
-		if(isset($rec->productId)){
+		if($form->isSubmitted()){
 			$rec->packagingId = cat_Products::fetchField($rec->productId, 'measureId');
 			$rec->quantityInPack = 1;
 		}
@@ -134,25 +134,41 @@ class planning_AssetResourcesNorms extends core_Detail
 	}
 	
 	
+	/**
+	 * Връща нормите закачени към зададените оборудвания
+	 * 
+	 * @param mixed $assets       - списък от оборудвания, трябва да са от една група
+	 * @param int|NULL $productId - дали се търси конкретна норма за един артикул
+	 * @return array $res         - списък с норми
+	 */
 	public static function getNorms($assets, $productId = NULL)
 	{
 		$assets = is_array($assets) ? $assets : keylist::toArray($assets);
 		if(!planning_AssetGroups::haveSameGroup($assets)) return array();
 		$assets = array_values($assets);
+		
+		// Групата от която са оборудванията
 		$groupId = planning_AssetResources::fetchField($assets[0], 'groupId');
 		
+		// Избор на всички норми
 		$res = array();
 		$query = self::getQuery();
     	$query->EXT('canConvert', 'cat_Products', 'externalName=canConvert,externalKey=productId');
-    	$query->where("#groupId = {$groupId}");
+    	$query->where("#groupId = {$groupId} AND #canConvert = 'yes'");
     	$query->show('productId,indTime,packagingId,quantityInPack');
     	if(isset($productId)){
     		$query->where("#productId = {$productId}");
     	}
     	
+    	// Добавяне на артикулите
     	while($rec = $query->fetch()){
-    		unset($rec->id);
     		$res[$rec->productId] = $rec;
+    	}
+    	
+    	// Добавяне и група в опциите
+    	if(count($res)){
+    		$group = planning_AssetGroups::getVerbal($groupId, 'name');
+    		$res = array('g' => (object)array('group' => TRUE, 'title' => $group)) + $res;
     	}
     	
     	return $res;
