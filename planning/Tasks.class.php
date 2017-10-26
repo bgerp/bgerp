@@ -727,6 +727,7 @@ class planning_Tasks extends core_Master
 			// Ако артикула е вложим, може да се влага по друга задача
 			if(isset($productInfo->meta['canConvert'])){
 				$tasks = self::getTasksByJob($origin->that);
+				unset($tasks[$rec->id]);
 				if(count($tasks)){
 					$form->setField('inputInTask', 'input');
 					$form->setOptions('inputInTask', array('' => '') + $tasks);

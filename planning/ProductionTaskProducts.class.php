@@ -39,7 +39,7 @@ class planning_ProductionTaskProducts extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'type,productId,packagingId=Eдиница,plannedQuantity=Количества->Планирано,realQuantity=Количества->Изпълнено,measureId=Количества->Мярка,storeId,indTime,totalTime';
+    public $listFields = 'type,productId,packagingId=Eдиница,plannedQuantity=Количества->Планирано,totalQuantity=Количества->Изпълнено,measureId=Количества->Мярка,storeId,indTime,totalTime';
     
     
     /**
@@ -101,7 +101,7 @@ class planning_ProductionTaskProducts extends core_Detail
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'realQuantity';
+    public $fieldsNotToClone = 'totalQuantity';
     
     
     /**
@@ -116,7 +116,7 @@ class planning_ProductionTaskProducts extends core_Detail
     	$this->FLD("plannedQuantity", 'double(smartRound,Min=0)', 'mandatory,caption=Планирано к-во,smartCenter,oldFieldName=planedQuantity');
     	$this->FLD("storeId", 'key(mvc=store_Stores,select=name)', 'mandatory,caption=Склад');
     	$this->FLD("quantityInPack", 'double', 'mandatory,input=none');
-    	$this->FLD("realQuantity", 'double(smartRound)', 'caption=Количество->Изпълнено,input=none,notNull,smartCenter');
+    	$this->FLD("totalQuantity", 'double(smartRound)', 'caption=Количество->Изпълнено,input=none,notNull,smartCenter,oldFieldName=realQuantity');
     	$this->FLD("indTime", 'time(noSmart)', 'caption=Норма->Време,smartCenter');
     	$this->FNC('totalTime', 'time(noSmart)', 'caption=Норма->Общо,smartCenter');
     	
@@ -132,9 +132,9 @@ class planning_ProductionTaskProducts extends core_Detail
      */
     protected static function on_CalcTotalTime(core_Mvc $mvc, $rec)
     {
-    	if (empty($rec->indTime) || empty($rec->realQuantity)) return;
+    	if (empty($rec->indTime) || empty($rec->totalQuantity)) return;
     
-    	$rec->totalTime = $rec->indTime * $rec->realQuantity;
+    	$rec->totalTime = $rec->indTime * $rec->totalQuantity;
     }
     
     
@@ -276,9 +276,9 @@ class planning_ProductionTaskProducts extends core_Detail
     	if($requiredRoles == 'no_one') return;
     	
     	if(($action == 'delete' || $action == 'edit') && isset($rec->taskId) && isset($rec->id)){
-    		if(planning_ProductionTaskDetails::fetchField("#taskId = {$rec->taskId} AND #taskProductId = {$rec->id}")){
-    			$requiredRoles = 'no_one';
-    		}
+    		//if(planning_ProductionTaskDetails::fetchField("#taskId = {$rec->taskId} AND #taskProductId = {$rec->id}")){
+    			//$requiredRoles = 'no_one';
+    		//}
     	}
     }
     
@@ -292,7 +292,7 @@ class planning_ProductionTaskProducts extends core_Detail
     public static function updateRealQuantity($taskProductId)
     {
     	$rec = self::fetch($taskProductId);
-    	$rec->realQuantity = 0;
+    	$rec->totalQuantity = 0;
     	
     	$query = planning_ProductionTaskDetails::getQuery();
     	$query->where("#taskId = {$rec->taskId}");
@@ -302,10 +302,10 @@ class planning_ProductionTaskProducts extends core_Detail
     	$query->show('quantity');
     	
     	while($dRec = $query->fetch()){
-    		$rec->realQuantity += $dRec->quantity;
+    		$rec->totalQuantity += $dRec->quantity;
     	}
     	
-    	self::save($rec, 'realQuantity');
+    	self::save($rec, 'totalQuantity');
     }
     
     
@@ -318,6 +318,7 @@ class planning_ProductionTaskProducts extends core_Detail
      */
     public static function getOptionsByType($taskId, $type)
     {
+    	$taskRec = planning_Tasks::fetchRec($taskId);
     	$options = array();
     	expect(in_array($type, array('input', 'waste', 'production')));
     	
@@ -326,10 +327,90 @@ class planning_ProductionTaskProducts extends core_Detail
     	$query->where("#type = '{$type}'");
     	$query->show('productId');
     	while($rec = $query->fetch()){
-    		$options[$rec->id] = cat_Products::getTitleById($rec->productId, FALSE);
+    		$options[$rec->productId] = cat_Products::getTitleById($rec->productId, FALSE);
     	}
     	
+    	if($type == 'input'){
+    		$tQuery = planning_Tasks::getQuery();
+    		$tQuery->EXT('canConvert', 'cat_Products', 'externalName=canConvert,externalKey=productId');
+    		$tQuery->notIn('productId', array_keys($options));
+    		$tQuery->where("#originId = {$taskRec->originId} AND #id != {$taskRec->id} AND #canConvert = 'yes'");
+    		$tQuery->show('productId');
+    		while($tRec = $tQuery->fetch()){
+    			$options[$tRec->productId] = cat_Products::getTitleById($tRec->productId, FALSE);
+    		}
+    		
+    		if(!empty($taskRec->fixedAssets)){
+    			$norms = planning_AssetResourcesNorms::getNorms($taskRec->fixedAssets);
+    			if(is_array($norms)){
+    				foreach ($norms as $nRec){
+    					if(!array_key_exists($nRec->productId, $options)){
+    						$options[$nRec->productId] = cat_Products::getTitleById($nRec->productId, FALSE);
+    					}
+    				}
+    			}
+    		}
+    	} elseif($type == 'production'){
+    		if(!array_key_exists($taskRec->productId, $options)){
+    			$options[$taskRec->productId] = cat_Products::getTitleById($taskRec->productId, FALSE);
+    		}
+    	}
+    	
+    	
+    	//bp($options);
+    	
+    	
+    	
     	return $options;
+    }
+    
+    
+    
+    /**
+     * Информация за артикула в задачата
+     * 
+     * @param mixed $taskId  - ид или запис на задача
+     * @param int $productId - ид на артикул
+     * @param string $type   - вид на действието
+     * @return stdClass
+     * 			o productId       - ид на артикула
+     *  		o packagingId     - ид на опаковката
+     *   		o quantityInPack  - к-во в опаковката
+     *    		o plannedQuantity - планирано к-во
+     *     		o totalQuantity   - изпълнено к-во
+     *         	o indTime         - норма
+     */
+    public static function getInfo($taskId, $productId, $type)
+    {
+    	expect(in_array($type, array('input', 'waste', 'production')));
+    	
+    	// Ако артикула е същия като от задачата, връща се оттам
+    	$taskRec = planning_Tasks::fetchRec($taskId, 'totalQuantity,fixedAssets,productId,indTime,packagingId,quantityInPack');
+    	if($taskRec->productId == $productId) return $taskRec;
+    	
+    	// Ако има запис в артикули за него, връща се оттам
+    	$query = self::getQuery();
+    	$query->where("#taskId = {$taskRec->id} AND #productId = {$productId} AND #type = '{$type}'");
+    	$query->show('productId,indTime,packagingId,quantityInPack,plannedQuantity,totalQuantity');
+    	if($rec = $query->fetch()) return $rec;
+    	
+    	// Ако е влагане и артикула в избран като вложим за тая задача, връща се оттам
+    	if($type == 'input'){
+    		$tQuery = planning_Tasks::getQuery();
+    		$tQuery->where("#productId = {$productId} AND #inputInTask = {$taskRec->id} AND #state != 'rejected' AND #state != 'closed' AND #state != 'draft' AND #state != 'pending'");
+    		$tQuery->show('productId,indTime,packagingId,quantityInPack,plannedQuantity,totalQuantity');
+    		if($tRec = $tQuery->fetch()){
+    			$tRec->totalQuantity = (!empty($tRec->totalQuantity)) ? $tRec->totalQuantity : 0;
+    			
+    			return $tRec;
+    		}
+    	}
+    	
+    	// В краен случай се връща от дефолтните данни в оборудването
+    	$norms = planning_AssetResourcesNorms::getNorms($taskRec->fixedAssets, $productId);
+    	if(array_key_exists($productId, $norms)) return $norms[$productId];
+    	
+    	return FALSE;
     }
     
     

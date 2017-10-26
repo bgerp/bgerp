@@ -99,7 +99,7 @@ class planning_TaskSerials extends core_Manager
 	 * @param int $taskId - ид на задача за прозиводство
 	 * @return string $serial - сериен номер
 	 */
-	public static function forceAutoNumber($taskId)
+	public static function forceAutoNumber($rec)
 	{
 		$query = self::getQuery();
 		$query->where("#domain = 'auto'");
@@ -107,9 +107,9 @@ class planning_TaskSerials extends core_Manager
 		$labelNo = $query->fetch()->maxLabelNo;
 		$labelNo++;
 		
-		$tInfo = planning_Tasks::fetch($taskId);
+		$tInfo = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, 'production');
 		
-		$rec = (object)array('taskId'         => $taskId, 
+		$rec = (object)array('taskId'         => $rec->taskId, 
 							 'labelNo'        => $labelNo,
 							 'domain'         => 'auto',
 							 'productId'      => $tInfo->productId,

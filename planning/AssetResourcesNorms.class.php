@@ -132,4 +132,29 @@ class planning_AssetResourcesNorms extends core_Detail
 			unset($data->listFields['groupId']);
 		}
 	}
+	
+	
+	public static function getNorms($assets, $productId = NULL)
+	{
+		$assets = is_array($assets) ? $assets : keylist::toArray($assets);
+		if(!planning_AssetGroups::haveSameGroup($assets)) return array();
+		$assets = array_values($assets);
+		$groupId = planning_AssetResources::fetchField($assets[0], 'groupId');
+		
+		$res = array();
+		$query = self::getQuery();
+    	$query->EXT('canConvert', 'cat_Products', 'externalName=canConvert,externalKey=productId');
+    	$query->where("#groupId = {$groupId}");
+    	$query->show('productId,indTime,packagingId,quantityInPack');
+    	if(isset($productId)){
+    		$query->where("#productId = {$productId}");
+    	}
+    	
+    	while($rec = $query->fetch()){
+    		unset($rec->id);
+    		$res[$rec->productId] = $rec;
+    	}
+    	
+    	return $res;
+	}
 }
