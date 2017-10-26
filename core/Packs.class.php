@@ -839,7 +839,7 @@ class core_Packs extends core_Manager
         // Ако е пуснат от сетъп-а записваме в Лог-а 
         if ($setupFlag) {
             do {
-                $res = @file_put_contents(EF_TEMP_PATH . '/setupLog.html', "<h2>Инсталиране на {$pack} ... <h2>", FILE_APPEND|LOCK_EX);
+                $res = @file_put_contents(EF_SETUP_LOG_PATH, "<h2>Инсталиране на {$pack} ... <h2>", FILE_APPEND|LOCK_EX);
                 if($res !== FALSE) break;
                 usleep(1000);
             } while($i++ < 100);
@@ -963,7 +963,7 @@ class core_Packs extends core_Manager
 			$res = substr($res, strpos($res, "</h2>"), strlen($res));
 
             do {
-                $res = @file_put_contents(EF_TEMP_PATH . '/setupLog.html', $res, FILE_APPEND|LOCK_EX);
+                $res = @file_put_contents(EF_SETUP_LOG_PATH, $res, FILE_APPEND|LOCK_EX);
                 if($res !== FALSE) break;
                 usleep(1000);
             } while($i++ < 100);
