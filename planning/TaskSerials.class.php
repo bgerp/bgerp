@@ -247,4 +247,28 @@ class planning_TaskSerials extends core_Manager
 		// Връщаме резултата
 		return $error;
 	}
+	
+	
+	/**
+	 * Връща серийния номер като линк, ако е от друга задача
+	 * 
+	 * @param int $taskId                    - в коя операция ще се показва
+	 * @param string $serial                 - серийния номер
+	 * @return core_ET|string $serialVerbal  - серийния номер като линк, или вербалното му представяне
+	 */
+	public static function getLink($taskId, $serial)
+	{
+		$serialVerbal = core_Type::getByName('varchar(32)')->toVerbal($serial);
+		$serialTaskId = planning_TaskSerials::fetchField(array("#serial = '[#1#]'", $serial), 'taskId');
+		
+		if($serialTaskId != $taskId){
+			if(!Mode::isReadOnly()){
+				$url = planning_Tasks::getSingleUrlArray($serialTaskId);
+				$url['Q'] = $serial;
+				$serialVerbal = ht::createLink($serialVerbal, $url, FALSE, "title=Към задачата от която е генериран серийния номер");
+			}
+		}
+		
+		return $serialVerbal;
+	}
 }

@@ -239,9 +239,9 @@ class planning_ProductionTaskDetails extends core_Detail
     			}
     		}
     		
+
+    		// Ако има въведен сериен номер, проверяваме дали е валиден
     		if(!empty($rec->serial)){
-    			
-    			// Ако има въведен сериен номер, проверяваме дали е валиден
     			$type = ($rec->type == 'production') ? 'production' : 'input';
     			if($error = planning_TaskSerials::isSerialinValid($rec->serial, $rec->productId, $rec->taskId, $type, $rec->id)){
     				$form->setError('serial', $error);
@@ -324,15 +324,7 @@ class planning_ProductionTaskDetails extends core_Detail
     	}
     		
     	if(!empty($rec->serial)){
-    		$taskId = planning_TaskSerials::fetchField("#serial = '{$rec->serial}'", 'taskId');
-    		if($taskId != $rec->taskId){
-    			
-    			if(!Mode::isReadOnly()){
-    				$url = planning_Tasks::getSingleUrlArray($taskId);
-    				$url['Q'] = $rec->serial;
-    				$row->serial = ht::createLink($row->serial, $url, FALSE, "title=Към задачата от която е генериран серийния номер");
-    			}
-    		}
+    		$row->serial = planning_TaskSerials::getLink($rec->taskId, $rec->serial);
     	}
     	
     	if(isset($rec->employees)){
