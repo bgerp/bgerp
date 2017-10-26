@@ -1110,4 +1110,28 @@ class planning_Tasks extends core_Master
     	// Добавяме новите ключови думи към старите
     	$res = " " . $res . " " . $detailsKeywords;
     }
+    
+    
+    /**
+     * Връща количеството произведено по задачи по дадено задание
+     *
+     * @param int $jobId
+     * @param product|input|waste|start $type
+     * @return double $quantity
+     */
+    public static function getProducedQuantityForJob($jobId)
+    {
+    	expect($jobRec = planning_Jobs::fetch($jobId));
+    	 
+    	$query = planning_Tasks::getQuery();
+    	$query->where("#originId = {$jobRec->containerId} AND #productId = {$jobRec->productId}");
+    	$query->where("#state != 'rejected' AND #state != 'pending'");
+    	$query->XPR('sum', 'double', 'SUM((#totalQuantity - #scrappedQuantity)* #quantityInPack)');
+    	$query->show('totalQuantity,sum');
+    
+    	$sum = $query->fetch()->sum;
+    	$quantity = (!empty($sum)) ? $sum : 0;
+    	
+    	return $quantity;
+    }
 }

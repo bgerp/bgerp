@@ -240,7 +240,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 		}
 		
 		$form->setDefault('jobQuantity', $originRec->quantity);
-		$quantityFromTasks = planning_ProductionTaskDetails::getQuantityForJob($originRec->id, 'product');
+		$quantityFromTasks = planning_Tasks::getProducedQuantityForJob($originRec->id);
 		$quantityToStore = $quantityFromTasks - $originRec->quantityProduced;
 		
 		if($quantityToStore > 0){

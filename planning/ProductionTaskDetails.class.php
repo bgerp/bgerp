@@ -571,35 +571,4 @@ class planning_ProductionTaskDetails extends core_Detail
     	 
     	return $result;
     }
-    
-    
-    /**
-     * Връща количеството произведено по задачи по дадено задание
-     *
-     * @param int $jobId
-     * @param product|input|waste|start $type
-     * @return double $quantity
-     */
-    public static function getQuantityForJob($jobId, $type)
-    {return;
-    	expect(in_array($type, array('product', 'input', 'waste', 'start')));
-    	expect($jobRec = planning_Jobs::fetch($jobId));
-    	
-    	$query = self::getQuery();
-    	$query->EXT('taskState', 'planning_Tasks', 'externalName=state,externalKey=taskId');
-    	$query->EXT('productId', 'planning_Tasks', 'externalName=productId,externalKey=taskId');
-    	$query->EXT('originId', 'planning_Tasks', 'externalName=originId,externalKey=taskId');
-    	$query->where("#taskState != 'rejected'");
-    	$query->where("#state != 'rejected'");
-    	$query->where("#type = '{$type}'");
-    	$query->where("#originId = {$jobRec->containerId}");
-    	$query->where("#productId = {$jobRec->productId}");
-    	
-    	$quantity = 0;
-    	while($rec = $query->fetch()){
-    		$quantity += $rec->quantity;
-    	}
-    
-    	return $quantity;
-    }
 }

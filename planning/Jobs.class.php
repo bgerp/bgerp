@@ -601,7 +601,7 @@ class planning_Jobs extends core_Master
     	if(isset($rec->productId)){
     		$measureId = cat_Products::fetchField($rec->productId, 'measureId');
     		$shortUom = cat_UoM::getShortName($measureId);
-    		$rec->quantityFromTasks = planning_ProductionTaskDetails::getQuantityForJob($rec->id, 'product');
+    		$rec->quantityFromTasks = planning_Tasks::getProducedQuantityForJob($rec->id);;
     		$rec->quantityFromTasks /= $rec->quantityInPack;
     		$row->quantityFromTasks = $Double->toVerbal($rec->quantityFromTasks);
     	}
