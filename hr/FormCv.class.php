@@ -17,6 +17,30 @@
 class hr_FormCv extends core_Master
 {
 
+    /**
+     * Кой има право да чете?
+     */
+    public $canRead = 'hr, ceo';
+
+
+    /**
+     * Кой може да го разглежда?
+     */
+    public $canList = 'hr,ceo';
+
+
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'hr,ceo';
+
+
+    /**
+     * Кой има право да чете?
+     */
+    public $canSummarise = 'hr,ceo';
+
+
 
     /**
      * Какви интерфейси поддържа този мениджър
@@ -37,10 +61,10 @@ class hr_FormCv extends core_Master
     var $singleTitle = "CV ";
 
 
-    /**
-     * Икона за единичния изглед
-     */
-    var $singleIcon = 'img/16/vcard.png';
+//    /**
+//     * Икона за единичния изглед
+//     */
+//    var $singleIcon = 'img/16/vcard.png';
 
 
     /**
@@ -106,20 +130,35 @@ class hr_FormCv extends core_Master
         $this->FLD('tel', 'drdata_PhoneType(type=tel)', 'caption=Лични комуникации->Телефони,class=contactData,silent,export=Csv');
         $this->FLD('mobile', 'drdata_PhoneType(type=tel)', 'caption=Лични комуникации->Мобилен,class=contactData,silent,export=Csv');
 
-        $period = '';
+        $period = '';$months = '';
 
         for($i=1989;$i<=2017;$i++){
                 $period .= $i.'|';
-
         }
 
-        $this->FLD('workExperience', "table(columns=orgName|position|begin|end,begin_sgt=$period,end_opt=$period,captions=Фирмa/Организация|Длъжност|Начало|Край,widths=20em|15em|5em|5em)", "caption=Трудов стаж||Extras->Месторабота||Additional,autohide,advanced,export=Csv");
+        $monthsArr = array("Ян", "Фев", "Мар", "Апр", "Май", "Юни", "Юли", "Авг", "Сеп", "Окт", "Ное", "Дек");
+       foreach ($monthsArr as $m){
+        $months .= $m.'|';
+       }
+
+        $this->FLD('workExperience', "table(columns=orgName|position|beginM|beginY|endM|endY,beginM_opt=$months,beginY_opt=$period,endM_opt=$months,endY_opt=$period,captions=Фирмa/Организация|Длъжност|ОТ мес|год|ДО мес|год,widths=20em|15em|4em|4em|4em|4em)", "caption=Трудов стаж||Extras->Месторабота||Additional,autohide,advanced,export=Csv");
 
         $this->FLD('education', 'table(columns=school|specility|begin|end,captions=Учебно заведение|Степен/Квалификация|Начало|Край,widths=20em|15em|5em|5em)', "caption=Образование||Extras->Обучение||Additional,autohide,advanced,export=Csv");
 
         $this->FLD('state', 'enum(draft=Чернова,active=Публикувана,rejected=Оттеглена)', 'caption=Състояние,input=none');
 
 
+    }
+
+
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
     }
 
 
