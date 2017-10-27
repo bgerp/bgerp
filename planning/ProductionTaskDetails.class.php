@@ -154,9 +154,8 @@ class planning_ProductionTaskDetails extends core_Detail
     	if(isset($masterRec->fixedAssets)){
     		$keylist = $masterRec->fixedAssets;
     		$arr = keylist::toArray($keylist);
-    			
     		foreach ($arr as $key => &$value){
-    			$value = planning_AssetResources::getVerbal($key, 'code');
+    			$value = planning_AssetResources::getVerbal($key, 'fullName');
     		}
     		$form->setOptions('fixedAsset', array('' => '') + $arr);
     		$form->setField('fixedAsset', 'input');

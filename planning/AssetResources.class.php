@@ -168,6 +168,13 @@ class planning_AssetResources extends core_Master
     			$requiredRoles = 'no_one';
     		}
     	}
+    	
+    	if($action == 'changestate' && isset($rec)){
+    		$groupState = planning_AssetGroups::fetchField($rec->groupId, 'state');
+    		if($groupState == 'closed'){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
     }
     
     
@@ -198,6 +205,7 @@ class planning_AssetResources extends core_Master
     	
     	$res = array();
     	$query = self::getQuery();
+    	$query->where("#state != 'closed'");
     	$query->where("#departments IS NULL || #departments LIKE '%|{$departmentId}|%'");
     	while($rec = $query->fetch()){
     		$res[$rec->id] = $rec->fullName;

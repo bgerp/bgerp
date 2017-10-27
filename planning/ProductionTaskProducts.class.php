@@ -418,8 +418,10 @@ class planning_ProductionTaskProducts extends core_Detail
     	}
     	
     	// В краен случай се връща от дефолтните данни в оборудването
-    	$norms = planning_AssetResourcesNorms::getNorms($taskRec->fixedAssets, $productId);
-    	if(array_key_exists($productId, $norms)) return $norms[$productId];
+    	if(isset($taskRec->fixedAssets)){
+    		$norms = planning_AssetResourcesNorms::getNorms($taskRec->fixedAssets, $productId);
+    		if(array_key_exists($productId, $norms)) return $norms[$productId];
+    	}
     	
     	return FALSE;
     }

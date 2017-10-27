@@ -26,7 +26,7 @@ class planning_AssetGroups extends core_Master
 	/**
 	 * Плъгини за зареждане
 	 */
-	public $loadList = 'plg_RowTools2, plg_Created, planning_Wrapper';
+	public $loadList = 'plg_RowTools2, plg_Created, planning_Wrapper, plg_State2';
 	
 	
 	/**
@@ -56,7 +56,7 @@ class planning_AssetGroups extends core_Master
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'name,createdOn,createdBy';
+	public $listFields = 'name,createdOn,createdBy,state';
 	
 	
 	/**
@@ -126,5 +126,38 @@ class planning_AssetGroups extends core_Master
 		$found = is_array($aQuery->fetchAll()) ? $aQuery->fetchAll() : array();
 		
 		return count($found) == 1;
+	}
+	
+	
+	/**
+	 * Ще има ли предупреждение при смяна на състоянието
+	 * 
+	 * @param stdClass $rec
+	 * @return string|FALSE
+	 */
+	public function getChangeStateWarning($rec)
+	{
+		$msg = ($rec->state == 'active') ? 'Наистина ли желаете да деактивирате вида и всички оборудвания към него|*?' : 'Наистина ли желаете да активирате вида и всички оборудвания към него|*?';
+		
+		return $msg;
+	}
+	
+	
+	/**
+	 * Извиква се след успешен запис в модела
+	 */
+	protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = NULL, $mode = NULL)
+	{
+		if($fields == 'state'){
+			foreach (array('planning_AssetResources', 'planning_AssetResourcesNorms') as $det){
+				$Detail = cls::get($det);
+				$dQuery = $Detail->getQuery();
+				$dQuery->where("#groupId = {$rec->id}");
+				while($dRec = $dQuery->fetch()){
+					$dRec->state = $rec->state;
+					$Detail->save($dRec, 'state');
+				}
+			}
+		}
 	}
 }

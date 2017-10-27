@@ -766,8 +766,21 @@ class planning_Tasks extends core_Master
 			}
 		}
 		
+		// Наличното оборудване в департамента
 		$fixedAssets = planning_AssetResources::getAvailableAssets($rec->folderId);
+		
+		// Подсигуряване че вече избраното оборудване присъства в опциите винаги
+		if(isset($rec->fixedAssets)){
+			$alreadyIn = keylist::toArray($rec->fixedAssets);
+			foreach ($alreadyIn as $fId){
+				if(!array_key_exists($fId, $fixedAssets)){
+					$fixedAssets[$fId] = planning_AssetResources::fetchField($fId, 'fullName');
+				}
+			}
+		}
+		
 		$form->setSuggestions('fixedAssets', array('' => '') + $fixedAssets);
+		//bp(planning_ProductionNoteDetails::fetch("#taskId = {$rec->taskId}"));
 	}
 	
 	

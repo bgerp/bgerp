@@ -172,4 +172,18 @@ class planning_AssetResourcesNorms extends core_Detail
     	
     	return $res;
 	}
+	
+	
+	/**
+	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+	 */
+	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+	{
+		if($action == 'changestate' && isset($rec)){
+			$groupState = planning_AssetGroups::fetchField($rec->groupId, 'state');
+			if($groupState == 'closed'){
+				$requiredRoles = 'no_one';
+			}
+		}
+	}
 }
