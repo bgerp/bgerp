@@ -95,7 +95,7 @@ class plg_State2 extends core_Plugin
     /**
      * Гарантира, че новите записи ще имат state по подразбиране - 'active'
      */
-    public static function on_BeforeSave(&$invoker, &$id, &$rec, $fields = NULL)
+    public function on_BeforeSave(&$invoker, &$id, &$rec, $fields = NULL)
     {   
         if (!$rec->state) {
             $this->getActiveAndClosedState($invoker);
