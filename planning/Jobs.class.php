@@ -1162,7 +1162,7 @@ class planning_Jobs extends core_Master
     		}
     	}
     	 
-    	$form->toolbar->addSbBtn('Създаване', 'default', 'ef_icon = img/16/clone.png, title=Създаване на новa операция');
+    	$form->toolbar->addSbBtn('Напред', 'default', 'ef_icon = img/16/move.png, title=Създаване на новa операция');
     	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
     	 
     	$tpl = $this->renderWrapping($form->renderHtml());

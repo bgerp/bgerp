@@ -50,7 +50,7 @@ class planning_AssetResourcesNorms extends core_Detail
 	/**
 	 * Кой може да го изтрие?
 	 */
-	public $canDelete = 'ceo, planningMaster';
+	public $canDelete = 'no_one';
 	
 	
 	/**
