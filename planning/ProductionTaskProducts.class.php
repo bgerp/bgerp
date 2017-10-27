@@ -493,12 +493,14 @@ class planning_ProductionTaskProducts extends core_Detail
     {
     	$taskRec = planning_Tasks::fetch($taskId);
     	
-    	$norm = planning_AssetResourcesNorms::getNorms($taskRec->fixedAssets, $productId);
-    	if(array_key_exists($productId, $norm)){
-    		$groupName = $norm['g']->title;
-    		$msg = "Артикула има зададена норма в|* <b>{$groupName}</b>";
-    		$error = 'FALSE';
-    		return FALSE;
+    	if(isset($taskRec->fixedAssets)){
+    	    $norm = planning_AssetResourcesNorms::getNorms($taskRec->fixedAssets, $productId);
+    	    if(array_key_exists($productId, $norm)){
+    	        $groupName = $norm['g']->title;
+    	        $msg = "Артикула има зададена норма в|* <b>{$groupName}</b>";
+    	        $error = 'FALSE';
+    	        return FALSE;
+    	    }
     	}
     	
     	$inTaskId = planning_Tasks::fetchField("#inputInTask = {$taskRec->id} AND #productId = {$productId} AND (#state = 'active' || #state = 'wakeup' || #state = 'stopped' || #state = 'closed')");
