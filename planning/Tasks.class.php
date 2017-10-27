@@ -210,7 +210,7 @@ class planning_Tasks extends core_Master
 		$this->FLD('timeDuration', 'time', 'caption=Времена->Продължителност,changable,formOrder=102');
 		$this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Времена->Край,changable, tdClass=leftColImportant,formOrder=103');
 		$this->FLD('progress', 'percent', 'caption=Прогрес,input=none,notNull,value=0');
-		$this->FLD('systemId', 'int', 'silent,input=hidden');
+		$this->FNC('systemId', 'int', 'silent,input=hidden');
 		$this->FLD('expectedTimeStart', 'datetime(format=smartTime)', 'input=hidden,caption=Очаквано начало');
 		$this->FLD('additionalFields', 'blob(serialize, compress)', 'caption=Данни,input=none');
 		$this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=fullName,makeLinks)', 'caption=Произвеждане->Оборудване,after=packagingId');
@@ -806,66 +806,7 @@ class planning_Tasks extends core_Master
 		
 		// Ако потребителя може да добавя операция от съответния тип, ще показваме бутон за добавяне
 		if($this->haveRightFor('add', (object)array('originId' => $containerId))){
-			$data->addUrlArray = array($this, 'add', 'originId' => $containerId, 'ret_url' => TRUE);
-		}
-		
-		// Може ли на артикула да се добавят задачи за производство
-		$defaultTasks = cat_Products::getDefaultProductionTasks($data->masterData->rec->productId, $data->masterData->rec->quantity);
-		$departments = keylist::toArray($masterRec->departments);
-		if(!count($departments) && !count($defaultTasks)){
-			$departments = array('' => NULL);
-		}
-		
-		$sysId = (count($defaultTasks)) ? key($defaultTasks) : NULL;
-		
-		$draftRecs = array();
-		foreach ($departments as $depId){
-			$depFolderId = isset($depId) ? hr_Departments::forceCoverAndFolder($depId) : NULL;
-			if(!doc_Folders::haveRightFor('single', $depFolderId)) continue;
-			$r = (object)array('folderId' => $depFolderId, 'title' => cat_Products::getTitleById($masterRec->productId), 'systemId' => $sysId);
-				
-			if(empty($sysId)){
-				$r->productId = $masterRec->productId;
-			}
-				
-			$draftRecs[] = $r;
-		}
-		
-		if(count($defaultTasks)){
-			foreach ($defaultTasks as $index => $taskInfo){
-		
-				// Имали от създадените задачи, такива с този индекс
-				$foundObject = array_filter($data->recs, function ($a) use ($index) {
-					return $a->systemId == $index;
-				});
-		
-				// Ако има не показваме дефолтната операция
-				if(is_array($foundObject) && count($foundObject)) continue;
-				$draftRecs[] = (object)array('title' => $taskInfo->title, 'systemId' => $index, 'driverClass' => $taskInfo->driver);
-			}
-		}
-		
-		// Вербализираме дефолтните записи
-		foreach ($draftRecs as $draft){
-			if(!$this->haveRightFor('add', (object)array('originId' => $containerId, 'driverClass' => $draft->driverClass))) continue;
-			$url = array('planning_Tasks', 'add', 'folderId' => $draft->folderId, 'originId' => $containerId, 'driverClass' => $draft->driverClass, 'title' => $draft->title, 'ret_url' => TRUE);
-			if(isset($draft->systemId)){
-				$url['systemId'] = $draft->systemId;
-			} else {
-				$url['productId'] = $draft->productId;
-			}
-				
-			$row = new stdClass();
-			core_RowToolbar::createIfNotExists($row->_rowTools);
-			$row->_rowTools->addLink('', $url, array('ef_icon' => 'img/16/add.png', 'title' => "Добавяне на нова операция за производство"));
-		
-			$row->title = cls::get('type_Varchar')->toVerbal($draft->title);
-			$row->ROW_ATTR['style'] .= 'background-color:#f8f8f8;color:#777';
-			if(isset($draft->folderId)){
-				$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($draft->folderId))->title;
-			}
-		
-			$data->rows[] = $row;
+			$data->addUrlArray = array('planning_Jobs', 'selectTaskAction', 'originId' => $containerId, 'ret_url' => TRUE);
 		}
 		
 		// Бутон за клониране на задачи от задания
@@ -893,12 +834,7 @@ class planning_Tasks extends core_Master
 		 
 		// Имали бутони за добавяне
 		if(isset($data->addUrlArray)){
-			$btn = ht::createBtn('Производствена операция', $data->addUrlArray, FALSE, FALSE, "title=Създаване на производствена операция към задание,ef_icon={$this->singleIcon}");
-			$tpl->append($btn, 'btnTasks');
-		}
-		
-		if(isset($data->cloneTaskUrl)){
-			$btn = ht::createBtn('Предишни операции', $data->cloneTaskUrl, FALSE, FALSE, "title=Клониране на производствените операции от старото задание,ef_icon=img/16/clone.png");
+			$btn = ht::createBtn('Нова операция', $data->addUrlArray, FALSE, FALSE, "title=Създаване на производствена операция към задание,ef_icon={$this->singleIcon}");
 			$tpl->append($btn, 'btnTasks');
 		}
 		

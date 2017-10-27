@@ -23,10 +23,7 @@ class planning_Jobs extends core_Master
      */
     public $interfaces = 'doc_DocumentIntf,store_iface_ReserveStockSourceIntf,hr_IndicatorsSourceIntf';
     
-    /**
-     * Може ли да се редактират активирани документи
-     */
-    public $canEditActivated = TRUE;
+    
     /**
      * Заглавие
      */
@@ -75,12 +72,6 @@ class planning_Jobs extends core_Master
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo, job';
-    
-    
-    /**
-     * Кой може да създава задание от продажба
-     */
-    public $canClonetasks = 'taskPlanning,ceo';
     
     
     /**
@@ -224,19 +215,20 @@ class planning_Jobs extends core_Master
     /**
      * Връща последните валидни задания за артикула
      * 
-     * @param int $productId    - ид на артикул
-     * @param string $saleId    - ид на продажба, NULL ако няма
-     * @return array $res       - масив с предишните задания
+     * @param int $productId  - ид на артикул
+     * @param int $saleId  - ид на продажба
+     * @param int $id    - ид на текущото задание
+     * @return array $res     - масив с предишните задания
      */
-    public static function getOldJobs($productId, $saleId = NULL)
+    public static function getOldJobs($productId, $saleId, $id)
     {
     	$res = array();
     	$query = self::getQuery();
-    	$query->show('id,productId,state');
-    	$where = "#productId = {$productId} AND (#state = 'active' OR #state = 'wakeup' OR #state = 'stopped' OR #state = 'closed') AND ";
-    	$where .= ($saleId) ? "#saleId = {$saleId}" : "#saleId IS NULL";
+    	$where = "#id != '{$id}' AND #productId = {$productId} AND (#state = 'active' OR #state = 'wakeup' OR #state = 'stopped' OR #state = 'closed') AND ";
+    	$where .= (!empty($saleId) ? "(#saleId IS NULL OR #saleId = {$saleId})" : "#saleId IS NULL");
     	$query->where($where);
     	$query->orderBy('id', 'DESC');
+    	$query->show('id,productId,state');
     	
     	while($rec = $query->fetch()){
     		$res[$rec->id] = self::getRecTitle($rec);
@@ -258,7 +250,8 @@ class planning_Jobs extends core_Master
     	$rec = &$form->rec;
     	
     	// Ако има предишни задания зареждат се за избор
-    	$oldJobs = self::getOldJobs($form->rec->productId);
+    	$oldJobs = self::getOldJobs($rec->productId, $rec->saleId, $rec->id);
+    	
     	if(count($oldJobs)){
     		$form->setField('oldJobId', 'input');
     		$form->setOptions('oldJobId', array('' => '') + $oldJobs);
@@ -701,9 +694,7 @@ class planning_Jobs extends core_Master
     			$batchArr = array();
     			while($bRec = $query->fetch()){
     				$batchArr = $batchArr + batch_Movements::getLinkArr($bRec->productId, $bRec->batch);
-    				
     			}
-    			
     			$row->batches = implode(', ', $batchArr);
     		}
     	}
@@ -847,17 +838,6 @@ class planning_Jobs extends core_Master
     			$res = 'no_one';
     		}
     	}
-    	
-    	if($action == 'clonetasks' && isset($rec)){
-    		if(empty($rec->oldJobId) || ($rec->state != 'wakeup' && $rec->state != 'active')){
-    			$res = 'no_one';
-    		} else {
-    			$tasks = planning_Tasks::getTasksByJob($rec->oldJobId);
-    			if(!count($tasks)){
-    				$res = 'no_one';
-    			}
-    		}
-    	}
     }
     
     
@@ -953,14 +933,13 @@ class planning_Jobs extends core_Master
     	// Ако заданието е затворено, затваряме и задачите към него
     	if($rec->state == 'closed'){
     		$count = 0;
-    		/*
     		$tQuery = planning_Tasks::getQuery();
     		$tQuery->where("#originId = {$rec->containerId} AND #state != 'draft' AND #state != 'rejected' AND #state != 'stopped'");
     		while($tRec = $tQuery->fetch()){
     			$tRec->state = 'closed';
     			cls::get('planning_Tasks')->save_($tRec, 'state');
     			$count++;
-    		}*/
+    		}
     		
     		core_Statuses::newStatus(tr("|Затворени са|* {$count} |задачи по заданието|*"));
     	}
@@ -1131,54 +1110,107 @@ class planning_Jobs extends core_Master
     }
     
     
-    /**
-     * Екшън клониращ задачите от предишно задание
-     */
-    public function act_CloneTasks()
+    public function act_selectTaskAction()
     {
-    	$this->requireRightFor('cloneTasks');
-    	expect($id = Request::get('id', 'int'));
-    	expect($rec = $this->fetch($id));
-    	$this->requireRightFor('cloneTasks', $rec);
+    	planning_Tasks::requireRightFor('add');
+    	expect($originId = Request::get('originId', 'int'));
+    	planning_Tasks::requireRightFor('add', (object)array('originId' => $originId));
+    	$jobRec = doc_Containers::getDocument($originId)->fetch();
+    	$folderId = (!empty($jobRec->department)) ? hr_Departments::fetchField($jobRec->department, 'folderId') : NULL;
     	
     	$form = cls::get('core_Form');
-    	$form->title = 'Клониране на пр. операции от предишно задание|* <b>' . self::getHyperlink($rec->oldJobId, TRUE) . "</b>";
-    	$tasks = planning_Tasks::getTasksByJob($rec->oldJobId);
-    	$form->FLD('tasks', 'keylist(mvc=planning_Tasks,select=id)', 'caption=Пр. операции,mandatory');
-    	$form->setSuggestions('tasks', $tasks);
+    	$form->title = 'Създаване на производствена операция към|* <b>' . self::getHyperlink($jobRec->id, TRUE) . "</b>";
+    	$form->FLD('select', 'varchar', 'caption=Избор,mandatory');
+    	$form->setOptions('select',$this->getTaskOptions($jobRec));
+    	$form->setDefault('select', 'new');
     	$form->input();
     	if($form->isSubmitted()){
-    		$Tasks = cls::get('planning_Tasks');
-    		$arr = keylist::toArray($form->rec->tasks);
-    		
-    		$count = 0;
-    		foreach ($arr as $taskId){
-    			$taskRec = planning_Tasks::fetch($taskId);
+    		$action = $form->rec->select;
+    		$actionArr = explode('|', $action);
+    		if($actionArr[0] == 'sys'){
+    			
+    			// Създаване на шаблонна операция
+    			$defaultTasks = cat_Products::getDefaultProductionTasks($jobRec->productId, $jobRec->quantity);
+    			$draft = $defaultTasks[$actionArr[1]];
+    			$url = array('planning_Tasks', 'add', 'folderId' => $folderId, 'originId' => $jobRec->containerId, 'title' => $draft->title, 'ret_url' => TRUE, 'systemId' => $actionArr[1]);
+    			redirect($url);
+    		} elseif($actionArr[0] == 'c'){
+    			
+    			// Клониране на стара операция
+    			$Tasks = cls::get('planning_Tasks');
+    			$taskRec = planning_Tasks::fetch($actionArr[1]);
+    			
     			$newTask = clone $taskRec;
     			plg_Clone::unsetFieldsNotToClone($Tasks, $newTask, $taskRec);
     			$newTask->_isClone = TRUE;
-    			$newTask->originId = $rec->containerId;
+    			$newTask->originId = $jobRec->containerId;
     			$newTask->state = 'draft';
     			unset($newTask->id);
     			unset($newTask->threadId);
     			unset($newTask->containerId);
-    			
     			if ($Tasks->save($newTask)) {
     				$Tasks->invoke('AfterSaveCloneRec', array($taskRec, &$newTask));
     				$count++;
     			}
+    			
+    			redirect(array('planning_Tasks', 'single', $newTask->id), FALSE, 'Операцията е клонирана успешно');
     		}
-    		
-    		followRetUrl(NULL, "|Клонирани задачи|*: {$count}");
     	}
-    	
-    	$form->toolbar->addSbBtn('Клониране на избраните', 'default', 'ef_icon = img/16/clone.png, title=Създаване на ново задание');
+    	 
+    	$form->toolbar->addSbBtn('Създаване', 'default', 'ef_icon = img/16/clone.png, title=Създаване на новa операция');
     	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
     	 
     	$tpl = $this->renderWrapping($form->renderHtml());
     	core_Form::preventDoubleSubmission($tpl, $form);
     	 
     	return $tpl;
+    }
+    
+    
+    /**
+     * Помощен метод подготвящ опциите за създаване на задача към задание
+     *
+     * @param int $jobRec     - към кое задание
+     * @return array $options - масив с опции при създаване на задача
+     */
+    private function getTaskOptions($rec)
+    {
+    	$options = array();
+    	 
+    	// Има ли дефолтни задачи от артикула
+    	$defaultTasks = cat_Products::getDefaultProductionTasks($rec->productId, $rec->quantity);
+    	if(count($defaultTasks)){
+    		foreach ($defaultTasks as $k => $defRec){
+    			$options["sys|{$k}"] = $defRec->title;
+    		}
+    		 
+    		$options = array('d' => (object)array('group' => TRUE, 'title' => tr('Шаблонни операции от артикула'))) + $options;
+    	}
+    
+    	// Имали задачи за клониране
+    	if(isset($rec->oldJobId)){
+    		$oldTasks = planning_Tasks::getTasksByJob($rec->oldJobId);
+    
+    		if(count($oldTasks)){
+    			$options1 = array();
+    			foreach ($oldTasks as $k1 => $oldTitle){
+    				$tRec = planning_Tasks::fetch($k1);
+    				$options1["c|{$k1}"] = $oldTitle;
+    			}
+    
+    			$options += array('c' => (object)array('group' => TRUE, 'title' => tr('Клониране от предходни операции'))) + $options1;
+    		}
+    	}
+    
+    	// Стандартни опции
+    	$options2 = array('new' => 'Нова операция');
+    	if(isset($rec->department)){
+    		$options2["new|{$rec->department}"] = "В департамент " . hr_Departments::getTitleById($rec->department);
+    	}
+    	$options += array('n' => (object)array('group' => TRUE, 'title' => tr('Нови операции'))) + $options2;
+    	 
+    	// Връщане на опциите за избор
+    	return $options;
     }
     
     
@@ -1255,12 +1287,5 @@ class planning_Jobs extends core_Master
     	}
     
     	return $result;
-    }
-    
-    
-    function act_Test()
-    {
-    	$s = cls::get('planning_Setup');
-    	$s->deleteTasks();
     }
 }
