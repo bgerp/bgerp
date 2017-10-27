@@ -32,7 +32,7 @@ class planning_AssetResourcesNorms extends core_Detail
 	/**
 	 * Плъгини за зареждане
 	 */
-	public $loadList = 'plg_RowTools2, plg_Created, planning_Wrapper';
+	public $loadList = 'plg_RowTools2, plg_Created, planning_Wrapper, plg_State2';
 	
 	
 	/**
@@ -62,7 +62,7 @@ class planning_AssetResourcesNorms extends core_Detail
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'groupId,productId,packagingId,indTime';
+	public $listFields = 'groupId,productId,packagingId,indTime,state';
 	
 	
 	/**
@@ -153,8 +153,7 @@ class planning_AssetResourcesNorms extends core_Detail
 		// Избор на всички норми
 		$res = array();
 		$query = self::getQuery();
-    	$query->EXT('canConvert', 'cat_Products', 'externalName=canConvert,externalKey=productId');
-    	$query->where("#groupId = {$groupId} AND #canConvert = 'yes'");
+    	$query->where("#groupId = {$groupId} AND #state != 'closed'");
     	$query->show('productId,indTime,packagingId,quantityInPack');
     	if(isset($productId)){
     		$query->where("#productId = {$productId}");
