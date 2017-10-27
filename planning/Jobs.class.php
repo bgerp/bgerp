@@ -1110,6 +1110,9 @@ class planning_Jobs extends core_Master
     }
     
     
+    /**
+     * Селектиране на действие при създаване на нова задача
+     */
     public function act_selectTaskAction()
     {
     	planning_Tasks::requireRightFor('add');
@@ -1154,6 +1157,8 @@ class planning_Jobs extends core_Master
     			}
     			
     			redirect(array('planning_Tasks', 'single', $newTask->id), FALSE, 'Операцията е клонирана успешно');
+    		} elseif($actionArr[0] == 'new'){
+    			redirect(array('planning_Tasks', 'add', 'originId' => $jobRec->containerId, 'folderId' => $actionArr[1], 'ret_url' => TRUE));
     		}
     	}
     	 
@@ -1202,13 +1207,18 @@ class planning_Jobs extends core_Master
     		}
     	}
     
-    	// Стандартни опции
-    	$options2 = array('new' => 'Нова операция');
-    	if(isset($rec->department)){
-    		$options2["new|{$rec->department}"] = "В департамент " . hr_Departments::getTitleById($rec->department);
+    	// За всички цехове, добавя се опция за добавяне
+    	$options2 = array();
+    	$departments = cls::get('hr_Departments')->makeArray4Select('name', "#type = 'workshop'", 'id');
+    	foreach ($departments as $dId => $dName){
+    		$depFolderId = hr_Departments::fetchField($dId, 'folderId');
+    		if(doc_Folders::haveRightToFolder($depFolderId)){
+    			$options2["new|{$depFolderId}"] = "В департамент " . hr_Departments::getTitleById($dId);
+    		}
     	}
-    	$options += array('n' => (object)array('group' => TRUE, 'title' => tr('Нови операции'))) + $options2;
     	 
+    	$options += array('new' => (object)array('group' => TRUE, 'title' => tr('Нови задачи'))) + $options2;
+    	
     	// Връщане на опциите за избор
     	return $options;
     }
