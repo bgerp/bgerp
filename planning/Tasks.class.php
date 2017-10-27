@@ -700,6 +700,10 @@ class planning_Tasks extends core_Master
 			}
 		}
 		
+		if(!isset($rec->productId)){
+			$form->setDefault('productId', $originRec->productId);
+		}
+		
 		if(isset($rec->productId)){
 			$packs = cat_Products::getPacks($rec->productId);
 			$form->setOptions('packagingId', $packs);
