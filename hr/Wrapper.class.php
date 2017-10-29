@@ -35,6 +35,7 @@ class hr_Wrapper extends plg_ProtoWrapper
         $this->TAB('hr_Trips', 'Документи->Командировки', 'ceo,hrMaster');
         $this->TAB('hr_Bonuses', 'Документи->Премии', 'ceo,hrMaster');
         $this->TAB('hr_Deductions', 'Документи->Удръжки', 'ceo,hrMaster');
+        $this->TAB('hr_FormCv', 'Документи->Форма CV', 'ceo,hrMaster');
 
         //$this->TAB('hr_Departments', 'Структура->Отдели', 'ceo,hr,admin');
         $this->TAB(array('hr_Departments', 'list', 'Chart'=> 'List'), 'Структура->Таблица', 'ceo,hrMaster');

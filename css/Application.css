@@ -2918,6 +2918,9 @@ span.sharing-history-title {
   padding-bottom: 10px;
   left: 0;
   z-index: 100; }
+  .newsbar h2,
+  .newsbar h3 {
+    margin-bottom: 0; }
 
 .newsbar .richtext {
   line-height: 1.1em;
