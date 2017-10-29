@@ -98,6 +98,7 @@ class acc_reports_TotalRep extends frame2_driver_TableData
         
         // Индикатора Делта
         $deltaId = hr_IndicatorNames::fetchField("#name = 'Delta'", 'id');
+
         foreach($rec->targets['month'] as $i => $month) {
             $year = $rec->targets['year'][$i];
             $target = (int) $rec->targets['target'][$i];
@@ -109,7 +110,7 @@ class acc_reports_TotalRep extends frame2_driver_TableData
             
             $delta = 0;
             $query = hr_Indicators::getQuery(); 
-            $query->where("(#date >= '{$date->from}' AND #date <= '{$date->to}') && #indicatorId = {$deltaId}");
+            $query->where("(#date >= '{$from}' AND #date <= '{$to}') && #indicatorId = {$deltaId}");
             while($recIndic = $query->fetch()){
                 // Проверка дали служителя е от посочената роля
                 if($recIndic->roleId) {
