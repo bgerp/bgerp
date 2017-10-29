@@ -118,7 +118,7 @@ class acc_reports_TotalRep extends frame2_driver_TableData
                 $delta += $recIndic->value;
             }
             $res->period = "{$month}/{$year}";
-            $res->speed = round($delta/$target);
+            $res->speed = round(100 * $delta/$target);
 
             $recs[$res->period] = $res;
         }
