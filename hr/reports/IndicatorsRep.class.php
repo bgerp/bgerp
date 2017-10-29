@@ -143,7 +143,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	    }
 	    
         ksort($recs);
-bp(
+ 
 	    $num = 1;
         $total = array();
 	    foreach($recs as $r) {
