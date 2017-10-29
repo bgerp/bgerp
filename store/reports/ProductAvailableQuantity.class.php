@@ -73,7 +73,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     {
         $fieldset->FLD('additional', 'table(columns=code|minQuantity|maxQuantity,captions=Код на атикула|Мин к-во|Макс к-во,widths=8em|8em|8em|8em)', "caption=Артикули||Additional,autohide,advanced,after=storeId,single=none");
         $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,after=title');
-        $fieldset->FLD('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,after=storeId,silent,removeAndRefreshForm');
+        $fieldset->FLD('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,after=storeId,silent,removeAndRefreshForm=additional');
 
     }
 
@@ -102,7 +102,6 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
         $details = (json_decode($form->rec->additional));
-
 
 //        bp($form->rec);
         if ($form->isSubmitted()) {
@@ -156,6 +155,12 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
             }
 
+            $grDetails = (array) $details;
+
+            $jDetails = json_encode(self::removeRpeadValues($grDetails));
+
+            $form->rec->additional = $jDetails;
+
         }else{
             $rec = $form->rec;
 
@@ -163,27 +168,26 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
                 $rQuery = cat_Products::getQuery();
 
-                $codes = (array) $details;
+
+                $grDetails = (array) $details;
 
                 $rQuery->where("#groups Like'%|{$rec->groupId}|%'");
 
                 while($grProduct = $rQuery->fetch()){
 
-                    $codes['code'][] = $grProduct->code;
+                    $grDetails['code'][] = $grProduct->code;
+                    $grDetails['minQuantity'][] = $grProduct->minQuantity;
+                    $grDetails['maxQuantity'][] = $grProduct->maxQuantity;
 
                 }
 
-                $jCodes = json_encode($codes);
+                $jDetails = json_encode(self::removeRpeadValues($grDetails));
 
-                $form->rec->additional = $jCodes;
+                $form->rec->additional = $jDetails;
 
             }
 
-
-
         }
-
-
 
     }
 
@@ -202,7 +206,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
         $products = (json_decode($rec->additional, false));
 
-        //bp($products);
+       // bp($products);
 
         foreach ($products->code as $k => $v){
 
@@ -214,7 +218,6 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
         $products->code = $tempProducts;
 
-       // bp($tempProducts, $products);
 
         foreach ($products->code as $key => $code){
 
@@ -240,7 +243,6 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                 $quantity = store_Products::getQuantity($id, $recProduct->storeId, FALSE);
 
 
-
                 // подготовка на показател "състояние" //
                 if(($quantity < (int)$products->minQuantity[$key])){
                     $quantityMark = 'под минимум';
@@ -256,9 +258,6 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                         $quantityMark = 'ok';
                     }
                 }
-
-
-
 
                 if(!array_key_exists($id,$recs)) {
                     $recs[$id]=
@@ -372,4 +371,32 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         return $row;
     }
 
-}
+
+    /**
+     *Изчиства повтарящи се стойности във формата
+     * @param $arr
+     * @return array
+     */
+    static function removeRpeadValues ($arr)
+    {
+           $tempArr = (array) $arr;
+
+        $tempProducts = array();
+        foreach ($tempArr['code'] as $k =>$v){
+            if (in_array($v,$tempProducts)){
+                unset($tempArr['minQuantity'][$k]);
+                unset($tempArr['maxQuantity'][$k]);
+                unset($tempArr['code'][$k]);
+                continue;
+            }
+
+            $tempProducts[$k] = $v;
+
+        }
+        $arr = $tempArr;
+
+        return $arr;
+    }
+
+
+    }
