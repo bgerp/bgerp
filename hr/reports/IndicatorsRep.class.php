@@ -155,6 +155,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
             $r->value = $val;
             $num++;
             $r->num = $num;
+            $recs['0|' . $ind] = $r;
         }
 
 		return $recs;
