@@ -13,7 +13,7 @@
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Персонал » Индикатори
+ * @title     Персонал » Индикатори за ефективност
  */
 class hr_reports_IndicatorsRep extends frame2_driver_TableData
 {                  
@@ -109,8 +109,10 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	    if(count($persons)){
 	        foreach ($persons as $person) {
 	            // търсим ид-то на профила му
-	           $personId = crm_Profiles::fetchField("#userId = '{$person}'",'personId');
+	           $personId = crm_Profiles::fetchField("#userId = '{$person}'", 'personId');
 	           
+               $users[$personId] = $person;
+
 	           array_push($personsId,$personId); 
 	        }
 
@@ -121,7 +123,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	
 	    // за всеки един индикатор
 	    while($recIndic = $query->fetch()){ 
-	        $id = $recIndic->personId."|".$recIndic->indicatorId;
+	        $id = str_pad(core_Users::fetchField($users[$recIndic->personId], 'names'), 120, " ", STR_PAD_RIGHT) . "|". str_pad(hr_IndicatorNames::fetchField($recIndic->indicatorId,'name'), 120, " ", STR_PAD_RIGHT);
 	        // добавяме в масива събитието
 	        if(!array_key_exists($id,$recs)) { 
 	            $recs[$id]=
@@ -140,6 +142,8 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	        }  
 	    }
 	    
+        ksort($recs);
+ 
 	    $num = 1;
         $total = array();
 	    foreach($recs as $r) {
