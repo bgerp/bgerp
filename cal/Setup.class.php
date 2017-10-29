@@ -70,6 +70,7 @@ class cal_Setup extends core_ProtoSetup
             'cal_ReminderSnoozes',
     		'cal_TaskConditions',
             'migrate::windUpRem',
+            'migrate::removePOKey',
             //'migrate::reCalcNextStart'
         );
 
@@ -295,5 +296,16 @@ class cal_Setup extends core_ProtoSetup
         core_Cache::set($type, $handler, $res, $keepMinutes, $depends);
         
         return $res;
+    }
+    
+    
+    /**
+     * Миграция за премахване на грешно добавени празници за PO
+     *
+     * @return array
+     */
+    public static function removePOKey()
+    {
+        cal_Holidays::delete("#key = 'constitutionPO' OR #key = 'independencePO'");
     }
 }
