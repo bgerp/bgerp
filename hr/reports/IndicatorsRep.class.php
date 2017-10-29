@@ -123,7 +123,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	
 	    // за всеки един индикатор
 	    while($recIndic = $query->fetch()){ 
-	        $id = str_pad(core_Users::fetch($users[$recIndic->personId], 'names'), 120, " ", STR_PAD_LEFT) . "|". str_pad(hr_IndicatorNames::fetchField($recIndic->indicatorId,'name'), 120, " ", STR_PAD_LEFT);
+	        $id = str_pad(core_Users::fetchField($users[$recIndic->personId], 'names'), 120, " ", STR_PAD_LEFT) . "|". str_pad(hr_IndicatorNames::fetchField($recIndic->indicatorId,'name'), 120, " ", STR_PAD_LEFT);
 	        // добавяме в масива събитието
 	        if(!array_key_exists($id,$recs)) { 
 	            $recs[$id]=
