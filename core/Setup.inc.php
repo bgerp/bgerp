@@ -51,8 +51,6 @@ if (setupKeyValid() && !setupProcess()) {
 }
 
 
-
-
 // На коя стъпка се намираме в момента?
 $step = $_GET['step'] ? $_GET['step'] : 1;
 $texts['currentStep'] = $step;
@@ -938,9 +936,8 @@ if ($step == 'setup') {
     // Пращаме стиловете
     echo ($texts['styles']);
  
-    
     // Първоначално изтриване на Log-a
-    file_put_contents(EF_TEMP_PATH . '/setupLog.html', "");
+    file_put_contents(EF_SETUP_LOG_PATH, "");
     
     // Стартираме инициализацията
     $res = file_get_contents("{$localUrl}&step=start", FALSE, $context, 0, 32);
@@ -987,16 +984,16 @@ if ($step == 'setup') {
                 ");
     $cnt = 0;
     do {
-        clearstatcache(EF_TEMP_PATH . '/setupLog.html');
-        $fTime = filemtime(EF_TEMP_PATH . '/setupLog.html');
-        clearstatcache(EF_TEMP_PATH . '/setupLog.html');
+        clearstatcache(EF_SETUP_LOG_PATH);
+        $fTime = filemtime(EF_SETUP_LOG_PATH);
+        clearstatcache(EF_SETUP_LOG_PATH);
         list($numTables, $numRows) = dataBaseStat(); 
 
         // От базата идват 80% от прогрес бара
         $percentsBase = round(($numRows + $calibrate * $numTables*(4/5))/$total, 2)*100;
         
         // Изчитаме лог-а
-        $setupLog = @file_get_contents(EF_TEMP_PATH . '/setupLog.html');
+        $setupLog = @file_get_contents(EF_SETUP_LOG_PATH);
 
         if (!empty($setupLog) && $percentsLog < 20) {
             $percentsLog+=2;
@@ -1015,7 +1012,7 @@ if ($step == 'setup') {
         // Изтриваме Log-a - ако има нещо в него
         if (!empty($setupLog)) {
             do {
-                $res = @file_put_contents(EF_TEMP_PATH . '/setupLog.html', "", LOCK_EX);
+                $res = @file_put_contents(EF_SETUP_LOG_PATH, "", LOCK_EX);
                 if($res !== FALSE) break;
                 usleep(1000);
             } while($i++ < 100);
@@ -1030,7 +1027,7 @@ if ($step == 'setup') {
         sleep(2);
         Debug::log('Sleep 2 sec. in' . __CLASS__);
         
-        $fTime2 = filemtime(EF_TEMP_PATH . '/setupLog.html');
+        $fTime2 = filemtime(EF_SETUP_LOG_PATH);
         if (($fTime2 - $fTime) > 0) {
             $logModified = TRUE;
         } else {
@@ -1090,7 +1087,7 @@ if($step == 'start') {
     // Следващият ред генерира notice,
     // но без него file_get_contents забива, ако трябва да връща повече от 0 байта
     @ob_end_clean();
-
+ 
     header("Connection: close\r\n");
     header("Content-Encoding: none\r\n");
     ob_start();
@@ -1105,7 +1102,7 @@ if($step == 'start') {
 
     $setupFlag = TRUE;
     // Създаваме празен Log файл
-    file_put_contents(EF_TEMP_PATH . '/setupLog.html', '');
+    file_put_contents(EF_SETUP_LOG_PATH, '');
     
     // Локал за функции като basename, fgetcsv
     setlocale(LC_ALL, 'en_US.UTF8');
@@ -1115,13 +1112,13 @@ if($step == 'start') {
     try {
         try {
             $res = $ef->install();
-            file_put_contents(EF_TEMP_PATH . '/setupLog.html', 'Start OK ...' . $res);
+            file_put_contents(EF_SETUP_LOG_PATH, 'Starting bgERP initialization...' . $res);
         } catch (core_exception_Expect $e) {
-            file_put_contents(EF_TEMP_PATH . '/setupLog.html', $res . "ERROR: " . $e->getMessage());
+            file_put_contents(EF_SETUP_LOG_PATH, $res . "ERROR: " . $e->getMessage());
             reportException($e);
         }
     } catch (Exception $e) {
-        file_put_contents(EF_TEMP_PATH . '/setupLog.html',$e->getMessage());
+        file_put_contents(EF_SETUP_LOG_PATH, $e->getMessage());
         reportException($e);
     }
     

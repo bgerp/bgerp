@@ -4214,6 +4214,8 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_AfterActivation($mvc, &$rec)
     {
+    	$rec = $mvc->fetchRec($rec);
+    	
     	if(empty($rec->activatedOn)){
     		$rec->activatedOn = dt::now();
     		$rec->activatedBy = core_Users::getCurrent();

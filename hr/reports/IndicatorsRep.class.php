@@ -113,6 +113,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	           
 	           array_push($personsId,$personId); 
 	        }
+
 	        $personsId = implode(',', $personsId);
 
 	        $query->where("#personId IN ({$personsId})"); 
@@ -140,11 +141,22 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	    }
 	    
 	    $num = 1;
+        $total = array();
 	    foreach($recs as $r) {
 	        $r->num = $num;
 	        $num++;
+            $total[$r->indicatorId] += $r->value;
 	    }
-	  
+	    
+        foreach($total as $ind => $val) {
+            $r = new stdClass();
+            $r->person = 0;
+            $r->indicatorId = $ind;
+            $r->value = $val;
+            $num++;
+            $r->num = $num;
+        }
+
 		return $recs;
 	}
 	
@@ -196,10 +208,14 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 		
 		// Линк към служителя
 		if(isset($dRec->person)) {
-		    $userId = crm_Profiles::fetchField("#personId = '{$dRec->person}'",'userId');
-		    $nick = crm_Profiles::createLink($userId)->getContent();
-		    //crm_Profiles::fetchField("#personId = '{$rec->alternatePerson}'", 'userId');
-		    $row->person = crm_Persons::fetchField($dRec->person, 'name') . " (" . $nick .")";
+            if($dRec->person > 0) {
+                $userId = crm_Profiles::fetchField("#personId = '{$dRec->person}'",'userId');
+                $nick = crm_Profiles::createLink($userId)->getContent();
+                //crm_Profiles::fetchField("#personId = '{$rec->alternatePerson}'", 'userId');
+                $row->person = crm_Persons::fetchField($dRec->person, 'name') . " (" . $nick .")";
+            } else {
+                $row->person = 'Общо';
+            }
 		}
 		
 		if($isPlain){

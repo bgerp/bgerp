@@ -234,7 +234,7 @@ class sales_Quotations extends core_Master
         $this->FLD('place', 'varchar', 'caption=Получател->Град/с, changable, class=contactData');
         $this->FLD('address', 'varchar', 'caption=Получател->Адрес, changable, class=contactData');
     	
-    	$this->FLD('validFor', 'time(uom=days,suggestions=10 дни|15 дни|30 дни|45 дни|60 дни|90 дни)', 'caption=Допълнително->Валидност');
+    	$this->FLD('validFor', 'time(uom=days,suggestions=10 дни|15 дни|30 дни|45 дни|60 дни|90 дни)', 'caption=Допълнително->Валидност,mandatory');
     	$this->FLD('others', 'text(rows=4)', 'caption=Допълнително->Условия');
     }
     
@@ -311,6 +311,9 @@ class sales_Quotations extends core_Master
        if(!$rec->person){
        	  $form->setSuggestions('person', crm_Companies::getPersonOptions($rec->contragentId, FALSE));
        }
+       
+       // Срок на валидност по подразбиране
+       $form->setDefault('validFor', sales_Setup::get('DEFAULT_VALIDITY_OF_QUOTATION'));
     }
     
     
@@ -557,14 +560,14 @@ class sales_Quotations extends core_Master
     					$row->deliveryPlaceId = ht::createLinkRef($row->deliveryPlaceId, array('crm_Locations', 'single', $placeId), NULL, 'title=Към локацията');
     				}
     			}
-    			
-    			if(isset($rec->bankAccountId)){
-    				$ownAccount = bank_OwnAccounts::getOwnAccountInfo($rec->bankAccountId);
-    				$url = bank_OwnAccounts::getSingleUrlArray($rec->bankAccountId);
-    				$row->bankAccountId = ht::createLink($ownAccount->iban, $url);
-    			}
     		}
     		 
+    		if(isset($rec->bankAccountId)){
+    			$ownAccount = bank_OwnAccounts::getOwnAccountInfo($rec->bankAccountId);
+    			$url = bank_OwnAccounts::getSingleUrlArray($rec->bankAccountId);
+    			$row->bankAccountId = ht::createLink($ownAccount->iban, $url);
+    		}
+    		
     		$deliveryAdress = '';
     		if(!empty($rec->deliveryAdress)){
     			$deliveryAdress .= $mvc->getFieldType('deliveryAdress')->toVerbal($rec->deliveryAdress);

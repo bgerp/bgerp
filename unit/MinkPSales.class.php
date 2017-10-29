@@ -468,7 +468,7 @@ class unit_MinkPSales extends core_Manager {
         //$browser->hasText('Създаване на продажба');
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('shipmentStoreId', '1');
-        $browser->setValue('bankAccountId', '');
+        $browser->setValue('bankAccountId', '#BG11CREX92603114548401');
         $browser->setValue('note', 'MinkPSaleControlInvoiceDate');
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('chargeVat', "Включено ДДС в цените");
@@ -525,20 +525,18 @@ class unit_MinkPSales extends core_Manager {
         // Опит за възстановяване на фактурата с днешна дата и по-малък номер от тази с вчерашна дата
         $browser->click('Показване на целия документ');
         $browser->press('Възстановяване');
-        //return $browser->getHtml();
-        //$browser->press(btnRestore53);
-        if(strpos($browser->gettext(), '979,99 979,99 0,00 979,99')) {
-        } else {
-            return unit_MinkPbgERP::reportErr('Грешка - Възстановяване', 'warning');
-        }
+        //if(strpos($browser->gettext(), '979,99 979,99 0,00 979,99')) {//проверка на статистиката
+        //} else {
+        //    return unit_MinkPbgERP::reportErr('Грешка - неправилно възстановяване', 'warning');
+        //}
         //if(strpos($browser->gettext(), 'Фактурата не може да се възстанови - фактура')) {
         //} else {
         //    return unit_MinkPbgERP::reportErr('Не излиза съобщение за грешка - Фактурата не може да се възстанови', 'warning');
         //}
-        //if(strpos($browser->gettext(), 'по-голям номер и по-малка дата в диапазона')) {
-        //} else {
-        //    return unit_MinkPbgERP::reportErr('Не излиза съобщение за грешка - фактура с по-голям номер и по-малка дата', 'warning');
-        //}
+        if(strpos($browser->gettext(), 'Анулиран')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Не излиза съобщение за грешка - неправилно възстановяване', 'warning');
+        }
         //return $browser->getHtml();
         
         }

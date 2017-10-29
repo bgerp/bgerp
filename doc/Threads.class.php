@@ -2008,9 +2008,14 @@ class doc_Threads extends core_Manager
     	$firstDocument = doc_Threads::getFirstDocument($rec->id);
     	$this->requireRightFor('startthread', $rec);
     	
+    	$returnUrl = array($firstDocument->getInstance(), 'single', $firstDocument->that);
+    	if(!self::haveRightForAllDocs('restore', $id)){
+    		followRetUrl($returnUrl, 'Нямате права да контирате част от документите в нишката', 'error');
+    	}
+    	
     	self::startDocuments($rec->id);
     	
-    	return new redirect(array($firstDocument->getInstance(), 'single', $firstDocument->that), 'Бизнес документите в нишката са успешно пуснати');
+    	return new redirect($returnUrl, 'Бизнес документите в нишката са успешно пуснати');
     }
     
     
