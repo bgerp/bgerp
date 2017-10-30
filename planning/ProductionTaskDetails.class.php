@@ -339,6 +339,8 @@ class planning_ProductionTaskDetails extends core_Detail
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
+    	$data->listTableMvc->FNC('shortUoM', 'varchar', 'tdClass=nowrap');
+    	
     	$rows = &$data->rows;
     	if(!count($rows)) return;
     
