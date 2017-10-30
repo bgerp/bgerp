@@ -3326,14 +3326,14 @@ span.sharing-history-title {
   .overflow-scroll > .antetka {
     margin-top: 0; }
 
-.planning_drivers_ProductionTaskDetails .listRowsDetail {
+.planning_ProductionTaskDetails .listRowsDetail {
   width: 100% !important;
   overflow-x: auto !important;
   overflow-y: hidden !important;
   _overflow: auto !important;
   margin-bottom: 0;
   display: block; }
-  .planning_drivers_ProductionTaskDetails .listRowsDetail td {
+  .planning_ProductionTaskDetails .listRowsDetail td {
     max-width: none !important; }
 
 .document .scrolling-holder {
