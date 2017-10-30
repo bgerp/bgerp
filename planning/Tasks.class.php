@@ -416,7 +416,7 @@ class planning_Tasks extends core_Master
 	{
 		$title = cat_Products::getTitleById($rec->productId);
 		$createdBy = core_Users::getVerbal($rec->createdBy, 'names');
-		$title = "Tsk{$rec->id} - " . $title . " / " . $createdBy;
+		$title = "Pts{$rec->id} - " . $title . " / " . $createdBy;
 		
 		return $title;
 	}
