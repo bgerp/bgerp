@@ -276,7 +276,7 @@ class planning_Tasks extends core_Master
 	 * Входният параметър $rec е оригиналният запис от модела
 	 * резултата е вербалният еквивалент, получен до тук
 	 */
-	public static function recToVerbal_($rec, &$fields = array())
+	public static function recToVerbal_($rec, &$fields = '*')
 	{
 		static::fillGapsInRec($rec);
 		
