@@ -114,7 +114,7 @@ class planning_ProductionTaskDetails extends core_Detail
     public function description()
     {
     	$this->FLD("taskId", 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Операция');
-    	$this->FLD("productId", 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId|serial,tdClass=productCell leftCol wrap');
+    	$this->FLD("productId", 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=serial,tdClass=productCell leftCol wrap');
     	$this->FLD('type', 'enum(input=Влагане,production=Произв.,waste=Отпадък)', 'input=hidden,silent,tdClass=small-field nowrap');
     	$this->FLD('serial', 'varchar(32)', 'caption=Сер. №,smartCenter,focus,autocomplete=off');
     	$this->FLD('quantity', 'double(Min=0)', 'caption=Количество,smartCenter');
@@ -124,7 +124,6 @@ class planning_ProductionTaskDetails extends core_Detail
     	$this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=fullName)', 'caption=Обордуване,input=none,tdClass=nowrap');
     	$this->FLD('notes', 'richtext(rows=2,bucket=Notes)', 'caption=Забележки');
     	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
-    	$this->FNC('packagingId', 'int', 'smartCenter,tdClass=small-field nowrap');
     	
     	$this->setDbIndex('type');
     }
