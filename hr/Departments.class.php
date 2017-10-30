@@ -191,7 +191,7 @@ class hr_Departments extends core_Master
         $this->FLD('nkid', 'key(mvc=bglocal_NKID, select=title,allowEmpty=true)', 'caption=Служители->НКИД, hint=Номер по НКИД');
         $this->FLD('employmentTotal', 'int', "caption=Служители->Щат, input=none");
         $this->FLD('employmentOccupied', 'int', "caption=Служители->Назначени, input=none");
-        $this->FLD('schedule', 'key(mvc=hr_WorkingCycles, select=name, allowEmpty=true)', "caption=Работен график->График,mandatory");
+        $this->FLD('schedule', 'key(mvc=hr_WorkingCycles, select=name, allowEmpty=true)', "caption=Работен график->Цикъл,mandatory");
         $this->FLD('startingOn', 'datetime', "caption=Работен график->От");
         $this->FLD('orderStr', 'varchar', "caption=Подредба,input=none,column=none");
         // Състояние
