@@ -105,7 +105,6 @@ class planning_AssetResources extends core_Master
     	
     	$this->setDbUnique('code');
     	$this->setDbUnique('protocolId');
-    	$this->setDbIndex('departments');
     }
     
     
