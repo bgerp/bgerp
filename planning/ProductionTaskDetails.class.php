@@ -117,7 +117,7 @@ class planning_ProductionTaskDetails extends core_Detail
     	$this->FLD("productId", 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId|serial,tdClass=productCell leftCol wrap');
     	$this->FLD('type', 'enum(input=Влагане,production=Произв.,waste=Отпадък)', 'input=hidden,silent,tdClass=small-field nowrap');
     	$this->FLD('serial', 'varchar(32)', 'caption=Сер. №,smartCenter,focus,autocomplete=off');
-    	$this->FLD('quantity', 'double(Min=0)', 'caption=Количество');
+    	$this->FLD('quantity', 'double(Min=0)', 'caption=Количество,smartCenter');
     	$this->FLD('scrappedQuantity', 'double(Min=0)', 'caption=Брак,input=none');
     	$this->FLD('weight', 'double', 'caption=Тегло,smartCenter,unit=кг');
     	$this->FLD('employees', 'keylist(mvc=crm_Persons,select=id)', 'caption=Работници,tdClass=nowrap');
