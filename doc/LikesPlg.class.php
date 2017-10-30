@@ -142,7 +142,9 @@ class doc_LikesPlg extends core_Plugin
                 
                 doc_DocumentCache::cacheInvalidation($rec->containerId);
                 
+                // Изчистваме нотификацията за харесване
                 bgerp_Notifications::setHidden(array($mvc, 'single', $rec->id, 'like' => TRUE));
+                bgerp_Notifications::setHidden(array('doc_Threads', 'list', 'threadId' => $rec->threadId, 'like' => 1));
             }
         } elseif ($action == 'showlikes') {
             
