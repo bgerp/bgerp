@@ -5,9 +5,6 @@
 /**
  * Клас 'planning_TaskSerials' - Серийни номера по производствени операции
  *
- * 
- *
- *
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
@@ -28,7 +25,7 @@ class planning_TaskSerials extends core_Manager
 	/**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'debug';
+	public $canList = 'ceo,planning';
 	
 	
 	/**
@@ -40,14 +37,20 @@ class planning_TaskSerials extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created';
+    public $loadList = 'plg_Created,planning_Wrapper,plg_Search,plg_Sorting';
 	
 	
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId,taskId,serial=С. номер,labelNo,domain,packagingId,quantityInPack,createdOn,createdBy';
+    public $listFields = 'serial=С. номер,taskId,jobId=Задание,labelNo=Етикети->№,domain=Етикети->Домейн,packagingId=Етикети->Опаковка,quantityInPack=Етикети->К-во,createdOn,createdBy';
 
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'productId,taskId,serial';
+    
     
 	/**
 	 * Описание на модела
@@ -55,10 +58,10 @@ class planning_TaskSerials extends core_Manager
 	function description()
 	{
 		$this->FLD('serial', 'bigint', 'caption=Брояч,mandatory');
-		$this->FLD('quantityInPack', 'double', 'caption=К-во в опаковка,mandatory');
+		$this->FLD('quantityInPack', 'double(smartRound)', 'caption=К-во в опаковка,mandatory');
 		$this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Опаковка,mandatory');
 		$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory');
-		$this->FLD('taskId', 'key(mvc=planning_Tasks,select=title)', 'caption=Задача,mandatory');
+		$this->FLD('taskId', 'key(mvc=planning_Tasks,select=title)', 'caption=Операция,mandatory');
 		$this->FLD('labelNo', 'int', 'caption=Номер на етикета,mandatory');
 		$this->FLD('domain', 'enum(auto,labels)', 'caption=Домейн,mandatory,notNull,value=auto');
 		
@@ -96,10 +99,10 @@ class planning_TaskSerials extends core_Manager
 	/**
 	 * Връща следващия сериен номер, автоинкрементиран
 	 *
-	 * @param int $taskId - ид на задача за прозиводство
+	 * @param int $taskId - ид на операция за прозиводство
 	 * @return string $serial - сериен номер
 	 */
-	public static function forceAutoNumber($taskId)
+	public static function forceAutoNumber($rec)
 	{
 		$query = self::getQuery();
 		$query->where("#domain = 'auto'");
@@ -107,9 +110,9 @@ class planning_TaskSerials extends core_Manager
 		$labelNo = $query->fetch()->maxLabelNo;
 		$labelNo++;
 		
-		$tInfo = planning_Tasks::getTaskInfo($taskId);
+		$tInfo = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, 'production');
 		
-		$rec = (object)array('taskId'         => $taskId, 
+		$rec = (object)array('taskId'         => $rec->taskId, 
 							 'labelNo'        => $labelNo,
 							 'domain'         => 'auto',
 							 'productId'      => $tInfo->productId,
@@ -128,6 +131,15 @@ class planning_TaskSerials extends core_Manager
 	 */
 	protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
 	{
+		$data->listFilter->view = 'horizontal';
+		$data->listFilter->showFields = 'search';
+		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+		
+		if(!haveRole('debug')){
+			unset($data->listFields['domain']);
+			unset($data->listFields['labelNo']);
+		}
+		
 		$data->query->orderBy('id', 'DESC');
 	}
 	
@@ -144,7 +156,7 @@ class planning_TaskSerials extends core_Manager
 		if($rec = static::fetch(array("#taskId = [#1#] AND #labelNo = '[#2#]' AND #domain = 'labels'", $taskId, $labelNo))){
 			return $rec->serial;
 		}
-		$tInfo = planning_Tasks::getTaskInfo($taskId);
+		$tInfo = planning_Tasks::fetch($taskId);
 		
 		$rec = (object)array('taskId'         => $taskId, 
 						     'labelNo'        => $labelNo, 
@@ -172,6 +184,10 @@ class planning_TaskSerials extends core_Manager
 		$row->taskId = planning_Tasks::getHyperlink($rec->taskId, TRUE);
 		$row->ROW_ATTR['class'] = 'state-active';
 		
+		if($originId = planning_Tasks::fetchField($rec->taskId, 'originId')){
+			$row->jobId = doc_Containers::getDocument($originId)->getLink();
+		}
+		
 		if(isset($rec->productId)){
 			$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
 		}
@@ -181,15 +197,15 @@ class planning_TaskSerials extends core_Manager
 	/**
 	 * Проверява дали даден сериен номер е допустим
 	 * Допустими са само серийни номера генерирани от системата (автоматично или чрез разпечатване
-	 * на етикети от задачата). Трябва серийния номер да отговаря на Артикула.
-	 * Ако номера е за произведен артикул, той трябва да е генериран от същата задача
-	 * Ако влагаме то номера трябва да е генериран от задача към същото задание
+	 * на етикети от операцията). Трябва серийния номер да отговаря на Артикула.
+	 * Ако номера е за произведен артикул, той трябва да е генериран от същата операция
+	 * Ако влагаме то номера трябва да е генериран от операция към същото задание
 	 * 
 	 * 
 	 * @param bigint $serial       - сериен номер
 	 * @param int $productId       - ид на артикул, на който добавяме номера
-	 * @param int $taskId          - задача към която се опитваме да добавим номер в прогреса
-	 * @param product|input $type  - дали е за производим артикул или е за вложим/отпадък
+	 * @param int $taskId          - операция към която се опитваме да добавим номер в прогреса
+	 * @param production|input $type  - дали е за производим артикул или е за вложим/отпадък
 	 * @param int|NULL $id         - ид
 	 * @return FALSE|string $error - FALSE ако номера е допустим, или текст с какъв е проблема
 	 */
@@ -217,9 +233,9 @@ class planning_TaskSerials extends core_Manager
 				// Ако серийния номер е за същия артикул
 				
 				// И произвеждаме
-				if($type == 'product'){
+				if($type == 'production'){
 					
-					// То серийния номер на производимия артикул трябва да е по същата задача
+					// То серийния номер на производимия артикул трябва да е по същата операция
 					// Ако е по друга сетваме подходяща грешка
 					if($serialRec->taskId != $taskId){
 						$error = "Въведения сериен номер е по друга операция";
@@ -228,12 +244,12 @@ class planning_TaskSerials extends core_Manager
 				} else {
 					// Ако влагаме
 					
-					// намираме заданията по които са породени задачата от номера и текущата задача
+					// намираме заданията по които са породени операцията от номера и текущата операция
 					$productTaskOriginId = planning_Tasks::fetchField($serialRec->taskId, 'originId');
 					$taskOriginId = planning_Tasks::fetchField($taskId, 'originId');
 					
 					// Двете задачи трябва да са към едно и също задание
-					// Не можем да влагаме заготовка която е произведена със задача по друго задание
+					// Не можем да влагаме заготовка която е произведена със операция по друго задание
 					if($taskOriginId != $productTaskOriginId){
 						$error = "Въведения сериен номер е по друга операция";
 						$error .= "|* " . planning_Tasks::getLink($serialRec->taskId, 0);
@@ -249,5 +265,29 @@ class planning_TaskSerials extends core_Manager
 		
 		// Връщаме резултата
 		return $error;
+	}
+	
+	
+	/**
+	 * Връща серийния номер като линк, ако е от друга операция
+	 * 
+	 * @param int $taskId                    - в коя операция ще се показва
+	 * @param string $serial                 - серийния номер
+	 * @return core_ET|string $serialVerbal  - серийния номер като линк, или вербалното му представяне
+	 */
+	public static function getLink($taskId, $serial)
+	{
+		$serialVerbal = core_Type::getByName('varchar(32)')->toVerbal($serial);
+		$serialTaskId = planning_TaskSerials::fetchField(array("#serial = '[#1#]'", $serial), 'taskId');
+		
+		if($serialTaskId != $taskId){
+			if(!Mode::isReadOnly()){
+				$url = planning_Tasks::getSingleUrlArray($serialTaskId);
+				$url['Q'] = $serial;
+				$serialVerbal = ht::createLink($serialVerbal, $url, FALSE, "title=Към операцията от която е генериран серийния номер");
+			}
+		}
+		
+		return $serialVerbal;
 	}
 }

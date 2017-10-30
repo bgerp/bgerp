@@ -1342,8 +1342,7 @@ class cat_Boms extends core_Master
     	
     	// За основния артикул подготвяме задача
     	// В която самия той е за произвеждане
-    	$tasks = array(1 => (object)array('driver'          => planning_drivers_ProductionTask::getClassId(),
-    									  'title'           => $pName,
+    	$tasks = array(1 => (object)array('title'           => $pName,
     									  'plannedQuantity' => $quantity,
     									  'quantityInPack'  => 1,
     									  'packagingId'     => cat_Products::fetchField($rec->productId, 'measureId'),
@@ -1395,8 +1394,7 @@ class cat_Boms extends core_Master
     		$quantityP = ($quantityP / $rec->quantity) * $quantity;
     		
     		// Подготвяме задачата за етапа, с него за производим
-    		$arr = (object)array('driver'   => planning_drivers_ProductionTask::getClassId(),
-    							 'title'    => $pName . " / " . cat_Products::getTitleById($dRec->resourceId, FALSE),
+    		$arr = (object)array('title'    => $pName . " / " . cat_Products::getTitleById($dRec->resourceId, FALSE),
     							 'plannedQuantity' => $quantityP,
     							 'productId' => $dRec->resourceId,
     							 'packagingId' => $dRec->packagingId,

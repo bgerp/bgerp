@@ -1,0 +1,41 @@
+<div class="singleView">
+    [#SingleToolbar#]
+    <div class="info-table">
+        <h2 style='line-height:30px' class='[#STATE_CLASS#]'>|Оборудване|* <b style="color:green;">[#fullName#]</b></h2>
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Информация|*</legend>
+            <ul>
+                <li class="info">
+                    <span class="gray-title">|Групи|*: </span>[#groupId#]
+                </li>
+                
+                <!--ET_BEGIN protocolId-->
+                <li class="info">
+                    <span class="gray-title">|ДА|*: </span> [#protocolId#]
+                </li>
+                <!--ET_END protocolId-->
+                
+                <!--ET_BEGIN departments-->
+                <li class="info">
+                    <span class="gray-title">|Звена|*: </span> [#departments#]
+                </li>
+                <!--ET_END departments-->
+                
+                <!--ET_BEGIN quantity-->
+                <li class="info">
+                    <span class="gray-title">|Количество|*: </span> [#quantity#]
+                </li>
+                <!--ET_END quantity-->
+            </ul>
+        </fieldset>
+        
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Създаване|*</legend>
+            <ul>
+                <li class="info">
+                    <span class="gray-title">|Създаване на|* [#createdOn#] |от|* [#createdBy#]</span>
+                </li>
+            </ul>
+        </fieldset>
+    </div>
+</div>

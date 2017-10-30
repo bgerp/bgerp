@@ -506,4 +506,15 @@ class hr_Departments extends core_Master
             $mvc->currentTab = "Структура->Таблица";
         }
     }
+    
+    
+    /**
+     * Прави заглавие на МО от данните в записа
+     */
+    public static function getRecTitle($rec, $escaped = TRUE)
+    {
+    	$me = cls::get(get_called_class());
+    	
+    	return $me->getVerbal($rec, 'name');
+    }
 }

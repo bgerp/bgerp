@@ -2,12 +2,6 @@
 
 
 /**
- *  Колко пъти задачата за производство може да се пуска
- */
-defIfNot('PLANNING_TASK_START_COUNTER', 1);
-
-
-/**
  *  Стартов сериен номер при производствените операции
  */
 defIfNot('PLANNING_TASK_SERIAL_COUNTER', 1000);
@@ -93,7 +87,6 @@ class planning_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
     		'PLANNING_TASK_SERIAL_COUNTER'         => array('int', 'caption=Производствени операции->Стартов сериен номер'),
-    		'PLANNING_TASK_START_COUNTER'          => array('int', 'caption=Производствени операции->Макс. брой стартирания'),
     		'PLANNING_TASK_LABEL_PREVIEW_WIDTH'    => array('int', 'caption=Превю на артикула в етикета->Широчина,unit=px'),
     		'PLANNING_TASK_LABEL_PREVIEW_HEIGHT'   => array('int', 'caption=Превю на артикула в етикета->Височина,unit=px'),
     		'PLANNING_CONSUMPTION_USE_AS_RESOURCE' => array('enum(yes=Да,no=Не)', 'caption=Детайлно влагане по подразбиране->Избор'),
@@ -113,17 +106,19 @@ class planning_Setup extends core_ProtoSetup
     		'planning_ReturnNotes',
     		'planning_ReturnNoteDetails',
     		'planning_ObjectResources',
-    		//'planning_Tasks',
+    		'planning_Tasks',
     		'planning_AssetResources',
-    		//'planning_drivers_ProductionTaskDetails',
-    		//'planning_drivers_ProductionTaskProducts',
-    		//'planning_TaskActions',
-    		//'planning_TaskSerials',
+    		'planning_ProductionTaskDetails',
+    		'planning_ProductionTaskProducts',
+    		'planning_TaskSerials',
+    		'planning_AssetGroups',
+    		'planning_AssetResourcesNorms',
     		'migrate::updateNotes',
     		'migrate::updateStoreIds',
     		'migrate::migrateJobs',
     		'migrate::addPackToNotes',
     		'migrate::addPackToJobs',
+    		'migrate::deleteTasks4',
     		'migrate::deleteTaskCronUpdate',
         );
 
@@ -136,6 +131,7 @@ class planning_Setup extends core_ProtoSetup
     		array('taskWorker'),
     		array('taskPlanning', 'taskWorker'),
     		array('planning', 'taskPlanning'),
+    		array('planningMaster', 'planning'),
     		array('job'),
     );
 
@@ -314,6 +310,35 @@ class planning_Setup extends core_ProtoSetup
     	if(count($toSave)){
     		$Job->saveArray($toSave, 'id,packagingId,quantityInPack');
     	}
+    }
+    
+    
+    /**
+     * Изтрива старите производствени операции
+     */
+    public static function deleteTasks4()
+    {
+    	$Tasks = cls::get('planning_Tasks');
+    	$Tasks->setupMvc();
+    	if(!$Tasks->count()) return;
+    	
+    	$Details = cls::get('planning_ProductionTaskDetails');
+    	$Details->setupMvc();
+    	$Details->truncate();
+    	
+    	$Product = cls::get('planning_ProductionTaskProducts');
+    	$Product->setupMvc();
+    	$Product->truncate();
+    	
+    	$Tasks->truncate();
+    	$taskClassId = planning_Tasks::getClassId();
+    	$query = doc_Containers::getQuery();
+    	$query->where("#docClass = {$taskClassId}");
+    	$query->delete();
+    	
+    	$Assets = cls::get('planning_AssetResources');
+    	$Assets->setupMvc();
+    	$Assets->truncate();
     }
     
     
