@@ -759,8 +759,13 @@ class frame2_Reports extends embed_Manager
     }
     
     
-    // Премахване на зададените времена за обновяване
-    public static function removeAllSetUpdateTimes($id)
+    /**
+     * Премахване на зададените времена за обновяване
+     * 
+     * @param int $id
+     * @return void
+     */
+    private static function removeAllSetUpdateTimes($id)
     {
     	foreach (range(0, 2) as $i){
     		$data = new stdClass();
@@ -801,7 +806,7 @@ class frame2_Reports extends embed_Manager
     		core_CallOnTime::setOnce(get_called_class(), 'refreshOnTime', $data, $dates[$i]);
     	}
     	
-    	if(haveRole('debug')){
+    	if(haveRole('debug') && count($dates)){
     		status_Messages::newStatus("Зададени времена за обновяване");
     	}
     }
