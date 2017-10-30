@@ -225,7 +225,7 @@ class doc_Linked extends core_Manager
         if (!$outVal) return ;
         
         if(Mode::is('screenMode', 'wide') ) {
-            $className = "class='floatedElement'";
+            $className = "floatedElement";
         }
         
         $rowArr = self::getListView($outType, $outVal, 'row', FALSE, 10);
@@ -234,7 +234,7 @@ class doc_Linked extends core_Manager
         
         $form->layout = $form->renderLayout();
         
-        $conStr = "<div {$className}>" . tr("Свързани документи и файлове") . " <a href=\"javascript:toggleDisplay('linkedView')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ");\" class=\" plus-icon more-btn\"> </a></div>";
+        $conStr = "<div class='preview-holder {$className}' style='padding-top: 25px;'>" . tr("Свързани документи и файлове") . " <a href=\"javascript:toggleDisplay('linkedView')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ");\" class=\" plus-icon more-btn\"> </a>";
         
         $hashParams = str::addHash($outType . '_' . $outVal . '_' . core_Users::getCurrent(), 8);
         
@@ -281,7 +281,7 @@ class doc_Linked extends core_Manager
             
         }
         $conStr .= "</ol></div><div id='renderRes'>{$renderRes}</div>";
-        
+        $conStr .= "</div>";
         $form->layout->append($conStr);
     }
     

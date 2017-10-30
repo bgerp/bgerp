@@ -1487,7 +1487,8 @@ a.tOld {
 #packWrapper > .floatedElement {
   float: left; }
   #packWrapper > .floatedElement.preview-holder {
-    margin-top: -20px !important; }
+    margin-top: -20px !important;
+    min-width: 800px; }
 
 #packWrapper form.floatedElement {
   margin-right: 20px; }
