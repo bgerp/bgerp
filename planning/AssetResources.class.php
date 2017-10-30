@@ -201,7 +201,7 @@ class planning_AssetResources extends core_Master
      * @param int $folderId - папка
      * @return array $res   - налично оборудване
      */
-    public static function getAvailableAssets($folderId)
+    public static function getAvailableInFolder($folderId)
     {
     	$departmentId = hr_Departments::fetchField("#folderId = {$folderId}", 'id');
     	$parents = hr_Departments::getParentsArray($departmentId);
