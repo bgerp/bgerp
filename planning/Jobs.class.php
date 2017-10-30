@@ -191,7 +191,7 @@ class planning_Jobs extends core_Master
     	$this->FLD('quantityProduced', 'double(decimals=2)', 'input=none,caption=Количество->Заскладено,notNull,value=0');
     	$this->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Забележки');
     	$this->FLD('tolerance', 'percent(suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=Толеранс,silent');
-    	$this->FLD('department', 'key(mvc=hr_Departments,select=name,allowEmpty)', 'caption=Структурно звено');
+    	$this->FLD('department', 'key(mvc=hr_Departments,select=name,allowEmpty)', 'caption=Департамент');
     	$this->FLD('deliveryDate', 'date(smartTime)', 'caption=Данни от договора->Срок');
     	$this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Данни от договора->Условие');
     	$this->FLD('deliveryPlace', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Данни от договора->Място');

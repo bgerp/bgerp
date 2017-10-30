@@ -17,7 +17,7 @@
                 
                 <!--ET_BEGIN departments-->
                 <li class="info">
-                    <span class="gray-title">|Звена|*: </span> [#departments#]
+                    <span class="gray-title">|Департаменти|*: </span> [#departments#]
                 </li>
                 <!--ET_END departments-->
                 

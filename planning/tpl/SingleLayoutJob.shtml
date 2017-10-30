@@ -83,7 +83,7 @@
                     <!--ET_END weight-->
                     <!--ET_BEGIN department-->
 	               <tr style='padding-bottom:80px;padding-top:80px'>
-	                   <td class='quiet' style='text-align: left'>|Звено|*:</td>
+	                   <td class='quiet' style='text-align: left'>|Департамент|*:</td>
 	                   <td>[#department#]</td>
 	               </tr>
 	               <!--ET_END department-->

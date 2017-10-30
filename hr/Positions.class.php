@@ -69,8 +69,6 @@ class hr_Positions extends core_Master
     function description()
     {
         $this->FLD('name', 'varchar', 'caption=Наименование,mandatory');
-        
-        // Към кое звено на организацията е тази позиция
         $this->FLD('nkpd', 'key(mvc=bglocal_NKPD, select=title)', 'caption=НКПД, hint=Номер по НКПД');
         
         // Възнаграждения
