@@ -276,13 +276,13 @@ class planning_Tasks extends core_Master
 	 * Входният параметър $rec е оригиналният запис от модела
 	 * резултата е вербалният еквивалент, получен до тук
 	 */
-	public static function recToVerbal_($rec, &$fields = '*')
+	public static function recToVerbal_($rec, &$fields = array())
 	{
 		static::fillGapsInRec($rec);
 		
 		$row = parent::recToVerbal_($rec, $fields);
 		$mvc = cls::get(get_called_class());
-		$row->title = self::getLink($rec->id);
+		$row->title = self::getHyperlink($rec->id, (isset($fields['-list']) ? TRUE : FALSE));
 		
 		$red = new color_Object("#FF0000");
 		$blue = new color_Object("green");
@@ -796,7 +796,7 @@ class planning_Tasks extends core_Master
 		$query->where("#originId = {$containerId}");
 		$query->XPR('orderByState', 'int', "(CASE #state WHEN 'wakeup' THEN 1 WHEN 'active' THEN 2 WHEN 'stopped' THEN 3 WHEN 'closed' THEN 4 WHEN 'waiting' THEN 5 ELSE 6 END)");
 		$query->orderBy('#orderByState=ASC');
-			
+		
 		// Подготвяме данните
 		while($rec = $query->fetch()){
 			$data->recs[$rec->id] = $rec;
