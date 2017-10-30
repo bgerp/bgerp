@@ -119,6 +119,7 @@ class planning_Setup extends core_ProtoSetup
     		'migrate::addPackToNotes',
     		'migrate::addPackToJobs',
     		'migrate::deleteTasks4',
+    		'migrate::deleteTasksSerials',
     		'migrate::deleteTaskCronUpdate',
         );
 
@@ -339,6 +340,17 @@ class planning_Setup extends core_ProtoSetup
     	$Assets = cls::get('planning_AssetResources');
     	$Assets->setupMvc();
     	$Assets->truncate();
+    }
+    
+    
+    /**
+     * Изтриване на серийни номера
+     */
+    public function deleteTasksSerials()
+    {
+    	$Serials = cls::get('planning_TaskSerials');
+    	$Serials->setupMvc();
+    	$Serials->truncate();
     }
     
     
