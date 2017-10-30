@@ -52,7 +52,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('additional', 'table(columns=code|name|minQuantity|maxQuantity,captions=Код на атикула|Наименование|Мин к-во|Макс к-во,widths=8em|10em|5em|5em)', "caption=Артикули||Additional,autohide,advanced,after=storeId,single=none");
+        $fieldset->FLD('additional', 'table(columns=code|name|minQuantity|maxQuantity,captions=Код на атикула|Наименование|Мин к-во|Макс к-во,widths=8em|20em|5em|5em)', "caption=Артикули||Additional,autohide,advanced,after=storeId,single=none");
         $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,after=title');
         $fieldset->FLD('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,after=storeId,silent,removeAndRefreshForm');
     }
@@ -113,7 +113,9 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             $grDetails = (array) $details;
 
             $jDetails = json_encode(self::removeRpeadValues($grDetails));
+
             $form->rec->additional = $jDetails;
+
         }else{
 
             $rec = $form->rec;
@@ -121,19 +123,19 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             if ($form->cmd == 'refresh' && $rec->groupId) {
 
 
-               // bp($rec->groupId);
+                // bp($rec->groupId);
 
                 $rQuery = cat_Products::getQuery();
 
-                $grDetails = (array) $details;
+                $grDetails = (array)$details;
 
                 $rQuery->where("#groups Like'%|{$rec->groupId}|%'");
 
-                while($grProduct = $rQuery->fetch()){
+                while ($grProduct = $rQuery->fetch()) {
 
                     $grDetails['code'][] = $grProduct->code;
 
-               //     $grDetails['name'][] = $grProduct->name;
+                    $grDetails['name'][] = $grProduct->name;
 
                     $grDetails['minQuantity'][] = $grProduct->minQuantity;
 
@@ -323,7 +325,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             if (in_array($v,$tempProducts)){
                 unset($tempArr['minQuantity'][$k]);
                 unset($tempArr['maxQuantity'][$k]);
-        //        unset($tempArr['name'][$k]);
+                unset($tempArr['name'][$k]);
                 unset($tempArr['code'][$k]);
                 continue;
             }
