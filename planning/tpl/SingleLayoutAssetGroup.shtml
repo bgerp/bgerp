@@ -2,14 +2,7 @@
     [#SingleToolbar#]
     <div class="info-table">
         <h2 style='line-height:30px' class='[#STATE_CLASS#]'>|Вид|* <b style="color:green;">[#name#]</b></h2>
-           <fieldset class="detail-info" style='margin-bottom:20px'>
-            <legend class="groupTitle">|Информация|*</legend>
-            <ul>
-                <li class="info">
-                    <span class="gray-title">|Създаване|* [#createdOn#] |от|* [#createdBy#]</span>
-                </li>
-            </ul>
-           </fieldset>
+            <div style="margin-bottom: 20px;"><span class="quiet">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
            <div>
            [#planning_AssetResources#]
            [#addAssetBtn#]
