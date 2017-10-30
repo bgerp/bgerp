@@ -25,7 +25,7 @@ class planning_TaskSerials extends core_Manager
 	/**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'debug';
+	public $canList = 'ceo,planning';
 	
 	
 	/**
@@ -37,14 +37,20 @@ class planning_TaskSerials extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created,planning_Wrapper';
+    public $loadList = 'plg_Created,planning_Wrapper,plg_Search,plg_Sorting';
 	
 	
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId,taskId,serial=С. номер,labelNo,domain,packagingId,quantityInPack,createdOn,createdBy';
+    public $listFields = 'serial=С. номер,taskId,jobId=Задание,labelNo=Етикети->№,domain=Етикети->Домейн,packagingId=Етикети->Опаковка,quantityInPack=Етикети->К-во,createdOn,createdBy';
 
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'productId,taskId,serial';
+    
     
 	/**
 	 * Описание на модела
@@ -52,7 +58,7 @@ class planning_TaskSerials extends core_Manager
 	function description()
 	{
 		$this->FLD('serial', 'bigint', 'caption=Брояч,mandatory');
-		$this->FLD('quantityInPack', 'double', 'caption=К-во в опаковка,mandatory');
+		$this->FLD('quantityInPack', 'double(smartRound)', 'caption=К-во в опаковка,mandatory');
 		$this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Опаковка,mandatory');
 		$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory');
 		$this->FLD('taskId', 'key(mvc=planning_Tasks,select=title)', 'caption=Операция,mandatory');
@@ -125,6 +131,15 @@ class planning_TaskSerials extends core_Manager
 	 */
 	protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
 	{
+		$data->listFilter->view = 'horizontal';
+		$data->listFilter->showFields = 'search';
+		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+		
+		if(!haveRole('debug')){
+			unset($data->listFields['domain']);
+			unset($data->listFields['labelNo']);
+		}
+		
 		$data->query->orderBy('id', 'DESC');
 	}
 	
@@ -168,6 +183,10 @@ class planning_TaskSerials extends core_Manager
 	{
 		$row->taskId = planning_Tasks::getHyperlink($rec->taskId, TRUE);
 		$row->ROW_ATTR['class'] = 'state-active';
+		
+		if($originId = planning_Tasks::fetchField($rec->taskId, 'originId')){
+			$row->jobId = doc_Containers::getDocument($originId)->getLink();
+		}
 		
 		if(isset($rec->productId)){
 			$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
