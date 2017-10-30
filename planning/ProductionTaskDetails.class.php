@@ -120,8 +120,8 @@ class planning_ProductionTaskDetails extends core_Detail
     	$this->FLD('quantity', 'double(Min=0)', 'caption=Количество');
     	$this->FLD('scrappedQuantity', 'double(Min=0)', 'caption=Брак,input=none');
     	$this->FLD('weight', 'double', 'caption=Тегло,smartCenter,unit=кг');
-    	$this->FLD('employees', 'keylist(mvc=crm_Persons,select=id)', 'caption=Работници,smartCenter,tdClass=nowrap');
-    	$this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=fullName)', 'caption=Обордуване,input=none,smartCenter');
+    	$this->FLD('employees', 'keylist(mvc=crm_Persons,select=id)', 'caption=Работници,tdClass=nowrap');
+    	$this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=fullName)', 'caption=Обордуване,input=none,tdClass=nowrap');
     	$this->FLD('notes', 'richtext(rows=2,bucket=Notes)', 'caption=Забележки');
     	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
     	$this->FNC('packagingId', 'int', 'smartCenter,tdClass=small-field nowrap');
