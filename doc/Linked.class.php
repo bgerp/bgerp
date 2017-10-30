@@ -314,7 +314,19 @@ class doc_Linked extends core_Manager
         
         expect($lRec->state != 'rejected');
         
-        expect(($lRec->outType == $outType) && ($lRec->outVal == $outVal));
+        $inType = $lRec->inType;
+        $inVal = $lRec->inVal;
+        
+        // Ако е връзка към
+        if (($lRec->outType != $outType) || ($lRec->outVal != $outVal)) {
+            
+            expect(($lRec->inType == $outType) && ($lRec->inVal == $outVal));
+            
+            $outType = $inType;
+            $outVal = $inVal;
+            $inType = $lRec->outType;
+            $inVal = $lRec->outVal;
+        }
         
         $pUrl = core_Request::get('pUrl');
         
@@ -338,9 +350,6 @@ class doc_Linked extends core_Manager
         } else {
             expect(FALSE, $type);
         }
-        
-        $inType = $lRec->inType;
-        $inVal = $lRec->inVal;
         
         expect($inType && $inVal);
         
