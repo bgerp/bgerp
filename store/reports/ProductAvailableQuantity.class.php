@@ -73,10 +73,25 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     {
         $fieldset->FLD('additional', 'table(columns=code|minQuantity|maxQuantity,captions=Код на атикула|Мин к-во|Макс к-во,widths=8em|8em|8em|8em)', "caption=Артикули||Additional,autohide,advanced,after=storeId,single=none");
         $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,after=title');
+        $fieldset->FLD('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,after=storeId,silent,removeAndRefreshForm=additional');
+
+    }
+
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param frame2_driver_Proto $Driver $Driver
+     * @param embed_Manager $Embedder
+     * @param stdClass $data
+     */
+
+    protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
+    {
+
     }
 
 
-    /**
+        /**
      * След рендиране на единичния изглед
      *
      * @param cat_ProductDriver $Driver
@@ -86,10 +101,13 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
+        $details = (json_decode($form->rec->additional));
 
+//        bp($form->rec);
         if ($form->isSubmitted()) {
 
          $details = (json_decode($form->rec->additional));
+
             foreach ($details->code as $v) {
 
                 $v = trim($v);
@@ -127,7 +145,6 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
             foreach ($details->code as $key => $v) {
 
-                // bp($details->minQuantity[$key],$details->maxQuantity[$key] );
                 if ($details->minQuantity[$key] && $details->maxQuantity[$key]) {
 
                     if ($details->minQuantity[$key] > $details->maxQuantity[$key]) {
@@ -138,7 +155,40 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
             }
 
+            $grDetails = (array) $details;
+
+            $jDetails = json_encode(self::removeRpeadValues($grDetails));
+
+            $form->rec->additional = $jDetails;
+
+        }else{
+            $rec = $form->rec;
+
+            if ($form->cmd == 'refresh' && $rec->groupId) {
+
+                $rQuery = cat_Products::getQuery();
+
+
+                $grDetails = (array) $details;
+
+                $rQuery->where("#groups Like'%|{$rec->groupId}|%'");
+
+                while($grProduct = $rQuery->fetch()){
+
+                    $grDetails['code'][] = $grProduct->code;
+                    $grDetails['minQuantity'][] = $grProduct->minQuantity;
+                    $grDetails['maxQuantity'][] = $grProduct->maxQuantity;
+
+                }
+
+                $jDetails = json_encode(self::removeRpeadValues($grDetails));
+
+                $form->rec->additional = $jDetails;
+
+            }
+
         }
+
     }
 
 
@@ -152,9 +202,22 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = NULL)
     {
         $recs = array();
-        $products = array();
+        $tempProducts = array();
 
         $products = (json_decode($rec->additional, false));
+
+       // bp($products);
+
+        foreach ($products->code as $k => $v){
+
+           if (in_array($v,$tempProducts))continue;
+
+            $tempProducts[$k] = $v;
+
+        }
+
+        $products->code = $tempProducts;
+
 
         foreach ($products->code as $key => $code){
 
@@ -180,7 +243,6 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                 $quantity = store_Products::getQuantity($id, $recProduct->storeId, FALSE);
 
 
-
                 // подготовка на показател "състояние" //
                 if(($quantity < (int)$products->minQuantity[$key])){
                     $quantityMark = 'под минимум';
@@ -196,9 +258,6 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                         $quantityMark = 'ok';
                     }
                 }
-
-
-
 
                 if(!array_key_exists($id,$recs)) {
                     $recs[$id]=
@@ -312,4 +371,32 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         return $row;
     }
 
-}
+
+    /**
+     *Изчиства повтарящи се стойности във формата
+     * @param $arr
+     * @return array
+     */
+    static function removeRpeadValues ($arr)
+    {
+           $tempArr = (array) $arr;
+
+        $tempProducts = array();
+        foreach ($tempArr['code'] as $k =>$v){
+            if (in_array($v,$tempProducts)){
+                unset($tempArr['minQuantity'][$k]);
+                unset($tempArr['maxQuantity'][$k]);
+                unset($tempArr['code'][$k]);
+                continue;
+            }
+
+            $tempProducts[$k] = $v;
+
+        }
+        $arr = $tempArr;
+
+        return $arr;
+    }
+
+
+    }

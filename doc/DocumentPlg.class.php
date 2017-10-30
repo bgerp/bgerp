@@ -154,9 +154,10 @@ class doc_DocumentPlg extends core_Plugin
      * Помощна функция за показване на текста на оригиналния файл във формата
      *
      * @param stdObject $fRec
-     * @param stdObject $form
+     * @param NULL|stdObject $form
+     * @param NULL|string $form
      */
-    public static function showOriginalFile($fRec, $form)
+    public static function showOriginalFile($fRec, $form = NULL, $localUrl = NULL)
     {
         $ext = fileman::getExt($fRec->name);
         
@@ -189,13 +190,25 @@ class doc_DocumentPlg extends core_Plugin
         $d->rec = $fRec;
         $d->fhName = 'fh';
         $d->retUrl = getRetUrl();
-        $d->localUrl = toUrl(getCurrentUrl(), 'local');
-
-        if(Mode::is('screenMode', 'wide') ) {
-            $className = " floatedElement ";
+        
+        if ($localUrl) {
+            $d->localUrl = $localUrl;
+        } else {
+            $d->localUrl = toUrl(getCurrentUrl(), 'local');
         }
-        $form->layout = $form->renderLayout();
-        $form->layout->append("<div class='{$className}'>" . $Indexes->render($d) . "</div>");
+		
+        if(Mode::is('screenMode', 'wide') ) {
+            $className = "class='floatedElement'";
+        }
+        
+        $renderRes = $Indexes->render($d);
+        
+        if ($form) {
+            $form->layout = $form->renderLayout();
+            $form->layout->append("<div {$className}>" . $renderRes . "</div>");
+        }
+        
+        return $renderRes;
     }
 
     
@@ -1795,8 +1808,19 @@ class doc_DocumentPlg extends core_Plugin
                 }
             }
         }
+        
+		// Показваме свързаните документи, ако има такива
+        if ($data->form->rec->id) {
+            $cId = $data->form->rec->containerId;
+            
+            if (!$cId) {
+                $cId = $mvc->fetchField($cId, 'containerId');
+            }
+            
+            doc_Linked::showLinkedInForm($data->form, $cId);
+        }
     }
-
+    
     
 	/**
      * Подготовка на бутоните на формата за добавяне/редактиране.

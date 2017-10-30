@@ -442,7 +442,7 @@ class bgerp_Setup extends core_ProtoSetup {
                        // $res = substr($res, strpos($res, "</h2>"), strlen($res));
 
                         do {
-                            $res = @file_put_contents(EF_TEMP_PATH . '/setupLog.html', $res, FILE_APPEND|LOCK_EX);
+                            $res = @file_put_contents(EF_SETUP_LOG_PATH, $res, FILE_APPEND|LOCK_EX);
                             if($res !== FALSE) break;
                             usleep(1000);
                         } while($i++ < 100);
