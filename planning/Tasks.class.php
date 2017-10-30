@@ -181,12 +181,6 @@ class planning_Tasks extends core_Master
 	
 	
 	/**
-	 * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-	 */
-	public $rowToolsSingleField = 'title';
-	
-	
-	/**
 	 * Описание на модела (таблицата)
 	 */
 	function description()
@@ -214,6 +208,8 @@ class planning_Tasks extends core_Master
 		$this->FLD('additionalFields', 'blob(serialize, compress)', 'caption=Данни,input=none');
 		$this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=fullName,makeLinks)', 'caption=Произвеждане->Оборудване,after=packagingId');
 		$this->FLD('inputInTask', 'int', 'caption=Произвеждане->Влагане в,input=none,after=indTime');
+	
+		$this->setDbIndex('inputInTask');
 	}
 	
 	
@@ -286,7 +282,8 @@ class planning_Tasks extends core_Master
 		
 		$row = parent::recToVerbal_($rec, $fields);
 		$mvc = cls::get(get_called_class());
-		 
+		$row->title = self::getLink($rec->id);
+		
 		$red = new color_Object("#FF0000");
 		$blue = new color_Object("green");
 		$grey = new color_Object("#bbb");
@@ -383,12 +380,12 @@ class planning_Tasks extends core_Master
 					if(isset($diffVerbal)){
 							
 						// Показва се след очакваното време в скоби, с хинт оригиналната дата
-						$hint = tr("Зададено") . ": {$row->{$timeField}}";
+						$hint = tr("Зададено") . ": " . $row->{$timeField};
 						$diffVerbal = ht::createHint($diffVerbal, $hint, 'notice', TRUE, array('height' => '12', 'width' => '12'));
 						$row->{$eTimeField} .= " <span style='font-weight:normal'>({$diffVerbal})</span>";
 					}
-				}
 			}
+		}
 		
 		return $row;
 	}
@@ -407,7 +404,6 @@ class planning_Tasks extends core_Master
 		$row->author   = $this->getVerbal($rec, 'createdBy');
 		$row->recTitle = $row->title;
 		$row->state    = $rec->state;
-		$row->subTitle = self::getVerbal($rec, 'title');
 		 
 		return $row;
 	}
@@ -418,9 +414,11 @@ class planning_Tasks extends core_Master
 	 */
 	public static function getRecTitle($rec, $escaped = TRUE)
 	{
-		$me = cls::get(get_called_class());
-		 
-		return tr($me->singleTitle) . " №{$rec->id}";
+		$title = cat_Products::getTitleById($rec->productId);
+		$createdBy = core_Users::getVerbal($rec->createdBy, 'names');
+		$title = "Tsk{$rec->id} - " . $title . " / " . $createdBy;
+		
+		return $title;
 	}
 	
 	
@@ -1005,9 +1003,7 @@ class planning_Tasks extends core_Master
     	$query = static::getQuery();
     	$query->where("#originId = {$oldContainerId} AND #state != 'rejected' AND #state != 'draft'");
     	while($rec = $query->fetch()){
-    		$title = cat_Products::getTitleById($rec->productId);
-    		$createdBy = core_Users::getVerbal($rec->createdBy, 'names');
-    		$res[$rec->id] = $title . " / " . $createdBy;
+    		$res[$rec->id] = self::getRecTitle($rec, FALSE);
     	}
     	
     	return $res;
