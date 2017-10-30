@@ -105,6 +105,7 @@ class planning_AssetResources extends core_Master
     	
     	$this->setDbUnique('code');
     	$this->setDbUnique('protocolId');
+    	$this->setDbIndex('departments');
     }
     
     
@@ -194,7 +195,8 @@ class planning_AssetResources extends core_Master
     
     
     /**
-     * Избор на наличното оборудване в подадената папка
+     * Избор на наличното оборудване в подаденият департамент
+     * Включително и тези от департаментите, в които е включен
      * 
      * @param int $folderId - папка
      * @return array $res   - налично оборудване
@@ -202,11 +204,14 @@ class planning_AssetResources extends core_Master
     public static function getAvailableAssets($folderId)
     {
     	$departmentId = hr_Departments::fetchField("#folderId = {$folderId}", 'id');
+    	$parents = hr_Departments::getParentsArray($departmentId);
     	
     	$res = array();
     	$query = self::getQuery();
     	$query->where("#state != 'closed'");
-    	$query->where("#departments IS NULL || #departments LIKE '%|{$departmentId}|%'");
+    	$query->likeKeylist("departments", $parents);
+    	$query->orWhere("#departments IS NULL");
+    	
     	while($rec = $query->fetch()){
     		$res[$rec->id] = $rec->fullName;
     	}
