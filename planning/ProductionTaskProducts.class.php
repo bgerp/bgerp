@@ -177,7 +177,8 @@ class planning_ProductionTaskProducts extends core_Detail
     			$form->setDefault('storeId', store_Stores::getCurrent('id', FALSE));
     		}
     		
-    		if(empty($rec->id)){
+    		// Поле за бързо добавяне на прогрес, ако може
+    		if(empty($rec->id) && planning_ProductionTaskDetails::haveRightFor('add', (object)array('taskId' => $masterRec->id))){
     			$caption = ($rec->type == 'input') ? 'Вложено' : (($rec->type == 'waste') ? 'Отпадък' : 'Произведено');
     			$form->FLD('inputedQuantity', 'double(Min=0)', "caption={$caption},before=storeId");
     		}
@@ -493,6 +494,7 @@ class planning_ProductionTaskProducts extends core_Detail
     {
     	$taskRec = planning_Tasks::fetch($taskId);
     	
+    	// Ако има норма за артикула
     	if(isset($taskRec->fixedAssets)){
     	    $norm = planning_AssetResourcesNorms::getNorms($taskRec->fixedAssets, $productId);
     	    if(array_key_exists($productId, $norm)){
@@ -503,6 +505,7 @@ class planning_ProductionTaskProducts extends core_Detail
     	    }
     	}
     	
+    	// Ако е избран да се влага от друга задача
     	$inTaskId = planning_Tasks::fetchField("#inputInTask = {$taskRec->id} AND #productId = {$productId} AND (#state = 'active' || #state = 'wakeup' || #state = 'stopped' || #state = 'closed')");
     	if(!empty($inTaskId)){
     		$inTaskId = planning_Tasks::getLink($inTaskId, 0);
