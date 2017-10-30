@@ -162,12 +162,58 @@ class acc_reports_TotalRep extends frame2_driver_TableData
 		$Double->params['decimals'] = 2;
 		$row = new stdClass();
 
-		
 	    $row->speed = $Int->toVerbal($dRec->speed);
 	    $row->period = $dRec->period;
  
 		return $row;
 	}
+
+    /**
+     * След рендиране на единичния изглед
+     *
+     * @param cat_ProductDriver $Driver
+     * @param embed_Manager $Embedder
+     * @param core_ET $tpl
+     * @param stdClass $data
+     */
+    protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
+    {
+        $arr = array();
+        
+        $key = date("m/Y");
+ 
+        $value = $data->rec->data->recs[$key]->speed;
+ 
+        if(!($value >= 60 && $value <=140)) return;
+
+        $arr['label'] = 'Обща цел'; // Надписа, който се показва в измервателния уред
+        $arr['unitsLabel'] = '%'; // Единицата за измерване
+        $arr['min'] = 60; //Минималната стойност в измервателния уред
+        $arr['max'] = 140; // Максималната стойност в измервателния уред
+        $arr['majorTicks'] = 9; // - Броя на големите линии
+        $arr['minorTicks'] = 1; // Броя на малките линии
+        // $arr['colorOfText'] = ''; // Цвят на текста
+        // $arr['colorOfWarningText'] - Цвят на предупредителния текст
+        // $arr['colorOfFill'] - Цветове, които се използват за чертане на измервателния уред
+        // $arr['colorOfPointerFill'] - Цвят, който се използва за запълване на иглата
+        // $arr['colorOfPointerStroke'] - Цвят, който се използва за външната линия на иглата
+        // $arr['colorOfCenterCircleFill'] - Цвят, който се използва за запълване на кръга на иглата
+        // $arr['colorOfCenterCircleStroke'] - Цвят, който се използва за външната линия на кръга на иглата
+           $arr['greenFrom'] = 100; // Начало на зеления цвят
+           $arr['greenTo'] = 140; // Край на зеления цвят
+           $arr['yellowFrom'] = 80; // Начало на жълтия цвят
+           $arr['yellowTo'] = 100; // Край на жълтия цвят
+           $arr['redFrom'] = 60; // Начало на червения цвят
+           $arr['redTo'] = 80; // Край на червения цвят
+         //$arr['redColor'] - Цвят на "червената" лента
+         //$arr['yellowColor'] - Цвят на "жълтата" лента
+         //$arr['greenColor'] - Цвят на "зелената" лента
+
+
+        $gauge = jsgauge_Gauge::renderTemperature($value, NULL, $arr);
+
+        $tpl->append($gauge, 'DRIVER_FIELDS');
+    }
     
     
  }
