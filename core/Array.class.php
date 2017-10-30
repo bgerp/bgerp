@@ -669,7 +669,7 @@ class core_Array
      * 
      * @param stdClass|array $arr  - обект
      * @param string|array $fields - кои стойностти да се върнат
-     * @return stdClass $resObj    - резултатен обект
+     * @return array $resObj    - резултатен обект
      */
     public static function getSubArray($arr, $fields)
     {
