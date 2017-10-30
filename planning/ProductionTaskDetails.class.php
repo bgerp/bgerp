@@ -239,9 +239,13 @@ class planning_ProductionTaskDetails extends core_Detail
     		
     		// Ако има въведен сериен номер, проверяваме дали е валиден
     		if(!empty($rec->serial)){
-    			$type = ($rec->type == 'production') ? 'production' : 'input';
-    			if($error = planning_TaskSerials::isSerialinValid($rec->serial, $rec->productId, $rec->taskId, $type, $rec->id)){
-    				$form->setError('serial', $error);
+    			if(!ctype_digit($rec->serial)){
+    				$form->setError('serial', "Серийния номер не е цяло число");
+    			} else {
+    				$type = ($rec->type == 'production') ? 'production' : 'input';
+    				if($error = planning_TaskSerials::isSerialinValid($rec->serial, $rec->productId, $rec->taskId, $type, $rec->id)){
+    					$form->setError('serial', $error);
+    				}
     			}
     		}
     		

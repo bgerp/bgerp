@@ -638,6 +638,7 @@ class planning_Tasks extends core_Master
 		// Копиране на параметрите на артикула към операцията
 		$tasksClassId = planning_Tasks::getClassId();
 		$params = cat_Products::getParams($rec->productId);
+		
 		if(is_array($params)){
 			foreach ($params as $k => $v){
 				if(cat_Params::fetchField($k, 'showInTasks') != 'yes') continue;
@@ -780,7 +781,6 @@ class planning_Tasks extends core_Master
 		}
 		
 		$form->setSuggestions('fixedAssets', array('' => '') + $fixedAssets);
-		//bp(planning_ProductionNoteDetails::fetch("#taskId = {$rec->taskId}"));
 	}
 	
 	
