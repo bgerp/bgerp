@@ -16,4 +16,26 @@
  */
 abstract class doc_Detail extends core_Detail
 {
+    
+    
+    
+    /**
+     * Подготвя формата за редактиране
+     */
+    function prepareEditForm_($data)
+    {
+        parent::prepareEditForm_($data);
+        
+        // Добавяме клас, за да може формата да застане до привюто на документа/файла
+        if(Mode::is('screenMode', 'wide') ) {
+            $data->form->class .= " floatedElement ";
+        }
+        
+        $cId = $this->Master->fetchField($data->form->rec->{$this->masterKey}, 'containerId');
+        
+        // Рендираме формата
+        doc_Linked::showLinkedInForm($data->form, $cId);
+        
+        return $data;
+    }
 }
