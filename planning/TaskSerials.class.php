@@ -242,16 +242,15 @@ class planning_TaskSerials extends core_Manager
 						$error .= "|* " . planning_Tasks::getLink($serialRec->taskId, 0);
 					}
 				} else {
-					// Ако влагаме
 					
-					// намираме заданията по които са породени операцията от номера и текущата операция
+					// Намираме заданията по които са породени операцията от номера и текущата операция
 					$productTaskOriginId = planning_Tasks::fetchField($serialRec->taskId, 'originId');
 					$taskOriginId = planning_Tasks::fetchField($taskId, 'originId');
 					
 					// Двете задачи трябва да са към едно и също задание
 					// Не можем да влагаме заготовка която е произведена със операция по друго задание
 					if($taskOriginId != $productTaskOriginId){
-						$error = "Въведения сериен номер е по друга операция";
+						$error = "Въведения сериен номер е по операция от друго задание";
 						$error .= "|* " . planning_Tasks::getLink($serialRec->taskId, 0);
 					}
 				}

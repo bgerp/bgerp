@@ -114,7 +114,7 @@ class planning_ProductionTaskDetails extends core_Detail
     public function description()
     {
     	$this->FLD("taskId", 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Операция');
-    	$this->FLD("productId", 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=serial,tdClass=productCell leftCol wrap');
+    	$this->FLD("productId", 'key(mvc=cat_Products,select=name)', 'silent,caption=Артикул,removeAndRefreshForm=serial,tdClass=productCell leftCol wrap');
     	$this->FLD('type', 'enum(input=Влагане,production=Произв.,waste=Отпадък)', 'input=hidden,silent,tdClass=small-field nowrap');
     	$this->FLD('serial', 'varchar(32)', 'caption=Сер. №,smartCenter,focus,autocomplete=off');
     	$this->FLD('quantity', 'double(Min=0)', 'caption=Количество,smartCenter');
@@ -236,11 +236,22 @@ class planning_ProductionTaskDetails extends core_Detail
     			$rec->serial = planning_TaskSerials::forceAutoNumber($rec);
     		}
     		
+    		if(empty($rec->serial) && empty($rec->productId)){
+    			$form->setError('serial,productId', "Трябва да е въведен артикул или сериен номер");
+    			return;
+    		}
+    		
     		// Ако има въведен сериен номер, проверяваме дали е валиден
     		if(!empty($rec->serial)){
     			if(!ctype_digit($rec->serial)){
     				$form->setError('serial', "Серийния номер не е цяло число");
     			} else {
+    				if(!isset($rec->productId)){
+    					if($serialRec = planning_TaskSerials::fetch(array("#serial = '[#1#]'", $rec->serial))){
+    						$rec->productId = $serialRec->productId;
+    					}
+    				}
+    				
     				$type = ($rec->type == 'production') ? 'production' : 'input';
     				if($error = planning_TaskSerials::isSerialinValid($rec->serial, $rec->productId, $rec->taskId, $type, $rec->id)){
     					$form->setError('serial', $error);
