@@ -81,9 +81,6 @@ class store_Setup extends core_ProtoSetup
     		'store_InventoryNoteDetails',
     		'store_ReserveStocks',
     		'store_ReserveStockDetails',
-    		'migrate::updateConfig',
-    		'migrate::updateTransfers',
-    		'migrate::inventoryNotes'
         );
     
 
@@ -173,27 +170,6 @@ class store_Setup extends core_ProtoSetup
         
         return $res;
     }
-
-    
-    /**
-     * Миграция ъпдейтваща кешираната информация
-     */
-    function updateConfig()
-    {
-    	if(core_Packs::fetch("#name = 'acc'")){
-    		$config = core_Packs::getConfig('store');
-    		
-    		if(strlen($config->STORE_ACC_ACCOUNTS) !== 0){
-    			$accArray = array();
-    			foreach (static::$accAccount as $accSysId){
-    				$accId = acc_Accounts::getRecBySystemId($accSysId)->id;
-    				$accArray[$accId] = $accSysId;
-    			}
-    			
-    			core_Packs::setConfig('store', array('STORE_ACC_ACCOUNTS' => keylist::fromArray($accArray)));
-    		}
-    	}
-    }
     
     
     /**
@@ -219,70 +195,6 @@ class store_Setup extends core_ProtoSetup
     			
     			if($Products->db->tableExists($Products->dbTableName)) {
     				store_Products::truncate();
-    			}
-    		}
-    	} catch(core_exception_Expect $e){
-    		reportException($e);
-    	}
-    }
-    
-    
-    /**
-     * Ъпдейт на междускладовите трансфери
-     */
-    public function updateTransfers()
-    {
-    	$Transfers = cls::get('store_TransfersDetails');
-    	$Transfers->setupMvc();
-    	
-    	$query = $Transfers->getQuery();
-    	$query->where("#newProductId IS NULL || #newProductId = 0");
-    	while($rec = $query->fetch()){
-    		try{
-    			$productId = store_Products::fetchField($rec->productId, 'productId');
-    			$rec->newProductId = $productId;
-    			$Transfers->save_($rec, 'newProductId');
-    		} catch(core_exception_Expect $e){
-    			reportException($e);
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Миграция на инвентаризацията
-     */
-    public function inventoryNotes()
-    {
-    	$Note = cls::get('store_InventoryNotes');
-    	$Note->setupMvc();
-    	
-    	$Sum = cls::get('store_InventoryNoteSummary');
-    	$Sum->setupMvc();
-    	
-    	$Details = cls::get('store_InventoryNoteDetails');
-    	$Details->setupMvc();
-    	
-    	try{
-    		$query = $Note->getQuery();
-    		while($rec = $query->fetch()){
-    			$dQuery = $Details->getQuery();
-    			$dQuery->where("#noteId = {$rec->id}");
-    		
-    			$save = array();
-    			while($dRec = $dQuery->fetch()){
-    				$clone = new stdClass();
-    				$clone->id = $dRec->id;
-    				$clone->createdOn  = $rec->createdOn;
-    				$clone->createdBy  = $rec->createdBy;
-    				$clone->modifiedOn = $rec->createdOn;
-    				$clone->modifiedBy = $rec->createdBy;
-    				 
-    				$save[] = $clone;
-    			}
-    		
-    			if(count($save)){
-    				$Details->saveArray($save, 'id,createdOn,createdBy,modifiedOn,modifiedBy');
     			}
     		}
     	} catch(core_exception_Expect $e){

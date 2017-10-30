@@ -236,10 +236,6 @@ class sales_Setup extends core_ProtoSetup
     		'sales_Proformas',
     		'sales_ProformaDetails',
     		'sales_PrimeCostByDocument',
-    		'migrate::migrateRoles',
-    		'migrate::updateDealFields1',
-    		'migrate::updateDeltaTable',
-    		'migrate::updateRoutes',
         );
 
     
@@ -344,100 +340,5 @@ class sales_Setup extends core_ProtoSetup
     	}
     	
     	return $res;
-    }
-    
-    
-    /**
-     * Миграция на роли
-     */
-    function migrateRoles()
-    {
-    	if(core_Packs::isInstalled('colab')){
-    		
-    		// Добавяне на дефолтни роли за бутоните
-    		foreach (array('SALES_ADD_BY_PRODUCT_BTN', 'SALES_ADD_BY_CREATE_BTN', 'SALES_ADD_BY_LIST_BTN', 'SALES_ADD_BY_IMPORT_BTN') as $const){
-    			$keylist = core_Roles::getRolesAsKeylist('sales,ceo');
-    			core_Packs::setConfig('sales', array($const => $keylist));
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Миграция на сделките
-     */
-    function updateDealFields1()
-    {
-    	foreach (array('sales_Sales', 'purchase_Purchases') as $className){
-    		$Deal = cls::get($className);
-    		$Deal->setupMvc();
-    		if(!$Deal::count()) return;
-    		$update = array();
-    		
-    		$query = $Deal->getQuery();
-    		$query->where("#state = 'active'");
-    		$query->show('id');
-    		 
-    		$timeLimit = 0.2 * $query->count();
-    		$timeLimit = ($timeLimit < 60) ? 60 : $timeLimit;
-    		core_App::setTimeLimit($timeLimit);
-    		
-    		while($rec = $query->fetch()){
-    			try{
-    				if($product = $Deal->findProductIdWithBiggestAmount($rec)){
-    					$update[] = (object)array('productIdWithBiggestAmount' => $product, 'id' => $rec->id);
-    				}
-    			} catch(core_exception_Expect $e){
-    				reportException($e);
-    			}
-    		}
-    		
-    		if(count($update)){
-    			$Deal->saveArray($update, 'id,productIdWithBiggestAmount');
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Миграция на сделките
-     */
-    function updateDeltaTable()
-    {
-    	$Class = cls::get('sales_PrimeCostByDocument');
-    	$Class->setupMvc();
-    	
-    	$update = array();
-    	$query = $Class->getQuery();
-    	while($rec = $query->fetch()){
-    		try{
-    			$Detail = cls::get($rec->detailClassId);
-    			$masterId = $Detail->fetchField($rec->detailRecId, "{$Detail->masterKey}");
-    			
-    			$rec->containerId = $Detail->Master->fetchField($masterId, 'containerId');
-    			$persons = sales_PrimeCostByDocument::getDealerAndInitiatorId($rec->containerId);
-    			$rec->dealerId = $persons['dealerId'];
-    			$rec->initiatorId = $persons['initiatorId'];
-    			
-    			$update[] = $rec;
-    		} catch(core_exception_Expect $e){
-    			reportException($e);
-    		}
-    	}
-    	
-    	if(count($update)){
-    		$Class->saveArray($update, 'id,containerId,dealerId,initiatorId');
-    	}
-    }
-    
-    
-    /**
-     * Ъпдейт на търговските маршрути
-     */
-    function updateRoutes()
-    {
-    	$Routes = cls::get('sales_Routes');
-    	$Routes->setupMvc();
-    	$Routes->cron_calcNextVisit();
     }
 }
