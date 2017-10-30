@@ -1814,7 +1814,7 @@ class doc_DocumentPlg extends core_Plugin
             $cId = $data->form->rec->containerId;
             
             if (!$cId) {
-                $cId = $mvc->fetchField($cId, 'containerId');
+                $cId = $mvc->fetchField($data->form->rec->id, 'containerId');
             }
             
             doc_Linked::showLinkedInForm($data->form, $cId);
