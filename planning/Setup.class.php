@@ -118,8 +118,7 @@ class planning_Setup extends core_ProtoSetup
     		'migrate::migrateJobs',
     		'migrate::addPackToNotes',
     		'migrate::addPackToJobs',
-    		'migrate::deleteTasks4',
-    		'migrate::deleteTasksSerials',
+    		'migrate::deleteTasks5',
     		'migrate::deleteTaskCronUpdate',
         );
 
@@ -317,7 +316,7 @@ class planning_Setup extends core_ProtoSetup
     /**
      * Изтрива старите производствени операции
      */
-    public static function deleteTasks4()
+    public static function deleteTasks5()
     {
     	$Tasks = cls::get('planning_Tasks');
     	$Tasks->setupMvc();
@@ -337,20 +336,13 @@ class planning_Setup extends core_ProtoSetup
     	$query->where("#docClass = {$taskClassId}");
     	$query->delete();
     	
-    	$Assets = cls::get('planning_AssetResources');
-    	$Assets->setupMvc();
-    	$Assets->truncate();
-    }
-    
-    
-    /**
-     * Изтриване на серийни номера
-     */
-    public function deleteTasksSerials()
-    {
     	$Serials = cls::get('planning_TaskSerials');
     	$Serials->setupMvc();
     	$Serials->truncate();
+    	
+    	$Assets = cls::get('planning_AssetResources');
+    	$Assets->setupMvc();
+    	$Assets->truncate();
     }
     
     
