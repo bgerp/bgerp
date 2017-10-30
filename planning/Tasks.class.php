@@ -325,7 +325,7 @@ class planning_Tasks extends core_Master
 		}
 		
 		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-		$row->productId = cat_Products::getShortHyperlink($rec->productId);
+		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
 		$shortUom = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
 		
 		foreach (array('plannedQuantity', 'totalQuantity', 'scrappedQuantity') as $quantityFld){
@@ -777,7 +777,11 @@ class planning_Tasks extends core_Master
 			}
 		}
 		
-		$form->setSuggestions('fixedAssets', array('' => '') + $fixedAssets);
+		if(count($fixedAssets)){
+			$form->setSuggestions('fixedAssets', array('' => '') + $fixedAssets);
+		} else {
+			$form->setField('fixedAssets', 'input=none');
+		}
 	}
 	
 	
