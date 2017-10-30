@@ -49,7 +49,13 @@ class core_CallOnTime extends core_Manager
     /**
      * Плъгините и враперите, които ще се използват
      */
-    public $loadList = 'plg_State, plg_SystemWrapper, plg_RowTools2';
+    public $loadList = 'plg_State, plg_SystemWrapper, plg_RowTools2, plg_Search, plg_Sorting';
+    
+    
+    /**
+     * 
+     */
+    public $searchFields = 'hash, className, methodName, data, callOn, state';
     
     
 	/**
@@ -191,6 +197,27 @@ class core_CallOnTime extends core_Manager
 		$callOn = $query->fetch()->callOn;
 		
 		return ($callOn) ? $callOn : NULL;
+	}
+	
+	
+	/**
+	 * Изпълнява се след подготвянето на формата за филтриране
+	 *
+	 * @param core_Mvc $mvc
+	 * @param stdClass $res
+	 * @param stdClass $data
+	 *
+	 * @return boolean
+	 */
+	protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
+	{
+	    $data->listFilter->showFields = 'search';
+	    $data->listFilter->view = 'horizontal';
+	    $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+	    
+	    // Сортиране на записите по num
+	    $data->query->orderBy('state', 'DESC');
+	    $data->query->orderBy('callOn', 'DESC');
 	}
 	
 	
