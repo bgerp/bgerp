@@ -340,7 +340,6 @@ class label_Templates extends core_Master
     protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Вземаме шаблона с вкарания css
-    	$row->STATE_CLASS .= " state-{$rec->state}";
     	$row->template = static::templateWithInlineCSS($row->template, $rec->css);
     }
     
