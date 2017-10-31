@@ -203,7 +203,8 @@ class store_Receipts extends store_DocumentMaster
     {
         if ($form->isSubmitted()) {
         	$rec = &$form->rec;
-        	$dealInfo = static::getOrigin($rec)->getAggregateDealInfo();
+        	expect($origin = static::getOrigin($rec), $rec);
+        	$dealInfo = $origin->getAggregateDealInfo();
         	
         	$operations = $dealInfo->get('allowedShipmentOperations');
         	$operation = $operations['stowage'];
