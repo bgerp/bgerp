@@ -12,7 +12,7 @@
                     <!--ET_END isPaid-->
                 </td>
                 <td class="cell centered" rowspan='2'>
-                    <div class="document-title">PURCHASE CONTRACT333</div>
+                    <div class="document-title">PURCHASE CONTRACT</div>
                     <div style="padding-top:5px;">
                         № <span class="bigData">[#id#]</span> /
                         <span class="bigData">[#valior#]</span>
