@@ -3,7 +3,7 @@
 
 
 /**
- * Клас 'planning_TaskSerials' - Серийни номера по производствени операции
+ * Клас 'planning_TaskSerials' - Серийни номера по производствените операции
  *
  * @category  bgerp
  * @package   planning
@@ -25,7 +25,7 @@ class planning_TaskSerials extends core_Manager
 	/**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,planning';
+	public $canList = 'debug';
 	
 	
 	/**
@@ -45,12 +45,6 @@ class planning_TaskSerials extends core_Manager
      */
     public $listFields = 'serial=С. номер,taskId,jobId=Задание,labelNo=Етикети->№,domain=Етикети->Домейн,packagingId=Етикети->Опаковка,quantityInPack=Етикети->К-во,createdOn,createdBy';
 
-    
-    /**
-     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
-     */
-    public $searchFields = 'productId,taskId,serial';
-    
     
 	/**
 	 * Описание на модела
@@ -131,7 +125,7 @@ class planning_TaskSerials extends core_Manager
 	 */
 	protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
 	{
-		$data->query->orderBy('id', 'DESC');
+		$data->query->orderBy('serial', 'DESC');
 	}
 	
 	
@@ -270,16 +264,8 @@ class planning_TaskSerials extends core_Manager
 		$serialVerbal = core_Type::getByName('varchar(32)')->toVerbal($serial);
 		if(Mode::isReadOnly()) return $serialVerbal;
 		
-		$serialTaskId = planning_TaskSerials::fetchField(array("#serial = '[#1#]'", $serial), 'taskId');
-		
-		if($serialTaskId != $taskId){
-			$url = planning_Tasks::getSingleUrlArray($serialTaskId);
-			$url['Q'] = $serial;
-			$serialVerbal = ht::createLink($serialVerbal, $url, FALSE, "title=Към операцията от която е генериран серийния номер");
-		} else {
-			if(planning_TaskSerials::haveRightFor('planning_TaskSerials', 'list')){
-				//$serialVerbal = ht::createLink($serialVerbal, array('planning_TaskSerials', 'list', 'search' => $serial), FALSE, "title=Към историята на серийния номер");
-			}
+		if(planning_ProductionTaskDetails::haveRightFor('list')){
+			$serialVerbal = ht::createLink($serialVerbal, array('planning_ProductionTaskDetails', 'list', 'search' => $serial), FALSE, "title=Към историята на серийния номер");
 		}
 		
 		return $serialVerbal;

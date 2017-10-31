@@ -1045,19 +1045,16 @@ class planning_Tasks extends core_Master
     {
     	if(empty($rec->id)) return;
     	 
-    	$Detail = cls::get('planning_ProductionTaskDetails');
-    	$dQuery = $Detail->getQuery();
+    	// Добавяне на всички ключови думи от прогреса
+    	$dQuery = planning_ProductionTaskDetails::getQuery();
+    	$dQuery->XPR("concat", 'varchar', "GROUP_CONCAT(#searchKeywords)");
     	$dQuery->where("#taskId = {$rec->id}");
+    	$dQuery->limit(1);
     	
-    	$detailsKeywords = '';
-    	while($dRec = $dQuery->fetch()){
-    		if($dRec->serial){
-    			$detailsKeywords .= " " . plg_Search::normalizeText($Detail->getVerbal($dRec, 'serial'));
-    		}
+    	if($keywords = $dQuery->fetch()->concat){
+    		$keywords = str_replace(' , ', ' ', $keywords);
+    		$res = " " . $res . " " . $keywords;
     	}
-    	
-    	// Добавяме новите ключови думи към старите
-    	$res = " " . $res . " " . $detailsKeywords;
     }
     
     

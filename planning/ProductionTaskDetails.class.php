@@ -5,7 +5,7 @@
 /**
  * Клас 'planning_ProductionTaskDetails'
  *
- * Детайли на драйверите за за задачи за производство
+ * Мениджър за Прогрес на производствените операции
  *
  * @category  bgerp
  * @package   planning
@@ -27,7 +27,7 @@ class planning_ProductionTaskDetails extends core_Detail
 	/**
      * Заглавие
      */
-    public $title = 'Детайли на производствените операции';
+    public $title = 'Прогрес на производствените операции';
 
 
     /**
@@ -51,7 +51,7 @@ class planning_ProductionTaskDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_AlignDecimals2, plg_SaveAndNew, plg_Rejected, plg_Modified, plg_Created, plg_LastUsedKeys, plg_Sorting, planning_Wrapper';
+    public $loadList = 'plg_RowTools2, plg_AlignDecimals2, plg_SaveAndNew, plg_Rejected, plg_Modified, plg_Created, plg_LastUsedKeys, plg_Sorting, planning_Wrapper, plg_Search, planning_Wrapper';
     
     
     /**
@@ -85,6 +85,12 @@ class planning_ProductionTaskDetails extends core_Detail
     
     
     /**
+     * Кой има право да листва?
+     */
+    public $canList = 'taskWorker,ceo';
+    
+    
+    /**
      * Кой има право да изтрива?
      */
     public $canDelete = 'no_one';
@@ -93,7 +99,7 @@ class planning_ProductionTaskDetails extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'type=Операция,serial,productId,quantity,shortUoM=Мярка,weight=Тегло (кг),employees,fixedAsset,modified=Модифицирано';
+    public $listFields = 'type=Действие,serial,productId,taskId,quantity,shortUoM=Мярка,weight=Тегло (кг),employees,fixedAsset,modified=Модифицирано,modifiedOn,modifiedBy';
     
     
     /**
@@ -105,7 +111,13 @@ class planning_ProductionTaskDetails extends core_Detail
     /**
      * Активен таб на менюто
      */
-    public $currentTab = 'Задачи';
+    public $currentTab = 'Операции->Прогрес';
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'productId,type,serial,fixedAsset,employees,notes';
     
     
     /**
@@ -126,6 +138,7 @@ class planning_ProductionTaskDetails extends core_Detail
     	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
     	
     	$this->setDbIndex('type');
+    	$this->setDbIndex('taskId,productId');
     }
     
     
@@ -166,6 +179,7 @@ class planning_ProductionTaskDetails extends core_Detail
     	if($rec->type == 'production'){
     		$form->setDefault('productId', $masterRec->productId);
     		
+    		// При редакция на производството само брака може да се променя
     		if(isset($rec->id)){
     			$form->setReadOnly('productId');
     			$form->setReadOnly('serial');
@@ -178,15 +192,18 @@ class planning_ProductionTaskDetails extends core_Detail
     		}
     	} 
     	
+    	// Ако наличната опция е само една, по дефолт е избрана
     	if(count($productOptions) == 1 && $form->cmd != 'refresh'){
     		$form->setDefault('productId', key($productOptions));
     		$form->setReadOnly('productId');
     	}
     	
+    	// Ако е избран артикул
     	if(isset($rec->productId)){
     		$measureId = cat_Products::fetchField($rec->productId, 'measureId');
     		$packagingId = $measureId;
     		
+    		// Показване на очакваните к-ва
     		if($foundRec = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type)){
     			$packagingId = $foundRec->packagingId;
     			$unit = cat_UoM::getShortName($foundRec->packagingId);
@@ -218,6 +235,7 @@ class planning_ProductionTaskDetails extends core_Detail
     		$form->setField('employees', 'input=none');
     	}
     	
+    	// Показване на допълнителна мярка при нужда
     	if($masterRec->showadditionalUom != 'yes'){
     		$form->setField('weight', 'input=none');
     	}
@@ -289,6 +307,7 @@ class planning_ProductionTaskDetails extends core_Detail
     		$row->fixedAsset = ht::createLink($row->fixedAsset, planning_AssetResources::getSingleUrlArray($rec->fixedAsset));
     	}
     	 
+    	$row->taskId = planning_Tasks::getLink($rec->taskId, 0);
     	$row->modified = "<div class='nowrap'>" . $mvc->getFieldType('modifiedOn')->toVerbal($rec->modifiedOn);
     	$row->modified .= " " . tr('от||by') . " " . crm_Profiles::createLink($rec->modifiedBy) . "</div>";
     	 
@@ -397,6 +416,7 @@ class planning_ProductionTaskDetails extends core_Detail
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
+    	// Ъпдейт на общото к-во в детайла
     	planning_ProductionTaskProducts::updateTotalQuantity($rec->taskId, $rec->productId, $rec->type);
     }
     
@@ -440,6 +460,25 @@ class planning_ProductionTaskDetails extends core_Detail
     }
 
 
+    /**
+     * Изпълнява се след подготвянето на формата за филтриране
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    {
+    	if(isset($data->masterMvc)){
+    		unset($data->listFields['modifiedOn']);
+    		unset($data->listFields['modifiedBy']);
+    		unset($data->listFields['taskId']);
+    	} else {
+    		unset($data->listFields['modified']);
+    	}
+    	
+    	$data->listFilter->view = 'horizontal';
+    	$data->listFilter->showFields = 'search';
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    }
+    
+    
     /**
      * Преди извличане на записите от БД
      */
