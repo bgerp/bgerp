@@ -168,7 +168,7 @@ class planning_AssetResources extends core_Master
     		}
     	}
     	
-    	if($action == 'changestate' && isset($rec)){
+    	if($action == 'changestate' && isset($rec->groupId)){
     		$groupState = planning_AssetGroups::fetchField($rec->groupId, 'state');
     		if($groupState == 'closed'){
     			$requiredRoles = 'no_one';
