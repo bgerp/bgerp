@@ -31,10 +31,12 @@ abstract class doc_Detail extends core_Detail
             $data->form->class .= " floatedElement ";
         }
         
-        $cId = $this->Master->fetchField($data->form->rec->{$this->masterKey}, 'containerId');
-        
-        // Рендираме формата
-        doc_Linked::showLinkedInForm($data->form, $cId);
+        if ($this->Master && $this->masterKey && $data->form->rec->{$this->masterKey}) {
+            $cId = $this->Master->fetchField($data->form->rec->{$this->masterKey}, 'containerId');
+            
+            // Рендираме формата
+            doc_Linked::showLinkedInForm($data->form, $cId);
+        }
         
         return $data;
     }
