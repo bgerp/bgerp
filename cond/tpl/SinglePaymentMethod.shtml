@@ -1,7 +1,7 @@
 <div class="singleView">
     [#SingleToolbar#]
     <div class="info-table">
-        <h2 style="padding:5px 2px;" class=" [#STATE_CLASS#]">[#SingleTitle#]</h2>
+        <h2 style="line-height:30px" class=" [#STATE_CLASS#]">[#SingleTitle#]</h2>
         <!--ET_BEGIN type-->
         <div>|Вид|*: <b>[#type#]</b></div>
         <!--ET_END type-->
