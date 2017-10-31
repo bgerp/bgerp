@@ -342,7 +342,9 @@ abstract class deals_DealMaster extends deals_DealBase
         $title = "{$abbr}{$rec->id}/{$contragent}";
         
         // Показване и на артикула с най-голяма стойност в продажбата
-        if(isset($rec->productIdWithBiggestAmount)){
+        if(!empty($rec->reff)){
+        	$title .= "/{$rec->reff}";
+        } elseif(isset($rec->productIdWithBiggestAmount)){
         	$pName = mb_substr($rec->productIdWithBiggestAmount, 0, 20);
         	$title .= "/{$pName}";
         }
