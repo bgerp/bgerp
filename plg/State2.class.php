@@ -126,7 +126,8 @@ class plg_State2 extends core_Plugin
      */
     public function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        $row->ROW_ATTR['class'] .= " state-{$rec->state}";
+        $row->STATE_CLASS = "state-{$rec->state}";
+    	$row->ROW_ATTR['class'] .= " state-{$rec->state}";
         $warning = $mvc->getChangeStateWarning($rec);
         $warning = !empty($warning) ? $warning : FALSE;
         $warningToolbar = !empty($warning) ? "warning={$warning}" : '';
