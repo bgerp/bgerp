@@ -39,7 +39,7 @@ class planning_Tasks extends core_Master
 	/**
 	 * Плъгини за зареждане
 	 */
-	public $loadList = 'doc_plg_BusinessDoc, doc_plg_Prototype, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, plg_Clone, plg_Printing, plg_RowTools2';
+	public $loadList = 'doc_plg_BusinessDoc, doc_plg_Prototype, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, plg_Clone, plg_Printing, plg_RowTools2, plg_LastUsedKeys';
 	
 	
 	/**
@@ -178,6 +178,12 @@ class planning_Tasks extends core_Master
 	 * @see plg_Clone
 	 */
 	public $fieldsNotToClone = 'progress,totalWeight,systemId,scrappedQuantity,inputInTask';
+	
+	
+	/**
+	 * Кои ключове да се тракват, кога за последно са използвани
+	 */
+	public $lastUsedKeys = 'fixedAssets';
 	
 	
 	/**
@@ -404,12 +410,13 @@ class planning_Tasks extends core_Master
 		$rec = $this->fetch($id);
 		$row = new stdClass();
 	
-		$row->title    = self::getRecTitle($rec);
-		$row->authorId = $rec->createdBy;
-		$row->author   = $this->getVerbal($rec, 'createdBy');
-		$row->recTitle = $row->title;
-		$row->state    = $rec->state;
-		 
+		$row->title     = self::getRecTitle($rec);
+		$row->authorId  = $rec->createdBy;
+		$row->author    = $this->getVerbal($rec, 'createdBy');
+		$row->recTitle  = $row->title;
+		$row->state     = $rec->state;
+		$row->subTitle  = doc_Containers::getDocument($rec->originId)->getShortHyperlink();
+		
 		return $row;
 	}
 	

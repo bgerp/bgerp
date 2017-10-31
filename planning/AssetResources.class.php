@@ -137,7 +137,6 @@ class planning_AssetResources extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$row->STATE_CLASS = "state-{$rec->state}";
     	$row->groupId = planning_AssetGroups::getHyperlink($rec->groupId, TRUE);
     	if(isset($rec->protocolId)){
     		$row->protocolId = accda_Da::getHyperlink($rec->protocolId, TRUE);
