@@ -98,6 +98,7 @@ class planning_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
+    		'migrate::deleteTasks6',
     		'planning_Jobs',
     		'planning_ConsumptionNotes',
     		'planning_ConsumptionNoteDetails',
@@ -118,7 +119,6 @@ class planning_Setup extends core_ProtoSetup
     		'migrate::migrateJobs',
     		'migrate::addPackToNotes',
     		'migrate::addPackToJobs',
-    		'migrate::deleteTasks5',
     		'migrate::deleteTaskCronUpdate',
         );
 
@@ -316,15 +316,15 @@ class planning_Setup extends core_ProtoSetup
     /**
      * Изтрива старите производствени операции
      */
-    public static function deleteTasks5()
+    public static function deleteTasks6()
     {
-    	$Tasks = cls::get('planning_Tasks');
-    	$Tasks->setupMvc();
-    	if(!$Tasks->count()) return;
-    	
     	$Details = cls::get('planning_ProductionTaskDetails');
     	$Details->setupMvc();
     	$Details->truncate();
+    	
+    	$Tasks = cls::get('planning_Tasks');
+    	$Tasks->setupMvc();
+    	if(!$Tasks->count()) return;
     	
     	$Product = cls::get('planning_ProductionTaskProducts');
     	$Product->setupMvc();
