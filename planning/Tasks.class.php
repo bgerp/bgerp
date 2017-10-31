@@ -99,7 +99,7 @@ class planning_Tasks extends core_Master
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'title, originId=Задание, progress, folderId, state, modifiedOn, modifiedBy';
+	public $listFields = 'title, progress, folderId, state, modifiedOn, modifiedBy';
 	
 	
 	/**
@@ -149,7 +149,7 @@ class planning_Tasks extends core_Master
 	/**
 	 * Поле за филтриране по дата
 	 */
-	public $filterDateField = 'timeStart,createdOn';
+	public $filterDateField = 'expectedTimeStart,timeStart,createdOn';
 	
 	
 	/**
@@ -318,6 +318,7 @@ class planning_Tasks extends core_Master
 		if($rec->originId){
 			$origin = doc_Containers::getDocument($rec->originId);
 			$row->originId = $origin->getLink();
+			$row->originShortLink = $origin->getShortHyperlink();
 		}
 	
 		if(isset($rec->inputInTask)){
@@ -385,6 +386,10 @@ class planning_Tasks extends core_Master
 						$row->{$eTimeField} .= " <span style='font-weight:normal'>({$diffVerbal})</span>";
 					}
 			}
+		}
+		
+		if(isset($fields['-list'])){
+			$row->title .= "<br><small>{$row->originShortLink}</small>";
 		}
 		
 		return $row;
@@ -974,6 +979,12 @@ class planning_Tasks extends core_Master
     	
     	if($assetId = $data->listFilter->rec->assetId){
     		$data->query->where("LOCATE('|{$assetId}|', #fixedAssets)");
+    	}
+    	
+    	// Показване на полето за филтриране
+    	if($filterDateField = $data->listFilter->rec->filterDateField){
+    		$filterFieldArr = array($filterDateField => ($filterDateField == 'expectedTimeStart') ? 'Очаквано начало' : ($filterDateField == 'timeStart' ? 'Начало' : 'Създаване'));
+    		arr::placeInAssocArray($data->listFields, $filterFieldArr,'title');
     	}
     	
     	if(!Request::get('Rejected', 'int')){
