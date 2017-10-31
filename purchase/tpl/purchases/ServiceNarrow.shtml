@@ -11,11 +11,11 @@
                                 <span class="state [#STATE_CLASS#]">
                                     № <span class="bigData">[#id#]</span> /
                                     <span class="bigData">[#valior#]</span>
-                                    <!--ET_BEGIN reff-->
-                        			<div>|Ваш реф|*: <span class="bigData">[#reff#]</span></div>
-                        			<!--ET_END reff-->
                                 </span>
                         </div>
+                        <!--ET_BEGIN reff-->
+                    	|Ваш реф|*: <span class="bigData">[#reff#]</span>
+                    	<!--ET_END reff-->
                     </td>
                 </tr>
                 <tr>
