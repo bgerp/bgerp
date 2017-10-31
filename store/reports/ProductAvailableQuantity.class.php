@@ -164,17 +164,19 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
                 foreach ($grDetails['name'] as $k => $detail) {
 
+                        if (!$detail && $grDetails['code'][$k]) {
+
+                            $prId = cat_Products::getByCode($grDetails['code'][$k]);
+
+                            if ($prId->productId) {
+
+                                $prName = cat_Products::getTitleById($prId->productId, $escaped = TRUE);
+        
+                                $grDetails['name'][$k] = $prName;
+                            }
 
 
-                    if (!$detail && $grDetails['code'][$k]) {
-
-                        $prId = cat_Products::getByCode($grDetails['code'][$k]);
-
-                        $prName = cat_Products::getTitleById($prId->productId, $escaped = TRUE);
-
-                        $grDetails['name'][$k] = $prName;
-
-                    }
+                        }
 
                 }
 
@@ -317,8 +319,6 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         }
 
     }
-
-   // bp($recs);
 
         return $recs;
 
