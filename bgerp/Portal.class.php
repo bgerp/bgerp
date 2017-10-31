@@ -147,7 +147,8 @@ class bgerp_Portal extends core_Manager
         $portalArrange = core_Setup::get('PORTAL_ARRANGE');
 
         if(Mode::is('screenMode', 'narrow')) {
-            jquery_Jquery::run($tpl, "openCurrentTab();");
+            // подаваме времето на последната нотификация
+            jquery_Jquery::run($tpl, "openCurrentTab('" . 1000 * dt::mysql2timestamp(bgerp_Notifications::getLastNotificationTime()) . "'); ");
             // Добавяме календара
             $tpl->append($calendarHeader, 'CALENDAR_COLUMN');
             // Добавяме "Наскоро" - документи и папки с които е работено наскоро
