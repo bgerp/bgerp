@@ -12,10 +12,13 @@
                     <!--ET_END isPaid-->
                 </td>
                 <td class="cell centered" rowspan='2'>
-                    <div class="document-title">PURCHASE CONTRACT</div>
+                    <div class="document-title">PURCHASE CONTRACT333</div>
                     <div style="padding-top:5px;">
                         № <span class="bigData">[#id#]</span> /
                         <span class="bigData">[#valior#]</span>
+                        <!--ET_BEGIN reff-->
+                        <div>|Ваш реф|*: <span class="bigData">[#reff#]</span></div>
+                        <!--ET_END reff-->
                     </div>
                     <!--ET_BEGIN state-->
                     <div class="state [#STATE_CLASS#]" style='margin:5px 0'>[#state#]</div>

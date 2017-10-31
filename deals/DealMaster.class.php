@@ -171,6 +171,7 @@ abstract class deals_DealMaster extends deals_DealBase
 	protected static function setDealFields($mvc)
 	{
 		$mvc->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date,notChangeableByContractor');
+		$mvc->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,class=contactData,after=valior');
 		
 		// Стойности
 		$mvc->FLD('amountDeal', 'double(decimals=2)', 'caption=Стойности->Поръчано,input=none,summary=amount'); // Сумата на договорената стока
@@ -229,10 +230,24 @@ abstract class deals_DealMaster extends deals_DealBase
 	{
 		$form = &$data->form;
 		$form->setDefault('valior', dt::now());
+		$rec = $form->rec;
+		
+		// При клониране
+		if($data->action == 'clone'){
+			 
+			// Ако няма reff взимаме хендлъра на оригиналния документ
+			if(empty($rec->reff)){
+				$rec->reff = $mvc->getHandle($rec->id);
+			}
+			 
+			// Инкрементираме reff-а на оригинална
+			$rec->reff = str::addIncrementSuffix($rec->reff, 'v', 2);
+		}
 		
 		if(empty($form->rec->id)){
 			$form->setDefault('shipmentStoreId', store_Stores::getCurrent('id', FALSE));
 		}
+		
 		$form->setDefault('makeInvoice', 'yes');
 		
 		// Поле за избор на локация - само локациите на контрагента по сделката
@@ -373,6 +388,10 @@ abstract class deals_DealMaster extends deals_DealBase
     	$defCurrency = cls::get($rec->contragentClassId)->getDefaultCurrencyId($rec->contragentId);
     	if($defCurrency != $rec->currencyId){
     		$form->setWarning('currencyId', "Избрана e различна валута от очакваната|* {$defCurrency}");
+    	}
+    	
+    	if($rec->reff === ''){
+    		$rec->reff = NULL;
     	}
     }
 
