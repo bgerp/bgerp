@@ -470,6 +470,7 @@ class planning_ProductionTaskDetails extends core_Detail
     		unset($data->listFields['modifiedBy']);
     		unset($data->listFields['taskId']);
     	} else {
+    		$data->listFilter->setField('type', 'input=none');
     		unset($data->listFields['modified']);
     	}
     	
