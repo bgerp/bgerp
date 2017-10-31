@@ -37,7 +37,7 @@ class planning_TaskSerials extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created,planning_Wrapper,plg_Search,plg_Sorting';
+    public $loadList = 'plg_Created,planning_Wrapper';
 	
 	
     /**
@@ -131,15 +131,6 @@ class planning_TaskSerials extends core_Manager
 	 */
 	protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
 	{
-		$data->listFilter->view = 'horizontal';
-		$data->listFilter->showFields = 'search';
-		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-		
-		if(!haveRole('debug')){
-			unset($data->listFields['domain']);
-			unset($data->listFields['labelNo']);
-		}
-		
 		$data->query->orderBy('id', 'DESC');
 	}
 	
@@ -287,7 +278,7 @@ class planning_TaskSerials extends core_Manager
 			$serialVerbal = ht::createLink($serialVerbal, $url, FALSE, "title=Към операцията от която е генериран серийния номер");
 		} else {
 			if(planning_TaskSerials::haveRightFor('planning_TaskSerials', 'list')){
-				$serialVerbal = ht::createLink($serialVerbal, array('planning_TaskSerials', 'list', 'search' => $serial), FALSE, "title=Към историята на серийния номер");
+				//$serialVerbal = ht::createLink($serialVerbal, array('planning_TaskSerials', 'list', 'search' => $serial), FALSE, "title=Към историята на серийния номер");
 			}
 		}
 		

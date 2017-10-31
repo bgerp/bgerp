@@ -415,8 +415,7 @@ class planning_Tasks extends core_Master
 	public static function getRecTitle($rec, $escaped = TRUE)
 	{
 		$title = cat_Products::getTitleById($rec->productId);
-		$createdBy = core_Users::getVerbal($rec->createdBy, 'names');
-		$title = "Pts{$rec->id} - " . $title . " / " . $createdBy;
+		$title = "Pts{$rec->id} - " . $title;
 		
 		return $title;
 	}
