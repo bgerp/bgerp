@@ -1,4 +1,4 @@
-COD,В брой при получаване||Cash on delivery,0,0,1,0,,,259200,cash
+COD,В брой при получаване||Cash on delivery,0,0,1,invDate,86400,,,cash
 cashNet7,В брой - до 7 дни след фактуриране,,,,invDate,604800,,,cash
 cashNet15,В брой - до 15 дни след фактуриране,,,,invDate,1296000,,,cash
 cashNet30,В брой - до 1 месец след фактуриране,,,,invDate,2629746,,,cash
