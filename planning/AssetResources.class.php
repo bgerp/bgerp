@@ -162,7 +162,7 @@ class planning_AssetResources extends core_Master
     		}
     	}
     	
-    	if($action == 'delete' && isset($rec)){
+    	if($action == 'delete' && isset($rec->groupId)){
     		if(isset($rec->lastUsedOn)){
     			$requiredRoles = 'no_one';
     		}
