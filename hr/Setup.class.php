@@ -88,6 +88,7 @@ class hr_Setup extends core_ProtoSetup
             'hr_Trips',
             'hr_Bonuses',
             'hr_Deductions',
+            'hr_FormCv',
    			'migrate::forceDepartmentFolders',
    			'migrate::truncateIndicators'
         );
