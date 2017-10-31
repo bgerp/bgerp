@@ -387,17 +387,6 @@ class acc_ValueCorrections extends core_Master
     
     
     /**
-     * Връща разбираемо за човека заглавие, отговарящо на записа
-     */
-    public static function getRecTitle($rec, $escaped = TRUE)
-    {
-    	$self = cls::get(get_called_class());
-    	 
-    	return tr($self->singleTitle) . " №{$rec->id}";
-    }
-    
-    
-    /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
      * @param core_Mvc $mvc

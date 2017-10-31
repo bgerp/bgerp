@@ -371,17 +371,6 @@ class sales_Proformas extends deals_InvoiceMaster
     
     
     /**
-     * Връща разбираемо за човека заглавие, отговарящо на записа
-     */
-    public static function getRecTitle($rec, $escaped = TRUE)
-    {
-    	$self = cls::get(get_called_class());
-    	 
-    	return tr("|{$self->singleTitle}|* №") . $rec->id;
-    }
-    
-    
-    /**
      * Подготвя данните (в обекта $data) необходими за единичния изглед
      */
     public function prepareSingle_($data)
