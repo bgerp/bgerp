@@ -3,7 +3,7 @@
     <div class="info-table">
         <h2>[#SingleTitle#]</h2>
         <!--ET_BEGIN type-->
-        <div>|Вид|*: [#type#]</div>
+        <div>|Вид|*: <b>[#type#]</b></div>
         <!--ET_END type-->
         <fieldset class="detail-info">
             <legend class="groupTitle">|Авансово плащане|*</legend>
