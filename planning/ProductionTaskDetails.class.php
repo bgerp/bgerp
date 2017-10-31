@@ -551,13 +551,6 @@ class planning_ProductionTaskDetails extends core_Detail
     {
     	$result = array();
     	
-    	return $result;
-    	
-    	
-    	
-    	
-    	
-    	
     	$query = self::getQuery();
         $query->where("#modifiedOn >= '{$timeline}'");
         
@@ -565,46 +558,33 @@ class planning_ProductionTaskDetails extends core_Detail
         $classId = planning_Tasks::getClassId();
         $indicatorId = $iRec->id;
         
-        
-        $queryProduct = planning_ProductionTaskProducts::getQuery();
-        $queryMasterm = planning_Tasks::getQuery();
-
         while ($rec = $query->fetch()) {
-           switch($rec->type){
-               case 'input':
-                    $time = planning_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');	
-                    break;
-               case 'waste':
-                    $time = -planning_ProductionTaskProducts::fetchField($rec->taskProductId, 'indTime');
-                    break;
-               case 'product':
-               		$taskInfo = planning_Tasks::fetch($rec->taskId);
-               		$time = (!empty($taskInfo->startTime)) ? ($taskInfo->startTime / $taskInfo->quantityInPack) : NULL;
-                    break;
-            }
+        	
+        	// Ако няма служители, пропуска се
+        	$persons = keylist::toArray($rec->employees);
+        	if(!count($persons)) continue;
+        	
+        	// Ако няма заработка, пропуска се
+        	$info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type);
+        	if(empty($info->indTime)) continue;
+        	
+        	// Колко е заработката за 1 човек
+            $timePerson = ($rec->quantity * $info->indTime) / count($persons);
             
-            if(empty($time)) continue;
-            
-            if($rec->employees) {
-                $persons = keylist::toArray($rec->employees);
-               
-                $timePerson = ($rec->quantity * $time) / count($persons) ;
-                $date = dt::verbal2mysql($rec->createdOn, FALSE);
-                foreach ($persons as $personId) {
-                	
-                	$key = "{$personId}|{$classId}|{$rec->taskId}|{$date}|{$indicatorId}";
-                	if(!array_key_exists($key, $result)){
-                		$result[$key] = (object)array('date'        => $date,
-												      'personId'    => $personId,
-									                  'docId'       => $rec->taskId,
-									                  'docClass'    => $classId,
-									                  'indicatorId' => $indicatorId,
-									                  'value'       => 0,
-									                  'isRejected'  => ($rec->state == 'rejected'));
-                	}
-                	
-                	$result[$key]->value += $timePerson;
+            $date = dt::verbal2mysql($rec->createdOn, FALSE);
+            foreach ($persons as $personId) {
+            	$key = "{$personId}|{$classId}|{$rec->taskId}|{$date}|{$indicatorId}";
+            	if(!array_key_exists($key, $result)){
+            		$result[$key] = (object)array('date'        => $date,
+												  'personId'    => $personId,
+									              'docId'       => $rec->taskId,
+									              'docClass'    => $classId,
+									              'indicatorId' => $indicatorId,
+									              'value'       => 0,
+									              'isRejected'  => ($rec->state == 'rejected'));
                 }
+                
+                $result[$key]->value += $timePerson;
             }
         }
         
