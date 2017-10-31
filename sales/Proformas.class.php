@@ -462,4 +462,13 @@ class sales_Proformas extends deals_InvoiceMaster
     	// Връщаме очаквания аванс
     	return $expectedDownpayment;
     }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = TRUE)
+    {
+    	return core_Mvc::getRecTitle($rec, $escaped);
+    }
 }
