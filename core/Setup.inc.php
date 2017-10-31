@@ -940,15 +940,8 @@ if ($step == 'setup') {
     file_put_contents(EF_SETUP_LOG_PATH, "");
     
     // Стартираме инициализацията
-    $res = file_get_contents("{$localUrl}&step=start", FALSE, $context, 0, 32);
-    
-    if ($res == $flagOK) {
-        contentFlush ("<h3 id='startHeader'>Инициализацията стартирана ...</h3>");
-    } else {
-        contentFlush ("<h3 id='startHeader' style='color: red;'>Грешка при стартиране на Setup!</h3><h3>{$selfUrl}&step=start</h3><div>{$res}</div>");
-        
-        exit;
-    }
+    contentFlush ("<h3 id='startHeader'>Стартиране на инициализацията ... <img src='{$localUrl}&step=start' width=0 height=0 ></h3>");
+
     // Пращаме javascript-a за smooth скрол-а
     contentFlush("<script>
     var mouseDown = 0;
@@ -1087,7 +1080,7 @@ if($step == 'start') {
     // Следващият ред генерира notice,
     // но без него file_get_contents забива, ако трябва да връща повече от 0 байта
     @ob_end_clean();
- 
+
     header("Connection: close\r\n");
     header("Content-Encoding: none\r\n");
     ob_start();
@@ -1106,9 +1099,8 @@ if($step == 'start') {
     
     // Локал за функции като basename, fgetcsv
     setlocale(LC_ALL, 'en_US.UTF8');
-
+    
     $ef = new core_Setup();
-
     try {
         try {
             $res = $ef->install();
