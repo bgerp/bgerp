@@ -68,7 +68,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     {
         $fieldset->FLD('additional', 'table(columns=code|name|minQuantity|maxQuantity,captions=Код на атикула|Наименование|Мин к-во|Макс к-во,widths=8em|20em|5em|5em)', "caption=Артикули||Additional,autohide,advanced,after=storeId,single=none");
         $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,after=title');
-        $fieldset->FLD('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,after=storeId,silent,removeAndRefreshForm');
+        $fieldset->FLD('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,after=storeId,silent,single=none,removeAndRefreshForm');
     }
     
     
@@ -81,7 +81,8 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      */
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
-
+        $form = $data->form;
+        $rec = $form->rec;
     }
     
     
@@ -95,6 +96,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
+
         $details = (json_decode($form->rec->additional));
 
         if ($form->isSubmitted()) {
@@ -162,7 +164,9 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
                 foreach ($grDetails['name'] as $k => $detail) {
 
-                    if (!$detail) {
+
+
+                    if (!$detail && $grDetails['code'][$k]) {
 
                         $prId = cat_Products::getByCode($grDetails['code'][$k]);
 
@@ -313,6 +317,8 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         }
 
     }
+
+   // bp($recs);
 
         return $recs;
 
