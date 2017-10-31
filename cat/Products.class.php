@@ -1522,13 +1522,13 @@ class cat_Products extends embed_Manager {
     		
     		// Връща се намереното тегло
     		$weight = $brutoWeight * $quantity;
-    		return $weight;
+    		return round($weight, 2);
     	}
     	
     	// Ако няма транспортно тегло от опаковката гледа се от артикула
     	if($weight = static::getParams($productId, 'transportWeight')){
     		$weight *= $quantity;
-    		return $weight;
+    		return round($weight, 2);
     	}
     	
     	return NULL;
@@ -1564,14 +1564,14 @@ class cat_Products extends embed_Manager {
     		$quantity /= $packRec->quantity;
     	
     		// Връща се намереното тегло
-    		$weight = $brutoVolume * $quantity;
-    		return $weight;
+    		$volume = $brutoVolume * $quantity;
+    		return round($volume, 2);
     	}
     	
     	$volume = static::getParams($productId, 'transportVolume');
     	if($volume){
     		$volume *= $quantity;
-    		return $volume;
+    		return round($volume, 2);
     	}
     	
     	return NULL;
