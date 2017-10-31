@@ -62,8 +62,6 @@ class bank_Setup extends core_ProtoSetup
         'bank_PaymentOrders',
         'bank_CashWithdrawOrders',
         'bank_DepositSlips',
-    	'migrate::updateDocumentStates',
-    	'migrate::updateDocuments'
     );
     
     
@@ -99,70 +97,5 @@ class bank_Setup extends core_ProtoSetup
         $res = bgerp_Menu::remove($this);
         
         return $res;
-    }
-    
-    
-    /**
-     * Миграция на старите документи
-     */
-    function updateDocumentStates()
-    {
-    	$documents = array('bank_IncomeDocuments', 'bank_SpendingDocuments', 'bank_InternalMoneyTransfer', 'bank_ExchangeDocument');
-    	core_App::setTimeLimit(150);
-    	 
-    	foreach ($documents as $doc){
-    		try{
-    			$Doc = cls::get($doc);
-    			$Doc->setupMvc();
-    			 
-    			$query = $Doc->getQuery();
-    			$query->where("#state = 'closed'");
-    			$query->show('state');
-    			 
-    			while($rec = $query->fetch()){
-    				$rec->state = 'active';
-    				$Doc->save_($rec, 'state');
-    			}
-    		} catch(core_exception_Expect $e){
-    			 
-    		}
-    	}
-    }
-    
-    
-	/**
-	 * Ъпдейт на документите
-	 */
-    public function updateDocuments()
-    {
-    	core_App::setTimeLimit(300);
-    	 
-    	$array = array('bank_IncomeDocuments', 'bank_SpendingDocuments');
-    	 
-    	foreach ($array as $doc){
-    		$Doc = cls::get($doc);
-    		$Doc->setupMvc();
-    
-    		$query = $Doc->getQuery();
-    		$query->where('#amountDeal IS NULL');
-    		while($rec = $query->fetch()){
-    			 
-    			try{
-    				$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-    				$firstDocRec = $firstDoc->fetch();
-    				$dealCurrencyId = currency_Currencies::getIdByCode($firstDocRec->currencyId);
-    				$dealRate = $firstDocRec->currencyRate;
-    					
-    				$dealAmount = ($rec->amount * $rec->rate) / $dealRate;
-    					
-    				$rec->amountDeal = $dealAmount;
-    				$rec->dealCurrencyId = $dealCurrencyId;
-    					
-    				$Doc->save_($rec, 'amountDeal,dealCurrencyId');
-    			} catch(core_exception_Expect $e){
-    				reportException($e);
-    			}
-    		}
-    	}
     }
 }

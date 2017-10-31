@@ -98,7 +98,6 @@ class blogm_Setup extends core_ProtoSetup
 				'blogm_Categories',
 				'blogm_Comments',
 				'blogm_Links',
-                'migrate::commentsSpamRate',
 		);
 	
 		
@@ -183,16 +182,4 @@ class blogm_Setup extends core_ProtoSetup
 
 		return $res;
 	}
-
-
-    /**
-     * Миграция за спам-рейтинг
-     */
-    function commentsSpamRate()
-    {
-        $query = blogm_Comments::getQuery();
-        while($rec = $query->fetch("#state != 'active'")) {
-            blogm_Comments::save($rec);
-        }
-    }
 }

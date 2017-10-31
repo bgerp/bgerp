@@ -766,9 +766,6 @@ class core_Mvc extends core_FieldSet
             $titleFields = array(
                 'title',
                 'name',
-                'caption',
-                'name',
-                'number',
                 'nick',
                 'id'
             );
