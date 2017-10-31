@@ -79,7 +79,7 @@ class canvasgauge_Gauge
         setIfNot($valArr['width'], '175');
         setIfNot($valArr['units'], '°C');
         setIfNot($valArr['valueDec'], 0);
-        setIfNot($valArr['valueInt'], 2);
+        setIfNot($valArr['valueInt'], 1);
         
         $valArr['gaugeType'] = 'RadialGauge';
         if ($type == 'linear') {
