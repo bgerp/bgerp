@@ -74,12 +74,20 @@ class canvasgauge_Gauge
         
         $valArr['renderTo'] = $canvasId;
         $valArr['value'] = $value;
-        
-        setIfNot($valArr['height'], '175');
-        setIfNot($valArr['width'], '175');
+     
+        setIfNot($valArr['height'], '200');
+        setIfNot($valArr['width'], '200');
         setIfNot($valArr['units'], '°C');
         setIfNot($valArr['valueDec'], 0);
         setIfNot($valArr['valueInt'], 1);
+        setIfNot($valArr['animationDuration'], 4000);
+        setIfNot($valArr['animationRule'], 'elastic');
+        setIfNot($valArr['animation'], TRUE);
+        setIfNot($valArr['animatedValue'], TRUE);
+        setIfNot($valArr['animateOnInit'], TRUE);
+
+
+   
         
         $valArr['gaugeType'] = 'RadialGauge';
         if ($type == 'linear') {
@@ -94,26 +102,9 @@ class canvasgauge_Gauge
             }
         }
         
-        // Всички стойности от масива ги добавяме, като ключ и плейсхолдер - за опциите
-        $gaugeOptStr = '';
-        foreach ($valArr as $k => &$val) {
-            
-            if (!is_bool($val)) {
-                $val = trim($val);
-            } else {
-                $val = (int) $val;
-            }
-            
-            $gaugeOptStr .= $gaugeOptStr ? ', ' : '';
-            
-            if (is_bool($val) || is_numeric($val) || strpos($val, '[') !== FALSE || strpos($val, '{') !== FALSE) {
-                $gaugeOptStr .= "{$k}: [#{$k}#]";
-            } else {
-                $gaugeOptStr .= "{$k}: '[#{$k}#]'";
-            }
-        }
-        
-        $jsTpl = new ET("var gauge_[#renderTo#] = new [#gaugeType#]({ {$gaugeOptStr} });
+        $str = json_encode($valArr);
+ 
+        $jsTpl = new ET("var gauge_[#renderTo#] = new [#gaugeType#]( {$str} );
                 gauge_[#renderTo#].draw();");
         $jsTpl->placeArray($valArr);
         
@@ -121,7 +112,7 @@ class canvasgauge_Gauge
         $tpl->appendOnce($jsTpl, 'SCRIPTS');
         $tpl->push('canvasgauge/' . canvasgauge_Setup::get('VERSION') . '/' . "gauge.min.js", "JS");
         $tpl->placeArray($valArr);
-        
+      
         return $tpl;
     }
 }

@@ -118,7 +118,7 @@ class acc_reports_TotalRep extends frame2_driver_TableData
                 $delta += $recIndic->value;
             }
             $res->period = "{$month}/{$year}";
-            $res->speed = round(100 * $delta/$target);
+            $res->speed = round(100 * $delta/$target, 2);
 
             $recs[$res->period] = $res;
         }
@@ -183,7 +183,9 @@ class acc_reports_TotalRep extends frame2_driver_TableData
         $key = date("m/Y");
  
         $value = $data->rec->data->recs[$key]->speed;
- 
+        
+        $value = 110;
+
         if(!($value >= 60 && $value <=140)) return;
 
         $arr['label'] = 'Обща цел'; // Надписа, който се показва в измервателния уред
@@ -209,8 +211,20 @@ class acc_reports_TotalRep extends frame2_driver_TableData
          //$arr['yellowColor'] - Цвят на "жълтата" лента
          //$arr['greenColor'] - Цвят на "зелената" лента
 
+        $scale = array(
+            'majorTicks' => array(60, 80, 100, 120, 140),
+            'minValue' => 60,
+            'maxValue' => 140,
+            'units' => '%',
+            'highlights' => array(
+                (object) array('from' => 60, 'to' =>80, 'color' => '#ff6600'),
+                (object) array('from' => 80, 'to' =>100, 'color' => '#ffcc66'),
+                (object) array('from' => 100, 'to' =>140, 'color' => '#66ff00'),
 
-        $gauge = jsgauge_Gauge::renderTemperature($value, NULL, $arr);
+            ),
+        );
+
+        $gauge = canvasgauge_Gauge::drawRadial($value, NULL, $scale); 
 
         $tpl->append($gauge, 'DRIVER_FIELDS');
     }
