@@ -99,8 +99,10 @@ class planning_interface_TaskLabel
 		$res['PRODUCT_CODE'] = (!empty($pRec->code)) ? cat_Products::getVerbal($pRec, 'code') : "Art{$pRec->id}";
 		
 		// Генериране на баркод
-		$serial = planning_TaskSerials::force($id, $labelNo);
-		$res['BARCODE'] = $serial;
+		if($labelNo != 0){
+			$serial = planning_TaskSerials::force($id, $labelNo);
+			$res['BARCODE'] = $serial;
+		}
 	
 		// Информация за артикула
 		$measureId = cat_Products::fetchField($rec->productId, 'measureId');
