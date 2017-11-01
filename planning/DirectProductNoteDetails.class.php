@@ -259,11 +259,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     		$tpl->append(ht::createBtn('Артикул', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => TRUE),  NULL, NULL, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Добавяне на нов материал')), 'planning_DirectProductNoteDetails');
     	}
     	
-    	// Добавяне на бутон за нов материал
-    	if($this->haveRightFor('addReserved', (object)array('noteId' => $data->masterId))){
-    		$tpl->append(ht::createBtn('Само резервираните', array($this, 'addReserved', 'noteId' => $data->masterId, 'ret_url' => TRUE),  'Наистина ли желаете да добавите само резервираните артикули', NULL, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Добавяне само на резервираните артикули')), 'planning_DirectProductNoteDetails');
-    	}
-    	
     	// Рендираме таблицата с отпадъците
     	if(count($data->popArr) || $data->masterData->rec->state == 'draft'){
     		$data->listFields['productId'] = "Отпадъци|* <small style='font-weight:normal'>( |остават в незавършеното производство|* )</small>";
@@ -347,65 +342,5 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	} else {
     		$res->operation[key($res->operation)] = $rec->storeId;
     	}
-    }
-    
-    
-    /**
-     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
-     */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-    {
-    	if($action == 'addreserved'){
-    		$requiredRoles = $mvc->getRequiredRoles('add', $rec, $userId);
-    		
-    		// Може ли да се заредят само резервираните артикули
-    		if($requiredRoles != 'no_one' && isset($rec->noteId)){
-    			$originId = planning_DirectProductionNote::fetchField($rec->noteId, 'originId');
-    			if(!store_ReserveStocks::fetchField("#originId = '{$originId}' AND #state = 'active'")){
-    				$requiredRoles = 'no_one';
-    			}
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Добавяне на резервираните артикули към протокола
-     */
-    function act_addreserved()
-    {
-    	$this->requireRightFor('addreserved');
-    	expect($noteId = Request::get('noteId', 'int'));
-    	expect($masterRec = planning_DirectProductionNote::fetch($noteId));
-    	$this->requireRightFor('addreserved', (object)array('noteId' => $noteId));
-    	
-    	$details = array();
-    	$reserveRec = store_ReserveStocks::fetch("#originId = '{$masterRec->originId}' AND #state = 'active'");
-		$dQuery = store_ReserveStockDetails::getQuery();
-		$dQuery->EXT('canConvert', 'cat_Products', 'externalName=canConvert,externalKey=productId');
-		$dQuery->where("#reserveId = {$reserveRec->id}");
-		$dQuery->orderBy('id', 'ASC');
-		
-		while($dRec = $dQuery->fetch()){
-			if($dRec->canConvert != 'yes') continue;
-			
-			$details[] = (object)array('noteId'         => $noteId, 
-					                   'productId'      => $dRec->productId, 
-					                   'packagingId'    => $dRec->packagingId, 
-					                   'quantityInPack' => $dRec->quantityInPack, 
-					                   'type'           => 'input' ,
-									   'storeId'        => $reserveRec->storeId,
-					                   'quantity'       => $dRec->quantity);
-		} 
-    	
-		if(count($details)){
-			self::delete("#noteId = {$noteId}");
-			$this->saveArray($details);
-			$msg = 'Заредени са сано резервираните артикули';
-		} else {
-			$msg = 'От резервираните артикули, няма вложими';
-		}
-		
-    	followRetUrl(NULL, $msg);
     }
 }
