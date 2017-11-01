@@ -1028,7 +1028,7 @@ if ($step == 'setup') {
         }
         
         $cnt++;
-        if ($cnt > 100) {
+        if (!($cnt % 100)) {
             // Ако инсталацията увисне
             wp($cnt, $numTables, $numRows, $percentsBase, $setupLog, strlen($setupLog), $logModified, $fTime2, $fTime);
         }
