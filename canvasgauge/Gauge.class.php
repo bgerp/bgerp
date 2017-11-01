@@ -85,9 +85,6 @@ class canvasgauge_Gauge
         setIfNot($valArr['animation'], TRUE);
         setIfNot($valArr['animatedValue'], TRUE);
         setIfNot($valArr['animateOnInit'], TRUE);
-
-
-   
         
         $valArr['gaugeType'] = 'RadialGauge';
         if ($type == 'linear') {
