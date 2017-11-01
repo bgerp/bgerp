@@ -940,7 +940,7 @@ if ($step == 'setup') {
     file_put_contents(EF_SETUP_LOG_PATH, "");
     
     // Стартираме инициализацията
-    contentFlush ("<h3 id='startHeader'>Стартиране на инициализацията ... <img src='{$localUrl}&step=start' width=0 height=0 ></h3>");
+    contentFlush ("<h3 id='startHeader'>Стартиране на инициализацията ... <img src='{$localUrl}&step=start' width=1 height=1 ></h3>");
 
     // Пращаме javascript-a за smooth скрол-а
     contentFlush("<script>
