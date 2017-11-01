@@ -939,9 +939,25 @@ if ($step == 'setup') {
     // Първоначално изтриване на Log-a
     file_put_contents(EF_SETUP_LOG_PATH, "");
     
+    $jsStart = "<script>
+    
+    function httpGet(theUrl)
+    {
+        var xmlHttp = new XMLHttpRequest();
+        xmlHttp.open( \"GET\", theUrl, false ); // false for synchronous request
+        xmlHttp.send( null );
+    } 
+    theUrl = '{$localUrl}&step=start';
+    alert(theUrl);
+    httpGet(theUrl);
+    
+    </script>";
+    
     // Стартираме инициализацията
-    contentFlush ("<h3 id='startHeader'>Стартиране на инициализацията ... <img src='{$localUrl}&step=start' width=1 height=1 ></h3>");
-
+    contentFlush ("<h3 id='startHeader'>Стартиране на инициализацията ... </h3>");
+    
+    contentFlush($jsStart);
+    
     // Пращаме javascript-a за smooth скрол-а
     contentFlush("<script>
     var mouseDown = 0;
