@@ -573,7 +573,7 @@ class planning_ProductionTaskDetails extends core_Detail
             
             $date = dt::verbal2mysql($rec->createdOn, FALSE);
             foreach ($persons as $personId) {
-            	$key = "{$personId}|{$classId}|{$rec->taskId}|{$date}|{$indicatorId}";
+            	$key = "{$personId}|{$classId}|{$rec->taskId}|{$rec->state}|{$date}|{$indicatorId}";
             	if(!array_key_exists($key, $result)){
             		$result[$key] = (object)array('date'        => $date,
 												  'personId'    => $personId,
