@@ -76,13 +76,13 @@ class planning_TaskSerials extends core_Manager
 		$query->XPR('maxSerial', 'int', 'MAX(#serial)');
 		$startCounter = $query->fetch()->maxSerial;
 		if(!$startCounter){
-			$startCounter = core_packs::getConfigValue('planning', 'PLANNING_TASK_SERIAL_COUNTER');
+			$startCounter = core_Packs::getConfigValue('planning', 'PLANNING_TASK_SERIAL_COUNTER');
 		};
 		$serial = $startCounter;
 		
 		// Инкрементираме кода, докато достигнем свободен код
 		$serial++;
-		while(self::fetch("#serial = '{$serial}'")){
+		while(self::fetchField("#serial = '{$serial}'")){
 			$serial++;
 		}
 		
@@ -264,6 +264,7 @@ class planning_TaskSerials extends core_Manager
 		$serialVerbal = core_Type::getByName('varchar(32)')->toVerbal($serial);
 		if(Mode::isReadOnly()) return $serialVerbal;
 		
+		// Линк към прогреса филтриран по сериен номер
 		if(planning_ProductionTaskDetails::haveRightFor('list')){
 			$serialVerbal = ht::createLink($serialVerbal, array('planning_ProductionTaskDetails', 'list', 'search' => $serial), FALSE, "title=Към историята на серийния номер");
 		}
