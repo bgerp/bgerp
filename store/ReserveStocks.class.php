@@ -171,17 +171,6 @@ class store_ReserveStocks extends core_Master
     
     
     /**
-     * Връща разбираемо за човека заглавие, отговарящо на записа
-     */
-    public static function getRecTitle($rec, $escaped = TRUE)
-    {
-    	$self = cls::get(get_called_class());
-    	 
-    	return tr("|{$self->singleTitle}|* №") . $rec->id;
-    }
-    
-    
-    /**
      * Преди запис
      */
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)

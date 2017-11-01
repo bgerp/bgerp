@@ -761,20 +761,18 @@ class core_Mvc extends core_FieldSet
         expect($rec);
         $cRec = clone $rec;
         $me = cls::get(get_called_class());
-
+        
         if(!$tpl = $me->recTitleTpl) {
             $titleFields = array(
                 'title',
                 'name',
-                'caption',
-                'name',
-                'number',
                 'nick',
                 'id'
             );
 
             foreach ($titleFields as $fieldName) {
                 if (isset($cRec->{$fieldName})) {
+                	
                     $tpl = new ET("[#{$fieldName}#]");
                     break;
                 }
@@ -788,16 +786,20 @@ class core_Mvc extends core_FieldSet
             //Ескейпваме всички записи, които имат шаблони преди да ги заместим
             if($escaped) {
                 $places = $tpl->getPlaceholders();
-               
+                
                 foreach ($places as $place) {
                     $cRec->{$place} = type_Varchar::escape($rec->{$place});
                 }
             }
 
+            if($fieldName == 'id' && isset($me->singleTitle)){
+            	$cRec->id = tr("|{$me->singleTitle}|* №") . $cRec->id;
+            }
+            
             $tpl->placeObject($cRec);
 
             $value = (string) $tpl;
-			
+            
             return $value;
         }
     }

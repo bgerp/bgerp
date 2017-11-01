@@ -652,13 +652,4 @@ class rack_Racks extends core_Master
             }
         }
     }
-
-    
-    /**
-     * Връща разбираемо за човека заглавие, отговарящо на записа
-     */
-    public static function getRecTitle($rec, $escaped = TRUE)
-    {
-    	return tr('Стелаж') . " №{$rec->id}";
-    }
 }

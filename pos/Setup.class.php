@@ -93,7 +93,6 @@ class pos_Setup extends core_ProtoSetup
         	'pos_Reports',
     		'pos_Stocks',
     		'pos_Cards',
-    		'migrate::truncateStocks',
         );
     
 
@@ -153,15 +152,6 @@ class pos_Setup extends core_ProtoSetup
         $res = bgerp_Menu::remove($this);
         
         return $res;
-    }
-    
-    
-    /**
-     * Зануляваме кешираните складови наличностти
-     */
-    public function truncateStocks()
-    {
-    	pos_Stocks::truncate();
     }
     
     

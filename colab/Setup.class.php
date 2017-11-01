@@ -40,9 +40,7 @@ class colab_Setup extends core_ProtoSetup
 	// Инсталиране на мениджърите
     var $managers = array(
         'colab_FolderToPartners',
-    	'migrate::migrateVisibleforPartners',
         'colab_DocumentLog',
-    	'migrate::defaultCreatableDocuments',
     );
     
     
@@ -157,38 +155,6 @@ class colab_Setup extends core_ProtoSetup
     	}
     	
     	return $res;
-    }
-    
-    
-    /**
-     * Миграция за обновяване на полето в контейнера, определящо дали документа е видим за партньори
-     */
-    function migrateVisibleforPartners()
-    {
-    	$Containers = cls::get('doc_Containers');
-    	
-    	core_App::setTimeLimit(600);
-    	
-    	$containersQuery = $Containers->getQuery();
-    	$containersQuery->where("#visibleForPartners IS NULL");
-    	$containersQuery->show('visibleForPartners,docClass');
-    	
-    	while($cRec = $containersQuery->fetch()){
-    		if(cls::load($cRec->docClass, TRUE)){
-    			$Class = cls::get($cRec->docClass);
-    			$cRec->visibleForPartners = ($Class->visibleForPartners) ? 'yes' : 'no';
-    			$Containers->save($cRec, 'visibleForPartners');
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Миграция
-     */
-    function defaultCreatableDocuments()
-    {
-    	core_Packs::setConfig('colab', array('COLAB_CREATABLE_DOCUMENTS_LIST' => NULL));
     }
 }
 

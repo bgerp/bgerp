@@ -589,7 +589,6 @@ abstract class deals_InvoiceMaster extends core_Master
     	
     	// При създаване на нова ф-ра зареждаме полетата на
     	// формата с разумни стойности по подразбиране.
-    	expect($origin = $mvc::getOrigin($form->rec));
     	$firstDocument = doc_Threads::getFirstDocument($form->rec->threadId);
     	
     	$coverClass = doc_Folders::fetchCoverClassName($form->rec->folderId);

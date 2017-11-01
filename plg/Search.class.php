@@ -498,26 +498,30 @@ class plg_Search extends core_Plugin
         $i = 0;
         setIfNot($mvc->fillSearchKeywordsOnSetup, TRUE);
     	if($mvc->fillSearchKeywordsOnSetup !== FALSE && !$mvc->count("#searchKeywords != '' AND #searchKeywords IS NOT NULL")) {
-            $query = $mvc->getQuery();
-            while($rec = $query->fetch()) {
-            	try{
-            	    
-            	    // Ако има полета от които да се генери ключ за търсене
-                    if ($saveFields = $mvc->getSearchFields()) {
-                        
-                        // Към полетата, които ще се записват, добавяме и полето за търсене
-                        $saveFields[] = 'searchKeywords';
-                        
-                        // Записваме само определени полета, от масива
-                        $mvc->save($rec, $saveFields);
-                        $i++;
-                    }
-                    
-                } catch(core_exception_Expect $e) {
-            		continue;
-            	}
-            }
-        }
+    	    try {
+    	        $query = $mvc->getQuery();
+    	        while($rec = $query->fetch()) {
+    	            try{
+    	                
+    	                // Ако има полета от които да се генери ключ за търсене
+    	                if ($saveFields = $mvc->getSearchFields()) {
+    	                    
+    	                    // Към полетата, които ще се записват, добавяме и полето за търсене
+    	                    $saveFields[] = 'searchKeywords';
+    	                    
+    	                    // Записваме само определени полета, от масива
+    	                    $mvc->save($rec, $saveFields);
+    	                    $i++;
+    	                }
+    	                
+    	            } catch(core_exception_Expect $e) {
+    	                continue;
+    	            }
+    	        }
+    	    } catch (Exception $e) {
+    	        reportException($e);
+    	    }
+    	}
 
         if($i) {
             $res .= "<li style='color:green;'>Добавени са ключови думи за {$i} записа.</li>";
