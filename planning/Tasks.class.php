@@ -765,7 +765,8 @@ class planning_Tasks extends core_Master
 		}
 		
 		if(isset($rec->id)){
-			if(planning_ProductionTaskDetails::fetch("#type = 'product' AND #taskId = {$rec->id}")){
+			$taskClassId = planning_Tasks::getClassId();
+			if(planning_ProductionTaskDetails::fetch("#type = 'production' AND #taskId = {$rec->id}") || cat_products_Params::fetchField("#classId = '{$taskClassId}' AND #productId = {$rec->id}")){
 				$form->setReadOnly('productId');
 				$form->setReadOnly('packagingId');
 		
