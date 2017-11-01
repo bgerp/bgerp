@@ -471,21 +471,21 @@ class planning_ProductionTaskDetails extends core_Detail
     	} else {
     		$data->listFilter->setField('type', 'input=none');
     		unset($data->listFields['modified']);
-    	}
-    	
-    	$data->listFilter->class = 'simpleForm';
-    	$data->listFilter->showFields = 'search,fixedAsset,employees';
-    	$data->listFilter->setOptions('employees', array('' => '') + crm_ext_Employees::getEmployeesWithCode());
-    	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-    	$data->listFilter->input("");
-    	
-    	if($filter = $data->listFilter->rec){
-    		if(isset($filter->fixedAsset)){
-    			$data->query->where("#fixedAsset = '{$filter->fixedAsset}'");
-    		}
     		
-    		if(isset($filter->employees)){
-    			$data->query->where("LOCATE('|{$filter->employees}|', #employees)");
+    		$data->listFilter->class = 'simpleForm';
+    		$data->listFilter->showFields = 'search,fixedAsset,employees';
+    		$data->listFilter->setOptions('employees', array('' => '') + crm_ext_Employees::getEmployeesWithCode());
+    		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    		$data->listFilter->input("");
+    		 
+    		if($filter = $data->listFilter->rec){
+    			if(isset($filter->fixedAsset)){
+    				$data->query->where("#fixedAsset = '{$filter->fixedAsset}'");
+    			}
+    		
+    			if(isset($filter->employees)){
+    				$data->query->where("LOCATE('|{$filter->employees}|', #employees)");
+    			}
     		}
     	}
     }
