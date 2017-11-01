@@ -948,7 +948,6 @@ if ($step == 'setup') {
         xmlHttp.send( null );
     } 
     theUrl = '{$localUrl}&step=start';
-    alert(theUrl);
     httpGet(theUrl);
     
     </script>";
