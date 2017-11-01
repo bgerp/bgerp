@@ -400,7 +400,9 @@ class sales_Invoices extends deals_InvoiceMaster
     	parent::inputInvoiceForm($mvc, $form);
     	
     	if($form->isSubmitted()){
-    		if(!$mvc->isAllowedToBePosted($rec, $warning)){
+    		
+    		// Валидна ли е датата (при само промяна няма да се изпълни)
+    		if(!$mvc->isAllowedToBePosted($rec, $warning) && $rec->__isBeingChanged !== TRUE){
     			$form->setError('date', $warning);
     		}
     		
