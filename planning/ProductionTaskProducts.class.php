@@ -410,7 +410,7 @@ class planning_ProductionTaskProducts extends core_Detail
     	if($type == 'input'){
     		$tQuery = planning_Tasks::getQuery();
     		$tQuery->where("#productId = {$productId} AND #inputInTask = {$taskRec->id} AND #state != 'rejected' AND #state != 'closed' AND #state != 'draft' AND #state != 'pending'");
-    		$tQuery->show('productId,indTime,packagingId,quantityInPack,plannedQuantity,totalQuantity');
+    		$tQuery->show('productId,packagingId,quantityInPack,plannedQuantity,totalQuantity');
     		if($tRec = $tQuery->fetch()){
     			$tRec->totalQuantity = (!empty($tRec->totalQuantity)) ? $tRec->totalQuantity : 0;
     			
