@@ -1011,8 +1011,8 @@ class doc_Threads extends core_Manager
             $attr = ht::addBackgroundIcon($attr, $docProxy->getIcon());
             
             if(mb_strlen($docRow->title) > self::maxLenTitle) {
-                $attTitle = ($docRow->recTitle) ? $docRow->recTitle : $docRow->title;
-                $attr['title'] = '|*' . $attTitle;
+                $attrTitle = ($docRow->recTitle) ? $docRow->recTitle : $docRow->title;
+                $attr['title'] = '|*' . $attrTitle;
             }
 
             if($rec->last < $lastRecently) {
