@@ -133,7 +133,7 @@ class planning_ProductionTaskDetails extends core_Detail
     	$this->FLD('scrappedQuantity', 'double(Min=0)', 'caption=Брак,input=none');
     	$this->FLD('weight', 'double', 'caption=Тегло,smartCenter,unit=кг');
     	$this->FLD('employees', 'keylist(mvc=crm_Persons,select=id)', 'caption=Работници,tdClass=nowrap');
-    	$this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=fullName)', 'caption=Обордуване,input=none,tdClass=nowrap');
+    	$this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=fullName,allowEmpty)', 'caption=Обордуване,input=none,tdClass=nowrap');
     	$this->FLD('notes', 'richtext(rows=2,bucket=Notes)', 'caption=Забележки');
     	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
     	
@@ -322,8 +322,6 @@ class planning_ProductionTaskDetails extends core_Detail
     	}
     	
     	$row->productId = cat_Products::getShortHyperlink($rec->productId);
-    	$row->productId = "<div class='nowrap'>" . $row->productId . "</div>";
-    	
     	$measureId = cat_Products::fetchField($rec->productId, 'measureId');
     	$shortUom = cat_UoM::getShortName($measureId);
     	$packagingId = $measureId;
@@ -369,6 +367,7 @@ class planning_ProductionTaskDetails extends core_Detail
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
     	$data->listTableMvc->FNC('shortUoM', 'varchar', 'tdClass=nowrap');
+    	$data->listTableMvc->setField('productId', 'tdClass=nowrap');
     	
     	$rows = &$data->rows;
     	if(!count($rows)) return;
@@ -474,9 +473,21 @@ class planning_ProductionTaskDetails extends core_Detail
     		unset($data->listFields['modified']);
     	}
     	
-    	$data->listFilter->view = 'horizontal';
-    	$data->listFilter->showFields = 'search';
+    	$data->listFilter->class = 'simpleForm';
+    	$data->listFilter->showFields = 'search,fixedAsset,employees';
+    	$data->listFilter->setOptions('employees', array('' => '') + crm_ext_Employees::getEmployeesWithCode());
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    	$data->listFilter->input("");
+    	
+    	if($filter = $data->listFilter->rec){
+    		if(isset($filter->fixedAsset)){
+    			$data->query->where("#fixedAsset = '{$filter->fixedAsset}'");
+    		}
+    		
+    		if(isset($filter->employees)){
+    			$data->query->where("LOCATE('|{$filter->employees}|', #employees)");
+    		}
+    	}
     }
     
     
