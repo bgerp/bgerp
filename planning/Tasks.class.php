@@ -193,8 +193,6 @@ class planning_Tasks extends core_Master
 	{
 		$this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,changable,silent');
 		$this->FLD('totalWeight', 'cat_type_Weight', 'caption=Общо тегло,input=none');
-		$this->FLD('description', 'richtext(rows=2,bucket=Notes)', 'caption=Описание');
-		$this->FLD('showadditionalUom', 'enum(no=Не,yes=Да)', 'caption=Доп. мярка');
 		
 		$this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'mandatory,caption=Произвеждане->Артикул,removeAndRefreshForm=packagingId|inputInTask,silent');
 		$this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'mandatory,caption=Произвеждане->Опаковка,after=productId,input=hidden,tdClass=small-field nowrap,removeAndRefreshForm,silent');
@@ -204,6 +202,8 @@ class planning_Tasks extends core_Master
 		$this->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Количество,after=packagingId,input=none');
 		$this->FLD('quantityInPack', 'double(smartRound)', 'input=none');
 		$this->FLD('scrappedQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Брак,input=none');
+		$this->FLD('description', 'richtext(rows=2,bucket=Notes)', 'caption=Допълнително->Описание');
+		$this->FLD('showadditionalUom', 'enum(no=Не,yes=Да)', 'caption=Допълнително->Тегло');
 		
 		$this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)','caption=Времена->Начало, changable, tdClass=leftColImportant,formOrder=101');
 		$this->FLD('timeDuration', 'time', 'caption=Времена->Продължителност,changable,formOrder=102');
@@ -321,7 +321,7 @@ class planning_Tasks extends core_Master
 			$row->expectedTimeEnd = $mvc->getFieldType('expectedTimeStart')->toVerbal($rec->expectedTimeEnd);
 		}
 	
-		if($rec->originId){
+		if(isset($rec->originId)){
 			$origin = doc_Containers::getDocument($rec->originId);
 			$row->originId = $origin->getLink();
 			$row->originShortLink = $origin->getShortHyperlink();
@@ -340,7 +340,7 @@ class planning_Tasks extends core_Master
 				$rec->{$quantityFld} = 0;
 				$row->{$quantityFld} = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($rec->{$quantityFld});
 				$row->{$quantityFld} = "<span class='quiet'>{$row->{$quantityFld}}</span>";
-				} else {
+			} else {
 					$rec->{$quantityFld} *= $rec->quantityInPack;
 					$row->{$quantityFld} =  cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($rec->{$quantityFld});
 				}
@@ -540,7 +540,7 @@ class planning_Tasks extends core_Master
 		
 		$rec->progress = max(array($rec->progress, 0));
 		
-		return $this->save($rec);
+		return $this->save($rec, 'totalQuantity,totalWeight,scrappedQuantity,progress,modifiedOn,modifiedBy');
 	}
 	
 	
@@ -736,6 +736,7 @@ class planning_Tasks extends core_Master
 				$form->setField('plannedQuantity', "unit={$measureShort}");
 			} else {
 				$form->setField('packagingId', 'input');
+				$form->setField('storeId', 'input,mandatory');
 			}
 			$form->setField('indTime', "unit=|за|* 1 {$measureShort}");
 				
@@ -744,10 +745,6 @@ class planning_Tasks extends core_Master
 				if($toProduce > 0){
 					$form->setDefault('plannedQuantity', $toProduce);
 				}
-			}
-				
-			if(cat_Products::fetchField($rec->productId, 'canStore') === 'yes'){
-				$form->setField('storeId', 'input,mandatory');
 			}
 				
 			// Подаване на формата на драйвера на артикула, ако иска да добавя полета
@@ -831,17 +828,13 @@ class planning_Tasks extends core_Master
 	{
 		$masterRec = $data->masterData->rec;
 		$containerId = $data->masterData->rec->containerId;
+		
 		$data->recs = $data->rows = array();
 		$this->prepareExistingTaskRows($containerId, $data);
 		
 		// Ако потребителя може да добавя операция от съответния тип, ще показваме бутон за добавяне
 		if($this->haveRightFor('add', (object)array('originId' => $containerId))){
 			$data->addUrlArray = array('planning_Jobs', 'selectTaskAction', 'originId' => $containerId, 'ret_url' => TRUE);
-		}
-		
-		// Бутон за клониране на задачи от задания
-		if(planning_Jobs::haveRightFor('cloneTasks', $data->masterId)){
-			$data->cloneTaskUrl = array('planning_Jobs', 'cloneTasks', $data->masterId, 'ret_url' => TRUE);
 		}
 	}
 	
@@ -878,10 +871,10 @@ class planning_Tasks extends core_Master
 	 */
 	protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
 	{
-		$productFields = self::getFieldsFromProductDriver($rec->productId);
 		$rec->additionalFields = array();
-		 
+		
 		// Вкарване на записите специфични от драйвера в блоб поле
+		$productFields = self::getFieldsFromProductDriver($rec->productId);
 		if(is_array($productFields)){
 			foreach ($productFields as $name => $field){
 				if(isset($rec->{$name})){
@@ -934,8 +927,8 @@ class planning_Tasks extends core_Master
     public static function getFieldsFromProductDriver($productId)
     {
     	$form = cls::get('core_Form');
-    	if($driver = cat_Products::getDriver($productId)){
-    		$driver->addTaskFields($productId, $form);
+    	if($Driver = cat_Products::getDriver($productId)){
+    		$Driver->addTaskFields($productId, $form);
     	}
     	 
     	return $form->selectFields();
@@ -981,7 +974,6 @@ class planning_Tasks extends core_Master
     	if($departmentFolderId = $data->listFilter->rec->departmentId){
     		$folderId = hr_Departments::fetchField($departmentFolderId, 'folderId');
     		$data->query->where("#folderId = {$folderId}");
-    		
     		unset($data->listFields['folderId']);
     	}
     	
