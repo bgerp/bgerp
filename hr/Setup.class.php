@@ -88,8 +88,7 @@ class hr_Setup extends core_ProtoSetup
             'hr_Trips',
             'hr_Bonuses',
             'hr_Deductions',
-   			'migrate::forceDepartmentFolders',
-   			'migrate::truncateIndicators'
+            'hr_FormCv',
         );
 
 
@@ -166,21 +165,6 @@ class hr_Setup extends core_ProtoSetup
         
         return $res;
     }
-    
-    
-    /**
-     * Форсиране на папките на департаментите
-     */
-    function forceDepartmentFolders()
-    {
-    	$Departments = cls::get('hr_Departments');
-    	$Departments->setupMvc();
-    	
-    	$query = hr_Departments::getQuery();
-    	while($dRec = $query->fetch()){
-    		hr_Departments::forceCoverAndFolder($dRec->id);
-    	}
-    }
 
 
     /**
@@ -218,15 +202,5 @@ class hr_Setup extends core_ProtoSetup
 
             }
         }
-    }
-  
-    
-    /**
-     * Изчистване на старите записи на индикаторите
-     */
-    public function truncateIndicators()
-    {
-    	hr_Indicators::truncate();
-    	hr_Payroll::truncate();
     }
 }

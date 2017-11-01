@@ -3,7 +3,7 @@
 	<div class='folder-cover state-active'>
 	    <div class='inner-folder'>
 	        <div class='block_title [#STATE_CLASS#] special-title'>
-	            <div>|Структурно звено|* <b>[#name#]</b></div>
+	            <div>|Департамент|* <b>[#name#]</b></div>
 	        </div>
 	        <fieldset class="detail-info">
 	            <legend class="groupTitle">|Информация|*</legend>

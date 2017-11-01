@@ -10,6 +10,9 @@
                                     <span class="bigData">[#valior#]</span>
                                 </span>
             </div>
+            <!--ET_BEGIN reff-->
+                    	|Ваш реф|*: <span class="bigData">[#reff#]</span>
+                    	<!--ET_END reff-->
         </td>
     </tr>
     <tr>

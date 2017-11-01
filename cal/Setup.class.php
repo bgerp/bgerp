@@ -307,5 +307,7 @@ class cal_Setup extends core_ProtoSetup
     public static function removePOKey()
     {
         cal_Holidays::delete("#key = 'constitutionPO' OR #key = 'independencePO'");
+        
+        cal_Holidays::updateCalendarHolidays();
     }
 }

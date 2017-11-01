@@ -146,7 +146,7 @@ class doc_Linked extends core_Manager
      * @param boolean $showRejecte
      * @param integer $limit
      * 
-     * @return NULL|string|core_ET
+     * @return NULL|string|core_ET|array
      */
     public static function getListView($type, $val, $viewType = 'table', $showRejecte = TRUE, $limit = 1000)
     {
@@ -196,7 +196,7 @@ class doc_Linked extends core_Manager
             $res = $table->get($rowArr, "_rowTools=✍,
                                           docLink=Връзка,
 	                                      comment=Коментар");
-        } else {
+        } elseif ($viewType == 'file') {
             $res = '';
             foreach ($rowArr as $row) {
                 $res .= $res ? "\n" : '';
@@ -205,9 +205,185 @@ class doc_Linked extends core_Manager
                     $res .= ' (' . trim($row['comment']) . ')';
                 }
             }
+        } else {
+            $res = $rowArr;
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Добавя връзките във формата с възможност за визуализиране
+     *
+     * @param core_Form $form
+     * @param string $outVal
+     * @param string $outType
+     */
+    public static function showLinkedInForm(&$form, $outVal, $outType = 'doc')
+    {
+        if (!$outVal) return ;
+        
+        if(Mode::is('screenMode', 'wide') ) {
+            $className = "floatedElement";
+        }
+        
+        $rowArr = self::getListView($outType, $outVal, 'row', FALSE, 10);
+        
+        if (!$rowArr) return ;
+        
+        $form->layout = $form->renderLayout();
+        
+        $conStr = "<div class='preview-holder {$className}' style='padding-top: 25px;'>" . tr("Свързани документи и файлове") . " <a href=\"javascript:toggleDisplay('linkedView')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ");\" class=\" plus-icon more-btn\"> </a>";
+        
+        $hashParams = str::addHash($outType . '_' . $outVal . '_' . core_Users::getCurrent(), 8);
+        
+        $urlArr = array(get_called_class(), 'renderView', 'hash' => $hashParams);
+        $urlArr['currentTab'] = core_Request::get('currentTab');
+        
+        $renderViewUrl = toUrl($urlArr, 'local');
+        $renderViewUrl = urlencode($renderViewUrl);
+        
+        $style = $renderRes = '';
+        
+        // Ако има избрана стойност - рендираме предварително
+        if ($rIdLinked = Mode::get('linked_' . $hashParams)) {
+            $urlArr['rId'] = $rIdLinked;
+            $urlArr['pUrl'] = toUrl(getCurrentUrl(), 'local');
+            
+            try {
+                $renderRes = Request::forward($urlArr);
+            } catch (core_exception_Expect $e) { }
+        }
+        
+        $style = "style='display:none;'";
+        
+        $conStr .= "<div id='linkedView'{$style}><ol style='margin-top:2px;margin-top:2px;margin-bottom:2px;color:#888;' onchange=\"getEfae().process({url: '{$renderViewUrl}'}, {rId: $('input[name=linkedRadio]:checked').val()});\">";
+        
+        foreach ($rowArr as $id => $row){
+            $rId = 'linked_' . $id;
+            
+            $caption = 'capt';
+            
+            $val = $row['docLink'];
+            
+            if (trim($row['comment'])) {
+                $val .= ' (' . trim($row['comment']) . ')';
+            }
+            
+            $checked = '';
+            
+            if ($rIdLinked == $id) {
+                $checked = 'checked';
+            }
+            
+            $conStr .= "<div><input type='radio' name='linkedRadio' value='{$id}' id='{$rId}' {$checked}>{$val}</div>";
+            
+        }
+        $conStr .= "</ol></div><div id='renderRes'>{$renderRes}</div>";
+        $conStr .= "</div>";
+        $form->layout->append($conStr);
+    }
+    
+    
+    /**
+     * Екшън за рендирена на изгледа на свързаните документи и файлове
+     * 
+     * @return array|string
+     */
+    function act_RenderView()
+    {
+        $hash = Request::get('hash', 'varchar');
+        expect($hStr = str::checkHash($hash, 8));
+        
+        $rId = Request::get('rId', 'int');
+        
+        expect($rId);
+        
+        Mode::setPermanent('linked_' . $hash, $rId);
+        
+        list($outType, $outVal, $uId) = explode('_', $hStr);
+        
+        expect($uId == core_Users::getCurrent());
+        
+        expect($outType && $outVal);
+        
+        $lRec = doc_Linked::fetch($rId);
+        
+        expect($lRec);
+        
+        expect($lRec->state != 'rejected');
+        
+        $inType = $lRec->inType;
+        $inVal = $lRec->inVal;
+        
+        // Ако е връзка към
+        if (($lRec->outType != $outType) || ($lRec->outVal != $outVal)) {
+            
+            expect(($lRec->inType == $outType) && ($lRec->inVal == $outVal));
+            
+            $outType = $inType;
+            $outVal = $inVal;
+            $inType = $lRec->outType;
+            $inVal = $lRec->outVal;
+        }
+        
+        $pUrl = core_Request::get('pUrl');
+        
+        if ($outType == 'doc') {
+            $docInst = doc_Containers::getDocument($outVal);
+            expect($docInst->instance);
+            
+            $clsInst = $docInst->instance;
+            
+            $clsInst->requireRightFor('single', $docInst->that);
+            
+            $rec = $docInst->fetch();
+            
+            expect($rec);
+        } elseif ($type == 'file') {
+            $clsInst = cls::get('fileman_Files');
+            $clsInst->requireRightFor('single', $outVal);
+            $rec = $clsInst->fetch($outVal);
+            
+            expect($rec);
+        } else {
+            expect(FALSE, $type);
+        }
+        
+        expect($inType && $inVal);
+        
+        if ($inType == 'doc') {
+            $docInst = doc_Containers::getDocument($outVal);
+            
+            $tplRes = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Документ") . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div><div class='clearfix21'></div>");
+            
+            $document = doc_Containers::getDocument($inVal);
+            if ($document->haveRightFor('single')) {
+                $docHtml = $document->getInlineDocumentBody();
+                
+                $tplRes->replace($docHtml, 'DOCUMENT');
+            }
+        } elseif ($inType == 'file') {
+            $fRec = fileman_Files::fetch($inVal);
+            expect($fRec);
+            $tplRes = doc_DocumentPlg::showOriginalFile($fRec, NULL, $pUrl);
+        }
+        
+        if ($tplRes instanceof core_ET) {
+            $tplRes = $tplRes->getContent();
+        }
+        
+        if (Request::get('ajax_mode')) {
+            // Добавяме резултата
+            $resObj = new stdClass();
+            $resObj->func = 'html';
+            $resObj->arg = array('id' => 'renderRes', 'html' => $tplRes, 'replace' => TRUE);
+            
+            return array($resObj);
+        }
+        
+        return $tplRes;
     }
     
     

@@ -683,17 +683,6 @@ class pos_Reports extends core_Master {
     
     
     /**
-     * Връща разбираемо за човека заглавие, отговарящо на записа
-     */
-    public static function getRecTitle($rec, $escaped = TRUE)
-    {
-    	$self = cls::get(get_called_class());
-    	 
-    	return tr("|{$self->singleTitle}|* №") . $rec->id;
-    }
-    
-    
-    /**
      * Проверява може ли да се създаде отчет за този клиент. За създаване трябва
      * да е изпълнено:
      * 	1. Да има поне една активна (приключена) бележка за касиера и точката

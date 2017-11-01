@@ -100,7 +100,6 @@ class purchase_Setup extends core_ProtoSetup
     		'purchase_ClosedDeals',
     		'purchase_Invoices',
     		'purchase_InvoiceDetails',
-    		'migrate::cacheInvoicePaymentType2'
         );
     
     
@@ -169,32 +168,5 @@ class purchase_Setup extends core_ProtoSetup
         $res = bgerp_Menu::remove($this);
         
         return $res;
-    }
-    
-    
-    /**
-     * Ъпдейт на кеширването на начина на плащане на ф-те
-     */
-    function cacheInvoicePaymentType2()
-    {
-    	core_App::setTimeLimit(300);
-    	$Invoice = cls::get('purchase_Invoices');
-    	$Invoice->setupMvc();
-    	 
-    	$iQuery = $Invoice->getQuery();
-    	$iQuery->where("#autoPaymentType IS NULL");
-    	$iQuery->where("#threadId IS NOT NULL");
-    	
-    	while($rec = $iQuery->fetch()){
-    		try{
-    			$rec->autoPaymentType = $Invoice->getAutoPaymentType($rec);
-    			
-    			if($rec->autoPaymentType){
-    				$Invoice->save_($rec, 'autoPaymentType');
-    			}
-    		} catch(core_exception_Expect $e){
-    			reportException($e);
-    		}
-    	}
     }
 }
