@@ -198,8 +198,9 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
                 $rQuery->where("#groups Like'%|{$rec->groupId}|%'");
 
-                while ($grProduct = $rQuery->fetch()) {
 
+
+                while ($grProduct = $rQuery->fetch()) {
                     $grDetails['code'][] = $grProduct->code;
 
                     $grDetails['name'][] = cat_Products::getTitleById($grProduct->id);
@@ -261,10 +262,13 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
                 $query->where("#storeId = $rec->storeId");
             }
+
             while ($recProduct = $query->fetch()) {
+
                 $id = $recProduct->productId;
 
                 $quantity = store_Products::getQuantity($id, $recProduct->storeId, FALSE);
+
 
                 // подготовка на показател "състояние" //
                 if (($quantity < (int)$products->minQuantity[$key])) {
@@ -430,23 +434,23 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         $tempArr = (array)$arr;
 
         $tempProducts = array();
-        if (is_array($tempArr)) {
+        if (is_array($tempArr['code'])) {
 
-        foreach ($tempArr['code'] as $k => $v) {
+            foreach ($tempArr['code'] as $k => $v) {
 
-            if (in_array($v, $tempProducts)) {
+                if (in_array($v, $tempProducts)) {
 
-                unset($tempArr['minQuantity'][$k]);
-                unset($tempArr['maxQuantity'][$k]);
-                unset($tempArr['name'][$k]);
-                unset($tempArr['code'][$k]);
-                continue;
+                    unset($tempArr['minQuantity'][$k]);
+                    unset($tempArr['maxQuantity'][$k]);
+                    unset($tempArr['name'][$k]);
+                    unset($tempArr['code'][$k]);
+                    continue;
 
+                }
+
+                $tempProducts[$k] = $v;
             }
-
-            $tempProducts[$k] = $v;
         }
-    }
 
         $arr = $tempArr;
 
