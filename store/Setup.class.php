@@ -79,8 +79,7 @@ class store_Setup extends core_ProtoSetup
     		'store_InventoryNotes',
     		'store_InventoryNoteSummary',
     		'store_InventoryNoteDetails',
-    		'store_ReserveStocks',
-    		'store_ReserveStockDetails',
+    		'migrate::deleteReserved',
         );
     
 
@@ -199,6 +198,17 @@ class store_Setup extends core_ProtoSetup
     		}
     	} catch(core_exception_Expect $e){
     		reportException($e);
+    	}
+    }
+    
+    
+    /**
+     * Изтриване на остарял документ
+     */
+    public function deleteReserved()
+    {
+    	if($oldClassId = core_Classes::fetchField("#name = 'store_ReserveStocks'")){
+    		doc_Containers::delete("#docClass = {$oldClassId}");
     	}
     }
 }
