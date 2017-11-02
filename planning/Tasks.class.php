@@ -566,16 +566,6 @@ class planning_Tasks extends core_Master
 	
 	
 	/**
-	 * В кои корици може да се вкарва документа
-	 * @return array - интерфейси, които трябва да имат кориците
-	 */
-	public static function getCoversAndInterfacesForNewDoc()
-	{
-		return array('hr_DepartmentAccRegIntf');
-	}
-	
-	
-	/**
 	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
 	 */
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
