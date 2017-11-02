@@ -39,7 +39,7 @@ class findeals_Setup extends core_ProtoSetup
     /**
      * Необходими пакети
      */
-    var $depends = 'drdata=0.1';
+    var $depends = 'acc=0.1';
     
     
     /**
