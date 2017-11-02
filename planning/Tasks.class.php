@@ -1068,18 +1068,18 @@ class planning_Tasks extends core_Master
     /**
      * Връща количеството произведено по задачи по дадено задание
      *
-     * @param int $jobId
+     * @param mixed $jobId
      * @param product|input|waste|start $type
      * @return double $quantity
      */
     public static function getProducedQuantityForJob($jobId)
     {
-    	expect($jobRec = planning_Jobs::fetch($jobId));
+    	expect($jobRec = planning_Jobs::fetchRec($jobId));
     	 
     	$query = planning_Tasks::getQuery();
+    	$query->XPR('sum', 'double', 'SUM((COALESCE(#totalQuantity, 0) - COALESCE(#scrappedQuantity, 0))* #quantityInPack)');
     	$query->where("#originId = {$jobRec->containerId} AND #productId = {$jobRec->productId}");
     	$query->where("#state != 'rejected' AND #state != 'pending'");
-    	$query->XPR('sum', 'double', 'SUM((#totalQuantity - #scrappedQuantity)* #quantityInPack)');
     	$query->show('totalQuantity,sum');
     
     	$sum = $query->fetch()->sum;
