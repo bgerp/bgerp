@@ -40,7 +40,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, acc_plg_Registry, findeals_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_Contable, acc_plg_DocumentSummary, plg_Search, bgerp_plg_Blank, doc_plg_Close, cond_plg_DefaultValues, plg_Clone, doc_plg_Prototype, doc_plg_SelectFolder';
+    public $loadList = 'plg_RowTools2, acc_plg_Registry, findeals_Wrapper, plg_Printing, acc_plg_Contable, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, bgerp_plg_Blank, doc_plg_Close, cond_plg_DefaultValues, plg_Clone, doc_plg_Prototype, doc_plg_SelectFolder';
     
     
     /**
@@ -170,6 +170,12 @@ class findeals_Deals extends deals_DealBase
     
     
     /**
+     * Кой може да превалутира документите в нишката
+     */
+    public $canChangerate = 'ceo, findealsMaster';
+    
+    
+    /**
      * Позволени операции на последващите платежни документи
      */
     public  $allowedPaymentOperations = array(
@@ -226,7 +232,7 @@ class findeals_Deals extends deals_DealBase
     	$this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент');
     	
     	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Валута->Код,silent,removeAndRefreshForm=currencyRate');
-    	$this->FLD('currencyRate', 'double(decimals=5)', 'caption=Валута->Курс');
+    	$this->FLD('currencyRate', 'double(decimals=5)', 'caption=Валута->Курс,input=none');
     	
     	$this->FNC('contragentItemId', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Втори контрагент,input');
     	
@@ -468,20 +474,6 @@ class findeals_Deals extends deals_DealBase
     			$rec->secondContragentId = NULL;
     		}
     		
-    		if(!$rec->currencyRate){
-    			$date = (isset($rec->valior)) ? $rec->valior : dt::now();
-    			
-    			// Изчисляваме курса към основната валута ако не е дефиниран
-    			$rec->currencyRate = currency_CurrencyRates::getRate($date, $rec->currencyId, NULL);
-    			if(!$rec->currencyRate){
-    				$form->setError('rate', "Не може да се изчисли курс");
-    			}
-    		} else {
-    			if($msg = currency_CurrencyRates::hasDeviation($rec->currencyRate, dt::now(), $rec->currencyId, NULL)){
-    				$form->setWarning('currencyRate', $msg);
-    			}
-    		}
-    		
     		$rec->dealManId = $mvc->getClassId();
     		
     		// Проверки на данните
@@ -536,6 +528,13 @@ class findeals_Deals extends deals_DealBase
     		$row->baseAccountId = acc_Balances::getAccountLink($rec->baseAccountId, NULL, TRUE, TRUE);
     	} else {
     		unset($row->baseAccountId);
+    	}
+    	
+    	if(empty($rec->currencyRate)){
+    		setIfNot($valior, $rec->valior, dt::today());
+    		$rate = currency_CurrencyRates::getRate($valior, $rec->currencyId, NULL);
+    		$row->currencyRate = $mvc->getFieldType('currencyRate')->toVerbal($rate);
+    		$row->currencyRate = ht::createHint($row->currencyRate, 'Курса ще се запише при контиране/активиране');
     	}
     }
     
@@ -613,9 +612,27 @@ class findeals_Deals extends deals_DealBase
     private function getHistory(&$data)
     {
     	$rec = $this->fetchRec($data->rec->id);
+    	$data->rec->debitAmount = $data->rec->creditAmount = 0;
+    	
+    	$rate = $data->rec->currencyRate;
+    	if($rec->state == 'draft'){
+    		$rate = 1;
+    	}
+    	
+    	foreach (array('amountDeal', 'debitAmount', 'creditAmount') as $fld){
+    		if($fld == 'amountDeal'){
+    			$data->rec->$fld /= $rate;
+    		}
+    		$data->row->$fld = $this->getFieldType('amountDeal')->toVerbal($data->rec->$fld);
+    		if($data->rec->$fld == 0){
+    			$data->row->$fld = "<span class='quiet'>{$data->row->$fld}</span>";
+    		} elseif($data->rec->$fld < 0){
+    			$data->row->$fld = "<span class='red'>{$data->row->$fld}</span>";
+    		}
+    	}
     	
     	$entries = acc_Journal::getEntries(array(get_called_class(), $rec->id), $item);
-    	$data->rec->debitAmount = $data->rec->creditAmount = 0;
+    	
     	
     	if(count($entries)){
     		$data->history = array();
@@ -635,7 +652,7 @@ class findeals_Deals extends deals_DealBase
     			}
     			$r = &$recs[$index];
     			
-    			$jRec->amount /= $rec->currencyRate;
+    			$jRec->amount /= $rate;
     			if($jRec->debitItem2 == $item->id && $jRec->debitAccId == $rec->accountId){
     				$r->debitA += $jRec->amount;
     			}
@@ -658,18 +675,6 @@ class findeals_Deals extends deals_DealBase
     				}
     				$count++;
     			}
-    		}
-    	}
-    	
-    	foreach (array('amountDeal', 'debitAmount', 'creditAmount') as $fld){
-    		if($fld == 'amountDeal'){
-    			$data->rec->$fld /= $data->rec->currencyRate;
-    		}
-    		$data->row->$fld = $this->getFieldType('amountDeal')->toVerbal($data->rec->$fld);
-    		if($data->rec->$fld == 0){
-    			$data->row->$fld = "<span class='quiet'>{$data->row->$fld}</span>";
-    		} elseif($data->rec->$fld < 0){
-    			$data->row->$fld = "<span class='red'>{$data->row->$fld}</span>";
     		}
     	}
     }
@@ -774,7 +779,8 @@ class findeals_Deals extends deals_DealBase
     
     	// Показване на текущото салдо на финансовите сделки
     	if($this->haveRightFor('single', $rec) && isset($rec->amountDeal)){
-    		$amount = $rec->amountDeal / $rec->currencyRate;
+    		$rate = (!empty($rec->currencyRate)) ? $rec->currencyRate : 1;
+    		$amount = $rec->amountDeal / $rate;
     		$amount = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($amount);
     		if($rec->amountDeal < 0){
     			$amount = "<span class='red'>{$amount}</span>";
