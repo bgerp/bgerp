@@ -1013,7 +1013,10 @@ abstract class deals_InvoiceMaster extends core_Master
     public static function getRecTitle($rec, $escaped = TRUE)
     {
     	$row = new stdClass();
-    	$row->type = static::getVerbal($rec, 'type');
+    	$me = cls::get(get_called_class());
+    	if(!$me->getField('type', FALSE)) return parent::getRecTitle($rec, $escaped);
+    	
+    	$row->type = $me->getVerbal($rec, 'type');
     	if($rec->type == 'dc_note'){
     		$row->type = ($rec->dealValue <= 0) ? 'Кредитно известие' : 'Дебитно известие';
     	}
