@@ -88,7 +88,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'detailedName,folderId,state,createdOn,createdBy';
+    public $listFields = 'titleLink=Сделка,currencyId=Валута,folderId,state,createdOn,createdBy';
     
     
     /**
@@ -119,12 +119,6 @@ class findeals_Deals extends deals_DealBase
      * Файл с шаблон за единичен изглед
      */
     public $singleLayoutFile = 'findeals/tpl/SingleLayoutDeals.shtml';
-    
-    
-    /**
-     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-     */
-    public $rowToolsSingleField = 'detailedName';
     
     
     /**
@@ -217,7 +211,7 @@ class findeals_Deals extends deals_DealBase
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'amountDeal';
+    public $fieldsNotToClone = 'amountDeal,currencyRate';
     
     
     /**
@@ -248,8 +242,6 @@ class findeals_Deals extends deals_DealBase
     	
     	$this->FLD('description', 'richtext(rows=4,bucket=Notes)', 'caption=Допълнително->Описание,after=currencyRate');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Приключен,stopped=Спряно,template=Шаблон)','caption=Състояние, input=none');
-    	
-    	$this->FNC('detailedName', 'varchar', 'column=none,caption=Име');
     	$this->FLD('dealManId', 'class(interface=deals_DealsAccRegIntf)', 'input=none');
     	
     	// Индекс
@@ -390,7 +382,6 @@ class findeals_Deals extends deals_DealBase
     	// Само контрагенти могат да се избират
     	$contragentListNum = acc_Lists::fetchBySystemId('contractors')->num;
     	$form->setFieldTypeParams('contragentItemId', array('lists' => $contragentListNum));
-    	
     	$form->setField('baseAmount', "unit={$rec->currencyId}");
     }
     
@@ -407,20 +398,6 @@ class findeals_Deals extends deals_DealBase
     	$coverClass = doc_Folders::fetchCoverClassName($folderId);
     
     	return cls::haveInterface('crm_ContragentAccRegIntf', $coverClass);
-    }
-    
-    
-    /**
-     * Име за избор
-     */
-    protected static function on_CalcDetailedName($mvc, &$rec) 
-    {
-     	if (!$rec->contragentName || !$rec->createdOn) return;
-     	
-     	$createdOn = dt::mysql2verbal($rec->createdOn, 'Y-m-d');
-     	
-     	$rec->detailedName = $rec->id . "." . $rec->contragentName . " / {$createdOn} / " . $rec->dealName;
-     	$rec->detailedName = trim($rec->detailedName, '/ ');
     }
     
     
@@ -504,6 +481,7 @@ class findeals_Deals extends deals_DealBase
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+    	$row->titleLink = $mvc->getHyperlink($rec->id, TRUE);
     	if($fields['-single']){
     		$row->contragentName = cls::get($rec->contragentClassId)->getHyperLink($rec->contragentId, TRUE);
     		
@@ -763,11 +741,7 @@ class findeals_Deals extends deals_DealBase
     public function getDocumentRow($id)
     {
     	expect($rec = $this->fetch($id));
-    	if(!empty($rec->dealName)){
-    		$title = $this->getVerbal($rec, 'dealName');
-    	} else {
-    		$title = $this->singleTitle . " №{$rec->id}";
-    	}
+    	$title = $this->getRecTitle($rec);
     	
     	$row = (object)array(
     			'title'    => $title,
@@ -920,7 +894,11 @@ class findeals_Deals extends deals_DealBase
      */
     static function getRecTitle($rec, $escaped = TRUE)
     {
-	    return static::recToVerbal($rec, 'detailedName')->detailedName;
+    	$createdOn = dt::mysql2verbal($rec->createdOn, 'Y-m-d');
+    	$detailedName = $rec->id . "." . str::limitLen($rec->contragentName, 16) . " / {$createdOn} / " . str::limitLen($rec->dealName, 16);
+    	$detailedName = trim($detailedName, '/ ');
+    	
+    	return $detailedName;
     }
     
     
