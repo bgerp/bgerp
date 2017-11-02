@@ -825,6 +825,9 @@ class blast_ListDetails extends doc_Detail
             $nameC = trim(mb_strtolower($name));
             foreach($rowArr as $id => $val) {
                 $valC = trim(mb_strtolower($val));
+                
+                if (!$valC) continue;
+                
                 if(strpos($captionC, $valC) !== FALSE || strpos($valC, $captionC)) {
                     return $id + 1;
                 }

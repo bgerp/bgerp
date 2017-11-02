@@ -932,7 +932,9 @@ if ($step == 'setup') {
     $totalTables = 365; //366
     $percents = $persentsBase = $persentsLog = 0;
     $total = $totalTables*$calibrate + $totalRecords;
-
+    $pURL =  parse_url($localUrl);
+    $localRelativUrl = substr($localUrl, strlen($pURL['scheme'] . "://" . $pURL['host']));
+//    bp($localUrl);
     // Пращаме стиловете
     echo ($texts['styles']);
  
@@ -947,7 +949,7 @@ if ($step == 'setup') {
         xmlHttp.open( \"GET\", theUrl, false ); // false for synchronous request
         xmlHttp.send( null );
     } 
-    theUrl = '{$localUrl}&step=start';
+    theUrl = '{$localRelativUrl}&step=start';
     httpGet(theUrl);
     
     </script>";

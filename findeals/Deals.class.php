@@ -1084,6 +1084,8 @@ class findeals_Deals extends deals_DealBase
      */
     protected static function on_AfterGetQuery($mvc, $query)
     {
-    	$query->where("#dealManId = {$mvc->getClassId()}");
+        if ($clsId = $mvc->getClassId()) {
+            $query->where("#dealManId = '{$clsId}'");
+        }
     }
 }
