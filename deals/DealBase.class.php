@@ -778,12 +778,6 @@ abstract class deals_DealBase extends core_Master
     			if(!in_array($d->getClassId(), $arr)) continue;
     			deals_Helper::recalcRate($d->getInstance(), $d->fetch(), $fRec->newRate);
     		}
-    
-    		$arr2 = array(cash_Pko::getClassId(), cash_Rko::getClassId(), bank_IncomeDocuments::getClassId(), bank_SpendingDocuments::getClassId());
-    		foreach ($dealDocuments as $d1) {
-    			if(!in_array($d1->getClassId(), $arr2)) continue;
-    			//deals_Helper::recalcPaymentDocumentRate($d1->getInstance(), $d1->fetch(), $fRec->newRate);
-    		}
     		
     		followRetUrl(NULL, 'Документите са преизчислени успешно');
     	}
