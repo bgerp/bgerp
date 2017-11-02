@@ -1298,4 +1298,17 @@ class planning_Jobs extends core_Master
     
     	return $result;
     }
+    
+    
+    /**
+     * След намиране на текста за грешка на бутона за 'Приключване'
+     */
+    public function getCloseBtnError($rec)
+    {
+    	if(doc_Containers::fetchField("#threadId = {$rec->threadId} AND #state = 'pending'")){
+    		return 'Заданието не може да се приключи, защото има документи в състояние "Заявка"';
+    	}
+    	
+    	return NULL;
+    }
 }
