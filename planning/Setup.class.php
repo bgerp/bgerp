@@ -157,14 +157,17 @@ class planning_Setup extends core_ProtoSetup
     public static function deleteTasks6()
     {
     	$Details = cls::get('planning_ProductionTaskDetails');
+    	$Details->fillSearchKeywordsOnSetup = FALSE;
     	$Details->setupMvc();
     	$Details->truncate();
     	
     	$Tasks = cls::get('planning_Tasks');
+    	$Tasks->fillSearchKeywordsOnSetup = FALSE;
     	$Tasks->setupMvc();
     	if(!$Tasks->count()) return;
     	
     	$Product = cls::get('planning_ProductionTaskProducts');
+    	$Product->fillSearchKeywordsOnSetup = FALSE;
     	$Product->setupMvc();
     	$Product->truncate();
     	
@@ -175,10 +178,12 @@ class planning_Setup extends core_ProtoSetup
     	$query->delete();
     	
     	$Serials = cls::get('planning_TaskSerials');
+    	$Serials->fillSearchKeywordsOnSetup = FALSE;
     	$Serials->setupMvc();
     	$Serials->truncate();
     	
     	$Assets = cls::get('planning_AssetResources');
+    	$Assets->fillSearchKeywordsOnSetup = FALSE;
     	$Assets->setupMvc();
     	$Assets->truncate();
     }
