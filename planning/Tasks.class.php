@@ -19,6 +19,12 @@ class planning_Tasks extends core_Master
     
     
 	/**
+	 * Дали може да бъде само в началото на нишка
+	 */
+	public $onlyFirstInThread = TRUE;
+	
+	
+	/**
 	 * Интерфейси
 	 */
     public $interfaces = 'label_SequenceIntf=planning_interface_TaskLabel';
