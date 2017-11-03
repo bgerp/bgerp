@@ -244,7 +244,17 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
                         }
 
-                       $details['code'][] = $grDetails['code'][$k];
+                        $details['code'][] = $grDetails['code'][$k];
+
+                        bp($grProduct);
+
+                        if ($grDetails['name'][$k] && !$grDetails['code'][$k]){
+
+                            $grDetails['code'][$k] = cat_Products::setCodeIfEmpty($rec->grProduct);
+
+                        }
+
+
                        $details['name'][] = $grDetails['name'][$k];
                        $details['minQuantity'][] = $grDetails['minQuantity'][$k];
                        $details['maxQuantity'][] = $grDetails['maxQuantity'][$k];
@@ -318,7 +328,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
                 $id = $recProduct->productId;
 
-                $quantity = store_Products::getQuantity($id, $recProduct->storeId, FALSE);
+                $quantity = store_Products::getQuantity($id, $recProduct->storeId, TRUE);
 
 
                 // подготовка на показател "състояние" //
