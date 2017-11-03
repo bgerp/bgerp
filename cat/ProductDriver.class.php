@@ -562,6 +562,18 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 */
 	public function getAdditionalNotesToDocument($productId, $documentType)
 	{
+		// Ако е ф-ра и има избран параметър за експорт показва се
+		if($documentType == 'invoice'){
+			if($exportParamId = acc_Setup::get('INVOICE_MANDATORY_EXPORT_PARAM')){
+				$value = cat_Products::getParams($productId, $exportParamId, TRUE);
+				if(!empty($value)){
+					$value = "<span class='small'>{$value}</span>";
+					
+					return $value;
+				}
+			}
+		}
+		
 		return NULL;
 	}
 	
