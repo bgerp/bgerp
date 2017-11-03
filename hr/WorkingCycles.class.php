@@ -498,21 +498,6 @@ class hr_WorkingCycles extends core_Master
 
         return $tpl;
     }
-
-    
-    /**
-     * @todo Чака за документация...
-     */
-    function act_Test()
-    {
-        $id = 5;
-        
-        //$rec = self::fetch("#id='{$id}'");
-        //$recDetail = hr_ShiftDetails::fetch("#shiftId='{$id}'");
-        $masterId = 5;
-        $date = '2013-05-28 00:00:00';
-        $date2 = '2013-06-05 00:00:00';
-    }
     
     
     /**

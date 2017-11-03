@@ -214,13 +214,6 @@ class hr_Deductions extends core_Master
     }
     
     
-    public static function act_Test()
-    {
-        $date = '2016-03-01';
-        self::getSalaryIndicators($date);
-    }
-    
-    
     /**
 	 * Метод за вземане на резултатност на хората. За определена дата се изчислява
      * успеваемостта на човека спрямо ресурса, които е изпозлвал 
