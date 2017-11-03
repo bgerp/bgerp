@@ -349,26 +349,6 @@ class store_Products extends core_Detail
     	
     	return $sum;
     }
-    
-    
-    /**
-     * Всички налични к-ва на артикулите в склад-а
-     * 
-     * @param int $storeId
-     * @return array $res
-     */
-    public static function getQuantitiesInStore($storeId)
-    {
-    	$res = array();
-    	$query = self::getQuery();
-    	$query->where("#storeId = {$storeId}");
-    	$query->show('productId,quantity');
-    	while($rec = $query->fetch()){
-    		$res[$rec->productId] = $rec->quantity;
-    	}
-    	
-    	return $res;
-    }
 
 
     /**
