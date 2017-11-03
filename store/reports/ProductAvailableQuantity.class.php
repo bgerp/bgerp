@@ -12,6 +12,8 @@
  */
 class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 {
+
+    const NUMBER_OF_ITEMS_TO_ADD = 50;
     
     
     /**
@@ -171,7 +173,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                             if ($prId->productId) {
 
                                 $prName = cat_Products::getTitleById($prId->productId, $escaped = TRUE);
-        
+
                                 $grDetails['name'][$k] = $prName;
                             }
 
@@ -194,13 +196,12 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
                 $rQuery = cat_Products::getQuery();
 
-                $grDetails = (array)$details;
+                $details = (array)$details;
 
                 $rQuery->where("#groups Like'%|{$rec->groupId}|%'");
 
-
-
                 while ($grProduct = $rQuery->fetch()) {
+
                     $grDetails['code'][] = $grProduct->code;
 
                     $grDetails['name'][] = cat_Products::getTitleById($grProduct->id);
@@ -211,9 +212,59 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
                 }
 
-                $jDetails = json_encode(self::removeRpeadValues($grDetails));
+                if (is_array($grDetails['code'])) {
+                    foreach ($grDetails['code'] as $k => $v) {
 
-                $form->rec->additional = $jDetails;
+                        if ($details['code'] && in_array($v, $details['code'])) {
+
+                            unset($grDetails['code'][$k]);
+                            unset($grDetails['name'][$k]);
+                            unset($grDetails['minQuantity'][$k]);
+                            unset($grDetails['maxQuantity'][$k]);
+
+                        }
+                    }
+
+                }
+
+                $count = 0;$countUnset = 0;
+                if (is_array($grDetails['code'])) {
+                    foreach ($grDetails['code'] as $k => $v){
+
+                        $count++;
+
+                        if ($count > self::NUMBER_OF_ITEMS_TO_ADD) {
+
+                            unset($grDetails['code'][$k]);
+                            unset($grDetails['name'][$k]);
+                            unset($grDetails['minQuantity'][$k]);
+                            unset($grDetails['maxQuantity'][$k]);
+                            $countUnset++;
+                            continue;
+
+                        }
+
+                       $details['code'][] = $grDetails['code'][$k];
+                       $details['name'][] = $grDetails['name'][$k];
+                       $details['minQuantity'][] = $grDetails['minQuantity'][$k];
+                       $details['maxQuantity'][] = $grDetails['maxQuantity'][$k];
+
+                    }
+
+                    if ($countUnset > 0){
+                        $groupName = cat_Products::getTitleById($rec->groupId);
+                        $maxArt = self::NUMBER_OF_ITEMS_TO_ADD;
+
+                        $form->setWarning('groupId',"$countUnset артикула от група \" $groupName \" няма да  бъдат добавени.
+                                                     Максимален брой артикули за еднократно добавяне - $maxArt.  
+                                                     Може да добавите още артикули от групата при следвща редакция.");
+                    }
+
+                }
+
+                $jDetails = json_encode($details);
+
+               $form->rec->additional = $jDetails;
             }
         }
     }
@@ -426,12 +477,12 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
     /**
      *Изчиства повтарящи се стойности във формата
-     * @param $arr
+     * @param $groupNamerr
      * @return array
      */
-    static function removeRpeadValues ($arr)
+    static function removeRpeadValues ($groupNamerr)
     {
-        $tempArr = (array)$arr;
+        $tempArr = (array)$groupNamerr;
 
         $tempProducts = array();
         if (is_array($tempArr['code'])) {
@@ -452,9 +503,9 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             }
         }
 
-        $arr = $tempArr;
+        $groupNamerr = $tempArr;
 
-        return $arr;
+        return $groupNamerr;
 
     }
 
