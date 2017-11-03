@@ -105,7 +105,7 @@ class bank_IncomeDocuments extends bank_Document
         $form->setDefault('contragentId', $contragentId);
         $form->setDefault('contragentClassId', $contragentClassId);
         
-        expect($origin = $mvc->getOrigin($form->rec));
+        expect($origin = $mvc->getOrigin($form->rec), $form->rec);
         $form->setOptions('ownAccount', bank_OwnAccounts::getOwnAccounts(FALSE));
         
         $mvc->setDefaultsFromOrigin($origin, $form, $options);
