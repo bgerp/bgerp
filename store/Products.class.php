@@ -93,7 +93,7 @@ class store_Products extends core_Detail
     /**
      * Преди подготовката на записите
      */
-    public static function on_BeforePrepareListPager($mvc, &$res, $data)
+    protected static function on_BeforePrepareListPager($mvc, &$res, $data)
     {
     	$mvc->listItemsPerPage = (isset($data->masterMvc)) ? 100 : 20;
     }
@@ -336,6 +336,8 @@ class store_Products extends core_Detail
     		$query->where("#storeId = {$storeId}");
     	}
     	
+    	
+    	bp();
     	$sum = 0;
     	while($r = $query->fetch()){
     		if($onlyFree !== TRUE){
@@ -375,7 +377,7 @@ class store_Products extends core_Detail
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareListToolbar($mvc, &$data)
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
     	if(haveRole('debug')){
     		if(isset($data->masterMvc)) return;
@@ -387,7 +389,7 @@ class store_Products extends core_Detail
     /**
      * Преди подготовката на полетата за листовия изглед
      */
-    public static function on_AfterPrepareListFields($mvc, &$res, &$data)
+    protected static function on_AfterPrepareListFields($mvc, &$res, &$data)
     {
     	if(isset($data->masterMvc)){
     		unset($data->listFields['storeId']);
@@ -412,7 +414,7 @@ class store_Products extends core_Detail
     /**
      * Проверяваме дали колонката с инструментите не е празна, и ако е така я махаме
      */
-    public static function on_BeforeRenderListTable($mvc, &$res, $data)
+    protected static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
     	$data->listTableMvc->FLD('code', 'varchar', 'tdClass=small-field');
     	$data->listTableMvc->FLD('measureId', 'varchar', 'tdClass=centered');
@@ -436,7 +438,7 @@ class store_Products extends core_Detail
 	/**
 	 * Преди подготовката на ключовете за избор
 	 */
-    public static function on_BeforePrepareKeyOptions($mvc, &$options, $typeKey, $where = '')
+    protected static function on_BeforePrepareKeyOptions($mvc, &$options, $typeKey, $where = '')
     {
         $storeId = store_Stores::getCurrent();
         $query = self::getQuery();
