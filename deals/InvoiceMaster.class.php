@@ -587,9 +587,8 @@ abstract class deals_InvoiceMaster extends core_Master
     		$form->rec->contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
     	}
     	
-    	// При създаване на нова ф-ра зареждаме полетата на
-    	// формата с разумни стойности по подразбиране.
-    	$firstDocument = doc_Threads::getFirstDocument($form->rec->threadId);
+    	// При създаване на нова ф-ра зареждаме полетата на формата с разумни стойности по подразбиране.
+    	expect($firstDocument = doc_Threads::getFirstDocument($form->rec->threadId), $form->rec);
     	
     	$coverClass = doc_Folders::fetchCoverClassName($form->rec->folderId);
     	$coverId = doc_Folders::fetchCoverId($form->rec->folderId);
