@@ -13,7 +13,7 @@
 class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 {
 
-    const NUMBER_OF_ITEMS_TO_ADD = 50;
+    const NUMBER_OF_ITEMS_TO_ADD = 10;
     
     
     /**
@@ -250,7 +250,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
                         if ($grDetails['name'][$k] && !$grDetails['code'][$k]){
 
-                            $grDetails['code'][$k] = cat_Products::setCodeIfEmpty($rec->grProduct);
+                            $grDetails['code'][$k] = cat_Products::setCodeIfEmpty($grProduct);
 
                         }
 
@@ -262,12 +262,12 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                     }
 
                     if ($countUnset > 0){
-                        $groupName = cat_Products::getTitleById($rec->groupId);
+                        $groupName = cat_Products::getTitleById($grProduct->groupId);
                         $maxArt = self::NUMBER_OF_ITEMS_TO_ADD;
 
                         $form->setWarning('groupId',"$countUnset артикула от група \" $groupName \" няма да  бъдат добавени.
                                                      Максимален брой артикули за еднократно добавяне - $maxArt.  
-                                                     Може да добавите още артикули от групата при следвща редакция.");
+                                                     Може да добавите още артикули от групата при следваща редакция.");
                     }
 
                 }
