@@ -147,6 +147,10 @@ class doc_DocumentPlg extends core_Plugin
             $mvc->fetchFieldsBeforeDelete .= ',';
         }
         $mvc->fetchFieldsBeforeDelete = 'containerId';
+        
+        // За експорт при принтиране
+        setIfNot($mvc->exportInExternalField, 'productId');
+        setIfNot($mvc->exportInExternalFieldAll, 'productId=code, packagingId, quantity, quantityInPack, packQuantity, packPrice, price, discount, amount');
     }
     
     
@@ -1285,6 +1289,121 @@ class doc_DocumentPlg extends core_Plugin
             $res = new Redirect($linkToSingle);
             
             return FALSE;
+    	}
+    	
+    	// Екшън при експортиране във външната част
+    	if ($action == 'exportinexternal') {
+    	    $id = Request::get('id', 'int');
+    	    expect($id);
+    	    
+    	    $mId = Request::get('mid');
+    	    
+    	    expect($mId);
+    	    
+    	    $rec = $mvc->fetch($id);
+    	    expect($rec && $rec->containerId);
+    	    
+    	    expect($rec->state != 'rejected');
+    	    
+    	    expect(doclog_Documents::fetchHistoryFor($rec->containerId, $mId));
+    	    
+    	    $detArr = arr::make($mvc->details);
+    	    
+    	    expect(!empty($detArr));
+    	    
+    	    $recs = array();
+    	    $csvFields = new core_FieldSet();
+    	    
+    	    $res = getRetUrl();
+    	    
+    	    foreach ($detArr as $dName) {
+    	        if (!cls::load($dName, TRUE)) continue;
+    	        
+    	        $dInst = cls::get($dName);
+    	        
+    	        if (!$dInst->fields[$mvc->exportInExternalField]) continue;
+    	        
+    	        // Подготвяме полетата, които ще се експортират
+    	        $exportArr = arr::make($mvc->exportInExternalFieldAll, TRUE);
+    	        foreach ($exportArr as $eName => $eFields) {
+    	            if ($eName == $eFields) {
+    	                $fFieldsArr[$eName] = $vArr;
+    	            } else {
+    	                $fFieldsArr[$eName] = explode('|', $eFields);
+    	            }
+    	        }
+    	        
+    	        $dQuery = $dInst->getQuery();
+    	        $dQuery->where(array("#{$dInst->masterKey} = {$rec->id}"));
+    	        
+    	        while ($dRec = $dQuery->fetch()) {
+    	            if (!$recs[$dRec->id]) {
+    	                $recs[$dRec->id] = new stdClass();
+    	            }
+    	            
+    	            foreach ($fFieldsArr as $k => $vArr) {
+    	                if (!$dInst->fields[$k]) continue;
+    	                
+    	                if (is_array($vArr) && $dInst->fields[$k]->type->params['mvc']) {
+    	                    
+    	                    // Ако полето е ключ и от него трябва да се вземе стойността на друго поле
+    	                    
+    	                    $vInst = cls::get($dInst->fields[$k]->type->params['mvc']);
+    	                    
+    	                    if (!$dRec->{$k}) continue;
+    	                    
+    	                    $vRec = $vInst->fetch($dRec->{$k});
+    	                    
+    	                    foreach ($vArr as $v) {
+    	                        
+    	                        // Временен хак, за попълване на кода
+    	                        if (($vInst instanceof cat_Products) && ($v == 'code')) {
+    	                            cat_Products::setCodeIfEmpty($vRec);
+    	                        }
+    	                        
+    	                        $recs[$dRec->id]->{$v} = $vRec->{$v};
+    	                        
+    	                        if (!$csvFields->fields[$v]) {
+    	                            if ($vInst->fields[$v]->type instanceof type_Double) {
+    	                                $csvFields->FLD($v, 'varchar', "caption={$vInst->fields[$v]->caption}");
+    	                            } else {
+    	                                $csvFields->fields[$v] = $vInst->fields[$v];
+    	                            }
+    	                        }
+    	                    }
+    	                } else {
+    	                    $recs[$dRec->id]->{$k} = $dRec->{$k};
+    	                    
+    	                    if (!$csvFields->fields[$k]) {
+    	                        if ($dInst->fields[$k]->type instanceof type_Double) {
+    	                            $csvFields->FLD($k, 'varchar', "caption={$vInst->fields[$k]->caption}");
+    	                        } else {
+    	                            $csvFields->fields[$k] = $dInst->fields[$k];
+    	                        }
+    	                    }
+    	                }
+    	            }
+    	        }
+    	    }
+    	    
+    	    if (!empty($recs)) {
+    	        $csv = csv_Lib::createCsv($recs, $csvFields);
+    	        
+    	        $fileName = $mvc->getHandle($rec->id) . '_Export.csv';
+    	        
+    	        $fileName = str_replace(' ', '_', Str::utf2ascii($fileName));
+    	        
+    	        header("Content-type: application/csv");
+    	        header("Content-Disposition: attachment; filename={$fileName}.csv");
+    	        header("Pragma: no-cache");
+    	        header("Expires: 0");
+    	        
+    	        echo $csv;
+    	        
+    	        shutdown();
+    	    }
+    	    
+    	    return FALSE;
     	}
     }
     
@@ -4245,5 +4364,40 @@ class doc_DocumentPlg extends core_Plugin
     		$rec->activatedBy = core_Users::getCurrent();
     		$mvc->save_($rec, 'activatedOn,activatedBy');
     	}
+    }
+    
+    
+    /**
+     * Връща URL за експортване във външната част
+     * 
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param integer $id
+     */
+    public static function on_AfterGetExportUrl($mvc, &$res, $id, $mid)
+    {
+        setIfNot($res, array());
+        
+        if (!$mvc instanceof core_Master) return ;
+        
+        $detArr = arr::make($mvc->details);
+        
+        if (empty($detArr)) return ;
+        
+        $rec = $mvc->fetch($id);
+        
+        if (!$rec) return ;
+        
+        foreach ($detArr as $dName) {
+            if (!cls::load($dName, TRUE)) continue;
+            
+            $dInst = cls::get($dName);
+            
+            if (!$dInst->fields[$mvc->exportInExternalField]) continue;
+            
+            $res = array($mvc, 'exportInExternal', $id, 'mid' => $mid, 'ret_url' => TRUE);
+            
+            break;
+        }
     }
 }
