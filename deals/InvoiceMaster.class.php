@@ -839,10 +839,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		$invoicePayments = deals_Helper::getInvoicePayments($rec->threadId);
     	}
     	
-    	$containerId = $rec->containerId;
-    	if($rec->type == 'dc_note'){
-    		$containerId = $rec->originId;
-    	}
+    	$containerId = ($rec->type != 'dc_note') ? $rec->containerId : $rec->originId;
     	
     	$paidArr = $invoicePayments[$containerId];
     	if(count($paidArr) && isset($paidArr)){
@@ -879,7 +876,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		core_Lg::pop();
     	}
     	
-    	if($fields['-list']){
+    	if(isset($fields['-list'])){
     		$row->number = ($rec->number) ? ht::createLink($row->number, $mvc->getSingleUrlArray($rec->id), NULL, 'ef_icon=img/16/invoice.png') : $mvc->getLink($rec->id, 0); 
     		$total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
     		$noVat = $rec->dealValue - $rec->discountAmount;
