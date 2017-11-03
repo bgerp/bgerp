@@ -145,16 +145,16 @@ class sales_Proformas extends deals_InvoiceMaster
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-    	'place'               => 'lastDocUser|lastDoc',
-    	'responsible'         => 'lastDocUser|lastDoc',
-    	'contragentCountryId' => 'lastDocUser|lastDoc|clientData',
-    	'contragentVatNo'     => 'lastDocUser|lastDoc|clientData',
-    	'uicNo' 			  => 'lastDocUser|lastDoc|clientData',
-    	'contragentPCode'     => 'lastDocUser|lastDoc|clientData',
-    	'contragentPlace'     => 'lastDocUser|lastDoc|clientData',
-    	'contragentAddress'   => 'lastDocUser|lastDoc|clientData',
-    	'accountId' 		  => 'lastDocUser|lastDoc',
-    	'template' 		      => 'lastDocUser|lastDoc|defMethod',
+    		'place'               => 'lastDocUser|lastDoc',
+    		'responsible'         => 'lastDocUser|lastDoc',
+    		'contragentCountryId' => 'clientData|lastDocUser|lastDoc',
+    		'contragentVatNo'     => 'clientData|lastDocUser|lastDoc',
+    		'uicNo'     		  => 'clientData|lastDocUser|lastDoc',
+    		'contragentPCode'     => 'clientData|lastDocUser|lastDoc',
+    		'contragentPlace'     => 'clientData|lastDocUser|lastDoc',
+    		'contragentAddress'   => 'clientData|lastDocUser|lastDoc',
+    		'accountId'           => 'lastDocUser|lastDoc',
+    		'template' 		      => 'lastDocUser|lastDoc|defMethod',
     );
     
     
@@ -344,14 +344,10 @@ class sales_Proformas extends deals_InvoiceMaster
     public static function canAddToThread($threadId)
     {
     	$firstDocument = doc_Threads::getFirstDocument($threadId);
-    	
     	if(!$firstDocument) return FALSE;
     	
     	// Може да се добавя само към активна продажба
-    	if($firstDocument->isInstanceOf('sales_Sales') && $firstDocument->fetchField('state') == 'active'){
-    		
-    		return TRUE;
-    	}
+    	if($firstDocument->isInstanceOf('sales_Sales') && $firstDocument->fetchField('state') == 'active') return TRUE;
     	
     	return FALSE;
     }
