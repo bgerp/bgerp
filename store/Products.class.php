@@ -322,35 +322,34 @@ class store_Products extends core_Detail
     /**
      * Колко е количеството на артикула в складовете
      * 
-     * @param int $productId    - ид на артикул
-     * @param int|NULL $storeId - конкретен склад, NULL ако е във всички
-     * @param boolean $onlyFree - само наличните
-     * @return double $sum      - наличното количество
+     * @param int $productId        - ид на артикул
+     * @param int|NULL $storeId     - конкретен склад, NULL ако е във всички
+     * @param boolean $freeQuantity - FALSE за общото количество, TRUE само за разполагаемото (общо - запазено)
+     * @return double $sum          - сумата на количеството, общо или разполагаемо
      */
-    public static function getQuantity($productId, $storeId = NULL, $onlyFree = FALSE)
+    public static function getQuantity($productId, $storeId = NULL, $freeQuantity = FALSE)
     {
     	$query = self::getQuery();
     	$query->where("#productId = {$productId}");
+    	$query->show('sum');
     	
     	if(isset($storeId)){
     		$query->where("#storeId = {$storeId}");
     	}
     	
-    	
-    	bp();
-    	$sum = 0;
-    	while($r = $query->fetch()){
-    		if($onlyFree !== TRUE){
-    			$sum += $r->quantity;
-    		} else {
-    			$sum += $r->quantity - $r->reservedQuantity;
-    		}
+    	if($freeQuantity === TRUE){
+    		$query->XPR('sum', 'double', 'SUM(#quantity - COALESCE(#reservedQuantity, 0))');
+    	} else {
+    		$query->XPR('sum', 'double', 'SUM(#quantity)');
     	}
+    	
+    	$calcedSum = $query->fetch()->sum;
+    	$sum = (!empty($calcedSum)) ? $calcedSum : 0;
     	
     	return $sum;
     }
-
-
+    
+    
     /**
      * След подготовка на тулбара на списъчния изглед
      *
