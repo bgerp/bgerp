@@ -1323,6 +1323,8 @@ class doc_DocumentPlg extends core_Plugin
     	        
     	        if (!$dInst->fields[$mvc->exportInExternalField]) continue;
     	        
+    	        if (!$dInst->masterKey) continue;
+    	        
     	        // Подготвяме полетата, които ще се експортират
     	        $exportArr = arr::make($mvc->exportInExternalFieldAll, TRUE);
     	        foreach ($exportArr as $eName => $eFields) {
@@ -4394,6 +4396,8 @@ class doc_DocumentPlg extends core_Plugin
             $dInst = cls::get($dName);
             
             if (!$dInst->fields[$mvc->exportInExternalField]) continue;
+            
+            if (!$dInst->masterKey) continue;
             
             $res = array($mvc, 'exportInExternal', $id, 'mid' => $mid, 'ret_url' => TRUE);
             
