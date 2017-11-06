@@ -13,7 +13,7 @@
 class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 {
 
-    const NUMBER_OF_ITEMS_TO_ADD = 50;
+    const NUMBER_OF_ITEMS_TO_ADD = 10;
     
     
     /**
