@@ -525,7 +525,7 @@ class planning_Tasks extends core_Master
 		$updateFields = 'totalQuantity,totalWeight,scrappedQuantity,progress,modifiedOn,modifiedBy';
 		if(!$rec->quantityInPack){
 			$rec->quantityInPack = 1;
-			$updateFields = ",quantityInPack";
+			$updateFields .= ",quantityInPack";
 		}
 		
 		// Колко е общото к-во досега
