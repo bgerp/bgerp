@@ -151,7 +151,7 @@ class fileman_webdrv_Generic extends core_Manager
         
         // Вземаме текста извлечен от OCR
         $ocrContent = fileman_Indexes::getInfoContentByFh($fileHnd, 'textOcr');
-
+        
         // Ако има OCR съдържание
         if ($ocrContent !== FALSE && !is_object($ocrContent)) {
             
@@ -190,6 +190,9 @@ class fileman_webdrv_Generic extends core_Manager
 
         // Сменяма wrapper'а да е празна страница
         Mode::set('wrapper', 'page_PreText');
+        
+        // Махаме ненужните празни редове
+        $content = preg_replace('/([\r\n(\s|\t)*]|[\n\r(\s|\t)*]|[\n(\s|\t)*]){4,}/', '$1$1$1', $content);
         
         // Ескейпваме текстовата част
         $content = type_Varchar::escape($content);
