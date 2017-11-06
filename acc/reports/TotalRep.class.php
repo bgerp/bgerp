@@ -188,7 +188,7 @@ class acc_reports_TotalRep extends frame2_driver_TableData
         
         $ratio = self::getWorkingDaysBetween(date("Y-m-01"), dt::now()) / self::getWorkingDaysBetween(date("Y-m-01"),  date("Y-m-t"));
  
-        if($ratio < 1) return;
+        if($ratio == 0) return;
 
         $value = $data->rec->data->recs[$key]->speed / $ratio;
 
