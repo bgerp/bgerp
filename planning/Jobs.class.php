@@ -21,7 +21,7 @@ class planning_Jobs extends core_Master
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    public $interfaces = 'doc_DocumentIntf,store_iface_ReserveStockSourceIntf,hr_IndicatorsSourceIntf';
+    public $interfaces = 'doc_DocumentIntf,hr_IndicatorsSourceIntf';
     
     
     /**
