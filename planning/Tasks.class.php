@@ -261,7 +261,7 @@ class planning_Tasks extends core_Master
 		}
 	
 		// Ако има записани допълнителни полета от артикула
-		if(is_array($data->rec->additionalFields)){
+		if(is_array($data->rec->additionalFields) && count($data->rec->additionalFields)){
 			$productFields = planning_Tasks::getFieldsFromProductDriver($data->rec->productId);
 	
 			// Добавяне на допълнителните полета от артикула

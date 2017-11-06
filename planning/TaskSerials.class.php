@@ -194,7 +194,7 @@ class planning_TaskSerials extends core_Manager
 	 * @param int|NULL $id         - ид
 	 * @return FALSE|string $error - FALSE ако номера е допустим, или текст с какъв е проблема
 	 */
-	public static function isSerialinValid($serial, $productId, $taskId, $type, $id = NULL)
+	public static function isSerialInvalid($serial, $productId, $taskId, $type, $id = NULL)
 	{
 		// Трябва да има сериен номер
 		expect($serial);
@@ -235,7 +235,7 @@ class planning_TaskSerials extends core_Manager
 					// Двете задачи трябва да са към едно и също задание
 					// Не можем да влагаме заготовка която е произведена със операция по друго задание
 					if($taskOriginId != $productTaskOriginId){
-						$error = "Въведения сериен номер е по операция от друго задание";
+						$error = "Въведения сериен номер е по операция към  друго задание";
 						$error .= "|* " . planning_Tasks::getLink($serialRec->taskId, 0);
 					}
 				}
