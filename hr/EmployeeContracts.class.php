@@ -630,15 +630,6 @@ class hr_EmployeeContracts extends core_Master
     }
     
     
-    /**
-     * @todo Чака за документация...
-     */
-    static function act_Test()
-    {
-        $id = 2;
-    }
-    
-    
 	/**
      * Връща датата на последната ф-ра
      */

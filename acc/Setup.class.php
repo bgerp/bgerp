@@ -2,6 +2,12 @@
 
 
 /**
+ * Задължителен параметър за експорт на ф-ра
+ */
+defIfNot('ACC_INVOICE_MANDATORY_EXPORT_PARAM', '');
+
+
+/**
  * Колко дена преди края на месеца да се направи следващия бъдещ период чакащ
  */
 defIfNot('ACC_DAYS_BEFORE_MAKE_PERIOD_PENDING', '');
@@ -163,16 +169,17 @@ class acc_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
-        'ACC_MONEY_TOLERANCE'                 => array("double(decimals=2)", 'caption=Толеранс за допустимо разминаване на суми в основна валута->Сума'),
-        'ACC_DETAILED_BALANCE_ROWS'           => array("int", 'caption=Редове в страница от детайлния баланс->Брой редове,unit=бр.'),
-    	'ACC_DAYS_BEFORE_MAKE_PERIOD_PENDING' => array("time(suggestions= 1 ден|2 дена|7 Дена)", 'caption=Колко дни преди края на месеца да се направи следващия бъдещ период чакащ->Дни'),
-    	'ACC_VAT_REASON_OUTSIDE_EU'           => array('varchar', 'caption=Основание за неначисляване на ДДС за контрагент->Извън ЕС'),
-    	'ACC_VAT_REASON_IN_EU'                => array('varchar', 'caption=Основание за неначисляване на ДДС за контрагент->От ЕС'),
-    	'ACC_COST_OBJECT_DOCUMENTS'           => array('keylist(mvc=core_Classes,select=name)', "caption=Кои документи могат да бъдат разходни обекти->Документи,optionsFunc=acc_Setup::getDocumentOptions"),
-        'ACC_SUMMARY_ROLES_FOR_TEAMS'         => array('varchar', 'caption=Роли за екипите при филтриране->Роли'),
-        'ACC_SUMMARY_ROLES_FOR_ALL'           => array('varchar', 'caption=Роли за всички при филтриране->Роли'),
-        'ACC_CLASSES_FOR_VIEW_ACCESS'         => array('keylist(mvc=core_Classes, select=title)', 'caption=Класове|*&#44; |*които ще разширяват правата за контиране на документи->Класове, optionsFunc=acc_Setup::getAccessClassOptions', array('data-role' => 'list')),
-		'ACC_DATE_FOR_INVOICE_DATE'			  => array('int(min=1,max=31)', 'caption=Ден от месеца за изчисляване на Счетоводна дата на входяща фактура->Ден'),
+        'ACC_MONEY_TOLERANCE'                  => array("double(decimals=2)", 'caption=Толеранс за допустимо разминаване на суми в основна валута->Сума'),
+        'ACC_DETAILED_BALANCE_ROWS'            => array("int", 'caption=Редове в страница от детайлния баланс->Брой редове,unit=бр.'),
+    	'ACC_DAYS_BEFORE_MAKE_PERIOD_PENDING'  => array("time(suggestions= 1 ден|2 дена|7 Дена)", 'caption=Колко дни преди края на месеца да се направи следващия бъдещ период чакащ->Дни'),
+    	'ACC_VAT_REASON_OUTSIDE_EU'            => array('varchar', 'caption=Основание за неначисляване на ДДС за контрагент->Извън ЕС'),
+    	'ACC_VAT_REASON_IN_EU'                 => array('varchar', 'caption=Основание за неначисляване на ДДС за контрагент->От ЕС'),
+    	'ACC_COST_OBJECT_DOCUMENTS'            => array('keylist(mvc=core_Classes,select=name)', "caption=Кои документи могат да бъдат разходни обекти->Документи,optionsFunc=acc_Setup::getDocumentOptions"),
+        'ACC_SUMMARY_ROLES_FOR_TEAMS'          => array('varchar', 'caption=Роли за екипите при филтриране->Роли'),
+        'ACC_SUMMARY_ROLES_FOR_ALL'            => array('varchar', 'caption=Роли за всички при филтриране->Роли'),
+        'ACC_CLASSES_FOR_VIEW_ACCESS'          => array('keylist(mvc=core_Classes, select=title)', 'caption=Класове|*&#44; |*които ще разширяват правата за контиране на документи->Класове, optionsFunc=acc_Setup::getAccessClassOptions', array('data-role' => 'list')),
+		'ACC_DATE_FOR_INVOICE_DATE'			   => array('int(min=1,max=31)', 'caption=Ден от месеца за изчисляване на Счетоводна дата на входяща фактура->Ден'),
+		'ACC_INVOICE_MANDATORY_EXPORT_PARAM' => array("key(mvc=cat_Params,select=name,allowEmpty)", 'caption=Артикул за експорт на данъчна фактура->Параметър'),
     );
     
     

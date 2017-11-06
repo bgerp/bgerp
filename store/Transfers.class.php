@@ -5,9 +5,6 @@
 /**
  * Клас 'store_Transfers' - Документ за междускладови трансфери
  *
- * 
- *
- *
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
@@ -34,7 +31,7 @@ class store_Transfers extends core_Master
     /**
      * Абревиатура
      */
-    public $abbr = 'St';
+    public $abbr = 'Str';
     
     
     /**
@@ -56,12 +53,6 @@ class store_Transfers extends core_Master
      * @see plg_Clone
      */
     public $cloneDetails = 'store_TransfersDetails';
-    
-    
-    /**
-     * Кой може да сторнира
-     */
-    public $canRevert = 'storeMaster, ceo';
     
     
     /**
@@ -233,6 +224,8 @@ class store_Transfers extends core_Master
             'enum(draft=Чернова, active=Контиран, rejected=Сторниран,stopped=Спряно, pending=Заявка)', 
             'caption=Статус, input=none'
         );
+    	
+    	$this->setDbIndex('lineId');
     }
     
     
@@ -270,7 +263,7 @@ class store_Transfers extends core_Master
 	/**
      * След преобразуване на записа в четим за хора вид
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->valior = (isset($rec->valior)) ? $row->valior : ht::createHint('', 'Вальора ще бъде датата на контиране');
     	
@@ -317,7 +310,7 @@ class store_Transfers extends core_Master
      * @param store_Stores $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $data->form->setDefault('fromStore', store_Stores::getCurrent('id', FALSE));
         $folderCoverId = doc_Folders::fetchCoverId($data->form->rec->folderId);
@@ -343,7 +336,7 @@ class store_Transfers extends core_Master
 	/**
      * След изпращане на формата
      */
-    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
         if ($form->isSubmitted()) {
         	$rec = &$form->rec;
@@ -496,7 +489,7 @@ class store_Transfers extends core_Master
     /**
      * Изпълнява се след създаване на нов запис
      */
-    public static function on_AfterCreate($mvc, $rec)
+    protected static function on_AfterCreate($mvc, $rec)
     {
     	// Споделяме текущия потребител със нишката на заданието
     	$cu = core_Users::getCurrent();

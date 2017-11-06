@@ -259,17 +259,6 @@ class currency_Currencies extends core_Master {
     }
     
     
-    /**
-     * Връща заглавието и мярката на перото за продукта
-     *
-     * Част от интерфейса: intf_Register
-     */
-    public static function getAccItemRec($rec)
-    {
-        return (object) array('title' => $rec->code);
-    }
-    
-    
 	/**
      * Извиква се след SetUp-а на таблицата за модела
      */
