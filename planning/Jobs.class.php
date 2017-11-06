@@ -209,6 +209,8 @@ class planning_Jobs extends core_Master
     	$this->FLD('history', 'blob(serialize, compress)', 'caption=Данни,input=none');
     	
     	$this->setDbIndex('productId');
+    	$this->setDbIndex('oldJobId');
+    	$this->setDbIndex('saleId');
     }
     
     
@@ -749,7 +751,7 @@ class planning_Jobs extends core_Master
     	$row->authorId = $rec->createdBy;
     	$row->author = $this->getVerbal($rec, 'createdBy');
     	$row->state = $rec->state;
-    	$row->recTitle = $this->getRecTitle($rec);
+    	$row->recTitle = $row->title;
     	
     	return $row;
     }
