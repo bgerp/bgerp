@@ -467,6 +467,13 @@ class planning_Tasks extends core_Master
 			$pInfo = cat_Products::getProductInfo($rec->productId);
 			$rec->quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
 			$rec->title = cat_Products::getTitleById($rec->productId);
+			
+			if(empty($rec->id)){
+				$description = cat_Products::fetchField($form->rec->productId, 'info');
+				if(!empty($description)){
+					$rec->description = $description;
+				}
+			}
 		}
 	}
 	
@@ -687,9 +694,6 @@ class planning_Tasks extends core_Master
 		// За произвеждане може да се избере само артикула от заданието
 		$origin = doc_Containers::getDocument($rec->originId);
 		$originRec = $origin->fetch();
-		if(empty($rec->id)){
-			$form->setDefault('description', cat_Products::fetchField($originRec->productId, 'info'));
-		}
 		
 		// Добавяме допустимите опции
 		$products = cat_Products::getByProperty('canManifacture');
