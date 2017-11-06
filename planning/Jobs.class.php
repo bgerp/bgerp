@@ -594,10 +594,10 @@ class planning_Jobs extends core_Master
     	$row->quantity = $mvc->getFieldType('quantity')->toVerbal($rec->quantityFromTasks);
     	$Double = core_Type::getByName('double(smartRound)');
     	
-    	if(isset($rec->productId)){
+    	if(isset($rec->productId) && empty($fields['__isDetail'])){
     		$measureId = cat_Products::fetchField($rec->productId, 'measureId');
     		$shortUom = cat_UoM::getShortName($measureId);
-    		$rec->quantityFromTasks = planning_Tasks::getProducedQuantityForJob($rec->id);;
+    		$rec->quantityFromTasks = planning_Tasks::getProducedQuantityForJob($rec);
     		$rec->quantityFromTasks /= $rec->quantityInPack;
     		$row->quantityFromTasks = $Double->toVerbal($rec->quantityFromTasks);
     	}
@@ -697,6 +697,18 @@ class planning_Jobs extends core_Master
     			}
     			$row->batches = implode(', ', $batchArr);
     		}
+    		
+    		if(!$rec->quantityFromTasks){
+    			unset($row->quantityFromTasks, $row->quantityNotStored);
+    			unset($row->captionNotStored);
+    		} else {
+    			$row->measureId2 = $row->measureId;
+    			$row->quantityFromTasksCaption = tr('Произведено');
+    		}
+    		
+    		if(isset($rec->storeId)){
+    			$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
+    		}
     	}
     	
     	foreach (array('quantityProduced', 'quantityToProduce', 'quantityFromTasks', 'quantityNotStored') as $fld){
@@ -708,20 +720,6 @@ class planning_Jobs extends core_Master
     	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
     		if(isset($rec->dueDate)){
     			$row->dueDate = ht::createLink($row->dueDate, array('cal_Calendar', 'day', 'from' => $row->dueDate, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
-    		}
-    	}
-    	
-    	if($fields['-single']){
-    		if(!$rec->quantityFromTasks){
-    			unset($row->quantityFromTasks, $row->quantityNotStored);
-    			unset($row->captionNotStored);
-    		} else {
-    			$row->measureId2 = $row->measureId;
-    			$row->quantityFromTasksCaption = tr('Произведено');
-    		}
-    		
-    		if(isset($rec->storeId)){
-    			$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
     		}
     	}
     }
@@ -965,6 +963,8 @@ class planning_Jobs extends core_Master
     {
     	$data->rows = array();
     	$data->hideToolsCol = $data->hideSaleCol = TRUE;
+    	$fields = $this->selectFields();
+    	$fields['__isDetail'] = TRUE;
     	
     	// Намираме неоттеглените задания
     	$query = $this->getQuery();
@@ -972,7 +972,7 @@ class planning_Jobs extends core_Master
     	$query->where("#state != 'rejected'");
     	$query->orderBy("id", 'DESC');
     	while($rec = $query->fetch()){
-    		$data->rows[$rec->id] = $this->recToVerbal($rec);
+    		$data->rows[$rec->id] = $this->recToVerbal($rec, $fields);
     		if(isset($rec->saleId)){
     			$data->hideSaleCol = FALSE;
     		}
@@ -1021,7 +1021,7 @@ class planning_Jobs extends core_Master
     	 	$tpl->append($addBtn, 'title');
     	 }
     	 
-    	 $listFields = arr::make('tools=Пулт,title=Документ,dueDate=Падеж,saleId=Към продажба,packQuantity=Количество,quantityProduced=Произведено,packagingId=Мярка');
+    	 $listFields = arr::make('tools=Пулт,title=Документ,dueDate=Падеж,saleId=Към продажба,packQuantity=Планирано,quantityProduced=Заскладено,packagingId=Мярка');
     	 
     	 if($data->hideSaleCol){
     	 	unset($listFields['saleId']);
@@ -1297,5 +1297,18 @@ class planning_Jobs extends core_Master
     	}
     
     	return $result;
+    }
+    
+    
+    /**
+     * След намиране на текста за грешка на бутона за 'Приключване'
+     */
+    public function getCloseBtnError($rec)
+    {
+    	if(doc_Containers::fetchField("#threadId = {$rec->threadId} AND #state = 'pending'")){
+    		return 'Заданието не може да се приключи, защото има документи в състояние "Заявка"';
+    	}
+    	
+    	return NULL;
     }
 }

@@ -62,7 +62,7 @@ class planning_AssetResourcesNorms extends core_Detail
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'groupId,productId,packagingId,indTime,state';
+	public $listFields = 'groupId,productId,packagingId=Мярка/Опаковка,indTime,state';
 	
 	
 	/**

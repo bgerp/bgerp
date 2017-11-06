@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Базов клас за наследяване документи свързани със сделките
  *
@@ -8,41 +9,48 @@
  * @category  bgerp
  * @package   deals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 abstract class deals_Document extends deals_PaymentDocument
 {
     
-	/**
-	 * Полета от които се генерират ключови думи за търсене (@see plg_Search)
-	 */
-	public $searchFields = 'name, folderId, dealId, id';
     
-	
-	/**
+    /**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = "id, valior, name, folderId, currencyId=Валута, amount, state, createdOn, createdBy";
+	public $listFields = "valior, title=Документ, currencyId=Валута, folderId, amount, state, createdOn, createdBy";
 	
 	
 	/**
 	 * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
 	 */
-	public $rowToolsSingleField = 'name';
+	public $rowToolsSingleField = 'title';
 	
 	
 	/**
 	 * Полета свързани с цени
 	 */
-	public $priceFields = 'amount';
+	public $priceFields = 'amount,amountDeal,rate';
 	
 	
 	/**
 	 * Дали в листовия изглед да се показва бутона за добавяне
 	 */
 	public $listAddBtn = FALSE;
+	
+	
+	/**
+	 * Поле за филтриране по дата
+	 */
+	public $filterDateField = 'createdOn, valior,modifiedOn';
+	
+	
+	/**
+	 * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+	 */
+	public $searchFields = 'operationSysId,name,dealId,dealHandler,currencyId,description,contragentId,contragentClassId';
 	
 	
     /**
@@ -53,7 +61,7 @@ abstract class deals_Document extends deals_PaymentDocument
     	$mvc->FLD('operationSysId', 'varchar', 'caption=Операция,input=hidden');
     	$mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
     	$mvc->FLD('name', 'varchar(255)', 'caption=Име,mandatory');
-    	$mvc->FLD('dealId', 'key(mvc=findeals_Deals,select=detailedName,allowEmpty)', 'caption=Сделка,input=none');
+    	$mvc->FLD('dealId', 'key(mvc=findeals_Deals,select=dealName,allowEmpty)', 'caption=Сделка,input=none');
     	$mvc->FLD('amount', 'double(decimals=2)', 'caption=Платени,mandatory,summary=amount');
     	$mvc->FNC('dealHandler', 'varchar', 'caption=Насрещна сделка->Сделка,mandatory,input,silent,removeAndRefreshForm=currencyId|rate|amountDeal');
     	$mvc->FLD('amountDeal', 'double(decimals=2)', 'caption=Насрещна сделка->Заверени,mandatory,input=none');
@@ -232,25 +240,14 @@ abstract class deals_Document extends deals_PaymentDocument
 	/**
 	 *  Обработки по вербалното представяне на данните
 	 */
-	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+	protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
-		$row->number = $mvc->getHandle($rec->id);
+		$row->title = $mvc->getHyperlink($rec->id, TRUE);
 		 
 		if($fields['-single']){
-			$row->dealId = findeals_Deals::getHyperlink($rec->dealId, TRUE);
-	
-			$baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
-			$nextHandle = findeals_Deals::getHandle($rec->dealId);
-		
+			$row->nextHandle= findeals_Deals::getHyperlink($rec->dealId);
 			$origin = $mvc->getOrigin($rec->id);
-			$fromHandle = $origin->getHandle();
-			$row->dealHandle = "#" . $fromHandle;
-			$row->nextHandle = "#" . $nextHandle;
-			if(!Mode::isReadOnly()){
-				$row->dealHandle = ht::createLink($row->dealHandle, $origin->getSingleUrlArray());
-				$row->nextHandle = ht::createLink($row->nextHandle, findeals_Deals::getSingleUrlArray($rec->dealId));
-			}
-			
+			$row->dealHandle = $origin->getHyperlink();
 			$row->dealCurrencyId = $origin->fetchField('currencyId');
 		}
 	}

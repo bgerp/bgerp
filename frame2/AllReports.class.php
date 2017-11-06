@@ -182,6 +182,8 @@ class frame2_AllReports extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
+        $rec = $data->form->rec;
+        
         $intf = array();
         
         $interfaces = $interfaces2 = array();
@@ -213,6 +215,50 @@ class frame2_AllReports extends core_Master
         }
         
         $data->form->setOptions('source', $intf);
+        
+        // Проверки за права
+        
+        if ($rec->originId) {
+            expect($oRec = doc_Containers::fetch($rec->originId));
+            
+            // Трябва да имаме достъп до нишката на оригиналния документ
+            if (core_Users::haveRole('partner') && core_Packs::isInstalled('colab')) {
+                $tRec = doc_Threads::fetch($oRec->threadId);
+                colab_Threads::requireRightFor('single', $tRec);
+            } else {
+                if (!$mvc->haveRightFor('psingle', $rec)) {
+                    doc_Threads::requireRightFor('single', $oRec->threadId);
+                }
+            }
+            
+            $rec->threadId = $oRec->threadId;
+            $rec->folderId = $oRec->folderId;
+        }
+        
+        if($rec->threadId) {
+            $threadRec = doc_Threads::fetch($rec->threadId);
+            if (core_Packs::isInstalled('colab') && core_Users::haveRole('partner')){
+                colab_Threads::requireRightFor('single', $threadRec);
+            } else {
+                if (!$mvc->haveRightFor('psingle', $rec)) {
+                    doc_Threads::requireRightFor('single', $rec->threadId);
+                }
+            }
+            
+            $rec->folderId = $threadRec->folderId;
+        }
+        
+        if(!$rec->threadId && $rec->folderId && !doc_Folders::haveRightToFolder($rec->folderId)) {
+            if (core_Packs::isInstalled('colab') && haveRole('partner')) {
+                $userId = core_Users::getCurrent();
+                $colabFolders = colab_Folders::getSharedFolders($userId);
+                if(!in_array($rec->folderId, $colabFolders)){
+                    error('403 Недостъпен ресурс');
+                }
+            } else {
+                error('403 Недостъпен ресурс');
+            }
+        }
     }
     
     

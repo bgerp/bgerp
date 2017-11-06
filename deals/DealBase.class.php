@@ -187,6 +187,14 @@ abstract class deals_DealBase extends core_Master
     			$res = 'no_one';
     		}
     	}
+    	
+    	if($action == 'changerate' && isset($rec)){
+    		if($rec->currencyId == 'BGN' || $rec->currencyId == 'EUR'){
+    			$res = 'no_one';
+    		} elseif($rec->state == 'closed' || $rec->state == 'rejected'){
+    			$res = 'no_one';
+    		}
+    	}
     }
     
     
@@ -196,12 +204,16 @@ abstract class deals_DealBase extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	$rec = &$data->rec;
     	
     	if($mvc->haveRightFor('closeWith', $rec)) {
     		$data->toolbar->addBtn('Обединяване', array($mvc, 'closeWith', $rec->id), "id=btnCloseWith{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Обединяване на сделката с други сделки');
+    	}
+    	
+    	if($mvc->haveRightFor('changerate', $rec)) {
+    		$data->toolbar->addBtn('Промяна на курса', array($mvc, 'changeRate', $rec->id, 'ret_url' => TRUE), "id=changeRateBtn,row=2", 'ef_icon = img/16/arrow_refresh.png,title=Преизчисляване на курса на документите в нишката');
     	}
     }
     
@@ -725,5 +737,55 @@ abstract class deals_DealBase extends core_Master
     	}
     	
     	$data->DealHistory = $history;
+    }
+    
+    
+    /**
+     * Рекалкулиране на курса на документите в сделката
+     */
+    function act_Changerate()
+    {
+    	$this->requireRightFor('changerate');
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetchRec($id));
+    	$this->requireRightFor('changerate', $rec);
+    	 
+    	$form = cls::get('core_Form');
+    	$form->title = "|Преизчисляване на курса на документите в|* " . $this->getHyperlink($rec, TRUE);
+    	$form->info = tr("Стар курс|*: <b>{$rec->currencyRate}</b>");
+    	$form->FLD('newRate', 'double', 'caption=Нов курс,mandatory');
+    	$form->input();
+    	 
+    	if($form->isSubmitted()){
+    		$fRec = $form->rec;
+    
+    		// Рекалкулиране на сделката
+    		if($this instanceof findeals_Deals){
+    			$rec->currencyRate = $fRec->newRate;
+    			$this->save($rec);
+    			if($rec->state == 'active'){
+    				acc_Journal::deleteTransaction($this->getClassId(), $rec->id);
+    				acc_Journal::saveTransaction($this->getClassId(), $rec->id, FALSE);
+    			}
+    		} else {
+    			deals_Helper::recalcRate($this, $rec->id, $fRec->newRate);
+    		}
+    
+    		// Рекалкулиране на определени документи в нишката и
+    		$dealDocuments = $this->getDescendants($rec->id);
+    		$arr = array(store_ShipmentOrders::getClassId(), store_Receipts::getClassId(), sales_Services::getClassId(), purchase_Services::getClassId(), sales_Invoices::getClassId(), purchase_Invoices::getClassId());
+    		foreach ($dealDocuments as $d) {
+    			if(!in_array($d->getClassId(), $arr)) continue;
+    			deals_Helper::recalcRate($d->getInstance(), $d->fetch(), $fRec->newRate);
+    		}
+    		
+    		followRetUrl(NULL, 'Документите са преизчислени успешно');
+    	}
+    	 
+    	$form->toolbar->addSbBtn('Преизчисли', 'save', 'ef_icon = img/16/tick-circle-frame.png,warning=Ще преизчислите всички документи в нишката по новия курс');
+    	$form->toolbar->addBtn('Отказ', array($this, 'single', $id),  'ef_icon = img/16/close-red.png');
+    
+    	// Рендиране на формата
+    	return $this->renderWrapping($form->renderHtml());
     }
 }

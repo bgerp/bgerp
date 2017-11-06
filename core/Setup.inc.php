@@ -498,6 +498,9 @@ href=\"data:image/icon;base64,AAABAAEAEBAAAAAAAABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIA
 </ul>
 
 [#body#]
+
+<!-- filled_with_start_initialization_JS --!>
+        
 </div>
 </body>
 </html>";
@@ -917,7 +920,27 @@ if($step == 4) {
 }
 
 if($step == 5) {  
+    // Първоначално изтриване на Log-a
+    file_put_contents(EF_SETUP_LOG_PATH, "");
     $texts['body'] .= "<iframe src='{$selfUrl}&step=setup' name='init' id='init'></iframe>";
+    
+    // Слагаме кода за стартиране на сетъп процеса
+    $pURL =  parse_url($localUrl);
+    $localRelativUrl = substr($localUrl, strlen($pURL['scheme'] . "://" . $pURL['host']));
+    
+    $jsStart = "<script>
+    
+    function httpGet(theUrl)
+    {
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.open( \"GET\", theUrl, false ); // false for synchronous request
+    xmlHttp.send( null );
+    }
+    theUrl = '{$localRelativUrl}&step=start';
+    httpGet(theUrl);
+    
+    </script>";
+    $layout = str_replace('<!-- filled_with_start_initialization_JS --!>', $jsStart, $layout);
 }
 
 /**********************************
@@ -932,16 +955,12 @@ if ($step == 'setup') {
     $totalTables = 365; //366
     $percents = $persentsBase = $persentsLog = 0;
     $total = $totalTables*$calibrate + $totalRecords;
-
     // Пращаме стиловете
     echo ($texts['styles']);
- 
-    // Първоначално изтриване на Log-a
-    file_put_contents(EF_SETUP_LOG_PATH, "");
-    
+     
     // Стартираме инициализацията
-    contentFlush ("<h3 id='startHeader'>Стартиране на инициализацията ... <img src='{$localUrl}&step=start' width=1 height=1 ></h3>");
-
+    contentFlush ("<h3 id='startHeader'>Стартиране на инициализацията ... </h3>");
+    
     // Пращаме javascript-a за smooth скрол-а
     contentFlush("<script>
     var mouseDown = 0;
@@ -1080,11 +1099,10 @@ if($step == 'start') {
     // Следващият ред генерира notice,
     // но без него file_get_contents забива, ако трябва да връща повече от 0 байта
     @ob_end_clean();
-
+    
     header("Connection: close\r\n");
     header("Content-Encoding: none\r\n");
     ob_start();
-    echo $flagOK;
     $size = ob_get_length();
     header("Content-Length: $size");
     ob_end_flush();
@@ -1104,7 +1122,7 @@ if($step == 'start') {
     try {
         try {
             $res = $ef->install();
-            file_put_contents(EF_SETUP_LOG_PATH, 'Starting bgERP initialization...' . $res);
+            file_put_contents(EF_SETUP_LOG_PATH, 'Стартирана инициализация ...' . $res);
         } catch (core_exception_Expect $e) {
             file_put_contents(EF_SETUP_LOG_PATH, $res . "ERROR: " . $e->getMessage());
             reportException($e);
@@ -1134,7 +1152,9 @@ if ($efSaltGenerated) {
 }
 
 echo $layout;
+
 ob_flush();
+
 
 die;
 

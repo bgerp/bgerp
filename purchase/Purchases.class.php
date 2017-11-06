@@ -137,6 +137,12 @@ class purchase_Purchases extends deals_DealMaster
     
     
     /**
+     * Кой може да превалутира документите в нишката
+     */
+    public $canChangerate = 'ceo, purchaseMaster';
+    
+    
+    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
