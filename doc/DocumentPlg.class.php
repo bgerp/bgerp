@@ -1305,7 +1305,7 @@ class doc_DocumentPlg extends core_Plugin
     	    
     	    expect($rec->state != 'rejected');
     	    
-    	    expect(doclog_Documents::fetchHistoryFor($rec->containerId, $mId));
+    	    expect(doclog_Documents::opened($rec->containerId, $mId));
     	    
     	    $detArr = arr::make($mvc->details);
     	    
