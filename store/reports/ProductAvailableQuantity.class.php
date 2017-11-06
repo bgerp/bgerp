@@ -12,6 +12,8 @@
  */
 class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 {
+
+    const NUMBER_OF_ITEMS_TO_ADD = 50;
     
     
     /**
@@ -171,7 +173,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                             if ($prId->productId) {
 
                                 $prName = cat_Products::getTitleById($prId->productId, $escaped = TRUE);
-        
+
                                 $grDetails['name'][$k] = $prName;
                             }
 
@@ -190,11 +192,12 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
             $rec = $form->rec;
 
+            // Добавя цяла група артикули
             if ($form->cmd == 'refresh' && $rec->groupId) {
 
                 $rQuery = cat_Products::getQuery();
 
-                $grDetails = (array)$details;
+                $details = (array)$details;
 
                 $rQuery->where("#groups Like'%|{$rec->groupId}|%'");
 
@@ -210,9 +213,62 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
                 }
 
-                $jDetails = json_encode(self::removeRpeadValues($grDetails));
+                //Премахва артикули ако вече са добавени
+                if (is_array($grDetails['code'])) {
+                    foreach ($grDetails['code'] as $k => $v) {
 
-                $form->rec->additional = $jDetails;
+                        if ($details['code'] && in_array($v, $details['code'])) {
+
+                            unset($grDetails['code'][$k]);
+                            unset($grDetails['name'][$k]);
+                            unset($grDetails['minQuantity'][$k]);
+                            unset($grDetails['maxQuantity'][$k]);
+
+                        }
+                    }
+
+                }
+
+
+                //Ограничава броя на артикулите за добавяне
+                $count = 0;$countUnset = 0;
+                if (is_array($grDetails['code'])) {
+                    foreach ($grDetails['code'] as $k => $v){
+
+                        $count++;
+
+                        if ($count > self::NUMBER_OF_ITEMS_TO_ADD) {
+
+                            unset($grDetails['code'][$k]);
+                            unset($grDetails['name'][$k]);
+                            unset($grDetails['minQuantity'][$k]);
+                            unset($grDetails['maxQuantity'][$k]);
+                            $countUnset++;
+                            continue;
+
+                        }
+
+                       $details['code'][] = $grDetails['code'][$k];
+                       $details['name'][] = $grDetails['name'][$k];
+                       $details['minQuantity'][] = $grDetails['minQuantity'][$k];
+                       $details['maxQuantity'][] = $grDetails['maxQuantity'][$k];
+
+                    }
+
+                    if ($countUnset > 0){
+                        $groupName = cat_Products::getTitleById($grProduct->groupId);
+                        $maxArt = self::NUMBER_OF_ITEMS_TO_ADD;
+
+                        $form->setWarning('groupId',"$countUnset артикула от група \" $groupName \" няма да  бъдат добавени.
+                                                     Максимален брой артикули за еднократно добавяне - $maxArt.  
+                                                     Може да добавите още артикули от групата при следваща редакция.");
+                    }
+
+                }
+
+                $jDetails = json_encode($details);
+
+               $form->rec->additional = $jDetails;
             }
         }
     }
@@ -243,15 +299,21 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
         }
 
+
         $products->code = $tempProducts;
+
 
         foreach ($products->code as $key => $code) {
 
+
             if (!isset($products->code[$key])) {
 
-                $products->code[$key] = 0;
+                $code= 0;
             }
-            $productId = cat_Products::getByCode($products->code[$key])->productId;
+
+            $productId = cat_Products::getByCode($code)->productId;
+
+            $keis['keis'][] = array('key'=>$key,"$productId"=>cat_Products::getTitleById($productId));
 
             $query = store_Products::getQuery();
 
@@ -261,33 +323,41 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
                 $query->where("#storeId = $rec->storeId");
             }
+
             while ($recProduct = $query->fetch()) {
+
                 $id = $recProduct->productId;
 
-                $quantity = store_Products::getQuantity($id, $recProduct->storeId, FALSE);
+                $quantity = store_Products::getQuantity($id, $recProduct->storeId, TRUE);
 
                 // подготовка на показател "състояние" //
+                $quantityMark = '';
+
+                if (($quantity > (int)$products->maxQuantity[$key])) {
+
+                    $quantityMark = 'свръх наличност';
+
+                }
+
                 if (($quantity < (int)$products->minQuantity[$key])) {
 
                     $quantityMark = 'под минимум';
 
-                } elseif (($quantity > (int)$products->maxQuantity[$key])) {
+                }
 
-                    $quantityMark = 'свръх наличност';
-
-                } else {
+                if(($quantity >= (int)$products->minQantity[$key]) && ($quantity <= (int)$products->maxQuantity[$key])) {
 
                     $quantityMark = 'ok';
 
                 }
-                if (!($products->maxQuantity[$key])) {
-
-                    if ($quantity > $products->minQuantity[$key]) {
+                if (!($products->maxQuantity[$key]) && $quantity > (int)$products->minQuantity[$key]) {
 
                         $quantityMark = 'ok';
-                    }
-
                 }
+
+
+
+               // if ($key == 2){bp($quantity,(int)$products->minQuantity[$key],(int)$products->maxQuantity[$key], $quantityMark);}
 
                 if (!array_key_exists($id, $recs)) {
 
@@ -371,12 +441,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     protected function detailRecToVerbal($rec, &$dRec)
     {
         $Int = cls::get('type_Int');
-
-
-
-        if(($dRec->quantity>=$dRec->minQuantity) && ($dRec->quantity<=$dRec->maxQuantity)) {
-          $conditionColor = 'green';
-        }
+        $conditionColor = 'black';
 
         if($dRec->quantity < $dRec->minQuantity){
             $conditionColor = 'red';
@@ -385,6 +450,21 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         if ($dRec->quantity > $dRec->maxQuantity) {
             $conditionColor = 'blue';
         }
+
+        if(($dRec->quantity >= $dRec->minQuantity) && ($dRec->quantity<=$dRec->maxQuantity)) {
+            $conditionColor = 'green';
+        }
+
+        if (!$dRec->maxQantity){
+
+            if ($dRec->quantity >= $dRec->maxQuantity){
+                $conditionColor = 'green';
+
+            }
+        }
+
+
+
 
         $row = new stdClass();
 
@@ -430,25 +510,25 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         $tempArr = (array)$arr;
 
         $tempProducts = array();
-        if (is_array($tempArr)) {
+        if (is_array($tempArr['code'])) {
 
-        foreach ($tempArr['code'] as $k => $v) {
+            foreach ($tempArr['code'] as $k => $v) {
 
-            if (in_array($v, $tempProducts)) {
+                if (in_array($v, $tempProducts)) {
 
-                unset($tempArr['minQuantity'][$k]);
-                unset($tempArr['maxQuantity'][$k]);
-                unset($tempArr['name'][$k]);
-                unset($tempArr['code'][$k]);
-                continue;
+                    unset($tempArr['minQuantity'][$k]);
+                    unset($tempArr['maxQuantity'][$k]);
+                    unset($tempArr['name'][$k]);
+                    unset($tempArr['code'][$k]);
+                    continue;
 
+                }
+
+                $tempProducts[$k] = $v;
             }
-
-            $tempProducts[$k] = $v;
         }
-    }
 
-        $arr = $tempArr;
+        $groupNamerr = $tempArr;
 
         return $arr;
 

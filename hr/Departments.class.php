@@ -32,7 +32,7 @@ class hr_Departments extends core_Master
     /**
      * По кои сметки ще се правят справки
      */
-    public $balanceRefAccounts = '611,60020';
+    public $balanceRefAccounts = '60020';
     
     
     /**
@@ -65,12 +65,6 @@ class hr_Departments extends core_Master
     public $loadList = 'plg_RowTools2, hr_Wrapper, doc_FolderPlg, plg_State, plg_Rejected,
                         plg_Created, WorkingCycles=hr_WorkingCycles,acc_plg_Registry, plg_SaveAndNew, 
                         plg_TreeObject, plg_Modified, bgerp_plg_Blank';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,hrMaster';
     
     
     /**

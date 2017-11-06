@@ -158,7 +158,7 @@ class sales_Services extends deals_ServiceMaster
     /**
      * Стратегии за дефолт стойностти
      */
-    public static $defaultStrategies = array('received' => 'lastDocUser|lastDoc');
+    public static $defaultStrategies = array('received' => 'lastDocUser|lastDoc', 'template' => 'lastDocUser|lastDoc|defMethod');
     
     
     /**

@@ -587,9 +587,8 @@ abstract class deals_InvoiceMaster extends core_Master
     		$form->rec->contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
     	}
     	
-    	// При създаване на нова ф-ра зареждаме полетата на
-    	// формата с разумни стойности по подразбиране.
-    	$firstDocument = doc_Threads::getFirstDocument($form->rec->threadId);
+    	// При създаване на нова ф-ра зареждаме полетата на формата с разумни стойности по подразбиране.
+    	expect($firstDocument = doc_Threads::getFirstDocument($form->rec->threadId), $form->rec);
     	
     	$coverClass = doc_Folders::fetchCoverClassName($form->rec->folderId);
     	$coverId = doc_Folders::fetchCoverId($form->rec->folderId);
@@ -840,10 +839,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		$invoicePayments = deals_Helper::getInvoicePayments($rec->threadId);
     	}
     	
-    	$containerId = $rec->containerId;
-    	if($rec->type == 'dc_note'){
-    		$containerId = $rec->originId;
-    	}
+    	$containerId = ($rec->type != 'dc_note') ? $rec->containerId : $rec->originId;
     	
     	$paidArr = $invoicePayments[$containerId];
     	if(count($paidArr) && isset($paidArr)){
@@ -880,7 +876,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		core_Lg::pop();
     	}
     	
-    	if($fields['-list']){
+    	if(isset($fields['-list'])){
     		$row->number = ($rec->number) ? ht::createLink($row->number, $mvc->getSingleUrlArray($rec->id), NULL, 'ef_icon=img/16/invoice.png') : $mvc->getLink($rec->id, 0); 
     		$total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
     		$noVat = $rec->dealValue - $rec->discountAmount;
@@ -1013,7 +1009,10 @@ abstract class deals_InvoiceMaster extends core_Master
     public static function getRecTitle($rec, $escaped = TRUE)
     {
     	$row = new stdClass();
-    	$row->type = static::getVerbal($rec, 'type');
+    	$me = cls::get(get_called_class());
+    	if(!$me->getField('type', FALSE)) return parent::getRecTitle($rec, $escaped);
+    	
+    	$row->type = $me->getVerbal($rec, 'type');
     	if($rec->type == 'dc_note'){
     		$row->type = ($rec->dealValue <= 0) ? 'Кредитно известие' : 'Дебитно известие';
     	}

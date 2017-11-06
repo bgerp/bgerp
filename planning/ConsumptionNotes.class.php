@@ -1,11 +1,9 @@
 <?php
 
 
+
 /**
  * Клас 'planning_ConsumptionNotes' - Документ за Протокол за влагане в производството
- *
- * 
- *
  *
  * @category  bgerp
  * @package   planning
@@ -187,7 +185,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	 * @param stdClass $row Това ще се покаже
 	 * @param stdClass $rec Това е записа в машинно представяне
 	 */
-	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+	protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 		$row->useResourceAccounts = ($rec->useResourceAccounts == 'yes') ? 'Артикулите ще бъдат вкарани в производството по артикули' : 'Артикулите ще бъдат вложени в производството сумарно';
 		$row->useResourceAccounts = tr($row->useResourceAccounts);
@@ -201,7 +199,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	/**
 	 * Изпълнява се след създаване на нов запис
 	 */
-	public static function on_AfterCreate($mvc, $rec)
+	protected static function on_AfterCreate($mvc, $rec)
 	{
 		// Ако документа е клониран пропуска се
 		if($rec->_isClone === TRUE) return;
