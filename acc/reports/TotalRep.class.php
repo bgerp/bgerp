@@ -117,6 +117,7 @@ class acc_reports_TotalRep extends frame2_driver_TableData
                 }
                 $delta += $recIndic->value;
             }
+
             $res->period = "{$month}/{$year}";
             $res->speed = round(100 * $delta/$target, 2);
 
@@ -140,7 +141,7 @@ class acc_reports_TotalRep extends frame2_driver_TableData
 	
 	 
 	    $fld->FLD('period', 'varchar','caption=Период');
-	    $fld->FLD('speed', 'varchar', 'caption=Резултат');
+	    $fld->FLD('speed', 'double', 'caption=Резултат');
 	 
 		return $fld;
 	}
@@ -154,7 +155,7 @@ class acc_reports_TotalRep extends frame2_driver_TableData
 	 * @return stdClass $row - вербалния запис
 	 */
 	protected function detailRecToVerbal($rec, &$dRec)
-	{
+	{ 
 		$isPlain = Mode::is('text', 'plain');
 		$Int = cls::get('type_Int');
 		$Date = cls::get('type_Date');
@@ -162,14 +163,14 @@ class acc_reports_TotalRep extends frame2_driver_TableData
 		$Double->params['decimals'] = 2;
 		$row = new stdClass();
 
-	    $row->speed = $Int->toVerbal($dRec->speed);
+	    $row->speed = $Double->toVerbal($dRec->speed);
 	    $row->period = $dRec->period;
         
         if($row->period == $key = date("m/Y")) {
             $row->ROW_ATTR['class'] = 'highlight';
         }
-
-		return $row;
+ 
+        return $row;
 	}
 
     /**

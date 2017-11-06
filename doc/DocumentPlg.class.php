@@ -1314,7 +1314,7 @@ class doc_DocumentPlg extends core_Plugin
     	    $recs = array();
     	    $csvFields = new core_FieldSet();
     	    
-    	    $res = new Redirect(getRetUrl(), '|Няма данни за експорт', 'warning');
+    	    $res = new Redirect(getRetUrl(), '|Няма данни за експорт');
     	    
     	    foreach ($detArr as $dName) {
     	        if (!cls::load($dName, TRUE)) continue;
