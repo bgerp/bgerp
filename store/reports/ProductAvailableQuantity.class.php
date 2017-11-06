@@ -13,7 +13,7 @@
 class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 {
 
-    const NUMBER_OF_ITEMS_TO_ADD = 10;
+    const NUMBER_OF_ITEMS_TO_ADD = 50;
     
     
     /**
@@ -192,6 +192,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
             $rec = $form->rec;
 
+            // Добавя цяла група артикули
             if ($form->cmd == 'refresh' && $rec->groupId) {
 
                 $rQuery = cat_Products::getQuery();
@@ -212,6 +213,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
                 }
 
+                //Премахва артикули ако вече са добавени
                 if (is_array($grDetails['code'])) {
                     foreach ($grDetails['code'] as $k => $v) {
 
@@ -227,6 +229,8 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
                 }
 
+
+                //Ограничава броя на артикулите за добавяне
                 $count = 0;$countUnset = 0;
                 if (is_array($grDetails['code'])) {
                     foreach ($grDetails['code'] as $k => $v){
@@ -244,17 +248,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
                         }
 
-                        $details['code'][] = $grDetails['code'][$k];
-
-                        bp($grProduct);
-
-                        if ($grDetails['name'][$k] && !$grDetails['code'][$k]){
-
-                            $grDetails['code'][$k] = cat_Products::setCodeIfEmpty($grProduct);
-
-                        }
-
-
+                       $details['code'][] = $grDetails['code'][$k];
                        $details['name'][] = $grDetails['name'][$k];
                        $details['minQuantity'][] = $grDetails['minQuantity'][$k];
                        $details['maxQuantity'][] = $grDetails['maxQuantity'][$k];
@@ -305,15 +299,21 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
         }
 
+
         $products->code = $tempProducts;
+
 
         foreach ($products->code as $key => $code) {
 
+
             if (!isset($products->code[$key])) {
 
-                $products->code[$key] = 0;
+                $code= 0;
             }
-            $productId = cat_Products::getByCode($products->code[$key])->productId;
+
+            $productId = cat_Products::getByCode($code)->productId;
+
+            $keis['keis'][] = array('key'=>$key,"$productId"=>cat_Products::getTitleById($productId));
 
             $query = store_Products::getQuery();
 
@@ -330,29 +330,34 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
                 $quantity = store_Products::getQuantity($id, $recProduct->storeId, TRUE);
 
-
                 // подготовка на показател "състояние" //
+                $quantityMark = '';
+
+                if (($quantity > (int)$products->maxQuantity[$key])) {
+
+                    $quantityMark = 'свръх наличност';
+
+                }
+
                 if (($quantity < (int)$products->minQuantity[$key])) {
 
                     $quantityMark = 'под минимум';
 
-                } elseif (($quantity > (int)$products->maxQuantity[$key])) {
+                }
 
-                    $quantityMark = 'свръх наличност';
-
-                } else {
+                if(($quantity >= (int)$products->minQantity[$key]) && ($quantity <= (int)$products->maxQuantity[$key])) {
 
                     $quantityMark = 'ok';
 
                 }
-                if (!($products->maxQuantity[$key])) {
-
-                    if ($quantity > $products->minQuantity[$key]) {
+                if (!($products->maxQuantity[$key]) && $quantity > (int)$products->minQuantity[$key]) {
 
                         $quantityMark = 'ok';
-                    }
-
                 }
+
+
+
+               // if ($key == 2){bp($quantity,(int)$products->minQuantity[$key],(int)$products->maxQuantity[$key], $quantityMark);}
 
                 if (!array_key_exists($id, $recs)) {
 
@@ -436,12 +441,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     protected function detailRecToVerbal($rec, &$dRec)
     {
         $Int = cls::get('type_Int');
-
-
-
-        if(($dRec->quantity>=$dRec->minQuantity) && ($dRec->quantity<=$dRec->maxQuantity)) {
-          $conditionColor = 'green';
-        }
+        $conditionColor = 'black';
 
         if($dRec->quantity < $dRec->minQuantity){
             $conditionColor = 'red';
@@ -450,6 +450,21 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         if ($dRec->quantity > $dRec->maxQuantity) {
             $conditionColor = 'blue';
         }
+
+        if(($dRec->quantity >= $dRec->minQuantity) && ($dRec->quantity<=$dRec->maxQuantity)) {
+            $conditionColor = 'green';
+        }
+
+        if (!$dRec->maxQantity){
+
+            if ($dRec->quantity >= $dRec->maxQuantity){
+                $conditionColor = 'green';
+
+            }
+        }
+
+
+
 
         $row = new stdClass();
 
@@ -487,12 +502,12 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
     /**
      *Изчиства повтарящи се стойности във формата
-     * @param $groupNamerr
+     * @param $arr
      * @return array
      */
-    static function removeRpeadValues ($groupNamerr)
+    static function removeRpeadValues ($arr)
     {
-        $tempArr = (array)$groupNamerr;
+        $tempArr = (array)$arr;
 
         $tempProducts = array();
         if (is_array($tempArr['code'])) {
@@ -515,7 +530,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
         $groupNamerr = $tempArr;
 
-        return $groupNamerr;
+        return $arr;
 
     }
 

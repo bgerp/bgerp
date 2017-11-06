@@ -223,8 +223,21 @@ class bgerp_L extends core_Manager
                 }
             }
             
-            if (!haveRole('user') && doc_PdfCreator::canConvert()) {
-                $html->append(ht::createLink(tr('Свали като PDF'), array($this, 'pdf', $cid, 'mid' => $mid, 'ret_url' => TRUE), NULL, array('class' => 'hideLink')));
+            if (!haveRole('user')) {
+                if (doc_PdfCreator::canConvert()) {
+                    $html->append(ht::createLink(tr('Свали като PDF'), array($this, 'pdf', $cid, 'mid' => $mid, 'ret_url' => TRUE), NULL, array('class' => 'hideLink')));
+                }
+                
+                $exportArr = array();
+                try {
+                    $exportArr = $doc->getExportUrl($mid);
+                } catch (core_exception_Expect $e) {
+                    reportException($e);
+                }
+                
+                if (!empty($exportArr)) {
+                    $html->append(ht::createLink(tr('Експорт'), $exportArr, NULL, array('class' => 'hideLink')));
+                }
             }
             
             return $html;
