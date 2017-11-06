@@ -522,13 +522,14 @@ class planning_Tasks extends core_Master
 	public function updateMaster_($id)
 	{
 		$rec = $this->fetch($id);
-		 
+		$quantityInPack = ($rec->quantityInPack) ? $rec->quantityInPack : 1;
+		
 		// Колко е общото к-во досега
 		$dQuery = planning_ProductionTaskDetails::getQuery();
 		$dQuery->where("#taskId = {$rec->id} AND #productId = {$rec->productId} AND #type = 'production' AND #state != 'rejected'");
-		$dQuery->XPR('sumQuantity', 'double', "SUM(#quantity / {$rec->quantityInPack})");
+		$dQuery->XPR('sumQuantity', 'double', "SUM(#quantity / {$quantityInPack})");
 		$dQuery->XPR('sumWeight', 'double', 'SUM(#weight)');
-		$dQuery->XPR('sumScrappedQuantity', 'double', "SUM(#scrappedQuantity / {$rec->quantityInPack})");
+		$dQuery->XPR('sumScrappedQuantity', 'double', "SUM(#scrappedQuantity / {$quantityInPack})");
 		$dQuery->show('sumQuantity,sumWeight,sumScrappedQuantity');
 			
 		$res = $dQuery->fetch();
