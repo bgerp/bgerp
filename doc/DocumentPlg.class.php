@@ -1305,7 +1305,7 @@ class doc_DocumentPlg extends core_Plugin
     	    
     	    expect($rec->state != 'rejected');
     	    
-    	    expect(doclog_Documents::fetchHistoryFor($rec->containerId, $mId));
+    	    expect(doclog_Documents::opened($rec->containerId, $mId));
     	    
     	    $detArr = arr::make($mvc->details);
     	    
@@ -1322,6 +1322,8 @@ class doc_DocumentPlg extends core_Plugin
     	        $dInst = cls::get($dName);
     	        
     	        if (!$dInst->fields[$mvc->exportInExternalField]) continue;
+    	        
+    	        if (!$dInst->masterKey) continue;
     	        
     	        // Подготвяме полетата, които ще се експортират
     	        $exportArr = arr::make($mvc->exportInExternalFieldAll, TRUE);
@@ -4394,6 +4396,8 @@ class doc_DocumentPlg extends core_Plugin
             $dInst = cls::get($dName);
             
             if (!$dInst->fields[$mvc->exportInExternalField]) continue;
+            
+            if (!$dInst->masterKey) continue;
             
             $res = array($mvc, 'exportInExternal', $id, 'mid' => $mid, 'ret_url' => TRUE);
             
