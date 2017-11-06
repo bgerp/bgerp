@@ -117,6 +117,7 @@ class acc_reports_TotalRep extends frame2_driver_TableData
                 }
                 $delta += $recIndic->value;
             }
+
             $res->period = "{$month}/{$year}";
             $res->speed = round(100 * $delta/$target, 2);
 
@@ -140,7 +141,7 @@ class acc_reports_TotalRep extends frame2_driver_TableData
 	
 	 
 	    $fld->FLD('period', 'varchar','caption=Период');
-	    $fld->FLD('speed', 'varchar', 'caption=Резултат');
+	    $fld->FLD('speed', 'double', 'caption=Резултат');
 	 
 		return $fld;
 	}
@@ -154,7 +155,7 @@ class acc_reports_TotalRep extends frame2_driver_TableData
 	 * @return stdClass $row - вербалния запис
 	 */
 	protected function detailRecToVerbal($rec, &$dRec)
-	{
+	{ 
 		$isPlain = Mode::is('text', 'plain');
 		$Int = cls::get('type_Int');
 		$Date = cls::get('type_Date');
@@ -162,10 +163,14 @@ class acc_reports_TotalRep extends frame2_driver_TableData
 		$Double->params['decimals'] = 2;
 		$row = new stdClass();
 
-	    $row->speed = $Int->toVerbal($dRec->speed);
+	    $row->speed = $Double->toVerbal($dRec->speed);
 	    $row->period = $dRec->period;
+        
+        if($row->period == $key = date("m/Y")) {
+            $row->ROW_ATTR['class'] = 'highlight';
+        }
  
-		return $row;
+        return $row;
 	}
 
     /**
@@ -181,20 +186,24 @@ class acc_reports_TotalRep extends frame2_driver_TableData
         $arr = array();
         
         $key = date("m/Y");
- 
-        $value = $data->rec->data->recs[$key]->speed;
         
-        if(!($value >= 60 && $value <=140)) return;
+        $ratio = self::getWorkingDaysBetween(date("Y-m-01"), dt::now()) / self::getWorkingDaysBetween(date("Y-m-01"),  date("Y-m-t"));
+ 
+        if($ratio == 0) return;
+
+        $value = $data->rec->data->recs[$key]->speed / $ratio;
+
+        if(!($value >= 40 && $value <=160)) return;
 
         $scale = array(
-            'majorTicks' => array(60, 80, 100, 120, 140),
-            'minValue' => 60,
-            'maxValue' => 140,
+            'majorTicks' => array(40, 60, 80, 100, 120, 140, 160),
+            'minValue' => 40,
+            'maxValue' => 160,
             'units' => '%',
             'highlights' => array(
-                (object) array('from' => 60, 'to' =>80, 'color' => '#ff6600'),
+                (object) array('from' => 40, 'to' =>80, 'color' => '#ff6600'),
                 (object) array('from' => 80, 'to' =>100, 'color' => '#ffcc66'),
-                (object) array('from' => 100, 'to' =>140, 'color' => '#66ff00'),
+                (object) array('from' => 100, 'to' =>160, 'color' => '#66ff00'),
 
             ),
         );
@@ -202,6 +211,23 @@ class acc_reports_TotalRep extends frame2_driver_TableData
         $gauge = canvasgauge_Gauge::drawRadial($value, NULL, $scale); 
 
         $tpl->append($gauge, 'DRIVER_FIELDS');
+    }
+
+    /**
+     * Връша броя на работните дни между посочените дати
+     */
+    private static function getWorkingDaysBetween($from, $to)
+    {
+        $res = 0;
+
+        while($from <= $to) {
+            if(!cal_Calendar::isHoliday($from)) {
+                $res++;
+            }
+            $from = dt::addDays(1, $from);
+        }
+
+        return $res;
     }
     
     
