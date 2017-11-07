@@ -5204,6 +5204,10 @@ body.narrow {
 		font-size: 0.9em;
 		margin-bottom: 10px;
 		margin-top: -6px;
+		&.inlineLinks {
+			margin-left: 0;
+			display: inline-block;
+		}
 	}
 }
 

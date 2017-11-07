@@ -217,15 +217,16 @@ class bgerp_L extends core_Manager
                 foreach ($emailsArr as $email) {
                     if (!core_Users::fetch(array("#email = '[#1#]' AND #state = 'active'", $email))) continue;
 
-                    $html->append(ht::createLink(tr('Логнете се, за да видите нишката'), array('core_Users', 'login', 'ret_url' => TRUE), NULL, array('class' => 'hideLink')));
-                    
+                    $html->append(ht::createLink(tr('Логнете се, за да видите нишката'), array('core_Users', 'login', 'ret_url' => TRUE), NULL, array('class' => 'hideLink', 'ef_icon' => 'img/16/key.png')));
                     break;
                 }
             }
             
-            if (!haveRole('user')) {
+            if (!haveRole('user') && (doc_PdfCreator::canConvert() || !empty($exportArr))) {
+                $html->append("<div class='hideLink'>Свали като: ");
+
                 if (doc_PdfCreator::canConvert()) {
-                    $html->append(ht::createLink(tr('Свали като PDF'), array($this, 'pdf', $cid, 'mid' => $mid, 'ret_url' => TRUE), NULL, array('class' => 'hideLink')));
+                    $html->append(ht::createLink(tr('PDF'), array($this, 'pdf', $cid, 'mid' => $mid, 'ret_url' => TRUE), NULL, array('class' => 'hideLink inlineLinks', 'ef_icon' => 'fileman/icons/16/pdf.png')));
                 }
                 
                 $exportArr = array();
@@ -234,10 +235,15 @@ class bgerp_L extends core_Manager
                 } catch (core_exception_Expect $e) {
                     reportException($e);
                 }
-                
-                if (!empty($exportArr)) {
-                    $html->append(ht::createLink(tr('Експорт'), $exportArr, NULL, array('class' => 'hideLink')));
+
+                if (doc_PdfCreator::canConvert() && !empty($exportArr)) {
+                    $html->append( " | ");
                 }
+
+                if (!empty($exportArr)) {
+                    $html->append(ht::createLink(tr('CSV'), $exportArr, NULL, array('class' => 'hideLink inlineLinks',  'ef_icon' => 'fileman/icons/16/csv.png')));
+                }
+                $html->append("</div>");
             }
             
             return $html;
