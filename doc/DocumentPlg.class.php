@@ -1311,9 +1311,8 @@ class doc_DocumentPlg extends core_Plugin
     	    $recs = array();
     	    
     	    try {
-    	        
     	        if (strpos($mvc->exportInExternalField, '=')) {
-    	            list($exportFStr, $exportFCls) = explode('=', $mvc->exportInExternalField);
+    	            list(,$exportFCls) = explode('=', $mvc->exportInExternalField);
     	            $csvFields = new core_FieldSet();
     	            $recs = $exportFCls::getRecsForExportInExternal($mvc, $id, $mId, $csvFields);
     	        }

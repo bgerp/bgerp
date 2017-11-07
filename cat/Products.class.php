@@ -3018,9 +3018,9 @@ class cat_Products extends embed_Manager {
                 if ($fFieldsArr['batch'] && $mRec->{$mvc->storeFieldName}) {
                     
                     $Def = batch_Defs::getBatchDef($dRec->{$dInst->productFld});
-                    if ($recs[$dRec->id] && isset($recs[$dRec->id]->quantity) && $Def) {
+                    if ($recs[$dRec->id] && isset($recs[$dRec->id]->packQuantity) && $Def) {
                         if (!$csvFields->fields['batch']) {
-                            $csvFields->FLD($k, 'text', "caption=Партида");
+                            $csvFields->FLD('batch', 'text', "caption=Партида");
                         }
                         
                         $bQuery = batch_BatchesInDocuments::getQuery();
@@ -3046,15 +3046,15 @@ class cat_Products extends embed_Manager {
                             
                             $bName = $dRec->id . '_' . $bRec->id;
                             $recs[$bName] = $oRec;
-                            $recs[$bName]->quantity = $bRec->quantity;
+                            $recs[$bName]->packQuantity = $bRec->packQuantity;
                             $recs[$bName]->batch = $bRec->batch;
-                            $recs[$dRec->id]->quantity -= $recs[$bName]->quantity;
+                            $recs[$dRec->id]->packQuantity -= $recs[$bName]->packQuantity;
                             
                             $haveBatch = TRUE;
                         }
                         
                         if ($haveBatch) {
-                            if ($recs[$dRec->id]->quantity > 0) {
+                            if ($recs[$dRec->id]->packQuantity > 0) {
                                 // За да се подреди под другите записи от същия продукт
                                 $noBRec = $recs[$dRec->id];
                                 unset($recs[$dRec->id]);
