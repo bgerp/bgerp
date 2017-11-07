@@ -658,6 +658,12 @@ class planning_Jobs extends core_Master
     		}
     	}
     	
+    	foreach (array('quantityProduced', 'quantityToProduce', 'quantityFromTasks', 'quantityNotStored') as $fld){
+    		if(empty($rec->{$fld})){
+    			$row->{$fld} = "<b class='quiet'>{$row->{$fld}}</b>";
+    		}
+    	}
+    		
     	if($fields['-single']){
     		$canStore = cat_Products::fetchField($rec->productId, 'canStore');
     		$row->captionProduced = ($canStore == 'yes') ? tr('Заскладено') : tr('Изпълнено');
@@ -710,12 +716,6 @@ class planning_Jobs extends core_Master
     		
     		if(isset($rec->storeId)){
     			$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
-    		}
-    	}
-    	
-    	foreach (array('quantityProduced', 'quantityToProduce', 'quantityFromTasks', 'quantityNotStored') as $fld){
-    		if(empty($rec->{$fld})){
-    			$row->{$fld} = "<b class='quiet'>{$row->{$fld}}</b>";
     		}
     	}
     		
