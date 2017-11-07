@@ -1307,6 +1307,10 @@ class doc_DocumentPlg extends core_Plugin
     	    
     	    expect(doclog_Documents::opened($rec->containerId, $mId));
     	    
+    	    $lg = doc_Containers::getLanguage($rec->containerId);
+    	    
+    	    core_Lg::push($lg);
+    	    
     	    $detArr = arr::make($mvc->details);
     	    
     	    expect(!empty($detArr));
@@ -1463,6 +1467,10 @@ class doc_DocumentPlg extends core_Plugin
     	    if (!empty($recs)) {
     	        $csv = csv_Lib::createCsv($recs, $csvFields);
     	        
+    	        if ($lg) {
+    	            core_Lg::pop();
+    	        }
+    	        
     	        $fileName = $mvc->getHandle($rec->id) . '_Export.csv';
     	        
     	        $fileName = str_replace(' ', '_', Str::utf2ascii($fileName));
@@ -1475,6 +1483,10 @@ class doc_DocumentPlg extends core_Plugin
     	        echo $csv;
     	        
     	        shutdown();
+    	    }
+    	    
+    	    if ($lg) {
+    	        core_Lg::pop();
     	    }
     	    
     	    return FALSE;
