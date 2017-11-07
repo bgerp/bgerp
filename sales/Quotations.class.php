@@ -294,6 +294,7 @@ class sales_Quotations extends core_Master
        		$origin = doc_Containers::getDocument($rec->originId);
        		
        		if($origin->haveInterface('cat_ProductAccRegIntf')){
+       			$rec->productId = $origin->that;
        			
        			// Ако продукта има ориджин който е запитване вземаме количествата от него по дефолт
        			if($productOrigin = $origin->fetchField('originId')){
@@ -388,13 +389,19 @@ class sales_Quotations extends core_Master
 	    	$rec = &$form->rec;
 	    	
 	    	// Ако има проверка на к-та от запитването
-	    	$errorFields = $allQuantities = array();
+	    	$errorFields2 = $errorFields = $allQuantities = array();
 	    	$checArr = array('1' => $rec->row1, '2' => $rec->row2, '3' => $rec->row3);
 	    	foreach ($checArr as $k => $v){
 	    		if(!empty($v)){
 	    			$parts = type_ComplexType::getParts($v);
 	    			$rec->{"quantity{$k}"} = $parts['left'];
 	    			$rec->{"price{$k}"} = ($parts['right'] === '') ? NULL : $parts['right'];
+	    			
+	    			if($moq = cat_Products::getMoq($rec->productId)){
+	    				if(!empty($rec->{"quantity{$k}"}) && $rec->{"quantity{$k}"} < $moq){
+	    					$errorFields2[] = "row{$k}";
+	    				}
+	    			}
 	    			
 	    			if(in_array($parts['left'], $allQuantities)){
 	    				$errorFields[] = "row{$k}";
@@ -407,6 +414,9 @@ class sales_Quotations extends core_Master
 	    	// Ако има повтарящи се полета
 	    	if(count($errorFields)){
 	    		$form->setError($errorFields, "Количествата трябва да са различни");
+	    	} elseif(count($errorFields2)){
+	    		$moq = core_Type::getByName('double(smartRound)')->toVerbal($moq);
+	    		$form->setError($errorFields2, "Минимално количество за поръчка|* <b>{$moq}</b>");
 	    	}
 	    	
 	    	if(empty($rec->currencyRate)){
