@@ -54,6 +54,8 @@ class deals_plg_EditClonedDetails extends core_Plugin
 		$detailsToClone = $mvc->getDetailsToCloneAndChange($rec, $Detail);
 		setIfNot($Detail, cls::get($mvc->mainDetail));
 		if(!count($detailsToClone)) return;
+		setIfNot($Detail->productFld, 'productId');
+		setIfNot($Detail->quantityFld, 'quantity');
 		
 		$rec->details = array();
 		
@@ -87,12 +89,12 @@ class deals_plg_EditClonedDetails extends core_Plugin
 				}
 				$rec->details[$dRec->id]->newPackQuantity = 0;
 				
-				$quantity = $dRec->quantity / $dRec->quantityInPack;
+				$quantity = $dRec->{$Detail->quantityFld} / $dRec->quantityInPack;
 				while($bRec = $bQuery->fetch()){
 					$verbal = strip_tags($Def->toVerbal($bRec->batch));
 					$b = str_replace(',', '', $bRec->batch);
 					$b = str_replace('.', '', $b);
-					$bQuantity = $bRec->quantity / $bRec->quantityInPack;
+					$bQuantity = $bRec->{$Detail->quantityFld} / $bRec->quantityInPack;
 					$quantity -= $bQuantity;
 					
 					$max = ($Def instanceof batch_definitions_Serial) ? 'max=1' : '';
