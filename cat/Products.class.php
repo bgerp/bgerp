@@ -3046,7 +3046,7 @@ class cat_Products extends embed_Manager {
                             
                             $bName = $dRec->id . '_' . $bRec->id;
                             $recs[$bName] = $oRec;
-                            $recs[$bName]->packQuantity = $bRec->packQuantity;
+                            $recs[$bName]->packQuantity = $bRec->quantity;
                             $recs[$bName]->batch = $bRec->batch;
                             $recs[$dRec->id]->packQuantity -= $recs[$bName]->packQuantity;
                             
