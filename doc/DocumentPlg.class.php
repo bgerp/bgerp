@@ -150,7 +150,7 @@ class doc_DocumentPlg extends core_Plugin
         
         // За експорт при принтиране
         setIfNot($mvc->exportInExternalField, 'productId=cat_Products');
-        setIfNot($mvc->exportInExternalFieldAll, 'productId=code, quantity, packagingId, packPrice, batch');
+        setIfNot($mvc->exportInExternalFieldAll, 'productId=code, packQuantity, packagingId, packPrice, batch');
     }
     
     
@@ -1326,7 +1326,7 @@ class doc_DocumentPlg extends core_Plugin
     	            core_Lg::pop();
     	        }
     	        
-    	        $fileName = $mvc->getHandle($rec->id) . '_Export.csv';
+    	        $fileName = $mvc->getHandle($mRec->id) . '_Export.csv';
     	        
     	        $fileName = str_replace(' ', '_', Str::utf2ascii($fileName));
     	        
