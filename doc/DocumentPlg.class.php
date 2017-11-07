@@ -150,7 +150,7 @@ class doc_DocumentPlg extends core_Plugin
         
         // За експорт при принтиране
         setIfNot($mvc->exportInExternalField, 'productId');
-        setIfNot($mvc->exportInExternalFieldAll, 'productId=code, packagingId, quantity, quantityInPack, packQuantity, packPrice, price, discount, amount');
+        setIfNot($mvc->exportInExternalFieldAll, 'productId=code, quantity, packagingId, packPrice, batch');
     }
     
     
@@ -1321,15 +1321,23 @@ class doc_DocumentPlg extends core_Plugin
     	        
     	        $dInst = cls::get($dName);
     	        
+    	        $detClsId = $dInst->getClassId();
+    	        
     	        if (!$dInst->fields[$mvc->exportInExternalField]) continue;
     	        
     	        if (!$dInst->masterKey) continue;
     	        
     	        // Подготвяме полетата, които ще се експортират
     	        $exportArr = arr::make($mvc->exportInExternalFieldAll, TRUE);
+    	        
+    	        // Хак за бачовете - ако не е инсталиран пакета - премахваме
+    	        if ($exportArr['batch'] && !core_Packs::isInstalled('batch')) {
+    	            unset($exportArr['batch']);
+    	        }
+    	        
     	        foreach ($exportArr as $eName => $eFields) {
     	            if ($eName == $eFields) {
-    	                $fFieldsArr[$eName] = $vArr;
+    	                $fFieldsArr[$eName] = $eName;
     	            } else {
     	                $fFieldsArr[$eName] = explode('|', $eFields);
     	            }
@@ -1338,12 +1346,15 @@ class doc_DocumentPlg extends core_Plugin
     	        $dQuery = $dInst->getQuery();
     	        $dQuery->where(array("#{$dInst->masterKey} = {$rec->id}"));
     	        
+    	        $dQuery->orderBy('id', 'ASC');
+    	        
     	        while ($dRec = $dQuery->fetch()) {
     	            if (!$recs[$dRec->id]) {
     	                $recs[$dRec->id] = new stdClass();
     	            }
     	            
     	            foreach ($fFieldsArr as $k => $vArr) {
+    	                
     	                if (!$dInst->fields[$k]) continue;
     	                
     	                if (is_array($vArr) && $dInst->fields[$k]->type->params['mvc']) {
@@ -1385,6 +1396,65 @@ class doc_DocumentPlg extends core_Plugin
     	                    }
     	                }
     	            }
+    	            
+    	            // Хак за добавяне на отстъпката към цената
+    	            if ($fFieldsArr['packPrice']) {
+    	                if ($recs[$dRec->id]->packPrice && $dRec->discount) {
+    	                    $recs[$dRec->id]->packPrice -= ($recs[$dRec->id]->packPrice * $dRec->discount);
+    	                }
+    	            }
+    	            
+    	            // Хак за бачовете
+    	            if ($fFieldsArr['batch'] && $rec->{$mvc->storeFieldName}) {
+    	                
+    	                $Def = batch_Defs::getBatchDef($dRec->{$dInst->productFld});
+    	                if ($recs[$dRec->id] && isset($recs[$dRec->id]->quantity) && $Def) {
+        	                if (!$csvFields->fields['batch']) {
+        	                    $csvFields->FLD($k, 'text', "caption=Партида");
+        	                }
+        	                
+        	                $bQuery = batch_BatchesInDocuments::getQuery();
+        	                
+        	                if (isset($dRec->packagingId)) {
+        	                    $bQuery->where(array("#packagingId = '[#1#]'", $dRec->packagingId));
+        	                }
+        	                
+        	                if (isset($dRec->productId)) {
+        	                    $bQuery->where(array("#productId = '[#1#]'", $dRec->productId));
+        	                }
+        	                
+        	                $bQuery->where(array("#detailRecId = '[#1#]'", $dRec->id));
+        	                $bQuery->where(array("#detailClassId = '[#1#]'", $detClsId));
+        	                
+        	                $bQuery->orderBy('id', 'ASC');
+        	                
+        	                $haveBatch = FALSE;
+        	                
+        	                while ($bRec = $bQuery->fetch()) {
+        	                    
+        	                    $oRec = clone $recs[$dRec->id];
+        	                    
+        	                    $bName = $dRec->id . '_' . $bRec->id;
+        	                    $recs[$bName] = $oRec;
+        	                    $recs[$bName]->quantity = $bRec->quantity;
+        	                    $recs[$bName]->batch = $bRec->batch;
+        	                    $recs[$dRec->id]->quantity -= $recs[$bName]->quantity;
+        	                    
+        	                    $haveBatch = TRUE;
+        	                }
+        	                
+        	                if ($haveBatch) {
+        	                    if ($recs[$dRec->id]->quantity > 0) {
+        	                        // За да се подреди под другите записи от същия продукт
+    	                            $noBRec = $recs[$dRec->id];
+    	                            unset($recs[$dRec->id]);
+    	                            $recs[$dRec->id] = $noBRec;
+        	                    } else {
+    	                            unset($recs[$dRec->id]);
+        	                    }
+    	                   }
+        	            }
+    	            }
     	        }
     	        
     	        if (!empty($recs)) break;
@@ -1398,7 +1468,7 @@ class doc_DocumentPlg extends core_Plugin
     	        $fileName = str_replace(' ', '_', Str::utf2ascii($fileName));
     	        
     	        header("Content-type: application/csv");
-    	        header("Content-Disposition: attachment; filename={$fileName}.csv");
+    	        header("Content-Disposition: attachment; filename={$fileName}");
     	        header("Pragma: no-cache");
     	        header("Expires: 0");
     	        
