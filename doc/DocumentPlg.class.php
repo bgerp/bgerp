@@ -1357,6 +1357,14 @@ class doc_DocumentPlg extends core_Plugin
     	        if (!$dInst->fields[$mvc->exportInExternalField]) continue;
     	        
     	        if (!$dInst->masterKey) continue;
+                
+    	        $tFieldsArr = array();
+    	        if ($rec->template) {
+    	            $toggleFields = doc_TplManager::fetchField($rec->template, 'toggleFields');
+    	            if ($toggleFields && $toggleFields[$dInst->className] !== NULL){
+    	                $tFieldsArr = arr::make($toggleFields[$dInst->className], TRUE);
+    	            }
+    	        }
     	        
     	        // Подготвяме полетата, които ще се експортират
     	        $exportArr = arr::make($mvc->exportInExternalFieldAll, TRUE);
@@ -1401,7 +1409,11 @@ class doc_DocumentPlg extends core_Plugin
     	                    foreach ($vArr as $v) {
     	                        // Ако няма права за виждане на цена, на потребителя, който е активирал
     	                        if (stripos($v, $pStrName)) {
-    	                            if (!$canSeePrice) continue;
+    	                            if (!$canSeePrice) {
+    	                                continue;
+    	                            } elseif (!empty($tFieldsArr)) {
+    	                                if (!$tFieldsArr[$v]) continue;
+    	                            }
     	                        }
     	                        
     	                        // Временен хак, за попълване на кода
@@ -1422,7 +1434,11 @@ class doc_DocumentPlg extends core_Plugin
     	                } else {
     	                    // Ако няма права за виждане на цена, на потребителя, който е активирал
     	                    if (stripos($k, $pStrName)) {
-    	                        if (!$canSeePrice) continue;
+    	                        if (!$canSeePrice) {
+    	                            continue;
+    	                        } elseif (!empty($tFieldsArr)) {
+    	                            if (!$tFieldsArr[$k]) continue;
+    	                        }
     	                    }
     	                    
     	                    $recs[$dRec->id]->{$k} = $dRec->{$k};
