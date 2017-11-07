@@ -3020,7 +3020,7 @@ class cat_Products extends embed_Manager {
                     $Def = batch_Defs::getBatchDef($dRec->{$dInst->productFld});
                     if ($recs[$dRec->id] && isset($recs[$dRec->id]->quantity) && $Def) {
                         if (!$csvFields->fields['batch']) {
-                            $csvFields->FLD($k, 'text', "caption=Партида");
+                            $csvFields->FLD('batch', 'text', "caption=Партида");
                         }
                         
                         $bQuery = batch_BatchesInDocuments::getQuery();
