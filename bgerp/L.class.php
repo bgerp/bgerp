@@ -223,10 +223,10 @@ class bgerp_L extends core_Manager
             }
             
             if (!haveRole('user') && (doc_PdfCreator::canConvert() || !empty($exportArr))) {
-                $html->append("<div class='hideLink'>Свали като: ");
+                $html->append("<div class='hideLink'>" . tr("Свали като") . ": ");
 
                 if (doc_PdfCreator::canConvert()) {
-                    $html->append(ht::createLink(tr('PDF'), array($this, 'pdf', $cid, 'mid' => $mid, 'ret_url' => TRUE), NULL, array('class' => 'hideLink inlineLinks', 'ef_icon' => 'fileman/icons/16/pdf.png')));
+                    $html->append(ht::createLink('PDF', array($this, 'pdf', $cid, 'mid' => $mid, 'ret_url' => TRUE), NULL, array('class' => 'hideLink inlineLinks', 'ef_icon' => 'fileman/icons/16/pdf.png')));
                 }
                 
                 $exportArr = array();
@@ -241,7 +241,7 @@ class bgerp_L extends core_Manager
                 }
 
                 if (!empty($exportArr)) {
-                    $html->append(ht::createLink(tr('CSV'), $exportArr, NULL, array('class' => 'hideLink inlineLinks',  'ef_icon' => 'fileman/icons/16/csv.png')));
+                    $html->append(ht::createLink('CSV', $exportArr, NULL, array('class' => 'hideLink inlineLinks',  'ef_icon' => 'fileman/icons/16/csv.png')));
                 }
                 $html->append("</div>");
             }
