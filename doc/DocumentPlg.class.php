@@ -1332,6 +1332,7 @@ class doc_DocumentPlg extends core_Plugin
     	    }
     	    
     	    $canSeePrice = haveRole('seePrice', $activatedBy);
+    	    $pStrName = 'price';
     	    
     	    $lg = doc_Containers::getLanguage($rec->containerId);
     	    
@@ -1399,7 +1400,7 @@ class doc_DocumentPlg extends core_Plugin
     	                    
     	                    foreach ($vArr as $v) {
     	                        // Ако няма права за виждане на цена, на потребителя, който е активирал
-    	                        if (stripos($v, 'price')) {
+    	                        if (stripos($v, $pStrName)) {
     	                            if (!$canSeePrice) continue;
     	                        }
     	                        
@@ -1420,7 +1421,7 @@ class doc_DocumentPlg extends core_Plugin
     	                    }
     	                } else {
     	                    // Ако няма права за виждане на цена, на потребителя, който е активирал
-    	                    if (stripos($k, 'price')) {
+    	                    if (stripos($k, $pStrName)) {
     	                        if (!$canSeePrice) continue;
     	                    }
     	                    
