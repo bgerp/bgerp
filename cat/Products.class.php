@@ -526,7 +526,7 @@ class cat_Products extends embed_Manager {
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
 		if(!isset($form->rec->innerClass)){
-    		$form->setField('groups', 'input=hidden');
+    		$form->setField('groupsInput', 'input=hidden');
     		$form->setField('meta', 'input=hidden');
     		$form->setField('measureId', 'input=hidden');
     		$form->setField('code', 'input=hidden');
