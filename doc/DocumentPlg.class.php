@@ -1305,7 +1305,33 @@ class doc_DocumentPlg extends core_Plugin
     	    
     	    expect($rec->state != 'rejected');
     	    
-    	    expect(doclog_Documents::opened($rec->containerId, $mId));
+    	    expect($action = doclog_Documents::opened($rec->containerId, $mId));
+    	    
+    	    $activatedBy = $action->createdBy;
+            
+    	    if (!$activatedBy || $activatedBy <= 0) {
+    	        $activatedBy = $rec->activatedBy;
+    	    }
+    	    
+    	    if ($action->containerId) {
+    	        if (!$activatedBy || $activatedBy <= 0) {
+    	            
+    	            $sContainerRec = doc_Containers::fetch($action->containerId);
+    	            $activatedBy = $sContainerRec->activatedBy;
+    	        }
+    	    }
+    	    
+    	    if ($activatedBy <= 0 && $rec->containerId) {
+    	        $sContainerRec = doc_Containers::fetch($rec->containerId);
+    	        
+    	        if ($sContainerRec->modifiedBy >= 0) {
+    	            $activatedBy = $sContainerRec->modifiedBy;
+    	        } elseif ($sContainerRec->createdBy >= 0) {
+    	            $activatedBy = $sContainerRec->createdBy;
+    	        }
+    	    }
+    	    
+    	    $canSeePrice = haveRole('seePrice', $activatedBy);
     	    
     	    $lg = doc_Containers::getLanguage($rec->containerId);
     	    
@@ -1372,6 +1398,10 @@ class doc_DocumentPlg extends core_Plugin
     	                    $vRec = $vInst->fetch($dRec->{$k});
     	                    
     	                    foreach ($vArr as $v) {
+    	                        // Ако няма права за виждане на цена, на потребителя, който е активирал
+    	                        if (stripos($v, 'price')) {
+    	                            if (!$canSeePrice) continue;
+    	                        }
     	                        
     	                        // Временен хак, за попълване на кода
     	                        if (($vInst instanceof cat_Products) && ($v == 'code')) {
@@ -1389,6 +1419,11 @@ class doc_DocumentPlg extends core_Plugin
     	                        }
     	                    }
     	                } else {
+    	                    // Ако няма права за виждане на цена, на потребителя, който е активирал
+    	                    if (stripos($k, 'price')) {
+    	                        if (!$canSeePrice) continue;
+    	                    }
+    	                    
     	                    $recs[$dRec->id]->{$k} = $dRec->{$k};
     	                    
     	                    if (!$csvFields->fields[$k]) {
