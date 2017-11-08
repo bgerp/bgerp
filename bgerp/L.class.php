@@ -221,14 +221,8 @@ class bgerp_L extends core_Manager
                     break;
                 }
             }
-            
-            if (!haveRole('user') && (doc_PdfCreator::canConvert() || !empty($exportArr))) {
-                $html->append("<div class='hideLink'>" . tr("Свали като") . ": ");
 
-                if (doc_PdfCreator::canConvert()) {
-                    $html->append(ht::createLink('PDF', array($this, 'pdf', $cid, 'mid' => $mid, 'ret_url' => TRUE), NULL, array('class' => 'hideLink inlineLinks', 'ef_icon' => 'fileman/icons/16/pdf.png')));
-                }
-                
+            if (!haveRole('user')) {
                 $exportArr = array();
                 try {
                     $exportArr = $doc->getExportUrl($mid);
@@ -236,8 +230,15 @@ class bgerp_L extends core_Manager
                     reportException($e);
                 }
 
-                if (doc_PdfCreator::canConvert() && !empty($exportArr)) {
-                    $html->append( " | ");
+                if (doc_PdfCreator::canConvert() || !empty($exportArr)) {
+                    $html->append("<div class='hideLink'>" . tr("Свали като") . ": ");
+                }
+
+                if (doc_PdfCreator::canConvert()) {
+                    $html->append(ht::createLink('PDF', array($this, 'pdf', $cid, 'mid' => $mid, 'ret_url' => TRUE), NULL, array('class' => 'hideLink inlineLinks', 'ef_icon' => 'fileman/icons/16/pdf.png')));
+                    if(!empty($exportArr)) {
+                        $html->append( " | ");
+                    }
                 }
 
                 if (!empty($exportArr)) {
