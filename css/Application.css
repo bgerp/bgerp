@@ -970,6 +970,9 @@ div.acc-detail {
   table.listTable > tbody > tr > .emailListTitle {
     max-width: 600px; }
 
+.smallerText {
+  font-size: 0.9em; }
+
 /*
  * детайли
  */
