@@ -386,19 +386,11 @@ class planning_Jobs extends core_Master
     					$data->query->orderBy('deliveryDate', 'ASC');
     					break;
     				case 'draft':
-    					$data->query->where("#state = 'draft'");
-    					break;
     				case 'active':
-    					$data->query->where("#state = 'active'");
-    					break;
     				case 'stopped':
-    					$data->query->where("#state = 'stopped'");
-    					break;
     				case 'closed':
-    					$data->query->where("#state = 'closed'");
-    					break;
     				case 'wakeup':
-    					$data->query->where("#state = 'wakeup'");
+    					$data->query->where("#state = '{$filter->view}'");
     					break;
     				case 'all':
     					break;
