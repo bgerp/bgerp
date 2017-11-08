@@ -63,7 +63,7 @@ class planning_Tasks extends core_Master
 	/**
 	 * Абревиатура
 	 */
-	public $abbr = 'Pts';
+	public $abbr = 'Opr';
 	
 	
 	/**
@@ -433,7 +433,7 @@ class planning_Tasks extends core_Master
 	public static function getRecTitle($rec, $escaped = TRUE)
 	{
 		$title = cat_Products::getTitleById($rec->productId);
-		$title = "Pts{$rec->id} - " . $title;
+		$title = "Opr{$rec->id} - " . $title;
 		
 		return $title;
 	}
@@ -1095,5 +1095,20 @@ class planning_Tasks extends core_Master
     	$quantity = (!empty($sum)) ? $sum : 0;
     	
     	return $quantity;
+    }
+    
+    
+    /**
+     * Връща името на операцията готово за партида
+     * 
+     * @param mixed $taskId       - ид на операцията
+     * @return varchar $batchName - името на партидата, генерирана от операцията
+     */
+    public static function getBatchName($taskId)
+    {
+    	$rec = self::fetchRec($taskId);
+    	$batchName = str::removeWhitespaces(self::getRecTitle($rec));
+    	
+    	return $batchName;
     }
 }
