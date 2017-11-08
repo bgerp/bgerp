@@ -950,7 +950,7 @@ class planning_Tasks extends core_Master
     	$departmentOptions = hr_Departments::makeArray4Select('name', "type = 'workshop' AND #state != 'rejected'");
     	
     	if(count($departmentOptions)){
-    		$data->listFilter->FLD('departmentId', 'int', 'caption=Звено');
+    		$data->listFilter->FLD('departmentId', 'int', 'caption=Департамент');
     		$data->listFilter->setOptions('departmentId', array('' => '') + $departmentOptions);
     		$data->listFilter->showFields .= ',departmentId';
     		
