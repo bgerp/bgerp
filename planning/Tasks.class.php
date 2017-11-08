@@ -432,7 +432,7 @@ class planning_Tasks extends core_Master
 	 */
 	public static function getRecTitle($rec, $escaped = TRUE)
 	{
-		$title = cat_Products::getTitleById($rec->productId);
+		$title = cat_Products::getVerbal($rec->productId, 'name');
 		$title = "Opr{$rec->id} - " . $title;
 		
 		return $title;
@@ -570,9 +570,10 @@ class planning_Tasks extends core_Master
 	 */
 	public static function canAddToFolder($folderId)
 	{
+		if(!Request::get('originId', 'int')) return FALSE;
+		
+		// Може да се добавя само в папка на 'Департамент'
 		$Cover = doc_Folders::getCover($folderId);
-		 
-		// Може да се добавя само в папка на 'Звено'
 		return ($Cover->haveInterface('hr_DepartmentAccRegIntf'));
 	}
 	
