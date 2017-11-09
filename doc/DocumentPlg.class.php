@@ -3629,6 +3629,7 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         unset($nRec->containerId);
+        unset($nRec->pendingSaved);
     }
     
     
