@@ -377,7 +377,6 @@ class planning_ProductionTaskProducts extends core_Detail
     }
     
     
-    
     /**
      * Информация за артикула в операцията
      * 

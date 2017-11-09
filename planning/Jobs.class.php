@@ -21,7 +21,7 @@ class planning_Jobs extends core_Master
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    public $interfaces = 'doc_DocumentIntf,store_iface_ReserveStockSourceIntf,hr_IndicatorsSourceIntf';
+    public $interfaces = 'doc_DocumentIntf,hr_IndicatorsSourceIntf';
     
     
     /**
@@ -209,6 +209,8 @@ class planning_Jobs extends core_Master
     	$this->FLD('history', 'blob(serialize, compress)', 'caption=Данни,input=none');
     	
     	$this->setDbIndex('productId');
+    	$this->setDbIndex('oldJobId');
+    	$this->setDbIndex('saleId');
     }
     
     
@@ -384,19 +386,11 @@ class planning_Jobs extends core_Master
     					$data->query->orderBy('deliveryDate', 'ASC');
     					break;
     				case 'draft':
-    					$data->query->where("#state = 'draft'");
-    					break;
     				case 'active':
-    					$data->query->where("#state = 'active'");
-    					break;
     				case 'stopped':
-    					$data->query->where("#state = 'stopped'");
-    					break;
     				case 'closed':
-    					$data->query->where("#state = 'closed'");
-    					break;
     				case 'wakeup':
-    					$data->query->where("#state = 'wakeup'");
+    					$data->query->where("#state = '{$filter->view}'");
     					break;
     				case 'all':
     					break;
@@ -491,7 +485,7 @@ class planning_Jobs extends core_Master
     	
     	if($rec->state != 'draft' && $rec->state != 'rejected'){
     		if(cat_Boms::haveRightFor('add', (object)array('productId' => $rec->productId, 'type' => 'production', 'originId' => $rec->containerId))){
-    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantityForPrice' => $rec->quantity, 'ret_url' => TRUE, 'type' => 'production'), 'ef_icon = img/16/add.png,title=Създаване на нова работна рецепта');
+    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantityForPrice' => $rec->quantity, 'ret_url' => TRUE, 'type' => 'production'), 'ef_icon = img/16/add.png,title=Създаване на нова работна рецепта,row=2');
     		}
     	}
 
@@ -505,6 +499,12 @@ class planning_Jobs extends core_Master
     	if(planning_ConsumptionNotes::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
     		$pUrl = array('planning_ConsumptionNotes', 'add', 'threadId' => $rec->threadId, 'ret_url' => TRUE);
     		$data->toolbar->addBtn("Влагане", $pUrl, 'ef_icon = img/16/produce_in.png,title=Създаване на протокол за влагане към заданието');
+    	}
+    	
+    	// Бутон за добавяне на документ за влагане
+    	if(planning_ConsumptionNotes::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
+    		$pUrl = array('planning_ReturnNotes', 'add', 'threadId' => $rec->threadId, 'ret_url' => TRUE);
+    		$data->toolbar->addBtn("Връщане", $pUrl, 'ef_icon = img/16/produce_out.png,title=Създаване на протокол за връщане към заданието');
     	}
     	
     	if($data->toolbar->hasBtn('btnActivate')){
@@ -656,6 +656,12 @@ class planning_Jobs extends core_Master
     		}
     	}
     	
+    	foreach (array('quantityProduced', 'quantityToProduce', 'quantityFromTasks', 'quantityNotStored') as $fld){
+    		if(empty($rec->{$fld})){
+    			$row->{$fld} = "<b class='quiet'>{$row->{$fld}}</b>";
+    		}
+    	}
+    		
     	if($fields['-single']){
     		$canStore = cat_Products::fetchField($rec->productId, 'canStore');
     		$row->captionProduced = ($canStore == 'yes') ? tr('Заскладено') : tr('Изпълнено');
@@ -710,12 +716,6 @@ class planning_Jobs extends core_Master
     			$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
     		}
     	}
-    	
-    	foreach (array('quantityProduced', 'quantityToProduce', 'quantityFromTasks', 'quantityNotStored') as $fld){
-    		if(empty($rec->{$fld})){
-    			$row->{$fld} = "<b class='quiet'>{$row->{$fld}}</b>";
-    		}
-    	}
     		
     	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
     		if(isset($rec->dueDate)){
@@ -749,7 +749,7 @@ class planning_Jobs extends core_Master
     	$row->authorId = $rec->createdBy;
     	$row->author = $this->getVerbal($rec, 'createdBy');
     	$row->state = $rec->state;
-    	$row->recTitle = $this->getRecTitle($rec);
+    	$row->recTitle = $row->title;
     	
     	return $row;
     }

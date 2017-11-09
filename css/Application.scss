@@ -1100,6 +1100,9 @@ table.listTable > tbody > tr {
 		max-width: 600px;
 	}
 }
+.smallerText {
+	font-size: 0.9em;
+}
 
 /*детайли*/
 .detail-info {
@@ -5204,6 +5207,10 @@ body.narrow {
 		font-size: 0.9em;
 		margin-bottom: 10px;
 		margin-top: -6px;
+		&.inlineLinks {
+			margin-left: 0;
+			display: inline-block;
+		}
 	}
 }
 

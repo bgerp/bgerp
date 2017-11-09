@@ -526,7 +526,7 @@ class cat_Products extends embed_Manager {
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
 		if(!isset($form->rec->innerClass)){
-    		$form->setField('groups', 'input=hidden');
+    		$form->setField('groupsInput', 'input=hidden');
     		$form->setField('meta', 'input=hidden');
     		$form->setField('measureId', 'input=hidden');
     		$form->setField('code', 'input=hidden');
@@ -2833,6 +2833,249 @@ class cat_Products extends embed_Manager {
     	}
     
     	return NULL;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Mvc $mvc
+     * @param integer $id
+     * @param string $mId
+     * @param core_FieldSet $csvFields
+     * 
+     * @return array
+     */
+    public static function getRecsForExportInExternal($mvc, $id, $mId, &$csvFields)
+    {
+        expect($mId);
+        
+        $mRec = $mvc->fetch($id);
+        expect($mRec && $mRec->containerId);
+        
+        expect($action = doclog_Documents::opened($mRec->containerId, $mId));
+        doclog_Documents::popAction();
+        
+        $activatedBy = $action->createdBy;
+        
+        if (!$activatedBy || $activatedBy <= 0) {
+            $activatedBy = $mRec->activatedBy;
+        }
+        
+        if ($action->containerId) {
+            if (!$activatedBy || $activatedBy <= 0) {
+                
+                $sContainerRec = doc_Containers::fetch($action->containerId);
+                $activatedBy = $sContainerRec->activatedBy;
+            }
+        }
+        
+        if ($activatedBy <= 0 && $mRec->containerId) {
+            $sContainerRec = doc_Containers::fetch($mRec->containerId);
+            
+            if ($sContainerRec->modifiedBy >= 0) {
+                $activatedBy = $sContainerRec->modifiedBy;
+            } elseif ($sContainerRec->createdBy >= 0) {
+                $activatedBy = $sContainerRec->createdBy;
+            }
+        }
+        
+        $canSeePrice = haveRole('seePrice', $activatedBy);
+        $pStrName = 'price';
+        
+        $detArr = arr::make($mvc->details);
+        
+        expect(!empty($detArr));
+        
+        $recs = array();
+        
+        if (strpos($mvc->exportInExternalField, '=')) {
+            list($exportFStr, $exportFCls) = explode('=', $mvc->exportInExternalField);
+        } else {
+            $exportFStr = $mvc->exportInExternalField;
+            $exportFCls = NULL;
+        }
+        
+        foreach ($detArr as $dName) {
+            if (!cls::load($dName, TRUE)) continue;
+            
+            $dInst = cls::get($dName);
+            
+            $detClsId = $dInst->getClassId();
+            
+            if (!$dInst->fields[$exportFStr]) continue;
+            
+            if ($exportFCls) {
+                $exportFCls = cls::get($exportFCls);
+                if (!($exportFCls instanceof $dInst->fields[$exportFStr]->type->params['mvc'])) continue;
+            }
+            
+            if (!$dInst->masterKey) continue;
+            
+            $tFieldsArr = array();
+            if ($mRec->template) {
+                $toggleFields = doc_TplManager::fetchField($mRec->template, 'toggleFields');
+                if ($toggleFields && $toggleFields[$dInst->className] !== NULL){
+                    $tFieldsArr = arr::make($toggleFields[$dInst->className], TRUE);
+                }
+            }
+            
+            // Подготвяме полетата, които ще се експортират
+            $exportArr = arr::make($mvc->exportInExternalFieldAll, TRUE);
+            
+            // За бачовете - ако не е инсталиран пакета - премахваме полето
+            if ($exportArr['batch'] && !core_Packs::isInstalled('batch')) {
+                unset($exportArr['batch']);
+            }
+            
+            foreach ($exportArr as $eName => $eFields) {
+                if ($eName == $eFields) {
+                    $fFieldsArr[$eName] = $eName;
+                } else {
+                    $fFieldsArr[$eName] = explode('|', $eFields);
+                }
+            }
+            
+            $dQuery = $dInst->getQuery();
+            $dQuery->where(array("#{$dInst->masterKey} = {$mRec->id}"));
+            
+            $dQuery->orderBy('id', 'ASC');
+            
+            while ($dRec = $dQuery->fetch()) {
+                if (!$recs[$dRec->id]) {
+                    $recs[$dRec->id] = new stdClass();
+                }
+                
+                foreach ($fFieldsArr as $k => $vArr) {
+                    
+                    if (!$dInst->fields[$k]) continue;
+                    
+                    if (is_array($vArr) && $dInst->fields[$k]->type->params['mvc']) {
+                        
+                        // Ако полето е ключ и от него трябва да се вземе стойността на друго поле
+                        
+                        $vInst = cls::get($dInst->fields[$k]->type->params['mvc']);
+                        
+                        if (!$dRec->{$k}) continue;
+                        
+                        $vRec = $vInst->fetch($dRec->{$k});
+                        
+                        foreach ($vArr as $v) {
+                            // Ако няма права за виждане на цена, на потребителя, който е активирал
+                            if (stripos($v, $pStrName)) {
+                                if (!$canSeePrice) {
+                                    continue;
+                                } elseif (!empty($tFieldsArr)) {
+                                    if (!$tFieldsArr[$v]) continue;
+                                }
+                            }
+                            
+                            // Попълване на кода
+                            if (($vInst instanceof cat_Products) && ($v == 'code')) {
+                                cat_Products::setCodeIfEmpty($vRec);
+                            }
+                            
+                            $recs[$dRec->id]->{$v} = $vRec->{$v};
+                            
+                            if (!$csvFields->fields[$v]) {
+                                if ($vInst->fields[$v]->type instanceof type_Double) {
+                                    $csvFields->FLD($v, 'varchar', "caption={$vInst->fields[$v]->caption}");
+                                } else {
+                                    $csvFields->fields[$v] = $vInst->fields[$v];
+                                }
+                            }
+                        }
+                    } else {
+                        // Ако няма права за виждане на цена, на потребителя, който е активирал
+                        if (stripos($k, $pStrName)) {
+                            if (!$canSeePrice) {
+                                continue;
+                            } elseif (!empty($tFieldsArr)) {
+                                if (!$tFieldsArr[$k]) continue;
+                            }
+                        }
+                        
+                        $recs[$dRec->id]->{$k} = $dRec->{$k};
+                        
+                        if (!$csvFields->fields[$k]) {
+                            if ($dInst->fields[$k]->type instanceof type_Double) {
+                                $csvFields->FLD($k, 'varchar', "caption={$vInst->fields[$k]->caption}");
+                            } else {
+                                $csvFields->fields[$k] = $dInst->fields[$k];
+                            }
+                        }
+                    }
+                }
+                
+                // Добавяме отстъпката към цената
+                if ($fFieldsArr['packPrice']) {
+                    if ($recs[$dRec->id]->packPrice && $dRec->discount) {
+                        $recs[$dRec->id]->packPrice -= ($recs[$dRec->id]->packPrice * $dRec->discount);
+                    }
+                }
+                
+                // За добавяне на бачовете
+                if ($fFieldsArr['batch'] && $mRec->{$mvc->storeFieldName}) {
+                    
+                    $Def = batch_Defs::getBatchDef($dRec->{$dInst->productFld});
+                    if ($recs[$dRec->id] && isset($recs[$dRec->id]->packQuantity) && $Def) {
+                        if (!$csvFields->fields['batch']) {
+                            $csvFields->FLD('batch', 'text', "caption=Партида");
+                        }
+                        
+                        $bQuery = batch_BatchesInDocuments::getQuery();
+                        
+                        if (isset($dRec->packagingId)) {
+                            $bQuery->where(array("#packagingId = '[#1#]'", $dRec->packagingId));
+                        }
+                        
+                        if (isset($dRec->productId)) {
+                            $bQuery->where(array("#productId = '[#1#]'", $dRec->productId));
+                        }
+                        
+                        $bQuery->where(array("#detailRecId = '[#1#]'", $dRec->id));
+                        $bQuery->where(array("#detailClassId = '[#1#]'", $detClsId));
+                        
+                        $bQuery->orderBy('id', 'ASC');
+                        
+                        $haveBatch = FALSE;
+                        
+                        while ($bRec = $bQuery->fetch()) {
+                            
+                            $oRec = clone $recs[$dRec->id];
+                            
+                            $bQuantity = $bRec->quantity;
+                            if ($bRec->quantityInPack) {
+                                $bQuantity /= $bRec->quantityInPack;
+                            }
+                            
+                            $bName = $dRec->id . '_' . $bRec->id;
+                            $recs[$bName] = $oRec;
+                            $recs[$bName]->packQuantity = $bQuantity;
+                            $recs[$bName]->batch = $bRec->batch;
+                            $recs[$dRec->id]->packQuantity -= $recs[$bName]->packQuantity;
+                            
+                            $haveBatch = TRUE;
+                        }
+                        
+                        if ($haveBatch) {
+                            if ($recs[$dRec->id]->packQuantity > 0) {
+                                // За да се подреди под другите записи от същия продукт
+                                $noBRec = $recs[$dRec->id];
+                                unset($recs[$dRec->id]);
+                                $recs[$dRec->id] = $noBRec;
+                            } else {
+                                unset($recs[$dRec->id]);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            if (!empty($recs)) break;
+        }
+        
+        return $recs;
     }
     
     

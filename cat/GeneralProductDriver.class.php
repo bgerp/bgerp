@@ -279,12 +279,6 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	{
 		parent::prepareProductDescription($data);
 		
-		if($data->rec->photo){
-			$size = array(280, 150);
-			$Fancybox = cls::get('fancybox_Fancybox');
-			$data->row->image = $Fancybox->getImage($data->rec->photo, $size, array(550, 550));
-		}
-		
 		$data->masterId = $data->rec->id;
 		$data->masterClassId = $data->Embedder->getClassId();
 		cat_products_Params::prepareParams($data);
@@ -299,6 +293,13 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 */
 	public function renderProductDescription($data)
 	{
+		// Вербализиране на снимката, да е готова за показване
+		if($data->rec->photo){
+			$size = array(280, 150);
+			$Fancybox = cls::get('fancybox_Fancybox');
+			$data->row->image = $Fancybox->getImage($data->rec->photo, $size, array(550, 550));
+		}
+		
 		// Ако не е зададен шаблон, взимаме дефолтния
 		$layout = ($data->isSingle !== TRUE) ? 'cat/tpl/SingleLayoutBaseDriverShort.shtml' : 'cat/tpl/SingleLayoutBaseDriver.shtml';
 		$tpl = getTplFromFile($layout);

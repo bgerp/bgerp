@@ -192,7 +192,7 @@ class doc_Linked extends core_Manager
         
         if ($viewType == 'table') {
             $table = cls::get('core_TableView');
-            
+            $table->tableClass = "listTable smallerText";
             $res = $table->get($rowArr, "_rowTools=✍,
                                           docLink=Връзка,
 	                                      comment=Коментар");

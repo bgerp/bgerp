@@ -256,10 +256,10 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                     }
 
                     if ($countUnset > 0){
-                        $groupName = cat_Products::getTitleById($grProduct->groupId);
+                        $groupName = cat_Products::getTitleById($rec->groupId);
                         $maxArt = self::NUMBER_OF_ITEMS_TO_ADD;
 
-                        $form->setWarning('groupId',"$countUnset артикула от група \" $groupName \" няма да  бъдат добавени.
+                        $form->setWarning('groupId',"$countUnset артикула от група $groupName няма да  бъдат добавени.
                                                      Максимален брой артикули за еднократно добавяне - $maxArt.  
                                                      Може да добавите още артикули от групата при следваща редакция.");
                     }
@@ -291,104 +291,106 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
         if (is_array($products->code)) {
 
-        foreach ($products->code as $k => $v) {
+            foreach ($products->code as $k => $v) {
 
-            if (in_array($v, $tempProducts)) continue;
+                if (in_array($v, $tempProducts)) continue;
 
-            $tempProducts[$k] = $v;
+                $tempProducts[$k] = $v;
 
-        }
-
-
-        $products->code = $tempProducts;
-
-
-        foreach ($products->code as $key => $code) {
-
-
-            if (!isset($products->code[$key])) {
-
-                $code= 0;
             }
 
-            $productId = cat_Products::getByCode($code)->productId;
+            $products->code = $tempProducts;
 
-            $keis['keis'][] = array('key'=>$key,"$productId"=>cat_Products::getTitleById($productId));
 
-            $query = store_Products::getQuery();
+            foreach ($products->code as $key => $code) {
 
-            $query->where("#productId = $productId");
 
-            if (isset($rec->storeId)) {
+                if (!isset($products->code[$key])) {
 
-                $query->where("#storeId = $rec->storeId");
+                    $code= 0;
+                }
+
+                $productId = cat_Products::getByCode($code)->productId;
+
+                $keis['keis'][] = array('key'=>$key,"$productId"=>cat_Products::getTitleById($productId));
+
+                $query = store_Products::getQuery();
+
+                $query->where("#productId = $productId");
+
+                if (isset($rec->storeId)) {
+
+                    $query->where("#storeId = $rec->storeId");
+                }
+
+                while ($recProduct = $query->fetch()) {
+
+                    $id = $recProduct->productId;
+
+                    $quantity = store_Products::getQuantity($id, $recProduct->storeId, TRUE);
+
+                        if (!array_key_exists($id, $recs)) {
+
+                            $recs[$id] =
+
+                                (object)array(
+
+                                    'measure' => cat_Products::fetchField($id, 'measureId'),
+                                    'productId' => $productId,
+                                    'storeId' => $rec->storeId,
+                                    'quantity' => $quantity,
+                                    'minQuantity' => (int)$products->minQuantity[$key],
+                                    'maxQuantity' => (int)$products->maxQuantity[$key],
+                                    'conditionQuantity' => 'ok',
+                                    'conditionColor' => 'green',
+                                    'code' => $products->code[$key]
+
+                                );
+
+                        } else {
+
+                        $obj = &$recs[$id];
+
+                        $obj->quantity += $recProduct->quantity;
+
+                    }
+
+                }//цикъл за добавяне
+
+            }
+        }
+        // подготовка на показател "състояние" //
+        foreach ($recs as $k => $v){
+
+            if (($v-> quantity > (int)$v-> maxQuantity)) {
+
+                $v-> conditionQuantity = 'свръх наличност';
+                $v-> conditionColor = 'blue';
+
             }
 
-            while ($recProduct = $query->fetch()) {
+            if (($v-> quantity < (int)$v-> minQuantity)) {
 
-                $id = $recProduct->productId;
+                $v-> conditionQuantity = 'под минимум';
+                $v-> conditionColor = 'red';
 
-                $quantity = store_Products::getQuantity($id, $recProduct->storeId, TRUE);
+            }
 
-                // подготовка на показател "състояние" //
-                $quantityMark = '';
+            if(((int)$v-> quantity >= (int)$v-> minQuantity) && ((int)$v-> quantity <= (int)$v-> maxQuantity)) {
 
-                if (($quantity > (int)$products->maxQuantity[$key])) {
+                $v-> conditionQuantity = 'ok';
+                $v-> conditionColor = 'green';
 
-                    $quantityMark = 'свръх наличност';
+            }
 
-                }
+            if ((!$v-> maxQuantity   && $v-> quantity > (int)$v->minQuantity)||(($v-> maxQuantity == 0 && $v-> quantity > (int)$v->minQuantity )) ) {
 
-                if (($quantity < (int)$products->minQuantity[$key])) {
+                $v-> conditionQuantity = 'ok';
+                $v-> conditionColor = 'green';
 
-                    $quantityMark = 'под минимум';
-
-                }
-
-                if(($quantity >= (int)$products->minQantity[$key]) && ($quantity <= (int)$products->maxQuantity[$key])) {
-
-                    $quantityMark = 'ok';
-
-                }
-                if (!($products->maxQuantity[$key]) && $quantity > (int)$products->minQuantity[$key]) {
-
-                        $quantityMark = 'ok';
-                }
-
-
-
-               // if ($key == 2){bp($quantity,(int)$products->minQuantity[$key],(int)$products->maxQuantity[$key], $quantityMark);}
-
-                if (!array_key_exists($id, $recs)) {
-
-                    $recs[$id] =
-
-                        (object)array(
-
-                            'measure' => cat_Products::fetchField($id, 'measureId'),
-                            'productId' => $productId,
-                            'storeId' => $rec->storeId,
-                            'quantity' => $quantity,
-                            'minQuantity' => (int)$products->minQuantity[$key],
-                            'maxQuantity' => (int)$products->maxQuantity[$key],
-                            'conditionQuantity' => $quantityMark,
-                            'code' => $products->code[$key]
-
-                        );
-
-                } else {
-
-                    $obj = &$recs[$id];
-
-                    $obj->quantity += $recProduct->quantity;
-
-                }
-
-            }//цикъл за добавяне
+            }
 
         }
-
-    }
 
         return $recs;
 
@@ -440,31 +442,8 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      */
     protected function detailRecToVerbal($rec, &$dRec)
     {
+
         $Int = cls::get('type_Int');
-        $conditionColor = 'black';
-
-        if($dRec->quantity < $dRec->minQuantity){
-            $conditionColor = 'red';
-        }
-
-        if ($dRec->quantity > $dRec->maxQuantity) {
-            $conditionColor = 'blue';
-        }
-
-        if(($dRec->quantity >= $dRec->minQuantity) && ($dRec->quantity<=$dRec->maxQuantity)) {
-            $conditionColor = 'green';
-        }
-
-        if (!$dRec->maxQantity){
-
-            if ($dRec->quantity >= $dRec->maxQuantity){
-                $conditionColor = 'green';
-
-            }
-        }
-
-
-
 
         $row = new stdClass();
 
@@ -493,7 +472,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         }
 
         if((isset($dRec->conditionQuantity) && ((isset($dRec->minQuantity)) || (isset($dRec->maxQuantity))))){
-            $row->conditionQuantity = "<span style='color: $conditionColor'>{$dRec->conditionQuantity}</span>";
+            $row->conditionQuantity = "<span style='color: $dRec->conditionColor'>{$dRec->conditionQuantity}</span>";
         }
 
         return $row;

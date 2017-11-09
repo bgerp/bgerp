@@ -91,12 +91,6 @@ class cash_Pko extends cash_Document
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'termDate';
-    
-    
-    /**
-     * Поле за филтриране по дата
-     */
-    public $filterDateField = 'createdOn, termDate,modifiedOn';
 
     
     /**

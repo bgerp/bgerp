@@ -285,7 +285,7 @@ class csv_Lib
             $fieldsArr = $fieldSet->selectFields("");
             $listFields = array();
             foreach ($fieldsArr as $name => $fld) {
-                $listFields[$fld->name] = $fld->caption;
+                $listFields[$fld->name] = tr($fld->caption);
             }
         }
         
