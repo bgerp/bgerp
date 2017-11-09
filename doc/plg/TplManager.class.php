@@ -243,6 +243,26 @@ class doc_plg_TplManager extends core_Plugin
     
     
     /**
+     * 
+     * 
+     * @param core_Mvc $mvc
+     * @param NULL|stdObject $res
+     * @param integer $id
+     * @param string $mode
+     * @param NULL|stdObject $options
+     */
+    function on_BeforeGetDocumentBody($mvc, &$res, $id, $mode = 'html', $options = NULL)
+    {
+        if ($options && $options->tplManagerId) {
+            if (!$options->rec && $id) {
+                $options->rec = $mvc->fetchRec($id);
+                $options->rec->template = $options->tplManagerId;
+            }
+        }
+    }
+    
+    
+    /**
      * Преди подготовка на на единичния изглед
      */
     public static function on_BeforePrepareSingle(core_Mvc $mvc, &$res, &$data)
@@ -275,6 +295,21 @@ class doc_plg_TplManager extends core_Plugin
                 
                 if ($data->rec->template != $form->rec->tplId) {
                     $data->rec->template = $form->rec->tplId;
+                    
+                    // В зависимост от подредбата на плъгините, може и да има вече генериран екшън
+                    if ($data->__MID__) {
+                        $logRec = doclog_Documents::fetchByMid($data->__MID__);
+                        if (!isset($logRec->data)) {
+                            $logRec->data = new stdClass();
+                        }
+                        $logRec->data->tplManagerId = $data->rec->template;
+                        
+                        doclog_Documents::save($logRec, 'dataBlob');
+                    } else {
+                        setIfNot($doclogActionDataArr, Mode::get('doclogActionData'), array());
+                        $doclogActionDataArr['tplManagerId'] = $data->rec->template;
+                        Mode::set('doclogActionData', $doclogActionDataArr);
+                    }
                 }
             }
             
