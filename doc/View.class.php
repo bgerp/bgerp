@@ -191,9 +191,13 @@ class doc_View extends core_Master
         
         $tplArr = doc_TplManager::getTemplates($rec->clsId);
         
-        expect($tplArr);
+        expect($tplArr || cls::get($rec->clsId)->createView);
         
-        $data->form->setOptions('tplId', $tplArr);
+        if (empty($tplArr)) {
+            $data->form->setField('tplId', 'input=none');
+        } else {
+            $data->form->setOptions('tplId', $tplArr);
+        }
     }
     
     
@@ -266,7 +270,10 @@ class doc_View extends core_Master
         if (!Mode::isReadOnly()) {
             $clsInst = cls::get($rec->clsId);
             $row->subject = $clsInst->getLinkToSingle($rec->dataId);
-            $row->tplId = doc_TplManager::getLinkToSingle($rec->tplId, 'name');
+            
+            if ($rec->tplId) {
+                $row->tplId = doc_TplManager::getLinkToSingle($rec->tplId, 'name');
+            }
         } else {
             unset($row->tplId);
         }

@@ -37,6 +37,7 @@ class doc_plg_TplManager extends core_Plugin
         }
         
         setIfNot($mvc->canAsclient, 'no_one');
+        setIfNot($mvc->createView, TRUE);
     }
     
     
@@ -539,14 +540,6 @@ class doc_plg_TplManager extends core_Plugin
     {
         if ($mvc->haveRightFor('asClient', $data->rec)) {
             $data->toolbar->addBtn('П Клиент', array($mvc, 'single', $data->rec->id, 'Printing' => 'yes', 'asClient' => TRUE), "id=btnClientPrint{$data->rec->containerId},target=_blank,row=2", 'ef_icon = img/16/print_go.png,title=Печатане с данните на клиента');
-        }
-        
-        $classId = $mvc->getClassId();
-        if (doc_TplManager::fetch(array("#docClassId = '[#1#]'", $classId))) {
-            if (doc_View::haveRightFor('add') && $mvc->haveRightFor('single', $data->rec->id)) {
-                Request::setProtected(array('clsId', 'dataId'));
-                $data->toolbar->addBtn('Изглед', array('doc_View', 'add', 'clsId' => $classId, 'dataId' => $data->rec->id, 'originId' => $data->rec->containerId), 'ef_icon=img/16/ui_saccordion.png, title=Друг изглед на документа, order=18, row=3');
-            }
         }
     }
     
