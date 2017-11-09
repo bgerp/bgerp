@@ -117,20 +117,19 @@ abstract class planning_StoreTransferDocument extends deals_ManifactureMaster
 	 */
 	protected static function on_AfterCreate($mvc, $rec)
 	{
-		if(is_array($rec->detailsDef)){
-			$Detail = cls::get($mvc->mainDetail);
-	
-			// За всеки детайл
-			foreach ($rec->detailsDef as $key => $dRec){
+		if(!is_array($rec->detailsDef)) return;
+		
+		// За всеки детайл
+		$Detail = cls::get($mvc->mainDetail);
+		foreach ($rec->detailsDef as $key => $dRec){
 				
-				// Ако има въведено количество записва се
-				if(!empty($rec->{$key})){
-					unset($dRec->id);
-					$dRec->quantity = $rec->{$key} * $dRec->quantityInPack;
-					$dRec->noteId = $rec->id;
-					$dRec->isEdited = TRUE;
-					$Detail->save($dRec);
-				}
+			// Ако има въведено количество записва се
+			if(!empty($rec->{$key})){
+				unset($dRec->id);
+				$dRec->quantity = $rec->{$key} * $dRec->quantityInPack;
+				$dRec->noteId = $rec->id;
+				$dRec->isEdited = TRUE;
+				$Detail->save($dRec);
 			}
 		}
 	}
@@ -147,7 +146,7 @@ abstract class planning_StoreTransferDocument extends deals_ManifactureMaster
 	 * 		o packagingId    - ид на опаковка
 	 * 		o taskId         - ид на операция
 	 */
-	public function getProductsFromTasks($rec)
+	protected function getProductsFromTasks($rec)
 	{
 		$rec = $this->fetchRec($rec);
 		$originId = doc_Threads::getFirstContainerId($rec->threadId);
