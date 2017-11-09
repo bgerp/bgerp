@@ -74,6 +74,7 @@ class planning_interface_ImportTaskSerial extends import_drivers_Proto
     	$validSerials = array();
     	foreach ($serials as $serial){
     		$serialTrimmed = trim(ltrim($serial, '0'));
+    		if(empty($serialTrimmed)) continue;
     		$serialRec = planning_TaskSerials::fetch(array("#serial = '[#1#]'", $serialTrimmed));
     		if(empty($serialRec)){
     			$error[] = "|*<b>{$serial}</b> |несъществуващ сериен номер|*";

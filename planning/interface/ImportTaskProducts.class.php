@@ -55,7 +55,7 @@ class planning_interface_ImportTaskProducts extends import_drivers_Proto
     	$rec= &$form->rec;
     	$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
     	
-    	$details = self::getProductsFromTasks($masterRec->threadId, $masterRec->storeId, $mvc->Master->taskActionLoad);
+    	$details = self::getProductsFromTasks($masterRec->threadId, $masterRec->storeId, $mvc->taskActionLoad);
     	
     	// Всички документи в нишката, които са активни
     	$cQuery = doc_Containers::getQuery();
@@ -172,6 +172,7 @@ class planning_interface_ImportTaskProducts extends import_drivers_Proto
     	$dQuery->XPR('quantity', 'double', '#totalQuantity');
     	$dQuery->where("#originId = {$originId} AND #canStore = 'yes' AND #storeId = {$storeId} AND #totalQuantity != 0 AND #type = '{$type}' AND (#state = 'active' || #state = 'closed' || #state = 'wakeup')");
     	$dQuery->show('productId,quantityInPack,packagingId,taskId,quantity');
+  
     	if(isset($limit)){
     		$dQuery->limit($limit);
     	}	
@@ -192,7 +193,7 @@ class planning_interface_ImportTaskProducts extends import_drivers_Proto
     	$result = parent::canSelectDriver($mvc, $rec, $userId);
     	if($result === TRUE){
     		$masterRec = $mvc->Master->fetchRec($rec);
-    		$foundRecs = self::getProductsFromTasks($masterRec->threadId, $masterRec->storeId, $mvc->Master->taskActionLoad, 1);
+    		$foundRecs = self::getProductsFromTasks($masterRec->threadId, $masterRec->storeId, $mvc->taskActionLoad, 1);
     		if(!count($foundRecs)) return FALSE;
     	}
     	
