@@ -265,9 +265,9 @@ class core_Manager extends core_Mvc
         // Дали имаме права за това действие към този запис?
         $this->requireRightFor($data->cmd, $data->rec, NULL, $data->retUrl);
         
-        $this->delete($data->id);
+        $this->logInAct('Изтриване', $data->id);
         
-        $this->logWrite('Изтриване', $data->id);
+        $this->delete($data->id);
         
         return new Redirect($data->retUrl);
     }
