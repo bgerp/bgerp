@@ -434,6 +434,9 @@ class planning_ProductionTaskProducts extends core_Detail
     {
     	if(!empty($rec->inputedQuantity)){
     		$dRec = (object)array('taskId' => $rec->taskId, 'productId' => $rec->productId, 'type' => $rec->type, 'quantity' => $rec->inputedQuantity);
+    		if($rec->type == 'production'){
+    			$dRec->serial = planning_TaskSerials::forceAutoNumber($dRec);
+    		}
     		planning_ProductionTaskDetails::save($dRec);
     	}
     }
