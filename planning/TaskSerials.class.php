@@ -262,6 +262,8 @@ class planning_TaskSerials extends core_Manager
 	public static function getLink($taskId, $serial)
 	{
 		$serialVerbal = core_Type::getByName('varchar(32)')->toVerbal($serial);
+		$paddLength = planning_Setup::get('SERIAL_STRING_PAD');
+		$serialVerbal = str_pad($serialVerbal, $paddLength, '0', STR_PAD_LEFT);
 		if(Mode::isReadOnly()) return $serialVerbal;
 		
 		// Линк към прогреса филтриран по сериен номер

@@ -32,6 +32,12 @@ defIfNot('PLANNING_PRODUCTION_NOTE_REJECTION', 'no');
 
 
 /**
+ * До колко символа да е серийния номер на произвеодствените операции
+ */
+defIfNot('PLANNING_SERIAL_STRING_PAD', '10');
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -81,6 +87,7 @@ class planning_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
     		'PLANNING_TASK_SERIAL_COUNTER'         => array('int', 'caption=Производствени операции->Стартов сериен номер'),
+    		'PLANNING_SERIAL_STRING_PAD'           => array('int', 'caption=Производствени операции->Макс. дължина'),
     		'PLANNING_TASK_LABEL_PREVIEW_WIDTH'    => array('int', 'caption=Превю на артикула в етикета->Широчина,unit=px'),
     		'PLANNING_TASK_LABEL_PREVIEW_HEIGHT'   => array('int', 'caption=Превю на артикула в етикета->Височина,unit=px'),
     		'PLANNING_CONSUMPTION_USE_AS_RESOURCE' => array('enum(yes=Да,no=Не)', 'caption=Детайлно влагане по подразбиране->Избор'),
