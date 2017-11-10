@@ -62,36 +62,43 @@ class planning_interface_ImportTaskProducts extends import_drivers_Proto
     	$cQuery->where("#threadId = {$masterRec->threadId} AND #state = 'active'");
     	$containers = arr::extractValuesFromArray($cQuery->fetchAll(), 'id');
     	
-    	// За всеки подаден дефолтен артикул
+    	$combinedDetails = array();
+    	
+    	// Събиране на к-та на артикулите
     	foreach ($details as $dRec){
-    		$caption = cat_Products::getTitleById($dRec->productId);
-    		$caption= str_replace(',', ' ', $caption);
+    		$dRec->caption = cat_Products::getTitleById($dRec->productId);
+    		$dRec->caption = str_replace(',', ' ', $dRec->caption);
     		$batch = '';
     		
-    		$selectedByNow = NULL;
+    		$key = "{$dRec->productId}+{$dRec->packagingId}";
+    		
+    		$dRec->selectedByNow = 0;
     		if(core_Packs::isInstalled('batch')){
     			$Def = batch_Defs::getBatchDef($dRec->productId);
-    				
+    			
     			// Ако има партидност и тя е от определен тип
-    			if(is_object($Def) && $Def->getClassId() == batch_definitions_Varchar::getClassId() && count($containers)){
-    	
+    			if(is_object($Def) && $Def->getClassId() == batch_definitions_Varchar::getClassId()){
+    			
     				// Стойноста на партидата ще е задачата
-    				$dRec->batch = planning_Tasks::getBatchName($dRec->taskId);
-    				$caption .= " / |*<i>{$dRec->batch}</i>";
-    	
+    				$taskId = (!empty($dRec->taskId)) ? $dRec->taskId : $dRec->id;
+    				$dRec->batch = planning_Tasks::getBatchName($taskId);
+    				$key .= "+{$dRec->batch}";
+    				$dRec->caption .= " / |*<i>{$dRec->batch}</i>";
+    				 
     				// Колко е изпълнено досега
-    				$bQuery = batch_BatchesInDocuments::getQuery();
-    				$bQuery->XPR('sumQuantity', 'double', 'SUM(#quantity)');
-    				$bQuery->in("containerId", $containers);
-    				$bQuery->where("#productId = {$dRec->productId} AND #batch = '{$dRec->batch}' AND #storeId = {$masterRec->storeId} AND #operation = '{$mvc->batchMovementDocument}'");
-    				
-    				$bQuery->show('sumQuantity');
-    				$selectedByNow = $bQuery->fetch()->sumQuantity;
+    				if(count($containers)){
+    					$bQuery = batch_BatchesInDocuments::getQuery();
+    					$bQuery->XPR('sumQuantity', 'double', 'SUM(#quantity)');
+    					$bQuery->in("containerId", $containers);
+    					$bQuery->where("#productId = {$dRec->productId} AND #batch = '{$dRec->batch}' AND #storeId = {$masterRec->storeId} AND #operation = '{$mvc->batchMovementDocument}'");
+    					$bQuery->show('sumQuantity');
+    					$dRec->selectedByNow = $bQuery->fetch()->sumQuantity;
+    				}
     			}
     		}
-    		
+    	
     		// Ако няма партиди гледа се колко е изпълнено досега
-    		if(empty($selectedByNow)){
+    		if(empty($dRec->selectedByNow) && count($containers)){
     			$dQuery = $mvc->getQuery();
     			$dQuery->XPR('sumQuantity', 'double', 'SUM(#quantity)');
     			$dQuery->EXT('storeId', $mvc->Master->className, "externalName=storeId,externalKey={$mvc->masterKey}");
@@ -100,20 +107,27 @@ class planning_interface_ImportTaskProducts extends import_drivers_Proto
     			$dQuery->in("containerId", $containers);
     			$dQuery->where("#productId = {$dRec->productId} AND #storeId = {$masterRec->storeId}");
     			$dQuery->show('sumQuantity');
-    			$selectedByNow = $dQuery->fetch()->sumQuantity;
+    			$dRec->selectedByNow = $dQuery->fetch()->sumQuantity;
     		}
+    		
+    		if(array_key_exists($key, $combinedDetails)){
+    			$combinedDetails[$key]->quantity += $dRec->quantity;
+    		} else {
+    			$combinedDetails[$key] = $dRec;
+    		}
+    	}
     	
-    		// Дефолтното к-во се приспада
-    		$defaultQuantity = ($dRec->quantity - $selectedByNow) / $dRec->quantityInPack;
-    	
-    		// Показване на полетата без партиди
-    		$shortUom = cat_UoM::getShortName($dRec->packagingId);
-    		$form->FLD("quantity+{$batch}+{$dRec->id}+{$dRec->taskId}+", "double(Min=0)","input,caption={$caption}->К-во,unit={$shortUom}");
+    	// Показване на обединените полета
+    	foreach ($combinedDetails as $key => $cRec){
+    		$defaultQuantity = ($cRec->quantity - $cRec->selectedByNow) / $cRec->quantityInPack;
+    		
+    		$shortUom = cat_UoM::getShortName($cRec->packagingId);
+    		$form->FLD($key, "double(Min=0)","input,caption={$cRec->caption}->К-во,unit={$shortUom}");
     		if($defaultQuantity > 0){
-    			$form->setDefault("quantity+{$batch}+{$dRec->id}+{$dRec->taskId}+", $defaultQuantity);
+    			$form->setDefault($key, $defaultQuantity);
     		}
-    	
-    		$rec->detailsDef["quantity+{$batch}+{$dRec->id}+{$dRec->taskId}+"] = $dRec;
+    		 
+    		$rec->detailsDef[$key] = $cRec;
     	}
     }
     
@@ -182,7 +196,8 @@ class planning_interface_ImportTaskProducts extends import_drivers_Proto
     	$tQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
     	$tQuery->XPR('quantity', 'double', '#totalQuantity');
     	$tQuery->where("#originId = {$originId} AND #canStore = 'yes' AND #storeId = {$storeId} AND #totalQuantity != 0 AND (#state = 'active' || #state = 'closed' || #state = 'wakeup')");
-    	$tQuery->show('productId,quantityInPack,packagingId,quantity,id');
+    	$tQuery->show('productId,quantityInPack,packagingId,quantity,id,storeId');
+    	
     	if(isset($limit)){
     		$tQuery->limit($limit);
     	}
