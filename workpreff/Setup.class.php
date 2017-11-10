@@ -46,8 +46,8 @@ class workpreff_Setup extends core_ProtoSetup
 */
     var $managers = array(
 
-        'workpreff_Workpreff',
-        'workPreff_FormCv',
+        'workpreff_WorkPreff',
+        'workpreff_FormCv',
     );
     
 
