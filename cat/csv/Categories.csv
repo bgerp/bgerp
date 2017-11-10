@@ -8,3 +8,4 @@
 "Заготовки","Полуготови (междинни) продукти за влагане в производството","prefabrications","canManifacture,canStore,canConvert",
 "Услуги","Предлагани от фирмата услуги","services","canManifacture,canSell",
 "Дълготрайни Активи","Дълготрайни Активи","fixedAssets","canBuy,canSell,fixedAsset,canStore","брой"
+"Действия","Действия, които могат да се влагат в прогреса на производствените операции","actions","canConvert",
