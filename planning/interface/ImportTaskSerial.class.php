@@ -120,10 +120,15 @@ class planning_interface_ImportTaskSerial extends import_drivers_Proto
     	$serials = arr::extractSubArray($rec->serials, 'productId,quantityInPack,packagingId,serial');
     	
     	foreach ($serials as $key => $sRec){
-    		$sRec->{$mvc->masterKey} = $rec->{$mvc->masterKey};
-    		$sRec->quantity = $sRec->quantityInPack;
-    		$sRec->isEdited = TRUE;
-    		$recs[] = $sRec;
+    		$key = "{$sRec->productId}|{$sRec->packagingId}|{$sRec->quantityInPack}";
+    		if(!array_key_exists($key, $recs)){
+    			$sRec->{$mvc->masterKey} = $rec->{$mvc->masterKey};
+    			$sRec->quantity = 0;
+    			$sRec->isEdited = TRUE;
+    			$recs[$key] = $sRec;
+    		}
+    		
+    		$recs[$key]->quantity += $sRec->quantityInPack;
     	}
     	
     	return $recs;
