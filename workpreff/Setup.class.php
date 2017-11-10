@@ -47,7 +47,7 @@ class workpreff_Setup extends core_ProtoSetup
     var $managers = array(
 
         'workpreff_Workpreff',
-        'workpreff_FormCv',
+        'workPreff_FormCv',
     );
     
 
@@ -55,14 +55,6 @@ class workpreff_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     var $roles = 'ceo.hr';
-    
-
-    /**
-     * Връзки от менюто, сочещи към модула
-     */
-    var $menuItems = array(
-            array(3.995, 'Персонал', 'Подбор', 'workpeff_WorkPreff', 'default', "ceo,hr"),
-        );
     
         
     /**

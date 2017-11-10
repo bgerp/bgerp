@@ -45,10 +45,10 @@ class hr_Wrapper extends plg_ProtoWrapper
         $this->TAB('hr_WorkingCycles', 'Структура->Цикли', 'ceo,hrMaster,admin');
         $this->TAB('hr_ContractTypes', 'Структура->Шаблони', 'ceo,hrMaster,admin');
 
-        $this->TAB('workpreff_FormCv', 'Подбор->Форма CV', 'ceo,hrMaster');
-        $this->TAB('workpreff_WorkPreff', 'Подбор->Опции за подбор', 'ceo,hrMaster');
-
-
+        if(core_Packs::isInstalled('workpreff')){
+            $this->TAB('workpreff_FormCv', 'Подбор->Форма CV', 'ceo,hrMaster');
+            $this->TAB('workpreff_WorkPreff', 'Подбор->Опции за подбор', 'ceo,hrMaster');
+        }
 
         $this->title = 'Персонал';
     }

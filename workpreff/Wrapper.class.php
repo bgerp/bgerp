@@ -30,6 +30,6 @@ class workpreff_Wrapper extends plg_ProtoWrapper
     function description()
     {
 
-    
+
     }
 }

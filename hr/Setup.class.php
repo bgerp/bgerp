@@ -124,7 +124,7 @@ class hr_Setup extends core_ProtoSetup
             'timeLimit' => 200
         ));
 
-    
+
     /**
      * Връзки от менюто, сочещи към модула
      */
