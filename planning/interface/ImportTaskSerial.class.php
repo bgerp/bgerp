@@ -101,15 +101,17 @@ class planning_interface_ImportTaskSerial extends import_drivers_Proto
      * Съответстващия 'importRecs' метод, трябва да очаква
      * същите данни (@see import_DestinationIntf)
      *
-     * @param core_Manager $mvc
-     * @param stdClass $rec
-     * @return array $recs
-     * 		o productId        - ид на артикула
+     * @see import_DriverIntf
+	 * @param array $recs
+	 * 		o productId        - ид на артикула
      * 		o quantity         - к-во в основна мярка
      * 		o quantityInPack   - к-во в опаковка
      * 		o packagingId      - ид на опаковка
      * 		o batch            - дефолтна партида, ако може
+     * 		o notes            - забележки
      * 		o $this->masterKey - ид на мастър ключа
+	 * 
+	 * @return void
      */
     public function getImportRecs(core_Manager $mvc, $rec)
     {
@@ -121,6 +123,10 @@ class planning_interface_ImportTaskSerial extends import_drivers_Proto
     		$sRec->{$mvc->masterKey} = $rec->{$mvc->masterKey};
     		$sRec->quantity = $sRec->quantityInPack;
     		$sRec->isEdited = TRUE;
+    		
+    		$paddLength = planning_Setup::get('SERIAL_STRING_PAD');
+    		$sRec->serial = str_pad($sRec->serial, $paddLength, '0', STR_PAD_LEFT);
+    		$sRec->notes = $sRec->serial;
     		$recs[] = $sRec;
     	}
     	

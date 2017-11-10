@@ -194,6 +194,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
      * 		o quantityInPack   - к-во в опаковка
      * 		o packagingId      - ид на опаковка
      * 		o batch            - дефолтна партида, ако може
+     * 		o notes            - забележки
      * 		o $this->masterKey - ид на мастър ключа
 	 * 
 	 * @return void
