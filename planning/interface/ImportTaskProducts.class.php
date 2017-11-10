@@ -59,7 +59,7 @@ class planning_interface_ImportTaskProducts extends import_drivers_Proto
     	
     	// Всички документи в нишката, които са активни
     	$cQuery = doc_Containers::getQuery();
-    	$cQuery->where("#threadId = {$masterRec->threadId} AND (#state = 'active' || #state = 'draft')");
+    	$cQuery->where("#threadId = {$masterRec->threadId} AND #state = 'active'");
     	$containers = arr::extractValuesFromArray($cQuery->fetchAll(), 'id');
     	
     	// За всеки подаден дефолтен артикул
