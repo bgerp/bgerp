@@ -264,7 +264,7 @@ class colab_FolderToPartners extends core_Manager
                     
                     $restoreLink = ht::createLink('', 
                         array('crm_Profiles', 'restore', $pId, 'ret_url' => TRUE), 
-                        tr('Наистина ли желаете да възстановите потребителя|*?'), 'id=btnRestore, ef_icon = img/16/restore.png');
+                        tr('Наистина ли желаете да възстановите потребителя|*?'), 'id=btnRestore, ef_icon = img/16/restore.png,title=Възстановяване на профила на споделен партньор');
                 }
             }
     	}
