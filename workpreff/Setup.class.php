@@ -54,30 +54,32 @@ class workpreff_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'ceo.hr';
-    
-        
-    /**
-     * Инсталиране на пакета
-     */
-    function install()
-    {
-        $html = parent::install();
-              
+//    var $roles = 'ceo,hr';
 
-        
-        return $html;
-    }
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res = bgerp_Menu::remove($this);
-        
-        return $res;
-    }
+    public $depends = 'hr=0.1';
+
+//
+//    /**
+//     * Инсталиране на пакета
+//     */
+//    function install()
+//    {
+//        $html = parent::install();
+//
+//
+//
+//        return $html;
+//    }
+//
+//
+//    /**
+//     * Де-инсталиране на пакета
+//     */
+//    function deinstall()
+//    {
+//        // Изтриване на пакета от менюто
+//        $res = bgerp_Menu::remove($this);
+//
+//        return $res;
+//    }
 }
