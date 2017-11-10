@@ -38,7 +38,7 @@ class workpreff_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Code analysis";
+    var $info = "";
 
 
 /**
@@ -54,14 +54,14 @@ class workpreff_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'powerUser';
+    var $roles = 'ceo.hr';
     
 
     /**
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.995, 'Персонал', 'Подбор', 'workpeff_WorkPreff', 'default', "powerUser"),
+            array(3.995, 'Персонал', 'Подбор', 'workpeff_WorkPreff', 'default', "ceo,hr"),
         );
     
         

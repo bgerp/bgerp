@@ -22,16 +22,14 @@ class workpreff_WorkPreff extends core_Manager
 
     public $title = "Избор";
 
-    public $loadList = 'plg_RowTools2,plg_Sorting';
+    public $loadList = 'plg_RowTools2,plg_Sorting, hr_Wrapper';
 
     function description()
     {
+
         $this->FLD('name', 'varchar(255,ci)', 'caption=Предпочитания->Възможности,class=contactData,mandatory,remember=info,silent,export=Csv');
         $this->FLD('type', 'enum(set=Фиксиране, enum=Избор)', 'notNull,caption=Тип на избора,maxRadio=2,after=name');
         $this->FLD('choice', 'text', 'caption=Информация->Предложения за избор,class=contactData,mandatory,remember=info,silent,removeAndRefreshForm, export=Csv');
-
-
-
 
     }
 

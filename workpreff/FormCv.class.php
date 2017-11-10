@@ -155,7 +155,7 @@ class workpreff_FormCv extends core_Master
     protected static function on_AfterInputEditForm($mvc, $form)
     {
 
-        $preferencecForWorc = array();
+        $preferencesForWork = array();
 
         if ($form->isSubmitted()){
 
@@ -164,7 +164,7 @@ class workpreff_FormCv extends core_Master
                 foreach ($form->rec as $k => $v) {
 
                     if (substr($k, 0, 10) == 'workpreff_') {
-                        $preferencecForWorc[] = (object)array(
+                        $preferencesForWork[] = (object)array(
                             'id' => workpreff_WorkPreff::getOptionsForChoice()[substr($k, 10)]->name,
 
                             'value' => $v
@@ -176,7 +176,7 @@ class workpreff_FormCv extends core_Master
                 }
 
 
-            $form->rec->workpreff = $preferencecForWorc;
+            $form->rec->workpreff = $preferencesForWork;
 
         }
 
