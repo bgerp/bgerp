@@ -60,13 +60,19 @@ class workpreff_FormCv extends core_Master
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "CV ";
+    var $singleTitle = "CV";
 
 
     /**
      * Полета, които се показват в листови изглед
      */
     var $listFields = 'name,egn,place,mobile';
+
+
+    /**
+     * Нов темплейт за показване
+     */
+    var $singleLayoutFile = 'workpreff/tpl/SingleLayoutCV.shtml';
 
 
     /**
@@ -178,12 +184,8 @@ class workpreff_FormCv extends core_Master
                     }
 
                 }
-
-
             $form->rec->workpreff = $preferencesForWork;
-
         }
-
     }
 
 
@@ -232,7 +234,7 @@ class workpreff_FormCv extends core_Master
         $rec = $this->fetch($id);
         $title = $this->recToverbal($rec, 'name')->name;
         $row = new stdClass();
-        $row->title = $this->singleTitle . ' -' . $title;
+        $row->title = $this->singleTitle . ' - ' . $title;
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
@@ -260,8 +262,25 @@ class workpreff_FormCv extends core_Master
      * @param $row
      * @param $rec
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+
+
+        if ($fields['-single']) {
+            $row->singleTitle = 'CV - ' . $row->name;
+
+            // Fancy ефект за картинката
+            $Fancybox = cls::get('fancybox_Fancybox');
+
+            $tArr = array(200, 150);
+            $mArr = array(600, 450);
+
+            if($rec->photo) {
+                $row->image = $Fancybox->getImage($rec->photo, $tArr, $mArr);
+            }
+
+        }
+
 
         $prepare = '';
 
@@ -275,10 +294,10 @@ class workpreff_FormCv extends core_Master
 
                 foreach ($printValues as $vp) {
 
-                    $printValue .= $vp . "<br>";
+                    $printValue .= "<div>" . $vp . "</div>";
                 }
 
-                $prepare .= "<span style='font-style: italic; font-size: large' >" . $v->id . " : " . "</span>" . "<br>" . "      " . $printValue . "<br>";
+                $prepare .= "<tr><td class='aright'>" . $v->id . ": " . "</td><td class='aleft' colspan='2'>" . $printValue . "</td></tr>";
 
             }
         }
