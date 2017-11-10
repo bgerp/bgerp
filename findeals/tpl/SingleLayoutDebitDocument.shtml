@@ -1,16 +1,9 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+	<div style='padding-bottom:5px'>|Име|*: <b>[#name#]</b></div>
     <table class='styled-table'>
     	<tr>
             <td>|Вальор|*</td>
             <td>[#valior#]</td>
-        </tr>
-        <tr>
-            <td>|Име|*</td>
-            <td>[#name#]</td>
-        </tr>
-        <tr>
-            <td>|Финансова сделка|*</td>
-            <td>[#dealId#]</td>
         </tr>
         <tr>
             <td>|Погасено по|* [#dealHandle#]</td>

@@ -1102,14 +1102,14 @@ abstract class deals_Helper
 				
 			if(!empty($value)){
 				$hint = TRUE;
-				$value = round($value, 2);
 			}
 		}
 		
 		// Ако няма тегло не се прави нищо
 		if(empty($value)) return NULL;
 		
-		$valueType = ($type == 'weight') ? 'cat_type_Weight' : 'cat_type_Volume';
+		$valueType = ($type == 'weight') ? 'cat_type_Weight(decimals=2)' : 'cat_type_Volume';
+		$value = round($value, 2);
 		
 		// Вербализиране на теглото
 		$valueRow = core_Type::getByName($valueType)->toVerbal($value);

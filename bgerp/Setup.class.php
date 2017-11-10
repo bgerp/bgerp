@@ -210,7 +210,7 @@ class bgerp_Setup extends core_ProtoSetup {
         // Списък на основните модули на bgERP
         $packs = "core,log,fileman,drdata,bglocal,editwatch,recently,thumb,doc,acc,cond,currency,cms,
                   email,crm, cat, trans, price, blast,hr,trz,lab,dec,sales,planning,marketing,store,cash,bank,
-                  budget,tcost,purchase,accda,permanent,sens2,cams,frame,frame2,cal,fconv,doclog,fconv,cms,blogm,forum,deals,findeals,tasks,
+                  budget,tcost,purchase,accda,permanent,sens2,cams,frame,frame2,cal,fconv,doclog,fconv,cms,blogm,forum,deals,findeals,
                   vislog,docoffice,incoming,support,survey,pos,change,sass,
                   callcenter,social,hyphen,status,phpmailer,label,webkittopdf,jqcolorpicker";
         
@@ -442,7 +442,7 @@ class bgerp_Setup extends core_ProtoSetup {
                        // $res = substr($res, strpos($res, "</h2>"), strlen($res));
 
                         do {
-                            $res = @file_put_contents(EF_TEMP_PATH . '/setupLog.html', $res, FILE_APPEND|LOCK_EX);
+                            $res = @file_put_contents(EF_SETUP_LOG_PATH, $res, FILE_APPEND|LOCK_EX);
                             if($res !== FALSE) break;
                             usleep(1000);
                         } while($i++ < 100);

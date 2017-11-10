@@ -93,7 +93,7 @@ class store_Products extends core_Detail
     /**
      * Преди подготовката на записите
      */
-    public static function on_BeforePrepareListPager($mvc, &$res, $data)
+    protected static function on_BeforePrepareListPager($mvc, &$res, $data)
     {
     	$mvc->listItemsPerPage = (isset($data->masterMvc)) ? 100 : 20;
     }
@@ -322,60 +322,41 @@ class store_Products extends core_Detail
     /**
      * Колко е количеството на артикула в складовете
      * 
-     * @param int $productId    - ид на артикул
-     * @param int|NULL $storeId - конкретен склад, NULL ако е във всички
-     * @param boolean $onlyFree - само наличните
-     * @return double $sum      - наличното количество
+     * @param int $productId        - ид на артикул
+     * @param int|NULL $storeId     - конкретен склад, NULL ако е във всички
+     * @param boolean $freeQuantity - FALSE за общото количество, TRUE само за разполагаемото (общо - запазено)
+     * @return double $sum          - сумата на количеството, общо или разполагаемо
      */
-    public static function getQuantity($productId, $storeId = NULL, $onlyFree = FALSE)
+    public static function getQuantity($productId, $storeId = NULL, $freeQuantity = FALSE)
     {
     	$query = self::getQuery();
     	$query->where("#productId = {$productId}");
+    	$query->show('sum');
     	
     	if(isset($storeId)){
     		$query->where("#storeId = {$storeId}");
     	}
     	
-    	$sum = 0;
-    	while($r = $query->fetch()){
-    		if($onlyFree !== TRUE){
-    			$sum += $r->quantity;
-    		} else {
-    			$sum += $r->quantity - $r->reservedQuantity;
-    		}
+    	if($freeQuantity === TRUE){
+    		$query->XPR('sum', 'double', 'SUM(#quantity - COALESCE(#reservedQuantity, 0))');
+    	} else {
+    		$query->XPR('sum', 'double', 'SUM(#quantity)');
     	}
+    	
+    	$calcedSum = $query->fetch()->sum;
+    	$sum = (!empty($calcedSum)) ? $calcedSum : 0;
     	
     	return $sum;
     }
     
     
     /**
-     * Всички налични к-ва на артикулите в склад-а
-     * 
-     * @param int $storeId
-     * @return array $res
-     */
-    public static function getQuantitiesInStore($storeId)
-    {
-    	$res = array();
-    	$query = self::getQuery();
-    	$query->where("#storeId = {$storeId}");
-    	$query->show('productId,quantity');
-    	while($rec = $query->fetch()){
-    		$res[$rec->productId] = $rec->quantity;
-    	}
-    	
-    	return $res;
-    }
-
-
-    /**
      * След подготовка на тулбара на списъчния изглед
      *
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareListToolbar($mvc, &$data)
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
     	if(haveRole('debug')){
     		if(isset($data->masterMvc)) return;
@@ -387,7 +368,7 @@ class store_Products extends core_Detail
     /**
      * Преди подготовката на полетата за листовия изглед
      */
-    public static function on_AfterPrepareListFields($mvc, &$res, &$data)
+    protected static function on_AfterPrepareListFields($mvc, &$res, &$data)
     {
     	if(isset($data->masterMvc)){
     		unset($data->listFields['storeId']);
@@ -412,7 +393,7 @@ class store_Products extends core_Detail
     /**
      * Проверяваме дали колонката с инструментите не е празна, и ако е така я махаме
      */
-    public static function on_BeforeRenderListTable($mvc, &$res, $data)
+    protected static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
     	$data->listTableMvc->FLD('code', 'varchar', 'tdClass=small-field');
     	$data->listTableMvc->FLD('measureId', 'varchar', 'tdClass=centered');
@@ -436,7 +417,7 @@ class store_Products extends core_Detail
 	/**
 	 * Преди подготовката на ключовете за избор
 	 */
-    public static function on_BeforePrepareKeyOptions($mvc, &$options, $typeKey, $where = '')
+    protected static function on_BeforePrepareKeyOptions($mvc, &$options, $typeKey, $where = '')
     {
         $storeId = store_Stores::getCurrent();
         $query = self::getQuery();

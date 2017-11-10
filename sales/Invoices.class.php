@@ -400,15 +400,18 @@ class sales_Invoices extends deals_InvoiceMaster
     	parent::inputInvoiceForm($mvc, $form);
     	
     	if($form->isSubmitted()){
-    		if(!$mvc->isAllowedToBePosted($rec, $warning)){
+    		
+    		// Валидна ли е датата (при само промяна няма да се изпълни)
+    		if(!$mvc->isAllowedToBePosted($rec, $warning) && $rec->__isBeingChanged !== TRUE){
     			$form->setError('date', $warning);
     		}
     		
     		if($rec->type != 'dc_note' && empty($rec->accountId)){
     			if($paymentMethodId = doc_Threads::getFirstDocument($rec->threadId)->fetchField('paymentMethodId')){
     				$paymentPlan = cond_PaymentMethods::fetch($paymentMethodId);
+    				$timeBalance = $paymentPlan->timeBalancePayment;
     				
-    				if(!empty($paymentPlan->timeBalancePayment) || $paymentPlan->type == 'bank' || $rec->paymentType == 'bank'){
+    				if((!empty($timeBalance) && $timeBalance > 86400) || $paymentPlan->type == 'bank' || $rec->paymentType == 'bank'){
     					$form->setWarning('accountId', "Сигурни ли сте, че не е нужно да се посочи и банкова сметка|*?");
     				}
     			}

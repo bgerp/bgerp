@@ -238,8 +238,9 @@ class sales_SalesDetails extends deals_DealDetail
     		
     		$Double = cls::get('type_Double', (object)array('params' => array('smartRound' => TRUE)));
     		$row->quantity = $Double->toVerbal($jRec->quantity);
-    		//$row->quantityFromTasks = $Double->toVerbal(planning_TaskActions::getQuantityForJob($jRec->id, 'product'));
-    		$row->quantityProduced = $Double->toVerbal($jRec->quantityProduced);
+    		
+			$row->quantityFromTasks = $Double->toVerbal(planning_Tasks::getProducedQuantityForJob($jRec->id));
+			$row->quantityProduced = $Double->toVerbal($jRec->quantityProduced);
     		$row->dueDate = cls::get('type_Date')->toVerbal($jRec->dueDate);
     		$row->jobId = planning_Jobs::getLink($jRec->id, 0);
     		

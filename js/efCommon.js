@@ -1097,20 +1097,25 @@ function prepareContextMenu() {
     });
 }
 
-var timeOfSettingTab, timeOfNotification, oldNotificationsCnt,oldTimeOfNotification;
-function openCurrentTab(){
+function openCurrentTab(lastNotifyTime){
     if(!$('body').hasClass('modern-theme') || $('body').hasClass('wide')) return;
     var current;
     // взимаме данните за портала в бисквитката
     var portalTabs = getCookie('portalTabs');
+    var lastLoggedNotification = getCookie('notifyTime');
     if($(location.hash).length) {
         // взимаме таба от # в url-то
         current = $(location.hash);
+    } else if(typeof lastLoggedNotification !== 'undefined' && lastLoggedNotification < lastNotifyTime) {
+        current = $("#notificationsPortal");
     } else if($("#" +  portalTabs).length) {
         current = $("#" + portalTabs );
     }  else {
         // първия таб да е активен
         current = $('.narrowPortalBlocks').first();
+    }
+    if(current.attr('id') == 'notificationsPortal') {
+        setCookie('notifyTime', lastNotifyTime);
     }
     $(current).addClass('activeTab');
     $(current).siblings().removeClass('activeTab');
@@ -1123,14 +1128,14 @@ function openCurrentTab(){
     $(tab).addClass('activeTab');
     $(tab).siblings().removeClass('activeTab');
 
-    portalTabsChange();
+    portalTabsChange(lastNotifyTime);
 }
 
 
 /**
  * Действия на табовете в мобилен
  */
-function portalTabsChange() {
+function portalTabsChange(lastNotifyTime) {
     $('ul.portalTabs li').click(function(){
         var tab_id = $(this).attr('data-tab');
         $('ul.portalTabs li').removeClass('activeTab');
@@ -1138,7 +1143,9 @@ function portalTabsChange() {
 
         $(this).addClass('activeTab');
         $("#"+tab_id).addClass('activeTab');
-        timeOfSettingTab = jQuery.now();
+        if(tab_id == 'notificationsPortal') {
+            setCookie('notifyTime', lastNotifyTime);
+        }
         setCookie('portalTabs', tab_id);
     });
 }
@@ -4140,15 +4147,10 @@ function changeNotificationsCnt(data) {
             nCntLink.className = 'noNtf';
         }
 
-        if($('body').hasClass('modern-theme') && $('body').hasClass('narrow')  && data.notifyTime) {
-            timeOfNotification = data.notifyTime;
-
-            if(timeOfSettingTab < timeOfNotification) {
-                if( oldTimeOfNotification != timeOfNotification) {
-                    oldTimeOfNotification = timeOfNotification;
-                    setCookie('portalTabs', "notificationsPortal");
-                }
-            }
+        if($('body').hasClass('modern-theme') && $('body').hasClass('narrow')  && typeof data.notifyTime !== 'undefined' && data.notifyTime) {
+           if(getCookie('portalTabs') == "notificationsPortal") {
+               setCookie('notifyTime', data.notifyTime);
+           }
         }
     }
 }

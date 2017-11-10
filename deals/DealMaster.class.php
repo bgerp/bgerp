@@ -79,8 +79,6 @@ abstract class deals_DealMaster extends deals_DealBase
 		if(empty($mvc->fields['contoActions'])){
 			$mvc->FLD('contoActions', 'set(activate,pay,ship)', 'input=none,notNull,default=activate');
 		}
-		
-		setIfNot($mvc->canChangerate, 'ceo,salesMaster,purchaseMaster');
 	}
 	
 	
@@ -171,6 +169,7 @@ abstract class deals_DealMaster extends deals_DealBase
 	protected static function setDealFields($mvc)
 	{
 		$mvc->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date,notChangeableByContractor');
+		$mvc->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,class=contactData,after=valior');
 		
 		// Стойности
 		$mvc->FLD('amountDeal', 'double(decimals=2)', 'caption=Стойности->Поръчано,input=none,summary=amount'); // Сумата на договорената стока
@@ -229,10 +228,24 @@ abstract class deals_DealMaster extends deals_DealBase
 	{
 		$form = &$data->form;
 		$form->setDefault('valior', dt::now());
+		$rec = $form->rec;
+		
+		// При клониране
+		if($data->action == 'clone'){
+			 
+			// Ако няма reff взимаме хендлъра на оригиналния документ
+			if(empty($rec->reff)){
+				$rec->reff = $mvc->getHandle($rec->id);
+			}
+			 
+			// Инкрементираме reff-а на оригинална
+			$rec->reff = str::addIncrementSuffix($rec->reff, 'v', 2);
+		}
 		
 		if(empty($form->rec->id)){
 			$form->setDefault('shipmentStoreId', store_Stores::getCurrent('id', FALSE));
 		}
+		
 		$form->setDefault('makeInvoice', 'yes');
 		
 		// Поле за избор на локация - само локациите на контрагента по сделката
@@ -327,7 +340,9 @@ abstract class deals_DealMaster extends deals_DealBase
         $title = "{$abbr}{$rec->id}/{$contragent}";
         
         // Показване и на артикула с най-голяма стойност в продажбата
-        if(isset($rec->productIdWithBiggestAmount)){
+        if(!empty($rec->reff)){
+        	$title .= "/{$rec->reff}";
+        } elseif(isset($rec->productIdWithBiggestAmount)){
         	$pName = mb_substr($rec->productIdWithBiggestAmount, 0, 20);
         	$title .= "/{$pName}";
         }
@@ -373,6 +388,10 @@ abstract class deals_DealMaster extends deals_DealBase
     	$defCurrency = cls::get($rec->contragentClassId)->getDefaultCurrencyId($rec->contragentId);
     	if($defCurrency != $rec->currencyId){
     		$form->setWarning('currencyId', "Избрана e различна валута от очакваната|* {$defCurrency}");
+    	}
+    	
+    	if($rec->reff === ''){
+    		$rec->reff = NULL;
     	}
     }
 
@@ -1765,14 +1784,6 @@ abstract class deals_DealMaster extends deals_DealBase
     			}
     		}
     	}
-    	
-    	if($action == 'changerate' && isset($rec)){
-    		if($rec->currencyId == 'BGN' || $rec->currencyId == 'EUR'){
-    			$res = 'no_one';
-    		} elseif($rec->state == 'closed' || $rec->state == 'rejected'){
-    			$res = 'no_one';
-    		}
-    	}
     }
     
     
@@ -2055,62 +2066,5 @@ abstract class deals_DealMaster extends deals_DealBase
     	}
     	
     	return NULL;
-    }
-    
-    
-    /**
-     * След подготовка на тулбара на единичен изглед.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
-     */
-    static function on_AfterPrepareSingleToolbar($mvc, &$data)
-    {
-    	$rec = &$data->rec;
-    	 
-    	if($mvc->haveRightFor('changerate', $rec)) {
-    		$data->toolbar->addBtn('Промяна на курса', array($mvc, 'changeRate', $rec->id, 'ret_url' => TRUE), "id=changeRateBtn,row=2", 'ef_icon = img/16/arrow_refresh.png,title=Преизчисляване на курса на документите в нишката');
-    	}
-    }
-    
-    
-    /**
-     * Рекалкулиране на курса на документите в сделката
-     */
-    function act_Changerate()
-    {
-    	$this->requireRightFor('changerate');
-    	expect($id = Request::get('id', 'int'));
-    	expect($rec = $this->fetchRec($id));
-    	$this->requireRightFor('changerate', $rec);
-    	
-    	$form = cls::get('core_Form');
-    	$form->title = "|Преизчисляване на курса на документите в|* " . $this->getHyperlink($rec, TRUE);
-    	$form->info = tr("Стар курс|*: <b>{$rec->currencyRate}</b>");
-    	$form->FLD('newRate', 'double', 'caption=Нов курс,mandatory');
-    	$form->input();
-    	
-    	if($form->isSubmitted()){
-    		$fRec = $form->rec;
-    		
-    		// Рекалкулиране на сделката
-    		deals_Helper::recalcRate($this, $rec->id, $fRec->newRate);
-    		
-    		// Рекалкулиране на определени документи в нишката и
-    		$dealDocuments = $this->getDescendants($rec->id);
-    		$arr = array(store_ShipmentOrders::getClassId(), store_Receipts::getClassId(), sales_Services::getClassId(), purchase_Services::getClassId(), sales_Invoices::getClassId(), purchase_Invoices::getClassId());
-    		foreach ($dealDocuments as $d) {
-    			if(!in_array($d->getClassId(), $arr)) continue;
-    			deals_Helper::recalcRate($d->getInstance(), $d->fetch(), $fRec->newRate);
-    		}
-    		
-    		followRetUrl(NULL, 'Документите са преизчислени успешно');
-    	}
-    	
-    	$form->toolbar->addSbBtn('Преизчисли', 'save', 'ef_icon = img/16/tick-circle-frame.png,warning=Ще преизчислите всички документи в нишката по новия курс');
-    	$form->toolbar->addBtn('Отказ', array($this, 'single', $id),  'ef_icon = img/16/close-red.png');
-    	 
-    	// Рендиране на формата
-    	return $this->renderWrapping($form->renderHtml());
     }
 }

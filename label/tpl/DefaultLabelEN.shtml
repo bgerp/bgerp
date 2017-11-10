@@ -75,7 +75,7 @@
     <table cellpadding="0">
         <tr>
             <td class="top-descr no-border-left no-border-top">
-                [#JOB#]
+                [#JOB#] 
             </td>
             <td colspan="2" class="top-descr no-border-top">
                 [#NAME#]

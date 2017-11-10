@@ -51,8 +51,6 @@ if (setupKeyValid() && !setupProcess()) {
 }
 
 
-
-
 // На коя стъпка се намираме в момента?
 $step = $_GET['step'] ? $_GET['step'] : 1;
 $texts['currentStep'] = $step;
@@ -500,6 +498,9 @@ href=\"data:image/icon;base64,AAABAAEAEBAAAAAAAABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIA
 </ul>
 
 [#body#]
+
+<!-- filled_with_start_initialization_JS --!>
+        
 </div>
 </body>
 </html>";
@@ -919,7 +920,27 @@ if($step == 4) {
 }
 
 if($step == 5) {  
+    // Първоначално изтриване на Log-a
+    file_put_contents(EF_SETUP_LOG_PATH, "");
     $texts['body'] .= "<iframe src='{$selfUrl}&step=setup' name='init' id='init'></iframe>";
+    
+    // Слагаме кода за стартиране на сетъп процеса
+    $pURL =  parse_url($localUrl);
+    $localRelativUrl = substr($localUrl, strlen($pURL['scheme'] . "://" . $pURL['host']));
+    
+    $jsStart = "<script>
+    
+    function httpGet(theUrl)
+    {
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.open( \"GET\", theUrl, false ); // false for synchronous request
+    xmlHttp.send( null );
+    }
+    theUrl = '{$localRelativUrl}&step=start';
+    httpGet(theUrl);
+    
+    </script>";
+    $layout = str_replace('<!-- filled_with_start_initialization_JS --!>', $jsStart, $layout);
 }
 
 /**********************************
@@ -934,24 +955,12 @@ if ($step == 'setup') {
     $totalTables = 365; //366
     $percents = $persentsBase = $persentsLog = 0;
     $total = $totalTables*$calibrate + $totalRecords;
-
     // Пращаме стиловете
     echo ($texts['styles']);
- 
-    
-    // Първоначално изтриване на Log-a
-    file_put_contents(EF_TEMP_PATH . '/setupLog.html', "");
-    
+     
     // Стартираме инициализацията
-    $res = file_get_contents("{$localUrl}&step=start", FALSE, $context, 0, 32);
+    contentFlush ("<h3 id='startHeader'>Стартиране на инициализацията ... </h3>");
     
-    if ($res == $flagOK) {
-        contentFlush ("<h3 id='startHeader'>Инициализацията стартирана ...</h3>");
-    } else {
-        contentFlush ("<h3 id='startHeader' style='color: red;'>Грешка при стартиране на Setup!</h3><h3>{$selfUrl}&step=start</h3><div>{$res}</div>");
-        
-        exit;
-    }
     // Пращаме javascript-a за smooth скрол-а
     contentFlush("<script>
     var mouseDown = 0;
@@ -987,16 +996,16 @@ if ($step == 'setup') {
                 ");
     $cnt = 0;
     do {
-        clearstatcache(EF_TEMP_PATH . '/setupLog.html');
-        $fTime = filemtime(EF_TEMP_PATH . '/setupLog.html');
-        clearstatcache(EF_TEMP_PATH . '/setupLog.html');
+        clearstatcache(EF_SETUP_LOG_PATH);
+        $fTime = filemtime(EF_SETUP_LOG_PATH);
+        clearstatcache(EF_SETUP_LOG_PATH);
         list($numTables, $numRows) = dataBaseStat(); 
 
         // От базата идват 80% от прогрес бара
         $percentsBase = round(($numRows + $calibrate * $numTables*(4/5))/$total, 2)*100;
         
         // Изчитаме лог-а
-        $setupLog = @file_get_contents(EF_TEMP_PATH . '/setupLog.html');
+        $setupLog = @file_get_contents(EF_SETUP_LOG_PATH);
 
         if (!empty($setupLog) && $percentsLog < 20) {
             $percentsLog+=2;
@@ -1015,7 +1024,7 @@ if ($step == 'setup') {
         // Изтриваме Log-a - ако има нещо в него
         if (!empty($setupLog)) {
             do {
-                $res = @file_put_contents(EF_TEMP_PATH . '/setupLog.html', "", LOCK_EX);
+                $res = @file_put_contents(EF_SETUP_LOG_PATH, "", LOCK_EX);
                 if($res !== FALSE) break;
                 usleep(1000);
             } while($i++ < 100);
@@ -1030,7 +1039,7 @@ if ($step == 'setup') {
         sleep(2);
         Debug::log('Sleep 2 sec. in' . __CLASS__);
         
-        $fTime2 = filemtime(EF_TEMP_PATH . '/setupLog.html');
+        $fTime2 = filemtime(EF_SETUP_LOG_PATH);
         if (($fTime2 - $fTime) > 0) {
             $logModified = TRUE;
         } else {
@@ -1038,7 +1047,7 @@ if ($step == 'setup') {
         }
         
         $cnt++;
-        if ($cnt > 100) {
+        if (!($cnt % 100)) {
             // Ако инсталацията увисне
             wp($cnt, $numTables, $numRows, $percentsBase, $setupLog, strlen($setupLog), $logModified, $fTime2, $fTime);
         }
@@ -1090,11 +1099,10 @@ if($step == 'start') {
     // Следващият ред генерира notice,
     // но без него file_get_contents забива, ако трябва да връща повече от 0 байта
     @ob_end_clean();
-
+    
     header("Connection: close\r\n");
     header("Content-Encoding: none\r\n");
     ob_start();
-    echo $flagOK;
     $size = ob_get_length();
     header("Content-Length: $size");
     ob_end_flush();
@@ -1105,23 +1113,22 @@ if($step == 'start') {
 
     $setupFlag = TRUE;
     // Създаваме празен Log файл
-    file_put_contents(EF_TEMP_PATH . '/setupLog.html', '');
+    file_put_contents(EF_SETUP_LOG_PATH, '');
     
     // Локал за функции като basename, fgetcsv
     setlocale(LC_ALL, 'en_US.UTF8');
-
+    
     $ef = new core_Setup();
-
     try {
         try {
             $res = $ef->install();
-            file_put_contents(EF_TEMP_PATH . '/setupLog.html', 'Start OK ...' . $res);
+            file_put_contents(EF_SETUP_LOG_PATH, 'Стартирана инициализация ...' . $res);
         } catch (core_exception_Expect $e) {
-            file_put_contents(EF_TEMP_PATH . '/setupLog.html', $res . "ERROR: " . $e->getMessage());
+            file_put_contents(EF_SETUP_LOG_PATH, $res . "ERROR: " . $e->getMessage());
             reportException($e);
         }
     } catch (Exception $e) {
-        file_put_contents(EF_TEMP_PATH . '/setupLog.html',$e->getMessage());
+        file_put_contents(EF_SETUP_LOG_PATH, $e->getMessage());
         reportException($e);
     }
     
@@ -1145,7 +1152,9 @@ if ($efSaltGenerated) {
 }
 
 echo $layout;
+
 ob_flush();
+
 
 die;
 

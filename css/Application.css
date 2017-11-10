@@ -1487,7 +1487,8 @@ a.tOld {
 #packWrapper > .floatedElement {
   float: left; }
   #packWrapper > .floatedElement.preview-holder {
-    margin-top: -20px !important; }
+    margin-top: -20px !important;
+    min-width: 800px; }
 
 #packWrapper form.floatedElement {
   margin-right: 20px; }
@@ -2918,6 +2919,9 @@ span.sharing-history-title {
   padding-bottom: 10px;
   left: 0;
   z-index: 100; }
+  .newsbar h2,
+  .newsbar h3 {
+    margin-bottom: 0; }
 
 .newsbar .richtext {
   line-height: 1.1em;
@@ -3322,14 +3326,14 @@ span.sharing-history-title {
   .overflow-scroll > .antetka {
     margin-top: 0; }
 
-.planning_drivers_ProductionTaskDetails .listRowsDetail {
+.planning_ProductionTaskDetails .listRowsDetail {
   width: 100% !important;
   overflow-x: auto !important;
   overflow-y: hidden !important;
   _overflow: auto !important;
   margin-bottom: 0;
   display: block; }
-  .planning_drivers_ProductionTaskDetails .listRowsDetail td {
+  .planning_ProductionTaskDetails .listRowsDetail td {
     max-width: none !important; }
 
 .document .scrolling-holder {

@@ -350,17 +350,6 @@ abstract class cash_Document extends deals_PaymentDocument
 
 
     /**
-     * Връща разбираемо за човека заглавие, отговарящо на записа
-     */
-    public static function getRecTitle($rec, $escaped = TRUE)
-    {
-    	$self = cls::get(get_called_class());
-    	 
-    	return tr("|{$self->singleTitle}|* №") . $rec->id;
-    }
-
-
-    /**
      * Подготовка на бутоните на формата за добавяне/редактиране
      */
     protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)

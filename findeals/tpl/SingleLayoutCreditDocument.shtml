@@ -9,10 +9,6 @@
             <td>[#name#]</td>
         </tr>
         <tr>
-            <td>|Финансова сделка|*</td>
-            <td>[#dealId#]</td>
-        </tr>
-        <tr>
             <td>|Погасено по|* [#dealHandle#]</td>
             <td><span class='cCode'>[#dealCurrencyId#]</span> [#amount#]</td>
         </tr>

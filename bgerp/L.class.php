@@ -21,7 +21,7 @@ class bgerp_L extends core_Manager
     /**
      * Заглавие
      */
-    var $title = 'Хоронология на действията с на документи';
+    var $title = 'Хронология на действията с документи';
     
     
     /**
@@ -51,7 +51,7 @@ class bgerp_L extends core_Manager
         
         $L = cls::get('bgerp_L');
         
-        // Очакваме само дайствие, допустимо за извършване от регистриран потребител
+        // Очакваме само действие, допустимо за извършване от регистриран потребител
         $actType = $L->fields['action']->type;
         expect(isset($actType->options[$action]));
         $rec->action = $action;
@@ -72,7 +72,7 @@ class bgerp_L extends core_Manager
      */
     static function addRef($action, $refMid, $res = NULL)
     {
-        // Очакваме действието да започва с долна чера, защото по този начин означаваме действията
+        // Очакваме действието да започва с долна черта, защото по този начин означаваме действията
         // Които 
         // Трябва да имаме референтен 'mid'.
         // Чрез него се извлича 'id', 'tid' и 'cid' на референтния запис
@@ -223,8 +223,21 @@ class bgerp_L extends core_Manager
                 }
             }
             
-            if (!haveRole('user') && doc_PdfCreator::canConvert()) {
-                $html->append(ht::createLink(tr('Свали като PDF'), array($this, 'pdf', $cid, 'mid' => $mid, 'ret_url' => TRUE), NULL, array('class' => 'hideLink')));
+            if (!haveRole('user')) {
+                if (doc_PdfCreator::canConvert()) {
+                    $html->append(ht::createLink(tr('Свали като PDF'), array($this, 'pdf', $cid, 'mid' => $mid, 'ret_url' => TRUE), NULL, array('class' => 'hideLink')));
+                }
+                
+                $exportArr = array();
+                try {
+                    $exportArr = $doc->getExportUrl($mid);
+                } catch (core_exception_Expect $e) {
+                    reportException($e);
+                }
+                
+                if (!empty($exportArr)) {
+                    $html->append(ht::createLink(tr('Експорт'), $exportArr, NULL, array('class' => 'hideLink')));
+                }
             }
             
             return $html;

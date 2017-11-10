@@ -1726,10 +1726,23 @@ class email_Outgoings extends core_Master
                     $ccEmails = $rec->emailCc;
                     $ccEmails .= $ccEmails ? ', ' : '';
                     $ccEmails .= $contragentData->ccEmail;
-                
-                    $ccEmailsArr = type_Emails::toArray($ccEmails);
                     
-                    $ccEmailsArr = array_combine($ccEmailsArr, $ccEmailsArr);
+                    $toParser = new email_Rfc822Addr();
+                    $parseToEmail = array();
+                    
+                    $ccEmails = trim($ccEmails);
+                    
+                    if ($ccEmails) {
+                        $toParser->ParseAddressList($ccEmails, $parseToEmail);
+                    }
+                    
+                    $ccEmailsArr = array();
+                    foreach ((array)$parseToEmail as $eml) {
+                        if (!trim($eml['address'])) continue;
+                        
+                        $ccEmailsArr[$eml['address']] = $eml['address'];
+                    }
+                    
                     $ccEmailsArr = email_Inboxes::removeOurEmails($ccEmailsArr);
                     
                     // Ако имейлите в копие са над лимита, не ги добавяме автоматично в полето

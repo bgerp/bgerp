@@ -84,6 +84,20 @@ abstract class store_DocumentMaster extends core_Master
     
     
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, valior,deliveryTime,modifiedOn';
+    
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'valior, amountDelivered, amountDeliveredVat, amountDiscount, deliveryTime,weight,volume,weightInput,volumeInput,palletCount';
+    
+    
+    /**
      * След описанието на полетата
      */
     protected static function setDocFields(core_Master &$mvc)
@@ -651,17 +665,6 @@ abstract class store_DocumentMaster extends core_Master
     		
     		$aggregator->pushToArray('productVatPrices', $dRec->packPrice, $index);
     	}
-    }
-    
-    
-    /**
-     * Връща разбираемо за човека заглавие, отговарящо на записа
-     */
-    public static function getRecTitle($rec, $escaped = TRUE)
-    {
-    	$self = cls::get(get_called_class());
-    	 
-    	return tr("|{$self->singleTitle}|* №") . $rec->id;
     }
     
     

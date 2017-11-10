@@ -171,6 +171,12 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
+     * Кой може да превалутира документите в нишката
+     */
+    public $canChangerate = 'ceo, salesMaster';
+    
+    
+    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
@@ -265,7 +271,6 @@ class sales_Sales extends deals_DealMaster
     public function description()
     {
         parent::setDealFields($this);
-        $this->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,class=contactData,after=valior');
         $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban,allowEmpty)', 'caption=Плащане->Банкова с-ка,after=currencyRate,notChangeableByContractor');
         $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Цени,notChangeableByContractor');
         $this->setField('shipmentStoreId', "salecondSysId=defaultStoreSale");
@@ -311,11 +316,7 @@ class sales_Sales extends deals_DealMaster
      */
     public static function on_BeforeSave($mvc, $res, $rec)
     {
-    	if($rec->reff === ''){
-    		$rec->reff = NULL;
-    	}
-    	
-		// Ако има б. сметка се нотифицират операторите и
+    	// Ако има б. сметка се нотифицират операторите и
     	if($rec->bankAccountId){
     		$operators = bank_OwnAccounts::fetchField("#bankAccountId = '{$rec->bankAccountId}'",'operators');
     		$rec->sharedUsers = keylist::merge($rec->sharedUsers, $operators);
@@ -333,18 +334,6 @@ class sales_Sales extends deals_DealMaster
     {
         $form = &$data->form;
         $rec = $form->rec;
-       
-        // При клониране
-        if($data->action == 'clone'){
-        	
-        	// Ако няма reff взимаме хендлъра на оригиналния документ
-        	if(empty($rec->reff)){
-        		$rec->reff = $mvc->getHandle($rec->id);
-        	}
-        	
-        	// Инкрементираме reff-а на оригинална
-        	$rec->reff = str::addIncrementSuffix($rec->reff, 'v', 2);
-        }
         
         $myCompany = crm_Companies::fetchOwnCompany();
         
@@ -1334,7 +1323,7 @@ class sales_Sales extends deals_DealMaster
      *          o docId       - ид на документа
      *          o docClass    - клас ид на документа
      *          o indicatorId - ид на индикатора
-     *          o value       - стойноста на инфикатора
+     *          o value       - стойноста на индикатора
      *          o isRejected  - оттеглена или не. Ако е оттеглена се изтрива от индикаторите
      */
     public static function getIndicatorValues($timeline)

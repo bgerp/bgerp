@@ -245,7 +245,9 @@ class cat_products_Params extends doc_Detail
      */
     public static function fetchParamValue($classId, $productId, $sysId, $verbal = FALSE)
     {
-     	if($paramId = cat_Params::fetchIdBySysId($sysId)){
+    	$paramId = (is_numeric($sysId)) ? cat_Params::fetchField($sysId) : cat_Params::fetchIdBySysId($sysId);
+    	
+    	if(!empty($paramId)){
      		$paramValue = self::fetchField("#productId = {$productId} AND #paramId = {$paramId} AND #classId = {$classId}", 'paramValue');
      		
      		// Ако има записана конкретна стойност за този продукт връщаме я, иначе глобалния дефолт

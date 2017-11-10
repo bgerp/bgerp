@@ -172,20 +172,6 @@ class store_Receipts extends store_DocumentMaster
     
     
     /**
-     * Полета, които при клониране да не са попълнени
-     *
-     * @see plg_Clone
-     */
-    public $fieldsNotToClone = 'valior, amountDelivered, amountDeliveredVat, amountDiscount, deliveryTime,weight,volume,weightInput,volumeInput,palletCount';
-    
-    
-    /**
-     * Поле за филтриране по дата
-     */
-    public $filterDateField = 'createdOn, valior,deliveryTime,modifiedOn';
-    
-    
-    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -203,7 +189,8 @@ class store_Receipts extends store_DocumentMaster
     {
         if ($form->isSubmitted()) {
         	$rec = &$form->rec;
-        	$dealInfo = static::getOrigin($rec)->getAggregateDealInfo();
+        	expect($origin = static::getOrigin($rec), $rec);
+        	$dealInfo = $origin->getAggregateDealInfo();
         	
         	$operations = $dealInfo->get('allowedShipmentOperations');
         	$operation = $operations['stowage'];

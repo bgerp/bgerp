@@ -127,13 +127,19 @@ class purchase_Purchases extends deals_DealMaster
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'deliveryTermId, deliveryLocationId, deliveryTime, shipmentStoreId, paymentMethodId,
-    					 currencyId, bankAccountId, caseId, dealerId, folderId, note';
+    					 currencyId, bankAccountId, caseId, dealerId, folderId, note, reff';
     
     
     /**
      * Полета свързани с цени
      */
     public $priceFields = 'amountDeal,amountDelivered,amountPaid,amountInvoiced,amountToPay,amountToDeliver,amountToInvoice';
+    
+    
+    /**
+     * Кой може да превалутира документите в нишката
+     */
+    public $canChangerate = 'ceo, purchaseMaster';
     
     
     /**

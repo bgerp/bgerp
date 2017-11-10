@@ -6,10 +6,10 @@
  * Клас 'plg_State2' - Поддръжка на поле 'state' за състояние на ред
  *
  *
- * @category  ef
+ * @category  bgerp
  * @package   plg
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -17,10 +17,12 @@
 class plg_State2 extends core_Plugin
 {
 
+	
     /**
      * Наименование на активното състояние
      */
     private $activeState;
+    
     
     /**
      * Наименование на затвореното състояние
@@ -43,7 +45,7 @@ class plg_State2 extends core_Plugin
     /**
      * Добавя полето за състояние, ако то липсва
      */
-    function on_AfterDescription(&$mvc)
+    public function on_AfterDescription(&$mvc)
     {
         if (!isset($mvc->fields['state'])) {
             $mvc->FLD('state',
@@ -60,10 +62,7 @@ class plg_State2 extends core_Plugin
      */
     function getActiveAndClosedState($mvc)
     {
-        if($this->activeState && $this->closedState) {
-
-            return;
-        }
+        if($this->activeState && $this->closedState) return;
         $opt = $mvc->getFieldType('state')->options;
             
         foreach($this->castToActive as $state) {
@@ -87,7 +86,7 @@ class plg_State2 extends core_Plugin
     /**
      * Подрежда по state, за да могат затворените да са отзад
      */
-    function on_BeforePrepareListFilter($mvc, &$res, $data)
+    public static function on_BeforePrepareListFilter($mvc, &$res, $data)
     {
         $data->query->orderBy('#state');
     }
@@ -96,7 +95,7 @@ class plg_State2 extends core_Plugin
     /**
      * Гарантира, че новите записи ще имат state по подразбиране - 'active'
      */
-    function on_BeforeSave(&$invoker, &$id, &$rec, $fields = NULL)
+    public function on_BeforeSave(&$invoker, &$id, &$rec, $fields = NULL)
     {   
         if (!$rec->state) {
             $this->getActiveAndClosedState($invoker);
@@ -106,18 +105,34 @@ class plg_State2 extends core_Plugin
     
     
     /**
+     * Ще има ли предупреждение при смяна на състоянието
+     *
+     * @param stdClass $rec
+     * @return string|FALSE
+     */
+    public static function on_AfterGetChangeStateWarning($mvc, &$res, $rec)
+    {
+    	if(!isset($res)){
+    		$res = FALSE;
+    	}
+    }
+    
+    /**
      * След преобразуване на записа в четим за хора вид.
      *
      * @param core_Manager $mvc
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        $row->ROW_ATTR['class'] .= " state-{$rec->state}";
-        
+        $row->STATE_CLASS = "state-{$rec->state}";
+    	$row->ROW_ATTR['class'] .= " state-{$rec->state}";
+        $warning = $mvc->getChangeStateWarning($rec);
+        $warning = !empty($warning) ? $warning : FALSE;
+        $warningToolbar = !empty($warning) ? "warning={$warning}" : '';
+       
         if ($mvc->haveRightFor('changeState', $rec)) {
-           
             $this->getActiveAndClosedState($mvc);
 
             $add = "<img src=" . sbf("img/16/lightbulb_off.png") . " width='16' height='16'>";
@@ -126,7 +141,7 @@ class plg_State2 extends core_Plugin
             if($rec->state == $this->activeState || $rec->state == $this->closedState) {
                 $row->state = ht::createLink($rec->state == $this->activeState ? $cancel : $add ,
                     array($mvc, 'changeState', $rec->id, 'ret_url' => TRUE),
-                    NULL,
+                    $warning,
                     array('title' => $rec->state == $this->activeState ? 'Деактивиране' : 'Активиране'));
             
                 $row->state = ht::createElement('div',
@@ -137,9 +152,9 @@ class plg_State2 extends core_Plugin
                 $singleTitle = mb_strtolower($singleTitle);
                 
                 if($rec->state == $this->activeState) {
-                    $row->_rowTools->addLink('Деактивиране', array($mvc, 'changeState', $rec->id, 'ret_url' => TRUE), "ef_icon=img/16/lightbulb.png,title=Деактивиране на|* {$singleTitle}");
+                    $row->_rowTools->addLink('Деактивиране', array($mvc, 'changeState', $rec->id, 'ret_url' => TRUE), "ef_icon=img/16/lightbulb.png,title=Деактивиране на|* {$singleTitle},{$warningToolbar}");
                 } else {
-                    $row->_rowTools->addLink('Активиране', array($mvc, 'changeState', $rec->id, 'ret_url' => TRUE), "ef_icon=img/16/lightbulb_off.png,title=Активиране на|* {$singleTitle}");
+                    $row->_rowTools->addLink('Активиране', array($mvc, 'changeState', $rec->id, 'ret_url' => TRUE), "ef_icon=img/16/lightbulb_off.png,title=Активиране на|* {$singleTitle},{$warningToolbar}");
                 }
 
             }
@@ -150,7 +165,7 @@ class plg_State2 extends core_Plugin
     /**
      * Прихваща екшън-а 'changeState'
      */
-    function on_BeforeAction($mvc, &$content, &$act)
+    public function on_BeforeAction($mvc, &$content, &$act)
     {
         if($act != 'changestate') return;
         
@@ -224,6 +239,4 @@ class plg_State2 extends core_Plugin
             $requiredRoles = $mvc->getRequiredRoles('edit', $rec, $userId);
         }
     }
-
-    
 }

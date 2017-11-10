@@ -1011,7 +1011,8 @@ class doc_Threads extends core_Manager
             $attr = ht::addBackgroundIcon($attr, $docProxy->getIcon());
             
             if(mb_strlen($docRow->title) > self::maxLenTitle) {
-                $attr['title'] = $docRow->title;
+                $attrTitle = ($docRow->recTitle) ? $docRow->recTitle : $docRow->title;
+                $attr['title'] = '|*' . $attrTitle;
             }
 
             if($rec->last < $lastRecently) {
@@ -1023,7 +1024,6 @@ class doc_Threads extends core_Manager
                     $attr['class'] .= ' tSighted ';
                 }
             }
-
             
             $row->onlyTitle = $row->title = ht::createLink(str::limitLenAndHyphen($docRow->title, self::maxLenTitle),
                 array('doc_Containers', 'list',
@@ -1043,8 +1043,6 @@ class doc_Threads extends core_Manager
             }
 
             $row->hnd .= "<div onmouseup='selectInnerText(this);' class=\"state-{$docRow->state} document-handler\">#" . ($rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : $docProxy->getHandle()) . "</div>";
-
-
         } catch (core_Exception_Expect $expect) {
             $row->hnd .= $rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : '???';
             $row->title = '?????????????';
@@ -1058,7 +1056,6 @@ class doc_Threads extends core_Manager
                     $row->title = $classRec->title;
                 }
             }
-            
         }
     }
     
@@ -2015,9 +2012,14 @@ class doc_Threads extends core_Manager
     	$firstDocument = doc_Threads::getFirstDocument($rec->id);
     	$this->requireRightFor('startthread', $rec);
     	
+    	$returnUrl = array($firstDocument->getInstance(), 'single', $firstDocument->that);
+    	if(!self::haveRightForAllDocs('restore', $id)){
+    		followRetUrl($returnUrl, 'Нямате права да контирате част от документите в нишката', 'error');
+    	}
+    	
     	self::startDocuments($rec->id);
     	
-    	return new redirect(array($firstDocument->getInstance(), 'single', $firstDocument->that), 'Бизнес документите в нишката са успешно пуснати');
+    	return new redirect($returnUrl, 'Бизнес документите в нишката са успешно пуснати');
     }
     
     

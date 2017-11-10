@@ -5,9 +5,6 @@
 /**
  * Клас 'planning_ReturnNotes' - Документ за Протокол за връщане
  *
- * 
- *
- *
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
@@ -228,7 +225,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 	 * @param stdClass $row Това ще се покаже
 	 * @param stdClass $rec Това е записа в машинно представяне
 	 */
-	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+	protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 		$row->useResourceAccounts = ($rec->useResourceAccounts == 'yes') ? 'Артикулите ще бъдат изписани от незавършеното производство един по един' : 'Артикулите ще бъдат изписани от незавършеното производството сумарно';
 		$row->useResourceAccounts = tr($row->useResourceAccounts);
