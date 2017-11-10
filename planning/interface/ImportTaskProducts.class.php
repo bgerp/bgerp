@@ -108,12 +108,12 @@ class planning_interface_ImportTaskProducts extends import_drivers_Proto
     	
     		// Показване на полетата без партиди
     		$shortUom = cat_UoM::getShortName($dRec->packagingId);
-    		$form->FLD("quantity+{$batch}+{$dRec->id}+", "double(Min=0)","input,caption={$caption}->К-во,unit={$shortUom}");
+    		$form->FLD("quantity+{$batch}+{$dRec->id}+{$dRec->taskId}+", "double(Min=0)","input,caption={$caption}->К-во,unit={$shortUom}");
     		if($defaultQuantity > 0){
-    			$form->setDefault("quantity+{$batch}+{$dRec->id}+", $defaultQuantity);
+    			$form->setDefault("quantity+{$batch}+{$dRec->id}+{$dRec->taskId}+", $defaultQuantity);
     		}
     	
-    		$rec->detailsDef["quantity+{$batch}+{$dRec->id}+"] = $dRec;
+    		$rec->detailsDef["quantity+{$batch}+{$dRec->id}+{$dRec->taskId}+"] = $dRec;
     	}
     }
     
@@ -171,13 +171,23 @@ class planning_interface_ImportTaskProducts extends import_drivers_Proto
     	$dQuery->EXT('state', 'planning_Tasks', 'externalName=state,externalKey=taskId');
     	$dQuery->XPR('quantity', 'double', '#totalQuantity');
     	$dQuery->where("#originId = {$originId} AND #canStore = 'yes' AND #storeId = {$storeId} AND #totalQuantity != 0 AND #type = '{$type}' AND (#state = 'active' || #state = 'closed' || #state = 'wakeup')");
-    	$dQuery->show('productId,quantityInPack,packagingId,taskId,quantity');
-  
-    	if(isset($limit)){
+    	$dQuery->show('productId,quantityInPack,packagingId,taskId,quantity,taskId');
+  		if(isset($limit)){
     		$dQuery->limit($limit);
     	}	
     	
-    	return $dQuery->fetchAll();
+    	$tQuery = planning_Tasks::getQuery();
+    	$tQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+    	$tQuery->XPR('quantity', 'double', '#totalQuantity');
+    	$tQuery->where("#originId = {$originId} AND #canStore = 'yes' AND #storeId = {$storeId} AND #totalQuantity != 0 AND (#state = 'active' || #state = 'closed' || #state = 'wakeup')");
+    	$tQuery->show('productId,quantityInPack,packagingId,quantity,id');
+    	if(isset($limit)){
+    		$tQuery->limit($limit);
+    	}
+    	
+    	$res = array_merge($dQuery->fetchAll(), $tQuery->fetchAll());
+    	
+    	return $res;
     }
     
     
