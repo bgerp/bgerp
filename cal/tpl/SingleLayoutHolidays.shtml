@@ -22,7 +22,7 @@
         <!--ET_END info-->
         <!--ET_BEGIN nameday-->
         <tr>
-            <td class="quiet" colspan="2" style='padding-top:10px;'>|Именници|*:</td>
+            <td class="quiet" colspan="2" style='padding-top:10px;'>|Именици|*:</td>
         </tr>
         <tr>
             <td colspan="2">[#nameday#]</td>

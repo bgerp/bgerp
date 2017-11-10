@@ -88,7 +88,6 @@ class hr_Setup extends core_ProtoSetup
             'hr_Trips',
             'hr_Bonuses',
             'hr_Deductions',
-            'hr_FormCv',
         );
 
 
@@ -125,7 +124,7 @@ class hr_Setup extends core_ProtoSetup
             'timeLimit' => 200
         ));
 
-    
+
     /**
      * Връзки от менюто, сочещи към модула
      */

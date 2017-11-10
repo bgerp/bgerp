@@ -334,6 +334,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				// Създаване на нов артикул само при нужда
 				if(!isset($productId)){
 					$productId = $Products->save($pRec);
+					$Products->logInAct('Създаване от документ', $pRec);
 				}
 				
 				$dRec = (object)array_diff_key($arrRec, $productFields);
@@ -383,12 +384,19 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 			
 				$mvc->save($dRec);
 				
+				if ($cloneId) {
+				    $mvc->logInAct('Създаване с клониране', $dRec);
+				} else {
+				    $mvc->logInAct('Създаване от нов нестандартен артикул', $dRec);
+				}
+				
 				// Разпределяне на разходи при нужда
 				if(isset($d->costItemId)){
 					acc_CostAllocations::delete("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$dRec->id} AND #productId = {$productId}");
 					$saveRec = (object)array('detailClassId' => $mvc->getClassId(), 'detailRecId' => $dRec->id, 'productId' => $productId, 'expenseItemId' => $d->costItemId, 'containerId' => $masterRec->containerId, 'quantity' => $dRec->quantity, 'allocationBy' => 'no');
 					
 					acc_CostAllocations::save($saveRec);
+					acc_CostAllocations::logInAct('Създаване на артикул с клониране', $saveRec);
 				}
 				
 				// Редирект към сделката/офертата

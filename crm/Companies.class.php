@@ -913,8 +913,12 @@ class crm_Companies extends core_Master
     public static function getCompanyFontSize($companyName)
     {
         $companyNameLen = mb_strlen($companyName);
-        
-        if ($companyNameLen > 37) {
+
+        if ($companyNameLen > 48) {
+            $companyFontSize = 80;
+        } elseif ($companyNameLen > 42) {
+            $companyFontSize = 90;
+        } elseif ($companyNameLen > 37) {
             $companyFontSize = 100;
         } elseif ($companyNameLen > 33) {
             $companyFontSize = 110;
@@ -1034,7 +1038,12 @@ class crm_Companies extends core_Master
                 $email = $emailsArr[0];
             }
         }
-        
+
+        if (mb_strlen($cRec->website) > 32 || mb_strlen($email) > 20) {
+            $tpl->append(58, 'smallFontSize');
+        } else {
+            $tpl->append(66, 'smallFontSize');
+        }
         $tpl->append($fAddres, 'address');
         $tpl->append($tel, 'tel');
         $tpl->append($fax, 'fax');

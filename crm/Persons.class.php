@@ -415,9 +415,9 @@ class crm_Persons extends core_Master
             $date = Request::get('date', 'date');
 
             if($date) {
-                $data->title = "Именници на <span class=\"green\">" . dt::mysql2verbal($date, 'd.m.Y, l') . "</span>";
+                $data->title = "Именици на <span class=\"green\">" . dt::mysql2verbal($date, 'd.m.Y, l') . "</span>";
             } else {
-                $data->title = "Именници";
+                $data->title = "Именици";
             }
         }
         
@@ -1205,12 +1205,12 @@ class crm_Persons extends core_Master
 
     /****************************************************************************************
      *                                                                                      *
-     *  Подготвя и рендира именниците                                                       *
+     *  Подготвя и рендира Имениците                                                       *
      *                                                                                      *
      ****************************************************************************************/
 
     /**
-     * Подготвя (извлича) данните за именниците
+     * Подготвя (извлича) данните за Имениците
      */
     static function prepareNamedays(&$data)
     {   
@@ -1246,7 +1246,7 @@ class crm_Persons extends core_Master
         if(!count($data->rows)) return '';
 
         $tpl = new ET("<fieldset class='detail-info'>
-                            <legend class='groupTitle'>" . tr('Именници във визитника') . "</legend>
+                            <legend class='groupTitle'>" . tr('Именици във визитника') . "</legend>
                                 <div class='groupList clearfix21'>
                                  [#persons#]
                             </div>
@@ -3021,7 +3021,7 @@ class crm_Persons extends core_Master
 
 
     /**
-     * Добавя ключовио думи за държавата и на bg и на en
+     * Добавя ключови думи за държавата и на bg и на en
      */
     public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {

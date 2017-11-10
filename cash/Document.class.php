@@ -158,6 +158,12 @@ abstract class cash_Document extends deals_PaymentDocument
     
     
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, termDate, valior, modifiedOn';
+    
+    
+    /**
      * Добавяне на дефолтни полета
      * 
      * @param core_Mvc $mvc

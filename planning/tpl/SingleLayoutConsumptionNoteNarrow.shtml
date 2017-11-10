@@ -23,7 +23,7 @@
                           <br>[#storeLocation#]
                           <!--ET_END storeLocation-->
                           <!--ET_BEGIN departmentId-->
-                          <br>Структурно звено:[#departmentId#]
+                          <br>|Департамент|*:[#departmentId#]
                           <!--ET_END departmentId-->
                     </td>
                 </tr>
@@ -59,8 +59,6 @@
                                             </table>
                                             <hr>
                                             [#note#]
-                                            
-                                             
 							                <!--ET_BEGIN responsible-->
 							                <hr>
 							                <div>|Получил|*:  [#responsible#]</div>

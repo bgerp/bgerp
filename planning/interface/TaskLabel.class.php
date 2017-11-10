@@ -101,6 +101,8 @@ class planning_interface_TaskLabel
 		// Генериране на баркод
 		if($labelNo != 0){
 			$serial = planning_TaskSerials::force($id, $labelNo);
+			$paddLength = planning_Setup::get('SERIAL_STRING_PAD');
+			$serial = str_pad($serial, $paddLength, '0', STR_PAD_LEFT);
 			$res['BARCODE'] = $serial;
 		}
 	

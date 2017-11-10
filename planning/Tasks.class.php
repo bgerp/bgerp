@@ -63,7 +63,7 @@ class planning_Tasks extends core_Master
 	/**
 	 * Абревиатура
 	 */
-	public $abbr = 'Pts';
+	public $abbr = 'Opr';
 	
 	
 	/**
@@ -183,7 +183,7 @@ class planning_Tasks extends core_Master
 	 *
 	 * @see plg_Clone
 	 */
-	public $fieldsNotToClone = 'progress,totalWeight,systemId,scrappedQuantity,inputInTask';
+	public $fieldsNotToClone = 'progress,totalWeight,systemId,scrappedQuantity,inputInTask,totalQuantity';
 	
 	
 	/**
@@ -261,7 +261,7 @@ class planning_Tasks extends core_Master
 		}
 	
 		// Ако има записани допълнителни полета от артикула
-		if(is_array($data->rec->additionalFields)){
+		if(is_array($data->rec->additionalFields) && count($data->rec->additionalFields)){
 			$productFields = planning_Tasks::getFieldsFromProductDriver($data->rec->productId);
 	
 			// Добавяне на допълнителните полета от артикула
@@ -432,8 +432,8 @@ class planning_Tasks extends core_Master
 	 */
 	public static function getRecTitle($rec, $escaped = TRUE)
 	{
-		$title = cat_Products::getTitleById($rec->productId);
-		$title = "Pts{$rec->id} - " . $title;
+		$title = cat_Products::getVerbal($rec->productId, 'name');
+		$title = "Opr{$rec->id} - " . $title;
 		
 		return $title;
 	}
@@ -467,6 +467,13 @@ class planning_Tasks extends core_Master
 			$pInfo = cat_Products::getProductInfo($rec->productId);
 			$rec->quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
 			$rec->title = cat_Products::getTitleById($rec->productId);
+			
+			if(empty($rec->id)){
+				$description = cat_Products::fetchField($form->rec->productId, 'info');
+				if(!empty($description)){
+					$rec->description = $description;
+				}
+			}
 		}
 	}
 	
@@ -563,9 +570,10 @@ class planning_Tasks extends core_Master
 	 */
 	public static function canAddToFolder($folderId)
 	{
+		if(!Request::get('originId', 'int')) return FALSE;
+		
+		// Може да се добавя само в папка на 'Департамент'
 		$Cover = doc_Folders::getCover($folderId);
-		 
-		// Може да се добавя само в папка на 'Звено'
 		return ($Cover->haveInterface('hr_DepartmentAccRegIntf'));
 	}
 	
@@ -687,9 +695,6 @@ class planning_Tasks extends core_Master
 		// За произвеждане може да се избере само артикула от заданието
 		$origin = doc_Containers::getDocument($rec->originId);
 		$originRec = $origin->fetch();
-		if(empty($rec->id)){
-			$form->setDefault('description', cat_Products::fetchField($originRec->productId, 'info'));
-		}
 		
 		// Добавяме допустимите опции
 		$products = cat_Products::getByProperty('canManifacture');
@@ -945,7 +950,7 @@ class planning_Tasks extends core_Master
     	$departmentOptions = hr_Departments::makeArray4Select('name', "type = 'workshop' AND #state != 'rejected'");
     	
     	if(count($departmentOptions)){
-    		$data->listFilter->FLD('departmentId', 'int', 'caption=Звено');
+    		$data->listFilter->FLD('departmentId', 'int', 'caption=Департамент');
     		$data->listFilter->setOptions('departmentId', array('' => '') + $departmentOptions);
     		$data->listFilter->showFields .= ',departmentId';
     		
@@ -1091,5 +1096,23 @@ class planning_Tasks extends core_Master
     	$quantity = (!empty($sum)) ? $sum : 0;
     	
     	return $quantity;
+    }
+    
+    
+    /**
+     * Връща името на операцията готово за партида
+     * 
+     * @param mixed $taskId       - ид на операцията
+     * @return varchar $batchName - името на партидата, генерирана от операцията
+     */
+    public static function getBatchName($taskId)
+    {
+    	$rec = self::fetchRec($taskId);
+    	$productName = cat_Products::getVerbal($rec->productId, 'name');
+    	$code = cat_Products::getVerbal($rec->productId, 'code');
+    	$batchName = "{$productName}/{$code}/Opr{$rec->id}";
+    	$batchName = str::removeWhitespaces($batchName);
+    	
+    	return $batchName;
     }
 }
