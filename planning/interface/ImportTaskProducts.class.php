@@ -73,7 +73,7 @@ class planning_interface_ImportTaskProducts extends import_drivers_Proto
     			$Def = batch_Defs::getBatchDef($dRec->productId);
     				
     			// Ако има партидност и тя е от определен тип
-    			if(is_object($Def) && $Def instanceof batch_definitions_Varchar && count($containers)){
+    			if(is_object($Def) && $Def->getClassId() == batch_definitions_Varchar::getClassId() && count($containers)){
     	
     				// Стойноста на партидата ще е задачата
     				$dRec->batch = planning_Tasks::getBatchName($dRec->taskId);

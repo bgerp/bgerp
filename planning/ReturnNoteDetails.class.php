@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'planning_ReturnNoteDetails'
  *
