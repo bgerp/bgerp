@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'planning_ReturnNoteDetails'
  *
@@ -39,7 +40,7 @@ class planning_ReturnNoteDetails extends deals_ManifactureDetail
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_RowNumbering, plg_AlignDecimals2, 
-                        planning_plg_ReplaceEquivalentProducts, plg_PrevAndNext,cat_plg_ShowCodes';
+                        planning_plg_ReplaceEquivalentProducts, plg_PrevAndNext,cat_plg_ShowCodes,import_plg_Detail';
     
     
     /**
@@ -49,6 +50,12 @@ class planning_ReturnNoteDetails extends deals_ManifactureDetail
      */
     public $batchMovementDocument = 'in';
     
+    
+    /**
+     * Кои операции от задачите ще се зареждат
+     */
+    public $taskActionLoad = 'production';
+
     
     /**
      * Кой има право да променя?
@@ -89,7 +96,7 @@ class planning_ReturnNoteDetails extends deals_ManifactureDetail
     /**
      * Какви продукти да могат да се избират в детайла
      */
-    protected $defaultMeta = 'canConvert,canStore';
+    protected $defaultMeta = 'canStore';
     
     
     /**

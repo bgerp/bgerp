@@ -50,6 +50,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
 		
 		$mvc->FLD('quantity', 'double(Min=0)', 'caption=Количество,input=none,smartCenter');
 		$mvc->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden');
+		$mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Забележки,formOrder=110001');
 	}
 	
 
@@ -176,9 +177,47 @@ abstract class deals_ManifactureDetail extends doc_Detail
 		$singleUrl = cat_Products::getSingleUrlArray($rec->productId);
 		$row->productId = cat_Products::getVerbal($rec->productId, 'name');
 		$row->productId = ht::createLinkRef($row->productId, $singleUrl);
+		deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
 		
 		// Показваме подробната информация за опаковката при нужда
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+	}
+	
+	
+	/**
+	 * Импортиране на вече подготвените записи за импорт
+	 *
+	 * @see import_DriverIntf
+	 * @param array $recs
+	 * 		o productId        - ид на артикула
+     * 		o quantity         - к-во в основна мярка
+     * 		o quantityInPack   - к-во в опаковка
+     * 		o packagingId      - ид на опаковка
+     * 		o batch            - дефолтна партида, ако може
+     * 		o notes            - забележки
+     * 		o $this->masterKey - ид на мастър ключа
+	 * 
+	 * @return void
+	 */
+	public function importRecs($recs)
+	{
+		if(!is_array($recs)) return;
+		foreach ($recs as $rec){
+			expect($rec->productId, 'Липсва продукт ид');
+			expect(cat_Products::fetchField($rec->productId), 'Няма такъв артикул');
+			expect($rec->packagingId, 'Няма опаковка');
+			expect(cat_UoM::fetchField($rec->packagingId), 'Несъществуваща опаковка');
+			expect($rec->{$this->masterKey}, 'Няма мастър кей');
+			expect($this->Master->fetch($rec->{$this->masterKey}), 'Няма такъв запис на мастъра');
+			expect($this->haveRightFor('add', (object)array($this->masterKey => $rec->{$this->masterKey})), 'Към този мастър не може да се добавя артикул');
+			
+			if(!$this->isUnique($rec, $fields, $exRec)){
+				core_Statuses::newStatus('Записа, не е импортиран защото им дублаж');
+				continue;
+			}
+			
+			$this->save($rec);
+		}
 	}
 }
  	

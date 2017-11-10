@@ -1085,4 +1085,16 @@ class core_String
 	
     	return hyphen_Plugin::getHyphenWord($matches[0], $minLen, $maxLen);
     }
+    
+    
+    /**
+     * Маха всички празни стрингове от стринга
+     * 
+     * @param varchar $string
+     * @return varchar $string
+     */
+    public static function removeWhitespaces($string)
+    {
+    	return preg_replace('/\s+/', '', $string);
+    }
 }

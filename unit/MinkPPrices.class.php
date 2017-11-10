@@ -6,8 +6,8 @@
  *
  * @category  bgerp
  * @package   tests
- * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @author    Pavlinka Dainovska <pdainovska@gmail.com>
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -239,7 +239,7 @@ class unit_MinkPPrices extends core_Manager {
         } else {
             return unit_MinkPbgERP::reportErr('Грешен ценоразпис', 'warning');
         }
-        
+        //Проверка за ДДС 9%
         if(strpos($browser->gettext(), 'dds9 бр. 12,01289')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешен ценоразпис', 'warning');

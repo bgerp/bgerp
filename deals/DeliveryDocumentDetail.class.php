@@ -193,7 +193,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 			if($rec->id){
 				$oldRec = $mvc->fetch($rec->id);
 				if($oldRec && $rec->packagingId != $oldRec->packagingId && trim($rec->packPrice) == trim($oldRec->packPrice)){
-					$form->setWarning('packPrice,packagingId', "Опаковката е променена без да е променена цената.|*<br />| Сигурнили сте, че зададената цена отговаря на  новата опаковка!");
+					$form->setWarning('packPrice,packagingId', "Опаковката е променена без да е променена цената.|*<br />| Сигурни ли сте, че зададената цена отговаря на новата опаковка?");
 				}
 			}
 		}
