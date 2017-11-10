@@ -47,7 +47,7 @@ class hr_Wrapper extends plg_ProtoWrapper
 
         if(core_Packs::isInstalled('workpreff')){
             $this->TAB('workpreff_FormCv', 'Подбор->Форма CV', 'ceo,hrMaster');
-            $this->TAB('workpreff_WorkPreff', 'Подбор->Опции за подбор', 'ceo,hrMaster');
+            $this->TAB('workPreff_WorkPreff', 'Подбор->Опции за подбор', 'ceo,hrMaster');
         }
 
         $this->title = 'Персонал';
