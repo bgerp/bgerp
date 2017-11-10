@@ -7,15 +7,17 @@
  *
  *
  * @category  bgerp
- * @package   hr
+ * @package   workpreff
  * @author    Angel Trifonov angel.trifonoff@gmail.com
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Форма за CV
  */
-class hr_FormCv extends core_Master
+class workpreff_FormCv extends core_Master
 {
+
+
 
     /**
      * Кой има право да чете?
@@ -61,12 +63,6 @@ class hr_FormCv extends core_Master
     var $singleTitle = "CV ";
 
 
-//    /**
-//     * Икона за единичния изглед
-//     */
-//    var $singleIcon = 'img/16/vcard.png';
-
-
     /**
      * Полета, които се показват в листови изглед
      */
@@ -92,7 +88,7 @@ class hr_FormCv extends core_Master
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    var $loadList = 'doc_DocumentPlg, plg_RowTools2, crm_Wrapper, plg_Printing, plg_State, plg_PrevAndNext,doc_ActivatePlg';
+    var $loadList = 'doc_DocumentPlg, plg_RowTools2,hr_Wrapper, plg_Printing, plg_State, plg_PrevAndNext,doc_ActivatePlg';
 
 
     /**
@@ -120,7 +116,8 @@ class hr_FormCv extends core_Master
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Фото,export=Csv');
 
         // Адресни данни
-        $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Адресни данни->Държава,remember,class=contactData,mandatory,silent,export=Csv');
+        $this->FLD('country', "key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,default=Bg)",
+                    'caption=Адресни данни->Държава,remember,class=contactData,silent,export=Csv');
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode,export=Csv');
         $this->FLD('place', 'varchar(64)', 'caption=Град,class=contactData,hint=Населено място: град или село и община,export=Csv');
         $this->FLD('address', 'varchar(255)', 'caption=Адрес,class=contactData,export=Csv');
@@ -145,8 +142,43 @@ class hr_FormCv extends core_Master
 
         $this->FLD('education', 'table(columns=school|specility|begin|end,captions=Учебно заведение|Степен/Квалификация|Начало|Край,widths=20em|15em|5em|5em)', "caption=Образование||Extras->Обучение||Additional,autohide,advanced,export=Csv");
 
-        $this->FLD('state', 'enum(draft=Чернова,active=Публикувана,rejected=Оттеглена)', 'caption=Състояние,input=none');
+        $this->FLD('workpreff',"blob(compress,serialize)","caption = Предпочитания,input=none");
 
+        $this->FLD('state', 'enum(draft=Чернова,active=Публикувана,rejected=Оттеглена)', 'caption=Състояние,input=none');
+    }
+
+    /**
+     * Добавям поле "ПРЕДПОЧИТАНИЯ" във формата
+     * @param $mvc
+     * @param $form
+     */
+    protected static function on_AfterInputEditForm($mvc, $form)
+    {
+
+        $preferencesForWork = array();
+
+        if ($form->isSubmitted()){
+
+            $workpreff = new stdClass();
+
+                foreach ($form->rec as $k => $v) {
+
+                    if (substr($k, 0, 10) == 'workpreff_') {
+                        $preferencesForWork[] = (object)array(
+                            'id' => workpreff_WorkPreff::getOptionsForChoice()[substr($k, 10)]->name,
+
+                            'value' => $v
+
+                        );
+
+                    }
+
+                }
+
+
+            $form->rec->workpreff = $preferencesForWork;
+
+        }
 
     }
 
@@ -157,8 +189,34 @@ class hr_FormCv extends core_Master
      * @param core_Manager $mvc
      * @param stdClass $data
      */
+
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
+        $form = &$data->form;
+
+        $form->setDefault('country', drdata_Countries::getIdByName('bul'));
+
+        $options = workpreff_WorkPreff::getOptionsForChoice();
+
+        if (is_array($options)) {
+
+            foreach ($options as $v) {
+
+                if ($v->type == 'enum') {
+
+                    $form->FNC("workpreff_$v->id", "enum($v->parts)", "caption =$v->name->Избери,maxRadio=$v->count,input");
+
+                }
+
+                if ($v->type == 'set') {
+
+                    $form->FNC("workpreff_$v->id", "set($v->parts)", "caption =$v->name->Маркирай,input");
+
+                }
+
+            }
+        }
+
     }
 
 
@@ -192,7 +250,37 @@ class hr_FormCv extends core_Master
     }
 
 
+    /**
+     * Вербализиране на полето Предпочитания
+     * @param $mvc
+     * @param $row
+     * @param $rec
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
 
+        $prepare = '';
 
+        if (is_array($rec->workpreff)) {
+
+            foreach ($rec->workpreff as $v) {
+
+                $printValues = explode(',', $v->value);
+
+                $printValue = '';
+
+                foreach ($printValues as $vp) {
+
+                    $printValue .= $vp . "<br>";
+                }
+
+                $prepare .= "<span style='font-style: italic; font-size: large' >" . $v->id . " : " . "</span>" . "<br>" . "      " . $printValue . "<br>";
+
+            }
+        }
+
+        $row->workpreff = "$prepare";
+
+    }
 
 }

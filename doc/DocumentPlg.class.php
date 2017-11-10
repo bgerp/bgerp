@@ -286,6 +286,9 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
+        if (!$data->row) {
+            $data->row = new stdClass();
+        }
         $data->row->iconStyle = 'background-image:url("' . sbf($mvc->getIcon($data->rec->id), '', Mode::is('text', 'xhtml') || Mode::is('printing')) . '");';
         $data->row->LetterHead = $mvc->getLetterHead($data->rec, $data->row);
 
