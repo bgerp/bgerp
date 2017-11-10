@@ -59,21 +59,21 @@ class planning_interface_ImportTaskProducts extends import_drivers_Proto
     	
     	// Всички документи в нишката, които са активни
     	$cQuery = doc_Containers::getQuery();
-    	$cQuery->where("#threadId = {$masterRec->threadId} AND #state = 'active'");
+    	$cQuery->where("#threadId = {$masterRec->threadId} AND (#state = 'active' || #state = 'draft')");
     	$containers = arr::extractValuesFromArray($cQuery->fetchAll(), 'id');
-
+    	
     	// За всеки подаден дефолтен артикул
     	foreach ($details as $dRec){
     		$caption = cat_Products::getTitleById($dRec->productId);
     		$caption= str_replace(',', ' ', $caption);
     		$batch = '';
-    	
+    		
     		$selectedByNow = NULL;
     		if(core_Packs::isInstalled('batch')){
     			$Def = batch_Defs::getBatchDef($dRec->productId);
-    					
+    				
     			// Ако има партидност и тя е от определен тип
-    			if(is_object($Def) && $Def instanceof batch_definitions_Varchar){
+    			if(is_object($Def) && $Def instanceof batch_definitions_Varchar && count($containers)){
     	
     				// Стойноста на партидата ще е задачата
     				$dRec->batch = planning_Tasks::getBatchName($dRec->taskId);
@@ -84,6 +84,7 @@ class planning_interface_ImportTaskProducts extends import_drivers_Proto
     				$bQuery->XPR('sumQuantity', 'double', 'SUM(#quantity)');
     				$bQuery->in("containerId", $containers);
     				$bQuery->where("#productId = {$dRec->productId} AND #batch = '{$dRec->batch}' AND #storeId = {$masterRec->storeId} AND #operation = '{$mvc->batchMovementDocument}'");
+    				
     				$bQuery->show('sumQuantity');
     				$selectedByNow = $bQuery->fetch()->sumQuantity;
     			}
@@ -97,7 +98,6 @@ class planning_interface_ImportTaskProducts extends import_drivers_Proto
     			$dQuery->EXT('state', $mvc->Master->className, "externalName=state,externalKey={$mvc->masterKey}");
     			$dQuery->EXT('containerId', $mvc->Master->className, "externalName=containerId,externalKey={$mvc->masterKey}");
     			$dQuery->in("containerId", $containers);
-    			$dQuery->where("#state = 'active'");
     			$dQuery->where("#productId = {$dRec->productId} AND #storeId = {$masterRec->storeId}");
     			$dQuery->show('sumQuantity');
     			$selectedByNow = $dQuery->fetch()->sumQuantity;
