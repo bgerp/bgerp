@@ -123,10 +123,6 @@ class planning_interface_ImportTaskSerial extends import_drivers_Proto
     		$sRec->{$mvc->masterKey} = $rec->{$mvc->masterKey};
     		$sRec->quantity = $sRec->quantityInPack;
     		$sRec->isEdited = TRUE;
-    		
-    		$paddLength = planning_Setup::get('SERIAL_STRING_PAD');
-    		$sRec->serial = str_pad($sRec->serial, $paddLength, '0', STR_PAD_LEFT);
-    		$sRec->notes = $sRec->serial;
     		$recs[] = $sRec;
     	}
     	
