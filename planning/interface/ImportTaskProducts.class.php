@@ -52,9 +52,9 @@ class planning_interface_ImportTaskProducts extends import_drivers_Proto
      */
     public function addImportFields($mvc, core_FieldSet $form)
     {
-    	$rec= &$form->rec;
+    	$rec = &$form->rec;
     	$masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
-    	
+    	$form->info = tr('Засклаждане в') . " " . store_Stores::getHyperlink($masterRec->storeId, TRUE);
     	$details = self::getProductsFromTasks($masterRec->threadId, $masterRec->storeId, $mvc->taskActionLoad);
     	
     	// Всички документи в нишката, които са активни
