@@ -68,8 +68,8 @@ class planning_interface_ImportTaskSerial extends import_drivers_Proto
     {
     	$error = array();
     	$rec = $form->rec;
-    	$serials = preg_replace('!\s+!', "\n", $rec->text);
-    	$serials = explode("\n", trim(str_replace("\r", '', $rec->text)));
+    	$serials = preg_replace('/[\s|\,|\;]+/', "\n", $rec->text);
+    	$serials = explode("\n", trim($rec->text));
     	
     	$validSerials = array();
     	foreach ($serials as $serial){
