@@ -3950,18 +3950,18 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
     {
-        if (!$mvc->showLetterHead) return ;
-        
-        $resArr = arr::make($resArr);
-        $title = $mvc->singleTitle ? $mvc->singleTitle : $mvc->title;
-        $title = tr($title);
-        $resArr['ident'] = array('name' => tr($title), 'val' => '[#ident#]');
-        
-        // Полета, които ще се показват
-        $resArr += change_Plugin::getDateAndVersionRow();
-        
-        $resArr['createdBy'] = array('name' => tr('Автор'), 'val' => '[#createdBy#]');
-        $resArr['createdOn'] = array('name' => tr('Дата'), 'val' => '[#createdOn#]');
+        if ($mvc->showLetterHead) {
+            $resArr = arr::make($resArr);
+            $title = $mvc->singleTitle ? $mvc->singleTitle : $mvc->title;
+            $title = tr($title);
+            $resArr['ident'] = array('name' => tr($title), 'val' => '[#ident#]');
+            
+            // Полета, които ще се показват
+            $resArr += change_Plugin::getDateAndVersionRow();
+            
+            $resArr['createdBy'] = array('name' => tr('Автор'), 'val' => '[#createdBy#]');
+            $resArr['createdOn'] = array('name' => tr('Дата'), 'val' => '[#createdOn#]');
+        }
         
         // Ако е зададено да се показва действията в документа
         if ($mvc->showLogTimeInHead) {
