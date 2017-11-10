@@ -383,7 +383,12 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				tcost_Calcs::prepareFee($dRec, $form, $masterRec, $fields);
 			
 				$mvc->save($dRec);
-				$mvc->logInAct('Създаване с клониране', $dRec);
+				
+				if ($cloneId) {
+				    $mvc->logInAct('Създаване с клониране', $dRec);
+				} else {
+				    $mvc->logInAct('Създаване от нов нестандартен артикул', $dRec);
+				}
 				
 				// Разпределяне на разходи при нужда
 				if(isset($d->costItemId)){
