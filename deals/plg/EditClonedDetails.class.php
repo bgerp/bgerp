@@ -168,7 +168,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
 		if(count($rec->details)){
 			foreach ($rec->details as $det){
 				$newPackQuantity = $updatePackQuantity = 0;
-				if(is_array($det->batches)){
+				if(is_array($det->batches) && core_Packs::isInstalled('batch')){
 					foreach ($det->batches as $index => &$bRec){
 						$b = str_replace(',', '', $bRec->batch);
 						$b = str_replace('.', '', $b);
@@ -197,7 +197,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
 					$oldDetailId = $det->id;
 					$det->_clonedWithBatches = TRUE;
 					
-					if($rec->deduct == 'yes'){
+					if($rec->deduct == 'yes' && core_Packs::isInstalled('batch')){
 						if($diff <= 0){
 							$Detail->delete($det->id);
 							batch_BatchesInDocuments::delete("#detailClassId = {$detailClassId} AND #detailRecId = {$det->id}");
@@ -212,7 +212,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
 					
 					$det->{$Detail->masterKey} = $rec->id;
 					$Detail->save($det);
-					if(is_array($det->batches)){
+					if(is_array($det->batches) && core_Packs::isInstalled('batch')){
 						$batchesArr = array();
 						foreach ($det->batches as $batch){
 							$d1 = $batch->oldQuantity - $batch->quantity;
