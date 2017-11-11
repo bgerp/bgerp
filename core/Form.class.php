@@ -689,7 +689,7 @@ class core_Form extends core_FieldSet
             }
 
             $fieldsLayout = $this->renderFieldsLayout($fields, $vars);
-            
+           
             // Създаваме input - елементите
             foreach($fields as $name => $field) {
                 
@@ -708,7 +708,7 @@ class core_Form extends core_FieldSet
                 
                 $options = $field->options;
                 
-                $attr = $field->attr;
+                $attr = $field->attr ? $field->attr : array();
                 
                 if ($field->hint) {
                     $attr['title'] = tr($field->hint);
@@ -761,7 +761,8 @@ class core_Form extends core_FieldSet
                     }
 
                     $type->error = TRUE;
-                }
+                }  
+                    
                 
                 
                 
@@ -780,9 +781,17 @@ class core_Form extends core_FieldSet
                 
                 // Ако полето има свойството да поема фокуса
                 // фокусираме на него
-                if(!$firstError && $field->focus) {
-                    ht::setUniqId($attr);
-                    $idForFocus = $attr['id'];
+                if(!$firstError) {
+                    if($field->focus) {
+                        ht::setUniqId($attr);
+                        $idForFocus = $attr['id'];
+                    } elseif(!$field->type->params['isReadOnly'] && !$idFirstFocus && 
+                            (empty($value) || ($field->type instanceof type_Richtext)) &&
+                            !($field->type instanceof type_Date) &&
+                            !($field->type instanceof type_DateTime)) {
+                        ht::setUniqId($attr);
+                        $idFirstFocus = $attr['id'];
+                    }
                 }
                 
                 // Задължителните полета, които имат една опция - тя да е избрана по подразбиране
@@ -817,14 +826,16 @@ class core_Form extends core_FieldSet
                 
                 $fieldsLayout->replace($input, $name);
             }
-        
+       
             if(Mode::is('staticFormView')) {
             	$fieldsLayout->prepend("<div class='staticFormView'>");
             	$fieldsLayout->append("</div>");
             } else {
             	if ($idForFocus) {
             		jquery_Jquery::run($fieldsLayout, "$('#{$idForFocus}').focus();", TRUE);
-            	}
+            	} elseif($idFirstFocus) {
+                    jquery_Jquery::run($fieldsLayout, "$('#{$idFirstFocus}').focus();", TRUE);
+                }
             }
         }
 
