@@ -203,6 +203,12 @@ class store_Transfers extends core_Master
 	public $fieldsNotToClone = 'valior,weight,volume,weightInput,volumeInput,deliveryTime,palletCount';
 	
 	
+	/**
+	 * Показва броя на записите в лога за съответното действие в документа
+	 */
+	public $showLogTimeInHead = 'Документът се връща в чернова=3';
+	
+	
     /**
      * Описание на модела (таблицата)
      */

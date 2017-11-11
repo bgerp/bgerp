@@ -37,6 +37,7 @@ class doc_plg_TplManager extends core_Plugin
         }
         
         setIfNot($mvc->canAsclient, 'no_one');
+        setIfNot($mvc->createView, TRUE);
     }
     
     
@@ -243,6 +244,26 @@ class doc_plg_TplManager extends core_Plugin
     
     
     /**
+     * 
+     * 
+     * @param core_Mvc $mvc
+     * @param NULL|stdObject $res
+     * @param integer $id
+     * @param string $mode
+     * @param NULL|stdObject $options
+     */
+    function on_BeforeGetDocumentBody($mvc, &$res, $id, $mode = 'html', $options = NULL)
+    {
+        if ($options && $options->tplManagerId) {
+            if (!$options->rec && $id) {
+                $options->rec = $mvc->fetchRec($id);
+                $options->rec->template = $options->tplManagerId;
+            }
+        }
+    }
+    
+    
+    /**
      * Преди подготовка на на единичния изглед
      */
     public static function on_BeforePrepareSingle(core_Mvc $mvc, &$res, &$data)
@@ -275,6 +296,21 @@ class doc_plg_TplManager extends core_Plugin
                 
                 if ($data->rec->template != $form->rec->tplId) {
                     $data->rec->template = $form->rec->tplId;
+                    
+                    // В зависимост от подредбата на плъгините, може и да има вече генериран екшън
+                    if ($data->__MID__) {
+                        $logRec = doclog_Documents::fetchByMid($data->__MID__);
+                        if (!isset($logRec->data)) {
+                            $logRec->data = new stdClass();
+                        }
+                        $logRec->data->tplManagerId = $data->rec->template;
+                        
+                        doclog_Documents::save($logRec, 'dataBlob');
+                    } else {
+                        setIfNot($doclogActionDataArr, Mode::get('doclogActionData'), array());
+                        $doclogActionDataArr['tplManagerId'] = $data->rec->template;
+                        Mode::set('doclogActionData', $doclogActionDataArr);
+                    }
                 }
             }
             
@@ -504,14 +540,6 @@ class doc_plg_TplManager extends core_Plugin
     {
         if ($mvc->haveRightFor('asClient', $data->rec)) {
             $data->toolbar->addBtn('П Клиент', array($mvc, 'single', $data->rec->id, 'Printing' => 'yes', 'asClient' => TRUE), "id=btnClientPrint{$data->rec->containerId},target=_blank,row=2", 'ef_icon = img/16/print_go.png,title=Печатане с данните на клиента');
-        }
-        
-        $classId = $mvc->getClassId();
-        if (doc_TplManager::fetch(array("#docClassId = '[#1#]'", $classId))) {
-            if (doc_View::haveRightFor('add') && $mvc->haveRightFor('single', $data->rec->id)) {
-                Request::setProtected(array('clsId', 'dataId'));
-                $data->toolbar->addBtn('Изглед', array('doc_View', 'add', 'clsId' => $classId, 'dataId' => $data->rec->id, 'originId' => $data->rec->containerId), 'ef_icon=img/16/ui_saccordion.png, title=Друг изглед на документа, order=18, row=3');
-            }
         }
     }
     

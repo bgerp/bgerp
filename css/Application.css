@@ -1333,6 +1333,25 @@ a.tOld {
     .document .reportHolder .group-by-field-row td {
       padding: 5px !important; }
 
+.CVTable {
+  font-family: Arial, Helvetica;
+  width: 100%; }
+  .CVTable .title {
+    text-transform: uppercase;
+    font-size: 1.1em;
+    padding-top: 20px;
+    padding-bottom: 5px; }
+  .CVTable td {
+    padding: 2px 5px; }
+  .CVTable .aright {
+    width: 150px; }
+
+  .cv-document ul {
+    margin: 0; }
+
+.ul-title {
+  margin: 0; }
+
 #quot-table {
   margin-top: 10px;
   border-collapse: collapse;

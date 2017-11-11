@@ -268,7 +268,7 @@ class cal_Holidays extends core_Master
 										JP=Япония)', 'caption=Празник->Тип,placeholder=Тип на празника,export');
         $this->FLD('info', 'richtext(bucket=calTasks)', 'caption=Празник->Данни,export');
         
-        $this->FLD('nameday', 'richtext(bucket=calTasks)', 'caption=Именници,export');
+        $this->FLD('nameday', 'richtext(bucket=calTasks)', 'caption=Именици,export');
         
         $this->setDbUnique('key');
     }
@@ -451,7 +451,7 @@ class cal_Holidays extends core_Master
 
 
     /**
-     * Връща масив с имена на латиница от описание на именници
+     * Връща масив с имена на латиница от описание на Именици
      */
     static function getLatinNames($names)
     {   

@@ -183,7 +183,7 @@ class planning_Tasks extends core_Master
 	 *
 	 * @see plg_Clone
 	 */
-	public $fieldsNotToClone = 'progress,totalWeight,systemId,scrappedQuantity,inputInTask';
+	public $fieldsNotToClone = 'progress,totalWeight,systemId,scrappedQuantity,inputInTask,totalQuantity';
 	
 	
 	/**
@@ -1108,7 +1108,10 @@ class planning_Tasks extends core_Master
     public static function getBatchName($taskId)
     {
     	$rec = self::fetchRec($taskId);
-    	$batchName = str::removeWhitespaces(self::getRecTitle($rec));
+    	$productName = cat_Products::getVerbal($rec->productId, 'name');
+    	$code = cat_Products::getVerbal($rec->productId, 'code');
+    	$batchName = "{$productName}/{$code}/Opr{$rec->id}";
+    	$batchName = str::removeWhitespaces($batchName);
     	
     	return $batchName;
     }

@@ -35,7 +35,8 @@ class hr_Wrapper extends plg_ProtoWrapper
         $this->TAB('hr_Trips', 'Документи->Командировки', 'ceo,hrMaster');
         $this->TAB('hr_Bonuses', 'Документи->Премии', 'ceo,hrMaster');
         $this->TAB('hr_Deductions', 'Документи->Удръжки', 'ceo,hrMaster');
-        $this->TAB('hr_FormCv', 'Документи->Форма CV', 'ceo,hrMaster');
+
+
 
         //$this->TAB('hr_Departments', 'Структура->Отдели', 'ceo,hr,admin');
         $this->TAB(array('hr_Departments', 'list', 'Chart'=> 'List'), 'Структура->Таблица', 'ceo,hrMaster');
@@ -43,7 +44,12 @@ class hr_Wrapper extends plg_ProtoWrapper
         $this->TAB('hr_Positions', 'Структура->Длъжности','ceo,hrMaster,admin');
         $this->TAB('hr_WorkingCycles', 'Структура->Цикли', 'ceo,hrMaster,admin');
         $this->TAB('hr_ContractTypes', 'Структура->Шаблони', 'ceo,hrMaster,admin');
-        
+
+        if(core_Packs::isInstalled('workpreff')){
+            $this->TAB('workpreff_FormCv', 'Подбор->Форма CV', 'ceo,hrMaster');
+            $this->TAB('workpreff_WorkPreff', 'Подбор->Опции за подбор', 'ceo,hrMaster');
+        }
+
         $this->title = 'Персонал';
     }
 }

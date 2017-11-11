@@ -42,6 +42,8 @@ class type_Users extends type_Keylist
         
         setIfNot($this->params['rolesForAll'], 'ceo');
         $this->params['rolesForAll'] = str_replace("|", ",", $this->params['rolesForAll']);
+        
+        setIfNot($this->params['cuFirst'], 'yes');
     }
     
     
@@ -68,14 +70,16 @@ class type_Users extends type_Keylist
                 $this->params['rolesForTeams'] = implode(',', $rolesForTeams);
             }
             
+            $cu = core_Users::getCurrent();
+            
             // Вариант 1: Потребителя няма права да вижда екипите
             // Тогава евентуално можем да покажем само една опция, и тя е с текущия потребител
             if(!haveRole($this->params['rolesForTeams'])) {
                 if(haveRole($this->params['roles'])) {
-                    $key = static::getUserWithFirstTeam(core_Users::getCurrent());
+                    $key = static::getUserWithFirstTeam($cu);
                     $this->options[$key] = new stdClass();
                     $this->options[$key]->title = core_Users::getCurrent('names') . ' (' . type_Nick::normalize(core_Users::getCurrent('nick')) . ')';
-                    $this->options[$key]->keylist = '|' . core_Users::getCurrent() . '|';
+                    $this->options[$key]->keylist = '|' . $cu . '|';
                 } else {
                     $this->options = array();
                 }
@@ -126,6 +130,8 @@ class type_Users extends type_Keylist
                 
                 $userArr = core_Users::getRolesWithUsers();
                 
+                $cuRecArr = array();
+                
                 foreach($teams as $t) {
                     $group = new stdClass();
                     $tRole = core_Roles::fetchById($t);
@@ -137,7 +143,7 @@ class type_Users extends type_Keylist
                     $teamMembers = '';
                     
                     $haveTeamMembers = FALSE;
-                  
+                    
                     foreach((array)$userArr[$t] as $uId) {
                         
                         $uRec = $userArr['r'][$uId];
@@ -158,6 +164,12 @@ class type_Users extends type_Keylist
                         }
                         
                         $teamMembers .= $teamMembers ? '|' . $uId : $uId;
+                        
+                        if ($this->params['cuFirst'] == 'yes' && empty($cuRecArr)) {
+                            if ($this->options[$key] && ($uId == $cu)) {
+                                $cuRecArr[$key] = $this->options[$key];
+                            }
+                        }
                     }
                     
                     if($haveTeamMembers) {
@@ -170,6 +182,10 @@ class type_Users extends type_Keylist
                     } else {
                         unset($this->options[$t . ' team']);
                     }
+                }
+                
+                if (!empty($cuRecArr)) {
+                    $this->options = $cuRecArr + $this->options;
                 }
             }
             

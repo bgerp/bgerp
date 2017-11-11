@@ -286,6 +286,9 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
+        if (!$data->row) {
+            $data->row = new stdClass();
+        }
         $data->row->iconStyle = 'background-image:url("' . sbf($mvc->getIcon($data->rec->id), '', Mode::is('text', 'xhtml') || Mode::is('printing')) . '");';
         $data->row->LetterHead = $mvc->getLetterHead($data->rec, $data->row);
 
@@ -321,12 +324,23 @@ class doc_DocumentPlg extends core_Plugin
     function on_BeforePrepareSingle($mvc, &$res, $data)
     {
         if (Request::get('Printing') && empty($data->__MID__)) {
-            $data->__MID__ = doclog_Documents::saveAction(
-                array(
-                    'action'      => doclog_Documents::ACTION_PRINT, 
+            
+            $lAct = array(
+                    'action'      => doclog_Documents::ACTION_PRINT,
                     'containerId' => $data->rec->containerId,
-                )
             );
+            
+            if ($actDataArr = Mode::get('doclogActionData')) {
+                $lAct['data'] = new stdClass();
+                foreach ($actDataArr as $fName => $val) {
+                    $lAct['data']->{$fName} = $val;
+                }
+            }
+            
+            $data->__MID__ = doclog_Documents::saveAction($lAct);
+            
+            // Записваме екшъна, за да не се променя на shutdown
+            doclog_Documents::popAction();
         }
         
         $data->tabTopParam = "TabTop{$data->rec->containerId}";
@@ -440,6 +454,14 @@ class doc_DocumentPlg extends core_Plugin
                 if (log_System::haveRightFor('list')) {
                     $data->toolbar->addBtn('Логове', array('log_Data', 'list', 'class' => 'doc_Threads', 'object' => $data->rec->threadId), 'ef_icon=img/16/memo.png, title=Разглеждане на логовете на нишката, order=19, row=3');
                 }
+            }
+        }
+        
+        $classId = $mvc->getClassId();
+        if ($mvc->createView || ($classId && doc_TplManager::fetch(array("#docClassId = '[#1#]'", $classId)))) {
+            if (doc_View::haveRightFor('add') && $mvc->haveRightFor('single', $data->rec->id)) {
+                Request::setProtected(array('clsId', 'dataId'));
+                $data->toolbar->addBtn('Изглед', array('doc_View', 'add', 'clsId' => $classId, 'dataId' => $data->rec->id, 'originId' => $data->rec->containerId), 'ef_icon=img/16/ui_saccordion.png, title=Друг изглед на документа, order=18, row=3');
             }
         }
     }
@@ -1301,12 +1323,49 @@ class doc_DocumentPlg extends core_Plugin
     	    
     	    $mRec = $mvc->fetch($id);
     	    expect($mRec && $mRec->containerId);
-    	    
     	    expect($mRec->state != 'rejected');
     	    
-    	    $lg = doc_Containers::getLanguage($mRec->containerId);
+    	    expect($action = doclog_Documents::opened($mRec->containerId, $mId));
+    	    doclog_Documents::popAction();
     	    
-    	    core_Lg::push($lg);
+    	    // Ако е избран друг шаблон за отпечатване
+    	    if ($action->data->tplManagerId) {
+    	        $mRec->template = $action->data->tplManagerId;
+    	    }
+    	    
+    	    $lg = '';
+    	    if ($mRec->template) {
+    	        $lg = $mvc->pushTemplateLg($mRec->template);
+    	    }
+    	    
+    	    $activatedBy = $action->createdBy;
+    	    
+    	    if (!$activatedBy || $activatedBy <= 0) {
+    	        $activatedBy = $mRec->activatedBy;
+    	    }
+    	    
+    	    if ($action->containerId) {
+    	        if (!$activatedBy || $activatedBy <= 0) {
+    	            
+    	            $sContainerRec = doc_Containers::fetch($action->containerId);
+    	            $activatedBy = $sContainerRec->activatedBy;
+    	        }
+    	    }
+    	    
+    	    if ($activatedBy <= 0 && $mRec->containerId) {
+    	        $sContainerRec = doc_Containers::fetch($mRec->containerId);
+    	        
+    	        if ($sContainerRec->modifiedBy >= 0) {
+    	            $activatedBy = $sContainerRec->modifiedBy;
+    	        } elseif ($sContainerRec->createdBy >= 0) {
+    	            $activatedBy = $sContainerRec->createdBy;
+    	        }
+    	    }
+    	    
+    	    if (!$lg) {
+    	        $lg = doc_Containers::getLanguage($mRec->containerId);
+    	        core_Lg::push($lg);
+    	    }
     	    
     	    $recs = array();
     	    
@@ -1314,7 +1373,7 @@ class doc_DocumentPlg extends core_Plugin
     	        if (strpos($mvc->exportInExternalField, '=')) {
     	            list(,$exportFCls) = explode('=', $mvc->exportInExternalField);
     	            $csvFields = new core_FieldSet();
-    	            $recs = $exportFCls::getRecsForExportInExternal($mvc, $id, $mId, $csvFields);
+    	            $recs = $exportFCls::getRecsForExportInExternal($mvc, $mRec, $csvFields, $activatedBy);
     	        }
     	    } catch (core_exception_Expect $e) {}
     	    
@@ -3573,6 +3632,7 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         unset($nRec->containerId);
+        unset($nRec->pendingSaved);
     }
     
     
@@ -3890,18 +3950,18 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
     {
-        if (!$mvc->showLetterHead) return ;
-        
-        $resArr = arr::make($resArr);
-        $title = $mvc->singleTitle ? $mvc->singleTitle : $mvc->title;
-        $title = tr($title);
-        $resArr['ident'] = array('name' => tr($title), 'val' => '[#ident#]');
-        
-        // Полета, които ще се показват
-        $resArr += change_Plugin::getDateAndVersionRow();
-        
-        $resArr['createdBy'] = array('name' => tr('Автор'), 'val' => '[#createdBy#]');
-        $resArr['createdOn'] = array('name' => tr('Дата'), 'val' => '[#createdOn#]');
+        if ($mvc->showLetterHead) {
+            $resArr = arr::make($resArr);
+            $title = $mvc->singleTitle ? $mvc->singleTitle : $mvc->title;
+            $title = tr($title);
+            $resArr['ident'] = array('name' => tr($title), 'val' => '[#ident#]');
+            
+            // Полета, които ще се показват
+            $resArr += change_Plugin::getDateAndVersionRow();
+            
+            $resArr['createdBy'] = array('name' => tr('Автор'), 'val' => '[#createdBy#]');
+            $resArr['createdOn'] = array('name' => tr('Дата'), 'val' => '[#createdOn#]');
+        }
         
         // Ако е зададено да се показва действията в документа
         if ($mvc->showLogTimeInHead) {

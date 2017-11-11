@@ -87,6 +87,7 @@ class acc_plg_Contable extends core_Plugin
         if (!empty($mvc->fields[$mvc->valiorFld]) && !isset($mvc->dbIndexes[$mvc->valiorFld])) {
             $mvc->setDbIndex($mvc->valiorFld);
         }
+        setIfNot($mvc->createView, TRUE);
     }
     
     

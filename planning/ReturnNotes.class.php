@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class planning_ReturnNotes extends planning_StoreTransferDocument
+class planning_ReturnNotes extends deals_ManifactureMaster
 {
 	
 	

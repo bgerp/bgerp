@@ -2841,44 +2841,13 @@ class cat_Products extends embed_Manager {
      * 
      * @param core_Mvc $mvc
      * @param integer $id
-     * @param string $mId
      * @param core_FieldSet $csvFields
      * 
      * @return array
      */
-    public static function getRecsForExportInExternal($mvc, $id, $mId, &$csvFields)
+    public static function getRecsForExportInExternal($mvc, $mRec, &$csvFields, $activatedBy)
     {
-        expect($mId);
-        
-        $mRec = $mvc->fetch($id);
-        expect($mRec && $mRec->containerId);
-        
-        expect($action = doclog_Documents::opened($mRec->containerId, $mId));
-        doclog_Documents::popAction();
-        
-        $activatedBy = $action->createdBy;
-        
-        if (!$activatedBy || $activatedBy <= 0) {
-            $activatedBy = $mRec->activatedBy;
-        }
-        
-        if ($action->containerId) {
-            if (!$activatedBy || $activatedBy <= 0) {
-                
-                $sContainerRec = doc_Containers::fetch($action->containerId);
-                $activatedBy = $sContainerRec->activatedBy;
-            }
-        }
-        
-        if ($activatedBy <= 0 && $mRec->containerId) {
-            $sContainerRec = doc_Containers::fetch($mRec->containerId);
-            
-            if ($sContainerRec->modifiedBy >= 0) {
-                $activatedBy = $sContainerRec->modifiedBy;
-            } elseif ($sContainerRec->createdBy >= 0) {
-                $activatedBy = $sContainerRec->createdBy;
-            }
-        }
+        expect($mRec);
         
         $canSeePrice = haveRole('seePrice', $activatedBy);
         $pStrName = 'price';

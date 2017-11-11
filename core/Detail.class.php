@@ -403,7 +403,7 @@ class core_Detail extends core_Manager
             }
         }
         
-        parent::logInAct($msg, $rec, $type);
+        parent::logInAct($newMsg, $rec, $type);
     }
     
     

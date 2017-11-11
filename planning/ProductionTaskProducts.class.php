@@ -114,7 +114,7 @@ class planning_ProductionTaskProducts extends core_Detail
     	$this->FLD("productId", 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId,tdClass=productCell leftCol wrap');
     	$this->FLD("packagingId", 'key(mvc=cat_UoM,select=shortName)', 'mandatory,caption=Пр. единица,smartCenter,tdClass=small-field nowrap');
     	$this->FLD("plannedQuantity", 'double(smartRound,Min=0)', 'mandatory,caption=Планирано к-во,smartCenter,oldFieldName=planedQuantity');
-    	$this->FLD("storeId", 'key(mvc=store_Stores,select=name)', 'mandatory,caption=Склад');
+    	$this->FLD("storeId", 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
     	$this->FLD("quantityInPack", 'double', 'mandatory,input=none');
     	$this->FLD("totalQuantity", 'double(smartRound)', 'caption=Количество->Изпълнено,input=none,notNull,smartCenter,oldFieldName=realQuantity');
     	$this->FLD("indTime", 'time(noSmart)', 'caption=Норма->Време,smartCenter');
@@ -148,7 +148,6 @@ class planning_ProductionTaskProducts extends core_Detail
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
-    	
     	$form->setDefault('type', 'input');
     	$masterRec = planning_Tasks::fetch($data->masterId);
     	
@@ -173,8 +172,8 @@ class planning_ProductionTaskProducts extends core_Detail
     		$productInfo = cat_Products::getProductInfo($rec->productId);
     		if(!isset($productInfo->meta['canStore'])){
     			$form->setField('storeId', "input=none");
-    		} else {
-    			$form->setDefault('storeId', store_Stores::getCurrent('id', FALSE));
+    		} elseif(empty($rec->id)) {
+    			$form->setDefault('storeId', $masterRec->storeId);
     		}
     		
     		// Поле за бързо добавяне на прогрес, ако може
@@ -189,6 +188,14 @@ class planning_ProductionTaskProducts extends core_Detail
     		$unit = tr($measureUom) . " " . tr('за') . " " . $Double->toVerbal($masterRec->plannedQuantity) . " " . $shortUom;
     		$unit = str_replace("&nbsp;", ' ', $unit);
     		$form->setField('plannedQuantity', array('unit' => $unit));
+    		
+    		if(planning_ProductionTaskDetails::fetchField("#taskId = {$rec->taskId} AND #productId = {$rec->productId}")){
+    			$form->setReadOnly('productId');
+    			$form->setReadOnly('packagingId');
+    			if(!haveRole('ceo,planningMaster')){
+    				$form->setReadOnly('indTime');
+    			}
+    		}
     	} else {
     		$form->setField('packagingId', 'input=hidden');
     	}
@@ -274,7 +281,7 @@ class planning_ProductionTaskProducts extends core_Detail
     		}
     	}
     	
-    	if(($action == 'delete' || $action == 'edit') && isset($rec->taskId) && isset($rec->id)){
+    	if(($action == 'delete') && isset($rec->taskId)){
     		if(planning_ProductionTaskDetails::fetchField("#taskId = {$rec->taskId} AND #productId = {$rec->productId}")){
     			$requiredRoles = 'no_one';
     		}
@@ -341,7 +348,6 @@ class planning_ProductionTaskProducts extends core_Detail
     		while($tRec = $tQuery->fetch()){
     			$taskOptions[$tRec->productId] = cat_Products::getTitleById($tRec->productId, FALSE);
     		}
-    		
     		if(count($taskOptions)){
     			$options += array('t' => (object)array('group' => TRUE, 'title' => tr('Задачи'))) + $taskOptions;
     		}
@@ -434,6 +440,9 @@ class planning_ProductionTaskProducts extends core_Detail
     {
     	if(!empty($rec->inputedQuantity)){
     		$dRec = (object)array('taskId' => $rec->taskId, 'productId' => $rec->productId, 'type' => $rec->type, 'quantity' => $rec->inputedQuantity);
+    		if($rec->type == 'production'){
+    			$dRec->serial = planning_TaskSerials::forceAutoNumber($dRec);
+    		}
     		planning_ProductionTaskDetails::save($dRec);
     	}
     }
