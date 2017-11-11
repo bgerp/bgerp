@@ -171,11 +171,11 @@ class workpreff_FormCv extends core_Master
 
                     if (substr($k, 0, 10) == 'workpreff_') {
 
-                        $nameChoice =  workpreff_WorkPreff::getOptionsForChoice()[substr($k, 10)]->name;
+                       $nameChoice = workpreff_WorkPreff::getOptionsForChoice();
 
                         $preferencesForWork[] = (object)array(
 
-                            'id' => $nameChoice,
+                            'id' => $nameChoice[substr($k, 10)]->name,
 
                             'value' => $v
 
