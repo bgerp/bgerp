@@ -785,8 +785,8 @@ class core_Form extends core_FieldSet
                     if($field->focus) {
                         ht::setUniqId($attr);
                         $idForFocus = $attr['id'];
-                    } elseif(!$field->type->params['isReadOnly'] && !$idFirstFocus && 
-                            (empty($value) || ($field->type instanceof type_Richtext)) &&
+                    } elseif((!$field->type->params['isReadOnly']) && (count($field->type->options) != 1) && !$idFirstFocus && 
+                            (empty($value) || ($field->type instanceof type_Richtext) || ($field->type instanceof type_Key) || ($field->type instanceof type_Enum)) &&
                             !($field->type instanceof type_Date) &&
                             !($field->type instanceof type_DateTime)) {
                         ht::setUniqId($attr);
@@ -826,7 +826,7 @@ class core_Form extends core_FieldSet
                 
                 $fieldsLayout->replace($input, $name);
             }
-       
+
             if(Mode::is('staticFormView')) {
             	$fieldsLayout->prepend("<div class='staticFormView'>");
             	$fieldsLayout->append("</div>");
@@ -834,7 +834,9 @@ class core_Form extends core_FieldSet
             	if ($idForFocus) {
             		jquery_Jquery::run($fieldsLayout, "$('#{$idForFocus}').focus();", TRUE);
             	} elseif($idFirstFocus) {
-                    jquery_Jquery::run($fieldsLayout, "$('#{$idFirstFocus}').focus();", TRUE);
+                    $fieldsLayout->content = str_replace('id="' . $idFirstFocus . '"', 'id="' . $idFirstFocus . '" autofocus="autofocus"', $fieldsLayout->content);
+
+                    jquery_Jquery::run($fieldsLayout, " $('[autofocus] + .select2 .select2-selection').focus(); $('#{$idFirstFocus}').focus();", TRUE);
                 }
             }
         }
