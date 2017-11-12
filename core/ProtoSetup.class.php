@@ -17,6 +17,10 @@
  */
 class core_ProtoSetup
 {
+    /**
+     * Да се инициализира ли, след промяна на конфигурацията?
+     */
+    const INIT_AFTER_CONFIG = TRUE;
     
     /**
      * Версия на пакета
