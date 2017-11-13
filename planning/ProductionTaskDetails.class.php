@@ -292,7 +292,7 @@ class planning_ProductionTaskDetails extends core_Detail
     			}
     			 
     			if(empty($rec->quantity)){
-    				$form->setError('quantity', 'Трябва да въведете количество');
+    				$rec->quantity = 1;
     			}
     		}
     		

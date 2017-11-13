@@ -424,13 +424,13 @@ class planning_ProductionTaskProducts extends core_Detail
     	if($rec = $query->fetch()) return $rec;
     	
     	// Ако е влагане и артикула в избран като вложим за тая операция, връща се оттам
-    	if($type == 'input'){
+    	if($type == 'input'){//
     		$tQuery = planning_Tasks::getQuery();
     		$tQuery->where("#productId = {$productId} AND #inputInTask = {$taskRec->id} AND #state != 'rejected' AND #state != 'closed' AND #state != 'draft' AND #state != 'pending'");
     		$tQuery->show('productId,packagingId,quantityInPack,plannedQuantity,totalQuantity');
     		if($tRec = $tQuery->fetch()){
     			$tRec->totalQuantity = (!empty($tRec->totalQuantity)) ? $tRec->totalQuantity : 0;
-    			
+    		
     			return $tRec;
     		}
     	}

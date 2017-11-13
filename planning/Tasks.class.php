@@ -720,7 +720,7 @@ class planning_Tasks extends core_Master
 			
 			// Ако артикула е вложим, може да се влага по друга операция
 			if(isset($productInfo->meta['canConvert'])){
-				$tasks = self::getTasksByJob($origin->that);
+				$tasks = self::getTasksByJob($origin->that, TRUE);
 				unset($tasks[$rec->id]);
 				if(count($tasks)){
 					$form->setField('inputInTask', 'input');
@@ -981,15 +981,23 @@ class planning_Tasks extends core_Master
     /**
      * Връща масив от задачи към дадено задание
      * 
-     * @param int $jobId
-     * @return array $res
+     * @param int $jobId          - ид на задание
+     * @param boolean $onlyActive - Не оттеглените или само активните/събудени/спрени
+     * @return array $res         - масив с намерените задачи
      */
-    public static function getTasksByJob($jobId)
+    public static function getTasksByJob($jobId, $onlyActive = FALSE)
     {
     	$res = array();
     	$oldContainerId = planning_Jobs::fetchField($jobId, 'containerId');
     	$query = static::getQuery();
-    	$query->where("#originId = {$oldContainerId} AND #state != 'rejected' AND #state != 'draft'");
+    	$query->where("#originId = {$oldContainerId}");
+    	
+    	if($onlyActive === TRUE){
+    		$query->where("#state = 'active' || #state = 'wakeup' || #state = 'stopped'");
+    	} else {
+    		$query->where("#state != 'rejected' AND #state != 'draft'");
+    	}
+    	
     	while($rec = $query->fetch()){
     		$res[$rec->id] = self::getRecTitle($rec, FALSE);
     	}
