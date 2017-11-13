@@ -22,7 +22,7 @@ class planning_interface_ImportTaskProducts extends import_drivers_Proto
 	 *
 	 * @var string - изброените класове или празен клас за всички
 	 */
-    protected $allowedClasses = 'planning_ReturnNoteDetails';
+    protected $allowedClasses = 'planning_ReturnNoteDetails,planning_ConsumptionNoteDetails';
     
     
     /**

@@ -86,6 +86,12 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
     
     
     /**
+     * Кои операции от задачите ще се зареждат
+     */
+    public $taskActionLoad = 'input';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
