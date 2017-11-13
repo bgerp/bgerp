@@ -279,6 +279,8 @@ class workpreff_FormCv extends core_Master
                 $row->image = $Fancybox->getImage($rec->photo, $tArr, $mArr);
             }
 
+            $row->egn = $rec->egn;
+
         }
 
 
