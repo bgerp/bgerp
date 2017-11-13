@@ -129,7 +129,7 @@ class planning_ProductionTaskDetails extends core_Detail
     	$this->FLD("productId", 'key(mvc=cat_Products,select=name)', 'silent,caption=Артикул,removeAndRefreshForm=serial,tdClass=productCell leftCol wrap');
     	$this->FLD('type', 'enum(input=Влагане,production=Произв.,waste=Отпадък)', 'input=hidden,silent,tdClass=small-field nowrap');
     	$this->FLD('serial', 'varchar(32)', 'caption=Сер. №,smartCenter,focus,autocomplete=off');
-    	$this->FLD('quantity', 'double(Min=0)', 'caption=Количество,smartCenter');
+    	$this->FLD('quantity', 'double(Min=0)', 'caption=Количество');
     	$this->FLD('scrappedQuantity', 'double(Min=0)', 'caption=Брак,input=none');
     	$this->FLD('weight', 'double', 'caption=Тегло,smartCenter,unit=кг');
     	$this->FLD('employees', 'keylist(mvc=crm_Persons,select=id)', 'caption=Работници,tdClass=nowrap');
@@ -205,10 +205,10 @@ class planning_ProductionTaskDetails extends core_Detail
     		if($foundRec = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type)){
     			$packagingId = $foundRec->packagingId;
     			$unit = cat_UoM::getShortName($foundRec->packagingId);
-    			
     			if(!empty($foundRec->plannedQuantity) || !empty($foundRec->totalQuantity)){
-    				$planned = tr("Планирано|*: <b>") . cls::get('planning_ProductionTaskProducts')->getFieldType('plannedQuantity')->toVerbal($foundRec->plannedQuantity) . "</b>";
-    				$real = tr("Изпълнено|*: <b>") . cls::get('planning_ProductionTaskProducts')->getFieldType('totalQuantity')->toVerbal($foundRec->totalQuantity) . "</b>";
+    				$totalQuantity = (!empty($foundRec->totalQuantity)) ? $foundRec->totalQuantity : 0;
+    				$planned = tr("Планирано|*: <b>") . core_Type::getByName('double(smartRound)')->toVerbal($foundRec->plannedQuantity) . "</b>";
+    				$real = tr("Изпълнено|*: <b>") . core_Type::getByName('double(smartRound)')->toVerbal($totalQuantity) . "</b>";
     				$form->info = "{$planned}<br>{$real}";
     			}
     			
