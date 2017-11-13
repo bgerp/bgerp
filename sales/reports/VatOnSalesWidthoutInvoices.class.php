@@ -24,6 +24,27 @@ class sales_reports_VatOnSalesWidthoutInvoices extends frame2_driver_TableData
     public $canSelectDriver = 'ceo, store, sales, admin, purchase';
 
 
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param frame2_driver_Proto $Driver $Driver
+     * @param embed_Manager $Embedder
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
+    {
+
+        $form = &$data->form;
+
+        $lastClosedMonth = dt::addMonths(-1,dt::today());
+
+        $lastClosedMonthRec = acc_Periods::fetchByDate($lastClosedMonth);
+
+        $form->setDefault('periodId', $lastClosedMonthRec->id);
+        $form->setDefault('currency', acc_Periods::getBaseCurrencyCode());
+
+    }
+
 
     /**
      * Добавя полетата на драйвера към Fieldset
@@ -35,6 +56,7 @@ class sales_reports_VatOnSalesWidthoutInvoices extends frame2_driver_TableData
 
         $fieldset->FLD('periodId', 'key(mvc=acc_Periods,select=title)', 'caption=Период,after=title');
         $fieldset->FLD('totalVat', 'double(decimals=2)', 'caption=ДДС за периода,input=none');
+        $fieldset->FLD('currency', 'varchar', 'caption=Валута,input=none');
 
     }
 
@@ -46,10 +68,8 @@ class sales_reports_VatOnSalesWidthoutInvoices extends frame2_driver_TableData
      * @param stdClass $data
      * @return array
      */
-
     protected function prepareRecs($rec, &$data = NULL)
     {
-
 
         $recs = array();
 
@@ -70,7 +90,6 @@ class sales_reports_VatOnSalesWidthoutInvoices extends frame2_driver_TableData
         while ($articul = $query->fetch()){
 
             $id = $articul->productId;
-
 
             $totalVat += $articul->amount;
 
@@ -102,7 +121,6 @@ class sales_reports_VatOnSalesWidthoutInvoices extends frame2_driver_TableData
             $recs[$id]->vat = (double)($recs[$id]->amount * 0.2);
 
             $recs[$id]->price = (double)($recs[$id]->amount / $recs[$id]->quantity);
-
 
         }
 
@@ -189,5 +207,27 @@ class sales_reports_VatOnSalesWidthoutInvoices extends frame2_driver_TableData
         return $row;
 
     }
+
+
+    /**
+     * След вербализирането на данните
+     *
+     * @param frame2_driver_Proto $Driver
+     * @param embed_Manager $Embedder
+     * @param stdClass $row
+     * @param stdClass $rec
+     * @param array $fields
+     */
+    protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
+    {
+
+        if(isset($rec->periodId)){
+
+            $row->periodId = acc_Periods::getLinkForObject($rec->periodId);
+
+        }
+
+    }
+
 
 }
