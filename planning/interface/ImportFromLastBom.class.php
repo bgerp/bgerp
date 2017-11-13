@@ -129,7 +129,13 @@ class planning_interface_ImportFromLastBom extends import_drivers_Proto
     	$bomId = cat_Products::getLastActiveBom($productId, 'production');
     	$bomId = (!empty($bomId)) ? $bomId : cat_Products::getLastActiveBom($productId, 'sales');
     	
-    	return (!empty($bomId)) ? $bomId : NULL;
+    	// Ако има рецепта, проверява се има ли редове в нея
+    	if(!empty($bomId)){
+    		$details = cat_Boms::getBomMaterials($bomId, $firstDoc->fetchField('quantity'), $masterRec->storeId);
+    		if(count($details)) return $bomId;
+    	}
+    	
+    	return FALSE;
     }
     
     
