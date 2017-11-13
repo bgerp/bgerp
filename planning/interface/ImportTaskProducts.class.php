@@ -192,17 +192,21 @@ class planning_interface_ImportTaskProducts extends import_drivers_Proto
     		$dQuery->limit($limit);
     	}	
     	
-    	$tQuery = planning_Tasks::getQuery();
-    	$tQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
-    	$tQuery->XPR('quantity', 'double', '#totalQuantity');
-    	$tQuery->where("#originId = {$originId} AND #canStore = 'yes' AND #storeId = {$storeId} AND #totalQuantity != 0 AND (#state = 'active' || #state = 'closed' || #state = 'wakeup')");
-    	$tQuery->show('productId,quantityInPack,packagingId,quantity,id,storeId');
-    	
-    	if(isset($limit)){
-    		$tQuery->limit($limit);
+    	if($type != 'input'){
+    		$tQuery = planning_Tasks::getQuery();
+    		$tQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+    		$tQuery->XPR('quantity', 'double', '#totalQuantity');
+    		$tQuery->where("#originId = {$originId} AND #canStore = 'yes' AND #storeId = {$storeId} AND #totalQuantity != 0 AND (#state = 'active' || #state = 'closed' || #state = 'wakeup')");
+    		$tQuery->show('productId,quantityInPack,packagingId,quantity,id,storeId');
+    		 
+    		if(isset($limit)){
+    			$tQuery->limit($limit);
+    		}
+    		 
+    		$res = array_merge($dQuery->fetchAll(), $tQuery->fetchAll());
+    	} else {
+    		$res = $dQuery->fetchAll();
     	}
-    	
-    	$res = array_merge($dQuery->fetchAll(), $tQuery->fetchAll());
     	
     	return $res;
     }
