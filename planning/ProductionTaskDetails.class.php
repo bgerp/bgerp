@@ -248,8 +248,14 @@ class planning_ProductionTaskDetails extends core_Detail
     	$rec = &$form->rec;
     	 
     	if($form->isSubmitted()){
-    		if(empty($rec->serial) && $rec->type == 'production'){
-    			$rec->serial = planning_TaskSerials::forceAutoNumber($rec);
+    		if($rec->type == 'production'){
+    			if(self::fetchField("#taskId = {$rec->taskId} AND #serial = '{$rec->serial}' AND #id != '{$rec->id}'")){
+    				$form->setError('serial', 'Сер. № при произвеждане трябва да е уникален');
+    			}
+    			
+    			if(empty($rec->serial)){
+    				$rec->serial = planning_TaskSerials::forceAutoNumber($rec);
+    			}
     		}
     		
     		if(empty($rec->serial) && empty($rec->productId)){
@@ -272,12 +278,6 @@ class planning_ProductionTaskDetails extends core_Detail
     				if($error = planning_TaskSerials::isSerialInvalid($rec->serial, $rec->productId, $rec->taskId, $type, $rec->id)){
     					$form->setError('serial', $error);
     				}
-    			}
-    		}
-    		
-    		if($rec->type == 'production'){
-    			if(self::fetchField("#taskId = {$rec->taskId} AND #serial = '{$rec->serial}' AND #id != '{$rec->id}'")){
-    				$form->setError('serial', 'Сер. № при произвеждане трябва да е уникален');
     			}
     		}
     		
@@ -313,8 +313,7 @@ class planning_ProductionTaskDetails extends core_Detail
     		$row->serial = "<b>{$row->serial}</b>";
     	}
     	 
-    	$class = ($rec->state == 'rejected') ? 'state-rejected' : (($rec->type == 'input') ? 'row-added' : (($rec->type == 'production') ? 'state-active' : 'row-removed'));
-    	$row->ROW_ATTR['class'] = $class;
+    	$row->ROW_ATTR['class'] = ($rec->state == 'rejected') ? 'state-rejected' : (($rec->type == 'input') ? 'row-added' : (($rec->type == 'production') ? 'state-active' : 'row-removed'));
     	if($rec->state == 'rejected'){
     		$row->ROW_ATTR['title'] = tr('Оттеглено от') . " " . core_Users::getVerbal($rec->modifiedBy, 'nick');
     	}
