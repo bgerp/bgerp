@@ -116,6 +116,7 @@ class planning_Setup extends core_ProtoSetup
     		'planning_AssetGroups',
     		'planning_AssetResourcesNorms',
     		'migrate::deleteTaskCronUpdate',
+    		'migrate::deleteAssets'
         );
 
         
@@ -202,5 +203,26 @@ class planning_Setup extends core_ProtoSetup
     public function deleteTaskCronUpdate()
     {
     	core_Cron::delete("#systemId = 'Update Tasks States'");
+    }
+    
+    
+    /**
+     * Изтриване на стари задачи от операциите
+     */
+    public function deleteAssets()
+    {
+    	$query = planning_Tasks::getQuery();
+    	$query->where("#fixedAssets IS NOT NULL");
+    	while($tRec = $query->fetch()){
+    		$tRec->fixedAssets = NULL;
+    		planning_Tasks::save($tRec);
+    	}
+    	
+    	$query = planning_ProductionTaskDetails::getQuery();
+    	$query->where("#fixedAsset IS NOT NULL");
+    	while($tRec1 = $query->fetch()){
+    		$tRec1->fixedAsset = NULL;
+    		planning_ProductionTaskDetails::save($tRec1);
+    	}
     }
 }
