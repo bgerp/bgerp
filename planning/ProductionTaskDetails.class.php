@@ -252,11 +252,10 @@ class planning_ProductionTaskDetails extends core_Detail
     			if(self::fetchField("#taskId = {$rec->taskId} AND #serial = '{$rec->serial}' AND #id != '{$rec->id}'")){
     				$form->setError('serial', 'Сер. № при произвеждане трябва да е уникален');
     			}
-    			
     			if(empty($rec->serial)){
     				$rec->serial = planning_TaskSerials::forceAutoNumber($rec);
     			}
-    		} else {
+    		} elseif(isset($rec->productId)) {
     			if(!$mvc->checkLimit($rec, $limit)){
     				$limit = core_Type::getByName('double(smartRound)')->toVerbal($limit);
     				$form->setError('quantity', "Надвишяване на допустимото максимално количество|* <b>{$limit}</b>");
