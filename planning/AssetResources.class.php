@@ -196,10 +196,11 @@ class planning_AssetResources extends core_Master
      * Избор на наличното оборудване в подаденият департамент
      * Включително и тези от департаментите, в които е включен
      * 
-     * @param int $folderId - папка
-     * @return array $res   - налично оборудване
+     * @param int      $folderId - папка
+     * @param int|NULL $groupId  - от коя група да са
+     * @return array   $res   - налично оборудване
      */
-    public static function getAvailableInFolder($folderId)
+    public static function getAvailableInFolder($folderId, $groupId = NULL)
     {
     	$departmentId = hr_Departments::fetchField("#folderId = {$folderId}", 'id');
     	$parents = hr_Departments::getParentsArray($departmentId);
@@ -207,9 +208,12 @@ class planning_AssetResources extends core_Master
     	$res = array();
     	$query = self::getQuery();
     	$query->where("#state != 'closed'");
+    	if(isset($groupId)){
+    		$query->where("#groupId = '{$groupId}'");
+    	}
     	$query->likeKeylist("departments", $parents);
     	$query->orWhere("#departments IS NULL");
-    	
+    
     	while($rec = $query->fetch()){
     		$res[$rec->id] = $rec->fullName;
     	}

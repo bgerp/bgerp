@@ -45,7 +45,7 @@ class planning_Tasks extends core_Master
 	/**
 	 * Плъгини за зареждане
 	 */
-	public $loadList = 'doc_plg_BusinessDoc, doc_plg_Prototype, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, plg_Clone, plg_Printing, plg_RowTools2, plg_LastUsedKeys';
+	public $loadList = 'doc_plg_BusinessDoc, doc_plg_Prototype, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, plg_Clone, plg_Printing, plg_RowTools2';
 	
 	
 	/**
@@ -187,12 +187,6 @@ class planning_Tasks extends core_Master
 	
 	
 	/**
-	 * Кои ключове да се тракват, кога за последно са използвани
-	 */
-	public $lastUsedKeys = 'fixedAssets';
-	
-	
-	/**
 	 * Описание на модела (таблицата)
 	 */
 	function description()
@@ -218,7 +212,7 @@ class planning_Tasks extends core_Master
 		$this->FNC('systemId', 'int', 'silent,input=hidden');
 		$this->FLD('expectedTimeStart', 'datetime(format=smartTime)', 'input=hidden,caption=Очаквано начало');
 		$this->FLD('additionalFields', 'blob(serialize, compress)', 'caption=Данни,input=none');
-		$this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=fullName,makeLinks)', 'caption=Произвеждане->Оборудване,after=packagingId');
+		$this->FLD('fixedAssets', 'key(mvc=planning_AssetGroups,select=name,allowEmpty)', 'caption=Произвеждане->Оборудване,after=packagingId');
 		$this->FLD('inputInTask', 'int', 'caption=Произвеждане->Влагане в,input=none,after=indTime');
 	
 		$this->setDbIndex('inputInTask');
@@ -291,8 +285,12 @@ class planning_Tasks extends core_Master
 	public static function recToVerbal_($rec, &$fields = '*')
 	{
 		static::fillGapsInRec($rec);
-		
 		$row = parent::recToVerbal_($rec, $fields);
+		
+		if(isset($rec->fixedAssets)){
+			$row->fixedAssets = planning_AssetGroups::getHyperlink($rec->fixedAssets, TRUE);
+		}
+		
 		$mvc = cls::get(get_called_class());
 		$row->title = self::getHyperlink($rec->id, (isset($fields['-list']) ? TRUE : FALSE));
 		
@@ -454,13 +452,6 @@ class planning_Tasks extends core_Master
 			if(!empty($rec->timeStart) && !empty($rec->timeDuration) && !empty($rec->timeEnd)){
 				if(strtotime(dt::addSecs($rec->timeDuration, $rec->timeStart)) != strtotime($rec->timeEnd)){
 					$form->setWarning('timeStart,timeDuration,timeEnd', 'Въведеното начало плюс продължителноста не отговарят на въведената крайната дата');
-				}
-			}
-			
-			// Може да се избират само оборудвания от една група
-			if(isset($rec->fixedAssets)){
-				if(!planning_AssetGroups::haveSameGroup($rec->fixedAssets)){
-					$form->setError('fixedAssets', 'Оборудванията са от различни групи');
 				}
 			}
 			
@@ -778,25 +769,6 @@ class planning_Tasks extends core_Master
 				}
 			}
 		}
-		
-		// Наличното оборудване в департамента
-		$fixedAssets = planning_AssetResources::getAvailableInFolder($rec->folderId);
-		
-		// Подсигуряване че вече избраното оборудване присъства в опциите винаги
-		if(isset($rec->fixedAssets)){
-			$alreadyIn = keylist::toArray($rec->fixedAssets);
-			foreach ($alreadyIn as $fId){
-				if(!array_key_exists($fId, $fixedAssets)){
-					$fixedAssets[$fId] = planning_AssetResources::fetchField($fId, 'fullName');
-				}
-			}
-		}
-		
-		if(count($fixedAssets)){
-			$form->setSuggestions('fixedAssets', array('' => '') + $fixedAssets);
-		} else {
-			$form->setField('fixedAssets', 'input=none');
-		}
 	}
 	
 	
@@ -967,14 +939,10 @@ class planning_Tasks extends core_Master
     		$data->listFilter->input('departmentId');
     	}
     	
-    	// Добавяне на оборудването към филтъра
-    	$fixedAssets = planning_AssetResources::makeArray4Select('name', "#state != 'rejected'");
-    	if(count($fixedAssets)){
-    		$data->listFilter->FLD('assetId', 'int', 'caption=Оборудване');
-    		$data->listFilter->setOptions('assetId', array('' => '') + $fixedAssets);
-    		$data->listFilter->showFields .= ',departmentId,assetId';
-    		$data->listFilter->input('assetId');
-    	}
+    	// Добавяне на оорудването към филтъра
+    	$data->listFilter->FLD('assetId', 'key(mvc=planning_AssetGroups,select=name,allowEmpty)', 'caption=Група оборудване');
+    	$data->listFilter->showFields .= ',departmentId,assetId';
+    	$data->listFilter->input('assetId');
     	
     	// Филтър по департамент
     	if($departmentFolderId = $data->listFilter->rec->departmentId){
@@ -984,7 +952,7 @@ class planning_Tasks extends core_Master
     	}
     	
     	if($assetId = $data->listFilter->rec->assetId){
-    		$data->query->where("LOCATE('|{$assetId}|', #fixedAssets)");
+    		$data->query->where("#fixedAssets = {$assetId}");
     	}
     	
     	// Показване на полето за филтриране
