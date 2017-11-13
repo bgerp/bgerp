@@ -47,7 +47,6 @@ class sales_reports_VatOnSalesWidthoutInvoices extends frame2_driver_TableData
      * @return array
      */
 
-
     protected function prepareRecs($rec, &$data = NULL)
     {
 
@@ -62,8 +61,6 @@ class sales_reports_VatOnSalesWidthoutInvoices extends frame2_driver_TableData
         $query->where("#state = 'closed'");
         $query->where("#makeInvoice = 'no'");
         $query->where(array("#chargeVat = '[#1#]' OR #chargeVat = '[#2#]'", 'yes', 'separate'));
-
-       // bp($query->buildQuery(), $query->count(), $query->fetch(), $query->fetch(), $query->fetch());
 
         $totalVat = 0;
 
@@ -108,7 +105,7 @@ class sales_reports_VatOnSalesWidthoutInvoices extends frame2_driver_TableData
 
         $rec->totalVat = $totalVat;
 
-        return $recs;  // ver1
+        return $recs;
     }
 
 
@@ -156,7 +153,6 @@ class sales_reports_VatOnSalesWidthoutInvoices extends frame2_driver_TableData
      */
     protected function detailRecToVerbal($rec, &$dRec)
     {
-      //  bp($dRec);
 
         $isPlain = Mode::is('text', 'plain');
         $Int = cls::get('type_Int');
