@@ -79,6 +79,14 @@ class cat_products_Packagings extends core_Detail
 
     
     /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'eanCode';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
