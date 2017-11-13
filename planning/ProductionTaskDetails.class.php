@@ -256,6 +256,11 @@ class planning_ProductionTaskDetails extends core_Detail
     			if(empty($rec->serial)){
     				$rec->serial = planning_TaskSerials::forceAutoNumber($rec);
     			}
+    		} else {
+    			if(!$mvc->checkLimit($rec, $limit)){
+    				$limit = core_Type::getByName('double(smartRound)')->toVerbal($limit);
+    				$form->setError('quantity', "Надвишяване на допустимото максимално количество|* <b>{$limit}</b>");
+    			}
     		}
     		
     		if(empty($rec->serial) && empty($rec->productId)){
@@ -613,5 +618,48 @@ class planning_ProductionTaskDetails extends core_Detail
     	$result[$rec->id] = $rec->name;
     	 
     	return $result;
+    }
+    
+    
+    /**
+     * Проверка дали лимита е надвишен
+     * 
+     * @param stdClass $rec
+     * @param double $limit
+     * @return boolean
+     */
+    private function checkLimit($rec, &$limit = NULL)
+    {
+    	$info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type);
+    	if(empty($info->limit)) return TRUE;
+    	
+    	$query = self::getQuery();
+    	$query->XPR('sum', 'double', 'SUM(#quantity)');
+    	$query->where("#taskId = {$rec->taskId} AND #productId = {$rec->productId} AND #id != '{$rec->id}' AND #state = 'active'");
+    	$query->show('sum');
+    	$sum = $query->fetch()->sum;
+    	$sum += $rec->quantity;
+    	
+    	if($sum > $info->limit){
+    		$limit = $info->limit;
+    		return FALSE;
+    	}
+    	
+    	return TRUE;
+    }
+    
+    
+    /**
+     * Изпълнява се преди възстановяването на документа
+     */
+    public static function on_BeforeRestore(core_Mvc $mvc, &$res, $id)
+    {
+    	$rec = $mvc->fetchRec($id);
+    	
+    	if(!$mvc->checkLimit($rec, $limit)){
+    		$limit = core_Type::getByName('double(smartRound)')->toVerbal($limit);
+    		core_Statuses::newStatus("Не може да се възстанови, защото ще се надвиши максималното количество от|*: <b>{$limit}</b>", 'error');
+    		return FALSE;
+    	}
     }
 }

@@ -39,13 +39,13 @@ class planning_ProductionTaskProducts extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'type,productId,packagingId=Eдиница,plannedQuantity=Количества->Планирано,totalQuantity=Количества->Изпълнено,measureId=Количества->Мярка,storeId,indTime,totalTime';
+    public $listFields = 'type,productId,packagingId=Eдиница,plannedQuantity=Количества->Планирано,limit=Количества->Макс.,totalQuantity=Количества->Изпълнено,measureId=Количества->Мярка,storeId,indTime,totalTime';
     
     
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    public $hideListFieldsIfEmpty = 'indTime,totalTime,storeId';
+    public $hideListFieldsIfEmpty = 'indTime,totalTime,limit,storeId';
     
     
     /**
@@ -110,14 +110,15 @@ class planning_ProductionTaskProducts extends core_Detail
     public function description()
     {
     	$this->FLD("taskId", 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Операция');
-    	$this->FLD("type", 'enum(input=Вложим,waste=Отпадък,production=Производим)', 'caption=Вид,remember,silent,input=hidden');
+    	$this->FLD("type", 'enum(input=Влагане,waste=Отпадък,production=Произвждане)', 'caption=За,remember,silent,input=hidden');
     	$this->FLD("productId", 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId,tdClass=productCell leftCol wrap');
     	$this->FLD("packagingId", 'key(mvc=cat_UoM,select=shortName)', 'mandatory,caption=Пр. единица,smartCenter,tdClass=small-field nowrap');
     	$this->FLD("plannedQuantity", 'double(smartRound,Min=0)', 'mandatory,caption=Планирано к-во,smartCenter,oldFieldName=planedQuantity');
     	$this->FLD("storeId", 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
     	$this->FLD("quantityInPack", 'double', 'mandatory,input=none');
     	$this->FLD("totalQuantity", 'double(smartRound)', 'caption=Количество->Изпълнено,input=none,notNull,smartCenter,oldFieldName=realQuantity');
-    	$this->FLD("indTime", 'time(noSmart)', 'caption=Норма->Време,smartCenter');
+    	$this->FLD("indTime", 'time(noSmart)', 'caption=Норма,smartCenter');
+    	$this->FLD("limit", 'double(min=0)', 'caption=Лимит');
     	$this->FNC('totalTime', 'time(noSmart)', 'caption=Норма->Общо,smartCenter');
     	
     	$this->setDbUnique('taskId,productId');
@@ -161,6 +162,10 @@ class planning_ProductionTaskProducts extends core_Detail
     		$form->setOptions('productId', array('' => '') + $products);
     		if(count($products) == 1){
     			$form->setDefault('productId', key($products));
+    		}
+    		
+    		if($rec->type == 'production'){
+    			$form->setField('limit', 'input=none');
     		}
     	}
     	
@@ -215,7 +220,6 @@ class planning_ProductionTaskProducts extends core_Detail
     	if($form->isSubmitted()){
     		if($rec->type == 'waste'){
     			$selfValue = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->productId);
-    			
     			if(!isset($selfValue)){
     				$form->setWarning('productId', 'Отпадъкът няма себестойност');
     			}
@@ -228,6 +232,17 @@ class planning_ProductionTaskProducts extends core_Detail
     		if(!self::canAddProductToTask($rec->taskId, $rec->productId, $msg, $error)){
     			$method = ($error === TRUE) ? 'setError' : 'setWarning';
     			$form->{$method}('productId', $msg);
+    		}
+    		
+    		if(isset($rec->limit)){
+    			if($rec->plannedQuantity > $rec->limit){
+    				$form->setError('plannedQuantity,limit', 'Планираното количество е повече от зададения лимит');
+    			}
+    			
+    			if($rec->inputedQuantity > $rec->limit){
+    				$caption = ($rec->type == 'input') ? 'Вложеното' : (($rec->type == 'waste') ? 'Отпадакът' : 'Произведеното');
+    				$form->setError('inputedQuantity,limit', "{$caption} е повече от зададения лимит");
+    			}
     		}
     	}
     }
@@ -246,21 +261,16 @@ class planning_ProductionTaskProducts extends core_Detail
     
     
     /**
-     * След преобразуване на записа в четим за хора вид.
+     * След преобразуване на записа в четим за хора вид
      */
-    protected static function on_AfterPrepareListRows($mvc, &$data)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	if(!count($data->recs)) return;
+    	$row->measureId = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
+    	$row->productId = cat_Products::getShortHyperlink($rec->productId);
+    	$row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : (($rec->type == 'waste') ? 'row-removed' : 'state-active');
     	
-    	foreach ($data->rows as $id => $row){
-    		$rec = $data->recs[$id];
-    		$row->measureId = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
-    		
-    		if(isset($rec->storeId)){
-    			$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
-    		}
-    		$row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : (($rec->type == 'waste') ? 'row-removed' : 'state-active');
-    		$row->productId = cat_Products::getShortHyperlink($rec->productId);
+    	if(isset($rec->storeId)){
+    		$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
     	}
     }
     
@@ -396,6 +406,7 @@ class planning_ProductionTaskProducts extends core_Detail
      *    		o plannedQuantity - планирано к-во
      *     		o totalQuantity   - изпълнено к-во
      *         	o indTime         - норма
+     *          o limit           - лимит, ако има
      */
     public static function getInfo($taskId, $productId, $type)
     {
@@ -408,7 +419,8 @@ class planning_ProductionTaskProducts extends core_Detail
     	// Ако има запис в артикули за него, връща се оттам
     	$query = self::getQuery();
     	$query->where("#taskId = {$taskRec->id} AND #productId = {$productId} AND #type = '{$type}'");
-    	$query->show('productId,indTime,packagingId,quantityInPack,plannedQuantity,totalQuantity');
+    	$query->show('productId,indTime,packagingId,quantityInPack,plannedQuantity,totalQuantity,limit');
+    	
     	if($rec = $query->fetch()) return $rec;
     	
     	// Ако е влагане и артикула в избран като вложим за тая операция, връща се оттам
