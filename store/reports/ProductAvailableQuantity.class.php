@@ -126,26 +126,33 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                 }
 
 
-                foreach ($details->minQuantity as $v) {
+                if (is_array($details->minQuantity)) {
 
-                    $v = (int)trim($v);
+                    foreach ($details->minQuantity as $v) {
 
-                    if ($v < 0) {
+                        $v = (int)trim($v);
 
-                        $form->setError('additional', 'Количествата трябва  да са положителни');
+                        if ($v < 0) {
+
+                            $form->setError('additional', 'Количествата трябва  да са положителни');
+
+                        }
 
                     }
-
                 }
 
-                foreach ($details->maxQuantity as $v) {
+                if (is_array($details->maxQuantity)) {
 
-                    $v = (int)trim($v);
+                    foreach ($details->maxQuantity as $v) {
 
-                    if ($v < 0) {
+                        $v = (int)trim($v);
 
-                        $form->setError('additional', 'Количествата трябва  да са положителни');
+                        if ($v < 0) {
+
+                            $form->setError('additional', 'Количествата трябва  да са положителни');
+                        }
                     }
+
                 }
 
                 foreach ($details->code as $key => $v) {
