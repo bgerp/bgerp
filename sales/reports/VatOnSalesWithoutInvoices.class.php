@@ -15,7 +15,7 @@
  * @since     v 0.1
  * @title     Продажби » ДДС при продажба без фактура
  */
-class sales_reports_VatOnSalesWidthoutInvoices extends frame2_driver_TableData
+class sales_reports_VatOnSalesWithoutInvoices extends frame2_driver_TableData
 {
 
     /**
@@ -203,11 +203,8 @@ class sales_reports_VatOnSalesWidthoutInvoices extends frame2_driver_TableData
 
         if(isset($dRec->quantity)) {
             $row->quantity =  core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity);
-
-          //  $row->readiness = ($isPlain) ?  frame_CsvLib::toCsvFormatDouble($dRec->readiness * 100) : cls::get('type_Percent')->toVerbal($dRec->readiness);
-
-
         }
+
         if(isset($dRec->measure)) {
             $row->measure = cat_UoM::fetchField($dRec->measure,'shortName');
         }
