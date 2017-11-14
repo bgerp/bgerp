@@ -968,8 +968,6 @@ class cal_Tasks extends core_Master
                 $data->query->where(array("#state = '[#1#]'", $data->listFilter->rec->stateTask));
             } elseif ($data->listFilter->rec->stateTask == 'actPend') {
                 $data->query->where("#state = 'active' OR #state = 'waiting'");
-            } else {
-                $data->query->fetchAll();
             }
 
             if ($data->listFilter->rec->order == 'onStart') {
