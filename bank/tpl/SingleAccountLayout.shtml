@@ -32,11 +32,5 @@
             <td>[#comment#]</td>
         </tr>
         <!--ET_END comment-->
-        <tr class='vtop'>
-            <!--ET_BEGIN lastUsedOn-->
-            <td>|Последно|*:</td>
-            <td>[#lastUsedOn#]</td>
-            <!--ET_END lastUsedOn-->
-        </tr>
     </table>
 </div>
