@@ -836,6 +836,12 @@ class planning_Jobs extends core_Master
     			$res = 'no_one';
     		}
     	}
+    	
+    	if ($action == 'close' && $rec) {
+    	    if($rec->state != 'active' && $rec->state != 'wakeup' && $rec->state != 'stopped'){
+    	        $requiredRoles = 'no_one';
+    	    }
+    	}
     }
     
     

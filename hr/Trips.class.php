@@ -50,19 +50,19 @@ class hr_Trips extends core_Master
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,hrMaster';
+    public $canRead = 'ceo, hrMaster, hrTrips';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,hrMaster';
+	public $canList = 'ceo, hrMaster, hrTrips';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,hrMaster';
+	public $canSingle = 'ceo, hrMaster, hrTrips';
     
     
     /**
@@ -80,19 +80,19 @@ class hr_Trips extends core_Master
     /**
      * Кой може да го активира?
      */
-    public $canActivate = 'ceo,hrMaster';
+    public $canActivate = 'ceo, hrMaster, hrTrips';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo,hrMaster';
+    public $canDelete = 'ceo, hrMaster, hrTrips';
     
     
     /**
      * Кой има право да прави начисления
      */
-    public $canChangerec = 'ceo,hrMaster';
+    public $canChangerec = 'ceo, hrMaster, hrTrips';
     
     
     /**
@@ -192,7 +192,7 @@ class hr_Trips extends core_Master
     	$this->FLD('amountHouse', 'double(decimals=2)', 'caption=Начисления->Квартирни,input=none, changable');
     	$this->FNC('title', 'varchar', 'column=none');
     	
-    	$this->FLD('sharedUsers', 'userList(roles=hr|ceo)', 'caption=Споделяне->Потребители');
+    	$this->FLD('sharedUsers', 'userList(roles=hrTrips|ceo)', 'caption=Споделяне->Потребители');
     }
 
     
@@ -276,7 +276,7 @@ class hr_Trips extends core_Master
 	        $form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
 	        $form->setReadonly('personId');
 
-	        if(!haveRole('ceo,hr')) {
+	        if(!haveRole('ceo,hrTrips')) {
 	        	$form->setField('sharedUsers', 'mandatory');
 	        }
         }
@@ -452,7 +452,7 @@ class hr_Trips extends core_Master
         
         if($Cover->className == 'doc_UnsortedFolders') {
             $cu = core_Users::getCurrent();
-            if(!haveRole('ceo,hr', $cu)) return FALSE;
+            if(!haveRole('ceo,hrTrips', $cu)) return FALSE;
         }
         
         return TRUE;
