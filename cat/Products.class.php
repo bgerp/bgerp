@@ -1706,11 +1706,13 @@ class cat_Products extends embed_Manager {
     			$rec = $mvc->fetchRec($rec);
     		}
     		
-            $cRec = clone($rec);
-    		self::setCodeIfEmpty($cRec);
-            $part = $cRec->code;
-
-            return FALSE;
+    		if (is_object($rec)) {
+    		    $cRec = clone($rec);
+    		    self::setCodeIfEmpty($cRec);
+    		    $part = $cRec->code;
+    		    
+    		    return FALSE;
+    		}
     	}
     }
     
