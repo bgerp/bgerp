@@ -89,23 +89,17 @@ class sales_reports_VatOnSalesWidthoutInvoices extends frame2_driver_TableData
 
         $totalVat = 0;
 
-
-        $salesHint = '';
         while ($articul = $query->fetch()){
-
 
             $salesInfo = explode('/',sales_Sales::getRecTitle($articul->saleId));
 
-
-
-
-
-
             $id = $articul->productId;
 
-            if ($articul->id) {
+            bp($articul);
 
-                $totalVat += $articul->amount * cat_Products::getVat($articul->id);
+            if ($articul->productId) {
+
+                $totalVat += $articul->amount * cat_Products::getVat($articul->productId);
             }
 
             if (!array_key_exists($id, $recs)) {
@@ -134,9 +128,9 @@ class sales_reports_VatOnSalesWidthoutInvoices extends frame2_driver_TableData
                 $obj->hint .= '; '.$salesInfo[0];
 
             }
-            if ($articul->id){
+            if ($articul->productId){
 
-                $recs[$id]->vat = (double)($recs[$id]->amount * cat_Products::getVat($articul->id));
+                $recs[$id]->vat = (double)($recs[$id]->amount * cat_Products::getVat($articul->productId));
 
             }
 
