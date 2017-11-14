@@ -26,6 +26,12 @@
             <td>[#bic#]</td>
         </tr>
         <!--ET_END bic-->
+        <!--ET_BEGIN comment-->
+        <tr class='vtop'>
+            <td>|Бележки|*:</td>
+            <td>[#comment#]</td>
+        </tr>
+        <!--ET_END comment-->
         <tr class='vtop'>
             <!--ET_BEGIN lastUsedOn-->
             <td>|Последно|*:</td>
