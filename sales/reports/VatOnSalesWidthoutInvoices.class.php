@@ -95,8 +95,6 @@ class sales_reports_VatOnSalesWidthoutInvoices extends frame2_driver_TableData
 
             $id = $articul->productId;
 
-            bp($articul);
-
             if ($articul->productId) {
 
                 $totalVat += $articul->amount * cat_Products::getVat($articul->productId);
