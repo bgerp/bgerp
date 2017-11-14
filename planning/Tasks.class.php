@@ -857,7 +857,7 @@ class planning_Tasks extends core_Master
 		// Ако няма намерени записи, не се рендира нищо
 		// Рендираме таблицата с намерените задачи
 		$table = cls::get('core_TableView', array('mvc' => $this));
-		$fields = 'title=Операция,progress=Прогрес,folderId=Папка,expectedTimeStart=Очаквано начало, timeDuration=Продължителност, timeEnd=Край, modified=Модифицирано';
+		$fields = 'title=Операция,progress=Прогрес,folderId=Папка,expectedTimeStart=Времена->Начало, timeDuration=Времена->Прод-ст, timeEnd=Времена->Край, modified=Модифицирано';
 		$data->listFields = core_TableView::filterEmptyColumns($data->rows, $fields, 'timeStart,timeDuration,timeEnd,expectedTimeStart');
 		$this->invoke('BeforeRenderListTable', array($tpl, &$data));
 		 
