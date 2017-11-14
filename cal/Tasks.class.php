@@ -2287,7 +2287,46 @@ class cal_Tasks extends core_Master
     	// връщаме времето за активиране
     	return $calcTime;
     }
-   
+    
+    
+    /**
+     * Добавя нотификация за приключена задача
+     * 
+     * @param stdObject $rec
+     */
+    public static function notifyForClosedTask($rec)
+    {
+        $rec = self::fetchRec($rec);
+        
+        if (!$rec) return ;
+        
+        $cu = core_Users::getCurrent();
+        
+        if ($rec->createdBy == $cu) return ;
+        
+        if ($cu < 1) return ;
+        
+        $message = "|Приключена е задачата|*" . ' "' . $rec->title . '"';
+        $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+        $customUrl = array('cal_Tasks', 'single',  $rec->id);
+        $priority = 'normal';
+        bgerp_Notifications::add($message, $url, $rec->createdBy, $priority, $customUrl);
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param cal_Tasks $mvc
+     * @param stdObject $rec
+     * @param string $state
+     */
+    protected function on_AfterChangeState($mvc, $rec, $state)
+    {
+        if ($state == 'closed') {
+            cal_Tasks::notifyForClosedTask($rec);
+        }
+    }
     
     /**
      * Правим нотификация на всички шернати потребители,

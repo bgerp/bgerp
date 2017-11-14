@@ -254,11 +254,9 @@ class cal_TaskProgresses extends core_Detail
             $tRec->progress = $rec->progress;
             
             if($rec->progress == 1) {
-            	$message = "|Приключена е задачата|*" . ' "' . $tRec->title . '"';
-            	$url = array('doc_Containers', 'list', 'threadId' => $tRec->threadId);
-            	$customUrl = array('cal_Tasks', 'single',  $tRec->id);
-            	$priority = 'normal';
-            	bgerp_Notifications::add($message, $url, $tRec->createdBy, $priority, $customUrl);
+            	
+                cal_Tasks::notifyForClosedTask($tRec);
+                
                 $tRec->state = 'closed';
                 $tRec->timeClosed = $now;
             }
