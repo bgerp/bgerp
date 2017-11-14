@@ -257,11 +257,6 @@ class planning_ProductionTaskDetails extends core_Detail
     			if(empty($rec->serial)){
     				$rec->serial = planning_TaskSerials::forceAutoNumber($rec);
     			}
-    		} elseif(isset($rec->productId)) {
-    			if(!$mvc->checkLimit($rec, $limit)){
-    				$limit = core_Type::getByName('double(smartRound)')->toVerbal($limit);
-    				$form->setError('quantity', "Надвишяване на допустимото максимално количество|* <b>{$limit}</b>");
-    			}
     		}
     		
     		if(empty($rec->serial) && empty($rec->productId)){
@@ -294,6 +289,13 @@ class planning_ProductionTaskDetails extends core_Detail
     			 
     			if(empty($rec->quantity)){
     				$rec->quantity = 1;
+    			}
+    			
+    			if(isset($rec->productId) && $rec->type !== 'production') {
+    				if(!$mvc->checkLimit($rec, $limit)){
+    					$limit = core_Type::getByName('double(smartRound)')->toVerbal($limit);
+    					$form->setError('quantity', "Надвишяване на допустимото максимално количество|* <b>{$limit}</b>");
+    				}
     			}
     		}
     		
@@ -636,9 +638,11 @@ class planning_ProductionTaskDetails extends core_Detail
     	
     	$query = self::getQuery();
     	$query->XPR('sum', 'double', 'SUM(#quantity)');
-    	$query->where("#taskId = {$rec->taskId} AND #productId = {$rec->productId} AND #id != '{$rec->id}' AND #state = 'active'");
+    	$query->where("#taskId = {$rec->taskId} AND #productId = {$rec->productId} AND #fixedAsset = '{$rec->fixedAsset}' AND #id != '{$rec->id}' AND #state = 'active'");
+    	
     	$query->show('sum');
     	$sum = $query->fetch()->sum;
+    	
     	$sum += $rec->quantity;
     	
     	if($sum > $info->limit){

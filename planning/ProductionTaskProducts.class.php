@@ -118,7 +118,7 @@ class planning_ProductionTaskProducts extends core_Detail
     	$this->FLD("quantityInPack", 'double', 'mandatory,input=none');
     	$this->FLD("totalQuantity", 'double(smartRound)', 'caption=Количество->Изпълнено,input=none,notNull,smartCenter,oldFieldName=realQuantity');
     	$this->FLD("indTime", 'time(noSmart)', 'caption=Норма,smartCenter');
-    	$this->FLD("limit", 'double(min=0)', 'caption=Макс. к-во');
+    	$this->FLD("limit", 'double(min=0)', 'caption=Макс. к-во,input=none');
     	$this->FNC('totalTime', 'time(noSmart)', 'caption=Норма->Общо,smartCenter');
     	
     	$this->setDbUnique('taskId,productId');
@@ -177,7 +177,7 @@ class planning_ProductionTaskProducts extends core_Detail
     		$productInfo = cat_Products::getProductInfo($rec->productId);
     		if(!isset($productInfo->meta['canStore'])){
     			$form->setField('storeId', "input=none");
-    			$form->setField('limit', "input=none");
+    			$form->setField('limit', "input");
     		} elseif(empty($rec->id)) {
     			$form->setDefault('storeId', $masterRec->storeId);
     		}
