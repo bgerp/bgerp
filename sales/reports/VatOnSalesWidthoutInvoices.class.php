@@ -103,7 +103,10 @@ class sales_reports_VatOnSalesWidthoutInvoices extends frame2_driver_TableData
 
             $id = $articul->productId;
 
-            $totalVat += $articul->amount;
+            if ($articul->id) {
+
+                $totalVat += $articul->amount * cat_Products::getVat($articul->id);
+            }
 
             if (!array_key_exists($id, $recs)) {
 
@@ -133,7 +136,7 @@ class sales_reports_VatOnSalesWidthoutInvoices extends frame2_driver_TableData
             }
             if ($articul->id){
 
-                $recs[$id]->vat = (double)($recs[$id]->amount * 0.2);
+                $recs[$id]->vat = (double)($recs[$id]->amount * cat_Products::getVat($articul->id));
 
             }
 
