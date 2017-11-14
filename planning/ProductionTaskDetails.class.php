@@ -164,11 +164,13 @@ class planning_ProductionTaskDetails extends core_Detail
     	
     	// Ако в мастъра са посочени машини, задават се като опции
     	if(isset($masterRec->fixedAssets)){
-    		$options = planning_AssetResources::getAvailableInFolder($masterRec->folderId, $masterRec->fixedAssets);
-    		if(count($options)){
-    			$form->setOptions('fixedAsset', array('' => '') + $options);
-    			$form->setField('fixedAsset', 'input');
+    		$keylist = $masterRec->fixedAssets;
+    		$arr = keylist::toArray($keylist);
+    		foreach ($arr as $key => &$value){
+    			$value = planning_AssetResources::getVerbal($key, 'fullName');
     		}
+    		$form->setOptions('fixedAsset', array('' => '') + $arr);
+    		$form->setField('fixedAsset', 'input');
     	}
     	
     	$productOptions = planning_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type);

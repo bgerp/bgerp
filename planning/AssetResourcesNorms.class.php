@@ -142,13 +142,18 @@ class planning_AssetResourcesNorms extends core_Detail
 	/**
 	 * Връща нормите закачени към зададените оборудвания
 	 * 
-	 * @param int $groupId        - ид на група оборудване
+	 * @param mixed $assets       - списък от оборудвания, трябва да са от една група
 	 * @param int|NULL $productId - дали се търси конкретна норма за един артикул
 	 * @return array $res         - списък с норми
 	 */
-	public static function getNorms($groupId, $productId = NULL)
+	public static function getNorms($assets, $productId = NULL)
 	{
-		expect($groupId, 'Няма група');
+		$assets = is_array($assets) ? $assets : keylist::toArray($assets);
+		if(!planning_AssetGroups::haveSameGroup($assets)) return array();
+		$assets = array_values($assets);
+		
+		// Групата от която са оборудванията
+		$groupId = planning_AssetResources::fetchField($assets[0], 'groupId');
 		
 		// Избор на всички норми
 		$res = array();
