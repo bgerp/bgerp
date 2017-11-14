@@ -39,13 +39,13 @@ class planning_ProductionTaskProducts extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'type,productId,packagingId=Eдиница,plannedQuantity=Количества->Планирано,totalQuantity=Количества->Изпълнено,measureId=Количества->Мярка,storeId,indTime,totalTime';
+    public $listFields = 'type,productId,packagingId=Eдиница,plannedQuantity=Количества->Планирано,limit=Количества->Макс.,totalQuantity=Количества->Изпълнено,measureId=Количества->Мярка,storeId,indTime,totalTime';
     
     
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    public $hideListFieldsIfEmpty = 'indTime,totalTime,storeId';
+    public $hideListFieldsIfEmpty = 'indTime,totalTime,limit,storeId';
     
     
     /**
@@ -110,14 +110,15 @@ class planning_ProductionTaskProducts extends core_Detail
     public function description()
     {
     	$this->FLD("taskId", 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Операция');
-    	$this->FLD("type", 'enum(input=Вложим,waste=Отпадък,production=Производим)', 'caption=Вид,remember,silent,input=hidden');
-    	$this->FLD("productId", 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId,tdClass=productCell leftCol wrap');
+    	$this->FLD("type", 'enum(input=Влагане,waste=Отпадък,production=Произвждане)', 'caption=За,remember,silent,input=hidden');
+    	$this->FLD("productId", 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId|limit|indTime,tdClass=productCell leftCol wrap');
     	$this->FLD("packagingId", 'key(mvc=cat_UoM,select=shortName)', 'mandatory,caption=Пр. единица,smartCenter,tdClass=small-field nowrap');
     	$this->FLD("plannedQuantity", 'double(smartRound,Min=0)', 'mandatory,caption=Планирано к-во,smartCenter,oldFieldName=planedQuantity');
     	$this->FLD("storeId", 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
     	$this->FLD("quantityInPack", 'double', 'mandatory,input=none');
     	$this->FLD("totalQuantity", 'double(smartRound)', 'caption=Количество->Изпълнено,input=none,notNull,smartCenter,oldFieldName=realQuantity');
-    	$this->FLD("indTime", 'time(noSmart)', 'caption=Норма->Време,smartCenter');
+    	$this->FLD("indTime", 'time(noSmart)', 'caption=Норма,smartCenter');
+    	$this->FLD("limit", 'double(min=0)', 'caption=Макс. к-во,input=none');
     	$this->FNC('totalTime', 'time(noSmart)', 'caption=Норма->Общо,smartCenter');
     	
     	$this->setDbUnique('taskId,productId');
@@ -172,6 +173,19 @@ class planning_ProductionTaskProducts extends core_Detail
     		$productInfo = cat_Products::getProductInfo($rec->productId);
     		if(!isset($productInfo->meta['canStore'])){
     			$form->setField('storeId', "input=none");
+    			
+    			if($rec->type == 'input'){
+    				$form->setField('limit', "input");
+    				if(isset($masterRec->fixedAssets)){
+    					
+    					// Задаване на дефолтен лимит ако има
+    					$norm = planning_AssetResourcesNorms::getNorms($masterRec->fixedAssets, $rec->productId);
+    					if(array_key_exists($rec->productId, $norm)){
+    						$form->setDefault('limit', $norm[$rec->productId]->limit);
+    						$form->setDefault('indTime', $norm[$rec->productId]->indTime);
+    					}
+    				}
+    			}
     		} elseif(empty($rec->id)) {
     			$form->setDefault('storeId', $masterRec->storeId);
     		}
@@ -215,7 +229,6 @@ class planning_ProductionTaskProducts extends core_Detail
     	if($form->isSubmitted()){
     		if($rec->type == 'waste'){
     			$selfValue = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->productId);
-    			
     			if(!isset($selfValue)){
     				$form->setWarning('productId', 'Отпадъкът няма себестойност');
     			}
@@ -225,9 +238,20 @@ class planning_ProductionTaskProducts extends core_Detail
     		$rec->quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
     	
     		// Проверка дали артикула може да бъде избран
-    		if(!self::canAddProductToTask($rec->taskId, $rec->productId, $msg, $error)){
+    		if(!self::canAddProductToTask($rec, $msg, $error)){
     			$method = ($error === TRUE) ? 'setError' : 'setWarning';
     			$form->{$method}('productId', $msg);
+    		}
+    		
+    		if(isset($rec->limit)){
+    			if($rec->plannedQuantity > $rec->limit){
+    				$form->setError('plannedQuantity,limit', 'Планираното количество е повече от зададения лимит');
+    			}
+    			
+    			if($rec->inputedQuantity > $rec->limit){
+    				$caption = ($rec->type == 'input') ? 'Вложеното' : (($rec->type == 'waste') ? 'Отпадакът' : 'Произведеното');
+    				$form->setError('inputedQuantity,limit', "{$caption} е повече от зададения лимит");
+    			}
     		}
     	}
     }
@@ -246,21 +270,16 @@ class planning_ProductionTaskProducts extends core_Detail
     
     
     /**
-     * След преобразуване на записа в четим за хора вид.
+     * След преобразуване на записа в четим за хора вид
      */
-    protected static function on_AfterPrepareListRows($mvc, &$data)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	if(!count($data->recs)) return;
+    	$row->measureId = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
+    	$row->productId = cat_Products::getShortHyperlink($rec->productId);
+    	$row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : (($rec->type == 'waste') ? 'row-removed' : 'state-active');
     	
-    	foreach ($data->rows as $id => $row){
-    		$rec = $data->recs[$id];
-    		$row->measureId = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
-    		
-    		if(isset($rec->storeId)){
-    			$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
-    		}
-    		$row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : (($rec->type == 'waste') ? 'row-removed' : 'state-active');
-    		$row->productId = cat_Products::getShortHyperlink($rec->productId);
+    	if(isset($rec->storeId)){
+    		$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
     	}
     }
     
@@ -396,6 +415,7 @@ class planning_ProductionTaskProducts extends core_Detail
      *    		o plannedQuantity - планирано к-во
      *     		o totalQuantity   - изпълнено к-во
      *         	o indTime         - норма
+     *          o limit           - лимит, ако има
      */
     public static function getInfo($taskId, $productId, $type)
     {
@@ -408,17 +428,18 @@ class planning_ProductionTaskProducts extends core_Detail
     	// Ако има запис в артикули за него, връща се оттам
     	$query = self::getQuery();
     	$query->where("#taskId = {$taskRec->id} AND #productId = {$productId} AND #type = '{$type}'");
-    	$query->show('productId,indTime,packagingId,quantityInPack,plannedQuantity,totalQuantity');
+    	$query->show('productId,indTime,packagingId,quantityInPack,plannedQuantity,totalQuantity,limit');
+    	
     	if($rec = $query->fetch()) return $rec;
     	
     	// Ако е влагане и артикула в избран като вложим за тая операция, връща се оттам
-    	if($type == 'input'){
+    	if($type == 'input'){//
     		$tQuery = planning_Tasks::getQuery();
     		$tQuery->where("#productId = {$productId} AND #inputInTask = {$taskRec->id} AND #state != 'rejected' AND #state != 'closed' AND #state != 'draft' AND #state != 'pending'");
     		$tQuery->show('productId,packagingId,quantityInPack,plannedQuantity,totalQuantity');
     		if($tRec = $tQuery->fetch()){
     			$tRec->totalQuantity = (!empty($tRec->totalQuantity)) ? $tRec->totalQuantity : 0;
-    			
+    		
     			return $tRec;
     		}
     	}
@@ -498,23 +519,25 @@ class planning_ProductionTaskProducts extends core_Detail
      * @param boolean|NULL $error
      * @return boolean
      */
-    private static function canAddProductToTask($taskId, $productId, &$msg = NULL, &$error = NULL)
+    private static function canAddProductToTask($rec, &$msg = NULL, &$error = NULL)
     {
-    	$taskRec = planning_Tasks::fetch($taskId);
+    	$taskRec = planning_Tasks::fetch($rec->taskId);
     	
     	// Ако има норма за артикула
     	if(isset($taskRec->fixedAssets)){
     	    $norm = planning_AssetResourcesNorms::getNorms($taskRec->fixedAssets, $productId);
-    	    if(array_key_exists($productId, $norm)){
-    	        $groupName = $norm['g']->title;
-    	        $msg = "Артикула има зададена норма в|* <b>{$groupName}</b>";
-    	        $error = 'FALSE';
-    	        return FALSE;
+    	    if(array_key_exists($rec->productId, $norm)){
+    	    	if($rec->indTime != $norm[$rec->productId]->indTime){
+    	    		$indTime = core_Type::getByName('time(noSmart)')->toVerbal($norm[$rec->productId]->indTime);
+    	    		$msg = "Нормата се различава от очакваната|* <b>{$indTime}</b>";
+    	    		$error = 'FALSE';
+    	    		return FALSE;
+    	    	}
     	    }
     	}
     	
     	// Ако е избран да се влага от друга задача
-    	$inTaskId = planning_Tasks::fetchField("#inputInTask = {$taskRec->id} AND #productId = {$productId} AND (#state = 'active' || #state = 'wakeup' || #state = 'stopped' || #state = 'closed')");
+    	$inTaskId = planning_Tasks::fetchField("#inputInTask = {$taskRec->id} AND #productId = {$rec->productId} AND (#state = 'active' || #state = 'wakeup' || #state = 'stopped' || #state = 'closed')");
     	if(!empty($inTaskId)){
     		$inTaskId = planning_Tasks::getLink($inTaskId, 0);
     		$msg = "Артикулът е избран да се влага в операцията от|* <b>{$inTaskId}</b>";

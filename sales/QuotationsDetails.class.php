@@ -60,7 +60,7 @@ class sales_QuotationsDetails extends doc_Detail {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, sales_Wrapper, doc_plg_HidePrices, plg_SaveAndNew, LastPricePolicy=sales_SalesLastPricePolicy, cat_plg_CreateProductFromDocument,cat_plg_ShowCodes';
+    public $loadList = 'plg_RowTools2, sales_Wrapper, doc_plg_HidePrices, plg_SaveAndNew, LastPricePolicy=sales_SalesLastPricePolicy, cat_plg_CreateProductFromDocument,plg_PrevAndNext,cat_plg_ShowCodes';
     
     
     /**

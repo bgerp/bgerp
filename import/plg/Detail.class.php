@@ -95,7 +95,7 @@ class import_plg_Detail extends core_Plugin
 		}
 		
 		// Добавяне на бутони
-		$form->toolbar->addSbBtn('Импорт', 'save', 'ef_icon = img/16/star_2.png, title=Импорт');
+		$form->toolbar->addSbBtn('Импорт', 'save', 'ef_icon = img/16/import.png, title=Импорт');
 		$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 		
 		// Рендиране на формата

@@ -771,4 +771,15 @@ class acc_Periods extends core_Manager
     	
     	return $periods;
     }
+    
+    
+    /**
+     * Премахва от резултатите скритите от менютата за избор
+     */
+    protected static function on_AfterMakeArray4Select($mvc, &$res, $fields = NULL, &$where = "", $index = 'id')
+    {
+    	if(is_array($res)){
+    		krsort($res);
+    	}
+    }
 }

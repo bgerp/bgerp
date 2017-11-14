@@ -11,7 +11,7 @@
                     <div class="document-title">|ДОГОВОР ЗА ПОКУПКА|*</div>
                     <div style="padding-top:5px;">
                         № <span class="bigData">[#id#]</span> /
-                        <span class="bigData">[#valior#]</span>aa
+                        <span class="bigData">[#valior#]</span>
                         <!--ET_BEGIN reff-->
                         <div>|Ваш реф|*: <span class="bigData">[#reff#]</span></div>
                         <!--ET_END reff-->

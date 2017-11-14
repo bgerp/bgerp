@@ -95,6 +95,7 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
         $this->FLD('shipmentId', 'key(mvc=sales_Services)', 'column=none,notNull,silent,hidden,mandatory');
         parent::setDocumentFields($this);
         $this->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Изглед,notNull,default=short,value=short');
+        $this->setFieldTypeParams('packQuantity', "Min=0");
     }
     
     

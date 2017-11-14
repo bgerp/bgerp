@@ -197,40 +197,6 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	
 	
 	/**
-	 * Изпълнява се след създаване на нов запис
-	 */
-	protected static function on_AfterCreate($mvc, $rec)
-	{
-		// Ако документа е клониран пропуска се
-		if($rec->_isClone === TRUE) return;
-		
-		// Ако първия документ в нишката е задание
-		$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-		if(!$firstDoc) return;
-		
-		if(!$firstDoc->isInstanceOf('planning_Jobs')) return; 
-		$productId = $firstDoc->fetchField('productId');
-		
-		// И по артикула има рецепта
-		$bomId = cat_Products::getLastActiveBom($productId, 'production');
-		$bomId = (!empty($bomId)) ? $bomId : cat_Products::getLastActiveBom($productId, 'sales');
-		if(empty($bomId)) return;
-		
-		// Взимате се материалите за производството на к-то от заданието
-		$details = cat_Boms::getBomMaterials($bomId, $firstDoc->fetchField('quantity'), $rec->storeId);
-		
-		if(!count($details)) return;
-		
-		// Записват се детайлите
-		$id = $rec->id;
-		array_walk($details, function(&$obj) use ($id){ $obj->noteId = $id;});
-		$Detail = cls::get('planning_ConsumptionNoteDetails');
-		$Detail->saveArray($details);
-		$mvc->invoke('AfterUpdateDetail', array($id, $Detail));
-	}
-	
-	
-	/**
 	 * След подготовка на тулбара на единичен изглед
 	 */
 	protected static function on_AfterPrepareSingleToolbar($mvc, &$data)

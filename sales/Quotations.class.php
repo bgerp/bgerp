@@ -566,7 +566,7 @@ class sales_Quotations extends core_Master
     		
     		if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
     			if($rec->deliveryPlaceId){
-    				if($placeId = crm_Locations::fetchField(array("#title = '[#1#]'", $rec->deliveryPlaceId), 'id')){
+    				if($placeId = crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id')){
     					$row->deliveryPlaceId = ht::createLinkRef($row->deliveryPlaceId, array('crm_Locations', 'single', $placeId), NULL, 'title=Към локацията');
     				}
     			}
@@ -679,7 +679,7 @@ class sales_Quotations extends core_Master
     	$totalWeight = tcost_Calcs::getTotalWeight($products, $TransportCalc);
     	$locationId  = NULL;
     	if(isset($rec->deliveryPlaceId)){
-    		$locationId  = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id');
+    		$locationId  = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", 'id');
     	}
     	$codeAndCountryArr = tcost_Calcs::getCodeAndCountryId($rec->contragentClassId, $rec->contragentId, $rec->pCode, $rec->contragentCountryId, $locationId);
     	 
@@ -837,7 +837,7 @@ class sales_Quotations extends core_Master
     protected static function on_AfterActivation($mvc, &$rec)
     {
     	if($rec->deliveryPlaceId){
-		    if(!crm_Locations::fetchField(array("#title = '[#1#]'", $rec->deliveryPlaceId), 'id')){
+		    if(!crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id')){
 		    	$newLocation = (object)array(
 		    						'title'         => $rec->deliveryPlaceId,
 		    						'countryId'     => $rec->contragentCountryId,
