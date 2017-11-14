@@ -270,7 +270,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 	 */
 	public static function on_CalcPackPrice(core_Mvc $mvc, $rec)
 	{
-		if (!isset($rec->price) || empty($rec->quantity) || empty($rec->quantityInPack)) return;
+		if (!isset($rec->price) || !isset($rec->quantity) || empty($rec->quantityInPack)) return;
 	
 		$rec->packPrice = $rec->price * $rec->quantityInPack;
 	}
