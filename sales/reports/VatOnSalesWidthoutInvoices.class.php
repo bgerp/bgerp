@@ -121,7 +121,7 @@ class sales_reports_VatOnSalesWidthoutInvoices extends frame2_driver_TableData
             }
             if ($articul->id){
 
-                $recs[$id]->vat = (double)($recs[$id]->amount * cat_Products::getVat($articul->id));
+                $recs[$id]->vat = (double)($recs[$id]->amount * 0.2);
 
             }
 
