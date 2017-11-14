@@ -71,8 +71,6 @@ class sales_reports_VatOnSalesWidthoutInvoices extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = NULL)
     {
 
-       // bp(sales_Sales::fetch(6));
-
         $recs = array();
 
         $query = sales_SalesDetails::getQuery();
@@ -95,9 +93,11 @@ class sales_reports_VatOnSalesWidthoutInvoices extends frame2_driver_TableData
 
             $id = $articul->productId;
 
+            $discountedAmount = $articul->amount-($articul->amount*$articul->discount);
+
             if ($articul->productId) {
 
-                $totalVat += $articul->amount * cat_Products::getVat($articul->productId);
+                $totalVat += $discountedAmount * cat_Products::getVat($articul->productId);
             }
 
             if (!array_key_exists($id, $recs)) {
@@ -109,7 +109,7 @@ class sales_reports_VatOnSalesWidthoutInvoices extends frame2_driver_TableData
                         'productId' => $articul->productId,
                         'measure' => cat_Products::fetchField($id, 'measureId'),
                         'quantity' => $articul->quantity,
-                        'amount' => $articul->amount,
+                        'amount' => $discountedAmount,
                         'vat' => (double)0,
                         'price' => $articul->price,
                         'hint' => $salesInfo[0],
@@ -122,7 +122,8 @@ class sales_reports_VatOnSalesWidthoutInvoices extends frame2_driver_TableData
 
                 $obj->quantity += $articul->quantity;
 
-                $obj->amount += $articul->amount;
+                $obj->amount += $discountedAmount;
+
                 $obj->hint .= '; '.$salesInfo[0];
 
             }
@@ -202,6 +203,10 @@ class sales_reports_VatOnSalesWidthoutInvoices extends frame2_driver_TableData
 
         if(isset($dRec->quantity)) {
             $row->quantity =  core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity);
+
+          //  $row->readiness = ($isPlain) ?  frame_CsvLib::toCsvFormatDouble($dRec->readiness * 100) : cls::get('type_Percent')->toVerbal($dRec->readiness);
+
+
         }
         if(isset($dRec->measure)) {
             $row->measure = cat_UoM::fetchField($dRec->measure,'shortName');
