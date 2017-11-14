@@ -50,8 +50,14 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
     {
         $entries = array();
         
-        $rec = $this->fetchShipmentData($id);
+        $rec = $this->fetchShipmentData($id, $error);
             
+        if(Mode::get('saveTransaction')){
+        	if(count($error)){
+        		acc_journal_RejectRedirect::expect(FALSE, "Всички редове трябва да имат положително количество|*!");
+        	}
+        }
+        
         $origin = $this->class->getOrigin($rec);
         
         // Всяко ЕН трябва да има поне един детайл
@@ -104,7 +110,7 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
      * @param int|object $id първичен ключ или запис на ЕН
      * @param object запис на ЕН (@see store_ShipmentOrders)
      */
-    protected function fetchShipmentData($id)
+    protected function fetchShipmentData($id, &$error = array())
     {
         $rec = $this->class->fetchRec($id);
         
@@ -118,6 +124,9 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
             
             while ($dRec = $detailQuery->fetch()) {
                 $rec->details[] = $dRec;
+                if(empty($dRec->quantity)){
+                	$error[] = cat_Products::getTitleById($dRec->productId);
+                }
             }
         }
         
@@ -154,8 +163,6 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
         deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => TRUE));
         
         foreach ($rec->details as $detailRec) {
-        	if(empty($detailRec->quantity)) continue;
-        	
         	$amount = $detailRec->amount;
         	$amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
         	$amount = round($amount, 2);
@@ -233,7 +240,6 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
         acc_journal_Exception::expect($rec->storeId, 'Генериране на експедиционна част при липсващ склад!');
         
         foreach ($rec->details as $detailRec) {
-        	if(empty($detailRec->quantity)) continue;
         	$pInfo = cat_Products::getProductInfo($detailRec->productId, $detailRec->packagingId);
         	
         	// Вложимите кредит 706, другите 701
