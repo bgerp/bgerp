@@ -159,7 +159,7 @@ class planning_AssetResourcesNorms extends core_Detail
 		$res = array();
 		$query = self::getQuery();
     	$query->where("#groupId = {$groupId} AND #state != 'closed'");
-    	$query->show('productId,indTime,packagingId,quantityInPack');
+    	$query->show('productId,indTime,packagingId,quantityInPack,limit');
     	if(isset($productId)){
     		$query->where("#productId = {$productId}");
     	}
