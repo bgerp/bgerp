@@ -357,7 +357,7 @@ class planning_Tasks extends core_Master
 			if(isset($rec->storeId)){
 				$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
 			}
-		
+			
 			$row->packagingId = cat_UoM::getShortName($rec->packagingId);
 			deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
 		
@@ -488,12 +488,14 @@ class planning_Tasks extends core_Master
 	 */
 	protected static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
 	{
-		$resArr['info'] = array('name' => tr('Информация'), 'val' => tr("|*<span style='font-weight:normal'>|Задание|*</span>: [#originId#]<br>
-        																 <span style='font-weight:normal'>|Артикул|*</span>: [#productId#]<br>
-																	     <!--ET_BEGIN inputInTask--><span style='font-weight:normal'>|Влагане в|*</span>: [#inputInTask#]<br><!--ET_END inputInTask-->
-        																 <span style='font-weight:normal'>|Склад|*</span>: [#storeId#]
-        																 <!--ET_BEGIN fixedAssets--><br><span style='font-weight:normal'>|Оборудване|*</span>: [#fixedAssets#]<!--ET_END fixedAssets-->
-        																 <br>[#progressBar#] [#progress#]"));
+		$resArr['info'] = array('name' => tr('Информация'), 'val' => tr("|*<table>
+																		   <tr><td style='font-weight:normal'>|Задание|*:</td> <td>[#originId#]</td></tr>
+																		   <tr><td style='font-weight:normal'>|Артикул|*:</td> <td>[#productId#]</td></tr>
+																		   <!--ET_BEGIN inputInTask--><tr><td style='font-weight:normal'>|Влагане в|*:</td> <td>[#inputInTask#]</td></tr><!--ET_END inputInTask-->
+																		   <!--ET_BEGIN storeId--><tr><td style='font-weight:normal'>|Склад|*:</td> <td>[#storeId#]</td></tr><!--ET_END storeId-->
+																		   <!--ET_BEGIN fixedAssets--><tr><td style='font-weight:normal'>|Оборудване|*:</td> <td>[#fixedAssets#]</td></tr><!--ET_END fixedAssets-->
+																		   <tr><td colspan='2'>[#progressBar#] [#progress#]</td></tr>
+																		   </table>"));
 		$packagingId = cat_UoM::getTitleById($rec->packagingId);
 		$resArr['quantity'] = array('name' => tr("Количества"), 'val' => tr("|*<table>
 				<tr><td style='font-weight:normal'>|Планирано|*:</td><td>[#plannedQuantity#]</td></tr>
