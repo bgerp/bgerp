@@ -34,7 +34,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		$mvc->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
 		$mvc->FLD('price', 'double(decimals=2)', 'caption=Цена,input=none');
 		$mvc->FNC('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
-		$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,smartCenter,input=input');
+		$mvc->FNC('packQuantity', 'double(min=0)', 'caption=Количество,smartCenter,input=input');
 		$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
 		$mvc->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=Отстъпка,smartCenter');
 		$mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Забележки');
@@ -281,7 +281,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 	 */
 	public static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
 	{
-		if (!isset($rec->price) || empty($rec->quantity) || empty($rec->quantityInPack)) return;
+		if (!isset($rec->price) || !isset($rec->quantity) || empty($rec->quantityInPack)) return;
 	
 		$rec->packQuantity = $rec->quantity / $rec->quantityInPack;
 	}
