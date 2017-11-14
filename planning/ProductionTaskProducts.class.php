@@ -177,6 +177,7 @@ class planning_ProductionTaskProducts extends core_Detail
     		$productInfo = cat_Products::getProductInfo($rec->productId);
     		if(!isset($productInfo->meta['canStore'])){
     			$form->setField('storeId', "input=none");
+    			$form->setField('limit', "input=none");
     		} elseif(empty($rec->id)) {
     			$form->setDefault('storeId', $masterRec->storeId);
     		}
