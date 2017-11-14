@@ -294,7 +294,7 @@ class planning_ProductionTaskDetails extends core_Detail
     			if(isset($rec->productId) && $rec->type !== 'production') {
     				if(!$mvc->checkLimit($rec, $limit)){
     					$limit = core_Type::getByName('double(smartRound)')->toVerbal($limit);
-    					$form->setError('quantity', "Надвишяване на допустимото максимално количество|* <b>{$limit}</b>");
+    					$form->setError('quantity', "Надвишаване на допустимото максимално количество|* <b>{$limit}</b>");
     				}
     			}
     		}
