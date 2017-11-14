@@ -116,7 +116,7 @@ class workpreff_FormCv extends core_Master
        // $this->FNC('nameList', 'varchar', 'sortingLike=name');
 
         // Единен Граждански Номер
-        $this->FLD('egn', 'bglocal_EgnType', 'caption=ЕГН,export=Csv');
+        $this->FLD('egn', "bglocal_EgnType", 'caption=ЕГН,export=Csv');
 
         //Снимка
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Фото,export=Csv');
@@ -171,11 +171,11 @@ class workpreff_FormCv extends core_Master
 
                     if (substr($k, 0, 10) == 'workpreff_') {
 
-                        $nameChoice =  workpreff_WorkPreff::getOptionsForChoice()[substr($k, 10)]->name;
+                       $nameChoice = workpreff_WorkPreff::getOptionsForChoice();
 
                         $preferencesForWork[] = (object)array(
 
-                            'id' => $nameChoice,
+                            'id' => $nameChoice[substr($k, 10)]->name,
 
                             'value' => $v
 
@@ -272,12 +272,14 @@ class workpreff_FormCv extends core_Master
             // Fancy ефект за картинката
             $Fancybox = cls::get('fancybox_Fancybox');
 
-            $tArr = array(200, 150);
-            $mArr = array(600, 450);
+            $tArr = array(120, 120);
+            $mArr = array(450, 450);
 
             if($rec->photo) {
                 $row->image = $Fancybox->getImage($rec->photo, $tArr, $mArr);
             }
+
+            $row->egn = $rec->egn;
 
         }
 

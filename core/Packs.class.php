@@ -971,7 +971,7 @@ class core_Packs extends core_Manager
 			unset($res);
         }
         
-        DEBUG::stopTimer("Инсталиране на пакет '{$pack}'");
+        DEBUG::stopTimer("Инициализация на пакет '{$pack}'");
         
         if ($setupFlag && $pack == 'bgerp') {
             // в setup-a очакваме резултат
@@ -983,7 +983,7 @@ class core_Packs extends core_Manager
             return $res;
         } else {
             
-            return "<div>Успешна инсталация на пакета '{$pack}'</div>";
+            return "<div>Успешна инициализация на пакета '{$pack}'</div>";
         }
     }
 
@@ -1236,11 +1236,14 @@ class core_Packs extends core_Manager
             // Правим запис в лога
             $this->logWrite("Промяна на конфигурацията на пакет", $rec->id);
             
-            $msg = '';
+            $msg = 'Конфигурацията е записана';
             
             // Ако е инсталиран, обновяваме пакета
             if (self::isInstalled($packName)) {
-                $msg = self::setupPack($packName, $rec->version, TRUE, TRUE, FALSE);
+                $setupClass = $packName . '_Setup';
+                if($setupClass::INIT_AFTER_CONFIG) {
+                    $msg .= '<br>' . self::setupPack($packName, $rec->version, TRUE, TRUE, FALSE);
+                }
             }
             
             return new Redirect($retUrl, $msg);

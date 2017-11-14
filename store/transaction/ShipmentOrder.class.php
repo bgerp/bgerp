@@ -154,6 +154,8 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
         deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => TRUE));
         
         foreach ($rec->details as $detailRec) {
+        	if(empty($detailRec->quantity)) continue;
+        	
         	$amount = $detailRec->amount;
         	$amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
         	$amount = round($amount, 2);
@@ -231,6 +233,7 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
         acc_journal_Exception::expect($rec->storeId, 'Генериране на експедиционна част при липсващ склад!');
         
         foreach ($rec->details as $detailRec) {
+        	if(empty($detailRec->quantity)) continue;
         	$pInfo = cat_Products::getProductInfo($detailRec->productId, $detailRec->packagingId);
         	
         	// Вложимите кредит 706, другите 701

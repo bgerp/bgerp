@@ -70,6 +70,23 @@ defIfNot('BGERP_CLOSE_UNDELIVERED_OVER', '1');
 
 
 /**
+ * Клавиши за бързо избиране на бутони
+ */
+defIfNot('BGERP_ACCESS_KEYS',
+'Чернова,Draft,Запис,Save = S
+Запис и Нов,Save and New,Нов,New = N
+Артикул,Item = A
+Създаване,Create = R
+Активиране,Activation,Контиране = K
+Conto,Реконтиране = K
+Отказ,Cancel = C
+Връзка,Link = L
+Редакция,Edit = O
+»»» = >
+««« = <');
+
+
+/**
  * class 'bgerp_Setup' - Начално установяване на 'bgerp'
  *
  *
@@ -82,7 +99,13 @@ defIfNot('BGERP_CLOSE_UNDELIVERED_OVER', '1');
  */
 class bgerp_Setup extends core_ProtoSetup {
     
-    
+
+    /**
+     * Да се инициализира ли, след промяна на конфигурацията?
+     */
+    const INIT_AFTER_CONFIG = FALSE;
+
+
     /**
      * Версия на пакета
      */
@@ -126,6 +149,8 @@ class bgerp_Setup extends core_ProtoSetup {
         'BGERP_START_OF_WORKING_DAY' => array ('enum(08:00,09:00,10:00,11:00,12:00)', 'caption=Начало на работния ден->Час'),
         
         'BGERP_CLOSE_UNDELIVERED_OVER'    => array('percent(min=0)', 'caption=Допустимо автоматично приключване на сделка при "Доставено" минимум->Процент'),
+         
+        'BGERP_ACCESS_KEYS'    => array('text(rows=6)', 'caption=Клавиши за бързо избиране на бутони->Дефиниции, customizeBy=powerUser'),
     );
     
     

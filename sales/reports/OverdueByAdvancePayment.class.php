@@ -214,21 +214,13 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
                 $dealerId = $fRec->inCharge;
             }
 
-            $today = date_create(date('Y-m-d'));
-
-            $tolerance = abs($rec->tolerance);
-
-            if($rec->tolerance < 0) {
-                $marker = "-";
-            }else{$marker = "+";}
-
             if(!$inDocs->termDate){
-                $termDate =  date('Y-m-d', strtotime($firstDocument->fetch()->createdOn. ' + 3 days'));
+                $termDate =  dt::addDays(3,$firstDocument->fetch()->createdOn,$full = FALSE);
             }else{$termDate = $inDocs->termDate;}
 
-            $markDay =date_create(date('Y-m-d', strtotime($termDate. "$marker $tolerance days")));
+            $markDay =dt::addDays($rec->tolerance,$termDate,$full = FALSE);
 
-            if (($today) >($markDay)){
+            if ((dt::today()) >($markDay)){
 
                 $condition = 'просрочен';
 

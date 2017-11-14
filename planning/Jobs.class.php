@@ -836,6 +836,12 @@ class planning_Jobs extends core_Master
     			$res = 'no_one';
     		}
     	}
+    	
+    	if ($action == 'close' && $rec) {
+    	    if($rec->state != 'active' && $rec->state != 'wakeup' && $rec->state != 'stopped'){
+    	        $requiredRoles = 'no_one';
+    	    }
+    	}
     }
     
     
@@ -1124,7 +1130,9 @@ class planning_Jobs extends core_Master
     	$form = cls::get('core_Form');
     	$form->title = 'Създаване на производствена операция към|* <b>' . self::getHyperlink($jobRec->id, TRUE) . "</b>";
     	$form->FLD('select', 'varchar', 'caption=Избор,mandatory');
-    	$form->setOptions('select',$this->getTaskOptions($jobRec));
+    	
+    	$options = $this->getTaskOptions($jobRec);
+    	$form->setOptions('select',$options);
     	$form->setDefault('select', 'new');
     	$form->input();
     	if($form->isSubmitted()){

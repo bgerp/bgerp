@@ -32,7 +32,7 @@ class planning_AssetResourcesNorms extends core_Detail
 	/**
 	 * Плъгини за зареждане
 	 */
-	public $loadList = 'plg_RowTools2, plg_Created, planning_Wrapper, plg_State2';
+	public $loadList = 'plg_RowTools2, plg_Created, planning_Wrapper, plg_State2, plg_AlignDecimals2';
 	
 	
 	/**
@@ -62,7 +62,7 @@ class planning_AssetResourcesNorms extends core_Detail
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'groupId,productId,packagingId=Мярка/Опаковка,indTime,state';
+	public $listFields = 'groupId,productId,packagingId=Мярка/Опаковка,indTime,limit,state';
 	
 	
 	/**
@@ -81,6 +81,7 @@ class planning_AssetResourcesNorms extends core_Detail
 		$this->FLD("indTime", 'time(noSmart)', 'caption=Норма,smartCenter,mandatory');
 		$this->FLD("packagingId", 'key(mvc=cat_UoM,select=shortName)', 'caption=Опаковка,smartCenter,input=hidden');
 		$this->FLD("quantityInPack", 'double', 'input=hidden');
+		$this->FLD("limit", 'double(min=0)', 'caption=Лимит,smartCenter');
 		
 		$this->setDbUnique('groupId,productId');
 	}
@@ -96,6 +97,7 @@ class planning_AssetResourcesNorms extends core_Detail
 		// Добавяне само на вложимите услуги
 		$productOptions = cat_Products::getByProperty('canConvert', 'canStore');
 		$form->setOptions('productId', array('' => '') + $productOptions);
+		$form->setSuggestions('limit', array('' => '', '1' => '1'));
 	}
 	
 	
@@ -120,6 +122,9 @@ class planning_AssetResourcesNorms extends core_Detail
 	{
 		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
 		$row->groupId = planning_AssetGroups::getHyperlink($rec->groupId, TRUE);
+		if(!isset($rec->limit)){
+			$row->limit = "<i class='quiet'>" . tr('няма||no') . "</i>";
+		}
 	}
 	
 	
@@ -154,7 +159,7 @@ class planning_AssetResourcesNorms extends core_Detail
 		$res = array();
 		$query = self::getQuery();
     	$query->where("#groupId = {$groupId} AND #state != 'closed'");
-    	$query->show('productId,indTime,packagingId,quantityInPack');
+    	$query->show('productId,indTime,packagingId,quantityInPack,limit');
     	if(isset($productId)){
     		$query->where("#productId = {$productId}");
     	}

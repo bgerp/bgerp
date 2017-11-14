@@ -90,6 +90,7 @@ class findeals_AdvanceReportDetails extends deals_DeliveryDocumentDetail
     {
     	$this->FLD('reportId', 'key(mvc=findeals_AdvanceReports)', 'column=none,notNull,silent,hidden,mandatory');
     	parent::setDocumentFields($this);
+    	$this->setFieldTypeParams('packQuantity', "Min=0");
     }
     
     

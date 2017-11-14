@@ -597,20 +597,7 @@ class findeals_Deals extends deals_DealBase
     		$rate = 1;
     	}
     	
-    	foreach (array('amountDeal', 'debitAmount', 'creditAmount') as $fld){
-    		if($fld == 'amountDeal'){
-    			$data->rec->$fld /= $rate;
-    		}
-    		$data->row->$fld = $this->getFieldType('amountDeal')->toVerbal($data->rec->$fld);
-    		if($data->rec->$fld == 0){
-    			$data->row->$fld = "<span class='quiet'>{$data->row->$fld}</span>";
-    		} elseif($data->rec->$fld < 0){
-    			$data->row->$fld = "<span class='red'>{$data->row->$fld}</span>";
-    		}
-    	}
-    	
     	$entries = acc_Journal::getEntries(array(get_called_class(), $rec->id), $item);
-    	
     	
     	if(count($entries)){
     		$data->history = array();
@@ -653,6 +640,18 @@ class findeals_Deals extends deals_DealBase
     				}
     				$count++;
     			}
+    		}
+    	}
+    	
+    	foreach (array('amountDeal', 'debitAmount', 'creditAmount') as $fld){
+    		if($fld == 'amountDeal'){
+    			$data->rec->{$fld} /= $rate;
+    		}
+    		$data->row->{$fld} = $this->getFieldType('amountDeal')->toVerbal($data->rec->{$fld});
+    		if($data->rec->{$fld} == 0){
+    			$data->row->{$fld} = "<span class='quiet'>{$data->row->{$fld}}</span>";
+    		} elseif($data->rec->{$fld} < 0){
+    			$data->row->{$fld} = "<span class='red'>{$data->row->{$fld}}</span>";
     		}
     	}
     }
