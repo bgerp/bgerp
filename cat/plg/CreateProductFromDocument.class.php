@@ -396,7 +396,8 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 					$saveRec = (object)array('detailClassId' => $mvc->getClassId(), 'detailRecId' => $dRec->id, 'productId' => $productId, 'expenseItemId' => $d->costItemId, 'containerId' => $masterRec->containerId, 'quantity' => $dRec->quantity, 'allocationBy' => 'no');
 					
 					acc_CostAllocations::save($saveRec);
-					acc_CostAllocations::logInAct('Създаване на артикул с клониране', $saveRec);
+					$CostAllocations = cls::get('acc_CostAllocations');
+					$CostAllocations->logInAct('Създаване на артикул с клониране', $saveRec);
 				}
 				
 				// Редирект към сделката/офертата
