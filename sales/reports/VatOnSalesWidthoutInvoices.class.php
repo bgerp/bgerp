@@ -71,6 +71,8 @@ class sales_reports_VatOnSalesWidthoutInvoices extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = NULL)
     {
 
+       // bp(sales_Sales::fetch(6));
+
         $recs = array();
 
         $query = sales_SalesDetails::getQuery();
@@ -103,7 +105,7 @@ class sales_reports_VatOnSalesWidthoutInvoices extends frame2_driver_TableData
                         'measure' => cat_Products::fetchField($id, 'measureId'),
                         'quantity' => $articul->quantity,
                         'amount' => $articul->amount,
-                        'vat' => $articul->amount * cat_Products::getVat($articul->id),
+                        'vat' => '',
                         'price' => $articul->price,
 
                     );
@@ -118,7 +120,7 @@ class sales_reports_VatOnSalesWidthoutInvoices extends frame2_driver_TableData
 
             }
 
-            $recs[$id]->vat = (double)($recs[$id]->amount * cat_Products::getVat($articul->id));
+            $recs[$id]->vat = (double)($recs[$id]->amount * 0.2);
 
             $recs[$id]->price = (double)($recs[$id]->amount / $recs[$id]->quantity);
 
