@@ -111,7 +111,7 @@ class planning_ProductionTaskProducts extends core_Detail
     {
     	$this->FLD("taskId", 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Операция');
     	$this->FLD("type", 'enum(input=Влагане,waste=Отпадък,production=Произвждане)', 'caption=За,remember,silent,input=hidden');
-    	$this->FLD("productId", 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId,tdClass=productCell leftCol wrap');
+    	$this->FLD("productId", 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId|limit,tdClass=productCell leftCol wrap');
     	$this->FLD("packagingId", 'key(mvc=cat_UoM,select=shortName)', 'mandatory,caption=Пр. единица,smartCenter,tdClass=small-field nowrap');
     	$this->FLD("plannedQuantity", 'double(smartRound,Min=0)', 'mandatory,caption=Планирано к-во,smartCenter,oldFieldName=planedQuantity');
     	$this->FLD("storeId", 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
@@ -163,10 +163,6 @@ class planning_ProductionTaskProducts extends core_Detail
     		if(count($products) == 1){
     			$form->setDefault('productId', key($products));
     		}
-    		
-    		if($rec->type == 'production'){
-    			$form->setField('limit', 'input=none');
-    		}
     	}
     	
     	if(isset($rec->productId)){
@@ -177,7 +173,18 @@ class planning_ProductionTaskProducts extends core_Detail
     		$productInfo = cat_Products::getProductInfo($rec->productId);
     		if(!isset($productInfo->meta['canStore'])){
     			$form->setField('storeId', "input=none");
-    			$form->setField('limit', "input");
+    			
+    			if($rec->type == 'input'){
+    				$form->setField('limit', "input");
+    				if(isset($masterRec->fixedAssets)){
+    					
+    					// Задаване на дефолтен лимит ако има
+    					$norm = planning_AssetResourcesNorms::getNorms($masterRec->fixedAssets, $rec->productId);
+    					if(array_key_exists($rec->productId, $norm)){
+    						$form->setDefault('limit', $norm[$rec->productId]->limit);
+    					}
+    				}
+    			}
     		} elseif(empty($rec->id)) {
     			$form->setDefault('storeId', $masterRec->storeId);
     		}
