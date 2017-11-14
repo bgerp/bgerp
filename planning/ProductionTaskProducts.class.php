@@ -182,6 +182,7 @@ class planning_ProductionTaskProducts extends core_Detail
     					$norm = planning_AssetResourcesNorms::getNorms($masterRec->fixedAssets, $rec->productId);
     					if(array_key_exists($rec->productId, $norm)){
     						$form->setDefault('limit', $norm[$rec->productId]->limit);
+    						$form->setDefault('indTime', $norm[$rec->productId]->indTime);
     					}
     				}
     			}
@@ -237,7 +238,7 @@ class planning_ProductionTaskProducts extends core_Detail
     		$rec->quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
     	
     		// Проверка дали артикула може да бъде избран
-    		if(!self::canAddProductToTask($rec->taskId, $rec->productId, $msg, $error)){
+    		if(!self::canAddProductToTask($rec, $msg, $error)){
     			$method = ($error === TRUE) ? 'setError' : 'setWarning';
     			$form->{$method}('productId', $msg);
     		}
@@ -518,23 +519,25 @@ class planning_ProductionTaskProducts extends core_Detail
      * @param boolean|NULL $error
      * @return boolean
      */
-    private static function canAddProductToTask($taskId, $productId, &$msg = NULL, &$error = NULL)
+    private static function canAddProductToTask($rec, &$msg = NULL, &$error = NULL)
     {
-    	$taskRec = planning_Tasks::fetch($taskId);
+    	$taskRec = planning_Tasks::fetch($rec->taskId);
     	
     	// Ако има норма за артикула
     	if(isset($taskRec->fixedAssets)){
     	    $norm = planning_AssetResourcesNorms::getNorms($taskRec->fixedAssets, $productId);
-    	    if(array_key_exists($productId, $norm)){
-    	        $groupName = $norm['g']->title;
-    	        $msg = "Артикула има зададена норма в|* <b>{$groupName}</b>";
-    	        $error = 'FALSE';
-    	        return FALSE;
+    	    if(array_key_exists($rec->productId, $norm)){
+    	    	if($rec->indTime != $norm[$rec->productId]->indTime){
+    	    		$indTime = core_Type::getByName('time(noSmart)')->toVerbal($norm[$rec->productId]->indTime);
+    	    		$msg = "Нормата се различава от очакваната|* <b>{$indTime}</b>";
+    	    		$error = 'FALSE';
+    	    		return FALSE;
+    	    	}
     	    }
     	}
     	
     	// Ако е избран да се влага от друга задача
-    	$inTaskId = planning_Tasks::fetchField("#inputInTask = {$taskRec->id} AND #productId = {$productId} AND (#state = 'active' || #state = 'wakeup' || #state = 'stopped' || #state = 'closed')");
+    	$inTaskId = planning_Tasks::fetchField("#inputInTask = {$taskRec->id} AND #productId = {$rec->productId} AND (#state = 'active' || #state = 'wakeup' || #state = 'stopped' || #state = 'closed')");
     	if(!empty($inTaskId)){
     		$inTaskId = planning_Tasks::getLink($inTaskId, 0);
     		$msg = "Артикулът е избран да се влага в операцията от|* <b>{$inTaskId}</b>";
