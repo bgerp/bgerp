@@ -89,7 +89,17 @@ class sales_reports_VatOnSalesWidthoutInvoices extends frame2_driver_TableData
 
         $totalVat = 0;
 
+
+        $salesHint = '';
         while ($articul = $query->fetch()){
+
+
+            $salesInfo = explode('/',sales_Sales::getRecTitle($articul->saleId));
+
+
+
+
+
 
             $id = $articul->productId;
 
@@ -107,6 +117,7 @@ class sales_reports_VatOnSalesWidthoutInvoices extends frame2_driver_TableData
                         'amount' => $articul->amount,
                         'vat' => (double)0,
                         'price' => $articul->price,
+                        'hint' => $salesInfo[0],
 
                     );
 
@@ -117,11 +128,12 @@ class sales_reports_VatOnSalesWidthoutInvoices extends frame2_driver_TableData
                 $obj->quantity += $articul->quantity;
 
                 $obj->amount += $articul->amount;
+                $obj->hint .= '; '.$salesInfo[0];
 
             }
             if ($articul->id){
 
-                $recs[$id]->vat = (double)($recs[$id]->amount * 0.2);
+                $recs[$id]->vat = (double)($recs[$id]->amount * cat_Products::getVat($articul->id));
 
             }
 
@@ -130,6 +142,8 @@ class sales_reports_VatOnSalesWidthoutInvoices extends frame2_driver_TableData
         }
 
         $rec->totalVat = $totalVat;
+
+       // bp($recs);
 
         return $recs;
 
@@ -208,6 +222,7 @@ class sales_reports_VatOnSalesWidthoutInvoices extends frame2_driver_TableData
 
         if (isset($dRec->vat)) {
             $row->vat = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->vat);
+            $row->vat = ht::createHint($row->vat, "$dRec->hint", 'notice');
         }
 
         return $row;
