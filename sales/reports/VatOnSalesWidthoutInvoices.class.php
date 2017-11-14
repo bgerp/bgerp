@@ -105,7 +105,7 @@ class sales_reports_VatOnSalesWidthoutInvoices extends frame2_driver_TableData
                         'measure' => cat_Products::fetchField($id, 'measureId'),
                         'quantity' => $articul->quantity,
                         'amount' => $articul->amount,
-                        'vat' => '',
+                        'vat' => (double)0,
                         'price' => $articul->price,
 
                     );
@@ -119,8 +119,11 @@ class sales_reports_VatOnSalesWidthoutInvoices extends frame2_driver_TableData
                 $obj->amount += $articul->amount;
 
             }
+            if ($articul->id){
 
-            $recs[$id]->vat = (double)($recs[$id]->amount * 0.2);
+                $recs[$id]->vat = (double)($recs[$id]->amount * cat_Products::getVat($articul->id));
+
+            }
 
             $recs[$id]->price = (double)($recs[$id]->amount / $recs[$id]->quantity);
 
@@ -129,6 +132,7 @@ class sales_reports_VatOnSalesWidthoutInvoices extends frame2_driver_TableData
         $rec->totalVat = $totalVat;
 
         return $recs;
+
     }
 
 
