@@ -121,6 +121,7 @@ class planning_interface_ImportFromLastBom extends import_drivers_Proto
     {
     	// Опит за намиране на първата работна рецепта
     	$firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
+    	if(!$firstDoc->isInstanceOf('planning_Jobs')) return FALSE;
     	$productId = $firstDoc->fetchField('productId');
     	$bomId = cat_Products::getLastActiveBom($productId, 'production');
     	$bomId = (!empty($bomId)) ? $bomId : cat_Products::getLastActiveBom($productId, 'sales');

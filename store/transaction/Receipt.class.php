@@ -38,7 +38,12 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
     {
         $entries = array();
         
-        $rec = $this->fetchShipmentData($id);
+        $rec = $this->fetchShipmentData($id, $error);
+        if(Mode::get('saveTransaction')){
+        	if(count($error)){
+        		acc_journal_RejectRedirect::expect(FALSE, "Всички редове трябва да имат положително количество|*!");
+        	}
+        }
         
         $origin = $this->class->getOrigin($rec);
         
@@ -91,6 +96,9 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
             
             while ($dRec = $detailQuery->fetch()) {
                 $rec->details[] = $dRec;
+                if(empty($dRec->quantity)){
+                	$error[] = cat_Products::getTitleById($dRec->productId);
+                }
             }
         }
         
@@ -122,8 +130,6 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => TRUE));
         
         foreach ($rec->details as $detailRec) {
-        	if(empty($detailRec->quantity)) continue;
-        	
         	$pInfo = cat_Products::getProductInfo($detailRec->productId);
         	$amount = $detailRec->amount;
         	$amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;

@@ -1100,13 +1100,13 @@ abstract class deals_Helper
 				$value = cat_Products::getVolume($productId, $packagingId, $quantity);
 			}
 				
-			if(!empty($value)){
+			if(!isset($value)){
 				$hint = TRUE;
 			}
 		}
 		
 		// Ако няма тегло не се прави нищо
-		if(empty($value)) return NULL;
+		if(!isset($value)) return NULL;
 		
 		$valueType = ($type == 'weight') ? 'cat_type_Weight(decimals=2)' : 'cat_type_Volume';
 		$value = round($value, 2);
