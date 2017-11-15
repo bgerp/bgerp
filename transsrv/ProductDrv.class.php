@@ -259,7 +259,7 @@ class transsrv_ProductDrv extends cat_ProductDriver
      * @param string $docType - тип на документа sale/purchase
      * @param string|NULL $lg - език
      */
-    public static function getConditions($rec, $docType, $lg = NULL)
+    public function getConditions($rec, $docType, $lg = NULL)
 	{
 		if($condition = transsrv_Setup::get('SALE_DEFAULT_CONDITION')){
 			return array($condition);

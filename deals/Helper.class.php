@@ -1021,7 +1021,6 @@ abstract class deals_Helper
 						$code = (!empty($code)) ? $code : "Art{$dRec->productId}";
 						$productConditions[$key][$dRec->productId] = $code;
 					}
-				
 				}
 			}
 		}
