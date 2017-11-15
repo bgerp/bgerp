@@ -41,6 +41,7 @@ class store_plg_RequestDetail extends core_Plugin
 	protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
 	{
 		if(!count($data->recs)) return;
+		if(Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) return;
 		$showRequested = FALSE;
 		
 		foreach($data->rows as $id => &$row){
