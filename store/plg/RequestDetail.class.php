@@ -151,7 +151,7 @@ class store_plg_RequestDetail extends core_Plugin
 	 */
 	protected static function on_AfterPrepareEditToolbar($mvc, $data)
 	{
-		if(self::isApplicant($mvc->Master, $data->masterRec)){
+		if(self::isApplicant($mvc->Master, $data->masterRec) && isset($data->form->rec->id)){
 			$data->form->toolbar->addSbBtn('Поръчано', 'requested', 'id=btnReq,order=9.99981','ef_icon = img/16/save_and_new.png');
 		}
 	}
