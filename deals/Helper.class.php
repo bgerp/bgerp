@@ -984,10 +984,11 @@ abstract class deals_Helper
 	 * 
 	 * @param core_Detail $Detail
 	 * @param int $masterId
-	 * @param string $productFieldName
+	 * @param string $type
+	 * @param string|NULL $lg
 	 * @return array $res
 	 */
-	public static function getConditionsFromProducts($Detail, $masterId, $productFieldName = 'productId')
+	public static function getConditionsFromProducts($Detail, $masterId, $type, $lg)
 	{
 		$res = array();
 		
@@ -995,12 +996,12 @@ abstract class deals_Helper
 		$Detail = cls::get($Detail);
 		$dQuery = $Detail->getQuery();
 		$dQuery->where("#{$Detail->masterKey} = {$masterId}");
-		$dQuery->show("{$productFieldName},quantity");
+		$dQuery->show("productId,quantity");
 		
 		while($dRec = $dQuery->fetch()){
 			
 			// Опит за намиране на условията
-			$conditions = cat_Products::getConditions($dRec->{$productFieldName}, $dRec->quantity);
+			$conditions = cat_Products::getConditions($dRec->productId, $type, $lg);
 			
 			// Извличат се
 			if(count($conditions)){

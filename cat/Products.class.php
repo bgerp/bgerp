@@ -2801,18 +2801,18 @@ class cat_Products extends embed_Manager {
     /**
      * Допълнителните условия за дадения продукт,
      * които автоматично се добавят към условията на договора
-     *
-     * @param mixed $rec       - ид или запис на артикул
-     * @param double $quantity - к-во
-     * @return array           - Допълнителните условия за дадения продукт
+     * 
+     * @param stdClass $rec   - ид/запис на артикул
+     * @param string $docType - тип на документа sale/purchase
+     * @param string|NULL $lg - език
      */
-    public static function getConditions($rec, $quantity)
+    public static function getConditions($rec, $docType, $lg = NULL)
     {
     	// Ако има драйвър, питаме него за стойността
     	if($Driver = static::getDriver($rec)){
     		$rec = self::fetchRec($rec);
     		
-    		return $Driver->getConditions($rec, $quantity);
+    		return $Driver->getConditions($rec, $docType, $lg);
     	}
     	 
     	return array();
