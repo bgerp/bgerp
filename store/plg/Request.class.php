@@ -37,7 +37,7 @@ class store_plg_Request extends core_Plugin
 		
 		// Подмяна на бутона за клониране към такъв с остатък
 		$rec = $data->rec;
-		if($data->toolbar->hasBtn("clone{$rec->containerId}") && !in_array($rec->state, array('draft', 'rejected'))){
+		if($data->toolbar->hasBtn("clone{$rec->containerId}") && $rec->state == 'active'){
 			$Detail = cls::get($mvc->mainDetail);
 			if($Detail->fetchField("#{$Detail->masterKey} = {$rec->id} AND #{$Detail->requestQuantityFieldName} IS NOT NULL")){
 				$data->toolbar->removeBtn("clone{$rec->containerId}");
@@ -58,7 +58,7 @@ class store_plg_Request extends core_Plugin
 	{
 		$arr = array();
 		if(!$rec->clonedFromId) return;
-		if(in_array($rec->state, array('draft', 'rejected'))) return;
+		if($rec->state != 'active') return;
 		
 		// Ще се клонират само тези артикули, които имат остатък
 		$Detail = cls::get($mvc->mainDetail);
