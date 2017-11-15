@@ -122,9 +122,9 @@ class store_plg_RequestDetail extends core_Plugin
 	
 		// Ако потребителя може да контира в склада той НЕ е 'заявител'
 		if(bgerp_plg_FLB::canUse('store_Stores', $masterRec->{$masterMvc->storeFieldName}, $userId)) return FALSE;
-	
+		
 		// Ако не може да контира в склада, но може да избира е 'заявител'
-		if(bgerp_plg_FLB::canUse('store_Stores', $masterRec->{$masterMvc->storeFieldName}, $userId, 'select')) return FALSE;
+		if(bgerp_plg_FLB::canUse('store_Stores', $masterRec->{$masterMvc->storeFieldName}, $userId, 'select')) return TRUE;
 	
 		return FALSE;
 	}
