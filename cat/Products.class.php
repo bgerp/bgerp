@@ -2811,7 +2811,6 @@ class cat_Products extends embed_Manager {
     	// Ако има драйвър, питаме него за стойността
     	if($Driver = static::getDriver($rec)){
     		$rec = self::fetchRec($rec);
-    		
     		return $Driver->getConditions($rec, $docType, $lg);
     	}
     	 
