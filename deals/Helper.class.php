@@ -984,11 +984,11 @@ abstract class deals_Helper
 	 * 
 	 * @param core_Detail $Detail
 	 * @param int $masterId
-	 * @param string $type
+	 * @param core_Master $Master
 	 * @param string|NULL $lg
 	 * @return array $res
 	 */
-	public static function getConditionsFromProducts($Detail, $masterId, $type, $lg)
+	public static function getConditionsFromProducts($Detail, $Master, $masterId, $lg)
 	{
 		$res = array();
 		
@@ -997,23 +997,24 @@ abstract class deals_Helper
 		$dQuery = $Detail->getQuery();
 		$dQuery->where("#{$Detail->masterKey} = {$masterId}");
 		$dQuery->show("productId,quantity");
+		$type = ($Master instanceof purchase_Purchases) ? 'purchase' : 'sale';
 		
 		while($dRec = $dQuery->fetch()){
 			
 			// Опит за намиране на условията
+			$productConditions = array();
 			$conditions = cat_Products::getConditions($dRec->productId, $type, $lg);
-			
-			// Извличат се
-			if(count($conditions)){
-				foreach ($conditions as $t){
-					$value = preg_replace('!\s+!', ' ', str::mbUcfirst($t));
-					$key = mb_strtolower($value);
-					if(!array_key_exists($key, $res)){
-						$res[$key] = $value;
-					}
+			foreach ($conditions as $t){
+				
+				
+				$value = preg_replace('!\s+!', ' ', str::mbUcfirst($t));
+				$key = mb_strtolower($value);
+				if(!array_key_exists($key, $res)){
+					$res[$key] = $value;
 				}
 			}
 		}
+		
 		
 		return $res;
 	}
