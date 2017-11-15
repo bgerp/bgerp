@@ -113,6 +113,14 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     
     
     /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'requestedQuantity';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()

@@ -99,7 +99,8 @@ class store_plg_RequestDetail extends core_Plugin
 	
 	/**
 	 * Дали потребителя е 'Заявител' на складовия документ и
-	 * може да променя заявените количества
+	 * може да променя заявените количестваpublic static function on_AfterGetFieldsNotToClone($mvc, &$res, $rec)
+    {
 	 *
 	 * @param core_Mvc $mvc
 	 * @param stdClass $rec
@@ -180,6 +181,26 @@ class store_plg_RequestDetail extends core_Plugin
 		if($rec->updateRequested === TRUE){
 			$rec->{$mvc->requestQuantityFieldName} = $rec->{$mvc->quantityFieldName};
 			$mvc->save_($rec, $mvc->requestQuantityFieldName);
+		}
+	}
+	
+	
+	/**
+	 * Масив връщащ детайлите с недоставени к-ва
+	 */
+	public static function on_AfterGetUndeliveredDetails($mvc, &$res, $masterId)
+	{
+		if(isset($res)) return $res;
+		$res = array();
+		
+		$dQuery = $mvc->getQuery();
+		$dQuery->where("#{$mvc->masterKey} = {$masterId} AND #{$mvc->requestQuantityFieldName} IS NOT NULL");
+		while($dRec = $dQuery->fetch()){
+			$dRec->quantity = $dRec->{$mvc->requestQuantityFieldName} - $dRec->quantity;
+			unset($dRec->{$mvc->requestQuantityFieldName});
+			if($dRec->quantity > 0){
+				$res[] = $dRec;
+			}
 		}
 	}
 }

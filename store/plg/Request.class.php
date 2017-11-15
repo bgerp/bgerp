@@ -39,7 +39,9 @@ class store_plg_Request extends core_Plugin
 		$rec = $data->rec;
 		if($data->toolbar->hasBtn("clone{$rec->containerId}") && $rec->state == 'active'){
 			$Detail = cls::get($mvc->mainDetail);
-			if($Detail->fetchField("#{$Detail->masterKey} = {$rec->id} AND #{$Detail->requestQuantityFieldName} IS NOT NULL")){
+			$undelivered = $Detail->getUndeliveredDetails($rec->id);
+			
+			if(count($undelivered)){
 				$data->toolbar->removeBtn("clone{$rec->containerId}");
 				$data->toolbar->addBtn('Остатък', array($mvc, 'cloneFields', $data->rec->id, 'ret_url' => array($mvc, 'single', $data->rec->id)), "ef_icon=img/16/clone.png,title=Остатък от заявеното,row=1, order=19.1");
 			}
@@ -56,20 +58,11 @@ class store_plg_Request extends core_Plugin
 	 */
 	public static function on_BeforeGetDetailsToCloneAndChange($mvc, &$res, $rec, &$Detail = NULL)
 	{
-		$arr = array();
 		if(!$rec->clonedFromId) return;
 		if($rec->state != 'active') return;
 		
-		// Ще се клонират само тези артикули, които имат остатък
 		$Detail = cls::get($mvc->mainDetail);
-		$dQuery = $Detail->getQuery();
-		$dQuery->where("#{$Detail->masterKey} = {$rec->clonedFromId} AND #{$Detail->requestQuantityFieldName} IS NOT NULL");
-		while($dRec = $dQuery->fetch()){
-			$dRec->quantity = $dRec->{$Detail->requestQuantityFieldName} - $dRec->quantity;
-			if($dRec->quantity > 0){
-				$arr[] = $dRec;
-			}
-		}
+		$arr = $Detail->getUndeliveredDetails($rec->clonedFromId);
 		
 		if(count($arr)){
 			$res = $arr;
