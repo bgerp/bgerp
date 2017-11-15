@@ -557,7 +557,7 @@ class sales_Quotations extends core_Master
     		}
     			
     		// Показване на допълнителните условия от артикулите
-    		$additionalConditions = deals_Helper::getConditionsFromProducts($mvc->mainDetail, $rec->id);
+    		$additionalConditions = deals_Helper::getConditionsFromProducts($mvc->mainDetail, $mvc, $rec->id, $rec->tplLang);
     		if(is_array($additionalConditions)){
     			foreach ($additionalConditions as $cond){
     				$row->others .= "<li>{$cond}</li>";

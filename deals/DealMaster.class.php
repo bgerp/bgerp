@@ -939,8 +939,7 @@ abstract class deals_DealMaster extends deals_DealBase
 			}
 			
 			// Показване на допълнителните условия от артикулите
-			$type = ($this instanceof purchase_Purchases) ? 'purchase' : 'sale';
-			$additionalConditions = deals_Helper::getConditionsFromProducts($mvc->mainDetail, $rec->id, $type, $rec->tplLang);
+			$additionalConditions = deals_Helper::getConditionsFromProducts($mvc->mainDetail, $this, $rec->id, $rec->tplLang);
 			if(is_array($additionalConditions)){
 				foreach ($additionalConditions as $cond){
 					$row->notes .= "<li>{$cond}</li>";
