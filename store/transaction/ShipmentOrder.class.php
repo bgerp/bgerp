@@ -54,7 +54,7 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
             
         if(Mode::get('saveTransaction')){
         	if($error === TRUE){
-        		acc_journal_RejectRedirect::expect(FALSE, "Поне един ред трябва да има с ненулево количество|*!");
+        		acc_journal_RejectRedirect::expect(FALSE, "Трябва да има поне един ред с ненулево количество|*!");
         	}
         }
         

@@ -67,7 +67,7 @@ class store_transaction_Transfer extends acc_DocumentTransactionSource
 	
 		if(Mode::get('saveTransaction')){
 			if($error === TRUE){
-				acc_journal_RejectRedirect::expect(FALSE, "Всички редове трябва да имат положително количество|*!");
+				acc_journal_RejectRedirect::expect(FALSE, "Трябва да има поне един ред с ненулево количество|*!");
 			}
 		}
 		
