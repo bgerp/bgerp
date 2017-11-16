@@ -109,6 +109,14 @@ class store_TransfersDetails extends doc_Detail
     
     
     /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'requestedQuantity,weight,volume';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -126,7 +134,7 @@ class store_TransfersDetails extends doc_Detail
     /**
      * Изчисляване на количеството на реда в брой опаковки
      */
-    protected function on_CalcPackQuantity(core_Mvc $mvc, $rec)
+    protected static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
     {
         if (!isset($rec->quantity) || empty($rec->quantityInPack)) return;
         
