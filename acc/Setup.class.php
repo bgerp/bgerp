@@ -356,7 +356,7 @@ class acc_Setup extends core_ProtoSetup
     /**
      * Миграция за премахване на грешно изписана роля
      */
-    public static function removeUnusedRole1()
+    public static function removeUnusedRole()
     {
         core_Roles::removeRoles(array('storeaAllGlobal'));
         core_Roles::delete("#role = 'storeaAllGlobal'");
