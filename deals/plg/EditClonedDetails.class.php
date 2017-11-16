@@ -77,7 +77,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
 			$subCaption = 'К-во';
 			
 			// Ако е инсталиран пакета за партиди, ще се показват и те
-			if($installedBatch && is_object($Def)){
+			if($installedBatch && is_object($Def) && $dRec->noBatches !== TRUE){
 				$subCaption = 'Без партида';
 				$bQuery = batch_BatchesInDocuments::getQuery();
 				$bQuery->where("#detailClassId = {$detailId} AND #detailRecId = {$dRec->id} AND #productId = {$dRec->{$Detail->productFld}}");
@@ -94,6 +94,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
 					$verbal = strip_tags($Def->toVerbal($bRec->batch));
 					$b = str_replace(',', '', $bRec->batch);
 					$b = str_replace('.', '', $b);
+					
 					$bQuantity = $bRec->{$Detail->quantityFld} / $bRec->quantityInPack;
 					$quantity -= $bQuantity;
 					
