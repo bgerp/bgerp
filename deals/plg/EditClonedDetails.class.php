@@ -82,7 +82,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
 				$bQuery = batch_BatchesInDocuments::getQuery();
 				$bQuery->where("#detailClassId = {$detailId} AND #detailRecId = {$dRec->id} AND #productId = {$dRec->{$Detail->productFld}}");
 				$bQuery->groupBy('batch');
-				$bQuery->orderBy('id', "DESC");
+				$bQuery->orderBy('id', "ASC");
 				
 				if(!array_key_exists($dRec->id, $rec->details)){
 					$rec->details[$dRec->id] = $dRec;
