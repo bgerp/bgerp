@@ -123,7 +123,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'requestedQuantity';
+    public $fieldsNotToClone = 'requestedQuantity,weight,volume';
     
     
     /**
