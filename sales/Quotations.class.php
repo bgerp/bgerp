@@ -1070,49 +1070,64 @@ class sales_Quotations extends core_Master
     	$fRec = $form->input();
     	
     	if($form->isSubmitted()){
-    		
-    		// Създаваме продажба от офертата
-    		$sId = $this->createSale($rec);
-    		
     		$products = (array)$form->rec;
-    		foreach ($products as $index => $quantity){
-    			list($productId, $optional, $packagingId, $quantityInPack) = explode("|", $index);
-    			$quantityInPack = str_replace('_', '.', $quantityInPack);
-    			
-    			// При опционален продукт без к-во се продължава
-    			if($optional == 'yes' && empty($quantity)) continue;
-    			$quantity = $quantity * $quantityInPack;
-    			
-    			// Опитваме се да намерим записа съотвестващ на това количество
-    			$where = "#quotationId = {$id} AND #productId = {$productId} AND #optional = '{$optional}' AND #quantity = {$quantity}";
-    			$where .= ($packagingId) ? " AND #packagingId = {$packagingId}" : " AND #packagingId IS NULL";
-    			$dRec = sales_QuotationsDetails::fetch($where);
-    			
-    			if(!$dRec){
-    				
-    				// Ако няма (к-то е друго) се намира първия срещнат
-    				$dRec = sales_QuotationsDetails::fetch("#quotationId = {$id} AND #productId = {$productId} AND #packagingId = {$packagingId} AND #optional = '{$optional}'");
-    				
-    				// Тогава приемаме, че подаденото количество е количество за опаковка
-    				$dRec->packQuantity = $quantity;
+    		
+    		$setError = TRUE;
+    		$errFields = array();
+    		foreach ($products as $index1 => $quantity1){
+    			if(!empty($quantity1)){
+    				$setError = FALSE;
     			} else {
-    				
-    				// Ако има такъв запис, изчисляваме колко е количеството на опаковката
-    				$dRec->packQuantity = $quantity / $dRec->quantityInPack;
-    			}
-    			
-    			// Добавяме детайла към офертата
-    			$addedRecId = sales_Sales::addRow($sId, $dRec->productId, $dRec->packQuantity, $dRec->price, $dRec->packagingId, $dRec->discount, $dRec->tolerance, $dRec->term, $dRec->notes);
-    			
-    			// Копира се и транспорта, ако има
-    			$fee = tcost_Calcs::get($this, $id, $dRec->id)->fee;
-    			if(isset($fee)){
-    				tcost_Calcs::sync('sales_Sales', $sId, $addedRecId, $fee);
+    				$errFields[] = $index1;
     			}
     		}
-    		 
-    		// Редирект към сингъла на новосъздадената продажба
-    		return new Redirect(array('sales_Sales', 'single', $sId));
+    		
+    		if($setError === TRUE){
+    			$form->setError(implode(',', $errFields), 'Не може да не са зададени количества');
+    		}
+    		
+    		if(!$form->gotErrors()){
+    			$sId = $this->createSale($rec);
+    			
+    			foreach ($products as $index => $quantity){
+    				list($productId, $optional, $packagingId, $quantityInPack) = explode("|", $index);
+    				$quantityInPack = str_replace('_', '.', $quantityInPack);
+    				 
+    				// При опционален продукт без к-во се продължава
+    				if(empty($quantity)) continue;
+    				$quantity = $quantity * $quantityInPack;
+    				 
+    				// Опитваме се да намерим записа съотвестващ на това количество
+    				$where = "#quotationId = {$id} AND #productId = {$productId} AND #optional = '{$optional}' AND #quantity = {$quantity}";
+    				$where .= ($packagingId) ? " AND #packagingId = {$packagingId}" : " AND #packagingId IS NULL";
+    				$dRec = sales_QuotationsDetails::fetch($where);
+    				 
+    				if(!$dRec){
+    			
+    					// Ако няма (к-то е друго) се намира първия срещнат
+    					$dRec = sales_QuotationsDetails::fetch("#quotationId = {$id} AND #productId = {$productId} AND #packagingId = {$packagingId} AND #optional = '{$optional}'");
+    			
+    					// Тогава приемаме, че подаденото количество е количество за опаковка
+    					$dRec->packQuantity = $quantity;
+    				} else {
+    			
+    					// Ако има такъв запис, изчисляваме колко е количеството на опаковката
+    					$dRec->packQuantity = $quantity / $dRec->quantityInPack;
+    				}
+    				 
+    				// Добавяме детайла към офертата
+    				$addedRecId = sales_Sales::addRow($sId, $dRec->productId, $dRec->packQuantity, $dRec->price, $dRec->packagingId, $dRec->discount, $dRec->tolerance, $dRec->term, $dRec->notes);
+    				 
+    				// Копира се и транспорта, ако има
+    				$fee = tcost_Calcs::get($this, $id, $dRec->id)->fee;
+    				if(isset($fee)){
+    					tcost_Calcs::sync('sales_Sales', $sId, $addedRecId, $fee);
+    				}
+    			}
+    			 
+    			// Редирект към сингъла на новосъздадената продажба
+    			return new Redirect(array('sales_Sales', 'single', $sId));
+    		}
     	}
     
     	if(core_Users::haveRole('partner')){
@@ -1160,7 +1175,13 @@ class sales_Quotations extends core_Master
     		if($product->suggestions){
     			$form->setSuggestions($index, $product->options);
     		} else {
+    			if(count($product->options) == 1){
+    				$default = key($product->options);
+    			}
+    			$product->options = $product->options + array('0' => '0');
+    			
     			$form->setOptions($index, $product->options);
+    			$form->setDefault($index, $default);
     		}
     	}
     	
