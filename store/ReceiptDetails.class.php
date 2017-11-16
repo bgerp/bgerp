@@ -127,7 +127,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     {
         $this->FLD('receiptId', 'key(mvc=store_Receipts)', 'column=none,notNull,silent,hidden,mandatory');
         parent::setDocumentFields($this);
-        $this->setFieldTypeParams('packQuantity', "Min=0");
+        $this->setFieldTypeParams('packQuantity', "min=0");
     }
 
     
