@@ -75,7 +75,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
 			}
 			
 			$subCaption = 'К-во';
-			$installedBatch = FALSE;
+			
 			// Ако е инсталиран пакета за партиди, ще се показват и те
 			if($installedBatch && is_object($Def) && $dRec->autoBatches !== TRUE){
 				$subCaption = 'Без партида';
@@ -116,15 +116,17 @@ class deals_plg_EditClonedDetails extends core_Plugin
 				// Показване на полетата без партиди
 				$form->FLD("quantity||{$dRec->id}|", "double(Min=0)","input,caption={$caption}->Количество");
 				$form->setDefault("quantity||{$dRec->id}|", $dRec->packQuantity);
-				$rec->details["quantity||{$dRec->id}|"] = $dRec;
 				
 				if($dRec->autoBatches === TRUE && $installedBatch){
+					$type = $Detail->getBatchMovementDocument($dRec);
 					if($type == 'out') {
 						$dRec->autoAllocate = TRUE;
 					} elseif($type == 'in'){
 						$dRec->isEdited = TRUE;
 					}
 				}
+				
+				$rec->details["quantity||{$dRec->id}|"] = $dRec;
 			}
 			
 			$rec->cloneAndChange = TRUE;
