@@ -150,6 +150,7 @@ class acc_Setup extends core_ProtoSetup
     	'acc_ValueCorrections',
         'acc_FeatureTitles',
     	'acc_CostAllocations',
+        'migrate::removeUnusedRole'
     );
     
     
@@ -184,7 +185,7 @@ class acc_Setup extends core_ProtoSetup
         array('invoiceAll'),
         array('invoiceAllGlobal', 'invoiceAll, allGlobal'),
         array('storeAll'),
-        array('storeaAllGlobal', 'storeAll, allGlobal'),
+        array('storeAllGlobal', 'storeAll, allGlobal'),
         array('bankAll'),
         array('bankAllGlobal', 'bankAll, allGlobal'),
         array('cashAll'),
@@ -349,5 +350,15 @@ class acc_Setup extends core_ProtoSetup
     	$options = core_Classes::getOptionsByInterface('doc_DocumentIntf', 'title');
     	
     	return $options;
+    }
+    
+    
+    /**
+     * Миграция за премахване на грешно изписана роля
+     */
+    public static function removeUnusedRole()
+    {
+        core_Roles::removeRoles(array('storeaAllGlobal'));
+        core_Roles::delete("#role = 'storeaAllGlobal'");
     }
 }
