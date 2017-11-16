@@ -119,7 +119,7 @@ class store_TransfersDetails extends doc_Detail
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,smartCenter,input=hidden,tdClass=small-field nowrap');
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
-        $this->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input,mandatory');
+        $this->FNC('packQuantity', 'double(min=0)', 'caption=Количество,input,mandatory');
     }
     
     
@@ -128,9 +128,7 @@ class store_TransfersDetails extends doc_Detail
      */
     protected function on_CalcPackQuantity(core_Mvc $mvc, $rec)
     {
-        if (empty($rec->quantity) || empty($rec->quantityInPack)) {
-            return;
-        }
+        if (!isset($rec->quantity) || empty($rec->quantityInPack)) return;
         
         $rec->packQuantity = $rec->quantity / $rec->quantityInPack;
     }
