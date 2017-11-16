@@ -1,4 +1,7 @@
 <?php
+
+
+
 /**
  * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа store_Receipts
  *
