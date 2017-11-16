@@ -198,6 +198,8 @@ class store_plg_RequestDetail extends core_Plugin
 		$dQuery->where("#{$mvc->masterKey} = {$masterId} AND #{$mvc->requestQuantityFieldName} IS NOT NULL");
 		while($dRec = $dQuery->fetch()){
 			$dRec->quantity = $dRec->{$mvc->requestQuantityFieldName} - $dRec->quantity;
+			$dRec->packQuantity = $dRec->quantity / $dRec->{$mvc->quantityInPackName};
+			$dRec->noBatches = TRUE;
 			unset($dRec->{$mvc->requestQuantityFieldName});
 			if($dRec->quantity > 0){
 				$res[] = $dRec;
