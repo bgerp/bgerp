@@ -200,7 +200,12 @@ class store_plg_RequestDetail extends core_Plugin
 			$dRec->quantity = $dRec->{$mvc->requestQuantityFieldName} - $dRec->quantity;
 			$dRec->packQuantity = $dRec->quantity / $dRec->{$mvc->quantityInPackName};
 			$dRec->autoBatches = TRUE;
-			unset($dRec->{$mvc->requestQuantityFieldName});
+			
+			$fieldsNotToClone = arr::make($mvc->fieldsNotToClone, TRUE);
+			foreach ($fieldsNotToClone as $fld){
+				unset($dRec->{$fld});
+			}
+			
 			if($dRec->quantity > 0){
 				$res[] = $dRec;
 			}
