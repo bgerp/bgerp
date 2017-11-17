@@ -16,3 +16,5 @@
 Изглед||Preview,cond_type_Image,,preview,,,no,active,,no
 На етикета||Label text,cond_type_Text,,labelText,,,no,active,,yes
 Спецификация,cond_type_Text,,specTpl,,,no,active,,no
+Общи условия към продажба,cond_type_Text,,commonConditionSale,,,no,active,,no
+Общи условия към покупка,cond_type_Text,,commonConditionPur,,,no,active,,no
