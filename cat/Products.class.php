@@ -846,7 +846,7 @@ class cat_Products extends embed_Manager {
      */
     public static function expandFilter(&$listFilter)
     {
-    	$orderOptions = arr::make('all=Всички,standard=Стандартни,private=Нестандартни,last=Последно добавени,prototypes=Шаблони,closed=Закрити');
+    	$orderOptions = arr::make('all=Всички,standard=Стандартни,private=Нестандартни,last=Последно добавени,prototypes=Шаблони,closed=Закрити,vat09=ДДС 9%,vat0=ДДС 0%');
     	$orderOptions = arr::fromArray($orderOptions);
     	 
     	$listFilter->FNC('order', "enum({$orderOptions})",
@@ -910,6 +910,16 @@ class cat_Products extends embed_Manager {
         		break;
         	case 'prototypes':
         		$data->query->where("#state = 'template'");
+        		break;
+        	case 'vat09':
+        	case 'vat0':
+        		$v = ($data->listFilter->rec->order == 'vat09') ? 0.09 : 0;
+        		$products = cat_products_VatGroups::getByVatPercent($v);
+        		if(count($products)) {
+        			$data->query->in('id', $products);
+        		} else {
+        			$data->query->where("1=2");
+        		}
         		break;
         	default :
         		$data->query->where("#isPublic = 'yes' AND #state != 'template' AND #state != 'closed'");

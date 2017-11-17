@@ -252,4 +252,39 @@ class cat_products_VatGroups extends core_Detail
     	
     	return $value;
     }
+    
+    
+    /**
+     * Намира артикулите с посочена ДДС ставка към подадената дата
+     * 
+     * @param double $percent  - търсен процент
+     * @param date|NULL $date  - към коя дата
+     * @return array $products - намерените артикули
+     */
+    public static function getByVatPercent($percent, $date = NULL)
+    {
+    	$products = array();
+    	$date = (!empty($date)) ? $date : dt::now();
+    	$gQuery = acc_VatGroups::getQuery();
+    	$gQuery->where(array("#vat = '[#1#]'", $percent));
+    	$groups = arr::extractValuesFromArray($gQuery->fetchAll(), 'id');
+    	if(!count($groups)) return $products;
+    	
+    	$query = self::getQuery();
+    	$query->where("#validFrom <= '{$date}'");
+    	$query->orderBy("#validFrom", "DESC");
+    	$query->show('vatGroup,productId');
+    	
+    	while($rec = $query->fetch()){
+    		if(!array_key_exists($rec->productId, $products)){
+    			$products[$rec->productId] = $rec;
+    		}
+    	}
+    	
+    	//@TODO да се добавят и артикулите, нямащи записи тук ако ддс на периода е зададения процент
+    	$products = array_filter($products, function ($obj) use ($groups) {if(in_array($obj->vatGroup, $groups)) return TRUE;});
+    	$products = arr::extractValuesFromArray($products, 'productId');
+    	
+    	return $products;
+    }
 }
