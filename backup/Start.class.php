@@ -80,7 +80,7 @@ class backup_Start extends core_Manager
         
         exec("mysqldump --lock-tables --delete-master-logs -u"
             . self::$conf->BACKUP_MYSQL_USER_NAME . " -p" . self::$conf->BACKUP_MYSQL_USER_PASS . " " . EF_DB_NAME
-            . " | gzip -9 >" . EF_TEMP_PATH . "/" . self::$backupFileName
+            . " | gzip -1 >" . EF_TEMP_PATH . "/" . self::$backupFileName
             , $output, $returnVar);
         
         // Освобождаваме системата
