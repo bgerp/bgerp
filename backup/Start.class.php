@@ -207,7 +207,7 @@ class backup_Start extends core_Manager
             $cmdBinLog = "mysqlbinlog --read-from-remote-server -u"
                 . self::$conf->BACKUP_MYSQL_USER_NAME
                 . " -p" . self::$conf->BACKUP_MYSQL_USER_PASS . " {$binLogFileName} -h"
-                . self::$conf->BACKUP_MYSQL_HOST . " | gzip -9 > " . EF_TEMP_PATH . "/" . $binLogFileNameGz;
+                . self::$conf->BACKUP_MYSQL_HOST . " | gzip -1 > " . EF_TEMP_PATH . "/" . $binLogFileNameGz;
     
             exec($cmdBinLog, $output, $returnVar);
             
