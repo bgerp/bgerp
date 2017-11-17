@@ -962,7 +962,7 @@ abstract class deals_DealMaster extends deals_DealBase
 			
 			if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
 				if($rec->shipmentStoreId){
-					$storeVerbal = store_Stores::getHyperlink($rec->shipmentStoreId);
+					$storeVerbal = store_Stores::getHyperlink($rec->shipmentStoreId, TRUE);
 					if($rec->state == 'active' && isset($actions['ship'])){
 						$row->shipmentStoreId = $storeVerbal;
 					} else {
