@@ -183,6 +183,10 @@ class store_TransfersDetails extends doc_Detail
                 $row->newProductId = cat_Products::getVerbal($rec->newProductId, 'name');
                 $row->newProductId = ht::createLinkRef($row->newProductId, $singleUrl);
                 
+                if(empty($rec->quantity) && !Mode::isReadOnly()){
+                	$row->ROW_ATTR['style'] = " background-color:#f1f1f1;color:#777";
+                }
+                
                 // Показваме подробната информация за опаковката при нужда
                 deals_Helper::getPackInfo($row->packagingId, $rec->newProductId, $rec->packagingId, $rec->quantityInPack);
             }
