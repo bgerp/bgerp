@@ -281,9 +281,19 @@ class cat_products_VatGroups extends core_Detail
     		}
     	}
     	
-    	//@TODO да се добавят и артикулите, нямащи записи тук ако ддс на периода е зададения процент
     	$products = array_filter($products, function ($obj) use ($groups) {if(in_array($obj->vatGroup, $groups)) return TRUE;});
     	$products = arr::extractValuesFromArray($products, 'productId');
+    	
+    	// Ако дефолтното ддс за периода е колкото търсеното, се извличат и всички които нямат записи в модела
+    	// за конкретна ддс група
+    	$vatRate = acc_Periods::fetchByDate($date)->vatRate;
+    	if($vatRate === $percent){
+    		$pQuery = cat_Products::getQuery();
+    		$pQuery->show('id');
+    		$pQuery->notIn('id', $products);
+    		$productsDefArr = arr::extractValuesFromArray($pQuery->fetchAll(), 'id');
+    		$products = $productsDefArr + $products;
+    	}
     	
     	return $products;
     }
