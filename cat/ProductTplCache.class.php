@@ -257,14 +257,14 @@ class cat_ProductTplCache extends core_Master
 	 * @param enum(public,internal) $documentType
 	 * @return core_ET
 	 */
-	public static function cacheDescription($productId, $time, $documentType, $lang, $compontQuantity = 1)
+	public static function cacheDescription($productId, $time, $documentType, $lang, $componentQuantity)
 	{
 		$pRec = cat_Products::fetchRec($productId);
 		
 		$data = cat_Products::prepareDescription($pRec->id, $documentType);
 		
 		$data->components = array();
-        cat_Products::prepareComponents($pRec->id, $data->components, $documentType, $compontQuantity);
+        cat_Products::prepareComponents($pRec->id, $data->components, $documentType, $componentQuantity);
 		
 		$cacheRec = new stdClass();
 		

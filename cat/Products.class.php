@@ -1762,7 +1762,7 @@ class cat_Products extends embed_Manager {
 	 * @param datetime $time            - време
 	 * @param auto|detailed|short $mode - режим на показване
 	 * @param string $lang              - език
-	 * @param int $compontQuantity      - к-во на компонентите   
+	 * @param int $componentQuantity      - к-во на компонентите   
 	 * @param boolean $showCode         - да се показва ли кода до името или не
 	 * 
 	 * @return mixed $res
@@ -1770,8 +1770,12 @@ class cat_Products extends embed_Manager {
 	 *      ако $mode e 'detailed' - подробно описание
 	 *      ако $mode e 'short'	   - кратко описание
 	 */
-    public static function getAutoProductDesc($id, $time = NULL, $mode = 'auto', $documentType = 'public', $lang = 'bg', $compontQuantity = 1, $showCode = TRUE)
+    public static function getAutoProductDesc($id, $time = NULL, $mode = 'auto', $documentType = 'public', $lang = 'bg', $componentQuantity = NULL, $showCode = TRUE)
     {
+    	if($documentType == 'public') {
+    		$componentQuantity = 1;
+    	}
+    	
     	$rec = static::fetchRec($id);
     	
     	$title = cat_ProductTplCache::getCache($rec->id, $time, 'title', $documentType, $lang);
@@ -1825,7 +1829,7 @@ class cat_Products extends embed_Manager {
     	if($showDescription === TRUE){
     	    $data = cat_ProductTplCache::getCache($rec->id, $time, 'description', $documentType, $lang);
     	    if(!$data){
-    	    	$data = cat_ProductTplCache::cacheDescription($rec, $time, $documentType, $lang, $compontQuantity);
+    	    	$data = cat_ProductTplCache::cacheDescription($rec, $time, $documentType, $lang, $componentQuantity);
     	    }
     	    $data->documentType = $documentType;
     	    $descriptionTpl = cat_Products::renderDescription($data);
@@ -2378,7 +2382,7 @@ class cat_Products extends embed_Manager {
     protected static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
     	$data->components = array();
-    	cat_Products::prepareComponents($data->rec->id, $data->components);
+    	cat_Products::prepareComponents($data->rec->id, $data->components, 'internal', 1);
     }
     
     
@@ -2404,8 +2408,9 @@ class cat_Products extends embed_Manager {
      * @param string $typeBom
      * @return array
      */
-    public static function prepareComponents($productId, &$res = array(), $documentType = 'internal', $componentQuantity = 1, $typeBom = NULL)
+    public static function prepareComponents($productId, &$res = array(), $documentType = 'internal', $componentQuantity, $typeBom = NULL)
     {
+    	if(empty($componentQuantity)) return $res;
     	$typeBom = (!empty($typeBom)) ? $typeBom : 'sales';
     	$rec = cat_Products::getLastActiveBom($productId, $typeBom);
     	
