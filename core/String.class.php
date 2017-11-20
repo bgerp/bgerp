@@ -1107,8 +1107,7 @@ class core_String
      */
     public static function text2Array($text)
     {
-    	$text = preg_replace('/[\s|\,|\;]+/', "\n", $text);
-    	$array = explode("\n", trim($text));
+    	$array = preg_split('/$\R?^/m', $text);
     	
     	return $array;
     }
