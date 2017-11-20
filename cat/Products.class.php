@@ -2406,6 +2406,7 @@ class cat_Products extends embed_Manager {
      */
     public static function prepareComponents($productId, &$res = array(), $documentType = 'internal', $componentQuantity = 1, $typeBom = NULL)
     {
+    	$typeBom = (!empty($typeBom)) ? $typeBom : 'sales';
     	$rec = cat_Products::getLastActiveBom($productId, $typeBom);
     	
     	// Ако няма последна активна рецепта, и сме на 0-во ниво ще показваме от черновите ако има
