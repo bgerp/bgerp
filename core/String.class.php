@@ -1111,4 +1111,20 @@ class core_String
     	
     	return $array;
     }
+    
+    
+    /**
+     * Връща текст със заместени урл-та с линкове
+     * 
+     * @param string $text
+     * @return string 
+     */
+    public static function replaceUrlsWithLinks($text) 
+    {
+    	$regex = '#\bhttps?://[^\s()<>]+(?:\([\w\d]+\)|([^[:punct:]\s]|/))#';
+    	$UrlType = core_Type::getByName('url');
+    	return preg_replace_callback($regex, function ($matches) use ($UrlType){
+    		return $UrlType->toVerbal($matches[0])->getContent();
+    	}, $text);
+    }
 }
