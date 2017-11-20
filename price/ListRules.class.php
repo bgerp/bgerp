@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   price
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Правилата за ценоразписите за продуктите от каталога
@@ -264,13 +264,10 @@ class price_ListRules extends core_Detail
 		
 		$data->listFilter->view = 'horizontal';
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->FNC('product', 'int', 'input,caption=Артикул,silent');
+        $data->listFilter->FNC('product', "key2(mvc=cat_Products,select=name,listId={$data->masterId},selectSource=price_ListRules::getProductFilterOptions)", 'input,caption=Артикул,silent');
         $data->listFilter->FNC('threadId', 'int', 'input=hidden,silent');
         $data->listFilter->setDefault('threadId', $data->masterData->rec->threadId);
         $data->listFilter->showFields = 'product';
-		
-        $options = self::getProductOptions($data->masterId);
-        $data->listFilter->setOptions('product', array('' => '') + $options);
         $data->listFilter->input(NULL, 'silent');
         
 		$data->listFilter->input();
@@ -292,15 +289,24 @@ class price_ListRules extends core_Detail
 	}
 	
 	
+	/**
+	 * Подготовка на опции за key2
+	 */
+	public static function getProductFilterOptions($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
+	{
+		$options = self::getProductOptions($params['listId']);
+		if(!empty($onlyIds)) return array($onlyIds => $options[$onlyIds]);
+		$options = array('' => '') + $options;
+		
+		return $options;
+	}
+	
+	
     /**
      * Връща цената за посочения продукт според ценовата политика
      */
     public static function getPrice($listId, $productId, $packagingId = NULL, $datetime = NULL, &$validFrom = NULL)
     {  
-        // Проверка, дали цената я няма в кеша
-    	//$price = price_History::getPrice($listId, $datetime, $productId);
-        //if(isset($price)) return $price;
-        
         price_ListToCustomers::canonizeTime($datetime);
         $datetime = price_History::canonizeTime($datetime);
         
@@ -924,7 +930,8 @@ class price_ListRules extends core_Detail
 	/**
 	 * Връща масив с възможните за избор артикули (стандартни и продаваеми)
 	 * 
-	 * @return array $options - масив с артикули за избор
+	 * @param int $listId
+	 * @return array $options
 	 */
 	public static function getProductOptions($listId)
 	{

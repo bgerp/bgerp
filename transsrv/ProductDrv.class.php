@@ -252,14 +252,14 @@ class transsrv_ProductDrv extends cat_ProductDriver
 	
 	
 	/**
-	 * Допълнителните условия за дадения продукт,
-	 * които автоматично се добавят към условията на договора
-	 *
-	 * @param mixed $rec       - ид или запис на артикул
-	 * @param double $quantity - к-во
-	 * @return array           - Допълнителните условия за дадения продукт
-	 */
-	public function getConditions($rec, $quantity)
+     * Допълнителните условия за дадения продукт,
+     * които автоматично се добавят към условията на договора
+     * 
+     * @param stdClass $rec   - ид/запис на артикул
+     * @param string $docType - тип на документа sale/purchase
+     * @param string|NULL $lg - език
+     */
+    public function getConditions($rec, $docType, $lg = NULL)
 	{
 		if($condition = transsrv_Setup::get('SALE_DEFAULT_CONDITION')){
 			return array($condition);

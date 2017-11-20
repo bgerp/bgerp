@@ -328,6 +328,10 @@ class unit_MinkPProducts extends core_Manager {
         } else {
             return unit_MinkPbgERP::reportErr('Неуспешно клониране', 'warning');
         } 
+        //Проверка - EAN кода не трябва да се е клонирал
+        if(strpos($browser->gettext(), '1234567893341')) {
+        return unit_MinkPbgERP::reportErr('Грешни суми в мастера', 'warning');
+        }
         //return $browser->getHtml();
     }
    

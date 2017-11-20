@@ -984,10 +984,11 @@ abstract class deals_Helper
 	 * 
 	 * @param core_Detail $Detail
 	 * @param int $masterId
-	 * @param string $productFieldName
+	 * @param core_Master $Master
+	 * @param string|NULL $lg
 	 * @return array $res
 	 */
-	public static function getConditionsFromProducts($Detail, $masterId, $productFieldName = 'productId')
+	public static function getConditionsFromProducts($Detail, $Master, $masterId, $lg)
 	{
 		$res = array();
 		
@@ -995,22 +996,43 @@ abstract class deals_Helper
 		$Detail = cls::get($Detail);
 		$dQuery = $Detail->getQuery();
 		$dQuery->where("#{$Detail->masterKey} = {$masterId}");
-		$dQuery->show("{$productFieldName},quantity");
+		$dQuery->show("productId,quantity");
+		$type = ($Master instanceof purchase_Purchases) ? 'purchase' : 'sale';
+		$productConditions = array();
 		
 		while($dRec = $dQuery->fetch()){
 			
 			// Опит за намиране на условията
-			$conditions = cat_Products::getConditions($dRec->{$productFieldName}, $dRec->quantity);
-			
-			// Извличат се
-			if(count($conditions)){
-				foreach ($conditions as $t){
-					$value = preg_replace('!\s+!', ' ', str::mbUcfirst($t));
-					$key = mb_strtolower($value);
-					if(!array_key_exists($key, $res)){
-						$res[$key] = $value;
+			$conditions = cat_Products::getConditions($dRec->productId, $type, $lg);
+			foreach ($conditions as $t){
+				
+				// Нормализиране на условието
+				$key = md5(strtolower(str::utf2ascii(trim($t))));
+				$value = preg_replace('!\s+!', ' ', str::mbUcfirst($t));
+				$res[$key] = $value;
+				
+				// Ако съдържа стринга [#Articles#]
+				if(strpos($value, '[#Articles#]') !== FALSE){
+					$productConditions[$key] = is_array($productConditions[$key]) ? $productConditions[$key] : array();
+					
+					// Запомня се кои артикули подават същото условие
+					if(!array_key_exists($dRec->productId, $productConditions[$key])){
+						$code = cat_Products::fetchField($dRec->productId, 'code');
+						$code = (!empty($code)) ? $code : "Art{$dRec->productId}";
+						$productConditions[$key][$dRec->productId] = $code;
 					}
 				}
+			}
+		}
+		
+		// За всяко условие
+		foreach ($res as $key => &$val){
+			
+			// Ако има в него [#Articles#] то се замества с кодовете на артикулите, които го имат
+			if(is_array($productConditions[$key])){
+				$val = new core_ET($val);
+				$val->replace(implode(',', $productConditions[$key]), 'Articles');
+				$val = $val->getContent();
 			}
 		}
 		

@@ -454,7 +454,7 @@ abstract class cash_Document extends deals_PaymentDocument
     				$rateFromCurrencyId = $rec->dealCurrencyId;
     				$rateToCurrencyId = $rec->currencyId;
     			} else {
-    				$rate = $rec->amount / $rec->amountDeal;
+    				@$rate = $rec->amount / $rec->amountDeal;
     				$rateFromCurrencyId = $rec->currencyId;
     				$rateToCurrencyId = $rec->dealCurrencyId;
     			}

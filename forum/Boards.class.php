@@ -513,7 +513,7 @@ class forum_Boards extends core_Master {
 			$url = array($mvc, 'forum');
 		  }
 		
-    	$data->toolbar->addBtn('Преглед', $url);
+    	$data->toolbar->addBtn('Преглед', $url, NULL, 'ef_icon=img/16/preview.png');
     }
  	
     

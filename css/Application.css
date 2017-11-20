@@ -4735,6 +4735,9 @@ only screen and (max-width: 320px) {
       margin-left: 0;
       display: inline-block; }
 
+.narrow .external div.hideLink {
+  margin-top: 10px; }
+
 .wide .external .vertical .formTable {
   box-shadow: none !important; }
 

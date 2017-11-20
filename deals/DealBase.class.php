@@ -631,7 +631,7 @@ abstract class deals_DealBase extends core_Master
 					if(!isset(${$q})) continue;
 					$csvRow->{$q} = frame_CsvLib::toCsvFormatDouble(${$q});
 					$row->{$q} = $Double->toVerbal(${$q});
-					$row->{$q} = ht::styleIfNegative($row->{$q}, ${$q});
+					$row->{$q} = (${$q} == 0) ? "<span class='quiet'>{$row->{$q}}</span>" : ht::styleIfNegative($row->{$q}, ${$q});
 				}
 				
 				$report[$productId] = $row;

@@ -2258,7 +2258,9 @@ class core_Users extends core_Manager
     {
         if ($this->runCron) {
             
-            fopen(toUrl(array('core_Cron', 'cron'), 'absolute'), 'r');
+            if (!@fopen(toUrl(array('core_Cron', 'cron'), 'absolute'), 'r')) {
+                self::logWarning('Не може да се пусне крон ръчно');
+            }
             
             $this->runCron = FALSE;
         }

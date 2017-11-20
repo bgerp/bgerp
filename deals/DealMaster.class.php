@@ -939,7 +939,7 @@ abstract class deals_DealMaster extends deals_DealBase
 			}
 			
 			// Показване на допълнителните условия от артикулите
-			$additionalConditions = deals_Helper::getConditionsFromProducts($mvc->mainDetail, $rec->id);
+			$additionalConditions = deals_Helper::getConditionsFromProducts($mvc->mainDetail, $mvc, $rec->id, $rec->tplLang);
 			if(is_array($additionalConditions)){
 				foreach ($additionalConditions as $cond){
 					$row->notes .= "<li>{$cond}</li>";
@@ -962,7 +962,7 @@ abstract class deals_DealMaster extends deals_DealBase
 			
 			if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
 				if($rec->shipmentStoreId){
-					$storeVerbal = store_Stores::getHyperlink($rec->shipmentStoreId);
+					$storeVerbal = store_Stores::getHyperlink($rec->shipmentStoreId, TRUE);
 					if($rec->state == 'active' && isset($actions['ship'])){
 						$row->shipmentStoreId = $storeVerbal;
 					} else {
@@ -1836,7 +1836,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	$forceUrl['force'] = TRUE;
     	
     	$form->toolbar->addSbBtn('Избор', 'save', 'ef_icon = img/16/cart_go.png, title = Избор на документа');
-    	$form->toolbar->addBtn('Нова продажба', $forceUrl, 'ef_icon = img/16/star_2.png, title = СЪздаване на нова продажба');
+    	$form->toolbar->addBtn('Нова продажба', $forceUrl, 'ef_icon = img/16/layer_create.png, title = СЪздаване на нова продажба');
     	$form->toolbar->addBtn('Отказ', $rejectUrl, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
     	
     	if(core_Users::haveRole('partner')){
