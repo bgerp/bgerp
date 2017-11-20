@@ -133,7 +133,13 @@
            [#origin#]
            </td>
       </tr>
-      
+      <!--ET_BEGIN JOB_COMPONENTS-->
+      <tr>
+      	<td colspan="2" class='small'>
+      		[#JOB_COMPONENTS#]
+     	 </td>
+      <!--ET_END JOB_COMPONENTS-->
+      </tr>
       <!--ET_BEGIN notes-->
       <tr>
            <th colspan="2" class='job-head'>

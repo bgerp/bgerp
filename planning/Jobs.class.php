@@ -473,6 +473,11 @@ class planning_Jobs extends core_Master
     	$data->packagingData->listFields['packagingId'] = 'Опаковка';
     	$packagingTpl = cls::get('cat_products_Packagings')->renderPackagings($data->packagingData);
     	$tpl->replace($packagingTpl, 'PACKAGINGS');
+    	
+    	if(count($data->components)){
+    		$componentTpl = cat_Products::renderComponents($data->components);
+    		$tpl->append($componentTpl, 'JOB_COMPONENTS');
+    	}
     }
     
     
@@ -922,6 +927,9 @@ class planning_Jobs extends core_Master
     	$data->packagingData->masterId = $data->rec->productId;
     	$data->packagingData->tpl = new core_ET("[#CONTENT#]");
     	cls::get('cat_products_Packagings')->preparePackagings($data->packagingData);
+    	
+    	$data->components = array();
+    	cat_Products::prepareComponents($data->rec->productId, $data->components, 'job', $data->rec->quantity);
     }
     
     

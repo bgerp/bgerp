@@ -2406,7 +2406,6 @@ class cat_Products extends embed_Manager {
      */
     public static function prepareComponents($productId, &$res = array(), $documentType = 'internal', $componentQuantity = 1, $typeBom = NULL)
     {
-    	$typeBom = (!empty($typeBom)) ? $typeBom : 'sales';
     	$rec = cat_Products::getLastActiveBom($productId, $typeBom);
     	
     	// Ако няма последна активна рецепта, и сме на 0-во ниво ще показваме от черновите ако има
@@ -2417,7 +2416,14 @@ class cat_Products extends embed_Manager {
     		$rec = $bQuery->fetch();
     	}
     	
-    	if(!$rec || cat_Boms::showInProduct($rec) === FALSE) return $res;
+    	if($documentType == 'job'){
+    		if($pRec = cat_Products::getLastActiveBom($productId, 'production')){
+    			$rec = $pRec;
+    		}
+    	}
+    	
+    	$checkMvc = ($documentType == 'job') ? 'planning_Jobs' : 'cat_Products';
+    	if(!$rec || cat_Boms::showIn($rec, $checkMvc) === FALSE) return $res;
     	
     	// Кои детайли от нея ще показваме като компоненти
     	$details = cat_BomDetails::getOrderedBomDetails($rec->id);
