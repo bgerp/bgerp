@@ -218,17 +218,14 @@ class planning_Jobs extends core_Master
      * Връща последните валидни задания за артикула
      * 
      * @param int $productId  - ид на артикул
-     * @param int $saleId  - ид на продажба
      * @param int $id    - ид на текущото задание
      * @return array $res     - масив с предишните задания
      */
-    public static function getOldJobs($productId, $saleId, $id)
+    private static function getOldJobs($productId, $id)
     {
     	$res = array();
     	$query = self::getQuery();
-    	$where = "#id != '{$id}' AND #productId = {$productId} AND (#state = 'active' OR #state = 'wakeup' OR #state = 'stopped' OR #state = 'closed') AND ";
-    	$where .= (!empty($saleId) ? "(#saleId IS NULL OR #saleId = {$saleId})" : "#saleId IS NULL");
-    	$query->where($where);
+    	$query->where("#id != '{$id}' AND #productId = {$productId} AND (#state = 'active' OR #state = 'wakeup' OR #state = 'stopped' OR #state = 'closed')");
     	$query->orderBy('id', 'DESC');
     	$query->show('id,productId,state');
     	
@@ -252,7 +249,7 @@ class planning_Jobs extends core_Master
     	$rec = &$form->rec;
     	
     	// Ако има предишни задания зареждат се за избор
-    	$oldJobs = self::getOldJobs($rec->productId, $rec->saleId, $rec->id);
+    	$oldJobs = self::getOldJobs($rec->productId, $rec->id);
     	
     	if(count($oldJobs)){
     		$form->setField('oldJobId', 'input');
