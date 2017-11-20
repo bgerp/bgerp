@@ -2818,13 +2818,20 @@ class cat_Products extends embed_Manager {
      */
     public static function getConditions($rec, $docType, $lg = NULL)
     {
-    	// Ако има драйвър, питаме него за стойността
+    	$conditions = array();
+    	
     	if($Driver = static::getDriver($rec)){
     		$rec = self::fetchRec($rec);
-    		return $Driver->getConditions($rec, $docType, $lg);
+    		$conditions = $Driver->getConditions($rec, $docType, $lg);
     	}
     	 
-    	return array();
+    	// Ако има параметър за дефолтни условия. Показва се
+    	$defParamName = ($docType == 'purchase') ? 'commonConditionPur' : 'commonConditionSale';
+    	if($dCondition = cat_Products::getParams($rec->id, $defParamName)){
+    		$conditions[] = $dCondition;
+    	}
+    	
+    	return $conditions;
     }
     
     
