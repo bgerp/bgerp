@@ -506,7 +506,7 @@ class core_Form extends core_FieldSet
                 jquery_Jquery::run($this->layout, "markElementsForRefresh();");
                 jquery_Jquery::run($this->layout, "$(window).resize(function(){setFormElementsWidth();});");
             }
-            
+
             // Ако има зададен клас за формата, добавяме го
             if(isset($this->class)){
             	$this->layout->append($this->class, 'CLASS');

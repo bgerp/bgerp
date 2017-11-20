@@ -1836,7 +1836,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	$forceUrl['force'] = TRUE;
     	
     	$form->toolbar->addSbBtn('Избор', 'save', 'ef_icon = img/16/cart_go.png, title = Избор на документа');
-    	$form->toolbar->addBtn('Нова продажба', $forceUrl, 'ef_icon = img/16/star_2.png, title = СЪздаване на нова продажба');
+    	$form->toolbar->addBtn('Нова продажба', $forceUrl, 'ef_icon = img/16/layer_create.png, title = СЪздаване на нова продажба');
     	$form->toolbar->addBtn('Отказ', $rejectUrl, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
     	
     	if(core_Users::haveRole('partner')){

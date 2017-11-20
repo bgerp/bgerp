@@ -329,16 +329,17 @@ class sales_Quotations extends core_Master
 	    		
 	    		// Ако има поне един опционален артикул или има варианти на задължителните, бутона сочи към екшън за определяне на количествата
 	    		if(sales_QuotationsDetails::fetch("#quotationId = {$data->rec->id} AND #optional = 'yes'") || !$items){
-	    			$data->toolbar->addBtn('Продажба', array($mvc, 'FilterProductsForSale', $data->rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/star_2.png,title=Създаване на продажба по офертата');
-	    		
+	    			$data->toolbar->addBtn('Продажба', array($mvc, 'FilterProductsForSale', $data->rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/cart_go.png,title=Създаване на продажба по офертата');
+
 	    		// Иначе, към създаването на нова продажба
 	    		} else {
+
 	    			$warning = '';
 	    			$title = 'Прехвърляне на артикулите в съществуваща продажба чернова';
 	    			if(!sales_Sales::count("#state = 'draft' AND #contragentId = {$data->rec->contragentId} AND #contragentClassId = {$data->rec->contragentClassId}")){
 	    				$warning = "Сигурни ли сте, че искате да създадете продажба?";
 	    				$title = 'Създаване на продажба от офертата';
-	    				$efIcon = 'img/16/star_2.png';
+	    				$efIcon = 'img/16/layer_create.png';
 	    			} else {
 	    				$efIcon = 'img/16/cart_go.png';
 	    			}

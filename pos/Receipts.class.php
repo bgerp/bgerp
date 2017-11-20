@@ -307,7 +307,7 @@ class pos_Receipts extends core_Master {
     	// Подменяме бутона за добавяне с такъв сочещ към терминала
     	if(!empty($data->toolbar->buttons['btnAdd'])){
     		$data->toolbar->removeBtn('btnAdd');
-    		$data->toolbar->addBtn('Нов запис', array($mvc, 'new'), 'id=btnAdd', 'ef_icon = img/16/star_2.png,title=Създаване на нов запис');
+    		$data->toolbar->addBtn('Нов запис', array($mvc, 'new'), 'id=btnAdd', 'ef_icon = img/16/receipt.png,title=Създаване на нов запис');
     	}
     }
     
