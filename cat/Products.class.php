@@ -2827,8 +2827,9 @@ class cat_Products extends embed_Manager {
     	 
     	// Ако има параметър за дефолтни условия. Показва се
     	$defParamName = ($docType == 'purchase') ? 'commonConditionPur' : 'commonConditionSale';
-    	if($dCondition = cat_Products::getParams($rec->id, $defParamName)){
-    		$conditions[] = $dCondition;
+    	if($cValue = cat_Products::getParams($rec->id, $defParamName)){
+    		$dConditionArr = str::text2Array($cValue);
+    		$conditions += $dConditionArr;
     	}
     	
     	return $conditions;
