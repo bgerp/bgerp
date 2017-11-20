@@ -1097,4 +1097,19 @@ class core_String
     {
     	return preg_replace('/\s+/', '', $string);
     }
+    
+    
+    /**
+     * Разбива текст по нови редове във масив
+     * 
+     * @param string $text
+     * @return array $array
+     */
+    public static function text2Array($text)
+    {
+    	$text = preg_replace('/[\s|\,|\;]+/', "\n", $text);
+    	$array = explode("\n", trim($text));
+    	
+    	return $array;
+    }
 }
