@@ -2829,6 +2829,11 @@ class cat_Products extends embed_Manager {
     	$defParamName = ($docType == 'purchase') ? 'commonConditionPur' : 'commonConditionSale';
     	if($cValue = cat_Products::getParams($rec->id, $defParamName)){
     		$dConditionArr = str::text2Array($cValue);
+    		foreach ($dConditionArr as $cText){
+    			$cText = str::replaceUrlsWithLinks($cText);
+    			$conditions[] = $cText;
+    		}
+    		
     		$conditions += $dConditionArr;
     	}
     	
