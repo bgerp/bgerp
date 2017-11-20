@@ -1121,9 +1121,8 @@ class core_String
      */
     public static function replaceUrlsWithLinks($text) 
     {
-    	$regex = '#\bhttps?://[^\s()<>]+(?:\([\w\d]+\)|([^[:punct:]\s]|/))#';
     	$UrlType = core_Type::getByName('url');
-    	return preg_replace_callback($regex, function ($matches) use ($UrlType){
+    	return preg_replace_callback(type_Richtext::URL_PATTERN, function ($matches) use ($UrlType){
     		return $UrlType->toVerbal($matches[0])->getContent();
     	}, $text);
     }
