@@ -82,6 +82,10 @@ class bank_IncomeDocuments extends bank_Document
      */
     public $filterDateField = 'createdOn, termDate,valior,modifiedOn';
     
+    /**
+     * Права за плъгин-а bgerp_plg_Export
+     */
+   public $canExport = 'ceo, invoicer';
     
     /**
      * Описание на модела
