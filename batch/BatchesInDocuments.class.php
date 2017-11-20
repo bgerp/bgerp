@@ -502,6 +502,7 @@ class batch_BatchesInDocuments extends core_Manager
 				// Изтриване
 				if(count($delete)){
 					foreach ($delete as $b){
+						$b = $Def->normalize($b);
 						self::delete("#detailClassId = {$recInfo->detailClassId} AND #detailRecId = {$recInfo->detailRecId} AND #productId = {$recInfo->productId} AND #batch = '{$b}'");
 					}
 				}

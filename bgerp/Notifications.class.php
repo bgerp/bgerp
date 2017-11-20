@@ -826,7 +826,7 @@ class bgerp_Notifications extends core_Manager
         
         $sArr = array();
         
-        $enumChoise = 'enum(default=Автоматично, yes=Винаги, no=Никога)';
+        $enumChoice = 'enum(default=Автоматично, yes=Винаги, no=Никога)';
         $enumTypeArr = array('input' => 'input', 'maxRadio' => 3, 'columns' => 3);
         
         $notifyDefArr = array();
@@ -842,16 +842,16 @@ class bgerp_Notifications extends core_Manager
             $fCaption = "Известяване в|* {$folderTitle} |при";
             
             $enumTypeArr['caption'] = $fCaption . '->Нов документ';
-            $form->FNC('newDoc', $enumChoise, $enumTypeArr);
+            $form->FNC('newDoc', $enumChoice, $enumTypeArr);
             
             $enumTypeArr['caption'] = $fCaption . '->Нова тема';
-            $form->FNC('newThread', $enumChoise, $enumTypeArr);
+            $form->FNC('newThread', $enumChoice, $enumTypeArr);
             
             $enumTypeArr['caption'] = $fCaption . '->Отворени теми';
-            $form->FNC('folOpenings', $enumChoise, $enumTypeArr);
+            $form->FNC('folOpenings', $enumChoice, $enumTypeArr);
             
             $enumTypeArr['caption'] = $fCaption . '->Личен имейл';
-            $form->FNC('personalEmailIncoming', $enumChoise, $enumTypeArr);
+            $form->FNC('personalEmailIncoming', $enumChoice, $enumTypeArr);
             
             $sArr[$fKey] = array('newDoc', 'newThread', 'folOpenings', 'personalEmailIncoming');
             
@@ -870,7 +870,7 @@ class bgerp_Notifications extends core_Manager
             $tCaption = "Известяване в|* {$threadTitle} |при";
             $enumTypeArr['caption'] = $tCaption . '->Нов документ';
             
-            $form->FNC('notify', $enumChoise, $enumTypeArr);
+            $form->FNC('notify', $enumChoice, $enumTypeArr);
             
             $sArr[$tKey] = array('notify');
             

@@ -307,7 +307,7 @@ class colab_FolderToPartners extends core_Manager
 			Request::setProtected(array('companyId'));
 			
 			// Добавяме бутон за създаването на нов партньор, визитка и профил
-			$ht = ht::createBtn('Нов партньор', array($me, 'createNewContractor', 'companyId' => $data->masterId, 'ret_url' => TRUE), FALSE, FALSE, 'ef_icon=img/16/star_2.png,title=Създаване на нов партньор');
+			$ht = ht::createBtn('Нов партньор', array($me, 'createNewContractor', 'companyId' => $data->masterId, 'ret_url' => TRUE), FALSE, FALSE, 'ef_icon=img/16/businessman.png,title=Създаване на нов партньор');
 			$btns->append($ht);
 			
 			// Ако фирмата има имейли и имаме имейл кутия, слагаме бутон за изпращане на имейл за регистрация

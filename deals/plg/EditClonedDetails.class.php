@@ -77,12 +77,12 @@ class deals_plg_EditClonedDetails extends core_Plugin
 			$subCaption = 'К-во';
 			
 			// Ако е инсталиран пакета за партиди, ще се показват и те
-			if($installedBatch && is_object($Def)){
+			if($installedBatch && is_object($Def) && $dRec->autoBatches !== TRUE){
 				$subCaption = 'Без партида';
 				$bQuery = batch_BatchesInDocuments::getQuery();
 				$bQuery->where("#detailClassId = {$detailId} AND #detailRecId = {$dRec->id} AND #productId = {$dRec->{$Detail->productFld}}");
 				$bQuery->groupBy('batch');
-				$bQuery->orderBy('id', "DESC");
+				$bQuery->orderBy('id', "ASC");
 				
 				if(!array_key_exists($dRec->id, $rec->details)){
 					$rec->details[$dRec->id] = $dRec;
@@ -94,6 +94,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
 					$verbal = strip_tags($Def->toVerbal($bRec->batch));
 					$b = str_replace(',', '', $bRec->batch);
 					$b = str_replace('.', '', $b);
+					
 					$bQuantity = $bRec->{$Detail->quantityFld} / $bRec->quantityInPack;
 					$quantity -= $bQuantity;
 					
@@ -108,13 +109,23 @@ class deals_plg_EditClonedDetails extends core_Plugin
 				// Показване на полетата без партиди
 				$form->FLD("quantity||{$dRec->id}|", "double(Min=0)","input,caption={$caption}->{$subCaption}");
 				
-				if(!empty($quantity)){
+				if($quantity > 0){
 					$form->setDefault("quantity||{$dRec->id}|", $quantity);
 				}
 			} else {
 				// Показване на полетата без партиди
 				$form->FLD("quantity||{$dRec->id}|", "double(Min=0)","input,caption={$caption}->Количество");
 				$form->setDefault("quantity||{$dRec->id}|", $dRec->packQuantity);
+				
+				if($dRec->autoBatches === TRUE && $installedBatch){
+					$type = $Detail->getBatchMovementDocument($dRec);
+					if($type == 'out') {
+						$dRec->autoAllocate = TRUE;
+					} elseif($type == 'in'){
+						$dRec->isEdited = TRUE;
+					}
+				}
+				
 				$rec->details["quantity||{$dRec->id}|"] = $dRec;
 			}
 			

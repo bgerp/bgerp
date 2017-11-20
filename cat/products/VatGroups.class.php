@@ -252,4 +252,49 @@ class cat_products_VatGroups extends core_Detail
     	
     	return $value;
     }
+    
+    
+    /**
+     * Намира артикулите с посочена ДДС ставка към подадената дата
+     * 
+     * @param double $percent  - търсен процент
+     * @param date|NULL $date  - към коя дата
+     * @return array $products - намерените артикули
+     */
+    public static function getByVatPercent($percent, $date = NULL)
+    {
+    	$products = array();
+    	$date = (!empty($date)) ? $date : dt::now();
+    	$gQuery = acc_VatGroups::getQuery();
+    	$gQuery->where(array("#vat = '[#1#]'", $percent));
+    	$groups = arr::extractValuesFromArray($gQuery->fetchAll(), 'id');
+    	if(!count($groups)) return $products;
+    	
+    	$query = self::getQuery();
+    	$query->where("#validFrom <= '{$date}'");
+    	$query->orderBy("#validFrom", "DESC");
+    	$query->show('vatGroup,productId');
+    	
+    	while($rec = $query->fetch()){
+    		if(!array_key_exists($rec->productId, $products)){
+    			$products[$rec->productId] = $rec;
+    		}
+    	}
+    	
+    	$products = array_filter($products, function ($obj) use ($groups) {if(in_array($obj->vatGroup, $groups)) return TRUE;});
+    	$products = arr::extractValuesFromArray($products, 'productId');
+    	
+    	// Ако дефолтното ддс за периода е колкото търсеното, се извличат и всички които нямат записи в модела
+    	// за конкретна ддс група
+    	$vatRate = acc_Periods::fetchByDate($date)->vatRate;
+    	if($vatRate === $percent){
+    		$pQuery = cat_Products::getQuery();
+    		$pQuery->show('id');
+    		$pQuery->notIn('id', $products);
+    		$productsDefArr = arr::extractValuesFromArray($pQuery->fetchAll(), 'id');
+    		$products = $productsDefArr + $products;
+    	}
+    	
+    	return $products;
+    }
 }

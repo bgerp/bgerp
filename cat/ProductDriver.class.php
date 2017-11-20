@@ -515,12 +515,12 @@ abstract class cat_ProductDriver extends core_BaseClass
 	/**
      * Допълнителните условия за дадения продукт,
      * които автоматично се добавят към условията на договора
-     *
-     * @param mixed $rec       - ид или запис на артикул
-     * @param double $quantity - к-во
-     * @return array           - Допълнителните условия за дадения продукт
+     * 
+     * @param stdClass $rec   - ид/запис на артикул
+     * @param string $docType - тип на документа sale/purchase
+     * @param string|NULL $lg - език
      */
-	public function getConditions($rec, $quantity)
+    public function getConditions($rec, $docType, $lg = NULL)
 	{
 		return array();
 	}
@@ -562,18 +562,6 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 */
 	public function getAdditionalNotesToDocument($productId, $documentType)
 	{
-		// Ако е ф-ра и има избран параметър за експорт показва се
-		if($documentType == 'invoice'){
-			if($exportParamId = acc_Setup::get('INVOICE_MANDATORY_EXPORT_PARAM')){
-				$value = cat_Products::getParams($productId, $exportParamId, TRUE);
-				if(!empty($value)){
-					$value = "<span class='small'>{$value}</span>";
-					
-					return $value;
-				}
-			}
-		}
-		
 		return NULL;
 	}
 	

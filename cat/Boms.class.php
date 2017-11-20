@@ -32,7 +32,13 @@ class cat_Boms extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Clone, cat_plg_AddSearchKeywords, plg_Search';
+    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Clone, cat_plg_AddSearchKeywords, plg_Search, change_Plugin';
+    
+    
+    /**
+     * Полетата, които могат да се променят с change_Plugin
+     */
+    public $changableFields = 'showInProduct';
     
     
     /**
@@ -169,7 +175,7 @@ class cat_Boms extends core_Master
     	$this->FLD('expenses', 'percent(Мin=0)', 'caption=Общи режийни');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен)', 'caption=Статус, input=none');
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
-    	$this->FLD('showInProduct', 'enum(,auto=Автоматично,yes=Да,no=Не)', 'caption=Показване в артикула');
+    	$this->FLD('showInProduct', 'enum(,auto=Автоматично,product=В артикула,job=В заданието,yes=Навсякъде,no=Никъде)', 'caption=Показване в артикула,changeable');
     	$this->FLD('quantityForPrice', 'double(smartRound,min=0)', 'caption=Изчисляване на себестойност->При тираж,silent');
     	$this->FLD('hash', 'varchar', 'input=none');
     	
@@ -179,18 +185,34 @@ class cat_Boms extends core_Master
     
     /**
      * Показване на рецептата в артикула
-     * 
+     *
      * @param int $bomId
+     * @param core_Mvc $mvc
      * @return boolean
      */
-    public static function showInProduct($id)
+    public static function showIn($id, $className)
     {
     	$rec = self::fetchRec($id);
     	$showInProduct = !empty($rec->showInProduct) ? $rec->showInProduct : cat_Setup::get('SHOW_BOM_IN_PRODUCT');
     	
-    	if($showInProduct == 'auto') return (cat_Products::fetchField($rec->productId, 'fixedAsset') == 'yes'); 
-    		
-    	return ($showInProduct == 'yes') ? TRUE : FALSE;
+    	switch($showInProduct){
+    		case 'auto':
+    			$res = (cat_Products::fetchField($rec->productId, 'fixedAsset') == 'yes');
+    			break;
+    		case 'yes':
+    			$res = TRUE;
+    			break;
+    		case 'product':
+    			$res = ($className == 'cat_Products');
+    			break;
+    		case 'job':
+    			$res = ($className == 'planning_Jobs');
+    			break;
+    		default:
+    			$res = FALSE;
+    	}
+    	
+    	return $res;
     }
     
     

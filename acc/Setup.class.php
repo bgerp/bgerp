@@ -72,18 +72,6 @@ defIfNot('ACC_SUMMARY_ROLES_FOR_TEAMS', 'ceo,admin,manager');
 
 
 /**
- * Класове, които ще разширяват правата за контиране на документ
- */
-defIfNot('ACC_CLASSES_FOR_VIEW_ACCESS', '');
-
-
-/**
- * Класове по-подразбиране, които ще пълнята ACC_CLASSES_FOR_VIEW_ACCESS, ако няма стойност
- */
-defIfNot('ACC_CLASSES_FOR_VIEW_ACCESS_NAME', 'bank_ExchangeDocument, bank_IncomeDocuments, bank_InternalMoneyTransfer, cash_InternalMoneyTransfer, purchase_Services, planning_DirectProductionNote, planning_ConsumptionNotes, planning_ReturnNotes, cash_Pko, cash_Rko, store_ShipmentOrders, sales_Services, store_ConsignmentProtocols, store_Receipts, store_Transfers');
-
-
-/**
  * Ден от месеца за изчисляване на Счетоводна дата на входяща фактура
  */
 defIfNot('ACC_DATE_FOR_INVOICE_DATE', '10');
@@ -162,6 +150,7 @@ class acc_Setup extends core_ProtoSetup
     	'acc_ValueCorrections',
         'acc_FeatureTitles',
     	'acc_CostAllocations',
+        'migrate::removeUnusedRole'
     );
     
     
@@ -177,7 +166,6 @@ class acc_Setup extends core_ProtoSetup
     	'ACC_COST_OBJECT_DOCUMENTS'            => array('keylist(mvc=core_Classes,select=name)', "caption=Кои документи могат да бъдат разходни обекти->Документи,optionsFunc=acc_Setup::getDocumentOptions"),
         'ACC_SUMMARY_ROLES_FOR_TEAMS'          => array('varchar', 'caption=Роли за екипите при филтриране->Роли'),
         'ACC_SUMMARY_ROLES_FOR_ALL'            => array('varchar', 'caption=Роли за всички при филтриране->Роли'),
-        'ACC_CLASSES_FOR_VIEW_ACCESS'          => array('keylist(mvc=core_Classes, select=title)', 'caption=Класове|*&#44; |*които ще разширяват правата за контиране на документи->Класове, optionsFunc=acc_Setup::getAccessClassOptions', array('data-role' => 'list')),
 		'ACC_DATE_FOR_INVOICE_DATE'			   => array('int(min=1,max=31)', 'caption=Ден от месеца за изчисляване на Счетоводна дата на входяща фактура->Ден'),
 		'ACC_INVOICE_MANDATORY_EXPORT_PARAM'   => array("key(mvc=cat_Params,select=name,allowEmpty)", 'caption=Артикул за експорт на данъчна фактура->Параметър'),
     );
@@ -197,7 +185,7 @@ class acc_Setup extends core_ProtoSetup
         array('invoiceAll'),
         array('invoiceAllGlobal', 'invoiceAll, allGlobal'),
         array('storeAll'),
-        array('storeaAllGlobal', 'storeAll, allGlobal'),
+        array('storeAllGlobal', 'storeAll, allGlobal'),
         array('bankAll'),
         array('bankAllGlobal', 'bankAll, allGlobal'),
         array('cashAll'),
@@ -316,33 +304,6 @@ class acc_Setup extends core_ProtoSetup
     		$res .= "<li style='color:green'>Добавени са дефолт документи за разходни пера</li>";
     	}
     	
-    	$viewAccess = self::get('CLASSES_FOR_VIEW_ACCESS');
-    	
-    	// Ако не е сетната стойност, задаваме класовете от константата
-    	if (!strlen($viewAccess)) {
-    	    $viewAccessNameArr = type_Set::toArray(self::get('CLASSES_FOR_VIEW_ACCESS_NAME'));
-    	    if (!empty($viewAccessNameArr)) {
-    	        
-    	        $clsIdArr = array();
-    	        
-    	        foreach ($viewAccessNameArr as $clsName) {
-    	            
-    	            $clsName = trim($clsName);
-    	            if (!$clsName) continue;
-    	            
-    	            if (!cls::load($clsName, TRUE)) continue;
-    	            
-    	            $clsId = core_Classes::getId($clsName);
-    	            
-    	            $clsIdArr[$clsId] = $clsId;
-    	        }
-    	        
-    	        $clsIds = type_Keylist::fromArray($clsIdArr);
-    	        
-    	        core_Packs::setConfig('acc', array('ACC_CLASSES_FOR_VIEW_ACCESS' => $clsIds));
-    	    }
-    	}
-    	
     	return $res;
     }
     
@@ -389,5 +350,15 @@ class acc_Setup extends core_ProtoSetup
     	$options = core_Classes::getOptionsByInterface('doc_DocumentIntf', 'title');
     	
     	return $options;
+    }
+    
+    
+    /**
+     * Миграция за премахване на грешно изписана роля
+     */
+    public static function removeUnusedRole()
+    {
+        core_Roles::removeRoles(array('storeaAllGlobal'));
+        core_Roles::delete("#role = 'storeaAllGlobal'");
     }
 }

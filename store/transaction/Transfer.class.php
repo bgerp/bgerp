@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа store_Transfers
  *
@@ -36,10 +37,18 @@ class store_transaction_Transfer extends acc_DocumentTransactionSource
 				'entries'     => array()
 		);
 	
+		$error = TRUE;
 		$dQuery = store_TransfersDetails::getQuery();
 		$dQuery->where("#transferId = '{$rec->id}'");
 		while($dRec = $dQuery->fetch()){
-			 
+			if(empty($dRec->quantity)) {
+				if(Mode::get('saveTransaction')){
+					continue;
+				}
+			} else {
+				$error = FALSE;
+			}
+			
 			// Ако артикула е вложим сметка 321
 			$accId = '321';
 			$result->entries[] = array(
@@ -57,6 +66,12 @@ class store_transaction_Transfer extends acc_DocumentTransactionSource
 			);
 		}
 	
+		if(Mode::get('saveTransaction')){
+			if($error === TRUE){
+				acc_journal_RejectRedirect::expect(FALSE, "Трябва да има поне един ред с ненулево количество|*!");
+			}
+		}
+		
 		return $result;
 	}
 }

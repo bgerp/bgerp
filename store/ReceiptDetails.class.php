@@ -39,7 +39,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_SaveAndNew, plg_RowNumbering,Policy=purchase_PurchaseLastPricePolicy, 
+    public $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_SaveAndNew, plg_RowNumbering,store_plg_RequestDetail,Policy=purchase_PurchaseLastPricePolicy, 
                         plg_AlignDecimals2, plg_Sorting, doc_plg_HidePrices, ReverseLastPricePolicy=sales_SalesLastPricePolicy, 
                         Policy=purchase_PurchaseLastPricePolicy, plg_PrevAndNext,deals_plg_ImportDealDetailProduct,cat_plg_ShowCodes,store_plg_TransportDataDetail';
     
@@ -113,13 +113,21 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     
     
     /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'requestedQuantity,weight,volume';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
         $this->FLD('receiptId', 'key(mvc=store_Receipts)', 'column=none,notNull,silent,hidden,mandatory');
         parent::setDocumentFields($this);
-        $this->setFieldTypeParams('packQuantity', "Min=0");
+        $this->setFieldTypeParams('packQuantity', "min=0");
     }
 
     

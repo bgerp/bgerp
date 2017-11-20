@@ -309,7 +309,7 @@ class plg_Clone extends core_Plugin
             
             // Добавяме бутон за клониране в сингъл изгледа
             $title = tr('|Клониране на|*' . ' ' . $singleTitle);
-            $data->toolbar->addBtn('Клониране', array($mvc, 'cloneFields', $data->rec->id, 'ret_url' => array($mvc, 'single', $data->rec->id)), "ef_icon=img/16/clone.png,title={$title},row=2, order=19.1");
+            $data->toolbar->addBtn('Клониране', array($mvc, 'cloneFields', $data->rec->id, 'ret_url' => array($mvc, 'single', $data->rec->id)), "ef_icon=img/16/clone.png,title={$title},row=2,id=clone{$data->rec->containerId}, order=19.1");
         }
     }
     

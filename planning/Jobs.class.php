@@ -218,17 +218,14 @@ class planning_Jobs extends core_Master
      * Връща последните валидни задания за артикула
      * 
      * @param int $productId  - ид на артикул
-     * @param int $saleId  - ид на продажба
      * @param int $id    - ид на текущото задание
      * @return array $res     - масив с предишните задания
      */
-    public static function getOldJobs($productId, $saleId, $id)
+    private static function getOldJobs($productId, $id)
     {
     	$res = array();
     	$query = self::getQuery();
-    	$where = "#id != '{$id}' AND #productId = {$productId} AND (#state = 'active' OR #state = 'wakeup' OR #state = 'stopped' OR #state = 'closed') AND ";
-    	$where .= (!empty($saleId) ? "(#saleId IS NULL OR #saleId = {$saleId})" : "#saleId IS NULL");
-    	$query->where($where);
+    	$query->where("#id != '{$id}' AND #productId = {$productId} AND (#state = 'active' OR #state = 'wakeup' OR #state = 'stopped' OR #state = 'closed')");
     	$query->orderBy('id', 'DESC');
     	$query->show('id,productId,state');
     	
@@ -252,7 +249,7 @@ class planning_Jobs extends core_Master
     	$rec = &$form->rec;
     	
     	// Ако има предишни задания зареждат се за избор
-    	$oldJobs = self::getOldJobs($rec->productId, $rec->saleId, $rec->id);
+    	$oldJobs = self::getOldJobs($rec->productId, $rec->id);
     	
     	if(count($oldJobs)){
     		$form->setField('oldJobId', 'input');
@@ -473,6 +470,11 @@ class planning_Jobs extends core_Master
     	$data->packagingData->listFields['packagingId'] = 'Опаковка';
     	$packagingTpl = cls::get('cat_products_Packagings')->renderPackagings($data->packagingData);
     	$tpl->replace($packagingTpl, 'PACKAGINGS');
+    	
+    	if(count($data->components)){
+    		$componentTpl = cat_Products::renderComponents($data->components);
+    		$tpl->append($componentTpl, 'JOB_COMPONENTS');
+    	}
     }
     
     
@@ -685,7 +687,8 @@ class planning_Jobs extends core_Master
     		
     		$date = ($rec->state == 'draft') ? NULL : $rec->modifiedOn;
     		$lg = core_Lg::getCurrent();
-    		$row->origin = cat_Products::getAutoProductDesc($rec->productId, $date, 'detailed', 'internal', $lg, $rec->quantity);
+    		$row->origin = cat_Products::getAutoProductDesc($rec->productId, $date, 'detailed', 'job', $lg);
+    		
     		if(isset($rec->department)){
     			$row->department = hr_Departments::getHyperlink($rec->department, TRUE);
     		}
@@ -922,6 +925,9 @@ class planning_Jobs extends core_Master
     	$data->packagingData->masterId = $data->rec->productId;
     	$data->packagingData->tpl = new core_ET("[#CONTENT#]");
     	cls::get('cat_products_Packagings')->preparePackagings($data->packagingData);
+    	
+    	$data->components = array();
+    	cat_Products::prepareComponents($data->rec->productId, $data->components, 'job', $data->rec->quantity);
     }
     
     
