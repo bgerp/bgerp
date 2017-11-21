@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class cat_PriceDetails extends core_Manager
+class cat_products_PriceDetails extends core_Manager
 {
     
 	
