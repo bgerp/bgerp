@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Правилата за ценоразписите за продуктите от каталога
  *
@@ -187,7 +188,6 @@ class price_ListRules extends core_Detail
         if($type != 'groupDiscount'){
     		expect($productRec = cat_Products::getByCode($productCode));
     		$productRec = cat_Products::fetch($productRec->productId);
-    		// expect($productRec->canSell == 'yes', 'Артикулът не е продаваем');
     		$rec->productId = $productRec->id;
     		$rec->priority = 1;
     	}
@@ -294,10 +294,7 @@ class price_ListRules extends core_Detail
 	 */
 	public static function getProductFilterOptions($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
 	{
-		//if(!empty($onlyIds)) return array($onlyIds => cat_Products::getTitleById($onlyIds, FALSE));
-		$options = self::getProductOptions($params['listId'], $limit, $q, $onlyIds);
-		
-		return $options;
+		return self::getProductOptions($params['listId'], $limit, $q, $onlyIds);
 	}
 	
 	
@@ -387,9 +384,6 @@ class price_ListRules extends core_Detail
         	if($round === TRUE){
         		$price = price_Lists::roundPrice($listRec, $price);
         	}
-        	
-        	// Записваме току-що изчислената цена в историята;
-        	//price_History::setPrice($price, $listId, $datetime, $productId);
         }
         
         // Връщаме намерената цена
@@ -485,11 +479,9 @@ class price_ListRules extends core_Detail
             case 'discount' :
                 $form->setField('groupId,price,currency,vat', 'input=none');
                 $data->singleTitle = "правило за марж";
-                
                 $form->getField('targetPrice')->unit = "|*" . $masterRec->currency . ", ";
                 $form->getField('targetPrice')->unit .= ($masterRec->vat == 'yes') ? "|с ДДС|*" : "|без ДДС|*";
-                
-                break;
+                 break;
             case 'value' :
                 $form->setField('groupId,discount,calculation,targetPrice', 'input=none');
                 $data->singleTitle = "правило за продуктова цена";
@@ -500,7 +492,6 @@ class price_ListRules extends core_Detail
                 	$form->setReadOnly('currency');
                 	$form->setReadOnly('vat');
                 }
-
                 break;
         }
 
@@ -516,7 +507,7 @@ class price_ListRules extends core_Detail
      */
     protected static function on_AfterPrepareEditToolbar($mvc, &$res, &$data)
     {
-    	$form = $data->form;
+    	$form = &$data->form;
     	if(Request::get('productId') && $form->rec->type == 'value' && $form->cmd != 'refresh'){
     		$data->form->toolbar->removeBtn('saveAndNew');
     	}
