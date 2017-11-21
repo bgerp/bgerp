@@ -197,10 +197,10 @@ class planning_Tasks extends core_Master
 	 */
 	function description()
 	{
-		$this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,changable,silent');
+		$this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,silent,input=hidden');
 		$this->FLD('totalWeight', 'cat_type_Weight', 'caption=Общо тегло,input=none');
 		
-		$this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'mandatory,caption=Произвеждане->Артикул,removeAndRefreshForm=packagingId|inputInTask,silent');
+		$this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'mandatory,caption=Произвеждане->Артикул,removeAndRefreshForm=packagingId|inputInTask|paramcat,silent');
 		$this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'mandatory,caption=Произвеждане->Опаковка,after=productId,input=hidden,tdClass=small-field nowrap,removeAndRefreshForm,silent');
 		$this->FLD('plannedQuantity', 'double(smartRound,Min=0)', 'mandatory,caption=Произвеждане->Планирано,after=packagingId');
 		$this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Произвеждане->Склад,input=none');
@@ -661,20 +661,19 @@ class planning_Tasks extends core_Master
 		}
 		 
 		// Копиране на параметрите на артикула към операцията
-		$tasksClassId = planning_Tasks::getClassId();
-		$params = cat_Products::getParams($rec->productId);
 		
-		if(is_array($params)){
-			foreach ($params as $k => $v){
-				if(cat_Params::fetchField($k, 'showInTasks') != 'yes') continue;
-				 
-				$nRec = (object)array('paramId' => $k, 'paramValue' => $v, 'classId' => $tasksClassId, 'productId' => $rec->id);
-				if($id = cat_products_Params::fetchField("#classId = {$tasksClassId} AND #productId = {$rec->id} AND #paramId = {$k}", 'id')){
-					$nRec->id = $id;
-				}
-	
-				cat_products_Params::save($nRec, NULL, "REPLACE");
+		if(!is_array($rec->params)) return;
+			
+		$tasksClassId = planning_Tasks::getClassId();
+		foreach ($rec->params as $k => $o){
+			if(!isset($rec->{$k})) continue;
+			
+			$nRec = (object)array('paramId' => $o->paramId, 'paramValue' => $rec->{$k}, 'classId' => $tasksClassId, 'productId' => $rec->id);
+			if($id = cat_products_Params::fetchField("#classId = {$tasksClassId} AND #productId = {$rec->id} AND #paramId = {$o->paramId}", 'id')){
+				$nRec->id = $id;
 			}
+					
+			cat_products_Params::save($nRec, NULL, "REPLACE");
 		}
 	}
 	
@@ -697,8 +696,6 @@ class planning_Tasks extends core_Master
 				$rec->folderId = $folderId;
 			}
 		}
-		
-		$form->setField('title', 'input=hidden');
 		
 		// За произвеждане може да се избере само артикула от заданието
 		$origin = doc_Containers::getDocument($rec->originId);
@@ -723,11 +720,32 @@ class planning_Tasks extends core_Master
 			}
 		}
 		
-		if(!isset($rec->productId)){
-			$form->setDefault('productId', $originRec->productId);
-		}
-		
 		if(isset($rec->productId)){
+			if(empty($rec->id)){
+				
+				// Показване на параметрите за задача във формата, като задължителни полета
+				$params = cat_Products::getParams($rec->productId);
+				$taskParams = cat_Params::getTaskParamIds();
+				$diff = array_intersect_key($params, $taskParams);
+				foreach ($diff as $pId => $v){
+					$paramRec = cat_Params::fetch($pId);
+					$name = cat_Params::getVerbal($paramRec, 'name');
+					$form->FLD("paramcat{$pId}", 'double', "caption=Параметри на задачата->{$name},mandatory,before=description");
+					$form->setFieldType("paramcat{$pId}", cat_Params::getTypeInstance($pId, $mvc, $rec->id));
+				
+					if(!empty($paramRec->suffix)){
+						$suffix = cat_Params::getVerbal($paramRec, 'suffix');
+						$form->setField("paramcat{$pId}", "unit={$suffix}");
+					}
+				
+					if(isset($v)){
+						$form->setSuggestions("paramcat{$pId}", array('' => '', $v => $v));
+					}
+				
+					$rec->params["paramcat{$pId}"] = (object)array('paramId' => $pId);
+				}
+			}
+			
 			$packs = cat_Products::getPacks($rec->productId);
 			$form->setOptions('packagingId', $packs);
 				
@@ -773,6 +791,8 @@ class planning_Tasks extends core_Master
 					$rec->{$name} = $rec->additionalFields[$name];
 				}
 			}
+		} else {
+			$form->setDefault('productId', $originRec->productId);
 		}
 		
 		if(isset($rec->id)){
