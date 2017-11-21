@@ -540,7 +540,7 @@ class core_Manager extends core_Mvc
                     $this,
                     'add'
                 ),
-                'id=btnAdd', 'ef_icon = img/16/layer_create.png,title=Създаване на нов запис');
+                'id=btnAdd', 'ef_icon = img/16/star_2.png,title=Създаване на нов запис');
         }
         
         return $data;

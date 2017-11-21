@@ -485,7 +485,7 @@ class acc_Items extends core_Manager
         if($listId){
             // Проверка може ли да добавяме записи пък това перо
             if ($this->haveRightFor('add', (object)array('lists' => arr::make($listId, TRUE)))) {
-                $data->toolbar->addBtn('Нов запис', array($this, 'add', 'listId' => $listId), 'id=btnAdd', 'ef_icon = img/16/layer_create.png,title=Създаване на нов запис');
+                $data->toolbar->addBtn('Нов запис', array($this, 'add', 'listId' => $listId), 'id=btnAdd', 'ef_icon = img/16/star_2.png,title=Създаване на нов запис');
             }
             
             // Може ли да импортираме от модел, ако да махаме бутона за нормално добавяне

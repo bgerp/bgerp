@@ -641,7 +641,7 @@ class crm_Locations extends core_Master {
     {
     	// За да може да се създава нов търговски обект, трябва потребителя да има права за нова продажба, локация и маршрут
     	if(crm_Companies::haveRightFor('add') && crm_Locations::haveRightFor('add') && sales_Routes::haveRightFor('add')){
-    		$data->toolbar->addBtn('Нов търговски обект', array($mvc, 'newSaleObject', 'ret_url' => TRUE), 'ef_icon=img/16/layer_create.png,title=Създаване на нов търговски обект');
+    		$data->toolbar->addBtn('Нов търговски обект', array($mvc, 'newSaleObject', 'ret_url' => TRUE), 'ef_icon=img/16/star_2.png,title=Създаване на нов търговски обект');
     	}
     }
     

@@ -534,7 +534,7 @@ class cat_UoM extends core_Manager
     	$title = ($type == 'uom') ? 'мярка' : 'опаковка';
     	
     	$data->toolbar->removeBtn('btnAdd');
-    	$data->toolbar->addBtn('Нов запис', array($mvc, 'add', 'type' => $type), "ef_icon=img/16/layer_create.png,title=Добавяне на нова {$title}");
+    	$data->toolbar->addBtn('Нов запис', array($mvc, 'add', 'type' => $type), "ef_icon=img/16/star_2.png,title=Добавяне на нова {$title}");
     
     	if(!haveRole('debug')){
     		unset($data->listFields['sysId']);
