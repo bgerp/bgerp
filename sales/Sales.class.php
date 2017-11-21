@@ -981,12 +981,12 @@ class sales_Sales extends deals_DealMaster
     	while($dRec = $dQuery->fetch()){
     		$jobRows = sales_SalesDetails::prepareJobInfo($dRec, $rec);
     		if(count($jobRows)){
-    			$data->jobs = array_merge($data->jobs, $jobRows);
+    			$data->jobs += $jobRows;
     		}
     	}
     	
     	if(planning_Jobs::haveRightFor('Createjobfromsale', (object)array('saleId' => $rec->id))){
-    		$data->addJobUrl = array('planning_Jobs', 'CreateJobFromSale', 'saleId' => $rec->id, 'ret_url' => TRUE);
+    		$data->addJobUrl = array('planning_Jobs', 'CreateJobFromSale', 'saleId' => $rec->id, 'foreignId' => $rec->containerId,'ret_url' => TRUE);
     	}
     }
     

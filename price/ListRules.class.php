@@ -931,6 +931,7 @@ class price_ListRules extends core_Detail
 	 * Връща масив с възможните за избор артикули (стандартни и продаваеми)
 	 * 
 	 * @param int $listId
+	 * @param int|NULL $limit
 	 * @return array $options
 	 */
 	public static function getProductOptions($listId, $limit = NULL)
