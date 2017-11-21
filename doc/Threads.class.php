@@ -2122,7 +2122,7 @@ class doc_Threads extends core_Manager
         	} else {
         		// Може да се добавя нов документ, само ако папката не е затворена
         		if(doc_Folders::haveRightFor('newdoc', $data->folderId)){
-        			$data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'folderId' => $data->folderId), 'id=btnAdd', array('ef_icon'=>'img/16/layer_create.png', 'title'=>'Създаване на нова тема в папката'));
+        			$data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'folderId' => $data->folderId), 'id=btnAdd', array('ef_icon'=>'img/16/star_2.png', 'title'=>'Създаване на нова тема в папката'));
         		}
         		self::addBinBtnToToolbar($data);
         		

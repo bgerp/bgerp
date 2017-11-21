@@ -727,7 +727,7 @@ class cms_Articles extends core_Master
                     'add',
                     'menuId' => $data->listFilter->rec->menuId,
                 ),
-                'id=btnAdd', 'ef_icon = img/16/layer_create.png,title=Създаване на нов запис');
+                'id=btnAdd', 'ef_icon = img/16/star_2.png,title=Създаване на нов запис');
         }
  
     }
