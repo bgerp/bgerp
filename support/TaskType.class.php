@@ -176,7 +176,7 @@ class support_TaskType extends core_Mvc
      *
      * @param support_TaskType $Driver
      * @param cal_Tasks $mvc
-     * @param NULL|array $res
+     * @param NULL|array $resArr
      * @param object $rec
      * @param object $row
      */

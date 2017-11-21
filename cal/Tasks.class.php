@@ -661,7 +661,7 @@ class cal_Tasks extends embed_Manager
      */
     public static function canAddProgress($rec)
     {
-        if ($tRec->state != 'rejected' && $tRec->state != 'draft' && $tRec->state != 'template') return TRUE;
+        if ($rec->state != 'rejected' && $rec->state != 'draft' && $rec->state != 'template') return TRUE;
         
         return FALSE;
     }
@@ -670,7 +670,7 @@ class cal_Tasks extends embed_Manager
     /**
      * След подготовка на тулбара на единичен изглед.
      *
-     * @param core_Mvc $mvc
+     * @param cal_Tasks $mvc
      * @param stdClass $data
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, $data)
