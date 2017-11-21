@@ -244,7 +244,7 @@ class sales_SalesDetails extends deals_DealDetail
     		$row->dueDate = cls::get('type_Date')->toVerbal($jRec->dueDate);
     		$row->jobId = planning_Jobs::getLink($jRec->id, 0);
     		
-    		$res[] = $row;
+    		$res[$jRec->id] = $row;
     	}
     	
     	return $res;
