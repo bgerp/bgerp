@@ -259,4 +259,19 @@ class cat_Params extends bgerp_ProtoParam
     	// Създаване на параметъра
     	return self::save($nRec);
     }
+    
+    
+    /**
+     * Връща параметрите, които се показват само в задачите
+     * 
+     * @return array $res
+     */
+    public static function getTaskParamIds()
+    {
+    	$query = self::getQuery();
+    	$query->where("#showInTasks = 'yes'");
+    	$res = arr::extractValuesFromArray($query->fetchAll(), 'id');
+    	
+    	return $res;
+    }
 }
