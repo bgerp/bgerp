@@ -294,9 +294,8 @@ class price_ListRules extends core_Detail
 	 */
 	public static function getProductFilterOptions($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
 	{
-		if(!empty($onlyIds)) return array($onlyIds => cat_Products::getTitleById($onlyIds, FALSE));
-		$options = self::getProductOptions($params['listId'], $limit);
-		$options = array('' => '') + $options;
+		//if(!empty($onlyIds)) return array($onlyIds => cat_Products::getTitleById($onlyIds, FALSE));
+		$options = self::getProductOptions($params['listId'], $limit, $q, $onlyIds);
 		
 		return $options;
 	}
@@ -930,21 +929,46 @@ class price_ListRules extends core_Detail
 	/**
 	 * Връща масив с възможните за избор артикули (стандартни и продаваеми)
 	 * 
-	 * @param int $listId
-	 * @param int|NULL $limit
-	 * @return array $options
+	 * @param int $listId     - лист
+	 * @param int|NULL $limit - лимит
+	 * @param strint $q       - стринг за търсене
+	 * @param mixed $onlyIds  - само кои ид-та да се извлекат
+	 * @return array $options - избор на артикули
 	 */
-	public static function getProductOptions($listId, $limit = NULL)
+	public static function getProductOptions($listId, $limit = NULL, $q = '', $onlyIds = NULL)
 	{
 		$options = array();
 		$pQuery = cat_Products::getQuery();
 		$pQuery->where("#state = 'active'");
+		$pQuery->XPR('searchFieldXpr', 'text', "LOWER(CONCAT(' ', #name, ' ', COALESCE(#code, CONCAT('Art', #id))))");
+		$pQuery->show('id,name,isPublic,code,createdOn');
 		if($listId != self::PRICE_LIST_COST){
 			$pQuery->where("#isPublic = 'yes' AND #canSell = 'yes'");
 		}
-		$pQuery->show('id,name,isPublic,code,createdOn');
+		
 		if(isset($limit)){
 			$pQuery->limit($limit);
+		}
+		
+		if(is_array($onlyIds)) {
+			if(!count($onlyIds)) return array();
+		
+			$ids = implode(',', $onlyIds);
+			expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
+			$pQuery->where("#id IN ($ids)");
+		} elseif(ctype_digit("{$onlyIds}")) {
+			$pQuery->where("#id = {$onlyIds}");
+		}
+		
+		if($q) {
+			if($q{0} == '"') $strict = TRUE;
+			$q = mb_strtolower(trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q)));
+			$qArr = ($strict) ? array(str_replace(' ', '.*', $q)) : explode(' ', $q);
+		
+			$pBegin = type_Key2::getRegexPatterForSQLBegin();
+			foreach($qArr as $w) {
+				$pQuery->where(array("#searchFieldXpr REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
+			}
 		}
 		
 		while($pRec = $pQuery->fetch()){
