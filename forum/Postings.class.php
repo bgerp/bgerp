@@ -620,13 +620,12 @@ class forum_Postings extends core_Detail {
         
         // Бутон за преглед във външния изглед
         $themeUrl = array($this, 'Theme', $data->rec->id);
-        $tpl->append(ht::createBtn('Преглед', $themeUrl, NULL, NULL, 'ef_icon = img/16/preview.png'), 'TOOLS');
+        $tpl->append(ht::createBtn('Преглед', $themeUrl, NULL, NULL, 'ef_icon = img/16/star_2.png'), 'TOOLS');
         
 		// Бутон за заключване/отключване на темата за коментиране
 		if($data->lockUrl) {
         	($data->rec->status == 'unlocked') ?  $str = 'Заключване' : $str = 'Отключване';
-			$img = ($data->rec->status == 'unlocked') ?  "lock_unlock" : "lock";
-			$tpl->append(ht::createBtn(tr($str), $data->lockUrl, NULL, NULL, "ef_icon = img/16/{$img}.png"), 'TOOLS');
+        	$tpl->append(ht::createBtn(tr($str), $data->lockUrl, NULL, NULL, 'ef_icon = img/16/star_2.png'), 'TOOLS');
          }
 		
         // Ако имаме право да местим темата, рендираме формата за местене

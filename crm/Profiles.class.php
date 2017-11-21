@@ -767,7 +767,7 @@ class crm_Profiles extends core_Master
 
         $data->form->setField('personId', 'input');
         
-        $data->form->toolbar->addBtn('Нов потребител', $addUserUrl, 'ef_icon = img/16/user-profile.png');
+        $data->form->toolbar->addBtn('Нов потребител', $addUserUrl, 'ef_icon = img/16/star_2.png');
     }
     
     
@@ -1169,7 +1169,7 @@ class crm_Profiles extends core_Master
                         'add',
                         'ret_url' => TRUE,
                     ),
-                    'id=new', 'ef_icon=img/16/user-profile.png,title=Добавяне на нов потребител');
+                    'id=new', 'ef_icon=img/16/star_2.png,title=Добавяне на нов потребител');
 
 
         }

@@ -217,9 +217,9 @@ class planning_Jobs extends core_Master
     /**
      * Връща последните валидни задания за артикула
      * 
-     * @param int $productId  - ид на артикул
-     * @param int $id    - ид на текущото задание
-     * @return array $res     - масив с предишните задания
+     * @param int $productId - ид на артикул
+     * @param int $id        - ид на текущото задание
+     * @return array $res    - масив с предишните задания
      */
     private static function getOldJobs($productId, $id)
     {
@@ -258,7 +258,6 @@ class planning_Jobs extends core_Master
     	
     	$form->setReadOnly('productId');
     	$pInfo = cat_Products::getProductInfo($rec->productId);
-    	$uomName = cat_UoM::getShortName($pInfo->productRec->measureId);
     	
     	$packs = cat_Products::getPacks($rec->productId);
     	$form->setOptions('packagingId', $packs);
@@ -392,12 +391,12 @@ class planning_Jobs extends core_Master
     				case 'all':
     					break;
     				case 'progress':
-    					$data->query->XPR('progress', 'double', 'ROUND(#quantity / #quantityProduced, 2)');
+    					$data->query->XPR('progress', 'double', 'ROUND(#quantity / COALESCE(#quantityProduced, 0), 2)');
     					$data->query->where("#state = 'active'");
     					$data->query->orderBy('progress', 'DESC');
     					break;
     				case 'activenotasks':
-    					$tQuery = tasks_Tasks::getQuery();
+    					$tQuery = planning_Tasks::getQuery();
     					$tQuery->where("#originId IS NOT NULL");
     					$tQuery->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=originId');
     					$tQuery->EXT('docId', 'doc_Containers', 'externalName=docId,externalKey=originId');
@@ -664,7 +663,7 @@ class planning_Jobs extends core_Master
     		}
     	}
     		
-    	if($fields['-single']){
+    	if(isset($fields['-single'])){
     		$canStore = cat_Products::fetchField($rec->productId, 'canStore');
     		$row->captionProduced = ($canStore == 'yes') ? tr('Заскладено') : tr('Изпълнено');
     		$row->captionNotStored = ($canStore == 'yes') ? tr('Незаскладено') : tr('Неизпълнено');

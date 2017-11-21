@@ -242,7 +242,7 @@ class planning_ObjectResources extends core_Manager
     	$tpl->append($table->get($data->rows, $data->listFields), 'content');
     	
     	if(isset($data->addUrl)){
-    		$addLink = ht::createBtn('Добави', $data->addUrl, FALSE, FALSE, 'ef_icon=img/16/layer_create.png,title=Добавяне на информация за влагане');
+    		$addLink = ht::createBtn('Добави', $data->addUrl, FALSE, FALSE, 'ef_icon=img/16/star_2.png,title=Добавяне на информация за влагане');
     		$tpl->append($addLink, 'BTNS');
     	}
     	

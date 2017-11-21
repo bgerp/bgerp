@@ -729,9 +729,9 @@ class doc_Containers extends core_Manager
     	if($data->threadRec->state != 'rejected' && $folderState != 'closed') {
         	
         	if(doc_Threads::haveRightFor('newdoc', $data->threadId)){
-        		$data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'threadId' => $data->threadId), 'id=btnAdd', array('ef_icon'=>'img/16/layer_create.png','title'=>'Създаване на нов документ в нишката'));
+        		$data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'threadId' => $data->threadId), 'id=btnAdd', array('ef_icon'=>'img/16/star_2.png','title'=>'Създаване на нов документ в нишката'));
         	}
-
+            
         	if(doc_Threads::haveRightFor('single', $data->threadRec)){
         		
         		if($data->threadRec->state == 'opened') {
