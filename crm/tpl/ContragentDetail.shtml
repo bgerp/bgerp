@@ -1,4 +1,4 @@
-<div class='scrolling-holder'>
+<div class='scrolling-holder' [#STYLE#]>
 	<fieldset class='top-tab-content'>
 	<legend class='groupTitle'>[#title#]</legend>
 		<div class='detail-info portal [#TAB_STATE#]'>
