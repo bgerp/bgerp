@@ -1003,19 +1003,19 @@ class planning_Jobs extends core_Master
     	$form = cls::get('core_Form');
     	$form->title = 'Създаване на задание към продажба|* <b>' . sales_Sales::getHyperlink($saleId, TRUE) . "</b>";
     	$form->FLD('productId', 'key(mvc=cat_Products)', 'caption=Артикул,mandatory');
-    	$threadId = sales_Sales::fetchField($saleId, 'threadId');
+    	$saleRec = sales_Sales::fetch($saleId, 'threadId,containerId');
     	
     	$selectable = $this->getSelectableProducts($saleId);
     	if(count($selectable) == 1){
     		$selectable = array_keys($selectable);
-    		redirect(array($this, 'add', 'threadId' => $threadId, 'productId' => $selectable[0], 'saleId' => $saleId, 'ret_url' => array('sales_Sales', 'single', $saleId)));
+    		redirect(array($this, 'add', 'threadId' => $saleRec->threadId, 'productId' => $selectable[0], 'saleId' => $saleId, 'foreignId' => $saleRec->containerId, 'ret_url' => array('sales_Sales', 'single', $saleId)));
     	}
     	
     	$form->setOptions('productId', array('' => '') + $selectable);
     	$form->input();
     	if($form->isSubmitted()){
     		if(isset($form->rec->productId)){
-    			redirect(array($this, 'add', 'threadId' => $threadId, 'productId' => $form->rec->productId, 'saleId' => $saleId, 'ret_url' => TRUE));
+    			redirect(array($this, 'add', 'threadId' => $saleRec->threadId, 'productId' => $form->rec->productId, 'saleId' => $saleId, 'foreignId' => $saleRec->containerId, 'ret_url' => TRUE));
     		}
     	}
     	
