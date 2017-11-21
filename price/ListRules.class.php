@@ -294,8 +294,8 @@ class price_ListRules extends core_Detail
 	 */
 	public static function getProductFilterOptions($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
 	{
-		$options = self::getProductOptions($params['listId']);
-		if(!empty($onlyIds)) return array($onlyIds => $options[$onlyIds]);
+		if(!empty($onlyIds)) return array($onlyIds => cat_Products::getTitleById($onlyIds, FALSE));
+		$options = self::getProductOptions($params['listId'], $limit);
 		$options = array('' => '') + $options;
 		
 		return $options;
@@ -933,7 +933,7 @@ class price_ListRules extends core_Detail
 	 * @param int $listId
 	 * @return array $options
 	 */
-	public static function getProductOptions($listId)
+	public static function getProductOptions($listId, $limit = NULL)
 	{
 		$options = array();
 		$pQuery = cat_Products::getQuery();
@@ -941,8 +941,10 @@ class price_ListRules extends core_Detail
 		if($listId != self::PRICE_LIST_COST){
 			$pQuery->where("#isPublic = 'yes' AND #canSell = 'yes'");
 		}
-		
 		$pQuery->show('id,name,isPublic,code,createdOn');
+		if(isset($limit)){
+			$pQuery->limit($limit);
+		}
 		
 		while($pRec = $pQuery->fetch()){
 			$options[$pRec->id] = cat_Products::getRecTitle($pRec, FALSE);
