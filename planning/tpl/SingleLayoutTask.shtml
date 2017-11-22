@@ -1,6 +1,7 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
-  <!--ET_BEGIN description-->  
-  <div class='quiet'>|Описание|*</div>
+  <!--ET_BEGIN description-->
+  <div class='quiet'>|Описание|* [#toggleBtn#]</div>
+  <div style='margin-top:2px;margin-top:2px;margin-bottom:2px;display:none' id='[#tId#]inf'>[#productDescription#]</div>
   <div>[#description#]</div>
   <br>
   <!--ET_END description-->

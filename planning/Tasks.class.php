@@ -291,7 +291,6 @@ class planning_Tasks extends core_Master
 	public static function recToVerbal_($rec, &$fields = '*')
 	{
 		static::fillGapsInRec($rec);
-		
 		$row = parent::recToVerbal_($rec, $fields);
 		$mvc = cls::get(get_called_class());
 		$row->title = self::getHyperlink($rec->id, (isset($fields['-list']) ? TRUE : FALSE));
@@ -347,61 +346,65 @@ class planning_Tasks extends core_Master
 				$row->{$quantityFld} = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($rec->{$quantityFld});
 				$row->{$quantityFld} = "<span class='quiet'>{$row->{$quantityFld}}</span>";
 			} else {
-					$rec->{$quantityFld} *= $rec->quantityInPack;
-					$row->{$quantityFld} =  cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($rec->{$quantityFld});
-				}
+				$rec->{$quantityFld} *= $rec->quantityInPack;
+				$row->{$quantityFld} =  cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($rec->{$quantityFld});
+			}
 					
-				$row->{$quantityFld} .= " " . "<span style='font-weight:normal'>" . $shortUom . "</span>";
-			}
+			$row->{$quantityFld} .= " " . "<span style='font-weight:normal'>" . $shortUom . "</span>";
+		}
 		
-			if(isset($rec->storeId)){
-				$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
-			}
+		if(isset($rec->storeId)){
+			$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
+		}
 			
-			$row->packagingId = cat_UoM::getShortName($rec->packagingId);
-			deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+		$row->packagingId = cat_UoM::getShortName($rec->packagingId);
+		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
 		
-			// Ако няма зададено очаквано начало и край, се приема, че са стандартните
-			$rec->expectedTimeStart = ($rec->expectedTimeStart) ? $rec->expectedTimeStart : ((isset($rec->timeStart)) ? $rec->timeStart : NULL);
-			$rec->expectedTimeEnd = ($rec->expectedTimeEnd) ? $rec->expectedTimeEnd : ((isset($rec->timeEnd)) ? $rec->timeEnd : NULL);
+		// Ако няма зададено очаквано начало и край, се приема, че са стандартните
+		$rec->expectedTimeStart = ($rec->expectedTimeStart) ? $rec->expectedTimeStart : ((isset($rec->timeStart)) ? $rec->timeStart : NULL);
+		$rec->expectedTimeEnd = ($rec->expectedTimeEnd) ? $rec->expectedTimeEnd : ((isset($rec->timeEnd)) ? $rec->timeEnd : NULL);
 		
-			// Проверяване на времената
-			foreach (array('expectedTimeStart' => 'timeStart', 'expectedTimeEnd' => 'timeEnd') as $eTimeField => $timeField){
+		// Проверяване на времената
+		foreach (array('expectedTimeStart' => 'timeStart', 'expectedTimeEnd' => 'timeEnd') as $eTimeField => $timeField){
 					
-				// Вербализиране на времената
-				$DateTime = core_Type::getByName("datetime(format=d.m H:i)");
-				$row->{$timeField} = $DateTime->toVerbal($rec->{$timeField});
-				$row->{$eTimeField} = $DateTime->toVerbal($rec->{$eTimeField});
+			// Вербализиране на времената
+			$DateTime = core_Type::getByName("datetime(format=d.m H:i)");
+			$row->{$timeField} = $DateTime->toVerbal($rec->{$timeField});
+			$row->{$eTimeField} = $DateTime->toVerbal($rec->{$eTimeField});
 					
-				// Ако има очаквано и оригинално време
-				if(isset($rec->{$eTimeField}) && isset($rec->{$timeField})){
+			// Ако има очаквано и оригинално време
+			if(isset($rec->{$eTimeField}) && isset($rec->{$timeField})){
 		
-					// Колко е разликата в минути между тях?
-					$diffVerbal = NULL;
-					$diff = dt::secsBetween($rec->{$eTimeField}, $rec->{$timeField});
-					$diff = ceil($diff / 60);
-		
-					// Ако има разлика
-					if($diff != 0){
-							
-						// Подготовка на показването на разликата
-						$diffVerbal = cls::get('type_Int')->toVerbal($diff);
-						$diffVerbal = ($diff > 0) ? "<span class='red'>+{$diffVerbal}</span>" : "<span class='green'>{$diffVerbal}</span>";
-					}
+				// Колко е разликата в минути между тях?
+				$diffVerbal = NULL;
+				$diff = dt::secsBetween($rec->{$eTimeField}, $rec->{$timeField});
+				$diff = ceil($diff / 60);
+				if($diff != 0){
+					$diffVerbal = cls::get('type_Int')->toVerbal($diff);
+					$diffVerbal = ($diff > 0) ? "<span class='red'>+{$diffVerbal}</span>" : "<span class='green'>{$diffVerbal}</span>";
+				}
 						
-					// Ако има разлика
-					if(isset($diffVerbal)){
+				// Ако има разлика
+				if(isset($diffVerbal)){
 							
-						// Показва се след очакваното време в скоби, с хинт оригиналната дата
-						$hint = tr("Зададено") . ": " . $row->{$timeField};
-						$diffVerbal = ht::createHint($diffVerbal, $hint, 'notice', TRUE, array('height' => '12', 'width' => '12'));
-						$row->{$eTimeField} .= " <span style='font-weight:normal'>({$diffVerbal})</span>";
-					}
+					// Показва се след очакваното време в скоби, с хинт оригиналната дата
+					$hint = tr("Зададено") . ": " . $row->{$timeField};
+					$diffVerbal = ht::createHint($diffVerbal, $hint, 'notice', TRUE, array('height' => '12', 'width' => '12'));
+					$row->{$eTimeField} .= " <span style='font-weight:normal'>({$diffVerbal})</span>";
+				}
 			}
 		}
 		
 		if(isset($fields['-list'])){
 			$row->title .= "<br><small>{$row->originShortLink}</small>";
+		}
+		
+		if(isset($fields['-single'])){
+			
+			// Показване на разширеното описание на артикула
+			$row->toggleBtn = "<a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ");\" class=\" plus-icon more-btn\"> </a>";
+			$row->productDescription = cat_Products::getAutoProductDesc($rec->productId, NULL, 'detailed', 'job');
+			$row->tId = $rec->id;
 		}
 		
 		return $row;
