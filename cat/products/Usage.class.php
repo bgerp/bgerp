@@ -236,7 +236,7 @@ class cat_products_Usage extends core_Manager
 		 
 		// Проверяваме можем ли да добавяме нови задания
 		if($data->Jobs->haveRightFor('add', (object)array('productId' => $data->masterId))){
-			$data->addUrl = array('planning_Jobs', 'add', 'threadId' => $masterRec->threadId, 'productId' => $data->masterId, 'ret_url' => TRUE);
+			$data->addUrl = array('planning_Jobs', 'add', 'threadId' => $masterRec->threadId, 'productId' => $data->masterId, 'foreignId' => $data->masterData->rec->containerId, 'ret_url' => TRUE);
 		}
 	}
 }
