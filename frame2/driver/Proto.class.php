@@ -26,7 +26,7 @@ abstract class frame2_driver_Proto extends core_BaseClass
 	/**
 	 * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
 	 */
-	public $changeableFields;
+	protected $changeableFields;
 	
 	
 	/**
