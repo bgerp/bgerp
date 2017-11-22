@@ -250,14 +250,15 @@ class frame2_Reports extends embed_Manager
     		}
     		
     		// При редакция, ако има полета за промяна
-    		if(isset($form->rec->id) && count($changeAbleFields)){
+    		if(isset($form->rec->id) && $form->rec->changeFields){
+    			$changeable = type_Set::toArray($form->rec->changeFields);
     			
     			// И потребителя не може да избере драйвера
     			if(!$Driver->canSelectDriver()){
     				
     				// Скриват се всички полета, които не са упоменати като променяеми
     				$fields = $form->selectFields("#input != 'none' AND #input != 'hidden'");
-    				$diff = array_diff_key($fields, $changeAbleFields);
+    				$diff = array_diff_key($fields, $changeable);
     				foreach ($diff as $name => $Type){
     					$form->setField($name, 'input=none');
     				}
@@ -657,7 +658,9 @@ class frame2_Reports extends embed_Manager
     	
     	if(($action == 'edit' || $action == 'clonerec') && isset($rec->driverClass)){
     		if($Driver = $mvc->getDriver($rec)){
-    			$changeAbleFields = $Driver->getChangeableFields($rec);
+    			
+    			// Кои са избраните полета за промяна (ако има)
+    			$changeAbleFields = type_Set::toArray($rec->changeFields);
     			
     			// Може да се клонира/редактира ако може да се избере драйвера и има посочени полета за промяна
     			if(!($Driver->canSelectDriver($userId) || ($mvc->haveRightFor('single', $rec, $userId) && count($changeAbleFields)))){
