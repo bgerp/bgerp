@@ -32,24 +32,37 @@ class cat_products_Usage extends core_Manager
 	 */
 	public function prepareUsage($data)
 	{
-		$data->TabCaption = 'Документи';
-		$data->Tab = 'top';
-		
+		$masterRec = $data->masterData->rec;
+		$data->isPublic = ($masterRec->isPublic == 'yes');
 		$tabParam = $data->masterData->tabTopParam;
 		$prepareTab = Request::get($tabParam);
-		if(!$prepareTab || $prepareTab != 'Usage') return;
+		
+		// Промяна на таба взависимост дали артикула е стандартен или не
+		$data->Tab = 'top';
+		if($data->isPublic === TRUE){
+			$data->TabCaption = 'Задания';
+			if(!$prepareTab || $prepareTab != 'Usage') return;
+		} else {
+			$data->TabCaption = 'Документи';
+			$data->Order = 2;
+			if($prepareTab && $prepareTab != 'Usage') return;
+		}
 		
 		$data->jobData = clone $data;
-		$data->saleData = clone $data;
-		$data->purData = clone $data;
-		$data->quoteData = clone $data;
-		
-		
 		$data->jobData->Jobs = cls::get('planning_Jobs');
 		$this->prepareJobs($data->jobData);
-		$this->prepareDocuments('sales_Sales', 'sales_SalesDetails', $data->saleData);
-		$this->prepareDocuments('purchase_Purchases', 'purchase_PurchasesDetails', $data->purData);
-		$this->prepareDocuments('sales_Quotations', 'sales_QuotationsDetails', $data->quoteData);
+		
+		// Ако артикула е нестандартен тогава се показват и документите, в които се използват
+		if($data->isPublic === FALSE){
+			$data->saleData = clone $data;
+			$this->prepareDocuments('sales_Sales', 'sales_SalesDetails', $data->saleData);
+			
+			$data->purData = clone $data;
+			$this->prepareDocuments('purchase_Purchases', 'purchase_PurchasesDetails', $data->purData);
+			
+			$data->quoteData = clone $data;
+			$this->prepareDocuments('sales_Quotations', 'sales_QuotationsDetails', $data->quoteData);
+		}
 	}
 	
 	
@@ -60,9 +73,12 @@ class cat_products_Usage extends core_Manager
 	{
 		$tpl = new core_ET("");
 		$tpl->append($this->renderJobs($data->jobData));
-		$tpl->append($this->renderDocuments($data->saleData));
-		$tpl->append($this->renderDocuments($data->purData));
-		$tpl->append($this->renderDocuments($data->quoteData));
+		
+		if($data->isPublic === FALSE){
+			$tpl->append($this->renderDocuments($data->saleData));
+			$tpl->append($this->renderDocuments($data->purData));
+			$tpl->append($this->renderDocuments($data->quoteData));
+		}
 		
 		return $tpl;
 	}
@@ -236,7 +252,7 @@ class cat_products_Usage extends core_Manager
 		 
 		// Проверяваме можем ли да добавяме нови задания
 		if($data->Jobs->haveRightFor('add', (object)array('productId' => $data->masterId))){
-			$data->addUrl = array('planning_Jobs', 'add', 'threadId' => $masterRec->threadId, 'productId' => $data->masterId, 'foreignId' => $data->masterData->rec->containerId, 'ret_url' => TRUE);
+			$data->addUrl = array('planning_Jobs', 'add', 'threadId' => $masterRec->threadId, 'productId' => $data->masterId, 'foreignId' => $masterRec->containerId, 'ret_url' => TRUE);
 		}
 	}
 }
