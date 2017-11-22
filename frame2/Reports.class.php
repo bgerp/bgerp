@@ -205,6 +205,7 @@ class frame2_Reports extends embed_Manager
     function description()
     {
     	$this->FLD('title', 'varchar', 'caption=Заглавие');
+    	$this->FLD('changeFields', 'set', 'caption=Промяна на->Избор,autohide,input=none');
     	$this->FLD('updateDays', 'set(monday=Понеделник,tuesday=Вторник,wednesday=Сряда,thursday=Четвъртък,friday=Петък,saturday=Събота,sunday=Неделя)', 'caption=Обновяване и известяване->Дни,autohide');
     	$this->FLD('updateTime', 'set(08:00,09:00,10:00,11:00,12:00,13:00,14:00,15:00,16:00,17:00,18:00,19:00,20:00)', 'caption=Обновяване и известяване->Час,autohide');
     	$this->FLD('notificationText', 'varchar', 'caption=Обновяване и известяване->Текст,autohide');
@@ -229,6 +230,38 @@ class frame2_Reports extends embed_Manager
     		if((is_array($dates) && count($dates)) || $dates === FALSE){
     			$form->setField('updateDays', 'input=none');
     			$form->setField('updateTime', 'input=none');
+    		}
+    		
+    		// Има ли полета, които може да се променят
+    		$changeAbleFields = $Driver->getChangeableFields($rec);
+    		if(count($changeAbleFields)){
+    			$set = array();
+    			foreach ($changeAbleFields as $fldName){
+    				if($Fld = $form->getField($fldName, FALSE)){
+    					$set[$fldName] = $Fld->caption; 
+    				}
+    			}
+    			
+    			// Задаване като опции на артикулите, които може да се променят
+    			if(count($set)){
+    				$form->setField('changeFields', 'input');
+    				$form->setSuggestions('changeFields', $set);
+    			}
+    		}
+    		
+    		// При редакция, ако има полета за промяна
+    		if(isset($form->rec->id) && count($changeAbleFields)){
+    			
+    			// И потребителя не може да избере драйвера
+    			if(!$Driver->canSelectDriver()){
+    				
+    				// Скриват се всички полета, които не са упоменати като променяеми
+    				$fields = $form->selectFields("#input != 'none' AND #input != 'hidden'");
+    				$diff = array_diff_key($fields, $changeAbleFields);
+    				foreach ($diff as $name => $Type){
+    					$form->setField($name, 'input=none');
+    				}
+    			}
     		}
     	}
     }
@@ -614,9 +647,20 @@ class frame2_Reports extends embed_Manager
     	}
     	
     	// За модификация, потребителя трябва да има права и за драйвера
-    	if(in_array($action, array('edit', 'write', 'refresh', 'export', 'clonerec')) && isset($rec->driverClass)){
+    	if(in_array($action, array('write', 'refresh', 'export')) && isset($rec->driverClass)){
     		if($Driver = $mvc->getDriver($rec)){
     			if(!$Driver->canSelectDriver($userId)){
+    				$requiredRoles = 'no_one';
+    			}
+    		}
+    	}
+    	
+    	if(($action == 'edit' || $action == 'clonerec') && isset($rec->driverClass)){
+    		if($Driver = $mvc->getDriver($rec)){
+    			$changeAbleFields = $Driver->getChangeableFields($rec);
+    			
+    			// Може да се клонира/редактира ако може да се избере драйвера и има посочени полета за промяна
+    			if(!($Driver->canSelectDriver($userId) || ($mvc->haveRightFor('single', $rec, $userId) && count($changeAbleFields)))){
     				$requiredRoles = 'no_one';
     			}
     		}
