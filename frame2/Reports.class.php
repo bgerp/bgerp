@@ -964,4 +964,20 @@ class frame2_Reports extends embed_Manager
     	// Връщат се най близките 3 дати
     	return array($res[0], $res[1], $res[2]);
     }
+    
+    
+    /**
+     * След клониране на модела
+     */
+    public static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
+    {
+    	if($Driver = $mvc->getDriver($nRec)){
+    		$cu = core_Users::getCurrent();
+    		
+    		// Ако потребителя няма права за драйвера, но го е клонирал се споделя автоматично
+    		if(!$Driver->canSelectDriver($cu)){
+    			doc_ThreadUsers::addShared($nRec->threadId, $nRec->containerId, $cu);
+    		}
+    	}
+    }
 }
