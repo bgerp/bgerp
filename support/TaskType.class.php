@@ -142,6 +142,15 @@ class support_TaskType extends core_Mvc
             }
             
             $data->form->setOptions('typeId', $typesArr);
+            
+            // Типа по подразбиране
+            if (!$data->form->rec->id) {
+                $sysRec = support_Systems::fetch($systemId);
+                $defTypeId = $sysRec->defaultType;
+                if ($defTypeId && $typesArr[$defTypeId]) {
+                    $data->form->setDefault('typeId', $defTypeId);
+                }
+            }
         }
         
         if ($data->form->cmd == 'refresh') {
