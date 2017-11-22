@@ -2831,9 +2831,9 @@ class cat_Products extends embed_Manager {
     public static function getConditions($rec, $docType, $lg = NULL)
     {
     	$conditions = array();
+    	$rec = self::fetchRec($rec);
     	
     	if($Driver = static::getDriver($rec)){
-    		$rec = self::fetchRec($rec);
     		$conditions = $Driver->getConditions($rec, $docType, $lg);
     	}
     	 
