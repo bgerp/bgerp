@@ -83,7 +83,7 @@ class hr_Leaves extends core_Master
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,hr,hrMaster';
+    public $canRead = 'ceo,hrLeaves,hrMaster';
     
     
     /**
@@ -101,7 +101,7 @@ class hr_Leaves extends core_Master
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo, hr, hrMaster, admin';
+	public $canList = 'ceo, hrLeaves, hrMaster, admin';
 
 
 	/**
@@ -125,12 +125,12 @@ class hr_Leaves extends core_Master
     /**
      * Кой може да го активира?
      */
-    public $canActivate = 'ceo,hr,hrMaster';
+    public $canActivate = 'ceo, hrLeaves, hrMaster';
     
     /**
      * Кой може да го активира?
      */
-    public $canDecline = 'ceo,hr,hrMaster';
+    public $canDecline = 'ceo, hrLeaves, hrMaster';
     
     
     /**
@@ -187,9 +187,15 @@ class hr_Leaves extends core_Master
     public $transferFolderField = 'personId';
     
     
+    /**
+     * 
+     */
     static public $map = array('paid' => 'платен', 'unpaid' => 'неплатен');
-
-    // Дните от седмицата
+    
+    
+    /**
+     * Дните от седмицата
+     */
     static public $weekDays = array('Monday'=>'понеделник', 'Tuesday'=>'вторник', 'Wednesday'=>'сряда', 
                              'Thursday'=>'четвъртък', 'Friday'=>'петък', 'Saturday'=>'събота', 'Sunday'=>'неделя');
     
@@ -212,13 +218,13 @@ class hr_Leaves extends core_Master
     	$this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
     	$this->FLD('useDaysFromYear', 'int', 'caption=Информация->Ползване от,unit=година, input=none');
     	$this->FLD('paid', 'enum(paid=платен, unpaid=неплатен)', 'caption=Информация->Вид, maxRadio=2,columns=2,notNull,value=paid');
-    	$this->FLD('note', 'richtext(rows=5, bucket=Notes, shareUsersRoles=hr|ceo)', 'caption=Информация->Бележки');
+    	$this->FLD('note', 'richtext(rows=5, bucket=Notes, shareUsersRoles=hrLeaves|ceo)', 'caption=Информация->Бележки');
     	$this->FLD('answerGSM', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на отсъствието->Отговаря на моб. телефон, maxRadio=3,columns=3,notNull,value=yes');
     	$this->FLD('answerSystem', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на отсъствието->Достъп до системата, maxRadio=3,columns=3,notNull,value=yes');
     	$this->FLD('alternatePerson', 'key(mvc=crm_Persons,select=name,group=employees, allowEmpty=true)', 'caption=По време на отсъствието->Заместник');
     	
     	// Споделени потребители
-        $this->FLD('sharedUsers', 'userList(roles=hr|ceo)', 'caption=Споделяне->Потребители');
+        $this->FLD('sharedUsers', 'userList(roles=hrLeaves|ceo)', 'caption=Споделяне->Потребители');
     }
 
     
@@ -323,7 +329,7 @@ class hr_Leaves extends core_Master
         	$form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
 	        $form->setReadonly('personId');
 
-	        if(!haveRole('ceo,hr')) {
+	        if(!haveRole('ceo,hrLeaves')) {
 	        	$form->setField('sharedUsers', 'mandatory');
 	        }
         }
@@ -335,7 +341,7 @@ class hr_Leaves extends core_Master
      */
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
-        if(haveRole('ceo,hr,admin')) {
+        if(haveRole('ceo,hrLeaves,admin')) {
             $ignorable = TRUE;
         } else {
             $ignorable = FALSE;
@@ -439,7 +445,7 @@ class hr_Leaves extends core_Master
 	        
 	         if ($action == 'order') {
 	             // и нямаме нужните права
-	             if(!Users::haveRole('ceo') || !Users::haveRole('hr') ) {
+	             if(!Users::haveRole('ceo') || !Users::haveRole('hrLeaves') ) {
 	                 // то не може да я направим
 	                 $requiredRoles = 'no_one';
 	             }
@@ -456,7 +462,7 @@ class hr_Leaves extends core_Master
     	             //$inCharge = doc_Folders::fetchField($rec->folderId, 'inCharge');
     	       
     	             if($inCharge != $userId) { 
-                        if(!Users::haveRole('ceo') && !Users::haveRole('hr')){
+                        if(!Users::haveRole('ceo') && !Users::haveRole('hrLeaves')){
     	                 // то не може да я направим
     	                 $requiredRoles = 'no_one';
                         }
@@ -634,7 +640,7 @@ class hr_Leaves extends core_Master
         
         if($Cover->className == 'doc_UnsortedFolders') {
             $cu = core_Users::getCurrent();
-            if(!haveRole('ceo,hr', $cu)) return FALSE;
+            if(!haveRole('ceo,hrLeaves', $cu)) return FALSE;
         }
         
         return TRUE;

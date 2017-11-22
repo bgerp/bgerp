@@ -1097,4 +1097,33 @@ class core_String
     {
     	return preg_replace('/\s+/', '', $string);
     }
+    
+    
+    /**
+     * Разбива текст по нови редове във масив
+     * 
+     * @param string $text
+     * @return array $array
+     */
+    public static function text2Array($text)
+    {
+    	$array = preg_split('/$\R?^/m', $text);
+    	
+    	return $array;
+    }
+    
+    
+    /**
+     * Връща текст със заместени урл-та с линкове
+     * 
+     * @param string $text
+     * @return string 
+     */
+    public static function replaceUrlsWithLinks($text) 
+    {
+    	$UrlType = core_Type::getByName('url');
+    	return preg_replace_callback(type_Richtext::URL_PATTERN, function ($matches) use ($UrlType){
+    		return $UrlType->toVerbal($matches[0])->getContent();
+    	}, $text);
+    }
 }

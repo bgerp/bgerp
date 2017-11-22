@@ -17,6 +17,7 @@
 class cal_TaskProgresses extends core_Detail
 {
     
+    
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
@@ -81,7 +82,7 @@ class cal_TaskProgresses extends core_Detail
         $this->FLD('taskId', 'key(mvc=cal_Tasks,select=title)', 'caption=Задача,input=hidden,silent,column=none');
        
         // Каква част от задачата е изпълнена?
-        $this->FLD('progress', 'percent(min=0,max=1,decimals=0)',     'caption=Прогрес');
+        $this->FLD('progress', 'percent(min=0,max=1,decimals=0)', 'caption=Прогрес');
 
         // Колко време е отнело изпълнението?
         $this->FLD('workingTime', 'time(suggestions=10 мин.|30 мин.|60 мин.|2 часа|3 часа|5 часа|10 часа)',     'caption=Отработено време');
@@ -104,22 +105,27 @@ class cal_TaskProgresses extends core_Detail
     public static function on_AfterPrepareEditForm($mvc, $data)
     {   
     	expect($data->form->rec->taskId);
-
-        $masterRec = cal_Tasks::fetch($data->form->rec->taskId);
-        $progressArr[''] = '';
-
-        for($i = 0; $i <= 100; $i += 10) {
-            if($masterRec->progress > ($i/100)) continue;
-            $p = $i . ' %';
-            $progressArr[$p] = $p;
+    	
+    	$Driver = $mvc->Master->getDriver($data->form->rec->taskId);
+    	
+    	$mRec = $mvc->Master->fetch($data->form->rec->{$mvc->masterKey});
+    	
+    	$progressArr = $Driver->getProgressSuggestions($mRec);
+        
+    	if ($mRec->progress) {
+    	    $pVal = $mRec->progress * 100;
+    	    Mode::push('text', 'plain');
+    	    $pVal = $mvc->fields['progress']->type->toVerbal($mRec->progress);
+    	    Mode::pop('text');
+    	    if (!isset($progressArr[$pVal])) {
+    	        $progressArr[$pVal] = $pVal;
+    	        ksort($progressArr, SORT_NUMERIC);
+    	    }
+            $data->form->setDefault('progress', $mRec->progress);
         }
         
-        if ($masterRec->progress) {
-        	$data->form->setDefault('progress', $masterRec->progress);
-        }
-        
-        if ($masterRec->workingTime) {
-        	$data->form->setDefault('workingTime', $masterRec->workingTime);
+        if ($mRec->workingTime) {
+            $data->form->setDefault('workingTime', $mRec->workingTime);
         }
         
         $data->form->setSuggestions('progress', $progressArr);
@@ -254,11 +260,9 @@ class cal_TaskProgresses extends core_Detail
             $tRec->progress = $rec->progress;
             
             if($rec->progress == 1) {
-            	$message = tr("Приключена е задачата") . ' "' . $tRec->title . '"';
-            	$url = array('doc_Containers', 'list', 'threadId' => $tRec->threadId);
-            	$customUrl = array('cal_Tasks', 'single',  $tRec->id);
-            	$priority = 'normal';
-            	bgerp_Notifications::add($message, $url, $tRec->createdBy, $priority, $customUrl);
+            	
+                cal_Tasks::notifyForClosedTask($tRec);
+                
                 $tRec->state = 'closed';
                 $tRec->timeClosed = $now;
             }
@@ -305,13 +309,14 @@ class cal_TaskProgresses extends core_Detail
     {
     	if($action == 'add' && isset($rec->taskId)){
     		if($requiredRoles == 'no_one') return;
-    			
-    		// Проверка дали потребителя има достъп до задачата и дали е в позволено състояние за добавяне на прогрес
-    		$taskState = cal_Tasks::fetchField($rec->taskId, 'state');
-    		if($taskState != 'active' && $taskState != 'waiting' && $taskState != 'wakeup'){
-    			$requiredRoles = 'no_one';
-    		} elseif(!cal_Tasks::haveRightFor('single', $rec->taskId)){
-    			$requiredRoles = 'no_one';
+    		
+    		if (!$mvc->Master->haveRightFor('single', $rec->taskId)) {
+    		    $requiredRoles = 'no_one';
+    		} else {
+    		    $mRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
+    		    if (!$mvc->Master->canAddProgress($mRec)) {
+    		        $requiredRoles = 'no_one';
+    		    }
     		}
     	}
     }

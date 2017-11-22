@@ -539,7 +539,7 @@ class crm_Locations extends core_Master {
      * Ф-я връщаща пълния адрес на локацията: Държава, ПКОД, град, адрес
      * 
      * @param int $id
-     * @param boolen $translitarate
+     * @param boolean $translitarate
      * @return core_ET $tpl 
      */
     public static function getAddress($id, $translitarate = FALSE)

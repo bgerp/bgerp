@@ -95,7 +95,10 @@ class hr_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     var $roles = array(
-   		array('hr'),
+   		array('hrSickdays'),
+   		array('hrLeaves'),
+   		array('hrTrips'),
+   		array('hr', 'hrSickdays, hrLeaves, hrTrips'),
    		array('hrMaster', 'hr'),
     );
     

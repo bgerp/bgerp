@@ -109,6 +109,13 @@
                         <td>[#oldJobId#]</td>
                     </tr>
                     <!--ET_END oldJobId-->
+                    [#ADDITIONAL_BLOCK#]
+                    <!--ET_BEGIN ADDITIONAL_VALUE-->
+                    <tr>
+                        <td class='quiet' style='text-align: left;white-space: nowrap;'>[#ADDITIONAL_CAPTION#]:</td>
+                        <td>[#ADDITIONAL_VALUE#]</td>
+                    </tr>
+                    <!--ET_END ADDITIONAL_VALUE-->
                 </table>
 	       </td>
 	       <td style='padding: 0'>
@@ -133,7 +140,13 @@
            [#origin#]
            </td>
       </tr>
-      
+      <!--ET_BEGIN JOB_COMPONENTS-->
+      <tr>
+      	<td colspan="2" class='small'>
+      		[#JOB_COMPONENTS#]
+     	 </td>
+      <!--ET_END JOB_COMPONENTS-->
+      </tr>
       <!--ET_BEGIN notes-->
       <tr>
            <th colspan="2" class='job-head'>

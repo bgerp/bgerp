@@ -122,8 +122,19 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	    }
 	
 	    // за всеки един индикатор
-	    while($recIndic = $query->fetch()){ 
-	        $id = str_pad(core_Users::fetchField($users[$recIndic->personId], 'names'), 120, " ", STR_PAD_RIGHT) . "|". str_pad(hr_IndicatorNames::fetchField($recIndic->indicatorId,'name'), 120, " ", STR_PAD_RIGHT);
+	    while($recIndic = $query->fetch()){
+	        
+	        $names = '';
+	        if ($recIndic->personId && $users[$recIndic->personId]) {
+	            $names = core_Users::fetchField($users[$recIndic->personId], 'names');
+	        }
+	        
+	        $name = '';
+	        if ($recIndic->indicatorId) {
+	            $name = hr_IndicatorNames::fetchField($recIndic->indicatorId,'name');
+	        }
+	        
+	        $id = str_pad($names, 120, " ", STR_PAD_RIGHT) . "|". str_pad($name, 120, " ", STR_PAD_RIGHT);
 	        // добавяме в масива събитието
 	        if(!array_key_exists($id,$recs)) { 
 	            $recs[$id]=

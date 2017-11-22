@@ -63,8 +63,8 @@ class cat_Products extends embed_Manager {
     /**
      * Детайла, на модела
      */
-    public $details = 'Packagings=cat_products_Packagings,Prices=cat_PriceDetails,AccReports=acc_ReportDetails,
-    Resources=planning_ObjectResources,Jobs=planning_Jobs,Boms=cat_Boms,Shared=cat_products_SharedInFolders';
+    public $details = 'Packagings=cat_products_Packagings,Prices=cat_products_PriceDetails,AccReports=acc_ReportDetails,
+    Resources=planning_ObjectResources,Usage=cat_products_Usage,Boms=cat_Boms,Shared=cat_products_SharedInFolders';
     
     
     /**
@@ -846,7 +846,7 @@ class cat_Products extends embed_Manager {
      */
     public static function expandFilter(&$listFilter)
     {
-    	$orderOptions = arr::make('all=Всички,standard=Стандартни,private=Нестандартни,last=Последно добавени,prototypes=Шаблони,closed=Закрити');
+    	$orderOptions = arr::make('all=Всички,standard=Стандартни,private=Нестандартни,last=Последно добавени,prototypes=Шаблони,closed=Закрити,vat09=ДДС 9%,vat0=ДДС 0%');
     	$orderOptions = arr::fromArray($orderOptions);
     	 
     	$listFilter->FNC('order', "enum({$orderOptions})",
@@ -910,6 +910,16 @@ class cat_Products extends embed_Manager {
         		break;
         	case 'prototypes':
         		$data->query->where("#state = 'template'");
+        		break;
+        	case 'vat09':
+        	case 'vat0':
+        		$v = ($data->listFilter->rec->order == 'vat09') ? 0.09 : 0;
+        		$products = cat_products_VatGroups::getByVatPercent($v);
+        		if(count($products)) {
+        			$data->query->in('id', $products);
+        		} else {
+        			$data->query->where("1=2");
+        		}
         		break;
         	default :
         		$data->query->where("#isPublic = 'yes' AND #state != 'template' AND #state != 'closed'");
@@ -1706,11 +1716,13 @@ class cat_Products extends embed_Manager {
     			$rec = $mvc->fetchRec($rec);
     		}
     		
-            $cRec = clone($rec);
-    		self::setCodeIfEmpty($cRec);
-            $part = $cRec->code;
-
-            return FALSE;
+    		if (is_object($rec)) {
+    		    $cRec = clone($rec);
+    		    self::setCodeIfEmpty($cRec);
+    		    $part = $cRec->code;
+    		    
+    		    return FALSE;
+    		}
     	}
     }
     
@@ -1750,7 +1762,7 @@ class cat_Products extends embed_Manager {
 	 * @param datetime $time            - време
 	 * @param auto|detailed|short $mode - режим на показване
 	 * @param string $lang              - език
-	 * @param int $compontQuantity      - к-во на компонентите   
+	 * @param int $componentQuantity      - к-во на компонентите   
 	 * @param boolean $showCode         - да се показва ли кода до името или не
 	 * 
 	 * @return mixed $res
@@ -1758,8 +1770,12 @@ class cat_Products extends embed_Manager {
 	 *      ако $mode e 'detailed' - подробно описание
 	 *      ако $mode e 'short'	   - кратко описание
 	 */
-    public static function getAutoProductDesc($id, $time = NULL, $mode = 'auto', $documentType = 'public', $lang = 'bg', $compontQuantity = 1, $showCode = TRUE)
+    public static function getAutoProductDesc($id, $time = NULL, $mode = 'auto', $documentType = 'public', $lang = 'bg', $componentQuantity = NULL, $showCode = TRUE)
     {
+    	if($documentType == 'public') {
+    		$componentQuantity = 1;
+    	}
+    	
     	$rec = static::fetchRec($id);
     	
     	$title = cat_ProductTplCache::getCache($rec->id, $time, 'title', $documentType, $lang);
@@ -1813,7 +1829,7 @@ class cat_Products extends embed_Manager {
     	if($showDescription === TRUE){
     	    $data = cat_ProductTplCache::getCache($rec->id, $time, 'description', $documentType, $lang);
     	    if(!$data){
-    	    	$data = cat_ProductTplCache::cacheDescription($rec, $time, $documentType, $lang, $compontQuantity);
+    	    	$data = cat_ProductTplCache::cacheDescription($rec, $time, $documentType, $lang, $componentQuantity);
     	    }
     	    $data->documentType = $documentType;
     	    $descriptionTpl = cat_Products::renderDescription($data);
@@ -2366,7 +2382,7 @@ class cat_Products extends embed_Manager {
     protected static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
     	$data->components = array();
-    	cat_Products::prepareComponents($data->rec->id, $data->components);
+    	cat_Products::prepareComponents($data->rec->id, $data->components, 'internal', 1);
     }
     
     
@@ -2392,8 +2408,9 @@ class cat_Products extends embed_Manager {
      * @param string $typeBom
      * @return array
      */
-    public static function prepareComponents($productId, &$res = array(), $documentType = 'internal', $componentQuantity = 1, $typeBom = NULL)
+    public static function prepareComponents($productId, &$res = array(), $documentType = 'internal', $componentQuantity, $typeBom = NULL)
     {
+    	if(empty($componentQuantity)) return $res;
     	$typeBom = (!empty($typeBom)) ? $typeBom : 'sales';
     	$rec = cat_Products::getLastActiveBom($productId, $typeBom);
     	
@@ -2405,7 +2422,14 @@ class cat_Products extends embed_Manager {
     		$rec = $bQuery->fetch();
     	}
     	
-    	if(!$rec || cat_Boms::showInProduct($rec) === FALSE) return $res;
+    	if($documentType == 'job'){
+    		if($pRec = cat_Products::getLastActiveBom($productId, 'production')){
+    			$rec = $pRec;
+    		}
+    	}
+    	
+    	$checkMvc = ($documentType == 'job') ? 'planning_Jobs' : 'cat_Products';
+    	if(!$rec || cat_Boms::showIn($rec, $checkMvc) === FALSE) return $res;
     	
     	// Кои детайли от нея ще показваме като компоненти
     	$details = cat_BomDetails::getOrderedBomDetails($rec->id);
@@ -2799,21 +2823,33 @@ class cat_Products extends embed_Manager {
     /**
      * Допълнителните условия за дадения продукт,
      * които автоматично се добавят към условията на договора
-     *
-     * @param mixed $rec       - ид или запис на артикул
-     * @param double $quantity - к-во
-     * @return array           - Допълнителните условия за дадения продукт
+     * 
+     * @param stdClass $rec   - ид/запис на артикул
+     * @param string $docType - тип на документа sale/purchase
+     * @param string|NULL $lg - език
      */
-    public static function getConditions($rec, $quantity)
+    public static function getConditions($rec, $docType, $lg = NULL)
     {
-    	// Ако има драйвър, питаме него за стойността
+    	$conditions = array();
+    	
     	if($Driver = static::getDriver($rec)){
     		$rec = self::fetchRec($rec);
-    		
-    		return $Driver->getConditions($rec, $quantity);
+    		$conditions = $Driver->getConditions($rec, $docType, $lg);
     	}
     	 
-    	return array();
+    	// Ако има параметър за дефолтни условия. Показва се
+    	$defParamName = ($docType == 'purchase') ? 'commonConditionPur' : 'commonConditionSale';
+    	if($cValue = cat_Products::getParams($rec->id, $defParamName)){
+    		$dConditionArr = str::text2Array($cValue);
+    		foreach ($dConditionArr as $cText){
+    			$cText = str::replaceUrlsWithLinks($cText);
+    			$conditions[] = $cText;
+    		}
+    		
+    		$conditions += $dConditionArr;
+    	}
+    	
+    	return $conditions;
     }
     
     

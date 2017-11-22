@@ -87,25 +87,25 @@ class hr_Sickdays extends core_Master
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,hrMaster';
+    public $canRead = 'ceo, hrMaster, hrSickdays';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,hrMaster';
+    public $canEdit = 'ceo, hrMaster, hrSickdays';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,hrMaster';
+	public $canList = 'ceo, hrMaster, hrSickdays';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,hrMaster';
+	public $canSingle = 'ceo, hrMaster, hrSickdays';
     
     
     /**
@@ -117,21 +117,24 @@ class hr_Sickdays extends core_Master
     /**
      * Кой може да го активира?
      */
-    public $canActivate = 'ceo,hrMaster';
+    public $canActivate = 'ceo, hrMaster, hrSickdays';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo,hrMaster';
+    public $canDelete = 'ceo, hrMaster, hrSickdays';
     
     
     /**
      * Кой има право да прави начисления
      */
-    public $canChangerec = 'ceo,hrMaster';
+    public $canChangerec = 'ceo, hrMaster, hrSickdays';
 
     
+    /**
+     * 
+     */
     public $canEdited = 'powerUser';
     
     
@@ -214,7 +217,7 @@ class hr_Sickdays extends core_Master
     	$this->FNC('title', 'varchar', 'column=none');
     	 
     	
-    	$this->FLD('sharedUsers', 'userList(roles=hr|ceo)', 'caption=Споделяне->Потребители');
+    	$this->FLD('sharedUsers', 'userList(roles=hrSickdays|ceo)', 'caption=Споделяне->Потребители');
     }
 
     
@@ -274,7 +277,7 @@ class hr_Sickdays extends core_Master
 	        $form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
 	        $form->setReadonly('personId');
 	        
-	        if(!haveRole('ceo,hr')) {
+	        if(!haveRole('ceo,hrSickdays')) {
 	           $data->form->fields['sharedUsers']->mandatory = 'mandatory';
 	        }
         } 
@@ -349,7 +352,7 @@ class hr_Sickdays extends core_Master
      */
     public static function on_AfterAction(&$invoker, &$tpl, $act)
     { 
-        if (strtolower($act) == 'single' && haveRole('hr,ceo') && !Mode::is('printing')) {
+        if (strtolower($act) == 'single' && haveRole('hrSickdays,ceo') && !Mode::is('printing')) {
     
             // Взимаме ид-то на молбата
             $id = Request::get('id', 'int');
@@ -516,7 +519,7 @@ class hr_Sickdays extends core_Master
         
         if($Cover->className == 'doc_UnsortedFolders') {
             $cu = core_Users::getCurrent();
-            if(!haveRole('ceo,hr', $cu)) return FALSE;
+            if(!haveRole('ceo,hrSickdays', $cu)) return FALSE;
         }
         
         return TRUE;

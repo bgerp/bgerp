@@ -35,7 +35,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 	public static function on_AfterPrepareListToolbar($mvc, $data)
 	{
 		if($mvc->haveRightFor('createProduct', (object)array($mvc->masterKey => $data->masterId))){
-			$data->toolbar->addBtn('Създаване', array($mvc, 'CreateProduct', $mvc->masterKey => $data->masterId, 'ret_url' => TRUE), "id=btnNewProduct,title=Създаване на нов нестандартен артикул", 'ef_icon = img/16/shopping.png,order=12');
+			$data->toolbar->addBtn('Създаване', array($mvc, 'CreateProduct', $mvc->masterKey => $data->masterId, 'ret_url' => TRUE), "id=btnNewProduct,title=Създаване на нов нестандартен артикул", 'ef_icon = img/16/bag-new.png,order=12');
 		}
 	}
 	
@@ -396,7 +396,8 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 					$saveRec = (object)array('detailClassId' => $mvc->getClassId(), 'detailRecId' => $dRec->id, 'productId' => $productId, 'expenseItemId' => $d->costItemId, 'containerId' => $masterRec->containerId, 'quantity' => $dRec->quantity, 'allocationBy' => 'no');
 					
 					acc_CostAllocations::save($saveRec);
-					acc_CostAllocations::logInAct('Създаване на артикул с клониране', $saveRec);
+					$CostAllocations = cls::get('acc_CostAllocations');
+					$CostAllocations->logInAct('Създаване на артикул с клониране', $saveRec);
 				}
 				
 				// Редирект към сделката/офертата

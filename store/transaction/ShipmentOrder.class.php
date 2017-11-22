@@ -1,4 +1,7 @@
 <?php
+
+
+
 /**
  * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа store_ShipmentOrders
  *
@@ -50,8 +53,14 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
     {
         $entries = array();
         
-        $rec = $this->fetchShipmentData($id);
+        $rec = $this->fetchShipmentData($id, $error);
             
+        if(Mode::get('saveTransaction')){
+        	if($error === TRUE){
+        		acc_journal_RejectRedirect::expect(FALSE, "Трябва да има поне един ред с ненулево количество|*!");
+        	}
+        }
+        
         $origin = $this->class->getOrigin($rec);
         
         // Всяко ЕН трябва да има поне един детайл
@@ -104,7 +113,7 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
      * @param int|object $id първичен ключ или запис на ЕН
      * @param object запис на ЕН (@see store_ShipmentOrders)
      */
-    protected function fetchShipmentData($id)
+    protected function fetchShipmentData($id, &$error = FALSE)
     {
         $rec = $this->class->fetchRec($id);
         
@@ -116,8 +125,12 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
             $detailQuery->where("#shipmentId = '{$rec->id}'");
             $rec->details  = array();
             
+            $error = TRUE;
             while ($dRec = $detailQuery->fetch()) {
                 $rec->details[] = $dRec;
+                if(!empty($dRec->quantity)){
+                	$error = FALSE;
+                }
             }
         }
         
@@ -154,6 +167,8 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
         deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => TRUE));
         
         foreach ($rec->details as $detailRec) {
+        	if(empty($detailRec->quantity) && Mode::get('saveTransaction')) continue;
+        	
         	$amount = $detailRec->amount;
         	$amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
         	$amount = round($amount, 2);
@@ -231,6 +246,7 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
         acc_journal_Exception::expect($rec->storeId, 'Генериране на експедиционна част при липсващ склад!');
         
         foreach ($rec->details as $detailRec) {
+        	if(empty($detailRec->quantity) && Mode::get('saveTransaction')) continue;
         	$pInfo = cat_Products::getProductInfo($detailRec->productId, $detailRec->packagingId);
         	
         	// Вложимите кредит 706, другите 701

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'planning_ConsumptionNormDetails'
  *
@@ -9,7 +10,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -17,12 +18,6 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
 {
     
     
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'mp_ConsumptionNoteDetails';
-	
-	
     /**
      * Заглавие
      */
@@ -45,7 +40,7 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_RowNumbering, plg_AlignDecimals2,
-                        planning_plg_ReplaceEquivalentProducts, plg_PrevAndNext,cat_plg_ShowCodes';
+                        planning_plg_ReplaceEquivalentProducts, plg_PrevAndNext,cat_plg_ShowCodes,import_plg_Detail';
     
     
     /**
@@ -88,6 +83,12 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
      * Какви продукти да могат да се избират в детайла
      */
     protected $defaultMeta = 'canConvert,canStore';
+    
+    
+    /**
+     * Кои операции от задачите ще се зареждат
+     */
+    public $taskActionLoad = 'input';
     
     
     /**
