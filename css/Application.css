@@ -5064,6 +5064,8 @@ only screen and (max-width: 320px) {
     cursor: default;
     background-color: #e4e4e4;
     color: #ee7700 !important; }
+  .printing .sharing-history {
+    display: none; }
 
 .narrow .printing .document {
   width: 850px; }
