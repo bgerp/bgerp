@@ -663,7 +663,7 @@ class frame2_Reports extends embed_Manager
     			$changeAbleFields = type_Set::toArray($rec->changeFields);
     			
     			// Може да се клонира/редактира ако може да се избере драйвера и има посочени полета за промяна
-    			if(!($Driver->canSelectDriver($userId) || ($mvc->haveRightFor('single', $rec, $userId) && count($changeAbleFields)))){
+    			if(!($Driver->canSelectDriver($userId) || (keylist::isIn($userId, $rec->sharedUsers) && count($changeAbleFields)))){
     				$requiredRoles = 'no_one';
     			}
     		}
@@ -963,21 +963,5 @@ class frame2_Reports extends embed_Manager
     	
     	// Връщат се най близките 3 дати
     	return array($res[0], $res[1], $res[2]);
-    }
-    
-    
-    /**
-     * След клониране на модела
-     */
-    public static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
-    {
-    	if($Driver = $mvc->getDriver($nRec)){
-    		$cu = core_Users::getCurrent();
-    		
-    		// Ако потребителя няма права за драйвера, но го е клонирал се споделя автоматично
-    		if(!$Driver->canSelectDriver($cu)){
-    			doc_ThreadUsers::addShared($nRec->threadId, $nRec->containerId, $cu);
-    		}
-    	}
     }
 }
