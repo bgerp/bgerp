@@ -799,14 +799,16 @@ class frame2_Reports extends embed_Manager
     	$csv = csv_Lib::createCsv($csvExportRows, $fields);
     	$csv .= "\n" . $rCsv;
     	
+    	// Подсигуряване че енкодига е UTF8
+    	$csv = mb_convert_encoding($csv, 'UTF-8', 'UTF-8');
+    	$csv = iconv('UTF-8', "UTF-8//IGNORE", $csv);
+    	
+    	// Записване във файловата система
     	$fileName = str_replace(' ', '_', str::utf2ascii($rec->title));
+    	$fh = fileman::absorbStr($csv, 'exportCsv', "{$fileName}_{$rec->id}.csv");
     	 
-    	header("Content-type: application/csv");
-    	header("Content-Disposition: attachment; filename={$fileName}({$rec->id}).csv");
-    	header("Pragma: no-cache");
-    	header("Expires: 0");
-    	echo $csv;
-    	shutdown();
+    	// Редирект към записания файл
+    	return new Redirect(array('fileman_Files', 'single', $fh), 'Справката е експортирана успешно');
     }
     
     
