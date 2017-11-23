@@ -1950,6 +1950,9 @@ pre.document {
   font-size: 0.9em;
   color: #666666; }
 
+.document table.listTable > tbody > tr > td {
+  padding: 5px 3px 2px !important; }
+
 /*
  * край на стилове за документи
  */

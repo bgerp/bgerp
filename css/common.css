@@ -1354,7 +1354,6 @@ table.listTable {
 
 .detailNumbering {
   text-align: right;
-  padding-top: 2px;
   display: block; }
 
 .narrow table.listTable {
@@ -3086,7 +3085,7 @@ div.statuses-message h2 {
   width: 16px;
   height: 16px;
   display: inline-block;
-  margin: 0 5px; }
+  margin: -2px 5px 0; }
 
 /*
  * цветове
