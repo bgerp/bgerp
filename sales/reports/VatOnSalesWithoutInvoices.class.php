@@ -84,11 +84,13 @@ class sales_reports_VatOnSalesWithoutInvoices extends frame2_driver_TableData
         $query->EXT('chargeVat', 'sales_Sales', 'externalKey=saleId');
         $query->EXT('makeInvoice', 'sales_Sales', 'externalKey=saleId');
         $query->EXT('state', 'sales_Sales', 'externalKey=saleId');
+        $query->EXT('code', 'cat_Products', 'externalKey=productId');
 
         $query->where(array("#closedOn >= '[#1#]' AND #closedOn <= '[#2#]'", acc_Periods::fetch($rec->periodId)->start, acc_Periods::fetch($rec->periodId)->end . ' 23:59:59'));
         $query->where("#state = 'closed'");
         $query->where("#makeInvoice = 'no'");
         $query->where(array("#chargeVat = '[#1#]' OR #chargeVat = '[#2#]'", 'yes', 'separate'));
+        $query->orderBy('code', 'DESC');
 
         $totalVat = 0;
 
