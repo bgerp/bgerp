@@ -128,8 +128,10 @@ class cat_products_Usage extends core_Manager
 		// Вербализиране на записите
 		while($dRec = $query->fetch()){
 			$data->recs[$dRec->id] = $dRec;
-			$data->rows[$dRec->id] = $data->Document->recToVerbal($dRec, $fields);
-			$data->rows[$dRec->id]->title = $data->Document->getHyperlink($dRec->id, TRUE);
+			$row = $data->Document->recToVerbal($dRec, $fields);
+			$row->title = $data->Document->getHyperlink($dRec->id, TRUE);
+			$row->created = "{$row->createdOn} " . tr("от||by") . " {$row->createdBy}";
+			$data->rows[$dRec->id] = $row;
 		}
 	}
 	
@@ -149,7 +151,7 @@ class cat_products_Usage extends core_Manager
 		$title = tr($data->Document->title);
 		$tpl->append($title, 'title');
 		
-		$data->listFields = arr::make("title={$data->Document->singleTitle},folderId=Папка,createdOn=Създадено->На,createdBy=Създадено->От");
+		$data->listFields = arr::make("title={$data->Document->singleTitle},folderId=Папка,created=Създадено");
 		$dateArr = ($data->Document instanceof sales_Quotations) ? array('date' => 'Дата') : array('valior' => 'Вальор');
 		arr::placeInAssocArray($data->listFields, $dateArr, NULL, 'title');
 		
@@ -188,7 +190,7 @@ class cat_products_Usage extends core_Manager
 			$tpl->append($addBtn, 'title');
 		}
 	
-		$listFields = arr::make('title=Документ,dueDate=Падеж,saleId=Към продажба,packQuantity=Планирано,quantityProduced=Заскладено,packagingId=Мярка');
+		$listFields = arr::make('title=Задание,dueDate=Падеж,saleId=Към продажба,packQuantity=Планирано,quantityProduced=Заскладено,packagingId=Мярка');
 		$listFields = core_TableView::filterEmptyColumns($data->rows, $listFields, 'saleId');
 		$data->listFields = $listFields;
 		
