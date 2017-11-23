@@ -172,10 +172,16 @@
 		     <table>
 			    <!--ET_BEGIN saleId-->
 			    <tr>
-				   <td class='quiet'>|Продажба|*</td>
+				   <td class='quiet'>|Договор|*</td>
 				   <td>[#saleId#]</td>
 				</tr>
 			    <!--ET_END saleId--> 
+			    <!--ET_BEGIN saleFolderId-->
+			    <tr>
+				   <td class='quiet'>|В папка|*</td>
+				   <td>[#saleFolderId#]</td>
+				</tr>
+			    <!--ET_END saleFolderId-->
 			    <!--ET_BEGIN deliveryTermId-->
 			    <tr>
 				   <td class='quiet'>|Условие на доставка|*</td>

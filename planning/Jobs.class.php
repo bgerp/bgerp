@@ -624,8 +624,9 @@ class planning_Jobs extends core_Master
     		$row->quantityNotStored = "<div class='fright'>{$row->quantityNotStored}</div>";
     	}
     	 
-    	if($rec->saleId){
+    	if(isset($rec->saleId)){
     		$row->saleId = sales_Sales::getlink($rec->saleId, 0);
+    		$row->saleFolderId = doc_Folders::recToVerbal(sales_Sales::fetchField($rec->saleId, 'folderId'))->title;
     	}
     	$row->measureId = cat_UoM::getShortName($rec->packagingId);
     	
