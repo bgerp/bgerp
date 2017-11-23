@@ -45,6 +45,11 @@ class sales_reports_VatOnSalesWithoutInvoices extends frame2_driver_TableData
 
     }
 
+    /**
+     * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
+     */
+    protected $changeableFields = 'periodId';
+
 
     /**
      * Добавя полетата на драйвера към Fieldset
@@ -54,9 +59,9 @@ class sales_reports_VatOnSalesWithoutInvoices extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
 
-        $fieldset->FLD('periodId', 'key(mvc=acc_Periods,select=title)', 'caption=Период,after=title');
-        $fieldset->FLD('totalVat', 'double(decimals=2)', 'caption=ДДС за периода,input=none');
-        $fieldset->FLD('currency', 'varchar', 'caption=Валута,input=none');
+        $fieldset->FLD('periodId', 'key(mvc=acc_Periods,select=title)', 'caption=Период,export=Csv,after=title');
+        $fieldset->FLD('totalVat', 'double(decimals=2)', 'caption=ДДС за периода,export=Csv,input=none');
+        $fieldset->FLD('currency', 'varchar', 'caption=Валута,export=Csv,input=none');
 
     }
 
@@ -139,8 +144,6 @@ class sales_reports_VatOnSalesWithoutInvoices extends frame2_driver_TableData
 
         $rec->totalVat = $totalVat;
 
-       // bp($recs);
-
         return $recs;
 
     }
@@ -160,19 +163,19 @@ class sales_reports_VatOnSalesWithoutInvoices extends frame2_driver_TableData
 
         if($export === FALSE){
 
-            $fld->FLD('productId', 'varchar', 'caption=Артикул');
-            $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
-            $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество,smartCenter');
-            $fld->FLD('price', 'double', 'caption=Ед.цена,smartCenter');
-            $fld->FLD('amount', 'double(decimals=2)', 'caption=Стойност,smartCenter');
-            $fld->FLD('vat', 'double', 'caption=ДДС,smartCenter');
+            $fld->FLD('productId', 'varchar', 'caption=Артикул,export=Csv');
+            $fld->FLD('measure', 'varchar', 'caption=Мярка,export=Csv,tdClass=centered');
+            $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество,export=Csv,smartCenter');
+            $fld->FLD('price', 'double', 'caption=Ед.цена,export=Csv,smartCenter');
+            $fld->FLD('amount', 'double(decimals=2)', 'caption=Стойност,export=Csv,smartCenter');
+            $fld->FLD('vat', 'double', 'caption=ДДС,export=Csv,smartCenter');
         } else {
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
-            $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
-            $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество,smartCenter');
-            $fld->FLD('price', 'double', 'caption=Ед.цена,smartCenter');
-            $fld->FLD('amount', 'double(decimals=2)', 'caption=Стойност,smartCenter');
-            $fld->FLD('vat', 'double', 'caption=ДДС,smartCenter');
+            $fld->FLD('measure', 'varchar', 'caption=Мярка');
+            $fld->FLD('quantity', 'varchar', 'caption=Количество');
+            $fld->FLD('price', 'varchar', 'caption=Ед.цена');
+            $fld->FLD('amount', 'varchar', 'caption=Стойност');
+            $fld->FLD('vat', 'varchar', 'caption=ДДС');
 
         }
 
@@ -193,16 +196,17 @@ class sales_reports_VatOnSalesWithoutInvoices extends frame2_driver_TableData
 
         $isPlain = Mode::is('text', 'plain');
         $Int = cls::get('type_Int');
+        $Double = core_Type::getByName('double(smartRound)');
         $Date = cls::get('type_Date');
 
         $row = new stdClass();
 
         if(isset($dRec->productId)) {
-            $row->productId =  cat_Products::getShortHyperlink($dRec->productId);
+            $row->productId = ($isPlain) ? cat_Products::getTitleById($dRec->productId, FALSE) : cat_Products::getShortHyperlink($dRec->productId);
         }
 
         if(isset($dRec->quantity)) {
-            $row->quantity =  core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity);
+            $row->quantity = ($isPlain) ? frame_CsvLib::toCsvFormatDouble($dRec->quantity) :core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity) ;
         }
 
         if(isset($dRec->measure)) {
@@ -210,16 +214,20 @@ class sales_reports_VatOnSalesWithoutInvoices extends frame2_driver_TableData
         }
 
         if (isset($dRec->amount)) {
-            $row->amount = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->amount);
+            $row->amount =($isPlain) ? frame_CsvLib::toCsvFormatDouble($dRec->amount) : core_Type::getByName('double(decimals=2)')->toVerbal($dRec->amount);
         }
 
         if (isset($dRec->price)) {
-            $row->price = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->price);
+            $row->price =($isPlain) ? frame_CsvLib::toCsvFormatDouble($dRec->price) : core_Type::getByName('double(decimals=2)')->toVerbal($dRec->price);
         }
 
         if (isset($dRec->vat)) {
-            $row->vat = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->vat);
-            $row->vat = ht::createHint($row->vat, "$dRec->hint", 'notice');
+            if($isPlain){
+                $row->vat = frame_CsvLib::toCsvFormatDouble($dRec->vat);
+            }else {
+                $row->vat = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->vat);
+                $row->vat = ht::createHint($row->vat, "$dRec->hint", 'notice');
+            }
         }
 
         return $row;
