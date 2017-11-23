@@ -202,7 +202,7 @@ class sales_reports_VatOnSalesWithoutInvoices extends frame2_driver_TableData
         $row = new stdClass();
 
         if(isset($dRec->productId)) {
-            $row->productId = ($isPlain) ? cat_Products::getTitleById($dRec->productId, FALSE) : cat_Products::getShortHyperlink($dRec->productId);
+            $row->productId = ($isPlain) ? cat_Products::getVerbal($dRec->productId, 'name') : cat_Products::getShortHyperlink($dRec->productId);
         }
 
         if(isset($dRec->quantity)) {
