@@ -53,7 +53,7 @@ class planning_Jobs extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, plg_Sorting, acc_plg_DocumentSummary, plg_Search, doc_SharablePlg, change_Plugin, plg_Clone, plg_Printing';
+    public $loadList = 'plg_RowTools2, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, plg_Sorting, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Printing';
     
     
     /**
@@ -179,7 +179,7 @@ class planning_Jobs extends core_Master
     function description()
     {
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул');
-    	$this->FLD('oldJobId', 'int', 'silent,after=productId,caption=Предходно задание,removeAndRefreshForm=notes|department|sharedUsers|packagingId|quantityInPack|storeId,input=none');
+    	$this->FLD('oldJobId', 'int', 'silent,after=productId,caption=Предходно задание,removeAndRefreshForm=notes|department|packagingId|quantityInPack|storeId,input=none');
     	$this->FLD('dueDate', 'date(smartTime)', 'caption=Падеж,mandatory');
     	
     	$this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','smartCenter,mandatory,input=hidden,before=packQuantity');
@@ -204,8 +204,6 @@ class planning_Jobs extends core_Master
     	);
     	$this->FLD('saleId', 'key(mvc=sales_Sales)', 'input=hidden,silent,caption=Продажба');
     	$this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
-    	
-    	$this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители');
     	$this->FLD('history', 'blob(serialize, compress)', 'caption=Данни,input=none');
     	
     	$this->setDbIndex('productId');
@@ -306,18 +304,12 @@ class planning_Jobs extends core_Master
     	
     	// Ако е избрано предишно задание зареждат се данните от него
     	if(isset($rec->oldJobId)){
-    		$oRec = self::fetch($rec->oldJobId, 'notes,sharedUsers,department,packagingId,storeId');
+    		$oRec = self::fetch($rec->oldJobId, 'notes,department,packagingId,storeId');
     		
     		$form->setDefault('notes', $oRec->notes);
-    		$form->setDefault('sharedUsers', $oRec->sharedUsers);
     		$form->setDefault('department', $oRec->department);
     		$form->setDefault('packagingId', $oRec->packagingId);
     		$form->setDefault('storeId', $oRec->storeId);
-    	} else {
-    		// При ново задание, ако текущия потребител има права го добавяме като споделен
-    		if(haveRole('planning,ceo') && empty($rec->id)){
-    			$form->setDefault('sharedUsers', keylist::addKey($rec->sharedUsers, core_Users::getCurrent()));
-    		}
     	}
     	
     	$form->setDefault('packagingId', key($packs));
@@ -795,20 +787,6 @@ class planning_Jobs extends core_Master
     			
     		if($action == 'add' && empty($rec)){
 	    		$res = 'no_one';
-    		}
-    	}
-    	
-    	if(($action == 'activate' || $action == 'restore' || $action == 'conto' || $action == 'write' || $action == 'add' || $action == 'wakeup') && isset($rec->productId) && $res != 'no_one'){
-    		$isPublic = cat_Products::fetchField($rec->productId, 'isPublic');
-    		
-    		// Само за нестандартните артикули
-    		if($isPublic != 'yes'){
-    			
-    			// Ако има активно задание, да не може друга да се възстановява,контира,създава или активира
-    			$where = "#productId = {$rec->productId}" . ((isset($rec->saleId)) ? " AND #saleId = {$rec->saleId}" : " AND #saleId IS NULL");
-    			if($mvc->fetchField("{$where} AND (#state = 'active' OR #state = 'stopped' OR #state = 'wakeup')", 'id')){
-    				$res = 'no_one';
-    			}
     		}
     	}
     	 
