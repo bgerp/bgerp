@@ -807,7 +807,7 @@ class frame2_Reports extends embed_Manager
     	$fileName = str_replace(' ', '_', str::utf2ascii($rec->title));
     	$fh = fileman::absorbStr($csv, 'exportCsv', "{$fileName}_{$rec->id}.csv");
     	 
-    	// Редирект към записания файл
+    	// Редирект към експортиртния файл
     	return new Redirect(array('fileman_Files', 'single', $fh), 'Справката е експортирана успешно');
     }
     

@@ -626,8 +626,10 @@ class planning_Jobs extends core_Master
     	 
     	if(isset($rec->saleId)){
     		$row->saleId = sales_Sales::getlink($rec->saleId, 0);
-    		$row->saleFolderId = doc_Folders::recToVerbal(sales_Sales::fetchField($rec->saleId, 'folderId'))->title;
+    		$saleFolderId = sales_Sales::fetchField($rec->saleId, 'folderId');
+    		$row->saleFolderId = doc_Folders::recToVerbal(doc_Folders::fetch($saleFolderId))->title;
     	}
+    	
     	$row->measureId = cat_UoM::getShortName($rec->packagingId);
     	
     	$tolerance = ($rec->tolerance) ? $rec->tolerance : 0;
