@@ -493,7 +493,7 @@ class planning_Tasks extends core_Master
 	{
 		$resArr['info'] = array('name' => tr('Информация'), 'val' => tr("|*<table>
 																		   <tr><td style='font-weight:normal'>|Задание|*:</td> <td>[#originId#]</td></tr>
-																		   <tr><td style='font-weight:normal'>|Артикул|*:</td> <td>[#productId#]</td></tr>
+																		   <tr><td style='font-weight:normal'>|Артикул|*:</td> <td>[#productId#] [#toggleBtn#]</td></tr>
 																		   <!--ET_BEGIN inputInTask--><tr><td style='font-weight:normal'>|Влагане в|*:</td> <td>[#inputInTask#]</td></tr><!--ET_END inputInTask-->
 																		   <!--ET_BEGIN storeId--><tr><td style='font-weight:normal'>|Склад|*:</td> <td>[#storeId#]</td></tr><!--ET_END storeId-->
 																		   <!--ET_BEGIN fixedAssets--><tr><td style='font-weight:normal'>|Оборудване|*:</td> <td>[#fixedAssets#]</td></tr><!--ET_END fixedAssets-->

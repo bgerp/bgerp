@@ -1,6 +1,6 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
   <!--ET_BEGIN description-->
-  <div class="groupTitle"><span class="quiet"> |Описание|* </span>[#toggleBtn#]
+  <div class="groupTitle"><span class="quiet"> |Описание|* </span>
     <div style='margin-top:2px;margin-top:2px;margin-bottom:2px;display:none' id='[#tId#]inf'>[#productDescription#]</div>
   </div>
   <div style="margin-bottom: 10px;">[#description#]</div>
