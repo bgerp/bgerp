@@ -1,9 +1,9 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
   <!--ET_BEGIN description-->
-  <div class='quiet'>|Описание|* [#toggleBtn#]</div>
-  <div style='margin-top:2px;margin-top:2px;margin-bottom:2px;display:none' id='[#tId#]inf'>[#productDescription#]</div>
-  <div>[#description#]</div>
-  <br>
+  <div class="groupTitle"><span class="quiet"> |Описание|* </span>[#toggleBtn#]
+    <div style='margin-top:2px;margin-top:2px;margin-bottom:2px;display:none' id='[#tId#]inf'>[#productDescription#]</div>
+  </div>
+  <div style="margin-bottom: 10px;">[#description#]</div>
   <!--ET_END description-->
   [#PARAMS#]
   
