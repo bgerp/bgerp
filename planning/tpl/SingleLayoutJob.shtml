@@ -105,7 +105,7 @@
                     
                     <!--ET_BEGIN oldJobId-->
                     <tr>
-                        <td class='quiet' style='text-align: left;white-space: nowrap;'>|Предишно задание|*:</td>
+                        <td class='quiet' style='text-align: left;white-space: nowrap;'>|Предходно задание|*:</td>
                         <td>[#oldJobId#]</td>
                     </tr>
                     <!--ET_END oldJobId-->
