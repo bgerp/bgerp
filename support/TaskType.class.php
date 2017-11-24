@@ -260,6 +260,28 @@ class support_TaskType extends core_Mvc
      * @param int $id първичния ключ на направения запис
      * @param stdClass $rec всички полета, които току-що са били записани
      */
+    public static function on_BeforeSave($Driver, $mvc, &$id, $rec)
+    {
+        if(!haveRole('powerUser')) {
+            if (!$rec->ip) {
+                $rec->ip = core_Users::getRealIpAddr();
+            }
+                
+            if (!$rec->brid) {
+                $rec->brid = log_Browsers::getBrid();
+            }
+        }
+    }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param support_TaskType $Driver
+     * @param cal_Tasks $mvc
+     * @param int $id първичния ключ на направения запис
+     * @param stdClass $rec всички полета, които току-що са били записани
+     */
     public static function on_AfterSave($Driver, $mvc, &$id, $rec)
     {
         if ($rec->componentId) {

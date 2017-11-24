@@ -3235,11 +3235,6 @@ class cal_Tasks extends embed_Manager
         
         if ($form->isSubmitted()) {
             
-            if(!haveRole('powerUser')) {
-                $form->rec->ip = core_Users::getRealIpAddr();
-                $form->rec->brid = log_Browsers::getBrid();
-            }
-            
             $form->rec->state = 'active';
             
             if ($systemId){
