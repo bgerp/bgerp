@@ -37,7 +37,7 @@ class cal_TaskTypeIntf extends embed_DriverIntf
     public function prepareFieldForIssue($form)
     {
         
-        return $this->class->prepareFieldForIssue($tRec);
+        return $this->class->prepareFieldForIssue($form);
     }
     
     

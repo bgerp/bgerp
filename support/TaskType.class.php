@@ -132,7 +132,7 @@ class support_TaskType extends core_Mvc
     /**
      * Подготвя documentRow за функцията
      * 
-     * @param stdClass $id
+     * @param stdClass $rec
      * @param stdClass $row
      */
     public function prepareDocumentRow($rec, $row)
@@ -392,7 +392,6 @@ class support_TaskType extends core_Mvc
      *
      * @param support_TaskType $Driver
      * @param cal_Tasks $mvc
-     * @param NULL|array $resArr
      * @param object $res
      * @param object $rec
      */

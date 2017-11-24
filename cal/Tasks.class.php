@@ -325,7 +325,6 @@ class cal_Tasks extends embed_Manager
     /**
      * Преди показване на форма за добавяне/промяна.
      *
-     * @param core_Manager $mvc
      * @param stdClass $data
      */
     public function prepareEditForm_($data)
