@@ -47,8 +47,12 @@ class cal_TaskType extends core_Mvc
      */
     public function canSelectDriver($userId = NULL)
     {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        if ($userId >0) return TRUE;
         
-        return TRUE;
+        return FALSE;
     }
     
     
@@ -68,5 +72,40 @@ class cal_TaskType extends core_Mvc
         }
         
         return $progressArr;
+    }
+    
+    
+    /**
+     * Подготвя формата за добавя на сигнал от външната част
+     *
+     * @param core_Form $form
+     */
+    public function prepareFieldForIssue($form)
+    {
+        
+    }
+    
+    
+    /**
+     * Подготвя documentRow за функцията
+     * 
+     * @param stdClass $rec
+     * @param stdClass $row
+     */
+    public function prepareDocumentRow($rec, $row)
+    {
+        
+    }
+    
+    
+    /**
+     * Подготвя getContrangentData за функцията
+     *
+     * @param stdClass $rec
+     * @param stdClass $contrData
+     */
+    public function prepareContragentData($rec, $contrData)
+    {
+        
     }
 }

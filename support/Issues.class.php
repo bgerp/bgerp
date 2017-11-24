@@ -221,6 +221,9 @@ class support_Issues extends core_Master
      */
     function act_New()
     {
+        
+        return Request::forward(array('cal_Tasks', 'new'));
+        
     	$this->requireRightFor('new');
 
         if($lg = Request::get('Lg')){

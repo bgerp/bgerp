@@ -27,4 +27,41 @@ class cal_TaskTypeIntf extends embed_DriverIntf
         
         return $this->class->getProgressSuggestions($tRec);
     }
+    
+    
+    /**
+     * Подготвя формата за добавя на сигнал от външната част
+     * 
+     * @param core_Form $form
+     */
+    public function prepareFieldForIssue($form)
+    {
+        
+        return $this->class->prepareFieldForIssue($tRec);
+    }
+    
+    
+    /**
+     * Подготвя documentRow за функцията
+     * 
+     * @param stdClass $rec
+     * @param stdClass $row
+     */
+    public function prepareDocumentRow($rec, $row)
+    {
+        
+        return $this->class->prepareDocumentRow($rec, $row);
+    }
+    
+    
+    /**
+     * Подготвя getContrangentData за функцията
+     *
+     * @param stdClass $rec
+     * @param stdClass $contrData
+     */
+    public function prepareContragentData($rec, $contrData)
+    {
+        return $this->class->prepareContragentData($rec, $contrData);
+    }
 }

@@ -51,7 +51,7 @@ class cal_Tasks extends embed_Manager
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf';
+    public $interfaces = 'email_DocumentIntf, doc_DocumentIntf, doc_ContragentDataIntf';
 
 
     /**
@@ -255,6 +255,12 @@ class cal_Tasks extends embed_Manager
     
     
     /**
+     * Кой може да добавя външен сигнал?
+     */
+    public $canNew = 'every_one';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -314,8 +320,33 @@ class cal_Tasks extends embed_Manager
         // Точното време на затваряне
         $this->FLD('timeClosed', 'datetime(format=smartTime)', 'caption=Времена->Затворена на,input=none');
     }
-
-
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public function prepareEditForm_($data)
+    {
+        $sTaskId = cal_TaskType::getClassId();
+        
+        // Ако е в папка на система, да е избран сигнал
+        if ($folderId = Request::get('folderId')) {
+            if (doc_Folders::getCover($folderId)->instance instanceof support_Systems) {
+                if (cls::load('support_TaskType', TRUE)) {
+                    $sTaskId = support_TaskType::getClassId();
+                }
+            }
+        }
+        
+        Request::push(array('driverClass' => $sTaskId));
+        
+        return parent::prepareEditForm_($data);
+    }
+        
+    
     /**
      * Подготовка на формата за добавяне/редактиране
      */
@@ -338,11 +369,6 @@ class cal_Tasks extends embed_Manager
 
         if ($rec->allDay == 'yes') {
             list($rec->timeStart,) = explode(' ', $rec->timeStart);
-        }
-        
-        // Драйвера за задачи да е избран по подразбиране
-        if (cls::load('cal_TaskType', TRUE)) {
-            $data->form->setDefault('driverClass', cal_TaskType::getClassId());
         }
     }
 
@@ -1393,6 +1419,9 @@ class cal_Tasks extends embed_Manager
         $row->authorId = $rec->createdBy;
         
         $row->recTitle = $rec->title;
+        
+        $Driver = $this->getDriver($id);
+        $Driver->prepareDocumentRow($rec, $row);
         
         return $row;
     }
@@ -3115,5 +3144,218 @@ class cal_Tasks extends embed_Manager
             
             $form->layout->append($tpl);
         }
+    }
+    
+    
+    /**
+     * Реализация по подразбиране на интерфейсния метод ::getThreadState()
+     *
+     * TODO: Тук трябва да се направи проверка, дали документа е изпратен или отпечатан
+     * и само тогава да се приема състоянието за затворено
+     */
+    function on_AfterGetThreadState($mvc, &$state, $id)
+    {
+        if (core_Users::getCurrent() < 1) {
+            $state = 'opened';
+        }
+    }
+    
+    
+    /**
+     * Екшън за добавяне на нов сигнал в системата от външни потребители
+     * 
+     * @return Redirect|ET
+     */
+    function act_New()
+    {
+        $this->requireRightFor('new');
+        
+        $systemId = Request::get('systemId', 'int');
+        
+        expect($systemId);
+        
+        // Ако има права за добавяне, директно се редиректва там
+        if ($this->haveRightFor('add')) {
+            
+            $folderId = support_Systems::forceCoverAndFolder($systemId);
+            
+            if (doc_Folders::haveRightFor('single', $folderId)) {
+                
+                return new Redirect(array($this, 'add', 'folderId' => $folderId));
+            }
+        }
+        
+        if ($lg = Request::get('Lg')){
+            cms_Content::setLang($lg);
+            core_Lg::push($lg);
+        }
+        
+        // Подготовка на формата
+        $form = $this->getForm();
+        
+        // Скриваме всички полета
+        foreach ($this->fields as $fName => $dummy) {
+            $form->setField($fName, 'input=none');
+        }
+        
+        $interfaces = static::getAvailableDriverOptions();
+        
+        expect(!empty($interfaces), 'Няма налични опции');
+        
+        $form->setOptions($this->driverClassField, $interfaces);
+        
+        // Ако е наличен само един драйвер избираме него
+        if(count($interfaces) == 1){
+            $intfKey = key($interfaces);
+            $form->setDefault($this->driverClassField, $intfKey);
+            $form->setReadOnly($this->driverClassField);
+        } else {
+            $form->setField($this->driverClassField, 'input');
+        }
+        
+        $form->input(NULL, TRUE);
+        
+        // Подготвяме полетата от драйвера
+        if ($form->rec->{$this->driverClassField}) {
+            $Driver = cls::get($form->rec->{$this->driverClassField});
+            
+            $Driver->addFields($form);
+            
+            $Driver->prepareFieldForIssue($form);
+        }
+        
+        
+        $form->setField('title', 'silent, input=hidden');
+        $form->setField('description', 'input, mandatory');
+        
+        $form->input(NULL, TRUE);
+        $form->input();
+        
+        setIfNot($form->rec->title, '*Без заглавие*');
+        
+        if ($form->isSubmitted()) {
+            
+            if(!haveRole('powerUser')) {
+                $form->rec->ip = core_Users::getRealIpAddr();
+                $form->rec->brid = log_Browsers::getBrid();
+            }
+            
+            $form->rec->state = 'active';
+            
+            if ($systemId){
+                $form->rec->folderId = support_Systems::forceCoverAndFolder($systemId);
+            }
+            
+            cal_Tasks::save($form->rec);
+            
+            vislog_History::add('Изпращане на сигнал');
+            
+            return followRetUrl(NULL, '|Благодарим Ви за сигнала', 'success');
+        }
+        
+        $sTitle = '';
+        if ($form->rec->{$this->driverClassField}) {
+            $sTitle = $interfaces[$form->rec->{$this->driverClassField}];
+        }
+        if (!$sTitle) {
+            $sTitle = 'Задача';
+        }
+        
+        $form->title = str::mbUcfirst($sTitle) . " към екипа за поддръжка на|* " . '"|' . support_Systems::getTitleById($systemId) . '|*"';
+        
+        $form->toolbar->addSbBtn('Изпрати', 'save', 'id=save, ef_icon = img/16/ticket.png,title=Изпращане на сигнала');
+        if (count(getRetUrl())) {
+            $form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close-red.png,title=Oтказ');
+        }
+        $tpl = $form->renderHtml();
+        
+        // Поставяме шаблона за външен изглед
+        Mode::set('wrapper', 'cms_page_External');
+        
+        if ($lg){
+            core_Lg::pop();
+        }
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Връща тялото на имейла генериран от документа
+     *
+     * @param int $id - ид на документа
+     * @param boolean $forward
+     *
+     * @return string
+     * 
+     * @see email_DocumentIntf
+     */
+    public function getDefaultEmailBody($id, $forward = FALSE)
+    {
+        $rec = $this->fetchRec($id);
+        $Driver = $this->getDriver($id);
+        
+        $date = dt::mysql2verbal($rec->createdOn, 'd-M');
+        $time = dt::mysql2verbal($rec->createdOn, 'H:i');
+        
+        $tpl = new ET(tr("|Благодаря за Вашето запитване|*, |получено на|* {$date} |в|* {$time} |чрез нашия уеб сайт|*."));
+        
+        $title = mb_strtolower($Driver->title);
+        $fLetter = mb_substr($title, 0, 1);
+        
+        $sLetter = 'с';
+        if ($fLetter == 'с' || $fLetter == 'з') {
+            $sLetter = 'със';
+        }
+        
+        $res = "Във връзка {$sLetter}|* " . mb_strtolower($Driver->title) . " |от|* {$date} |в|* {$time}"; 
+        
+        return tr($res);
+    }
+    
+    
+    /**
+     * Интерфейсен метод
+     * 
+     * @param integer $id
+     * 
+     * @return object
+     * 
+     * @see doc_ContragentDataIntf
+     */
+    public static function getContragentData($id)
+    {
+        if (!$id) return ;
+        $rec = self::fetch($id);
+        
+        $contrData = new stdClass();
+        
+        if ($rec->createdBy > 0) {
+            $personId = crm_Profiles::fetchField("#userId = '{$rec->createdBy}'", 'personId');
+            $contrData = crm_Persons::getContragentData($personId);
+        }
+        
+        $Driver = self::getDriver($id);
+        $Driver->prepareContragentData($rec, $contrData);
+        
+        return $contrData;
+    }
+    
+    
+    /**
+     * Връща заглавието на имейла
+     *
+     * @param int $id - ид на документа
+     * @param boolean $forward
+     *
+     * @return string
+     * 
+     * @see email_DocumentIntf
+     */
+    public function getDefaultEmailSubject($id, $forward = FALSE)
+    {
+        $rec = $this->fetchRec($id);
+        
+        return tr('За') . ': ' . $rec->title;
     }
 }

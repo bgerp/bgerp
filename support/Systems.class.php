@@ -182,8 +182,6 @@ class support_Systems extends core_Master
         // Запитване за извличане на системите
         $sQuery = support_Systems::getQuery();
         
-        $sQuery->where($id);
-        
         // Обхождаме всики наследени системи
         foreach ($allSystemsArr as $allSystemId) {
             
