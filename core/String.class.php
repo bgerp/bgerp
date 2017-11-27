@@ -835,8 +835,14 @@ class core_String
     /**
      * Подготвя аритметичен израз за изчисляване
      */
-    static function prepareMathExpr($expr)
+    static function prepareMathExpr($expr, $contex = array())
     {
+        // Ако има променливи, заместваме ги в израза
+        if(count($contex)) {
+            uksort($contex, "str::sortByLengthReverse");
+            $expr  = strtr($expr, $contex);
+        }
+
         // Remove whitespaces
         $expr = preg_replace('/\s+/', '', $expr);
                 
