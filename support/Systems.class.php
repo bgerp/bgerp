@@ -122,7 +122,7 @@ class support_Systems extends core_Master
     /**
      * Кои документи могат да се добавят като бързо бутони
      */
-    var $defaultDefaultDocuments = 'support_Issues';
+    var $defaultDefaultDocuments = 'cal_Tasks';
     
     
     /**
