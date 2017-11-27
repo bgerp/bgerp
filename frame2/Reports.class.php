@@ -797,7 +797,7 @@ class frame2_Reports extends embed_Manager
     	
     	// Създаване на csv-то
     	$csv = csv_Lib::createCsv($csvExportRows, $fields);
-    	$csv .= "\n" . $rCsv;
+    	$csv .= "\n";
     	
     	// Подсигуряване че енкодига е UTF8
     	$csv = mb_convert_encoding($csv, 'UTF-8', 'UTF-8');
