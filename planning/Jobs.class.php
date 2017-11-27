@@ -839,7 +839,7 @@ class planning_Jobs extends core_Master
      */
     private static function addToHistory(&$history, $action, $date, $userId, $reason = NULL)
     {
-    	if(empty($history)){
+    	if(!is_array($history)){
     		$history = array();
     	}
     	
@@ -881,7 +881,7 @@ class planning_Jobs extends core_Master
     {
     	// Подготвяме данните на историята за показване
     	$data->row->history = array();
-    	if(count($data->rec->history)){
+    	if(is_array($data->rec->history)){
     		foreach($data->rec->history as $historyRec){
     			$historyRec['action'] = tr($historyRec['action']);
     			
