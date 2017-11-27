@@ -276,6 +276,7 @@ class sales_Sales extends deals_DealMaster
         $this->setField('shipmentStoreId', "salecondSysId=defaultStoreSale");
     	$this->setField('deliveryTermId', 'salecondSysId=deliveryTermSale');
     	$this->setField('paymentMethodId', 'salecondSysId=paymentMethodSale');
+    	$this->setFieldTypeParams('dealerId', array('rolesForAll' => array('sales', 'ceo'), 'roles' => array('sales', 'ceo')));
     }
     
     
