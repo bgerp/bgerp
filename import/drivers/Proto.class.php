@@ -69,4 +69,17 @@ abstract class import_drivers_Proto
 	{
 		
 	}
+	
+	
+	/**
+	 * Подготвя импортиращата форма
+	 *
+	 * @param core_Manager $mvc
+	 * @param core_FieldSet $form
+	 * @return void
+	 */
+	public function prepareImportForm($mvc, core_FieldSet $form)
+	{
+	
+	}
 }
