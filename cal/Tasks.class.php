@@ -329,18 +329,20 @@ class cal_Tasks extends embed_Manager
      */
     public function prepareEditForm_($data)
     {
-        $sTaskId = cal_TaskType::getClassId();
-        
-        // Ако е в папка на система, да е избран сигнал
-        if ($folderId = Request::get('folderId')) {
-            if (doc_Folders::getCover($folderId)->instance instanceof support_Systems) {
-                if (cls::load('support_TaskType', TRUE)) {
-                    $sTaskId = support_TaskType::getClassId();
+        if (!Request::get($this->driverClassField)) {
+            $sTaskId = cal_TaskType::getClassId();
+            
+            // Ако е в папка на система, да е избран сигнал
+            if ($folderId = Request::get('folderId')) {
+                if (doc_Folders::getCover($folderId)->instance instanceof support_Systems) {
+                    if (cls::load('support_TaskType', TRUE)) {
+                        $sTaskId = support_TaskType::getClassId();
+                    }
                 }
             }
+            
+            Request::push(array($this->driverClassField => $sTaskId));
         }
-        
-        Request::push(array('driverClass' => $sTaskId));
         
         return parent::prepareEditForm_($data);
     }
@@ -351,6 +353,18 @@ class cal_Tasks extends embed_Manager
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
+        Request::setProtected(array('srcId', 'srcClass'));
+        
+        $data->form->FNC('SrcId', 'int', 'input=hidden, silent');
+        $data->form->FNC('SrcClass', 'varchar', 'input=hidden, silent');
+        
+        if ($srcId = Request::get('srcId', 'int')) {
+            if ($srcClass = Request::get('srcClass')) {
+                $data->form->setDefault('SrcId', $srcId);
+                $data->form->setDefault('SrcClass', $srcClass);
+            }
+        }
+        
         $cu = core_Users::getCurrent();
         $data->form->setDefault('priority', 'normal');
         
@@ -370,8 +384,48 @@ class cal_Tasks extends embed_Manager
             list($rec->timeStart,) = explode(' ', $rec->timeStart);
         }
     }
-
-
+    
+    
+    /**
+     * Връща URL за създаване на задача от съответния тип, със защитени параметри
+     * 
+     * @param integer $rId
+     * @param string $clsName
+     * @param string $type
+     * 
+     * @return string
+     */
+    public static function getUrlForCreate($rId, $clsName, $type = 'сигнал')
+    {
+        $pArr = array('srcId', 'srcClass');
+        Request::setProtected($pArr);
+        
+        $me = cls::get(get_called_class());
+        
+        $interfaces = core_Classes::getOptionsByInterface($me->driverInterface, 'title');
+        
+        expect($interfaces);
+        
+        $driverId = array_search(strtolower($type), array_map('mb_strtolower', $interfaces));
+        
+        if (!$driverId) {
+            $driverId = key($interfaces);
+        }
+        
+        $urlArr = array($me, 'add', 'srcId' => $rId, 'srcClass' => $clsName, 'ret_url' => TRUE);
+        
+        if ($driverId) {
+            $urlArr[$me->driverClassField] = $driverId;
+        }
+        
+        $url = toUrl($urlArr);
+        
+        Request::removeProtected($pArr);
+        
+        return $url;
+    }
+    
+    
     /**
      * Подготвяне на вербалните стойности
      */
@@ -786,8 +840,8 @@ class cal_Tasks extends embed_Manager
      */
     static function on_BeforeSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
-        if (!$rec->driverClass) {
-            $rec->driverClass = cal_TaskType::getClassId();
+        if (!$rec->{$mvc->driverClassField}) {
+            $rec->{$mvc->driverClassField} = cal_TaskType::getClassId();
         }
     }
 
@@ -2653,7 +2707,7 @@ class cal_Tasks extends embed_Manager
             $resArr['progressBar'] =  array('name' => tr('Прогрес'), 'val' =>"[#progressBar#] [#progress#]");
         }
         
-        $resArr['driverClass'] =  array('name' => tr('Вид'), 'val' =>"[#driverClass#]");
+        $resArr[$mvc->driverClassField] =  array('name' => tr('Вид'), 'val' =>"[#{$mvc->driverClassField}#]");
         
         $resArr['priority'] =  array('name' => tr('Приоритет'), 'val' =>"[#priority#]");
         
