@@ -178,8 +178,6 @@ class acc_Setup extends core_ProtoSetup
     	array('seePrice'),
     	array('invoicer'),
     	array('accJournal'),
-    	array('acc', 'accJournal,invoicer,seePrice'),
-        array('accMaster', 'acc'),
         array('accLimits'),
         array('allGlobal'),
         array('invoiceAll'),
@@ -196,6 +194,8 @@ class acc_Setup extends core_ProtoSetup
         array('purchaseAllGlobal', 'purchaseAll, allGlobal'),
         array('planningAll'),
         array('planningAllGlobal', 'planningAll, allGlobal'),
+        array('acc', 'accJournal, invoicer, seePrice, invoiceAll, storeAll, bankAll, cashAll, saleAll, purchaseAll, planningAll'),
+        array('accMaster', 'acc, invoiceAllGlobal, storeAllGlobal, bankAllGlobal, cashAllGlobal, saleAllGlobal, purchaseAllGlobal, planningAllGlobal'),
         array('rep_acc'),
 
     );

@@ -70,6 +70,12 @@ class support_Setup extends core_ProtoSetup
     
     
     /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    public $defClasses = "support_TaskType";
+    
+    
+    /**
      * Инсталиране на пакета
      */
     function install()

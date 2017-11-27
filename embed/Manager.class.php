@@ -333,6 +333,7 @@ class embed_Manager extends core_Master
                     $driverClass = $args[0]->{$this->driverClassField};
                     break;
                 case 'aftergetsearchkeywords';
+                case 'aftergethidearrforletterhead';
                 case 'beforesaveclonerec':
                 case 'beforesave':
                 case 'aftercreate':

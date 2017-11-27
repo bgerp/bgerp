@@ -196,7 +196,7 @@ class frame2_Reports extends embed_Manager
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'lastRefreshed';
+    public $fieldsNotToClone = 'lastRefreshed,data';
     
     
     /**
@@ -205,6 +205,7 @@ class frame2_Reports extends embed_Manager
     function description()
     {
     	$this->FLD('title', 'varchar', 'caption=Заглавие');
+    	$this->FLD('changeFields', 'set', 'caption=Промяна на->Избор,autohide,input=none');
     	$this->FLD('updateDays', 'set(monday=Понеделник,tuesday=Вторник,wednesday=Сряда,thursday=Четвъртък,friday=Петък,saturday=Събота,sunday=Неделя)', 'caption=Обновяване и известяване->Дни,autohide');
     	$this->FLD('updateTime', 'set(08:00,09:00,10:00,11:00,12:00,13:00,14:00,15:00,16:00,17:00,18:00,19:00,20:00)', 'caption=Обновяване и известяване->Час,autohide');
     	$this->FLD('notificationText', 'varchar', 'caption=Обновяване и известяване->Текст,autohide');
@@ -229,6 +230,43 @@ class frame2_Reports extends embed_Manager
     		if((is_array($dates) && count($dates)) || $dates === FALSE){
     			$form->setField('updateDays', 'input=none');
     			$form->setField('updateTime', 'input=none');
+    		}
+    		
+    		// Има ли полета, които може да се променят
+    		$changeAbleFields = $Driver->getChangeableFields($rec);
+    		if(count($changeAbleFields)){
+    			$set = array();
+    			foreach ($changeAbleFields as $fldName){
+    				if($Fld = $form->getField($fldName, FALSE)){
+    					$set[$fldName] = $Fld->caption; 
+    				}
+    			}
+    			
+    			// Задаване като опции на артикулите, които може да се променят
+    			if(count($set)){
+    				$form->setField('changeFields', 'input');
+    				$form->setSuggestions('changeFields', $set);
+    			}
+    		}
+    		
+    		// При редакция, ако има полета за промяна
+    		if(isset($form->rec->id) && $form->rec->changeFields){
+    			$changeable = type_Set::toArray($form->rec->changeFields);
+    			
+    			// И потребителя не може да избере драйвера
+    			if(!$Driver->canSelectDriver()){
+    				
+    				// Скриват се всички полета, които не са упоменати като променяеми
+    				$fields = $form->selectFields("#input != 'none' AND #input != 'hidden'");
+    				$diff = array_diff_key($fields, $changeable);
+    				if($data->action == 'clone'){
+    					unset($diff['sharedUsers'], $diff['notificationText'], $diff['updateDays'], $diff['updateTime'], $diff['maxKeepHistory']);
+    				}
+    				
+    				foreach ($diff as $name => $Type){
+    					$form->setField($name, 'input=none');
+    				}
+    			}
     		}
     	}
     }
@@ -614,9 +652,22 @@ class frame2_Reports extends embed_Manager
     	}
     	
     	// За модификация, потребителя трябва да има права и за драйвера
-    	if(in_array($action, array('edit', 'write', 'refresh', 'export', 'clonerec')) && isset($rec->driverClass)){
+    	if(in_array($action, array('write', 'refresh', 'export')) && isset($rec->driverClass)){
     		if($Driver = $mvc->getDriver($rec)){
     			if(!$Driver->canSelectDriver($userId)){
+    				$requiredRoles = 'no_one';
+    			}
+    		}
+    	}
+    	
+    	if(($action == 'edit' || $action == 'clonerec') && isset($rec->driverClass)){
+    		if($Driver = $mvc->getDriver($rec)){
+    			
+    			// Кои са избраните полета за промяна (ако има)
+    			$changeAbleFields = type_Set::toArray($rec->changeFields);
+    			
+    			// Може да се клонира/редактира ако може да се избере драйвера и има посочени полета за промяна
+    			if(!($Driver->canSelectDriver($userId) || (keylist::isIn($userId, $rec->sharedUsers) && count($changeAbleFields)))){
     				$requiredRoles = 'no_one';
     			}
     		}
@@ -748,14 +799,16 @@ class frame2_Reports extends embed_Manager
     	$csv = csv_Lib::createCsv($csvExportRows, $fields);
     	$csv .= "\n" . $rCsv;
     	
+    	// Подсигуряване че енкодига е UTF8
+    	$csv = mb_convert_encoding($csv, 'UTF-8', 'UTF-8');
+    	$csv = iconv('UTF-8', "UTF-8//IGNORE", $csv);
+    	
+    	// Записване във файловата система
     	$fileName = str_replace(' ', '_', str::utf2ascii($rec->title));
+    	$fh = fileman::absorbStr($csv, 'exportCsv', "{$fileName}_{$rec->id}.csv");
     	 
-    	header("Content-type: application/csv");
-    	header("Content-Disposition: attachment; filename={$fileName}({$rec->id}).csv");
-    	header("Pragma: no-cache");
-    	header("Expires: 0");
-    	echo $csv;
-    	shutdown();
+    	// Редирект към експортиртния файл
+    	return new Redirect(array('fileman_Files', 'single', $fh), 'Справката е експортирана успешно');
     }
     
     
@@ -916,5 +969,21 @@ class frame2_Reports extends embed_Manager
     	
     	// Връщат се най близките 3 дати
     	return array($res[0], $res[1], $res[2]);
+    }
+    
+    
+   /**
+    * След клониране на модела
+    */
+    public static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
+    {
+    	if($Driver = $mvc->getDriver($nRec)){
+    		$cu = core_Users::getCurrent();
+    		
+    		// Ако потребителя няма права за драйвера, но го е клонирал се споделя автоматично
+    		if(!$Driver->canSelectDriver($cu)){
+    			doc_ThreadUsers::addShared($nRec->threadId, $nRec->containerId, $cu);
+    		}
+    	}
     }
 }

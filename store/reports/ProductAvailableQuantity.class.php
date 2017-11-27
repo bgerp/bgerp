@@ -427,11 +427,11 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         } else {
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
             //  $fld->FLD('storeId', 'varchar', 'caption=Склад,tdClass=centered');
-            $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
-            $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Наличност,smartCenter');
-            $fld->FLD('minQuantity', 'double', 'caption=Минимално,smartCenter');
-            $fld->FLD('maxQuantity', 'double', 'caption=Максимално,smartCenter');
-            $fld->FLD('conditionQuantity', 'text', 'caption=Състояние,tdClass=centered');
+            $fld->FLD('measure', 'varchar', 'caption=Мярка');
+            $fld->FLD('quantity', 'varchar', 'caption=Наличност');
+            $fld->FLD('minQuantity', 'varchar', 'caption=Минимално');
+            $fld->FLD('maxQuantity', 'varchar', 'caption=Максимално');
+            $fld->FLD('conditionQuantity', 'varchar', 'caption=Състояние');
 
         }
 

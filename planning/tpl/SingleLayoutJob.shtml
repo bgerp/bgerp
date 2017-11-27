@@ -105,10 +105,17 @@
                     
                     <!--ET_BEGIN oldJobId-->
                     <tr>
-                        <td class='quiet' style='text-align: left;white-space: nowrap;'>|Предишно задание|*:</td>
+                        <td class='quiet' style='text-align: left;white-space: nowrap;'>|Предходно задание|*:</td>
                         <td>[#oldJobId#]</td>
                     </tr>
                     <!--ET_END oldJobId-->
+                    [#ADDITIONAL_BLOCK#]
+                    <!--ET_BEGIN ADDITIONAL_VALUE-->
+                    <tr>
+                        <td class='quiet' style='text-align: left;white-space: nowrap;'>[#ADDITIONAL_CAPTION#]:</td>
+                        <td>[#ADDITIONAL_VALUE#]</td>
+                    </tr>
+                    <!--ET_END ADDITIONAL_VALUE-->
                 </table>
 	       </td>
 	       <td style='padding: 0'>
@@ -165,10 +172,16 @@
 		     <table>
 			    <!--ET_BEGIN saleId-->
 			    <tr>
-				   <td class='quiet'>|Продажба|*</td>
+				   <td class='quiet'>|Договор|*</td>
 				   <td>[#saleId#]</td>
 				</tr>
 			    <!--ET_END saleId--> 
+			    <!--ET_BEGIN saleFolderId-->
+			    <tr>
+				   <td class='quiet'>|В папка|*</td>
+				   <td>[#saleFolderId#]</td>
+				</tr>
+			    <!--ET_END saleFolderId-->
 			    <!--ET_BEGIN deliveryTermId-->
 			    <tr>
 				   <td class='quiet'>|Условие на доставка|*</td>

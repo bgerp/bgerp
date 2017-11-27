@@ -167,18 +167,20 @@ class support_Systems extends core_Master
     /**
      * Връща масив с всички типове на системата и на родителите
      * 
-     * @param integer $id
+     * @param integer|array $id
      * 
      * @return array
      */
     public static function getAllowedFieldsArr($id)
     {
-        $allSystemsArr = support_Systems::getSystems($id);
+        if (is_array($id)) {
+            $allSystemsArr = $id;
+        } else {
+            $allSystemsArr = support_Systems::getSystems($id);
+        }
         
         // Запитване за извличане на системите
         $sQuery = support_Systems::getQuery();
-        
-        $sQuery->where($id);
         
         // Обхождаме всики наследени системи
         foreach ($allSystemsArr as $allSystemId) {
@@ -209,10 +211,10 @@ class support_Systems extends core_Master
      */
     static function getSystems($systemId)
     {
-        // Ако не е зададена система връщаме
-        if (!$systemId) array();
-        
         $arr = array();
+        
+        // Ако не е зададена система връщаме
+        if (!$systemId) return $arr;
         
         // Добавяме в масива
         $arr[$systemId] = $systemId;

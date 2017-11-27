@@ -157,14 +157,14 @@ class email_Imap extends core_BaseClass
     
     
     /**
-     * Еръща UID на съобщението с пореден номер $msgId
+     * Еръща $msgNoна съобщението със зададения UID
      * Не работи с POP3 сървери
      */
     function getMsgNo($uid)
     {
         return imap_msgno($this->connection, $uid);
     }
-    
+
 
     /**
      * Връща състоянието на писмата или посоченото писмо
@@ -232,11 +232,29 @@ class email_Imap extends core_BaseClass
      */
     function delete($msgNo)
     {
-        $res = imap_delete($this->connection, $msgNo);
+        $res = imap_delete($this->connection, "{$msgNo}:{$msgNo}");
         
         return $res;
     }
     
+
+    /**
+     * Поставя флага, че съобщението е прочетено
+     */
+    function markSeen($msgNo)
+    {
+        return imap_setflag_full($this->connection, "{$msgNo}:{$msgNo}", '\\Seen');
+    }
+    
+
+    /**
+     * Изтрива флага, че съобщението е прочетено
+     */
+    function unmarkSeen($msgNo)
+    {
+        return imap_clearflag_full($this->connection, "{$msgNo}:{$msgNo}", '\\Seen');
+    }
+
     
     /**
      * Изтрива e които са маркирани за изтриване
