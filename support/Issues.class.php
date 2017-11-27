@@ -10,6 +10,7 @@
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
+ * @deprecated
  */
 class support_Issues extends core_Master
 {
@@ -220,6 +221,9 @@ class support_Issues extends core_Master
      */
     function act_New()
     {
+        
+        return Request::forward(array('cal_Tasks', 'new'));
+        
     	$this->requireRightFor('new');
 
         if($lg = Request::get('Lg')){

@@ -8,6 +8,12 @@ defIfNot('EMAIL_MAX_FETCHING_TIME', 30);
 
 
 /**
+ * Максимален брой изтрити писма за една сесия
+ */
+defIfNot('EMAIL_MAX_DELETED_CNT', 10);
+
+
+/**
  * Минимална дължина над която ще се проверява за баркод при сваляне на файл
  */
 defIfNot('EMAIL_MIN_FILELEN_FOR_BARCOCE', 15000);
@@ -23,12 +29,6 @@ defIfNot('EMAIL_MAX_FILELEN_FOR_BARCOCE', 250000);
  * Разширения, в които ще се търси баркод при сваляне на имейл
  */
 defIfNot('EMAIL_ALLOWED_EXT_FOR_BARCOCE', "pdf,tif,tiff,jpg,jpeg");
-
-
-/**
- * Период за сваляне на имейли
- */
-defIfNot('EMAIL_DOWNLOAD_PERIOD', 120);
 
 
 /**
@@ -263,15 +263,16 @@ class email_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
-    
-            'EMAIL_DOWNLOAD_PERIOD' => array ('time(suggestions=1 мин.|2 мин.|3 мин.)', 'mandatory, caption=Период за сваляне на имейлите->Време'),
-            
+                
             // Максимално време за еднократно фетчване на писма
             'EMAIL_MAX_FETCHING_TIME' => array ('time(suggestions=1 мин.|2 мин.|3 мин.)', 'mandatory, caption=Максимално време за получаване на имейли в една сесия->Време'),
     
+            // Максимален брой изтрити писма за една сесия
+            'EMAIL_MAX_DELETED_CNT' => array ('int', 'caption=Максимален брой изтрити писма за една сесия->Брой'),
+
             // Максималното време за изчакване на буфера
             'EMAIL_POP3_TIMEOUT'  => array ('time(suggestions=1 сек.|2 сек.|3 сек.)', 'mandatory, caption=Таймаут на POP3 сокета->Време'),
-            
+
             // Максималната разрешена памет за използване
             'EMAIL_MAX_ALLOWED_MEMORY' => array ('fileman_FileSize', 'mandatory, caption=Максималната разрешена памет за използване при парсиране на имейли->Размер, suggestions=100 MB|200 MB|400 MB|800 MB|1200 MB'),
 
@@ -366,6 +367,7 @@ class email_Setup extends core_ProtoSetup
             'migrate::updateUserInboxesD',
             'migrate::repairSalutations',
             'migrate::repairDelayTime',
+            'migrate::fieldDeleteAfterRetrieval'
         );
     
 
@@ -646,6 +648,27 @@ class email_Setup extends core_ProtoSetup
             $eRec->delaySendOn = dt::addSecs($eRec->delay, $eRec->createdOn);
             
             $cls->save($eRec, 'delaySendOn');
+        }
+    }
+
+
+    /**
+     * Миграция за полето deleteAfterPeriod
+     */
+    function fieldDeleteAfterRetrieval()
+    {
+        $accMvc = cls::get('email_Accounts');
+
+        if(!$accMvc->db->isFieldExists($accMvc->dbTableName, 'delete_after_retrieval')) return;
+
+        $query = $accMvc->getQuery();
+        $query->FLD('deleteAfterRetrieval', 'enum(no=Не,yes=Да)', 'caption=Изтриване?,hint=Дали писмото да бъде изтрито от IMAP кутията след получаване в системата?');
+
+        while($rec = $query->fetch()) {
+            if($rec->deleteAfterRetrieval == 'yes' && empty($rec->deleteAfterPeriod)) {
+                $rec->deleteAfterPeriod = 7 * 24 * 60 * 60;
+                $accMvc->save_($rec, 'deleteAfterPeriod');
+            }
         }
     }
     

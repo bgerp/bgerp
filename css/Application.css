@@ -1950,6 +1950,9 @@ pre.document {
   font-size: 0.9em;
   color: #666666; }
 
+.document table.listTable > tbody > tr > td {
+  padding: 5px 3px 2px !important; }
+
 /*
  * край на стилове за документи
  */
@@ -5064,6 +5067,8 @@ only screen and (max-width: 320px) {
     cursor: default;
     background-color: #e4e4e4;
     color: #ee7700 !important; }
+  .printing .sharing-history {
+    display: none; }
 
 .narrow .printing .document {
   width: 850px; }

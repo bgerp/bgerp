@@ -385,7 +385,6 @@ class doc_Folders extends core_Master
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        
         $openThreads = $mvc->getVerbal($rec, 'openThreadsCnt');
         
         if($rec->openThreadsCnt) {
@@ -400,7 +399,7 @@ class doc_Folders extends core_Master
         if(mb_strlen($row->title) > self::maxLenTitle) {
             $attr['title'] = $row->title;
         }
-
+        
         $row->title = str::limitLen($row->title, self::maxLenTitle);
         
         $haveRight = $mvc->haveRightFor('single', $rec);

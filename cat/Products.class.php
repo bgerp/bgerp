@@ -64,7 +64,7 @@ class cat_Products extends embed_Manager {
      * Детайла, на модела
      */
     public $details = 'Packagings=cat_products_Packagings,Prices=cat_products_PriceDetails,AccReports=acc_ReportDetails,
-    Resources=planning_ObjectResources,Jobs=planning_Jobs,Boms=cat_Boms,Shared=cat_products_SharedInFolders';
+    Resources=planning_ObjectResources,Usage=cat_products_Usage,Boms=cat_Boms,Shared=cat_products_SharedInFolders';
     
     
     /**
@@ -2831,9 +2831,9 @@ class cat_Products extends embed_Manager {
     public static function getConditions($rec, $docType, $lg = NULL)
     {
     	$conditions = array();
+    	$rec = self::fetchRec($rec);
     	
     	if($Driver = static::getDriver($rec)){
-    		$rec = self::fetchRec($rec);
     		$conditions = $Driver->getConditions($rec, $docType, $lg);
     	}
     	 

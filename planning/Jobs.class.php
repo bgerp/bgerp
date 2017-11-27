@@ -53,7 +53,7 @@ class planning_Jobs extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, plg_Sorting, acc_plg_DocumentSummary, plg_Search, doc_SharablePlg, change_Plugin, plg_Clone, plg_Printing';
+    public $loadList = 'plg_RowTools2, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, plg_Sorting, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Printing';
     
     
     /**
@@ -179,7 +179,7 @@ class planning_Jobs extends core_Master
     function description()
     {
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул');
-    	$this->FLD('oldJobId', 'int', 'silent,after=productId,caption=Предишно задание,removeAndRefreshForm=notes|department|sharedUsers|packagingId|quantityInPack|storeId,input=none');
+    	$this->FLD('oldJobId', 'int', 'silent,after=productId,caption=Предходно задание,removeAndRefreshForm=notes|department|packagingId|quantityInPack|storeId,input=none');
     	$this->FLD('dueDate', 'date(smartTime)', 'caption=Падеж,mandatory');
     	
     	$this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','smartCenter,mandatory,input=hidden,before=packQuantity');
@@ -204,8 +204,6 @@ class planning_Jobs extends core_Master
     	);
     	$this->FLD('saleId', 'key(mvc=sales_Sales)', 'input=hidden,silent,caption=Продажба');
     	$this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
-    	
-    	$this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители');
     	$this->FLD('history', 'blob(serialize, compress)', 'caption=Данни,input=none');
     	
     	$this->setDbIndex('productId');
@@ -306,18 +304,12 @@ class planning_Jobs extends core_Master
     	
     	// Ако е избрано предишно задание зареждат се данните от него
     	if(isset($rec->oldJobId)){
-    		$oRec = self::fetch($rec->oldJobId, 'notes,sharedUsers,department,packagingId,storeId');
+    		$oRec = self::fetch($rec->oldJobId, 'notes,department,packagingId,storeId');
     		
     		$form->setDefault('notes', $oRec->notes);
-    		$form->setDefault('sharedUsers', $oRec->sharedUsers);
     		$form->setDefault('department', $oRec->department);
     		$form->setDefault('packagingId', $oRec->packagingId);
     		$form->setDefault('storeId', $oRec->storeId);
-    	} else {
-    		// При ново задание, ако текущия потребител има права го добавяме като споделен
-    		if(haveRole('planning,ceo') && empty($rec->id)){
-    			$form->setDefault('sharedUsers', keylist::addKey($rec->sharedUsers, core_Users::getCurrent()));
-    		}
     	}
     	
     	$form->setDefault('packagingId', key($packs));
@@ -632,9 +624,12 @@ class planning_Jobs extends core_Master
     		$row->quantityNotStored = "<div class='fright'>{$row->quantityNotStored}</div>";
     	}
     	 
-    	if($rec->saleId){
+    	if(isset($rec->saleId)){
     		$row->saleId = sales_Sales::getlink($rec->saleId, 0);
+    		$saleFolderId = sales_Sales::fetchField($rec->saleId, 'folderId');
+    		$row->saleFolderId = doc_Folders::recToVerbal(doc_Folders::fetch($saleFolderId))->title;
     	}
+    	
     	$row->measureId = cat_UoM::getShortName($rec->packagingId);
     	
     	$tolerance = ($rec->tolerance) ? $rec->tolerance : 0;
@@ -797,20 +792,6 @@ class planning_Jobs extends core_Master
 	    		$res = 'no_one';
     		}
     	}
-    	
-    	if(($action == 'activate' || $action == 'restore' || $action == 'conto' || $action == 'write' || $action == 'add' || $action == 'wakeup') && isset($rec->productId) && $res != 'no_one'){
-    		$isPublic = cat_Products::fetchField($rec->productId, 'isPublic');
-    		
-    		// Само за нестандартните артикули
-    		if($isPublic != 'yes'){
-    			
-    			// Ако има активно задание, да не може друга да се възстановява,контира,създава или активира
-    			$where = "#productId = {$rec->productId}" . ((isset($rec->saleId)) ? " AND #saleId = {$rec->saleId}" : " AND #saleId IS NULL");
-    			if($mvc->fetchField("{$where} AND (#state = 'active' OR #state = 'stopped' OR #state = 'wakeup')", 'id')){
-    				$res = 'no_one';
-    			}
-    		}
-    	}
     	 
     	// Ако няма ид, не може да се активира
     	if($action == 'activate' && empty($rec->id)){
@@ -966,98 +947,6 @@ class planning_Jobs extends core_Master
     
     
     /**
-     * Подготовка на заданията за артикула
-     * 
-     * @param stdClass $data
-     */
-    public function prepareJobs($data)
-    {
-    	$data->rows = array();
-    	$data->hideToolsCol = $data->hideSaleCol = TRUE;
-    	$fields = $this->selectFields();
-    	$fields['__isDetail'] = TRUE;
-    	
-    	// Намираме неоттеглените задания
-    	$query = $this->getQuery();
-    	$query->where("#productId = {$data->masterId}");
-    	$query->where("#state != 'rejected'");
-    	$query->orderBy("id", 'DESC');
-    	while($rec = $query->fetch()){
-    		$data->rows[$rec->id] = $this->recToVerbal($rec, $fields);
-    		if(isset($rec->saleId)){
-    			$data->hideSaleCol = FALSE;
-    		}
-    		
-    		if($this->haveRightFor('edit', $rec)){
-    			$data->hideToolsCol = FALSE;
-    		}
-    	}
-    	
-    	$masterInfo = $data->masterMvc->getProductInfo($data->masterId);
-    	if(!isset($masterInfo->meta['canManifacture'])){
-    		$data->notManifacturable = TRUE;
-    	}
-    	
-    	if(!haveRole('ceo,planning,job') || ($data->notManifacturable === TRUE && !count($data->rows)) || $data->masterData->rec->state == 'template' || $data->masterData->rec->brState == 'template'){
-    		$data->hide = TRUE;
-    		return;
-    	}
-    	
-    	$data->TabCaption = 'Задания';
-    	$data->Tab = 'top';
-    	
-    	// Проверяваме можем ли да добавяме нови задания
-    	if($this->haveRightFor('add', (object)array('productId' => $data->masterId))){
-    		$data->addUrl = array($this, 'add', 'threadId' => $data->masterData->rec->threadId, 'productId' => $data->masterId, 'ret_url' => TRUE);
-    	}
-    }
-    
-    
-    /**
-     * Рендиране на заданията към артикул
-     * 
-     * @param stdClass $data
-     * @return core_ET $tpl - шаблон на детайла
-     */
-    public function renderJobs($data)
-    {
-    	 if($data->hide === TRUE) return;
-    	
-    	 $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
-    	 $title = tr('Задания за производство');
-    	 $tpl->append($title, 'title');
-    	 
-    	 if(isset($data->addUrl)){
-    	 	$addBtn = ht::createLink('', $data->addUrl, FALSE, 'ef_icon=img/16/add.png,title=Добавяне на ново задание за производство');
-    	 	$tpl->append($addBtn, 'title');
-    	 }
-    	 
-    	 $listFields = arr::make('tools=Пулт,title=Документ,dueDate=Падеж,saleId=Към продажба,packQuantity=Планирано,quantityProduced=Заскладено,packagingId=Мярка');
-    	 
-    	 if($data->hideSaleCol){
-    	 	unset($listFields['saleId']);
-    	 }
-    	 
-    	 if($data->hideToolsCol){
-    	 	unset($listFields['tools']);
-    	 }
-    	 
-    	 $table = cls::get('core_TableView', array('mvc' => $this));
-    	 $details = $table->get($data->rows, $listFields);
-    	 
-    	 // Ако артикула не е производим, показваме в детайла
-    	 if($data->notManifacturable === TRUE){
-    	 	$tpl->append(" <span class='red small'>(" . tr('Артикулът не е производим') . ")</span>", 'title');
-    	 	$tpl->append("state-rejected", 'TAB_STATE');
-    	 }
-    	 
-    	 $tpl->replace($details, 'content');
-    	 
-    	 return $tpl;
-    }
-    
-    
-    /**
      * Преизчисляваме какво количество е произведено по заданието
      * 
      * @param int $id - ид на запис
@@ -1095,19 +984,19 @@ class planning_Jobs extends core_Master
     	$form = cls::get('core_Form');
     	$form->title = 'Създаване на задание към продажба|* <b>' . sales_Sales::getHyperlink($saleId, TRUE) . "</b>";
     	$form->FLD('productId', 'key(mvc=cat_Products)', 'caption=Артикул,mandatory');
-    	$threadId = sales_Sales::fetchField($saleId, 'threadId');
+    	$saleRec = sales_Sales::fetch($saleId, 'threadId,containerId');
     	
     	$selectable = $this->getSelectableProducts($saleId);
     	if(count($selectable) == 1){
     		$selectable = array_keys($selectable);
-    		redirect(array($this, 'add', 'threadId' => $threadId, 'productId' => $selectable[0], 'saleId' => $saleId, 'ret_url' => array('sales_Sales', 'single', $saleId)));
+    		redirect(array($this, 'add', 'threadId' => $saleRec->threadId, 'productId' => $selectable[0], 'saleId' => $saleId, 'foreignId' => $saleRec->containerId, 'ret_url' => array('sales_Sales', 'single', $saleId)));
     	}
     	
     	$form->setOptions('productId', array('' => '') + $selectable);
     	$form->input();
     	if($form->isSubmitted()){
     		if(isset($form->rec->productId)){
-    			redirect(array($this, 'add', 'threadId' => $threadId, 'productId' => $form->rec->productId, 'saleId' => $saleId, 'ret_url' => TRUE));
+    			redirect(array($this, 'add', 'threadId' => $saleRec->threadId, 'productId' => $form->rec->productId, 'saleId' => $saleId, 'foreignId' => $saleRec->containerId, 'ret_url' => TRUE));
     		}
     	}
     	

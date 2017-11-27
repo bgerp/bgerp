@@ -114,11 +114,12 @@ class email_Accounts extends core_Master
         
         // Изтегляне
         $this->FLD('state', 'enum(active=Активен, stopped=Спрян)', 'caption=Изтегляне->Статус');
-        $this->FLD('period', 'int', 'caption=Изтегляне->Период');
-        $this->FLD('lastFetchAll', 'datetime', 'caption=Проверка,input=none');
-        $this->FLD('deleteAfterRetrieval', 'enum(no=Не,yes=Да)',
-            'caption=Изтриване?,hint=Дали писмото да бъде изтрито от IMAP кутията след получаване в системата?');
-        
+        $this->FLD('fetchingPeriod', 'time(suggestions=30 секунди|1 минута|2 минути|5 минути|10 минути|30 минути|1 час,min=30)', 'caption=Изтегляне->Проверка през,placeholder=1 минута');
+        $this->FLD('lastFetchAll', 'datetime', 'caption=Изтегляне->Проверка,input=none');
+        $this->FLD('deleteAfterPeriod', 'time(uom=minutes,suggestions=Веднага|2 часа|6 часа|1 ден|1 седмица|1 месец)',
+            'caption=Изтегляне->Изтриване,hint=Кога писмото да бъде изтрито от IMAP/POP3 сметката след получаване в системата?,placeholder=Никога,unit=след получаване,oldFiledName=datetime');
+        $this->FLD('imapFlag', 'enum(,seen=Като прочетени,unseen=Като непрочетени)', 'caption=Маркиране,placeholder=Без промяна');
+
         // Изпращане
         $this->FLD('smtpServer', 'varchar', 'caption=Изпращане->SMTP сървър,width=100%,oldFieldName=smtp', array('attr' => array('id' => 'smtpServer')));
         $this->FLD('smtpSecure', 'enum(no=Без криптиране,tls=TLS,ssl=SSL)', 'caption=Изпращане->Сигурност', array('attr' => array('id' => 'smtpSecure')));
@@ -146,8 +147,6 @@ class email_Accounts extends core_Master
             $row->sending  = $mvc->getVerbal($rec, 'smtpServer');
             $row->sending .= "<br>" . $mvc->getVerbal($rec, 'smtpUser');
         }
-
-
     }
 
     
@@ -361,11 +360,13 @@ class email_Accounts extends core_Master
             if ($form->rec->id) {
                 $sRec = $mvc->fetch($form->rec->id);
                 foreach ((array)$sRec as $k => $v) {
-                    if (isset($accRec->{$k})) continue;
-                    $accRec->{$k} = $v;
+                    if (!empty($accRec->{$k})) continue;
+                    if($mvc->getFieldType($k) instanceof type_Password) {
+                        $accRec->{$k} = $v;
+                    }
                 }
             }
-            
+ 
             $imapConn = cls::get('email_Imap', array('accRec' => $accRec));
             
             try {

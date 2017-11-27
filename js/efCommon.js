@@ -2112,7 +2112,7 @@ function refreshForm(form, removeFields) {
 		url: frm.attr('action'),
 		data: serialized + '&ajax_mode=1',
 		dataType: 'json'
-	}).done( function(data) {
+	}).done(function(data) {
 		getEO().saveFormData(frm.attr('id'), data);
 		replaceFormData(frm, data);
 
@@ -2122,6 +2122,8 @@ function refreshForm(form, removeFields) {
                 if($('[name=' + k + ']').val() == '')
                     $('[name=' + k + ']').val(savedPwd[k]);}
         },  600);
+	}).fail(function(res) {
+		getEO().log('Грешка при извличане на данни по AJAX - ReadyStatus: ' + res.readyState + ' - Status: ' + res.status);
 	});
 }
 

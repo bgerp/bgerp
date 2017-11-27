@@ -36,6 +36,8 @@ class sales_reports_VatOnSalesWithoutInvoices extends frame2_driver_TableData
 
         $form = &$data->form;
 
+        $form->setDefault('orderBy', 'name');
+
         $lastClosedMonth = dt::addMonths(-1,dt::today());
 
         $lastClosedMonthRec = acc_Periods::fetchByDate($lastClosedMonth);
@@ -44,6 +46,11 @@ class sales_reports_VatOnSalesWithoutInvoices extends frame2_driver_TableData
         $form->setDefault('currency', acc_Periods::getBaseCurrencyCode());
 
     }
+
+    /**
+     * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
+     */
+    protected $changeableFields = 'periodId';
 
 
     /**
@@ -55,8 +62,9 @@ class sales_reports_VatOnSalesWithoutInvoices extends frame2_driver_TableData
     {
 
         $fieldset->FLD('periodId', 'key(mvc=acc_Periods,select=title)', 'caption=Период,after=title');
-        $fieldset->FLD('totalVat', 'double(decimals=2)', 'caption=ДДС за периода,input=none');
-        $fieldset->FLD('currency', 'varchar', 'caption=Валута,input=none');
+        $fieldset->FLD('orderBy', 'enum(name=Име,code=Код,quantity=Количество,amount=Стойност)','caption=Сортитане по,maxRadio=4,columns=4,after=periodId');
+        $fieldset->FLD('totalVat', 'double(decimals=2)', 'caption=ДДС за периода,export=Csv,input=none');
+        $fieldset->FLD('currency', 'varchar', 'caption=Валута,export=Csv,input=none');
 
     }
 
@@ -79,11 +87,13 @@ class sales_reports_VatOnSalesWithoutInvoices extends frame2_driver_TableData
         $query->EXT('chargeVat', 'sales_Sales', 'externalKey=saleId');
         $query->EXT('makeInvoice', 'sales_Sales', 'externalKey=saleId');
         $query->EXT('state', 'sales_Sales', 'externalKey=saleId');
+        $query->EXT('code', 'cat_Products', 'externalKey=productId');
 
         $query->where(array("#closedOn >= '[#1#]' AND #closedOn <= '[#2#]'", acc_Periods::fetch($rec->periodId)->start, acc_Periods::fetch($rec->periodId)->end . ' 23:59:59'));
         $query->where("#state = 'closed'");
         $query->where("#makeInvoice = 'no'");
         $query->where(array("#chargeVat = '[#1#]' OR #chargeVat = '[#2#]'", 'yes', 'separate'));
+       // $query->orderBy('code', 'ASC');
 
         $totalVat = 0;
 
@@ -107,11 +117,13 @@ class sales_reports_VatOnSalesWithoutInvoices extends frame2_driver_TableData
                     (object)array(
 
                         'productId' => $articul->productId,
+                        'name'=> cat_Products::getVerbal($articul->productId,'name'),
                         'measure' => cat_Products::fetchField($id, 'measureId'),
                         'quantity' => $articul->quantity,
                         'amount' => $discountedAmount,
                         'vat' => (double)0,
                         'price' => $articul->price,
+                        'code' => $articul->code,
                         'hint' => $salesInfo[0],
 
                     );
@@ -139,10 +151,52 @@ class sales_reports_VatOnSalesWithoutInvoices extends frame2_driver_TableData
 
         $rec->totalVat = $totalVat;
 
-       // bp($recs);
+            switch ($rec->orderBy) {
+
+                case 'amount':
+                    $f = 'orderByAmount';
+                    break;
+
+                case 'quantity':
+                    $f = 'orderByQuantity';
+                    break;
+
+                case 'code':
+                    $f = 'orderByCode';
+                    break;
+
+                case 'name':
+                    $f = 'orderByName';
+                    break;
+            }
+
+            usort($recs, array($this, "$f"));
 
         return $recs;
 
+    }
+
+    function orderByQuantity($a, $b)
+    {
+
+        return $a->quantity < $b->quantity;
+    }
+
+    function orderByAmount($a, $b)
+    {
+
+        return $a->amount < $b->amount;
+    }
+
+    function orderByCode($a, $b)
+    {
+
+        return strcmp($a->code, $b->code);
+    }
+    function orderByName($a, $b)
+    {
+
+        return strcmp($a->name, $b->name);
     }
 
 
@@ -161,6 +215,7 @@ class sales_reports_VatOnSalesWithoutInvoices extends frame2_driver_TableData
         if($export === FALSE){
 
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
+            $fld->FLD('code', 'varchar', 'caption=Код');
             $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
             $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество,smartCenter');
             $fld->FLD('price', 'double', 'caption=Ед.цена,smartCenter');
@@ -168,11 +223,12 @@ class sales_reports_VatOnSalesWithoutInvoices extends frame2_driver_TableData
             $fld->FLD('vat', 'double', 'caption=ДДС,smartCenter');
         } else {
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
-            $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
-            $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество,smartCenter');
-            $fld->FLD('price', 'double', 'caption=Ед.цена,smartCenter');
-            $fld->FLD('amount', 'double(decimals=2)', 'caption=Стойност,smartCenter');
-            $fld->FLD('vat', 'double', 'caption=ДДС,smartCenter');
+            $fld->FLD('code', 'varchar', 'caption=Код');
+            $fld->FLD('measure', 'varchar', 'caption=Мярка');
+            $fld->FLD('quantity', 'varchar', 'caption=Количество');
+            $fld->FLD('price', 'varchar', 'caption=Ед.цена');
+            $fld->FLD('amount', 'varchar', 'caption=Стойност');
+            $fld->FLD('vat', 'varchar', 'caption=ДДС');
 
         }
 
@@ -193,16 +249,21 @@ class sales_reports_VatOnSalesWithoutInvoices extends frame2_driver_TableData
 
         $isPlain = Mode::is('text', 'plain');
         $Int = cls::get('type_Int');
+        $Double = core_Type::getByName('double(smartRound)');
         $Date = cls::get('type_Date');
 
         $row = new stdClass();
 
         if(isset($dRec->productId)) {
-            $row->productId =  cat_Products::getShortHyperlink($dRec->productId);
+            $row->productId = ($isPlain) ? cat_Products::getVerbal($dRec->productId, 'name') : cat_Products::getLinkToSingle($dRec->productId,'name');
+        }
+
+        if(isset($dRec->code)) {
+            $row->code = ($isPlain) ? cat_Products::getVerbal($dRec->productId, 'code') : cat_Products::getVerbal($dRec->productId,'code');
         }
 
         if(isset($dRec->quantity)) {
-            $row->quantity =  core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity);
+            $row->quantity = ($isPlain) ? frame_CsvLib::toCsvFormatDouble($dRec->quantity) :core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity) ;
         }
 
         if(isset($dRec->measure)) {
@@ -210,16 +271,20 @@ class sales_reports_VatOnSalesWithoutInvoices extends frame2_driver_TableData
         }
 
         if (isset($dRec->amount)) {
-            $row->amount = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->amount);
+            $row->amount =($isPlain) ? frame_CsvLib::toCsvFormatDouble($dRec->amount) : core_Type::getByName('double(decimals=2)')->toVerbal($dRec->amount);
         }
 
         if (isset($dRec->price)) {
-            $row->price = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->price);
+            $row->price =($isPlain) ? frame_CsvLib::toCsvFormatDouble($dRec->price) : core_Type::getByName('double(decimals=2)')->toVerbal($dRec->price);
         }
 
         if (isset($dRec->vat)) {
-            $row->vat = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->vat);
-            $row->vat = ht::createHint($row->vat, "$dRec->hint", 'notice');
+            if($isPlain){
+                $row->vat = frame_CsvLib::toCsvFormatDouble($dRec->vat);
+            }else {
+                $row->vat = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->vat);
+                $row->vat = ht::createHint($row->vat, "$dRec->hint", 'notice');
+            }
         }
 
         return $row;
