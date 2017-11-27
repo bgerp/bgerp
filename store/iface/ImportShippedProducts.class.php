@@ -97,7 +97,7 @@ class store_iface_ImportShippedProducts extends import_drivers_Proto
 			$dQuery->show('productId,packagingId,quantityInPack,quantity,price');
 			while($dRec = $dQuery->fetch()){
 				$caption = str_replace(',', ' ', cat_Products::getTitleById($dRec->productId));
-				$key = "product{$dRec->productId}+{$dRec->packagingId}";
+				$key = "product{$dRec->productId}+{$dRec->packagingId}+{$dRec->id}";
 				
 				$shortUom = cat_UoM::getShortName($dRec->packagingId);
 				$form->FLD($key, "double(Min=0)","input,caption={$caption}->К-во,unit={$shortUom}");
