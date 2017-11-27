@@ -2265,7 +2265,7 @@ class callcenter_Talks extends core_Master
 	 * 
 	 * @param integer $id Кой е пораждащия комит
 	 * 
-	 * @return stdObject за support_Issues
+	 * @return stdObject за cal_Tasks
 	 * 
 	 * @see support_IssueCreateIntf
 	 */
