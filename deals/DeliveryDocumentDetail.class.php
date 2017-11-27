@@ -328,8 +328,9 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 			expect($this->Master->fetch($rec->{$this->masterKey}), 'Няма такъв запис на мастъра');
 			expect($this->haveRightFor('add', (object)array($this->masterKey => $rec->{$this->masterKey})), 'Към този мастър не може да се добавя артикул');
 				
-			if(!$this->isUnique($rec, $fields, $exRec)){
-				core_Statuses::newStatus('Записа, не е импортиран защото им дублаж');
+			$exRec = deals_Helper::fetchExistingDetail($this, $rec->{$this->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, NULL, NULL, $rec->batch, $rec->expenseItemId, $rec->notes);
+			if(!$exRec){
+				core_Statuses::newStatus('Записа, не е импортиран защото им дублаж', 'warning');
 				continue;
 			}
 			
