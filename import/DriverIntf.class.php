@@ -78,6 +78,19 @@ class import_DriverIntf
 	
 	
 	/**
+	 * Подготвя импортиращата форма
+	 *
+	 * @param core_Manager $mvc
+	 * @param core_FieldSet $form
+	 * @return void
+	 */
+	public function prepareImportForm($mvc, core_FieldSet $form)
+	{
+		return $this->class->prepareImportForm($mvc, $form);
+	}
+	
+	
+	/**
 	 * Връща записите, подходящи за импорт в детайла.
 	 * Съответстващия 'importRecs' метод, трябва да очаква
 	 * същите данни (@see import_DestinationIntf)

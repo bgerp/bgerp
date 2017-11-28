@@ -38,9 +38,15 @@ class store_reports_Documents extends frame2_driver_TableData
 	 * @var int
 	 */
 	protected $filterEmptyListFields = 'pallets,lineId';
-	
-	
-	/**
+
+
+    /**
+     * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
+     */
+    protected $changeableFields = 'storeId,documentType,horizon';
+
+
+    /**
 	 * Добавя полетата на драйвера към Fieldset
 	 *
 	 * @param core_Fieldset $fieldset
@@ -51,7 +57,7 @@ class store_reports_Documents extends frame2_driver_TableData
 		$fieldset->FLD('documentType', 'class(select=title)', 'caption=Документи,placeholder=Всички,after=storeId');
 		$fieldset->FLD('horizon', 'time', 'caption=Хоризонт,after=documentType');
 	}
-	
+
 	
 	/**
 	 * Преди показване на форма за добавяне/промяна.
@@ -96,7 +102,7 @@ class store_reports_Documents extends frame2_driver_TableData
 		
 		return $res;
 	}
-	
+
 	
 	/**
 	 * Кои записи ще се показват в таблицата
@@ -371,7 +377,7 @@ class store_reports_Documents extends frame2_driver_TableData
 		if(empty($rec->storeId)){
 			$fld->FLD('stores', 'varchar', 'caption=Склад,tdClass=small');
 		}
-		
+
 		if($export === FALSE){
 			$fld->FLD('dueDate', 'varchar', 'tdClass=small nowrap,caption=Срок');
 			$fld->FLD('weight', 'varchar', 'caption=Тегло,tdClass=small nowrap');
