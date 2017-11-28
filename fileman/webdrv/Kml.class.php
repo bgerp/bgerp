@@ -65,7 +65,7 @@ class fileman_webdrv_Kml extends fileman_webdrv_Xml
     {
         $content = fileman_Files::getContent($fRec->fileHnd);
         
-        $content = mb_strcut($content, 0, 1000000);
+        $content = mb_strcut($content, 0, 20000000);
         
         $content = i18n_Charset::convertToUtf8($content);
         
