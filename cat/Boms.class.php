@@ -1426,7 +1426,7 @@ class cat_Boms extends core_Master
     		// Събираме задачите
     		$tasks[] = $arr;
     	}
-    	bp($tasks);
+    	
     	// Връщаме масива с готовите задачи
     	return $tasks;
     }
