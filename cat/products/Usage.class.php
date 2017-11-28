@@ -37,20 +37,22 @@ class cat_products_Usage extends core_Manager
 		$tabParam = $data->masterData->tabTopParam;
 		$prepareTab = Request::get($tabParam);
 		
+		$data->jobData = clone $data;
+		$data->jobData->Jobs = cls::get('planning_Jobs');
+		$this->prepareJobs($data->jobData);
+		
 		// Промяна на таба взависимост дали артикула е стандартен или не
-		$data->Tab = 'top';
 		if($data->isPublic === TRUE){
+			if($data->jobData->notManifacturable === TRUE && !count($data->jobData->rows)) return;
+			$data->Tab = 'top';
 			$data->TabCaption = 'Задания';
 			if(!$prepareTab || $prepareTab != 'Usage') return;
 		} else {
+			$data->Tab = 'top';
 			$data->TabCaption = 'Документи';
 			$data->Order = 2;
 			if($prepareTab && $prepareTab != 'Usage') return;
 		}
-		
-		$data->jobData = clone $data;
-		$data->jobData->Jobs = cls::get('planning_Jobs');
-		$this->prepareJobs($data->jobData);
 		
 		// Ако артикула е нестандартен тогава се показват и документите, в които се използват
 		if($data->isPublic === FALSE){

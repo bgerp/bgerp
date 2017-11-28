@@ -62,7 +62,7 @@ class sales_reports_VatOnSalesWithoutInvoices extends frame2_driver_TableData
     {
 
         $fieldset->FLD('periodId', 'key(mvc=acc_Periods,select=title)', 'caption=Период,after=title');
-        $fieldset->FLD('orderBy', 'enum(name=Име,code=Код,quantity=Количество,amount=Стойност)','caption=Сортитане по,maxRadio=4,columns=4,after=periodId');
+        $fieldset->FLD('orderBy', 'enum(name=Име,code=Код,quantity=Количество,amount=Стойност)','caption=Сортиране по,maxRadio=4,columns=4,after=periodId');
         $fieldset->FLD('totalVat', 'double(decimals=2)', 'caption=ДДС за периода,export=Csv,input=none');
         $fieldset->FLD('currency', 'varchar', 'caption=Валута,export=Csv,input=none');
 
@@ -170,7 +170,9 @@ class sales_reports_VatOnSalesWithoutInvoices extends frame2_driver_TableData
                     break;
             }
 
-            usort($recs, array($this, "$f"));
+            if(is_array($recs)) {
+                usort($recs, array($this, "$f"));
+            }
 
         return $recs;
 
@@ -214,16 +216,17 @@ class sales_reports_VatOnSalesWithoutInvoices extends frame2_driver_TableData
 
         if($export === FALSE){
 
-            $fld->FLD('productId', 'varchar', 'caption=Артикул');
             $fld->FLD('code', 'varchar', 'caption=Код');
+            $fld->FLD('productId', 'varchar', 'caption=Артикул');
             $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
             $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество,smartCenter');
             $fld->FLD('price', 'double', 'caption=Ед.цена,smartCenter');
             $fld->FLD('amount', 'double(decimals=2)', 'caption=Стойност,smartCenter');
             $fld->FLD('vat', 'double', 'caption=ДДС,smartCenter');
         } else {
-            $fld->FLD('productId', 'varchar', 'caption=Артикул');
+
             $fld->FLD('code', 'varchar', 'caption=Код');
+            $fld->FLD('productId', 'varchar', 'caption=Артикул');
             $fld->FLD('measure', 'varchar', 'caption=Мярка');
             $fld->FLD('quantity', 'varchar', 'caption=Количество');
             $fld->FLD('price', 'varchar', 'caption=Ед.цена');

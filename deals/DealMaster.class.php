@@ -168,6 +168,11 @@ abstract class deals_DealMaster extends deals_DealBase
 	 */
 	protected static function setDealFields($mvc)
 	{
+		setIfNot($mvc->dealerRolesList, 'powerUser');
+		setIfNot($mvc->dealerRolesForAll, $mvc->dealerRolesList);
+		$dealerRolesList = implode('|', arr::make($mvc->dealerRolesList, TRUE));
+		$dealerRolesForAll = implode('|', arr::make($mvc->dealerRolesForAll, TRUE));
+		
 		$mvc->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date,notChangeableByContractor');
 		$mvc->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,class=contactData,after=valior');
 		
@@ -202,7 +207,7 @@ abstract class deals_DealMaster extends deals_DealBase
 		
 		// Наш персонал
 		$mvc->FLD('initiatorId', 'user(roles=user,allowEmpty,rolesForAll=sales|ceo)', 'caption=Наш персонал->Инициатор,notChangeableByContractor');
-		$mvc->FLD('dealerId', 'user(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 'caption=Наш персонал->Търговец,notChangeableByContractor');
+		$mvc->FLD('dealerId', "user(rolesForAll={$dealerRolesForAll},roles={$dealerRolesList})", 'caption=Наш персонал->Търговец,notChangeableByContractor');
 		
 		// Допълнително
 		$mvc->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Oсвободено от ДДС, no=Без начисляване на ДДС)', 'caption=Допълнително->ДДС,notChangeableByContractor');

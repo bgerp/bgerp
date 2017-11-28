@@ -59,8 +59,15 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      * По-кое поле да се групират листовите данни
      */
     protected $groupByField;
-    
-    
+
+
+    /**
+     * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
+     */
+    protected $changeableFields = '';
+
+
+
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -68,8 +75,9 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
+        $fieldset->FLD('typeOfQuantity', 'enum(FALSE=Налично,TRUE=Разполагаемо)','caption=Количество за показване,maxRadio=2,columns=2,after=title');
         $fieldset->FLD('additional', 'table(columns=code|name|minQuantity|maxQuantity,captions=Код на атикула|Наименование|Мин к-во|Макс к-во,widths=8em|20em|5em|5em)', "caption=Артикули||Additional,autohide,advanced,after=storeId,single=none");
-        $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,after=title');
+        $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,after=typeOfQuantity');
         $fieldset->FLD('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,after=storeId,silent,single=none,removeAndRefreshForm');
     }
     
@@ -85,6 +93,8 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     {
         $form = $data->form;
         $rec = $form->rec;
+
+        $form->setDefault('typeOfQuantity', 'TRUE');
     }
     
     
@@ -334,7 +344,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
                     $id = $recProduct->productId;
 
-                    $quantity = store_Products::getQuantity($id, $recProduct->storeId, TRUE);
+                    $quantity = store_Products::getQuantity($id, $recProduct->storeId, $rec->typeOfQuantity);
 
                         if (!array_key_exists($id, $recs)) {
 
@@ -420,7 +430,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
             //  $fld->FLD('storeId', 'varchar', 'caption=Склад,tdClass=centered');
             $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
-            $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Наличност,smartCenter');
+            $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество,smartCenter');
             $fld->FLD('minQuantity', 'double', 'caption=Минимално,smartCenter');
             $fld->FLD('maxQuantity', 'double', 'caption=Максимално,smartCenter');
             $fld->FLD('conditionQuantity', 'text', 'caption=Състояние,tdClass=centered');
@@ -428,7 +438,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
             //  $fld->FLD('storeId', 'varchar', 'caption=Склад,tdClass=centered');
             $fld->FLD('measure', 'varchar', 'caption=Мярка');
-            $fld->FLD('quantity', 'varchar', 'caption=Наличност');
+            $fld->FLD('quantity', 'varchar', 'caption=Количество');
             $fld->FLD('minQuantity', 'varchar', 'caption=Минимално');
             $fld->FLD('maxQuantity', 'varchar', 'caption=Максимално');
             $fld->FLD('conditionQuantity', 'varchar', 'caption=Състояние');

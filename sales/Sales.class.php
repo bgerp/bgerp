@@ -266,6 +266,12 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
+     * Кои които трябва да имат потребителите да се изберат като дилъри
+     */
+    public $dealerRolesList = 'sales,ceo';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
