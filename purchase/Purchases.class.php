@@ -241,7 +241,7 @@ class purchase_Purchases extends deals_DealMaster
     	$this->setField('shipmentStoreId', 'caption=Доставка->В склад,notChangeableByContractor,salecondSysId=defaultStorePurchase');
     	$this->setField('deliveryTermId', 'salecondSysId=deliveryTermPurchase');
     	$this->setField('paymentMethodId', 'salecondSysId=paymentMethodPurchase');
-    	$this->setFieldTypeParams('dealerId', array('rolesForAll' => array('purchase', 'ceo'), 'roles' => array('purchase', 'ceo')));
+    	$this->setFieldTypeParams('dealerId', array('rolesForAll' => 'purchase|ceo', 'roles' => 'purchase|ceo'));
     }
     
     
