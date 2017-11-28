@@ -266,6 +266,12 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
+     * Кои които трябва да имат потребителите да се изберат като дилъри
+     */
+    public $dealerRolesList = 'sales,ceo';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -276,7 +282,6 @@ class sales_Sales extends deals_DealMaster
         $this->setField('shipmentStoreId', "salecondSysId=defaultStoreSale");
     	$this->setField('deliveryTermId', 'salecondSysId=deliveryTermSale');
     	$this->setField('paymentMethodId', 'salecondSysId=paymentMethodSale');
-    	$this->setFieldTypeParams('dealerId', array('rolesForAll' => 'purchase|ceo', 'roles' => 'purchase|ceo'));
     }
     
     

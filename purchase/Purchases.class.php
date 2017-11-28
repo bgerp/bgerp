@@ -231,6 +231,12 @@ class purchase_Purchases extends deals_DealMaster
     
     
     /**
+     * Кои които трябва да имат потребителите да се изберат като дилъри
+     */
+    public $dealerRolesList = 'purchase,ceo';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -241,7 +247,6 @@ class purchase_Purchases extends deals_DealMaster
     	$this->setField('shipmentStoreId', 'caption=Доставка->В склад,notChangeableByContractor,salecondSysId=defaultStorePurchase');
     	$this->setField('deliveryTermId', 'salecondSysId=deliveryTermPurchase');
     	$this->setField('paymentMethodId', 'salecondSysId=paymentMethodPurchase');
-    	$this->setFieldTypeParams('dealerId', array('rolesForAll' => 'purchase|ceo', 'roles' => 'purchase|ceo'));
     }
     
     
