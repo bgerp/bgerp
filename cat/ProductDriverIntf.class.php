@@ -104,18 +104,35 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	/**
      * Връща информация за какви дефолт задачи за производство могат да се създават по артикула
      *
-     * @param double $quantity - к-во
+     * @param mixed $id - ид или запис на артикул
+     * @param double $quantity - к-во за произвеждане
+     *
      * @return array $drivers - масив с информация за драйверите, с ключ името на масива
-     * 				    -> title        - дефолт име на задачата
-     * 					-> driverClass  - драйвър на задача
-     * 					-> products     - масив от масиви с продуктите за влагане/произвеждане/отпадане
-     * 						 - array input      - материали за влагане
-     * 						 - array production - артикули за произвеждане
-     * 						 - array waste      - отпадъци
+     * 				    o title           - дефолт име на задачата, най добре да е името на крайния артикул / името заготовката
+     * 					o plannedQuantity - планирано к-во в основна опаковка
+     * 					o productId       - ид на артикул
+     *  				o packagingId     - ид на опаковка
+     *   				o quantityInPack  - к-во в 1 опаковка
+     * 					o products        - масив от масиви с продуктите за влагане/произвеждане/отпадане
+     * 						 - array input           - материали за влагане
+     * 								o productId      - ид на материал
+     *  							o packagingId    - ид на опаковка
+     *   							o quantityInPack - к-во в 1 опаковка
+     *    							o packQuantity   - общо количество от опаковката
+     * 						 - array production      - артикули за произвеждане
+     *  							o productId      - ид на заготовка
+     *  							o packagingId    - ид на опаковка
+     *   							o quantityInPack - к-во в 1 опаковка
+     *    							o packQuantity   - общо количество от опаковката
+     * 						 - array waste           - отпадъци
+     *  							o productId      - ид на отпадък
+     *  							o packagingId    - ид на опаковка
+     *   							o quantityInPack - к-во в 1 опаковка
+     *    							o packQuantity   - общо количество от опаковката
      */
-	public function getDefaultProductionTasks($quantity)
+    public function getDefaultProductionTasks($id, $quantity = 1)
 	{
-		return $this->class->getDefaultProductionTasks($quantity);
+		return $this->class->getDefaultProductionTasks($id, $quantity);
 	}
 	
 	
