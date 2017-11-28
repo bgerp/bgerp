@@ -150,7 +150,7 @@ class cat_products_Packagings extends core_Detail
             	if(array_key_exists($rec->packagingId, $kgDerivitives)){
             		 
             		// Ако опаковката/мярката е от групата на килограм, то теглото може да се изчисли
-            		$rec->netWeight = cat_UoM::convertToBaseUnit($rec->quantity, $rec->packagingId);
+            		$rec->netWeight = cat_UoM::convertToBaseUnit(1, $rec->packagingId);
             	} else {
             		 
             		// Ако опаковката/мярката не е от групата на килограм, но има опаковка килограм,

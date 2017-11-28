@@ -36,7 +36,8 @@ class support_IssueCreateIntf
     /**
      * След създаване на сигнал от документа
      * 
-     * @param integer $originId
+     * @param integer $id
+     * @param object $iRec
      */
     function afterCreateIssue($id, $iRec)
     {

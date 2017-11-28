@@ -249,6 +249,15 @@ class support_TaskType extends core_Mvc
                 $data->form->setDefault('sharedUsers', $maintainers);
             }
         }
+        
+        if (($srcId = $data->form->rec->SrcId) && ($srcClass = $data->form->rec->SrcClass)) {
+            if (cls::haveInterface('support_IssueCreateIntf', $srcClass)) {
+                $srcInst = cls::getInterface('support_IssueCreateIntf', $srcClass);
+                
+                $defaults = (array) $srcInst->getDefaultIssueRec($srcId);
+                $data->form->setDefaults($defaults);
+            }
+        }
     }
     
     
@@ -290,6 +299,11 @@ class support_TaskType extends core_Mvc
         
         if (core_Users::getCurrent() < 1) {
             log_Browsers::setVars(array('name' => $rec->name, 'email' => $rec->email));
+        }
+        
+        if ($rec->SrcId && $rec->SrcClass && cls::haveInterface('support_IssueCreateIntf', $rec->SrcClass)) {
+            $srcInst = cls::getInterface('support_IssueCreateIntf', $rec->SrcClass);
+            $srcInst->afterCreateIssue($rec->SrcId, $rec);
         }
     }
     

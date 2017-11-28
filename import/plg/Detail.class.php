@@ -57,10 +57,12 @@ class import_plg_Detail extends core_Plugin
 			
 			// Добавят се полетата от него
 			$Driver->addImportFields($mvc, $form);
+			$form->input(NULL, 'silent');
 			$refreshFields = arr::make(array_keys($form->selectFields()), TRUE);
 			unset($refreshFields['driverClass'], $refreshFields['noteId']);
 			$refreshFieldsString = implode('|', $refreshFields);
 			$form->setField('driverClass', "removeAndRefreshForm={$refreshFieldsString}");
+			$Driver->prepareImportForm($mvc, $form);
 			
 			// Инпут и проверка на формата
 			$form->input();

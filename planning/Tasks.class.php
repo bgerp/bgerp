@@ -723,6 +723,9 @@ class planning_Tasks extends core_Master
 			}
 		}
 		
+		// Ако не е указано друго, е артикула от заданието
+		$form->setDefault('productId', $originRec->productId);
+		
 		if(isset($rec->productId)){
 			if(empty($rec->id)){
 				
@@ -794,8 +797,6 @@ class planning_Tasks extends core_Master
 					$rec->{$name} = $rec->additionalFields[$name];
 				}
 			}
-		} else {
-			$form->setDefault('productId', $originRec->productId);
 		}
 		
 		if(isset($rec->id)){

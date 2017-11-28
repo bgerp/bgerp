@@ -231,6 +231,12 @@ class purchase_Purchases extends deals_DealMaster
     
     
     /**
+     * Кои които трябва да имат потребителите да се изберат като дилъри
+     */
+    public $dealerRolesList = 'purchase,ceo';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
