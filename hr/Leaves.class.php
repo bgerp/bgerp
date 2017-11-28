@@ -101,7 +101,7 @@ class hr_Leaves extends core_Master
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo, hrLeaves, hrMaster, admin';
+	public $canList = 'ceo, hrLeaves, admin';
 
 
 	/**
