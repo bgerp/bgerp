@@ -222,11 +222,12 @@ class frame2_Reports extends embed_Manager
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
+    	$rec = $form->rec;
     	$form->setField('notificationText', array('placeholder' => self::$defaultNotificationText));
     	$form->setField('maxKeepHistory', array('placeholder' => self::MAX_VERSION_HISTORT_COUNT));
     
-    	if($Driver = self::getDriver($form->rec)){
-    		$dates = $Driver->getNextRefreshDates($form->rec);
+    	if($Driver = self::getDriver($rec)){
+    		$dates = $Driver->getNextRefreshDates($rec);
     		if((is_array($dates) && count($dates)) || $dates === FALSE){
     			$form->setField('updateDays', 'input=none');
     			$form->setField('updateTime', 'input=none');
@@ -250,11 +251,11 @@ class frame2_Reports extends embed_Manager
     		}
     		
     		// При редакция, ако има полета за промяна
-    		if(isset($form->rec->id) && $form->rec->changeFields){
-    			$changeable = type_Set::toArray($form->rec->changeFields);
+    		if(isset($rec->id) && $rec->changeFields){
+    			$changeable = type_Set::toArray($rec->changeFields);
     			
-    			// И потребителя не може да избере драйвера
-    			if(!$Driver->canSelectDriver()){
+    			// И потребителя не е създател на документа
+    			if($rec->createdBy != core_Users::getCurrent()){
     				
     				// Скриват се всички полета, които не са упоменати като променяеми
     				$fields = $form->selectFields("#input != 'none' AND #input != 'hidden'");
@@ -667,7 +668,7 @@ class frame2_Reports extends embed_Manager
     			$changeAbleFields = type_Set::toArray($rec->changeFields);
     			
     			// Може да се клонира/редактира ако може да се избере драйвера и има посочени полета за промяна
-    			if(!($Driver->canSelectDriver($userId) || (keylist::isIn($userId, $rec->sharedUsers) && count($changeAbleFields)))){
+    			if(!($userId == $rec->createdBy || (keylist::isIn($userId, $rec->sharedUsers) && count($changeAbleFields)))){
     				$requiredRoles = 'no_one';
     			}
     		}
