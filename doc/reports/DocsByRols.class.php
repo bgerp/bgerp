@@ -25,6 +25,12 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
 
     public $listFields = 'person,document,value,roleId,from,to,documents';
 
+    /**
+     * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
+     */
+    protected $changeableFields = 'roleId,from,to,documents,order';
+
+
 
     /**
      * Добавя полетата на драйвера към Fieldset
@@ -35,9 +41,9 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
     {
 
         $fieldset->FLD('roleId', 'key(mvc=core_Roles,select=role,allowEmpty)', 'caption=Роля,after=title,mandatory');
-        $fieldset->FLD('from', 'date', 'caption=Период->От,mandatory,after=role');
+        $fieldset->FLD('from', 'date', 'caption=Период->От,mandatory,after=documents');
         $fieldset->FLD('to', 'date', 'caption=Период->До,mandatory');
-        $fieldset->FLD('documents', 'keylist(mvc=core_Classes,select=name)', 'caption=Документи,after=to');
+        $fieldset->FLD('documents', 'keylist(mvc=core_Classes,select=name)', 'caption=Документи,after=roleId');
         $fieldset->FLD('order', 'enum(cnt=брой документи,letter=азбучен ред)', 'caption=Подреди по,after=documents,mandatory,column=none');
 
     }
@@ -101,9 +107,18 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
 
                 $dDoc[$doc->createdBy][$doc->docClass][$doc->docId] = $doc->docId;
 
+
+
                 foreach ($dDoc[$doc->createdBy] as $clsId => $objArr) {
 
-                    $clsInst = cls::get($clsId);
+
+
+                    if(cls::load($clsId,TRUE)) {
+
+                        $clsInst = cls::get($clsId);
+                    }
+
+
 
                     if ($clsInst->details) {
 
@@ -138,6 +153,8 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
                     }
 
                 }
+
+
 
             }
 

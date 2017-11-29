@@ -2006,8 +2006,9 @@ class doc_Threads extends core_Manager
     	$this->requireRightFor('startthread', $rec);
     	
     	$returnUrl = array($firstDocument->getInstance(), 'single', $firstDocument->that);
-    	if(!self::haveRightForAllDocs('restore', $id)){
-    		followRetUrl($returnUrl, 'Нямате права да контирате част от документите в нишката', 'error');
+    	if(!self::haveRightForAllDocs('start', $id, $errorHandlers)){
+    		$errorHandlers = implode(", ", $errorHandlers);
+    		followRetUrl($returnUrl, "Нямате права да реконтирате|*: {$errorHandlers}", 'error');
     	}
     	
     	self::startDocuments($rec->id);
@@ -2969,12 +2970,13 @@ class doc_Threads extends core_Manager
      * 
      * @param string $action      - екшън
      * @param int $threadId       - ид на тред
+     * @param NULL|array  $error  - хендлърите на проблемните документи 
      * @param string|NULL $userId - ид на потребител, или ако няма текущия
      * @return boolean            - резултат
      */
-    public static function haveRightForAllDocs($action, $threadId, $userId = NULL)
+    public static function haveRightForAllDocs($action, $threadId, &$error = NULL, $userId = NULL)
     {
-    	expect(in_array($action, array('reject', 'restore')));
+    	expect(in_array($action, array('reject', 'restore', 'start')));
     	
     	if(!$userId){
     		$userId = core_Users::getCurrent();
@@ -2986,14 +2988,23 @@ class doc_Threads extends core_Manager
     	$cQuery->where("#threadId = {$threadId}");
     	if($action == 'reject'){
     		$cQuery->where("#state != 'rejected'");
-    	} else {
+    	} elseif($action == 'restore') {
+    		$rejectedInThread = doc_Threads::fetchField($threadId, 'rejectedContainersInThread');
+    		$cQuery->in('id', $rejectedInThread);
     		$cQuery->where("#state = 'rejected'");
+    	} elseif($action == 'start'){
+    		$cQuery->where("#state = 'stopped'");
+    		$action = 'restore';
     	}
     	
     	// Проверка за всички документи в нишката дали могат да се $action
     	$cQuery->show('docClass,docId');
     	while($cRec = $cQuery->fetch()){
-    		if(!cls::get($cRec->docClass)->haveRightFor($action, $cRec->docId, $userId)){
+    		$Doc = cls::get($cRec->docClass);
+    		if(!$Doc->haveRightFor($action, $cRec->docId, $userId)){
+    			$url = $Doc->getSingleUrlArray($cRec->docId);
+    			$handle = "#" . $Doc->getHandle($cRec->docId);
+    			$error[$cRec->id] = ht::createLink($handle, $url)->getContent();
     			$res = FALSE;
     		}
     	}

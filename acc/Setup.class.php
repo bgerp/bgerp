@@ -13,7 +13,6 @@ defIfNot('ACC_INVOICE_MANDATORY_EXPORT_PARAM', '');
 defIfNot('ACC_DAYS_BEFORE_MAKE_PERIOD_PENDING', '');
 
 
-
 /**
  * Стойност по подразбиране на актуалния ДДС (между 0 и 1)
  * Използва се по време на инициализацията на системата, при създаването на първия период
