@@ -1075,8 +1075,9 @@ class doc_DocumentPlg extends core_Plugin
             
             // Ако документа е първи в нишката, проверка може ли потребителя да оттегля всички документи в нишката
             if($tRec->firstContainerId == $rec->containerId) {
-            	if(!doc_Threads::haveRightForAllDocs('reject', $rec->threadId)){
-            		core_Statuses::newStatus('Нямате права да оттеглите всички документи в нишката', 'error');
+            	if(!doc_Threads::haveRightForAllDocs('reject', $rec->threadId, $errorHandlers)){
+            		$errorHandlers = implode(", ", $errorHandlers);
+            		core_Statuses::newStatus("Нямате права да оттеглите|*: {$errorHandlers}", 'error');
             		
             		if (!$res = getRetUrl()) {
             			$res = array($mvc, 'single', $id);
@@ -1145,8 +1146,9 @@ class doc_DocumentPlg extends core_Plugin
             
             // Ако документа е първи в нишката, проверка може ли потребителя да оттегля всички документи в нишката
             if($tRec->firstContainerId == $rec->containerId) {
-            	if(!doc_Threads::haveRightForAllDocs('restore', $rec->threadId)){
-            		core_Statuses::newStatus('Нямате права да възстановите всички документи в нишката', 'error');
+            	if(!doc_Threads::haveRightForAllDocs('restore', $rec->threadId, $errorHandlers)){
+            		$errorHandlers = implode(", ", $errorHandlers);
+            		core_Statuses::newStatus("Нямате права да възстановите|*: {$errorHandlers}", 'error');
             
             		if (!$res = getRetUrl()) {
             			$res = array($mvc, 'single', $id);
