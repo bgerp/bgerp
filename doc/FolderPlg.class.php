@@ -702,8 +702,8 @@ class doc_FolderPlg extends core_Plugin
         }
         
         $teammates = keylist::toArray(core_Users::getTeammates($userId));
-        $managers  = core_Users::getByRole('manager');
-        $ceos = core_Users::getByRole('ceo');
+        $managers  = (array)core_Users::getByRole('manager');
+        $ceos = (array)core_Users::getByRole('ceo');
         
         // Подчинените в екипа (използва се само за мениджъри)
         $subordinates = array_diff($teammates, $managers);

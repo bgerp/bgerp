@@ -3208,7 +3208,7 @@ class cal_Tasks extends embed_Manager
      */
     function on_AfterGetThreadState($mvc, &$state, $id)
     {
-        if (core_Users::getCurrent() < 1) {
+        if ((core_Users::getCurrent() < 1) || (core_Users::isContractor())) {
             $state = 'opened';
         }
     }

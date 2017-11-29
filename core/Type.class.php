@@ -186,8 +186,8 @@ class core_Type extends core_BaseClass
                 $res->options[] = $key;
             }
         }
-        
-        if (is_array($this->params) && in_array('unsigned', array_map('strtolower', $this->params))) {
+ 
+        if ($this->params['unsigned']) {
             $res->unsigned = TRUE;
         }
         

@@ -344,7 +344,14 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
                     $id = $recProduct->productId;
 
-                    $quantity = store_Products::getQuantity($id, $recProduct->storeId, $rec->typeOfQuantity);
+
+                    if ($rec->typeOfQuantity == 'FALSE'){
+                        $typeOfQuantity = FALSE;
+                    }else{
+                        $typeOfQuantity = TRUE;
+                    }
+
+                    $quantity = store_Products::getQuantity($id, $recProduct->storeId, $typeOfQuantity);
 
                         if (!array_key_exists($id, $recs)) {
 

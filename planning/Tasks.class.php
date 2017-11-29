@@ -183,7 +183,7 @@ class planning_Tasks extends core_Master
 	 *
 	 * @see plg_Clone
 	 */
-	public $fieldsNotToClone = 'progress,totalWeight,systemId,scrappedQuantity,inputInTask,totalQuantity';
+	public $fieldsNotToClone = 'progress,totalWeight,scrappedQuantity,inputInTask,totalQuantity';
 	
 	
 	/**
@@ -712,15 +712,13 @@ class planning_Tasks extends core_Master
 			$form->setDefault('productId', key($products));
 		}
 		
-		// Ако операцията е дефолтна за артикула, задаваме и дефолтите
-		if(isset($rec->systemId)){
-			$tasks = cat_Products::getDefaultProductionTasks($originRec->productId, $originRec->quantity);
-			if(isset($tasks[$rec->systemId])){
-				foreach (array('plannedQuantity', 'productId', 'quantityInPack', 'packagingId') as $fld){
-					$form->setDefault($fld, $tasks[$rec->systemId]->{$fld});
-				}
-				$form->setReadOnly('productId');
+		$tasks = cat_Products::getDefaultProductionTasks($originRec->productId, $originRec->quantity);
+		
+		if(isset($rec->systemId) && isset($tasks[$rec->systemId])){
+			foreach (array('plannedQuantity', 'productId', 'quantityInPack', 'packagingId') as $fld){
+				$form->setDefault($fld, $tasks[$rec->systemId]->{$fld});
 			}
+			$form->setReadOnly('productId');
 		}
 		
 		// Ако не е указано друго, е артикула от заданието
@@ -739,6 +737,11 @@ class planning_Tasks extends core_Master
 					$form->FLD("paramcat{$pId}", 'double', "caption=Параметри на задачата->{$name},mandatory,before=description");
 					$form->setFieldType("paramcat{$pId}", cat_Params::getTypeInstance($pId, $mvc, $rec->id));
 				
+					// Дефолта е параметъра от дефолтната задача за този артикул, ако има такава
+					if(isset($rec->systemId) && isset($tasks[$rec->systemId])){
+						$form->setDefault("paramcat{$pId}", $tasks[$rec->systemId]->params[$pId]);
+					}
+					
 					if(!empty($paramRec->suffix)){
 						$suffix = cat_Params::getVerbal($paramRec, 'suffix');
 						$form->setField("paramcat{$pId}", "unit={$suffix}");
