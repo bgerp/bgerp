@@ -113,21 +113,58 @@ class fileman_webdrv_Kml extends fileman_webdrv_Xml
     {
         $placemark = array();
         
-        // В зависимост от структурата определяме променливата
-        if ($xml->Document) {
-            if ($xml->Document->Folder) {
-                if ($xml->Document->Folder->Placemark) {
-                    $placemark = $xml->Document->Folder->Placemark;
-                } elseif ($xml->Document->Folder->Folder) {
-                    if ($xml->Document->Folder->Folder->Placemark) {
-                        $placemark = $xml->Document->Folder->Folder->Placemark;
+        if ($xml->Placemark) {
+            $placemark[] = $xml->Placemark;
+        }
+        
+        $have = FALSE;
+        if ($xml->Document->Placemark) {
+            if (count($xml->Document)) {
+                foreach ($xml->Document as $xmlDoc) {
+                    if ($xmlDoc->Placemark) {
+                        $placemark[] = $xmlDoc->Placemark;
+                        $have = TRUE;
                     }
                 }
-            } else {
-                $placemark = $xml->Document->Placemark;
             }
-        } else {
-            $placemark = $xml->Placemark;
+            
+            if (!$have) {
+                $placemark[] = $xml->Document->Placemark;
+            }
+        }
+        
+        
+        $have = FALSE;
+        if ($xml->Document->Folder) {
+            
+            if (count($xml->Document->Folder)) {
+                foreach ($xml->Document->Folder as $xmlDocFolder) {
+                    if ($xmlDocFolder->Placemark) {
+                        $placemark[] = $xmlDocFolder->Placemark;
+                        $have = TRUE;
+                    }
+                }
+            }
+            
+            if (!$have) {
+                $placemark[] = $xml->Document->Folder->Placemark;
+            }
+        }
+        
+        $have = FALSE;
+        if ($xml->Document->Folder->Folder) {
+            if (count($xml->Document->Folder->Folder)) {
+                foreach ($xml->Document->Folder->Folder as $xmlDocFolderFolder) {
+                    if ($xmlDocFolderFolder->Placemark) {
+                        $placemark[] = $xmlDocFolderFolder->Placemark;
+                        $have = TRUE;
+                    }
+                }
+                
+                if (!$have) {
+                    $placemark[] = $xml->Document->Folder->Folder->Placemark;
+                }
+            }
         }
         
         // Информация по-подразбиране
@@ -142,49 +179,70 @@ class fileman_webdrv_Kml extends fileman_webdrv_Xml
         
         $coordinates = $infoArr = array();
         
-        foreach ($placemark as $pl) {
+        $hashArr = array();
+        foreach ($placemark as $k => $plMaster) {
             
-            if ($pl->Point) {
-                // В този случай се отнасят за един обект
-                $coordinates[0] .= "\n" . (string)$pl->Point->coordinates;
-                
-                // Опитваме се да намерим по-точна информация
-                $info2 = '';
-                $info2 = (string)$pl->Point->name;
-                if (!$info2) {
-                    $info2 = (string)$pl->name;
-                }
-                $infoArr[0] = $info2 ? $info2 : $info;
-            } elseif ($pl->MultiGeometry->LineString) {
-                foreach ((array)$pl->MultiGeometry as $ls) {
-                    foreach ((array)$ls as $lc) {
-                        $coordinates[] = (string)$lc->coordinates;
-                        
-                        // Опитваме се да намерим по-точна информация
-                        $info2 = '';
-                        $info2 = (string)$lc->comment;
-                        if (!$info2) {
-                            $info2 = (string)$pl->name;
-                        }
-                        $infoArr[] = $info2 ? $info2 : $info;
+            $hash = md5($plMaster);
+            
+            if ($hashArr[$hash]) continue;
+            
+            $hashArr[$hash] = TRUE;
+            
+            foreach ($plMaster as $pl) {
+                if ($pl->Point) {
+                    // В този случай се отнасят за един обект
+                    $coordinates[] = (string)$pl->Point->coordinates;
+                    
+                    // Опитваме се да намерим по-точна информация
+                    $info2 = '';
+                    $info2 = (string)$pl->Point->name;
+                    if (!$info2) {
+                        $info2 = (string)$pl->name;
                     }
+                    $infoArr[] = $info2 ? $info2 : $info;
+                } 
+                if ($pl->MultiGeometry->LineString) {
+                    foreach ((array)$pl->MultiGeometry as $ls) {
+                        foreach ((array)$ls as $lc) {
+                            $coordinates[] = (string)$lc->coordinates;
+                            
+                            // Опитваме се да намерим по-точна информация
+                            $info2 = '';
+                            $info2 = (string)$lc->comment;
+                            if (!$info2) {
+                                $info2 = (string)$pl->name;
+                            }
+                            $infoArr[] = $info2 ? $info2 : $info;
+                        }
+                    }
+                } 
+                if ($pl->LineString) {
+                    $coordinates[] = (string)$pl->LineString->coordinates;
+                    
+                    // Опитваме се да намерим по-точна информация
+                    $info2 = '';
+                    $info2 = (string)$pl->LineString->comment;
+                    if (!$info2) {
+                        $info2 = (string)$pl->LineString->name;
+                    }
+                    $infoArr[] = $info2 ? $info2 : $info;
+                } elseif ($pl->Polygon) {
+                    if (!($boundary = $pl->Polygon->outerBoundaryIs)) {
+                        $boundary = $pl->Polygon->innerBoundaryIs;
+                    }
+                    $coordinates[] = (string)$boundary->LinearRing->coordinates;
+                    
+                    // Опитваме се да намерим по-точна информация
+                    $info2 = '';
+                    $info2 = (string)$boundary->name;
+                    if (!$info2) {
+                        $info2 = (string)$pl->Polygon->name;
+                    }
+                    if (!$info2) {
+                        $info2 = (string)$pl->name;
+                    }
+                    $infoArr[] = $info2 ? $info2 : $info;
                 }
-            } elseif ($pl->Polygon) {
-                if (!($boundary = $pl->Polygon->outerBoundaryIs)) {
-                    $boundary = $pl->Polygon->innerBoundaryIs;
-                }
-                $coordinates[] = (string)$boundary->LinearRing->coordinates;
-                
-                // Опитваме се да намерим по-точна информация
-                $info2 = '';
-                $info2 = (string)$boundary->name;
-                if (!$info2) {
-                    $info2 = (string)$pl->Polygon->name;
-                }
-                if (!$info2) {
-                    $info2 = (string)$pl->name;
-                }
-                $infoArr[] = $info2 ? $info2 : $info;
             }
         }
         
