@@ -71,7 +71,7 @@ class fileman_webdrv_Code extends fileman_webdrv_Generic
         
         $content = mb_strcut($content, 0, 1000000);
         
-    	$content = i18n_Charset::convertToUtf8($content);
+    	$content = i18n_Charset::convertToUtf8($content, array('UTF-8' => 2, 'CP1251' => 0.5), TRUE);
         
         $content = core_Type::escape($content);
         
