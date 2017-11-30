@@ -435,8 +435,8 @@ class planning_ProductionTaskProducts extends core_Detail
     	}
     	 
     	if(isset($assetId)){
-    		$norms = planning_AssetResources::getNormRec($assetId, $productId);
-    		if(array_key_exists($productId, $norms)) return $norms[$productId];
+    		$normRec = planning_AssetResources::getNormRec($assetId, $productId);
+    		if(!empty($normRec)) return $normRec;
     	} elseif(isset($taskRec->fixedAssets)){
     		$norms = planning_AssetGroups::getNorm($taskRec->fixedAssets, $productId);
     		if(array_key_exists($productId, $norms)) return $norms[$productId];
