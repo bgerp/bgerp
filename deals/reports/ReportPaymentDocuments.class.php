@@ -335,9 +335,10 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
             $fld->FLD('documentId', 'varchar', 'caption=Документ');
             $fld->FLD('amountDeal', 'double(decimals=2)', 'caption=Сума,smartCenter');
-            $fld->FLD('payDate', 'varchar', 'caption=Срок за плащане');
+            $fld->FLD('payDate', 'varchar', 'caption=Срок-> за плащане');
             $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
-            $fld->FLD('createdBy', 'double(smartRound,decimals=2)', 'caption=Създател,smartCenter');
+           // $fld->FLD('createdBy', 'double(smartRound,decimals=2)', 'caption=Създател,smartCenter');
+            $fld->FLD('created', 'varchar', 'caption=Създатен,smartCenter');
 
         } else {
 
@@ -367,20 +368,27 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
         if (isset($dRec->documentId)) {
             $clsName = $dRec->className;
-            $row->documentId = $clsName::getLink($dRec->documentId, 0);
+           // $row->documentId = $clsName::getLink($dRec->documentId, 0);
+            $row->documentId = $clsName::getLinkToSingle($dRec->documentId);
         }
 
         if(isset($dRec->createdBy)) {
 
             $row->createdBy = crm_Profiles::createLink($dRec->createdBy);
+            $row->createdOn = $Date->toVerbal($dRec->createdOn);
         }
 
+        $hint =($dRec->ownAccount)?bank_OwnAccounts::getTitleById($dRec->ownAccount) :cash_Cases::getTitleById($dRec->peroCase) ;
+
         if (isset($dRec->amountDeal)) {
+
             $row->amountDeal =core_Type::getByName('double(decimals=2)')->toVerbal($dRec->amountDeal);
+            
+            $row->amountDeal = ht::createHint($row->amountDeal, "$hint", 'notice');
         }
 
         if (isset($dRec->payDate)) {
-            $row->payDate = $Date->toVerbal($dRec->payDate);
+            $row->payDate =($dRec->payDate)? $Date->toVerbal($dRec->payDate):'не посочен';
         }
 
 //        if(!empty($dRec->payDate)){
@@ -394,6 +402,8 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         if(isset($dRec->currencyId)) {
             $row->currencyId = currency_Currencies::getCodeById($dRec->currencyId);
         }
+
+        $row->created = 'създаден на '.$row->createdOn.' от '.$row->createdBy;
 
         return $row;
     }
