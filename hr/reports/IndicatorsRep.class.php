@@ -55,7 +55,14 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
      */
     protected $newFieldToCheck = 'docId';
 
+
+    /**
+     * Полета с възможност за промяна
+     */
+    protected $changeableFields = 'periods';
     
+
+
     /**
 	 * Добавя полетата на драйвера към Fieldset
 	 *
