@@ -67,7 +67,7 @@ class fileman_webdrv_Kml extends fileman_webdrv_Xml
         
         $content = mb_strcut($content, 0, 20000000);
         
-        $content = i18n_Charset::convertToUtf8($content);
+        $content = i18n_Charset::convertToUtf8($content, array('UTF-8' => 2, 'CP1251' => 0.5), TRUE);
         
         $content = trim($content);
         
