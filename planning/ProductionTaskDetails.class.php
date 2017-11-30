@@ -326,8 +326,8 @@ class planning_ProductionTaskDetails extends core_Detail
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	if(isset($rec->fixedAsset) && !Mode::isReadOnly()){
-    		$row->fixedAsset = ht::createLink($row->fixedAsset, planning_AssetResources::getSingleUrlArray($rec->fixedAsset));
+    	if(isset($rec->fixedAsset)){
+    		$row->fixedAsset = planning_AssetResources::getHyperlink($rec->fixedAsset);
     	}
     	 
     	$row->taskId = planning_Tasks::getLink($rec->taskId, 0);
