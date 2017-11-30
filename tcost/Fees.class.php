@@ -274,6 +274,8 @@ class tcost_Fees extends core_Detail
             $row->ROW_ATTR = array('style' => 'color:red;');
         } elseif(isset($lastKgPrice) && $lastKgPrice <= $kgPrice) {
             $row->ROW_ATTR = array('style' => 'color:#ff9900');
+            $max = round($lastKgPrice * $rec->weight);
+            $row->priceHint = $max;
         }
 
         $lastKgPrice = $kgPrice;
@@ -302,7 +304,10 @@ class tcost_Fees extends core_Detail
     		$rec = &$data->recs[$id];
     		
     		// Зад сумите, се залепва валутата им
-    		$row->price .=  " <span class='cCode'>{$rec->currencyId}</span>";
+            if($row->priceHint) {
+                $row->price = "<span title='Не трябва да е повече от {$row->priceHint}'>" . $row->price . "</span>";
+            }
+       		$row->price .=  " <span class='cCode'>{$rec->currencyId}</span>";
     		if(!empty($rec->secondPrice) && !empty($rec->secondCurrencyId)){
     			$row->secondPrice .=  " <span class='cCode'>{$rec->secondCurrencyId}</span>";
     		}
