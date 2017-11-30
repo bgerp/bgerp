@@ -599,7 +599,7 @@ class planning_ProductionTaskDetails extends core_Detail
         	
         	// Ако няма заработка, пропуска се
         	$info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
-        	if(empty($info->indTime)) continue;
+        	if(!isset($info->indTime)) continue;
         	
         	// Колко е заработката за 1 човек
             $timePerson = ($rec->quantity * $info->indTime) / count($persons);
