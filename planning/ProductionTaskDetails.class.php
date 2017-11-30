@@ -133,7 +133,7 @@ class planning_ProductionTaskDetails extends core_Detail
     	$this->FLD('scrappedQuantity', 'double(Min=0)', 'caption=Брак,input=none');
     	$this->FLD('weight', 'double', 'caption=Тегло,smartCenter,unit=кг');
     	$this->FLD('employees', 'keylist(mvc=crm_Persons,select=id)', 'caption=Работници,tdClass=nowrap');
-    	$this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=fullName,allowEmpty)', 'caption=Обордуване,input=none,tdClass=nowrap');
+    	$this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=id)', 'caption=Обордуване,input=none,tdClass=nowrap');
     	$this->FLD('notes', 'richtext(rows=2,bucket=Notes)', 'caption=Забележки');
     	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
     	
@@ -167,7 +167,7 @@ class planning_ProductionTaskDetails extends core_Detail
     		$keylist = $masterRec->fixedAssets;
     		$arr = keylist::toArray($keylist);
     		foreach ($arr as $key => &$value){
-    			$value = planning_AssetResources::getVerbal($key, 'fullName');
+    			$value = planning_AssetResources::getTitleById($key, FALSE);
     		}
     		$form->setOptions('fixedAsset', array('' => '') + $arr);
     		$form->setField('fixedAsset', 'input');
@@ -204,7 +204,7 @@ class planning_ProductionTaskDetails extends core_Detail
     		$packagingId = $measureId;
     		
     		// Показване на очакваните к-ва
-    		if($foundRec = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type)){
+    		if($foundRec = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset)){
     			$packagingId = $foundRec->packagingId;
     			$unit = cat_UoM::getShortName($foundRec->packagingId);
     			if(!empty($foundRec->plannedQuantity) || !empty($foundRec->totalQuantity)){
@@ -250,6 +250,8 @@ class planning_ProductionTaskDetails extends core_Detail
     	$rec = &$form->rec;
     	 
     	if($form->isSubmitted()){
+    		$masterRec = planning_Tasks::fetch($rec->taskId);
+    		
     		if($rec->type == 'production'){
     			if(self::fetchField("#taskId = {$rec->taskId} AND #serial = '{$rec->serial}' AND #id != '{$rec->id}'")){
     				$form->setError('serial', 'Сер. № при произвеждане трябва да е уникален');
@@ -280,6 +282,21 @@ class planning_ProductionTaskDetails extends core_Detail
     					$form->setError('serial', $error);
     				}
     			}
+    		}
+    		
+    		// При влагане
+    		if($rec->type == 'input' && isset($rec->productId)){
+    			
+    			// Ако артикула е действие към оборудването
+    			$inTp = planning_ProductionTaskProducts::fetchField("#taskId = {$rec->taskId} AND #type = 'input' AND #productId = {$rec->productId}");
+    			$inInputTask = planning_Tasks::fetchField("#originId = {$masterRec->originId} AND #inputInTask = {$rec->taskId} AND #state != 'draft' AND #state != 'rejected' AND #state != 'pending' AND #productId = {$rec->productId}");
+				
+    			// Подисгуряване че трябва да има норма
+				if(empty($inTp) && empty($inInputTask)){
+					if(!planning_AssetResources::getNormRec($rec->fixedAsset, $rec->productId)){
+						$form->setError('productId,fixedAsset', "Изберете оборудване, което има норма за действието");
+					}
+				}
     		}
     		
     		if(!$form->gotErrors()){
@@ -331,7 +348,7 @@ class planning_ProductionTaskDetails extends core_Detail
     	$shortUom = cat_UoM::getShortName($measureId);
     	$packagingId = $measureId;
     	
-    	$foundRec = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type);
+    	$foundRec = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
     	
     	if(!empty($foundRec)){
     		$packagingId = $foundRec->packagingId;
@@ -581,7 +598,7 @@ class planning_ProductionTaskDetails extends core_Detail
         	if(!count($persons)) continue;
         	
         	// Ако няма заработка, пропуска се
-        	$info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type);
+        	$info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
         	if(empty($info->indTime)) continue;
         	
         	// Колко е заработката за 1 човек
@@ -633,7 +650,7 @@ class planning_ProductionTaskDetails extends core_Detail
      */
     private function checkLimit($rec, &$limit = NULL)
     {
-    	$info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type);
+    	$info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
     	if(empty($info->limit)) return TRUE;
     	
     	$query = self::getQuery();

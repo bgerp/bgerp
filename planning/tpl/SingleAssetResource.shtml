@@ -1,12 +1,12 @@
 <div class="singleView">
     [#SingleToolbar#]
     <div class="info-table">
-        <h2 style='line-height:30px' class='[#STATE_CLASS#]'>|Оборудване|* <b style="color:green;">[#fullName#]</b></h2>
+        <h2 style='line-height:30px' class='[#STATE_CLASS#]'>|Оборудване|* <b style="color:green;">[#name#]</b></h2>
         <fieldset class="detail-info">
             <legend class="groupTitle">|Информация|*</legend>
             <ul>
                 <li class="info">
-                    <span class="gray-title">|Групи|*: </span>[#groupId#]
+                    <span class="gray-title">|Вид|*: </span>[#groupId#]
                 </li>
                 
                 <!--ET_BEGIN protocolId-->
@@ -38,4 +38,11 @@
             </ul>
         </fieldset>
     </div>
+    
+    <fieldset class="detail-info">
+            <legend class="groupTitle">|Норми|*</legend>
+            [#planning_AssetResourcesNorms#]
+        </fieldset>
+    </div>
+    [#DETAILS#]
 </div>
