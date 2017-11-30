@@ -263,16 +263,21 @@ class tcost_Fees extends core_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        static $lastPrice;
+        static $lastPrice, $lastKgPrice;
 
     	$rec->total = self::getTotalPrice($rec);
     	$row->total = $mvc->getFieldType('total')->toVerbal($rec->total);
-
+        
+        $kgPrice = $rec->total / $rec->weight;
+ 
         if($lastPrice >= $rec->price) {
             $row->ROW_ATTR = array('style' => 'color:red;');
+        } elseif(isset($lastKgPrice) && $lastKgPrice <= $kgPrice) {
+            $row->ROW_ATTR = array('style' => 'color:#ff9900');
         }
 
- 
+        $lastKgPrice = $kgPrice;
+
         $lastPrice = $rec->price;
     }
     
