@@ -89,6 +89,12 @@ class planning_AssetResourcesNorms extends core_Manager
 	}
 	
 	
+	/**
+	 * Подготовка на детайла
+	 * 
+	 * @param stdClass $data
+	 * @return void
+	 */
 	public function prepareDetail_(&$data)
 	{
 		$data->recs = $data->rows = array();
@@ -254,7 +260,7 @@ class planning_AssetResourcesNorms extends core_Manager
 	/**
 	 * Връща опциите за избор на действия за оборудването
 	 * 
-	 * @param mixed $assets     -списък с оборудвания
+	 * @param mixed $assets     - списък с оборудвания
 	 * @param array|NULL $notIn - ид-та на артикули, които да се игнорират
 	 * @return array $options   - имена на действия, групирани по оборудвания
 	 */

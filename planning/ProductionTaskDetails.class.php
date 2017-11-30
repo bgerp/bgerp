@@ -674,7 +674,7 @@ class planning_ProductionTaskDetails extends core_Detail
     /**
      * Изпълнява се преди възстановяването на документа
      */
-    public static function on_BeforeRestore(core_Mvc $mvc, &$res, $id)
+    protected static function on_BeforeRestore(core_Mvc $mvc, &$res, $id)
     {
     	$rec = $mvc->fetchRec($id);
     	
