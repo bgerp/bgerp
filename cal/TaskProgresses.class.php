@@ -104,7 +104,7 @@ class cal_TaskProgresses extends core_Detail
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {   
-        $data->form->FNC('notifyUsers', 'type_Keylist(mvc=core_Users, select=nick)', 'caption=Нотификация, input');
+        $data->form->FNC('notifyUsers', 'type_Keylist(mvc=core_Users, select=nick, where=#state !\\= \\\'rejected\\\', allowEmpty)', 'caption=Нотификация, input');
         
         if ($taskId = $data->form->rec->taskId) {
             $tRec = cal_Tasks::fetch($taskId);
