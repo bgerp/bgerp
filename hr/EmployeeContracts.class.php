@@ -135,7 +135,7 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'numId,dateId,typeId,personId=Имена,numId,positionId=Позиция,startFrom,endOn';
+    public $listFields = 'numId,dateId,departmentId,typeId,personId=Имена,numId,positionId=Позиция,startFrom,endOn';
     
     
     /**
@@ -183,7 +183,7 @@ class hr_EmployeeContracts extends core_Master
         $this->FLD('lengthOfService', 'time(suggestions=1 мес|2 мес|3 мес|4 мес|5 мес|6 мес|7 мес|8 мес|9 мес|10 мес|11 мес|12 мес|2 год|3 год|5 год,uom=months,allowEmpty)', 'caption=Служител->Трудов стаж');
                 
         // Отдел - външно поле от модела hr_Positions
-        $this->FLD('departmentId', 'key(mvc=hr_Departments,select=name)', 'caption=Работа->Отдел,mandatory,autoFilter');
+        $this->FLD('departmentId', 'key(mvc=planning_ActivityCenters,select=name)', 'caption=Работа->Център,mandatory,autoFilter');
 
         // Позиция в отдела
         $this->FLD('positionId', 'key(mvc=hr_Positions,select=name)', 'caption=Работа->Длъжност,mandatory,autoFilter');
@@ -284,12 +284,12 @@ class hr_EmployeeContracts extends core_Master
     	// трудовият договор, не може да се създаде без да е обявено работното време в него
     	// в системата, работното време се определя от различните графици
     	// те от своя страна се добавят към отделите (структура)
-    	$queryWorkingCycle = hr_Departments::getQuery();
+    	$queryWorkingCycle = planning_ActivityCenters::getQuery();
     	
     	if($queryWorkingCycle->fetch("#schedule") == FALSE){
     	
     		// Ако няма, изискваме от потребителя да въведе
-    		redirect(array('hr_Departments', 'list'), FALSE,  "|Не сте въвели работни графици");
+    		redirect(array('planning_ActivityCenters', 'list'), FALSE,  "|Не сте въвели работни графици");
     	}
     	
         $row = $data->row;
@@ -552,7 +552,7 @@ class hr_EmployeeContracts extends core_Master
         if($query->fetchAll() == FALSE){
             
             // Ако няма, изискваме от потребителя да въведе
-            redirect(array('hr_Departments', 'list'), FALSE, "|Не сте въвели длъжност");
+            redirect(array('planning_ActivityCenters', 'list'), FALSE, "|Не сте въвели длъжност");
         }
         
         // трудовият договор, не може да се създаде без да е обявено работното време в него
@@ -583,12 +583,12 @@ class hr_EmployeeContracts extends core_Master
         // трудовият договор, не може да се създаде без да е обявено работното време в него
         // в системата, работното време се определя от различните графици
         // те от своя страна се добавят към отделите (структура)
-        $queryWorkingCycle = hr_Departments::getQuery();
+        $queryWorkingCycle = planning_ActivityCenters::getQuery();
     
         if($queryWorkingCycle->fetch("#schedule") == FALSE){
 
         	// Ако няма, изискваме от потребителя да въведе
-        	redirect(array('hr_Departments', 'list'), FALSE, "|Не сте въвели работни графици");
+        	redirect(array('planning_ActivityCenters', 'list'), FALSE, "|Не сте въвели работни графици");
         }
     }
     
@@ -675,7 +675,7 @@ class hr_EmployeeContracts extends core_Master
     {
         $departmentId = self::fetchField($id, 'departmentId');
         
-        $schedule = hr_Departments::fetchField($departmentId, 'schedule');
+        $schedule = planning_ActivityCenters::fetchField($departmentId, 'schedule');
         
         return $schedule;
     }

@@ -112,7 +112,7 @@ class planning_AssetResources extends core_Master
     	$this->FLD('groupId', 'key(mvc=planning_AssetGroups,select=name,allowEmpty)', 'caption=Вид,mandatory,silent');
     	$this->FLD('code', 'varchar(16)', 'caption=Код,mandatory');
     	$this->FLD('protocolId', 'key(mvc=accda_Da,select=id)', 'caption=Протокол за пускане в експлоатация,silent,input=hidden');
-    	$this->FLD('departments', 'keylist(mvc=hr_Departments,select=name,makeLinks)', 'caption=Структура');
+    	$this->FLD('departments', 'keylist(mvc=planning_ActivityCenters,select=name,makeLinks)', 'caption=Центрове');
     	$this->FLD('quantity', 'int', 'caption=Kоличество,notNull,value=1');
     	$this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
     	
@@ -206,14 +206,12 @@ class planning_AssetResources extends core_Master
      */
     public static function getAvailableInFolder($folderId)
     {
-    	$departmentId = hr_Departments::fetchField("#folderId = {$folderId}", 'id');
-    	$parents = hr_Departments::getParentsArray($departmentId);
+    	$departmentId = planning_ActivityCenters::fetchField("#folderId = {$folderId}", 'id');
     	
     	$res = array();
     	$query = self::getQuery();
     	$query->where("#state != 'closed'");
-    	$query->likeKeylist("departments", $parents);
-    	$query->orWhere("#departments IS NULL");
+    	$query->orWhere("#departments IS NULL OR LOCATE('|{$departmentId}|', #departments)");
     	
     	while($rec = $query->fetch()){
     		$res[$rec->id] = self::getRecTitle($rec, FALSE);
@@ -259,7 +257,7 @@ class planning_AssetResources extends core_Master
     	$tpl = new core_ET("");
     	
     	// Рендиране на таблицата с оборудването
-    	$data->listFields = arr::make("name=Оборудване,departments=Департамент,quantity=К-во,createdOn=Създадено->На,createdBy=Създадено->От,state=Състояние");
+    	$data->listFields = arr::make("name=Оборудване,departments=Цр. на дейност,quantity=К-во,createdOn=Създадено->На,createdBy=Създадено->От,state=Състояние");
     	$table = cls::get('core_TableView', array('mvc' => $this));
     	$this->invoke('BeforeRenderListTable', array($tpl, &$data));
     	$tpl->append($table->get($data->rows, $data->listFields));

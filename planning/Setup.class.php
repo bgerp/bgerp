@@ -115,9 +115,11 @@ class planning_Setup extends core_ProtoSetup
     		'planning_TaskSerials',
     		'planning_AssetGroups',
     		'planning_AssetResourcesNorms',
+    		'planning_ActivityCenters',
     		'migrate::deleteTaskCronUpdate',
     		'migrate::deleteAssets',
-    		'migrate::deleteNorms'
+    		'migrate::deleteNorms',
+    		'migrate::transferCenters',
         );
 
         
@@ -236,5 +238,226 @@ class planning_Setup extends core_ProtoSetup
     	$Norms = cls::get('planning_AssetResourcesNorms');
     	$Norms->setupMvc();
     	$Norms->truncate();
+    }
+    
+    
+    public function transferCenters()
+    {
+    	$Deparments = cls::get('hr_Departments');
+    	$Deparments->setupMvc();
+    	$Unsorted = cls::get('doc_UnsortedFolders');
+    	
+    	core_Classes::add('planning_ActivityCenters');
+    	$Centers = cls::get('planning_ActivityCenters');
+    	$Centers->setupMvc();
+    	$Centers->loadSetupData();
+    	$centerClassId = planning_ActivityCenters::getClassId();
+    	$unsortedClassId = $Unsorted->getClassId();
+    	
+    	if(!$Deparments->count()) return;
+    	
+    	$Lists = cls::get('acc_Lists');
+    	$Lists->setupMvc();
+    	$Lists->loadSetupData();
+    	
+    	$Cust = cls::get('hr_CustomSchedules');
+    	$Cust->setupMvc();
+    	 
+    	$Econtr = cls::get('hr_EmployeeContracts');
+    	$Econtr->setupMvc();
+    	 
+    	$Jobs = cls::get('planning_Jobs');
+    	$Jobs->setupMvc();
+    	 
+    	$Cons = cls::get('planning_ConsumptionNotes');
+    	$Cons->setupMvc();
+    	 
+    	$Ret = cls::get('planning_ReturnNotes');
+    	$Ret->setupMvc();
+    	 
+    	$Assets = cls::get('planning_AssetResources');
+    	$Assets->setupMvc();
+    	 
+    	$Hr = cls::get('crm_ext_Employees');
+    	$Hr->setupMvc();
+    	
+    	$now = dt::now();
+    	
+    	$toTransfer = $toUnsorted = array();
+    	$dQuery = hr_Departments::getQuery();
+    	$dQuery->FLD('folderId', 'key(mvc=doc_Folders)');
+    	$dQuery->FLD('type', 'enum(section,branch,office,affiliate,division,direction,department,plant,workshop,store,shop,unit,brigade,shift,organization)');
+    	$dQuery->FLD('nkid', 'key(mvc=bglocal_NKID, select=title,allowEmpty=true)');
+    	$dQuery->FLD('employmentTotal', 'int');
+    	$dQuery->FLD('employmentOccupied', 'int');
+    	$dQuery->FLD('startingOn', 'datetime');
+    	$dQuery->FLD('schedule', 'key(mvc=hr_WorkingCycles, select=name, allowEmpty=true)');
+    	$dQuery->FLD('inCharge' , 'user(role=powerUser, rolesForAll=executive)');
+    	$dQuery->FLD('access', 'enum(team=Екипен,private=Личен,public=Общ,secret=Секретен)');
+    	$dQuery->FLD('shared' , 'userList');
+    	
+    	while($dRec = $dQuery->fetch()){
+    		if($dRec->type == 'workshop' || acc_Items::isItemInList('hr_Departments', $dRec->id, 'departments') || hr_EmployeeContracts::fetchField("#departmentId = {$dRec->id}") || planning_ConsumptionNotes::fetchField("#departmentId = {$dRec->id}") || planning_ReturnNotes::fetchField("#departmentId = {$dRec->id}")){
+    			
+    			$obj = (object)arr::getSubArray((object)$dRec, 'name,type,nkid,employmentTotal,schedule,folderId,startingOn,createdBy,inCharge,access,shared,state');
+    			$obj->departmentId = $dRec->parentId;
+    			if($cRec = $Centers->fetch("#name = '{$dRec->name}'")){
+    				$obj->type = 'workshop';
+    				$obj->id = $cRec->id;
+    			}
+    			
+    			$toTransfer[$dRec->id] = $obj;
+    		} elseif($dRec->folderId) {
+    			$threadsCount = doc_Folders::fetchField($dRec->folderId, 'allThreadsCnt');
+    			if($threadsCount){
+    				$obj = (object)arr::getSubArray((object)$dRec, 'name,folderId,createdBy,inCharge,access,shared,state');
+    				$obj->description = 'Прехвърлен от департамент';
+    				$toUnsorted[$dRec->id] = $obj;
+    			} else {
+    				doc_Folders::delete($dRec->folderId);
+    			}
+    		}
+    	}
+    	
+    	if(!count($toTransfer) || !count($toUnsorted)) return;
+    	$map = array();
+    	
+    	foreach ($toTransfer as $objectId => $obj)
+    	{
+    		if(empty($obj->id)){
+    			while($Centers->fetchField("#name = '{$obj->name}'")){
+    				$obj->name = str::addIncrementSuffix($obj->name, " ");
+    				if(!$Centers->fetchField("#name = '{$obj->name}'")){
+    					break;
+    				}
+    			}
+    		} else {
+    			$exRec = $Centers->fetch($obj->id);
+    			doc_Folders::delete($exRec->folderId);
+    		}
+    		
+    		$obj->createdBy = empty($obj->createdBy) ? core_Users::SYSTEM_USER : $obj->createdBy;
+    		$obj->createdOn = $now;
+    		core_Users::sudo($obj->createdBy);
+    		
+    		$id = $Centers->save_($obj);
+    		core_Users::exitSudo($obj->createdBy);
+    		
+    		if($id){
+    			$map[$objectId] = $id;
+    			
+    			if($itemRec = acc_Items::fetchItem('hr_Departments', $objectId)){
+    				$itemRec->classId = $centerClassId;
+    				$itemRec->objectId = $id;
+    				acc_Items::save($itemRec);
+    				
+    				$register = core_Cls::getInterface('planning_ActivityCenterIntf', $centerClassId);
+    				acc_Items::syncItemRec($itemRec, $register, $id);
+    				acc_Items::save($itemRec);
+    			}
+    			
+    			if(isset($obj->folderId)){
+    				$folderRec = doc_Folders::fetch($obj->folderId);
+    				if($folderRec->coverClass != $centerClassId){
+    					$folderRec->coverClass = $centerClassId;
+    					$folderRec->coverId = $id;
+    					doc_Folders::save($folderRec, NULL, 'REPLACE');
+    				}
+    			}
+    			
+    			if(isset($obj->departmentId) || $obj->name == 'Неопределен'){
+    				hr_Departments::delete($objectId);
+    			}
+    		}
+    	}
+    	
+    	foreach ($toUnsorted as $objId => $uRec){
+    		if(empty($uRec->id)){
+    			while($Unsorted->fetchField("#name = '{$uRec->name}'")){
+    				$uRec->name = str::addIncrementSuffix($uRec->name, " ");
+    				if(!$Unsorted->fetchField("#name = '{$uRec->name}'")){
+    					break;
+    				}
+    			}
+    		}
+    		
+    		core_Users::sudo($uRec->createdBy);
+    		if($cId = $Unsorted->fetchField("#name = '{$uRec->name}'")){
+    			$uRec->id = $cId;
+    		}
+    		$uRec->createdOn = $now;
+    		$uId = $Unsorted->save_($uRec);
+    		core_Users::exitSudo($uRec->createdBy);
+    		
+    		if($uId){
+    			$folderRec = doc_Folders::fetch($uRec->folderId);
+    			if($folderRec->coverClass != $unsortedClassId){
+    				$folderRec->coverClass = $unsortedClassId;
+    				$folderRec->coverId = $uId;
+    				doc_Folders::save($folderRec, NULL, 'REPLACE');
+    			}
+    		}
+    	}
+    	
+    	$jQuery = $Jobs->getQuery();
+    	$jQuery->where("department IS NOT NULL");
+    	$jQuery->show('department');
+    	while($jRec = $jQuery->fetch()){
+    		$jRec->department = $map[$jRec->department];
+    		$Jobs->save_($jRec, 'department');
+    	}
+    	
+    	$aQuery = $Assets->getQuery();
+    	$aQuery->where("#departments IS NOT NULL");
+    	$aQuery->show('departments');
+    	while($aRec = $aQuery->fetch()){
+    		$aRec->departments = NULL;
+    		$Assets->save_($aRec);
+    	}
+    	 
+    	$cQuery = $Cons->getQuery();
+    	$cQuery->where("#departmentId IS NOT NULL");
+    	$cQuery->show('departmentId');
+    	while($cRec = $cQuery->fetch()){
+    		$cRec->departmentId = $map[$cRec->departmentId];
+    		$Cons->save_($cRec, 'departmentId');
+    	}
+    	 
+    	$rQuery = $Ret->getQuery();
+    	$rQuery->where("#departmentId IS NOT NULL");
+    	$rQuery->show('departmentId');
+    	while($rRec = $rQuery->fetch()){
+    		$rRec->departmentId = $map[$rRec->departmentId];
+    		$Ret->save_($rRec, 'departmentId');
+    	}
+    	
+    	$hQuery = $Hr->getQuery();
+    	$hQuery->where("#departments IS NOT NULL");
+    	$hQuery->show('departments');
+    	while($hRec = $hQuery->fetch()){
+    		$d = keylist::toArray($hRec->departments);
+    		$intersect = arr::make(array_intersect_key($map, $d), TRUE);
+    		$hRec->departments = keylist::fromArray($intersect);
+    		$hRec->departments = empty($hRec->departments) ? NULL : $hRec->departments;
+    		$Hr->save_($hRec);
+    	}
+    	
+    	$eQuery = $Econtr->getQuery();
+    	$eQuery->where("#departmentId IS NOT NULL");
+    	$eQuery->show('departmentId');
+    	while($eRec = $eQuery->fetch()){
+    		$eRec->departmentId = $map[$eRec->departmentId];
+    		$eRec->departmentId = (empty($eRec->departmentId)) ? NULL : $eRec->departmentId;
+    		$Econtr->save_($eRec);
+    	}
+    	
+    	$cuQuery = $Cust->getQuery();
+    	$cuQuery->where("#departmenId IS NOT NULL");
+    	$cuQuery->show('departmenId');
+    	while($cuRec = $cuQuery->fetch()){
+    		$cuRec->departmenId = $map[$cuRec->departmenId];
+    		$cuRec->departmenId = (empty($cuRec->departmenId)) ? NULL : $cuRec->departmenId;
+    		$Cust->save_($cuRec);
+    	}
     }
 }

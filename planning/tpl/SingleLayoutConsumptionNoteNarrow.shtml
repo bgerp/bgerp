@@ -23,7 +23,7 @@
                           <br>[#storeLocation#]
                           <!--ET_END storeLocation-->
                           <!--ET_BEGIN departmentId-->
-                          <br>|Департамент|*:[#departmentId#]
+                          <br>|Цр. на дейност|*:[#departmentId#]
                           <!--ET_END departmentId-->
                     </td>
                 </tr>

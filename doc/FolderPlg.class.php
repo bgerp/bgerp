@@ -637,10 +637,11 @@ class doc_FolderPlg extends core_Plugin
             }
         }
         $currUrl = getCurrentUrl();
-        
+      
         // Подготовка на линк към папката (или създаване на нова) на корицата
         if($fField = $mvc->listFieldForFolderLink) { 
             $folderTitle = $mvc->getFolderTitle($rec->id);
+           
             if($rec->folderId && ($fRec = doc_Folders::fetch($rec->folderId))) {   
                 if (doc_Folders::haveRightFor('single', $rec->folderId) && !$currUrl['Rejected']) { 
                     core_RowToolbar::createIfNotExists($row->_rowTools);

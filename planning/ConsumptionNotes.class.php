@@ -159,7 +159,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	function description()
 	{
 		parent::setDocumentFields($this);
-		$this->FLD('departmentId', 'key(mvc=hr_Departments,select=name,allowEmpty)', 'caption=Департамент,before=note');
+		$this->FLD('departmentId', 'key(mvc=planning_ActivityCenters,select=name,allowEmpty)', 'caption=Цр. на дейност,before=note');
 		$this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Детайлно влагане->Избор,notNull,default=yes,maxRadio=2,before=note');
 	}
 	
@@ -172,7 +172,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 		$data->form->setDefault('useResourceAccounts', planning_Setup::get('CONSUMPTION_USE_AS_RESOURCE'));
 		
 		$folderCover = doc_Folders::getCover($data->form->rec->folderId);
-		if($folderCover->isInstanceOf('hr_Departments')){
+		if($folderCover->isInstanceOf('planning_ActivityCenters')){
 			$data->form->setDefault('departmentId', $folderCover->that);
 		}
 	}
@@ -191,7 +191,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 		$row->useResourceAccounts = tr($row->useResourceAccounts);
 		
 		if(isset($rec->departmentId)){
-			$row->departmentId = hr_Departments::getHyperlink($rec->departmentId, TRUE);
+			$row->departmentId = planning_ActivityCenters::getHyperlink($rec->departmentId, TRUE);
 		}
 	}
 	

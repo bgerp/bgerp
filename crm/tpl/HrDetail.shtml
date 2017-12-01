@@ -12,6 +12,6 @@
 <!--ET_END positionId-->
 
 <!--ET_BEGIN departments-->
-<tr><td class='quiet'>|Отдели|*</td><td>[#departments#]</td></tr>
+<tr><td class='quiet'>|Центрове|*</td><td>[#departments#]</td></tr>
 <!--ET_END departments-->
 </table>

@@ -16,30 +16,6 @@
 class hr_Departments extends core_Master
 {
     
-	
-     /**
-     * Интерфейси, поддържани от този мениджър
-     */
-    public $interfaces = 'acc_RegisterIntf, hr_DepartmentAccRegIntf, doc_FolderIntf';
-    
-    
-    /**
-     * Детайли на този мастер
-     */
-    public $details = 'AccReports=acc_ReportDetails,Grafic=hr_WorkingCycles';
-    
-    
-    /**
-     * По кои сметки ще се правят справки
-     */
-    public $balanceRefAccounts = '60020';
-    
-    
-    /**
-     * По кой итнерфейс ще се групират сметките
-     */
-    public $balanceRefGroupBy = 'hr_DepartmentAccRegIntf';
-    
     
     /**
      * Заглавие
@@ -62,9 +38,7 @@ class hr_Departments extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, hr_Wrapper, doc_FolderPlg, plg_State, plg_Rejected,
-                        plg_Created, WorkingCycles=hr_WorkingCycles,acc_plg_Registry, plg_SaveAndNew, 
-                        plg_TreeObject, plg_Modified, bgerp_plg_Blank';
+    public $loadList = 'plg_RowTools2, hr_Wrapper, plg_State, plg_Rejected,plg_Created,plg_SaveAndNew,plg_TreeObject, plg_Modified';
     
     
     /**
@@ -124,25 +98,13 @@ class hr_Departments extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=Департамент, type, locationId, employmentOccupied=Назначени, employmentTotal=От общо, schedule=График';
+    public $listFields = 'name=Департамент, locationId, state, createdOn,createdBy';
 
     
     /**
      * Дефолт достъп до новите корици
      */
     public $defaultAccess = 'public';
-     
-    
-    /**
-     * Кои полета да се сумират за наследниците
-     */
-    public $fieldsToSumOnChildren = 'employmentTotal,employmentOccupied';
-    
-    
-    /**
-     * Да се създаде папка при създаване на нов запис
-     */
-    public $autoCreateFolder = NULL;
     
     
     /**
@@ -152,35 +114,10 @@ class hr_Departments extends core_Master
     {
         $this->FLD('name', 'varchar', 'caption=Наименование, mandatory,width=100%');
         $this->FLD('parentId', "key(mvc=hr_Departments,allowEmpty,select=name)", 'caption=В състава на,mandatory');
-        $this->FLD('type', 'enum(section=Поделение,
-                                 branch=Клон,
-                                 office=Офис,
-                                 affiliate=Филиал,
-                                 division=Дивизия,
-                                 direction=Дирекция,
-                                 department=Oтдел,
-                                 plant=Завод,
-                                 workshop=Цех,
-                                 store=Склад,
-				                 shop=Магазин,
-                                 unit=Звено,
-                                 brigade=Бригада,
-                                 shift=Смяна,
-                                 organization=Учреждение)', 'caption=Тип, mandatory,width=100%');
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title, allowEmpty)', "caption=Локация,width=100%");
-        $this->FLD('activities', 'enum(yes=Да, no=Не)', "caption=Център на дейности,maxRadio=2,columns=2,notNull,value=no, input=none,");
-        
-        $this->FLD('nkid', 'key(mvc=bglocal_NKID, select=title,allowEmpty=true)', 'caption=Служители->НКИД, hint=Номер по НКИД');
-        $this->FLD('employmentTotal', 'int', "caption=Служители->Щат, input=none");
-        $this->FLD('employmentOccupied', 'int', "caption=Служители->Назначени, input=none");
-        $this->FLD('schedule', 'key(mvc=hr_WorkingCycles, select=name, allowEmpty=true)', "caption=Работен график->Цикъл,mandatory");
-        $this->FLD('startingOn', 'datetime', "caption=Работен график->От");
         $this->FLD('orderStr', 'varchar', "caption=Подредба,input=none,column=none");
-        // Състояние
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
-        $this->FLD('systemId', 'varchar', 'input=none');
         
-        $this->setDbUnique('systemId');
         $this->setDbUnique('name');
     }
 
@@ -219,12 +156,6 @@ class hr_Departments extends core_Master
     	$fRec = &$data->form->rec;
     	$data->form->setField('parentId', 'remember');
     	self::expandRec($fRec);
-    	
-    	$undefinedDepId = $mvc->fetchField("#systemId = 'emptyCenter'", 'id');
-    	
-    	if(!$mvc->count("#id != {$undefinedDepId}") || (isset($fRec->id) && $fRec->id != $undefinedDepId && empty($fRec->parentId))){
-    		$data->form->setField('parentId', 'input=none');
-    	}
 
     	$data->form->setOptions('locationId', crm_Locations::getOwnLocations());
     }
@@ -257,20 +188,6 @@ class hr_Departments extends core_Master
         }
     }
     
-    
-    /**
-     * След промяна на обект от регистър
-     */
-    protected static function on_AfterSave($mvc, &$id, &$rec, $fieldList = NULL)
-    {
-    	if($rec->activities == 'yes'){
-    	    // Добавя се като перо 
-
-    		$rec->lists = keylist::addKey($rec->lists, acc_Lists::fetchField(array("#systemId = '[#1#]'", 'departments'), 'id'));
-    		acc_Lists::updateItem($mvc, $rec->id, $rec->lists);
-        }
-    }
-    
 
     /**
      * След преобразуване на записа в четим за хора вид
@@ -280,108 +197,26 @@ class hr_Departments extends core_Master
     	if($rec->locationId){
     		$row->locationId = crm_Locations::getHyperlink($rec->locationId, TRUE);
     	}
-    	
-    	// Към неопределения център да не може да се добавя наследник
-    	if($rec->systemId == 'emptyCenter'){
-    		unset($row->_addBtn);
-    	}
-    	
-    	$empTpl = new core_ET("");
-    	$pQuery = crm_ext_Employees::getQuery();
-    	$pQuery->like("departments", "|{$rec->id}|");
-    	while($pRec = $pQuery->fetch()){
-    		$codeLink = crm_ext_Employees::getCodeLink($pRec->personId);
-    		$empTpl->append("{$codeLink}<br>");
-    	}
-    	
-    	$row->employees = $empTpl;
-    	
-    	$aTpl = new core_ET("");
-    	$aQuery = planning_AssetResources::getQuery();
-    	$aQuery->like("departments", "|{$rec->id}|");
-    	while($aRec = $aQuery->fetch()){
-    		$fields = cls::get('planning_AssetResources')->selectFields();
-    		$fields['-list'] = TRUE;
-    		
-    		$aRow = planning_AssetResources::recToVerbal($aRec, $fields);
-    		$aTpl->append("{$aRow->code} ($aRow->quantity)<br>");
-    	}
-    	$row->assets = $aTpl;
     }
-    
-    
-    /*******************************************************************************************
-     * 
-     * ИМПЛЕМЕНТАЦИЯ на интерфейса @see crm_ContragentAccRegIntf
-     * 
-     ******************************************************************************************/
-    
-    
-    /**
-     * Връща заглавието и мярката на перото за продукта
-     *
-     * Част от интерфейса: intf_Register
-     */
-    function getItemRec($objectId)
-    {
-        $result = NULL;
-        
-        if ($rec = self::fetch($objectId)) {
-            $result = (object)array(
-                'title' => $rec->name . " dp",
-                'num' => "Dep" . $rec->id,
-                //'features' => 'foobar' // @todo!
-            );
-        }
-        
-        return $result;
-    }
-    
-    
-    /**
-     * @see crm_ContragentAccRegIntf::itemInUse
-     * @param int $objectId
-     */
-    static function itemInUse($objectId)
-    {
-        // @todo!
-    }
-    
-    
-    /**
-     * КРАЙ НА интерфейса @see acc_RegisterIntf
-     */
-    
-    /****************************************************************************************
-     *                                                                                      *
-     *  ИМПЛЕМЕНТАЦИЯ НА @link doc_DocumentIntf                                             *
-     *                                                                                      *
-     ****************************************************************************************/
 
     
     /**
      * Изчертаване на структурата с данни от базата
      */
-    public static function getChart ($data)
+    public static function getChart($data)
     {
         $arrData = (array)$data->recs;
         
         foreach($arrData as $rec){
-        	if($rec->systemId === 'emptyCenter' || $rec->state != 'active') continue;
+        	if($rec->state != 'active') continue;
         	
             // Ако имаме родител 
-             if($rec->parentId == NULL && $rec->systemId !== 'myOrganisation') {
+             if($rec->parentId == NULL) {
                  $parent = '0';
                  // взимаме чистото име на наследника
                  $name = self::fetchField($rec->id, 'name');
              } else {
-                 // в противен случай, го взимаме както е
-                 if ($rec->systemId == 'myOrganisation'){
-                     $name = $rec->name;
-                     $oldId = $rec->id;
-                     $rec->id = '0';
-                     $parent = 'NULL';
-                 } elseif ($rec->parentId == $oldId) {
+             	if ($rec->parentId == $oldId) {
                  	$name = self::fetchField($rec->id, 'name');
                  	$parent = '0';
                  } else {
@@ -390,64 +225,19 @@ class hr_Departments extends core_Master
                  }
              }
          
-             $res[] = array(
-             'id' => $rec->id,
-             'title' => $name,
-             'parent_id' => $parent,
-             );
+             $res[] = array('id' => $rec->id, 'title' => $name, 'parent_id' => $parent);
         }
         
-        if(!static::fetchField("#systemId = 'myOrganisation'")){
-        	$firstRow = array('id' => '0', 'title' => tr('Моята организация'), 'parent_id' => 'NULL');
-        	if(count($res)){
-        		array_unshift($res, $firstRow);
-        	} else {
-        		$res[] = $firstRow;
-        	}
+        $firstRow = array('id' => '0', 'title' => tr('Моята организация'), 'parent_id' => 'NULL');
+        if(count($res)){
+        	array_unshift($res, $firstRow);
+        } else {
+        	$res[] = $firstRow;
         }
         
         $chart = orgchart_Adapter::render_($res);
         
         return $chart;
-    }
-    
-    
-    /**
-     * Извиква се след SetUp-а на таблицата за модела
-     */
-    public function loadSetupData()
-    {
-    	// Подготвяме пътя до файла с данните
-    	$file = "hr/csv/Departments.csv";
-    	
-    	// Кои колонки ще вкарваме
-    	$fields = array(
-    			0 => "name",
-    			1 => "activities",
-    			2 => "systemId",
-    			3 => "type",
-    	);
-    	
-    	// Импортираме данните от CSV файла.
-    	// Ако той не е променян - няма да се импортират повторно
-    	$cntObj = csv_Lib::importOnce($this, $file, $fields, NULL, NULL);
-    	
-    	// Записваме в лога вербалното представяне на резултата от импортирането
-    	$res = $cntObj->html;
-    	
-    	return $res;
-    }
-    
-    
-    /**
-     * Връща възможните опции за избор на бащи на обекта
-     */
-    protected static function on_AfterPrepareParentOptions($mvc, &$res, $rec)
-    {
-    	if(count($res)){
-    		$undefinedDepId = $mvc->fetchField("#systemId = 'emptyCenter'", 'id');
-    		unset($res[$undefinedDepId]);
-    	}
     }
     
     
@@ -490,5 +280,11 @@ class hr_Departments extends core_Master
     	$me = cls::get(get_called_class());
     	
     	return $me->getVerbal($rec, 'name');
+    }
+    
+    
+    function act_Test()
+    {
+    	cls::get('planning_Setup')->transferCenters();
     }
 }
