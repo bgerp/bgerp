@@ -145,9 +145,12 @@ class cal_TaskProgresses extends core_Detail
                 }
             }
             
+            if (empty($interestedUsersArr)) {
+                $data->form->setField('notifyUsers', 'input=none');
+            }
             $data->form->setSuggestions('notifyUsers', $interestedUsersArr);
             
-            if (!empty($notifyUsersArr)) {
+            if (!empty($interestedUsersArr) && !empty($notifyUsersArr)) {
                 $data->form->setDefault('notifyUsers', $notifyUsersArr);
             }
         }
