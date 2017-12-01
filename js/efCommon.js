@@ -1689,7 +1689,8 @@ function setFormElementsWidth() {
         $('.formTable .hiddenFormRow select.w100').css('width', "100%");
         $('.formTable .hiddenFormRow select.w25').css('width', "25%");
 
-        $('#all .formTable textarea').css('min-width', $('#all .formTable input.w100').first().width());
+        var tempWidth = $('#all .formTable input.w100').last().width() > 200 ? $('#all .formTable input.w100').last().width() : 400;
+        $('#all .formTable textarea').css('min-width', tempWidth);
     	 $('.formTable label').each(function() {
     		 if($(this).parent().is('td')){
              	$(this).parent().css('white-space', "nowrap");
