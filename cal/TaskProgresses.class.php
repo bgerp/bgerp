@@ -118,8 +118,34 @@ class cal_TaskProgresses extends core_Detail
                 $notifyUsersArr[$tRec->createdBy] = $tRec->createdBy;
             }
             
+            $interestedUsersArr = $notifyUsersArr;
+            
+            // Добавяме отговорника и споделените на папката
+            if ($tRec->folderId) {
+                $fRec = doc_Folders::fetch($tRec->folderId);
+                $interestedUsersArr[$fRec->inCharge] = $fRec->inCharge;
+                
+                if ($fRec->shared) {
+                    $interestedUsersArr += type_Keylist::toArray($fRec->shared);
+                }
+            }
+            
             $cu = core_Users::getCurrent();
             unset($notifyUsersArr[$cu]);
+            unset($interestedUsersArr[$cu]);
+            
+            $suggArr = $data->form->fields['notifyUsers']->type->prepareSuggestions();
+            
+            // Показваме само хората, които имат връзка със задачата или папката
+            foreach ($interestedUsersArr as &$nick) {
+                if ($suggArr[$nick]) {
+                    $nick = $suggArr[$nick];
+                } else {
+                    unset($interestedUsersArr[$nick]);
+                }
+            }
+            
+            $data->form->setSuggestions('notifyUsers', $interestedUsersArr);
             
             if (!empty($notifyUsersArr)) {
                 $data->form->setDefault('notifyUsers', $notifyUsersArr);
