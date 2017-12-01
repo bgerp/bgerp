@@ -116,7 +116,7 @@ class hr_Departments extends core_Master
         $this->FLD('parentId', "key(mvc=hr_Departments,allowEmpty,select=name)", 'caption=В състава на,mandatory');
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title, allowEmpty)', "caption=Локация,width=100%");
         $this->FLD('orderStr', 'varchar', "caption=Подредба,input=none,column=none");
-        $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
+        $this->FLD('state', 'enum(active=Активно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
         
         $this->setDbUnique('name');
     }
@@ -157,6 +157,12 @@ class hr_Departments extends core_Master
     	$data->form->setField('parentId', 'remember');
     	self::expandRec($fRec);
 
+    	if(!$mvc->count("")){
+    		$ownCompanyName = crm_Setup::get('BGERP_OWN_COMPANY_NAME', TRUE);
+    		$data->form->setDefault('name', $ownCompanyName);
+    		$data->form->setField('parentId', 'input=none');
+    	}
+    	
     	$data->form->setOptions('locationId', crm_Locations::getOwnLocations());
     }
     
@@ -262,9 +268,7 @@ class hr_Departments extends core_Master
         $chartType = Request::get('Chart');
     
         if($chartType == 'Structure') {
-    
             $tpl = static::getChart($data);
-    
             $mvc->currentTab = "Структура->Графика";
         } else {
             $mvc->currentTab = "Структура->Таблица";

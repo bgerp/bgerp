@@ -8,45 +8,15 @@
 	        <fieldset class="detail-info">
 	            <legend class="groupTitle">|Информация|*</legend>
 	            <div class="groupList">
-	                <!--ET_BEGIN type-->
-	                <div>|Тип|*: <b>[#type#]</b></div>
-	                <!--ET_END type-->
-	                <!--ET_BEGIN nkid-->
-	                <div>|Номер по НКИД|*: <b>[#nkid#]</b></div>
-	                <!--ET_END nkid-->
-	                <!--ET_BEGIN staff-->
-	                <div>|В състава на|*: <b>[#staff#]</b></div>
-	                <!--ET_END staff-->
-	                <!--ET_BEGIN dependent-->
-	                <div>|Подчинен на|*: <b>[#dependent#]</b></div>
-	                <!--ET_END dependent-->
+	                <!--ET_BEGIN parentId-->
+	                <div>|Подчинен на|*: <b>[#parentId#]</b></div>
+	                <!--ET_END parentId-->
 	                <!--ET_BEGIN locationId-->
 	                <div>|Локация|*: <b>[#locationId#]</b></div>
 	                <!--ET_END locationId-->
-	                <!--ET_BEGIN employersCntAll-->
-	                <div>|Щат на служителите|*: <b>[#employersCntAll#]</b></div>
-	                <!--ET_END employersCntAll-->
-	                <!--ET_BEGIN schedule-->
-	                <div>|График|*: <b>[#schedule#]</b></div>
-	                <!--ET_END schedule-->
-	                <!--ET_BEGIN startingOn-->
-	                <div>|Започва на|*: <b>[#startingOn#]</b></div>
-	                <!--ET_END startingOn-->
+	                <div>|Създаване на|* [#createdOn#] |от|* [#createdBy#]</div>
 	            </div>
 	        </fieldset>
-	        <!--ET_BEGIN employees-->
-	        <fieldset class="detail-info">
-	            <legend class="groupTitle">|Служители|*</legend>
-	            [#employees#]
-	        </fieldset>
-	        <!--ET_END employees-->
-	        
-	        <!--ET_BEGIN assets-->
-	        <fieldset class="detail-info">
-	            <legend class="groupTitle">|Оборудване|*</legend>
-	            [#assets#]
-	        </fieldset>
-	        <!--ET_END assets-->
 	        
 	   <!--ET_BEGIN DETAILS-->
 	        [#DETAILS#]
