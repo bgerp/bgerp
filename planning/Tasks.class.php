@@ -579,7 +579,7 @@ class planning_Tasks extends core_Master
 		
 		// Може да се добавя само в папка на 'Департамент'
 		$Cover = doc_Folders::getCover($folderId);
-		return ($Cover->haveInterface('hr_DepartmentAccRegIntf'));
+		return ($Cover->haveInterface('planning_ActivityCenterIntf'));
 	}
 	
 	
