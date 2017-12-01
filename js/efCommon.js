@@ -1689,6 +1689,7 @@ function setFormElementsWidth() {
         $('.formTable .hiddenFormRow select.w100').css('width', "100%");
         $('.formTable .hiddenFormRow select.w25').css('width', "25%");
 
+        $('#all .formTable textarea').css('min-width', $('#all .formTable input.w100').first().width());
     	 $('.formTable label').each(function() {
     		 if($(this).parent().is('td')){
              	$(this).parent().css('white-space', "nowrap");
@@ -2105,7 +2106,7 @@ function refreshForm(form, removeFields) {
 
 	var serialized = $.param(filteredParams);
 
-//    form.submit(); return;
+    form.submit(); return;
 
 	$.ajax({
 		type: frm.attr('method'),
