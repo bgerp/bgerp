@@ -142,7 +142,7 @@ class hr_Departments extends core_Master
     /**
      * Да се създаде папка при създаване на нов запис
      */
-    public $autoCreateFolder = 'instant';
+    public $autoCreateFolder = NULL;
     
     
     /**

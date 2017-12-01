@@ -214,6 +214,18 @@ class support_Issues extends core_Master
         $this->FLD('ip', 'ip', 'caption=Ип,input=none');
     	$this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
     }
+    
+    
+    /**
+     * При добавяне на нов сигнал, да форвърдне към създаване на задача
+     * 
+     * @see core_Manager::act_Add()
+     */
+    function act_Add()
+    {
+        
+        return Request::forward(array('cal_Tasks', 'add'));
+    }
 
 
     /**
