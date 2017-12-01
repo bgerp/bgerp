@@ -281,10 +281,4 @@ class hr_Departments extends core_Master
     	
     	return $me->getVerbal($rec, 'name');
     }
-    
-    
-    function act_Test()
-    {
-    	cls::get('planning_Setup')->transferCenters();
-    }
 }
