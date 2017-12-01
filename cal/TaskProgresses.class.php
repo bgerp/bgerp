@@ -104,6 +104,57 @@ class cal_TaskProgresses extends core_Detail
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {   
+        $data->form->FNC('notifyUsers', 'type_Keylist(mvc=core_Users, select=nick, where=#state !\\= \\\'rejected\\\', allowEmpty)', 'caption=Нотификация, input');
+        
+        if ($taskId = $data->form->rec->taskId) {
+            $tRec = cal_Tasks::fetch($taskId);
+            
+            $notifyUsersArr = type_Users::toArray($tRec->sharedUsers);
+            if ($tRec->assign && !$notifyUsersArr[$tRec->assign]) {
+                $notifyUsersArr[$tRec->assign] = $tRec->assign;
+            }
+            
+            if ($tRec->createdBy > 0) {
+                $notifyUsersArr[$tRec->createdBy] = $tRec->createdBy;
+            }
+            
+            $interestedUsersArr = $notifyUsersArr;
+            
+            // Добавяме отговорника и споделените на папката
+            if ($tRec->folderId) {
+                $fRec = doc_Folders::fetch($tRec->folderId);
+                $interestedUsersArr[$fRec->inCharge] = $fRec->inCharge;
+                
+                if ($fRec->shared) {
+                    $interestedUsersArr += type_Keylist::toArray($fRec->shared);
+                }
+            }
+            
+            $cu = core_Users::getCurrent();
+            unset($notifyUsersArr[$cu]);
+            unset($interestedUsersArr[$cu]);
+            
+            $suggArr = $data->form->fields['notifyUsers']->type->prepareSuggestions();
+            
+            // Показваме само хората, които имат връзка със задачата или папката
+            foreach ($interestedUsersArr as &$nick) {
+                if ($suggArr[$nick]) {
+                    $nick = $suggArr[$nick];
+                } else {
+                    unset($interestedUsersArr[$nick]);
+                }
+            }
+            
+            if (empty($interestedUsersArr)) {
+                $data->form->setField('notifyUsers', 'input=none');
+            }
+            $data->form->setSuggestions('notifyUsers', $interestedUsersArr);
+            
+            if (!empty($interestedUsersArr) && !empty($notifyUsersArr)) {
+                $data->form->setDefault('notifyUsers', $notifyUsersArr);
+            }
+        }
+        
     	expect($data->form->rec->taskId);
     	
     	$Driver = $mvc->Master->getDriver($data->form->rec->taskId);
@@ -255,17 +306,38 @@ class cal_TaskProgresses extends core_Detail
     {
         $tRec = cal_Tasks::fetch($rec->taskId);
         $now = dt::now();
+        
+        $msg = 'Добавен прогрес към задачата';
+        
+        $removeOldNotify = FALSE;
+        
         // Определяне на прогреса
         if(isset($rec->progress)) {
             $tRec->progress = $rec->progress;
             
+            // При прогрес на 100% нотифицираме и създателя на задачата
             if($rec->progress == 1) {
-            	
-                cal_Tasks::notifyForClosedTask($tRec);
+                $cu = core_Users::getCurrent();
+                
+                if ($tRec->createdBy > 0 && $tRec->createdBy != $cu) {
+                    if (!type_Keylist::isIn($cu, $rec->notifyUsers)) {
+                        $rec->notifyUsers = type_Keylist::addKey($rec->notifyUsers, $tRec->createdBy);
+                    }
+                }
                 
                 $tRec->state = 'closed';
                 $tRec->timeClosed = $now;
+                
+                $msg = 'Приключена е задачата';
+                
+                $removeOldNotify = TRUE;
             }
+        }
+        
+        $notifyUsersArr = type_Keylist::toArray($rec->notifyUsers);
+        
+        if (!empty($notifyUsersArr)) {
+            cal_Tasks::notifyForChanges($tRec, $msg, $notifyUsersArr, $removeOldNotify);
         }
         
         // Определяне на отработеното време

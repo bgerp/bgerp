@@ -218,7 +218,7 @@ class planning_Tasks extends core_Master
 		$this->FNC('systemId', 'int', 'silent,input=hidden');
 		$this->FLD('expectedTimeStart', 'datetime(format=smartTime)', 'input=hidden,caption=Очаквано начало');
 		$this->FLD('additionalFields', 'blob(serialize, compress)', 'caption=Данни,input=none');
-		$this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=fullName,makeLinks)', 'caption=Произвеждане->Оборудване,after=packagingId');
+		$this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=name,makeLinks)', 'caption=Произвеждане->Оборудване,after=packagingId');
 		$this->FLD('inputInTask', 'int', 'caption=Произвеждане->Влагане в,input=none,after=indTime');
 	
 		$this->setDbIndex('inputInTask');
@@ -395,7 +395,7 @@ class planning_Tasks extends core_Master
 			}
 		}
 		
-		if(isset($fields['-list'])){
+		if(isset($fields['-list']) && !isset($fields['-detail'])){
 			$row->title .= "<br><small>{$row->originShortLink}</small>";
 		}
 		
@@ -850,11 +850,13 @@ class planning_Tasks extends core_Master
 		$query->where("#originId = {$containerId}");
 		$query->XPR('orderByState', 'int', "(CASE #state WHEN 'wakeup' THEN 1 WHEN 'active' THEN 2 WHEN 'stopped' THEN 3 WHEN 'closed' THEN 4 WHEN 'waiting' THEN 5 ELSE 6 END)");
 		$query->orderBy('#orderByState=ASC');
+		$fields = $this->selectFields();
+		$fields['-list'] = $fields['-detail'] = TRUE;
 		
 		// Подготвяме данните
 		while($rec = $query->fetch()){
 			$data->recs[$rec->id] = $rec;
-			$row = planning_Tasks::recToVerbal($rec);
+			$row = planning_Tasks::recToVerbal($rec, $fields);
 			$row->modified = $row->modifiedOn . " " . tr('от||by') . " " . $row->modifiedBy;
 			$row->modified = "<div style='text-align:center'> {$row->modified} </div>";
 			$data->rows[$rec->id] = $row;

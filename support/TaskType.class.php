@@ -258,6 +258,10 @@ class support_TaskType extends core_Mvc
                 $data->form->setDefaults($defaults);
             }
         }
+        
+        $data->form->setField('timeStart', 'autohide');
+        $data->form->setField('timeDuration', 'autohide');
+        $data->form->setField('timeEnd', 'autohide');
     }
     
     

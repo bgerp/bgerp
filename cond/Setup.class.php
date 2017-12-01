@@ -46,7 +46,7 @@ class cond_Setup  extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Търговски условия по сделките";
+    var $info = "Дефиниции на фирмата";
         
         
     /**

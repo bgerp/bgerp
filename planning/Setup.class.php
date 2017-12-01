@@ -116,7 +116,8 @@ class planning_Setup extends core_ProtoSetup
     		'planning_AssetGroups',
     		'planning_AssetResourcesNorms',
     		'migrate::deleteTaskCronUpdate',
-    		'migrate::deleteAssets'
+    		'migrate::deleteAssets',
+    		'migrate::deleteNorms'
         );
 
         
@@ -224,5 +225,16 @@ class planning_Setup extends core_ProtoSetup
     		$tRec1->fixedAsset = NULL;
     		planning_ProductionTaskDetails::save($tRec1);
     	}
+    }
+    
+    
+    /**
+     * Изчистване на нормите
+     */
+    public function deleteNorms()
+    {
+    	$Norms = cls::get('planning_AssetResourcesNorms');
+    	$Norms->setupMvc();
+    	$Norms->truncate();
     }
 }

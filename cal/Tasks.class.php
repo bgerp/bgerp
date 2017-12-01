@@ -2416,23 +2416,37 @@ class cal_Tasks extends embed_Manager
      * 
      * @param stdObject $rec
      */
-    public static function notifyForClosedTask($rec)
+    public static function notifyForChanges($rec, $msg, $notifyUsersArr = array(), $removeOldNotify = FALSE)
     {
         $rec = self::fetchRec($rec);
         
         if (!$rec) return ;
         
+        if (isset($notifyUsersArr) && empty($notifyUsersArr)) return ;
+        
+        if (is_null($notifyUsersArr)) {
+            $notifyUsersArr = array($rec->createdBy => $rec->createdBy);
+        }
+        
         $cu = core_Users::getCurrent();
+        unset($notifyUsersArr[$cu]);
         
-        if ($rec->createdBy == $cu) return ;
-        
-        if ($cu < 1) return ;
-        
-        $message = "|Приключена е задачата|*" . ' "' . $rec->title . '"';
+        $message = "|{$msg}|*" . ' "' . $rec->title . '"';
         $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
         $customUrl = array('cal_Tasks', 'single',  $rec->id);
         $priority = 'normal';
-        bgerp_Notifications::add($message, $url, $rec->createdBy, $priority, $customUrl);
+        
+        if ($removeOldNotify) {
+            bgerp_Notifications::clear($url);
+        }
+        
+        foreach ($notifyUsersArr as $uId) {
+            if ($uId < 1) continue;
+            
+            if (!cal_Tasks::haveRightFor('single', $rec->id)) continue;
+            
+            bgerp_Notifications::add($message, $url, $uId, $priority, $customUrl);
+        }
     }
     
     
@@ -2445,8 +2459,52 @@ class cal_Tasks extends embed_Manager
      */
     protected function on_AfterChangeState($mvc, $rec, $state)
     {
-        if ($state == 'closed') {
-            cal_Tasks::notifyForClosedTask($rec);
+        $msg = '';
+        $removeOldNotify = FALSE;
+        switch ($state) {
+            case 'closed':
+                $msg = 'Приключена';
+                $removeOldNotify = TRUE;
+            break;
+            
+            case 'stopped':
+                $msg = 'Спряна';
+            break;
+                
+            case 'wakeup':
+                $msg = 'Събудена';
+            break;
+                
+            case 'active':
+                $msg = 'Активиране';
+            break;
+                
+            case 'waiting':
+                $msg = 'Паузирана';
+            break;
+        }
+        
+        if ($msg) {
+            
+            $msg .= ' е задачата';
+            
+            $rec = cal_Tasks::fetchRec($rec);
+            
+            $notifyUsersArr = type_Users::toArray($rec->sharedUsers);
+            if ($rec->assign && !$notifyUsersArr[$rec->assign]) {
+                $notifyUsersArr[$rec->assign] = $rec->assign;
+            }
+            
+            if ($rec->createdBy > 0) {
+                $notifyUsersArr[$rec->createdBy] = $rec->createdBy;
+            }
+            
+            $cu = core_Users::getCurrent();
+            unset($notifyUsersArr[$cu]);
+            
+            if (!empty($notifyUsersArr)) {
+                cal_Tasks::notifyForChanges($rec, $msg, $notifyUsersArr, $removeOldNotify);
+            }
         }
     }
     
@@ -2460,15 +2518,18 @@ class cal_Tasks extends embed_Manager
 
 	    	$subscribedArr = keylist::toArray($rec->sharedUsers); 
 			
-	    	if(is_array($subscribedArr)) {  
-				$message = "Стартирана е задачата \"" . self::getVerbal($rec, 'title') . "\"";
+	    	if ($rec->assign) {
+	    	    $subscribedArr[$rec->assign] = $rec->assign;
+	    	}
+	    	
+	    	if (is_array($subscribedArr)) {
+				$message = "|Стартирана е задачата|* \"" . self::getVerbal($rec, 'title') . "\"";
 				$url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
 				$customUrl = array('cal_Tasks', 'single',  $rec->id);
 				$priority = 'normal';
 				
-				foreach($subscribedArr as $userId) {   
-					if($userId > 0  &&  
-					   doc_Threads::haveRightFor('single', $rec->threadId, $userId)) { 
+				foreach ($subscribedArr as $userId) {   
+					if ($userId > 0 && self::haveRightFor('single', $rec, $userId)) { 
 						bgerp_Notifications::add($message, $url, $userId, $priority, $customUrl);
 					}
 				}
