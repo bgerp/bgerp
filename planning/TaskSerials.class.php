@@ -104,7 +104,7 @@ class planning_TaskSerials extends core_Manager
 		$labelNo = $query->fetch()->maxLabelNo;
 		$labelNo++;
 		
-		$tInfo = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, 'production');
+		$tInfo = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, 'production', $rec->fixedAsset);
 		
 		$rec = (object)array('taskId'         => $rec->taskId, 
 							 'labelNo'        => $labelNo,

@@ -26,7 +26,7 @@ abstract class frame2_driver_Proto extends core_BaseClass
 	/**
 	 * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
 	 */
-	protected $changeableFields;
+	protected $changeableFields = '*';
 	
 	
 	/**
@@ -180,6 +180,15 @@ abstract class frame2_driver_Proto extends core_BaseClass
 	 */
 	public function getChangeableFields($rec)
 	{
-		return arr::make($this->changeableFields, TRUE);
+		$changeableFields = $this->changeableFields;
+		
+		// Ако е зададено '*', значи са всички полета от драйвера
+		if($changeableFields === '*'){
+			$fs = new core_FieldSet();
+			$this->addFields($fs);
+			$changeableFields = array_keys($fs->selectFields());
+		}
+		
+		return arr::make($changeableFields, TRUE);
 	}
 }

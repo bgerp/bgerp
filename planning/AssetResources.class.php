@@ -26,7 +26,7 @@ class planning_AssetResources extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, planning_Wrapper, plg_State2, plg_Search';
+    public $loadList = 'plg_RowTools2, plg_Created, planning_Wrapper, plg_State2, plg_Search, plg_SaveAndNew';
     
     
     /**
@@ -56,13 +56,13 @@ class planning_AssetResources extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'fullName,groupId,departments,quantity=К-во,createdOn,createdBy,state';
+    public $listFields = 'name=Оборудване,groupId,departments,quantity=К-во,createdOn,createdBy,state';
 
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    public $rowToolsSingleField = 'fullName';
+    public $rowToolsSingleField = 'name';
     
     
     /**
@@ -90,6 +90,20 @@ class planning_AssetResources extends core_Master
     
     
     /**
+     * Детайли
+     */
+    public $details = 'planning_AssetResourcesNorms';
+    
+    
+    /**
+     * Шаблон (ET) за заглавие
+     *
+     * @var string
+     */
+    public $recTitleTpl = '[#name#]<!--ET_BEGIN code--> ([#code#])<!--ET_END code-->';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -101,19 +115,9 @@ class planning_AssetResources extends core_Master
     	$this->FLD('departments', 'keylist(mvc=hr_Departments,select=name,makeLinks)', 'caption=Структура');
     	$this->FLD('quantity', 'int', 'caption=Kоличество,notNull,value=1');
     	$this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
-    	$this->FNC('fullName', 'varchar', 'caption=Име');
     	
     	$this->setDbUnique('code');
     	$this->setDbUnique('protocolId');
-    }
-    
-    
-    /**
-     * След изчисление на пълното име
-     */
-    protected static function on_CalcFullName($mvc, &$rec)
-    {
-    	$rec->fullName = "{$rec->name} ($rec->code)";
     }
     
     
@@ -135,8 +139,9 @@ class planning_AssetResources extends core_Master
     /**
      * След преобразуване на записа в четим за хора вид
      */
-    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+    	$row->name = (isset($fields['-single'])) ? self::getRecTitle($rec) : self::getHyperlink($rec, TRUE);
     	$row->groupId = planning_AssetGroups::getHyperlink($rec->groupId, TRUE);
     	if(isset($rec->protocolId)){
     		$row->protocolId = accda_Da::getHyperlink($rec->protocolId, TRUE);
@@ -211,7 +216,7 @@ class planning_AssetResources extends core_Master
     	$query->orWhere("#departments IS NULL");
     	
     	while($rec = $query->fetch()){
-    		$res[$rec->id] = $rec->fullName;
+    		$res[$rec->id] = self::getRecTitle($rec, FALSE);
     	}
     	
     	return $res;
@@ -254,7 +259,7 @@ class planning_AssetResources extends core_Master
     	$tpl = new core_ET("");
     	
     	// Рендиране на таблицата с оборудването
-    	$data->listFields = arr::make("fullName=Оборудване,departments=Департамент,quantity=К-во,createdOn=Създадено->На,createdBy=Създадено->От,state=Състояние");
+    	$data->listFields = arr::make("name=Оборудване,departments=Департамент,quantity=К-во,createdOn=Създадено->На,createdBy=Създадено->От,state=Състояние");
     	$table = cls::get('core_TableView', array('mvc' => $this));
     	$this->invoke('BeforeRenderListTable', array($tpl, &$data));
     	$tpl->append($table->get($data->rows, $data->listFields));
@@ -266,5 +271,45 @@ class planning_AssetResources extends core_Master
     	}
     	
     	return $tpl;
+    }
+    
+    
+    /**
+     * Връща нормата на действието за оборудването
+     * 
+     * @param int $id   - ид на оборудване
+     * @param int $productId - ид на артикул
+     * @return boolean
+     */
+    public static function getNormRec($id, $productId)
+    {
+    	if(empty($id)) return FALSE;
+    	
+    	// Имали конкретна норма за артикула
+    	$aNorm = planning_AssetResourcesNorms::fetchNormRec('planning_AssetResources', $id, $productId);
+    	if(array_key_exists($productId, $aNorm)) return $aNorm[$productId];
+    	
+    	// Ако няма се търси нормата зададена в групата му
+    	$groupId = self::fetchField($id, 'groupId');
+    	$gNorm = planning_AssetResourcesNorms::fetchNormRec('planning_AssetGroups', $groupId, $productId);
+    	if(array_key_exists($productId, $gNorm)) return $gNorm[$productId];
+    	
+    	return FALSE;
+    }
+
+    
+    /**
+     * Извлича общата група на оборудванията
+     * 
+     * @param mixed $assets       - списък с оборудвания
+     * @return int|FALSE $groupId - намерената група или FALSE ако са от различни групи
+     */
+    public static function getGroupId(&$assets)
+    {
+    	$assets = is_array($assets) ? $assets : keylist::toArray($assets);
+    	if(!planning_AssetGroups::haveSameGroup($assets)) return FALSE;
+    	$groupId = planning_AssetResources::fetchField(key($assets), 'groupId');
+    	
+    	return (!empty($groupId)) ? $groupId : FALSE;
     }
 }

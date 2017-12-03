@@ -89,7 +89,6 @@ class planning_AssetGroups extends core_Master
 	public function description()
 	{
 		$this->FLD('name', 'varchar(64,ci)', 'caption=Наименование, mandatory');
-		
 		$this->setDbUnique('name');
 	}
 	
@@ -100,7 +99,7 @@ class planning_AssetGroups extends core_Master
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
 		if($action == 'delete' && isset($rec)){
-			if(planning_AssetResources::fetchField("#groupId = {$rec->id} AND #state = 'active'") || planning_AssetResourcesNorms::fetchField("#groupId = {$rec->id}")){
+			if(planning_AssetResources::fetchField("#groupId = {$rec->id} AND #state = 'active'") || planning_AssetResourcesNorms::fetchField("#objectId = {$rec->id} AND #classId = {$mvc->getClassId()}")){
 				$requiredRoles = 'no_one';
 			}
 		}
@@ -159,5 +158,22 @@ class planning_AssetGroups extends core_Master
 				}
 			}
 		}
+	}
+	
+	
+	/**
+	 * Каква е нормата на артикула в групата
+	 * 
+	 * @param mixed $assets       - списък от оборудвания
+	 * @param int|NULL $productId - ид на артикул
+	 * @return array $result      - намерените норми
+	 */
+	public static function getNorm($assets, $productId = NULL)
+	{
+		$result = array();
+		if(!$groupId = planning_AssetResources::getGroupId($assets)) return $result;
+		$result = planning_AssetResourcesNorms::fetchNormRec('planning_AssetGroups', $groupId, $productId);
+		
+		return $result;
 	}
 }
