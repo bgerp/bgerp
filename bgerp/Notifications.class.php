@@ -737,7 +737,9 @@ class bgerp_Notifications extends core_Manager
             $act = 'Маркиране';
         }
         
-        self::save($rec, 'state, modifiedOn, modifiedBy');
+        $rec->lastTime = dt::now();
+        
+        self::save($rec, 'state, lastTime');
         
         // Ако сме активирали нотификацията, връщаме автоматично нилираните настройки за нотифициране
         if ($rec->state == 'active') {
@@ -971,16 +973,22 @@ class bgerp_Notifications extends core_Manager
         
         $cQuery = clone $query;
                 
-        $query->orderBy("#modifiedOn", 'DESC');
+        $query->XPR('modifiedOnTop', 'datetime', "IF((#modifiedOn > #lastTime), #modifiedOn, #lastTime)");
+        $query->orderBy("#modifiedOnTop", 'DESC');
+        
         $lastRec = $query->fetch();
         
-        $lastModifiedOnKey = $lastRec->modifiedOn;
+        $lastModifiedOnKey = $lastRec->modifiedOnTop;
         $lastModifiedOnKey .= '|' . $lastRec->id;
         
         $modifiedBefore = dt::subtractSecs(180);
         
         // Инвалиидиране на кеша след запазване на подредбата -  да не стои запазено до следващото инвалидиране
         $cQuery->where(array("#modifiedOn >= '[#1#]'", $modifiedBefore));
+        $cQuery->orWhere(array("#lastTime >= '[#1#]'", $modifiedBefore));
+        $cQuery->limit(1);
+        $cQuery->orderBy('modifiedOn', 'DESC');
+        $cQuery->orderBy('lastTime', 'DESC');
         if ($cLastRec = $cQuery->fetch()) {
             $lastModifiedOnKey .= '|' . $lastRec->lastTime;
             $lastModifiedOnKey .= '|' . $cLastRec->id;
@@ -1005,7 +1013,7 @@ class bgerp_Notifications extends core_Manager
             
             $data->query->where("#userId = {$userId} AND #hidden != 'yes'");
             
-            $data->query->XPR('modifiedOnTop', 'datetime', "IF((((#modifiedOn > '{$modifiedBefore}') || (#state = 'active'))), IF((#state = 'active'), #modifiedOn, #lastTime), NULL)");
+            $data->query->XPR('modifiedOnTop', 'datetime', "IF((((#modifiedOn > '{$modifiedBefore}') || (#state = 'active') || (#lastTime > '{$modifiedBefore}'))), IF(((#state = 'active') || (#lastTime > #modifiedOn)), #modifiedOn, #lastTime), NULL)");
             $data->query->orderBy("modifiedOnTop", "DESC");
             
             $data->query->orderBy("modifiedOn=DESC");
@@ -1015,6 +1023,7 @@ class bgerp_Notifications extends core_Manager
                 
                 // Нотификациите, модифицирани в скоро време да се показват
                 $data->query->orWhere("#modifiedOn > '{$modifiedBefore}'");
+                $data->query->orWhere("#lastTime > '{$modifiedBefore}'");
             }
             
             // Подготвяме филтрирането
@@ -1479,12 +1488,18 @@ class bgerp_Notifications extends core_Manager
     public static function on_BeforeSave(&$invoker, &$id, &$rec, &$fields = NULL)
     {
         if ($rec->id) {
-            $modifiedOn = self::fetchField($rec->id, 'modifiedOn', FALSE);
-            $rec->lastTime = $modifiedOn;
-            
             if ($fields !== NULL) {
                 $fields = arr::make($fields, TRUE);
-                $fields['lastTime'] = 'lastTime';
+            }
+            
+            // Ако няма да се записва само 'lastTime', сетваме стойността от modifiedOn
+            if (!isset($fields) || (!$fields['lastTime'] && $fields['modifiedOn'])) {
+                $modifiedOn = self::fetchField($rec->id, 'modifiedOn', FALSE);
+                $rec->lastTime = $modifiedOn;
+                
+                if ($fields !== NULL) {
+                    $fields['lastTime'] = 'lastTime';
+                }
             }
         }
     }

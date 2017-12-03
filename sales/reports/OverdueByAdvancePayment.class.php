@@ -76,6 +76,11 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
      */
     private static $dealers = array();
 
+    /**
+     * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
+     */
+    protected $changeableFields = 'dealers,tolerance';
+
 
 
     /**

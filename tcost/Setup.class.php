@@ -8,6 +8,16 @@ defIfNot('TCOST_TRANSPORT_PRODUCTS_ID', '');
 
 
 /**
+ * Надценка за транспорт - твърда
+ */
+defIfNot('TCOST_ADD_TAX', 0);
+
+/**
+ * Надценка за транспорт - твърда
+ */
+defIfNot('TCOST_ADD_PER_KG', 0);
+
+/**
  * Калкулиране на транспорт
  *
  *
@@ -82,6 +92,9 @@ class tcost_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
     		'TCOST_TRANSPORT_PRODUCTS_ID' => array("keylist(mvc=cat_Products,select=name)", 'mandatory,caption=Артикули за транспорт,optionsFunc=tcost_Setup::getPossibleTransportProducts'),
+            'TCOST_ADD_TAX' => array("double(smartRound=2)", 'caption=Надценки за транспорт->Твърда,unit=BGN'),
+            'TCOST_ADD_PER_KG' => array("double(smartRound=2)", 'caption=Надценки за транспорт->За 1 кг,unit=BGN'),
+
     );
     
     
