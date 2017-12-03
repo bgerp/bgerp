@@ -490,7 +490,7 @@ class cms_Content extends core_Manager
      */
     static function getFooter()
     {
-        if(self::getLang() !== 'bg') {
+        if(core_Lg::getCurrent() !== 'bg') {
             $footer =  new ET(getFileContent("cms/tpl/FooterEn.shtml"));
         } else {
             $footer =  new ET(getFileContent("cms/tpl/Footer.shtml"));
