@@ -1,7 +1,7 @@
 <div class="singleView">
     [#SingleToolbar#]
     <div class="info-table">
-        <h2 style='line-height:30px' class='[#STATE_CLASS#]'>|Оборудване|* <b style="color:green;">[#SingleIcon#][#name#]</b></h2>
+        <h2 style='line-height:30px' class='[#STATE_CLASS#]'>|Оборудване|* <b style="color:green;">[#name#]</b></h2>
         <fieldset class="detail-info">
             <legend class="groupTitle">|Информация|*</legend>
             <ul>
