@@ -84,6 +84,13 @@ class planning_AssetResources extends core_Master
     
     
     /**
+     * Икона на единичния изглед
+     */
+    public $singleIcon = 'img/16/equipment.png';
+    
+    
+    
+    /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'name, code, groupId, departments, protocolId';
