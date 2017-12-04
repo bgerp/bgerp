@@ -71,7 +71,7 @@ class crm_ext_Employees extends core_Manager
     {
         $this->FLD('personId', 'key(mvc=crm_Persons)', 'input=hidden,silent,mandatory');
         $this->FLD('code', 'varchar', 'caption=Код');
-        $this->FLD('departments', 'keylist(mvc=planning_ActivityCenters,select=name,makeLinks)', 'caption=Центрове');
+        $this->FLD('departments', 'keylist(mvc=planning_Centers,select=name,makeLinks)', 'caption=Центрове');
         
         $this->setDbUnique('personId');
     }

@@ -98,7 +98,7 @@ class hr_CustomSchedules extends core_Master
                                        leave=отпуска,
                                        traveling=командировка,
                                        sicDay=болничен,)', 'caption=Вид,width=100%,input=none,silent, autoFilter');
-        $this->FLD('departmenId', 'key(mvc=planning_ActivityCenters, select=name,allowEmpty)', 'caption=Структура, width=50px,input=none');
+        $this->FLD('departmenId', 'key(mvc=planning_Centers, select=name,allowEmpty)', 'caption=Структура, width=50px,input=none');
         $this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees,allowEmpty)', 'caption=Служител,width=100%,input=none,');
         $this->FLD('start', 'time(suggestions=00:00|01:00|02:00|03:00|04:00|05:00|06:00|07:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|19:00|20:00|21:00|22:00|23:00,format=H:M,allowEmpty)', 'caption=Работен ден->Начало, input=none');
         $this->FLD('duration', 'time(suggestions=00|6:00|6:30|7:00|7:30|8:00|8:30|9:00|9:30|10:00|10:30|11:00|11:30|12:00,allowEmpty)', 'caption=Работен ден->Времетраене, input=none');
@@ -153,9 +153,9 @@ class hr_CustomSchedules extends core_Master
         }
         
         // Ако имаме права да видим департамента
-        if(planning_ActivityCenters::haveRightFor('single', $rec->departmenId) && isset($rec->departmenId)){
-            $depName = planning_ActivityCenters::fetchField("#id = '{$rec->departmenId}'", 'name');
-            $row->departmenId = ht::createLink($depName, array ('planning_ActivityCenters', 'single', 'id' => $rec->departmenId), NULL, 'ef_icon = img/16/user_group.png');
+        if(planning_Centers::haveRightFor('single', $rec->departmenId) && isset($rec->departmenId)){
+            $depName = planning_Centers::fetchField("#id = '{$rec->departmenId}'", 'name');
+            $row->departmenId = ht::createLink($depName, array ('planning_Centers', 'single', 'id' => $rec->departmenId), NULL, 'ef_icon = img/16/user_group.png');
         }
 
         if(isset($rec->docClass) && isset($rec->docId)) {
@@ -282,7 +282,7 @@ class hr_CustomSchedules extends core_Master
     
         // Взимаме конкретния работен график
         if($departmentId) {
-            $workingCycles = planning_ActivityCenters::fetchField($departmentId, 'schedule');
+            $workingCycles = planning_Centers::fetchField($departmentId, 'schedule');
             $masterId = $departmentId;
         }
         
@@ -295,7 +295,7 @@ class hr_CustomSchedules extends core_Master
             $personsDetails = cls::get('crm_PersonsDetails');
             $personsDetails->preparePersonsDetails($data);
             
-            $workingCycles = planning_ActivityCenters::fetchField($data->Cycles->masterId, 'schedule');
+            $workingCycles = planning_Centers::fetchField($data->Cycles->masterId, 'schedule');
             $masterId = $data->Cycles->masterId;
            
         }
@@ -305,7 +305,7 @@ class hr_CustomSchedules extends core_Master
         $cycleDetails = $state->fetch();
 
         // Намираме кога започва графика
-        $startingOn = planning_ActivityCenters::fetchField($workingCycles,'startingOn');
+        $startingOn = planning_Centers::fetchField($workingCycles,'startingOn');
      
         // Работен цикъл
         $workingCyclesCls = cls::get('hr_WorkingCycles');

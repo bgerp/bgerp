@@ -192,7 +192,7 @@ class hr_WorkingCycles extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if($action == 'delete' && isset($rec->id)){
-             if(planning_ActivityCenters::fetch(array("#schedule = [#1#]", $rec->id))){
+             if(planning_Centers::fetch(array("#schedule = [#1#]", $rec->id))){
                 $requiredRoles = 'no_one';
              }
         }

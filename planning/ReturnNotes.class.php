@@ -147,7 +147,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 	function description()
 	{
 		parent::setDocumentFields($this);
-		$this->FLD('departmentId', 'key(mvc=planning_ActivityCenters,select=name,allowEmpty)', 'caption=Цр. на дейност,before=note');
+		$this->FLD('departmentId', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Цр. на дейност,before=note');
 		$this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Детайлно връщане->Избор,notNull,default=yes,maxRadio=2,before=note');
 	}
 	
@@ -212,7 +212,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 		$form->setDefault('useResourceAccounts', planning_Setup::get('CONSUMPTION_USE_AS_RESOURCE'));
 		
 		$folderCover = doc_Folders::getCover($rec->folderId);
-		if($folderCover->isInstanceOf('planning_ActivityCenters')){
+		if($folderCover->isInstanceOf('planning_Centers')){
 			$form->setReadOnly('departmentId', $folderCover->that);
 		}
 	}
@@ -231,7 +231,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 		$row->useResourceAccounts = tr($row->useResourceAccounts);
 		
 		if(isset($rec->departmentId)){
-			$row->departmentId = planning_ActivityCenters::getHyperlink($rec->departmentId, TRUE);
+			$row->departmentId = planning_Centers::getHyperlink($rec->departmentId, TRUE);
 		}
 	}
 }

@@ -191,7 +191,7 @@ class planning_Jobs extends core_Master
     	$this->FLD('quantityProduced', 'double(decimals=2)', 'input=none,caption=Количество->Заскладено,notNull,value=0');
     	$this->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Забележки');
     	$this->FLD('tolerance', 'percent(suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=Толеранс,silent');
-    	$this->FLD('department', 'key(mvc=planning_ActivityCenters,select=name,allowEmpty)', 'caption=Цр. дейност');
+    	$this->FLD('department', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Цр. дейност');
     	$this->FLD('deliveryDate', 'date(smartTime)', 'caption=Данни от договора->Срок');
     	$this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Данни от договора->Условие');
     	$this->FLD('deliveryPlace', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Данни от договора->Място');
@@ -534,10 +534,10 @@ class planning_Jobs extends core_Master
     			
     		if(empty($rec->id)){
     			if(isset($rec->department)){
-    				$rec->folderId = planning_ActivityCenters::forceCoverAndFolder($rec->department);
+    				$rec->folderId = planning_Centers::forceCoverAndFolder($rec->department);
     				unset($rec->threadId);
     			} elseif(empty($rec->saleId)){
-    				$rec->folderId = planning_ActivityCenters::forceCoverAndFolder(planning_ActivityCenters::UNDEFINED_ACTIVITY_CENTER_ID);
+    				$rec->folderId = planning_Centers::forceCoverAndFolder(planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID);
     				unset($rec->threadId);
     			}
     		}
@@ -681,7 +681,7 @@ class planning_Jobs extends core_Master
     		$row->origin = cat_Products::getAutoProductDesc($rec->productId, $date, 'detailed', 'job', $lg);
     		
     		if(isset($rec->department)){
-    			$row->department = planning_ActivityCenters::getHyperlink($rec->department, TRUE);
+    			$row->department = planning_Centers::getHyperlink($rec->department, TRUE);
     		}
     		
     		// Ако има сделка и пакета за партиди е инсталиран показваме ги
@@ -1016,7 +1016,7 @@ class planning_Jobs extends core_Master
     	expect($originId = Request::get('originId', 'int'));
     	planning_Tasks::requireRightFor('add', (object)array('originId' => $originId));
     	$jobRec = doc_Containers::getDocument($originId)->fetch();
-    	$folderId = (!empty($jobRec->department)) ? planning_ActivityCenters::fetchField($jobRec->department, 'folderId') : NULL;
+    	$folderId = (!empty($jobRec->department)) ? planning_Centers::fetchField($jobRec->department, 'folderId') : NULL;
     	
     	$form = cls::get('core_Form');
     	$form->title = 'Създаване на производствена операция към|* <b>' . self::getHyperlink($jobRec->id, TRUE) . "</b>";
@@ -1108,11 +1108,11 @@ class planning_Jobs extends core_Master
     
     	// За всички цехове, добавя се опция за добавяне
     	$options2 = array();
-    	$departments = cls::get('planning_ActivityCenters')->makeArray4Select('name');
+    	$departments = cls::get('planning_Centers')->makeArray4Select('name');
     	foreach ($departments as $dId => $dName){
-    		$depFolderId = planning_ActivityCenters::fetchField($dId, 'folderId');
+    		$depFolderId = planning_Centers::fetchField($dId, 'folderId');
     		if(doc_Folders::haveRightToFolder($depFolderId)){
-    			$options2["new|{$depFolderId}"] = "В цр. на дейност " . planning_ActivityCenters::getTitleById($dId);
+    			$options2["new|{$depFolderId}"] = "В цр. на дейност " . planning_Centers::getTitleById($dId);
     		}
     	}
     	 

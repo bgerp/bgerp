@@ -119,7 +119,7 @@ class planning_AssetResources extends core_Master
     	$this->FLD('groupId', 'key(mvc=planning_AssetGroups,select=name,allowEmpty)', 'caption=Вид,mandatory,silent');
     	$this->FLD('code', 'varchar(16)', 'caption=Код,mandatory');
     	$this->FLD('protocolId', 'key(mvc=accda_Da,select=id)', 'caption=Протокол за пускане в експлоатация,silent,input=hidden');
-    	$this->FLD('departments', 'keylist(mvc=planning_ActivityCenters,select=name,makeLinks)', 'caption=Центрове');
+    	$this->FLD('departments', 'keylist(mvc=planning_Centers,select=name,makeLinks)', 'caption=Центрове');
     	$this->FLD('quantity', 'int', 'caption=Kоличество,notNull,value=1');
     	$this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
     	
@@ -220,7 +220,7 @@ class planning_AssetResources extends core_Master
      */
     public static function getAvailableInFolder($folderId)
     {
-    	$departmentId = planning_ActivityCenters::fetchField("#folderId = {$folderId}", 'id');
+    	$departmentId = planning_Centers::fetchField("#folderId = {$folderId}", 'id');
     	
     	$res = array();
     	$query = self::getQuery();

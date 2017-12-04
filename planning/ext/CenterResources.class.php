@@ -63,7 +63,7 @@ class planning_ext_CenterResources extends core_Manager
     	
     	// Подготовка на пейджъра
     	$data->Pager = cls::get('core_Pager',  array('itemsPerPage' => $data->itemsPerPage));
-    	$data->Pager->setPageVar('planning_ActivityCenters', $data->masterId, $DetailName);
+    	$data->Pager->setPageVar('planning_Centers', $data->masterId, $DetailName);
     	$data->Pager->setLimit($query);
     	
     	// Извличане на записите

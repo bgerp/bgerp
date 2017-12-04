@@ -115,7 +115,7 @@ class planning_Setup extends core_ProtoSetup
     		'planning_TaskSerials',
     		'planning_AssetGroups',
     		'planning_AssetResourcesNorms',
-    		'planning_ActivityCenters',
+    		'planning_Centers',
     		'migrate::deleteTaskCronUpdate',
     		'migrate::deleteAssets',
     		'migrate::deleteNorms',
@@ -247,11 +247,11 @@ class planning_Setup extends core_ProtoSetup
     	$Deparments->setupMvc();
     	$Unsorted = cls::get('doc_UnsortedFolders');
     	
-    	core_Classes::add('planning_ActivityCenters');
-    	$Centers = cls::get('planning_ActivityCenters');
+    	core_Classes::add('planning_Centers');
+    	$Centers = cls::get('planning_Centers');
     	$Centers->setupMvc();
     	$Centers->loadSetupData();
-    	$centerClassId = planning_ActivityCenters::getClassId();
+    	$centerClassId = planning_Centers::getClassId();
     	$unsortedClassId = $Unsorted->getClassId();
     	
     	if(!$Deparments->count()) return;

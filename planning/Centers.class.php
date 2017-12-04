@@ -13,9 +13,15 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class planning_ActivityCenters extends core_Master
+class planning_Centers extends core_Master
 {
     
+	
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'planning_ActivityCenters';
+	
 	
 	/**
 	 * Ид на Неопределения център на дейност
