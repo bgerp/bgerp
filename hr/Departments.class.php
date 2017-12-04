@@ -99,12 +99,6 @@ class hr_Departments extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'name=Департамент, locationId, state, createdOn,createdBy';
-
-    
-    /**
-     * Дефолт достъп до новите корици
-     */
-    public $defaultAccess = 'public';
     
     
     /**
@@ -117,7 +111,7 @@ class hr_Departments extends core_Master
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title, allowEmpty)', "caption=Локация,width=100%");
         $this->FLD('orderStr', 'varchar', "caption=Подредба,input=none,column=none");
         $this->FLD('state', 'enum(active=Активно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
-        
+       
         $this->setDbUnique('name');
     }
 
@@ -155,6 +149,8 @@ class hr_Departments extends core_Master
     {
     	$fRec = &$data->form->rec;
     	$data->form->setField('parentId', 'remember');
+    	$this->setField('makeDescendantsFeatures', 'input=none');
+    			
     	self::expandRec($fRec);
 
     	if(!$mvc->count("")){
@@ -200,9 +196,15 @@ class hr_Departments extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	if($rec->locationId){
+    	if(isset($rec->locationId)){
     		$row->locationId = crm_Locations::getHyperlink($rec->locationId, TRUE);
     	}
+    	
+    	if(isset($rec->parentId)){
+    		$row->parentId = $mvc->getHyperlink($rec->parentId, TRUE);
+    	}
+    	
+    	$row->STATE_CLASS = "state-{$rec->state}";
     }
 
     

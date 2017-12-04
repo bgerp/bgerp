@@ -1,26 +1,19 @@
-<div  class="singleView">
-	[#SingleToolbar#]
-	<div class='folder-cover state-active'>
-	    <div class='inner-folder'>
-	        <div class='block_title [#STATE_CLASS#] special-title'>
-	            <div>|Департамент|* <b>[#name#]</b></div>
-	        </div>
-	        <fieldset class="detail-info">
-	            <legend class="groupTitle">|Информация|*</legend>
-	            <div class="groupList">
-	                <!--ET_BEGIN parentId-->
-	                <div>|Подчинен на|*: <b>[#parentId#]</b></div>
-	                <!--ET_END parentId-->
-	                <!--ET_BEGIN locationId-->
-	                <div>|Локация|*: <b>[#locationId#]</b></div>
-	                <!--ET_END locationId-->
-	                <div>|Създаване на|* [#createdOn#] |от|* [#createdBy#]</div>
-	            </div>
-	        </fieldset>
-	        
-	   <!--ET_BEGIN DETAILS-->
-	        [#DETAILS#]
-	   <!--ET_END DETAILS-->
-	    </div>
+<div class='singleView'>
+    [#SingleToolbar#]
+    <div class="info-table">
+     <h2 style='line-height:30px' class='[#STATE_CLASS#]'>|Департамент|* <b style="color:green;">[#name#]</b></h2>
+    	<fieldset class="detail-info" style='margin-bottom:20px'>
+            <legend class="groupTitle">|Информация|*</legend>
+            <table>
+	            <!--ET_BEGIN parentId-->
+	            <tr><td class='quiet'>|В състава на|*:</td><td>&nbsp;[#parentId#]</td></tr>
+	            <!--ET_END parentId-->
+	            <!--ET_BEGIN locationId-->
+	            <tr><td class='quiet'>|Локация|*:</td><td>[#locationId#]</td></tr>
+	            <!--ET_END locationId-->
+	            <tr><td class='quiet'>|Създаване|*</td><td>[#createdOn#] |от|* [#createdBy#]</td></tr>
+            </table>
+        </fieldset>
+	   [#DETAILS#]
     </div>
 </div>
