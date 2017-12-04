@@ -78,4 +78,60 @@ class bglocal_NKPD extends core_Master
         $cntObj = csv_Lib::largeImportOnceFromZero($mvc, $file, $fields);
         $res .= $cntObj->html;
     }
+    
+    
+    /**
+     * Подготовка на опции за key2
+     */
+    public static function getSelectArr($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
+    {
+    	$query = self::getQuery();
+    	$query->orderBy('key', 'ASC');
+    	if(is_array($onlyIds)) {
+    		if(!count($onlyIds)) return array();
+    	
+    		$ids = implode(',', $onlyIds);
+    		expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
+    	
+    		$query->where("#id IN ($ids)");
+    	} elseif(ctype_digit("{$onlyIds}")) {
+    		$query->where("#id = $onlyIds");
+    	}
+    	
+    	$titleFld = $params['titleFld'];
+    	
+    	$xpr = "CONCAT(' ', #{$titleFld}, ' ', #number)";
+    	$query->XPR('searchFieldXpr', 'text', $xpr);
+    	$query->XPR('searchFieldXprLower', 'text', "LOWER({$xpr})");
+    	
+    	if($q) {
+    		if($q{0} == '"') $strict = TRUE;
+    		$q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
+    		$q = mb_strtolower($q);
+    	
+    		if($strict) {
+    			$qArr = array(str_replace(' ', '.*', $q));
+    		} else {
+    			$qArr = explode(' ', $q);
+    		}
+    	
+    		$pBegin = type_Key2::getRegexPatterForSQLBegin();
+    		foreach($qArr as $w) {
+    			$query->where(array("#searchFieldXprLower REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
+    		}
+    	}
+    	
+    	if($limit) {
+    		$query->limit($limit);
+    	}
+    
+    	$query->show('id,searchFieldXpr');
+        
+        $res = array();
+        while($rec = $query->fetch()) {
+            $res[$rec->id] = trim($rec->searchFieldXpr);
+        }
+    
+    	return $res;
+    }
 }
