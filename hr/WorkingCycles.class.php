@@ -204,11 +204,14 @@ class hr_WorkingCycles extends core_Master
      */
     function prepareGrafic($data, $start = NULL)
     {
+       
+        return;
         
-        expect($data->masterId); 
+
+        expect($data->masterId);
         $shift = hr_Departments::fetchField($data->masterId, 'schedule');
         
-        return;
+        
         
         $customScheQuery = hr_CustomSchedules::getQuery();
         $custom = array();
