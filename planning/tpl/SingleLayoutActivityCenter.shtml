@@ -14,15 +14,6 @@
 	                <!--ET_BEGIN nkid-->
 	                <div>|Номер по НКИД|*: <b>[#nkid#]</b></div>
 	                <!--ET_END nkid-->
-	                <!--ET_BEGIN staff-->
-	                <div>|В състава на|*: <b>[#staff#]</b></div>
-	                <!--ET_END staff-->
-	                <!--ET_BEGIN dependent-->
-	                <div>|Подчинен на|*: <b>[#dependent#]</b></div>
-	                <!--ET_END dependent-->
-	                <!--ET_BEGIN locationId-->
-	                <div>|Локация|*: <b>[#locationId#]</b></div>
-	                <!--ET_END locationId-->
 	                <!--ET_BEGIN employersCntAll-->
 	                <div>|Щат на служителите|*: <b>[#employersCntAll#]</b></div>
 	                <!--ET_END employersCntAll-->
@@ -34,20 +25,7 @@
 	                <!--ET_END startingOn-->
 	            </div>
 	        </fieldset>
-	        <!--ET_BEGIN employees-->
-	        <fieldset class="detail-info">
-	            <legend class="groupTitle">|Служители|*</legend>
-	            [#employees#]
-	        </fieldset>
-	        <!--ET_END employees-->
-	        
-	        <!--ET_BEGIN assets-->
-	        <fieldset class="detail-info">
-	            <legend class="groupTitle">|Оборудване|*</legend>
-	            [#assets#]
-	        </fieldset>
-	        <!--ET_END assets-->
-	        
+	        [#Assets#]
 	   <!--ET_BEGIN DETAILS-->
 	        [#DETAILS#]
 	   <!--ET_END DETAILS-->

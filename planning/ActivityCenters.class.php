@@ -110,7 +110,7 @@ class planning_ActivityCenters extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=Цр. дейност, departmentId, type, employmentOccupied=Назначени, employmentTotal=От общо, schedule=График, folderId,createdOn,createdBy';
+    public $listFields = 'name=Център, departmentId, type, employmentOccupied=Назначени, employmentTotal=От общо, schedule=График, folderId,createdOn,createdBy';
 
     
     /**
@@ -135,6 +135,12 @@ class planning_ActivityCenters extends core_Master
      * Поле, в което да се постави връзка към папката в листови изглед
      */
     public $listFieldForFolderLink = 'folder';
+    
+    
+    /**
+     * Детайли
+     */
+    public $details = 'Assets=planning_ext_CenterResources';
     
     
     /**
@@ -187,7 +193,35 @@ class planning_ActivityCenters extends core_Master
     	if(isset($rec->departmentId)){
     		$row->departmentId = hr_Departments::getHyperlink($rec->departmentId, TRUE);
     	}
+    	
+
+
+    	$empTpl = new core_ET("");
+    	$pQuery = crm_ext_Employees::getQuery();
+    	$pQuery->like("departments", "|{$rec->id}|");
+    	while($pRec = $pQuery->fetch()){
+    		$codeLink = crm_ext_Employees::getCodeLink($pRec->personId);
+    		$empTpl->append("{$codeLink}<br>");
+    	}
+    	 
+    	$row->employees = $empTpl;
+    	 
+    	
+    	$aTpl = new core_ET("");
+    	$aQuery = planning_AssetResources::getQuery();
+    	$aQuery->like("departments", "|{$rec->id}|");
+    	while($aRec = $aQuery->fetch()){
+    		$fields = cls::get('planning_AssetResources')->selectFields();
+    		$fields['-list'] = TRUE;
+    	
+    		$aRow = planning_AssetResources::recToVerbal($aRec, $fields);
+    		$aTpl->append("{$aRow->code} ($aRow->quantity)<br>");
+    	}
+    	$row->assets = $aTpl;
+    	
+    	//bp($row->employees);
     }
+    
     
     
     /**

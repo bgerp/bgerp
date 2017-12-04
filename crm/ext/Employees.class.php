@@ -1,24 +1,19 @@
 <?php
 
 
+
 /**
  * Мениджър на служебни кодове
  *
  * @category  bgerp
  * @package   crm
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     0.12
  */
 class crm_ext_Employees extends core_Manager
 {
-	
-	
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'crm_ext_EmployeeCodes';
 	
 	
 	/**
@@ -36,7 +31,7 @@ class crm_ext_Employees extends core_Manager
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    public $loadList = 'crm_Wrapper';
+    public $loadList = 'crm_Wrapper,plg_Created';
     
     
     /**
@@ -118,6 +113,21 @@ class crm_ext_Employees extends core_Manager
     
     
     /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+    	$row->created = "{$row->createdOn} " . tr("от") . " {$row->createdBy}";
+    	$row->personId = crm_Persons::getHyperlink($rec->personId, TRUE);
+    	$row->code = (!empty($rec->code)) ? $row->code : "<span class='quiet'>n/a</span>";
+    }
+    
+    
+    /**
      * Извиква се след успешен запис в модела
      *
      * @param core_Mvc $mvc
@@ -137,7 +147,7 @@ class crm_ext_Employees extends core_Manager
      *
      * @param stdClass $data
      */
-    public function prepareData(&$data)
+    public function prepareData_(&$data)
     {
     	$rec = self::fetch("#personId = {$data->masterId}");
     	

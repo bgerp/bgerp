@@ -133,6 +133,10 @@ class planning_AssetResources extends core_Master
     		$form->setDefault('name', $daTitle);
     		$form->info = tr('От') . " " . accda_Da::getHyperLink($form->rec->protocolId, TRUE);
     	}
+    	
+    	if($defDepartmentId = Request::get('departmentId', 'int')){
+    		$form->setDefault('departments', keylist::fromArray(array($defDepartmentId => $defDepartmentId)));
+    	}
     }
     
     
@@ -143,6 +147,7 @@ class planning_AssetResources extends core_Master
     {
     	$row->name = (isset($fields['-single'])) ? self::getRecTitle($rec) : self::getHyperlink($rec, TRUE);
     	$row->groupId = planning_AssetGroups::getHyperlink($rec->groupId, TRUE);
+    	$row->created = "{$row->createdOn} " . tr("от") . " {$row->createdBy}";
     	if(isset($rec->protocolId)){
     		$row->protocolId = accda_Da::getHyperlink($rec->protocolId, TRUE);
     	}
