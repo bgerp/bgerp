@@ -192,15 +192,18 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         $caseRecs = array();
 
         $accountIds = isset($rec->accountId) ? array($rec->accountId => $rec->accountId) : array_keys(self::getContableAccounts($rec));
+        array_push($accountIds,'NULL');
 
         $caseIds = isset($rec->caseId) ? array($rec->caseId => $rec->caseId) : array_keys(self::getContableCases($rec));
+        array_push($caseIds,'NULL');
 
         $documentFld = ($rec->documentType) ? 'documentType' : 'document';
+
 
             /*
              * Банкови платежни документи
              */
-            if($accountIds){
+
 
             foreach (array('bank_SpendingDocuments','bank_IncomeDocuments') as $pDoc){
 
@@ -208,7 +211,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
                     $cQuery = $pDoc::getQuery();
 
-                    $cQuery->whereArr('ownAccount', $accountIds, TRUE);
+                    $cQuery->whereArr('ownAccount', $accountIds, TRUE );
 
                     $cQuery->where("#state = 'pending'");
 
@@ -222,7 +225,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
                             $horizon = dt::addSecs($rec->horizon, dt::today(), FALSE);
 
-                            if ($payDate && $payDate > $horizon ){
+                            if ($payDate && ($payDate > $horizon) ){
 
                                 unset($payDate);
 
@@ -258,13 +261,13 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
                 }
 
             }
-        }
+
 
 
         /*
          * Касови платежни документи
          */
-        if($caseIds){
+
 
             foreach (array('cash_Rko','cash_Pko') as $pDoc){
 
@@ -278,15 +281,6 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
                     $cQuery->orderBy('termDate', 'ASC');
 
-                    if (!empty($rec->horizon)) {
-
-                        $horizon = dt::addSecs($rec->horizon, dt::today(), FALSE);
-
-                        $cQuery->where("(#termDate <= '{$horizon} 23:59:59') OR #termDate IS NULL");
-                    }
-
-
-
                     while ($cRec = $cQuery->fetch()) {
 
                         $payDate = ($cRec->termDate)?$cRec->termDate: $cRec->valior;
@@ -295,7 +289,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
                             $horizon = dt::addSecs($rec->horizon, dt::today(), FALSE);
 
-                            if ($payDate && $payDate > $horizon ){
+                            if ($payDate && ($payDate > $horizon) ){
 
                                 unset($payDate);
 
@@ -303,7 +297,6 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
                             }
 
                         }
-
 
                         $className = core_Classes::getName(doc_Containers::fetch($cRec->containerId)->docClass);
 
@@ -330,7 +323,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
                 }
 
             }
-        }
+
 
         $recs=$bankRecs+$caseRecs;
 
@@ -394,7 +387,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
         if (isset($dRec->documentId)) {
             $clsName = $dRec->className;
-           // $row->documentId = $clsName::getLink($dRec->documentId, 0);
+            $row->documentId = $clsName::getLink($dRec->documentId, 0);
             $row->documentId = $clsName::getLinkToSingle($dRec->documentId);
         }
 
