@@ -152,6 +152,8 @@ class planning_AssetResources extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+    	
+    	$row->SingleIcon = ht::createElement("img", array('src' => sbf(str_replace('/16/', '/32/', $mvc->singleIcon), ""), 'alt' => ''));
     	$row->name = (isset($fields['-single'])) ? self::getRecTitle($rec) : self::getHyperlink($rec, TRUE);
     	$row->groupId = planning_AssetGroups::getHyperlink($rec->groupId, TRUE);
     	$row->created = "{$row->createdOn} " . tr("от") . " {$row->createdBy}";

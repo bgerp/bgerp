@@ -92,7 +92,7 @@ class planning_ActivityCenters extends core_Master
     /**
      * Единична икона
      */
-    public $singleIcon = 'img/16/user_group.png';
+    public $singleIcon = 'img/16/big_house.png';
     
     
     /**
