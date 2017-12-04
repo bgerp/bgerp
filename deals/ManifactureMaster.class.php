@@ -186,7 +186,7 @@ abstract class deals_ManifactureMaster extends core_Master
     	// Може да добавяме като начало на тред само в папка на склад
     	$folderClass = doc_Folders::fetchCoverClassName($folderId);
     	
-    	return ($folderClass == 'store_Stores' || $folderClass == 'hr_Departments');
+    	return ($folderClass == 'store_Stores' || $folderClass == 'planning_ActivityCenters');
     }
     
     
