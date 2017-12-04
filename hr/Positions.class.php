@@ -69,7 +69,7 @@ class hr_Positions extends core_Master
     function description()
     {
         $this->FLD('name', 'varchar', 'caption=Наименование,mandatory');
-        $this->FLD('nkpd', 'key(mvc=bglocal_NKPD, select=title)', 'caption=НКПД, hint=Номер по НКПД');
+        $this->FLD('nkpd', 'key2(mvc=bglocal_NKPD, select=title)', 'caption=НКПД, hint=Номер по НКПД');
         
         // Възнаграждения
         $this->FLD('salaryBase', 'double(decimals=2)', 'caption=Възнаграждение->Основно');
