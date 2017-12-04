@@ -215,17 +215,15 @@ class planning_AssetResources extends core_Master
      * Избор на наличното оборудване в подаденият департамент
      * Включително и тези от департаментите, в които е включен
      * 
-     * @param int $folderId - папка
+     * @param int $centerId - център на дейност
      * @return array $res   - налично оборудване
      */
-    public static function getAvailableInFolder($folderId)
+    public static function getAvailableInCenter($centerId)
     {
-    	$departmentId = planning_Centers::fetchField("#folderId = {$folderId}", 'id');
-    	
     	$res = array();
     	$query = self::getQuery();
     	$query->where("#state != 'closed'");
-    	$query->orWhere("#departments IS NULL OR LOCATE('|{$departmentId}|', #departments)");
+    	$query->orWhere("#departments IS NULL OR LOCATE('|{$centerId}|', #departments)");
     	
     	while($rec = $query->fetch()){
     		$res[$rec->id] = self::getRecTitle($rec, FALSE);

@@ -44,7 +44,7 @@ class planning_Centers extends core_Master
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = "Цр. на дейност";
+    public $singleTitle = "Ц-р. на дейност";
     
     
     /**
@@ -199,35 +199,7 @@ class planning_Centers extends core_Master
     	if(isset($rec->departmentId)){
     		$row->departmentId = hr_Departments::getHyperlink($rec->departmentId, TRUE);
     	}
-    	
-
-
-    	$empTpl = new core_ET("");
-    	$pQuery = crm_ext_Employees::getQuery();
-    	$pQuery->like("departments", "|{$rec->id}|");
-    	while($pRec = $pQuery->fetch()){
-    		$codeLink = crm_ext_Employees::getCodeLink($pRec->personId);
-    		$empTpl->append("{$codeLink}<br>");
-    	}
-    	 
-    	$row->employees = $empTpl;
-    	 
-    	
-    	$aTpl = new core_ET("");
-    	$aQuery = planning_AssetResources::getQuery();
-    	$aQuery->like("departments", "|{$rec->id}|");
-    	while($aRec = $aQuery->fetch()){
-    		$fields = cls::get('planning_AssetResources')->selectFields();
-    		$fields['-list'] = TRUE;
-    	
-    		$aRow = planning_AssetResources::recToVerbal($aRec, $fields);
-    		$aTpl->append("{$aRow->code} ($aRow->quantity)<br>");
-    	}
-    	$row->assets = $aTpl;
-    	
-    	//bp($row->employees);
     }
-    
     
     
     /**

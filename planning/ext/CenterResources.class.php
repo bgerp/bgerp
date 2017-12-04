@@ -29,6 +29,12 @@ class planning_ext_CenterResources extends core_Manager
 	
 	
 	/**
+	 * Кой може да избира ресурс
+	 */
+	public $canSelectresource = 'powerUser';
+	
+	
+	/**
 	 * Подготвя ресурсите на центъра на дейност
 	 */
 	public function prepareAssets_(&$data)
@@ -76,11 +82,9 @@ class planning_ext_CenterResources extends core_Manager
     	$listFields = ($DetailName == 'crm_ext_Employees') ? "code=Код,personId=Служител,created=Създаване" : "name=Оборудване,groupId=Вид,created=Създаване";
     	$data->listFields = arr::make($listFields, TRUE);
     	
-    	// Бутон за добавяне
-    	if($DetailName == 'planning_AssetResources'){
-    		if(planning_AssetResources::haveRightFor('add')){
-    			$data->addUrl = array('planning_AssetResources', 'add', 'departmentId' => $data->masterId, 'ret_url' => TRUE);
-    		}
+    	$type = ($DetailName == 'planning_AssetResources') ? 'asset' : 'employee';
+    	if($this->haveRightFor('selectresource', (object)array('centerId' => $data->masterId, 'type' => $type))){
+    		$data->addUrl = array($this, 'selectresource', 'centerId' => $data->masterId, 'type' => $type, 'ret_url' => TRUE);
     	}
 	}
 	
@@ -97,12 +101,14 @@ class planning_ext_CenterResources extends core_Manager
 		$tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
 		if($DetailName == 'crm_ext_Employees'){
 			$tpl->replace("style='margin-top:10px'", 'STYLE');
+		} else {
+			$hint = ',title=Добавяне на ново оборудване към центъра на дейност';
 		}
 		
 		$title = ($DetailName == 'crm_ext_Employees') ? 'Служители' : 'Оборудване';
 		$tpl->append($title, 'title');
 		if(isset($data->addUrl)){
-			$tpl->append(ht::createLink('', $data->addUrl, FALSE, "ef_icon=img/16/add.png"), 'title');
+			$tpl->append(ht::createLink('', $data->addUrl, FALSE, "ef_icon=img/16/edit.png{$hint}"), 'title');
 		}
 		
 		foreach ($data->listFields as $fldName => $fldCaption){
@@ -141,6 +147,112 @@ class planning_ext_CenterResources extends core_Manager
 		$tpl->append($this->renderResources($data->eData, 'crm_ext_Employees'));
 		
 		return $tpl;
+	}
+	
+	
+	function act_SelectResource()
+	{
+		$this->requireRightFor('selectresource');
+		expect($centerId = Request::get('centerId', 'int'));
+		expect($type = Request::get('type', 'enum(employee,asset)'));
+		expect($cRec = planning_Centers::fetch($centerId));
+		$this->requireRightFor('selectresource', (object)array('centerId' => $centerId, 'type' => $type));
+		
+		$form = cls::get('core_Form');
+		$options = $default = array();
+		
+		if($type == 'asset'){
+			$typeTitle = 'оборудванията';
+			$form->FLD('select', 'keylist(mvc=planning_AssetResources,select=name)', "caption=Оборудвания");
+			$aQuery = planning_AssetResources::getQuery();
+			$aQuery->where("#state != 'closed'");
+			while($aRec = $aQuery->fetch()){
+				$recTitle = planning_AssetResources::getRecTitle($aRec, FALSE);
+				$options[$aRec->id] = $recTitle;
+				
+				if(keylist::isIn($centerId, $aRec->departments)){
+					$default[$aRec->id] = $recTitle;
+				}
+			}
+		} else {
+			$typeTitle = 'служителите';
+			$form->FLD('select', 'keylist(mvc=crm_Persons,select=name)', "caption=Служители");
+			$options = crm_Persons::getEmployeesOptions();
+			$dQuery = crm_ext_Employees::getQuery();
+			$dQuery->where("LOCATE('|{$centerId}|', #departments)");
+			$dQuery->show('personId');
+			$default = arr::extractValuesFromArray($dQuery->fetchAll(), 'personId');
+		}
+		
+		$form->title = "Промяна на {$typeTitle} към|* " . cls::get('planning_Centers')->getFormTitleLink($centerId);
+		$form->setSuggestions('select', $options);
+		$form->setDefault('select', keylist::fromArray($default));
+		$form->input();
+		
+		if($form->isSubmitted()){
+			$selected = keylist::toArray($form->rec->select);
+			
+			foreach ($selected as $id => $name){
+				if($type == 'asset'){
+					$eRec = planning_AssetResources::fetch($id);
+					$eRec->departments = keylist::addKey($eRec->departments, $centerId);
+					planning_AssetResources::save($eRec);
+				} else {
+					if($pRec = crm_ext_Employees::fetch("#personId = {$id}")){
+						$pRec->departments = keylist::addKey($pRec->departments, $centerId);
+						crm_ext_Employees::save($pRec);
+					} else {
+						crm_ext_Employees::save((object)array("personId" => $id, 'departments' => keylist::addKey('', $centerId)));
+					}
+				}
+			}
+				
+			$removeArr = array_diff_key($default, $selected);
+			foreach ($removeArr as $rId => $rName){
+				if($type == 'asset'){
+					$eRec = planning_AssetResources::fetch($rId);
+					$eRec->departments = keylist::removeKey($eRec->departments, $centerId);
+					planning_AssetResources::save($eRec);
+				} else {
+					$eRec = crm_ext_Employees::fetch("#personId = {$rId}");
+					$eRec->departments = keylist::removeKey($eRec->departments, $centerId);
+					crm_ext_Employees::save($eRec);
+				}
+			}
+			
+			followRetUrl();
+		}
+		
+		$form->toolbar->addSbBtn('Промяна', 'save', 'ef_icon = img/16/disk.png, title = Запис на промените');
+		$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+		
+		// Записваме, че потребителя е разглеждал този списък
+		$this->logInfo("Промяна на ресурсите на центъра на дейност");
+		 
+		return $this->renderWrapping($form->renderHtml());
+		
+	}
+	
+	
+	/**
+	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+	 */
+	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+	{
+		if($action == 'selectresource' && isset($rec)){
+			if(!planning_Centers::haveRightFor('edit', $rec->centerId)){
+				$requiredRoles = 'no_one';
+			} elseif($rec->type == 'asset'){
+				if(!planning_AssetResources::haveRightFor('edit')){
+					$requiredRoles = 'no_one';
+				}
+			} elseif($rec->type == 'employee'){
+				$employees = crm_ext_Employees::getEmployeesWithCode();
+				if(!crm_ext_Employees::haveRightFor('edit')){
+					$requiredRoles = 'no_one';
+				}
+			}
+		}
 	}
 }  
     
