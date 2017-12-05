@@ -2784,15 +2784,15 @@ function findElementKeylistGroup(el){
  */
 function inverseCheckBox(el){
 	// сменяме иконката
+    var checked = $(el).parent().find(".invert-checkbox.checked").hasClass("hidden");
 	$(el).parent().find(".invert-checkbox").toggleClass('hidden');
 	var trItems = findElementKeylistGroup(el);
-
 	//инвертираме
 	$(trItems).find('.checkbox').each(function() {
-		if(this.checked) {
-			$(this).prop('checked',false);
+		if(checked) {
+            $(this).prop('checked',true);
 		} else {
-			$(this).prop('checked',true);
+			$(this).prop('checked',false);
 		}
 	});
 }
