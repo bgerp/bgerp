@@ -16,12 +16,8 @@
  */
 class hr_Trips extends core_Master
 {
-    /**
-     * Старото име на класа
-     */
-    public $oldClassName = 'trz_Trips';
-
-
+    
+    
     /**
      * Заглавие
      */

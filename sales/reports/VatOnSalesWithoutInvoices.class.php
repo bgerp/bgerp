@@ -195,6 +195,7 @@ class sales_reports_VatOnSalesWithoutInvoices extends frame2_driver_TableData
 
         return strcmp($a->code, $b->code);
     }
+
     function orderByName($a, $b)
     {
 
@@ -258,7 +259,7 @@ class sales_reports_VatOnSalesWithoutInvoices extends frame2_driver_TableData
         $row = new stdClass();
 
         if(isset($dRec->productId)) {
-            $row->productId = ($isPlain) ? cat_Products::getVerbal($dRec->productId, 'name') : cat_Products::getLinkToSingle($dRec->productId,'name');
+            $row->productId = ($isPlain) ? cat_Products::getVerbal($dRec->productId, 'name') : cat_Products::getLinkToSingle_($dRec->productId,'name');
         }
 
         if(isset($dRec->code)) {
