@@ -132,17 +132,6 @@ class hr_Departments extends core_Master
        
         $this->setDbUnique('name');
     }
-
-
-    /**
-     * Изпълнява се след четене на запис
-     */
-    protected static function on_AfterRead($mvc, &$rec)
-    {
-        if($rec->name == 'Моята Организация') {
-            $rec->name = crm_Companies::fetchField(crm_Setup::BGERP_OWN_COMPANY_ID, 'name');
-        }
-    }
     
     
     /**
