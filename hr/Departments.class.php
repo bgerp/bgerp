@@ -20,7 +20,7 @@ class hr_Departments extends core_Master
 	/**
 	 * Ид на основния департамент
 	 */
-	const ROOT_DEPARTMENT = 1;
+	const ROOT_DEPARTMENT_ID = 1;
 	
 	
     /**
@@ -45,6 +45,12 @@ class hr_Departments extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, hr_Wrapper, plg_State, plg_Rejected,plg_Created,plg_SaveAndNew,plg_TreeObject, plg_Modified';
+    
+    
+    /**
+     * Текущ таб
+     */
+    public $currentTab = 'Структура->Таблица';
     
     
     /**
@@ -155,16 +161,9 @@ class hr_Departments extends core_Master
     {
     	$fRec = &$data->form->rec;
     	$data->form->setField('parentId', 'remember');
-    	$this->setField('makeDescendantsFeatures', 'input=none');
+    	$mvc->setField('makeDescendantsFeatures', 'input=none');
     			
     	self::expandRec($fRec);
-
-    	if(!$mvc->count("")){
-    		$ownCompanyName = crm_Setup::get('BGERP_OWN_COMPANY_NAME', TRUE);
-    		$data->form->setDefault('name', $ownCompanyName);
-    		$data->form->setField('parentId', 'input=none');
-    	}
-    	
     	$data->form->setOptions('locationId', crm_Locations::getOwnLocations());
     }
     
@@ -221,6 +220,9 @@ class hr_Departments extends core_Master
     {
         $arrData = (array)$data->recs;
         
+        $first = $arrData[self::ROOT_DEPARTMENT_ID];
+        unset($arrData[self::ROOT_DEPARTMENT_ID]);
+        
         foreach($arrData as $rec){
         	if($rec->state != 'active') continue;
         	
@@ -242,7 +244,7 @@ class hr_Departments extends core_Master
              $res[] = array('id' => $rec->id, 'title' => $name, 'parent_id' => $parent);
         }
         
-        $firstRow = array('id' => '0', 'title' => tr('Моята организация'), 'parent_id' => 'NULL');
+        $firstRow = array('id' => '1', 'title' => $first->name, 'parent_id' => 'NULL');
         if(count($res)){
         	array_unshift($res, $firstRow);
         } else {
@@ -262,6 +264,13 @@ class hr_Departments extends core_Master
     {
     	if($action == 'add' && isset($rec->parentId)){
     		if(!$mvc->haveRightFor('single', $rec->parentId)){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
+    	
+    	// Основния департамент не може да бъде променян
+    	if(($action == 'edit' || $action == 'restore' || $action == 'delete' || $action == 'reject') && isset($rec)){
+    		if($rec->id == self::ROOT_DEPARTMENT_ID){
     			$requiredRoles = 'no_one';
     		}
     	}
@@ -296,19 +305,29 @@ class hr_Departments extends core_Master
     
     
     /**
-     * След инсталирането на модела
+     * Синхронизиране на името на първия департамент с това на 'Моята фирма'
+     * 
+     * @param string $myCompanyName - името на моята фирма
+     * @return int
      */
-    function loadSetupData1111()
+    public static function forceFirstDepartment($myCompanyName)
     {
-    	if(!$this->fetchField(self::ROOT_DEPARTMENT, 'id')) {
-    		$rec           = new stdClass();
-    		$rec->id       = price_ListRules::ROOT_DEPARTMENT;
-    		$rec->name     = 'аа';
-    		$rec->state    = 'active';
-    
+    	$rec = self::fetch(self::ROOT_DEPARTMENT_ID);
+    	
+    	if(empty($rec)){
+    		$rec = new stdClass();
+    		$rec->id = self::ROOT_DEPARTMENT_ID;
+    		$rec->state = 'active';
+    	}
+    	
+    	if($rec->name != $myCompanyName){
+    		$rec->name = $myCompanyName;
+    	
     		core_Users::forceSystemUser();
-    		$this->save($rec, NULL, 'REPLACE');
+    		self::save($rec, NULL, 'REPLACE');
     		core_Users::cancelSystemUser();
     	}
+    	
+    	return $rec->id;
     }
 }
