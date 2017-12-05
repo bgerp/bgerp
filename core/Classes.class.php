@@ -373,7 +373,11 @@ class core_Classes extends core_Manager
         
         while($rec = $query->fetch("#state = 'active'")) {
             
-            if(!cls::load($rec->name, TRUE)) {
+            $load = cls::load($rec->name, TRUE);
+            if($load) {
+                $inst = cls::get($rec->name);
+            }
+            if(!$load || $inst->deprecated) {
                 $rec->state = 'closed';
                 self::save($rec);
                 $res .= "<li style='color:red;'>Деактивиран беше класа {$rec->name} защото липсва кода му.</li>";
