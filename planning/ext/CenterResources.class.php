@@ -161,6 +161,7 @@ class planning_ext_CenterResources extends core_Manager
 		$form = cls::get('core_Form');
 		$options = $default = array();
 		
+		// Ако се променят оборудванията
 		if($type == 'asset'){
 			$typeTitle = 'оборудванията';
 			$form->FLD('select', 'keylist(mvc=planning_AssetResources,select=name)', "caption=Оборудвания");
@@ -175,6 +176,8 @@ class planning_ext_CenterResources extends core_Manager
 				}
 			}
 		} else {
+			
+			// Ако се променят служителите
 			$typeTitle = 'служителите';
 			$form->FLD('select', 'keylist(mvc=crm_Persons,select=name)', "caption=Служители");
 			$options = crm_Persons::getEmployeesOptions();
@@ -189,9 +192,11 @@ class planning_ext_CenterResources extends core_Manager
 		$form->setDefault('select', keylist::fromArray($default));
 		$form->input();
 		
+		// При събмит на формата
 		if($form->isSubmitted()){
 			$selected = keylist::toArray($form->rec->select);
 			
+			// Избраните се обновява департамента им
 			foreach ($selected as $id => $name){
 				if($type == 'asset'){
 					$eRec = planning_AssetResources::fetch($id);
@@ -207,6 +212,7 @@ class planning_ext_CenterResources extends core_Manager
 				}
 			}
 				
+			// Махане на съществуващите
 			$removeArr = array_diff_key($default, $selected);
 			foreach ($removeArr as $rId => $rName){
 				if($type == 'asset'){
@@ -223,6 +229,7 @@ class planning_ext_CenterResources extends core_Manager
 			followRetUrl();
 		}
 		
+		// Бутони
 		$form->toolbar->addSbBtn('Промяна', 'save', 'ef_icon = img/16/disk.png, title = Запис на промените');
 		$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 		
@@ -240,10 +247,11 @@ class planning_ext_CenterResources extends core_Manager
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
 		if($action == 'selectresource' && isset($rec)){
-			if(!planning_Centers::haveRightFor('edit', $rec->centerId)){
+			$folderId = planning_Centers::fetchField($rec->centerId, 'folderId');
+			if(!doc_Folders::haveRightToFolder($folderId, $userId)){
 				$requiredRoles = 'no_one';
 			} elseif($rec->type == 'asset'){
-				if(!planning_AssetResources::haveRightFor('edit')){
+				if(!planning_AssetResources::haveRightFor('add')){
 					$requiredRoles = 'no_one';
 				}
 			} elseif($rec->type == 'employee'){
