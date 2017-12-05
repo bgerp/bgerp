@@ -50,27 +50,36 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
     			acc_journal_RejectRedirect::expect(FALSE, $error);
     		}
     		
-    		// Ако има задължителен параметър за експорт
-    		if($exportParamId = acc_Setup::get('INVOICE_MANDATORY_EXPORT_PARAM')){
-    			$productsWithoutExportParam = array();
-    			$dQuery = sales_InvoiceDetails::getQuery();
-    			$dQuery->where("#invoiceId = {$rec->id}");
-    			$dQuery->show('productId');
-    			
-    			// Проверяват се всички артитули имат ли го зададен
-    			while($dRec = $dQuery->fetch()){
+    		$exportParamId = acc_Setup::get('INVOICE_MANDATORY_EXPORT_PARAM');
+    		$productsWithoutExportParam = array();
+    		$onlyZeroQuantities = TRUE;
+    		$dQuery = sales_InvoiceDetails::getQuery();
+    		$dQuery->where("#invoiceId = {$rec->id}");
+    		$dQuery->show('productId,quantity');
+    		
+    		// Проверяват се всички артитули имат ли го зададен
+    		while($dRec = $dQuery->fetch()){
+    			if($exportParamId){
     				if(!cat_Products::getParams($dRec->productId, $exportParamId)){
     					$productsWithoutExportParam[$dRec->productId] = cat_Products::getTitleById($dRec->productId);
     				}
     			}
     			
-    			// Ако има такива контирането се спира
-    			if(count($productsWithoutExportParam)){
-    				$param = cat_Params::getTitleById($exportParamId);
-    				$productsWithoutExportParam = implode(',', $productsWithoutExportParam);
-    				$error = "Следните артикули нямат задължителен параметър|* <b>{$param}</b>: {$productsWithoutExportParam}";
-    				acc_journal_RejectRedirect::expect(FALSE, $error);
+    			if(!empty($dRec->quantity)){;
+    				$onlyZeroQuantities = FALSE;
     			}
+    		}
+    		
+    		// Ако има такива контирането се спира
+    		if(count($productsWithoutExportParam)){
+    			$param = cat_Params::getTitleById($exportParamId);
+    			$productsWithoutExportParam = implode(',', $productsWithoutExportParam);
+    			$error = "Следните артикули нямат задължителен параметър|* <b>{$param}</b>: {$productsWithoutExportParam}";
+    			acc_journal_RejectRedirect::expect(FALSE, $error);
+    		}
+    		
+    		if($rec->type == 'invoice' && $onlyZeroQuantities === TRUE) {
+    			acc_journal_RejectRedirect::expect(FALSE, "Трябва да има поне един ред с ненулево количество|*!");
     		}
     	}
     	
