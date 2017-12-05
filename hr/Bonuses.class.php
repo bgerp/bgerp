@@ -17,12 +17,8 @@
 class hr_Bonuses extends core_Master
 {
 
-    /**
-     * Старото име на класа
-     */
-    public $oldClassName = 'trz_Bonuses';
 
-    /**
+	/**
      * Поддържани интерфейси
      */
     public $interfaces = 'hr_IndicatorsSourceIntf';
@@ -147,7 +143,7 @@ class hr_Bonuses extends core_Master
     /**
      * Шаблон за единичния изглед
      */
-    public $singleLayoutFile = 'trz/tpl/SingleLayoutBonuses.shtml';
+    public $singleLayoutFile = 'hr/tpl/SingleLayoutBonuses.shtml';
 
     
     /**

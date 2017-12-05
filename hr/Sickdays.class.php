@@ -16,13 +16,9 @@
  */
 class hr_Sickdays extends core_Master
 {
+    
+    
     /**
-     * Старо име на класа
-     */
-	public $oldClassName = 'trz_Sickdays';
-
-
-	/**
      * Поддържани интерфейси
      */
     public $interfaces = 'doc_DocumentIntf';

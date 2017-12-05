@@ -51,25 +51,25 @@
 
     
     <!--ET_BEGIN access-->        
-    <br><p><b>|По време на отсъствието|*:</b></p>
+    <br><p><b>|По време на отсъствието ще|*:</b></p>
     <table class="inlineRichTable listTable">
     	<tr>
     		<!--ET_BEGIN answerGSM-->
-    		<td>|Ше отговарям на мобилен телефон|*</td>
+    		<td>|отговарям на мобилен телефон|*</td>
             <td class="centered">[#answerGSM#]</td>
             <!--ET_END answerGSM-->
         </tr>
         
         <tr>
         	<!--ET_BEGIN answerSystem-->
-        	<td>|Ще имам достъп до системата|*</td>
+        	<td>|имам достъп до системата|*</td>
             <td class="centered">[#answerSystem#]</td>
             <!--ET_END answerSystem-->
         </tr>
             
         <tr>
            <!--ET_BEGIN alternatePerson-->
-            <td>|Ще ме замества|*</td>
+            <td>|ме замества|*</td>
             <td class="centered">[#alternatePerson#]</td>
             <!--ET_END alternatePerson-->
         </tr>
