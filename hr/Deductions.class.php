@@ -16,10 +16,7 @@
  */
 class hr_Deductions extends core_Master
 {
-    /**
-     * Старо име на класа
-     */
-    public $oldClassName = 'trz_Fines';
+    
     
     /**
      * Поддържани интерфейси
@@ -127,7 +124,7 @@ class hr_Deductions extends core_Master
     /**
      * Шаблон за единичния изглед
      */
-    public $singleLayoutFile = 'trz/tpl/SingleLayoutDeductions.shtml';
+    public $singleLayoutFile = 'hr/tpl/SingleLayoutDeductions.shtml';
     
     
     /**

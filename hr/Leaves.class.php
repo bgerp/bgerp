@@ -17,13 +17,8 @@
 class hr_Leaves extends core_Master
 {
     
+    
     /**
-     * Предходно име на класа
-     */
-    public $oldClassName = 'trz_Requests';
-	
-
-	/**
      * Поддържани интерфейси
      */
     public $interfaces = 'doc_DocumentIntf';
