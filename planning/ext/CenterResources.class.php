@@ -70,7 +70,7 @@ class planning_ext_CenterResources extends core_Manager
     	}
     	
     	if(!($DetailName == 'planning_AssetResources' && $data->masterId == planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID)){
-    		$query->where("LOCATE('|{$data->masterId}|', #departments)");
+    		$query->where("LOCATE('|{$data->masterId}|', #departments) OR #departments IS NULL");
     	}
     	
     	// Подготовка на пейджъра
@@ -156,6 +156,9 @@ class planning_ext_CenterResources extends core_Manager
 	}
 	
 	
+	/**
+	 * Промяна на оборудванията
+	 */
 	function act_SelectResource()
 	{
 		$this->requireRightFor('selectresource');
@@ -177,7 +180,7 @@ class planning_ext_CenterResources extends core_Manager
 				$recTitle = planning_AssetResources::getRecTitle($aRec, FALSE);
 				$options[$aRec->id] = $recTitle;
 				
-				if(keylist::isIn($centerId, $aRec->departments)){
+				if(keylist::isIn($centerId, $aRec->departments) || is_null($aRec->departments)){
 					$default[$aRec->id] = $recTitle;
 				}
 			}
@@ -193,6 +196,7 @@ class planning_ext_CenterResources extends core_Manager
 			$default = arr::extractValuesFromArray($dQuery->fetchAll(), 'personId');
 		}
 		
+		// Задаване на полетата от формата
 		$form->title = "Промяна на {$typeTitle} към|* " . cls::get('planning_Centers')->getFormTitleLink($centerId);
 		$form->setSuggestions('select', $options);
 		$form->setDefault('select', keylist::fromArray($default));
@@ -232,7 +236,7 @@ class planning_ext_CenterResources extends core_Manager
 				}
 			}
 			
-			followRetUrl();
+			followRetUrl(NULL, 'Информацията е обновена успешно');
 		}
 		
 		// Бутони
@@ -243,7 +247,6 @@ class planning_ext_CenterResources extends core_Manager
 		$this->logInfo("Промяна на ресурсите на центъра на дейност");
 		 
 		return $this->renderWrapping($form->renderHtml());
-		
 	}
 	
 	

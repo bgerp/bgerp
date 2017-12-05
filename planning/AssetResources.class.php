@@ -238,7 +238,7 @@ class planning_AssetResources extends core_Master
     	
     	// Ако центъра е неопределения всичкото оборудване може да се избира
     	if($centerId != planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID){
-    		$query->where("#departments IS NULL OR LOCATE('|{$centerId}|', #departments) AND #state != 'closed'");
+    		$query->where("(#departments IS NULL OR LOCATE('|{$centerId}|', #departments)) AND #state != 'closed'");
     	} else {
     		$query->where("#state != 'closed'");
     	}
