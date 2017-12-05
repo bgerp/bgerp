@@ -78,7 +78,7 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
     			acc_journal_RejectRedirect::expect(FALSE, $error);
     		}
     		
-    		if($rec->type == 'invoice' && $onlyZeroQuantities === TRUE) {
+    		if($rec->type == 'invoice' && $onlyZeroQuantities === TRUE && empty($rec->dpAmount)) {
     			acc_journal_RejectRedirect::expect(FALSE, "Трябва да има поне един ред с ненулево количество|*!");
     		}
     	}
