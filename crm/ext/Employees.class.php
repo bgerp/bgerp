@@ -43,13 +43,13 @@ class crm_ext_Employees extends core_Manager
     /**
      * Кой може да редактира
      */
-    public $canEdit = 'ceo,planning,crm';
+    public $canEdit = 'ceo,planningMaster,crm';
 
 
     /**
      * Кой може да създава
      */
-    public $canAdd = 'ceo,planning,crm';
+    public $canAdd = 'ceo,planningMaster,crm';
     
     
     /**
@@ -70,10 +70,20 @@ class crm_ext_Employees extends core_Manager
     public function description()
     {
         $this->FLD('personId', 'key(mvc=crm_Persons)', 'input=hidden,silent,mandatory');
-        $this->FLD('code', 'varchar', 'caption=Код');
+        $this->FLD('code', 'varchar', 'caption=Код,mandatory');
         $this->FLD('departments', 'keylist(mvc=planning_Centers,select=name,makeLinks)', 'caption=Центрове');
         
         $this->setDbUnique('personId');
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$form = &$data->form;
+    	$form->setDefault('code', self::getDefaultCode($form->rec->personId));
     }
     
     
@@ -84,6 +94,18 @@ class crm_ext_Employees extends core_Manager
     {
     	$rec = $data->form->rec;
     	$data->form->title = core_Detail::getEditTitle('crm_Persons', $rec->personId, $mvc->singleTitle, $rec->id, $mvc->formTitlePreposition);
+    }
+    
+    
+    /**
+     * Какъв е дефолтния код на служителя
+     * 
+     * @param int $personId
+     * @return string
+     */
+    public static function getDefaultCode($personId)
+    {
+    	return "ID{$personId}";
     }
     
     
@@ -123,22 +145,6 @@ class crm_ext_Employees extends core_Manager
     {
     	$row->created = "{$row->createdOn} " . tr("от") . " {$row->createdBy}";
     	$row->personId = crm_Persons::getHyperlink($rec->personId, TRUE);
-    	$row->code = (!empty($rec->code)) ? $row->code : "<span class='quiet'>n/a</span>";
-    }
-    
-    
-    /**
-     * Извиква се след успешен запис в модела
-     *
-     * @param core_Mvc $mvc
-     * @param int $id първичния ключ на направения запис
-     * @param stdClass $rec всички полета, които току-що са били записани
-     */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
-    {
-    	if(empty($rec->code) && empty($rec->departments)){
-    		self::delete($rec->id);
-    	}
     }
     
     
@@ -152,14 +158,7 @@ class crm_ext_Employees extends core_Manager
     	$rec = self::fetch("#personId = {$data->masterId}");
     	
     	if(!empty($rec)){
-    		$data->codeRec = $rec;
-    		$row = self::recToVerbal($rec);
-    		if(empty($rec->code)){
-    			$row->code = "<b>" . tr('Няма') . "</b>";
-    		}
-    		
-    		$data->row = $row;
-    		
+    		$data->row = self::recToVerbal($rec);
     		if($this->haveRightFor('edit', $rec->id)){
     			$data->editResourceUrl = array($this, 'edit', $rec->id, 'ret_url' => TRUE);
     		}
@@ -231,36 +230,6 @@ class crm_ext_Employees extends core_Manager
     
     
     /**
-     * Връща служебния код на лицето
-     * 
-     * @param int $personId   - ид на лицето
-     * @param boolean $verbal - дали кода да е вервализиран
-     * @return string $code   - кода
-     */
-    public static function getCode($personId, $verbal = FALSE)
-    {
-    	expect(type_Int::isInt($personId));
-    	$code = static::fetchField(array("#personId = [#1#]", $personId), 'code');
-    	
-    	$noCode = FALSE;
-    	if(empty($code)){
-    		$code = "ID{$personId}";
-    		$noCode = TRUE;
-    	}
-    	
-    	if($verbal === TRUE){
-    		$code = cls::get('type_Varchar')->toVerbal($code);
-    		if($noCode === TRUE){
-    			$code = "<span class='red'>{$code}</span>";
-    			$code = ht::createHint($code, 'Служителят вече няма код', 'warning');
-    		}
-    	}
-    	
-    	return $code;
-    }
-    
-    
-    /**
      * Връща всички служители, които имат код
      * 
      * @return array $options - масив със служители
@@ -293,7 +262,7 @@ class crm_ext_Employees extends core_Manager
      */
     public static function getCodeLink($personId)
     {
-    	$el = crm_ext_Employees::getCode($personId, TRUE);
+    	$el = crm_ext_Employees::fetch("#personId = {$personId}", 'code');
     	$name = crm_Persons::getVerbal($personId, 'name');
     	 
     	$singleUrl = crm_Persons::getSingleUrlArray($personId);

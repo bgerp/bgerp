@@ -100,7 +100,8 @@ class crm_Setup extends core_ProtoSetup
             'migrate::updateGroupFoldersToUnsorted',
             'migrate::updateLocationType',
             'migrate::addCountryIn2LgPersons',
-            'migrate::addCountryIn2LgCompanies'
+            'migrate::addCountryIn2LgCompanies',
+    		'migrate::updateEmployeeCodes',
         );
     
 
@@ -411,5 +412,19 @@ class crm_Setup extends core_ProtoSetup
     }
 
 
-
+    /**
+     * Ъпдейт на служителите без код
+     */
+	function updateEmployeeCodes()
+	{
+		$Employees = cls::get('crm_ext_Employees');
+		$Employees->setupMvc();
+		
+		$query = crm_ext_Employees::getQuery();
+		$query->where("#code IS NULL");
+		while($rec = $query->fetch()){
+			$rec->code = crm_ext_Employees::getDefaultCode($rec->personId);
+			crm_ext_Employees::save($rec, 'code');
+		}
+	}
 }
