@@ -326,7 +326,7 @@ class planning_Setup extends core_ProtoSetup
     	{
     		if(empty($obj->id)){
     			while($Centers->fetchField("#name = '{$obj->name}'")){
-    				$obj->name = str::addIncrementSuffix($obj->name, " ");
+    				$obj->name .= "1";
     				if(!$Centers->fetchField("#name = '{$obj->name}'")){
     					break;
     				}
@@ -374,7 +374,7 @@ class planning_Setup extends core_ProtoSetup
     	foreach ($toUnsorted as $objId => $uRec){
     		if(empty($uRec->id)){
     			while($Unsorted->fetchField("#name = '{$uRec->name}'")){
-    				$uRec->name = str::addIncrementSuffix($uRec->name, " ");
+    				$uRec->name .= "1";
     				if(!$Unsorted->fetchField("#name = '{$uRec->name}'")){
     					break;
     				}
