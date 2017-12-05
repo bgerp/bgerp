@@ -30,8 +30,20 @@ class workpreff_WorkPreff extends core_Manager
         $this->FLD('name', 'varchar(255,ci)', 'caption=Предпочитания->Възможности,class=contactData,mandatory,remember=info,silent,export=Csv');
         $this->FLD('type', 'enum(set=Фиксиране, enum=Избор)', 'notNull,caption=Тип на избора,maxRadio=2,after=name');
         $this->FLD('choice', 'text', 'caption=Информация->Предложения за избор,class=contactData,mandatory,remember=info,silent,removeAndRefreshForm, export=Csv');
+      //  $this->FLD('typeOfPosition', 'keylist()', 'caption=Тип на позицията,class=contactData,mandatory,remember=info,silent,removeAndRefreshForm');
 
     }
+    public $options = array('A','B','C');
+    public $name = 'typeOfPosition';
+
+    function setOptions($name,$options)
+    {
+        bp($options);
+
+        $this->setField($name, array('options' => $options));
+    }
+
+
 
 
     /**
