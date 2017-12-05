@@ -17,6 +17,12 @@ class hr_Departments extends core_Master
 {
     
     
+	/**
+	 * Ид на основния департамент
+	 */
+	const ROOT_DEPARTMENT = 1;
+	
+	
     /**
      * Заглавие
      */
@@ -286,5 +292,23 @@ class hr_Departments extends core_Master
     	$me = cls::get(get_called_class());
     	
     	return $me->getVerbal($rec, 'name');
+    }
+    
+    
+    /**
+     * След инсталирането на модела
+     */
+    function loadSetupData1111()
+    {
+    	if(!$this->fetchField(self::ROOT_DEPARTMENT, 'id')) {
+    		$rec           = new stdClass();
+    		$rec->id       = price_ListRules::ROOT_DEPARTMENT;
+    		$rec->name     = 'аа';
+    		$rec->state    = 'active';
+    
+    		core_Users::forceSystemUser();
+    		$this->save($rec, NULL, 'REPLACE');
+    		core_Users::cancelSystemUser();
+    	}
     }
 }
