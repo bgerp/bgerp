@@ -512,7 +512,6 @@ class acc_plg_Contable extends core_Plugin
     	try{
     		self::conto($mvc, $rec);
     	} catch (acc_journal_RejectRedirect $e){
-    		 bp();
     		$url = $mvc->getSingleUrlArray($rec->id);
     		redirect($url, FALSE, '|' . $e->getMessage(), 'error');
     	}
