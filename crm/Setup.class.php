@@ -424,7 +424,7 @@ class crm_Setup extends core_ProtoSetup
 		$query->where("#code IS NULL");
 		while($rec = $query->fetch()){
 			$rec->code = crm_ext_Employees::getDefaultCode($rec->personId);
-			crm_ext_Employees::save($rec, 'code');
+			crm_ext_Employees::save($rec);
 		}
 	}
 }
