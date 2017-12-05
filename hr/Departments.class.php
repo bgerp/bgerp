@@ -160,6 +160,7 @@ class hr_Departments extends core_Master
     			
     	self::expandRec($fRec);
     	$data->form->setOptions('locationId', crm_Locations::getOwnLocations());
+    	$data->form->setDefault('parentId', self::ROOT_DEPARTMENT_ID);
     }
     
     
