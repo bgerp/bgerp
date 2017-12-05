@@ -228,7 +228,8 @@ class planning_ProductionTaskDetails extends core_Detail
     	}
     	
     	// Връща служителите с код
-    	$employees = crm_ext_Employees::getEmployeesWithCode();
+    	$centerId = planning_Centers::fetchField("#folderId = {$masterRec->folderId}");
+    	$employees = crm_ext_Employees::getEmployeesWithCode($centerId);
     	if(count($employees)){
     		$form->setSuggestions('employees', $employees);
     	} else {

@@ -232,9 +232,10 @@ class crm_ext_Employees extends core_Manager
     /**
      * Връща всички служители, които имат код
      * 
+     * @param int $centerId   - ид на център на дейност
      * @return array $options - масив със служители
      */
-    public static function getEmployeesWithCode()
+    public static function getEmployeesWithCode($centerId)
     {
     	$options = array();
     	$emplGroupId = crm_Groups::getIdFromSysId('employees');
@@ -242,8 +243,7 @@ class crm_ext_Employees extends core_Manager
     	$query = static::getQuery();
     	$query->EXT('groupList', 'crm_Persons', 'externalName=groupList,externalKey=personId');
     	$query->like("groupList", "|{$emplGroupId}|");
-    	
-    	$query->where("#code IS NOT NULL");
+    	$query->where("#departments IS NULL OR LOCATE('|{$centerId}|', #departments)");
     	$query->show("personId,code");
     	
     	while($rec = $query->fetch()){
@@ -262,7 +262,7 @@ class crm_ext_Employees extends core_Manager
      */
     public static function getCodeLink($personId)
     {
-    	$el = crm_ext_Employees::fetch("#personId = {$personId}", 'code');
+    	$el = crm_ext_Employees::fetchField("#personId = {$personId}", 'code');
     	$name = crm_Persons::getVerbal($personId, 'name');
     	 
     	$singleUrl = crm_Persons::getSingleUrlArray($personId);

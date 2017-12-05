@@ -17,6 +17,18 @@ class planning_ext_CenterResources extends core_Manager
 	
 	
 	/**
+	 * Единично заглавие
+	 */
+	public $title = 'Ресурси към оборудване';
+	
+	
+	/**
+	 * Единично заглавие
+	 */
+	public $singleTitle = 'Ресурс към оборудване';
+	
+	
+	/**
 	 * Колко да са на страница заданията
 	 */
 	public $listCodesPerPage = 20;
@@ -166,6 +178,8 @@ class planning_ext_CenterResources extends core_Manager
 		expect($type = Request::get('type', 'enum(employee,asset)'));
 		expect($cRec = planning_Centers::fetch($centerId));
 		$this->requireRightFor('selectresource', (object)array('centerId' => $centerId, 'type' => $type));
+		$this->load('planning_Wrapper');
+		$this->currentTab = 'Центрове';
 		
 		$form = cls::get('core_Form');
 		$options = $default = array();
@@ -264,7 +278,6 @@ class planning_ext_CenterResources extends core_Manager
 					$requiredRoles = 'no_one';
 				}
 			} elseif($rec->type == 'employee'){
-				$employees = crm_ext_Employees::getEmployeesWithCode();
 				if(!crm_ext_Employees::haveRightFor('edit')){
 					$requiredRoles = 'no_one';
 				}
