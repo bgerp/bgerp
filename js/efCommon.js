@@ -2697,6 +2697,22 @@ function checkForHiddenGroups() {
  * В зависимост от натиснатия елемент, се определя какво действие трябва да се извърши с кейлист полетата
  */
 function keylistActions(el) {
+    // изчисление с коя иконка трябва да е групата
+    $('.inner-keylist').each(function(){
+        var uncheckElementInGroup = false;
+        $(this).find('.checkbox').each(function(){
+            if($(this).attr('checked') != "checked") {
+                uncheckElementInGroup = true;
+            }
+        });
+        var className = $(this).find('tr').attr('class');
+        if(uncheckElementInGroup) {
+            $("#" + className).find('.invert-checkbox.checked').addClass('hidden');
+        } else {
+            $("#" + className).find('.invert-checkbox.unchecked').addClass('hidden');
+        }
+    });
+
 	 $('.keylistCategory').on('click', function(e) {
 		 // ако натиснем бутона за инвертиране на чекбоксовете
 		  if ($(e.target).is(".invert-checkbox")) {

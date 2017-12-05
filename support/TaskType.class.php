@@ -107,7 +107,7 @@ class support_TaskType extends core_Mvc
         
         $form->setOptions('typeId', $atOpt);
         
-        if(!haveRole('user')) {
+        if (!haveRole('user') && !core_Users::isSystemUser()) {
             $brid = log_Browsers::getBrid(FALSE);
             if($brid) {
                 $vArr = log_Browsers::getVars(array('name', 'email'));
@@ -275,7 +275,7 @@ class support_TaskType extends core_Mvc
      */
     public static function on_BeforeSave($Driver, $mvc, &$id, $rec)
     {
-        if(!haveRole('powerUser')) {
+        if (!haveRole('powerUser') && !core_Users::isSystemUser()) {
             if (!$rec->ip) {
                 $rec->ip = core_Users::getRealIpAddr();
             }
