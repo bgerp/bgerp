@@ -135,6 +135,12 @@ class planning_AssetResources extends core_Master
     {
     	$form = &$data->form;
     	
+    	// Наличните центрове за избор
+    	$expectId = planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID;
+    	$centerOptions = cls::get('planning_Centers')->makeArray4Select('name', "#state != 'closed' AND #state != 'rejected' AND #id != '{$expectId}'", 'id');
+    	$form->setSuggestions('departments', $centerOptions);
+    	
+    	// От кое ДМА е оборудването
     	if(isset($form->rec->protocolId)){
     		$daTitle = accda_Da::fetchField($form->rec->protocolId, 'title');
     		$form->setDefault('name', $daTitle);
@@ -152,11 +158,16 @@ class planning_AssetResources extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	
-    	$row->SingleIcon = ht::createElement("img", array('src' => sbf(str_replace('/16/', '/32/', $mvc->singleIcon), ""), 'alt' => ''));
-    	$row->name = (isset($fields['-single'])) ? self::getRecTitle($rec) : self::getHyperlink($rec, TRUE);
     	$row->groupId = planning_AssetGroups::getHyperlink($rec->groupId, TRUE);
     	$row->created = "{$row->createdOn} " . tr("от") . " {$row->createdBy}";
+    	
+    	if(isset($fields['-list'])){
+    		$row->name = self::getHyperlink($rec, TRUE);
+    	} elseif(isset($fields['-single'])){
+    		$row->SingleIcon = ht::createElement("img", array('src' => sbf(str_replace('/16/', '/32/', $mvc->singleIcon), ""), 'alt' => ''));
+    		$row->name = self::getRecTitle($rec);
+    	}
+    	
     	if(isset($rec->protocolId)){
     		$row->protocolId = accda_Da::getHyperlink($rec->protocolId, TRUE);
     	}
@@ -181,12 +192,14 @@ class planning_AssetResources extends core_Master
     		}
     	}
     	
+    	// Ако е използван в група, не може да се изтрива
     	if($action == 'delete' && isset($rec->groupId)){
     		if(isset($rec->lastUsedOn)){
     			$requiredRoles = 'no_one';
     		}
     	}
     	
+    	// Ако е в група и тя е затворена да не може да се променя
     	if($action == 'changestate' && isset($rec->groupId)){
     		$groupState = planning_AssetGroups::fetchField($rec->groupId, 'state');
     		if($groupState == 'closed'){
@@ -222,8 +235,13 @@ class planning_AssetResources extends core_Master
     {
     	$res = array();
     	$query = self::getQuery();
-    	$query->where("#state != 'closed'");
-    	$query->orWhere("#departments IS NULL OR LOCATE('|{$centerId}|', #departments)");
+    	
+    	// Ако центъра е неопределения всичкото оборудване може да се избира
+    	if($centerId != planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID){
+    		$query->where("#departments IS NULL OR LOCATE('|{$centerId}|', #departments) AND #state != 'closed'");
+    	} else {
+    		$query->where("#state != 'closed'");
+    	}
     	
     	while($rec = $query->fetch()){
     		$res[$rec->id] = self::getRecTitle($rec, FALSE);

@@ -65,7 +65,13 @@ class planning_ext_CenterResources extends core_Manager
 	{
 		$data->recs = $data->rows = array();
     	$query = $DetailName::getQuery();
-    	$query->where("LOCATE('|{$data->masterId}|', #departments)");
+    	if($query->getField('state', FALSE)){
+    		$query->where("#state != 'rejected'");
+    	}
+    	
+    	if(!($DetailName == 'planning_AssetResources' && $data->masterId == planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID)){
+    		$query->where("LOCATE('|{$data->masterId}|', #departments)");
+    	}
     	
     	// Подготовка на пейджъра
     	$data->Pager = cls::get('core_Pager',  array('itemsPerPage' => $data->itemsPerPage));
@@ -248,7 +254,7 @@ class planning_ext_CenterResources extends core_Manager
 	{
 		if($action == 'selectresource' && isset($rec)){
 			$folderId = planning_Centers::fetchField($rec->centerId, 'folderId');
-			if(!doc_Folders::haveRightToFolder($folderId, $userId)){
+			if(!doc_Folders::haveRightToFolder($folderId, $userId) || $rec->centerId == planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID){
 				$requiredRoles = 'no_one';
 			} elseif($rec->type == 'asset'){
 				if(!planning_AssetResources::haveRightFor('add')){
