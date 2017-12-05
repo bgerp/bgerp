@@ -1689,6 +1689,9 @@ function setFormElementsWidth() {
         $('.formTable .hiddenFormRow select.w100').css('width', "100%");
         $('.formTable .hiddenFormRow select.w25').css('width', "25%");
 
+        var tempWidth = $('#all .formTable input.w100').last().width() > 200 ? $('#all .formTable input.w100').last().width() : 400;
+        $('#all .formTable textarea').css('min-width', tempWidth);
+
     	 $('.formTable label').each(function() {
     		 if($(this).parent().is('td')){
              	$(this).parent().css('white-space', "nowrap");
@@ -2105,7 +2108,7 @@ function refreshForm(form, removeFields) {
 
 	var serialized = $.param(filteredParams);
 
-    form.submit(); return;
+//    form.submit(); return;
 
 	$.ajax({
 		type: frm.attr('method'),
@@ -2694,6 +2697,22 @@ function checkForHiddenGroups() {
  * В зависимост от натиснатия елемент, се определя какво действие трябва да се извърши с кейлист полетата
  */
 function keylistActions(el) {
+    // изчисление с коя иконка трябва да е групата
+    $('.inner-keylist').each(function(){
+        var uncheckElementInGroup = false;
+        $(this).find('.checkbox').each(function(){
+            if($(this).attr('checked') != "checked") {
+                uncheckElementInGroup = true;
+            }
+        });
+        var className = $(this).find('tr').attr('class');
+        if(uncheckElementInGroup) {
+            $("#" + className).find('.invert-checkbox.checked').addClass('hidden');
+        } else {
+            $("#" + className).find('.invert-checkbox.unchecked').addClass('hidden');
+        }
+    });
+
 	 $('.keylistCategory').on('click', function(e) {
 		 // ако натиснем бутона за инвертиране на чекбоксовете
 		  if ($(e.target).is(".invert-checkbox")) {
@@ -2784,15 +2803,15 @@ function findElementKeylistGroup(el){
  */
 function inverseCheckBox(el){
 	// сменяме иконката
+    var checked = $(el).parent().find(".invert-checkbox.checked").hasClass("hidden");
 	$(el).parent().find(".invert-checkbox").toggleClass('hidden');
 	var trItems = findElementKeylistGroup(el);
-
 	//инвертираме
 	$(trItems).find('.checkbox').each(function() {
-		if(this.checked) {
-			$(this).prop('checked',false);
+		if(checked) {
+            $(this).prop('checked',true);
 		} else {
-			$(this).prop('checked',true);
+			$(this).prop('checked',false);
 		}
 	});
 }

@@ -111,6 +111,24 @@ class hr_Departments extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'name=Департамент, locationId, state, createdOn,createdBy';
+
+    
+    /**
+     * Дефолт достъп до новите корици
+     */
+    public $defaultAccess = 'public';
+     
+    
+    /**
+     * Кои полета да се сумират за наследниците
+     */
+    public $fieldsToSumOnChildren = 'employmentTotal,employmentOccupied';
+    
+    
+    /**
+     * Да се създаде папка при създаване на нов запис
+     */
+    public $autoCreateFolder = 'instant';
     
     
     /**

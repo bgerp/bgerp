@@ -329,7 +329,8 @@ class cal_Tasks extends embed_Manager
      */
     public function prepareEditForm_($data)
     {
-        if (!Request::get($this->driverClassField)) {
+        if (!Request::get($this->driverClassField) && !Request::get('id')) {
+            
             $sTaskId = cal_TaskType::getClassId();
             
             // Ако е в папка на система, да е избран сигнал
