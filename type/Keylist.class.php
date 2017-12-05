@@ -248,10 +248,10 @@ class type_Keylist extends core_Type {
                     $plusImg =  ht::createElement("img", array('src' => $plusUrl, 'class' => 'btns-icon plus'));
                     
                     $checkedUrl = sbf("img/16/checked.png", "");
-                    $checkImg =  ht::createElement("img", array('src' => $checkedUrl, 'class' => 'btns-icon invert-checkbox hidden checked'));
+                    $checkImg =  ht::createElement("img", array('src' => $checkedUrl, 'class' => 'btns-icon invert-checkbox checked'));
                     
                     $uncheckedUrl = sbf("img/16/unchecked.png", "");
-                    $uncheckImg =  ht::createElement("img", array('src' => $uncheckedUrl, 'class' => 'btns-icon invert-checkbox '));
+                    $uncheckImg =  ht::createElement("img", array('src' => $uncheckedUrl, 'class' => 'btns-icon invert-checkbox unchecked'));
                     
                     // Класа за групите
                     $class = 'keylistCategory';
