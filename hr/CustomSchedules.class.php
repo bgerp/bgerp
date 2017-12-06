@@ -43,37 +43,43 @@ class hr_CustomSchedules extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo,hr,trz';
+    var $canList = 'ceo,hr';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    var $canSingle = 'ceo,hr,trz';
+    var $canSingle = 'ceo,hr';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,hr,trz';
+    var $canRead = 'ceo,hr';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'ceo,hr,trz';
+    var $canWrite = 'ceo,hr';
+    
     
     /**
      * Полетата, които ще се показват в листов изглед
      */
     var $listFields = 'date,str=Структура / Служител,type=Вид / Документ,start,duration,break';
+   
+    
+    /**
+     * Карта на видовете дни
+     */
+    static $map = array('working'    => 'работен',
+                        'nonworking' => 'почивен',
+                        'leave'      => 'отпуска',
+                        'traveling'  => 'командировка',
+                        'sicDay'     => 'болничен',);
     
     
-    static $map = array('working'=> 'работен',
-                        'nonworking'=>'почивен',
-                        'leave'=>'отпуска',
-                        'traveling'=>'командировка',
-                        'sicDay'=>'болничен',);
     /**
      * Описание на модела
      */
