@@ -4660,6 +4660,129 @@ body.narrow {
 	font-size:18px;
 }
 
+//bootstrap 2.3 grid
+
+row-fluid {
+	width: 100%;
+	*zoom: 1;
+}
+
+.row-fluid:before,
+.row-fluid:after {
+	display: table;
+	line-height: 0;
+	content: "";
+}
+
+.row-fluid:after {
+	clear: both;
+}
+
+.row-fluid [class*="span"] {
+	display: block;
+	float: left;
+	width: 100%;
+	min-height: 21px;
+	margin-left: 2.127659574468085%;
+	*margin-left: 2.074468085106383%;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+.row-fluid [class*="span"]:first-child {
+	margin-left: 0;
+}
+
+.row-fluid .controls-row [class*="span"] + [class*="span"] {
+	margin-left: 2.127659574468085%;
+}
+
+.row-fluid .span12 {
+	width: 100%;
+	*width: 99.94680851063829%;
+}
+
+.row-fluid .span11 {
+	width: 91.48936170212765%;
+	*width: 91.43617021276594%;
+}
+
+.row-fluid .span10 {
+	width: 82.97872340425532%;
+	*width: 82.92553191489361%;
+}
+
+.row-fluid .span9 {
+	width: 74.46808510638297%;
+	*width: 74.41489361702126%;
+}
+
+.row-fluid .span8 {
+	width: 65.95744680851064%;
+	*width: 65.90425531914893%;
+}
+
+.row-fluid .span7 {
+	width: 57.44680851063829%;
+	*width: 57.39361702127659%;
+}
+
+.row-fluid .span6 {
+	width: 48.93617021276595%;
+	*width: 48.88297872340425%;
+}
+
+.row-fluid .span5 {
+	width: 40.42553191489362%;
+	*width: 40.37234042553192%;
+}
+
+.row-fluid .span4 {
+	width: 32.624893617021278%;
+	*width: 31.861702127659576%;
+}
+
+.row-fluid .span3 {
+	width: 24.86%;
+	width: 25.0%;
+	*width: 23.351063829787233%;
+}
+
+.row-fluid .span2 {
+	width: 13.993617021276595%;
+	*width: 14.840425531914894%;
+}
+
+.row-fluid .span1 {
+	width: 6.382978723404255%;
+	*width: 6.329787234042553%;
+}
+
+.filledFieled {
+	color: #333;
+	line-height: 30px;
+	text-align: center;
+	font-size: 1.1em;
+	font-family: 'Lucida Console', monospace;
+	&.leftAlign {
+		text-align: left;
+		padding-left: 7px;
+	}
+	&.bigNumber {
+		font-size: 1.7em;
+	}
+	&.smallFont {
+		line-height: 1.3em;
+	}
+}
+.basicFontSize {
+	font-size: 0.9em;
+}
+.miniText {
+	font-size: 0.7em;
+}
+
 @media handheld , only screen and (min-width: 1240px) {
 	.background-holder {
 	    padding: 10px 0;
@@ -5605,7 +5728,12 @@ body.narrow {
 	.sharing-history {
 		display: none;
 	}
-	
+	.basicFontSize {
+		font-size: 0.85em;
+	}
+	.miniText {
+		font-size: 0.65em;
+	}
 }
 
 .narrow .printing .document{
