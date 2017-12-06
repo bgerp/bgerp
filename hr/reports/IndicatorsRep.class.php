@@ -276,9 +276,15 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	 */
 	private function renderDocuments($dRec)
 	{
+		static $linkCache;
+		
 		$res =  new core_ET("<table class='no-border small' id='{$dRec->num}inf' style='display:none;margin-top:5px'>");
 		foreach ($dRec->documents as $obj){
-			$link = (cls::load($obj->class, TRUE)) ? cls::get($obj->class)->getLink($obj->docId, 0) : "<span class='red'>Проблем с показването</span>";
+			if(!isset($linkCache[$obj->class][$obj->docId])){
+				$linkCache[$obj->class][$obj->docId] = (cls::load($obj->class, TRUE)) ? cls::get($obj->class)->getLink($obj->docId, 0) : "<span class='red'>Проблем с показването</span>";
+			}
+			$link = $linkCache[$obj->class][$obj->docId];
+			
 			$value = core_Type::getByName('double(smartRound)')->toVerbal($obj->value);
 		
 			$tr = new core_ET("<tr><td style='text-align:left'>[#link#]</td><td>[#value#]</td></tr>");
