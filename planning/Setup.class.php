@@ -332,9 +332,6 @@ class planning_Setup extends core_ProtoSetup
     					break;
     				}
     			}
-    		} else {
-    			$exRec = $Centers->fetch($obj->id);
-    			doc_Folders::delete($exRec->folderId);
     		}
     		
     		$obj->createdBy = empty($obj->createdBy) ? core_Users::SYSTEM_USER : $obj->createdBy;
@@ -342,7 +339,6 @@ class planning_Setup extends core_ProtoSetup
     		core_Users::sudo($obj->createdBy);
     		
     		$id = $Centers->save_($obj);
-    		$obj->folderId = $Centers->forceCoverAndFolder($id);
     		core_Users::exitSudo($obj->createdBy);
     		
     		if($id){
