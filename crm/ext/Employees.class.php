@@ -71,7 +71,7 @@ class crm_ext_Employees extends core_Manager
     {
         $this->FLD('personId', 'key(mvc=crm_Persons)', 'input=hidden,silent,mandatory');
         $this->FLD('code', 'varchar', 'caption=Код,mandatory');
-        $this->FLD('departments', 'keylist(mvc=planning_Centers,select=name,makeLinks)', 'caption=Центрове');
+        $this->FLD('departments', 'keylist(mvc=planning_Centers,select=name,makeLinks)', 'caption=Центрове,mandatory');
         
         $this->setDbUnique('personId');
     }
@@ -85,8 +85,18 @@ class crm_ext_Employees extends core_Manager
     	$form = &$data->form;
     	$form->setDefault('code', self::getDefaultCode($form->rec->personId));
     
-    	if(isset($form->rec->id)){
-    		$form->setField('departments', 'mandatory');
+    	$defCenterId = planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID;
+    	$form->setDefault('departments', keylist::fromArray(array($defCenterId => $defCenterId)));
+    }
+    
+    
+    /**
+     * Преди запис
+     */
+    protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+    	if(empty($rec->departments)){
+    		$rec->departments = keylist::addKey('', planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID);
     	}
     }
     
@@ -98,17 +108,6 @@ class crm_ext_Employees extends core_Manager
     {
     	$rec = $data->form->rec;
     	$data->form->title = core_Detail::getEditTitle('crm_Persons', $rec->personId, $mvc->singleTitle, $rec->id, $mvc->formTitlePreposition);
-    }
-    
-    
-    /**
-     * Преди запис
-     */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
-    {
-    	if(empty($rec->departments)){
-    		$rec->departments = keylist::addKey('', planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID);
-    	}
     }
     
     
