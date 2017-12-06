@@ -460,5 +460,32 @@ class planning_Setup extends core_ProtoSetup
     		$cuRec->departmenId = (empty($cuRec->departmenId)) ? NULL : $cuRec->departmenId;
     		$Cust->save_($cuRec);
     	}
+    	
+    	$this->updateCenterExt();
+    }
+    
+    
+    /**
+     * Ъпдейт на центровете
+     */
+    function updateCenterExt()
+    {
+    	$Assets = cls::get('planning_AssetResources');
+    	$Assets->setupMvc();
+    	
+    	$aQuery = $Assets->getQuery();
+    	$aQuery->where("#departments IS NULL || #departments = ''");
+    	while($aRec = $aQuery->fetch()){
+    		$Assets->save($aRec, 'departments');
+    	}
+    	
+    	$Hr = cls::get('crm_ext_Employees');
+    	$Hr->setupMvc();
+    	
+    	$hQuery = $Hr->getQuery();
+    	$hQuery->where("#departments IS NULL");
+    	while($hRec = $hQuery->fetch()){
+    		$Hr->save($hRec, 'departments');
+    	}
     }
 }

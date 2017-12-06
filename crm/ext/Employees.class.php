@@ -84,6 +84,10 @@ class crm_ext_Employees extends core_Manager
     {
     	$form = &$data->form;
     	$form->setDefault('code', self::getDefaultCode($form->rec->personId));
+    
+    	if(isset($form->rec->id)){
+    		$form->setField('departments', 'mandatory');
+    	}
     }
     
     
@@ -94,6 +98,17 @@ class crm_ext_Employees extends core_Manager
     {
     	$rec = $data->form->rec;
     	$data->form->title = core_Detail::getEditTitle('crm_Persons', $rec->personId, $mvc->singleTitle, $rec->id, $mvc->formTitlePreposition);
+    }
+    
+    
+    /**
+     * Преди запис
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+    	if(empty($rec->departments)){
+    		$rec->departments = keylist::addKey('', planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID);
+    	}
     }
     
     
@@ -117,18 +132,11 @@ class crm_ext_Employees extends core_Manager
     	$rec = $form->rec;
     	
     	if($form->isSubmitted()){
-    		
-    		if(!empty($rec->code)){
-    			$rec->code = strtoupper($rec->code);
+    		$rec->code = strtoupper($rec->code);
     			
-    			if($personId = $mvc->fetchField(array("#code = '[#1#]' AND #personId != {$rec->personId}", $rec->code), 'personId')){
-    				$personLink = crm_Persons::getHyperlink($personId, TRUE);
-    				$form->setError($personId, "Номерът е зает от|* {$personLink}");
-    			}
-    		}
-    		
-    		if(empty($rec->code)){
-    			$rec->code = NULL;
+    		if($personId = $mvc->fetchField(array("#code = '[#1#]' AND #personId != {$rec->personId}", $rec->code), 'personId')){
+    			$personLink = crm_Persons::getHyperlink($personId, TRUE);
+    			$form->setError($personId, "Номерът е зает от|* {$personLink}");
     		}
     	}
     }
