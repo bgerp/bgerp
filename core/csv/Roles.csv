@@ -3,7 +3,7 @@
 Счетоводител|officer,acc,cash,bank,accda,sales,purchase,findeals,pos,currency,cat|position
 Касиер|officer,cash|position
 Банкиране|officer,bank|position
-Личен_състав|officer,hr,trz|position
+Личен_състав|officer,hr|position
 Отговорник_склад|officer,store|position
 Плановик|officer,planning,budget|position
 Дилър|officer,cat,sales|position

@@ -47,39 +47,28 @@ class hr_CustomSchedules extends core_Master
     
     
     /**
-     * Единична икона
-     */
-    //var $singleIcon = 'img/16/timespan.png';
-    
-    
-    /**
-     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-     */
-    //var $rowToolsSingleField = 'name';
-    
-    
-    /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo,hr,trz';
+    var $canList = 'ceo,hr';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    var $canSingle = 'ceo,hr,trz';
+    var $canSingle = 'ceo,hr';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,hr,trz';
+    var $canRead = 'ceo,hr';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'ceo,hr,trz';
+    var $canWrite = 'ceo,hr';
+    
     
     /**
      * Полетата, които ще се показват в листов изглед
@@ -88,15 +77,15 @@ class hr_CustomSchedules extends core_Master
     
     
     /**
-     * Шаблон за единичния изглед
+     * Карта на видовете дни
      */
-    //var $singleLayoutFile = 'hr/tpl/SingleLayoutWorkingCycles.shtml';
+    static $map = array('working'    => 'работен',
+                        'nonworking' => 'почивен',
+                        'leave'      => 'отпуска',
+                        'traveling'  => 'командировка',
+                        'sicDay'     => 'болничен',);
     
-    static $map = array('working'=> 'работен',
-                        'nonworking'=>'почивен',
-                        'leave'=>'отпуска',
-                        'traveling'=>'командировка',
-                        'sicDay'=>'болничен',);
+    
     /**
      * Описание на модела
      */
