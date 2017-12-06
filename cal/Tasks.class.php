@@ -511,8 +511,8 @@ class cal_Tasks extends embed_Manager
         
         $data->query->where("#state = 'active'");
         $data->query->orWhere("#state = 'wakeup'");
-        $data->query->orWhere(array("#state = 'waiting' AND #expectationTimeStart <= '[#1#]' AND #expectationTimeStart >= '[#2#]'", $after, $before));
-        $data->query->orWhere(array("#state = 'closed' AND #timeClosed <= '[#1#]' AND #timeClosed >= '[#2#]'", $after, $before));
+        $data->query->orWhere(array("(#state = 'waiting' OR #state = 'pending') AND #expectationTimeStart <= '[#1#]' AND #expectationTimeStart >= '[#2#]'", $after, $before));
+        $data->query->orWhere(array("(#state = 'closed' OR #state = 'stopped') AND #timeClosed <= '[#1#]' AND #timeClosed >= '[#2#]'", $after, $before));
         
         // Чакащите задачи под определено време да са в началото
         $waitingShow = dt::addSecs(cal_Setup::get('WAITING_SHOW_TOP_TIME'), $now);
@@ -520,7 +520,7 @@ class cal_Tasks extends embed_Manager
         $data->query->orderBy("waitingOrderTop", "DESC");
         
         // Време за подредба на записите в портала
-        $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'wakeup' THEN 1 WHEN 'waiting' THEN 2 ELSE 3 END)");
+        $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'wakeup' THEN 1 WHEN 'waiting' THEN 2 WHEN 'pending' THEN 3 ELSE 4 END)");
         $data->query->orderBy('#orderByState=ASC');
         
         // Чакащите задачи, ако имат начало първо по тях да се подреждат, после по последно
