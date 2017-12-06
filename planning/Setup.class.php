@@ -357,8 +357,6 @@ class planning_Setup extends core_ProtoSetup
     			if(isset($obj->folderId)){
     				$folderRec = doc_Folders::fetch($obj->folderId);
     				
-    				$query = doc_Folders::getQuery();
-    				expect($folderRec, $obj, $query->fetchAll());
     				if($folderRec->coverClass != $centerClassId){
     					$folderRec->coverClass = $centerClassId;
     					$folderRec->coverId = $id;
