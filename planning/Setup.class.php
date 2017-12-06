@@ -295,6 +295,7 @@ class planning_Setup extends core_ProtoSetup
     	$dQuery->FLD('inCharge' , 'user(role=powerUser, rolesForAll=executive)');
     	$dQuery->FLD('access', 'enum(team=Екипен,private=Личен,public=Общ,secret=Секретен)');
     	$dQuery->FLD('shared' , 'userList');
+    	$dQuery->where("#folderId IS NOT NULL");
     	
     	while($dRec = $dQuery->fetch()){
     		if($dRec->type == 'workshop' || acc_Items::isItemInList('hr_Departments', $dRec->id, 'departments') || hr_EmployeeContracts::fetchField("#departmentId = {$dRec->id}") || planning_ConsumptionNotes::fetchField("#departmentId = {$dRec->id}") || planning_ReturnNotes::fetchField("#departmentId = {$dRec->id}")){
@@ -319,7 +320,7 @@ class planning_Setup extends core_ProtoSetup
     		}
     	}
     	
-    	if(!count($toTransfer) || !count($toUnsorted)) return;
+    	if(!count($toTransfer) && !count($toUnsorted)) return;
     	$map = array();
     	
     	foreach ($toTransfer as $objectId => $obj)
