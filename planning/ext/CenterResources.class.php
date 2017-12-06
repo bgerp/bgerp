@@ -101,6 +101,12 @@ class planning_ext_CenterResources extends core_Manager
     	if($this->haveRightFor('selectresource', (object)array('centerId' => $data->masterId, 'type' => $type))){
     		$data->addUrl = array($this, 'selectresource', 'centerId' => $data->masterId, 'type' => $type, 'ret_url' => TRUE);
     	}
+    	
+    	if($DetailName == 'planning_AssetResources'){
+    		if(planning_AssetResources::haveRightFor('add')){
+    			$data->newUrl = array('planning_AssetResources', 'add', 'departmentId' => $data->masterId, 'ret_url' => TRUE);
+    		}
+    	}
 	}
 	
 	
@@ -117,11 +123,17 @@ class planning_ext_CenterResources extends core_Manager
 		if($DetailName == 'crm_ext_Employees'){
 			$tpl->replace("style='margin-top:10px'", 'STYLE');
 		} else {
-			$hint = ',title=Добавяне на ново оборудване към центъра на дейност';
+			$hint = ',title=Добавяне на оборудване към центъра на дейност';
+			$hint2 = ',title=Създаване на ново оборудване към центъра на дейност';
 		}
 		
 		$title = ($DetailName == 'crm_ext_Employees') ? 'Служители' : 'Оборудване';
 		$tpl->append($title, 'title');
+		
+		if(isset($data->newUrl)){
+			$tpl->append(ht::createLink('', $data->newUrl, FALSE, "ef_icon=img/16/add.png{$hint2}"), 'title');
+		}
+		
 		if(isset($data->addUrl)){
 			$tpl->append(ht::createLink('', $data->addUrl, FALSE, "ef_icon=img/16/edit.png{$hint}"), 'title');
 		}
