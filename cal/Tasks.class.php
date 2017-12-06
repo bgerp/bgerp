@@ -2486,10 +2486,7 @@ class cal_Tasks extends embed_Manager
             
             $rec = cal_Tasks::fetchRec($rec);
             
-            $notifyUsersArr = type_Users::toArray($rec->sharedUsers);
-            if ($rec->assign) {
-                $notifyUsersArr += type_Keylist::toArray($rec->assign);
-            }
+            $notifyUsersArr = type_Keylist::toArray($rec->assign);
             
             if ($rec->createdBy > 0) {
                 $notifyUsersArr[$rec->createdBy] = $rec->createdBy;
