@@ -625,6 +625,8 @@ class frame2_Reports extends embed_Manager
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
+
+
     	if($action == 'refresh' && isset($rec)){
     		if($Driver = $mvc->getDriver($rec)){
     			$dates = $Driver->getNextRefreshDates($rec);
@@ -654,21 +656,32 @@ class frame2_Reports extends embed_Manager
     	
     	// За модификация, потребителя трябва да има права и за драйвера
     	if(in_array($action, array('write', 'refresh', 'export')) && isset($rec->driverClass)){
+
     		if($Driver = $mvc->getDriver($rec)){
     			if(!$Driver->canSelectDriver($userId)){
+
+
     				$requiredRoles = 'no_one';
     			}
     		}
     	}
     	
-    	if(($action == 'edit' || $action == 'clonerec') && isset($rec->driverClass)){
+    	if(($action == 'edit' || $action == 'clonerec') && isset($rec->driverClass) && isset($rec->id)){
     		if($Driver = $mvc->getDriver($rec)){
-    			
-    			// Кои са избраните полета за промяна (ако има)
-    			$changeAbleFields = type_Set::toArray($rec->changeFields);
-    			
+    			$fRec = $mvc->fetch($rec->id, 'createdBy,sharedUsers,changeFields');
+    			foreach (array('createdBy', 'sharedUsers', 'changeFields') as $exFld){
+                    ${$exFld} = $rec->{$exFld};
+                    if (empty(${$exFld})) {
+                    	${$exFld} = $fRec->{$exFld};
+                    }
+                }
+			
+                // Кои са избраните полета за промяна (ако има)
+                $changeAbleFields = type_Set::toArray($changeFields);
+				
     			// Може да се клонира/редактира ако може да се избере драйвера и има посочени полета за промяна
-    			if(!($userId == $rec->createdBy || (keylist::isIn($userId, $rec->sharedUsers) && count($changeAbleFields)))){
+    			if(!($userId == $createdBy || (keylist::isIn($userId, $sharedUsers) && count($changeAbleFields)))){
+
     				$requiredRoles = 'no_one';
     			}
     		}
