@@ -119,7 +119,7 @@ class planning_AssetResources extends core_Master
     	$this->FLD('groupId', 'key(mvc=planning_AssetGroups,select=name,allowEmpty)', 'caption=Вид,mandatory,silent');
     	$this->FLD('code', 'varchar(16)', 'caption=Код,mandatory');
     	$this->FLD('protocolId', 'key(mvc=accda_Da,select=id)', 'caption=Протокол за пускане в експлоатация,silent,input=hidden');
-    	$this->FLD('departments', 'keylist(mvc=planning_Centers,select=name,makeLinks)', 'caption=Центрове');
+    	$this->FLD('departments', 'keylist(mvc=planning_Centers,select=name,makeLinks)', 'caption=Центрове,mandatory');
     	$this->FLD('quantity', 'int', 'caption=Kоличество,notNull,value=1');
     	$this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
     	
@@ -135,11 +135,6 @@ class planning_AssetResources extends core_Master
     {
     	$form = &$data->form;
     	
-    	// Наличните центрове за избор
-    	$expectId = planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID;
-    	$centerOptions = cls::get('planning_Centers')->makeArray4Select('name', "#state != 'closed' AND #state != 'rejected' AND #id != '{$expectId}'", 'id');
-    	$form->setSuggestions('departments', $centerOptions);
-    	
     	// От кое ДМА е оборудването
     	if(isset($form->rec->protocolId)){
     		$daTitle = accda_Da::fetchField($form->rec->protocolId, 'title');
@@ -147,8 +142,12 @@ class planning_AssetResources extends core_Master
     		$form->info = tr('От') . " " . accda_Da::getHyperLink($form->rec->protocolId, TRUE);
     	}
     	
-    	if($defDepartmentId = Request::get('departmentId', 'int')){
-    		$form->setDefault('departments', keylist::fromArray(array($defDepartmentId => $defDepartmentId)));
+    	$defDepartmentId = Request::get('departmentId', 'int');
+    	$expectId = planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID;
+    	foreach (array($defDepartmentId, $expectId) as $defValue){
+    		if(!empty($defValue)){
+    			$form->setDefault('departments', keylist::fromArray(array($defValue => $defValue)));
+    		}
     	}
     }
     
