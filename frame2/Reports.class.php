@@ -666,32 +666,19 @@ class frame2_Reports extends embed_Manager
     		}
     	}
     	
-    	if(($action == 'edit' || $action == 'clonerec') && isset($rec->driverClass)){
+    	if(($action == 'edit' || $action == 'clonerec') && isset($rec->driverClass) && isset($rec->id)){
     		if($Driver = $mvc->getDriver($rec)){
-
-                $createdBy = $rec->createdBy;
-                $sharedUsers = $rec->sharedUsers;
-                $changeAbleFields = $rec->changeFields;
-
-                if ($rec->id) {
-                    $fRec = $mvc->fetch($rec->id, 'createdBy, sharedUsers, changeFields');
-
-                    if (!isset($createdBy)) {
-                        $createdBy = $fRec->createdBy;
-                    }
-
-                    if (!isset($sharedUsers)) {
-                        $sharedUsers = $fRec->sharedUsers;
-                    }
-
-                    if (!isset($changeAbleFields)) {
-                        $changeAbleFields = $fRec->changeFields;
+    			$fRec = $mvc->fetch($rec->id, 'createdBy,sharedUsers,changeFields');
+    			foreach (array('createdBy', 'sharedUsers', 'changeFields') as $exFld){
+                    ${$exFld} = $rec->{$exFld};
+                    if (empty(${$exFld})) {
+                    	${$exFld} = $fRec->{$exFld};
                     }
                 }
-
+			
                 // Кои са избраните полета за промяна (ако има)
-                $changeAbleFields = type_Set::toArray($rec->changeFields);
-
+                $changeAbleFields = type_Set::toArray($changeFields);
+				
     			// Може да се клонира/редактира ако може да се избере драйвера и има посочени полета за промяна
     			if(!($userId == $createdBy || (keylist::isIn($userId, $sharedUsers) && count($changeAbleFields)))){
 
