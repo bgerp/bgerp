@@ -469,18 +469,6 @@ abstract class deals_InvoiceMaster extends core_Master
 	   		
 	   		return;
 	   	}
-	   	 
-	   	if($rec->type != 'dc_note'){
-	   		$Detail = $mvc->mainDetail;
-	   		$dQuery = $mvc->{$Detail}->getQuery();
-	   		$dQuery->where("#{$mvc->{$Detail}->masterKey} = {$rec->id}");
-	   		$dQuery->where("#quantity = 0");
-	   		 
-	   		// Ако има поне едно 0-во к-во документа, не може да се активира
-	   		if($dQuery->fetch()){
-	   			$res = FALSE;
-	   		}
-	   	}
    }
    
    
