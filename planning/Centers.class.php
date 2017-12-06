@@ -44,7 +44,7 @@ class planning_Centers extends core_Master
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = "Ц-р. на дейност";
+    public $singleTitle = "Ц-р на дейност";
     
     
     /**

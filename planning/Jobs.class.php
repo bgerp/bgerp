@@ -1112,11 +1112,11 @@ class planning_Jobs extends core_Master
     	foreach ($departments as $dId => $dName){
     		$depFolderId = planning_Centers::fetchField($dId, 'folderId');
     		if(doc_Folders::haveRightToFolder($depFolderId)){
-    			$options2["new|{$depFolderId}"] = "В цр. на дейност " . planning_Centers::getTitleById($dId);
+    			$options2["new|{$depFolderId}"] = "В " . planning_Centers::getTitleById($dId);
     		}
     	}
     	 
-    	$options += array('new' => (object)array('group' => TRUE, 'title' => tr('Нови задачи'))) + $options2;
+    	$options += array('new' => (object)array('group' => TRUE, 'title' => tr('Нови операции'))) + $options2;
     	
     	// Връщане на опциите за избор
     	return $options;
