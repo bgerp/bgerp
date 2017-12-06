@@ -127,7 +127,7 @@ class planning_ext_CenterResources extends core_Manager
 			$hint2 = ',title=Създаване на ново оборудване към центъра на дейност';
 		}
 		
-		$title = ($DetailName == 'crm_ext_Employees') ? 'Служители' : 'Оборудване';
+		$title = ($DetailName == 'crm_ext_Employees') ? 'Служители' : 'Оборудвания';
 		$tpl->append($title, 'title');
 		
 		if(isset($data->newUrl)){
