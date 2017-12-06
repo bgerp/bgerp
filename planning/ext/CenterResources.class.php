@@ -222,12 +222,10 @@ class planning_ext_CenterResources extends core_Manager
 				if($type == 'asset'){
 					$eRec = planning_AssetResources::fetch($id);
 					$eRec->departments = keylist::addKey($eRec->departments, $centerId);
-					$eRec->departments = keylist::removeKey($eRec->departments, planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID);
 					planning_AssetResources::save($eRec);
 				} else {
 					if($pRec = crm_ext_Employees::fetch("#personId = {$id}")){
 						$pRec->departments = keylist::addKey($pRec->departments, $centerId);
-						$pRec->departments = keylist::removeKey($pRec->departments, planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID);
 						crm_ext_Employees::save($pRec);
 					} else {
 						crm_ext_Employees::save((object)array("personId" => $id, 'departments' => keylist::addKey('', $centerId), 'code' => crm_ext_Employees::getDefaultCode($id)));
