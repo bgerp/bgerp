@@ -31,7 +31,7 @@ class crm_ext_Employees extends core_Manager
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    public $loadList = 'crm_Wrapper,plg_Created';
+    public $loadList = 'crm_Wrapper,plg_Created,plg_RowTools2';
     
     
     /**
