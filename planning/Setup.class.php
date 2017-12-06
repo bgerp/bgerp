@@ -312,7 +312,7 @@ class planning_Setup extends core_ProtoSetup
     			$threadsCount = doc_Folders::fetchField($dRec->folderId, 'allThreadsCnt');
     			if($threadsCount){
     				$obj = (object)arr::getSubArray((object)$dRec, 'name,folderId,createdBy,inCharge,access,shared,state');
-    				$obj->description = 'Прехвърлен от департамент';
+    				$obj->description = 'Мигриран от департамент';
     				$toUnsorted[$dRec->id] = $obj;
     			} else {
     				doc_Folders::delete($dRec->folderId);
@@ -327,7 +327,7 @@ class planning_Setup extends core_ProtoSetup
     	{
     		if(empty($obj->id)){
     			while($Centers->fetchField("#name = '{$obj->name}'")){
-    				$obj->name .= "1";
+    				$obj->name .= " (1)";
     				if(!$Centers->fetchField("#name = '{$obj->name}'")){
     					break;
     				}
@@ -360,6 +360,7 @@ class planning_Setup extends core_ProtoSetup
     				if($folderRec->coverClass != $centerClassId){
     					$folderRec->coverClass = $centerClassId;
     					$folderRec->coverId = $id;
+    					$folderRec->title = $obj->name;
     					doc_Folders::save($folderRec, NULL, 'REPLACE');
     				}
     			}
@@ -373,7 +374,7 @@ class planning_Setup extends core_ProtoSetup
     	foreach ($toUnsorted as $objId => $uRec){
     		if(empty($uRec->id)){
     			while($Unsorted->fetchField("#name = '{$uRec->name}'")){
-    				$uRec->name .= "1";
+    				$uRec->name .= " (1)";
     				if(!$Unsorted->fetchField("#name = '{$uRec->name}'")){
     					break;
     				}
@@ -393,6 +394,7 @@ class planning_Setup extends core_ProtoSetup
     			if($folderRec->coverClass != $unsortedClassId){
     				$folderRec->coverClass = $unsortedClassId;
     				$folderRec->coverId = $uId;
+    				$folderRec->title = $uRec->name;
     				doc_Folders::save($folderRec, NULL, 'REPLACE');
     			}
     		}
