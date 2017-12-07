@@ -2480,11 +2480,11 @@ class cal_Tasks extends embed_Manager
             break;
         }
         
+        $rec = cal_Tasks::fetchRec($rec);
+        
         if ($msg) {
             
             $msg .= ' е задачата';
-            
-            $rec = cal_Tasks::fetchRec($rec);
             
             $notifyUsersArr = type_Keylist::toArray($rec->assign);
             
@@ -2498,6 +2498,12 @@ class cal_Tasks extends embed_Manager
             if (!empty($notifyUsersArr)) {
                 cal_Tasks::notifyForChanges($rec, $msg, $notifyUsersArr, $removeOldNotify);
             }
+        }
+        
+        // Променяме времето
+        if (($state == 'stopped') || ($state == 'closed')) {
+            $rec->timeClosed = dt::now();
+            self::save($rec, 'timeClosed');
         }
     }
     
