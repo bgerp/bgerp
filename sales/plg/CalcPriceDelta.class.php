@@ -96,6 +96,12 @@ class sales_plg_CalcPriceDelta extends core_Plugin
 				$sellCost = $sellCost * (1 - $dRec->{$mvc->detailDiscountPriceFld});
 			}
 			
+			// Ако има параметър за корекция на делти: задава се
+			$correctPercent = cond_Parameters::getParameter($Cover->getClassId(), $Cover->that, 'deltaCorrect');
+			if(!empty($correctPercent)){
+				$sellCost = $sellCost * (1 - $correctPercent);
+			}
+			
 			// Ако артикулът е 'Надценка' няма себестойност
 			$code = cat_Products::fetchField($dRec->{$mvc->detailProductFld}, 'code');
 			if($code == 'surcharge'){
