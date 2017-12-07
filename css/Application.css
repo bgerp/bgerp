@@ -4198,8 +4198,6 @@ row-fluid {
   float: left;
   width: 100%;
   min-height: 21px;
-  margin-left: 2.128%;
-  *margin-left: 2.074%;
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box; }
@@ -4235,7 +4233,7 @@ row-fluid {
   *width: 57.394%; }
 
 .row-fluid .span6 {
-  width: 48.936%;
+  width: 50%;
   *width: 48.883%; }
 
 .row-fluid .span5 {
@@ -4243,7 +4241,7 @@ row-fluid {
   *width: 40.372%; }
 
 .row-fluid .span4 {
-  width: 32.625%;
+  width: 33.33%;
   *width: 31.862%; }
 
 .row-fluid .span3 {
@@ -4261,9 +4259,8 @@ row-fluid {
 
 .filledFieled {
   color: #333333;
-  line-height: 30px;
   text-align: center;
-  font-size: 1.1em;
+  font-size: 0.9em;
   font-family: 'Lucida Console', monospace; }
   .filledFieled.leftAlign {
     text-align: left;
@@ -4277,7 +4274,14 @@ row-fluid {
   font-size: 0.9em; }
 
 .miniText {
-  font-size: 0.7em; }
+  font-size: 0.7em;
+  font-weight: bold; }
+
+  .cmr-table td {
+    border-left: 1px solid black !important;
+    border-right: 1px solid black !important; }
+    .cmr-table td.border-top {
+      border-top: 1px solid black !important; }
 
 @media handheld,
 only screen and (min-width: 1240px) {
