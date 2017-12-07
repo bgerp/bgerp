@@ -512,7 +512,6 @@ class acc_plg_Contable extends core_Plugin
     	try{
     		self::conto($mvc, $rec);
     	} catch (acc_journal_RejectRedirect $e){
-    		 
     		$url = $mvc->getSingleUrlArray($rec->id);
     		redirect($url, FALSE, '|' . $e->getMessage(), 'error');
     	}
@@ -821,5 +820,25 @@ class acc_plg_Contable extends core_Plugin
     	foreach ($userArr as $uId) {
     		bgerp_Notifications::setHidden(array($mvc, 'single', $rec->id), 'yes', $uId);
     	}
+    }
+    
+    
+    /**
+     * Има ли контиращи документи в състояние заявка в нишката
+     * 
+     * @param int $threadId
+     * @return boolean
+     */
+    public static function havePendingDocuments($threadId)
+    {
+    	$contoClasses = core_Classes::getOptionsByInterface('acc_TransactionSourceIntf');
+    	$contoClasses = array_keys($contoClasses);
+    	
+    	$cQuery = doc_Containers::getQuery();
+    	$cQuery->where("#state = 'pending'");
+    	$cQuery->in('docClass', $contoClasses);
+    	$cQuery->where("#threadId = {$threadId}");
+    	
+    	return ($cQuery->fetch()) ? TRUE : FALSE;
     }
 }

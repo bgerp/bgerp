@@ -22,7 +22,6 @@ class cal_Tasks extends embed_Manager
     public $driverInterface = 'cal_TaskTypeIntf';
     
     
-    
     /**
      * Име на папката по подразбиране при създаване на нови документи от този тип.
      * Ако стойноста е 'FALSE', нови документи от този тип се създават в основната папка на потребителя
@@ -58,7 +57,7 @@ class cal_Tasks extends embed_Manager
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, cal_Wrapper,doc_plg_SelectFolder, doc_plg_Prototype, doc_DocumentPlg, planning_plg_StateManager, plg_Printing, 
-    				 doc_SharablePlg, bgerp_plg_Blank, plg_Search, change_Plugin, plg_Sorting, plg_Clone,doc_AssignPlg';
+    				 doc_SharablePlg, bgerp_plg_Blank, plg_Search, change_Plugin, plg_Sorting, plg_Clone, doc_AssignPlg';
     
     
     /**
@@ -161,6 +160,7 @@ class cal_Tasks extends embed_Manager
      * Кой може да възлага задачата
      */
     public $canAssign = 'powerUser';
+    
     
     /**
      * Кой може да възлага задачата
@@ -280,9 +280,6 @@ class cal_Tasks extends embed_Manager
         // Споделяне
         $this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители,changable');
         
-        // Отговорноици
-        $this->FLD('assign', 'user(rolesForAll=powerUser,allowEmpty)', 'caption=Възложено на,changable');
-
         // Начало на задачата
         $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00, format=smartTime)',
             'caption=Времена->Начало, silent, changable, tdClass=leftColImportant');
@@ -329,7 +326,8 @@ class cal_Tasks extends embed_Manager
      */
     public function prepareEditForm_($data)
     {
-        if (!Request::get($this->driverClassField)) {
+        if (!Request::get($this->driverClassField) && !Request::get('id')) {
+            
             $sTaskId = cal_TaskType::getClassId();
             
             // Ако е в папка на система, да е избран сигнал
@@ -504,8 +502,7 @@ class cal_Tasks extends embed_Manager
         if (Mode::is('listTasks', 'by')) {
             $data->query->where("#createdBy = $userId");
         } else {
-            $data->query->where("#sharedUsers LIKE '%|{$userId}|%'");
-            $data->query->orWhere("#assign = '{$userId}'");
+            $data->query->like('assign', "|{$userId}|");
         }
         
         $now = dt::now();
@@ -514,8 +511,8 @@ class cal_Tasks extends embed_Manager
         
         $data->query->where("#state = 'active'");
         $data->query->orWhere("#state = 'wakeup'");
-        $data->query->orWhere(array("#state = 'waiting' AND #expectationTimeStart <= '[#1#]' AND #expectationTimeStart >= '[#2#]'", $after, $before));
-        $data->query->orWhere(array("#state = 'closed' AND #timeClosed <= '[#1#]' AND #timeClosed >= '[#2#]'", $after, $before));
+        $data->query->orWhere(array("(#state = 'waiting' OR #state = 'pending') AND #expectationTimeStart <= '[#1#]' AND #expectationTimeStart >= '[#2#]'", $after, $before));
+        $data->query->orWhere(array("(#state = 'closed' OR #state = 'stopped') AND #timeClosed <= '[#1#]' AND #timeClosed >= '[#2#]'", $after, $before));
         
         // Чакащите задачи под определено време да са в началото
         $waitingShow = dt::addSecs(cal_Setup::get('WAITING_SHOW_TOP_TIME'), $now);
@@ -523,7 +520,7 @@ class cal_Tasks extends embed_Manager
         $data->query->orderBy("waitingOrderTop", "DESC");
         
         // Време за подредба на записите в портала
-        $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'wakeup' THEN 1 WHEN 'waiting' THEN 2 ELSE 3 END)");
+        $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'wakeup' THEN 1 WHEN 'waiting' THEN 2 WHEN 'pending' THEN 3 ELSE 4 END)");
         $data->query->orderBy('#orderByState=ASC');
         
         // Чакащите задачи, ако имат начало първо по тях да се подреждат, после по последно
@@ -668,7 +665,7 @@ class cal_Tasks extends embed_Manager
                     $sharedUsersArr = keylist::toArray($rec->sharedUsers);
                     
                     if ($rec->assign) {
-                        $sharedUsersArr[$rec->assign] = $rec->assign;
+                        $sharedUsersArr += type_Keylist::toArray($rec->assign);
                     }
                     
                     if (empty($sharedUsersArr)) {
@@ -784,7 +781,7 @@ class cal_Tasks extends embed_Manager
             $sharedUsersArr = keylist::toArray($data->rec->sharedUsers);
            
             if ($data->rec->assign) {
-                $sharedUsersArr[$data->rec->assign] = $data->rec->assign;
+                $sharedUsersArr += type_Keylist::toArray($data->rec->assign);
             }
                
             if (empty($sharedUsersArr)) {
@@ -929,7 +926,7 @@ class cal_Tasks extends embed_Manager
         $sharedUsersArr = keylist::toArray($rec->sharedUsers);
         
         if ($rec->assign) {
-            $sharedUsersArr[$rec->assign] = $rec->assign;
+            $sharedUsersArr += type_Keylist::toArray($rec->assign);
         }
         
         if ($now >= $canActivate && $canActivate !== NULL) {
@@ -1249,8 +1246,8 @@ class cal_Tasks extends embed_Manager
             setIfNot($calRec->time, $rec->timeStart, $rec->timeCalc, $rec->expectationTimeStart);
             
             // В чии календари да влезе?
-            $calRec->users = keylist::merge($rec->sharedUsers, $rec->assign);
-
+            $calRec->users = $rec->assign;
+            
             if($calRec->time && $calRec->time >= $fromDate && $calRec->time <= $toDate && $calRec->users) {
                 // Ключ на събитието
                 $calRec->key = $prefix . '-Start';
@@ -1296,7 +1293,7 @@ class cal_Tasks extends embed_Manager
             setIfNot($calRec->time, $rec->timeEnd, $rec->expectationTimeEnd);
             
             // В чии календари да влезе?
-            $calRec->users = keylist::merge($rec->sharedUsers, $rec->assign);
+            $calRec->users = $rec->assign;
           
             if($calRec->time && $calRec->time >= $fromDate && $calRec->time <= $toDate && $calRec->users && (!$startDate || strpos($calRec->time, $startDate) === FALSE)) {
 
@@ -1316,7 +1313,7 @@ class cal_Tasks extends embed_Manager
                 $calRec->title = "Краен срок за \"{$rec->title}\"";
 
                 // В чии календари да влезе?
-                $calRec->users = keylist::merge($rec->sharedUsers, $rec->assign);
+                $calRec->users = $rec->assign;
                 
                 // Статус на задачата
                 $calRec->state = $rec->state;
@@ -1330,8 +1327,7 @@ class cal_Tasks extends embed_Manager
                 $events[] = $calRec;
             }
         }
-
-
+        
         // Подготвяме запис за Крайния срок
         if($rec->state == 'closed' ) {
             
@@ -1341,7 +1337,7 @@ class cal_Tasks extends embed_Manager
             setIfNot($calRec->time, $rec->timeClosed);
             
             // В чии календари да влезе?
-            $calRec->users = keylist::merge($rec->sharedUsers, $rec->assign);
+            $calRec->users = $rec->assign;
           
             if($calRec->time && $calRec->time >= $fromDate && $calRec->time <= $toDate && $calRec->users && (!$startDate || strpos($calRec->time, $startDate) === FALSE)) {
 
@@ -1361,7 +1357,7 @@ class cal_Tasks extends embed_Manager
                 $calRec->title = "Приключена задача \"{$rec->title}\"";
 
                 // В чии календари да влезе?
-                $calRec->users = keylist::merge($rec->sharedUsers, $rec->assign);
+                $calRec->users = $rec->assign;
                 
                 // Статус на задачата
                 $calRec->state = $rec->state;
@@ -1370,7 +1366,7 @@ class cal_Tasks extends embed_Manager
                 $calRec->priority = self::getNumbPriority($rec) - 1;
 
                 // Url на задачата
-                $calRec->url = array('cal_Tasks', 'Single', $id); 
+                $calRec->url = array('cal_Tasks', 'single', $id); 
                 
                 $events[] = $calRec;
             }
@@ -1428,7 +1424,7 @@ class cal_Tasks extends embed_Manager
         
         $usersArr = array();
         if ($rec->assign) {
-            $usersArr[$rec->assign] = $rec->assign;
+            $usersArr += type_Keylist::toArray($rec->assign);
         }
         if ($rec->sharedUsers) {
             $usersArr += type_Keylist::toArray($rec->sharedUsers);
@@ -2279,7 +2275,7 @@ class cal_Tasks extends embed_Manager
         $sharedUsersArr = keylist::toArray($rec->sharedUsers);
         
         if ($rec->assign) {
-            $sharedUsersArr[$rec->assign] = $rec->assign;
+            $sharedUsersArr += type_Keylist::toArray($rec->assign);
         }
         
         if (empty($sharedUsersArr)) {
@@ -2490,10 +2486,7 @@ class cal_Tasks extends embed_Manager
             
             $rec = cal_Tasks::fetchRec($rec);
             
-            $notifyUsersArr = type_Users::toArray($rec->sharedUsers);
-            if ($rec->assign && !$notifyUsersArr[$rec->assign]) {
-                $notifyUsersArr[$rec->assign] = $rec->assign;
-            }
+            $notifyUsersArr = type_Keylist::toArray($rec->assign);
             
             if ($rec->createdBy > 0) {
                 $notifyUsersArr[$rec->createdBy] = $rec->createdBy;
@@ -2519,7 +2512,7 @@ class cal_Tasks extends embed_Manager
 	    	$subscribedArr = keylist::toArray($rec->sharedUsers); 
 			
 	    	if ($rec->assign) {
-	    	    $subscribedArr[$rec->assign] = $rec->assign;
+	    	    $subscribedArr += type_Keylist::toArray($rec->assign);
 	    	}
 	    	
 	    	if (is_array($subscribedArr)) {

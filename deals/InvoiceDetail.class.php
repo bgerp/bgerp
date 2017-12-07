@@ -107,10 +107,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			foreach (array('packagingId', 'notes', 'discount') as $fld){
 				$data->form->setField($fld, 'input=none');
 			}
-			$data->form->setFieldTypeParams('quantity', array('min' => 0));
-		} else {
-			$data->form->setFieldTypeParams('quantity', array('Min' => 0));
-		}
+		} 
+		$data->form->setFieldTypeParams('quantity', array('min' => 0));
 		$data->form->setFieldTypeParams('packPrice', array('min' => 0));
 		
 		if (!empty($rec->packPrice)) {
@@ -356,7 +354,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				core_Lg::push($masterRec->tplLang);
 				$data->rows['advance'] = (object) array('RowNumb' => 1, 'reason' => tr($reason), 'amount' => $amount);
 				core_Lg::pop();
-			} 
+			}
 		}
 	}
 	
@@ -391,6 +389,12 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		
 		// Показваме подробната информация за опаковката при нужда
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+		
+		if($masterRec->type == 'invoice'){
+			if(empty($rec->quantity) && !Mode::isReadOnly()){
+				$row->ROW_ATTR['style'] = " background-color:#f1f1f1;color:#777";
+			}
+		}
 		
 		return $row;
 	}

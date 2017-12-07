@@ -130,7 +130,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	
 	    // за всеки един индикатор
 	    while($recIndic = $query->fetch()){
-	        
+	       
 	        $names = '';
 	        if ($recIndic->personId && $users[$recIndic->personId]) {
 	            $names = core_Users::fetchField($users[$recIndic->personId], 'names');
@@ -153,10 +153,12 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	                'indicatorId' => $recIndic->indicatorId,
 	                'value' => $recIndic->value,
 	            );
-	            
+	            $recs[$id]->documents = array();
+	            $recs[$id]->documents[] = (object)array('class' => $recIndic->docClass, 'docId' => $recIndic->docId, 'value' => $recIndic->value);
 	        } else {
 	            $obj = &$recs[$id];
 	            $obj->value += $recIndic->value;
+	            $recs[$id]->documents[] = (object)array('class' => $recIndic->docClass, 'docId' => $recIndic->docId, 'value' => $recIndic->value);
 	        }  
 	    }
 	    
@@ -179,7 +181,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
             $r->num = $num;
             $recs['0|' . $ind] = $r;
         }
-
+        
 		return $recs;
 	}
 	
@@ -228,7 +230,6 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 		$Double->params['decimals'] = 2;
 		$row = new stdClass();
 
-		
 		// Линк към служителя
 		if(isset($dRec->person)) {
             if($dRec->person > 0) {
@@ -256,11 +257,47 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	    if(isset($dRec->value)) {
 		    $row->value = $Double->toVerbal($dRec->value);
 		}
-
+		
+		// Рендиране на документите участващи в сумирането
+		if(is_array($dRec->documents) && count($dRec->documents) && !$isPlain){
+			$row->value .= " <a href=\"javascript:toggleDisplay('{$dRec->num}inf')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ");\" class=\" plus-icon more-btn\"> </a>";
+			$row->value .= $this->renderDocuments($dRec);
+		}
+		
 		return $row;
 	}
     
     
+	/**
+	 * Рендиране на документите
+	 * 
+	 * @param stdClass $dRec
+	 * @return core_ET $res
+	 */
+	private function renderDocuments($dRec)
+	{
+		static $linkCache;
+		
+		$res =  new core_ET("<table class='no-border small' id='{$dRec->num}inf' style='display:none;margin-top:5px'>");
+		foreach ($dRec->documents as $obj){
+			if(!isset($linkCache[$obj->class][$obj->docId])){
+				$linkCache[$obj->class][$obj->docId] = (cls::load($obj->class, TRUE)) ? cls::get($obj->class)->getLink($obj->docId, 0) : "<span class='red'>Проблем с показването</span>";
+			}
+			$link = $linkCache[$obj->class][$obj->docId];
+			
+			$value = core_Type::getByName('double(smartRound)')->toVerbal($obj->value);
+		
+			$tr = new core_ET("<tr><td style='text-align:left'>[#link#]</td><td>[#value#]</td></tr>");
+			$tr->placeArray(array('link' => $link, 'value' => $value));
+			$tr->removeBlocks();
+			$res->append($tr);
+		}
+		$res->append("</table>");
+		
+		return $res;
+	}
+	
+	
     /**
 	 * След вербализирането на данните
 	 *

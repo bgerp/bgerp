@@ -7,7 +7,7 @@
  *
  *
  * @category  bgerp
- * @package   trz
+ * @package   hr
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
