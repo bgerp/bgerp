@@ -848,7 +848,7 @@ class cal_Tasks extends embed_Manager
      */
     static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
-        if($rec->state == 'pending' && !$rec->sharedUsers) { 
+        if($rec->state == 'pending' && !$rec->sharedUsers && !$rec->assign) { 
             core_Statuses::newStatus("|Не е избран потребител. Документа е приведен в състояние 'Заявка'|*");
         } 
         
@@ -939,7 +939,7 @@ class cal_Tasks extends embed_Manager
         } else {
             $rec->state = 'waiting';
         }
-
+        
         if ($rec->id) {
             $mvc->updateTaskToCalendar($rec->id);
         }
@@ -1504,6 +1504,7 @@ class cal_Tasks extends embed_Manager
        // Обикаляме по всички чакащи задачи 
        $query = $this->getQuery();
        $query->where("#state = 'waiting'");
+       $query->orWhere("#state = 'pending'");
        
 	   $activatedTasks = array ();
 	   $now = dt::verbal2mysql();
@@ -1512,29 +1513,37 @@ class cal_Tasks extends embed_Manager
 
    	   	   // изчисляваме очакваните времена
 		   self::calculateExpectationTime($rec);
-		   // обновяваме в календара
-		   self::updateTaskToCalendar($rec->id);
-		   // и проверяваме дали може да я активираме
-		   $canActivate = self::canActivateTask($rec);
-		   $exRec = $rec;
-           
-		   if ($canActivate != FALSE) { 
-		   	   if ($now >= $canActivate) {  
-				   $rec->state = 'active';
-				   $rec->timeActivated = $now;
-
-				   $activatedTasks[] = $rec;
-				       
-				   // и да изпратим нотификация на потребителите
-       			   self::doNotificationForActiveTasks($activatedTasks);
-		       } else {
-		           $rec->state = $exRec->state;
-		       }   
-		   } else {
-		       $rec->state = $exRec->state;
+		   
+		   $saveFields = 'expectationTimeStart, expectationTimeEnd';
+		   
+		   if ($rec->state == 'waiting') {
+    		   // обновяваме в календара
+    		   self::updateTaskToCalendar($rec->id);
+    		   
+    		   // и проверяваме дали може да я активираме
+    		   $canActivate = self::canActivateTask($rec);
+    		   $exRec = $rec;
+               
+    		   if ($canActivate != FALSE) { 
+    		   	   if ($now >= $canActivate) {  
+    				   $rec->state = 'active';
+    				   $rec->timeActivated = $now;
+    				   
+    				   $activatedTasks[] = $rec;
+    				       
+    				   // и да изпратим нотификация на потребителите
+           			   self::doNotificationForActiveTasks($activatedTasks);
+    		       } else {
+    		           $rec->state = $exRec->state;
+    		       }
+    		   } else {
+    		       $rec->state = $exRec->state;
+    		   }
+    		   
+    		   $saveFields .= ', state, timeActivated';
 		   }
 		   
-		   self::save($rec, 'state, timeActivated, expectationTimeEnd, expectationTimeStart');
+		   self::save($rec, $saveFields);
 	   }    
     }
 
@@ -2202,7 +2211,7 @@ class cal_Tasks extends embed_Manager
      * Изчислява мин начало и макс край на всички задачи
      * @param stdClass $data
      */
-    public static function calcTasksMinStartMaxEndTime ($data)
+    public static function calcTasksMinStartMaxEndTime($data)
     {  
         if($data->recs){ 
         	$data = $data->recs;
