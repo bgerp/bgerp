@@ -134,19 +134,4 @@ class sales_plg_CalcPriceDelta extends core_Plugin
 		// Запис
 		cls::get('sales_PrimeCostByDocument')->saveArray($save);
 	}
-	
-	
-	/**
-	 * Преди запис на документ, изчислява стойността на полето `isContable`
-	 *
-	 * @param core_Manager $mvc
-	 * @param stdClass $rec
-	 */
-	public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
-	{
-		// Ако документа е спрян или оттеглен изтриват се кешираните записи
-		if(isset($rec->id) && ($rec->state == 'rejected' || $rec->state == 'stopped')){
-			//sales_PrimeCostByDocument::removeByDoc($mvc, $rec->id);
-		}
-	}
 }
