@@ -1,0 +1,283 @@
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+<div class='scrolling-holder'>
+    <div class="row-fluid">
+        <div class="span6" style="position:relative; min-height:35px"><div style="position:absolute; bottom:0; left:0">
+            <span style="font-size:35px; color:[#basicColor#]">1</span><span style="color:[#basicColor#]">Copy for sender</span> </div>
+        </div>
+    </div>
+
+    <div class="row-fluid">
+        <div class="span12">
+            <div class="row-fluid">
+                <div class="span6 basicFontSize" style="border:1px; border-style:solid; color:[#basicColor#];   padding:6px; min-height:125px">
+                    <b>&nbsp;&nbsp; 1. Sender (name, address, country)</b>
+                    <div class='filledFieled leftAlign' style="margin-left:5px;">[#senderData#]</div>
+                    <div class="row-fluid">
+                    </div>
+                </div>
+                <div class="span6 basicFontSize" style="border:1px; border-bottom:0px; border-left:0px; border-style:solid; color:[#basicColor#];   padding:6px; min-height:125px; margin-left:0px">
+                    INTERNATIONAL CONSIGNMENT
+                    <div class="row-fluid" style="margin: 15px 0 15px;">
+                        <div class="span6"><span class="fright" style="font-size: 1.3em; padding-top: 8px;">CMR no.</span></div>
+                        <div class="span6"><div class='filledFieled leftAlign bigNumber' style="margin-left:5px;">[#cmrNumber#]</div></div>
+                    </div>
+                    <div class="row-fluid">
+                        <div class="span12" style="padding: 0 5px"><p style="font-size: 0.72em">This carriage is subject notwithstanding any clause to the contrary, to the Convention on the Contract for the International Carriage of goods by road (CMR)</p></div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row-fluid">
+            <div class="span12">
+                <div class="row-fluid">
+                    <div class="span6 basicFontSize" style="border:1px; border-top:0px; border-style:solid; color:[#basicColor#];   padding:6px; min-height:125px">
+                        <b>&nbsp;&nbsp; 2. Consignee (name, address, country)</b>
+                        <div class='filledFieled leftAlign' style="margin-left:5px;height: 100px;">[#consigneeData#]</div>
+                    </div>
+                    <div class="span6 basicFontSize" style="border:3px; border-bottom:1px; border-left:2px; border-style:solid; color:[#basicColor#];   padding:6px; min-height:125px; margin-left:0px"><b>&nbsp;&nbsp; 16. Carrier (name, address, country)</b>
+                        <div class='filledFieled leftAlign' style="margin-left:5px;height: 68px;">[#cariersData#]</div>
+                        <div class="row-fluid">
+                            <div class="span6"><span class="fright" style="font-size: 1.3em; padding-top: 10px;">Vehicle Reg. no.</span></div>
+                            <div class="span6"><div class='filledFieled leftAlign bigNumber' style="margin-left:5px;">[#vehicleReg#]</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row-fluid">
+            <div class="span12">
+                <div class="row-fluid">
+                    <div class="span6 basicFontSize" style="border:1px; border-top:0px; border-style:solid; color:[#basicColor#];   padding:6px; min-height:105px">
+                        <b>&nbsp;&nbsp; 3. Place of delivery of the goods (place, country)</b>
+                        <div class='filledFieled leftAlign' style="margin-left:5px;height: 100px;">[#deliveryPlace#]</div>
+                    </div>
+                    <div class="span6 basicFontSize" style="border:3px; border-bottom:1px; border-top:0px; border-left:2px; border-style:solid; color:[#basicColor#];   padding:6px; min-height:105px; margin-left:0px"><b>&nbsp;&nbsp; 17. Successive carriers (name, address, country)</b>
+                        <div class='filledFieled leftAlign' style="margin-left:5px;height: 100px;">[#successiveCarriers#]</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row-fluid">
+            <div class="span12">
+                <div class="row-fluid">
+                    <div class="span6 basicFontSize" style="border:1px; border-top:0px; border-style:solid; color:[#basicColor#];   padding:6px; min-height:65px">
+                        <b>&nbsp;&nbsp; 4. Place and date taking over the goods (place, country, date)</b>
+                        <div class="span8"> <div class='filledFieled leftAlign' style="margin-left:5px;">[#takingOverPlace#]</div></div>
+                        <div class="span3"><div class='filledFieled leftAlign' style="margin-left:5px;">[#takingDate#]</div></div>
+                    </div>
+                    <div class="span6 basicFontSize" style="border:3px; border-bottom:0px; border-left:2px; border-top:0px; border-style:solid; color:[#basicColor#];   padding:6px; min-height:65px; margin-left:0px"><b>&nbsp;&nbsp; 18. Carriers reservations and observations</b>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row-fluid">
+            <div class="span12">
+                <div class="row-fluid">
+                    <div class="span6 basicFontSize" style="border:1px; border-top:0px; border-style:solid; color:[#basicColor#]; padding:6px; min-height:65px">
+                        <b>&nbsp;&nbsp; 5. Documents attached</b>
+                        <div class='filledFieled leftAlign' style="margin-left:5px;">[#documentsAttached#]</div>
+                    </div>
+                    <div class="span6 basicFontSize" style="border:3px; border-top:0px; border-left:2px; border-style:solid; color:[#basicColor#];   padding:6px; min-height:65px; margin-left:0px">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row-fluid">
+            <div class="span12">
+                <table class="cmr-table" style="height: 223px;width: 100%;border:1px solid [#basicColor#]">
+                    <tr>
+                        <td class="miniText" style="width: 14.285%"><b>&nbsp;&nbsp; 6. <span><br>&nbsp;&nbsp;&nbsp;Marks and numbers</span></b></td>
+                        <td class="miniText" style="width: 14.285%"><b>&nbsp;&nbsp; 7. <span><br>&nbsp;&nbsp;&nbsp;Number of packages</span></b></td>
+                        <td class="miniText" style="width: 14.285%"><b>&nbsp;&nbsp; 8. <span><br>&nbsp;&nbsp;&nbsp;Method of packing</span></b></td>
+                        <td class="miniText" style="width: 14.285%"><b>&nbsp;&nbsp; 9. <span><br>&nbsp;&nbsp;&nbsp;Nature of the goods</span></b></td>
+                        <td class="miniText" style="width: 14.285%"><b>&nbsp;&nbsp; 10. <span><br>&nbsp;&nbsp;&nbsp;Statistical number</span></b></td>
+                        <td class="miniText" style="width: 14.285%"><b>&nbsp;&nbsp; 11. <span><br>&nbsp;&nbsp;&nbsp;Gross weight in kg</span></b></td>
+                        <td class="miniText" style="width: 14.285%"><b>&nbsp;&nbsp; 21. <span><br>&nbsp;&nbsp;&nbsp;Volume in m3</span></b></td>
+                    </tr>
+                    <tr>
+                        <td class='filledFieled' style="margin-left:5px;">[#mark1#]</td>
+                        <td class='filledFieled' style="margin-left:5px;">[#numOfPacks1#]</td>
+                        <td class='filledFieled' style="margin-left:5px;">[#methodOfPacking1#]</td>
+                        <td class='filledFieled' style="margin-left:5px;">[#natureOfGoods1#]</td>
+                        <td class='filledFieled' style="margin-left:5px;">[#statNum1#]</td>
+                        <td class='filledFieled' style="margin-left:5px;">[#grossWeight1#]</td>
+                        <td class='filledFieled' style="margin-left:5px;">[#volume1#]</td>
+                    </tr>
+                    <tr>
+                        <td class='filledFieled' style="margin-left:5px;">[#mark2#]</td>
+                        <td class='filledFieled' style="margin-left:5px;">[#numOfPacks2#]</td>
+                        <td class='filledFieled' style="margin-left:5px;">[#methodOfPacking2#]</td>
+                        <td class='filledFieled' style="margin-left:5px;">[#natureOfGoods2#]</td>
+                        <td class='filledFieled' style="margin-left:5px;">[#statNum2#]</td>
+                        <td class='filledFieled' style="margin-left:5px;">[#grossWeight2#]</td>
+                        <td class='filledFieled' style="margin-left:5px;">[#volume2#]</td>
+                    </tr>
+                    <tr>
+                        <td class='filledFieled' style="margin-left:5px;">[#mark3#]</td>
+                        <td class='filledFieled' style="margin-left:5px;">[#numOfPacks3#]</td>
+                        <td class='filledFieled' style="margin-left:5px;">[#methodOfPacking3#]</td>
+                        <td class='filledFieled' style="margin-left:5px;">[#natureOfGoods3#]</td>
+                        <td class='filledFieled' style="margin-left:5px;">[#statNum3#]</td>
+                        <td class='filledFieled' style="margin-left:5px;">[#grossWeight3#]</td>
+                        <td class='filledFieled' style="margin-left:5px;">[#volume3#]</td>
+                    </tr>
+                    <tr>
+                        <td class='filledFieled' style="margin-left:5px;">[#mark4#]</td>
+                        <td class='filledFieled' style="margin-left:5px;">[#numOfPacks4#]</td>
+                        <td class='filledFieled' style="margin-left:5px;">[#methodOfPacking4#]</td>
+                        <td class='filledFieled' style="margin-left:5px;">[#natureOfGoods4#]</td>
+                        <td rowspan=3 class='filledFieled' style="margin-left:5px;">[#statNum4#]</td>
+                        <td rowspan=3 class='filledFieled' style="margin-left:5px;">[#grossWeight4#]</td>
+                        <td rowspan=3 class='filledFieled' style="margin-left:5px;">[#volume4#]</td>
+                    </tr>
+                    <tr>
+                        <td class='miniText border-top' style="margin-left:5px;height: 10px">&nbsp;&nbsp;&nbsp; Class</td>
+                        <td class='miniText border-top' style="margin-left:5px;">&nbsp;&nbsp;&nbsp; Number</td>
+                        <td class='miniText border-top' style="margin-left:5px;">&nbsp;&nbsp;&nbsp; Letter</td>
+                        <td class='miniText border-top' style="margin-left:5px;">&nbsp;&nbsp;&nbsp; (ADR*)</td>
+                    </tr>
+                    <tr>
+                        <td class='filledFieled leftAlign' style="margin-left:5px;height: 20px;">[#class#]</td>
+                        <td class='filledFieled leftAlign' style="margin-left:5px;">[#number#]</td>
+                        <td class='filledFieled leftAlign' style="margin-left:5px;">[#letter#]</td>
+                        <td class='filledFieled leftAlign' style="margin-left:5px;">[#natureofGoods#]</td>
+                    </tr>
+
+                </table>
+            </div>
+        </div>
+
+
+        <div class="row-fluid">
+            <div class="span12">
+                <div class="row-fluid">
+                    <div class="span6 basicFontSize" style="border:1px; border-top:0px; border-style:solid; color:[#basicColor#];   padding:6px; min-height:90px">
+                        <b>&nbsp;&nbsp; 13. Sender's instructions</b>
+                        <div class='filledFieled leftAlign' style="margin-left:5px;">[#senderInstructions#]</div>
+                    </div>
+                    <div class="span6 basicFontSize" style="border:1px; border-top:0px; border-left:0px; border-style:solid; color:[#basicColor#];   padding:6px; min-height:90px; margin-left:0px">
+                        <b>&nbsp;&nbsp; 19. Special agreements</b>
+                        <div class='filledFieled leftAlign' style="margin-left:5px;">[#specialagreements#]</div> </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row-fluid">
+            <div class="span12">
+                <div class="row-fluid">
+                    <div class="span6 basicFontSize" style="border:1px; border-top:0px; border-style:solid; color:[#basicColor#];   padding:6px; min-height:133px">
+                        <b>&nbsp;&nbsp; 14. Instruction as to payment for carriage</b>
+                        <div class='filledFieled leftAlign' >[#instructionsPayment#]</div>
+                        <div class="row-fluid">
+                            <div class="span3 basicFontSize" style="width:105px; margin:-4px; border:0px; border-top:0px; border-style:solid; color:[#basicColor#];   padding:6px">
+                                Carriage paid:
+                            </div>
+                            <div class="span3 basicFontSize" style="margin-top:-4px; margin-left:3px; border:0px; border-top:0px; border-style:solid; color:[#basicColor#];   padding:6px">
+                                <div class='filledFieled leftAlign smallFont' style="margin-left:5px;">[#carragePaid#]</div>
+                             </div>
+                            <div class="span3 basicFontSize" style="margin:-4px; border:0px; border-top:0px; border-style:solid; color:[#basicColor#];   padding:6px">
+                                Carriage forward:
+                            </div>
+                            <div class="span3 basicFontSize" style="margin-top:-4px; margin-left:3px; border:0px; border-top:0px; border-style:solid; color:[#basicColor#];   padding:6px">
+                                <div class='filledFieled leftAlign smallFont'>[#sumPaid#]</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="span6 basicFontSize" style="border:3px;  border-style:solid; color:[#basicColor#]; min-height:120px; margin-left:0px">
+
+                        <div class="row-fluid">
+                            <div class="span3 basicFontSize" style="font-weight: bold; padding-left: 3px; white-space: nowrap; margin: 0; padding-top: 2px; border:1px; border-left:0; border-top:0px; border-style:solid; color:[#basicColor#];">20. To be paid by</div>
+                            <div class="span3 basicFontSize" style="border-style:solid; color:[#basicColor#];padding-top: 2px; margin: 0; text-align: center; border:1px; border-left:0; border-top:0px; border-style:solid; color:[#basicColor#];">Sender</div>
+                            <div class="span3 basicFontSize" style="border-style:solid; color:[#basicColor#];padding-top: 2px; margin: 0; text-align: center; border:1px; border-left:0; border-top:0px; border-style:solid; color:[#basicColor#];">Currency</div>
+                            <div class="span3 basicFontSize" style="border-style:solid; color:[#basicColor#];padding-top: 2px; margin: 0; text-align: center; border:1px; border-left:0; border-top:0px; border-style:solid; color:[#basicColor#];">Consignee</div>
+                        </div>
+                        <div class="row-fluid">
+                            <div class="span3 basicFontSize" style=" font-size: 0.8em;  white-space: nowrap; margin: 0; padding-left: 5px; border:1px; border-top:0; border-left:0;  border-style:solid; color:[#basicColor#];">Deduction</div>
+                            <div class="span3" style=" margin: 0;  border:1px; border-left:0; border-top:0px; border-style:solid; color:[#basicColor#];"></div>
+                            <div class="span3" style=" margin: 0;  border:1px; border-left:0; border-top:0px; border-style:solid; color:[#basicColor#];"></div>
+                            <div class="span3 basicFontSize" style="  margin: 0;  border:1px; border-top:0px; border-left:0; border-style:solid; color:[#basicColor#];"></div>
+                        </div>
+                        <div class="row-fluid">
+                            <div class="span3 basicFontSize" style=" font-size: 0.8em;  white-space: nowrap; margin: 0; padding-left: 5px; border:1px; border-left:0; border-top:0px; border-style:solid; color:[#basicColor#];">Balance</div>
+                            <div class="span3" style=" margin: 0;  border:1px; border-left:0; border-top:0px; border-style:solid; color:[#basicColor#];"></div>
+                            <div class="span3" style=" margin: 0;  border:1px; border-left:0; border-top:0px; border-style:solid; color:[#basicColor#];"></div>
+                            <div class="span3 basicFontSize" style="  margin: 0;  border:1px; border-top:0px; border-left:0; border-style:solid; color:[#basicColor#];"></div>
+                        </div>
+                        <div class="row-fluid basicFontSize">
+                            <div class="span3" style=" font-size: 0.8em;  white-space: nowrap; margin: 0; padding-left: 5px; border:1px; border-left:0; border-top:0px; border-style:solid; color:[#basicColor#];">Supplem changes</div>
+                            <div class="span3" style=" margin: 0;  border:1px; border-left:0; border-top:0px; border-style:solid; color:[#basicColor#];"></div>
+                            <div class="span3" style=" margin: 0;  border:1px; border-left:0; border-top:0px; border-style:solid; color:[#basicColor#];"></div>
+                            <div class="span3 basicFontSize" style="  margin: 0;  border:1px; border-top:0px; border-left:0; border-style:solid; color:[#basicColor#];"></div>
+                        </div>
+                        <div class="row-fluid">
+                            <div class="span3 basicFontSize" style=" font-size: 0.8em;  white-space: nowrap; margin: 0; padding-left: 5px;border:1px; border-left:0; border-top:0px; border-style:solid; color:[#basicColor#];">Insurance</div>
+                            <div class="span3" style=" margin: 0;  border:1px; border-left:0; border-top:0px; border-style:solid; color:[#basicColor#];"></div>
+                            <div class="span3" style=" margin: 0;  border:1px; border-left:0; border-top:0px; border-style:solid; color:[#basicColor#];"></div>
+                            <div class="span3 basicFontSize" style="  margin: 0;  border:1px; border-top:0px; border-left:0; border-style:solid; color:[#basicColor#];"></div>
+                        </div>
+                        <div class="row-fluid">
+                            <div class="span3 basicFontSize" style=" font-size: 0.8em;  white-space: nowrap; margin: 0; padding-left: 5px;border:1px; border-left:0; border-top:0px; border-style:solid; color:[#basicColor#];">Total to be paid</div>
+                            <div class="span3" style=" margin: 0;  border:1px; border-left:0; border-top:0px; border-style:solid; color:[#basicColor#];"></div>
+                            <div class="span3" style=" margin: 0;  border:1px; border-left:0; border-top:0px; border-style:solid; color:[#basicColor#];"></div>
+                            <div class="span3 basicFontSize" style="  margin: 0;  border:1px; border-top:0px; border-left:0; border-style:solid; color:[#basicColor#];"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row-fluid">
+            <div class="span12">
+                <div class="row-fluid">
+                    <div class="span6 basicFontSize" style="border:1px; border-top:0px; border-style:solid; color:[#basicColor#];   padding:6px; min-height:85px">
+                        <b>&nbsp;&nbsp; 21. Established in:</b>
+                        <div class="row-fluid">
+                            <div class="span6 basicFontSize" style="margin-top:-4px; margin-left:3px; border:0px; border-top:0px; border-style:solid; color:[#basicColor#];   padding:6px">
+                                <div class='filledFieled leftAlign' >[#establishedPlace#]</div>
+                            </div>
+                            <div class="span6 basicFontSize" style="margin-top:-4px; margin-left:3px; border:0px; border-top:0px; border-style:solid; color:[#basicColor#];   padding:6px">
+                                <div class='filledFieled leftAlign' >[#establishedDate#]</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="span6 basicFontSize" style="border:1px; border-top:0px; border-left:0px; border-style:solid; color:[#basicColor#];   padding:6px; min-height:85px; margin-left:0px">
+                        <b>&nbsp;&nbsp; 15. Cash on delivery</b>
+                        <div class='filledFieled leftAlign' >[#cashOnDelivery#]</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row-fluid">
+            <div class="span12">
+                <div class="row-fluid">
+                    <div class="span4 basicFontSize" style=" border:1px; border-top:0px; border-style:solid; color:[#basicColor#];   padding:6px; min-height:85px">
+                        <b>&nbsp;&nbsp; 22. Signature and stamp of the sender</b>
+                    </div>
+                    <div class="span4 basicFontSize" style=" border:1px; border-top:0px; border-left:0px; border-style:solid; color:[#basicColor#];   padding:6px; min-height:85px; margin-left:0px">
+                        <b>&nbsp;&nbsp; 23. Signature and stamp of the carrier</b>
+                    </div>
+                    <div class="span4 basicFontSize" style="border:1px; border-top:0px; border-left:0px; border-style:solid; color:[#basicColor#];   padding:6px; min-height:85px; margin-left:0px">
+                        <b>&nbsp;&nbsp; 24. Signature and stamp of the consignee</b>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class='footerDocBlock'  style="border: none !important; margin-top: 3px; margin-right: 20px;">
+            <div class='aright basicFontSize' >This document is created by <b><a href='http://bgerp.com'>bgERP</a></b></div>
+        </div>
+    </div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

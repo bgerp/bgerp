@@ -4683,8 +4683,6 @@ row-fluid {
 	float: left;
 	width: 100%;
 	min-height: 21px;
-	margin-left: 2.127659574468085%;
-	*margin-left: 2.074468085106383%;
 	-webkit-box-sizing: border-box;
 	-moz-box-sizing: border-box;
 	box-sizing: border-box;
@@ -4729,7 +4727,7 @@ row-fluid {
 }
 
 .row-fluid .span6 {
-	width: 48.93617021276595%;
+	width: 50%;
 	*width: 48.88297872340425%;
 }
 
@@ -4739,7 +4737,7 @@ row-fluid {
 }
 
 .row-fluid .span4 {
-	width: 32.624893617021278%;
+	width: 33.33%;
 	*width: 31.861702127659576%;
 }
 
@@ -4761,9 +4759,8 @@ row-fluid {
 
 .filledFieled {
 	color: #333;
-	line-height: 30px;
 	text-align: center;
-	font-size: 1.1em;
+	font-size: 0.9em;
 	font-family: 'Lucida Console', monospace;
 	&.leftAlign {
 		text-align: left;
@@ -4781,7 +4778,18 @@ row-fluid {
 }
 .miniText {
 	font-size: 0.7em;
+	font-weight: bold;
 }
+.cmr-table {
+	td {
+		border-left: 1px solid black !important;
+		border-right: 1px solid black !important;
+		&.border-top{
+			border-top: 1px solid black !important;
+		}
+	}
+}
+
 
 @media handheld , only screen and (min-width: 1240px) {
 	.background-holder {
