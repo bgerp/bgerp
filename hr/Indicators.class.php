@@ -506,10 +506,14 @@ class hr_Indicators extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
-        $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
-
-    	$data->listFilter->FLD('period', 'date(select2MinItems=11)', 'caption=Период,silent,placeholder=Всички');
+    	$data->listFilter->setField('personId', 'silent');
+    	$data->listFilter->setField('indicatorId', 'silent');
+    	
+    	$data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
+        $data->listFilter->FLD('period', 'date(select2MinItems=11)', 'caption=Период,silent,placeholder=Всички');
     	$data->listFilter->FLD('document', 'varchar(16)', 'caption=Документ,silent,placeholder=Всички');
+    	$data->listFilter->input(NULL, 'silent');
+    	
     	$data->listFilter->setOptions('period', array('' => '') + dt::getRecentMonths(10));
     	$data->listFilter->showFields = 'period,document';
     	$data->query->orderBy('date', "DESC");
@@ -528,7 +532,14 @@ class hr_Indicators extends core_Manager
 
         // В хоризонтален вид
     	$data->listFilter->class = 'simpleForm fleft';
-    	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    	
+    	if(!haveRole('ceo,hrMaster')){
+    		foreach (array('personId', 'indicatorId', 'period', 'document') as $fld){
+    			$data->listFilter->setReadOnly($fld);
+    		}
+    	} else {
+    		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    	}
     	
     	// Филтриране на записите
     	if($fRec = $data->listFilter->rec){
@@ -599,6 +610,25 @@ class hr_Indicators extends core_Manager
     		$tpl->append(tr('Стойност'), 'caption');
     		$tpl->append($data->listSummary->summary->sumRow, 'quantity');
     		$tpl->append(acc_Periods::getBaseCurrencyCode(), 'measure');
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'list'){
+    		
+    		// Даване на права до листа само ако има нужните данни в урл-то
+    		if(!haveRole('ceo,hrMaster', $userId)){
+    			Request::setProtected('force');
+    			$isForced = Request::get('force');
+    			if(!empty($isForced)){
+    				$requiredRoles = 'powerUser';
+    			}
+    		}
     	}
     }
 }

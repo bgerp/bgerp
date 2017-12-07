@@ -1,0 +1,135 @@
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+    <div class='scrolling-holder'>
+        <table style='width:100%;' id='inv-holder'>
+            <tbody>
+                <tr>
+                    <td>
+                        <table class="innerTable footer-notes paddingCells" style='width:100%;'>
+                            <tbody>
+                                <tr>
+                                    <td class="cell custom-header-bg" style='vertical-align:middle !important;width:35%;'><b>Получател</b></td>
+                                    <td class="cell centered" rowspan="3" style='width:30%;'>
+                                        <div class='document-title'>Протокол</div>
+                                        <div class='invInfo'>Номер</div>
+                                        <div class="bigData">[#number#]</div>
+                                        <div class='invInfo'>Дата</div>
+                                        <div class="bigData">[#date#]</div>
+                                        <!--ET_BEGIN originInv-->
+                                        <div class='bigData' style="margin-top: 10px;">
+                                            <div id='origin-title'>към Фактура <b>[#originInv#]</b><br> от [#originInvDate#]</div>
+                                        </div>
+                                        <!--ET_END originInv-->
+                                        <!--ET_BEGIN protocolNum-->
+                                        <div class='bigData' style="margin-top: 10px;">
+
+                                            <div id='origin-title'>корекция на протокол №<b>[#protocolNum#]</b><br> от [#protocolDate#]</div>
+
+                                        </div>
+                                        <!--ET_END protocolNum-->
+                                        <!--ET_BEGIN state-->
+                                        <div class="state [#STATE_CLASS#]" style='margin:5px 0;'>[#state#]</div>
+                                        <!--ET_END state-->
+                                    </td>
+                                    <td class="cell custom-header-bg" style='vertical-align:middle !important;width:35%;'><b>Доставчик</b> </td>
+                                </tr>
+                                <tr>
+                                    <td class="cell">
+                                        <b>[#contragentName#]</b>
+                                        <div class='address-block'>
+                                            [#contragentCountryId#]<br>
+                                            [#contragentPCode#] [#contragentPlace#]<br>
+                                            <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
+                                        </div>
+                                    </td>
+                                    <td class="cell">
+                                        <b>[#MyCompany#]</b>
+                                        <div class='address-block'>
+                                            [#MyAddress#]
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="cell">
+                                        <table>
+                                            <tbody>
+                                                <!--ET_BEGIN contragentVatNo-->
+                                                <tr>
+                                                    <td class="aright"><small>ЗДДС&nbsp;№:</small></td>
+                                                    <td><span class="bigData" style='padding-left:5px;'>[#contragentVatNo#]</span></td>
+                                                </tr>
+                                                <!--ET_END contragentVatNo-->
+                                                <tr>
+                                                    <td class="aright"><small>ЕИК:</small></td>
+                                                    <td> <span class="bigData" style='padding-left:5px;'>[#uicNo#]</span></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                    <td class="cell">
+                                        <table>
+                                            <tbody>
+                                                <!--ET_BEGIN MyCompanyVatNo-->
+                                                <tr>
+                                                    <td class="aright"><small>ЗДДС&nbsp;№:</small></td>
+                                                    <td><span class="bigData" style='padding-left:5px;'>[#MyCompanyVatNo#]</span></td>
+                                                </tr>
+                                                <!--ET_END MyCompanyVatNo-->
+                                                <!--ET_BEGIN uicId-->
+                                                <tr>
+                                                    <td class="aright"><small>ЕИК:</small></td>
+                                                    <td><span class="bigData" style='padding-left:5px;'>[#uicId#]</span></td>
+                                                </tr>
+                                                <!--ET_END uicId-->
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="lines"></div>
+                        <!--ET_BEGIN sales_InvoiceDetails-->
+                        <div class='details'>
+                            [#sales_InvoiceDetails#]
+                        </div>
+                        <!--ET_END sales_InvoiceDetails-->
+                        <div class="lines"></div>
+                        <table class="innerTable footer-notes paddingCells border-table">
+                            <tbody>
+                                <tr>
+                                    <td style='line-height: 140%;'>
+                                        <!--ET_BEGIN vatReason-->
+                                        <div><span class='quiet'>Основание:</span> [#vatReason#]</div>
+                                        <!--ET_END vatReason-->
+                                        <!--ET_BEGIN vatDate-->  
+                                        <div><span class='quiet'>Данъчно събитие:</span> [#vatDate#]</div>
+                                        <!--ET_END vatDate-->
+                                        <hr>
+                                        <table style='width:1%;margin-top: 50px;' class='signature-table'>
+                                            <tr>
+                                                <td class="nowrap" style='width:1%;'>Съставил:  </td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td></td>
+                                                <td><span class="sign_names nowrap"><span>[#username#]</span> <br><span class='small'>( ПИК: [#userCode#] )</span></span></td>
+                                            </tr>
+                                        </table>
+
+                                    </td>
+                                    <td id='invoice-info' style='width:40%;'>
+                                        [#/deals/tpl/DocumentPriceInfoInvoice.shtml#]
+                                    </td>
+                                </tr>
+                                <tr class='footerDocInfo'>
+                                    <td colspan="2">
+                                         <div class='aright'>Документът е създаден чрез системата <b><a href='http://bgerp.com'>bgERP</a></b></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

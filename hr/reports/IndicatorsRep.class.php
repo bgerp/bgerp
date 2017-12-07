@@ -61,8 +61,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
      */
     protected $changeableFields = 'periods';
     
-
-
+    
     /**
 	 * Добавя полетата на драйвера към Fieldset
 	 *
@@ -153,12 +152,9 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	                'indicatorId' => $recIndic->indicatorId,
 	                'value' => $recIndic->value,
 	            );
-	            $recs[$id]->documents = array();
-	            $recs[$id]->documents[] = (object)array('class' => $recIndic->docClass, 'docId' => $recIndic->docId, 'value' => $recIndic->value);
 	        } else {
 	            $obj = &$recs[$id];
 	            $obj->value += $recIndic->value;
-	            $recs[$id]->documents[] = (object)array('class' => $recIndic->docClass, 'docId' => $recIndic->docId, 'value' => $recIndic->value);
 	        }  
 	    }
 	    
@@ -235,7 +231,6 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
             if($dRec->person > 0) {
                 $userId = crm_Profiles::fetchField("#personId = '{$dRec->person}'",'userId');
                 $nick = crm_Profiles::createLink($userId)->getContent();
-                //crm_Profiles::fetchField("#personId = '{$rec->alternatePerson}'", 'userId');
                 $row->person = crm_Persons::fetchField($dRec->person, 'name') . " (" . $nick .")";
             } else {
                 $row->person = 'Общо';
@@ -256,45 +251,36 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 
 	    if(isset($dRec->value)) {
 		    $row->value = $Double->toVerbal($dRec->value);
-		}
-		
-		// Рендиране на документите участващи в сумирането
-		if(is_array($dRec->documents) && count($dRec->documents) && !$isPlain){
-			$row->value .= " <a href=\"javascript:toggleDisplay('{$dRec->num}inf')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ");\" class=\" plus-icon more-btn\"> </a>";
-			$row->value .= $this->renderDocuments($dRec);
-		}
+		  
+		    if(!$isPlain){
+		    	$row->value = ht::styleIfNegative($row->value, $dRec->value);
+		    }
+		    
+		    if(!$isPlain && !Mode::isReadOnly()){
+		    	$start = acc_Periods::fetchField($rec->periods, 'start');
+		    	$date = new DateTime($start);
+		    	$startMonth = $date->format('Y-m-01');
+		    	
+		    	$haveRight = hr_Indicators::haveRightFor('list');
+		    	$url = array('hr_Indicators', 'list', 'period' => $startMonth, 'indicatorId' => $dRec->indicatorId);
+		    	if(!empty($dRec->person)){
+		    		$url['personId'] = $dRec->person;
+		    	}
+		    	
+		    	if($haveRight !== TRUE){
+		    		core_Request::setProtected('period,personId,indicatorId,force');
+		    		$url['force'] = TRUE;
+		    	}
+		    	
+		    	$row->value = ht::createLinkRef($row->value, toUrl($url), FALSE, 'target=_blank,title=Към документите формирали записа');
+		    	
+		    	if($haveRight !== TRUE){
+		    		core_Request::removeProtected('period,personId,indicatorId,force');
+		    	}
+		    }
+	    }
 		
 		return $row;
-	}
-    
-    
-	/**
-	 * Рендиране на документите
-	 * 
-	 * @param stdClass $dRec
-	 * @return core_ET $res
-	 */
-	private function renderDocuments($dRec)
-	{
-		static $linkCache;
-		
-		$res =  new core_ET("<table class='no-border small' id='{$dRec->num}inf' style='display:none;margin-top:5px'>");
-		foreach ($dRec->documents as $obj){
-			if(!isset($linkCache[$obj->class][$obj->docId])){
-				$linkCache[$obj->class][$obj->docId] = (cls::load($obj->class, TRUE)) ? cls::get($obj->class)->getLink($obj->docId, 0) : "<span class='red'>Проблем с показването</span>";
-			}
-			$link = $linkCache[$obj->class][$obj->docId];
-			
-			$value = core_Type::getByName('double(smartRound)')->toVerbal($obj->value);
-		
-			$tr = new core_ET("<tr><td style='text-align:left'>[#link#]</td><td>[#value#]</td></tr>");
-			$tr->placeArray(array('link' => $link, 'value' => $value));
-			$tr->removeBlocks();
-			$res->append($tr);
-		}
-		$res->append("</table>");
-		
-		return $res;
 	}
 	
 	
