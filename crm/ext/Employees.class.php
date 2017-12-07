@@ -250,7 +250,7 @@ class crm_ext_Employees extends core_Manager
     	$query = static::getQuery();
     	$query->EXT('groupList', 'crm_Persons', 'externalName=groupList,externalKey=personId');
     	$query->like("groupList", "|{$emplGroupId}|");
-    	$query->where("#departments IS NULL OR LOCATE('|{$centerId}|', #departments)");
+    	$query->where("LOCATE('|{$centerId}|', #departments)");
     	$query->show("personId,code");
     	
     	while($rec = $query->fetch()){
