@@ -335,10 +335,10 @@ class crm_Locations extends core_Master {
     {
     	$rec = &$data->rec;
     	
-    	if($rec->address && $rec->place && $rec->countryId){
-    		$address = "{$data->row->address},{$data->row->place},{$data->row->countryId}";
-    	} elseif($rec->gpsCoords) {
+    	if($rec->gpsCoords){
     		$address = $rec->gpsCoords;
+    	} elseif($rec->address && $rec->place && $rec->countryId) {
+    		$address = "{$data->row->address},{$data->row->place},{$data->row->countryId}";
     	}
     	
     	if($rec->state != 'rejected'){
