@@ -94,7 +94,7 @@
 
         <div class="row-fluid">
             <div class="span12">
-                <table class="cmr-table" style="min-height: 223px;width: 100%;border:1px solid [#basicColor#]">
+                <table class="cmr-table" style="height: 223px;width: 100%;border:1px solid [#basicColor#]">
                     <tr>
                         <td class="miniText" style="width: 14.285%"><b>&nbsp;&nbsp; 6. <span><br>&nbsp;&nbsp;&nbsp;Marks and numbers</span></b></td>
                         <td class="miniText" style="width: 14.285%"><b>&nbsp;&nbsp; 7. <span><br>&nbsp;&nbsp;&nbsp;Number of packages</span></b></td>
