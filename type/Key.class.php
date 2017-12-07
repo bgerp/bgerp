@@ -772,6 +772,8 @@ class type_Key extends type_Int
         $res = array(
             'content' => $select->getContent()
         );
+        
+        header('Content-Type: application/json');
        
         echo json_encode($res);
         

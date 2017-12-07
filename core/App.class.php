@@ -529,8 +529,11 @@ class core_App
     		$resObj = new stdClass();
     		$resObj->func = "redirect";
     		$resObj->arg = array('url' => $url);
-    			
-    		echo json_encode(array($resObj));
+            
+//     		header('Content-Type: application/json');
+//     		echo json_encode(array($resObj));
+            
+    		return self::getJson(array($resObj), FALSE);
     	} else {
 
             // Забранява кеширането. Дали е необходимо тук?
@@ -569,7 +572,7 @@ class core_App
      * 
      * $resArr array
      */
-    public static function getJson($resArr)
+    public static function getJson($resArr, $sendOutupt = TRUE)
     {
         // За да не се кешира
         header("Expires: Sun, 19 Nov 1978 05:00:00 GMT");
@@ -585,7 +588,7 @@ class core_App
         echo json_encode($resArr);
         
         // Прекратяваме процеса
-        self::shutdown();
+        self::shutdown($sendOutupt);
     }
     
     
