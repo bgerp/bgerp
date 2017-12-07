@@ -96,6 +96,12 @@ class sales_plg_CalcPriceDelta extends core_Plugin
 				$sellCost = $sellCost * (1 - $dRec->{$mvc->detailDiscountPriceFld});
 			}
 			
+			// Ако има параметър за корекция на делти: задава се
+			$correctPercent = cond_Parameters::getParameter($Cover->getClassId(), $Cover->that, 'deltaCorrect');
+			if(!empty($correctPercent)){
+				$sellCost = $sellCost * (1 - $correctPercent);
+			}
+			
 			// Ако артикулът е 'Надценка' няма себестойност
 			$code = cat_Products::fetchField($dRec->{$mvc->detailProductFld}, 'code');
 			if($code == 'surcharge'){
@@ -127,20 +133,5 @@ class sales_plg_CalcPriceDelta extends core_Plugin
 		
 		// Запис
 		cls::get('sales_PrimeCostByDocument')->saveArray($save);
-	}
-	
-	
-	/**
-	 * Преди запис на документ, изчислява стойността на полето `isContable`
-	 *
-	 * @param core_Manager $mvc
-	 * @param stdClass $rec
-	 */
-	public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
-	{
-		// Ако документа е спрян или оттеглен изтриват се кешираните записи
-		if(isset($rec->id) && ($rec->state == 'rejected' || $rec->state == 'stopped')){
-			//sales_PrimeCostByDocument::removeByDoc($mvc, $rec->id);
-		}
 	}
 }
