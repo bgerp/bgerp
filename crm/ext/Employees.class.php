@@ -187,13 +187,7 @@ class crm_ext_Employees extends core_Manager
     {
     	 $tpl = getTplFromFile('crm/tpl/HrDetail.shtml');
     	 $tpl->append(tr('Служебен код') . ":", 'resTitle');
-    	 
-    	 if(isset($data->row)){
-    	 	$tpl->placeObject($data->row);
-    	 } else {
-    	 	$code = "<b>" . tr('Няма') . "</b>";
-    	 	$tpl->append($code, 'code');
-    	 }
+    	 $tpl->placeObject($data->row);
     	 
     	 if($eRec = hr_EmployeeContracts::fetch("#personId = {$data->masterId} AND #state = 'active'")){
     	 	$tpl->append(hr_EmployeeContracts::getHyperlink($eRec->id, TRUE), 'contract');
