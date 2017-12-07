@@ -342,8 +342,12 @@ class crm_Locations extends core_Master {
     	}
     	
     	if($rec->state != 'rejected'){
-    		if($address){
-    			$url = "https://maps.google.com/?daddr={$address}";
+    		if($address){  
+                if(strpos(strtolower(log_Browsers::getUserAgentOsName()), 'android') !== FALSE) {
+                    $url = "geo:{$address}";
+                } else {
+    			    $url = "https://maps.google.com/?daddr={$address}";
+                }
     			$data->toolbar->addBtn('Навигация', $url,  NULL, 'ef_icon=img/16/compass.png,target=_blank');
     		}
     		
