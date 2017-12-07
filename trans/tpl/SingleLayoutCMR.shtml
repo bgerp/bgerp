@@ -3,8 +3,6 @@
 <!--ET_END SingleToolbar-->
 
 <div class='document'>
-
-
     <!--ET_BEGIN header-->
 
     <span style='display:none;'>[#header#]</span>
@@ -28,10 +26,7 @@
         </div>
     </div>
     <!--ET_END header-->
-
         <div class='scrolling-holder'>
-
-
                 <div class="row-fluid">
                     <div class="span6" style="position:relative; min-height:35px"><div style="position:absolute; bottom:0; left:0">
                         <span style="font-size:35px; color:[#basicColor#]">1</span><span style="color:[#basicColor#]">Copy for sender</span> </div>
@@ -338,5 +333,4 @@
                         <div class='aright basicFontSize' >This document is created by <b><a href='http://bgerp.com'>bgERP</a></b></div>
                     </div>
                 </div>
-
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
