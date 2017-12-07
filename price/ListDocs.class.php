@@ -525,7 +525,7 @@ class price_ListDocs extends core_Master
     	}
         
     	if(!array_key_exists($rec->measureId, $this->cache)){
-    		$this->cache[$rec->measureId] = cat_UoM::getShortName($rec->measureId);
+    		$this->cache[$rec->measureId] = tr(cat_UoM::getShortName($rec->measureId));
     	}
     	$measureShort = $this->cache[$rec->measureId];
     	
