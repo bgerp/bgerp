@@ -61,8 +61,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
      */
     protected $changeableFields = 'periods';
     
-
-
+    
     /**
 	 * Добавя полетата на драйвера към Fieldset
 	 *
@@ -263,14 +262,17 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 		    	$startMonth = $date->format('Y-m-01');
 		    	
 		    	$haveRight = hr_Indicators::haveRightFor('list');
-		    	$url = array('hr_Indicators', 'list', 'period' => $startMonth, 'personId' => $dRec->person, 'indicatorId' => $dRec->indicatorId);
+		    	$url = array('hr_Indicators', 'list', 'period' => $startMonth, 'indicatorId' => $dRec->indicatorId);
+		    	if(!empty($dRec->person)){
+		    		$url['personId'] = $dRec->person;
+		    	}
 		    	
 		    	if($haveRight !== TRUE){
 		    		core_Request::setProtected('period,personId,indicatorId,force');
 		    		$url['force'] = TRUE;
 		    	}
 		    	
-		    	$row->value = ht::createLinkRef($row->value, toUrl($url), FALSE, 'target=_blank');
+		    	$row->value = ht::createLinkRef($row->value, toUrl($url), FALSE, 'target=_blank,title=Към документите формирали записа');
 		    	
 		    	if($haveRight !== TRUE){
 		    		core_Request::removeProtected('period,personId,indicatorId,force');
