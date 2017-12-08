@@ -227,6 +227,11 @@ class trans_Cmrs extends core_Master
     			$carrierData = $mvc->getDefaultContragentData('crm_Companies', $lineRec->forwarderId);
     			$form->setDefault('cariersData', $carrierData);
     		}
+    		
+    		if(isset($lineRec->vehicleId)){
+    			$vehicleReg = trans_Vehicles::fetchField($lineRec->vehicleId, 'number');
+    			$form->setDefault('vehicleReg', $vehicleReg);
+    		}
     	}
     	
     	// Има ли общ брой палети
