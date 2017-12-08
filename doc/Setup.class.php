@@ -1010,7 +1010,11 @@ class doc_Setup extends core_ProtoSetup
                 
                 $rec->assign = type_Keylist::fromArray(array($rec->assign => $rec->assign));
                 
-                $clsInst->save($rec, 'assign');
+                try {
+                    $clsInst->save($rec, 'assign');
+                } catch (core_exception_Expect $e) {
+                    reportException($e);
+                }
             }
             
             if (!$clsInst->db->isFieldExists($clsInst->dbTableName, str::phpToMysqlName('sharedUsers'))) continue ;
@@ -1038,7 +1042,11 @@ class doc_Setup extends core_ProtoSetup
                     $saveField .= ',assignedBy';
                 }
                 
-                $clsInst->save($rec, $saveField);
+                try {
+                    $clsInst->save($rec, $saveField);
+                } catch (core_exception_Expect $e) {
+                    reportException($e);
+                }
             }
         }
     }
