@@ -59,7 +59,7 @@ class callcenter_ListOperationsPlg extends core_Plugin
         // Ако може да се създава SMS
         if (callcenter_SMS::haveRightFor('send')) {
             
-            // Бутон за СМС
+            // Бутон за SMS
             $data->smsLink = ht::createBtn('SMS', array('callcenter_SMS', 'send', 'mobileNum' => $numberDial, 'ret_url' => TRUE), FALSE, FALSE, array('ef_icon' => '/img/16/mobile2.png'));
         }
     }

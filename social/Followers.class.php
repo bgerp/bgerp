@@ -103,13 +103,22 @@ class social_Followers extends core_Master
 					
 				// Намираме името на функцията
 				$name = social_Sharings::getServiceNameByUrl($socUrl);
-					
+
+
+
+                if(log_Browsers::isRetina()) {
+                    $size = 48;
+                } else {
+                    $size = 24;
+                }
+
 				// Намираме иконата в sbf папката
-				$icon = sbf("cms/img/24/{$name}.png",'');
+				$icon = sbf("cms/img/{$size}/{$name}.png",'');
+
 			}
 				
 			// Създаваме иконата за бутона
-			$img = ht::createElement('img', array('src' => $icon, 'alt' => $socialNetwork->title));
+			$img = ht::createElement('img', array('src' => $icon, 'alt' => $socialNetwork->title, 'width' => 24, 'height' => 24));
 				
 			// Генерираме URL-то на бутона
 			$url = array('social_Followers', 'Redirect', $socialNetwork->id);

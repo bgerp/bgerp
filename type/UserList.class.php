@@ -37,6 +37,7 @@ class type_UserList extends type_Keylist
     {
         setIfNot($params['params']['mvc'], 'core_Users');
         setIfNot($params['params']['select'], 'nick');
+        setIfNot($params['params']['showClosedGroups'], 'showClosedGroups');
         
         parent::init($params);
         
@@ -55,8 +56,18 @@ class type_UserList extends type_Keylist
      * 
      * @return array
      */
-    public function prepareSuggestions()
+    public function prepareSuggestions($ids = NULL)
     {
+        // Ако не е зададен параметъра
+        if(!isset($this->params['maxOptForOpenGroups'])) {
+            $conf = core_Setup::getConfig();
+            $maxOpt = $conf->_data['CORE_MAX_OPT_FOR_OPEN_GROUPS'];
+            if(!isset($maxOpt)) {
+                $maxOpt = CORE_MAX_OPT_FOR_OPEN_GROUPS;
+            } 
+            setIfNot($this->params['maxOptForOpenGroups'], $maxOpt);
+        }
+
         $mvc = cls::get($this->params['mvc']);
         
         $mvc->invoke('BeforePrepareSuggestions', array(&$this->suggestions, $this));
@@ -70,7 +81,10 @@ class type_UserList extends type_Keylist
         $pQuery = crm_Profiles::getQuery();
         $pQuery->show("id");
         while($rec = $pQuery->fetch("#stateInfo IS NOT NULL")) {
-            $iUsers[$rec->id] = $rec->id;
+            $dayBefore = strstr(dt::addDays(1,$rec->sateDateFrom), " ", TRUE);
+            if($dayBefore == strstr(dt::now(), " ", TRUE)){
+                $iUsers[$rec->id] = $rec->id;
+            }
         }
         $this->info = $iUsers;
 
@@ -80,7 +94,12 @@ class type_UserList extends type_Keylist
             $ownRoles = self::toArray($ownRoles); 
         }
         
-        $teams = core_Roles::getRolesByType('team');
+        $removeClosedGroups = TRUE;
+        if ($this->params['showClosedGroups']) {
+            $removeClosedGroups = FALSE;
+        }
+        
+        $teams = core_Roles::getRolesByType('team', 'keylist', $removeClosedGroups);
         $teams = self::toArray($teams);
 
         $roles = core_Roles::getRolesAsKeylist($this->params['roles']);
@@ -93,22 +112,22 @@ class type_UserList extends type_Keylist
         
         // Заявка за да вземем всички запсии
         $uQueryAll = core_Users::getQuery();
-        $uQueryAll->where("#state != 'rejected'");
+        $uQueryAll->where("#state != 'rejected' AND #state != 'draft'");
         $uQueryAll->likeKeylist('roles', "{$teamsKeylist}");
         $uQueryAll->likeKeylist('roles', $roles);
         
         // Броя на групите
         $cnt = $uQueryAll->count();
-        
+      
         // Ако броя е под максимално допустимите или са избрани всичките
         if ((trim($this->params['autoOpenGroups']) == '*') || ($cnt < $this->params['maxOptForOpenGroups'])) {
             
             // Отваряме всички групи
             $openAllGroups = TRUE;
         }
-
+ 
         $userArr = core_Users::getRolesWithUsers();
-        
+    
         $rolesArr = type_Keylist::toArray($roles);
         
         foreach($teams as $t) {  
@@ -126,7 +145,7 @@ class type_UserList extends type_Keylist
             foreach((array)$userArr[$t] as $uId) {
                     
                 $uRec = $userArr['r'][$uId];
-                if ($uRec->state == 'rejected') continue;
+                if ($uRec->state == 'rejected' || $uRec->state == 'draft') continue;
                 
                 if (!empty($rolesArr)) {
                     if (!type_Keylist::isIn($rolesArr, $uRec->roles)) continue;
@@ -135,7 +154,7 @@ class type_UserList extends type_Keylist
                 $uRec->id = $uId;
 
                 // Ако е сетнат параметъра да са отворени всички или е групата на текущия потребител
-                if ($openAllGroups || ($uId == $currUserId)) {
+                if ($openAllGroups) {
                     
                     // Вдигам флага да се отвори групата
                     $group->autoOpen = TRUE;
@@ -151,6 +170,11 @@ class type_UserList extends type_Keylist
                     if(EF_USSERS_EMAIL_AS_NICK) {
                         $this->suggestions[$key] =  html_entity_decode($this->suggestions[$key]);
                     }
+                }
+
+                if($uId == core_Users::getCurrent() && !$ids) {
+                    $group->autoOpen = TRUE;
+                    $haveOpenedGroup = TRUE;
                 }
             }
 
@@ -174,7 +198,7 @@ class type_UserList extends type_Keylist
             $firstGroup = key($this->suggestions);
             
             // Ако е обект
-            if ($firstGroup && is_object($this->suggestions[$firstGroup])) {
+            if ($firstGroup && is_object($this->suggestions[$firstGroup]) && !$ids) {
                 
                 // Вдигама флаг да се отвори
                 $this->suggestions[$firstGroup]->autoOpen = TRUE;
@@ -223,7 +247,7 @@ class type_UserList extends type_Keylist
      */
     function renderInput_($name, $value = "", &$attr = array())
     {
-        $this->prepareSuggestions();
+        $this->prepareSuggestions($value);
         
         if ($value) {
             
@@ -253,7 +277,7 @@ class type_UserList extends type_Keylist
             
             $value = $nValArr;
         }
-        
+    
         $res = parent::renderInput_($name, $value, $attr);
         
         return $res;

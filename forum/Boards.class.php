@@ -531,7 +531,7 @@ class forum_Boards extends core_Master {
     /**
 	 * Модификация на ролите, които могат да видят избраната тема
 	 */
-    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{  
 		if($action == 'read' && isset($rec->id)) {
 			

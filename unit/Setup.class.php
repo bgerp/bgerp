@@ -4,13 +4,13 @@
  */
 defIfNot('UNIT_DEFAULT_USER', 'bgerp');
 defIfNot('UNIT_DEFAULT_USER_PASS', '111111');
-
+defIfNot('UNIT_DEFAULT_USER_NAME', 'Тестов потребител');
 /**
  * Сървър по подразбиране
  */
-//defIfNot('UNIT_DEFAULT_HOST', 'http://localhost');
+defIfNot('UNIT_DEFAULT_HOST', 'http://localhost');
 //defIfNot('UNIT_DEFAULT_HOST', 'http://127.0.0.1:8080');
-defIfNot('UNIT_DEFAULT_HOST', 'http://87.120.200.94:8087');
+//defIfNot('UNIT_DEFAULT_HOST', 'http://87.120.200.94:8087');
 
 /**
  * Клас 'unit_Setup'
@@ -51,7 +51,8 @@ class unit_Setup extends core_ProtoSetup
 	 * Описание на конфигурационните константи
 	 */
 	var $configDescription = array(
-	  'UNIT_DEFAULT_USER' => array("varchar", "caption=Потребител по подразбиране->Име"),
+	  'UNIT_DEFAULT_USER' => array("varchar", "caption=Потребител по подразбиране->Ник"),
+	  'UNIT_DEFAULT_USER_NAME' => array("varchar", "caption=Потребител по подразбиране->Име"),
 	  'UNIT_DEFAULT_USER_PASS' => array("varchar", "caption=Потребител по подразбиране->Парола"),
 	  'UNIT_DEFAULT_HOST' => array("varchar", "caption=Сървър по подразбиране->Име"),
 	);

@@ -160,8 +160,7 @@ class blast_Emails extends core_Master
     /**
      * Плъгините и враперите, които ще се използват
      */
-    public $loadList = 'blast_Wrapper, doc_DocumentPlg, plg_RowTools2, bgerp_plg_blank, 
-                        change_Plugin, plg_Search, plg_Clone, doc_plg_SelectFolder';
+    public $loadList = 'blast_Wrapper, doc_DocumentPlg, plg_RowTools2, bgerp_plg_blank, change_Plugin, plg_Search, plg_Clone';
     
     
     /**
@@ -200,12 +199,6 @@ class blast_Emails extends core_Master
      */
     protected static $cronSytemId = 'SendEmails';
     
-    
-    /**
-     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
-     */
-    public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
-
     
     /**
      * Описание на модела
@@ -540,16 +533,9 @@ class blast_Emails extends core_Master
                 
                 // Клонираме записа
                 $cRec = clone $rec;
-                
-                // Ако е системяния потребител, го спираме
-                $isSystemUser = core_Users::isSystemUser();
-                
-                if ($isSystemUser) {
-                    core_Users::cancelSystemUser();
-                }
-                
+
                 // Имейла да се рендира и да се праща с правата на активатора
-                core_Users::sudo($cRec->activatedBy);
+                $sudoUser = core_Users::sudo($cRec->activatedBy);
                 
                 // Задаваме екшъна за изпращането
                 doclog_Documents::pushAction(
@@ -593,15 +579,8 @@ class blast_Emails extends core_Master
                 doclog_Documents::flushActions();
                 
                 // Връщаме стария потребител
-                core_Users::exitSudo();
-                
-                // Ако е бил стартиран системия потребител, пак го стартираме
-                if ($isSystemUser) {
-                    
-                    //Стартираме системния потребител
-                    core_Users::forceSystemUser();
-                }
-                
+                core_Users::exitSudo($sudoUser);
+                                
                 // Ако имейлът е изпратен успешно, добавяме времето на изпращане
                 if ($status) {
                     
@@ -619,6 +598,23 @@ class blast_Emails extends core_Master
             $this->save($rec, 'progress');
             $this->touchRec($rec->id);
         }
+    }
+
+
+    /**
+     * Преди записване на клонирания запис
+     *
+     * @param core_Mvc $mvc
+     * @param object $rec
+     * @param object $nRec
+     *
+     * @see plg_Clone
+     */
+    function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
+    {
+        unset($nRec->progress);
+        unset($nRec->activatedBy);
+        unset($nRec->errMsg);
     }
     
     
@@ -811,8 +807,8 @@ class blast_Emails extends core_Master
             $body->documentsFh = (array)$docsFhArr;
             
             //id' тата на прикачените файлове с техните
-            $body->attachments = keylist::fromArray(fileman_Files::getIdFromFh($attFhArr));
-            $body->documents = keylist::fromArray(fileman_Files::getIdFromFh($docsFhArr));
+            $body->attachments = keylist::fromArray(fileman::fhKeylistToIds($attFhArr));
+            $body->documents = keylist::fromArray(fileman::fhKeylistToIds($docsFhArr));
         }
         
         // Други необходими данни за изпращането на имейла
@@ -1170,7 +1166,7 @@ class blast_Emails extends core_Master
             
             $host = defined('BGERP_ABSOLUTE_HTTP_HOST') ? BGERP_ABSOLUTE_HTTP_HOST : $_SERVER['HTTP_HOST'];
             
-            $err = "Внимание|*! |Понеже системата работи на локален адрес|* ({$host}), |то линковете в изходящото писмо няма да са достъпни от други компютри в интернет|*.";
+            $err = "Внимание|*! |Понеже системата работи на локален адрес|* ({$host}), |то линковете в изходящото писмо няма да са достъпни от други компютри в Интернет|*.";
             
             $form->setWarning($errField, $err);
         }
@@ -1787,7 +1783,7 @@ class blast_Emails extends core_Master
      * @param string $action
      * @param object $rec
      */
-    static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec)
+    public static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec = NULL, $userId = NULL)
     {
         // Трябва да има права за сингъла на документа, за да може да активира, спира и/или обновява
         if ((($action == 'activate') || ($action == 'stop') || ($action == 'update')) && $rec) {
@@ -2011,12 +2007,30 @@ class blast_Emails extends core_Master
         
         if (!$haveNextStartTime) {
             
-            $nextStartDay = 7;
+            $nextStartDay = NULL;
             
             foreach ($sendingArr as $sendingDay) {
-                if ($sendingDay > $dayOfWeek) {
+                if ($sendingDay >= $dayOfWeek) {
+                    
+                    if ($sendingDay == $dayOfWeek) {
+                        if (dt::now() >= $sendingTo) continue;
+                    }
+                    
                     $nextStartDay = $sendingDay;
                     break;
+                }
+            }
+            
+            if (!isset($nextStartDay)) {
+                
+                if ($dw = $sendingArr[$dayOfWeek]) {
+                    if (!$sendingTo || ($nextStartTime < $sendingTo)) {
+                        $nextStartDay = $dw;
+                    }
+                }
+                
+                if (!isset($nextStartDay)) {
+                    $nextStartDay = 7 + min($sendingArr);
                 }
             }
             

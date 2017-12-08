@@ -517,10 +517,10 @@ class core_String
                 $remain = (int) ($maxLen - 3);
                 $str = mb_substr($str, 0, $remain) . $dots;
             }
-        } elseif($hyphen && (mb_strlen($str) > $maxLen/2)) {
+        }
+        if ($hyphen && (mb_strlen($str) > $maxLen/4)) {
             $str = str::hyphenText($str);
         }
-        
         return $str;
     }
 	
@@ -835,8 +835,14 @@ class core_String
     /**
      * Подготвя аритметичен израз за изчисляване
      */
-    static function prepareMathExpr($expr)
+    static function prepareMathExpr($expr, $contex = array())
     {
+        // Ако има променливи, заместваме ги в израза
+        if(count($contex)) {
+            uksort($contex, "str::sortByLengthReverse");
+            $expr  = strtr($expr, $contex);
+        }
+
         // Remove whitespaces
         $expr = preg_replace('/\s+/', '', $expr);
                 
@@ -875,11 +881,25 @@ class core_String
         
         if(strlen($expr)) {
             $last = error_reporting(0);
-            $success = @eval('$result = ' . $expr . ';');
+            try {
+                eval('$result = ' . $expr . ';');
+            } catch (Throwable $t) {
+                $result = NULL;
+                $success = FALSE;
+            }
 
         }
 
         return $result;
+    }
+    
+    
+    /**
+     * Помощна функция за сортиране на масив
+     */
+    public static function sortByLengthReverse($a, $b)
+    {
+        return strlen($b) - strlen($a);
     }
 
 
@@ -1045,15 +1065,15 @@ class core_String
      * Хифинира текст, така че да няма много дължи, не-пренодими думи
      * 
      * @param string $text
-     * @param integer $maxWordLen
+     * @param integer $minWordLenForHyphen
      * 
      * @return string
      */
-    public static function hyphenText($text, $maxWordLen = 20)
+    public static function hyphenText($text, $minWordLenForHyphen = 20)
     {
         $hyphSign = html_entity_decode('&#45;');
-
-        $text = preg_replace_callback("/[^ \r\t\n{$hyphSign}]{" . $maxWordLen . ",}/s", array('core_String', 'hyphenWord'), $text);
+        
+        $text = preg_replace_callback("/[^ \r\t\n{$hyphSign}]{" . $minWordLenForHyphen . ",}/s", array('core_String', 'hyphenWord'), $text);
 
         return $text;
     }
@@ -1066,19 +1086,50 @@ class core_String
      * 
      * @return string
      */
-    private static function hyphenWord($matches)
-    {
-     	
-    	return hyphen_Plugin::getHyphenWord($matches[0]);
+    private static function hyphenWord($matches, $minLen = 8, $maxLen = 32)
+    {      
+	
+    	return hyphen_Plugin::getHyphenWord($matches[0], $minLen, $maxLen);
     }
-
-
+    
+    
     /**
-     * Помощна функция за сортиране на масив
+     * Маха всички празни стрингове от стринга
+     * 
+     * @param varchar $string
+     * @return varchar $string
      */
-    public static function sortByLengthReverse($a, $b)
+    public static function removeWhitespaces($string)
     {
-        return strlen($b) - strlen($a);
+    	return preg_replace('/\s+/', '', $string);
     }
-
+    
+    
+    /**
+     * Разбива текст по нови редове във масив
+     * 
+     * @param string $text
+     * @return array $array
+     */
+    public static function text2Array($text)
+    {
+    	$array = preg_split('/$\R?^/m', $text);
+    	
+    	return $array;
+    }
+    
+    
+    /**
+     * Връща текст със заместени урл-та с линкове
+     * 
+     * @param string $text
+     * @return string 
+     */
+    public static function replaceUrlsWithLinks($text) 
+    {
+    	$UrlType = core_Type::getByName('url');
+    	return preg_replace_callback(type_Richtext::URL_PATTERN, function ($matches) use ($UrlType){
+    		return $UrlType->toVerbal($matches[0])->getContent();
+    	}, $text);
+    }
 }

@@ -137,7 +137,7 @@ class distro_Repositories extends core_Master
         $this->FLD('hostId', 'key(mvc=ssh_Hosts, select=name)', 'caption=Хост,input,mandatory');
         $this->FLD('name', 'varchar', 'caption=Име, mandatory');
         $this->FLD('path', 'varchar', 'caption=Път на хранилището, mandatory');
-        $this->FLD('info', 'richtext', 'caption=Информация');
+        $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Информация');
         $this->FLD('lineHash', 'varchar(32)', 'caption=Хеш, input=none');
         $this->FLD('url', 'url', 'caption=Линк за сваляне');
         
@@ -245,7 +245,7 @@ class distro_Repositories extends core_Master
         $path = rtrim($rec->path, '/') . '/' . $name;
         $path = escapeshellarg($path);
         
-        $exec = 'mkdir -p ' . $path;
+        $exec = 'mkdir -m 777 -p ' . $path;
         
         return $exec;
     }
@@ -370,11 +370,11 @@ class distro_Repositories extends core_Master
 
         $ext = fileman_Files::getExt($file);
         //Иконата на файла, в зависимост от разширението на файла
-        $icon = "fileman/icons/{$ext}.png";
+        $icon = "fileman/icons/16/{$ext}.png";
         
         //Ако не можем да намерим икона за съответното разширение, използваме иконата по подразбиране
         if (!is_file(getFullPath($icon))) {
-            $icon = "fileman/icons/default.png";
+            $icon = "fileman/icons/16/default.png";
         }
         
         $fileStr = ht::createLinkRef($link, $url);
@@ -613,9 +613,9 @@ class distro_Repositories extends core_Master
     {
         $path = escapeshellarg($path);
         
-        $res = 'crontab -l > cron.res' . "\n";
-        $res .= 'echo "* * * * * ' . $path . '" >> cron.res' . "\n";
-        $res .= 'crontab cron.res' . "\n";
+        $res = 'crontab -l > cron.res' . " && ";
+        $res .= 'echo "* * * * * ' . $path . '" >> cron.res' . " && ";
+        $res .= 'crontab cron.res' . " && ";
         $res .= 'rm cron.res';
         
         return $res;

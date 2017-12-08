@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   plg
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -24,6 +24,8 @@ class plg_Clone extends core_Plugin
         setIfNot($invoker->canClonesysdata, 'admin, ceo');
         setIfNot($invoker->canCloneuserdata, 'user');
         setIfNot($invoker->canClonerec, 'user');
+        
+        $invoker->FLD('clonedFromId', "key(mvc={$invoker->className})", 'input=hidden,forceField');
     }
     
     
@@ -55,16 +57,8 @@ class plg_Clone extends core_Plugin
         // след като сме махнали от река зададените полета
         $mvc->prepareEditForm_($data);
         $form = &$data->form;
-        
-        // Проверяваме имали полета, които не искаме да се клонират
-        $dontCloneFields = arr::make($mvc->fieldsNotToClone, TRUE);
-        
-        // Ако има махаме ги от $form->rec
-        if(count($dontCloneFields)){
-        	foreach ($dontCloneFields as $unsetField){
-        		unset($form->rec->{$unsetField});
-        	}
-        }
+       	$form->rec->clonedFromId = $rec->id;
+       	self::unsetFieldsNotToClone($mvc, $form->rec, $rec);
         
         // Инвоукваме ръчно ивента за подготовка на формата, след като сме махнали от
         // $form->rec -а полетата, които не искаме да се копират, така ако в ивента
@@ -154,13 +148,39 @@ class plg_Clone extends core_Plugin
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title=Запис на документа');
         $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
+        if ($mvc instanceof core_Master) {
+            $singleLink = $mvc->getLinkToSingle($id);
+        } else {
+            $singleLink = '|' . mb_strtolower($mvc->getTitle()) . '|*';
+        }
+        
         // Добавяме титлата на формата
-        $form->title = 'Клониране на запис в|* "' . $mvc->getTitle() . '"';
+        $form->title = 'Клониране на|* ' . $singleLink;
         
         // Рендираме опаковката
         $res = $mvc->renderWrapping($form->renderHtml());
+        core_Form::preventDoubleSubmission($res, $form);
         
         return FALSE;
+    }
+    
+    
+    /**
+     * Метод премахващ ненужните полета
+     */
+    public static function unsetFieldsNotToClone($mvc, &$newRec, $oldRec)
+    {
+    	$mvc = cls::get($mvc);
+    	
+    	// Проверяваме имали полета, които не искаме да се клонират
+    	$dontCloneFields = $mvc->getFieldsNotToClone($oldRec);
+    	
+    	// Ако има махаме ги от $form->rec
+    	if(count($dontCloneFields)){
+    		foreach ($dontCloneFields as $unsetField){
+    			unset($newRec->{$unsetField});
+    		}
+    	}
     }
     
     
@@ -289,7 +309,7 @@ class plg_Clone extends core_Plugin
             
             // Добавяме бутон за клониране в сингъл изгледа
             $title = tr('|Клониране на|*' . ' ' . $singleTitle);
-            $data->toolbar->addBtn('Клониране', array($mvc, 'cloneFields', $data->rec->id, 'ret_url' => array($mvc, 'single', $data->rec->id)), "ef_icon=img/16/clone.png,title={$title},row=2, order=19.1");
+            $data->toolbar->addBtn('Клониране', array($mvc, 'cloneFields', $data->rec->id, 'ret_url' => array($mvc, 'single', $data->rec->id)), "ef_icon=img/16/clone.png,title={$title},row=2,id=clone{$data->rec->containerId}, order=19.1");
         }
     }
     
@@ -318,13 +338,22 @@ class plg_Clone extends core_Plugin
     				$query->where("#{$Detail->masterKey} = {$oldMasterId}");
     				$query->orderBy('id', "ASC");
     				$dRecs = $query->fetchAll();
-    						
+
+    				$dontCloneFields = arr::make($Detail->fieldsNotToClone, TRUE);
+    				
     				if(is_array($dRecs)){
     					foreach($dRecs as $dRec){
     						$oldRec = clone $dRec;
     						$dRec->{$Detail->masterKey} = $newMasterId;
     						unset($dRec->id);
     	
+    						// Ако има махаме ги от $form->rec
+    						if(count($dontCloneFields)){
+    							foreach ($dontCloneFields as $unsetField){
+    								unset($dRec->{$unsetField});
+    							}
+    						}
+    						
     						$Detail->invoke('BeforeSaveClonedDetail', array($dRec, $oldRec));
     	
     						if($Detail->isUnique($dRec, $fields)){
@@ -358,7 +387,7 @@ class plg_Clone extends core_Plugin
     public static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
     {
     	$Details = $mvc->getDetailsToClone($rec);
-    	
+    	$mvc->invoke('BeforeSaveCloneDetails', array($nRec, &$Details));
     	self::cloneDetails($Details, $rec->id, $nRec->id);
     }
     
@@ -370,5 +399,37 @@ class plg_Clone extends core_Plugin
     {
     	// Добавяме артикулите към детайлите за клониране
     	$res = arr::make($mvc->cloneDetails, TRUE);
+    }
+    
+    
+    /**
+     * Връща id на източника, от къдете е клониран записа
+     * 
+     * @param core_Mvc $mvc
+     * @param NULL|integer $res
+     * @param stdObject $rec
+     */
+    public static function on_AfterGetClonedFromId($mvc, &$res, $rec)
+    {
+        $rec = $mvc->fetchRec($rec);
+        
+        if (isset($rec->clonedFromId)) {
+            $res = $rec->clonedFromId;
+        }
+    }
+    
+    
+    /**
+     * След взимане на полетата, които да не се клонират
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $rec
+     */
+    public static function on_AfterGetFieldsNotToClone($mvc, &$res, $rec)
+    {
+    	if(!$res){
+    		$res = arr::make($mvc->fieldsNotToClone, TRUE);
+    	}
     }
 }

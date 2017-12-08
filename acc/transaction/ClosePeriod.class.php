@@ -384,6 +384,17 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
      * 
      * 			Dt: 123 - Печалби и загуби от текущата година
      * 			Ct: 6912 - Извънредни разходи по Покупки
+     * 
+     * Отнасяме общите извънредни разходи (отразени по дебита на с/ка 699) 
+     * 			
+     * 			Dt: 123 - Печалби и загуби от текущата година
+     *          Ct: 699 - Други извънредни разходи
+     *          
+     * Отнасяме общите извънредни приходи (отразени по кредита на с/ка 799)
+     * 
+     * 			Dt: 799 - Други извънредни приходи
+     *          Ct: 123 - Печалби и загуби от текущата година
+     * 
      */
     protected function transferIncomeToYear(&$total, $incomeRes)
     {
@@ -483,6 +494,40 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     			
     			$total += abs($dRec4->blAmount);
     		}
+    	}
+    	
+    	// Отнасяне на салдото на общите извънредни разходи
+    	$bQuery2 = acc_BalanceDetails::getQuery();
+    	acc_BalanceDetails::filterQuery($bQuery2, $this->balanceId, '699');
+    	$bQuery2->XPR('roundBlAmount', 'double', 'ROUND(#blAmount, 2)');
+    	$bl699 = $bQuery2->fetch()->roundBlAmount;
+    	
+    	if($bl699 > 0){
+    		$entries[] = array('amount' => $bl699,
+    				           'debit'  => array('123', $this->date->year),
+    				           'credit' => array('699'),
+    				           'reason' => 'Отнасяне на общи извънредни разходи');
+    		 
+    		$total += $bl699;
+    	} elseif($bl699 < 0) {
+    		//@TODO имали такъв случай
+    	}
+    	
+    	// Отнасяне на салдото на общите извънредни приходи
+    	$bQuery3 = acc_BalanceDetails::getQuery();
+    	acc_BalanceDetails::filterQuery($bQuery3, $this->balanceId, '799');
+    	$bQuery3->XPR('roundBlAmount', 'double', 'ROUND(#blAmount, 2)');
+    	$bl799 = $bQuery3->fetch()->roundBlAmount;
+    	
+    	if($bl799 < 0){
+    		$entries[] = array('amount' => abs($bl799),
+    				'debit'  => array('799'),
+    				'credit' => array('123', $this->date->year),
+    				'reason' => 'Отнасяне на общи извънредни приходи');
+    		 
+    		$total += abs($bl799);
+    	} elseif($bl799 > 0) {
+    		//@TODO имали такъв случай
     	}
     	
 	    return $entries;

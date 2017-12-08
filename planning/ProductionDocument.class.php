@@ -125,6 +125,7 @@ abstract class planning_ProductionDocument extends deals_ManifactureMaster
 	protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
 	{
 		$rec = $data->rec;
+		if(planning_Setup::get('PRODUCTION_NOTE_REJECTION') != 'no') return;
 		
 		if($rec->state == 'active'){
 			
@@ -152,8 +153,44 @@ abstract class planning_ProductionDocument extends deals_ManifactureMaster
 	public static function on_BeforeReject($mvc, &$res, $id)
 	{
 		$rec = $mvc->fetchRec($id);
-		if($rec->state == 'active'){
+		if($rec->state == 'active' && planning_Setup::get('PRODUCTION_NOTE_REJECTION') != 'yes'){
 			expect(!$mvc->getNewerProductionDocumentHandle($rec));
 		}
+	}
+	
+	
+	/**
+	 * Проверка дали нов документ може да бъде добавен в
+	 * посочената папка като начало на нишка
+	 *
+	 * @param $folderId int ид на папката
+	 */
+	public static function canAddToFolder($folderId)
+	{
+		return FALSE;
+	}
+	
+	
+	/**
+	 * Проверка дали нов документ може да бъде добавен в
+	 * посочената нишка
+	 *
+	 * @param int $threadId key(mvc=doc_Threads)
+	 * @return boolean
+	 */
+	public static function canAddToThread($threadId)
+	{
+		// Може да добавяме или към нишка с начало задание
+		$firstDoc = doc_Threads::getFirstDocument($threadId);
+		if($firstDoc->isInstanceOf('planning_Jobs')){
+	
+			return TRUE;
+		}
+		 
+		$folderId = doc_Threads::fetchField($threadId, 'folderId');
+		$folderClass = doc_Folders::fetchCoverClassName($folderId);
+	
+		// или към нишка в папка на склад
+		return cls::haveInterface('store_AccRegIntf', $folderClass);
 	}
 }

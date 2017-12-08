@@ -50,6 +50,6 @@ class replace_Groups extends core_Manager
     function description()
     {
         $this->FLD('name' , 'varchar', 'caption=Наименование,width=100%');
-        $this->FLD('info' , 'richtext', 'caption=информация');
+        $this->FLD('info' , 'richtext(bucket=Notes)', 'caption=информация');
     }
 }

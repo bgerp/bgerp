@@ -222,7 +222,7 @@ class doclog_Documents extends core_Manager
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption=Контейнер');
         
         // MID на документа
-        $this->FLD('mid', 'varchar', 'input=none,caption=Ключ,column=none');
+        $this->FLD('mid', 'varchar(8,ci)', 'input=none,caption=Ключ,column=none');
         
         $this->FLD('parentId', 'key(mvc=doclog_Documents, select=action)', 'input=none,caption=Основание');
         
@@ -246,7 +246,9 @@ class doclog_Documents extends core_Manager
         $this->FNC('service', 'class(interface=email_SentFaxIntf, select=title)', 'input=none');
         
         $this->setDbIndex('containerId');
-        
+        $this->setDbIndex('mid');
+        $this->setDbIndex('threadId');
+
         $this->setDbUnique('containerId, action, mid');
     } 
     
@@ -1252,15 +1254,15 @@ class doclog_Documents extends core_Manager
             }
         }
         
+        // Записите да се подреждат по дата в обратен ред
+        $query->orderBy('createdOn', 'DESC');
+        
         // Ако е подаден обект за странициране
         if ($pager) {
             
             // Задаваме лимита за странициране
             $pager->setLimit($query);
         }
-        
-        // Записите да се подреждат по дата в обратен ред
-        $query->orderBy('createdOn', 'DESC');
         
         $recsArr = array();
         
@@ -1863,11 +1865,6 @@ class doclog_Documents extends core_Manager
             static::pushAction($rec);
         }
         
-        // Съобщение в лога
-        $doc = doc_Containers::getDocument($rec->containerId);
-		$docInst = $doc->getInstance();
-		$docInst->logWrite("Промяна", $doc->that, DOCLOG_DOCUMENTS_DAYS);
-        
         return $rec;
     }
     
@@ -2107,6 +2104,8 @@ class doclog_Documents extends core_Manager
             $data[$rec->containerId]->containerId = $rec->containerId;
         }
         
+        // Показваме използванията
+        $cArr = array();
         $contQuery = doc_Containers::getQuery();
         $contQuery->where("#threadId = {$threadId}");
         while ($cRec = $contQuery->fetch()) {
@@ -2115,7 +2114,12 @@ class doclog_Documents extends core_Manager
                 $data[$cRec->id]->containerId = $cRec->id;
             }
             
-            $data[$cRec->id]->summary[$used] = doclog_Used::getUsedCount($cRec->id);
+            $cArr[$cRec->id] = $cRec->id;
+        }
+        
+        $allUsedCount = doclog_Used::getAllUsedCount($cArr);
+        foreach ($allUsedCount as $cId => $cnt) {
+            $data[$cId]->summary[$used] = $cnt;
         }
         
         return $data;

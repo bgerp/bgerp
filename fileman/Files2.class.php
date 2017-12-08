@@ -16,6 +16,8 @@ defIfNot('FILEMAN_TEMP_PATH', EF_TEMP_PATH . '/fileman');
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
+ * 
+ * @deprecated
  */
 class fileman_Files2 extends core_Master 
 {
@@ -26,23 +28,28 @@ class fileman_Files2 extends core_Master
      * 
      * @param string $path - Пътя до файла в ОС
      * @param string $bucket - Името на кофата
-     * @param string|NULL $name - Името на файла 
+     * @param string|NULL $name - Името на файла
+     * @param string $type - Типа
      * 
-     * @return fileHnd $fh - Манипулатора на файла
+     * @return string $fh - Манипулатора на файла
      */
-    public static function absorb($path, $bucket, $name = NULL)
+    public static function absorb($path, $bucket, $name = NULL, $type = 'file')
     {
-        // Очакваме да има валиден файл
-        expect(is_file($path), 'Не е подаден валиден файл.');
+        wp('deprecated');
+        
+        if ($type == 'file') {
+            // Очакваме да има валиден файл
+            expect(is_file($path), 'Не е подаден валиден файл.');
+            
+            // Опитваме се да определим името на файла
+            if(!$name) $name = basename($path);
+        }
         
         // Очакваме да има такава кофа
         expect($bucketId = fileman_Buckets::fetchByName($bucket), 'Несъществуваща кофа.');
 
-        // Опитваме се да определим името на файла
-        if(!$name) $name = basename($path);
-        
         // Абсорбираме файла
-        $data = fileman_Data::absorb($path, 'file');
+        $data = fileman_Data::absorb($path, $type);
         
         // Очаквамед да има данни
         expect($dataId = $data->id, 'Липсват данни.');
@@ -78,40 +85,13 @@ class fileman_Files2 extends core_Master
      * @param string $bucket - Името на кофата
      * @param string $name - Името на файла 
      * 
-     * @return fileHnd $fh - Манипулатора на файла
+     * @return string $fh - Манипулатора на файла
      */
     public static function absorbStr($data, $bucket, $name)
     {
-        // Очакваме да има валидна кофа
-        expect($bucketId = fileman_Buckets::fetchByName($bucket), 'Несъществуваща кофа');
+        wp('deprecated');
         
-        // Качваме файла и вземаме id' то на данните
-        $data = fileman_Data::absorb($data, 'string');
-        
-        // Очаквамед да има данни
-        expect($dataId = $data->id, 'Липсват данни.');
-        
-        // Инстанция на този клас
-        $me = cls::get(get_called_class());
-        
-        // Инвокваме функцията
-        $me->invoke('prepareFileName', array(&$name, $dataId));
-        
-        // Проверяваме дали същия файл вече съществува
-        if ($data->new || !($fh = static::checkFileNameExist($dataId, $bucketId, $name))) {
-            
-            // Създаваме запис за файла
-            $fh = static::createFile($name, $bucketId, $dataId);    
-        }
-        
-        // Ако има манипулатор 
-        if ($fh) {
-            
-            // Обновяваме лога за използване на файла
-            fileman_Log::updateLogInfo($fh, 'upload');
-        }
-        
-        return $fh;
+        return self::absorb($data, $bucket, $name, 'string');
     }
 
     
@@ -219,12 +199,12 @@ class fileman_Files2 extends core_Master
         $copyPath = $path . "/" . $fileName;
         
         // Копираме файла
-        $copied = copy($originalPath, $copyPath);
+        $copied = @copy($originalPath, $copyPath);
         
         // Ако копирането не премине успешно
         if (!$copied) {
+            fileman_Files::logErr("Не може да бъде копиран файла|* : '{$originalPath}' =>  '{$copyPath}'", $rec->id);
             expect($copied, 'Не може да бъде копиран файла');
-            self::logErr("Не може да бъде копиран файла|* : '{$originalPath}' =>  '{$copyPath}'", $rec->id);
         }
         
         // Времето на екстрактване
@@ -727,7 +707,7 @@ class fileman_Files2 extends core_Master
         
         return $isCorrect[$path];
     }
-    
+
     
     /**
      * Връща mimе типа за съответния файл
@@ -935,17 +915,17 @@ class fileman_Files2 extends core_Master
         $ext = fileman_Files::getExt($name);
         
         //Иконата на файла, в зависимост от разширението на файла
-        $icon = "fileman/icons/{$ext}.png";
+        $icon = "fileman/icons/16/{$ext}.png";
         
         //Ако не можем да намерим икона за съответното разширение
         if (!is_file(getFullPath($icon))) {
             
             // Използваме иконата по подразбиране
-            $icon = "fileman/icons/default.png";
+            $icon = "fileman/icons/16/default.png";
         }
         
         // Вербалното име на файла
-        $fileName = "<span class='linkWithIcon' style='background-image:url(" . sbf($icon, '"', $absolute) . ");'>{$vName}</span>";
+        $fileName = "<span class='linkWithIcon' style=\"" . ht::getIconStyle($icon) . "\">{$vName}</span>";
         
         // Вземаме URL' то
         $url = static::getUrlToSingle($fh, $absolute);

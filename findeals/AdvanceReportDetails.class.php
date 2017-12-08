@@ -74,7 +74,7 @@ class findeals_AdvanceReportDetails extends deals_DeliveryDocumentDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId=Мярка, packQuantity, packPrice, discount, amount, quantityInPack';
+    public $listFields = 'productId, packagingId=Мярка, packQuantity, packPrice, discount, amount';
     
     
 	/**
@@ -90,6 +90,7 @@ class findeals_AdvanceReportDetails extends deals_DeliveryDocumentDetail
     {
     	$this->FLD('reportId', 'key(mvc=findeals_AdvanceReports)', 'column=none,notNull,silent,hidden,mandatory');
     	parent::setDocumentFields($this);
+    	$this->setFieldTypeParams('packQuantity', "Min=0");
     }
     
     

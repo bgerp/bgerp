@@ -302,7 +302,7 @@ class status_Messages extends core_Manager
             // При възникване на статус от тип грешка, да се нотифицира в таба 
             foreach ((array)$statusesArr as $statusDesc) {
                 if ($statusDesc->arg['type'] == 'error') {
-                    $errIcon = sbf('img/dialog_error-small.png', '');
+                    $errIcon = sbf('img/16/dialog_error.png', '');
                     
                     $resObj = new stdClass();
                     $resObj->func = 'Notify';

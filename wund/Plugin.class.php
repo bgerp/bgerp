@@ -19,6 +19,8 @@ class wund_Plugin extends core_Plugin
     
     function on_AfterPrepareGroupDate($mvc, &$res, $date) 
     { 
+        if(dt::addDays(3) < $date) return;
+
         $forRec = wund_Forecasts::getForecast($date);
 
         if($forRec) {

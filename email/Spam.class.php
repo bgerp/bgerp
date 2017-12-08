@@ -48,7 +48,9 @@ class email_Spam extends email_ServiceEmails
             $rec->createdOn = dt::verbal2mysql();
 
             self::save($rec);
-
+            
+            self::logNotice('Маркиран имейл като спам', $rec->id);
+            
             return $rec->id;
         }
     }
@@ -59,9 +61,30 @@ class email_Spam extends email_ServiceEmails
      */
     static function detectSpam($mime, $accId, $uid)
     {   
+        $isSpam = FALSE;
+        
+        // Ако е отговор на наш имейл да не се приема като спам
+        $subject = $mime->getHeader('subject');
+        if ($subject && email_ThreadHandles::extractThreadFromSubject($subject)) {
+            
+            return $isSpam;
+        }
+        
+        $inReplyTo = $mime->getHeader('In-Reply-To');
+        if ($inReplyTo) {
+            if ($mid = email_Router::extractMidFromMessageId($inReplyTo)) {
+                if (doclog_Documents::fetchByMid($mid)) {
+                    
+                    return $isSpam;
+                }
+            }
+        }
+        
         // Ако няма адрес на изпращача, писмото го обявяваме за спам
         if(!($fromEmail = $mime->getFromEmail())) {
             $isSpam = TRUE;
+            
+            return $isSpam;
         }
         
         // Ако изпращането е станало, през някои от регистрираните имейл акаунти
@@ -70,18 +93,70 @@ class email_Spam extends email_ServiceEmails
         
         // TODO
 
-
-        // Според нивото на спам-статуса от SpamAssassin
-        $spamStatus = $mime->getHeader('X-Spam-Status');
-        $conf = core_Packs::getConfig('email');
-        if(preg_match('/^.+ score=([0-9\.]+) /i', $spamStatus, $matches)) {
-            $score = $matches[1];
-            if($score >= $conf->SPAM_SA_SCORE_LIMIT) {
-                $isSpam = TRUE;
-            }
+        // Гледаме спам рейтинга
+        $score = self::getSpamScore($mime->parts[1]->headersArr);
+        if (isset($score) && ($score >= email_Setup::get('HARD_SPAM_SCORE'))) {
+            $isSpam = TRUE;
         }
-
+        
         return $isSpam;
     }
-     
+    
+    
+    /**
+     * Връща спам рейтинга от хедърите
+     *
+     * @param array $headerArr
+     * @param boolean $notNull
+     */
+    public static function getSpamScore($headerArr, $notNull = TRUE)
+    {
+        $headersNames = email_Setup::get('CHECK_SPAM_SCORE_HEADERS');
+        
+        $headersNamesArr = type_Set::toArray($headersNames);
+        
+        static $scoreArr = array();
+        
+        $hash = md5(serialize($headerArr));
+        
+        if (!$scoreArr[$hash]) {
+            
+            $score = NULL;
+            
+            // Проверяваме рейтинга във всички зададени хедъри
+            if ($headersNamesArr) {
+                
+                foreach ($headersNamesArr as $header) {
+                    
+                    $header = trim($header);
+                    
+                    if (!$header) continue;
+                    
+                    $score = email_Mime::getHeadersFromArr($headerArr, $header);
+                    
+                    if (!is_numeric($score)) {
+                        if(preg_match('/score\s*=\s*([0-9\.]+)(\s|$|[^0-9])/i', $score, $matches)) {
+                            $score = $matches[1];
+                        }
+                    }
+                    
+                    if (isset($score) && is_numeric($score)) break;
+                }
+            }
+            
+            if (!is_numeric($score)) {
+                $score = NULL;
+            }
+            
+            $scoreArr[$hash]['score'] = $score;
+        } else {
+            $score = $scoreArr[$hash]['score'];
+        }
+        
+        if (!isset($score) && $notNull) {
+            $score = 0;
+        }
+        
+        return $score;
+    }
 }

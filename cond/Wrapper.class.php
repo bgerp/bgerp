@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   cond
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -23,15 +23,15 @@ class cond_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {
-        $this->TAB('cond_DeliveryTerms', 'Доставки', 'cond,ceo');
-    	$this->TAB('cond_PaymentMethods', 'Плащания->Методи', 'cond,ceo');    
-        $this->TAB('cond_Payments', 'Плащания->Средства', 'ceo,cond');
-        $this->TAB('cond_Payments', 'Плащания->Средства', 'ceo,cond');
-        $this->TAB('cond_TaxAndFees', 'Данъци и такси', 'cond,ceo');
-        $this->TAB('cond_Parameters', 'Търговски условия->Видове', 'cond,ceo');
-        $this->TAB('cond_Countries', 'Търговски условия->По държави', 'cond,ceo');
-        $this->TAB('cond_Texts', 'Пасажи->Текстове', 'ceo,cond, admin');
-        $this->TAB('cond_Groups', 'Пасажи->Групи', 'ceo,cond, admin');
+        $this->TAB('cond_DeliveryTerms', 'Доставки', 'ceo,admin');
+    	$this->TAB('cond_PaymentMethods', 'Плащания->Методи', 'ceo,admin');    
+        $this->TAB('cond_Payments', 'Плащания->Средства', 'ceo,admin');
+        $this->TAB('cond_TaxAndFees', 'Данъци и такси', 'ceo,admin');
+        $this->TAB('cond_Countries', 'Търговски условия->Търговски условия', 'ceo,admin');
+        $this->TAB('cond_Parameters', 'Търговски условия->Видове', 'ceo,admin');
+        $this->TAB('cond_Texts', 'Пасажи->Текстове', 'ceo,admin');
+        $this->TAB('cond_Groups', 'Пасажи->Групи', 'ceo,admin');
+        $this->TAB('doc_LinkedTemplates', 'Връзки', 'admin');
         $this->title = 'Терминология';
     }
 }

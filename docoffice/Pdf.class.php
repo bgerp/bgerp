@@ -56,7 +56,6 @@ class docoffice_Pdf
         
         if (!$params['isPath']) {
             $Script->fh = $fileHnd;
-            fileman_Indexes::haveErrors($outFilePath, $params);
         }
         
         $Script->setCheckProgramsArr('pdftotext');

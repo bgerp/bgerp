@@ -31,7 +31,7 @@ class pos_FavouritesCategories extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'name, createdOn, createdBy';
+    var $listFields = 'name, points, createdOn, createdBy';
     
 	
 	/**
@@ -82,7 +82,8 @@ class pos_FavouritesCategories extends core_Manager {
     function description()
     {
     	$this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
-        
+    	$this->FLD('points', 'keylist(mvc=pos_Points, select=name, makeLinks)', 'caption=Точки на продажба');
+    	
         $this->setDbUnique('name');
     }
     
@@ -91,11 +92,12 @@ class pos_FavouritesCategories extends core_Manager {
      * Връща всички продуктови категории
      * @return array $categories - Масив от всички категории
      */
-    public static function prepareAll()
+    public static function prepareAll($pointId)
     {
     	$categories = array();
     	$varchar = cls::get('type_Varchar');
     	$query = static::getQuery();
+    	$query->where("#points IS NULL OR LOCATE('|{$pointId}|', #points)");
     	while($rec = $query->fetch()) {
     		$rec->name = $varchar->toVerbal($rec->name);
     		$categories[$rec->id] = (object)array('id' => $rec->id, 'name' => $rec->name);
@@ -106,12 +108,21 @@ class pos_FavouritesCategories extends core_Manager {
     
     
     /**
-     * Извиква се след SetUp-а на таблицата за модела
+     * След началното установяване на този мениджър
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    public static function loadSetupData()
     {
-    	if(!$mvc->count()){
-    		$mvc->save((object)array('name' => 'Най-продавани'));
-    	} 
+    	pos_FavouritesCategories::truncate();
+    	if(!self::fetch("#name = 'Най-продавани'")){
+    		self::save((object)array('name' => 'Най-продавани'));
+    	}
+    	
+    	$pQuery = pos_Points::getQuery();
+    	while($pRec = $pQuery->fetch()){
+    		$name = "Налични ({$pRec->name})";
+    		if(!self::fetch("#name = '{$name}'")){
+    			self::save((object)array('name' => $name, 'points' => keylist::addKey('', $pRec->id)));
+    		}
+    	}
     }
 }

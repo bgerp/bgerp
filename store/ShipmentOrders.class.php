@@ -1,4 +1,7 @@
 <?php
+
+
+
 /**
  * Клас 'store_ShipmentOrders'
  *
@@ -8,7 +11,7 @@
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov<ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -22,12 +25,6 @@ class store_ShipmentOrders extends store_DocumentMaster
      * @var string
      */
     public $title = 'Експедиционни нареждания';
-
-
-    /**
-     * Флаг, който указва, че документа е партньорски
-     */
-    public $visibleForPartners = TRUE;
     
     
     /**
@@ -40,15 +37,15 @@ class store_ShipmentOrders extends store_DocumentMaster
      * Поддържани интерфейси
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf,
-                          acc_TransactionSourceIntf=store_transaction_ShipmentOrder, bgerp_DealIntf,batch_MovementSourceIntf=batch_movements_Shipments,deals_InvoiceSourceIntf';
+                          acc_TransactionSourceIntf=store_transaction_ShipmentOrder, bgerp_DealIntf,trans_LogisticDataIntf,label_SequenceIntf,deals_InvoiceSourceIntf';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
-                    doc_DocumentPlg, plg_Printing, trans_plg_LinesPlugin, acc_plg_DocumentSummary, plg_Search, doc_plg_TplManager,
-					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices, doc_SharablePlg';
+    public $loadList = 'plg_RowTools2, store_plg_StoreFilter,store_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting,store_plg_Request, acc_plg_Contable, cond_plg_DefaultValues,
+                    plg_Clone,doc_DocumentPlg, plg_Printing, trans_plg_LinesPlugin, acc_plg_DocumentSummary, doc_plg_TplManager,
+					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices, doc_SharablePlg,deals_plg_SetTermDate,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search';
 
     
     /**
@@ -61,12 +58,6 @@ class store_ShipmentOrders extends store_DocumentMaster
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,store';
-    
-    
-    /**
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'ceo,store';
@@ -75,7 +66,7 @@ class store_ShipmentOrders extends store_DocumentMaster
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,store';
+	public $canSingle = 'ceo,store,sales,purchase';
     
     
     /**
@@ -87,13 +78,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Кой има право да променя?
      */
-    public $canChangeline = 'ceo,store';
-    
-    
-    /**
-     * Кой може да сторнира
-     */
-    public $canRevert = 'storeMaster, ceo';
+    public $canChangeline = 'ceo,store,trans';
     
     
     /**
@@ -102,6 +87,12 @@ class store_ShipmentOrders extends store_DocumentMaster
     public $canAdd = 'ceo,store,sales,purchase';
 
 
+    /**
+     * Кой може да го прави документа чакащ/чернова?
+     */
+    public $canPending = 'ceo,store,sales,purchase';
+    
+    
     /**
      * Кой може да го види?
      */
@@ -117,8 +108,14 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valior, title=Документ, folderId, currencyId, amountDelivered, amountDeliveredVat, weight, volume, createdOn, createdBy';
-
+    public $listFields = 'deliveryTime,valior, title=Документ, folderId, currencyId, amountDelivered, amountDeliveredVat, weight, volume, createdOn, createdBy';
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'folderId,locationId,company,person,tel,pCode,place,address,note';
+    
     
     /**
      * Икона на единичния изглед
@@ -163,17 +160,29 @@ class store_ShipmentOrders extends store_DocumentMaster
     
     
     /**
-     * Поле в което се замества шаблона от doc_TplManager
+     * Показва броя на записите в лога за съответното действие в документа
      */
-    public $templateFld = 'SINGLE_CONTENT';
+    public $showLogTimeInHead = 'Документът се връща в чернова=3';
     
     
     /**
-     * Стратегии за дефолт стойностти
+     * 
      */
-    public static $defaultStrategies = array(
-    		'template' => 'lastDocUser|lastDoc|LastDocSameCuntry',
-    );
+    public $printAsClientLayaoutFile = 'store/tpl/SingleLayoutPackagingListClient.shtml';
+    
+    
+    /**
+     * 
+     */
+    public $canAsclient = 'ceo,store,sales,purchase';
+       
+
+    /**
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     *
+     * @see plg_Clone
+     */
+    public $cloneDetails = 'store_ShipmentOrderDetails';
     
     
     /**
@@ -191,25 +200,43 @@ class store_ShipmentOrders extends store_DocumentMaster
         $this->FLD('pCode', 'varchar', 'caption=Адрес за доставка->П. код, changable, class=contactData');
         $this->FLD('place', 'varchar', 'caption=Адрес за доставка->Град/с, changable, class=contactData');
         $this->FLD('address', 'varchar', 'caption=Адрес за доставка->Адрес, changable, class=contactData');
+        $this->setField('deliveryTime', 'caption=Натоварване');
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	if(!isset($data->form->rec->id)){
+    		expect($origin = static::getOrigin($data->form->rec), $data->form->rec);
+    		if($origin->isInstanceOf('sales_Sales')){
+    			$data->form->FNC('importProducts', 'enum(notshipped=Неекспедирани,stocked=Неекспедирани и налични,all=Всички)', 'caption=Вкарване от продажбата->Артикули, input,before=sharedUsers');
+    		}
+    	}
     }
     
     
     /**
      * След рендиране на сингъла
      */
-    public static function on_AfterRenderSingle($mvc, $tpl, $data)
+    protected static function on_AfterRenderSingle($mvc, $tpl, $data)
     {
-    	$tpl->append(sbf('img/16/plus.png', "'"), 'iconPlus');
+    	$tpl->append(sbf('img/16/toggle1.png', "'"), 'iconPlus');
     	if($data->rec->country){
     		$deliveryAddress = "{$data->row->country} <br/> {$data->row->pCode} {$data->row->place} <br /> {$data->row->address}";
+			$inlineDeliveryAddress = "{$data->row->country},  {$data->row->pCode} {$data->row->place}, {$data->row->address}";
     	} else {
     		$deliveryAddress = $data->row->contragentAddress;
     	}
-    	
+
     	core_Lg::push($data->rec->tplLang);
     	$deliveryAddress = core_Lg::transliterate($deliveryAddress);
     	
     	$tpl->replace($deliveryAddress, 'deliveryAddress');
+		$tpl->replace($inlineDeliveryAddress, 'inlineDeliveryAddress');
+
     	core_Lg::pop();
     }
     
@@ -221,7 +248,7 @@ class store_ShipmentOrders extends store_DocumentMaster
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
     {
     	core_Lg::push($rec->tplLang);
     	
@@ -247,6 +274,21 @@ class store_ShipmentOrders extends store_DocumentMaster
     		$row->locationId = crm_Locations::getHyperLink($rec->locationId);
     	}
     	
+    	if(isset($rec->createdBy)){
+    		$row->username = core_Users::fetchField($rec->createdBy, "names");
+    		$row->username = core_Lg::transliterate($row->username);
+    	}
+    	
+    	if(isset($fields['-single'])){
+    		$logisticData = $mvc->getLogisticData($rec);
+    		$logisticData['toCountry'] = ($rec->tplLang == 'bg') ? drdata_Countries::fetchField("#commonName = '{$logisticData['toCountry']}'", 'commonNameBg') : $logisticData['toCountry'];
+    		$logisticData['toPCode'] = core_Lg::transliterate($logisticData['toPCode']);
+    		$logisticData['toPlace'] = core_Lg::transliterate($logisticData['toPlace']);
+    		$logisticData['toAddress'] = core_Lg::transliterate($logisticData['toAddress']);
+    		$row->inlineDeliveryAddress = "{$logisticData['toCountry']}, {$logisticData['toPCode']} {$logisticData['toPlace']}, {$logisticData['toAddress']}";
+			$row->toCompany = $logisticData['toCompany'];
+    	}
+    	
     	core_Lg::pop();
     	
     	$rec->palletCountInput = ($rec->palletCountInput) ? $rec->palletCountInput : static::countCollets($rec->id);
@@ -255,18 +297,13 @@ class store_ShipmentOrders extends store_DocumentMaster
     	} else {
     		unset($row->palletCountInput);
     	}
-
-		if(isset($rec->createdBy)){
-			$row->username = core_Users::fetchField($rec->createdBy, "names");
-		}
-
     }
     
     
     /**
      * След изпращане на формата
      */
-    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
         if ($form->isSubmitted()) {
         	$rec = &$form->rec;
@@ -340,107 +377,26 @@ class store_ShipmentOrders extends store_DocumentMaster
     protected function setTemplates(&$res)
     {
     	$tplArr = array();
-    	$tplArr[] = array('name' => 'Експедиционно нареждане', 
+     	$tplArr[] = array('name' => 'Експедиционно нареждане', 
     					  'content' => 'store/tpl/SingleLayoutShipmentOrder.shtml', 'lang' => 'bg', 'narrowContent' => 'store/tpl/SingleLayoutShipmentOrderNarrow.shtml',
+     					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
+     	$tplArr[] = array('name' => 'Експедиционно нареждане с цени', 
+     					  'content' => 'store/tpl/SingleLayoutShipmentOrderPrices.shtml', 'lang' => 'bg', 'narrowContent' => 'store/tpl/SingleLayoutShipmentOrderPricesNarrow.shtml',
+     					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,packPrice,discount,amount'));
+     	$tplArr[] = array('name' => 'Packing list',
+     					  'content' => 'store/tpl/SingleLayoutPackagingList.shtml', 'lang' => 'en', 'oldName' => 'Packaging list', 'narrowContent' => 'store/tpl/SingleLayoutPackagingListNarrow.shtml',
     					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
-    	$tplArr[] = array('name' => 'Експедиционно нареждане с цени', 
-    					  'content' => 'store/tpl/SingleLayoutShipmentOrderPrices.shtml', 'lang' => 'bg', 'narrowContent' => 'store/tpl/SingleLayoutShipmentOrderPricesNarrow.shtml',
-    					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,packPrice,discount,amount'));
-    	$tplArr[] = array('name' => 'Packaging list', 
-    					  'content' => 'store/tpl/SingleLayoutPackagingList.shtml', 'lang' => 'en', 'oldName' => 'Packing list', 'narrowContent' => 'store/tpl/SingleLayoutPackagingListNarrow.shtml',
-    					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
-    	$tplArr[] = array('name' => 'Експедиционно нареждане с декларация',
-    					  'content' => 'store/tpl/SingleLayoutShipmentOrderDec.shtml', 'lang' => 'bg', 'narrowContent' => 'store/tpl/SingleLayoutShipmentOrderDecNarrow.shtml',
-    					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'packagingId,packQuantity,weight,volume'));
-    	$tplArr[] = array('name' => 'Packaging list with Declaration',
-    					  'content' => 'store/tpl/SingleLayoutPackagingListDec.shtml', 'lang' => 'en', 'oldName' => 'Packing list with Declaration', 'narrowContent' => 'store/tpl/SingleLayoutPackagingListDecNarrow.shtml',
-    					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
-    	
+     	$tplArr[] = array('name' => 'Експедиционно нареждане с декларация',
+     					  'content' => 'store/tpl/SingleLayoutShipmentOrderDec.shtml', 'lang' => 'bg', 'narrowContent' => 'store/tpl/SingleLayoutShipmentOrderDecNarrow.shtml',
+     					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
+     	$tplArr[] = array('name' => 'Packing list with Declaration',
+    					  'content' => 'store/tpl/SingleLayoutPackagingListDec.shtml', 'lang' => 'en', 'oldName' => 'Packaging list with Declaration', 'narrowContent' => 'store/tpl/SingleLayoutPackagingListDecNarrow.shtml',
+     					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
+     	$tplArr[] = array('name' => 'Експедиционно нареждане с цени в евро',
+     					  'content' => 'store/tpl/SingleLayoutShipmentOrderEuro.shtml', 'lang' => 'bg',
+     					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
+
     	$res .= doc_TplManager::addOnce($this, $tplArr);
-    }
-    
-    
-    /**
-     * Артикули които да се заредят във фактурата/проформата, когато е създадена от
-     * определен документ
-     *
-     * @param mixed $id - ид или запис на документа
-     * @param deals_InvoiceMaster $forMvc - клас наследник на deals_InvoiceMaster в който ще наливаме детайлите
-     * @return array $details - масив с артикули готови за запис
-     * 				  o productId      - ид на артикул
-     * 				  o packagingId    - ид на опаковка/основна мярка
-     * 				  o quantity       - количество опаковка
-     * 				  o quantityInPack - количество в опаковката
-     * 				  o discount       - отстъпка
-     * 				  o price          - цена за единица от основната мярка
-     */
-    public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc)
-    {
-    	$details = array();
-    	$rec = static::fetchRec($id);
-    	 
-    	$query = store_ShipmentOrderDetails::getQuery();
-    	$query->where("#shipmentId = {$rec->id}");
-    	
-    	while($dRec = $query->fetch()){
-    		$dRec->quantity /= $dRec->quantityInPack;
-    		if(!($forMvc instanceof sales_Proformas)){
-    			$dRec->price -= $dRec->price * $dRec->discount;
-    			unset($dRec->discount);
-    		}
-    		unset($dRec->id);
-    		unset($dRec->shipmentId);
-    		unset($dRec->createdOn);
-    		unset($dRec->createdBy);
-    		$details[] = $dRec;
-    	}
-    	
-    	return $details;
-    }
-    
-    
-    /**
-     * След подготовка на тулбара на единичен изглед.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
-     */
-    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
-    {
-    	$rec = $data->rec;
-    	 
-    	if($rec->isReverse == 'no'){
-    		
-    		// Към чернова може да се генерират проформи, а към контиран фактури
-    		if($rec->state == 'draft'){
-    			
-    			// Ако има проформа към протокола, правим линк към нея, иначе бутон за създаване на нова
-    			if($iRec = sales_Proformas::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")){
-    				if(sales_Proformas::haveRightFor('single', $iRec)){
-    					$arrow = html_entity_decode('&#9660;', ENT_COMPAT | ENT_HTML401, 'UTF-8');
-    					$data->toolbar->addBtn("Проформа|* {$arrow}", array('sales_Proformas', 'single', $iRec->id, 'ret_url' => TRUE), 'title=Отваряне на проформа фактура издадена към експедиционното нареждането,ef_icon=img/16/proforma.png');
-    				}
-    			} else {
-    				if(sales_Proformas::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'sourceContainerId' => $rec->containerId))){
-    					$data->toolbar->addBtn('Проформа', array('sales_Proformas', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на проформа фактура към експедиционното нареждане,ef_icon=img/16/proforma.png');
-    				}
-    			}
-    			
-    		} elseif($rec->state == 'active'){
-    			
-    			// Ако има фактура към протокола, правим линк към нея, иначе бутон за създаване на нова
-    			if($iRec = sales_Invoices::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")){
-    				if(sales_Invoices::haveRightFor('single', $iRec)){
-    					$arrow = html_entity_decode('&#9660;', ENT_COMPAT | ENT_HTML401, 'UTF-8');
-    					$data->toolbar->addBtn("Фактура|* {$arrow}", array('sales_Invoices', 'single', $iRec->id, 'ret_url' => TRUE), 'title=Отваряне на фактурата издадена към експедиционното нареждането,ef_icon=img/16/invoice.png');
-    				}
-    			} else {
-    				if(sales_Invoices::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'sourceContainerId' => $rec->containerId))){
-    					$data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на фактура към експедиционното нареждане,ef_icon=img/16/invoice.png,row=2');
-    				}
-    			}
-    		}
-    	}
     }
     
     
@@ -460,28 +416,213 @@ class store_ShipmentOrders extends store_DocumentMaster
     	
     	$resArr = array();
     	while($dRec = $dQuery->fetch()){
+            $rowNums =store_ShipmentOrderDetails::getLUs($dRec->info);
+            if(is_array($rowNums)) {
+                $resArr += $rowNums;
+            }
+    	}
+    	 
+    	// Връщане на броя на колетите
+        if(count($resArr)) {
+    	    $count = max($resArr);
+        }
+    	
+    	return $count;
+    }
+    
+    
+    /**
+     * Информация за логистичните данни
+     *
+     * @param mixed $rec   - ид или запис на документ
+     * @return array $data - логистичните данни
+     *		
+     *		string(2)     ['fromCountry']  - международното име на английски на държавата за натоварване
+     * 		string|NULL   ['fromPCode']    - пощенски код на мястото за натоварване
+     * 		string|NULL   ['fromPlace']    - град за натоварване
+     * 		string|NULL   ['fromAddress']  - адрес за натоварване
+     *  	string|NULL   ['fromCompany']  - фирма 
+     *   	string|NULL   ['fromPerson']   - лице
+     * 		datetime|NULL ['loadingTime']  - дата на натоварване
+     * 		string(2)     ['toCountry']    - международното име на английски на държавата за разтоварване
+     * 		string|NULL   ['toPCode']      - пощенски код на мястото за разтоварване
+     * 		string|NULL   ['toPlace']      - град за разтоварване
+     *  	string|NULL   ['toAddress']    - адрес за разтоварване
+     *   	string|NULL   ['toCompany']    - фирма 
+     *   	string|NULL   ['toPerson']     - лице
+     * 		datetime|NULL ['deliveryTime'] - дата на разтоварване
+     * 		text|NULL 	  ['conditions']   - други условия
+     * 		varchar|NULL  ['ourReff']      - наш реф
+     */
+    public function getLogisticData($rec)
+    {
+    	$rec = $this->fetchRec($rec);
+    	$res = parent::getLogisticData($rec);
+    	
+    	// Данните за разтоварване от ЕН-то са с приоритет
+    	if(!empty($rec->country)|| !empty($rec->pCode)|| !empty($rec->place)|| !empty($rec->address)){
+    		$res['toCountry'] = !empty($rec->country) ? drdata_Countries::fetchField($rec->country, 'commonName') : NULL;
+    		$res['toPCode']   = !empty($rec->pCode) ? $rec->pCode : NULL;
+    		$res['toPlace']   = !empty($rec->place) ? $rec->place : NULL;
+    		$res['toAddress'] = !empty($rec->address) ? $rec->address : NULL;
+    	}
+    	
+    	$res['toCompany'] = !empty($rec->company) ? $rec->company : $res['toCompany'];
+    	$res['toPerson'] = !empty($rec->person) ? $rec->person : $res['toPerson'];
+    	
+    	unset($res['deliveryTime']);
+    	$res['loadingTime'] = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : $rec->valior . " " . bgerp_Setup::get('START_OF_WORKING_DAY');
+    	
+    	
+    	return $res;
+    }
+    
+    
+    /**
+     * Връща масив с плейсхолдърите, които ще се попълват от getLabelData
+     *
+     * @param mixed $id - ид или запис
+     * @return array $fields - полета за етикети
+     */
+    public function getLabelPlaceholders($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	$fields = array('NOMER', 'DESTINATION', 'DATE', 'Текущ_етикет');
+    	$allowSkip = FALSE;
+    	if($this->getEstimateCnt($id, $allowSkip)){
+    		$fields[] = 'Общо_етикети';
+    	}
+    	
+    	if(isset($rec->lineId)){
+    		if($forwarderId = trans_Lines::fetchField($rec->lineId, 'forwarderId')){
+    			$fields[] = 'SPEDITOR';
+    		}
+    	}
+    	
+    	return $fields;
+    }
+    
+    
+    /**
+     * Връща данни за етикети
+     *
+     * @param int $id - ид на store_ShipmentOrders
+     * @param number $labelNo - номер на етикета
+     *
+     * @return array $res - данни за етикетите
+     *
+     * @see label_SequenceIntf
+     */
+    public function getLabelData($id, $labelNo = 0)
+    {  
+    	$rec = $this->fetchRec($id);
+    	
+    	$res = array();
+    	$res['NOMER'] = $rec->id;
+
+        if($labelNo == 0) $labelNo = 1;
+
+    	$res['Текущ_етикет'] = $labelNo;
+    	$logisticData = $this->getLogisticData($rec);
+    	$res['DESTINATION'] = "{$logisticData['toPCode']} {$logisticData['toPlace']}, {$logisticData['toCountry']}";
+    	
+    	$allowSkip = FALSE;
+    	if($count = $this->getEstimateCnt($id, $allowSkip)){
+    		$res['Общо_етикети'] = $count;
+    	}
+    	
+    	if(isset($rec->lineId)){
+    		if($forwarderId = trans_Lines::fetchField($rec->lineId, 'forwarderId')){
+    			$res['SPEDITOR'] = crm_Companies::getVerbal($forwarderId, 'name');
+    		}
+    	}
+    	$res['DATE'] = dt::mysql2verbal(dt::today(), 'd/m/y');
+    	
+    	return $res;
+    }
+    
+    
+    /**
+     * Броя на етикетите, които могат да се отпечатат
+     *
+     * @param integer $id
+     * @param string $allowSkip
+     *
+     * @return integer
+     *
+     * @see label_SequenceIntf
+     */
+    public function getEstimateCnt($id, &$allowSkip)
+    {
+    	$rec = $this->fetchRec($id);
+    	$count = ($rec->palletCountInput) ? $rec->palletCountInput : static::countCollets($rec->id);
+    	$count = ($count) ? $count : NULL;
+    	 
+    	return $count;
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        if (($action == 'asclient') && $rec) {
+            if (!trim($rec->company) && !trim($rec->person) && !$rec->country) {
+                $requiredRoles = 'no_one';
+            }
+        }
+    }
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+     {
+      	$rec = $data->rec;
+     
+    	if($rec->isReverse == 'no'){
     		
-    		// Разбиване на записа
-    		$info = explode(',', $dRec->info);
-    		if(!count($info)) continue;
-    		
-    		foreach ($info as &$seq){
-    				 
-    			// Ако е посочен интервал от рода 1-5
-    			$seq = explode('-', $seq);
-    			if(count($seq) == 1){
-    				$resArr[$seq[0]] = $seq[0];
+    		// Към чернова може да се генерират проформи, а към контиран фактури
+    		if($rec->state == 'draft'){
+    			
+    			// Ако има проформа към протокола, правим линк към нея, иначе бутон за създаване на нова
+    			if($iRec = sales_Proformas::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")){
+    				if(sales_Proformas::haveRightFor('single', $iRec)){
+    					$arrow = html_entity_decode('&#9660;', ENT_COMPAT | ENT_HTML401, 'UTF-8');
+    					$data->toolbar->addBtn("Проформа|* {$arrow}", array('sales_Proformas', 'single', $iRec->id, 'ret_url' => TRUE), 'title=Отваряне на проформа фактура издадена към експедиционното нареждането,ef_icon=img/16/proforma.png');
+    				}
     			} else {
-    				foreach (range($seq[0], $seq[1]) as $i){
-    					$resArr[$i] = $i;
+    				if(sales_Proformas::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'sourceContainerId' => $rec->containerId))){
+    					$data->toolbar->addBtn('Проформа', array('sales_Proformas', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на проформа фактура към експедиционното нареждане,ef_icon=img/16/proforma.png');
+    				}
+    			}
+    			
+    		}
+    		
+    		if($rec->state == 'active' || $rec->state == 'draft' || $rec->state == 'pending'){
+    				
+    				// Ако има фактура към протокола, правим линк към нея, иначе бутон за създаване на нова
+    				if($iRec = sales_Invoices::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")){
+    					if(sales_Invoices::haveRightFor('single', $iRec)){
+    						$arrow = html_entity_decode('&#9660;', ENT_COMPAT | ENT_HTML401, 'UTF-8');
+    						$data->toolbar->addBtn("Фактура|* {$arrow}", array('sales_Invoices', 'single', $iRec->id, 'ret_url' => TRUE), 'title=Отваряне на фактурата издадена към експедиционното нареждането,ef_icon=img/16/invoice.png');
+    					}
+    				} else {
+    					if(sales_Invoices::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'sourceContainerId' => $rec->containerId))){
+    						$data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на фактура към експедиционното нареждане,ef_icon=img/16/invoice.png,row=2');
+    					}
     				}
     			}
     		}
     	}
-    	 
-    	// Връщане на броя на колетите
-    	$count = count($resArr);
-    	
-    	return $count;
-    }
 }

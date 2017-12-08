@@ -36,12 +36,6 @@ class cond_ConditionsToCustomers extends core_Manager
     
     
     /**
-     * Поле за показване лентата с инструменти
-     */
-    public $rowToolsField = 'tools';
-    
-    
-    /**
      * Кой може да вижда списъчния изглед
      */
     public $canList = 'no_one';
@@ -50,19 +44,19 @@ class cond_ConditionsToCustomers extends core_Manager
     /**
      * Кой може да добавя
      */
-    public $canAdd = 'ceo,cond';
+    public $canAdd = 'powerUser';
     
     
     /**
      * Кой може да редактира
      */
-    public $canEdit = 'ceo,cond';
+    public $canEdit = 'powerUser';
     
     
     /**
      * Кой може да изтрива
      */
-    public $canDelete = 'ceo,cond';
+    public $canDelete = 'powerUser';
     
     
     /**
@@ -85,11 +79,11 @@ class cond_ConditionsToCustomers extends core_Manager
         $this->FLD('cClass', 'class(interface=crm_ContragentAccRegIntf)', 'caption=Контрагент->Клас,input=hidden,silent');
         $this->FLD('cId', 'int', 'caption=Контрагент->Обект,input=hidden,silent,tdClass=leftCol');
         $this->FLD('conditionId', 'key(mvc=cond_Parameters,select=typeExt,allowEmpty)', 'input,caption=Условие,mandatory,silent,removeAndRefreshForm=value');
-        $this->FLD('value', 'varchar(255)', 'caption=Стойност, mandatory');
+        $this->FLD('value', 'text', 'caption=Стойност, mandatory');
     
         // Добавяне на уникални индекси
         $this->setDbUnique('cClass,cId,conditionId');
-        $this->setDbIndex('cClass,cId');
+        $this->setDbIndex('cId');
     }
     
     
@@ -117,13 +111,10 @@ class cond_ConditionsToCustomers extends core_Manager
     	}
     	
     	if($form->rec->conditionId){
-        	if($Driver = cond_Parameters::getDriver($form->rec->conditionId)){
-        		$form->setField('value', 'input');
-        		$pRec = cond_Parameters::fetch($form->rec->conditionId);
-        		if($Type = $Driver->getType($pRec, $form->rec->value)){
-        			$form->setFieldType('value', $Type);
-        		}
-        	} else {
+    		if($Type = cond_Parameters::getTypeInstance($rec->conditionId, $rec->cClass, $rec->cId, $rec->value)){
+    			$form->setField('value', 'input');
+    			$form->setFieldType('value', $Type);
+    		} else {
         		$form->setError('conditionId', 'Има проблем при зареждането на типа');
         	}
         } else {
@@ -177,24 +168,62 @@ class cond_ConditionsToCustomers extends core_Manager
      */
     public function prepareCustomerSalecond(&$data)
     {
-        expect($data->cClass = core_Classes::getId($data->masterMvc));
+    	$data->recs = $data->rows = array();
+    	expect($data->cClass = core_Classes::getId($data->masterMvc));
         expect($data->masterId);
+        $cData = $data->masterMvc->getContragentData($data->masterId);
         
         $query = static::getQuery();
         $query->EXT('group', 'cond_Parameters', 'externalName=group,externalKey=conditionId');
         $query->EXT('order', 'cond_Parameters', 'externalName=order,externalKey=conditionId');
         $query->where("#cClass = {$data->cClass} AND #cId = {$data->masterId}");
-        $query->orderBy('group,order', 'ASC');
+		$query->orderBy('id', 'ASC');
         
         while($rec = $query->fetch()) {
         	
         	// Според параметарът, се променя вербалното представяне на стойността
-            $data->recs[$rec->id] = $rec;
+            $data->recs[$rec->conditionId] = $rec;
             $row = static::recToVerbal($rec);
             core_RowToolbar::createIfNotExists($row->_rowTools);
             
-            $data->rows[$rec->id] = $row; 
+            $data->rows[$rec->conditionId] = $row; 
         }
+       
+        $defQuery = cond_Countries::getQuery();
+        $defQuery->where("#country = '{$cData->countryId}' OR #country IS NULL");
+        $defQuery->EXT('group', 'cond_Parameters', 'externalName=group,externalKey=conditionId');
+        $defQuery->EXT('order', 'cond_Parameters', 'externalName=order,externalKey=conditionId');
+        $defQuery->show('conditionId,value,group,order');
+        $defQuery->orderBy('country', 'DESC');
+        
+        $conditionsArr = array_keys($data->recs);
+        if(count($conditionsArr)){
+        	$defQuery->notIn("conditionId", $conditionsArr);
+        }
+        
+        while($dRec = $defQuery->fetch()){
+        	if(!array_key_exists($dRec->conditionId, $data->recs)){
+        		$data->recs[$dRec->conditionId] = $dRec;
+        		$dRow = cond_Countries::recToVerbal($dRec);
+        		
+        		
+        		$dRow->value = ht::createHint($dRow->value, "Стойността е по подразбиране за контрагентите от|* \"{$cData->country}\"", 'notice', TRUE, 'width=12px,height=12px');
+        		unset($dRow->_rowTools);
+        		
+        		$data->rows[$dRec->conditionId] = $dRow;
+        	}
+        }
+        
+        // Сортиране на записите
+        usort($data->rows, function($a, $b) {
+        	if($a->group == $b->group){
+        		if($a->order == $b->order){
+        			return ($a->id < $b->id) ? -1 : 1;
+        		}
+        		return (strcasecmp($a->order, $b->order) < 0) ? -1 : 1;
+        	}
+        	return (strcasecmp($a->group, $b->group) < 0) ? -1 : 1;
+        });
         
     	if($data->masterMvc->haveRightFor('edit', $data->masterId) && static::haveRightFor('add', (object)array('cClass' => $data->cClass, 'cId' => $data->masterId))){
 		    $addUrl = array('cond_ConditionsToCustomers', 'add', 'cClass' => $data->cClass, 'cId' => $data->masterId, 'ret_url' => TRUE);
@@ -217,11 +246,11 @@ class cond_ConditionsToCustomers extends core_Manager
     		$row->group = cond_Parameters::getVerbal($paramRec, 'group');
     	}
     	
-    	if($ParamType = cond_Parameters::getTypeInstance($paramRec, $rec->value)){
-    		$row->value = $ParamType->toVerbal(trim($rec->value));
-    		if(!empty($paramRec->suffix)){
-    			$row->value .= " " . cls::get('type_Varchar')->toVerbal(tr($paramRec->suffix));
-    		}
+    	$row->value = cond_Parameters::toVerbal($paramRec, $rec->cClass, $rec->cId, $rec->value);
+    	$row->value = cond_Parameters::limitValue($paramRec->driverClass, $row->value);
+    	
+    	if(!empty($paramRec->suffix)){
+    		$row->value .= " " . cls::get('type_Varchar')->toVerbal(tr($paramRec->suffix));
     	}
     	
     	$row->cId = cls::get($rec->cClass)->getHyperLink($rec->cId, TRUE);
@@ -246,7 +275,9 @@ class cond_ConditionsToCustomers extends core_Manager
       
 	    if(count($data->rows)) {
 	    	foreach($data->rows as $id => &$row) {
-	    		$row->tools = $row->_rowTools->renderHtml();
+	    		if(is_object($row->_rowTools)){
+	    			$row->tools = $row->_rowTools->renderHtml();
+	    		}
 	    	}
 
 	    	$tpl->append(static::renderParamBlock($data->rows));
@@ -268,6 +299,7 @@ class cond_ConditionsToCustomers extends core_Manager
     {
     	$tpl = getTplFromFile('cond/tpl/ConditionsToCustomers.shtml');
     	$lastGroupId = NULL;
+    	
     	if(is_array($paramArr)){
     		foreach($paramArr as &$row2) {
     			 
@@ -298,15 +330,17 @@ class cond_ConditionsToCustomers extends core_Manager
      */
     public static function fetchByCustomer($cClass, $cId, $conditionId = NULL)
     {
-    	expect(cls::haveInterface('crm_ContragentAccRegIntf', $cClass));
+    	$Class = cls::get($cClass);
     	
     	$query = static::getQuery();
-    	$query->where("#cClass = {$cClass}");
+    	$query->where("#cClass = {$Class->getClassId()}");
     	$query->where("#cId = {$cId}");
     	if($conditionId){
     		$query->where("#conditionId = {$conditionId}");
+    		$query->show('value');
     		return $query->fetch()->value;
     	} else {
+    		$query->show('conditionId,value');
     		$recs = array();
     		while($rec = $query->fetch()){
     			$recs[$rec->conditionId] = $rec->value;
@@ -319,15 +353,15 @@ class cond_ConditionsToCustomers extends core_Manager
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
        if(($action == 'edit' || $action == 'delete' || $action == 'add') && isset($rec)){
-       		
-       		$cState = cls::get($rec->cClass)->fetchField($rec->cId, 'state');
-       		if($cState == 'rejected'){
+       		if(empty($rec->cClass) || empty($rec->cId)){
        			$res = 'no_one';
-       		} else {
-       			if(!cls::get($rec->cClass)->haveRightFor('single', $rec->cId)){
+       		} elseif(!cls::get($rec->cClass)->haveRightFor('edit', $rec->cId)){
+       			$res = 'no_one';
+       		} else{
+       			if(!haveRole('sales,purchase,ceo')){
        				$res = 'no_one';
        			}
        		}
@@ -410,7 +444,7 @@ class cond_ConditionsToCustomers extends core_Manager
     	expect($Class = cls::get($class));
     	expect(cls::haveInterface('crm_ContragentAccRegIntf', $Class));
     	expect($pRec = cond_Parameters::fetch($conditionId));
-    	$Type = cond_Parameters::getTypeInstance($pRec);
+    	$Type = cond_Parameters::getTypeInstance($pRec, $class, $objectId, $value);
     	expect($value = $Type->fromVerbal($value));
     	
     	// Новия запис

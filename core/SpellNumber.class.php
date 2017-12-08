@@ -31,7 +31,7 @@ class core_SpellNumber
         $l = strlen($text);
         
         if ($i >= 3) {
-            if (substr($text, $i - 2, 2) != " и")
+            if (substr($text, $i - 3, 3) != " и")
             $text = substr($text, 0, $i) . " и" . substr($text, $i, $l - $i);
         }
         
@@ -39,20 +39,18 @@ class core_SpellNumber
     }
     
     
-    /**
-     * @todo Чака за документация...
-     */
+   /**
+    * @access private
+    * @param int $d1 десетична цифра
+    * @param int $d2 десетична цифра
+    * @param int $d3 десетична цифра
+    * @param string $G род
+    * @return string Словесната форма за числото образувано от цифрите в указания род
+    */
     function dig2Text($d2, $d1, $d0, $g = "n")
     {
-        
-        /**
-         * @access private
-         * @param int $d1 десетична цифра
-         * @param int $d2 десетична цифра
-         * @param int $d3 десетична цифра
-         * @param string $G род
-         * @return string Словесната форма за числото образувано от цифрите в указания род
-         */
+        $text = NULL;
+
         switch ($d2) {
             case 1 : {
                     $text .= "сто";
@@ -244,10 +242,6 @@ class core_SpellNumber
         $res = $this->insAnd(trim($N9 . " " . $N6 . " " . $N3 . " " . $N0));
         $res = str_replace("_", " ", $res);
         $res = trim($res);
-        
-        if($NUMBER < 0){
-        	$res = "минус" . " " . $res;
-        }
          
         return $res;
     }
@@ -295,7 +289,7 @@ class core_SpellNumber
             $w = '#';
         } else {
             if ($x < 0) {
-                $w = 'minus ';
+                $w = '';
                 $x = -$x;
             } else {
                 $w = '';
@@ -404,6 +398,14 @@ class core_SpellNumber
 		
         if ($cent > 0){
         	$text .= " {$andStr} {$cents}" . $centCur;
+        }
+       
+        if($num < 0){
+        	if ($lg == "bg") {
+        		$text = "минус" . " " . $text;
+        	} else {
+        		$text = "minus" . " " . $text;
+        	}
         }
         
         return $text;

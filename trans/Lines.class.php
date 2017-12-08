@@ -39,7 +39,7 @@ class trans_Lines extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, trans_Wrapper, plg_Sorting, plg_Printing,
+    public $loadList = 'plg_RowTools2, trans_Wrapper, plg_Sorting, plg_Printing, plg_Clone,
                     doc_DocumentPlg, bgerp_plg_Blank, plg_Search, change_Plugin, doc_ActivatePlg, doc_plg_SelectFolder';
 
     
@@ -156,6 +156,14 @@ class trans_Lines extends core_Master
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
     public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
+    
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'title,start,repeat';
     
     
     /**
@@ -281,9 +289,8 @@ class trans_Lines extends core_Master
     	if(isset($fields['-single'])){
 	    	
 	    	$attr = array();
-	    	$attr['class'] = "linkWithIcon";
 	    	if($rec->vehicleId && trans_Vehicles::haveRightFor('read', $rec->vehicleId)){
-	    		$attr['style'] = "background-image:url('" . sbf('img/16/tractor.png', "") . "');";
+	    		$attr['ef_icon'] = 'img/16/tractor.png';
 	    	 	$row->vehicleId = ht::createLink($row->vehicleId, array('trans_Vehicles', 'single', $rec->vehicleId), NULL, $attr);
 	    	}
 	    	
@@ -316,41 +323,13 @@ class trans_Lines extends core_Master
     }
     
     
-	/**
-     * В кои корици може да се вкарва документа
-     * 
-     * @return array - интерфейси, които трябва да имат кориците
-     */
-    public static function getCoversAndInterfacesForNewDoc()
-    {
-    	return array('trans_LinesFolderCoverIntf');
-    }
-    
-    
-	/**
-     * Проверка дали нов документ може да бъде добавен в
-     * посочената папка като начало на нишка
-     *
-     * @param $folderId int ид на папката
-     */
-    public static function canAddToFolder($folderId)
-    {
-        $folderClass = doc_Folders::fetchCoverClassName($folderId);
-    	
-        return cls::haveInterface('trans_LinesFolderCoverIntf', $folderClass);
-    }
-    
-    
     /**
      * След подготовка на сингъла
      */
     public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
-    	$weight = ($data->weight) ? $data->weight : 0;
-    	$data->row->weight = cls::get('cat_type_Weight')->toVerbal($weight);
-    	
-    	$volume = ($data->volume) ? $data->volume : 0;
-    	$data->row->volume = cls::get('cat_type_Volume')->toVerbal($volume);
+    	$data->row->weight = (!empty($data->weight)) ? cls::get('cat_type_Weight')->toVerbal($data->weight) : "<span class='quiet'>N/A</span>";
+    	$data->row->volume = (!empty($data->volume)) ? cls::get('cat_type_Volume')->toVerbal($data->volume) : "<span class='quiet'>N/A</span>";
     	
     	$count = ($data->palletCount) ? $data->palletCount : 0;
     	$data->row->palletCount = cls::get('type_Int')->toVerbal($count);
@@ -413,9 +392,9 @@ class trans_Lines extends core_Master
     		
             if(self::getDocumentsCnt($rec->id, NULL, 1) || doc_Threads::fetchField($rec->threadId, 'allDocCnt') > 1) {
                 // Ако в старата линия има документи, създава и записва новата линия
-                core_Users::sudo($rec->createdBy);
+                $sudoUser = core_Users::sudo($rec->createdBy);
                 $this->save($newRec);
-                core_Users::exitSudo();
+                core_Users::exitSudo($sudoUser);
                 
                 // Линията се отбелязва като повторена
                 $rec->isRepeated = 'yes';

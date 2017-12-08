@@ -159,6 +159,7 @@ class change_Plugin extends core_Plugin
         }
 
         // Генерираме събитие в AfterInputEditForm, след въвеждането на формата
+        $form->rec->__isBeingChanged = TRUE;
         $mvc->invoke('AfterInputEditForm', array($form));
         
         // URL' то където ще се редиректва
@@ -175,7 +176,7 @@ class change_Plugin extends core_Plugin
         
         // Ако формата е изпратена без грешки
         if($form->isSubmitted()) {
-            
+        	
             if (is_null($rec->version) && is_null($rec->subVersion)) {
                 $rec->version = 0;
                 $rec->subVersion = 1;
@@ -234,7 +235,9 @@ class change_Plugin extends core_Plugin
                 
                 // Записваме промени
                 $mvc->save($fRec);
-            
+                
+                $mvc->logInAct('Промяна', $fRec);
+                
                 // Записваме лога на промените
                 $savedRecsArr = change_Log::create($mvc->className, $fieldsArrLogSave, $rec, $fRec);
                 
@@ -461,7 +464,7 @@ class change_Plugin extends core_Plugin
             $firstCreatedOnDate = dt::mysql2verbal($firstSelVerArr['createdOn'], $dateMask);
             
             if ($firstCreatedOnDate == $lastCreatedOnDate) {
-                $dateMask = 'd-m-y H:m:s';
+                $dateMask = 'd-m-y H:i:s';
             }
         }
         
@@ -529,25 +532,25 @@ class change_Plugin extends core_Plugin
         // Масива, който ще връщаме
         $allowedFieldsArr = array();
         
+        // Преобразуваме в масив
+        $changableFieldsArr = arr::make($changableFields, TRUE);
+        
         // Обхождаме всички полета
         foreach ($form->fields as $field => $filedClass) {
             
             // Ако могат да се променят
-            if ($filedClass->changable) {
+            if ($filedClass->changable || in_array($field, $changableFieldsArr)) {
                 
                 // Добавяме в масива
                 $allowedFieldsArr[$field] = $field;
             }
+
+            if($filedClass->changable == 'ifInput' && $filedClass->input == 'none') {
+                unset($allowedFieldsArr[$field]);
+            }
         }
         
-        // Преобразуваме в масив
-        $changableFieldsArr = arr::make($changableFields, TRUE);
-        
-        // Събираме двата масива
-        $allowedFieldsArr += $changableFieldsArr;
-        
         return $allowedFieldsArr;
-        
     }
     
     
@@ -668,8 +671,7 @@ class change_Plugin extends core_Plugin
     public static function on_AfterCanChangeRec($mvc, &$res, $rec)
     {
         // Чернова и затворени документи не могат да се променят
-        if ($res !== FALSE && $rec->state != 'draft' && $rec->state != 'closed') {
-            
+        if ($res !== FALSE && (!in_array($rec->state, array('rejected', 'draft', 'pending')))) {
             $res = TRUE;
         } 
     }

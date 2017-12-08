@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа store_ConsignmentProtocols
  *
@@ -27,7 +28,8 @@ class store_transaction_ConsignmentProtocol extends acc_DocumentTransactionSourc
 	{
 		// Извличане на мастър-записа
 		expect($rec = $this->class->fetchRec($id));
-	
+		$rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
+		
 		$result = (object)array(
 				'reason' => "Протокол за отговорно пазене №{$rec->id}",
 				'valior' => $rec->valior,

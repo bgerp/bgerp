@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -23,12 +23,6 @@ class store_Receipts extends store_DocumentMaster
      * Заглавие
      */
     public $title = 'Складови разписки';
-
-
-    /**
-     * Флаг, който указва, че документа е партньорски
-     */
-    public $visibleForPartners = TRUE;
     
     
     /**
@@ -44,24 +38,18 @@ class store_Receipts extends store_DocumentMaster
     
     
     /**
-     * Поле в което се замества шаблона от doc_TplManager
-     */
-    public $templateFld = 'SINGLE_CONTENT';
-    
-    
-    /**
      * Поддържани интерфейси
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf,
-                          acc_TransactionSourceIntf=store_transaction_Receipt, bgerp_DealIntf,batch_MovementSourceIntf=batch_movements_Shipments';
+                          acc_TransactionSourceIntf=store_transaction_Receipt, bgerp_DealIntf,trans_LogisticDataIntf,deals_InvoiceSourceIntf';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
-                    doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search, doc_plg_TplManager,
-					doc_EmailCreatePlg, bgerp_plg_Blank, trans_plg_LinesPlugin, doc_plg_HidePrices, doc_SharablePlg';
+    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_Wrapper, sales_plg_CalcPriceDelta,store_plg_Request, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
+                    plg_Clone,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, doc_plg_TplManager,
+					doc_EmailCreatePlg, bgerp_plg_Blank, trans_plg_LinesPlugin, doc_plg_HidePrices, doc_SharablePlg,deals_plg_SetTermDate,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search';
 
     
     /**
@@ -74,12 +62,6 @@ class store_Receipts extends store_DocumentMaster
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,store';
-    
-    
-    /**
      * Кой може да сторнира
      */
     public $canRevert = 'storeMaster, ceo';
@@ -88,7 +70,7 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Кой има право да променя?
      */
-    public $canChangeline = 'ceo,store';
+    public $canChangeline = 'ceo,store,trans';
     
     
     /**
@@ -100,7 +82,7 @@ class store_Receipts extends store_DocumentMaster
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,store';
+	public $canSingle = 'ceo,store,sales,purchase';
     
     
     /**
@@ -116,6 +98,12 @@ class store_Receipts extends store_DocumentMaster
     
     
     /**
+     * Кой може да го прави документа чакащ/чернова?
+     */
+    public $canPending = 'ceo,store,sales,purchase';
+    
+    
+    /**
      * Кой може да го изтрие?
      */
     public $canConto = 'ceo,store';
@@ -124,9 +112,15 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valior, title=Документ, folderId, amountDelivered, weight, volume, createdOn, createdBy';
+    public $listFields = 'deliveryTime,valior, title=Документ, folderId, amountDelivered, weight, volume, createdOn, createdBy';
 
 
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'folderId,storeId,note';
+
+    
     /**
      * Детайла, на модела
      */
@@ -162,21 +156,19 @@ class store_Receipts extends store_DocumentMaster
      */
     protected static $defOperationSysId = 'delivery';
     
-    
+	
     /**
-     * Стратегии за дефолт стойностти
+     * Показва броя на записите в лога за съответното действие в документа
      */
-    public static $defaultStrategies = array(
-    		'template' => 'lastDocUser|lastDoc|LastDocSameCuntry',
-    );
+    public $showLogTimeInHead = 'Документът се връща в чернова=3';
     
     
     /**
-     * Какво движение на партида поражда документа в склада
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
      *
-     * @param out|in|stay - тип движение (излиза, влиза, стои)
+     * @see plg_Clone
      */
-    public $batchMovementDocument = 'in';
+    public $cloneDetails = 'store_ReceiptDetails';
     
     
     /**
@@ -186,17 +178,19 @@ class store_Receipts extends store_DocumentMaster
     {
         parent::setDocFields($this);
         $this->setField('storeId', 'caption=В склад');
+        $this->setField('deliveryTime', 'caption=Разтоварване');
     }
     
     
 	/**
      * След изпращане на формата
      */
-    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
         if ($form->isSubmitted()) {
         	$rec = &$form->rec;
-        	$dealInfo = static::getOrigin($rec)->getAggregateDealInfo();
+        	expect($origin = static::getOrigin($rec), $rec);
+        	$dealInfo = $origin->getAggregateDealInfo();
         	
         	$operations = $dealInfo->get('allowedShipmentOperations');
         	$operation = $operations['stowage'];
@@ -209,7 +203,7 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Преди показване на форма за добавяне/промяна
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$data->form->setField('locationId', 'caption=Обект от');
     }
@@ -271,5 +265,34 @@ class store_Receipts extends store_DocumentMaster
     					  'toggleFields' => array('masterFld' => NULL, 'store_ReceiptDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
     	
         $res .= doc_TplManager::addOnce($this, $tplArr);
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	$rec = $data->rec;
+    	 
+    	if($rec->isReverse == 'no'){
+    		if($rec->state == 'active' || $rec->state == 'draft' || $rec->state == 'pending'){
+    			 
+    			// Ако има фактура към протокола, правим линк към нея, иначе бутон за създаване на нова
+    			if($iRec = purchase_Invoices::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")){
+    				if(purchase_Invoices::haveRightFor('single', $iRec)){
+    					$arrow = html_entity_decode('&#9660;', ENT_COMPAT | ENT_HTML401, 'UTF-8');
+    					$data->toolbar->addBtn("Вх. фактура|* {$arrow}", array('purchase_Invoices', 'single', $iRec->id, 'ret_url' => TRUE), 'title=Отваряне на входящата фактура издадена към складова разписка,ef_icon=img/16/invoice.png');
+    				}
+    			} else {
+    				if(purchase_Invoices::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'sourceContainerId' => $rec->containerId))){
+    					$data->toolbar->addBtn('Вх. фактура', array('purchase_Invoices', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на входяща фактура към складова разписка,ef_icon=img/16/invoice.png,row=2');
+    				}
+    			}
+    		}
+    	}
     }
 }

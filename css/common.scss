@@ -671,6 +671,7 @@ select.combo {
 	position: absolute; 
     visibility: hidden;
     overflow: hidden;
+	cursor: text;
 }
 
 .checkbox, .radiobutton, input[type=checkbox], input[type=radio] { 
@@ -744,11 +745,11 @@ input[type=radio]:checked + label, input[type=checkbox]:checked + label {
 }
 
 tr.zebra0 { 
-    background-color: rgba(238, 238, 238, 0.5);
+    background-color: rgba(255, 245, 240, 0.5);
 }
 
 tr.zebra1 {
-    background-color: transparent;
+    background-color: rgba(240, 245, 255, 0.5);
 }
 
 .wide input[type=submit], .wide input[type=button] {
@@ -1027,6 +1028,16 @@ input.more-btn {
 	display: block;
 }
 
+.filePath{
+	word-wrap:break-word;
+	display:block;
+	margin-bottom: 15px;
+	padding-top:10px;
+	.linkWithIcon {
+		padding-left: 22px !important;
+	}
+}
+
 a.more-btn {
 	padding-left: 17px !important;
 	height: 16px;
@@ -1211,6 +1222,11 @@ a.profile {
 .profile-state {
 	text-decoration: underline !important;
 }
+
+.profile-state-tomorrow {
+	text-decoration: underline !important;
+	text-decoration-style: dotted !important;
+}
 /*край на хипервръзки към профилите на потребители*/
 
 /*състояния*/
@@ -1245,10 +1261,22 @@ a.profile {
     box-shadow: inset 0 0 3px #f4e4f5;
 }
 
+.state-closed-link > a {
+	background-color: #ddd;
+	padding-right: 4px;
+	box-shadow: inset 0 0 3px #ccc;
+}
+
 .state-rejected-link > a{
     background-color: #f3c9c8;
     padding-right: 4px;
     box-shadow: inset 0 0 3px #eca7a6;
+}
+
+.state-waiting-link > a {
+	background-color: rgba(210, 255, 70, 0.4);
+	padding-right: 4px;
+	box-shadow: inset 0 0 3px #aaf277;
 }
 
 .state-closed {
@@ -1269,14 +1297,19 @@ a.profile {
 
 .state-waiting {
 	background-color: #cef763;
-	background-color: rgba(206, 247, 99, 0.8);
+	background-color: rgba(210, 255, 120, 0.6);
 }
 
-.state-rejected td, .state-rejected .document th, .state-rejected .document td a , .state-rejected .document p, .state-rejected .document h3, .state-rejected .document h4,
-.state-rejected .richtext, .state-rejected .document a, .state-rejected .document span:not(.state), .state-rejected .richtext div, .state-rejected .cCode, .state-rejected .antetka,
-.state-rejected .document ul, .state-rejected .document ol, .state-rejected .document li, .state-rejected .document b, .state-rejected .document font, .state-rejected .document legend {
-    color: #999 !important;
-    text-decoration: line-through !important;
+.state-rejected {
+	td, .document th, .document td a, .document p, .document h3, .document h4,
+	.richtext, .document a, .document span:not(.state), .richtext div, .cCode, .antetka,
+	.document ul, .document ol, .document li, .document b, .document font, .document legend {
+		color: #999 !important;
+		text-decoration: line-through !important;
+	}
+	.tagColumn {
+		opacity: 0.5;
+	}
 }
 
 .single-thread .state-rejected .document .tab-top div.alphabet .tab-row .tab {
@@ -1404,7 +1437,7 @@ table.listTable {
 
 .detailNumbering {
 	text-align:right;
-	padding-top: 2px;
+	//padding-top: 2px;
 	display: block;
 }
 
@@ -1486,19 +1519,29 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 
 /* Стилове за показване на формите */
 /*грешки и предупреждения*/
-.formError, .formNotice {
-    background-color: #ff6;
+.formError, .formNotice, .formWarning {
     font-size: 0.9em;
     padding: 10px; 
     margin-bottom: 10px;
   	@include border-radius(5px);
- }
+}
 
 .formNotice {
+	background-color: #ff6;
 	border: solid 1px green;
+    color:green;
 }
+
 .formError {
 	border: solid 1px red;
+	background-color: #ff6;
+    color:red;
+}
+
+.formWarning {
+	border: solid 1px blue;
+	background-color: #ff6;
+    color: blue;
 }
 
 .wide .formError {
@@ -1529,7 +1572,7 @@ form .inputAdvanced {
 }
 
 .inputWarning {
-    border: solid 1px $orange;
+    border: solid 1px blue;
 }
 
 span.inputLackOfChoice {
@@ -2001,6 +2044,56 @@ td.formElement {
 .flashElem.select2 > .selection > .select2-selection {
 	background-color: #fffa99 !important;
 }
+.multipleFiles {
+	font-weight: bold;
+}
+
+ .input_align_horizontal {
+	.multipleFiles {
+		margin-right: 10px;
+		display: block;
+		float: left;
+	}
+}
+.align_horizontal .fileHolder {
+	padding: 5px;
+}
+
+.align_vertical .fileHolder{
+	display: block;
+	padding: 1px;
+}
+
+.input_align_vertical_btn, .input_align_horizontal_btn {
+	float: left;
+}
+.align_vertical {
+	float: left;
+}
+.input_align_vertical{
+	float: left;
+	.multipleFiles {
+		clear: both;
+		float: left;
+		display: block;
+		padding: 0px;
+		.align_vertical, a {
+			display: inline-block;
+			padding: 1px;
+		}
+		.remove-file-link {
+			position: relative;
+			top: 3px;
+			margin-left: 2px;
+		}
+		.remove-file-link-new {
+			margin-top: 7px;
+			position: relative;
+			top: -2px;
+			display: inline-block;
+		}
+	}
+}
 /*край на хоризонтални форми*/
 .contextCursor {
 	cursor: context-menu;
@@ -2015,6 +2108,8 @@ td.formElement {
 
 .wide .path-title {
 	margin-top: 2px;
+	max-width: 1100px;
+	display: block;
 }
 
 /*Загвавие, състоящо се от пътека*/
@@ -2089,6 +2184,10 @@ td.keylist-group{
 	    top: 7px;
 	    right: 5px;
 	}
+}
+.narrow .formGroup img {
+	top: 50%;
+	margin-top: -8px;
 }
 
 .narrow td.keylist-group {
@@ -2296,17 +2395,43 @@ div.alphabet div.tab-row .tab {
 
 div.alphabet div.tab-page {
 	margin: 0;
-	padding: 7px 0 0 0;
+	padding: 10px 0 0 0;
 }
 
 .narrow div.alphabet  div.tab-row {
-	width: 340px;
 	float: left;
 	padding-bottom: 5px;
 }
 
 .docStatistic {
 	margin-top: 20px;
+}
+
+.single-thread .document .docStatistic .detail-info {
+	padding: 0;
+	margin-top: 0;
+	font-size: 0.85em;
+	border: none;
+	.listTable td {
+		background-color: $history-bg;
+	}
+	.row-state-returned td{
+		background-color:#fed6d6;
+	}
+	.stateIndicator,.inline-date {
+		display: inline-block;
+	}
+	.stateIndicator {
+		&.state-active {
+			background-color: #FED;
+		}
+		&.state-stopped {
+			background-color: #FEADAD;
+		}
+		&.state-closed {
+			background-color: $gray3;
+		}
+	}
 }
 
 /*вътрешни alphabet табовете в документ - изглеждат като основните, но по-малки*/
@@ -2350,20 +2475,6 @@ div.alphabet div.tab-page {
 			}
 			&:last-child{
 				border-radius: 0 0 5px 0;
-			}
-		}
-		.stateIndicator,.inline-date {
-			display: inline-block;
-		}
-		.stateIndicator {
-			&.state-active {
-				background-color: #FED;
-			}
-			&.state-stopped {
-				background-color: #FEADAD;
-			}
-			&.state-closed {
-				background-color: $gray3;
 			}
 		}
 		.listTable th {
@@ -2514,6 +2625,7 @@ div.tab-control.deal-history-tab, .single-thread .document .tab-top div.alphabet
             &:hover , &.selected {
                 padding: 4px;
 				top: 0 !important;
+				margin: 0 3px 0 0;
                 border: 1px solid #bbb;
                 background-color: #ffffcc !important;
                 a {
@@ -2530,13 +2642,38 @@ div.tab-control.deal-history-tab, .single-thread .document .tab-top div.alphabet
  	.tab {
 	    font-size: 0.7em;
 	    margin: 0 4px 0 0;
-	    padding: 5px;
+		padding: 5px 8px;
+		margin: 0 4px 0 0 !important;
+		cursor: pointer;
+		border: 1px solid #bbb !important;
+		font-size: 0.7em;
+		text-decoration: none;
+		white-space: nowrap;
+		color: #555 !important;
+		background-color: #ddd !important;
+		background-image: linear-gradient(top, rgba(255,255,255,1),
+						rgba(255,255,255,0)),
+		url(data:image/png;base64,iVBORw0KGg[...]QmCC) !important;
+		transition: background-color .2s ease-out !important;
+		background-clip: padding-box; /* Fix bleeding */
+		border-radius: 5px !important;
+		box-shadow: 0 1px 0 rgba(0, 0, 0, .3),
+		0 1px 0 rgba(255, 255, 255, .3) inset !important;
+		text-shadow: 0 1px 0 rgba(255,255,255, .9) !important;
+		a {
+			color: #333 !important;
+		}
 	    &:hover , &.selected {
-	        margin: 0 4px 0 0;
-	        padding: 5px !important;
-	    }
-	    &.selected {
-	        top: -4px;
+			margin: 0 4px 0 0 !important;
+			background: #ffffe9 !important;
+			padding: 5px 8px !important;
+			position: relative;
+			top: 1px;
+			top: -4px;
+			text-shadow: none;
+			a {
+				color: #444 !important;
+			}
 	    }
 	 }
 }
@@ -2544,13 +2681,14 @@ div.tab-control.deal-history-tab, .single-thread .document .tab-top div.alphabet
 .narrow div.tab-control.deal-history-tab, .narrow .single-thread .document .tab-top div.alphabet{
 	.tab-row {
         float: none;
-        margin: 0px;
+        margin: 0px 5px;
         clear: both;
+
     }
     div.tab-row {
         .tab, .tab.selected {
-			margin: 1px 2px 1px 0 !important;
-			padding: 3px 2px 3px !important;
+			margin: 1px 0px 1px 3px !important;
+			padding: 4px 3px 2px !important;
 			font-size: 0.65em;
 	    }
     }
@@ -3004,6 +3142,7 @@ div.richtext ol ol ol {
 	padding: 2px 0 0 15px;
 	border-left: 5px solid $gray2;
 	font-family: Courier New, monospace, serif;
+    margin-bottom:5px;
 }
 
 .richtext > .richtext-quote {
@@ -3248,8 +3387,7 @@ div.statuses-message h2 {
 	width: 16px;
 	height: 16px;
 	display: inline-block;
-	background-image: url('../img/16/anchor-image.png');
-	margin: 0 5px;
+	margin: -2px 5px 0;
 }
 
 /*цветове*/

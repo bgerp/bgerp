@@ -48,39 +48,21 @@ class cond_TaxAndFees extends core_Manager
     
     
     /**
-     * Кой може да го прочете?
-     */
-    public $canRead = 'ceo, cond';
-    
-    
-    /**
      * Кой може да променя?
      */
-    public $canWrite = 'ceo, cond';
+    public $canWrite = 'ceo,admin';
     
     
     /**
      * Кой може да променя състоянието на валутата
      */
-    public $canChangestate = 'ceo,cond,admin';
+    public $canChangestate = 'ceo,admin';
     
-    
-    /**
-     * Кой може да го отхвърли?
-     */
-    public $canReject = 'ceo, cond';
-    
-    
+
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,cond';
-    
-    
-    /**
-     * Кой може да разглежда сингъла на документите?
-     */
-    public $canSingle = 'ceo,cond';
+    public $canList = 'ceo,admin';
     
     
     /**

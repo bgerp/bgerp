@@ -18,8 +18,8 @@
  */
 class doc_plg_TplManager extends core_Plugin
 {
-	
-	
+    
+    
 	/**
      * След инициализирането на модела
      * 
@@ -35,6 +35,9 @@ class doc_plg_TplManager extends core_Plugin
         if(empty($mvc->fields['template'])){
         	$mvc->FLD('template', "key(mvc=doc_TplManager,select=name)", 'caption=Допълнително->Изглед,notChangeableByContractor');
         }
+        
+        setIfNot($mvc->canAsclient, 'no_one');
+        setIfNot($mvc->createView, TRUE);
     }
     
     
@@ -129,10 +132,8 @@ class doc_plg_TplManager extends core_Plugin
     		if($rec->id){
     			
     			// Ако няма шаблон, за шаблон се приема първия такъв за модела
-    			$rec->template = $mvc->getTemplate($rec->id);
-    			$rec->tplLang = doc_TplManager::fetchField($rec->template, 'lang');
-    			
-				core_Lg::push($rec->tplLang);
+    			$rec->template = $mvc->getTemplate($rec);
+    			$rec->tplLang = $mvc->pushTemplateLg($rec->template);
     		}
     	}
     }
@@ -144,12 +145,15 @@ class doc_plg_TplManager extends core_Plugin
     public static function on_BeforeRenderSingleLayout(core_Mvc $mvc, &$res, $data)
     {
     	// За текущ език се избира този на шаблона
-		$lang = doc_TplManager::fetchField($data->rec->template, 'lang');
-    	core_Lg::push($lang);
+    	$mvc->pushTemplateLg($data->rec->template);
     	
     	// Ако ще се замества целия сингъл, подменяме го елегантно
     	if(!$mvc->templateFld){
-    		$data->singleLayout = doc_TplManager::getTemplate($data->rec->template);
+    		if (Request::get('asClient')) {
+    		    $data->singleLayout = getTplFromFile($mvc->printAsClientLayaoutFile);
+    		} else {
+    		    $data->singleLayout = doc_TplManager::getTemplate($data->rec->template);
+    		}
     	}
     }
     
@@ -170,8 +174,30 @@ class doc_plg_TplManager extends core_Plugin
     public static function on_AfterRenderSingleToolbar(core_Mvc $mvc, &$res, $data)
     {
     	// След рендиране на тулбара отново се пушва езика на шаблона
-    	$lang = doc_TplManager::fetchField($data->rec->template, 'lang');
-    	core_Lg::push($lang);
+    	$mvc->pushTemplateLg($data->rec->template);
+    }
+    
+    
+    /**
+     * 
+     * @param core_Mvc $mvc
+     * @param NULL|string $res
+     * @param integer $templateId
+     */
+    public static function on_AfterPushTemplateLg($mvc, &$res, $templateId)
+    {
+        // Ако езика на шаблона е зададен в мода
+        if ($modeLg = Mode::get('tplManagerLg')) {
+            $res = $modeLg;
+        } else {
+            if (Request::get('asClient')) {
+                $res = 'en';
+            } else {
+                $res = doc_TplManager::fetchField($templateId, 'lang');
+            }
+        }
+        
+        core_Lg::push($res);
     }
     
     
@@ -180,9 +206,19 @@ class doc_plg_TplManager extends core_Plugin
      */
     public static function on_AfterRenderSingleLayout(core_Mvc $mvc, &$tpl, $data)
     {
+        if ($data->_selectTplForm) {
+            $tpl->append($data->_selectTplForm, 'noPrint');
+        }
+        
     	// Ако има посочен плейсхолдър където да отива шаблона, то той се използва
     	if($mvc->templateFld){
-    		$content = doc_TplManager::getTemplate($data->rec->template);
+    		
+    		if (Request::get('asClient')) {
+    		    $content = getTplFromFile($mvc->printAsClientLayaoutFile);
+    		} else {
+    		    $content = doc_TplManager::getTemplate($data->rec->template);
+    		}
+    		
     		$tpl->replace($content, $mvc->templateFld);
     	}
     	
@@ -199,6 +235,96 @@ class doc_plg_TplManager extends core_Plugin
     {
     	// След като документа е рендиран, се възстановява нормалния език
     	core_Lg::pop();
+    	
+    	if (Request::get('asClient')) {
+    	    $tpl->removeBlock('blank');
+    	    $tpl->removeBlock('ExtState');
+    	}
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Mvc $mvc
+     * @param NULL|stdObject $res
+     * @param integer $id
+     * @param string $mode
+     * @param NULL|stdObject $options
+     */
+    function on_BeforeGetDocumentBody($mvc, &$res, $id, $mode = 'html', $options = NULL)
+    {
+        if ($options && $options->tplManagerId) {
+            if (!$options->rec && $id) {
+                $options->rec = $mvc->fetchRec($id);
+                $options->rec->template = $options->tplManagerId;
+            }
+        }
+    }
+    
+    
+    /**
+     * Преди подготовка на на единичния изглед
+     */
+    public static function on_BeforePrepareSingle(core_Mvc $mvc, &$res, &$data)
+    {
+        // Показваме форма за избор на шаблон в екрана за отпечатване
+        if (Mode::is('printing') && Request::get('Printing')) {
+            
+            $form = cls::get('core_Form');
+            
+            $form->class .= ' simpleForm';
+            
+            $form->FNC('tplId', 'key(mvc=doc_TplManager, select=name)', 'caption=Изглед, silent, input');
+            
+            $form->addAttr('tplId', array('onchange' => "this.form.submit();"));
+            
+            $tplArr = doc_TplManager::getTemplates($mvc->getClassId());
+            
+            expect($tplArr);
+            
+            $form->setOptions('tplId', $tplArr);
+            
+            $form->setDefault('tplId', $data->rec->template);
+            
+//             $form->title = "Избор на изглед за отпечатване";
+//             $form->toolbar->addSbBtn('Избор', 'save', 'id=save, ef_icon = img/16/disk.png', 'title=Избор на шаблон за отпечатване, style=display:none;');
+            
+            $form->input();
+            
+            if ($form->isSubmitted()) {
+                
+                if ($data->rec->template != $form->rec->tplId) {
+                    $data->rec->template = $form->rec->tplId;
+                    
+                    // В зависимост от подредбата на плъгините, може и да има вече генериран екшън
+                    if ($data->__MID__) {
+                        $logRec = doclog_Documents::fetchByMid($data->__MID__);
+                        if (!isset($logRec->data)) {
+                            $logRec->data = new stdClass();
+                        }
+                        $logRec->data->tplManagerId = $data->rec->template;
+                        
+                        doclog_Documents::save($logRec, 'dataBlob');
+                    } else {
+                        setIfNot($doclogActionDataArr, Mode::get('doclogActionData'), array());
+                        $doclogActionDataArr['tplManagerId'] = $data->rec->template;
+                        Mode::set('doclogActionData', $doclogActionDataArr);
+                    }
+                }
+            }
+            
+            Mode::push('forcePrinting', TRUE);
+            $data->_selectTplForm = $form->renderHtml();
+            Mode::pop('forcePrinting');
+            
+            if ($data->_selectTplForm) {
+                // Това е необходимо за инпутва на формата
+                // Когат няма 'addSbBtn'
+                $data->_selectTplForm->appendOnce("<input type=\"hidden\" name=\"Cmd[default]\" value=1>",
+                                'FORM_HIDDEN');
+            }
+        }
     }
     
     
@@ -236,6 +362,28 @@ class doc_plg_TplManager extends core_Plugin
     		if($Script = doc_TplManager::getTplScriptClass($data->rec->template)){
     			$Script->modifyMasterData($mvc, $data);
     		}
+    	}
+    	
+    	// Добавяме бланките
+    	if (Request::get('asClient')) {
+    	    
+    	    $companyName = $data->row->inlineContragentName;
+    	    
+    	    if ($companyName) {
+	            $params = array(
+	                    'pixelPerPoint' => 6,
+	                    'outFileName' => NULL,
+	                    'quality' => 'L',
+	                    'outerFrame' => 0,
+	                    'absolute' => TRUE,
+	            );
+	            
+	            try {
+	                $data->row->blankQrClient = barcode_Generator::getLink('qr', $companyName, array('width'=> 87, 'height' => 87), $params);
+	            } catch (Exception $e) {
+	                reportException($e);
+	            }
+    	    }
     	}
     }
     
@@ -339,5 +487,74 @@ class doc_plg_TplManager extends core_Plugin
     		$res = cls::get('doc_TplManager')->makeArray4Select('name', "#docClassId = '{$mvc->getClassId()}' AND #lang = 'en'");
     		ksort($res);
     	}
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Mvc $mvc
+     * @param core_Et|NULL $res
+     * @param stdObject $rec
+     * @param stdObject $row
+     */
+    public static function on_BeforeGetLetterHead($mvc, &$res, $rec, $row)
+    {
+        if (Request::get('asClient')) return FALSE;
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        if ($action == 'asclient') {
+            if (!$mvc->printAsClientLayaoutFile || $rec->state == 'rejected') {
+                $requiredRoles = 'no_one';
+            }
+        }
+        
+        if ($action == 'single') {
+            if (Request::get('asClient')) {
+                $requiredRoles = $mvc->getRequiredRoles('asclient', $rec, $userId);
+            }
+        }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Mvc $mvc
+     * @param stdObject $res
+     * @param stdObject $data
+     */
+    public static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
+    {
+        if ($mvc->haveRightFor('asClient', $data->rec)) {
+            $data->toolbar->addBtn('П Клиент', array($mvc, 'single', $data->rec->id, 'Printing' => 'yes', 'asClient' => TRUE), "id=btnClientPrint{$data->rec->containerId},target=_blank,row=2", 'ef_icon = img/16/print_go.png,title=Печатане с данните на клиента');
+        }
+    }
+    
+    
+    /**
+     * 
+     * @param core_Mvc $mvc
+     * @param core_ET $container
+     * @param integer $cnt
+     * @param stdObject $rec
+     */
+    public static function on_AfterRenderPrintCopy($mvc, &$container, $cnt, $rec)
+    {
+        if ($cnt > 1) {
+            $container->removeBlock('FORM_FIELDS');
+        }
     }
 }

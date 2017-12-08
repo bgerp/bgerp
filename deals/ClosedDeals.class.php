@@ -106,7 +106,7 @@ abstract class deals_ClosedDeals extends core_Master
      */
     public function description()
     {
-        $this->FLD('notes', 'richtext(rows=2)', 'caption=Забележка');
+        $this->FLD('notes', 'richtext(rows=2,bucket=Notes)', 'caption=Забележка');
         $this->FLD('valior', 'date', 'input=hidden');
         
         // Класа на документа, който се затваря
@@ -456,12 +456,6 @@ abstract class deals_ClosedDeals extends core_Master
             		// Ако перото на сделката не е използвано, не може да се приключи
             		$res = 'no_one';
             	}
-            	
-                $originState = $origin->fetchField('state');
-                
-                if($originState === 'closed' || $originState == 'stopped'){
-                    $res = 'no_one';
-                }
             }
         }
         
@@ -534,17 +528,6 @@ abstract class deals_ClosedDeals extends core_Master
         
         // Създаване на документа
         return static::save($newRec);
-    }
-    
-    
-    /**
-     * Връща разбираемо за човека заглавие, отговарящо на записа
-     */
-    public static function getRecTitle($rec, $escaped = TRUE)
-    {
-        $self = cls::get(get_called_class());
-        
-        return $self->singleTitle . " №{$rec->id}";
     }
     
     
@@ -685,7 +668,7 @@ abstract class deals_ClosedDeals extends core_Master
         	
         	// Намираме първия валиден период, след този на датата
         	$pQuery = acc_Periods::getQuery();
-        	$pQuery->where("#state = 'active' || #state = 'pending'");
+        	$pQuery->where("#state = 'active' OR #state = 'pending'");
         	$pQuery->where("#id > {$pRec->id}");
         	$pQuery->orderBy("start", 'DESC');
         	

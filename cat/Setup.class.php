@@ -2,6 +2,12 @@
 
 
 /**
+ * Да се показвали рецептата в описанието на артикула
+ */
+defIfNot('CAT_SHOW_BOM_IN_PRODUCT', 'auto');
+
+
+/**
  * Коя да е основната мярка на универсалните артикули
  */
 defIfNot('CAT_DEFAULT_MEASURE_ID', '');
@@ -41,6 +47,19 @@ defIfNot('CAT_WAC_PRICE_PERIOD_LIMIT', 3);
  * Ценова политика по подразбиране
  */
 defIfNot('CAT_DEFAULT_PRICELIST', price_ListRules::PRICE_LIST_CATALOG);
+
+
+/**
+ * Брой артикули в автоматичните списъци
+ */
+defIfNot('CAT_AUTO_LIST_PRODUCT_COUNT', 30);
+
+
+
+/**
+ * Артикулите от кои групи да влизат в последните продажби
+ */
+defIfNot('CAT_AUTO_LIST_ALLOWED_GROUPS', '');
 
 
 /**
@@ -107,26 +126,26 @@ class cat_Setup extends core_ProtoSetup
     		'cat_Boms',
     		'cat_BomDetails',
     		'cat_ProductTplCache',
-    		'migrate::migrateGroups',
-    		'migrate::migrateProformas',
-    		'migrate::removeOldParams1',
-    		'migrate::updateDocs',
-    		'migrate::truncatCache',
-            'migrate::fixProductsSearchKeywords',
-    		'migrate::updateProductsNew',
-    		'migrate::deleteCache2',
-    		'migrate::addClassIdToParams',
-    		'migrate::updateBomType',
-    		'migrate::updateParamStates',
-    		'migrate::migratePrototypes',
+    		'cat_Listings',
+    		'cat_ListingDetails',
+    		'cat_PackParams',
         );
-
-
+    
+    
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'cat,sales,purchase,techno';
- 
+    var $roles = array(
+            array('listArt'),
+    		array('sales', 'listArt'),
+    		array('purchase'),
+    		array('packEdit'),
+    		array('catEdit', 'packEdit'),
+    		array('cat', 'catEdit'),
+            array('rep_cat'),
+            array('catImpEx'),
+    );
+    
     
     /**
      * Връзки от менюто, сочещи към модула
@@ -139,7 +158,7 @@ class cat_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "cat_GeneralProductDriver, cat_reports_SalesArticle";
+    var $defClasses = "cat_GeneralProductDriver, cat_reports_SalesArticle, cat_reports_BomsRep";
 
 
     /**
@@ -153,6 +172,9 @@ class cat_Setup extends core_ProtoSetup
     		'CAT_BOM_MAX_COMPONENTS_LEVEL'          => array("int(min=0)", 'caption=Вложени рецепти - нива с показване на компонентите->Макс. брой'),
     		'CAT_WAC_PRICE_PERIOD_LIMIT'            => array("int(min=1)", array('caption' => 'До колко периода назад да се търси складова себестойност, ако няма->Брой')),
             'CAT_DEFAULT_PRICELIST'                 => array("key(mvc=price_Lists,select=title,allowEmpty)", 'caption=Ценова политика по подразбиране->Избор,mandatory'),
+            'CAT_AUTO_LIST_PRODUCT_COUNT'           => array("int(min=1)", 'caption=Списъци от последно продавани артикули->Брой'),
+            'CAT_AUTO_LIST_ALLOWED_GROUPS'          => array("keylist(mvc=cat_Groups,select=name)", 'caption=Списъци от последно продавани артикули->Групи'),
+            'CAT_SHOW_BOM_IN_PRODUCT'               => array("enum(auto=Автоматично,product=В артикула,job=В заданието,yes=Навсякъде,no=Никъде)", 'caption=Показване на рецептата в описанието на артикула->Показване'),
     );
 
     
@@ -166,6 +188,16 @@ class cat_Setup extends core_ProtoSetup
     				'controller' => "cat_Products",
     				'action' => "closePrivateProducts",
     				'period' => 21600,
+    				'offset' => 60,
+    				'timeLimit' => 200
+    		),
+    		
+    		array(
+    				'systemId' => "Update Auto Sales List",
+    				'description' => "Обновяване на листовете с продажби",
+    				'controller' => "cat_Listings",
+    				'action' => "UpdateAutoLists",
+    				'period' => 1440,
     				'offset' => 60,
     				'timeLimit' => 200
     		),
@@ -196,313 +228,5 @@ class cat_Setup extends core_ProtoSetup
         $res = bgerp_Menu::remove($this);
         
         return $res;
-    }
-    
-    
-    /**
-     * Миграция на мета данните на групите
-     */
-    public function migrateGroups()
-    {
-    	$Set = cls::get('type_Set');
-    	
-    	$query = cat_Groups::getQuery();
-    	while($rec = $query->fetch()){
-    		$meta = type_Set::toArray($rec->meta);
-    		if(isset($meta['materials'])){
-    			$meta['canStore'] = 'canStore';
-    			$meta['canConvert'] = 'canConvert';
-    			unset($meta['materials']);
-    		}
-    		
-    		$rec->meta = $Set->fromVerbal($meta);
-    		cat_Groups::save($rec, 'meta');
-    	}
-    }
-    
-    
-    /**
-     * Изтрива стари параметри
-     */
-    public function removeOldParams1()
-    {
-    	foreach (array('vat', 'vatGroup') as $sysId){
-    		if($vRec = cat_Params::fetch("#sysId = '{$sysId}'")){
-    			cat_products_Params::delete("#paramId = '{$vRec->id}'");
-    			cat_Params::delete($vRec->id);
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Временна миграция
-     */
-    public function migrateProformas()
-    {
-    	if(core_Packs::fetch("#name = 'sales'")){
-    		$Detail = cls::get('sales_ProformaDetails');
-    		
-    		if($Detail::count()){
-    			$query = $Detail->getQuery();
-    			$productId = cat_Products::getClassId();
-    			while($rec = $query->fetch()){
-    				if($rec->classId != $productId){
-    					$rec->classId = $productId;
-    					$Detail->save_($rec);
-    				}
-    			}
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Ъпдейтване на старите задания и рецепти
-     */
-    public function updateDocs()
-    {
-    	$bomQuery = cat_Boms::getQuery();
-    	$bomQuery->where("#productId IS NULL");
-    	while($bRec = $bomQuery->fetch()){
-    		$origin = doc_Containers::getDocument($bRec->originId);
-    		$bRec->productId = $origin->that;
-    		cat_Boms::save($bRec, 'productId');
-    	}
-    	
-    	if(core_Packs::fetch("#name = 'planning'")){
-    		$jQuery = planning_Jobs::getQuery();
-    		$jQuery->where("#productId IS NULL");
-    		while($jRec = $jQuery->fetch()){
-    			$origin = doc_Containers::getDocument($jRec->originId);
-    			$jRec->productId = $origin->that;
-    			planning_Jobs::save($jRec, 'productId');
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Изтриваме кеша
-     */
-    public function truncatCache()
-    {
-    	cat_ProductTplCache::truncate();
-    }
-    
-    
-    /**
-     * Оправя ключовите думи на артикулите
-     */
-    public static function fixProductsSearchKeywords()
-    {
-    	$query = cat_Products::getQuery();
-    	
-    	while($rec = $query->fetch()) {
-    		if(cls::load($rec->innerClass, TRUE)){
-    			try {
-    				cat_Products::save($rec, 'searchKeywords');
-    			} catch (core_exception_Expect $e) {
-    				continue;
-    			}
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Миграционна функция
-     */
-    function replaceBoms()
-    {
-    	$Bom = cls::get('cat_BomDetails');
-    	$bomQuery = $Bom->getQuery();
-    	
-    	while ($bomRec = $bomQuery->fetch()){
-    		if($bomRec->resourceId == 1147){
-    			$r = cat_products_Packagings::fetch(15);
-    	
-    			$bomRec->packagingId = $r->packagingId;
-    			$bomRec->quantityInPack = $r->quantity;
-    	
-    			$Bom->save($bomRec, NULL, 'REPLACE');
-    		} elseif($bomRec->resourceId == 1151){
-    			$r = cat_products_Packagings::fetch(7);
-    	
-    			$bomRec->packagingId = $r->packagingId;
-    			$bomRec->quantityInPack = $r->quantity;
-    	
-    			$Bom->save($bomRec, NULL, 'REPLACE');
-    		} elseif($bomRec->resourceId == 1145){
-    			$r = cat_products_Packagings::fetch(11);
-    	
-    			$bomRec->packagingId = $r->packagingId;
-    			$bomRec->quantityInPack = $r->quantity;
-    	
-    			$Bom->save($bomRec, NULL, 'REPLACE');
-    		}
-    	}
-    	 
-    	unset($bomRec);
-    	$Dp = cls::get('planning_DirectProductNoteDetails');
-    	$dQuery = $Dp->getQuery();
-    	
-    	while ($bomRec = $dQuery->fetch()){
-    		
-    		if($bomRec->productId == 1147){
-    			$r = cat_products_Packagings::fetch(15);
-    		
-    			$bomRec->packagingId = $r->packagingId;
-    			$bomRec->quantityInPack = $r->quantity;
-    	
-    			$Dp->save($bomRec, NULL, 'REPLACE');
-    		} elseif($bomRec->productId == 1151){
-    			$r = cat_products_Packagings::fetch(7);
-    			$bomRec->packagingId = $r->packagingId;
-    			$bomRec->quantityInPack = $r->quantity;
-    	
-    			$Dp->save($bomRec, NULL, 'REPLACE');
-    		} elseif($bomRec->productId == 1145){
-    			$r = cat_products_Packagings::fetch(11);
-    			
-    			$bomRec->packagingId = $r->packagingId;
-    			$bomRec->quantityInPack = $r->quantity;
-    			
-    			$Dp->save($bomRec, NULL, 'REPLACE');
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Миграция на артикулите
-     */
-    function updateProductsNew()
-    {
-    	if(!cat_Products::count()) return;
-    	
-    	core_App::setTimeLimit(700);
-    	
-    	$Products = cls::get('cat_Products');
-    	$query = $Products->getQuery();
-    	
-		$query->orderBy('id', 'ASC');
-    	while($rec = $query->fetch()){
-    		try{
-    			$Products->save_($rec);
-    		} catch(core_exception_Expect $e){
-    			
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Изчистване на кеша на артикулите
-     */
-    public function deleteCache2()
-    {
-    	cat_ProductTplCache::truncate();
-    }
-    
-    
-    /**
-     * Миграция на параметрите
-     */
-    public static function addClassIdToParams()
-    {
-    	$Params = cls::get('cat_products_Params');
-    	$Params->setupMvc();
-    	$classId = cat_Products::getClassId();
-    	
-    	try{
-    		$query = $Params->getQuery();
-    		$query->where("#classId IS NULL");
-    		while($rec = $query->fetch()){
-    			$rec->classId = $classId;
-    			$Params->save_($rec, 'classId');
-    		}
-    	} catch(core_exception_Expect $e){
-    		reportException($e);
-    	}
-    }
-    
-    
-    /**
-     * Ъпдейт на типа на рецептите
-     */
-    public function updateBomType()
-    {
-    	$Boms = cls::get('cat_Boms');
-    	$Boms->setupMvc();
-    	
-    	$query = $Boms->getQuery();
-    	while($rec = $query->fetch()){
-    		try{
-    			$firstDocument = doc_Threads::getFirstDocument($rec->threadId);
-    			$type = 'sales';
-    			if($firstDocument && $firstDocument->isInstanceOf('planning_Jobs')){
-    				$type = 'production';
-    			}
-    			$rec->type = $type;
-    			$Boms->save_($rec, 'type');
-    		} catch(core_exception_Expect $e){
-    			reportException($e);
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Миграция на състоянието на параметъра
-     */
-    public function updateParamStates()
-    {
-    	$Params = cls::get('cat_Params');
-    	$Params->setupMvc();
-    	
-    	$query = cat_Params::getQuery();
-    	$query->where("#state = '' || #state IS NULL");
-    	while($rec = $query->fetch()){
-    		$rec->state = 'active';
-    		$Params->save_($rec, 'state');
-    	}
-    }
-    
-    
-    /**
-     * Миграция на шаблонните артикули
-     */
-    public function migratePrototypes()
-    {
-    	try{
-    		cls::get('cat_Products')->setupMvc();
-    		$folders = array();
-    		 
-    		// В кои категории може да има прототипни артикули
-    		$query = cat_Categories::getQuery();
-    		$query->where("#useAsProto = 'yes'");
-    		$query->show('folderId');
-    		while($cRec = $query->fetch()) {
-    			$folders[$cRec->folderId] = $cRec->folderId;
-    		}
-    		 
-    		if(count($folders)){
-    			core_App::setTimeLimit(300);
-    			
-    			foreach ($folders as $folderId){
-    				$cQuery = cat_Products::getQuery();
-    				$cQuery->where("#state = 'active'");
-    				$cQuery->where("#folderId = {$folderId}");
-    			
-    				while($rec = $cQuery->fetch()){
-    					$title = cat_Products::getTitleById($rec->id);
-    					doc_Prototypes::add($title, 'cat_Products', $rec->id, $rec->innerClass);
-    				}
-    			}
-    		}
-    	} catch(core_exception_Expect $e){
-    		reportException($e);
-    	}
     }
 }

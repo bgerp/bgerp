@@ -53,7 +53,11 @@ class core_Cls
         }
 
         static $classNames = array();
-
+        
+        if (!stripos($className, '_')) {
+            $className = ucfirst($className);
+        }
+        
         $cln = $className;
 
         if(!isset($classNames[$cln])) {
@@ -191,6 +195,11 @@ class core_Cls
             $obj = &core_Cls::$singletons[$class];
         } else {
             $obj = &cls::createObject($class, $initArr);
+        }
+
+        if(isset($obj->newClassName)) {
+
+            return self::get($obj->newClassName, $initArr);
         }
         
         return $obj;

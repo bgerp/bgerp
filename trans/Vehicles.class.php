@@ -99,7 +99,7 @@ class trans_Vehicles extends core_Master
     	$this->FLD('name', 'varchar(120)', 'caption=Име,mandatory');
     	$this->FLD('number', 'varchar(32)', 'caption=Рег. номер,mandatory');
     	$this->FLD('load', 'double', 'caption=Товароносимост');
-    	$this->FLD('description', 'richtext(rows=3)', 'caption=Описание');
+    	$this->FLD('description', 'richtext(rows=3,bucket=Notes)', 'caption=Описание');
     	$this->FLD('type', 'enum(truck=Камион,minibus=Минибус,pickup=Пикап)', 'caption=Вид');
     	$this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
     	

@@ -1,14 +1,15 @@
 <?php
 
 
+
 /**
  * Мениджър на складове
  *
  *
  * @category  bgerp
  * @package   store
- * @author    Stefan Stefanov <stefan.bg@gmail.com> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -73,7 +74,7 @@ class store_Stores extends core_Master
 	/**
      * Детайла, на модела
      */
-    public $details = 'AccReports=acc_ReportDetails';
+    public $details = 'AccReports=acc_ReportDetails,store_Products';
     
     
     /**
@@ -91,7 +92,7 @@ class store_Stores extends core_Master
     /**
      * По кои сметки ще се правят справки
      */
-    public $balanceRefAccounts = '302, 304, 305, 306, 309, 321';
+    public $balanceRefAccounts = '302, 304, 305, 306, 309';
     
     
     /**
@@ -133,7 +134,7 @@ class store_Stores extends core_Master
    /**
 	* Кой може да активира?
 	*/
-	public $canActivate = 'ceo, store';
+	public $canActivate = 'ceo, store, production';
     
     
     /**
@@ -181,7 +182,7 @@ class store_Stores extends core_Master
     {
         $this->FLD('name', 'varchar(128)', 'caption=Наименование,mandatory,remember=info');
         $this->FLD('comment', 'varchar(256)', 'caption=Коментар');
-        $this->FLD('chiefs', 'userList(roles=store|ceo)', 'caption=Контиране на документи->Потребители,mandatory');
+        $this->FLD('chiefs', 'userList(roles=store|ceo|production)', 'caption=Контиране на документи->Потребители,mandatory');
         $this->FLD('workersIds', 'userList(roles=storeWorker)', 'caption=Допълнително->Товарачи');
         $this->FLD('locationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Допълнително->Локация');
     	$this->FLD('lastUsedOn', 'datetime', 'caption=Последено използване,input=none');
@@ -212,24 +213,6 @@ class store_Stores extends core_Master
     		}
     	}
     }
-    
-    
-    /**
-     * Имплементация на @see intf_Register::getAccItemRec()
-     */
-    public static function getAccItemRec($rec)
-    {
-        return (object)array(
-            'title' => $rec->name
-        );
-    }
-    
-    
-    /*******************************************************************************************
-     * 
-     * ИМПЛЕМЕНТАЦИЯ на интерфейса @see crm_ContragentAccRegIntf
-     * 
-     ******************************************************************************************/
     
     
     /**
@@ -293,47 +276,6 @@ class store_Stores extends core_Master
     			$cu = core_Users::getCurrent();
     			if(keylist::isIn($cu, $rec->workersIds) && haveRole($mvc->getFieldType('workersIds')->getRoles())){
     				$res = 'ceo,storeWorker';
-    			}
-    		}
-    	}
-    }
-    
-    
-    /**
-     * След подготовка на записите в счетоводните справки
-     */
-    public static function on_AfterPrepareAccReportRecs($mvc, &$data)
-    {
-    	$recs = &$data->recs;
-    	if(empty($recs) || !count($recs)) return;
-    	
-    	foreach ($recs as &$dRec){
-    		$productPlace = acc_Lists::getPosition($dRec->accountNum, 'cat_ProductAccRegIntf');
-    		$itemRec = acc_Items::fetch($dRec->{"ent{$productPlace}Id"});
-    		
-    		$packs = cat_Products::getPacks($itemRec->objectId);
-    		$basePackId = key($packs);
-    		$data->uomNames[$dRec->id] = cat_UoM::getTitleById($basePackId);
-    		
-    		if($pRec = cat_products_Packagings::getPack($itemRec->objectId, $basePackId)){
-    			$dRec->blQuantity /= $pRec->quantity;
-    		}
-    	}
-    }
-    
-    
-	/**
-     * След подготовка на вербалнтие записи на счетоводните справки
-     */
-    public static function on_AfterPrepareAccReportRows($mvc, &$data)
-    {
-    	$rows = &$data->balanceRows;
-    	arr::placeInAssocArray($data->listFields, 'packId=Мярка', 'blQuantity');
-    	
-    	foreach ($rows as &$arrs){
-    		if(count($arrs['rows'])){
-    			foreach ($arrs['rows'] as &$row){
-    				$row['packId'] = $data->uomNames[$row['id']];
     			}
     		}
     	}

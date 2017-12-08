@@ -42,28 +42,53 @@ class plg_SaveAndNew extends core_Plugin
             }
            
             // Записваме в сесията, полетата със запомняне
-            $fields = $data->form->selectFields("#remember");
+            $fields = $data->form->selectFields("#remember || #name == 'id'");
             
+
+            // Правим статус за информация на потребителя
+            if(is_a($mvc, 'core_Detail')) {
+                $action = tr("Добавен е нов") . ' ';
+                $obj    = tr("ред");
+            } else {
+                $action = tr("Създаден е нов") . ' ';
+                $obj    = tr("обект");
+            }
+            // status_Messages::newStatus($action . ($mvc->singleTitle ? tr(mb_strtolower($mvc->singleTitle)) : $obj));
+
             if(count($fields)) {
                 foreach($fields as $name => $fld) {
                     $permanentName = cls::getClassName($mvc) . '_' . $name;
                     Mode::setPermanent($permanentName, $data->form->rec->{$name});
                 }
             }
+
+
         } elseif($data->cmd != 'delete' && $data->form->cmd != 'refresh') {
             
             if (!$data->form->gotErrors()) {
-                $fields = $data->form->selectFields("#remember == 'info'");
+                $fields = $data->form->selectFields("#remember == 'info' || #name == 'id'");
                 
+                $info = '';
+
                 // Изваждаме от сесията и поставяме като дефолти, полетата със запомняне
                 if(count($fields)) {
                     foreach($fields as $name => $fld) {
                         $permanentName = cls::getClassName($mvc) . '_' . $name;
                         
-                        if($value = core_Type::escape(Mode::get($permanentName))) {
+                        if(($value = core_Type::escape(Mode::get($permanentName))) && $name != 'id') {
                             $info .= "<p>{$fld->caption}: <b>{$value}</b></p>";
                         }
+                        if($name == 'id') {
+                            $id = $value;
+                        }
                     }
+                }
+
+                if($mvc->rememberTpl && $id) {  
+                    $row = $mvc->recToVerbal($mvc->fetch($id));
+                    $tpl = new ET($mvc->rememberTpl);
+                    $tpl->placeObject($row);
+                    $info = $tpl->getContent();
                 }
              
                 if($info) {
@@ -131,4 +156,7 @@ class plg_SaveAndNew extends core_Plugin
             }
         }
     }
+
+
+
 }

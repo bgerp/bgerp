@@ -111,4 +111,13 @@ class lab_Methods extends core_Master
     {
         $row->name = Ht::createLink($row->name, array($mvc, 'single', $rec->id));
     }
+
+
+    /**
+     * Преди запис
+     */
+    public static function on_BeforeSave($mvc, $id, $rec)
+    {
+        $rec->state = 'active';
+    }
 }

@@ -121,7 +121,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 				
 				$entries[] = array('amount' => round($sign * $vatAmount, 2),
 						'debit' => $debitArr,
-						'credit' => array('4530'),
+						'credit' => array('4530', array($correspondingDoc->getInstance()->getClassId(), $correspondingDoc->that)),
 				);
 					
 				$total += round($sign * $vatAmount, 2);
@@ -162,7 +162,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 				$creditArr['quantity'] = $sign * currency_Currencies::round($creditArr['quantity'], $correspondingDoc->fetchField('currencyId'));
 				
 				$entries[] = array('amount' => round($sign * $vatAmount, 2),
-						'debit' => array('4530'),
+						'debit' => array('4530', array($correspondingDoc->getInstance()->getClassId(), $correspondingDoc->that)),
 						'credit' => $creditArr,
 				);
 					
@@ -346,11 +346,14 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 		if(!empty($errorMsg)) return $entries;
 		$itemRec = acc_Items::fetch($expenseItemId);
 		$isPurchase = ($itemRec->classId == purchase_Purchases::getClassId());
+		$isSale = ($itemRec->classId == sales_Sales::getClassId());
+		$mPn = ($itemRec->classId == planning_DirectProductionNote::getClassId());
+		$isTransfer = ($itemRec->classId == store_Transfers::getClassId());
 		
 		foreach ($products as $p){
 			$creditArr = array('60201', $expenseItemId, array('cat_Products', $productId), 'quantity' => $sign * $p->allocated);
 			
-			if($isPurchase){
+			if($isPurchase || $isTransfer){
 				
 				$storesArr = array();
 				foreach ($p->inStores as $storeId => $p2){
@@ -386,7 +389,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 							'reason' => 'Разпределяне на разходи');
 				}
 				
-			} else {
+			} elseif($isSale) {
 				$canStore = cat_Products::fetchField($p->productId, 'canStore');
 				$accountSysId = ($canStore == 'yes') ? '701' : '703';
 				$dealRec = cls::get($itemRec->classId)->fetch($itemRec->objectId, 'contragentClassId, contragentId');
@@ -397,6 +400,25 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 								$expenseItemId, array('cat_Products', $p->productId),
 								'quantity' => 0),
 						'credit' => $creditArr, 'reason' => 'Разпределяне на разходи');
+			} elseif($mPn){
+				$canStore = cat_Products::fetchField($p->productId, 'canStore');
+				
+				if($canStore == 'yes'){
+					$debit = array('321',
+							        array('store_Stores', key($p->inStores)),
+							        array('cat_Products', $p->productId),
+							       'quantity' => 0);
+				} else {
+					$debit = array('60201',
+							$expenseItemId,
+							array('cat_Products', $p->productId),
+							'quantity' => 0);
+				}
+				
+				$creditArr['quantity'] = $sign * $p->allocated;
+				
+				$entries[] = array('debit' => $debit,
+						           'credit' => $creditArr, 'reason' => 'Разпределяне на разходи');
 			}
 		}
 		

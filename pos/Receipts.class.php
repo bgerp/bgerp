@@ -46,12 +46,6 @@ class pos_Receipts extends core_Master {
 	 * Детайли на бележката
 	 */
 	public $details = 'pos_ReceiptDetails';
-	
-	
-    /**
-     * Кой може да го прочете?
-     */
-    public $canRead = 'ceo, pos';
     
     
     /**
@@ -142,6 +136,12 @@ class pos_Receipts extends core_Master {
      * Инстанция на детайла
      */
     public $pos_ReceiptDetails;
+    
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, valior,modifiedOn';
     
     
     /**
@@ -401,7 +401,7 @@ class pos_Receipts extends core_Master {
     /**
 	 * Модификация на ролите
 	 */
-    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{ 
 		// Само черновите бележки могат да се редактират в терминала
 		if($action == 'terminal' && isset($rec)) {
@@ -1213,16 +1213,18 @@ class pos_Receipts extends core_Master {
     		return $this->pos_ReceiptDetails->returnError($receiptId);
     	}
     	 
-    	// Намираме нужната информация за продукта
-    	$this->pos_ReceiptDetails->getProductInfo($rec);
     	if($packId = Request::get('packId', 'int')){
     		if(!cat_UoM::fetch($packId)){
     			core_Statuses::newStatus('|Невалидна опаковка|*!', 'error');
     			return $this->pos_ReceiptDetails->returnError($receiptId);
     		}
-    		
+    	
     		$rec->value = $packId;
     	}
+    	
+    	
+    	// Намираме нужната информация за продукта
+    	$this->pos_ReceiptDetails->getProductInfo($rec);
     	
     	// Ако не е намерен продукт
     	if(!$rec->productId) {
@@ -1232,7 +1234,10 @@ class pos_Receipts extends core_Master {
     
     	// Ако няма цена
     	if(!$rec->price) {
-    		core_Statuses::newStatus('|Артикулът няма цена|*!', 'error');
+    		$createdOn = pos_Receipts::fetchField($rec->receiptId, 'createdOn');
+    		$createdOn = dt::mysql2verbal($createdOn, 'd.m.Y H:i');
+    		
+    		core_Statuses::newStatus("|Артикулът няма цена към|* <b>{$createdOn}</b>", 'error');
     		return $this->pos_ReceiptDetails->returnError($receiptId);
     	}
     	
@@ -1537,17 +1542,6 @@ class pos_Receipts extends core_Master {
     	$data->payments = $payments;
     	
     	return $data;
-    }
-    
-
-    /**
-     * Връща разбираемо за човека заглавие, отговарящо на записа
-     */
-    public static function getRecTitle($rec, $escaped = TRUE)
-    {
-    	$me = cls::get(get_called_class());
-    	
-    	return $me->singleTitle . " №{$rec->id}";
     }
     
     

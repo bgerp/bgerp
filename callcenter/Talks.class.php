@@ -344,9 +344,9 @@ class callcenter_Talks extends core_Master
         }
         
         // Добавяме бутон за създаване на сигнал
-        if (support_Issues::haveRightFor('add')) {
-            Request::setProtected('srcId, srcClass');
-            $row->_rowTools->addLink('Сигнал', array('support_Issues', 'add', 'srcId' => $rec->id, 'srcClass' => $mvc->className, 'ret_url' => TRUE), 'ef_icon=img/16/support.png, title=Създаване на сигнал от обаждане');
+        if ($rec->id && cal_Tasks::haveRightFor('add')) {
+            $urlArr = cal_Tasks::getUrlForCreate($rec->id, $mvc->className);
+            $row->_rowTools->addLink('Сигнал', $urlArr, 'ef_icon=img/16/support.png, title=Създаване на сигнал от обаждане');
         }
         
         if ($mvc->haveRightFor('archivetalk', $rec)) {
@@ -1423,7 +1423,7 @@ class callcenter_Talks extends core_Master
         $data->listFilter->FNC('number', 'drdata_PhoneType', 'caption=Номер,input,silent, recently');
         
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent,autoFilter');
+        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo|callcenter, rolesForTeams=ceo|manager|callcenter)', 'caption=Потребител,input,silent,autoFilter');
         
         // Функционално поле за търсене по статус и тип на разговора
         $data->listFilter->FNC('dialStatusType', 'enum()', 'caption=Състояние,input,autoFilter');
@@ -1523,30 +1523,24 @@ class callcenter_Talks extends core_Master
             if ($filter->usersSearch) {
                 
     			// Ако се търси по всички и има права admin или ceo
-    			if (strpos($filter->usersSearch, '|-1|') !== FALSE) {
+    			if (strpos($filter->usersSearch, '|-1|') === FALSE) {
+    			    // Масив с потребителите
+    			    $usersArr = type_Keylist::toArray($filter->usersSearch);
     			    
-    			    if (!(haveRole('ceo'))) {
-                        $data->query->where("1=2");
+    			    // Масив с номерата на съответните потребители
+    			    $numbersArr = callcenter_Numbers::getInternalNumbersForUsers($usersArr);
+    			    
+    			    // Ако има такива номера
+    			    if (count((array)$numbersArr)) {
+    			    
+    			        // Показваме обажданията към и от тях
+    			        $data->query->orWhereArr('internalNum', $numbersArr);
+    			    } else {
+    			    
+    			        // Не показваме нищо
+    			        $data->query->where("1=2");
     			    }
-    			    // Търсим всичко
-                } else {
-                    
-                    // Масив с потребителите
-                    $usersArr = type_Keylist::toArray($filter->usersSearch);
-                    
-                    // Масив с номерата на съответните потребители
-                    $numbersArr = callcenter_Numbers::getInternalNumbersForUsers($usersArr);
-                    
-                    // Ако има такива номера
-                    if (count((array)$numbersArr)) {
-                        
-                        // Показваме обажданията към и от тях
-        			    $data->query->orWhereArr('internalNum', $numbersArr);
-                    } else {
-                        
-                        // Не показваме нищо
-                        $data->query->where("1=2");
-                    }
+    			    
                 }
     		}
     		
@@ -1718,16 +1712,16 @@ class callcenter_Talks extends core_Master
      * @param NULL|stdObject $rec
      * @param NULL|integer $userId
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Ако искаме да отворим сингъла на документа
         if ($rec->id && $action == 'single' && $userId) {
             
             // Ако нямаме роля CEO
-            if (!haveRole('ceo')) {
+            if (!haveRole('ceo, callcenter', $userId)) {
                 
                 // Ако сме мениджър
-                if (haveRole('manager')) {
+                if (haveRole('manager', $userId)) {
                     
                     // Вземаме хората от нашия екип
                     $teemMates = core_Users::getTeammates($userId);
@@ -2271,7 +2265,7 @@ class callcenter_Talks extends core_Master
 	 * 
 	 * @param integer $id Кой е пораждащия комит
 	 * 
-	 * @return stdObject за support_Issues
+	 * @return stdObject за cal_Tasks
 	 * 
 	 * @see support_IssueCreateIntf
 	 */
@@ -2321,15 +2315,9 @@ class callcenter_Talks extends core_Master
 	 */
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-        if ($data->rec->id && support_Issues::haveRightFor('add')) {
-            Request::setProtected('srcId, srcClass');
-            $data->toolbar->addBtn('Сигнал', array(
-                    'support_Issues',
-                    'add',
-                    'srcId' => $data->rec->id,
-                    'srcClass' => $mvc->className,
-                    'ret_url'=> TRUE
-                ),'ef_icon = img/16/support.png,title=Създаване на сигнал');
+        if ($data->rec->id && cal_Tasks::haveRightFor('add')) {
+            $urlArr = cal_Tasks::getUrlForCreate($data->rec->id, $mvc->className);
+            $data->toolbar->addBtn('Сигнал', $urlArr,'ef_icon = img/16/support.png,title=Създаване на сигнал');
         }
     }
     

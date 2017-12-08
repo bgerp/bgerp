@@ -3,7 +3,7 @@
     <table class="innerTable border-table paddingCells">
         <tbody>
         <tr>
-            <td colspan="2" class='centered'>
+            <td class='centered'>
                 <div class="document-title">[#type#]</div>
                 <div style="padding-top:5px;">
                         <span class="state [#STATE_CLASS#]">
@@ -23,8 +23,7 @@
             </td>
         </tr>
         <tr>
-            <td class="cell custom-header-bg"  style="width: 50%"><b>Buyer</b></td>
-            <td class="cell custom-header-bg"><b>Seller</b></td>
+            <td class="cell custom-header-bg" ><b>Buyer</b></td>
         </tr>
         <tr>
             <td>
@@ -50,6 +49,11 @@
                     </tbody>
                 </table>
             </td>
+        </tr>
+        <tr>
+            <td class="cell custom-header-bg"><b>Seller</b></td>
+        </tr>
+        <tr>
             <td>
                 <b>[#MyCompany#]</b>
                 <div class='address-block'>
@@ -95,32 +99,17 @@
                 <!--ET_BEGIN vatDate-->
                 <span class='quiet'>Данъчно събитие:</span> [#vatDate#] &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 <!--ET_END vatDate-->
-                <!--ET_BEGIN baseAmount-->
-                <div>
-                    <span class='quiet'>Данъчна основа:</span> [#baseAmount#] <span class='cCode'>[#baseCurrencyId#]</span>
-                </div>
-                <!--ET_END baseAmount-->
                 <!--ET_BEGIN rate-->
                 <div><span class='quiet'>Курс:</span>  [#rate#]</div>
                 <!--ET_END rate-->
                 <hr class='printVisible'>
                 <div class='custom-bg-block'><b>Payment</b></div>
                 <!--ET_BEGIN paymentType-->
-                <div>[#paymentType#]</div>
+                <div class="boldText">[#paymentType#]</div>
                 <!--ET_END paymentType-->
                 <!--ET_BEGIN dueDate-->
                 <div><span class='quiet'>Payment no later than:</span> [#dueDate#]</div>
                 <!--ET_END dueDate-->
-                <!--ET_BEGIN deadline-->
-                [#deadline#]
-                <div>
-                    <!--ET_BEGIN DUE_DATE-->
-                    <span class='quiet'>Deadline for payment:</span> [#DUE_DATE#]<!--ET_END DUE_DATE-->  &nbsp;&nbsp;
-                    <!--ET_BEGIN OVERDUE_INTEREST_RATE-->
-                    <span class="smallData">Interest for late payment: [#OVERDUE_INTEREST_RATE#] |на ден|*</span>
-                    <!--ET_END OVERDUE_INTEREST_RATE-->
-                </div>
-                <!--ET_END deadline-->
                 <!--ET_BEGIN deadlineForBalancePayment-->
                 <div><span class='quiet'>Finally till: </span>[#deadlineForBalancePayment#]</div>
                 <!--ET_END deadlineForBalancePayment-->
@@ -159,6 +148,7 @@
                 <!--ET_BEGIN username-->
                 <div>Prepared by:  [#username#]</div>
                 <!--ET_END username-->
+                <div class='small'>( PIN: [#userCode#] )</div>
             </td>
         </tr>
         <tr class='footerDocInfo'>

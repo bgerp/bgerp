@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'store_InventoryNoteDetails'
  *
@@ -9,7 +10,7 @@
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -38,13 +39,7 @@ class store_InventoryNoteDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'store_Wrapper';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo, store';
+    public $loadList = 'store_Wrapper, plg_AlignDecimals2, plg_RowTools2, plg_PrevAndNext, plg_SaveAndNew, plg_Modified,plg_Created,plg_Sorting,plg_Search';
     
     
     /**
@@ -56,25 +51,31 @@ class store_InventoryNoteDetails extends doc_Detail
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'no_one';
+    public $canEdit = 'ceo, storeMaster';
+    
+    
+    /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'ceo, storeMaster';
+    
+    
+    /**
+     * Кой има право да променя системните данни?
+     */
+    public $canDeletesysdata = 'ceo, storeMaster';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'no_one';
-    
-    
-    /**
-     * Кой има право да добавя?
-     */
-    public $canInsert = 'ceo, storeMaster';
+    public $canAdd = 'ceo, storeMaster';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'no_one';
+    public $canDelete = 'ceo, storeMaster';
     
         
     /**
@@ -84,18 +85,52 @@ class store_InventoryNoteDetails extends doc_Detail
     
     
     /**
+     * Кои полета да се извличат при изтриване
+     */
+    public $fetchFieldsBeforeDelete = 'noteId, productId';
+    
+    
+    /**
+     * Полета, които ще се показват в листов изглед
+     */
+    public $listFields = 'productId, packagingId=Мярка,packQuantity=Установено,modifiedOn,modifiedBy';
+    
+    
+    /**
+     * По подразбиране колко резултата да показва на страница
+     */
+    public $listItemsPerPage = 40;
+    
+    
+    /**
+     * Работен кеш
+     */
+    protected $cache = array();
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'productId,packagingId';
+    
+    
+    /**
+     * Име на полето за търсене
+     */
+    public $searchInputField = 'searchDetail';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
         $this->FLD('noteId', 'key(mvc=store_InventoryNotes)', 'column=none,notNull,silent,hidden,mandatory');
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,input=none,mandatory,silent,refreshForm');
-        $this->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,smartCenter,input=hidden,tdClass=small-field nowrap');
-        $this->FLD('quantity', 'double(min=0)', 'caption=Количество,input=none');
-        $this->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
-        $this->FNC('packQuantity', 'double(decimals=2)', 'caption=Количество,input,mandatory');
-    
-        $this->setDbUnique('noteId,productId,packagingId');
+        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,silent,removeAndRefreshForm=packagingId|quantity|quantityInPack|packQuantity|batch');
+        $this->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,tdClass=small-field nowrap,removeAndRefreshForm=quantity|quantityInPack|packQuantity|batch,remember,silent');
+        $this->FLD('quantity', 'double', 'caption=Количество,input=none');
+        $this->FLD('quantityInPack', 'double(decimals=2)', 'input=hidden,column=none');
+        $this->FNC('packQuantity', 'double(decimals=2,min=0)', 'caption=Количество,input');
     }
     
     
@@ -107,22 +142,211 @@ class store_InventoryNoteDetails extends doc_Detail
      */
     protected static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
     {
-    	if (!isset($rec->quantity) || !isset($rec->quantityInPack)) {
-    		return;
-    	}
+    	if (!isset($rec->quantity) || !isset($rec->quantityInPack)) return;
     
     	$rec->packQuantity = $rec->quantity / $rec->quantityInPack;
     }
     
     
     /**
-     * Изпълнява се след опаковане на детайла от мениджъра
+     * Подготовка на Детайлите
+     */
+    function prepareDetail_($data)
+    {
+    	$data->TabCaption = 'Въвеждане';
+    	$data->Tab = 'top';
+    	 
+    	$tab = Request::get($data->masterData->tabTopParam, 'varchar');
+    	if($tab == get_called_class()){
+    		parent::prepareDetail_($data);
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec)){
+    		$state = store_InventoryNotes::fetchField($rec->noteId, 'state');
+    		if($state != 'draft'){
+    			$requiredRoles = 'no_one';
+    		} else {
+    			if(!store_InventoryNotes::haveRightFor('edit', $rec->noteId)){
+    				$requiredRoles = 'no_one';
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Подготвя данните (в обекта $data) необходими за единичния изглед
+     */
+    public function prepareEditForm_($data)
+    {
+    	$data = parent::prepareEditForm_($data);
+    	$form = &$data->form;
+    	$rec = &$form->rec;
+    	
+    	// Кеш на предишния запис
+    	$lastId = Mode::get("InventoryNoteLastSavedRow{$rec->noteId}");
+    	if($lastId && $lastId != $rec->id){
+    		if($lastRec = $this->fetch($lastId)){
+    			$row = $this->recToVerbal($lastRec);
+    			$info = new core_ET(tr("|*<b>|Предишно|*</b>: {$row->productId} {$row->packQuantity} {$row->packagingId} [#tools#]"));
+    			$info->replace($row->_rowTools->renderHtml(2), 'tools');
+    			$form->info = $info;
+    		}
+    	}
+    	
+    	$form->FNC('keepProduct', 'enum(yes=Да,no=Не)', 'caption=Помни артикула,after=packQuantity,input,maxRadio=2,remember');
+    	$permanentName = cls::getClassName($this) . "_keepProduct";
+    	$permanentName = (Mode::get($permanentName)) ? Mode::get($permanentName) : 'no';
+    	$form->setDefault('keepProduct', $permanentName);
+    	
+    	$products = cat_Products::getByProperty('canStore');
+    	$form->setOptions('productId', array('' => '') + $products);
+    	
+    	$defProduct = Mode::get("InventoryNoteNextProduct{$rec->noteId}");
+    	$form->setDefault('productId', $defProduct);
+    	
+    	// Рендиране на опаковките
+    	if(isset($rec->productId)){
+    		$packs = cat_Products::getPacks($rec->productId);
+    		$form->setOptions('packagingId', $packs);
+    		$form->setDefault('packagingId', key($packs));
+    	} else {
+    		$form->setField('packagingId', 'input=none');
+    	}
+    	
+    	return $data;
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	$rec = $form->rec;
+    	
+    	if($form->notMandatoryQ !== TRUE){
+    		$form->setField('packQuantity', 'mandatory');
+    	}
+    	
+    	if($form->isSubmitted()){
+    		
+    		// Проверка на к-то
+    		if(!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)){
+    			$form->setError('packQuantity', $warning);
+    		}
+    		
+    		$productInfo = cat_Products::getProductInfo($rec->productId);
+    		$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+    		$rec->quantity = (isset($rec->packQuantity)) ? $rec->packQuantity * $rec->quantityInPack : NULL;
+    	}
+    	
+    	$mvc->invoke('AfterAfterInputEditForm', array($form));
+    }
+    
+    
+    /**
+     * Подготовка на бутоните на формата за добавяне/редактиране
+     */
+    protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    {
+    	// Подсигуряване че запис и нов го има дори и при редакция
+    	if(isset($data->form->rec->id)) {
+    		$data->form->toolbar->addSbBtn('Запис и Нов', 'save_n_new', NULL, array('id'=>'saveAndNew', 'order'=>'1', 'ef_icon'=>'img/16/save_and_new.png', 'title'=>'Запиши документа и създай нов'));
+    	}
+    }
+    
+    
+    /**
+     * Логика за определяне къде да се пренасочва потребителския интерфейс.
+     *
+     * @param core_Manager $mvc
      * @param stdClass $data
      */
-    function renderDetail($data)
+    protected static function on_AfterPrepareRetUrl($mvc, $data)
     {
-    	return new core_ET("");
+    	if(!isset($data->form) || !$data->form->isSubmitted()) return;
+    	
+    	if($data->form->cmd == 'save_n_new'){
+    		$rec = $data->form->rec;
+    		
+    		// Ако не е избрано за пазене на артикула, се цикли в следващия в списъка
+    		if($rec->keepProduct != 'yes'){
+    			$cache = store_InventoryNotes::fetchField($rec->noteId, 'cache');
+    			$cache = (array)json_decode($cache);
+    			
+    			$keys = array_values($cache);
+    			$i = array_search($rec->productId, $keys);
+    			$key = $i + 1;
+    			
+    			$newProductId = (isset($keys[$key])) ? $keys[$key] : NULL;
+    			Mode::setPermanent("InventoryNoteNextProduct{$rec->noteId}", $newProductId);
+    		} else {
+    			Mode::setPermanent("InventoryNoteNextProduct{$rec->noteId}", $rec->productId);
+    		}
+    		
+    		unset($data->retUrl['id']);
+    		unset($data->retUrl['packagingId']);
+    	}
+    }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc $mvc
+     * @param int $id първичния ключ на направения запис
+     * @param stdClass $rec всички полета, които току-що са били записани
+     */
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+    	if(is_null($rec->quantity)){
+    		$mvc->delete($rec->id);
+    	}
+    	
+    	$summeryId = store_InventoryNoteSummary::force($rec->noteId, $rec->productId);
+    	store_InventoryNoteSummary::recalc($summeryId);
+    	
+    	Mode::setPermanent("InventoryNoteLastSavedRow{$rec->noteId}", $rec->id);
+    	$mvc->cache[$rec->noteId] = $rec->noteId;
+    }
+    
+    
+    /**
+     * След изтриване на запис
+     */
+    public static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {
+    	foreach ($query->getDeletedRecs() as $id => $rec) {
+    		$summeryId = store_InventoryNoteSummary::force($rec->noteId, $rec->productId);
+    		store_InventoryNoteSummary::recalc($summeryId);
+    		
+    		$mvc->cache[$rec->noteId] = $rec->noteId;
+    		Mode::setPermanent("InventoryNoteLastSavedRow{$rec->noteId}", NULL);
+    	}
+    }
+    
+    
+    /**
+     * Изчиства записите, заопашени за запис
+     */
+    protected static function on_Shutdown($mvc)
+    {
+    	if(count($mvc->cache)){
+    		foreach ($mvc->cache as $noteId) {
+    			store_InventoryNotes::invalidateCache($noteId);
+    		}
+    	}
     }
     
     
@@ -136,352 +360,101 @@ class store_InventoryNoteDetails extends doc_Detail
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$row->packagingId = cat_UoM::getShortName($rec->packagingId);
+    	$row->productId = cat_Products::getShortHyperlink($rec->productId);
+    	deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
     }
     
     
     /**
-     * Екшън за добавяне на записи към инвентаризационния опис
+     * Подготовка на филтър формата
      */
-    public function act_Insert()
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-    	$this->requireRightFor('insert');
+    	if($data->masterData->rec->state == 'rejected') return;
     	
-    	if(Request::get('ajax_mode')) {
-    		if(!$noteId = Request::get('noteId', 'key(mvc=store_InventoryNotes)')){
-    			core_Statuses::newStatus('|Невалиден протокол|*!', 'error');
-    			return status_Messages::returnStatusesArray();
-    		}
-    		 
-    		if(!$productId = Request::get('productId', 'key(mvc=cat_Products)')){
-    			core_Statuses::newStatus('|Невалиден артикул|*!', 'error');
-    			return status_Messages::returnStatusesArray();
-    		}
-    	} else {
-    		expect($noteId = Request::get('noteId', 'key(mvc=store_InventoryNotes)'));
-    	}
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png,title=Филтриране на данните');
+    	$data->listFilter->FLD('threadId', 'key(mvc=doc_Threads)', 'input=hidden');
+    	$data->listFilter->FLD("{$data->masterData->tabTopParam}", 'varchar', 'input=hidden');
+    	$data->listFilter->setDefault("{$data->masterData->tabTopParam}", get_called_class());
+    	$data->listFilter->setDefault('threadId', $data->masterData->rec->threadId);
+    	$data->listFilter->showFields = $mvc->searchInputField;
+    	$data->listFilter->view = 'horizontal';
     	
-    	$rec = (object)array('noteId' => $noteId, 'productId' => $productId);
-    	$this->requireRightFor('insert', $rec);
-    	
-    	// Подготвяме формата
-    	$form = $this->getInsertForm($rec);
-    	$form->class = 'inventoryNoteInsertForm';
-    	
-    	// Задаваме екшън на формата
-    	$form->setAction(array($this, 'insert', 'noteId' => $rec->noteId, 'productId' => $rec->productId));
-    	$form->input();
-    	
-    	// Ако е събмитната формата
-    	if($form->isSubmitted()){
-    		$rec = $form->rec;
-    		$arr = (array)$rec;
-    		$masterRec = store_InventoryNotes::fetch($rec->noteId);
-    		
-    		$quantity = NULL;
-    		
-    		$date = dt::now();
-    		
-    		// Артикулът трябва да има себестойност
-    		$price = cat_Products::getWacAmountInStore(1, $rec->productId, $date, $masterRec->storeId);
-    		if(!$price){
-    			$price = cat_Products::getSelfValue($rec->productId);
-    		}
-    		
-    		if(!$price){
-    			$form->setError('productId', 'Артикулът няма себестойност');
-    		}
-    		
-    		if(!$form->gotErrors()){
-    			foreach ($arr as $key => $value){
-    				$recToClone = (object)array('noteId' => $rec->noteId, 'productId' => $rec->productId);
-    				 
-    				// За всяка опаковка
-    				if(strpos($key, 'pack') !== FALSE){
-    					$packagingId = str_replace('pack', '', $key);
-    			
-    					// Ако има стойност я добавяме
-    					if(isset($value)){
-    						$dRec = clone $recToClone;
-    						$dRec->packagingId = $packagingId;
-    						$dRec->quantityInPack = ($rec->{"quantityInPack{$packagingId}"}) ? $rec->{"quantityInPack{$packagingId}"} : 1;
-    						$dRec->quantity = $value * $dRec->quantityInPack;
-    							
-    						$this->isUnique($dRec, $fields, $exRec);
-    						if($exRec){
-    							$dRec->id = $exRec->id;
-    						}
-    							
-    						// Сумираме и записваме новата стойност
-    						$quantity += $dRec->quantity;
-    						store_InventoryNoteDetails::save($dRec);
-    					} else {
-    							
-    						// Ако за опаковката няма стойност изтриваме я
-    						store_InventoryNoteDetails::delete("#noteId = {$rec->noteId} AND #productId = {$rec->productId} AND #packagingId = {$packagingId}");
-    					}
-    				}
-    			}
-    			
-    			// Форсираме съмарито на записа
-    			$summeryId = store_InventoryNoteSummary::force($rec->noteId, $rec->productId);
-    			
-    			// Обновяваме количеството
-    			$now = dt::now();
-    			$sRec = (object)array('id' => $summeryId, 'quantity' => $quantity, 'modifiedOn' => $now);
-    			cls::get('store_InventoryNoteSummary')->save_($sRec);
-    			
-    			// Ако сме в AJAX режим
-    			if(Request::get('ajax_mode')) {
-    			
-    				// Ще рендираме наново колоните за количество и разлика
-    				$replaceHtml = store_InventoryNoteSummary::renderQuantityCell($summeryId)->getContent();
-    				$replaceDeltaHtml = store_InventoryNoteSummary::renderDeltaCell($summeryId)->getContent();
-    			
-    				// Заместваме клетката по AJAX за да визуализираме промяната
-    				$resObj = new stdClass();
-    				$resObj->func = "html";
-    				$resObj->arg = array('id' => "summary{$summeryId}", 'html' => $replaceHtml, 'replace' => TRUE);
-    			
-    				$resObj1 = new stdClass();
-    				$resObj1->func = "html";
-    				$resObj1->arg = array('id' => "delta{$summeryId}", 'html' => $replaceDeltaHtml, 'replace' => TRUE);
-    			
-    				$resObj2 = new stdClass();
-    				$resObj2->arg = array('nextelement' => $rec->nextelement);
-    			
-    				$resObj3 = new stdClass();
-    				$resObj3->func = "html";
-    				$resObj3->arg = array('id' => "charge{$summeryId}", 'html' => store_InventoryNoteSummary::renderCharge($summeryId), 'replace' => TRUE);
-    				
-    				// Връщаме дали ще скрием класа на реда
-    				$showClass = false;
-    				if(is_null($quantity)){
-    					$showClass = true;
-    				}
-    				
-    				$res = array_merge(array($resObj), array($resObj1), array($resObj2), array($resObj3), array($showClass));
-    			
-    				// Връщаме очаквания обект
-    				core_App::getJson($res);
-    			} else {
-    				store_InventoryNotes::invalidateCache($rec->noteId);
-    				// Ако не сме по аякс правим редирект
-    				followRetUrl();
-    			}
-    		}
-    	}
-    	
-    	// Ако сме в аякс режим добавяме JS бутони
-    	if(Request::get('ajax_mode') && $form->cmd != 'refresh'){
-    		if(isset($form->rec->nextelement)){
-    			$form->toolbar->addFnBtn('Запис и Нов', "submitShowAddForm(this.form)", "id=saveAjaxAndNew,ef_icon = img/16/disk.png");
-    		}
-    		$form->toolbar->addFnBtn('Запис', "submitAndCloseForm(this.form)", "id=saveAjax,ef_icon = img/16/disk.png");
-    		$form->toolbar->addFnBtn('Отказ', "cancelForm()", "id=cancelAjax, ef_icon = img/16/close-red.png");
-    	} else {
-    		
-    		// Иначе добавяме нормални бутони
-    		//$form->toolbar->addFnBtn('Запис и Нов', "saveAndNew", "id=saveAndNew,ef_icon = img/16/disk.png");
-    		$form->toolbar->addSbBtn('Запис', 'save', 'id=save, ef_icon = img/16/disk.png', 'title=Запис на документа');
-    		$form->toolbar->addBtn('Отказ', array('store_InventoryNotes', 'single', $noteId),  'id=cancel, ef_icon = img/16/close-red.png', 'title=Прекратяване на действията');
-    	}
-    	
-    	// Получаваме изгледа на формата
-        $tpl = $form->renderHtml();
-        
-        // Ако сме в аякс мод
-        if (Request::get('ajax_mode') && $form->cmd != 'refresh') {
-        	
-        	// Къде ще реплейснем формата
-        	$replaceId = Request::get('replaceId', 'varchar');
-        	$id = store_InventoryNoteSummary::fetchField("#noteId = {$noteId} AND #productId = {$productId}");
-        	
-        	// Подготвяме данните за реплейсване на формата
-        	$resObj = new stdClass();
-        	$resObj->func = "html";
-        	$resObj->arg = array('id' => 'ajax-form', 'html' => $tpl->getContent(), 'replace' => TRUE, 'hasError' => TRUE);
-        	
-        	// Ако няма грешки
-        	if(!$form->gotErrors()){
-        		unset($resObj->arg['hasError']);
-        	}
-        	
-        	$resObj2 = new stdClass();
-        	$resObj2->func = "setFocus";
-        	$resObj2->arg = array('id' => 'focusAjaxField');
-        	
-        	$res = array_merge(array($resObj), array($resObj2));
-        	
-        	// Връщаме очаквания обект
-        	core_App::getJson($res);
-        } else {
-        	
-        	// Опаковаме изгледа
-        	$tpl = $this->renderWrapping($tpl);
-        
-        	// Връщаме шаблона ако не сме в AJAX режим
-        	return $tpl;
-        }
+    	$data->query->orderby('id', 'DESC');
     }
     
     
     /**
-     * Подготвя формата за инсъртване
+     * Екшън за импорт на артикули от група
      * 
-     * @return core_Form $form - формата
+     * @return core_ET $tpl
      */
-    private function getInsertForm()
+    function act_Import()
     {
+    	// Проверки
+    	$this->requireRightFor('add');
+    	expect($noteId = Request::get('noteId', 'int'));
+    	expect($noteRec = store_InventoryNotes::fetch($noteId));
+    	$this->requireRightFor('add', (object)array('noteId' => $noteId));
+    	
+    	// Подготовка на формата
     	$form = cls::get('core_Form');
-    	$form->FLD('noteId', 'key(mvc=store_InventoryNotes)', 'mandatory,silent,input=hidden');
-    	$form->FLD('productId', 'key(mvc=cat_Products, select=name)', 'mandatory,silent,caption=Артикул,removeAndRefreshForm');
-    	$form->FLD('edit', 'int', 'silent,input=hidden');
-    	$form->FLD('nextelement', 'varchar', 'silent,input=hidden');
-    	$form->FNC('ret_url', 'varchar(1024)', 'input=hidden,silent');
-    	
+    	$form->title = 'Импортиране на артикули в|* <b>' . store_InventoryNotes::getHyperlink($noteId, TRUE) . "</b>";
+    	$form->FLD('group', 'key(mvc=cat_Groups,select=name,allowEmpty)', "caption=Група,mandatory,silent,removeAndRefreshForm=selected");
     	$form->input(NULL, 'silent');
+    	$form->input();
+    	$rec = $form->rec;
     	
-    	$isAjax = (Request::get('ajax_mode') && $form->cmd != 'refresh');
-    	if($isAjax){
-    		$form->fieldsLayout = getTplFromFile('store/tpl/InventoryNote/FormFieldsAjax.shtml');
-    	}
-    	
-    	$rec = &$form->rec;
-    	if($rec->edit){
-    		$pTitle = cat_Products::getTitleById($rec->productId);
-    		$form->title = "|*<b>{$pTitle}</b>";
-    		$form->info = tr('Установено количество');
-    		$form->setField('productId', 'input=hidden');
-    	} else {
-    		$form->title = core_Detail::getEditTitle('store_InventoryNotes', $rec->noteId, $this->singleTitle, NULL);
-    		$products = cat_Products::getByProperty('canStore');
-			$productsInSummary = store_InventoryNoteSummary::getProductsInSummary($rec->noteId);
-			$notUsedProducts = array_diff_key($products, $productsInSummary);
-			
-			$form->setOptions('productId', array('' => '') + $notUsedProducts);
-    	}
-    	
-    	if(isset($rec->productId)){
-    		$refreshForm = array();
-    		$packs = cat_Products::getPacks($rec->productId);
+    	// Ако е избрана група извличат се складируемите артикули от нея, които ги няма в протокола
+    	if(isset($rec->group)){
+    		$inArr = cls::get('store_InventoryNotes')->getCurrentProducts($noteRec);
+    		$inArr = arr::extractValuesFromArray($inArr, 'productId');
     		
-    		$count = 1;
-    		foreach ($packs as $packId => $value){
-    			$attr = array('attr' => array('autocomplete' => 'off'));
-    			if($count == 1){
-    				$attr['attr']['id'] = 'focusAjaxField';
-    			}
-    			$form->FLD("pack{$packId}", 'double(min=0)', $attr);
-    			
-    			$exRec = store_InventoryNoteDetails::fetch("#noteId = {$rec->noteId} AND #productId = {$rec->productId} AND #packagingId = {$packId}");
-    			if($exRec){
-    				$quantityInPack = $exRec->quantityInPack;
-    				$form->setDefault("pack{$packId}", core_Math::roundNumber($exRec->quantity / $quantityInPack));
-    			} else {
-    				$pRec = cat_products_Packagings::getPack($rec->productId, $packId);
-    				$quantityInPack = ($pRec) ? $pRec->quantity : 1;
-    			}
-    			
-    			$value = cat_UoM::getShortName($packId);
-    			deals_Helper::getPackInfo($value, $rec->productId, $packId, $quantityInPack);
-    			$value = strip_tags($value);
-    			$value = str_replace('&nbsp;', '', $value);
-    			
-    			if($isAjax === TRUE){
-    				$tplBlock = clone $form->fieldsLayout->getBlock('field_name');
-    				$tplBlock->placeArray(array('field_name' => new core_ET("[#pack{$packId}#]"), 'caption' => $value));
-    				$form->fieldsLayout->append($tplBlock, 'CONTENT');
-    			}
-    			$form->setField("pack{$packId}", "caption=|*{$value}");
-    			
-    			$form->FLD("quantityInPack{$packId}", 'double', "input=hidden");
-    			$form->setDefault("quantityInPack{$packId}", $quantityInPack);
-    			$refreshForm[] = "pack{$packId}";
-    			$refreshForm[] = "quantityInPack{$packId}";
-    			$count++;
+    		$query = cat_Products::getQuery();
+    		$query->likeKeylist('groups', $rec->group);
+    		if(count($inArr)){
+    			$query->notIn('id', $inArr);
     		}
     		
-    		$refreshForm = implode('|', $refreshForm);
-    		$form->setField('productId', "removeAndRefreshForm={$refreshForm}");
-    	}
-    	
-    	
-    	return $form;
-    }
-    
-    
-    /**
-     * Връща историята на реда
-     * 
-     * @param stdClass $rec
-     * @return core_ET $tpl
-     */
-    public static function getHistory($summaryRec)
-    {
-    	$self = cls::get(get_called_class());
-    	$data = $self->prepareHistory($summaryRec);
-    	$tpl = $self->renderHistory($data);
-    	
-    	return $tpl;
-    }
-    
-    
-    /**
-     * Подготвя историята
-     * 
-     * @param stdClass $rec
-     * @return stdClass
-     */
-    private function prepareHistory($summaryRec)
-    {
-    	$recs = $rows = array();
-    	$dQuery = $this->getQuery();
-    	$dQuery->where("#noteId = {$summaryRec->noteId} AND #productId = {$summaryRec->productId}");
-    	while($rec = $dQuery->fetch()){
-    		$recs[$rec->id] = $rec;
-    		$row = $this->recToVerbal($rec);
-    		$rows[$rec->id] = $row;
-    	}
-    	
-    	return (object)array('recs' => $recs, 'rows' => $rows);
-    }
-    
-    
-    /**
-     * Рендира историята
-     * 
-     * @param stdClass $data
-     * @return core_ET $tpl
-     */
-    private function renderHistory($data)
-    {
-    	$tpl = new core_ET("<!--ET_BEGIN BLOCK--><div style='color:darkgreen'>[#packQuantity#] <span class='quiet'>[#packagingId#]</span></div><!--ET_END BLOCK-->");
-    	foreach ($data->rows as $id => $row){
-    		$blockTpl = clone $tpl->getBlock('BLOCK');
-    		$blockTpl->placeObject($row);
-    		$blockTpl->removeBlocks();
-    		$blockTpl->removePlaces();
-    		$blockTpl->append2Master();
-    	}
-    	
-    	return $tpl;
-    }
-    
-    
-    /**
-     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
-     */
-    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-    {
-    	if($action == 'insert' && isset($rec)){
-    		$state = store_InventoryNotes::fetchField($rec->noteId, 'state');
-    		if($state != 'draft'){
-    			$requiredRoles = 'no_one';
+    		$products = array();
+    		$query->where("#state = 'active'");
+    		$query->where("#canStore = 'yes'");
+    		$query->show('isPublic,folderId,meta,id,code,name');
+    		while($pRec = $query->fetch()){
+    			$products[$pRec->id] = static::getRecTitle($pRec, FALSE);
+    		}
+    		
+    		if(!count($products)){
+    			$form->setError('group', 'Няма нови артикули за импортиране от групата');
     		} else {
-    			if(!store_InventoryNotes::haveRightFor('edit', $rec->noteId)){
-    				$requiredRoles = 'no_one';
-    			}
+    			$set = cls::get('type_Set', array('suggestions' => $products));
+    			$form->FLD('selected', 'varchar', 'caption=Артикули,mandatory');
+    			$form->setFieldType('selected', $set);
+    			$form->input('selected');
+    			$form->setDefault('selected', $set->fromVerbal($products));
     		}
     	}
+    	
+    	// Ако формата е събмитната
+    	if($form->isSubmitted()){
+    		$products = type_Set::toArray($rec->selected);
+    		if(is_array($products)){
+    			$count = 0;
+    			foreach ($products as $pId){
+    				$rId = store_InventoryNoteSummary::force($noteId, $pId);
+    				$count++;
+    			}
+    			
+    			followRetUrl(NULL, "Импортирани са|* '{$count}' |артикула|*");
+    		}
+    	}
+    	
+    	$form->toolbar->addSbBtn('Импорт', 'save', 'ef_icon = img/16/import.png, title = Импорт');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+		
+		$tpl = $this->renderWrapping($form->renderHtml());
+		core_Form::preventDoubleSubmission($tpl, $form);
+		
+		return $tpl;
     }
 }

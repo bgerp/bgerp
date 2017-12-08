@@ -8,9 +8,9 @@
                     <!--ET_END correspondingDealOriginId-->
                 </div>
                 <div class='fright' style='width: 50%'>
-	                <div style='margin-top:5px;'><span class='quiet'>|Корекция|*</span>: <b>[#action#]</b></div>
+	                <div style='margin-top:5px;'><span class='quiet'>|Корекция към|*</span>: <b>[#action#]</b></div>
 	                <div style='margin-top:5px;'><span class='quiet'>|Разпределяне по|*</span>: <b>[#allocateBy#]</b></div>
-	                <div style='margin-top:5px;'><span class='quiet'>|Сума|*</span>: <b>[#amount#]</b> <span class='cCode'>[#baseCurrencyCode#]</span> [#vatType#]</div>
+	                <div style='margin-top:5px;'><span class='quiet'>|Корекция с|*</span>: <b>[#amount#]</b> <span class='cCode'>[#baseCurrencyCode#]</span> [#vatType#]</div>
 	            </div>
 	            <div class='clearfix21'></div>
 	            <div class='scrolling-holder'>

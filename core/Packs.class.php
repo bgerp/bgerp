@@ -839,7 +839,7 @@ class core_Packs extends core_Manager
         // Ако е пуснат от сетъп-а записваме в Лог-а 
         if ($setupFlag) {
             do {
-                $res = @file_put_contents(EF_TEMP_PATH . '/setupLog.html', "<h2>Инсталиране на {$pack} ... <h2>", FILE_APPEND|LOCK_EX);
+                $res = @file_put_contents(EF_SETUP_LOG_PATH, "<h2>Инсталиране на {$pack} ... <h2>", FILE_APPEND|LOCK_EX);
                 if($res !== FALSE) break;
                 usleep(1000);
             } while($i++ < 100);
@@ -871,10 +871,10 @@ class core_Packs extends core_Manager
 
         // Започваме самото инсталиране
         if ($setup->startCtr && !$setupFlag) {
-            $res .= "<h2>Инсталиране на пакета \"<a href=\"" .
+            $res .= "<h2>Инициализиране на пакета \"<a href=\"" .
             toUrl(array($setup->startCtr, $setup->startAct)) . "\"><b>{$pack}</b></a>\"&nbsp;";
         } else {
-            $res .= "<h2>Инсталиране на пакета \"<b>{$pack}</b>\"&nbsp;";
+            $res .= "<h2>Инициализиране на пакета \"<b>{$pack}</b>\"&nbsp;";
         }
 
         try {
@@ -963,7 +963,7 @@ class core_Packs extends core_Manager
 			$res = substr($res, strpos($res, "</h2>"), strlen($res));
 
             do {
-                $res = @file_put_contents(EF_TEMP_PATH . '/setupLog.html', $res, FILE_APPEND|LOCK_EX);
+                $res = @file_put_contents(EF_SETUP_LOG_PATH, $res, FILE_APPEND|LOCK_EX);
                 if($res !== FALSE) break;
                 usleep(1000);
             } while($i++ < 100);
@@ -971,7 +971,7 @@ class core_Packs extends core_Manager
 			unset($res);
         }
         
-        DEBUG::stopTimer("Инсталиране на пакет '{$pack}'");
+        DEBUG::stopTimer("Инициализация на пакет '{$pack}'");
         
         if ($setupFlag && $pack == 'bgerp') {
             // в setup-a очакваме резултат
@@ -983,7 +983,7 @@ class core_Packs extends core_Manager
             return $res;
         } else {
             
-            return "<div>Успешна инсталация на пакета '{$pack}'</div>";
+            return "<div>Успешна инициализация на пакета '{$pack}'</div>";
         }
     }
 
@@ -1181,7 +1181,9 @@ class core_Packs extends core_Manager
             $typeInst = core_Type::getByName($type);
 
             if (defined($field)) {
+                Mode::push('text', 'plain');
                 $defVal = $typeInst->toVerbal(constant($field));
+                Mode::pop('text');
                 $params['hint'] .= ($params['hint'] ? "\n" : '') . 'Стойност по подразбиране|*: "' . $defVal . '"';
             }
 
@@ -1234,11 +1236,14 @@ class core_Packs extends core_Manager
             // Правим запис в лога
             $this->logWrite("Промяна на конфигурацията на пакет", $rec->id);
             
-            $msg = '';
+            $msg = 'Конфигурацията е записана';
             
             // Ако е инсталиран, обновяваме пакета
             if (self::isInstalled($packName)) {
-                $msg = self::setupPack($packName, $rec->version, TRUE, TRUE, FALSE);
+                $setupClass = $packName . '_Setup';
+                if($setupClass::INIT_AFTER_CONFIG) {
+                    $msg .= '<br>' . self::setupPack($packName, $rec->version, TRUE, TRUE, FALSE);
+                }
             }
             
             return new Redirect($retUrl, $msg);

@@ -22,16 +22,19 @@ class crm_CommerceDetails extends core_Manager
 	 */
 	public function prepareCommerceDetails($data)
 	{
-		$data->TabCaption = 'Търговия';
+		if(haveRole('sales,purchase,ceo')){
+			$data->TabCaption = 'Търговия';
+		}
+
+		if($data->isCurrent === FALSE) return;
+		
 		$data->Lists = cls::get('price_ListToCustomers');
 		$data->Conditions = cls::get('cond_ConditionsToCustomers');
 		$data->Cards = cls::get('pos_Cards');
-		$data->ProductList = cls::get('crm_ext_ProductListToContragents');
 		
 		$data->listData = clone $data;
 		$data->condData = clone $data;
 		$data->cardData = clone $data;
-		$data->pListData = clone $data;
 		
 		// Подготвяме данни за ценовите листи
 		$data->Lists->preparePricelists($data->listData);
@@ -41,9 +44,6 @@ class crm_CommerceDetails extends core_Manager
 		
 		// Подготвяме клиентските карти
 		$data->Cards->prepareCards($data->cardData);
-		
-		// Подготвяме листови продукти
-		$data->ProductList->prepareProductList($data->pListData);
 	}
 	
 	
@@ -52,29 +52,32 @@ class crm_CommerceDetails extends core_Manager
 	 */
 	public function renderCommerceDetails($data)
 	{
+		if($data->prepareTab === FALSE || $data->renderTab === FALSE) return;
+		
 		// Взимаме шаблона
 		$tpl = getTplFromFile('crm/tpl/CommerceDetails.shtml');
 		$tpl->replace(tr('Търговия'), 'title');
 		
 		// Рендираме ценовата информация
-		$listsTpl = $data->Lists->renderPricelists($data->listData);
-		$listsTpl->removeBlocks();
-		$tpl->append($listsTpl, 'LISTS');
+		if(!empty($data->Lists)){
+			$listsTpl = $data->Lists->renderPricelists($data->listData);
+			$listsTpl->removeBlocks();
+			$tpl->append($listsTpl, 'LISTS');
+		}
 		
 		// Рендираме търговските условия
-		$condTpl = $data->Conditions->renderCustomerSalecond($data->condData);
-		$condTpl->removeBlocks();
-		$tpl->append($condTpl, 'CONDITIONS');
+		if(!empty($data->Conditions)){
+			$condTpl = $data->Conditions->renderCustomerSalecond($data->condData);
+			$condTpl->removeBlocks();
+			$tpl->append($condTpl, 'CONDITIONS');
+		}
 		
 		// Рендираме клиентските карти
-		$cardTpl = $data->Cards->renderCards($data->cardData);
-		$cardTpl->removeBlocks();
-		$tpl->append($cardTpl, 'CARDS');
-		
-		// Подготвяме листваните артикули
-		$pListTpl = $data->ProductList->renderProductList($data->pListData);
-		$pListTpl->removeBlocks();
-		$tpl->append($pListTpl, 'PRODUCT_LISTS');
+		if(!empty($data->Cards)){
+			$cardTpl = $data->Cards->renderCards($data->cardData);
+			$cardTpl->removeBlocks();
+			$tpl->append($cardTpl, 'CARDS');
+		}
 		
 		return $tpl;
 	}

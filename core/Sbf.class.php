@@ -61,6 +61,8 @@ class core_Sbf extends core_Mvc
     static function getSbfFilePath_($path)
     {  
         static $cache;
+        
+        // debug::log("getSbfFilePath {$path}");
 
         if(!$cache[$path]) {
             $time = 0;
@@ -109,6 +111,14 @@ class core_Sbf extends core_Mvc
      */
     public static function getUrl($rPath, $qt = '"', $absolute = FALSE)
     {
+        if(strpos($rPath, 'img/16or32/') !== FALSE) {
+            if(log_Browsers::isRetina()) {
+                $rPath = str_replace('img/16or32/', 'img/32/', $rPath);
+            } else {
+                $rPath = str_replace('img/16or32/', 'img/16/', $rPath);
+            }
+        }
+
         // Ако файла съществува
         if (($sbfPath = self::getSbfFilePath($rPath)) && $rPath{0} != '_') {
             
@@ -171,7 +181,7 @@ class core_Sbf extends core_Mvc
         if (!$file || !($toSave = $content = @file_get_contents($file))) {
             
             if (isDebug()) {
-                error_log("EF Error: Mising file: {$name}");
+                error_log("EF Error: Missing file: {$name}");
             }
             
             header('HTTP/1.1 404 Not Found');

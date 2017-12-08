@@ -2,7 +2,7 @@
     <table class="innerTable border-table paddingCells">
         <tbody>
             <tr>
-                <td colspan = "2" class='centered'>
+                <td class='centered'>
                     <div class="document-title">|ДОГОВОР ЗА ПРОДАЖБА|*</div>
                     <div style="padding-top:5px;">
                         <span class="state [#STATE_CLASS#]">
@@ -16,17 +16,11 @@
                 </td>
             </tr>
             <tr>
-                <td class="cell custom-header-bg" style='width:50%;'>
+                <td class="cell custom-header-bg">
                     <b>|Получател|*</b>
                     <!--ET_BEGIN isPaid-->
                     <div class='stamp fright'>[#isPaid#]</div>
                     <!--ET_END isPaid-->
-                </td>
-                <td class="cell custom-header-bg" style='width:50%;'>
-                    <b>|Доставчик|*</b>
-                    <!--ET_BEGIN isDelivered-->
-                    <div class='stamp fright'>[#isDelivered#]</div>
-                    <!--ET_END isDelivered-->
                 </td>
             </tr>
             <tr>
@@ -51,6 +45,16 @@
                     </div>
                     <!--ET_END deliveryLocationId-->
                 </td>
+            </tr>
+            <tr>
+                <td class="cell custom-header-bg">
+                    <b>|Доставчик|*</b>
+                    <!--ET_BEGIN isDelivered-->
+                    <div class='stamp fright'>[#isDelivered#]</div>
+                    <!--ET_END isDelivered-->
+                </td>
+            </tr>
+            <tr>
                 <td>
                     <!--ET_BEGIN MyCompany-->
                     <b>[#MyCompany#]</b>
@@ -137,7 +141,7 @@
                     <li>|Срок за доставка|* [#deliveryTermTime#] |след стартиране на договора|*</li>
                     <!--ET_END deliveryTermTime--> 
                     <!--ET_BEGIN commonConditionQuote-->
-                    <li>[#commonConditionQuote#]</li>
+                    <li>|Общи условия по продажба|*:[#commonConditionQuote#]</li>
                     <!--ET_END commonConditionQuote-->
                 </ol>
                 <!--ET_END conditions-->
@@ -151,7 +155,7 @@
                 <div>|Получил|*: [#responsible#]</div>
                 <!--ET_END responsible-->
                 <!--ET_BEGIN username-->
-                <div>|Съставил|*:  [#username#]</div>
+                <div>|Съставил|*: [#username#]</div>
                 <!--ET_END username-->
             </td>
         </tr>

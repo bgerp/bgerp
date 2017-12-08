@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'planning_DirectProductNoteDetails'
  *
@@ -9,7 +10,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -39,31 +40,25 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_Sorting, 
-                        planning_plg_ReplaceEquivalentProducts, plg_PrevAndNext';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
+                        planning_plg_ReplaceEquivalentProducts, plg_PrevAndNext,cat_plg_ShowCodes';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, planning';
+    public $canEdit = 'ceo,planning,store,production';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, planning';
+    public $canAdd = 'ceo,planning,store,production';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo, planning';
+    public $canDelete = 'ceo,planning,store,production';
     
     
     /**
@@ -90,11 +85,9 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     public function description()
     {
         $this->FLD('noteId', 'key(mvc=planning_DirectProductionNote)', 'column=none,notNull,silent,hidden,mandatory');
-        $this->FLD('resourceId', 'int', 'silent,caption=Ресурс,input=none,removeAndRefreshForm=productId|packagingId|quantityInPack|quantity|packQuantity|measureId');
         $this->FLD('type', 'enum(input=Влагане,pop=Отпадък)', 'caption=Действие,silent,input=hidden');
         
         parent::setDetailFields($this);
-        $this->FLD('conversionRate', 'double', 'input=none');
         
         $this->FLD('quantityFromBom', 'double(Min=0)', 'caption=Количества->Рецепта,input=none,tdClass=quiet');
         $this->FLD('quantityFromTasks', 'double(Min=0)', 'caption=Количества->Задачи,input=none,tdClass=quiet');
@@ -122,6 +115,10 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     		$storable = cat_Products::fetchField($rec->productId, 'canStore');
     		if($storable == 'yes'){
     			$form->setField('storeId', 'input');
+    			
+    			if(empty($rec->id) && isset($data->masterRec->inputStoreId)){
+    				$form->setDefault('storeId', $data->masterRec->inputStoreId);
+    			}
     		}
     	}
     	
@@ -247,6 +244,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	$table = cls::get('core_TableView', array('mvc' => $fieldset));
     	
     	$iData = clone $data;
+    	$iData->listTableMvc = clone $this;
     	$iData->rows = $data->inputArr;
     	$iData->recs = array_intersect_key($iData->recs, $iData->rows);
     	plg_AlignDecimals2::alignDecimals($this, $iData->recs, $iData->rows);
@@ -267,6 +265,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     		unset($data->listFields['storeId']);
     		
     		$pData = clone $data;
+    		$pData->listTableMvc = clone $this;
     		$pData->rows = $data->popArr;
     		$pData->recs = array_intersect_key($pData->recs, $pData->rows);
     		plg_AlignDecimals2::alignDecimals($this, $pData->recs, $pData->rows);
@@ -319,7 +318,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     		}
     		
     		if(empty($rec->storeId)){
-    			$row->storeId = tr('Незавършено производство');
+    			$row->storeId = "<span class='quiet'>"  . tr('Незавършено производство') . "</span>";
     		} else {
     			if($rec->type != 'input') continue;
     			
@@ -328,6 +327,20 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     				$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning', FALSE);
     			}
     		}
+    	}
+    }
+    
+    
+    /**
+     * Метод по пдоразбиране на getRowInfo за извличане на информацията от реда
+     */
+    protected static function on_AfterGetRowInfo($mvc, &$res, $rec)
+    {
+    	$rec = $mvc->fetchRec($rec);
+    	if(empty($rec->storeId)){
+    		unset($res->operation);
+    	} else {
+    		$res->operation[key($res->operation)] = $rec->storeId;
     	}
     }
 }

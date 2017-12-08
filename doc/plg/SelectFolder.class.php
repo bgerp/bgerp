@@ -16,6 +16,18 @@ class doc_plg_SelectFolder extends core_Plugin
 {
     
     
+	/**
+	 * След инициализирането на модела
+	 *
+	 * @param core_Mvc $mvc
+	 * @param core_Mvc $data
+	 */
+	public static function on_AfterDescription(core_Mvc $mvc)
+	{
+		setIfNot($mvc->alwaysForceFolderIfEmpty, FALSE);
+	}
+	
+	
     /**
      * Преди всеки екшън на мениджъра-домакин
      *
@@ -43,10 +55,16 @@ class doc_plg_SelectFolder extends core_Plugin
             Request::get('cloneId', 'key(mvc=doc_Containers)') ||
     		($mvc->alwaysForceFolderIfEmpty === FALSE && Request::get('originId', 'key(mvc=doc_Containers)'))) {
             // Има основание - не правим нищо
-            
+    		
+    		$fId = Request::get('folderId', 'key(mvc=doc_Folders)');
+    		if(!empty($fId)){
+    			if(!$mvc->haveRightFor('add', (object)array('folderId' => $fId))){
+    				followRetUrl(array($mvc, 'list'), 'Документа не може да бъде създаден в папката', 'error');
+    			}
+    		}	
+    			
             return;
         }
-
 
         if($_companyId = Request::get('_companyId', 'key2(mvc=crm_Companies)')) {
             $cRec = crm_Companies::fetch($_companyId);
@@ -81,6 +99,8 @@ class doc_plg_SelectFolder extends core_Plugin
         
         if($folderId) {
             $allParams['folderId'] = $folderId;
+            
+           
             $tpl = new Redirect(
                 	// Редирект към създаването на документа в ясната папка
                     toUrl($allParams));
@@ -106,7 +126,6 @@ class doc_plg_SelectFolder extends core_Plugin
      */
     static function prepareSelectForm($mvc)
     {
-
     	// Подготовка на формата за избор на папка
     	$form = cls::get('core_Form');
 
@@ -115,7 +134,7 @@ class doc_plg_SelectFolder extends core_Plugin
         
         $coverKeys = implode(',', array_keys($coverArr));
 
-        $form->FLD('folderId', 'key2(mvc=doc_Folders, allowEmpty)', 'caption=Папка,class=w100 clearSelect');
+        $form->FLD('folderId', 'key2(mvc=doc_Folders, allowEmpty, restrictViewAccess=yes)', 'caption=Папка,class=w100 clearSelect');
         $form->setFieldTypeParams('folderId', array('where' => "#coverClass IN ({$coverKeys})"));
         $form->setField('folderId', array('attr' => array('onchange' => 'clearSelect(this, "clearSelect");')));
         
@@ -126,7 +145,7 @@ class doc_plg_SelectFolder extends core_Plugin
         unset($retUrlOrg['virtual_url']);
 
         if(in_array('crm_Companies', $coverArr)) {
-            $form->FLD('_companyId', 'key2(mvc=crm_Companies, allowEmpty)', 'caption=Фирма,class=w100 clearSelect');
+            $form->FLD('_companyId', 'key2(mvc=crm_Companies, allowEmpty, restrictViewAccess=yes)', 'caption=Фирма,class=w100 clearSelect');
             $form->setField('_companyId', array('attr' => array('onchange' => 'clearSelect(this, "clearSelect");')));
 
             $retUrl = $retUrlOrg;
@@ -135,7 +154,7 @@ class doc_plg_SelectFolder extends core_Plugin
         }
         
         if(in_array('crm_Persons', $coverArr)) {
-            $form->FLD('_personId', 'key2(mvc=crm_Persons, allowEmpty)', 'caption=Лице,class=w100 clearSelect');
+            $form->FLD('_personId', 'key2(mvc=crm_Persons, allowEmpty, restrictViewAccess=yes)', 'caption=Лице,class=w100 clearSelect');
             $form->setField('_personId', array('attr' => array('onchange' => 'clearSelect(this, "clearSelect");')));
             
             $retUrl = $retUrlOrg;
@@ -156,7 +175,7 @@ class doc_plg_SelectFolder extends core_Plugin
             $defaultFolderId = $mvc->getDefaultFolder();
         }
         
-        if($defaultFolderId) {
+        if($defaultFolderId && $mvc->canAddToFolder($defaultFolderId)) {
             $form->setDefault('folderId', $defaultFolderId);
         }
         
@@ -194,7 +213,7 @@ class doc_plg_SelectFolder extends core_Plugin
      * @param core_Mvc $mvc
      * @return array
      */
-    private static function getAllowedCovers(core_Mvc $mvc)
+    public static function getAllowedCovers(core_Mvc $mvc)
     {
     	// Между какви корици трябва да се избира
     	$interfaces = arr::make($mvc::getCoversAndInterfacesForNewDoc());
@@ -235,9 +254,27 @@ class doc_plg_SelectFolder extends core_Plugin
         if($mvc->coversAndInterfacesForNewDoc) {
             $res = $mvc->coversAndInterfacesForNewDoc;
         } else {
-            $res = array('*');
+            $res = 'crm_Persons,crm_Companies,doc_UnsortedFolders';
         }
     }
     
      
+
+    /**
+     * Реализация по подразбиране на интерфейсния метод ::canAddToFolder()
+     *
+     */
+    function on_AfterCanAddToFolder($mvc, &$res, $folderId)
+    {
+        if($res !== FALSE) {
+            $allowedCovers = self::getAllowedCovers($mvc);
+            $fRec = doc_Folders::fetch($folderId);
+            if(!$allowedCovers[$fRec->coverClass]) {
+                $res = FALSE;
+
+                return FALSE;
+            }
+        }
+    }
+
 }

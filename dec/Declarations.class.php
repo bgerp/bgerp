@@ -112,10 +112,15 @@ class dec_Declarations extends core_Master
     
     
     /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
+
+    
+    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-    
     	'statements' => 'lastDocUser|lastDoc|LastDocSameCuntry',
         'materials' => 'lastDocUser|lastDoc|LastDocSameCuntry',
     );
@@ -126,9 +131,6 @@ class dec_Declarations extends core_Master
      */
     function description()
     {
-    	// бланка
-    	//$this->FLD('typeId', 'key(mvc=dec_DeclarationTypes,select=name)', "caption=Бланка");
-    	
     	// номера на документа
     	$this->FLD('doc', 'key(mvc=doc_Containers)', 'caption=Към документ, input=none');
     	
@@ -136,19 +138,24 @@ class dec_Declarations extends core_Master
     	$this->FLD('date', 'date', 'caption=Дата');
     	
     	// декларатор
-    	$this->FLD('declaratorName', 'varchar', 'caption=Представлявана от->Име, recently, mandatory');
+    	$this->FLD('declaratorName', 'varchar', 'caption=Представлявана от->Име, recently, mandatory,remember');
     	
     	// позицията на декларатора
-    	$this->FLD('declaratorPosition', 'varchar', 'caption=Представлявана от->Позиция, recently, mandatory');
+    	$this->FLD('declaratorPosition', 'varchar', 'caption=Представлявана от->Позиция, recently, mandatory,remember');
+    	
+    	// допълнителни пояснения
+    	$this->FLD('explanation', 'varchar', 'caption=Представлявана от->Допълнително, recently, remember');
         
     	// продукти, идват от фактурата
     	$this->FLD('productId', 'set', 'caption=Продукти->Продукти, maxColumns=2');
+    	
+    	$this->FLD('inv', 'int', 'caption=Фактура, input=none');
     
     	// на какви твърдения отговарят
-		$this->FLD('statements', 'keylist(mvc=dec_Statements,select=title)', 'caption=Твърдения->Отговарят на, mandatory');
+		$this->FLD('statements', 'keylist(mvc=dec_Statements,select=title)', 'caption=Твърдения->Отговарят на, mandatory,remember');
 		
 		// от какви материали е
-		$this->FLD('materials', 'keylist(mvc=dec_Materials,select=title)', 'caption=Материали->Изработени от, mandatory');
+		$this->FLD('materials', 'keylist(mvc=dec_Materials,select=title)', 'caption=Материали->Изработени от, mandatory,remember');
         
 		// допълнителен текст
 		$this->FLD('note', 'richtext(bucket=Notes,rows=6)', 'caption=Бележки->Допълнения');
@@ -175,34 +182,28 @@ class dec_Declarations extends core_Master
     		$dId = $doc->that;
     		$rec = $class::fetch($dId);
     		
-    		// съдържа обобщена информация за сделките в нишката
-    		$firstDoc = doc_Threads::getFirstDocument($data->form->rec->threadId);
-    		if($firstDoc->haveInterface('bgerp_DealAggregatorIntf')){
-    			$deal = $firstDoc->getAggregateDealInfo();
-    		} elseif($firstDoc->haveInterface('bgerp_DealIntf')){
-    			$deal = $firstDoc->getDealInfo();
-    		}
-    		expect($deal);
+    		// взимаме продуктите от детаийла на фактурата
+    		$dQuery = sales_InvoiceDetails::getQuery();
+    		$dQuery->where("#invoiceId = {$rec->id}");
 
-	       	// Продуктите
-	       	$invoicedProducts = $deal->get('invoicedProducts');
-	       	if (count($invoicedProducts)) {
-	       		
-		       	foreach($invoicedProducts as $iProduct){
-		        	$productName [$iProduct->productId] = cat_Products::getTitleById($iProduct->productId);
-				}
-				
-				$data->form->setSuggestions('productId', $productName);
-	       	}
+    		while($dRec = $dQuery->fetch()){
+    		      $productName[$dRec->productId] = cat_Products::getTitleById($dRec->productId);
+    		   
+    		}
+ 
+    		$data->form->setSuggestions('productId', $productName);
+    		$data->form->setDefault('inv', $rec->id);
     	}
-    	    	
-    	// декларатор е текущия потребител
-    	if (!$data->form->rec->declaratorName) {
-    		
-    		$personId = core_Users::getCurrent('id');
-    		$personName = crm_Persons::fetchField($personId, 'name');
-    		$data->form->setDefault('declaratorName', $personName);
-		}
+
+		// сладаме Управители
+		$hr = cls::get('hr_EmployeeContracts');
+
+		$managers = $mvc->getManagers();
+		
+		if(count($managers) > 0) {
+
+		    $data->form->setSuggestions('declaratorName', $managers); 
+		} 
     	
     	// ако не е указана дата взимаме днешната
     	if (!$data->form->rec->date) {
@@ -222,157 +223,170 @@ class dec_Declarations extends core_Master
         } catch(core_exception_Expect $e){
         	$row->doc = tr("Проблем при показването");
         }
-    }
-   
-    
-    /**
-     * Подготвя иконата за единичния изглед
-     */
-    static function on_AfterPrepareSingle($mvc, &$tpl, &$data)
-    {
-    	$row = &$data->row;
-        $rec = &$data->rec;
-        $recDec = $tpl->rec;
 
-        // Зареждаме бланката в шаблона на документа
-       // $row->content = new ET (dec_DeclarationTypes::fetchField($rec->typeId, 'script'));
-
-        // взимаме съдържанието на бланката
-        $decContent = doc_TplManager::getTemplate($data->rec->template);
-
-    	// Зареждаме данните за собствената фирма
+        $rec->tplLang = $mvc->pushTemplateLg($rec->template);
         $ownCompanyData = crm_Companies::fetchOwnCompany();
 
+        // Зареждаме данните за собствената фирма
+        $ownCompanyData = crm_Companies::fetchOwnCompany();
+        
         // Адреса на фирмата
         $address = trim($ownCompanyData->place . ' ' . $ownCompanyData->pCode);
         if ($address && !empty($ownCompanyData->address)) {
             $address .= ', ' . $ownCompanyData->address;
-        } 
+        }
         
         $Varchar = cls::get('type_Varchar');
+        // името на фирмата
         $row->MyCompany = crm_Companies::getTitleById($ownCompanyData->companyId);
-        $row->MyCountry = $ownCompanyData->country;
+        $row->MyCompany = transliterate(tr($row->MyCompany));
+        
+        // държавата
+        $fld = ($rec->tplLang == 'bg') ? 'commonNameBg' : 'commonName'; 
+        $row->MyCountry = drdata_Countries::getVerbal($ownCompanyData->countryId, $fld);
+        
+        // адреса
         $row->MyAddress = $Varchar->toVerbal($address);
-
+        $row->MyAddress = transliterate(tr($row->MyAddress));
+        
         // Ват номера й
         $uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
         if ($uic != $ownCompanyData->vatNo){
-        	$row->MyCompanyVatNo = ' ' . $ownCompanyData->vatNo;
+            $row->MyCompanyVatNo = ' ' . $ownCompanyData->vatNo;
+        }
+         
+        if ($uic) {
+            $row->uicId = ' ' . $uic;
+        }
+        
+        // информация за управителя/декларатора
+        if ($rec->declaratorName) {
+            $row->manager = $rec->declaratorName;
+            	
+            if(is_numeric($rec->declaratorName)) {
+                if ($declaratorData = crm_Persons::fetch($rec->declaratorName)) {
+                    $row->manager = $declaratorData->name;
+                    $row->{'managerЕGN'} = $declaratorData->egn;
+                }
+            }
+            
+            $row->manager = transliterate(tr($row->manager));
+            
+            $row->declaratorName = transliterate(tr($rec->declaratorName));
 
-    	} 
-    	
-    	if ($uic) {
-    		$row->uicId = ' ' . $uic;
-    	}
-    	
-    	// информация за управителя/декларатора
-    	if ($recDec->declaratorName) {
-    		$row->manager = $recDec->declaratorName;
-    		
-    		if ($declaratorData = crm_Persons::fetch("#name = '{$recDec->declaratorName}'")) {
-	    		$dTpl =  $decContent->getBlock("manager");
-	    		$dTpl->replace($declaratorData->egn, 'managerЕGN');
-	    		$dTpl->append2master();
-    		}
-    		
-    		$cTpl = $decContent->getBlock("declaratorInfo");
-    		$cTpl->replace($recDec->declaratorName, 'declaratorName');
-	    	$cTpl->replace($recDec->declaratorPosition, 'declaratorPosition');
-	    	$cTpl->append2master();
-    	}
-    	
-    	if($rec->date == NULL){
-    		$row->date = $rec->createdOn;
-    	} else {
-    		if (core_Lg::getCurrent() == 'bg') {
-    			$row->date = dt::mysql2verbal($rec->date, "d.m.Y") . tr("|г.|*");
-    		} else {
-    			$row->date = dt::mysql2verbal($rec->date, "d.m.Y");
-    		}
-    	}
-    	    	
-    	// вземаме избраните продукти
-    	if ($recDec->productId) { 
-    		
-    		$products = arr::make($recDec->productId);
-    		
-    		foreach ($products as $product) {
-    			$classProduct[$product] = explode("|", $product);
-    		}
-
-    		$row->products = "<ol>";
-		       	foreach($classProduct as $iProduct=>$name){
-		       		$pId = (isset($name[1])) ? $name[1] : $name[0];
-		        	$productName = cat_Products::getTitleById($pId);
-		        	$row->products .= "<li>".$productName."</li>";
-			}
-			$row->products .= "</ol>";
-    	}
-
-    	// ако декларацията е към документ
-    	if ($rec->originId) {
-			// и е по  документ фактура намираме кой е той
-    		$doc = doc_Containers::getDocument($rec->originId);
-    		
-    		$class = $doc->className;
-    		$dId = $doc->that;
-    		$recOrigin = $class::fetch($dId);
-    		    		
-    		// Попълваме данните от контрагента. Идват от фактурата
-    		$addressContragent = trim($recOrigin->contragentPlace . ' ' . $recOrigin->contragentPCode);
-	        if ($addressContragent && !empty($recOrigin->contragentAddress)) {
-	            $addressContragent .= ', ' . $recOrigin->contragentAddress;
-	        }
-	        $row->contragentCompany = cls::get($recOrigin->contragentClassId)->getTitleById($recOrigin->contragentId);
-	        $row->contragentCountry = drdata_Countries::fetchField($recOrigin->contragentCountryId, 'commonNameBg');
-	        $row->contragentAddress = $Varchar->toVerbal($addressContragent);
-	        
-	        $uicContragent = drdata_Vats::getUicByVatNo($rec->contragentVatNo);
-	        if ($uic != $recOrigin->contragentVatNo) {
-	        	$row->contragentCompanyVatNo = $Varchar->toVerbal($rec->contragentVatNo);
-	    	} 
-	    	$row->contragentUicId = $uicContragent;
-    		
-       		$invoiceNo = str_pad($recOrigin->number, '10', '0', STR_PAD_LEFT) . " / " . dt::mysql2verbal($recOrigin->date, "d.m.Y");
-       		$row->invoiceNo = $invoiceNo;
-         }
-
+            $row->declaratorPosition = transliterate(tr($rec->declaratorPosition));
+        }
+         
+        if($rec->date == NULL){
+            $row->date = $rec->createdOn;
+        } else {
+            if (core_Lg::getCurrent() == 'bg') {
+                $row->date = dt::mysql2verbal($rec->date, "d.m.Y") . tr("|г.|*");
+            } else {
+                $row->date = dt::mysql2verbal($rec->date, "d.m.Y");
+            }
+        }
+        
+        // вземаме избраните продукти
+        if ($rec->productId) {
+        
+            $products = arr::make($rec->productId);
+        
+            $batches = array();
+            $classProduct = array();
+        
+            if ($rec->inv) {
+                $dQuery = sales_InvoiceDetails::getQuery();
+                $dQuery->where("#invoiceId = {$rec->inv}");
+        
+                while($dRec = $dQuery->fetch()){
+                    $batches[$dRec->productId] = $dRec->batches;
+                }
+            }
+        
+            foreach ($products as $product) {
+                $classProduct[$product] = explode("|", $product);
+            }
+        
+            $row->products = "<ol>";
+            foreach($classProduct as $iProduct=>$name){
+                $pId = (isset($name[1])) ? $name[1] : $name[0];
+                $productName = cat_Products::getTitleById($pId);
+                if(($batches[$pId])) {
+                    $row->products .= "<li>".$productName . " - ". $batches[$pId] ."</li>";
+                } else {
+                    $row->products .= "<li>".$productName."</li>";
+                }
+            }
+            $row->products .= "</ol>";
+        }
+        
+        // ако декларацията е към документ
+        if ($rec->originId) {
+            // и е по  документ фактура намираме кой е той
+            $doc = doc_Containers::getDocument($rec->originId);
+        
+            $class = $doc->className;
+            $dId = $doc->that;
+            $recOrigin = $class::fetch($dId);
+        
+            // Попълваме данните от контрагента. Идват от фактурата
+            $addressContragent = trim($recOrigin->contragentPlace . ' ' . $recOrigin->contragentPCode);
+            if ($addressContragent && !empty($recOrigin->contragentAddress)) {
+                $addressContragent .= ', ' . $recOrigin->contragentAddress;
+            }
+            $row->contragentCompany = cls::get($recOrigin->contragentClassId)->getTitleById($recOrigin->contragentId);
+            $row->contragentCompany = transliterate(tr($row->contragentCompany));
+            
+            $fld = ($rec->tplLang == 'bg') ? 'commonNameBg' : 'commonName';
+            $row->contragentCountry = drdata_Countries::getVerbal($recOrigin->contragentCountryId, $fld);
+            
+            $row->contragentAddress = $Varchar->toVerbal($addressContragent);
+            $row->contragentAddress = transliterate(tr($row->contragentAddress));
+             
+            $uicContragent = drdata_Vats::getUicByVatNo($rec->contragentVatNo);
+            if ($uic != $recOrigin->contragentVatNo) {
+                $row->contragentCompanyVatNo = $Varchar->toVerbal($rec->contragentVatNo);
+            }
+            $row->contragentUicId = $uicContragent;
+        
+            $invoiceNo = str_pad($recOrigin->number, '10', '0', STR_PAD_LEFT) . " / " . dt::mysql2verbal($recOrigin->date, "d.m.Y");
+            $row->invoiceNo = $invoiceNo;
+        }
+        
         // вземаме материалите
-    	if ($recDec->materials) {
-    		$materials = type_Keylist::toArray($recDec->materials);
-
-            $row->material= "<ol>";
-    		foreach ($materials as $material) {  
-    			$m = dec_Materials::fetch($material);
-    			
-    			$text = $m->text;
-    			$row->material .= "<li>".$text."</li>";
-    		}  			
-    		$row->statements .= "</ol>";
-    	}
-
-    	// вземаме твърденията
-    	if ($recDec->statements) {
-    		
-    		$statements = type_Keylist::toArray($recDec->statements);
-    		
-            $row->statements = "<ol>";
-    		foreach($statements as $statement){
-    		    $s = dec_Statements::fetch($statement);
-    		    $text = $s->text;
-    		   $row->statements .= "<li>".$text."</li>";
-    		}
-    		$row->statements .= "</ol>";
-    	}
-    	
-    	// ако има допълнителни бележки
-    	if($recDec->note) {
-    		$cTpl = $decContent->getBlock("note");
-    		$Richtext = cls::get('type_Richtext');
-    		$recDec->note = $Richtext->toVerbal($recDec->note);
-    		$cTpl->replace($recDec->note, 'note');
-    	    $cTpl->append2master();
-    	}
+        if ($rec->materials) {
+            $materials = type_Keylist::toArray($rec->materials);
+        
+            $row->material = "";
+            foreach ($materials as $material) {
+                $m = dec_Materials::fetch($material);
+                 
+                $text = $m->text;
+                $row->material .= "<li>".$text."</li>";
+            }
+        }
+        
+        // вземаме твърденията
+        if ($rec->statements) {
+        
+            $statements = type_Keylist::toArray($rec->statements);
+        
+            $row->statements = "";
+            foreach($statements as $statement){
+                $s = dec_Statements::fetch($statement);
+                $text = $s->text;
+                $row->statements .= "<li>".$text."</li>";
+            }
+        }
+        
+        // ако има допълнителни бележки
+        if($rec->note) { 
+            $Richtext = cls::get('type_Richtext');
+            $row->note = $Richtext->toVerbal($rec->note);
+        }
+        
+        core_Lg::pop($rec->tplLang);
     }
 
     
@@ -446,8 +460,7 @@ class dec_Declarations extends core_Master
   
         return $row;
     }
-    
-    
+
 	/**
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка
@@ -457,18 +470,6 @@ class dec_Declarations extends core_Master
     public static function canAddToFolder($folderId)
     {
         return FALSE;
-    }
-    
-    
-	/**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    static function on_AfterPrepareSingleToolbar($mvc, &$data)
-    {
-
-    	if(!empty($data->toolbar->buttons['btnAdd'])){
-    		$data->toolbar->removeBtn('btnAdd');
-    	}
     }
     
     
@@ -491,36 +492,53 @@ class dec_Declarations extends core_Master
 
     
     /**
-     * Извиква се след SetUp-а на таблицата за модела
+     * Зарежда шаблоните на продажбата в doc_TplManager
      */
     function loadSetupData()
     {
-    	$res = '';
-    	$this->setTemplates($res);
-    	 
-    	return $res;
+        $tplArr = array();
+        $tplArr[] = array('name' => 'Декларация за съответствие',    'content' => 'dec/tpl/AgreementDeclaration.shtml', 'lang' => 'bg');
+        $tplArr[] = array('name' => 'Приложение №1',   'content' => 'dec/tpl/Application1.shtml', 'lang' => 'bg');
+        $tplArr[] = array('name' => 'Приложение №5',      'content' => 'dec/tpl/Application5.shtml', 'lang' => 'bg');
+        $tplArr[] = array('name' => 'Declaration of compliance',         'content' => 'dec/tpl/DeclarationOfCompliance.shtml', 'lang' => 'en');
+
+    
+        $res .= doc_TplManager::addOnce($this, $tplArr);
     }
     
     
     /**
-     * Зарежда шаблоните на продажбата в doc_TplManager
+     * Метод по подразбиране за намиране на дефолт шаблона
      */
-    protected function setTemplates(&$res)
+    public function getDefaultTemplate_($rec)
     {
-    	$tplArr = array();
-    	$tplArr[] = array('name' => 'Декларация за съответствие',
-    					  'content' => 'dec/tpl/AgreementDeclaration.shtml', 'lang' => 'bg',
-    					  'toggleFields' => array('masterFld' => NULL));
-    	$tplArr[] = array('name' => 'Declaration of compliance',
-    					  'content' => 'dec/tpl/DeclarationOfCompliance.shtml', 'lang' => 'en',
-    					  'toggleFields' => array('masterFld' => NULL));
-    	$tplArr[] = array('name' => 'Приложение №1',
-    					  'content' => 'dec/tpl/Application1.shtml', 'lang' => 'bg',
-    					  'toggleFields' => array('masterFld' => NULL));
-    	$tplArr[] = array('name' => 'Приложение №5',
-    				  	  'content' => 'dec/tpl/Application5.shtml', 'lang' => 'bg',
-    					  'toggleFields' => array('masterFld' => NULL));
-    	$res .= doc_TplManager::addOnce($this, $tplArr);
+        $cData = doc_Folders::getContragentData($rec->folderId);
+        $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
+         
+        $conf = core_Packs::getConfig('dec');
+        $def = (empty($cData->countryId) || $bgId === $cData->countryId) ? $conf->DEC_DEF_TPL_BG : $conf->DEC_DEF_TPL_EN;
+         
+        return $def;
+    }
+    
+    
+    /**
+     * Връща всички Всички лица, които могат да бъдат титуляри на сметка
+     * тези включени в група "Управители"
+     */
+    public function getManagers()
+    {
+        $options = array();
+        $groupId = crm_Groups::fetchField("#sysId = 'managers'", 'id');
+        $personQuery = crm_Persons::getQuery();
+        $personQuery->where("#groupList LIKE '%|{$groupId}|%'");
+    
+        while($personRec = $personQuery->fetch()) {
+            //$options[$personRec->id] = crm_Persons::getVerbal($personRec, 'name');
+            $options[crm_Persons::getVerbal($personRec, 'name')] = crm_Persons::getVerbal($personRec, 'name');
+        }
+
+        return $options;
     }
 
 }

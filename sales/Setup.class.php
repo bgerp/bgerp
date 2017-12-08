@@ -2,9 +2,21 @@
 
 
 /**
+ * Дефолтна валидност на офертата
+ */
+defIfNot('SALES_DEFAULT_VALIDITY_OF_QUOTATION', '2592000');
+
+
+/**
  * Начален номер на фактурите
  */
 defIfNot('SALE_INV_MIN_NUMBER1', '0');
+
+
+/**
+ * 
+ */
+defIfNot('SALES_DELTA_CAT_GROUPS', '');
 
 
 /**
@@ -32,6 +44,12 @@ defIfNot('SALE_OVERDUE_CHECK_DELAY', 60 * 60 * 6);
 
 
 /**
+ * Колко дена да се изчаква преди да се затворят миналите еднократни маршрути
+ */
+defIfNot('SALES_ROUTES_CLOSE_DELAY', 3);
+
+
+/**
  * Колко време да се изчака след активиране на продажба, да се приключва автоматично
  */
 defIfNot('SALE_CLOSE_OLDER_THAN', 60 * 60 * 24 * 3);
@@ -46,7 +64,7 @@ defIfNot('SALES_INVOICE_DEFAULT_VALID_FOR', 60 * 60 * 24 * 3);
 /**
  * Колко продажби да се приключват автоматично брой
  */
-defIfNot('SALE_CLOSE_OLDER_NUM', 15);
+defIfNot('SALE_CLOSE_OLDER_NUM', 50);
 
 
 /**
@@ -170,31 +188,30 @@ class sales_Setup extends core_ProtoSetup
 	 * Описание на конфигурационните константи
 	 */
 	var $configDescription = array(
-			'SALE_OVERDUE_CHECK_DELAY'        => array("time", "caption=Толеранс за просрочване на продажбата->Време"),
-			'SALE_CLOSE_OLDER_THAN'           => array("time(uom=days,suggestions=1 ден|2 дена|3 дена)", 'caption=Изчакване преди автоматично приключване на продажбата->Дни'),
-			'SALE_CLOSE_OLDER_NUM'            => array("int", 'caption=По колко продажби да се приключват автоматично на опит->Брой'),
-			'SALE_FISC_PRINTER_DRIVER'        => array('class(interface=sales_FiscPrinterIntf,allowEmpty,select=title)', 'caption=Фискален принтер->Драйвър'),
-			'SALE_INV_VAT_DISPLAY'            => array('enum(no=Не,yes=Да)', 'caption=Фактури изчисляване на ддс-то като процент от сумата без ддс->Избор'),
-			'SALE_INV_MIN_NUMBER1'            => array('int(min=0)', 'caption=Първи диапазон за номериране на фактури->Долна граница'),
-			'SALE_INV_MAX_NUMBER1'            => array('int(min=0)', 'caption=Първи диапазон за номериране на фактури->Горна граница'),
-			'SALE_INV_MIN_NUMBER2'            => array('int(min=0)', 'caption=Втори диапазон за номериране на фактури->Долна граница'),
-			'SALE_INV_MAX_NUMBER2'            => array('int(min=0)', 'caption=Втори диапазон за номериране на фактури->Горна граница'),
-			'SALE_INV_HAS_FISC_PRINTERS'      => array('enum(no=Не,yes=Да)', 'caption=Има ли фирмата касови апарати->Избор'),
-			
-			'SALE_SALE_DEF_TPL_BG'            => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Продажба основен шаблон->Български,optionsFunc=sales_Sales::getTemplateBgOptions'),
-			'SALE_SALE_DEF_TPL_EN'            => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Продажба основен шаблон->Английски,optionsFunc=sales_Sales::getTemplateEnOptions'),
-	
-			'SALE_INVOICE_DEF_TPL_BG'         => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Фактура основен шаблон->Български,optionsFunc=sales_Invoices::getTemplateBgOptions'),
-			'SALE_INVOICE_DEF_TPL_EN'         => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Фактура основен шаблон->Английски,optionsFunc=sales_Invoices::getTemplateEnOptions'),
-			'SALE_INVOICES_SHOW_DEAL'         => array("enum(auto=Автоматично,no=Никога,yes=Винаги)", 'caption=Показване на сделката в описанието на фактурата->Избор'),
-			
-			'SALES_USE_RATE_IN_CONTRACTS'     => array("enum(no=Не,yes=Да)", 'caption=Ръчно въвеждане на курс в продажбите->Избор'),
-			'SALES_INVOICE_DEFAULT_VALID_FOR' => array("time", 'caption=Срок за плащане по подразбиране->Срок'),
-			
-			'SALES_ADD_BY_PRODUCT_BTN' => array("keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Необходими роли за добавяне на артикули в продажба от->Артикул'),
-			'SALES_ADD_BY_CREATE_BTN'  => array("keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Необходими роли за добавяне на артикули в продажба от->Създаване'),
-			'SALES_ADD_BY_LIST_BTN'    => array("keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Необходими роли за добавяне на артикули в продажба от->Списък'),
-			'SALES_ADD_BY_IMPORT_BTN'  => array("keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Необходими роли за добавяне на артикули в продажба от->Импорт'),
+			'SALE_OVERDUE_CHECK_DELAY'             => array("time", "caption=Толеранс за просрочване на продажбата->Време"),
+			'SALE_CLOSE_OLDER_THAN'                => array("time(uom=days,suggestions=1 ден|2 дена|3 дена)", 'caption=Изчакване преди автоматично приключване на продажбата->Дни'),
+			'SALE_CLOSE_OLDER_NUM'                 => array("int", 'caption=По колко продажби да се приключват автоматично на опит->Брой'),
+			'SALE_FISC_PRINTER_DRIVER'             => array('class(interface=sales_FiscPrinterIntf,allowEmpty,select=title)', 'caption=Фискален принтер->Драйвър'),
+			'SALE_INV_VAT_DISPLAY'                 => array('enum(no=Не,yes=Да)', 'caption=Фактури изчисляване на ддс-то като процент от сумата без ддс->Избор'),
+			'SALE_INV_MIN_NUMBER1'                 => array('int(min=0)', 'caption=Първи диапазон за номериране на фактури->Долна граница'),
+			'SALE_INV_MAX_NUMBER1'                 => array('int(min=0)', 'caption=Първи диапазон за номериране на фактури->Горна граница'),
+			'SALE_INV_MIN_NUMBER2'                 => array('int(min=0)', 'caption=Втори диапазон за номериране на фактури->Долна граница'),
+			'SALE_INV_MAX_NUMBER2'                 => array('int(min=0)', 'caption=Втори диапазон за номериране на фактури->Горна граница'),
+			'SALE_INV_HAS_FISC_PRINTERS'           => array('enum(no=Не,yes=Да)', 'caption=Има ли фирмата касови апарати->Избор'),
+			'SALE_SALE_DEF_TPL_BG'                 => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Продажба основен шаблон->Български,optionsFunc=sales_Sales::getTemplateBgOptions'),
+			'SALE_SALE_DEF_TPL_EN'                 => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Продажба основен шаблон->Английски,optionsFunc=sales_Sales::getTemplateEnOptions'),
+			'SALE_INVOICE_DEF_TPL_BG'              => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Фактура основен шаблон->Български,optionsFunc=sales_Invoices::getTemplateBgOptions'),
+			'SALE_INVOICE_DEF_TPL_EN'              => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Фактура основен шаблон->Английски,optionsFunc=sales_Invoices::getTemplateEnOptions'),
+			'SALE_INVOICES_SHOW_DEAL'              => array("enum(auto=Автоматично,no=Никога,yes=Винаги)", 'caption=Показване на сделката в описанието на фактурата->Избор'),
+			'SALES_USE_RATE_IN_CONTRACTS'          => array("enum(no=Не,yes=Да)", 'caption=Ръчно въвеждане на курс в продажбите->Избор'),
+			'SALES_INVOICE_DEFAULT_VALID_FOR'      => array("time", 'caption=Срок за плащане по подразбиране->Срок'),
+			'SALES_ADD_BY_PRODUCT_BTN'             => array("keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Необходими роли за добавяне на артикули в продажба от->Артикул'),
+			'SALES_ADD_BY_CREATE_BTN'              => array("keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Необходими роли за добавяне на артикули в продажба от->Създаване'),
+			'SALES_ADD_BY_LIST_BTN'                => array("keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Необходими роли за добавяне на артикули в продажба от->Списък'),
+			'SALES_ADD_BY_IMPORT_BTN'  			   => array("keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Необходими роли за добавяне на артикули в продажба от->Импорт'),
+			'SALES_DELTA_CAT_GROUPS'               => array('keylist(mvc=cat_Groups,select=name)', 'caption=Групи продажбени артикули за изчисляване на ТРЗ индикатори->Групи'),
+			'SALES_ROUTES_CLOSE_DELAY'             => array('int(min=1)', 'caption=Изчакване преди да се затворят изпълнените търговски маршрути->Дни'),
+			'SALES_DEFAULT_VALIDITY_OF_QUOTATION'  => array('time', 'caption=Оферти->Валидност'),
 	);
 	
 	
@@ -215,30 +232,23 @@ class sales_Setup extends core_ProtoSetup
     		'sales_Proformas',
     		'sales_ProformaDetails',
     		'sales_PrimeCostByDocument',
-    		'migrate::cacheInvoicePaymentType',
-    		'migrate::migrateRoles',
         );
-
-        
-    /**
-     * Роли за достъп до модула
-     */
-    var $roles = 'sales';
 
     
     /**
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.1, 'Търговия', 'Продажби', 'sales_Sales', 'default', "sales, ceo"),
+            array(3.1, 'Търговия', 'Продажби', 'sales_Sales', 'default', "sales, ceo, acc"),
         );
 
     
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = 'sales_reports_SalesPriceImpl, sales_reports_OweInvoicesImpl';
-    
+    var $defClasses = 'sales_SalesLastPricePolicy,sales_reports_SalesPriceImpl, sales_reports_OweInvoicesImpl, 
+                       sales_reports_ShipmentReadiness,sales_reports_PurBomsRep,sales_reports_ZDDSRep,sales_reports_OverdueByAdvancePayment';
+        
     
     /**
      * Настройки за Cron
@@ -251,33 +261,24 @@ class sales_Setup extends core_ProtoSetup
     			  'period'      => 1440,
     			  'timeLimit'   => 360,
     		),
+    		array('systemId'    => "Update Routes Next Visit",
+    			  'description' => "Изчисляване на посещенията на търговските маршрути",
+    			  'controller'  => "sales_Routes",
+    			  'action'      => "calcNextVisit",
+    			  'offset'      => 140,
+    			  'period'      => 1440,
+    			  'timeLimit'   => 360,
+    		),
     );
     
     
-	/**
-     * Инсталиране на пакета
+    /**
+     * Роли за достъп до модула
      */
-    function install()
-    {
-    	$html = parent::install();
-        
-        // Добавяме политиката "По последна продажна цена"
-        $html .= core_Classes::add('sales_SalesLastPricePolicy');
-        
-        // Добавяне на роля за старши продавач
-        $html .= core_Roles::addOnce('salesMaster', 'sales');
-        
-        // Добавяне на роля за създаване на фактури
-        $html .= core_Roles::addOnce('invoicer');
-        
-        // acc наследява invoicer
-        $html .= core_Roles::addOnce('acc', 'invoicer');
-        
-        // sales наследява invoicer
-        $html .= core_Roles::addOnce('sales', 'invoicer');
-        
-        return $html;
-    }
+    var $roles = array(
+    		array('sales', 'invoicer,seePrice,dec'),
+    		array('salesMaster', 'sales'),
+    );
     
     
     /**
@@ -335,48 +336,5 @@ class sales_Setup extends core_ProtoSetup
     	}
     	
     	return $res;
-    }
-    
-    
-    /**
-     * Миграция на роли
-     */
-    function migrateRoles()
-    {
-    	if(core_Packs::isInstalled('colab')){
-    		
-    		// Добавяне на дефолтни роли за бутоните
-    		foreach (array('SALES_ADD_BY_PRODUCT_BTN', 'SALES_ADD_BY_CREATE_BTN', 'SALES_ADD_BY_LIST_BTN', 'SALES_ADD_BY_IMPORT_BTN') as $const){
-    			$keylist = core_Roles::getRolesAsKeylist('sales,ceo');
-    			core_Packs::setConfig('sales', array($const => $keylist));
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Ъпдейт на кеширването на начина на плащане на ф-те
-     */
-    function cacheInvoicePaymentType()
-    {
-    	core_App::setTimeLimit(300);
-    	$Invoice = cls::get('sales_Invoices');
-    	$Invoice->setupMvc();
-    	
-    	$iQuery = $Invoice->getQuery();
-    	$iQuery->where("#autoPaymentType IS NULL");
-    	$iQuery->where("#threadId IS NOT NULL");
-    	$iQuery->show('threadId,dueDate,date,folderId');
-    	
-    	while($rec = $iQuery->fetch()){
-    		try{
-    			$rec->autoPaymentType = $Invoice->getAutoPaymentType($rec);
-    			if($rec->autoPaymentType){
-    				$Invoice->save_($rec, 'autoPaymentType');
-    			}
-    		} catch(core_exception_Expect $e){
-    			reportException($e);
-    		}
-    	}
     }
 }

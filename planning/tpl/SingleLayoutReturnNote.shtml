@@ -27,6 +27,9 @@
                                             <!--ET_BEGIN storeLocation-->
                                             <br>[#storeLocation#]
                                             <!--ET_END storeLocation-->
+                                            <!--ET_BEGIN departmentId-->
+                          					<br>|Департамент|*: [#departmentId#]
+                          					<!--ET_END departmentId-->
                                         </td>
                                     </tr>
                                     <tr>

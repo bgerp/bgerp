@@ -1,6 +1,6 @@
 <div class='singleView'>
     [#SingleToolbar#]
-    <div class='scrolling-holder'>
+    <div>
         <div class="folder-cover">
             <div class="inner-folder">
                 <div class="block_title [#STATE_CLASS#] special-title">
@@ -16,6 +16,10 @@
                             <tr>
                                 <td class='dt'>|Сметка|*:</td>
                                 <td> <b>[#accountId#]</b></td>
+                            </tr>
+                            <tr>
+                                <td class='dt'>|Нотификация|*:</td>
+                                <td> <b>[#notifyForEmail#]</b></td>
                             </tr>
                         </table>
                     </div>

@@ -32,13 +32,13 @@ class eshop_Products extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, eshop_Wrapper, plg_State2, cms_VerbalIdPlg, plg_Search';
+    public $loadList = 'plg_Created, plg_RowTools2, eshop_Wrapper, plg_State2, cms_VerbalIdPlg, plg_Search, plg_Sorting';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name,groupId,state';
+    public $listFields = 'code,name,groupId,state';
     
     
     /**
@@ -120,7 +120,7 @@ class eshop_Products extends core_Master
     {
         $this->FLD('code', 'varchar(10)', 'caption=Код');
         $this->FLD('order', 'int', 'caption=Подредба');
-        $this->FLD('groupId', 'key(mvc=eshop_Groups,select=name)', 'caption=Група, mandatory, silent');
+        $this->FLD('groupId', 'key(mvc=eshop_Groups,select=name,allowEmpty)', 'caption=Група, mandatory, silent');
         $this->FLD('name', 'varchar(64)', 'caption=Продукт, mandatory,width=100%');
         
         $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация1');
@@ -163,7 +163,7 @@ class eshop_Products extends core_Master
     /**
      * Проверка за дублиран код
      */
-    protected static function on_AfterInputeditForm($mvc, $form)
+    protected static function on_AfterInputEditForm($mvc, $form)
     {
     	$rec = $form->rec;
     	
@@ -211,17 +211,24 @@ class eshop_Products extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-        if($rec->code) {
-            $row->code = "<span>" . tr('Код') . ": <b>{$row->code}</b></span>";
+    	// Ако няма МКП. но има драйвер взимаме МКП-то от драйвера
+        if(empty($rec->coMoq) && isset($rec->coDriver)){
+            if(cls::load($rec->coDriver, TRUE)){
+            	if($Driver = cls::get($rec->coDriver)){
+            		if($moq = $Driver->getMoq()){
+            			$rec->coMoq = $moq;
+            		}
+            	}
+            }
         }
- 
-        if($rec->coMoq) {
+    	
+    	if($rec->coMoq) {
         	$row->coMoq = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($rec->coMoq);
         }
 
         if($rec->coDriver) {
             if(marketing_Inquiries2::haveRightFor('new')){
-            	$title = tr('Изпратете запитване за') . ' ' . tr($rec->name);
+            	$title = 'Изпратете запитване за|* ' . tr($rec->name);
             	Request::setProtected('title,drvId,protos,moq,quantityCount,lg,measureId');
             	$lg = cms_Content::getLang();
             	if(cls::load($rec->coDriver, TRUE)){
@@ -258,6 +265,13 @@ class eshop_Products extends core_Master
     public static function prepareAllProducts($data)
     {
         $gQuery = eshop_Groups::getQuery();
+
+        $groups = eshop_Groups::getGroupsByDomain();
+        if(count($groups)) {
+            $groupList = implode(',', array_keys($groups));
+            $gQuery->where("#id IN ({$groupList})");
+        }
+
         while($gRec = $gQuery->fetch("#state = 'active'")) {
             $data->groups[$gRec->id] = new stdClass();
             $data->groups[$gRec->id]->groupId = $gRec->id;
@@ -583,8 +597,25 @@ class eshop_Products extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-    	$data->listFilter->showFields = 'search';
+    	$data->listFilter->showFields = 'search,groupId';
     	$data->listFilter->view = 'horizontal';
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        $rec = $data->listFilter->input(NULL, 'silent');
+
+ 
+        $data->listFilter->setField('groupId', 'autoFilter');
+        
+        if($rec->groupId) {
+            $data->query->where("#groupId = {$rec->groupId}");
+        } else {
+
+            $groups = eshop_Groups::getGroupsByDomain();
+            if(count($groups)) {
+                $groupList = implode(',', array_keys($groups));
+                $data->query->where("#groupId IN ({$groupList})");
+                $data->listFilter->setOptions('groupId', $groups);
+            }
+        }
     }
 }

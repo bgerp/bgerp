@@ -1,6 +1,6 @@
 <?php
 
-require __DIR__ . '/../vendor/autoload.php';
+require_once 'aws/aws-autoloader.php';
 
 use Aws\S3\S3Client;
 
@@ -70,7 +70,7 @@ class backup_Amazon extends core_BaseClass
                     'SaveAs' => $destFile
                     )
             );
-        } catch(ErrorException $e) {
+        } catch(Exception $e) {
             $object = FALSE;
         }
         
@@ -100,7 +100,7 @@ class backup_Amazon extends core_BaseClass
                     'Body'   => fopen( $sourceFile, 'r+')
                     )
             );
-        } catch(ErrorException $e) {
+        } catch(Exception $e) {
             $result = FALSE;
         }
         
@@ -127,7 +127,7 @@ class backup_Amazon extends core_BaseClass
                     'Key' => $sourceFile,
                     )
             );
-        } catch(ErrorException $e) {
+        } catch(Exception $e) {
             $result = FALSE;
         }
 

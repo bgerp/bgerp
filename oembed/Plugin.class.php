@@ -194,7 +194,7 @@ class oembed_Plugin extends core_Plugin
                 'expires' => $response['cache_age'],
             );
             
-            oembed_Cache::save((object)$cacheRec);
+            oembed_Cache::save((object)$cacheRec, NULL, 'IGNORE');
         }
         
         return $response['html'];

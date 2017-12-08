@@ -1,0 +1,165 @@
+<table class="styled-table no-border halfTable" style="margin-bottom: 5px; font-size: 0.95em; line-height: 1.1em">
+    <tr>
+        <th colspan = "2" >|Натоварване|*</th>
+    </tr>
+    <!--ET_BEGIN fromCountry-->
+    <tr>
+        <td class="nowrap titleCol">- |Държава|*:</td>
+        <td class="boldText">[#fromCountry#]</td>
+    </tr>
+    <!--ET_END fromCountry-->
+    <!--ET_BEGIN fromPCode-->
+    <tr>
+        <td class="nowrap titleCol">- |П. код|*:</td>
+        <td class="boldText">[#fromPCode#]</td>
+    </tr>
+    <!--ET_END fromPCode-->
+    <!--ET_BEGIN fromPlace-->
+    <tr>
+        <td  class="nowrap titleCol">- |Нас. място|*:</td>
+        <td class="boldText">[#fromPlace#]</td>
+    </tr>
+    <!--ET_END fromPlace-->
+    <!--ET_BEGIN fromAddress-->
+    <tr>
+        <td class="nowrap titleCol">- |Адрес|*:</td>
+        <td class="boldText">[#fromAddress#]</td>
+    </tr>
+    <!--ET_END fromAddress-->
+    <!--ET_BEGIN fromCompany-->
+    <tr>
+        <td class="nowrap titleCol">- |Фирма|*:</td>
+        <td class="boldText">[#fromCompany#]</td>
+    </tr>
+    <!--ET_END fromCompany-->
+    <!--ET_BEGIN fromPerson-->
+    <tr>
+        <td class="nowrap titleCol">- |Лице|*:</td>
+        <td class="boldText">[#fromPerson#]</td>
+    </tr>
+    <!--ET_END fromPerson-->
+    <!--ET_BEGIN loadingTime-->
+    <tr>
+        <td  class="nowrap titleCol">- |Най-късно на|*:</td>
+        <td class="boldText">[#loadingTime#]</td>
+    </tr>
+    <!--ET_END loadingTime-->
+</table>
+
+<table class="styled-table no-border halfTable offsetLeft" style="margin-bottom: 5px; font-size: 0.95em; line-height: 1.1em">
+    <tr>
+        <th colspan = "2">|Разтоварване|*</th>
+    </tr>
+    <!--ET_BEGIN toCountry-->
+    <tr>
+        <td class="nowrap titleCol">- |Държава|*:</td>
+        <td class="boldText">[#toCountry#]</td>
+    </tr>
+    <!--ET_END toCountry-->
+    <!--ET_BEGIN toPCode-->
+    <tr>
+        <td class="nowrap titleCol">- |П. код|*:</td>
+        <td class="boldText">[#toPCode#]</td>
+    </tr>
+    <!--ET_END toPCode-->
+    <!--ET_BEGIN toPlace-->
+    <tr>
+        <td class="nowrap titleCol">- |Нас. място|*:</td>
+        <td class="boldText">[#toPlace#]</td>
+    </tr>
+    <!--ET_END toPlace-->
+    <!--ET_BEGIN toAddress-->
+    <tr>
+        <td class="nowrap titleCol">- |Адрес|*:</td>
+        <td class="boldText">[#toAddress#]</td>
+    </tr>
+    <!--ET_END toAddress-->
+    <!--ET_BEGIN toCompany-->
+    <tr>
+        <td class="nowrap titleCol">- |Фирма|*:</td>
+        <td class="boldText">[#toCompany#]</td>
+    </tr>
+    <!--ET_END toCompany-->
+    <!--ET_BEGIN toPerson-->
+    <tr>
+        <td class="nowrap titleCol">- |Лице|*:</td>
+        <td class="boldText">[#toPerson#]</td>
+    </tr>
+    <!--ET_END toPerson-->
+    <!--ET_BEGIN deliveryTime-->
+    <tr>
+        <td class="nowrap titleCol">- |Краен срок|*:</td>
+        <td class="boldText">[#deliveryTime#]</td>
+    </tr>
+    <!--ET_END deliveryTime-->
+</table>
+
+<div class="clearfix21"></div>
+<table class="styled-table no-border halfTable" style="margin-bottom: 5px; font-size: 0.95em; line-height: 1.1em">
+    <tr>
+        <th colspan = "2">|Информация за товара|*</th>
+    </tr>
+    <!--ET_BEGIN transUnit-->
+    <tr>
+        <td class="nowrap titleCol">- |Трансп. ед.|*:</td>
+        <td  class="boldText">[#transUnit#]</td>
+    </tr>
+    <!--ET_END transUnit-->
+    <!--ET_BEGIN unitQty-->
+    <tr>
+        <td class="nowrap titleCol">- |Количество|*:</td>
+        <td class="boldText">[#unitQty#]</td>
+    </tr>
+    <!--ET_END unitQty-->
+    <!--ET_BEGIN maxWeight-->
+    <tr>
+        <td class="nowrap titleCol">- |Общо тегло|*:</td>
+        <td class="boldText">[#maxWeight#]</td>
+    </tr>
+    <!--ET_END maxWeight-->
+    <!--ET_BEGIN maxVolume-->
+    <tr>
+        <td class="nowrap titleCol">- |Общ обем|*:</td>
+        <td class="boldText">[#maxVolume#]</td>
+    </tr>
+    <!--ET_END maxVolume-->
+    <!--ET_BEGIN maxHeight-->
+    <tr>
+        <td class="nowrap titleCol">- |Макс. височина|*:</td>
+        <td class="boldText">[#maxHeight#]</td>
+    </tr>
+    <!--ET_END maxHeight-->
+    <!--ET_BEGIN dangerous-->
+    <tr>
+        <td class="nowrap titleCol">- |Опасност|*:</td>
+        <td class="boldText">[#dangerous#]</td>
+    </tr>
+    <!--ET_END dangerous-->
+    <!--ET_BEGIN load-->
+    <tr>
+        <td class="nowrap titleCol">- |Описание|*:</td>
+        <td class="boldText">[#load#]</td>
+    </tr>
+    <!--ET_END load-->
+</table>
+
+<!--ET_BEGIN INFORMATION-->
+[#INFORMATION#]
+<table class="styled-table no-border halfTable offsetLeft">
+    <tr>
+        <th colspan = "2">|Обща информация и условия|*</th>
+    </tr>
+    <!--ET_BEGIN conditions-->
+    <tr>
+        <td class="boldText" colspan = "2">[#conditions#]<!--ET_BEGIN auction--><div class="richtext">|Съгласно офериране|* [#auction#] |в|* trans.bid</div><!--ET_END auction--></td>
+    </tr>
+    <!--ET_END conditions-->
+    <!--ET_BEGIN ourReff-->
+    <tr>
+        <td class="nowrap titleCol">|Наш реф.№|*:</td>
+        <td class="boldText">[#ourReff#]</td>
+    </tr>
+    <!--ET_END ourReff-->
+</table>
+<!--ET_END INFORMATION-->
+<div class="clearfix21"></div>

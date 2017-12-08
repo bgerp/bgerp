@@ -42,13 +42,15 @@ class type_User extends type_Key
         
         setIfNot($this->params['rolesForAll'], 'ceo');
         $this->params['rolesForAll'] = str_replace("|", ",", $this->params['rolesForAll']);
+        
+        setIfNot($this->params['cuFirst'], 'yes');
     }
     
     
     /**
      * Подготвя опциите според зададените параметри.
      */
-    public function prepareOptions()
+    public function prepareOptions($value = NULL)
     {
         $mvc = cls::get($this->params['mvc']);
         
@@ -60,13 +62,23 @@ class type_User extends type_Key
             $part = $this->params['select'];
             expect($part);
             
+            // Към екипните роли добавяме ролите за всички потребители
+            if ($this->params['rolesForAll'] && $this->params['rolesForAll'] != 'no_one') {
+                $rolesForAll = arr::make($this->params['rolesForAll'], TRUE);
+                $rolesForTeams = arr::make($this->params['rolesForTeams'], TRUE);
+                
+                $rolesForTeams += $rolesForAll;
+                
+                $this->params['rolesForTeams'] = implode(',', $rolesForTeams);
+            }
+            
+            $cu = core_Users::getCurrent();
+            
             // Вариант 1: Потребителя няма права да вижда екипите
             // Тогава евентуално можем да покажем само една опция, и тя е с текущия потребител
             if(!haveRole($this->params['rolesForTeams'])) {
                 if(haveRole($this->params['roles'])) {
-                    $userId = core_Users::getCurrent();
-                    
-                    $userIdKey = self::getUserFromTeams($userId);
+                    $userIdKey = self::getUserFromTeams($cu);
                     
                     $userIdKey = reset($userIdKey);
                     
@@ -74,12 +86,24 @@ class type_User extends type_Key
                         $this->options[$userIdKey] = new stdClass();
                     }
                     $this->options[$userIdKey]->title = core_Users::getCurrent($part);
-                    $this->options[$userIdKey]->value = $userId;
+                    $this->options[$userIdKey]->value = $cu;
                 }
             } else {
                 
                 $uQuery = core_Users::getQuery();
-                $uQuery->where("#state = 'active'");
+                if($value > 0) {
+                    if ($value && (strpos($value, '_') !== FALSE)) {
+                        list(,$userId) = explode('_', $value);
+                        
+                        if ($userId) {
+                            $value = $userId;
+                        }
+                    }
+                    
+                    $uQuery->where("#state = 'active' OR #state = 'blocked' OR #state = 'closed' OR #id = {$value}");
+                } else {
+                    $uQuery->where("#state = 'active' OR #state = 'blocked' OR #state = 'closed'");
+                }
                 $uQuery->orderBy("#names", 'ASC');
                 
                 // Потребителите, които ще покажем, трябва да имат посочените роли
@@ -87,14 +111,21 @@ class type_User extends type_Key
                 $uQuery->likeKeylist('roles', $roles);
                 
                 if(haveRole($this->params['rolesForAll'])) {
+                    $removeClosedGroups = TRUE;
+                    if ($this->params['showClosedGroups']) {
+                        $removeClosedGroups = FALSE;
+                    }
+                    
                     // Показваме всички екипи
-                    $teams = core_Roles::getRolesByType('team');
+                    $teams = core_Roles::getRolesByType('team', 'keylist', $removeClosedGroups);
                 } else {
                     // Показваме само екипите на потребителя
                     $teams = core_Users::getUserRolesByType(NULL, 'team');
                 }
                 
                 $teams = keylist::toArray($teams);
+                
+                $cuRecArr = array();
                 
                 foreach($teams as $t) {
                     $group = new stdClass();
@@ -119,12 +150,18 @@ class type_User extends type_Key
                         if($part && $this->params['useSelectAsTitle']) {
                             $this->options[$key]->title = $uRec->$part;
                         } else {
-                            $this->options[$key]->title = $uRec->nick . " (" . $uRec->names . ")";
+                            $this->options[$key]->title = type_Nick::normalize($uRec->nick) . " (" . $uRec->names . ")";
                         }
     
                         $this->options[$key]->value = $uRec->id;
                         
                         $teamMembers .= $teamMembers ? '|' . $uRec->id : $uRec->id;
+                        
+                        if ($this->params['cuFirst'] == 'yes' && empty($cuRecArr)) {
+                            if ($this->options[$key] && ($uRec->id == $cu)) {
+                                $cuRecArr[$key] = $this->options[$key];
+                            }
+                        }
                     }
                     
                     if($teamMembers) {
@@ -133,11 +170,19 @@ class type_User extends type_Key
                         unset($this->options[$t . ' team']);
                     }
                 }
+                
+                if (!empty($cuRecArr)) {
+                    $this->options = $cuRecArr + $this->options;
+                }
             }
         }
         
         $this->options = parent::prepareOptions();
-       
+        
+        if(isset($this->params['filter'])) {
+            call_user_func($this->params['filter'], $this);
+        }
+ 
         return $this->options;
     }
     
@@ -171,6 +216,8 @@ class type_User extends type_Key
             $value = self::getUserFromTeams($value);
             
             $value = reset($value);
+
+            $this->params['reserve'] = $value;
         }
         
         return parent::renderInput_($name, $value, $attr);

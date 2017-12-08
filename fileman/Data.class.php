@@ -58,6 +58,14 @@ class fileman_Data extends core_Manager {
     protected static $processFilesSysId = 'processFiles';
     
     
+    /**
+     * Да не се попълват ключовите думи при инициализация
+     * 
+     * @see plg_Search
+     */
+    public $fillSearchKeywordsOnSetup = FALSE;
+    
+    
     
     /**
      * Описание на модела (таблицата)
@@ -115,73 +123,11 @@ class fileman_Data extends core_Manager {
     
     
     /**
-     * Абсорбира данните от указания файл и
-     * и връща ИД-то на съхранения файл
-     */
-    static function absorbFile($file, $create = TRUE)
-    {
-        $rec = new stdClass();
-        $rec->fileLen = filesize($file);
-        $rec->md5 = md5_file($file);
-        
-        $rec->id = static::fetchField("#fileLen = $rec->fileLen  AND #md5 = '{$rec->md5}'", 'id');
-        
-        if(!$rec->id && $create) {
-            $path = self::getFilePath($rec);
-            
-            if(@copy($file, $path)) {
-                $rec->links = 0;
-                $status = static::save($rec);
-            } else {
-                error("@Не може да бъде копиран файла", $file, $path);
-            }
-        } elseif ($rec->id) {
-            self::resetProcess($rec);
-        }
-        
-        return $rec->id;
-    }
-    
-    
-    /**
-     * Абсорбира данните от от входния стринг и
-     * връща ИД-то на съхранения файл
-     */
-    static function absorbString($string, $create = TRUE)
-    {
-        $rec = new stdClass();
-        $rec->fileLen = strlen($string);
-        $rec->md5 = md5($string);
-        
-        $rec->id = static::fetchField("#fileLen = $rec->fileLen  AND #md5 = '{$rec->md5}'", 'id');
-        
-        if(!$rec->id && $create) {
-            
-            $path = self::getFilePath($rec);
-            
-            expect(FALSE !== @file_put_contents($path, $string));
-            
-            $rec->links = 0;
-            $status = static::save($rec);
-        } elseif ($rec->id) {
-            self::resetProcess($rec);
-        }
-        
-        return $rec->id;
-    }
-    
-    
-    /**
      * Изчислява пътя към файла
      */
     static function on_CalcPath($mvc, $rec)
     {
-        $rec->path = self::getFilePath($rec, TRUE, FALSE);
-        
-        // Ако директорията е на старото място - не е с поддиректории
-        if (!is_file($rec->path)) {
-            $rec->path = self::getFilePath($rec, FALSE, FALSE);
-        }
+        $rec->path = self::getGoodFilePath($rec, FALSE);
     }
     
     
@@ -240,6 +186,32 @@ class fileman_Data extends core_Manager {
     
     /**
      * Връща пътя до файла на съответния запис
+     * Първо проверява с поддиректория, след това 
+     * 
+     * @param stdObject $rec
+     * @param bolean $createDir - Създва директорията, ако липсва
+     * 
+     * @return string
+     */
+    public static function getGoodFilePath($rec, $createDir = TRUE)
+    {
+        $path = self::getFilePath($rec, TRUE, $createDir);
+        
+        // Ако директорията е на старото място - не е с поддиректории
+        if (!is_file($path)) {
+            $nPath = self::getFilePath($rec, FALSE, $createDir);
+            
+            if (is_file($nPath)) {
+                $path = $nPath;
+            }
+        }
+        
+        return $path;
+    }
+    
+    
+    /**
+     * Връща пътя до файла на съответния запис
      * 
      * @param mixed $rec - id' на файла или записа на файла
      * @param bolean $subDir - дали името да се раздели на поддиректрии
@@ -260,7 +232,9 @@ class fileman_Data extends core_Manager {
             $dirName = dirname($path);
             
             if ($dirName && !is_dir($dirName)) {
-                mkdir(dirname($path), 0777, TRUE);
+                if (!@mkdir($dirName, 0777, TRUE)) {
+                    self::logErr("Грешка при създаване на директория: '{$dirName}'");
+                }
             }
         }
         
@@ -342,18 +316,24 @@ class fileman_Data extends core_Manager {
         // Намираме id' то на файла, ако е съществувал
         $rec->id = static::fetchField("#fileLen = $rec->fileLen  AND #md5 = '{$rec->md5}'", 'id');
         
+        $path = self::getGoodFilePath($rec);
+        
         // Ако не е имал такъв запис
-        if (!$rec->id) {
+        if (!$rec->id || !@file_exists($path) || (@filesize($path) != $rec->fileLen)) {
             
-            // Пътя до файла
-            $path = self::getFilePath($rec);
+            // Проверка за права в директорията
+            $dir = pathinfo($path, PATHINFO_DIRNAME);
+            if (!is_writable($dir)) {
+                if (!@mkdir($dir, 0777, TRUE) || !is_writable($dir)) {
+                    self::logErr("Няма права за запис в директорията '{$dir}'", $rec->id);
+                }
+            }
             
             // Ако типа е файл
             if ($type == 'file') {
                 
                 // Копираме файла
                 expect(@copy($data, $path), "Не може да бъде копиран файла");
-                
             } else {
                 
                 // Ако е стринг, копираме стринга
@@ -471,6 +451,9 @@ class fileman_Data extends core_Manager {
         $query->where("#processed != 'yes'");
         $query->orWhere("#processed IS NULL");
         
+        // Данните с processed==no да са с по-голям приоритет
+        $query->orderBy('processed', 'DESC');
+        
         // По случаен принцип, с по-малък приоритет понякога да почва и от началото
         if (rand(0, 4) != 2) {
             $query->orderBy('lastUse', 'DESC');
@@ -502,6 +485,12 @@ class fileman_Data extends core_Manager {
                 self::save($rec, 'processed');
             }
         }
+        
+        $cnt = $query->count();
+        $query->show('id');
+        if ($cnt > 100) {
+            fileman_Data::logDebug("Файлове за обработка: {$cnt}");
+        }
     }
     
     
@@ -529,5 +518,69 @@ class fileman_Data extends core_Manager {
         $rec->timeLimit = 60;
         
         $res .= core_Cron::addOnce($rec);
+    }
+    
+    
+    /**
+     * Абсорбира данните от указания файл и
+     * и връща ИД-то на съхранения файл
+     * 
+     * @deprecated
+     */
+    static function absorbFile($file, $create = TRUE, $source = 'path')
+    {
+        wp('deprecated');
+        
+        $rec = new stdClass();
+        $rec->fileLen = filesize($file);
+        $rec->md5 = md5_file($file);
+        
+        $rec->id = static::fetchField("#fileLen = $rec->fileLen  AND #md5 = '{$rec->md5}'", 'id');
+        
+        $path = self::getGoodFilePath($rec);
+
+        if($create && ((!$rec->id) || !file_exists($path))) {
+            if(@copy($file, $path)) {
+                $rec->links = 0;
+                $status = static::save($rec);
+            } else {
+                error("@Не може да бъде копиран файла", $file, $path);
+            }
+        } elseif ($rec->id) {
+            self::resetProcess($rec);
+        }
+        
+        return $rec->id;
+    }
+    
+    
+    /**
+     * Абсорбира данните от от входния стринг и
+     * връща ИД-то на съхранения файл
+     * 
+     * @deprecated
+     */
+    static function absorbString($string, $create = TRUE)
+    {
+        wp('deprecated');
+        
+        $rec = new stdClass();
+        $rec->fileLen = strlen($string);
+        $rec->md5 = md5($string);
+        
+        $rec->id = static::fetchField("#fileLen = $rec->fileLen  AND #md5 = '{$rec->md5}'", 'id');
+        $path = self::getGoodFilePath($rec);
+        
+        if($create && ((!$rec->id) || !file_exists($path))) {
+            
+            expect(FALSE !== @file_put_contents($path, $string), $path, $rec);
+            
+            $rec->links = 0;
+            $status = static::save($rec);
+        } elseif ($rec->id) {
+            self::resetProcess($rec);
+        }
+        
+        return $rec->id;
     }
 }

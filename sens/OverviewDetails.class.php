@@ -33,7 +33,7 @@ class sens_OverviewDetails extends core_Detail
      */
     var $loadList = 'plg_Created, plg_RowTools2, 
                           plg_Printing, sens_Wrapper, plg_Sorting, 
-                          Overviews=sens_Overviews,plg_PrevAndNext';
+                          Overviews=sens_Overviews,plg_PrevAndNext, plg_SaveAndNew';
     
     
     /**

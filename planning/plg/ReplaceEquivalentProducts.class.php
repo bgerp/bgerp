@@ -77,8 +77,8 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
 				
 				// Обновяваме записа
 				$nRec = $form->rec;
-				
 				if($mvc->isUnique($nRec, $nFields)){
+					$nRec->autoAllocate = TRUE;
 					$mvc->save($nRec);
 					return followRetUrl();
 				} else {
@@ -95,6 +95,7 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
 			// Рендиране на формата
 			$form = $form->renderHtml();
 			$res = $mvc->renderWrapping($form);
+			core_Form::preventDoubleSubmission($res, $form);
 			
 			// ВАЖНО: спираме изпълнението на евентуални други плъгини
 			return FALSE;

@@ -75,5 +75,27 @@ class spas_Setup extends core_ProtoSetup
         'SPAS_USER' => array ('varchar', 'caption=Връзка със SpamAssassin->User'),
 
      );
-
+		
+		
+    /**
+     * След първоначално зареждане на данните
+     */
+    function loadSetupData($itr = '')
+    {
+        $sa = spas_Test::getSa();
+        
+        $resStr = '';
+        
+        try {
+            $res = $sa->ping();
+        } catch(spas_client_Exception $e) {
+            $resStr .= "<li class='error'>Грешка: {$e->getMessage()}</li>";
+        }
+        
+        if ($res === TRUE) {
+            $resStr .= "<li style='color:green'>Има връзка със SPAS</li>";
+        }
+        
+        return $resStr;
+    }
 }

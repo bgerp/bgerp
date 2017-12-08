@@ -37,7 +37,7 @@ class doc_FolderPlg extends core_Plugin
             // Определя достъпа по подразбиране за новите папки
             setIfNot($defaultAccess, $mvc->defaultAccess, 'team');
             
-            $mvc->FLD('inCharge' , 'user(role=powerUser, select=nick)', 'caption=Права->Отговорник,formOrder=10000');
+            $mvc->FLD('inCharge' , 'user(role=powerUser, rolesForAll=executive)', 'caption=Права->Отговорник,formOrder=10000,smartCenter');
             $mvc->FLD('access', 'enum(team=Екипен,private=Личен,public=Общ,secret=Секретен)', 'caption=Права->Достъп,formOrder=10001,notNull,value=' . $defaultAccess);
             $mvc->FLD('shared' , 'userList', 'caption=Права->Споделяне,formOrder=10002');
             
@@ -72,17 +72,44 @@ class doc_FolderPlg extends core_Plugin
     public static function on_AfterRenderRights($mvc, &$tpl, $data)
     {
         $tpl = new ET(tr('|*' . getFileContent('doc/tpl/RightsLayout.shtml')));
-                
+ 
         $tpl->placeObject($data->masterData->row);
     }
     
     
     /**
-     * След подготовка на таба със правата
+     * След подготовка на таба с историята
      */
     public static function on_AfterPrepareHistory($mvc, $res, $data)
     {
-        $data->TabCaption = 'История';
+        if ($mvc->haveRightFor('viewlogact', $data->rec)) {
+            $data->TabCaption = 'История';
+        }
+
+        if(!$data->TabCaption || !$data->isCurrent) return;
+ 
+        $data->HaveRightForLog = TRUE;
+            
+        $data->ActionLog = new stdClass();
+            
+        $perPage = $mvc->actLogPerPage ? $mvc->actLogPerPage : 10;
+            
+        $data->ActionLog->pager = cls::get('core_Pager', array('itemsPerPage' => $perPage, 'pageVar' => 'P_Act_Log'));
+             
+        $data->ActionLog->recs = log_Data::getRecs($mvc, $data->masterData->rec->id, $data->ActionLog->pager);
+        $data->ActionLog->rows = log_Data::getRows($data->ActionLog->recs, array('userId', 'actTime', 'actionCrc', 'ROW_ATTR'));
+            
+        // Ако има роля admin
+        if (log_Data::haveRightFor('list')) {
+                
+                $attr = array();
+		        $attr['ef_icon'] = '/img/16/page_go.png';
+		        $attr['title'] = 'Екшън лог на потребителя';
+                
+                $logUrl = array('log_Data', 'list', 'class' => $mvc->className, 'object' => $data->rec->id, 'Cmd[refresh]' => TRUE, 'ret_url' => TRUE);
+                
+                $data->ActionLog->actionLogLink = ht::createLink(tr("Още..."), $logUrl, FALSE, $attr);  
+        }
     }
 
     
@@ -91,19 +118,20 @@ class doc_FolderPlg extends core_Plugin
      */
     public static function on_AfterRenderHistory($mvc, &$tpl, $data)
     {
-        if (($data->masterData->ActionLog) && ($data->masterData->ActionLog->rows)) {
+   
+        if (($data->ActionLog) && ($data->ActionLog->rows)) {
             $tpl = getTplFromFile('doc/tpl/FolderHistoryLog.shtml');
             
             $logBlockTpl = $tpl->getBlock('log');
             
-            foreach ((array)$data->masterData->ActionLog->rows as $rows) {
+            foreach ((array)$data->ActionLog->rows as $rows) {
                 $logBlockTpl->placeObject($rows);
                 $logBlockTpl->replace($rows->ROW_ATTR['class'], 'logClass');
                 $logBlockTpl->append2Master();
             }
             
-            $tpl->append($data->masterData->ActionLog->pager->getHtml(), 'pager');
-            $tpl->append($data->masterData->ActionLog->actionLogLink, 'actionLogLink');
+            $tpl->append($data->ActionLog->pager->getHtml(), 'pager');
+            $tpl->append($data->ActionLog->actionLogLink, 'actionLogLink');
         } else {
             $data->masterData->History->disabled = TRUE;
         }
@@ -183,32 +211,6 @@ class doc_FolderPlg extends core_Plugin
     public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
         // Рендираме екшън лога на потребителя
-        if ($mvc->haveRightFor('viewlogact', $data->rec)) {
-            
-            $data->HaveRightForLog = TRUE;
-            
-            $data->ActionLog = new stdClass();
-            
-            $perPage = $mvc->actLogPerPage ? $mvc->actLogPerPage : 10;
-            
-            $data->ActionLog->pager = cls::get('core_Pager', array('itemsPerPage' => $perPage, 'pageVar' => 'P_Act_Log'));
-            
-            $data->ActionLog->recs = log_Data::getRecs($mvc, $data->rec->id, $data->ActionLog->pager);
-            $data->ActionLog->rows = log_Data::getRows($data->ActionLog->recs, array('userId', 'actTime', 'actionCrc', 'ROW_ATTR'));
-            
-            // Ако има роля admin
-            if (log_Data::haveRightFor('list')) {
-                
-                $attr = array();
-                $attr['class'] = 'linkWithIcon';
-		        $attr['style'] = 'background-image:url(' . sbf('/img/16/page_go.png') . ');';
-		        $attr['title'] = 'Екшън лог на потребителя';
-                
-                $logUrl = array('log_Data', 'list', 'class' => $mvc->className, 'object' => $data->rec->id, 'Cmd[refresh]' => TRUE, 'ret_url' => TRUE);
-                
-                $data->ActionLog->actionLogLink = ht::createLink(tr("Още..."), $logUrl, FALSE, $attr);  
-            }
-        }
     }
     
     
@@ -302,7 +304,7 @@ class doc_FolderPlg extends core_Plugin
                 if(!$rec->inCharge) {
                     $rec = $mvc->fetch($rec->id);
                 }
-                if($userId && $userId != $rec->inCharge) {
+                if ($userId && ($userId != $rec->inCharge) && !type_Keylist::isIn($userId, $rec->shared)) {
                     $requiredRoles = 'officer';
                 }
             }
@@ -637,14 +639,14 @@ class doc_FolderPlg extends core_Plugin
         $currUrl = getCurrentUrl();
         
         // Подготовка на линк към папката (или създаване на нова) на корицата
-        if($fField = $mvc->listFieldForFolderLink) {
+        if($fField = $mvc->listFieldForFolderLink) { 
             $folderTitle = $mvc->getFolderTitle($rec->id);
             if($rec->folderId && ($fRec = doc_Folders::fetch($rec->folderId))) {   
-                if (doc_Folders::haveRightFor('single', $rec->folderId) && !$currUrl['Rejected']) {
+                if (doc_Folders::haveRightFor('single', $rec->folderId) && !$currUrl['Rejected']) { 
                     core_RowToolbar::createIfNotExists($row->_rowTools);
                     $row->_rowTools->addLink('Папка', array('doc_Threads', 'list', 'folderId' => $rec->folderId), array('ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder-g.png' : 'img/16/folder-y.png', 'title' => "Папка към|* {$folderTitle}", 'class' => 'new-folder-btn'));
-
-                    $row->{$fField} = ht::createLink('',
+ 
+                    $row->{$fField} = ht::createLink($row->{$fField},
                             array('doc_Threads', 'list', 'folderId' => $rec->folderId),
                             NULL, array('ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder-g.png' : 'img/16/folder-y.png', 'title' => "Папка към|* {$folderTitle}", 'class' => 'new-folder-btn', 'order' => 19));
                 }
@@ -700,12 +702,15 @@ class doc_FolderPlg extends core_Plugin
         }
         
         $teammates = keylist::toArray(core_Users::getTeammates($userId));
-        $managers  = core_Users::getByRole('manager');
-        $ceos = core_Users::getByRole('ceo');
+        $managers  = (array)core_Users::getByRole('manager');
+        $ceos = (array)core_Users::getByRole('ceo');
         
         // Подчинените в екипа (използва се само за мениджъри)
         $subordinates = array_diff($teammates, $managers);
         $subordinates = array_diff($subordinates, $ceos);
+        
+        // Премахваме текущия потребител
+        unset($ceos[$userId]);
         
         foreach (array('teammates', 'ceos', 'managers', 'subordinates') as $v) {
             if (${$v}) {
@@ -743,6 +748,7 @@ class doc_FolderPlg extends core_Plugin
         switch (true) {
             case core_Users::haveRole('ceo') :
                 // CEO вижда всичко с изключение на private и secret папките на другите CEO
+                // Ако има само един `ceo` и е текущия потребител, да не сработва
                 if ($ceos) {
                     $conditions[] = "#folderInCharge NOT IN ({$ceos})";
                 }

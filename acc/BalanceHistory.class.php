@@ -32,7 +32,7 @@ class acc_BalanceHistory extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'Balance=acc_BalanceDetails, acc_Wrapper';
+    public $loadList = 'Balance=acc_BalanceDetails, acc_Wrapper, plg_Printing';
     
     
     /**
@@ -133,42 +133,53 @@ class acc_BalanceHistory extends core_Manager
     	// Преизчисляваме пейджъра с новия брой на записите
         $conf = core_Packs::getConfig('acc');
         
-        $Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listHistoryItemsPerPage));
-        $Pager->itemsCount = count($data->recs);
-        $Pager->calc();
-        $data->pager = $Pager;
-        
-        $start = $data->pager->rangeStart;
-        $end = $data->pager->rangeEnd - 1;
-        
-        if(count($data->recs)){
-        	$data->recs = array_reverse($data->recs, TRUE);
-        }
-        
-        // Махаме тези записи които не са в диапазона на страницирането
-        $count = 0;
-        
-        if(count($data->recs)){
-        	foreach ($data->recs as $id => $dRec){
-        		if(!($count >= $start && $count <= $end)){
-        			unset($data->recs[$id]);
-        		}
-        		$count++;
-        	}
-        }
-        
-        if($data->pager->page == 1){
-        	// Добавяне на последния ред
-        	if(count($data->recs)){
-        		array_unshift($data->recs, $data->lastRec);
-        	} else {
-        		$data->recs = array($data->lastRec);
-        	}
-        }
-        
-        // Ако сме на единствената страница или последната, показваме началното салдо
-        if($data->pager->page == $data->pager->pagesCount || $data->pager->pagesCount == 0){
-        	$data->recs[] = $data->zeroRec;
+        if(!Mode::is('printing')) {
+                
+           
+            $Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listHistoryItemsPerPage));
+            $Pager->itemsCount = count($data->recs);
+            $Pager->calc();
+            $data->pager = $Pager;
+            
+            $start = $data->pager->rangeStart;
+            $end = $data->pager->rangeEnd - 1;
+            
+            if(count($data->recs)){
+            	$data->recs = array_reverse($data->recs, TRUE);
+            }
+            
+            // Махаме тези записи които не са в диапазона на страницирането
+            $count = 0;
+            
+            if(count($data->recs)){
+            	foreach ($data->recs as $id => $dRec){
+            		if(!($count >= $start && $count <= $end)){
+            			unset($data->recs[$id]);
+            		}
+            		$count++;
+            	}
+            }
+            
+            if($data->pager->page == 1){
+            	// Добавяне на последния ред
+            	if(count($data->recs)){
+            		array_unshift($data->recs, $data->lastRec);
+            	} else {
+            		$data->recs = array($data->lastRec);
+            	}
+            }
+            
+            // Ако сме на единствената страница или последната, показваме началното салдо
+            if($data->pager->page == $data->pager->pagesCount || $data->pager->pagesCount == 0){
+            	$data->recs[] = $data->zeroRec;
+            }
+        } else {
+            // Подготвя средното салдо
+            if(!count($data->allRecs)){
+                $data->allRecs = array();
+            }
+
+            $data->recs = array('zero' => $data->zeroRec) + $data->allRecs + array('last' => $data->lastRec);
         }
         
         // Подготвя средното салдо
@@ -303,10 +314,11 @@ class acc_BalanceHistory extends core_Manager
         $data->accountInfo = acc_Accounts::getAccountInfo($data->rec->accountId);
         
         foreach (array(3, 2, 1) as $i){
+            
         	$ent = $data->rec->{"ent{$i}Id"};
-        	if(isset($ent)){
+        	if(is_object($data->accountInfo->groups[$i])){
         		$listRec = $data->accountInfo->groups[$i]->rec;
-        		$filter->FNC("ent{$i}Id", "acc_type_Item(lists={$listRec->num},select=titleLink,showAll)", "input,caption={$listRec->name}");
+        		$filter->FNC("ent{$i}Id", "acc_type_Item(lists={$listRec->num},select=titleLink,showAll,allowEmpty)", "input,class=w75,caption={$listRec->name}");
         		$filter->showFields = "ent{$i}Id,{$filter->showFields}";
         	} else {
         		$filter->FNC("ent{$i}Id", 'int', 'input=hidden');
@@ -400,7 +412,7 @@ class acc_BalanceHistory extends core_Manager
         
         // Извличаме хронологията за перата
         $isGrouped = ($data->isGrouped !== 'yes') ? FALSE : TRUE;
-        $balHistory = acc_ActiveShortBalance::getBalanceHystory($accSysId, $data->fromDate, $data->toDate, $rec->ent1Id, $rec->ent2Id, $rec->ent3Id, $isGrouped);
+        $balHistory = acc_ActiveShortBalance::getBalanceHystory($accSysId, $data->fromDate, $data->toDate, $rec->ent1Id, $rec->ent2Id, $rec->ent3Id, $isGrouped, FALSE);
         $data->recs = $balHistory['history'];
         
         $rec->baseAmount = $balHistory['summary']['baseAmount'];
@@ -480,14 +492,14 @@ class acc_BalanceHistory extends core_Manager
         
         try{
         	$Class = cls::get($rec['docType']);
-            $arr['docId'] = $Class->getShortHyperLink($rec['docId']);
-            $arr['reason'] = $Class->getContoReason($rec['docId'], $rec['reasonCode']);
+        	$arr['docId'] = (!Mode::isReadOnly()) ? $Class->getShortHyperLink($rec['docId']) : "#" . $Class->getHandle($rec['docId']);
+        	$arr['reason'] = $Class->getContoReason($rec['docId'], $rec['reasonCode']);
         } catch(core_exception_Expect $e){
-            if(is_numeric($rec['docId'])){
-                $arr['docId'] = "<span style='color:red'>" . tr("Проблем при показването") . "</span>";
-            } else {
-                $arr['docId'] = $rec['docId'];
-            }
+        	if(is_numeric($rec['docId'])){
+        		$arr['docId'] = "<span style='color:red'>" . tr("Проблем при показването") . "</span>";
+        	} else {
+        		$arr['docId'] = $rec['docId'];
+        	}
         }
         
         if($rec['ROW_ATTR']){
@@ -646,9 +658,11 @@ class acc_BalanceHistory extends core_Manager
         // Рендиране на филтъра
         $tpl->append($this->renderListFilter($data), 'listFilter');
         
-        // Рендиране на пейджъра
-        if($data->pager){
-        	$tpl->append($data->pager->getHtml(), 'PAGER');
+        if(!Mode::is('printing')) {
+            // Рендиране на пейджъра
+            if($data->pager){ 
+            	$tpl->append($data->pager->getHtml(), 'PAGER');
+            }
         }
         
         

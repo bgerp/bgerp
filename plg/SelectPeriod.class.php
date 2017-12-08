@@ -66,13 +66,12 @@ class plg_SelectPeriod extends core_Plugin
             Request::push(array($fF => $rec->{$fF}, $fT => $rec->{$fT}));
         }
         $form->setOptions('selectPeriod', self::getOptions($keySel, $rec->{$fF}, $rec->{$fT}));
-
+        
         if($keySel) {
             $form->setDefault('selectPeriod', $keySel);
             $rec->selectPeriod = $keySel;
             Request::push(array('selectPeriod' => $keySel));
         }
-
     }
 
 
@@ -95,7 +94,7 @@ class plg_SelectPeriod extends core_Plugin
     /**
      * Изчислява $from и $to
      */
-    private static function getFromTo($sel) 
+    public static function getFromTo($sel) 
     { 
         
         if(date('N') == 7){
@@ -103,7 +102,7 @@ class plg_SelectPeriod extends core_Plugin
         } else {
             $now = dt::mysql2timestamp(dt::addDays(0));
         }
-
+        
         switch($sel) {
 
             // Ден
@@ -164,6 +163,12 @@ class plg_SelectPeriod extends core_Plugin
             case 'last360':
                 $from = dt::addDays(-359, NULL, FALSE);
                 $to = dt::addDays(0, NULL, FALSE);
+                break;
+                
+            // За всички да е празен стринг вместо NULL
+            case 'gr0':
+                $from = '';
+                $to = '';
                 break;
             default:
                 if(preg_match("/^\\d{4}-\\d{2}-\\d{2}\\|\\d{4}-\\d{2}-\\d{2}$/", $sel)) {

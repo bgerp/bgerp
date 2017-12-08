@@ -70,7 +70,7 @@ class rack_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.2, 'Логистика', 'Стелажи', 'rack_Movements', 'default', "rack,ceo"),
+            array(3.2, 'Логистика', 'Стелажи', 'rack_Movements', 'default', "rack,ceo,store,storeWorker"),
         );
     
     
@@ -80,6 +80,10 @@ class rack_Setup extends core_ProtoSetup
     function install()
     {
     	$html = parent::install();
+    	
+    	$Plugins = cls::get('core_Plugins');
+    	$html .= $Plugins->installPlugin('Връзка между междускладовия трансфер и палетния склад', 'rack_plg_Document', 'store_TransfersDetails', 'private');
+    	$html .= $Plugins->installPlugin('Връзка между ЕН и палетния склад', 'rack_plg_Document', 'store_ShipmentOrderDetails', 'private');
     	
     	return $html;
     }

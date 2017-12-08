@@ -54,6 +54,7 @@ class tracking_Log extends core_Master {
         $this->FNC('text', 'html', 'caption=Данни');
         $this->FLD('remoteIp', 'ip', 'caption=Tракер IP');
         
+        $this->setDbIndex('vehicleId');
         $this->dbEngine = 'InnoDB';
     }
     
@@ -126,7 +127,7 @@ class tracking_Log extends core_Master {
         $conf = core_Packs::getConfig('tracking');
         // Ако получаваме данни от неоторизирано IP ги игнорираме
         if ($_SERVER['REMOTE_ADDR'] != $conf->DATA_SENDER) {
-            // file_put_contents('tracking.log', "\n неоторизирано IP ". date("Y-m-d H:i:s") . "\n", FILE_APPEND);
+            // file_put_contents('tracking.log', "\n неоторизирано IP. Данните идват от: {$_SERVER['REMOTE_ADDR']} а ги очакваме от: {$conf->DATA_SENDER} ". date("Y-m-d H:i:s") . "\n", FILE_APPEND);
             exit;
         }
         // file_put_contents('tracking.log', "\n accepted", FILE_APPEND);

@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   bank
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -35,8 +35,8 @@ abstract class bank_Document extends deals_PaymentDocument
 	 * Неща, подлежащи на начално зареждане
 	 */
 	public $loadList = 'plg_RowTools2, bank_Wrapper, acc_plg_RejectContoDocuments, acc_plg_Contable,
-         plg_Sorting, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary,doc_plg_HidePrices,
-         plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, doc_EmailCreatePlg, doc_SharablePlg';
+         plg_Sorting, plg_Clone, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary,doc_plg_HidePrices,
+         plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, doc_EmailCreatePlg, doc_SharablePlg, deals_plg_SetTermDate';
 	
 	
 	/**
@@ -58,12 +58,6 @@ abstract class bank_Document extends deals_PaymentDocument
 	
 	
 	/**
-	 * Кой има право да чете?
-	 */
-	public $canRead = 'bank, ceo';
-	
-	
-	/**
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'bank, ceo';
@@ -79,6 +73,12 @@ abstract class bank_Document extends deals_PaymentDocument
      * Кой може да създава?
      */
     public $canAdd = 'bank, ceo, purchase, sales';
+    
+    
+    /**
+     * Кой може да го прави документа чакащ/чернова?
+     */
+    public $canPending = 'bank, ceo, purchase, sales';
     
     
     /**
@@ -115,6 +115,26 @@ abstract class bank_Document extends deals_PaymentDocument
 	
 	
 	/**
+	 * Дата на очакване
+	 */
+	public $termDateFld = 'termDate';
+	
+	
+	/**
+	 * Дали в листовия изглед да се показва бутона за добавяне
+	 */
+	public $listAddBtn = FALSE;
+	
+	
+	/**
+	 * Полета, които при клониране да не са попълнени
+	 *
+	 * @see plg_Clone
+	 */
+	public $fieldsNotToClone = 'amountDeal,termDate,amount,valior';
+	
+	
+	/**
 	 * Добавяне на дефолтни полета
 	 *
 	 * @param core_Mvc $mvc
@@ -123,24 +143,25 @@ abstract class bank_Document extends deals_PaymentDocument
 	protected function getFields(core_Mvc &$mvc)
 	{
 		$mvc->FLD('operationSysId', 'varchar', 'caption=Операция,mandatory');
-		$mvc->FLD('amountDeal', 'double(decimals=2,max=2000000000,min=0)', 'caption=Платени,mandatory,summary=amount,silent');
+		$mvc->FLD('amountDeal', 'double(decimals=2,max=2000000000,min=0)', 'caption=Платени,mandatory,silent');
 		$mvc->FLD('dealCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'input=hidden');
+		$mvc->FLD('termDate', 'date(format=d.m.Y)', 'caption=Очаквано на,silent');
 		
-		$mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
 		$mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,input=hidden');
 		$mvc->FLD('rate', 'double(decimals=5)', 'caption=Курс,input=none');
-		$mvc->FLD('reason', 'richtext(bucket=Notes,rows=6)', 'caption=Основание,mandatory');
+		$mvc->FLD('reason', 'richtext(bucket=Notes,rows=6)', 'caption=Основание');
 		$mvc->FLD('contragentName', 'varchar(255)', 'caption=От->Контрагент,mandatory');
 		$mvc->FLD('contragentIban', 'iban_Type(64)', 'caption=От->Сметка');
 		$mvc->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=В->Сметка,silent,removeAndRefreshForm=currencyId|amount');
 		$mvc->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,summary=amount,input=hidden');
+		$mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Допълнително->Вальор,autohide');
 		
 		$mvc->FLD('contragentId', 'int', 'input=hidden,notNull');
 		$mvc->FLD('contragentClassId', 'key(mvc=core_Classes,select=name)', 'input=hidden,notNull');
 		$mvc->FLD('debitAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'caption=debit,input=none');
 		$mvc->FLD('creditAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'caption=Кредит,input=none');
 		$mvc->FLD('state',
-				'enum(draft=Чернова, active=Активиран, rejected=Оттеглен,stopped=Спряно)',
+				'enum(draft=Чернова, active=Активиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)',
 				'caption=Статус, input=none'
 		);
 		$mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
@@ -154,9 +175,9 @@ abstract class bank_Document extends deals_PaymentDocument
 	{
 		$rec = &$form->rec;
 		
-		if($form->rec->currencyId != $form->rec->dealCurrencyId){
-			if(isset($form->rec->ownAccount)){
-				$ownAcc = bank_OwnAccounts::getOwnAccountInfo($form->rec->ownAccount);
+		if($rec->currencyId != $rec->dealCurrencyId){
+			if(isset($rec->ownAccount)){
+				$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->ownAccount);
 				if(isset($ownAcc->currencyId)){
 					$code = currency_Currencies::getCodeById($ownAcc->currencyId);
 					$form->setField('amount', "unit={$code}");
@@ -204,7 +225,7 @@ abstract class bank_Document extends deals_PaymentDocument
 	/**
 	 * Извиква се след успешен запис в модела
 	 */
-	public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+	protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
 	{
 		// Ако няма такава банкова сметка, тя автоматично се записва
 		if($rec->contragentIban){
@@ -221,17 +242,6 @@ abstract class bank_Document extends deals_PaymentDocument
 		// Добавяме към формата за търсене търсене по Каса
 		bank_OwnAccounts::prepareBankFilter($data, array('ownAccount'));
 	}
-
-	
-	/**
-	 * Извиква се след подготовката на toolbar-а за табличния изглед
-	 */
-	protected static function on_AfterPrepareListToolbar($mvc, &$data)
-	{
-		if(!empty($data->toolbar->buttons['btnAdd'])){
-			$data->toolbar->removeBtn('btnAdd');
-		}
-	}
 	
 
 	/**
@@ -243,23 +253,6 @@ abstract class bank_Document extends deals_PaymentDocument
 	public static function canAddToFolder($folderId)
 	{
 		return FALSE;
-	}
-	
-
-	/**
-	 * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
-	 */
-	public function getDocumentRow($id)
-	{
-		$rec = $this->fetch($id);
-		$row = new stdClass();
-		$row->title = $this->singleTitle . " №{$id}";
-		$row->authorId = $rec->createdBy;
-		$row->author = $this->getVerbal($rec, 'createdBy');
-		$row->state = $rec->state;
-		$row->recTitle = $rec->reason;
-	
-		return $row;
 	}
 	
 
@@ -321,17 +314,6 @@ abstract class bank_Document extends deals_PaymentDocument
 	
 		return $tpl->getContent();
 	}
-	
-	
-	/**
-	 * Връща разбираемо за човека заглавие, отговарящо на записа
-	 */
-	public static function getRecTitle($rec, $escaped = TRUE)
-	{
-		$self = cls::get(get_called_class());
-	
-		return $self->singleTitle . " №$rec->id";
-	}
 
 
 	/**
@@ -354,8 +336,8 @@ abstract class bank_Document extends deals_PaymentDocument
 		$rec = $data->rec;
 		
 		// Ако не е избрана сметка, показваме бутона за контиране но с грешка
-		if($rec->state == 'draft' && !isset($rec->ownAccount) && $mvc->haveRightFor('conto')){
-			$data->toolbar->addBtn('Контиране', array(), "id=btnConto,error=Не е избрана сметка", 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
+		if(($rec->state == 'draft' || $rec->state == 'pending') && !isset($rec->ownAccount) && $mvc->haveRightFor('conto')){
+			$data->toolbar->addBtn('Контиране', array(), array('id' => 'btnConto', 'error' => 'Документа не може да бъде контиран, докато няма посочена банкова сметка|*!'), 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
 		}
 	}
 	
@@ -411,27 +393,6 @@ abstract class bank_Document extends deals_PaymentDocument
 	
 	
 	/**
-	 *  Обработка на формата за редакция и добавяне
-	 */
-	protected static function on_AfterPrepareEditForm($mvc, $res, $data)
-	{
-		$form = &$data->form;
-		 
-		if($fromDocument = Request::get('fromContainerId', 'int')){
-			if(empty($form->rec->id)){
-				$secondOrigin = doc_Containers::getDocument($fromDocument);
-				if(is_subclass_of($secondOrigin->getInstance(), 'deals_InvoiceMaster')){
-					$originRec = $secondOrigin->fetch();
-					$title = ($originRec->type == 'dc_note') ? (($originRec->dealValue <= 0) ? 'Кредитно известие' : 'Дебитно известие') : $secondOrigin->singleTitle;
-					$number = str_pad($originRec->number, 10, "0", STR_PAD_LEFT);
-					$form->rec->reason = tr("Към|* ") . mb_strtolower($title) . " №{$number}";
-				}
-			}
-		}
-	}
-	
-	
-	/**
 	 * Задава стойности по подразбиране от продажба/покупка
 	 *
 	 * @param core_ObjectReference $origin - ориджин на документа
@@ -441,8 +402,7 @@ abstract class bank_Document extends deals_PaymentDocument
 	 */
 	protected function setDefaultsFromOrigin(core_ObjectReference $origin, core_Form &$form, &$options)
 	{
-		$form->setDefault('reason', "Към документ #{$origin->getHandle()}");
-        $dealInfo = $origin->getAggregateDealInfo();
+		$dealInfo = $origin->getAggregateDealInfo();
         
         $cId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
         $form->setDefault('dealCurrencyId', $cId);
@@ -459,7 +419,7 @@ abstract class bank_Document extends deals_PaymentDocument
         
         if(empty($form->rec->id) && $form->cmd != 'refresh'){
         	$form->setDefault('ownAccount', bank_OwnAccounts::getCurrent('id', FALSE));
-        	$form->setDefault('ownAccoun', $bankId);
+        	$form->setDefault('ownAccount', $bankId);
         }
         
         if(isset($form->rec->ownAccount)){

@@ -106,7 +106,13 @@ class acc_BalanceDetails extends core_Detail
      */
     public $title = 'Детайли на баланса';
     
+
+    /**
+     * По-голямо поле за id
+     */
+    protected $idType = 'bigint';
     
+
     /**
      * Описание на модела
      */
@@ -254,12 +260,11 @@ class acc_BalanceDetails extends core_Detail
     
     
     /**
-     * След преобразуване на записа в четим за хора вид.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
-     */
+	 * След преобразуване на записа в четим за хора вид.
+	 * 
+	 * @param core_Mvc $mvc
+	 * @param stdClass $data
+	 */
     static function on_AfterPrepareListRows($mvc, $data)
     {
         // При детайлна справка, и потребителя няма роли acc, ceo скриваме
@@ -1278,7 +1283,7 @@ class acc_BalanceDetails extends core_Detail
      * @param stdClass|NULL $rec
      * @param int|NULL $userId
      */
-    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if (!in_array($action, array('list', 'read', 'history'))){
             $requiredRoles = 'no_one';

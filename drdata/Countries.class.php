@@ -198,12 +198,12 @@ class drdata_Countries extends core_Manager {
         }
 
         if(is_numeric($mix)) {
-            $country = drdata_Countries::fetchField($mix, $field);
+            $country = drdata_Countries::fetch($mix)->{$field};
         } elseif(strlen($mix) == 2) {
-            $country = drdata_Countries::fetchField(array("#letterCode2 = '[#1#]'", $mix), $field);
+            $country = drdata_Countries::fetch(array("#letterCode2 = '[#1#]'", $mix))->{$field};
         } else {
             expect(strlen($mix) == 3, $mix);
-            $country = drdata_Countries::fetchField(array("#letterCode3 = '[#1#]'", $mix), $field);
+            $country = drdata_Countries::fetch(array("#letterCode3 = '[#1#]'", $mix))->{$field};
         }
 
         return $country;
@@ -224,6 +224,11 @@ class drdata_Countries extends core_Manager {
     {
         static $commonNamesArr, $namesArr;
         
+        if(is_numeric($country) && self::fetch($country)) {
+
+            return $country;
+        }
+
         if(!$commonNamesArr) {
             $query = self::getQuery();
             while($rec = $query->fetch()) {
@@ -284,6 +289,9 @@ class drdata_Countries extends core_Manager {
                 'greek' => 'greece',
                 'greese' => 'greece',
                 'guinee' => 'guinea',
+                'grande-bretagne' => 'united kingdom',
+                'grande bretagne' => 'united kingdom',
+                'great-britan' => 'united kingdom',
                 'hellas' => 'greece',
                 'hing kong' => 'hong kong',
                 'holland' => 'netherlands',
@@ -407,6 +415,26 @@ class drdata_Countries extends core_Manager {
         }
 
         return FALSE;
+    }
+
+
+    /**
+     * Добавя към даден стринг за търсене, посоченото име на държава на езика, на който не се среща
+     */
+    public static function addCountryInBothLg($countryId, $text)
+    {
+        if (!$countryId) return $text;
+        
+        $cBg = ' ' . plg_Search::normalizeText(self::getCountryName($countryId, 'bg'));
+        $cEn = ' ' . plg_Search::normalizeText(self::getCountryName($countryId, 'en'));
+
+        if(strpos(' ' . $text, $cBg) === FALSE) {
+            $text .= $cBg;
+        } elseif(strpos(' ' . $text, $cEn) === FALSE) {
+            $text .= $cEn;
+        }
+
+        return $text;
     }
     
     

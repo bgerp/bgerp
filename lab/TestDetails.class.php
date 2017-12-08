@@ -27,7 +27,7 @@ class lab_TestDetails extends core_Detail
      */
     var $loadList = 'plg_Created, plg_RowTools2, plg_RowNumbering,
                           plg_Printing, lab_Wrapper, plg_Sorting, 
-                          Tests=lab_Tests, Params=lab_Parameters, Methods=lab_Methods,plg_PrevAndNext';
+                          Tests=lab_Tests, Params=lab_Parameters, Methods=lab_Methods,plg_PrevAndNext, plg_SaveAndNew';
     
     
     /**
@@ -59,11 +59,11 @@ class lab_TestDetails extends core_Detail
      */
     function description()
     {
-        $this->FLD('testId', 'key(mvc=lab_Tests, select=title)', 'caption=Тест, input=hidden, silent,mandatory');
-        $this->FNC('paramName', 'varchar(255)', 'caption=Параметър, notSorting');
-        $this->FLD('methodId', 'key(mvc=lab_Methods, select=name)', 'caption=Метод, notSorting,mandatory');
-        $this->FLD('value', 'varchar(64)', 'caption=Стойност, notSorting, input=none');
-        $this->FLD('error', 'percent(decimals=2)', 'caption=Грешка, notSorting,input=none');
+        $this->FLD('testId', 'key(mvc=lab_Tests, select=title)', 'caption=Тест, input=hidden, silent,mandatory,smartCenter');
+        $this->FNC('paramName', 'varchar(255)', 'caption=Параметър, notSorting,smartCenter');
+        $this->FLD('methodId', 'key(mvc=lab_Methods, select=name)', 'caption=Метод, notSorting,mandatory,smartCenter');
+        $this->FLD('value', 'varchar(64)', 'caption=Стойност, notSorting, input=none,smartCenter');
+        $this->FLD('error', 'percent(decimals=2)', 'caption=Грешка, notSorting,input=none,smartCenter');
         $this->FLD('results', 'text', 'caption=Резултати, hint=На всеки отделен ред запишете по една стойност от измерване,notSorting, column=none');
         
         $this->setDbUnique('testId, methodId');
@@ -218,7 +218,7 @@ class lab_TestDetails extends core_Detail
                 // Намираме грешката
                 $dlt = 0;
                 
-                for($i = 0; $resCnt; $i++) {
+                for($i = 0; $i < $resCnt; $i++) {
                     $dlt += ($resultsArr[$i] - $rec->value) * ($resultsArr[$i] - $rec->value);
                 }
                 

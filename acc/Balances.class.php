@@ -116,7 +116,13 @@ class acc_Balances extends core_Master
      */
     public $accountRec;
     
-    
+
+    /**
+     * Ключ за заключване по време на записването
+     */
+    const saveLockKey = 'Save_Balance_In_Progress';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -146,7 +152,7 @@ class acc_Balances extends core_Master
     /**
      * Извиква се след изчисляването на необходимите роли за това действие
      */
-    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $user = NULL)
     {
         if ($mvc->accountRec) {
             if ($action == 'edit' || $action == 'delete') {
@@ -368,22 +374,26 @@ class acc_Balances extends core_Master
     		// Добавяме транзакциите за периода от първия ден, който не е обхваната от базовия баланс, до края на зададения период
     		$isMiddleBalance = ($rec->periodId) ? FALSE : TRUE;
     		$recalcBalance = $bD->calcBalanceForPeriod($firstDay, $rec->toDate, $isMiddleBalance);
-    		
-    		// Записваме баланса в таблицата (данните са записани под системно ид за баланс -1)
-    		$bD->saveBalance($rec->id);
-    		
-    		// Изтриваме старите данни за текущия баланс
-    		$bD->delete("#balanceId = {$rec->id}");
-    		
-    		// Ъпдейтваме данните за баланс -1 да са към текущия баланс
-    		// Целта е да заместим новите данни със старите само след като новите данни са изчислени до края
-    		// За да може ако някой използва данни от таблицата докато не са готови новите да разполага със старите
-    		$balanceIdColName = str::phpToMysqlName('balanceId');
-    		$bD->db->query("UPDATE {$bD->dbTableName} SET {$balanceIdColName} = {$rec->id} WHERE {$balanceIdColName} = '-1'");
-    		
-    		// Отбелязваме, кога за последно е калкулиран този баланс
-    		$rec->lastCalculate = dt::now();
-    		self::save($rec, 'lastCalculate');
+    	    
+            // Заключваме процеса за определено време
+            if (core_Locks::get(acc_Balances::saveLockKey)) {
+
+                // Записваме баланса в таблицата (данните са записани под системно ид за баланс -1)
+                $bD->saveBalance($rec->id);
+                
+                // Изтриваме старите данни за текущия баланс
+                $bD->delete("#balanceId = {$rec->id}");
+                
+                // Ъпдейтваме данните за баланс -1 да са към текущия баланс
+                // Целта е да заместим новите данни със старите само след като новите данни са изчислени до края
+                // За да може ако някой използва данни от таблицата докато не са готови новите да разполага със старите
+                $balanceIdColName = str::phpToMysqlName('balanceId');
+                $bD->db->query("UPDATE {$bD->dbTableName} SET {$balanceIdColName} = {$rec->id} WHERE {$balanceIdColName} = '-1'");
+                
+                // Отбелязваме, кога за последно е калкулиран този баланс
+                $rec->lastCalculate = dt::now();
+                self::save($rec, 'lastCalculate');
+            }
     		
     		//$count++;
     	//}
@@ -715,17 +725,18 @@ class acc_Balances extends core_Master
     		expect($accId = acc_Accounts::getRecBySystemId($accSysId1)->id);
     		$corespondingAccArr[] = $accId;
     	}
-        
+    	
+    	
         // За всеки запис
         foreach ($jRecs as $rec){
             $add = FALSE;
             
             // Ако има кореспондираща сметка и тя не участва в записа, пропускаме го
             if(count($corespondingAccArr) && (!in_array($rec->debitAccId, $corespondingAccArr) && !in_array($rec->creditAccId, $corespondingAccArr))) continue;
-            
+           
             // Ако има посочени задължителни пера
             if(count($items) > 0){
-            	$skip = FALSE;
+            	$skipDebit = $skipCredit = FALSE;
             	
             	// За всяко
             	foreach (range(0, 2) as $i){
@@ -741,18 +752,20 @@ class acc_Balances extends core_Master
             				if($rec->{"debitItem{$j}"} != $items[$i]) {
             					
             					// Ще се пропуска записа
-            					$skip = TRUE;
+            					$skipDebit = TRUE;
             					break;
             				}
             				
+            			}
+            			
             			// И кредитната сметка е от търсените
-            			} elseif(in_array($rec->creditAccId, $newAccArr)){
+            			if(in_array($rec->creditAccId, $newAccArr)){
             				
             				// И съответното перо не е като търсеното
             				if($rec->{"creditItem{$j}"} != $items[$i]){
             					
             					// Ще се пропуска записа
-            					$skip = TRUE;
+            					$skipCredit = TRUE;
             					break;
             				}
             			}
@@ -760,26 +773,29 @@ class acc_Balances extends core_Master
             	}
             	
             	// Ако ще се пропуска, записа не участва в събирането
-            	if($skip === TRUE) continue;
+            	if($skipDebit === TRUE && $skipCredit === TRUE) continue;
             }
-            
             
             // Изчисляваме крайното салдо
             if(in_array($rec->debitAccId, $newAccArr)) {
-                if($type === NULL || $type == 'debit'){
-                    $res->amount += $rec->amount;
-                    $add = TRUE;
-                }
+            	if($skipDebit !== TRUE){
+            		if($type === NULL || $type == 'debit'){
+            			$res->amount += $rec->amount;
+            			$add = TRUE;
+            		}
+            	}
             }
             
             if(in_array($rec->creditAccId, $newAccArr)) {
-                $sign = ($type === NULL) ? -1 : 1;
-                
-                if($type === NULL || $type == 'credit'){
-                    $res->amount += $sign * $rec->amount;
-                }
-                
-                $add = TRUE;
+            	if($skipCredit !== TRUE){
+            		$sign = ($type === NULL) ? -1 : 1;
+            		
+            		if($type === NULL || $type == 'credit'){
+            			$res->amount += $sign * $rec->amount;
+            		}
+            		
+            		$add = TRUE;
+            	}
             }
             
             // Добавяме записа, участвал в образуването на крайното салдо

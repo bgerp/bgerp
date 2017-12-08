@@ -64,7 +64,7 @@ class rack_Products extends store_Products
     var $canDelete = 'no_one';
     
 
-    public $listFields = 'productId=Наименование, measureId=Мярка,quantity=Количество->Общо,quantityNotOnPallets,quantityOnPallets';
+    public $listFields = 'code=Код,productId=Наименование, measureId=Мярка,quantity=Количество->Общо,quantityNotOnPallets,quantityOnPallets,storeId=Склад';
 
 
      /**
@@ -78,8 +78,8 @@ class rack_Products extends store_Products
         $this->loadList['plg_RowTools2'] = 'plg_RowTools2';
         parent::description();
 
-        $this->FNC('quantityNotOnPallets', 'double', 'caption=Количество->Непалетирано,input=hidden');
-        $this->FLD('quantityOnPallets', 'double', 'caption=Количество->На палети,input=hidden');
+        $this->FNC('quantityNotOnPallets', 'double', 'caption=Количество->Непалетирано,input=hidden,smartCenter');
+        $this->FLD('quantityOnPallets', 'double', 'caption=Количество->На палети,input=hidden,smartCenter');
     }
     
     
@@ -96,11 +96,37 @@ class rack_Products extends store_Products
     }
 
 
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         core_RowToolbar::createIfNotExists($row->_rowTools);
 	    $row->_rowTools->addLink('Палетиране', array('rack_Pallets', 'add', 'productId' => $rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/pallet1.png,title=Палетиране на артикул');
 		$row->_rowTools->addLink('Търсене', array('rack_Pallets', 'list', 'productId' => $rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/filter.png,title=Търсене на палети с артикул');
     }
  
+    
+    /**
+     * Изпълнява се след създаване на нов запис
+     * 
+     * @param rack_Products $mvc
+     * @param stdClass $rec
+     * @param array $fields
+     * @param NULL|string $mode
+     */
+    public static function on_AfterSaveArray($mvc, $res, $recs)
+    { 
+        foreach($recs as $rec) {
+            $rec = self::fetch("#productId = {$rec->productId} AND #storeId = {$rec->storeId}");
+            if($rec) {
+                rack_Pallets::recalc($rec->id);
+            }
+        }
+    }
+
 }

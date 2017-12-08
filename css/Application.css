@@ -288,9 +288,9 @@ div.folder-cover {
   border-radius: 0 25px 0 0;
   box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.2); }
   div.folder-cover.state-opened {
-    background-image: url('../img/cover-bg-green.png'); }
+    background: #cef1d7 url('../img/cover-bg-green.png'); }
   div.folder-cover.state-active {
-    background-image: url('../img/cover-bg-yellow.png'); }
+    background: #fffdea url('../img/cover-bg-yellow.png'); }
   div.folder-cover .detail-info {
     background: none; }
     div.folder-cover .detail-info.portal {
@@ -393,13 +393,12 @@ div.folder-cover {
   max-width: 720px;
   min-width: 280px;
   font-size: 0.9em;
+  display: block;
   padding: 10px !important; }
   .narrow .folder-cover .block_title img {
     vertical-align: baseline; }
   .narrow .folder-cover .detail-info {
     padding: 3px 7px 7px 7px; }
-  .narrow .folder-cover select {
-    font-size: 1.3em; }
   .narrow .folder-cover .tab-page {
     padding: 0 !important; }
   .narrow .folder-cover .tab-page .portal.detail-info {
@@ -642,8 +641,8 @@ div.productImage {
   .general-product-description .productPreview,
   .sales_SalesDetails .productPreview,
   .store_ShipmentOrderDetails .productPreview {
-    max-width: 120px;
-    max-height: 240px; }
+    max-width: 320px;
+    max-height: 320px; }
   .products-table .groupList .small-padding .productGroupInfo,
   .jobTable .groupList .small-padding .productGroupInfo,
   .general-product-description .groupList .small-padding .productGroupInfo,
@@ -660,6 +659,9 @@ div.productImage {
     margin-bottom: 0;
     position: relative;
     top: -1px; }
+
+.products-table .rowtoolsGroup.modal-toolbar.iw-contextMenu {
+  max-width: 200px; }
 
   .product-component-title td {
     border-top: 1px solid #dddddd;
@@ -710,12 +712,21 @@ div.productImage {
     font-size: 0.9em;
     color: #222222; }
 
+.report-new-version-info {
+  margin-top: 15px;
+  border: 1px solid #cccccc;
+  padding: 5px 5px 5px 10px;
+  background: rgba(255, 255, 190, 0.5);
+  font-size: 0.9em;
+  color: #222222;
+  border-radius: 5px; }
+
   .products-table a.fancybox img,
   .jobTable a.fancybox img,
   .general-product-description a.fancybox img,
   .sales_SalesDetails .productImage a.fancybox img {
-    max-width: 120px;
-    max-height: 60px;
+    max-width: 320px;
+    max-height: 320px;
     width: auto;
     height: auto; }
 
@@ -777,7 +788,7 @@ div.crmImage {
 
 .narrow div.crmImage {
   padding: 10px 8px 8px 0;
-  float: left; }
+  float: none; }
 
 div.crm_Companies div.tab-row .tab.selected,
 div.crm_Companies  div.tab-page {
@@ -954,6 +965,14 @@ div.acc-detail {
   background-color: #e1e1e1;
   padding: 5px; }
 
+  table.listTable > tbody > tr > .folderListTitle,
+  table.listTable > tbody > tr >  .threadListTitle,
+  table.listTable > tbody > tr > .emailListTitle {
+    max-width: 600px; }
+
+.smallerText {
+  font-size: 0.9em; }
+
 /*
  * детайли
  */
@@ -1027,6 +1046,11 @@ div.acc-detail {
       text-align: left;
       float: left;
       margin-left: 6px; }
+    .detail-info .store_Products .listTopContainer {
+      min-width: 500px; }
+    .detail-info .store_Products .listTable {
+      font-size: 0.9em;
+      max-width: 700px !important; }
 
 /*
  * край на детайли
@@ -1042,6 +1066,7 @@ div.acc-detail {
 
 .portal {
   margin-top: 15px;
+  margin-bottom: 30px;
   padding: 10px;
   padding-top: 18px;
   border: solid 1px #cccccc;
@@ -1127,6 +1152,9 @@ td.portal-date {
 
 .detail-info.portal table.listTable {
   font-size: 1em; }
+  .detail-info.portal table.listTable .frontToolip img {
+    height: 14px;
+    margin-top: -2px; }
 
 .shortTable .listTable {
   width: 1%; }
@@ -1190,6 +1218,13 @@ a.tOld {
 /*
  * край на стилове при тредове
  */
+  .typeTable .formTypeTable {
+    text-align: center;
+    font-weight: bold;
+    font-size: 0.9em; }
+  .typeTable td {
+    text-align: center; }
+
 /*
  * стилове за документи
  */
@@ -1219,6 +1254,9 @@ a.tOld {
     line-height: 120%; }
   .document .indent {
     text-indent: 25px; }
+  .document .custom-ul {
+    margin-top: 5px;
+    margin-bottom: 5px; }
   .document h1 {
     margin: 0.5em 0;
     line-height: 1em; }
@@ -1233,8 +1271,6 @@ a.tOld {
       color: black; }
   .document .listTable {
     width: 100%; }
-  .document .custom-ul {
-    margin: 0 0 0 20px; }
   .document .header {
     -moz-border-radius: 3px;
     -webkit-border-radius: 3px;
@@ -1264,9 +1300,14 @@ a.tOld {
     padding: 3px; }
   .document .border-table th {
     background-color: #e0e0e0; }
+  .document .border-field {
+    display: inline-block;
+    width: 120px;
+    border-bottom: 1px solid #aaaaaa; }
   .document .no-border-bottom {
     border-bottom: none !important; }
-  .document .no-border td {
+  .document .no-border td,
+  .document .no-border th {
     border: none !important; }
   .document.print-letter {
     page-break-after: always;
@@ -1289,12 +1330,225 @@ a.tOld {
   .document .business-doc-summary-table > tbody > tr > td {
     padding: 3px !important;
     border: 0px !important; }
+    .document .reportHolder .group-by-field-row td {
+      padding: 5px !important; }
+
+.CVTable {
+  font-family: Arial, Helvetica;
+  width: 100%; }
+  .CVTable .title {
+    text-transform: uppercase;
+    font-size: 1.1em;
+    padding-top: 20px;
+    padding-bottom: 5px; }
+  .CVTable td {
+    padding: 2px 5px; }
+  .CVTable .aright {
+    width: 150px; }
+
+  .cv-document ul {
+    margin: 0; }
+
+.ul-title {
+  margin: 0; }
+
+#quot-table {
+  margin-top: 10px;
+  border-collapse: collapse;
+  margin-bottom: 0px; }
+
+.narrow #quot-table {
+  margin-left: 0; }
+
+.quote_title {
+  margin-top: 12px;
+  margin-bottom: 10px;
+  font-size: 2em;
+  font-weight: bold;
+  color: #636363;
+  font-family: impact; }
+
+.state-rejected .quote-title {
+  color: #999999; }
+
+.title-info {
+  margin: 2px 0 !important; }
+
+.receiver {
+  color: #636363;
+  text-decoration: underline; }
+
+.receiver-block {
+  padding-top: 12px;
+  min-height: 170px;
+  width: 40%;
+  float: left; }
+
+.narrow .receiver-block,
+.narrow .quot-title-td {
+  clear: both;
+  float: none;
+  width: 100%;
+  margin-top: 10px; }
+
+#condition-title {
+  font-weight: bold;
+  text-decoration: underline; }
+
+#conditions {
+  margin: 0px;
+  line-height: 1.5em; }
+
+#details-holder {
+  margin-top: 15px; }
+
+.narrow .products-table {
+  font-size: 0.9em;
+  width: 100%; }
+
+.narrow .products-table ul {
+  clear: both; }
+
+#details-holder p,
+#optional-holder p {
+  margin-bottom: 10px; }
+
+.products-table tr td.total-td-label {
+  vertical-align: bottom !important;
+  text-align: right;
+  font-size: 0.9em; }
+
+.quotation-detail-add-btn {
+  margin: 10px 0 20px; }
+
+.products-table {
+  border: 1px solid #cccccc;
+  border-collapse: collapse;
+  width: 100%; }
+
+.products-table th {
+  border: 1px solid #cccccc;
+  background-color: #e0e0e0 !important;
+  padding: 5px; }
+
+.products-table  td {
+  border: 1px solid #cccccc !important;
+  padding: 5px;
+  vertical-align: top !important; }
+
+.doc_Containers table.listTable td.misc-info {
+  vertical-align: top !important; }
+
+.discount {
+  color: green;
+  margin-top: 5px; }
+
+.offer-rowtools-id .rowtools {
+  display: inline-block;
+  width: auto; }
+
+.offer-rowtools-id span {
+  display: inline-block;
+  vertical-align: top; }
+
+.quiantity-misc {
+  padding-top: 5px;
+  font-size: 0.9em; }
+
+#add-others {
+  position: relative;
+  top: 2px;
+  margin-left: 5px; }
+
+.oldAmount {
+  text-decoration: line-through;
+  font-size: 0.9em;
+  color: #999999; }
+
+.page-break {
+  display: none; }
+
+#quot-title-td {
+  width: 55%;
+  float: left; }
+
+.discount {
+  font-size: 0.9em; }
+
+.richtext table {
+  clear: both; }
+
+.expired-quote {
+  color: darkred;
+  font-weight: bold;
+  font-style: italic;
+  margin-left: 5px; }
+
+.printing .quote-header {
+  border-bottom: 1px solid #cccccc !important; }
+
+.quote-header td.gray-bg {
+  background-color: #e0e0e0 !important; }
+
+.quote-header .cell {
+  border: 1px solid #cccccc !important; }
+
+.quote-header td b {
+  background: rgba(0, 0, 0, 0) !important; }
+
+.business-doc-summary-table td {
+  padding: 1px;
+  border: 0px !important; }
+
+.sign_names {
+  white-space: nowrap; }
+
+.dark-gray {
+  color: #555555; }
+
+#packWrapper > .floatedElement {
+  float: left; }
+  #packWrapper > .floatedElement.preview-holder {
+    margin-top: -20px !important;
+    min-width: 800px; }
+
+#packWrapper form.floatedElement {
+  margin-right: 20px; }
+
+.smallerTextInTable {
+  font-size: 0.7em;
+  min-width: 20em; }
 
 .small-padding td {
   padding: 3px !important; }
 
 .groupList .small-padding td {
   padding: 2px 3px 0 !important; }
+
+.wide .halfTable {
+  width: 45%;
+  float: left;
+  margin-top: 5px; }
+  .wide .halfTable.offsetLeft {
+    margin-left: 50px; }
+  .wide .halfTable .titleCol {
+    width: 120px; }
+
+.readonlyInput {
+  border: none !important;
+  background: none !important;
+  box-shadow: none !important; }
+
+  .productCell .halfTable .titleCol {
+    width: 100px;
+    vertical-align: top; }
+  .productCell .halfTable.offsetLeft {
+    margin-left: 20px; }
+
+.narrow .halfTable {
+  margin-top: 10px; }
+  .narrow .halfTable.offsetLeft {
+    margin-left: 0px; }
 
 .document-settings,
 .document-settings-left {
@@ -1364,10 +1618,10 @@ a.tOld {
     background-position: 0 0 !important; }
     .document-settings .linkWithIcon.liked:hover,
     .document-settings-left .linkWithIcon.liked:hover {
-      background-image: url(../img/16/redheart-broke.png) !important; }
+      background-image: url(../img/16/heart_break.png) !important; }
     .document-settings .linkWithIcon.disliked:not(.disable):hover,
     .document-settings-left .linkWithIcon.disliked:not(.disable):hover {
-      background-image: url(../img/16/redheart.png) !important; }
+      background-image: url(../img/16/heart.png) !important; }
     .document-settings .linkWithIcon.disliked.disable,
     .document-settings-left .linkWithIcon.disliked.disable {
       cursor: default; }
@@ -1436,6 +1690,15 @@ a.tOld {
   padding: 1px 2px 0px 2px !important;
   border-radius: 3px; }
 
+.approved {
+  margin-top: 3px;
+  padding: 10px 10px 5px !important; }
+
+.wide .approved {
+  position: absolute;
+  top: 7px;
+  right: 2px; }
+
 .centered {
   text-align: center; }
 
@@ -1463,6 +1726,10 @@ td.rowtools-column {
 
 .large-field {
   width: 50%; }
+
+.morePadding {
+  padding-left: 6px !important;
+  padding-right: 6px !important; }
 
 .amount-field {
   min-width: 180px; }
@@ -1561,6 +1828,9 @@ pre.document {
   font-size: 0.9em;
   margin-bottom: -2px;
   margin-top: 3px; }
+
+.boldText {
+  font-weight: bold; }
 
 .cell {
   border: 1px solid #999999;
@@ -1680,6 +1950,9 @@ pre.document {
   font-size: 0.9em;
   color: #666666; }
 
+.document table.listTable > tbody > tr > td {
+  padding: 5px 3px 2px !important; }
+
 /*
  * край на стилове за документи
  */
@@ -1710,6 +1983,12 @@ div.attachments {
     line-height: 1.3em;
     display: block;
     margin-bottom: 2px; }
+
+.dangerFile {
+  background-image: url('../img/16/bug.png') !important;
+  color: red !important;
+  background-repeat: no-repeat;
+  padding-left: 18px; }
 
 .wide .em-holder {
   width: 68%; }
@@ -1760,6 +2039,35 @@ div.attachments {
   width: 100% !important;
   height: auto !important;
   padding-top: 57%; }
+
+.narrow .imageProcesing {
+  width: 100%;
+  height: auto; }
+
+  .wide .video-rec .recordImage,
+  .wide .video-rec .recordImage img {
+    width: 260px;
+    height: 210px; }
+
+.narrow .video-rec {
+  display: block;
+  max-width: 450px; }
+  .narrow .video-rec tr,
+  .narrow .video-rec td,
+  .narrow .video-rec tbody {
+    display: block; }
+  .narrow .video-rec img {
+    max-width: 450px;
+    width: 100%;
+    height: auto; }
+  .narrow .video-rec .recordImage {
+    min-height: 250px; }
+
+.recordImage {
+  min-height: 211px;
+  text-align: center;
+  vertical-align: top;
+  background-color: #e8e8e8; }
 
 .narrow .mejs-overlay,
 .narrow  .mejs-poster {
@@ -1838,6 +2146,10 @@ table.mc-header a {
     box-shadow: none;
     background: none; }
 
+  .transparentSelect.no-border-select {
+    border: none !important;
+    box-shadow: none !important; }
+
 @-moz-document url-prefix() {
     .portal-select {
     color: rgba(0, 0, 0, 0);
@@ -1852,8 +2164,11 @@ table.mc-header a {
 /*
  * Стилове за счетоводството
  */
-.legalscript h1 {
-  margin-bottom: 0.5em; }
+  .legalscript h1 {
+    margin-bottom: 0.5em; }
+  .legalscript .header span {
+    background-repeat: no-repeat;
+    padding-left: 23px; }
 
 .wide .level-1 td {
   background-color: #000088;
@@ -2063,7 +2378,8 @@ ul.history {
 
 .narrow ul.history {
   white-space: nowrap;
-  display: inline-block; }
+  display: inline-block;
+  min-width: 0 !important; }
   .narrow ul.history li {
     line-height: 1.2;
     display: inline-block;
@@ -2447,13 +2763,23 @@ span.sharing-history-title {
   .contractorExtHolder .chzn-container-single .chzn-single,
   .contractorExtHolder .chzn-container-active .chzn-single,
   .contractorExtHolder .chzn-container-active .chzn-single-with-drop,
-  .contractorExtHolder .staticFormView .formFieldValue {
-    border: solid 1px #bbbbbb;
+  .contractorExtHolder .staticFormView .formFieldValue,
+  .contractorExtHolder div.richEdit div.richedit-toolbar {
+    border-color: #bbbbbb;
     -moz-border-radius: 2px !important;
     -webkit-border-radius: 2px !important;
     border-radius: 2px !important;
     -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.08);
     box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.08); }
+    .contractorExtHolder select.inputError,
+    .contractorExtHolder input.inputError,
+    .contractorExtHolder textarea.inputError,
+    .contractorExtHolder .chzn-container-single .chzn-single.inputError,
+    .contractorExtHolder .chzn-container-active .chzn-single.inputError,
+    .contractorExtHolder .chzn-container-active .chzn-single-with-drop.inputError,
+    .contractorExtHolder .staticFormView .formFieldValue.inputError,
+    .contractorExtHolder div.richEdit div.richedit-toolbar.inputError {
+      border-color: red; }
   .contractorExtHolder .select2-container--default .select2-selection--single,
   .contractorExtHolder .select2-dropdown,
   .contractorExtHolder .select2-container--default .select2-selection--multiple {
@@ -2563,6 +2889,10 @@ span.sharing-history-title {
 .richtext h3 {
   clear: both; }
 
+.document .richtext .fancybox img {
+  max-width: 100%;
+  height: auto; }
+
   .clear-center img {
     max-width: 100%;
     width: 100% \9;
@@ -2614,6 +2944,9 @@ span.sharing-history-title {
   padding-bottom: 10px;
   left: 0;
   z-index: 100; }
+  .newsbar h2,
+  .newsbar h3 {
+    margin-bottom: 0; }
 
 .newsbar .richtext {
   line-height: 1.1em;
@@ -2820,7 +3153,7 @@ span.sharing-history-title {
 .webdrvTabBody {
   max-width: 900px;
   min-width: 800px;
-  min-height: 600px;
+  min-height: 612px;
   top: 10px;
   position: relative; }
 
@@ -2832,13 +3165,13 @@ span.sharing-history-title {
 .webdrvIframe {
   width: 100%;
   border: solid 0 rgba(0, 0, 0, 0);
-  min-height: 625px; }
+  min-height: 612px; }
 
 .narrow .webdrvIframe {
   min-height: 300px; }
 
 .wide .webdrvFieldset {
-  min-height: 620px;
+  min-height: 615px;
   border: 1px solid #cccccc;
   padding: 15px 10px 10px;
   -moz-border-radius: 5px;
@@ -2903,12 +3236,14 @@ span.sharing-history-title {
   margin-bottom: 15px; }
 
 .webdrv-preview {
-  display: block;
-  max-width: 100%;
-  height: auto;
   margin-top: 5px; }
   .webdrv-preview:first-child {
     margin-top: 0; }
+
+.wide .webdrv-preview {
+  display: block;
+  max-width: 100%;
+  height: auto; }
 
 /*
  * стилове за fileman
@@ -2974,6 +3309,10 @@ span.sharing-history-title {
   _overflow: visible !important;
   width: auto !important; }
 
+    .narrow-scroll .single-thread .store_InventoryNoteDetails .listRowsDetail {
+      overflow: auto !important;
+      _overflow: auto !important; }
+
 .narrow-scroll .listRows::-webkit-scrollbar {
   -webkit-appearance: none;
   width: 10px;
@@ -3012,14 +3351,14 @@ span.sharing-history-title {
   .overflow-scroll > .antetka {
     margin-top: 0; }
 
-.planning_drivers_ProductionTaskDetails .listRowsDetail {
+.planning_ProductionTaskDetails .listRowsDetail {
   width: 100% !important;
   overflow-x: auto !important;
   overflow-y: hidden !important;
   _overflow: auto !important;
   margin-bottom: 0;
   display: block; }
-  .planning_drivers_ProductionTaskDetails .listRowsDetail td {
+  .planning_ProductionTaskDetails .listRowsDetail td {
     max-width: none !important; }
 
 .document .scrolling-holder {
@@ -3122,15 +3461,19 @@ span.sharing-history-title {
   .rowtoolsGroup.modal-toolbar.iw-contextMenu {
     padding: 5px 6px 4px 5px;
     max-width: 160px; }
-  .rowtoolsGroup a {
+  .rowtoolsGroup a,
+  .rowtoolsGroup span {
     text-align: left;
     display: block;
     font-size: 0.95em;
     padding: 3px 0;
+    padding-left: 22px !important;
     color: #333333 !important; }
-    .rowtoolsGroup a:hover {
+    .rowtoolsGroup a:hover,
+    .rowtoolsGroup span:hover {
       color: black !important;
-      background-color: #e1e1e1; }
+      background-color: #e1e1e1;
+      cursor: pointer; }
 
 table.styled-table tr:hover td {
   background-color: #ffffcc !important; }
@@ -3610,13 +3953,6 @@ div.location.public {
 /*
  * край на стилове за ротация на елементи
  */
-/*
- * бъгфиксове
- */
-.store_Racks table.listTable > tbody > tr > td,
-.hr_ContractTypes table.listTable > tbody > tr > td {
-  max-width: 700px; }
-
 .fileman_Indexes table.listTable > tbody > tr > td,
 .fileman_Data table.listTable > tbody > tr > td,
 .doclog_Documents table.listTable > tbody > tr > td,
@@ -3646,6 +3982,12 @@ div.location.public {
   width: 100%;
   text-align: left; }
 
+.noTopBorder .listTable {
+  font-size: 0.9em;
+  border-top: none; }
+  .noTopBorder .listTable th {
+    border-top: none; }
+
 .custom-bg-block {
   background-color: #e0e0e0;
   padding: 0.2em;
@@ -3667,7 +4009,8 @@ div.location.public {
   -webkit-border-radius: 5px !important;
   -ms-border-radius: 5px !important;
   border-radius: 5px !important;
-  padding: 10px !important; }
+  padding: 10px !important;
+  word-wrap: break-word; }
 
 #rss-feeds {
   padding: 30px; }
@@ -3803,6 +4146,15 @@ div.location.public {
   .eshop-product-list:hover {
     border: solid 1px #bbbbbb; }
 
+/*
+ * rack
+ */
+td.rack-hl {
+  background-color: red; }
+
+td.rack-same {
+  background-color: yellow; }
+
 .app-name {
   display: block;
   color: #42477f;
@@ -3882,6 +4234,13 @@ only screen and (max-width: 1024px) {
 
   .wide .app-name {
     font-size: 6.4em; } }
+
+/*
+ * ipad
+ */
+@media  (min-device-width : 768px)  and (max-device-width : 1024px) {
+  .wide .document {
+    max-width: 50em; } }
 
 /*
  * Mobile
@@ -4369,6 +4728,18 @@ only screen and (max-width: 320px) {
     margin-bottom: 10px;
     font-size: 1.1em;
     text-transform: uppercase; }
+  .external .hideLink {
+    display: block;
+    margin-left: 10px;
+    font-size: 0.9em;
+    margin-bottom: 10px;
+    margin-top: -6px; }
+    .external .hideLink.inlineLinks {
+      margin-left: 0;
+      display: inline-block; }
+
+.narrow .external div.hideLink {
+  margin-top: 10px; }
 
 .wide .external .vertical .formTable {
   box-shadow: none !important; }
@@ -4386,7 +4757,17 @@ only screen and (max-width: 320px) {
  * стилове за принтиране
  */
 @media print {
+  .wide .singleView {
+    display: block; }
+
+  .noMediaPrint {
+    display: none; }
+
+  .smaller-text {
+    font-size: 0.95em; }
+
   .document {
+    min-width: 837px !important;
     width: 100%;
     max-width: 1200px;
     padding: 0px !important; }
@@ -4527,7 +4908,8 @@ only screen and (max-width: 320px) {
     display: none; }
 
   body {
-    background: white !important; }
+    background: white !important;
+    margin: 0px !important; }
 
   .external .document {
     margin: 0;
@@ -4577,7 +4959,27 @@ only screen and (max-width: 320px) {
     display: block; }
 
   thead {
-    display: table-row-group; } }
+    display: table-row-group; }
+
+  .external .hideLink {
+    display: none !important; }
+
+  #quot-table {
+    margin-top: 0px; }
+
+  #quot-table,
+  #condition-title,
+  #conditions,
+  #quote-username,
+  #details-holder,
+  #optional-holder {
+    margin-left: 0px; }
+
+  .products-table {
+    width: 100%; }
+
+  #quot-title-td {
+    width: 60%; } }
 
   .printing .specialLink {
     font-weight: bold; }
@@ -4665,6 +5067,8 @@ only screen and (max-width: 320px) {
     cursor: default;
     background-color: #e4e4e4;
     color: #ee7700 !important; }
+  .printing .sharing-history {
+    display: none; }
 
 .narrow .printing .document {
   width: 850px; }
@@ -4762,6 +5166,13 @@ only screen and (max-width: 320px) {
 
 .document .display-table .details .listToolbar {
   border-bottom: none; }
+
+.attentionIcon {
+  background-image: url('../img/16/emotion_alert.png');
+  background-repeat: no-repeat;
+  background-position: left center;
+  padding-left: 20px;
+  font-size: 0.9em; }
 
 .feather-icon {
   background-image: url('../img/16/feather.png');

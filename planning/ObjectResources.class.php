@@ -71,7 +71,16 @@ class planning_ObjectResources extends core_Manager
     public $singleTitle = 'Заместващ артикул';
     
     
+    /**
+     * Работен кеш
+     */
     protected static $cache = array();
+    
+    
+    /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
     
     
     /**
@@ -196,6 +205,7 @@ class planning_ObjectResources extends core_Manager
     	
     	$data->TabCaption = 'Влагане';
     	$data->Tab = 'top';
+    	$data->listFields = arr::make($this->listFields);
     	
     	if(!Mode::is('printing') && !Mode::is('inlineDocument')) {
     		if(self::haveRightFor('add', (object)array('objectId' => $data->masterId))){
@@ -227,11 +237,9 @@ class planning_ObjectResources extends core_Manager
     	}
     	
     	$table = cls::get('core_TableView', array('mvc' => $this));
-    	if(!count($data->rows)){
-    		unset($fields['tools']);
-    	}
+    	$this->invoke('BeforeRenderListTable', array($tpl, &$data));
     	
-    	$tpl->append($table->get($data->rows, $this->listFields), 'content');
+    	$tpl->append($table->get($data->rows, $data->listFields), 'content');
     	
     	if(isset($data->addUrl)){
     		$addLink = ht::createBtn('Добави', $data->addUrl, FALSE, FALSE, 'ef_icon=img/16/star_2.png,title=Добавяне на информация за влагане');
@@ -288,15 +296,6 @@ class planning_ObjectResources extends core_Manager
     
     
     /**
-     * След подготовка на лист тулбара
-     */
-    public static function on_AfterPrepareListToolbar($mvc, $data)
-    {
-    	$data->toolbar->removeBtn('btnAdd');
-    }
-    
-    
-    /**
      * Връща себестойността на материала
      *
      * @param int $objectId - ид на артикула - материал
@@ -304,6 +303,8 @@ class planning_ObjectResources extends core_Manager
      */
     public static function getSelfValue($objectId, $quantity = 1, $date = NULL)
     {
+    	if(empty($objectId)) return NULL;
+    	
     	// Проверяваме имали зададена търговска себестойност
     	$selfValue = cat_Products::getSelfValue($objectId, NULL, $quantity, $date);
     	

@@ -446,6 +446,64 @@ class crm_Groups extends core_Master
     
     
     /**
+     * Форсира група от визитника
+     * @TODO в cat_Groups има същата функция да се изнесе някъде най-добре
+     *
+     * @param   string  $name       Име на групата. Съдържа целия път
+     * @param   int     $parentId   Id на родител
+     * @param   boolean $force
+     *
+     * @return  int|NULL            id на групата
+     */
+    public static function force($name, $parentId = NULL, $force = TRUE)
+    {
+    	static $groups = array();
+    	$parentIdNumb = (int) $parentId;
+    
+    	if(!($res = $groups[$parentIdNumb][$name])) {
+    
+    		if(strpos($name, '»')) {
+    			$gArr = explode('»', $name);
+    			foreach($gArr as $gName) {
+    				$gName = trim($gName);
+    				$parentId = self::force($gName, $parentId, $force);
+    			}
+    
+    			$res = $parentId;
+    		} else {
+    
+    			if($parentId === NULL) {
+    				$cond = "AND #parentId IS NULL";
+    			} else {
+    				expect(is_numeric($parentId), $parentId);
+    
+    				$cond = "AND #parentId = {$parentId}";
+    			}
+    
+    			$gRec = self::fetch(array("LOWER(#name) = LOWER('[#1#]'){$cond}", $name));
+    
+    			if(isset($gRec->name)) {
+    				$res = $gRec->id;
+    			} else {
+    				if ($force) {
+    					$gRec = (object) array('name' => $name, 'companiesCnt' => 0, 'personsCnt' => 0, 'parentId' => $parentId);
+  						self::save($gRec);
+    
+    					$res = $gRec->id;
+    				} else {
+    					$res = NULL;
+    				}
+    			}
+    		}
+    
+    		$groups[$parentIdNumb][$name] = $res;
+    	}
+    
+    	return $res;
+    }
+    
+    
+    /**
      * Връща id' тата на всички записи в групите
      *
      * @return array $idArr - Масив с id' тата на групите
@@ -550,7 +608,7 @@ class crm_Groups extends core_Master
      * 
      * @return array
      */
-    protected function getGroupsChoise($id, $escaped = TRUE, $useTitle = TRUE)
+    protected function getGroupsChoice($id, $escaped = TRUE, $useTitle = TRUE)
     {
         $resArr = array();
         
@@ -666,7 +724,7 @@ class crm_Groups extends core_Master
      */
     public function getPersonalizationTitle($id, $verbal = TRUE)
     {
-        $groupChoiseArr = array();
+        $groupChoiceArr = array();
         $fullId = $id;
         if (is_object($id)) {
             $rec = $id;
@@ -674,7 +732,7 @@ class crm_Groups extends core_Master
             list($id) = explode('_', $id);
             $rec = $this->fetch($id);
             
-            $groupChoiseArr = $this->getGroupsChoise($id, $verbal, FALSE);
+            $groupChoiceArr = $this->getGroupsChoice($id, $verbal, FALSE);
         }
         
         // Ако трябва да е вебална стойност
@@ -684,8 +742,8 @@ class crm_Groups extends core_Master
             $title = $rec->name;
         }
         
-        if ($groupChoiseArr[$fullId]) {
-            $title .= ': ' . $groupChoiseArr[$fullId];
+        if ($groupChoiceArr[$fullId]) {
+            $title .= ': ' . $groupChoiceArr[$fullId];
         }
         
         return $title;
@@ -746,14 +804,14 @@ class crm_Groups extends core_Master
         while ($rec = $query->fetch()) {
             
             // Вземаме всички възможни избори за съответния запис
-            $allGroupChoise = $this->getGroupsChoise($rec->id, FALSE, TRUE);
+            $allGroupChoice = $this->getGroupsChoice($rec->id, FALSE, TRUE);
             
             $continue = TRUE;
             
-            if (!$allGroupChoise) continue;
+            if (!$allGroupChoice) continue;
             
             // Ако има права за използване на поне един от изборите
-            foreach ($allGroupChoise as $key => $dummy) {
+            foreach ($allGroupChoice as $key => $dummy) {
                 if ($this->canUsePersonalization($key, $userId)) {
                     $continue = FALSE;
                     continue;
@@ -762,7 +820,7 @@ class crm_Groups extends core_Master
             
             if ($continue) continue;
             
-            $resArr += $allGroupChoise;
+            $resArr += $allGroupChoice;
         }
         
         return $resArr;
@@ -781,7 +839,7 @@ class crm_Groups extends core_Master
      */
     public function getPersonalizationOptionsForId($id)
     {
-        $resArr = $this->getGroupsChoise($id, FALSE, FALSE);
+        $resArr = $this->getGroupsChoice($id, FALSE, FALSE);
         
         return $resArr;
     }
@@ -867,17 +925,17 @@ class crm_Groups extends core_Master
         $blastClass = cls::get($class);
         $blastClass->requireRightFor('add');
         
-        $groupChoiseArr = $this->getGroupsChoise($id, FALSE);
-        expect($groupChoiseArr);
+        $groupChoiceArr = $this->getGroupsChoice($id, FALSE);
+        expect($groupChoiceArr);
         
         Request::setProtected(array('perSrcObjectId', 'perSrcClassId'));
         
         $redirectTo = array('blast_Emails', 'add', 'perSrcClassId' => core_Classes::getId($this), 'ret_url' => TRUE);
         
         // Ако има само един възможен избор, редиректваме към създаването
-        if (count($groupChoiseArr) == 1) {
+        if (count($groupChoiceArr) == 1) {
             
-            $redirectTo['perSrcObjectId'] = key($groupChoiseArr);
+            $redirectTo['perSrcObjectId'] = key($groupChoiceArr);
             
             return new Redirect($redirectTo);
         }
@@ -887,7 +945,7 @@ class crm_Groups extends core_Master
     	
     	$form->FLD('type', 'enum()', 'caption=Тип,mandatory,silent');
         
-    	$form->setOptions('type', $groupChoiseArr);
+    	$form->setOptions('type', $groupChoiceArr);
     	
         $form->toolbar->addSbBtn('Избор', 'save', 'ef_icon = img/16/disk.png, title = Избор');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');

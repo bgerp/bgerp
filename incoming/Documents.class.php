@@ -31,7 +31,7 @@ class incoming_Documents extends core_Master
             'doc_DocumentIntf', 
         
             // Интерфейс за създаване на входящ документ
-            'incoming_CreateDocumentIntf',
+            'fileman_FileActionsIntf',
         );
     
     
@@ -147,7 +147,7 @@ class incoming_Documents extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'typeId, fileHnd, number, date, total, description';
+    var $searchFields = 'typeId, number, date, total, description';
     
     
     /**
@@ -160,6 +160,12 @@ class incoming_Documents extends core_Master
      * Полетата, които могат да се променят с change_Plugin
      */
     var $changableFields = 'fileHnd,typeId,number,date,total,description';
+    
+    
+    /**
+     * Кой може да променя записа?
+     */
+    public $canChangerec = 'powerUser';
 
     
     /**
@@ -173,9 +179,11 @@ class incoming_Documents extends core_Master
         $this->FLD('number', 'varchar(32)', 'caption=Номер, smartCenter');
         $this->FLD('date', 'date', 'caption=Дата');
         $this->FLD('total', 'double(decimals=2)', 'caption=Сума');
-        $this->FLD('description', 'richtext(bucket=Notes)', 'caption=Описание,oldFiledName=keywords');
+        $this->FLD('description', 'text', 'caption=Описание,oldFiledName=keywords');
         $this->FLD("dataId", "key(mvc=fileman_Data)", 'caption=Данни, input=none');
-        
+        $this->FLD('archTomNumber', 'int', 'column=none,caption=Архивиране->Том №,autohide');
+        $this->FLD('archTomYear', 'enum(,2016,2017,2018,2019)', 'column=none,caption=Архивиране->Година,autohide');
+
         $this->setDbUnique('dataId');
     }
     
@@ -238,16 +246,6 @@ class incoming_Documents extends core_Master
         // Манупулатора на файла
         $fileHnd = $mvc->db->escape(Request::get('fh'));
         
-        // Вземаме текстовата част
-        // TODO може и да се направи форматиране - Интервалите да се заменят с един
-        // може и повтарящите думи да се премахнат
-        $content = trim(fileman_Indexes::getInfoContentByFh($fileHnd, 'text'));
-        
-        // Вземаме текста извлечен от OCR
-        $contentOcr = trim(fileman_Indexes::getInfoContentByFh($fileHnd, 'textOcr'));
-        
-        // Ключовите думи ги вземаме от OCR текста, ако няма тогава от обикновенния
-        $keyWords = ($contentOcr) ? $contentOcr : $content;
         
         // Ако създаваме документа от файл
         if (($fileHnd) && (!$data->form->rec->id)) {
@@ -256,17 +254,15 @@ class incoming_Documents extends core_Master
             $fileHnd = $mvc->db->escape($fileHnd);
             
             // Масив с баркодовете
-            $barcodesArr = fileman_Indexes::getInfoContentByFh($fileHnd, 'barcodes');
+            $text = fileman_Indexes::getTextForIndex( $fileHnd);
             
              
             // Попълваме описанието за файла
-            $data->form->setDefault('description', $keyWords);
+            $data->form->setDefault('description', $text);
             
             // Файла да е избран по подразбиране
             $data->form->setDefault('fileHnd', $fileHnd);
             
-            // Файла да е само за четене
-            //            $data->form->setReadOnly('fileHnd'); // TODO след като се промени core_FieldSet
         }
     }
     
@@ -320,28 +316,13 @@ class incoming_Documents extends core_Master
     
     
     /**
-     * Връща ключовите думи на документа
-     * @todo Да се реализира
-     *
-     * @return;
-     */
-    static function getKeywords($fileHnd)
-    {
-        
-        return "test {$fileHnd}";
-    }
-    
-    
- 
-    
-    /**
      * Връща прикачения файл в документа
      *
      * @param mixed $rec - id' то на записа или самия запис, в който ще се търси
      *
      * @return arrray - Масив името на файла и манипулатора му (ключ на масива)
      */
-    function getAttachments($rec)
+    public static function getAttachments($rec)
     {
         // Ако не е обект, тогава вземаме записите за съответния документ
         if (!is_object($rec)) {
@@ -393,97 +374,7 @@ class incoming_Documents extends core_Master
        
         return $row;
     }
-    
-    
-    /**
-     * Изпълнява се след създаването на модела
-     */
-    static function on_AfterSetupMVC($mvc, &$res)
-    {
-        // Инсталиране на кофата
-        $Bucket = cls::get('fileman_Buckets');
-        $res .= $Bucket->createBucket('Documents', 'Файлове във входящите документи', NULL, '300 MB', 'user', 'user');
-    }
-    
-    
-    /**
-     * Връща файла, който се използва в документа
-     *
-     * @param object $rec - Запис
-     */
-    function getLinkedFiles($rec)
-    {
-        // Ако не е обект
-        if (!is_object($rec)) {
-            
-            // Извличаваме записа
-            $rec = $this->fetch($rec);
-        }
-        
-        // Вземаме записите за файла
-        $fRec = fileman_Files::fetchByFh($rec->fileHnd);
-        
-        // Добавяме в масива манипулатора и името на файла
-        $fhArr[$rec->fileHnd] = fileman_Files::getVerbal($fRec, 'name');
-        
-        return $fhArr;
-    }
-    
-    
-    /**
-     * Показва меню от възможности за създаване на входящи документие
-     */
-    function act_ShowDocMenu()
-    {
-        // Манипулатора на файла
-        $fh = Request::get('fh');
-        
-        // Очаква да има такъв манипулатор
-        expect($fh);
-        
-        // Очакваме да има такъв файл
-        expect($fRec = fileman_Files::fetchByFh($fh));
-        
-        // Изискваме да има права за single на файла
-        fileman_Files::requireRightFor('single', $fRec);
-        
-        // Шаблон
-        $tpl = new ET();
-        
-        // Създаваме заглавие
-        $tpl->append("\n<h3>" . tr('Създаване на входящ документ') . ":</h3>");
-        
-        // Създаваме таблица в шаблона
-        $tpl->append("\n<table>");
-        
-        // Вземаме всички класове, които имплементират интерфейса
-        $classesArr = core_Classes::getOptionsByInterface('incoming_CreateDocumentIntf');
- 
-        // Обхождаме всички класове, които имплементират интерфейса
-        foreach ($classesArr as $className) {
-            
-            // Вземаме масива с документите, които може да създаде
-            $arrCreate = $className::canCreate($fRec);
-            if(is_array($arrCreate)) {
-                // Обхождаме масива
-                foreach ($arrCreate as $arr) {
-                    
-                    // Ако има полета, създаваме бутона
-                    if (count($arr)) {
-                        $tpl->append("\n<tr><td>");
-                        $tpl->append(ht::createBtn($arr['title'], array($arr['class'], $arr['action'], 'fh' => $fh, 'ret_url' => TRUE), NULL, NULL, "ef_icon=" .  $arr['icon'] . ",style=width:100%;text-align:left;"));
-                        $tpl->append("</td></tr>");
-                    }
-                }
-            }
-        }
-        
-        // Добавяме края на таблицата
-        $tpl->append("\n</table>");
-        
-        return $this->renderWrapping($tpl);
-    }
-    
+
     
     /**
      * В кои корици може да се вкарва документа
@@ -492,7 +383,7 @@ class incoming_Documents extends core_Master
      */
     public static function getCoversAndInterfacesForNewDoc()
     {
-        return array('doc_ContragentDataIntf');
+        return array('doc_ContragentDataIntf', 'doc_UnsortedFolders');
     }
     
     
@@ -507,7 +398,7 @@ class incoming_Documents extends core_Master
     {
         $coverClass = doc_Folders::fetchCoverClassName($folderId);
         
-        return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
+        return cls::haveInterface('doc_ContragentDataIntf', $coverClass) || ($coverClass == 'doc_UnsortedFolders');
     }
 
 
@@ -518,7 +409,7 @@ class incoming_Documents extends core_Master
     {
         static $typeToLen = array();
         if(!count($typeToLen)) {
-            $typeToLen = arr::make("pdf=10,doc=10,docx=10,odt=10,xls=10,zip=10,rar=10,txt=1,rtf=2,tiff=20,tff=20,jpg=20,jpeg=20,png=20,bmp=50", TRUE);
+            $typeToLen = arr::make("pdf=10,doc=10,docx=10,odt=10,xls=10,zip=10,rar=10,txt=1,rtf=2,tiff=20,tff=20,jpg=20,jpeg=20,png=20,bmp=50,csv=1", TRUE);
         }
 
         $ext = fileman_Files::getExt($fileName);
@@ -531,30 +422,71 @@ class incoming_Documents extends core_Master
 
 
     /**
-     * Метод на интерфейса incoming_CreateDocumentIntf
-     *
-     * Връща масив, от който се създава бутона за създаване на входящ документ
+     * Интерфейсен метод на fileman_FileActionsIntf
      * 
-     * @param fileman_Files $rec - Обект са данни от модела
+     * Връща масив с действия, които могат да се извършат с дадения файл
+     * 
+     * @param stdObject $fRec - Обект са данни от модела
      * 
      * @return array $arr - Масив с данните
-     * $arr['class'] - Името на класа
-     * $arr['action'] - Екшъна
+     * $arr['url'] - array URL на действието
      * $arr['title'] - Заглавието на бутона
      * $arr['icon'] - Иконата
      */
-    public static function canCreate($fRec)
+    static function getActionsForFile($fRec)
     {
         if(self::canKeepDoc($fRec->name, $fRec->fileLen)) {
+
+            $dfRec = doc_files::fetch("#fileHnd = '{$fRec->fileHnd}'");
+
             // Създаваме масива за съзване на визитка
             $arr = array();
             $inst = cls::get('incoming_Documents');
-            $arr['incoming']['class'] = $inst->className;
-            $arr['incoming']['action'] = 'add';
+            $arr['incoming']['url'] = array($inst->className, 'add', 'fh' => $fRec->fileHnd, 'ret_url' => TRUE);
+            if($dfRec) {
+                $arr['incoming']['url']['defaultFolderId'] = $dfRec->folderId;
+            }
             $arr['incoming']['title'] = 'Входящ документ';
             $arr['incoming']['icon'] = $inst->singleIcon;
         }
 
         return $arr;
+    }
+    
+    
+    /**
+     * Връща файла, който се използва в документа
+     * 
+     * @param object $rec
+     * 
+     * @return array
+     */
+    function getLinkedFiles($rec)
+    {
+        $res = array();
+        
+        $rec = $this->fetchRec($rec);
+        
+        if (!$rec || !$rec->fileHnd) return $res;
+        
+        $fRec = fileman_Files::fetchByFh($rec->fileHnd);
+        
+        if (!$fRec) return $res;
+        
+        $res[$rec->fileHnd] = fileman_Files::getVerbal($fRec, 'name');
+        
+        return $res;
+    }
+    
+    
+    /**
+     * 
+     * @param incoming_Documents $mvc
+     * @param NULL|string $res
+     */
+    static function on_AfterSetupMVC($mvc, &$res)
+    {
+        // Инсталиране на кофата
+        $res .= fileman_Buckets::createBucket('Documents', 'Файлове във входящите документи', NULL, '300 MB', 'user', 'user');
     }
 }

@@ -487,14 +487,10 @@ class email_Mime extends core_BaseClass
      */
     function addFileToFileman($data, $name)
     {
-        $Fm = cls::get('fileman_Files');
+        $fh = fileman::absorbStr($data, 'Email', $name);
         
-        //Вкарваме файла във Fileman
-        $fh = $Fm->addNewFileFromString($data, 'Email', $name);
+        $id = fileman::fetchByFh($fh, 'id');
         
-        // Вземаме id-то на файла
-        $id = $Fm->fetchField("#fileHnd = '{$fh}'", 'id');
-            
         return $id;
     }
     
@@ -938,17 +934,21 @@ class email_Mime extends core_BaseClass
             // евентуално записваме прикачения файл
         } else {
             
+            $data2 = FALSE; 
             // Декодиране
             switch($p->encoding) {
                 case 'BASE64' :
-                    $data = imap_base64($data);
+                    $data2 = imap_base64($data);
                     break;
                 case 'QUOTED-PRINTABLE' :
-                    $data = imap_qprint($data);
+                    $data2 = imap_qprint($data);
                     break;
                 case '8BIT' :
                 case '7BIT' :
                 default :
+            }
+            if ($data2 !== FALSE) {
+                $data = $data2;
             }
             
             // Ако часта e текстова и не е атачмънт, то по подразбиране, този текст е PLAIN
@@ -1223,24 +1223,40 @@ class email_Mime extends core_BaseClass
 
     /**
      * Връща вербално представяне на хедърите на съобщението
+     * 
+     * @param boolean $decode
+     * @param boolean $escape
      *
      * @return string
      */
-    public function getHeadersVerbal()
+    public function getHeadersVerbal($decode = TRUE, $escape = TRUE)
     {
         $headers = $this->getHeadersStr();
         $headers = $this->parseHeaders($headers);
         $res = '';
         if(is_array($headers)) {
+            $me = cls::get(get_called_class());
             foreach($headers as $h => $c) {
+                
+                if ($h == 'subject') {
+                    $s = TRUE;
+                }
+                
                 $a = implode('; ', $c);
                 $h = str_replace(' ', '-', ucwords(str_replace('-', ' ', $h)));
-                $a = type_Varchar::escape($a);
+                
+                if ($decode) {
+                    $a = $me->decodeHeader($a);
+                }
+                
+                if ($escape) {
+                    $a = type_Varchar::escape($a);
+                }
+                
                 $res .= "<div><b>{$h}</b>: {$a}</div>";
             }
         }
- 
-
+        
         return $res;
     }
 }

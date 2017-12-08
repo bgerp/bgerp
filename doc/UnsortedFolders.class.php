@@ -16,16 +16,11 @@
 class doc_UnsortedFolders extends core_Master
 {
     
-    /**
-     * Интерфейси, поддържани от този мениджър
-     */
-    public $interfaces = 'price_PriceListFolderCoverIntf, trans_LinesFolderCoverIntf, frame_FolderCoverIntf, accda_DaFolderCoverIntf';
-    
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_RowTools2,plg_Search, plg_Modified';
+    public $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_RowTools2,plg_Search, plg_Modified, plg_Sorting';
     
     
     /**
@@ -75,11 +70,17 @@ class doc_UnsortedFolders extends core_Master
      */
     public $rowToolsSingleField = 'name';
     
-    
+
+    /**
+     * Кое поле да се използва за линк към нишките на папката
+     */
+    public $listFieldForFolderLink = 'folder';
+
+
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name,description,inCharge,access,shared,createdOn,createdBy';
+    public $listFields = 'name,folder=Папка,inCharge=Отговорник,createdOn,createdBy';
     
     
     /**
@@ -146,6 +147,12 @@ class doc_UnsortedFolders extends core_Master
      * Кой има право да променя системните данни?  
      */  
     public $canEditsysdata = 'admin';
+    
+    
+    /**  
+     * Кой има право да оттегля системните данни?  
+     */  
+    public $canRejectsysdata = 'admin';
   
     
     /**
@@ -210,9 +217,11 @@ class doc_UnsortedFolders extends core_Master
     public function description()
     {
         $this->FLD('name' , 'varchar(255)', 'caption=Наименование,mandatory');
-        $this->FLD('description' , 'richtext(rows=3, passage=Общи)', 'caption=Описание');
+        $this->FLD('description' , 'richtext(rows=3, passage=Общи,bucket=Notes)', 'caption=Описание');
         $this->FLD('closeTime' , 'time', 'caption=Автоматично затваряне на нишките след->Време, allowEmpty');
         $this->FLD('showDocumentsAsButtons' , 'keylist(mvc=core_Classes,select=title)', 'caption=Документи|*&#44; |които да се показват като бързи бутони в папката->Документи');
+        $this->FLD('receiveEmail', 'enum(yes=Да, no=Не)', 'caption=Получаване на имейли->Избор');
+        
         $this->setDbUnique('name');
     }
     
@@ -257,6 +266,24 @@ class doc_UnsortedFolders extends core_Master
     	
     	$data->query->orderBy('#createdOn=DESC');
     }
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function recToVerbal_($rec, &$fields = array())
+    {
+        $row = parent::recToVerbal_($rec, $fields);
+
+        $row->folder = 'Папка';
+
+        return $row;
+    }
+    
     
     /**
      * След подготовка на тулбара на единичен изглед.
@@ -329,7 +356,7 @@ class doc_UnsortedFolders extends core_Master
     
 
     /**
-     * Метод за Cron за зареждане на валутите
+     * Метод за Cron затваряне на нишки в проекти
      */
     static function cron_SelfClosed()
     {   
@@ -436,7 +463,8 @@ class doc_UnsortedFolders extends core_Master
     public static function prepareFilter ()
     {
     	$form = cls::get('core_Form');
-    	$form->FNC('order', 'enum(start=По начало,
+    	
+        $form->FNC('order', 'enum(start=По начало,
 					        	  end=По край,
 					        	  alphabetic=Азбучно)', 'caption=Подредба,width=100%,input,silent,autoFilter');
     	
@@ -461,7 +489,7 @@ class doc_UnsortedFolders extends core_Master
      * @param StdClass $folderData
      * @return StdClass
      */
-    public static function prepareGantt ($folderData)
+    public static function prepareGantt($folderData)
     {  
          
     	$idTaskDoc = core_Classes::getId("cal_Tasks");
@@ -623,8 +651,7 @@ class doc_UnsortedFolders extends core_Master
 	        				$icon = cal_Tasks::getIcon($task['taskId']);
 	        				$recTitle = cal_Tasks::fetchField($task['taskId'],'title');
 	        				$attr = array();
-	        				$attr['class'] .= 'linkWithIcon';
-	        				$attr['style'] = 'background-image:url(' . sbf($icon) . ');';
+	        				$attr['ef_icon'] = $icon;
 	        				$attr['title'] = $recTitle;
 	        				 
 	        				$title = ht::createLink(str::limitLen($recTitle, 25),
@@ -655,8 +682,7 @@ class doc_UnsortedFolders extends core_Master
 	        				$icon = cal_Tasks::getIcon($task['taskId']);
 	        				$recTitle = cal_Tasks::fetchField($task['taskId'],'title');
 	        				$attr = array();
-	        				$attr['class'] .= 'linkWithIcon';
-	        				$attr['style'] = 'background-image:url(' . sbf($icon) . ');';
+	        				$attr['ef_icon'] = $icon;
 	        				$attr['title'] = $recTitle;
 	        				
 	        				$title = ht::createLink(str::limitLen($recTitle, 25),
@@ -745,5 +771,87 @@ class doc_UnsortedFolders extends core_Master
     	}
     	
     	return $res;
+    }
+	
+	
+    /**
+     * Подготовка на опции за key2
+     */
+    public static function getSelectArr($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
+    {
+        $query = self::getQuery();
+	    $query->orderBy("modifiedOn", "DESC");
+	    
+		
+        $viewAccess = TRUE;
+	    if ($params['restrictViewAccess'] == 'yes') {
+	        $viewAccess = FALSE;
+	    }
+		
+        $me = cls::get(get_called_class());
+	    $me->restrictAccess($query, NULL, $viewAccess);
+	    
+        if(!$includeHiddens) {
+            $query->where("#state != 'rejected' AND #state != 'closed'");
+        }
+		
+        if($params['where']) {
+            $query->where($params['where']);
+        }
+	    
+        if(is_array($onlyIds)) {
+            if(!count($onlyIds)) {
+                return array();
+            }
+			
+            $ids = implode(',', $onlyIds);
+            expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
+			
+            $query->where("#id IN ($ids)");
+        } elseif(ctype_digit("{$onlyIds}")) {
+            $query->where("#id = $onlyIds");
+        }
+		
+        if($threadId = $params['moveThread']) {
+            $tRec = doc_Threads::fetch($threadId);
+            expect($doc = doc_Containers::getDocument($tRec->firstContainerId));
+            $doc->getInstance()->restrictQueryOnlyFolderForDocuments($query);
+        }
+        
+        $titleFld = $params['titleFld'];
+        $query->XPR('searchFieldXpr', 'text', "LOWER(CONCAT(' ', #{$titleFld}))");
+        
+        if($q) {
+            if($q{0} == '"') $strict = TRUE;
+			
+            $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
+            
+            $q = mb_strtolower($q);
+            
+            if($strict) {
+                $qArr = array(str_replace(' ', '.*', $q));
+            } else {
+                $qArr = explode(' ', $q);
+            }
+            
+            $pBegin = type_Key2::getRegexPatterForSQLBegin();
+            foreach($qArr as $w) {
+                $query->where(array("#searchFieldXpr REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
+            }
+        }
+ 		
+        if($limit) {
+            $query->limit($limit);
+        }
+		
+        $query->show($titleFld);
+        
+        $res = array();
+        
+        while($rec = $query->fetch()) {
+            $res[$rec->id] = trim($rec->{$titleFld});
+        }
+ 		
+        return $res;
     }
 }

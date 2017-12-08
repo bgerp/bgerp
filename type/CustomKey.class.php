@@ -94,7 +94,16 @@ class type_CustomKey extends type_Key
         $foreignModel = cls::get($this->params['mvc']);
         $keyField     = $this->getKeyField();
         
-        return $foreignModel->fetch(array("#{$keyField} = '[#1#]'", $keyValue));
+        $res = $foreignModel->fetch(array("#{$keyField} = '[#1#]'", $keyValue));
+        
+        // Ако няма стойност и стойноста е числова и полето на външния ключ не е инт, то се приема че в поелто
+        // е записано ид-то на записа. Това може да стане ако полето от key е било сменено на customKey и не е
+        // направена миграция, на даните
+        if(!$res && is_numeric($keyValue) && !($foreignModel->getFieldType($keyField) instanceof type_Int)){
+        	$res = $foreignModel->fetch((int)$keyValue);
+        }
+        
+        return $res;
      }
     
     

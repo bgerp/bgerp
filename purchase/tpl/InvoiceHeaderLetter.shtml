@@ -49,6 +49,9 @@
                                         <hr class='printVisible'>
                                         [#payment_block#]
                                         <div class='custom-bg-block'><b>|Плащане|*</b></div>
+                                        <!--ET_BEGIN paymentType-->
+                                        <div class="boldText">[#paymentType#]</div>
+                                        <!--ET_END paymentType-->
                                        	<!--ET_BEGIN DUE_BLOCK-->
                                            [#DUE_BLOCK#]
                                         <div><span class='quiet'>Краен срок за плащане:</span> [#dueDate#]</div>
@@ -58,9 +61,6 @@
                                         <div>
                                             <!--ET_BEGIN DUE_DATE-->
                                             <span class='quiet'>|Краен срок за плащане|*:</span> [#DUE_DATE#]<!--ET_END DUE_DATE-->  &nbsp;&nbsp;  
-                                            <!--ET_BEGIN OVERDUE_INTEREST_RATE-->
-                                            <span class="smallData">|Лихва за просрочено плащане|*: [#OVERDUE_INTEREST_RATE#] |на ден|*</span>
-                                            <!--ET_END OVERDUE_INTEREST_RATE-->
                                         </div>
                                         <!--ET_END deadline-->
                                         <!--ET_BEGIN accountId-->
@@ -95,7 +95,7 @@
                                         <!--ET_END additionalInfo-->
                                     </td>
                                     <td id='invoice-info' style='width:40%'>
-                                        [#/deals/tpl/DocumentPiceInfo.shtml#]
+                                        [#/deals/tpl/DocumentPriceInfoInvoice.shtml#]
                                         <!--ET_BEGIN fileHnd-->
                                         <hr>
                                         <div class='custom-bg-block'><b>|Оригинален документ|*</b></div>

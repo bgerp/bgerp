@@ -1,6 +1,7 @@
 <?php 
 
 
+
 /**
  * Разходен банков документ
  *
@@ -8,7 +9,7 @@
  * @category  bgerp
  * @package   bank
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -65,11 +66,24 @@ class bank_SpendingDocuments extends bank_Document
     
     
     /**
+     * Полета, които ще се показват в листов изглед
+     */
+    public $listFields = "termDate,valior=Вальор, title=Документ, reason, folderId, currencyId, amount, state, createdOn, createdBy";
+    
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, termDate,valior,modifiedOn';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
     {
         parent::getFields($this);
+        $this->setField('termDate', 'caption=Срок');
     }
     
     
@@ -86,13 +100,12 @@ class bank_SpendingDocuments extends bank_Document
         $form->setDefault('contragentId', $contragentId);
         $form->setDefault('contragentClassId', $contragentClassId);
         
-        expect($origin = $mvc->getOrigin($form->rec));
+        expect($origin = $mvc->getOrigin($form->rec), $form->rec);
         $form->setOptions('ownAccount', bank_OwnAccounts::getOwnAccounts(FALSE));
         
         $mvc->setDefaultsFromOrigin($origin, $form, $options);
-        
         $form->setSuggestions('contragentIban', bank_Accounts::getContragentIbans($form->rec->contragentId, $form->rec->contragentClassId));
-        $form->setDefault('valior', $today);
+        
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
         $form->setOptions('operationSysId', $options);
         

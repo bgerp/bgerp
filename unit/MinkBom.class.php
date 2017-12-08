@@ -7,8 +7,8 @@
  *
  * @category  bgerp
  * @package   tests
- * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @author    Pavlinka Dainovska <pdainovska@gmail.com>
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -55,6 +55,7 @@ class unit_MinkBom extends core_Manager
     {
         $browser = cls::get('unit_Browser');
         //$browser->start('http://localhost/');
+        $host = unit_Setup::get('DEFAULT_HOST');
         $browser->start($host);
         //потребител DEFAULT_USER (bgerp)
         $browser->click('Вход');

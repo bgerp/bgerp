@@ -16,7 +16,11 @@
  */
 class bgerp_Notifications extends core_Manager
 {
-    
+
+    /**
+     * Максимална дължина на показваните заглавия
+     */
+    const maxLenTitle = 120;
     
     /**
      * Необходими мениджъри
@@ -40,8 +44,8 @@ class bgerp_Notifications extends core_Manager
      * Заглавие
      */
     var $title = 'Известия';
-    
-    
+
+
     /**
      * Заглавие
      */
@@ -52,8 +56,14 @@ class bgerp_Notifications extends core_Manager
      * Права за писане
      */
     var $canWrite = 'admin';
-    
-    
+
+
+    /**
+     * Брой записи на страница
+     */
+    var $listItemsPerPage = 15;
+
+
     /**
      * Кой има право да чете?
      */
@@ -98,8 +108,10 @@ class bgerp_Notifications extends core_Manager
         $this->FLD('customUrl', 'varchar', 'caption=URL->Обект');
         $this->FLD('hidden', 'enum(no,yes)', 'caption=Скрито,notNull');
         $this->FLD('closedOn', 'datetime', 'caption=Затворено на');
+        $this->FLD('lastTime', 'datetime', 'caption=Предишното време, input=none');
         
         $this->setDbUnique('url, userId');
+        $this->setDbIndex('userId');
     }
     
     
@@ -115,9 +127,8 @@ class bgerp_Notifications extends core_Manager
         if (!isset($userId)) return ;
         
         // Потребителя не може да си прави нотификации сам на себе си
-        // Ако искаме да тестваме нотификациите - дава си роля 'debug'
         // Режима 'preventNotifications' спира задаването на всякакви нотификации
-        if ((!haveRole('debug') && $userId == core_Users::getCurrent()) || Mode::is('preventNotifications')) return ;
+        if (($userId == core_Users::getCurrent()) || Mode::is('preventNotifications')) return ;
         
         // Да не се нотифицира контрактора
         if (core_Users::haveRole('partner', $userId)) return ;
@@ -166,6 +177,9 @@ class bgerp_Notifications extends core_Manager
         // Не изчистваме от опресняващи ajax заявки
         if(Request::get('ajax_mode')) return;
         
+        // Ако само се запознава със съдържанието - не се изчиства
+        if (Request::get('ОnlyMeet')) return ;
+        
         if(empty($userId)) {
             $userId = core_Users::getCurrent();
         }
@@ -190,7 +204,7 @@ class bgerp_Notifications extends core_Manager
         while($rec = $query->fetch()) {
             $rec->state = 'closed';
             $rec->closedOn = dt::now();
-            bgerp_Notifications::save($rec, 'state,modifiedOn,closedOn');
+            bgerp_Notifications::save($rec, 'state,modifiedOn,closedOn,modifiedBy');
         }
     }
     
@@ -235,7 +249,7 @@ class bgerp_Notifications extends core_Manager
         while ($rec = $query->fetch()) {
             $usersArr[$rec->userId] = $rec->hidden;
         }
-        
+
         return $usersArr;
     }
     
@@ -291,6 +305,60 @@ class bgerp_Notifications extends core_Manager
     
     
     /**
+     * Скрива записите, които са към съответния сингъл на документа
+     * 
+     * @param string $className
+     * @param integer $clsId
+     */
+    public static function hideNotificationsForSingle($className, $clsId, $hidden = 'no')
+    {
+        $query = self::getQuery();
+        $query->where("#hidden = '{$hidden}'");
+        $className = strtolower($className);
+        
+        $query->where(array("LOWER(#url) LIKE '%/[#1#]/single/[#2#]' OR LOWER(#url) LIKE '%/[#1#]/single/[#2#]/%' OR LOWER(#customUrl) LIKE '%/[#1#]/single/[#2#]' OR LOWER(#customUrl) LIKE '%/[#1#]/single/[#2#]/%'", $className, $clsId));
+        
+        while ($rec = $query->fetch()) {
+            $rec->hidden = ($hidden == 'no') ? 'yes' : 'no';
+            
+            if ($rec->hidden == 'no') {
+                try {
+                    $urlArr = self::getUrl($rec);
+                    $act = strtolower($urlArr['Act']);
+                    
+                    $ctr = $urlArr['Ctr'];
+                    if (!$ctr::haveRightFor($act, $urlArr['id'], $rec->userId)) continue;
+                } catch (Exception $e) {
+                    reportException($e);
+                }
+            }
+            
+            self::save($rec, 'hidden,modifiedOn,modifiedBy');
+            
+            $msg = 'Скрита нотификация';
+            if ($rec->hidden == 'no') {
+                $msg = 'Показана нотификация';
+            }
+            
+            self::logDebug($msg, $rec->id);
+        }
+    }
+    
+    
+    /**
+     * Показва записите, които са към съответния сингъл на документа
+     * 
+     * @param string $className
+     * @param integer $clsId
+     */
+    public static function showNotificationsForSingle($className, $clsId)
+    {
+        self::hideNotificationsForSingle($className, $clsId, 'yes');
+    }
+    
+    
+    
+    /**
      * След преобразуване на записа в четим за хора вид.
      *
      * @param core_Manager $mvc
@@ -299,7 +367,7 @@ class bgerp_Notifications extends core_Manager
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $url = parseLocalUrl($rec->customUrl ? $rec->customUrl : $rec->url, FALSE);
+        $url = self::getUrl($rec);
         
         if($rec->cnt > 1) {
             //  $row->msg .= " ({$rec->cnt})";
@@ -308,15 +376,568 @@ class bgerp_Notifications extends core_Manager
         $attr = array();
         if($rec->state == 'active') {
             $attr['style'] = 'font-weight:bold;';
+            $attr['onclick'] = 'render_forceReloadAfterBack()';
         } else {
             $attr['style'] = 'color:#666;';
+        }
+        
+        if (!Mode::isReadOnly() && ($rec->userId == core_Users::getCurrent())) {
+            $attr['class'] .= " ajaxContext";
+            $attr['name'] = 'context-holder';
+            ht::setUniqId($attr);
+            $replaceId = $attr['id'];
+            unset($attr['name'], $attr['id']);
+            
+            $dataUrl =  toUrl(array(get_called_class(), 'getContextMenu', $rec->id, 'replaceId' => $replaceId), 'local');
+            $attr['data-id'] = $replaceId;
+            $attr['data-url'] = $dataUrl;
         }
         
         // Превеждаме съобщението
         // Спираме преовада и въте, ако има за превеждане, тогава се превежда
         $row->msg = tr("|*{$row->msg}");
+        $row->msg = str::limitLen($row->msg, self::maxLenTitle, 20, " ... ", TRUE);
         
         $row->msg = ht::createLink($row->msg, $url, NULL, $attr);
+    }
+    
+    
+    /**
+     * Екшън връщащ бутоните за контектстното меню
+     */
+    function act_getContextMenu()
+    {
+        $id = Request::get('id', 'int');
+        expect($id);
+        
+        expect($rec = $this->fetch($id));
+        
+        expect($rec->userId == core_Users::getCurrent());
+        
+    	expect($replaceId = Request::get('replaceId', 'varchar'));
+    	
+    	$tpl = new core_ET();
+        
+    	if ($rec->userId != core_Users::getCurrent()) return array();
+    	
+    	$url = self::getUrl($rec);
+
+    	// Отваряне в нов таб
+    	$newTabBtn = ht::createLink(tr('Отвори в нов таб'), $url, NULL, array('ef_icon' => "img/16/tab-new.png", 'title' => 'Отваряне в нов таб', "class" => "button", 'target' => '_blank'));
+    	$tpl->append($newTabBtn);
+        
+    	if ($rec->state == 'active') {
+    	    // Запознаване със съдържанието, но без отмаркиране
+    	    $meetUrl = $url;
+    	    $meetUrl['ОnlyMeet'] = TRUE;
+    	    $introBtn = ht::createLink(tr('Запознаване'), $meetUrl, NULL, array('ef_icon' => "img/16/see.png", 'title' => 'Запознаване със съдържанието без отмаркиране', "class" => "button"));
+    	    $tpl->append($introBtn);
+    	}
+        
+    	// Маркиране/отмаркиране на текст
+    	$markUrl = array(get_called_class(), 'mark', $rec->id);
+    	$markText = 'Маркиране';
+        $iconMark = "img/16/mark.png";
+    	if ($rec->state == 'active') {
+    	    $markText = 'Отмаркиране';
+            $iconMark = "img/16/unmark.png";
+    	}
+    	$attr = array('ef_icon' => $iconMark, 'title' => $markText . ' на нотификацията', "class" => "button", 'data-url' => toUrl($markUrl, 'local'));
+    	$attr['onclick'] = 'return startUrlFromDataAttr(this, true);';
+    	
+    	$markBtn = ht::createLink(tr($markText), $markUrl, NULL, $attr);
+
+    	$tpl->append($markBtn);
+    	
+    	// Ако има записи за отабониране от нотификациите
+    	self::getAutoNotifyArr($rec, NULL, $haveStopped);
+    	if ($haveStopped) {
+    	    $unsubscribeUrl = array(get_called_class(), 'unsubscribe', $rec->id);
+    	    $attr = array('ef_icon' => "img/16/no-bell.png", 'title' => 'Автоматично отписване от нотификациите', "class" => "button", 'data-url' => toUrl($unsubscribeUrl, 'local'));
+    	    $attr['onclick'] = 'return startUrlFromDataAttr(this, true);';
+    	    $unsubscribeBtn = ht::createLink('Отписване', $unsubscribeUrl, NULL, $attr);
+    	    $tpl->append($unsubscribeBtn);
+    	}
+    	
+    	// Бутон за настройки
+    	$ctr = $url['Ctr'];
+    	if ($ctr) {
+    	    if (cls::load($ctr, TRUE)) {
+        	    $ctrInst = cls::get($ctr);
+        	    $settingsUrl = array(get_called_class(), 'settings', $rec->id, 'ret_url' => TRUE);
+        	    if (($ctrInst instanceof doc_Folders) || ($ctrInst instanceof doc_Threads) || ($ctrInst instanceof doc_Containers) || (cls::haveInterface('doc_DocumentIntf', $ctrInst))) {
+        	        $settingsBtn = ht::createLink('Настройки', $settingsUrl, NULL, array('ef_icon' => "img/16/cog.png", 'title' => 'Настойки за получаване на нотификация', "class" => "button"));
+        	        $tpl->append($settingsBtn);
+        	    }
+    	    }
+    	}
+
+    	// Ако сме в AJAX режим
+    	if(Request::get('ajax_mode')) {
+    		$resObj = new stdClass();
+    		$resObj->func = "html";
+    		$resObj->arg = array('id' => $replaceId, 'html' => $tpl->getContent(), 'replace' => TRUE);
+    		
+    		$res = array_merge(array($resObj));
+    		
+    		return $res;
+    	} else {
+    	    
+    		return $tpl;
+    	}
+    }
+    
+    
+    /**
+     * Помощна функция за спиране и пускане на нотификациите
+     * 
+     * @param stdClass|integer $rec
+     * @param NULL|string $update
+     * @param NULL|array $haveStopped
+     * 
+     * @return array
+     */
+    protected static function getAutoNotifyArr($rec, $update = NULL, &$haveStopped = NULL)
+    {
+        $resValsArr = array();
+        
+        $rec = self::fetchRec($rec);
+        
+        if (!$rec) return $resValsArr;
+        
+        // Вземаме необходимите параметри от URL-то
+        $url = self::getUrl($rec);
+        
+        $ctr = $url['Ctr'];
+        $act = $url['Act'];
+        $dId = $url['id'];
+        
+        if (cls::load($ctr, TRUE)) {
+            
+            $clsInst = cls::get($ctr);
+            
+            if (($clsInst instanceof core_Manager) && ($ctr::haveRightFor($act, $dId))) {
+                $folderId = $url['folderId'];
+                $threadId = $url['threadId'];
+                $containerId = $url['containerId'];
+                
+                if ($dId) {
+                    if ($dRec = $ctr::fetch($dId)) {
+                        $folderId = $dRec->folderId;
+                        $threadId = $dRec->threadId;
+                        $containerId = $dRec->containerId;
+                    }
+                }
+                
+                $resValsArr['folderId'] = $folderId;
+                $resValsArr['threadId'] = $threadId;
+                $resValsArr['containerId'] = $containerId;
+            }
+        }
+        
+        $stopNotifyArr = array();
+        
+        // В зависимост от текста определяме нотификациите, които да се изключат
+        $msg = mb_strtolower($rec->msg);
+        if (strpos($msg, '|отворени теми в|') !== FALSE) {
+            $stopNotifyArr['folOpenings'] = 'doc_Folders';
+        } elseif ((strpos($msg, '|добави|') !== FALSE) || (strpos($msg, '|хареса') !== FALSE) || (strpos($msg, '|промени|') !== FALSE)) {
+            if (strpos($msg, '|входящ имейл|') !== FALSE) {
+                $stopNotifyArr['personalEmailIncoming'] = 'doc_Folders';
+            }
+            $stopNotifyArr['notify'] = 'doc_Threads';
+            
+            // Ако е начало на нишка
+            if ($threadId && $containerId) {
+                $fCid = doc_Threads::getFirstContainerId($threadId);
+                if ($fCid == $containerId) {
+                    $stopNotifyArr['newThread'] = 'doc_Folders';
+                }
+            }
+        }
+        
+        $stoppedArr = $valsArr = array();
+        
+        $fKey = $tKey = NULL;
+        
+        // Определяме стойностите, които трябва да се изключат
+        foreach ($stopNotifyArr as $kVal => $kClass) {
+            
+            // За папките
+            if ($kClass == 'doc_Folders') {
+                if (!$folderId) continue;
+                
+                if (!doc_Folders::haveRightFor('single', $folderId)) continue;
+                
+                if (!$fKey) {
+                    
+                    $fKey = doc_Folders::getSettingsKey($folderId);
+                    
+                    $valsArr[$fKey] = core_Settings::fetchKeyNoMerge($fKey);
+                }
+                
+                $key = $fKey;
+            }
+            
+            // За нишките
+            if ($kClass == 'doc_Threads') {
+                if (!$threadId) continue;
+                
+                if (!doc_Threads::haveRightFor('single', $threadId)) continue;
+                
+                if (!$tKey) {
+                    
+                    $tKey = doc_Threads::getSettingsKey($threadId);
+                    
+                    $valsArr[$tKey] = core_Settings::fetchKeyNoMerge($tKey);
+                }
+                
+                $key = $tKey;
+            }
+            
+            // Ако преди това не е била забранане стойност
+            if (!$valsArr[$key][$kVal] || ($valsArr[$key][$kVal] != 'no')) {
+                $stoppedArr[$kClass][$kVal] = $valsArr[$key][$kVal];
+                $valsArr[$key][$kVal] = 'no';
+            }
+        }
+        
+        $modeKey = 'NotifySettings::' . $rec->id;
+        
+        if ($update == 'revert') {
+            $stoppedArr = Mode::get($modeKey);
+        }
+        
+        // В зависимост от състоянието връщаме/спираме настройките за бъдещите нотификации
+        if (is_array($stoppedArr) && $update) {
+            $notifyVerbMap = array('notify' => 'Нов документ', 'personalEmailIncoming' => 'Личен имейл', 'folOpenings' => 'Отворени теми', 'newThread' => 'Нова тема', 'newDoc' => 'Нов документ');
+            
+            $notifyMsg = '';
+            
+            foreach($stoppedArr as $cls => $v) {
+                
+                if ($cls == 'doc_Folders') {
+                    $title = doc_Folders::getLinkForObject($folderId);
+                    $key = $fKey;
+                } elseif ($cls == 'doc_Threads') {
+                    $title = doc_Threads::getLinkForObject($threadId);
+                    $key = $tKey;
+                }
+                
+                $notifyMsg .= ($notifyMsg) ? '<br>' : '';
+                
+                if ($update == 'revert') {
+                    $txt = "|Върнати настройки за нотифициране в|*";
+                } else {
+                    $txt = "|Спряно нотифициране в|*";
+                }
+                
+                $notifyMsg .= "{$txt} \"{$title}\" |за|*:";
+                
+                $notifyTxt = '';
+                foreach ($v as $kVal => $oldVal) {
+                    
+                    $notifyTxt .= ($notifyTxt) ? ', ' : ' ';
+                    $notifyTxt .= $notifyVerbMap[$kVal];
+                    
+                    if ($update == 'revert') {
+                        $valsArr[$key][$kVal] = $oldVal;
+                    }
+                }
+                
+                $notifyMsg .= "<span  style='color: #00ff00;'>" . $notifyTxt . '</span>';;
+                
+                $resValsArr['notifyMsg'] = $notifyMsg;
+                
+                core_Settings::setValues($key, $valsArr[$key]);
+                
+                if ($update == 'revert') {
+                    Mode::setPermanent($modeKey, array());
+                } else {
+                    Mode::setPermanent($modeKey, $stoppedArr);
+                }
+            }
+        }
+        
+        if ($stoppedArr) {
+            $haveStopped = TRUE;
+        }
+        
+        return $resValsArr;
+    }
+    
+    
+    /**
+     * Екшън за автоматично отписване от нотификации
+     * 
+     * @return Redirect|array
+     */
+    function act_Unsubscribe()
+    {
+        $id = Request::get('id', 'int');
+        expect($id);
+        
+        expect($rec = $this->fetch($id));
+        
+        expect($rec->userId == core_Users::getCurrent());
+        
+        $valsArr = self::getAutoNotifyArr($rec, 'unsubscribe');
+        
+        if (!Request::get('ajax_mode')) {
+            
+            if ($rec->state == 'active') {
+                $retUrl = array(get_called_class(), 'mark', $rec->id);
+            } else {
+                $retUrl = array('Portal', 'show');
+            }
+            
+            return new Redirect($retUrl, $valsArr['notifyMsg']);
+        }
+        
+        $res = array();
+        
+        if ($valsArr['notifyMsg']) {
+            $hitId = rand();
+            status_Messages::newStatus($valsArr['notifyMsg'], 'notice', NULL, 60, $hitId);
+            $res = status_Messages::getStatusesData(Request::get('hitTime', 'int'), 0, $hitId);
+        }
+        
+        $res[] = (object)array('func' => 'closeContextMenu');
+        
+        // Ако се отписваме от активна нотификация - да не е болд
+        if ($rec->state == 'active') {
+            $res = array_merge(Request::forward(array(get_called_class(), 'mark', $rec->id)), $res);
+        }
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Екшън за маркиране/отмаркиране на нотификация
+     *
+     * @return Redirect
+     */
+    function act_Mark()
+    {
+        $id = Request::get('id', 'int');
+        expect($id);
+        
+        expect($rec = $this->fetch($id));
+        
+        expect($rec->userId == core_Users::getCurrent());
+        
+        if ($rec->state == 'active') {
+            $rec->state = 'closed';
+            $msg = 'отмаркирахте';
+            $act = 'Отмаркиране';
+        } else {
+            $rec->state = 'active';
+            $msg = 'маркирахте';
+            $act = 'Маркиране';
+        }
+        
+        $rec->lastTime = dt::now();
+        
+        self::save($rec, 'state, lastTime');
+        
+        // Ако сме активирали нотификацията, връщаме автоматично нилираните настройки за нотифициране
+        if ($rec->state == 'active') {
+            $valsArr = self::getAutoNotifyArr($rec, 'revert');
+        }
+        
+        $this->logWrite($act . ' на нотификация', $rec->id);
+        
+        $notifyMsg = $valsArr['notifyMsg'];
+        
+        if (!Request::get('ajax_mode')) {
+            
+            $notifyMsg = $notifyMsg ? "<br>" . $notifyMsg : '';
+            
+            return new Redirect(array('Portal', 'show'), "|Успепшно {$msg} нотификацията|*{$notifyMsg}");
+        }
+        
+        $res = $this->action('render');
+
+        // Добавяме резултата и броя на нотифиакциите
+        if (is_array($res)) {
+            
+            $notifCnt = static::getOpenCnt();
+            
+            $obj = new stdClass();
+            $obj->func = 'notificationsCnt';
+            $obj->arg = array('id'=>'nCntLink', 'cnt' => $notifCnt, 'notifyTime' => 1000 * dt::mysql2timestamp(self::getLastNotificationTime(core_Users::getCurrent())));
+
+            
+            if ($notifyMsg) {
+                $hitId = rand();
+                status_Messages::newStatus($notifyMsg, 'notice', NULL, 60, $hitId);
+                $res = array_merge($res, status_Messages::getStatusesData(Request::get('hitTime', 'int'), 0, $hitId));
+            }
+            
+            $res[] = $obj;
+        }
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Промяна на настройките за нотификации към папки/нишки
+     */
+    function act_Settings()
+    {
+        $id = Request::get('id', 'int');
+        expect($id);
+        
+        expect($rec = $this->fetch($id));
+        
+        expect($rec->userId == core_Users::getCurrent());
+        
+        $url = self::getUrl($rec);
+        
+        $ctr = $url['Ctr'];
+        $act = $url['Act'];
+        $dId = $url['id'];
+        
+        $retUrl = getRetUrl();
+        
+        if (!cls::load($ctr, TRUE) || !$ctr::haveRightFor($act, $dId)) {
+            
+            return new Redirect($retUrl, 'Не може да се настройва', 'warning');
+        }
+        
+        $folderId = $url['folderId'];
+        $threadId = $url['threadId'];
+        $containerId = $url['containerId'];
+        
+        if ($dId) {
+            expect($dRec = $ctr::fetch($dId));
+            $folderId = $dRec->folderId;
+            $threadId = $dRec->threadId;
+            $containerId = $dRec->containerId;
+        } elseif ($folderId) {
+            expect(doc_Folders::haveRightFor('single', $folderId));
+        }
+        
+        expect($folderId || $threadId || $containerId, $rec, $url);
+        
+        $ctrInst = cls::get($ctr);
+        
+        $form = cls::get('core_Form');
+        
+        $sArr = array();
+        
+        $enumChoice = 'enum(default=Автоматично, yes=Винаги, no=Никога)';
+        $enumTypeArr = array('input' => 'input', 'maxRadio' => 3, 'columns' => 3);
+        
+        $notifyDefArr = array();
+        
+        $valsArr = array();
+        
+        // Настройки за папк
+        if ($folderId) {
+            $fKey = doc_Folders::getSettingsKey($folderId);
+            
+            $folderTitle = doc_Folders::getLinkForObject($folderId);
+            
+            $fCaption = "Известяване в|* {$folderTitle} |при";
+            
+            $enumTypeArr['caption'] = $fCaption . '->Нов документ';
+            $form->FNC('newDoc', $enumChoice, $enumTypeArr);
+            
+            $enumTypeArr['caption'] = $fCaption . '->Нова тема';
+            $form->FNC('newThread', $enumChoice, $enumTypeArr);
+            
+            $enumTypeArr['caption'] = $fCaption . '->Отворени теми';
+            $form->FNC('folOpenings', $enumChoice, $enumTypeArr);
+            
+            $enumTypeArr['caption'] = $fCaption . '->Личен имейл';
+            $form->FNC('personalEmailIncoming', $enumChoice, $enumTypeArr);
+            
+            $sArr[$fKey] = array('newDoc', 'newThread', 'folOpenings', 'personalEmailIncoming');
+            
+            // Добавяме стойностите по подразбиране
+            $valsArr[$fKey] = core_Settings::fetchKeyNoMerge($fKey);
+            setIfNot($valsArr[$fKey]['newDoc'], 'default');
+            setIfNot($valsArr[$fKey]['newThread'], 'default');
+            setIfNot($valsArr[$fKey]['folOpenings'], 'default');
+        }
+        
+        // Настройки за нишка
+        if ($containerId && $threadId) {
+            $tKey = doc_Threads::getSettingsKey($threadId);
+            
+            $threadTitle = doc_Threads::getLinkForObject($threadId);
+            $tCaption = "Известяване в|* {$threadTitle} |при";
+            $enumTypeArr['caption'] = $tCaption . '->Нов документ';
+            
+            $form->FNC('notify', $enumChoice, $enumTypeArr);
+            
+            $sArr[$tKey] = array('notify');
+            
+            // Добавяме стойностите по подразбиране
+            $valsArr[$tKey] = core_Settings::fetchKeyNoMerge($tKey);
+            setIfNot($valsArr[$fKey]['notify'], 'default');
+        }
+        
+        // Сетваме необходимите стойности
+        foreach ($sArr as $fKey => $fArr) {
+            foreach ($fArr as $valKey) {
+                
+                $val = $valsArr[$fKey][$valKey];
+                
+                setIfNot($val, 'default');
+                
+                $form->setDefault($valKey, $val);
+            }
+        }
+        
+        $form->input();
+        
+        if ($form->isSubmitted()) {
+            
+            foreach ($sArr as $key => $sArr) {
+                $vRecArr = $valsArr[$key];
+                foreach ($sArr as $rVal) {
+                    $vRecArr[$rVal] = $form->rec->{$rVal};
+                }
+                core_Settings::setValues($key, $vRecArr);
+                
+                // Записваме в лога
+                $pKey = core_Settings::prepareKey($key);
+                $sRec = core_Settings::fetch(array("#key = '[#1#]' AND #userOrRole = '[#2#]'", $pKey, core_Users::getCurrent()));
+                core_Settings::logWrite('Промяна на настройките', $sRec);
+            }
+            
+            $this->logWrite('Промяна на настройки за нотифициране', $rec->id);
+            
+            return new Redirect($retUrl);
+        }
+        
+        $form->toolbar->addSbBtn('Запис', 'save', NULL, 'ef_icon = img/16/disk.png, title=Запис на настройките');
+        $form->toolbar->addBtn('Отказ', $retUrl, NULL, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+        
+        // Добавяме титлата на формата
+        $form->title = "Настройка за нотифициране";
+        
+        $tpl = $form->renderHtml();
+        
+        return $this->renderWrapping($tpl);
+    }
+    
+    
+    /**
+     * Помощна фунцкия за парсирана не URL-то
+     * 
+     * @param mixed $rec
+     * @return array
+     */
+    public static function getUrl($rec)
+    {
+        $rec = self::fetchRec($rec);
+        
+        return parseLocalUrl($rec->customUrl ? $rec->customUrl : $rec->url, FALSE);
     }
     
     
@@ -349,13 +970,35 @@ class bgerp_Notifications extends core_Manager
         $query = $Notifications->getQuery();
         $query->where("#userId = $userId");
         $query->limit(1);
-        $query->orderBy("#modifiedOn", 'DESC');
+        
+        $cQuery = clone $query;
+                
+        $query->XPR('modifiedOnTop', 'datetime', "IF((#modifiedOn > #lastTime), #modifiedOn, #lastTime)");
+        $query->orderBy("#modifiedOnTop", 'DESC');
+        
         $lastRec = $query->fetch();
+        
+        $lastModifiedOnKey = $lastRec->modifiedOnTop;
+        $lastModifiedOnKey .= '|' . $lastRec->id;
+        
+        $modifiedBefore = dt::subtractSecs(180);
+        
+        // Инвалиидиране на кеша след запазване на подредбата -  да не стои запазено до следващото инвалидиране
+        $cQuery->where(array("#modifiedOn >= '[#1#]'", $modifiedBefore));
+        $cQuery->orWhere(array("#lastTime >= '[#1#]'", $modifiedBefore));
+        $cQuery->limit(1);
+        $cQuery->orderBy('modifiedOn', 'DESC');
+        $cQuery->orderBy('lastTime', 'DESC');
+        if ($cLastRec = $cQuery->fetch()) {
+            $lastModifiedOnKey .= '|' . $lastRec->lastTime;
+            $lastModifiedOnKey .= '|' . $cLastRec->id;
+        }
+        
         $key = md5($userId . '_' . Request::get('ajax_mode') . '_' . Mode::get('screenMode') . '_' . Request::get('P_bgerp_Notifications') . '_' . Request::get('noticeSearch') . '_' . core_Lg::getCurrent());
-
-        list($tpl, $modifiedOn) = core_Cache::get('Notifications', $key);
- 
-        if(!$tpl || $modifiedOn != $lastRec->modifiedOn) {
+        
+        list($tpl, $modifiedOnKey) = core_Cache::get('Notifications', $key);
+        
+        if(!$tpl || $modifiedOnKey != $lastModifiedOnKey) {
 
             // Създаваме обекта $data
             $data = new stdClass();
@@ -369,10 +1012,18 @@ class bgerp_Notifications extends core_Manager
             $data->listFields = 'modifiedOn=Време,msg=Съобщение';
             
             $data->query->where("#userId = {$userId} AND #hidden != 'yes'");
-            $data->query->orderBy("state,modifiedOn=DESC");
+            
+            $data->query->XPR('modifiedOnTop', 'datetime', "IF((((#modifiedOn > '{$modifiedBefore}') || (#state = 'active') || (#lastTime > '{$modifiedBefore}'))), IF(((#state = 'active') || (#lastTime > #modifiedOn)), #modifiedOn, #lastTime), NULL)");
+            $data->query->orderBy("modifiedOnTop", "DESC");
+            
+            $data->query->orderBy("modifiedOn=DESC");
             
             if(Mode::is('screenMode', 'narrow') && !Request::get('noticeSearch')) {
                 $data->query->where("#state = 'active'");
+                
+                // Нотификациите, модифицирани в скоро време да се показват
+                $data->query->orWhere("#modifiedOn > '{$modifiedBefore}'");
+                $data->query->orWhere("#lastTime > '{$modifiedBefore}'");
             }
             
             // Подготвяме филтрирането
@@ -396,7 +1047,7 @@ class bgerp_Notifications extends core_Manager
             // Рендираме изгледа
             $tpl = $Notifications->renderPortal($data);
 
-            core_Cache::set('Notifications', $key, array($tpl, $lastRec->modifiedOn), doc_Setup::get('CACHE_LIFETIME'));
+            core_Cache::set('Notifications', $key, array($tpl, $lastModifiedOnKey), doc_Setup::get('CACHE_LIFETIME'));
         }
         
         //Задаваме текущото време, за последно преглеждане на нотификациите
@@ -424,6 +1075,47 @@ class bgerp_Notifications extends core_Manager
 
         
         return $cnt;
+    }
+    
+    
+    /**
+     * Връща времето на последната нотификация
+     * 
+     * @userId NULL|integer $userId
+     * @$state NULL|string $state
+     * @$state boolean $useHidden
+     * @$state string $order
+     * @$state string $field
+     * 
+     * @return NULL|datetime
+     */
+    public static function getLastNotificationTime($userId = NULL, $state = NULL, $useHidden = FALSE, $order = 'DESC', $field = 'modifiedOn')
+    {
+        $query = self::getQuery();
+        
+        if ($userId) {
+            $query->where(array("#userId = '[#1#]'", $userId));
+        }
+        
+        if ($state) {
+            $query->where(array("#state = '[#1#]'", $state));
+        }
+        
+        if (!$useHidden) {
+            $query->where("#hidden = 'no'");
+        }
+        
+        $query->limit(1);
+        
+        $query->orderBy($field, $order);
+        
+        $query->show($field);
+        
+        $resRec = $query->fetch();
+        
+        if (!$resRec) return ;
+        
+        return $resRec->{$field};
     }
     
     
@@ -478,6 +1170,7 @@ class bgerp_Notifications extends core_Manager
         
         // Попълваме таблицата с редовете
         $tpl->append($Notifications->renderListTable($data), 'PortalTable');
+        jquery_Jquery::runAfterAjax($tpl, 'getContextMenuFromAjax');
         
         return $tpl;
     }
@@ -502,7 +1195,7 @@ class bgerp_Notifications extends core_Manager
         } else {
             
             // Добавяме поле във формата за търсене
-            $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager|admin)', 'caption=Потребител,input,silent,autoFilter');
+            $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo|admin, rolesForTeams=ceo|manager|admin)', 'caption=Потребител,input,silent,autoFilter');
             
             // Кои полета да се показват
             $data->listFilter->showFields = "{$mvc->searchInputField}, usersSearch";
@@ -516,8 +1209,16 @@ class bgerp_Notifications extends core_Manager
             // Ако не е избран потребител по подразбиране
             if(!$data->listFilter->rec->usersSearch) {
                 
-                // Да е текущия
-                $data->listFilter->rec->usersSearch = '|' . core_Users::getCurrent() . '|';
+                if ($data->listFilter->rec->id) {
+                    $f = 'all_users';
+                } else {
+                    $uArr = $data->listFilter->getField('usersSearch')->type->getUserFromTeams();
+                    reset($uArr);
+                    $f = key($uArr);
+                }
+                
+                $default = $data->listFilter->getField('usersSearch')->type->fitInDomain($f);
+                $data->listFilter->setDefault('usersSearch', $default);
             }
             
             // Ако има филтър
@@ -596,8 +1297,6 @@ class bgerp_Notifications extends core_Manager
      */
     function act_NotificationsCnt()
     {
-
-        
         // Ако заявката е по ajax
         if (Request::get('ajax_mode')) {
             
@@ -609,7 +1308,7 @@ class bgerp_Notifications extends core_Manager
             // Добавяме резултата
             $obj = new stdClass();
             $obj->func = 'notificationsCnt';
-            $obj->arg = array('id'=>'nCntLink', 'cnt' => $notifCnt);
+            $obj->arg = array('id'=>'nCntLink', 'cnt' => $notifCnt, 'notifyTime' => 1000 * dt::mysql2timestamp(self::getLastNotificationTime(core_Users::getCurrent())));
             
             $res[] = $obj;
 
@@ -700,8 +1399,13 @@ class bgerp_Notifications extends core_Manager
         // Премахваме всички тагове без 'a'
         // Това е необходимо за да определим когато има промяна в състоянието на някоя нотификация
         // Трябва да се премахват другите тагове, защото цвета се промяне през няколко секунди
-        // и това би накарало всеки път да се обновяват нотификациите
-        $hash = md5(trim(strip_tags($status, '<a>')));
+        // и това би накарало всеки път да се обновяват нотификациите.
+        
+        $status = strip_tags($status, '<a>');
+        
+        $status = preg_replace('/context-holder[0-9]{1,4}_[0-9]{1,2}/i', '', $status);
+        
+        $hash = md5(trim($status));
         
         return $hash;
     }
@@ -721,5 +1425,82 @@ class bgerp_Notifications extends core_Manager
             return "Бяха изтрити {$res} записа от " . $this->className;
         }
     }
-
+    
+    
+    /**
+     * Изтриваме недостъпните нотификации, към съответните потребители
+     */
+    function cron_HideInaccesable()
+    {
+        $query = self::getQuery();
+        
+        $query->orderBy('modifiedOn', 'DESC');
+        
+        while ($rec = $query->fetch()) {
+            $urlArr = self::getUrl($rec);
+            
+            $act = strtolower($urlArr['Act']);
+            
+            if ($act == 'default') {
+                $act = 'list';
+            }
+            
+            if (($act != 'single') && ($act != 'list')) continue;
+            
+            try {
+                $ctr = $urlArr['Ctr'];
+                
+                if (!$ctr) continue;
+                
+                if ((!cls::load($ctr, TRUE)) || ($urlArr['id'] && !($cRec = $ctr::fetch($urlArr['id'])))) {
+                    self::delete($rec->id);
+                    self::logInfo("Изтрита нотификация за премахнат ресурс", $rec->id);
+                } else{
+                    $haveRight = $ctr::haveRightFor($act, $urlArr['id'], $rec->userId);
+                    if (!$haveRight && ($rec->hidden == 'no')) {
+                        $rec->hidden = 'yes';
+                        self::save($rec, 'hidden,modifiedOn,modifiedBy');
+                        
+                        self::logInfo("Скрит недостъпен ресурс", $rec->id);
+                    } elseif ($haveRight && ($rec->hidden == 'yes')) {
+                        
+                        if (!$rec->cnt) continue;
+                        
+                        if (!$cRec || ($cRec->state == 'rejected')) continue;
+                        
+                        $rec->hidden = 'no';
+                        self::save($rec, 'hidden');
+                        
+                        self::logInfo("Показан достъпен ресурс", $rec->id);
+                    }
+                }
+            } catch (core_exception_Expect $e) {
+                reportException($e);
+                continue;
+            }
+        }
+    }
+    
+    
+    /**
+     * Извиква се преди вкарване на запис в таблицата на модела
+     */
+    public static function on_BeforeSave(&$invoker, &$id, &$rec, &$fields = NULL)
+    {
+        if ($rec->id) {
+            if ($fields !== NULL) {
+                $fields = arr::make($fields, TRUE);
+            }
+            
+            // Ако няма да се записва само 'lastTime', сетваме стойността от modifiedOn
+            if (!isset($fields) || (!$fields['lastTime'] && $fields['modifiedOn'])) {
+                $modifiedOn = self::fetchField($rec->id, 'modifiedOn', FALSE);
+                $rec->lastTime = $modifiedOn;
+                
+                if ($fields !== NULL) {
+                    $fields['lastTime'] = 'lastTime';
+                }
+            }
+        }
+    }
 }

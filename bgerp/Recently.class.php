@@ -21,7 +21,7 @@ class bgerp_Recently extends core_Manager
     /**
      * Максимална дължина на показваните заглавия
      */
-    const maxLenTitle = 70;
+    const maxLenTitle = 120;
     
     
     /**
@@ -82,19 +82,24 @@ class bgerp_Recently extends core_Manager
         $this->FLD('userId', 'key(mvc=core_Users)', 'caption=Потребител');
         $this->FLD('last', 'datetime(format=smartTime)', 'caption=Последно');
         $this->FLD('hidden', 'enum(no,yes)', 'caption=Скрито,notNull');
+        $this->FLD('threadId' , 'key(mvc=doc_Threads)', 'caption=Нишка, input=none');
         
         $this->setDbUnique('type, objectId, userId');
+        $this->setDbIndex('userId');
+        $this->setDbIndex('last');
     }
     
     
     /**
      * Добавя известие за настъпило събитие
-     * @param varchar $msg
-     * @param array $url
-     * @param integer $userId
-     * @param enum $priority
+     * 
+     * @param string $type - folder,document
+     * @param integer $objectId
+     * @param integer|NULL $userId
+     * @param string $hidden - yes/no
+     * @param iteger|NULL $threadId
      */
-    static function add($type, $objectId, $userId = NULL, $hidden)
+    static function add($type, $objectId, $userId = NULL, $hidden = 'no', $threadId = NULL)
     {
         // Не добавяме от опресняващи ajax заявки
         if(Request::get('ajax_mode')) return;
@@ -107,9 +112,28 @@ class bgerp_Recently extends core_Manager
         $rec->last      = dt::verbal2mysql();
         $rec->hidden    = $hidden;
         
-        $rec->id = bgerp_Recently::fetchField("#type = '{$type}'  AND #objectId = $objectId AND #userId = {$rec->userId}");
+        if (!$threadId && $objectId && ($type == 'document')) {
+            $rec->threadId = doc_Containers::fetchField($objectId, 'threadId');
+        }
+        
+        $rec->id = bgerp_Recently::fetchField("#type = '{$type}'  AND #objectId = {$objectId} AND #userId = {$rec->userId}");
         
         bgerp_Recently::save($rec);
+    }
+    
+    
+    /**
+     * Преди запис на документ, преизчисляваме стойността на threadId
+     *
+     * @param bgerp_Recently $mvc
+     * @param stdClass $res
+     * @param stdClass $rec
+     */
+    public static function on_BeforeSave($mvc, $res, $rec)
+    {
+        if (!$rec->threadId && $rec->objectId && ($rec->type == 'document')) {
+            $rec->threadId = doc_Containers::fetchField($rec->objectId, 'threadId');
+        }
     }
     
     
@@ -155,18 +179,22 @@ class bgerp_Recently extends core_Manager
             }
         } elseif ($rec->type == 'document') {
             try {
-                
+                $threadId = $rec->threadId;
+                $threadRec = NULL;
+                if ($threadId) {
+                    $threadRec = doc_Threads::fetch($threadId);
+                }
                 $docProxy = doc_Containers::getDocument($rec->objectId);
                 $docRow = $docProxy->getDocumentRow();
                 $docRec = $docProxy->fetch();
-                $threadRec = doc_Threads::fetch($docRec->threadId);
+                if (!$threadRec) {
+                    $threadRec = doc_Threads::fetch($docRec->threadId);
+                }
                 $state = $threadRec->state;
                 
                 $attr = array();
                 $attr['class'] .= "state-{$state}";
                 $attr = ht::addBackgroundIcon($attr, $docProxy->getIcon($docRec->id));
-                
-                $threadRec = doc_Threads::fetch($docRec->threadId);
                 
                 if(mb_strlen($docRow->title) > self::maxLenTitle) {
                     $attr['title'] = '|*' . $docRow->title;
@@ -178,7 +206,7 @@ class bgerp_Recently extends core_Manager
                         'id' => $docRec->id);
                 }
 
-                $row->title = ht::createLink(str::limitLen($docRow->title, self::maxLenTitle),
+                $row->title = ht::createLink(str::limitLen($docRow->title, self::maxLenTitle, 20, " ... ", TRUE),
                     $linkUrl,
                     NULL, $attr);
                 
@@ -390,8 +418,29 @@ class bgerp_Recently extends core_Manager
         
         return $tpl;
     }
-    
-    
+
+
+
+    /**
+     * Игнорираме pager-а
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    static function on_BeforePrepareListPager($mvc, &$res, $data)
+    {
+
+        // Задаваме броя на елементите в страница
+        $portalArrange = core_Setup::get('PORTAL_ARRANGE');
+
+        if($portalArrange == 'recentlyNotifyTaskCal') {
+            $mvc->listItemsPerPage = 20;
+        } else {
+            $mvc->listItemsPerPage = 10;
+        }
+    }
+
     /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране

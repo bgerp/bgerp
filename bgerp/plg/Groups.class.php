@@ -50,7 +50,7 @@ class bgerp_plg_Groups extends core_Plugin
             
             $selArr = arr::make($rec->Selected);
             
-            setIfNot($groupField, $mvc->groupField, 'groupList');
+            setIfNot($groupField, $mvc->groupField, $mvc->expandInputFieldName, 'groupList');
             
             $groupFieldType = $mvc->getFieldType($groupField);
             
@@ -193,7 +193,7 @@ class bgerp_plg_Groups extends core_Plugin
      * @param stdClass|NULL $rec
      * @param int|NULL $userId
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($action == 'grouping' && $requiredRoles != 'no_one') {
             if(!$mvc->haveRightFor('edit', $rec, $userId)) {

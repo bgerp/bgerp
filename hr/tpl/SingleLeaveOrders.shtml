@@ -1,0 +1,23 @@
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+    <h3 class="centered">|З А П О В Е Д|* </h3>
+    <p class="centered">№ [#id#] / [#createdDate#] |г|*.</p>
+    <p class="centered">|Относно|*: |разрешение за ползване на|* <b>[#isPaid#]</b> |годишен отпуск|*</p>
+    <br>
+    <p class="indent">|С настоящата заповед разрешавам на|* <b>[#personId#]</b> |да ползва|* <b>[#leaveDays#] |дни|*</b> [#isPaid#] |годишен отпуск|*<!--ET_BEGIN useDaysFromYear--> |за|* [#useDaysFromYear#] |г|*.<!--ET_END useDaysFromYear-->, 
+        |считано от|* <b>[#leaveFrom#]</b> |г|*. |до|* <b>[#leaveTo#]</b> |г|*.
+        <!--ET_BEGIN amount-->
+        <br/><br/>|Дневна компенсация|*: <b>[#amount#]</b><span class='cCode'>[#baseCurrencyId#]</span>
+        <!--ET_END amount-->
+    </p>
+    <br>
+    <table style='width:100%'>
+        <tr>
+            <td>|Работодател|*: ......................</td>
+            <td> </td>
+        </tr>
+        <tr>
+            <td style='padding-left:85px'>/|подпис и печат|*/ </td>
+            <td></td>
+        </tr>
+    </table>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

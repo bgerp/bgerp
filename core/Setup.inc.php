@@ -50,9 +50,16 @@ if (setupKeyValid() && !setupProcess()) {
     // halt("Процес на обновяване - опитайте по късно.");
 }
 
+
 // На коя стъпка се намираме в момента?
 $step = $_GET['step'] ? $_GET['step'] : 1;
 $texts['currentStep'] = $step;
+
+$flagOK = MD5($_GET['SetupKey'] . 'flagOK');
+if($step == 'testSelfUrl') {
+    echo $flagOK;
+    die;
+}
 
 // Какъв е протокол-а
 if (isset($_SERVER['HTTPS']) &&
@@ -73,12 +80,30 @@ if($username = $_SERVER['PHP_AUTH_USER']) {
 }
 
 // Собственото URL
-$selfUri = "{$protocol}{$auth}{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}{$_SERVER['REQUEST_URI']}";
+$selfUri = "{$protocol}{$auth}{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
  
+
+// Определяне на локалното URL и контекста
+$opts = array(
+    'http'=>array(
+    'method'=>"GET",
+    'header'=>"Accept-language: en\r\n" .
+                "Cookie: setup=bar\r\n",
+    'timeout'=>2
+      )
+);
+
+$context = stream_context_create($opts);
+if(defined('BGERP_ABSOLUTE_HTTP_HOST')) {
+    $localUrl = str_replace("{$protocol}{$auth}{$_SERVER['HTTP_HOST']}", "{$protocol}{$auth}" . BGERP_ABSOLUTE_HTTP_HOST, $selfUri);
+} else {
+    $localUrl = $selfUri;
+}
+
 // URL на следващата стъпка
 $selfUrl = addParams($selfUri, array('step' => $step));
 $nextUrl = addParams($selfUri, array('step' => $step+1));
-
+ 
 // Определяме линка към приложението
 $appUri = $selfUrl; 
 if (strpos($selfUrl,'core_Packs/systemUpdate') !== FALSE) {
@@ -473,6 +498,9 @@ href=\"data:image/icon;base64,AAABAAEAEBAAAAAAAABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIA
 </ul>
 
 [#body#]
+
+<!-- filled_with_start_initialization_JS --!>
+        
 </div>
 </body>
 </html>";
@@ -638,6 +666,15 @@ if($step == 3) {
         }
     }
     
+    // Проверка дали локалните URL-та работят
+    $log[] = 'h:Проверка дали локалните URL-та работят:';
+    $res = @file_get_contents("{$localUrl}&step=testSelfUrl", FALSE, $context, 0, 32);
+
+    if($res == $flagOK) {
+        $log[] = "inf:Локалните URL-та се достъпват";
+    } else {
+        $log[] = "wrn:Локалните URL-та не се достъпват. Задайте стойност на константата BGERP_ABSOLUTE_HTTP_HOST или нагласете файла hosts, така че от PHP да се достъпват локалните URL";
+    }
 
     // Необходими модули на PHP
     $log[] = 'h:Проверка за необходимите PHP модули:';
@@ -674,9 +711,11 @@ if($step == 3) {
             }
         }
     } else {
-        $log[] = "wrn:Apache не работи с mod-php";
+        $log[] = "inf:Apache не работи с mod-php";
     }
     
+
+    // Проверка за налични програми
     if (!core_Os::isWindows()) {
         // Необходими програми на сървъра
         $log[] = 'h:Проверка за необходимите програми на сървъра:';
@@ -684,10 +723,59 @@ if($step == 3) {
         $requiredPrograms = array('wget');
         
         foreach($requiredPrograms as $program){
-            if (exec('which ' . escapeshellcmd($program))){
+            if (@exec('which ' . escapeshellcmd($program))){
                 $log[] = "inf:Налична програма: <b>`$program`</b>";
             } else {
                 $log[] = "wrn:Липсваща програма: <b>`$program`</b>";
+            }
+        }
+        
+        $log[] = 'h:Проверка за необходимите параметри на сървъра:';
+        
+        $minMemoryLimit = 1000000;
+        $memoryLimit = core_Os::getMemoryLimit();
+        
+        if (isset($memoryLimit)) {
+            if ($memoryLimit > $minMemoryLimit) {
+                $log[] = "inf:Достатъчна оперативна памет";
+            } else {
+                if ($memoryLimit < (($minMemoryLimit/2) + ($minMemoryLimit/40))) {
+                    $log[] = "err:Оперативната памет е под допустимите минимални стойности";
+                } else {
+                    $log[] = "wrn:Оперативната памет е под препоръчителните стойности";
+                }
+            }
+        }
+        
+        $freeMemory = core_Os::getFreeMemory();
+        if (isset($freeMemory)) {
+            if ($freeMemory > ($minMemoryLimit/10)) {
+                $log[] = "inf:Достатъчна свободна оперативна памет";
+            } else {
+                if ($memoryLimit < ($minMemoryLimit/20)) {
+                    $log[] = "err:Свободната оперативната памет е под допустимите минимални стойности";
+                } else {
+                    $log[] = "wrn:Свободната оперативната памет е под препоръчителните стойности";
+                }
+            }
+        }
+        
+        $minFreeSpace = 200000;
+        $freeRootSpace = core_Os::getFreePathSpace(EF_ROOT_PATH);
+        $freeSbfSpace = core_Os::getFreePathSpace(EF_SBF_PATH);
+        $freeTempSpace = core_Os::getFreePathSpace(EF_TEMP_PATH);
+        
+        $freeSpace = min(array($freeRootSpace, $freeSbfSpace, $freeTempSpace));
+        
+        if (isset($freeSpace)) {
+            if ($freeSpace > $minFreeSpace) {
+                $log[] = "inf:Достатъчно свободно място на диска";
+            } else {
+                if ($freeSpace < $minFreeSpace/2) {
+                    $log[] = "err:Свободното място в диска е под допустимите стойности";
+                } else {
+                    $log[] = "wrn:Свободното място в диска е под препоръчителните стойности";
+                }
             }
         }
     }
@@ -766,7 +854,7 @@ if($step == 3) {
             if (EF_DB_USER == 'root' && EF_DB_PASS == 'USER_PASSWORD_FOR_DB') {
                 $passwordDB = getRandomString();
                 // Опитваме да сменим паролата на mysql-a
-                exec("mysqladmin -uroot -pUSER_PASSWORD_FOR_DB password {$passwordDB}", $output, $returnVar);
+                @exec("mysqladmin -uroot -pUSER_PASSWORD_FOR_DB password {$passwordDB}", $output, $returnVar);
                 if ($returnVar == 0) {
                     $src = str_replace('USER_PASSWORD_FOR_DB', $passwordDB, $src);
                     @file_put_contents($paths['config'], $src);
@@ -801,8 +889,6 @@ if($step == 3) {
     }
 
 
-
-
     // Статистика за различните класове съобщения
     $stat = array();
 
@@ -834,7 +920,27 @@ if($step == 4) {
 }
 
 if($step == 5) {  
+    // Първоначално изтриване на Log-a
+    file_put_contents(EF_SETUP_LOG_PATH, "");
     $texts['body'] .= "<iframe src='{$selfUrl}&step=setup' name='init' id='init'></iframe>";
+    
+    // Слагаме кода за стартиране на сетъп процеса
+    $pURL =  parse_url($localUrl);
+    $localRelativUrl = substr($localUrl, strlen($pURL['scheme'] . "://" . $pURL['host']));
+    
+    $jsStart = "<script>
+    
+    function httpGet(theUrl)
+    {
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.open( \"GET\", theUrl, false ); // false for synchronous request
+    xmlHttp.send( null );
+    }
+    theUrl = '{$localRelativUrl}&step=start';
+    httpGet(theUrl);
+    
+    </script>";
+    $layout = str_replace('<!-- filled_with_start_initialization_JS --!>', $jsStart, $layout);
 }
 
 /**********************************
@@ -845,36 +951,16 @@ if ($step == 'setup') {
     set_time_limit(1000);
 
     $calibrate = 1000;
-    $totalRecords = 205000; // 205 300
+    $totalRecords = 209972; // 205 300
     $totalTables = 365; //366
     $percents = $persentsBase = $persentsLog = 0;
     $total = $totalTables*$calibrate + $totalRecords;
-
     // Пращаме стиловете
     echo ($texts['styles']);
-//    contentFlush ($texts['styles']);
-    $opts = array(
-      'http'=>array(
-        'method'=>"GET",
-        'header'=>"Accept-language: en\r\n" .
-                  "Cookie: setup=bar\r\n"
-      )
-    );    
+     
+    // Стартираме инициализацията
+    contentFlush ("<h3 id='startHeader'>Стартиране на инициализацията ... </h3>");
     
-    // Първоначално изтриване на Log-a
-    file_put_contents(EF_TEMP_PATH . '/setupLog.html', "");
-    
-    $context = stream_context_create($opts);
-    
-    $res = file_get_contents("{$selfUrl}&step=start", FALSE, $context, 0, 2);
-    
-    if ($res == 'OK') {
-        contentFlush ("<h3 id='startHeader'>Инициализацията стартирана ...</h3>");
-    } else {
-        contentFlush ("<h3 id='startHeader' style='color: red;'>Грешка при стартиране на Setup!</h3><h3>{$selfUrl}&step=start</h3><div>{$res}</div>");
-        
-        exit;
-    }
     // Пращаме javascript-a за smooth скрол-а
     contentFlush("<script>
     var mouseDown = 0;
@@ -910,16 +996,16 @@ if ($step == 'setup') {
                 ");
     $cnt = 0;
     do {
-        clearstatcache(EF_TEMP_PATH . '/setupLog.html');
-        $fTime = filemtime(EF_TEMP_PATH . '/setupLog.html');
-        clearstatcache(EF_TEMP_PATH . '/setupLog.html');
+        clearstatcache(EF_SETUP_LOG_PATH);
+        $fTime = filemtime(EF_SETUP_LOG_PATH);
+        clearstatcache(EF_SETUP_LOG_PATH);
         list($numTables, $numRows) = dataBaseStat(); 
 
         // От базата идват 80% от прогрес бара
-        $percentsBase = round(($numRows+$calibrate*$numTables*(4/5))/$total,2)*100;
+        $percentsBase = round(($numRows + $calibrate * $numTables*(4/5))/$total, 2)*100;
         
         // Изчитаме лог-а
-        $setupLog = @file_get_contents(EF_TEMP_PATH . '/setupLog.html');
+        $setupLog = @file_get_contents(EF_SETUP_LOG_PATH);
 
         if (!empty($setupLog) && $percentsLog < 20) {
             $percentsLog+=2;
@@ -938,7 +1024,7 @@ if ($step == 'setup') {
         // Изтриваме Log-a - ако има нещо в него
         if (!empty($setupLog)) {
             do {
-                $res = @file_put_contents(EF_TEMP_PATH . '/setupLog.html', "", LOCK_EX);
+                $res = @file_put_contents(EF_SETUP_LOG_PATH, "", LOCK_EX);
                 if($res !== FALSE) break;
                 usleep(1000);
             } while($i++ < 100);
@@ -953,7 +1039,7 @@ if ($step == 'setup') {
         sleep(2);
         Debug::log('Sleep 2 sec. in' . __CLASS__);
         
-        $fTime2 = filemtime(EF_TEMP_PATH . '/setupLog.html');
+        $fTime2 = filemtime(EF_SETUP_LOG_PATH);
         if (($fTime2 - $fTime) > 0) {
             $logModified = TRUE;
         } else {
@@ -961,9 +1047,9 @@ if ($step == 'setup') {
         }
         
         $cnt++;
-        if ($cnt > 100) {
+        if (!($cnt % 100)) {
             // Ако инсталацията увисне
-            wp($cnt, $numTables, $numRows, $percentsBase, $setupLog, $logModified, $fTime2, $fTime);
+            wp($cnt, $numTables, $numRows, $percentsBase, $setupLog, strlen($setupLog), $logModified, $fTime2, $fTime);
         }
         
       } while (setupProcess() || !empty($setupLog) || $logModified);
@@ -1013,11 +1099,10 @@ if($step == 'start') {
     // Следващият ред генерира notice,
     // но без него file_get_contents забива, ако трябва да връща повече от 0 байта
     @ob_end_clean();
-
+    
     header("Connection: close\r\n");
     header("Content-Encoding: none\r\n");
     ob_start();
-    echo "OK";
     $size = ob_get_length();
     header("Content-Length: $size");
     ob_end_flush();
@@ -1028,23 +1113,22 @@ if($step == 'start') {
 
     $setupFlag = TRUE;
     // Създаваме празен Log файл
-    file_put_contents(EF_TEMP_PATH . '/setupLog.html', '');
+    file_put_contents(EF_SETUP_LOG_PATH, '');
     
     // Локал за функции като basename, fgetcsv
     setlocale(LC_ALL, 'en_US.UTF8');
-
+    
     $ef = new core_Setup();
-
     try {
         try {
             $res = $ef->install();
-            file_put_contents(EF_TEMP_PATH . '/setupLog.html', 'Start OK ...' . $res);
+            file_put_contents(EF_SETUP_LOG_PATH, 'Стартирана инициализация ...' . $res);
         } catch (core_exception_Expect $e) {
-            file_put_contents(EF_TEMP_PATH . '/setupLog.html', $res . "ERROR: " . $e->getMessage());
+            file_put_contents(EF_SETUP_LOG_PATH, $res . "ERROR: " . $e->getMessage());
             reportException($e);
         }
     } catch (Exception $e) {
-        file_put_contents(EF_TEMP_PATH . '/setupLog.html',$e->getMessage());
+        file_put_contents(EF_SETUP_LOG_PATH, $e->getMessage());
         reportException($e);
     }
     
@@ -1068,7 +1152,9 @@ if ($efSaltGenerated) {
 }
 
 echo $layout;
+
 ob_flush();
+
 
 die;
 
@@ -1112,7 +1198,7 @@ function linksToHtml($links)
  */
 function gitExec($cmd, &$output)
 {
-    exec(BGERP_GIT_PATH . " {$cmd}", $output, $returnVar);
+    @exec(BGERP_GIT_PATH . " {$cmd}", $output, $returnVar);
     
     return ($returnVar == 0);    
 }

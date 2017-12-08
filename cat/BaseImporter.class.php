@@ -197,7 +197,10 @@ class cat_BaseImporter extends core_Manager {
     	
     	// Импортиране на групите
     	foreach($params['groups'] as $gr){
-    		$grArr = explode('|', $gr);
+            
+            $dev = csv_Lib::getDevider($gr);
+ 
+    		$grArr = explode($dev, $gr);
     		foreach ($grArr as $markerName){
     			if($markerName === '') continue;
     			
@@ -225,7 +228,7 @@ class cat_BaseImporter extends core_Manager {
     
     /**
      * Импортиране на артикулите
-     * @param array $rows - хендлър на csv файл-а
+     * @param array $rows - парсирани редове от csv файл-а
      * @param array $params - Масив с външни ключове на полета
      * @param array $fields - масив със съответствия
      * @param string $html - съобщение
@@ -244,7 +247,8 @@ class cat_BaseImporter extends core_Manager {
 	    	$rec->meta = $fields['meta'];
 	    	
 	    	$markerIds = array();
-	    	$groups = explode('|', $row[$fields['groups']]);
+            $dev = csv_Lib::getDevider($row[$fields['groups']]);
+	    	$groups = explode($dev, $row[$fields['groups']]);
 	    	foreach ($groups as $grName){
 	    		if($grName === '') continue;
 	    		$index = $params['groups'][$grName];
@@ -268,7 +272,7 @@ class cat_BaseImporter extends core_Manager {
     	
     	$html .= "Добавени {$added} нови артикула, Обновени {$updated} съществуващи артикула<br/>";
     }
-    
+
     
     /**
      * Драйвъра може да се показва само към инстанция на cat_Products

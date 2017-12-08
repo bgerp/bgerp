@@ -23,7 +23,7 @@ class colab_plg_VisibleForPartners extends core_Plugin
     public static function on_AfterDescription($mvc)
     {
         if (!$mvc->fields['visibleForPartners']) {
-            $mvc->FLD('visibleForPartners', 'enum(no=Не,yes=Да)', 'caption=Споделяне->С партньори, input=none');
+            $mvc->FLD('visibleForPartners', 'enum(no=Не,yes=Да)', 'caption=Споделяне->С партньори,input=none');
         }
     }
     
@@ -48,7 +48,7 @@ class colab_plg_VisibleForPartners extends core_Plugin
                         $data->form->setField('visibleForPartners', 'input=hidden');
                         $data->form->setDefault('visibleForPartners', 'yes');
                     } else {
-                        $data->form->setField('visibleForPartners', 'input=input');
+                        $data->form->setField('visibleForPartners', 'input=input,before=sharedUsers');
                     }
                     
                     if ($rec->originId) {
@@ -56,7 +56,6 @@ class colab_plg_VisibleForPartners extends core_Plugin
                         
                         // Ако документа е създаден от контрактор, тогава да е споделен по-подразбиране
                         if (!$rec->id && core_Users::haveRole('partner', $dRec->createdBy)) {
-                            $data->form->setField('visibleForPartners', 'formOrder=0.9');
                             $data->form->setDefault('visibleForPartners', 'yes');
                         }
                     }
@@ -68,7 +67,9 @@ class colab_plg_VisibleForPartners extends core_Plugin
                 }
             }
         }
-        
+
+        $data->form->setField('visibleForPartners', 'changable=ifInput');
+
         // Сетваме стойността, ако не е зададена
         if (!$rec->id && !$rec->visibleForPartners) {
             $data->form->setDefault('visibleForPartners', 'no');

@@ -316,15 +316,4 @@ class doc_Comments extends core_Master
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('Comments', 'Прикачени файлове в коментарите', NULL, '300 MB', 'user', 'user');
     }
-    
-    
-    /**
-     * Изпълнява се след подготовката на ролите
-     */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-    {
-        if($action == 'add' && empty($rec)){
-            $requiredRoles = 'no_one';
-        }
-    }
 }

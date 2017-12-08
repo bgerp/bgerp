@@ -11,20 +11,12 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class sales_Sales extends deals_DealMaster
 {
-	
-    
-    /**
-     * Дали да се показва бутон на чернова документ
-     * 
-     * @see doc_EmailCreatePlg
-     */
-	public $canEmailDraft = TRUE;
 	
 	
 	/**
@@ -51,14 +43,14 @@ class sales_Sales extends deals_DealMaster
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf,
                           acc_TransactionSourceIntf=sales_transaction_Sale,
                           bgerp_DealIntf, bgerp_DealAggregatorIntf, deals_DealsAccRegIntf, 
-                          acc_RegisterIntf,batch_MovementSourceIntf=batch_movements_Deal,deals_InvoiceSourceIntf,colab_CreateDocumentIntf';
+                          acc_RegisterIntf,deals_InvoiceSourceIntf,colab_CreateDocumentIntf,acc_AllowArticlesCostCorrectionDocsIntf,trans_LogisticDataIntf,hr_IndicatorsSourceIntf';
     
     
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, sales_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Registry, doc_plg_MultiPrint, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
-                    acc_plg_DocumentSummary, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
+                    acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close';
     
     
@@ -66,12 +58,6 @@ class sales_Sales extends deals_DealMaster
      * Активен таб на менюто
      */
     public $menuPage = 'Търговия:Продажби';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,sales';
     
     
     /**
@@ -107,13 +93,13 @@ class sales_Sales extends deals_DealMaster
 	/**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,sales';
+	public $canList = 'ceo,sales,acc';
 	
 	
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,sales';
+	public $canSingle = 'ceo,sales,acc';
     
 
 	/**
@@ -138,7 +124,7 @@ class sales_Sales extends deals_DealMaster
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'valior, title=Документ, currencyId=Валута, amountDeal, amountDelivered, amountPaid, amountInvoiced,
-                             dealerId, initiatorId,paymentState,
+                             dealerId=Търговец,paymentState,
                              createdOn, createdBy';
 
 
@@ -185,6 +171,12 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
+     * Кой може да превалутира документите в нишката
+     */
+    public $canChangerate = 'ceo, salesMaster';
+    
+    
+    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
@@ -193,6 +185,7 @@ class sales_Sales extends deals_DealMaster
     	'paymentMethodId'    => 'clientCondition|lastDocUser|lastDoc',
     	'currencyId'         => 'lastDocUser|lastDoc|CoverMethod',
     	'bankAccountId'      => 'lastDocUser|lastDoc',
+    	'caseId'             => 'lastDocUser|lastDoc',
     	'makeInvoice'        => 'lastDocUser|lastDoc',
     	'deliveryLocationId' => 'lastDocUser|lastDoc',
     	'chargeVat'			 => 'lastDocUser|lastDoc|defMethod',
@@ -205,12 +198,6 @@ class sales_Sales extends deals_DealMaster
      * В коя група по дефолт да влизат контрагентите, към които е направен документа
      */
     public $crmDefGroup = 'customers';
-    
-    
-    /**
-     * Кое поле показва сумата на сделката
-     */
-    public $canClosewith = 'ceo,salesMaster';
     
     
     /**
@@ -243,7 +230,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'deliveryTermId, deliveryLocationId, shipmentStoreId, paymentMethodId, currencyId, bankAccountId, caseId, initiatorId, dealerId, folderId, id';
+    public $searchFields = 'deliveryTermId, deliveryLocationId, shipmentStoreId, paymentMethodId, currencyId, bankAccountId, caseId, initiatorId, dealerId, folderId, reff, note';
     
     
     /**
@@ -273,16 +260,26 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, valior,deliveryTime,modifiedOn';
+    
+    
+    /**
+     * Кои които трябва да имат потребителите да се изберат като дилъри
+     */
+    public $dealerRolesList = 'sales,ceo';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
         parent::setDealFields($this);
-        $this->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,class=contactData,after=valior');
         $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban,allowEmpty)', 'caption=Плащане->Банкова с-ка,after=currencyRate,notChangeableByContractor');
         $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Цени,notChangeableByContractor');
-        $this->FLD('deliveryTermTime', 'time(uom=days,suggestions=1 ден|5 дни|10 дни|1 седмица|2 седмици|1 месец)', 'caption=Доставка->Срок дни,after=deliveryTime,notChangeableByContractor');
-    	$this->setField('shipmentStoreId', "salecondSysId=defaultStoreSale");
+        $this->setField('shipmentStoreId', "salecondSysId=defaultStoreSale");
     	$this->setField('deliveryTermId', 'salecondSysId=deliveryTermSale');
     	$this->setField('paymentMethodId', 'salecondSysId=paymentMethodSale');
     }
@@ -317,12 +314,6 @@ class sales_Sales extends deals_DealMaster
     		
     		$form->setDefault('dealerId', $dealerId);
     	}
-    	
-    	if ($form->isSubmitted()) {
-    		if(isset($rec->deliveryTermTime) && isset($rec->deliveryTime)){
-    			$form->setError('deliveryTime,deliveryTermTime', 'Трябва да е избран само един срок на доставка');
-    		}
-    	}
     }
     
     
@@ -331,33 +322,10 @@ class sales_Sales extends deals_DealMaster
      */
     public static function on_BeforeSave($mvc, $res, $rec)
     {
-    	if($rec->reff === ''){
-    		$rec->reff = NULL;
-    	}
-    	
-		// Ако има б. сметка се нотифицират операторите и
+    	// Ако има б. сметка се нотифицират операторите и
     	if($rec->bankAccountId){
     		$operators = bank_OwnAccounts::fetchField("#bankAccountId = '{$rec->bankAccountId}'",'operators');
     		$rec->sharedUsers = keylist::merge($rec->sharedUsers, $operators);
-    	}
-    }
-    
-    
-    /**
-     * Преди ъпдейт след промяна на детайла
-     */
-    public static function on_BeforeUpdatedMaster($mvc, &$rec)
-    {
-    	if(isset($rec->id) && empty($rec->deliveryTime)){
-    		
-    		$dQuery = sales_SalesDetails::getQuery();
-    		$dQuery->where("#saleId = {$rec->id}");
-    		$dQuery->XPR('maxTerm', 'time', 'MAX(#term)');
-    		$dQuery->show('maxTerm');
-    		if($maxTerm = $dQuery->fetch()->maxTerm){
-    			
-    			$rec->deliveryTermTime = max($rec->deliveryTermTime, $maxTerm);
-    		}
     	}
     }
     
@@ -372,18 +340,6 @@ class sales_Sales extends deals_DealMaster
     {
         $form = &$data->form;
         $rec = $form->rec;
-       
-        // При клониране
-        if($data->action == 'clone'){
-        	
-        	// Ако няма reff взимаме хендлъра на оригиналния документ
-        	if(empty($rec->reff)){
-        		$rec->reff = $mvc->getHandle($rec->id);
-        	}
-        	
-        	// Инкрементираме reff-а на оригинална
-        	$rec->reff = str::addIncrementSuffix($rec->reff, 'v', 2);
-        }
         
         $myCompany = crm_Companies::fetchOwnCompany();
         
@@ -397,15 +353,6 @@ class sales_Sales extends deals_DealMaster
         }
        
         $form->setOptions('bankAccountId', $options);
-        if($bankAccountId = bank_OwnAccounts::getCurrent('bankAccountId', FALSE)){
-        	$accountRec = bank_Accounts::fetch($bankAccountId);
-        	$bankCurrencyCode = currency_Currencies::getCodeById($accountRec->currencyId);
-        	
-        	if($rec->currencyId == $bankCurrencyCode){
-        		$form->setDefault('bankAccountId', $bankAccountId);
-        	}
-        }
-       
         $form->setDefault('contragentClassId', doc_Folders::fetchCoverClassId($rec->folderId));
         $form->setDefault('contragentId', doc_Folders::fetchCoverId($rec->folderId));
         
@@ -424,7 +371,7 @@ class sales_Sales extends deals_DealMaster
         		// И условието на доставка е със скрито начисляване, не може да се сменя локацията и условието на доставка
         		if(isset($rec->deliveryTermId)){
         			if(cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost') == 'yes'){
-        				$form->setReadOnly('deliveryTermIdExtended');
+        				$form->setReadOnly('deliveryAdress');
         				$form->setReadOnly('deliveryLocationId');
         			}
         		}
@@ -452,10 +399,11 @@ class sales_Sales extends deals_DealMaster
     		if(sales_ClosedDeals::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
 	    		$data->toolbar->addBtn('Приключване', $closeArr, "row=2,ef_icon=img/16/closeDeal.png,title=Приключване на продажбата");
 	    	} else {
+	    		$exClosedDeal = sales_ClosedDeals::fetchField("#threadId = {$rec->threadId} AND #state != 'rejected'", 'id');
 	    		
 	    		// Ако разликата е над допустимата но потребителя има права 'sales', той вижда бутона но не може да го използва
-	    		if(!sales_ClosedDeals::isSaleDiffAllowed($rec) && haveRole('sales')){
-	    			$data->toolbar->addBtn('Приключване', $closeArr, "ef_icon=img/16/closeDeal.png,title=Приключване на продажбата,error=Нямате право да приключите продажба с разлика над допустимото");
+	    		if(!sales_ClosedDeals::isSaleDiffAllowed($rec) && haveRole('sales') && empty($exClosedDeal)){
+	    			$data->toolbar->addBtn('Приключване', $closeArr, "row=2,ef_icon=img/16/closeDeal.png,title=Приключване на продажбата,error=Нямате право да приключите продажба с разлика над допустимото|*!");
 	    		}
 	    	}
     		
@@ -569,6 +517,7 @@ class sales_Sales extends deals_DealMaster
     {
         $rec = $this->fetchRec($id);
         $actions = type_Set::toArray($rec->contoActions);
+        $detailId = sales_SalesDetails::getClassId();
         
         // Извличаме продуктите на продажбата
         $dQuery = sales_SalesDetails::getQuery();
@@ -603,14 +552,14 @@ class sales_Sales extends deals_DealMaster
         
         sales_transaction_Sale::clearCache();
         $entries = sales_transaction_Sale::getEntries($rec->id);
-        $deliveredAmount = sales_transaction_Sale::getDeliveryAmount($entries);
+        $deliveredAmount = sales_transaction_Sale::getDeliveryAmount($entries, $rec->id);
         $paidAmount = sales_transaction_Sale::getPaidAmount($entries, $rec);
         
         $result->set('agreedDownpayment', $downPayment);
         $result->set('downpayment', sales_transaction_Sale::getDownpayment($entries));
         $result->set('amountPaid', $paidAmount);
         $result->set('deliveryAmount', $deliveredAmount);
-        $result->set('blAmount', sales_transaction_Sale::getBlAmount($entries));
+        $result->set('blAmount', sales_transaction_Sale::getBlAmount($entries, $rec->id));
         
         // Опитваме се да намерим очакваното плащане
         $expectedPayment = NULL;
@@ -661,15 +610,26 @@ class sales_Sales extends deals_DealMaster
         }
         
         $agreed = array();
+        $agreed2 = array();
         foreach ($detailRecs as $dRec) {
             $p = new bgerp_iface_DealProduct();
             foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes') as $fld){
             	$p->{$fld} = $dRec->{$fld};
             }
-            $p->weight  = cat_Products::getWeight($p->productId, $p->packagingId, $p->quantity);
-            $p->volume  = cat_Products::getVolume($p->productId, $p->packagingId, $p->quantity);
+            
+            if(core_Packs::isInstalled('batch')){
+            	$bQuery = batch_BatchesInDocuments::getQuery();
+            	$bQuery->where("#detailClassId = {$detailId}");
+            	$bQuery->where("#detailRecId = {$dRec->id}");
+            	$bQuery->where("#productId = {$dRec->productId}");
+            	$p->batches = $bQuery->fetchAll();
+            }
             
             $agreed[] = $p;
+            
+            $p1 = clone $p;
+            unset($p1->notes);
+            $agreed2[] = $p1;
             
             $push = TRUE;
             $index = $p->productId;
@@ -689,7 +649,7 @@ class sales_Sales extends deals_DealMaster
          }
          
          $result->set('dealProducts', $agreed);
-         $agreed = deals_Helper::normalizeProducts(array($agreed));
+         $agreed = deals_Helper::normalizeProducts(array($agreed2));
          $result->set('products', $agreed);
          $result->set('contoActions', $actions);
          $result->set('shippedProducts', sales_transaction_Sale::getShippedProducts($entries));
@@ -725,9 +685,9 @@ class sales_Sales extends deals_DealMaster
      */
     function cron_CloseOldSales()
     {
-    	$conf = core_Packs::getConfig('sales');
-    	$olderThan = $conf->SALE_CLOSE_OLDER_THAN;
-    	$limit = $conf->SALE_CLOSE_OLDER_NUM;
+    	$conf        = core_Packs::getConfig('sales');
+    	$olderThan   = $conf->SALE_CLOSE_OLDER_THAN;
+    	$limit       = $conf->SALE_CLOSE_OLDER_NUM;
     	$ClosedDeals = cls::get('sales_ClosedDeals');
     	
     	$this->closeOldDeals($olderThan, $ClosedDeals, $limit);
@@ -745,10 +705,10 @@ class sales_Sales extends deals_DealMaster
         $rec->description = "Затваряне на приключените продажби";
         $rec->controller = "sales_Sales";
         $rec->action = "CloseOldSales";
-        $rec->period = 180;
+        $rec->period = 60;
         $rec->offset = mt_rand(0,30);
         $rec->delay = 0;
-        $rec->timeLimit = 100;
+        $rec->timeLimit = 200;
         $res .= core_Cron::addOnce($rec);
 
         // Проверка по крон дали продажбата е просрочена
@@ -777,8 +737,10 @@ class sales_Sales extends deals_DealMaster
     	$tplArr[] = array('name' => 'Sales contract',         'content' => 'sales/tpl/sales/SaleEN.shtml', 'lang' => 'en', 'narrowContent' => 'sales/tpl/sales/SaleNarrowEN.shtml');
     	$tplArr[] = array('name' => 'Manufacturing contract', 'content' => 'sales/tpl/sales/ManufacturingEN.shtml', 'lang' => 'en', 'narrowContent' => 'sales/tpl/sales/ManufacturingNarrowEN.shtml');
     	$tplArr[] = array('name' => 'Service contract',       'content' => 'sales/tpl/sales/ServiceEN.shtml', 'lang' => 'en', 'narrowContent' => 'sales/tpl/sales/ServiceNarrowEN.shtml');
-       
-        $res .= doc_TplManager::addOnce($this, $tplArr);
+		$tplArr[] = array('name' => 'Договор за транспорт',   'content' => 'sales/tpl/sales/Transport.shtml', 'lang' => 'bg', 'narrowContent' => 'sales/tpl/sales/TransportNarrow.shtml');
+
+
+		$res .= doc_TplManager::addOnce($this, $tplArr);
     }
     
     
@@ -819,6 +781,23 @@ class sales_Sales extends deals_DealMaster
     	if($action == 'closewith' && isset($rec)){
     		if(sales_SalesDetails::fetch("#saleId = {$rec->id}")){
     			$res = 'no_one';
+    		} elseif(!haveRole('sales,ceo', $userId)){
+    			$res = 'no_one';
+    		}
+    	}
+    	
+    	// Проверка на екшъна за създаване на артикул към продажба
+    	if($action == 'createsaleforproduct'){
+    		$res = $mvc->getRequiredRoles('add', $rec, $userId);
+    		if(isset($rec) && $res != 'no_one'){
+    			if(empty($rec->productId) || empty($rec->folderId)){
+    				$res = 'no_one';
+    			} else {
+    				$pRec = cat_Products::fetch($rec->productId, 'state,canSell');
+    				if($pRec->state != 'active' || $pRec->canSell != 'yes'){
+    					$res = 'no_one';
+    				}
+    			}
     		}
     	}
     }
@@ -909,7 +888,7 @@ class sales_Sales extends deals_DealMaster
     	foreach (array('sales_Sales', 'store_ShipmentOrders', 'sales_Services') as $Cls){
     		$query = $Cls::getQuery();
     		$query->where("#contragentClassId = {$Contragent->getClassId()} AND #contragentId = {$contragentId}");
-    		$query->where("#state = 'active' || #state = 'closed'");
+    		$query->where("#state = 'active' OR #state = 'closed'");
     		$query->show('id');
     		$query->orderBy("valior", 'DESC');
     		while($rec = $query->fetch()){
@@ -933,7 +912,7 @@ class sales_Sales extends deals_DealMaster
     		foreach (array('sales_SalesDetails', 'store_ShipmentOrderDetails', 'sales_ServicesDetails') as $Detail){
     			$Detail = cls::get($Detail);
     			$dQuery = $Detail->getQuery();
-    			$dQuery->where("#state = 'active' || #state = 'closed'");
+    			$dQuery->where("#state = 'active' OR #state = 'closed'");
     			$dQuery->show("productId,price,{$Detail->masterKey}");
     			
     			$dQuery->EXT('state', $Detail->Master->className, "externalName=state,externalKey={$Detail->masterKey}");
@@ -978,7 +957,7 @@ class sales_Sales extends deals_DealMaster
     	if(!isset($data->tabs)) return;
     	$url = getCurrentUrl();
     	
-    	if(haveRole('ceo,planning,sales,store')){
+    	if(haveRole('ceo,planning,sales,store,job')){
     		$manifacturable = static::getManifacurableProducts($data->rec);
     		if(count($manifacturable)){
     			$url['dealTab'] = 'JobsInfo';
@@ -1004,14 +983,16 @@ class sales_Sales extends deals_DealMaster
     	$dQuery->where("#saleId = {$rec->id}");
     	$dQuery->show('productId,packagingId,quantity,tolerance');
     	
+    	$data->jobs = array();
     	while($dRec = $dQuery->fetch()){
-    		if($dRow = sales_SalesDetails::prepareJobInfo($dRec, $rec)){
-    			$data->JobsInfo[] = $dRow;
+    		$jobRows = sales_SalesDetails::prepareJobInfo($dRec, $rec);
+    		if(count($jobRows)){
+    			$data->jobs += $jobRows;
     		}
     	}
     	
     	if(planning_Jobs::haveRightFor('Createjobfromsale', (object)array('saleId' => $rec->id))){
-    		$data->addJobUrl = array('planning_Jobs', 'CreateJobFromSale', 'saleId' => $rec->id, 'ret_url' => TRUE);
+    		$data->addJobUrl = array('planning_Jobs', 'CreateJobFromSale', 'saleId' => $rec->id, 'foreignId' => $rec->containerId,'ret_url' => TRUE);
     	}
     }
     
@@ -1025,14 +1006,12 @@ class sales_Sales extends deals_DealMaster
     protected function renderJobsInfo(&$tpl, $data)
     {
     	// Ако има подготвена информация за наличните задания, рендираме я
-    	if($data->tabs->hasTab('JobsInfo') && haveRole('ceo,planning,sales,store')){
+    	if($data->tabs->hasTab('JobsInfo') && haveRole('ceo,planning,sales,store,job')){
     		
     		$Jobs = cls::get('planning_Jobs');
     		$table = cls::get('core_TableView', array('mvc' => $Jobs));
     		
-    		plg_AlignDecimals2::alignDecimals($Jobs, $data->jobInfo, $data->jobInfo);
-    		
-    		foreach ($data->JobsInfo as &$row){
+    		foreach ($data->jobs as &$row){
     			foreach (array('quantity', 'quantityFromTasks', 'quantityProduced') as $var){
     				if($row->{$var} == 0){
     						$row->{$var} = "<span class='quiet'>{$row->{$var}}</span>";
@@ -1040,7 +1019,7 @@ class sales_Sales extends deals_DealMaster
     				}
     			}
     	
-    			$jobsTable = $table->get($data->JobsInfo, 'jobId=Задание,productId=Артикул,dueDate=Падеж,quantity=Количество->Планирано,quantityFromTasks=Количество->Произведено,quantityProduced=Количество->Заскладено');
+    			$jobsTable = $table->get($data->jobs, 'jobId=Задание,productId=Артикул,dueDate=Падеж,quantity=Количество->Планирано,quantityFromTasks=Количество->Произведено,quantityProduced=Количество->Заскладено');
     			$jobTpl = new core_ET("<div style='margin-top:6px'>[#table#]</div>");
     			$jobTpl->replace($jobsTable, 'table');
     			$tpl->replace($jobTpl, 'JOB_INFO');
@@ -1087,7 +1066,6 @@ class sales_Sales extends deals_DealMaster
      */
     static function getThreadState_($id)
     {
-        
         return NULL;
     }
     
@@ -1125,22 +1103,20 @@ class sales_Sales extends deals_DealMaster
 
         if(isset($fields['-list'])){  
             $row->title .= "<div>{$row->folderId}</div>";
-
-      
         }
 
-    	
     	if(isset($fields['-single'])){
     		
-    		$commonSysId = ($rec->tplLang == 'bg') ? "commonConditionSale" : "commonConditionSaleEng";
-    		if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $commonSysId)){
-    			$row->commonConditionQuote = cls::get('type_Varchar')->toVerbal($cond);
+    		if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, "commonConditionSale")){
+    			$row->commonConditionQuote = cls::get('type_Url')->toVerbal($cond);
     		}
     		
-    		$row->transportCurrencyId = $row->currencyId;
-    		$rec->hiddenTransportCost = tcost_Calcs::calcInDocument($mvc, $rec->id) / $rec->currencyRate;
-    		$rec->expectedTransportCost = $mvc->getExpectedTransportCost($rec) / $rec->currencyRate;
-    		$rec->visibleTransportCost = $mvc->getVisibleTransportCost($rec) / $rec->currencyRate;
+    		if ($rec->currencyRate) {
+    		    $row->transportCurrencyId = $row->currencyId;
+    		    $rec->hiddenTransportCost = tcost_Calcs::calcInDocument($mvc, $rec->id) / $rec->currencyRate;
+    		    $rec->expectedTransportCost = $mvc->getExpectedTransportCost($rec) / $rec->currencyRate;
+    		    $rec->visibleTransportCost = $mvc->getVisibleTransportCost($rec) / $rec->currencyRate;
+    		}
     		
     		tcost_Calcs::getVerbalTransportCost($row, $leftTransportCost, $rec->hiddenTransportCost, $rec->expectedTransportCost, $rec->visibleTransportCost);
     		
@@ -1209,7 +1185,7 @@ class sales_Sales extends deals_DealMaster
     		$fee = tcost_Calcs::getTransportCost($rec->deliveryTermId, $p2->productId, $p2->packagingId, $p2->quantity, $totalWeight, $codeAndCountryArr['countryId'], $codeAndCountryArr['pCode']);
     		
     		// Сумира се, ако е изчислен
-    		if(is_array($fee) && $fee['totalFee'] != tcost_CostCalcIntf::CALC_ERROR){
+    		if(is_array($fee) && $fee['totalFee'] > 0){
     			$expectedTransport += $fee['totalFee'];
     		}
     	}
@@ -1220,16 +1196,166 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
-     * Преди записване на клонирания запис
-     * 
-     * @param core_Mvc $mvc
-     * @param object $rec
-     * @param object $nRec
-     * 
-     * @see plg_Clone
+     * Списък с артикули върху, на които може да им се коригират стойностите
+     * @see acc_AllowArticlesCostCorrectionDocsIntf
+     *
+     * @param mixed $id               - ид или запис
+     * @return array $products        - масив с информация за артикули
+     * 			    o productId       - ид на артикул
+     * 				o name            - име на артикула
+     *  			o quantity        - к-во
+     *   			o amount          - сума на артикула
+     *   			o inStores        - масив с ид-то и к-то във всеки склад в който се намира
+     *    			o transportWeight - транспортно тегло на артикула
+     *     			o transportVolume - транспортен обем на артикула
      */
-    function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
+    function getCorrectableProducts($id)
     {
-        unset($nRec->state);
+    	$rec = $this->fetchRec($id);
+    
+    	// Взимаме артикулите от сметка 701
+    	$products = array();
+    	$entries = sales_transaction_Sale::getEntries($rec->id);
+    	$shipped = sales_transaction_Sale::getShippedProducts($entries);
+    	
+    	if(count($shipped)){
+    		foreach ($shipped as $ship){
+    			unset($ship->price);
+    			$ship->name = cat_Products::getTitleById($ship->productId, FALSE);
+    	
+    			if($transportWeight = cat_Products::getParams($ship->productId, 'transportWeight')){
+    				$ship->transportWeight = $transportWeight;
+    			}
+    	
+    			if($transportVolume = cat_Products::getParams($ship->productId, 'transportVolume')){
+    				$ship->transportVolume = $transportVolume;
+    			}
+    	
+    			$products[$ship->productId] = $ship;
+    		}
+    	}
+    	
+    	return $products;
+    }
+    
+    
+    /**
+     * След промяна в журнала със свързаното перо
+     */
+    public static function on_AfterJournalItemAffect($mvc, $rec, $item)
+    {
+    	core_Cache::remove('sales_reports_ShipmentReadiness', "c{$rec->containerId}");
+    }
+    
+    
+    /**
+     * Екшън за създаване на продажба директно от нестандартен артикул
+     */
+    function act_createsaleforproduct()
+    {
+    	$this->requireRightFor('createsaleforproduct');
+    	expect($folderId = core_Request::get('folderId', 'int'));
+    	expect($productId = core_Request::get('productId', 'int'));
+    	expect($productRec = cat_Products::fetch($productId));
+    	
+    	$this->requireRightFor('createsaleforproduct', (object)array('folderId' => $folderId, 'productId' => $productId));
+    	$cover = doc_Folders::getCover($folderId);
+    	
+    	// Създаване на продажба и редирект към добавянето на артикула
+    	expect($saleId = sales_Sales::createNewDraft($cover->getInstance(), $cover->that));
+    	redirect(array('sales_SalesDetails', 'add', 'saleId' => $saleId, 'productId' => $productId));
+    }
+    
+    
+    /**
+     * Подготовка на бутоните на формата за добавяне/редактиране.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    {
+    	$rec = $data->form->rec;
+    	if (empty($rec->id)) {
+    		if(sales_SalesDetails::haveRightFor('importlisted') && cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, salesList)){
+    			$data->form->toolbar->addSbBtn('Чернова и лист', 'save_and_list', 'id=btnsaveAndList,order=9.99987','ef_icon = img/16/save_and_new.png');
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Пренасочва URL за връщане след запис към сингъл изгледа
+     */
+    protected static function on_AfterPrepareRetUrl($mvc, $res, $data)
+    {
+    	// Ако има форма, и тя е събмитната и действието е 'запис'
+    	if ($data->form && $data->form->isSubmitted() && $data->form->cmd == 'save_and_list') {
+    		$id = $data->form->rec->id;
+    		if(sales_SalesDetails::haveRightFor('importlisted', (object)array('saleId' => $id))){
+    			$data->retUrl = toUrl(array('sales_SalesDetails', 'importlisted', 'saleId' => $id, 'ret_url' => toUrl(array('sales_Sales', 'single', $id), 'local')));
+    			
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Интерфейсен метод на hr_IndicatorsSourceIntf
+     *
+     * @param date $date
+     * @return array $result
+     */
+    public static function getIndicatorNames()
+    {
+    	$result = array();
+    	$rec = hr_IndicatorNames::force('Активирани_продажби', __CLASS__, 1);
+    	$result[$rec->id] = $rec->name;
+    
+    	return $result;
+    }
+    
+    
+    /**
+     * Метод за вземане на резултатност на хората. За определена дата се изчислява
+     * успеваемостта на човека спрямо ресурса, които е изпозлвал
+     *
+     * @param date $timeline  - Времето, след което да се вземат всички модифицирани/създадени записи
+     * @return array $result  - масив с обекти
+     *
+     * 			o date        - дата на стайноста
+     * 		    o personId    - ид на лицето
+     *          o docId       - ид на документа
+     *          o docClass    - клас ид на документа
+     *          o indicatorId - ид на индикатора
+     *          o value       - стойноста на индикатора
+     *          o isRejected  - оттеглена или не. Ако е оттеглена се изтрива от индикаторите
+     */
+    public static function getIndicatorValues($timeline)
+    {
+    	$result = array();
+    	$iRec = hr_IndicatorNames::force('Активирани_продажби', __CLASS__, 1);
+    	 
+    	$query = self::getQuery();
+    	$query->where("#state = 'active' || #state = 'closed' || (#state = 'rejected' && (#brState = 'active' || #brState = 'closed'))");
+    	$query->where("#activatedOn >= '{$timeline}'");
+    	$query->show('activatedBy,activatedOn,state');
+    	 
+    	while($rec = $query->fetch()){
+    		$personId = crm_Profiles::fetchField("#userId = {$rec->activatedBy}", 'personId');
+    		if(empty($personId)) continue;
+    		
+    		$result[] = (object)array('date'        => dt::verbal2mysql($rec->activatedOn, FALSE),
+    								  'personId'    => $personId,
+    								  'docId'       => $rec->id,
+    								  'docClass'    => sales_Sales::getClassId(),
+    								  'indicatorId' => $iRec->id,
+    								  'value'       => 1,
+    								  'isRejected'  => $rec->state == 'rejected',
+    		);
+    	}
+    
+    	return $result;
     }
 }

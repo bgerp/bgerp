@@ -88,6 +88,13 @@ class type_Percent extends type_Double {
 
         setIfNot($attr['placeholder'], '%');
 
+        // Възможност за задаване на предложения
+        if (!$this->suggestions) {
+        	if(!empty($this->params['suggestions'])) {
+        		$this->suggestions = array('' => '') + arr::make(explode('|', $this->params['suggestions']), TRUE);
+        	}
+        }
+        
         return parent::renderInput_($name, $value, $attr);
     }
     

@@ -140,7 +140,7 @@
                             <li>|Срок за доставка|* [#deliveryTermTime#] |след стартиране на договора|*</li>
                             <!--ET_END deliveryTermTime--> 
                             <!--ET_BEGIN commonConditionQuote-->
-                            <li>[#commonConditionQuote#]</li>
+                            <li>|Общи условия по продажба|*: [#commonConditionQuote#]</li>
                             <!--ET_END commonConditionQuote-->
                         </ol>
                     </div>
@@ -154,7 +154,7 @@
                 <td>
                     <table class='signature-table' style='width:1%;'>
                         <tr>
-                            <td style='width:1%;'>|За получателя|*:  </td>
+                            <td class="nowrap"  style='width:1%;'>|За получателя|*:  </td>
                             <td></td>
                         </tr>
                         <tr>
@@ -166,7 +166,7 @@
                 <td>
                     <table style='width:1%'  class='fright signature-table'>
                         <tr>
-                            <td style='width:1%;'>|За доставчика|*:  </td>
+                            <td class="nowrap" style='width:1%;'>|За доставчика|*:  </td>
                             <td></td>
                         </tr>
                         <tr>

@@ -1,0 +1,63 @@
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+
+<div class="cv-document">
+    <table class="CVTable">
+        <tr>
+            <td colspan = 3 class="title" style="padding-top: 0">
+                |Лична информация|*
+            </td>
+        </tr>
+        <tr>
+            <td class="aright">|Име|*:</td>
+            <td class="aleft" style="font-weight: bold"> [#name#]</td>
+            <td rowspan="5">[#image#]</td>
+        </tr>
+
+        <tr>
+            <td class="aright">|ЕГН|*: </td>
+            <td class="aleft"> [#egn#]</td>
+        </tr>
+        <tr>
+            <td class="aright">|Адрес|*:</td>
+            <td class="aleft"> [#country#], [#pCode#] [#place#], [#address#]</td>
+        </tr>
+        <tr>
+            <td class="aright">|Телефон|*: </td>
+            <td class="aleft"> [#tel#], [#mobile#] </td>
+        </tr>
+        <tr>
+            <td class="aright">Е-mail:</td>
+            <td class="aleft"> [#email#]</td>
+        </tr>
+        <tr>
+            <td colspan = 3 class="title">
+                |Трудов стаж|*
+            </td>
+        </tr>
+        <tr>
+            <td colspan = 3>
+                [#workExperience#]
+            </td>
+        </tr>
+        <tr>
+            <td colspan = 3 class="title">
+                |Образование и обучение|*
+            </td>
+        </tr>
+        <tr>
+            <td colspan = 3>
+                [#education#]
+            </td>
+        </tr>
+
+        <tr>
+            <td colspan = 3 class="title">
+                |Допълнителна информация|*
+            </td>
+        </tr>
+            [#workpreff#]
+
+    </table>
+
+    [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
+</div>

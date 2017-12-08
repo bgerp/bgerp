@@ -98,11 +98,16 @@ class email_UserInboxPlg extends core_Plugin
      * Изпълнява се след обновяване на информацията за потребител
      */
     public static function on_AfterUpdate($mvc, $rec, $fields = NULL)
-    {   
+    {
         $fieldsArr = $mvc->prepareSaveFields($fields, $rec);
-        if (($personId = crm_Profiles::fetchField("#userId = {$rec->id}", 'personId')) && $fieldsArr['nick']) { 
-            crm_Profiles::syncPerson($personId, $rec);
-        }
+
+        if($fieldsArr['nick'] && $rec->nick) {
+            if (($personId = crm_Profiles::fetchField("#userId = {$rec->id}", 'personId'))) { 
+                crm_Profiles::syncPerson($personId, $rec);
+            } else {
+                self::on_AfterCreate($mvc, $rec);
+            }
+        } 
     }
     
     
@@ -230,7 +235,7 @@ class email_UserInboxPlg extends core_Plugin
     /**
      * Определяне на правата за действия над потребителите
      */
-    function on_AfterGetRequiredRoles($mvc, &$roles, $action, $uRec, $user = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $uRec, $user = NULL)
     {
         if($action == 'delete') {
             if(is_object($uRec) && (($uRec->state != 'draft') || $uRec->lastLoginTime || doc_Folders::fetch("#inCharge = {$uRec->id}"))) {

@@ -41,26 +41,20 @@ class findeals_AdvanceReports extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, findeals_Wrapper, plg_Printing, acc_plg_Contable, 
-                    doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
+                    doc_DocumentPlg, acc_plg_DocumentSummary,cat_plg_AddSearchKeywords, plg_Search,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices';
-
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,pettyCashReport';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,pettyCashReport';
+	public $canList = 'ceo,pettyCashReport,acc';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,pettyCashReport';
+	public $canSingle = 'ceo,pettyCashReport,acc';
     
     
     /**
@@ -157,6 +151,18 @@ class findeals_AdvanceReports extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'valior,folderId';
+    
+    
+    /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
+    
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, valior,modifiedOn';
     
     
     /**
@@ -270,17 +276,6 @@ class findeals_AdvanceReports extends core_Master
     {
     	return FALSE;
     }
-    
-    
-    /**
-     * Връща разбираемо за човека заглавие, отговарящо на записа
-     */
-    public static function getRecTitle($rec, $escaped = TRUE)
-    {
-    	$self = cls::get(__CLASS__);
-    	 
-    	return "{$self->singleTitle} №{$rec->id}";
-    }
     	
     
     /**
@@ -323,17 +318,6 @@ class findeals_AdvanceReports extends core_Master
     	}
     	 
     	return $options;
-    }
-    
-    
-    /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    protected static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	if(!empty($data->toolbar->buttons['btnAdd'])){
-    		$data->toolbar->removeBtn('btnAdd');
-    	}
     }
     
     

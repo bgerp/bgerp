@@ -126,7 +126,7 @@ class bgerp_E extends core_Manager
             
             $host = defined('BGERP_ABSOLUTE_HTTP_HOST') ? BGERP_ABSOLUTE_HTTP_HOST : $_SERVER['HTTP_HOST'];
             
-            $form->info = "<div class='formNotice'>" . tr("Внимание|*! |Понеже линкът сочи към локален адрес|* ({$host}), |той няма да е достъпен от други компютри в интернет|*.") . "</div>";
+            $form->info = "<div class='formNotice'>" . tr("Внимание|*! |Понеже линкът сочи към локален адрес|* ({$host}), |той няма да е достъпен от други компютри в Интернет|*.") . "</div>";
         }
         
         if ($form->isSubmitted()) {
@@ -199,7 +199,7 @@ class bgerp_E extends core_Manager
             
             $form->setField('format, validity', 'input=none');
 			
-            $form->toolbar->addBtn('Сваляне', $downloadUrl, "ef_icon = fileman/icons/{$format}.png, title=" . tr('Сваляне на документа'));
+            $form->toolbar->addBtn('Сваляне', $downloadUrl, "ef_icon = fileman/icons/16/{$format}.png, title=" . tr('Сваляне на документа'));
             $form->toolbar->addBtn('Затваряне', $retUrl, 'ef_icon = img/16/close-red.png, title=' . tr('Връщане към документа') . ', class=fright');
             
             $form->title = "Линк за сваляне";

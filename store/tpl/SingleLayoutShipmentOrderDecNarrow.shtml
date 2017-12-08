@@ -2,7 +2,7 @@
    <table class="innerTable border-table paddingCells">
       <tbody>
          <tr>
-            <td colspan="2" class='centered'>
+            <td class='centered'>
                <div class="document-title">|експедиционно нареждане|*</div>
                <!--ET_BEGIN operationSysId-->
                <small>( [#operationSysId#] )</small>
@@ -16,8 +16,7 @@
             </td>
          </tr>
          <tr>
-            <td class="cell custom-header-bg" style="width: 50%"><b>|Получател|*</b></td>
-            <td class="cell custom-header-bg" style="width: 50%"><b>|Доставчик|*</b></td>
+            <td class="cell custom-header-bg"><b>|Получател|*</b></td>
          </tr>
          <tr>
             <td class="cell">
@@ -33,6 +32,11 @@
                </div>
                <!--ET_END locationId-->
             </td>
+         </tr>
+         <tr>
+            <td class="cell custom-header-bg"><b>|Доставчик|*</b></td>
+         </tr>
+         <tr>
             <td class="cell">
                <b>[#MyCompany#]</b>
                <div class='address-block'>
@@ -64,7 +68,7 @@
                <table class='shipment-table' style='width: 100%'>
                   <!--ET_BEGIN deliveryTime-->
                   <tr>
-                     <td class='quiet nowrap aright' style='width:1%'>|Срок до|*:</td>
+                     <td class='quiet nowrap aright' style='width:1%'>|Натоварване|*:</td>
                      <td>[#deliveryTime#]</td>
                   </tr>
                   <!--ET_END deliveryTime-->
@@ -96,8 +100,9 @@
                <div class='clearfix21' style='margin-bottom: 5px;'>
                   <div>
                      <span class='half-col'>|Общо тегло|*:&nbsp;[#weight#]</span>  <span class='half-col'>|Общ обем|*:&nbsp;[#volume#]</span>
-                     <!--ET_BEGIN colletsCount--><span class='half-col'>|Изчислен брой палети|*:&nbsp;[#colletsCount#]</span><!--ET_END colletsCount--> <!--ET_BEGIN palletCountInput--><span class='half-col'>|Брой палети|*: [#palletCountInput#]</span><!--ET_END palletCountInput-->
                   </div>
+                  <div class='clearfix21'>
+                  <!--ET_BEGIN logisticInfo--><div style='margin-bottom:3px;margin-top:3px;'>|Логистични единици|*:&nbsp;[#logisticInfo#]</div><!--ET_END logisticInfo--> 
                </div>
                <!--ET_BEGIN responsible-->
                <hr>
@@ -118,15 +123,10 @@
 </div>
 <div style='margin-top:20px'>
    <a href="javascript:toggleDisplay([#id#])"  style="font-weight:bold; background-image:url([#iconPlus#]);"
-      class="linkWithIcon">|Декларация за доставка|*</a>
+      class="linkWithIcon more-btn">|Декларация за доставка|*</a>
    <div class='clearfix21 richtextHide' id='[#id#]'>
-      <div>|Ние|*, [#contragentName#]</div>
-      <div>|Адрес|*: [#contragentAddress#]</div>
-      <div>|Ват. №|*: [#vatNo#]</div>
-      <br>
-      <div>|Потвърждаваме|*, |че|* |продуктите упоменати във фактура|* № <b>....... </b> |са получени на посочения адрес|*:</div>
-      <div>[#deliveryAddress#]</div>
-      <br>
+      <div class="indent">|Ние|*, [#toCompany#]<!--ET_BEGIN inlineContragentAddress-->, |с адрес|*: [#inlineContragentAddress#]<!--ET_END inlineContragentAddress--><!--ET_BEGIN vatNo-->, |ЕИК|*: [#vatNo#]<!--ET_END vatNo-->,</div>
+      <div>|потвърждаваме|*, |че|* |продуктите|* <!--ET_BEGIN invoiceHandler-->|упоменати във фактура|* № <b>[#invoiceHandler#]</b><!--ET_END invoiceHandler--> |са получени|*<!--ET_BEGIN inlineDeliveryAddress-->|на посочения адрес|*: [#inlineDeliveryAddress#]<!--ET_END inlineDeliveryAddress-->.</div>
       <table class="fleft signature-table" style='width: 30%'>
          <tr>
             <td style='width: 1%'>|Дата|*:  </td>

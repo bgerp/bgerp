@@ -1,6 +1,7 @@
 <?php 
 
 
+
 /**
  * Детайли на фактурите
  *
@@ -8,7 +9,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -40,7 +41,7 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, plg_Created, plg_Sorting, sales_Wrapper, plg_RowNumbering, plg_SaveAndNew, plg_AlignDecimals2, doc_plg_HidePrices, deals_plg_DpInvoice,Policy=price_ListToCustomers, 
-                        LastPricePolicy=sales_SalesLastPricePolicy, plg_PrevAndNext';
+                        LastPricePolicy=sales_SalesLastPricePolicy, plg_PrevAndNext,cat_plg_ShowCodes';
     
     
     /**
@@ -58,13 +59,7 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
     /**
      * Кой може да пише?
      */
-    public $canWrite = 'invoicer, ceo';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'invoicer, ceo';
+    public $canWrite = 'powerUser';
     
     
     /**
@@ -86,65 +81,52 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
     {
         $this->FLD('invoiceId', 'key(mvc=sales_Invoices)', 'caption=Фактура, input=hidden, silent');
         parent::setInvoiceDetailFields($this);
+        $this->FLD('batches', 'text(rows=1)', 'caption=Допълнително->Партиди, input=none, before=notes');
     }
     
     
     /**
-     * След подготовка на лист тулбара
+     * Извиква се след подготовката на формата
      */
-    public static function on_AfterPrepareListToolbar($mvc, &$data)
+    public static function on_AfterPrepareEditForm($mvc, $data)
     {
-    	// Добавяне на бутон за импортиране на артикулите директно от договора
-    	if($mvc->haveRightFor('importfromsale', (object)array("{$mvc->masterKey}" => $data->masterId))){
-    		$data->toolbar->addBtn('От договора', array($mvc, 'importfromsale', "{$mvc->masterKey}" => $data->masterId, 'ret_url' => TRUE),
-    		"id=btnImportFromSale-{$masterRec->id},{$error} order=10,title=Импортиране на артикулите от договора,warning=Артикулите ще бъдат точно копирани от договора|*!", 'ef_icon = img/16/shopping.png');
+    	$form = &$data->form;
+    	$rec = &$data->form->rec;
+    	
+    	if(core_Packs::isInstalled('batch')){
+    		$form->setField('batches', 'input');
     	}
     }
     
     
     /**
-     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     * Изпълнява се след създаване на нов запис
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterCreate($mvc, $rec)
     {
-    	if($action == 'importfromsale'){
-    		$requiredRoles = $mvc->getRequiredRoles('add', $rec, $userId);
+    	$containerId = sales_Invoices::fetchField($rec->invoiceId, 'threadId');
+    	
+    	// Ако е инсталиран пакета за партиди
+    	if(core_Packs::isInstalled('batch')){
     		
-    		// Ако има поне един детайл да не могат да се импортират артикулите от договора
-    		if($requiredRoles != 'no_one' && isset($rec->{$mvc->masterKey})){
-    			if(sales_InvoiceDetails::count("#{$mvc->masterKey} = {$rec->{$mvc->masterKey}}")){
-    				$requiredRoles = 'no_one';
-    			}
+    		$cQuery = doc_Containers::getQuery();
+    		$cQuery->where("#threadId = {$containerId} AND #state != 'draft' AND #state != 'rejected'");
+    		$cQuery->show("id");
+    		$ids = arr::extractValuesFromArray($cQuery->fetchAll(), 'id');
+    		if(!count($ids)) retun;
+    		
+    		// Намират се всички партиди в документите от нишката на фактурата
+    		$bQuery = batch_BatchesInDocuments::getQuery();
+    		$bQuery->in("containerId", $ids);
+    		$bQuery->where("#productId = {$rec->productId}");
+    		$bQuery->show("batch");
+    		$batches = arr::extractValuesFromArray($bQuery->fetchAll(), 'batch');
+    		
+    		// И се попълват
+    		if(count($batches)){
+    			$rec->batches = implode(', ', $batches);
+    			$mvc->save_($rec, 'batches');
     		}
     	}
-    }
-    
-    
-    /**
-     * Импортиране на артикулите от договора във фактурата
-     */
-    function act_Importfromsale()
-    {
-    	// Проверки
-    	$this->requireRightFor('importfromsale');
-    	expect($id = Request::get("{$this->masterKey}", 'int'));
-    	expect($invoiceRec = $this->Master->fetch($id));
-    	$this->requireRightFor('importfromsale', (object)array("{$this->masterKey}" => $id));
-    	
-    	// Извличане на дийл интерфейса от договора-начало на нишка
-    	$firstDoc = doc_Threads::getFirstDocument($invoiceRec->threadId);
-    	$dealInfo = $firstDoc->getAggregateDealInfo();
-    	
-    	// За всеки артикул от договора, копира се 1:1
-    	$productsToSave =  $dealInfo->dealProducts;
-    	if(is_array($dealInfo->dealProducts)){
-    		foreach ($dealInfo->dealProducts as $det){
-    			$det->{$this->masterKey} = $id;
-    			$this->save($det);
-    		}
-    	}
-    	
-    	// Редирект обратно към фактурата
-    	return followRetUrl(NULL, 'Артикулите от сделката са копирани успешно');
     }
 }

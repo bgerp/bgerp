@@ -36,6 +36,10 @@ class fancybox_Fancybox extends core_Manager {
         // Премахваме от масива
         unset($imgAttr['isAbsolute']);
         
+        if (!isset($isAbsolute)) {
+            $isAbsolute = Mode::isReadOnly();
+        }
+        
         // Създаваме изображението
         if(is_int($thumbSize)) {
             $thumbWidth = $thumbHeight = $thumbSize;

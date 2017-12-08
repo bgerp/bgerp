@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'planning_ConsumptionNormDetails'
  *
@@ -9,7 +10,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -17,12 +18,6 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
 {
     
     
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'mp_ConsumptionNoteDetails';
-	
-	
     /**
      * Заглавие
      */
@@ -45,31 +40,25 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_RowNumbering, plg_AlignDecimals2,
-                        planning_plg_ReplaceEquivalentProducts, plg_PrevAndNext';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo, planning';
+                        planning_plg_ReplaceEquivalentProducts, plg_PrevAndNext,cat_plg_ShowCodes,import_plg_Detail';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, planning';
+    public $canEdit = 'ceo,planning,store';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, planning';
+    public $canAdd = 'ceo,planning,store';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo, planning';
+    public $canDelete = 'ceo,planning,store';
     
     
     /**
@@ -97,6 +86,12 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
     
     
     /**
+     * Кои операции от задачите ще се зареждат
+     */
+    public $taskActionLoad = 'input';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -120,6 +115,24 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
     		$warning = deals_Helper::getQuantityHint($rec->productId, $data->masterData->rec->storeId, $rec->quantity);
     		if(strlen($warning) && $data->masterData->rec->state == 'draft'){
     			$row->packQuantity = ht::createHint($row->packQuantity, $warning, 'warning', FALSE);
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     */
+    protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    {
+    	$rec = &$form->rec;
+    	if(isset($rec->productId)){
+    		$canStore = cat_Products::fetchField($rec->productId, 'canStore');
+    		$storeId = planning_ConsumptionNotes::fetchField($rec->noteId, 'storeId');
+    		
+    		if(isset($storeId) && $canStore == 'yes'){
+    			$storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $storeId);
+    			$form->info = $storeInfo->formInfo;
     		}
     	}
     }

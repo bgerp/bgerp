@@ -68,8 +68,6 @@ class marketing_Setup extends core_ProtoSetup
     		'marketing_Inquiries2',
             'marketing_Bulletins',
             'marketing_BulletinSubscribers',
-            'migrate::updateBulletinsRecs5',
-    		'migrate::updateInquiries',
         );
 
         
@@ -102,51 +100,5 @@ class marketing_Setup extends core_ProtoSetup
         $html .= $Plugins->forcePlugin('Бюлетин за външната част', 'marketing_BulletinPlg', 'cms_page_External', 'private');
         
         return $html;
-    }
-    
-    
-    /**
-     * Миграция за обновява всички записи, за да се обнови кеша
-     */
-    static function updateBulletinsRecs5()
-    {
-        $query = marketing_Bulletins::getQuery();
-        while ($rec = $query->fetch()) {
-            marketing_Bulletins::save($rec);
-        }
-    }
-    
-    
-    /**
-     * Миграция на запитванията
-     */
-    public function updateInquiries()
-    {
-    	if(!marketing_Inquiries2::count()) return;
-    	
-    	$Inquiries = cls::get('marketing_Inquiries2');
-    	$Inquiries->setupMvc();
-    	
-    	core_App::setTimeLimit(700);
-    	
-    	$query = $Inquiries->getQuery();
-    	$query->FLD('innerForm', "blob(1000000, serialize, compress)", "caption=Филтър,input=none,column=none");
-    	$query->orderBy('id', 'ASC');
-    	
-    	while($rec = $query->fetch()){
-    		if(isset($rec->innerForm->info)){
-    			$rec->info = $rec->innerForm->info;
-    		}
-    		
-    		if(isset($rec->innerForm->measureId)){
-    			$rec->measureId = $rec->innerForm->measureId;
-    		}
-    		
-    		try{
-    			$Inquiries->save_($rec);
-    		} catch(core_exception_Expect $e){
-    			
-    		}
-    	}
     }
 }

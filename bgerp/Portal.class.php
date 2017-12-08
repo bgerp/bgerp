@@ -73,33 +73,23 @@ class bgerp_Portal extends core_Manager
                 <li class='tab-link' data-tab='recentlyPortal'>|Последно|*</li>
             </ul>
             <div class='portalContent'>
-                <div class='narrowPortalBlocks' id='notificationsPortal'>[#NOTIFICATIONS#]</div>
+                <div class='narrowPortalBlocks' id='notificationsPortal'>[#NOTIFICATIONS_COLUMN#]</div>
                 <div class='narrowPortalBlocks' id='calendarPortal'>[#CALENDAR_COLUMN#]</div>
                 <div class='narrowPortalBlocks' id='taskPortal'>[#TASK_COLUMN#]</div>
-                <div class='narrowPortalBlocks' id='recentlyPortal'>[#LEFT_COLUMN#]</div>
+                <div class='narrowPortalBlocks' id='recentlyPortal'>[#RECENTLY_COLUMN#]</div>
             </div>"));
         } else {
             $tpl = new ET("
             <table style='width:100%' class='top-table large-spacing'>
             <tr>
-                <td style='width:32%'>[#LEFT_COLUMN#]</td>
-                <td style='width:36%'>[#NOTIFICATIONS#]</td>
-                <td style='width:32%'>[#RIGHT_COLUMN#]</td>
+                <td style='width:33.3%'>[#LEFT_COLUMN#]</td>
+                <td style='width:33.4%'>[#MIDDLE_COLUMN#]</td>
+                <td style='width:33.3%'>[#RIGHT_COLUMN#]</td>
             </tr>
             </table>
             ");
         }
-        
-        $Recently = cls::get('bgerp_Recently');
-        
-        // Добавяме "Наскоро" - документи и папки с които е работено наскоро
-        $tpl->append($Recently->render(), 'LEFT_COLUMN');
-        
-        $Notifications = cls::get('bgerp_Notifications');
-        
-        // Добавяме нотификации
-        $tpl->replace($Notifications->render(), 'NOTIFICATIONS');
-        
+
         // Задачи
         if(Mode::is('listTasks', 'by')) {
             $taskTitle   = tr('Задачи от');
@@ -138,21 +128,63 @@ class bgerp_Portal extends core_Manager
         } else {
             $calTitle = '&nbsp;';
         }
+        
+        $calMvc = cls::get('cal_Calendar');
+        $searchForm = $calMvc->getForm();
+        self::prepareSearchForm($calMvc, $searchForm);
 
         $calendarHeader = new ET('<div class="clearfix21 portal" style="background-color:#f8fff8;">
-            <div class="legend" id="calendarPortal" style="background-color:#efe;height:20px;">' . $calTitle . '</div>
+            <div class="legend" id="calendarPortal" style="background-color:#efe;height:20px;">' . $calTitle . '
+            ' . $searchForm->renderHtml() . '
+            </div>
             [#CALENDAR_DETAILS#]
             </div>');
         
         $calendarHeader->append(cal_Calendar::renderPortal(), 'CALENDAR_DETAILS');
-        if(Mode::is('screenMode', 'narrow')) {
-            $tpl->append($calendarHeader, 'CALENDAR_COLUMN');
-            $tpl->append($tasksTpl, 'TASK_COLUMN');
 
-            jquery_Jquery::run($tpl, "openCurrentTab();");
+        $Recently = cls::get('bgerp_Recently');
+        $Notifications = cls::get('bgerp_Notifications');
+        $portalArrange = core_Setup::get('PORTAL_ARRANGE');
+
+        if(Mode::is('screenMode', 'narrow')) {
+            // подаваме времето на последната нотификация
+            jquery_Jquery::run($tpl, "openCurrentTab('" . 1000 * dt::mysql2timestamp(bgerp_Notifications::getLastNotificationTime()) . "'); ");
+            // Добавяме календара
+            $tpl->append($calendarHeader, 'CALENDAR_COLUMN');
+            // Добавяме "Наскоро" - документи и папки с които е работено наскоро
+            $tpl->append($Recently->render(), 'RECENTLY_COLUMN');
+            // Добавяме нотификации
+            $tpl->append($Notifications->render(), 'NOTIFICATIONS_COLUMN');
+            // Добавяме задачи
+            $tpl->append($tasksTpl, 'TASK_COLUMN');
         } else {
-            $tpl->append($tasksTpl, 'RIGHT_COLUMN');
-            $tpl->append($calendarHeader, 'RIGHT_COLUMN');
+            if($portalArrange == 'notifyTaskCalRecently') {
+                $tpl->append($calendarHeader, 'RIGHT_COLUMN');
+            } else {
+                $tpl->prepend($calendarHeader, 'RIGHT_COLUMN');
+            }
+            if($portalArrange == 'recentlyNotifyTaskCal') {
+                // Добавяме "Наскоро" - документи и папки с които е работено наскоро
+                $tpl->append($Recently->render(), 'LEFT_COLUMN');
+                // Добавяме нотификации
+                $tpl->append($Notifications->render(), 'MIDDLE_COLUMN');
+                // Добавяме задачи
+                $tpl->append($tasksTpl, 'RIGHT_COLUMN');
+            } else if ($portalArrange == 'taskNotifyRecentlyCal'){
+                // Добавяме "Наскоро" - документи и папки с които е работено наскоро
+                $tpl->append($Recently->render(), 'RIGHT_COLUMN');
+                // Добавяме нотификации
+                $tpl->append($Notifications->render(), 'MIDDLE_COLUMN');
+                // Добавяме задачи
+                $tpl->append($tasksTpl, 'LEFT_COLUMN');
+            } else {
+                // Добавяме "Наскоро" - документи и папки с които е работено наскоро
+                $tpl->append($Recently->render(), 'RIGHT_COLUMN');
+                // Добавяме нотификации
+                $tpl->replace($Notifications->render(), 'LEFT_COLUMN');
+                // Добавяме задачи
+                $tpl->append($tasksTpl, 'MIDDLE_COLUMN');
+            }
         }
 
         $tpl->push('js/PortalSearch.js', 'JS');
@@ -179,14 +211,9 @@ class bgerp_Portal extends core_Manager
         if($search = Request::get($mvc->searchInputField)){
             $form->layout->replace($search, 'VALUE');
         }
-        
-        $iconSize = 16;
-        if(log_Browsers::isRetina()) {
-            $iconSize = 32;
-        }
-        
-        $findIcon = sbf("img/{$iconSize}/find.png");
-        
+
+        $findIcon = sbf("img/16or32/find.png");
+     
         $form->layout->replace($mvc->className, 'LIST');
         $form->layout->replace($findIcon, 'ICON');
         static::prepareSearchDataList($mvc, $form);
@@ -196,7 +223,7 @@ class bgerp_Portal extends core_Manager
         // Зареждаме всички стойности от GET заявката в формата, като
         // пропускаме тези които не са параметри в нея
         foreach(getCurrentUrl() as $key => $value){
-            if($key != 'App' && $key != 'Ctr' && $key != 'Act' && $key != 'Cmd'){
+            if($key != 'App' && $key != 'Ctr' && $key != 'Act' && $key != 'Cmd' && !strpos($key, 'Search')){
                 if(!$form->fields[$key]){
                     $form->FNC($key, 'varchar', 'input=hidden');
                     $form->setDefault($key, $value);

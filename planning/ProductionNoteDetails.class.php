@@ -12,6 +12,7 @@
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
+ * @deprecated
  */
 class planning_ProductionNoteDetails extends deals_ManifactureDetail
 {
@@ -98,6 +99,14 @@ class planning_ProductionNoteDetails extends deals_ManifactureDetail
     
     
     /**
+     * Какво движение на партида поражда документа в склада
+     *
+     * @param out|in|stay - тип движение (излиза, влиза, стои)
+     */
+    public $batchMovementDocument = 'in';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -124,13 +133,6 @@ class planning_ProductionNoteDetails extends deals_ManifactureDetail
     	$showSelfvalue = TRUE;
     	
     	if($rec->productId){
-    		
-    		// Имали задание за артикула ?
-    		if($jobId = cat_Products::getLastJob($rec->productId)->id){
-    			$rec->jobId = $jobId;
-    		} else {
-    			$rec->jobId = NULL;
-    		}
     			
     		if($bomRec = cat_Products::getLastActiveBom($rec->productId, 'production')){
     			$rec->bomId = $bomRec->id;

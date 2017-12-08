@@ -59,6 +59,12 @@ class batch_Movements extends core_Detail {
     
     
     /**
+     * Брой записи на страница
+     */
+    public $listItemsPerPage = 150;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -69,6 +75,9 @@ class batch_Movements extends core_Detail {
     	$this->FLD('docType', 'class(interface=doc_DocumentIntf)', 'caption=Документ вид');
     	$this->FLD('docId', 'int', 'caption=Документ номер');
     	$this->FLD('date', 'date', 'caption=Дата');
+    	
+    	$this->setDbIndex('itemId');
+    	$this->setDbIndex('operation');
     }
     
     
@@ -89,15 +98,20 @@ class batch_Movements extends core_Detail {
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$row->document = cls::get($rec->docType)->getLink($rec->docId, 0);
+    	if(cls::load($rec->docType, TRUE)){
+    		$row->document = cls::get($rec->docType)->getLink($rec->docId, 0);
+    	} else {
+    		$row->document = "<span class='red'>" . tr('Проблем при показването') . "</span>";
+    	}
     	
     	if(isset($rec->productId)){
     		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
     	
-    		$Definition = batch_Defs::getBatchDef($rec->productId);
-    		$row->batch = $Definition->toVerbal($rec->batch);
+    		if($Definition = batch_Defs::getBatchDef($rec->productId)){
+    			$row->batch = $Definition->toVerbal($rec->batch);
+    		}
     	}
     	
     	if(isset($rec->storeId)){
@@ -160,6 +174,7 @@ class batch_Movements extends core_Detail {
     	$query->show("docType,docId");
     	$query->groupBy("docType,docId");
     	while($r = $query->fetch()){
+    		if(!cls::load($r->docType, TRUE)) continue;
     		$handle = "#" . cls::get($r->docType)->getHandle($r->docId);
     		$documentSuggestions[$handle] = $handle;
     	}
@@ -190,8 +205,8 @@ class batch_Movements extends core_Detail {
     			unset($data->listFields['storeId']);
     		}
     		
-    		if(isset($fRec->batch)){
-    			$data->query->like('batch', $fRec->batch);
+    		if(!empty($fRec->batch)){
+    			$data->query->where("#batch LIKE '{$fRec->batch}%'");
     		}
     		
     		if(isset($fRec->action) && $fRec->action != 'all'){
@@ -219,81 +234,71 @@ class batch_Movements extends core_Detail {
     /**
      * Записва движение на партида от документ
      * 
-     * @param mixed $class - ид на документ
-     * @param mixed $rec   - ид или запис на документа
-     * @return boolean     - успех или не
+     * @param mixed $containerId - ид на контейнер
+     * @return boolean           - успех или не
      */
-    public static function saveMovement($class, $rec)
+    public static function saveMovement($containerId)
     {
-    	$mvc = cls::get($class);
+    	// Кой е документа
+    	$doc = doc_Containers::getDocument($containerId);
+    	if($doc->isInstanceOf('deals_DealMaster')){
+    		
+    		// Ако е покупка/продажба трябва да има експедирано/доставено с нея
+    		$actions = type_Set::toArray($doc->fetchField('contoActions'));
+    		if(!isset($actions['ship'])) return;
+    	}
     	
-    	// Взимаме класа имплементиращ интерфейса за партидни движения
-    	expect($MovementImpl = cls::getInterface('batch_MovementSourceIntf', $mvc));
-		expect($docRec = $mvc->fetchRec($rec));
-		
-		try{
-			// Взимаме движенията от документа
-			$entries = $MovementImpl->getMovements($docRec);
-			
-			expect(is_array($entries), 'Класа не върна движения');
-			
-			// Проверяваме записите
-			foreach ($entries as $entry){
-				expect(cat_Products::fetchField($entry->productId, 'id'), 'Няма артикул');
-				expect($entry->batch, 'Няма номер на партида');
-				expect(store_Stores::fetchField($entry->storeId, 'id'), 'Няма склад');
-				expect(isset($entry->quantity), 'Няма количество');
-				expect(in_array($entry->operation, array('in', 'out', 'stay')), 'Невалидна операция');
-			}
-		} catch(core_exception_Expect $e){
-			
-			// Ако има проблем, показваме грешката
-			error($e->getMessage(), $e->getDump(), $entries);
-		}
-		
-		$result = TRUE;
-		
-		if(!count($entries)) return $result;
-		
-		// За всяко движение
-		foreach ($entries as $entry2){
-			try{
-				// Форсираме партидата
-				$itemId = batch_Items::forceItem($entry2->productId, $entry2->batch, $entry2->storeId);
-				
-				// Ако има проблем с форсирането сетваме грешка
-				if(!$itemId) {
-					$result = FALSE;
-					break;
-				}	
-				
-				// Движението, което ще запишем
-				$mRec = (object)array('itemId'    => $itemId,
-									  'quantity'  => $entry2->quantity,
-									  'operation' => $entry2->operation,
-									  'docType'   => $mvc->getClassId(),
-									  'docId'     => $docRec->id,
-									  'date'	  => $entry2->date,
-				);
-					
-				// Запис на движението
-				$id = self::save($mRec);
-				
-				// Ако има проблем със записа, сетваме грешка
-				if(!$id){
-					$result = FALSE;
-					break;
-				}
-			} catch(core_exception_Expect $e){
-				
-				// Ако е изникнала грешка
-				$result = FALSE;
-			}
-		}
+    	// Какви партиди са въведени
+    	$jQuery = batch_BatchesInDocuments::getQuery();
+    	$jQuery->where("#containerId = {$containerId}");
+    	$jQuery->orderBy('id', 'ASC');
+    	
+    	// За всяка
+    	while($jRec = $jQuery->fetch()){
+    		$batches = batch_Defs::getBatchArray($jRec->productId, $jRec->batch);
+    		$quantity = (count($batches) == 1) ? $jRec->quantity : $jRec->quantity / count($batches);
+    		
+    		// Записва се движението и
+    		foreach ($batches as $key => $b){
+    			$result = TRUE;
+    			
+    			try{
+    				$itemId = batch_Items::forceItem($jRec->productId, $key, $jRec->storeId);
+    				if(empty($jRec->date)){
+    					$jRec->date = $doc->fetchField($doc->valiorFld);
+    					cls::get('batch_BatchesInDocuments')->save_($jRec, $date);
+    				}
+    				
+    				// Движението, което ще запишем
+    				$mRec = (object)array('itemId'    => $itemId,
+    						              'quantity'  => $quantity,
+    						              'operation' => $jRec->operation,
+    						              'docType'   => $doc->getClassId(),
+    						              'docId'     => $doc->that,
+    						              'date'	  => $jRec->date,
+    				);
+    				
+    				// Запис на движението
+    				$id = self::save($mRec);
+    				 
+    				// Ако има проблем със записа, сетваме грешка
+    				if(!$id){
+    					$result = FALSE;
+    					break;
+    				}
+    			} catch(core_exception_Expect $e){
+    				reportException($e);
+    				
+    				// Ако е изникнала грешка
+    				$result = FALSE;
+    			}
+    		}
+    	}
 		
 		// При грешка изтриваме всички записи до сега
 		if($result === FALSE){
-			self::removeMovement($class, $rec);
+			self::removeMovement($doc->getInstance(), $doc->that);
+			core_Statuses::newStatus('Проблем със записването на партидите');
 		}
 		
 		// Връщаме резултата
@@ -310,12 +315,11 @@ class batch_Movements extends core_Detail {
      */
     public static function removeMovement($class, $rec)
     {
-    	$Class = cls::get($class);
-    	$docClassId = $Class->getClassId();
-    	$docId = $Class->fetchRec($rec)->id;
+    	// Изтриване на записите, породени от документа
+    	$class = cls::get($class);
+    	$rec = $class->fetchRec($rec);
     	
-    	// Изтриваме записите
-    	static::delete("#docType = {$docClassId} AND #docId = {$docId}");
+    	static::delete("#docType = {$class->getClassId()} AND #docId = {$rec->id}");
     }
     
     
@@ -333,7 +337,7 @@ class batch_Movements extends core_Detail {
     		}
     		
     		if($fRec->batch){
-    			$titles[] = "<b style='color:green'>" . cls::get('type_Varchar')->toVerbal($fRec->batch) . "</b>";
+    			$titles[] = "<b style='color:green'>" . cls::get('type_Varchar')->toVerbal(str_replace('|', '/', $fRec->batch)) . "</b>";
     		}
     		
     		if(isset($fRec->storeId)){
@@ -342,7 +346,7 @@ class batch_Movements extends core_Detail {
     	}
     	
     	if(count($titles)){
-    		$data->title .= " " . implode(' <b>,</b> ', $titles);
+    		$data->title .= " |*" . implode(' <b>,</b> ', $titles);
     	}
     }
     
@@ -350,7 +354,7 @@ class batch_Movements extends core_Detail {
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'list'){
     		
@@ -363,5 +367,33 @@ class batch_Movements extends core_Detail {
     			}
     		}
     	}
+    }
+    
+    
+    /**
+     * Връща масив с линкове към движенията на партидите
+     * 
+     * @param int $productId
+     * @param varchar $batch
+     * @return array $batch
+     */
+    public static function getLinkArr($productId, $batch)
+    {
+    	// Партидите стават линкове
+    	$batch = batch_Defs::getBatchArray($productId, $batch);
+    	if(!is_array($batch)) return $batch;
+    	
+    	foreach ($batch as $key => &$b){
+    		if(!Mode::isReadOnly() && haveRole('powerUser')){
+    			if(!haveRole('batch,ceo')){
+    				Request::setProtected('batch');
+    			}
+    			$b = ht::createLink($b, array('batch_Movements', 'list', 'batch' => $key));
+    		}
+    	
+    		$b = ($b instanceof core_ET) ? $b->getContent() : $b;
+    	}
+    	
+    	return $batch;
     }
 }

@@ -187,4 +187,47 @@ class remote_Authorizations extends embed_Manager
             return $tpl;
         }
     }
+
+
+    /**
+     * Връща първата система, за която посочения потребител има оторизация и тя отговаря на критериите
+     */
+    public static function getSystemId($url = '', $driver = 'remote_BgerpDriver', $userId = NULL)
+    {   
+        if(core_Packs::isInstalled('remote')) {
+            if(!$userId) {
+                $userId = core_Users::getCurrent();
+            }
+
+            if(!$userId) return NULL;
+            
+            $query = self::getQuery();
+
+            while($rec = $query->fetch(array("#url LIKE '%[#1#]%' AND #userId = {$userId}", $url))) {
+                if(is_object($rec->data) && $rec->data->lKeyCC) {
+
+                    return $rec->id;
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Връща URL към отдалечена машина, което изпълнява логване и след него - подаденото URL
+     */
+    public static function getRemoteUrl($systemId, $url)
+    {
+        $url = toUrl($url);
+
+        $rec = self::fetch($systemId);
+        if(strpos($url, EF_APP_NAME) ) {
+            list($p, $url) = explode(EF_APP_NAME, $url);
+        }
+        $url = rtrim($rec->url, '/') . '/' . ltrim($url, '/');
+ 
+        $res = array('remote_BgerpDriver', 'Autologin', $systemId, 'url' => $url);
+
+        return $res;
+    }
 }

@@ -1,7 +1,9 @@
 <?php
 
 
-// Кои сч. сметки ще се използват за синхронизиране със склада
+/**
+ * Кои сч. сметки ще се използват за синхронизиране със склада
+ */
 defIfNot('STORE_ACC_ACCOUNTS', '');
 
 
@@ -74,20 +76,24 @@ class store_Setup extends core_ProtoSetup
     		'store_ConsignmentProtocols',
     		'store_ConsignmentProtocolDetailsSend',
     		'store_ConsignmentProtocolDetailsReceived',
-    		'store_InventoryNoteDetails',
-    		'store_InventoryNoteSummary',
     		'store_InventoryNotes',
-    		'migrate::updateConfig',
-    		'migrate::updateTransfers',
+    		'store_InventoryNoteSummary',
+    		'store_InventoryNoteDetails',
+    		'migrate::deleteReserved',
         );
     
 
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'storeWorker';
+    var $roles = array(
+    		array('storeWorker'),
+            array('inventory'),
+    		array('store', 'storeWorker'),
+    		array('storeMaster', 'store'),
+    );
     
-
+    
     /**
      * Връзки от менюто, сочещи към модула
      */
@@ -104,32 +110,46 @@ class store_Setup extends core_ProtoSetup
 	);
 	
 	
+	/**
+	 * Дефинирани класове, които имат интерфейси
+	 */
+	var $defClasses = 'store_reports_Documents,store_reports_ChangeQuantity,store_reports_ProductAvailableQuantity,store_iface_ImportShippedProducts';
+	
+	
+	/**
+     * Настройки за Cron
+     */
+    var $cronSettings = array(
+        array(
+            'systemId' => "Update Reserved Stocks",
+            'description' => "Обновяване на резервираните наличности",
+            'controller' => "store_Products",
+            'action' => "CalcReservedQuantity",
+            'period' => 5,
+        	'offset' => 1,
+            'timeLimit' => 100
+        ),
+    );
+    
+	
     /**
      * Инсталиране на пакета
      */
     function install()
     {
-        $html = parent::install();      
-        
-        // Забравена миграция
-    	if($roleRec = core_Roles::fetch("#role = 'masterStore'")){
-    		core_Roles::delete("#role = 'masterStore'");
-    	}
+        $html = parent::install();
     	
     	// Закачане на плъгина за прехвърляне на собственотст на системни папки към core_Users
     	$Plugins = cls::get('core_Plugins');
     	$html .= $Plugins->installPlugin('Синхронизиране на складовите наличности', 'store_plg_BalanceSync', 'acc_Balances', 'private');
     	
-        // Добавяне на роля за старши складажия
-        $html .= core_Roles::addOnce('store', 'storeWorker');
-    	$html .= core_Roles::addOnce('storeMaster', 'store');
-		
-    	
-    	
     	return $html;
     }
     
 
+    /**
+     * Зареждане на данните
+     */
     function loadSetupData($itr = '')
     {
         $res = parent::loadSetupData($itr);
@@ -148,27 +168,6 @@ class store_Setup extends core_ProtoSetup
     	}
         
         return $res;
-    }
-
-    
-    /**
-     * Миграция ъпдейтваща кешираната информация
-     */
-    function updateConfig()
-    {
-    	if(core_Packs::fetch("#name = 'acc'")){
-    		$config = core_Packs::getConfig('store');
-    		
-    		if(strlen($config->STORE_ACC_ACCOUNTS) !== 0){
-    			$accArray = array();
-    			foreach (static::$accAccount as $accSysId){
-    				$accId = acc_Accounts::getRecBySystemId($accSysId)->id;
-    				$accArray[$accId] = $accSysId;
-    			}
-    			
-    			core_Packs::setConfig('store', array('STORE_ACC_ACCOUNTS' => keylist::fromArray($accArray)));
-    		}
-    	}
     }
     
     
@@ -204,23 +203,12 @@ class store_Setup extends core_ProtoSetup
     
     
     /**
-     * Ъпдейт на междускладовите трансфери
+     * Изтриване на остарял документ
      */
-    public function updateTransfers()
+    public function deleteReserved()
     {
-    	$Transfers = cls::get('store_TransfersDetails');
-    	$Transfers->setupMvc();
-    	
-    	$query = $Transfers->getQuery();
-    	$query->where("#newProductId IS NULL || #newProductId = 0");
-    	while($rec = $query->fetch()){
-    		try{
-    			$productId = store_Products::fetchField($rec->productId, 'productId');
-    			$rec->newProductId = $productId;
-    			$Transfers->save_($rec, 'newProductId');
-    		} catch(core_exception_Expect $e){
-    			reportException($e);
-    		}
+    	if($oldClassId = core_Classes::fetchField("#name = 'store_ReserveStocks'")){
+    		doc_Containers::delete("#docClass = {$oldClassId}");
     	}
     }
 }

@@ -697,4 +697,26 @@ class eshop_Groups extends core_Master
         $data->title .= cms_Domains::getCurrentDomainInTitle();
     }
 
+
+    /**
+     * Връща масив с групите, които оттоварят на посочения или на текущия домейн
+     */
+    public static function getGroupsByDomain($domainId = NULL)
+    {
+        if(!$domainId) {
+            $domainId = cms_Domains::getPublicDomain('id');
+        }
+
+        $query = self::getQuery();
+        $query->EXT('domainId', 'cms_Content', 'externalKey=menuId');
+        $query->where("#domainId = {$domainId} AND #state = 'active'");
+        
+        $res = array();
+        while($rec = $query->fetch()) {
+            $res[$rec->id] = $rec->name;
+        }
+
+        return $res;
+    }
+
 }

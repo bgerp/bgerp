@@ -43,7 +43,7 @@ class doc_LikesPlg extends core_Plugin
      * @param stdClass|NULL $rec
      * @param int|NULL $userId
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($rec) {
             if ($action == 'like') {
@@ -89,9 +89,17 @@ class doc_LikesPlg extends core_Plugin
         // Изчиства нотификацията при натискане на линка
         if ($action == 'single' && !(Request::get('Printing')) && !Mode::is('text', 'xhtml')) {
             
-            // Изчистваме нотификацията за харесване
-            $url = array($mvc, 'single', Request::get('id', 'int'), 'like' => TRUE);
-            bgerp_Notifications::clear($url);
+            $id = Request::get('id', 'int');
+            
+            if ($id) {
+                // Изчистваме нотификацията за харесване
+                $url = array($mvc, 'single', Request::get('id', 'int'), 'like' => TRUE);
+                bgerp_Notifications::clear($url);
+                
+                $rec = $mvc->fetch($id);
+                $url = array('doc_Threads', 'list', 'threadId' => $rec->threadId, 'like' => 1);
+                bgerp_Notifications::clear($url);
+            }
             
             return ;
         }
@@ -116,7 +124,8 @@ class doc_LikesPlg extends core_Plugin
             
             if (doc_Likes::like($rec->containerId, $rec->threadId)) {
                 $mvc->logWrite('Харесване', $rec->id);
-                $mvc->touchRec($rec->id);
+                
+                doc_DocumentCache::cacheInvalidation($rec->containerId);
                 
                 $mvc->notifyUsersForLike($rec);
             }
@@ -130,9 +139,12 @@ class doc_LikesPlg extends core_Plugin
             
             if (doc_Likes::dislike($rec->containerId)) {
                 $mvc->logWrite('Премахнато харесване', $rec->id);
-                $mvc->touchRec($rec->id);
                 
+                doc_DocumentCache::cacheInvalidation($rec->containerId);
+                
+                // Изчистваме нотификацията за харесване
                 bgerp_Notifications::setHidden(array($mvc, 'single', $rec->id, 'like' => TRUE));
+                bgerp_Notifications::setHidden(array('doc_Threads', 'list', 'threadId' => $rec->threadId, 'like' => 1));
             }
         } elseif ($action == 'showlikes') {
             
@@ -236,8 +248,29 @@ class doc_LikesPlg extends core_Plugin
      */
     protected static function notifyUsers($notifyStr, $className, $userId, $rec)
     {
+        // Ако потребителя се е отписал за нови дикументи
+        if ($rec->folderId) {
+            $sKey = doc_Folders::getSettingsKey($rec->folderId);
+            $noNotifyArr = core_Settings::fetchUsers($sKey, 'newDoc', 'no');
+            
+            if ($noNotifyArr[$userId]) return ;
+        }
+        
+        // Ако потребителя се е отписал от нишката
+        if ($rec->threadId) {
+            $sKey = doc_Threads::getSettingsKey($rec->threadId);
+            $noNotifyArr = core_Settings::fetchUsers($sKey, 'notify', 'no');
+            
+            if ($noNotifyArr[$userId]) return ;
+        }
+        
         $clearUrl = $linkUrl = array($className, 'single', $rec->id);
         $clearUrl['like'] = TRUE;
+        
+        if ($rec->threadId) {
+            $clearUrl = array('doc_Threads', 'list', 'threadId' => $rec->threadId, 'like' => 1);
+        }
+        
         bgerp_Notifications::add($notifyStr, $clearUrl, $userId, 'normal', $linkUrl);
     }
     
@@ -373,7 +406,7 @@ class doc_LikesPlg extends core_Plugin
                             $attr['data-url'] = toUrl($dislikeUrl, 'local');
                         }
                         
-                        $attr['ef_icon'] = 'img/16/redheart.png';
+                        $attr['ef_icon'] = 'img/16/heart.png';
                         $attr['class'] = 'liked';
                         $attr['title'] = 'Отказ от харесване';
                         
@@ -393,7 +426,7 @@ class doc_LikesPlg extends core_Plugin
                                 $linkClass .= ' disable';
                             }
                         
-                            $attr['ef_icon'] = 'img/16/grayheart.png';
+                            $attr['ef_icon'] = 'img/16/heart_empty.png';
                             $attr['class'] = $linkClass;
                             $attr['title'] = 'Харесване';
                             
@@ -408,7 +441,7 @@ class doc_LikesPlg extends core_Plugin
                         $attr['data-useHover'] = '1';
                         $attr['data-useCache'] = '1';
                         
-                        $likesCntLink = ht::createElement('span', $attr, $likesCnt, TRUE);
+                        $likesCntLink = ht::createElement('span', $attr, "<span>" . $likesCnt . "</span>", TRUE);
                         
                         $likesCntLink = '<div class="pluginCountButtonNub"><s></s><i></i></div>' . $likesCntLink;
                         
@@ -416,7 +449,12 @@ class doc_LikesPlg extends core_Plugin
                         
                         $elemId = self::getElemId($rec);
                         
-                        $likesLink .= "<div class='additionalInfo-holder'><span class='additionalInfo' id='{$elemId}'></span></div>";
+                        $cssClass = 'additionalInfo';
+                        if ($likesCnt >= 5) {
+                            $cssClass .= ' bottom';
+                        }
+                        
+                        $likesLink .= "<div class='additionalInfo-holder'><span class='{$cssClass}' id='{$elemId}'></span></div>";
                     }
                     
                     if ($likesLink) {
@@ -430,6 +468,7 @@ class doc_LikesPlg extends core_Plugin
                 jquery_Jquery::runAfterAjax($row->DocumentSettingsLeft, 'showTooltip');
                 jquery_Jquery::runAfterAjax($row->DocumentSettingsLeft, 'smartCenter');
                 jquery_Jquery::runAfterAjax($row->DocumentSettingsLeft, 'setThreadElemWidth');
+                jquery_Jquery::runAfterAjax($row->DocumentSettingsLeft, 'getContextMenuFromAjax');
             }
         }
     }

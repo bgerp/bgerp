@@ -10,7 +10,7 @@
  * @category  bgerp
  * @package   batch
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -47,17 +47,10 @@ class batch_CategoryDefinitions extends embed_Manager {
     public $currentTab = 'Категории';
     
     
-    
     /**
      * Кои полета да се показват в листовия изглед
      */
     public $listFields = 'categoryId, classId';
-
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'batch, ceo';
     
     
     /**
@@ -84,6 +77,7 @@ class batch_CategoryDefinitions extends embed_Manager {
     function description()
     {
     	$this->FLD('categoryId', 'key(mvc=cat_Categories, select=name)', 'caption=Категория,silent,mandatory,input=hidden');
+    	$this->setDbIndex('categoryId');
     }
     
     
@@ -100,7 +94,7 @@ class batch_CategoryDefinitions extends embed_Manager {
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'add' && isset($rec->categoryId)){
     		if($mvc->fetch("#categoryId = '{$rec->categoryId}'")){
@@ -124,6 +118,7 @@ class batch_CategoryDefinitions extends embed_Manager {
     	
     	$query = $this->getQuery();
     	$query->where("#categoryId = '{$data->masterId}'");
+    	
     	if($rec = $query->fetch()){
     		$data->rec = $rec;
     		$data->row = $this->recToVerbal($rec);
@@ -131,6 +126,16 @@ class batch_CategoryDefinitions extends embed_Manager {
     	
     	if($this->haveRightFor('add', (object)array('categoryId' => $data->masterId))){
     		$data->addUrl = array($this, 'add', 'categoryId' => $data->masterId, 'ret_url' => TRUE);
+    	}
+    	
+    	if(isset($data->rec)){
+    		if($this->haveRightFor('edit', $data->rec)){
+    			$data->editUrl = array($this, 'edit', $data->rec->id, 'ret_url' => TRUE);
+    		}
+    		 
+    		if($this->haveRightFor('delete', $data->rec)){
+    			$data->deleteUrl = array($this, 'delete', $data->rec->id, 'ret_url' => TRUE);
+    		}
     	}
     }
     
@@ -158,6 +163,17 @@ class batch_CategoryDefinitions extends embed_Manager {
     		$addBtn = ht::createLink('', $data->addUrl, FALSE, 'ef_icon=img/16/add.png,select=Добавяне на нова дефиниция');
     		$tpl->append($addBtn, 'title');
     	}
+    	
+    	if(isset($data->editUrl)){
+    		$editBtn = ht::createLink('', $data->editUrl, FALSE, 'ef_icon=img/16/edit.png,select=Редактиране на дефиниция');
+    		$tpl->append($editBtn, 'title');
+    	}
+    	
+    	if(isset($data->deleteUrl)){
+    		$delBtn = ht::createLink('', $data->deleteUrl, 'Наистина ли искате да зитриете дефиницията|*?', 'ef_icon=img/16/delete.png,select=Изтриване на дефиниция');
+    		$tpl->append($delBtn, 'title');
+    	}
+    	
     	$tpl->removeBlocks();
     	
     	return $tpl;

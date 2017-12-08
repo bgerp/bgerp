@@ -69,7 +69,15 @@ class planning_plg_StateManager extends core_Plugin
 		// Добавяне на бутон за приключване
 		if($mvc->haveRightFor('close', $rec)){
 			$attr = array('ef_icon' => "img/16/gray-close.png", 'title' => "Приключване на документа", 'warning' => "Сигурни ли сте, че искате да приключите документа", 'order' => 30);
+			$attr['id'] = 'btnClose';
+			
 			if(isset($mvc->demandReasonChangeState) && isset($mvc->demandReasonChangeState['close'])){
+				unset($attr['warning']);
+			}
+			
+			$closeError = $mvc->getCloseBtnError($rec);
+			if(!empty($closeError)){
+				$attr['error'] = $closeError;
 				unset($attr['warning']);
 			}
 			
@@ -108,13 +116,24 @@ class planning_plg_StateManager extends core_Plugin
 		
 		// Добавяне на бутон запървоначално активиране
 		if($mvc->haveRightFor('activate', $rec)){
-			$attr = array('ef_icon' => "img/16/lightning.png", 'title' => "Активиране на документа", 'warning'=> "Сигурни ли сте, че искате да активирате документа|*?", 'order' => 30);
+			$attr = array('ef_icon' => "img/16/lightning.png", 'title' => "Активиране на документа", 'warning'=> "Сигурни ли сте, че искате да активирате документа|*?", 'order' => 30, 'id' => 'btnActivate');
 			if(isset($mvc->demandReasonChangeState) && isset($mvc->demandReasonChangeState['activate'])){
 				unset($attr['warning']);
 			}
 			
 			$data->toolbar->addBtn("Активиране", array($mvc, 'changeState', $rec->id, 'type' => 'activate', 'ret_url' => TRUE, ), $attr);
 		}
+		
+		// Бутон за заявка
+		if($mvc->haveRightFor('pending', $rec)){
+			if($rec->state != 'pending'){
+				$r = $data->toolbar->hasBtn('btnActivate') ? 2 : 1;
+				$data->toolbar->addBtn('Заявка', array($mvc, 'changePending', $rec->id), "id=btnRequest,warning=Наистина ли желаете документът да стане заявка?,row={$r}", 'ef_icon = img/16/tick-circle-frame.png,title=Превръщане на документа в заявка');
+			} else{
+				$data->toolbar->addBtn('Чернова', array($mvc, 'changePending', $rec->id), "id=btnDraft,warning=Наистина ли желаете да върнете възможността за редакция?", 'ef_icon = img/16/arrow-undo.png,title=Връщане на възможността за редакция');
+			}
+		}
+		
 	}
 	
 	
@@ -129,7 +148,7 @@ class planning_plg_StateManager extends core_Plugin
 				case 'close':
 	
 					// Само активните, събудените и спрените могат да бъдат приключени
-					if($rec->state != 'active' && $rec->state != 'wakeup' && $rec->state != 'stopped'){
+				    if ($rec->state == 'rejected' || $rec->state == 'draft' || $rec->state == 'closed'){
 						$requiredRoles = 'no_one';
 					}
 					break;
@@ -150,14 +169,14 @@ class planning_plg_StateManager extends core_Plugin
 				case 'activateagain':
 	
 					// Дали може да бъде активирана отново, след като е било променено състоянието
-					if($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'wakeup' || $rec->state == 'rejected' || $rec->state == 'draft' || $rec->state == 'waiting' || $rec->state == 'template'){
+					if($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'wakeup' || $rec->state == 'rejected' || $rec->state == 'draft' || $rec->state == 'waiting' || $rec->state == 'template' || $rec->state == 'pending'){
 						$requiredRoles = 'no_one';
 					}
 					break;
 				case 'activate':
 					
 					// Само приключените могат да бъдат събудени
-					if($rec->state != 'draft' && isset($rec->state)){
+					if(($rec->state != 'draft' && $rec->state != 'pending') && isset($rec->state)){
 						$requiredRoles = 'no_one';
 					}
 					break;
@@ -207,6 +226,11 @@ class planning_plg_StateManager extends core_Plugin
     					$rec->_reason = $reason;
     				}
     			}
+    		}
+    		
+    		if($action == 'close'){
+    			$closeError = $mvc->getCloseBtnError($rec);
+    			expect(empty($closeError));
     		}
     		
 			switch($action){
@@ -384,5 +408,14 @@ class planning_plg_StateManager extends core_Plugin
 			$mvc->invoke('AfterActivation', array($rec));
 			$mvc->logWrite('Активиране', $rec->id);
 		}
+	}
+	
+	
+	/**
+	 * След намиране на текста за грешка на бутона за 'Приключване'
+	 */
+	public static function on_AfterGetCloseBtnError($mvc, &$res, $rec)
+	{
+		$res = (!empty($res)) ? $res : NULL;
 	}
 }

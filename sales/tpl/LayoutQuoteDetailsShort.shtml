@@ -17,17 +17,20 @@
             <td id='[#rowspanpId#]' rowspan = '[#rowspan#]' class='product-id[#OPTP#] vtop'>[#productId#]</td>
             <!--ET_END productId-->
             <td class='misc-info quote-col[#OPT#] nowrap aright vtop'>
-                <b>[#amount#]</b>
+                <span class="maxwidth" data-col="[#DATA_COL_ATTR_AMOUNT#]"><b>[#amount#]</b></span>
                  <!--ET_BEGIN discount-->
                 <div class='discount'>- [#discount#] |ТО|*
                 </div>
                 <!--ET_END discount-->
                 <!--ET_BEGIN tolerance-->
-                <div class='quiantity-misc'>&#177; <b>[#tolerance#]</b></div>
+                <div class='quiantity-misc' style='font-size:0.8em'>|толеранс к-во|*:&nbsp;<b>&#177;[#tolerance#]</b></div>
                 <!--ET_END tolerance-->
                 <!--ET_BEGIN term-->
-                <div class='quiantity-misc'>|срок|* &nbsp;<b>[#term#]</b></div>
+                <div class='quiantity-misc' style='font-size:0.8em'>|срок за д-ка|*:&nbsp;<b>[#term#]</b></div>
                 <!--ET_END term-->
+                <!--ET_BEGIN weight-->
+                <div class='quiantity-misc' style='font-size:0.8em'>|тегло|*:&nbsp;~&nbsp;<b>[#weight#]</b></div>
+                <!--ET_END weight-->
             </td>
         </tr>
         <!--ET_END ROW-->

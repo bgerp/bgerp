@@ -44,9 +44,9 @@ defIfNot('BLAST_EMAILS_CRON_TIME_LIMIT', '50');
 
 
 /**
- * Повторна проверка за валидност на имейли след
+ * Повторна проверка за валидност на имейли след - 1 седмица
  */
-defIfNot('BLAST_RECHECK_EMAILS_AFTER', core_DateTime::SECONDS_IN_MONTH);
+defIfNot('BLAST_RECHECK_EMAILS_AFTER', 604800);
 
 
 /**

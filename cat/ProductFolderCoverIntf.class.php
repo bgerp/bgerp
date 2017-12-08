@@ -4,7 +4,7 @@
 
 /**
  * Клас 'cat_ProductFolderCoverIntf' - Интерфейс за корици на папки, 
- * в които могат да се създават документи спецификации
+ * в които могат да се създават документи артикули
  *
  *
  * @category  bgerp
@@ -16,12 +16,6 @@
  */
 class cat_ProductFolderCoverIntf extends doc_FolderIntf
 {
-	
-	
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'techno2_SpecificationFolderCoverIntf';
 	
 	
 	/**

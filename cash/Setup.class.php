@@ -57,8 +57,7 @@ class cash_Setup extends core_ProtoSetup
         	'cash_Rko',
         	'cash_InternalMoneyTransfer',
         	'cash_ExchangeDocument',
-    		'migrate::updateDocumentStates',
-    		'migrate::updateDocuments'
+    		'cash_NonCashPaymentDetails',
     		
         );
 
@@ -66,7 +65,10 @@ class cash_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'cash';
+    var $roles = array(
+    		array('cash', 'seePrice'),
+    		array('cashMaster', 'cash'),
+    );
 
     
     /**
@@ -84,30 +86,6 @@ class cash_Setup extends core_ProtoSetup
     
     
     /**
-     * Път до css файла
-     */
-//    var $commonCSS = 'cash/tpl/styles.css';
-    
-    
-    /**
-     * Инсталиране на пакета
-     */
-    function install()
-    {
-        $html = parent::install();
-        
-    	if($roleRec = core_Roles::fetch("#role = 'masterCash'")){
-    		core_Roles::delete("#role = 'masterCash'");
-    	}
-    	
-        // Добавяне на роля за старши касиер
-        $html .= core_Roles::addOnce('cashMaster', 'cash');
-    	
-        return $html;
-    }
-    
-    
-    /**
      * Де-инсталиране на пакета
      */
     function deinstall()
@@ -116,70 +94,5 @@ class cash_Setup extends core_ProtoSetup
         $res = bgerp_Menu::remove($this);
         
         return $res;
-    }
-    
-    
-    /**
-     * Миграция на старите документи
-     */
-    function updateDocumentStates()
-    {
-    	$documents = array('cash_Pko', 'cash_Rko', 'cash_InternalMoneyTransfer', 'cash_ExchangeDocument');
-    	core_App::setTimeLimit(150);
-    	
-    	foreach ($documents as $doc){
-    		try{
-    			$Doc = cls::get($doc);
-    			$Doc->setupMvc();
-    			
-    			$query = $Doc->getQuery();
-    			$query->where("#state = 'closed'");
-    			$query->show('state');
-    			
-    			while($rec = $query->fetch()){
-    				$rec->state = 'active';
-    				$Doc->save_($rec, 'state');
-    			}
-    		} catch(core_exception_Expect $e){
-    			
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Миграция на документите
-     */
-    public function updateDocuments()
-    {
-    	core_App::setTimeLimit(300);
-    	
-    	$array = array('cash_Pko', 'cash_Rko');
-    	
-    	foreach ($array as $doc){
-    		$Doc = cls::get($doc);
-    		$Doc->setupMvc();
-    		
-    		$query = $Doc->getQuery();
-    		$query->where('#amountDeal IS NULL');
-    		while($rec = $query->fetch()){
-    			
-    			try{
-    				$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-    				$firstDocRec = $firstDoc->fetch();
-    				$dealCurrencyId = currency_Currencies::getIdByCode($firstDocRec->currencyId);
-    				$dealRate = $firstDocRec->currencyRate;
-    				 
-    				$dealAmount = ($rec->amount * $rec->rate) / $dealRate;
-    				 
-    				$rec->amountDeal = $dealAmount;
-    				$rec->dealCurrencyId = $dealCurrencyId;
-    				 
-    				$Doc->save_($rec, 'amountDeal,dealCurrencyId');
-    			} catch(core_exception_Expect $e){
-    				reportException($e);
-    			}
-    		}
-    	}
     }
 }

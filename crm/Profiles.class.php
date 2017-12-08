@@ -136,7 +136,7 @@ class crm_Profiles extends core_Master
     /**
      * Помощен масив за типовете дни
      */
-    static $map = array('missing'=>'Отсъстващи','sickDay'=>'Болничен','leaveDay'=>'Отпуска', 'tripDay'=>'Командировка');
+    static $map = array('missing'=>'Отсъстващи','sickDay'=>'Болничен','leaveDay'=>'Отпуск', 'tripDay'=>'Командировка');
     
     
     /**
@@ -154,8 +154,8 @@ class crm_Profiles extends core_Master
         $this->EXT('lastUsedOn',  'core_Users', 'externalKey=userId,input=none');
         
         $this->FLD('stateInfo', 'varchar', 'caption=Статус->Информация,input=none');
-        $this->FLD('stateDateFrom', 'datetime(format=smartTime)', 'caption=Статус->От,input=none');
-        $this->FLD('stateDateTo', 'datetime(format=smartTime)', 'caption=Статус->До,input=none');
+        $this->FLD('stateDateFrom', 'datetime(format=smartTime, defaultTime=00:00:00)', 'caption=Статус->От,input=none');
+        $this->FLD('stateDateTo', 'datetime(format=smartTime, defaultTime=23:59:59)', 'caption=Статус->До,input=none');
 
         $this->setDbUnique('userId');
         $this->setDbUnique('personId');
@@ -275,6 +275,15 @@ class crm_Profiles extends core_Master
                 if ($data->Person->rec->id) {
                     // Добавяме бутон към сингъла на лицето
                     $data->toolbar->addBtn(tr('Визитка'), array('crm_Persons', 'single', $data->Person->rec->id), 'id=btnPerson', 'ef_icon = img/16/vcard.png');    
+                }
+            }
+			
+            // Ако има вътрешен номер, показваме го
+            if (core_Packs::isInstalled('callcenter')) {
+                $numbersArr = callcenter_Numbers::getInternalNumbersForUsers(array($data->rec->userId));
+            	
+                if (!empty($numbersArr)) {
+                    $data->Person->row->internalNum = implode(', ', $numbersArr);
                 }
             }
         }
@@ -428,8 +437,7 @@ class crm_Profiles extends core_Master
                     $userId = key($userTeams);
                     
                     $attr = array();
-                    $attr['class'] = 'linkWithIcon';
-    		        $attr['style'] = 'background-image:url(' . sbf('/img/16/page_go.png') . ');';
+    		        $attr['ef_icon'] = '/img/16/page_go.png';
     		        $attr['title'] = 'Екшън лог на потребителя';
                     
                     // URL за промяна
@@ -486,9 +494,23 @@ class crm_Profiles extends core_Master
         $tpl->prepend($uTpl, 'userInfo');
         
         if(isset($data->rec->stateInfo) && isset($data->rec->stateDateFrom) && isset($data->rec->stateDateTo)) {
-            $Date = cls::get('type_Date');
-            $s = strstr($data->rec->stateDateFrom, ' ', TRUE);
-            $state = static::$map[$data->rec->stateInfo] . " от ". dt::mysql2verbal($data->rec->stateDateFrom, 'd M') . " до ". dt::mysql2verbal($data->rec->stateDateTo, 'd M');
+            $Date = cls::get('type_Date'); 
+            
+            list($dateFrom, $hoursFrom) = explode(" ", $data->rec->stateDateFrom);
+            list($dateTo, $hoursTo) = explode(" ", $data->rec->stateDateTo);
+            
+            list($today, $hoursToday) = explode(" ", dt::verbal2mysql());
+            list($yesterday, $hoursYesterday ) = explode(" ", dt::addDays(-1));
+            list($tomorrow, $hoursTomorrow) = explode(" ", dt::addDays(1));
+
+            if ($dateFrom == $dateTo && ($dateFrom == $yesterday || $dateFrom == $today || $dateFrom == $tomorrow)) {
+                $state = static::$map[$data->rec->stateInfo] . "  ". $mvc->getVerbal($data->rec, 'stateDateFrom');
+            } elseif($dateFrom == $dateTo) {
+                $state = static::$map[$data->rec->stateInfo] . " на ". $mvc->getVerbal($data->rec, 'stateDateFrom');
+            } else { 
+                $state = static::$map[$data->rec->stateInfo] . " от ". $mvc->getVerbal($data->rec, 'stateDateFrom') . " до ". $mvc->getVerbal($data->rec, 'stateDateTo');
+            }
+
             $tpl->append($state, 'userStatus');  
             $tpl->append("statusClass", 'userClass');
         }
@@ -830,23 +852,40 @@ class crm_Profiles extends core_Master
                 'access'    => 'private',
                 'email'     => ''
             );
-            $profilesGroup = crm_Groups::fetch("#sysId = 'users'");
-            $person->groupList = keylist::addKey($person->groupList, $profilesGroup->id);
             if(isset($user->country)) {
                 $person->country = drdata_Countries::getIdByName($user->country);
             }
             $mustSave = TRUE;
         }
-        
-        
+     
+
+        // Задаваме групата
+        $profilesGroup = crm_Groups::fetch("#sysId = 'users'");
+        $exGroupList = $person->groupList;
+        if($user->state == 'rejected') {
+            $person->groupList = keylist::removeKey($person->groupList, $profilesGroup->id);
+        } else {
+            $person->groupList = keylist::addKey($person->groupList, $profilesGroup->id);
+        }
+        if($person->groupList != $exGroupList) {
+            $mustSave = TRUE;
+        }
+ 
         if(!empty($user->names) && ($person->name != $user->names)) {
             $person->name = $user->names;
             $mustSave = TRUE;
         }
-        
+         
         // Само ако записа на потребителя има 
         if(!empty($user->email) && (strpos($person->email, $user->email) === FALSE)) {
             $person->email     = type_Emails::prepend($person->email, $user->email);
+         
+            $mustSave = TRUE;
+        }
+        
+        // Само, ако записа на потребителя има мобилен телефон 
+        if(!empty($user->mobile) && ($person->mobile != $user->mobile)) {
+            $person->mobile = $user->mobile;
             $mustSave = TRUE;
         }
         
@@ -869,9 +908,10 @@ class crm_Profiles extends core_Master
 
         $person->_skipUserUpdate = TRUE; // Флаг за предотвратяване на безкраен цикъл
         
+
         if($mustSave) {
             crm_Persons::save($person);
-            
+          
             return $person->id;
         }
     }
@@ -899,10 +939,11 @@ class crm_Profiles extends core_Master
             return;
         }
         
+        // Обновяваме имейла, само ако зададения в потребителя, липсва в списъка му с лични
         if (!empty($personRec->email)) {
             // Вземаме първия (валиден!) от списъка с лични имейли на лицето
             $emails = type_Emails::toArray($personRec->email);
-            if (!empty($emails)) {
+            if (!empty($emails) && !in_array($userRec->email, $emails)) {
                 $userRec->email = reset($emails);
             }
         }
@@ -912,7 +953,9 @@ class crm_Profiles extends core_Master
         }
         
         if (!empty($personRec->photo)) {
-            $userRec->avatar = $personRec->photo; 
+            if(is_readable(fileman_Files::fetchByFh($personRec->photo, 'path'))) {
+                $userRec->avatar = $personRec->photo;
+            }
         }
         
         // Флаг за предотвратяване на безкраен цикъл след промяна на визитка
@@ -935,7 +978,7 @@ class crm_Profiles extends core_Master
             $userId = core_Users::getCurrent();
         }
         
-        $profileId = static::fetchField("#userId = {$userId}", 'id');
+        $profileId = self::fetch("#userId = {$userId}")->id;
         
         return $profileId;
     }
@@ -997,14 +1040,31 @@ class crm_Profiles extends core_Master
             $link = $title;
             
             $url  = array();
-            
-            if(self::fetchField($userId,'stateInfo') !== NULL) {
-               $attr['class'] .= ' profile profile-state';
+
+            $profRec = self::fetch("#userId = {$userId}");
+            if ($profRec) {
+                $date = $profRec->stateDateFrom;
+                $dateTo = $profRec->stateDateTo;
+                $dayBeforeNow = dt::addDays(-1, $date);
+            }
+
+
+            if($profRec && $profRec->stateInfo) {
+                if(strstr(dt::now(), " ", TRUE) >= strstr($dayBeforeNow, " ", TRUE) &&
+                    strstr(dt::now(), " ", TRUE) < strstr($date, " ", TRUE )) {
+                    $attr['class'] .= ' profile profile-state-tomorrow';
+                } else if( strstr(dt::now(), " ", TRUE) >= strstr($date, " ", TRUE) &&
+                    strstr(dt::now(), " ", TRUE) <= strstr($dateTo, " ", TRUE)) {
+                    $attr['class'] .= ' profile profile-state';
+                } else {
+                    $attr['class'] .= ' profile';
+                }
             } else {
-    	       $attr['class'] .= ' profile';
+                $attr['class'] .= ' profile';
             }
 
     		$profileId = self::getProfileId($userId);
+
     		if ($profileId) {
     			
     			if (crm_Profiles::haveRightFor('single', $profileId) && !$isOut) {
@@ -1128,11 +1188,11 @@ class crm_Profiles extends core_Master
     {
         $rows = &$data->rows;
         $recs = &$data->recs;
-
+        
         if(count($rows)) {
             foreach ($rows as $i=>&$row) {
                 $rec = &$recs[$i];
-        
+           
                 if ($url = $mvc::getUrl($rec->userId)) {
                     
                     // Ако имаме права за сингъла, тогава създаваме линка
@@ -1143,10 +1203,42 @@ class crm_Profiles extends core_Master
                     }
      
                     $row->personId = ht::createLink($row->personId, $personLink, NULL, array('ef_icon' => 'img/16/vcard.png'));
-
+                    
                     if (isset($rec->stateDateFrom) && isset($rec->stateDateTo)) {
+                        list($dateFrom, $hoursFrom) = explode(" ", $rec->stateDateFrom);
+                        list($dateTo, $hoursTo) = explode(" ", $rec->stateDateTo);
+                        
+                        if ($dateFrom == $dateTo) {
+                            $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " на ". dt::mysql2verbal($rec->stateDateFrom, 'd M') . "</span>";
+                            
+                            if($hoursFrom != "00:00:00") {
+                                $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " на ". dt::mysql2verbal($rec->stateDateFrom, 'd M')  . " от ". dt::mysql2verbal($rec->stateDateFrom, 'H:i') . "</span>";
+                            }
+                            
+                            if($hoursTo != "23:59:59") {
+                                $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " на ". dt::mysql2verbal($rec->stateDateTo, 'd M')  . " до ". dt::mysql2verbal($rec->stateDateTo, 'H:i') . "</span>";
+                            }
+                            
+                            if($hoursFrom != "00:00:00" && $hoursTo != "23:59:59") { 
+                                $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " на ". dt::mysql2verbal($rec->stateDateFrom, 'd M')  . " от ". dt::mysql2verbal($rec->stateDateFrom, 'H:i') . " до ". dt::mysql2verbal($rec->stateDateTo, 'H:i') . "</span>";
+                            }
+                        } else { 
+                            $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " от ". dt::mysql2verbal($rec->stateDateFrom, 'smartTime') . " до ". dt::mysql2verbal($rec->stateDateTo, 'smartTime'). "</span>";
+                        
+                            if($hoursFrom == "00:00:00") {
+                                $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " от ". dt::mysql2verbal($rec->stateDateFrom, 'd M') . " до ". dt::mysql2verbal($rec->stateDateTo, 'smartTime'). "</span>";
+                            }
+                            
+                            if($hoursTo == "23:59:59") {
+                                 $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " от ". dt::mysql2verbal($rec->stateDateFrom, 'smartTime') . " до ". dt::mysql2verbal($rec->stateDateTo, 'd M'). "</span>";
+                            }
+                            
+                            if($hoursFrom == "00:00:00" && $hoursTo == "23:59:59") {
+                                $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " от ". dt::mysql2verbal($rec->stateDateFrom, 'd M')  .  " до ". dt::mysql2verbal($rec->stateDateTo, 'd M') . "</span>";
+                            }
+                        }
+                        
                         $link  = static::createLink($rec->userId, NULL, FALSE, array('ef_icon' => $mvc->singleIcon));
-                        $stateData = "<span class='small'>" . static::$map[$rec->stateInfo] . " от ". dt::mysql2verbal($rec->stateDateFrom, 'smartTime') . " до ". dt::mysql2verbal($rec->stateDateTo, 'smartTime'). "</span>";
                         $row->userId = ht::createHint($link, $stateData,'notice');
                     } else {
                         $row->userId   = static::createLink($rec->userId, NULL, FALSE, array('ef_icon' => $mvc->singleIcon));
@@ -1185,7 +1277,7 @@ class crm_Profiles extends core_Master
     {
         $rec = $data->listFilter->rec;
 
-        $data->listFilter->FNC('leave', 'enum(,missing=Отсъстващи,sickDay=Болничен,leaveDay=Отпуска,tripDay=Командировка)', 'width=6em,caption=Статус,silent,allowEmpty,autoFilter');
+        $data->listFilter->FNC('leave', 'enum(,missing=Отсъстващи,sickDay=Болничен,leaveDay=Отпуск,tripDay=Командировка)', 'width=6em,caption=Статус,silent,allowEmpty,autoFilter');
         
     	$data->listFilter->view = 'horizontal';
     	

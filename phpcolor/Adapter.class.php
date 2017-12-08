@@ -53,14 +53,14 @@ class  phpcolor_Adapter extends core_Mvc
     			return $myColor->lighten($ammount);
     			
     		case 'darken':
-    			return $myColor->darken();
+    			return $myColor->darken($ammount);
     			
     		case 'gradient':
     			$myColor->makeGradient($ammount);
     			return $myColor->getCssGradient($myColor);
     			
     		case 'mix':
-    			return $myColor->mix($mix,$ammount);
+    			return  $myColor->mix($mix, $ammount);
     		
     		default :
     			return $myColor;

@@ -156,7 +156,7 @@ class price_GroupOfProducts extends core_Detail
     /**
      * Извиква се след обработка на ролите
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if($rec->validFrom && ($action == 'edit' || $action == 'delete')) {
             if($rec->validFrom <= dt::verbal2mysql()) {

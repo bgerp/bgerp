@@ -77,7 +77,7 @@ class type_Varchar extends core_Type {
              $value= trim($value);
         }
         
-        // За някои случеи вместо празен стринг е по-добре да получаваме NULL
+        // За някои случаи вместо празен стринг е по-добре да получаваме NULL
         if($this->params['nullIfEmpty'] || $this->nullIfEmpty) {
             if(!$value) {
                 $value = NULL;

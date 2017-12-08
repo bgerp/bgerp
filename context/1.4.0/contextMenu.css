@@ -71,7 +71,11 @@
 
 /*our styles*/
 .narrow .toolbar-first .button {
-  float: left;
+  float: none;
+}
+
+.portal .modal-toolbar, .bgerp_Notifications .modal-toolbar {
+  min-height: 40px !important;
 }
 
 .modal-toolbar{
@@ -119,7 +123,15 @@ input.button.more-btn.textBtn {
 input.button.more-btn.textBtn.arrowDown {
      background-position: 4px center !important;
 }
-
+input.button.more-btn.warningContextMenu {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  background-image: url(../../img/16/warning-gray.png) !important;
+  padding: 0px !important;
+  width: 20px !important;
+  height: 16px !important;
+}
 .separator {
   margin: 2px 3px 1px 1px;
   opacity: 0.4;

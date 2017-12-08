@@ -93,7 +93,6 @@ class pos_Setup extends core_ProtoSetup
         	'pos_Reports',
     		'pos_Stocks',
     		'pos_Cards',
-    		'migrate::truncateStocks',
         );
     
 
@@ -157,15 +156,6 @@ class pos_Setup extends core_ProtoSetup
     
     
     /**
-     * Зануляваме кешираните складови наличностти
-     */
-    public function truncateStocks()
-    {
-    	pos_Stocks::truncate();
-    }
-    
-    
-    /**
      * Настройки за Cron
      */
     var $cronSettings = array(
@@ -177,6 +167,15 @@ class pos_Setup extends core_ProtoSetup
     			'period' => 1440,
     			'offset' => 60,
     			'timeLimit' => 100,
+    		),
+    		array(
+    				'systemId' => "Update Pos Buttons Group",
+    				'description' => "Обновяване на групите на категориите на бързите бутони",
+    				'controller' => "pos_Favourites",
+    				'action' => "UpdateButtonsGroup",
+    				'period' => 10,
+    				'offset' => 0,
+    				'timeLimit' => 100,
     		),
     );
 }

@@ -3,31 +3,38 @@
     <div style='padding:6px 10px 10px;'>
 	    <h3 class='richtext-title'>[#title#]</h3>
 	       
-	    <table class='top-table'>
+	    <table class='top-table' cellspacing=3>
 	        <!--ET_BEGIN fileHnd-->          
 	        <tr>
-	            <td class='aright' style='width:auto;'>|Файл|*:</td>
+	            <td class='aright' style='width:auto;color:#999;'>|Файл|*:</td>
 	            <td>[#fileHnd#]</td>
 	        </tr>
 	        <!--ET_END fileHnd-->
 	        <!--ET_BEGIN date-->          
 	        <tr>
-	            <td class='aright' style='width:auto;'>|Дата|*:</td>
+	            <td class='aright' style='width:auto;color:#999;'>|Дата|*:</td>
 	            <td>[#date#]</td>
 	        </tr>
 	        <!--ET_END date-->
 	        <!--ET_BEGIN total-->          
 	        <tr>
-	            <td class='aright' style='width:auto;'>|Сума|*:</td>
+	            <td class='aright' style='width:auto;color:#999;'>|Сума|*:</td>
 	            <td>[#total#]</td>
 	        </tr>
 	        <!--ET_END total-->
-	        <!--ET_BEGIN keywords-->          
+	        <!--ET_BEGIN description-->          
 	        <tr>
-	            <td class='aright' style='width:auto;'>|Описание|*:</td>
-	            <td>[#keywords#]</td>
+	            <td class='aright' style='width:auto;color:#999;'>|Описание|*:</td>
+	            <td>[#description#]</td>
 	        </tr>
-	        <!--ET_END keywords-->
+	        <!--ET_END description-->
+            <!--ET_BEGIN archTomNumber-->          
+	        <tr>
+	            <td class='aright' style='width:auto;color:#999;'>|Архивиране|*:</td>
+	            <td>[#archTomNumber#]/[#archTomYear#]</td>
+	        </tr>
+	        <!--ET_END archTomNumber-->
+
 	    </table>
     </div>
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

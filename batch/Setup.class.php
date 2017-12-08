@@ -14,6 +14,12 @@ defIfNot('BATCH_CLOSE_OLD_BATCHES', core_DateTime::SECONDS_IN_MONTH);
 
 
 /**
+ * Брой партиди които да се показват в прозореца за промяна на партидите
+ */
+defIfNot('BATCH_COUNT_IN_EDIT_WINDOW', 10);
+
+
+/**
  * class batch_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -23,7 +29,7 @@ defIfNot('BATCH_CLOSE_OLD_BATCHES', core_DateTime::SECONDS_IN_MONTH);
  * @category  bgerp
  * @package   batch
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -34,66 +40,84 @@ class batch_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'batch_Defs';
+    public $startCtr = 'batch_Items';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Партиди и серийни номера към складовите документи";
+    public $info = "Партиди и серийни номера към складовите документи";
             
         
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
             'batch_Defs',
     		'batch_Items',
     		'batch_Movements',
     		'batch_CategoryDefinitions',
-    		'batch_InventoryNotes',
-    		'batch_InventoryNoteDetails',
+    		'batch_Features',
+    		'batch_Templates',
+            'batch_BatchesInDocuments'
         );
     
 
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'batch';
+    public $roles = 'batch';
     
 
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "batch_definitions_Varchar,batch_definitions_Serial,batch_definitions_ExpirationDate,batch_definitions_Document";
+    public $defClasses = "batch_definitions_Varchar,batch_definitions_Serial,batch_definitions_ExpirationDate,batch_definitions_Document,batch_definitions_DeliveryDate,batch_definitions_ProductionDate,batch_definitions_Component,batch_definitions_StringAndDate";
     
     
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
-            array(3.4, 'Логистика', 'Партиди', 'batch_Defs', 'default', "batch,ceo"),
+    public $menuItems = array(
+            array(3.4, 'Логистика', 'Партиди', 'batch_Items', 'default', "batch,ceo"),
         );
     
         
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
+    public $configDescription = array(
     		'BATCH_EXPIRYDATE_PERCENT' => array("percent", 'caption=Оцветяване на изтичащите партиди->Преди края'),
-    		'BATCH_CLOSE_OLD_BATCHES'  => array('time', 'caption=Затваряне на стари партиди->Без движения')
+    		'BATCH_CLOSE_OLD_BATCHES'  => array('time', 'caption=Затваряне на изчерпани партиди->След'),
+    		'BATCH_COUNT_IN_EDIT_WINDOW' => array('int', 'caption=Колко партиди да се показват в прозореца за промяна->Брой'),
+    );
+    
+    
+    /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+    		array(
+    				'systemId' => "Close Old Batches",
+    				'description' => "Затваряне на старите партиди по които не е имало движение",
+    				'controller' => "batch_Items",
+    				'action' => "closeOldBatches",
+    				'period' => 1440,
+    				'offset' => 20,
+    				'timeLimit' => 100
+    		),
     );
     
     
@@ -120,13 +144,18 @@ class batch_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Партидни движения на производствените документи', 'batch_plg_DocumentMovement', 'deals_ManifactureMaster', 'family');
         $html .= $Plugins->installPlugin('Партидни движения на детайлите на производствените документи', 'batch_plg_DocumentMovementDetail', 'deals_ManifactureDetail', 'family');
         
-        $html .= $Plugins->installPlugin('Партидни движения на протокола за производство', 'batch_plg_DirectProductionNoteMovement', 'planning_DirectProductionNote', 'private');
-        
         $html .= $Plugins->installPlugin('Партиден детайл на артикулите', 'batch_plg_ProductDetail', 'cat_Products', 'private');
         $html .= $Plugins->installPlugin('Детайл за дефиниции на партиди', 'batch_plg_CategoryDetail', 'cat_Categories', 'private');
         
         $html .= $Plugins->installPlugin('Партиден детайл на детайла напротоколите за отговорно пазене', 'batch_plg_DocumentMovementDetail', 'store_InternalDocumentDetail', 'family');
         $html .= $Plugins->installPlugin('Партидни движения на протоколите за отговорно пазене', 'batch_plg_DocumentMovement', 'store_ConsignmentProtocols', 'private');
+        
+        $html .= $Plugins->installPlugin('Партидни движения на протокола за инвентаризация', 'batch_plg_InventoryNotes', 'store_InventoryNoteDetails', 'private');
+        $html .= $Plugins->installPlugin('Партидни движения на протокола за производство', 'batch_plg_DocumentMovementDetail', 'planning_DirectProductionNote', 'private');
+        
+        // Обновяване на протокола за инвентаризация да мус е сетъпне модела
+        $Notes = cls::get('store_InventoryNotes');
+        $html .= $Notes->setupMvc();
         
         return $html;
     }

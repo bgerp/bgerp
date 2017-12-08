@@ -1,6 +1,6 @@
 <div class="singleView">
     [#SingleToolbar#]
-    <div class='scrolling-holder'>
+    <div>
         <div class="folder-cover [#STATE_CLASS#]">
             <div class="inner-folder">
                 <div class="block_title [#STATE_CLASS#] special-title">[#SingleIcon#] |Склад|* <b style="color:green;">[#name#]</b></div>
@@ -75,6 +75,15 @@
                     </table>
                 </div>
             </fieldset>
+            <!--ET_END SELECT_FIELD-->
+            
+            <!--ET_BEGIN store_Products-->
+            <fieldset class="detail-info">
+                <legend class="groupTitle">|Артикули в наличност|*</legend>
+            	<div class="scrolling-holder full-width-holder">[#store_Products#]</div>
+            </fieldset>
+            <!--ET_END store_Products-->
+            
             <!--ET_END SELECT_FIELD-->
                 [#DETAILS#]
             </div>

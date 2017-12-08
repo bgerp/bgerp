@@ -273,7 +273,7 @@ class vtotal_Checks extends core_Master
                 
                 try {
                     $entriesArr = $archivInst->getEntries();
-                } catch (Archive_7z_Exception $e) {
+                } catch (ErrorException $e) {
                     self::logWarning("Грешка при обработка на архив - {$fRec->dataId}: " . $e->getMessage());
                     // Проверка във VT
                     $vtotalFilemanDataObject = fileman_Data::fetch($rec->dataId);
@@ -306,7 +306,7 @@ class vtotal_Checks extends core_Master
                     // След като открием файла който ще пратим към VT
                     try {
                         $extractedPath = $archivInst->extractEntry($path);
-                    } catch (Archive_7z_Exception $e) {
+                    } catch (ErrorException $e) {
                         $archiveHaveExt = FALSE;
                         continue;
                     }
@@ -440,19 +440,66 @@ class vtotal_Checks extends core_Master
 
                 $fsQuery = fileman_Files::getQuery();
                 $fsQuery->where("#dataId = {$rec->filemanDataId}");
-
+                
+                if ($result->positives) {
+                    fileman_Data::logNotice('Файл с вирус', $rec->filemanDataId);
+                }
+                
                 while($fRec = $fsQuery->fetch())
                 {
                     $fRec->dangerRate = $dangerRate;
                     fileman_Files::save($fRec, 'dangerRate');
                     
                     if ($result->positives) {
+                        fileman_Files::logNotice('Файл с вирус', $fRec->id);
+                        
                         $extensionFRec = mb_strtolower(pathinfo($fRec->name, PATHINFO_EXTENSION));
                         
                         if (!$dangerExtensionsArr[$extensionFRec]) {
                             $dangerExtensionsArr[$extensionFRec] = $extensionFRec;
                             
                             core_Packs::setConfig('vtotal', array('VTOTAL_DANGER_EXTENSIONS' => implode(',', $dangerExtensionsArr)));
+                        }
+                        
+                        // Автоматично оттегляне на имейлите с вируси
+                        $eQuery = email_Incomings::getQuery();
+                        $eQuery->where("#routeBy = 'country'");
+                        $eQuery->orWhere("#routeBy = 'toBox'");
+                        $eQuery->orWhere("#routeBy = 'fromTo'");
+                        $eQuery->where("#state != 'rejected'");
+                        $eQuery->where(array("#emlFile = '[#1#]'", $fRec->id));
+                        $eQuery->orWhere(array("#htmlFile = '[#1#]'", $fRec->id));
+                        $eQuery->orLike('files', '|' . $fRec->id . '|');
+                        
+                        while ($eRec = $eQuery->fetch()) {
+                            
+                            if ($eRec->routeBy == 'fromTo' && $eRec->folderId) {
+                                $coverClass = doc_Folders::getCover($eRec->folderId);
+                                
+                                // Ако ще се рутира към пощенска кутия или проект
+                                if ($coverClass) {
+                                    if ((!$coverClass->instance instanceof email_Inboxes) && (!$coverClass->instance instanceof doc_UnsortedFolders)) continue;
+                                }
+                            }
+                            
+                            if (email_Incomings::reject($eRec)) {
+                                
+                                if ($eRec->threadId) {
+                                    $tRec = doc_Threads::fetch($eRec->threadId);
+                                }
+                                
+                                // Ако оттегляме първия документ в нишка, то оттегляме цялата нишка
+                                if ($tRec->firstContainerId == $eRec->containerId) {
+                                    doc_Threads::rejectThread($eRec->threadId);
+                                    
+                                    doc_Threads::logWrite('Оттегляне на нишка с вирусусен имейл', $tRec->id);
+                                    doc_Threads::logNotice('Оттегляне на нишка с вирусусен имейл', $tRec->id);
+                                } else {
+                                    email_Incomings::logWrite('Оттегляне на имейл с вирус', $eRec->id);
+                                }
+                                
+                                email_Incomings::logNotice('Оттегляне на имейл с вирус', $eRec->id);
+                            }
                         }
                     }
                 }

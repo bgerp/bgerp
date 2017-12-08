@@ -19,12 +19,6 @@ class findeals_CreditDocuments extends deals_Document
 	
 	
 	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'deals_CreditDocuments';
-	
-	
-    /**
      * Какви интерфейси поддържа този мениджър
      */
     public  $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=findeals_transaction_CreditDocument, bgerp_DealIntf';
@@ -42,18 +36,9 @@ class findeals_CreditDocuments extends deals_Document
     public $loadList = 'plg_RowTools2, findeals_Wrapper, plg_Sorting, acc_plg_Contable,
                      doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary,doc_plg_HidePrices,
                      plg_Search, bgerp_plg_Blank,bgerp_DealIntf, doc_EmailCreatePlg';
-    
-    
-    /**
-	 * Кой може да го разглежда?
-	 */
-	public $canList = 'ceo, findealsMaster';
 
 
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	public $canSingle = 'ceo, findeals';
+	
     
     
     /**
@@ -66,30 +51,6 @@ class findeals_CreditDocuments extends deals_Document
      * Абревиатура
      */
     public $abbr = "Cdc";
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'findeals, ceo';
-    
-    
-    /**
-     * Кой може да пише?
-     */
-    public $canWrite = 'findeals, ceo';
-    
-    
-    /**
-     * Кой може да го контира?
-     */
-    public $canConto = 'findeals, ceo';
-    
-    
-    /**
-     * Кой може да го оттегля
-     */
-    public $canRevert = 'findeals, ceo';
     
     
     /**
@@ -108,6 +69,30 @@ class findeals_CreditDocuments extends deals_Document
      * Основна операция
      */
     protected static $operationSysId = 'creditDeals';
+    
+    
+    /**
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo, findeals, acc';
+    
+    
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'ceo, findeals, acc';
+    
+    
+    /**
+     * Кой може да пише?
+     */
+    public $canWrite = 'findeals, ceo';
+    
+    
+    /**
+     * Кой може да го контира?
+     */
+    public $canConto = 'findeals, ceo';
     
     
     /**

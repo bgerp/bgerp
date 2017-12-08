@@ -241,10 +241,62 @@ class log_Data extends core_Manager
      * @param object|string $className
      * @param integer $objectId
      * @param NULL|string $type
+     * @param NULL|string $act
      * 
      * @return NULL|integer
      */
-    public static function getObjectCnt($className, $objectId, $type = NULL)
+    public static function getObjectCnt($className, $objectId, $type = NULL, $act = NULL)
+    {
+        $query = self::getObjetQuery($className, $objectId, $type, $act);
+        
+        $query->show('id');
+        
+        return $query->count();
+    }
+    
+    
+    /**
+     * Връща записите за съответния обект
+     * 
+     * @param object|string $className
+     * @param integer $objectId
+     * @param NULL|string $type
+     * @param NULL|string $act
+     * 
+     * @return array
+     */
+    public static function getObjectRecs($className, $objectId, $type = NULL, $act = NULL, $limit = NULL, $order = 'DESC')
+    {
+        $query = self::getObjetQuery($className, $objectId, $type, $act);
+        
+        if ($limit) {
+            $query->limit($limit);
+        }
+        
+        if ($order) {
+            $query->orderBy('time', $order);
+        }
+        
+        $resArr = array();
+        while ($rec = $query->fetch()) {
+            $resArr[$rec->id] = $rec;
+        }
+	
+        return $resArr;
+    }
+    
+    
+    /**
+     * Връща заявка за съответния обект
+     * 
+     * @param object|string $className
+     * @param integer $objectId
+     * @param NULL|string $type
+     * @param NULL|string $act
+     *
+     * @return core_Query
+     */
+    protected static function getObjetQuery($className, $objectId, $type = NULL, $act = NULL)
     {
         if (is_object($className)) {
             $className = cls::getClassName($className);
@@ -262,7 +314,12 @@ class log_Data extends core_Manager
             $query->where(array("#type = '[#1#]'", $type));
         }
         
-        return $query->count();
+        if (isset($act)) {
+            $actCrc = log_Actions::getActionCrc($act);
+            $query->where(array("#actionCrc = '[#1#]'", $actCrc));
+        }
+        
+        return $query;
     }
     
     
@@ -451,7 +508,10 @@ class log_Data extends core_Manager
         
         if ($className) {
             if (cls::load($className, TRUE)) {
-                $clsInst = cls::get($className);
+                try {
+                    $clsInst = @cls::get($className);
+                } catch (Exception $e) {
+                }
                 
                 if (method_exists($clsInst, 'getLinkForObject')) {
                     try {
@@ -521,8 +581,8 @@ class log_Data extends core_Manager
         $data->listFilter->setDefault('users', $default);
         
         if (is_null(Request::get('class'))) {
-            // По - подразбиране да се търси месец назад
-            $data->listFilter->setDefault('from', dt::subtractSecs(core_DateTime::SECONDS_IN_MONTH));
+            // По - подразбиране да търси от днес
+            $data->listFilter->setDefault('from', dt::now(FALSE));
         }
         
         $data->listFilter->showFields = 'users, message, class, object, ip, from, to';
@@ -623,15 +683,28 @@ class log_Data extends core_Manager
         // Добавяме класовете, за които има запис в търсения резултат
         $classSuggArr = array();
         $cQuery = clone $query;
+        
+        // Ако не е въведена дата, ограничаваме времето - това е само за показване на класовете
+        if ((!$rec->from && !$rec->to) || (!is_null(Request::get('class')))) {
+            $beforeT = dt::mysql2timestamp(dt::now(FALSE));
+            $cQuery->where(array("#time >= '[#1#]'", $beforeT));
+        }
+        
         $cQuery->groupBy('classCrc');
+        $cQuery->show('classCrc');
         while ($cRec = $cQuery->fetch()) {
             $className = log_Classes::getClassFromCrc($cRec->classCrc);
             if ($className) {
                 $classSuggArr[$className] = $className;
             }
         }
+            
+        if (trim($rec->class)) {
+            $classSuggArr[$rec->class] = $rec->class;
+        }
         
         if (!empty($classSuggArr)) {
+            asort($classSuggArr);
             $classSuggArr = array('' => '') + $classSuggArr;
             $data->listFilter->setOptions('class', $classSuggArr);
         }
@@ -662,18 +735,13 @@ class log_Data extends core_Manager
             
             // Избрания обект да е на първо място
             if ($rec->object) {
-                $oldOrderArr = $cQuery->orderBy;
-                $cQuery->orderBy = array();
-                
-                $cQuery->orWhere(array("#objectId = '[#1#]'", $rec->object));
-                
-                $cQuery->XPR('orderObjectId', 'int', "(CASE #objectId WHEN '{$rec->object}' THEN 1 ELSE 2 END)");
-                $cQuery->orderBy('orderObjectId');
-                
-                $cQuery->orderBy = array_merge($cQuery->orderBy, $oldOrderArr);
+                $cQuery->where(array("#objectId = '[#1#]'", $rec->object));
+                $cQuery->limit(1);
+            } else {
+                $cQuery->limit(100);
             }
             
-            $cQuery->limit(100);
+            $cQuery->show('classCrc, objectId');
             
             while ($cRec = $cQuery->fetch()) {
                 $className = log_Classes::getClassFromCrc($cRec->classCrc);
@@ -689,6 +757,41 @@ class log_Data extends core_Manager
                             $objSuggArr[$cRec->objectId] = $cRec->objectId;
                         }
                     }
+                }
+            }
+            
+            // Избрания обект да е в началото и винаги да съществува в резултатите
+            if ($rec->object) {
+                $objVal = $objSuggArr[$rec->object];
+                
+                if (!$objVal) {
+                    
+                    if (!$crc) {
+                        $crc = log_Classes::getClassCrc($rec->class, FALSE);
+                    }
+                    
+                    $objValRec = self::fetch(array("#classCrc = '[#1#]' AND #objectId = '[#2#]'", $crc, $rec->object));
+                    
+                    if ($objValRec) {
+                        $className = log_Classes::getClassFromCrc($objValRec->classCrc);
+                        
+                        if ($className) {
+                            if (cls::load($className, TRUE)) {
+                                $clsInst = cls::get($className);
+                        
+                                if (method_exists($clsInst, 'getTitleForId_')) {
+                                    $objVal = $clsInst->getTitleForId($objValRec->objectId);
+                                } else {
+                                    $objVal = $objValRec->objectId;
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                if ($objVal) {
+                    unset($objSuggArr[$rec->object]);
+                    $objSuggArr = array($rec->object => $objVal) + (array)$objSuggArr;
                 }
             }
         }

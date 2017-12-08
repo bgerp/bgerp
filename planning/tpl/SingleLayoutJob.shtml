@@ -24,7 +24,7 @@
              <!--ET_END captionNotStored-->
           </tr>
           <tr>
-              <td class = 'nowrap'>[#quantity#]</td>
+              <td class = 'nowrap'>[#packQuantity#]</td>
               <td class = 'nowrap'>[#quantityToProduce#]</td>
               <!--ET_BEGIN quantityFromTasks-->
               <td class = 'nowrap'>[#quantityFromTasks#] </td>
@@ -43,6 +43,9 @@
         <tr>
             <td colspan = "3" class="cell custom-header-bg"> 
                 <b>|Задание за производство|*</b>
+                <!--ET_BEGIN timeActivated-->
+                <span class='small'>( |Активирано|* [#timeActivated#] )</span>
+                <!--ET_END timeActivated-->
             </td>
         </tr>
         <tr>
@@ -78,12 +81,12 @@
                         <td>[#weight#]</td>
                     </tr>
                     <!--ET_END weight-->
-                    <!--ET_BEGIN departments-->
+                    <!--ET_BEGIN department-->
 	               <tr style='padding-bottom:80px;padding-top:80px'>
-	                   <td class='quiet' style='text-align: left'>|Звена|*:</td>
-	                   <td>[#departments#]</td>
+	                   <td class='quiet' style='text-align: left'>|Департамент|*:</td>
+	                   <td>[#department#]</td>
 	               </tr>
-	               <!--ET_END departments-->
+	               <!--ET_END department-->
 	               <!--ET_BEGIN RECEIPTS-->
 	               [#RECEIPTS#]
                     <!--ET_BEGIN sBomId-->
@@ -99,6 +102,20 @@
                     </tr>
                     <!--ET_END pBomId-->
                     <!--ET_END RECEIPTS-->
+                    
+                    <!--ET_BEGIN oldJobId-->
+                    <tr>
+                        <td class='quiet' style='text-align: left;white-space: nowrap;'>|Предходно задание|*:</td>
+                        <td>[#oldJobId#]</td>
+                    </tr>
+                    <!--ET_END oldJobId-->
+                    [#ADDITIONAL_BLOCK#]
+                    <!--ET_BEGIN ADDITIONAL_VALUE-->
+                    <tr>
+                        <td class='quiet' style='text-align: left;white-space: nowrap;'>[#ADDITIONAL_CAPTION#]:</td>
+                        <td>[#ADDITIONAL_VALUE#]</td>
+                    </tr>
+                    <!--ET_END ADDITIONAL_VALUE-->
                 </table>
 	       </td>
 	       <td style='padding: 0'>
@@ -123,7 +140,13 @@
            [#origin#]
            </td>
       </tr>
-      
+      <!--ET_BEGIN JOB_COMPONENTS-->
+      <tr>
+      	<td colspan="2" class='small'>
+      		[#JOB_COMPONENTS#]
+     	 </td>
+      <!--ET_END JOB_COMPONENTS-->
+      </tr>
       <!--ET_BEGIN notes-->
       <tr>
            <th colspan="2" class='job-head'>
@@ -149,18 +172,16 @@
 		     <table>
 			    <!--ET_BEGIN saleId-->
 			    <tr>
-				   <td class='quiet'>|Продажба|*</td>
+				   <td class='quiet'>|Договор|*</td>
 				   <td>[#saleId#]</td>
 				</tr>
-			    <!--ET_END saleId-->
-			       	
-			    <!--ET_BEGIN dealer-->
+			    <!--ET_END saleId--> 
+			    <!--ET_BEGIN saleFolderId-->
 			    <tr>
-				    <td class='quiet'>|Търговец|*</td>
-				    <td>[#dealer#]</td>
+				   <td class='quiet'>|В папка|*</td>
+				   <td>[#saleFolderId#]</td>
 				</tr>
-			    <!--ET_END dealer-->
-			       	
+			    <!--ET_END saleFolderId-->
 			    <!--ET_BEGIN deliveryTermId-->
 			    <tr>
 				   <td class='quiet'>|Условие на доставка|*</td>
@@ -180,19 +201,39 @@
 				    <td>[#deliveryDate#]</td>
 				</tr>
 			    <!--ET_END deliveryDate-->
+			    
+			    <!--ET_BEGIN batches-->
+			    <tr>
+				   <td class='quiet'>|Партиди|*</td>
+				   <td class='small'>[#batches#]</td>
+				</tr>
+			    <!--ET_END batches-->
 		     </table>         
 	       </td>
         </tr>
-         <!--ET_END SALE_INFO-->
+        <!--ET_END SALE_INFO-->
+         <!--ET_BEGIN TITLE-->
+	  	<tr style="border-bottom: none">
+	  	   	<th colspan="2" class='job-head'  style="border-right: 1px solid #ccc; font-size: 0.9em">
+	  	   	|Опаковки|* [#TITLE#]
+	  	   	</th>
+	 	</tr>
+	 	<!--ET_END TITLE-->
     </table>
+    <!--ET_BEGIN PACKAGINGS-->
+    <div class="noTopBorder">
+    [#PACKAGINGS#]
     </div>
+    <!--ET_END PACKAGINGS-->
+    <!--ET_BEGIN Tasks-->
     <div class='scrolling-holder'>
 		<div class='job-head1' style='margin-top:10px;padding-top:8px;padding-bottom:8px'>
-		     <b>|Задачи|*</b>
+		     <b>|Производствени операции|*</b>
 		</div>
 		<div class="clearfix21 portal planning" style='border-top: none'>
 		       [#Tasks#]
 		       <div style='margin-top:6px'>[#btnTasks#]</div>
 		</div>
     </div>
+    <!--ET_END Tasks-->
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

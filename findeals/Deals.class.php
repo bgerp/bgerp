@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   findeals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -40,7 +40,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, acc_plg_Registry, findeals_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_Contable, acc_plg_DocumentSummary, plg_Search, bgerp_plg_Blank, doc_plg_Close, cond_plg_DefaultValues, plg_Clone';
+    public $loadList = 'plg_RowTools2, acc_plg_Registry, findeals_Wrapper, plg_Printing, acc_plg_Contable, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, bgerp_plg_Blank, doc_plg_Close, cond_plg_DefaultValues, plg_Clone, doc_plg_Prototype, doc_plg_SelectFolder';
     
     
     /**
@@ -70,25 +70,25 @@ class findeals_Deals extends deals_DealBase
     /**
      * Кой може да го контира?
      */
-    public $canConto = 'ceo,acc';
+    public $canConto = 'ceo,acc,findeals';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,findealsMaster';
+	public $canList = 'ceo,findeals,acc';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,findeals';
+	public $canSingle = 'ceo,findeals,acc';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'detailedName,folderId,state,createdOn,createdBy';
+    public $listFields = 'titleLink=Сделка,currencyId=Валута,folderId,state,createdOn,createdBy';
     
     
     /**
@@ -122,12 +122,6 @@ class findeals_Deals extends deals_DealBase
     
     
     /**
-     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-     */
-    public $rowToolsSingleField = 'detailedName';
-    
-    
-    /**
      * Брой детайли на страница
      */
     public $listDetailsPerPage = 20;
@@ -152,6 +146,30 @@ class findeals_Deals extends deals_DealBase
      
      
     /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = TRUE;
+    
+    
+    /**
+     * Кой има право да клонира?
+     */
+    public $canClonerec = 'ceo,findeals';
+    
+    
+    /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = 'crm_ContragentAccRegIntf';
+    
+    
+    /**
+     * Кой може да превалутира документите в нишката
+     */
+    public $canChangerate = 'ceo, findealsMaster';
+    
+    
+    /**
      * Позволени операции на последващите платежни документи
      */
     public  $allowedPaymentOperations = array(
@@ -168,12 +186,6 @@ class findeals_Deals extends deals_DealBase
     public $allowedShipmentOperations = array('delivery' => array('title' => 'Експедиране на стока', 'debit' => '*', 'credit' => 'store'),
     										  'stowage'  => array('title' => 'Засклаждане на стока', 'debit' => 'store', 'credit' => '*'),
     );
-    
-    
-    /**
-     * Кое поле показва сумата на сделката
-     */
-    public $canClosewith = 'ceo,findealsMaster';
     
     
     /**
@@ -199,7 +211,7 @@ class findeals_Deals extends deals_DealBase
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'amountDeal';
+    public $fieldsNotToClone = 'amountDeal,currencyRate';
     
     
     /**
@@ -214,7 +226,7 @@ class findeals_Deals extends deals_DealBase
     	$this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент');
     	
     	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Валута->Код,silent,removeAndRefreshForm=currencyRate');
-    	$this->FLD('currencyRate', 'double(decimals=5)', 'caption=Валута->Курс');
+    	$this->FLD('currencyRate', 'double(decimals=5)', 'caption=Валута->Курс,input=none');
     	
     	$this->FNC('contragentItemId', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Втори контрагент,input');
     	
@@ -228,10 +240,8 @@ class findeals_Deals extends deals_DealBase
     	$this->FLD('secondContragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=none');
     	$this->FLD('secondContragentId', 'int', 'input=none');
     	
-    	$this->FLD('description', 'richtext(rows=4)', 'caption=Допълнително->Описание,after=currencyRate');
-    	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Приключен,stopped=Спряно)','caption=Състояние, input=none');
-    	
-    	$this->FNC('detailedName', 'varchar', 'column=none,caption=Име');
+    	$this->FLD('description', 'richtext(rows=4,bucket=Notes)', 'caption=Допълнително->Описание,after=currencyRate');
+    	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Приключен,stopped=Спряно,template=Шаблон)','caption=Състояние, input=none');
     	$this->FLD('dealManId', 'class(interface=deals_DealsAccRegIntf)', 'input=none');
     	
     	// Индекс
@@ -244,39 +254,39 @@ class findeals_Deals extends deals_DealBase
      * 
      * @param mixed $contragentClassId
      * @param int $contragentId
-     * @param int $accountId
-     * @param array $fields
+     * @param int $accountSysId
+     * @param array $params
      * 			['valior']           - вальор, ако няма е текущата дата
      * 			['dealName']         - име на сделката (незадължително)
      * 			['description']      - описание (незадължително)
      * 			['currencyCode']     - код на валута, ако няма е основната за периода
      * 			['currencyRate']     - курса от валутата към основната валута за периода
      * 			['baseAccountSysId'] - систем ид на сметката от която ще се прехвърля салдото
-     * 			['baseAmount']       - сума в основна валута, която ще стане салдото на финансовата сделка
-     * 			['baseAmountType']   - дали салдото да е дебитно или кредитно
+     * 			['baseAmount']       - сума във валутата на сделката, която ще стане салдото на финансовата сделка
+     * 			['baseAmountType']   - дали салдото да е дебитно или кредитно 'debit' || 'credit'
      * 
      * @return int|FALSE $id
      */
-    public static function createDraft($contragentClassId, $contragentId, $accountId, $fields = array())
+    public static function createDraft($contragentClassId, $contragentId, $accountSysId, $params = array())
     {
     	$me = cls::get(get_called_class());
-    	
+   
     	// Проверки
     	$contragentClass = cls::get($contragentClassId);
     	expect($cRec = $contragentClass->fetch($contragentId));
     	expect($cRec->state != 'rejected');
-    	expect($accRec = acc_Accounts::getRecBySystemId($accountId), 'Невалидна сметка');
+    	expect($accRec = acc_Accounts::getRecBySystemId($accountSysId), 'Невалидна сметка');
     	if($me instanceof findeals_AdvanceDeals){
     		expect($contragentClass instanceof crm_Persons, "Служебен аванс може да е само в папка на лице");
     	}
     	
     	$options = acc_Accounts::getOptionsByListInterfaces($me->accountListInterfaces);
-    	expect(array_key_exists($accRec->id, $options), "{$accountId} разбивките нямат нужните интерфейси {$me->accountListInterfaces}");
+    	expect(array_key_exists($accRec->id, $options), "{$accountSysId} разбивките нямат нужните интерфейси {$me->accountListInterfaces}");
     	
     	$Double = cls::get('type_Double');
     	
     	// Кои полета ще се записват
-    	$fields = arr::make($fields);
+    	$fields = arr::make($params);
     	$newFields = array();
     	$newFields['contragentClassId'] = $contragentClass->getClassId();
     	$newFields['contragentId'] = $contragentId;
@@ -372,7 +382,6 @@ class findeals_Deals extends deals_DealBase
     	// Само контрагенти могат да се избират
     	$contragentListNum = acc_Lists::fetchBySystemId('contractors')->num;
     	$form->setFieldTypeParams('contragentItemId', array('lists' => $contragentListNum));
-    	
     	$form->setField('baseAmount', "unit={$rec->currencyId}");
     }
     
@@ -389,20 +398,6 @@ class findeals_Deals extends deals_DealBase
     	$coverClass = doc_Folders::fetchCoverClassName($folderId);
     
     	return cls::haveInterface('crm_ContragentAccRegIntf', $coverClass);
-    }
-    
-    
-    /**
-     * Име за избор
-     */
-    protected static function on_CalcDetailedName($mvc, &$rec) 
-    {
-     	if (!$rec->contragentName || !$rec->createdOn) return;
-     	
-     	$createdOn = dt::mysql2verbal($rec->createdOn, 'Y-m-d');
-     	
-     	$rec->detailedName = $rec->id . "." . $rec->contragentName . " / {$createdOn} / " . $rec->dealName;
-     	$rec->detailedName = trim($rec->detailedName, '/ ');
     }
     
     
@@ -456,19 +451,6 @@ class findeals_Deals extends deals_DealBase
     			$rec->secondContragentId = NULL;
     		}
     		
-    		if(!$rec->currencyRate){
-    			
-    			// Изчисляваме курса към основната валута ако не е дефиниран
-    			$rec->currencyRate = currency_CurrencyRates::getRate(dt::now(), $rec->currencyId, NULL);
-    			if(!$rec->currencyRate){
-    				$form->setError('rate', "Не може да се изчисли курс");
-    			}
-    		} else {
-    			if($msg = currency_CurrencyRates::hasDeviation($rec->currencyRate, dt::now(), $rec->currencyId, NULL)){
-    				$form->setWarning('currencyRate', $msg);
-    			}
-    		}
-    		
     		$rec->dealManId = $mvc->getClassId();
     		
     		// Проверки на данните
@@ -499,6 +481,7 @@ class findeals_Deals extends deals_DealBase
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+    	$row->titleLink = $mvc->getHyperlink($rec->id, TRUE);
     	if($fields['-single']){
     		$row->contragentName = cls::get($rec->contragentClassId)->getHyperLink($rec->contragentId, TRUE);
     		
@@ -524,13 +507,20 @@ class findeals_Deals extends deals_DealBase
     	} else {
     		unset($row->baseAccountId);
     	}
+    	
+    	if(empty($rec->currencyRate)){
+    		setIfNot($valior, $rec->valior, dt::today());
+    		$rate = currency_CurrencyRates::getRate($valior, $rec->currencyId, NULL);
+    		$row->currencyRate = $mvc->getFieldType('currencyRate')->toVerbal($rate);
+    		$row->currencyRate = ht::createHint($row->currencyRate, 'Курса ще се запише при контиране/активиране');
+    	}
     }
     
     
     /**
      * След подготовка на тулбара на единичен изглед
      */
-    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	$rec = $data->rec;
     	
@@ -572,6 +562,8 @@ class findeals_Deals extends deals_DealBase
     		// Ако сделката има начално салдо тя не може да приключва други сделки
     		if(isset($rec->baseAccountId)){
     			$res = 'no_one';
+    		} elseif(!haveRole('findeals', $userId)){
+    			$res = 'no_one';
     		}
     	}
     	
@@ -598,9 +590,14 @@ class findeals_Deals extends deals_DealBase
     private function getHistory(&$data)
     {
     	$rec = $this->fetchRec($data->rec->id);
+    	$data->rec->debitAmount = $data->rec->creditAmount = 0;
+    	
+    	$rate = $data->rec->currencyRate;
+    	if($rec->state == 'draft'){
+    		$rate = 1;
+    	}
     	
     	$entries = acc_Journal::getEntries(array(get_called_class(), $rec->id), $item);
-    	$data->rec->debitAmount = $data->rec->creditAmount = 0;
     	
     	if(count($entries)){
     		$data->history = array();
@@ -620,7 +617,7 @@ class findeals_Deals extends deals_DealBase
     			}
     			$r = &$recs[$index];
     			
-    			$jRec->amount /= $rec->currencyRate;
+    			$jRec->amount /= $rate;
     			if($jRec->debitItem2 == $item->id && $jRec->debitAccId == $rec->accountId){
     				$r->debitA += $jRec->amount;
     			}
@@ -648,13 +645,13 @@ class findeals_Deals extends deals_DealBase
     	
     	foreach (array('amountDeal', 'debitAmount', 'creditAmount') as $fld){
     		if($fld == 'amountDeal'){
-    			$data->rec->$fld /= $data->rec->currencyRate;
+    			$data->rec->{$fld} /= $rate;
     		}
-    		$data->row->$fld = $this->getFieldType('amountDeal')->toVerbal($data->rec->$fld);
-    		if($data->rec->$fld == 0){
-    			$data->row->$fld = "<span class='quiet'>{$data->row->$fld}</span>";
-    		} elseif($data->rec->$fld < 0){
-    			$data->row->$fld = "<span class='red'>{$data->row->$fld}</span>";
+    		$data->row->{$fld} = $this->getFieldType('amountDeal')->toVerbal($data->rec->{$fld});
+    		if($data->rec->{$fld} == 0){
+    			$data->row->{$fld} = "<span class='quiet'>{$data->row->{$fld}}</span>";
+    		} elseif($data->rec->{$fld} < 0){
+    			$data->row->{$fld} = "<span class='red'>{$data->row->{$fld}}</span>";
     		}
     	}
     }
@@ -733,8 +730,6 @@ class findeals_Deals extends deals_DealBase
     			$data->query->where("#state = '{$state}'");
     		}
     	}
-    	
-    	$data->query->where("#dealManId = {$mvc->getClassId()}");
     }
     
     
@@ -745,15 +740,27 @@ class findeals_Deals extends deals_DealBase
     public function getDocumentRow($id)
     {
     	expect($rec = $this->fetch($id));
-    
+    	$title = $this->getRecTitle($rec);
+    	
     	$row = (object)array(
-    			'title'    => $this->singleTitle . " №{$rec->id}",
+    			'title'    => $title,
     			'authorId' => $rec->createdBy,
     			'author'   => $this->getVerbal($rec, 'createdBy'),
     			'state'    => $rec->state,
-    			'recTitle' => $this->singleTitle . " №{$rec->id}",
+    			'recTitle' => $title,
     	);
     
+    	// Показване на текущото салдо на финансовите сделки
+    	if($this->haveRightFor('single', $rec) && isset($rec->amountDeal)){
+    		$rate = (!empty($rec->currencyRate)) ? $rec->currencyRate : 1;
+    		$amount = $rec->amountDeal / $rate;
+    		$amount = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($amount);
+    		if($rec->amountDeal < 0){
+    			$amount = "<span class='red'>{$amount}</span>";
+    		}
+    		$row->subTitle = tr("Текущо салдо|*: {$amount} {$rec->currencyId}");
+    	}
+    	
     	return $row;
     }
     
@@ -780,7 +787,14 @@ class findeals_Deals extends deals_DealBase
     	
     	// Обновяваме крайното салдо на сметката на сделката
     	$entries = acc_Journal::getEntries(array($this->className, $rec->id));
-    	$blAmount = acc_Balances::getBlAmounts($entries, acc_Accounts::fetchField($rec->accountId, 'systemId'))->amount;
+    	
+    	$itemId = acc_Items::fetchItem($this, $rec->id)->id;
+    	$accSysId = acc_Accounts::fetchField($rec->accountId, 'systemId');
+    	$cItemId = acc_Items::fetchItem($rec->contragentClassId, $rec->contragentId)->id;
+    	$curItemId = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode($rec->currencyId))->id;
+    	
+    	$blAmount = acc_Balances::getBlAmounts($entries, $accSysId, NULL, NULL, array($cItemId, $itemId, $curItemId))->amount;
+    	
     	$paid = acc_Balances::getBlAmounts($entries, '501,503')->amount;
     	
     	$result->set('amount', 0);
@@ -879,7 +893,11 @@ class findeals_Deals extends deals_DealBase
      */
     static function getRecTitle($rec, $escaped = TRUE)
     {
-	    return static::recToVerbal($rec, 'detailedName')->detailedName;
+    	$createdOn = dt::mysql2verbal($rec->createdOn, 'Y-m-d');
+    	$detailedName = $rec->id . "." . str::limitLen($rec->contragentName, 16) . " / {$createdOn} / " . str::limitLen($rec->dealName, 16);
+    	$detailedName = trim($detailedName, '/ ');
+    	
+    	return $detailedName;
     }
     
     
@@ -1041,5 +1059,16 @@ class findeals_Deals extends deals_DealBase
     	if(isset($rec->baseAccountId)){
     		Mode::setPermanent('findealCorrespondingAccId', $rec->baseAccountId);
     	}
+    }
+    
+    
+    /**
+     * След като се поготви заявката за модела
+     */
+    protected static function on_AfterGetQuery($mvc, $query)
+    {
+        if ($clsId = $mvc->getClassId()) {
+            $query->where("#dealManId = '{$clsId}'");
+        }
     }
 }

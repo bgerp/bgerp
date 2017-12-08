@@ -1,13 +1,14 @@
 <?php
 
 
+
 /**
  * Клас 'deals_ManifactureDetail' - базов клас за детайли на производствени документи
  *
  * @category  bgerp
  * @package   mp
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -24,18 +25,32 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	
 	
 	/**
+	 * Полета, които при клониране да не са попълнени
+	 *
+	 * @see plg_Clone
+	 */
+	public $fieldsNotToClone = 'createdBy,createdOn';
+	
+	
+	/**
+	 * Да се показва ли кода като в отделна колона
+	 */
+	public $showCodeColumn = TRUE;
+	
+	
+	/**
 	 * Описание на модела (таблицата)
 	 */
 	public function setDetailFields($mvc)
 	{
 		$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=quantity|measureId|packagingId|packQuantity');
-		$mvc->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
 		$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field nowrap,smartCenter,mandatory,input=hidden');
 		$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=input,mandatory,smartCenter');
 		$mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
 		
 		$mvc->FLD('quantity', 'double(Min=0)', 'caption=Количество,input=none,smartCenter');
 		$mvc->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden');
+		$mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Забележки,formOrder=110001');
 	}
 	
 
@@ -56,9 +71,8 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	 */
 	public static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
 	{
-		if (empty($rec->quantity) || empty($rec->quantityInPack)) {
-			return;
-		}
+		if (empty($rec->quantity) || empty($rec->quantityInPack)) return;
+		
 		$rec->packQuantity = $rec->quantity / $rec->quantityInPack;
 	}
 	
@@ -73,15 +87,13 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	{
 		$form = &$data->form;
 		setIfNot($data->defaultMeta, $mvc->defaultMeta);
-		
 		if(!$data->defaultMeta) return;
 		
 		$products = cat_Products::getByProperty($data->defaultMeta);
+		$data->form->setOptions('productId', array('' => ' ') + $products);
 		
-		if (empty($form->rec->id)) {
-			$data->form->setOptions('productId', array('' => ' ') + $products);
-		} else {
-			$data->form->setOptions('productId', array($form->rec->productId => $products[$form->rec->productId]));
+		if (isset($form->rec->id)) {
+			$data->form->setReadOnly('productId');
 		}
 	}
 	
@@ -162,15 +174,49 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	 */
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec)
 	{
-		$row->productId = cat_Products::getShortHyperLink($rec->productId);
+		$singleUrl = cat_Products::getSingleUrlArray($rec->productId);
+		$row->productId = cat_Products::getVerbal($rec->productId, 'name');
+		$row->productId = ht::createLinkRef($row->productId, $singleUrl);
+		deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
 		
 		// Показваме подробната информация за опаковката при нужда
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+	}
 	
-		if($rec->batch){
-			batch_Defs::appendBatch($rec->productId, $rec->batch, $notes);
-			$RichText = cls::get('type_Richtext');
-			$row->productId .= "<div class='small'>{$RichText->toVerbal($notes)}</div>";
+	
+	/**
+	 * Импортиране на вече подготвените записи за импорт
+	 *
+	 * @see import_DriverIntf
+	 * @param array $recs
+	 * 		o productId        - ид на артикула
+     * 		o quantity         - к-во в основна мярка
+     * 		o quantityInPack   - к-во в опаковка
+     * 		o packagingId      - ид на опаковка
+     * 		o batch            - дефолтна партида, ако може
+     * 		o notes            - забележки
+     * 		o $this->masterKey - ид на мастър ключа
+	 * 
+	 * @return void
+	 */
+	public function importRecs($recs)
+	{
+		if(!is_array($recs)) return;
+		foreach ($recs as $rec){
+			expect($rec->productId, 'Липсва продукт ид');
+			expect(cat_Products::fetchField($rec->productId), 'Няма такъв артикул');
+			expect($rec->packagingId, 'Няма опаковка');
+			expect(cat_UoM::fetchField($rec->packagingId), 'Несъществуваща опаковка');
+			expect($rec->{$this->masterKey}, 'Няма мастър кей');
+			expect($this->Master->fetch($rec->{$this->masterKey}), 'Няма такъв запис на мастъра');
+			expect($this->haveRightFor('add', (object)array($this->masterKey => $rec->{$this->masterKey})), 'Към този мастър не може да се добавя артикул');
+			
+			if(!$this->isUnique($rec, $fields, $exRec)){
+				core_Statuses::newStatus('Записа, не е импортиран защото им дублаж');
+				continue;
+			}
+			
+			$this->save($rec);
 		}
 	}
 }

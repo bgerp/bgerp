@@ -50,10 +50,10 @@ class type_Datetime extends type_Date {
         setIfNot($value, $attr['value']);
 
         if($value) {
-            if(count($value) == 2) {
+            if(is_array($value)) {
                 $date = $value['d'];
                 $time = $value['t'];
-            } else {
+            } elseif(is_scalar($value)) {
                 list($date, $time) = explode(' ', $value);
                 $date = dt::mysql2verbal($date, 'd.m.Y', NULL, FALSE);
                 list($h, $m, $s) = explode(':', $time);

@@ -92,13 +92,13 @@ class plg_UserReg extends core_Plugin
                 
                 $tpl->append("<p>&nbsp;<A HREF='" .
                     toUrl(array($invoker, 'resetPassForm')) .
-                    "' {$className}>»&nbsp;" . tr('Забравена парола||Forgot Password') . "?</A>", 'FORM');
+                    "' {$className} rel='nofollow'>»&nbsp;" . tr('Забравена парола||Forgot Password') . "?</A>", 'FORM');
             }
             
             if ($invoker->haveRightFor('registernewuserout')) {
                 $tpl->append("<p>&nbsp;<A HREF='" .
                 toUrl(array($invoker, 'registerNewUser')) .
-                "'  {$className}>»&nbsp;" . tr('Нова регистрация||Create account') . "</A>", 'FORM');
+                "'  {$className} rel='nofollow'>»&nbsp;" . tr('Нова регистрация||Create account') . "</A>", 'FORM');
             }
         }
     }
@@ -107,7 +107,7 @@ class plg_UserReg extends core_Plugin
     /**
      * Изпълнява се след получаването на необходимите роли
      */
-    static function on_AfterGetRequiredRoles(&$invoker, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles(&$invoker, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         $conf = core_Packs::getConfig('core');
         
@@ -141,7 +141,7 @@ class plg_UserReg extends core_Plugin
     	    
     	    $userId = (int) core_Cache::get(USERREG_CACHE_TYPE, $id);
     	    
-    	    if (!$userId || (!$rec = $mvc->fetch($userId))) {
+    	    if (!$userId || (!($rec = $mvc->fetch(array("#id = [#1#] AND (#state = 'active' OR #state = 'blocked')", $userId))))) {
     	        redirect(array('Index'), FALSE, '|Този линк е невалиден. Вероятно е използван или е изтекъл.', 'error');
     	    }
     	    
@@ -226,7 +226,7 @@ class plg_UserReg extends core_Plugin
                     
                     $conf = core_Packs::getConfig('core');
                     $msg->replace($conf->EF_APP_TITLE, 'EF_APP_TITLE');
-                    
+
                     redirect(array('Index'), FALSE, '|' . $msg->getContent());
                 }
             }
@@ -310,7 +310,8 @@ class plg_UserReg extends core_Plugin
             core_Users::setUserFormJS($form);
              
             $form->FNC('id', 'identifier', 'input=hidden');
-            
+            $form->FLD('ret_url', 'varchar', 'input=hidden,silent');
+
             $form->toolbar->addSbBtn('Изпрати');
             
             
@@ -341,11 +342,16 @@ class plg_UserReg extends core_Plugin
                     }
                     
                     core_Cache::remove(USERREG_CACHE_TYPE, $id);
-                    // Добавяме права на потребителя - headquarter, partner
-                    core_Users::addRole($userId, 'user');
-                    core_Users::addRole($userId, 'partner');
-                     
-                    redirect(array('core_Users','login'));
+                    
+                    // Добавяме права на потребителя - user, partner
+                    if(!haveRole('user', $userId)) {
+                        core_Users::addRole($userId, 'user');
+                    }
+                    if(!haveRole('executive', $userId)) {
+                        core_Users::addRole($userId, 'partner');
+                    }
+
+                    redirect(array('core_Users','login', 'ret_url' => toUrl(array('Portal', 'Show'), 'local')));
                 }
             }
             
@@ -376,7 +382,8 @@ class plg_UserReg extends core_Plugin
             $rec = $form->input('email,captcha');
             
             if ($form->isSubmitted() && $rec) {
-                $id = $mvc->fetchField(array("#email = '[#1#]'", $rec->email), 'id');
+                
+                $id = $mvc->fetchField(array("#email = '[#1#]' AND (#state = 'active' OR #state = 'blocked')", $rec->email), 'id');
                 
                 if (!$id) {
                     sleep(2);

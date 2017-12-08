@@ -2,7 +2,7 @@
     <table class="innerTable border-table paddingCells">
             <tbody>
                 <tr>
-                    <td colspan="2" class='centered'>  
+                    <td class='centered'>
                         <div class="document-title">|ДОГОВОР ЗА ПОКУПКА|*</div> 
                         <!--ET_BEGIN operationSysId-->
                         <small>( [#operationSysId#] )</small>
@@ -13,26 +13,32 @@
                                     <span class="bigData">[#valior#]</span>
                                 </span>
                         </div>
+                        <!--ET_BEGIN reff-->
+                    	|Ваш реф|*: <span class="bigData">[#reff#]</span>
+                    	<!--ET_END reff-->
                     </td>
                 </tr>
                 <tr>
-                    <td class="cell custom-header-bg"  style="width: 50%"><b>|Получател|*</b></td>
-                    <td class="cell custom-header-bg"><b>|Доставчик|*</b></td>
+                    <td class="cell custom-header-bg"><b>|Получател|*</b></td>
                 </tr>
                 <tr>
                     <td>
-	                    <b>[#MyCompany#]</b>
-	                    <div class='address-block'>
-	                        [#MyAddress#]
-	                    </div>
-	                    <!--ET_BEGIN shipmentStoreId-->
-	                    <hr style="margin: 3px 0 1px;">
-	                    <div>
-	                        |До склад|*: [#shipmentStoreId#]
-	                    </div>
-	                    <!--ET_END shipmentStoreId-->
+                        <b>[#MyCompany#]</b>
+                        <div class='address-block'>
+                            [#MyAddress#]
+                        </div>
+                        <!--ET_BEGIN shipmentStoreId-->
+                        <hr style="margin: 3px 0 1px;">
+                        <div>
+                            |До склад|*: [#shipmentStoreId#]
+                        </div>
+                        <!--ET_END shipmentStoreId-->
                     </td>
-                    
+                </tr>
+                <tr>
+                    <td class="cell custom-header-bg"><b>|Доставчик|*</b></td>
+                </tr>
+                <tr>
                     <td>
                         <b>[#contragentName#]</b>
 	                    <div class='address-block'>
@@ -116,10 +122,13 @@
                         <!--ET_BEGIN deliveryBlock-->
                         [#deliveryBlock#]
                         <li>|Доставка|*: [#deliveryTermId#]
-                            <!--ET_BEGIN deliveryTime-->|до|* [#deliveryTime#]<!--ET_END deliveryTime--></li>
+                        <!--ET_BEGIN deliveryTime-->|до|* [#deliveryTime#]<!--ET_END deliveryTime--></li>
                         <!--ET_END deliveryBlock-->
+                        <!--ET_BEGIN deliveryTermTime-->
+                            <li>|Срок за доставка|* [#deliveryTermTime#] |след стартиране на договора|*</li>
+                            <!--ET_END deliveryTermTime--> 
                         <!--ET_BEGIN commonCondition-->
-                        <li>[#commonCondition#]</li>
+                        <li>|Общи условия по покупка|*: [#commonCondition#]</li>
                         <!--ET_END commonCondition-->
                     </ol>
                     <!--ET_BEGIN isDelivered-->

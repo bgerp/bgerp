@@ -22,6 +22,15 @@ class bgerp_plg_File extends core_Plugin
      */
     static function on_BeforeGenerateUrl($mvc, &$res, $fh, $isAbsolute)
     {
+        $fRec = fileman_Files::fetchByFh($fh);
+        
+        if ($fRec) {
+            // Добавяме файла към списъка
+            if ($cId = Mode::get('saveObjectsToCid')) {
+                doc_UsedInDocs::addObject(array($fh => $fRec->name), $cId, 'files');
+            }
+        }
+        
         $mode = Mode::get('text');
         
         // Ако не се изпраща имейла, да не сработва
@@ -34,11 +43,8 @@ class bgerp_plg_File extends core_Plugin
         //        if ((!$action) || in_array($action->action, array(doclog_Documents::ACTION_DISPLAY, doclog_Documents::ACTION_RECEIVE, doclog_Documents::ACTION_RETURN))) return ;
         if (!$action) return ;
         
-        // Името на файла
-        $name = fileman_Files::fetchByFh($fh, 'name');
-        
         //Генерираме връзката 
-        $res = toUrl(array('F', 'S', doc_DocumentPlg::getMidPlace(), 'n' => $name), $isAbsolute, TRUE, array('n'));
+        $res = toUrl(array('F', 'S', doc_DocumentPlg::getMidPlace(), 'b' => $fRec->bucketId, 'n' => $fRec->name), $isAbsolute, TRUE, array('b', 'n'));
         
         return FALSE;
     }

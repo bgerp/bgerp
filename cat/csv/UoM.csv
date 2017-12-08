@@ -1,40 +1,41 @@
-"килограм","кг",,1,"active","kg","|kg|kilogram|kilograma|kilogr.|kila|kilo|kg.|",3,uom
-"тон","т","килограм",1000,"active","t","|t|ton|tona|",3,uom
-"метър","м",,1,"active","m","|m|meter|metar|metri|metra|",3,uom
-"километър","км","метър",1000,"active","km","|kilometri|kilometra|km|",3,uom
-"квадратен метър","кв.м",,1,"active","sq.m","|kvadraten metar|kv.m|kvadratni metri|kv.metar|kv.metri|kvad. metar|kvad. metri|kvad.metar|kvad.metri|",3,uom
-"кубичен метър","куб.м",,1,"active","cub.m","|kubichen metar|kubichni metri|kub.m|kub.metra|kub. metri|kub. metra|kubichni metri|kub. metar|",3,uom
-"литър","л","кубичен метър",0.001,"active","l","|l|litar|litri|",3,uom
-"милилитър","мл","кубичен метър",0.000001,"active","ml","|ml|mililitar|", 0,uom
-"брой","бр.",,1,"active","pcs","|br|broj|broq|brojki|pcs|",0,uom,1
-"хиляди бройки","хил. бр.","брой",1000,"active","K pcs","|hilqdi brojki|hilqda brojki|",3,uom
-"секунда","сек.","секунда",1,"active","s",'|sec|secunda|seconds|second|secundi|',0,uom
-"минута","мин.","секунда",60,"active","min","|min|minuta|minuti|minutes|minute|",0,uom
-"час","час","секунда",3600,"active","h","|h|hour|hr|chas|chasa|",2,uom
-"киловатчас","кВч","ватчас",1000,"active","kWh","|kwh|kilovatchas|kilovatchasa|kilowatchasa|kilowatchasa|",3,uom
-"грам","г","килограм",0.001,"closed","g","|gram|grama|gr|",0,uom
-"милиграм","мг","килограм",0.000001,"closed","mg","|mg|miligrama|miligram|",0,uom
-"сантиметър","см","метър",0.01,"closed","cm","|cm|sm|santimetra|santimetar|santimetri|",0,uom
-"милиметър","мм","метър",0.001,"closed","mm","|mm|milimetar|milimetra|",0,uom
-"микрон","μ","метър",0.000001,"closed","mk","|mk|mikron|mikrona|μ|",0,uom
-"ват","w",,1,"closed","w","|vat|wat|w|",0,uom
-"ампер","A",,1,"closed","A","|a|ampera|amper|",0,uom
-"милиампер","мил.амп","ампер",0.001,"closed","mA","|ma|miliamper|miliampera|miliamperi|",0,uom
-"ом","Ω",,1,"closed","ohm","|om|ohm|oma|Ω|",0,uom
-"келвин","K",,1,"closed","K","|k|kelvin|kelvina|",2,uom
-"мол","мол",,1,"closed","mol","|mol|mola|",2,uom
-"кандела","cd",,1,"closed","cd","|cd|candela|candeli|",0,uom
-"джаул","J",,1,"closed","J","|jaul|j|jaula|",0,uom
-"килограм на кубичен метър","кг/м3","килограм на кубичен метър",1,"active","kg/m3","|kilogram na kubichen metar|",0,uom
-"грам на кубичен сантиметър","г/см3","килограм на кубичен метър",1000,"closed","g/cm3","|gram na kubichen santimetar|",0,uom
-"килограм на литър","кг/л","килограм на кубичен метър",1000,"closed","kg/l","|килограм на литър|",3,uom
-"грам на квадратен метър","г/м2","грам на квадратен метър",1,"closed","g/m2","|gram na kvadraten metar|",1,uom
-пакет,пакет,,,active,,,0,packaging,1
-стек,стек,,,active,,,0,packaging,1
-кашон,кашон,,,active,,,0,packaging,1
-ролка,ролка,,,active,,,0,packaging,1
-чувал,чувал,,,active,,,0,packaging,1
-бака,бака,,,active,,,0,packaging,1
-варел,варел,,,active,,,0,packaging,1
-клетка,клетка,,,active,,,0,packaging,1
-палет,палет,,,active,,,0,packaging,1
+"ампер","A",,1,"closed","A","|a|ampera|amper|",0,"uom",
+"бака","бака",,,"active",,,0,"packaging",1
+"брой","бр.",,1,"active","pcs","|br|broj|broq|brojki|pcs|br.|",0,"uom",1
+"варел","варел",,,"active",,,0,"packaging",1
+"ват","w",,1,"closed","w","|vat|wat|w|",0,"uom",
+"грам","г","килограм","0.001","closed","g","|gram|grama|gr|",0,"uom",
+"грам на квадратен метър","г/м2","грам на квадратен метър",1,"closed","g/m2","|gram na kvadraten metar|",1,"uom",
+"грам на кубичен сантиметър","г/см3","килограм на кубичен метър",1000,"closed","g/cm3","|gram na kubichen santimetar|",0,"uom",
+"джаул","J",,1,"closed","J","|jaul|j|jaula|",0,"uom",
+"кандела","cd",,1,"closed","cd","|cd|candela|candeli|",0,"uom",
+"кашон","кашон",,,"active",,,0,"packaging",1
+"квадратен метър","кв.м",,1,"active","sq.m","|kvadraten metar|kv.m|kvadratni metri|kv.metar|kv.metri|kvad. metar|kvad. metri|kvad.metar|kvad.metri|",3,"uom",
+"квадратен сантиметър","кв.см","квадратен метър","0.0001","active","sq.cm","|kvadraten santimetar|kv.sm|kvadratni santimetri|kv.santimetar|kv.santimetri|kvad. santimetar|kvad. santimetri|kvad.santimetar|kvad.santimetri|",2,"uom",
+"келвин","K",,1,"closed","K","|k|kelvin|kelvina|",2,"uom",
+"киловатчас","кВч","ватчас",1000,"active","kWh","|kwh|kilovatchas|kilovatchasa|kilowatchasa|kilowatchasa|",3,"uom",
+"килограм","кг",,1,"active","kg","|kg|kilogram|kilograma|kilogr.|kila|kilo|kg.|",3,"uom",
+"килограм на кубичен метър","кг/м3","килограм на кубичен метър",1,"active","kg/m3","|kilogram na kubichen metar|",0,"uom",
+"килограм на литър","кг/л","килограм на кубичен метър",1000,"closed","kg/l","|килограм на литър|",3,"uom",
+"километър","км","метър",1000,"active","km","|kilometri|kilometra|km|",3,"uom",
+"клетка","клетка",,,"active",,,0,"packaging",1
+"кубичен метър","куб.м",,1,"active","cub.m","|kubichen metar|kubichni metri|kub.m|kub.metra|kub. metri|kub. metra|kubichni metri|kub. metar|",3,"uom",
+"литър","л","кубичен метър","0.001","active","l","|l|litar|litri|",3,"uom",
+"метър","м",,1,"active","m","|m|meter|metar|metri|metra|",2,"uom",
+"микрон","μ","метър","0.000001","closed","mk","|mk|mikron|mikrona|μ|",0,"uom",
+"милиампер","мил.амп","ампер","0.001","closed","mA","|ma|miliamper|miliampera|miliamperi|",0,"uom",
+"милиграм","мг","килограм","0.000001","closed","mg","|mg|miligrama|miligram|",0,"uom",
+"милилитър","мл","кубичен метър","0.000001","active","ml","|ml|mililitar|",0,"uom",
+"милиметър","мм","метър","0.001","closed","mm","|mm|milimetar|milimetra|",0,"uom",
+"минута","мин.","секунда",60,"active","min","|min|minuta|minuti|minutes|minute|",0,"uom",
+"мол","мол",,1,"closed","mol","|mol|mola|",2,"uom",
+"ом","Ω",,1,"closed","ohm","|om|ohm|oma|Ω|",0,"uom",
+"пакет","пакет",,,"active",,,0,"packaging",1
+"палет","палет",,,"active",,,0,"packaging",1
+"ролка","ролка",,,"active",,,0,"packaging",1
+"сантиметър","см","метър","0.01","closed","cm","|cm|sm|santimetra|santimetar|santimetri|",0,"uom",
+"секунда","сек.","секунда",1,"active","s","|sec|secunda|seconds|second|secundi|",0,"uom",
+"стек","стек",,,"active",,,0,"packaging",1
+"тон","т","килограм",1000,"active","t","|t|ton|tona|",3,"uom",
+"хиляди бройки","хил. бр.","брой",1000,"active","K pcs","|hilqdi brojki|hilqda brojki|",3,"uom",
+"час","час","секунда",3600,"active","h","|h|hour|hr|chas|chasa|",2,"uom",
+"чувал","чувал",,,"active",,,0,"packaging",1

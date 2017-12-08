@@ -124,7 +124,7 @@ class docoffice_Setup extends core_ProtoSetup
         // Конфигурационните константи
         $conf = core_Packs::getConfig('docoffice');
         $unoconv = $conf->OFFICE_CONVERTER_UNOCONV;
-        exec($unoconv, $dummy, $errorCode);
+        @exec($unoconv, $dummy, $errorCode);
         
         // Ако програмата не е инсталирана
         if ($errorCode == 127) {

@@ -288,8 +288,14 @@ class cms_Content extends core_Manager
         if($loginLink == FALSE) {
 
             $dRec = cms_Domains::getPublicDomain('form');
-
-            $filePath = 'img/32/login';
+            
+            if(haveRole('user')) {
+                $filePath = 'img/32/inside';
+                $title = "Меню||Menu";
+            } else {
+                $filePath = 'img/32/login';
+                $title = "Вход||Log in";
+            }
 
             if((isset($dRec->baseColor) && phpcolor_Adapter::checkColor($dRec->baseColor) &&  Request::get('Ctr') != 'core_Users') ||
                 (isset($dRec->activeColor) && phpcolor_Adapter::checkColor($dRec->activeColor) &&  Request::get('Ctr') == 'core_Users')) {
@@ -305,7 +311,7 @@ class cms_Content extends core_Manager
             $filePath .= '.png';
 
             $tpl->append(ht::createLink(ht::createImg(array('path' => $filePath)), 
-                array('Portal', 'Show'), NULL, array('title' => "Вход||Log in", 'class' => Request::get('Ctr') == 'core_Users' ? 'selected' : '')));
+                array('Portal', 'Show'), NULL, array('title' => $title, 'class' => Request::get('Ctr') == 'core_Users' ? 'selected' : '')));
         }
 
 
@@ -484,7 +490,7 @@ class cms_Content extends core_Manager
      */
     static function getFooter()
     {
-        if(self::getLang() !== 'bg') {
+        if(core_Lg::getCurrent() !== 'bg') {
             $footer =  new ET(getFileContent("cms/tpl/FooterEn.shtml"));
         } else {
             $footer =  new ET(getFileContent("cms/tpl/Footer.shtml"));
@@ -559,7 +565,7 @@ class cms_Content extends core_Manager
     /**
 	 * Модификация на ролите, които могат да видят избраната тема
 	 */
-    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{  
    		//  Кой може да обобщава резултатите
 		if($action == 'delete' && isset($rec->id, $rec->source) ) {

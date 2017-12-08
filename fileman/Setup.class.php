@@ -66,6 +66,12 @@ defIfNot('FILEINFO_MAX_ARCHIVE_LEN', 104857600);
 
 
 /**
+ * Максимален брой на страниците при показване на превю
+ */
+defIfNot('FILEINFO_MAX_PREVIEW_PAGES', 20);
+
+
+/**
  * Пътя до gs файла
  */
 defIfNot('FILEMAN_GHOSTSCRIPT_PATH', 'gs');
@@ -84,9 +90,21 @@ defIfNot('FILEMAN_WEBDRV_ERROR_CLEAN', 300);
 
 
 /**
+ * Увеличаване на размера на картинката при превю
+ */
+defIfNot('FILEMAN_WEBDRV_PREVIEW_MULTIPLIER', 2);
+
+
+/**
  * Коя програма да се използва за OCR обработка
  */
 defIfNot('FILEMAN_OCR', '');
+
+
+/**
+ * Директория, в която ще се държат екстрактнатите файлове
+ */
+defIfNot('FILEMAN_TEMP_PATH', EF_TEMP_PATH . '/fileman');
 
 
 /**
@@ -154,10 +172,14 @@ class fileman_Setup extends core_ProtoSetup
        'FILEINFO_MIN_FILE_LEN_BARCODE'   => array ('fileman_FileSize', 'caption=Размер на файловете|*&comma;| в който ще се търси баркод->Минимален, suggestions=5KB|15 KB|30 KB|50 KB'),
 
        'FILEINFO_MAX_FILE_LEN_BARCODE'   => array ('fileman_FileSize', 'caption=Размер на файловете|*&comma;| в който ще се търси баркод->Максимален, suggestions=500 KB|1 MB|2 MB|3 MB'),
+       
+       'FILEINFO_MAX_PREVIEW_PAGES'   => array ('int(min=1)', 'caption=Максимален брой на страниците|*&comma;| които ще се показват в изгледа->Брой'),
 
-       'FILEMAN_WEBDRV_ERROR_CLEAN'   => array ('time(suggestions=1 мин.|5 мин.|10 мин.|30 мин.|1 час)', 'caption=Време за живот на грешка при интексиране на файл->Време'), 
+       'FILEMAN_WEBDRV_ERROR_CLEAN'   => array ('time(suggestions=1 мин.|5 мин.|10 мин.|30 мин.|1 час)', 'caption=Време за живот на грешка при индексиране на файл->Време'),
+       
+       'FILEMAN_WEBDRV_PREVIEW_MULTIPLIER'   => array ('int(min=0, max=10)', 'caption=Увеличаване на размера на картинката при превю->Пъти'), 
 
-       'FILEMAN_OCR' => array ('class(interface=fileman_OCRIntf,select=title, allowEmpty)', 'caption=Коя програма да се използва за OCR обработка->Клас'),
+       'FILEMAN_OCR' => array ('class(interface=fileman_OCRIntf,select=title, allowEmpty)', 'caption=Програма по подразбиране за OCR обработка->Програма'),
     );
     
     
@@ -192,13 +214,10 @@ class fileman_Setup extends core_ProtoSetup
             // Установяваме модела за последни файлове
             'fileman_Log',
             
-        	// Установяваме модела за групи на галериите
-            'fileman_GalleryGroups',
-    
-            // Установяваме модела за галериите 
-            'fileman_GalleryImages',
-            
-            'migrate::addFileLen'
+            'migrate::addFileLen',
+            'migrate::bucketRoles',
+            'migrate::regenerateData1',
+            'migrate::regenerateBarcodes'
         );
     
     
@@ -248,15 +267,12 @@ class fileman_Setup extends core_ProtoSetup
         
         // Инсталираме
         if($conf->FILEMAN_FILE_COMMAND) {
-            $html .= $Plugins->installPlugin('SetExtension', 'fileman_SetExtensionPlg', 'fileman_Files', 'private');
-            $html .= $Plugins->installPlugin('SetExtension2', 'fileman_SetExtensionPlg2', 'fileman_Files2', 'private');
+            $html .= $Plugins->installPlugin('SetExtension', 'fileman_SetExtensionPlg', 'fileman_Files', 'private', 'active', TRUE);
+            $html .= $Plugins->installPlugin('SetExtension2', 'fileman_SetExtensionPlg2', 'fileman_Files', 'private', 'active', TRUE);
         }
         
         // Инсталираме плъгина за качване на файлове в RichEdit
         $html .= $Plugins->installPlugin('Files in RichEdit', 'fileman_RichTextPlg', 'type_Richtext', 'private');
-        
-         // Замества абсолютните линкове с титлата на документа
-        $html .= $Plugins->installPlugin('Галерии и картинки в RichText', 'fileman_GalleryRichTextPlg', 'type_Richtext', 'private');
         
         // Кофа за файлове качени от архиви
         $html .= $Buckets->createBucket('archive', 'Качени от архив', '', '100MB', 'user', 'user');
@@ -269,24 +285,6 @@ class fileman_Setup extends core_ProtoSetup
     
     
     /**
-     * Де-инсталиране на пакета
-     */
-    function deinstall()
-    {
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
-        
-        // Премахваме от type_Keylist полета
-        $Plugins->deinstallPlugin('fileman_SetExtensionPlg');
-        
-        // Деинсталираме плъгина от type_RichEdit
-        $Plugins->deinstallPlugin('fileman_RichTextPlg');
-        
-        return "<h4>Пакета fileman е деинсталиран</h4>";
-    }
-    
-    
-    /**
      * Проверява дали са инсталирани необходимите пакети и дали версиите им са коректни
      * 
      * @see core_ProtoSetup
@@ -294,6 +292,33 @@ class fileman_Setup extends core_ProtoSetup
     function checkConfig()
     {
         $conf = core_Packs::getConfig('fileman');
+        
+        // Показваме предупреждение ако мястото за качване на файлове е намаляло
+        if (!defined('FILEMAN_UPLOADS_PATH')) {
+            if (cls::load('fileman_Files', TRUE)) {
+                cls::get('fileman_Files');
+            }
+        }
+        if (defined('FILEMAN_UPLOADS_PATH')) {
+            $freeUploadSpace = core_Os::getFreePathSpace(FILEMAN_UPLOADS_PATH);
+            
+            if (isset($freeUploadSpace)) {
+                if ($freeUploadSpace < 100000) {
+                    
+                    return "Много малко свободно място за качване на файлове в " . FILEMAN_UPLOADS_PATH;
+                }
+            }
+            
+            // Гледаме и процентно да не се доближаваме към запълване
+            $freeUploadSpacePercent = core_Os::getFreePathSpace(FILEMAN_UPLOADS_PATH, TRUE);
+            $freeUploadSpacePercent = rtrim($freeUploadSpacePercent, '%');
+            if ($freeUploadSpacePercent <= 100) {
+                if ($freeUploadSpacePercent >= 95) {
+                    
+                    return "Почти е запълнено мястото за качване на файлове в " . FILEMAN_UPLOADS_PATH . " - {$freeUploadSpacePercent}%";
+                }
+            }
+        }
         
         // Ако не е инсталиране
         if (!static::isEnabled()) {
@@ -328,7 +353,7 @@ class fileman_Setup extends core_ProtoSetup
         $gs = escapeshellcmd($conf->FILEMAN_GHOSTSCRIPT_PATH);
         
         // Опитваме се да стартираме програмата
-        $res = exec($gs . ' --help', $output, $code);
+        $res = @exec($gs . ' --help', $output, $code);
         
         if ($code === 0) {
             
@@ -353,7 +378,7 @@ class fileman_Setup extends core_ProtoSetup
         $confWebkit = core_Packs::getConfig('fileman');
        
         // Опитваме се да вземем версията на ghostscript
-        exec(escapeshellarg($confWebkit->FILEMAN_GHOSTSCRIPT_PATH) . " --version", $resArr, $erroCode);
+        @exec(escapeshellarg($confWebkit->FILEMAN_GHOSTSCRIPT_PATH) . " --version", $resArr, $erroCode);
         
         $trimRes = trim($resArr[0]);
         
@@ -389,6 +414,74 @@ class fileman_Setup extends core_ProtoSetup
             
             $rec->fileLen = $rec->dataSize;
             fileman_Files::save($rec, 'fileLen');
+        }
+    }
+
+    /**
+     * Миграция към keylist на полето за ролите
+     */
+    static function bucketRoles()
+    {
+        $query = fileman_Buckets::getQuery();
+        while($rec = $query->fetch()) {
+            if(strlen($rec->rolesForDownload)) {
+                $rec->rolesForDownload = core_Roles::getRolesAsKeylist($rec->rolesForDownload);
+            }
+            if(strlen($rec->rolesForAdding)) {
+                $rec->rolesForAdding = core_Roles::getRolesAsKeylist($rec->rolesForAdding);
+            }
+            fileman_Buckets::save($rec, 'rolesForDownload,rolesForAdding');
+        }
+    }
+    
+    
+    /**
+     * Пускане на последните файлове
+     */
+    static function regenerateData1()
+    {
+        $dQuery = fileman_Data::getQuery();
+        $dQuery->where("#processed = 'yes'");
+        
+        $dQuery->orderBy('lastUse', 'DESC');
+        $dQuery->orderBy('createdOn', 'DESC');
+        
+        $dQuery->limit(10000);
+        
+        while ($dRec = $dQuery->fetch()) {
+            $dRec->processed = 'no';
+            fileman_Data::save($dRec, 'processed');
+        }
+    }
+    
+    
+    /**
+     * Изтриване на последно генерирани баркодове от системата
+     */
+    static function regenerateBarcodes()
+    {
+        $iQuery = fileman_Indexes::getQuery();
+        $iQuery->where("#type = 'barcodes'");
+        $iQuery->where("#createdBy < 1");
+        
+        $iQuery->orderBy('createdOn', 'DESC');
+        
+        $iQuery->limit(1000);
+        
+        $delArr = array();
+        
+        while ($iRec = $iQuery->fetch()) {
+            
+            fileman_Data::resetProcess($iRec->dataId);
+            
+            $delArr[$iRec->id] = $iRec->id;
+        }
+        
+        if (!empty($delArr)) {
+            $delImpl = implode(',', $delArr);
+            $delCnt = fileman_Indexes::delete("#id IN ({$delImpl})");
+            
+            fileman_Indexes::logDebug("Изтрити баркодове: {$delCnt}");
         }
     }
 }

@@ -38,6 +38,18 @@ defIfNot('PURCHASE_INVOICE_DEFAULT_VALID_FOR', 60 * 60 * 24 * 3);
 
 
 /**
+ * Роли за добавяне на артикул в продажба от бутона 'Артикул'
+ */
+defIfNot('PURCHASE_ADD_BY_PRODUCT_BTN', '');
+
+
+/**
+ * Роли за добавяне на артикул в продажба от бутона 'Списък'
+*/
+defIfNot('PURCHASE_ADD_BY_LIST_BTN', '');
+
+
+/**
  * Покупки - инсталиране / деинсталиране
  *
  *
@@ -87,21 +99,15 @@ class purchase_Setup extends core_ProtoSetup
     		'purchase_ServicesDetails',
     		'purchase_ClosedDeals',
     		'purchase_Invoices',
-    		'purchase_InvoiceDetails'
+    		'purchase_InvoiceDetails',
         );
-
-        
-    /**
-     * Роли за достъп до модула
-     */
-    var $roles = 'purchase';
     
     
     /**
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.1, 'Логистика', 'Доставки', 'purchase_Purchases', 'default', "purchase, ceo"),
+            array(3.1, 'Логистика', 'Доставки', 'purchase_Purchases', 'default', "purchase, ceo, acc"),
         );
 
 
@@ -114,13 +120,24 @@ class purchase_Setup extends core_ProtoSetup
 		'PURCHASE_CLOSE_OLDER_NUM'           => array("int", 'caption=По колко покупки да се приключват автоматично на опит->Брой'),
 		'PURCHASE_USE_RATE_IN_CONTRACTS'     => array("enum(no=Не,yes=Да)", 'caption=Ръчно въвеждане на курс в покупките->Избор'),
 		'PURCHASE_INVOICE_DEFAULT_VALID_FOR' => array("time", 'caption=Срок за плащане по подразбиране->Срок'),
+		'PURCHASE_ADD_BY_PRODUCT_BTN' => array("keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Необходими роли за добавяне на артикули в покупка от->Артикул'),
+		'PURCHASE_ADD_BY_LIST_BTN'    => array("keylist(mvc=core_Roles,select=role,groupBy=type)", 'caption=Необходими роли за добавяне на артикули в покупка от->Списък'),
 	);
 	
 	
 	/**
-	 * Път до css файла
+	 * Роли за достъп до модула
 	 */
-//	var $commonCSS = 'purchase/tpl/invoiceStyles.css';
+	var $roles = array(
+			array('purchase', 'invoicer,seePrice'),
+			array('purchaseMaster', 'purchase'),
+	);
+	
+	
+	/**
+	 * Дефинирани класове, които имат интерфейси
+	 */
+	var $defClasses = "purchase_PurchaseLastPricePolicy";
 	
 	
 	/**
@@ -130,17 +147,13 @@ class purchase_Setup extends core_ProtoSetup
     {
     	$html = parent::install();
         
-        // Добавяме политиката "По последна покупна цена"
-        $html .= core_Classes::add('purchase_PurchaseLastPricePolicy');
-        
-        // Добавяне на роля за старши куповач
-        $html .= core_Roles::addOnce('purchaseMaster', 'purchase');
-        
-        // Добавяне на роля за създаване на фактури
-        $html .= core_Roles::addOnce('invoicer');
-        
-        // sales наследява invoicer
-        $html .= core_Roles::addOnce('purchase', 'invoicer');
+        // Добавяне на дефолтни роли за бутоните
+        foreach (array('PURCHASE_ADD_BY_PRODUCT_BTN', 'PURCHASE_ADD_BY_LIST_BTN') as $const){
+        	if(strlen($config->{$const}) === 0){
+        		$keylist = core_Roles::getRolesAsKeylist('purchase,ceo');
+        		core_Packs::setConfig('purchase', array($const => $keylist));
+        	}
+        }
         
         return $html;
     }

@@ -2,10 +2,15 @@
 
 
 /**
+ * Задължителен параметър за експорт на ф-ра
+ */
+defIfNot('ACC_INVOICE_MANDATORY_EXPORT_PARAM', '');
+
+
+/**
  * Колко дена преди края на месеца да се направи следващия бъдещ период чакащ
  */
 defIfNot('ACC_DAYS_BEFORE_MAKE_PERIOD_PENDING', '');
-
 
 
 /**
@@ -50,6 +55,25 @@ defIfNot('ACC_VAT_REASON_IN_EU', 'чл.53 от ЗДДС – ВОД');
  * Основание за неначисляване на ДДС за контрагент извън ЕС
 */
 defIfNot('ACC_VAT_REASON_OUTSIDE_EU', 'чл.28 от ЗДДС – износ извън ЕС');
+
+
+
+/**
+ * Роли за всички при филтриране
+ */
+defIfNot('ACC_SUMMARY_ROLES_FOR_ALL', 'ceo,admin');
+
+
+/**
+ * Роли за екипите при филтриране
+ */
+defIfNot('ACC_SUMMARY_ROLES_FOR_TEAMS', 'ceo,admin,manager');
+
+
+/**
+ * Ден от месеца за изчисляване на Счетоводна дата на входяща фактура
+ */
+defIfNot('ACC_DATE_FOR_INVOICE_DATE', '10');
 
 
 /**
@@ -125,12 +149,7 @@ class acc_Setup extends core_ProtoSetup
     	'acc_ValueCorrections',
         'acc_FeatureTitles',
     	'acc_CostAllocations',
-        'migrate::removeYearInterfAndItem',
-        'migrate::updateItemsNum1',
-    	'migrate::updateClosedItems3',
-    	'migrate::updateItemsEarliestUsedOn',
-        'migrate::updateAllFL',
-        'migrate::updateFeatureTitles',
+        'migrate::removeUnusedRole'
     );
     
     
@@ -138,12 +157,16 @@ class acc_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
-        'ACC_MONEY_TOLERANCE'                 => array("double(decimals=2)", 'caption=Толеранс за допустимо разминаване на суми в основна валута->Сума'),
-        'ACC_DETAILED_BALANCE_ROWS'           => array("int", 'caption=Редове в страница от детайлния баланс->Брой редове,unit=бр.'),
-    	'ACC_DAYS_BEFORE_MAKE_PERIOD_PENDING' => array("time(suggestions= 1 ден|2 дена|7 Дена)", 'caption=Колко дни преди края на месеца да се направи следващия бъдещ период чакащ->Дни'),
-    	'ACC_VAT_REASON_OUTSIDE_EU'           => array('varchar', 'caption=Основание за неначисляване на ДДС за контрагент->Извън ЕС'),
-    	'ACC_VAT_REASON_IN_EU'                => array('varchar', 'caption=Основание за неначисляване на ДДС за контрагент->От ЕС'),
-    	'ACC_COST_OBJECT_DOCUMENTS'           => array('keylist(mvc=core_Classes,select=name)', "caption=Кои документи могат да бъдат разходни обекти->Документи,optionsFunc=acc_Setup::getDocumentOptions"),
+        'ACC_MONEY_TOLERANCE'                  => array("double(decimals=2)", 'caption=Толеранс за допустимо разминаване на суми в основна валута->Сума'),
+        'ACC_DETAILED_BALANCE_ROWS'            => array("int", 'caption=Редове в страница от детайлния баланс->Брой редове,unit=бр.'),
+    	'ACC_DAYS_BEFORE_MAKE_PERIOD_PENDING'  => array("time(suggestions= 1 ден|2 дена|7 Дена)", 'caption=Колко дни преди края на месеца да се направи следващия бъдещ период чакащ->Дни'),
+    	'ACC_VAT_REASON_OUTSIDE_EU'            => array('varchar', 'caption=Основание за неначисляване на ДДС за контрагент->Извън ЕС'),
+    	'ACC_VAT_REASON_IN_EU'                 => array('varchar', 'caption=Основание за неначисляване на ДДС за контрагент->От ЕС'),
+    	'ACC_COST_OBJECT_DOCUMENTS'            => array('keylist(mvc=core_Classes,select=name)', "caption=Кои документи могат да бъдат разходни обекти->Документи,optionsFunc=acc_Setup::getDocumentOptions"),
+        'ACC_SUMMARY_ROLES_FOR_TEAMS'          => array('varchar', 'caption=Роли за екипите при филтриране->Роли'),
+        'ACC_SUMMARY_ROLES_FOR_ALL'            => array('varchar', 'caption=Роли за всички при филтриране->Роли'),
+		'ACC_DATE_FOR_INVOICE_DATE'			   => array('int(min=1,max=31)', 'caption=Ден от месеца за изчисляване на Счетоводна дата на входяща фактура->Ден'),
+		'ACC_INVOICE_MANDATORY_EXPORT_PARAM'   => array("key(mvc=cat_Params,select=name,allowEmpty)", 'caption=Артикул за експорт на данъчна фактура->Параметър'),
     );
     
     
@@ -151,10 +174,29 @@ class acc_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     var $roles = array(
+    	array('seePrice'),
+    	array('invoicer'),
     	array('accJournal'),
-    	array('acc', 'accJournal'),
-        array('accMaster', 'acc'),
-    	array('accLimits'),
+        array('accLimits'),
+        array('allGlobal'),
+        array('invoiceAll'),
+        array('invoiceAllGlobal', 'invoiceAll, allGlobal'),
+        array('storeAll'),
+        array('storeAllGlobal', 'storeAll, allGlobal'),
+        array('bankAll'),
+        array('bankAllGlobal', 'bankAll, allGlobal'),
+        array('cashAll'),
+        array('cashAllGlobal', 'cashAll, allGlobal'),
+        array('saleAll'),
+        array('saleAllGlobal', 'saleAll, allGlobal'),
+        array('purchaseAll'),
+        array('purchaseAllGlobal', 'purchaseAll, allGlobal'),
+        array('planningAll'),
+        array('planningAllGlobal', 'planningAll, allGlobal'),
+        array('acc', 'accJournal, invoicer, seePrice, invoiceAll, storeAll, bankAll, cashAll, saleAll, purchaseAll, planningAll'),
+        array('accMaster', 'acc, invoiceAllGlobal, storeAllGlobal, bankAllGlobal, cashAllGlobal, saleAllGlobal, purchaseAllGlobal, planningAllGlobal'),
+        array('rep_acc'),
+
     );
     
     
@@ -163,7 +205,7 @@ class acc_Setup extends core_ProtoSetup
      */
     var $menuItems = array(
         array(2.1, 'Счетоводство', 'Книги', 'acc_Balances', 'default', "acc, ceo"),
-        array(2.3, 'Счетоводство', 'Настройки', 'acc_Periods', 'default', "acc, ceo"),
+        array(2.3, 'Счетоводство', 'Настройки', 'acc_Periods', 'default', "acc, ceo, admin"),
     );
     
     
@@ -232,7 +274,7 @@ class acc_Setup extends core_ProtoSetup
     					acc_reports_CorespondingImpl,acc_reports_SaleArticles,acc_reports_SaleContractors,acc_reports_OweProviders,
     					acc_reports_ProfitArticles,acc_reports_ProfitContractors,acc_reports_MovementContractors,acc_reports_TakingCustomers,
     					acc_reports_ManufacturedProducts,acc_reports_PurchasedProducts,acc_reports_BalancePeriodImpl, acc_reports_ProfitSales,
-                        acc_reports_MovementsBetweenAccounts";
+                        acc_reports_MovementsBetweenAccounts,acc_reports_ProductGroupRep,acc_reports_MovementArtRep,acc_reports_TotalRep";
     
     
     /**
@@ -257,22 +299,47 @@ class acc_Setup extends core_ProtoSetup
     	
     	// Ако потребителя не е избрал документи, които могат да са разходни пера
     	if(strlen($docs) === 0){
-    		$docArr = array();
-    		foreach (array('cal_Tasks', 'sales_Sales', 'purchase_Purchases', 'accda_Da', 'findeals_Deals', 'findeals_AdvanceDeals') as $doc){
-    			if(core_Classes::add($doc)){
-    				$id = $doc::getClassId();
-    				$docArr[$id] = $id;
-    			}
-    		}
-    
-    		// Записват се ид-та на дефолт сметките за синхронизация
-    		core_Packs::setConfig('acc', array('ACC_COST_OBJECT_DOCUMENTS' => keylist::fromArray($docArr)));
+    		$this->getCostObjectDocuments();
     		$res .= "<li style='color:green'>Добавени са дефолт документи за разходни пера</li>";
     	}
-    
+    	
     	return $res;
     }
     
+    
+    /**
+     * 
+     * @param core_Type $type
+     * @param array $otherParams
+     * 
+     * @return array
+     */
+    public static function getAccessClassOptions($type, $otherParams)
+    {
+        
+        return core_Classes::getOptionsByInterface('acc_TransactionSourceIntf', 'title');
+    }
+    
+    
+    /**
+     * Кои документи по дефолт да са разходни обекти
+     */
+    function getCostObjectDocuments()
+    {
+    	$docArr = array();
+    	foreach (array('cal_Tasks', 'sales_Sales', 'purchase_Purchases', 'accda_Da', 'findeals_Deals', 'findeals_AdvanceDeals', 'planning_DirectProductionNote', 'store_Transfers') as $doc){
+    		if(core_Classes::add($doc)){
+    			$id = $doc::getClassId();
+    			$docArr[$id] = $id;
+    		}
+    	}
+    	 
+    	// Записват се ид-та на дефолт сметките за синхронизация
+    	core_Packs::setConfig('acc', array('ACC_COST_OBJECT_DOCUMENTS' => keylist::fromArray($docArr)));
+    }
+    
+    
+   
     
     /**
      * Помощна функция връщаща всички класове, които са документи
@@ -286,167 +353,11 @@ class acc_Setup extends core_ProtoSetup
     
     
     /**
-     * Обновява номерата на перата
+     * Миграция за премахване на грешно изписана роля
      */
-    function updateItemsNum1()
+    public static function removeUnusedRole()
     {
-        $Items = cls::get('acc_Items');
-        $itemsQuery = $Items->getQuery();
-        
-        do{
-            try {
-                $iRec = $itemsQuery->fetch();
-                
-                if($iRec === NULL) break;
-            
-            	if(cls::load($iRec->classId, TRUE)){
-	                $Register = cls::get($iRec->classId);
-	                
-	                if($iRec->objectId) {
-	                    $regRec = $Register->getItemRec($iRec->objectId);
-	                    
-	                    if($regRec->num != $iRec->num){
-	                        $iRec->num = $regRec->num;
-	                        $Items->save_($iRec, 'num');
-	                    }
-	                }
-	            }
-            } catch (core_exception_Expect $e) {
-            	reportException($e);
-            	continue;
-            }
-            
-        } while(TRUE);
-    }
-    
-    
-    /**
-     * Миграция, която премахва данните останали от мениджъра за годините
-     */
-    function removeYearInterfAndItem()
-    {
-        // Изтриваме интерфейса на годините от таблицата с итнерфейсите
-        if($oldIntRec = core_Interfaces::fetch("#name = 'acc_YearsAccRegIntf'")){
-            core_Interfaces::delete($oldIntRec->id);
-        }
-        
-        if($oldIntRec = core_Interfaces::fetch("#name = 'acc_YearsRegIntf'")){
-            core_Interfaces::delete($oldIntRec->id);
-        }
-        
-        try {
-            $oldYearManId = core_Classes::getId('acc_Years');
-        } catch (core_exception_Expect $e) {
-            // Възможно е да няма такъв запис
-        }
-        
-        // Изтриваме и перата за години със стария меджър 'години'
-        if($oldYearManId) {
-            if(acc_Items::fetch("#classId = '{$oldYearManId}'")){
-                acc_Items::delete("#classId = '{$oldYearManId}'");
-            }
-        }
-    }
-    
-    
-    /**
-     * Обновява всички свойства, които имат перата от списъците
-     */
-    function updateAllFL()
-    {
-        $query = acc_Lists::getQuery();
-        while($rec = $query->fetch()) {
-            acc_Lists::updateFeatureList($rec->id);
-        }
-    }
-
-    
-    /**
-     * Ъпдейт на затворените пера
-     */
-    public function updateClosedItems3()
-    {
-    	core_App::setTimeLimit(400);
-    	
-    	$dealListSysId = acc_Lists::fetchBySystemId('deals')->id;
-    	
-    	if(!acc_Items::count()) return;
-    	
-    	$iQuery = acc_Items::getQuery();
-    	$iQuery->where("#state = 'closed'");
-    	$iQuery->likeKeylist('lists', $dealListSysId);
-    	$iQuery->show('classId,objectId,id');
-    	
-    	while($iRec = $iQuery->fetch()){
-    		$closedOn = NULL;
-    		$Deal = cls::get($iRec->classId);
-    		
-    		if($Deal->fetchField($iRec->objectId, 'state') == 'closed'){
-    			$CloseDoc = $Deal->closeDealDoc;
-    			if($CloseDoc){
-    				$CloseDoc = cls::get($CloseDoc);
-    				if($clRec = $CloseDoc::fetch("#docClassId = {$iRec->classId} AND #docId = {$iRec->objectId} AND #state = 'active'")){
-    					$valior = $CloseDoc->getValiorDate($clRec);
-    					if(!$valior){
-    						$closedOn = $clRec->createdOn;
-    					} else {
-    						$closedOn = $valior;
-    					}
-    				}
-    			}
-    		}
-    		
-    		if(!$closedOn){
-    			$closedOn = $Deal->fetchField($iRec->objectId, 'modifiedOn');
-    		}
-    		
-    		$iRec->closedOn = $closedOn;
-    		$iRec->closedOn = dt::verbal2mysql($iRec->closedOn, FALSE);
-    		cls::get('acc_Items')->save_($iRec, 'closedOn');
-    	}
-    }
-    
-    
-    /**
-     * Ъпдейтва полето за най-ранно използване
-     */
-    function updateItemsEarliestUsedOn()
-    {
-    	$Items = cls::get('acc_Items');
-    	$Items->setupMvc();
-    	
-    	$query = $Items->getQuery();
-    	while($rec = $query->fetch()){
-    		if(empty($rec->earliestUsedOn)){
-    			try{
-    				$rec->earliestUsedOn = dt::verbal2mysql($rec->createdOn, FALSE);
-    				$Items->save_($rec, 'earliestUsedOn');
-    			} catch(core_exception_Expect $e){
-    				reportException($e);
-    			}
-    		}
-    	}
-    }
-
-
-    /**
-     *
-     */
-    function updateFeatureTitles()
-    {
-        // Ако полето липсва в таблицата на модела да не се изпълнява
-        $cls = cls::get('acc_Features');
-        $cls->db->connect();
-        $featureField = str::phpToMysqlName('feature');
-        if (!$cls->db->isFieldExists($cls->dbTableName, $featureField)) return ;
-        
-        $fQuery = $cls->getQuery();
-        
-        unset($fQuery->fields['feature']);
-        $fQuery->FLD('feature', 'varchar(80, ci)', 'caption=Свойство,mandatory');
-
-        while($fRec = $fQuery->fetch()) {  
-            acc_Features::save($fRec);
-        }
+        core_Roles::removeRoles(array('storeaAllGlobal'));
+        core_Roles::delete("#role = 'storeaAllGlobal'");
     }
 }

@@ -85,7 +85,7 @@ class incoming_Types extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created,plg_Modified, plg_Rowtools2';
+    var $loadList = 'plg_Created,plg_Modified,incoming_Wrapper,plg_Rowtools2';
     
     
     /**

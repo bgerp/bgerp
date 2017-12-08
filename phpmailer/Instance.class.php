@@ -25,10 +25,20 @@ class phpmailer_Instance extends core_BaseClass
     	$conf = core_Packs::getConfig('phpmailer');
     	
     	// Зареждаме phpmailer-а за избраната версия
-    	require_once $conf->PML_VERSION . '/class.phpmailer.php';
+    	require_once $conf->PML_VERSION . '/PHPMailerAutoload.php';
     	
         // Създаваме инстанция на PHPMailerLite
         $PML = new PHPMailer();
+        
+        // Да не проверява сертификата на SMTP-то
+        $PML->SMTPOptions = array(
+            'ssl' => array(
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+                'allow_self_signed' => true
+            )
+        );
+        //TODO: да се сложи в конфигурацията?
         
         // Задаваме стойностите от конфигурацията
         $PML->Mailer    = $conf->PML_MAILER;
@@ -38,7 +48,6 @@ class phpmailer_Instance extends core_BaseClass
         $PML->From      = $conf->PML_FROM_EMAIL;
         $PML->FromName  = $conf->PML_FROM_NAME;
         $PML->Sendmail  = $conf->SENDMAIL_PATH;
-        $PML->SingleTo  = $conf->PML_SINGLE_TO;
         $PML->Host      = $conf->PML_HOST;
         $PML->Port      = $conf->PML_PORT;
         $PML->SMTPAuth  = $conf->PML_SMTPAUTH;

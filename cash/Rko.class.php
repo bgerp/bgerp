@@ -72,6 +72,14 @@ class cash_Rko extends cash_Document
     
     
     /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'termDate';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -80,6 +88,7 @@ class cash_Rko extends cash_Document
     	parent::getFields($this);
     	$this->FLD('beneficiary', 'varchar(255)', 'caption=Контрагент->Получил,mandatory');
     	$this->setField("contragentName", "caption=Контрагент->Получател");
+    	$this->setField("termDate", "caption=Срок");
     }
     
     

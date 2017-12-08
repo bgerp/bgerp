@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link      https://github.com/bgerp/ef/issues/6
@@ -26,6 +26,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
 	public static function on_AfterDescription(core_Mvc $mvc)
 	{
 		setIfNot($mvc->detailSellPriceFld, 'price');
+		setIfNot($mvc->detailDiscountPriceFld, 'discount');
 		setIfNot($mvc->detailQuantityFld, 'quantity');
 		setIfNot($mvc->detailProductFld, 'productId');
 		setIfNot($mvc->detailPackagingFld, 'packagingId');
@@ -70,17 +71,57 @@ class sales_plg_CalcPriceDelta extends core_Plugin
 		$valior =  $rec->{$mvc->valiorFld};
 		while($dRec = $query->fetch()){
 			
-			// Изчисляване на цената по политика
-			$primeCost = price_ListRules::getPrice($primeCostListId, $dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $valior);
+			$isPublic = cat_Products::fetchField($dRec->{$mvc->detailProductFld}, 'isPublic');
+			if($isPublic == 'yes'){
+				$primeCost = price_ListRules::getPrice($primeCostListId, $dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $valior);
+			} else {
+				$Driver = cat_Products::getDriver($dRec->{$mvc->detailProductFld});
+				$primeCost = $Driver->getPrice($dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailQuantityFld}, 0, 0, $valior);
 				
+				// Ако няма себестойност от драйвера, търсим тази по рецепта
+				if(!isset($primeCost)){
+					$bomRec = cat_Products::getLastActiveBom($dRec->{$mvc->detailProductFld}, 'sales');
+    				if(empty($bomRec)){
+    					$bomRec = cat_Products::getLastActiveBom($dRec->{$mvc->detailProductFld}, 'production');
+    				}
+    		
+    				if($bomRec){
+    					$primeCost = cat_Boms::getBomPrice($bomRec, $dRec->{$mvc->detailQuantityFld}, 0, 0, $valior, $primeCostListId);
+    				}
+				}
+			}
+			
+			$sellCost = $dRec->{$mvc->detailSellPriceFld};
+			if(isset($dRec->{$mvc->detailDiscountPriceFld})){
+				$sellCost = $sellCost * (1 - $dRec->{$mvc->detailDiscountPriceFld});
+			}
+			
+			// Ако артикулът е 'Надценка' няма себестойност
+			$code = cat_Products::fetchField($dRec->{$mvc->detailProductFld}, 'code');
+			if($code == 'surcharge'){
+				$primeCost = 0;
+			}
+			
+			// Изчисляване на цената по политика
 			$r = (object)array('valior'        => $valior,
 							   'detailClassId' => $detailClassId,
 					           'detailRecId'   => $dRec->id,
+							   'containerId'   => $rec->containerId,
 					           'quantity'      => $dRec->{$mvc->detailQuantityFld},
 					           'productId'     => $dRec->{$mvc->detailProductFld},
-					           'sellCost'      => $dRec->{$mvc->detailSellPriceFld},
+					           'sellCost'      => $sellCost,
 					           'primeCost'     => $primeCost);
-				
+			
+			$persons = sales_PrimeCostByDocument::getDealerAndInitiatorId($rec->containerId);
+			
+			$r->dealerId = $persons['dealerId'];
+			$r->initiatorId = $persons['initiatorId'];
+			
+			$id = sales_PrimeCostByDocument::fetchField("#detailClassId = {$detailClassId} AND #detailRecId = {$dRec->id}");
+			if(!empty($id)){
+				$r->id = $id;
+			}
+			
 			$save[] = $r;
 		}
 		
@@ -99,7 +140,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
 	{
 		// Ако документа е спрян или оттеглен изтриват се кешираните записи
 		if(isset($rec->id) && ($rec->state == 'rejected' || $rec->state == 'stopped')){
-			sales_PrimeCostByDocument::removeByDoc($mvc, $rec->id);
+			//sales_PrimeCostByDocument::removeByDoc($mvc, $rec->id);
 		}
 	}
 }

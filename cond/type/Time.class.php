@@ -13,7 +13,7 @@
  * @since     v 0.1
  * @title     Време
  */
-class cond_type_Time extends cond_type_Proto
+class cond_type_Time extends cond_type_abstract_Proto
 {
 	
 	

@@ -18,6 +18,12 @@ class zoho_Setup  extends core_ProtoSetup
     
     
     /**
+     *
+     */
+    public $deprecated = TRUE;
+    
+    
+    /**
      * Версия на пакета
      */
     var $version = '0.1';

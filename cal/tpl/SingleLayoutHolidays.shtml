@@ -1,7 +1,7 @@
 [#SingleToolbar#]
 <div class='document' style='min-width:80px;border:none;padding:0'>
     <div class='header'>
-        <div class='docBgIcon' style="[#iconStyle#]"><h2>[#title#]</h2></div>
+        <div class='docBgIcon' style="[#iconStyle#]; padding: 0;"><h2>[#title#]</h2></div>
     </div>
     <table class='top-table'>
         <tr>
@@ -22,7 +22,7 @@
         <!--ET_END info-->
         <!--ET_BEGIN nameday-->
         <tr>
-            <td class="quiet" colspan="2" style='padding-top:10px;'>|Именници|*:</td>
+            <td class="quiet" colspan="2" style='padding-top:10px;'>|Именици|*:</td>
         </tr>
         <tr>
             <td colspan="2">[#nameday#]</td>

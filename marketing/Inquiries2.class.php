@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   marketing
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -60,28 +60,22 @@ class marketing_Inquiries2 extends embed_Manager
     
     
     /**
-     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-     */
-    public $rowToolsSingleField = 'title';
-    
-    
-    /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, marketing_Wrapper, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
+    public $loadList = 'plg_RowTools2, marketing_Wrapper, plg_Sorting, plg_Clone, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,Router=marketing_InquiryRouter, drdata_PhonePlg';
     
     
     /**
      * @see marketin
      */
-    public $Router;
+    protected $Router;
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,title=Заглавие, name, company, email, folderId, createdOn, createdBy';
+    public $listFields = 'title=Заглавие, name, company, email, folderId, createdOn, createdBy';
     
     
     /**
@@ -96,12 +90,6 @@ class marketing_Inquiries2 extends embed_Manager
 	public $canList = 'ceo,marketing';
 	
 	
-	/**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    public $oldClassName = 'sales_Inquiries';
-    
-    
 	/**
      * Дали може да бъде само в началото на нишка
      */
@@ -169,6 +157,20 @@ class marketing_Inquiries2 extends embed_Manager
     
     
     /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
+
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'title';
+    
+    
+    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
@@ -186,17 +188,17 @@ class marketing_Inquiries2 extends embed_Manager
      */
     function description()
     {
-    	$this->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Шаблон,silent,input=hidden,refreshForm,placeholder=Популярни продукти");
+    	$this->FLD('proto', "key(mvc=cat_Products,allowEmpty,select=name)", "caption=Шаблон,silent,input=hidden,refreshForm,placeholder=Популярни продукти,groupByDiv=»");
     	$this->FLD('title', 'varchar', 'caption=Заглавие,silent');
-    	
+     
     	$this->FLD('quantities', 'blob(serialize,compress)', 'input=none,column=none');
     	$this->FLD('quantity1', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 1,hint=Въведете количество,input=none,formOrder=47');
     	$this->FLD('quantity2', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 2,hint=Въведете количество,input=none,formOrder=48');
     	$this->FLD('quantity3', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 3,hint=Въведете количество,input=none,formOrder=49');
-    	$this->FLD('name', 'varchar(255)', 'caption=Контактни данни->Имена,class=contactData,hint=Вашето име,contragentDataField=person,formOrder=50,mandatory');
-    	$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни данни->Държава,class=contactData,hint=Вашата държава,formOrder=51,contragentDataField=countryId,mandatory');
-    	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни данни->Имейл,class=contactData,hint=Вашият имейл,formOrder=52,mandatory');
-    	$this->FLD('company', 'varchar(255)', 'caption=Контактни данни->Фирма,class=contactData,hint=Вашата фирма,formOrder=53');
+    	$this->FLD('company', 'varchar(255)', 'caption=Контактни данни->Фирма,class=contactData,hint=Вашата фирма,formOrder=50');
+    	$this->FLD('name', 'varchar(255)', 'caption=Контактни данни->Лице,class=contactData,hint=Вашето име||Your name,contragentDataField=person,formOrder=51,mandatory');
+    	$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни данни->Държава,class=contactData,hint=Вашата държава,formOrder=52,contragentDataField=countryId,mandatory');
+    	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни данни->Имейл,class=contactData,hint=Вашият имейл||Your email,formOrder=53,mandatory');
     	$this->FLD('tel', 'drdata_PhoneType', 'caption=Контактни данни->Телефони,class=contactData,hint=Вашият телефон,formOrder=54');
     	$this->FLD('pCode', 'varchar(16)', 'caption=Контактни данни->П. код,class=contactData,hint=Вашият пощенски код,formOrder=55');
         $this->FLD('place', 'varchar(64)', 'caption=Контактни данни->Град,class=contactData,hint=Населено място: град или село и община,formOrder=56');
@@ -280,7 +282,7 @@ class marketing_Inquiries2 extends embed_Manager
     /**
      * Преди показване на форма за добавяне/промяна
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
 
@@ -291,8 +293,15 @@ class marketing_Inquiries2 extends embed_Manager
             	$form->setOptions('proto', $protoProducts);
             }
     	}
-   	
+ 
     	$mvc->expandEditForm($data);
+    	if(cls::load($form->rec->innerClass, TRUE)){
+    		if($Driver = cls::get($form->rec->innerClass)){
+    			if($moq = $Driver->getMoq()){
+    				$form->rec->moq = $moq;
+    			}
+    		}
+    	}
     }
     
     
@@ -313,7 +322,7 @@ class marketing_Inquiries2 extends embed_Manager
     /**
      * След преобразуване на записа в четим за хора вид
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if(empty($rec->createdBy)){
     		$row->createdBy = '@anonym';
@@ -351,7 +360,7 @@ class marketing_Inquiries2 extends embed_Manager
     		$measureId = cat_UoM::fetchBySinonim('pcs')->id;
     	}
     	
-    	$shortName = cat_UoM::getShortName($measureId);
+    	$shortName = tr(cat_UoM::getShortName($measureId));
     	
     	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
     	foreach (range(1, 3) as $i){
@@ -359,15 +368,22 @@ class marketing_Inquiries2 extends embed_Manager
     			if(isset($rec->quantities[$i - 1])){
     				$rec->{"quantity{$i}"} = $rec->quantities[$i - 1];
     				$row->{"quantity{$i}"} = $Double->toVerbal($rec->{"quantity{$i}"});
+                    
     			}
     		}
     	}
-    	
+        
+        $cntQuantities = 0;
     	foreach (range(1, 3) as $i){
     		if($rec->{"quantity{$i}"}){
     			$row->{"quantity{$i}"} .= " {$shortName}";
+                $cntQuantities++;
     		}
     	}
+        
+        if($cntQuantities > 1) {
+            $row->q1Number = '1';
+        }
     	
     	$row->time = core_DateTime::mysql2verbal($rec->createdOn);
     	
@@ -382,9 +398,19 @@ class marketing_Inquiries2 extends embed_Manager
     /**
      * Изпълнява се след създаване на нов запис
      */
-    public static function on_AfterCreate($mvc, $rec)
+    protected static function on_AfterCreate($mvc, $rec)
     {
-    	$mvc->sendNotificationEmailQueue[$rec->id] = $rec;
+    	// Изпращане на нотифициращ имейл само ако създателя не е контрактор
+    	if(!core_Users::isContractor($rec->createdBy)){
+    		$mvc->sendNotificationEmailQueue[$rec->id] = $rec;
+    	}
+    	
+    	// Ако запитването е в папка на контрагент вкарва се в група запитвания
+    	$Cover = doc_Folders::getCover($rec->folderId);
+    	if($Cover->haveInterface('crm_ContragentAccRegIntf')){
+    		$groupId = crm_Groups::force('Клиенти » Запитвания');
+    		$Cover->forceGroup($groupId, FALSE);
+    	}
     }
     
     
@@ -397,7 +423,12 @@ class marketing_Inquiries2 extends embed_Manager
     {
     	if(is_array($mvc->sendNotificationEmailQueue)){
     		foreach ($mvc->sendNotificationEmailQueue as $rec){
-    			$mvc->isSended = $mvc->sendNotificationEmail($rec);
+    		    try {
+    		        $mvc->isSended = $mvc->sendNotificationEmail($rec);
+    		    } catch (core_exception_Expect $e) {
+                    self::logErr("Грешка при изпращане", $rec->id);
+                    reportException($e);
+                }
     		}
     	}
     }
@@ -556,6 +587,7 @@ class marketing_Inquiries2 extends embed_Manager
     private function getTitle($id)
     {
     	$rec = $this->fetchRec($id);
+ 
     	$Driver = $this->getDriver($rec->id);
     	 
     	$name = $this->getFieldType('name')->toVerbal((($rec->company) ? $rec->company : $rec->name));
@@ -571,7 +603,7 @@ class marketing_Inquiries2 extends embed_Manager
     /**
      * След подготовка на тулбара на единичен изглед
      */
-    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	$rec = &$data->rec;
     	 
@@ -618,9 +650,17 @@ class marketing_Inquiries2 extends embed_Manager
     	
     	$this->requireRightFor('add');
     	
-    	$this->sendNotificationEmail($rec);
+    	$msg = '|Успешно препращане';
+    	try {
+    	    $this->sendNotificationEmail($rec);
+    	    $this->logWrite('Препращане', $rec->id);
+    	} catch (core_exception_Expect $e) {
+            $this->logErr("Грешка при изпращане", $rec->id);
+            reportException($e);
+            $msg = "|Грешка при препращане";
+        }
     	
-    	return new Redirect(array($this, 'single', $rec->id), '|Успешно препращане');
+    	return new Redirect(array($this, 'single', $rec->id), $msg);
     }
     
     
@@ -674,7 +714,7 @@ class marketing_Inquiries2 extends embed_Manager
     	$date = dt::mysql2verbal($rec->createdOn, 'd-M');
     	$time = dt::mysql2verbal($rec->createdOn, 'H:i');
     	
-    	$tpl = new ET(tr("|Благодарим за Вашето запитване|*, |получено на|* {$date} |в|* {$time} |чрез нашия уеб сайт|*"));
+    	$tpl = new ET(tr("|Благодаря за Вашето запитване|*, |получено на|* {$date} |в|* {$time} |чрез нашия уеб сайт|*."));
     
     	return $tpl->getContent();
     }
@@ -704,6 +744,8 @@ class marketing_Inquiries2 extends embed_Manager
      */
     function act_New()
     {
+        Mode::set('showBulletin', FALSE);
+        
     	$this->requireRightFor('new');
     	expect($drvId = Request::get('drvId', 'int'));
     	$proto = Request::get('protos', 'varchar');
@@ -714,18 +756,29 @@ class marketing_Inquiries2 extends embed_Manager
         core_Lg::push($lang);
 
     	if(count($proto)){
+            $sort = array();
     		foreach ($proto as $pId => &$name){
     			
     			// Ако прототипа е оттеглен или затворен, маха се от списъка
     			$pState = cat_Products::fetchField($pId, 'state');
     			if($pState != 'rejected' && $pState != 'closed'){
     				$name = cat_Products::getTitleById($pId, FALSE);
+                    $sort[$pId] = cat_Products::fetchField($pId, 'code');
     			} else {
     				unset($proto[$pId]);
     			}
     		}
+
+            // Сортиране на продуктите по код
+            asort($sort);
+            $res = array();
+            foreach($sort as $pId => $code) {
+                $res[$pId] = $proto[$pId];
+            }
+            $proto = $res;
     	}
     	
+
     	if($lg = Request::get('Lg')){
     		cms_Content::setLang($lg);
     		core_Lg::push($lg);
@@ -744,7 +797,7 @@ class marketing_Inquiries2 extends embed_Manager
     			$form->setDefault('proto', key($proto));
     			$form->setField('proto', 'input=hidden');
     		} else {
-    			$form->setField('proto', 'input,caption=Шаблон,placeholder=Артикули,groupByDiv=»');
+    			$form->setField('proto', 'input,caption=Шаблон,placeholder=Продукти||Products,groupByDiv=»');
     		}
     	} else {
     		$form->setField('proto', 'input=none');
@@ -754,6 +807,8 @@ class marketing_Inquiries2 extends embed_Manager
     	$data = (object)array('form' => $form);
     	
     	if(cls::load($form->rec->{$this->driverClassField}, TRUE)){
+
+            
     		$Driver = cls::get($form->rec->{$this->driverClassField}, array('Embedder' => $this));
     		$data->Driver = $Driver;
     		
@@ -765,14 +820,12 @@ class marketing_Inquiries2 extends embed_Manager
     		
     		$form->input();
     		$this->invoke('AfterInputEditForm', array(&$form));
-    	
-    		if(isset($form->rec->title)){
-    			$form->setField('title', 'input=hidden');
-    		}
     	}
     	
     	$form->title = "|Запитване за|* <b>{$form->getFieldType('title')->toVerbal($form->rec->title)}</b>";
-    	
+
+    	vislog_History::add("Форма за " . $form->getFieldType('title')->toVerbal($form->rec->title));
+
     	if(isset($form->rec->title)){
     		$form->setField('title', 'input=hidden');
     	}
@@ -807,12 +860,16 @@ class marketing_Inquiries2 extends embed_Manager
                     }
                     log_Browsers::setVars($userData);
     			}
-    		    
+
+                if($Driver) {
+                    if($title = $Driver->getProductTitle($rec)) {
+                        $rec->title = $title;
+                    }
+                }
+
     			$id = $this->save($rec);
-    			
-    			status_Messages::newStatus('|Благодарим Ви за запитването', 'success');
-    			 
-    			return followRetUrl();
+    		 
+    			return followRetUrl(NULL, '|Благодарим Ви за запитването', 'success');
     		}
     	}
     	
@@ -829,7 +886,7 @@ class marketing_Inquiries2 extends embed_Manager
     	
         // Премахва зададения временно текущ език
         core_Lg::pop();
-
+        
     	return $tpl;
     }
     
@@ -840,7 +897,7 @@ class marketing_Inquiries2 extends embed_Manager
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
     	if($form->isSubmitted()){
     		$rec = $form->rec;
@@ -851,24 +908,37 @@ class marketing_Inquiries2 extends embed_Manager
     			
     			// Ако има МОК, потребителя трябва да въведе количество, иначе се приема за еденица
     			if($rec->moq > 0){
-    				$form->setError('quantity1,quantity2,quantity3', "Не е постигнато минималното количество за поръчка|* <b>{$moqVerbal}</b>");
+    				$form->setError('quantity1,quantity2,quantity3', "Очаква се поне едно от количествата да е над||It is expected that at least one quantity is over|* <b>{$moqVerbal}</b>");
     			} else {
     				$rec->quantity1 = 1;
     			}
     		}
     		
     		// Ако има минимално количество за поръчка
-    		if($rec->moq > 0){
-    			foreach (range(1, 3) as $i){
-    				$quantity = $rec->{"quantity{$i}"};
-    				
-    				// Количествата не може да са под
-    				if(!empty($quantity)){
-    					if($quantity < $rec->moq){
-    						$form->setError("quantity{$i}", "Под минималното количество за поръчка|* <b>{$moqVerbal}</b>");
-    					}
-    				}
+    		$errorMoqs = $errorQuantities = $allQuantities = array();
+    		
+    		// Проверка на въведените количества
+    		foreach (range(1, 3) as $i){
+    			$quantity = $rec->{"quantity{$i}"};
+    			if(empty($quantity)) continue;
+    			
+    			if($rec->moq > 0 && $quantity < $rec->moq){
+    				$errorMoqs[] = "quantity{$i}";
     			}
+    			
+    			if(in_array($quantity, $allQuantities)){
+    				$errorQuantities[] = "quantity{$i}";
+    			} else {
+    				$allQuantities[] = $quantity;
+    			}
+    		}
+    		
+    		if(count($errorMoqs)){
+    			$form->setError(implode(',', $errorMoqs), "Количеството не трябва да е под||Quantity can't be bellow|* <b>{$moqVerbal}</b>");
+    		}
+    		
+    		if(count($errorQuantities)){
+    			$form->setError(implode(',', $errorQuantities), "Количествата трябва да са различни||Quantities must be different|*");
     		}
     	}
     }
@@ -975,7 +1045,7 @@ class marketing_Inquiries2 extends embed_Manager
     /**
      * Изпълнява се преди запис
      */
-    public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
+    protected static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
     {
     	// Ако има оригинална дата на създаване, подменяме нея с текущата
     	if(isset($rec->oldCreatedOn)){
@@ -999,7 +1069,7 @@ class marketing_Inquiries2 extends embed_Manager
      *
      * @return NULL|object
      */
-    static function getContragentData($id)
+    public static function getContragentData($id)
     {
         if (!$id) return ;
         
@@ -1021,14 +1091,5 @@ class marketing_Inquiries2 extends embed_Manager
         }
         
         return $contrData;
-    }
-    
-    
-    /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    public static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	$data->toolbar->removeBtn('btnAdd');
     }
 }

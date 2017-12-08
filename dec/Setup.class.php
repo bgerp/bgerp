@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Дефолтен шаблон за декларации на български
+ */
+defIfNot('DEC_DEF_TPL_BG', '');
+
+
+/**
+ * Дефолтен шаблон за декларации на английски
+*/
+defIfNot('DEC_DEF_TPL_EN', '');
 
 
 /**
@@ -51,7 +61,6 @@ class dec_Setup extends core_ProtoSetup
             'dec_Declarations',
 			'dec_Statements',
 			'dec_Materials',
-   			'migrate::saveDecTplToTplManager'
         );
 
         
@@ -60,6 +69,17 @@ class dec_Setup extends core_ProtoSetup
      */
     var $roles = 'dec';
 
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+
+        'DEC_DEF_TPL_BG'            => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Декларация за съответствие->Български,optionsFunc=dec_Declarations::getTemplateBgOptions'),
+        'DEC_DEF_TPL_EN'            => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Декларация за съответствие->Английски,optionsFunc=dec_Declarations::getTemplateEnOptions'),
+  
+    );
+    
     
     /**
      * Де-инсталиране на пакета
@@ -74,57 +94,28 @@ class dec_Setup extends core_ProtoSetup
     
     
     /**
-     * Миграция за вземане на id от стария dec_DeclarationType  модел
+     * Зареждане на данни
      */
-    function saveDecTplToTplManager()
+    function loadSetupData($itr = '')
     {
-    	try {
-    		if (!cls::load('dec_Declarations', TRUE)) return ;
-    		$dec = cls::get('dec_Declarations');
-    		
-    		if (!cls::load('dec_DeclarationTypes', TRUE)) return ;
-    		
-    		$decTypes = cls::get('dec_DeclarationTypes');
-    		if(!$decTypes->db->tableExists($decTypes->dbTableName)) return;
-
-    		$query = $dec->getQuery();
-    		$queryTypes = $decTypes->getQuery();
-    		
-    		$dec->FLD('typeId', 'key(mvc=dec_DeclarationTypes,select=name)', "caption=Бланка");
-    
-    		while ($oldRec = $queryTypes->fetch()){
-    		
-    			if (doc_TplManager::fetchField("#name = '{$oldRec->name}'",'id')) continue;
-    			
-    			$lg = i18n_Language::detect($oldRec->script);
-    		
-    			$tplRec = new stdClass();
-    			
-    			$tplRec->name = $oldRec->name;
-    			$tplRec->docClassId = $dec->getClassId();
-    			$tplRec->content = $oldRec->script; 
-    			$tplRec->lang = $lg;
-    			$tplRec->toggleFields = array('masterFld' => NULL);
-    			
-    			doc_TplManager::save($tplRec);
-    	
-    			
-    			$newId = doc_TplManager::fetchField("#name = '{$oldRec->name}'",'id');
-    			$dic[$oldRec->id] = $newId;
-    			$b[$oldRec->id][$lg] = $oldRec->name;
-    		}
-
-    		while ($rec = $query->fetch()) {
-    			if (!$rec->typeId) continue;
-    			
-    			$rec->template = $dic[$rec->typeId];
-    			
-    			dec_Declarations::Save($rec, 'template');
-    		}
-    		
-    	} catch (ErrorException $e) {
-            reportException($e);
+        $res = parent::loadSetupData($itr);
+         
+        // Ако няма посочени от потребителя сметки за синхронизация
+        $config = core_Packs::getConfig('dec');
+         
+        // Поставяме първия намерен шаблон на български за дефолтен на Декларация за съответствие
+        if(strlen($config->DEC_DEF_TPL_BG) === 0){
+            $key = key(dec_Declarations::getTemplateBgOptions());
+            core_Packs::setConfig('dec', array('DEC_DEF_TPL_BG' => $key));
         }
+         
+        // Поставяме първия намерен шаблон на английски за дефолтен на Декларация за съответствие
+        if(strlen($config->DEC_DEF_TPL_EN) === 0){
+            $key = key(dec_Declarations::getTemplateEnOptions());
+            core_Packs::setConfig('dec', array('DEC_DEF_TPL_EN' => $key));
+        }
+        
+        return $res;
     }
 
 }

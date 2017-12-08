@@ -169,9 +169,8 @@ class survey_Alternatives extends core_Detail {
 		if($fields['-list']) {
 			
 			if(!Mode::is('printing') && $mvc->haveRightFor('edit', $rec)){
-				$img = sbf('img/16/add.png');
 				$addUrl = array('survey_Options', 'add', 'alternativeId' => $rec->id, 'ret_url' => TRUE);
-				$row->addOption = ht::createLink('', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addParams', 'title'=>'Добавяне на опция'));
+				$row->addOption = ht::createLink('', $addUrl, NULL, array('ef_icon' => 'img/16/add.png', 'class' => 'addParams', 'title'=>'Добавяне на опция'));
 			}
 			
 			$imgLink = sbf('survey/img/question.png', '');
@@ -346,7 +345,7 @@ class survey_Alternatives extends core_Detail {
  	/**
 	 * Модификация на ролите, които могат да видят избраната тема
 	 */
-    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{
    		if($action == 'write' && isset($rec->surveyId)) {
    			

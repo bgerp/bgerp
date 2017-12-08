@@ -14,3 +14,6 @@
 |uspehi|
 |saludos|
 |gruessen|
+|b.rgs|
+|rgs|
+|salutations|

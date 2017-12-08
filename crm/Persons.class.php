@@ -39,7 +39,7 @@ class crm_Persons extends core_Master
         'doc_ContragentDataIntf',
         
         // Интерфейс за входящ документ
-        'incoming_CreateDocumentIntf',
+        'fileman_FileActionsIntf',
     		
     	// Интерфейс за корица на папка в която може да се създава артикул
     	'cat_ProductFolderCoverIntf',
@@ -82,7 +82,7 @@ class crm_Persons extends core_Master
     var $loadList = 'plg_Created, plg_Modified, plg_RowTools2,  plg_LastUsedKeys,plg_Rejected, plg_Select,
                      crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext, bgerp_plg_Groups, plg_Printing, plg_State,
                      plg_Sorting, recently_Plugin, plg_Search, acc_plg_Registry, doc_FolderPlg,
-                     bgerp_plg_Import, doc_plg_Close, drdata_PhonePlg,bgerp_plg_Export';
+                     bgerp_plg_Import, doc_plg_Close, drdata_PhonePlg,bgerp_plg_Export,plg_ExpandInput';
     
     
     /**
@@ -142,7 +142,7 @@ class crm_Persons extends core_Master
     /**
      * По кои сметки ще се правят справки
      */
-    public $balanceRefAccounts = '323,401,402,403,404,405,406,409,411,412,413,414,415,419';
+    public $balanceRefAccounts = '1511,1512,1513,1514,1521,1522,1523,1524,153,159,323,401,402,403,404,405,406,409,411,412,413,414,415,419';
     
     
     /**
@@ -191,6 +191,18 @@ class crm_Persons extends core_Master
      * Кой може да го възстанови?
      */
     var $canRestore = 'powerUser';
+    
+    
+    /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'admin, ceo';
+    
+    
+    /**
+     * Кой има право да оттегля системните данни?
+     */
+    public $canRejectsysdata = 'admin, ceo';
  
 	
     /**
@@ -201,31 +213,29 @@ class crm_Persons extends core_Master
 
     var $doWithSelected = 'export=Експортиране';
 
-
-    /**
-     * Име на полето, указващо в коя група/групи е записа
-     * 
-     * @var string
-     * @see groups_Extendable
-     */
-    public $groupsField = 'groupList';
-
     
     /**
      * Детайли на този мастър обект
      * 
      * @var string|array
      */
-    public $details = 'ContragentLocations=crm_Locations,
-                    ContragentBankAccounts=bank_Accounts,PersonsDetails=crm_PersonsDetails,AccReports=acc_ReportDetails,CommerceDetails=crm_CommerceDetails';
+    public $details = 'AccReports=acc_ReportDetails,ContragentLocations=crm_Locations,
+                    ContragentBankAccounts=bank_Accounts,PersonsDetails=crm_PersonsDetails,CommerceDetails=crm_CommerceDetails';
     
     
     /**
      * Поле, в което да се постави връзка към папката в листови изглед
      */
     var $listFieldForFolderLink = 'folder';
-
-
+    
+    
+    /**
+     * Полето, което ще се разширява
+     * @see plg_ExpandInput
+     */
+    public $expandFieldName = 'groupList';
+    
+	
     /**
      * Предефинирани подредби на листовия изглед
      */
@@ -236,6 +246,19 @@ class crm_Persons extends core_Master
         'birthday'      => array('Рожден ден', '#birthday=DESC'),
         'website'       => array('Сайт/Блог', '#website', 'website=Сайт/Блог'),
         );
+    
+    
+    /**
+     * 
+     * @see type_Key::filterByGroup
+     */
+    public $groupsField = 'groupList';
+    
+    
+    /**
+     * Как се казва полето за държава на контрагента
+     */
+    public $countryFieldName = 'country';
     
     
     /**
@@ -262,7 +285,7 @@ class crm_Persons extends core_Master
 
         // Служебни комуникации
         $this->FLD('buzCompanyId', 'key2(mvc=crm_Companies,where=#state !\\= \\\'rejected\\\', allowEmpty)', 
-            'caption=Служебни комуникации->Фирма,oldFieldName=buzCumpanyId,class=contactData,silent,export=Csv');
+            'caption=Служебни комуникации->Фирма,oldFieldName=buzCumpanyId,class=contactData,silent,export=Csv,remember');
         $this->FLD('buzLocationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Служебни комуникации->Локация,class=contactData,export=Csv');
         $this->FLD('buzPosition', 'varchar(64)', 'caption=Служебни комуникации->Длъжност,class=contactData,export=Csv');
         $this->FLD('buzEmail', 'emails', 'caption=Служебни комуникации->Имейли,class=contactData,export=Csv');
@@ -392,9 +415,9 @@ class crm_Persons extends core_Master
             $date = Request::get('date', 'date');
 
             if($date) {
-                $data->title = "Именници на <span class=\"green\">" . dt::mysql2verbal($date, 'd.m.Y, l') . "</span>";
+                $data->title = "Именици на <span class=\"green\">" . dt::mysql2verbal($date, 'd.m.Y, l') . "</span>";
             } else {
-                $data->title = "Именници";
+                $data->title = "Именици";
             }
         }
         
@@ -409,9 +432,7 @@ class crm_Persons extends core_Master
         }
 
     	if(!empty($data->listFilter->rec->groupId)){
-        	$descendants = crm_Groups::getDescendantArray($data->listFilter->rec->groupId);
-        	$keylist = keylist::fromArray($descendants);
-        	$data->query->likeKeylist("groupList", $keylist);
+        	$data->query->where("LOCATE('|{$data->listFilter->rec->groupId}|', #groupList)");
         }
     }
 
@@ -955,9 +976,17 @@ class crm_Persons extends core_Master
         $groupsCnt = array();
         
         while($rec = $query->fetch()) {
+            
             $keyArr = keylist::toArray($rec->groupList);
-
+            
             foreach($keyArr as $groupId) {
+                $gRec = crm_Groups::fetch($groupId);
+                if ($gRec->parentId) {
+                    unset($keyArr[$gRec->parentId]);
+                }
+            }
+            
+            foreach ($keyArr as $groupId) {
                 $groupsCnt[$groupId]++;
             }
         }
@@ -1078,7 +1107,9 @@ class crm_Persons extends core_Master
         } else {
             $query = $data->query;
         }
-
+        $query->limit(50);
+        $data->companiesCnt = $query->count();
+        
         while($rec = $query->fetch()) {
             $data->recs[$rec->id] = $rec;
             $row = $data->rows[$rec->id] = $this->recToVerbal($rec, 'name,mobile,tel,email,buzEmail,buzTel,buzLocationId,buzPosition');
@@ -1112,7 +1143,7 @@ class crm_Persons extends core_Master
     function renderCompanyExpandData($data)
     {
         $tpl = new ET("<fieldset class='detail-info'>
-                            <legend class='groupTitle'>" . tr('Представители') . "[#BTN#]</legend>
+                            <legend class='groupTitle'>" . tr('Представители') . "<!--ET_BEGIN CNT--> ([#CNT#])<!--ET_END CNT-->[#BTN#]</legend>
                                 <div class='groupList clearfix21'>
                                  [#persons#]
                             </div>
@@ -1122,7 +1153,9 @@ class crm_Persons extends core_Master
         if($data->addBtn){
         	$tpl->replace($data->addBtn, 'BTN');
         }
-        
+        if($data->companiesCnt){
+            $tpl->replace($data->companiesCnt, 'CNT');
+        }
         if(count($data->rows)){
             $i = 0;
         	foreach($data->rows as $id => $row) {
@@ -1172,12 +1205,12 @@ class crm_Persons extends core_Master
 
     /****************************************************************************************
      *                                                                                      *
-     *  Подготвя и рендира именниците                                                       *
+     *  Подготвя и рендира Имениците                                                       *
      *                                                                                      *
      ****************************************************************************************/
 
     /**
-     * Подготвя (извлича) данните за именниците
+     * Подготвя (извлича) данните за Имениците
      */
     static function prepareNamedays(&$data)
     {   
@@ -1213,7 +1246,7 @@ class crm_Persons extends core_Master
         if(!count($data->rows)) return '';
 
         $tpl = new ET("<fieldset class='detail-info'>
-                            <legend class='groupTitle'>" . tr('Именници във визитника') . "</legend>
+                            <legend class='groupTitle'>" . tr('Именици във визитника') . "</legend>
                                 <div class='groupList clearfix21'>
                                  [#persons#]
                             </div>
@@ -1465,32 +1498,35 @@ class crm_Persons extends core_Master
 
                 $rec->salutation = $vcard->getName('prefix');
                 $rec->birthday   = $vcard->getBday();
-
+ 
                 $address = $vcard->getAddress();
+                
+                if(is_array($address)) {
+                    // За сега използваме първия адрес от първия възможен тип:
+                    $address = reset($address);
 
-                // За сега използваме първия адрес от първия възможен тип:
-                $address = reset($address);
-
-                $rec->place    = $address['locality'];
-
-                //
-                // {{{ Извличане на държавата
-                //
-                $country = $address['country'];
-
-                if (!empty($country) &&
-                    !($rec->country = drdata_Countries::fetchField(array("#formalName = '[#1#]'", $country), 'id')) &&
-                    !($rec->country = drdata_Countries::fetchField(array("#commonName = '[#1#]'", $country), 'id')) ) {
-                    // Ако не можем да определим ключа на държавата, добавяме я към града, за
-                    // да не се загуби напълно
-                    $rec->place .= ", {$country}";
+                    $rec->place    = $address['locality'];
+                
+                    //
+                    // {{{ Извличане на държавата
+                    //
+                    $country = $address['country'];
+                    if (!empty($country) &&
+                        !($rec->country = drdata_Countries::fetchField(array("#formalName = '[#1#]'", $country), 'id')) &&
+                        !($rec->country = drdata_Countries::fetchField(array("#commonName = '[#1#]'", $country), 'id')) ) {
+                        // Ако не можем да определим ключа на държавата, добавяме я към града, за
+                        // да не се загуби напълно
+                        $rec->place .= ", {$country}";
+                    }
+                    //
+                    // Край с държавата }}}
+                    //
+                    $rec->pcode    = $address['code'];
+                    $rec->address  = $address['street'];
                 }
-                //
-                // Край с държавата }}}
-                //
 
-                $rec->pcode    = $address['code'];
-                $rec->address  = $address['street'];
+
+
 
                 if ($organisation = $vcard->getOrganisation()) {
                     $rec->buzCompanyId = crm_Companies::fetchField(array("#name = '[#1#]'", $organisation), 'id');
@@ -1556,20 +1592,22 @@ class crm_Persons extends core_Master
                         }
                     }
                 }
+                
+                if(is_array($tels)) {
+                    // Приемаме, че всички останали телефони са служебни
+                    foreach ($tels as $list) {
+                        $bizTel = array_merge($bizTel, $list);
+                    }
 
-                // Приемаме, че всички останали телефони са служебни
-                foreach ($tels as $list) {
-                    $bizTel = array_merge($bizTel, $list);
+                    $rec->buzTel = implode(', ', array_unique($bizTel));
+                    $rec->buzFax = implode(', ', array_unique($bizFax));
+                    $rec->tel    = implode(', ', array_unique($persTel));
+                    $rec->mobile = implode(', ', array_unique($persMob));
+                    $rec->fax    = implode(', ', array_unique($persFax));
+                    //
+                    // Край с телефоните }}}
+                    //
                 }
-
-                $rec->buzTel = implode(', ', array_unique($bizTel));
-                $rec->buzFax = implode(', ', array_unique($bizFax));
-                $rec->tel    = implode(', ', array_unique($persTel));
-                $rec->mobile = implode(', ', array_unique($persMob));
-                $rec->fax    = implode(', ', array_unique($persFax));
-                //
-                // Край с телефоните }}}
-                //
 
                 //
                 // {{{ Снимка
@@ -1805,7 +1843,7 @@ class crm_Persons extends core_Master
         if (Mode::is('screenMode', 'narrow')) {
             
             // Да има само 2 колони
-            $data->form->setField('groupList', array('maxColumns' => 2));    
+            $data->form->setField($mvc->expandInputFieldName, array('maxColumns' => 2));    
         }
         
         if(empty($form->rec->buzCompanyId)){
@@ -1819,29 +1857,44 @@ class crm_Persons extends core_Master
         }
     	
         if($form->rec->buzCompanyId){
-        	$locations = crm_Locations::getContragentOptions(crm_Companies::getClassId(), $form->rec->buzCompanyId);
+            $locations = crm_Locations::getContragentOptions(crm_Companies::getClassId(), $form->rec->buzCompanyId);
 			$form->setOptions('buzLocationId', $locations);
 			if(!count($locations)){
 				$form->setField('buzLocationId', 'input=none');
 			}
+            $form->title = "Добавяне на служител към|* " . crm_Companies::getLinkToSingle($form->rec->buzCompanyId);
+        }
+        
+        crm_Companies::autoChangeFields($form);
+    }
+
+
+    /**
+     * Задава титла на формата за редактиране
+     */
+    public static function on_AfterPrepareEditTitle($mvc, &$res, $data)
+    {
+        $form = &$data->form;
+
+        if($form->rec->buzCompanyId){
+            $form->title = "Добавяне на служител към|* " . crm_Companies::getHyperlink($form->rec->buzCompanyId);
         }
     }
     
     
     /**
-     * Интерфейсен метод на incoming_CreateDocumentIntf
+     * Интерфейсен метод на fileman_FileActionsIntf
      * 
-     * Връща масив, от който се създава бутона за създаване на входящ документ
+     * Връща масив с действия, които могат да се извършат с дадения файл
      * 
      * @param stdObject $fRec - Обект са данни от модела
      * 
      * @return array $arr - Масив с данните
-     * $arr['class'] - Името на класа
-     * $arr['action'] - Екшъна
+     * $arr['url'] - array URL на действието
      * $arr['title'] - Заглавието на бутона
      * $arr['icon'] - Иконата
      */
-    static function canCreate_($fRec)
+    static function getActionsForFile_($fRec)
     {
         // Позволените разширения, за създаване на визитка 
         $vCardExtArr = array('vcf', 'vcard');
@@ -1856,8 +1909,7 @@ class crm_Persons extends core_Master
             
             // Създаваме масива за съзване на визитка
         	$arr = array();
-            $arr['vcard']['class'] = 'crm_Persons';
-            $arr['vcard']['action'] = 'extractVcard';
+            $arr['vcard']['url'] = array('crm_Persons', 'extractVcard', 'fh' => $fRec->fileHnd, 'ret_url' => TRUE);
             $arr['vcard']['title'] = 'Лице';
             $arr['vcard']['icon'] = '/img/16/extract_foreground_objects.png';
         }
@@ -2249,8 +2301,6 @@ class crm_Persons extends core_Master
     {
         $resStr = '';
         
-        if ($rec->id) return $resStr;
-        
         $similarsArr = self::getSimilarRecs($rec, $fields);
         
         if (!empty($similarsArr)) {
@@ -2319,8 +2369,6 @@ class crm_Persons extends core_Master
         
         $similarName = $similarEgn = FALSE;
         
-        if ($rec->id) return $similarsArr;
-        
         $fieldsArr = array();
         
         // Правим проверка за дублиране с друг запис
@@ -2337,6 +2385,8 @@ class crm_Persons extends core_Master
         }
         
         while($similarRec = $nQuery->fetch()) {
+            if ($rec->id && ($similarRec->id == $rec->id)) continue;
+            
             $similarsArr[$similarRec->id] = $similarRec;
             $fieldsArr['name'] = 'name';
         }
@@ -2348,7 +2398,9 @@ class crm_Persons extends core_Master
                 $eQuery = clone $oQuery;
                 $eQuery->where((array("#egn LIKE '[#1#]'", $egnNumb)));
             
-                while($similarRec = $eQuery->fetch) {
+                while($similarRec = $eQuery->fetch()) {
+                    if ($rec->id && ($similarRec->id == $rec->id)) continue;
+                    
                     $similarsArr[$similarRec->id] = $similarRec;
                 }
                 $fieldsArr['egn'] = 'egn';
@@ -2372,6 +2424,8 @@ class crm_Persons extends core_Master
                 }
                 
                 while($similarRec = $eQuery->fetch()) {
+                    if ($rec->id && ($similarRec->id == $rec->id)) continue;
+                    
                     $similarsArr[$similarRec->id] = $similarRec;
                     if ($rec->buzEmail) {
                         $fieldsArr['buzEmail'] = 'buzEmail';
@@ -2487,7 +2541,7 @@ class crm_Persons extends core_Master
      * @param stdClass|NULL $rec
      * @param int|NULL $userId
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Никой да не може да изтрива
         if ($action == 'delete') {
@@ -2540,9 +2594,10 @@ class crm_Persons extends core_Master
      * 
      * @param int $id - ид на контрагент
      * @param boolean $translitarate - дали да се транслитерира адреса
+     * @param boolean|NULL $showCountry - да се показвали винаги държавата или Не, NULL означава че автоматично ще се определи
      * @return core_ET $tpl - адреса
      */
-    public function getFullAdress($id, $translitarate = FALSE)
+    public function getFullAdress($id, $translitarate = FALSE, $showCountry = NULL)
     {
     	expect($rec = $this->fetchRec($id));
     	
@@ -2550,11 +2605,15 @@ class crm_Persons extends core_Master
     	$tpl = new ET("<!--ET_BEGIN country-->[#country#]<br><!--ET_END country--> <!--ET_BEGIN pCode-->[#pCode#]<!--ET_END pCode--><!--ET_BEGIN place--> [#place#]<br><!--ET_END place--> [#address#]");
     	
     	// Показваме държавата само ако е различна от тази на моята компания
-    	if($rec->country){
-    		$ourCompany = crm_Companies::fetchOurCompany();
-    		if($ourCompany->country != $rec->country){
-    			$obj->country = $this->getVerbal($rec, 'country');
+    	if(!isset($showCountry)){
+    		if($rec->country){
+    			$ourCompany = crm_Companies::fetchOurCompany();
+    			if($ourCompany->country != $rec->country){
+    				$obj->country = $this->getVerbal($rec, 'country');
+    			}
     		}
+    	} elseif($showCountry === TRUE){
+    		$obj->country = $this->getVerbal($rec, 'country');
     	}
     
     	$Varchar = cls::get('type_Varchar');
@@ -2611,23 +2670,30 @@ class crm_Persons extends core_Master
      * Форсира контрагент в дадена група
      * 
      * @param int $id -ид на продукт
-     * @param varchar $groupSysId - sysId на група
+     * @param varchar $groupSysId - sysId или ид на група
+     * @param boolean $isSysId  - дали е систем ид
      */
-    public static function forceGroup($id, $groupSysId)
+    public static function forceGroup($id, $groupSysId, $isSysId = TRUE)
     {
     	expect($rec = static::fetch($id));
-    	expect($groupId = crm_Groups::getIdFromSysId($groupSysId));
+    	$me = cls::get(get_called_class());
+    	if($isSysId === TRUE){
+    		expect($groupId = crm_Groups::getIdFromSysId($groupSysId));
+    	} else {
+    		$groupId = $groupSysId;
+    		expect(crm_Groups::fetch($groupId));
+    	}
     	
     	// Ако контрагента не е включен в групата, включваме го
     	if(!keylist::isIn($groupId, $rec->groupList)){
     		$groupName = crm_Groups::getTitleById($groupId);
-    		$rec->groupList = keylist::addKey($rec->groupList, $groupId);
+    		$rec->{$me->expandInputFieldName} = keylist::addKey($rec->{$me->expandInputFieldName}, $groupId);
     		
     		if(haveRole('powerUser')){
     			core_Statuses::newStatus("|Лицето е включено в група |* '{$groupName}'");
     		}
     		
-    		return static::save($rec, 'groupList');
+    		return static::save($rec, $me->expandInputFieldName);
     	}
     	
     	return TRUE;
@@ -2698,11 +2764,13 @@ class crm_Persons extends core_Master
     	// Ако е в група на клиент, показваме бутона за продажба
     	if(in_array($clientGroupId, $groupList)){
     		$res[] = 'sales_Sales';
+    		$res[] = 'sales_Quotations';
     	}
     	 
     	// Ако е в група на достачик, показваме бутона за покупка
     	if(in_array($supplierGroupId, $groupList)){
     		$res[] = 'purchase_Purchases';
+    		$res[] = 'purchase_Offers';
     	}
     	 
     	return $res;
@@ -2733,8 +2801,8 @@ class crm_Persons extends core_Master
     {
         crm_Companies::on_AfterPrepareImportFields($mvc, $fields);
         
-        if ($fields['groupList']) {
-            $fields['groupList']['type'] = 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'companies\\\' AND #state !\\= \\\'rejected\\\')';
+        if ($fields[$mvc->expandInputFieldName]) {
+            $fields[$mvc->expandInputFieldName]['type'] = 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'companies\\\' AND #state !\\= \\\'rejected\\\')';
         }
     }
     
@@ -2866,4 +2934,99 @@ class crm_Persons extends core_Master
     {
     	return 'private';
     }
+	
+	
+    /**
+     * Подготовка на опции за key2
+     */
+    public static function getSelectArr($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
+    {
+        $query = self::getQuery();
+	    $query->orderBy("modifiedOn", "DESC");
+	    
+		
+        $viewAccess = TRUE;
+	    if ($params['restrictViewAccess'] == 'yes') {
+	        $viewAccess = FALSE;
+	    }
+		
+        $me = cls::get(get_called_class());
+	    $me->restrictAccess($query, NULL, $viewAccess);
+	    
+        if(!$includeHiddens) {
+            $query->where("#state != 'rejected' AND #state != 'closed'");
+        }
+		
+        if($params['where']) {
+            $query->where($params['where']);
+        }
+	    
+        if(is_array($onlyIds)) {
+            if(!count($onlyIds)) {
+                return array();
+            }
+			
+            $ids = implode(',', $onlyIds);
+            expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
+			
+            $query->where("#id IN ($ids)");
+        } elseif(ctype_digit("{$onlyIds}")) {
+            $query->where("#id = $onlyIds");
+        }
+        
+        $titleFld = $params['titleFld'];
+        $query->XPR('searchFieldXpr', 'text', "LOWER(CONCAT(' ', #{$titleFld}))");
+        
+        if($q) {
+            if($q{0} == '"') $strict = TRUE;
+			
+            $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
+            
+            $q = mb_strtolower($q);
+            
+            if($strict) {
+                $qArr = array(str_replace(' ', '.*', $q));
+            } else {
+                $qArr = explode(' ', $q);
+            }
+            
+            $pBegin = type_Key2::getRegexPatterForSQLBegin();
+            foreach($qArr as $w) {
+                $query->where(array("#searchFieldXpr REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
+            }
+        }
+		
+        if($limit) {
+            $query->limit($limit);
+        }
+		
+        $query->show('id, buzCompanyId, ' . $titleFld);
+        
+        $res = array();
+        
+        while($rec = $query->fetch()) {
+            
+            $str = trim($rec->{$titleFld});
+            
+            if ($rec->buzCompanyId) {
+                $str .= " - " . crm_Companies::fetchField($rec->buzCompanyId, 'name');
+            }
+            
+            $str .= " ({$rec->id})";
+            
+            $res[$rec->id] = $str;
+        }
+ 		
+        return $res;
+    }
+
+
+    /**
+     * Добавя ключови думи за държавата и на bg и на en
+     */
+    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+        $res = drdata_Countries::addCountryInBothLg($rec->country, $res);
+    }
+
 }

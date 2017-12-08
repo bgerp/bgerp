@@ -171,6 +171,8 @@ class callcenter_Setup extends core_ProtoSetup
         // Ако не е зададена услуга или изпращач
         if ((!$conf->CALLCENTER_SMS_SERVICE) || (!$conf->CALLCENTER_SMS_SENDER)) return ;
         
+        if (!cls::load($conf->CALLCENTER_SMS_SERVICE, TRUE)) return ;
+        
         // Инстанция на услугата
         $inst = cls::get($conf->CALLCENTER_SMS_SERVICE);
         

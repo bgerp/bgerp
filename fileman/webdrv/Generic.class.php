@@ -87,6 +87,33 @@ class fileman_webdrv_Generic extends core_Manager
         return ;
     }
     
+    
+    /**
+     * Дали трябва да се показва съответния таб
+     * 
+     * @param string $fileHnd
+     * @param string $type
+     * @param string $strip
+     * 
+     * @return boolean
+     */
+    public static function canShowTab($fileHnd, $type, $strip=TRUE, $checkExist = FALSE)
+    {
+        $rArr = fileman_Indexes::getInfoContentByFh($fileHnd, $type);
+        
+        if ($checkExist === TRUE && $rArr === FALSE) return FALSE;
+        
+        if (is_array($rArr) && empty($rArr)) return FALSE;
+        
+        if (is_string($rArr) && $strip) {
+            $rArr = strip_tags($rArr);
+            
+            if (!trim($rArr)) return FALSE;
+        }
+        
+        return TRUE;
+    }
+    
         
     /**
      * Връща името на файла за грешките
@@ -124,7 +151,7 @@ class fileman_webdrv_Generic extends core_Manager
         
         // Вземаме текста извлечен от OCR
         $ocrContent = fileman_Indexes::getInfoContentByFh($fileHnd, 'textOcr');
-
+        
         // Ако има OCR съдържание
         if ($ocrContent !== FALSE && !is_object($ocrContent)) {
             
@@ -164,6 +191,9 @@ class fileman_webdrv_Generic extends core_Manager
         // Сменяма wrapper'а да е празна страница
         Mode::set('wrapper', 'page_PreText');
         
+        // Махаме ненужните празни редове
+        $content = preg_replace('/([\r\n(\s|\t)*]|[\n\r(\s|\t)*]|[\n(\s|\t)*]){4,}/', '$1$1$1', $content);
+        
         // Ескейпваме текстовата част
         $content = type_Varchar::escape($content);
         
@@ -182,6 +212,10 @@ class fileman_webdrv_Generic extends core_Manager
         
         // Манипулатора на файла
         $fileHnd = Request::get('id');
+        
+        if (!$fileHnd) {
+            $fileHnd = Request::get('fileHnd');
+        }
         
         // Вземаме записа за файла
         $fRec = fileman_Files::fetchByFh($fileHnd);
@@ -219,30 +253,67 @@ class fileman_webdrv_Generic extends core_Manager
             // Вземаме височината и широчината
             $thumbWidthAndHeightArr = static::getPreviewWidthAndHeight();
             
-            // Атрибути на thumbnail изображението
-            $attr = array('class' => 'webdrv-preview', 'style' => 'margin: 0 auto 5px auto; display: block;');
-            
             // Background' а на preview' то
             $bgImg = sbf('fileman/img/Preview_background.jpg');
             
             // Създаваме шаблон за preview на изображението
-            $preview = new ET("<div style='background-image:url(" . $bgImg . "); padding: 5px 0; min-height: 590px;'><div style='margin: 0 auto;'>[#THUMB_IMAGE#]</div></div>");
+            $preview = new ET("<div style='background-image:url(" . $bgImg . "); padding: 8px 0 4px; height: 598px; display: table;width: 100%;'><div style='margin: 0 auto;'>[#THUMB_IMAGE#]</div></div>");
+			
+            $multiplier = fileman_Setup::get('WEBDRV_PREVIEW_MULTIPLIER');
             
-            foreach ($jpgArr as $jpgFh) {
+            foreach ($jpgArr as $key => $jpgFh) {
                 
-                $imgInst = new thumb_Img(array($jpgFh, $thumbWidthAndHeightArr['width'], $thumbWidthAndHeightArr['height'], 'fileman', 'verbalName' => 'Preview'));
+                // Атрибути на thumbnail изображението
+                $attr = array('class' => 'webdrv-preview', 'style' => 'margin: 0 auto 5px auto; display: block;');
                 
-                // Вземаме файла
-                $thumbnailImg = $imgInst->createImg($attr);
-                
-                if ($thumbnailImg) {
-                
+                if ($key === 'otherPagesCnt') {
+                    
+                    $str = '<div style="margin: 5px 0 0 5px; background: #fff; display: inline-block; padding: 2px; color: #444;">' . tr('Още страници') . ': ' . $jpgFh . '</div>';
+                    
+                    $preview->append($str, 'THUMB_IMAGE');
+                } else {
+                    
+                    $width = $thumbWidthAndHeightArr['width'];
+                    $height = $thumbWidthAndHeightArr['height'];
+                    $verbalName = 'Preview';
+                    if ($multiplier > 1) {
+                        $bigWidth = $width * $multiplier;
+                        $bigHeight = $height * $multiplier;
+                        
+                        $bigImgInst = new thumb_Img(array($jpgFh, $bigWidth, $bigHeight, 'fileman', 'verbalName' => $verbalName . ' X ' . $multiplier));
+                        
+                        $attr['data-bigwidth'] = $bigWidth;
+                        $attr['data-bigheight'] = $bigHeight;
+                        $attr['data-bigsrc'] = $bigImgInst->getUrl('deferred');
+                        $attr['data-zoomed'] = "no";
+                    }
+                    
+                    $imgInst = new thumb_Img(array($jpgFh, $width, $height, 'fileman', 'verbalName' => $verbalName));
+                    
+                    $attr['class'] .= ' ' . $jpgFh;
+                    
+                    // Вземаме файла
+                    $thumbnailImg = $imgInst->createImg($attr);
+                    
                     // Добавяме към preview' то генерираното изображение
                     $preview->append($thumbnailImg, 'THUMB_IMAGE');
-                
                 }
             }
+            if(Mode::is('screenMode', 'wide')) {
+                $jqRun = 'wheelzoom(document.querySelectorAll(\'img.webdrv-preview\'), {zoom:1});';
+                $action = "click";
+            } else {
+                $action = "dblclick";
+            }
             
+            if ($multiplier > 1) {
+                $jqRun = "$('img.webdrv-preview').on('{$action}', function(e){changeZoomImage(e.target)}); " . $jqRun;
+            }
+
+            $preview->push('js/wheelzoom.js', "JS");
+            
+            jquery_Jquery::run($preview, $jqRun);
+
             return $preview;
         }
     }
@@ -373,15 +444,23 @@ class fileman_webdrv_Generic extends core_Manager
         }
         
         try {
+            // Опитваме се да вземем, документите, в които се използва файла
+            $documentWithFile = fileman_Files::getDocumentsWithFile($fRec, static::$metaInfoDocLimit);
+            $documentWithFile2 = doc_Linked::getListView('file', $fRec->id, 'file', TRUE, 20);
 		    
-		    // Опитваме се да вземем, документите, в които се използва файла
-		    $documentWithFile = fileman_Files::getDocumentsWithFile($fRec, static::$metaInfoDocLimit);    
+		    if ($documentWithFile && $documentWithFile2) {
+		        $documentWithFile .= "\n" . $documentWithFile2;
+		    }
+		    
+		    if (!$documentWithFile && $documentWithFile2) {
+		        $documentWithFile = $documentWithFile2;
+		    }
 		} catch (core_exception_Expect $e) {
 	        // Няма да се показват документите
 		}
 		
 		$dangerRate = '';
-		if (fileman_Files::isDanger($fRec)) {
+		if (fileman_Files::isDanger($fRec, 0.00001)) {
 		    $dangerRate = fileman_Files::getVerbal($fRec, 'dangerRate');
 		    $dangerRate = '<span class = "dangerFile">' . tr("Ниво на опасност|*: ") . $dangerRate . "</span>\n";
 		}
@@ -598,6 +677,7 @@ class fileman_webdrv_Generic extends core_Manager
         
         // Обхождаме масива с манупулаторите
         foreach ($fileHndArr as $fh) {
+            if (!trim($fh)) continue;
             
             // Определяме баркодовете във файла
             $barcodes = zbar_Reader::getBarcodesFromFile($fh);
@@ -1114,11 +1194,11 @@ class fileman_webdrv_Generic extends core_Manager
             $ext = fileman_Files::getExt($file);
             
             //Иконата на файла, в зависимост от разширението на файла
-            $icon = "fileman/icons/{$ext}.png";
+            $icon = "fileman/icons/16/{$ext}.png";
             
             //Ако не можем да намерим икона за съответното разширение, използваме иконата по подразбиране
             if (!is_file(getFullPath($icon))) {
-                $icon = "fileman/icons/default.png";
+                $icon = "fileman/icons/16/default.png";
             }
             
             // Иконата в SBF директорията
@@ -1185,11 +1265,18 @@ class fileman_webdrv_Generic extends core_Manager
             // Пътя до архива
             $filePath = fileman_Files::fetchByFh($fRec->fileHnd, 'path');
             
-            // Създаваме инстанция
-            $zip = new ZipArchive();
+            try {
+                // Създаваме инстанция
+                $zip = new ZipArchive();
+            } catch (Exception $e) {
+                $zip = FALSE;
+            }
             
-            // Очакваме да може да се създане инстация
-            expect($zip, 'Не може да се създаде инстанция.');
+            if (!$zip) {
+                self::logWarning('Не е инсталиран разширението за ZipArchive');
+                
+                throw new fileman_Exception('Възникна грешка при отварянето на файла.');
+            }
             
             // Отваряме архива да четем от него
             $open = $zip->open($filePath, ZIPARCHIVE::CHECKCONS);
@@ -1231,8 +1318,8 @@ class fileman_webdrv_Generic extends core_Manager
             $fileSizeInst = cls::get('fileman_FileSize');
             
             // Създаваме съобщение за грешка
-            $text = tr("Архива е много голям|*: ") . fileman_Data::getVerbal($dataRec, 'fileLen');
-            $text .= "\n" . tr("Допустимият размер е|*: ") . $fileSizeInst->toVerbal($conf->FILEINFO_MIN_FILE_LEN_BARCODE);
+            $text = tr("Архивът е много голям|*: ") . fileman_Data::getVerbal($dataRec, 'fileLen');
+            $text .= "\n" . tr("Допустимият размер е|*: ") . $fileSizeInst->toVerbal($conf->FILEINFO_MAX_ARCHIVE_LEN);
             
             // Очакваме да не сме влезли тука
             throw new fileman_Exception($text);

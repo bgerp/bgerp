@@ -112,7 +112,7 @@ class remote_BgerpDriver extends core_Mvc
     /**
      * За да не могат да се редактират оторизациите с получен ключ
      */
-    static function on_AfterGetRequiredRoles($driver, $mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($driver, $mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{
         if($action == 'edit' && is_object($rec)) {
             if($rec->data->lKeyCC) {
@@ -326,19 +326,27 @@ class remote_BgerpDriver extends core_Mvc
      */
     function cron_UpdateRemoteNotification()
     {
+
         $query = remote_Authorizations::getQuery();
         
         $dc = core_Classes::getId(__CLASS__);
 
         while($rec = $query->fetch("#driverClass = $dc AND #state = 'active'")) {
+            
+            // Ако нотификациите са изключени за този потребител, не вадим нищо
+            $getNotifys = remote_Setup::get('RECEIVE_NOTIFICATIONS', FALSE, $rec->userId);
+
+            if($getNotifys == 'no') continue;
+
             if($rec->data->lKeyCC && $rec->data->rId) {
-                
+
                 $nCnt = self::sendQuestion($rec, __CLASS__, 'getNotifications');
                 
                 // Прескачаме, ако липсва отговор на въпроса
                 if($nCnt === NULL) continue;;
 
                 $nUrl = array($this, 'Autologin', $rec->id);
+                
                 $userId = $rec->userId;
 
                 if($nCnt > 0) {
@@ -367,15 +375,18 @@ class remote_BgerpDriver extends core_Mvc
     {
         expect($id = Request::get('id', 'int'));
         
+        requireRole('user');
+
         expect($userId = core_Users::getCurrent());
 
-        $url = Request::get('url', 'type_Url');
-        
+        $url = Request::get('url');
+
         $arr = array();
 
         if(!$url) {
             bgerp_Notifications::clear(array($this, 'Autologin', $id), $userId);
         } else {
+            expect(filter_var($url, FILTER_VALIDATE_URL));
             $arr['url'] = $url;
         }
         
@@ -568,13 +579,19 @@ class remote_BgerpDriver extends core_Mvc
     public static function sendQuestion($auth, $ctr, $act, $args = NULL)
     {
         $url = self::prepareQuestionUrl($auth, $ctr, $act, $args);
-
+        
+        ini_set('default_socket_timeout', 5);
+        
         $res = @file_get_contents($url);
 
         if($res) {
             $params = self::decode($auth, $res, 'answer');
      
             return $params['result'];
+        }
+        
+        if ($res === FALSE) {
+            self::logWarning('Грешка при вземане на данни от URL: ' . $url);
         }
     }
     

@@ -49,7 +49,9 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
     public function addEmbeddedFields(core_FieldSet &$form)
     {
         $form->FLD('from', 'date(allowEmpty)', 'caption=Към,input,mandatory');
+        $form->FLD('amount', 'double', 'caption=Не показвай под,unit=лв.');
         $form->FLD('dealerId', 'userList(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 'caption=Търговец');
+        
 
         $this->invoke('AfterAddEmbeddedFields', array($form));
     }
@@ -66,6 +68,8 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
         $today = dt::today();
         	
         $form->setDefault('from',date('Y-m-01', strtotime("-1 months", dt::mysql2timestamp(dt::now()))));
+        
+        $form->setDefault('amount', '1');
 
         $this->inputForm($form);
     
@@ -135,7 +139,7 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
                 if ($date <= $data->rec->from) { 
                     $days = dt::daysBetween($data->rec->from,$date);
                     
-                    if ($days >= 0 && $days <= 15) {
+                    if ($days >= 1 && $days <= 15) {
                         $delay1 = $recSale->amountBl;
                     }
                     
@@ -179,12 +183,17 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
                 }
             }
         }
-        
-        
-       
+
         arr::order($data->recs, 'amount', strtoupper('DESC'));
-  
-      
+
+        foreach($data->recs as $id=>$r) {
+
+            if($r->amount <= $data->rec->amount || $r->amount == '') {
+               
+                unset($data->recs[$id]);
+            }
+        }
+
         return $data;  
     }
     
@@ -301,7 +310,7 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
     	        'invoice' => 'Фактура',
     	        'dealer' => 'Търговец',
        	        'uDelay' => 'Без закъснение',
-    	        'delay1' => '0-15 дни',
+    	        'delay1' => '1-15 дни',
     	        'delay2' => '16-60 дни',
     	        'delay3' => '60+ дни',
     	        'amount' => 'Общо',
@@ -312,7 +321,7 @@ class deals_reports_ArrearsImpl extends frame_BaseDriver
 	            'contragent' => 'Контрагент',
 	            'invoice' => 'Фактура',
 	            'uDelay' => 'Без закъснение',
-	            'delay1' => '0-15 дни',
+	            'delay1' => '1-15 дни',
 	            'delay2' => '16-60 дни',
 	            'delay3' => '60+ дни',
 	            'amount' => 'Общо',

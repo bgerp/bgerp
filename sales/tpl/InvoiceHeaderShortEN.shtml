@@ -101,12 +101,6 @@
                                         <!--ET_BEGIN vatDate-->  
                                         <span class='quiet'>Данъчно събитие:</span> [#vatDate#] &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                         <!--ET_END vatDate-->
-                                        
-                                        <!--ET_BEGIN baseAmount-->
-                                        <div>
-                                        	<span class='quiet'>Данъчна основа:</span> [#baseAmount#] <span class='cCode'>[#baseCurrencyId#]</span>
-                                        </div>
-                                        <!--ET_END baseAmount-->
                                         <!--ET_BEGIN rate--> 
                                         <div><span class='quiet'>Курс:</span>  [#rate#]</div>
                                         <!--ET_END rate--> 
@@ -114,23 +108,12 @@
                                         <div class='custom-bg-block'><b>Payment</b></div>
                                         
                                         <!--ET_BEGIN paymentType-->
-                                        <div>[#paymentType#]</div>
+                                        <div class="boldText">[#paymentType#]</div>
                                         <!--ET_END paymentType-->
                                         
                                         <!--ET_BEGIN dueDate-->
                                         <div><span class='quiet'>Payment no later than:</span> [#dueDate#]</div>
-                                        <!--ET_END dueDate--> 
-                                        
-                                        <!--ET_BEGIN deadline-->
-                                        [#deadline#]
-                                        <div>
-                                            <!--ET_BEGIN DUE_DATE-->
-                                            <span class='quiet'>Deadline for payment:</span> [#DUE_DATE#]<!--ET_END DUE_DATE-->  &nbsp;&nbsp;  
-                                            <!--ET_BEGIN OVERDUE_INTEREST_RATE-->
-                                            <span class="smallData">Interest for late payment: [#OVERDUE_INTEREST_RATE#] |на ден|*</span>
-                                            <!--ET_END OVERDUE_INTEREST_RATE-->
-                                        </div>
-                                        <!--ET_END deadline-->
+                                        <!--ET_END dueDate-->
                                         <!--ET_BEGIN deadlineForBalancePayment-->
                                         <div><span class='quiet'>Finally till: </span>[#deadlineForBalancePayment#]</div>
                                         <!--ET_END deadlineForBalancePayment-->
@@ -174,12 +157,12 @@
                                             </tr>
                                             <tr>
                                                 <td class='centered border-right' > <span class="sign_names nowrap">[#responsible#]</span></td>
-                                                <td class='centered'><span class="sign_names nowrap">[#username#]</span></td>
+                                                <td class='centered'><span class="sign_names nowrap"><span>[#username#]</span> <br><span class='small'>( PIN: [#userCode#] )</span></span></td>
                                             </tr>
                                         </table>
                                     </td>
                                     <td id='invoice-info' style='width:40%;'>
-                                        [#/deals/tpl/DocumentPiceInfo.shtml#]
+                                        [#/deals/tpl/DocumentPriceInfoInvoice.shtml#]
                                     </td>
                                 </tr>
                                 <tr class='footerDocInfo'>

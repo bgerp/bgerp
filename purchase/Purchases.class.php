@@ -16,14 +16,6 @@
  */
 class purchase_Purchases extends deals_DealMaster
 {
-	
-    
-    /**
-     * Дали да се показва бутон на чернова документ
-     * 
-     * @see doc_EmailCreatePlg
-     */
-	public $canEmailDraft = TRUE;
     
     
     /**
@@ -35,33 +27,22 @@ class purchase_Purchases extends deals_DealMaster
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, bgerp_DealAggregatorIntf, bgerp_DealIntf, acc_TransactionSourceIntf=purchase_transaction_Purchase, deals_DealsAccRegIntf, acc_RegisterIntf,batch_MovementSourceIntf=batch_movements_Deal, deals_InvoiceSourceIntf,colab_CreateDocumentIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, bgerp_DealAggregatorIntf, bgerp_DealIntf, acc_TransactionSourceIntf=purchase_transaction_Purchase, deals_DealsAccRegIntf, acc_RegisterIntf, deals_InvoiceSourceIntf,colab_CreateDocumentIntf,acc_AllowArticlesCostCorrectionDocsIntf,trans_LogisticDataIntf';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, purchase_Wrapper, acc_plg_Registry, plg_Sorting, doc_plg_MultiPrint, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
+    public $loadList = 'plg_RowTools2, purchase_Wrapper, acc_plg_Registry, plg_Sorting, doc_plg_MultiPrint, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
 				        cond_plg_DefaultValues, recently_Plugin, doc_plg_HidePrices, doc_SharablePlg, plg_Clone,
-				        doc_EmailCreatePlg, bgerp_plg_Blank, acc_plg_DocumentSummary, plg_Search, doc_plg_Close';
+				        doc_EmailCreatePlg, bgerp_plg_Blank, acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, plg_Search, doc_plg_Close, plg_LastUsedKeys';
     
-    
-    /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    public $oldClassName = 'purchase_Requests';
     
     
     /**
      * Абревиатура
      */
     public $abbr = 'Pur';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo, purchase';
     
     
     /**
@@ -79,13 +60,13 @@ class purchase_Purchases extends deals_DealMaster
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo, purchase';
+	public $canList = 'ceo,purchase,acc';
 	
 	
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo, purchase';
+	public $canSingle = 'ceo,purchase,acc';
     
     
     /**
@@ -109,7 +90,7 @@ class purchase_Purchases extends deals_DealMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, valior, title=Документ, currencyId=Валута, amountDeal, amountDelivered, amountPaid,amountInvoiced,dealerId,initiatorId,paymentState,createdOn, createdBy';
+    public $listFields = 'valior, title=Документ, currencyId=Валута, amountDeal, amountDelivered, amountPaid,amountInvoiced,dealerId=Закупчик,paymentState,createdOn, createdBy';
 
 
     /**
@@ -146,7 +127,7 @@ class purchase_Purchases extends deals_DealMaster
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'deliveryTermId, deliveryLocationId, deliveryTime, shipmentStoreId, paymentMethodId,
-    					 currencyId, bankAccountId, caseId, dealerId, folderId, id';
+    					 currencyId, bankAccountId, caseId, dealerId, folderId, note, reff';
     
     
     /**
@@ -156,10 +137,15 @@ class purchase_Purchases extends deals_DealMaster
     
     
     /**
+     * Кой може да превалутира документите в нишката
+     */
+    public $canChangerate = 'ceo, purchaseMaster';
+    
+    
+    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-    
     	'deliveryTermId'     => 'clientCondition|lastDocUser|lastDoc',
     	'paymentMethodId'    => 'clientCondition|lastDocUser|lastDoc',
     	'currencyId'         => 'lastDocUser|lastDoc|CoverMethod',
@@ -200,14 +186,6 @@ class purchase_Purchases extends deals_DealMaster
     
     
     /**
-     * Какво движение на партида поражда документа в склада
-     * 
-     * @param out|in|stay - тип движение (излиза, влиза, стои)
-     */
-    public $batchMovementDocument = 'in';
-    
-    
-    /**
      * Позволени операции на последващите платежни документи
      */
     public $allowedPaymentOperations = array(
@@ -225,15 +203,15 @@ class purchase_Purchases extends deals_DealMaster
     
     
     /**
-     * Кое поле показва сумата на сделката
-     */
-    public $canClosewith = 'ceo,purchaseMaster';
-    
-    
-    /**
      * Как се казва приключващия документ
      */
     public $closeDealDoc = 'purchase_ClosedDeals';
+    
+    
+    /**
+     * Кой може да го прави документа чакащ/чернова?
+     */
+    public $canPending = 'purchase,ceo,distributor';
     
     
     /**
@@ -247,6 +225,18 @@ class purchase_Purchases extends deals_DealMaster
     
     
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, valior,modifiedOn';
+    
+    
+    /**
+     * Кои които трябва да имат потребителите да се изберат като дилъри
+     */
+    public $dealerRolesList = 'purchase,ceo';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -257,6 +247,41 @@ class purchase_Purchases extends deals_DealMaster
     	$this->setField('shipmentStoreId', 'caption=Доставка->В склад,notChangeableByContractor,salecondSysId=defaultStorePurchase');
     	$this->setField('deliveryTermId', 'salecondSysId=deliveryTermPurchase');
     	$this->setField('paymentMethodId', 'salecondSysId=paymentMethodPurchase');
+    }
+    
+    
+    /**
+     * Връща заглавието на покупката със сумата за фактуриране
+     * 
+     * @param integer $id
+     * @param boolean $showAmount
+     * 
+     * @return string
+     */
+    public static function getTitleWithAmount($id, $showAmount = TRUE)
+    {
+        if (!$id) return '';
+        $rec = self::fetch($id);
+        
+        if ($rec) {
+            $amountToInvoice = $rec->amountDelivered - $rec->amountInvoiced;
+            
+            if ($amountToInvoice) {
+                $amountToInvoice = round($amountToInvoice, 2);
+            }
+            
+            if ($amountToInvoice) {
+                $amountToInvoice .= ' ' . $rec->currencyId;
+            }
+        }
+        
+        $title = self::getTitleById($id);
+        
+        if ($amountToInvoice) {
+            $title .= ' ' . $amountToInvoice;
+        }
+        
+        return $title;
     }
     
     
@@ -304,10 +329,11 @@ class purchase_Purchases extends deals_DealMaster
     		if(purchase_ClosedDeals::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
 	    		$data->toolbar->addBtn('Приключване', $closeArr, "row=2,ef_icon=img/16/closeDeal.png,title=Приключване на покупката");
 	    	} else {
+	    		$exClosedDeal = purchase_ClosedDeals::fetchField("#threadId = {$rec->threadId} AND #state != 'rejected'", 'id');
 	    		
 	    		// Ако разликата е над допустимата но потребителя има права 'purchase', той вижда бутона но не може да го използва
-	    		if(!purchase_ClosedDeals::isPurchaseDiffAllowed($rec) && haveRole('purchase')){
-	    			$data->toolbar->addBtn('Приключване', $closeArr, "row=2,ef_icon=img/16/closeDeal.png,title=Приключване на покупката,error=Нямате право да приключите покупка с разлика над допустимото");
+	    		if(!purchase_ClosedDeals::isPurchaseDiffAllowed($rec) && haveRole('purchase') && empty($exClosedDeal)){
+	    			$data->toolbar->addBtn('Приключване', $closeArr, "row=2,ef_icon=img/16/closeDeal.png,title=Приключване на покупката,error=Нямате право да приключите покупка с разлика над допустимото|*!");
 	    		}
 	    	}
     		
@@ -486,7 +512,9 @@ class purchase_Purchases extends deals_DealMaster
             $result->setIfNot('shippedValior', $rec->valior);
         }
         
+        $detailClassId = purchase_PurchasesDetails::getClassId();
         $agreed = array();
+        $agreed2 = array();
         foreach ($detailRecs as $dRec) {
             $p = new bgerp_iface_DealProduct();
             foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes', 'expenseItemId') as $fld){
@@ -494,10 +522,21 @@ class purchase_Purchases extends deals_DealMaster
             }
            
             $info = cat_Products::getProductInfo($p->productId);
-            $p->weight  = cat_Products::getWeight($p->productId, $p->packagingId, $p->quantity);
-            $p->volume  = cat_Products::getVolume($p->productId, $p->packagingId, $p->quantity);
+            $p->expenseRecId = acc_CostAllocations::fetchField("#detailClassId = {$detailClassId} AND #detailRecId = {$dRec->id}");
+            
+            if(core_Packs::isInstalled('batch')){
+            	$bQuery = batch_BatchesInDocuments::getQuery();
+            	$bQuery->where("#detailClassId = {$detailClassId}");
+            	$bQuery->where("#detailRecId = {$dRec->id}");
+            	$bQuery->where("#productId = {$dRec->productId}");
+            	$p->batches = $bQuery->fetchAll();
+            }
             
             $agreed[] = $p;
+            
+            $p1 = clone $p;
+            unset($p1->notes);
+            $agreed2[] = $p1;
             
         	$push = TRUE;
             $index = $p->productId;
@@ -517,7 +556,7 @@ class purchase_Purchases extends deals_DealMaster
         }
        
         $result->set('dealProducts', $agreed);
-        $agreed = deals_Helper::normalizeProducts(array($agreed));
+        $agreed = deals_Helper::normalizeProducts(array($agreed2));
         $result->set('products', $agreed);
         $result->set('contoActions', $actions);
         $result->set('shippedProducts', purchase_transaction_Purchase::getShippedProducts($entries, $rec->id));
@@ -541,6 +580,8 @@ class purchase_Purchases extends deals_DealMaster
 
     	if($action == 'closewith' && isset($rec)){
     		if(purchase_PurchasesDetails::fetch("#requestId = {$rec->id}")){
+    			$res = 'no_one';
+    		} elseif(!haveRole('purchase,ceo', $userId)){
     			$res = 'no_one';
     		}
     	}
@@ -596,9 +637,9 @@ class purchase_Purchases extends deals_DealMaster
      */
     public function cron_CloseOldPurchases()
     {
-    	$conf = core_Packs::getConfig('purchase');
-    	$olderThan = $conf->PURCHASE_CLOSE_OLDER_THAN;
-    	$limit 	   = $conf->PURCHASE_CLOSE_OLDER_NUM;
+    	$conf        = core_Packs::getConfig('purchase');
+    	$olderThan   = $conf->PURCHASE_CLOSE_OLDER_THAN;
+    	$limit 	     = $conf->PURCHASE_CLOSE_OLDER_NUM;
     	$ClosedDeals = cls::get('purchase_ClosedDeals');
     	
     	$this->closeOldDeals($olderThan, $ClosedDeals, $limit);
@@ -614,7 +655,8 @@ class purchase_Purchases extends deals_DealMaster
     	$tplArr[] = array('name' => 'Договор за покупка на услуга', 'content' => 'purchase/tpl/purchases/Service.shtml', 'lang' => 'bg', 'narrowContent' => 'purchase/tpl/purchases/ServiceNarrow.shtml');
     	$tplArr[] = array('name' => 'Purchase contract', 'content' => 'purchase/tpl/purchases/PurchaseEN.shtml', 'lang' => 'en', 'narrowContent' => 'purchase/tpl/purchases/PurchaseNarrowEN.shtml');
     	$tplArr[] = array('name' => 'Purchase of service contract', 'content' => 'purchase/tpl/purchases/ServiceEN.shtml', 'lang' => 'en', 'oldName' => 'Purchase of Service contract', 'narrowContent' => 'purchase/tpl/purchases/ServiceNarrowEN.shtml');
-        
+    	$tplArr[] = array('name' => 'Заявка за транспорт', 'content' => 'purchase/tpl/purchases/Transport.shtml', 'lang' => 'bg', 'narrowContent' => 'purchase/tpl/purchases/TransportNarrow.shtml');
+    	
         $res .= doc_TplManager::addOnce($this, $tplArr);
     }
     
@@ -640,10 +682,52 @@ class purchase_Purchases extends deals_DealMaster
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if(isset($fields['-single'])){
-    		$commonSysId = ($rec->tplLang == 'bg') ? "commonConditionPur" : "commonConditionPurEng";
-    		if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $commonSysId)){
-    			$row->commonCondition = cls::get('type_Varchar')->toVerbal($cond);
+    		if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, "commonConditionPur")){
+    			$row->commonCondition = cls::get('type_Url')->toVerbal($cond);
     		}
     	}
     }
+    
+    
+    /**
+	 * Списък с артикули върху, на които може да им се коригират стойностите
+	 * @see acc_AllowArticlesCostCorrectionDocsIntf
+	 *
+	 * @param mixed $id               - ид или запис
+	 * @return array $products        - масив с информация за артикули
+	 * 			    o productId       - ид на артикул
+	 * 				o name            - име на артикула
+	 *  			o quantity        - к-во
+	 *   			o amount          - сума на артикула
+	 *   			o inStores        - масив с ид-то и к-то във всеки склад в който се намира
+	 *    			o transportWeight - транспортно тегло на артикула
+	 *     			o transportVolume - транспортен обем на артикула
+	 */
+	function getCorrectableProducts($id)
+	{
+		$rec = $this->fetchRec($id);
+		
+		$products = array();
+		$entries = purchase_transaction_Purchase::getEntries($rec->id);
+		$shipped = purchase_transaction_Purchase::getShippedProducts($entries, $rec->id, '321', TRUE);
+		
+		if(count($shipped)){
+			foreach ($shipped as $ship){
+				unset($ship->price);
+				$ship->name = cat_Products::getTitleById($ship->productId, FALSE);
+				
+				if($transportWeight = cat_Products::getParams($ship->productId, 'transportWeight')){
+					$ship->transportWeight = $transportWeight;
+				}
+				
+				if($transportVolume = cat_Products::getParams($ship->productId, 'transportVolume')){
+					$ship->transportVolume = $transportVolume;
+				}
+				
+				$products[$ship->productId] = $ship;
+			}
+		}
+		
+		return $products;
+	}
 }

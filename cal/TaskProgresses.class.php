@@ -17,6 +17,7 @@
 class cal_TaskProgresses extends core_Detail
 {
     
+    
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
@@ -81,7 +82,7 @@ class cal_TaskProgresses extends core_Detail
         $this->FLD('taskId', 'key(mvc=cal_Tasks,select=title)', 'caption=Задача,input=hidden,silent,column=none');
        
         // Каква част от задачата е изпълнена?
-        $this->FLD('progress', 'percent(min=0,max=1,decimals=0)',     'caption=Прогрес');
+        $this->FLD('progress', 'percent(min=0,max=1,decimals=0)', 'caption=Прогрес');
 
         // Колко време е отнело изпълнението?
         $this->FLD('workingTime', 'time(suggestions=10 мин.|30 мин.|60 мин.|2 часа|3 часа|5 часа|10 часа)',     'caption=Отработено време');
@@ -91,7 +92,7 @@ class cal_TaskProgresses extends core_Detail
             'caption=Очакван край, silent');
         
         // Статус съобщение
-        $this->FLD('message',    'richtext(rows=5)', 'caption=Съобщение');
+        $this->FLD('message',    'richtext(rows=5, bucket=calTasks)', 'caption=Съобщение');
     }
 
 
@@ -103,23 +104,79 @@ class cal_TaskProgresses extends core_Detail
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {   
+        $data->form->FNC('notifyUsers', 'type_Keylist(mvc=core_Users, select=nick, where=#state !\\= \\\'rejected\\\', allowEmpty)', 'caption=Нотификация, input');
+        
+        if ($taskId = $data->form->rec->taskId) {
+            $tRec = cal_Tasks::fetch($taskId);
+            
+            $notifyUsersArr = type_Users::toArray($tRec->sharedUsers);
+            if ($tRec->assign && !$notifyUsersArr[$tRec->assign]) {
+                $notifyUsersArr[$tRec->assign] = $tRec->assign;
+            }
+            
+            if ($tRec->createdBy > 0) {
+                $notifyUsersArr[$tRec->createdBy] = $tRec->createdBy;
+            }
+            
+            $interestedUsersArr = $notifyUsersArr;
+            
+            // Добавяме отговорника и споделените на папката
+            if ($tRec->folderId) {
+                $fRec = doc_Folders::fetch($tRec->folderId);
+                $interestedUsersArr[$fRec->inCharge] = $fRec->inCharge;
+                
+                if ($fRec->shared) {
+                    $interestedUsersArr += type_Keylist::toArray($fRec->shared);
+                }
+            }
+            
+            $cu = core_Users::getCurrent();
+            unset($notifyUsersArr[$cu]);
+            unset($interestedUsersArr[$cu]);
+            
+            $suggArr = $data->form->fields['notifyUsers']->type->prepareSuggestions();
+            
+            // Показваме само хората, които имат връзка със задачата или папката
+            foreach ($interestedUsersArr as &$nick) {
+                if ($suggArr[$nick]) {
+                    $nick = $suggArr[$nick];
+                } else {
+                    unset($interestedUsersArr[$nick]);
+                }
+            }
+            
+            if (empty($interestedUsersArr)) {
+                $data->form->setField('notifyUsers', 'input=none');
+            }
+            $data->form->setSuggestions('notifyUsers', $interestedUsersArr);
+            
+            if (!empty($interestedUsersArr) && !empty($notifyUsersArr)) {
+                $data->form->setDefault('notifyUsers', $notifyUsersArr);
+            }
+        }
+        
     	expect($data->form->rec->taskId);
-
-        $masterRec = cal_Tasks::fetch($data->form->rec->taskId);
-        $progressArr[''] = '';
-
-        for($i = 0; $i <= 100; $i += 10) {
-            if($masterRec->progress > ($i/100)) continue;
-            $p = $i . ' %';
-            $progressArr[$p] = $p;
+    	
+    	$Driver = $mvc->Master->getDriver($data->form->rec->taskId);
+    	
+    	$mRec = $mvc->Master->fetch($data->form->rec->{$mvc->masterKey});
+    	
+    	$progressArr = $Driver->getProgressSuggestions($mRec);
+        
+    	if ($mRec->progress) {
+    	    $pVal = $mRec->progress * 100;
+    	    Mode::push('text', 'plain');
+    	    $pVal = $mvc->fields['progress']->type->toVerbal($mRec->progress);
+    	    Mode::pop('text');
+    	    if (!isset($progressArr[$pVal])) {
+    	        $progressArr[$pVal] = $pVal;
+    	        ksort($progressArr, SORT_NUMERIC);
+    	    }
+            $data->form->setDefault('progress', $mRec->progress);
         }
         
-        if ($masterRec->progress) {
-        	$data->form->setDefault('progress', $masterRec->progress);
-        }
-        
-        if ($masterRec->workingTime) {
-        	$data->form->setDefault('workingTime', $masterRec->workingTime);
+        if ($mRec->workingTime) {
+            $data->form->setDefault('workingTime', $mRec->workingTime);
         }
         
         $data->form->setSuggestions('progress', $progressArr);
@@ -161,12 +218,11 @@ class cal_TaskProgresses extends core_Detail
         }
     	
         $tpl = new ET('<div class="clearfix21 portal" style="margin-top:20px;background-color:transparent;">
-	                            <div class="legend" style="background-color:#ffc;font-size:0.9em;padding:2px;color:black">Прогрес</div>
-	                                <div class="listRows">
-	                                [#TABLE#]
-	                                </div>
-	                            </div>
-	                        </div>           
+                            <div class="legend" style="background-color:#ffc;font-size:0.9em;padding:2px;color:black">Прогрес</div>
+                            <div class="listRows">
+                            [#TABLE#]
+                            </div>
+	                   </div>
 	                ');
 	        $tpl->replace($this->renderListTable($data), 'TABLE');
 		
@@ -248,21 +304,40 @@ class cal_TaskProgresses extends core_Detail
      */
     static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
-        $tRec = cal_Tasks::fetch($rec->taskId, 'workingTime, progress, state, title, expectationTimeEnd, threadId, createdBy');
+        $tRec = cal_Tasks::fetch($rec->taskId);
         $now = dt::now();
+        
+        $msg = 'Добавен прогрес към задачата';
+        
+        $removeOldNotify = FALSE;
+        
         // Определяне на прогреса
         if(isset($rec->progress)) {
             $tRec->progress = $rec->progress;
             
+            // При прогрес на 100% нотифицираме и създателя на задачата
             if($rec->progress == 1) {
-            	$message = tr("Приключена е задачата") . ' "' . $tRec->title . '"';
-            	$url = array('doc_Containers', 'list', 'threadId' => $tRec->threadId);
-            	$customUrl = array('cal_Tasks', 'single',  $tRec->id);
-            	$priority = 'normal';
-            	bgerp_Notifications::add($message, $url, $tRec->createdBy, $priority, $customUrl);
+                $cu = core_Users::getCurrent();
+                
+                if ($tRec->createdBy > 0 && $tRec->createdBy != $cu) {
+                    if (!type_Keylist::isIn($cu, $rec->notifyUsers)) {
+                        $rec->notifyUsers = type_Keylist::addKey($rec->notifyUsers, $tRec->createdBy);
+                    }
+                }
+                
                 $tRec->state = 'closed';
                 $tRec->timeClosed = $now;
+                
+                $msg = 'Приключена е задачата';
+                
+                $removeOldNotify = TRUE;
             }
+        }
+        
+        $notifyUsersArr = type_Keylist::toArray($rec->notifyUsers);
+        
+        if (!empty($notifyUsersArr)) {
+            cal_Tasks::notifyForChanges($tRec, $msg, $notifyUsersArr, $removeOldNotify);
         }
         
         // Определяне на отработеното време
@@ -273,8 +348,22 @@ class cal_TaskProgresses extends core_Detail
             $rec = $query->fetch();
             $tRec->workingTime = $rec->workingTimeSum;
         }
-
-       
+        
+        $sharedUsersArr = rtac_Plugin::getNicksArr($rec->message);
+        
+        // Ако има споделяния
+        if ($sharedUsersArr && !empty($sharedUsersArr)) {
+            
+            // Добавяме id-тата на споделените потребители
+            foreach ((array)$sharedUsersArr as $nick) {
+                $nick = strtolower($nick);
+                $id = core_Users::fetchField(array("LOWER(#nick) = '[#1#]'", $nick), 'id');
+                $tRec->sharedUsers = type_Keylist::addKey($tRec->sharedUsers, $id);
+            }
+            
+            doc_Containers::changeNotifications($tRec, NULL, $tRec->sharedUsers);
+        }
+        
         cal_Tasks::save($tRec);
     }
     
@@ -288,18 +377,39 @@ class cal_TaskProgresses extends core_Detail
      * @param stdClass $rec
      * @param int $userId
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'add' && isset($rec->taskId)){
     		if($requiredRoles == 'no_one') return;
-    			
-    		// Проверка дали потребителя има достъп до задачата и дали е в позволено състояние за добавяне на прогрес
-    		$taskState = cal_Tasks::fetchField($rec->taskId, 'state');
-    		if($taskState != 'active' && $taskState != 'waiting' && $taskState != 'wakeup'){
-    			$requiredRoles = 'no_one';
-    		} elseif(!cal_Tasks::haveRightFor('single', $rec->taskId)){
-    			$requiredRoles = 'no_one';
+    		
+    		if (!$mvc->Master->haveRightFor('single', $rec->taskId)) {
+    		    $requiredRoles = 'no_one';
+    		} else {
+    		    $mRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
+    		    if (!$mvc->Master->canAddProgress($mRec)) {
+    		        $requiredRoles = 'no_one';
+    		    }
     		}
     	}
     }
+	
+	
+	/**
+	 * 
+	 * 
+	 * @param stdObject $data
+	 */
+	public function prepareDetail_($data)
+	{
+		$data->TabCaption = 'Прогрес';
+		$data->Tab = 'top';
+		
+		$res = parent::prepareDetail_($data);
+		
+		if (empty($data->recs)) {
+		    $data->disabled = TRUE;
+		}
+		
+		return $res;
+	}
 }

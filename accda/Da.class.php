@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   accda
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Дълготрайни активи
@@ -39,7 +39,7 @@ class accda_Da extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, accda_Wrapper, acc_plg_Contable, acc_plg_DocumentSummary, plg_Printing, doc_DocumentPlg, plg_Search,
+    public $loadList = 'plg_RowTools2, accda_Wrapper, acc_plg_Contable, acc_plg_DocumentSummary, plg_Printing, plg_Clone, doc_DocumentPlg, plg_Search,
                      bgerp_plg_Blank, acc_plg_Registry, plg_Sorting, plg_SaveAndNew, plg_Search, doc_plg_SelectFolder';
     
     
@@ -62,12 +62,6 @@ class accda_Da extends core_Master
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,accda';
-    
-    
-    /**
      * Кой има право да променя?
      */
     public $canEdit = 'ceo,accda';
@@ -77,12 +71,6 @@ class accda_Da extends core_Master
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo,accda';
-    
-    
-    /**
-     * Кой може да го види?
-     */
-    public $canView = 'ceo,accda';
     
     
     /**
@@ -134,6 +122,26 @@ class accda_Da extends core_Master
     
     
     /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
+    
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'valior,title,num';
+    
+
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'valior, createdOn';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -161,7 +169,7 @@ class accda_Da extends core_Master
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
@@ -174,7 +182,7 @@ class accda_Da extends core_Master
     		$form->setReadOnly('productId');
     	}
     	
-    	if($rec->productId){
+    	if(isset($rec->productId)){
     		$pInfo = cat_Products::getProductInfo($rec->productId);
     		$rec->title = $pInfo->productRec->name;
     		
@@ -227,38 +235,12 @@ class accda_Da extends core_Master
     
     
     /**
-     * Проверка дали нов документ може да бъде добавен в
-     * посочената папка като начало на нишка
-     *
-     * @param $folderId int ид на папката
-     */
-    public static function canAddToFolder($folderId)
-    {
-        $folderCover = doc_Folders::getCover($folderId);
-        
-        return $folderCover->haveInterface('accda_DaFolderCoverIntf');
-    }
-    
-    
-    /**
      * @see crm_ContragentAccRegIntf::itemInUse
      * @param int $objectId
      */
     public static function itemInUse($objectId)
     {
         // @todo!
-    }
-    
-    
-    /**
-     * Връща разбираемо за човека заглавие, отговарящо на записа
-     */
-    public static function getRecTitle($rec, $escaped = TRUE)
-    {
-    	$me = cls::get(get_called_class());
-    	$title = $me->singleTitle . " №{$rec->id}";
-    	
-    	return $title;
     }
     
     
@@ -286,7 +268,7 @@ class accda_Da extends core_Master
     /**
      * След подготовка на сингъла
      */
-    public static function on_AfterPrepareSingle($mvc, &$res, &$data)
+    protected static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
         $data->row->createdByName = core_Users::getVerbal($data->rec->createdBy, 'names');
         
@@ -315,20 +297,11 @@ class accda_Da extends core_Master
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
-    public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    protected static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
         if(Mode::is('printing') || Mode::is('text', 'xhtml')){
             $tpl->removeBlock('header');
         }
-    }
-    
-    
-    /**
-     * В корици на папки с какви интерфейси може да се слага
-     */
-    public static function getCoversAndInterfacesForNewDoc()
-    {
-        return array('accda_DaFolderCoverIntf');
     }
     
     
@@ -338,7 +311,7 @@ class accda_Da extends core_Master
      * @param core_Manager $mvc
      * @param stdClass $rec
      */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
     	if(empty($rec->id)){
     		$rec->isContable = 'yes';
@@ -349,7 +322,7 @@ class accda_Da extends core_Master
     /**
      * Дали документа има приключени пера в транзакцията му
      */
-    public static function on_AfterGetClosedItemsInTransaction($mvc, &$res, $id)
+    protected static function on_AfterGetClosedItemsInTransaction($mvc, &$res, $id)
     {
     	$rec = $mvc->fetchRec($id);
     
@@ -364,7 +337,7 @@ class accda_Da extends core_Master
     /**
      * След преобразуване на записа в четим за хора вид
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$row->handler = $mvc->getLink($rec->id, 0);
     }
@@ -376,7 +349,7 @@ class accda_Da extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareSingleToolbar($mvc, $data)
+    protected static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
     	if(planning_AssetResources::haveRightFor('add', (object)array('protocolId' => $data->rec->id))){
     		$data->toolbar->addBtn('Ресурс', array('planning_AssetResources', 'add', 'protocolId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/star_2.png,title=Добавяне като ресурс');

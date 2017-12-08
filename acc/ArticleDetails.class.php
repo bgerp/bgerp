@@ -63,7 +63,7 @@ class acc_ArticleDetails extends doc_Detail
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,accMaster';
+    var $canEdit = 'ceo,acc';
     
     
     /**
@@ -81,7 +81,7 @@ class acc_ArticleDetails extends doc_Detail
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,accMaster';
+    var $canDelete = 'ceo,acc';
     
     
     /**

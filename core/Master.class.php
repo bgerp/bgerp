@@ -30,6 +30,12 @@ class core_Master extends core_Manager
     
     
     /**
+     * Кой е основния детайл
+     */
+    public $mainDetail;
+    
+    
+    /**
      * Опашка на записите чакащи ъпдейт
      */
     protected $updateQueue = array();
@@ -106,13 +112,18 @@ class core_Master extends core_Manager
         
         $data->details = arr::make($this->details);
         
-        expect($data->rec);
+        expect($data->rec, $data, $id, Request::get('id', 'int'));
         
         // Проверяваме дали потребителя може да вижда списък с тези записи
         $this->requireRightFor('single', $data->rec);
         
         // Подготвяме данните за единичния изглед
         $this->prepareSingle($data);
+        
+        // Ако модето е че се иска пхп дата тя се връща
+        if(Mode::is('dataType', 'php')){
+        	return $data;
+        }
         
         // Рендираме изгледа
         $tpl = $this->renderSingle($data);
@@ -172,7 +183,10 @@ class core_Master extends core_Manager
 
             foreach($data->details as $var => $class) {
                 $this->loadSingle($var, $class);
-                
+                if(empty($data->Tab)) {
+                    $data->Tab = $var;
+                }
+
                 if($var == $class) {
                     $method = 'prepareDetail';
                 } else {
@@ -182,6 +196,11 @@ class core_Master extends core_Manager
                 $detailData->masterMvc = $this;
                 $detailData->masterId = $data->rec->id;
                 $detailData->masterData = $data;
+                if($data->Tab == $var) {
+                    $detailData->isCurrent = TRUE;
+                } else {
+                    $detailData->isCurrent = FALSE;
+                }
                 $this->{$var}->$method($detailData);
             }
         }
@@ -383,7 +402,10 @@ class core_Master extends core_Manager
 
                     $url[$tab->getUrlParam()] = $var;
                     $url['#'] = ($data->{$var}->Tab == 'top') ? "detail{$data->tabTopParam}" : 'detailTabs';
-                    $tab->TAB($var, $data->{$var}->TabCaption ? $data->{$var}->TabCaption : $var, $data->{$var}->disabled ? array() : toUrl($url));
+                    
+                    if (!$data->{$var}->disabled) {
+                        $tab->TAB($var, $data->{$var}->TabCaption ? $data->{$var}->TabCaption : $var, toUrl($url));
+                    }
 				}
                 
 				$detailsTpl = new ET('');
@@ -547,6 +569,51 @@ class core_Master extends core_Manager
         }
         
         return $requiredRoles;
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * Забранява изтриването на вече използвани сметки
+     *
+     * @param core_Manager $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass|NULL $rec
+     * @param int|NULL $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        $pSingleSuffix = 'psingle';
+        
+        if ($action != 'admin' && $action != 'view' && $action != 'psingle' && !(stripos($action, $pSingleSuffix))) {
+            // Ако няма достъп до някое действие, но има достъп до частния сингъл
+            // Проверяваме правата за частните действия
+            if ((($userId && !haveRole($requiredRoles, $userId) || ($requiredRoles == 'no_one'))) && $mvc->haveRightFor($pSingleSuffix, $rec)) {
+        
+                $pAction = strtolower($action);
+                $pAction = $pAction . 'psingle';
+        
+                $canPAction = 'can' . ucfirst($pAction);
+        
+                if (isset($mvc->{$canPAction})) {
+                    $requiredRoles = $mvc->getRequiredRoles($pAction, $rec, $userId);
+                }
+            }
+        }
+    }
+    
+    
+    /**
+     * Връща името на полето, в което ще се записват достъпните сингъли в сесията
+     * 
+     * @return string
+     */
+    public static function getAllowedContainerName_()
+    {
+        
+        return 'AllowedContainerIdArr';
     }
     
     
@@ -728,11 +795,15 @@ class core_Master extends core_Manager
      * Връща урл-то към единичния изглед на обекта, ако потребителя има
      * права за сингъла. Ако няма права връща празен масив
      * 
-     * @param int $id - ид на запис
+     * @param int|stdClass $id - ид на запис
      * @return array $url - масив с урл-то на единичния изглед
      */
-    public static function getSingleUrlArray($id)
+    public static function getSingleUrlArray_($id)
     {
+        if (is_object($id)) {
+            $id = $id->id;
+        }
+        
     	$me = cls::get(get_called_class());
     	
     	$url = array();

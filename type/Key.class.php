@@ -86,6 +86,12 @@ class type_Key extends type_Int
                     $v = tr($v); 
                 }
 
+                if(isset($this->params['makeLink'])){
+                	if(method_exists($mvc, 'getSingleUrlArray')){
+                		$v = ht::createLink($v, $mvc->getSingleUrlArray($rec->id), FALSE, "ef_icon={$mvc->singleIcon}");
+                	}
+                }
+                
                 return $v;
             } else {
                 if($this->params['title']) {
@@ -96,6 +102,12 @@ class type_Key extends type_Int
                     
                     $value = $mvc->fields[$field]->type->toVerbal($value);
                 } else {
+                	if(isset($this->params['makeLink'])){
+                		if(method_exists($mvc, 'getHyperlink')){
+                			return $mvc->getHyperlink($value, TRUE);
+                		}
+                	}
+                	
                     $value = $mvc->getTitleById($value);
                 }
             }
@@ -239,9 +251,9 @@ class type_Key extends type_Int
     
     
     /**
-     * 
+     * Подготвя масив с опциите
      */
-    public function prepareOptions()
+    public function prepareOptions($value = NULL)
     {
         Mode::push('text', 'plain');
         
@@ -284,7 +296,12 @@ class type_Key extends type_Int
                     
                     $keyIndex = $this->getKeyField();
                     
-                    $arrForSelect = (array) $mvc->makeArray4select($field, $where, $keyIndex, $this->params['orderBy']);  
+                    $arrForSelect = (array) $mvc->makeArray4select($field, $where, $keyIndex, $this->params['orderBy']);
+
+                    if($value && !isset($arrForSelect[$value]) && get_class($this) == 'type_Key') {
+                        $arrForSelect[$value] = $mvc->gettitleById($value, FALSE);
+                    }
+
                     foreach($arrForSelect as $id => $v) {
                         $options[$id] = $v;
                     }
@@ -331,7 +348,7 @@ class type_Key extends type_Int
             $this->handler = md5(implode(',', array_keys($this->options)) . '|' . core_Lg::getCurrent());
         }
         
-        if($optSz = core_Cache::get($this->selectOpt, $this->handler, 20, array($this->params['mvc']))) {
+        if($optSz = core_Cache::get($this->selectOpt, $this->handler, 60, array($this->params['mvc']))) {
             $cacheOpt = unserialize($optSz);
             $options = array();
             foreach($cacheOpt as $id => $obj) {
@@ -415,7 +432,7 @@ class type_Key extends type_Int
             $cacheOpt[$key]['id'] = $vNorm;
         }
 
-        core_Cache::set($this->selectOpt, $this->handler, serialize($cacheOpt), 20, array($this->params['mvc']));
+        core_Cache::set($this->selectOpt, $this->handler, serialize($cacheOpt), 60, array($this->params['mvc']));
     }
     
     
@@ -550,7 +567,7 @@ class type_Key extends type_Int
         $options = $this->options;
 
         if(!is_array($options) || !count($options)) {
-            $options = $this->prepareOptions();
+            $options = $this->prepareOptions($value);
         }
         
         if(($div = $this->params['groupByDiv'])) {

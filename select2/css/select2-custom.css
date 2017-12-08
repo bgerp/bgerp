@@ -35,7 +35,7 @@
     color: #999;
     position: absolute;
     right: 18px;
-    top: 2;
+    top: 2px;
     z-index: 10;
 }
 
@@ -121,7 +121,7 @@ span.all-users{
 }
 
 .inputWarning + .select2{
-    border: solid 1px #ff9900;
+    border: solid 1px blue;
 }
 
 .inputError + .select2 .select2-selection , .inputWarning + .select2 .select2-selection {

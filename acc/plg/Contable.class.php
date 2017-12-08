@@ -18,6 +18,38 @@ class acc_plg_Contable extends core_Plugin
     
     
     /**
+     * Масив с класове и съответните роли, които се изискват за private single на документа
+     */
+    protected static $rolesAllMap = array(
+            'purchase_Invoices' => 'invoiceAll',
+            'sales_Invoices' => 'invoiceAll',
+            'sales_Proformas' => 'invoiceAll',
+            'store_ShipmentOrders' => 'storeAll',
+            'store_Receipts' => 'storeAll',
+            'store_Transfers' => 'storeAll',
+            'store_ConsignmentProtocols' => 'storeAll',
+            'store_InventoryNotes' => 'storeAll',
+            'purchase_Services' => 'storeAll',
+            'sales_Services' => 'storeAll',
+            'bank_IncomeDocuments' => 'bankAll',
+            'bank_SpendingDocuments' => 'bankAll',
+            'bank_ExchangeDocument' => 'bankAll',
+            'bank_InternalMoneyTransfer' => 'bankAll',
+            'cash_Pko' => 'cashAll',
+            'cash_Rko' => 'cashAll',
+            'cash_InternalMoneyTransfer' => 'cashAll',
+            'cash_ExchangeDocument' => 'cashAll',
+            'sales_Sales' => 'saleAll',
+            'purchase_Purchases' => 'purchaseAll',
+            'planning_DirectProductionNote' => 'planningAll',
+            'planning_ConsumptionNotes' => 'planningAll',
+            'planning_ReturnNotes' => 'planningAll',
+            'planning_Jobs' => 'planningAll',
+            'planning_Tasks' => 'planningAll',
+    );
+    
+    
+    /**
      * Извиква се след описанието на модела
      *
      * @param core_Mvc $mvc
@@ -38,7 +70,9 @@ class acc_plg_Contable extends core_Plugin
         setIfNot($mvc->valiorFld, 'valior');
         setIfNot($mvc->lockBalances, FALSE);
         setIfNot($mvc->fieldsNotToClone, $mvc->valiorFld);
-        setIfNot($mvc->canPending, 'no_one');
+        setIfNot($mvc->canViewpsingle, 'powerUser');
+        setIfNot($mvc->moveDocToFolder, FALSE);
+        setIfNot($mvc->autoHideDoc, FALSE); // @see doc_HiddenContainers - да не се скрива автоматично
         
         // Зареждаме плъгина, който проверява може ли да се оттегли/възстанови докумена
         $mvc->load('acc_plg_RejectContoDocuments');
@@ -53,6 +87,7 @@ class acc_plg_Contable extends core_Plugin
         if (!empty($mvc->fields[$mvc->valiorFld]) && !isset($mvc->dbIndexes[$mvc->valiorFld])) {
             $mvc->setDbIndex($mvc->valiorFld);
         }
+        setIfNot($mvc->createView, TRUE);
     }
     
     
@@ -92,7 +127,7 @@ class acc_plg_Contable extends core_Plugin
      */
     public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
-        if (!empty($rec->state) && $rec->state != 'draft') {
+        if (!empty($rec->state) && $rec->state != 'draft' && $rec->state != 'pending') {
             return;
         }
         
@@ -139,27 +174,17 @@ class acc_plg_Contable extends core_Plugin
     {
         $rec = &$data->rec;
         
+        $error = $mvc->getContoBtnErrStr($rec);
+        $error = $error ? ",error={$error}" : '';
+        
         if(haveRole('debug')) {
-            $data->toolbar->addBtn('Транзакция', array($mvc, 'getTransaction', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг информация,row=2');
-        }
-       
-        // Бутон за заявка
-        if($mvc->haveRightFor('pending', $rec)){
-        	if($rec->state != 'pending'){
-        		$data->toolbar->addBtn('Заявка', array($mvc, 'changePending', $rec->id), "id=btnRequest,warning=Наистина ли желаете документът да стане заявка?,row=2", 'ef_icon = img/16/tick-circle-frame.png,title=Превръщане на документа в заявка');
-        	} else{
-        		$data->toolbar->addBtn('Чернова', array($mvc, 'changePending', $rec->id), "id=btnDraft,warning=Наистина ли желаете да върнете възможността за редакция?", 'ef_icon = img/16/arrow-undo.png,title=Връщане на възможността за редакция');
-        	}
+            $data->toolbar->addBtn('Транзакция', array($mvc, 'getTransaction', $rec->id), "ef_icon=img/16/bug.png,title=Дебъг информация,row=2");
         }
         
+        $row = 1;
         if ($mvc->haveRightFor('conto', $rec)) {
-        	unset($error);
+        	$row = 2;
         	
-            // Проверка на счетоводния период, ако има грешка я показваме
-            if(!self::checkPeriod($mvc->getValiorValue($rec), $error)){
-                $error = ",error={$error}";
-            }
-            
             if($rec->isContable == 'activate'){
             	$caption = 'Активиране';
             	$action = 'активиран';
@@ -173,6 +198,15 @@ class acc_plg_Contable extends core_Plugin
             $data->toolbar->addBtn($caption, $contoUrl, "id=btnConto,warning=Наистина ли желаете документът да бъде {$action}?{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
         }
         
+        // Бутон за заявка
+        if($mvc->haveRightFor('pending', $rec)){
+        	if($rec->state != 'pending'){
+        		$data->toolbar->addBtn('Заявка', array($mvc, 'changePending', $rec->id), "id=btnRequest,warning=Наистина ли желаете документът да стане заявка?,row={$row}", 'ef_icon = img/16/tick-circle-frame.png,title=Превръщане на документа в заявка');
+        	} else{
+        		$data->toolbar->addBtn('Чернова', array($mvc, 'changePending', $rec->id), "id=btnDraft,warning=Наистина ли желаете да върнете възможността за редакция?", 'ef_icon = img/16/arrow-undo.png,title=Връщане на възможността за редакция');
+        	}
+        }
+        
         if ($mvc->haveRightFor('revert', $rec)) {
             $rejectUrl = array(
                 'acc_Journal',
@@ -181,7 +215,7 @@ class acc_plg_Contable extends core_Plugin
                 'docType' => $mvc->getClassId(),
                 'ret_url' => TRUE
             );
-            $data->toolbar->addBtn('Сторно', $rejectUrl, 'id=revert,warning=Наистина ли желаете документът да бъде сторниран?', 'ef_icon = img/16/red-back.png,title=Сторниране на документа, row=2');
+            $data->toolbar->addBtn('Сторно', $rejectUrl, "id=revert,warning=Наистина ли желаете документът да бъде сторниран?{$error}", 'ef_icon = img/16/red-back.png,title=Сторниране на документа, row=2');
         } else {
         	
         	// Ако потребителя може да създава коригиращ документ, слагаме бутон
@@ -193,7 +227,7 @@ class acc_plg_Contable extends core_Plugin
         				'docId' => $rec->id,
         				'ret_url' => TRUE
         		);
-        		$data->toolbar->addBtn('Корекция||Correct', $correctionUrl, "id=btnCorrection-{$rec->id},class=btn-correction,warning=Наистина ли желаете да коригирате документа?,title=Създаване на обратен мемориален ордер,ef_icon=img/16/page_red.png,row=2");
+        		$data->toolbar->addBtn('Корекция||Correct', $correctionUrl, "id=btnCorrection-{$rec->id},class=btn-correction,warning=Наистина ли желаете да коригирате документа?{$error},title=Създаване на обратен мемориален ордер,ef_icon=img/16/page_red.png,row=2");
         	}
         }
         
@@ -202,7 +236,35 @@ class acc_plg_Contable extends core_Plugin
         
         if(($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'pending' || $rec->state == 'stopped') && acc_Journal::haveRightFor('read') && $journalRec) {
             $journalUrl = array('acc_Journal', 'single', $journalRec->id, 'ret_url' => TRUE);
-            $data->toolbar->addBtn('Журнал', $journalUrl, 'row=2,ef_icon=img/16/book.png,title=Преглед на контировката на документа в журнала');
+            $data->toolbar->addBtn('Журнал', $journalUrl, "row=2,ef_icon=img/16/book.png,title=Преглед на контировката на документа в журнала");
+        }
+        
+        if($data->toolbar->hasBtn("btnRestore{$rec->containerId}")){
+        	if($error = $mvc->getRestoreBtnErrStr($rec)){
+        		$data->toolbar->setError("btnRestore{$rec->containerId}", $error);
+        	}
+        }
+    }
+    
+    
+    /**
+     * Взимане на грешка в бутона за възстановяване
+     */
+    public static function on_AfterGetRestoreBtnErrStr($mvc, &$res, $rec)
+    {
+    	
+    }
+    
+    
+    /**
+     * Взимане на грешка в бутона за контиране
+     */
+    public static function on_AfterGetContoBtnErrStr($mvc, &$res, $rec)
+    {
+        if ($mvc->haveRightFor('conto', $rec)) {
+            if(!self::checkPeriod($mvc->getValiorValue($rec), $error)){
+                $res = $error;
+            }
         }
     }
     
@@ -220,12 +282,12 @@ class acc_plg_Contable extends core_Plugin
         
         if($docPeriod){
             if($docPeriod->state == 'closed'){
-                $error = tr("|Не може да се контира в затворения сч. период|* \'{$docPeriod->title}\'");
+                $error = "Не може да се контира в затворения сч. период|* \'{$docPeriod->title}\'";
             } elseif($docPeriod->state == 'draft'){
-                $error = tr("|Не може да се контира в бъдещия сч. период|* \'{$docPeriod->title}\'");
+                $error = "Не може да се контира в бъдещия сч. период|* \'{$docPeriod->title}\'";
             }
         } else {
-            $error = tr("Не може да се контира в несъществуващ сч. период");
+            $error = "Не може да се контира в несъществуващ сч. период";
         }
         
         return ($error) ? FALSE : TRUE;
@@ -308,23 +370,31 @@ class acc_plg_Contable extends core_Plugin
                     
                     // Ако потребителя не може да контира документа, не може и да го оттегля
                     if(!(core_Packs::isInstalled('colab') && core_Users::haveRole('partner', $userId) && $rec->createdBy == $userId && ($rec->state == 'draft' || $rec->state == 'pending'))){
-                    	if(!haveRole($mvc->getRequiredRoles('conto'))){
-                    		$requiredRoles = 'no_one';
+                    	if($rec->state == 'draft' || $rec->state == 'pending'){
+                    		$requiredRoles = $mvc->getRequiredRoles('add');
+                    	} else {
+                    		$clone = clone $rec;
+                    		$clone->state = 'draft';
+                    		$requiredRoles = $mvc->getRequiredRoles('conto', $clone);
                     	}
                     }
                 }
             }
         } elseif ($action == 'restore') {
-        	
-        	// Ако потребителя не може да контира документа, не може и да го възстановява
-        	if(!(core_Packs::isInstalled('colab') && core_Users::haveRole('partner', $userId) && $rec->createdBy == $userId)){
-        		if(!haveRole($mvc->getRequiredRoles('conto'))){
-        			$requiredRoles = 'no_one';
+        	if(isset($rec)){
+        		
+        		// Ако потребителя не може да контира документа, не може и да го възстановява
+        		if(!(core_Packs::isInstalled('colab') && core_Users::haveRole('partner', $userId) && $rec->createdBy == $userId)){
+        		
+        			if($rec->state == 'rejected' && ($rec->brState == 'draft' || $rec->brState == 'pending')){
+        				$requiredRoles = $mvc->getRequiredRoles('add');
+        			} else {
+        				$clone = clone $rec;
+        				$clone->state = 'draft';
+        				$requiredRoles = $mvc->getRequiredRoles('conto', $clone);
+        			}
         		}
-        	}
-            
-            if(isset($rec)){
-            	
+        		
             	// Ако сч. период на записа е затворен, документа не може да се възстановява
             	$periodRec = acc_Periods::fetchByDate($mvc->getValiorValue($rec));
             	if ($periodRec->state == 'closed') {
@@ -373,6 +443,14 @@ class acc_plg_Contable extends core_Plugin
             	$requiredRoles = 'no_one';
             }
         }
+        
+        // Проверка за права за частния сингъл
+        if ($action == 'viewpsingle') {
+            $rolesAll = self::$rolesAllMap[$mvc->className];
+            if (!haveRole($rolesAll, $userId)) {
+                $requiredRoles = 'no_one';
+            }
+        }
     }
     
     
@@ -406,19 +484,17 @@ class acc_plg_Contable extends core_Plugin
         // Контирането е позволено само в съществуващ активен/чакащ/текущ период;
         $period = acc_Periods::fetchByDate($rec->valior);
         expect($period && ($period->state != 'closed' && $period->state != 'draft'), 'Не може да се контира в несъществуващ, бъдещ или затворен период');
-        
-        try{
-       		$cRes = acc_Journal::saveTransaction($mvc->getClassId(), $rec);
-        } catch (acc_journal_RejectRedirect $e){
-        	
-        	redirect(array($mvc, 'single', $rec->id), FALSE, '|' . $e->getMessage(), 'error');
-        }
+        $cRes = acc_Journal::saveTransaction($mvc->getClassId(), $rec);
         
         if(empty($cRes)){
         	$handle = $mvc->getHandle($rec->id);
         	$cRes = 'НЕ Е контиран';
         	status_Messages::newStatus("#{$handle} |" . $cRes);
         }
+        
+        // Нотифициране на създателя на документа и на създателя на първия документ в нишката
+        $users = self::getWhichUsersToNotifyOnConto($rec);
+        self::notifyCreatorsForPostedDocument($users, $mvc, $rec);
     }
     
     
@@ -431,7 +507,15 @@ class acc_plg_Contable extends core_Plugin
      */
     public static function on_AfterConto(core_Mvc $mvc, &$res, $id)
     {
-        self::conto($mvc, $id);
+    	$rec = $mvc->fetchRec($id);
+    	
+    	try{
+    		self::conto($mvc, $rec);
+    	} catch (acc_journal_RejectRedirect $e){
+    		 
+    		$url = $mvc->getSingleUrlArray($rec->id);
+    		redirect($url, FALSE, '|' . $e->getMessage(), 'error');
+    	}
     }
     
     
@@ -457,12 +541,16 @@ class acc_plg_Contable extends core_Plugin
      */
     public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
     {
-        if (is_object($id)) {
-            $id = $id->id;
-        }
+        $rec = $mvc->fetchRec($id);
         
         // Оттегляме транзакцията при нужда
-        acc_Journal::rejectTransaction($mvc->getClassId(), $id);
+        acc_Journal::rejectTransaction($mvc->getClassId(), $rec->id);
+        
+        // Премахване на нотифицирането за контиране
+        if($rec->brState == 'active'){
+        	$users = self::getWhichUsersToNotifyOnConto($rec);
+        	self::removeCreatorsNotificationOnReject($users, $mvc, $rec);
+        }
     }
     
     
@@ -478,8 +566,17 @@ class acc_plg_Contable extends core_Plugin
         $rec = $mvc->fetchRec($id);
         
         if($rec->state == 'active' || $rec->state == 'closed'){
-            // Ре-контиране на документа след възстановяването му
-            $mvc->reConto($id);
+        	$rec = $mvc->fetchRec($id);
+        	 
+        	try{
+        		// Ре-контиране на документа след възстановяването му
+            	$mvc->reConto($id);
+        	} catch (acc_journal_RejectRedirect $e){
+        		$mvc->reject($rec);
+        		
+        		$url = $mvc->getSingleUrlArray($rec->id);
+        		redirect($url, FALSE, '|' . $e->getMessage(), 'error');
+        	}
         }
     }
     
@@ -518,22 +615,27 @@ class acc_plg_Contable extends core_Plugin
     public static function on_AfterCanActivate($mvc, &$res, $rec)
     {
         if(!$res){
-            if (!empty($rec->id) && $rec->state != 'draft') {
+            if (!empty($rec->id) && $rec->state != 'draft' && $rec->state != 'pending') {
                 $res = FALSE;
             } elseif(count($mvc->details)){
                 $hasDetail = FALSE;
                 
-                if($rec->id){
-                    // Ако класа има поне един запис в детаил, той може да се активира
-                    foreach ($mvc->details as $name){
-                        $Details = $mvc->{$name};
+                // Ако класа има поне един запис в детаил, той може да се активира
+                foreach ($mvc->details as $name){
+                    $Details = $mvc->{$name};
+                    if(!$Details->masterKey) {
+                        $hasDetail = TRUE;
+                        continue;
+                    }
                         
+                    if($rec->id){
                         if($Details->fetch("#{$Details->masterKey} = {$rec->id}")){
-                            $hasDetail = TRUE;
-                            break;
+                        	$hasDetail = TRUE;
+                        	break;
                         }
                     }
                 }
+                
                 $res = $hasDetail;
             } else {
                 $res = TRUE;
@@ -640,6 +742,84 @@ class acc_plg_Contable extends core_Plugin
     		if($warning = acc_Periods::checkDocumentDate($valior)){
     			$form->setWarning($mvc->valiorFld, $warning);
     		}
+    	}
+    }
+    
+    
+    /**
+     * Кои потребители да се нотифицират при контиране на документа
+     * 
+     * @param stdClass $rec
+     * @return array $userArr
+     */
+    private static function getWhichUsersToNotifyOnConto($rec)
+    {
+		// Това са създателят на документа
+    	$userArr = array($rec->createdBy => $rec->createdBy);
+    	
+    	return $userArr;
+    }
+    
+    
+    /**
+     * Нотифицира потребители че документат е бил контиран
+     * 
+     * @param array $userArr
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     */
+    private static function notifyCreatorsForPostedDocument($userArr, $mvc, $rec)
+    {
+    	if(!count($userArr)) return;
+    	
+    	// Ако глобално в настройките е зададено да се нотифицира или не
+    	$docSettings = doc_Setup::get('NOTIFY_FOR_CONTO');
+    	if ($docSettings == 'no') {
+    	    $userArr = array();
+    	} elseif ($docSettings == 'yes') {
+    	    $userArr = core_Users::getByRole('powerUser');
+    	}
+    	
+    	$pSettingsKey = crm_Profiles::getSettingsKey();
+    	
+    	// Ако е зададено в персоналните настройки на потребителя за всички папки
+    	doc_Containers::prepareUsersArrForNotifications($userArr, $pSettingsKey, 'DOC_NOTIFY_FOR_CONTO', $rec->threadId);
+    	
+    	$currUserNick = core_Users::getCurrent('nick');
+    	$currUserNick = type_Nick::normalize($currUserNick);
+    	
+    	$docRow = $mvc->getDocumentRow($rec->id);
+    	$docTitle = $docRow->title;
+    	$folderTitle = doc_Threads::getThreadTitle($rec->threadId);
+    	
+    	$message = "{$currUserNick} |контира|* \"|{$docTitle}|*\" |в нишка|* \"{$folderTitle}\"";
+    	foreach ($userArr as $uId) {
+    	    
+    	    if (!$mvc->haveRightFor('single', $rec->id)) continue;
+    	    
+    		bgerp_Notifications::add($message, array($mvc, 'single', $rec->id), $uId);
+    	}
+    }
+    
+    
+    /**
+     * Премахване на нотификацията за контиране при оттегляне
+     * 
+     * @param array $userArr
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     */
+    private static function removeCreatorsNotificationOnReject($userArr, $mvc, $rec)
+    {
+    	if(!count($userArr)) return;
+    	
+    	doc_ThreadUsers::removeContainer($rec->containerId);
+    	$threadRec = doc_Threads::fetch($rec->threadId);
+    	$threadRec->shared = keylist::fromArray(doc_ThreadUsers::getShared($rec->threadId));
+    	doc_Threads::save($threadRec, 'shared');
+    	
+    	foreach ($userArr as $uId) {
+    		bgerp_Notifications::setHidden(array($mvc, 'single', $rec->id), 'yes', $uId);
     	}
     }
 }

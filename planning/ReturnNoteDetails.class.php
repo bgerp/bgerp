@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'planning_ReturnNoteDetails'
  *
@@ -39,31 +40,39 @@ class planning_ReturnNoteDetails extends deals_ManifactureDetail
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_RowNumbering, plg_AlignDecimals2, 
-                        planning_plg_ReplaceEquivalentProducts, plg_PrevAndNext';
+                        planning_plg_ReplaceEquivalentProducts, plg_PrevAndNext,cat_plg_ShowCodes,import_plg_Detail';
     
     
     /**
-     * Кой има право да чете?
+     * Какво движение на партида поражда документа в склада
+     *
+     * @param out|in|stay - тип движение (излиза, влиза, стои)
      */
-    public $canRead = 'ceo, planning';
+    public $batchMovementDocument = 'in';
     
+    
+    /**
+     * Кои операции от задачите ще се зареждат
+     */
+    public $taskActionLoad = 'production';
+
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, planning';
+    public $canEdit = 'ceo,planning,store';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, planning';
+    public $canAdd = 'ceo,planning,store';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo, planning';
+    public $canDelete = 'ceo,planning,store';
     
     
     /**
@@ -87,7 +96,7 @@ class planning_ReturnNoteDetails extends deals_ManifactureDetail
     /**
      * Какви продукти да могат да се избират в детайла
      */
-    protected $defaultMeta = 'canConvert,canStore';
+    protected $defaultMeta = 'canStore';
     
     
     /**

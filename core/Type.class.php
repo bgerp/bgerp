@@ -186,18 +186,20 @@ class core_Type extends core_BaseClass
                 $res->options[] = $key;
             }
         }
-        
-        if (is_array($this->params) && in_array('unsigned', array_map('strtolower', $this->params))) {
+ 
+        if ($this->params['unsigned']) {
             $res->unsigned = TRUE;
         }
         
         if($this->params['collate']) {
             $res->collation = $this->params['collate'];
         } elseif($this->params['ci']) {
-            $res->collation = 'utf8_general_ci';
+            $res->collation = 'ci';
         } elseif($this->collation) {
             $res->collation = $this->collation;
         }
+        
+        setIfNot($res->indexPrefix, $this->params['indexPrefix']);
         
         return $res;
     }

@@ -30,7 +30,7 @@ class blogm_Articles extends core_Master {
 	/**
 	 * Зареждане на необходимите плъгини
 	 */
-	var $loadList = 'plg_RowTools, plg_State, plg_Printing, blogm_Wrapper, 
+	var $loadList = 'plg_RowTools2, plg_State, plg_Printing, blogm_Wrapper, 
         plg_Search, plg_Created, plg_Modified, cms_VerbalIdPlg, plg_Rejected';
 	
 
@@ -458,12 +458,12 @@ class blogm_Articles extends core_Master {
         
         
         if($data->rec->body) {
-            $pattern = fileman_GalleryRichTextPlg::IMG_PATTERN;
+            $pattern = cms_GalleryRichTextPlg::IMG_PATTERN;
         
             preg_match($pattern, $data->rec->body, $matches);
  
             if($iHnd = $matches[1]) {
-                $iRec = fileman_GalleryImages::fetch(array("#title = '[#1#]'", $iHnd));
+                $iRec = cms_GalleryImages::fetch(array("#title = '[#1#]'", $iHnd));
                 $fileSrc = $iRec->src;
             }
         }
@@ -921,7 +921,7 @@ class blogm_Articles extends core_Master {
 	/**
      * Какви роли са необходими за посоченото действие?
      */
-	function on_AfterGetRequiredRoles($mvc, &$roles, $act, $rec = NULL, $user = NULL)
+	public static function on_AfterGetRequiredRoles($mvc, &$roles, $act, $rec = NULL, $user = NULL)
     {
         if($act == 'article' && isset($rec)) {
             if($rec->state != 'active') {

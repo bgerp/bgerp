@@ -48,6 +48,13 @@ class doc_Search extends core_Manager
     
     
     /**
+     * @see plg_Search
+     */
+    public $searchInId = FALSE;
+    
+    
+    
+    /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      *
      * Задаваме NULL за да избегнем обновяването на ключовите думи на контейнера след всеки
@@ -81,7 +88,7 @@ class doc_Search extends core_Manager
         $data->listFilter->FNC('fromDate', 'date', 'input,silent,caption=От,width=140px, placeholder=Дата');
         $data->listFilter->FNC('toDate', 'date', 'input,silent,caption=До,width=140px, placeholder=Дата');
         $data->listFilter->FNC('author', 'type_Users(rolesForAll=user)', 'caption=Автор');
-        $data->listFilter->FNC('liked', 'enum(no_matter=Без значение, someone=От някого, me=От мен)', 'caption=Харесвания');
+        $data->listFilter->FNC('withMe', 'enum(,shared_with_me=Споделени с мен, liked_from_me=Харесани от мен)', 'caption=Само, placeholder=Всички');
         
         $conf = core_Packs::getConfig('doc');
         $lastFoldersArr = bgerp_Recently::getLastFolderIds($conf->DOC_SEARCH_FOLDER_CNT);
@@ -103,12 +110,12 @@ class doc_Search extends core_Manager
         $data->listFilter->setField('scopeFolderId', 'input');
     	
         $data->listFilter->getField('state')->type->options = array('all' => 'Всички') + $data->listFilter->getField('state')->type->options;
-    	$data->listFilter->setField('search', 'autoFilter,caption=Ключови думи');
+    	$data->listFilter->setField('search', 'caption=Ключови думи');
         $data->listFilter->setField('docClass', 'caption=Вид документ,placeholder=Всички');
-    
+        
         $data->listFilter->setDefault('author', 'all_users');
-
-        $data->listFilter->showFields = 'search, scopeFolderId, docClass,  author, liked, state, fromDate, toDate';
+        
+        $data->listFilter->showFields = 'search, scopeFolderId, docClass,  author, withMe, state, fromDate, toDate';
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         $data->listFilter->input(NULL, 'silent');
@@ -120,7 +127,7 @@ class doc_Search extends core_Manager
         !empty($filterRec->scopeFolderId) ||
         !empty($filterRec->docClass) ||
         !empty($filterRec->fromDate) ||
-        !empty($filterRec->liked) ||
+        !empty($filterRec->withMe) ||
         !empty($filterRec->state) ||
         !empty($filterRec->fromDate) ||
         !empty($filterRec->toDate) ||
@@ -155,13 +162,6 @@ class doc_Search extends core_Manager
                 
                 // Сетваме грешката
                 $data->listFilter->setError('fromDate', "Не може да се търси в бъдеще");    
-            }
-            
-            // Ако се търси в бъдеще
-            if ($filterRec->toDate && $filterRec->toDate > $now) {
-                
-                // Сетваме грешката
-                $data->listFilter->setError('toDate', "Не може да се търси в бъдеще");    
             }
         }
         
@@ -231,8 +231,11 @@ class doc_Search extends core_Manager
             }
             
             // Ограничаване на търсенето до избрана папка
-            if (!empty($filterRec->scopeFolderId)) {
+            if (!empty($filterRec->scopeFolderId) && doc_Folders::haveRightFor('single', $filterRec->scopeFolderId)) {
                 $data->query->where(array("#folderId = '[#1#]'", $filterRec->scopeFolderId));
+                $restrictAccess = FALSE;
+            } else {
+                $restrictAccess = TRUE;
             }
             
             // Ако е избран автор или не са избрани всичките
@@ -273,23 +276,25 @@ class doc_Search extends core_Manager
             // id на текущия потребител
             $currUserId = core_Users::getCurrent();
             
-            if ($filterRec->liked && $filterRec->liked != 'no_matter') {
+            if ($filterRec->withMe && ($currUserId > 0)) {
                 
-                // Всички харесвания
-                $data->query->EXT('likedCid', 'doc_Likes', 'externalName=containerId');
-                $data->query->where("#likedCid = #id");
-                
-                // Харесвания от текущия потребител
-                if ($filterRec->liked == 'me') {
-                    if ($currUserId > 0) {
-                        $data->query->EXT('likedBy', 'doc_Likes', 'externalName=createdBy');
-                        $data->query->where("#likedBy = {$currUserId}");
-                    }
+                // Ако ще се показват само харесаните от текущия потребител
+                if ($filterRec->withMe == 'liked_from_me') {
+                    // Всички харесвания
+                    $data->query->EXT('likedBy', 'doc_Likes', 'externalName=createdBy, remoteKey=containerId');
+                    $data->query->where(array("#likedBy = '[#1#]'", $currUserId));
+                } elseif ($filterRec->withMe == 'shared_with_me') {
+                    $data->query->EXT('sharedBy', 'doc_ThreadUsers', 'externalName=userId, remoteKey=containerId');
+                    $data->query->EXT('relation', 'doc_ThreadUsers', 'externalName=relation, remoteKey=containerId');
+                    $data->query->where("#relation = 'shared'");
+                    $data->query->where(array("#sharedBy = '[#1#]'", $currUserId));
                 }
             }
             
-            // Ограничаване на заявката само до достъпните нишки
-            doc_Threads::restrictAccess($data->query, $currUserId);
+            if($restrictAccess) {
+                // Ограничаване на заявката само до достъпните нишки
+                doc_Threads::restrictAccess($data->query, $currUserId);
+            }
             
             // Създател
             $data->query->orWhere("#createdBy = '{$currUserId}'");
@@ -463,8 +468,7 @@ class doc_Search extends core_Manager
         }
         
         $attr = array();
-        $attr['class'] .= 'linkWithIcon';
-        $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon()) . ');';
+        $attr['ef_icon'] = $docProxy->getIcon();
         
         $handle = $rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : $docProxy->getHandle();
         

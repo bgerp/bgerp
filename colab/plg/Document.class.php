@@ -64,4 +64,22 @@ class colab_plg_Document extends core_Plugin
             }
         }
     }
+    
+    
+    /**
+     *
+     *
+     * @param core_Master $mvc
+     * @param NULL|array $res
+     * @param integer|stdClass $id
+     */
+    public static function on_AfterGetSingleUrlArray($mvc, &$res, $id)
+    {
+        if (!isset($res) || (is_array($res) && empty($res))) {
+            $rec = $mvc->fetchRec($id);
+            if ($rec->threadId && colab_Threads::haveRightFor('single', doc_Threads::fetch($rec->threadId))) {
+                $res = array($mvc, 'single', $rec->id, 'ret_url' => TRUE);
+            }
+        }
+    }
 }

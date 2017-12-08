@@ -26,7 +26,7 @@ class rack_Movements extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools2, plg_Created, rack_Wrapper, plg_RefreshRows, plg_State';
+    var $loadList = 'plg_RowTools2, plg_Created, rack_Wrapper, plg_RefreshRows, plg_State, plg_Sorting';
     
     
     /**
@@ -56,7 +56,7 @@ class rack_Movements extends core_Manager
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,rack';
+	var $canList = 'ceo,rack,storeWorker';
 
 
 	/**
@@ -68,21 +68,43 @@ class rack_Movements extends core_Manager
     /**
      * Кой може да го види?
      */
-    var $canView = 'ceo,rack';
+    var $canView = 'ceo,rack,storeWorker';
     
     
     /**
      * Кой може да го изтрие?
      */
     var $canDelete = 'no_one';
+
+
+    /**
+     * Кой може да започне движение
+     */
+    var $canStart = 'ceo,admin,rack,storeWorker';
     
     
+    /**
+     * Кой може да приключи движение
+     */
+    var $canDone = 'ceo,admin,rack,storeWorker';
+    
+    
+    /**
+     * Кой може да откаже движение
+     */
+    var $canCancel = 'ceo,admin,rack,storeWorker';
+    
+
     /**
      * Брой записи на страница
      */
     var $listItemsPerPage = 50;
     
     
+    /**
+     *
+     */
+    public $listFields = 'palletId,position,positionTo,workerId,note,created=Създаване';
      
     
     /**
@@ -91,13 +113,14 @@ class rack_Movements extends core_Manager
     function description()
     {
         $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Склад,column=none');
-        $this->FLD('palletId', 'key(mvc=rack_Pallets, select=label)', 'caption=Палет');
+        $this->FLD('palletId', 'key(mvc=rack_Pallets, select=label)', 'caption=Палет,smartCenter');
         
-        $this->FLD('position', 'rack_PositionType', 'caption=От');
-        $this->FLD('positionTo', 'rack_PositionType', 'caption=Към');
+        $this->FLD('position', 'rack_PositionType', 'caption=От,smartCenter');
+        $this->FLD('positionTo', 'rack_PositionType', 'caption=Към,smartCenter');
         
         $this->FLD('state', 'enum(pending=Чакащо, active=Активно, closed=Приключено)', 'caption=Състояние,smartCenter,input=hidden');
-        $this->FLD('workerId', 'user(roles=storeWorker,ceo)', 'caption=Товарач');
+        $this->FLD('workerId', 'user(roles=storeWorker,ceo)', 'caption=Товарач,smartCenter');
+        $this->FNC('created', 'varchar(64)', 'caption=Създаване,tdClass=small-field nowrap');
 
         $this->FLD('note', 'varchar(64)', 'caption=Забележка,column=none');
     }
@@ -123,12 +146,14 @@ class rack_Movements extends core_Manager
         }
 
         if($state) {
-            $row->state = $state;
+            $row->workerId .= ' ' . $state;
         }
 
         if($rec->note) {
-            $row->palletId .= '<div style="font-size:0.8em;margin-tip:5px;">' . $mvc->getVerbal($rec, 'note') . '</div>';
+            $row->note = '<div style="font-size:0.8em;">' . $mvc->getVerbal($rec, 'note') . '</div>';
         }
+
+        $row->created = '<div style="font-size:0.8em;">' . $mvc->getVerbal($rec, 'createdOn') . ' ' . crm_Profiles::createLink($rec->createdBy) . '</div>';
     }
 
     /**
@@ -161,8 +186,6 @@ class rack_Movements extends core_Manager
         }
     }
 
-
-
     /**
      * Добавя филтър към перата
      *
@@ -174,7 +197,7 @@ class rack_Movements extends core_Manager
         $data->query->orderBy('#createdOn', 'DESC');
         $storeId = store_Stores::getCurrent();
         $data->query->where("#storeId = {$storeId}");
-        $data->title = 'Премествания на палети в склад |*<b style="color:green">' . store_Stores::getTitleById($storeId) . "</b>";
+        $data->title = 'Движения на палети в склад |*<b style="color:green">' . store_Stores::getTitleById($storeId) . "</b>";
     }
 
 
@@ -232,9 +255,41 @@ class rack_Movements extends core_Manager
             $rMvc->updateRacks[$rec->storeId . '-' . $rec->position] = TRUE;
         }
 
+        core_Cache::remove('UsedRacksPossitions', $rec->storeId);
+
         $rMvc->on_Shutdown($rMvc);
 
         redirect(array($this));
+    }
+
+
+    /**
+     * Връща масив с всички използвани палети
+     */
+    public static function getExpected($storeId = NULL)
+    {
+        if(!$storeId) {
+            $storeId = store_Stores::getCurrent();
+        }
+
+        $res = array();
+        $res[0] = array();
+        $res[1] = array();
+
+        $query = self::getQuery();
+        while($rec = $query->fetch("#storeId = {$storeId} AND #state != 'closed'")) {
+            if($rec->position) {
+                $pRec = rack_Pallets::fetch($rec->palletId);
+                $res[0][$rec->position] = $pRec->productId;
+            }
+            if($rec->positionTo) {
+                $pRec = rack_Pallets::fetch($rec->palletId);
+                $res[1][$rec->positionTo] = $pRec->productId;
+            }
+
+        }
+  
+        return $res;
     }
 
 }

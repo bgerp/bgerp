@@ -122,6 +122,18 @@ class acc_ValueCorrections extends core_Master
 
     
     /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
+    
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'valior';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -155,7 +167,11 @@ class acc_ValueCorrections extends core_Master
     {
     	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
     	if($firstDoc->fetchField('containerId') != $rec->correspondingDealOriginId){
-    		$row->correspondingDealOriginId = doc_Containers::getDocument($rec->correspondingDealOriginId)->getLink(0);
+    		if(isset($rec->correspondingDealOriginId)){
+    			$row->correspondingDealOriginId = doc_Containers::getDocument($rec->correspondingDealOriginId)->getLink(0);
+    		} else {
+    			$row->correspondingDealOriginId = "<span class='red'>" . tr('Проблем при показването') . "</span>";
+    		}
     	} else {
     		unset($row->correspondingDealOriginId);
     	}
@@ -245,7 +261,7 @@ class acc_ValueCorrections extends core_Master
     		$count++;
     	}
     	
-    	$listFields = arr::make("count=№,name=Артикул,amount=Сума,allocated=|Разпределено|* ({$data->row->baseCurrencyCode}) |без ДДС|*", TRUE);
+    	$listFields = arr::make("count=№,name=Артикул,amount=Сума,allocated=|Разпределени|* ({$data->row->baseCurrencyCode}) |без ДДС|*", TRUE);
     	
     	// Взависимост от признака на разпределяне, показваме колоната възоснова на която е разпределено
     	switch($data->rec->allocateBy){
@@ -289,15 +305,6 @@ class acc_ValueCorrections extends core_Master
     
     
     /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    protected static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	$data->toolbar->removeBtn('btnAdd');
-    }
-    
-    
-    /**
      * Добавя полета към формата за избор на артикули
      * 
      * @param core_Form $form
@@ -307,7 +314,7 @@ class acc_ValueCorrections extends core_Master
     public static function addProductsFromOriginToForm(&$form, core_ObjectReference $origin, $dataField = 'productsData')
     {
     	// Запомняне на всички експедирани/заскладени артикули от оридижина
-    	$products = self::getChosenProducts($origin);
+    	$products = $origin->getCorrectableProducts();
     	$form->allProducts = $products;
     	
     	if(count($products)){
@@ -376,73 +383,6 @@ class acc_ValueCorrections extends core_Master
     	
     	$data->form->origin = $firstDoc;
     	$data->form->chargeVat =  $chargeVat;
-    }
-    
-    
-    /**
-     * Извличаме артикулите върху които ще се коригират стойностите
-     * 
-     * @param core_ObjectReference $firstDoc - първи документ в нишката
-     * @return array $products - масив с опции за избор на артикули
-     */
-    private static function getChosenProducts(core_ObjectReference $firstDoc)
-    {
-    	// Aко първия документ е продажба
-    	if($firstDoc->isInstanceOf('sales_Sales')){
-    		
-    		// Взимаме артикулите от сметка 701
-    		$entries = sales_transaction_Sale::getEntries($firstDoc->that);
-    		$shipped = sales_transaction_Sale::getShippedProducts($entries, '701');
-    		
-    	  // Ако е покупка
-    	} elseif($firstDoc->isInstanceOf('purchase_Purchases')){
-    		
-    		// Вземаме всички заскладени артикули
-    		$entries = purchase_transaction_Purchase::getEntries($firstDoc->that);
-    		$shipped = purchase_transaction_Purchase::getShippedProducts($entries, $firstDoc->that, '321', TRUE);
-    	} else {
-    		
-    		// Иначе няма
-    		$shipped = array();
-    	}
-    	
-    	$products = array();
-    	if(count($shipped)){
-    		foreach ($shipped as $p){
-    			$products[$p->productId] = (object)array('productId' => $p->productId, 
-    												     'name'      => cat_Products::getTitleById($p->productId), 
-    													 'quantity'  => $p->quantity,
-    													 'amount'    => $p->amount,
-    			);
-    			
-    			if(isset($p->inStores)){
-    				$products[$p->productId]->inStores = $p->inStores;
-    			}
-    			
-    			$transportWeight = cat_Products::getParams($p->productId, 'transportWeight');
-    			if(!empty($transportWeight)){
-    				$products[$p->productId]->transportWeight = $transportWeight;
-    			}
-    			
-    			$transportVolume = cat_Products::getParams($p->productId, 'transportVolume');
-    			if(!empty($transportVolume)){
-    				$products[$p->productId]->transportVolume = $transportVolume;
-    			}
-    		}
-    	}
-    	
-    	return $products;
-    }
-    
-    
-    /**
-     * Връща разбираемо за човека заглавие, отговарящо на записа
-     */
-    public static function getRecTitle($rec, $escaped = TRUE)
-    {
-    	$self = cls::get(get_called_class());
-    	 
-    	return tr($self->singleTitle) . " №{$rec->id}";
     }
     
     
@@ -533,7 +473,11 @@ class acc_ValueCorrections extends core_Master
     		case 'value':
     			// Ако се разпределя по стойност изчисляване на общата сума
     			foreach ($products as $p){
-    				$denominator += $p->amount;
+    				if(!isset($p->amount)){
+    					$errorArr[$p->productId] = $p->name;
+    				} else {
+    					$denominator += $p->amount;
+    				}
     			}
     			break;
     		case 'quantity':
@@ -555,7 +499,7 @@ class acc_ValueCorrections extends core_Master
     			
     			// Изчисляване на общото транспортно тегло
     			foreach ($products as $p){
-    				if(!isset($p->transportWeight)){
+    				if(empty($p->transportWeight)){
     					$errorArr[$p->productId] = $p->name;
     				} else {
     					$denominator += $p->transportWeight * $p->quantity;
@@ -566,7 +510,7 @@ class acc_ValueCorrections extends core_Master
     			
     			// Изчисляване на общия транспортен обем
     			foreach ($products as $p){
-    				if(!isset($p->transportVolume)){
+    				if(empty($p->transportVolume)){
     					$errorArr[$p->productId] = $p->name;
     				} else {
     					$denominator += $p->transportVolume * $p->quantity;
@@ -579,6 +523,8 @@ class acc_ValueCorrections extends core_Master
     	if(count($errorArr)){
     		if($allocateBy == 'quantity'){
     			$msg = "Не може да се избере разпределяне по количество, защото артикулите са в различни мерки";
+    		} elseif($allocateBy == 'value'){
+    			$msg = "Не може да се избере разпределяне по стойност, защото артикулите нямат стойност в документа";
     		} else {
     			$string = implode(", ", $errorArr);
     			$type = ($allocateBy == 'weight') ? 'тегло' : 'обем';
@@ -647,19 +593,17 @@ class acc_ValueCorrections extends core_Master
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'add' && isset($rec)){
     		$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
     		if($firstDoc){
-    			if($firstDoc->fetchField('state') != 'active'){
-    				 
-    				// Ако ориджина не е активен, не може да се създава документ към него
+    			if(!$firstDoc->haveInterface('acc_AllowArticlesCostCorrectionDocsIntf')){
+    				$requiredRoles = 'no_one';
+    			} elseif($firstDoc->fetchField('state') != 'active'){
     				$requiredRoles = 'no_one';
     			} else {
-    				 
-    				// Ако няма артикули за разпределяне, не може да се създава документа
-    				$products = self::getChosenProducts($firstDoc);
+    				$products = $firstDoc->getCorrectableProducts();
     				if(!count($products)){
     					$requiredRoles = 'no_one';
     				}

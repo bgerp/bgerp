@@ -1,0 +1,115 @@
+<div class="clearfix21"></div>
+<table class='no-border paddingCells business-doc-summary-table' style='width:100%;'>
+   <tr class='nowrap'>
+      <td class='aright' colspan="2">|Стойност|*:</td>
+      <td class='info-right' style='width:1%;'><span class='cCode'>[#currencyId#]</span></td>
+      <td class='aright' style='width:1%;'> <b class="lighterBold">[#value#]</b></td>
+   </tr>
+   <!--ET_BEGIN discountValue-->
+   <tr class='nowrap'>
+      <td class='aright' colspan="2">|Отстъпка|*:</td>
+      <td class='info-right'><span class='cCode'>[#discountCurrencyId#]</span></td>
+      <td class='aright'><b class="lighterBold">[#discountValue#]</b></td>
+   </tr>
+   <!--ET_END discountValue-->
+   <!--ET_BEGIN neto-->
+   <tr class='nowrap'>
+      <td class='aright' colspan="2">|Нето|*:</td>
+      <td class='info-right'><span class='cCode'>[#netoCurrencyId#]</span></td>
+      <td class='aright'><b class="lighterBold">[#neto#]</b></td>
+   </tr>
+   <!--ET_END neto-->
+
+   <!--ET_BEGIN VAT_INFO-->
+   [#VAT_INFO#]
+
+   <!--ET_BEGIN vat02BaseAmount-->
+   <tr>
+      <td colspan='4' style='padding:0px'>
+         <hr>
+      </td>
+   </tr>
+   <tr class='nowrap'>
+      <td class='centered' style="border-right: 1px solid #ccc !important;">|Ставка|*</td>
+      <td class='aright'>|Данъчна основа|*:</td>
+      <td class='info-right'><span class='cCode'>[#vat02BaseCurrencyId#]</span></td>
+      <td class='aright'><b class="lighterBold">[#vat02BaseAmount#]</b></td>
+   </tr>
+   <!--ET_END vat02BaseAmount-->
+
+   <!--ET_BEGIN vat02-->
+   <tr class='nowrap'>
+      <td class='centered' style="border-right: 1px solid #ccc !important;"><b>|ДДС|* [#vat02#]</b></td>
+      <td class='aright'>|ДДС|*:</td>
+      <td class='info-right'><span class='cCode'>[#vat02AmountCurrencyId#]</span></td>
+      <td class='aright'><b class="lighterBold">[#vat02Amount#]</b></td>
+   </tr>
+   <!--ET_END vat02-->
+
+   <!--ET_BEGIN vat009BaseAmount-->
+   <tr>
+      <td colspan='4' style='padding:0px'>
+         <hr>
+      </td>
+   </tr>
+   <tr class='nowrap'>
+      <td class='centered' style="border-right: 1px solid #ccc !important;">|Ставка|*</td>
+      <td class='aright'>|Данъчна основа|*:</td>
+      <td class='info-right'><span class='cCode'>[#vat009BaseCurrencyId#]</span></td>
+      <td class='aright'><b class="lighterBold">[#vat009BaseAmount#]</b></td>
+   </tr>
+   <!--ET_END vat009BaseAmount-->
+
+   <!--ET_BEGIN vat009-->
+
+   <tr class='nowrap'>
+      <td class='centered' style="border-right: 1px solid #ccc !important;"><b>|ДДС|* [#vat009#]</b></td>
+      <td class='aright'>|ДДС|*:</td>
+      <td class='info-right'><span class='cCode'>[#vat009AmountCurrencyId#]</span></td>
+      <td class='aright'><b class="lighterBold">[#vat009Amount#]</b></td>
+   </tr>
+   <!--ET_END vat009-->
+
+   <!--ET_BEGIN vat0BaseAmount-->
+   <tr>
+      <td colspan='4' style='padding:0px'>
+         <hr>
+      </td>
+   </tr>
+   <tr class='nowrap'>
+      <td class='centered' style="border-right: 1px solid #ccc !important;">|Ставка|*</td>
+      <td class='aright'>|Данъчна основа|*:</td>
+      <td class='info-right'><span class='cCode'>[#vat0BaseCurrencyId#]</span></td>
+      <td class='aright'><b class="lighterBold">[#vat0BaseAmount#]</b></td>
+   </tr>
+   <!--ET_END vat0BaseAmount-->
+
+   <!--ET_BEGIN vat0-->
+   <tr class='nowrap'>
+      <td class='centered' style="border-right: 1px solid #ccc !important;"><b>|ДДС|* [#vat0#]</b></td>
+      <td class='aright'>|ДДС|*:</td>
+      <td class='info-right'><span class='cCode'>[#vat0AmountCurrencyId#]</span></td>
+      <td class='aright'><b class="lighterBold">[#vat0Amount#]</b></td>
+   </tr>
+   <!--ET_END vat0-->
+
+   <!--ET_END VAT_INFO-->
+   <tr>
+      <td colspan='4' style='padding:0px'>
+         <hr>
+      </td>
+   </tr>
+   <tr class='nowrap'>
+      <td class='aright' colspan="2">|Общо|*:</td>
+      <td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
+      <td class='aright' style="font-size: 1.15em;"><b>[#total#]</b></td>
+   </tr>
+   <!--ET_BEGIN sayWords-->
+   <tr>
+      <td colspan = '4' style='text-align:right'>
+         |Словом|*: [#sayWords#]
+      </td>
+   </tr>
+   <!--ET_END sayWords-->
+</table>
+<div class="clearfix21"></div>

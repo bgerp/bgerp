@@ -6,8 +6,8 @@
  *
  * @category  bgerp
  * @package   tests
- * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @author    Pavlinka Dainovska <pdainovska@gmail.com>
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -34,6 +34,7 @@ class unit_MinkPProducts extends core_Manager {
         $res .= "  5.".$this->act_CreatePlanningJob();
         $res .= "  6.".$this->act_CreateCloning();
         $res .= "  7.".$this->act_CreateTemplate();
+        $res .= "  8.".$this->act_CreateSaleBaseMeasure();
         return $res;
     }
     
@@ -44,6 +45,7 @@ class unit_MinkPProducts extends core_Manager {
     {
         $browser = cls::get('unit_Browser');
         //$browser->start('http://localhost/');
+        $host = unit_Setup::get('DEFAULT_HOST');
         $browser->start($host);
         //Потребител DEFAULT_USER (bgerp)
         $browser->click('Вход');
@@ -70,7 +72,7 @@ class unit_MinkPProducts extends core_Manager {
         $browser->click('Чувал голям 50 L');
         $browser->press('Редакция');
         $browser->setValue('info', 'прозрачен');
-        $browser->setValue('Ценова група » 0', 12);
+        $browser->setValue('Продукти', 7);
         $browser->press('Запис');
        
         //return $browser->getHtml();
@@ -98,10 +100,11 @@ class unit_MinkPProducts extends core_Manager {
             $browser->setValue('Ценова група » A', 13);
             $browser->press('Промяна');
             
-            //Добавяне на нова опаковка/мярка
+            //Добавяне на нова опаковка/мярка - основна
             $browser->click('Добавяне на нова опаковка/мярка');
             $browser->setValue('packagingId', 'стек');
             $browser->setValue('quantity', '100');
+            $browser->setValue('isBase', 'yes');
             $browser->setValue('netWeight[lP]', '0.015');
             $browser->setValue('tareWeight[lP]', '0.002');
             $browser->setValue('sizeWidth[lP]', '0.27');
@@ -111,14 +114,15 @@ class unit_MinkPProducts extends core_Manager {
             $browser->press('Запис');
             
             //Добавяне на лимит
+            $browser->click('Счетоводство');
             $browser->click('Добавяне на ново ограничение на перото');
             $browser->setValue('accountId', '321. Суровини, материали, продукция, стоки');
-            $browser->refresh('Запис');
+            //$browser->refresh('Запис');
+            $browser->press('Refresh');
             $browser->setValue('limitDuration', '1 год.');
             $browser->setValue('limitQuantity', '100');
             $browser->setValue('item1', 'Склад 1 (1 st)');
-            //Екип "Headquarter"
-            $browser->setValue('sharedUsers[13_1]', '13_1');
+            $browser->setValue('Bgerp', True);
             $browser->press('Запис');
             
             //Добавяне на себестойност
@@ -152,8 +156,9 @@ class unit_MinkPProducts extends core_Manager {
          
         // Създаване на нов артикул - продукт
         $browser->click('Каталог');
-        $browser->click('Продукти');
-        $browser->press('Артикул');
+        $browser->press('Нов запис');
+        $browser->setValue('catcategorieId', 'Продукти');
+        $browser->press('Напред');
         $browser->setValue('name', 'Плик 7 л');
         $browser->setValue('code', 'plik7');
         $browser->setValue('measureId', 'брой');
@@ -183,8 +188,7 @@ class unit_MinkPProducts extends core_Manager {
         $browser->press('Запис');
         $browser->press('Активиране');
         //return $browser->getHtml();
-        
-        //Добавяне на опаковка - 
+                
     }
     
     /**
@@ -228,7 +232,6 @@ class unit_MinkPProducts extends core_Manager {
     
     /**
      * 5. Създава задание за производство
-     * (Ако има предишно задание, трябва да се приключи)
      */
     //http://localhost/unit_MinkPProducts/CreatePlanningJob/
     function act_CreatePlanningJob()
@@ -250,22 +253,24 @@ class unit_MinkPProducts extends core_Manager {
             $browser->click('Добавяне на ново задание за производство');
             $valior=strtotime("+1 Day");
             $browser->setValue('dueDate', date('d-m-Y', $valior));
-            $browser->setValue('quantity', '1000');
+            $browser->setValue('packQuantity', '1000');
             $browser->setValue('notes', 'CreatePlanningJob');
-    
             $browser->press('Чернова');
             $browser->press('Активиране');
-            //Добавяне на задача
+            
+            /*
+            Добавяне на задача - временно спряно
             $browser->click('Добавяне на нова задача за производство');
             $browser->setValue('hrdepartmentId', 'Производство');
             $browser->press('Напред');
             $browser->setValue('storeId', 'Склад 1');
             $browser->press('Чернова');
             $browser->press('Активиране');
+           
             //Произвеждане и влагане
             $browser->press('Произвеждане'); 
             //$browser->press('Добавяне на произведен артикул');
-            $browser->setValue('quantity', '1000');
+            $browser->setValue('quantity', '100000');
             $browser->setValue('employees[4]', '4');
             $browser->press('Запис');
             $browser->press('Влагане');
@@ -278,22 +283,25 @@ class unit_MinkPProducts extends core_Manager {
             $browser->setValue('taskProductId', 'Друг труд');
             $browser->setValue('quantity', '1010');
             $browser->press('Запис');
-            // Приключване на задачата - когато са в една нишка, разпознава бутона за приключване на заданието, защото са с еднакви имена
+            // Приключване на задачата
             $browser->press('Приключване');
+                        
             //Протокол за производство - в заданието
             $browser->click('Задание за производство №');
+            */
             
             //$browser->press('Създаване на протокол за производство от заданието');
             $browser->press('Произвеждане');
             $browser->setValue('storeId', 'Склад 1');
             $browser->setValue('note', 'Test');
+            $browser->setValue('packQuantity', '200');
             $browser->press('Чернова');
             $browser->press('Контиране');
             $browser->press('Приключване');
         } else {
         return unit_MinkPbgERP::reportErr('Няма такъв артикул', 'info');
         }
-        //return $browser->getHtml();
+        
     }
  
     /**
@@ -320,6 +328,10 @@ class unit_MinkPProducts extends core_Manager {
         } else {
             return unit_MinkPbgERP::reportErr('Неуспешно клониране', 'warning');
         } 
+        //Проверка - EAN кода не трябва да се е клонирал
+        if(strpos($browser->gettext(), '1234567893341')) {
+        return unit_MinkPbgERP::reportErr('Грешни суми в мастера', 'warning');
+        }
         //return $browser->getHtml();
     }
    
@@ -358,4 +370,67 @@ class unit_MinkPProducts extends core_Manager {
         //return $browser->getHtml();
     }
     
+    /**
+     * Продажба в основна мярка (стек)
+     */
+     
+    //http://localhost/unit_MinkPProducts/CreateSaleBaseMeasure/
+    function act_CreateSaleBaseMeasure()
+    {
+    
+        // Логваме се
+        $browser = $this->SetUp();
+    
+        //Отваряме папката на фирмата
+        $browser->click('Визитник');
+        $browser->click('F');
+        $Company = "Фирма bgErp";
+        $browser->click($Company);
+        $browser->press('Папка');
+    
+        // нова продажба - проверка има ли бутон
+        if(strpos($browser->gettext(), 'Продажба')) {
+            $browser->press('Продажба');
+        } else {
+            $browser->press('Нов...');
+            $browser->press('Продажба');
+        }
+         
+        //$browser->hasText('Създаване на продажба');
+        $browser->setValue('reff', 'MinkP');
+        $browser->setValue('bankAccountId', '');
+        $browser->setValue('note', 'MinkPBaseMeasure');
+        $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('chargeVat', "Отделен ред за ДДС");
+         
+        // Записваме черновата на продажбата
+        $browser->press('Чернова');
+    
+        // Добавяме артикул
+        $browser->press('Артикул');
+        $browser->setValue('productId', 'Чувал голям 50 L');
+        $browser->press('Refresh');
+        // Записваме артикула
+        $browser->press('Запис');
+        // активираме продажбата
+        $browser->press('Активиране');
+        $browser->press('Активиране/Контиране');
+         
+        if(strpos($browser->gettext(), 'Шест BGN')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
+        }
+       
+        // Фактура
+        $browser->press('Фактура');
+        $browser->press('Чернова');
+        $browser->press('Контиране');
+    
+        if(strpos($browser->gettext(), '6,00 6,00 0,00 6,00')) {
+        } else {
+            return unit_MinkPbgERP::reportErr('Грешни суми в мастера', 'warning');
+        }
+     
+    }
+   
 }

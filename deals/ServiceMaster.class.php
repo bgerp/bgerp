@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   deals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -21,6 +21,32 @@ abstract class deals_ServiceMaster extends core_Master
 	 * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
 	 */
 	public $rowToolsSingleField = 'title';
+	
+	
+	/**
+	 * Дали в листовия изглед да се показва бутона за добавяне
+	 */
+	public $listAddBtn = FALSE;
+	
+	
+	/**
+	 * Полета свързани с цени
+	 */
+	public $priceFields = 'amountDelivered';
+	
+	
+	/**
+	 * Поле за филтриране по дата
+	 */
+	public $filterDateField = 'createdOn, valior,deliveryTime,modifiedOn';
+	
+	
+	/**
+	 * Полета, които при клониране да не са попълнени
+	 *
+	 * @see plg_Clone
+	 */
+	public $fieldsNotToClone = 'valior,amountDelivered,amountDiscount,amountDeliveredVat,deliveryTime';
 	
 	
 	/**
@@ -50,7 +76,7 @@ abstract class deals_ServiceMaster extends core_Master
 		// Допълнително
 		$mvc->FLD('note', 'richtext(bucket=Notes,rows=6)', 'caption=Допълнително->Бележки');
 		$mvc->FLD('state',
-				'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно)',
+				'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)',
 				'caption=Статус, input=none'
 		);
 		$mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
@@ -86,13 +112,16 @@ abstract class deals_ServiceMaster extends core_Master
 		
 		return $this->save($rec);
 	}
-
-
+	
+	
 	/**
 	 * След създаване на запис в модела
 	 */
-	public static function on_AfterCreate($mvc, $rec)
+	protected static function on_AfterCreate($mvc, $rec)
 	{
+		// Ако документа е клониран пропуска се
+		if($rec->_isClone === TRUE) return;
+		
 		$origin = $mvc->getOrigin($rec);
 	
 		// Ако новосъздадения документ има origin, който поддържа bgerp_AggregateDealIntf,
@@ -103,13 +132,23 @@ abstract class deals_ServiceMaster extends core_Master
 		$agreedProducts = $aggregatedDealInfo->get('products');
 		
 		$shippedProducts = $aggregatedDealInfo->get('shippedProducts');
-		$normalizedProducts = deals_Helper::normalizeProducts(array($agreedProducts), array($shippedProducts));
+		
+		
+		if(count($shippedProducts)){
+			$normalizedProducts = deals_Helper::normalizeProducts(array($agreedProducts), array($shippedProducts));
+		} else {
+			$agreedProducts = $aggregatedDealInfo->get('dealProducts');
+		}
 		
 		if(count($agreedProducts)){
 			foreach ($agreedProducts as $index => $product) {
 				$info = cat_Products::getProductInfo($product->productId);
 				
-				$toShip = $normalizedProducts[$index]->quantity;
+				if(isset($normalizedProducts[$index])){
+					$toShip = $normalizedProducts[$index]->quantity;
+				} else {
+					$toShip = $product->quantity;
+				}
 				
 				$price = ($agreedProducts[$index]->price) ? $agreedProducts[$index]->price : $normalizedProducts[$index]->price;
 				$discount = ($agreedProducts[$index]->discount) ? $agreedProducts[$index]->discount : $normalizedProducts[$index]->discount;
@@ -132,16 +171,28 @@ abstract class deals_ServiceMaster extends core_Master
 				}
 				
 				$Detail = $mvc->mainDetail;
-				$mvc->{$Detail}->save($shipProduct);
+				$dId = $mvc->{$Detail}->save($shipProduct);
+				
+				// Копиране на разпределените разходи
+				if(!empty($product->expenseRecId)){
+					$aRec = acc_CostAllocations::fetch($product->expenseRecId);
+					unset($aRec->id);
+					$aRec->detailRecId = $dId;
+					$aRec->detailClassId = $Detail::getClassId();
+					$aRec->containerId = $rec->containerId;
+					
+					acc_CostAllocations::save($aRec);
+					core_Statuses::newStatus($aRec->id);
+				}
 			}
 		}
 	}
-    
-    
+	
+	
     /**
      * След рендиране на сингъла
      */
-    public static function on_AfterRenderSingle($mvc, $tpl, $data)
+    protected static function on_AfterRenderSingle($mvc, $tpl, $data)
     {
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');
@@ -167,7 +218,7 @@ abstract class deals_ServiceMaster extends core_Master
 	/**
 	 * Преди показване на форма за добавяне/промяна
 	 */
-	public static function on_AfterPrepareEditForm($mvc, &$data)
+	protected static function on_AfterPrepareEditForm($mvc, &$data)
 	{
 		// Задаване на стойности на полетата на формата по подразбиране
 		$form = &$data->form;
@@ -203,7 +254,7 @@ abstract class deals_ServiceMaster extends core_Master
 	/**
      * След преобразуване на записа в четим за хора вид
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if(isset($fields['-list'])){
     		if($rec->amountDeliveredVat || $rec->amountDelivered){
@@ -234,6 +285,10 @@ abstract class deals_ServiceMaster extends core_Master
     				$row->deliveryLocationAddress = $gln . ", " . $row->deliveryLocationAddress;
     				$row->deliveryLocationAddress = trim($row->deliveryLocationAddress, ", ");
     			}
+    		}
+    		
+    		if(!empty($rec->delivered)){
+    			$row->delivered = core_Lg::transliterate($row->delivered);
     		}
     		
     		core_Lg::pop();
@@ -332,45 +387,6 @@ abstract class deals_ServiceMaster extends core_Master
     	}
     }
     
-    
-    /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    public static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	if(!empty($data->toolbar->buttons['btnAdd'])){
-    		$data->toolbar->removeBtn('btnAdd');
-    	}
-    }
-    
-    
-     /**
-      * Добавя ключови думи за пълнотекстово търсене, това са името на
-      * документа или папката
-      */
-     public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
-     {
-     	// Тук ще генерираме всички ключови думи
-     	$detailsKeywords = '';
-
-     	// заявка към детайлите
-     	$Detail = $mvc->mainDetail;
-     	$query = $mvc->{$Detail}->getQuery();
-     	
-     	// точно на тази фактура детайлите търсим
-     	$query->where("#{$mvc->{$Detail}->masterKey} = '{$rec->id}'");
-     	
-	        while ($recDetails = $query->fetch()){
-	        	// взимаме заглавията на продуктите
-	        	$productTitle = cat_Products::getTitleById($recDetails->productId);
-	        	// и ги нормализираме
-	        	$detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
-	        }
-	        
-    	// добавяме новите ключови думи към основните
-    	$res = " " . $res . " " . $detailsKeywords;
-     }
-    
      
      /**
       * Може ли документа да се добави в посочената нишка?
@@ -405,7 +421,7 @@ abstract class deals_ServiceMaster extends core_Master
      * @param boolean $forward
      * @return string - тялото на имейла
      */
-    public function getDefaultEmailBody($id, $forward = FALSE)
+     public function getDefaultEmailBody($id, $forward = FALSE)
      {
      	$handle = $this->getHandle($id);
      	$title = tr(mb_strtolower($this->singleTitle));

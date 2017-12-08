@@ -61,17 +61,10 @@ class draw_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'sens';
-    
-    
-    /**
-     * Дефинирани класове, които имат интерфейси
-     */
-    var $defClasses = "sens2_reports_DataLog";
-    
-
-    
-        
+    var $roles = array(
+        array('draw'),
+        array('drawMaster', 'draw'),
+    );
      
     
     /**

@@ -360,7 +360,7 @@ class catering_Requests extends core_Master
      * @param int|NULL $userId
      */
     /*
-    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($rec->id && ($action == 'delete' || $action == 'edit')  ) {
             $rec = $mvc->fetch($rec->id);

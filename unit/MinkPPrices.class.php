@@ -6,8 +6,8 @@
  *
  * @category  bgerp
  * @package   tests
- * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @author    Pavlinka Dainovska <pdainovska@gmail.com>
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -42,6 +42,7 @@ class unit_MinkPPrices extends core_Manager {
     {
         $browser = cls::get('unit_Browser');
         //$browser->start('http://localhost/');
+        $host = unit_Setup::get('DEFAULT_HOST');
         $browser->start($host);
         //Потребител DEFAULT_USER (bgerp)
         $browser->click('Вход');
@@ -73,7 +74,7 @@ class unit_MinkPPrices extends core_Manager {
         $enddate=strtotime("+10 Days");
         $browser->setValue('validUntil[d]', date('d-m-Y', $enddate));
         $browser->press('Запис');
-        if(strpos($browser->gettext(), '0,60000 BGN с ДДС')) {
+        if(strpos($browser->gettext(), '0,60 BGN с ДДС')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешно заредена цена', 'warning');
         }
@@ -81,6 +82,7 @@ class unit_MinkPPrices extends core_Manager {
         $browser->press('Стойност');
         $browser->setValue('productId', 'Артикул ДДС 9');
         $browser->setValue('price', '10');
+        $browser->setValue('validUntil[d]', Null);
         $browser->setValue('vat', 'no');
         $browser->press('Запис');
         
@@ -157,7 +159,7 @@ class unit_MinkPPrices extends core_Manager {
         $browser->click('Ценообразуване');
         $browser->click('Ценоразписи');
         $browser->press('Нов запис');
-        $browser->setValue('docunsortedfolderId', 'Ценови политики');
+        $browser->setValue('folderId', 'Ценоразписи');
         $browser->press('Напред');
         $browser->setValue('policyId', 'Ценова политика 2017');
         $browser->setValue('title', 'Ценоразпис: Ценова политика 2017');
@@ -198,7 +200,7 @@ class unit_MinkPPrices extends core_Manager {
     }
     
     /**
-     * 5. Добавяне на ценова политика на клиент; ценоразпис
+     * 5. Добавяне на ценова политика в папка на клиент; ценоразпис
      */
     //http://localhost/unit_MinkPPrices/AddCustomerPriceList/
     function act_AddCustomerPriceList()
@@ -215,18 +217,20 @@ class unit_MinkPPrices extends core_Manager {
         // Създаване на ценова политика за клиента
         $browser->click('Избор на ценова политика');
         $browser->press('Нови правила');
+        $browser->setValue('folderId', 'Фирма с локация - България');
+        $browser->press('Напред');
         $browser->setValue('title', 'Ценова политика за Фирма с локация');
         $browser->setValue('parent', 'Ценова политика 2017');
         $browser->setValue('discountCompared', 'Каталог');
         $browser->setValue('defaultSurcharge', '3');
         $browser->press('Чернова');
-        
-        // Отваряне на папката на клиента
+        //Отваряне на папката на клиента
         $browser->click($Company);
         //$browser->press('Папка');
         $browser->press('Нов');
         // Създаване на ценоразпис в папката на клиента
         $browser->press('Ценоразпис');
+        $browser->setValue('policyId', 'Ценова политика за Фирма с локация');
         $browser->setValue('title', 'Ценоразпис за Фирма с локация');
         $browser->press('Чернова');
         $browser->press('Активиране');
@@ -235,7 +239,7 @@ class unit_MinkPPrices extends core_Manager {
         } else {
             return unit_MinkPbgERP::reportErr('Грешен ценоразпис', 'warning');
         }
-        
+        //Проверка за ДДС 9%
         if(strpos($browser->gettext(), 'dds9 бр. 12,01289')) {
         } else {
             return unit_MinkPbgERP::reportErr('Грешен ценоразпис', 'warning');

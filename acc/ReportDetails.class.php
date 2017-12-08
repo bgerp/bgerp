@@ -44,7 +44,9 @@ class acc_ReportDetails extends core_Manager
         setIfNot($data->masterMvc->canAddacclimits, 'ceo,accLimits');
         setIfNot($data->masterMvc->balanceRefShowZeroRows, TRUE);
         setIfNot($data->masterMvc->showAccReportsInTab, TRUE);
-        
+
+        $data->TabCaption = 'Счетоводство';
+
         $balanceRec = acc_Balances::getLastBalance();
         $data->balanceRec = $balanceRec;
         
@@ -64,21 +66,19 @@ class acc_ReportDetails extends core_Manager
         if(!$prepareTab || $prepareTab == 'AccReports'){
         	$data->prepareTab = TRUE;
         }
-        
+
         // Ако потребителя има достъп до репортите
-        if(haveRole($data->masterMvc->canReports)){
+        if(haveRole($data->masterMvc->canReports) && ($data->Tab == 'top' || $data->isCurrent)){
             
+
             // Извличане на счетоводните записи
             $this->prepareBalanceReports($data);
-            $data->Order = 1;
+            $data->renderReports = TRUE;
+            //$data->Order = 1;
         } else {
         	$data->renderReports = FALSE;
         }
-       
-        // Име на таба
-        if($data->renderReports === TRUE){
-        	$data->TabCaption = 'Счетоводство';
-        }
+
     }
     
     
@@ -144,7 +144,7 @@ class acc_ReportDetails extends core_Manager
         $data->total = 0;
         
         // Ако баланса е заключен не показваме нищо
-        if(core_Locks::isLocked('RecalcBalances')){
+        if(core_Locks::isLocked(acc_Balances::saveLockKey)){
         	$data->balanceIsRecalculating = TRUE;
         	return;
         }
@@ -264,7 +264,7 @@ class acc_ReportDetails extends core_Manager
     	if(isset($data->balanceRec->periodId)){
     		$link = acc_Periods::getVerbal($data->balanceRec->periodId, 'title');
     		if(!Mode::isReadOnly()){
-    			$link = ht::createLink($link, array('acc_Balances', 'single', $data->balanceRec->id), FALSE, array('title' => "Оборотна ведомост за|* \"{$link}\""));
+    			$link = ht::createLink($link, acc_Balances::getSingleUrlArray($data->balanceRec->id), FALSE, array('title' => "Оборотна ведомост за|* \"{$link}\""));
     		}
     		 
     		$tpl->replace($link, 'periodId');
@@ -272,7 +272,7 @@ class acc_ReportDetails extends core_Manager
     	
     	// Ако баланса се преизчислява в момента, показваме подходящо съобщение
     	if($data->balanceIsRecalculating === TRUE){
-    		$warning = "<span class='red'>" . tr('Баланса се преизчислява в момента|*! |Моля изчакайте|*.') . "</span>";
+    		$warning = "<span class='red'>" . tr('Балансът се преизчислява в момента|*. |Моля, изчакайте|*!') . "</span>";
         	$tpl->append($warning, 'CONTENT');
         	
         	return $tpl;
@@ -338,7 +338,7 @@ class acc_ReportDetails extends core_Manager
                 		$colspan = count($fields) - 1;
                 		$totalRow = $Double->toVerbal($total);
                 		$totalRow = ($total < 0) ? "<span style='color:red'>{$totalRow}</span>" : $totalRow;
-                		$totalHtml = "<tr><th colspan='{$colspan}' style='text-align:right'>" . tr('Общо') . ":</th><th style='text-align:right;font-weight:bold'>{$totalRow}</th></tr>";
+                		$totalHtml = "<tr><th colspan='{$colspan}' style='text-align:right'>" . tr('Общо') . ":</th><th style='padding-right: 4px; font-weight:bold'><span class='maxwidth totalCol accCell'>{$totalRow}</th></th></tr>";
                 		$tableHtml->replace($totalHtml, 'ROW_AFTER');
                 		$tableHtml->removeBlocks;
                 	}
@@ -376,7 +376,7 @@ class acc_ReportDetails extends core_Manager
             }
            
             if($count > 1 && $data->canSeePrices !== FALSE){
-            	$lastRow = "<div class='acc-footer'>" . tr('Сумарно'). ": " . $data->totalRow . "</div>";
+            	$lastRow = "<div class='acc-footer' style='padding-right: 13px;'>" . tr('Сумарно'). ": " . $data->totalRow . "</div>";
             	$tpl->append($lastRow, 'CONTENT');
             }
         }

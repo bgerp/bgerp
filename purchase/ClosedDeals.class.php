@@ -36,7 +36,7 @@ class purchase_ClosedDeals extends deals_ClosedDeals
      * Плъгини за зареждане
      */
     public $loadList = 'purchase_Wrapper, acc_plg_Contable, plg_RowTools, plg_Sorting,
-                    doc_DocumentPlg, doc_plg_HidePrices';
+                    doc_DocumentPlg, doc_plg_HidePrices, plg_Search';
     
     
     /**
@@ -92,6 +92,13 @@ class purchase_ClosedDeals extends deals_ClosedDeals
      */
     public $priceFields = 'costAmount, incomeAmount';
     
+    
+    /**
+     * Списък с роли на потребители, при действията на които с дадения документ
+     * абонираните потребители не се нотифицират
+     */
+    public $muteNotificationsBy = 'system';
+
     
     /**
      * След дефиниране на полетата на модела

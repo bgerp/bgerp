@@ -189,7 +189,7 @@ class cms_Articles extends core_Master
             cms_Domains::selectCurrent($cRec->domainId);
         }
 
-        $data->form->setOptions('menuId', arr::combine( array('' => ''), cms_Content::getMenuOpt($mvc))); // echo($data->form->renderHtml()); die;
+        $data->form->setOptions('menuId', arr::combine( array('' => ''), cms_Content::getMenuOpt($mvc))); 
     }
 
 
@@ -524,7 +524,7 @@ class cms_Articles extends core_Master
     /**
      * Какви са необходимите роли за съотвентото действие?
      */
-    static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec = NULL, $userId = NULL)
     {
         if($rec->state == 'active' && $action == 'delete') {
             $roles = 'no_one';
@@ -740,7 +740,7 @@ class cms_Articles extends core_Master
         $form = cls::get('core_Form');
         $form->FNC('menuId', 'key(mvc=cms_Content,select=menu)', 'caption=Меню,mandatory,silent');
         $form->FNC('articles', 'keylist(mvc=cms_Articles,select=title)', 'caption=Статии,columns=1,input');
-        $form->FNC('divider', 'richtext(rows=3)', 'caption=Разделител,input');
+        $form->FNC('divider', 'richtext(rows=3,bucket=Notes)', 'caption=Разделител,input');
 
         $form->input(NULL, 'silent');
         $form->method = 'GET';

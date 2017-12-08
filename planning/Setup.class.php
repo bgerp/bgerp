@@ -2,51 +2,9 @@
 
 
 /**
- *  Колко пъти задачата за производство може да се пуска
- */
-defIfNot('PLANNING_TASK_START_COUNTER', 1);
-
-
-/**
- *  Tемата по-подразбиране за пос терминала
+ *  Стартов сериен номер при производствените операции
  */
 defIfNot('PLANNING_TASK_SERIAL_COUNTER', 1000);
-
-
-/**
- * Тип на дефолтния брояч за етикета на задачата за производство
- */
-defIfNot('PLANNING_TASK_LABEL_COUNTER_SHOWING', 'barcodeAndStr');
-
-
-/**
- * Клас на дефолтния брояч
-*/
-defIfNot('PLANNING_TASK_LABEL_COUNTER_BARCODE_TYPE', 'code128');
-
-
-/**
- * Съотношение на дефолтния броян
-*/
-defIfNot('PLANNING_TASK_LABEL_RATIO', 4);
-
-
-/**
- * Широчина на дефолтния
-*/
-defIfNot('PLANNING_TASK_LABEL_WIDTH', 160);
-
-
-/**
- * Височина
-*/
-defIfNot('PLANNING_TASK_LABEL_HEIGHT', 60);
-
-
-/**
- * Ротация на баркода
-*/
-defIfNot('PLANNING_TASK_LABEL_ROTATION', 'yes');
 
 
 /**
@@ -59,6 +17,24 @@ defIfNot('PLANNING_TASK_LABEL_PREVIEW_WIDTH', 90);
  * Височина на превюто на артикула в етикета
  */
 defIfNot('PLANNING_TASK_LABEL_PREVIEW_HEIGHT', 170);
+
+
+/**
+ * Детайлно влагане по подразбиране
+ */
+defIfNot('PLANNING_CONSUMPTION_USE_AS_RESOURCE', 'yes');
+
+
+/**
+ * Може ли да се оттеглят старите протоколи за производство, ако има нови
+ */
+defIfNot('PLANNING_PRODUCTION_NOTE_REJECTION', 'no');
+
+
+/**
+ * До колко символа да е серийния номер на произвеодствените операции
+ */
+defIfNot('PLANNING_SERIAL_STRING_PAD', '10');
 
 
 /**
@@ -91,13 +67,13 @@ class planning_Setup extends core_ProtoSetup
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'planning_Jobs';
+    var $startCtr = 'planning_Setup';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    var $startAct = 'getStartCtr';
     
     
     /**
@@ -110,16 +86,12 @@ class planning_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи за този модул
      */
     var $configDescription = array(
-    		'PLANNING_TASK_SERIAL_COUNTER'             => array ('int', 'caption=Задачи за производство->Стартов сериен номер'),
-    		'PLANNING_TASK_START_COUNTER'              => array('int', 'caption=Задачи за производство->Макс. брой стартирания'),
-    		'PLANNING_TASK_LABEL_COUNTER_SHOWING'      => array('enum(barcodeAndStr=Баркод и стринг, string=Стринг, barcode=Баркод)', 'caption=Шаблон за етикети на задачите->Показване'),
-    		'PLANNING_TASK_LABEL_COUNTER_BARCODE_TYPE' => array('varchar', 'caption=Шаблон за етикети на задачите->Тип баркод,optionsFunc=barcode_Generator::getAllowedBarcodeTypesArr'),
-    		'PLANNING_TASK_LABEL_RATIO'                => array('enum(1=1,2=2,3=3,4=4)', 'caption=Шаблон за етикети на задачите->Съотношение'),
-    		'PLANNING_TASK_LABEL_WIDTH'                => array('int(min=1, max=5000)', 'caption=Шаблон за етикети на задачите->Широчина,unit=px'),
-    		'PLANNING_TASK_LABEL_HEIGHT'               => array('int(min=1, max=5000)', 'caption=Шаблон за етикети на задачите->Височина,unit=px'),
-    		'PLANNING_TASK_LABEL_ROTATION'             => array('enum(yes=Да, no=Не)', 'caption=Шаблон за етикети на задачите->Ротация'),
-    		'PLANNING_TASK_LABEL_PREVIEW_WIDTH'        => array('int', 'caption=Превю на артикула в етикета->Широчина,unit=px'),
-    		'PLANNING_TASK_LABEL_PREVIEW_HEIGHT'       => array('int', 'caption=Превю на артикула в етикета->Височина,unit=px'),
+    		'PLANNING_TASK_SERIAL_COUNTER'         => array('int', 'caption=Производствени операции->Стартов сериен номер'),
+    		'PLANNING_SERIAL_STRING_PAD'           => array('int', 'caption=Производствени операции->Макс. дължина'),
+    		'PLANNING_TASK_LABEL_PREVIEW_WIDTH'    => array('int', 'caption=Превю на артикула в етикета->Широчина,unit=px'),
+    		'PLANNING_TASK_LABEL_PREVIEW_HEIGHT'   => array('int', 'caption=Превю на артикула в етикета->Височина,unit=px'),
+    		'PLANNING_CONSUMPTION_USE_AS_RESOURCE' => array('enum(yes=Да,no=Не)', 'caption=Детайлно влагане по подразбиране->Избор'),
+    		'PLANNING_PRODUCTION_NOTE_REJECTION'   => array('enum(no=Забранено,yes=Позволено)', 'caption=Оттегляне на стари протоколи за производство ако има нови->Избор'),
     );
     
     
@@ -127,6 +99,7 @@ class planning_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
+    		'migrate::deleteTasks6',
     		'planning_Jobs',
     		'planning_ConsumptionNotes',
     		'planning_ConsumptionNoteDetails',
@@ -137,13 +110,14 @@ class planning_Setup extends core_ProtoSetup
     		'planning_ObjectResources',
     		'planning_Tasks',
     		'planning_AssetResources',
-    		'planning_drivers_ProductionTaskDetails',
-    		'planning_drivers_ProductionTaskProducts',
-    		'planning_TaskActions',
+    		'planning_ProductionTaskDetails',
+    		'planning_ProductionTaskProducts',
     		'planning_TaskSerials',
-    		'migrate::updateTasks',
-    		'migrate::updateNotes',
-    		'migrate::updateStoreIds',
+    		'planning_AssetGroups',
+    		'planning_AssetResourcesNorms',
+    		'migrate::deleteTaskCronUpdate',
+    		'migrate::deleteAssets',
+    		'migrate::deleteNorms'
         );
 
         
@@ -151,9 +125,11 @@ class planning_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     var $roles = array(
+    		array('production'),
     		array('taskWorker'),
     		array('taskPlanning', 'taskWorker'),
     		array('planning', 'taskPlanning'),
+    		array('planningMaster', 'planning'),
     		array('job'),
     );
 
@@ -162,14 +138,14 @@ class planning_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.21, 'Производство', 'Планиране', 'planning_Jobs', 'default', "planning, ceo, job"),
+            array(3.21, 'Производство', 'Планиране', 'planning_Wrapper', 'getStartCtr', "planning, ceo, job, store, taskWorker, taskPlanning"),
         );
     
     
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "planning_reports_PlanningImpl,planning_reports_PurchaseImpl,planning_drivers_ProductionTask, planning_reports_MaterialsImpl";
+    var $defClasses = "planning_reports_PlanningImpl,planning_reports_PurchaseImpl, planning_reports_MaterialsImpl,planning_interface_ImportTaskProducts,planning_interface_ImportTaskSerial,planning_interface_ImportFromLastBom";
     
     
     /**
@@ -185,71 +161,80 @@ class planning_Setup extends core_ProtoSetup
     
     
     /**
-     * Миграция на старите задачи
+     * Изтрива старите производствени операции
      */
-    function updateTasks()
+    public static function deleteTasks6()
     {
-    	core_Classes::add('planning_Tasks');
-    	$PlanningTasks = planning_Tasks::getClassId();
-    	 
-    	if(!tasks_Tasks::count()) return;
-    	
-    	$tQuery = tasks_Tasks::getQuery();
-    	$tQuery->where('#classId IS NULL || #classId = 0');
-    	while($tRec = $tQuery->fetch()){
-    		if(cls::get('tasks_Tasks')->getDriver($tRec->id)){
-    			$tRec->classId = $PlanningTasks;
-    			tasks_Tasks::save($tRec);
-    		}
-    	}
-    	
-    	if($cRec = core_Classes::fetch("#name = 'tasks_Tasks'")){
-    		$cRec->state = 'closed';
-    		core_Classes::save($cRec);
-    	}
-    }
-    
-    
-    /**
-     * Миграция на старите задачи
-     */
-    function updateNotes()
-    {
-    	if(!planning_DirectProductionNote::count()) return;
-    	
-    	$query = planning_DirectProductionNote::getQuery();
-    	$query->where('#inputStoreId IS NULL');
-    	
-    	while($rec = $query->fetch()){
-    		$rec->inputStoreId = $rec->storeId;
-    		cls::get('planning_DirectProductionNote')->save_($rec);
-    	}
-    }
-    
-    
-    /**
-     * Миграция на протоколите за производство
-     */
-    function updateStoreIds()
-    {
-    	core_App::setTimeLimit(300);
-    	$Details = cls::get('planning_DirectProductNoteDetails');
+    	$Details = cls::get('planning_ProductionTaskDetails');
+    	$Details->fillSearchKeywordsOnSetup = FALSE;
     	$Details->setupMvc();
+    	$Details->truncate();
     	
-    	$query = planning_DirectProductNoteDetails::getQuery();
-    	$query->EXT('inputStoreId', 'planning_DirectProductionNote', 'externalName=inputStoreId,externalKey=noteId');
-    	$query->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
-    	$query->where("#inputStoreId IS NOT NULL");
-    	$query->where("#storeId IS NULL");
-    	$query->where("#canStore = 'yes'");
+    	$Tasks = cls::get('planning_Tasks');
+    	$Tasks->fillSearchKeywordsOnSetup = FALSE;
+    	$Tasks->setupMvc();
+    	if(!$Tasks->count()) return;
     	
-    	while($dRec = $query->fetch()){
-    		$dRec->storeId = $dRec->inputStoreId;
-    		try{
-    			$Details->save_($dRec, 'storeId');
-    		} catch(core_exception_Expect $e){
-    			reportException($e);
-    		}
+    	$Product = cls::get('planning_ProductionTaskProducts');
+    	$Product->fillSearchKeywordsOnSetup = FALSE;
+    	$Product->setupMvc();
+    	$Product->truncate();
+    	
+    	$Tasks->truncate();
+    	$taskClassId = planning_Tasks::getClassId();
+    	$query = doc_Containers::getQuery();
+    	$query->where("#docClass = {$taskClassId}");
+    	$query->delete();
+    	
+    	$Serials = cls::get('planning_TaskSerials');
+    	$Serials->fillSearchKeywordsOnSetup = FALSE;
+    	$Serials->setupMvc();
+    	$Serials->truncate();
+    	
+    	$Assets = cls::get('planning_AssetResources');
+    	$Assets->fillSearchKeywordsOnSetup = FALSE;
+    	$Assets->setupMvc();
+    	$Assets->truncate();
+    }
+    
+    
+    /**
+     * Изтриване на крон метод
+     */
+    public function deleteTaskCronUpdate()
+    {
+    	core_Cron::delete("#systemId = 'Update Tasks States'");
+    }
+    
+    
+    /**
+     * Изтриване на стари задачи от операциите
+     */
+    public function deleteAssets()
+    {
+    	$query = planning_Tasks::getQuery();
+    	$query->where("#fixedAssets IS NOT NULL");
+    	while($tRec = $query->fetch()){
+    		$tRec->fixedAssets = NULL;
+    		planning_Tasks::save($tRec);
     	}
+    	
+    	$query = planning_ProductionTaskDetails::getQuery();
+    	$query->where("#fixedAsset IS NOT NULL");
+    	while($tRec1 = $query->fetch()){
+    		$tRec1->fixedAsset = NULL;
+    		planning_ProductionTaskDetails::save($tRec1);
+    	}
+    }
+    
+    
+    /**
+     * Изчистване на нормите
+     */
+    public function deleteNorms()
+    {
+    	$Norms = cls::get('planning_AssetResourcesNorms');
+    	$Norms->setupMvc();
+    	$Norms->truncate();
     }
 }

@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -60,33 +60,27 @@ class cat_BomDetails extends doc_Detail
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,cat,techno,sales';
-    
-    
-    /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,cat,techno,sales';
+    public $canEdit = 'ceo,cat,sales';
     
     
     /**
      * Кой има право да разгъва?
      */
-    public $canExpand = 'ceo,cat,techno,sales';
+    public $canExpand = 'ceo,cat,sales';
     
     
     /**
      * Кой има право да свива?
      */
-    public $canShrink = 'ceo,cat,techno,sales';
+    public $canShrink = 'ceo,cat,sales';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,cat,techno,sales';
+    public $canAdd = 'ceo,cat,sales';
     
     
     /**
@@ -113,6 +107,12 @@ class cat_BomDetails extends doc_Detail
      * @see planning_plg_ReplaceEquivalentProducts
      */
     public $replaceProductFieldName = 'resourceId';
+    
+    
+    /**
+     * Поле за артикула
+     */
+    public $productFld = 'resourceId';
     
     
     /**
@@ -145,7 +145,7 @@ class cat_BomDetails extends doc_Detail
     	
     	$this->FLD("position", 'int(Min=0)', 'caption=Позиция,smartCenter,tdClass=leftCol');
     	$this->FLD("propQuantity", 'text(rows=2)', 'caption=Формула,tdClass=accCell,mandatory');
-    	$this->FLD("description", 'richtext(rows=3)', 'caption=Допълнително->Описание');
+    	$this->FLD("description", 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Описание');
     	$this->FLD('type', 'enum(input=Влагане,pop=Отпадък,stage=Етап)', 'caption=Действие,silent,input=hidden');
     	$this->FLD("primeCost", 'double', 'caption=Себестойност,input=none,tdClass=accCell');
     	$this->FLD('params', 'blob(serialize, compress)', 'input=none');
@@ -180,7 +180,7 @@ class cat_BomDetails extends doc_Detail
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
@@ -365,7 +365,7 @@ class cat_BomDetails extends doc_Detail
      * @param cat_BomDetails $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
     	$rec = &$form->rec;
     	$masterProductId = cat_Boms::fetchField($rec->bomId, 'productId');
@@ -540,7 +540,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * След преобразуване на записа в четим за хора вид
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	// Показваме подробната информация за опаковката при нужда
     	deals_Helper::getPackInfo($row->packagingId, $rec->resourceId, $rec->packagingId, $rec->quantityInPack);
@@ -601,7 +601,7 @@ class cat_BomDetails extends doc_Detail
     	if($rec->rowQuantity == static::CALC_ERROR){
     		$row->rowQuantity = "<span class='red'>???</span>";
     		$row->primeCost = "<span class='red'>???</span>";
-    		$row->primeCost = ht::createHint($row->primeCost, 'Не може да бъде изчислена себестойноста', 'warning', FALSE);
+    		$row->primeCost = ht::createHint($row->primeCost, 'Не може да бъде изчислена себестойността', 'warning', FALSE);
     	} else {
     		$row->rowQuantity = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($rec->rowQuantity);
     	}
@@ -695,14 +695,6 @@ class cat_BomDetails extends doc_Detail
     		$masterRec = cat_Boms::fetch($rec->bomId, 'state,originId');
     		if($masterRec->state != 'draft'){
     			$requiredRoles = 'no_one';
-    		} else {
-    			// Само ceo и techno могат да редактират ред от работна рецепта
-    			$firstDocument = doc_Containers::getDocument($masterRec->originId);
-    			if($firstDocument->isInstanceOf('planning_Jobs')){
-    				if(!haveRole('techno,ceo', $userId)){
-    					$requiredRoles = 'no_one';
-    				}
-    			}
     		}
     	}
     	
@@ -845,7 +837,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * След извличане на записите от базата данни
      */
-    public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
+    protected static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
     {
     	if(!count($data->recs)) return;
     	
@@ -867,7 +859,7 @@ class cat_BomDetails extends doc_Detail
 				if($rec->parentId){
 					if($data->recs[$rec->parentId]->rowQuantity != cat_BomDetails::CALC_ERROR){
 						$rec->rowQuantity *= $data->recs[$rec->parentId]->rowQuantity;
-						$data->recs[$id]->rowQuantity = $mvc->getFieldType('rowQuantity')->toVerbal($rec->rowQuantity);
+						$data->rows[$id]->rowQuantity = $mvc->getFieldType('rowQuantity')->toVerbal($rec->rowQuantity);
 					}
 				}
 				
@@ -892,7 +884,7 @@ class cat_BomDetails extends doc_Detail
      * @param core_Manager $mvc
      * @param stdClass $rec
      */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
     	// Ако сме добавили нов етап
     	if(empty($rec->id) && $rec->type == 'stage'){
@@ -925,7 +917,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Извиква се след успешен запис в модела
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
     	// Ако има позиция, шифтваме всички с по-голяма или равна позиция напред
     	if(isset($rec->position)){

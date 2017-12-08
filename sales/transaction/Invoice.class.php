@@ -44,6 +44,36 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
     			'entries' => array(),
     	);
     	
+    	if(Mode::get('saveTransaction')){
+    		$restore = ($rec->state == 'draft') ? FALSE : TRUE;
+    		if(!$this->class->isAllowedToBePosted($rec, $error, TRUE)){
+    			acc_journal_RejectRedirect::expect(FALSE, $error);
+    		}
+    		
+    		// Ако има задължителен параметър за експорт
+    		if($exportParamId = acc_Setup::get('INVOICE_MANDATORY_EXPORT_PARAM')){
+    			$productsWithoutExportParam = array();
+    			$dQuery = sales_InvoiceDetails::getQuery();
+    			$dQuery->where("#invoiceId = {$rec->id}");
+    			$dQuery->show('productId');
+    			
+    			// Проверяват се всички артитули имат ли го зададен
+    			while($dRec = $dQuery->fetch()){
+    				if(!cat_Products::getParams($dRec->productId, $exportParamId)){
+    					$productsWithoutExportParam[$dRec->productId] = cat_Products::getTitleById($dRec->productId);
+    				}
+    			}
+    			
+    			// Ако има такива контирането се спира
+    			if(count($productsWithoutExportParam)){
+    				$param = cat_Params::getTitleById($exportParamId);
+    				$productsWithoutExportParam = implode(',', $productsWithoutExportParam);
+    				$error = "Следните артикули нямат задължителен параметър|* <b>{$param}</b>: {$productsWithoutExportParam}";
+    				acc_journal_RejectRedirect::expect(FALSE, $error);
+    			}
+    		}
+    	}
+    	
     	$origin = $this->class->getOrigin($rec);
     	
     	// Ако е ДИ или КИ се посочва към коя фактура е то

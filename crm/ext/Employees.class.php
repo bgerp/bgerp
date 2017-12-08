@@ -76,7 +76,7 @@ class crm_ext_Employees extends core_Manager
     {
         $this->FLD('personId', 'key(mvc=crm_Persons)', 'input=hidden,silent,mandatory');
         $this->FLD('code', 'varchar', 'caption=Код');
-        $this->FLD('departments', 'keylist(mvc=hr_Departments,select=name,makeLinks)', 'caption=Структура');
+        $this->FLD('departments', 'keylist(mvc=hr_Departments,select=name,makeLinks)', 'caption=Отдел');
         
         $this->setDbUnique('personId');
     }
@@ -169,7 +169,7 @@ class crm_ext_Employees extends core_Manager
      */
     public function renderData($data)
     {
-    	 $tpl = new core_ET(tr("|*[#resTitle#]<!--ET_BEGIN code--> <b>[#code#]</b><!--ET_END code--><!--ET_BEGIN departments--><br>|Департаменти|*: [#departments#]<!--ET_END departments-->"));
+    	 $tpl = getTplFromFile('crm/tpl/HrDetail.shtml');
     	 $tpl->append(tr('Служебен код') . ":", 'resTitle');
     	 
     	 if(isset($data->row)){
@@ -179,13 +179,18 @@ class crm_ext_Employees extends core_Manager
     	 	$tpl->append($code, 'code');
     	 }
     	 
+    	 if($eRec = hr_EmployeeContracts::fetch("#personId = {$data->masterId} AND #state = 'active'")){
+    	 	$tpl->append(hr_EmployeeContracts::getHyperlink($eRec->id, TRUE), 'contract');
+    	 	$tpl->append(hr_Positions::getHyperlink($eRec->positionId), 'positionId');
+    	 }
+    	 
     	 if(isset($data->addExtUrl)){
-    	 	$link = ht::createLink('', $data->addExtUrl, FALSE, "title=Добавяне на служебни данни,ef_icon=img/16/add.png");
+    	 	$link = ht::createLink('', $data->addExtUrl, FALSE, "title=Добавяне на служебни данни,ef_icon=img/16/add.png,style=float:right; height: 16px;");
     	 	$tpl->append($link, 'emBtn');
     	 }
     	 
     	 if(isset($data->editResourceUrl)){
-    	 	$link = ht::createLink('', $data->editResourceUrl, FALSE, "title=Редактиране на служебни данни,ef_icon=img/16/edit.png");
+    	 	$link = ht::createLink('', $data->editResourceUrl, FALSE, "title=Редактиране на служебни данни,ef_icon=img/16/edit.png,style=float:right; height: 16px;");
     	 	$tpl->append($link, 'emBtn');
     	 }
     	 
@@ -198,7 +203,7 @@ class crm_ext_Employees extends core_Manager
     /**
      * Изпълнява се след подготовката на ролите
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
     	if(($action == 'add' || $action == 'delete' || $action == 'edit') && isset($rec->personId)){
     		if(!crm_Persons::haveRightFor('edit', $rec->personId)){

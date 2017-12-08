@@ -33,7 +33,7 @@ class price_ListToCustomers extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, price_Wrapper, plg_RowTools';
+    public $loadList = 'plg_Created, price_Wrapper, plg_RowTools2';
                     
     
     /**
@@ -51,7 +51,7 @@ class price_ListToCustomers extends core_Manager
     /**
      * Кой може да го промени?
      */
-    public $canEdit = 'no_one';
+    public $canEdit = 'ceo';
     
     
     /**
@@ -82,6 +82,12 @@ class price_ListToCustomers extends core_Manager
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     public $rowToolsField = 'tools';
+    
+    
+    /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
     
     
     /**
@@ -156,15 +162,6 @@ class price_ListToCustomers extends core_Manager
     	if(isset($rec->cClass) && isset($rec->cId)){
     		$data->form->title = core_Detail::getEditTitle($rec->cClass, $rec->cId, $mvc->singleTitle, $rec->id, $mvc->formTitlePreposition);
     	}
-    }
-    
-    
-    /**
-     * След подготовка на лентата с инструменти за табличния изглед
-     */
-    protected static function on_AfterPrepareListToolbar($mvc, $data)
-    {
-       $data->toolbar->removeBtn('btnAdd');
     }
 
 
@@ -331,21 +328,32 @@ class price_ListToCustomers extends core_Manager
         	if($isProductPublic == 'no'){
         		 
         		$rec = (object)array('price' => NULL);
-        		 
+        		
+        		$defPriceListId = (isset($listId)) ? $listId : self::getListForCustomer($customerClass, $customerId, $datetime);
+        		$deltas = price_ListToCustomers::getMinAndMaxDelta($customerClass, $customerId, $defPriceListId);
+        		
         		// Ако драйвера може да върне цена, връщаме нея
         		if($Driver = cat_Products::getDriver($productId)){
-        			$price = $Driver->getPrice($customerClass, $customerId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
-        			if(isset($price)){
-        				$rec->price = $price;
-        				return $rec;
-        			}
-        		}
+        			$price = $Driver->getPrice($productId, $quantity, $deltas->minDelta, $deltas->maxDelta, $datetime, $rate, $chargeVat);
+        			if(isset($price) && $rate > 0){
+        				$newPrice = $price / $rate;
+						if($chargeVat == 'yes'){
+							$vat = cat_Products::getVat($productId, $datetime);
+							$newPrice = $newPrice * (1 + $vat);
+						}
+		
+					    $newPrice = round($newPrice, 4);
+
+						if($chargeVat == 'yes'){
+							$newPrice = $newPrice / (1 + $vat);
+						}
+		
+					    $newPrice *= $rate;
+
+        				$rec->price = $newPrice;
+        				$rec->price = deals_Helper::getDisplayPrice($rec->price, $vat, $rate, $chargeVat);
         		 
-        		// Ако не е зададено количество, взимаме това от последното активно задание, ако има такова
-        		if(!isset($quantity)){
-        			$quantityJob = cat_Products::getLastJob($productId)->quantity;
-        			if(isset($quantityJob)){
-        				$quantity = $quantityJob;
+        				return $rec;
         			}
         		}
         		 
@@ -357,9 +365,6 @@ class price_ListToCustomers extends core_Manager
         		 
         		// Ако има рецепта връщаме по нея
         		if($bomRec){
-        			$defPriceListId = (isset($listId)) ? $listId : self::getListForCustomer($customerClass, $customerId, $datetime);
-        			$deltas = price_ListToCustomers::getMinAndMaxDelta($customerClass, $customerId, $defPriceListId);
-        			
         			$defPriceListId = price_ListToCustomers::getListForCustomer($customerClass, $customerId);
         			if($defPriceListId == price_ListRules::PRICE_LIST_CATALOG){
         				$defPriceListId = price_ListRules::PRICE_LIST_COST;
@@ -391,12 +396,12 @@ class price_ListToCustomers extends core_Manager
      * 
      * @param mixed $customerClass - ид на клас на контрагента
      * @param int $customerId      - ид на контрагента
-     * @param iny $defPriceListId  - ценоразпис
+     * @param int $defPriceListId  - ценоразпис
      * @return object $res		   - масив с надценката и отстъпката
      * 				 o minDelta  - минималната отстъпка
      * 				 o maxDelta  - максималната надценка
      */
-    private static function getMinAndMaxDelta($customerClass, $customerId, $defPriceListId)
+    public static function getMinAndMaxDelta($customerClass, $customerId, $defPriceListId)
     {
     	$res = (object)array('minDelta' => 0, 'maxDelta' => 0);
     
@@ -607,7 +612,7 @@ class price_ListToCustomers extends core_Manager
 	/**
 	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
 	 */
-	protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
 		if($action == 'delete' && isset($rec)){
 			if($rec->validFrom <= dt::now()){

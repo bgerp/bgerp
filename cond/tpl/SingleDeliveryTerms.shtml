@@ -1,6 +1,6 @@
 <div class="singleView" >
     [#SingleToolbar#]
-    <h2 style="padding:5px 2px;" class=" [#STATE_CLASS#]"> |Условие на доставка|* <span style="color:green;">[#codeName#]</span></h2>
+    <h2 style="line-height:30px" class=" [#STATE_CLASS#]"> |Условие на доставка|* <span style="color:green;">[#codeName#]</span></h2>
     <p>[#term#]</p>
     <!--ET_BEGIN costCalc-->
     <p><b>|Калкулатор|*:</b> [#costCalc#]</p>

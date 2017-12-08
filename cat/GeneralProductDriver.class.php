@@ -78,7 +78,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 				}
 				
 				$form->FLD("paramcat{$id}", 'double', "caption={$caption},categoryParams,before=meta");
-				$form->setFieldType("paramcat{$id}", cat_Params::getTypeInstance($id));
+				$form->setFieldType("paramcat{$id}", cat_Params::getTypeInstance($id, $Embedder, $rec->id));
 				
 				// Ако параметъра има суфикс, добавяме го след полето
 				if(!empty($paramRec->suffix)){
@@ -235,7 +235,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		
 		while($pRec = $pQuery->fetch()){
 			if($verbal === TRUE){
-				$pRec->paramValue = cat_Params::toVerbal($pRec->paramId, $pRec->paramValue);
+				$pRec->paramValue = cat_Params::toVerbal($pRec->paramId, $classId, $id, $pRec->paramValue);
 			}
 			$params[$pRec->paramId] = $pRec->paramValue;
 		}
@@ -250,9 +250,10 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 * @param int $rec - запис на артикул
 	 * @param array $size - размер на картинката
 	 * @param array $maxSize - макс размер на картинката
+	 * 
 	 * @return string|NULL $preview - хтмл представянето
 	 */
-	public function getPreview($rec, $size = array('280', '150'), $maxSize = array('550', '550'))
+	public function getPreview($rec, embed_Manager $Embedder, $size = array('280', '150'), $maxSize = array('550', '550'))
 	{
 		$preview = NULL;
 		$previewHandler = cat_Products::getParams($rec->id, 'preview');
@@ -278,12 +279,6 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	{
 		parent::prepareProductDescription($data);
 		
-		if($data->rec->photo){
-			$size = array(280, 150);
-			$Fancybox = cls::get('fancybox_Fancybox');
-			$data->row->image = $Fancybox->getImage($data->rec->photo, $size, array(550, 550));
-		}
-		
 		$data->masterId = $data->rec->id;
 		$data->masterClassId = $data->Embedder->getClassId();
 		cat_products_Params::prepareParams($data);
@@ -298,6 +293,13 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 */
 	public function renderProductDescription($data)
 	{
+		// Вербализиране на снимката, да е готова за показване
+		if($data->rec->photo){
+			$size = array(280, 150);
+			$Fancybox = cls::get('fancybox_Fancybox');
+			$data->row->image = $Fancybox->getImage($data->rec->photo, $size, array(550, 550));
+		}
+		
 		// Ако не е зададен шаблон, взимаме дефолтния
 		$layout = ($data->isSingle !== TRUE) ? 'cat/tpl/SingleLayoutBaseDriverShort.shtml' : 'cat/tpl/SingleLayoutBaseDriver.shtml';
 		$tpl = getTplFromFile($layout);
@@ -324,5 +326,31 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		}
 		
 		return $tpl;
+	}
+	
+	
+	/**
+	 * Колко е толеранса
+	 *
+	 * @param int $id          - ид на артикул
+	 * @param double $quantity - к-во
+	 * @return double|NULL     - толеранс или NULL, ако няма
+	 */
+	public function getTolerance($id, $quantity)
+	{
+		return $this->getParams(cat_Products::getClassId(), $id, 'tolerance');
+	}
+	
+	
+	/**
+	 * Колко е срока на доставка
+	 *
+	 * @param int $id          - ид на артикул
+	 * @param double $quantity - к-во
+	 * @return double|NULL     - срока на доставка в секунди или NULL, ако няма
+	 */
+	public function getDeliveryTime($id, $quantity)
+	{
+		return $this->getParams(cat_Products::getClassId(), $id, 'term');
 	}
 }

@@ -22,6 +22,9 @@
                           <!--ET_BEGIN storeLocation-->
                           <br>[#storeLocation#]
                           <!--ET_END storeLocation-->
+                          <!--ET_BEGIN departmentId-->
+                          <br>|Департамент|*:[#departmentId#]
+                          <!--ET_END departmentId-->
                     </td>
                 </tr>
             </tbody>
@@ -56,8 +59,6 @@
                                             </table>
                                             <hr>
                                             [#note#]
-                                            
-                                             
 							                <!--ET_BEGIN responsible-->
 							                <hr>
 							                <div>|Получил|*:  [#responsible#]</div>

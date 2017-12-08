@@ -27,7 +27,8 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 	{
 		// Извличане на мастър-записа
 		expect($rec = $this->class->fetchRec($id));
-	
+		$rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
+		
 		$result = (object)array(
 				'reason'      => "Протокол за производство №{$rec->id}",
 				'valior'      => $rec->valior,
@@ -95,7 +96,13 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
      * Dt: 321   - Суровини, материали, продукция, стоки   (Складове, Артикули)
      * или ако артикула е услуга Dt: 703 - Приходи от продажби на услуги  (Контрагенти, Сделки, Артикули)
      * 
-     * Ct: 61102 - Други разходи (общо)                
+     * Ct: 61102 - Други разходи (общо) 
+     * 
+     * 4. Етап: Ако разходния обект е продажба
+     * 
+     * Dt: 703 - Приходи от продажби на услуги  (Контрагенти, Сделки, Артикули)
+     * 
+     * Ct: 60201 - Разходи за (нескладируеми) услуги и консумативи  по избраното перо за разпределяне
 	 */
 	private function getEntries($rec, &$total)
 	{
@@ -107,11 +114,14 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 			$array = array('321', array('store_Stores', $rec->storeId),
 								  array('cat_Products', $rec->productId));
 		} else {
-			$expenseItem = $rec->expenseItemId;
-			if(!isset($expenseItem)){
-				if(isset($pInfo->meta['fixedAsset'])){
-					$expenseItem = array('cat_Products', $rec->productId);
-				} else{
+			if(isset($pInfo->meta['fixedAsset'])){
+				$expenseItem = array('cat_Products', $rec->productId);
+			} elseif(isset($rec->expenseItemId)){
+				$expenseItem = $rec->expenseItemId;
+			} else {
+				if(acc_Items::isItemInList($this->class, $rec->id, 'costObjects')){
+					$expenseItem = array('planning_DirectProductionNote', $rec->id);
+				} else {
 					$expenseItem = acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
 				}
 			}
@@ -240,6 +250,8 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 				}
 			}
 			
+			$selfAmount = $costAmount;
+			
 			// Ако има режийни разходи, разпределяме ги
 			if(isset($rec->expenses)){
 				$costAmount = $costAmount * $rec->expenses;
@@ -259,6 +271,51 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 						'reason' => 'Разпределени режийни разходи');
 					
 				$entries[] = $costArray;
+			}
+			
+			if($Driver = cat_Products::getDriver($rec->productId)){
+				$driverCost = $Driver->getPrice($rec->productId, $rec->quantity, 0, 0, $rec->valior);
+				
+				if(isset($driverCost)){
+					$driverAmount = $driverCost * $rec->quantity;
+					$diff = round($driverAmount - $selfAmount, 2);
+					
+					if($diff > 0){
+						
+						$array['quantity'] = 0;
+						$array1 = array(
+								'amount' => $diff,
+								'debit'  => $array,
+								'credit' => array('61102'),
+						);
+							
+						$entries[] = $array1;
+					}
+				}
+			}
+			
+			
+			
+			// Разпределяне към продажба ако разходния обект е продажба
+			if(isset($expenseItem)){
+				if(is_array($expenseItem)){
+					$eItem = acc_Items::fetchItem($expenseItem[0], $expenseItem[1]);
+				} else {
+					$eItem = acc_Items::fetch($expenseItem);
+				}
+				
+				if($eItem->classId == sales_Sales::getClassId()){
+					$saleRec = sales_Sales::fetch($eItem->objectId, 'contragentClassId, contragentId');
+					$entry4 = array('debit' => array('703', 
+													array($saleRec->contragentClassId, $saleRec->contragentId),
+							                        array($eItem->classId, $eItem->objectId),
+												    array('cat_Products', $rec->productId), 
+												    'quantity' => 0), 
+									'credit' => $array, 
+							        'reason' => 'Себестойност на услугата');
+					
+					$entries[] = $entry4;
+				}
 			}
 		}
 		

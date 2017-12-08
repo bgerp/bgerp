@@ -113,7 +113,7 @@ class frame_Reports extends core_Embedder
     /**
      * Групиране на документите
      */
-    public $newBtnGroup = "18.9|Други";
+    public $newBtnGroup = FALSE;
 
 
     /**
@@ -292,20 +292,6 @@ class frame_Reports extends core_Embedder
     }
     
     
-    /**
-     * Проверка дали нов документ може да бъде добавен в
-     * посочената папка като начало на нишка
-     *
-     * @param $folderId int ид на папката
-     */
-    public static function canAddToFolder($folderId)
-    {
-    	$folderCover = doc_Folders::getCover($folderId);
-       
-       return ($folderCover->haveInterface('frame_FolderCoverIntf')) ? TRUE : FALSE;
-    }
-    
-    
 	/**
      * Проверка дали нов документ може да бъде добавен в
      * посочената нишка
@@ -316,9 +302,8 @@ class frame_Reports extends core_Embedder
 	public static function canAddToThread($threadId)
     {
         $threadRec = doc_Threads::fetch($threadId);
-        $folderCover = doc_Folders::getCover($threadRec->folderId);
         
-    	return ($folderCover->haveInterface('frame_FolderCoverIntf')) ? TRUE : FALSE;
+    	return self::canAddToFolder($threadRec->folderId);
     }
     
     

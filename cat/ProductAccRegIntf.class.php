@@ -153,19 +153,7 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     
     /**
-     * Връща последното не оттеглено или чернова задание за спецификацията
-     * 
-     * @param mixed $id - ид или запис
-     * @return mixed $res - записа на заданието или FALSE ако няма
-     */
-    public function getLastJob($id)
-    {
-    	return $this->class->getLastJob($id);
-    }
-    
-    
-    /**
-     * Връща последната активна рецепта на спецификацията
+     * Връща последната активна рецепта на артикула
      *
      * @param mixed $id - ид или запис
      * @param sales|production $type - вид работна или търговска
@@ -184,12 +172,27 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      * @param double $quantity - к-во за произвеждане
      *
      * @return array $drivers - масив с информация за драйверите, с ключ името на масива
-     * 				    -> title        - дефолт име на задачата
-     * 					-> driverClass  - драйвър на задача
-     * 					-> products     - масив от масиви с продуктите за влагане/произвеждане/отпадане
-     * 						 - array input      - материали за влагане
-     * 						 - array production - артикули за произвеждане
-     * 						 - array waste      - отпадъци
+     * 				    o title           - дефолт име на задачата, най добре да е името на крайния артикул / името заготовката
+     * 					o plannedQuantity - планирано к-во в основна опаковка
+     * 					o productId       - ид на артикул
+     *  				o packagingId     - ид на опаковка
+     *   				o quantityInPack  - к-во в 1 опаковка
+     * 					o products        - масив от масиви с продуктите за влагане/произвеждане/отпадане
+     * 						 - array input           - материали за влагане
+     * 								o productId      - ид на материал
+     *  							o packagingId    - ид на опаковка
+     *   							o quantityInPack - к-во в 1 опаковка
+     *    							o packQuantity   - общо количество от опаковката
+     * 						 - array production      - артикули за произвеждане
+     *  							o productId      - ид на заготовка
+     *  							o packagingId    - ид на опаковка
+     *   							o quantityInPack - к-во в 1 опаковка
+     *    							o packQuantity   - общо количество от опаковката
+     * 						 - array waste           - отпадъци
+     *  							o productId      - ид на отпадък
+     *  							o packagingId    - ид на опаковка
+     *   							o quantityInPack - к-во в 1 опаковка
+     *    							o packQuantity   - общо количество от опаковката
      */
     public function getDefaultProductionTasks($id, $quantity = 1)
     {
@@ -202,12 +205,76 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      *
      * @param int $id - ид на артикул
      * @param core_RowToolbar $toolbar - тулбара
-     * @param mixed $docClass - класа документа
-     * @param int $docId - ид на документа
+     * @param mixed $detailClass - класа на детайла на документа
+     * @param int $detailId - ид на реда от детайла на документа
      * @return void
      */
-    public function addButtonsToDocToolbar($id, core_RowToolbar &$toolbar, $docClass, $docId)
+    public function addButtonsToDocToolbar($id, core_RowToolbar &$toolbar, $detailClass, $detailId)
     {
-    	return $this->class->addButtonsToDocToolbar($id, $toolbar, $docClass, $docId);
+    	return $this->class->addButtonsToDocToolbar($id, $toolbar, $detailClass, $detailId);
+    }
+    
+    
+    /**
+     * Колко е толеранса
+     *
+     * @param int $id          - ид на артикул
+     * @param double $quantity - к-во
+     * @return double|NULL     - толеранс или NULL, ако няма
+     */
+    public function getTolerance($id, $quantity)
+    {
+    	return $this->class->getTolerance($id, $quantity);
+    }
+    
+    
+    /**
+     * Колко е срока на доставка
+     *
+     * @param int $id          - ид на артикул
+     * @param double $quantity - к-во
+     * @return double|NULL     - срока на доставка в секунди или NULL, ако няма
+     */
+    public function getDeliveryTime($id, $quantity)
+    {
+    	return $this->class->getDeliveryTime($id, $quantity);
+    }
+    
+    
+    /**
+     * Връща минималното количество за поръчка
+     *
+     * @param int|NULL $id - ид на артикул
+     * @return double|NULL - минималното количество в основна мярка, или NULL ако няма
+     */
+    public function getMoq($id)
+    {
+    	return $this->class->getMoq($id);
+    }
+    
+    
+    /**
+     * Допълнителните условия за дадения продукт,
+     * които автоматично се добавят към условията на договора
+     * 
+     * @param stdClass $rec   - ид/запис на артикул
+     * @param string $docType - тип на документа sale/purchase
+     * @param string|NULL $lg - език
+     */
+    public function getConditions($rec, $docType, $lg = NULL)
+    {
+    	return $this->class->getConditions($rec, $docType, $lg);
+    }
+    
+    
+    /**
+     * Връща хеша на артикула (стойност която показва дали е уникален)
+     *
+     * @param mixed $rec     - ид или запис на артикул
+     * @return NULL|varchar  - Допълнителните условия за дадения продукт
+     */
+    public static function getHash($rec)
+    {
+    	return $this->class->getHash($rec);
     }
 }

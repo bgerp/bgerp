@@ -128,7 +128,9 @@ class core_Detail extends core_Manager
                 [#ListPagerTop#]
                 [#ListTable#]
                 [#ListSummary#]
+                [#ListPagerBottom#]
                 [#ListToolbar#]
+                
             </div>
         ");
         
@@ -163,7 +165,9 @@ class core_Detail extends core_Manager
         $tpl->append($this->renderListTable($data), 'ListTable');
         
         // Попълваме таблицата с редовете
-        $tpl->append($this->renderListPager($data), 'ListPagerTop');
+        $pagerHtml = $this->renderListPager($data);
+        $tpl->append($pagerHtml, 'ListPagerTop');
+        $tpl->append($pagerHtml, 'ListPagerBottom');
         
         // Попълваме долния тулбар
         $tpl->append($this->renderListToolbar($data), 'ListToolbar');
@@ -371,11 +375,15 @@ class core_Detail extends core_Manager
      * Логва действието
      * 
      * @param string $msg
-     * @param NULL|stdClass $rec
+     * @param NULL|stdClass|integer $rec
      * @param string $type
      */
     function logInAct($msg, $rec = NULL, $type = 'write')
     {
+        if (is_numeric($rec)) {
+            $rec = $this->fetch($rec);
+        }
+        
         $masterKey = $this->masterKey;
         $masters = $this->getMasters($rec);
         
@@ -395,7 +403,7 @@ class core_Detail extends core_Manager
             }
         }
         
-        parent::logInAct($msg, $rec, $type);
+        parent::logInAct($newMsg, $rec, $type);
     }
     
     

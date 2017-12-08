@@ -1,0 +1,51 @@
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+<!--ET_BEGIN activatedBy-->
+<div style="position: relative">
+    <div class="stamp" style="position: absolute; top:7px; left: 2px; padding: 10px 10px 5px !important">
+        <div style="font-size: 26px;font-style: italic" class="centered">ОДОБРЕНО</div>
+        <div style="margin-top: 5px;">
+            <span class="fleft">[#activatedOn#]</span>
+            <span class="fright" style="margin-left: 10px;">[#activatedBy#]</span>
+        </div>
+    </div>
+</div>
+<!--ET_END activatedBy-->
+    <h3 class="centered" style="font-size:16pt">|М О Л Б А|* </h3>
+    <p class="centered">№ [#id#] / [#createdDate#] |г|*.</p>
+
+    <table class="no-border-table" style="margin-top: 25px">
+        <tr>
+            <td class="fright">|От|*:</td>
+            <td><b>[#personId#]</b></td>
+        </tr>
+        <tr>
+            <td class="fright">|Относно|*:</td>
+            <td ><b>|ползване на|* <b>[#paid#]</b> |годишен отпуск|*</b></td>
+        </tr>
+    </table>
+    <br>
+    <p>|Уважаеми г-н / г-жо Управител|*,</p>
+    <p>|Моля, да ми бъде разрешен|* <b>[#leaveDays#]</b> |дневен|* <b>[#paid#]</b> |отпуск|*<!--ET_BEGIN useDaysFromYear--> |за|* [#useDaysFromYear#] |г|*.<!--ET_END useDaysFromYear-->, |считано от|* <b>[#leaveFrom#]</b> |г|. |до|* <b>[#leaveTo#]</b> |г. включително|*.</p>
+    <br>
+    <!--ET_BEGIN note-->
+    <div class="richtext-holder indent">|Бележки|*: [#note#] </div>
+    <!--ET_END note-->
+    <p>|По време на отсъствието|*:</p>
+    <ul class='custom-ul'>
+        <li>|ще отговарям на мобилен телефон|*: <b>[#answerGSM#]</b></li>
+        <li>|ще имам достъп до системата|*: <b>[#answerSystem#]</b></li>
+        <!--ET_BEGIN alternatePerson-->
+        <li>|ще ме замества|*: <b>[#alternatePerson#]</b></li>
+        <!--ET_END alternatePerson-->
+    </ul>
+    <br><br>
+[#approved#]
+
+    <table style='width:100%;'>
+        <tr>
+            <td>|Дата|*: [#createdDate#] |г|*.</td>
+            <td> </td>
+            <td class='aright'>|Подпис|*: ............................</td>
+        </tr>
+    </table>
+    [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

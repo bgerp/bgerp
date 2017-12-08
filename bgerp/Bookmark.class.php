@@ -84,7 +84,7 @@ class bgerp_Bookmark extends core_Manager
     {
         $this->FLD('user', 'user(roles=powerUser, rolesForTeams=admin, rolesForAll=ceo)', 'caption=Потребител, mandatory');
         $this->FLD('title', 'varchar', 'caption=Заглавие, silent, mandatory');
-        $this->FLD('url', 'varchar', 'caption=URL, silent, mandatory');
+        $this->FLD('url', 'text', 'caption=URL, silent, mandatory');
         $this->FLD('color', 'color_Type', 'caption=Цвят');
 
         $this->setDbUnique('user, title');
@@ -255,8 +255,6 @@ class bgerp_Bookmark extends core_Manager
                 $attr['class'] = 'bookmark-wrong-url';
             }
 	    } else {
-            $target = '_blank';
-
             if(core_Packs::isInstalled('remote')) {
                 
                 static $auths;

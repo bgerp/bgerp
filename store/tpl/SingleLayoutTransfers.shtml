@@ -47,7 +47,7 @@
             <table class='shipment-table' style='width:100%;'>
                <!--ET_BEGIN deliveryTime-->
                <tr>
-                  <td class='quiet nowrap aright' style='width:1%;'>|Срок до|*:</td>
+                  <td class='quiet nowrap aright' style='width:1%;'>|Натоварване|*:</td>
                   <td>[#deliveryTime#]</td>
                </tr>
                <!--ET_END deliveryTime-->
@@ -72,6 +72,11 @@
             <div>
                |Общо тегло|*:&nbsp;<b>[#weight#]</b> &nbsp;&nbsp;&nbsp;&nbsp; |Общ обем|*:&nbsp;<b>[#volume#]</b>  <!--ET_BEGIN palletCountInput--> &nbsp;&nbsp;&nbsp;&nbsp; |Брой палети|*: <b>[#palletCountInput#]</b><!--ET_END palletCountInput-->
             </div>
+         </td>
+      </tr>
+      <tr class='footerDocInfo'>
+         <td colspan="2">
+            <div class='aright'>Документът е създаден чрез системата <b><a href='http://bgerp.com'>bgERP</a></b></div>
          </td>
       </tr>
    </tbody>

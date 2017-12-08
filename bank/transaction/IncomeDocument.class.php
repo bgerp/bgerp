@@ -43,6 +43,8 @@ class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
             $entry = $this->getEntry($rec, $origin);
         }
         
+        $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
+        
         // Подготвяме информацията която ще записваме в Журнала
         $result = (object)array(
             'reason' => $rec->reason,   // основанието за ордера

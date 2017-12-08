@@ -36,6 +36,9 @@ class findeals_transaction_Deal extends acc_DocumentTransactionSource
     	expect($rec = $this->class->fetchRec($id));
     	$title = str::mbUcfirst($this->class->singleTitle);
     	
+    	setIfNot($valior, $rec->valior, dt::today());
+    	setIfNot($rec->currencyRate, $rec->currencyRate, currency_CurrencyRates::getRate($valior, $rec->currencyId, NULL));
+    	
     	$result = (object)array(
     			'reason'  => "{$title} №{$rec->id}",
     			'valior'  => $rec->valior, 
@@ -56,7 +59,7 @@ class findeals_transaction_Deal extends acc_DocumentTransactionSource
     				                            'quantity' => $rec->baseAmount,);
     		
     		$correspondingArr = array($correspondingSysId);
-    		$baseAmount = currency_CurrencyRates::convertAmount($rec->baseAmount, $rec->valior, $rec->currencyId);
+    		$baseAmount = $rec->baseAmount * $rec->currencyRate;
     		$baseAmount = currency_Currencies::round($baseAmount);
     			 
     		if($rec->baseAmountType == 'debit'){

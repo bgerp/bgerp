@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -50,9 +50,9 @@ class sales_Proformas extends deals_InvoiceMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, sales_Wrapper, cond_plg_DefaultValues, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
-					doc_EmailCreatePlg, bgerp_plg_Blank, crm_plg_UpdateContragentData, plg_Printing, Sale=sales_Sales,
-                    doc_plg_HidePrices, doc_plg_TplManager, deals_plg_DpInvoice, doc_ActivatePlg, plg_Clone';
+    public $loadList = 'plg_RowTools2, sales_Wrapper, cond_plg_DefaultValues, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary,
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing,
+                    doc_plg_HidePrices, doc_plg_TplManager, deals_plg_DpInvoice, doc_ActivatePlg, plg_Clone,cat_plg_AddSearchKeywords, plg_Search';
     
     
     /**
@@ -66,7 +66,7 @@ class sales_Proformas extends deals_InvoiceMaster
      * 
      * @see plg_Clone
      */
-    public $cloneDetails = 'sales_ProformaDetails' ;
+    public $cloneDetails = 'sales_ProformaDetails';
     
     
     /**
@@ -82,12 +82,6 @@ class sales_Proformas extends deals_InvoiceMaster
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,sales';
-    
-    
-    /**
      * Кой има право да променя?
      */
     public $canEdit = 'ceo,sales';
@@ -96,7 +90,7 @@ class sales_Proformas extends deals_InvoiceMaster
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,sales';
+	public $canList = 'ceo,sales,acc';
 
 
 	/**
@@ -130,12 +124,6 @@ class sales_Proformas extends deals_InvoiceMaster
     
     
     /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    public $oldClassName = 'sales_Proforma';
-    
-    
-    /**
      * Икона за фактура
      */
     public $singleIcon = 'img/16/proforma.png';
@@ -157,27 +145,32 @@ class sales_Proformas extends deals_InvoiceMaster
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-    	'place'               => 'lastDocUser|lastDoc',
-    	'responsible'         => 'lastDocUser|lastDoc',
-    	'contragentCountryId' => 'lastDocUser|lastDoc|clientData',
-    	'contragentVatNo'     => 'lastDocUser|lastDoc|clientData',
-    	'uicNo' 			  => 'lastDocUser|lastDoc|clientData',
-    	'contragentPCode'     => 'lastDocUser|lastDoc|clientData',
-    	'contragentPlace'     => 'lastDocUser|lastDoc|clientData',
-    	'contragentAddress'   => 'lastDocUser|lastDoc|clientData',
-    	'accountId' 		  => 'lastDocUser|lastDoc',
-    	'template' 		      => 'lastDocUser|lastDoc|defMethod',
+    		'place'               => 'lastDocUser|lastDoc',
+    		'responsible'         => 'lastDocUser|lastDoc',
+    		'contragentCountryId' => 'clientData|lastDocUser|lastDoc',
+    		'contragentVatNo'     => 'clientData|lastDocUser|lastDoc',
+    		'uicNo'     		  => 'clientData|lastDocUser|lastDoc',
+    		'contragentPCode'     => 'clientData|lastDocUser|lastDoc',
+    		'contragentPlace'     => 'clientData|lastDocUser|lastDoc',
+    		'contragentAddress'   => 'clientData|lastDocUser|lastDoc',
+    		'accountId'           => 'lastDocUser|lastDoc',
+    		'template' 		      => 'lastDocUser|lastDoc|defMethod',
     );
     
     
     /**
      * Кои полета ако не са попълнени във визитката на контрагента да се попълнят след запис
      */
-    public static $updateContragentdataField = array(
-    		'vatId'   => 'contragentVatNo',
-    		'uicId'   => 'uicNo',
-    		'egn'     => 'uicNo',
+    public static $updateContragentdataField = array('vatId'   => 'contragentVatNo',
+    												 'uicId'   => 'uicNo',
+    												 'egn'     => 'uicNo',
     );
+    
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, date,dueDate,vatDate,modifiedOn';
     
     
     /**
@@ -188,7 +181,7 @@ class sales_Proformas extends deals_InvoiceMaster
     	parent::setInvoiceFields($this);
     	 
     	$this->FLD('saleId', 'key(mvc=sales_Sales)', 'caption=Продажба,input=none');
-    	$this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка');
+    	$this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=title, allowEmpty)', 'caption=Плащане->Банкова с-ка');
     	$this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 'caption=Статус, input=none');
     	$this->FLD('number', 'int', 'caption=Номер, export=Csv, after=place');
     
@@ -220,7 +213,8 @@ class sales_Proformas extends deals_InvoiceMaster
     	$form = &$data->form;
     	parent::prepareInvoiceForm($mvc, $data);
     	
-    	foreach (array('responsible', 'deliveryPlaceId', 'vatDate', 'contragentCountryId', 'contragentName') as $fld){
+    	$form->setField('paymentType', 'input=none');
+    	foreach (array('deliveryPlaceId', 'vatDate') as $fld){
     		$form->setField($fld, 'input=hidden');
     	}
     	
@@ -230,7 +224,7 @@ class sales_Proformas extends deals_InvoiceMaster
     	 
     	if($data->aggregateInfo){
     		if($accId = $data->aggregateInfo->get('bankAccountId')){
-    			$form->rec->accountId = bank_OwnAccounts::fetchField("#bankAccountId = {$accId}", 'id');
+    			$form->setDefault('accountId', bank_OwnAccounts::fetchField("#bankAccountId = {$accId}", 'id'));
     		}
     	}
     	
@@ -262,8 +256,14 @@ class sales_Proformas extends deals_InvoiceMaster
      */
     public static function on_BeforeSave($mvc, $id, $rec)
     {
-    	if(isset($rec->id) && empty($rec->folderId)){
-    		$rec->folderId = $mvc->fetchField($rec->id, 'folderId');
+    	if(isset($rec->id)){
+    		if(empty($rec->folderId)){
+    			$rec->folderId = $mvc->fetchField($rec->id, 'folderId');
+    		}
+    		
+    		if(empty($rec->dueDate) && $rec->state == 'active'){
+    			$rec->dueDate = $mvc->fetchField($rec->id, 'dueDate');
+    		}
     	}
     	
     	parent::beforeInvoiceSave($rec);
@@ -315,11 +315,11 @@ class sales_Proformas extends deals_InvoiceMaster
     		if(isset($rec->accountId)){
     			$Varchar = cls::get('type_Varchar');
     			$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
+    			$row->accountId = cls::get('iban_Type')->toVerbal($ownAcc->iban);
     			
     			core_Lg::push($rec->tplLang);
     			$row->bank = transliterate(tr($Varchar->toVerbal($ownAcc->bank)));
     			core_Lg::pop();
-    			
     			$row->bic = $Varchar->toVerbal($ownAcc->bic);
     		}
     	}
@@ -344,14 +344,10 @@ class sales_Proformas extends deals_InvoiceMaster
     public static function canAddToThread($threadId)
     {
     	$firstDocument = doc_Threads::getFirstDocument($threadId);
-    	
     	if(!$firstDocument) return FALSE;
     	
     	// Може да се добавя само към активна продажба
-    	if($firstDocument->isInstanceOf('sales_Sales') && $firstDocument->fetchField('state') == 'active'){
-    		
-    		return TRUE;
-    	}
+    	if($firstDocument->isInstanceOf('sales_Sales') && $firstDocument->fetchField('state') == 'active') return TRUE;
     	
     	return FALSE;
     }
@@ -371,15 +367,6 @@ class sales_Proformas extends deals_InvoiceMaster
     
     
     /**
-     * Връща разбираемо за човека заглавие, отговарящо на записа
-     */
-    public static function getRecTitle($rec, $escaped = TRUE)
-    {
-    	return tr("|Проформа фактура|* №") . $rec->id;
-    }
-    
-    
-    /**
      * Подготвя данните (в обекта $data) необходими за единичния изглед
      */
     public function prepareSingle_($data)
@@ -390,15 +377,15 @@ class sales_Proformas extends deals_InvoiceMaster
     	if(empty($rec->dpAmount)) {
     		$total = $this->_total->amount- $this->_total->discount;
     		$total = $total + $this->_total->vat;
-    		$origin = $this->getOrigin($rec);
-    		$methodId = $origin->fetchField('paymentMethodId');
     		
-    		if($methodId){
+    		if($rec->paymentMethodId){
     			core_Lg::push($rec->tplLang);
-    			$data->row->paymentMethodId = cond_PaymentMethods::getVerbal($methodId, 'title');
-    			cond_PaymentMethods::preparePaymentPlan($data, $methodId, $total, $rec->date, $rec->currencyId);
+    			$data->row->paymentMethodId = tr(cond_PaymentMethods::getVerbal($rec->paymentMethodId, 'title'));
+    			cond_PaymentMethods::preparePaymentPlan($data, $rec->paymentMethodId, $total, $rec->date, $rec->currencyId);
     			core_Lg::pop();
     		}
+    	} else {
+    		unset($data->row->paymentMethodId);
     	}
     }
     

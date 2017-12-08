@@ -85,6 +85,18 @@ class core_Query extends core_FieldSet
 
 
     /**
+     * Дали SELECT заявката да е приоритетна
+     */
+    var $highPriority = FALSE;
+
+
+    /**
+     * Масив за хинтове на индекси
+     */
+    public $indexes = array();
+
+
+    /**
      * Флаг дали заявката е изпълнена
      */
     private $executed = FALSE;
@@ -94,6 +106,12 @@ class core_Query extends core_FieldSet
      * Масив за съхранение на виртуалните полета
      */
     private $virtualFields = array();
+
+
+    /**
+     * Условия към отделните завявки, които композират UNION
+     */
+    private $unions = array();
 
 
     /**
@@ -285,12 +303,8 @@ class core_Query extends core_FieldSet
         $isFirst = TRUE;
 
         if(count($keylistArr)) {
-            foreach($keylistArr as $key => $value) {
-                if($regExp) $regExp .= '|';
-                $regExp .= '\\\|' . $key . '\\\|';
-            }
-
-            $this->where("#{$field} RLIKE '({$regExp})'", $or);
+            $regExp = implode('|', $keylistArr);
+            $this->where("#{$field} REGEXP '\\\|({$regExp})\\\|'", $or);
         }
 
         return $this;
@@ -381,9 +395,12 @@ class core_Query extends core_FieldSet
     public function in($field, $values, $not = FALSE, $or = FALSE)
     {
     	$values = arr::make($values);
-    	
     	if (!$values) return ;
     	
+    	// Ескейпване на стойности
+    	array_walk($values, function (&$a) {$a = "'" . $a . "'";});
+    	
+    	// Обръщане на масива в стринг
     	$values = implode(',', $values);
     	
     	if(!$not){
@@ -469,15 +486,19 @@ class core_Query extends core_FieldSet
     
     /**
      * Връща 'ORDER BY' клаузата
+     * 
+     * @param boolean $useAlias - дали полето за подредба да е с пълното си име или с alias-а си
      */
-    function getOrderBy()
+    function getOrderBy($useAlias = FALSE)
     {
         if (count($this->orderBy) > 0) {
             foreach ($this->orderBy as $order) {
-                $orderBy .= ($orderBy ? ", " : "") . $this->expr2mysql($order->field) .
+            	$fldName = ($useAlias === FALSE) ? $this->expr2mysql($order->field) : str_replace("#", '', $order->field);
+            	
+                $orderBy .= ($orderBy ? ", " : "") . $fldName .
                 " " . strtoupper($order->direction);
             }
-            
+           
             return "\nORDER BY {$orderBy}" ;
         }
     }
@@ -559,25 +580,47 @@ class core_Query extends core_FieldSet
      */
     function buildQuery()
     {
-        $wh = $this->getWhereAndHaving();
-        
-        $query = "SELECT ";
-        
-        if (!empty($this->_selectOptions)) {
-            $query .= implode(' ', $this->_selectOptions) . ' ';
+        if(count($this->unions)) {
+        	$count = count($this->unions);
+        	
+            foreach($this->unions as $cond) {
+                $q = clone($this);
+                $q->unions = NULL;
+                $q->orderBy = NULL;
+                $q->limit = NULL;
+                $q->start = NULL;
+                $q->where($cond);
+                
+                $string = ($count > 1) ? "(" . $q->buildQuery() . ")" : $q->buildQuery();
+                $query .= ($query ? "\nUNION\n" : '') . $string;
+            }
+           
+            $query .= $this->getOrderBy(TRUE);
+            $query .= $this->getLimit();
+        } else {
+            $wh = $this->getWhereAndHaving();
+            $query = "SELECT ";
+
+            if(($this->mvc->highPriority && $this->limit == 1) || $this->highPriority) {
+                $query .= " HIGH_PRIORITY ";
+            }
+            
+            if (!empty($this->_selectOptions)) {
+                $query .= implode(' ', $this->_selectOptions) . ' ';
+            }
+            
+            $query .= $this->getShowFields();
+            $query .= "\nFROM ";
+            
+            $query .= $this->getTables();
+
+            $query .= $wh->w;
+            $query .= $this->getGroupBy();
+            $query .= $wh->h;
+            
+            $query .= $this->getOrderBy();
+            $query .= $this->getLimit();
         }
-        
-        $query .= $this->getShowFields();
-        $query .= "\nFROM ";
-        
-        $query .= $this->getTables();
-        
-        $query .= $wh->w;
-        $query .= $this->getGroupBy();
-        $query .= $wh->h;
-        
-        $query .= $this->getOrderBy();
-        $query .= $this->getLimit();
         
         return $query;
     }
@@ -603,49 +646,46 @@ class core_Query extends core_FieldSet
         
         $wh = $temp->getWhereAndHaving();
         
-        if (!$temp->useHaving && !$temp->getGroupBy()) {
-            
-            $options = '';
-            
-            if (!empty($this->_selectOptions)) {
-                $options = implode(' ', $this->_selectOptions);
-            }
-           
-            $query = "SELECT {$options}\n   count(*) AS `_count`";
-            if(count($this->selectFields("#kind == 'XPR' || #kind == 'EXT'"))) {
-                $fields = $temp->getShowFields();
-                $query .= ($fields ? ',' : '') . $fields;
-            }
-            
-            $query .= "\nFROM ";
-            $query .= $temp->getTables();
-            $query .= $wh->w;
-            $query .= $wh->h;
-            $query .= $temp->getLimit();
-
-            $db = $temp->mvc->db;
-            
-            DEBUG::startTimer(cls::getClassName($this->mvc) . ' COUNT ');
-            
-            $dbRes = $db->query($query);
-            
-            DEBUG::stopTimer(cls::getClassName($this->mvc) . ' COUNT ');
-            
-            $r = $db->fetchObject($dbRes);
-            
-            // Освобождаваме MySQL резултата
-            $db->freeResult($dbRes);
-            
-            // Връщаме брояча на редовете
-            return $r->_count;
-        } else {
-            
-            $temp->orderBy = array();
-
-            $i = $temp->select();
-            
-            return $i;
+        $options = '';
+        
+        if (!empty($this->_selectOptions)) {
+            $options = implode(' ', $this->_selectOptions);
         }
+        
+        $query = "SELECT {$options}\n   count(*) AS `_count`";
+        if(count($this->selectFields("#kind == 'XPR' || #kind == 'EXT'"))) {
+            $fields = $temp->getShowFields();
+            $query .= ($fields ? ',' : '') . $fields;
+        }
+        
+        $query .= "\nFROM ";
+        $query .= $temp->getTables();
+
+        $query .= $wh->w;
+        $query .= $wh->h;
+        $query .= $temp->getGroupBy();
+        $query .= $temp->getLimit();
+
+        if ($temp->useHaving || $temp->getGroupBy() || ($temp->limit)) {
+            $query =  str_replace("count(*) AS `_count`", "1 AS `fix_val`", $query);
+            $query = "SELECT COUNT(*) AS `_count` FROM ({$query}) as COUNT_TABLE";
+        }
+
+        $db = $temp->mvc->db;
+        
+        DEBUG::startTimer(cls::getClassName($this->mvc) . ' COUNT ');
+        
+        $dbRes = $db->query($query);
+        
+        DEBUG::stopTimer(cls::getClassName($this->mvc) . ' COUNT ');
+        
+        $r = $db->fetchObject($dbRes);
+        
+        // Освобождаваме MySQL резултата
+        $db->freeResult($dbRes);
+        
+        // Връщаме брояча на редовете
+        return $r->_count;
     }
     
     
@@ -654,11 +694,11 @@ class core_Query extends core_FieldSet
      */
     function delete($cond = NULL)
     {
+ 
         if($this->mvc->invoke('BeforeDelete', array(&$numRows, &$this, $cond)) === FALSE) {
             
             return $numRows;
         }
-        
         // Запазваме "важните" данни на записите, които ще бъдат изтрити, за да бъдат те 
         // достъпни след реалното им изтриване (напр в @see on_AfterDelete())
         if($this->mvc->fetchFieldsBeforeDelete) {
@@ -671,24 +711,19 @@ class core_Query extends core_FieldSet
         
         $this->getShowFields(TRUE);
         
+        
         $orderBy = $this->getOrderBy();
         $limit   = $this->getLimit();
         
-        $dbTableName = '';
-        
-        // Нито ORDER BY, нито LIMIT се допуска при "multiple table syntax"
-        if (empty($orderBy) && empty($limit)) {
-            $tableName = "`" . $this->mvc->dbTableName . "`.* ";
-        }
-        
-        $query = "DELETE " . $this->mvc->db->escape($dbTableName) . "FROM";
+         
+        $query = "DELETE FROM";
         $query .= $this->getTables();
-        
+
         $query .= $wh->w;
         $query .= $wh->h;
         $query .= $orderBy;
         $query .= $limit;
-        
+
         $db = $this->mvc->db;
         
         DEBUG::startTimer(cls::getClassName($this->mvc) . ' DELETE ');
@@ -871,11 +906,18 @@ class core_Query extends core_FieldSet
         // Добавка за връзване по външен ключ
         if (count($external = $this->selectFields("#kind == 'EXT'"))) {
             foreach ($external as $name => $fieldRec) {
-                //                if ((empty($this->show) || in_array($name, $this->show)) && $fieldRec->externalKey) {
+                $externalFieldName = $fieldRec->externalFieldName ? $fieldRec->externalFieldName : 'id';
+                $externalFieldName = str::phpToMysqlName($externalFieldName);
+                
                 if ($fieldRec->externalKey && !$isDelete) {
                     $mvc = cls::get($fieldRec->externalClass);
-                    $this->where("#{$fieldRec->externalKey} = `{$mvc->dbTableName}`.`id`");
+                    $this->where("#{$fieldRec->externalKey} = `{$mvc->dbTableName}`.`{$externalFieldName}`");
                     $this->tables[$mvc->dbTableName] = TRUE;
+                } elseif(isset($fieldRec->remoteKey) && !$isDelete) {
+                	$mvc = cls::get($fieldRec->externalClass);
+                	$remoteKey = str::phpToMysqlName($fieldRec->remoteKey);
+                	$this->where("`{$mvc->dbTableName}`.`{$remoteKey}` = `{$this->mvc->dbTableName}`.`{$externalFieldName}`");
+                	$this->tables[$mvc->dbTableName] = TRUE;
                 }
             }
         }
@@ -1001,6 +1043,7 @@ class core_Query extends core_FieldSet
                     $fields .= "`{$tableName}`.`{$mysqlName}`";
                     break;
                 case "XPR" :
+                    if($isDelete) break;
                     $fields .= $this->expr2mysql($f->expression);
                     break;
                 default :
@@ -1013,7 +1056,7 @@ class core_Query extends core_FieldSet
         return $fields;
     }
     
-    // 
+  
     
     
     
@@ -1025,6 +1068,8 @@ class core_Query extends core_FieldSet
     {
         $tables = "\n   `" . $this->mvc->dbTableName . "`";
         
+        $tables .= ' ' . $this->getIndexes() . ' ';
+
         foreach ($this->tables as $name => $true) {
             $tables .= ",\n   `{$name}`";
         }
@@ -1040,11 +1085,12 @@ class core_Query extends core_FieldSet
     {
         $this->useExpr = FALSE;
         $this->usedFields = array();
-
-        return str::prepareExpression($expr, array(
+        $res = str::prepareExpression($expr, array(
                 &$this,
                 'getMysqlField'
             ));
+        
+        return $res;
     }
     
     
@@ -1241,5 +1287,41 @@ class core_Query extends core_FieldSet
             $this->_selectOptions[$optionPos[$option]] = $option;
         }
     }
+
+
+    /**
+     * Задава условно обединиение на записите
+     * При изграждането на текста на заявката, ще се направи обединение на заявки, 
+     * Които са същите като оригиналната, но с добавено условието $cond 
+     */
+    public function setUnion($cond)
+    {
+        $this->unions[] = $cond;
+    }
+
+
+    /**
+     * Добавя индекс, който се форсира за използване
+     */
+    public function useIndex($index)
+    {
+        $this->indexes[$index] = TRUE;
+    }
+
+
+    /**
+     * Добавя индекс, който се форсира за използване
+     */
+    public function getIndexes()
+    {
+        $res = '';
+
+        if(count($this->indexes)) {
+            $res = "\nUSE INDEX(" . implode(',', array_keys($this->indexes)) . ")";
+        }
+
+        return  $res;
+    }
+
 
 }

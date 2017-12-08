@@ -180,7 +180,7 @@ class ModbusTcp {
 	function ModConn() {
 		if ( !$this->Simulation ) {
 			//$this->Fp =  fsockopen( "$this->AdIpPLC", $this->PortIpPLC, $errno, $errstr, 50) or die("Pas de connexion a l'Adresse $this->AdIpPLC $errstr");
-			$this->Fp =  @fsockopen($this->AdIpPLC, $this->PortIpPLC, $errno, $errstr, 30 );  
+			$this->Fp =  @fsockopen($this->AdIpPLC, $this->PortIpPLC, $errno, $errstr, 30 ) or die("Не може да се свърже с хоста: $this->AdIpPLC $errstr");  
 		}
 	}
 
@@ -401,16 +401,20 @@ class ModbusTcp {
 			}
 			return $buffer;
 		} // FIN Simulation
-
+		
+		
 		if ( !$this->MemoConn ) return array();
 
 		if ( $this->BridgeRoute ) $this->SetBridgeRoute();
 
 		if ( $this->Nbre > 125 ) $this->Nbre = 125;
-		$obuf = array ( 0=>chr(0), 1=>chr(0), 2=>chr(0), 3=>chr(0), 4=>chr(0), 5=>chr(6), 6=>chr($this->Unit), 7=>chr(3) ) ;
+		
+		$obuf = array (   0=>chr(0), 1=>chr(0), 2=>chr(0), 3=>chr(0), 4=>chr(0), 5=>chr(6),
+		                  6=>chr($this->Unit), 7=>chr(3), 8=>'', 9=>'', 10=>'', 11=>'' ) ;
+		
 		list( $obuf[9], $obuf[8] ) = $this->WordToBytes( (int)$this->DebutAdresse );
 		list( $obuf[11], $obuf[10] ) = $this->WordToBytes( (int)$this->Nbre );
-
+		
 		if ( $this->Debug ) { //Affichage des octets ?s si en mode Debug
 			Debug::log("<b>ReadHoldRegisters</b><br>"); 
 			for ($i=0;$i<count($obuf);$i++ ) {
@@ -421,11 +425,13 @@ class ModbusTcp {
 		//--------- ECRITURE DU SOCKET --------------
 		fwrite( $this->Fp, implode( "", $obuf ) );
 
-		//--------- LECTURE DU SOCKET ---------------
+        //--------- LECTURE DU SOCKET ---------------
 		$OctetRecu = fgetc($this->Fp); //Lire le 1er octet du socket pour utiliser apr?socket_get_status()
 		$status = socket_get_status($this->Fp);
 		$OctetRecu .= @fread($this->Fp, $status["unread_bytes"]); //Lire les octets restants
-
+		
+		//echo ("<pre>"); print_r($status); die;
+		
 		if ( $OctetRecu[7] != $obuf[7] ) { 
 			echo "<FONT SIZE='3' COLOR='#FFFF00'><b>";
 			echo "ERREUR DE LECTURE des REGISTRES de SORTIE de ".sprintf("4%05d", $this->DebutAdresse)." ".sprintf("4%05d", ($this->DebutAdresse + $this->Nbre))."<br>"; 
@@ -490,7 +496,10 @@ class ModbusTcp {
 		if ( $this->BridgeRoute ) $this->SetBridgeRoute();
 
 		if ( $this->Nbre > 125 ) $this->Nbre = 125;
-		$obuf = array ( 0=>chr(0), 1=>chr(0), 2=>chr(0), 3=>chr(0), 4=>chr(0), 5=>chr(6), 6=>chr($this->Unit), 7=>chr(4) ) ;
+		
+		$obuf = array (   0=>chr(0), 1=>chr(0), 2=>chr(0), 3=>chr(0), 4=>chr(0), 5=>chr(6),
+		                  6=>chr($this->Unit), 7=>chr(4), 8=>'', 9=>'', 10=>'', 11=>'');
+		
 		list( $obuf[9], $obuf[8] ) = $this->WordToBytes( (int)$this->DebutAdresse );
 		list( $obuf[11], $obuf[10] ) = $this->WordToBytes( (int)$this->Nbre );
 
@@ -577,7 +586,10 @@ class ModbusTcp {
 		if ( $this->BridgeRoute ) $this->SetBridgeRoute();
 
 		if ( $this->Nbre > 2000 ) $this->Nbre = 2000;
-		$obuf = array ( 0=>chr(0), chr(0), chr(0), chr(0), chr(0), 5=>chr(6), 6=>chr($this->Unit), 7=>chr(2) ) ;
+		
+		$obuf = array (   0=>chr(0), chr(0), chr(0), chr(0), chr(0), 5=>chr(6),
+		                  6=>chr($this->Unit), 7=>chr(2), 8=>'', 9=>'', 10=>'', 11=>'');
+		
 		list( $obuf[9], $obuf[8] ) = $this->WordToBytes( (int)$this->DebutAdresse );
 		list( $obuf[11], $obuf[10] ) = $this->WordToBytes( (int)$this->Nbre );
 
@@ -646,7 +658,10 @@ class ModbusTcp {
 		if ( $this->BridgeRoute ) $this->SetBridgeRoute();
 
 		if ( $this->Nbre > 2000 ) $this->Nbre = 2000;
-		$obuf = array ( 0=>chr(0), chr(1), chr(0), chr(0), chr(0), 5=>chr(6), 6=>chr($this->Unit), 7=>chr(1) ) ;
+		
+		$obuf = array (   0=>chr(0), chr(1), chr(0), chr(0), chr(0), 5=>chr(6),
+		                  6=>chr($this->Unit), 7=>chr(1), 8=>'', 9=>'', 10=>'', 11=>'');
+		
 		list( $obuf[9], $obuf[8] ) = $this->WordToBytes( (int)$this->DebutAdresse );
 		list( $obuf[11], $obuf[10] ) = $this->WordToBytes( (int)$this->Nbre );
 
@@ -923,7 +938,9 @@ class ModbusTcp {
 
 		if ( $this->BridgeRoute ) $this->SetBridgeRoute();
 
-		$obuf = array ( 0=>chr(0), chr(0), chr(0), chr(0), chr(0), 5=>chr(6), 6=>chr($this->Unit), 7=>chr(3) ) ;
+		$obuf = array (   0=>chr(0), chr(0), chr(0), chr(0), chr(0), 5=>chr(6),
+		                  6=>chr($this->Unit), 7=>chr(3), 8=>'', 9=>'', 10=>'', 11=>'');
+		
 		list( $obuf[8], $obuf[9] ) = $this->WordToBytes( $Adr-400001 );
 
 		if ( substr($Adr, 0, 1) == "3" ) {  // Test si INPUT REGISTER ( 3xxxxx )

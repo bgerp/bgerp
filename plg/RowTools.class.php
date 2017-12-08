@@ -149,6 +149,13 @@ class plg_RowTools extends core_Plugin
     {
         if(!$res) { 
             $res = $mvc->singleIcon;
+            if(log_Browsers::isRetina()) {
+                $icon2 = str_replace('/16/', '/32/', $res);
+
+                if(getFullPath($icon2)) {
+                    $res = $icon2;
+                }
+            }
         }
     }
 

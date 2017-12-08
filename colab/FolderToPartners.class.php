@@ -94,6 +94,9 @@ class colab_FolderToPartners extends core_Manager
          
         // Поставяне на уникални индекси
         $this->setDbUnique('folderId,contractorId');
+
+        $this->setDbIndex('contractorId');
+        $this->setDbIndex('folderId');
     }
 
     
@@ -164,6 +167,8 @@ class colab_FolderToPartners extends core_Manager
      */
     public static function preparePartners($data)
     {
+        if(!$data->isCurrent) return;
+
         $data->partners = array();
         $folderId = $data->masterData->rec->folderId;
         if ($folderId) {
@@ -259,7 +264,7 @@ class colab_FolderToPartners extends core_Manager
                     
                     $restoreLink = ht::createLink('', 
                         array('crm_Profiles', 'restore', $pId, 'ret_url' => TRUE), 
-                        tr('Наистина ли желаете да възстановите потребителя|*?'), 'id=btnRestore, ef_icon = img/16/restore.png');
+                        tr('Наистина ли желаете да възстановите потребителя|*?'), 'id=btnRestore, ef_icon = img/16/restore.png,title=Възстановяване на профила на споделен партньор');
                 }
             }
     	}
@@ -401,7 +406,8 @@ class colab_FolderToPartners extends core_Manager
     	$form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close-red.png', 'title=Прекратяване на действията');
     	 
     	$tpl = $this->renderWrapping($form->renderHtml());
-    	 
+    	core_Form::preventDoubleSubmission($tpl, $form);
+    	
     	return $tpl;
     }
     
@@ -575,11 +581,14 @@ class colab_FolderToPartners extends core_Manager
     	    $form->toolbar->addBtn('Отказ', $retUrl,  'id=cancel, ef_icon = img/16/close-red.png', 'title=Прекратяване на действията');
     	}
     	
-    	if ($cu = core_Users::getCurrent('id', FALSE) && core_Users::haveRole('powerUser', $cu)) {
+    	$cu = core_Users::getCurrent('id', FALSE);
+    	if ($cu && core_Users::haveRole('powerUser', $cu)) {
     		$tpl = $this->renderWrapping($form->renderHtml());
     	} else {
     		$tpl = $form->renderHtml();
     	}
+    	core_Form::preventDoubleSubmission($tpl, $form);
+    	
     	
     	return $tpl;
     }

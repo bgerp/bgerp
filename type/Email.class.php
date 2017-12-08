@@ -99,7 +99,7 @@ class type_Email extends type_Varchar {
      */
     static function isValidEmail($email)
     {
-        if (!$email) return NULL;
+        if (!strlen($email)) return NULL;
         
         if (preg_match("/[\\000-\\037]/", $email)) {
             
@@ -132,16 +132,16 @@ class type_Email extends type_Varchar {
         
         $email = self::removeBadPart($email);
         
-        if(!haveRole('user')) {
+        if(!haveRole('user') && !Mode::is('text', 'plain')) {
             $verbal = str_replace('@', " [аt] ", $email);
         } else {
             $verbal =  $email;
         }
-        
-        if($this->params['link'] != 'no') {
-            $verbal = $this->addHyperlink($email, $verbal);
-        } elseif (Mode::is('text', 'plain'))  {
+
+        if (Mode::is('text', 'plain') || Mode::is('htmlEntity', 'none')) {
             $verbal = $email;
+        } elseif($this->params['link'] != 'no') {
+            $verbal = $this->addHyperlink($email, $verbal);
         } else {
             $verbal = str_replace('@', "&#64;", $email);
         }

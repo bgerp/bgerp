@@ -1,15 +1,18 @@
-Минимална надценка,cond_type_Percent,minSurplusCharge,Продажба,,0.2 
-Максимална надценка,cond_type_Percent,maxSurplusCharge,Продажба,,0.4 
-Условие на доставка,cond_type_Delivery,deliveryTermSale,Продажба
-Начин на плащане,cond_type_PaymentMethod,paymentMethodSale,Продажба
-Условие на доставка,cond_type_Delivery,deliveryTermPurchase,Покупка
-Начин на плащане,cond_type_PaymentMethod,paymentMethodPurchase,Покупка
-Общи условия,cond_type_Text,commonConditionSale,Продажба
-Общи условия,cond_type_Text,commonConditionPur,Покупка
-Общи условия (английски),cond_type_Text,commonConditionSaleEng,Продажба
-Общи условия (английски),cond_type_Text,commonConditionPurEng,Покупка
-Други условия към фактура,cond_type_Text,invoiceText
-Очаквано тегло на доставка (кг),cond_type_Double,calcShippingWeight,,,0
-Склад,cond_type_Store,defaultStoreSale,Продажба
-Склад,cond_type_Store,defaultStorePurchase,Покупка
-Политика за делта,cond_type_PriceList,deltaList,Продажба
+Минимална надценка,cond_type_Percent,minSurplusCharge,Продажба,,
+Максимална надценка,cond_type_Percent,maxSurplusCharge,Продажба,,
+Условие на доставка,cond_type_Delivery,deliveryTermSale,Продажба,,
+Начин на плащане,cond_type_PaymentMethod,paymentMethodSale,Продажба,,
+Условие на доставка,cond_type_Delivery,deliveryTermPurchase,Покупка,,
+Начин на плащане,cond_type_PaymentMethod,paymentMethodPurchase,Покупка,,
+Общи условия,cond_type_Url,commonConditionSale,Продажба,,
+Общи условия,cond_type_Url,commonConditionPur,Покупка,,
+Други условия към фактура,cond_type_Text,invoiceText,,
+Очаквано тегло на доставка (кг),cond_type_Double,calcShippingWeight,,
+Склад,cond_type_Store,defaultStoreSale,Продажба,,
+Склад,cond_type_Store,defaultStorePurchase,Покупка,,
+Политика за делта,cond_type_PriceList,deltaList,Продажба,,
+Политика за делта,cond_type_PriceList,deltaList,Продажба,,
+Листвани продукти,cond_type_SaleListings,salesList,Продажба,,
+Листвани продукти,cond_type_PurchaseListings,purchaseList,Покупка,,
+Списък от предишни продажби,cond_type_YesOrNo,autoSalesMakeList,Продажба,,,
+Автоматична оферта при запитване,cond_type_YesOrNo,autoCreateQuote,,,,

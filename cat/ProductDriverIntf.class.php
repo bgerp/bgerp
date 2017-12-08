@@ -16,26 +16,19 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	
 	
 	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'techno2_SpecificationDriverIntf';
-	
-	
-	/**
 	 * Инстанция на класа имплементиращ интерфейса
 	 */
 	public $class;
 	
 	
 	/**
-	 * Кои опаковки поддържа продукта
+	 * Връща свойствата на артикула според драйвера
 	 * 
-	 * @param array $metas - кои са дефолтните мета данни от ембедъра
 	 * @return array $metas - кои са дефолтните мета данни
 	 */
-	public function getDefaultMetas($metas)
+	public function getDefaultMetas()
 	{
-		return $this->class->getDefaultMetas($metas);
+		return $this->class->getDefaultMetas();
 	}
 	
 	
@@ -76,7 +69,7 @@ class cat_ProductDriverIntf extends embed_DriverIntf
      * @param string $id      - ид на записа
      * @param string $name    - име на параметъра, или NULL ако искаме всички
      * @param boolean $verbal - дали да са вербални стойностите
-     * @return mixed  $params - стойност или FALSE ако няма
+     * @return mixed  $params - стойност или NULL ако няма
      */
 	public function getParams($classId, $id, $name = NULL, $verbal = FALSE)
 	{
@@ -109,29 +102,37 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	
 	
 	/**
-	 * Как да се казва дефолт папката където ще отиват заданията за артикулите с този драйвер
-	 */
-	public function getJobFolderName()
-	{
-		return $this->class->getJobFolderName();
-	}
-	
-	
-	/**
      * Връща информация за какви дефолт задачи за производство могат да се създават по артикула
      *
-     * @param double $quantity - к-во
+     * @param mixed $id - ид или запис на артикул
+     * @param double $quantity - к-во за произвеждане
+     *
      * @return array $drivers - масив с информация за драйверите, с ключ името на масива
-     * 				    -> title        - дефолт име на задачата
-     * 					-> driverClass  - драйвър на задача
-     * 					-> products     - масив от масиви с продуктите за влагане/произвеждане/отпадане
-     * 						 - array input      - материали за влагане
-     * 						 - array production - артикули за произвеждане
-     * 						 - array waste      - отпадъци
+     * 				    o title           - дефолт име на задачата, най добре да е името на крайния артикул / името заготовката
+     * 					o plannedQuantity - планирано к-во в основна опаковка
+     * 					o productId       - ид на артикул
+     *  				o packagingId     - ид на опаковка
+     *   				o quantityInPack  - к-во в 1 опаковка
+     * 					o products        - масив от масиви с продуктите за влагане/произвеждане/отпадане
+     * 						 - array input           - материали за влагане
+     * 								o productId      - ид на материал
+     *  							o packagingId    - ид на опаковка
+     *   							o quantityInPack - к-во в 1 опаковка
+     *    							o packQuantity   - общо количество от опаковката
+     * 						 - array production      - артикули за произвеждане
+     *  							o productId      - ид на заготовка
+     *  							o packagingId    - ид на опаковка
+     *   							o quantityInPack - к-во в 1 опаковка
+     *    							o packQuantity   - общо количество от опаковката
+     * 						 - array waste           - отпадъци
+     *  							o productId      - ид на отпадък
+     *  							o packagingId    - ид на опаковка
+     *   							o quantityInPack - к-во в 1 опаковка
+     *    							o packQuantity   - общо количество от опаковката
      */
-	public function getDefaultProductionTasks($quantity)
+    public function getDefaultProductionTasks($id, $quantity = 1)
 	{
-		return $this->class->getDefaultProductionTasks($quantity);
+		return $this->class->getDefaultProductionTasks($id, $quantity);
 	}
 	
 	
@@ -194,32 +195,42 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	/**
 	 * Връща цената за посочения продукт към посочения клиент на посочената дата
 	 *
-	 * @param mixed $customerClass - клас на контрагента
-	 * @param int $customerId - ид на контрагента
-	 * @param int $productId - ид на артикула
-	 * @param int $packagingId - ид на опаковка
-	 * @param double $quantity - количество
-	 * @param datetime $datetime - дата
+	 * @param mixed $productId     - ид на артикул
+	 * @param int $quantity        - к-во
+	 * @param double $minDelta     - минималната отстъпка
+	 * @param double $maxDelta     - максималната надценка
+	 * @param datetime $datetime   - дата
 	 * @param double $rate  - валутен курс
-	 * @param enum(yes=Включено,no=Без,separate=Отделно,export=Експорт) $chargeVat - начин на начисляване на ддс
+     * @param enum(yes=Включено,no=Без,separate=Отделно,export=Експорт) $chargeVat - начин на начисляване на ддс
 	 * @return double|NULL $price  - цена
 	 */
-	public function getPrice($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
+	public function getPrice($productId, $quantity, $minDelta, $maxDelta, $datetime = NULL, $rate = 1, $chargeVat = 'no')
 	{
-		return $this->class->getPrice($customerClass, $customerId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
+		return $this->class->getPrice($productId, $quantity, $minDelta, $maxDelta, $datetime, $rate, $chargeVat);
 	}
 	
 	
 	/**
-	 * Връща дефолтната дефиниция за партида на артикула
-	 * Клас имплементиращ интерфейса 'batch_BatchTypeIntf'
+	 * Може ли драйвера автоматично да си изчисли себестойността
+	 * 
+	 * @param mixed $productId - запис или ид
+	 * @return boolean
+	 */
+	public function canAutoCalcPrimeCost($productId)
+	{
+		return $this->class->canAutoCalcPrimeCost($productId);
+	}
+	
+	
+	/**
+	 * Връща дефолтната дефиниция за шаблон на партидна дефиниция
 	 * 
 	 * @param mixed $id - ид или запис на артикул
-	 * @return NULL|core_BaseClass - клас за дефиниция на партида
+	 * @return int - ид към batch_Templates
 	 */
-	public function getDefaultBatchDef($id)
+	public function getDefaultBatchTemplate($id)
 	{
-		return $this->class->getDefaultBatchDef($id);
+		return $this->class->getDefaultBatchTemplate($id);
 	}
 	
 	
@@ -229,11 +240,12 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	 * @param int $rec - запис на артикул
 	 * @param array $size - размер на картинката
 	 * @param array $maxSize - макс размер на картинката
+	 * @param embed_Manager $Embedder
 	 * @return string|NULL $preview - хтмл представянето
 	 */
-	public function getPreview($rec, $size = array('280', '150'), $maxSize = array('550', '550'))
+	public function getPreview($rec, embed_Manager $Embedder, $size = array('280', '150'), $maxSize = array('550', '550'))
 	{
-		return $this->class->getPreview($rec, $size, $maxSize);
+		return $this->class->getPreview($rec, $Embedder, $size, $maxSize);
 	}
 	
 	
@@ -254,12 +266,111 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	 *
 	 * @param int $id - ид на артикул
 	 * @param core_RowToolbar $toolbar - тулбара
-	 * @param mixed $docClass - класа документа
-	 * @param int $docId - ид на документа
+	 * @param mixed $detailClass - класа на детаила в документа
+	 * @param int $detailId - ид на реда от документа
 	 * @return void
 	 */
-	public function addButtonsToDocToolbar($id, core_RowToolbar &$toolbar, $docClass, $docId)
+	public function addButtonsToDocToolbar($id, core_RowToolbar &$toolbar, $detailClass, $detailId)
 	{
-		return $this->class->addButtonsToDocToolbar($id, $toolbar, $docClass, $docId);
+		return $this->class->addButtonsToDocToolbar($id, $toolbar, $detailClass, $detailId);
+	}
+	
+	
+	/**
+	 * Връща минималното количество за поръчка
+	 * 
+	 * @param int|NULL $id - ид на артикул
+	 * @return double|NULL - минималното количество в основна мярка, или NULL ако няма
+	 */
+	public function getMoq($id = NULL)
+	{
+		return $this->class->getMoq($id);
+	}
+	
+	
+	/**
+	 * Връща дефолтните опаковки за артикула
+	 *
+	 * @param mixed $rec - запис на артикула
+	 * @return array     - масив с дефолтни данни за опаковките
+	 * 		
+	 * 		o boolean justGuess   - дали е задължителна
+	 * 		o int     packagingId - ид на мярка/опаковка
+	 * 		o double  quantity    - количество
+	 * 		o boolean isBase      - дали опаковката е основна
+	 * 		o double  tareWeight  - тара тегло
+	 * 		o double  sizeWidth   - широчина на опаковката
+	 * 		o double  sizeHeight  - височина на опаковката
+	 * 		o double  sizeDepth   - дълбочина на опаковката
+	 */
+	public function getDefaultPackagings($rec)
+	{
+		return $this->class->getDefaultPackagings($rec);
+	}
+	
+	
+	/**
+     * Допълнителните условия за дадения продукт,
+     * които автоматично се добавят към условията на договора
+     * 
+     * @param stdClass $rec   - ид/запис на артикул
+     * @param string $docType - тип на документа sale/purchase
+     * @param string|NULL $lg - език
+     */
+    public function getConditions($rec, $docType, $lg = NULL)
+	{
+		return $this->class->getConditions($rec, $docType, $lg);
+	}
+	
+	
+	/**
+	 * Връща хеша на артикула (стойност която показва дали е уникален)
+	 *
+	 * @param embed_Manager $Embedder - Ембедър
+	 * @param mixed $rec              - Ид или запис на артикул
+	 * @return NULL|varchar           - Допълнителните условия за дадения продукт
+	 */
+	public function getHash(embed_Manager $Embedder, $rec)
+	{
+		return $this->class->getHash($Embedder, $rec);
+	}
+	
+	
+	/**
+	 * Връща масив с допълнителните плейсхолдъри при печат на етикети
+	 *
+	 * @param mixed $rec              - ид или запис на артикул
+	 * @param mixed $labelSourceClass - клас източник на етикета
+	 * @return array                  - Допълнителните полета при печат на етикети
+	 * 		[Плейсхолдър] => [Стойност]
+	 */
+	public function getAdditionalLabelData($rec, $labelSourceClass = NULL)
+	{
+		return $this->class->getAdditionalLabelData($rec, $labelSourceClass);
+	}
+	
+	
+	/**
+	 * Връща допълнителен текст, който да се показва към забележките на показването на артикула в документ
+	 *
+	 * @param mixed $productId     - ид или запис на артикул
+	 * @param string $documentType - public или internal или invoice
+	 * @return string              - допълнителния текст, специфичен за документа
+	 */
+	public function getAdditionalNotesToDocument($productId, $documentType)
+	{
+		return $this->class->getAdditionalNotesToDocument($productId, $documentType);
+	}
+	
+	
+	/**
+	 * Може ли в артикула да се начислява транспорт към цената му
+	 *
+	 * @param mixed $productId - ид или запис на артикул
+	 * @return boolean
+	 */
+	public function canCalcTransportFee($productId)
+	{
+		return $this->class->canCalcTransportFee($productId);
 	}
 }

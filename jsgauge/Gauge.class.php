@@ -51,7 +51,7 @@ class jsgauge_Gauge
      *
      * return $tpl
      */
-    function renderTemperature($value = NULL, $canvasId = NULL, $arr = NULL)
+    public static function renderTemperature($value = NULL, $canvasId = NULL, $arr = NULL)
     {
         setIfNot($value, '0');
         setIfNot($canvasId, str::getRand());
@@ -127,7 +127,7 @@ class jsgauge_Gauge
     /**
      * Рендиране на уред за измерване на налягане
      */
-    function renderPressure($value = NULL, $canvasId = NULL, $arr = NULL)
+    static function renderPressure($value = NULL, $canvasId = NULL, $arr = NULL)
     {
         setIfNot($value, '0');
         setIfNot($canvasId, str::getRand());
@@ -204,7 +204,7 @@ class jsgauge_Gauge
     /**
      * Рендиране на уред за измерване на влажността
      */
-    function renderHumidity($value = NULL, $canvasId = NULL, $arr = NULL)
+    static function renderHumidity($value = NULL, $canvasId = NULL, $arr = NULL)
     {
         setIfNot($value, '0');
         setIfNot($canvasId, str::getRand());
@@ -281,7 +281,7 @@ class jsgauge_Gauge
     /**
      * Данни и библиотеки, които се зареждат само един път.
      */
-    function enable($tpl)
+    static function enable($tpl)
     {
         $tpl->appendOnce("
                 function addLoadEvent(func) {

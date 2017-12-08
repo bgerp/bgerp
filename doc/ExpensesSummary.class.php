@@ -74,7 +74,7 @@ class doc_ExpensesSummary extends core_Manager
     		$actionTitle = 'Показване на разходите към документа';
     		$document = doc_Containers::getDocument($containerId);
     		
-    		if(haveRole('acc,ceo') && $document->haveRightFor('single')){
+    		if(haveRole('ceo, acc, purchase') && $document->haveRightFor('single')){
     			$linkArr = array($document->getInstance(), 'single', $document->that, 'Sid' =>  $containerId);
     		}
     		$link = ht::createLink("<b>{$count}</b><span>{$actionVerbal}</span>", $linkArr, FALSE, array('title' => $actionTitle));
@@ -97,16 +97,19 @@ class doc_ExpensesSummary extends core_Manager
     	// Вземаме cid от URL' то
         $cid = Request::get('Sid', 'int');
         $masterRec = $data->masterData->rec;
+        $rec = self::fetch("#containerId = {$masterRec->containerId}");
         
-        // Ако не листваме данните за съответния контейнер
-        if ($masterRec->containerId != $cid && !haveRole('acc,ceo')) {
-        	$data->renderExpenses = FALSE;
-        	return;
+        $render = TRUE;
+        if ($masterRec->containerId != $cid) {
+        	$render = FALSE;
+        } elseif(!haveRole('ceo, acc, purchase')){
+        	$render = FALSE;
+        } elseif(!$rec){
+        	$render = FALSE;
         }
         
-        // Намираме кеширания запис за контейнера
-        $rec = self::fetch("#containerId = {$masterRec->containerId}");
-        if(!$rec){
+        // Ако не листваме данните за съответния контейнер
+        if ($render === FALSE) {
         	$data->renderExpenses = FALSE;
         	return;
         }
@@ -202,6 +205,7 @@ class doc_ExpensesSummary extends core_Manager
     	$FieldSet->FLD('amount', 'double(minDecimals=2)');
     	
     	$table = cls::get('core_TableView', array('mvc' => $FieldSet));
+    	$total = 0;
     	
     	// Подравняване на числата
     	plg_AlignDecimals2::alignDecimals($FieldSet, $data->recs, $data->rows);
@@ -209,6 +213,10 @@ class doc_ExpensesSummary extends core_Manager
     	// Ако има отрицателни числа се оцветяват в червено
     	if(is_array($data->recs)){
     		foreach ($data->recs as $index => $rec){
+    			if($rec->type == 'allocated'){
+    				$total += $rec->amount;
+    			}
+    			
     			foreach (array('quantity', 'amount') as $fld){
     				if($rec->type == 'corrected'){
     					$data->rows[$index]->{$fld} = "<small>{$data->rows[$index]->{$fld}}</small>";
@@ -225,6 +233,12 @@ class doc_ExpensesSummary extends core_Manager
     	
     	// Рендиране на таблицата
     	$tableHtml = $table->get($data->rows, "valior=Вальор,item2Id=Артикул,docId=Документ,quantity=Количество,amount=Сума|* <small>({$currencyCode}</small>)");
+    	
+    	if(count($data->rows)){
+    		$total = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($total);
+    		$afterRow = "<tr style='background-color:#eee'><td colspan=4 style='text-align:right'><b>" . tr('Общо') . "</b></td><td style='text-align:right'><b>{$total}</b></td></tr>";
+    		$tableHtml->append($afterRow, 'ROW_AFTER');
+    	}
     	
     	if(isset($data->isClosed)){
     		$nTpl = new core_ET("<div class='red' style='margin-bottom:5px'>{$data->isClosed}</div>");
@@ -326,7 +340,11 @@ class doc_ExpensesSummary extends core_Manager
     			
     			// Преразпределяне на сумата спрямо тази, която е разпределена (не искаме усреднената сума)
     			foreach ($foundArr as &$f1){
-    				$f1->amount = $rec1->amount * $f1->quantity / $rec1->quantity;
+    				if($rec1->quantity){
+    					$f1->amount = $rec1->amount * $f1->quantity / $rec1->quantity;
+    				} else {
+    					$f1->amount = $rec1->amount;
+    				}
     			}
     			
     			$notDistributed = array_diff_key($notDistributed, $foundArr);
@@ -349,5 +367,15 @@ class doc_ExpensesSummary extends core_Manager
     	}
     	
     	return $res;
+    }
+    
+    
+    /**
+     * Изпълнява се след създаване на нов запис
+     */
+    public static function on_AfterCreate($mvc, $rec)
+    {
+    	$document = doc_Containers::getDocument($rec->containerId);
+    	$document->invoke("AfterForceCostObject", array($document->fetch()));
     }
 }

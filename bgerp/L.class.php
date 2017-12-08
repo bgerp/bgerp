@@ -21,7 +21,7 @@ class bgerp_L extends core_Manager
     /**
      * Заглавие
      */
-    var $title = 'Хоронология на действията с на документи';
+    var $title = 'Хронология на действията с документи';
     
     
     /**
@@ -51,7 +51,7 @@ class bgerp_L extends core_Manager
         
         $L = cls::get('bgerp_L');
         
-        // Очакваме само дайствие, допустимо за извършване от регистриран потребител
+        // Очакваме само действие, допустимо за извършване от регистриран потребител
         $actType = $L->fields['action']->type;
         expect(isset($actType->options[$action]));
         $rec->action = $action;
@@ -72,7 +72,7 @@ class bgerp_L extends core_Manager
      */
     static function addRef($action, $refMid, $res = NULL)
     {
-        // Очакваме действието да започва с долна чера, защото по този начин означаваме действията
+        // Очакваме действието да започва с долна черта, защото по този начин означаваме действията
         // Които 
         // Трябва да имаме референтен 'mid'.
         // Чрез него се извлича 'id', 'tid' и 'cid' на референтния запис
@@ -87,11 +87,78 @@ class bgerp_L extends core_Manager
     
     
     /**
+     * Помощна функция, която връща 
+     * 
+     * @param integer $cId
+     * @param integer $mId
+     * 
+     * @return array
+     */
+    protected static function getDocOptions($cId, $mId)
+    {
+        // Трасираме стека с действията докато намерим SEND екшън
+        $i = 0;
+        
+        $options = array();
+        
+        while ($action = doclog_Documents::getAction($i--)) {
+        
+            $options = (array)$action->data;
+        
+            // Ако има изпратено от
+            if (($action->data->sendedBy > 0) && (!$options['__userId'] || $options['__userId'] <= 0)) {
+                $options['__userId'] = $action->data->sendedBy;
+            }
+        	
+            // Ако е принтиран
+            // TODO ще се оправи
+            if ($action->action == doclog_Documents::ACTION_PRINT) {
+                $options['__toListId'] = $action->data->toListId;
+        		
+                if ($action->createdBy > 0 && !$options['__userId']) {
+                    $options['__userId'] = $action->createdBy;
+                }
+            }
+        	
+            // Ако е изпратен
+            if ($action->action == doclog_Documents::ACTION_SEND) {
+        		
+                if ($action && $action->data->to) {
+                    log_Browsers::setVars(array('email' => $action->data->to), FALSE, FALSE);
+                }
+        		
+                $activatedBy = $action->createdBy;
+        		
+                // Активатора и последния модифицирал на изпратения документ
+                if (!$activatedBy || $activatedBy <= 0) {
+                    $activatedBy = $rec->activatedBy;
+                }
+        		
+                // Активатора и последния модифицирал на изпратения документ
+                if (!$activatedBy || $activatedBy <= 0) {
+        
+                    $sendContainerRec = doc_Containers::fetch($action->containerId);
+                    $activatedBy = $sendContainerRec->activatedBy;
+                }
+        		
+                // Ако няма потребител или е системата - за бласт
+                if (!$options['__userId'] || $options['__userId'] <= 0) {
+                    if ($activatedBy > 0) {
+                        $options['__userId'] = $activatedBy;
+                    }
+                }
+            }
+        }
+        
+        return $options;
+    }
+    
+    
+    /**
      * Екшъна за показване на документи
      */
     function act_S()
     {
-        
         try {
             //Вземаме номера на контейнера
             expect($cid = Request::get('id', 'int'));
@@ -105,65 +172,20 @@ class bgerp_L extends core_Manager
             // Очакваме да не е оттеглен документ
             expect($rec->state != 'rejected', 'Липсващ документ');
             
+            if ($rec->state == 'draft') {
+                expect($doc->canEmailDraft, 'Липсващ документ');
+            }
+            
             //
             // Проверка за право на достъп според MID
             //
             
             // Вземаме манипулатора на записа от този модел (bgerp_L)
             expect($mid = Request::get('m'));
+            
             expect(doclog_Documents::opened($cid, $mid));
             
-            // Трасираме стека с действията докато намерим SEND екшън
-            $i = 0;
-            
-            while ($action = doclog_Documents::getAction($i--)) {
-                
-                $options = (array)$action->data;
-                
-                // Ако има изпратено от
-                if (($action->data->sendedBy > 0) && (!$options['__userId'] || $options['__userId'] <= 0)) {
-                    $options['__userId'] = $action->data->sendedBy;
-                }
-                
-                // Ако е принтиран
-                // TODO ще се оправи
-                if ($action->action == doclog_Documents::ACTION_PRINT) {
-                    $options['__toListId'] = $action->data->toListId;
-                    
-                    if ($action->createdBy > 0 && !$options['__userId']) {
-                        $options['__userId'] = $action->createdBy;
-                    }
-                }
-                
-                // Ако е изпратен
-                if ($action->action == doclog_Documents::ACTION_SEND) {
-                    
-                    if ($action && $action->data->to) {
-                        log_Browsers::setVars(array('email' => $action->data->to), FALSE, FALSE);
-                    }
-                    
-                    $activatedBy = $action->createdBy;
-                    
-                    // Активатора и последния модифицирал на изпратения документ
-                    if (!$activatedBy || $activatedBy <= 0) {
-                        $activatedBy = $rec->activatedBy;
-                    }
-                    
-                    // Активатора и последния модифицирал на изпратения документ
-                    if (!$activatedBy || $activatedBy <= 0) {
-                        
-                        $sendContainerRec = doc_Containers::fetch($action->containerId);
-                        $activatedBy = $sendContainerRec->activatedBy;
-                    }
-                    
-                    // Ако няма потребител или е системата - за бласт
-                    if (!$options['__userId'] || $options['__userId'] <= 0) {
-                        if ($activatedBy > 0) {
-                            $options['__userId'] = $activatedBy;
-                        }
-                    }
-                }
-            }
+            $options = $this->getDocOptions($cid, $mid);
             
             // Ако потребителя има права до треда на документа, то той му се показва
             if($rec && $rec->threadId) {
@@ -174,9 +196,11 @@ class bgerp_L extends core_Manager
                 }
             }
             
+            Mode::push('saveObjectsToCid', $cid);
             // Има запис в историята - MID-a е валиден, генерираме HTML съдържанието на 
             // документа за показване
             $html = $doc->getDocumentBody('xhtml', (object) $options);
+            Mode::pop('saveObjectsToCid');
             
             Mode::set('wrapper', 'page_External');
             
@@ -188,15 +212,39 @@ class bgerp_L extends core_Manager
             
             // Ако има потребител с такъв имейл и не е логнат, показваме линк за логване
             if ($options['to'] && !haveRole('user')) {
-                
+
                 $emailsArr = type_Emails::toArray($options['to']);
                 foreach ($emailsArr as $email) {
                     if (!core_Users::fetch(array("#email = '[#1#]' AND #state = 'active'", $email))) continue;
-                    
-                    $html->append(ht::createLink(tr('Логнете се, за да видите нишката') . '.', array('core_Users', 'login', 'ret_url' => TRUE), NULL, array('style' => 'margin-left: 10px; font-size: 0.9em; margin-bottom: 10px; display: block; margin-top: -6px;')));
-                    
+
+                    $html->append(ht::createLink(tr('Логнете се, за да видите нишката'), array('core_Users', 'login', 'ret_url' => TRUE), NULL, array('class' => 'hideLink', 'ef_icon' => 'img/16/key.png')));
                     break;
                 }
+            }
+
+            if (!haveRole('user')) {
+                $exportArr = array();
+                try {
+                    $exportArr = $doc->getExportUrl($mid);
+                } catch (core_exception_Expect $e) {
+                    reportException($e);
+                }
+
+                if (doc_PdfCreator::canConvert() || !empty($exportArr)) {
+                    $html->append("<div class='hideLink'>" . tr("Свали като") . ": ");
+                }
+
+                if (doc_PdfCreator::canConvert()) {
+                    $html->append(ht::createLink('PDF', array($this, 'pdf', $cid, 'mid' => $mid, 'ret_url' => TRUE), NULL, array('class' => 'hideLink inlineLinks', 'ef_icon' => 'fileman/icons/16/pdf.png')));
+                    if(!empty($exportArr)) {
+                        $html->append( " | ");
+                    }
+                }
+
+                if (!empty($exportArr)) {
+                    $html->append(ht::createLink('CSV', $exportArr, NULL, array('class' => 'hideLink inlineLinks',  'ef_icon' => 'fileman/icons/16/csv.png')));
+                }
+                $html->append("</div>");
             }
             
             return $html;
@@ -227,6 +275,63 @@ class bgerp_L extends core_Manager
             
             expect(FALSE);  // Същото се случва и ако документа съществува, но потребителя няма
             // достъп до него.
+        }
+    }
+    
+    
+    /**
+     * Екшън, който сваля подадения документ, като PDF
+     */
+    function act_Pdf()
+    {
+        try {
+            expect(doc_PdfCreator::canConvert());
+            
+            $cId = Request::get('id', 'int');
+            $mId = Request::get('mid');
+            
+            expect($cId && $mId);
+            
+            expect($doc = doc_Containers::getDocument($cId));
+            
+            $rec = $doc->fetch();
+            
+            // Очакваме да не е оттеглен документ
+            expect($rec->state != 'rejected', 'Липсващ документ');
+            
+            expect(doclog_Documents::opened($cId, $mId));
+            
+            $optArr = $this->getDocOptions($cId, $mId);
+            
+            Mode::push('saveObjectsToCid', $cid);
+            // Има запис в историята - MID-a е валиден, генерираме HTML съдържанието на
+            // документа за показване
+            $html = $doc->getDocumentBody('xhtml', (object) $optArr);
+            Mode::pop('saveObjectsToCid');
+            
+            $hnd = $doc->getHandle();
+            $name = $hnd . '.pdf';
+            $resFileHnd = doc_PdfCreator::convert($html, $name);
+            
+            Request::forward(array('fileman_Download', 'download', 'fh' => $resFileHnd, 'forceDownload' => TRUE));
+        } catch (core_exception_Expect $ex) {
+            requireRole('user'); 
+            
+            if($doc) {
+            	$urlArray = $doc->getSingleUrlArray();
+            	
+                if(is_array($urlArray) && count($urlArray)) {
+                    
+                    return new Redirect($urlArray);
+                }
+            }
+            
+            expect(FALSE);
+        }
+        
+        if ($retUrl = getRetUrl()) {
+            
+            return $retUrl;
         }
     }
     

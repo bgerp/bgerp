@@ -181,8 +181,12 @@ class type_Key2 extends type_Int
         if(!$this->params['maxSuggestions']) {
             $maxSuggestions = $this->params['maxSuggestions'] = core_Setup::get('TYPE_KEY_MAX_SUGGESTIONS', TRUE);
         }
- 
-        $options = $this->getOptions($maxSuggestions);
+        
+        $options = array();
+        
+        if (!$this->params['forceAjax']) {
+            $options = $this->getOptions($maxSuggestions);
+        }
         
         if(ctype_digit("{$value}")) {
             $currentOpt = $this->getOptions(1, '', $value, TRUE);
@@ -208,7 +212,7 @@ class type_Key2 extends type_Int
 
         $this->setFieldWidth($attr, NULL, $options);
 
-        if(core_Packs::isInstalled('select2') && !Mode::is('javascript', 'no')) {
+        if (core_Packs::isInstalled('select2') && !Mode::is('javascript', 'no')) {
             
             // Показваме Select2
             ht::setUniqId($attr);
@@ -216,7 +220,7 @@ class type_Key2 extends type_Int
             
             $ajaxUrl = '';
             $handler = $this->getHandler();
-            if ($optionsCnt >= $maxSuggestions) {
+            if ($this->params['forceAjax'] || ($optionsCnt >= $maxSuggestions)) {
                 $ajaxUrl = toUrl(array($this, 'getOptions', 'hnd' => $handler, 'maxSugg' => $maxSuggestions, 'ajax_mode' => 1), 'absolute');
             }
             
@@ -228,7 +232,7 @@ class type_Key2 extends type_Int
             // Добавяме необходимите файлове и стартирам select2
             select2_Adapter::appendAndRun($tpl, $attr['id'], $attr['placeholder'], $allowClear, NULL, $ajaxUrl);
 
-        } elseif($optionsCnt >= $maxSuggestions && !Mode::is('javascript', 'no')) {
+        } elseif ($this->params['forceAjax'] || ($optionsCnt >= $maxSuggestions && !Mode::is('javascript', 'no'))) {
             // Показваме Combobox
             
             $this->params['inputType'] = 'combo';
@@ -300,12 +304,27 @@ class type_Key2 extends type_Int
                
                 foreach ($options as $key => $title) {
                     
+                    $isGroup = FALSE;
+                    
+                    if (is_object($title)) {
+                        $isGroup = $title->group ? TRUE : FALSE;
+                        $title = $title->title;
+                    }
                     if($this->params['inputType'] == 'combo') {
                         $key = $title . ' (' . $key . ')';
-                        $arrt = array('value' => $key);
+                        $attr = array('value' => $key);
+                        
                         $select->append(ht::createElement("option", $attr, $key));
                     } else {
                         $obj = (object) array('id' => $key, 'text' => $title);
+                        
+                        if ($isGroup) {
+                            $obj->group = TRUE;
+                            $obj->element = new stdClass();
+                            $obj->element->className = 'group';
+                            $obj->element->group = TRUE;
+                            $obj->id = NULL;
+                        }
                         $res[] = $obj;
                     }
                 }
@@ -320,4 +339,40 @@ class type_Key2 extends type_Int
         core_App::getJson($res);
     }
     
+    
+    /**
+     * Връща шаблон за прескачане на най-често използваните символи в преди думите
+     * 
+     * @param boolean $addEmpty
+     * 
+     * @return string
+     */
+    public static function getRegexPatterForSQLBegin($addEmpty = TRUE)
+    {
+        $key = 'sqlBeginQuery' . '_' . $addEmpty;
+        
+        $rStr = core_Cache::get(key2, $key);
+        
+        if ($rStr) return $rStr;
+        
+        $rOrdStr = '31|33|34|35|37|38|39|40|41|42|43|44|45|46|47|58|59|64|91|93|95|96|124';
+        
+        $rArr = explode('|', $rOrdStr);
+        
+        $rStr = '';
+        foreach ($rArr as $ord) {
+            if ($ord > 127) continue;
+            $rStr .= '\\\\\\' . chr($ord) . '|';
+        }
+        
+        if ($addEmpty) {
+            $rStr .= ' ';
+        } else {
+            $rStr = rtrim($rStr, '|');
+        }
+        
+        core_Cache::set('key2', $key, $rStr, 100000);
+        
+        return $rStr;
+    }
 }

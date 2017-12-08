@@ -516,7 +516,7 @@ class price_ProductCosts extends core_Manager
     
     
     /**
-     * Намира себестойноста на артикула по вида
+     * Намира себестойността на артикула по вида
      * 
      * @param int $productId - ид на артикула
      * @param accCost|lastDelivery|activeDelivery|lastQuote|bom $priceType - вида на цената

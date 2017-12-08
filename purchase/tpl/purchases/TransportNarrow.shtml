@@ -1,0 +1,119 @@
+<table class="innerTable border-table paddingCells">
+    <tbody>
+    <tr>
+        <td class='centered'>
+            <div class="document-title">|ЗАЯВКА - ДОГОВОР|*</div>
+            <p class="centered boldText" style="margin-top: 5px;">ЗА ИЗВЪРШВАНЕ НА ТРАНСПОРТ</p>
+            <div style="padding-top:5px;">
+                                <span class="state [#STATE_CLASS#]">
+                                    № <span class="bigData">[#id#]</span> /
+                                    <span class="bigData">[#valior#]</span>
+                                </span>
+            </div>
+            <!--ET_BEGIN reff-->
+                    	|Ваш реф|*: <span class="bigData">[#reff#]</span>
+                    	<!--ET_END reff-->
+        </td>
+    </tr>
+    <tr>
+        <td class="cell custom-header-bg"><b>|Получател|*</b></td>
+    </tr>
+    <tr>
+        <td>
+            <b>[#MyCompany#]</b>
+            <div class='address-block'>
+                [#MyAddress#]
+            </div>
+            <!--ET_BEGIN shipmentStoreId-->
+            <hr style="margin: 3px 0 1px;">
+            <div>
+                |До склад|*: [#shipmentStoreId#]
+            </div>
+            <!--ET_END shipmentStoreId-->
+        </td>
+    </tr>
+    <tr>
+        <td class="cell custom-header-bg"><b>|Доставчик|*</b></td>
+    </tr>
+    <tr>
+        <td>
+            <b>[#contragentName#]</b>
+            <div class='address-block'>
+                [#contragentCountryId#]
+                <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
+            </div>
+            <!--ET_BEGIN deliveryLocationId-->
+            <hr style="margin: 3px 0 1px;">
+            <div>
+                |От обект|*: [#deliveryLocationId#]
+            </div>
+            <!--ET_END deliveryLocationId-->
+        </td>
+    </tr>
+    <tr>
+        <td>
+
+            <p>Уважаеми Дами и Господа,</p>
+
+            <p>Моля да организирате транспорт, както следва:</p>
+        </td>
+    </tr>
+    </tbody>
+</table>
+<div class="scrolling-holder">
+    [#purchase_PurchasesDetails#]
+</div>
+<div class="lines"></div>
+<table class="innerTable footer-notes paddingCells" style="width: 100%">
+    <tr>
+        <td class="topCell aright vtop">
+            [#/deals/tpl/DocumentPiceInfo.shtml#]
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <p><b>Забележки:</b></p>
+            <ul>
+                <!--ET_BEGIN withVat-->
+                <li>|Цените са в с включен ДДС|*.[#withVat#]</li>
+                <!--ET_END withVat-->
+                <!--ET_BEGIN sepVat-->
+                <li>|Цените са с отделно ДДС|*.[#sepVat#]</li>
+                <!--ET_END sepVat-->
+                <!--ET_BEGIN noVat-->
+                <li>|Цените са без ДДС|*.[#noVat#]</li>
+                <!--ET_END noVat-->
+
+                <!--ET_BEGIN closedDocuments-->
+                <li>|Обединява|*: [#closedDocuments#]</li>
+                <!--ET_END closedDocuments-->
+
+                <li>Страните признават тази заявка за официален договор.</li>
+
+                <li>Не се разрешава разпалетизиране на стоката без знанието и одобрението на изпращача.</li>
+
+                <li>При възникнали проблеми свързани с изпълнението на заявката следва незабавно да бъдем информирани.</li>
+
+                <li>Нормативна база – Конвенция CMR, TIR (ADR-само за опасни товари), ЗЗД, ТЗ.</li>
+                <!--ET_BEGIN notes-->
+                [#notes#]
+                <!--ET_END notes-->
+                
+
+            </ul>
+        </td>
+    </tr>
+    <tr>
+        <td class="topCell vtop">
+            Изготвил заявката:  [#username#]
+
+        </td>
+    </tr>
+    <tr class='footerDocInfo'>
+        <td>
+            <div class='aright'>Документът е създаден чрез системата <b><a href='http://bgerp.com'>bgERP</a></b></div>
+        </td>
+    </tr>
+</table>
+
+

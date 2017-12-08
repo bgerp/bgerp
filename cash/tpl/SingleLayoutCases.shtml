@@ -7,10 +7,6 @@
                 <legend class="groupTitle">|Информация|*</legend>
                 <div class="groupList">
                     <table>
-                        <tr>
-                            <td class='dt'>|Номер|*:</td>
-                            <td> [#id#]</td>
-                        </tr>
                         <!--ET_BEGIN creation-->
                         <tr>
                             [#creation#]

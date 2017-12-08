@@ -40,7 +40,7 @@ class cash_ExchangeDocument extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     public $loadList = 'plg_RowTools2, cash_Wrapper, acc_plg_Contable,
-     	plg_Sorting,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary,
+     	plg_Sorting,plg_Clone,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary,
      	plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, doc_SharablePlg';
     
     
@@ -128,6 +128,20 @@ class cash_ExchangeDocument extends core_Master
     public $searchFields = 'reason, peroFrom, peroTo, id';
     
     
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'valior';
+    
+    
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, valior,modifiedOn';
+	
+	
 	/**
      * Описание на модела
      */
@@ -145,7 +159,7 @@ class cash_ExchangeDocument extends core_Master
        	$this->FLD('debitPrice', 'double(smartRound)', 'input=none');
         $this->FLD('equals', 'double(smartRound)', 'input=none,caption=Общо,summary=amount');
        	$this->FLD('rate', 'double(decimals=5)', 'input=none');
-        $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно)', 'caption=Статус, input=none');
+        $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)', 'caption=Статус, input=none');
         $this->FLD('sharedUsers', 'userList', 'input=none,caption=Споделяне->Потребители');
     }
     
@@ -282,12 +296,16 @@ class cash_ExchangeDocument extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
-        // Може да създаваме документ-а само в дефолт папката му
-        if (doc_Folders::fetchCoverClassName($folderId) == 'cash_Cases') {
-        	return TRUE;
-        } 
-        	
-       return FALSE;
+        return core_Cache::getOrCalc('CashExchDocCanAddToFolder', $folderId, function($folderId)
+        {
+            $Ce = cls::get('cash_ExchangeDocument');
+            if($folderId == cash_ExchangeDocument::getDefaultFolder(NULL, FALSE) || doc_Folders::fetchCoverClassName($folderId) == 'cash_Cases') {
+                
+                return TRUE;
+            }
+
+            return FALSE;
+        });
     }
     
 	/**
@@ -299,12 +317,9 @@ class cash_ExchangeDocument extends core_Master
      */
 	public static function canAddToThread($threadId)
     {
-    	$threadRec = doc_Threads::fetch($threadId);
-    	if ($threadRec->folderId == static::getDefaultFolder(NULL, FALSE) || doc_Folders::fetchCoverClassName($threadRec->folderId) == 'cash_Cases') {
-        	return TRUE;
-       } 
-        
-       return FALSE;
+        $threadRec = doc_Threads::fetch($threadId);
+
+        return self::canAddToFolder($threadRec->folderId);
     }
     
     
@@ -322,16 +337,5 @@ class cash_ExchangeDocument extends core_Master
 		$row->recTitle = $rec->reason;
 		
         return $row;
-    }
-    
-    
-    /**
-     * Връща разбираемо за човека заглавие, отговарящо на записа
-     */
-    public static function getRecTitle($rec, $escaped = TRUE)
-    {
-    	$self = cls::get(__CLASS__);
-    
-    	return $self->singleTitle . " №$rec->id";
     }
 }

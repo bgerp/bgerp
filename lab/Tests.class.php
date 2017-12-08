@@ -26,8 +26,8 @@ class lab_Tests extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools2, doc_ActivatePlg,doc_DocumentPlg, plg_Printing,
-                     lab_Wrapper, plg_Sorting, bgerp_plg_Blank, doc_plg_SelectFolder';
+    var $loadList = 'plg_RowTools2, doc_ActivatePlg, plg_Clone, doc_DocumentPlg, plg_Printing,
+                     lab_Wrapper, plg_Sorting, bgerp_plg_Blank, doc_plg_SelectFolder,planning_plg_StateManager';
     
     
     /**
@@ -53,8 +53,30 @@ class lab_Tests extends core_Master
      * Детайла, на модела
      */
     var $details = 'lab_TestDetails';
-    
-    
+
+    /**
+     * Кой може да активира задачата
+     */
+    public $canActivate = 'ceo';
+
+
+    /**
+     * Кой има право да променя?
+     *
+     * @var string|array
+     */
+    public $canEdit;
+
+
+    /**
+     * Кой има право да добавя?
+     *
+     * @var string|array
+     */
+    public $canAdd;
+
+
+
     /**
      * Роли, които могат да записват
      */
@@ -113,31 +135,74 @@ class lab_Tests extends core_Master
      * Групиране на документите
      */
     var $newBtnGroup = "18.1|Други";
+
+    /**
+     * Кой може да го прави документа чакащ/чернова?
+     */
+    public $canPending = 'ceo, lab';
     
     
     /**
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
     public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
+    
 
+    /**
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     *
+     * @see plg_Clone
+     */
+    public $cloneDetails = 'lab_TestDetails';
+    
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'title';
+    
     
     /**
      * Описание на модела
      */
     function description()
     {
-        $this->FLD('title', 'varchar(128)', 'caption=Наименование,mandatory,oldFieldName=handler');
-        $this->FLD('type', 'varchar(64)', 'caption=Вид,notSorting');
+       // $this->FLD('title', 'varchar(128)', 'caption=Наименование,mandatory,oldFieldName=handler');
+        $this->FLD('type', 'varchar(64)', 'caption=Образец,notSorting');
+        $this->FLD('provider', 'varchar(64)', 'caption=Доставчик,notSorting');
         $this->FLD('batch', 'varchar(64)', 'caption=Партида,notSorting');
-        $this->FLD('madeBy', 'varchar(255)', 'caption=Изпълнител');
+      //  $this->FLD('madeBy', 'varchar(255)', 'caption=Изпълнител');
         $this->FLD('origin', 'enum(order=Поръчка,research=Разработка,external=Външна)', 'caption=Произход,notSorting');
-        $this->FLD('assignor', 'varchar(255)', 'caption=Възложител');
+      //  $this->FLD('assignor', 'varchar(255)', 'caption=Възложител');
         $this->FLD('note', 'richtext(bucket=Notes)', 'caption=Описание,notSorting');
+        $this->FLD('parameters', 'keylist(mvc=lab_Parameters,select=name)', 'caption=Параметри,notSorting');
+
         $this->FLD('activatedOn', 'datetime', 'caption=Активиран на,input=none,notSorting');
         $this->FLD('lastChangedOn', 'datetime', 'caption=Последна промяна,input=none,notSorting');
         $this->FLD('state', 'enum(draft=Чернова,active=Активен,rejected=Изтрит)', 'caption=Статус,input=none,notSorting');
         $this->FLD('searchd', 'text', 'caption=searchd, input=none, notSorting');
     }
+
+
+    public static function on_AfterInputeditForm($mvc, &$form)
+    {
+
+//        $param = lab_Parameters::getQuery()->fetch()->name;
+//
+//        bp($param);
+
+        $pQuery = lab_Parameters::getQuery();
+        while($param = $pQuery ->fetch()->name) {
+
+
+           // $form->this->FLD('parameters', "set($param)", 'caption=Параметри,notSorting');
+        }
+
+
+    }
+
 
     
     /**
@@ -515,21 +580,27 @@ class lab_Tests extends core_Master
     /**
      * Извиква се след изчисляването на необходимите роли за това действие
      */
-    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         
-        if(is_object($rec)) {
             
-            if ($action == 'activate') {
+        if ($action == 'activate') {
                 
+            if(is_object($rec) && $rec->id) {
+
                 $haveDetail = is_object(lab_TestDetails::fetch("#testId = {$rec->id}"));
-                
-                if ($rec->state != 'draft' || !$haveDetail) {
-                    $requiredRoles = 'no_one';
-                    
-                    return;
-                }
+            } else {
+                $haveDetail = FALSE;
             }
+                
+            if (!$rec->id || $rec->state != 'draft' || !$haveDetail) {
+                $requiredRoles = 'no_one';
+                    
+                return;
+            }
+        }
+        
+        if(is_object($rec)) {
             
             if ($action == 'compare') {
                 
@@ -564,4 +635,5 @@ class lab_Tests extends core_Master
         
         return $row;
     }
+
 }

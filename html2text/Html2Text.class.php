@@ -94,16 +94,16 @@ class html2text_Html2Text
         '/<script[^>]*>.*?<\/script>/si', // <script>s -- which strip_tags supposedly has problems with
         '/<style[^>]*>.*?<\/style>/si', // <script>s -- which strip_tags supposedly has problems with
         '/<!--.*-->/U', // Comments -- which strip_tags might have problem a with
-        '/<h[123][^>]*>(.+?)<\/h[123]>/ie', // H1 - H3
-        '/<h[456][^>]*>(.+?)<\/h[456]>/ie', // H4 - H6
+        '/<h[123][^>]*>(.+?)<\/h[123]>/i', // H1 - H3
+        '/<h[456][^>]*>(.+?)<\/h[456]>/i', // H4 - H6
         '/<p[^>]*>/i', // <P>
         '/<br[^>]*>/i', // <br>
         '/<b[^>]*>(.+?)<\/b>/i', // <b>
         '/<i[^>]*>(.+?)<\/i>/i', // <i>
         '/(<ul[^>]*>|<\/ul>)/i', // <ul> and </ul>
         '/<li[^>]*>/i', // <li>
-        '/<a.+href="(http\:[^"]+)"[^>]*>(.+?)<\/a>/ie', // <a href="">
-        "/<a.+href='(http\:[^']+)'[^>]*>(.+?)<\/a>/ie", // <a href=''>
+        '/<a.+href="(http\:[^"]+)"[^>]*>(.+?)<\/a>/i', // <a href="">
+        "/<a.+href='(http\:[^']+)'[^>]*>(.+?)<\/a>/i", // <a href=''>
         '/<hr[^>]*>/i', // <hr>
         /* New
          '/<table[^>]*>/i',                          // <hr>
@@ -395,6 +395,7 @@ class html2text_Html2Text
         if($this->simple) {
             $text = preg_replace($this->search, $this->replaceSimple, $text);
         } else {
+
             $text = preg_replace($this->search, $this->replace, $text);
         }
         
@@ -415,8 +416,6 @@ class html2text_Html2Text
         $text = wordwrap($text, $this->width);
         
         $this->text = $text;
-        
-        //echo("<BR><PRE>$text</PRE>");
         
         $this->_converted = TRUE;
     }

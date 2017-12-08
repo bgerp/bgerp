@@ -27,7 +27,7 @@ class mobio_SmsPlugin extends core_Plugin
     {
     	$conf = core_Packs::getConfig('mobio');
     	
-        // Записваме в модела данните за СМС-а
+        // Записваме в модела данните за SMS-а
         $rec = new stdClass();
         $rec->gateway = "Mobio";
         $rec->number = $number;

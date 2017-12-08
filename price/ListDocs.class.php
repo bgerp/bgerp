@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   price
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Документ "Ценоразпис"
@@ -45,8 +45,8 @@ class price_ListDocs extends core_Master
      /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, price_Wrapper, doc_DocumentPlg, doc_EmailCreatePlg,
-    	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, doc_ActivatePlg, doc_plg_BusinessDoc';
+    public $loadList = 'plg_RowTools2, price_Wrapper, plg_Clone, doc_DocumentPlg, doc_EmailCreatePlg,
+    	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, doc_ActivatePlg, doc_plg_SelectFolder';
     	
     
     
@@ -69,27 +69,21 @@ class price_ListDocs extends core_Master
     
     
     /**
-     * Кой може да го прочете?
-     */
-    public $canRead = 'powerUser';
-    
-    
-    /**
      * Кой може да го промени?
      */
-    public $canWrite = 'price, ceo';
+    public $canWrite = 'sales, priceDealer, ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'price, ceo';
+    public $canList = 'sales, priceDealer, ceo';
     
     
     /**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'price, ceo';
+	public $canSingle = 'sales, priceDealer, ceo';
     
     
     /**
@@ -126,6 +120,20 @@ class price_ListDocs extends core_Master
      * Работен кеш
      */
     public $cache = array();
+    
+    
+    /**
+     * Списък с корици и интерфейси, където може да се създава нов документ от този клас
+     */
+    public $coversAndInterfacesForNewDoc = 'crm_ContragentAccRegIntf,doc_UnsortedFolders';
+
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'date';
     
     
     /**
@@ -206,6 +214,7 @@ class price_ListDocs extends core_Master
     
     /**
      * Подготвя всички политики до които има достъп потребителя
+     * 
      * @param stdClass $rec - запис от модела
      * @return array $options - масив с опции
      */
@@ -213,10 +222,13 @@ class price_ListDocs extends core_Master
     {
     	$options = array();
     	$polQuery = price_Lists::getQuery();
+    	$polQuery->show('title');
     	while($polRec = $polQuery->fetch()){
-    		if(price_Lists::haveRightFor('single', $polRec)){
-    			$options[$polRec->id] = price_Lists::getTitleById($polRec->id, FALSE);
-    		}
+    		$options[$polRec->id] = price_Lists::getTitleById($polRec->id, FALSE);
+    	}
+    	
+    	if(!haveRole('ceo,priceDealer')){
+    		unset($options[price_ListRules::PRICE_LIST_COST]);
     	}
     	
     	return $options;
@@ -352,9 +364,8 @@ class price_ListDocs extends core_Master
     		$data->rec->date .= ' 23:59:59';
     	}
     	
-    	$customerProducts = price_ListRules::getProductOptions();
+    	$customerProducts = price_ListRules::getProductOptions($data->rec->policyId);
     	unset($customerProducts['pu']);
-    	
     	
     	$aGroups = cat_Groups::getDescendantArray($rec->productGroups);
     	
@@ -524,7 +535,7 @@ class price_ListDocs extends core_Master
 			}
 			
     		$row->pack = $this->cache[$rec->pack];
-    		$row->pack .= "&nbsp;({$Double->toVerbal($rec->perPack)}&nbsp;{$measureShort})";
+    		$row->pack .= deals_Helper::getPackMeasure($rec->measureId, $rec->perPack);
 		}
     	
 		$row->code = $Varchar->toVerbal($rec->code);
@@ -830,36 +841,7 @@ class price_ListDocs extends core_Master
     {
         // Добавяме тези документи само в персонални папки
         $threadRec = doc_Threads::fetch($threadId);
-
+		
         return self::canAddToFolder($threadRec->folderId);
-    }
-
-    
-	/**
-     * В кои корици може да се вкарва документа
-     * @return array - интерфейси, които трябва да имат кориците
-     */
-    public static function getCoversAndInterfacesForNewDoc()
-    {
-    	return array('crm_ContragentAccRegIntf', 'price_PriceListFolderCoverIntf');
-    }
-    
-    
-    /**
-     * Проверка дали нов документ може да бъде добавен в
-     * посочената папка като начало на нишка
-     *
-     * @param $folderId int ид на папката
-     */
-    public static function canAddToFolder($folderId)
-    {
-    	$allowedIntfs = self::getCoversAndInterfacesForNewDoc();
-    	$cover = doc_Folders::getCover($folderId);
-    	foreach ($allowedIntfs as $intf){
-    		if($cover->haveInterface($intf)){
-    			return TRUE;
-    		}
-    	}
-    	return FALSE;
     }
 }

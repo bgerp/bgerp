@@ -124,7 +124,7 @@ class cal_Holidays extends core_Master
         								holiday=Празник,
         								non-working=Неработен,
                                         workday=Отработване,
-                                        orthodox=Православен,
+                                        orthodox=Християнски,
                                         muslim=Мюсюлмански,
                                         international=Международен,
                                         AU=Австралия,
@@ -227,7 +227,7 @@ class cal_Holidays extends core_Master
 										PA=Панама,
 										PY=Парагвай,
 										PE=Перу,
-										PO=Полша,
+										PL=Полша,
 										PT=Португалия,
 										CG=Република Конго, 
 										RO=Румъния,
@@ -266,9 +266,9 @@ class cal_Holidays extends core_Master
 										ZA=ЮАР,
 										JM=Ямайка,
 										JP=Япония)', 'caption=Празник->Тип,placeholder=Тип на празника,export');
-        $this->FLD('info', 'richtext', 'caption=Празник->Данни,export');
+        $this->FLD('info', 'richtext(bucket=calTasks)', 'caption=Празник->Данни,export');
         
-        $this->FLD('nameday', 'richtext', 'caption=Именници,export');
+        $this->FLD('nameday', 'richtext(bucket=calTasks)', 'caption=Именици,export');
         
         $this->setDbUnique('key');
     }
@@ -334,9 +334,6 @@ class cal_Holidays extends core_Master
                 $calRec->key    = $prefix . $rec->key . $year;
                 $calRec->time   = date('Y-m-d', $base + 24*60*60*($delta + $rec->day));
                 $calRec->type   = $rec->type;
-                /*if($calRec->type == 'nameday') {
-                    $calRec->type = 'orthodox';
-                }*/
                 $calRec->allDay = 'yes';
                 $calRec->title  = self::getVerbal($rec, 'title');
                 if(strlen($rec->type) == 2) {
@@ -373,7 +370,7 @@ class cal_Holidays extends core_Master
     {
     	
     	// Подготвяме пътя до файла с данните 
-    	$file = "bglocal/data/Holidais.csv";
+    	$file = "bglocal/data/Holidays.csv";
     	
     	// Кои колонки ще вкарваме
     	$fields = array( 
@@ -400,9 +397,10 @@ class cal_Holidays extends core_Master
  		
     }
     
+    
     static function on_BeforeSave($mvc, $res, $rec)
     {
-    	if(isset($rec->csv_base) && strlen($rec->csv_base) != 0){
+    	if(isset($rec->csv_base) && strlen($rec->csv_base) != 0){ 
     		if($rec->csv_base > 0){
     			$rec->base = str_pad((int) $rec->csv_base, 2, '0', STR_PAD_LEFT);
     		} else {
@@ -453,7 +451,7 @@ class cal_Holidays extends core_Master
 
 
     /**
-     * Връща масив с имена на латиница от описание на именници
+     * Връща масив с имена на латиница от описание на Именици
      */
     static function getLatinNames($names)
     {   
@@ -471,6 +469,7 @@ class cal_Holidays extends core_Master
         return $res;
     }
 
+    
     /**
      * Форма за търсене по дадена ключова дума
      */
@@ -489,6 +488,7 @@ class cal_Holidays extends core_Master
             $data->query->where("#base = '{$base}'");
         }
     }
+    
     
     /**
      * Функция, която връща array[кода на държавата] = списък на потребители

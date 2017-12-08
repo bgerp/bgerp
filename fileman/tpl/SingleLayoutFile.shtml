@@ -3,7 +3,7 @@
 <div class='filesContainer' style='margin: 10px 0px 5px -1px;'>
 	
 		<!--ET_BEGIN fileName-->
-		   <b style='word-wrap:break-word; display:block; margin-bottom: 15px;padding-top:10px;'>[#fileName#]</b>
+		   <b class="filePath">[#fileName#]</b>
 		<!--ET_END fileName-->
 		
 		<!--ET_BEGIN versions-->          

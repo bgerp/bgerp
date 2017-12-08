@@ -1,17 +1,29 @@
 <?php
 
 
+
 /**
  * Базов документ за наследяване на платежни документи
  * 
  * @category  bgerp
  * @package   deals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 abstract class deals_PaymentDocument extends core_Master {
+	
+	
+	/**
+	 * След дефиниране на полетата на модела
+	 *
+	 * @param core_Mvc $mvc
+	 */
+	public static function on_AfterDescription(core_Master &$mvc)
+	{
+		$mvc->FLD('fromContainerId', 'int', 'caption=От фактура,input=hidden,silent');
+	}
 	
 	
 	/**
@@ -21,7 +33,7 @@ abstract class deals_PaymentDocument extends core_Master {
 	{
 		// Обновяваме автоматично изчисления метод на плащане на всички фактури в нишката на документа
 		$threadId = ($rec->threadId) ? $rec->threadId : $mvc->fetchField($rec->id, 'threadId');
-		sales_Invoices::updateAutoPaymentTypeInThread($threadId);
+		deals_Helper::updateAutoPaymentTypeInThread($threadId);
 	}
 	
 	
@@ -35,31 +47,140 @@ abstract class deals_PaymentDocument extends core_Master {
 			
 			// Обновяваме автоматично изчисления метод на плащане на всички фактури в нишката на документа
 			$threadId = ($rec->threadId) ? $rec->threadId : $mvc->fetchField($id, 'threadId');
-			sales_Invoices::updateAutoPaymentTypeInThread($threadId);
+			deals_Helper::updateAutoPaymentTypeInThread($threadId);
 		}
 	}
 	
 	
 	/**
-	 * След подготовка на тулбара на единичен изглед.
-	 *
-	 * @param core_Mvc $mvc
-	 * @param stdClass $data
+	 *  Подготовка на филтър формата
 	 */
-	protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+	protected static function on_AfterPrepareListFilter($mvc, $data)
 	{
-		$rec = $data->rec;
-		
-		if($rec->state != 'rejected'){
-			if(cal_Reminders::haveRightFor('add', (object)array('originId' => $rec->containerId, 'threadId' => $rec->threadId))){
-				$timeStart = array('d' => $rec->{$mvc->valiorFld}, 't' => '8:30');
-				$sharedUsers = keylist::toArray($rec->sharedUsers);
-				$description = tr('Да се активира документ|* #') . $mvc->getHandle($rec);
-				$title = tr("Активиране на|* ") .  mb_strtolower($mvc->singleTitle) . " №{$rec->id}";
-					
-				$url = array('cal_Reminders', 'add', 'originId' => $rec->containerId, 'timeStart' => $timeStart, 'sharedUsers' => $sharedUsers, 'description' => $description, 'title' => $title, 'ret_url' => TRUE);
-				$data->toolbar->addBtn('Напомняне', $url, 'ef_icon=img/16/alarm_clock_add.png', 'title=Създаване на ново напомняне');
+		if(!Request::get('Rejected', 'int')){
+			$data->listFilter->FNC('dState', 'enum(all=Всички, pending=Заявка, draft=Чернова, active=Контиран)', 'caption=Състояние,input,silent');
+			$data->listFilter->showFields .= ',dState';
+			$data->listFilter->input();
+			$data->listFilter->setDefault('dState', 'all');
+		}
+			
+		if($rec = $data->listFilter->rec){
+			if($rec->dState){
+				if($rec->dState != 'all'){
+					$data->query->where("#state = '{$rec->dState}'");
+				}
 			}
 		}
+	}
+	
+	
+	/**
+	 *  Обработки по вербалното представяне на данните
+	 */
+	protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+	{
+		$row->valior = (isset($rec->valior)) ? $row->valior : ht::createHint('', 'Вальора ще бъде датата на контиране');
+		
+		if(isset($rec->fromContainerId)){
+			$Document = doc_Containers::getDocument($rec->fromContainerId);
+			$number = str_pad($Document->fetchField('number'), '10', '0', STR_PAD_LEFT);
+			$row->fromContainerId = "#{$Document->abbr}{$number}";
+			if(!Mode::isReadOnly()){
+				$row->fromContainerId = ht::createLink($row->fromContainerId, $Document->getSingleurlArray());
+			}
+		}
+		
+		if(!Mode::isReadOnly()){
+			if($mvc->haveRightFor('selectinvoice', $rec)){
+				$row->fromContainerId = (!empty($rec->fromContainerId)) ? $row->fromContainerId : "<div class=border-field></div>";
+				$row->fromContainerId = $row->fromContainerId . ht::createLink('', array($mvc, 'selectInvoice', $rec->id, 'ret_url' => TRUE), FALSE, 'title=Смяна на фактурата към която е документа,ef_icon=img/16/edit.png');
+			}
+		}
+	}
+	
+	
+	/**
+	 * Екшън за избор на налични фактури
+	 */
+	function act_selectinvoice()
+	{
+		$this->requireRightFor('selectinvoice');
+		expect($id = Request::get('id', 'int'));
+		expect($rec = $this->fetch($id));
+		$this->requireRightFor('selectinvoice', $rec);
+		
+		$form = cls::get('core_Form');
+		$form->title = core_Detail::getEditTitle($this, $rec->id, 'информация', $rec->id);
+		$form->FLD('fromContainerId', 'int', 'caption=За фактура');
+		
+		$isReverse = ($rec->isReverse == 'yes');
+		$invoices = deals_Helper::getInvoicesInThread($rec->threadId, $isReverse);
+		$form->setOptions('fromContainerId', array('' => '') + $invoices);
+		$form->setDefault('fromContainerId', $rec->fromContainerId);
+		
+		$form->input();
+		if($form->isSubmitted()){
+			$rec->fromContainerId = $form->rec->fromContainerId;
+			$rec->modifiedOn = dt::now();
+			$rec->modifiedBy = core_Users::getCurrent();
+			$this->save_($rec, 'fromContainerId,modifiedOn,modifiedBy');
+			
+			followRetUrl(NULL, 'Промяната е записана успешно');
+		}
+	
+		// Добавяне на тулбар
+    	$form->toolbar->addSbBtn('Промяна', 'save', 'ef_icon = img/16/disk.png, title = Импорт');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+    
+    	// Рендиране на опаковката
+    	$tpl = $this->renderWrapping($form->renderHtml());
+    	core_Form::preventDoubleSubmission($tpl, $form);
+
+		
+    	return $tpl;
+	}
+	
+	
+	/**
+	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+	 *
+	 * @param core_Mvc $mvc
+	 * @param string $requiredRoles
+	 * @param string $action
+	 * @param stdClass $rec
+	 * @param int $userId
+	 */
+	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+	{
+		if($action == 'selectinvoice' && isset($rec)){
+			$isReverse = ($rec->isReverse == 'yes');
+			if($rec->state == 'rejected' || !deals_Helper::getInvoicesInThread($rec->threadId, $isReverse)){
+				$requiredRoles = 'no_one';
+			}
+		}
+	}
+	
+	
+	/**
+	 * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
+	 */
+	public function getDocumentRow($id)
+	{
+		$rec = $this->fetch($id);
+		$row = new stdClass();
+		$row->title = $this->getRecTitle($rec);
+		$row->authorId = $rec->createdBy;
+		$row->author = $this->getVerbal($rec, 'createdBy');
+		$row->state = $rec->state;
+	
+		$recTitle = $rec->amount . " " . currency_Currencies::getCodeById($rec->currencyId);
+		$date = ($rec->valior) ? $rec->valior : (isset($rec->termDate) ? $rec->termDate : NULL);
+		if(isset($date)){
+			$recTitle .= " / " . dt::mysql2verbal($date, 'd.m.y');
+		}
+	
+		$row->recTitle = $recTitle;
+	
+		return $row;
 	}
 }

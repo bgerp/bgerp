@@ -1,14 +1,15 @@
 <?php 
 
 
+
 /**
- * Структура
+ * Мениджър за департаменти
  *
  *
  * @category  bgerp
  * @package   hr
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -25,13 +26,13 @@ class hr_Departments extends core_Master
     /**
      * Детайли на този мастер
      */
-    public $details = 'AccReports=acc_ReportDetails,Grafic=hr_WorkingCycles,Positions=hr_Positions';
+    public $details = 'AccReports=acc_ReportDetails,Grafic=hr_WorkingCycles';
     
     
     /**
      * По кои сметки ще се правят справки
      */
-    public $balanceRefAccounts = '611,60020';
+    public $balanceRefAccounts = '60020';
     
     
     /**
@@ -43,13 +44,13 @@ class hr_Departments extends core_Master
     /**
      * Заглавие
      */
-    public $title = "Организационна структура";
+    public $title = "Департаменти";
     
     
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = "Звено";
+    public $singleTitle = "Департамент";
     
     
     /**
@@ -61,44 +62,39 @@ class hr_Departments extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, hr_Wrapper, doc_FolderPlg, plg_Printing, plg_State, plg_Rejected,
-                     plg_Created, WorkingCycles=hr_WorkingCycles,acc_plg_Registry, plg_SaveAndNew, plg_TreeObject, plg_Modified, bgerp_plg_Blank';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,hr';
+    public $loadList = 'plg_RowTools2, hr_Wrapper, doc_FolderPlg, plg_State, plg_Rejected,
+                        plg_Created, WorkingCycles=hr_WorkingCycles,acc_plg_Registry, plg_SaveAndNew, 
+                        plg_TreeObject, plg_Modified, bgerp_plg_Blank';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,hr';
+    public $canList = 'ceo,hrMaster';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,hr';
+    public $canSingle = 'ceo,hrMaster';
     
     
     /**
      * Кой може да пише?
      */
-    public $canWrite = 'ceo,hr';
+    public $canWrite = 'ceo,hrMaster';
     
     
     /**
      * Кой може да оттегля
      */
-    public $canReject = 'ceo,hr';
+    public $canReject = 'ceo,hrMaster';
     
     
     /**
      * Кой може да го възстанови?
      */
-    public $canRestore = 'ceo,hr';
+    public $canRestore = 'ceo,hrMaster';
     
     
     /**
@@ -128,26 +124,14 @@ class hr_Departments extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name, type, locationId, employmentOccupied=Назначени, employmentTotal=От общо, schedule=График';
+    public $listFields = 'name=Департамент, type, locationId, employmentOccupied=Назначени, employmentTotal=От общо, schedule=График';
 
     
     /**
      * Дефолт достъп до новите корици
      */
     public $defaultAccess = 'public';
-    
-    
-    /**
-     * Видове графики
-     */
-    public static $chartTypes = array('List' => 'Tаблица', 'StructureChart' => 'Графика',);
-    
-    
-    /**
-     * Активен таб
-     */
-    public $currentTab = 'Структура->Таблица';
-    
+     
     
     /**
      * Кои полета да се сумират за наследниците
@@ -158,7 +142,7 @@ class hr_Departments extends core_Master
     /**
      * Да се създаде папка при създаване на нов запис
      */
-    public $autoCreateFolder = 'instant';
+    public $autoCreateFolder = NULL;
     
     
     /**
@@ -178,6 +162,7 @@ class hr_Departments extends core_Master
                                  plant=Завод,
                                  workshop=Цех,
                                  store=Склад,
+				                 shop=Магазин,
                                  unit=Звено,
                                  brigade=Бригада,
                                  shift=Смяна,
@@ -188,8 +173,8 @@ class hr_Departments extends core_Master
         $this->FLD('nkid', 'key(mvc=bglocal_NKID, select=title,allowEmpty=true)', 'caption=Служители->НКИД, hint=Номер по НКИД');
         $this->FLD('employmentTotal', 'int', "caption=Служители->Щат, input=none");
         $this->FLD('employmentOccupied', 'int', "caption=Служители->Назначени, input=none");
-        $this->FLD('schedule', 'key(mvc=hr_WorkingCycles, select=name, allowEmpty=true)', "caption=Работен график->Цикъл");
-        $this->FLD('startingOn', 'datetime', "caption=Работен график->Начало");
+        $this->FLD('schedule', 'key(mvc=hr_WorkingCycles, select=name, allowEmpty=true)', "caption=Работен график->Цикъл,mandatory");
+        $this->FLD('startingOn', 'datetime', "caption=Работен график->От");
         $this->FLD('orderStr', 'varchar', "caption=Подредба,input=none,column=none");
         // Състояние
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
@@ -240,6 +225,8 @@ class hr_Departments extends core_Master
     	if(!$mvc->count("#id != {$undefinedDepId}") || (isset($fRec->id) && $fRec->id != $undefinedDepId && empty($fRec->parentId))){
     		$data->form->setField('parentId', 'input=none');
     	}
+
+    	$data->form->setOptions('locationId', crm_Locations::getOwnLocations());
     }
     
     
@@ -284,25 +271,7 @@ class hr_Departments extends core_Master
         }
     }
     
-    
-    /**
-     * Добавя след таблицата
-     */
-    protected static function on_AfterRenderListTable($mvc, &$tpl, $data)
-    {
-        $chartType = Request::get('Chart');
-        
-        if($chartType == 'Structure') {
-            
-            $tpl = static::getChart($data);
-            
-            $mvc->currentTab = "Структура->Графика";
-        } else {
-            $mvc->currentTab = "Структура->Таблица";
-        }
-    }
-    
-    
+
     /**
      * След преобразуване на записа в четим за хора вид
      */
@@ -492,5 +461,34 @@ class hr_Departments extends core_Master
     			$requiredRoles = 'no_one';
     		}
     	}
+    }
+    
+    
+    /**
+     * Добавя след таблицата
+     */
+    protected static function on_AfterRenderListTable($mvc, &$tpl, $data)
+    {
+        $chartType = Request::get('Chart');
+    
+        if($chartType == 'Structure') {
+    
+            $tpl = static::getChart($data);
+    
+            $mvc->currentTab = "Структура->Графика";
+        } else {
+            $mvc->currentTab = "Структура->Таблица";
+        }
+    }
+    
+    
+    /**
+     * Прави заглавие на МО от данните в записа
+     */
+    public static function getRecTitle($rec, $escaped = TRUE)
+    {
+    	$me = cls::get(get_called_class());
+    	
+    	return $me->getVerbal($rec, 'name');
     }
 }
