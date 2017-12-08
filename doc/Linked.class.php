@@ -535,6 +535,15 @@ class doc_Linked extends core_Manager
             }
         }
         
+        // Да не редиректва, когато формата се отвори автоматично
+        if (is_object($res)) {
+            if ($res instanceof core_Redirect) {
+                if (!$form->cmd) {
+                    $res = NULL;
+                }
+            }
+        }
+        
         if ($res) {
             
             return $res;
