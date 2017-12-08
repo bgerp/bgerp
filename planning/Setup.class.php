@@ -322,6 +322,7 @@ class planning_Setup extends core_ProtoSetup
     	
     	if(!count($toTransfer) && !count($toUnsorted)) return;
     	$map = array();
+    	$deleted = array();
     	
     	foreach ($toTransfer as $objectId => $obj)
     	{
@@ -366,8 +367,19 @@ class planning_Setup extends core_ProtoSetup
     			}
     			
     			if(isset($obj->departmentId) || $obj->name == 'Неопределен'){
+    				$deleted[$objectId] = hr_Departments::fetch($objectId);
     				hr_Departments::delete($objectId);
     			}
+    		}
+    	}
+    	
+    	// Оправяне и на изтритите департаменти
+    	foreach ($deleted as $dId => $delRec){
+    		$q = $Centers->getQuery();
+    		$q->where("#departmentId = {$dId}");
+    		while($c1 = $q->fetch()){
+    			$c1->departmentId = $delRec->parentId;
+    			$Centers->save($c1);
     		}
     	}
     	
