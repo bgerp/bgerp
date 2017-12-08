@@ -43,6 +43,18 @@ class trans_Cmrs extends core_Master
 
     
     /**
+     * Кой може да го клонира?
+     */
+    public $canClonerec = 'ceo, trans';
+    
+    
+    /**
+     * Кой може да го вижда?
+     */
+    public $canSingle = 'ceo, trans';
+    
+    
+    /**
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'ceo, trans';
@@ -58,18 +70,12 @@ class trans_Cmrs extends core_Master
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo, trans';
-
-
-    /**
-     * Кой има право да пише?
-     */
-    public $canWrite = 'ceo, trans';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title=Товарителница, originId=Експедиция, folderId, state,createdOn, createdBy';
+    public $listFields = 'id=№,title=Товарителница, originId=Експедиция, folderId, state,createdOn, createdBy';
     
     
     /**
@@ -115,7 +121,6 @@ class trans_Cmrs extends core_Master
     {
     	$this->FLD('senderData', 'text(rows=2)', 'caption=1. Изпращач,mandatory');
     	$this->FLD('consigneeData', 'text(rows=2)', 'caption=2. Получател,mandatory');
-    	
     	$this->FLD('deliveryPlace', 'text(rows=2)', 'caption=3. Разтоварен пункт,mandatory');
     	$this->FLD('loadingPlace', 'text(rows=2)', 'caption=4. Товарен пункт,mandatory');
     	$this->FLD('loadingDate', 'date', 'caption=4. Дата на товарене,mandatory');
@@ -128,7 +133,6 @@ class trans_Cmrs extends core_Master
     	$this->FLD('statNum1', 'varchar', 'caption=1. Информация за стоката->10. Статистически №');
     	$this->FLD('grossWeight1', 'varchar', 'caption=1. Информация за стоката->11. Тегло Бруто');
     	$this->FLD('volume1', 'varchar', 'caption=1. Информация за стоката->12. Обем');
-    	
     	$this->FLD('mark2', 'varchar', 'caption=2. Информация за стоката->6. Знаци и Номера,autohide');
     	$this->FLD('numOfPacks2', 'varchar', 'caption=2. Информация за стоката->7. Брой колети,autohide');
     	$this->FLD('methodOfPacking2', 'varchar', 'caption=2. Информация за стоката->8. Вид опаковка,autohide');
@@ -136,7 +140,6 @@ class trans_Cmrs extends core_Master
     	$this->FLD('statNum2', 'varchar', 'caption=2. Информация за стоката->10. Статистически №,autohide');
     	$this->FLD('grossWeight2', 'varchar', 'caption=2. Информация за стоката->11. Тегло Бруто,autohide');
     	$this->FLD('volume2', 'varchar', 'caption=2. Информация за стоката->12. Обем,autohide');
-    	
     	$this->FLD('mark3', 'varchar', 'caption=3. Информация за стоката->6. Знаци и Номера,autohide');
     	$this->FLD('numOfPacks3', 'varchar', 'caption=3. Информация за стоката->7. Брой колети,autohide');
     	$this->FLD('methodOfPacking3', 'varchar', 'caption=3. Информация за стоката->8. Вид опаковка,autohide');
@@ -144,7 +147,6 @@ class trans_Cmrs extends core_Master
     	$this->FLD('statNum3', 'varchar', 'caption=3. Информация за стоката->10. Статистически №,autohide');
     	$this->FLD('grossWeight3', 'varchar', 'caption=3. Информация за стоката->11. Тегло Бруто,autohide');
     	$this->FLD('volume3', 'varchar', 'caption=3. Информация за стоката->12. Обем,autohide');
-    	
     	$this->FLD('mark4', 'varchar', 'caption=4. Информация за стоката->6. Знаци и Номера,autohide');
     	$this->FLD('numOfPacks4', 'varchar', 'caption=4. Информация за стоката->7. Брой колети,autohide');
     	$this->FLD('methodOfPacking4', 'varchar', 'caption=4. Информация за стоката->8. Вид опаковка,autohide');
@@ -156,16 +158,13 @@ class trans_Cmrs extends core_Master
     	$this->FLD('class', 'varchar(12)', 'caption=ADR->Клас');
     	$this->FLD('number', 'int', 'caption=ADR->Цифра');
     	$this->FLD('letter', 'varchar(12)', 'caption=ADR->Буква');
-    	
     	$this->FLD('senderInstructions', 'text(rows=4)', 'caption=Допълнително->13. Указания на изпращача');
     	$this->FLD('instructionsPayment', 'text(rows=2)', 'caption=Допълнително->14. Предп. плащане навло');
-    	
     	$this->FLD('cashOnDelivery', 'varchar', 'caption=Допълнително->15. Наложен платеж');
     	$this->FLD('cariersData', 'text(rows=2)', 'caption=Допълнително->16. Превозвач,mandatory');
     	$this->FLD('vehicleReg', 'varchar', 'caption=МПС регистрационен №,mandatory');
     	$this->FLD('successiveCarriers', 'text(rows=2)', 'caption=Допълнително->17. Посл. превозвачи');
     	$this->FLD('specialagreements', 'text(rows=4)', 'caption=Допълнително->19. Спец. споразумения');
-    
     	$this->FLD('establishedPlace', 'text(rows=2)', 'caption=21. Изготвена в');
     	$this->FLD('establishedDate', 'date', 'caption=21. Изготвена на');
     }
@@ -253,10 +252,7 @@ class trans_Cmrs extends core_Master
     	$contragentAddress = $Contragent->getFullAdress($contragentId, TRUE, FALSE)->getContent();
     	$contragentAddress = str_replace('<br>', ', ', $contragentAddress);
     	$contragentCountry = $Contragent->getVerbal($contragentId, 'country');
-    	
     	$contragentName = ($translate === TRUE) ? transliterate(tr($Contragent->fetchField($contragentId, 'name'))) : $Contragent->getVerbal($contragentId, 'name');
-    	
-    	
     	$contragenData = "{$contragentName},{$contragentAddress}, {$contragentCountry}";
     	
     	return $contragenData;
@@ -274,8 +270,12 @@ class trans_Cmrs extends core_Master
     {
     	$row->title = $mvc->getLink($rec->id, 0);
     	
-    	$origin = doc_Containers::getDocument($rec->originId);
-    	$row->originId = $origin->getInstance()->getLink($origin->that, 0);
+    	if(!Mode::isReadOnly()){
+    		$origin = doc_Containers::getDocument($rec->originId);
+    		$row->originId = $origin->getInstance()->getLink($origin->that, 0);
+    	} else {
+    		unset($row->originId);
+    	}
     	
     	if(!empty($rec->loadingDate)){
     		$row->loadingDate = dt::mysql2verbal($rec->loadingDate, 'd.m.y');
@@ -343,5 +343,37 @@ class trans_Cmrs extends core_Master
     	);
     
     	return $row;
+    }
+    
+    
+    /**
+     * Връща тялото на имейла генериран от документа
+     *
+     * @see email_DocumentIntf
+     * @param int $id - ид на документа
+     * @param boolean $forward
+     * @return string - тялото на имейла
+     */
+    public function getDefaultEmailBody($id, $forward = FALSE)
+    {
+    	$handle = $this->getHandle($id);
+    	$tpl = new ET(tr("Моля запознайте се с нашето|* |ЧМР|*") . ': #[#handle#]');
+    	$tpl->append($handle, 'handle');
+    
+    	return $tpl->getContent();
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	// ХАК за да се клонират ЧМР-та (@see trans_Cmrs::canAddToThread)
+    	if($action == 'clonerec' && isset($rec)){
+    		if($mvc->haveRightFor('single', $rec, $userId)){
+    			$requiredRoles = $mvc->getRequiredRoles('clonerec', NULL, $userId);
+    		}
+    	}
     }
 }
