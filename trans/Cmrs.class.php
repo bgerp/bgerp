@@ -39,7 +39,7 @@ class trans_Cmrs extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, trans_Wrapper, plg_Printing, plg_Clone,doc_DocumentPlg, plg_Search, doc_ActivatePlg, doc_EmailCreatePlg';
+    public $loadList = 'plg_RowTools2, trans_Wrapper,plg_Clone,doc_DocumentPlg, plg_Printing, plg_Search, doc_ActivatePlg, doc_EmailCreatePlg';
 
     
     /**
@@ -69,7 +69,7 @@ class trans_Cmrs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    //public $listFields = 'id, handler=Документ, title, start, folderId, createdOn, createdBy';
+    public $listFields = 'title=Товарителница, originId=Експедиция, folderId, state,createdOn, createdBy';
     
     
     /**
@@ -113,18 +113,18 @@ class trans_Cmrs extends core_Master
      */
     public function description()
     {
-    	$this->FLD('senderData', 'text(rows=2)', 'caption=1. Изпращач');
-    	$this->FLD('consigneeData', 'text(rows=2)', 'caption=2. Получател');
+    	$this->FLD('senderData', 'text(rows=2)', 'caption=1. Изпращач,mandatory');
+    	$this->FLD('consigneeData', 'text(rows=2)', 'caption=2. Получател,mandatory');
     	
-    	$this->FLD('deliveryPlace', 'text(rows=2)', 'caption=3. Разтоварен пункт');
-    	$this->FLD('loadingPlace', 'text(rows=2)', 'caption=4. Товарен пункт');
-    	$this->FLD('loadingDate', 'datetime', 'caption=4. Дата на товарене');
+    	$this->FLD('deliveryPlace', 'text(rows=2)', 'caption=3. Разтоварен пункт,mandatory');
+    	$this->FLD('loadingPlace', 'text(rows=2)', 'caption=4. Товарен пункт,mandatory');
+    	$this->FLD('loadingDate', 'date', 'caption=4. Дата на товарене,mandatory');
     	$this->FLD('documentsAttached', 'varchar', 'caption=5. Приложени документи');
     	
     	$this->FLD('mark1', 'varchar', 'caption=1. Информация за стоката->6. Знаци и Номера');
     	$this->FLD('numOfPacks1', 'varchar', 'caption=1. Информация за стоката->7. Брой колети');
     	$this->FLD('methodOfPacking1', 'varchar', 'caption=1. Информация за стоката->8. Вид опаковка');
-    	$this->FLD('natureOfGoods1', 'varchar', 'caption=1. Информация за стоката->9. Вид стока');
+    	$this->FLD('natureOfGoods1', 'varchar', 'caption=1. Информация за стоката->9. Вид стока,mandatory');
     	$this->FLD('statNum1', 'varchar', 'caption=1. Информация за стоката->10. Статистически №');
     	$this->FLD('grossWeight1', 'varchar', 'caption=1. Информация за стоката->11. Тегло Бруто');
     	$this->FLD('volume1', 'varchar', 'caption=1. Информация за стоката->12. Обем');
@@ -157,17 +157,17 @@ class trans_Cmrs extends core_Master
     	$this->FLD('number', 'int', 'caption=ADR->Цифра');
     	$this->FLD('letter', 'varchar(12)', 'caption=ADR->Буква');
     	
-    	$this->FLD('senderInstructions', 'text(rows=2)', 'caption=Допълнително->13. Указания на изпращача');
+    	$this->FLD('senderInstructions', 'text(rows=4)', 'caption=Допълнително->13. Указания на изпращача');
     	$this->FLD('instructionsPayment', 'text(rows=2)', 'caption=Допълнително->14. Предп. плащане навло');
     	
     	$this->FLD('cashOnDelivery', 'varchar', 'caption=Допълнително->15. Наложен платеж');
-    	$this->FLD('cariersData', 'text(rows=2)', 'caption=Допълнително->16. Превозвач');
-    	$this->FLD('vehicleReg', 'varchar', 'caption=МПС регистрационен №');
+    	$this->FLD('cariersData', 'text(rows=2)', 'caption=Допълнително->16. Превозвач,mandatory');
+    	$this->FLD('vehicleReg', 'varchar', 'caption=МПС регистрационен №,mandatory');
     	$this->FLD('successiveCarriers', 'text(rows=2)', 'caption=Допълнително->17. Посл. превозвачи');
-    	$this->FLD('specialagreements', 'text(rows=2)', 'caption=Допълнително->19. Спец. споразумения');
+    	$this->FLD('specialagreements', 'text(rows=4)', 'caption=Допълнително->19. Спец. споразумения');
     
     	$this->FLD('establishedPlace', 'text(rows=2)', 'caption=21. Изготвена в');
-    	$this->FLD('establishedDate', 'datetime', 'caption=21. Изготвена на');
+    	$this->FLD('establishedDate', 'date', 'caption=21. Изготвена на');
     }
     
     
@@ -179,24 +179,34 @@ class trans_Cmrs extends core_Master
     	$form = &$data->form;
     	$rec  = &$form->rec;
     	
+    	// Към кой документ е
     	expect($origin = doc_Containers::getDocument($rec->originId));
     	$sRec = $origin->fetch();
     	$lData = $origin->getLogisticData();
     	
+    	// Всичките дефолтни данни трябва да са на английски
     	core_Lg::push('en');
     	
-    	$senderData = $mvc->getDefaultSenderData($sRec);
-    	$consigneeData = $mvc->getDefaultContragentData($sRec->contragentClassId, $sRec->contragentId);
+    	// Информация за изпращача
+    	$ownCompanyId = crm_Setup::get('BGERP_OWN_COMPANY_ID', TRUE);
+    	$senderData = $mvc->getDefaultContragentData('crm_Companies', $ownCompanyId);
+    	
+    	// Информация за получателя
+    	$consigneeData = $mvc->getDefaultContragentData($sRec->contragentClassId, $sRec->contragentId, FALSE);
+    	
+    	// Място на товарене / Разтоварване
     	$loadingPlace = $lData['fromPCode'] . " " .  transliterate($lData['fromPlace']) . ", " . $lData['fromCountry'];
     	$deliveryPlace = $lData['toPCode'] . " " .  transliterate($lData['toPlace']) . ", " . $lData['toCountry'];
     	
+    	// Има ли общо тегло в ЕН-то
     	$weight = ($sRec->weightInput) ? $sRec->weightInput : $sRec->weight;
     	if(!empty($weight)){
     		$weight = core_Type::getByName('cat_type_Weight')->toVerbal($weight);
     		$form->setDefault('grossWeight1', $weight);
     	}
     	
-    	$volume = ($sRec->weightInput) ? $sRec->volumeInput : $sRec->volume;
+    	// Има ли общ обем в ЕН-то
+    	$volume = ($sRec->volumeInput) ? $sRec->volumeInput : $sRec->volume;
     	if(!empty($weight)){
     		$volume = core_Type::getByName('cat_type_Volume')->toVerbal($volume);
     		$form->setDefault('volume1', $volume);
@@ -204,15 +214,14 @@ class trans_Cmrs extends core_Master
     	
     	core_Lg::pop();
     	
-    	
-    	
-    	
+    	// Задаване на дефолтните полета
     	$form->setDefault('senderData', $senderData);
     	$form->setDefault('consigneeData', $consigneeData);
     	$form->setDefault('deliveryPlace', $deliveryPlace);
     	$form->setDefault('loadingPlace', $loadingPlace);
     	$form->setDefault('loadingDate', $lData['loadingTime']);
     	
+    	// Информация за превозвача
     	if(isset($sRec->lineId)){
     		$lineRec = trans_Lines::fetch($sRec->lineId);
     		if(isset($lineRec->forwarderId)){
@@ -221,38 +230,34 @@ class trans_Cmrs extends core_Master
     		}
     	}
     	
+    	// Има ли общ брой палети
     	if(!empty($sRec->palletCountInput)){
     		$collets = core_Type::getByName('int')->toVerbal($sRec->palletCountInput);
     		$collets .= " PALLETS";
     		$form->setDefault('numOfPacks1', $collets);
     	}
-    	
-    }
-    
-    private function getDefaultSenderData($sRec)
-    {
-    	$ownData = crm_Companies::fetchOwnCompany();
-    	$ownCompanyName = cls::get('type_Varchar')->toVerbal($ownData->company);
-    	$ownCompanyName = transliterate(tr($ownCompanyName));
-    	 
-    	$ownAddress = cls::get('crm_Companies')->getFullAdress($ownData->companyId, TRUE, FALSE)->getContent();
-    	$ownAddress = str_replace('<br>', ', ', $ownAddress);
-    	$country = crm_Companies::getVerbal($ownData->companyId, 'country');
-    	$senderData = "{$ownCompanyName},{$ownAddress}, {$country}";
-    	
-    	return $senderData;
     }
     
     
-    private function getDefaultContragentData($contragentClassId, $contragentId)
+    /**
+     * Информацията за контрагента
+     * 
+     * @param mixed $contragentClassId - клас на контрагента
+     * @param int $contragentId        - контрагент ид
+     * @param boolean $translate       - превод на името на контрагента
+     * @return string                  - информация за контрагента
+     */
+    private function getDefaultContragentData($contragentClassId, $contragentId, $translate = TRUE)
     {
     	$Contragent = cls::get($contragentClassId);
     	$contragentAddress = $Contragent->getFullAdress($contragentId, TRUE, FALSE)->getContent();
-    	$contragenAddress = str_replace('<br>', ', ', $contragenAddress);
-    	$contragenCountry = $Contragent->getVerbal($contragentId, 'country');
+    	$contragentAddress = str_replace('<br>', ', ', $contragentAddress);
+    	$contragentCountry = $Contragent->getVerbal($contragentId, 'country');
     	
-    	$contragenName = $Contragent->getVerbal($contragentId, 'name');
-    	$contragenData = "{$contragenName},{$contragenAddress}, {$contragenCountry}";
+    	$contragentName = ($translate === TRUE) ? transliterate(tr($Contragent->fetchField($contragentId, 'name'))) : $Contragent->getVerbal($contragentId, 'name');
+    	
+    	
+    	$contragenData = "{$contragentName},{$contragentAddress}, {$contragentCountry}";
     	
     	return $contragenData;
     }
@@ -265,11 +270,33 @@ class trans_Cmrs extends core_Master
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+    	$row->title = $mvc->getLink($rec->id, 0);
+    	
+    	$origin = doc_Containers::getDocument($rec->originId);
+    	$row->originId = $origin->getInstance()->getLink($origin->that, 0);
+    	
     	if(!empty($rec->loadingDate)){
     		$row->loadingDate = dt::mysql2verbal($rec->loadingDate, 'd.m.y');
     	}
+    	
+    	if(!empty($rec->establishedDate)){
+    		$row->establishedDate = dt::mysql2verbal($rec->loadingDate, 'd.m.Y');
+    	}
+    	
+    	$row->basicColor = "#000";
+    }
+    
+    
+    /**
+     * Изпълнява се след подготвянето на формата за филтриране
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    {
+    	$data->listFilter->view = 'horizontal';
+    	$data->listFilter->showFields = 'search';
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
     }
     
     
