@@ -68,8 +68,8 @@
                 <div class="row-fluid">
                     <div class="span6 basicFontSize" style="border:1px; border-top:0px; border-style:solid; color:[#basicColor#];   padding:6px; min-height:65px">
                         <b>&nbsp;&nbsp; 4. Place and date taking over the goods (place, country, date)</b>
-                        <div class="span8"> <div class='filledFieled leftAlign' style="margin-left:5px;">[#takingOverPlace#]</div></div>
-                        <div class="span3"><div class='filledFieled leftAlign' style="margin-left:5px;">[#takingDate#]</div></div>
+                        <div class="span8"> <div class='filledFieled leftAlign' style="margin-left:5px;">[#loadingPlace#]</div></div>
+                        <div class="span3"><div class='filledFieled leftAlign' style="margin-left:5px;">[#loadingDate#]</div></div>
                     </div>
                     <div class="span6 basicFontSize" style="border:3px; border-bottom:0px; border-left:2px; border-top:0px; border-style:solid; color:[#basicColor#];   padding:6px; min-height:65px; margin-left:0px"><b>&nbsp;&nbsp; 18. Carriers reservations and observations</b>
                     </div>
