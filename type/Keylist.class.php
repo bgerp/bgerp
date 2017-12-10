@@ -203,7 +203,7 @@ class type_Keylist extends core_Type {
         $col = self::getCol((array)$this->suggestions, $maxChars);
       
         $i = 0; $html = ''; $trOpen = FALSE;
-        $j = 0; //за конструиране на row-1,row-2 и т.н.
+        static $j = 0; //за конструиране на row-1,row-2 и т.н.
         
         $keyListClass = 'keylist';
         
