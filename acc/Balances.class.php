@@ -93,6 +93,7 @@ class acc_Balances extends core_Master
      */
     var $singleLayoutFile = 'acc/tpl/SingleLayoutBalance.shtml';
     
+
     /**
      * Поле за единичен изглед
      */
@@ -115,6 +116,12 @@ class acc_Balances extends core_Master
      * Текущата сметка
      */
     public $accountRec;
+
+
+    /**
+     * Максимално допустимо време в секунди за изчисляване на баланс на период
+     */
+    const MAX_PERIOD_CALC_TIME = 300;
     
 
     /**
@@ -132,7 +139,10 @@ class acc_Balances extends core_Master
         $this->FLD('fromDate', 'date', 'input=none,caption=Период->от,column=none');
         $this->FLD('toDate', 'date', 'input=none,caption=Период->до,column=none');
         $this->FLD('lastAlternation', 'datetime(format=smartTime)', 'input=none,caption=Последно->Изменение');
+        $this->FLD('lastAlternationDocClass', 'class(interface=acc_TransactionSourceIntf)', 'caption=Последно изменение->Документ клас,input=none,column=none');
+        $this->FLD('lastAlternationDocId', 'int', 'input=none,column=none,caption=Последно изменение->Документ ID');
         $this->FLD('lastCalculate', 'datetime(format=smartTime)', 'input=none,caption=Последно->Изчисляване');
+        $this->FLD('lastCalculateChange', 'enum(yes,no)', 'input=none,caption=Последно->Нови ст-ти');
     }
     
     
@@ -180,6 +190,11 @@ class acc_Balances extends core_Master
     			}
     		}
     	}
+        
+        // Добавяме връзка към последния алтерниращ документ
+        if($rec->lastAlternationDocClass && $rec->lastAlternationDocId) {
+            $row->lastAlternation .= ht::createLink('↗', array($rec->lastAlternationDocClass, 'single', $rec->lastAlternationDocId));
+        }
     	
     	if($rec->lastAlternation > $rec->lastCalculate){
     		$row->lastAlternation = ht::createHint($row->lastAlternation, 'Има промяна след последното изчисление на баланса', 'warning');
@@ -263,7 +278,7 @@ class acc_Balances extends core_Master
      * @param string $date дата, към която
      * @return boolean
      */
-    public static function alternate($date)
+    public static function alternate($date, $docClassId, $docId)
     {
     	static $dateArr = array();
         if($dateArr[$date])  return;
@@ -277,7 +292,9 @@ class acc_Balances extends core_Master
         // Инвалидираме баланса, ако датата е по-малка от края на периода
         while($rec = $query->fetch()) {
             $rec->lastAlternation = $now;
-            self::save($rec, 'lastAlternation');
+            $rec->lastAlternationDocClass = $docClassId;
+            $rec->lastAlternationDocId = $docId;
+            self::save($rec, 'lastAlternation,lastAlternationDocClass,lastAlternationDocId');
         }
     }
     
@@ -305,7 +322,7 @@ class acc_Balances extends core_Master
 
         // Ако не е валиден го преизчисляваме, като всяка от 
         // десетте минути след преизчисляването - пак го преизчисляваме
-        if(!self::isValid($rec, 10)) {
+        if(!self::isValid($rec, $rec->lastCalculateChange != 'no' ? 10 : 1)) {
 
             // Днешна дата
             $today = dt::today();
@@ -379,20 +396,15 @@ class acc_Balances extends core_Master
             if (core_Locks::get(acc_Balances::saveLockKey)) {
 
                 // Записваме баланса в таблицата (данните са записани под системно ид за баланс -1)
-                $bD->saveBalance($rec->id);
-                
-                // Изтриваме старите данни за текущия баланс
-                $bD->delete("#balanceId = {$rec->id}");
-                
-                // Ъпдейтваме данните за баланс -1 да са към текущия баланс
-                // Целта е да заместим новите данни със старите само след като новите данни са изчислени до края
-                // За да може ако някой използва данни от таблицата докато не са готови новите да разполага със старите
-                $balanceIdColName = str::phpToMysqlName('balanceId');
-                $bD->db->query("UPDATE {$bD->dbTableName} SET {$balanceIdColName} = {$rec->id} WHERE {$balanceIdColName} = '-1'");
-                
+                if($bD->saveBalance($rec->id)) {
+                    $rec->lastCalculateChange = 'yes';
+                } else {
+                    $rec->lastCalculateChange = 'no';
+                }
+                                
                 // Отбелязваме, кога за последно е калкулиран този баланс
                 $rec->lastCalculate = dt::now();
-                self::save($rec, 'lastCalculate');
+                self::save($rec, 'lastCalculate,lastCalculateChange');
             }
     		
     		//$count++;
@@ -408,7 +420,7 @@ class acc_Balances extends core_Master
     	$lockKey = "RecalcBalances";
     	 
     	// Ако изчисляването е заключено не го изпълняваме
-    	if(!core_Locks::get($lockKey, 600, 1)) {
+    	if(!core_Locks::get($lockKey, self::MAX_PERIOD_CALC_TIME, 1)) {
     		$this->logWarning("Изчисляването на баланса е заключено от друг процес");
     		 
     		return;
@@ -426,7 +438,11 @@ class acc_Balances extends core_Master
     	$pQuery->where("#state != 'draft'");
     		 
     	while($pRec = $pQuery->fetch()) {
-    			 
+            
+            // Подновяваме заключването за 5 минути от сега нататък
+            core_Locks::get($lockKey, self::MAX_PERIOD_CALC_TIME, 1);
+            core_App::setTimeLimit(self::MAX_PERIOD_CALC_TIME);
+ 
     		$rec = new stdClass();
     			 
     		$rec->fromDate = $pRec->start;
