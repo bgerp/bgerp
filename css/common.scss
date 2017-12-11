@@ -1267,6 +1267,12 @@ a.profile {
 	box-shadow: inset 0 0 3px #ccc;
 }
 
+.state-stopped-link > a {
+	background-color: #fee3ad  ;
+	padding-right: 4px;
+	box-shadow: inset 0 0 3px #ffbb33;
+}
+
 .state-rejected-link > a{
     background-color: #f3c9c8;
     padding-right: 4px;
