@@ -102,13 +102,13 @@
             <div class="span12">
                 <table class="cmr-table" style="height: 223px;width: 100%;border:1px solid [#basicColor#]">
                     <tr>
-                        <td class="miniText" style="width: 14.285%; height: 20px; padding: 0"><b>&nbsp;&nbsp; 6. <span><br>&nbsp;&nbsp;&nbsp;Marks and numbers</span></b></td>
-                        <td class="miniText" style="width: 14.285%"><b>&nbsp;&nbsp; 7. <span><br>&nbsp;&nbsp;&nbsp;Number of packages</span></b></td>
-                        <td class="miniText" style="width: 14.285%"><b>&nbsp;&nbsp; 8. <span><br>&nbsp;&nbsp;&nbsp;Method of packing</span></b></td>
-                        <td class="miniText" style="width: 14.285%"><b>&nbsp;&nbsp; 9. <span><br>&nbsp;&nbsp;&nbsp;Nature of the goods</span></b></td>
-                        <td class="miniText" style="width: 14.285%"><b>&nbsp;&nbsp; 10. <span><br>&nbsp;&nbsp;&nbsp;Statistical number</span></b></td>
-                        <td class="miniText" style="width: 14.285%"><b>&nbsp;&nbsp; 11. <span><br>&nbsp;&nbsp;&nbsp;Gross weight in kg</span></b></td>
-                        <td class="miniText" style="width: 14.285%"><b>&nbsp;&nbsp; 12. <span><br>&nbsp;&nbsp;&nbsp;Volume in m3</span></b></td>
+                        <td class="miniText" style="width: 14.285%; height: 15px; padding: 0"><b>&nbsp;&nbsp; 6. <span>Marks and numbers</span></b></td>
+                        <td class="miniText" style="width: 14.285%"><b>&nbsp;&nbsp; 7. <span>Number of packages</span></b></td>
+                        <td class="miniText" style="width: 14.285%"><b>&nbsp;&nbsp; 8. <span>Method of packing</span></b></td>
+                        <td class="miniText" style="width: 14.285%"><b>&nbsp;&nbsp; 9. <span>Nature of the goods</span></b></td>
+                        <td class="miniText" style="width: 14.285%"><b>&nbsp;&nbsp; 10. <span>Statistical number</span></b></td>
+                        <td class="miniText" style="width: 14.285%"><b>&nbsp;&nbsp; 11. <span>Gross weight in kg</span></b></td>
+                        <td class="miniText" style="width: 14.285%"><b>&nbsp;&nbsp; 12. <span>Volume in m3</span></b></td>
                     </tr>
                     <tr>
                         <td class='filledFieled' style="margin-left:5px; height: 20px;">[#mark1#]</td>
