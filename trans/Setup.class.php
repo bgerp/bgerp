@@ -52,6 +52,7 @@ class trans_Setup extends core_ProtoSetup
     var $managers = array(
             'trans_Vehicles',
     		'trans_Lines',
+    		'migrate::updateVehicles'
         );
 
         
@@ -74,12 +75,6 @@ class trans_Setup extends core_ProtoSetup
 	var $configDescription = array(
 		'TRANS_LINES_CRON_INTERVAL' => array("time", 'caption=Период за генериране и затваряне на линии->Време'),
 	);
-
-	
-	/**
-	 * Път до css файла
-	 */
-//	var $commonCSS = 'trans/tpl/LineStyles.css';
 	
 	
     /**
@@ -91,5 +86,19 @@ class trans_Setup extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    /**
+     * Ъпдейт на превозните средства
+     */
+    function updateVehicles()
+    {
+    	$query = trans_Vehicles::getQuery();
+    	$query->where("#state != 'rejected' OR #state IS NULL");
+    	while($rec = $query->fetch()){
+    		$rec->state = 'active';
+    		trans_Vehicles::save($rec, 'state');
+    	}
     }
 }

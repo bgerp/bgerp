@@ -5,7 +5,7 @@
 /**
  * Клас 'trans_Cmrs'
  *
- * Документ за Транспортни линии
+ * Документ за ЧМР товарителници
  *
  *
  * @category  bgerp
@@ -17,6 +17,7 @@
  */
 class trans_Cmrs extends core_Master
 {
+	
 	
     /**
      * Заглавие
@@ -121,6 +122,14 @@ class trans_Cmrs extends core_Master
     
     
     /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'cmrNumber,loadingDate';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -147,7 +156,7 @@ class trans_Cmrs extends core_Master
     	$this->FLD('establishedPlace', 'text(rows=2)', 'caption=21. Изготвена в');
     	$this->FLD('establishedDate', 'date', 'caption=21. Изготвена на');
     	
-    	$this->setDbIndex('cmrNumber');
+    	$this->setDbUnique('cmrNumber');
     }
     
     
@@ -187,7 +196,13 @@ class trans_Cmrs extends core_Master
     		$fields['goodsData'] = 'goodsData';
     	}
     	
-    	return parent::save_($rec, $fields, $mode);
+    	$res = parent::save_($rec, $fields, $mode);
+    	
+    	if(isset($rec->originId)){
+    		doc_DocumentCache::invalidateByOriginId($rec->originId);
+    	}
+    	
+    	return $res;
     }
     
     
@@ -369,22 +384,25 @@ class trans_Cmrs extends core_Master
     		}
     	}
     	
-    	if(!empty($rec->loadingDate)){
-    		$row->loadingDate = dt::mysql2verbal($rec->loadingDate, 'd.m.y');
-    	}
-    	
-    	if(!empty($rec->establishedDate)){
-    		$row->establishedDate = dt::mysql2verbal($rec->loadingDate, 'd.m.Y');
-    	}
-    	
-    	$row->basicColor = "#000";
-    	
-    	// Вербализиранре на компресираните полета
-    	if(is_array($rec->goodsData)) {
-    		foreach($rec->goodsData as $field => $value) {
-    			if(isset($value)){
-    				$row->{$field} = core_Type::getByName('varchar')->toVerbal($value);
+    	if(isset($fields['-single'])){
+    		
+    		// Вербализиранре на компресираните полета
+    		if(is_array($rec->goodsData)) {
+    			foreach($rec->goodsData as $field => $value) {
+    				if(isset($value)){
+    					$row->{$field} = core_Type::getByName('varchar')->toVerbal($value);
+    				}
     			}
+    		}
+    		
+    		$row->basicColor = "#000";
+    		
+    		if(!empty($rec->establishedDate)){
+    			$row->establishedDate = dt::mysql2verbal($rec->loadingDate, 'd.m.Y');
+    		}
+    		
+    		if(!empty($rec->loadingDate)){
+    			$row->loadingDate = dt::mysql2verbal($rec->loadingDate, 'd.m.y');
     		}
     	}
     }
@@ -474,7 +492,7 @@ class trans_Cmrs extends core_Master
     			$requiredRoles = 'no_one';
     		} else {
     			$state = $origin->rec()->state;
-    			if(!in_array($state, array('draft','active', 'pending'))){
+    			if(!in_array($state, array('active', 'pending'))){
     				$requiredRoles = 'no_one';
     			}
     		}

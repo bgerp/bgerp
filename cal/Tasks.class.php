@@ -1420,13 +1420,7 @@ class cal_Tasks extends embed_Manager
         //Заглавие
         $row->title = $this->getVerbal($rec, 'title');
         
-        $usersArr = array();
-        if ($rec->assign) {
-            $usersArr += type_Keylist::toArray($rec->assign);
-        }
-        if ($rec->sharedUsers) {
-            $usersArr += type_Keylist::toArray($rec->sharedUsers);
-        }
+        $usersArr = type_Keylist::toArray($rec->assign);
         if (!empty($usersArr)) {
             
             $subTitleMaxUsersCnt = 3;
