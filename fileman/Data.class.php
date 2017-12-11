@@ -53,7 +53,7 @@ class fileman_Data extends core_Manager {
     
     
     /**
-     * 
+     * sistemId на крон процеса
      */
     protected static $processFilesSysId = 'processFiles';
     
@@ -440,8 +440,10 @@ class fileman_Data extends core_Manager {
      */
     function cron_ProcessFiles()
     {
-        $timeLimit = core_Cron::getTimeLimit(self::$processFilesSysId);
-        $endOn = dt::addSecs($timeLimit);
+        $cronRec = core_Cron::getCurrentRec();
+
+        $endOn = dt::addSecs($cronRec->timeLimit);
+
         core_App::setTimeLimit($timeLimit + 50);
         ini_set("memory_limit", fileman_Setup::get('DRIVER_MAX_ALLOWED_MEMORY_CONTENT'));
         

@@ -871,12 +871,45 @@ class acc_BalanceDetails extends core_Detail
                 }
             }
         }
+
+        $res = TRUE;
+
+        $sum = self::getCheckSum($balanceId);
         
         // Записваме всички данни на веднъж
         $this->saveArray($toSave);
         
         // Изтриваме запаметените изчислени данни
         unset($this->balance, $this->strategies);
+
+        // Изтриваме старите данни за текущия баланс
+        $this->delete("#balanceId = {$balanceId}");
+                
+        // Ъпдейтваме данните за баланс -1 да са към текущия баланс
+        // Целта е да заместим новите данни със старите само след като новите данни са изчислени до края
+        // За да може ако някой използва данни от таблицата докато не са готови новите да разполага със старите
+        $balanceIdColName = str::phpToMysqlName('balanceId');
+        $this->db->query("UPDATE {$this->dbTableName} SET {$balanceIdColName} = {$balanceId} WHERE {$balanceIdColName} = '-1'");
+
+        if($sum == self::getCheckSum($balanceId)) {
+            $res = FALSE;
+        }
+
+        return $res;
+    }
+
+
+    public static function getCheckSum($balanceId)
+    {
+        $query = self::getQuery();
+        $query->XPR('checkSum', 'int', "SUM(CRC32(CONCAT_WS('', #accountId, #ent1Id, #ent2Id, #ent3Id, #baseQuantity,#baseAmount,#debitQuantity,#debitAmount,#creditQuantity,#creditAmount, #blQuantity,#blAmount)))");
+        $query->where("#balanceId = {$balanceId}");
+        
+        $rec = $query->fetch();
+
+        $rec2 = $query->fetch();
+ 
+        return $rec->checkSum;
     }
     
     
@@ -949,6 +982,12 @@ class acc_BalanceDetails extends core_Detail
      */
     public function calcBalanceForPeriod($from, $to, $isMiddleBalance = FALSE)
     {
+
+        if($cronRec = core_Cron::getCurrentRec()) {
+            list($d, $t) = explode(' ', $cronRec->lastStart);
+            log_System::add('acc_Balances', 'calcBalanceForPeriod: ' . $from  . ' - ' . $to . ' (Cron at ' . $t . ')' , NULL, 'notice');
+        }
+
         $JournalDetails = &cls::get('acc_JournalDetails');
         
         $query = $JournalDetails->getQuery();

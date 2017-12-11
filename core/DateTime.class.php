@@ -400,10 +400,8 @@ class core_DateTime
         }
         
         if($addColor && $callRecursive) {
-            
-            $dist = time() - $time;
-            
-            $color = static::getColorByTime($mysqlDate);
+                        
+            $color = static::getColorByTime(self::timestamp2Mysql($time));
           
             $title = dt::mysql2verbal($mysqlDate, "d.m.Y H:i:s (l)", $lg, FALSE, FALSE);
             $title = "  title='{$title}'";

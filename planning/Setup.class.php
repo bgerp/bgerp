@@ -133,6 +133,7 @@ class planning_Setup extends core_ProtoSetup
     		array('planning', 'taskPlanning'),
     		array('planningMaster', 'planning'),
     		array('job'),
+    		array('jobMaster', 'job'),
     );
 
     

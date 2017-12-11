@@ -49,7 +49,7 @@ class doc_LikesPlg extends core_Plugin
             if ($action == 'like') {
                 if (($rec->state == 'draft') || 
                     ($rec->state == 'rejected') || 
-                    !$mvc->haveRightFor('single', $rec->id) || 
+                    !$mvc->haveRightFor('single', $rec->id, $userId) || 
                     doc_Likes::isLiked($rec->containerId, $rec->threadId, $userId)) {
                     
                         $requiredRoles = 'no_one';

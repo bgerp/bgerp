@@ -1,5 +1,11 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
 <div class='scrolling-holder'>
+
+<!--ET_BEGIN originId-->
+<div class="row-fluid">
+|Към документ|* [#originId#]
+</div>
+<!--ET_END originId-->
     <div class="row-fluid">
         <div class="span6" style="position:relative; min-height:35px"><div style="position:absolute; bottom:0; left:0">
             <span style="font-size:35px; color:[#basicColor#]">1</span><span style="color:[#basicColor#]">Copy for sender</span> </div>
@@ -68,8 +74,8 @@
                 <div class="row-fluid">
                     <div class="span6 basicFontSize" style="border:1px; border-top:0px; border-style:solid; color:[#basicColor#];   padding:6px; min-height:65px">
                         <b>&nbsp;&nbsp; 4. Place and date taking over the goods (place, country, date)</b>
-                        <div class="span8"> <div class='filledFieled leftAlign' style="margin-left:5px;">[#takingOverPlace#]</div></div>
-                        <div class="span3"><div class='filledFieled leftAlign' style="margin-left:5px;">[#takingDate#]</div></div>
+                        <div class="span8"> <div class='filledFieled leftAlign' style="margin-left:5px;">[#loadingPlace#]</div></div>
+                        <div class="span3"><div class='filledFieled leftAlign' style="margin-left:5px;">[#loadingDate#]</div></div>
                     </div>
                     <div class="span6 basicFontSize" style="border:3px; border-bottom:0px; border-left:2px; border-top:0px; border-style:solid; color:[#basicColor#];   padding:6px; min-height:65px; margin-left:0px"><b>&nbsp;&nbsp; 18. Carriers reservations and observations</b>
                     </div>
@@ -96,16 +102,16 @@
             <div class="span12">
                 <table class="cmr-table" style="height: 223px;width: 100%;border:1px solid [#basicColor#]">
                     <tr>
-                        <td class="miniText" style="width: 14.285%"><b>&nbsp;&nbsp; 6. <span><br>&nbsp;&nbsp;&nbsp;Marks and numbers</span></b></td>
+                        <td class="miniText" style="width: 14.285%; height: 20px; padding: 0"><b>&nbsp;&nbsp; 6. <span><br>&nbsp;&nbsp;&nbsp;Marks and numbers</span></b></td>
                         <td class="miniText" style="width: 14.285%"><b>&nbsp;&nbsp; 7. <span><br>&nbsp;&nbsp;&nbsp;Number of packages</span></b></td>
                         <td class="miniText" style="width: 14.285%"><b>&nbsp;&nbsp; 8. <span><br>&nbsp;&nbsp;&nbsp;Method of packing</span></b></td>
                         <td class="miniText" style="width: 14.285%"><b>&nbsp;&nbsp; 9. <span><br>&nbsp;&nbsp;&nbsp;Nature of the goods</span></b></td>
                         <td class="miniText" style="width: 14.285%"><b>&nbsp;&nbsp; 10. <span><br>&nbsp;&nbsp;&nbsp;Statistical number</span></b></td>
                         <td class="miniText" style="width: 14.285%"><b>&nbsp;&nbsp; 11. <span><br>&nbsp;&nbsp;&nbsp;Gross weight in kg</span></b></td>
-                        <td class="miniText" style="width: 14.285%"><b>&nbsp;&nbsp; 21. <span><br>&nbsp;&nbsp;&nbsp;Volume in m3</span></b></td>
+                        <td class="miniText" style="width: 14.285%"><b>&nbsp;&nbsp; 12. <span><br>&nbsp;&nbsp;&nbsp;Volume in m3</span></b></td>
                     </tr>
                     <tr>
-                        <td class='filledFieled' style="margin-left:5px;">[#mark1#]</td>
+                        <td class='filledFieled' style="margin-left:5px; height: 20px;">[#mark1#]</td>
                         <td class='filledFieled' style="margin-left:5px;">[#numOfPacks1#]</td>
                         <td class='filledFieled' style="margin-left:5px;">[#methodOfPacking1#]</td>
                         <td class='filledFieled' style="margin-left:5px;">[#natureOfGoods1#]</td>
@@ -114,7 +120,7 @@
                         <td class='filledFieled' style="margin-left:5px;">[#volume1#]</td>
                     </tr>
                     <tr>
-                        <td class='filledFieled' style="margin-left:5px;">[#mark2#]</td>
+                        <td class='filledFieled' style="margin-left:5px; height: 20px;">[#mark2#]</td>
                         <td class='filledFieled' style="margin-left:5px;">[#numOfPacks2#]</td>
                         <td class='filledFieled' style="margin-left:5px;">[#methodOfPacking2#]</td>
                         <td class='filledFieled' style="margin-left:5px;">[#natureOfGoods2#]</td>
@@ -123,7 +129,7 @@
                         <td class='filledFieled' style="margin-left:5px;">[#volume2#]</td>
                     </tr>
                     <tr>
-                        <td class='filledFieled' style="margin-left:5px;">[#mark3#]</td>
+                        <td class='filledFieled' style="margin-left:5px; height: 20px;">[#mark3#]</td>
                         <td class='filledFieled' style="margin-left:5px;">[#numOfPacks3#]</td>
                         <td class='filledFieled' style="margin-left:5px;">[#methodOfPacking3#]</td>
                         <td class='filledFieled' style="margin-left:5px;">[#natureOfGoods3#]</td>
@@ -132,7 +138,7 @@
                         <td class='filledFieled' style="margin-left:5px;">[#volume3#]</td>
                     </tr>
                     <tr>
-                        <td class='filledFieled' style="margin-left:5px;">[#mark4#]</td>
+                        <td class='filledFieled' style="margin-left:5px; height: 20px;">[#mark4#]</td>
                         <td class='filledFieled' style="margin-left:5px;">[#numOfPacks4#]</td>
                         <td class='filledFieled' style="margin-left:5px;">[#methodOfPacking4#]</td>
                         <td class='filledFieled' style="margin-left:5px;">[#natureOfGoods4#]</td>
@@ -244,10 +250,10 @@
                     <div class="span6 basicFontSize" style="border:1px; border-top:0px; border-style:solid; color:[#basicColor#];   padding:6px; min-height:85px">
                         <b>&nbsp;&nbsp; 21. Established in:</b>
                         <div class="row-fluid">
-                            <div class="span6 basicFontSize" style="margin-top:-4px; margin-left:3px; border:0px; border-top:0px; border-style:solid; color:[#basicColor#];   padding:6px">
+                            <div class="span6 basicFontSize" style="margin-top:-4px;  border:0px; border-top:0px; border-style:solid; color:[#basicColor#];   padding:6px">
                                 <div class='filledFieled leftAlign' >[#establishedPlace#]</div>
                             </div>
-                            <div class="span6 basicFontSize" style="margin-top:-4px; margin-left:3px; border:0px; border-top:0px; border-style:solid; color:[#basicColor#];   padding:6px">
+                            <div class="span6 basicFontSize" style="margin-top:-4px; border:0px; border-top:0px; border-style:solid; color:[#basicColor#];   padding:6px">
                                 <div class='filledFieled leftAlign' >[#establishedDate#]</div>
                             </div>
                         </div>
