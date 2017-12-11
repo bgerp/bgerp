@@ -78,9 +78,12 @@ class batch_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    public $roles = 'batch';
+    public $roles = array(
+    		array('batch'),
+    		array('batchMaster', 'batch'),
+    );
     
-
+    
     /**
      * Дефинирани класове, които имат интерфейси
      */

@@ -5,7 +5,7 @@
 /**
  * Клас 'trans_Cmrs'
  *
- * Документ за Транспортни линии
+ * Документ за ЧМР товарителници
  *
  *
  * @category  bgerp
@@ -17,6 +17,7 @@
  */
 class trans_Cmrs extends core_Master
 {
+	
 	
     /**
      * Заглавие
@@ -75,7 +76,7 @@ class trans_Cmrs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id=№,title=Товарителница, originId=Експедиция, folderId, state,createdOn, createdBy';
+    public $listFields = 'id=№,cmrNumber=ЧМР №,title=Товарителница, originId=Експедиция, folderId, state,createdOn, createdBy';
     
     
     /**
@@ -105,7 +106,7 @@ class trans_Cmrs extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'consigneeData,deliveryPlace,loadingDate,natureOfGoods1,statNum1,natureOfGoods2,statNum2,natureOfGoods3,statNum3,natureOfGoods4,statNum4,cariersData,vehicleReg';
+    public $searchFields = 'cmrNumber,consigneeData,deliveryPlace,loadingDate,cariersData,vehicleReg';
     
     
     /**
@@ -115,58 +116,146 @@ class trans_Cmrs extends core_Master
     
     
     /**
+     * Кои редове да са компресирани
+     */
+    const NUMBER_GOODS_ROWS = 4;
+    
+    
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'cmrNumber,loadingDate';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
+    	$this->FLD('cmrNumber', 'varchar(12)', 'caption=ЧМР №,mandatory');
     	$this->FLD('senderData', 'text(rows=2)', 'caption=1. Изпращач,mandatory');
     	$this->FLD('consigneeData', 'text(rows=2)', 'caption=2. Получател,mandatory');
     	$this->FLD('deliveryPlace', 'text(rows=2)', 'caption=3. Разтоварен пункт,mandatory');
     	$this->FLD('loadingPlace', 'text(rows=2)', 'caption=4. Товарен пункт,mandatory');
     	$this->FLD('loadingDate', 'date', 'caption=4. Дата на товарене,mandatory');
     	$this->FLD('documentsAttached', 'varchar', 'caption=5. Приложени документи');
+    	$this->FLD('goodsData', "blob(1000000, serialize, compress)", "input=none,column=none,single=none");
     	
-    	$this->FLD('mark1', 'varchar', 'caption=1. Информация за стоката->6. Знаци и Номера');
-    	$this->FLD('numOfPacks1', 'varchar', 'caption=1. Информация за стоката->7. Брой колети');
-    	$this->FLD('methodOfPacking1', 'varchar', 'caption=1. Информация за стоката->8. Вид опаковка');
-    	$this->FLD('natureOfGoods1', 'varchar', 'caption=1. Информация за стоката->9. Вид стока,mandatory');
-    	$this->FLD('statNum1', 'varchar', 'caption=1. Информация за стоката->10. Статистически №');
-    	$this->FLD('grossWeight1', 'varchar', 'caption=1. Информация за стоката->11. Тегло Бруто');
-    	$this->FLD('volume1', 'varchar', 'caption=1. Информация за стоката->12. Обем');
-    	$this->FLD('mark2', 'varchar', 'caption=2. Информация за стоката->6. Знаци и Номера,autohide');
-    	$this->FLD('numOfPacks2', 'varchar', 'caption=2. Информация за стоката->7. Брой колети,autohide');
-    	$this->FLD('methodOfPacking2', 'varchar', 'caption=2. Информация за стоката->8. Вид опаковка,autohide');
-    	$this->FLD('natureOfGoods2', 'varchar', 'caption=2. Информация за стоката->9. Вид стока,autohide');
-    	$this->FLD('statNum2', 'varchar', 'caption=2. Информация за стоката->10. Статистически №,autohide');
-    	$this->FLD('grossWeight2', 'varchar', 'caption=2. Информация за стоката->11. Тегло Бруто,autohide');
-    	$this->FLD('volume2', 'varchar', 'caption=2. Информация за стоката->12. Обем,autohide');
-    	$this->FLD('mark3', 'varchar', 'caption=3. Информация за стоката->6. Знаци и Номера,autohide');
-    	$this->FLD('numOfPacks3', 'varchar', 'caption=3. Информация за стоката->7. Брой колети,autohide');
-    	$this->FLD('methodOfPacking3', 'varchar', 'caption=3. Информация за стоката->8. Вид опаковка,autohide');
-    	$this->FLD('natureOfGoods3', 'varchar', 'caption=3. Информация за стоката->9. Вид стока,autohide');
-    	$this->FLD('statNum3', 'varchar', 'caption=3. Информация за стоката->10. Статистически №,autohide');
-    	$this->FLD('grossWeight3', 'varchar', 'caption=3. Информация за стоката->11. Тегло Бруто,autohide');
-    	$this->FLD('volume3', 'varchar', 'caption=3. Информация за стоката->12. Обем,autohide');
-    	$this->FLD('mark4', 'varchar', 'caption=4. Информация за стоката->6. Знаци и Номера,autohide');
-    	$this->FLD('numOfPacks4', 'varchar', 'caption=4. Информация за стоката->7. Брой колети,autohide');
-    	$this->FLD('methodOfPacking4', 'varchar', 'caption=4. Информация за стоката->8. Вид опаковка,autohide');
-    	$this->FLD('natureOfGoods4', 'varchar', 'caption=4. Информация за стоката->9. Вид стока,autohide');
-    	$this->FLD('statNum4', 'varchar', 'caption=4. Информация за стоката->10. Стат. №,autohide');
-    	$this->FLD('grossWeight4', 'varchar', 'caption=4. Информация за стоката->11. Тегло Бруто,autohide');
-    	$this->FLD('volume4', 'varchar', 'caption=4. Информация за стоката->12. Обем,autohide');
+    	$this->FLD('class', 'varchar(12)', 'caption=ADR->Клас,autohide');
+    	$this->FLD('number', 'varchar(12)', 'caption=ADR->Цифра,autohide');
+    	$this->FLD('letter', 'varchar(12)', 'caption=ADR->Буква,autohide');
+    	$this->FLD('natureofGoods', 'varchar(12)', 'caption=ADR->Вид на стоката,autohide');
     	
-    	$this->FLD('class', 'varchar(12)', 'caption=ADR->Клас');
-    	$this->FLD('number', 'int', 'caption=ADR->Цифра');
-    	$this->FLD('letter', 'varchar(12)', 'caption=ADR->Буква');
-    	$this->FLD('senderInstructions', 'text(rows=4)', 'caption=Допълнително->13. Указания на изпращача');
+    	$this->FLD('senderInstructions', 'text(rows=2)', 'caption=Допълнително->13. Указания на изпращача');
     	$this->FLD('instructionsPayment', 'text(rows=2)', 'caption=Допълнително->14. Предп. плащане навло');
+    	$this->FLD('carragePaid', 'varchar(12)', 'caption=Допълнително->Предплатено');
+    	$this->FLD('sumPaid', 'varchar(12)', 'caption=Допълнително->Дължимо');
+    	
     	$this->FLD('cashOnDelivery', 'varchar', 'caption=Допълнително->15. Наложен платеж');
     	$this->FLD('cariersData', 'text(rows=2)', 'caption=Допълнително->16. Превозвач,mandatory');
     	$this->FLD('vehicleReg', 'varchar', 'caption=МПС регистрационен №,mandatory');
     	$this->FLD('successiveCarriers', 'text(rows=2)', 'caption=Допълнително->17. Посл. превозвачи');
-    	$this->FLD('specialagreements', 'text(rows=4)', 'caption=Допълнително->19. Спец. споразумения');
+    	$this->FLD('specialagreements', 'text(rows=2)', 'caption=Допълнително->19. Спец. споразумения');
     	$this->FLD('establishedPlace', 'text(rows=2)', 'caption=21. Изготвена в');
     	$this->FLD('establishedDate', 'date', 'caption=21. Изготвена на');
+    	
+    	$this->setDbUnique('cmrNumber');
+    }
+    
+    
+    /**
+     * Изпълнява се след извличане на запис чрез ->fetch()
+     */
+    public static function on_AfterRead($mvc, $rec)
+    {
+    	// Разпъване на компресираните полета
+    	if(is_array($rec->goodsData)) {
+    		foreach($rec->goodsData as $field => $value) {
+    			$rec->{$field} = $value;
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Преди запис в модела, компактираме полетата
+     */
+    public function save_(&$rec, $fields = NULL, $mode = NULL)
+    {
+    	$goodsData = array();
+    	
+    	$arr = (array)$rec;
+    	$compressFields = $this->getCompressFields();
+    	
+    	// Компресиране на нужните полета
+    	foreach ($arr as $fld => $value){
+    		if(in_array($fld, $compressFields)){
+    			$goodsData[$fld] = ($value !== '') ? $value : NULL;
+    		}
+    	}
+    	$rec->goodsData = $goodsData;
+    	
+    	if(is_array($fields)){
+    		$fields['goodsData'] = 'goodsData';
+    	}
+    	
+    	$res = parent::save_($rec, $fields, $mode);
+    	
+    	if(isset($rec->originId)){
+    		doc_DocumentCache::invalidateByOriginId($rec->originId);
+    	}
+    	
+    	return $res;
+    }
+    
+    
+    /**
+     * Кои полета ще се компресират
+     * 
+     * @return array
+     */
+    private function getCompressFields()
+    {
+    	$res = array();
+    	foreach (range(1, self::NUMBER_GOODS_ROWS) as $i){
+    		foreach (array('mark', 'numOfPacks', 'methodOfPacking', 'natureOfGoods', 'statNum', 'grossWeight', 'volume') as $fld){
+    			$res[] = "{$fld}{$i}";
+    		}
+    	}
+    	
+    	return $res;
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public function prepareEditForm_($data)
+    {
+    	$data = parent::prepareEditForm_($data);
+    	$form = &$data->form;
+    	
+    	// Разпъване на компресираните полета
+    	foreach (range(1, self::NUMBER_GOODS_ROWS) as $i){
+    		$autohide = ($i === 1) ? '' : 'autohide';
+    		$after = ($i === 1) ? 'documentsAttached' : ("volume" . ($i-1));
+    		$mandatory = ($i === 1) ? 'mandatory' : '';
+    		
+    		$form->FLD("mark{$i}", 'varchar', "after={$after},caption={$i}. Информация за стоката->6. Знаци и Номера,{$autohide}");
+    	    $form->FLD("numOfPacks{$i}", 'varchar', "after=mark{$i},caption={$i}. Информация за стоката->7. Брой колети,{$autohide}");
+    	    $form->FLD("methodOfPacking{$i}", 'varchar', "after=methodOfPacking{$i},caption={$i}. Информация за стоката->8. Вид опаковка,{$autohide}");
+    	    $form->FLD("natureOfGoods{$i}", 'varchar', "{$mandatory},after=natureOfGoods{$i},caption={$i}. Информация за стоката->9. Вид стока,{$autohide}");
+    	    $form->FLD("statNum{$i}", 'varchar', "after=statNum{$i},caption={$i}. Информация за стоката->10. Статистически №,{$autohide}");
+    	    $form->FLD("grossWeight{$i}", 'varchar', "after=grossWeight{$i},caption={$i}. Информация за стоката->11. Тегло Бруто,{$autohide}");
+    	    $form->FLD("volume{$i}", 'varchar', "after=volume{$i},caption={$i}. Информация за стоката->12. Обем,{$autohide}");
+    	}
+    	
+    	return $data;
     }
     
     
@@ -178,62 +267,78 @@ class trans_Cmrs extends core_Master
     	$form = &$data->form;
     	$rec  = &$form->rec;
     	
-    	// Към кой документ е
-    	expect($origin = doc_Containers::getDocument($rec->originId));
+    	// Зареждане на дефолти от ориджина
+    	if(isset($rec->originId) && !isset($rec->id)){
+    		$mvc->setDefaultsFromShipmentOrder($rec->originId, $form);
+    	}
+    }
+    
+    
+    /**
+     * Зарежда дефолтни данни от формата
+     * 
+     * @param int $originId   - ориджин
+     * @param core_Form $form - форма
+     * @return void
+     */
+    private function setDefaultsFromShipmentOrder($originId, &$form)
+    {
+    	expect($origin = doc_Containers::getDocument($originId));
     	$sRec = $origin->fetch();
+    	$form->setDefault('cmrNumber', $sRec->id);
     	$lData = $origin->getLogisticData();
     	
     	// Всичките дефолтни данни трябва да са на английски
     	core_Lg::push('en');
-    	
+    	 
     	// Информация за изпращача
     	$ownCompanyId = crm_Setup::get('BGERP_OWN_COMPANY_ID', TRUE);
-    	$senderData = $mvc->getDefaultContragentData('crm_Companies', $ownCompanyId);
-    	
+    	$senderData = $this->getDefaultContragentData('crm_Companies', $ownCompanyId);
+    	 
     	// Информация за получателя
-    	$consigneeData = $mvc->getDefaultContragentData($sRec->contragentClassId, $sRec->contragentId, FALSE);
-    	
+    	$consigneeData = $this->getDefaultContragentData($sRec->contragentClassId, $sRec->contragentId, FALSE);
+    	 
     	// Място на товарене / Разтоварване
     	$loadingPlace = $lData['fromPCode'] . " " .  transliterate($lData['fromPlace']) . ", " . $lData['fromCountry'];
     	$deliveryPlace = $lData['toPCode'] . " " .  transliterate($lData['toPlace']) . ", " . $lData['toCountry'];
-    	
+    	 
     	// Има ли общо тегло в ЕН-то
     	$weight = ($sRec->weightInput) ? $sRec->weightInput : $sRec->weight;
     	if(!empty($weight)){
     		$weight = core_Type::getByName('cat_type_Weight')->toVerbal($weight);
     		$form->setDefault('grossWeight1', $weight);
     	}
-    	
+    	 
     	// Има ли общ обем в ЕН-то
     	$volume = ($sRec->volumeInput) ? $sRec->volumeInput : $sRec->volume;
     	if(!empty($weight)){
     		$volume = core_Type::getByName('cat_type_Volume')->toVerbal($volume);
     		$form->setDefault('volume1', $volume);
     	}
-    	
+    	 
     	core_Lg::pop();
-    	
+    	 
     	// Задаване на дефолтните полета
     	$form->setDefault('senderData', $senderData);
     	$form->setDefault('consigneeData', $consigneeData);
     	$form->setDefault('deliveryPlace', $deliveryPlace);
     	$form->setDefault('loadingPlace', $loadingPlace);
     	$form->setDefault('loadingDate', $lData['loadingTime']);
-    	
+    	 
     	// Информация за превозвача
     	if(isset($sRec->lineId)){
     		$lineRec = trans_Lines::fetch($sRec->lineId);
     		if(isset($lineRec->forwarderId)){
-    			$carrierData = $mvc->getDefaultContragentData('crm_Companies', $lineRec->forwarderId);
+    			$carrierData = $this->getDefaultContragentData('crm_Companies', $lineRec->forwarderId);
     			$form->setDefault('cariersData', $carrierData);
     		}
-    		
+    	
     		if(isset($lineRec->vehicleId)){
     			$vehicleReg = trans_Vehicles::fetchField($lineRec->vehicleId, 'number');
     			$form->setDefault('vehicleReg', $vehicleReg);
     		}
     	}
-    	
+    	 
     	// Има ли общ брой палети
     	if(!empty($sRec->palletCountInput)){
     		$collets = core_Type::getByName('int')->toVerbal($sRec->palletCountInput);
@@ -275,22 +380,36 @@ class trans_Cmrs extends core_Master
     {
     	$row->title = $mvc->getLink($rec->id, 0);
     	
-    	if(!Mode::isReadOnly()){
-    		$origin = doc_Containers::getDocument($rec->originId);
-    		$row->originId = $origin->getInstance()->getLink($origin->that, 0);
-    	} else {
-    		unset($row->originId);
+    	if(isset($row->originId)){
+    		if(!Mode::isReadOnly()){
+    			$origin = doc_Containers::getDocument($rec->originId);
+    			$row->originId = $origin->getInstance()->getLink($origin->that, 0);
+    		} else {
+    			unset($row->originId);
+    		}
     	}
     	
-    	if(!empty($rec->loadingDate)){
-    		$row->loadingDate = dt::mysql2verbal($rec->loadingDate, 'd.m.y');
+    	if(isset($fields['-single'])){
+    		
+    		// Вербализиранре на компресираните полета
+    		if(is_array($rec->goodsData)) {
+    			foreach($rec->goodsData as $field => $value) {
+    				if(isset($value)){
+    					$row->{$field} = core_Type::getByName('varchar')->toVerbal($value);
+    				}
+    			}
+    		}
+    		
+    		$row->basicColor = "#000";
+    		
+    		if(!empty($rec->establishedDate)){
+    			$row->establishedDate = dt::mysql2verbal($rec->loadingDate, 'd.m.Y');
+    		}
+    		
+    		if(!empty($rec->loadingDate)){
+    			$row->loadingDate = dt::mysql2verbal($rec->loadingDate, 'd.m.y');
+    		}
     	}
-    	
-    	if(!empty($rec->establishedDate)){
-    		$row->establishedDate = dt::mysql2verbal($rec->loadingDate, 'd.m.Y');
-    	}
-    	
-    	$row->basicColor = "#000";
     }
     
     
@@ -319,13 +438,11 @@ class trans_Cmrs extends core_Master
      */
     public static function canAddToThread($threadId)
     {
-    	$originId = Request::get('originId', 'int');
-    	if(empty($originId)) return FALSE;
-    	
-    	$origin = doc_Containers::getDocument($originId);
-    	$state = $origin->rec()->state;
-    	
-    	if(in_array($state, array('draft','active', 'pending')) && $origin->isInstanceOf('store_ShipmentOrders')) return TRUE;
+    	$firstDoc = doc_Threads::getFirstDocument($threadId);
+    	if($firstDoc && $firstDoc->isInstanceOf('deals_DealMaster')){
+    		$state = $firstDoc->rec()->state;
+    		if(in_array($state, array('active', 'closed', 'pending'))) return TRUE;
+    	}
     	
     	return FALSE;
     }
@@ -374,10 +491,33 @@ class trans_Cmrs extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-    	// ХАК за да се клонират ЧМР-та (@see trans_Cmrs::canAddToThread)
-    	if($action == 'clonerec' && isset($rec)){
-    		if($mvc->haveRightFor('single', $rec, $userId)){
-    			$requiredRoles = $mvc->getRequiredRoles('clonerec', NULL, $userId);
+    	if($action == 'add' && isset($rec->originId)){
+    		$origin = doc_Containers::getDocument($rec->originId);
+    		if(!$origin->isInstanceOf('store_ShipmentOrders')){
+    			$requiredRoles = 'no_one';
+    		} else {
+    			$state = $origin->rec()->state;
+    			if(!in_array($state, array('active', 'pending'))){
+    				$requiredRoles = 'no_one';
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+    	$fields = $mvc->getCompressFields();
+    	
+    	// Допълване на ключовите думите
+    	foreach ($fields as $fld){
+    		if(strpos($fld, 'natureOfGoods') !== FALSE || strpos($fld, 'statNum') !== FALSE){
+    			if(!empty($rec->{$fld})){
+    				$res .= " " . plg_Search::normalizeText($rec->{$fld});
+    			}
     		}
     	}
     }
