@@ -4266,7 +4266,8 @@ row-fluid {
     text-align: left;
     padding-left: 7px; }
   .filledFieled.bigNumber {
-    font-size: 1.7em; }
+    font-size: 1.7em;
+    padding-top: 8px; }
   .filledFieled.smallFont {
     line-height: 1.3em; }
 
