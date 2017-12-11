@@ -624,5 +624,11 @@ class store_ShipmentOrders extends store_DocumentMaster
     				}
     			}
     		}
+    		
+    		if($rec->state == 'active' && cls::load('trans_Cmrs', TRUE)) {
+    			if(trans_Cmrs::haveRightFor('add', (object)array('originId' => $rec->containerId))){
+    				$data->toolbar->addBtn("ЧМР", array('trans_Cmrs', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на товарителница към експедиционното нареждане,ef_icon=img/16/view.png');
+    			}
+    		}
     	}
 }
