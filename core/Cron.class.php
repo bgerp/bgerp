@@ -122,7 +122,7 @@ class core_Cron extends core_Manager
      * Връща записа на текъщия крон процес
      * Ако в текущия хит не е по крон процес, връща NULL
      *
-     * @return NULL
+     * @return NULL|stdObject
      */
     public static function getCurrentRec()
     {
