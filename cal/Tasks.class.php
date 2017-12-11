@@ -1510,7 +1510,9 @@ class cal_Tasks extends embed_Manager
 	   $now = dt::verbal2mysql();
        
 	   while ($rec = $query->fetch()) { 
-
+            
+	       $oldRec = clone $rec;
+	       
    	   	   // изчисляваме очакваните времена
 		   self::calculateExpectationTime($rec);
 		   
@@ -1543,8 +1545,15 @@ class cal_Tasks extends embed_Manager
     		   $saveFields .= ', state, timeActivated';
 		   }
 		   
-		   self::save($rec, $saveFields);
-	   }    
+		   // Правим запис, ако има променени полета
+		   $saveFieldsArr = arr::make($saveFields);
+		   foreach ($saveFieldsArr as $fName) {
+		       if ($oldRec->{$fName} != $rec->{$fName}) {
+		           self::save($rec, $saveFields);
+		           break;
+		       }
+		   }
+	   }
     }
 
 
