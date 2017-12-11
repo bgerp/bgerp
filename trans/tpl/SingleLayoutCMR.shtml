@@ -108,7 +108,7 @@
                         <td class="miniText" style="width: 14.285%"><b>&nbsp;&nbsp; 9. <span><br>&nbsp;&nbsp;&nbsp;Nature of the goods</span></b></td>
                         <td class="miniText" style="width: 14.285%"><b>&nbsp;&nbsp; 10. <span><br>&nbsp;&nbsp;&nbsp;Statistical number</span></b></td>
                         <td class="miniText" style="width: 14.285%"><b>&nbsp;&nbsp; 11. <span><br>&nbsp;&nbsp;&nbsp;Gross weight in kg</span></b></td>
-                        <td class="miniText" style="width: 14.285%"><b>&nbsp;&nbsp; 21. <span><br>&nbsp;&nbsp;&nbsp;Volume in m3</span></b></td>
+                        <td class="miniText" style="width: 14.285%"><b>&nbsp;&nbsp; 12. <span><br>&nbsp;&nbsp;&nbsp;Volume in m3</span></b></td>
                     </tr>
                     <tr>
                         <td class='filledFieled' style="margin-left:5px; height: 20px;">[#mark1#]</td>

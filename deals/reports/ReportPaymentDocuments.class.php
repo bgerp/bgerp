@@ -370,12 +370,6 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
     protected function detailRecToVerbal($rec, &$dRec)
     {
 
-
-
-            $aaa[]= $dRec->payDate;
-
-
-
         $isPlain = Mode::is('text', 'plain');
         $Int = cls::get('type_Int');
         $Double = core_Type::getByName('double(smartRound)');
