@@ -22,7 +22,6 @@ class cal_Tasks extends embed_Manager
     public $driverInterface = 'cal_TaskTypeIntf';
     
     
-    
     /**
      * Име на папката по подразбиране при създаване на нови документи от този тип.
      * Ако стойноста е 'FALSE', нови документи от този тип се създават в основната папка на потребителя
@@ -58,7 +57,7 @@ class cal_Tasks extends embed_Manager
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, cal_Wrapper,doc_plg_SelectFolder, doc_plg_Prototype, doc_DocumentPlg, planning_plg_StateManager, plg_Printing, 
-    				 doc_SharablePlg, bgerp_plg_Blank, plg_Search, change_Plugin, plg_Sorting, plg_Clone,doc_AssignPlg';
+    				 doc_SharablePlg, bgerp_plg_Blank, plg_Search, change_Plugin, plg_Sorting, plg_Clone, doc_AssignPlg';
     
     
     /**
@@ -161,6 +160,7 @@ class cal_Tasks extends embed_Manager
      * Кой може да възлага задачата
      */
     public $canAssign = 'powerUser';
+    
     
     /**
      * Кой може да възлага задачата
@@ -280,9 +280,6 @@ class cal_Tasks extends embed_Manager
         // Споделяне
         $this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители,changable');
         
-        // Отговорноици
-        $this->FLD('assign', 'user(rolesForAll=powerUser,allowEmpty)', 'caption=Възложено на,changable');
-
         // Начало на задачата
         $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00, format=smartTime)',
             'caption=Времена->Начало, silent, changable, tdClass=leftColImportant');
@@ -505,8 +502,7 @@ class cal_Tasks extends embed_Manager
         if (Mode::is('listTasks', 'by')) {
             $data->query->where("#createdBy = $userId");
         } else {
-            $data->query->where("#sharedUsers LIKE '%|{$userId}|%'");
-            $data->query->orWhere("#assign = '{$userId}'");
+            $data->query->like('assign', "|{$userId}|");
         }
         
         $now = dt::now();
@@ -515,8 +511,8 @@ class cal_Tasks extends embed_Manager
         
         $data->query->where("#state = 'active'");
         $data->query->orWhere("#state = 'wakeup'");
-        $data->query->orWhere(array("#state = 'waiting' AND #expectationTimeStart <= '[#1#]' AND #expectationTimeStart >= '[#2#]'", $after, $before));
-        $data->query->orWhere(array("#state = 'closed' AND #timeClosed <= '[#1#]' AND #timeClosed >= '[#2#]'", $after, $before));
+        $data->query->orWhere(array("(#state = 'waiting' OR #state = 'pending') AND #expectationTimeStart <= '[#1#]' AND #expectationTimeStart >= '[#2#]'", $after, $before));
+        $data->query->orWhere(array("(#state = 'closed' OR #state = 'stopped') AND #timeClosed <= '[#1#]' AND #timeClosed >= '[#2#]'", $after, $before));
         
         // Чакащите задачи под определено време да са в началото
         $waitingShow = dt::addSecs(cal_Setup::get('WAITING_SHOW_TOP_TIME'), $now);
@@ -524,7 +520,7 @@ class cal_Tasks extends embed_Manager
         $data->query->orderBy("waitingOrderTop", "DESC");
         
         // Време за подредба на записите в портала
-        $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'wakeup' THEN 1 WHEN 'waiting' THEN 2 ELSE 3 END)");
+        $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'wakeup' THEN 1 WHEN 'waiting' THEN 2 WHEN 'pending' THEN 3 ELSE 4 END)");
         $data->query->orderBy('#orderByState=ASC');
         
         // Чакащите задачи, ако имат начало първо по тях да се подреждат, после по последно
@@ -669,7 +665,7 @@ class cal_Tasks extends embed_Manager
                     $sharedUsersArr = keylist::toArray($rec->sharedUsers);
                     
                     if ($rec->assign) {
-                        $sharedUsersArr[$rec->assign] = $rec->assign;
+                        $sharedUsersArr += type_Keylist::toArray($rec->assign);
                     }
                     
                     if (empty($sharedUsersArr)) {
@@ -785,7 +781,7 @@ class cal_Tasks extends embed_Manager
             $sharedUsersArr = keylist::toArray($data->rec->sharedUsers);
            
             if ($data->rec->assign) {
-                $sharedUsersArr[$data->rec->assign] = $data->rec->assign;
+                $sharedUsersArr += type_Keylist::toArray($data->rec->assign);
             }
                
             if (empty($sharedUsersArr)) {
@@ -852,7 +848,7 @@ class cal_Tasks extends embed_Manager
      */
     static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
-        if($rec->state == 'pending' && !$rec->sharedUsers) { 
+        if($rec->state == 'pending' && !$rec->sharedUsers && !$rec->assign) { 
             core_Statuses::newStatus("|Не е избран потребител. Документа е приведен в състояние 'Заявка'|*");
         } 
         
@@ -930,7 +926,7 @@ class cal_Tasks extends embed_Manager
         $sharedUsersArr = keylist::toArray($rec->sharedUsers);
         
         if ($rec->assign) {
-            $sharedUsersArr[$rec->assign] = $rec->assign;
+            $sharedUsersArr += type_Keylist::toArray($rec->assign);
         }
         
         if ($now >= $canActivate && $canActivate !== NULL) {
@@ -943,7 +939,7 @@ class cal_Tasks extends embed_Manager
         } else {
             $rec->state = 'waiting';
         }
-
+        
         if ($rec->id) {
             $mvc->updateTaskToCalendar($rec->id);
         }
@@ -1083,9 +1079,9 @@ class cal_Tasks extends embed_Manager
             if(($data->listFilter->rec->selectedUsers != 'all_users') && (strpos($data->listFilter->rec->selectedUsers, '|-1|') === FALSE)) {
                 $data->query->where("'{$data->listFilter->rec->selectedUsers}' LIKE CONCAT('%|', #createdBy, '|%')");
                 $data->query->orLikeKeylist('sharedUsers', $data->listFilter->rec->selectedUsers);
+                $data->query->orLikeKeylist('assign', $data->listFilter->rec->selectedUsers);
             }
-          
-
+            
             if ($data->listFilter->rec->stateTask != 'all' && $data->listFilter->rec->stateTask != 'actPend') {
                 $data->query->where(array("#state = '[#1#]'", $data->listFilter->rec->stateTask));
             } elseif ($data->listFilter->rec->stateTask == 'actPend') {
@@ -1250,8 +1246,8 @@ class cal_Tasks extends embed_Manager
             setIfNot($calRec->time, $rec->timeStart, $rec->timeCalc, $rec->expectationTimeStart);
             
             // В чии календари да влезе?
-            $calRec->users = keylist::merge($rec->sharedUsers, $rec->assign);
-
+            $calRec->users = $rec->assign;
+            
             if($calRec->time && $calRec->time >= $fromDate && $calRec->time <= $toDate && $calRec->users) {
                 // Ключ на събитието
                 $calRec->key = $prefix . '-Start';
@@ -1297,7 +1293,7 @@ class cal_Tasks extends embed_Manager
             setIfNot($calRec->time, $rec->timeEnd, $rec->expectationTimeEnd);
             
             // В чии календари да влезе?
-            $calRec->users = keylist::merge($rec->sharedUsers, $rec->assign);
+            $calRec->users = $rec->assign;
           
             if($calRec->time && $calRec->time >= $fromDate && $calRec->time <= $toDate && $calRec->users && (!$startDate || strpos($calRec->time, $startDate) === FALSE)) {
 
@@ -1317,7 +1313,7 @@ class cal_Tasks extends embed_Manager
                 $calRec->title = "Краен срок за \"{$rec->title}\"";
 
                 // В чии календари да влезе?
-                $calRec->users = keylist::merge($rec->sharedUsers, $rec->assign);
+                $calRec->users = $rec->assign;
                 
                 // Статус на задачата
                 $calRec->state = $rec->state;
@@ -1331,8 +1327,7 @@ class cal_Tasks extends embed_Manager
                 $events[] = $calRec;
             }
         }
-
-
+        
         // Подготвяме запис за Крайния срок
         if($rec->state == 'closed' ) {
             
@@ -1342,7 +1337,7 @@ class cal_Tasks extends embed_Manager
             setIfNot($calRec->time, $rec->timeClosed);
             
             // В чии календари да влезе?
-            $calRec->users = keylist::merge($rec->sharedUsers, $rec->assign);
+            $calRec->users = $rec->assign;
           
             if($calRec->time && $calRec->time >= $fromDate && $calRec->time <= $toDate && $calRec->users && (!$startDate || strpos($calRec->time, $startDate) === FALSE)) {
 
@@ -1362,7 +1357,7 @@ class cal_Tasks extends embed_Manager
                 $calRec->title = "Приключена задача \"{$rec->title}\"";
 
                 // В чии календари да влезе?
-                $calRec->users = keylist::merge($rec->sharedUsers, $rec->assign);
+                $calRec->users = $rec->assign;
                 
                 // Статус на задачата
                 $calRec->state = $rec->state;
@@ -1371,7 +1366,7 @@ class cal_Tasks extends embed_Manager
                 $calRec->priority = self::getNumbPriority($rec) - 1;
 
                 // Url на задачата
-                $calRec->url = array('cal_Tasks', 'Single', $id); 
+                $calRec->url = array('cal_Tasks', 'single', $id); 
                 
                 $events[] = $calRec;
             }
@@ -1429,7 +1424,7 @@ class cal_Tasks extends embed_Manager
         
         $usersArr = array();
         if ($rec->assign) {
-            $usersArr[$rec->assign] = $rec->assign;
+            $usersArr += type_Keylist::toArray($rec->assign);
         }
         if ($rec->sharedUsers) {
             $usersArr += type_Keylist::toArray($rec->sharedUsers);
@@ -1509,6 +1504,7 @@ class cal_Tasks extends embed_Manager
        // Обикаляме по всички чакащи задачи 
        $query = $this->getQuery();
        $query->where("#state = 'waiting'");
+       $query->orWhere("#state = 'pending'");
        
 	   $activatedTasks = array ();
 	   $now = dt::verbal2mysql();
@@ -1517,29 +1513,37 @@ class cal_Tasks extends embed_Manager
 
    	   	   // изчисляваме очакваните времена
 		   self::calculateExpectationTime($rec);
-		   // обновяваме в календара
-		   self::updateTaskToCalendar($rec->id);
-		   // и проверяваме дали може да я активираме
-		   $canActivate = self::canActivateTask($rec);
-		   $exRec = $rec;
-           
-		   if ($canActivate != FALSE) { 
-		   	   if ($now >= $canActivate) {  
-				   $rec->state = 'active';
-				   $rec->timeActivated = $now;
-
-				   $activatedTasks[] = $rec;
-				       
-				   // и да изпратим нотификация на потребителите
-       			   self::doNotificationForActiveTasks($activatedTasks);
-		       } else {
-		           $rec->state = $exRec->state;
-		       }   
-		   } else {
-		       $rec->state = $exRec->state;
+		   
+		   $saveFields = 'expectationTimeStart, expectationTimeEnd';
+		   
+		   if ($rec->state == 'waiting') {
+    		   // обновяваме в календара
+    		   self::updateTaskToCalendar($rec->id);
+    		   
+    		   // и проверяваме дали може да я активираме
+    		   $canActivate = self::canActivateTask($rec);
+    		   $exRec = $rec;
+               
+    		   if ($canActivate != FALSE) { 
+    		   	   if ($now >= $canActivate) {  
+    				   $rec->state = 'active';
+    				   $rec->timeActivated = $now;
+    				   
+    				   $activatedTasks[] = $rec;
+    				       
+    				   // и да изпратим нотификация на потребителите
+           			   self::doNotificationForActiveTasks($activatedTasks);
+    		       } else {
+    		           $rec->state = $exRec->state;
+    		       }
+    		   } else {
+    		       $rec->state = $exRec->state;
+    		   }
+    		   
+    		   $saveFields .= ', state, timeActivated';
 		   }
 		   
-		   self::save($rec, 'state, timeActivated, expectationTimeEnd, expectationTimeStart');
+		   self::save($rec, $saveFields);
 	   }    
     }
 
@@ -2207,7 +2211,7 @@ class cal_Tasks extends embed_Manager
      * Изчислява мин начало и макс край на всички задачи
      * @param stdClass $data
      */
-    public static function calcTasksMinStartMaxEndTime ($data)
+    public static function calcTasksMinStartMaxEndTime($data)
     {  
         if($data->recs){ 
         	$data = $data->recs;
@@ -2280,7 +2284,7 @@ class cal_Tasks extends embed_Manager
         $sharedUsersArr = keylist::toArray($rec->sharedUsers);
         
         if ($rec->assign) {
-            $sharedUsersArr[$rec->assign] = $rec->assign;
+            $sharedUsersArr += type_Keylist::toArray($rec->assign);
         }
         
         if (empty($sharedUsersArr)) {
@@ -2485,16 +2489,13 @@ class cal_Tasks extends embed_Manager
             break;
         }
         
+        $rec = cal_Tasks::fetchRec($rec);
+        
         if ($msg) {
             
             $msg .= ' е задачата';
             
-            $rec = cal_Tasks::fetchRec($rec);
-            
-            $notifyUsersArr = type_Users::toArray($rec->sharedUsers);
-            if ($rec->assign && !$notifyUsersArr[$rec->assign]) {
-                $notifyUsersArr[$rec->assign] = $rec->assign;
-            }
+            $notifyUsersArr = type_Keylist::toArray($rec->assign);
             
             if ($rec->createdBy > 0) {
                 $notifyUsersArr[$rec->createdBy] = $rec->createdBy;
@@ -2506,6 +2507,12 @@ class cal_Tasks extends embed_Manager
             if (!empty($notifyUsersArr)) {
                 cal_Tasks::notifyForChanges($rec, $msg, $notifyUsersArr, $removeOldNotify);
             }
+        }
+        
+        // Променяме времето
+        if (($state == 'stopped') || ($state == 'closed')) {
+            $rec->timeClosed = dt::now();
+            self::save($rec, 'timeClosed');
         }
     }
     
@@ -2520,7 +2527,7 @@ class cal_Tasks extends embed_Manager
 	    	$subscribedArr = keylist::toArray($rec->sharedUsers); 
 			
 	    	if ($rec->assign) {
-	    	    $subscribedArr[$rec->assign] = $rec->assign;
+	    	    $subscribedArr += type_Keylist::toArray($rec->assign);
 	    	}
 	    	
 	    	if (is_array($subscribedArr)) {

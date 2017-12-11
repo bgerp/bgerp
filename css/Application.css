@@ -4180,6 +4180,109 @@ td.rack-same {
 body.narrow {
   font-size: 18px; }
 
+row-fluid {
+  width: 100%;
+  *zoom: 1; }
+
+.row-fluid:before,
+.row-fluid:after {
+  display: table;
+  line-height: 0;
+  content: ""; }
+
+.row-fluid:after {
+  clear: both; }
+
+.row-fluid [class*="span"] {
+  display: block;
+  float: left;
+  width: 100%;
+  min-height: 21px;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box; }
+
+.row-fluid [class*="span"]:first-child {
+  margin-left: 0; }
+
+.row-fluid .controls-row [class*="span"] + [class*="span"] {
+  margin-left: 2.128%; }
+
+.row-fluid .span12 {
+  width: 100%;
+  *width: 99.947%; }
+
+.row-fluid .span11 {
+  width: 91.489%;
+  *width: 91.436%; }
+
+.row-fluid .span10 {
+  width: 82.979%;
+  *width: 82.926%; }
+
+.row-fluid .span9 {
+  width: 74.468%;
+  *width: 74.415%; }
+
+.row-fluid .span8 {
+  width: 65.957%;
+  *width: 65.904%; }
+
+.row-fluid .span7 {
+  width: 57.447%;
+  *width: 57.394%; }
+
+.row-fluid .span6 {
+  width: 50%;
+  *width: 48.883%; }
+
+.row-fluid .span5 {
+  width: 40.426%;
+  *width: 40.372%; }
+
+.row-fluid .span4 {
+  width: 33.33%;
+  *width: 31.862%; }
+
+.row-fluid .span3 {
+  width: 24.86%;
+  width: 25%;
+  *width: 23.351%; }
+
+.row-fluid .span2 {
+  width: 13.994%;
+  *width: 14.84%; }
+
+.row-fluid .span1 {
+  width: 6.383%;
+  *width: 6.33%; }
+
+.filledFieled {
+  color: #333333;
+  text-align: center;
+  font-size: 0.9em;
+  font-family: 'Lucida Console', monospace; }
+  .filledFieled.leftAlign {
+    text-align: left;
+    padding-left: 7px; }
+  .filledFieled.bigNumber {
+    font-size: 1.7em; }
+  .filledFieled.smallFont {
+    line-height: 1.3em; }
+
+.basicFontSize {
+  font-size: 0.9em; }
+
+.miniText {
+  font-size: 0.7em;
+  font-weight: bold; }
+
+  .cmr-table td {
+    border-left: 1px solid black !important;
+    border-right: 1px solid black !important; }
+    .cmr-table td.border-top {
+      border-top: 1px solid black !important; }
+
 @media handheld,
 only screen and (min-width: 1240px) {
   .background-holder {
@@ -5069,6 +5172,10 @@ only screen and (max-width: 320px) {
     color: #ee7700 !important; }
   .printing .sharing-history {
     display: none; }
+  .printing .basicFontSize {
+    font-size: 0.85em; }
+  .printing .miniText {
+    font-size: 0.65em; }
 
 .narrow .printing .document {
   width: 850px; }

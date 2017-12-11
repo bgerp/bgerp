@@ -371,6 +371,7 @@ class batch_BatchesInDocuments extends core_Manager
 				$form->setDefault('serials', $defaultBatches);
 			}
 		} else {
+			Mode::push('htmlEntity', 'none');
 			$i = $j = 0;
 			$tableRec = $exTableRec = array();
 			$batchesCount = count($batches);
@@ -388,6 +389,7 @@ class batch_BatchesInDocuments extends core_Manager
 				}
 				$i++;
 			}
+			Mode::pop('htmlEntity');
 			
 			if($batchesCount > batch_Setup::get('COUNT_IN_EDIT_WINDOW')){
 				$tableRec = $exTableRec;

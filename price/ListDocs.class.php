@@ -516,25 +516,19 @@ class price_ListDocs extends core_Master
     	$Double->params['smartRound'] = 'smartRound';
     	
     	$row = new stdClass();
-    	$row->productId = cat_Products::getShortHyperlink($rec->productId);
+    	$row->productId = cat_Products::getVerbal($rec->productId, 'name');
+    	if(!Mode::isReadOnly()){
+    		$row->productId = ht::createLinkRef($row->productId, cat_Products::getSingleUrlArray($rec->productId));
+    	}
     	
     	foreach (array('priceP', 'priceM') as $priceFld) {
     		if($rec->{$priceFld}){
         		$row->{$priceFld} = $Double->toVerbal($rec->{$priceFld});
         	}
     	}
-        
-    	if(!array_key_exists($rec->measureId, $this->cache)){
-    		$this->cache[$rec->measureId] = cat_UoM::getShortName($rec->measureId);
-    	}
-    	$measureShort = $this->cache[$rec->measureId];
     	
-		if($rec->pack){
-			if(!array_key_exists($rec->pack, $this->cache)){
-				$this->cache[$rec->pack] = cat_UoM::getShortName($rec->pack);
-			}
-			
-    		$row->pack = $this->cache[$rec->pack];
+		if(isset($rec->pack)){
+			$row->pack = tr(cat_UoM::getShortName($rec->pack));
     		$row->pack .= deals_Helper::getPackMeasure($rec->measureId, $rec->perPack);
 		}
     	
@@ -545,7 +539,7 @@ class price_ListDocs extends core_Master
 		}
 		
     	if($rec->measureId && $rec->priceM){
-    		$row->measureId = $measureShort;
+    		$row->measureId = tr(cat_UoM::getShortName($rec->measureId));
     	} else {
     		unset($row->productId);
     		unset($row->code);

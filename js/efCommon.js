@@ -2188,7 +2188,7 @@ function replaceFormData(frm, data)
         refreshForm.loadedFiles = [];
     }
     var params = frm.serializeArray();
-
+    
 	// Затваря всики select2 елементи
 	if ($.fn.select2) {
 		var selFind = frm.find('.select2-src');
@@ -2204,17 +2204,17 @@ function replaceFormData(frm, data)
 			});
 		}
 	}
-
+	
 	if (getType(data) == 'array') {
 		var r1 = data[0];
 		if(r1['func'] == 'redirect') {
-			render_redirect(r1['arg']);
+			return render_redirect(r1['arg']);
 		}
 	}
-
+	
 	// Разрешаваме кеширането при зареждане по ajax
 	$.ajaxSetup ({cache: true});
-
+	
 	// Зареждаме стиловете
 	$.each(data.css, function(i, css) {
 		if(refreshForm.loadedFiles.indexOf(css) < 0) {
@@ -2226,7 +2226,7 @@ function replaceFormData(frm, data)
 			refreshForm.loadedFiles.push(css);
 		}
 	});
-
+	
 	// Зареждаме JS файловете синхронно
 	loadFiles(data.js, refreshForm.loadedFiles, frm, data.html);
 
@@ -2697,6 +2697,22 @@ function checkForHiddenGroups() {
  * В зависимост от натиснатия елемент, се определя какво действие трябва да се извърши с кейлист полетата
  */
 function keylistActions(el) {
+    // изчисление с коя иконка трябва да е групата
+    $('.inner-keylist').each(function(){
+        var uncheckElementInGroup = false;
+        $(this).find('.checkbox').each(function(){
+            if($(this).attr('checked') != "checked") {
+                uncheckElementInGroup = true;
+            }
+        });
+        var className = $(this).find('tr').attr('class');
+        if(uncheckElementInGroup) {
+            $("#" + className).find('.invert-checkbox.checked').addClass('hidden');
+        } else {
+            $("#" + className).find('.invert-checkbox.unchecked').addClass('hidden');
+        }
+    });
+
 	 $('.keylistCategory').on('click', function(e) {
 		 // ако натиснем бутона за инвертиране на чекбоксовете
 		  if ($(e.target).is(".invert-checkbox")) {
@@ -4694,7 +4710,7 @@ Experta.prototype.checkBodyId = function(bodyId) {
  * Записва данните за формата в id на страницата
  */
 Experta.prototype.saveFormData = function(formId, data) {
-
+	
 	var maxItemOnSession = 3;
 
 	bodyId = $('body').attr('id');

@@ -198,9 +198,6 @@ class support_Issues extends core_Master
         $this->FLD('systemId', 'key(mvc=support_Systems, select=name)', 'caption=Система, input=hidden, silent');
         
         $this->FLD('priority', 'enum(normal=Нормален, warning=Висок, alert=Критичен)', 'caption=Приоритет');
-
-        // Възлагане на задача (за doc_AssignPlg)
-        $this->FLD('assign', 'user(roles=powerUser, allowEmpty)', 'caption=Възложено на,input=none');
         
         // Споделени потребители
         $this->FLD('sharedUsers', 'userList(roles=support)', 'caption=Споделяне->Потребители');
@@ -836,7 +833,7 @@ class support_Issues extends core_Master
                 $maintainersArr = type_Keylist::toArray($maintainers);
                 
                 // Търсим по възложените потребители
-                $data->query->orWhereArr("assign", $maintainersArr, TRUE);
+                $data->query->likeKeylist("assign", $maintainersArr, TRUE);
             }        
         }
         

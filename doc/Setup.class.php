@@ -806,6 +806,7 @@ class doc_Setup extends core_ProtoSetup
         $res .= $this->callMigrate('threadsVisibleForPartners', 'doc');
         $res .= $this->callMigrate('addDefaultNotifyOptions', 'doc');
         $res .= $this->callMigrate('showDocumentsAsButtonsFrame', 'doc');
+        $res .= $this->callMigrate('repairAssignField', 'doc');
         
         return $res;
     }
@@ -981,6 +982,72 @@ class doc_Setup extends core_ProtoSetup
             doc_UnsortedFolders::save($rec, 'showDocumentsAsButtons');
             
             doc_UnsortedFolders::logNotice('Сменени бързи бутони за справки, към общия отчет', $rec->id);
+        }
+    }
+    
+    
+    /**
+     * Миграция за оправяне на полето за възложено
+     */
+    public function repairAssignField()
+    {
+        foreach (array('cal_Tasks', 'support_Issues') as $clsName) {
+            if (!cls::load($clsName, TRUE)) continue;
+            
+            $clsInst = cls::get($clsName);
+            
+            if (!$clsInst->db->tableExists($clsInst->dbTableName)) continue;
+            
+            if (!$clsInst->db->isFieldExists($clsInst->dbTableName, str::phpToMysqlName('assign'))) continue ;
+            
+            $query = $clsInst->getQuery();
+            $query->where("#assign IS NOT NULL");
+            $query->where("#assign != ''");
+            
+            while ($rec = $query->fetch()) {
+                
+                if (type_keylist::isKeylist($rec->assign)) continue;
+                
+                $rec->assign = type_Keylist::fromArray(array($rec->assign => $rec->assign));
+                
+                try {
+                    $clsInst->save($rec, 'assign');
+                } catch (core_exception_Expect $e) {
+                    reportException($e);
+                }
+            }
+            
+            if (!$clsInst->db->isFieldExists($clsInst->dbTableName, str::phpToMysqlName('sharedUsers'))) continue ;
+            
+            // Добавяме споделените потребители, към възложените
+            $query2 = $clsInst->getQuery();
+            $query2->where("#sharedUsers IS NOT NULL");
+            $query2->where("#sharedUsers != ''");
+            while ($rec = $query2->fetch()) {
+                
+                $saveField = 'assign';
+                
+                if ($rec->assign == $rec->sharedUsers) continue;
+                
+                $rec->assign = type_Keylist::merge($rec->assign, $rec->sharedUsers);
+                
+                // Полетата ги попълваме с данните на създателя
+                if (!isset($rec->assignedOn)) {
+                    $rec->assignedOn = $rec->createdOn;
+                    $saveField .= ',assignedOn';
+                }
+                
+                if (!isset($rec->assignedBy)) {
+                    $rec->assignedBy = $rec->createdBy;
+                    $saveField .= ',assignedBy';
+                }
+                
+                try {
+                    $clsInst->save($rec, $saveField);
+                } catch (core_exception_Expect $e) {
+                    reportException($e);
+                }
+            }
         }
     }
 }

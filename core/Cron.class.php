@@ -81,18 +81,12 @@ class core_Cron extends core_Manager
      * Време за опресняване информацията при лист на събитията
      */
     var $refreshRowsTime = 5000;
-    
-
-    /**
-     * Максимално време в Unix time, до което може да се изпълнява процеса
-     */
-     static $timeDeadline = 0;
 
 
     /**
-     * $systemId na последния стартиран процес
+     * Записа на последния стартиран процес 
      */
-    static $lastSystemId;
+    var $currentRec;
 
 
     /**
@@ -123,41 +117,19 @@ class core_Cron extends core_Manager
         $this->dbEngine = 'InnoDB';
     }
     
-    
+
     /**
-     * Връща максималното време за изпълнение
+     * Връща записа на текъщия крон процес
+     * Ако в текущия хит не е по крон процес, връща NULL
      *
-     * @param $systemId
-     *
-     * @return int - време в секунди
+     * @return NULL
      */
-    public static function getTimeLimit($systemId = NULL)
+    public static function getCurrentRec()
     {
-        if(!$systemId) {
-            $systemId = self::$lastSystemId;
-        }
+        $me = cls::get('core_Cron');
+        $rec = $me->currentRec;        
         
-        if($systemId) {
-    	    $rec = self::getRecForSystemId($systemId);
-    	
-    	    return $rec->timeLimit;
-        }
-
-        return FALSE;
-    }
-    
-
-    /**
-     * Връща секундите, които оставят до края на прозореца за изпълнение
-     */
-    public static function getTimeLeft()
-    {
-        if(self::$timeDeadline) {
-
-            return max(self::$timeDeadline - time(), 0);
-        }
-
-        return FALSE;
+        return $rec;
     }
 
 
@@ -396,7 +368,8 @@ class core_Cron extends core_Manager
         $rec->lastStart = dt::verbal2mysql();
         $rec->lastDone = NULL;
         $this->save($rec, 'state,lastStart,lastDone');
-        
+        $this->currentRec = clone($rec);
+
         // Изчакваме преди началото на процеса, ако е зададено 
         if ($rec->delay > 0) {
             core_App::setTimeLimit(30 + $rec->delay);
@@ -418,9 +391,7 @@ class core_Cron extends core_Manager
                 // Ако е зададено максимално време за изпълнение, 
                 // задаваме го към PHP , като добавяме 5 секунди
                 if ($rec->timeLimit) {
-                    core_App::setTimeLimit($rec->timeLimit + 5);
-                    self::$timeDeadline =time() + $rec->timeLimit;
-                    self::$lastSystemId = $rec->systemId;
+                    core_App::setTimeLimit($rec->timeLimit + 20);
                 }
                 
                 $startingMicroTime = $this->getMicrotime();
