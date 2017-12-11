@@ -61,8 +61,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
      */
     protected $changeableFields = 'periods';
     
-
-
+    
     /**
 	 * Добавя полетата на драйвера към Fieldset
 	 *
@@ -130,7 +129,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	
 	    // за всеки един индикатор
 	    while($recIndic = $query->fetch()){
-	        
+	       
 	        $names = '';
 	        if ($recIndic->personId && $users[$recIndic->personId]) {
 	            $names = core_Users::fetchField($users[$recIndic->personId], 'names');
@@ -153,7 +152,6 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	                'indicatorId' => $recIndic->indicatorId,
 	                'value' => $recIndic->value,
 	            );
-	            
 	        } else {
 	            $obj = &$recs[$id];
 	            $obj->value += $recIndic->value;
@@ -179,7 +177,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
             $r->num = $num;
             $recs['0|' . $ind] = $r;
         }
-
+        
 		return $recs;
 	}
 	
@@ -228,13 +226,11 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 		$Double->params['decimals'] = 2;
 		$row = new stdClass();
 
-		
 		// Линк към служителя
 		if(isset($dRec->person)) {
             if($dRec->person > 0) {
                 $userId = crm_Profiles::fetchField("#personId = '{$dRec->person}'",'userId');
                 $nick = crm_Profiles::createLink($userId)->getContent();
-                //crm_Profiles::fetchField("#personId = '{$rec->alternatePerson}'", 'userId');
                 $row->person = crm_Persons::fetchField($dRec->person, 'name') . " (" . $nick .")";
             } else {
                 $row->person = 'Общо';
@@ -255,12 +251,39 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 
 	    if(isset($dRec->value)) {
 		    $row->value = $Double->toVerbal($dRec->value);
-		}
-
+		  
+		    if(!$isPlain){
+		    	$row->value = ht::styleIfNegative($row->value, $dRec->value);
+		    }
+		    
+		    if(!$isPlain && !Mode::isReadOnly()){
+		    	$start = acc_Periods::fetchField($rec->periods, 'start');
+		    	$date = new DateTime($start);
+		    	$startMonth = $date->format('Y-m-01');
+		    	
+		    	$haveRight = hr_Indicators::haveRightFor('list');
+		    	$url = array('hr_Indicators', 'list', 'period' => $startMonth, 'indicatorId' => $dRec->indicatorId);
+		    	if(!empty($dRec->person)){
+		    		$url['personId'] = $dRec->person;
+		    	}
+		    	
+		    	if($haveRight !== TRUE){
+		    		core_Request::setProtected('period,personId,indicatorId,force');
+		    		$url['force'] = TRUE;
+		    	}
+		    	
+		    	$row->value = ht::createLinkRef($row->value, toUrl($url), FALSE, 'target=_blank,title=Към документите формирали записа');
+		    	
+		    	if($haveRight !== TRUE){
+		    		core_Request::removeProtected('period,personId,indicatorId,force');
+		    	}
+		    }
+	    }
+		
 		return $row;
 	}
-    
-    
+	
+	
     /**
 	 * След вербализирането на данните
 	 *

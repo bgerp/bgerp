@@ -109,10 +109,7 @@ class cal_TaskProgresses extends core_Detail
         if ($taskId = $data->form->rec->taskId) {
             $tRec = cal_Tasks::fetch($taskId);
             
-            $notifyUsersArr = type_Users::toArray($tRec->sharedUsers);
-            if ($tRec->assign && !$notifyUsersArr[$tRec->assign]) {
-                $notifyUsersArr[$tRec->assign] = $tRec->assign;
-            }
+            $notifyUsersArr = type_Users::toArray($tRec->assign);
             
             if ($tRec->createdBy > 0) {
                 $notifyUsersArr[$tRec->createdBy] = $tRec->createdBy;
@@ -128,6 +125,10 @@ class cal_TaskProgresses extends core_Detail
                 if ($fRec->shared) {
                     $interestedUsersArr += type_Keylist::toArray($fRec->shared);
                 }
+            }
+            
+            if ($tRec->sharedUsers) {
+                $interestedUsersArr += type_Keylist::toArray($tRec->sharedUsers);
             }
             
             $cu = core_Users::getCurrent();

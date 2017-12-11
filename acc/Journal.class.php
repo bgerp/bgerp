@@ -215,7 +215,7 @@ class acc_Journal extends core_Master
         	$fields = arr::make($fields, TRUE);
         	
         	// Инвалидираме балансите, които се променят от този вальор
-        	acc_Balances::alternate($rec->valior);
+        	acc_Balances::alternate($rec->valior, $rec->docType, $rec->docId);
         }
         
         // След активиране, извличаме всички записи от журнала и запомняме кои пера са вкарани
@@ -468,7 +468,7 @@ class acc_Journal extends core_Master
     		static::delete($rec->id);
     		
     		// Инвалидираме балансите, които се променят от този вальор
-    		acc_Balances::alternate($rec->valior);
+    		acc_Balances::alternate($rec->valior, $docClassId, $docId);
     	}
     	
     	// Нотифицираме документа че транзакцията му е записана
