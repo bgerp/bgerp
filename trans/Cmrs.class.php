@@ -18,6 +18,7 @@
 class trans_Cmrs extends core_Master
 {
 	
+	
     /**
      * Заглавие
      */
