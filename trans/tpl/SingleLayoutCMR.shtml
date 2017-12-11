@@ -186,17 +186,12 @@
                         <b>&nbsp;&nbsp; 14. Instruction as to payment for carriage</b>
                         <div class='filledFieled leftAlign' >[#instructionsPayment#]</div>
                         <div class="row-fluid">
-                            <div class="span3 basicFontSize" style="width:105px; margin:-4px; border:0px; border-top:0px; border-style:solid; color:[#basicColor#];   padding:6px">
-                                Carriage paid:
+                            <div class="span6 basicFontSize" style="margin:-4px; border:0px; border-top:0px; border-style:solid; color:[#basicColor#];   padding:6px">
+                                Carriage paid: <span class='filledFieled leftAlign smallFont' style="margin-left:5px;">[#carragePaid#]</span>
                             </div>
-                            <div class="span3 basicFontSize" style="margin-top:-4px; margin-left:3px; border:0px; border-top:0px; border-style:solid; color:[#basicColor#];   padding:6px">
-                                <div class='filledFieled leftAlign smallFont' style="margin-left:5px;">[#carragePaid#]</div>
-                             </div>
-                            <div class="span3 basicFontSize" style="margin:-4px; border:0px; border-top:0px; border-style:solid; color:[#basicColor#];   padding:6px">
-                                Carriage forward:
-                            </div>
-                            <div class="span3 basicFontSize" style="margin-top:-4px; margin-left:3px; border:0px; border-top:0px; border-style:solid; color:[#basicColor#];   padding:6px">
-                                <div class='filledFieled leftAlign smallFont'>[#sumPaid#]</div>
+
+                            <div class="span6 basicFontSize" style="margin:-4px; border:0px; border-top:0px; border-style:solid; color:[#basicColor#];   padding:6px">
+                                Carriage forward: <span class='filledFieled leftAlign smallFont'>[#sumPaid#]</span>
                             </div>
                         </div>
                     </div>
