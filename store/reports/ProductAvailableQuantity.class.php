@@ -245,7 +245,30 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                     }
 
                 }
-
+                
+                
+                //Премахване на нестандартнитв артикули
+                if (is_array($grDetails['name'])) {
+                    	
+			     foreach ($grDetails['name'] as $k=>$v){
+			     	
+			     	if ($grDetails['code'][$k]){
+			
+			     	
+			                $isPublic = (cat_Products::fetch(cat_Products::getByCode($grDetails['code'][$k])->productId)->isPublic);	
+			     	}
+			                	if (!$grDetails['code'][$k] || $isPublic == 'no'){
+			                		
+			                		unset($grDetails['code'][$k]);
+			                		unset($grDetails['name'][$k]);
+			                		unset($grDetails['minQuantity'][$k]);
+			                		unset($grDetails['maxQuantity'][$k]);
+			                			
+			                	}
+			                	
+			                }
+			                
+                }
 
                 //Ограничава броя на артикулите за добавяне
                 $count = 0;$countUnset = 0;
@@ -281,7 +304,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                                                      Може да добавите още артикули от групата при следваща редакция.");
                     }
 
-                }
+                }                            
 
                 $jDetails = json_encode($details);
 
@@ -329,7 +352,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
                 $productId = cat_Products::getByCode($code)->productId;
 
-                $keis['keis'][] = array('key'=>$key,"$productId"=>cat_Products::getTitleById($productId));
+              //  $keis['keis'][] = array('key'=>$key,"$productId"=>cat_Products::getTitleById($productId));
 
                 $query = store_Products::getQuery();
 
