@@ -475,7 +475,7 @@ class trans_Cmrs extends core_Master
     			$requiredRoles = 'no_one';
     		} else {
     			$state = $origin->rec()->state;
-    			if(!in_array($state, array('draft','active', 'pending'))){
+    			if(!in_array($state, array('active', 'pending'))){
     				$requiredRoles = 'no_one';
     			}
     		}
