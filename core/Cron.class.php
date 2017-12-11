@@ -134,6 +134,23 @@ class core_Cron extends core_Manager
 
 
     /**
+     * Връща секундите, които оставят до края на прозореца за изпълнение
+     */
+    public static function getTimeLeft()
+    {
+        $rec = self::getCurrentRec();
+        
+        if($rec) {
+            $deadline = dt::mysql2timestamp($rec->lastStart) + max($rec->timeLimit, 30);
+
+            return max($deadline - time(), 0);
+        }
+
+        return FALSE;
+    }
+
+
+    /**
      * Връща времето на последно стартиране на процес
      * 
      * @param $systemId
