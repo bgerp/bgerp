@@ -1510,7 +1510,13 @@ class cal_Tasks extends embed_Manager
 	   $now = dt::verbal2mysql();
        
 	   while ($rec = $query->fetch()) { 
-            
+           
+	       if (!cal_TaskConditions::fetch("#baseId = '{$rec->id}'")) {
+	           if (!$rec->timeStart && !$rec->timeEnd && !$rec->timeDuration) {
+	               if ($rec->expectationTimeStart && $rec->expectationTimeEnd) continue;
+	           }
+	       }
+	       
 	       $oldRec = clone $rec;
 	       
    	   	   // изчисляваме очакваните времена
@@ -2581,7 +2587,7 @@ class cal_Tasks extends embed_Manager
 	    		$arrCond[] = $recCond;
 	    	}
 	    	
-	    	if (is_array($arrCond)) { 
+	    	if (is_array($arrCond)) {
 	    	    foreach($arrCond as $cond) {
 	    	    	 // правим масив с всички изчислени времена
 	    			$calcTimeS[] = self::calculateTimeToStart($rec, $cond);
