@@ -566,10 +566,8 @@ class cal_Tasks extends embed_Manager
                     $row->title .= $row->subTitleDiv;
                 }
                 
-                if ($rec->savedState == 'waiting') {
-                    $row->title = "<div class='state-waiting-link'>{$row->title}</div>";
-                } elseif ($rec->savedState == 'closed') {
-                    $row->title = "<div class='state-closed-link'>{$row->title}</div>";
+                if ($rec->savedState) {
+                    $row->title = "<div class='state-{$rec->savedState}-link'>{$row->title}</div>";
                 }
             }
         }
