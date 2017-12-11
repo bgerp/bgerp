@@ -196,7 +196,13 @@ class trans_Cmrs extends core_Master
     		$fields['goodsData'] = 'goodsData';
     	}
     	
-    	return parent::save_($rec, $fields, $mode);
+    	$res = parent::save_($rec, $fields, $mode);
+    	
+    	if(isset($rec->originId)){
+    		doc_DocumentCache::invalidateByOriginId($rec->originId);
+    	}
+    	
+    	return $res;
     }
     
     
