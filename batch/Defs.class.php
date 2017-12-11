@@ -49,19 +49,19 @@ class batch_Defs extends core_Manager {
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'batch,ceo';
+    public $canList = 'batchMaster,ceo';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'batch,ceo';
+    public $canSingle = 'batchMaster,ceo';
     
     
     /**
      * Кой може да пише?
      */
-    public $canWrite = 'batch, ceo';
+    public $canWrite = 'batchMaster, ceo';
     
     
     /**
