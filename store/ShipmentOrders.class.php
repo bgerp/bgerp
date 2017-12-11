@@ -626,7 +626,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     		}
     		
     		// Бутони за редакция и добавяне на ЧМР-та
-    		if($rec->state == 'active' && cls::load('trans_Cmrs', TRUE)) {
+    		if($rec->state == 'active' && cls::load('trans_Cmrs', TRUE) && trans_Cmrs::getClassId()) {
     			if($cmrId = trans_Cmrs::fetchField("#originId = {$rec->containerId} AND #state != 'rejected'")){
     				if(trans_Cmrs::haveRightFor('single', $cmrId)){
     					$data->toolbar->addBtn("ЧМР", array('trans_Cmrs', 'single', $cmrId, 'ret_url' => TRUE), "title=Преглед на|* #CMR{$cmrId},ef_icon=img/16/lorry_go.png");

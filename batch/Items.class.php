@@ -49,7 +49,7 @@ class batch_Items extends core_Master {
     /**
      * Кой може да променя състоянието на валутата
      */
-    public $canChangestate = 'batch,ceo';
+    public $canChangestate = 'batchMaster,ceo';
     
     
     /**
