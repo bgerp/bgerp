@@ -469,7 +469,7 @@ class trans_Cmrs extends core_Master
     {
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	if($firstDoc && $firstDoc->isInstanceOf('deals_DealMaster')){
-    		$state = $firstDoc->rec()->state;
+    		$state = $firstDoc->fetchField('state');
     		if(in_array($state, array('active', 'closed', 'pending'))) return TRUE;
     	}
     	
@@ -525,7 +525,7 @@ class trans_Cmrs extends core_Master
     		if(!$origin->isInstanceOf('store_ShipmentOrders')){
     			$requiredRoles = 'no_one';
     		} else {
-    			$state = $origin->rec()->state;
+    			$state = $origin->fetchField('state');
     			if(!in_array($state, array('active', 'pending'))){
     				$requiredRoles = 'no_one';
     			}
@@ -549,5 +549,23 @@ class trans_Cmrs extends core_Master
     			}
     		}
     	}
+    }
+    
+    
+    /**
+     * Метод по подразбиране, за връщане на състоянието на документа в зависимот от класа/записа
+     *
+     * @param core_Master $mvc
+     * @param NULL|string $res
+     * @param NULL|integer $id
+     * @param NULL|boolean $hStatus
+     * @see doc_HiddenContainers
+     */
+    public function getDocHiddenStatus($id, $hStatus)
+    {
+    	$cid = $this->fetchField($id, 'containerId');
+    	if(doclog_Documents::fetchByCid($cid, doclog_Documents::ACTION_PRINT)) return TRUE;
+    	
+    	return NULL;
     }
 }
