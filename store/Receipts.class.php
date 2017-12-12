@@ -279,7 +279,7 @@ class store_Receipts extends store_DocumentMaster
     	$rec = $data->rec;
     	 
     	if($rec->isReverse == 'no'){
-    		if($rec->state == 'active' || $rec->state == 'draft' || $rec->state == 'pending'){
+    		if(deals_Helper::showInvoiceBtn($rec->threadId) && in_array($rec->state, array('active', 'pending', 'draft'))){
     			 
     			// Ако има фактура към протокола, правим линк към нея, иначе бутон за създаване на нова
     			if($iRec = purchase_Invoices::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")){

@@ -81,6 +81,8 @@ class hr_Indicators extends core_Manager
 
         $this->setDbUnique('date,docId,docClass,indicatorId,sourceClass,personId');
         $this->setDbIndex('docClass,docId');
+        $this->setDbIndex('date');
+        $this->setDbIndex('indicatorId');
     }
     
     
@@ -607,9 +609,8 @@ class hr_Indicators extends core_Manager
     {
     	if(isset($data->listSummary->summary)){
     		$tpl = new ET(tr('|*' . getFileContent("acc/plg/tpl/Summary.shtml")));
-    		$tpl->append(tr('Стойност'), 'caption');
+    		$tpl->append(tr('Общо'), 'caption');
     		$tpl->append($data->listSummary->summary->sumRow, 'quantity');
-    		$tpl->append(acc_Periods::getBaseCurrencyCode(), 'measure');
     	}
     }
     
