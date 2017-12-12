@@ -82,6 +82,7 @@ class planning_FoldersWithResources extends core_Manager
 	 */
 	protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
+		$row->ROW_ATTR['class'] = "state-active";
 		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
 	}
 }

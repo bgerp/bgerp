@@ -71,6 +71,12 @@ class planning_Hr extends core_Manager
     
     
     /**
+     * Полета, които ще се показват в листов изглед
+     */
+    public $listFields = 'code,personId,departments,createdOn,createdBy';
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
@@ -157,6 +163,7 @@ class planning_Hr extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+    	$row->ROW_ATTR['class'] = "state-active";
     	$row->created = "{$row->createdOn} " . tr("от") . " {$row->createdBy}";
     	$row->personId = crm_Persons::getHyperlink($rec->personId, TRUE);
     }
