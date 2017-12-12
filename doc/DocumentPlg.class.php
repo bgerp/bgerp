@@ -390,7 +390,7 @@ class doc_DocumentPlg extends core_Plugin
         
         if ($data->rec->state != 'rejected') {
             // Добавяме бутон за създаване на задача
-            if ($data->rec->containerId && haveRole('powerUser')) {
+            if ($data->rec->containerId && doc_Linked::haveRightFor('addlink')) {
                 
                 Request::setProtected(array('inType', 'foreignId'));
                 
