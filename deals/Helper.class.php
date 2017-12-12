@@ -1331,4 +1331,20 @@ abstract class deals_Helper
 			doc_DocumentCache::cacheInvalidation($rec->containerId);
 		}
 	}
+	
+	
+	/**
+	 * Помощен метод дали в даден тред на сделка да се показва бутона за фактура
+	 * 
+	 * @param int $threadId
+	 * @return boolean
+	 */
+	public static function showInvoiceBtn($threadId)
+	{
+		expect($firstDoc = doc_Threads::getFirstDocument($threadId));
+		expect($firstDoc->isInstanceOf('deals_DealMaster'));
+		$makeInvoice = $firstDoc->fetch('makeInvoice');
+		
+		return ($makeInvoice == 'yes') ? TRUE : FALSE;
+	}
 }
