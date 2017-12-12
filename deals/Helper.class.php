@@ -1343,7 +1343,7 @@ abstract class deals_Helper
 	{
 		expect($firstDoc = doc_Threads::getFirstDocument($threadId));
 		expect($firstDoc->isInstanceOf('deals_DealMaster'));
-		$makeInvoice = $firstDoc->fetch('makeInvoice');
+		$makeInvoice = $firstDoc->fetchField('makeInvoice');
 		
 		return ($makeInvoice == 'yes') ? TRUE : FALSE;
 	}
