@@ -130,6 +130,12 @@ class trans_Cmrs extends core_Master
     
     
     /**
+     * Може ли да се редактират активирани документи
+     */
+    public $canEditActivated = TRUE;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -184,6 +190,7 @@ class trans_Cmrs extends core_Master
      */
     public function save_(&$rec, $fields = NULL, $mode = NULL)
     {
+    	$saveGoodsData = FALSE;
     	$goodsData = array();
     	
     	$arr = (array)$rec;
@@ -193,12 +200,16 @@ class trans_Cmrs extends core_Master
     	foreach ($arr as $fld => $value){
     		if(in_array($fld, $compressFields)){
     			$goodsData[$fld] = ($value !== '') ? $value : NULL;
+    			$saveGoodsData = TRUE;
     		}
     	}
-    	$rec->goodsData = $goodsData;
     	
-    	if(is_array($fields)){
-    		$fields['goodsData'] = 'goodsData';
+    	if($saveGoodsData === TRUE){
+    		$rec->goodsData = $goodsData;
+    		
+    		if(is_array($fields)){
+    			$fields['goodsData'] = 'goodsData';
+    		}
     	}
     	
     	$res = parent::save_($rec, $fields, $mode);
@@ -270,6 +281,24 @@ class trans_Cmrs extends core_Master
     	// Зареждане на дефолти от ориджина
     	if(isset($rec->originId) && !isset($rec->id)){
     		$mvc->setDefaultsFromShipmentOrder($rec->originId, $form);
+    	}
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	if($form->isSubmitted()){
+    		
+    		// Подсигуряване че винаги след редакция ще е в чернова
+    		if($form->cmd == 'save'){
+    			$form->rec->state = 'draft';
+    		}
     	}
     }
     
