@@ -1843,6 +1843,19 @@ class doc_Folders extends core_Master
 	    	$coverClasses = array_keys($coverClasses);
 	    	$query->in('coverClass', $coverClasses);
 	    }
+
+	    // Ако изрично са посочени класовете на кориците които да извлечем
+	    if(isset($params['coverClasses'])){
+	    	$skipCoverClasses = array();
+	    	$exceptCoverClasses = explode('|', $params['coverClasses']);
+	    	if(is_array($exceptCoverClasses)){
+	    		foreach ($exceptCoverClasses as $cName){
+	    			$skipCoverClasses[] = $cName::getClassId();
+	    		}
+	    	}
+	    	
+	    	$query->in('coverClass', $skipCoverClasses);
+	    }
 	    
         $viewAccess = TRUE;
 	    if ($params['restrictViewAccess'] == 'yes') {
