@@ -90,6 +90,18 @@ class doc_Linked extends core_Manager
     
     
     /**
+     * Кой може да вижда свързаните документи и файлове
+     */
+    public $canViewlist = 'powerUser';
+    
+    
+    /**
+     * Кой може да добавя връзка
+     */
+    public $canAddlink = 'powerUser';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -150,6 +162,8 @@ class doc_Linked extends core_Manager
      */
     public static function getListView($type, $val, $viewType = 'table', $showRejecte = TRUE, $limit = 1000)
     {
+        if (!self::haveRightFor('viewlist')) return;
+        
         $recArr = self::getRecsForType($type, $val, $showRejecte, $limit);
         
         $rowArr = array();
@@ -394,6 +408,8 @@ class doc_Linked extends core_Manager
      */
     function act_Link()
     {
+        $this->requireRightFor('addlink');
+        
         $pArr = array('inType', 'foreignId');
         Request::setProtected($pArr);
         

@@ -390,7 +390,7 @@ class doc_DocumentPlg extends core_Plugin
         
         if ($data->rec->state != 'rejected') {
             // Добавяме бутон за създаване на задача
-            if ($data->rec->containerId && haveRole('powerUser')) {
+            if ($data->rec->containerId && doc_Linked::haveRightFor('addlink')) {
                 
                 Request::setProtected(array('inType', 'foreignId'));
                 
@@ -4417,5 +4417,20 @@ class doc_DocumentPlg extends core_Plugin
             
             break;
         }
+    }
+    
+    
+    /**
+     * Метод по подразбиране, за връщане на състоянието на документа в зависимот от класа/записа
+     * 
+     * @param core_Master $mvc
+     * @param NULL|string $res
+     * @param NULL|integer $id
+     * @param NULL|boolean $hStatus
+     * @see doc_HiddenContainers
+     */
+    function on_AfterGetDocHiddenStatus($mvc, &$res, $id, $hStatus)
+    {
+		
     }
 }

@@ -444,7 +444,7 @@ class fileman_Data extends core_Manager {
 
         $endOn = dt::addSecs($cronRec->timeLimit);
 
-        core_App::setTimeLimit($timeLimit + 50);
+        core_App::setTimeLimit($cronRec->timeLimit + 50);
         ini_set("memory_limit", fileman_Setup::get('DRIVER_MAX_ALLOWED_MEMORY_CONTENT'));
         
         $classesArr = core_Classes::getOptionsByInterface('fileman_ProcessIntf');

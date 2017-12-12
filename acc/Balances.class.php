@@ -322,7 +322,9 @@ class acc_Balances extends core_Master
 
         // Ако не е валиден го преизчисляваме, като всяка от 
         // десетте минути след преизчисляването - пак го преизчисляваме
-        if(!self::isValid($rec, $rec->lastCalculateChange != 'no' ? 10 : 1)) {
+        $isValid = self::isValid($rec, $rec->lastCalculateChange != 'no' ? 10 : 1);
+        
+        if(!$isValid) {
 
             // Днешна дата
             $today = dt::today();

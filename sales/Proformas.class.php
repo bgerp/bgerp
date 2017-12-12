@@ -400,7 +400,7 @@ class sales_Proformas extends deals_InvoiceMaster
     {
     	$rec = $data->rec;
     
-    	if(sales_Invoices::haveRightFor('add', (object)array('originId' => $rec->originId, 'sourceContainerId' => $rec->containerId))){
+    	if(deals_Helper::showInvoiceBtn($rec->threadId) && sales_Invoices::haveRightFor('add', (object)array('originId' => $rec->originId, 'sourceContainerId' => $rec->containerId))){
     		$data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на фактура от проформа фактура,ef_icon=img/16/invoice.png,row=2');
     	}
     	
