@@ -39,7 +39,7 @@ class plg_Select extends core_Plugin
         if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) return;
         
         $data->listFields = arr::combine(array("_checkboxes" =>
-                "|*<input type='checkbox' onclick=\"return toggleAllCheckboxes();\" name='toggle'  class='checkbox'>"), $data->listFields);
+                "|*<input type='checkbox' onclick=\"return toggleAllCheckboxes(this);\" name='toggle'  class='checkbox'>"), $data->listFields);
     }
     
     
