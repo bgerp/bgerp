@@ -174,7 +174,7 @@ class trans_Cmrs extends core_Master
     /**
      * Изпълнява се след извличане на запис чрез ->fetch()
      */
-    public static function on_AfterRead($mvc, $rec)
+    protected static function on_AfterRead($mvc, $rec)
     {
     	// Разпъване на компресираните полета
     	if(is_array($rec->goodsData)) {
@@ -567,5 +567,31 @@ class trans_Cmrs extends core_Master
     	if(doclog_Documents::fetchByCid($cid, doclog_Documents::ACTION_PRINT)) return TRUE;
     	
     	return NULL;
+    }
+    
+    
+    /**
+     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
+     */
+    public static function getHandle($id)
+    {
+    	$self = cls::get(get_called_class());
+    	$cmrNumber = $self->fetchField($id, 'cmrNumber');
+    	$hnd = $self->abbr . $cmrNumber;
+    
+    	return $hnd;
+    }
+    
+    
+    /**
+     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
+     */
+    public static function fetchByHandle($parsedHandle)
+    {
+    	if ($cmrNumber = ltrim($parsedHandle['id'], '0')){
+    		$rec = static::fetch("#cmrNumber = '{$cmrNumber}'");
+    	}
+    
+    	return $rec;
     }
 }
