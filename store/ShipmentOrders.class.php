@@ -606,10 +606,9 @@ class store_ShipmentOrders extends store_DocumentMaster
     					$data->toolbar->addBtn('Проформа', array('sales_Proformas', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на проформа фактура към експедиционното нареждане,ef_icon=img/16/proforma.png');
     				}
     			}
-    			
     		}
     		
-    		if($rec->state == 'active' || $rec->state == 'draft' || $rec->state == 'pending'){
+    		if(deals_Helper::showInvoiceBtn($rec->threadId) && in_array($rec->state, array('draft', 'active', 'pending'))){
     				
     				// Ако има фактура към протокола, правим линк към нея, иначе бутон за създаване на нова
     				if($iRec = sales_Invoices::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")){
@@ -626,7 +625,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     		}
     		
     		// Бутони за редакция и добавяне на ЧМР-та
-    		if($rec->state == 'active' && cls::load('trans_Cmrs', TRUE) && trans_Cmrs::getClassId()) {
+    		if(in_array($rec->state, array('active', 'pending')) && cls::load('trans_Cmrs', TRUE) && trans_Cmrs::getClassId()) {
     			if($cmrId = trans_Cmrs::fetchField("#originId = {$rec->containerId} AND #state != 'rejected'")){
     				if(trans_Cmrs::haveRightFor('single', $cmrId)){
     					$data->toolbar->addBtn("ЧМР", array('trans_Cmrs', 'single', $cmrId, 'ret_url' => TRUE), "title=Преглед на|* #CMR{$cmrId},ef_icon=img/16/lorry_go.png");

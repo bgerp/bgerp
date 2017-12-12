@@ -997,7 +997,7 @@ abstract class deals_Helper
 		$dQuery = $Detail->getQuery();
 		$dQuery->where("#{$Detail->masterKey} = {$masterId}");
 		$dQuery->show("productId,quantity");
-		$type = ($Master instanceof purchase_Purchases) ? 'purchase' : 'sale';
+		$type = ($Master instanceof purchase_Purchases) ? 'purchase' : (($Master instanceof sales_Quotations) ? 'quotation' : 'sale');
 		$allProducts = $productConditions = array();
 		
 		while($dRec = $dQuery->fetch()){
@@ -1330,5 +1330,21 @@ abstract class deals_Helper
 			$Doc->getInstance()->save_($rec, 'autoPaymentType');
 			doc_DocumentCache::cacheInvalidation($rec->containerId);
 		}
+	}
+	
+	
+	/**
+	 * Помощен метод дали в даден тред на сделка да се показва бутона за фактура
+	 * 
+	 * @param int $threadId
+	 * @return boolean
+	 */
+	public static function showInvoiceBtn($threadId)
+	{
+		expect($firstDoc = doc_Threads::getFirstDocument($threadId));
+		expect($firstDoc->isInstanceOf('deals_DealMaster'));
+		$makeInvoice = $firstDoc->fetchField('makeInvoice');
+		
+		return ($makeInvoice == 'yes') ? TRUE : FALSE;
 	}
 }

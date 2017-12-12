@@ -130,6 +130,12 @@ class trans_Cmrs extends core_Master
     
     
     /**
+     * Може ли да се редактират активирани документи
+     */
+    public $canEditActivated = TRUE;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -143,16 +149,21 @@ class trans_Cmrs extends core_Master
     	$this->FLD('documentsAttached', 'varchar', 'caption=5. Приложени документи');
     	$this->FLD('goodsData', "blob(1000000, serialize, compress)", "input=none,column=none,single=none");
     	
-    	$this->FLD('class', 'varchar(12)', 'caption=ADR->Клас');
-    	$this->FLD('number', 'varchar(12)', 'caption=ADR->Цифра');
-    	$this->FLD('letter', 'varchar(12)', 'caption=ADR->Буква');
-    	$this->FLD('senderInstructions', 'text(rows=4)', 'caption=Допълнително->13. Указания на изпращача');
+    	$this->FLD('class', 'varchar(12)', 'caption=ADR->Клас,autohide');
+    	$this->FLD('number', 'varchar(12)', 'caption=ADR->Цифра,autohide');
+    	$this->FLD('letter', 'varchar(12)', 'caption=ADR->Буква,autohide');
+    	$this->FLD('natureofGoods', 'varchar(12)', 'caption=ADR->Вид на стоката,autohide');
+    	
+    	$this->FLD('senderInstructions', 'text(rows=2)', 'caption=Допълнително->13. Указания на изпращача');
     	$this->FLD('instructionsPayment', 'text(rows=2)', 'caption=Допълнително->14. Предп. плащане навло');
+    	$this->FLD('carragePaid', 'varchar(12)', 'caption=Допълнително->Предплатено');
+    	$this->FLD('sumPaid', 'varchar(12)', 'caption=Допълнително->Дължимо');
+    	
     	$this->FLD('cashOnDelivery', 'varchar', 'caption=Допълнително->15. Наложен платеж');
     	$this->FLD('cariersData', 'text(rows=2)', 'caption=Допълнително->16. Превозвач,mandatory');
     	$this->FLD('vehicleReg', 'varchar', 'caption=МПС регистрационен №,mandatory');
     	$this->FLD('successiveCarriers', 'text(rows=2)', 'caption=Допълнително->17. Посл. превозвачи');
-    	$this->FLD('specialagreements', 'text(rows=4)', 'caption=Допълнително->19. Спец. споразумения');
+    	$this->FLD('specialagreements', 'text(rows=2)', 'caption=Допълнително->19. Спец. споразумения');
     	$this->FLD('establishedPlace', 'text(rows=2)', 'caption=21. Изготвена в');
     	$this->FLD('establishedDate', 'date', 'caption=21. Изготвена на');
     	
@@ -179,6 +190,7 @@ class trans_Cmrs extends core_Master
      */
     public function save_(&$rec, $fields = NULL, $mode = NULL)
     {
+    	$saveGoodsData = FALSE;
     	$goodsData = array();
     	
     	$arr = (array)$rec;
@@ -188,12 +200,16 @@ class trans_Cmrs extends core_Master
     	foreach ($arr as $fld => $value){
     		if(in_array($fld, $compressFields)){
     			$goodsData[$fld] = ($value !== '') ? $value : NULL;
+    			$saveGoodsData = TRUE;
     		}
     	}
-    	$rec->goodsData = $goodsData;
     	
-    	if(is_array($fields)){
-    		$fields['goodsData'] = 'goodsData';
+    	if($saveGoodsData === TRUE){
+    		$rec->goodsData = $goodsData;
+    		
+    		if(is_array($fields)){
+    			$fields['goodsData'] = 'goodsData';
+    		}
     	}
     	
     	$res = parent::save_($rec, $fields, $mode);
@@ -265,6 +281,24 @@ class trans_Cmrs extends core_Master
     	// Зареждане на дефолти от ориджина
     	if(isset($rec->originId) && !isset($rec->id)){
     		$mvc->setDefaultsFromShipmentOrder($rec->originId, $form);
+    	}
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	if($form->isSubmitted()){
+    		
+    		// Подсигуряване че винаги след редакция ще е в чернова
+    		if($form->cmd == 'save'){
+    			$form->rec->state = 'draft';
+    		}
     	}
     }
     

@@ -186,7 +186,7 @@ class cat_Products extends embed_Manager {
     /**  
      * Кой има право да променя системните данни?  
      */  
-    public $canEditsysdata = 'cat,ceo,sales,purchase';
+    public $canEditsysdata = 'cat,ceo,sales,purchase,catEdit';
     
     
     /**
