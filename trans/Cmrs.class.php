@@ -32,12 +32,6 @@ class trans_Cmrs extends core_Master
     
     
     /**
-     * Поддържани интерфейси
-     */
-    public $interfaces = 'doc_DocumentIntf';
-    
-    
-    /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, trans_Wrapper,plg_Clone,doc_DocumentPlg, plg_Printing, plg_Search, doc_ActivatePlg, doc_EmailCreatePlg';
@@ -76,7 +70,7 @@ class trans_Cmrs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id=№,cmrNumber=ЧМР №,title=Товарителница, originId=Експедиция, folderId, state,createdOn, createdBy';
+    public $listFields = 'cmrNumber=ЧМР №,title=Товарителница, originId=Експедиция, folderId, state,createdOn, createdBy';
     
     
     /**
@@ -106,7 +100,7 @@ class trans_Cmrs extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'cmrNumber,consigneeData,deliveryPlace,loadingDate,cariersData,vehicleReg';
+    public $searchFields = 'cmrNumber,consigneeData,deliveryPlace,loadingDate,cariersData,vehicleReg,natureofGoods,successiveCarriers,documentsAttached';
     
     
     /**
