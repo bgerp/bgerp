@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class planning_ext_CenterResources extends core_Manager
+class doc_FolderResources extends core_Manager
 {
 	
 	
@@ -49,21 +49,28 @@ class planning_ext_CenterResources extends core_Manager
 	/**
 	 * Подготвя ресурсите на центъра на дейност
 	 */
-	public function prepareAssets_(&$data)
+	public function prepareResources_(&$data)
 	{
+		$resourceTypes = $data->masterMvc->getResourceTypeArray($data->masterData->rec);
+		if(empty($resourceTypes)) return;
+		
 		$data->TabCaption = 'Ресурси';
 		
-		// Подготовка на данните за служителите
-		$data->eData = clone $data;
-		$data->eData->itemsPerPage = $this->listCodesPerPage;
-		$data->eData->listTableMvc = clone cls::get('planning_Hr');
-		$this->prepareResources($data->eData, 'planning_Hr');
-		
 		// Подготовка на данните за оборудването
-		$data->aData = clone $data;
-		$data->aData->itemsPerPage = $this->listAssetsPerPage;
-		$data->aData->listTableMvc = clone cls::get('planning_AssetResources');
-		$this->prepareResources($data->aData, 'planning_AssetResources');
+		if(isset($resourceTypes['assets'])){
+			$data->aData = clone $data;
+			$data->aData->itemsPerPage = $this->listAssetsPerPage;
+			$data->aData->listTableMvc = clone cls::get('planning_AssetResources');
+			$this->prepareResourceData($data->aData, 'planning_AssetResources');
+		}
+		
+		// Подготовка на данните за служителите
+		if(isset($resourceTypes['hr'])){
+			$data->eData = clone $data;
+			$data->eData->itemsPerPage = $this->listCodesPerPage;
+			$data->eData->listTableMvc = clone cls::get('planning_Hr');
+			$this->prepareResourceData($data->eData, 'planning_Hr');
+		}
 	}
 
 	
@@ -73,7 +80,7 @@ class planning_ext_CenterResources extends core_Manager
 	 * @param stdClass $data     - датата
 	 * @param string $DetailName - на кой клас
 	 */
-	private function prepareResources(&$data, $DetailName)
+	private function prepareResourceData(&$data, $DetailName)
 	{
 		$data->recs = $data->rows = array();
     	$query = $DetailName::getQuery();
@@ -116,7 +123,7 @@ class planning_ext_CenterResources extends core_Manager
 	 * @param stdClass $data     - датата
 	 * @param string $DetailName - на кой клас
 	 */
-	private function renderResources(&$data, $DetailName)
+	private function renderResourceData(&$data, $DetailName)
 	{
 		$Document = cls::get($DetailName);
 		$tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
@@ -166,12 +173,17 @@ class planning_ext_CenterResources extends core_Manager
 	 * @param stdClass $data
 	 * @return void|core_ET
 	 */
-	public function renderAssets_(&$data)
+	public function renderResources_(&$data)
 	{
 		$tpl = new core_ET("");
 		
-		$tpl->append($this->renderResources($data->aData, 'planning_AssetResources'));
-		$tpl->append($this->renderResources($data->eData, 'planning_Hr'));
+		if(isset($data->aData)){
+			$tpl->append($this->renderResourceData($data->aData, 'planning_AssetResources'));
+		}
+		
+		if(isset($data->eData)){
+			$tpl->append($this->renderResourceData($data->eData, 'planning_Hr'));
+		}
 		
 		return $tpl;
 	}
