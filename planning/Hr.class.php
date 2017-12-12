@@ -43,7 +43,7 @@ class planning_Hr extends core_Manager
     /**
      * Текущ таб
      */
-    public $currentTab = 'Лица';
+    public $currentTab = 'Ресурси->Служители';
     
     
     /**

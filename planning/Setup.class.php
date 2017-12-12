@@ -117,6 +117,7 @@ class planning_Setup extends core_ProtoSetup
     		'planning_AssetResourcesNorms',
     		'planning_Centers',
     		'planning_Hr',
+    		'planning_FoldersWithResources',
     		'migrate::deleteTaskCronUpdate',
     		'migrate::deleteAssets',
     		'migrate::deleteNorms',
