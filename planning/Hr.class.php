@@ -75,7 +75,7 @@ class planning_Hr extends core_Manager
      */
     public function description()
     {
-        $this->FLD('personId', 'key(mvc=crm_Persons)', 'input=hidden,silent,mandatory');
+        $this->FLD('personId', 'key(mvc=crm_Persons)', 'input=hidden,silent,mandatory,caption=Лице');
         $this->FLD('code', 'varchar', 'caption=Код,mandatory');
         $this->FLD('departments', 'keylist(mvc=doc_Folders,select=title)', 'caption=Папки,mandatory');
         

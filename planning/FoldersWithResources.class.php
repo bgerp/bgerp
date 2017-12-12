@@ -13,14 +13,14 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class planning_FoldersWithResources extends core_Master
+class planning_FoldersWithResources extends core_Manager
 {
 	
 	
 	/**
 	 * Заглавие
 	 */
-	public $title = 'Папки с ресурси';
+	public $title = 'Допълнителни папки с ресурси';
 	
 	
 	/**
@@ -56,13 +56,13 @@ class planning_FoldersWithResources extends core_Master
 	/**
 	 * Плъгини за зареждане
 	 */
-	public $loadList = 'plg_RowTools2, plg_Created, planning_Wrapper';
+	public $loadList = 'plg_RowTools2, plg_Modified, planning_Wrapper';
 	
 	
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'folderId,type,createdOn,createdBy';
+	public $listFields = 'folderId,type,modifiedOn,modifiedBy';
 	
 	
 	/**
@@ -74,5 +74,14 @@ class planning_FoldersWithResources extends core_Master
 		$this->FLD('type', 'set(assets=Оборудване,hr=Служители)', 'caption=Ресурси, mandatory,');
 		
 		$this->setDbUnique('folderId');
+	}
+	
+	
+	/**
+	 * След преобразуване на записа в четим за хора вид
+	 */
+	protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+	{
+		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
 	}
 }
