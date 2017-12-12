@@ -358,7 +358,7 @@ class purchase_Purchases extends deals_DealMaster
     		// Ако експедирането е на момента се добавя бутон за нова фактура
 	        $actions = type_Set::toArray($rec->contoActions);
 	    	
-	        if(purchase_Invoices::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
+	        if(deals_Helper::showInvoiceBtn($rec->threadId) && purchase_Invoices::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
 	    		$data->toolbar->addBtn("Вх. фактура", array('purchase_Invoices', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/invoice.png,title=Създаване на входяща фактура,order=9.9993');
 		    }
 		}

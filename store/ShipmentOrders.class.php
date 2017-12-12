@@ -606,10 +606,9 @@ class store_ShipmentOrders extends store_DocumentMaster
     					$data->toolbar->addBtn('Проформа', array('sales_Proformas', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на проформа фактура към експедиционното нареждане,ef_icon=img/16/proforma.png');
     				}
     			}
-    			
     		}
     		
-    		if($rec->state == 'active' || $rec->state == 'draft' || $rec->state == 'pending'){
+    		if(deals_Helper::showInvoiceBtn($rec->threadId) && in_array($rec->state, array('draft', 'active', 'pending'))){
     				
     				// Ако има фактура към протокола, правим линк към нея, иначе бутон за създаване на нова
     				if($iRec = sales_Invoices::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")){
