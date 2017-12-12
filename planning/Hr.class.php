@@ -6,14 +6,20 @@
  * Мениджър за информация за служителите
  *
  * @category  bgerp
- * @package   crm
+ * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     0.12
  */
-class crm_ext_Employees extends core_Manager
+class planning_Hr extends core_Manager
 {
+	
+	
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'crm_ext_Employees';
 	
 	
 	/**
@@ -31,7 +37,7 @@ class crm_ext_Employees extends core_Manager
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    public $loadList = 'crm_Wrapper,plg_Created,plg_RowTools2';
+    public $loadList = 'planning_Wrapper,plg_Created,plg_RowTools2';
     
     
     /**
@@ -43,7 +49,7 @@ class crm_ext_Employees extends core_Manager
     /**
      * Кой може да редактира
      */
-    public $canEdit = 'ceo,planningMaster,crm';
+    public $canEdit = 'ceo,planningMaster';
 
 
     /**
@@ -71,7 +77,7 @@ class crm_ext_Employees extends core_Manager
     {
         $this->FLD('personId', 'key(mvc=crm_Persons)', 'input=hidden,silent,mandatory');
         $this->FLD('code', 'varchar', 'caption=Код,mandatory');
-        $this->FLD('departments', 'keylist(mvc=planning_Centers,select=name,makeLinks)', 'caption=Центрове,mandatory');
+        $this->FLD('departments', 'keylist(mvc=doc_Folders,select=title)', 'caption=Папки,mandatory');
         
         $this->setDbUnique('personId');
     }
@@ -85,8 +91,8 @@ class crm_ext_Employees extends core_Manager
     	$form = &$data->form;
     	$form->setDefault('code', self::getDefaultCode($form->rec->personId));
     
-    	$defCenterId = planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID;
-    	$form->setDefault('departments', keylist::fromArray(array($defCenterId => $defCenterId)));
+    	$defFolderId = planning_Centers::fetchField(planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID, 'folderId');
+    	$form->setDefault('departments', keylist::fromArray(array($defFolderId => $defFolderId)));
     }
     
     
@@ -96,7 +102,8 @@ class crm_ext_Employees extends core_Manager
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
     	if(empty($rec->departments)){
-    		$rec->departments = keylist::addKey('', planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID);
+    		$folderId = planning_Centers::fetchField(planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID, 'folderId');
+    		$rec->departments = keylist::addKey('', $folderId);
     	}
     }
     
@@ -263,7 +270,7 @@ class crm_ext_Employees extends core_Manager
      */
     public static function getCodeLink($personId)
     {
-    	$el = crm_ext_Employees::fetchField("#personId = {$personId}", 'code');
+    	$el = planning_Hr::fetchField("#personId = {$personId}", 'code');
     	$name = crm_Persons::getVerbal($personId, 'name');
     	 
     	$singleUrl = crm_Persons::getSingleUrlArray($personId);

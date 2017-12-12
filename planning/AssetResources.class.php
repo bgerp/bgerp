@@ -119,7 +119,7 @@ class planning_AssetResources extends core_Master
     	$this->FLD('groupId', 'key(mvc=planning_AssetGroups,select=name,allowEmpty)', 'caption=Вид,mandatory,silent');
     	$this->FLD('code', 'varchar(16)', 'caption=Код,mandatory');
     	$this->FLD('protocolId', 'key(mvc=accda_Da,select=id)', 'caption=Протокол за пускане в експлоатация,silent,input=hidden');
-    	$this->FLD('departments', 'keylist(mvc=planning_Centers,select=name,makeLinks)', 'caption=Центрове,mandatory');
+    	$this->FLD('departments', 'keylist(mvc=doc_Folders,select=title)', 'caption=Папки,mandatory');
     	$this->FLD('quantity', 'int', 'caption=Kоличество,notNull,value=1');
     	$this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
     	
@@ -144,8 +144,8 @@ class planning_AssetResources extends core_Master
     	}
     	
     	$defDepartmentId = Request::get('departmentId', 'int');
-    	$defCenterId = planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID;
-    	foreach (array($defDepartmentId, $defCenterId) as $var){
+    	$defFolderId = planning_Centers::fetchField(planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID, 'folderId');
+    	foreach (array($defDepartmentId, $defFolderId) as $var){
     		if(!empty($var)){
     			$form->setDefault('departments', keylist::fromArray(array($var => $var)));
     		}
@@ -159,7 +159,8 @@ class planning_AssetResources extends core_Master
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
     	if(empty($rec->departments)){
-    		$rec->departments = keylist::addKey('', planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID);
+    		$folderId = planning_Centers::fetchField(planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID, 'folderId');
+    		$rec->departments = keylist::addKey('', $folderId);
     	}
     }
     

@@ -56,8 +56,8 @@ class planning_ext_CenterResources extends core_Manager
 		// Подготовка на данните за служителите
 		$data->eData = clone $data;
 		$data->eData->itemsPerPage = $this->listCodesPerPage;
-		$data->eData->listTableMvc = clone cls::get('crm_ext_Employees');
-		$this->prepareResources($data->eData, 'crm_ext_Employees');
+		$data->eData->listTableMvc = clone cls::get('planning_Hr');
+		$this->prepareResources($data->eData, 'planning_Hr');
 		
 		// Подготовка на данните за оборудването
 		$data->aData = clone $data;
@@ -80,7 +80,7 @@ class planning_ext_CenterResources extends core_Manager
     	if($query->getField('state', FALSE)){
     		$query->where("#state != 'rejected'");
     	}
-    	$query->where("LOCATE('|{$data->masterId}|', #departments)");
+    	$query->where("LOCATE('|{$data->masterData->rec->folderId}|', #departments)");
     	
     	// Подготовка на пейджъра
     	$data->Pager = cls::get('core_Pager',  array('itemsPerPage' => $data->itemsPerPage));
@@ -94,7 +94,7 @@ class planning_ext_CenterResources extends core_Manager
     	}
     	
     	// Подготовка на полетата за показване
-    	$listFields = ($DetailName == 'crm_ext_Employees') ? "code=Код,personId=Служител,created=Създаване" : "name=Оборудване,groupId=Вид,created=Създаване";
+    	$listFields = ($DetailName == 'planning_Hr') ? "code=Код,personId=Служител,created=Създаване" : "name=Оборудване,groupId=Вид,created=Създаване";
     	$data->listFields = arr::make($listFields, TRUE);
     	
     	$type = ($DetailName == 'planning_AssetResources') ? 'asset' : 'employee';
@@ -120,14 +120,14 @@ class planning_ext_CenterResources extends core_Manager
 	{
 		$Document = cls::get($DetailName);
 		$tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
-		if($DetailName == 'crm_ext_Employees'){
+		if($DetailName == 'planning_Hr'){
 			$tpl->replace("style='margin-top:10px'", 'STYLE');
 		} else {
 			$hint = ',title=Добавяне на оборудване към центъра на дейност';
 			$hint2 = ',title=Създаване на ново оборудване към центъра на дейност';
 		}
 		
-		$title = ($DetailName == 'crm_ext_Employees') ? 'Служители' : 'Оборудвания';
+		$title = ($DetailName == 'planning_Hr') ? 'Служители' : 'Оборудвания';
 		$tpl->append($title, 'title');
 		
 		if(isset($data->newUrl)){
@@ -171,7 +171,7 @@ class planning_ext_CenterResources extends core_Manager
 		$tpl = new core_ET("");
 		
 		$tpl->append($this->renderResources($data->aData, 'planning_AssetResources'));
-		$tpl->append($this->renderResources($data->eData, 'crm_ext_Employees'));
+		$tpl->append($this->renderResources($data->eData, 'planning_Hr'));
 		
 		return $tpl;
 	}
@@ -213,7 +213,7 @@ class planning_ext_CenterResources extends core_Manager
 			$typeTitle = 'служителите';
 			$form->FLD('select', 'keylist(mvc=crm_Persons,select=name)', "caption=Служители");
 			$options = crm_Persons::getEmployeesOptions();
-			$dQuery = crm_ext_Employees::getQuery();
+			$dQuery = planning_Hr::getQuery();
 			$dQuery->where("LOCATE('|{$centerId}|', #departments)");
 			$dQuery->show('personId');
 			$default = arr::extractValuesFromArray($dQuery->fetchAll(), 'personId');
@@ -236,11 +236,11 @@ class planning_ext_CenterResources extends core_Manager
 					$eRec->departments = keylist::addKey($eRec->departments, $centerId);
 					planning_AssetResources::save($eRec);
 				} else {
-					if($pRec = crm_ext_Employees::fetch("#personId = {$id}")){
+					if($pRec = planning_Hr::fetch("#personId = {$id}")){
 						$pRec->departments = keylist::addKey($pRec->departments, $centerId);
-						crm_ext_Employees::save($pRec);
+						planning_Hr::save($pRec);
 					} else {
-						crm_ext_Employees::save((object)array("personId" => $id, 'departments' => keylist::addKey('', $centerId), 'code' => crm_ext_Employees::getDefaultCode($id)));
+						planning_Hr::save((object)array("personId" => $id, 'departments' => keylist::addKey('', $centerId), 'code' => planning_Hr::getDefaultCode($id)));
 					}
 				}
 			}
@@ -253,9 +253,9 @@ class planning_ext_CenterResources extends core_Manager
 					$eRec->departments = keylist::removeKey($eRec->departments, $centerId);
 					planning_AssetResources::save($eRec);
 				} else {
-					$eRec = crm_ext_Employees::fetch("#personId = {$rId}");
+					$eRec = planning_Hr::fetch("#personId = {$rId}");
 					$eRec->departments = keylist::removeKey($eRec->departments, $centerId);
-					crm_ext_Employees::save($eRec);
+					planning_Hr::save($eRec);
 				}
 			}
 			
@@ -287,7 +287,7 @@ class planning_ext_CenterResources extends core_Manager
 					$requiredRoles = 'no_one';
 				}
 			} elseif($rec->type == 'employee'){
-				if(!crm_ext_Employees::haveRightFor('edit')){
+				if(!planning_Hr::haveRightFor('edit')){
 					$requiredRoles = 'no_one';
 				}
 			}

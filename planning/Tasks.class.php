@@ -994,7 +994,7 @@ class planning_Tasks extends core_Master
     		
     		// Ако потребителя е служител и има само един департамент, той ще е избран по дефолт
     		$cPersonId = crm_Profiles::getProfile(core_Users::getCurrent())->id;
-    		$departments = crm_ext_Employees::fetchField("#personId = {$cPersonId}", 'departments');
+    		$departments = planning_Hr::fetchField("#personId = {$cPersonId}", 'departments');
     		$departments = keylist::toArray($departments);
     		
     		if(count($departments) == 1){

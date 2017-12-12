@@ -90,7 +90,6 @@ class crm_Setup extends core_ProtoSetup
             'crm_ext_IdCards',
             'crm_Personalization',
             'crm_ext_CourtReg',
-    		'crm_ext_Employees',
             'crm_Profiles',
             'crm_Locations',
             'crm_Formatter',
@@ -101,7 +100,6 @@ class crm_Setup extends core_ProtoSetup
             'migrate::updateLocationType',
             'migrate::addCountryIn2LgPersons',
             'migrate::addCountryIn2LgCompanies',
-    		'migrate::updateEmployeeCodes',
         );
     
 
@@ -410,21 +408,4 @@ class crm_Setup extends core_ProtoSetup
         Mode::pop('htmlEntity');
         Mode::pop('text');
     }
-
-
-    /**
-     * Ъпдейт на служителите без код
-     */
-	function updateEmployeeCodes()
-	{
-		$Employees = cls::get('crm_ext_Employees');
-		$Employees->setupMvc();
-		
-		$query = crm_ext_Employees::getQuery();
-		$query->where("#code IS NULL");
-		while($rec = $query->fetch()){
-			$rec->code = crm_ext_Employees::getDefaultCode($rec->personId);
-			crm_ext_Employees::save($rec);
-		}
-	}
 }

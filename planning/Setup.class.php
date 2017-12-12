@@ -116,6 +116,7 @@ class planning_Setup extends core_ProtoSetup
     		'planning_AssetGroups',
     		'planning_AssetResourcesNorms',
     		'planning_Centers',
+    		'planning_Hr',
     		'migrate::deleteTaskCronUpdate',
     		'migrate::deleteAssets',
     		'migrate::deleteNorms',
@@ -279,7 +280,7 @@ class planning_Setup extends core_ProtoSetup
     	$Assets = cls::get('planning_AssetResources');
     	$Assets->setupMvc();
     	 
-    	$Hr = cls::get('crm_ext_Employees');
+    	$Hr = cls::get('planning_Hr');
     	$Hr->setupMvc();
     	
     	$now = dt::now();
@@ -451,7 +452,16 @@ class planning_Setup extends core_ProtoSetup
     	while($hRec = $hQuery->fetch()){
     		$d = keylist::toArray($hRec->departments);
     		$intersect = arr::make(array_intersect_key($map, $d), TRUE);
-    		$hRec->departments = keylist::fromArray($intersect);
+    		
+    		$new = array();
+    		if(is_array($intersect)){
+	    		foreach ($intersect as $v){
+    				$v = planning_Centers::fetchField($v, 'folderId');
+    				$new[$v] = $v;
+	    		}
+    		}
+    		
+    		$hRec->departments = keylist::fromArray($new);
     		$hRec->departments = empty($hRec->departments) ? NULL : $hRec->departments;
     		$Hr->save_($hRec);
     	}
@@ -492,13 +502,20 @@ class planning_Setup extends core_ProtoSetup
     		$Assets->save($aRec, 'departments');
     	}
     	
-    	$Hr = cls::get('crm_ext_Employees');
+    	$Hr = cls::get('planning_Hr');
     	$Hr->setupMvc();
     	
     	$hQuery = $Hr->getQuery();
     	$hQuery->where("#departments IS NULL");
     	while($hRec = $hQuery->fetch()){
     		$Hr->save($hRec, 'departments');
+    	}
+    	
+    	$query = $Hr->getQuery();
+    	$query->where("#code IS NULL");
+    	while($rec = $query->fetch()){
+    		$rec->code = planning_Hr::getDefaultCode($rec->personId);
+    		$Hr->save($rec);
     	}
     }
 }

@@ -229,7 +229,7 @@ class planning_ProductionTaskDetails extends core_Detail
     	
     	// Връща служителите с код
     	$centerId = planning_Centers::fetchField("#folderId = {$masterRec->folderId}");
-    	$employees = crm_ext_Employees::getEmployeesWithCode($centerId);
+    	$employees = planning_Hr::getEmployeesWithCode($centerId);
     	if(count($employees)){
     		$form->setSuggestions('employees', $employees);
     	} else {
@@ -421,7 +421,7 @@ class planning_ProductionTaskDetails extends core_Detail
     	$verbalEmployees = array();
     	$employees = keylist::toArray($employees);
     	foreach ($employees as $eId){
-    		$el = crm_ext_Employees::getCodeLink($eId);
+    		$el = planning_Hr::getCodeLink($eId);
     		$verbalEmployees[$eId] = $el;
     	}
     	
@@ -497,7 +497,7 @@ class planning_ProductionTaskDetails extends core_Detail
     		
     		$data->listFilter->class = 'simpleForm';
     		$data->listFilter->showFields = 'search,fixedAsset,employees';
-    		$data->listFilter->setOptions('employees', array('' => '') + crm_ext_Employees::getEmployeesWithCode());
+    		$data->listFilter->setOptions('employees', array('' => '') + planning_Hr::getEmployeesWithCode());
     		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     		$data->listFilter->input("");
     		 
