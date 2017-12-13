@@ -2902,9 +2902,10 @@ class crm_Persons extends core_Master
     /**
      * Лицата от група 'Служители'
      * 
+     * @param boolean $withAccess - да се филтрира ли по права за редакция или не
      * @return array $options - Опции
      */
-    public static function getEmployeesOptions()
+    public static function getEmployeesOptions($withAccess = FALSE)
     {
     	$options = $codes = array();
     	$emplGroupId = crm_Groups::getIdFromSysId('employees');
@@ -2913,6 +2914,7 @@ class crm_Persons extends core_Master
     	$query->like("groupList", "|{$emplGroupId}|");
     	
     	while($rec = $query->fetch()){
+    		if($withAccess === TRUE && !crm_Persons::haveRightFor('edit', $rec->id)) continue;
     		$options[$rec->id] = $val = self::getVerbal($rec, 'name');
     	}
     	
