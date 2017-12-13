@@ -313,9 +313,9 @@ class planning_Hr extends core_Manager
     	if(count($singleUrl)){
     		$singleUrl['Tab'] = 'PersonsDetails';
     	}
-    	 
+    	
     	$link = ht::createLink($code, $singleUrl, FALSE, "title=Към визитката на|* '{$name}'");
-    	$link = ht::createHint($code, $name, 'img/16/vcard.png', FALSE);
+    	$link = ht::createHint($link, $name, 'img/16/vcard.png', FALSE);
     	
     	return $link;
     }
