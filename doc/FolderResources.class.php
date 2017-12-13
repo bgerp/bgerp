@@ -54,10 +54,10 @@ class doc_FolderResources extends core_Manager
 		$resourceTypes = $data->masterMvc->getResourceTypeArray($data->masterData->rec);
 		if(empty($resourceTypes)) return;
 		
+		$data->TabCaption = 'Ресурси';
+		
 		$Tab = Request::get('Tab', 'varchar');
 		if($Tab != 'Resources') return;
-		
-		$data->TabCaption = 'Ресурси';
 		
 		// Подготовка на данните за оборудването
 		if(isset($resourceTypes['assets'])){
