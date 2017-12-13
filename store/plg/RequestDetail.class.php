@@ -3,7 +3,7 @@
 
 
 /**
- * Клас 'store_plg_RequestDetail' за записване на поръчаните количества в детайл на скалдов документ
+ * Клас 'store_plg_RequestDetail' за записване на поръчаните количества в детайл на складов документ
  * @see store_plg_Request
  *
  *
@@ -61,6 +61,7 @@ class store_plg_RequestDetail extends core_Plugin
 		}
 		
 		if($showRequested === TRUE){
+			$data->listTableMvc->setField("{$mvc->requestQuantityFieldName}", 'tdClass=lighterColor');
 			arr::placeInAssocArray($data->listFields, array("{$mvc->requestQuantityFieldName}" => 'Поръчано'), NULL, 'packQuantity');
 		}
 	}
