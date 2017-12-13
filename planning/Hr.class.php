@@ -105,7 +105,7 @@ class planning_Hr extends core_Manager
     	$rec = &$form->rec;
     	if(empty($rec->personId)){
     		$form->setField('personId', 'input');
-    		$form->setOptions('personId', array('' => '') + crm_Persons::getEmployeesOptions(TRUE));
+    		$form->setOptions('personId', array('' => '') + crm_Persons::getEmployeesOptions(TRUE, TRUE));
     	}
     
     	$suggestions = doc_FolderResources::getFolderSuggestions();

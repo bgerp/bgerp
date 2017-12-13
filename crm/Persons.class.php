@@ -2902,16 +2902,25 @@ class crm_Persons extends core_Master
     /**
      * Лицата от група 'Служители'
      * 
-     * @param boolean $withAccess - да се филтрира ли по права за редакция или не
-     * @return array $options - Опции
+     * @param  boolean $withAccess   - да се филтрира ли по права за редакция или не
+     * @param  boolean $withoutCodes - да имат ли кодове или не
+     * @return array $options        - опции
      */
-    public static function getEmployeesOptions($withAccess = FALSE)
+    public static function getEmployeesOptions($withAccess = FALSE, $withoutCodes = FALSE)
     {
     	$options = $codes = array();
     	$emplGroupId = crm_Groups::getIdFromSysId('employees');
     	
     	$query = self::getQuery();
     	$query->like("groupList", "|{$emplGroupId}|");
+    	
+    	// Ако е указано, само тези които нямат кодове в производствените ресурси
+    	if($withoutCodes === TRUE){
+    		$hrQuery = planning_Hr::getQuery();
+    		$hrQuery->show('personId');
+    		$exceptIds = arr::extractValuesFromArray($hrQuery->fetchAll(), 'personId');
+    		$query->notIn('id', $exceptIds);
+    	}
     	
     	while($rec = $query->fetch()){
     		if($withAccess === TRUE && !crm_Persons::haveRightFor('edit', $rec->id)) continue;
