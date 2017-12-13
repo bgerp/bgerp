@@ -85,4 +85,19 @@ class planning_FoldersWithResources extends core_Manager
 		$row->ROW_ATTR['class'] = "state-active";
 		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
 	}
+	
+	
+	/**
+	 * Изпълнява се след подготовката на ролите
+	 */
+	public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+	{
+		if($action == 'delete' && isset($rec->folderId)){
+			
+			// Ако има навързано оборудване и служители не се изтрива
+			if(planning_AssetResources::fetchField("LOCATE('|{$rec->folderId}|', #folders)") || planning_Hr::fetchField("LOCATE('|{$rec->folderId}|', #folders)")){
+				$res = 'no_one';
+			}
+		}
+	}
 }
