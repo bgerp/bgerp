@@ -56,7 +56,7 @@ class planning_AssetResources extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=Оборудване,code,groupId,folders,quantity=К-во,createdOn,createdBy,state';
+    public $listFields = 'name=Оборудване,code,groupId,protocolId=ДА,folders,quantity=К-во,createdOn,createdBy,state';
 
     
     /**

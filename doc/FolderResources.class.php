@@ -105,7 +105,7 @@ class doc_FolderResources extends core_Manager
     	}
     	
     	// Подготовка на полетата за показване
-    	$listFields = ($DetailName == 'planning_Hr') ? "code=Код,personId=Служител,created=Създаване" : "name=Оборудване,groupId=Вид,created=Създаване";
+    	$listFields = ($DetailName == 'planning_Hr') ? "code=Код,personId=Служител,created=Създаване" : "code=Код,name=Оборудване,groupId=Вид,created=Създаване";
     	$data->listFields = arr::make($listFields, TRUE);
     	
     	$type = ($DetailName == 'planning_AssetResources') ? 'asset' : 'employee';
