@@ -265,24 +265,17 @@ class planning_AssetResources extends core_Master
     
     
     /**
-     * Избор на наличното оборудване в подаденият департамент
-     * Включително и тези от департаментите, в които е включен
+     * Избор на наличното оборудване в подадената папка
      * 
-     * @param int $centerId - център на дейност
+     * @param int $folderId - ид на папка
      * @return array $res   - налично оборудване
      */
-    public static function getAvailableInCenter($centerId)
+    public static function getByFolderId($folderId)
     {
-    	$res = array();
     	$query = self::getQuery();
+    	$query->where("LOCATE('|{$folderId}|', #folders) AND #state != 'closed'");
     	
-    	// Ако центъра е неопределения всичкото оборудване може да се избира
-    	if($centerId != planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID){
-    		$query->where("(#folders IS NULL OR LOCATE('|{$centerId}|', #folders)) AND #state != 'closed'");
-    	} else {
-    		$query->where("#state != 'closed'");
-    	}
-    	
+    	$res = array();
     	while($rec = $query->fetch()){
     		$res[$rec->id] = self::getRecTitle($rec, FALSE);
     	}
@@ -345,9 +338,9 @@ class planning_AssetResources extends core_Master
     /**
      * Връща нормата на действието за оборудването
      * 
-     * @param int $id   - ид на оборудване
-     * @param int $productId - ид на артикул
-     * @return boolean
+     * @param int $id         - ид на оборудване
+     * @param int $productId  - ид на артикул
+     * @return stdClass|FALSE - запис на нормата или FALSE ако няма
      */
     public static function getNormRec($id, $productId)
     {
@@ -379,5 +372,15 @@ class planning_AssetResources extends core_Master
     	$groupId = planning_AssetResources::fetchField(key($assets), 'groupId');
     	
     	return (!empty($groupId)) ? $groupId : FALSE;
+    }
+    
+    
+    /**
+     * След подготовката на заглавието на формата
+     */
+    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	$rec = $data->form->rec;
+    	//$data->form->title = core_Detail::getEditTitle('crm_Persons', $rec->personId, $mvc->singleTitle, $rec->id, $mvc->formTitlePreposition);
     }
 }

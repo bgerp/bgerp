@@ -3,7 +3,7 @@
 
 
 /**
- * Мениджър за информация за служителите
+ * Мениджър за човешките ресурси в производството
  *
  * @category  bgerp
  * @package   planning
@@ -55,7 +55,7 @@ class planning_Hr extends core_Manager
     /**
      * Кой може да създава
      */
-    public $canAdd = 'ceo,planningMaster,crm';
+    public $canAdd = 'ceo,planningMaster';
     
     
     /**
@@ -124,7 +124,7 @@ class planning_Hr extends core_Manager
     
     
     /**
-     * Какъв е дефолтния код на служителя
+     * Дефолтния код за лицето
      * 
      * @param int $personId
      * @return string
@@ -249,7 +249,7 @@ class planning_Hr extends core_Manager
      * @param int $folderId   - ид на папка
      * @return array $options - масив със служители
      */
-    public static function getEmployeesWithCode($folderId)
+    public static function getEmployees($folderId)
     {
     	$options = array();
     	$emplGroupId = crm_Groups::getIdFromSysId('employees');

@@ -814,9 +814,8 @@ class planning_Tasks extends core_Master
 			}
 		}
 		
-		// Наличното оборудване в департамента
-		$centerId = planning_Centers::fetchField("#folderId = {$rec->folderId}", 'id');
-		$fixedAssets = planning_AssetResources::getAvailableInCenter($centerId);
+		// Наличното оборудване в папката
+		$fixedAssets = planning_AssetResources::getByFolderId($rec->folderId);
 		
 		// Подсигуряване че вече избраното оборудване присъства в опциите винаги
 		if(isset($rec->fixedAssets)){
