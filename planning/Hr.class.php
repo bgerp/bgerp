@@ -130,7 +130,7 @@ class planning_Hr extends core_Manager
     protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
     	$rec = $data->form->rec;
-    	$data->form->title = core_Detail::getEditTitle('crm_Persons', $rec->personId, $mvc->singleTitle, $rec->id, $mvc->formTitlePreposition);
+    	$data->form->title = core_Detail::getEditTitle('crm_Persons', $rec->personId, 'служебната информация', $rec->id, $mvc->formTitlePreposition);
     }
     
     

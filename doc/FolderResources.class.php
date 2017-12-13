@@ -298,13 +298,18 @@ class doc_FolderResources extends core_Manager
 		if($action == 'selectresource' && isset($rec)){
 			if(!doc_Folders::haveRightToFolder($rec->folderId, $userId)){
 				$requiredRoles = 'no_one';
-			} elseif($rec->type == 'asset'){
-				if(!planning_AssetResources::haveRightFor('add')){
+			} else {
+				$Cover = doc_Folders::getCover($rec->folderId);
+				if(!$Cover->haveRightFor('edit') && $rec->folderId != planning_Centers::getUndefinedFolderId()){
 					$requiredRoles = 'no_one';
-				}
-			} elseif($rec->type == 'employee'){
-				if(!planning_Hr::haveRightFor('edit')){
-					$requiredRoles = 'no_one';
+				} elseif($rec->type == 'asset'){
+					if(!planning_AssetResources::haveRightFor('add')){
+						$requiredRoles = 'no_one';
+					}
+				} elseif($rec->type == 'employee'){
+					if(!planning_Hr::haveRightFor('edit')){
+						$requiredRoles = 'no_one';
+					}
 				}
 			}
 		}
