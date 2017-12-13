@@ -70,7 +70,7 @@ class planning_FoldersWithResources extends core_Manager
 	 */
 	public function description()
 	{
-		$this->FLD('folderId', 'key2(mvc=doc_Folders,select=title,coverClasses=doc_UnsortedFolders,allowEmpty)', 'caption=Папка, mandatory');
+		$this->FLD('folderId', 'key2(mvc=doc_Folders,select=title,coverClasses=doc_UnsortedFolders,allowEmpty,restrictViewAccess=yes)', 'caption=Папка, mandatory');
 		$this->FLD('type', 'set(assets=Оборудване,hr=Служители)', 'caption=Ресурси, mandatory,');
 		
 		$this->setDbUnique('folderId');
