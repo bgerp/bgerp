@@ -288,6 +288,17 @@ class planning_Hr extends core_Manager
     
     
     /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+    	$data->listFilter->showFields = 'search';
+    	$data->listFilter->view = 'horizontal';
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    }
+    
+    
+    /**
      * Връща кода като линк
      * 
      * @param int $personId  - ид на служителя
