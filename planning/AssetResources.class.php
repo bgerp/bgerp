@@ -148,7 +148,9 @@ class planning_AssetResources extends core_Master
     	if(isset($rec->folderId)){
     		$form->setField('folders', 'input=none');
     	} else {
-    		$suggestions = doc_FolderResources::getFolderSuggestions();
+    		
+    		// Допустимите папки
+    		$suggestions = doc_FolderResources::getFolderSuggestions('assets');
     		$form->setSuggestions('folders', array('' => '') + $suggestions);
     		
     		// По дефолт е папката на неопределения център

@@ -31,7 +31,7 @@ class doc_FolderResources extends core_Manager
 	/**
 	 * Колко да са на страница заданията
 	 */
-	public $listCodesPerPage = 20;
+	public $listEmployeesPerPage = 20;
 	
 	
 	/**
@@ -52,7 +52,6 @@ class doc_FolderResources extends core_Manager
 	public function prepareResources_(&$data)
 	{
 		$resourceTypes = $data->masterMvc->getResourceTypeArray($data->masterData->rec);
-		
 		if(empty($resourceTypes)) return;
 		
 		$data->TabCaption = 'Ресурси';
@@ -71,7 +70,7 @@ class doc_FolderResources extends core_Manager
 		// Подготовка на данните за служителите
 		if(isset($resourceTypes['hr'])){
 			$data->eData = clone $data;
-			$data->eData->itemsPerPage = $this->listCodesPerPage;
+			$data->eData->itemsPerPage = $this->listEmployeesPerPage;
 			$data->eData->listTableMvc = clone cls::get('planning_Hr');
 			$this->prepareResourceData($data->eData, 'planning_Hr');
 		}
@@ -318,27 +317,46 @@ class doc_FolderResources extends core_Manager
 	
 	
 	/**
-	 * Множоството възможни папки за избор
+	 * Всички папки в които може да се добавя посочения ресурс
 	 *
-	 * @return array $suggestions
+	 * @param string|NULL $forType - 'assets' за оборудване, 'hr' за служители или NULL за всички
+	 * @return array $suggestions  - опции за избор на папките
 	 */
-	public static function getFolderSuggestions()
+	public static function getFolderSuggestions($forType = NULL)
 	{
 		$suggestions = array();
-		 
-		foreach (array('support_Systems', 'planning_Centers', 'planning_FoldersWithResources') as $CoverClass){
-			$query = $CoverClass::getQuery();
-			if(cls::get($CoverClass)->getField('state', FALSE)){
-				$query->where("#state != 'rejected' AND #state != 'closed'");
-			}
-			$query->where("#folderId IS NOT NULL");
-			$query->show('folderId');
-			$folders = arr::extractValuesFromArray($query->fetchAll(), 'folderId');
-			foreach ($folders as $folderId){
-				$suggestions[$folderId] = doc_Folders::getTitleById($folderId, FALSE);
-			}
+		expect(in_array($forType, array('assets', 'hr', NULL)));
+		
+		// Папките на центровете на дейност
+		$cQuery = planning_Centers::getQuery();
+		$cQuery->where("#state != 'rejected' AND #state != 'closed' AND #folderId IS NOT NULL");
+		$cQuery->show('folderId');
+		$suggestions += arr::extractValuesFromArray($cQuery->fetchAll(), 'folderId');
+		
+		// Папките на системите, само ако се изисква
+		if($forType != 'hr'){
+			$sQuery = support_Systems::getQuery();
+			$sQuery->where("#state != 'rejected' AND #state != 'closed' AND #folderId IS NOT NULL");
+			$sQuery->show('folderId');
+			$suggestions += arr::extractValuesFromArray($sQuery->fetchAll(), 'folderId');
 		}
-		 
+		
+		// Твърдо забитите папки с ресурси
+		$fQuery = planning_FoldersWithResources::getQuery();
+		$fQuery->where("#folderId IS NOT NULL");
+		if(!is_null($forType)){
+			$fQuery->where("LOCATE('{$forType}', #type)");
+		}
+		
+		$fQuery->show('folderId');
+		$suggestions += arr::extractValuesFromArray($fQuery->fetchAll(), 'folderId');
+		
+		// Намиране на имената на папките
+		foreach ($suggestions as $key => &$v){
+			$v = doc_Folders::getTitleById($key, FALSE);
+		}
+		
+		// Върнатите предложение
 		return $suggestions;
 	}
 }  

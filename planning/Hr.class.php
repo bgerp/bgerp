@@ -108,9 +108,11 @@ class planning_Hr extends core_Manager
     		$form->setOptions('personId', array('' => '') + crm_Persons::getEmployeesOptions(TRUE, TRUE));
     	}
     
-    	$suggestions = doc_FolderResources::getFolderSuggestions();
+    	// Допустимите папки
+    	$suggestions = doc_FolderResources::getFolderSuggestions('hr');
     	$form->setSuggestions('folders', array('' => '') + $suggestions);
     	
+    	// По дефолт е избрана папката на неопределения център
     	$defFolderId = planning_Centers::getUndefinedFolderId();
     	$form->setDefault('folders', keylist::fromArray(array($defFolderId => $defFolderId)));
     }
