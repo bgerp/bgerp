@@ -441,4 +441,18 @@ class support_Systems extends core_Master
     {
         $data->rec->allowedTypes = type_Keylist::fromArray($mvc->getAllowedFieldsArr($data->rec->id));
     }
+    
+    
+    /**
+     * Какви видове ресурси може да се добавят към модела
+     *
+     * @param stdClass $rec
+     * @return array   - празен масив ако няма позволени ресурси
+     * 		['assets'] - оборудване
+     * 		['hr']     - служители
+     */
+    public function getResourceTypeArray($rec)
+    {
+    	return arr::make('assets', TRUE);
+    }
 }
