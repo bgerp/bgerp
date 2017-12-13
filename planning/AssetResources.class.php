@@ -93,7 +93,7 @@ class planning_AssetResources extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'name, code, groupId, folders, protocolId';
+    public $searchFields = 'name=Оборудване, code, groupId, folders, protocolId';
     
     
     /**
@@ -115,13 +115,14 @@ class planning_AssetResources extends core_Master
      */
     function description()
     {
-    	$this->FLD('name', 'varchar', 'caption=Оборудване,mandatory');
+    	$this->FLD('name', 'varchar', 'caption=Наименование,mandatory');
     	$this->FLD('groupId', 'key(mvc=planning_AssetGroups,select=name,allowEmpty)', 'caption=Вид,mandatory,silent');
     	$this->FLD('code', 'varchar(16)', 'caption=Код,mandatory');
     	$this->FLD('protocolId', 'key(mvc=accda_Da,select=id)', 'caption=Протокол за пускане в експлоатация,silent,input=hidden');
     	$this->FLD('folders', 'keylist(mvc=doc_Folders,select=title)', 'caption=Папки,mandatory,oldFieldName=departments');
     	$this->FLD('quantity', 'int', 'caption=Kоличество,notNull,value=1');
     	$this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
+    	$this->FNC('folderId', 'int', 'silent,input=hidden');
     	
     	$this->setDbUnique('code');
     	$this->setDbUnique('protocolId');
@@ -143,42 +144,17 @@ class planning_AssetResources extends core_Master
     		$form->info = tr('От') . " " . accda_Da::getHyperLink($rec->protocolId, TRUE);
     	}
     	
-    	$defDepartmentId = Request::get('folderId', 'int');
-    	$defFolderId = planning_Centers::getUndefinedFolderId();
-    	foreach (array($defDepartmentId, $defFolderId) as $var){
-    		if(!empty($var)){
-    			$form->setDefault('folders', keylist::fromArray(array($var => $var)));
-    		}
+    	// Ако има избрана папка по-дефолт скрива се полето за папки
+    	if(isset($rec->folderId)){
+    		$form->setField('folders', 'input=none');
+    	} else {
+    		$suggestions = doc_FolderResources::getFolderSuggestions();
+    		$form->setSuggestions('folders', array('' => '') + $suggestions);
+    		
+    		// По дефолт е папката на неопределения център
+    		$defFolderId = planning_Centers::getUndefinedFolderId();
+    		$form->setDefault('folders', keylist::fromArray(array($defFolderId => $defFolderId)));
     	}
-    	
-    	$suggestions = $mvc->getFolderSuggestions();
-    	$form->setSuggestions('folders', array('' => '') + $suggestions);
-    }
-    
-    
-    /**
-     * Множоството възможни папки за избор
-     * 
-     * @return array $suggestions
-     */
-    private function getFolderSuggestions()
-    {
-    	$suggestions = array();
-    	
-    	foreach (array('support_Systems', 'planning_Centers', 'planning_FoldersWithResources') as $CoverClass){
-    		$query = $CoverClass::getQuery();
-    		if(cls::get($CoverClass)->getField('state', FALSE)){
-    			$query->where("#state != 'rejected' AND #state != 'closed'");
-    		}
-    		$query->where("#folderId IS NOT NULL");
-    		$query->show('folderId');
-    		$folders = arr::extractValuesFromArray($query->fetchAll(), 'folderId');
-    		foreach ($folders as $folderId){
-    			$suggestions[$folderId] = doc_Folders::getTitleById($folderId, FALSE);
-    		}
-    	}
-    	
-    	return $suggestions;
     }
     
     
@@ -188,7 +164,10 @@ class planning_AssetResources extends core_Master
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
     	if(empty($rec->folders)){
-    		$rec->folders = keylist::addKey('', planning_Centers::getUndefinedFolderId());
+    		
+    		// Ако няма папки се взима подадената папка или тази на неопределения център
+    		$folderId = isset($rec->folderId) ? $rec->folderId : planning_Centers::getUndefinedFolderId();
+    		$rec->folders = keylist::addKey('', $folderId);
     	}
     }
     
@@ -380,7 +359,9 @@ class planning_AssetResources extends core_Master
      */
     protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
-    	$rec = $data->form->rec;
-    	//$data->form->title = core_Detail::getEditTitle('crm_Persons', $rec->personId, $mvc->singleTitle, $rec->id, $mvc->formTitlePreposition);
+    	if($folderId = Request::get('folderId', 'int')){
+    		$Cover = doc_Folders::getCover($folderId);
+    		$data->form->title = core_Detail::getEditTitle($Cover->className, $Cover->that, $mvc->singleTitle, $data->form->rec->id, $mvc->formTitlePreposition);
+    	}
     }
 }

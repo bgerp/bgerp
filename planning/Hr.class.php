@@ -82,7 +82,7 @@ class planning_Hr extends core_Manager
     public function description()
     {
         $this->FLD('personId', 'key(mvc=crm_Persons)', 'input=hidden,silent,mandatory,caption=Лице');
-        $this->FLD('code', 'varchar', 'caption=Код,mandatory');
+        $this->FLD('code', 'varchar', 'caption=Код');
         $this->FLD('folders', 'keylist(mvc=doc_Folders,select=title)', 'caption=Папки,mandatory,oldFieldName=departments');
         
         $this->setDbUnique('personId');
@@ -95,8 +95,15 @@ class planning_Hr extends core_Manager
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
-    	$form->setDefault('code', self::getDefaultCode($form->rec->personId));
+    	$rec = &$form->rec;
+    	if(empty($rec->personId)){
+    		$form->setField('personId', 'input');
+    		$form->setOptions('personId', array('' => '') + crm_Persons::getEmployeesOptions());
+    	}
     
+    	$suggestions = doc_FolderResources::getFolderSuggestions();
+    	$form->setSuggestions('folders', array('' => '') + $suggestions);
+    	
     	$defFolderId = planning_Centers::getUndefinedFolderId();
     	$form->setDefault('folders', keylist::fromArray(array($defFolderId => $defFolderId)));
     }
@@ -107,6 +114,10 @@ class planning_Hr extends core_Manager
      */
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
+    	if(empty($rec->code)){
+    		$rec->code = self::getDefaultCode($rec->personId);
+    	}
+    	
     	if(empty($rec->folders)){
     		$rec->folders = keylist::addKey('', planning_Centers::getUndefinedFolderId());
     	}

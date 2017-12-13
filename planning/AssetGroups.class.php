@@ -88,7 +88,7 @@ class planning_AssetGroups extends core_Master
 	 */
 	public function description()
 	{
-		$this->FLD('name', 'varchar(64,ci)', 'caption=Наименование, mandatory');
+		$this->FLD('name', 'varchar(64,ci)', 'caption=Име, mandatory');
 		$this->setDbUnique('name');
 	}
 	

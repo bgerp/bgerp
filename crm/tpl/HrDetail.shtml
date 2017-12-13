@@ -11,7 +11,7 @@
 <tr><td  class='quiet'>|Длъжност|*</td><td>[#positionId#]</td></tr>
 <!--ET_END positionId-->
 
-<!--ET_BEGIN departments-->
-<tr><td class='quiet'>|Центрове|*</td><td>[#departments#]</td></tr>
-<!--ET_END departments-->
+<!--ET_BEGIN folders-->
+<tr><td class='quiet'>|Папки|*</td><td>[#folders#]</td></tr>
+<!--ET_END folders-->
 </table>

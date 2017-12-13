@@ -309,5 +309,31 @@ class doc_FolderResources extends core_Manager
 			}
 		}
 	}
+	
+	
+	/**
+	 * Множоството възможни папки за избор
+	 *
+	 * @return array $suggestions
+	 */
+	public static function getFolderSuggestions()
+	{
+		$suggestions = array();
+		 
+		foreach (array('support_Systems', 'planning_Centers', 'planning_FoldersWithResources') as $CoverClass){
+			$query = $CoverClass::getQuery();
+			if(cls::get($CoverClass)->getField('state', FALSE)){
+				$query->where("#state != 'rejected' AND #state != 'closed'");
+			}
+			$query->where("#folderId IS NOT NULL");
+			$query->show('folderId');
+			$folders = arr::extractValuesFromArray($query->fetchAll(), 'folderId');
+			foreach ($folders as $folderId){
+				$suggestions[$folderId] = doc_Folders::getTitleById($folderId, FALSE);
+			}
+		}
+		 
+		return $suggestions;
+	}
 }  
     
