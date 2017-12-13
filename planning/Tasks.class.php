@@ -1005,7 +1005,7 @@ class planning_Tasks extends core_Master
     	}
     	
     	// Добавяне на оборудването към филтъра
-    	$fixedAssets = planning_AssetResources::makeArray4Select('name', "#state != 'rejected'");
+    	$fixedAssets = planning_AssetResources::getByFolderId();
     	if(count($fixedAssets)){
     		$data->listFilter->FLD('assetId', 'int', 'caption=Оборудване');
     		$data->listFilter->setOptions('assetId', array('' => '') + $fixedAssets);

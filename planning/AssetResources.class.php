@@ -26,7 +26,7 @@ class planning_AssetResources extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, planning_Wrapper, plg_State2, plg_Search, plg_SaveAndNew';
+    public $loadList = 'plg_RowTools2, plg_Created, planning_Wrapper, plg_State2, plg_Search, plg_SaveAndNew,plg_Sorting';
     
     
     /**
@@ -56,7 +56,7 @@ class planning_AssetResources extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=Оборудване,groupId,folders,quantity=К-во,createdOn,createdBy,state';
+    public $listFields = 'name=Оборудване,code,groupId,folders,quantity=К-во,createdOn,createdBy,state';
 
     
     /**
@@ -93,7 +93,7 @@ class planning_AssetResources extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'name=Оборудване, code, groupId, folders, protocolId';
+    public $searchFields = 'name, code, groupId, folders, protocolId';
     
     
     /**
@@ -180,11 +180,12 @@ class planning_AssetResources extends core_Master
     	$row->groupId = planning_AssetGroups::getHyperlink($rec->groupId, TRUE);
     	$row->created = "{$row->createdOn} " . tr("от") . " {$row->createdBy}";
     	
-    	if(isset($fields['-list'])){
-    		$row->name = self::getHyperlink($rec, TRUE);
-    	} elseif(isset($fields['-single'])){
+    	if(isset($fields['-single'])){
     		$row->SingleIcon = ht::createElement("img", array('src' => sbf(str_replace('/16/', '/32/', $mvc->singleIcon), ""), 'alt' => ''));
     		$row->name = self::getRecTitle($rec);
+    	} else {
+    		//$url = self::getSingleUrlArray($rec, TRUE);
+    		//$row->name = ht::createLink($title)
     	}
     	
     	if(isset($rec->protocolId)){
@@ -246,13 +247,16 @@ class planning_AssetResources extends core_Master
     /**
      * Избор на наличното оборудване в подадената папка
      * 
-     * @param int $folderId - ид на папка
-     * @return array $res   - налично оборудване
+     * @param int|NULL $folderId - ид на папка, NULL за всички
+     * @return array $res        - налично оборудване
      */
-    public static function getByFolderId($folderId)
+    public static function getByFolderId($folderId = NULL)
     {
     	$query = self::getQuery();
-    	$query->where("LOCATE('|{$folderId}|', #folders) AND #state != 'closed'");
+    	$query->where("#state != 'closed'");
+    	if(isset($folderId)){
+    		$query->where("LOCATE('|{$folderId}|', #folders)");
+    	}
     	
     	$res = array();
     	while($rec = $query->fetch()){

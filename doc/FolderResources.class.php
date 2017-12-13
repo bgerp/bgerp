@@ -205,13 +205,14 @@ class doc_FolderResources extends core_Manager
 		expect($folderRec = doc_Folders::fetch($folderId));
 		$this->requireRightFor('selectresource', (object)array('folderId' => $folderId, 'type' => $type));
 		$this->load('planning_Wrapper');
-		$this->currentTab = 'Ресурси->Оборудване';
+		
 		
 		$form = cls::get('core_Form');
 		$options = $default = array();
 		
 		// Ако се променят оборудванията
 		if($type == 'asset'){
+			$this->currentTab = 'Ресурси->Оборудване';
 			$typeTitle = 'оборудванията';
 			$form->FLD('select', 'keylist(mvc=planning_AssetResources,select=name)', "caption=Оборудване");
 			$aQuery = planning_AssetResources::getQuery();
@@ -225,8 +226,8 @@ class doc_FolderResources extends core_Manager
 				}
 			}
 		} else {
+			$this->currentTab = 'Ресурси->Служители';
 			
-			// Ако се променят служителите
 			$typeTitle = 'служителите';
 			$form->FLD('select', 'keylist(mvc=crm_Persons,select=name)', "caption=Служители");
 			$options = crm_Persons::getEmployeesOptions();
