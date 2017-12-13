@@ -257,4 +257,13 @@ class planning_Centers extends core_Master
     {
     	return arr::make('assets,hr', TRUE);
     }
+    
+    
+    /**
+     * Връща папката на неопределения център на дейност
+     */
+    public static function getUndefinedFolderId()
+    {
+    	return planning_Centers::fetchField(planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID, 'folderId');
+    }
 }

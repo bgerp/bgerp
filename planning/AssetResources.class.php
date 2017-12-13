@@ -143,8 +143,8 @@ class planning_AssetResources extends core_Master
     		$form->info = tr('От') . " " . accda_Da::getHyperLink($rec->protocolId, TRUE);
     	}
     	
-    	$defDepartmentId = Request::get('departmentId', 'int');
-    	$defFolderId = planning_Centers::fetchField(planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID, 'folderId');
+    	$defDepartmentId = Request::get('folderId', 'int');
+    	$defFolderId = planning_Centers::getUndefinedFolderId();
     	foreach (array($defDepartmentId, $defFolderId) as $var){
     		if(!empty($var)){
     			$form->setDefault('folders', keylist::fromArray(array($var => $var)));
@@ -188,8 +188,7 @@ class planning_AssetResources extends core_Master
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
     	if(empty($rec->folders)){
-    		$folderId = planning_Centers::fetchField(planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID, 'folderId');
-    		$rec->folders = keylist::addKey('', $folderId);
+    		$rec->folders = keylist::addKey('', planning_Centers::getUndefinedFolderId());
     	}
     }
     

@@ -97,7 +97,7 @@ class planning_Hr extends core_Manager
     	$form = &$data->form;
     	$form->setDefault('code', self::getDefaultCode($form->rec->personId));
     
-    	$defFolderId = planning_Centers::fetchField(planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID, 'folderId');
+    	$defFolderId = planning_Centers::getUndefinedFolderId();
     	$form->setDefault('folders', keylist::fromArray(array($defFolderId => $defFolderId)));
     }
     
@@ -108,8 +108,7 @@ class planning_Hr extends core_Manager
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
     	if(empty($rec->folders)){
-    		$folderId = planning_Centers::fetchField(planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID, 'folderId');
-    		$rec->folders = keylist::addKey('', $folderId);
+    		$rec->folders = keylist::addKey('', planning_Centers::getUndefinedFolderId());
     	}
     }
     
@@ -245,12 +244,12 @@ class planning_Hr extends core_Manager
     
     
     /**
-     * Връща всички служители, които имат код
+     * Връща всички служители, избрани като ресурси в папката
      * 
-     * @param int $centerId   - ид на център на дейност
+     * @param int $folderId   - ид на папка
      * @return array $options - масив със служители
      */
-    public static function getEmployeesWithCode($centerId)
+    public static function getEmployeesWithCode($folderId)
     {
     	$options = array();
     	$emplGroupId = crm_Groups::getIdFromSysId('employees');
@@ -258,7 +257,7 @@ class planning_Hr extends core_Manager
     	$query = static::getQuery();
     	$query->EXT('groupList', 'crm_Persons', 'externalName=groupList,externalKey=personId');
     	$query->like("groupList", "|{$emplGroupId}|");
-    	$query->where("LOCATE('|{$centerId}|', #folders)");
+    	$query->where("LOCATE('|{$folderId}|', #folders)");
     	$query->show("personId,code");
     	
     	while($rec = $query->fetch()){

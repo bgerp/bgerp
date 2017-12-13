@@ -52,6 +52,7 @@ class doc_FolderResources extends core_Manager
 	public function prepareResources_(&$data)
 	{
 		$resourceTypes = $data->masterMvc->getResourceTypeArray($data->masterData->rec);
+		
 		if(empty($resourceTypes)) return;
 		
 		$data->TabCaption = 'Ресурси';
@@ -85,16 +86,17 @@ class doc_FolderResources extends core_Manager
 	 */
 	private function prepareResourceData(&$data, $DetailName)
 	{
+		$folderId = $data->masterData->rec->folderId;
 		$data->recs = $data->rows = array();
     	$query = $DetailName::getQuery();
     	if($query->getField('state', FALSE)){
     		$query->where("#state != 'rejected'");
     	}
-    	$query->where("LOCATE('|{$data->masterData->rec->folderId}|', #folders)");
+    	$query->where("LOCATE('|{$folderId}|', #folders)");
     	
     	// Подготовка на пейджъра
     	$data->Pager = cls::get('core_Pager',  array('itemsPerPage' => $data->itemsPerPage));
-    	$data->Pager->setPageVar('planning_Centers', $data->masterId, $DetailName);
+    	$data->Pager->setPageVar($data->masterMvc->className, $data->masterId, $DetailName);
     	$data->Pager->setLimit($query);
     	
     	// Извличане на записите
@@ -108,13 +110,13 @@ class doc_FolderResources extends core_Manager
     	$data->listFields = arr::make($listFields, TRUE);
     	
     	$type = ($DetailName == 'planning_AssetResources') ? 'asset' : 'employee';
-    	if($this->haveRightFor('selectresource', (object)array('centerId' => $data->masterId, 'type' => $type))){
-    		$data->addUrl = array($this, 'selectresource', 'centerId' => $data->masterId, 'type' => $type, 'ret_url' => TRUE);
+    	if($this->haveRightFor('selectresource', (object)array('folderId' => $folderId, 'type' => $type))){
+    		$data->addUrl = array($this, 'selectresource', 'folderId' => $folderId, 'type' => $type, 'ret_url' => TRUE);
     	}
     	
     	if($DetailName == 'planning_AssetResources'){
     		if(planning_AssetResources::haveRightFor('add')){
-    			$data->newUrl = array('planning_AssetResources', 'add', 'departmentId' => $data->masterId, 'ret_url' => TRUE);
+    			$data->newUrl = array('planning_AssetResources', 'add', 'folderId' => $folderId, 'ret_url' => TRUE);
     		}
     	}
 	}
@@ -133,8 +135,8 @@ class doc_FolderResources extends core_Manager
 		if($DetailName == 'planning_Hr'){
 			$tpl->replace("style='margin-top:10px'", 'STYLE');
 		} else {
-			$hint = ',title=Добавяне на оборудване към центъра на дейност';
-			$hint2 = ',title=Създаване на ново оборудване към центъра на дейност';
+			$hint = ",title=Добавяне на оборудване към " . mb_strtolower($data->masterMvc->singleTitle);
+			$hint2 = ",title=Създаване на ново оборудване към " . mb_strtolower($data->masterMvc->singleTitle);
 		}
 		
 		$title = ($DetailName == 'planning_Hr') ? 'Служители' : 'Оборудвания';
@@ -198,12 +200,12 @@ class doc_FolderResources extends core_Manager
 	function act_SelectResource()
 	{
 		$this->requireRightFor('selectresource');
-		expect($centerId = Request::get('centerId', 'int'));
+		expect($folderId = Request::get('folderId', 'int'));
 		expect($type = Request::get('type', 'enum(employee,asset)'));
-		expect($cRec = planning_Centers::fetch($centerId));
-		$this->requireRightFor('selectresource', (object)array('centerId' => $centerId, 'type' => $type));
+		expect($folderRec = doc_Folders::fetch($folderId));
+		$this->requireRightFor('selectresource', (object)array('folderId' => $folderId, 'type' => $type));
 		$this->load('planning_Wrapper');
-		$this->currentTab = 'Центрове';
+		$this->currentTab = 'Ресурси->Оборудване';
 		
 		$form = cls::get('core_Form');
 		$options = $default = array();
@@ -211,14 +213,14 @@ class doc_FolderResources extends core_Manager
 		// Ако се променят оборудванията
 		if($type == 'asset'){
 			$typeTitle = 'оборудванията';
-			$form->FLD('select', 'keylist(mvc=planning_AssetResources,select=name)', "caption=Оборудвания");
+			$form->FLD('select', 'keylist(mvc=planning_AssetResources,select=name)', "caption=Оборудване");
 			$aQuery = planning_AssetResources::getQuery();
 			$aQuery->where("#state != 'closed'");
 			while($aRec = $aQuery->fetch()){
 				$recTitle = planning_AssetResources::getRecTitle($aRec, FALSE);
 				$options[$aRec->id] = $recTitle;
 				
-				if(keylist::isIn($centerId, $aRec->folders) || is_null($aRec->folders)){
+				if(keylist::isIn($folderId, $aRec->folders) || is_null($aRec->folders)){
 					$default[$aRec->id] = $recTitle;
 				}
 			}
@@ -229,13 +231,13 @@ class doc_FolderResources extends core_Manager
 			$form->FLD('select', 'keylist(mvc=crm_Persons,select=name)', "caption=Служители");
 			$options = crm_Persons::getEmployeesOptions();
 			$dQuery = planning_Hr::getQuery();
-			$dQuery->where("LOCATE('|{$centerId}|', #folders)");
+			$dQuery->where("LOCATE('|{$folderId}|', #folders)");
 			$dQuery->show('personId');
 			$default = arr::extractValuesFromArray($dQuery->fetchAll(), 'personId');
 		}
 		
 		// Задаване на полетата от формата
-		$form->title = "Промяна на {$typeTitle} към|* " . cls::get('planning_Centers')->getFormTitleLink($centerId);
+		$form->title = "Промяна на {$typeTitle} към|* " . cls::get('planning_Centers')->getFormTitleLink($folderId);
 		$form->setSuggestions('select', $options);
 		$form->setDefault('select', keylist::fromArray($default));
 		$form->input();
@@ -248,14 +250,14 @@ class doc_FolderResources extends core_Manager
 			foreach ($selected as $id => $name){
 				if($type == 'asset'){
 					$eRec = planning_AssetResources::fetch($id);
-					$eRec->folders = keylist::addKey($eRec->folders, $centerId);
+					$eRec->folders = keylist::addKey($eRec->folders, $folderId);
 					planning_AssetResources::save($eRec);
 				} else {
 					if($pRec = planning_Hr::fetch("#personId = {$id}")){
-						$pRec->folders = keylist::addKey($pRec->folders, $centerId);
+						$pRec->folders = keylist::addKey($pRec->folders, $folderId);
 						planning_Hr::save($pRec);
 					} else {
-						planning_Hr::save((object)array("personId" => $id, 'folders' => keylist::addKey('', $centerId), 'code' => planning_Hr::getDefaultCode($id)));
+						planning_Hr::save((object)array("personId" => $id, 'folders' => keylist::addKey('', $folderId), 'code' => planning_Hr::getDefaultCode($id)));
 					}
 				}
 			}
@@ -265,11 +267,11 @@ class doc_FolderResources extends core_Manager
 			foreach ($removeArr as $rId => $rName){
 				if($type == 'asset'){
 					$eRec = planning_AssetResources::fetch($rId);
-					$eRec->folders = keylist::removeKey($eRec->folders, $centerId);
+					$eRec->folders = keylist::removeKey($eRec->folders, $folderId);
 					planning_AssetResources::save($eRec);
 				} else {
 					$eRec = planning_Hr::fetch("#personId = {$rId}");
-					$eRec->folders = keylist::removeKey($eRec->folders, $centerId);
+					$eRec->folders = keylist::removeKey($eRec->folders, $folderId);
 					planning_Hr::save($eRec);
 				}
 			}
@@ -294,8 +296,7 @@ class doc_FolderResources extends core_Manager
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
 		if($action == 'selectresource' && isset($rec)){
-			$folderId = planning_Centers::fetchField($rec->centerId, 'folderId');
-			if(!doc_Folders::haveRightToFolder($folderId, $userId) || $rec->centerId == planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID){
+			if(!doc_Folders::haveRightToFolder($rec->folderId, $userId)){
 				$requiredRoles = 'no_one';
 			} elseif($rec->type == 'asset'){
 				if(!planning_AssetResources::haveRightFor('add')){
