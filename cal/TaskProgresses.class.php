@@ -329,13 +329,14 @@ class cal_TaskProgresses extends core_Detail
         
         // Определяне на прогреса
         if(isset($rec->progress)) {
-            if ($tRec->progress != $rec->progress) {
+            
+            if (($tRec->progress != $rec->progress) || ($rec->state == 'rejected')) {
                 
                 $oldProgress = $tRec->progress;
                 $tRec->progress = $rec->progress;
                 
                 // При прогрес на 100% нотифицираме и създателя на задачата
-                if($rec->progress == 1) {
+                if (($rec->progress == 1) || ($rec->state == 'rejected' && self::getLastGoodProgress($tRec->id) == 1)) {
                     $cu = core_Users::getCurrent();
                     
                     if ($tRec->createdBy > 0 && $tRec->createdBy != $cu) {
@@ -355,7 +356,7 @@ class cal_TaskProgresses extends core_Detail
                 
                 // Ако предишния прогрес е бил 100 и сега се добави по-малък
                 // Ако е в затворено състояно, връщаме предишното състояние
-                if (($oldProgress == 1) && ($rec->progress != $oldProgress)) {
+                if (($oldProgress == 1) && (($rec->progress != $oldProgress) || $rec->state == 'rejected')) {
                     if (($tRec->state == 'closed') || ($tRec->state == 'stopped')) {
                         if ($tRec->state != $tRec->brState) {
                             $tState = $tRec->state;
