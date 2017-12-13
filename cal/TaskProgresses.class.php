@@ -27,9 +27,27 @@ class cal_TaskProgresses extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools,plg_Created,cal_Wrapper';
-
-
+    public $loadList = 'plg_RowTools2, plg_Created, cal_Wrapper, plg_Rejected';
+    
+    
+    /**
+     * 
+     */
+    public $canEdit = 'no_one';
+    
+    
+    /**
+     *
+     */
+    public $canDelete = 'no_one';
+    
+    
+    /**
+     *
+     */
+    public $canReject = 'powerUser';
+    
+    
     /**
      * Заглавие
      */
@@ -62,7 +80,6 @@ class cal_TaskProgresses extends core_Detail
     
     /**
      * 
-     * @var unknown
      */
     public $canAdd = 'powerUser';
     
@@ -93,6 +110,8 @@ class cal_TaskProgresses extends core_Detail
         
         // Статус съобщение
         $this->FLD('message',    'richtext(rows=5, bucket=calTasks)', 'caption=Съобщение');
+        
+        $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено)', 'caption=Състояние,column=none,input=none,notNull,forceField');
     }
 
 
@@ -314,24 +333,28 @@ class cal_TaskProgresses extends core_Detail
         
         // Определяне на прогреса
         if(isset($rec->progress)) {
-            $tRec->progress = $rec->progress;
-            
-            // При прогрес на 100% нотифицираме и създателя на задачата
-            if($rec->progress == 1) {
-                $cu = core_Users::getCurrent();
+            if ($tRec->progress != $rec->progress) {
                 
-                if ($tRec->createdBy > 0 && $tRec->createdBy != $cu) {
-                    if (!type_Keylist::isIn($cu, $rec->notifyUsers)) {
-                        $rec->notifyUsers = type_Keylist::addKey($rec->notifyUsers, $tRec->createdBy);
+                $tRec->progress = $rec->progress;
+                
+                // При прогрес на 100% нотифицираме и създателя на задачата
+                if($rec->progress == 1) {
+                    $cu = core_Users::getCurrent();
+                    
+                    if ($tRec->createdBy > 0 && $tRec->createdBy != $cu) {
+                        if (!type_Keylist::isIn($cu, $rec->notifyUsers)) {
+                            $rec->notifyUsers = type_Keylist::addKey($rec->notifyUsers, $tRec->createdBy);
+                        }
                     }
+                    
+                    $tRec->brState = $tRec->state;
+                    $tRec->state = 'closed';
+                    $tRec->timeClosed = $now;
+                    
+                    $msg = 'Приключена е задачата';
+                    
+                    $removeOldNotify = TRUE;
                 }
-                
-                $tRec->state = 'closed';
-                $tRec->timeClosed = $now;
-                
-                $msg = 'Приключена е задачата';
-                
-                $removeOldNotify = TRUE;
             }
         }
         
@@ -342,9 +365,10 @@ class cal_TaskProgresses extends core_Detail
         }
         
         // Определяне на отработеното време
-        if(isset($rec->workingTime)) {
+        if(isset($rec->workingTime) || ($rec->state == 'rejected')) {
             $query = self::getQuery();
             $query->where("#taskId = {$tRec->id}");
+            $query->where("#state != 'rejected'");
             $query->XPR('workingTimeSum', 'int', 'sum(#workingTime)');
             $rec = $query->fetch();
             $tRec->workingTime = $rec->workingTimeSum;
@@ -412,5 +436,178 @@ class cal_TaskProgresses extends core_Detail
 		}
 		
 		return $res;
+	}
+	
+	
+	/**
+	 * Реализация по подразбиране на метода $mvc->reject($id)
+	 *
+	 * @param core_Mvc $mvc
+	 * @param mixed $res
+	 * @param int|stdClass $id
+	 */
+	public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+	{
+	    $rec = $mvc->fetchRec($id);
+	    $mvc->updateTaskProgress($rec->taskId, 'reject');
+	}
+	
+	
+	/**
+	 * Възстановяване на оттеглен обект
+	 *
+	 * Реализация по подразбиране на метода $mvc->restore($id)
+	 *
+	 * @param core_Mvc $mvc
+	 * @param mixed $res
+	 * @param int|stdClass $id
+	 */
+	public static function on_BeforeRestore(core_Mvc $mvc, &$res, $id)
+	{
+	    $rec = cal_Tasks::fetchRec($id);
+	    $tRec = cal_Tasks::fetch($rec->taskId);
+	    
+	    $rec->notifyUsers = $tRec->assign;
+	    
+	    $rec->notifyUsers = type_Keylist::addKey($rec->notifyUsers, $tRec->createdBy);
+	}
+	
+	
+	/**
+	 * Възстановяване на оттеглен обект
+	 *
+	 * Реализация по подразбиране на метода $mvc->restore($id)
+	 *
+	 * @param core_Mvc $mvc
+	 * @param mixed $res
+	 * @param int|stdClass $id
+	 */
+	public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
+	{
+	    $rec = $mvc->fetchRec($id);
+	    $mvc->updateTaskProgress($rec->taskId, 'restore');
+	}
+	
+	
+	/**
+	 * Обновява прогреса на задачата
+	 * 
+	 * @param integer $taskId
+	 * @param NULL|string $state
+	 * 
+	 * @return NULL|boolean
+	 */
+	protected static function updateTaskProgress($taskId, $state = NULL)
+	{
+	    if (!$taskId) return ;
+	    
+        $progress = self::getLastGoodProgress($taskId);
+        
+        $tRec = cal_Tasks::fetch($taskId);
+        
+        $oldProgress = $tRec->progress;
+        
+        if (isset($progress) && ($tRec->progress != $progress)) {
+            $tRec->progress = $progress;
+            cal_Tasks::save($tRec, 'progress');
+            
+            $removeOldNotify = FALSE;
+            $msg = '';
+            
+            // При оттегляне, добавяме нотификация и върщаме предишното състояние
+            if ($state == 'reject') {
+                
+                $notifyUsersArr = type_Keylist::toArray($tRec->assign);
+                
+                if ($rec->createdBy > 0) {
+                    $notifyUsersArr[$tRec->createdBy] = $tRec->createdBy;
+                }
+                
+                $cu = core_Users::getCurrent();
+                unset($notifyUsersArr[$cu]);
+                
+                if (!empty($notifyUsersArr)) {
+                    cal_Tasks::notifyForChanges($tRec, 'Оттеглен прогрес', $notifyUsersArr);
+                }
+                
+                if ($oldProgress == 1) {
+                    if (($tRec->state == 'closed') || ($tRec->state == 'stopped')) {
+                        if ($tRec->state != $tRec->brState) {
+                            $tState = $tRec->state;
+                            $tRec->state = $tRec->brState;
+                            $tRec->brState = $tState;
+                            
+                            if (!$tRec->state) {
+                                $tRec->state = 'active';
+                            }
+                            
+                            cal_Tasks::save($tRec, 'brState, state');
+                        }
+                    }
+                }
+            }
+            
+            return TRUE;
+        }
+	}
+	
+	
+	/**
+	 * Връща последно добавения неоттеглен прогрес
+	 * 
+	 * @param integer $taskId
+	 * @return NULL|double
+	 */
+	protected static function getLastGoodProgress($taskId)
+	{
+	    if (!$taskId) return ;
+	    
+        $query = self::getQuery();
+        $query->where(array("#taskId = '[#1#]'", $taskId));
+        $query->where("#state != 'rejected'");
+        $query->limit(1);
+        $query->show('progress');
+        $query->orderBy('createdOn', 'DESC');
+        
+        $rec = $query->fetch();
+        
+        if (!$rec) return 0;
+        
+        return $rec->progress;
+	}
+	
+	
+	/**
+	 * Извлича редовете, които ще се покажат на текущата страница
+	 * За да покажем и оттеглените задачи
+	 * 
+	 * @param stdObject $data
+	 * 
+	 * @return stdObject
+	 */
+	function prepareListRecs(&$data)
+	{
+	    $data = parent::prepareListRecs_($data);
+	    
+	    $data->rejQuery = clone($data->query);
+	    $data->rejQuery->where("#state = 'rejected'");
+	    
+	    return $res;
+	}
+	
+	
+	/**
+	 * След преобразуване на записа в четим за хора вид.
+	 *
+	 * @param core_Mvc $mvc
+	 * @param stdClass $row Това ще се покаже
+	 * @param stdClass $rec Това е записа в машинно представяне
+	 */
+	protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
+	{
+	    // Добавяме стил за състоянието на оттеглените задачи
+	    if ($rec->state == 'rejected') {
+	        $row->ROW_ATTR['class'] .= ' state-' . $rec->state;
+	    }
 	}
 }
