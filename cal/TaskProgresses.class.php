@@ -331,6 +331,7 @@ class cal_TaskProgresses extends core_Detail
         if(isset($rec->progress)) {
             if ($tRec->progress != $rec->progress) {
                 
+                $oldProgress = $tRec->progress;
                 $tRec->progress = $rec->progress;
                 
                 // При прогрес на 100% нотифицираме и създателя на задачата
@@ -350,6 +351,24 @@ class cal_TaskProgresses extends core_Detail
                     $msg = 'Приключена е задачата';
                     
                     $removeOldNotify = TRUE;
+                }
+                
+                // Ако предишния прогрес е бил 100 и сега се добави по-малък
+                // Ако е в затворено състояно, връщаме предишното състояние
+                if (($oldProgress == 1) && ($rec->progress != $oldProgress)) {
+                    if (($tRec->state == 'closed') || ($tRec->state == 'stopped')) {
+                        if ($tRec->state != $tRec->brState) {
+                            $tState = $tRec->state;
+                            $tRec->state = $tRec->brState;
+                            $tRec->brState = $tState;
+                            
+                            if (!$tRec->state) {
+                                $tRec->state = 'active';
+                            }
+                            
+                            cal_Tasks::save($tRec, 'brState, state');
+                        }
+                    }
                 }
             }
         }
@@ -501,8 +520,6 @@ class cal_TaskProgresses extends core_Detail
         
         $tRec = cal_Tasks::fetch($taskId);
         
-        $oldProgress = $tRec->progress;
-        
         if (isset($progress) && ($tRec->progress != $progress)) {
             $tRec->progress = $progress;
             cal_Tasks::save($tRec, 'progress');
@@ -524,22 +541,6 @@ class cal_TaskProgresses extends core_Detail
                 
                 if (!empty($notifyUsersArr)) {
                     cal_Tasks::notifyForChanges($tRec, 'Оттеглен прогрес', $notifyUsersArr);
-                }
-                
-                if ($oldProgress == 1) {
-                    if (($tRec->state == 'closed') || ($tRec->state == 'stopped')) {
-                        if ($tRec->state != $tRec->brState) {
-                            $tState = $tRec->state;
-                            $tRec->state = $tRec->brState;
-                            $tRec->brState = $tState;
-                            
-                            if (!$tRec->state) {
-                                $tRec->state = 'active';
-                            }
-                            
-                            cal_Tasks::save($tRec, 'brState, state');
-                        }
-                    }
                 }
             }
             
