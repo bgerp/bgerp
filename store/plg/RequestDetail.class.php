@@ -61,6 +61,7 @@ class store_plg_RequestDetail extends core_Plugin
 		}
 		
 		if($showRequested === TRUE){
+			$data->listTableMvc->setField("{$mvc->requestQuantityFieldName}", 'tdClass=lighterColor');
 			arr::placeInAssocArray($data->listFields, array("{$mvc->requestQuantityFieldName}" => 'Поръчано'), NULL, 'packQuantity');
 		}
 	}
