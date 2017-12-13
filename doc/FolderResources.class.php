@@ -237,7 +237,7 @@ class doc_FolderResources extends core_Manager
 		}
 		
 		// Задаване на полетата от формата
-		$form->title = "Промяна на {$typeTitle} към|* " . cls::get('planning_Centers')->getFormTitleLink($folderId);
+		$form->title = "Промяна на {$typeTitle} към|* " . doc_Folders::getCover($folderId)->getFormTitleLink();;
 		$form->setSuggestions('select', $options);
 		$form->setDefault('select', keylist::fromArray($default));
 		$form->input();
