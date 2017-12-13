@@ -244,6 +244,9 @@ class planning_Setup extends core_ProtoSetup
     }
     
     
+    /**
+     * Мигриране на центровете на дейност
+     */
     public function transferCenters()
     {
     	$Deparments = cls::get('hr_Departments');
@@ -424,10 +427,10 @@ class planning_Setup extends core_ProtoSetup
     	}
     	
     	$aQuery = $Assets->getQuery();
-    	$aQuery->where("#departments IS NOT NULL");
-    	$aQuery->show('departments');
+    	$aQuery->where("#folders IS NOT NULL");
+    	$aQuery->show('folders');
     	while($aRec = $aQuery->fetch()){
-    		$aRec->departments = NULL;
+    		$aRec->folders = NULL;
     		$Assets->save_($aRec);
     	}
     	 
@@ -448,10 +451,10 @@ class planning_Setup extends core_ProtoSetup
     	}
     	
     	$hQuery = $Hr->getQuery();
-    	$hQuery->where("#departments IS NOT NULL");
-    	$hQuery->show('departments');
+    	$hQuery->where("#folders IS NOT NULL");
+    	$hQuery->show('folders');
     	while($hRec = $hQuery->fetch()){
-    		$d = keylist::toArray($hRec->departments);
+    		$d = keylist::toArray($hRec->folders);
     		$intersect = arr::make(array_intersect_key($map, $d), TRUE);
     		
     		$new = array();
@@ -462,8 +465,8 @@ class planning_Setup extends core_ProtoSetup
 	    		}
     		}
     		
-    		$hRec->departments = keylist::fromArray($new);
-    		$hRec->departments = empty($hRec->departments) ? NULL : $hRec->departments;
+    		$hRec->folders = keylist::fromArray($new);
+    		$hRec->folders = empty($hRec->folders) ? NULL : $hRec->departments;
     		$Hr->save_($hRec);
     	}
     	
@@ -498,18 +501,18 @@ class planning_Setup extends core_ProtoSetup
     	$Assets->setupMvc();
     	
     	$aQuery = $Assets->getQuery();
-    	$aQuery->where("#departments IS NULL || #departments = ''");
+    	$aQuery->where("#folders IS NULL || #folders = ''");
     	while($aRec = $aQuery->fetch()){
-    		$Assets->save($aRec, 'departments');
+    		$Assets->save($aRec, 'folders');
     	}
     	
     	$Hr = cls::get('planning_Hr');
     	$Hr->setupMvc();
     	
     	$hQuery = $Hr->getQuery();
-    	$hQuery->where("#departments IS NULL");
+    	$hQuery->where("#folders IS NULL");
     	while($hRec = $hQuery->fetch()){
-    		$Hr->save($hRec, 'departments');
+    		$Hr->save($hRec, 'folders');
     	}
     	
     	$query = $Hr->getQuery();

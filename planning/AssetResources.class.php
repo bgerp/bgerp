@@ -56,7 +56,7 @@ class planning_AssetResources extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=Оборудване,groupId,departments,quantity=К-во,createdOn,createdBy,state';
+    public $listFields = 'name=Оборудване,groupId,folders,quantity=К-во,createdOn,createdBy,state';
 
     
     /**
@@ -93,7 +93,7 @@ class planning_AssetResources extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'name, code, groupId, departments, protocolId';
+    public $searchFields = 'name, code, groupId, folders, protocolId';
     
     
     /**
@@ -119,7 +119,7 @@ class planning_AssetResources extends core_Master
     	$this->FLD('groupId', 'key(mvc=planning_AssetGroups,select=name,allowEmpty)', 'caption=Вид,mandatory,silent');
     	$this->FLD('code', 'varchar(16)', 'caption=Код,mandatory');
     	$this->FLD('protocolId', 'key(mvc=accda_Da,select=id)', 'caption=Протокол за пускане в експлоатация,silent,input=hidden');
-    	$this->FLD('departments', 'keylist(mvc=doc_Folders,select=title)', 'caption=Папки,mandatory');
+    	$this->FLD('folders', 'keylist(mvc=doc_Folders,select=title)', 'caption=Папки,mandatory,oldFieldName=departments');
     	$this->FLD('quantity', 'int', 'caption=Kоличество,notNull,value=1');
     	$this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
     	
@@ -147,12 +147,12 @@ class planning_AssetResources extends core_Master
     	$defFolderId = planning_Centers::fetchField(planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID, 'folderId');
     	foreach (array($defDepartmentId, $defFolderId) as $var){
     		if(!empty($var)){
-    			$form->setDefault('departments', keylist::fromArray(array($var => $var)));
+    			$form->setDefault('folders', keylist::fromArray(array($var => $var)));
     		}
     	}
     	
     	$suggestions = $mvc->getFolderSuggestions();
-    	$form->setSuggestions('departments', array('' => '') + $suggestions);
+    	$form->setSuggestions('folders', array('' => '') + $suggestions);
     }
     
     
@@ -187,9 +187,9 @@ class planning_AssetResources extends core_Master
      */
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
-    	if(empty($rec->departments)){
+    	if(empty($rec->folders)){
     		$folderId = planning_Centers::fetchField(planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID, 'folderId');
-    		$rec->departments = keylist::addKey('', $folderId);
+    		$rec->folders = keylist::addKey('', $folderId);
     	}
     }
     
@@ -279,7 +279,7 @@ class planning_AssetResources extends core_Master
     	
     	// Ако центъра е неопределения всичкото оборудване може да се избира
     	if($centerId != planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID){
-    		$query->where("(#departments IS NULL OR LOCATE('|{$centerId}|', #departments)) AND #state != 'closed'");
+    		$query->where("(#folders IS NULL OR LOCATE('|{$centerId}|', #folders)) AND #state != 'closed'");
     	} else {
     		$query->where("#state != 'closed'");
     	}
@@ -328,7 +328,7 @@ class planning_AssetResources extends core_Master
     	$tpl = new core_ET("");
     	
     	// Рендиране на таблицата с оборудването
-    	$data->listFields = arr::make("name=Оборудване,departments=Центрове,quantity=К-во,createdOn=Създадено->На,createdBy=Създадено->От,state=Състояние");
+    	$data->listFields = arr::make("name=Оборудване,folders=Центрове,quantity=К-во,createdOn=Създадено->На,createdBy=Създадено->От,state=Състояние");
     	$table = cls::get('core_TableView', array('mvc' => $this));
     	$this->invoke('BeforeRenderListTable', array($tpl, &$data));
     	$tpl->append($table->get($data->rows, $data->listFields));

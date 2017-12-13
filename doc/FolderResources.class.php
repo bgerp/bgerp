@@ -6,7 +6,7 @@
  * Помощен детайл подготвящ и обединяващ заедно ресурсите на центровете на дейност
  *
  * @category  bgerp
- * @package   planning
+ * @package   doc
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
@@ -19,13 +19,13 @@ class doc_FolderResources extends core_Manager
 	/**
 	 * Единично заглавие
 	 */
-	public $title = 'Ресурси към оборудване';
+	public $title = 'Ресурси към папки';
 	
 	
 	/**
 	 * Единично заглавие
 	 */
-	public $singleTitle = 'Ресурс към оборудване';
+	public $singleTitle = 'Ресурс към папка';
 	
 	
 	/**
@@ -53,6 +53,9 @@ class doc_FolderResources extends core_Manager
 	{
 		$resourceTypes = $data->masterMvc->getResourceTypeArray($data->masterData->rec);
 		if(empty($resourceTypes)) return;
+		
+		$Tab = Request::get('Tab', 'varchar');
+		if($Tab != 'Resources') return;
 		
 		$data->TabCaption = 'Ресурси';
 		
@@ -87,7 +90,7 @@ class doc_FolderResources extends core_Manager
     	if($query->getField('state', FALSE)){
     		$query->where("#state != 'rejected'");
     	}
-    	$query->where("LOCATE('|{$data->masterData->rec->folderId}|', #departments)");
+    	$query->where("LOCATE('|{$data->masterData->rec->folderId}|', #folders)");
     	
     	// Подготовка на пейджъра
     	$data->Pager = cls::get('core_Pager',  array('itemsPerPage' => $data->itemsPerPage));
@@ -215,7 +218,7 @@ class doc_FolderResources extends core_Manager
 				$recTitle = planning_AssetResources::getRecTitle($aRec, FALSE);
 				$options[$aRec->id] = $recTitle;
 				
-				if(keylist::isIn($centerId, $aRec->departments) || is_null($aRec->departments)){
+				if(keylist::isIn($centerId, $aRec->folders) || is_null($aRec->folders)){
 					$default[$aRec->id] = $recTitle;
 				}
 			}
@@ -226,7 +229,7 @@ class doc_FolderResources extends core_Manager
 			$form->FLD('select', 'keylist(mvc=crm_Persons,select=name)', "caption=Служители");
 			$options = crm_Persons::getEmployeesOptions();
 			$dQuery = planning_Hr::getQuery();
-			$dQuery->where("LOCATE('|{$centerId}|', #departments)");
+			$dQuery->where("LOCATE('|{$centerId}|', #folders)");
 			$dQuery->show('personId');
 			$default = arr::extractValuesFromArray($dQuery->fetchAll(), 'personId');
 		}
@@ -245,14 +248,14 @@ class doc_FolderResources extends core_Manager
 			foreach ($selected as $id => $name){
 				if($type == 'asset'){
 					$eRec = planning_AssetResources::fetch($id);
-					$eRec->departments = keylist::addKey($eRec->departments, $centerId);
+					$eRec->folders = keylist::addKey($eRec->folders, $centerId);
 					planning_AssetResources::save($eRec);
 				} else {
 					if($pRec = planning_Hr::fetch("#personId = {$id}")){
-						$pRec->departments = keylist::addKey($pRec->departments, $centerId);
+						$pRec->folders = keylist::addKey($pRec->folders, $centerId);
 						planning_Hr::save($pRec);
 					} else {
-						planning_Hr::save((object)array("personId" => $id, 'departments' => keylist::addKey('', $centerId), 'code' => planning_Hr::getDefaultCode($id)));
+						planning_Hr::save((object)array("personId" => $id, 'folders' => keylist::addKey('', $centerId), 'code' => planning_Hr::getDefaultCode($id)));
 					}
 				}
 			}
@@ -262,11 +265,11 @@ class doc_FolderResources extends core_Manager
 			foreach ($removeArr as $rId => $rName){
 				if($type == 'asset'){
 					$eRec = planning_AssetResources::fetch($rId);
-					$eRec->departments = keylist::removeKey($eRec->departments, $centerId);
+					$eRec->folders = keylist::removeKey($eRec->folders, $centerId);
 					planning_AssetResources::save($eRec);
 				} else {
 					$eRec = planning_Hr::fetch("#personId = {$rId}");
-					$eRec->departments = keylist::removeKey($eRec->departments, $centerId);
+					$eRec->folders = keylist::removeKey($eRec->folders, $centerId);
 					planning_Hr::save($eRec);
 				}
 			}

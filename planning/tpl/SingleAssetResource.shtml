@@ -15,11 +15,11 @@
                 </li>
                 <!--ET_END protocolId-->
                 
-                <!--ET_BEGIN departments-->
+                <!--ET_BEGIN folders-->
                 <li class="info">
-                    <span class="gray-title">|Департаменти|*: </span> [#departments#]
+                    <span class="gray-title">|Използвано в|*: </span> [#folders#]
                 </li>
-                <!--ET_END departments-->
+                <!--ET_END folders-->
                 
                 <!--ET_BEGIN quantity-->
                 <li class="info">

@@ -73,7 +73,7 @@ class planning_Hr extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code,personId,departments,createdOn,createdBy';
+    public $listFields = 'code,personId,folders,createdOn,createdBy';
     
     
     /**
@@ -83,7 +83,7 @@ class planning_Hr extends core_Manager
     {
         $this->FLD('personId', 'key(mvc=crm_Persons)', 'input=hidden,silent,mandatory,caption=Лице');
         $this->FLD('code', 'varchar', 'caption=Код,mandatory');
-        $this->FLD('departments', 'keylist(mvc=doc_Folders,select=title)', 'caption=Папки,mandatory');
+        $this->FLD('folders', 'keylist(mvc=doc_Folders,select=title)', 'caption=Папки,mandatory,oldFieldName=departments');
         
         $this->setDbUnique('personId');
     }
@@ -98,7 +98,7 @@ class planning_Hr extends core_Manager
     	$form->setDefault('code', self::getDefaultCode($form->rec->personId));
     
     	$defFolderId = planning_Centers::fetchField(planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID, 'folderId');
-    	$form->setDefault('departments', keylist::fromArray(array($defFolderId => $defFolderId)));
+    	$form->setDefault('folders', keylist::fromArray(array($defFolderId => $defFolderId)));
     }
     
     
@@ -107,9 +107,9 @@ class planning_Hr extends core_Manager
      */
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
-    	if(empty($rec->departments)){
+    	if(empty($rec->folders)){
     		$folderId = planning_Centers::fetchField(planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID, 'folderId');
-    		$rec->departments = keylist::addKey('', $folderId);
+    		$rec->folders = keylist::addKey('', $folderId);
     	}
     }
     
@@ -258,7 +258,7 @@ class planning_Hr extends core_Manager
     	$query = static::getQuery();
     	$query->EXT('groupList', 'crm_Persons', 'externalName=groupList,externalKey=personId');
     	$query->like("groupList", "|{$emplGroupId}|");
-    	$query->where("LOCATE('|{$centerId}|', #departments)");
+    	$query->where("LOCATE('|{$centerId}|', #folders)");
     	$query->show("personId,code");
     	
     	while($rec = $query->fetch()){
