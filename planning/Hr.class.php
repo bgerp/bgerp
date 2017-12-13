@@ -37,7 +37,7 @@ class planning_Hr extends core_Manager
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    public $loadList = 'planning_Wrapper,plg_Created,plg_RowTools2';
+    public $loadList = 'planning_Wrapper,plg_Created,plg_RowTools2,plg_Search';
     
     
     /**
@@ -77,6 +77,12 @@ class planning_Hr extends core_Manager
     
     
     /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'personId, code, folders';
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
@@ -85,6 +91,7 @@ class planning_Hr extends core_Manager
         $this->FLD('code', 'varchar', 'caption=Код');
         $this->FLD('folders', 'keylist(mvc=doc_Folders,select=title)', 'caption=Папки,mandatory,oldFieldName=departments');
         
+        $this->setDbIndex('code');
         $this->setDbUnique('personId');
     }
     
@@ -283,12 +290,12 @@ class planning_Hr extends core_Manager
     /**
      * Връща кода като линк
      * 
-     * @param int $personId
-     * @return core_ET $el
+     * @param int $personId  - ид на служителя
+     * @return core_ET $link - линк към визитката
      */
     public static function getCodeLink($personId)
     {
-    	$el = planning_Hr::fetchField("#personId = {$personId}", 'code');
+    	$code = planning_Hr::fetchField("#personId = {$personId}", 'code');
     	$name = crm_Persons::getVerbal($personId, 'name');
     	 
     	$singleUrl = crm_Persons::getSingleUrlArray($personId);
@@ -296,9 +303,9 @@ class planning_Hr extends core_Manager
     		$singleUrl['Tab'] = 'PersonsDetails';
     	}
     	 
-    	$el = ht::createLink($el, $singleUrl, FALSE, "title=Към визитката на|* '{$name}'");
-    	$el = ht::createHint($el, $name, 'img/16/vcard.png', FALSE);
+    	$link = ht::createLink($code, $singleUrl, FALSE, "title=Към визитката на|* '{$name}'");
+    	$link = ht::createHint($code, $name, 'img/16/vcard.png', FALSE);
     	
-    	return $el;
+    	return $link;
     }
 }
