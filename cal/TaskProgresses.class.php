@@ -195,10 +195,6 @@ class cal_TaskProgresses extends core_Detail
             $data->form->setDefault('progress', $mRec->progress);
         }
         
-        if ($mRec->workingTime) {
-            $data->form->setDefault('workingTime', $mRec->workingTime);
-        }
-        
         $data->form->setSuggestions('progress', $progressArr);
     }
     
