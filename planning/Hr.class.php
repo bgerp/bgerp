@@ -176,6 +176,7 @@ class planning_Hr extends core_Manager
     	$row->ROW_ATTR['class'] = "state-active";
     	$row->created = "{$row->createdOn} " . tr("от") . " {$row->createdBy}";
     	$row->personId = crm_Persons::getHyperlink($rec->personId, TRUE);
+    	$row->folders = doc_Folders::getVerbalLinks($rec->folders, TRUE);
     }
     
     
