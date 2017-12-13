@@ -605,5 +605,21 @@ class cal_TaskProgresses extends core_Detail
 	    if ($rec->state == 'rejected') {
 	        $row->ROW_ATTR['class'] .= ' state-' . $rec->state;
 	    }
+	    
+	    $Driver = $mvc->Master->getDriver($rec->taskId);
+	    
+	    $mRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
+	    
+	    $progressArr = $Driver->getProgressSuggestions($mRec);
+	    
+	    Mode::push('text', 'plain');
+	    $pVal = $mvc->fields['progress']->type->toVerbal($rec->progress);
+	    Mode::pop('text');
+	    
+	    $pValStr = $progressArr[$pVal];
+	    
+	    if ($pValStr && ($pValStr != $pVal)) {
+	        $row->progress .= ' (' . $pValStr . ')';
+	    }
 	}
 }
