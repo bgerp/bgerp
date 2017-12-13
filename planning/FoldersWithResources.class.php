@@ -99,5 +99,12 @@ class planning_FoldersWithResources extends core_Manager
 				$res = 'no_one';
 			}
 		}
+		
+		// Ако няма достъп до папката не може да я редактира
+		if($action == 'edit' && isset($rec->folderId)){
+			if(!doc_Folders::haveRightToFolder($rec->folderId)){
+				$res = 'no_one';
+			}
+		}
 	}
 }

@@ -301,7 +301,7 @@ class planning_AssetResources extends core_Master
     	$tpl = new core_ET("");
     	
     	// Рендиране на таблицата с оборудването
-    	$data->listFields = arr::make("name=Оборудване,folders=Центрове,quantity=К-во,createdOn=Създадено->На,createdBy=Създадено->От,state=Състояние");
+    	$data->listFields = arr::make("name=Оборудване,folders=Папки,quantity=К-во,createdOn=Създадено->На,createdBy=Създадено->От,state=Състояние");
     	$table = cls::get('core_TableView', array('mvc' => $this));
     	$this->invoke('BeforeRenderListTable', array($tpl, &$data));
     	$tpl->append($table->get($data->rows, $data->listFields));
