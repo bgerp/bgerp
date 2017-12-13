@@ -103,6 +103,7 @@ class planning_Hr extends core_Manager
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
+    	
     	if(empty($rec->personId)){
     		$form->setField('personId', 'input');
     		$form->setOptions('personId', array('' => '') + crm_Persons::getEmployeesOptions(TRUE, TRUE));
@@ -139,7 +140,9 @@ class planning_Hr extends core_Manager
     protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
     	$rec = $data->form->rec;
-    	$data->form->title = core_Detail::getEditTitle('crm_Persons', $rec->personId, 'служебната информация', $rec->id, $mvc->formTitlePreposition);
+    	if(isset($rec->personId)){
+    		$data->form->title = core_Detail::getEditTitle('crm_Persons', $rec->personId, 'служебната информация', $rec->id, $mvc->formTitlePreposition);
+    	}
     }
     
     
