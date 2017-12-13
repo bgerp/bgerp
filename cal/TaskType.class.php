@@ -65,10 +65,13 @@ class cal_TaskType extends core_Mvc
      */
     public function getProgressSuggestions($tRec)
     {
-        $progressArr = array();
-        for($i = 0; $i <= 100; $i += 10) {
-            $p = $i . ' %';
-            $progressArr[$p] = $p;
+        static $progressArr = array();
+        
+        if (empty($progressArr)) {
+            for($i = 0; $i <= 100; $i += 10) {
+                $p = $i . ' %';
+                $progressArr[$p] = $p;
+            }
         }
         
         return $progressArr;

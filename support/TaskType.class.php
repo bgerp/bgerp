@@ -69,14 +69,16 @@ class support_TaskType extends core_Mvc
      */
     public function getProgressSuggestions($tRec)
     {
-        $progressArr = array();
+        static $progressArr = array();
         
-        $progressArr['0 %'] = '0 %';
-        $progressArr['10 %'] = 'Информация';
-        $progressArr['40 %'] = 'Корекция';
-        $progressArr['60 %'] = 'Превенция';
-        $progressArr['80 %'] = 'Оценка';
-        $progressArr['100 %'] = 'Резолюция';
+        if (empty($progressArr)) {
+            $progressArr['0 %'] = '0 %';
+            $progressArr['10 %'] = tr('Информация');
+            $progressArr['40 %'] = tr('Корекция');
+            $progressArr['60 %'] = tr('Превенция');
+            $progressArr['80 %'] = tr('Оценка');
+            $progressArr['100 %'] = tr('Резолюция');
+        }
         
         return $progressArr;
     }

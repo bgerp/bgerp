@@ -2489,7 +2489,7 @@ class cal_Tasks extends embed_Manager
             break;
                 
             case 'active':
-                $msg = 'Активиране';
+                $msg = 'Активирана';
             break;
                 
             case 'waiting':

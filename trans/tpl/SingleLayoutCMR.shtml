@@ -242,7 +242,7 @@
         <div class="row-fluid">
             <div class="span12">
                 <div class="row-fluid">
-                    <div class="span6 basicFontSize" style="border:1px; border-top:0px; border-style:solid; color:[#basicColor#];   padding:6px; min-height:85px">
+                    <div class="span6 basicFontSize" style="border:1px; border-top:0px; border-style:solid; color:[#basicColor#];   padding:6px; min-height:60px">
                         <b>&nbsp;&nbsp; 21. Established in:</b>
                         <div class="row-fluid">
                             <div class="span6 basicFontSize" style="margin-top:-4px;  border:0px; border-top:0px; border-style:solid; color:[#basicColor#];   padding:6px">
@@ -253,7 +253,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="span6 basicFontSize" style="border:1px; border-top:0px; border-left:0px; border-style:solid; color:[#basicColor#];   padding:6px; min-height:85px; margin-left:0px">
+                    <div class="span6 basicFontSize" style="border:1px; border-top:0px; border-left:0px; border-style:solid; color:[#basicColor#];   padding:6px; min-height:60px; margin-left:0px">
                         <b>&nbsp;&nbsp; 15. Cash on delivery</b>
                         <div class='filledFieled leftAlign' >[#cashOnDelivery#]</div>
                     </div>
@@ -265,13 +265,13 @@
         <div class="row-fluid">
             <div class="span12">
                 <div class="row-fluid">
-                    <div class="span4 basicFontSize" style=" border:1px; border-top:0px; border-style:solid; color:[#basicColor#];   padding:6px; min-height:85px">
+                    <div class="span4 basicFontSize" style=" border:1px; border-top:0px; border-style:solid; color:[#basicColor#];   padding:6px; min-height:110px">
                         <b>&nbsp;&nbsp; 22. Signature and stamp of the sender</b>
                     </div>
-                    <div class="span4 basicFontSize" style=" border:1px; border-top:0px; border-left:0px; border-style:solid; color:[#basicColor#];   padding:6px; min-height:85px; margin-left:0px">
+                    <div class="span4 basicFontSize" style=" border:1px; border-top:0px; border-left:0px; border-style:solid; color:[#basicColor#];   padding:6px; min-height:110px; margin-left:0px">
                         <b>&nbsp;&nbsp; 23. Signature and stamp of the carrier</b>
                     </div>
-                    <div class="span4 basicFontSize" style="border:1px; border-top:0px; border-left:0px; border-style:solid; color:[#basicColor#];   padding:6px; min-height:85px; margin-left:0px">
+                    <div class="span4 basicFontSize" style="border:1px; border-top:0px; border-left:0px; border-style:solid; color:[#basicColor#];   padding:6px; min-height:110px; margin-left:0px">
                         <b>&nbsp;&nbsp; 24. Signature and stamp of the consignee</b>
                     </div>
                 </div>
