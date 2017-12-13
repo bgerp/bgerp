@@ -335,28 +335,36 @@ class cal_TaskProgresses extends core_Detail
                 $oldProgress = $tRec->progress;
                 $tRec->progress = $rec->progress;
                 
-                // При прогрес на 100% нотифицираме и създателя на задачата
-                if (($rec->progress == 1) || ($rec->state == 'rejected' && self::getLastGoodProgress($tRec->id) == 1)) {
-                    $cu = core_Users::getCurrent();
-                    
-                    if ($tRec->createdBy > 0 && $tRec->createdBy != $cu) {
-                        if (!type_Keylist::isIn($cu, $rec->notifyUsers)) {
-                            $rec->notifyUsers = type_Keylist::addKey($rec->notifyUsers, $tRec->createdBy);
-                        }
-                    }
-                    
-                    $tRec->brState = $tRec->state;
-                    $tRec->state = 'closed';
-                    $tRec->timeClosed = $now;
-                    
-                    $msg = 'Приключена е задачата';
-                    
-                    $removeOldNotify = TRUE;
+                if ($rec->state == 'rejected') {
+                    $lGoodProgress = self::getLastGoodProgress($tRec->id);
                 }
                 
-                // Ако предишния прогрес е бил 100 и сега се добави по-малък
+                $tRec->progress = ($rec->state != 'rejected') ? $rec->progress : $lGoodProgress;
+                
+                // При прогрес на 100% нотифицираме и създателя на задачата
+                if (($rec->progress == 1 && $rec->state != 'rejected') || ($rec->state == 'rejected' && $lGoodProgress == 1)) {
+                    
+                    if ($tRec->state != 'closed' && $tRec->state != 'stopped') {
+                        $cu = core_Users::getCurrent();
+                        
+                        if ($tRec->createdBy > 0 && $tRec->createdBy != $cu) {
+                            if (!type_Keylist::isIn($cu, $rec->notifyUsers)) {
+                                $rec->notifyUsers = type_Keylist::addKey($rec->notifyUsers, $tRec->createdBy);
+                            }
+                        }
+                        
+                        $tRec->brState = $tRec->state;
+                        $tRec->state = 'closed';
+                        $tRec->timeClosed = $now;
+                        
+                        $msg = 'Приключена е задачата';
+                        
+                        $removeOldNotify = TRUE;
+                    }
+                }
+                
                 // Ако е в затворено състояно, връщаме предишното състояние
-                if (($oldProgress == 1) && (($rec->progress != $oldProgress) || $rec->state == 'rejected')) {
+                if (($tRec->progress != 1) && (($rec->progress != $oldProgress) || $rec->state == 'rejected')) {
                     if (($tRec->state == 'closed') || ($tRec->state == 'stopped')) {
                         if ($tRec->state != $tRec->brState) {
                             $tState = $tRec->state;
