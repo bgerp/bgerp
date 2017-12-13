@@ -466,7 +466,7 @@ class planning_Setup extends core_ProtoSetup
     		}
     		
     		$hRec->folders = keylist::fromArray($new);
-    		$hRec->folders = empty($hRec->folders) ? NULL : $hRec->departments;
+    		$hRec->folders = empty($hRec->folders) ? NULL : $hRec->folders;
     		$Hr->save_($hRec);
     	}
     	
