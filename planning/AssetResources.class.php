@@ -179,13 +179,11 @@ class planning_AssetResources extends core_Master
     {
     	$row->groupId = planning_AssetGroups::getHyperlink($rec->groupId, TRUE);
     	$row->created = "{$row->createdOn} " . tr("от") . " {$row->createdBy}";
+    	$row->folders = doc_Folders::getVerbalLinks($rec->folders, TRUE);
     	
     	if(isset($fields['-single'])){
     		$row->SingleIcon = ht::createElement("img", array('src' => sbf(str_replace('/16/', '/32/', $mvc->singleIcon), ""), 'alt' => ''));
     		$row->name = self::getRecTitle($rec);
-    	} else {
-    		//$url = self::getSingleUrlArray($rec, TRUE);
-    		//$row->name = ht::createLink($title)
     	}
     	
     	if(isset($rec->protocolId)){
