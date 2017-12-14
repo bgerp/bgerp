@@ -301,6 +301,22 @@ class doc_AssignPlg extends core_Plugin
     
     
     /**
+     * Преди записване на клонирания запис
+     *
+     * @param core_Mvc $mvc
+     * @param object $rec
+     * @param object $nRec
+     *
+     * @see plg_Clone
+     */
+    function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
+    {
+        unset($nRec->assignedOn);
+        unset($nRec->assignedBy);
+    }
+    
+    
+    /**
      * Подготовка на формата за добавяне/редактиране
      */
     public static function on_AfterPrepareEditForm($mvc, &$res, $data)
