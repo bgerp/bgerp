@@ -521,5 +521,17 @@ class planning_Setup extends core_ProtoSetup
     		$rec->code = planning_Hr::getDefaultCode($rec->personId);
     		$Hr->save($rec);
     	}
+    	
+    	$hQuery = $Hr->getQuery();
+    	$hQuery->where("#folders IS NULL");
+    	while($hRec = $hQuery->fetch()){
+    		$Hr->save($hRec, 'folders');
+    	}
+    	
+    	$h1Query = $Hr->getQuery();
+    	while($h1Rec = $h1Query->fetch()){
+    		$h1Rec->state = 'active';
+    		$Hr->save($h1Rec, 'state');
+    	}
     }
 }
