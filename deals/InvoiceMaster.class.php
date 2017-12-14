@@ -1147,7 +1147,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		
     		if(!count($cache)){
     			if(isset($dpAmount)){
-    				$v = ($vatRate == 'yes' && $vatRate != 'separate') ? 0.2 : 0; 
+    				$v = ($vatRate == 'yes' || $vatRate == 'separate') ? 0.2 : 0; 
     				$vats["{$v}"] = $v;
     			}
     		}
