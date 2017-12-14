@@ -24,8 +24,8 @@
                 <div class="span6 basicFontSize" style="border:1px; border-bottom:0px; border-left:0px; border-style:solid; color:[#basicColor#];   padding:6px; min-height:125px; margin-left:0px">
                     INTERNATIONAL CONSIGNMENT
                     <div class="row-fluid" style="margin: 15px 0 15px;">
-                        <div class="span6"><span class="fright" style="font-size: 1.3em; padding-top: 8px;">CMR no.</span></div>
-                        <div class="span6"><div class='filledFieled leftAlign bigNumber' style="margin-left:5px;">[#cmrNumber#]</div></div>
+                        <div class="span4"><span class="fright" style="font-size: 1.3em; padding-top: 8px;">CMR no.</span></div>
+                        <div class="span8"><div class='filledFieled leftAlign bigNumber' style="margin-left:5px;">[#cmrNumber#]</div></div>
                     </div>
                     <div class="row-fluid">
                         <div class="span12" style="padding: 0 5px"><p style="font-size: 0.72em">This carriage is subject notwithstanding any clause to the contrary, to the Convention on the Contract for the International Carriage of goods by road (CMR)</p></div>
@@ -46,8 +46,8 @@
                     <div class="span6 basicFontSize" style="border:3px; border-bottom:1px; border-left:2px; border-style:solid; color:[#basicColor#];   padding:6px; min-height:125px; margin-left:0px"><b>&nbsp;&nbsp; 16. Carrier (name, address, country)</b>
                         <div class='filledFieled leftAlign' style="margin-left:5px;height: 68px;">[#cariersData#]</div>
                         <div class="row-fluid">
-                            <div class="span6"><span class="fright" style="font-size: 1.3em; padding-top: 10px;">Vehicle Reg. no.</span></div>
-                            <div class="span6"><div class='filledFieled leftAlign bigNumber' style="margin-left:5px;">[#vehicleReg#]</div></div>
+                            <div class="span4"><span class="fright" style="font-size: 1.3em; padding-top: 10px;">Vehicle Reg. no.</span></div>
+                            <div class="span8"><div class='filledFieled leftAlign bigNumber' style="margin-left:5px;">[#vehicleReg#]</div></div>
                         </div>
                     </div>
                 </div>
