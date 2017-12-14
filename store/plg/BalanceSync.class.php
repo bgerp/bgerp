@@ -33,7 +33,7 @@ class store_plg_BalanceSync extends core_Plugin
 		// Ако има дефинирани точки на продажба
 		if(pos_Points::count()){
 			
-			// Синхронизираме скалдовите наличностти за POS-а
+			// Синхронизиране на складовите наличностти за POS-а
 			pos_Stocks::sync($all);
 		}
 		
