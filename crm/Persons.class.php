@@ -3039,5 +3039,20 @@ class crm_Persons extends core_Master
     {
         $res = drdata_Countries::addCountryInBothLg($rec->country, $res);
     }
-
+    
+    
+    /**
+     * Дали лицето е в подадената група
+     * 
+     * @param int $id
+     * @param string $groupSysId
+     * @return boolean
+     */
+    public static function isInGroup($id, $groupSysId)
+    {
+    	$employeeId = crm_Groups::getIdFromSysId($groupSysId);
+    	if(keylist::isIn($employeeId, crm_Persons::fetchField($id, 'groupList'))) return TRUE;
+    	
+    	return FALSE;
+    }
 }
