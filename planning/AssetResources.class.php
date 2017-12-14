@@ -252,13 +252,19 @@ class planning_AssetResources extends core_Master
      */
     public static function getByFolderId($folderId = NULL)
     {
+    	$res = array();
+    	
+    	// Ако папката не поддържа ресурси оборудване да не се връща нищо
+    	$Cover = doc_Folders::getCover($folderId);
+    	$resourceTypes = $Cover->getResourceTypeArray();
+    	if(!isset($resourceTypes['assets'])) return $res;
+    	
     	$query = self::getQuery();
     	$query->where("#state != 'closed'");
     	if(isset($folderId)){
     		$query->where("LOCATE('|{$folderId}|', #folders)");
     	}
     	
-    	$res = array();
     	while($rec = $query->fetch()){
     		$res[$rec->id] = self::getRecTitle($rec, FALSE);
     	}

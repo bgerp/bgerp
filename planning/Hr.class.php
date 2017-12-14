@@ -279,6 +279,11 @@ class planning_Hr extends core_Manager
      */
     public static function getEmployees($folderId)
     {
+    	// Ако папката не поддържа ресурси служители да не се връща нищо
+    	$Cover = doc_Folders::getCover($folderId);
+    	$resourceTypes = $Cover->getResourceTypeArray();
+    	if(!isset($resourceTypes['hr'])) return $res;
+    	
     	$options = array();
     	$emplGroupId = crm_Groups::getIdFromSysId('employees');
     	
