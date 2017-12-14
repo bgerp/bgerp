@@ -1333,6 +1333,10 @@ a.tOld {
     .document .reportHolder .group-by-field-row td {
       padding: 5px !important; }
 
+.lighterColor {
+  opacity: 0.6;
+  font-size: 0.9em; }
+
 .CVTable {
   font-family: Arial, Helvetica;
   width: 100%; }
