@@ -1843,6 +1843,19 @@ class doc_Folders extends core_Master
 	    	$coverClasses = array_keys($coverClasses);
 	    	$query->in('coverClass', $coverClasses);
 	    }
+
+	    // Ако изрично са посочени класовете на кориците които да извлечем
+	    if(isset($params['coverClasses'])){
+	    	$skipCoverClasses = array();
+	    	$exceptCoverClasses = explode('|', $params['coverClasses']);
+	    	if(is_array($exceptCoverClasses)){
+	    		foreach ($exceptCoverClasses as $cName){
+	    			$skipCoverClasses[] = $cName::getClassId();
+	    		}
+	    	}
+	    	
+	    	$query->in('coverClass', $skipCoverClasses);
+	    }
 	    
         $viewAccess = TRUE;
 	    if ($params['restrictViewAccess'] == 'yes') {
@@ -1931,5 +1944,27 @@ class doc_Folders extends core_Master
     {
         // Премахваме color стилове
         $status = preg_replace('/style\s*=\s*(\'|")color:\#[a-z0-9]{3,6}(\'|")/i', '', $status);
+    }
+    
+    
+    /**
+     * Прави подробни линкове към папките
+     * 
+     * @param mixed $folderArr - списък с папки
+     * @param string $inline   - на един ред разделени с `,` или да се върнат като масив
+     * @return array|string    - линковете към папките
+     */
+    public static function getVerbalLinks($folderArr, $inline = FALSE)
+    {
+    	$res = array();
+    	$folderArr = (is_array($folderArr)) ? $folderArr : keylist::toArray($folderArr);
+    	
+    	foreach ($folderArr  as $folderId){
+    		$res[$folderId] = doc_Folders::recToVerbal(doc_Folders::fetch($folderId))->title;
+    	}
+    	
+    	$res = ($inline === TRUE) ? implode(', ', $res) : $res;
+    	
+    	return $res;
     }
 }

@@ -2707,9 +2707,9 @@ function keylistActions(el) {
         });
         var className = $(this).find('tr').attr('class');
         if(uncheckElementInGroup) {
-            $("#" + className).find('.invert-checkbox.checked').addClass('hidden');
+            $("#" + className).find('.invert-checkbox.unchecked').removeClass('hidden');
         } else {
-            $("#" + className).find('.invert-checkbox.unchecked').addClass('hidden');
+            $("#" + className).find('.invert-checkbox.checked').removeClass('hidden');
         }
     });
 
