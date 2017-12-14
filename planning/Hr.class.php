@@ -37,7 +37,7 @@ class planning_Hr extends core_Manager
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    public $loadList = 'planning_Wrapper,plg_Created,plg_RowTools2,plg_Search,plg_Rejected';
+    public $loadList = 'planning_Wrapper,plg_Created,plg_RowTools2,plg_Search';
     
     
     /**
@@ -90,7 +90,6 @@ class planning_Hr extends core_Manager
         $this->FLD('personId', 'key(mvc=crm_Persons)', 'input=hidden,silent,mandatory,caption=Лице');
         $this->FLD('code', 'varchar', 'caption=Код');
         $this->FLD('folders', 'keylist(mvc=doc_Folders,select=title)', 'caption=Папки,mandatory,oldFieldName=departments');
-        $this->FLD('state', 'enum(active=Активирано,closed=Затворено,rejected=Оттеглено)','caption=Състояние,column=none,input=none,notNull,value=active,forceField');
         
         $this->setDbIndex('code');
         $this->setDbUnique('personId');
@@ -186,7 +185,8 @@ class planning_Hr extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->ROW_ATTR['class'] = "state-{$rec->state}";
+    	$personState = crm_Persons::fetchField($rec->personId, 'state');
+    	$row->ROW_ATTR['class'] = "state-{$personState}";
     	$row->created = "{$row->createdOn} " . tr("от") . " {$row->createdBy}";
     	$row->personId = crm_Persons::getHyperlink($rec->personId, TRUE);
     	$row->folders = doc_Folders::getVerbalLinks($rec->folders, TRUE);
@@ -227,7 +227,7 @@ class planning_Hr extends core_Manager
     	 $tpl->append(tr('Служебен код') . ":", 'resTitle');
     	 $tpl->placeObject($data->row);
     	 
-    	 if($eRec = hr_EmployeeContracts::fetch("#personId = {$data->masterId} AND #state = 'active'")){
+    	 if($eRec = hr_EmployeeContracts::fetch("#personId = {$data->masterId}")){
     	 	$tpl->append(hr_EmployeeContracts::getHyperlink($eRec->id, TRUE), 'contract');
     	 	$tpl->append(hr_Positions::getHyperlink($eRec->positionId), 'positionId');
     	 }
@@ -281,9 +281,10 @@ class planning_Hr extends core_Manager
     	
     	$query = static::getQuery();
     	$query->EXT('groupList', 'crm_Persons', 'externalName=groupList,externalKey=personId');
+    	$query->EXT('state', 'crm_Persons', 'externalName=state,externalKey=personId');
     	$query->like("groupList", "|{$emplGroupId}|");
-    	$query->where("LOCATE('|{$folderId}|', #folders) AND #state = 'active'");
-    	$query->show("personId,code");
+    	$query->where("LOCATE('|{$folderId}|', #folders) AND (#state != 'rejected' && #state != 'closed')");
+    	$query->show("personId,code,state");
     	
     	while($rec = $query->fetch()){
     		$options[$rec->personId] = $rec->code;
