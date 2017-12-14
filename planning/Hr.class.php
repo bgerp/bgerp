@@ -190,6 +190,10 @@ class planning_Hr extends core_Manager
     	$row->created = "{$row->createdOn} " . tr("от") . " {$row->createdBy}";
     	$row->personId = crm_Persons::getHyperlink($rec->personId, TRUE);
     	$row->folders = doc_Folders::getVerbalLinks($rec->folders, TRUE);
+    	
+    	if(!crm_Persons::isInGroup($rec->personId, 'employees')){
+    		$row->personId = ht::createHint($row->personId, "Лицето вече не е в група 'Служители", 'warning', FALSE);
+    	}
     }
     
     
@@ -259,8 +263,7 @@ class planning_Hr extends core_Manager
     		}
     		
     		if($res != 'no_one'){
-    			$employeeId = crm_Groups::getIdFromSysId('employees');
-    			if(!keylist::isIn($employeeId, crm_Persons::fetchField($rec->personId, 'groupList'))){
+    			if(!crm_Persons::isInGroup($rec->personId, 'employees')){
     				$res = 'no_one';
     			}
     		}

@@ -88,10 +88,12 @@ class doc_FolderResources extends core_Manager
 		$folderId = $data->masterData->rec->folderId;
 		$data->recs = $data->rows = array();
     	$query = $DetailName::getQuery();
-    	if($query->getField('state', FALSE)){
-    		$query->where("#state != 'rejected'");
+    	if($DetailName == 'planning_Hr'){
+    		$query->EXT('state', 'crm_Persons', 'externalName=state,externalKey=personId');
+    		$query->where("#state != 'rejected' && #state != 'closed'");
     	}
     	$query->where("LOCATE('|{$folderId}|', #folders)");
+    	$query->orderBy("state");
     	
     	// Подготовка на пейджъра
     	$data->Pager = cls::get('core_Pager',  array('itemsPerPage' => $data->itemsPerPage));
@@ -105,7 +107,7 @@ class doc_FolderResources extends core_Manager
     	}
     	
     	// Подготовка на полетата за показване
-    	$listFields = ($DetailName == 'planning_Hr') ? "code=Код,personId=Служител,created=Създаване" : "code=Код,name=Оборудване,groupId=Вид,created=Създаване";
+    	$listFields = ($DetailName == 'planning_Hr') ? "code=Код,personId=Служител,created=Създаване" : "name=Оборудване,code=Код,groupId=Вид,created=Създаване";
     	$data->listFields = arr::make($listFields, TRUE);
     	
     	$type = ($DetailName == 'planning_AssetResources') ? 'asset' : 'employee';
