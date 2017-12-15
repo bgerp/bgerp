@@ -1320,14 +1320,14 @@ function chRwClSb(id) {
 /**
  * Инвертира всички чек-боксове
  */
-function toggleAllCheckboxes() {
+function toggleAllCheckboxes(el) {
+    var isChecked = $(el).is(":checked");
     $('[id^=cb_]').each(function() {
         var id = $(this).attr('id').replace(/^\D+/g, '');
-        if ($(this).is(":checked") == true) {
-            $(this).prop('checked',false);
+        $(this).prop('checked',isChecked);
+        if (isChecked) {
             $('#check' + id).text("Избор");
         } else {
-            $(this).prop('checked',true);
             $('#check' + id).text($("#with_selected").val());
         }
         chRwCl(id);
@@ -2707,9 +2707,9 @@ function keylistActions(el) {
         });
         var className = $(this).find('tr').attr('class');
         if(uncheckElementInGroup) {
-            $("#" + className).find('.invert-checkbox.checked').addClass('hidden');
+            $("#" + className).find('.invert-checkbox.unchecked').removeClass('hidden');
         } else {
-            $("#" + className).find('.invert-checkbox.unchecked').addClass('hidden');
+            $("#" + className).find('.invert-checkbox.checked').removeClass('hidden');
         }
     });
 

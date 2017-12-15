@@ -149,7 +149,7 @@ class doc_HiddenContainers extends core_Manager
             } else {
                 
                 if ($cId) {
-                    $rec = doc_Containers::fetch($cId, 'docClass');
+                    $rec = doc_Containers::fetch($cId, 'docClass, docId');
                     if ($rec->docClass && cls::load($rec->docClass, TRUE)) {
                         $dInst = cls::get($rec->docClass);
                     }
@@ -197,6 +197,18 @@ class doc_HiddenContainers extends core_Manager
                     }
                 } else {
                     $hide = FALSE;
+                }
+                
+                if ($dInst) {
+                    $docId = $rec->docId;
+                    if (!$docId && $cId) {
+                        $docId = doc_Containers::fetchField($cId, 'docId');
+                    }
+                    
+                    $docHiddenStatus = $dInst->getDocHiddenStatus($docId, $hide);
+                    if (isset($docHiddenStatus)) {
+                        $hide = $docHiddenStatus;
+                    }
                 }
             }
             

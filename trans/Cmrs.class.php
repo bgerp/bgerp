@@ -32,12 +32,6 @@ class trans_Cmrs extends core_Master
     
     
     /**
-     * Поддържани интерфейси
-     */
-    public $interfaces = 'doc_DocumentIntf';
-    
-    
-    /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, trans_Wrapper,plg_Clone,doc_DocumentPlg, plg_Printing, plg_Search, doc_ActivatePlg, doc_EmailCreatePlg';
@@ -76,7 +70,7 @@ class trans_Cmrs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id=№,cmrNumber=ЧМР №,title=Товарителница, originId=Експедиция, folderId, state,createdOn, createdBy';
+    public $listFields = 'cmrNumber=ЧМР №,title=Товарителница, originId=Експедиция, folderId, state,createdOn, createdBy';
     
     
     /**
@@ -106,7 +100,7 @@ class trans_Cmrs extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'cmrNumber,consigneeData,deliveryPlace,loadingDate,cariersData,vehicleReg';
+    public $searchFields = 'cmrNumber,consigneeData,deliveryPlace,loadingDate,cariersData,vehicleReg,natureofGoods,successiveCarriers,documentsAttached';
     
     
     /**
@@ -127,6 +121,12 @@ class trans_Cmrs extends core_Master
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'cmrNumber,loadingDate';
+    
+    
+    /**
+     * Може ли да се редактират активирани документи
+     */
+    public $canEditActivated = TRUE;
     
     
     /**
@@ -154,8 +154,8 @@ class trans_Cmrs extends core_Master
     	$this->FLD('sumPaid', 'varchar(12)', 'caption=Допълнително->Дължимо');
     	
     	$this->FLD('cashOnDelivery', 'varchar', 'caption=Допълнително->15. Наложен платеж');
-    	$this->FLD('cariersData', 'text(rows=2)', 'caption=Допълнително->16. Превозвач,mandatory');
-    	$this->FLD('vehicleReg', 'varchar', 'caption=МПС регистрационен №,mandatory');
+    	$this->FLD('cariersData', 'text(rows=2)', 'caption=Допълнително->16. Превозвач');
+    	$this->FLD('vehicleReg', 'varchar', 'caption=МПС рег. №');
     	$this->FLD('successiveCarriers', 'text(rows=2)', 'caption=Допълнително->17. Посл. превозвачи');
     	$this->FLD('specialagreements', 'text(rows=2)', 'caption=Допълнително->19. Спец. споразумения');
     	$this->FLD('establishedPlace', 'text(rows=2)', 'caption=21. Изготвена в');
@@ -168,7 +168,7 @@ class trans_Cmrs extends core_Master
     /**
      * Изпълнява се след извличане на запис чрез ->fetch()
      */
-    public static function on_AfterRead($mvc, $rec)
+    protected static function on_AfterRead($mvc, $rec)
     {
     	// Разпъване на компресираните полета
     	if(is_array($rec->goodsData)) {
@@ -184,6 +184,7 @@ class trans_Cmrs extends core_Master
      */
     public function save_(&$rec, $fields = NULL, $mode = NULL)
     {
+    	$saveGoodsData = FALSE;
     	$goodsData = array();
     	
     	$arr = (array)$rec;
@@ -193,12 +194,16 @@ class trans_Cmrs extends core_Master
     	foreach ($arr as $fld => $value){
     		if(in_array($fld, $compressFields)){
     			$goodsData[$fld] = ($value !== '') ? $value : NULL;
+    			$saveGoodsData = TRUE;
     		}
     	}
-    	$rec->goodsData = $goodsData;
     	
-    	if(is_array($fields)){
-    		$fields['goodsData'] = 'goodsData';
+    	if($saveGoodsData === TRUE){
+    		$rec->goodsData = $goodsData;
+    		
+    		if(is_array($fields)){
+    			$fields['goodsData'] = 'goodsData';
+    		}
     	}
     	
     	$res = parent::save_($rec, $fields, $mode);
@@ -270,6 +275,24 @@ class trans_Cmrs extends core_Master
     	// Зареждане на дефолти от ориджина
     	if(isset($rec->originId) && !isset($rec->id)){
     		$mvc->setDefaultsFromShipmentOrder($rec->originId, $form);
+    	}
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	if($form->isSubmitted()){
+    		
+    		// Подсигуряване че винаги след редакция ще е в чернова
+    		if($form->cmd == 'save'){
+    			$form->rec->state = 'draft';
+    		}
     	}
     }
     
@@ -360,10 +383,12 @@ class trans_Cmrs extends core_Master
     {
     	$Contragent = cls::get($contragentClassId);
     	$contragentAddress = $Contragent->getFullAdress($contragentId, TRUE, FALSE)->getContent();
-    	$contragentAddress = str_replace('<br>', ', ', $contragentAddress);
+    	$contragentAddress = str_replace('<br> ', "\n", trim($contragentAddress));
+    	$contragentAddress = str_replace(', ', "\n", trim($contragentAddress));
+    	
     	$contragentCountry = $Contragent->getVerbal($contragentId, 'country');
     	$contragentName = ($translate === TRUE) ? transliterate(tr($Contragent->fetchField($contragentId, 'name'))) : $Contragent->getVerbal($contragentId, 'name');
-    	$contragenData = "{$contragentName},{$contragentAddress}, {$contragentCountry}";
+    	$contragenData = trim($contragentName) . "\n" . trim($contragentAddress) . "\n" . trim($contragentCountry);
     	
     	return $contragenData;
     }
@@ -440,7 +465,7 @@ class trans_Cmrs extends core_Master
     {
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	if($firstDoc && $firstDoc->isInstanceOf('deals_DealMaster')){
-    		$state = $firstDoc->rec()->state;
+    		$state = $firstDoc->fetchField('state');
     		if(in_array($state, array('active', 'closed', 'pending'))) return TRUE;
     	}
     	
@@ -496,7 +521,7 @@ class trans_Cmrs extends core_Master
     		if(!$origin->isInstanceOf('store_ShipmentOrders')){
     			$requiredRoles = 'no_one';
     		} else {
-    			$state = $origin->rec()->state;
+    			$state = $origin->fetchField('state');
     			if(!in_array($state, array('active', 'pending'))){
     				$requiredRoles = 'no_one';
     			}
@@ -520,5 +545,49 @@ class trans_Cmrs extends core_Master
     			}
     		}
     	}
+    }
+    
+    
+    /**
+     * Метод по подразбиране, за връщане на състоянието на документа в зависимот от класа/записа
+     *
+     * @param core_Master $mvc
+     * @param NULL|string $res
+     * @param NULL|integer $id
+     * @param NULL|boolean $hStatus
+     * @see doc_HiddenContainers
+     */
+    public function getDocHiddenStatus($id, $hStatus)
+    {
+    	$cid = $this->fetchField($id, 'containerId');
+    	if(doclog_Documents::fetchByCid($cid, doclog_Documents::ACTION_PRINT)) return TRUE;
+    	
+    	return NULL;
+    }
+    
+    
+    /**
+     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
+     */
+    public static function getHandle($id)
+    {
+    	$self = cls::get(get_called_class());
+    	$cmrNumber = $self->fetchField($id, 'cmrNumber');
+    	$hnd = $self->abbr . $cmrNumber;
+    
+    	return $hnd;
+    }
+    
+    
+    /**
+     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
+     */
+    public static function fetchByHandle($parsedHandle)
+    {
+    	if ($cmrNumber = ltrim($parsedHandle['id'], '0')){
+    		$rec = static::fetch("#cmrNumber = '{$cmrNumber}'");
+    	}
+    
+    	return $rec;
     }
 }

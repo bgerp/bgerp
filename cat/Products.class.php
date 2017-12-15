@@ -186,7 +186,7 @@ class cat_Products extends embed_Manager {
     /**  
      * Кой има право да променя системните данни?  
      */  
-    public $canEditsysdata = 'cat,ceo,sales,purchase';
+    public $canEditsysdata = 'cat,ceo,sales,purchase,catEdit';
     
     
     /**
@@ -570,7 +570,7 @@ class cat_Products extends embed_Manager {
     					$rec->name = str::addIncrementSuffix($rec->name, 'v', 2);
     				}
     			} elseif($Cover->getProductType() == 'template' && empty($rec->code)){
-    				if(cat_Products::fetchField(array("#name = '[#1#]' AND #id != '{$rec->id}'", $rec->name), 'id')){
+    				if(cat_Products::fetchField(array("#name = '[#1#]' AND #id != '{$rec->id}'", $rec->name), 'id') || doc_Prototypes::fetchField(array("#title = '[#1#]' AND #classId = '{$mvc->getClassId}' AND #docId != '{$rec->id}'", $rec->name))){
     					$form->setError('name', 'Има вече шаблон с това име');
     				}
     			}
