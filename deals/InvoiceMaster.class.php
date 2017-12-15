@@ -120,10 +120,9 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
-    	
+    	$data->listFilter->FNC('countryGroups', 'key(mvc=drdata_CountryGroups,select=name,allowEmpty)', 'caption=Държави,input');
     	if(!Request::get('Rejected', 'int')){
     		$data->listFilter->FNC('invState', 'enum(all=Всички, draft=Чернова, active=Контиран)', 'caption=Състояние,input,silent');
-    		 
     		$data->listFilter->showFields .= ',invState';
     		$data->listFilter->input();
     		$data->listFilter->setDefault('invState', 'all');
@@ -137,7 +136,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	 
     	$data->listFields['paymentType'] = 'Плащане';
     	$data->listFilter->FNC('payType', 'enum(all=Всички,cash=В брой,bank=По банка,intercept=С прихващане,card=С карта,factoring=Факторинг)', 'caption=Начин на плащане,input');
-    	$data->listFilter->showFields .= ",payType{$type}";
+    	$data->listFilter->showFields .= ",payType{$type},countryGroups";
     	$data->listFilter->input(NULL, 'silent');
     	 
     	if($rec = $data->listFilter->rec){
@@ -161,6 +160,12 @@ abstract class deals_InvoiceMaster extends core_Master
     			if($rec->payType != 'all'){
     				$data->query->where("#paymentType = '{$rec->payType}' OR (#paymentType IS NULL AND #autoPaymentType = '{$rec->payType}')");
     			}
+    		}
+    		
+    		if(!empty($rec->countryGroups)){
+    			$groupCountries = drdata_CountryGroups::fetchField($rec->countryGroups, 'countries');
+    			$groupCountries = keylist::toArray($groupCountries);
+    			$data->query->in("contragentCountryId", $groupCountries);
     		}
     	}
     	
