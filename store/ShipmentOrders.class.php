@@ -264,6 +264,10 @@ class store_ShipmentOrders extends store_DocumentMaster
     		if(!empty($rec->{$fld})){
     			if($fld == 'address'){
     				$row->{$fld} = core_Lg::transliterate($row->{$fld});
+    			} elseif($fld == 'tel'){
+    				if(callcenter_Talks::haveRightFor('list')){
+    					$row->{$fld} = ht::createLink($rec->{$fld}, array('callcenter_Talks', 'list', 'number' => $rec->{$fld}));
+    				}
     			}
     			
     			$row->deliveryTo .= ", {$row->{$fld}}";
