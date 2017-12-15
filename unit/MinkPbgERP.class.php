@@ -700,7 +700,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->press('Нов запис');
         //$browser->hasText('Добавяне на запис в "Организационна структура"');
         $browser->setValue('name', 'Завод');
-        $browser->setValue('schedule','Дневен график'); 
+        //$browser->setValue('locationId','...'); 
         $browser->press('Запис');
         if (strpos($browser->getText(),'Непопълнено задължително поле')){
             $browser->press('Отказ');
@@ -728,9 +728,9 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->hasText('Добавяне на запис в "Организационна структура"');
         $browser->setValue('name', 'Производство');
         $browser->setValue('parentId', 'Завод');
-        $browser->setValue('schedule','Дневен график');
-        $browser->setValue('type', 'Цех');
-        $browser->setValue('shared_13_2', '13_2');
+        //$browser->setValue('schedule','Дневен график');
+        //$browser->setValue('type', 'Цех');
+        //$browser->setValue('shared_13_2', '13_2');
         $browser->press('Запис');
          if (strpos($browser->getText(),'Непопълнено задължително поле')){
             $browser->press('Отказ');
@@ -814,7 +814,7 @@ class unit_MinkPbgERP extends core_Manager {
             $browser->click('HR');
             $browser->click('Добавяне на служебни данни');
             $browser->setValue('code', 'STD');
-            $browser->setValue('Завод » Производство','3');
+            //$browser->setValue('Завод » Производство','3');
             $browser->press('Запис');
         }
         //return $browser->getHtml();
