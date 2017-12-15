@@ -2129,7 +2129,7 @@ class unit_MinkPSales extends core_Manager {
             $browser->press('Продажба');
         } else {
             $browser->press('Нов...');
-            $browser->press('Продажба'В началото се редувахме с режисьора Васил Живков, но той се);
+            $browser->press('Продажба');
         }
          
         //$browser->hasText('Създаване на продажба');
