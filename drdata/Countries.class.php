@@ -483,7 +483,7 @@ class drdata_Countries extends core_Manager {
      */
     public static function on_AfterSaveArray($mvc, &$res, $recs, $fields = NULL)
     {
-        if (empty($recs)) continue;
+        if (empty($recs)) return ;
         
         $saveArr = array();
         
