@@ -279,20 +279,20 @@ class planning_Hr extends core_Manager
      */
     public static function getEmployees($folderId)
     {
+    	$options = array();
+    	
     	// Ако папката не поддържа ресурси служители да не се връща нищо
     	$Cover = doc_Folders::getCover($folderId);
     	$resourceTypes = $Cover->getResourceTypeArray();
-    	if(!isset($resourceTypes['hr'])) return $res;
+    	if(!isset($resourceTypes['hr'])) return $options;
     	
-    	$options = array();
     	$emplGroupId = crm_Groups::getIdFromSysId('employees');
-    	
     	$query = static::getQuery();
     	$query->EXT('groupList', 'crm_Persons', 'externalName=groupList,externalKey=personId');
     	$query->EXT('state', 'crm_Persons', 'externalName=state,externalKey=personId');
     	$query->like("groupList", "|{$emplGroupId}|");
     	$query->where("LOCATE('|{$folderId}|', #folders) AND (#state != 'rejected' && #state != 'closed')");
-    	$query->show("personId,code,state");
+    	$query->show("personId,code");
     	
     	while($rec = $query->fetch()){
     		$options[$rec->personId] = $rec->code;

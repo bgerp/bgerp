@@ -163,7 +163,7 @@ class auto_handler_CreateQuotationFromInquiry {
     	$form->cmd = 'save';
     	
     	// Ид-то не трябва да се инпутва, защото ще вземе ид-то на крон процеса и ще се обърка
-    	$fields = $form->selectFields();
+    	$fields = $form->selectFields("#input != 'none'");
     	unset($fields['id']);
     	unset($fields['driverRec']);
     	$form->input(implode(',', array_keys($fields)));
