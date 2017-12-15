@@ -2489,7 +2489,7 @@ class cal_Tasks extends embed_Manager
             break;
                 
             case 'active':
-                $msg = 'Активиране';
+                $msg = 'Активирана';
             break;
                 
             case 'waiting':
@@ -2834,12 +2834,11 @@ class cal_Tasks extends embed_Manager
         	unset($resArr['expectationTimeEnd']);
         }
 
-        if ($row->assign) { 
-            
+        if ($row->assign) {
             if($rec->assign && $rec->assignedBy) {
                 $resArr['assign'] =  array('name' => tr('Възложено'), 'val' => tr('на') . " [#assign#] " . tr('от') . " [#assignedBy#] " . tr('в') . " [#assignedOn#]");
             } else {
-                $resArr['assign'] =  array('name' => tr('Възложено'), 'val' => tr('на') . " [#assign#] " . tr('от') . " [#createdBy#] " . tr('в') . " [#createdOn#]");
+                $resArr['assign'] =  array('name' => tr('Възложено'), 'val' => tr('на') . " [#assign#]");
             }
         }
     }

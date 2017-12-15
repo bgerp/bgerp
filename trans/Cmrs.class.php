@@ -154,8 +154,8 @@ class trans_Cmrs extends core_Master
     	$this->FLD('sumPaid', 'varchar(12)', 'caption=Допълнително->Дължимо');
     	
     	$this->FLD('cashOnDelivery', 'varchar', 'caption=Допълнително->15. Наложен платеж');
-    	$this->FLD('cariersData', 'text(rows=2)', 'caption=Допълнително->16. Превозвач,mandatory');
-    	$this->FLD('vehicleReg', 'varchar', 'caption=МПС регистрационен №,mandatory');
+    	$this->FLD('cariersData', 'text(rows=2)', 'caption=Допълнително->16. Превозвач');
+    	$this->FLD('vehicleReg', 'varchar', 'caption=МПС рег. №');
     	$this->FLD('successiveCarriers', 'text(rows=2)', 'caption=Допълнително->17. Посл. превозвачи');
     	$this->FLD('specialagreements', 'text(rows=2)', 'caption=Допълнително->19. Спец. споразумения');
     	$this->FLD('establishedPlace', 'text(rows=2)', 'caption=21. Изготвена в');
@@ -383,10 +383,12 @@ class trans_Cmrs extends core_Master
     {
     	$Contragent = cls::get($contragentClassId);
     	$contragentAddress = $Contragent->getFullAdress($contragentId, TRUE, FALSE)->getContent();
-    	$contragentAddress = str_replace('<br>', ', ', $contragentAddress);
+    	$contragentAddress = str_replace('<br> ', "\n", trim($contragentAddress));
+    	$contragentAddress = str_replace(', ', "\n", trim($contragentAddress));
+    	
     	$contragentCountry = $Contragent->getVerbal($contragentId, 'country');
     	$contragentName = ($translate === TRUE) ? transliterate(tr($Contragent->fetchField($contragentId, 'name'))) : $Contragent->getVerbal($contragentId, 'name');
-    	$contragenData = "{$contragentName},{$contragentAddress}, {$contragentCountry}";
+    	$contragenData = trim($contragentName) . "\n" . trim($contragentAddress) . "\n" . trim($contragentCountry);
     	
     	return $contragenData;
     }
