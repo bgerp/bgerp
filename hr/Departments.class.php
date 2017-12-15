@@ -218,6 +218,8 @@ class hr_Departments extends core_Master
         
         $first = $arrData[self::ROOT_DEPARTMENT_ID];
         unset($arrData[self::ROOT_DEPARTMENT_ID]);
+        $oldId = NULL;
+        $res = array();
         
         foreach($arrData as $rec){
         	if($rec->state != 'active') continue;
