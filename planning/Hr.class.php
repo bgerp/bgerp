@@ -192,7 +192,7 @@ class planning_Hr extends core_Manager
     	$row->folders = doc_Folders::getVerbalLinks($rec->folders, TRUE);
     	
     	if(!crm_Persons::isInGroup($rec->personId, 'employees')){
-    		$row->personId = ht::createHint($row->personId, "Лицето вече не е в група 'Служители", 'warning', FALSE);
+    		$row->code = ht::createHint($row->code, "Лицето вече не е в група 'Служители", 'warning', FALSE);
     	}
     }
     
