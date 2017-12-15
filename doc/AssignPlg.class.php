@@ -198,6 +198,33 @@ class doc_AssignPlg extends core_Plugin
     }
     
     
+    /**
+     * Извиква се преди вкарване на запис в таблицата на модела
+     */
+    static function on_BeforeSave($mvc, &$id, $rec, $saveFileds = NULL)
+    {
+        if ($rec->assign) {
+            if (!isset($rec->assignedOn) && !isset($rec->assignedBy)) {
+                $update = FALSE;
+                if ($rec->id) {
+                    $oRec = $mvc->fetch($rec->id, NULL, FALSE);
+                } else {
+                    $update = TRUE;
+                }
+                
+                if ($rec->assign != $oRec->assign) {
+                    $update = TRUE;
+                }
+                
+                if ($update) {
+                    $rec->assignedBy = Users::getCurrent();
+                    $rec->assignedOn = dt::verbal2Mysql();
+                }
+            }
+        }
+    }
+    
+    
 	/**
      * Вербалните стойности на датата и възложителя
      */
@@ -270,6 +297,22 @@ class doc_AssignPlg extends core_Plugin
             unset($data->row->assignedOn);
             unset($data->row->assignedBy);
         }
+    }
+    
+    
+    /**
+     * Преди записване на клонирания запис
+     *
+     * @param core_Mvc $mvc
+     * @param object $rec
+     * @param object $nRec
+     *
+     * @see plg_Clone
+     */
+    function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
+    {
+        unset($nRec->assignedOn);
+        unset($nRec->assignedBy);
     }
     
     
