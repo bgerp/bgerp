@@ -349,5 +349,10 @@ class hr_Bonuses extends core_Master
          
         return $title;
     }
+    
+    function act_Test()
+    {
+    	cls::get('planning_Setup')->updateCenterExt();
+    }
 
 }
