@@ -2902,9 +2902,11 @@ class crm_Persons extends core_Master
     /**
      * Лицата от група 'Служители'
      * 
-     * @return array $options - Опции
+     * @param  boolean $withAccess   - да се филтрира ли по права за редакция или не
+     * @param  boolean $withoutCodes - да имат ли кодове или не
+     * @return array $options        - опции
      */
-    public static function getEmployeesOptions()
+    public static function getEmployeesOptions($withAccess = FALSE, $withoutCodes = FALSE)
     {
     	$options = $codes = array();
     	$emplGroupId = crm_Groups::getIdFromSysId('employees');
@@ -2912,7 +2914,16 @@ class crm_Persons extends core_Master
     	$query = self::getQuery();
     	$query->like("groupList", "|{$emplGroupId}|");
     	
+    	// Ако е указано, само тези които нямат кодове в производствените ресурси
+    	if($withoutCodes === TRUE){
+    		$hrQuery = planning_Hr::getQuery();
+    		$hrQuery->show('personId');
+    		$exceptIds = arr::extractValuesFromArray($hrQuery->fetchAll(), 'personId');
+    		$query->notIn('id', $exceptIds);
+    	}
+    	
     	while($rec = $query->fetch()){
+    		if($withAccess === TRUE && !crm_Persons::haveRightFor('edit', $rec->id)) continue;
     		$options[$rec->id] = $val = self::getVerbal($rec, 'name');
     	}
     	
@@ -3028,5 +3039,20 @@ class crm_Persons extends core_Master
     {
         $res = drdata_Countries::addCountryInBothLg($rec->country, $res);
     }
-
+    
+    
+    /**
+     * Дали лицето е в подадената група
+     * 
+     * @param int $id
+     * @param string $groupSysId
+     * @return boolean
+     */
+    public static function isInGroup($id, $groupSysId)
+    {
+    	$employeeId = crm_Groups::getIdFromSysId($groupSysId);
+    	if(keylist::isIn($employeeId, crm_Persons::fetchField($id, 'groupList'))) return TRUE;
+    	
+    	return FALSE;
+    }
 }

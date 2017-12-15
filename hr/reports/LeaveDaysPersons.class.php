@@ -146,7 +146,7 @@ class hr_reports_LeaveDaysPersons extends frame_BaseDriver
     	    }
     	    
     	    if($data->rec->departments){
-    	        $eQuery = crm_ext_Employees::getQuery();
+    	        $eQuery = planning_Hr::getQuery();
     	        $eQuery->where("#personId = '{$re->person}'");
 
     	        $eRec = $eQuery->fetch();

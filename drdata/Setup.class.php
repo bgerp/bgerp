@@ -113,6 +113,7 @@ class drdata_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
+            'drdata_CountryGroups',
             'drdata_Countries',
             'drdata_IpToCountry',
             'drdata_DialCodes',
