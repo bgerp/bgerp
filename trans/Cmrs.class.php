@@ -383,10 +383,12 @@ class trans_Cmrs extends core_Master
     {
     	$Contragent = cls::get($contragentClassId);
     	$contragentAddress = $Contragent->getFullAdress($contragentId, TRUE, FALSE)->getContent();
-    	$contragentAddress = str_replace('<br>', ', ', $contragentAddress);
+    	$contragentAddress = str_replace('<br> ', "\n", trim($contragentAddress));
+    	$contragentAddress = str_replace(', ', "\n", trim($contragentAddress));
+    	
     	$contragentCountry = $Contragent->getVerbal($contragentId, 'country');
     	$contragentName = ($translate === TRUE) ? transliterate(tr($Contragent->fetchField($contragentId, 'name'))) : $Contragent->getVerbal($contragentId, 'name');
-    	$contragenData = "{$contragentName},{$contragentAddress}, {$contragentCountry}";
+    	$contragenData = trim($contragentName) . "\n" . trim($contragentAddress) . "\n" . trim($contragentCountry);
     	
     	return $contragenData;
     }

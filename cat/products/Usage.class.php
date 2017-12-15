@@ -15,6 +15,7 @@
 class cat_products_Usage extends core_Manager
 {
 	
+	
 	/**
 	 * Колко да са на страница заданията
 	 */
@@ -77,7 +78,8 @@ class cat_products_Usage extends core_Manager
 		$tpl->append($this->renderJobs($data->jobData));
 		
 		if($data->isPublic === FALSE){
-			$tpl->append($this->renderDocuments($data->saleData));
+			$renderEvenIfEmpty = ($data->jobData->notManifacturable === TRUE) ? TRUE : FALSE;
+			$tpl->append($this->renderDocuments($data->saleData, $renderEvenIfEmpty));
 			$tpl->append($this->renderDocuments($data->purData));
 			$tpl->append($this->renderDocuments($data->quoteData));
 		}
@@ -142,11 +144,12 @@ class cat_products_Usage extends core_Manager
 	 * Рендира таблицата с документите
 	 * 
 	 * @param stdClass $data
+	 * @param boolean $evenIfEmpty
 	 * @return void|core_ET
 	 */
-	private function renderDocuments($data)
+	private function renderDocuments($data, $evenIfEmpty = FALSE)
 	{
-		if(!count($data->rows)) return;
+		if(!count($data->rows) && $evenIfEmpty === FALSE) return;
 		
 		$tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
 		$tpl->replace("style='margin-top:10px'", 'STYLE');
