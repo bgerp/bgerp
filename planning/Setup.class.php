@@ -364,7 +364,7 @@ class planning_Setup extends core_ProtoSetup
     			if(isset($obj->folderId)){
     				$folderRec = doc_Folders::fetch($obj->folderId);
     				
-    				if($folderRec->coverClass != $centerClassId){
+    				if($folderRec && $folderRec->coverClass != $centerClassId){
     					$folderRec->coverClass = $centerClassId;
     					$folderRec->coverId = $id;
     					$folderRec->title = $obj->name;
@@ -409,7 +409,7 @@ class planning_Setup extends core_ProtoSetup
     		
     		if($uId){
     			$folderRec = doc_Folders::fetch($uRec->folderId);
-    			if($folderRec->coverClass != $unsortedClassId){
+    			if($folderRec && $folderRec->coverClass != $unsortedClassId){
     				$folderRec->coverClass = $unsortedClassId;
     				$folderRec->coverId = $uId;
     				$folderRec->title = $uRec->name;
