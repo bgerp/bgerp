@@ -140,7 +140,7 @@ class doc_FolderResources extends core_Manager
 			$hint2 = ",title=Създаване на ново оборудване към " . mb_strtolower($data->masterMvc->singleTitle);
 		}
 		
-		$title = ($DetailName == 'planning_Hr') ? 'Служители' : 'Оборудвания';
+		$title = ($DetailName == 'planning_Hr') ? 'Служители' : 'Оборудване';
 		$tpl->append($title, 'title');
 		
 		if(isset($data->newUrl)){
