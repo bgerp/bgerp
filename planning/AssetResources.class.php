@@ -255,9 +255,11 @@ class planning_AssetResources extends core_Master
     	$res = array();
     	
     	// Ако папката не поддържа ресурси оборудване да не се връща нищо
-    	$Cover = doc_Folders::getCover($folderId);
-    	$resourceTypes = $Cover->getResourceTypeArray();
-    	if(!isset($resourceTypes['assets'])) return $res;
+    	if(isset($folderId)){
+    		$Cover = doc_Folders::getCover($folderId);
+    		$resourceTypes = $Cover->getResourceTypeArray();
+    		if(!isset($resourceTypes['assets'])) return $res;
+    	}
     	
     	$query = self::getQuery();
     	$query->where("#state != 'closed'");
