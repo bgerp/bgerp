@@ -93,7 +93,7 @@ class csv_Lib
                 }
           
                 if ($mvc->invoke('BeforeImportRec', array(&$rec)) === FALSE) continue ;
-				
+                
                 // Ако таблицата се попълва от нулата, само се добавят редове
                 if($fromZero && $isLarge) {
                     if(!isset($recs)) {

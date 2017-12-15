@@ -460,7 +460,8 @@ class drdata_Countries extends core_Manager {
             11 => "letterCode2",
             12 => "letterCode3",
             13 => "isoNumber",
-            14 => "domain"
+            14 => "domain",
+            15 => "groupName"
         );
         
         // Импортираме данните от CSV файла. 
@@ -469,5 +470,67 @@ class drdata_Countries extends core_Manager {
 
         // Записваме в лога вербалното представяне на резултата от импортирането
         $res .= $cntObj->html;
+    }
+    
+    
+    /**
+     * Изпълнява се преди импортирването на данните
+     * 
+     * @param drdata_Countries $mvc
+     * @param mixed $res
+     * @param array $recs
+     * @param mixed $fields
+     */
+    public static function on_AfterSaveArray($mvc, &$res, $recs, $fields = NULL)
+    {
+        if (empty($recs)) continue;
+        
+        $saveArr = array();
+        
+        $countryGroupsInst = cls::get('drdata_CountryGroups');
+        
+        foreach ($recs as $rec) {
+            if (!$rec->groupName) continue;
+            
+            expect($rec->commonName && $rec->commonNameBg);
+            
+            $fRec = self::fetch(array("#commonName = '[#1#]' AND #commonNameBg = '[#2#]'", $rec->commonName, $rec->commonNameBg));
+            
+            expect($fRec);
+            
+            $groupNameArr = explode('|', $rec->groupName);
+            
+            foreach ($groupNameArr as $name) {
+                
+                $mustSave = FALSE;
+                
+                $grRec = $saveArr[$name];
+                
+                if (!$grRec) {
+                    $grRec = $countryGroupsInst->fetch(array("#name = '[#1#]'", $name));
+                }
+                
+                if (!$grRec) {
+                    $grRec = new stdClass;
+                    $grRec->name = $name;
+                    $grRec->createdOn = dt::verbal2mysql();
+                    $grRec->createdBy = core_Users::getCurrent();
+                }
+                
+                if (!keylist::isIn($fRec->id, $grRec->countries)) {
+                    $mustSave = TRUE;
+                }
+                
+                $grRec->countries = keylist::addKey($grRec->countries, $fRec->id);
+                
+                if ($mustSave) {
+                    $saveArr[$name] = $grRec;
+                }
+            }
+        }
+        
+        if (!empty($saveArr)) {
+            $countryGroupsInst->saveArray($saveArr);
+        }
     }
 }
