@@ -886,6 +886,7 @@ class crm_Companies extends core_Master
         // Ако се редактира текущата фирма, генерираме лог от данните
         if (crm_Setup::BGERP_OWN_COMPANY_ID == $rec->id) {
             $mvc->prepareCompanyLogo();
+            hr_Departments::forceFirstDepartment($rec->name);
         }
     }
     
