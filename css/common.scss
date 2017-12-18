@@ -1308,7 +1308,7 @@ a.profile {
 
 .state-rejected {
 	td, .document th, .document td a, .document p, .document h3, .document h4,
-	.richtext, .document a, .document span:not(.state), .richtext div, .cCode, .antetka,
+	.richtext, .document a, .document span:not(.state), .richtext div, .cCode, .antetka,  .row-fluid div,
 	.document ul, .document ol, .document li, .document b, .document font, .document legend {
 		color: #999 !important;
 		text-decoration: line-through !important;
@@ -1330,6 +1330,9 @@ a.profile {
         color: #999 !important;
         text-decoration: none !important;
     }
+	.row-fluid table td, .row-fluid table {
+		border-color: #999 !important;
+	}
 }
 
 .hidden-document.state-rejected{
