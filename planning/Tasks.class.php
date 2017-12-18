@@ -579,7 +579,7 @@ class planning_Tasks extends core_Master
 		
 		// Може да се добавя само в папка на 'Департамент'
 		$Cover = doc_Folders::getCover($folderId);
-		return ($Cover->haveInterface('hr_DepartmentAccRegIntf'));
+		return ($Cover->haveInterface('planning_ActivityCenterIntf'));
 	}
 	
 	
@@ -814,8 +814,8 @@ class planning_Tasks extends core_Master
 			}
 		}
 		
-		// Наличното оборудване в департамента
-		$fixedAssets = planning_AssetResources::getAvailableInFolder($rec->folderId);
+		// Наличното оборудване в папката
+		$fixedAssets = planning_AssetResources::getByFolderId($rec->folderId);
 		
 		// Подсигуряване че вече избраното оборудване присъства в опциите винаги
 		if(isset($rec->fixedAssets)){
@@ -993,7 +993,7 @@ class planning_Tasks extends core_Master
     		
     		// Ако потребителя е служител и има само един департамент, той ще е избран по дефолт
     		$cPersonId = crm_Profiles::getProfile(core_Users::getCurrent())->id;
-    		$departments = crm_ext_Employees::fetchField("#personId = {$cPersonId}", 'departments');
+    		$departments = planning_Hr::fetchField("#personId = {$cPersonId}", 'departments');
     		$departments = keylist::toArray($departments);
     		
     		if(count($departments) == 1){
@@ -1005,7 +1005,7 @@ class planning_Tasks extends core_Master
     	}
     	
     	// Добавяне на оборудването към филтъра
-    	$fixedAssets = planning_AssetResources::makeArray4Select('name', "#state != 'rejected'");
+    	$fixedAssets = planning_AssetResources::getByFolderId();
     	if(count($fixedAssets)){
     		$data->listFilter->FLD('assetId', 'int', 'caption=Оборудване');
     		$data->listFilter->setOptions('assetId', array('' => '') + $fixedAssets);

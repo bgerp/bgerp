@@ -136,6 +136,7 @@ class planning_ProductionTaskDetails extends core_Detail
     	$this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=id)', 'caption=Обордуване,input=none,tdClass=nowrap');
     	$this->FLD('notes', 'richtext(rows=2,bucket=Notes)', 'caption=Забележки');
     	$this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
+    	$this->FLD('norm', 'time', 'caption=Време,input=none');
     	
     	$this->setDbIndex('type');
     	$this->setDbIndex('taskId,productId');
@@ -227,8 +228,8 @@ class planning_ProductionTaskDetails extends core_Detail
     		}
     	}
     	
-    	// Връща служителите с код
-    	$employees = crm_ext_Employees::getEmployeesWithCode();
+    	// Връща служителите избрани в папката
+    	$employees = planning_Hr::getEmployees($masterRec->folderId);
     	if(count($employees)){
     		$form->setSuggestions('employees', $employees);
     	} else {
@@ -317,6 +318,11 @@ class planning_ProductionTaskDetails extends core_Detail
     		}
     		
     		$rec->serial = (empty($rec->serial)) ? NULL : $rec->serial;
+    		
+    		$info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
+    		if(isset($info->indTime)){
+    			$rec->norm = $info->indTime;
+    		}
     	}
     }
 
@@ -420,7 +426,7 @@ class planning_ProductionTaskDetails extends core_Detail
     	$verbalEmployees = array();
     	$employees = keylist::toArray($employees);
     	foreach ($employees as $eId){
-    		$el = crm_ext_Employees::getCodeLink($eId);
+    		$el = planning_Hr::getCodeLink($eId);
     		$verbalEmployees[$eId] = $el;
     	}
     	
@@ -496,7 +502,7 @@ class planning_ProductionTaskDetails extends core_Detail
     		
     		$data->listFilter->class = 'simpleForm';
     		$data->listFilter->showFields = 'search,fixedAsset,employees';
-    		$data->listFilter->setOptions('employees', array('' => '') + crm_ext_Employees::getEmployeesWithCode());
+    		$data->listFilter->setOptions('employees', array('' => '') + crm_Persons::getEmployeesOptions());
     		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     		$data->listFilter->input("");
     		 
@@ -583,9 +589,8 @@ class planning_ProductionTaskDetails extends core_Detail
     public static function getIndicatorValues($timeline)
     {
     	$result = array();
-    	
     	$query = self::getQuery();
-        $query->where("#modifiedOn >= '{$timeline}'");
+        $query->where("#modifiedOn >= '{$timeline}' AND #norm IS NOT NULL");
         
         $iRec = hr_IndicatorNames::force('Време', __CLASS__, 1);
         $classId = planning_Tasks::getClassId();
@@ -597,12 +602,8 @@ class planning_ProductionTaskDetails extends core_Detail
         	$persons = keylist::toArray($rec->employees);
         	if(!count($persons)) continue;
         	
-        	// Ако няма заработка, пропуска се
-        	$info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
-        	if(!isset($info->indTime)) continue;
-        	
         	// Колко е заработката за 1 човек
-            $timePerson = ($rec->quantity * $info->indTime) / count($persons);
+            $timePerson = ($rec->quantity * $rec->norm) / count($persons);
             
             $date = dt::verbal2mysql($rec->createdOn, FALSE);
             foreach ($persons as $personId) {
