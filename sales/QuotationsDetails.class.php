@@ -389,12 +389,6 @@ class sales_QuotationsDetails extends doc_Detail {
         }
     
     	if(isset($rec->productId)){
-    		$isStorable = cat_Products::fetchField($rec->productId, 'canStore');
-    		
-    		if($isStorable == 'yes'){
-    			$form->setField('weight', 'input');
-    		}
-    		
     		if(cat_Products::getTolerance($rec->productId, 1)){
     			$form->setField('tolerance', 'input');
     		}
