@@ -375,13 +375,23 @@ class core_App
         // Проверяваме състоянието на системата и ако се налага репортва
         self::checkHitStatus();
         
+        // Спираме изпълнението и излизаме
+        self::exitScript();
+    }
+
+
+    /**
+     * Излизаме от изпълнението на скрипта
+     */
+    public static function exitScript()
+    {
         // Изтрива дебъг файла
         if (defined('DEBUG_FATAL_ERRORS') && DEBUG_FATAL_ERRORS === TRUE) {
             if ($errPath = Mode::get('DEBUG_FATAL_ERRORS_PATH')) {
                 @unlink($errPath);
             }
         }
-        
+
         // Излизаме със зададения статус
         exit();
     }

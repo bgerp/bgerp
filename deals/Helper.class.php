@@ -1132,8 +1132,8 @@ abstract class deals_Helper
 			} else {
 				$value = cat_Products::getVolume($productId, $packagingId, $quantity);
 			}
-				
-			if(!isset($value)){
+			
+			if(isset($value)){
 				$hint = TRUE;
 			}
 		}
