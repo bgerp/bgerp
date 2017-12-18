@@ -358,70 +358,83 @@ class store_reports_DeficitInStores extends frame2_driver_TableData {
 		
 		
 		//Извлича материалите и количествата им по филтрираните задания за производство
-		foreach ($productsForJobs as $v){
+		
+		if (is_array($productsForJobs)){
+			foreach ($productsForJobs as $v){
+							
+				$lastActivBomm = cat_Products::getLastActiveBom ( $v->productId );
 						
-			$lastActivBomm = cat_Products::getLastActiveBom ( $v->productId );
-					
-			$bommMaterials = cat_Boms::getBomMaterials($lastActivBomm->id,$lastActivBomm->quantity);
-			
-			
-			//Масив артикули и количество необходими за изпълнение на заданията //
-				foreach ($bommMaterials as $material){
-					
-					if (! array_key_exists ( $jobsProdId, $bommsMaterials )) {
+				$bommMaterials = cat_Boms::getBomMaterials($lastActivBomm->id,$lastActivBomm->quantity);
+				
+				
+				//Масив артикули и количество необходими за изпълнение на заданията //
+				if (is_array($bommMaterials)){
+					foreach ($bommMaterials as $material){
+						
+						if (! array_key_exists ( $jobsProdId, $bommsMaterials )) {
+								
+							$bommsMaterials [$material->productId] =
+								
+																	( object ) array (
+																
+																			'productId' => $material->productId,
+																
+																			'quantity' => $material->quantity,
+																	);
+						
+						} else {
+								
+							$obj = &$bommsMaterials [$material->productId];
+						
+							$obj->quantity += $material->quantity;
+							}
 							
-						$bommsMaterials [$material->productId] =
-							
-																( object ) array (
-															
-																		'productId' => $material->productId,
-															
-																		'quantity' => $material->quantity,
-																);
-					
-					} else {
-							
-						$obj = &$bommsMaterials [$material->productId];
-					
-						$obj->quantity += $material->quantity;
+						}
 					}
-					
 				}
-
-		}
+			}
 
 		/*
 		 * От продуктите по експедиционни нареждания
 		 *  изваждаме продуктите за  които има задание за производство ????
 		 */
-		foreach ($shipmentProducts as $k =>$v){
+		
+		if (is_array($shipmentProducts)){
+			foreach ($shipmentProducts as $k =>$v){
 			
-			foreach ($productsForJobs as $key =>$jobv){
-				
-				if ($key == $k){
-					
-					unset ($shipmentProducts[$k]);
+				if (is_array($productsForJobs)){
+					foreach ($productsForJobs as $key =>$jobv){
+						
+						if ($key == $k){
+							
+							unset ($shipmentProducts[$k]);
+						}
+					}
 				}
 			}
-		
 		}
 		/*
 		 * Ако има повтарящи се артикули в материалите за призводство
 		 * и експедиционните нареждания се обединяват количествата
 		 */
-		foreach ($bommsMaterials as $k => $v){
-	
-			foreach ($shipmentProducts as $skey => $sv){
-				
-				if ($k == $skey){
-					
-					$bommsMaterials[$k]->quantity= $v->quantity+$sv->quantity;
-					
-					unset($shipmentProducts[$skey]);
-				}
-				
-			}
 		
+		if (is_array($bommMaterials)){
+			foreach ($bommsMaterials as $k => $v){
+		
+				if (is_array($shipmentProducts)){
+					foreach ($shipmentProducts as $skey => $sv){
+						
+						if ($k == $skey){
+							
+							$bommsMaterials[$k]->quantity= $v->quantity+$sv->quantity;
+							
+							unset($shipmentProducts[$skey]);
+						}
+						
+					}
+				}
+			
+			}
 		}
 		/*
 		 * Масив с всички необходими материали
@@ -432,29 +445,28 @@ class store_reports_DeficitInStores extends frame2_driver_TableData {
 		/*
 		 * Необходимите количества се коригират с вече заявените за доставка
 		 */
-		foreach ($neseseryMaterials as $k => $v){
-		
-			foreach ($receiptProducts as $skey => $sv){
-		
-				if ($k == $skey){
-					
-					if ($v->quantity-$sv->quantity >0){
-						
-					$neseseryMaterials[$k]->quantity= $v->quantity-$sv->quantity;
-					
+		if (is_array($neseseryMaterials)){
+			foreach ($neseseryMaterials as $k => $v){
+			
+				if (is_array($receiptProducts)){
+					foreach ($receiptProducts as $skey => $sv){
+				
+						if ($k == $skey){
+							
+							if ($v->quantity-$sv->quantity >0){
+								
+							$neseseryMaterials[$k]->quantity= $v->quantity-$sv->quantity;
+							
+							}
+				
+						}
 					}
-		
+			
 				}
-		
 			}
-		
 		}
-	
 		
-		//bp($neseseryMaterials,$jobsMaterials,$shipmentProducts,$receiptProducts);
-	
 		$products = (json_decode ( $rec->additional, false ));
-		
 		
 		/*
 		 * Премахваме повтарящи се артикули
