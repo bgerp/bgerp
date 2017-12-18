@@ -291,7 +291,8 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('passRe', '123456');
         $browser->setValue('names', 'Потребител 1');
         $browser->setValue('email', 'u1@abv.bg');
-        $browser->setValue('roleRank', 'ceo');
+        $browser->setValue('roleRank', 'officer');
+        $browser->setValue('purchase', True);
         //$browser->refresh('Запис');
         $browser->press('Refresh');
         //$browser->setValue('roleTeams[13]', '13');
@@ -760,6 +761,7 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('name', 'Цех 1');
         $browser->setValue('type', 'Цех');
         $browser->setValue('schedule','Дневен график');
+        $browser->setValue('departmentId','Моята Фирма ООД » Завод » Производство');
         //$browser->setValue('shared_13_2', '13_2');
         $browser->press('Запис');
         if (strpos($browser->getText(),'Непопълнено задължително поле')){
@@ -1136,6 +1138,7 @@ class unit_MinkPbgERP extends core_Manager {
         //$browser->setValue('deliveryLocationId', '1');
         $browser->setValue('note', 'MinkPTestCreatePurchase');
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
+        $browser->setValue('dealerId', 'User1');
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         $browser->press('Чернова');
     
@@ -1162,8 +1165,11 @@ class unit_MinkPbgERP extends core_Manager {
              
         // активираме покупката
         $browser->press('Активиране');
-        //return  $browser->getHtml();
         $browser->press('Активиране/Контиране');
+        if(strpos($browser->gettext(), 'Търговец: User1')) {
+        } else {
+            return $this->reportErr('Грешен закупчик');
+        }
         if(strpos($browser->gettext(), 'ДДС 20%: BGN 5,92')) {
         } else {
             return $this->reportErr('Грешно ДДС', 'warning');
