@@ -52,15 +52,27 @@ core_Debug::setErrorWaching();
 try {
     // Инициализиране на системата
     core_App::initSystem();
-
-
+    
     // Параметрите от виртуалното URL за зареждат в $_GET
     core_App::processUrl();
-
-
+    
     // Зарежда конфигурационните константи
     core_App::loadConfig();
-
+    
+    if (defined('DEBUG_FATAL_ERRORS') && DEBUG_FATAL_ERRORS === TRUE) {
+        if (defined('EF_TEMP_PATH')) {
+            
+            $pathName = rtrim(EF_TEMP_PATH, '/') . '/' . rand(1000000, 99999999) . '_' . date('H') . '_' . date('i') . '_' . date('s') . '.txt';
+            
+            $data = core_Type::mixedToString($_GET);
+            $data .= core_Type::mixedToString($_POST);
+            
+            if (@file_put_contents($pathName, $data)) {
+                Mode::set('DEBUG_FATAL_ERRORS_PATH', $pathName);
+            }
+        }
+    }
+    
     if (core_App::isLocked()) {
         if (Request::get('ajax_mode')) {
             $resObj = new stdClass();

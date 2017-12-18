@@ -3,7 +3,7 @@
 
 
 /**
- * Мениджър на Имената на показателите
+ * Мениджър на Имената на индикаторите
  *
  *
  * @category  bgerp
@@ -12,7 +12,7 @@
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Имена на показатели
+ * @title     Имена на индикаторите
  */
 class hr_IndicatorNames extends core_Manager
 {
@@ -21,7 +21,7 @@ class hr_IndicatorNames extends core_Manager
     /**
      * Заглавие
      */
-    public $title = 'Имена на показатели';
+    public $title = 'Имена на индикаторите';
     
     
     /**
