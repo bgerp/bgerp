@@ -3,13 +3,13 @@
 
 
 /**
- * Мениджър на отчети за Индикаторите
+ * Мениджър на отчети за Индикаторите за ефективност
  *
  *
  *
  * @category  bgerp
  * @package   hr
- * @author    Gabriela Petrova <gab4eto@gmail.com>
+ * @author    Gabriela Petrova <gab4eto@gmail.com> и Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
@@ -23,14 +23,6 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'manager,ceo';
-
-    
-    /**
-     * Полета от таблицата за скриване, ако са празни
-     *
-     * @var int
-     */
-    //protected $filterEmptyListFields = 'deliveryTime';
     
     
     /**
@@ -100,66 +92,46 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	protected function prepareRecs($rec, &$data = NULL)
 	{
 		$recs = array();
-		$persons = array();
-		$personsId = array();
-		$date = acc_Periods::fetch($rec->periods);
+		$periodRec = acc_Periods::fetch($rec->periods);
 
-	    $query = hr_Indicators::getQuery(); 
-        
-	    // кои потребители търсим
-	    $persons = keylist::toArray($rec->personId);
-
-	    // ограничаваме по дата
-	    $query->where("(#date >= '{$date->start}' AND #date <= '{$date->end}')");
-	   
-	    if(count($persons)){
-	        foreach ($persons as $person) {
-	            // търсим ид-то на профила му
-	           $personId = crm_Profiles::fetchField("#userId = '{$person}'", 'personId');
-	           
-               $users[$personId] = $person;
-
-	           array_push($personsId,$personId); 
-	        }
-
-	        $personsId = implode(',', $personsId);
-
-	        $query->where("#personId IN ({$personsId})"); 
-	    }
-	
+		// Ако има избрани потребители, взимат се те. Ако няма всички потребители
+	    $users = (!empty($rec->personId)) ? keylist::toArray($rec->personId) : core_Users::getByRole('powerUser');
+	    
+	    // Извличат се ид-та на визитките на избраните потребители
+	    $personIds = array();
+	    $pQuery = crm_Profiles::getQuery();
+	    $pQuery->in("userId", $users);
+	    $personIds = arr::extractValuesFromArray($pQuery->fetchAll(), 'personId');
+	    
+	    // Извличане на индикаторите за посочените дати, САМО за избраните лица
+	    $query = hr_Indicators::getQuery();
+	    $query->where("(#date >= '{$periodRec->start}' AND #date <= '{$periodRec->end}')");
+	    $query->in("personId", $personIds);
+	    
 	    // за всеки един индикатор
 	    while($recIndic = $query->fetch()){
-	       
-	        $names = '';
-	        if ($recIndic->personId && $users[$recIndic->personId]) {
-	            $names = core_Users::fetchField($users[$recIndic->personId], 'names');
-	        }
-	        
-	        $name = '';
-	        if ($recIndic->indicatorId) {
-	            $name = hr_IndicatorNames::fetchField($recIndic->indicatorId,'name');
-	        }
-	        
-	        $id = str_pad($names, 120, " ", STR_PAD_RIGHT) . "|". str_pad($name, 120, " ", STR_PAD_RIGHT);
-	        // добавяме в масива събитието
-	        if(!array_key_exists($id,$recs)) { 
-	            $recs[$id]=
-	            (object) array (
-	                'num' => 0,
-	                'date' => $recIndic->date,
-	                'docId' => $recIndic->docId,
-	                'person' => $recIndic->personId,
-	                'indicatorId' => $recIndic->indicatorId,
-	                'value' => $recIndic->value,
+	    	$key = "{$recIndic->personId}|{$recIndic->indicatorId}";
+	    	
+	        // Добавя се към масива, ако го няма
+	        if(!array_key_exists($key, $recs)) { 
+	        	$personName = crm_Persons::fetchField($recIndic->personId, 'name');
+	        	$recs[$key]= (object) array ('num'         => 0,
+	                						 'date'        => $recIndic->date,
+	                						 'docId'       => $recIndic->docId,
+	                						 'person'      => $recIndic->personId,
+	                						 'indicatorId' => $recIndic->indicatorId,
+	                						 'value'       => $recIndic->value,
+	            							 'personName'  => $personName, 
 	            );
 	        } else {
-	            $obj = &$recs[$id];
+	            $obj = &$recs[$key];
 	            $obj->value += $recIndic->value;
 	        }  
 	    }
 	    
-        ksort($recs);
- 
+	    // Сортиране по име
+	    arr::orderA($recs, 'personName');
+	   
 	    $num = 1;
         $total = array();
 	    foreach($recs as $r) {
@@ -193,19 +165,12 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	{
 		$fld = cls::get('core_FieldSet');
 	
-		if($export === FALSE){
-			$fld->FLD('num', 'varchar','caption=№');
-			$fld->FLD('person', 'varchar', 'caption=Служител');
-	    	$fld->FLD('indicator', 'varchar', 'caption=Показател');
-		    $fld->FLD('value', 'double(smartRound,decimals=2)', 'smartCenter,caption=Стойност');
-
-		} else {
-			$fld->FLD('num', 'varchar','caption=№');
-			$fld->FLD('person', 'varchar', 'caption=Служител');
-	    	$fld->FLD('indicator', 'varchar', 'caption=Показател');
-		    $fld->FLD('value', 'double(smartRound,decimals=2)', 'smartCenter,caption=Стойност');
-		}
-	
+		$fld->FLD('num', 'varchar','caption=№');
+		$fld->FLD('person', 'varchar', 'caption=Служител');
+		$fld->FLD('indicator', 'varchar', 'caption=Показател');
+		$valueAttr = ($export === FALSE) ? 'smartCenter,caption=Стойност' : 'caption=Стойност';
+		$fld->FLD('value', 'double(smartRound,decimals=2)', $valueAttr);
+		
 		return $fld;
 	}
 	
