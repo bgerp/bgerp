@@ -1558,7 +1558,7 @@ class cat_Products extends embed_Manager {
     	// За нескладируемите не се изчислява транспортно тегло
     	if(cat_Products::fetchField($productId, 'canStore') != 'yes') return NULL;
     	 
-    	// Първо се гледа най-голямата опаковка за която има Бруто тегло
+    	// Първо се гледа най-голямата опаковка за която има габаритни размери
     	$packQuery = cat_products_Packagings::getQuery();
     	$packQuery->where("#productId = '{$productId}'");
     	$packQuery->where("#sizeWidth IS NOT NULL AND #sizeHeight IS NOT NULL AND #sizeDepth IS NOT NULL");
