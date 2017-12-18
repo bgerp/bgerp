@@ -1286,8 +1286,8 @@ a.profile {
 }
 
 .state-closed {
-    background-color: #f1f1f1;
-	background-color: rgba(240, 240, 240, 0.7);
+    background-color: #eee;
+	background-color: rgba(230, 230, 230, 0.7);
 }
 
 .state-stopped, .state-blocked {
@@ -1300,6 +1300,10 @@ a.profile {
     background-color: rgba(204, 102, 102, 0.8);
 }
 
+.state-edited {
+	background-color: #0f61a0;
+	background-color: rgba(15,97,160, 0.8);
+}
 
 .state-waiting {
 	background-color: #cef763;
