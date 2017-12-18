@@ -115,7 +115,7 @@ try {
     core_App::shutdown();
 
 } catch (Exception  $e) {
-    
+ 
     // Отключваме системата, ако е била заключена в този хит
     core_SystemLock::remove();
 
@@ -159,6 +159,9 @@ try {
     }
     
     reportException($e, $update, FALSE);
+    
+    // Изход от скрипта
+    core_App::exitScript();
 }
 
 

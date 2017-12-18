@@ -46,6 +46,12 @@ abstract class bank_Document extends deals_PaymentDocument
 	
 	
 	/**
+	 * Кой може да избира ф-ра по документа?
+	 */
+	public $canSelectinvoice = 'cash, ceo, purchase, sales, acc';
+	
+	
+	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
 	public $listFields = "valior, title=Документ, reason, folderId, currencyId, amount, state, createdOn, createdBy";
