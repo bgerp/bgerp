@@ -64,8 +64,6 @@ try {
             
             $pathName = rtrim(EF_TEMP_PATH, '/') . '/' . rand(1000000, 99999999) . '_' . date('H') . '_' . date('i') . '_' . date('s') . '.txt';
             
-            var_dump($pathName);
-            
             $data = core_Type::mixedToString($_GET);
             $data .= core_Type::mixedToString($_POST);
             
