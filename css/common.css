@@ -1231,6 +1231,7 @@ a.profile {
   .state-rejected .richtext div,
   .state-rejected .cCode,
   .state-rejected .antetka,
+  .state-rejected .row-fluid div,
   .state-rejected .document ul,
   .state-rejected .document ol,
   .state-rejected .document li,
@@ -1252,6 +1253,9 @@ a.profile {
   .state-rejected .single-thread .document .tab-top div.alphabet .tab-row .tab a {
     color: #999999 !important;
     text-decoration: none !important; }
+  .state-rejected .row-fluid table td,
+  .state-rejected .row-fluid table {
+    border-color: #999999 !important; }
 
 .hidden-document.state-rejected {
   opacity: 0.6; }

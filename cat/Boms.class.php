@@ -1228,6 +1228,10 @@ class cat_Boms extends core_Master
     		$savePrimeCost = TRUE;
     	}
     	
+        if(!$rec->quantity) {
+            $rec->quantity = 1;
+        }
+
     	$quantity /= $rec->quantity;
     	
     	// Количеството за което изчисляваме е 1-ца

@@ -3,7 +3,7 @@
 
 
 /**
- * Мениджър на показатели за заплати
+ * Мениджър на индикатори за заплати
  *
  *
  * @category  bgerp
@@ -12,7 +12,7 @@
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Показатели
+ * @title     Индикатори
  */
 class hr_Indicators extends core_Manager
 {
@@ -21,7 +21,7 @@ class hr_Indicators extends core_Manager
     /**
      * Заглавие
      */
-    public $title = 'Показатели';
+    public $title = 'Индикатори';
     
     
     /**
@@ -106,7 +106,7 @@ class hr_Indicators extends core_Manager
     
     
     /**
-     * Изпращане на данните към показателите
+     * Изпращане на данните към индикаторите
      */
     public static function cron_Update()
     { 
@@ -417,7 +417,7 @@ class hr_Indicators extends core_Manager
     
     
     /**
-     * Подготовка на показателите
+     * Подготовка на индикаторите
      * 
      * @param stdClass $data
      */
