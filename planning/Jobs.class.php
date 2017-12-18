@@ -152,6 +152,7 @@ class planning_Jobs extends core_Master
      */
     private static $actionNames = array('created'  => 'Създаване', 
     								    'active'   => 'Активиране', 
+    								    'edited'   => 'Редактиране',
     								    'stopped'  => 'Спиране', 
     								    'closed'   => 'Приключване', 
     									'rejected' => 'Оттегляне',
@@ -552,6 +553,7 @@ class planning_Jobs extends core_Master
     		$productInfo = cat_Products::getProductInfo($form->rec->productId);
     		$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
     		$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
+    		$rec->isEdited = TRUE;
     	}
     }
     
@@ -568,6 +570,20 @@ class planning_Jobs extends core_Master
     
     
     /**
+     * Преди запис на документ
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $rec
+     */
+    public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
+    {
+    	if($rec->isEdited === TRUE && isset($rec->id) && $rec->_isClone !== TRUE){
+    		self::addToHistory($rec->history, 'edited', $rec->modifiedOn, $rec->modifiedBy);
+    	}
+    }
+    
+    
+    /**
      * Изпълнява се след създаване на нов запис
      */
     protected static function on_AfterCreate($mvc, $rec)
@@ -578,7 +594,7 @@ class planning_Jobs extends core_Master
     	
     	// Записваме в историята на действията, че кога и от кого е създаден документа
     	self::addToHistory($rec->history, 'created', $rec->createdOn, $rec->createdBy);
-    	$mvc->save($rec, 'history');
+    	$mvc->save_($rec, 'history');
     }
     
     
@@ -922,7 +938,7 @@ class planning_Jobs extends core_Master
     {
     	// Записваме в историята действието
     	self::addToHistory($rec->history, $action, $rec->modifiedOn, $rec->modifiedBy, $rec->_reason);
-    	$mvc->save($rec, 'history');
+    	$mvc->save_($rec, 'history');
     	
     	// Ако заданието е затворено, затваряме и задачите към него
     	if($rec->state == 'closed'){
