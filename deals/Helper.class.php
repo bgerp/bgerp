@@ -1342,9 +1342,11 @@ abstract class deals_Helper
 	public static function showInvoiceBtn($threadId)
 	{
 		expect($firstDoc = doc_Threads::getFirstDocument($threadId));
-		expect($firstDoc->isInstanceOf('deals_DealMaster'));
-		$makeInvoice = $firstDoc->fetchField('makeInvoice');
+		if(!$firstDoc->isInstanceOf('deals_DealMaster')) return FALSE;
 		
-		return ($makeInvoice == 'yes') ? TRUE : FALSE;
+		$makeInvoice = $firstDoc->fetchField('makeInvoice');
+		$res = ($makeInvoice == 'yes') ? TRUE : FALSE;
+		
+		return $res;
 	}
 }
