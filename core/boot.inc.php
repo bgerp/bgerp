@@ -59,6 +59,10 @@ try {
         
         if ($_GET || $_POST) {
             $data = @json_encode(array('GET' => $_GET, 'POST' => $_POST));
+            
+            if (!$data) {
+                $data = json_last_error_msg();
+            }
         }
         
         $data = trim($data);
