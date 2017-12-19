@@ -19,62 +19,49 @@ class survey_Options extends core_Manager {
     /**
      * Заглавие
      */
-    var $title = 'Опции';
+    public $title = 'Опции';
     
     
     /**
      * Заглавие
      */
-    var $singleTitle = 'Опция';
-    
-	
-	/**
-	 * Брой рецепти на страница
-	 */
-	var $listItemsPerPage = '30';
+    public $singleTitle = 'Опция';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'admin';
+	public $canList = 'debug';
 	
 	
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools2,  plg_Created, survey_Wrapper, plg_SaveAndNew';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от 
-     * таблицата.
-     */
-    var $rowToolsField = 'tools';
-
-    
-    /**
-     * Кой може да чете
-     */
-    var $canRead = 'sales,ceo';
+    public $loadList = 'plg_RowTools2, plg_Created, survey_Wrapper, plg_SaveAndNew';
     
     
     /**
      * Кой може да пише
      */
-    var $canWrite = 'sales,ceo';
+    public $canWrite = 'sales,ceo';
     
     
     /**
      * Кой може да пише
      */
-    var $canAdd = 'survey,ceo';
+    public $canAdd = 'survey,ceo';
     
     
     /**
-     * 
+     * Кой може да изтрива
      */
-    var $canDelete = 'survey,ceo';
+    public $canDelete = 'survey,ceo';
+    
+    
+    /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = FALSE;
     
     
     /**
@@ -85,13 +72,15 @@ class survey_Options extends core_Manager {
     	$this->FLD('alternativeId', 'key(mvc=survey_Alternatives, select=label)', 'caption=Въпрос, input=hidden, silent');
     	$this->FLD('text', 'varchar(165)', 'caption=Съдържание,mandatory');
     	$this->FLD('value', 'double(decimals=2)', 'caption=Точки');
+    	
+    	$this->setDbIndex('alternativeId');
     }
     
     
     /**
      * Пренасочва URL за връщане след запис към сингъл изгледа
      */
-    function on_AfterPrepareRetUrl($mvc, $res, $data)
+    protected function on_AfterPrepareRetUrl($mvc, $res, $data)
     {
         if ($data->form->rec && $data->form->cmd == 'save') {
 			
