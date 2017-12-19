@@ -3,7 +3,7 @@
 	<div class='folder-cover state-active'>
 	    <div class='inner-folder'>
 	        <div class='block_title [#STATE_CLASS#] special-title'>
-	            <div>|Център на дейност|* <b>[#name#]</b></div>
+	            [#SingleIcon#] |Център на дейност|* <b>[#name#]</b>
 	        </div>
 	        <fieldset class="detail-info">
 	            <legend class="groupTitle">|Информация|*</legend>

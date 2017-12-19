@@ -335,7 +335,7 @@ class planning_ProductionTaskProducts extends core_Detail
     
     /**
      * Намира всички допустими артикули от дадения тип за една операция
-     * 
+     *
      * @param int $taskId
      * @param input|product|waste $type
      * @return array
@@ -345,7 +345,7 @@ class planning_ProductionTaskProducts extends core_Detail
     	$taskRec = planning_Tasks::fetchRec($taskId);
     	$usedProducts = $options = array();
     	expect(in_array($type, array('input', 'waste', 'production')));
-    	
+    	 
     	$query = self::getQuery();
     	$query->where("#taskId = {$taskId}");
     	$query->where("#type = '{$type}'");
@@ -354,28 +354,28 @@ class planning_ProductionTaskProducts extends core_Detail
     		$options[$rec->productId] = cat_Products::getTitleById($rec->productId, FALSE);
     		$usedProducts[$rec->productId] = $rec->productId;
     	}
-    	
+    	 
     	if($type == 'input'){
-    		
+    
     		// Всички избрани вложими артикули от задачи към същото задание
     		$tQuery = planning_Tasks::getQuery();
     		$tQuery->notIn('productId', array_keys($options));
     		$tQuery->where("#originId = {$taskRec->originId} AND #inputInTask = {$taskRec->id} AND #state != 'draft' AND #state != 'rejected' AND #state != 'pending'");
     		$tQuery->show('productId');
-    		
+    
     		$taskOptions = array();
     		while($tRec = $tQuery->fetch()){
     			$taskOptions[$tRec->productId] = cat_Products::getTitleById($tRec->productId, FALSE);
     			$usedProducts[$tRec->productId] = $tRec->productId;
     		}
-    		
+    
     		if(count($taskOptions)){
     			$options += array('t' => (object)array('group' => TRUE, 'title' => tr('Задачи'))) + $taskOptions;
     		}
-    		
+    
     		// Ако има избрано оборудване
     		if(!empty($taskRec->fixedAssets)){
-    			
+    			 
     			// Ако има добавят се с групата на оборудването в опциите
     			$norms = planning_AssetResourcesNorms::getNormOptions($taskRec->fixedAssets, $usedProducts);
     			if(count($norms)){
@@ -387,7 +387,7 @@ class planning_ProductionTaskProducts extends core_Detail
     			$options[$taskRec->productId] = cat_Products::getTitleById($taskRec->productId, FALSE);
     		}
     	}
-    	
+    	 
     	return $options;
     }
     

@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   survey
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -19,67 +19,61 @@ class survey_Alternatives extends core_Detail {
     /**
      * Заглавие
      */
-    var $title = 'Въпроси';
+    public $title = 'Въпроси';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, survey_Wrapper, plg_SaveAndNew,options=survey_Options,plg_Clone';
+    public $loadList = 'plg_RowTools, survey_Wrapper, plg_SaveAndNew,options=survey_Options,plg_Clone';
     
   
     /**
 	 * Мастър ключ към дъските
 	 */
-	var $masterKey = 'surveyId';
+	public $masterKey = 'surveyId';
 	
 	
     /**
      * Кои полета да се показват в листовия изглед
      */
-    var $listFields = 'tools=Пулт, surveyId, label, image';
+    public $listFields = 'surveyId, label, image';
     
     
     /**
 	 *  Брой елементи на страница 
 	 */
-	var $listItemsPerPage = "70";
+	public $listItemsPerPage = "70";
 	
 	
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Въпрос";
+    public $singleTitle = "Въпрос";
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    var $canRead = 'survey, ceo, admin';
+    public $rowToolsField = 'tools';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'survey, ceo, admin';
+	public $canList = 'debug';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'survey, ceo, admin';
+    public $canWrite = 'survey, ceo, admin';
     
     
     /**
      * Кой таб да бъде отворен
      */
-    var $currentTab = 'Въпроси';
+    public $currentTab = 'Въпроси';
 	
     
      /**
@@ -122,7 +116,7 @@ class survey_Alternatives extends core_Detail {
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    static function on_AfterPrepareListRows($mvc, &$res)
+    protected static function on_AfterPrepareListRows($mvc, &$res)
     {
         $rows = &$res->rows;
         $recs = &$res->recs;
@@ -164,7 +158,7 @@ class survey_Alternatives extends core_Detail {
     /**
 	 * Обработка на вербалното представяне на въпросите
 	 */
-	function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+	protected function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 		if($fields['-list']) {
 			
@@ -334,7 +328,7 @@ class survey_Alternatives extends core_Detail {
 	/**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    static function on_AfterPrepareListToolbar($mvc, &$data)
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
     	 if(empty($data->masterMvc)){
     	 	$data->toolbar->removeBtn('btnAdd');
