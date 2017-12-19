@@ -191,12 +191,10 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         $bankRecs = array();
         $caseRecs = array();
 
-        $accountIds = isset($rec->accountId) ? array($rec->accountId => $rec->accountId) : array_keys(self::getContableAccounts($rec));
-        array_push($accountIds,'NULL');
-
-        $caseIds = isset($rec->caseId) ? array($rec->caseId => $rec->caseId) : array_keys(self::getContableCases($rec));
-        array_push($caseIds,'NULL');
-
+        $accountsId = isset($rec->accountId) ? array($rec->accountId => $rec->accountId) : array_keys(self::getContableAccounts($rec));
+      
+        $casesId = isset($rec->caseId) ? array($rec->caseId => $rec->caseId) : array_keys(self::getContableCases($rec));
+      
         $documentFld = ($rec->documentType) ? 'documentType' : 'document';
 
 
@@ -211,7 +209,8 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
                     $cQuery -> where("#ownAccount IS NULL");
 
-                    $cQuery->whereArr('ownAccount', $accountIds, TRUE,TRUE );
+                    $cQuery->whereArr('ownAccount', $accountsId, TRUE,TRUE );
+                 
 
                     $cQuery->where("#state = 'pending'");
 
@@ -275,7 +274,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
                     $cQuery -> where("#peroCase IS NULL");
 
-                    $cQuery->whereArr('peroCase', $caseIds, TRUE,TRUE);
+                    $cQuery->whereArr('peroCase', $casesId, TRUE,TRUE);
 
                     $cQuery->where("#state = 'pending'");
 
