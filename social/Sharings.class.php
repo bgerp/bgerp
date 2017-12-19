@@ -56,7 +56,13 @@ class social_Sharings extends core_Master
      * Кой може да пише?
      */
     var $canWrite = 'cms, social, admin, ceo';
-
+    
+    
+    /**
+     * 
+     */
+    var $canChangestate = 'cms, social, admin, ceo';
+    
     
     /**
      * Описание на модела
@@ -79,8 +85,6 @@ class social_Sharings extends core_Master
      */
     static function getButtons()
     {
-		if(!core_Packs::isInstalled('soc')) return "";
-
     	// Правим заявка към базата
     	$query = static::getQuery();
     	$query->orderBy("#order");

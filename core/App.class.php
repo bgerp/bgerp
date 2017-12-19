@@ -385,11 +385,9 @@ class core_App
      */
     public static function exitScript()
     {
-        // Изтрива дебъг файла
-        if (defined('DEBUG_FATAL_ERRORS') && DEBUG_FATAL_ERRORS === TRUE) {
-            if ($errPath = Mode::get('DEBUG_FATAL_ERRORS_PATH')) {
-                @unlink($errPath);
-            }
+        // Изтрива дебъг файла, ако няма фатална грешка
+        if (defined('DEBUG_FATAL_ERRORS_FILE')) {
+            @unlink(DEBUG_FATAL_ERRORS_FILE);
         }
 
         // Излизаме със зададения статус
