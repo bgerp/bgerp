@@ -569,7 +569,7 @@ class sens2_Controllers extends core_Master
         
         if(!$id) {
             echo "Controllers::Update - miss id on " . dt::now();
-            die;
+            core_App::shutdown(FALSE);
         }
         
         echo "Controllers::Update for device with id={$id} started on " . dt::now();
@@ -588,6 +588,6 @@ class sens2_Controllers extends core_Master
             $this->updateInputs($id);
         }
 
-        die;
+        core_App::shutdown(FALSE);
     }
 }
