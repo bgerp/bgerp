@@ -55,10 +55,11 @@ try {
         
         $pathName = rtrim(DEBUG_FATAL_ERRORS_PATH, '/') . '/' . rand(1000, 9999) . date('_H_i_s') . '.txt';
         
-        $data = json_encode(array('GET' => $_GET, 'POST' => $_POST));
+        $data = @json_encode(array('GET' => $_GET, 'POST' => $_POST));
         
         if (!$data) {
             $data = json_last_error();
+            $data .= ' Serilize: ' . @serialize($data);
         }
         
         if (!defined('DEBUG_FATAL_ERRORS_FILE') && @file_put_contents($pathName, $data)) {
