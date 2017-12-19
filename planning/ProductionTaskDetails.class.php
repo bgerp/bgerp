@@ -57,7 +57,7 @@ class planning_ProductionTaskDetails extends core_Detail
     /**
      * Кои ключове да се тракват, кога за последно са използвани
      */
-    public $lastUsedKeys = 'employees,fixedAsset';
+    public $lastUsedKeys = 'fixedAsset';
     
     
     /**
