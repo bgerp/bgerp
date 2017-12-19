@@ -143,7 +143,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
             if(bgerp_plg_FLB::canUse('bank_OwnAccounts', $sRec, $cu,select)){
 
-                $res[$sRec->id] = bank_OwnAccounts::getTitleById($sRec->id, FALSE);
+                $res[$sRec->id] = bank_OwnAccounts::getTitleById($sRec->id, FdocumentALSE);
             }
 
         }
@@ -192,89 +192,95 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         $caseRecs = array();
 
         $accountsId = isset($rec->accountId) ? array($rec->accountId => $rec->accountId) : array_keys(self::getContableAccounts($rec));
-      
+
         $casesId = isset($rec->caseId) ? array($rec->caseId => $rec->caseId) : array_keys(self::getContableCases($rec));
-      
+
         $documentFld = ($rec->documentType) ? 'documentType' : 'document';
 
-
-            /*
-             * Банкови платежни документи
-             */
-            foreach (array('bank_SpendingDocuments','bank_IncomeDocuments') as $pDoc){
-
-                if(empty($rec->{$documentFld}) || ($rec->{$documentFld} == $pDoc::getClassId())) {
-
-                    $cQuery = $pDoc::getQuery();
-
-                    $cQuery -> where("#ownAccount IS NULL");
-
-                    $cQuery->whereArr('ownAccount', $accountsId, TRUE,TRUE );
-                 
-
-                    $cQuery->where("#state = 'pending'");
-
-                    $cQuery->orderBy('termDate', 'ASC');
-
-                    while ($cRec = $cQuery->fetch()) {
-
-                        $payDate = ($cRec->termDate)?$cRec->termDate: $cRec->valior;
-
-                        if (!empty($rec->horizon)) {
-
-                            $horizon = dt::addSecs($rec->horizon, dt::today(), FALSE);
-
-                            if ($payDate && ($payDate > $horizon) ){
-
-                                unset($payDate);
-
-                                continue;
-                            }
-
-                        }
-
-
-                        $className = core_Classes::getName(doc_Containers::fetch($cRec->containerId)->docClass);
-
-                        if (core_Users::getCurrent() != $cRec->credatedBy){
-
-                            if(!(bgerp_plg_FLB::canUse($className, $cRec, $cRec->createdBy,select)))continue;
-                        }
-
-                        $bankRecs[$cRec->containerId] = (object)array('containerId' => $cRec->containerId,
-                                                                        'amountDeal' => $cRec->amountDeal,
-                                                                        'className' => $className,
-                                                                        'payDate' => $payDate,
-                                                                        'termDate' =>$cRec->termDate,
-                                                                        'valior' => $cRec->valior,
-                                                                        'currencyId' => $cRec->currencyId,
-                                                                        'documentId' => $cRec->id,
-                                                                        'folderId' => $cRec->folderId,
-                                                                        'createdOn' => $cRec->createdOn,
-                                                                        'createdBy' => $cRec->createdBy,
-                                                                        'ownAccount' => $cRec->ownAccount,
-                                                                        'peroCase' => $cRec->peroCase,
-                                                                      );
-
-                    }
-                }
-
-            }
+        $both = (!isset($rec->accountId) && !isset($rec->caseId) ) || (isset($rec->accountId) && isset($rec->caseId) );
 
 
 
         /*
+         * Банкови платежни документи
+         */
+        if ($both || isset($rec->accountId)){
+
+        foreach (array('bank_SpendingDocuments', 'bank_IncomeDocuments') as $pDoc) {
+
+            if (empty($rec->{$documentFld}) || ($rec->{$documentFld} == $pDoc::getClassId())) {
+
+                $cQuery = $pDoc::getQuery();
+
+                $cQuery->where("#ownAccount IS NULL");
+
+                $cQuery->whereArr('ownAccount', $accountsId, TRUE, TRUE);
+
+
+                $cQuery->where("#state = 'pending'");
+
+                $cQuery->orderBy('termDate', 'ASC');
+
+                while ($cRec = $cQuery->fetch()) {
+
+                    $payDate = ($cRec->termDate) ? $cRec->termDate : $cRec->valior;
+
+                    if (!empty($rec->horizon)) {
+
+                        $horizon = dt::addSecs($rec->horizon, dt::today(), FALSE);
+
+                        if ($payDate && ($payDate > $horizon)) {
+
+                            unset($payDate);
+
+                            continue;
+                        }
+
+                    }
+
+
+                    $className = core_Classes::getName(doc_Containers::fetch($cRec->containerId)->docClass);
+
+                    if (core_Users::getCurrent() != $cRec->credatedBy) {
+
+                        if (!(bgerp_plg_FLB::canUse($className, $cRec, $cRec->createdBy, select))) continue;
+                    }
+
+                    $bankRecs[$cRec->containerId] = (object)array('containerId' => $cRec->containerId,
+                        'amountDeal' => $cRec->amountDeal,
+                        'className' => $className,
+                        'payDate' => $payDate,
+                        'termDate' => $cRec->termDate,
+                        'valior' => $cRec->valior,
+                        'currencyId' => $cRec->currencyId,
+                        'documentId' => $cRec->id,
+                        'folderId' => $cRec->folderId,
+                        'createdOn' => $cRec->createdOn,
+                        'createdBy' => $cRec->createdBy,
+                        'ownAccount' => $cRec->ownAccount,
+                        'peroCase' => $cRec->peroCase,
+                    );
+
+                }
+            }
+
+        }
+
+     }
+
+        /*
          * Касови платежни документи
          */
-            foreach (array('cash_Rko','cash_Pko') as $pDoc){
+        if ($both || isset($rec->caseId)) {
+            foreach (array('cash_Rko', 'cash_Pko') as $pDoc) {
 
                 if(empty($rec->{$documentFld}) || ($rec->{$documentFld} == $pDoc::getClassId())) {
 
                     $cQuery = $pDoc::getQuery();
 
-                    $cQuery -> where("#peroCase IS NULL");
+                    $cQuery->where("#peroCase IS NULL");
 
-                    $cQuery->whereArr('peroCase', $casesId, TRUE,TRUE);
+                    $cQuery->whereArr('peroCase', $casesId, TRUE, TRUE);
 
                     $cQuery->where("#state = 'pending'");
 
@@ -282,13 +288,13 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
                     while ($cRec = $cQuery->fetch()) {
 
-                        $payDate = ($cRec->termDate)?$cRec->termDate: $cRec->valior;
+                        $payDate = ($cRec->termDate) ? $cRec->termDate : $cRec->valior;
 
                         if (!empty($rec->horizon)) {
 
                             $horizon = dt::addSecs($rec->horizon, dt::today(), FALSE);
 
-                            if ($payDate && ($payDate > $horizon) ){
+                            if ($payDate && ($payDate > $horizon)) {
 
                                 unset($payDate);
 
@@ -299,31 +305,31 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
                         $className = core_Classes::getName(doc_Containers::fetch($cRec->containerId)->docClass);
 
-                        if (core_Users::getCurrent() != $cRec->credatedBy){
+                        if (core_Users::getCurrent() != $cRec->credatedBy) {
 
-                            if(!(bgerp_plg_FLB::canUse($className, $cRec, $cRec->createdBy,select)))continue;
+                            if (!(bgerp_plg_FLB::canUse($className, $cRec, $cRec->createdBy, select))) continue;
                         }
                         $caseRecs[$cRec->containerId] = (object)array('containerId' => $cRec->containerId,
-                                                                        'amountDeal' => $cRec->amountDeal,
-                                                                        'className' => $className,
-                                                                        'payDate' => $payDate,
-                                                                        'termDate' =>$cRec->termDate,
-                                                                        'valior' => $cRec->valior,
-                                                                        'currencyId' => $cRec->currencyId,
-                                                                        'documentId' => $cRec->id,
-                                                                        'folderId' => $cRec->folderId,
-                                                                        'createdOn' => $cRec->createdOn,
-                                                                        'createdBy' => $cRec->createdBy,
-                                                                        'ownAccount' => $cRec->ownAccount,
-                                                                        'peroCase' => $cRec->peroCase,
-                                                                      );
+                            'amountDeal' => $cRec->amountDeal,
+                            'className' => $className,
+                            'payDate' => $payDate,
+                            'termDate' => $cRec->termDate,
+                            'valior' => $cRec->valior,
+                            'currencyId' => $cRec->currencyId,
+                            'documentId' => $cRec->id,
+                            'folderId' => $cRec->folderId,
+                            'createdOn' => $cRec->createdOn,
+                            'createdBy' => $cRec->createdBy,
+                            'ownAccount' => $cRec->ownAccount,
+                            'peroCase' => $cRec->peroCase,
+                        );
 
                     }
                 }
 
             }
 
-
+        }
         $recs=$bankRecs+$caseRecs;
 
         usort($recs, array($this, 'orderByPayDate'));
