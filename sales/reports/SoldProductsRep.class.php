@@ -19,12 +19,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 {                  
 	
 	
-
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'sales_reports_ProductGroupRep';
-	
 	
 	/**
      * Кой може да избира драйвъра
