@@ -79,7 +79,7 @@ class social_Sharings extends core_Master
      */
     static function getButtons()
     {
-		if(!core_Packs::isInstalled('soc')) return "";
+		if(!core_Packs::isInstalled('social')) return "";
 
     	// Правим заявка към базата
     	$query = static::getQuery();
