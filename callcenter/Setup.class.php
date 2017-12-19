@@ -64,6 +64,12 @@ class callcenter_Setup extends core_ProtoSetup
     
     
     /**
+     * Необходими пакети
+     */
+    var $depends = 'ssh=0.1';
+    
+    
+    /**
      * Мениджър - входна точка в пакета
      */
     var $startCtr = 'callcenter_Talks';
