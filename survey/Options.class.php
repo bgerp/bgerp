@@ -150,12 +150,6 @@ class survey_Options extends core_Manager {
 	    		$res = 'no_one';
 	    	}
    		}
-   		
-   		if ($action == 'add' && !empty((array)$rec)) {
-   			if(empty($rec->alternativeId)) {
-   				$res = 'no_one';
-   			}
-   		}
 	}
 	
 	
