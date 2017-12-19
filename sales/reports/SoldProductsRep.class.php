@@ -15,11 +15,12 @@
  * @since     v 0.1
  * @title     Продажби » Продадени артикули
  */
-class sales_reports_ProductGroupRep extends frame2_driver_TableData
+class sales_reports_SoldProductsRep extends frame2_driver_TableData
 {                  
 	
 	
-    /**
+	
+	/**
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'ceo, acc, rep_acc,rep_cat,sales';
@@ -461,9 +462,9 @@ class sales_reports_ProductGroupRep extends frame2_driver_TableData
 		        $row->{$fld} = "<span class='red'>{$row->{$fld}}</span>";
 		    }
 		}
-
+		
 		if(isset($dRec->group)){
-		    // избраната позиция
+		    // и збраната позиция
 		    //$rGroup = cat_Groups::getDescendantArray($dRec->group);
 		    $rGroup = keylist::toArray($dRec->group);
 
