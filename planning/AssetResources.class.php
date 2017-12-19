@@ -213,7 +213,7 @@ class planning_AssetResources extends core_Master
     	}
     	
     	// Ако е използван в група, не може да се изтрива
-    	if($action == 'delete' && isset($rec->groupId)){
+    	if($action == 'delete'){
     		if(isset($rec->lastUsedOn)){
     			$requiredRoles = 'no_one';
     		}
