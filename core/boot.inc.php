@@ -50,6 +50,18 @@ require_once(EF_APP_PATH . "/core/Html.class.php");
 core_Debug::setErrorWaching();
 
 try {
+    // Дъмпване във файл на всички входни данни
+    if(defined('DEBUG_FATAL_ERRORS_PATH')) {
+        
+        $pathName = rtrim(DEBUG_FATAL_ERRORS_PATH, '/') . '/' . rand(1000, 9999) . date('_H_i_s') . '.txt';
+        
+        $data = json_encode(array('GET' => $_GET, 'POST' => $_POST));
+        
+        if (!defined('DEBUG_FATAL_ERRORS_FILE') && @file_put_contents($pathName, $data)) {
+            define('DEBUG_FATAL_ERRORS_FILE', $pathName);
+        }
+    }
+    
     // Инициализиране на системата
     core_App::initSystem();
     
@@ -58,20 +70,6 @@ try {
     
     // Зарежда конфигурационните константи
     core_App::loadConfig();
-    
-    if (defined('DEBUG_FATAL_ERRORS') && DEBUG_FATAL_ERRORS === TRUE) {
-        if (defined('EF_TEMP_PATH')) {
-            
-            $pathName = rtrim(EF_TEMP_PATH, '/') . '/' . rand(1000000, 99999999) . '_' . date('H') . '_' . date('i') . '_' . date('s') . '.txt';
-            
-            $data = core_Type::mixedToString($_GET);
-            $data .= core_Type::mixedToString($_POST);
-            
-            if (@file_put_contents($pathName, $data)) {
-                Mode::set('DEBUG_FATAL_ERRORS_PATH', $pathName);
-            }
-        }
-    }
     
     if (core_App::isLocked()) {
         if (Request::get('ajax_mode')) {

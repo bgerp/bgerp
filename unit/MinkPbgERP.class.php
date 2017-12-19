@@ -292,9 +292,10 @@ class unit_MinkPbgERP extends core_Manager {
         $browser->setValue('names', 'Потребител 1');
         $browser->setValue('email', 'u1@abv.bg');
         $browser->setValue('roleRank', 'officer');
-        $browser->setValue('purchase', True);
         //$browser->refresh('Запис');
         $browser->press('Refresh');
+        $browser->setValue('purchase', True);
+        $browser->setValue('seePrice', True);
         //$browser->setValue('roleTeams[13]', '13');
         //$browser->setValue('Headquarter', '13');
         //Повтаряне на паролите, 

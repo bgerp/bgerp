@@ -625,7 +625,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     	$entries = array();
     	 
     	// Подготвяме предварително нужните ни данни
-    	$baseDepartment = hr_Departments::fetchField("#systemId = 'emptyCenter'", 'id');
+    	$baseDepartment = planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID;
     	$resource604 = $resource605 = cat_Products::fetchField("#code = 'labor'", 'id');
     	$resource603 = cat_Products::fetchField("#code = 'fixedAssets'", 'id');
     	$resource602 = cat_Products::fetchField("#code = 'services'", 'id');
@@ -658,7 +658,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     		}
     		
     		if($accs[$dRec->accountId] == '60020'){
-    			$creditArr = array($accs[$dRec->accountId], array('hr_Departments', $baseDepartment), $dRec->ent2Id, 'quantity' => $dRec->blQuantity);
+    			$creditArr = array($accs[$dRec->accountId], array('planning_Centers', $baseDepartment), $dRec->ent2Id, 'quantity' => $dRec->blQuantity);
     		} else {
     			$creditArr = array($accs[$dRec->accountId], $dRec->ent1Id, 'quantity' => $dRec->blQuantity);
     		}
