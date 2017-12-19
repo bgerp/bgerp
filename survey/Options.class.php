@@ -155,15 +155,15 @@ class survey_Options extends core_Manager {
 	 */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{  
-   		if(($action == 'edit' || $action == 'delete' || $action == 'add') && isset($rec->alternativeId)) {
+	    if (($action == 'edit' || $action == 'delete' || $action == 'add') && isset($rec->alternativeId)) {
    			$surveyState = survey_Surveys::fetchField(survey_Alternatives::fetchField($rec->alternativeId, 'surveyId'), 'state');
-	    	if($surveyState == 'active'){
+	    	if ($surveyState == 'active') {
 	    		$res = 'no_one';
 	    	}
    		}
    		
-   		if($action == 'add' && isset($rec)){
-   			if(empty($rec->alternativeId)){
+   		if ($action == 'add' && !empty((array)$rec)) {
+   			if(empty($rec->alternativeId)) {
    				$res = 'no_one';
    			}
    		}
