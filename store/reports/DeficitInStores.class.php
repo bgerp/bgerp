@@ -10,8 +10,12 @@
  * @since     v 0.1
  * @title     Склад » Дефицит на складове
  */
-class store_reports_DeficitInStores extends frame2_driver_TableData {
+class store_reports_DeficitInStores extends frame2_driver_TableData
+ {
+ 	
+ 	
 	const NUMBER_OF_ITEMS_TO_ADD = 50;
+	
 	
 	/**
 	 * Кой може да избира драйвъра
@@ -177,6 +181,31 @@ class store_reports_DeficitInStores extends frame2_driver_TableData {
 							unset ( $grDetails ['maxQuantity'] [$k] );
 						}
 					}
+				}
+				
+				//Премахване на нестандартнитв артикули
+				
+				if (is_array($grDetails['name'])) {
+				
+					foreach ($grDetails['name'] as $k=>$v){
+						 
+						if ($grDetails['code'][$k]){
+				
+				
+							$isPublic = (cat_Products::fetch(cat_Products::getByCode($grDetails['code'][$k])->productId)->isPublic);
+						}
+				
+						if (!$grDetails['code'][$k] || $isPublic == 'no'){
+				
+							unset($grDetails['code'][$k]);
+							unset($grDetails['name'][$k]);
+							unset($grDetails['minQuantity'][$k]);
+							unset($grDetails['maxQuantity'][$k]);
+				
+						}
+				
+					}
+				
 				}
 				
 				// Ограничава броя на артикулите за добавяне
@@ -556,10 +585,8 @@ class store_reports_DeficitInStores extends frame2_driver_TableData {
 
 			}
 			
-			
-
 		}
-//bp($recs);
+
 		return $recs;
 	}
 	
@@ -581,11 +608,10 @@ class store_reports_DeficitInStores extends frame2_driver_TableData {
 			// $fld->FLD('storeId', 'varchar', 'caption=Склад,tdClass=centered');
 			$fld->FLD ( 'measure', 'varchar', 'caption=Мярка,tdClass=centered' );
 			$fld->FLD ( 'quantity', 'double(smartRound,decimals=2)', 'caption=Количество->Разполагаемо,smartCenter' );
-			$fld->FLD ( 'receiptQuantity', 'double', 'caption=Количество->За поучаване,smartCenter' );
-			$fld->FLD ( 'shipmentQuantity', 'double', 'caption=Количество->За експедиция,smartCenter' );
-			$fld->FLD ( 'jobsQuantity', 'double', 'caption=Количество->За производство,smartCenter' );
-			
-			$fld->FLD ( 'neseseryQuantity', 'double', 'caption=Количество->Необходимо,smartCenter' );
+			$fld->FLD ( 'receiptQuantity', 'double', 'caption=Количество->За получаване,smartCenter' );
+			$fld->FLD ( 'shipmentQuantity', 'double', 'caption=Количество->Необходимо->За експедиция,smartCenter' );
+			$fld->FLD ( 'jobsQuantity', 'double', 'caption=Количество->Необходимо->За производство,smartCenter' );
+	//		$fld->FLD ( 'neseseryQuantity', 'double', 'caption=Количество->Необходимо,smartCenter' );
 			$fld->FLD ( 'deliveryQuatity', 'double', 'caption=Количество->За доставка,smartCenter' );
 			
 		} else {
@@ -604,10 +630,8 @@ class store_reports_DeficitInStores extends frame2_driver_TableData {
 	/**
 	 * Вербализиране на редовете, които ще се показват на текущата страница в отчета
 	 *
-	 * @param stdClass $rec
-	 *        	- записа
-	 * @param stdClass $dRec
-	 *        	- чистия запис
+	 * @param stdClass $rec- записа        	
+	 * @param stdClass $dRec- чистия запис
 	 * @return stdClass $row - вербалния запис
 	 */
 	protected function detailRecToVerbal($rec, &$dRec) {
@@ -678,8 +702,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData {
 	/**
 	 * Изчиства повтарящи се стойности във формата
 	 *
-	 * @param
-	 *        	$arr
+	 * @param $arr
 	 * @return array
 	 */
 	static function removeRpeadValues($arr) {
