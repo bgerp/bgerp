@@ -68,7 +68,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
     {
         $fieldset->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=Банкова сметка,placeholder=Всички,after=title');
         $fieldset->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Каса,placeholder=Всички,after=accountId');
-        $fieldset->FLD('documentType', 'class(select=title)', 'caption=Документи,placeholder=Всички,after=caseId');
+        $fieldset->FLD('documentType', 'keylist(mvc=core_Classes,select=name)', 'caption=Документи,placeholder=Всички,after=caseId');
         $fieldset->FLD('horizon', 'time', 'caption=Хоризонт,after=documentType');
     }
 
@@ -82,6 +82,8 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
         $form = &$data->form;
+        
+        
 
         $accounts = self::getContableAccounts($form->rec);
 
@@ -93,23 +95,17 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
         foreach ($documents as $className){
 
-
-
             $classId = $className::getClassId();
-
-
-
+            
             $docOptions[$classId] = core_Classes::getTitleById($classId, FALSE);
-
-
+            
         }
 
-
-        $form->setOptions('documentType', array('' => '') + $docOptions);
-
+        $form->setSuggestions('documentType',  $docOptions);
 
     }
 
+    
     /**
      * След рендиране на единичния изглед
      *
@@ -121,6 +117,12 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
 
+
+    	if ($form->isSubmitted()) {
+    		
+    		
+    	}
+    	
     }
 
 
@@ -190,13 +192,16 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         $recs = array();
         $bankRecs = array();
         $caseRecs = array();
+        $docClasses = array();
 
         $accountsId = isset($rec->accountId) ? array($rec->accountId => $rec->accountId) : array_keys(self::getContableAccounts($rec));
 
         $casesId = isset($rec->caseId) ? array($rec->caseId => $rec->caseId) : array_keys(self::getContableCases($rec));
 
         $documentFld = ($rec->documentType) ? 'documentType' : 'document';
-
+        
+        $docClasses = keylist::toArray($rec->documentType);
+     
         $both = (!isset($rec->accountId) && !isset($rec->caseId) ) || (isset($rec->accountId) && isset($rec->caseId) );
 
 
@@ -208,8 +213,8 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
         foreach (array('bank_SpendingDocuments', 'bank_IncomeDocuments') as $pDoc) {
 
-            if (empty($rec->{$documentFld}) || ($rec->{$documentFld} == $pDoc::getClassId())) {
-
+            if (empty($docClasses) || in_array($pDoc::getClassId(),$docClasses)) {
+            	
                 $cQuery = $pDoc::getQuery();
 
                 $cQuery->where("#ownAccount IS NULL");
@@ -274,7 +279,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         if ($both || isset($rec->caseId)) {
             foreach (array('cash_Rko', 'cash_Pko') as $pDoc) {
 
-                if(empty($rec->{$documentFld}) || ($rec->{$documentFld} == $pDoc::getClassId())) {
+                if (empty($docClasses) || in_array($pDoc::getClassId(),$docClasses)) {
 
                     $cQuery = $pDoc::getQuery();
 
