@@ -182,7 +182,7 @@
                     <!--ET_BEGIN deliveryTermId-->
                     <tr>
                         <td class='quiet'>|Условие на доставка|*</td>
-                        <td>[#deliveryTermId#]</td>
+                        <td>[#deliveryTermId#]<!--ET_BEGIN saleDeliveryAddress-->: [#saleDeliveryAddress#]<!--ET_END saleDeliveryAddress--></td>
                     </tr>
                     <!--ET_END deliveryTermId-->
                     <!--ET_BEGIN deliveryPlace-->
