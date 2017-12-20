@@ -2647,6 +2647,7 @@ class cat_Products extends embed_Manager {
     		
     		if($fRec->groupsInput != $rec->groupsInput){
     			$this->save((object)array('id' => $id, 'groupsInput' => $fRec->groupsInput), 'groups');
+    			$this->logInAct('Редактиране', $rec);
     		}
     		
     		return followRetUrl();
