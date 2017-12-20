@@ -983,7 +983,7 @@ class unit_MinkPSales extends core_Manager {
         //$browser->hasText('Създаване на продажба');
         $browser->setValue('reff', 'MinkP');
         $browser->setValue('bankAccountId', '');
-        $browser->setValue('note', 'MinkPSaleCIDI');
+        $browser->setValue('note', 'MinkPSaleCIDISep');
         $browser->setValue('paymentMethodId', "До 3 дни след фактуриране");
         $browser->setValue('chargeVat', "Отделен ред за ДДС");
         // Записване черновата на продажбата
@@ -1101,7 +1101,7 @@ class unit_MinkPSales extends core_Manager {
          
     }
     /**
-     * 14. Продажба - Кредитно и дебитно известие - освободено от ДДС (валута) (Sal17)
+     * 14. Продажба - Кредитно и дебитно известие - освободено от ДДС (валута) (Sal18)
      */ 
      
     //http://localhost/unit_MinkPSales/CreateCreditDebitInvoiceVATFree/
@@ -1251,7 +1251,7 @@ class unit_MinkPSales extends core_Manager {
     }
     
     /**
-     * 15. Продажба - Кредитно и дебитно известие без ДДС (валута-Sal18)
+     * 15. Продажба - Кредитно и дебитно известие без ДДС (валута-Sal19)
      */
      
     //http://localhost/unit_MinkPSales/CreateCreditDebitInvoiceVATNo/
@@ -1401,7 +1401,7 @@ class unit_MinkPSales extends core_Manager {
     }
     
     /**
-     * 16. Продажба - Кредитно и дебитно известие с ДДС (валута Sal19)
+     * 16. Продажба - Кредитно и дебитно известие с ДДС (валута Sal20)
      */
      
     //http://localhost/unit_MinkPSales/CreateCreditDebitInvoiceVATYes/
@@ -1557,7 +1557,7 @@ class unit_MinkPSales extends core_Manager {
     }
     
     /**
-     * 17. Продажба - Кредитно известие за авансово плащане, връщане на стоката - СР и РБД Sal20
+     * 17. Продажба - Кредитно известие за авансово плащане, връщане на стоката - СР и РБД Sal21
      */
      
     //http://localhost/unit_MinkPSales/CreateCreditInvoiceAdvPayment/
@@ -1684,7 +1684,7 @@ class unit_MinkPSales extends core_Manager {
     }
     
     /**
-     * 18. Продажба - Кредитно известие за авансово плащане, отделно ДДС Sal21
+     * 18. Продажба - Кредитно известие за авансово плащане, отделно ДДС Sal22
      */
      
     //http://localhost/unit_MinkPSales/CreateCreditInvoiceAdvPaymentSep/
@@ -1782,7 +1782,7 @@ class unit_MinkPSales extends core_Manager {
     }
     
     /**
-     * 19. Продажба - за авансово плащане Кредитно и дебитно известие - освободено от ДДС (валута) (Sal22)
+     * 19. Продажба - за авансово плащане Кредитно и дебитно известие - освободено от ДДС (валута) (Sal23)
      */
      
     //http://localhost/unit_MinkPSales/CreateCreditDebitInvoiceVATFreeAdv/
@@ -1887,7 +1887,7 @@ class unit_MinkPSales extends core_Manager {
     }
     
     /**
-     * 20. Продажба - Кредитно известие за цялото количество  Sal34
+     * 20. Продажба - Кредитно известие за цялото количество  Sal24
      */
      
     //http://localhost/unit_MinkPSales/CreateCreditInvoice/
@@ -1977,7 +1977,7 @@ class unit_MinkPSales extends core_Manager {
     }
     
     /**
-     * 21. Продажба - схема с авансово плащане, Включено ДДС в цените Sal23
+     * 21. Продажба - схема с авансово плащане, Включено ДДС в цените Sal25
      * Проверка състояние чакащо плащане - не (платено)
      */
      
@@ -2110,7 +2110,7 @@ class unit_MinkPSales extends core_Manager {
     }
     
     /**
-     * 22. Продажба - схема с авансово плащане, отделно ДДС Sal24
+     * 22. Продажба - схема с авансово плащане, отделно ДДС Sal26
      * Проверка състояние чакащо плащане - не (платено)
      */
      
@@ -2224,7 +2224,7 @@ class unit_MinkPSales extends core_Manager {
     }
     
     /**
-     * 23. Продажба на артикули с различно ДДС  Sal25
+     * 23. Продажба на артикули с различно ДДС  Sal27
      */
      
     //http://localhost/unit_MinkPSales/CreateSaleDifVAT/
@@ -2302,26 +2302,11 @@ class unit_MinkPSales extends core_Manager {
         } else {
             return unit_MinkPbgERP::reportErr('Грешна обща сума', 'warning');
         }
-         
-        /* - ДДС групата сработва от следващия ден, а фактура не може да се издаде със следваша дата
-        // Фактура
-        $browser->press('Фактура');
-        $browser->press('Чернова');
-        $browser->press('Контиране');
-        if(strpos($browser->gettext(), 'Данъчна основа: BGN 64,80')) {
-        } else {
-            return unit_MinkPbgERP::reportErr('Грешна Грешна данъчна основа 20%', 'warning');
-        }
-        if(strpos($browser->gettext(), 'Данъчна основа 9%: BGN 73,71')) {
-        } else {
-            return unit_MinkPbgERP::reportErr('Грешна Грешна данъчна основа 9%', 'warning');
-        }
-       
-        */
+        
     }
      
     /**
-     * 24. Проверка извънредни приходи Sal26
+     * 24. Проверка извънредни приходи Sal28
      * Продажба - Включено ДДС в цените
      */
      
@@ -2415,7 +2400,7 @@ class unit_MinkPSales extends core_Manager {
     }
     
     /**
-     * 21. Проверка извънредни приходи (с втория ПБД е платена цялата сума, вместо разликата) Sal27
+     * 21. Проверка извънредни приходи (с втория ПБД е платена цялата сума, вместо разликата) Sal29
      * Продажба - схема с авансово плащане, отделно ДДС
      */
      
