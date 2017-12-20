@@ -266,6 +266,8 @@ class planning_plg_StateManager extends core_Plugin
     		// Ако ще активираме: запалваме събитие, че ще активираме
     		$saveFields = 'brState,state,modifiedOn,modifiedBy,timeClosed';
     		if($action == 'activate'){
+    			$rec->activatedBy = core_Users::getCurrent();
+    			$rec->activatedOn = dt::now();
     			$mvc->invoke('BeforeActivation', array(&$rec));
     			$saveFields = NULL;
     		}
