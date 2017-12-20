@@ -132,7 +132,7 @@ class planning_Jobs extends core_Master
     /**
      * Шаблон за единичен изглед
      */
-    public $singleLayoutFile = 'planning/tpl/SingleLayoutJob.shtml';
+    public $singleLayoutFile = 'planning/tpl/SingleLayoutJob.shtml';//SingleLayoutJobEP
     
     
     /**
@@ -646,8 +646,11 @@ class planning_Jobs extends core_Master
     	 
     	if(isset($rec->saleId)){
     		$row->saleId = sales_Sales::getlink($rec->saleId, 0);
-    		$saleFolderId = sales_Sales::fetchField($rec->saleId, 'folderId');
-    		$row->saleFolderId = doc_Folders::recToVerbal(doc_Folders::fetch($saleFolderId))->title;
+    		$saleRec = sales_Sales::fetch($rec->saleId, 'folderId,deliveryAdress');
+    		$row->saleFolderId = doc_Folders::recToVerbal(doc_Folders::fetch($saleRec->folderId))->title;
+    		if(!empty($saleRec->deliveryAdress)){
+    			$row->saleDeliveryAddress = core_Type::getByName('varchar')->toVerbal($saleRec->deliveryAdress);
+    		}
     	}
     	
     	$row->measureId = cat_UoM::getShortName($rec->packagingId);
