@@ -179,7 +179,7 @@ class planning_Jobs extends core_Master
      */
     public $filterRolesForAll = 'jobMaster';
     
-    
+    public $canEditActivated = TRUE;
 	/**
      * Описание на модела (таблицата)
      */
@@ -754,7 +754,7 @@ class planning_Jobs extends core_Master
     	$self = cls::get(get_called_class());
     	$pTitle = cat_Products::getTitleById($rec->productId);
     	
-    	return "Job{$rec->id} - {$pTitle}";
+    	return "Job{$rec->id}-{$pTitle}";
     }
     
     
