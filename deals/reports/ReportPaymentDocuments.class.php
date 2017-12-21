@@ -218,11 +218,11 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
                 $cQuery = $pDoc::getQuery();
                 
                 $cQuery->in("ownAccount", $accountsId);
+                
                 $cQuery->orWhere("#ownAccount IS NULL");
 
-
                 $cQuery->where("#state = 'pending'");
-//if ($pDoc == 'bank_IncomeDocuments')bp($cQuery->fetchAll(),$pDoc::fetch(14));
+
                 $cQuery->orderBy('termDate', 'ASC');
 
                 while ($cRec = $cQuery->fetch()) {
@@ -283,15 +283,10 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
                     $cQuery = $pDoc::getQuery();
 
-                    
-                    //$where = ""
-                    
                     $cQuery->in("peroCase", $casesId);
-                    $cQuery->orWhere("#peroCase IS NULL");
-                   // $cQuery->whereArr('peroCase', $casesId, TRUE, TRUE);
-                    
-                  
 
+                    $cQuery->orWhere("#peroCase IS NULL");
+                   
                     $cQuery->where("#state = 'pending'");
  
                     $cQuery->orderBy('termDate', 'ASC');
@@ -319,7 +314,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
                             $Document = doc_Containers::getDocument($cRec->containerId);
 												
-                       		 if (!$Document->haveRightFor('conto')) continue;
+                       		 if (!$Document->haveRightFor('single',$cRec->createdBy))) continue;
                         }
                         $caseRecs[$cRec->containerId] = (object)array('containerId' => $cRec->containerId,
                             'amountDeal' => $cRec->amountDeal,
