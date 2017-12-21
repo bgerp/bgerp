@@ -68,7 +68,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
     {
         $fieldset->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=Банкова сметка,placeholder=Всички,after=title');
         $fieldset->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Каса,placeholder=Всички,after=accountId');
-        $fieldset->FLD('documentType', 'keylist(mvc=core_Classes,select=name)', 'caption=Документи,placeholder=Всички,after=caseId');
+        $fieldset->FLD('documentType', 'keylist(mvc=core_Classes,select=title)', 'caption=Документи,placeholder=Всички,after=caseId');
         $fieldset->FLD('horizon', 'time', 'caption=Хоризонт,after=documentType');
     }
 
@@ -243,12 +243,12 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
                     }
                     
                     $className = core_Classes::getName(doc_Containers::fetch($cRec->containerId)->docClass);
- 
+                  
                     if (core_Users::getCurrent() != $cRec->createdBy) {
                     	
 						$Document = doc_Containers::getDocument($cRec->containerId);
 												
-                        if (!$Document->haveRightFor('single',$cRec->createdBy)) continue;
+                        if (!$Document->haveRightFor('single',$rec->createdBy)) continue;
                     }
 
                     $bankRecs[$cRec->containerId] = (object)array('containerId' => $cRec->containerId,
@@ -314,7 +314,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
                             $Document = doc_Containers::getDocument($cRec->containerId);
 												
-                       		 if (!$Document->haveRightFor('single',$cRec->createdBy)) continue;
+                       		 if (!$Document->haveRightFor('single',$rec->createdBy)) continue;
                         }
                         $caseRecs[$cRec->containerId] = (object)array('containerId' => $cRec->containerId,
                             'amountDeal' => $cRec->amountDeal,
