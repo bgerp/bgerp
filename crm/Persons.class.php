@@ -1201,33 +1201,36 @@ class crm_Persons extends core_Master
         return $tpl;
     }
 
-
-
+    
     /****************************************************************************************
      *                                                                                      *
      *  Подготвя и рендира Имениците                                                       *
      *                                                                                      *
      ****************************************************************************************/
 
+    
     /**
      * Подготвя (извлича) данните за Имениците
      */
     public static function prepareNamedays(&$data)
     {   
     	if(!count($data->namesArr)) return;
+    	
     	$currentId = core_Users::getCurrent();
         $query = self::getQuery();
-       	$query->where("#inCharge = '{$currentId}' OR #shared LIKE '|{$currentId}|'");
+        $query->XPR('trimmedSarchKeywords', 'varchar', 'TRIM(#searchKeywords)');
+        $query->where("#inCharge = '{$currentId}' OR #shared LIKE '|{$currentId}|'");
        	$query->where("#state != 'rejected' AND #state != 'closed'");
        	$query->show('name,buzTel,tel,buzEmail,email');
        	
+       	$or = "";
+       	foreach ($data->namesArr as $name){
+       		$where .= "{$or}#trimmedSarchKeywords LIKE '{$name} %'";
+       		$or = " OR ";
+       	}
+       	$query->where($where);
+       
        	while($rec = $query->fetch()){
-       		$name = strtolower(str::utf2ascii($rec->name));
-       		$name = explode(' ', $name);
-       		$name = $name[0];
-       		
-       		if(!array_key_exists($name, $data->namesArr)) continue;
-       		
        		$data->recs[$rec->id] = $rec;
        		$row = self::recToVerbal($rec, 'name,tel,buzEmail,email');
        		$row->name = crm_Persons::getHyperlink($rec, TRUE);
