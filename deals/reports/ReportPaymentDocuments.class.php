@@ -294,7 +294,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
                   
 
                     $cQuery->where("#state = 'pending'");
-  bp($cQuery->buildQuery(),$cQuery->where);
+ 
                     $cQuery->orderBy('termDate', 'ASC');
 
                     while ($cRec = $cQuery->fetch()) {
