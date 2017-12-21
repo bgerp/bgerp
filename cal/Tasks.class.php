@@ -723,39 +723,6 @@ class cal_Tasks extends embed_Manager
                 }
             }
         }
-        
-        // Към възложените потребители, добавяме споделените в ричтекста
-        if ($form->isSubmitted()) {
-            
-            $rec = &$form->rec;
-            
-            $assignedUsersArrAll = array();
-            
-            foreach ((array)$mvc->fields as $name => $field) {
-                if ($field->type instanceof type_Richtext) {
-                    
-                    if ($field->type->params['nickToLink'] == 'no') continue;
-                    
-                    $usersArr = rtac_Plugin::getNicksArr($rec->$name);
-                    if (empty($usersArr)) continue;
-                    
-                    $assignedUsersArrAll = array_merge($assignedUsersArrAll, $usersArr);
-                }
-            }
-            
-            if (!empty($assignedUsersArrAll)) {
-                
-                foreach ((array)$assignedUsersArrAll as $nick) {
-                    $nick = strtolower($nick);
-                    $id = core_Users::fetchField(array("LOWER(#nick) = '[#1#]'", $nick), 'id');
-                    
-                    // Партнюрите да не са споделение
-                    if (core_Users::haveRole('partner', $id)) continue;
-                    
-                    $rec->assign = type_Keylist::addKey($rec->assign, $id);
-                }
-            }
-        }
     }
 	
 	
