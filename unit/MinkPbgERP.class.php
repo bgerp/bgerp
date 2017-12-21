@@ -1147,7 +1147,6 @@ class unit_MinkPbgERP extends core_Manager {
         // Добавяме артикул
         $browser->press('Артикул');
         $browser->setValue('productId', 'Други стоки');
-        //$browser->refresh('Запис');
         $browser->press('Refresh');
         $browser->setValue('packQuantity', '15');
         $browser->setValue('packPrice', '1,66');
@@ -1156,7 +1155,6 @@ class unit_MinkPbgERP extends core_Manager {
         // Записваме артикула и добавяме нов - услуга
         $browser->press('Запис и Нов');
         $browser->setValue('productId', 'Други външни услуги');
-        //$browser->refresh('Запис');
         $browser->press('Refresh');
         $browser->setValue('packQuantity', 1);
         $browser->setValue('packPrice', '6');
@@ -1238,7 +1236,7 @@ class unit_MinkPbgERP extends core_Manager {
         } else {
             return $this->reportErr('Грешни суми в мастера', 'warning');
         }
-        //return $browser->getHtml();
+        
     }
     
     /**
