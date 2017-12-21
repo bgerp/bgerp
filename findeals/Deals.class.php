@@ -674,7 +674,8 @@ class findeals_Deals extends deals_DealBase
     	
     	try{
     		$DocType = cls::get($jRec->docType);
-    		$row->docId = $DocType->getHyperLink($jRec->docId, TRUE);
+    		$row->docId = $DocType->getLink($jRec->docId, 0);
+    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($DocType->fetchField($jRec->docId, 'folderId')))->title;
     	} catch(core_exception_Expect $e){
     		$row->docId = "<span style='color:red'>" . tr('Проблем при показването') . "</span>";
     	}
@@ -705,11 +706,12 @@ class findeals_Deals extends deals_DealBase
     {
     	$fieldSet = new core_FieldSet();
     	$fieldSet->FLD('docId', 'varchar', 'tdClass=large-field wrap');
+    	$fieldSet->FLD('folderId', 'varchar', 'tdClass=large-field wrap');
     	$fieldSet->FLD('debitA', 'double', 'tdClass=amount-field');
     	$fieldSet->FLD('creditA', 'double', 'tdClass=amount-field');
     	$table = cls::get('core_TableView', array('mvc' => $fieldSet, 'class' => 'styled-table'));
     	$table->tableClass = 'listTable';
-    	$fields = "valior=Вальор,docId=Документ,debitA=Сума ({$data->row->currencyId})->Дебит,creditA=Сума ({$data->row->currencyId})->Кредит";
+    	$fields = "valior=Вальор,docId=Документ,folderId=Папка,debitA=Сума ({$data->row->currencyId})->Дебит,creditA=Сума ({$data->row->currencyId})->Кредит";
     	
     	$tpl->append($table->get($data->history, $fields), 'HISTORY');
     	
