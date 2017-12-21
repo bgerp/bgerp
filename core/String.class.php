@@ -1132,4 +1132,18 @@ class core_String
     		return $UrlType->toVerbal($matches[0])->getContent();
     	}, $text);
     }
+    
+    
+    /**
+     * Замества НЕ-кирилските символи с str::utf2ascii
+     *  
+     * @param string $string
+     * @return string
+     */
+    public static function nonCyrillic2Ascii($string)
+    {
+    	$res = preg_replace_callback("/[^\p{Cyrillic}]+/u", function ($matches){return str::utf2ascii($matches[0]);}, $string);
+    
+    	return $res;
+    }
 }
