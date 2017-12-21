@@ -179,7 +179,7 @@ class planning_Jobs extends core_Master
      */
     public $filterRolesForAll = 'jobMaster';
     
-    public $canEditActivated = TRUE;
+    
 	/**
      * Описание на модела (таблицата)
      */
@@ -448,12 +448,14 @@ class planning_Jobs extends core_Master
     
     
     /**
-     * След подготовка на сингъла
+     * Рендираме общия изглед за 'List'
      */
-    protected static function on_AfterRenderSingle($mvc, &$tpl, &$data)
+    function renderSingle_($data)
     {
-    	$tpl->push('planning/tpl/styles.css', "CSS");
+    	$tpl = parent::renderSingle_($data);
     	
+    	$tpl->push('planning/tpl/styles.css', "CSS");
+    	 
     	// Рендираме историята на действията със заданието
     	if(count($data->row->history)){
     		foreach ($data->row->history as $hRow){
@@ -463,15 +465,17 @@ class planning_Jobs extends core_Master
     			$clone->append2master();
     		}
     	}
-    	
+    	 
     	$data->packagingData->listFields['packagingId'] = 'Опаковка';
     	$packagingTpl = cls::get('cat_products_Packagings')->renderPackagings($data->packagingData);
     	$tpl->replace($packagingTpl, 'PACKAGINGS');
-    	
+    	 
     	if(count($data->components)){
     		$componentTpl = cat_Products::renderComponents($data->components);
     		$tpl->append($componentTpl, 'JOB_COMPONENTS');
     	}
+    	
+    	return $tpl;
     }
     
     
