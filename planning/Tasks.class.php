@@ -822,7 +822,7 @@ class planning_Tasks extends core_Master
 			$alreadyIn = keylist::toArray($rec->fixedAssets);
 			foreach ($alreadyIn as $fId){
 				if(!array_key_exists($fId, $fixedAssets)){
-					$fixedAssets[$fId] = planning_AssetResources::fetchField($fId, 'fullName');
+					$fixedAssets[$fId] = planning_AssetResources::getTitleById($fId, FALSE);
 				}
 			}
 		}
