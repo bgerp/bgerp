@@ -907,10 +907,7 @@ class sales_QuotationsDetails extends doc_Detail {
     	
     	// Показваме подробната информация за опаковката при нужда
     	deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
-    	 
-    	if($rec->amount){
-    		$row->amount = $Double->toVerbal($rec->amount);
-    	}
+    	$row->amount = $Double->toVerbal($rec->amount);
     	
     	$hintTerm = FALSE;
     	$row->tolerance = deals_Helper::getToleranceRow($rec->tolerance, $rec->productId, $rec->quantity);
