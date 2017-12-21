@@ -142,7 +142,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         $sQuery->where("#state != 'rejected'");
 
         while($sRec = $sQuery->fetch()){
-
+        	
             if(bgerp_plg_FLB::canUse('bank_OwnAccounts', $sRec, $cu,select)){
 
                 $res[$sRec->id] = bank_OwnAccounts::getTitleById($sRec->id, FdocumentALSE);
@@ -242,29 +242,30 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
                         }
 
                     }
-
-
+                    
                     $className = core_Classes::getName(doc_Containers::fetch($cRec->containerId)->docClass);
-
+ 
                     if (core_Users::getCurrent() != $cRec->credatedBy) {
-
-                        if (!(bgerp_plg_FLB::canUse($className, $cRec, $cRec->createdBy, select))) continue;
+                    	
+						$Document = doc_Containers::getDocument($cRec->containerId);
+												
+                        if (!$Document->haveRightFor('conto')) continue;
                     }
 
                     $bankRecs[$cRec->containerId] = (object)array('containerId' => $cRec->containerId,
-                        'amountDeal' => $cRec->amountDeal,
-                        'className' => $className,
-                        'payDate' => $payDate,
-                        'termDate' => $cRec->termDate,
-                        'valior' => $cRec->valior,
-                        'currencyId' => $cRec->currencyId,
-                        'documentId' => $cRec->id,
-                        'folderId' => $cRec->folderId,
-                        'createdOn' => $cRec->createdOn,
-                        'createdBy' => $cRec->createdBy,
-                        'ownAccount' => $cRec->ownAccount,
-                        'peroCase' => $cRec->peroCase,
-                    );
+											                        'amountDeal' => $cRec->amountDeal,
+											                        'className' => $className,
+											                        'payDate' => $payDate,
+											                        'termDate' => $cRec->termDate,
+											                        'valior' => $cRec->valior,
+											                        'currencyId' => $cRec->currencyId,
+											                        'documentId' => $cRec->id,
+											                        'folderId' => $cRec->folderId,
+											                        'createdOn' => $cRec->createdOn,
+											                        'createdBy' => $cRec->createdBy,
+											                        'ownAccount' => $cRec->ownAccount,
+											                        'peroCase' => $cRec->peroCase,
+											                    );
 
                 }
             }
@@ -312,7 +313,9 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
                         if (core_Users::getCurrent() != $cRec->credatedBy) {
 
-                            if (!(bgerp_plg_FLB::canUse($className, $cRec, $cRec->createdBy, select))) continue;
+                            $Document = doc_Containers::getDocument($cRec->containerId);
+												
+                       		 if (!$Document->haveRightFor('conto')) continue;
                         }
                         $caseRecs[$cRec->containerId] = (object)array('containerId' => $cRec->containerId,
                             'amountDeal' => $cRec->amountDeal,
