@@ -195,7 +195,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         $docClasses = array();
 
         $accountsId = isset($rec->accountId) ? array($rec->accountId => $rec->accountId) : array_keys(self::getContableAccounts($rec));
-
+        
         $casesId = isset($rec->caseId) ? array($rec->caseId => $rec->caseId) : array_keys(self::getContableCases($rec));
 
         $documentFld = ($rec->documentType) ? 'documentType' : 'document';
@@ -284,12 +284,17 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
                     $cQuery = $pDoc::getQuery();
 
-                    $cQuery->where("#peroCase IS NULL");
-
-                    $cQuery->whereArr('peroCase', $casesId, TRUE, TRUE);
+                    
+                    //$where = ""
+                    
+                    $cQuery->in("peroCase", $casesId);
+                    $cQuery->orWhere("#peroCase IS NULL");
+                   // $cQuery->whereArr('peroCase', $casesId, TRUE, TRUE);
+                    
+                  
 
                     $cQuery->where("#state = 'pending'");
-
+  bp($cQuery->buildQuery(),$cQuery->where);
                     $cQuery->orderBy('termDate', 'ASC');
 
                     while ($cRec = $cQuery->fetch()) {
