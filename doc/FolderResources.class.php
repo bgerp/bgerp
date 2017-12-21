@@ -356,6 +356,7 @@ class doc_FolderResources extends core_Manager
 		// Намиране на имената на папките
 		foreach ($suggestions as $key => &$v){
 			$v = doc_Folders::getTitleById($key, FALSE);
+			$v .= " ({$key})";
 		}
 		
 		// Върнатите предложение
