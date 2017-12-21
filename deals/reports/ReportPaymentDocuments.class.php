@@ -314,7 +314,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
                             $Document = doc_Containers::getDocument($cRec->containerId);
 												
-                       		 if (!$Document->haveRightFor('single',$cRec->createdBy))) continue;
+                       		 if (!$Document->haveRightFor('single',$cRec->createdBy)) continue;
                         }
                         $caseRecs[$cRec->containerId] = (object)array('containerId' => $cRec->containerId,
                             'amountDeal' => $cRec->amountDeal,
