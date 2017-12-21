@@ -172,6 +172,8 @@ class plg_Printing extends core_Plugin
                         
                         if (!$field) continue;
                         
+                        if (($field->input == 'hidden') || ($field->input == 'none')) continue;
+                        
                         $fType = $field->type;
                         if (!$fType) continue;
                         
