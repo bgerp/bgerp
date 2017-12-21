@@ -36,7 +36,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
      * @see uiext_Labels
      * @var varchar
      */
-    protected $hashField = '$recIndic';
+    protected $hashField = '';
 
 
     /**
@@ -44,13 +44,13 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
      *
      * @var varchar
      */
-    protected $newFieldToCheck = 'docId';
+    protected $newFieldToCheck = '';
 
 
     /**
      * По-кое поле да се групират листовите данни
      */
-    protected $groupByField = 'group';
+   // protected $groupByField = '';
 
 
     /**
@@ -346,7 +346,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
     function orderByPayDate($a, $b)
     {
 
-        return $a->payDate < $b->payDate;
+        return $a->payDate > $b->payDate;
     }
 
     protected function getTableFieldSet($rec, $export = FALSE)
