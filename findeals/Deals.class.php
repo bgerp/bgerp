@@ -705,10 +705,11 @@ class findeals_Deals extends deals_DealBase
     public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
     {
     	$fieldSet = new core_FieldSet();
-    	$fieldSet->FLD('docId', 'varchar', 'tdClass=large-field wrap');
-    	$fieldSet->FLD('folderId', 'varchar', 'tdClass=large-field wrap');
-    	$fieldSet->FLD('debitA', 'double', 'tdClass=amount-field');
-    	$fieldSet->FLD('creditA', 'double', 'tdClass=amount-field');
+    	$fieldSet->FLD('valior', 'date', 'tdClass=wrap');
+    	$fieldSet->FLD('docId', 'varchar', 'tdClass=wrap');
+    	$fieldSet->FLD('folderId', 'varchar', 'tdClass=wrap');
+    	$fieldSet->FLD('debitA', 'double');
+    	$fieldSet->FLD('creditA', 'double');
     	$table = cls::get('core_TableView', array('mvc' => $fieldSet, 'class' => 'styled-table'));
     	$table->tableClass = 'listTable';
     	$fields = "valior=Вальор,docId=Документ,folderId=Папка,debitA=Сума ({$data->row->currencyId})->Дебит,creditA=Сума ({$data->row->currencyId})->Кредит";
