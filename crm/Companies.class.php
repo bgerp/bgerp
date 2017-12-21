@@ -742,14 +742,14 @@ class crm_Companies extends core_Master
             $data->title = "Фирми в групата|* \"<b style='color:green'>|" .
             $mvc->Groups->getTitleById($data->listFilter->rec->groupId) . "|*</b>\"";
         } elseif($data->listFilter->rec->search) {
-            $data->title = "Фирми отговарящи на филтъра|* \"<b style='color:green'>" .
+            $data->title = "Фирми, отговарящи на филтъра|* \"<b style='color:green'>" .
             type_Varchar::escape($data->listFilter->rec->search) .
             "</b>\"";
         } elseif($data->listFilter->rec->alpha) {
             if($data->listFilter->rec->alpha{0} == '0') {
                 $data->title = "Фирми, които започват с не-буквени символи";
             } else {
-                $data->title = "Фирми започващи с буквите|* \"<b style='color:green'>{$data->listFilter->rec->alpha}</b>\"";
+                $data->title = "Фирми, започващи с буквите|* \"<b style='color:green'>{$data->listFilter->rec->alpha}</b>\"";
             }
         } else {
             $data->title = NULL;
