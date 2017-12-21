@@ -216,14 +216,13 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
             if (empty($docClasses) || in_array($pDoc::getClassId(),$docClasses)) {
             	
                 $cQuery = $pDoc::getQuery();
-
-                $cQuery->where("#ownAccount IS NULL");
-
-                $cQuery->whereArr('ownAccount', $accountsId, TRUE, TRUE);
+                
+                $cQuery->in("ownAccount", $accountsId);
+                $cQuery->orWhere("#ownAccount IS NULL");
 
 
                 $cQuery->where("#state = 'pending'");
-
+//if ($pDoc == 'bank_IncomeDocuments')bp($cQuery->fetchAll(),$pDoc::fetch(14));
                 $cQuery->orderBy('termDate', 'ASC');
 
                 while ($cRec = $cQuery->fetch()) {
@@ -245,11 +244,11 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
                     
                     $className = core_Classes::getName(doc_Containers::fetch($cRec->containerId)->docClass);
  
-                    if (core_Users::getCurrent() != $cRec->credatedBy) {
+                    if (core_Users::getCurrent() != $cRec->createdBy) {
                     	
 						$Document = doc_Containers::getDocument($cRec->containerId);
 												
-                        if (!$Document->haveRightFor('conto')) continue;
+                        if (!$Document->haveRightFor('single',$cRec->createdBy)) continue;
                     }
 
                     $bankRecs[$cRec->containerId] = (object)array('containerId' => $cRec->containerId,
