@@ -145,6 +145,60 @@ class plg_Printing extends core_Plugin
             return FALSE;
         }
     }
+    
+    
+    /**
+     * Изпълнява се след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     *
+     * @return boolean
+     */
+    protected static function on_AfterRenderListFilter($mvc, &$res, $data)
+    {
+        if ($mvc->showPrintListFilter !== FALSE) {
+            $showFieldsArr = arr::make($data->listFilter->showFields, TRUE);
+            
+            $fFields = '';
+            
+            if ($data->listFilter && $data->listFilter->rec) {
+                Mode::push('text', 'plain');
+                foreach ($showFieldsArr as $showFields) {
+                    $fRecVal = $data->listFilter->rec->{$showFields};
+                    if (isset($fRecVal) && trim($fRecVal)) {
+                        $field = $data->listFilter->fields[$showFields];
+                        
+                        if (!$field) continue;
+                        
+                        $fType = $field->type;
+                        if (!$fType) continue;
+                        
+                        $caption = tr($field->caption);
+                        $verbVal = $fType->toVerbal($fRecVal);
+                        
+                        if (!$verbVal) continue;
+                        
+                        $fFields .= $fFields ? ' | ' : '';
+                        
+                        if ($caption) {
+                            $fFields .= $caption . ': ';
+                        }
+                        $fFields .= $verbVal;
+                    }
+                }
+                Mode::pop('text');
+            }
+            
+            if ($fFields) {
+                
+                $fFields = "<div class='printListFilter'>{$fFields}</div>";
+                
+                $res->append($fFields, '1');
+            }
+        }
+    }
 
 
     /**
