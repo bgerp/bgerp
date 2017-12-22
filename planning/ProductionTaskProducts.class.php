@@ -190,7 +190,7 @@ class planning_ProductionTaskProducts extends core_Detail
     		$unit = str_replace("&nbsp;", ' ', $unit);
     		$form->setField('plannedQuantity', array('unit' => $unit));
     		
-    		if(planning_ProductionTaskDetails::fetchField("#taskId = {$rec->taskId} AND #productId = {$rec->productId}")){
+    		if($form->rec != 'refresh' && planning_ProductionTaskDetails::fetchField("#taskId = {$rec->taskId} AND #productId = {$rec->productId}")){
     			$form->setReadOnly('productId');
     			$form->setReadOnly('packagingId');
     			if(!haveRole('ceo,planningMaster')){
