@@ -1071,6 +1071,10 @@ class crm_Profiles extends core_Master
     				$url  = static::getUrl($userId);
     			} 
     			
+    			if(isset($attr['external'])){
+    				$url = toUrl(static::getUrl($userId), 'absolute');
+    			}
+    			
     			foreach (array('ceo', 'manager', 'officer', 'executive', 'partner', 'none') as $role) {
                     if($role == 'none') {
                         $attr['style'] .= ";color:#333;"; break;
