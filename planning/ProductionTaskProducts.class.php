@@ -163,7 +163,7 @@ class planning_ProductionTaskProducts extends core_Detail
     			
     			if($rec->type == 'input'){
     				$form->setField('limit', "input");
-    				if(isset($masterRec->fixedAssets)){
+    				if(isset($masterRec->fixedAssets) && empty($rec->id)){
     					
     					// Задаване на дефолтен лимит ако има
     					$norm = planning_AssetGroups::getNorm($masterRec->fixedAssets, $rec->productId);
@@ -267,6 +267,10 @@ class planning_ProductionTaskProducts extends core_Detail
     	
     	if(isset($rec->storeId)){
     		$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
+    	}
+    	
+    	if(empty($rec->totalTime)){
+    		unset($row->totalTime);
     	}
     }
     
