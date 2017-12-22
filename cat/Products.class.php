@@ -3036,7 +3036,7 @@ class cat_Products extends embed_Manager {
                 }
                 
                 // За добавяне на бачовете
-                if ($fFieldsArr['batch'] && $mRec->{$mvc->storeFieldName}) {
+                if ($fFieldsArr['batch'] && $mvc->storeFieldName && $mRec->{$mvc->storeFieldName}) {
                     
                     $Def = batch_Defs::getBatchDef($dRec->{$dInst->productFld});
                     if ($recs[$dRec->id] && isset($recs[$dRec->id]->packQuantity) && $Def) {
