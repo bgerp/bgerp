@@ -119,23 +119,10 @@ class planning_ProductionTaskProducts extends core_Detail
     	$this->FLD("totalQuantity", 'double(smartRound)', 'caption=Количество->Изпълнено,input=none,notNull,smartCenter,oldFieldName=realQuantity');
     	$this->FLD("indTime", 'time(noSmart)', 'caption=Норма,smartCenter');
     	$this->FLD("limit", 'double(min=0)', 'caption=Макс. к-во,input=none');
-    	$this->FNC('totalTime', 'time(noSmart)', 'caption=Норма->Общо,smartCenter');
+    	$this->FLD('totalTime', 'time(noSmart)', 'caption=Норма->Общо,smartCenter,input=none');
     	
     	$this->setDbUnique('taskId,productId');
-    }
-    
-    
-    /**
-     * Общото време
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $rec
-     */
-    protected static function on_CalcTotalTime(core_Mvc $mvc, $rec)
-    {
-    	if (empty($rec->indTime) || empty($rec->totalQuantity)) return;
-    
-    	$rec->totalTime = $rec->indTime * $rec->totalQuantity;
+    	$this->setDbIndex('taskId,productId,type');
     }
     
     
@@ -321,15 +308,17 @@ class planning_ProductionTaskProducts extends core_Detail
     	$rec = self::fetch("#taskId = {$taskId} AND #productId = {$productId} AND #type = '{$type}'");
     	if(empty($rec)) return;
     	
+    	$rec->totalQuantity = $rec->totalTime = 0;
     	$query = planning_ProductionTaskDetails::getQuery();
     	$query->where("#taskId = {$taskId} AND #productId = {$productId} AND #type = '{$type}' AND #state != 'rejected'");
-    	$query->XPR('sum', 'double', 'SUM(#quantity)');
-    	$query->show('quantity,sum');
+    	$query->show('quantity,norm');
     	
-    	$sum = $query->fetch()->sum;
-    	$rec->totalQuantity = (!empty($sum)) ? $sum : 0;
+    	while($dRec = $query->fetch()){
+    		$rec->totalQuantity += $dRec->quantity;
+    		$rec->totalTime += ($dRec->norm * $dRec->quantity);
+    	}
     	
-    	self::save($rec, 'totalQuantity');
+    	self::save($rec, 'totalQuantity,totalTime');
     }
     
     
