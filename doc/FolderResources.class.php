@@ -207,7 +207,6 @@ class doc_FolderResources extends core_Manager
 		$this->requireRightFor('selectresource', (object)array('folderId' => $folderId, 'type' => $type));
 		$this->load('planning_Wrapper');
 		
-		
 		$form = cls::get('core_Form');
 		$options = $default = array();
 		
@@ -284,9 +283,7 @@ class doc_FolderResources extends core_Manager
 		// Бутони
 		$form->toolbar->addSbBtn('Промяна', 'save', 'ef_icon = img/16/disk.png, title = Запис на промените');
 		$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
-		
-		// Записваме, че потребителя е разглеждал този списък
-		$this->logInfo("Промяна на ресурсите на центъра на дейност");
+		$this->logInfo("Промяна на ресурсите");
 		 
 		return $this->renderWrapping($form->renderHtml());
 	}
@@ -355,8 +352,9 @@ class doc_FolderResources extends core_Manager
 		
 		// Намиране на имената на папките
 		foreach ($suggestions as $key => &$v){
-			$v = doc_Folders::getTitleById($key, FALSE);
-			$v .= " ({$key})";
+			$fRec = doc_Folders::fetch($key, 'coverClass,title');
+			$coverClassName = core_Classes::fetchField($fRec->coverClass, 'title');
+			$v = "{$fRec->title} ($coverClassName)";
 		}
 		
 		// Върнатите предложение
