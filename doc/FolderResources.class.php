@@ -299,7 +299,7 @@ class doc_FolderResources extends core_Manager
 				$requiredRoles = 'no_one';
 			} else {
 				$Cover = doc_Folders::getCover($rec->folderId);
-				if(!$Cover->haveRightFor('edit') && $rec->folderId != planning_Centers::getUndefinedFolderId()){
+				if(!$Cover->haveRightFor('edit') && $Cover->fetchField('createdBy') != core_Users::SYSTEM_USER){
 					$requiredRoles = 'no_one';
 				} elseif($rec->type == 'asset'){
 					if(!planning_AssetResources::haveRightFor('add')){
