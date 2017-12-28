@@ -49,7 +49,7 @@ class plg_SelectPeriod extends core_Plugin
 
         $form = $data->listFilter;
 
-        $form->FLD('selectPeriod', 'varchar', 'caption=Период,input,before=from,silent', array('attr' => array('onchange' => 'spr(this);')));
+        $form->FLD('selectPeriod', 'varchar', 'caption=Период,input,before=from,silent,printListFilter=none', array('attr' => array('onchange' => 'spr(this);')));
         if(strpos($form->showFields, $fF) !== FALSE) {
             $form->showFields = trim(str_replace(",{$fF},", ",selectPeriod,{$fF},", ',' . $form->showFields . ','), ',');
         } else {

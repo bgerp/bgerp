@@ -61,8 +61,9 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	 */
 	public function addFields(core_Fieldset &$fieldset)
 	{
-	    $fieldset->FLD('personId', 'type_UserList', 'caption=Потребител,after=title,single=none');
-	    $fieldset->FLD('periods', 'key(mvc=acc_Periods,select=title)', 'caption=Месец,after=title,single=none');
+		$fieldset->FLD('periods', 'key(mvc=acc_Periods,select=title)', 'caption=Месец,after=title');
+		$fieldset->FLD('indocators', 'keylist(mvc=hr_IndicatorNames,select=name,allowEmpty)', 'caption=Индикатори,after=periods');
+		$fieldset->FLD('personId', 'type_UserList', 'caption=Потребител,after=indocators');
 	}
       
 
@@ -101,12 +102,19 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 	    $personIds = array();
 	    $pQuery = crm_Profiles::getQuery();
 	    $pQuery->in("userId", $users);
+	    $pQuery->show('personId');
 	    $personIds = arr::extractValuesFromArray($pQuery->fetchAll(), 'personId');
 	    
 	    // Извличане на индикаторите за посочените дати, САМО за избраните лица
 	    $query = hr_Indicators::getQuery();
 	    $query->where("(#date >= '{$periodRec->start}' AND #date <= '{$periodRec->end}')");
 	    $query->in("personId", $personIds);
+	    
+	    // Ако са посочени индикатори извличат се само техните записи
+	    if(!empty($rec->indocators)){
+	    	$indicators = keylist::toArray($rec->indocators);
+	    	$query->in('indicatorId', $indicators);
+	    }
 	    
 	    // за всеки един индикатор
 	    while($recIndic = $query->fetch()){
@@ -275,33 +283,5 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
             // избраният месец
             $row->month = acc_Periods::fetchField("#id = '{$rec->periods}'", 'title');
         }
-    }
-
-    
-    /**
-     * След рендиране на единичния изглед
-     *
-     * @param cat_ProductDriver $Driver
-     * @param embed_Manager $Embedder
-     * @param core_ET $tpl
-     * @param stdClass $data
-     */
-    protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
-    {
-        $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
-								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-							    <small><div><!--ET_BEGIN persons-->|Потребител|*: [#persons#]<!--ET_END persons--></div></small>
-                                <small><div><!--ET_BEGIN month-->|Месец|*: [#month#]<!--ET_END month--></div></small>
-                                </fieldset><!--ET_END BLOCK-->"));
-
-        if(isset($data->rec->personId)){
-            $fieldTpl->append($data->row->persons, 'persons');
-        }
-
-        if(isset($data->rec->periods)){
-            $fieldTpl->append($data->row->month, 'month');
-        }
-
-        $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
 }

@@ -63,7 +63,7 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
     /**
      * По-кое поле да се групират листовите данни
      */
-    protected $groupByField;
+    protected $groupByField ='saleId';
 
 
     /**
@@ -80,11 +80,9 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-    	$fieldset->FLD('from', 'date(smartTime)', 'caption=От,after=title,single=none,mandatory');
-    	$fieldset->FLD('to',    'date(smartTime)', 'caption=До,after=from,single=none,mandatory');
-        $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,after=typeOfQuantity');
-        $fieldset->FLD('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,after=storeId,silent,single=none,removeAndRefreshForm');
-        $fieldset->FLD('dealers', 'users(rolesForAll=ceo|rep_cat, rolesForTeams=ceo|manager|rep_acc|rep_cat,allowEmpty)', 'caption=Търговци,after=to');
+    	$fieldset->FLD('from', 'date(smartTime)', 'caption=От,after=title,single=none1,mandatory');
+    	$fieldset->FLD('to',    'date(smartTime)', 'caption=До,after=from,single=none1,mandatory');
+        $fieldset->FLD('dealers', 'users(rolesForAll=ceo|rep_cat, rolesForTeams=ceo|manager|rep_acc|rep_cat)', 'caption=Дилъри,placeholder=Всички,after=to');
     }
     
     
@@ -131,90 +129,78 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = NULL)
     {
         $recs = array();
-
+        $recsVar1 = array();
+        
+        		$dealersId = keylist::toArray($rec->dealers);
+        	
                 $query = sales_SalesDetails::getQuery();
-
-               
-
-               
-
-                while ($saleProducts = $query->fetch()) {
-                	
-                	$saleProductsArr[]=$saleProducts;
                 
-                    $id = $recProduct->productId;
+                $query->EXT('contragentClassId', 'sales_Sales', 'externalName=contragentClassId,externalKey=saleId');
+                
+                $query->EXT('contragentId', 'sales_Sales', 'externalName=contragentId,externalKey=saleId');
+                
+                $query->EXT('dealerId', 'sales_Sales', 'externalName=dealerId,externalKey=saleId');
+                
+                $query->EXT('valior', 'sales_Sales', 'externalName=valior,externalKey=saleId');
+                
+                $query->EXT('containerId', 'sales_Sales', 'externalName=containerId,externalKey=saleId');
+                
+                $query->where(array("#valior>= '[#1#]' AND #valior <= '[#2#]'", $rec->from, $rec->to . ' 23:59:59'));
+                
+              
+                while ($saleProducts = $query->fetch()) {
+                	     
+                	if ($rec->dealers && !in_array($saleProducts->dealerId, $dealersId))continue;
+                
+                	$productId =  $saleProducts->productId;
+                	
+                	if (cat_Products::fetch($productId)->isPublic == 'no')continue;
+                	
+                  	$saleProductsArr[]=$saleProducts;
+                	
+                	$selfPrice = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $productId, $packagingId, $datetime);
+                	
+                	$selfPriceArr[$saleProducts->saleId][$productId] = $selfPrice;
+                	
+                	//цена на артикула за клиента
+                	$contragentFuturePrice =  cls::get('price_ListToCustomers')->getPriceInfo($saleProducts->contragentClassId, $saleProducts->contragentId, $productId,NULL,1000);
 
-                    if ($rec->typeOfQuantity == 'FALSE'){
-                        $typeOfQuantity = FALSE;
-                    }else{
-                        $typeOfQuantity = TRUE;
-                    }
+                	$isPublic = cat_Products::fetch($productId)->isPublic;
+                	
+                	// цена на артикула по каталог(за стандартни артикули)
+                   	$productCatPrice = price_ListRules::getPrice(price_ListRules::PRICE_LIST_CATALOG, $productId, $packagingId, $datetime);
+                	
+                	$productCostPrice = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $productId, $packagingId, $datetime);
+              
+                   
+                    
+                 
+                    
+                    
+                    
+                    if (($saleProducts->price < $selfPrice) || (!empty($productCatPrice) && ($saleProducts->price > $productCatPrice))){
+                    	
+                    	$recs[$productId]=(object)array(
+							                    			'saleId'=>$saleProducts->saleId,
+							                    			'productId'=>$productId,
+							                    			'measure' => cat_Products::fetchField($productId, 'measureId'),
+							                    			'quantity' => $saleProducts->quantity,
+							                    			'selfPrice'=>$selfPrice,
+							                    			'catPrice'=>$productCatPrice,
+							                    			'price'=>$saleProducts->price,
+							                    			'containerId'=>$saleProducts->containerId
+							                    			
+							                    	);
+                    	
+                     }
+                    
 
-       //             $quantity = store_Products::getQuantity($id, $recProduct->storeId, $typeOfQuantity);
-
-//                         if (!array_key_exists($id, $recs)) {
-
-//                             $recs[$id] =
-
-//                                 (object)array(
-
-//                                     'measure' => cat_Products::fetchField($id, 'measureId'),
-//                                     'productId' => $productId,
-//                                     'storeId' => $rec->storeId,
-//                                     'quantity' => $quantity,
-//                                     'minQuantity' => (int)$products->minQuantity[$key],
-//                                     'maxQuantity' => (int)$products->maxQuantity[$key],
-//                                     'conditionQuantity' => 'ok',
-//                                     'conditionColor' => 'green',
-//                                     'code' => $products->code[$key]
-
-//                                 );
-
-//                         } else {
-
-//                         $obj = &$recs[$id];
-
-//                         $obj->quantity += $recProduct->quantity;
-
-//                     }
+                       
 
                 }
-
-            bp($saleProductsArr);
-        
-        
-        // подготовка на показател "състояние" //
-        foreach ($recs as $k => $v){
-
-            if (($v-> quantity > (int)$v-> maxQuantity)) {
-
-                $v-> conditionQuantity = 'свръх наличност';
-                $v-> conditionColor = 'blue';
-
-            }
-
-            if (($v-> quantity < (int)$v-> minQuantity)) {
-
-                $v-> conditionQuantity = 'под минимум';
-                $v-> conditionColor = 'red';
-
-            }
-
-            if(((int)$v-> quantity >= (int)$v-> minQuantity) && ((int)$v-> quantity <= (int)$v-> maxQuantity)) {
-
-                $v-> conditionQuantity = 'ok';
-                $v-> conditionColor = 'green';
-
-            }
-
-            if ((!$v-> maxQuantity   && $v-> quantity > (int)$v->minQuantity)||(($v-> maxQuantity == 0 && $v-> quantity > (int)$v->minQuantity )) ) {
-
-                $v-> conditionQuantity = 'ok';
-                $v-> conditionColor = 'green';
-
-            }
-
-        }
+                $expQuery = sales_SalesDetails::getQuery();
+ 
+       //  bp($recs);      
 
         return $recs;
 
@@ -231,27 +217,29 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
     protected function getTableFieldSet($rec, $export = FALSE)
     {
         $fld = cls::get('core_FieldSet');
-
-        if($export === FALSE){
-
-            $fld->FLD('productId', 'varchar', 'caption=Артикул');
-            //  $fld->FLD('storeId', 'varchar', 'caption=Склад,tdClass=centered');
-            $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
-            $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество,smartCenter');
-            $fld->FLD('minQuantity', 'double', 'caption=Минимално,smartCenter');
-            $fld->FLD('maxQuantity', 'double', 'caption=Максимално,smartCenter');
-            $fld->FLD('conditionQuantity', 'text', 'caption=Състояние,tdClass=centered');
-        } else {
-            $fld->FLD('productId', 'varchar', 'caption=Артикул');
-            //  $fld->FLD('storeId', 'varchar', 'caption=Склад,tdClass=centered');
-            $fld->FLD('measure', 'varchar', 'caption=Мярка');
-            $fld->FLD('quantity', 'varchar', 'caption=Количество');
-            $fld->FLD('minQuantity', 'varchar', 'caption=Минимално');
-            $fld->FLD('maxQuantity', 'varchar', 'caption=Максимално');
-            $fld->FLD('conditionQuantity', 'varchar', 'caption=Състояние');
-
+       
+      	if($export === FALSE){
+      	
+      		$fld->FLD('saleId', 'varchar', 'caption=Сделка');
+      		$fld->FLD('productId', 'varchar', 'caption=Артикул');
+      		$fld->FLD('deviation', 'varchar', 'caption=Отклонение,tdClass=centered');
+      		$fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
+      		$fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество,smartCenter');
+      		$fld->FLD('price', 'double', 'caption=Прод. цена,smartCenter');
+      		$fld->FLD('selfPrice', 'double', 'caption=Себестойност,smartCenter');
+       		$fld->FLD('catPrice', 'double', 'caption=Каталожна цена,smartCenter');
+      	} else {
+      		$fld->FLD('saleId', 'varchar', 'caption=Сделка');
+      		$fld->FLD('productId', 'varchar', 'caption=Артикул');
+      		$fld->FLD('deviation', 'varchar', 'caption=Отклонение,tdClass=centered');
+      		$fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
+      		$fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество,smartCenter');
+      		$fld->FLD('soldPrice', 'double', 'caption=Прод. цена,smartCenter');
+      		$fld->FLD('selfPrice', 'double', 'caption=Себестойност,smartCenter');
+       		$fld->FLD('catPrice', 'double', 'caption=Каталожна цена,smartCenter');
+      	
         }
-
+      
         return $fld;
 
     }
@@ -267,9 +255,24 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
     protected function detailRecToVerbal($rec, &$dRec)
     {
 
+    	//bp($dRec);
         $Int = cls::get('type_Int');
 
         $row = new stdClass();
+        
+        
+     	if ($dRec->selfPrice > $dRec->price){
+        $marker =(double)(($dRec->price - $dRec->selfPrice)/$dRec->price)*100;
+     	}
+     	if($dRec->price > $dRec->catPrice){
+     		$marker =-1*(double)(($dRec->catPrice - $dRec->price)/$dRec->catPrice)*100;
+     	}
+     		
+        $row->deviation = core_Type::getByName('double(decimals=2)')->toVerbal($marker)."%";
+     
+        if(isset($dRec->saleId)) {
+        	$row->saleId =  sales_Sales::getLinkToSingle($dRec->saleId);
+        }
 
         if(isset($dRec->productId)) {
             $row->productId =  cat_Products::getShortHyperlink($dRec->productId);
@@ -279,62 +282,22 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
             $row->quantity =  core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity);
         }
 
-        if(isset($dRec->storeId)) {
-            $row->storeId = store_Stores::getShortHyperlink($dRec->storeId);
-        }else{$row->storeId ='Общо';}
-
+        if(isset($dRec->price)) {
+            $row->price = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->price);
+         }
+         
         if(isset($dRec->measure)) {
             $row->measure = cat_UoM::fetchField($dRec->measure,'shortName');
         }
 
-        if(isset($dRec->minQuantity)) {
-            $row->minQuantity = $Int->toVerbal($dRec->minQuantity);
+        if(isset($dRec->selfPrice)) {
+            $row->selfPrice = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->selfPrice);
         }
-
-        if(isset($dRec->maxQuantity)) {
-            $row->maxQuantity =$Int->toVerbal($dRec->maxQuantity);
+        
+        if(isset($dRec->catPrice)) {
+        	$row->catPrice =core_Type::getByName('double(decimals=2)')->toVerbal($dRec->catPrice);
         }
-
-        if((isset($dRec->conditionQuantity) && ((isset($dRec->minQuantity)) || (isset($dRec->maxQuantity))))){
-            $row->conditionQuantity = "<span style='color: $dRec->conditionColor'>{$dRec->conditionQuantity}</span>";
-        }
-
         return $row;
-    }
-
-
-    /**
-     *Изчиства повтарящи се стойности във формата
-     * @param $arr
-     * @return array
-     */
-    static function removeRpeadValues ($arr)
-    {
-        $tempArr = (array)$arr;
-
-        $tempProducts = array();
-        if (is_array($tempArr['code'])) {
-
-            foreach ($tempArr['code'] as $k => $v) {
-
-                if (in_array($v, $tempProducts)) {
-
-                    unset($tempArr['minQuantity'][$k]);
-                    unset($tempArr['maxQuantity'][$k]);
-                    unset($tempArr['name'][$k]);
-                    unset($tempArr['code'][$k]);
-                    continue;
-
-                }
-
-                $tempProducts[$k] = $v;
-            }
-        }
-
-        $groupNamerr = $tempArr;
-
-        return $arr;
-
     }
 
 }

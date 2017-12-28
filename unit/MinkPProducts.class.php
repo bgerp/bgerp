@@ -216,7 +216,6 @@ class unit_MinkPProducts extends core_Manager {
         $browser->refresh('Запис');
         // refresh('Запис') е нужен, когато мярката не излиза като отделно поле, напр. на труд, услуги
         $browser->press('Запис и Нов');
-        //$browser->setValue('resourceId', 'Други консумативи');
         $browser->setValue('resourceId', 'Други заготовки');
         $browser->setValue('propQuantity', '1,2634');
         $browser->refresh('Запис');
@@ -255,6 +254,7 @@ class unit_MinkPProducts extends core_Manager {
             $browser->setValue('dueDate', date('d-m-Y', $valior));
             $browser->setValue('packQuantity', '1000');
             $browser->setValue('notes', 'CreatePlanningJob');
+            $browser->setValue('department','Цех 1');
             $browser->press('Чернова');
             $browser->press('Активиране');
             

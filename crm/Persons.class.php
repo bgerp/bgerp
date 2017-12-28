@@ -1201,63 +1201,73 @@ class crm_Persons extends core_Master
         return $tpl;
     }
 
-
-
+    
     /****************************************************************************************
      *                                                                                      *
      *  Подготвя и рендира Имениците                                                       *
      *                                                                                      *
      ****************************************************************************************/
 
+    
     /**
      * Подготвя (извлича) данните за Имениците
      */
-    static function prepareNamedays(&$data)
+    public static function prepareNamedays(&$data)
     {   
-    
+    	if(!count($data->namesArr)) return;
+    	
     	$currentId = core_Users::getCurrent();
         $query = self::getQuery();
+        $query->XPR('trimmedSarchKeywords', 'varchar', 'TRIM(#searchKeywords)');
+        $query->where("#inCharge = '{$currentId}' OR #shared LIKE '|{$currentId}|'");
+       	$query->where("#state != 'rejected' AND #state != 'closed'");
+       	$query->show('name,buzTel,tel,buzEmail,email');
+       	
+       	$or = "";
+       	foreach ($data->namesArr as $name){
+       		$where .= "{$or}#trimmedSarchKeywords LIKE '{$name} %'";
+       		$or = " OR ";
+       	}
+       	$query->where($where);
        
-        foreach($data->namesArr as $name) { 
-        	$query->orWhere(array("#searchKeywords LIKE ' [#1#] %' AND (#inCharge = '{$currentId}' OR #shared LIKE '|{$currentId}|')", $name));
-        }
-        
-        $self = cls::get('crm_Persons');
-
-        while($rec = $query->fetch()) { 
-        	
-            $data->recs[$rec->id] = $rec;
-            $row = $data->rows[$rec->id] = self::recToVerbal($rec, 'name');
-            $row->name = ht::createLink($row->name, array($self, 'Single', $rec->id), NULL, "ef_icon={$self->singleIcon}");
-
-            if(!$row->buzTel) $row->buzTel = $row->tel;
-
-            if(!$row->buzEmail) $row->buzEmail = $row->email;
-        }
+       	while($rec = $query->fetch()){
+       		$data->recs[$rec->id] = $rec;
+       		$row = self::recToVerbal($rec, 'name,tel,buzEmail,email');
+       		$row->name = crm_Persons::getHyperlink($rec, TRUE);
+       		$row->buzTel = (!empty($rec->buzTel)) ? $row->buzTel : ((!empty($rec->tel)) ? $row->tel : NULL);
+       		$row->buzEmail = (!empty($rec->buzEmail)) ? $row->buzEmail : ((!empty($rec->email)) ? $row->email : NULL);
+       		
+       		$data->rows[$rec->id] = $row;
+       	}
     }
 
 
     /**
      * Рендира данните
      */
-    static function renderNamedays($data)
+    public static function renderNamedays($data)
     {
-    	
-        if(!count($data->rows)) return '';
+    	if(!count($data->rows)) return '';
 
         $tpl = new ET("<fieldset class='detail-info'>
                             <legend class='groupTitle'>" . tr('Именици във визитника') . "</legend>
                                 <div class='groupList clearfix21'>
-                                 [#persons#]
+                                 <!--ET_BEGIN person-->
+        						 [#person#]
+        						 <div style='font-weight:bold;'>[#name#]
+        						 <!--ET_BEGIN buzTel--> - <span style='font-style:italic;'>[#buzTel#]</span><!--ET_END buzTel-->
+        						 <!--ET_BEGIN buzEmail--><span style='font-style:italic'>, [#buzEmail#]</span><!--ET_END buzEmail-->
+        						</div>
+        						 <!--ET_END person-->
                             </div>
-                            <!--ET_BEGIN regCourt--><div><b>[#regCourt#]</b></div><!--ET_END regCourt-->
                          </fieldset>");
 
+        $block = $tpl->getBlock('person');
         foreach($data->rows as $row) {
- 
-            $tpl->append("{$comma}<span style='font-weight:bold;'>{$row->name}</span>", 'persons');
-            
-            $comma = Mode::is('screenMode', 'narrow') ? '<br>' : ', ';
+        	$clone = clone $block;
+ 			$block->placeObject($row);
+ 			$block->removeBlocks();
+ 			$block->append2Master();
         }
 
         return $tpl;
