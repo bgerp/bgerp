@@ -132,7 +132,7 @@ class planning_Jobs extends core_Master
     /**
      * Шаблон за единичен изглед
      */
-    public $singleLayoutFile = 'planning/tpl/SingleLayoutJob.shtml';
+    public $singleLayoutFile = 'planning/tpl/SingleLayoutJob.shtml';//SingleLayoutJobEP
     
     
     /**
@@ -448,12 +448,14 @@ class planning_Jobs extends core_Master
     
     
     /**
-     * След подготовка на сингъла
+     * Рендираме общия изглед за 'List'
      */
-    protected static function on_AfterRenderSingle($mvc, &$tpl, &$data)
+    function renderSingle_($data)
     {
-    	$tpl->push('planning/tpl/styles.css', "CSS");
+    	$tpl = parent::renderSingle_($data);
     	
+    	$tpl->push('planning/tpl/styles.css', "CSS");
+    	 
     	// Рендираме историята на действията със заданието
     	if(count($data->row->history)){
     		foreach ($data->row->history as $hRow){
@@ -463,15 +465,17 @@ class planning_Jobs extends core_Master
     			$clone->append2master();
     		}
     	}
-    	
+    	 
     	$data->packagingData->listFields['packagingId'] = 'Опаковка';
     	$packagingTpl = cls::get('cat_products_Packagings')->renderPackagings($data->packagingData);
     	$tpl->replace($packagingTpl, 'PACKAGINGS');
-    	
+    	 
     	if(count($data->components)){
     		$componentTpl = cat_Products::renderComponents($data->components);
     		$tpl->append($componentTpl, 'JOB_COMPONENTS');
     	}
+    	
+    	return $tpl;
     }
     
     
@@ -646,8 +650,11 @@ class planning_Jobs extends core_Master
     	 
     	if(isset($rec->saleId)){
     		$row->saleId = sales_Sales::getlink($rec->saleId, 0);
-    		$saleFolderId = sales_Sales::fetchField($rec->saleId, 'folderId');
-    		$row->saleFolderId = doc_Folders::recToVerbal(doc_Folders::fetch($saleFolderId))->title;
+    		$saleRec = sales_Sales::fetch($rec->saleId, 'folderId,deliveryAdress');
+    		$row->saleFolderId = doc_Folders::recToVerbal(doc_Folders::fetch($saleRec->folderId))->title;
+    		if(!empty($saleRec->deliveryAdress)){
+    			$row->saleDeliveryAddress = core_Type::getByName('varchar')->toVerbal($saleRec->deliveryAdress);
+    		}
     	}
     	
     	$row->measureId = cat_UoM::getShortName($rec->packagingId);

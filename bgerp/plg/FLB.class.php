@@ -95,13 +95,15 @@ class bgerp_plg_FLB extends core_Plugin
 			$mvc = cls::get($mvc);
 		}
 		
+		expect($mvc->hasPlugin('bgerp_plg_FLB'), "'{$mvc->className}' не поддържа 'bgerp_plg_FLB'");
+		
 		// Дали ще се проверява за избиране или за активиране
 		expect(in_array($action, array('activate', 'select')));
 		$action = ucfirst($action);
 		$userFld = $mvc->{"can{$action}UserFld"};
 		$roleFld = $mvc->{"can{$action}RoleFld"};
 		
-		$rec = $mvc->fetchRec($rec);
+		expect($rec = $mvc->fetchRec($rec), $rec);
 		
 		// Ако потребителя е ceo винаги има достъп
 		if(core_Users::haveRole('ceo', $userId)) return TRUE;

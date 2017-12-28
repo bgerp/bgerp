@@ -136,6 +136,12 @@ class cat_Listings extends core_Master
 
     
     /**
+     * Икона за еденичен изглед
+     */
+    public $singleIcon = 'img/16/choose-icon.png';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()

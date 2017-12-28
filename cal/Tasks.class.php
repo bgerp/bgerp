@@ -3278,15 +3278,21 @@ class cal_Tasks extends embed_Manager
     
     /**
      * Реализация по подразбиране на интерфейсния метод ::getThreadState()
-     *
-     * TODO: Тук трябва да се направи проверка, дали документа е изпратен или отпечатан
-     * и само тогава да се приема състоянието за затворено
+     * 
+     * @param integer $id
+     * 
+     * @retun NULL|string
      */
-    function on_AfterGetThreadState($mvc, &$state, $id)
+    function getThreadState($id)
     {
-        if ((core_Users::getCurrent() < 1) || (core_Users::isContractor())) {
-            $state = 'opened';
-        }
+        if (!$id) return ;
+        
+        $rec = $this->fetchRec($id);
+        
+        $Driver = $this->getDriver($rec);
+        $state = $Driver->getThreadState($rec);
+        
+        return $state;
     }
     
     

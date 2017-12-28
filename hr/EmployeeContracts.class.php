@@ -526,7 +526,7 @@ class hr_EmployeeContracts extends core_Master
         
         $res = new ET("[#toolbar#]
         <div class='document'>
-        [#blank#]<br>
+        <!--ET_BEGIN blank-->[#blank#]<br><!--ET_END blank-->
         [#contract#]</div> <div style='clear:both;'></div>
         
         ");

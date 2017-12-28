@@ -62,6 +62,21 @@ class cal_TaskTypeIntf extends embed_DriverIntf
      */
     public function prepareContragentData($rec, $contrData)
     {
+        
         return $this->class->prepareContragentData($rec, $contrData);
+    }
+    
+    
+    /**
+     * Връща състоянието на нишката
+     * 
+     * @param stdClass $rec
+     * 
+     * @return NULL|string
+     */
+    public function getThreadState($rec)
+    {
+        
+        return $this->class->getThreadState($rec);
     }
 }

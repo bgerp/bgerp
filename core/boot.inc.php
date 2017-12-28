@@ -58,7 +58,8 @@ try {
         $data = @json_encode(array('GET' => $_GET, 'POST' => $_POST));
         
         if (!$data) {
-            $data = json_last_error_msg();
+            $data = json_last_error();
+            $data .= ' Serilize: ' . @serialize($data);
         }
         
         if (!defined('DEBUG_FATAL_ERRORS_FILE') && @file_put_contents($pathName, $data)) {

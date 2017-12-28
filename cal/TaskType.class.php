@@ -111,4 +111,20 @@ class cal_TaskType extends core_Mvc
     {
         
     }
+    
+    
+    /**
+     * Връща състоянието на нишката
+     *
+     * @param stdClass $rec
+     *
+     * @return NULL|string
+     */
+    public function getThreadState($rec)
+    {
+        if (!$rec->assign) {
+            
+            return 'opened';
+        }
+    }
 }

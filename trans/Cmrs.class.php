@@ -407,8 +407,12 @@ class trans_Cmrs extends core_Master
     	
     	if(isset($row->originId)){
     		if(!Mode::isReadOnly()){
-    			$origin = doc_Containers::getDocument($rec->originId);
-    			$row->originId = $origin->getInstance()->getLink($origin->that, 0);
+    			try{
+    				$origin = doc_Containers::getDocument($rec->originId);
+    				$row->originId = $origin->getInstance()->getLink($origin->that, 0);
+    			} catch(core_exception_Expect $e){
+    				$row->originId = "<span class='red'>" . tr('Проблем с показването') . "</span>";
+    			}
     		} else {
     			unset($row->originId);
     		}
@@ -426,7 +430,6 @@ class trans_Cmrs extends core_Master
     		}
     		
     		$row->basicColor = "#000";
-    		
     		if(!empty($rec->establishedDate)){
     			$row->establishedDate = dt::mysql2verbal($rec->loadingDate, 'd.m.Y');
     		}
@@ -481,12 +484,11 @@ class trans_Cmrs extends core_Master
     	expect($rec = $this->fetch($id));
     	$title = $this->getRecTitle($rec);
     
-    	$row = (object)array(
-    			'title'    => $title,
-    			'authorId' => $rec->createdBy,
-    			'author'   => $this->getVerbal($rec, 'createdBy'),
-    			'state'    => $rec->state,
-    			'recTitle' => $title
+    	$row = (object)array('title'    => $title,
+							 'authorId' => $rec->createdBy,
+    						 'author'   => $this->getVerbal($rec, 'createdBy'),
+    						 'state'    => $rec->state,
+    						 'recTitle' => $title
     	);
     
     	return $row;
@@ -503,8 +505,8 @@ class trans_Cmrs extends core_Master
      */
     public function getDefaultEmailBody($id, $forward = FALSE)
     {
-    	$handle = $this->getHandle($id);
     	$tpl = new ET(tr("Моля запознайте се с нашето|* |ЧМР|*") . ': #[#handle#]');
+    	$handle = $this->getHandle($id);
     	$tpl->append($handle, 'handle');
     
     	return $tpl->getContent();

@@ -1871,8 +1871,15 @@ function saveSelectedTextToSession(handle, onlyHandle) {
 		        			
 		        			// От нивото на ричтекста, намираме div с id на документа
 		        			if ($(parentNode).attr('class') == 'richtext') {
-		        				parentNode = parentNode.parentNode.parentNode.parentNode.parentNode.parentNode;
-		        				var handle2 = $(parentNode).attr('id');
+		        				
+		        				var parentNode6 = parentNode.parentNode.parentNode.parentNode.parentNode.parentNode;
+		        				var handle2 = $(parentNode6).attr('id');
+		        				
+		        				if (typeof handle2 == "undefined") {
+		        					var parentNode5 = parentNode.parentNode.parentNode.parentNode.parentNode;
+		        					handle2 = $(parentNode5).attr('id');
+		        				}
+		        				
 		        				break;
 		        			}
 		        			
@@ -1880,7 +1887,7 @@ function saveSelectedTextToSession(handle, onlyHandle) {
 		        		}
 	        		}
 	        		
-	        		if (typeof handle2 == "undefined") {
+	        		if (typeof handle2 != "undefined") {
         				handle = handle2;
 	        		}
 	        	}

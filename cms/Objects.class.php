@@ -86,8 +86,6 @@ class cms_Objects extends core_Master
         $this->FLD('tpl', 'html', 'caption=Шаблон,width=100%');
 
         $this->setDbUnique('tag');
-         
-        Request::setProtected('sourceClass,type,sourceId');
     }
 
 
@@ -105,7 +103,8 @@ class cms_Objects extends core_Master
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        $rec = $data->form->rec;
+    	Request::setProtected('sourceClass,type,sourceId');
+    	$rec = $data->form->rec;
 
         $source = cls::getInterface('cms_ObjectSourceIntf', $rec->sourceClass);
         

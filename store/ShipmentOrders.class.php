@@ -635,7 +635,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     					$data->toolbar->addBtn("ЧМР", array('trans_Cmrs', 'single', $cmrId, 'ret_url' => TRUE), "title=Преглед на|* #CMR{$cmrId},ef_icon=img/16/lorry_go.png");
     				}
     			} elseif(trans_Cmrs::haveRightFor('add', (object)array('originId' => $rec->containerId))){
-    				$data->toolbar->addBtn("ЧМР", array('trans_Cmrs', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на ЧМР към експедиционното нареждане,ef_icon=img/16/add.png');
+    				$data->toolbar->addBtn("ЧМР", array('trans_Cmrs', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на ЧМР към експедиционното нареждане,ef_icon=img/16/lorry_add.png');
     			}
     		}
     	}

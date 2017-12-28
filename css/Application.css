@@ -3560,6 +3560,9 @@ div.location.public {
 .info-table .gray-title {
   color: #666666; }
 
+.printListFilter {
+  margin-bottom: 10px; }
+
 /*
  * шаблон за пускане в експлоатация на ДА
  */

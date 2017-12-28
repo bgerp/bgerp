@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   survey
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -31,7 +31,7 @@ class survey_Surveys extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, survey_Wrapper,  plg_Printing,plg_Clone,
+    public $loadList = 'plg_RowTools2, survey_Wrapper, plg_Printing,plg_Clone,
      	  doc_DocumentPlg, bgerp_plg_Blank, doc_ActivatePlg, cms_ObjectPlg, doc_plg_SelectFolder';
     
     
@@ -57,12 +57,6 @@ class survey_Surveys extends core_Master {
 	 *  Брой елементи на страница 
 	 */
     public $listItemsPerPage = "15";
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'survey, ceo';
     
     
     /**
@@ -126,6 +120,12 @@ class survey_Surveys extends core_Master {
 
     
     /**
+     * Полета, които ще се показват в листов изглед
+     */
+    public $listFields = 'title,enddate,summary,state';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -142,7 +142,7 @@ class survey_Surveys extends core_Master {
     /**
      * Модификации по формата
      */
-	public static function on_AfterPrepareEditForm($mvc, &$data)
+	protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	// Премахваме бутона за активация от формата ! за да не активираме
     	// анкета без въпроси
