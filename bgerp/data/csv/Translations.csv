@@ -212,6 +212,7 @@ en,Брой символи н_ba39a,Number of characters over which the text wil
 en,Брой фирми,Number of companies
 en,Брой,Number
 en,Брояч,Counter
+en,Бруто,Gross
 en,Бутони за проследяване в социалните мрежи,Buttons for followers in social networks
 en,Бутони за споделяне в социални мрежи,Buttons for sharing in social networks
 en,Бутони,Buttons
@@ -290,7 +291,8 @@ en,Време на събит_f37a6,Event time
 en,Време,Time
 en,Времена,Times
 en,Времена->Продъ_1a71e,Times-> Duration
-en,Връзки,links
+en,Връзки,Links
+en,Връзка,Link
 en,Връщане към до_e8900,Return to a document
 en,Връщане,Returns
 en,Все още няма ба_4e42,No bank accounts yet
@@ -502,7 +504,9 @@ en,Добавяне на но_ef55d,Adding a New Task
 en,Добавяне на оп_42af5,Add packaging for 
 en,Добавяне на файл(ове),Add file(s)
 en,Добавяне на файлове/документи,Add files/documents
-en,Добавяне на,Adding new
+en,Добавяне на,Add new
+en,Договор,Contract
+en,договор,contract
 en,Договори за по_be298,Purchase contracts
 en,Договори за пр_491bd,Sales contracts
 en,Документ тип,Document type
@@ -1253,6 +1257,7 @@ en,Отдел,Department
 en,Отдели,Departments
 en,Отделно,Separately
 en,Отказ,Cancel
+en,Отказ от харесване,Dislike
 en,Откриване,Unblocking
 en,Отложени,Postponed
 en,Отметки,Bookmarks
@@ -1323,6 +1328,9 @@ en,Парола,Password
 en,Паролата трябв_08f2,The password must be at least
 en,Партида,Batch
 en,Партиди,Batches
+en,партида,batch
+en,партиди,batches
+en,Пауза,Pause
 en,Пасивна,Passive
 en,Пера в номенкл_8048c,List items in the nomenclature
 en,Перо,List item
