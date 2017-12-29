@@ -755,7 +755,6 @@ class planning_Jobs extends core_Master
     public static function getRecTitle($rec, $escaped = TRUE)
     {
     	$rec = static::fetchRec($rec);
-    	$self = cls::get(get_called_class());
     	$pTitle = cat_Products::getTitleById($rec->productId);
     	
     	return "Job{$rec->id} - {$pTitle}";
@@ -958,7 +957,9 @@ class planning_Jobs extends core_Master
     			$count++;
     		}
     		
-    		core_Statuses::newStatus(tr("|Затворени са|* {$count} |задачи по заданието|*"));
+    		if(!empty($count)){
+    			core_Statuses::newStatus(tr("|Затворени са|* {$count} |задачи по заданието|*"));
+    		}
     	}
     	
     	doc_Containers::touchDocumentsByOrigin($rec->containerId);
