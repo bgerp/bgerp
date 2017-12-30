@@ -312,6 +312,10 @@ class bank_Register extends core_Manager
  
                 if($folderId = $folders[$contragent]) {
                     $rec->matches['folderId'] = $folderId;
+                } else {
+                    if($folderId = self::findFolder($contragent, $folders)) {
+                        $rec->matches['folderId'] = $folderId;
+                    }
                 }
             }
 
@@ -689,7 +693,11 @@ class bank_Register extends core_Manager
      */
     public static function phraseDistance($s1, $s2)
     {
-        $s1Arr = explode(' ', strtolower(trim(preg_replace("/[^a-z0-9]+/i", ' ', $s1))));
+        if(is_array($s1)) {
+            $s1Arr = $s1;
+        } else {
+            $s1Arr = explode(' ', strtolower(trim(preg_replace("/[^a-z0-9]+/i", ' ', $s1))));
+        }
         $s2Arr = explode(' ', strtolower(trim(preg_replace("/[^a-z0-9]+/i", ' ', $s2))));
         
         foreach($s1Arr as $w1) {
@@ -728,4 +736,41 @@ class bank_Register extends core_Manager
     }
 
 
+    /**
+     * Намира най-близката папка
+     */
+    public static function findFolder($name, $folders)
+    { 
+
+        if(!strlen($name)) return;
+
+        // Разбиваме името на парчета
+        $parts = explode(' ', $name);
+
+        list($longPart) = self::findLongString($parts);
+        
+        $id = NULL;
+
+        foreach($folders as $title => $id) {
+
+            if(strpos($title, $longPart) !== FALSE) {
+                $rate = self::phraseDistance($parts, $title);
+                if($rate > $bestRate && $rate > 0.85) {
+                    $bestRate = $rate;
+                    $bestId = $id;
+                }
+            }
+        }
+
+        return $bestId;
+    }
+
+
+    public static function findLongString($array) {    
+ 
+        $mapping = array_combine($array, array_map('strlen', $array));     
+ 
+        return array_keys($mapping, max($mapping));     
+ 
+    }
 }
