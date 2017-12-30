@@ -551,7 +551,7 @@ class bank_Register extends core_Manager
             $o = new stdClass();
             $o->type        = 'incoming';
             $o->number      = $rec->id;
-            $o->amount      =  round(($rec->amountBl ? $rec->amountBl : $rec->amountDeal - $rec->amountDiscount + $rec->amountVat) / $rec->currencyRate, 2);
+            $o->amount      =  round(($rec->amountBl ? $rec->amountBl : $rec->amountDeal - $rec->amountDiscount + $rec->amountVat) / self::getCurrencyRate($rec), 2);
             $o->currencyId  = $rec->currencyId;
             $o->folderId    = $rec->folderId;
             $o->threadId    = $rec->threadId;
@@ -573,7 +573,7 @@ class bank_Register extends core_Manager
             $o = new stdClass();
             $o->type        = $rec->amountDeal > 0 ? 'incoming' : 'outgoing';
             $o->number      = $rec->id;
-            $o->amount      = abs(round(($rec->amountDeal) / $rec->currencyRate, 2));
+            $o->amount      = abs(round(($rec->amountDeal) / self::getCurrencyRate($rec->currencyRate), 2));
             $o->currencyId  = $rec->currencyId;
             $o->folderId    = $rec->folderId;
             $o->threadId    = $rec->threadId;
@@ -595,7 +595,7 @@ class bank_Register extends core_Manager
 
             $o->type        = 'outgoing';
             $o->number      = $rec->id;
-            $o->amount      =  round(($rec->amountBl ? $rec->amountBl : $rec->amountDeal - $rec->amountDiscount + $rec->amountVat) / $rec->currencyRate, 2);
+            $o->amount      =  round(($rec->amountBl ? $rec->amountBl : $rec->amountDeal - $rec->amountDiscount + $rec->amountVat) / self::getCurrencyRate($rec), 2);
             $o->currencyId  = $rec->currencyId;
             $o->folderId    = $rec->folderId;
             $o->threadId    = $rec->threadId;
@@ -706,6 +706,26 @@ class bank_Register extends core_Manager
         return $res;        
     }
 
+  
+    /**
+     * Връща валутния курс
+     */
+    public static function getCurrencyRate($rec)
+    {
+        if($rec->currencyRate) {
+
+            return $rec->currencyRate;
+        }
+
+        if($rec->currencyId) {
+
+            $rate = currency_CurrencyRates::getRate($rec->createdOn, $rec->currencyId, NULL);
+ 
+            if($rate) return $rate;
+        }
+
+        return 1;
+    }
 
 
 }
