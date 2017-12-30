@@ -1982,7 +1982,7 @@ class doc_Folders extends core_Master
         expect($mvc = cls::get($coverClass));
         expect($rec = $mvc->fetch($coverId));
         
-        return $rec->id;
+        return $rec->folderId;
     }
 
 }

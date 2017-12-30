@@ -295,18 +295,13 @@ class bank_Register extends core_Manager
                     if($ibanAcc = bank_OwnAccounts::fetch("#bankAccountId = {$bAcc->id}")) {
                         if($rec->type == 'outgoing') {
                             $rec->matches['folderId'] = $ibanAcc->folderId;
-                            if($rec->matches['folderId'] == 1091) bp($rec, $bAcc);
-
                             $toSave = TRUE;
                         } else {
                             $rec->matches['folderId'] = $ourAcc->folderId;
-                            if($rec->matches['folderId'] == 1091) bp($rec, $bAcc);
-
                             $toSave = TRUE;
                         }
                     } else {
                         $rec->matches['folderId'] = doc_Folders::getIdByCover($bAcc->contragentCls, $bAcc->contragentId);
-                        if($rec->matches['folderId'] == 1091) bp($rec, $bAcc);
                     }
                 }
             }
@@ -317,11 +312,9 @@ class bank_Register extends core_Manager
  
                 if($folderId = $folders[$contragent]) {
                     $rec->matches['folderId'] = $folderId;
-                    if($folderId == 1091) bp($contragent);
                 } else {
                     if($folderId = self::findFolder($contragent, $folders)) {
                         $rec->matches['folderId'] = $folderId;
-                       if($folderId == 1091) bp($contragent);
                     }
                 }
             }
@@ -391,8 +384,6 @@ class bank_Register extends core_Manager
                 
                 list($rec->matches['folderId']) =  array_keys($foldersTmp, max($foldersTmp));
                 
-                if($rec->matches['folderId'] == 1091) bp($foldersTmp, $rec);
-
                 if($rec->matches['folderId']) {
                     foreach($rec->matches['docs'] as $id => $d) {
                         if($d->folderId != $rec->matches['folderId']) {
