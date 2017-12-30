@@ -573,7 +573,7 @@ class bank_Register extends core_Manager
             $o = new stdClass();
             $o->type        = $rec->amountDeal > 0 ? 'incoming' : 'outgoing';
             $o->number      = $rec->id;
-            $o->amount      = abs(round(($rec->amountDeal) / self::getCurrencyRate($rec->currencyRate), 2));
+            $o->amount      = abs(round(($rec->amountDeal) / self::getCurrencyRate($rec), 2));
             $o->currencyId  = $rec->currencyId;
             $o->folderId    = $rec->folderId;
             $o->threadId    = $rec->threadId;
