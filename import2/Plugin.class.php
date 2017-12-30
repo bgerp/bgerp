@@ -104,11 +104,16 @@ class import2_Plugin extends core_Plugin
 	protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
 	{
 		// Бутон за импорт в лист изгледа
-        $url = array($mvc, 'import2', $mvc->masterKey => $data->masterId, 'ret_url' => TRUE);
+        
+        $url = array($mvc, 'import2', 'ret_url' => TRUE);
+        $rec = new stdClass();
         if($data->masterId) {
             $url[$mvc->masterKey] = $data->masterId;
+            $rec->{$mvc->masterKey} = $data->masterId;
         }
-        $data->toolbar->addBtn('Импорт', $url, NULL, "title=Импортиране на записи,ef_icon=img/16/import.png");
+        if($mvc->haveRightFor('import2', $rec)) {
+            $data->toolbar->addBtn('Импорт', $url, NULL, "title=Импортиране на записи,ef_icon=img/16/import.png");
+        }
 	}
 	
 	

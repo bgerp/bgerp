@@ -38,7 +38,7 @@ class payment_ImportDriver extends import2_AbstractDriver
 	 */
 	public function addImportFields($mvc, core_FieldSet $form)
 	{
-        $form->FLD('xmlFile', 'fileman_FileType(bucket=imports)', 'caption=XML файл,mandatory');
+        $form->FLD('xmlFile', 'fileman_FileType(bucket=import)', 'caption=XML файл,mandatory');
 	}
 	
 	

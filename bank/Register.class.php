@@ -251,8 +251,8 @@ class bank_Register extends core_Manager
      */
     public static function findMatches($ids = NULL)
     {
+        list($documents, $folderIds) = self::getDocuments();
         $folders   = self::getFolders();
-        $documents = self::getDocuments();
 
         $query = self::getQuery();
         
@@ -317,9 +317,8 @@ class bank_Register extends core_Manager
 
             foreach($documents as $d) {
 
-                if(($rec->id == 37) && ($d->folderId == 6855)) {
-                    $debug[] = $d;
-                }
+                // Ако типа на документа и на плащането не съвпадат - прескачаме
+                if($rec->type != $d->type) continue;
 
                 // Ако имаме папка, прескачаме документите, които не са в нея
                 if(isset($rec->matches['folderId']) && $rec->matches['folderId'] != $d->folderId) continue;
@@ -354,20 +353,23 @@ class bank_Register extends core_Manager
                     } elseif($delta < 3*24*60*60) {
                         $p += 0.12;
                     }
-                    //if(($d->date == $rec->valior) && $d->date == '2017-12-22' && $d->amount == $rec->amount) bp($p, $delta, abs($d->amount - $rec->amount) / max($d->amount, $rec->amount), $d, $rec);
                 }
 
                 // Папка на документа
-                if(isset($rec->matches['folderId'])) {
-                    $p += 0.1;
+                if(!isset($rec->matches['folderId']) && $p >= 0.4 && $rec->contragentName) {
+                    list($folderName) = array_keys($folders, $d->folderId);
+                    if(self::phraseDistance($folderName, self::transliterate($rec->contragentName)) > 0.85) {
+                        $p += 0.1;
+                    } else {
+                        $p -= 0.1;
+                    }
                 }
 
-                if($p > 0.5) {
+                if($p >= 0.5) {
                     $d->p = $p;
                     $rec->matches['docs'][] = $d;
                 }
             }
-            
       
             // Ако имаме документи, но нямаме папка, опитваме се да я определим от най-вероятните документи
             if(empty($rec->matches['folderId']) && is_array($rec->matches['docs'])) {
@@ -510,12 +512,9 @@ class bank_Register extends core_Manager
 
         while($rec = $query->fetch()) {  
             $title = self::transliterate($rec->name);
-
             if(!$res[$title] && !$cachedFolders[$title]) {
                 $res[$title] = $rec->folderId;
             }
-
-            // $title = 
         }
  
         $res1 = array_merge($res, $cachedFolders);
@@ -528,10 +527,18 @@ class bank_Register extends core_Manager
     }
 
 
+    /**
+     * Връща масив със записи за всички отворени документи
+     *
+     * @return array
+     *          o type  (incoming/outgoing)
+     *       
+     */
     public static function getDocuments()
     {
         // Обикаляме по всичко отворени Продажби и такива, в които имаме затваряне
         $earlyClosed = dt::addSecs(-5*24*60*60);
+
         $query = sales_Sales::getQuery();
         $query->where("#state = 'active' OR (#state = 'closed' AND #closedOn >= '{$earlyClosed}')");
         $query->orderBy('createdOn', 'DESC');
@@ -539,9 +546,10 @@ class bank_Register extends core_Manager
             // Извличаме всички проформи, фактури и документи за плащане в посочените нишки 
 
             $threads[] = $rec->threadId;
+            $folders[$rec->folderId] = $rec->folderId;
 
             $o = new stdClass();
-            $o->type        = 'income';
+            $o->type        = 'incoming';
             $o->number      = $rec->id;
             $o->amount      =  round(($rec->amountBl ? $rec->amountBl : $rec->amountDeal - $rec->amountDiscount + $rec->amountVat) / $rec->currencyRate, 2);
             $o->currencyId  = $rec->currencyId;
@@ -552,14 +560,58 @@ class bank_Register extends core_Manager
   
             $docs['T' . $rec->threadId] = $o;
         }
- 
+        
+        // Обикаляме по всички Финансови сделики
+        $query = findeals_Deals::getQuery();
+        $query->where("#state = 'active' OR (#state = 'closed' AND #closedOn >= '{$earlyClosed}')");
+        $query->orderBy('createdOn', 'DESC');
+        while($rec = $query->fetch()) {
+
+            $threads[] = $rec->threadId;
+            $folders[$rec->folderId] = $rec->folderId;
+
+            $o = new stdClass();
+            $o->type        = $rec->amountDeal > 0 ? 'incoming' : 'outgoing';
+            $o->number      = $rec->id;
+            $o->amount      = abs(round(($rec->amountDeal) / $rec->currencyRate, 2));
+            $o->currencyId  = $rec->currencyId;
+            $o->folderId    = $rec->folderId;
+            $o->threadId    = $rec->threadId;
+            $o->documentMvc = $query->mvc;
+            $o->documentId  = $rec->id;
+  
+            $docs['T' . $rec->threadId] = $o;
+        }
+
+        // Обикаляме по всички Покупки
+
+        $query = purchase_Purchases::getQuery();
+        $query->where("#state = 'active' OR (#state = 'closed' AND #closedOn >= '{$earlyClosed}')");
+        $query->orderBy('createdOn', 'DESC');
+        while($rec = $query->fetch()) {
+
+            $threads[] = $rec->threadId;
+            $folders[$rec->folderId] = $rec->folderId;
+
+            $o->type        = 'outgoing';
+            $o->number      = $rec->id;
+            $o->amount      =  round(($rec->amountBl ? $rec->amountBl : $rec->amountDeal - $rec->amountDiscount + $rec->amountVat) / $rec->currencyRate, 2);
+            $o->currencyId  = $rec->currencyId;
+            $o->folderId    = $rec->folderId;
+            $o->threadId    = $rec->threadId;
+            $o->documentMvc = $query->mvc;
+            $o->documentId  = $rec->id;
+  
+            $docs['T' . $rec->threadId] = $o;
+        }
+
         $threadIds = implode(',', $threads);
-        // $threadIds = 130628;
+
         $query = sales_Invoices::getQuery();
         $query->orderBy('createdOn', 'DESC');
         while($rec = $query->fetch("#threadId IN ({$threadIds}) AND #state = 'active'")) {
             $o = new stdClass(); 
-            $o->type   = 'income';
+            $o->type   = 'incoming';
             $o->number = $rec->number;
             $o->date   = $rec->dueDate;
             $o->amount      = round($rec->dealValue - $rec->discountAmount + $rec->vatAmount, 2);
@@ -575,7 +627,7 @@ class bank_Register extends core_Manager
         $query->orderBy('createdOn', 'DESC');
         while($rec = $query->fetch("#threadId IN ({$threadIds}) AND #state = 'active'")) {
             $o = new stdClass();
-            $o->type   = 'income';
+            $o->type   = 'incoming';
             $o->number = $rec->number;
             $o->date   = $rec->dueDate;
             $o->amount      = round($rec->dealValue - $rec->discountAmount + $rec->vatAmount, 2);
@@ -594,7 +646,7 @@ class bank_Register extends core_Manager
 
            
             $o = new stdClass();
-            $o->type   = 'income';
+            $o->type   = 'incoming';
             $o->number = $rec->number;
             $o->date   = $rec->valior ? $rec->valior : $rec->termDate;
             $o->amount      = round($rec->amountDeal, 2);
@@ -606,7 +658,7 @@ class bank_Register extends core_Manager
             $docs[] = $o;
         }
 
-        return $docs;
+        return array($docs, $folders);
     }
 
 
@@ -629,6 +681,31 @@ class bank_Register extends core_Manager
     		$data->toolbar->addBtn('Разнасяне', array($mvc, 'Match', 'ret_url' => TRUE), 'ef_icon=img/16/briefcase.png, title=Намиране на съответствия');
     	}
     }
+
+
+
+    /**
+     * Разстояние между фрази, без значение на подредбата на думите в тях
+     */
+    public static function phraseDistance($s1, $s2)
+    {
+        $s1Arr = explode(' ', strtolower(trim(preg_replace("/[^a-z0-9]+/i", ' ', $s1))));
+        $s2Arr = explode(' ', strtolower(trim(preg_replace("/[^a-z0-9]+/i", ' ', $s2))));
+        
+        foreach($s1Arr as $w1) {
+            $m = 0;
+            foreach($s2Arr as $w2) {
+                $m = max($m, 1 - levenshtein($w1, $w2)/max(strlen($w1), strlen($w2)));
+                $res1[$w1][$w2] = $m;
+            }
+            $s += $m;
+        }
+ 
+        $res = $s/count($s1Arr);
+
+        return $res;        
+    }
+
 
 
 }
