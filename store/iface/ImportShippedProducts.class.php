@@ -116,9 +116,7 @@ class store_iface_ImportShippedProducts extends import2_AbstractDriver
 	
 	
 	/**
-	 * Връща записите, подходящи за импорт в детайла.
-	 * Съответстващия 'importRecs' метод, трябва да очаква
-	 * същите данни (@see import_DestinationIntf)
+	 * Връща записите, подходящи за импорт в детайла
 	 *
 	 * @see import_DriverIntf
 	 * @param array $recs
@@ -211,14 +209,9 @@ class store_iface_ImportShippedProducts extends import2_AbstractDriver
 	
 	
 	/**
-	 * Връща записите, подходящи за импорт в детайла.
-	 * Съответстващия 'importRecs' метод, трябва да очаква
-	 * същите данни (@see import_DestinationIntf)
-	 *
-	 * @see import_DriverIntf
+	 * Импортиране на детайла (@see import2_DriverIntf)
+	 * 
 	 * @param object $rec
-	 * 		o xmlFile        - ид на файл от филеман
-	 *
 	 * @return void
 	 */
 	public function doImport(core_Manager $mvc, $rec)

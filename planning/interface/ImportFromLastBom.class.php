@@ -54,12 +54,10 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
 		}
     }
     
+    
     /**
-     * Връща записите, подходящи за импорт в детайла.
-     * Съответстващия 'importRecs' метод, трябва да очаква
-     * същите данни (@see import_DestinationIntf)
+     * Връща записите, подходящи за импорт в детайла
      *
-     * @see import_DriverIntf
      * @param array $recs
      * 		o productId        - ид на артикула
      * 		o quantity         - к-во в основна мярка
