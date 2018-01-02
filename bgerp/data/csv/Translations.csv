@@ -1162,6 +1162,7 @@ en,Носещи колони _068c0,Supporting columns in number of pallet locat
 en,Нотификация,Notification
 en,Нотификация-ако няма отговор,Notification-if no reply
 en,Нюзбар,Newsbar
+en,Няма,None
 en,Няма данни,No data availible
 en,Няма достъпна _a3fb2,No accessible system
 en,Няма записи,No records
@@ -1361,6 +1362,7 @@ en,Плащане по банков път,Bank payment
 en,Плащане в брой,Cash payment
 en,Плащане с прихващане,Offsetting payment
 en,Планиране,Planning
+en,Планирано,Planned
 en,Плановик,Planner
 en,Платежни Нареж_44b2,Payment orders
 en,Платежни нареж_731d,Payment orders
@@ -1571,6 +1573,7 @@ en,Приходи и Разходи,Revenues and Expenses
 en,Приходни банко_d760,Incoming bank transfers
 en,Приходни докум_bbe4,Revenue documents
 en,Приходни касов_b832,Credit cash orders
+en,приходен касов ордер,credit cash order
 en,Причина,Reason
 en,Проблем при по_0f996,Problem in rendering
 en,Проверен на,Proof in
@@ -1682,8 +1685,9 @@ en,Разпределени г_946a,Distributed groups of files
 en,Разработка,Elaboration
 en,Разрешени,Allowed
 en,Разх. норми,Cons. norms
-en,Разходен банко_9860,Outgoing Bank Transfer
-en,Разходен касов_5ac8,Debit Cash Order
+en,Разходен банко_9860,Outgoing bank transfer
+en,Разходен касов_5ac8,Debit cash order
+en,разходен касов ордер,debit cash order
 en,Разходни банко_a3df,Outgoing bank transfers
 en,Разходни докум_4dc4,Expenditure documents
 en,Разходни касов_8e6a,Debit cash orders
@@ -2005,7 +2009,7 @@ en,Трудови Договори,Employment Contracts
 en,Трудови договори,Employment contracts
 en,Трябва да избе_e751c,You must select only one of the three options
 en,Трябва да сте л_645c,You must be logged in to edit this entry.
-en,Търговец,Salesman
+en,Търговец,Salesperson
 en,Търговия,Commerce
 en,Търговски маршрути,Trade routes
 en,Търговски,Trade
@@ -2417,6 +2421,7 @@ en,50% авансово и 50% до 30 дни след фактуриране, 5
 en,50% авансово и 50% до 10 дни след фактуриране, 50% downpayment and 50% until 10 days after invoicing
 en,По проформа,From pro forma
 en,Срок за д-ка,Delivery time
+en,Чакащо плащане,Expected payment
 en,ЧМР,CMR
 en,чмр,cmr
 en,Товарителници,CMR waybills
