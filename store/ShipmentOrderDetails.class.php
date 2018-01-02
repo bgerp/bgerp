@@ -10,7 +10,7 @@
  * @category  bgerp
  * @package   store
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -41,13 +41,19 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     
     
     /**
+     * Интерфейс на драйверите за импортиране
+     */
+    public $importInterface = 'store_iface_ImportDetailIntf';
+    
+    
+    /**
      * Плъгини за зареждане
      * 
      * var string|array
      */
     public $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_RowNumbering, plg_SaveAndNew, doc_plg_HidePrices,store_plg_RequestDetail,
                         plg_AlignDecimals2, plg_Sorting, doc_plg_TplManagerDetail, LastPricePolicy=sales_SalesLastPricePolicy,
-                        ReversePolicy=purchase_PurchaseLastPricePolicy, plg_PrevAndNext,cat_plg_ShowCodes,store_plg_TransportDataDetail,import_plg_Detail';
+                        ReversePolicy=purchase_PurchaseLastPricePolicy, plg_PrevAndNext,cat_plg_ShowCodes,store_plg_TransportDataDetail,import2_Plugin';
     
     
     /**
