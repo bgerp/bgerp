@@ -106,7 +106,7 @@ class planning_AssetResourcesNorms extends core_Manager
 		$data->recs = $data->rows = array();
 		$masterClassId = $data->masterMvc->getClassId();
 		$query = self::getQuery();
-		$query->where("#classId = {$masterClassId} AND #objectId = {$data->masterId} AND #state != 'closed'");
+		$query->where("#classId = {$masterClassId} AND #objectId = {$data->masterId}");
 		
 		// Извличане на записите
 		while($rec = $query->fetch()){
