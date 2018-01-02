@@ -27,7 +27,7 @@ class import2_Plugin extends core_Plugin
 		
         $form = cls::get('core_Form');
 		$rec = &$form->rec;
-		$form->FLD('driverClass', 'class(interface=' . $mvc->importInterface . ',select=title)', 'silent,removeAndRefreshForm,caption=Източник');
+		$form->FLD('driverClass', 'class(interface=' . $mvc->importInterface . ',select=title)', 'silent,removeAndRefreshForm,caption=Източник,mandatory');
 
         if(isset($mvc->masterKey)) {
 		    $form->FLD($mvc->masterKey, 'int', 'silent,input=hidden');
@@ -48,11 +48,13 @@ class import2_Plugin extends core_Plugin
 		$form->title = "Импорт на записи в|* <b>" . $title . "</b>";
 		
         $opt = self::getDriverOptions($mvc, $masterId);
-
+		
         if(count($opt) == 1) {
             $rec->driverClass = key($opt);
+        } elseif(count($opt) > 1){
+        	$opt = array('' => '') + $opt;
         }
-
+        
         $form->setOptions('driverClass', $opt);
 
 		// Ако има избран драйвер
