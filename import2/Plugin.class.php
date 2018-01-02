@@ -34,7 +34,7 @@ class import2_Plugin extends core_Plugin
         }
 
 		$form->input('', 'silent');
-
+		
 		$mvc->requireRightFor('import2', $rec);
         
         if($mvc->Master && isset($mvc->masterKey) && isset($rec->{$mvc->masterKey})) {
