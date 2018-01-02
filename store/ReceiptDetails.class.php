@@ -31,6 +31,12 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     
     
     /**
+     * Интерфейс на драйверите за импортиране
+     */
+    public $importInterface = 'store_iface_ImportDetailIntf';
+    
+    
+    /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     public $masterKey = 'receiptId';
@@ -41,7 +47,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
      */
     public $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_SaveAndNew, plg_RowNumbering,store_plg_RequestDetail,Policy=purchase_PurchaseLastPricePolicy, 
                         plg_AlignDecimals2, plg_Sorting, doc_plg_HidePrices, ReverseLastPricePolicy=sales_SalesLastPricePolicy, 
-                        Policy=purchase_PurchaseLastPricePolicy, plg_PrevAndNext,cat_plg_ShowCodes,store_plg_TransportDataDetail,import_plg_Detail';
+                        Policy=purchase_PurchaseLastPricePolicy, plg_PrevAndNext,cat_plg_ShowCodes,store_plg_TransportDataDetail,import2_Plugin';
     
     
     /**
