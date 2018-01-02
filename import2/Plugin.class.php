@@ -129,6 +129,7 @@ class import2_Plugin extends core_Plugin
 
             if(empty($mvc->importInterface)) {
                 $requiredRoles = 'no_one';
+                return;
             }
 
             $masterId = NULL;
