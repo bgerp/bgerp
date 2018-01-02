@@ -233,7 +233,7 @@ class planning_Centers extends core_Master
     {
     	if(!$this->fetchField(self::UNDEFINED_ACTIVITY_CENTER_ID, 'id')) {
     		$rec           = new stdClass();
-    		$rec->id       = price_ListRules::PRICE_LIST_COST;
+    		$rec->id       = self::UNDEFINED_ACTIVITY_CENTER_ID;
     		$rec->name     = 'Неопределен';
     		$rec->type     = 'workshop';
     		$rec->state    = 'active';
