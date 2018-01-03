@@ -267,6 +267,8 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
 		$receiptProducts = array();
 		
 		$tempProducts = array ();
+		
+		$bommsMaterials = array();
 	
 		$jobsQuery = planning_Jobs::getQuery();
 	
