@@ -56,7 +56,7 @@ class planning_AssetGroups extends core_Master
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'name,createdOn,createdBy,state';
+	public $listFields = 'name=Вид,createdOn,createdBy,state';
 	
 	
 	/**

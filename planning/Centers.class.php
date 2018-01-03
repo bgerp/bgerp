@@ -170,7 +170,7 @@ class planning_Centers extends core_Master
     	$this->FLD('employmentOccupied', 'int', "caption=Служители->Назначени, input=none");
     	$this->FLD('schedule', 'key(mvc=hr_WorkingCycles, select=name, allowEmpty=true)', "caption=Работен график->Цикъл,mandatory");
     	$this->FLD('startingOn', 'datetime', "caption=Работен график->От");
-    	$this->FLD('departmentId', 'key(mvc=hr_Departments,select=name)', "caption=В състава на");
+    	$this->FLD('departmentId', 'key(mvc=hr_Departments,select=name)', "caption=В състава на,silent");
     	$this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=active,notNull,input=none');
 		
     	$this->setDbUnique('name');
@@ -233,7 +233,7 @@ class planning_Centers extends core_Master
     {
     	if(!$this->fetchField(self::UNDEFINED_ACTIVITY_CENTER_ID, 'id')) {
     		$rec           = new stdClass();
-    		$rec->id       = price_ListRules::PRICE_LIST_COST;
+    		$rec->id       = self::UNDEFINED_ACTIVITY_CENTER_ID;
     		$rec->name     = 'Неопределен';
     		$rec->type     = 'workshop';
     		$rec->state    = 'active';
@@ -265,5 +265,60 @@ class planning_Centers extends core_Master
     public static function getUndefinedFolderId()
     {
     	return planning_Centers::fetchField(planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID, 'folderId');
+    }
+    
+    
+    /**
+     * Подготовка на центровете към департаментите
+     * 
+     * @param stdClass $data
+     */
+    public function prepareCenters(&$data)
+    {
+    	$data->TabCaption = 'Центрове';
+    	$data->Tab = 'top';
+    	
+    	// Извличане на центровете към департамента
+    	$data->recs = $data->rows = array();
+    	$query = $this->getQuery();
+    	$query->where("#departmentId = {$data->masterId}");
+    	while($rec = $query->fetch()){
+    		$data->recs[$rec->id] = $rec;
+    		$data->rows[$rec->id] = $this->recToVerbal($rec);
+    	}
+    	
+    	$this->prepareListFields($data);
+    	if($this->haveRightFor('add')){
+    		$data->addUrl = array($this, 'add', 'departmentId' => $data->masterId);
+    	}
+    }
+    
+    
+    /**
+     * Рендиране на центровете към департаментите
+     * 
+     * @param stdClass $data
+     * @return core_ET $tpl
+     */
+    public function renderCenters($data)
+    {
+    	// Подготовка на шаблона
+    	$tpl = new core_ET(tr('|*<fieldset><legend class="groupTitle">|Центрове на дейност|*[#addBtn#]</legend>[#content#]</fieldset>'));
+    	unset($data->listFields['departmentId']);
+    	unset($data->listFields['folderId']);
+    	
+    	// Рендиране на данните
+    	$data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $this->hideListFieldsIfEmpty);
+    	$table = cls::get('core_TableView', array('mvc' => $this));
+    	$this->invoke('BeforeRenderListTable', array($tpl, &$data));
+    	$tpl->append($table->get($data->rows, $data->listFields), 'content');
+    	
+    	// Добавяне на бутон за нов център
+    	if(isset($data->addUrl)){
+    		$addLink = ht::createLink('', $data->addUrl, FALSE, 'ef_icon=img/16/add.png,title=Добавяне на нов център към департамента');
+    		$tpl->append($addLink, 'addBtn');
+    	}
+    	
+    	return $tpl;
     }
 }

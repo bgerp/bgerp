@@ -8,33 +8,13 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Импорт по серийни номера от задачи
  */
-class planning_interface_ImportTaskSerial extends import_drivers_Proto 
+class planning_interface_ImportTaskSerial extends planning_interface_ImportDriver 
 {
-    
- 
-	/**
-	 * Към кои класове може да се добавя драйвера
-	 *
-	 * @var string - изброените класове или празен клас за всички
-	 */
-    protected $allowedClasses = 'planning_ReturnNoteDetails';
-    
-    
-    /**
-     * Кой може да избира драйвъра
-     */
-    protected $canSelectDriver = 'ceo,planning,store';
-    
-    
-    /**
-     * Интерфейси, поддържани от този мениджър
-     */
-    public $interfaces = 'import_DriverIntf';
     
     
     /**
@@ -92,16 +72,15 @@ class planning_interface_ImportTaskSerial extends import_drivers_Proto
     	if(count($error)){
     		$error = implode('</br>', $error);
     		$form->setError('text', $error);
+    	} else {
+    		$rec->importRecs = $this->getImportRecs($mvc, $rec);
     	}
     }
     
     
     /**
-     * Връща записите, подходящи за импорт в детайла.
-     * Съответстващия 'importRecs' метод, трябва да очаква
-     * същите данни (@see import_DestinationIntf)
+     * Връща записите, подходящи за импорт в детайла
      *
-     * @see import_DriverIntf
 	 * @param array $recs
 	 * 		o productId        - ид на артикула
      * 		o quantity         - к-во в основна мярка
@@ -113,7 +92,7 @@ class planning_interface_ImportTaskSerial extends import_drivers_Proto
 	 * 
 	 * @return void
      */
-    public function getImportRecs(core_Manager $mvc, $rec)
+    private function getImportRecs(core_Manager $mvc, $rec)
     {
     	$recs = array();
     	if(!is_array($rec->serials)) return $recs;
@@ -132,5 +111,22 @@ class planning_interface_ImportTaskSerial extends import_drivers_Proto
     	}
     	
     	return $recs;
+    }
+    
+    
+    /**
+     * Може ли драйвера за импорт да бъде избран
+     *
+     * @param   core_Manager    $mvc        - клас в който ще се импортира
+     * @param   int|NULL        $masterId   - ако импортираме в детайл, id на записа на мастъра му
+     * @param   int|NULL        $userId     - ид на потребител
+     *
+     * @return boolean          - може ли драйвера да бъде избран
+     */
+    public function canSelectDriver(core_Manager $mvc, $masterId = NULL, $userId = NULL)
+    {
+    	$res = $mvc instanceof planning_ReturnNoteDetails;
+    	
+    	return $res;
     }
 }
