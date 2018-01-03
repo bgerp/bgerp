@@ -358,14 +358,6 @@ class sales_Routes extends core_Manager {
     	$title = $this->title;
     	$listFields = arr::make('salesmanId=Търговец,repeat=Период,nextVisit=Следващо посещение');
     	
-    	if(!Mode::isReadOnly()){
-    		if($this->haveRightFor('list')){
-    			$title = ht::createLink($title, array($this, 'list'), FALSE, 'title=Всички търговски маршрути');
-    		}
-    	} else {
-    		unset($listFields['tools']);
-    	}
-    	
     	if ($data->addUrl) {
 	    	$title .= ht::createLink('', $data->addUrl, NULL, array('ef_icon' => 'img/16/add.png', 'class' => 'addRoute', 'title'=>'Създаване на нов търговски маршрут')); 
 	    }
