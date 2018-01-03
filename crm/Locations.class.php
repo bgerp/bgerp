@@ -294,12 +294,30 @@ class crm_Locations extends core_Master {
     
     
     /**
+     * Реакция в счетоводния журнал при оттегляне на счетоводен документ
+     *
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param int|object $id първичен ключ или запис на $mvc
+     */
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+    	$rec = $mvc->fetchRec($id);
+    	
+    	$rQuery = sales_Routes::getQuery();
+    	$rQuery->where("#locationId = {$rec->id}");
+    	while ($rRec = $rQuery->fetch()) {
+    		$rRec->state = 'rejected';
+    		sales_Routes::save($rRec, 'state');
+    	}
+    }
+    
+    
+    /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
     protected static function on_AfterSave($mvc, &$id, $rec, $fields = NULL)
     {
-    	$mvc->routes->changeState($id);
-    	
     	$mvc->updatedRecs[$id] = $rec;
     	
     	// Трябва да е тук, за да може да сработят on_ShutDown процесите
