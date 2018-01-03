@@ -256,14 +256,14 @@ class bank_Register extends core_Manager
 
         $query = self::getQuery();
         
-        $timeline = dt::addSecs(-5 * 24 * 60 * 60);
+        $timeLine = dt::addSecs(-1 * 24 * 60 * 60);
         
         if(is_array($ids) && count($ids)) {
             $ids = implode(',', $ids);
-            $query->where("#id IN ({$ids})");
+            $query->where("#id IN ({$ids}),");
 
         } else {
-            $query->where("#state = 'waiting' AND #modifiedOn > '$timeLine'");
+            $query->where("#state = 'waiting' AND #createdOn > '{$timeLine}'");
         }
 
         while($rec = $query->fetch()) {
@@ -318,6 +318,7 @@ class bank_Register extends core_Manager
                     }
                 }
             }
+      if($rec->matches['folderId'] == '37706') bp($rec);
 
             foreach($documents as $d) {
 
@@ -334,9 +335,9 @@ class bank_Register extends core_Manager
                 
                 // Номер на документа
                 if(strlen($d->number) && stripos($rec->reason, $d->number) !== FALSE) {
-                    $p += max(0, 1 - 2.5/strlen($d->number));
+                    $p += max(0, 1 - 2.8/strlen($d->number));
                     if($numbers[$d->number]) {
-                        $p += max(0, 1 - 1.5/strlen($d->number));
+                        $p += max(0, 1 - 1.3/strlen($d->number));
                     }
                 }
 
@@ -365,7 +366,7 @@ class bank_Register extends core_Manager
                     if(self::phraseDistance($folderName, self::transliterate($rec->contragentName)) > 0.85) {
                         $p += 0.1;
                     } else {
-                        $p -= 0.1;
+                        $p -= 0.2;
                     }
                 }
 
@@ -374,6 +375,7 @@ class bank_Register extends core_Manager
                     $rec->matches['docs'][] = $d;
                 }
             }
+      if($rec->matches['folderId'] == '37706') bp($rec);
       
             // Ако имаме документи, но нямаме папка, опитваме се да я определим от най-вероятните документи
             if(empty($rec->matches['folderId']) && is_array($rec->matches['docs'])) {
@@ -383,7 +385,8 @@ class bank_Register extends core_Manager
                 }
                 
                 list($rec->matches['folderId']) =  array_keys($foldersTmp, max($foldersTmp));
-                
+                      if($rec->matches['folderId'] == '37706') bp($rec);
+
                 if($rec->matches['folderId']) {
                     foreach($rec->matches['docs'] as $id => $d) {
                         if($d->folderId != $rec->matches['folderId']) {
@@ -773,4 +776,15 @@ class bank_Register extends core_Manager
         return array_keys($mapping, max($mapping));     
  
     }
+
+
+    /**
+	 * Подготовка на филтър формата
+	 */
+	protected static function on_AfterPrepareListFilter($mvc, &$data)
+	{
+		// Подготовка на филтъра
+
+		$data->query->orderBy('#valior=DESC,ownAccountId,id');
+	}
 }
