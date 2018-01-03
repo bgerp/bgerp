@@ -38,6 +38,12 @@ defIfNot('PLANNING_SERIAL_STRING_PAD', '10');
 
 
 /**
+ * Име за показване на неопределения център на дейност
+ */
+defIfNot('PLANNING_UNDEFINED_CENTER_DISPLAY_NAME', 'Неопределен');
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -86,12 +92,13 @@ class planning_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи за този модул
      */
     var $configDescription = array(
-    		'PLANNING_TASK_SERIAL_COUNTER'         => array('int', 'caption=Производствени операции->Стартов сериен номер'),
-    		'PLANNING_SERIAL_STRING_PAD'           => array('int', 'caption=Производствени операции->Макс. дължина'),
-    		'PLANNING_TASK_LABEL_PREVIEW_WIDTH'    => array('int', 'caption=Превю на артикула в етикета->Широчина,unit=px'),
-    		'PLANNING_TASK_LABEL_PREVIEW_HEIGHT'   => array('int', 'caption=Превю на артикула в етикета->Височина,unit=px'),
-    		'PLANNING_CONSUMPTION_USE_AS_RESOURCE' => array('enum(yes=Да,no=Не)', 'caption=Детайлно влагане по подразбиране->Избор'),
-    		'PLANNING_PRODUCTION_NOTE_REJECTION'   => array('enum(no=Забранено,yes=Позволено)', 'caption=Оттегляне на стари протоколи за производство ако има нови->Избор'),
+    		'PLANNING_TASK_SERIAL_COUNTER'           => array('int', 'caption=Производствени операции->Стартов сериен номер'),
+    		'PLANNING_SERIAL_STRING_PAD'             => array('int', 'caption=Производствени операции->Макс. дължина'),
+    		'PLANNING_TASK_LABEL_PREVIEW_WIDTH'      => array('int', 'caption=Превю на артикула в етикета->Широчина,unit=px'),
+    		'PLANNING_TASK_LABEL_PREVIEW_HEIGHT'     => array('int', 'caption=Превю на артикула в етикета->Височина,unit=px'),
+    		'PLANNING_CONSUMPTION_USE_AS_RESOURCE'   => array('enum(yes=Да,no=Не)', 'caption=Детайлно влагане по подразбиране->Избор'),
+    		'PLANNING_PRODUCTION_NOTE_REJECTION'     => array('enum(no=Забранено,yes=Позволено)', 'caption=Оттегляне на стари протоколи за производство ако има нови->Избор'),
+    		'PLANNING_UNDEFINED_CENTER_DISPLAY_NAME' => array('varchar', 'caption=Неопределенен център на дейност->Име'),
     );
     
     

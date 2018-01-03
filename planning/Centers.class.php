@@ -321,4 +321,27 @@ class planning_Centers extends core_Master
     	
     	return $tpl;
     }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = TRUE)
+    {
+    	return self::getVerbal($rec, 'name');
+    }
+    
+    
+    /**
+     * След като е готово вербалното представяне
+     */
+    public static function on_AfterGetVerbal($mvc, &$num, $rec, $part)
+    {
+    	// Искаме състоянието на оттеглените чернови да се казва 'Анулиран'
+    	if($part == 'name'){
+    		if($rec->id == self::UNDEFINED_ACTIVITY_CENTER_ID){
+    			$num = planning_Setup::get('UNDEFINED_CENTER_DISPLAY_NAME');
+    		}
+    	}
+    }
 }
