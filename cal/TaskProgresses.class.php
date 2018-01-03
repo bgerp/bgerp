@@ -326,6 +326,7 @@ class cal_TaskProgresses extends core_Detail
         $msg = 'Добавен прогрес към задачата';
         
         $removeOldNotify = FALSE;
+        $closeThread = FALSE;
         
         // Определяне на прогреса
         if(isset($rec->progress)) {
@@ -360,6 +361,7 @@ class cal_TaskProgresses extends core_Detail
                         $msg = 'Приключена е задачата';
                         
                         $removeOldNotify = TRUE;
+                        $closeThread = TRUE;
                     }
                 }
                 
@@ -384,9 +386,7 @@ class cal_TaskProgresses extends core_Detail
         
         $notifyUsersArr = type_Keylist::toArray($rec->notifyUsers);
         
-        if (!empty($notifyUsersArr)) {
-            cal_Tasks::notifyForChanges($tRec, $msg, $notifyUsersArr, $removeOldNotify);
-        }
+        cal_Tasks::notifyForChanges($tRec, $msg, $notifyUsersArr, $removeOldNotify, $closeThread);
         
         // Определяне на отработеното време
         if(isset($rec->workingTime) || ($rec->state == 'rejected')) {
