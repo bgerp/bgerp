@@ -809,15 +809,18 @@ class cms_Articles extends core_Master
 
             if(strlen($exRec->level) <= 6 && ($exRec->level != $level)) { 
                 $query = self::getQuery();
-                while($curRec = $query->fetch("#level LIKE '{$exRec->level}%'")) {
+                while($curRec = $query->fetch("#level LIKE '{$exRec->level}%' AND #menuId = {$exRec->menuId}")) {
                     $curRec->level = $level . substr($curRec->level, strlen($level));
                     $mvc->save_($curRec, 'level');
                 }
             }
         }
-
     }
 
+
+    /**
+     *
+     */
     private static function trim3zeros($level)
     {
         if(substr($level, -3) === '000') {
