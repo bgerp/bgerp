@@ -29,12 +29,12 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
 	 */
 	protected $listItemsPerPage = 30;
 	
-	/**
-	 * Полета от таблицата за скриване, ако са празни
-	 *
-	 * @var int
-	 */
-	protected $filterEmptyListFields;
+// 	/**
+// 	 * Полета от таблицата за скриване, ако са празни
+// 	 *
+// 	 * @var int
+// 	 */
+// 	protected $filterEmptyListFields;
 	
 	/**
 	 * Полета за хеширане на таговете
@@ -268,10 +268,10 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
 		
 		$tempProducts = array ();
 	
-		$jobsQuery = planning_Jobs::getQuery ();
-		
+		$jobsQuery = planning_Jobs::getQuery();
+	
 		$shipDetQuery = store_ShipmentOrderDetails::getQuery();
-		
+	
 		$shipDetQuery->EXT('deliveryTime', 'store_ShipmentOrders', 'externalName=deliveryTime,externalKey=shipmentId');
 		
 		$shipDetQuery->EXT('state', 'store_ShipmentOrders', 'externalName=state,externalKey=shipmentId');
@@ -328,14 +328,12 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
 				
 		}
 		
-		//bp($recArr,$receiptProducts);
-	
+		
 		/*
 		 * Масив с артикули по експедиционни нареждания
 		 */
 			while ($shipmentDet = $shipDetQuery->fetch()){
-				
-		//bp($shipmentDet);
+			
 					if (! array_key_exists ( $shipmentDet->productId, $shipmentProducts)) {
 							
 						$shipmentProducts [$shipmentDet->productId] =
@@ -356,12 +354,12 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
 					
 			}
 	
-		//bp($shipmentProducts);
+	
 		/*
 		 * Масив с артикули по задания за производство	
 		 */
- 		while ( $jobses = $jobsQuery->fetch () ) {
-		
+ 		while ( $jobses = $jobsQuery->fetch()) {
+ 			
 			$jobsProdId = $jobses->productId ;
 			
 			if (! array_key_exists ( $jobsProdId, $productsForJobs )) {
@@ -385,19 +383,23 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
 		}
 		
 		
-		
 		//Извлича материалите и количествата им по филтрираните задания за производство
 		
 		if (is_array($productsForJobs)){
+			
 			foreach ($productsForJobs as $v){
 							
 				$lastActivBomm = cat_Products::getLastActiveBom ( $v->productId );
+					
+					if ($lastActivBomm){	
 						
-				$bommMaterials = cat_Boms::getBomMaterials($lastActivBomm->id,$lastActivBomm->quantity);
-				
+						$bommMaterials = cat_Boms::getBomMaterials($lastActivBomm->id,$lastActivBomm->quantity);
+					
+					}
 				
 				//Масив артикули и количество необходими за изпълнение на заданията //
 				if (is_array($bommMaterials)){
+					
 					foreach ($bommMaterials as $material){
 						
 						if (! array_key_exists ( $jobsProdId, $bommsMaterials )) {
@@ -421,6 +423,8 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
 						}
 					}
 				}
+				
+			
 			}
 
 		/*
@@ -442,6 +446,8 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
 				}
 			}
 		}
+		
+		
 		/*
 		 * Ако има повтарящи се артикули в материалите за призводство
 		 * и експедиционните нареждания се обединяват количествата
@@ -465,6 +471,8 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
 			
 			}
 		}
+		
+		
 		/*
 		 * Масив с всички необходими материали
 		 */
@@ -496,6 +504,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
 		}
 		
 		$products = (json_decode ( $rec->additional, false ));
+		
 		
 		/*
 		 * Премахваме повтарящи се артикули
@@ -605,24 +614,21 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
 		if ($export === FALSE) {
 			
 			$fld->FLD ( 'productId', 'varchar', 'caption=Артикул' );
-			// $fld->FLD('storeId', 'varchar', 'caption=Склад,tdClass=centered');
 			$fld->FLD ( 'measure', 'varchar', 'caption=Мярка,tdClass=centered' );
 			$fld->FLD ( 'quantity', 'double(smartRound,decimals=2)', 'caption=Количество->Разполагаемо,smartCenter' );
 			$fld->FLD ( 'receiptQuantity', 'double', 'caption=Количество->За получаване,smartCenter' );
 			$fld->FLD ( 'shipmentQuantity', 'double', 'caption=Количество->Необходимо->За експедиция,smartCenter' );
 			$fld->FLD ( 'jobsQuantity', 'double', 'caption=Количество->Необходимо->За производство,smartCenter' );
-	//		$fld->FLD ( 'neseseryQuantity', 'double', 'caption=Количество->Необходимо,smartCenter' );
 			$fld->FLD ( 'deliveryQuatity', 'double', 'caption=Количество->За доставка,smartCenter' );
 			
 		} else {
 			$fld->FLD ( 'productId', 'varchar', 'caption=Артикул' );
-			// $fld->FLD('storeId', 'varchar', 'caption=Склад,tdClass=centered');
 			$fld->FLD ( 'measure', 'varchar', 'caption=Мярка,tdClass=centered' );
 			$fld->FLD ( 'quantity', 'double(smartRound,decimals=2)', 'caption=Количество,smartCenter' );
 			$fld->FLD ( 'neseseryQuantity', 'double', 'caption=Необходимо->количество,smartCenter' );
 			$fld->FLD ( 'deliveryQuatity', 'double', 'caption=Количество->за доставка,smartCenter' );
-			//$fld->FLD ( 'conditionQuantity', 'text', 'caption=Състояние,tdClass=centered' );
-					}
+
+		}
 		
 		return $fld;
 	}
@@ -706,6 +712,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
 	 * @return array
 	 */
 	static function removeRpeadValues($arr) {
+		
 		$tempArr = ( array ) $arr;
 		
 		$tempProducts = array ();
