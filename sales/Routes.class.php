@@ -395,7 +395,7 @@ class sales_Routes extends core_Manager {
 			}
 		}
 		
-		if(($action == 'add' || $action == 'restore') && isset($rec->locationId)) {
+		if(($action == 'add' || $action == 'restore' || $action == 'changestate') && isset($rec->locationId)) {
 			if (crm_Locations::fetchField($rec->locationId, 'state') == 'rejected') {
 				$res = 'no_one';
 			}

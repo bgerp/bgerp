@@ -294,21 +294,16 @@ class crm_Locations extends core_Master {
     
     
     /**
-     * Реакция в счетоводния журнал при оттегляне на счетоводен документ
-     *
-     * @param core_Mvc $mvc
-     * @param mixed $res
-     * @param int|object $id първичен ключ или запис на $mvc
+     * Изпълнява се преди оттеглянето на документа
      */
-    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    public static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
     {
     	$rec = $mvc->fetchRec($id);
     	
-    	$rQuery = sales_Routes::getQuery();
-    	$rQuery->where("#locationId = {$rec->id}");
-    	while ($rRec = $rQuery->fetch()) {
-    		$rRec->state = 'rejected';
-    		sales_Routes::save($rRec, 'state');
+    	if(sales_Routes::fetch("#locationId = {$rec->id} AND #state != 'rejected' AND #state != 'closed'")){
+    		core_Statuses::newStatus('Локацията не може да се оттегли, докато има активни търговски маршрути към нея', 'error');
+    
+    		return FALSE;
     	}
     }
     
