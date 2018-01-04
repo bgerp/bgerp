@@ -1058,8 +1058,8 @@ class doc_Folders extends core_Master
             }
         }
         
-        // Проверяваме дали има права
-        if (!$rec || (!($haveRight) && $rec->access != 'private')) return FALSE;
+        // Ако няма права и е със секретен достъп
+        if (!$rec || (!($haveRight) && $rec->access == 'secret')) return FALSE;
 
         // Заглавието на файла във вербален вид
         $title = static::getVerbal($rec, 'title');
