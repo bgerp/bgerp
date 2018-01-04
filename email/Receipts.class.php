@@ -130,6 +130,7 @@ class email_Receipts extends email_ServiceEmails
                         $dQuery->where("#mid IS NOT NULL");
                         $dQuery->limit(1);
                         $dQuery->show('mid');
+                        $dQuery->orderBy('createdOn', 'DESC');
                         $dRec = $dQuery->fetch();
                         if ($dRec && $dRec->mid) {
                             
