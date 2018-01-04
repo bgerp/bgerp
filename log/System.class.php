@@ -185,7 +185,11 @@ class log_System extends core_Manager
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input($data->listFilter->showFields, 'silent'); 
-
+        
+        if (is_null(Request::get('date'))) {
+            $data->listFilter->setDefault('date', dt::now(FALSE));
+        }
+        
     	$query = $data->query;
         
         // Заявка за филтриране
