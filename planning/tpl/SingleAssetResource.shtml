@@ -38,11 +38,9 @@
             </ul>
         </fieldset>
     </div>
-    
-    <fieldset class="detail-info">
-            <legend class="groupTitle">|Норми|*</legend>
-            [#planning_AssetResourcesNorms#]
-        </fieldset>
+    <div style='margin-top:20px'>
+           [#planning_AssetResourcesNorms#]
+    </div>
     </div>
     [#DETAILS#]
 </div>

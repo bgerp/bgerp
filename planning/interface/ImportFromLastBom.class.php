@@ -8,33 +8,13 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Импорт на артикули от последната работна рецепта
  */
-class planning_interface_ImportFromLastBom extends import_drivers_Proto 
+class planning_interface_ImportFromLastBom extends planning_interface_ImportDriver 
 {
-    
- 
-	/**
-	 * Към кои класове може да се добавя драйвера
-	 *
-	 * @var string - изброените класове или празен клас за всички
-	 */
-    protected $allowedClasses = 'planning_ConsumptionNoteDetails';
-    
-    
-    /**
-     * Кой може да избира драйвъра
-     */
-    protected $canSelectDriver = 'ceo,planning,store';
-    
-    
-    /**
-     * Интерфейси, поддържани от този мениджър
-     */
-    public $interfaces = 'import_DriverIntf';
     
     
     /**
@@ -74,12 +54,10 @@ class planning_interface_ImportFromLastBom extends import_drivers_Proto
 		}
     }
     
+    
     /**
-     * Връща записите, подходящи за импорт в детайла.
-     * Съответстващия 'importRecs' метод, трябва да очаква
-     * същите данни (@see import_DestinationIntf)
+     * Връща записите, подходящи за импорт в детайла
      *
-     * @see import_DriverIntf
      * @param array $recs
      * 		o productId        - ид на артикула
      * 		o quantity         - к-во в основна мярка
@@ -91,7 +69,7 @@ class planning_interface_ImportFromLastBom extends import_drivers_Proto
      *
      * @return void
      */
-    public function getImportRecs(core_Manager $mvc, $rec)
+    private function getImportRecs(core_Manager $mvc, $rec)
     {
     	$recs = array();
     	if(!is_array($rec->detailsDef)) return $recs;
@@ -108,6 +86,21 @@ class planning_interface_ImportFromLastBom extends import_drivers_Proto
     	}
     	
     	return $recs;
+    }
+    
+    
+    /**
+     * Проверява събмитнатата форма
+     *
+     * @param core_Manager $mvc
+     * @param core_FieldSet $form
+     * @return void
+     */
+    public function checkImportForm($mvc, core_FieldSet $form)
+    {
+    	if($form->isSubmitted()){
+    		$form->rec->importRecs = $this->getImportRecs($mvc, $form->rec);
+    	}
     }
     
     
@@ -143,19 +136,22 @@ class planning_interface_ImportFromLastBom extends import_drivers_Proto
     /**
      * Може ли драйвера за импорт да бъде избран
      *
-     * @param core_Manager $mvc - клас в който ще се импортира
-     * @param int|NULL $userId  - ид на потребител
+     * @param   core_Manager    $mvc        - клас в който ще се импортира
+     * @param   int|NULL        $masterId   - ако импортираме в детайл, id на записа на мастъра му
+     * @param   int|NULL        $userId     - ид на потребител
+     *
      * @return boolean          - може ли драйвера да бъде избран
      */
-    public function canSelectDriver(core_Manager $mvc, $rec, $userId = NULL)
+    public function canSelectDriver(core_Manager $mvc, $masterId = NULL, $userId = NULL)
     {
-    	$result = parent::canSelectDriver($mvc, $rec, $userId);
-    	if($result === TRUE){
-    		$masterRec = $mvc->Master->fetchRec($rec);
+    	if(!($mvc instanceof planning_ConsumptionNoteDetails)) return FALSE;
+    	 
+    	if(isset($masterId)){
+    		$masterRec = $mvc->Master->fetchRec($masterId);
     		$bomId = self::getLastActiveBom($masterRec);
     		if(empty($bomId)) return FALSE;
     	}
-    	 
-    	return $result;
+    	
+    	return TRUE;
     }
 }

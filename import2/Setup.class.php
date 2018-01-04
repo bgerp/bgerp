@@ -3,17 +3,17 @@
 
 
 /**
- * Клас 'import_Setup' - Пакет за импорт
+ * Клас 'import2_Setup' - Пакет за импорт
  *
  *
  * @category  bgerp
- * @package   import
- * @author    Ivelin Dmov <ivelin_pdimov@abv.bg>
+ * @package   import2
+ * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class import_Setup extends core_ProtoSetup
+class import2_Setup extends core_ProtoSetup
 {
     
     
@@ -38,5 +38,5 @@ class import_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = "Пакет за импорт на данни в документи";
+    public $info = "Пакет за импорт на данни";
 }

@@ -426,6 +426,9 @@ class bank_OwnAccounts extends core_Master {
         	
         	if(!$rec->title) {
                 $rec->title = bank_Accounts::fetchField($rec->bankAccountId, 'iban');
+                if($accountRec) {
+                    $rec->title .= ', ' . currency_Currencies::getCodeById($accountRec->currencyId);
+                }
             }
         }
     }

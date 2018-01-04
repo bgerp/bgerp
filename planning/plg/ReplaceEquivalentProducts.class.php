@@ -93,8 +93,7 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
 			$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 			
 			// Рендиране на формата
-			$form = $form->renderHtml();
-			$res = $mvc->renderWrapping($form);
+			$res = $mvc->renderWrapping($form->renderHtml());
 			core_Form::preventDoubleSubmission($res, $form);
 			
 			// ВАЖНО: спираме изпълнението на евентуални други плъгини

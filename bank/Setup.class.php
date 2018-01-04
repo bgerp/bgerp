@@ -62,6 +62,7 @@ class bank_Setup extends core_ProtoSetup
         'bank_PaymentOrders',
         'bank_CashWithdrawOrders',
         'bank_DepositSlips',
+        'bank_Register',
     );
     
     

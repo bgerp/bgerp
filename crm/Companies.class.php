@@ -2068,9 +2068,10 @@ class crm_Companies extends core_Master
      * @param int $id - ид на контрагент
      * @param boolean $translitarate - дали да се транслитерира адреса
      * @param boolean|NULL $showCountry - да се показвали винаги държавата или Не, NULL означава че автоматично ще се определи
+     * @param boolean $showAddress      - да се показва ли адреса
      * @return core_ET $tpl - адреса
      */
-    public function getFullAdress($id, $translitarate = FALSE, $showCountry = NULL)
+    public function getFullAdress($id, $translitarate = FALSE, $showCountry = NULL, $showAddress = TRUE)
     {
     	expect($rec = $this->fetchRec($id));
     	
@@ -2092,6 +2093,8 @@ class crm_Companies extends core_Master
     	$Varchar = cls::get('type_Varchar');
     	foreach (array('pCode', 'place', 'address') as $fld){
     		if($rec->{$fld}){
+    			if($fld == 'address' && $showAddress !== TRUE) continue;
+    			
     			$obj->{$fld} = $Varchar->toVerbal($rec->{$fld});
     			if($translitarate === TRUE){
     				if($fld != 'pCode'){

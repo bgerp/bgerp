@@ -740,12 +740,6 @@ class planning_Jobs extends core_Master
     			$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
     		}
     	}
-    		
-    	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')){
-    		if(isset($rec->dueDate)){
-    			$row->dueDate = ht::createLink($row->dueDate, array('cal_Calendar', 'day', 'from' => $row->dueDate, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
-    		}
-    	}
     }
     
     
@@ -755,7 +749,6 @@ class planning_Jobs extends core_Master
     public static function getRecTitle($rec, $escaped = TRUE)
     {
     	$rec = static::fetchRec($rec);
-    	$self = cls::get(get_called_class());
     	$pTitle = cat_Products::getTitleById($rec->productId);
     	
     	return "Job{$rec->id} - {$pTitle}";
@@ -958,7 +951,9 @@ class planning_Jobs extends core_Master
     			$count++;
     		}
     		
-    		core_Statuses::newStatus(tr("|Затворени са|* {$count} |задачи по заданието|*"));
+    		if(!empty($count)){
+    			core_Statuses::newStatus(tr("|Затворени са|* {$count} |задачи по заданието|*"));
+    		}
     	}
     	
     	doc_Containers::touchDocumentsByOrigin($rec->containerId);

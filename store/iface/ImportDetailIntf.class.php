@@ -3,8 +3,7 @@
 
 
 /**
- * Интерфейс за сладови документи
- *
+ * Баща за импортиране на детайлите на складовите документи
  *
  * @category  bgerp
  * @package   store
@@ -13,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class store_iface_DocumentIntf
+class store_iface_ImportDetailIntf extends import2_DriverIntf 
 {
-    
+	
 }

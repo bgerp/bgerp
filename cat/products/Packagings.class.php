@@ -419,7 +419,7 @@ class cat_products_Packagings extends core_Detail
         
         $data->listFields = arr::make($this->listFields, TRUE);
         $shortMeasure = cat_UoM::getShortName($masterRec->measureId);
-        $data->listFields['quantity'] .= "|* <span class='small'>( {$shortMeasure} )</span>";
+        $data->listFields['quantity'] .= "|* <span class='small'>( |{$shortMeasure}|* )</span>";
     }
     
     

@@ -48,6 +48,12 @@ class hr_Departments extends core_Master
     
     
     /**
+     * Детайли
+     */
+    public $details = 'Centers=planning_Centers';
+    
+    
+    /**
      * Текущ таб
      */
     public $currentTab = 'Структура->Таблица';

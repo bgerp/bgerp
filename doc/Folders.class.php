@@ -1967,4 +1967,22 @@ class doc_Folders extends core_Master
     	
     	return $res;
     }
+
+
+    /**
+     * Връща id на папка от класа и id-то на корицата й
+     *
+     * @param   string|int  $coverClass
+     * @param   int         $coverId
+     *
+     * @return  int
+     */
+    public static function getIdByCover($coverClass, $coverId)
+    {
+        expect($mvc = cls::get($coverClass));
+        expect($rec = $mvc->fetch($coverId));
+        
+        return $rec->folderId;
+    }
+
 }

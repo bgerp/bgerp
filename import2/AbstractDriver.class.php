@@ -3,47 +3,36 @@
 
 
 /**
- * Помощен клас-имплементация на интерфейса import_DriverIntf
+ * Абстрактен драйвер за импортиране import2_AbstractDriver
  *
  * @category  bgerp
- * @package   import
- * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
+ * @package   import2
+ * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Базов клас за драйвери за импорт
+ * @title     Абстрактен клас за драйвери за импорт
  */
-abstract class import_drivers_Proto
+abstract class import2_AbstractDriver
 {
-	
-	
+
 	/**
-	 * Към кои класове може да се добавя драйвера
-	 *
-	 * @var string - изброените класове или празен клас за всички
+	 * Интерфейси, поддържани от този мениджър
 	 */
-	protected $allowedClasses = '';
-	
-	
-	/**
-	 * Кой може да избира драйвъра
-	 */
-	protected $canSelectDriver = 'powerUser';
-	
-	
+	public $interfaces = 'import2_DriverIntf';
+
+
 	/**
 	 * Може ли драйвера за импорт да бъде избран
-	 * 
-	 * @param core_Manager $mvc - клас в който ще се импортира
-	 * @param int|NULL $userId  - ид на потребител
+	 *
+	 * @param   core_Manager    $mvc        - клас в който ще се импортира
+     * @param   int|NULL        $masterId   - ако импортираме в детайл, id на записа на мастъра му
+	 * @param   int|NULL        $userId     - ид на потребител
+     *
 	 * @return boolean          - може ли драйвера да бъде избран
 	 */
-	public function canSelectDriver(core_Manager $mvc, $rec, $userId = NULL)
+	public function canSelectDriver(core_Manager $mvc, $masterId = NULL, $userId = NULL)
 	{
-		$allowed = arr::make($this->allowedClasses);
-		if(count($allowed) && !in_array($mvc->className, $allowed)) return FALSE;
-		if(!core_Users::haveRole($this->canSelectDriver, $userId)) return FALSE;
-		
 		return TRUE;
 	}
 	
