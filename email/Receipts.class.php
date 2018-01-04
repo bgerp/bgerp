@@ -67,11 +67,15 @@ class email_Receipts extends email_ServiceEmails
                         preg_match("/^.+{$accEmail}received=([a-z]+)@/i", $soup, $matches);
                     }
                 }
-                
-                if (empty($matches)) return;
             }
             
-            $mid = $matches[1];
+            if (!empty($matches)) {
+                $mid = $matches[1];
+            } else {
+                $mid = self::getMidFromReceipt($mime, $acc);
+            }
+            
+            if (!$mid) return ;
         } else {
             $mid = $forcedMid;
         }
@@ -98,6 +102,43 @@ class email_Receipts extends email_ServiceEmails
         }
 
         return $isReceipt;
+    }
+    
+    
+    /**
+     * В зависимост от съдържанието на заглавието и текста, се опитваме да определим mid за обратна разписка
+     * 
+     * @param email_Mime $mime
+     * @param integer $acc
+     * 
+     * @return string|NULL
+     */
+    protected static function getMidFromReceipt($mime, $acc)
+    {
+        $subject = trim($mime->getSubject());
+        $textPart = $mime->textPart;
+        
+        if ($subject) {
+            $subject = $mime->decodeHeader($subject);
+            
+            if (stripos($subject, 'read report') === 0) {
+                if (stripos($textPart, 'time of reading') !== FALSE) {
+                    $tId = email_ThreadHandles::extractThreadFromSubject($subject);
+                    if ($tId) {
+                        $dQuery = doclog_Documents::getQuery();
+                        $dQuery->where(array("#threadId = '[#1#]' AND #action = '[#2#]'", $tId, doclog_Documents::ACTION_SEND));
+                        $dQuery->where("#mid IS NOT NULL");
+                        $dQuery->limit(1);
+                        $dQuery->show('mid');
+                        $dRec = $dQuery->fetch();
+                        if ($dRec && $dRec->mid) {
+                            
+                            return $dRec->mid;
+                        }
+                    }
+                }
+            }
+        }
     }
     
     
