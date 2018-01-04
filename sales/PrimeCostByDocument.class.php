@@ -167,7 +167,11 @@ class sales_PrimeCostByDocument extends core_Manager
 	{
 		// Ако няма кеширани данни
 		if(!isset(static::$cache[$containerId])){
-			$Document = doc_Containers::getDocument($containerId);
+			try{
+				$Document = doc_Containers::getDocument($containerId);
+			} catch(core_exception_Expect $e){
+				return array();
+			}
 			
 			// Кой е първия документ в нишката
 			$threadId = $Document->fetchField('threadId');

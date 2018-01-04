@@ -273,7 +273,7 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      * @param mixed $rec     - ид или запис на артикул
      * @return NULL|varchar  - Допълнителните условия за дадения продукт
      */
-    public static function getHash($rec)
+    public function getHash($rec)
     {
     	return $this->class->getHash($rec);
     }

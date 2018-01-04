@@ -3,13 +3,13 @@
 
 
 /**
- * Локации
+ * Локации на котнрагенти
  *
  *
  * @category  bgerp
  * @package   crm
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -19,25 +19,25 @@ class crm_Locations extends core_Master {
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'cms_ObjectSourceIntf';
+    public $interfaces = 'cms_ObjectSourceIntf';
     
     
     /**
      * Заглавие
      */
-    var $title = "Локации на контрагенти";
+    public $title = "Локации на контрагенти";
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools2, crm_Wrapper, plg_Rejected, plg_RowNumbering, plg_Sorting, plg_Search, plg_Printing';
+    public $loadList = 'plg_Created, plg_RowTools2, crm_Wrapper, plg_Rejected, plg_Sorting, plg_Search';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "title, contragent=Контрагент, type, createdOn, createdBy";
+    public $listFields = "title, contragent=Контрагент, type, createdOn, createdBy";
     
     
     /**
@@ -49,55 +49,55 @@ class crm_Locations extends core_Master {
     /**
      * Кой може да пише
      */
-    var $canWrite = 'powerUser';
+    public $canWrite = 'powerUser';
     
     
     /**
      * Кой има достъп до единичния изглед
      */
-    var $canSingle = 'powerUser';
+    public $canSingle = 'powerUser';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'powerUser';
+	public $canList = 'powerUser';
     
 	
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Локация";
+    public $singleTitle = "Локация";
     
     
     /**
      * Икона на единичния обект
      */
-    var $singleIcon = 'img/16/location_pin.png';
+    public $singleIcon = 'img/16/location_pin.png';
     
     
     /**
 	 * Детайли към локацията
 	 */
-	var $details = 'routes=sales_Routes';
+	public $details = 'routes=sales_Routes';
 	
 	
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsSingleField = 'title';
+    public $rowToolsSingleField = 'title';
 
     
     /**
      * Шаблон за единичния изглед
      */
-    var $singleLayoutFile = 'crm/tpl/SingleLayoutLocation.shtml';
+    public $singleLayoutFile = 'crm/tpl/SingleLayoutLocation.shtml';
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'title, countryId, place, address, email, tel';
+    public $searchFields = 'title, countryId, place, address, email, tel';
     
 
     /**
@@ -134,7 +134,7 @@ class crm_Locations extends core_Master {
         $this->FLD('comment', 'richtext(bucket=Notes, rows=4)', 'caption=@Информация');
 
         $this->setDbUnique('gln');
-        $this->setDbIndex('contragentId');
+        $this->setDbIndex('contragentCls,contragentId');
     }
     
     
@@ -194,7 +194,6 @@ class crm_Locations extends core_Master {
         expect($Contragents instanceof core_Master);
         
         $contragentRec = $Contragents->fetch($rec->contragentId);
-        
         $Contragents->requireRightFor('edit', $contragentRec);
         
         $data->form->setDefault('countryId', $contragentRec->country);
@@ -202,9 +201,6 @@ class crm_Locations extends core_Master {
         $data->form->setDefault('pCode', $contragentRec->pCode);
         
         $contragentTitle = $Contragents->getTitleById($contragentRec->id);
-
-
-
         $data->form->setSuggestions('type', self::getTypeSuggestions());
     }
 
@@ -294,12 +290,25 @@ class crm_Locations extends core_Master {
     
     
     /**
+     * Изпълнява се преди оттеглянето на документа
+     */
+    protected static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
+    {
+    	$rec = $mvc->fetchRec($id);
+    	
+    	if(sales_Routes::fetch("#locationId = {$rec->id} AND #state != 'rejected' AND #state != 'closed'")){
+    		core_Statuses::newStatus('Локацията не може да се оттегли, докато има активни търговски маршрути към нея', 'error');
+    
+    		return FALSE;
+    	}
+    }
+    
+    
+    /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
     protected static function on_AfterSave($mvc, &$id, $rec, $fields = NULL)
     {
-    	$mvc->routes->changeState($id);
-    	
     	$mvc->updatedRecs[$id] = $rec;
     	
     	// Трябва да е тук, за да може да сработят on_ShutDown процесите
@@ -481,7 +490,6 @@ class crm_Locations extends core_Master {
         $query->where("#state != 'rejected'");
         
         $recs = array();
-        
         while($rec = $query->fetch()) {
             $recs[$rec->id] = $rec;
         }

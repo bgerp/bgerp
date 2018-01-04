@@ -2428,12 +2428,35 @@ class cal_Tasks extends embed_Manager
      * Добавя нотификация за приключена задача
      * 
      * @param stdObject $rec
+     * @param string $msg
+     * @param array $notifyUsersArr
+     * @param boolean $removeOldNotify
+     * @param boolean $closeThread
      */
-    public static function notifyForChanges($rec, $msg, $notifyUsersArr = array(), $removeOldNotify = FALSE)
+    public static function notifyForChanges($rec, $msg, $notifyUsersArr = array(), $removeOldNotify = FALSE, $closeThread = FALSE)
     {
         $rec = self::fetchRec($rec);
         
         if (!$rec) return ;
+        
+        if ($closeThread && $rec->threadId) {
+            $tRec = doc_Threads::fetch($rec->threadId);
+            
+            if ($tRec->state != 'closed') {
+                // Да няма входящ имейл в нишката
+                if (!email_Incomings::fetch(array("#threadId = '[#1#]' AND #state != 'rejected'", $tRec->id))) {
+                    // Ако няма други задачи
+                    if (!cal_Tasks::fetch(array("#id != [#1#] AND #threadId = '[#2#]' AND #state != 'rejected' AND #state != 'closed' AND #state != 'stopped' AND #state != 'draft'", $rec->id, $tRec->id))) {
+                        $tRec->state = 'closed';
+                        
+                        doc_Threads::save($tRec, 'state');
+                        doc_Threads::updateThread($tRec->id);
+                        
+                        Mode::set('updateThreadState', FALSE);
+                    }
+                }
+            }
+        }
         
         if (isset($notifyUsersArr) && empty($notifyUsersArr)) return ;
         
@@ -2474,14 +2497,17 @@ class cal_Tasks extends embed_Manager
     {
         $msg = '';
         $removeOldNotify = FALSE;
+        $closeThread = FALSE;
         switch ($state) {
             case 'closed':
                 $msg = 'Приключена';
                 $removeOldNotify = TRUE;
+                $closeThread = TRUE;
             break;
             
             case 'stopped':
                 $msg = 'Спряна';
+                $closeThread = TRUE;
             break;
                 
             case 'wakeup':
@@ -2512,9 +2538,7 @@ class cal_Tasks extends embed_Manager
             $cu = core_Users::getCurrent();
             unset($notifyUsersArr[$cu]);
             
-            if (!empty($notifyUsersArr)) {
-                cal_Tasks::notifyForChanges($rec, $msg, $notifyUsersArr, $removeOldNotify);
-            }
+            cal_Tasks::notifyForChanges($rec, $msg, $notifyUsersArr, $removeOldNotify, $closeThread);
         }
         
         // Променяме времето
@@ -3286,6 +3310,8 @@ class cal_Tasks extends embed_Manager
     function getThreadState($id)
     {
         if (!$id) return ;
+        
+        if (Mode::get('updateThreadState') === FALSE) return ;
         
         $rec = $this->fetchRec($id);
         

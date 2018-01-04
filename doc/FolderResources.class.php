@@ -353,6 +353,7 @@ class doc_FolderResources extends core_Manager
 		// Намиране на имената на папките
 		foreach ($suggestions as $key => &$v){
 			$fRec = doc_Folders::fetch($key, 'coverClass,title');
+			if(empty($fRec->coverClass)) continue;
 			$coverClassName = core_Classes::fetchField($fRec->coverClass, 'title');
 			$v = "{$fRec->title} ($coverClassName)";
 		}

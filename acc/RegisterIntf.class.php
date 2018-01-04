@@ -58,7 +58,7 @@ class acc_RegisterIntf
      * @param stdClass $rec
      * @return array
      */
-    public static function getLimitAccounts($rec)
+    public function getLimitAccounts($rec)
     {
     	return $this->class->getLimitAccounts($rec);
     }

@@ -8,49 +8,21 @@
  *
  * @category  bgerp
  * @package   import
- * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Интерфейс за импортиране на данни в мениджър
  */
-class import_DriverIntf
+class import2_DriverIntf
 {
-	
 	
 	/**
 	 * Инстанция на класа
 	 */
 	public $class;
 	
-	
-	/**
-	 * Към кои класове може да се добавя драйвера
-	 *
-	 * @var string - изброените класове или празен клас за всички
-	 */
-	protected $allowedClasses;
-	
-	
-	/**
-	 * Кой може да избира драйвъра
-	 */
-	protected $canSelectDriver;
-	
-	
-	/**
-	 * Може ли драйвера за импорт да бъде избран
-	 *
-	 * @param core_Manager $mvc - клас в който ще се импортира
-	 * @param int|NULL $userId  - ид на потребител
-	 * @return boolean          - може ли драйвера да бъде избран
-	 */
-	public function canSelectDriver(core_Manager $mvc, $rec, $userId = NULL)
-	{
-		return $this->class->canSelectDriver($mvc, $rec, $userId);
-	}
-	
-	
+		
 	/**
 	 * Добавя специфични полета към формата за импорт на драйвера
 	 *
@@ -91,16 +63,30 @@ class import_DriverIntf
 	
 	
 	/**
-	 * Връща записите, подходящи за импорт в детайла.
-	 * Съответстващия 'importRecs' метод, трябва да очаква
-	 * същите данни (@see import_DestinationIntf)
+	 * Изпълнява импортирането
 	 *
 	 * @param core_Manager $mvc
 	 * @param stdClass $rec
 	 * @return array $recs
 	 */
-	public function getImportRecs(core_Manager $mvc, $rec)
-	{
-		return $this->class->getImportRecs($mvc, $rec);
+	public function doImport(core_Manager $mvc, $rec)
+	{ 
+		return $this->class->doImport($mvc, $rec);
 	}
+
+
+	/**
+	 * Може ли драйвера за импорт да бъде избран
+	 *
+	 * @param   core_Manager    $mvc        - клас в който ще се импортира
+     * @param   int|NULL   $masterId   - ако импортираме в детайл, id на мастъра му
+	 * @param   int|NULL        $userId     - ид на потребител
+     *
+	 * @return boolean          - може ли драйвера да бъде избран
+	 */
+	public function canSelectDriver(core_Manager $mvc, $masterId = NULL, $userId = NULL)
+	{
+		return $this->class->canSelectDriver($mvc, $masterId, $userId);
+	}
+
 }

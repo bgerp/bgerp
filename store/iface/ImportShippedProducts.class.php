@@ -8,33 +8,25 @@
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Импорт на експедирани/доставени артикули
  */
-class store_iface_ImportShippedProducts extends import_drivers_Proto 
+class store_iface_ImportShippedProducts extends import2_AbstractDriver
 {
 	
 	
 	/**
-	 * Към кои класове може да се добавя драйвера
-	 *
-	 * @var string - изброените класове или празен клас за всички
+	 * Интерфейси, поддържани от този мениджър
 	 */
-	protected $allowedClasses = 'store_ShipmentOrderDetails,store_ReceiptDetails';
+	public $interfaces = 'store_iface_ImportDetailIntf';
 	
 	
 	/**
 	 * Кой може да избира драйвъра
 	 */
 	protected $canSelectDriver = 'ceo, store, purchase, sales';
-	
-	
-	/**
-	 * Интерфейси, поддържани от този мениджър
-	 */
-	public $interfaces = 'import_DriverIntf';
 	
 	
 	/**
@@ -109,9 +101,22 @@ class store_iface_ImportShippedProducts extends import_drivers_Proto
 	
 	
 	/**
-	 * Връща записите, подходящи за импорт в детайла.
-	 * Съответстващия 'importRecs' метод, трябва да очаква
-	 * същите данни (@see import_DestinationIntf)
+	 * Проверява събмитнатата форма
+	 *
+	 * @param core_Manager $mvc
+	 * @param core_FieldSet $form
+	 * @return void
+	 */
+	public function checkImportForm($mvc, core_FieldSet $form)
+	{
+		if($form->isSubmitted()){
+			$form->rec->importRecs = $this->getImportRecs($mvc, $form->rec);
+		}
+	}
+	
+	
+	/**
+	 * Връща записите, подходящи за импорт в детайла
 	 *
 	 * @see import_DriverIntf
 	 * @param array $recs
@@ -125,7 +130,7 @@ class store_iface_ImportShippedProducts extends import_drivers_Proto
 	 *
 	 * @return void
 	 */
-	public function getImportRecs(core_Manager $mvc, $rec)
+	private function getImportRecs(core_Manager $mvc, $rec)
 	{
 		$recs = array();
 		if(!is_array($rec->detailsDef)) return $recs;
@@ -183,21 +188,52 @@ class store_iface_ImportShippedProducts extends import_drivers_Proto
 	/**
 	 * Може ли драйвера за импорт да бъде избран
 	 *
-	 * @param core_Manager $mvc - клас в който ще се импортира
-	 * @param int|NULL $userId  - ид на потребител
+	 * @param   core_Manager    $mvc        - клас в който ще се импортира
+	 * @param   int|NULL        $masterId   - ако импортираме в детайл, id на записа на мастъра му
+	 * @param   int|NULL        $userId     - ид на потребител
+	 *
 	 * @return boolean          - може ли драйвера да бъде избран
 	 */
-	public function canSelectDriver(core_Manager $mvc, $rec, $userId = NULL)
+	public function canSelectDriver(core_Manager $mvc, $masterId = NULL, $userId = NULL)
 	{
-		$result = parent::canSelectDriver($mvc, $rec, $userId);
-		if($result === TRUE){
-			$masterRec = $mvc->Master->fetchRec($rec, 'isReverse,threadId');
+		if(isset($masterId)){
+			$masterRec = $mvc->Master->fetchRec($masterId, 'isReverse,threadId');
 			if($masterRec->isReverse != 'yes') return FALSE;
 			
 			$docs = $this->getShippedDocuments($mvc, $masterRec, 1);
 			if(!count($docs)) return FALSE;
 		}
-		 
-		return $result;
+		
+		return TRUE;
+	}
+	
+	
+	/**
+	 * Импортиране на детайла (@see import2_DriverIntf)
+	 * 
+	 * @param object $rec
+	 * @return void
+	 */
+	public function doImport(core_Manager $mvc, $rec)
+	{
+		if(!is_array($rec->importRecs)) return;
+		
+		foreach ($rec->importRecs as $rec){
+			expect($rec->productId, 'Липсва продукт ид');
+			expect(cat_Products::fetchField($rec->productId), 'Няма такъв артикул');
+			expect($rec->packagingId, 'Няма опаковка');
+			expect(cat_UoM::fetchField($rec->packagingId), 'Несъществуваща опаковка');
+			expect($rec->{$mvc->masterKey}, 'Няма мастър кей');
+			expect($mvc->Master->fetch($rec->{$mvc->masterKey}), 'Няма такъв запис на мастъра');
+			expect($mvc->haveRightFor('add', (object)array($mvc->masterKey => $rec->{$mvc->masterKey})), 'Към този мастър не може да се добавя артикул');
+	
+			$exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, NULL, NULL, $rec->batch, $rec->expenseItemId, $rec->notes);
+			if($exRec){
+				core_Statuses::newStatus('Записа, не е импортиран защото им дублаж', 'warning');
+				continue;
+			}
+				
+			$mvc->save($rec);
+		}
 	}
 }
