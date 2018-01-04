@@ -93,6 +93,7 @@ class crm_Setup extends core_ProtoSetup
             'crm_Profiles',
             'crm_Locations',
             'crm_Formatter',
+    		'crm_ext_ContragentInfo',
             'migrate::movePersonalizationData',
             'migrate::addCountryToCompaniesAndPersons',
             'migrate::updateSettingsKey',
