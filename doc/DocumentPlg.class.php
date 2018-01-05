@@ -2667,7 +2667,7 @@ class doc_DocumentPlg extends core_Plugin
         // MID се генерира само ако :
         //     o подготвяме документа за изпращане навън - !Mode::is('text', 'html')
         //     o има зададен екшън - doclog_Documents::hasAction()
-        if (!Mode::is('text', 'html') && doclog_Documents::hasAction()) {
+        if (!Mode::is('text', 'html') && doclog_Documents::hasAction() && !Mode::is('getLinkedFiles')) {
             if (!isset($options->rec->__mid)) {
                 
                 // Ако няма стойност
@@ -3281,6 +3281,8 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
         
+        $pushed = FALSE;
+        
         // Ако не са извлечени файловете или не сме в процес на извличане - форсираме процеса
         if ((!$oCid && $rec->containerId) || ($oCid && ($oCid != $rec->containerId))) {
             
@@ -3298,11 +3300,18 @@ class doc_DocumentPlg extends core_Plugin
                         $cInst->save_($cRec, 'docId');
                     }
                     
+                    Mode::push('getLinkedFiles', TRUE);
+                    $pushed = TRUE;
                     $docMvc->prepareDocument($cRec->docId);
                 }
             } catch (Exception $e) {
                 reportException($e);
             }
+            
+            if ($pushed) {
+                Mode::pop('getLinkedFiles');
+            }
+            
             Mode::pop('saveObjectsToCid');
         }
         
