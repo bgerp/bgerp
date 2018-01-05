@@ -139,11 +139,7 @@ class crm_ext_ContragentInfo extends core_manager
     				$fields = 'customerSince';
     			} else {
     				$fields = NULL;
-    				$exRec = (object)array('customerSince'     => $customerSince,
-    									   'contragentId'      => $contragentId,
-    						               'contragentClassId' => $contragentClassId,
-    						               'createdOn'         => dt::now(),
-    						               'createdBy'         => core_Users::SYSTEM_USER);
+    				$exRec = self::prepareNewRec($contragentClassId, $contragentId, array('customerSince' => $customerSince));
     			}
     			
     			self::save($exRec, $fields);
@@ -199,6 +195,30 @@ class crm_ext_ContragentInfo extends core_manager
     
     
     /**
+     * Подготвя нов запис
+     * 
+     * @param int $contragentClassId
+     * @param int $contragentId
+     * @param array $params
+     * @return StdClass
+     */
+    private static function prepareNewRec($contragentClassId, $contragentId, $params = array())
+    {
+    	$newArr = array('contragentId'      => $contragentId, 'contragentClassId' => $contragentClassId, 'createdBy' => core_Users::SYSTEM_USER);
+    	if(is_array($params)){
+    		$newArr += $params;
+    	}
+    	
+    	$newRec = (object)$newArr;
+    	if(empty($newRec->createdOn)){
+    		$newRec->createdOn = dt::now();
+    	}
+    	
+    	return $newRec;
+    }
+    
+    
+    /**
      * Презичислява балансите за периодите, в които има промяна ежеминутно
      */
     function cron_GatherInfo()
@@ -248,11 +268,7 @@ class crm_ext_ContragentInfo extends core_manager
 	    				}
 	    			} else {
 	    				// Ако няма предишен запис, и има дата записа се добавя
-	    				$saveArray[$cRec->id] = (object)array('customerSince'     => $customersSince[$cRec->id],
-    									   					  'contragentId'      => $cRec->id,
-    									   					  'contragentClassId' => $classId,
-    									   					  'createdOn'         => $now,
-    									  					  'createdBy'         => core_Users::SYSTEM_USER);
+	    				$saveArray[$cRec->id] = self::prepareNewRec($classId, $cRec->id, array('customerSince' => $customersSince[$cRec->id], 'createdOn' => $now));
 	    			}
 	    		}
 	    		
@@ -269,6 +285,11 @@ class crm_ext_ContragentInfo extends core_manager
 	    				}
 	    			}
 	    		}
+	    		
+	    		/*
+	    		if(!array_key_exists($cRec->id, $saveArray) && !array_key_exists($cRec->id, $exRecs)){
+	    			$saveArray[$cRec->id] = self::prepareNewRec($classId, $cRec->id, array('createdOn' => $now));
+	    		}*/
 	    	}
 	    	
 	    	// Запис на новите данни
