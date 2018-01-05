@@ -55,12 +55,6 @@ class crm_ext_ContragentInfo extends core_manager
     
     
     /**
-     * Работен кеш
-     */
-    private static $cache = array();
-    
-    
-    /**
      * Описание на модела
      */
     public function description()
@@ -135,12 +129,28 @@ class crm_ext_ContragentInfo extends core_manager
      */
     public static function getCustomerSince($contragentClassId, $contragentId)
     {
-    	$customerSince = self::fetchField("#contragentClassId = {$contragentClassId} AND #contragentId = {$contragentId}", 'customerSince');
-    	if(empty($customerSince)){
+    	$exRec = self::fetch("#contragentClassId = {$contragentClassId} AND #contragentId = {$contragentId}", 'id,customerSince');
+    	
+    	if(empty($exRec->customerSince)){
     		$customerSince = self::getFirstSaleDate($contragentClassId, $contragentId);
+    		if(!empty($customerSince)){
+    			if(is_object($exRec)){
+    				$exRec->customerSince = $customerSince;
+    				$fields = 'customerSince';
+    			} else {
+    				$fields = NULL;
+    				$exRec = (object)array('customerSince'     => $customerSince,
+    									   'contragentId'      => $contragentId,
+    						               'contragentClassId' => $contragentClassId,
+    						               'createdOn'         => dt::now(),
+    						               'createdBy'         => core_Users::SYSTEM_USER);
+    			}
+    			
+    			self::save($exRec, $fields);
+    		}
     	}
     	
-    	return $customerSince;
+    	return $exRec->customerSince;
     }
     
     
