@@ -552,6 +552,7 @@ class cal_Tasks extends embed_Manager
         
         if (is_array($data->recs)) {
             $me = cls::get(get_called_class());
+            $now = dt::now();
             foreach ($data->recs as $id => &$rec) {
                 $row = &$data->rows[$id];
                 
@@ -567,7 +568,16 @@ class cal_Tasks extends embed_Manager
                 }
                 
                 if ($rec->savedState) {
-                    $row->title = "<div class='state-{$rec->savedState}-link'>{$row->title}</div>";
+                    
+                    $sState = $rec->savedState;
+                    $tEnd = $rec->timeEnd;
+                    if (!$tEnd && $rec->timeStart) {
+                        $tEnd = $rec->expectationTimeEnd;
+                    }
+                    if (($tEnd) && ($tEnd < $now)) {
+                        $sState = 'late';
+                    }
+                    $row->title = "<div class='state-{$sState}-link'>{$row->title}</div>";
                 }
             }
         }
