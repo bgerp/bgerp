@@ -117,25 +117,36 @@ class email_Receipts extends email_ServiceEmails
     {
         $subject = trim($mime->getSubject());
         $textPart = $mime->textPart;
+        $maxTextLen = 500;
         
         if ($subject) {
             $subject = $mime->decodeHeader($subject);
             
-            if (stripos($subject, 'read report') === 0) {
-                if (stripos($textPart, 'time of reading') !== FALSE) {
-                    $tId = email_ThreadHandles::extractThreadFromSubject($subject);
-                    if ($tId) {
-                        $dQuery = doclog_Documents::getQuery();
-                        $dQuery->where(array("#threadId = '[#1#]' AND #action = '[#2#]'", $tId, doclog_Documents::ACTION_SEND));
-                        $dQuery->where("#mid IS NOT NULL");
-                        $dQuery->limit(1);
-                        $dQuery->show('mid');
-                        $dQuery->orderBy('createdOn', 'DESC');
-                        $dRec = $dQuery->fetch();
-                        if ($dRec && $dRec->mid) {
-                            
-                            return $dRec->mid;
-                        }
+            $tId = email_ThreadHandles::extractThreadFromSubject($subject);
+            
+            if ($tId) {
+                $returnMid = FALSE;
+                if (stripos($subject, 'read report') === 0) {
+                    if (stripos($textPart, 'time of reading') !== FALSE) {
+                        $returnMid = TRUE;
+                    }
+                } elseif (!$mime->getFiles() && (strlen($textPart) < $maxTextLen)) {
+                    if (stripos($textPart, 'this is a receipt for the mail') !== FALSE) {
+                        $returnMid = TRUE;
+                    }
+                }
+                
+                if ($returnMid) {
+                    $dQuery = doclog_Documents::getQuery();
+                    $dQuery->where(array("#threadId = '[#1#]' AND #action = '[#2#]'", $tId, doclog_Documents::ACTION_SEND));
+                    $dQuery->where("#mid IS NOT NULL");
+                    $dQuery->limit(1);
+                    $dQuery->show('mid');
+                    $dQuery->orderBy('createdOn', 'DESC');
+                    $dRec = $dQuery->fetch();
+                    if ($dRec && $dRec->mid) {
+                        
+                        return $dRec->mid;
                     }
                 }
             }
