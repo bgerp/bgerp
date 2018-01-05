@@ -72,7 +72,7 @@ class email_Receipts extends email_ServiceEmails
             if (!empty($matches)) {
                 $mid = $matches[1];
             } else {
-                $mid = self::getMidFromReceipt($mime, $acc);
+                $mid = self::getMidFromReceipt($mime, $accId);
             }
             
             if (!$mid) return ;
@@ -109,11 +109,11 @@ class email_Receipts extends email_ServiceEmails
      * В зависимост от съдържанието на заглавието и текста, се опитваме да определим mid за обратна разписка
      * 
      * @param email_Mime $mime
-     * @param integer $acc
+     * @param integer $accId
      * 
      * @return string|NULL
      */
-    protected static function getMidFromReceipt($mime, $acc)
+    protected static function getMidFromReceipt($mime, $accId)
     {
         $subject = trim($mime->getSubject());
         $textPart = $mime->textPart;
