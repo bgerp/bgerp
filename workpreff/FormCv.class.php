@@ -132,25 +132,28 @@ class workpreff_FormCv extends core_Master
         $this->FLD('email', 'emails', 'caption=Лични комуникации->Имейли,class=contactData,export=Csv');
         $this->FLD('tel', 'drdata_PhoneType(type=tel)', 'caption=Лични комуникации->Телефони,class=contactData,silent,export=Csv');
         $this->FLD('mobile', 'drdata_PhoneType(type=tel)', 'caption=Лични комуникации->Мобилен,class=contactData,silent,export=Csv');
+        $this->FLD('typeOfPosition', 'enum(,adm=Администрация,man=Производство, log=Логистика,sall=Продажби)', 'caption=Тип на позицията,mandatory,silent,refreshForm,allowEmpty');
 
         $period = '';$months = '';
-
+         
         for($i=1989;$i<=2017;$i++){
-                $period .= $i.'|';
+        	$period .= $i.'|';
         }
-
+         
         $monthsArr = array("Ян", "Фев", "Мар", "Апр", "Май", "Юни", "Юли", "Авг", "Сеп", "Окт", "Ное", "Дек");
-       foreach ($monthsArr as $m){
-        $months .= $m.'|';
-       }
-
+        foreach ($monthsArr as $m){
+        	$months .= $m.'|';
+        }
+         
         $this->FLD('workExperience', "table(columns=orgName|position|beginM|beginY|endM|endY,beginM_opt=$months,beginY_opt=$period,endM_opt=$months,endY_opt=$period,captions=Фирмa/Организация|Длъжност|ОТ мес|год|ДО мес|год,widths=20em|15em|4em|4em|4em|4em)", "caption=Трудов стаж||Extras->Месторабота||Additional,autohide,advanced,export=Csv");
-
+         
         $this->FLD('education', 'table(columns=school|specility|begin|end,captions=Учебно заведение|Степен/Квалификация|Начало|Край,widths=20em|15em|5em|5em)', "caption=Образование||Extras->Обучение||Additional,autohide,advanced,export=Csv");
-
+        
         $this->FLD('workpreff',"blob(compress,serialize)","caption = Предпочитания,input=none");
-
+        
+        
         $this->FLD('state', 'enum(draft=Чернова,active=Публикувана,rejected=Оттеглена)', 'caption=Състояние,input=none');
+       
     }
 
     /**
@@ -160,22 +163,26 @@ class workpreff_FormCv extends core_Master
      */
     protected static function on_AfterInputEditForm($mvc, $form)
     {
-
+    	
+   
         $preferencesForWork = array();
 
         if ($form->isSubmitted()){
-
+      
             $workpreff = new stdClass();
-
+            
+        
                 foreach ($form->rec as $k => $v) {
 
                     if (substr($k, 0, 10) == 'workpreff_') {
 
                        $nameChoice = workpreff_WorkPreff::getOptionsForChoice();
+                       
+                     
 
                         $preferencesForWork[] = (object)array(
-
-                            'id' => $nameChoice[substr($k, 10)]->name,
+                        
+                            'choice' => $nameChoice[substr($k, 10)]->name,
 
                             'value' => $v
 
@@ -185,8 +192,12 @@ class workpreff_FormCv extends core_Master
 
                 }
             $form->rec->workpreff = $preferencesForWork;
-        }
-    }
+            
+            
+           
+         }
+        
+   }
 
 
     /**
@@ -199,29 +210,59 @@ class workpreff_FormCv extends core_Master
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
+        
+        $rec = &$form->rec;
 
         $form->setDefault('country', drdata_Countries::getIdByName('bul'));
-
+     
+       if ($form->rec->typeOfPosition){
+   
         $options = workpreff_WorkPreff::getOptionsForChoice();
-
-        if (is_array($options)) {
-
-            foreach ($options as $v) {
-
-                if ($v->type == 'enum') {
-
-                    $form->FNC("workpreff_$v->id", "enum($v->parts)", "caption =$v->name->Избери,maxRadio=$v->count,input");
-
-                }
-
-                if ($v->type == 'set') {
-
-                    $form->FNC("workpreff_$v->id", "set($v->parts)", "caption =$v->name->Маркирай,input");
-
-                }
-
-            }
+        
+        if($rec->id) {
+        	
+        	
+        	$exRec = $mvc->fetch($rec->id);
+     
         }
+      
+	        if (is_array($options)) {
+	
+		            foreach ($options as $v) {
+		            	
+		            	
+		            	if(in_array($form->rec->typeOfPosition,$v->typeOfPosition)){
+		
+			                if ($v->type == 'enum') {
+			                	
+			                	
+			
+			                    $form->FLD("workpreff_{$v->id}", "enum($v->parts)", "caption={$v->name},maxRadio={$v->count},columns=3,input");
+			                    
+			
+			                }
+			
+			                if ($v->type == 'set') {
+			                	
+			                	
+			
+			                    $form->FLD("workpreff_{$v->id}", "set($v->parts)", "caption ={$v->name},input");
+			                    
+			                  
+			                   
+			                }
+			                
+			              //  $form->setDefault ("workpreff_$v->id", "$v->parts");
+			          
+		
+		            	} 
+		        
+		      	  }
+		      	  
+//bp($v,$rec);
+	            
+	        }
+         }
 
     }
 
@@ -299,7 +340,7 @@ class workpreff_FormCv extends core_Master
                     $printValue .= "<div>" . $vp . "</div>";
                 }
 
-                $prepare .= "<tr><td class='aright'>" . $v->id . ": " . "</td><td class='aleft' colspan='2'>" . $printValue . "</td></tr>";
+                $prepare .= "<tr><td class='aright'>" . $v->choice . ": " . "</td><td class='aleft' colspan='2'>" . $printValue . "</td></tr>";
 
             }
         }

@@ -12,38 +12,49 @@
  * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Избор на данни на Форма за CV
+ * @title     Детайли на Форма за CV
  */
 
 
-class workpreff_WorkPreff extends core_Manager
+class workpreff_WorkPreff extends core_Master
 {
-
 
     public $title = "Избор";
 
     public $loadList = 'plg_RowTools2,plg_Sorting, hr_Wrapper';
 
     function description()
+
     {
 
-        $this->FLD('name', 'varchar(255,ci)', 'caption=Предпочитания->Възможности,class=contactData,mandatory,remember=info,silent,export=Csv');
+        $this->FLD('name', 'varchar', 'caption=Предпочитания->Възможности,class=contactData,mandatory,remember=info,silent');
         $this->FLD('type', 'enum(set=Фиксиране, enum=Избор)', 'notNull,caption=Тип на избора,maxRadio=2,after=name');
-        $this->FLD('choice', 'text', 'caption=Информация->Предложения за избор,class=contactData,mandatory,remember=info,silent,removeAndRefreshForm, export=Csv');
-      //  $this->FLD('typeOfPosition', 'keylist()', 'caption=Тип на позицията,class=contactData,mandatory,remember=info,silent,removeAndRefreshForm');
+        $this->FLD('choice', 'text', 'caption=Информация->Предложения за избор,class=contactData,mandatory,remember=info,silent,removeAndRefreshForm');
+        $this->FLD('typeOfPosition', 'set(adm=Администрация,man=Производство, log=Логистика,sall=Продажби)', 'caption=Тип на позицията,mandatory');
+      
 
     }
-    public $options = array('A','B','C');
-    public $name = 'typeOfPosition';
+   
 
-    function setOptions($name,$options)
+  public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        bp($options);
-
-        $this->setField($name, array('options' => $options));
+    	
+    	$form = $data->form;
+    	
+ 
+   
     }
 
+    public static function on_AfterInputeditForm($mvc, &$form)
+    {
+		 
+      
 
+      
+
+
+    }
+    
 
 
     /**
@@ -55,6 +66,10 @@ class workpreff_WorkPreff extends core_Manager
        $query = self::getQuery();
 
         while ($rec = $query->fetch()){
+        	
+        	$typeOfPosition = explode(',', $rec->typeOfPosition);
+        	
+        
 
             $partsTemp = '';
 
@@ -74,6 +89,7 @@ class workpreff_WorkPreff extends core_Manager
                 'parts' => trim($partsTemp,','),
                 'name' => $rec->name,
                 'count' => $count,
+            	'typeOfPosition' =>$typeOfPosition,
 
             );
 
