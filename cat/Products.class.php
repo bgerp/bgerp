@@ -1369,6 +1369,7 @@ class cat_Products extends embed_Manager {
     	
     	// Частните артикули излизат преди публичните
     	if(count($private)){
+    		krsort($private);
     		$private = array('pr' => (object)array('group' => TRUE, 'title' => tr('Нестандартни'))) + $private;
     		
     		if($reverseOrder === TRUE){
