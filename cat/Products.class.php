@@ -483,7 +483,7 @@ class cat_Products extends embed_Manager {
     		
     		$form->setDefault('name', $sourceRec->title);
     		foreach ($fields as $name => $fld){
-    			$form->setDefault($name, $sourceRec->driverRec[$name]);
+    			$form->rec->{$name} = $sourceRec->driverRec[$name];
     		}
     	}
     	
@@ -1975,6 +1975,11 @@ class cat_Products extends embed_Manager {
     				$document = doc_Containers::getDocument($rec->originId);
     				if(!$document->haveInterface('marketing_InquiryEmbedderIntf')){
     					$res = 'no_one';
+    				} elseif(isset($rec->threadId)){
+    					$originThreadId = $document->fetchField('threadId');
+    					if($originThreadId != $rec->threadId){
+    						$res = 'no_one';
+    					}
     				}
     			}
     		}
