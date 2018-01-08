@@ -589,6 +589,10 @@ class sales_Quotations extends core_Master
     			$deliveryAdress .= $mvc->getFieldType('deliveryAdress')->toVerbal($rec->deliveryAdress);
     		} else {
     			if(isset($rec->deliveryTermId)){
+    				if($rec->deliveryPlaceId){
+    					$placeId = crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id');
+    				}
+    				
     				$deliveryAdress .= cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, NULL, $placeId, $mvc);
     				$deliveryAdress = ht::createHint($deliveryAdress, 'Адреса за доставка ще бъде записан при активиране');
     			}
