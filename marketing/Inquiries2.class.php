@@ -167,7 +167,7 @@ class marketing_Inquiries2 extends embed_Manager
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'title';
+    public $fieldsNotToClone = 'title,proto';
     
     
     /**
