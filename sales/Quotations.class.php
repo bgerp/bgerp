@@ -589,9 +589,7 @@ class sales_Quotations extends core_Master
     			$deliveryAdress .= $mvc->getFieldType('deliveryAdress')->toVerbal($rec->deliveryAdress);
     		} else {
     			if(isset($rec->deliveryTermId)){
-    				if($rec->deliveryPlaceId){
-    					$placeId = crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id');
-    				}
+    				$placeId = ($rec->deliveryPlaceId) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : NULL;
     				
     				$deliveryAdress .= cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, NULL, $placeId, $mvc);
     				$deliveryAdress = ht::createHint($deliveryAdress, 'Адреса за доставка ще бъде записан при активиране');
@@ -851,8 +849,8 @@ class sales_Quotations extends core_Master
 		// Запис на адреса
 		if(empty($rec->deliveryAdress) && isset($rec->deliveryTermId)){
 			
-			$locationId = ($newLocation) ? $newLocation->id : NULL;
 			$rec->tplLang = $mvc->pushTemplateLg($rec->template);
+			$locationId = ($rec->deliveryPlaceId) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : NULL;
 			$rec->deliveryAdress = cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, NULL, $locationId, $mvc);
 			$updateFields[] = 'deliveryAdress';
 			
