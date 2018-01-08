@@ -160,7 +160,7 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Кой може да добавя?
+     * Кой може да затваря?
      */
     public $canClose = 'cat,ceo';
     
