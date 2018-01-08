@@ -274,24 +274,30 @@ class cat_UoM extends core_Manager
     /**
      * Функция връщащи масив от всички мерки които са сродни
      * на посочената мярка (примерно за грам това са : килограм, тон и др)
-     * @param int $measureId - id на мярка
-     * @return array $options - всички мярки от същата категория
-     * като подадената
+     * 
+     * @param int $measureId
+     * @param boolean $short
+     * @return array $options
      */
     public static function getSameTypeMeasures($measureId, $short = FALSE)
     {
-    	expect($rec = static::fetch($measureId), "Няма такава мярка");	
+    	expect($rec = static::fetch($measureId, 'baseUnitId,id'), "Няма такава мярка");	
     	
     	$query = static::getQuery();
-    	($rec->baseUnitId) ? $baseId = $rec->baseUnitId : $baseId = $rec->id;
+    	$baseId = ($rec->baseUnitId) ? $rec->baseUnitId : $rec->id;
+    	
     	$query->where("#baseUnitId = {$baseId}");
     	$query->orWhere("#id = {$baseId}");
     	$query->show('shortName,name');
     	
-    	$options = array("" => "");
+    	$options = array();
     	while($op = $query->fetch()){
     		$cap = ($short) ? $op->shortName : $op->name;
     		$options[$op->id] = $cap;	
+    	}
+    	
+    	if(count($options)){
+    		$options = array("" => "") + $options;
     	}
     	
     	return $options;
