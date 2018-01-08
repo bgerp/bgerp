@@ -3211,9 +3211,9 @@ class cat_Products extends embed_Manager {
     	if(array_key_exists($toUomId, $kgUoms)){
     		if($paramValue = self::getParams($productId, 'weight')){
     			$res = cat_UoM::convertValue($paramValue, 'gr', $toUomId);
-    			return $res;
+    			return round($res, 4);
     		} elseif($paramValue = self::getParams($productId, 'weightKg')){
-    			return $paramValue;
+    			return round($paramValue, 4);
     		}
     	}
     	
