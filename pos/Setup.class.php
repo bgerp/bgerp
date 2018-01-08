@@ -31,6 +31,12 @@ defIfNot('POS_CLOSE_REPORTS_OLDER_THAN', 60 * 60 * 24 * 2);
 
 
 /**
+ *  Показване на бутона за отстъпка в терминала
+ */
+defIfNot('POS_SHOW_DISCOUNT_BTN', 'yes');
+
+
+/**
  * Модул "Точки на продажба" - инсталиране/деинсталиране
  *
  *
@@ -78,7 +84,8 @@ class pos_Setup extends core_ProtoSetup
     		'POS_SHOW_RECEIPT_DIGITS'      => array('double', 'caption=Цифри показващи се цифри от кода на бележката->Брой'),
     		'POS_CLOSE_REPORTS_PER_TRY'    => array("int", 'caption=По колко отчета да се приключват автоматично на опит->Брой,columns=2'),
     		'POS_CLOSE_REPORTS_OLDER_THAN' => array('time(uom=days,suggestions=1 ден|2 дена|3 дена)', 'caption=Автоматично приключване на отчети по стари от->Дни'),
-    );
+    		'POS_SHOW_DISCOUNT_BTN'        => array('enum(yes=Показване,no=Скриване)', 'caption=Показване на бутони в терминала->Отстъпка'),
+    ); 
     
 
     /**
