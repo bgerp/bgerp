@@ -3158,4 +3158,66 @@ class cat_Products extends embed_Manager {
     		return FALSE;
     	}
     }
+    
+    
+    /**
+     * Колко е 1-ца от артикула в посочената мярка
+     * 
+     * @param int $productId      - ид на артикула
+     * @param mixed $uom          - коя мярка 
+     * @param boolean $isSystemId - дали $uom  е систем ид или не
+     * @return NULL|double        - конвертираната стойност или NULL ако не може
+     */
+    public static function convertToUom($productId, $uom, $isSystemId = TRUE)
+    {
+    	// В коя мярка ще се преобразува 1-ца от артикила
+    	expect($measureId = self::fetchField($productId, 'measureId'));
+    	$toUomId = ($isSystemId === TRUE) ? cat_UoM::fetchBySysId($uom)->id : cat_UoM::fetch($uom)->id;
+    	expect($toUomId);
+    	
+    	// Ако основната мярка е подадената, то стойноста е 1
+    	if($toUomId == $measureId) return 1;
+    	
+    	// Извличане на мерките от същата група, като на $toUomId
+    	$sameTypeMeasures = cat_UoM::getSameTypeMeasures($toUomId);
+    	unset($sameTypeMeasures['']);
+    	
+    	// Ако основната мярка е от същата група, конвертира се към $toUomId
+    	if(array_key_exists($measureId, $sameTypeMeasures)){
+    		$res = cat_UoM::convertValue(1, $measureId, $toUomId);
+    		return $res;
+    	}
+    	
+    	// Ако артикула, има доп. мярка, която е от същата група като на $toUomId
+    	$pQuery = cat_products_Packagings::getQuery();
+    	$pQuery->where("#productId = {$productId}");
+    	$pQuery->in("packagingId", array_keys($sameTypeMeasures));
+    	$pQuery->orderBy('id', 'DESC');
+    	$pQuery->show('quantity,packagingId');
+    	while($pRec = $pQuery->fetch()){
+    		
+    		// Връща се отношението и за 1-ца към $toUomId
+    		if($res = cat_UoM::convertValue(1, $pRec->packagingId, $toUomId)){
+    			$res = round($res / $pRec->quantity, 4);
+    			return $res;
+    		}
+    	}
+    	
+    	// Ако търсената мярка е от групата на килограмите
+    	$kgUom = cat_UoM::fetchBySysId('kg')->id;
+    	$kgUoms = cat_UoM::getSameTypeMeasures($kgUom);
+    	
+    	// Взима се стойност от параметрите на артикула
+    	if(array_key_exists($toUomId, $kgUoms)){
+    		if($paramValue = self::getParams($productId, 'weight')){
+    			$res = cat_UoM::convertValue($paramValue, 'gr', $toUomId);
+    			return $res;
+    		} elseif($paramValue = self::getParams($productId, 'weightKg')){
+    			return $paramValue;
+    		}
+    	}
+    	
+    	// Ако се е стигнало до тук, не може да се конвертира
+    	return NULL;
+    }
 }
