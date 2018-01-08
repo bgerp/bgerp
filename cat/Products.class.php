@@ -3198,7 +3198,7 @@ class cat_Products extends embed_Manager {
     		
     		// Връща се отношението и за 1-ца към $toUomId
     		if($res = cat_UoM::convertValue(1, $pRec->packagingId, $toUomId)){
-    			$res = round($res / $pRec->quantity, 4);
+    			$res = $res / $pRec->quantity;
     			return $res;
     		}
     	}
@@ -3211,9 +3211,9 @@ class cat_Products extends embed_Manager {
     	if(array_key_exists($toUomId, $kgUoms)){
     		if($paramValue = self::getParams($productId, 'weight')){
     			$res = cat_UoM::convertValue($paramValue, 'gr', $toUomId);
-    			return round($res, 4);
+    			return $res;
     		} elseif($paramValue = self::getParams($productId, 'weightKg')){
-    			return round($paramValue, 4);
+    			return $paramValue;
     		}
     	}
     	
