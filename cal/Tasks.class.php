@@ -367,8 +367,8 @@ class cal_Tasks extends embed_Manager
         $data->form->setDefault('priority', 'normal');
         
         if ($defUsers = Request::get('DefUsers')) {
-            if (type_Keylist::isKeylist($defUsers) && $mvc->fields['sharedUsers']->type->toVerbal($defUsers)) {
-                $data->form->setDefault('sharedUsers', $defUsers);
+            if (type_Keylist::isKeylist($defUsers) && $mvc->fields['assign']->type->toVerbal($defUsers)) {
+                $data->form->setDefault('assign', $defUsers);
             }
         }
         
