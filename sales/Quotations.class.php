@@ -443,7 +443,7 @@ class sales_Quotations extends core_Master
 	    		$form->setError('deliveryPlaceId,deliveryAdress', 'Не може двете полета да са едновременно попълнени');
 	    	} elseif(!empty($rec->deliveryAdress)){
 	    		if(!drdata_Address::parsePlace($rec->deliveryAdress)){
-	    			$form->setError('deliveryAdress', 'Адреса не може да се парсира');
+	    			$form->setError('deliveryAdress', 'Адресът трябва да съдържа държава и пощенски код');
 	    		}
 	    	}
 		}
