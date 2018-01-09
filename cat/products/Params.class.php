@@ -204,12 +204,13 @@ class cat_products_Params extends doc_Detail
     		// Проверка на теглата (временно решение)
     		if($rec->classId == cat_Products::getClassId()){
     			$pSysId = cat_Params::fetchField($rec->paramId, 'sysId');
+    			
     			if(in_array($pSysId, array('weight', 'weightKg'))){
     				$weightPackagingsCount = cat_products_Packagings::countWeightPackagings($rec->productId);
     				$p = ($pSysId == 'weight') ? 'weightKg' : 'weight';
     				$otherPValue = cat_Products::getParams($rec->productId, $p);
     				
-    				if(!empty($otherPValue) && !$weightPackagingsCount){
+    				if((!empty($otherPValue) && !$weightPackagingsCount) || $weightPackagingsCount){
     					$mSysId = ($pSysId == 'weight') ? 'g' : 'kg';
     					$packagingId = cat_UoM::fetchBySysId($mSysId)->id;
     					$v = 1 / $rec->paramValue;
