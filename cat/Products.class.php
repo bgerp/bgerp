@@ -3163,17 +3163,16 @@ class cat_Products extends embed_Manager {
     /**
      * Колко е 1-ца от артикула в посочената мярка
      * 
-     * @param int $productId      - ид на артикула
-     * @param mixed $uom          - коя мярка 
-     * @param boolean $isSystemId - дали $uom  е систем ид или не
-     * @return NULL|double        - конвертираната стойност или NULL ако не може
+     * @param int $productId - ид на артикула
+     * @param mixed $uom     - мярка
+     * @param string|NULL    - от къде е намерена мярката
+     * @return NULL|double   - конвертираната стойност или NULL ако не може
      */
-    public static function convertToUom($productId, $uom, $isSystemId = TRUE)
+    public static function convertToUom($productId, $uom, &$source = NULL)
     {
     	// В коя мярка ще се преобразува 1-ца от артикила
     	expect($measureId = self::fetchField($productId, 'measureId'));
-    	$toUomId = ($isSystemId === TRUE) ? cat_UoM::fetchBySysId($uom)->id : cat_UoM::fetch($uom)->id;
-    	expect($toUomId);
+    	expect($toUomId = cat_UoM::fetchBySinonim($uom)->id);
     	
     	// Ако основната мярка е подадената, то стойноста е 1
     	if($toUomId == $measureId) return 1;
@@ -3199,6 +3198,8 @@ class cat_Products extends embed_Manager {
     		// Връща се отношението и за 1-ца към $toUomId
     		if($res = cat_UoM::convertValue(1, $pRec->packagingId, $toUomId)){
     			$res = $res / $pRec->quantity;
+    			
+    			$source = "cat_products_Packagings|{$pRec->id}";
     			return $res;
     		}
     	}
@@ -3211,8 +3212,10 @@ class cat_Products extends embed_Manager {
     	if(array_key_exists($toUomId, $kgUoms)){
     		if($paramValue = self::getParams($productId, 'weight')){
     			$res = cat_UoM::convertValue($paramValue, 'gr', $toUomId);
+    			$source = "cat_Params|weight";
     			return $res;
     		} elseif($paramValue = self::getParams($productId, 'weightKg')){
+    			$source = "cat_Params|weightKg";
     			return $paramValue;
     		}
     	}
