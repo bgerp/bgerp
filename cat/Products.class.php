@@ -3165,10 +3165,9 @@ class cat_Products extends embed_Manager {
      * 
      * @param int $productId - ид на артикула
      * @param mixed $uom     - мярка
-     * @param string|NULL    - от къде е намерена мярката
      * @return NULL|double   - конвертираната стойност или NULL ако не може
      */
-    public static function convertToUom($productId, $uom, &$source = NULL)
+    public static function convertToUom($productId, $uom)
     {
     	// В коя мярка ще се преобразува 1-ца от артикила
     	expect($measureId = self::fetchField($productId, 'measureId'));
@@ -3199,7 +3198,6 @@ class cat_Products extends embed_Manager {
     		if($res = cat_UoM::convertValue(1, $pRec->packagingId, $toUomId)){
     			$res = $res / $pRec->quantity;
     			
-    			$source = "cat_products_Packagings|{$pRec->id}";
     			return $res;
     		}
     	}
@@ -3212,10 +3210,8 @@ class cat_Products extends embed_Manager {
     	if(array_key_exists($toUomId, $kgUoms)){
     		if($paramValue = self::getParams($productId, 'weight')){
     			$res = cat_UoM::convertValue($paramValue, 'gr', $toUomId);
-    			$source = "cat_Params|weight";
     			return $res;
     		} elseif($paramValue = self::getParams($productId, 'weightKg')){
-    			$source = "cat_Params|weightKg";
     			return $paramValue;
     		}
     	}
