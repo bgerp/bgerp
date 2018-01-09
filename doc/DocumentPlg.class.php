@@ -774,60 +774,59 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_Shutdown($mvc)
     {
-    	if(count($mvc->pendingQueue)) {
-    		foreach ($mvc->pendingQueue as $rec){
+    	if (count($mvc->pendingQueue)) {
+    		foreach ($mvc->pendingQueue as $rec) {
     			$log = ($rec->state == 'pending') ? 'Документът става на заявка' : 'Документът се връща в чернова';
     			$mvc->logInAct($log, $rec);
     			
-    		    $notifyArr = array();
-    		    
-    			// Подготвяме потребителите, които ще получат нотификация за заявката
-    			if ($rec->folderId) {
-    				$fRec = doc_Folders::fetch($rec->folderId);
-    				$notifyArr = array($fRec->inCharge => $fRec->inCharge);
-    				 
-    				// Настройките на пакета
-    				$notifyPendingConf = doc_Setup::get('NOTIFY_PENDING_DOC');
-    				if ($notifyPendingConf == 'no') {
-    					$notifyArr = array();
-    				} elseif ($notifyPendingConf == 'yes') {
-    					$notifyArr += keylist::toArray($fRec->shared);
-    				}
-    			
-    				// Персоналните настройки на потребителите
-    				$pKey = crm_Profiles::getSettingsKey();
-    				$pName = 'DOC_NOTIFY_PENDING_DOC';
-    			
-    				$settingsNotifyArr = core_Settings::fetchUsers($pKey, $pName);
-    				 
-    				if ($settingsNotifyArr) {
-    					foreach ($settingsNotifyArr as $userId => $uConfArr) {
-    						if ($uConfArr[$pName] == 'no') {
-    							unset($notifyArr[$userId]);
-    						} elseif ($uConfArr[$pName] == 'yes') {
-    							if ($mvc->haveRightFor('single', $rec, $userId)) {
-    								$notifyArr[$userId] = $userId;
-    							}
-    						}
-    					}
-    				}
-    			}
-    			 
-    			$cu = core_Users::getCurrent();
-    			unset($notifyArr[$cu]);
-    			$urlArr = array($mvc, 'single', $rec->id);
-    			
     			// Ако документа е станал чакащ, генерира се събитие
-    			if($rec->state == 'pending'){
-    				 
+    			if ($rec->state == 'pending') {
+        		    $notifyArr = array();
+        		    
+        			// Подготвяме потребителите, които ще получат нотификация за заявката
+        			if ($rec->folderId) {
+        				$fRec = doc_Folders::fetch($rec->folderId);
+        				$notifyArr = array($fRec->inCharge => $fRec->inCharge);
+        				 
+        				// Настройките на пакета
+        				$notifyPendingConf = doc_Setup::get('NOTIFY_PENDING_DOC');
+        				if ($notifyPendingConf == 'no') {
+        					$notifyArr = array();
+        				} elseif ($notifyPendingConf == 'yes') {
+        					$notifyArr += keylist::toArray($fRec->shared);
+        				}
+        			
+        				// Персоналните настройки на потребителите
+        				$pKey = crm_Profiles::getSettingsKey();
+        				$pName = 'DOC_NOTIFY_PENDING_DOC';
+        			
+        				$settingsNotifyArr = core_Settings::fetchUsers($pKey, $pName);
+        				 
+        				if ($settingsNotifyArr) {
+        					foreach ($settingsNotifyArr as $userId => $uConfArr) {
+        						if ($uConfArr[$pName] == 'no') {
+        							unset($notifyArr[$userId]);
+        						} elseif ($uConfArr[$pName] == 'yes') {
+        							if ($mvc->haveRightFor('single', $rec, $userId)) {
+        								$notifyArr[$userId] = $userId;
+        							}
+        						}
+        					}
+        				}
+        			}
+        			
+        			$cu = core_Users::getCurrent();
+        			unset($notifyArr[$cu]);
+        			$urlArr = array($mvc, 'single', $rec->id);
+    				
     				// Нотифицираме потребителите за заявката
     				$currUserNick = core_Users::getCurrent('nick');
     				$currUserNick = type_Nick::normalize($currUserNick);
-    				 
+    				
     				$docRow = $mvc->getDocumentRow($rec->id);
     				$docTitle = $docRow->recTitle ? $docRow->recTitle : $docRow->title;
     				$folderTitle = doc_Folders::getTitleById($rec->folderId, FALSE);
-    			
+    			    
     				$message = "{$currUserNick} |създаде заявка за|* \"|{$docTitle}|*\" |в папка|* \"{$folderTitle}\"";
     				
     				$pSettingsKey = crm_Profiles::getSettingsKey();
