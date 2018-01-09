@@ -209,10 +209,11 @@ class cat_products_Params extends doc_Detail
     				$weightPackagingsCount = cat_products_Packagings::countWeightPackagings($rec->productId);
     				$p = ($pSysId == 'weight') ? 'weightKg' : 'weight';
     				$otherPValue = cat_Products::getParams($rec->productId, $p);
+    				$measureId = cat_Products::fetchField($rec->productId, 'measureId');
     				
     				if(!empty($otherPValue)){
     					$form->setError('paramId', 'Има вече параметър за тегло');
-    				} elseif($weightPackagingsCount) {
+    				} elseif($weightPackagingsCount || cat_UoM::isWeightMeasure($measureId)) {
     					$mSysId = ($pSysId == 'weight') ? 'g' : 'kg';
     					$packagingId = cat_UoM::fetchBySysId($mSysId)->id;
     					$v = 1 / $rec->paramValue;
