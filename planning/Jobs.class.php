@@ -537,8 +537,8 @@ class planning_Jobs extends core_Master
     		$rec->brutoWeight = ($weight) ? $weight : NULL;
     			
     		// Колко е еденичното тегло
-    		$weight = cat_Products::getParams($rec->productId, 'transportWeight');
-    		$rec->weight = ($weight) ? $weight * $rec->quantity : NULL;
+    		$weight = cat_Products::getWeight($rec->productId, NULL, $rec->quantity);
+    		$rec->weight = ($weight) ? $weight : NULL;
     		
     		if($rec->dueDate < dt::today()){
     			$form->setWarning('dueDate', 'Падежът е в миналото');
