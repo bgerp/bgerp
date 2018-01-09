@@ -622,4 +622,17 @@ class cat_UoM extends core_Manager
     		}
     	}
     }
+    
+    
+    /**
+     * Дали мярката е тегловна (грам, килограм, тон и т.н.)
+     * 
+     * @param int $uomId
+     * @return boolean
+     */
+    public static function isWeightMeasure($uomId)
+    {
+    	$kgUoms = cat_UoM::getSameTypeMeasures(cat_UoM::fetchBySysId('kg')->id);
+    	return array_key_exists($uomId, $kgUoms);
+    }
 }

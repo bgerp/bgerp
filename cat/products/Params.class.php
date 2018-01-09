@@ -194,6 +194,36 @@ class cat_products_Params extends doc_Detail
 
     
     /**
+     * Изпълнява се след въвеждане на данните от Request
+     */
+    protected static function on_AfterInputEditForm($mvc, $form)
+    {
+    	if ($form->isSubmitted()){
+    		$rec = &$form->rec;
+    		
+    		// Проверка на теглата (временно решение)
+    		if($rec->classId == cat_Products::getClassId()){
+    			$pSysId = cat_Params::fetchField($rec->paramId, 'sysId');
+    			if(in_array($pSysId, array('weight', 'weightKg'))){
+    				$weightPackagingsCount = cat_products_Packagings::countWeightPackagings($rec->productId);
+    				$p = ($pSysId == 'weight') ? 'weightKg' : 'weight';
+    				$otherPValue = cat_Products::getParams($rec->productId, $p);
+    				
+    				if(!empty($otherPValue) && !$weightPackagingsCount){
+    					$mSysId = ($pSysId == 'weight') ? 'g' : 'kg';
+    					$packagingId = cat_UoM::fetchBySysId($mSysId)->id;
+    					$v = 1 / $rec->paramValue;
+    					if($error = cat_products_Packagings::checkWeightQuantity($rec->productId, $packagingId, $v)){
+    						$form->setError('paramValue', $error);
+    					}
+    				}
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
      * След подготовката на заглавието на формата
      */
     protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)

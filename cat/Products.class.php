@@ -3190,7 +3190,7 @@ class cat_Products extends embed_Manager {
     	$pQuery = cat_products_Packagings::getQuery();
     	$pQuery->where("#productId = {$productId}");
     	$pQuery->in("packagingId", array_keys($sameTypeMeasures));
-    	$pQuery->orderBy('id', 'DESC');
+    	$pQuery->orderBy('id', 'ASC');
     	$pQuery->show('quantity,packagingId');
     	while($pRec = $pQuery->fetch()){
     		
