@@ -390,12 +390,6 @@ class cat_products_Packagings extends core_Detail
                 $form->setReadOnly('quantity');
             }
         }
-        
-        if($kgPack = self::getPack($rec->productId, $kgId)){
-        	if($kgPack != $rec->id){
-        		
-        	}
-        }
     }
     
    
