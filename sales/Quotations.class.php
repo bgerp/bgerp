@@ -222,7 +222,7 @@ class sales_Quotations extends core_Master
         $this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Oсвободено от ДДС, no=Без начисляване на ДДС)','caption=Плащане->ДДС,oldFieldName=vat');
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTermSale');
         $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Обект,hint=Изберете обект');
-        $this->FLD('deliveryAdress', 'varchar', 'caption=Доставка->Адрес');
+        $this->FLD('deliveryAdress', 'varchar', 'caption=Доставка->Място');
         
 		$this->FLD('company', 'varchar', 'caption=Получател->Фирма, changable, class=contactData');
         $this->FLD('person', 'varchar', 'caption=Получател->Име, changable, class=contactData');
