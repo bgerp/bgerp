@@ -206,9 +206,7 @@ class cat_products_Packagings extends core_Detail
     		$mWeight = cat_UoM::convertValue(1, $packagingId, 'kg');
     		$diff = $mWeight / $quantity;
     		if(round($diff, 4) != round($kgWeight, 4)){
-    			$dWeight = cat_UoM::convertValue(1, 'kg', $packagingId);
-    			$expected = core_Type::getByName('double(smartRound)')->toVerbal($mWeight / $kgWeight);
-    			return "Има разминаване спрямо очакваната стойност|* {$expected}";
+    			return "Има разминаване спрямо очакваната стойност";
     		}
     	}
     	
