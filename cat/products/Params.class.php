@@ -210,7 +210,9 @@ class cat_products_Params extends doc_Detail
     				$p = ($pSysId == 'weight') ? 'weightKg' : 'weight';
     				$otherPValue = cat_Products::getParams($rec->productId, $p);
     				
-    				if((!empty($otherPValue) && !$weightPackagingsCount) || $weightPackagingsCount){
+    				if(!empty($otherPValue)){
+    					$form->setError('paramId', 'Има вече параметър за тегло');
+    				} elseif($weightPackagingsCount) {
     					$mSysId = ($pSysId == 'weight') ? 'g' : 'kg';
     					$packagingId = cat_UoM::fetchBySysId($mSysId)->id;
     					$v = 1 / $rec->paramValue;
