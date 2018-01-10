@@ -206,7 +206,7 @@ class cat_products_Params extends doc_Detail
     			$pSysId = cat_Params::fetchField($rec->paramId, 'sysId');
     			
     			if(in_array($pSysId, array('weight', 'weightKg'))){
-    				$weightPackagingsCount = cat_products_Packagings::countSameTypePackagings($productId, 'kg');
+    				$weightPackagingsCount = cat_products_Packagings::countSameTypePackagings($rec->productId, 'kg');
     				$p = ($pSysId == 'weight') ? 'weightKg' : 'weight';
     				$otherPValue = cat_Products::getParams($rec->productId, $p);
     				$measureId = cat_Products::fetchField($rec->productId, 'measureId');
