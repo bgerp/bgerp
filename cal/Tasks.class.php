@@ -1462,7 +1462,9 @@ class cal_Tasks extends embed_Manager
         $row->recTitle = $rec->title;
         
         $Driver = $this->getDriver($id);
-        $Driver->prepareDocumentRow($rec, $row);
+        if ($Driver) {
+            $Driver->prepareDocumentRow($rec, $row);
+        }
         
         return $row;
     }
