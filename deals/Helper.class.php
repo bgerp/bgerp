@@ -984,10 +984,11 @@ abstract class deals_Helper
 	 * 
 	 * @param core_Detail $Detail
 	 * @param int $masterId
-	 * @param string $productFieldName
+	 * @param core_Master $Master
+	 * @param string|NULL $lg
 	 * @return array $res
 	 */
-	public static function getConditionsFromProducts($Detail, $masterId, $productFieldName = 'productId')
+	public static function getConditionsFromProducts($Detail, $Master, $masterId, $lg)
 	{
 		$res = array();
 		
@@ -995,22 +996,54 @@ abstract class deals_Helper
 		$Detail = cls::get($Detail);
 		$dQuery = $Detail->getQuery();
 		$dQuery->where("#{$Detail->masterKey} = {$masterId}");
-		$dQuery->show("{$productFieldName},quantity");
+		$dQuery->show("productId,quantity");
+		$type = ($Master instanceof purchase_Purchases) ? 'purchase' : (($Master instanceof sales_Quotations) ? 'quotation' : 'sale');
+		$allProducts = $productConditions = array();
 		
 		while($dRec = $dQuery->fetch()){
 			
 			// Опит за намиране на условията
-			$conditions = cat_Products::getConditions($dRec->{$productFieldName}, $dRec->quantity);
+			$conditions = cat_Products::getConditions($dRec->productId, $type, $lg);
+			$allProducts[$dRec->productId] = $dRec->productId;
 			
-			// Извличат се
-			if(count($conditions)){
-				foreach ($conditions as $t){
-					$value = preg_replace('!\s+!', ' ', str::mbUcfirst($t));
-					$key = mb_strtolower($value);
-					if(!array_key_exists($key, $res)){
-						$res[$key] = $value;
+            if(is_array($conditions)) {
+                foreach ($conditions as $t){
+                    
+                    // Нормализиране на условието
+                    $key = md5(strtolower(str::utf2ascii(trim($t))));
+                    $value = preg_replace('!\s+!', ' ', str::mbUcfirst($t));
+                    $res[$key] = $value;
+                    
+                    $productConditions[$key] = is_array($productConditions[$key]) ? $productConditions[$key] : array();
+                    
+                    // Запомня се кои артикули подават същото условие
+                    if(!array_key_exists($dRec->productId, $productConditions[$key])){
+                          $code = cat_Products::fetchField($dRec->productId, 'code');
+                          $code = (!empty($code)) ? $code : "Art{$dRec->productId}";
+                          $productConditions[$key][$dRec->productId] = $code;
+                    }
+                }
+            }
+		}
+		
+		foreach ($res as $key => &$val){
+			if(is_array($productConditions[$key]) && count($productConditions[$key]) != count($allProducts)){
+				$valSuffix = new core_ET(tr("За|* [#Articles#]"));
+				$valSuffix->replace(implode(',', $productConditions[$key]), 'Articles');
+				$valSuffix = " <i>(" . $valSuffix->getContent() . ")</i>";
+				
+				$bold = FALSE;
+				foreach (array('strong', 'b') as $tag){
+					if(preg_match("/<{$tag}>(.*)<\/{$tag}>/", $val, $m)){
+						$bold = $tag;
+						break;
 					}
 				}
+				
+				if($bold !== FALSE){
+					$valSuffix = "<{$bold}>{$valSuffix}</{$bold}>";
+				}
+				$val .= $valSuffix; 
 			}
 		}
 		
@@ -1099,14 +1132,14 @@ abstract class deals_Helper
 			} else {
 				$value = cat_Products::getVolume($productId, $packagingId, $quantity);
 			}
-				
-			if(!empty($value)){
+			
+			if(isset($value)){
 				$hint = TRUE;
 			}
 		}
 		
 		// Ако няма тегло не се прави нищо
-		if(empty($value)) return NULL;
+		if(!isset($value)) return NULL;
 		
 		$valueType = ($type == 'weight') ? 'cat_type_Weight(decimals=2)' : 'cat_type_Volume';
 		$value = round($value, 2);
@@ -1297,5 +1330,23 @@ abstract class deals_Helper
 			$Doc->getInstance()->save_($rec, 'autoPaymentType');
 			doc_DocumentCache::cacheInvalidation($rec->containerId);
 		}
+	}
+	
+	
+	/**
+	 * Помощен метод дали в даден тред на сделка да се показва бутона за фактура
+	 * 
+	 * @param int $threadId
+	 * @return boolean
+	 */
+	public static function showInvoiceBtn($threadId)
+	{
+		expect($firstDoc = doc_Threads::getFirstDocument($threadId));
+		if(!$firstDoc->isInstanceOf('deals_DealMaster')) return FALSE;
+		
+		$makeInvoice = $firstDoc->fetchField('makeInvoice');
+		$res = ($makeInvoice == 'yes') ? TRUE : FALSE;
+		
+		return $res;
 	}
 }

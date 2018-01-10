@@ -46,13 +46,7 @@ class core_App
 
             // Генерираме съдържанието
             $content = core_Request::forward();
-            
-            // Ако не сме в DEBUG режим и заявката е по AJAX
-            if (!isDebug() && $_SERVER['HTTP_X_REQUESTED_WITH']) {
-                log_System::add('core_App', "Стартиране на core_App::run() през AJAX");
-                return ;
-            }
-            
+                        
             // Опакова съдържанието
             $Wrapper = core_Cls::get('core_page_Wrapper');
             $Wrapper->render($content);
@@ -381,6 +375,21 @@ class core_App
         // Проверяваме състоянието на системата и ако се налага репортва
         self::checkHitStatus();
         
+        // Спираме изпълнението и излизаме
+        self::exitScript();
+    }
+
+
+    /**
+     * Излизаме от изпълнението на скрипта
+     */
+    public static function exitScript()
+    {
+        // Изтрива дебъг файла, ако няма фатална грешка
+        if (defined('DEBUG_FATAL_ERRORS_FILE')) {
+            @unlink(DEBUG_FATAL_ERRORS_FILE);
+        }
+
         // Излизаме със зададения статус
         exit();
     }
@@ -529,8 +538,11 @@ class core_App
     		$resObj = new stdClass();
     		$resObj->func = "redirect";
     		$resObj->arg = array('url' => $url);
-    			
-    		echo json_encode(array($resObj));
+            
+//     		header('Content-Type: application/json');
+//     		echo json_encode(array($resObj));
+            
+    		return self::getJson(array($resObj), FALSE);
     	} else {
 
             // Забранява кеширането. Дали е необходимо тук?
@@ -569,7 +581,7 @@ class core_App
      * 
      * $resArr array
      */
-    public static function getJson($resArr)
+    public static function getJson($resArr, $sendOutupt = TRUE)
     {
         // За да не се кешира
         header("Expires: Sun, 19 Nov 1978 05:00:00 GMT");
@@ -585,7 +597,7 @@ class core_App
         echo json_encode($resArr);
         
         // Прекратяваме процеса
-        self::shutdown();
+        self::shutdown($sendOutupt);
     }
     
     

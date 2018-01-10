@@ -175,7 +175,7 @@ class fileman_Setup extends core_ProtoSetup
        
        'FILEINFO_MAX_PREVIEW_PAGES'   => array ('int(min=1)', 'caption=Максимален брой на страниците|*&comma;| които ще се показват в изгледа->Брой'),
 
-       'FILEMAN_WEBDRV_ERROR_CLEAN'   => array ('time(suggestions=1 мин.|5 мин.|10 мин.|30 мин.|1 час)', 'caption=Време за живот на грешка при интексиране на файл->Време'), 
+       'FILEMAN_WEBDRV_ERROR_CLEAN'   => array ('time(suggestions=1 мин.|5 мин.|10 мин.|30 мин.|1 час)', 'caption=Време за живот на грешка при индексиране на файл->Време'),
        
        'FILEMAN_WEBDRV_PREVIEW_MULTIPLIER'   => array ('int(min=0, max=10)', 'caption=Увеличаване на размера на картинката при превю->Пъти'), 
 

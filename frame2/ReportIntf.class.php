@@ -23,6 +23,12 @@ class frame2_ReportIntf extends embed_DriverIntf
 	
 	
 	/**
+	 * Кои полета, може да се променят от poweruser
+	 */
+	protected $changeableFields;
+	
+	
+	/**
 	 * Добавя полетата на драйвера към Fieldset
 	 *
 	 * @param core_Fieldset $fieldset
@@ -135,5 +141,17 @@ class frame2_ReportIntf extends embed_DriverIntf
 	public function getNextRefreshDates($rec)
 	{
 		return $this->class->getNextRefreshDates($rec);
+	}
+	
+	
+	/**
+	 * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
+	 * 
+	 * @param stdClass $rec
+	 * @return array
+	 */
+	public function getChangeableFields($rec)
+	{
+		return $this->class->getChangeableFields($rec);
 	}
 }

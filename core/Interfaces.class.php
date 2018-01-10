@@ -61,20 +61,20 @@ class core_Interfaces extends core_Manager
     /**
      * Добавя интерфейса в този регистър
      */
-    function add($interface)
+    public static function add($interface)
     {
         $rec = new stdClass();
 
         $rec->name = $interface;
         $rec->title = cls::getTitle($interface);
 
-        $exRec = $this->fetch("#name = '{$interface}'");
+        $exRec = self::fetch("#name = '{$interface}'");
         if($exRec) {
             $rec->id = $exRec->id;
         } else {
             $inst = cls::get($interface);
             if($inst->oldClassName) {
-                $exRec = $this->fetch("#name = '{$inst->oldClassName}'");
+                $exRec = self::fetch("#name = '{$inst->oldClassName}'");
                 if($exRec) {
                     $rec->id = $exRec->id;
                 }
@@ -82,7 +82,7 @@ class core_Interfaces extends core_Manager
         }
 
         if(!$exRec || ($exRec->title != $rec->title)) {
-            $this->save($rec);
+            self::save($rec);
         }
         
         return $rec->id;
@@ -92,9 +92,9 @@ class core_Interfaces extends core_Manager
     /**
      * Връща id-то на посочения интерфейс
      */
-    function fetchByName($name)
+    public static function fetchByName($name)
     {
-        $id = $this->add($name);
+        $id = self::add($name);
         
         expect($id, 'Липсващ интерфейс', $name);
         
@@ -108,7 +108,7 @@ class core_Interfaces extends core_Manager
      * @param mixed $class string (име на клас) или object (инстанция) или int (ид на клас)
      * @return array ключове - ид на интерфейси, стойности - TRUE
      */
-    static function getInterfaceIds($class)
+    public static function getInterfaceIds($class)
     {
         if(is_scalar($class)) {
             $instance = cls::get($class);
@@ -116,25 +116,17 @@ class core_Interfaces extends core_Manager
             $instance = $class;
         }
         
-        // Очакваме, че $class е обект
-        expect(is_object($instance), $class);
-        
-        $list = $instance->interfaces = arr::make($instance->interfaces);
+        cls::prepareInterfaces($instance);
+
+        $list = $instance->interfaces;
         
         $result = array();
         
         if(count($list)) {
             // Вземаме инстанция на core_Interfaces
-            $self = cls::get(__CLASS__);     // Би било излишно, ако fetchByName стане static
-            foreach($list as $key => $value) {
-                if(is_numeric($key)) {
-                    $intfId = $self->fetchByName($value);
-                } else {
-                    $intfId = $self->fetchByName($key);
-                }
-                
+            foreach($list as $intf => $impl) {
                 // Добавяме id в списъка
-                $result[$intfId] = TRUE;
+                $result[self::fetchByName($intf)] = TRUE;
             }
         }
         
@@ -148,7 +140,7 @@ class core_Interfaces extends core_Manager
      * @param mixed $class string (име на клас) или object (инстанция) или int (ид на клас)
      * @return string keylist от ид-тата на интерфейсите
      */
-    static function getKeylist($class)
+    public static function getKeylist($class)
     {
         $keylist = self::getInterfaceIds($class);
         $keylist = keylist::fromArray($keylist);
@@ -160,7 +152,7 @@ class core_Interfaces extends core_Manager
     /**
      * Рутинен метод, премахва интерфейсите, които са от посочения пакет или няма код за тях
      */
-    static function deinstallPack($pack)
+    public static function deinstallPack($pack)
     {
         $query = self::getQuery();
         $preffix = $pack . "_";

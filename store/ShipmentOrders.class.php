@@ -43,7 +43,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_plg_StoreFilter,store_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
+    public $loadList = 'plg_RowTools2, store_plg_StoreFilter,store_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting,store_plg_Request, acc_plg_Contable, cond_plg_DefaultValues,
                     plg_Clone,doc_DocumentPlg, plg_Printing, trans_plg_LinesPlugin, acc_plg_DocumentSummary, doc_plg_TplManager,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices, doc_SharablePlg,deals_plg_SetTermDate,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search';
 
@@ -264,6 +264,10 @@ class store_ShipmentOrders extends store_DocumentMaster
     		if(!empty($rec->{$fld})){
     			if($fld == 'address'){
     				$row->{$fld} = core_Lg::transliterate($row->{$fld});
+    			} elseif($fld == 'tel'){
+    				if(callcenter_Talks::haveRightFor('list')){
+    					$row->{$fld} = ht::createLink($rec->{$fld}, array('callcenter_Talks', 'list', 'number' => $rec->{$fld}));
+    				}
     			}
     			
     			$row->deliveryTo .= ", {$row->{$fld}}";
@@ -606,10 +610,9 @@ class store_ShipmentOrders extends store_DocumentMaster
     					$data->toolbar->addBtn('Проформа', array('sales_Proformas', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на проформа фактура към експедиционното нареждане,ef_icon=img/16/proforma.png');
     				}
     			}
-    			
     		}
     		
-    		if($rec->state == 'active' || $rec->state == 'draft' || $rec->state == 'pending'){
+    		if(deals_Helper::showInvoiceBtn($rec->threadId) && in_array($rec->state, array('draft', 'active', 'pending'))){
     				
     				// Ако има фактура към протокола, правим линк към нея, иначе бутон за създаване на нова
     				if($iRec = sales_Invoices::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")){
@@ -622,6 +625,17 @@ class store_ShipmentOrders extends store_DocumentMaster
     						$data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на фактура към експедиционното нареждане,ef_icon=img/16/invoice.png,row=2');
     					}
     				}
+    			}
+    		}
+    		
+    		// Бутони за редакция и добавяне на ЧМР-та
+    		if(in_array($rec->state, array('active', 'pending'))) {
+    			if($cmrId = trans_Cmrs::fetchField("#originId = {$rec->containerId} AND #state != 'rejected'")){
+    				if(trans_Cmrs::haveRightFor('single', $cmrId)){
+    					$data->toolbar->addBtn("ЧМР", array('trans_Cmrs', 'single', $cmrId, 'ret_url' => TRUE), "title=Преглед на|* #CMR{$cmrId},ef_icon=img/16/lorry_go.png");
+    				}
+    			} elseif(trans_Cmrs::haveRightFor('add', (object)array('originId' => $rec->containerId))){
+    				$data->toolbar->addBtn("ЧМР", array('trans_Cmrs', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'title=Създаване на ЧМР към експедиционното нареждане,ef_icon=img/16/lorry_add.png');
     			}
     		}
     	}

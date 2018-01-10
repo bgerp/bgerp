@@ -33,7 +33,7 @@ class crm_PersonsDetails extends core_Manager
 		
 		$employeeId = crm_Groups::getIdFromSysId('employees');
 		if(keylist::isIn($employeeId, $data->masterData->rec->groupList)){
-			$data->Codes = cls::get('crm_ext_Employees');
+			$data->Codes = cls::get('planning_Hr');
 			$data->TabCaption = 'HR';
 		}
 		
@@ -43,7 +43,7 @@ class crm_PersonsDetails extends core_Manager
 			$data->Indicators->preparePersonIndicators($data);
 		}
 		
-		$eQuery = crm_ext_Employees::getQuery();
+		$eQuery = planning_Hr::getQuery();
 		$eQuery->where("#personId = '{$data->masterId}'"); 
 	
 		while($eRec = $eQuery->fetch()){
@@ -68,8 +68,8 @@ class crm_PersonsDetails extends core_Manager
 		
 		if(isset($data->Codes)){
 		    $data->Codes->prepareData($data);
-		    if(crm_ext_Employees::haveRightFor('add', (object)array('personId' => $data->masterId))){
-		        $data->addResourceUrl = array('crm_ext_Employees', 'add', 'personId' => $data->masterId, 'ret_url' => TRUE);
+		    if(planning_Hr::haveRightFor('add', (object)array('personId' => $data->masterId))){
+		        $data->addResourceUrl = array('planning_Hr', 'add', 'personId' => $data->masterId, 'ret_url' => TRUE);
 		    }
 		}
 	}

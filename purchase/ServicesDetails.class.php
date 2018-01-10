@@ -93,6 +93,7 @@ class purchase_ServicesDetails extends deals_DeliveryDocumentDetail
     {
     	$this->FLD('shipmentId', 'key(mvc=purchase_Services)', 'column=none,notNull,silent,hidden,mandatory');
     	parent::setDocumentFields($this);
+    	$this->setFieldTypeParams('packQuantity', "Min=0");
     }
     
     

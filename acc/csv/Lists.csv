@@ -15,4 +15,4 @@
 502,"Безналични методи за плащане","cond_PaymentAccRegIntf","nonCash","yes"
 503,"Банкови сметки","bank_OwnAccRegIntf","bankAcc","no"
 600,"Разходни обекти","doc_DocumentIntf","costObjects","no"
-610,"Центрове на дейност","hr_DepartmentAccRegIntf","departments","no"
+610,"Центрове на дейност","planning_ActivityCenterIntf","departments","no"

@@ -72,7 +72,14 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
     				acc_journal_RejectRedirect::expect(FALSE, "Дебитното/кредитното известие не може да бъде контирано, докато сумата е нула");
     			}
     		}
-    	} 
+    	} else {
+    		if(Mode::get('saveTransaction')){
+    			$noZeroQuantity = purchase_InvoiceDetails::fetch("#invoiceId = {$rec->id} AND (#quantity IS NOT NULL && #quantity != '' && #quantity != 0)");
+    			if(empty($noZeroQuantity) && empty($rec->dpAmount)){
+    				acc_journal_RejectRedirect::expect(FALSE, "Трябва да има поне един ред с ненулево количество|*!");
+    			}
+    		}
+    	}
     	 
     	if($origin->isInstanceOf('findeals_AdvanceReports')){
     		$origin = $origin->getOrigin();

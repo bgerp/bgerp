@@ -400,7 +400,10 @@ class marketing_Inquiries2 extends embed_Manager
      */
     protected static function on_AfterCreate($mvc, $rec)
     {
-    	$mvc->sendNotificationEmailQueue[$rec->id] = $rec;
+    	// Изпращане на нотифициращ имейл само ако създателя не е контрактор
+    	if(!core_Users::isContractor($rec->createdBy)){
+    		$mvc->sendNotificationEmailQueue[$rec->id] = $rec;
+    	}
     	
     	// Ако запитването е в папка на контрагент вкарва се в група запитвания
     	$Cover = doc_Folders::getCover($rec->folderId);

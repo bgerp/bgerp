@@ -93,7 +93,8 @@ class cal_TaskConditions extends core_Detail
 
         // Колко време е отнело изпълнението?
         $this->FLD('distTime', 'time(suggestions=1 час|2 часа|3 часа|1 ден|2 дена|3 дена|1 седм.|2 седм.|3 седм.|1 месец)', 'caption=Условия->Отместване с, input=none');
-
+        
+        $this->setDbIndex('baseId');
     }
 
 

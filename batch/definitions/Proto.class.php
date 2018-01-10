@@ -281,7 +281,7 @@ abstract class batch_definitions_Proto extends core_BaseClass
      */
     public function canAutoAllocate()
     {
-    	return ($this->rec->autoAllocate) ? TRUE : FALSE;
+    	return ($this->rec->autoAllocate == 'yes') ? TRUE : FALSE;
     }
     
     

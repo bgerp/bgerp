@@ -211,19 +211,19 @@ class doc_Setup extends core_ProtoSetup
         'DOC_SEARCH_FOLDER_CNT' => array ('int(Min=0)', 'caption=Колко папки от последно отворените да се показват при търсене->Брой'),
         'DOC_SEARCH_LIMIT' => array ('int(Min=0)', 'caption=Колко документ/нишки да се показват при търсене->Брой'),
 
-        'DOC_NOTIFY_FOR_NEW_DOC' => array ('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Нотификация за добавен документ в нишка->Избор, customizeBy=powerUser'),
+        'DOC_NOTIFY_FOR_NEW_DOC' => array ('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване за добавен документ в нишка->Избор, customizeBy=powerUser'),
         'DOC_NOTIFY_NEW_DOC_TYPE' => array ('keylist(mvc=core_Classes, select=title)', 'caption=Известяване при нов документ->Задължително, customizeBy=powerUser, optionsFunc=doc_Setup::getAllDocClassOptions'),
         'DOC_STOP_NOTIFY_NEW_DOC_TYPE' => array ('keylist(mvc=core_Classes, select=title)', 'caption=Известяване при нов документ->Никога, customizeBy=powerUser, optionsFunc=doc_Setup::getAllDocClassOptions'),
         'DOC_NOTIFY_FOR_CONTO' => array ('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при контиране->Избор, customizeBy=powerUser'),
         'DOC_NOTIFY_FOLDERS_SHARED_USERS' => array ('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване на споделените потребители на папка->Избор, customizeBy=powerUser'),
-        'DOC_NOTIFY_PENDING_DOC' => array ('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Нотификация за създадени чакащи документи->Избор, customizeBy=powerUser'),
+        'DOC_NOTIFY_PENDING_DOC' => array ('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване за създадени документи->Заявки, customizeBy=powerUser'),
         
         'DOC_SHOW_DOCUMENTS_BEGIN' => array ('int(Min=0)', 'caption=Задължително показване на документи в нишка->В началото, customizeBy=user'),
         'DOC_SHOW_DOCUMENTS_END' => array ('int(Min=0)', 'caption=Задължително показване на документи в нишка->В края, customizeBy=user'),
         'DOC_SHOW_DOCUMENTS_LAST_ON' => array ('time(suggestions=1 ден|3 дни|5 дни|1 седмица)', 'caption=Задължително показване на документи в нишка->По-нови от, customizeBy=user'),
         'DOC_HIDE_TEXT_AFTER_LENGTH' => array ('int(min=0)', 'caption=Брой символи над които текста ще е скрит->Брой, customizeBy=user'),
         'DOC_CACHE_LIFETIME' => array("time(suggestions=0 мин.|2 мин.|3 мин.|4 мин.|5 мин.|6 мин.|7 мин.|8 мин.|9 мин.)", "caption=Кеширане на документите->Време"),
-        'DOC_NOTIFY_FOR_OPEN_IN_REJECTED_USERS' => array("userList", "caption=Нотификация за отворени теми в папки на оттеглени потребители->Потребители"),
+        'DOC_NOTIFY_FOR_OPEN_IN_REJECTED_USERS' => array("userList", "caption=Известяване за отворени теми в папки на оттеглени потребители->Потребители"),
         'DOC_DELETE_REJECTED_THREADS_PERIOD'  => array('time(suggestions=15 дни|1 месец|6 месеца|1 година)', 'caption=След колко време да се изтриват оттеглените нишки->Време'),
     );
 
@@ -251,6 +251,7 @@ class doc_Setup extends core_ProtoSetup
     	'doc_View',
     	'doc_Linked',
     	'doc_LinkedTemplates',
+    	'doc_FolderResources',
         'migrate::repairBrokenFolderId',
         'migrate::repairLikeThread',
         'migrate::repairFoldersKeywords',
@@ -806,6 +807,7 @@ class doc_Setup extends core_ProtoSetup
         $res .= $this->callMigrate('threadsVisibleForPartners', 'doc');
         $res .= $this->callMigrate('addDefaultNotifyOptions', 'doc');
         $res .= $this->callMigrate('showDocumentsAsButtonsFrame', 'doc');
+        $res .= $this->callMigrate('repairAssignField', 'doc');
         
         return $res;
     }
@@ -981,6 +983,72 @@ class doc_Setup extends core_ProtoSetup
             doc_UnsortedFolders::save($rec, 'showDocumentsAsButtons');
             
             doc_UnsortedFolders::logNotice('Сменени бързи бутони за справки, към общия отчет', $rec->id);
+        }
+    }
+    
+    
+    /**
+     * Миграция за оправяне на полето за възложено
+     */
+    public function repairAssignField()
+    {
+        foreach (array('cal_Tasks', 'support_Issues') as $clsName) {
+            if (!cls::load($clsName, TRUE)) continue;
+            
+            $clsInst = cls::get($clsName);
+            
+            if (!$clsInst->db->tableExists($clsInst->dbTableName)) continue;
+            
+            if (!$clsInst->db->isFieldExists($clsInst->dbTableName, str::phpToMysqlName('assign'))) continue ;
+            
+            $query = $clsInst->getQuery();
+            $query->where("#assign IS NOT NULL");
+            $query->where("#assign != ''");
+            
+            while ($rec = $query->fetch()) {
+                
+                if (type_keylist::isKeylist($rec->assign)) continue;
+                
+                $rec->assign = type_Keylist::fromArray(array($rec->assign => $rec->assign));
+                
+                try {
+                    $clsInst->save($rec, 'assign');
+                } catch (core_exception_Expect $e) {
+                    reportException($e);
+                }
+            }
+            
+            if (!$clsInst->db->isFieldExists($clsInst->dbTableName, str::phpToMysqlName('sharedUsers'))) continue ;
+            
+            // Добавяме споделените потребители, към възложените
+            $query2 = $clsInst->getQuery();
+            $query2->where("#sharedUsers IS NOT NULL");
+            $query2->where("#sharedUsers != ''");
+            while ($rec = $query2->fetch()) {
+                
+                $saveField = 'assign';
+                
+                if ($rec->assign == $rec->sharedUsers) continue;
+                
+                $rec->assign = type_Keylist::merge($rec->assign, $rec->sharedUsers);
+                
+                // Полетата ги попълваме с данните на създателя
+                if (!isset($rec->assignedOn)) {
+                    $rec->assignedOn = $rec->createdOn;
+                    $saveField .= ',assignedOn';
+                }
+                
+                if (!isset($rec->assignedBy)) {
+                    $rec->assignedBy = $rec->createdBy;
+                    $saveField .= ',assignedBy';
+                }
+                
+                try {
+                    $clsInst->save($rec, $saveField);
+                } catch (core_exception_Expect $e) {
+                    reportException($e);
+                }
+            }
         }
     }
 }

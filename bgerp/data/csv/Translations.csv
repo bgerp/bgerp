@@ -212,6 +212,7 @@ en,Брой символи н_ba39a,Number of characters over which the text wil
 en,Брой фирми,Number of companies
 en,Брой,Number
 en,Брояч,Counter
+en,Бруто,Gross
 en,Бутони за проследяване в социалните мрежи,Buttons for followers in social networks
 en,Бутони за споделяне в социални мрежи,Buttons for sharing in social networks
 en,Бутони,Buttons
@@ -290,7 +291,8 @@ en,Време на събит_f37a6,Event time
 en,Време,Time
 en,Времена,Times
 en,Времена->Продъ_1a71e,Times-> Duration
-en,Връзки,links
+en,Връзки,Links
+en,Връзка,Link
 en,Връщане към до_e8900,Return to a document
 en,Връщане,Returns
 en,Все още няма ба_4e42,No bank accounts yet
@@ -502,7 +504,9 @@ en,Добавяне на но_ef55d,Adding a New Task
 en,Добавяне на оп_42af5,Add packaging for 
 en,Добавяне на файл(ове),Add file(s)
 en,Добавяне на файлове/документи,Add files/documents
-en,Добавяне на,Adding new
+en,Добавяне на,Add new
+en,Договор,Contract
+en,договор,contract
 en,Договори за по_be298,Purchase contracts
 en,Договори за пр_491bd,Sales contracts
 en,Документ тип,Document type
@@ -585,7 +589,10 @@ en,За плащане,For payment
 en,За получаване _f5844,Shipment address
 en,За фактуриране,For invoice
 en,За,Re
-en,Забележки,Notice
+en,Забележки,Remarks
+en,забележки,remarks
+en,Забележка,Remark
+en,забележка,remark
 en,Забранени,Prohibited
 en,Заглавие,Title
 en,Заглавия,Headings
@@ -653,7 +660,7 @@ en,Избери,Choose
 en,Избор на документ,Select document
 en,Избор на папка _ac67,Choose folder for the thread
 en,Избор на папка,Folder selection
-en,Избор,Choise
+en,Избор,Choice
 en,Известие,Notification
 en,Известия,Notifications
 en,Известяване,Notifications
@@ -722,8 +729,8 @@ en,Имейлът в имет_2b0d0,Email in the name does not match the origina
 en,Имейлът ви (задължително),Your email (required)
 en,Имейлът,The email
 en,Имена,Names
-en,Именници във в_afabd,Name-day celebrating in Contacts
-en,Именници,Name days
+en,Именици във в_afabd,Name-day celebrating in Contacts
+en,Именици,Name days
 en,Името ви (задължително),Your name (required)
 en,Импорт,Import
 en,Импортиране,Import
@@ -1155,6 +1162,7 @@ en,Носещи колони _068c0,Supporting columns in number of pallet locat
 en,Нотификация,Notification
 en,Нотификация-ако няма отговор,Notification-if no reply
 en,Нюзбар,Newsbar
+en,Няма,None
 en,Няма данни,No data availible
 en,Няма достъпна _a3fb2,No accessible system
 en,Няма записи,No records
@@ -1250,6 +1258,7 @@ en,Отдел,Department
 en,Отдели,Departments
 en,Отделно,Separately
 en,Отказ,Cancel
+en,Отказ от харесване,Dislike
 en,Откриване,Unblocking
 en,Отложени,Postponed
 en,Отметки,Bookmarks
@@ -1320,6 +1329,9 @@ en,Парола,Password
 en,Паролата трябв_08f2,The password must be at least
 en,Партида,Batch
 en,Партиди,Batches
+en,партида,batch
+en,партиди,batches
+en,Пауза,Pause
 en,Пасивна,Passive
 en,Пера в номенкл_8048c,List items in the nomenclature
 en,Перо,List item
@@ -1350,6 +1362,7 @@ en,Плащане по банков път,Bank payment
 en,Плащане в брой,Cash payment
 en,Плащане с прихващане,Offsetting payment
 en,Планиране,Planning
+en,Планирано,Planned
 en,Плановик,Planner
 en,Платежни Нареж_44b2,Payment orders
 en,Платежни нареж_731d,Payment orders
@@ -1560,6 +1573,7 @@ en,Приходи и Разходи,Revenues and Expenses
 en,Приходни банко_d760,Incoming bank transfers
 en,Приходни докум_bbe4,Revenue documents
 en,Приходни касов_b832,Credit cash orders
+en,приходен касов ордер,credit cash order
 en,Причина,Reason
 en,Проблем при по_0f996,Problem in rendering
 en,Проверен на,Proof in
@@ -1671,8 +1685,9 @@ en,Разпределени г_946a,Distributed groups of files
 en,Разработка,Elaboration
 en,Разрешени,Allowed
 en,Разх. норми,Cons. norms
-en,Разходен банко_9860,Outgoing Bank Transfer
-en,Разходен касов_5ac8,Debit Cash Order
+en,Разходен банко_9860,Outgoing bank transfer
+en,Разходен касов_5ac8,Debit cash order
+en,разходен касов ордер,debit cash order
 en,Разходни банко_a3df,Outgoing bank transfers
 en,Разходни докум_4dc4,Expenditure documents
 en,Разходни касов_8e6a,Debit cash orders
@@ -1904,9 +1919,9 @@ en,Съдържа се в,Contained in
 en,Съдържание,Content
 en,Създаване на н_9b9a7,Create a new authorization for online service
 en,Създаване на,Creating a
-en,Създаване,Create
-en,Създаване->На,Create->On
-en,Създаване->От,Create->From
+en,Създаване,Creation
+en,Създаване->На,Created->On
+en,Създаване->От,Created->By
 en,Създаден на,Created on
 en,Създаден,Created
 en,Създаден:,Created:
@@ -1994,7 +2009,7 @@ en,Трудови Договори,Employment Contracts
 en,Трудови договори,Employment contracts
 en,Трябва да избе_e751c,You must select only one of the three options
 en,Трябва да сте л_645c,You must be logged in to edit this entry.
-en,Търговец,Salesman
+en,Търговец,Salesperson
 en,Търговия,Commerce
 en,Търговски маршрути,Trade routes
 en,Търговски,Trade
@@ -2406,3 +2421,9 @@ en,50% авансово и 50% до 30 дни след фактуриране, 5
 en,50% авансово и 50% до 10 дни след фактуриране, 50% downpayment and 50% until 10 days after invoicing
 en,По проформа,From pro forma
 en,Срок за д-ка,Delivery time
+en,Чакащо плащане,Expected payment
+en,ЧМР,CMR
+en,чмр,cmr
+en,Товарителници,CMR waybills
+en,Товарителница,CMR waybill
+en,товарителница,cmr waybill

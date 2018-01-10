@@ -16,3 +16,4 @@
 Листвани продукти,cond_type_PurchaseListings,purchaseList,Покупка,,
 Списък от предишни продажби,cond_type_YesOrNo,autoSalesMakeList,Продажба,,,
 Автоматична оферта при запитване,cond_type_YesOrNo,autoCreateQuote,,,,
+Корекция за делти,cond_type_Percent,deltaCorrect,Продажба,,"ceo,salesMaster"

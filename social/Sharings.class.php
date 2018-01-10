@@ -56,7 +56,13 @@ class social_Sharings extends core_Master
      * Кой може да пише?
      */
     var $canWrite = 'cms, social, admin, ceo';
-
+    
+    
+    /**
+     * 
+     */
+    var $canChangestate = 'cms, social, admin, ceo';
+    
     
     /**
      * Описание на модела

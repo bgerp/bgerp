@@ -475,9 +475,8 @@ class price_Lists extends core_Master
         	}
         	
         	if($rec->public == 'yes' && $rec->id != cat_Setup::get('DEFAULT_PRICELIST')){
-        		$customerCount = count(price_ListToCustomers::getCustomers($rec->id, TRUE));
+        		$customerCount = price_ListToCustomers::count("#listId = {$rec->id} AND #state = 'active'");
         		$row->connectedClients = cls::get('type_Int')->toVerbal($customerCount);
-        	
         		if($customerCount != 0){
         			if(price_ListToCustomers::haveRightFor('list')){
         				$row->connectedClients = ht::createLinkRef($row->connectedClients, array('price_ListToCustomers', 'list', 'listId' => $rec->id));

@@ -320,10 +320,7 @@ class core_Cls
             $classObj = $class;
         }
         
-        // Очакваме, че $classObj е обект
-        expect(is_object($classObj), $class);
-        
-        $classObj->interfaces = arr::make($classObj->interfaces, TRUE);
+        self::prepareInterfaces($classObj);
         
         if(isset($classObj->interfaces[$interface])) {
             $interfaceObj = cls::get($classObj->interfaces[$interface]);
@@ -336,6 +333,33 @@ class core_Cls
         $interfaceObj->class = $classObj;
         
         return $interfaceObj;
+    }
+
+
+    /**
+     * Подготвя и връща списъка с интерфейси за дадения клас
+     * Включват се и родитекските интерфейси
+     *
+     * @param   object  $classObj   Обект за който ще бъдат изчислени интерфейсите
+     *
+     * @return  array               Масив с интерфейсите intfName => intfName
+     */
+    public static function prepareInterfaces($classObj)
+    {
+        // Очакваме, че $classObj е обект
+        expect(is_object($classObj), $classObj);
+        
+        $classObj->interfaces = arr::make($classObj->interfaces, TRUE);
+
+        // Добавяме интерфейсите на парентите
+        foreach($classObj->interfaces as $intf => $impl) {
+            while($pIntf = get_parent_class($intf)) {
+                $classObj->interfaces[$pIntf] = $pIntf;
+                $intf = $pIntf;
+            }
+        }
+
+        return $classObj->interfaces;
     }
     
     

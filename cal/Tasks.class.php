@@ -12,8 +12,14 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class cal_Tasks extends core_Master
+class cal_Tasks extends embed_Manager
 {
+    
+    
+    /**
+     * Интерфейс на драйверите
+     */
+    public $driverInterface = 'cal_TaskTypeIntf';
     
     
     /**
@@ -44,14 +50,14 @@ class cal_Tasks extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf';
+    public $interfaces = 'email_DocumentIntf, doc_DocumentIntf, doc_ContragentDataIntf';
 
 
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, cal_Wrapper,doc_plg_SelectFolder, doc_plg_Prototype, doc_DocumentPlg, planning_plg_StateManager, plg_Printing, 
-    				 doc_SharablePlg, bgerp_plg_Blank, plg_Search, change_Plugin, plg_Sorting, plg_Clone,doc_AssignPlg';
+    				 doc_SharablePlg, bgerp_plg_Blank, plg_Search, change_Plugin, plg_Sorting, plg_Clone, doc_AssignPlg';
     
     
     /**
@@ -155,6 +161,7 @@ class cal_Tasks extends core_Master
      */
     public $canAssign = 'powerUser';
     
+    
     /**
      * Кой може да възлага задачата
      */
@@ -248,6 +255,12 @@ class cal_Tasks extends core_Master
     
     
     /**
+     * Кой може да добавя външен сигнал?
+     */
+    public $canNew = 'every_one';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -267,9 +280,6 @@ class cal_Tasks extends core_Master
         // Споделяне
         $this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители,changable');
         
-        // Отговорноици
-        $this->FLD('assign', 'user(rolesForAll=powerUser,allowEmpty)', 'caption=Възложено на,changable');
-
         // Начало на задачата
         $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00, format=smartTime)',
             'caption=Времена->Начало, silent, changable, tdClass=leftColImportant');
@@ -307,13 +317,52 @@ class cal_Tasks extends core_Master
         // Точното време на затваряне
         $this->FLD('timeClosed', 'datetime(format=smartTime)', 'caption=Времена->Затворена на,input=none');
     }
-
-
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param stdClass $data
+     */
+    public function prepareEditForm_($data)
+    {
+        if (!Request::get($this->driverClassField) && !Request::get('id')) {
+            
+            $sTaskId = cal_TaskType::getClassId();
+            
+            // Ако е в папка на система, да е избран сигнал
+            if ($folderId = Request::get('folderId')) {
+                if (doc_Folders::getCover($folderId)->instance instanceof support_Systems) {
+                    if (cls::load('support_TaskType', TRUE)) {
+                        $sTaskId = support_TaskType::getClassId();
+                    }
+                }
+            }
+            
+            Request::push(array($this->driverClassField => $sTaskId));
+        }
+        
+        return parent::prepareEditForm_($data);
+    }
+        
+    
     /**
      * Подготовка на формата за добавяне/редактиране
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
+        Request::setProtected(array('srcId', 'srcClass'));
+        
+        $data->form->FNC('SrcId', 'int', 'input=hidden, silent');
+        $data->form->FNC('SrcClass', 'varchar', 'input=hidden, silent');
+        
+        if ($srcId = Request::get('srcId', 'int')) {
+            if ($srcClass = Request::get('srcClass')) {
+                $data->form->setDefault('SrcId', $srcId);
+                $data->form->setDefault('SrcClass', $srcClass);
+            }
+        }
+        
         $cu = core_Users::getCurrent();
         $data->form->setDefault('priority', 'normal');
         
@@ -333,8 +382,48 @@ class cal_Tasks extends core_Master
             list($rec->timeStart,) = explode(' ', $rec->timeStart);
         }
     }
-
-
+    
+    
+    /**
+     * Връща URL за създаване на задача от съответния тип, със защитени параметри
+     * 
+     * @param integer $rId
+     * @param string $clsName
+     * @param string $type
+     * 
+     * @return string
+     */
+    public static function getUrlForCreate($rId, $clsName, $type = 'сигнал')
+    {
+        $pArr = array('srcId', 'srcClass');
+        Request::setProtected($pArr);
+        
+        $me = cls::get(get_called_class());
+        
+        $interfaces = core_Classes::getOptionsByInterface($me->driverInterface, 'title');
+        
+        expect($interfaces);
+        
+        $driverId = array_search(strtolower($type), array_map('mb_strtolower', $interfaces));
+        
+        if (!$driverId) {
+            $driverId = key($interfaces);
+        }
+        
+        $urlArr = array($me, 'add', 'srcId' => $rId, 'srcClass' => $clsName, 'ret_url' => TRUE);
+        
+        if ($driverId) {
+            $urlArr[$me->driverClassField] = $driverId;
+        }
+        
+        $url = toUrl($urlArr);
+        
+        Request::removeProtected($pArr);
+        
+        return $url;
+    }
+    
+    
     /**
      * Подготвяне на вербалните стойности
      */
@@ -413,8 +502,7 @@ class cal_Tasks extends core_Master
         if (Mode::is('listTasks', 'by')) {
             $data->query->where("#createdBy = $userId");
         } else {
-            $data->query->where("#sharedUsers LIKE '%|{$userId}|%'");
-            $data->query->orWhere("#assign = '{$userId}'");
+            $data->query->like('assign', "|{$userId}|");
         }
         
         $now = dt::now();
@@ -423,8 +511,8 @@ class cal_Tasks extends core_Master
         
         $data->query->where("#state = 'active'");
         $data->query->orWhere("#state = 'wakeup'");
-        $data->query->orWhere(array("#state = 'waiting' AND #expectationTimeStart <= '[#1#]' AND #expectationTimeStart >= '[#2#]'", $after, $before));
-        $data->query->orWhere(array("#state = 'closed' AND #timeClosed <= '[#1#]' AND #timeClosed >= '[#2#]'", $after, $before));
+        $data->query->orWhere(array("(#state = 'waiting' OR #state = 'pending') AND #expectationTimeStart <= '[#1#]' AND #expectationTimeStart >= '[#2#]'", $after, $before));
+        $data->query->orWhere(array("(#state = 'closed' OR #state = 'stopped') AND #timeClosed <= '[#1#]' AND #timeClosed >= '[#2#]'", $after, $before));
         
         // Чакащите задачи под определено време да са в началото
         $waitingShow = dt::addSecs(cal_Setup::get('WAITING_SHOW_TOP_TIME'), $now);
@@ -432,7 +520,7 @@ class cal_Tasks extends core_Master
         $data->query->orderBy("waitingOrderTop", "DESC");
         
         // Време за подредба на записите в портала
-        $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'wakeup' THEN 1 WHEN 'waiting' THEN 2 ELSE 3 END)");
+        $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'wakeup' THEN 1 WHEN 'waiting' THEN 2 WHEN 'pending' THEN 3 ELSE 4 END)");
         $data->query->orderBy('#orderByState=ASC');
         
         // Чакащите задачи, ако имат начало първо по тях да се подреждат, после по последно
@@ -478,10 +566,8 @@ class cal_Tasks extends core_Master
                     $row->title .= $row->subTitleDiv;
                 }
                 
-                if ($rec->savedState == 'waiting') {
-                    $row->title = "<div class='state-waiting-link'>{$row->title}</div>";
-                } elseif ($rec->savedState == 'closed') {
-                    $row->title = "<div class='state-closed-link'>{$row->title}</div>";
+                if ($rec->savedState) {
+                    $row->title = "<div class='state-{$rec->savedState}-link'>{$row->title}</div>";
                 }
             }
         }
@@ -577,7 +663,7 @@ class cal_Tasks extends core_Master
                     $sharedUsersArr = keylist::toArray($rec->sharedUsers);
                     
                     if ($rec->assign) {
-                        $sharedUsersArr[$rec->assign] = $rec->assign;
+                        $sharedUsersArr += type_Keylist::toArray($rec->assign);
                     }
                     
                     if (empty($sharedUsersArr)) {
@@ -638,22 +724,41 @@ class cal_Tasks extends core_Master
             }
         }
     }
-
+	
+	
+    /**
+     * Дали може да се добавя прогрес към съответната задача
+     *
+     * @param stdClass $rec
+     *
+     * @return boolean
+     */
+    public static function canAddProgress($rec)
+    {
+        if ($rec->state != 'rejected' && $rec->state != 'draft' && $rec->state != 'template') return TRUE;
+        
+        return FALSE;
+    }
+    
     
     /**
-     *
      * След подготовка на тулбара на единичен изглед.
      *
-     * @param core_Mvc $mvc
+     * @param cal_Tasks $mvc
      * @param stdClass $data
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
-        if(cal_TaskProgresses::haveRightFor('add', (object)array('taskId' => $data->rec->id))){
-        	$data->toolbar->addBtn('Прогрес', array('cal_TaskProgresses', 'add', 'taskId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/progressbar.png', 'title=Добавяне на прогрес към задачата');
+        if ($mvc->canAddProgress($data->rec)) {
+            // Ако прогреса е 100%, да е на втори ред
+            $progressRow = 1;
+            if ($data->rec->progress == 1) {
+                $progressRow = 2;
+            }
+            $data->toolbar->addBtn('Прогрес', array('cal_TaskProgresses', 'add', 'taskId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/progressbar.png', "title=Добавяне на прогрес към задачата, row={$progressRow}");
         }
        
-        if(cal_TaskConditions::haveRightFor('add', (object)array('baseId' => $data->rec->id))){
+        if (cal_TaskConditions::haveRightFor('add', (object)array('baseId' => $data->rec->id))){
         	$data->toolbar->addBtn('Условие', array('cal_TaskConditions', 'add', 'baseId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/task-option.png, row=2', 'title=Добавяне на зависимост между задачите');
         }
 
@@ -674,7 +779,7 @@ class cal_Tasks extends core_Master
             $sharedUsersArr = keylist::toArray($data->rec->sharedUsers);
            
             if ($data->rec->assign) {
-                $sharedUsersArr[$data->rec->assign] = $data->rec->assign;
+                $sharedUsersArr += type_Keylist::toArray($data->rec->assign);
             }
                
             if (empty($sharedUsersArr)) {
@@ -723,14 +828,25 @@ class cal_Tasks extends core_Master
             }
         }
     }
-
+    
     
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
+    static function on_BeforeSave($mvc, &$id, $rec, $saveFileds = NULL)
+    {
+        if (!$rec->{$mvc->driverClassField}) {
+            $rec->{$mvc->driverClassField} = cal_TaskType::getClassId();
+        }
+    }
+
+    
+    /**
+     * Извиква се след вкарване на запис в таблицата на модела
+     */
     static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
-        if($rec->state == 'pending' && !$rec->sharedUsers) { 
+        if($rec->state == 'pending' && !$rec->sharedUsers && !$rec->assign) { 
             core_Statuses::newStatus("|Не е избран потребител. Документа е приведен в състояние 'Заявка'|*");
         } 
         
@@ -808,7 +924,7 @@ class cal_Tasks extends core_Master
         $sharedUsersArr = keylist::toArray($rec->sharedUsers);
         
         if ($rec->assign) {
-            $sharedUsersArr[$rec->assign] = $rec->assign;
+            $sharedUsersArr += type_Keylist::toArray($rec->assign);
         }
         
         if ($now >= $canActivate && $canActivate !== NULL) {
@@ -821,7 +937,7 @@ class cal_Tasks extends core_Master
         } else {
             $rec->state = 'waiting';
         }
-
+        
         if ($rec->id) {
             $mvc->updateTaskToCalendar($rec->id);
         }
@@ -961,15 +1077,13 @@ class cal_Tasks extends core_Master
             if(($data->listFilter->rec->selectedUsers != 'all_users') && (strpos($data->listFilter->rec->selectedUsers, '|-1|') === FALSE)) {
                 $data->query->where("'{$data->listFilter->rec->selectedUsers}' LIKE CONCAT('%|', #createdBy, '|%')");
                 $data->query->orLikeKeylist('sharedUsers', $data->listFilter->rec->selectedUsers);
+                $data->query->orLikeKeylist('assign', $data->listFilter->rec->selectedUsers);
             }
-          
-
+            
             if ($data->listFilter->rec->stateTask != 'all' && $data->listFilter->rec->stateTask != 'actPend') {
                 $data->query->where(array("#state = '[#1#]'", $data->listFilter->rec->stateTask));
             } elseif ($data->listFilter->rec->stateTask == 'actPend') {
                 $data->query->where("#state = 'active' OR #state = 'waiting'");
-            } else {
-                $data->query->fetchAll();
             }
 
             if ($data->listFilter->rec->order == 'onStart') {
@@ -1130,8 +1244,8 @@ class cal_Tasks extends core_Master
             setIfNot($calRec->time, $rec->timeStart, $rec->timeCalc, $rec->expectationTimeStart);
             
             // В чии календари да влезе?
-            $calRec->users = keylist::merge($rec->sharedUsers, $rec->assign);
-
+            $calRec->users = $rec->assign;
+            
             if($calRec->time && $calRec->time >= $fromDate && $calRec->time <= $toDate && $calRec->users) {
                 // Ключ на събитието
                 $calRec->key = $prefix . '-Start';
@@ -1177,7 +1291,7 @@ class cal_Tasks extends core_Master
             setIfNot($calRec->time, $rec->timeEnd, $rec->expectationTimeEnd);
             
             // В чии календари да влезе?
-            $calRec->users = keylist::merge($rec->sharedUsers, $rec->assign);
+            $calRec->users = $rec->assign;
           
             if($calRec->time && $calRec->time >= $fromDate && $calRec->time <= $toDate && $calRec->users && (!$startDate || strpos($calRec->time, $startDate) === FALSE)) {
 
@@ -1197,7 +1311,7 @@ class cal_Tasks extends core_Master
                 $calRec->title = "Краен срок за \"{$rec->title}\"";
 
                 // В чии календари да влезе?
-                $calRec->users = keylist::merge($rec->sharedUsers, $rec->assign);
+                $calRec->users = $rec->assign;
                 
                 // Статус на задачата
                 $calRec->state = $rec->state;
@@ -1211,8 +1325,7 @@ class cal_Tasks extends core_Master
                 $events[] = $calRec;
             }
         }
-
-
+        
         // Подготвяме запис за Крайния срок
         if($rec->state == 'closed' ) {
             
@@ -1222,7 +1335,7 @@ class cal_Tasks extends core_Master
             setIfNot($calRec->time, $rec->timeClosed);
             
             // В чии календари да влезе?
-            $calRec->users = keylist::merge($rec->sharedUsers, $rec->assign);
+            $calRec->users = $rec->assign;
           
             if($calRec->time && $calRec->time >= $fromDate && $calRec->time <= $toDate && $calRec->users && (!$startDate || strpos($calRec->time, $startDate) === FALSE)) {
 
@@ -1242,7 +1355,7 @@ class cal_Tasks extends core_Master
                 $calRec->title = "Приключена задача \"{$rec->title}\"";
 
                 // В чии календари да влезе?
-                $calRec->users = keylist::merge($rec->sharedUsers, $rec->assign);
+                $calRec->users = $rec->assign;
                 
                 // Статус на задачата
                 $calRec->state = $rec->state;
@@ -1251,7 +1364,7 @@ class cal_Tasks extends core_Master
                 $calRec->priority = self::getNumbPriority($rec) - 1;
 
                 // Url на задачата
-                $calRec->url = array('cal_Tasks', 'Single', $id); 
+                $calRec->url = array('cal_Tasks', 'single', $id); 
                 
                 $events[] = $calRec;
             }
@@ -1307,13 +1420,7 @@ class cal_Tasks extends core_Master
         //Заглавие
         $row->title = $this->getVerbal($rec, 'title');
         
-        $usersArr = array();
-        if ($rec->assign) {
-            $usersArr[$rec->assign] = $rec->assign;
-        }
-        if ($rec->sharedUsers) {
-            $usersArr += type_Keylist::toArray($rec->sharedUsers);
-        }
+        $usersArr = type_Keylist::toArray($rec->assign);
         if (!empty($usersArr)) {
             
             $subTitleMaxUsersCnt = 3;
@@ -1354,6 +1461,9 @@ class cal_Tasks extends core_Master
         
         $row->recTitle = $rec->title;
         
+        $Driver = $this->getDriver($id);
+        $Driver->prepareDocumentRow($rec, $row);
+        
         return $row;
     }
     
@@ -1386,38 +1496,63 @@ class cal_Tasks extends core_Master
        // Обикаляме по всички чакащи задачи 
        $query = $this->getQuery();
        $query->where("#state = 'waiting'");
+       $query->orWhere("#state = 'pending'");
        
 	   $activatedTasks = array ();
 	   $now = dt::verbal2mysql();
        
 	   while ($rec = $query->fetch()) { 
-
+	       
+	       // Ако веднъж е преизчислено времето да не се прави повторно
+	       if ($rec->state == 'pending' && !cal_TaskConditions::fetch("#baseId = '{$rec->id}'")) {
+	           if (!$rec->timeStart && !$rec->timeEnd && !$rec->timeDuration) {
+	               if ($rec->expectationTimeStart && $rec->expectationTimeEnd) continue;
+	           }
+	       }
+	       
+	       $oldRec = clone $rec;
+	       
    	   	   // изчисляваме очакваните времена
 		   self::calculateExpectationTime($rec);
-		   // обновяваме в календара
-		   self::updateTaskToCalendar($rec->id);
-		   // и проверяваме дали може да я активираме
-		   $canActivate = self::canActivateTask($rec);
-		   $exRec = $rec;
-           
-		   if ($canActivate != FALSE) { 
-		   	   if ($now >= $canActivate) {  
-				   $rec->state = 'active';
-				   $rec->timeActivated = $now;
-
-				   $activatedTasks[] = $rec;
-				       
-				   // и да изпратим нотификация на потребителите
-       			   self::doNotificationForActiveTasks($activatedTasks);
-		       } else {
-		           $rec->state = $exRec->state;
-		       }   
-		   } else {
-		       $rec->state = $exRec->state;
+		   
+		   $saveFields = 'expectationTimeStart, expectationTimeEnd';
+		   
+		   if ($rec->state == 'waiting') {
+    		   // обновяваме в календара
+    		   self::updateTaskToCalendar($rec->id);
+    		   
+    		   // и проверяваме дали може да я активираме
+    		   $canActivate = self::canActivateTask($rec);
+    		   $exRec = $rec;
+               
+    		   if ($canActivate != FALSE) { 
+    		   	   if ($now >= $canActivate) {  
+    				   $rec->state = 'active';
+    				   $rec->timeActivated = $now;
+    				   
+    				   $activatedTasks[] = $rec;
+    				       
+    				   // и да изпратим нотификация на потребителите
+           			   self::doNotificationForActiveTasks($activatedTasks);
+    		       } else {
+    		           $rec->state = $exRec->state;
+    		       }
+    		   } else {
+    		       $rec->state = $exRec->state;
+    		   }
+    		   
+    		   $saveFields .= ', state, timeActivated';
 		   }
 		   
-		   self::save($rec, 'state, timeActivated, expectationTimeEnd, expectationTimeStart');
-	   }    
+		   // Правим запис, ако има променени полета
+		   $saveFieldsArr = arr::make($saveFields);
+		   foreach ($saveFieldsArr as $fName) {
+		       if ($oldRec->{$fName} != $rec->{$fName}) {
+		           self::save($rec, $saveFields);
+		           break;
+		       }
+		   }
+	   }
     }
 
 
@@ -2084,7 +2219,7 @@ class cal_Tasks extends core_Master
      * Изчислява мин начало и макс край на всички задачи
      * @param stdClass $data
      */
-    public static function calcTasksMinStartMaxEndTime ($data)
+    public static function calcTasksMinStartMaxEndTime($data)
     {  
         if($data->recs){ 
         	$data = $data->recs;
@@ -2157,7 +2292,7 @@ class cal_Tasks extends core_Master
         $sharedUsersArr = keylist::toArray($rec->sharedUsers);
         
         if ($rec->assign) {
-            $sharedUsersArr[$rec->assign] = $rec->assign;
+            $sharedUsersArr += type_Keylist::toArray($rec->assign);
         }
         
         if (empty($sharedUsersArr)) {
@@ -2287,7 +2422,131 @@ class cal_Tasks extends core_Master
     	// връщаме времето за активиране
     	return $calcTime;
     }
-   
+    
+    
+    /**
+     * Добавя нотификация за приключена задача
+     * 
+     * @param stdObject $rec
+     * @param string $msg
+     * @param array $notifyUsersArr
+     * @param boolean $removeOldNotify
+     * @param boolean $closeThread
+     */
+    public static function notifyForChanges($rec, $msg, $notifyUsersArr = array(), $removeOldNotify = FALSE, $closeThread = FALSE)
+    {
+        $rec = self::fetchRec($rec);
+        
+        if (!$rec) return ;
+        
+        if ($closeThread && $rec->threadId) {
+            $tRec = doc_Threads::fetch($rec->threadId);
+            
+            if ($tRec->state != 'closed') {
+                // Да няма входящ имейл в нишката
+                if (!email_Incomings::fetch(array("#threadId = '[#1#]' AND #state != 'rejected'", $tRec->id))) {
+                    // Ако няма други задачи
+                    if (!cal_Tasks::fetch(array("#id != [#1#] AND #threadId = '[#2#]' AND #state != 'rejected' AND #state != 'closed' AND #state != 'stopped' AND #state != 'draft'", $rec->id, $tRec->id))) {
+                        $tRec->state = 'closed';
+                        
+                        doc_Threads::save($tRec, 'state');
+                        doc_Threads::updateThread($tRec->id);
+                        
+                        Mode::set('updateThreadState', FALSE);
+                    }
+                }
+            }
+        }
+        
+        if (isset($notifyUsersArr) && empty($notifyUsersArr)) return ;
+        
+        if (is_null($notifyUsersArr)) {
+            $notifyUsersArr = array($rec->createdBy => $rec->createdBy);
+        }
+        
+        $cu = core_Users::getCurrent();
+        unset($notifyUsersArr[$cu]);
+        
+        $message = "|{$msg}|*" . ' "' . $rec->title . '"';
+        $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+        $customUrl = array('cal_Tasks', 'single',  $rec->id);
+        $priority = 'normal';
+        
+        if ($removeOldNotify) {
+            bgerp_Notifications::clear($url);
+        }
+        
+        foreach ($notifyUsersArr as $uId) {
+            if ($uId < 1) continue;
+            
+            if (!cal_Tasks::haveRightFor('single', $rec->id)) continue;
+            
+            bgerp_Notifications::add($message, $url, $uId, $priority, $customUrl);
+        }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param cal_Tasks $mvc
+     * @param stdObject $rec
+     * @param string $state
+     */
+    protected function on_AfterChangeState($mvc, $rec, $state)
+    {
+        $msg = '';
+        $removeOldNotify = FALSE;
+        $closeThread = FALSE;
+        switch ($state) {
+            case 'closed':
+                $msg = 'Приключена';
+                $removeOldNotify = TRUE;
+                $closeThread = TRUE;
+            break;
+            
+            case 'stopped':
+                $msg = 'Спряна';
+                $closeThread = TRUE;
+            break;
+                
+            case 'wakeup':
+                $msg = 'Събудена';
+            break;
+                
+            case 'active':
+                $msg = 'Активирана';
+            break;
+                
+            case 'waiting':
+                $msg = 'Паузирана';
+            break;
+        }
+        
+        $rec = cal_Tasks::fetchRec($rec);
+        
+        if ($msg) {
+            
+            $msg .= ' е задачата';
+            
+            $notifyUsersArr = type_Keylist::toArray($rec->assign);
+            
+            if ($rec->createdBy > 0) {
+                $notifyUsersArr[$rec->createdBy] = $rec->createdBy;
+            }
+            
+            $cu = core_Users::getCurrent();
+            unset($notifyUsersArr[$cu]);
+            
+            cal_Tasks::notifyForChanges($rec, $msg, $notifyUsersArr, $removeOldNotify, $closeThread);
+        }
+        
+        // Променяме времето
+        if (($state == 'stopped') || ($state == 'closed')) {
+            $rec->timeClosed = dt::now();
+            self::save($rec, 'timeClosed');
+        }
+    }
     
     /**
      * Правим нотификация на всички шернати потребители,
@@ -2299,15 +2558,18 @@ class cal_Tasks extends core_Master
 
 	    	$subscribedArr = keylist::toArray($rec->sharedUsers); 
 			
-	    	if(is_array($subscribedArr)) {  
-				$message = "Стартирана е задачата \"" . self::getVerbal($rec, 'title') . "\"";
+	    	if ($rec->assign) {
+	    	    $subscribedArr += type_Keylist::toArray($rec->assign);
+	    	}
+	    	
+	    	if (is_array($subscribedArr)) {
+				$message = "|Стартирана е задачата|* \"" . self::getVerbal($rec, 'title') . "\"";
 				$url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
 				$customUrl = array('cal_Tasks', 'single',  $rec->id);
 				$priority = 'normal';
 				
-				foreach($subscribedArr as $userId) {   
-					if($userId > 0  &&  
-					   doc_Threads::haveRightFor('single', $rec->threadId, $userId)) { 
+				foreach ($subscribedArr as $userId) {   
+					if ($userId > 0 && self::haveRightFor('single', $rec, $userId)) { 
 						bgerp_Notifications::add($message, $url, $userId, $priority, $customUrl);
 					}
 				}
@@ -2342,7 +2604,7 @@ class cal_Tasks extends core_Master
 	    		$arrCond[] = $recCond;
 	    	}
 	    	
-	    	if (is_array($arrCond)) { 
+	    	if (is_array($arrCond)) {
 	    	    foreach($arrCond as $cond) {
 	    	    	 // правим масив с всички изчислени времена
 	    			$calcTimeS[] = self::calculateTimeToStart($rec, $cond);
@@ -2546,6 +2808,8 @@ class cal_Tasks extends core_Master
             $resArr['progressBar'] =  array('name' => tr('Прогрес'), 'val' =>"[#progressBar#] [#progress#]");
         }
         
+        $resArr[$mvc->driverClassField] =  array('name' => tr('Вид'), 'val' =>"[#{$mvc->driverClassField}#]");
+        
         $resArr['priority'] =  array('name' => tr('Приоритет'), 'val' =>"[#priority#]");
         
         if ($row->timeStart){
@@ -2594,12 +2858,11 @@ class cal_Tasks extends core_Master
         	unset($resArr['expectationTimeEnd']);
         }
 
-        if ($row->assign) { 
-            
+        if ($row->assign) {
             if($rec->assign && $rec->assignedBy) {
                 $resArr['assign'] =  array('name' => tr('Възложено'), 'val' => tr('на') . " [#assign#] " . tr('от') . " [#assignedBy#] " . tr('в') . " [#assignedOn#]");
             } else {
-                $resArr['assign'] =  array('name' => tr('Възложено'), 'val' => tr('на') . " [#assign#] " . tr('от') . " [#createdBy#] " . tr('в') . " [#createdOn#]");
+                $resArr['assign'] =  array('name' => tr('Възложено'), 'val' => tr('на') . " [#assign#]");
             }
         }
     }
@@ -3034,5 +3297,221 @@ class cal_Tasks extends core_Master
             
             $form->layout->append($tpl);
         }
+    }
+    
+    
+    /**
+     * Реализация по подразбиране на интерфейсния метод ::getThreadState()
+     * 
+     * @param integer $id
+     * 
+     * @retun NULL|string
+     */
+    function getThreadState($id)
+    {
+        if (!$id) return ;
+        
+        if (Mode::get('updateThreadState') === FALSE) return ;
+        
+        $rec = $this->fetchRec($id);
+        
+        $Driver = $this->getDriver($rec);
+        $state = $Driver->getThreadState($rec);
+        
+        return $state;
+    }
+    
+    
+    /**
+     * Екшън за добавяне на нов сигнал в системата от външни потребители
+     * 
+     * @return Redirect|ET
+     */
+    function act_New()
+    {
+        $this->requireRightFor('new');
+        
+        $systemId = Request::get('systemId', 'int');
+        
+        expect($systemId);
+        
+        // Ако има права за добавяне, директно се редиректва там
+        if ($this->haveRightFor('add')) {
+            
+            $folderId = support_Systems::forceCoverAndFolder($systemId);
+            
+            if (doc_Folders::haveRightFor('single', $folderId)) {
+                
+                return new Redirect(array($this, 'add', 'folderId' => $folderId));
+            }
+        }
+        
+        if ($lg = Request::get('Lg')){
+            cms_Content::setLang($lg);
+            core_Lg::push($lg);
+        }
+        
+        // Подготовка на формата
+        $form = $this->getForm();
+        
+        // Скриваме всички полета
+        foreach ($this->fields as $fName => $dummy) {
+            $form->setField($fName, 'input=none');
+        }
+        
+        $interfaces = static::getAvailableDriverOptions();
+        
+        expect(!empty($interfaces), 'Няма налични опции');
+        
+        $form->setOptions($this->driverClassField, $interfaces);
+        
+        // Ако е наличен само един драйвер избираме него
+        if(count($interfaces) == 1){
+            $intfKey = key($interfaces);
+            $form->setDefault($this->driverClassField, $intfKey);
+            $form->setReadOnly($this->driverClassField);
+        } else {
+            $form->setField($this->driverClassField, 'input');
+        }
+        
+        $form->input(NULL, TRUE);
+        
+        // Подготвяме полетата от драйвера
+        if ($form->rec->{$this->driverClassField}) {
+            $Driver = cls::get($form->rec->{$this->driverClassField});
+            
+            $Driver->addFields($form);
+            
+            $Driver->prepareFieldForIssue($form);
+        }
+        
+        
+        $form->setField('title', 'silent, input=hidden');
+        $form->setField('description', 'input, mandatory');
+        
+        $form->input(NULL, TRUE);
+        $form->input();
+        
+        setIfNot($form->rec->title, '*Без заглавие*');
+        
+        if ($form->isSubmitted()) {
+            
+            $form->rec->state = 'active';
+            
+            if ($systemId){
+                $form->rec->folderId = support_Systems::forceCoverAndFolder($systemId);
+            }
+            
+            cal_Tasks::save($form->rec);
+            
+            vislog_History::add('Изпращане на сигнал');
+            
+            return followRetUrl(NULL, '|Благодарим Ви за сигнала', 'success');
+        }
+        
+        $sTitle = '';
+        if ($form->rec->{$this->driverClassField}) {
+            $sTitle = $interfaces[$form->rec->{$this->driverClassField}];
+        }
+        if (!$sTitle) {
+            $sTitle = 'Задача';
+        }
+        
+        $form->title = str::mbUcfirst($sTitle) . " към екипа за поддръжка на|* " . '"|' . support_Systems::getTitleById($systemId) . '|*"';
+        
+        $form->toolbar->addSbBtn('Изпрати', 'save', 'id=save, ef_icon = img/16/ticket.png,title=Изпращане на сигнала');
+        if (count(getRetUrl())) {
+            $form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close-red.png,title=Oтказ');
+        }
+        $tpl = $form->renderHtml();
+        
+        // Поставяме шаблона за външен изглед
+        Mode::set('wrapper', 'cms_page_External');
+        
+        if ($lg){
+            core_Lg::pop();
+        }
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Връща тялото на имейла генериран от документа
+     *
+     * @param int $id - ид на документа
+     * @param boolean $forward
+     *
+     * @return string
+     * 
+     * @see email_DocumentIntf
+     */
+    public function getDefaultEmailBody($id, $forward = FALSE)
+    {
+        $rec = $this->fetchRec($id);
+        $Driver = $this->getDriver($id);
+        
+        $date = dt::mysql2verbal($rec->createdOn, 'd-M');
+        $time = dt::mysql2verbal($rec->createdOn, 'H:i');
+        
+        $tpl = new ET(tr("|Благодаря за Вашето запитване|*, |получено на|* {$date} |в|* {$time} |чрез нашия уеб сайт|*."));
+        
+        $title = mb_strtolower($Driver->title);
+        $fLetter = mb_substr($title, 0, 1);
+        
+        $sLetter = 'с';
+        if ($fLetter == 'с' || $fLetter == 'з') {
+            $sLetter = 'със';
+        }
+        
+        $res = "Във връзка {$sLetter}|* " . mb_strtolower($Driver->title) . " |от|* {$date} |в|* {$time}"; 
+        
+        return tr($res);
+    }
+    
+    
+    /**
+     * Интерфейсен метод
+     * 
+     * @param integer $id
+     * 
+     * @return object
+     * 
+     * @see doc_ContragentDataIntf
+     */
+    public static function getContragentData($id)
+    {
+        if (!$id) return ;
+        $rec = self::fetch($id);
+        
+        $contrData = new stdClass();
+        
+        if ($rec->createdBy > 0) {
+            $personId = crm_Profiles::fetchField("#userId = '{$rec->createdBy}'", 'personId');
+            $contrData = crm_Persons::getContragentData($personId);
+        }
+        
+        $Driver = self::getDriver($id);
+        $Driver->prepareContragentData($rec, $contrData);
+        
+        return $contrData;
+    }
+    
+    
+    /**
+     * Връща заглавието на имейла
+     *
+     * @param int $id - ид на документа
+     * @param boolean $forward
+     *
+     * @return string
+     * 
+     * @see email_DocumentIntf
+     */
+    public function getDefaultEmailSubject($id, $forward = FALSE)
+    {
+        $rec = $this->fetchRec($id);
+        
+        return tr('За') . ': ' . $rec->title;
     }
 }

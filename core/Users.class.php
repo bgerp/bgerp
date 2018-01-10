@@ -1804,6 +1804,7 @@ class core_Users extends core_Manager
      * @param mixed $roleId ид на роля или масив от ид на роли
      * @param bool $strict     TRUE - само потребителите, имащи точно тази роля;
      * FALSE - потребителите имащи тази и/или някоя от наследените й роли
+     *
      * @return array
      */
     static function getByRole($roleId)
@@ -1817,7 +1818,9 @@ class core_Users extends core_Manager
         }
 
         if(!$users[$roleId]) {
-        
+            
+            $users[$roleId] = array();
+
             $query = static::getQuery();
             $query->where("#state = 'active'");
             $query->like('roles', "|{$roleId}|");
@@ -2258,7 +2261,9 @@ class core_Users extends core_Manager
     {
         if ($this->runCron) {
             
-            fopen(toUrl(array('core_Cron', 'cron'), 'absolute'), 'r');
+            if (!@fopen(toUrl(array('core_Cron', 'cron'), 'absolute'), 'r')) {
+                self::logWarning('Не може да се пусне крон ръчно');
+            }
             
             $this->runCron = FALSE;
         }

@@ -60,7 +60,7 @@ class sales_QuotationsDetails extends doc_Detail {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, sales_Wrapper, doc_plg_HidePrices, plg_SaveAndNew, LastPricePolicy=sales_SalesLastPricePolicy, cat_plg_CreateProductFromDocument,cat_plg_ShowCodes';
+    public $loadList = 'plg_RowTools2, sales_Wrapper, doc_plg_HidePrices, plg_SaveAndNew, LastPricePolicy=sales_SalesLastPricePolicy, cat_plg_CreateProductFromDocument,plg_PrevAndNext,cat_plg_ShowCodes';
     
     
     /**
@@ -389,12 +389,6 @@ class sales_QuotationsDetails extends doc_Detail {
         }
     
     	if(isset($rec->productId)){
-    		$isStorable = cat_Products::fetchField($rec->productId, 'canStore');
-    		
-    		if($isStorable == 'yes'){
-    			$form->setField('weight', 'input');
-    		}
-    		
     		if(cat_Products::getTolerance($rec->productId, 1)){
     			$form->setField('tolerance', 'input');
     		}
@@ -592,7 +586,7 @@ class sales_QuotationsDetails extends doc_Detail {
     		$data->addOptionalBtn = ht::createBtn('Опционален артикул',  array($this, 'add', 'quotationId' => $data->masterId, 'optional' => 'yes', 'ret_url' => TRUE),  FALSE, FALSE, "{$error} ef_icon = img/16/shopping.png, title=Добавяне на опционален артикул към офертата");
     		
     		if($this->haveRightFor('createProduct', (object)array('quotationId' => $data->masterId))){
-    			$data->addNewProductBtn = ht::createBtn('Създаване',  array($this, 'CreateProduct', 'quotationId' => $data->masterId, 'ret_url' => TRUE),  FALSE, FALSE, "id=btnNewProduct,title=Създаване на нов нестандартен артикул,ef_icon = img/16/shopping.png,order=12");
+    			$data->addNewProductBtn = ht::createBtn('Създаване',  array($this, 'CreateProduct', 'quotationId' => $data->masterId, 'ret_url' => TRUE),  FALSE, FALSE, "id=btnNewProduct,title=Създаване на нов нестандартен артикул,ef_icon = img/16/bag-new.png,order=12");
     		}
 		}
 		
@@ -913,10 +907,7 @@ class sales_QuotationsDetails extends doc_Detail {
     	
     	// Показваме подробната информация за опаковката при нужда
     	deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
-    	 
-    	if($rec->amount){
-    		$row->amount = $Double->toVerbal($rec->amount);
-    	}
+    	$row->amount = $Double->toVerbal($rec->amount);
     	
     	$hintTerm = FALSE;
     	$row->tolerance = deals_Helper::getToleranceRow($rec->tolerance, $rec->productId, $rec->quantity);
@@ -1005,7 +996,8 @@ class sales_QuotationsDetails extends doc_Detail {
     	if($rec = $query->fetch()){
     		$res->price = $rec->price;
     		$fee = tcost_Calcs::get('sales_Quotations', $rec->quotationId, $rec->id);
-    		if($fee){
+    		
+    		if($fee && $fee->fee > 0){
     			$res->price -= round($fee->fee / $rec->quantity, 4);
     		}
     		

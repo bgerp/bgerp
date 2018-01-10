@@ -835,8 +835,14 @@ class core_String
     /**
      * Подготвя аритметичен израз за изчисляване
      */
-    static function prepareMathExpr($expr)
+    static function prepareMathExpr($expr, $contex = array())
     {
+        // Ако има променливи, заместваме ги в израза
+        if(count($contex)) {
+            uksort($contex, "str::sortByLengthReverse");
+            $expr  = strtr($expr, $contex);
+        }
+
         // Remove whitespaces
         $expr = preg_replace('/\s+/', '', $expr);
                 
@@ -1084,5 +1090,60 @@ class core_String
     {      
 	
     	return hyphen_Plugin::getHyphenWord($matches[0], $minLen, $maxLen);
+    }
+    
+    
+    /**
+     * Маха всички празни стрингове от стринга
+     * 
+     * @param varchar $string
+     * @return varchar $string
+     */
+    public static function removeWhitespaces($string)
+    {
+    	return preg_replace('/\s+/', '', $string);
+    }
+    
+    
+    /**
+     * Разбива текст по нови редове във масив
+     * 
+     * @param string $text
+     * @return array $array
+     */
+    public static function text2Array($text)
+    {
+    	$array = preg_split('/$\R?^/m', $text);
+    	
+    	return $array;
+    }
+    
+    
+    /**
+     * Връща текст със заместени урл-та с линкове
+     * 
+     * @param string $text
+     * @return string 
+     */
+    public static function replaceUrlsWithLinks($text) 
+    {
+    	$UrlType = core_Type::getByName('url');
+    	return preg_replace_callback(type_Richtext::URL_PATTERN, function ($matches) use ($UrlType){
+    		return $UrlType->toVerbal($matches[0])->getContent();
+    	}, $text);
+    }
+    
+    
+    /**
+     * Замества НЕ-кирилските символи с str::utf2ascii
+     *  
+     * @param string $string
+     * @return string
+     */
+    public static function nonCyrillic2Ascii($string)
+    {
+    	$res = preg_replace_callback("/[^\p{Cyrillic}]+/u", function ($matches){return str::utf2ascii($matches[0]);}, $string);
+    
+    	return $res;
     }
 }

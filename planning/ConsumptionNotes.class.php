@@ -159,7 +159,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	function description()
 	{
 		parent::setDocumentFields($this);
-		$this->FLD('departmentId', 'key(mvc=hr_Departments,select=name,allowEmpty)', 'caption=Департамент,before=note');
+		$this->FLD('departmentId', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р на дейност,before=note');
 		$this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Детайлно влагане->Избор,notNull,default=yes,maxRadio=2,before=note');
 	}
 	
@@ -172,7 +172,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 		$data->form->setDefault('useResourceAccounts', planning_Setup::get('CONSUMPTION_USE_AS_RESOURCE'));
 		
 		$folderCover = doc_Folders::getCover($data->form->rec->folderId);
-		if($folderCover->isInstanceOf('hr_Departments')){
+		if($folderCover->isInstanceOf('planning_Centers')){
 			$data->form->setDefault('departmentId', $folderCover->that);
 		}
 	}
@@ -191,42 +191,8 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 		$row->useResourceAccounts = tr($row->useResourceAccounts);
 		
 		if(isset($rec->departmentId)){
-			$row->departmentId = hr_Departments::getHyperlink($rec->departmentId, TRUE);
+			$row->departmentId = planning_Centers::getHyperlink($rec->departmentId, TRUE);
 		}
-	}
-	
-	
-	/**
-	 * Изпълнява се след създаване на нов запис
-	 */
-	protected static function on_AfterCreate($mvc, $rec)
-	{
-		// Ако документа е клониран пропуска се
-		if($rec->_isClone === TRUE) return;
-		
-		// Ако първия документ в нишката е задание
-		$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-		if(!$firstDoc) return;
-		
-		if(!$firstDoc->isInstanceOf('planning_Jobs')) return; 
-		$productId = $firstDoc->fetchField('productId');
-		
-		// И по артикула има рецепта
-		$bomId = cat_Products::getLastActiveBom($productId, 'production');
-		$bomId = (!empty($bomId)) ? $bomId : cat_Products::getLastActiveBom($productId, 'sales');
-		if(empty($bomId)) return;
-		
-		// Взимате се материалите за производството на к-то от заданието
-		$details = cat_Boms::getBomMaterials($bomId, $firstDoc->fetchField('quantity'), $rec->storeId);
-		
-		if(!count($details)) return;
-		
-		// Записват се детайлите
-		$id = $rec->id;
-		array_walk($details, function(&$obj) use ($id){ $obj->noteId = $id;});
-		$Detail = cls::get('planning_ConsumptionNoteDetails');
-		$Detail->saveArray($details);
-		$mvc->invoke('AfterUpdateDetail', array($id, $Detail));
 	}
 	
 	

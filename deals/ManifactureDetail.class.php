@@ -50,6 +50,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
 		
 		$mvc->FLD('quantity', 'double(Min=0)', 'caption=Количество,input=none,smartCenter');
 		$mvc->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden');
+		$mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Забележки,formOrder=110001');
 	}
 	
 
@@ -176,6 +177,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
 		$singleUrl = cat_Products::getSingleUrlArray($rec->productId);
 		$row->productId = cat_Products::getVerbal($rec->productId, 'name');
 		$row->productId = ht::createLinkRef($row->productId, $singleUrl);
+		deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
 		
 		// Показваме подробната информация за опаковката при нужда
 		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);

@@ -385,7 +385,6 @@ class doc_Folders extends core_Master
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        
         $openThreads = $mvc->getVerbal($rec, 'openThreadsCnt');
         
         if($rec->openThreadsCnt) {
@@ -400,7 +399,7 @@ class doc_Folders extends core_Master
         if(mb_strlen($row->title) > self::maxLenTitle) {
             $attr['title'] = $row->title;
         }
-
+        
         $row->title = str::limitLen($row->title, self::maxLenTitle);
         
         $haveRight = $mvc->haveRightFor('single', $rec);
@@ -1844,6 +1843,19 @@ class doc_Folders extends core_Master
 	    	$coverClasses = array_keys($coverClasses);
 	    	$query->in('coverClass', $coverClasses);
 	    }
+
+	    // Ако изрично са посочени класовете на кориците които да извлечем
+	    if(isset($params['coverClasses'])){
+	    	$skipCoverClasses = array();
+	    	$exceptCoverClasses = explode('|', $params['coverClasses']);
+	    	if(is_array($exceptCoverClasses)){
+	    		foreach ($exceptCoverClasses as $cName){
+	    			$skipCoverClasses[] = $cName::getClassId();
+	    		}
+	    	}
+	    	
+	    	$query->in('coverClass', $skipCoverClasses);
+	    }
 	    
         $viewAccess = TRUE;
 	    if ($params['restrictViewAccess'] == 'yes') {
@@ -1898,8 +1910,9 @@ class doc_Folders extends core_Master
                 $qArr = explode(' ', $q);
             }
             
+            $pBegin = type_Key2::getRegexPatterForSQLBegin();
             foreach($qArr as $w) {
-                $query->where(array("#searchFieldXpr REGEXP '\ {1}[^a-z0-9\p{L}]?[#1#]'", $w));
+                $query->where(array("#searchFieldXpr REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
             }
         }
  
@@ -1932,4 +1945,44 @@ class doc_Folders extends core_Master
         // Премахваме color стилове
         $status = preg_replace('/style\s*=\s*(\'|")color:\#[a-z0-9]{3,6}(\'|")/i', '', $status);
     }
+    
+    
+    /**
+     * Прави подробни линкове към папките
+     * 
+     * @param mixed $folderArr - списък с папки
+     * @param string $inline   - на един ред разделени с `,` или да се върнат като масив
+     * @return array|string    - линковете към папките
+     */
+    public static function getVerbalLinks($folderArr, $inline = FALSE)
+    {
+    	$res = array();
+    	$folderArr = (is_array($folderArr)) ? $folderArr : keylist::toArray($folderArr);
+    	
+    	foreach ($folderArr  as $folderId){
+    		$res[$folderId] = doc_Folders::recToVerbal(doc_Folders::fetch($folderId))->title;
+    	}
+    	
+    	$res = ($inline === TRUE) ? implode(', ', $res) : $res;
+    	
+    	return $res;
+    }
+
+
+    /**
+     * Връща id на папка от класа и id-то на корицата й
+     *
+     * @param   string|int  $coverClass
+     * @param   int         $coverId
+     *
+     * @return  int
+     */
+    public static function getIdByCover($coverClass, $coverId)
+    {
+        expect($mvc = cls::get($coverClass));
+        expect($rec = $mvc->fetch($coverId));
+        
+        return $rec->folderId;
+    }
+
 }

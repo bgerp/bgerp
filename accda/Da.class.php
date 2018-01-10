@@ -352,11 +352,11 @@ class accda_Da extends core_Master
     protected static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
     	if(planning_AssetResources::haveRightFor('add', (object)array('protocolId' => $data->rec->id))){
-    		$data->toolbar->addBtn('Ресурс', array('planning_AssetResources', 'add', 'protocolId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/star_2.png,title=Добавяне като ресурс');
+    		$data->toolbar->addBtn('Оборудване', array('planning_AssetResources', 'add', 'protocolId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/add.png,title=Създаване на ново оборудване');
     	}
     
     	if($hRecId = planning_AssetResources::fetchField("#protocolId = {$data->rec->id}", 'id')){
-    		$data->toolbar->addBtn('Ресурс', array('planning_AssetResources', 'edit', 'id' => $hRecId, 'ret_url' => TRUE), 'ef_icon = img/16/edit-icon.png,title=Редактиране на ресурс');
+    		$data->toolbar->addBtn('Оборудване', array('planning_AssetResources', 'edit', 'id' => $hRecId, 'ret_url' => TRUE), 'ef_icon = img/16/edit-icon.png,title=Редактиране на оборудване');
     	}
     }
 }

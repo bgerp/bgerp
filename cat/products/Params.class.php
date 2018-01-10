@@ -340,7 +340,7 @@ class cat_products_Params extends doc_Detail
         			$requiredRoles = 'cat,ceo,catEdit,sales,purchase';
         			$isPublic = cat_Products::fetchField($rec->productId, 'isPublic');
         			if($isPublic == 'yes'){
-        				$requiredRoles = 'cat,ceo';
+        				$requiredRoles = 'catEdit,ceo';
         			}
         		}
         	}
@@ -420,6 +420,7 @@ class cat_products_Params extends doc_Detail
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
     	$mvc->syncWithFeature($rec->paramId, $rec->productId);
+    	cls::get($rec->classId)->logInAct('Редактиране', $rec->productId);
     }
     
     

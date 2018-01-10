@@ -3,13 +3,13 @@
 
 
 /**
- * Партиди
+ * Партидни наличности
  *
  *
  * @category  bgerp
  * @package   batch
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -49,7 +49,7 @@ class batch_Items extends core_Master {
     /**
      * Кой може да променя състоянието на валутата
      */
-    public $canChangestate = 'batch,ceo';
+    public $canChangestate = 'batchMaster,ceo';
     
     
     /**
@@ -409,7 +409,8 @@ class batch_Items extends core_Master {
     	$data->definition = $definition;
     	$defIf = batch_Defs::fetch("#productId = '{$data->masterId}'");
     	if(batch_Defs::haveRightFor('delete', $defIf)){
-    		$data->deleteBatchUrl = array('batch_Defs', 'delete', $defIf->id, 'ret_url' => TRUE);
+    		$retUrl = array($data->masterMvc, 'single', $data->masterId);
+    		$data->deleteBatchUrl = array('batch_Defs', 'delete', $defIf->id, 'ret_url' => $retUrl);
     	}
     	
     	$data->TabCaption = 'Партиди';
@@ -452,7 +453,7 @@ class batch_Items extends core_Master {
     	// Обръщаме записите във вербален вид
     	foreach ($data->recs as $id => $rec){
     		
-    		// Пропускаме записите, които не трябва да са на тази страница
+    		// Пропускане на записите, които не трябва да са на тази страница
     		if(!$pager->isOnPage()) continue;
     		
     		// Вербално представяне на записа

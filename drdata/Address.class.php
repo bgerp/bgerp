@@ -406,10 +406,13 @@ class drdata_Address extends core_MVC
         if($avoidLines = $conf->DRDATA_AVOID_IN_EXT_ADDRESS) {
             $avoidLines = explode("\n", $avoidLines);
             foreach($avoidLines as $l) {
-                $avoid[] = trim($l, "\r");
+                $avoid[] = $l;
             }
         }
         
+        // Трим на всички избягвани фрази
+        $avoid = array_map('trim', $avoid);
+
         $lines = self::textToLines($text);
         
         if (!$lines) return new stdClass();

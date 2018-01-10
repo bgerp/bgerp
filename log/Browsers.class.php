@@ -770,8 +770,8 @@ class log_Browsers extends core_Master
         }
 
         $this->render1x1gif();
-
-        die;
+        
+        core_App::shutdown(FALSE);
     }
     
     
@@ -785,7 +785,7 @@ class log_Browsers extends core_Master
 
         $this->render1x1gif();
         
-        die;
+        core_App::shutdown(FALSE);
     }
     
     

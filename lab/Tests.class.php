@@ -27,7 +27,7 @@ class lab_Tests extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools2, doc_ActivatePlg, plg_Clone, doc_DocumentPlg, plg_Printing,
-                     lab_Wrapper, plg_Sorting, bgerp_plg_Blank, doc_plg_SelectFolder';
+                     lab_Wrapper, plg_Sorting, bgerp_plg_Blank, doc_plg_SelectFolder,planning_plg_StateManager';
     
     
     /**
@@ -53,8 +53,30 @@ class lab_Tests extends core_Master
      * Детайла, на модела
      */
     var $details = 'lab_TestDetails';
-    
-    
+
+    /**
+     * Кой може да активира задачата
+     */
+    public $canActivate = 'ceo';
+
+
+    /**
+     * Кой има право да променя?
+     *
+     * @var string|array
+     */
+    public $canEdit;
+
+
+    /**
+     * Кой има право да добавя?
+     *
+     * @var string|array
+     */
+    public $canAdd;
+
+
+
     /**
      * Роли, които могат да записват
      */
@@ -113,6 +135,11 @@ class lab_Tests extends core_Master
      * Групиране на документите
      */
     var $newBtnGroup = "18.1|Други";
+
+    /**
+     * Кой може да го прави документа чакащ/чернова?
+     */
+    public $canPending = 'ceo, lab';
     
     
     /**
@@ -142,18 +169,40 @@ class lab_Tests extends core_Master
      */
     function description()
     {
-        $this->FLD('title', 'varchar(128)', 'caption=Наименование,mandatory,oldFieldName=handler');
-        $this->FLD('type', 'varchar(64)', 'caption=Вид,notSorting');
+       // $this->FLD('title', 'varchar(128)', 'caption=Наименование,mandatory,oldFieldName=handler');
+        $this->FLD('type', 'varchar(64)', 'caption=Образец,notSorting');
+        $this->FLD('provider', 'varchar(64)', 'caption=Доставчик,notSorting');
         $this->FLD('batch', 'varchar(64)', 'caption=Партида,notSorting');
-        $this->FLD('madeBy', 'varchar(255)', 'caption=Изпълнител');
+      //  $this->FLD('madeBy', 'varchar(255)', 'caption=Изпълнител');
         $this->FLD('origin', 'enum(order=Поръчка,research=Разработка,external=Външна)', 'caption=Произход,notSorting');
-        $this->FLD('assignor', 'varchar(255)', 'caption=Възложител');
+      //  $this->FLD('assignor', 'varchar(255)', 'caption=Възложител');
         $this->FLD('note', 'richtext(bucket=Notes)', 'caption=Описание,notSorting');
+        $this->FLD('parameters', 'keylist(mvc=lab_Parameters,select=name)', 'caption=Параметри,notSorting');
+
         $this->FLD('activatedOn', 'datetime', 'caption=Активиран на,input=none,notSorting');
         $this->FLD('lastChangedOn', 'datetime', 'caption=Последна промяна,input=none,notSorting');
         $this->FLD('state', 'enum(draft=Чернова,active=Активен,rejected=Изтрит)', 'caption=Статус,input=none,notSorting');
         $this->FLD('searchd', 'text', 'caption=searchd, input=none, notSorting');
     }
+
+
+    public static function on_AfterInputeditForm($mvc, &$form)
+    {
+
+//        $param = lab_Parameters::getQuery()->fetch()->name;
+//
+//        bp($param);
+
+        $pQuery = lab_Parameters::getQuery();
+        while($param = $pQuery ->fetch()->name) {
+
+
+           // $form->this->FLD('parameters', "set($param)", 'caption=Параметри,notSorting');
+        }
+
+
+    }
+
 
     
     /**

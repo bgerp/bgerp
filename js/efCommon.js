@@ -1320,14 +1320,14 @@ function chRwClSb(id) {
 /**
  * Инвертира всички чек-боксове
  */
-function toggleAllCheckboxes() {
+function toggleAllCheckboxes(el) {
+    var isChecked = $(el).is(":checked");
     $('[id^=cb_]').each(function() {
         var id = $(this).attr('id').replace(/^\D+/g, '');
-        if ($(this).is(":checked") == true) {
-            $(this).prop('checked',false);
+        $(this).prop('checked',isChecked);
+        if (isChecked) {
             $('#check' + id).text("Избор");
         } else {
-            $(this).prop('checked',true);
             $('#check' + id).text($("#with_selected").val());
         }
         chRwCl(id);
@@ -1689,6 +1689,9 @@ function setFormElementsWidth() {
         $('.formTable .hiddenFormRow select.w100').css('width', "100%");
         $('.formTable .hiddenFormRow select.w25').css('width', "25%");
 
+        var tempWidth = $('#all .formTable input.w100').last().width() > 200 ? $('#all .formTable input.w100').last().width() : 400;
+        $('#all .formTable textarea').css('min-width', tempWidth);
+
     	 $('.formTable label').each(function() {
     		 if($(this).parent().is('td')){
              	$(this).parent().css('white-space', "nowrap");
@@ -1868,8 +1871,15 @@ function saveSelectedTextToSession(handle, onlyHandle) {
 		        			
 		        			// От нивото на ричтекста, намираме div с id на документа
 		        			if ($(parentNode).attr('class') == 'richtext') {
-		        				parentNode = parentNode.parentNode.parentNode.parentNode.parentNode.parentNode;
-		        				var handle2 = $(parentNode).attr('id');
+		        				
+		        				var parentNode6 = parentNode.parentNode.parentNode.parentNode.parentNode.parentNode;
+		        				var handle2 = $(parentNode6).attr('id');
+		        				
+		        				if (typeof handle2 == "undefined") {
+		        					var parentNode5 = parentNode.parentNode.parentNode.parentNode.parentNode;
+		        					handle2 = $(parentNode5).attr('id');
+		        				}
+		        				
 		        				break;
 		        			}
 		        			
@@ -1877,7 +1887,7 @@ function saveSelectedTextToSession(handle, onlyHandle) {
 		        		}
 	        		}
 	        		
-	        		if (typeof handle2 == "undefined") {
+	        		if (typeof handle2 != "undefined") {
         				handle = handle2;
 	        		}
 	        	}
@@ -2112,7 +2122,7 @@ function refreshForm(form, removeFields) {
 		url: frm.attr('action'),
 		data: serialized + '&ajax_mode=1',
 		dataType: 'json'
-	}).done( function(data) {
+	}).done(function(data) {
 		getEO().saveFormData(frm.attr('id'), data);
 		replaceFormData(frm, data);
 
@@ -2122,6 +2132,8 @@ function refreshForm(form, removeFields) {
                 if($('[name=' + k + ']').val() == '')
                     $('[name=' + k + ']').val(savedPwd[k]);}
         },  600);
+	}).fail(function(res) {
+		getEO().log('Грешка при извличане на данни по AJAX - ReadyStatus: ' + res.readyState + ' - Status: ' + res.status);
 	});
 }
 
@@ -2183,7 +2195,7 @@ function replaceFormData(frm, data)
         refreshForm.loadedFiles = [];
     }
     var params = frm.serializeArray();
-
+    
 	// Затваря всики select2 елементи
 	if ($.fn.select2) {
 		var selFind = frm.find('.select2-src');
@@ -2199,17 +2211,17 @@ function replaceFormData(frm, data)
 			});
 		}
 	}
-
+	
 	if (getType(data) == 'array') {
 		var r1 = data[0];
 		if(r1['func'] == 'redirect') {
-			render_redirect(r1['arg']);
+			return render_redirect(r1['arg']);
 		}
 	}
-
+	
 	// Разрешаваме кеширането при зареждане по ajax
 	$.ajaxSetup ({cache: true});
-
+	
 	// Зареждаме стиловете
 	$.each(data.css, function(i, css) {
 		if(refreshForm.loadedFiles.indexOf(css) < 0) {
@@ -2221,7 +2233,7 @@ function replaceFormData(frm, data)
 			refreshForm.loadedFiles.push(css);
 		}
 	});
-
+	
 	// Зареждаме JS файловете синхронно
 	loadFiles(data.js, refreshForm.loadedFiles, frm, data.html);
 
@@ -2692,6 +2704,22 @@ function checkForHiddenGroups() {
  * В зависимост от натиснатия елемент, се определя какво действие трябва да се извърши с кейлист полетата
  */
 function keylistActions(el) {
+    // изчисление с коя иконка трябва да е групата
+    $('.inner-keylist').each(function(){
+        var uncheckElementInGroup = false;
+        $(this).find('.checkbox').each(function(){
+            if($(this).attr('checked') != "checked") {
+                uncheckElementInGroup = true;
+            }
+        });
+        var className = $(this).find('tr').attr('class');
+        if(uncheckElementInGroup) {
+            $("#" + className).find('.invert-checkbox.unchecked').removeClass('hidden');
+        } else {
+            $("#" + className).find('.invert-checkbox.checked').removeClass('hidden');
+        }
+    });
+
 	 $('.keylistCategory').on('click', function(e) {
 		 // ако натиснем бутона за инвертиране на чекбоксовете
 		  if ($(e.target).is(".invert-checkbox")) {
@@ -2782,15 +2810,15 @@ function findElementKeylistGroup(el){
  */
 function inverseCheckBox(el){
 	// сменяме иконката
+    var checked = $(el).parent().find(".invert-checkbox.checked").hasClass("hidden");
 	$(el).parent().find(".invert-checkbox").toggleClass('hidden');
 	var trItems = findElementKeylistGroup(el);
-
 	//инвертираме
 	$(trItems).find('.checkbox').each(function() {
-		if(this.checked) {
-			$(this).prop('checked',false);
+		if(checked) {
+            $(this).prop('checked',true);
 		} else {
-			$(this).prop('checked',true);
+			$(this).prop('checked',false);
 		}
 	});
 }
@@ -4689,7 +4717,7 @@ Experta.prototype.checkBodyId = function(bodyId) {
  * Записва данните за формата в id на страницата
  */
 Experta.prototype.saveFormData = function(formId, data) {
-
+	
 	var maxItemOnSession = 3;
 
 	bodyId = $('body').attr('id');

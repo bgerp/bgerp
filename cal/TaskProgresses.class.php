@@ -17,6 +17,7 @@
 class cal_TaskProgresses extends core_Detail
 {
     
+    
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
@@ -26,9 +27,27 @@ class cal_TaskProgresses extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools,plg_Created,cal_Wrapper';
-
-
+    public $loadList = 'plg_RowTools2, plg_Created, cal_Wrapper, plg_Rejected';
+    
+    
+    /**
+     * 
+     */
+    public $canEdit = 'no_one';
+    
+    
+    /**
+     *
+     */
+    public $canDelete = 'no_one';
+    
+    
+    /**
+     *
+     */
+    public $canReject = 'powerUser';
+    
+    
     /**
      * Заглавие
      */
@@ -61,7 +80,6 @@ class cal_TaskProgresses extends core_Detail
     
     /**
      * 
-     * @var unknown
      */
     public $canAdd = 'powerUser';
     
@@ -81,7 +99,7 @@ class cal_TaskProgresses extends core_Detail
         $this->FLD('taskId', 'key(mvc=cal_Tasks,select=title)', 'caption=Задача,input=hidden,silent,column=none');
        
         // Каква част от задачата е изпълнена?
-        $this->FLD('progress', 'percent(min=0,max=1,decimals=0)',     'caption=Прогрес');
+        $this->FLD('progress', 'percent(min=0,max=1,decimals=0)', 'caption=Прогрес');
 
         // Колко време е отнело изпълнението?
         $this->FLD('workingTime', 'time(suggestions=10 мин.|30 мин.|60 мин.|2 часа|3 часа|5 часа|10 часа)',     'caption=Отработено време');
@@ -92,6 +110,8 @@ class cal_TaskProgresses extends core_Detail
         
         // Статус съобщение
         $this->FLD('message',    'richtext(rows=5, bucket=calTasks)', 'caption=Съобщение');
+        
+        $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено)', 'caption=Състояние,column=none,input=none,notNull,forceField');
     }
 
 
@@ -103,23 +123,76 @@ class cal_TaskProgresses extends core_Detail
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {   
+        $data->form->FNC('notifyUsers', 'type_Keylist(mvc=core_Users, select=nick, where=#state !\\= \\\'rejected\\\', allowEmpty)', 'caption=Нотификация, input');
+        
+        if ($taskId = $data->form->rec->taskId) {
+            $tRec = cal_Tasks::fetch($taskId);
+            
+            $notifyUsersArr = type_Users::toArray($tRec->assign);
+            
+            if ($tRec->createdBy > 0) {
+                $notifyUsersArr[$tRec->createdBy] = $tRec->createdBy;
+            }
+            
+            $interestedUsersArr = $notifyUsersArr;
+            
+            // Добавяме отговорника и споделените на папката
+            if ($tRec->folderId) {
+                $fRec = doc_Folders::fetch($tRec->folderId);
+                $interestedUsersArr[$fRec->inCharge] = $fRec->inCharge;
+                
+                if ($fRec->shared) {
+                    $interestedUsersArr += type_Keylist::toArray($fRec->shared);
+                }
+            }
+            
+            if ($tRec->sharedUsers) {
+                $interestedUsersArr += type_Keylist::toArray($tRec->sharedUsers);
+            }
+            
+            $cu = core_Users::getCurrent();
+            unset($notifyUsersArr[$cu]);
+            unset($interestedUsersArr[$cu]);
+            
+            $suggArr = $data->form->fields['notifyUsers']->type->prepareSuggestions();
+            
+            // Показваме само хората, които имат връзка със задачата или папката
+            foreach ($interestedUsersArr as &$nick) {
+                if ($suggArr[$nick]) {
+                    $nick = $suggArr[$nick];
+                } else {
+                    unset($interestedUsersArr[$nick]);
+                }
+            }
+            
+            if (empty($interestedUsersArr)) {
+                $data->form->setField('notifyUsers', 'input=none');
+            }
+            $data->form->setSuggestions('notifyUsers', $interestedUsersArr);
+            
+            if (!empty($interestedUsersArr) && !empty($notifyUsersArr)) {
+                $data->form->setDefault('notifyUsers', $notifyUsersArr);
+            }
+        }
+        
     	expect($data->form->rec->taskId);
-
-        $masterRec = cal_Tasks::fetch($data->form->rec->taskId);
-        $progressArr[''] = '';
-
-        for($i = 0; $i <= 100; $i += 10) {
-            if($masterRec->progress > ($i/100)) continue;
-            $p = $i . ' %';
-            $progressArr[$p] = $p;
-        }
+    	
+    	$Driver = $mvc->Master->getDriver($data->form->rec->taskId);
+    	
+    	$mRec = $mvc->Master->fetch($data->form->rec->{$mvc->masterKey});
+    	
+    	$progressArr = $Driver->getProgressSuggestions($mRec);
         
-        if ($masterRec->progress) {
-        	$data->form->setDefault('progress', $masterRec->progress);
-        }
-        
-        if ($masterRec->workingTime) {
-        	$data->form->setDefault('workingTime', $masterRec->workingTime);
+    	if ($mRec->progress) {
+    	    $pVal = $mRec->progress * 100;
+    	    Mode::push('text', 'plain');
+    	    $pVal = $mvc->fields['progress']->type->toVerbal($mRec->progress);
+    	    Mode::pop('text');
+    	    if (!isset($progressArr[$pVal])) {
+    	        $progressArr[$pVal] = $pVal;
+    	        ksort($progressArr, SORT_NUMERIC);
+    	    }
+            $data->form->setDefault('progress', $mRec->progress);
         }
         
         $data->form->setSuggestions('progress', $progressArr);
@@ -249,25 +322,77 @@ class cal_TaskProgresses extends core_Detail
     {
         $tRec = cal_Tasks::fetch($rec->taskId);
         $now = dt::now();
+        
+        $msg = 'Добавен прогрес към задачата';
+        
+        $removeOldNotify = FALSE;
+        $closeThread = FALSE;
+        
         // Определяне на прогреса
         if(isset($rec->progress)) {
-            $tRec->progress = $rec->progress;
             
-            if($rec->progress == 1) {
-            	$message = tr("Приключена е задачата") . ' "' . $tRec->title . '"';
-            	$url = array('doc_Containers', 'list', 'threadId' => $tRec->threadId);
-            	$customUrl = array('cal_Tasks', 'single',  $tRec->id);
-            	$priority = 'normal';
-            	bgerp_Notifications::add($message, $url, $tRec->createdBy, $priority, $customUrl);
-                $tRec->state = 'closed';
-                $tRec->timeClosed = $now;
+            if (($tRec->progress != $rec->progress) || ($rec->state == 'rejected')) {
+                
+                $oldProgress = $tRec->progress;
+                $tRec->progress = $rec->progress;
+                
+                if ($rec->state == 'rejected') {
+                    $lGoodProgress = self::getLastGoodProgress($tRec->id);
+                }
+                
+                $tRec->progress = ($rec->state != 'rejected') ? $rec->progress : $lGoodProgress;
+                
+                // При прогрес на 100% нотифицираме и създателя на задачата
+                if (($rec->progress == 1 && $rec->state != 'rejected') || ($rec->state == 'rejected' && $lGoodProgress == 1)) {
+                    
+                    if ($tRec->state != 'closed' && $tRec->state != 'stopped') {
+                        $cu = core_Users::getCurrent();
+                        
+                        if ($tRec->createdBy > 0 && $tRec->createdBy != $cu) {
+                            if (!type_Keylist::isIn($cu, $rec->notifyUsers)) {
+                                $rec->notifyUsers = type_Keylist::addKey($rec->notifyUsers, $tRec->createdBy);
+                            }
+                        }
+                        
+                        $tRec->brState = $tRec->state;
+                        $tRec->state = 'closed';
+                        $tRec->timeClosed = $now;
+                        
+                        $msg = 'Приключена е задачата';
+                        
+                        $removeOldNotify = TRUE;
+                        $closeThread = TRUE;
+                    }
+                }
+                
+                // Ако е в затворено състояно, връщаме предишното състояние
+                if (($tRec->progress != 1) && (($rec->progress != $oldProgress) || $rec->state == 'rejected')) {
+                    if (($tRec->state == 'closed') || ($tRec->state == 'stopped')) {
+                        if ($tRec->state != $tRec->brState) {
+                            $tState = $tRec->state;
+                            $tRec->state = $tRec->brState;
+                            $tRec->brState = $tState;
+                            
+                            if (!$tRec->state) {
+                                $tRec->state = 'active';
+                            }
+                            
+                            cal_Tasks::save($tRec, 'brState, state');
+                        }
+                    }
+                }
             }
         }
         
+        $notifyUsersArr = type_Keylist::toArray($rec->notifyUsers);
+        
+        cal_Tasks::notifyForChanges($tRec, $msg, $notifyUsersArr, $removeOldNotify, $closeThread);
+        
         // Определяне на отработеното време
-        if(isset($rec->workingTime)) {
+        if(isset($rec->workingTime) || ($rec->state == 'rejected')) {
             $query = self::getQuery();
             $query->where("#taskId = {$tRec->id}");
+            $query->where("#state != 'rejected'");
             $query->XPR('workingTimeSum', 'int', 'sum(#workingTime)');
             $rec = $query->fetch();
             $tRec->workingTime = $rec->workingTimeSum;
@@ -305,13 +430,14 @@ class cal_TaskProgresses extends core_Detail
     {
     	if($action == 'add' && isset($rec->taskId)){
     		if($requiredRoles == 'no_one') return;
-    			
-    		// Проверка дали потребителя има достъп до задачата и дали е в позволено състояние за добавяне на прогрес
-    		$taskState = cal_Tasks::fetchField($rec->taskId, 'state');
-    		if($taskState != 'active' && $taskState != 'waiting' && $taskState != 'wakeup'){
-    			$requiredRoles = 'no_one';
-    		} elseif(!cal_Tasks::haveRightFor('single', $rec->taskId)){
-    			$requiredRoles = 'no_one';
+    		
+    		if (!$mvc->Master->haveRightFor('single', $rec->taskId)) {
+    		    $requiredRoles = 'no_one';
+    		} else {
+    		    $mRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
+    		    if (!$mvc->Master->canAddProgress($mRec)) {
+    		        $requiredRoles = 'no_one';
+    		    }
     		}
     	}
     }
@@ -334,5 +460,176 @@ class cal_TaskProgresses extends core_Detail
 		}
 		
 		return $res;
+	}
+	
+	
+	/**
+	 * Реализация по подразбиране на метода $mvc->reject($id)
+	 *
+	 * @param core_Mvc $mvc
+	 * @param mixed $res
+	 * @param int|stdClass $id
+	 */
+	public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+	{
+	    $rec = $mvc->fetchRec($id);
+	    $mvc->updateTaskProgress($rec->taskId, 'reject');
+	}
+	
+	
+	/**
+	 * Възстановяване на оттеглен обект
+	 *
+	 * Реализация по подразбиране на метода $mvc->restore($id)
+	 *
+	 * @param core_Mvc $mvc
+	 * @param mixed $res
+	 * @param int|stdClass $id
+	 */
+	public static function on_BeforeRestore(core_Mvc $mvc, &$res, $id)
+	{
+	    $rec = cal_Tasks::fetchRec($id);
+	    $tRec = cal_Tasks::fetch($rec->taskId);
+	    
+	    $rec->notifyUsers = $tRec->assign;
+	    
+	    $rec->notifyUsers = type_Keylist::addKey($rec->notifyUsers, $tRec->createdBy);
+	}
+	
+	
+	/**
+	 * Възстановяване на оттеглен обект
+	 *
+	 * Реализация по подразбиране на метода $mvc->restore($id)
+	 *
+	 * @param core_Mvc $mvc
+	 * @param mixed $res
+	 * @param int|stdClass $id
+	 */
+	public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
+	{
+	    $rec = $mvc->fetchRec($id);
+	    $mvc->updateTaskProgress($rec->taskId, 'restore');
+	}
+	
+	
+	/**
+	 * Обновява прогреса на задачата
+	 * 
+	 * @param integer $taskId
+	 * @param NULL|string $state
+	 * 
+	 * @return NULL|boolean
+	 */
+	protected static function updateTaskProgress($taskId, $state = NULL)
+	{
+	    if (!$taskId) return ;
+	    
+        $progress = self::getLastGoodProgress($taskId);
+        
+        $tRec = cal_Tasks::fetch($taskId);
+        
+        if (isset($progress) && ($tRec->progress != $progress)) {
+            $tRec->progress = $progress;
+            cal_Tasks::save($tRec, 'progress');
+            
+            $removeOldNotify = FALSE;
+            $msg = '';
+            
+            // При оттегляне, добавяме нотификация и върщаме предишното състояние
+            if ($state == 'reject') {
+                
+                $notifyUsersArr = type_Keylist::toArray($tRec->assign);
+                
+                if ($rec->createdBy > 0) {
+                    $notifyUsersArr[$tRec->createdBy] = $tRec->createdBy;
+                }
+                
+                $cu = core_Users::getCurrent();
+                unset($notifyUsersArr[$cu]);
+                
+                if (!empty($notifyUsersArr)) {
+                    cal_Tasks::notifyForChanges($tRec, 'Оттеглен прогрес', $notifyUsersArr);
+                }
+            }
+            
+            return TRUE;
+        }
+	}
+	
+	
+	/**
+	 * Връща последно добавения неоттеглен прогрес
+	 * 
+	 * @param integer $taskId
+	 * @return NULL|double
+	 */
+	protected static function getLastGoodProgress($taskId)
+	{
+	    if (!$taskId) return ;
+	    
+        $query = self::getQuery();
+        $query->where(array("#taskId = '[#1#]'", $taskId));
+        $query->where("#state != 'rejected'");
+        $query->limit(1);
+        $query->show('progress');
+        $query->orderBy('createdOn', 'DESC');
+        
+        $rec = $query->fetch();
+        
+        if (!$rec) return 0;
+        
+        return $rec->progress;
+	}
+	
+	
+	/**
+	 * Извлича редовете, които ще се покажат на текущата страница
+	 * За да покажем и оттеглените задачи
+	 * 
+	 * @param stdObject $data
+	 * 
+	 * @return stdObject
+	 */
+	function prepareListRecs(&$data)
+	{
+	    $data = parent::prepareListRecs_($data);
+	    
+	    $data->rejQuery = clone($data->query);
+	    $data->rejQuery->where("#state = 'rejected'");
+	    
+	    return $res;
+	}
+	
+	
+	/**
+	 * След преобразуване на записа в четим за хора вид.
+	 *
+	 * @param core_Mvc $mvc
+	 * @param stdClass $row Това ще се покаже
+	 * @param stdClass $rec Това е записа в машинно представяне
+	 */
+	protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
+	{
+	    // Добавяме стил за състоянието на оттеглените задачи
+	    if ($rec->state == 'rejected') {
+	        $row->ROW_ATTR['class'] .= ' state-' . $rec->state;
+	    }
+	    
+	    $Driver = $mvc->Master->getDriver($rec->taskId);
+	    
+	    $mRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
+	    
+	    $progressArr = $Driver->getProgressSuggestions($mRec);
+	    
+	    Mode::push('text', 'plain');
+	    $pVal = $mvc->fields['progress']->type->toVerbal($rec->progress);
+	    Mode::pop('text');
+	    
+	    $pValStr = $progressArr[$pVal];
+	    
+	    if ($pValStr && ($pValStr != $pVal)) {
+	        $row->progress .= ' (' . $pValStr . ')';
+	    }
 	}
 }

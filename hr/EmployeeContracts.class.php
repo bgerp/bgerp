@@ -135,7 +135,7 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'numId,dateId,typeId,personId=Имена,numId,positionId=Позиция,startFrom,endOn';
+    public $listFields = 'numId,dateId,departmentId,typeId,personId=Имена,numId,positionId=Позиция,startFrom,endOn';
     
     
     /**
@@ -183,7 +183,7 @@ class hr_EmployeeContracts extends core_Master
         $this->FLD('lengthOfService', 'time(suggestions=1 мес|2 мес|3 мес|4 мес|5 мес|6 мес|7 мес|8 мес|9 мес|10 мес|11 мес|12 мес|2 год|3 год|5 год,uom=months,allowEmpty)', 'caption=Служител->Трудов стаж');
                 
         // Отдел - външно поле от модела hr_Positions
-        $this->FLD('departmentId', 'key(mvc=hr_Departments,select=name)', 'caption=Работа->Отдел,mandatory,autoFilter');
+        $this->FLD('departmentId', 'key(mvc=planning_Centers,select=name)', 'caption=Работа->Център,mandatory,autoFilter');
 
         // Позиция в отдела
         $this->FLD('positionId', 'key(mvc=hr_Positions,select=name)', 'caption=Работа->Длъжност,mandatory,autoFilter');
@@ -202,10 +202,10 @@ class hr_EmployeeContracts extends core_Master
         $this->FLD('notice', 'time(suggestions=10 дни|15 дни|20 дни|30 дни,uom=days,allowEmpty)', "caption=Време->Предизвестие");
         $this->FLD('probation', 'time(suggestions=1 мес|2 мес|3 мес|6 мес|9 мес|12 мес,uom=month,allowEmpty)', "caption=Време->Изпитателен срок");
         
-        $this->FLD('descriptions', 'richtext(bucket=humanResources, shareUsersRoles=trz|ceo)', 'caption=Условия->Допълнителни');
+        $this->FLD('descriptions', 'richtext(bucket=humanResources, shareUsersRoles=hr|ceo)', 'caption=Условия->Допълнителни');
         
         // Споделени потребители
-        $this->FLD('sharedUsers', 'userList(roles=trz|ceo)', 'caption=Споделяне->Потребители');
+        $this->FLD('sharedUsers', 'userList(roles=hr|ceo)', 'caption=Споделяне->Потребители');
         
         $this->setDbUnique('numId');
     }
@@ -284,12 +284,12 @@ class hr_EmployeeContracts extends core_Master
     	// трудовият договор, не може да се създаде без да е обявено работното време в него
     	// в системата, работното време се определя от различните графици
     	// те от своя страна се добавят към отделите (структура)
-    	$queryWorkingCycle = hr_Departments::getQuery();
+    	$queryWorkingCycle = planning_Centers::getQuery();
     	
     	if($queryWorkingCycle->fetch("#schedule") == FALSE){
     	
     		// Ако няма, изискваме от потребителя да въведе
-    		redirect(array('hr_Departments', 'list'), FALSE,  "|Не сте въвели работни графици");
+    		redirect(array('planning_Centers', 'list'), FALSE,  "|Не сте въвели работни графици");
     	}
     	
         $row = $data->row;
@@ -526,7 +526,7 @@ class hr_EmployeeContracts extends core_Master
         
         $res = new ET("[#toolbar#]
         <div class='document'>
-        [#blank#]<br>
+        <!--ET_BEGIN blank-->[#blank#]<br><!--ET_END blank-->
         [#contract#]</div> <div style='clear:both;'></div>
         
         ");
@@ -552,7 +552,7 @@ class hr_EmployeeContracts extends core_Master
         if($query->fetchAll() == FALSE){
             
             // Ако няма, изискваме от потребителя да въведе
-            redirect(array('hr_Departments', 'list'), FALSE, "|Не сте въвели длъжност");
+            redirect(array('planning_Centers', 'list'), FALSE, "|Не сте въвели длъжност");
         }
         
         // трудовият договор, не може да се създаде без да е обявено работното време в него
@@ -583,12 +583,12 @@ class hr_EmployeeContracts extends core_Master
         // трудовият договор, не може да се създаде без да е обявено работното време в него
         // в системата, работното време се определя от различните графици
         // те от своя страна се добавят към отделите (структура)
-        $queryWorkingCycle = hr_Departments::getQuery();
+        $queryWorkingCycle = planning_Centers::getQuery();
     
         if($queryWorkingCycle->fetch("#schedule") == FALSE){
 
         	// Ако няма, изискваме от потребителя да въведе
-        	redirect(array('hr_Departments', 'list'), FALSE, "|Не сте въвели работни графици");
+        	redirect(array('planning_Centers', 'list'), FALSE, "|Не сте въвели работни графици");
         }
     }
     
@@ -675,7 +675,7 @@ class hr_EmployeeContracts extends core_Master
     {
         $departmentId = self::fetchField($id, 'departmentId');
         
-        $schedule = hr_Departments::fetchField($departmentId, 'schedule');
+        $schedule = planning_Centers::fetchField($departmentId, 'schedule');
         
         return $schedule;
     }

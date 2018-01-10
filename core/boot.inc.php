@@ -50,17 +50,32 @@ require_once(EF_APP_PATH . "/core/Html.class.php");
 core_Debug::setErrorWaching();
 
 try {
+    // Дъмпване във файл на всички входни данни
+    if(defined('DEBUG_FATAL_ERRORS_PATH')) {
+        
+        $pathName = rtrim(DEBUG_FATAL_ERRORS_PATH, '/') . '/' . rand(1000, 9999) . date('_H_i_s') . '.txt';
+        
+        $data = json_encode(array('GET' => $_GET, 'POST' => $_POST));
+        
+        if (!$data) {
+            $data = json_last_error();
+            $data .= ' Serilize: ' . @serialize($data);
+        }
+        
+        if (!defined('DEBUG_FATAL_ERRORS_FILE') && @file_put_contents($pathName, $data)) {
+            define('DEBUG_FATAL_ERRORS_FILE', $pathName);
+        }
+    }
+    
     // Инициализиране на системата
     core_App::initSystem();
-
-
+    
     // Параметрите от виртуалното URL за зареждат в $_GET
     core_App::processUrl();
-
-
+    
     // Зарежда конфигурационните константи
     core_App::loadConfig();
-
+    
     if (core_App::isLocked()) {
         if (Request::get('ajax_mode')) {
             $resObj = new stdClass();
@@ -103,7 +118,7 @@ try {
     core_App::shutdown();
 
 } catch (Exception  $e) {
-    
+ 
     // Отключваме системата, ако е била заключена в този хит
     core_SystemLock::remove();
 
@@ -147,6 +162,9 @@ try {
     }
     
     reportException($e, $update, FALSE);
+    
+    // Изход от скрипта
+    core_App::exitScript();
 }
 
 

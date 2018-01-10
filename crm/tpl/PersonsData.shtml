@@ -10,7 +10,7 @@
 	
 	<!--ET_BEGIN INDICATORS_TABLE-->
 	<fieldset class='top-tab-content' style='margin-top:10px'>
-	<legend class='groupTitle'>|Показатели|*</legend>
+	<legend class='groupTitle'>|Индикатори|*</legend>
 		<div class='detail-info portal [#TAB_STATE#]'>
 		    <div class='groupList clearfix21'>
 		        [#INDICATORS_TABLE#]

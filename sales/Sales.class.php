@@ -43,7 +43,7 @@ class sales_Sales extends deals_DealMaster
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf,
                           acc_TransactionSourceIntf=sales_transaction_Sale,
                           bgerp_DealIntf, bgerp_DealAggregatorIntf, deals_DealsAccRegIntf, 
-                          acc_RegisterIntf,deals_InvoiceSourceIntf,colab_CreateDocumentIntf,acc_AllowArticlesCostCorrectionDocsIntf,trans_LogisticDataIntf,store_iface_ReserveStockSourceIntf,hr_IndicatorsSourceIntf';
+                          acc_RegisterIntf,deals_InvoiceSourceIntf,colab_CreateDocumentIntf,acc_AllowArticlesCostCorrectionDocsIntf,trans_LogisticDataIntf,hr_IndicatorsSourceIntf';
     
     
     /**
@@ -266,6 +266,12 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
+     * Кои които трябва да имат потребителите да се изберат като дилъри
+     */
+    public $dealerRolesList = 'sales,ceo';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -417,7 +423,7 @@ class sales_Sales extends deals_DealMaster
 	    		$data->toolbar->addBtn("Проформа", array('sales_Proformas', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'row=2,ef_icon=img/16/proforma.png,title=Създаване на нова проформа фактура,order=9.9992');
 		    }
 	    	
-	        if(sales_Invoices::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
+	        if(deals_Helper::showInvoiceBtn($rec->threadId) && sales_Invoices::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
 	    		$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/invoice.png,title=Създаване на нова фактура,order=9.9993');
 		    }
 		    
@@ -981,12 +987,12 @@ class sales_Sales extends deals_DealMaster
     	while($dRec = $dQuery->fetch()){
     		$jobRows = sales_SalesDetails::prepareJobInfo($dRec, $rec);
     		if(count($jobRows)){
-    			$data->jobs = array_merge($data->jobs, $jobRows);
+    			$data->jobs += $jobRows;
     		}
     	}
     	
     	if(planning_Jobs::haveRightFor('Createjobfromsale', (object)array('saleId' => $rec->id))){
-    		$data->addJobUrl = array('planning_Jobs', 'CreateJobFromSale', 'saleId' => $rec->id, 'ret_url' => TRUE);
+    		$data->addJobUrl = array('planning_Jobs', 'CreateJobFromSale', 'saleId' => $rec->id, 'foreignId' => $rec->containerId,'ret_url' => TRUE);
     	}
     }
     

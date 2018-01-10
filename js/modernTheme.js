@@ -329,7 +329,7 @@ function searchInLink(obj, inputClassName, fieldName, haveGet)
 			amp = '?';
 		}
 		
-		window.location.href = obj.href = obj.href + amp + fieldName + '=' + encodeURIComponent(inputVal);
+		window.location.href = obj.href + amp + fieldName + '=' + encodeURIComponent(inputVal);
 		
 		return false;
 	}

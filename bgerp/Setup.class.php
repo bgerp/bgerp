@@ -70,6 +70,23 @@ defIfNot('BGERP_CLOSE_UNDELIVERED_OVER', '1');
 
 
 /**
+ * Клавиши за бързо избиране на бутони
+ */
+defIfNot('BGERP_ACCESS_KEYS',
+'Чернова,Draft,Запис,Save = S
+Запис и Нов,Save and New,Нов,New = N
+Артикул,Item = A
+Създаване,Create = R
+Активиране,Activation,Контиране = K
+Conto,Реконтиране = K
+Отказ,Cancel = C
+Връзка,Link = L
+Редакция,Edit = O
+»»» = >
+««« = <');
+
+
+/**
  * class 'bgerp_Setup' - Начално установяване на 'bgerp'
  *
  *
@@ -82,7 +99,13 @@ defIfNot('BGERP_CLOSE_UNDELIVERED_OVER', '1');
  */
 class bgerp_Setup extends core_ProtoSetup {
     
-    
+
+    /**
+     * Да се инициализира ли, след промяна на конфигурацията?
+     */
+    const INIT_AFTER_CONFIG = FALSE;
+
+
     /**
      * Версия на пакета
      */
@@ -126,6 +149,8 @@ class bgerp_Setup extends core_ProtoSetup {
         'BGERP_START_OF_WORKING_DAY' => array ('enum(08:00,09:00,10:00,11:00,12:00)', 'caption=Начало на работния ден->Час'),
         
         'BGERP_CLOSE_UNDELIVERED_OVER'    => array('percent(min=0)', 'caption=Допустимо автоматично приключване на сделка при "Доставено" минимум->Процент'),
+         
+        'BGERP_ACCESS_KEYS'    => array('text(rows=6)', 'caption=Клавиши за бързо избиране на бутони->Дефиниции, customizeBy=powerUser'),
     );
     
     
@@ -160,7 +185,7 @@ class bgerp_Setup extends core_ProtoSetup {
                     'action' => "HideInaccesable",
                     'period' => 1440,
                     'offset' => 50,
-                    'timeLimit' => 300
+                    'timeLimit' => 600
             ),
     );
     
@@ -209,7 +234,7 @@ class bgerp_Setup extends core_ProtoSetup {
         
         // Списък на основните модули на bgERP
         $packs = "core,log,fileman,drdata,bglocal,editwatch,recently,thumb,doc,acc,cond,currency,cms,
-                  email,crm, cat, trans, price, blast,hr,trz,lab,dec,sales,planning,marketing,store,cash,bank,
+                  email,crm, cat, trans, price, blast,hr,lab,dec,sales,import2,planning,marketing,store,cash,bank,
                   budget,tcost,purchase,accda,permanent,sens2,cams,frame,frame2,cal,fconv,doclog,fconv,cms,blogm,forum,deals,findeals,
                   vislog,docoffice,incoming,support,survey,pos,change,sass,
                   callcenter,social,hyphen,status,phpmailer,label,webkittopdf,jqcolorpicker";

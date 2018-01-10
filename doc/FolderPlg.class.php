@@ -54,6 +54,7 @@ class doc_FolderPlg extends core_Plugin
 
         $mvc->details['Rights'] = $mvc->className;
         $mvc->details['History'] = $mvc->className;
+        $mvc->details['Resources'] = 'doc_FolderResources';
     }
     
     
@@ -637,10 +638,11 @@ class doc_FolderPlg extends core_Plugin
             }
         }
         $currUrl = getCurrentUrl();
-        
+      
         // Подготовка на линк към папката (или създаване на нова) на корицата
         if($fField = $mvc->listFieldForFolderLink) { 
             $folderTitle = $mvc->getFolderTitle($rec->id);
+           
             if($rec->folderId && ($fRec = doc_Folders::fetch($rec->folderId))) {   
                 if (doc_Folders::haveRightFor('single', $rec->folderId) && !$currUrl['Rejected']) { 
                     core_RowToolbar::createIfNotExists($row->_rowTools);
@@ -702,8 +704,8 @@ class doc_FolderPlg extends core_Plugin
         }
         
         $teammates = keylist::toArray(core_Users::getTeammates($userId));
-        $managers  = core_Users::getByRole('manager');
-        $ceos = core_Users::getByRole('ceo');
+        $managers  = (array)core_Users::getByRole('manager');
+        $ceos = (array)core_Users::getByRole('ceo');
         
         // Подчинените в екипа (използва се само за мениджъри)
         $subordinates = array_diff($teammates, $managers);
@@ -944,5 +946,29 @@ class doc_FolderPlg extends core_Plugin
         if (!Request::get('Rejected')) {
             $query->where("#state != 'rejected'");
         }
+    }
+    
+    
+    /**
+     * Метод по подразбиране за това какви ресурси са налични в папката на корицата
+     * 
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param stdClass $rec
+     * @return void
+     */
+    public static function on_AfterGetResourceTypeArray($mvc, &$res, $rec)
+    {
+    	// Ако има папка и тя е избрана, че може да има ресурси към нея добавям я
+    	if(!isset($res) && isset($rec->folderId)){
+    		if($types = planning_FoldersWithResources::fetchField("#folderId={$rec->folderId}", 'type')){
+    			$res = type_Set::toArray($types);
+    		}
+    	}
+    	
+    	// Ако няма резултат
+    	if(!isset($res)){
+    		$res = array();
+    	}
     }
 }

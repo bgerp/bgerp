@@ -73,8 +73,14 @@ class cal_Setup extends core_ProtoSetup
             'migrate::removePOKey',
             //'migrate::reCalcNextStart'
         );
-
-
+    
+    
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    public $defClasses = "cal_TaskType";
+    
+    
     /**
      * Описание на конфигурационните константи
      */
@@ -301,13 +307,41 @@ class cal_Setup extends core_ProtoSetup
     
     /**
      * Миграция за премахване на грешно добавени празници за PO
-     *
-     * @return array
      */
     public static function removePOKey()
     {
         cal_Holidays::delete("#key = 'constitutionPO' OR #key = 'independencePO'");
         
         cal_Holidays::updateCalendarHolidays();
+    }
+    
+    
+    /**
+     * Зареждане на данни
+     */
+    function loadSetupData($itr = '')
+    {
+        $res = parent::loadSetupData($itr);
+        
+        $res .= $this->callMigrate('addCalTaskType', 'cal');
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Миграция за добавяне на драйвер към задачите
+     */
+    public function addCalTaskType()
+    {
+        $Tasks = cls::get('cal_Tasks');
+        
+        $driverClassField = str::phpToMysqlName('driverClass');
+        
+        $clsId = cal_TaskType::getClassId();
+        
+        expect($clsId);
+        
+        $Tasks->db->query("UPDATE `{$Tasks->dbTableName}` SET `{$driverClassField}` = '{$clsId}'");
     }
 }

@@ -148,7 +148,7 @@ class planning_plg_StateManager extends core_Plugin
 				case 'close':
 	
 					// Само активните, събудените и спрените могат да бъдат приключени
-					if($rec->state != 'active' && $rec->state != 'wakeup' && $rec->state != 'stopped'){
+				    if ($rec->state == 'rejected' || $rec->state == 'draft' || $rec->state == 'closed'){
 						$requiredRoles = 'no_one';
 					}
 					break;
@@ -266,6 +266,8 @@ class planning_plg_StateManager extends core_Plugin
     		// Ако ще активираме: запалваме събитие, че ще активираме
     		$saveFields = 'brState,state,modifiedOn,modifiedBy,timeClosed';
     		if($action == 'activate'){
+    			$rec->activatedBy = core_Users::getCurrent();
+    			$rec->activatedOn = dt::now();
     			$mvc->invoke('BeforeActivation', array(&$rec));
     			$saveFields = NULL;
     		}

@@ -63,8 +63,8 @@ class cat_Products extends embed_Manager {
     /**
      * Детайла, на модела
      */
-    public $details = 'Packagings=cat_products_Packagings,Prices=cat_PriceDetails,AccReports=acc_ReportDetails,
-    Resources=planning_ObjectResources,Jobs=planning_Jobs,Boms=cat_Boms,Shared=cat_products_SharedInFolders';
+    public $details = 'Packagings=cat_products_Packagings,Prices=cat_products_PriceDetails,AccReports=acc_ReportDetails,
+    Resources=planning_ObjectResources,Usage=cat_products_Usage,Boms=cat_Boms,Shared=cat_products_SharedInFolders';
     
     
     /**
@@ -186,7 +186,7 @@ class cat_Products extends embed_Manager {
     /**  
      * Кой има право да променя системните данни?  
      */  
-    public $canEditsysdata = 'cat,ceo,sales,purchase';
+    public $canEditsysdata = 'cat,ceo,sales,purchase,catEdit';
     
     
     /**
@@ -526,7 +526,7 @@ class cat_Products extends embed_Manager {
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
 		if(!isset($form->rec->innerClass)){
-    		$form->setField('groups', 'input=hidden');
+    		$form->setField('groupsInput', 'input=hidden');
     		$form->setField('meta', 'input=hidden');
     		$form->setField('measureId', 'input=hidden');
     		$form->setField('code', 'input=hidden');
@@ -570,7 +570,7 @@ class cat_Products extends embed_Manager {
     					$rec->name = str::addIncrementSuffix($rec->name, 'v', 2);
     				}
     			} elseif($Cover->getProductType() == 'template' && empty($rec->code)){
-    				if(cat_Products::fetchField(array("#name = '[#1#]' AND #id != '{$rec->id}'", $rec->name), 'id')){
+    				if(cat_Products::fetchField(array("#name = '[#1#]' AND #id != '{$rec->id}'", $rec->name), 'id') || doc_Prototypes::fetchField(array("#title = '[#1#]' AND #classId = '{$mvc->getClassId}' AND #docId != '{$rec->id}'", $rec->name))){
     					$form->setError('name', 'Има вече шаблон с това име');
     				}
     			}
@@ -846,7 +846,7 @@ class cat_Products extends embed_Manager {
      */
     public static function expandFilter(&$listFilter)
     {
-    	$orderOptions = arr::make('all=Всички,standard=Стандартни,private=Нестандартни,last=Последно добавени,prototypes=Шаблони,closed=Закрити');
+    	$orderOptions = arr::make('all=Всички,standard=Стандартни,private=Нестандартни,last=Последно добавени,prototypes=Шаблони,closed=Закрити,vat09=ДДС 9%,vat0=ДДС 0%');
     	$orderOptions = arr::fromArray($orderOptions);
     	 
     	$listFilter->FNC('order', "enum({$orderOptions})",
@@ -910,6 +910,16 @@ class cat_Products extends embed_Manager {
         		break;
         	case 'prototypes':
         		$data->query->where("#state = 'template'");
+        		break;
+        	case 'vat09':
+        	case 'vat0':
+        		$v = ($data->listFilter->rec->order == 'vat09') ? 0.09 : 0;
+        		$products = cat_products_VatGroups::getByVatPercent($v);
+        		if(count($products)) {
+        			$data->query->in('id', $products);
+        		} else {
+        			$data->query->where("1=2");
+        		}
         		break;
         	default :
         		$data->query->where("#isPublic = 'yes' AND #state != 'template' AND #state != 'closed'");
@@ -1548,7 +1558,7 @@ class cat_Products extends embed_Manager {
     	// За нескладируемите не се изчислява транспортно тегло
     	if(cat_Products::fetchField($productId, 'canStore') != 'yes') return NULL;
     	 
-    	// Първо се гледа най-голямата опаковка за която има Бруто тегло
+    	// Първо се гледа най-голямата опаковка за която има габаритни размери
     	$packQuery = cat_products_Packagings::getQuery();
     	$packQuery->where("#productId = '{$productId}'");
     	$packQuery->where("#sizeWidth IS NOT NULL AND #sizeHeight IS NOT NULL AND #sizeDepth IS NOT NULL");
@@ -1706,11 +1716,13 @@ class cat_Products extends embed_Manager {
     			$rec = $mvc->fetchRec($rec);
     		}
     		
-            $cRec = clone($rec);
-    		self::setCodeIfEmpty($cRec);
-            $part = $cRec->code;
-
-            return FALSE;
+    		if (is_object($rec)) {
+    		    $cRec = clone($rec);
+    		    self::setCodeIfEmpty($cRec);
+    		    $part = $cRec->code;
+    		    
+    		    return FALSE;
+    		}
     	}
     }
     
@@ -1750,7 +1762,7 @@ class cat_Products extends embed_Manager {
 	 * @param datetime $time            - време
 	 * @param auto|detailed|short $mode - режим на показване
 	 * @param string $lang              - език
-	 * @param int $compontQuantity      - к-во на компонентите   
+	 * @param int $componentQuantity      - к-во на компонентите   
 	 * @param boolean $showCode         - да се показва ли кода до името или не
 	 * 
 	 * @return mixed $res
@@ -1758,8 +1770,12 @@ class cat_Products extends embed_Manager {
 	 *      ако $mode e 'detailed' - подробно описание
 	 *      ако $mode e 'short'	   - кратко описание
 	 */
-    public static function getAutoProductDesc($id, $time = NULL, $mode = 'auto', $documentType = 'public', $lang = 'bg', $compontQuantity = 1, $showCode = TRUE)
+    public static function getAutoProductDesc($id, $time = NULL, $mode = 'auto', $documentType = 'public', $lang = 'bg', $componentQuantity = NULL, $showCode = TRUE)
     {
+    	if($documentType == 'public') {
+    		$componentQuantity = 1;
+    	}
+    	
     	$rec = static::fetchRec($id);
     	
     	$title = cat_ProductTplCache::getCache($rec->id, $time, 'title', $documentType, $lang);
@@ -1813,7 +1829,7 @@ class cat_Products extends embed_Manager {
     	if($showDescription === TRUE){
     	    $data = cat_ProductTplCache::getCache($rec->id, $time, 'description', $documentType, $lang);
     	    if(!$data){
-    	    	$data = cat_ProductTplCache::cacheDescription($rec, $time, $documentType, $lang, $compontQuantity);
+    	    	$data = cat_ProductTplCache::cacheDescription($rec, $time, $documentType, $lang, $componentQuantity);
     	    }
     	    $data->documentType = $documentType;
     	    $descriptionTpl = cat_Products::renderDescription($data);
@@ -2366,7 +2382,7 @@ class cat_Products extends embed_Manager {
     protected static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
     	$data->components = array();
-    	cat_Products::prepareComponents($data->rec->id, $data->components);
+    	cat_Products::prepareComponents($data->rec->id, $data->components, 'internal', 1);
     }
     
     
@@ -2392,8 +2408,9 @@ class cat_Products extends embed_Manager {
      * @param string $typeBom
      * @return array
      */
-    public static function prepareComponents($productId, &$res = array(), $documentType = 'internal', $componentQuantity = 1, $typeBom = NULL)
+    public static function prepareComponents($productId, &$res = array(), $documentType = 'internal', $componentQuantity, $typeBom = NULL)
     {
+    	if(empty($componentQuantity)) return $res;
     	$typeBom = (!empty($typeBom)) ? $typeBom : 'sales';
     	$rec = cat_Products::getLastActiveBom($productId, $typeBom);
     	
@@ -2405,7 +2422,14 @@ class cat_Products extends embed_Manager {
     		$rec = $bQuery->fetch();
     	}
     	
-    	if(!$rec || cat_Boms::showInProduct($rec) === FALSE) return $res;
+    	if($documentType == 'job'){
+    		if($pRec = cat_Products::getLastActiveBom($productId, 'production')){
+    			$rec = $pRec;
+    		}
+    	}
+    	
+    	$checkMvc = ($documentType == 'job') ? 'planning_Jobs' : 'cat_Products';
+    	if(!$rec || cat_Boms::showIn($rec, $checkMvc) === FALSE) return $res;
     	
     	// Кои детайли от нея ще показваме като компоненти
     	$details = cat_BomDetails::getOrderedBomDetails($rec->id);
@@ -2510,12 +2534,27 @@ class cat_Products extends embed_Manager {
      * @param double $quantity - к-во за произвеждане
      *
      * @return array $drivers - масив с информация за драйверите, с ключ името на масива
-     * 				    -> title        - дефолт име на задачата
-     * 					-> driverClass  - драйвър на задача
-     * 					-> products     - масив от масиви с продуктите за влагане/произвеждане/отпадане
-     * 						 - array input      - материали за влагане
-     * 						 - array production - артикули за произвеждане
-     * 						 - array waste      - отпадъци
+     * 				    o title           - дефолт име на задачата, най добре да е името на крайния артикул / името заготовката
+     * 					o plannedQuantity - планирано к-во в основна опаковка
+     * 					o productId       - ид на артикул
+     *  				o packagingId     - ид на опаковка
+     *   				o quantityInPack  - к-во в 1 опаковка
+     * 					o products        - масив от масиви с продуктите за влагане/произвеждане/отпадане
+     * 						 - array input           - материали за влагане
+     * 								o productId      - ид на материал
+     *  							o packagingId    - ид на опаковка
+     *   							o quantityInPack - к-во в 1 опаковка
+     *    							o packQuantity   - общо количество от опаковката
+     * 						 - array production      - артикули за произвеждане
+     *  							o productId      - ид на заготовка
+     *  							o packagingId    - ид на опаковка
+     *   							o quantityInPack - к-во в 1 опаковка
+     *    							o packQuantity   - общо количество от опаковката
+     * 						 - array waste           - отпадъци
+     *  							o productId      - ид на отпадък
+     *  							o packagingId    - ид на опаковка
+     *   							o quantityInPack - к-во в 1 опаковка
+     *    							o packQuantity   - общо количество от опаковката
      */
     public static function getDefaultProductionTasks($id, $quantity = 1)
     {
@@ -2527,7 +2566,7 @@ class cat_Products extends embed_Manager {
     	// Питаме драйвера какви дефолтни задачи да се генерират
     	$ProductDriver = cat_Products::getDriver($rec);
     	if(!empty($ProductDriver)){
-    		$defaultTasks = $ProductDriver->getDefaultProductionTasks($quantity);
+    		$defaultTasks = $ProductDriver->getDefaultProductionTasks($id, $quantity);
     	}
     	
     	// Ако няма дефолтни задачи
@@ -2608,6 +2647,7 @@ class cat_Products extends embed_Manager {
     		
     		if($fRec->groupsInput != $rec->groupsInput){
     			$this->save((object)array('id' => $id, 'groupsInput' => $fRec->groupsInput), 'groups');
+    			$this->logInAct('Редактиране', $rec);
     		}
     		
     		return followRetUrl();
@@ -2799,21 +2839,33 @@ class cat_Products extends embed_Manager {
     /**
      * Допълнителните условия за дадения продукт,
      * които автоматично се добавят към условията на договора
-     *
-     * @param mixed $rec       - ид или запис на артикул
-     * @param double $quantity - к-во
-     * @return array           - Допълнителните условия за дадения продукт
+     * 
+     * @param stdClass $rec   - ид/запис на артикул
+     * @param string $docType - тип на документа sale/purchase
+     * @param string|NULL $lg - език
      */
-    public static function getConditions($rec, $quantity)
+    public static function getConditions($rec, $docType, $lg = NULL)
     {
-    	// Ако има драйвър, питаме него за стойността
+    	$conditions = array();
+    	$rec = self::fetchRec($rec);
+    	
     	if($Driver = static::getDriver($rec)){
-    		$rec = self::fetchRec($rec);
-    		
-    		return $Driver->getConditions($rec, $quantity);
+    		$conditions = $Driver->getConditions($rec, $docType, $lg);
     	}
     	 
-    	return array();
+    	// Ако има параметър за дефолтни условия. Показва се
+    	$defParamName = ($docType == 'purchase') ? 'commonConditionPur' : 'commonConditionSale';
+    	if($cValue = cat_Products::getParams($rec->id, $defParamName)){
+    		$dConditionArr = str::text2Array($cValue);
+    		foreach ($dConditionArr as $cText){
+    			$cText = str::replaceUrlsWithLinks($cText);
+    			$conditions[] = $cText;
+    		}
+    		
+    		$conditions += $dConditionArr;
+    	}
+    	
+    	return $conditions;
     }
     
     
@@ -2833,6 +2885,218 @@ class cat_Products extends embed_Manager {
     	}
     
     	return NULL;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Mvc $mvc
+     * @param integer $id
+     * @param core_FieldSet $csvFields
+     * 
+     * @return array
+     */
+    public static function getRecsForExportInExternal($mvc, $mRec, &$csvFields, $activatedBy)
+    {
+        expect($mRec);
+        
+        $canSeePrice = haveRole('seePrice', $activatedBy);
+        $pStrName = 'price';
+        
+        $detArr = arr::make($mvc->details);
+        
+        expect(!empty($detArr));
+        
+        $recs = array();
+        
+        if (strpos($mvc->exportInExternalField, '=')) {
+            list($exportFStr, $exportFCls) = explode('=', $mvc->exportInExternalField);
+        } else {
+            $exportFStr = $mvc->exportInExternalField;
+            $exportFCls = NULL;
+        }
+        
+        foreach ($detArr as $dName) {
+            if (!cls::load($dName, TRUE)) continue;
+            
+            $dInst = cls::get($dName);
+            
+            $detClsId = $dInst->getClassId();
+            
+            if (!$dInst->fields[$exportFStr]) continue;
+            
+            if ($exportFCls) {
+                $exportFCls = cls::get($exportFCls);
+                if (!($exportFCls instanceof $dInst->fields[$exportFStr]->type->params['mvc'])) continue;
+            }
+            
+            if (!$dInst->masterKey) continue;
+            
+            $tFieldsArr = array();
+            if ($mRec->template) {
+                $toggleFields = doc_TplManager::fetchField($mRec->template, 'toggleFields');
+                if ($toggleFields && $toggleFields[$dInst->className] !== NULL){
+                    $tFieldsArr = arr::make($toggleFields[$dInst->className], TRUE);
+                }
+            }
+            
+            // Подготвяме полетата, които ще се експортират
+            $exportArr = arr::make($mvc->exportInExternalFieldAll, TRUE);
+            
+            // За бачовете - ако не е инсталиран пакета - премахваме полето
+            if ($exportArr['batch'] && !core_Packs::isInstalled('batch')) {
+                unset($exportArr['batch']);
+            }
+            
+            foreach ($exportArr as $eName => $eFields) {
+                if ($eName == $eFields) {
+                    $fFieldsArr[$eName] = $eName;
+                } else {
+                    $fFieldsArr[$eName] = explode('|', $eFields);
+                }
+            }
+            
+            $dQuery = $dInst->getQuery();
+            $dQuery->where(array("#{$dInst->masterKey} = {$mRec->id}"));
+            
+            $dQuery->orderBy('id', 'ASC');
+            
+            while ($dRec = $dQuery->fetch()) {
+                if (!$recs[$dRec->id]) {
+                    $recs[$dRec->id] = new stdClass();
+                }
+                
+                foreach ($fFieldsArr as $k => $vArr) {
+                    
+                    if (!$dInst->fields[$k]) continue;
+                    
+                    if (is_array($vArr) && $dInst->fields[$k]->type->params['mvc']) {
+                        
+                        // Ако полето е ключ и от него трябва да се вземе стойността на друго поле
+                        
+                        $vInst = cls::get($dInst->fields[$k]->type->params['mvc']);
+                        
+                        if (!$dRec->{$k}) continue;
+                        
+                        $vRec = $vInst->fetch($dRec->{$k});
+                        
+                        foreach ($vArr as $v) {
+                            // Ако няма права за виждане на цена, на потребителя, който е активирал
+                            if (stripos($v, $pStrName)) {
+                                if (!$canSeePrice) {
+                                    continue;
+                                } elseif (!empty($tFieldsArr)) {
+                                    if (!$tFieldsArr[$v]) continue;
+                                }
+                            }
+                            
+                            // Попълване на кода
+                            if (($vInst instanceof cat_Products) && ($v == 'code')) {
+                                cat_Products::setCodeIfEmpty($vRec);
+                            }
+                            
+                            $recs[$dRec->id]->{$v} = $vRec->{$v};
+                            
+                            if (!$csvFields->fields[$v]) {
+                                if ($vInst->fields[$v]->type instanceof type_Double) {
+                                    $csvFields->FLD($v, 'varchar', "caption={$vInst->fields[$v]->caption}");
+                                } else {
+                                    $csvFields->fields[$v] = $vInst->fields[$v];
+                                }
+                            }
+                        }
+                    } else {
+                        // Ако няма права за виждане на цена, на потребителя, който е активирал
+                        if (stripos($k, $pStrName)) {
+                            if (!$canSeePrice) {
+                                continue;
+                            } elseif (!empty($tFieldsArr)) {
+                                if (!$tFieldsArr[$k]) continue;
+                            }
+                        }
+                        
+                        $recs[$dRec->id]->{$k} = $dRec->{$k};
+                        
+                        if (!$csvFields->fields[$k]) {
+                            if ($dInst->fields[$k]->type instanceof type_Double) {
+                                $csvFields->FLD($k, 'varchar', "caption={$vInst->fields[$k]->caption}");
+                            } else {
+                                $csvFields->fields[$k] = $dInst->fields[$k];
+                            }
+                        }
+                    }
+                }
+                
+                // Добавяме отстъпката към цената
+                if ($fFieldsArr['packPrice']) {
+                    if ($recs[$dRec->id]->packPrice && $dRec->discount) {
+                        $recs[$dRec->id]->packPrice -= ($recs[$dRec->id]->packPrice * $dRec->discount);
+                    }
+                }
+                
+                // За добавяне на бачовете
+                if ($fFieldsArr['batch'] && $mvc->storeFieldName && $mRec->{$mvc->storeFieldName}) {
+                    
+                    $Def = batch_Defs::getBatchDef($dRec->{$dInst->productFld});
+                    if ($recs[$dRec->id] && isset($recs[$dRec->id]->packQuantity) && $Def) {
+                        if (!$csvFields->fields['batch']) {
+                            $csvFields->FLD('batch', 'text', "caption=Партида");
+                        }
+                        
+                        $bQuery = batch_BatchesInDocuments::getQuery();
+                        
+                        if (isset($dRec->packagingId)) {
+                            $bQuery->where(array("#packagingId = '[#1#]'", $dRec->packagingId));
+                        }
+                        
+                        if (isset($dRec->productId)) {
+                            $bQuery->where(array("#productId = '[#1#]'", $dRec->productId));
+                        }
+                        
+                        $bQuery->where(array("#detailRecId = '[#1#]'", $dRec->id));
+                        $bQuery->where(array("#detailClassId = '[#1#]'", $detClsId));
+                        
+                        $bQuery->orderBy('id', 'ASC');
+                        
+                        $haveBatch = FALSE;
+                        
+                        while ($bRec = $bQuery->fetch()) {
+                            
+                            $oRec = clone $recs[$dRec->id];
+                            
+                            $bQuantity = $bRec->quantity;
+                            if ($bRec->quantityInPack) {
+                                $bQuantity /= $bRec->quantityInPack;
+                            }
+                            
+                            $bName = $dRec->id . '_' . $bRec->id;
+                            $recs[$bName] = $oRec;
+                            $recs[$bName]->packQuantity = $bQuantity;
+                            $recs[$bName]->batch = $bRec->batch;
+                            $recs[$dRec->id]->packQuantity -= $recs[$bName]->packQuantity;
+                            
+                            $haveBatch = TRUE;
+                        }
+                        
+                        if ($haveBatch) {
+                            if ($recs[$dRec->id]->packQuantity > 0) {
+                                // За да се подреди под другите записи от същия продукт
+                                $noBRec = $recs[$dRec->id];
+                                unset($recs[$dRec->id]);
+                                $recs[$dRec->id] = $noBRec;
+                            } else {
+                                unset($recs[$dRec->id]);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            if (!empty($recs)) break;
+        }
+        
+        return $recs;
     }
     
     

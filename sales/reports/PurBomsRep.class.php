@@ -112,7 +112,17 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 			$form->setDefault('dealers', keylist::addKey('', core_Users::getCurrent()));
 		}
 		
-		$form->setDefault('precision', "0.95");
+		// Опит за намиране на точноста от последната създадена съща тасправка от потребителя
+		$cu = core_Users::getCurrent();
+		$lQuery = $Embedder->getQuery();
+		$lQuery->where("#{$Embedder->driverClassField} = {$Driver->getClassId()} AND #createdBy = {$cu} AND #state = 'active'");
+		$lQuery->orderBy('id', 'DESC');
+		$lQuery->limit(1);
+		$lastReportRec = $lQuery->fetch();
+		
+		// Дефолтната точност е от предишния отчет или глобален дефолт
+		$defaultPrecision = (!empty($lastReportRec->precision)) ? $lastReportRec->precision : 0.95;
+		$form->setDefault('precision', $defaultPrecision);
 	}
     
 	
@@ -172,10 +182,8 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 			    if($dPayment < $downPayment * 0.95)  continue;
 			}
 			
-			// артикулите
+			// Артикулите
 			$agreedProducts = $dealInfo->get('products');
-
-			$d = NULL;
 	
 			// За всеки договорен артикул
 			foreach ($agreedProducts as $pId => $pRec){ 
@@ -183,9 +191,7 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 				$productRec = cat_Products::fetch($pId, 'canManifacture,isPublic');
 
 				if($sRec->closedDocuments != NULL) {
-				
 				    $newKeylist = keylist::addKey($sRec->closedDocuments, $sRec->id);
-				
 				    $salesArr = keylist::toArray($newKeylist);
 				    $salesSrt = implode(',', $salesArr);
 				}		
@@ -225,16 +231,11 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
 								              "dealerId" => $dealerId,
 								              "quantity"=>$pRec->quantity);
 						
-						$count++;
+						if($pId == $d->article) {
+							$recs[$index] = $d;
+						}
 						
-					}
-					
-					if($d != NULL) {
-					    $index = $sRec->id . "|" . $pId;
-					    if($pId == $d->article) {
-    					    
-    					    $recs[$index] = $d;
-					    } 
+						$count++;
 					}
 				}
 			}

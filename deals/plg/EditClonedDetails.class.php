@@ -54,6 +54,8 @@ class deals_plg_EditClonedDetails extends core_Plugin
 		$detailsToClone = $mvc->getDetailsToCloneAndChange($rec, $Detail);
 		setIfNot($Detail, cls::get($mvc->mainDetail));
 		if(!count($detailsToClone)) return;
+		setIfNot($Detail->productFld, 'productId');
+		setIfNot($Detail->quantityFld, 'quantity');
 		
 		$rec->details = array();
 		
@@ -75,24 +77,25 @@ class deals_plg_EditClonedDetails extends core_Plugin
 			$subCaption = 'К-во';
 			
 			// Ако е инсталиран пакета за партиди, ще се показват и те
-			if($installedBatch && is_object($Def)){
+			if($installedBatch && is_object($Def) && $dRec->autoBatches !== TRUE){
 				$subCaption = 'Без партида';
 				$bQuery = batch_BatchesInDocuments::getQuery();
 				$bQuery->where("#detailClassId = {$detailId} AND #detailRecId = {$dRec->id} AND #productId = {$dRec->{$Detail->productFld}}");
 				$bQuery->groupBy('batch');
-				$bQuery->orderBy('id', "DESC");
+				$bQuery->orderBy('id', "ASC");
 				
 				if(!array_key_exists($dRec->id, $rec->details)){
 					$rec->details[$dRec->id] = $dRec;
 				}
 				$rec->details[$dRec->id]->newPackQuantity = 0;
 				
-				$quantity = $dRec->quantity / $dRec->quantityInPack;
+				$quantity = $dRec->{$Detail->quantityFld} / $dRec->quantityInPack;
 				while($bRec = $bQuery->fetch()){
 					$verbal = strip_tags($Def->toVerbal($bRec->batch));
 					$b = str_replace(',', '', $bRec->batch);
 					$b = str_replace('.', '', $b);
-					$bQuantity = $bRec->quantity / $bRec->quantityInPack;
+					
+					$bQuantity = $bRec->{$Detail->quantityFld} / $bRec->quantityInPack;
 					$quantity -= $bQuantity;
 					
 					$max = ($Def instanceof batch_definitions_Serial) ? 'max=1' : '';
@@ -106,13 +109,23 @@ class deals_plg_EditClonedDetails extends core_Plugin
 				// Показване на полетата без партиди
 				$form->FLD("quantity||{$dRec->id}|", "double(Min=0)","input,caption={$caption}->{$subCaption}");
 				
-				if(!empty($quantity)){
+				if($quantity > 0){
 					$form->setDefault("quantity||{$dRec->id}|", $quantity);
 				}
 			} else {
 				// Показване на полетата без партиди
 				$form->FLD("quantity||{$dRec->id}|", "double(Min=0)","input,caption={$caption}->Количество");
 				$form->setDefault("quantity||{$dRec->id}|", $dRec->packQuantity);
+				
+				if($dRec->autoBatches === TRUE && $installedBatch){
+					$type = $Detail->getBatchMovementDocument($dRec);
+					if($type == 'out') {
+						$dRec->autoAllocate = TRUE;
+					} elseif($type == 'in'){
+						$dRec->isEdited = TRUE;
+					}
+				}
+				
 				$rec->details["quantity||{$dRec->id}|"] = $dRec;
 			}
 			
@@ -166,7 +179,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
 		if(count($rec->details)){
 			foreach ($rec->details as $det){
 				$newPackQuantity = $updatePackQuantity = 0;
-				if(is_array($det->batches)){
+				if(is_array($det->batches) && core_Packs::isInstalled('batch')){
 					foreach ($det->batches as $index => &$bRec){
 						$b = str_replace(',', '', $bRec->batch);
 						$b = str_replace('.', '', $b);
@@ -198,7 +211,9 @@ class deals_plg_EditClonedDetails extends core_Plugin
 					if($rec->deduct == 'yes'){
 						if($diff <= 0){
 							$Detail->delete($det->id);
-							batch_BatchesInDocuments::delete("#detailClassId = {$detailClassId} AND #detailRecId = {$det->id}");
+							if(core_Packs::isInstalled('batch')){
+								batch_BatchesInDocuments::delete("#detailClassId = {$detailClassId} AND #detailRecId = {$det->id}");
+							}
 						} else {
 							$diff1 = $oldQuantity - ($updatePackQuantity * $det->quantityInPack);
 							$updateRec = (object)array('id' => $oldDetailId, 'quantity' => $diff1);
@@ -210,7 +225,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
 					
 					$det->{$Detail->masterKey} = $rec->id;
 					$Detail->save($det);
-					if(is_array($det->batches)){
+					if(is_array($det->batches) && core_Packs::isInstalled('batch')){
 						$batchesArr = array();
 						foreach ($det->batches as $batch){
 							$d1 = $batch->oldQuantity - $batch->quantity;

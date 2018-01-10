@@ -7,7 +7,7 @@
  *
  *
  * @category  bgerp
- * @package   trz
+ * @package   hr
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
@@ -17,12 +17,8 @@
 class hr_Bonuses extends core_Master
 {
 
-    /**
-     * Старото име на класа
-     */
-    public $oldClassName = 'trz_Bonuses';
 
-    /**
+	/**
      * Поддържани интерфейси
      */
     public $interfaces = 'hr_IndicatorsSourceIntf';
@@ -147,7 +143,7 @@ class hr_Bonuses extends core_Master
     /**
      * Шаблон за единичния изглед
      */
-    public $singleLayoutFile = 'trz/tpl/SingleLayoutBonuses.shtml';
+    public $singleLayoutFile = 'hr/tpl/SingleLayoutBonuses.shtml';
 
     
     /**
@@ -352,6 +348,11 @@ class hr_Bonuses extends core_Master
         $title = tr('Премия  №|*'. $rec->id . ' за|* ') . $me->getVerbal($rec, 'personId');
          
         return $title;
+    }
+    
+    function act_Test()
+    {
+    	cls::get('planning_Setup')->updateCenterExt();
     }
 
 }

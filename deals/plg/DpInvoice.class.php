@@ -157,10 +157,10 @@ class deals_plg_DpInvoice extends core_Plugin
     		$hasDeductedProforma = sales_Proformas::fetchField("#threadId = {$rec->threadId} AND #state = 'active' AND #dpOperation = 'deducted'");
     		
     		// Ако има проформа за аванс и няма таква за приспадане, тази приспада
-    		if(empty($hasDeductedProforma)){
+    		if(empty($hasDeductedProforma) || !empty($actualDp)){
     			
     			//$dpAmount = (($accruedProformaRec->dealValue - $accruedProformaRec->discountAmount)+ $accruedProformaRec->vatAmount);
-    			$dpAmount = core_Math::roundNumber($invoicedDp);
+    			$dpAmount = core_Math::roundNumber($actualDp);
     			$dpOperation = 'deducted';
     			$flag = FALSE;
     		} else {

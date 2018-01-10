@@ -311,7 +311,7 @@ class plg_TreeObject extends core_Plugin
 	{
 		// Ако може да се добавя поделемент, показваме бутон за добавяне
 		if($mvc->haveRightFor('add')){
-			$url = array($mvc, 'add', 'parentId' => $data->rec->id, 'ret_url' => TRUE);
+			$url = array($mvc, 'add', 'parentId' => $data->rec->id);
 			$parentTitle = $mvc->getVerbal($data->rec, 'name');
 			$data->toolbar->addBtn('Подниво||Sublevel', $url, "ef_icon=img/16/add-sub.png,title=Добави нов поделемент на|* '{$parentTitle}'");
 		}
@@ -334,7 +334,7 @@ class plg_TreeObject extends core_Plugin
 			
 			// Ако може да се добавя поделемент, показваме бутон за добавяне
 			if($mvc->haveRightFor('add', (object)array($mvc->parentFieldName => $rec->id))){
-				$url = array($mvc, 'add', $mvc->parentFieldName => $rec->id, 'ret_url' => TRUE);
+				$url = array($mvc, 'add', $mvc->parentFieldName => $rec->id);
 				$img = ht::createElement('img', array('src' => sbf('img/16/add-sub.png', ''), 'style' => 'width: 13px; padding: 0px 2px;'));
 				$parentTitle = $mvc->getVerbal($rec, $mvc->nameField);
 				

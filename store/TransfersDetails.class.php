@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'store_TransfersDetails'
  *
@@ -9,7 +10,7 @@
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -38,7 +39,7 @@ class store_TransfersDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, plg_Sorting, store_Wrapper, plg_RowNumbering, plg_AlignDecimals, plg_PrevAndNext,plg_SaveAndNew,cat_plg_ShowCodes,store_plg_TransportDataDetail';
+    public $loadList = 'plg_RowTools2, plg_Created, plg_Sorting, store_Wrapper, store_plg_RequestDetail, plg_RowNumbering, plg_AlignDecimals2, plg_PrevAndNext,plg_SaveAndNew,cat_plg_ShowCodes,store_plg_TransportDataDetail';
     
     
     /**
@@ -108,6 +109,14 @@ class store_TransfersDetails extends doc_Detail
     
     
     /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'requestedQuantity,weight,volume';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -118,18 +127,16 @@ class store_TransfersDetails extends doc_Detail
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,smartCenter,input=hidden,tdClass=small-field nowrap');
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
-        $this->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input,mandatory');
+        $this->FNC('packQuantity', 'double(min=0)', 'caption=Количество,input,mandatory');
     }
     
     
     /**
      * Изчисляване на количеството на реда в брой опаковки
      */
-    protected function on_CalcPackQuantity(core_Mvc $mvc, $rec)
+    protected static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
     {
-        if (empty($rec->quantity) || empty($rec->quantityInPack)) {
-            return;
-        }
+        if (!isset($rec->quantity) || empty($rec->quantityInPack)) return;
         
         $rec->packQuantity = $rec->quantity / $rec->quantityInPack;
     }
@@ -175,6 +182,10 @@ class store_TransfersDetails extends doc_Detail
                 $singleUrl = cat_Products::getSingleUrlArray($rec->newProductId);
                 $row->newProductId = cat_Products::getVerbal($rec->newProductId, 'name');
                 $row->newProductId = ht::createLinkRef($row->newProductId, $singleUrl);
+                
+                if(empty($rec->quantity) && !Mode::isReadOnly()){
+                	$row->ROW_ATTR['style'] = " background-color:#f1f1f1;color:#777";
+                }
                 
                 // Показваме подробната информация за опаковката при нужда
                 deals_Helper::getPackInfo($row->packagingId, $rec->newProductId, $rec->packagingId, $rec->quantityInPack);

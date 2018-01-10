@@ -1267,6 +1267,12 @@ a.profile {
 	box-shadow: inset 0 0 3px #ccc;
 }
 
+.state-stopped-link > a {
+	background-color: #fee3ad  ;
+	padding-right: 4px;
+	box-shadow: inset 0 0 3px #ffbb33;
+}
+
 .state-rejected-link > a{
     background-color: #f3c9c8;
     padding-right: 4px;
@@ -1280,8 +1286,8 @@ a.profile {
 }
 
 .state-closed {
-    background-color: #f1f1f1;
-	background-color: rgba(240, 240, 240, 0.7);
+    background-color: #eee;
+	background-color: rgba(230, 230, 230, 0.7);
 }
 
 .state-stopped, .state-blocked {
@@ -1294,6 +1300,10 @@ a.profile {
     background-color: rgba(204, 102, 102, 0.8);
 }
 
+.state-edited {
+	background-color: #0f61a0;
+	background-color: rgba(15,97,160, 0.8);
+}
 
 .state-waiting {
 	background-color: #cef763;
@@ -1302,7 +1312,7 @@ a.profile {
 
 .state-rejected {
 	td, .document th, .document td a, .document p, .document h3, .document h4,
-	.richtext, .document a, .document span:not(.state), .richtext div, .cCode, .antetka,
+	.richtext, .document a, .document span:not(.state), .richtext div, .cCode, .antetka,  .row-fluid div,
 	.document ul, .document ol, .document li, .document b, .document font, .document legend {
 		color: #999 !important;
 		text-decoration: line-through !important;
@@ -1324,6 +1334,9 @@ a.profile {
         color: #999 !important;
         text-decoration: none !important;
     }
+	.row-fluid table td, .row-fluid table {
+		border-color: #999 !important;
+	}
 }
 
 .hidden-document.state-rejected{
@@ -1437,7 +1450,7 @@ table.listTable {
 
 .detailNumbering {
 	text-align:right;
-	padding-top: 2px;
+	//padding-top: 2px;
 	display: block;
 }
 
@@ -3387,7 +3400,7 @@ div.statuses-message h2 {
 	width: 16px;
 	height: 16px;
 	display: inline-block;
-	margin: 0 5px;
+	margin: -2px 5px 0;
 }
 
 /*цветове*/

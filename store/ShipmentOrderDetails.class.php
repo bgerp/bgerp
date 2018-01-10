@@ -10,7 +10,7 @@
  * @category  bgerp
  * @package   store
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -41,13 +41,19 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     
     
     /**
+     * Интерфейс на драйверите за импортиране
+     */
+    public $importInterface = 'store_iface_ImportDetailIntf';
+    
+    
+    /**
      * Плъгини за зареждане
      * 
      * var string|array
      */
-    public $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_RowNumbering, plg_SaveAndNew, doc_plg_HidePrices,
+    public $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_RowNumbering, plg_SaveAndNew, doc_plg_HidePrices,store_plg_RequestDetail,
                         plg_AlignDecimals2, plg_Sorting, doc_plg_TplManagerDetail, LastPricePolicy=sales_SalesLastPricePolicy,
-                        ReversePolicy=purchase_PurchaseLastPricePolicy, plg_PrevAndNext,cat_plg_ShowCodes,store_plg_TransportDataDetail';
+                        ReversePolicy=purchase_PurchaseLastPricePolicy, plg_PrevAndNext,cat_plg_ShowCodes,store_plg_TransportDataDetail,import2_Plugin';
     
     
     /**
@@ -119,6 +125,14 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     
     
     /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'requestedQuantity,weight,volume';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -129,6 +143,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
         $this->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Изглед,notNull,default=short,value=short,after=notes');
         $this->FLD('transUnit', 'varchar', 'caption=Логистични единици->Вид,autohide,after=volume');
         $this->FLD('info', "text(rows=2)", 'caption=Логистични единици->Номера,after=transUnit,autohide,after=volume', array('hint' => 'Напишете номерата на колетите, в които се съдържа този продукт, разделени със запетая'));
+        $this->setFieldTypeParams('packQuantity', "min=0");
     }
 
 

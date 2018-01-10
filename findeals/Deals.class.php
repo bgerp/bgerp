@@ -493,10 +493,6 @@ class findeals_Deals extends deals_DealBase
     		if(empty($row->contragentCaption)){
     			$row->contragentCaption = tr('Контрагент');
     		}
-    		
-    		if($rec->currencyRate == 1){
-    			unset($row->currencyRate);
-    		}
     	}
     	
     	$row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
@@ -508,11 +504,16 @@ class findeals_Deals extends deals_DealBase
     		unset($row->baseAccountId);
     	}
     	
+    	$rate = $rec->currencyRate;
     	if(empty($rec->currencyRate)){
     		setIfNot($valior, $rec->valior, dt::today());
     		$rate = currency_CurrencyRates::getRate($valior, $rec->currencyId, NULL);
     		$row->currencyRate = $mvc->getFieldType('currencyRate')->toVerbal($rate);
     		$row->currencyRate = ht::createHint($row->currencyRate, 'Курса ще се запише при контиране/активиране');
+    	}
+    	
+    	if($rate == 1){
+    		unset($row->currencyRate);
     	}
     }
     
@@ -597,24 +598,10 @@ class findeals_Deals extends deals_DealBase
     		$rate = 1;
     	}
     	
-    	foreach (array('amountDeal', 'debitAmount', 'creditAmount') as $fld){
-    		if($fld == 'amountDeal'){
-    			$data->rec->$fld /= $rate;
-    		}
-    		$data->row->$fld = $this->getFieldType('amountDeal')->toVerbal($data->rec->$fld);
-    		if($data->rec->$fld == 0){
-    			$data->row->$fld = "<span class='quiet'>{$data->row->$fld}</span>";
-    		} elseif($data->rec->$fld < 0){
-    			$data->row->$fld = "<span class='red'>{$data->row->$fld}</span>";
-    		}
-    	}
-    	
     	$entries = acc_Journal::getEntries(array(get_called_class(), $rec->id), $item);
-    	
+    	$data->history = array();
     	
     	if(count($entries)){
-    		$data->history = array();
-    		
     		$Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listDetailsPerPage));
     		$Pager->itemsCount = count($entries);
     		$Pager->calc();
@@ -655,6 +642,21 @@ class findeals_Deals extends deals_DealBase
     			}
     		}
     	}
+    	
+    	// Подредба
+    	arr::order($data->history, 'orderFld', 'DESC');
+    	
+    	foreach (array('amountDeal', 'debitAmount', 'creditAmount') as $fld){
+    		if($fld == 'amountDeal'){
+    			$data->rec->{$fld} /= $rate;
+    		}
+    		$data->row->{$fld} = $this->getFieldType('amountDeal')->toVerbal($data->rec->{$fld});
+    		if($data->rec->{$fld} == 0){
+    			$data->row->{$fld} = "<span class='quiet'>{$data->row->{$fld}}</span>";
+    		} elseif($data->rec->{$fld} < 0){
+    			$data->row->{$fld} = "<span class='red'>{$data->row->{$fld}}</span>";
+    		}
+    	}
     }
     
     
@@ -672,7 +674,8 @@ class findeals_Deals extends deals_DealBase
     	
     	try{
     		$DocType = cls::get($jRec->docType);
-    		$row->docId = $DocType->getHyperLink($jRec->docId, TRUE);
+    		$row->docId = $DocType->getLink($jRec->docId, 0);
+    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($DocType->fetchField($jRec->docId, 'folderId')))->title;
     	} catch(core_exception_Expect $e){
     		$row->docId = "<span style='color:red'>" . tr('Проблем при показването') . "</span>";
     	}
@@ -690,6 +693,7 @@ class findeals_Deals extends deals_DealBase
     			$row->creditA = "<span class='red'>{$row->creditA}</span>";
     		}
     	}
+    	$row->orderFld = $jRec->valior;
     	
     	return $row;
     }
@@ -701,12 +705,15 @@ class findeals_Deals extends deals_DealBase
     public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
     {
     	$fieldSet = new core_FieldSet();
-    	$fieldSet->FLD('docId', 'varchar', 'tdClass=large-field wrap');
-    	$fieldSet->FLD('debitA', 'double', 'tdClass=amount-field');
-    	$fieldSet->FLD('creditA', 'double', 'tdClass=amount-field');
+    	$fieldSet->FLD('valior', 'date', 'tdClass=wrap');
+    	$fieldSet->FLD('docId', 'varchar', 'tdClass=wrap');
+    	$fieldSet->FLD('folderId', 'varchar', 'tdClass=wrap');
+    	$fieldSet->FLD('debitA', 'double');
+    	$fieldSet->FLD('creditA', 'double');
     	$table = cls::get('core_TableView', array('mvc' => $fieldSet, 'class' => 'styled-table'));
     	$table->tableClass = 'listTable';
-    	$fields = "valior=Вальор,docId=Документ,debitA=Сума ({$data->row->currencyId})->Дебит,creditA=Сума ({$data->row->currencyId})->Кредит";
+    	$fields = "valior=Вальор,docId=Документ,folderId=Папка,debitA=Сума ({$data->row->currencyId})->Дебит,creditA=Сума ({$data->row->currencyId})->Кредит";
+    	
     	$tpl->append($table->get($data->history, $fields), 'HISTORY');
     	
     	if($data->pager){

@@ -241,7 +241,7 @@ class email_Incomings extends core_Master
      *
      * @return string $logMsg - Съобщение с броя на новите имейли
      */
-    function fetchAllAccounts()
+    function fetchAllAccounts($time = 0)
     {
     	$conf = core_Packs::getConfig('email');
     	
@@ -265,17 +265,15 @@ class email_Incomings extends core_Master
         $accQuery = email_Accounts::getQuery();
         $accQuery->XPR('order', 'double', 'RAND()');
         $accQuery->orderBy('#order');
-        
-        $timeStamp = core_DateTime::mysql2timestamp();
-        $currentMinute = floor($timeStamp / 60);
-        
-        while (($accRec = $accQuery->fetch("#state = 'active'")) && ($deadline > time())) {
-            if (Request::get('forced') != 'yes') {
-                if ($accRec->period === 0 || $accRec->period === '0') continue ;
                 
-                if ($accRec->period && (($currentMinute % $accRec->period) != 0)) continue;
-            }
+        while (($accRec = $accQuery->fetch("#state = 'active'")) && ($deadline > time())) {
             
+            if (Request::get('forced') != 'yes' && $time > 0) {  
+                if(!$period) $period = 60;
+                $period = round($accRec->period/30) * 30;
+                if($period > 0 && ($time % $period) > 0) continue;
+            }
+          
             self::fetchAccount($accRec, $deadline, $maxFetchingTime);
         }
     }
@@ -288,7 +286,7 @@ class email_Incomings extends core_Master
     { 
         // Заключваме тегленето от тази пощенска кутия
         $lockKey = 'Inbox:' . $accRec->id;
-                   
+        
         if(!core_Locks::get($lockKey, $maxFetchingTime, 1)) {
             email_Accounts::logWarning("Кутията е заключена от друг процес", $accRec->id, 7);
 
@@ -313,10 +311,12 @@ class email_Incomings extends core_Master
 
         // Получаваме броя на писмата в INBOX папката
         $numMsg = $imapConn->getStatistic('messages');
-            
+   
         $firstUnreadMsgNo = $this->getFirstUnreadMsgNo($imapConn, $numMsg);
  
         $startTime = time();
+
+        $doExpunge = FALSE;
 
         if($firstUnreadMsgNo > 0) {
             
@@ -334,23 +334,60 @@ class email_Incomings extends core_Master
                     email_Accounts::logInfo("Fetching message {$i}", $accRec->id);
                 }
                 
-                // Изтриване на писмото, ако сметката е настроена така
-                if ($status != 'error' && $status != 'fetching error' &&  $accRec->deleteAfterRetrieval == 'yes') {
-                    $imapConn->delete($i);
-                    $statusSum['delete']++;
-                    $doExpunge = TRUE;
+                if ($status != 'error' && $status != 'fetching error') {
+                    // Изтриване на писмото, ако сметката е настроена така
+                    if($accRec->deleteAfterPeriod === '0') {
+                        $imapConn->delete($i);
+                        email_Accounts::logInfo("Изтриване $i", $accRec->id);
+                        $statusSum['delete']++;
+                        $doExpunge = TRUE;
+                    }
+
+                    // Дали да отмаркираме съобщението, че е прочетено?
+                    if($accRec->imapFlag == 'unseen') {
+                        $imapConn->unmarkSeen($i);
+                        email_Accounts::logInfo("Отмаркиране $i", $accRec->id);
+                        $doExpunge = TRUE;
+                    } elseif($accRec->imapFlag == 'seen') {
+                        $imapConn->markSeen($i);
+                        email_Accounts::logInfo("Маркиране $i", $accRec->id);
+                        $doExpunge = TRUE;
+                    }
                 }
 
                 $statusSum[$status]++;
             }
+        }
+ 
+        // Изтриване на старите имейли
+        if($numMsg > 0 && $accRec->deleteAfterPeriod > 0) {
+            $maxLimit = email_Setup::get('MAX_DELETED_CNT');
+            $now = dt::now();
+            for($msgNo = 1; $msgNo <= $maxLimit && $msgNo <= $numMsg; $msgNo++) { 
+                $headers = $imapConn->getHeaders($msgNo);
             
-            // Изтриваме предварително маркираните писма
-            if($doExpunge) {
-                $imapConn->expunge();
+                $fRec = email_Fingerprints::fetchByHeaders($headers);
+
+                if(!$fRec) {
+                    $maxLimit++;
+                    continue;
+                }
+
+                if(dt::addSecs($accRec->deleteAfterPeriod, $fRec->downloadedOn) < $now) {
+                    $imapConn->delete($msgNo);
+                    email_Accounts::logInfo("Изтриване {$msgNo}", $accRec->id);
+                    $statusSum['delete']++;
+                    $doExpunge = TRUE;
+                }
             }
             
         }
         
+        // Изтриваме предварително маркираните писма
+        if($doExpunge) {
+            $imapConn->expunge();
+        }
+
         // Затваряме IMAP връзката
         $imapConn->close();
             
@@ -408,7 +445,7 @@ class email_Incomings extends core_Master
             // Извличаме хедърите и проверяваме за дублиране
             $headers = $imapConn->getHeaders($msgNo);
             
-            if(email_Fingerprints::isDown($headers)) {
+            if(email_Fingerprints::fetchByHeaders($headers)) {
                 
                 return 'duplicated';
             }
@@ -433,7 +470,7 @@ class email_Incomings extends core_Master
                 $headers = $mime->getHeadersStr();
     
                 // Отново правим проверка дали писмото е сваляно
-                if(email_Fingerprints::isDown($headers)) {
+                if(email_Fingerprints::fetchByHeaders($headers)) {
                     
                     return 'duplicated';
                 }
@@ -558,6 +595,9 @@ class email_Incomings extends core_Master
     
     /**
      * Връща поредния номер на първото не-четено писмо
+     *
+     * @param email_Imap    $imapConn   Обект с отворена IMAP/POP3 връзка
+     * @param int           $maxMsgNo   Брой на съобщенията в кутията
      */
     protected function getFirstUnreadMsgNo($imapConn, $maxMsgNo)
     {
@@ -673,7 +713,7 @@ class email_Incomings extends core_Master
                 return TRUE;
             }
 
-            $isDown[$accId][$msgNum] = email_Fingerprints::isDown($headers);
+            $isDown[$accId][$msgNum] = email_Fingerprints::fetchByHeaders($headers) ? TRUE : FALSE;
         }
         
         email_Accounts::logInfo("Result: $msgNum  " . $isDown[$accId][$msgNum], $accId);
@@ -1372,7 +1412,10 @@ class email_Incomings extends core_Master
      */
     function cron_DownloadEmails()
     {
-        $mailInfo = $this->fetchAllAccounts();
+        // Закръгляме текущите секунди към най-близкото делящо се на 30 число
+        $time = round(time()/30) * 30;
+
+        $mailInfo = $this->fetchAllAccounts($time);
         
         return $mailInfo;
     }
@@ -1543,12 +1586,23 @@ class email_Incomings extends core_Master
         $rec->description = 'Сваляне на имейли в модела';
         $rec->controller = $mvc->className;
         $rec->action = 'DownloadEmails';
-        $rec->period = round(email_Setup::get('DOWNLOAD_PERIOD') / 60);
+        $rec->period = 1;
         $rec->offset = 0;
         $rec->delay = 0;
         $rec->timeLimit = 100;
         $res .= core_Cron::addOnce($rec);
         
+        $rec = new stdClass();
+        $rec->systemId = 'DownloadEmails2';
+        $rec->description = 'Сваляне на имейли в модела2';
+        $rec->controller = $mvc->className;
+        $rec->action = 'DownloadEmails';
+        $rec->period = 1;
+        $rec->offset = 0;
+        $rec->delay = 30;
+        $rec->timeLimit = 100;
+        $res .= core_Cron::addOnce($rec);
+
         $rec = new stdClass();
         $rec->systemId = 'UpdatePublicDomains';
         $rec->description = 'Обновяване на публичните домейни';

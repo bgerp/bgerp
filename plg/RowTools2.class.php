@@ -234,11 +234,14 @@ class plg_RowTools2 extends core_Plugin
         
         $img = ht::createElement('img', array('src'=> sbf('img/16/tools.png', "")));
         
+        // Ако е детайл и не се гледа в мастъра да не се показва тулбара
+        if($mvc instanceof core_Detail && !isset($data->masterMvc)){
+        	$mustShow = FALSE;
+        }
+        
         if($mustShow) {
             $data->listFields =  arr::combine(array('_rowTools' => '|*' . $img->getContent()), arr::make($data->listFields, TRUE));	
         }
-
-
     }
 
 

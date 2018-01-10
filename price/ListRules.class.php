@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Правилата за ценоразписите за продуктите от каталога
  *
@@ -8,7 +9,7 @@
  * @category  bgerp
  * @package   price
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Правилата за ценоразписите за продуктите от каталога
@@ -187,7 +188,6 @@ class price_ListRules extends core_Detail
         if($type != 'groupDiscount'){
     		expect($productRec = cat_Products::getByCode($productCode));
     		$productRec = cat_Products::fetch($productRec->productId);
-    		// expect($productRec->canSell == 'yes', 'Артикулът не е продаваем');
     		$rec->productId = $productRec->id;
     		$rec->priority = 1;
     	}
@@ -264,13 +264,10 @@ class price_ListRules extends core_Detail
 		
 		$data->listFilter->view = 'horizontal';
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->FNC('product', 'int', 'input,caption=Артикул,silent');
+        $data->listFilter->FNC('product', "key2(mvc=cat_Products,select=name,listId={$data->masterId},selectSource=price_ListRules::getProductFilterOptions)", 'input,caption=Артикул,silent');
         $data->listFilter->FNC('threadId', 'int', 'input=hidden,silent');
         $data->listFilter->setDefault('threadId', $data->masterData->rec->threadId);
         $data->listFilter->showFields = 'product';
-		
-        $options = self::getProductOptions($data->masterId);
-        $data->listFilter->setOptions('product', array('' => '') + $options);
         $data->listFilter->input(NULL, 'silent');
         
 		$data->listFilter->input();
@@ -292,15 +289,20 @@ class price_ListRules extends core_Detail
 	}
 	
 	
+	/**
+	 * Подготовка на опции за key2
+	 */
+	public static function getProductFilterOptions($params, $limit = NULL, $q = '', $onlyIds = NULL, $includeHiddens = FALSE)
+	{
+		return self::getProductOptions($params['listId'], $limit, $q, $onlyIds);
+	}
+	
+	
     /**
      * Връща цената за посочения продукт според ценовата политика
      */
     public static function getPrice($listId, $productId, $packagingId = NULL, $datetime = NULL, &$validFrom = NULL)
     {  
-        // Проверка, дали цената я няма в кеша
-    	//$price = price_History::getPrice($listId, $datetime, $productId);
-        //if(isset($price)) return $price;
-        
         price_ListToCustomers::canonizeTime($datetime);
         $datetime = price_History::canonizeTime($datetime);
         
@@ -382,9 +384,6 @@ class price_ListRules extends core_Detail
         	if($round === TRUE){
         		$price = price_Lists::roundPrice($listRec, $price);
         	}
-        	
-        	// Записваме току-що изчислената цена в историята;
-        	//price_History::setPrice($price, $listId, $datetime, $productId);
         }
         
         // Връщаме намерената цена
@@ -480,11 +479,9 @@ class price_ListRules extends core_Detail
             case 'discount' :
                 $form->setField('groupId,price,currency,vat', 'input=none');
                 $data->singleTitle = "правило за марж";
-                
                 $form->getField('targetPrice')->unit = "|*" . $masterRec->currency . ", ";
                 $form->getField('targetPrice')->unit .= ($masterRec->vat == 'yes') ? "|с ДДС|*" : "|без ДДС|*";
-                
-                break;
+                 break;
             case 'value' :
                 $form->setField('groupId,discount,calculation,targetPrice', 'input=none');
                 $data->singleTitle = "правило за продуктова цена";
@@ -495,7 +492,6 @@ class price_ListRules extends core_Detail
                 	$form->setReadOnly('currency');
                 	$form->setReadOnly('vat');
                 }
-
                 break;
         }
 
@@ -511,7 +507,7 @@ class price_ListRules extends core_Detail
      */
     protected static function on_AfterPrepareEditToolbar($mvc, &$res, &$data)
     {
-    	$form = $data->form;
+    	$form = &$data->form;
     	if(Request::get('productId') && $form->rec->type == 'value' && $form->cmd != 'refresh'){
     		$data->form->toolbar->removeBtn('saveAndNew');
     	}
@@ -924,18 +920,47 @@ class price_ListRules extends core_Detail
 	/**
 	 * Връща масив с възможните за избор артикули (стандартни и продаваеми)
 	 * 
-	 * @return array $options - масив с артикули за избор
+	 * @param int $listId     - лист
+	 * @param int|NULL $limit - лимит
+	 * @param strint $q       - стринг за търсене
+	 * @param mixed $onlyIds  - само кои ид-та да се извлекат
+	 * @return array $options - избор на артикули
 	 */
-	public static function getProductOptions($listId)
+	public static function getProductOptions($listId, $limit = NULL, $q = '', $onlyIds = NULL)
 	{
 		$options = array();
 		$pQuery = cat_Products::getQuery();
 		$pQuery->where("#state = 'active'");
+		$pQuery->XPR('searchFieldXpr', 'text', "LOWER(CONCAT(' ', #name, ' ', COALESCE(#code, CONCAT('Art', #id))))");
+		$pQuery->show('id,name,isPublic,code,createdOn');
 		if($listId != self::PRICE_LIST_COST){
 			$pQuery->where("#isPublic = 'yes' AND #canSell = 'yes'");
 		}
 		
-		$pQuery->show('id,name,isPublic,code,createdOn');
+		if(isset($limit)){
+			$pQuery->limit($limit);
+		}
+		
+		if(is_array($onlyIds)) {
+			if(!count($onlyIds)) return array();
+		
+			$ids = implode(',', $onlyIds);
+			expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
+			$pQuery->where("#id IN ($ids)");
+		} elseif(ctype_digit("{$onlyIds}")) {
+			$pQuery->where("#id = {$onlyIds}");
+		}
+		
+		if($q) {
+			if($q{0} == '"') $strict = TRUE;
+			$q = mb_strtolower(trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q)));
+			$qArr = ($strict) ? array(str_replace(' ', '.*', $q)) : explode(' ', $q);
+		
+			$pBegin = type_Key2::getRegexPatterForSQLBegin();
+			foreach($qArr as $w) {
+				$pQuery->where(array("#searchFieldXpr REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
+			}
+		}
 		
 		while($pRec = $pQuery->fetch()){
 			$options[$pRec->id] = cat_Products::getRecTitle($pRec, FALSE);

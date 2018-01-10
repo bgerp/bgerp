@@ -892,10 +892,10 @@ class callcenter_SMS extends core_Master
         
         callcenter_SMS::requireRightFor('send');
         
-        $groupChoiseArr = $clsInst->getPersonalizationOptionsForId($objId);
-        expect($groupChoiseArr);
+        $groupChoiceArr = $clsInst->getPersonalizationOptionsForId($objId);
+        expect($groupChoiceArr);
         
-        foreach ($groupChoiseArr as &$groupName) {
+        foreach ($groupChoiceArr as &$groupName) {
             $groupName = str::mbUcfirst($groupName);
         }
         
@@ -906,7 +906,7 @@ class callcenter_SMS extends core_Master
         $form->FNC('type', 'enum()', 'caption=Към,mandatory,silent,input=input');
         $form->FNC('message', 'text', 'caption=Съобщение,mandatory,silent,input=input');
         
-        $form->setOptions('type', $groupChoiseArr);
+        $form->setOptions('type', $groupChoiceArr);
         
         $service = self::getDefaultService();
         if ($service) {
@@ -967,7 +967,7 @@ class callcenter_SMS extends core_Master
             
             $sendArr = array();
             
-            $type = $groupChoiseArr[$form->rec->type];
+            $type = $groupChoiceArr[$form->rec->type];
             
             $paramsArr = array();
             if ($sParams['utf8'] != 'yes') {

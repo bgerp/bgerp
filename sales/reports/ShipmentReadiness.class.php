@@ -70,9 +70,15 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 	 * @var varchar
 	 */
 	protected $hashField = 'containerId';
-	
-	
-	/**
+
+
+    /**
+     * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
+     */
+    protected $changeableFields = 'dealers,countries,precision,horizon,orderBy';
+
+
+    /**
 	 * Добавя полетата на драйвера към Fieldset
 	 *
 	 * @param core_Fieldset $fieldset

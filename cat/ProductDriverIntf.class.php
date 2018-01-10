@@ -104,18 +104,35 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	/**
      * Връща информация за какви дефолт задачи за производство могат да се създават по артикула
      *
-     * @param double $quantity - к-во
+     * @param mixed $id - ид или запис на артикул
+     * @param double $quantity - к-во за произвеждане
+     *
      * @return array $drivers - масив с информация за драйверите, с ключ името на масива
-     * 				    -> title        - дефолт име на задачата
-     * 					-> driverClass  - драйвър на задача
-     * 					-> products     - масив от масиви с продуктите за влагане/произвеждане/отпадане
-     * 						 - array input      - материали за влагане
-     * 						 - array production - артикули за произвеждане
-     * 						 - array waste      - отпадъци
+     * 				    o title           - дефолт име на задачата, най добре да е името на крайния артикул / името заготовката
+     * 					o plannedQuantity - планирано к-во в основна опаковка
+     * 					o productId       - ид на артикул
+     *  				o packagingId     - ид на опаковка
+     *   				o quantityInPack  - к-во в 1 опаковка
+     * 					o products        - масив от масиви с продуктите за влагане/произвеждане/отпадане
+     * 						 - array input           - материали за влагане
+     * 								o productId      - ид на материал
+     *  							o packagingId    - ид на опаковка
+     *   							o quantityInPack - к-во в 1 опаковка
+     *    							o packQuantity   - общо количество от опаковката
+     * 						 - array production      - артикули за произвеждане
+     *  							o productId      - ид на заготовка
+     *  							o packagingId    - ид на опаковка
+     *   							o quantityInPack - к-во в 1 опаковка
+     *    							o packQuantity   - общо количество от опаковката
+     * 						 - array waste           - отпадъци
+     *  							o productId      - ид на отпадък
+     *  							o packagingId    - ид на опаковка
+     *   							o quantityInPack - к-во в 1 опаковка
+     *    							o packQuantity   - общо количество от опаковката
      */
-	public function getDefaultProductionTasks($quantity)
+    public function getDefaultProductionTasks($id, $quantity = 1)
 	{
-		return $this->class->getDefaultProductionTasks($quantity);
+		return $this->class->getDefaultProductionTasks($id, $quantity);
 	}
 	
 	
@@ -295,14 +312,14 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	/**
      * Допълнителните условия за дадения продукт,
      * които автоматично се добавят към условията на договора
-     *
-     * @param mixed $rec       - ид или запис на артикул
-     * @param double $quantity - к-во
-     * @return array           - Допълнителните условия за дадения продукт
+     * 
+     * @param stdClass $rec   - ид/запис на артикул
+     * @param string $docType - тип на документа sale/purchase
+     * @param string|NULL $lg - език
      */
-	public function getConditions($rec, $quantity)
+    public function getConditions($rec, $docType, $lg = NULL)
 	{
-		return $this->class->getConditions($rec, $quantity);
+		return $this->class->getConditions($rec, $docType, $lg);
 	}
 	
 	

@@ -368,11 +368,15 @@ class cat_UoM extends core_Manager
      */
     public static function getShortName($id)
     {
+    	static $uoms;
+    	
     	if(!$id) return '???';
     	
-    	$shortName = static::fetchField($id, 'shortName');
+    	if(empty($uoms[$id])){
+    		$uoms[$id] = static::fetchField($id, 'shortName');
+    	}
     	
-    	return cls::get('type_Varchar')->toVerbal($shortName);
+    	return $uoms[$id];
     }
     
     

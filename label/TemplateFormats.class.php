@@ -193,7 +193,7 @@ class label_TemplateFormats extends core_Detail
             
             // Добавяме бутона
             $data->toolbar->addBtn('Нов надпис', $captionUrl,
-                'id=btnAddCaption', 'ef_icon = img/16/star_2.png, title=Създаване на нов надпис'
+                'id=btnAddCaption', 'ef_icon = img/16/text.png, title=Създаване на нов надпис'
             );
             
             // URL за добавяне на шаблон за брояч
@@ -201,7 +201,7 @@ class label_TemplateFormats extends core_Detail
             
             // Добавяме бутона
             $data->toolbar->addBtn('Нов брояч', $counterUrl,
-                'id=btnAddCounter', 'ef_icon = img/16/star_2.png, title=Създаване на нов брояч'
+                'id=btnAddCounter', 'ef_icon = img/16/counter-icon.png, title=Създаване на нов брояч'
             );
             
             // URL за добавяне  шаблон за изображение
@@ -209,7 +209,7 @@ class label_TemplateFormats extends core_Detail
             
             // Добавяме бутона
             $data->toolbar->addBtn('Нова картинка', $imageUrl,
-                'id=btnAddImage', 'ef_icon = img/16/star_2.png, title=Създаване на нова картинка'
+                'id=btnAddImage', 'ef_icon = img/16/image.png, title=Създаване на нова картинка'
             );
             
             // URL за добавяне  шаблон за изображение
@@ -217,14 +217,14 @@ class label_TemplateFormats extends core_Detail
             
             // Добавяме бутона
             $data->toolbar->addBtn('Нов HTML', $htmlUrl,
-                'id=btnAddHTML', 'ef_icon = img/16/star_2.png, title=Създаване на нов HTML'
+                'id=btnAddHTML', 'ef_icon = img/16/html-icon.png, title=Създаване на нов HTML'
             );
             
             $barcodeUrl['type'] = 'barcode';
             
             // Добавяме бутона
             $data->toolbar->addBtn('Нов баркод', $barcodeUrl,
-            		'id=btnAddBarcode', 'ef_icon = img/16/star_2.png, title=Създаване на нов баркод'
+            		'id=btnAddBarcode', 'ef_icon = img/16/barcode-icon.png, title=Създаване на нов баркод'
             );
         }
     }

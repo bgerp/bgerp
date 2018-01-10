@@ -90,6 +90,18 @@ class doc_Linked extends core_Manager
     
     
     /**
+     * Кой може да вижда свързаните документи и файлове
+     */
+    public $canViewlist = 'powerUser';
+    
+    
+    /**
+     * Кой може да добавя връзка
+     */
+    public $canAddlink = 'powerUser';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -150,6 +162,8 @@ class doc_Linked extends core_Manager
      */
     public static function getListView($type, $val, $viewType = 'table', $showRejecte = TRUE, $limit = 1000)
     {
+        if (!self::haveRightFor('viewlist')) return;
+        
         $recArr = self::getRecsForType($type, $val, $showRejecte, $limit);
         
         $rowArr = array();
@@ -192,7 +206,7 @@ class doc_Linked extends core_Manager
         
         if ($viewType == 'table') {
             $table = cls::get('core_TableView');
-            
+            $table->tableClass = "listTable smallerText";
             $res = $table->get($rowArr, "_rowTools=✍,
                                           docLink=Връзка,
 	                                      comment=Коментар");
@@ -394,6 +408,8 @@ class doc_Linked extends core_Manager
      */
     function act_Link()
     {
+        $this->requireRightFor('addlink');
+        
         $pArr = array('inType', 'foreignId');
         Request::setProtected($pArr);
         
@@ -532,6 +548,15 @@ class doc_Linked extends core_Manager
         if ($form->isSubmitted()) {
             if (!$act || doc_Linked::$actArr[$act]) {
                 $res = $this->onSubmitFormForAct($form, $act, $type, $originFId);
+            }
+        }
+        
+        // Да не редиректва, когато формата се отвори автоматично
+        if (is_object($res)) {
+            if ($res instanceof core_Redirect) {
+                if (!$form->cmd) {
+                    $res = NULL;
+                }
             }
         }
         
@@ -1053,8 +1078,9 @@ class doc_Linked extends core_Manager
                 $qArr = explode(' ', $q);
             }
             
+            $pBegin = type_Key2::getRegexPatterForSQLBegin();
             foreach($qArr as $w) {
-                $query->where(array("#searchFieldXpr REGEXP '\ {1}[^a-z0-9\p{L}]?[#1#]'", $w));
+                $query->where(array("#searchFieldXpr REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
             }
         } else {
             

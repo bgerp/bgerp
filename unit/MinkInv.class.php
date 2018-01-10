@@ -122,8 +122,8 @@ class unit_MinkInv extends core_Manager {
     /**
     * Създаване на параметър - избор.
     */
-    //http://localhost/unit_MinkInv/CreateParamChoise/
-    function act_CreateParamChoise()
+    //http://localhost/unit_MinkInv/CreateParamChoice/
+    function act_CreateParamChoice()
     {
          
         // Логване

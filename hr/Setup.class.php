@@ -88,7 +88,6 @@ class hr_Setup extends core_ProtoSetup
             'hr_Trips',
             'hr_Bonuses',
             'hr_Deductions',
-            'hr_FormCv',
         );
 
 
@@ -96,7 +95,10 @@ class hr_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     var $roles = array(
-   		array('hr'),
+   		array('hrSickdays'),
+   		array('hrLeaves'),
+   		array('hrTrips'),
+   		array('hr', 'hrSickdays, hrLeaves, hrTrips'),
    		array('hrMaster', 'hr'),
     );
     
@@ -125,12 +127,12 @@ class hr_Setup extends core_ProtoSetup
             'timeLimit' => 200
         ));
 
-    
+
     /**
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(2.31, 'Счетоводство', 'Персонал', 'hr_Leaves', 'default', "ceo, hr, hrMaster, admin"),
+            array(2.31, 'Счетоводство', 'Персонал', 'hr_Leaves', 'default', "ceo, hrLeaves, admin"),
         );
 
     

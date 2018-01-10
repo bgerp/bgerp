@@ -338,7 +338,7 @@ abstract class deals_DealBase extends core_Master
     			$err = array();
     			foreach ($deals1 as $d1){
     				$threadId = $this->fetchField($d1, 'threadId');
-    				if(doc_Containers::fetchField("#threadId = {$threadId} AND #state = 'pending'")){
+    				if(acc_plg_Contable::havePendingDocuments($threadId)){
     					$err[] = $this->getLink($d1, 0);
     				}
     			}
@@ -631,7 +631,7 @@ abstract class deals_DealBase extends core_Master
 					if(!isset(${$q})) continue;
 					$csvRow->{$q} = frame_CsvLib::toCsvFormatDouble(${$q});
 					$row->{$q} = $Double->toVerbal(${$q});
-					$row->{$q} = ht::styleIfNegative($row->{$q}, ${$q});
+					$row->{$q} = (${$q} == 0) ? "<span class='quiet'>{$row->{$q}}</span>" : ht::styleIfNegative($row->{$q}, ${$q});
 				}
 				
 				$report[$productId] = $row;

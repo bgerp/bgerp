@@ -97,7 +97,7 @@ class core_Detail extends core_Manager
                 $data->pager->addToUrl = array('#' => $data->masterMvc->getHandle($data->masterId));
             }
         }
-
+        
         // Подготвяме редовете от таблицата
         $this->prepareListRecs($data);
         
@@ -106,7 +106,7 @@ class core_Detail extends core_Manager
      
         // Подготвяме лентата с инструменти
         $this->prepareListToolbar($data);
-
+        
         return $data;
     }
     
@@ -403,7 +403,7 @@ class core_Detail extends core_Manager
             }
         }
         
-        parent::logInAct($msg, $rec, $type);
+        parent::logInAct($newMsg, $rec, $type);
     }
     
     

@@ -33,9 +33,8 @@ class batch_Wrapper extends plg_ProtoWrapper
     		$this->TAB('batch_Movements', 'Движения', 'ceo, batch');
     	}
     	
-    	$this->TAB('batch_Defs', 'Партиди->Артикули', 'ceo, batch');
-    	$this->TAB('batch_Templates', 'Партиди->Видове', 'ceo, batch');
-    	
+    	$this->TAB('batch_Defs', 'Партиди->Артикули', 'ceo, batchMaster');
+    	$this->TAB('batch_Templates', 'Партиди->Видове', 'ceo, batchMaster');
     	$this->TAB('batch_Features', 'Свойства', 'debug');
     	
     	$this->title = 'Партиди';

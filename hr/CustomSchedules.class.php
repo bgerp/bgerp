@@ -35,68 +35,51 @@ class hr_CustomSchedules extends core_Master
     
     
     /**
-     * @todo Чака за документация...
-     */
-    //var $details = 'hr_CycleDetails';
-    
-    
-    /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools2, hr_Wrapper,  plg_Printing';
     
     
     /**
-     * Единична икона
-     */
-    //var $singleIcon = 'img/16/timespan.png';
-    
-    
-    /**
-     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-     */
-    //var $rowToolsSingleField = 'name';
-    
-    
-    /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo,hr,trz';
+    var $canList = 'ceo,hr';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    var $canSingle = 'ceo,hr,trz';
+    var $canSingle = 'ceo,hr';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,hr,trz';
+    var $canRead = 'ceo,hr';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'ceo,hr,trz';
+    var $canWrite = 'ceo,hr';
+    
     
     /**
      * Полетата, които ще се показват в листов изглед
      */
     var $listFields = 'date,str=Структура / Служител,type=Вид / Документ,start,duration,break';
-    
+   
     
     /**
-     * Шаблон за единичния изглед
+     * Карта на видовете дни
      */
-    //var $singleLayoutFile = 'hr/tpl/SingleLayoutWorkingCycles.shtml';
+    static $map = array('working'    => 'работен',
+                        'nonworking' => 'почивен',
+                        'leave'      => 'отпуска',
+                        'traveling'  => 'командировка',
+                        'sicDay'     => 'болничен',);
     
-    static $map = array('working'=> 'работен',
-                        'nonworking'=>'почивен',
-                        'leave'=>'отпуска',
-                        'traveling'=>'командировка',
-                        'sicDay'=>'болничен',);
+    
     /**
      * Описание на модела
      */
@@ -121,7 +104,7 @@ class hr_CustomSchedules extends core_Master
                                        leave=отпуска,
                                        traveling=командировка,
                                        sicDay=болничен,)', 'caption=Вид,width=100%,input=none,silent, autoFilter');
-        $this->FLD('departmenId', 'key(mvc=hr_Departments, select=name,allowEmpty)', 'caption=Структура, width=50px,input=none');
+        $this->FLD('departmenId', 'key(mvc=planning_Centers, select=name,allowEmpty)', 'caption=Структура, width=50px,input=none');
         $this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees,allowEmpty)', 'caption=Служител,width=100%,input=none,');
         $this->FLD('start', 'time(suggestions=00:00|01:00|02:00|03:00|04:00|05:00|06:00|07:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|19:00|20:00|21:00|22:00|23:00,format=H:M,allowEmpty)', 'caption=Работен ден->Начало, input=none');
         $this->FLD('duration', 'time(suggestions=00|6:00|6:30|7:00|7:30|8:00|8:30|9:00|9:30|10:00|10:30|11:00|11:30|12:00,allowEmpty)', 'caption=Работен ден->Времетраене, input=none');
@@ -130,24 +113,13 @@ class hr_CustomSchedules extends core_Master
     
     
     /**
-     * Проверка и валидиране на формата
-     */
-    public static function on_AfterInputEditForm($mvc, $form)
-    {
-
-    }
-    
-    
-    /**
      *
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-
-        $data->form->setField('strukture', array("removeAndRefreshForm" => 'typeDepartmen|typePerson|departmenId|personId'));
+		$data->form->setField('strukture', array("removeAndRefreshForm" => 'typeDepartmen|typePerson|departmenId|personId'));
         $data->form->setField('typeDepartmen', array("removeAndRefreshForm" => 'start|duration|break'));
         $data->form->setField('typePerson', array("removeAndRefreshForm" => 'start|duration|break'));
-        
         
         if ($data->form->rec->strukture == 'departmenId') {
             $data->form->setField('typeDepartmen', 'input');
@@ -187,9 +159,9 @@ class hr_CustomSchedules extends core_Master
         }
         
         // Ако имаме права да видим департамента
-        if(hr_Departments::haveRightFor('single', $rec->departmenId) && isset($rec->departmenId)){
-            $depName = hr_Departments::fetchField("#id = '{$rec->departmenId}'", 'name');
-            $row->departmenId = ht::createLink($depName, array ('hr_Departments', 'single', 'id' => $rec->departmenId), NULL, 'ef_icon = img/16/user_group.png');
+        if(planning_Centers::haveRightFor('single', $rec->departmenId) && isset($rec->departmenId)){
+            $depName = planning_Centers::fetchField("#id = '{$rec->departmenId}'", 'name');
+            $row->departmenId = ht::createLink($depName, array ('planning_Centers', 'single', 'id' => $rec->departmenId), NULL, 'ef_icon = img/16/user_group.png');
         }
 
         if(isset($rec->docClass) && isset($rec->docId)) {
@@ -316,7 +288,7 @@ class hr_CustomSchedules extends core_Master
     
         // Взимаме конкретния работен график
         if($departmentId) {
-            $workingCycles = hr_Departments::fetchField($departmentId, 'schedule');
+            $workingCycles = planning_Centers::fetchField($departmentId, 'schedule');
             $masterId = $departmentId;
         }
         
@@ -329,7 +301,7 @@ class hr_CustomSchedules extends core_Master
             $personsDetails = cls::get('crm_PersonsDetails');
             $personsDetails->preparePersonsDetails($data);
             
-            $workingCycles = hr_Departments::fetchField($data->Cycles->masterId, 'schedule');
+            $workingCycles = planning_Centers::fetchField($data->Cycles->masterId, 'schedule');
             $masterId = $data->Cycles->masterId;
            
         }
@@ -339,7 +311,7 @@ class hr_CustomSchedules extends core_Master
         $cycleDetails = $state->fetch();
 
         // Намираме кога започва графика
-        $startingOn = hr_Departments::fetchField($workingCycles,'startingOn');
+        $startingOn = planning_Centers::fetchField($workingCycles,'startingOn');
      
         // Работен цикъл
         $workingCyclesCls = cls::get('hr_WorkingCycles');
@@ -648,8 +620,7 @@ class hr_CustomSchedules extends core_Master
      */
     function cron_SetPersonDayType()
     {
-    
-        $this->colectPersonDaysType();
+    	$this->colectPersonDaysType();
     }
     
     

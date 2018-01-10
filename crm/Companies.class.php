@@ -742,14 +742,14 @@ class crm_Companies extends core_Master
             $data->title = "Фирми в групата|* \"<b style='color:green'>|" .
             $mvc->Groups->getTitleById($data->listFilter->rec->groupId) . "|*</b>\"";
         } elseif($data->listFilter->rec->search) {
-            $data->title = "Фирми отговарящи на филтъра|* \"<b style='color:green'>" .
+            $data->title = "Фирми, отговарящи на филтъра|* \"<b style='color:green'>" .
             type_Varchar::escape($data->listFilter->rec->search) .
             "</b>\"";
         } elseif($data->listFilter->rec->alpha) {
             if($data->listFilter->rec->alpha{0} == '0') {
                 $data->title = "Фирми, които започват с не-буквени символи";
             } else {
-                $data->title = "Фирми започващи с буквите|* \"<b style='color:green'>{$data->listFilter->rec->alpha}</b>\"";
+                $data->title = "Фирми, започващи с буквите|* \"<b style='color:green'>{$data->listFilter->rec->alpha}</b>\"";
             }
         } else {
             $data->title = NULL;
@@ -886,6 +886,7 @@ class crm_Companies extends core_Master
         // Ако се редактира текущата фирма, генерираме лог от данните
         if (crm_Setup::BGERP_OWN_COMPANY_ID == $rec->id) {
             $mvc->prepareCompanyLogo();
+            hr_Departments::forceFirstDepartment($rec->name);
         }
     }
     
@@ -913,8 +914,12 @@ class crm_Companies extends core_Master
     public static function getCompanyFontSize($companyName)
     {
         $companyNameLen = mb_strlen($companyName);
-        
-        if ($companyNameLen > 37) {
+
+        if ($companyNameLen > 48) {
+            $companyFontSize = 80;
+        } elseif ($companyNameLen > 42) {
+            $companyFontSize = 90;
+        } elseif ($companyNameLen > 37) {
             $companyFontSize = 100;
         } elseif ($companyNameLen > 33) {
             $companyFontSize = 110;
@@ -1034,7 +1039,12 @@ class crm_Companies extends core_Master
                 $email = $emailsArr[0];
             }
         }
-        
+
+        if (mb_strlen($cRec->website) > 32 || mb_strlen($email) > 20) {
+            $tpl->append(58, 'smallFontSize');
+        } else {
+            $tpl->append(66, 'smallFontSize');
+        }
         $tpl->append($fAddres, 'address');
         $tpl->append($tel, 'tel');
         $tpl->append($fax, 'fax');
@@ -1192,8 +1202,9 @@ class crm_Companies extends core_Master
                 $qArr = explode(' ', $q);
             }
             
+            $pBegin = type_Key2::getRegexPatterForSQLBegin();
             foreach($qArr as $w) {
-                $query->where(array("#searchFieldXprLower REGEXP '\ {1}[^a-z0-9\p{L}]?[#1#]'", $w));
+                $query->where(array("#searchFieldXprLower REGEXP '(" . $pBegin . "){1}[#1#]'", $w));
             }
         }
  
@@ -2057,9 +2068,10 @@ class crm_Companies extends core_Master
      * @param int $id - ид на контрагент
      * @param boolean $translitarate - дали да се транслитерира адреса
      * @param boolean|NULL $showCountry - да се показвали винаги държавата или Не, NULL означава че автоматично ще се определи
+     * @param boolean $showAddress      - да се показва ли адреса
      * @return core_ET $tpl - адреса
      */
-    public function getFullAdress($id, $translitarate = FALSE, $showCountry = NULL)
+    public function getFullAdress($id, $translitarate = FALSE, $showCountry = NULL, $showAddress = TRUE)
     {
     	expect($rec = $this->fetchRec($id));
     	
@@ -2081,6 +2093,8 @@ class crm_Companies extends core_Master
     	$Varchar = cls::get('type_Varchar');
     	foreach (array('pCode', 'place', 'address') as $fld){
     		if($rec->{$fld}){
+    			if($fld == 'address' && $showAddress !== TRUE) continue;
+    			
     			$obj->{$fld} = $Varchar->toVerbal($rec->{$fld});
     			if($translitarate === TRUE){
     				if($fld != 'pCode'){

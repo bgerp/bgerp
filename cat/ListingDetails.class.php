@@ -548,7 +548,7 @@ class cat_ListingDetails extends doc_Detail
 	/**
 	 * Преди подготовката на полетата за листовия изглед
 	 */
-	public static function on_AfterPrepareListFields($mvc, &$res, &$data)
+	protected static function on_AfterPrepareListFields($mvc, &$res, &$data)
 	{
 		$masterRec = $data->masterData->rec;
 		$vat = ($masterRec->vat == 'yes') ? 'с ДДС' : 'без ДДС';

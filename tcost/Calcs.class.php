@@ -431,14 +431,14 @@ class tcost_Calcs extends core_Manager
      * @param int|NULL $deliveryLocationId - ид на локация
      * @return NULL|array $feeArray        - сумата на транспорта
      */
-    public static function getCostArray($deliveryTermId, $contragentClassId, $contragentId, $productId, $packagingId, $quantity, $deliveryLocationId, $countryId = NULL)
+    public static function getCostArray($deliveryTermId, $contragentClassId, $contragentId, $productId, $packagingId, $quantity, $deliveryLocationId, $countryId = NULL, $pCode = NULL)
     {
     	// Ако може да се изчислява скрит транспорт
     	if(!cond_DeliveryTerms::canCalcHiddenCost($deliveryTermId, $productId)) return NULL;
     	
     	// Пощенския код и ид-то на държавата
-    	$codeAndCountryArr = tcost_Calcs::getCodeAndCountryId($contragentClassId, $contragentId, NULL, $countryId, $deliveryLocationId);
-    	 
+    	$codeAndCountryArr = tcost_Calcs::getCodeAndCountryId($contragentClassId, $contragentId, $pCode, $countryId, $deliveryLocationId);
+    	
     	// Опит за изчисляване на транспорт
     	$totalWeight = cond_Parameters::getParameter($contragentClassId, $contragentId, 'calcShippingWeight');
     	$feeArr = tcost_Calcs::getTransportCost($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $codeAndCountryArr['countryId'], $codeAndCountryArr['pCode']);
@@ -494,6 +494,7 @@ class tcost_Calcs extends core_Manager
     		$rec->deliveryTimeFromFee = tcost_Calcs::get($map['masterMvc'], $masterRec->id, $rec->id)->deliveryTime;
     	}
     	$countryId = !empty($masterRec->{$map['countryId']}) ? $masterRec->{$map['countryId']} : NULL;
+    	$PCode = !empty($masterRec->pCode) ? $masterRec->pCode : NULL;
     	
     	// Ако драйвера не иска да се начислява цената да не се начислява
     	if(isset($rec->{$map['productId']})){
@@ -502,7 +503,7 @@ class tcost_Calcs extends core_Manager
     	}
     	
     	// Колко е очаквания транспорт
-    	$feeArr = tcost_Calcs::getCostArray($masterRec->{$map['deliveryTermId']}, $masterRec->{$map['contragentClassId']}, $masterRec->{$map['contragentId']}, $rec->{$map['productId']}, $rec->{$map['packagingId']}, $rec->{$map['quantity']}, $masterRec->{$map['deliveryLocationId']}, $countryId);
+    	$feeArr = tcost_Calcs::getCostArray($masterRec->{$map['deliveryTermId']}, $masterRec->{$map['contragentClassId']}, $masterRec->{$map['contragentId']}, $rec->{$map['productId']}, $rec->{$map['packagingId']}, $rec->{$map['quantity']}, $masterRec->{$map['deliveryLocationId']}, $countryId, $PCode);
     	
     	// Ако има такъв към цената се добавя
     	if(is_array($feeArr)){
@@ -541,7 +542,7 @@ class tcost_Calcs extends core_Manager
     	}
     	
     	if($rec->autoPrice !== TRUE){
-    		
+    	
     		if(cond_DeliveryTerms::canCalcHiddenCost($masterRec->deliveryTermId, $rec->productId)){
     			if(isset($rec->{$map['price']})){
     				// Проверка дали цената е допустима спрямо сумата на транспорта

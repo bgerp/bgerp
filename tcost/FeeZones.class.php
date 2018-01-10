@@ -199,7 +199,13 @@ class tcost_FeeZones extends core_Master
     	if(!($fee < 0)){
     		$fee = (isset($fee[1])) ? $fee[1] : 0;
     	} 
-    	
+        
+        if($fee > 0) {
+            $tax = tcost_Setup::get('ADD_TAX');
+            $inc = tcost_Setup::get('ADD_PER_KG') * $weightRow;
+            $fee = $tax + $inc + $fee;
+        }
+
         $res = array('fee' => $fee, 'deliveryTime' => $deliveryTime);
  
     	// Връщане на изчислената цена

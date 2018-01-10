@@ -1,4 +1,7 @@
 <?php
+
+
+
 /**
  * Клас 'trans_vehicles'
  *
@@ -7,13 +10,15 @@
  * @category  bgerp
  * @package   trans
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2017 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class trans_Vehicles extends core_Master
 {
-    /**
+
+	
+	/**
      * Заглавие
      */
     public $title = 'Транспортни средства';
@@ -28,13 +33,7 @@ class trans_Vehicles extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, trans_Wrapper, plg_RowNumbering, doc_FolderPlg, plg_Rejected, plg_State, plg_Modified';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo, trans';
+    public $loadList = 'plg_RowTools2, plg_Created, trans_Wrapper, plg_RowNumbering, doc_FolderPlg, plg_Rejected, plg_State2, plg_Modified';
     
     
     /**
@@ -50,12 +49,6 @@ class trans_Vehicles extends core_Master
     
     
     /**
-     * Кой може да го види?
-     */
-    public $canView = 'ceo, trans';
-    
-    
-    /**
      * Кой може да го изтрие?
      */
     public $canDelete = 'ceo, trans';
@@ -64,7 +57,7 @@ class trans_Vehicles extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name,number,createdOn,createdBy';
+    public $listFields = 'name,number,state,createdOn,createdBy';
     
     
     /**

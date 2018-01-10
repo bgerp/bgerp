@@ -569,7 +569,47 @@ class core_Html
         return $input;
     }
 
+    
+    private static function addAccessKey(&$attr, $title)
+    {
+        if(Mode::is('screenMode', 'narrow')) return;
+        
+        static $accessKeys;
 
+        if($accessKeys === NULL) {
+            $accessKeys = array();
+            $defLines = explode("\n", bgerp_Setup::get('ACCESS_KEYS'));
+            foreach($defLines as $l) {
+                $l = trim($l);
+                if($l) {
+                    list($titles, $c) = explode('=', $l);
+                    $titles = trim($titles);
+                    $c = str::utf2ascii(trim($c));
+                    if(strlen($titles) > 1 && strlen($c) == 1) {
+                        $titlesArr = explode(',', $titles);
+                        foreach($titlesArr as $t) {
+                            $accessKeys[mb_strtolower(trim($t))] = $c;
+                        }
+                    }
+                }
+            }
+        }
+
+
+        if($c = $accessKeys[mb_strtolower($title)]) {
+            $attr['accesskey'] = $c;
+
+            if(substr(log_Browsers::getUserAgentOsName(), 0, 3) == 'Mac') {
+                $hint = '[Control][Alt]+' . $c;
+            } elseif(log_Browsers::getUserAgentBrowserName() == 'Firefox') {
+                $hint = '[Shift][Alt]+' . $c;
+            } else {
+                $hint = '[Alt]+' . $c;
+            }
+
+            $attr['title'] .= ($attr['title'] ? ' ' : '') . $hint;
+        }
+    }
 
    
     /**
@@ -593,8 +633,10 @@ class core_Html
     static function createBtn($title, $url = array(), $warning = FALSE, $newWindow = FALSE, $attr = array())
     {
         $attr = self::prepareLinkAndBtnAttr($attr, $warning);
-       
+        
         $title = tr($title);
+        
+        self::addAccessKey($attr, $title);
 
         // Ако URL-то е празно - забраняваме бутона
         if((is_array($url) && count($url) == 0) || !$url) {
@@ -686,6 +728,10 @@ class core_Html
     static function createSbBtn($title, $cmd = 'default', $warning = NULL, $newWindow = NULL, $attr = array())
     {
         $attr = self::prepareLinkAndBtnAttr($attr, $warning);
+        
+        $title = tr($title);
+
+        self::addAccessKey($attr, $title);
 
         $attr['name'] .= "Cmd[{$cmd}]";
 
@@ -697,7 +743,7 @@ class core_Html
 
         $attr['type'] = 'submit';
 
-        $attr['value'] = tr($title);
+        $attr['value'] = $title;
 
         // Оцветяваме бутона в зависимост от особеностите му
         if (isset($warning)) {
