@@ -64,7 +64,27 @@ class spcheck_Plugin extends core_Plugin
                 
                 if (mb_strlen($data->row->{$fName}) < self::$minLenForCheck) continue;
                 
-                $lg = core_Lg::getCurrent();
+                if ($data->rec->containerId) {
+                    $lg = doc_Containers::getLanguage($data->rec->containerId);
+                    
+                    if (!$lg) {
+                        $lg = doc_Threads::getLanguage($data->rec->threadId);
+                    }
+                    
+                    if (!$lg) {
+                        $lg = doc_Folders::getLanguage($data->rec->folderId);
+                    }
+                    
+                    if (!$lg) {
+                        $lg = core_Lg::getCurrent();
+                    } else {
+                        
+                        // Ако езика не е един от позволените
+                        if (!core_Lg::isGoodLg($lg)) {
+                            $lg = 'en';
+                        }
+                    }
+                }
                 
                 $data->row->{$fName} = spcheck_Dictionary::highliteWrongWord($data->row->{$fName}, $lg);
             }

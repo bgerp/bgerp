@@ -128,8 +128,31 @@ class spcheck_Dictionary extends core_Manager
     {
         static $wArr = array();
         
+        static $defNon7BitLg = NULL;
+        $isCLg = FALSE;
+        
         if (!isset($lg)) {
             $lg = core_Lg::getCurrent();
+            $isCLg = TRUE;
+        }
+        
+        // Ако е подадена дума на кирилица, но езикът не е
+        $cLgArr = array('bg' => 'bg', 'ru' => 'ru', 'mk' => 'mk', 'sr' => 'sr');
+        if ($isCLg && !$cLgArr[$lg]) {
+            if (!i18n_Charset::is7Bit($word)) {
+                if (!isset($defNon7BitLg)) {
+                    $langArr = arr::make(EF_LANGUAGES, TRUE);
+                    foreach ($cLgArr as $cLg) {
+                        if ($langArr[$cLg]) {
+                            $defNon7BitLg = $cLg;
+                            break;
+                        }
+                    }
+                }
+                if ($defNon7BitLg) {
+                    $lg = $defNon7BitLg;
+                }
+            }
         }
         
         $key = $word . '|' . $lg;
