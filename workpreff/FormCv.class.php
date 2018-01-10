@@ -156,49 +156,7 @@ class workpreff_FormCv extends core_Master
        
     }
 
-    /**
-     * Добавям поле "ПРЕДПОЧИТАНИЯ" във формата
-     * @param $mvc
-     * @param $form
-     */
-    protected static function on_AfterInputEditForm($mvc, $form)
-    {
-    	
    
-        $preferencesForWork = array();
-
-        if ($form->isSubmitted()){
-      
-            $workpreff = new stdClass();
-            
-        
-                foreach ($form->rec as $k => $v) {
-
-                    if (substr($k, 0, 10) == 'workpreff_') {
-
-                       $nameChoice = workpreff_WorkPreff::getOptionsForChoice();
-                       
-                     
-
-                        $preferencesForWork[] = (object)array(
-                        
-                            'choice' => $nameChoice[substr($k, 10)]->name,
-
-                            'value' => $v
-
-                        );
-
-                    }
-
-                }
-            $form->rec->workpreff = $preferencesForWork;
-            
-            
-           
-         }
-        
-   }
-
 
     /**
      * Преди показване на форма за добавяне/промяна.
@@ -215,56 +173,114 @@ class workpreff_FormCv extends core_Master
 
         $form->setDefault('country', drdata_Countries::getIdByName('bul'));
      
-       if ($form->rec->typeOfPosition){
+       if ($rec->typeOfPosition){
    
         $options = workpreff_WorkPreff::getOptionsForChoice();
         
+             
         if($rec->id) {
-        	
-        	
+       
         	$exRec = $mvc->fetch($rec->id);
      
+        }else{
+        	$exRec=$rec;
         }
-      
+ 
 	        if (is_array($options)) {
 	
 		            foreach ($options as $v) {
 		            	
 		            	
-		            	if(in_array($form->rec->typeOfPosition,$v->typeOfPosition)){
-		
+		            	if(in_array($exRec->typeOfPosition,$v->typeOfPosition)){
+	   						
+		            		
+			                
 			                if ($v->type == 'enum') {
 			                	
-			                	
-			
-			                    $form->FLD("workpreff_{$v->id}", "enum($v->parts)", "caption={$v->name},maxRadio={$v->count},columns=3,input");
-			                    
+				                foreach ($v->parts as $k=>$venum){
+				                		
+				                	$parts .=$k.'='.$venum.',' ;
+				                	
+				                }
+				                	
+				                $parts= trim($parts,',') ;
+				                
+				                
+		
+				                $form->FNC("workpreff_{$v->id}", "enum($parts)", "caption={$v->name},maxRadio={$v->count},columns=3,input");
+				            
+				                $form->setDefault("workpreff_{$v->id}",$exRec->workpreff[$v->id]->value);
+	
+	 			                unset($parts);
 			
 			                }
 			
 			                if ($v->type == 'set') {
 			                	
+			                	foreach ($v->parts as $k=>$vset){
 			                	
-			
-			                    $form->FLD("workpreff_{$v->id}", "set($v->parts)", "caption ={$v->name},input");
-			                    
-			                  
-			                   
-			                }
-			                
-			              //  $form->setDefault ("workpreff_$v->id", "$v->parts");
-			          
-		
-		            	} 
-		        
-		      	  }
-		      	  
-//bp($v,$rec);
-	            
-	        }
-         }
+			                		$parts .=$k.'='.$vset.',' ;
+                              
+			                	}
 
+			                	$parts= trim($parts,',') ;
+
+			                	$form->FNC("workpreff_{$v->id}", "set($parts)", "caption ={$v->name},input");
+
+			                	$form->setDefault("workpreff_{$v->id}",$exRec->workpreff[$v->id]->value);
+    		 	                
+			                	unset($parts);
+			              
+			                }
+			     
+		            	} 
+		      
+		      	  }
+	
+	        }
+	      
+	        
+         }
+ 
     }
+    
+    
+    /**
+     * Добавям поле "ПРЕДПОЧИТАНИЯ" във формата
+     * @param $mvc
+     * @param $form
+     */
+    protected static function on_AfterInputEditForm($mvc, $form)
+    {
+    	 
+    	 
+    	$preferencesForWork = array();
+    
+    	if ($form->isSubmitted()){
+    
+    		$workpreff = new stdClass();
+    
+    		foreach ($form->rec as $k => $v) {
+    			
+    			if (substr($k, 0, 10) == 'workpreff_') {
+    
+    				$preferencesForWork[substr($k, 10)] = (object)array(
+    						
+    						'value' => $v
+    
+    				);
+    
+    			}
+    
+    		}
+    
+    		
+    		$form->rec->workpreff = $preferencesForWork;
+    		
+    	}
+    
+    }
+    
 
 
     /**
@@ -329,18 +345,24 @@ class workpreff_FormCv extends core_Master
 
         if (is_array($rec->workpreff)) {
 
-            foreach ($rec->workpreff as $v) {
+            foreach ($rec->workpreff as $k=>$v) {
+            	$printChoice = '';
+            	
+            	$printChoice = workpreff_WorkPreff::fetch($k)->name;
 
                 $printValues = explode(',', $v->value);
-
+         
                 $printValue = '';
 
-                foreach ($printValues as $vp) {
-
-                    $printValue .= "<div>" . $vp . "</div>";
+                if (!empty($printValues)){
+	                foreach ($printValues as $vp) {
+	                if (!$vp) continue;
+	                    $printValue .= "<div>" . workpreff_WorkPreffDetails::fetch($vp)->name . "</div>";
+	
+	                }
                 }
-
-                $prepare .= "<tr><td class='aright'>" . $v->choice . ": " . "</td><td class='aleft' colspan='2'>" . $printValue . "</td></tr>";
+      
+                $prepare .= "<tr><td class='aright'>" . $printChoice . ": " . "</td><td class='aleft' colspan='2'>" . $printValue . "</td></tr>";
 
             }
         }

@@ -22,6 +22,11 @@ class workpreff_WorkPreff extends core_Master
     public $title = "Избор";
 
     public $loadList = 'plg_RowTools2,plg_Sorting, hr_Wrapper';
+    
+    /**
+     * Детайла, на модела
+     */
+    public $details = 'workpreff_WorkPreffDetails';
 
     function description()
 
@@ -29,7 +34,6 @@ class workpreff_WorkPreff extends core_Master
 
         $this->FLD('name', 'varchar', 'caption=Предпочитания->Възможности,class=contactData,mandatory,remember=info,silent');
         $this->FLD('type', 'enum(set=Фиксиране, enum=Избор)', 'notNull,caption=Тип на избора,maxRadio=2,after=name');
-        $this->FLD('choice', 'text', 'caption=Информация->Предложения за избор,class=contactData,mandatory,remember=info,silent,removeAndRefreshForm');
         $this->FLD('typeOfPosition', 'set(adm=Администрация,man=Производство, log=Логистика,sall=Продажби)', 'caption=Тип на позицията,mandatory');
       
 
@@ -63,38 +67,45 @@ class workpreff_WorkPreff extends core_Master
      */
     public static function getOptionsForChoice()
     {
-       $query = self::getQuery();
+    	
+    	$parts=array();
+       
+    	$detQuery = workpreff_WorkPreffDetails::getQuery();
+    	
+    	while ($detail = $detQuery->fetch()){
+    		
+    		$detArr[$detail->id]=$detail;
+    	}
+    
+    	$query = self::getQuery();
 
         while ($rec = $query->fetch()){
         	
-        	$typeOfPosition = explode(',', $rec->typeOfPosition);
+        $typeOfPosition = explode(',', $rec->typeOfPosition);
         	
-        
-
-            $partsTemp = '';
-
-            $parts = explode("\n", $rec->choice);
-            $count = count($parts);
-
-            foreach ($parts as $part) {
-
-               $partsTemp .= "$part".',';
-
-            }
-
+		  foreach ($detArr as $v){
+		  
+		  	if($rec->id == $v->choiceId){
+		  	
+		  		$parts[$v->id]=$v->name;
+		  		
+		  	}
+		  	
+		  }
+  
             $workPreffOptions[$rec->id] = (object)array(
 
                 'id' => $rec->id,
                 'type' => $rec->type,
-                'parts' => trim($partsTemp,','),
                 'name' => $rec->name,
-                'count' => $count,
+            	'parts' => $parts,	
+                'count' => count($parts),
             	'typeOfPosition' =>$typeOfPosition,
 
             );
-
+            
+            $parts=array();
         }
-
 
         if (!$workPreffOptions){
 
