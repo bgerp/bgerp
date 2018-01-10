@@ -139,7 +139,7 @@ class cat_products_Packagings extends core_Detail
                 static::save($packRec, 'isBase');
             }
             
-            if(self::allowWeightQuantityCheck($rec->productId, $rec->packagingId)){
+            if(self::allowWeightQuantityCheck($rec->productId, $rec->packagingId, $rec->id)){
             	if($error = self::checkWeightQuantity($rec->productId, $rec->packagingId, $rec->quantity)){
             		$form->setError('quantity', $error);
             	}
@@ -174,11 +174,14 @@ class cat_products_Packagings extends core_Detail
     /**
      * Трябва ли да се валидира количеството
      */
-    private static function allowWeightQuantityCheck($productId, $packagingId)
+    private static function allowWeightQuantityCheck($productId, $packagingId, $id)
     {
     	$measureId = cat_Products::fetchField($productId, 'measureId');
     	if(cat_UoM::isWeightMeasure($measureId)) return TRUE;
-    	if(self::countSameTypePackagings($productId, 'kg') != 1) return TRUE;
+    	
+    	$count = self::countSameTypePackagings($productId, 'kg');
+    	if($count != 1) return TRUE;
+    	if(empty($id) && $count == 1)  return TRUE;
     	
     	$weightGr = cat_Products::getParams($productId, 'weight');
     	if(!empty($weightGr)) return TRUE;
