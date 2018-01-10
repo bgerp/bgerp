@@ -155,17 +155,18 @@ class cat_products_Packagings extends core_Detail
     
     
     /**
-     * Колко теглови опаковки има артикула
+     * Колко опаковки от същия вид има артикула
      * 
      * @param int $productId
+     * @param int $sysId
      * @return double
      */
-    public static function countWeightPackagings($productId)
+    public static function countSameTypePackagings($productId, $sysId)
     {
-    	$kgUoms = cat_UoM::getSameTypeMeasures(cat_UoM::fetchBySysId('kg')->id);
-    	unset($kgUoms['']);
+    	$uoms = cat_UoM::getSameTypeMeasures(cat_UoM::fetchBySysId($sysId)->id);
+    	unset($uoms['']);
     	
-    	$count = cat_products_Packagings::count("#productId = {$productId} AND #packagingId IN (" . implode(array_keys($kgUoms), ',') . ")");
+    	$count = cat_products_Packagings::count("#productId = {$productId} AND #packagingId IN (" . implode(array_keys($uoms), ',') . ")");
     	return $count;
     }
     
@@ -177,8 +178,7 @@ class cat_products_Packagings extends core_Detail
     {
     	$measureId = cat_Products::fetchField($productId, 'measureId');
     	if(cat_UoM::isWeightMeasure($measureId)) return TRUE;
-    	
-    	if(self::countWeightPackagings($productId) != 1) return TRUE;
+    	if(self::countSameTypePackagings($productId, 'kg') != 1) return TRUE;
     	
     	$weightGr = cat_Products::getParams($productId, 'weight');
     	if(!empty($weightGr)) return TRUE;
