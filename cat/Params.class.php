@@ -75,7 +75,7 @@ class cat_Params extends bgerp_ProtoParam
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'typeExt,order,driverClass=Тип,state,roles,showInPublicDocuments=Показване в документи->Външни,showInTasks=Показване в документи->Пр. операции';
+    public $listFields = 'typeExt,order,driverClass=Тип,state,roles,showInPublicDocuments=Показване в документи->Външни,showInTasks=Показване в документи->Пр. операции,measures';
     
     
     /**
@@ -92,6 +92,7 @@ class cat_Params extends bgerp_ProtoParam
     	parent::setFields($this);
     	$this->FLD('showInPublicDocuments', 'enum(no=Не,yes=Да)', 'caption=Показване на параметъра->Външни документи,notNull,value=yes,maxRadio=2');
     	$this->FLD('showInTasks', 'enum(no=Не,yes=Да)', 'caption=Показване на параметъра->Пр. операции,notNull,value=no,maxRadio=2');
+    	$this->FLD('measures', 'keylist(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Съотвествие->Мерки,optionsFunc=cat_UoM::getUomOptions');
     }
     
     
@@ -107,6 +108,7 @@ class cat_Params extends bgerp_ProtoParam
     	
     	if(isset($data->form->rec->sysId)){
     		$data->form->setReadOnly('showInTasks');
+    		$data->form->setReadOnly('measures');
     	}
     }
     
@@ -118,16 +120,17 @@ class cat_Params extends bgerp_ProtoParam
     {
     	$file = "cat/csv/Params.csv";
     	$fields = array(
-    			0 => "name",
-    			1 => "driverClass",
-    			2 => "suffix",
-    			3 => "sysId",
-    			4 => "options",
-    			5 => "default",
-    			6 => "showInPublicDocuments",
-    			7 => "state",
-    			8 => 'csv_params',
-    			9 => 'showInTasks',
+    			0  => "name",
+    			1  => "driverClass",
+    			2  => "suffix",
+    			3  => "sysId",
+    			4  => "options",
+    			5  => "default",
+    			6  => "showInPublicDocuments",
+    			7  => "state",
+    			8  => 'csv_params',
+    			9  => 'showInTasks',
+    			10 => 'csv_measures',
     	);
     	 
     	$cntObj = csv_Lib::importOnce($this, $file, $fields);
@@ -273,5 +276,25 @@ class cat_Params extends bgerp_ProtoParam
     	$res = arr::extractValuesFromArray($query->fetchAll(), 'id');
     	
     	return $res;
+    }
+    
+    
+    
+    /**
+     * Изпълнява се преди импортирването на данните
+     */
+    protected static function on_BeforeImportRec($mvc, &$rec)
+    {
+    	// Импортиране на параметри при нужда
+    	if(isset($rec->csv_measures)){
+    		$keylist = '';
+    		$arr = explode(',', $rec->csv_measures);
+    		foreach ($arr as $sysId){
+    			if($mId = cat_Uom::fetchBySysId($sysId)->id){
+    				$keylist = keylist::addKey($keylist, $mId);
+    			}
+    		}
+    		$rec->measures = $keylist;
+    	}
     }
 }

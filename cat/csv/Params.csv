@@ -1,9 +1,9 @@
-Дължина,cond_type_Double,см,length,,,yes,active,"min=0",yes
+Дължина,cond_type_Double,см,length,,,yes,active,"min=0",yes,"m,cm,mm,km"
 Височина,cond_type_Double,см,height,,,yes,active,"min=0",yes
-Тегло,cond_type_Double,кг,weightKg,,,no,active,"min=0",yes
+Тегло,cond_type_Double,кг,weightKg,,,no,active,"min=0",yes,"g,kg,t,mg"
 Дебелина,cond_type_Double,см,thickness,,,yes,active,,yes
-Обем,cond_type_Double,куб.м,volume,,,no,active,"min=0",yes
-Обем,cond_type_Double,л,volumel,,,no,active,"min=0",yes
+Обем,cond_type_Double,куб.м,volume,,,no,active,"min=0",yes,"cub.m"
+Обем,cond_type_Double,л,volumel,,,no,active,"min=0",yes,"l,ml"
 Плътност,cond_type_Double,кг/м3,density,,,no,active,,no
 Цвят,cond_type_Varchar,,color,,,yes,active,,yes
 Митнически номер,cond_type_Varchar,,customsTariffNumber,,,no,active,,no
@@ -11,11 +11,11 @@
 Транспортен Обем,cond_type_Double,куб.м,transportVolume,,,no,active,"min=0",no
 Толеранс,cond_type_Percent,,tolerance,,,no,active,,no
 Срок на доставка,cond_type_Time,,term,,,no,active,,no
-Широчина,cond_type_Double,см,width,,,yes,active,,yes
+Широчина,cond_type_Double,см,width,,,yes,active,,yes,"m,cm,mm,km"
 Режийни разходи,cond_type_Percent,,expenses,,,no,active,,no
 Изглед||Preview,cond_type_Image,,preview,,,no,active,,no
 На етикета||Label text,cond_type_Text,,labelText,,,no,active,,yes
 Спецификация,cond_type_Text,,specTpl,,,no,active,,no
 Условия към продажба,cond_type_Text,,commonConditionSale,,,no,active,,no
 Условия към покупка,cond_type_Text,,commonConditionPur,,,no,active,,no
-Тегло,cond_type_Double,гр,weight,,,no,active,"min=0",yes
+Тегло,cond_type_Double,гр,weight,,,no,active,"min=0",yes,"g,kg,t,mg"
