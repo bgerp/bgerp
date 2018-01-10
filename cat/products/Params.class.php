@@ -253,11 +253,27 @@ class cat_products_Params extends doc_Detail
     {
     	$query = self::getQuery();
     	$query->where("#classId = {$classId} AND #productId = {$productId}");
-    	$ids = array_map(create_function('$o', 'return $o->paramId;'), $query->fetchAll());
+    	$ids = arr::extractValuesFromArray($query->fetchAll(), 'paramId');
+    	
+    	if($classId == cat_Products::getClassId()){
+    		$grSysid = cat_Params::fetchIdBySysId('weight');
+    		$kgSysid = cat_Params::fetchIdBySysId('weightKg');
+    		
+    		$measureId = cat_Products::fetchField($productId, 'measureId');
+    		if(cat_UoM::isWeightMeasure($measureId)){
+    			$ids[$grSysid] = $grSysid;
+    			$ids[$kgSysid] = $kgSysid;
+    		} else {
+    			if(!empty($ids[$grSysid])){
+    				$ids[$kgSysid] = $kgSysid;
+    			}elseif(!empty($ids[$kgSysid])){
+    				$ids[$grSysid] = $grSysid;
+    			}
+    		}
+    	}
     	
     	$where = "";
     	if(count($ids)){
-    		$ids = array_combine($ids, $ids);
     		$ids = implode(',', $ids);
     		$where = "#id NOT IN ({$ids})";
     	}
