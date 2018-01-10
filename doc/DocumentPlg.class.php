@@ -1365,6 +1365,9 @@ class doc_DocumentPlg extends core_Plugin
     	    
     	    if (!$lg) {
     	        $lg = doc_Containers::getLanguage($mRec->containerId);
+    	        if ($lg && !core_Lg::isGoodLg($lg)) {
+    	            $lg = 'en';
+    	        }
     	        core_Lg::push($lg);
     	    }
     	    
