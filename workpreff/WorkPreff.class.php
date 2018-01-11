@@ -82,6 +82,9 @@ class workpreff_WorkPreff extends core_Master
         while ($rec = $query->fetch()){
         	
         $typeOfPosition = explode(',', $rec->typeOfPosition);
+        
+        
+        if (is_array($detArr)){
         	
 		  foreach ($detArr as $v){
 		  
@@ -92,7 +95,7 @@ class workpreff_WorkPreff extends core_Master
 		  	}
 		  	
 		  }
-  
+        }
             $workPreffOptions[$rec->id] = (object)array(
 
                 'id' => $rec->id,

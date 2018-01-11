@@ -40,20 +40,12 @@ class workpreff_WorkPreffDetails extends core_Detail
 	 * var string|array
 	 */
 	public $loadList = 'plg_RowTools2, plg_Created, hr_Wrapper, plg_RowNumbering, plg_SaveAndNew, plg_PrevAndNext';
-			
-            //            plg_AlignDecimals2, plg_Sorting, deals_plg_ImportDealDetailProduct, doc_plg_HidePrices, LastPricePolicy=sales_SalesLastPricePolicy,
-			  //          cat_plg_CreateProductFromDocument,doc_plg_HideMeasureAndQuantityColumns,cat_plg_ShowCodes';
-	
-	
+
 
 	/**
 	 * Име на поле от модела, външен ключ към мастър записа
 	 */
 	public $masterKey = 'choiceId';
-
-
-
-
 
 
 	/**

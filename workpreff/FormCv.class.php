@@ -172,74 +172,78 @@ class workpreff_FormCv extends core_Master
         $rec = &$form->rec;
 
         $form->setDefault('country', drdata_Countries::getIdByName('bul'));
-     
-       if ($rec->typeOfPosition){
-   
-        $options = workpreff_WorkPreff::getOptionsForChoice();
         
-             
-        if($rec->id) {
+       if($rec->id) {
        
         	$exRec = $mvc->fetch($rec->id);
-     
-        }else{
-        	$exRec=$rec;
-        }
+  
+       }else{
+        	
+       	$exRec=$rec;
+       }
+
+        $exRec=$rec;
  
-	        if (is_array($options)) {
-	
-		            foreach ($options as $v) {
-		            	
-		            	
-		            	if(in_array($exRec->typeOfPosition,$v->typeOfPosition)){
-	   						
-		            		
-			                
-			                if ($v->type == 'enum') {
-			                	
-				                foreach ($v->parts as $k=>$venum){
-				                		
-				                	$parts .=$k.'='.$venum.',' ;
-				                	
-				                }
-				                	
-				                $parts= trim($parts,',') ;
-				                
-				                
-		
-				                $form->FNC("workpreff_{$v->id}", "enum($parts)", "caption={$v->name},maxRadio={$v->count},columns=3,input");
-				            
-				                $form->setDefault("workpreff_{$v->id}",$exRec->workpreff[$v->id]->value);
-	
-	 			                unset($parts);
-			
-			                }
-			
-			                if ($v->type == 'set') {
-			                	
-			                	foreach ($v->parts as $k=>$vset){
-			                	
-			                		$parts .=$k.'='.$vset.',' ;
-                              
-			                	}
-
-			                	$parts= trim($parts,',') ;
-
-			                	$form->FNC("workpreff_{$v->id}", "set($parts)", "caption ={$v->name},input");
-
-			                	$form->setDefault("workpreff_{$v->id}",$exRec->workpreff[$v->id]->value);
-    		 	                
-			                	unset($parts);
-			              
-			                }
-			     
-		            	} 
-		      
-		      	  }
-	
-	        }
-	      
-	        
+        $form->input('typeOfPosition');
+        
+        if ($exRec->typeOfPosition){
+    
+        	$options = workpreff_WorkPreff::getOptionsForChoice();
+        	
+        	if (is_array($options)) {
+        
+        		foreach ($options as $v) {
+        
+        			if(in_array($exRec->typeOfPosition,$v->typeOfPosition)){
+        		
+        				if ($v->type == 'enum') {
+        
+        					foreach ($v->parts as $k=>$venum){
+        
+        						$parts .=$k.'='.$venum.',' ;
+        							
+        					}
+        
+        					$parts= trim($parts,',') ;
+        
+        
+        
+        					$form->FLD("workpreff_{$v->id}", "enum($parts)", "caption={$v->name},maxRadio={$v->count},columns=3,input");
+        
+        					$form->setDefault("workpreff_{$v->id}",$exRec->workpreff[$v->id]->value);
+        
+        					unset($parts);
+        
+        				}
+        				 
+        				if ($v->type == 'set') {
+        
+        					foreach ($v->parts as $k=>$vset){
+        
+        						$parts .=$k.'='.$vset.',' ;
+        
+        					}
+        
+        
+        					$parts= trim($parts,',') ;
+        
+        					$form->FLD("workpreff_{$v->id}", "set($parts)", "caption ={$v->name},input");
+        
+        
+        
+        
+        					$form->setDefault("workpreff_{$v->id}",$exRec->workpreff[$v->id]->value);
+        
+        					unset($parts);
+        
+        				}
+        
+        			}
+        
+        		}
+        
+        	}
+        
          }
  
     }
@@ -252,13 +256,15 @@ class workpreff_FormCv extends core_Master
      */
     protected static function on_AfterInputEditForm($mvc, $form)
     {
-    	 
-    	 
+    	 $rec = $form->rec;
+    	
     	$preferencesForWork = array();
-    
+    	
     	if ($form->isSubmitted()){
-    
+   
     		$workpreff = new stdClass();
+    		
+    	
     
     		foreach ($form->rec as $k => $v) {
     			
@@ -354,21 +360,22 @@ class workpreff_FormCv extends core_Master
          
                 $printValue = '';
 
-                if (!empty($printValues)){
+               
 	                foreach ($printValues as $vp) {
 	                if (!$vp) continue;
 	                    $printValue .= "<div>" . workpreff_WorkPreffDetails::fetch($vp)->name . "</div>";
 	
 	                }
-                }
-      
-                $prepare .= "<tr><td class='aright'>" . $printChoice . ": " . "</td><td class='aleft' colspan='2'>" . $printValue . "</td></tr>";
-
+	                if (!empty($printValue)){
+	      
+	                $prepare .= "<tr><td class='aright'>" . $printChoice . ": " . "</td><td class='aleft' colspan='2'>" . $printValue . "</td></tr>";
+	 				}
             }
         }
 
         $row->workpreff = "$prepare";
-
+        
+        $prepare = '';
     }
 
 }
