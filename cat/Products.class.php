@@ -1535,7 +1535,7 @@ class cat_Products extends embed_Manager {
     		$coeficient = $quantity / $packRec->quantity;
     		
     		// Ако е много малко, тарата на опаковката се пропуска
-    		if(round($coeficient, 1) < 0.5) continue;
+    		if(round($coeficient, 2) < 0.5) continue;
     		
     		// Ако е достатъчно, тарата се добавя към нетното тегло, умножена по коефицента
     		$coeficient = ceil($coeficient);
