@@ -643,7 +643,6 @@ class doc_FolderPlg extends core_Plugin
                 $imageUrl = sbf(str_replace('/16/', '/24/', $mvc->singleIcon), "");
 
                 $row->SingleIcon = ht::createElement("img", array('src' => $imageUrl, 'alt' => ''));
-               // bp($imageUrl);
             }
         }
         $currUrl = getCurrentUrl();
