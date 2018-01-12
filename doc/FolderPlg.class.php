@@ -211,7 +211,14 @@ class doc_FolderPlg extends core_Plugin
      */
     public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
-        // Рендираме екшън лога на потребителя
+        // Показване на времето на затваряне от настройките
+        $allSysTeamId = type_UserOrRole::getAllSysTeamId();
+        $fKey = doc_Folders::getSettingsKey($data->rec->folderId);
+        $settings = core_Settings::fetchKeyNoMerge($fKey, $allSysTeamId);
+        if ($settings['closeTime']) {
+            $typeTime = cls::get('type_Time');
+            $data->row->CloseTime = $typeTime->toVerbal($settings['closeTime']);
+        }
     }
     
     
