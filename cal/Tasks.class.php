@@ -2464,6 +2464,8 @@ class cal_Tasks extends embed_Manager
                         doc_Threads::save($tRec, 'state');
                         doc_Threads::updateThread($tRec->id);
                         
+                        doc_Threads::logWrite('Затвори нишка', $tRec->id);
+                        
                         Mode::set('updateThreadState', FALSE);
                     }
                 }
