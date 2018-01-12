@@ -2847,7 +2847,7 @@ class cat_Products extends embed_Manager {
      * които автоматично се добавят към условията на договора
      * 
      * @param stdClass $rec   - ид/запис на артикул
-     * @param string $docType - тип на документа sale/purchase
+     * @param string $docType - тип на документа sale/purchase/quotation
      * @param string|NULL $lg - език
      */
     public static function getConditions($rec, $docType, $lg = NULL)
