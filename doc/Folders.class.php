@@ -1829,6 +1829,9 @@ class doc_Folders extends core_Master
             
             if ($fRec->state == 'rejected') continue ;
             
+            // Ако няма отворение нишки в статистиката
+            if (!$fRec->statistic['_all']['opened'] || empty($fRec->statistic['_all']['opened'])) continue ;
+            
             $closeTime = dt::subtractSecs($sRec->data['closeTime']);
             
             $tQuery = doc_Threads::getQuery();
