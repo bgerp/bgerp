@@ -136,6 +136,10 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData {
 			
 			$sallProductId = $saleProducts->productId;
 			
+			if ($saleProducts->valior){
+				$valior = $saleProducts->valior;
+			}
+			
 			// Себестойност: ако има по политика "себестойност", ако не: от драйвера, ако не: по рецептура
 			$selfPrice = cat_Products::getSelfValue ( $sallProductId );
 			
@@ -144,8 +148,8 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData {
 			
 			$isPublic = cat_Products::fetch ( $sallProductId )->isPublic;
 			
-			// цена на артикула по каталог(за стандартни артикули)
-			$productCatPrice = price_ListRules::getPrice ( price_ListRules::PRICE_LIST_CATALOG, $sallProductId, $packagingId, $datetime );
+			// цена на артикула по каталог(за стандартни артикули)взета към дата на вальора на продажбата
+			$productCatPrice = price_ListRules::getPrice ( price_ListRules::PRICE_LIST_CATALOG, $sallProductId, NULL, $valior );
 			
 			if (($saleProducts->price < $selfPrice) || (! empty ( $productCatPrice ) && ($saleProducts->price > $productCatPrice))) {
 				
@@ -200,11 +204,15 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData {
 			
 			$expProductId = $expProducts->productId;
 			
+			if ($expProducts->valior){
+				$valior = $expProducts->valior;
+			}
+			
 			// Себестойност: ако има по политика "себестойност", ако не: от драйвера, ако не: по рецептура
 			$expSelfPrice = cat_Products::getSelfValue ( $expProductId );
 			
-			// цена на артикула по каталог(за стандартни артикули)
-			$expProductCatPrice = price_ListRules::getPrice ( price_ListRules::PRICE_LIST_CATALOG, $expProductId, $packagingId, $datetime );
+			// цена на артикула по каталог(за стандартни артикули)взета към дата на вальора на продажбата
+			$expProductCatPrice = price_ListRules::getPrice ( price_ListRules::PRICE_LIST_CATALOG, $expProductId, NULL, $valior );
 			
 			if (($expProducts->price < $expSelfPrice) || (! empty ( $expProductCatPrice ) && ($expProducts->price > $expProductCatPrice))) {
 				
