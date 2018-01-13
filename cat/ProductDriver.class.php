@@ -537,7 +537,7 @@ abstract class cat_ProductDriver extends core_BaseClass
      * които автоматично се добавят към условията на договора
      * 
      * @param stdClass $rec   - ид/запис на артикул
-     * @param string $docType - тип на документа sale/purchase
+     * @param string $docType - тип на документа sale/purchase/quotation
      * @param string|NULL $lg - език
      */
     public function getConditions($rec, $docType, $lg = NULL)

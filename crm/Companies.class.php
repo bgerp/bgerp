@@ -795,8 +795,12 @@ class crm_Companies extends core_Master
             if($rec->folderName) {  
                 $row->title = $row->name;
             }
+            
+            $customerSince = crm_ext_ContragentInfo::getCustomerSince($mvc->getClassId(), $rec->id);
+            if(!empty($customerSince)){
+            	$row->customerSince = core_Type::getByName('date')->toVerbal($customerSince);
+            }
         }
-        
         
         // Дали има права single' а на тазу фирма
         $canSingle = static::haveRightFor('single', $rec);

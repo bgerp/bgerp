@@ -588,6 +588,11 @@ class crm_Persons extends core_Master
             if($rec->buzLocationId){
             	$row->buzLocationId = crm_Locations::getHyperLink($rec->buzLocationId, TRUE);
             }
+            
+            $customerSince = crm_ext_ContragentInfo::getCustomerSince($mvc->getClassId(), $rec->id);
+            if(!empty($customerSince)){
+            	$row->customerSince = core_Type::getByName('date')->toVerbal($customerSince);
+            }
         }
 
         static $ownCompany;

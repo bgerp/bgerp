@@ -48,6 +48,7 @@ class workpreff_Setup extends core_ProtoSetup
 
         'workpreff_WorkPreff',
         'workpreff_FormCv',
+    	'workpreff_WorkPreffDetails',
     );
     
 

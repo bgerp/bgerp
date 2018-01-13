@@ -84,7 +84,7 @@ class sales_QuotationsDetails extends doc_Detail {
     /**
      * Полета свързани с цени
      */
-    public $priceFields = 'price,discount,amount';
+    public $priceFields = 'packPrice,discount,amount';
   	
   	
     /**
@@ -104,7 +104,7 @@ class sales_QuotationsDetails extends doc_Detail {
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'price,tolerance,term,weight';
+    public $fieldsNotToClone = 'packPrice,tolerance,term,weight';
     
     
   	/**
@@ -171,6 +171,7 @@ class sales_QuotationsDetails extends doc_Detail {
      */
     public static function calcLivePrice($rec, $masterRec)
     {
+    	if(!haveRole('seePrice,ceo')) return;
     	$policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $rec->date, $masterRec->currencyRate, $masterRec->chargeVat, NULL, FALSE);
     	
     	if(isset($policyInfo->price)){
@@ -252,6 +253,10 @@ class sales_QuotationsDetails extends doc_Detail {
     		if(!isset($onlyNotOptionalRec->price)){
     			$notDefinedAmount = TRUE;
     		}
+    	}
+    	
+    	if(!haveRole('seePrice,ceo')){
+    		$data->noTotal = TRUE;
     	}
     	
     	if(empty($data->noTotal) && count($notOptional)){
@@ -622,7 +627,7 @@ class sales_QuotationsDetails extends doc_Detail {
     			$row->packPrice = ht::createHint($row->packPrice, 'Цената е динамично изчислена. Ще бъде записана при активиране', 'notice', FALSE, 'width=14px,height=14px');
     		}
     		
-    		if(!isset($data->recs[$i]->price)){
+    		if(!isset($data->recs[$i]->price) && haveRole('seePrice,ceo')){
     			$row->packPrice = '???';
     			$row->amount = '???';
     		}

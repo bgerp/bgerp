@@ -716,11 +716,11 @@ class purchase_Purchases extends deals_DealMaster
 				unset($ship->price);
 				$ship->name = cat_Products::getTitleById($ship->productId, FALSE);
 				
-				if($transportWeight = cat_Products::getParams($ship->productId, 'transportWeight')){
+				if($transportWeight = cat_Products::getWeight($ship->productId, NULL, 1)){
 					$ship->transportWeight = $transportWeight;
 				}
 				
-				if($transportVolume = cat_Products::getParams($ship->productId, 'transportVolume')){
+				if($transportVolume = cat_Products::getVolume($ship->productId, NULL, 1)){
 					$ship->transportVolume = $transportVolume;
 				}
 				

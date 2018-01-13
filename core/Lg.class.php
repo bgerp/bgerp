@@ -570,13 +570,11 @@ class core_Lg extends core_Manager
     static function isGoodLg($lg)
     {
         // Езика в долен регистър
-        $lg = strtolower($lg);
+        $lg = mb_strtolower($lg);
         
-        $langArr = arr::make(EF_LANGUAGES);
+        $langArr = arr::make(mb_strtolower(EF_LANGUAGES), TRUE);
         
-        foreach ($langArr as $lgKey => $verbLg) {
-            if (strtolower($lgKey) == $lg) return TRUE;
-        }
+        if (isset($langArr[$lg])) return TRUE;
         
         // Проверяваме дали са еднакви
         return FALSE;

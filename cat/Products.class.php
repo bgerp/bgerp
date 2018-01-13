@@ -160,7 +160,7 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Кой може да добавя?
+     * Кой може да затваря?
      */
     public $canClose = 'cat,ceo';
     
@@ -483,7 +483,7 @@ class cat_Products extends embed_Manager {
     		
     		$form->setDefault('name', $sourceRec->title);
     		foreach ($fields as $name => $fld){
-    			$form->setDefault($name, $sourceRec->driverRec[$name]);
+    			$form->rec->{$name} = $sourceRec->driverRec[$name];
     		}
     	}
     	
@@ -1369,6 +1369,7 @@ class cat_Products extends embed_Manager {
     	
     	// Частните артикули излизат преди публичните
     	if(count($private)){
+    		krsort($private);
     		$private = array('pr' => (object)array('group' => TRUE, 'title' => tr('Нестандартни'))) + $private;
     		
     		if($reverseOrder === TRUE){
@@ -1975,6 +1976,11 @@ class cat_Products extends embed_Manager {
     				$document = doc_Containers::getDocument($rec->originId);
     				if(!$document->haveInterface('marketing_InquiryEmbedderIntf')){
     					$res = 'no_one';
+    				} elseif(isset($rec->threadId)){
+    					$originThreadId = $document->fetchField('threadId');
+    					if($originThreadId != $rec->threadId){
+    						$res = 'no_one';
+    					}
     				}
     			}
     		}
@@ -2841,7 +2847,7 @@ class cat_Products extends embed_Manager {
      * които автоматично се добавят към условията на договора
      * 
      * @param stdClass $rec   - ид/запис на артикул
-     * @param string $docType - тип на документа sale/purchase
+     * @param string $docType - тип на документа sale/purchase/quotation
      * @param string|NULL $lg - език
      */
     public static function getConditions($rec, $docType, $lg = NULL)
@@ -3151,5 +3157,66 @@ class cat_Products extends embed_Manager {
     		core_Statuses::newStatus("Артикулът не може да бъде оттеглен, докато се използва в активни договори", 'error');
     		return FALSE;
     	}
+    }
+    
+    
+    /**
+     * Колко е 1-ца от артикула в посочената мярка
+     * 
+     * @param int $productId - ид на артикула
+     * @param mixed $uom     - мярка
+     * @return NULL|double   - конвертираната стойност или NULL ако не може
+     */
+    public static function convertToUom($productId, $uom)
+    {
+    	// В коя мярка ще се преобразува 1-ца от артикила
+    	expect($measureId = self::fetchField($productId, 'measureId'));
+    	expect($toUomId = cat_UoM::fetchBySinonim($uom)->id);
+    	
+    	// Ако основната мярка е подадената, то стойноста е 1
+    	if($toUomId == $measureId) return 1;
+    	
+    	// Извличане на мерките от същата група, като на $toUomId
+    	$sameTypeMeasures = cat_UoM::getSameTypeMeasures($toUomId);
+    	unset($sameTypeMeasures['']);
+    	
+    	// Ако основната мярка е от същата група, конвертира се към $toUomId
+    	if(array_key_exists($measureId, $sameTypeMeasures)){
+    		$res = cat_UoM::convertValue(1, $measureId, $toUomId);
+    		return $res;
+    	}
+    	
+    	// Ако артикула, има доп. мярка, която е от същата група като на $toUomId
+    	$pQuery = cat_products_Packagings::getQuery();
+    	$pQuery->where("#productId = {$productId}");
+    	$pQuery->in("packagingId", array_keys($sameTypeMeasures));
+    	$pQuery->orderBy('id', 'ASC');
+    	$pQuery->show('quantity,packagingId');
+    	while($pRec = $pQuery->fetch()){
+    		
+    		// Връща се отношението и за 1-ца към $toUomId
+    		if($res = cat_UoM::convertValue(1, $pRec->packagingId, $toUomId)){
+    			$res = $res / $pRec->quantity;
+    			
+    			return $res;
+    		}
+    	}
+    	
+    	// Ако търсената мярка е от групата на килограмите
+    	$kgUom = cat_UoM::fetchBySysId('kg')->id;
+    	$kgUoms = cat_UoM::getSameTypeMeasures($kgUom);
+    	
+    	// Взима се стойност от параметрите на артикула
+    	if(array_key_exists($toUomId, $kgUoms)){
+    		if($paramValue = self::getParams($productId, 'weight')){
+    			$res = cat_UoM::convertValue($paramValue, 'gr', $toUomId);
+    			return $res;
+    		} elseif($paramValue = self::getParams($productId, 'weightKg')){
+    			return $paramValue;
+    		}
+    	}
+    	
+    	// Ако се е стигнало до тук, не може да се конвертира
+    	return NULL;
     }
 }

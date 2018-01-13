@@ -92,10 +92,10 @@ class cat_products_Packagings extends core_Detail
     function description()
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden, silent');
-        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'tdClass=leftCol,caption=Опаковка,mandatory,smartCenter,removeAndRefreshForm,silent');
+        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'tdClass=leftCol,caption=Опаковка,mandatory,smartCenter,removeAndRefreshForm=quantity,silent');
         $this->FLD('quantity', 'double(Min=0,smartRound)', 'input,caption=Количество,mandatory,smartCenter');
         $this->FLD('isBase', 'enum(yes=Да,no=Не)', 'caption=Основна,mandatory,maxRadio=2');
-        $this->FLD('netWeight', 'cat_type_Weight(min=0)', 'caption=Нето');
+        $this->FLD('netWeight', 'cat_type_Weight(min=0)', 'caption=Нето,input=none');
         $this->FLD('eanCode', 'gs1_TypeEan', 'caption=EAN');
         $this->FNC('templateId', 'key(mvc=cat_PackParams)', 'caption=Параметри->Шаблон,silent,removeAndRefreshForm=tareWeight|sizeWidth|sizeHeight|sizeDepth,autohide');
         $this->FLD('sizeWidth', 'cat_type_Size(min=0)', 'caption=Параметри->Ширина,autohide');
@@ -139,29 +139,81 @@ class cat_products_Packagings extends core_Detail
                 static::save($packRec, 'isBase');
             }
             
-            // Проверка на к-то
-            if(!deals_Helper::checkQuantity($baseMeasureId, $rec->quantity, $warning)){
-                $form->setError('quantity', $warning);
+            if(self::allowWeightQuantityCheck($rec->productId, $rec->packagingId, $rec->id)){
+            	if($error = self::checkWeightQuantity($rec->productId, $rec->packagingId, $rec->quantity)){
+            		$form->setError('quantity', $error);
+            	}
             }
             
             if(!$form->gotErrors()){
-            	$kgId = cat_UoM::fetchBySinonim('kg')->id;
-            	$kgDerivitives = cat_UoM::getSameTypeMeasures($kgId);
-            	if(array_key_exists($rec->packagingId, $kgDerivitives)){
-            		 
-            		// Ако опаковката/мярката е от групата на килограм, то теглото може да се изчисли
-            		$rec->netWeight = cat_UoM::convertToBaseUnit(1, $rec->packagingId);
-            	} else {
-            		 
-            		// Ако опаковката/мярката не е от групата на килограм, но има опаковка килограм,
-            		// то теглото може да се изчисли
-            		$packRec = self::getPack($rec->productId, $kgId);
-            		if(!empty($packRec)){
-            			$rec->netWeight = $rec->quantity / $packRec->quantity;
-            		}
+            	if(!deals_Helper::checkQuantity($baseMeasureId, $rec->quantity, $warning)){
+            		$form->setError('quantity', $warning);
             	}
             }
         }
+    }
+    
+    
+    /**
+     * Колко опаковки от същия вид има артикула
+     * 
+     * @param int $productId
+     * @param int $sysId
+     * @return double
+     */
+    public static function countSameTypePackagings($productId, $sysId)
+    {
+    	$uoms = cat_UoM::getSameTypeMeasures(cat_UoM::fetchBySysId($sysId)->id);
+    	unset($uoms['']);
+    	
+    	$count = cat_products_Packagings::count("#productId = {$productId} AND #packagingId IN (" . implode(array_keys($uoms), ',') . ")");
+    	return $count;
+    }
+    
+    
+    /**
+     * Трябва ли да се валидира количеството
+     */
+    private static function allowWeightQuantityCheck($productId, $packagingId, $id)
+    {
+    	$measureId = cat_Products::fetchField($productId, 'measureId');
+    	if(cat_UoM::isWeightMeasure($measureId)) return TRUE;
+    	
+    	$count = self::countSameTypePackagings($productId, 'kg');
+    	if($count != 1) return TRUE;
+    	if(empty($id) && $count == 1)  return TRUE;
+    	
+    	$weightGr = cat_Products::getParams($productId, 'weight');
+    	if(!empty($weightGr)) return TRUE;
+    	$weightKg = cat_Products::getParams($productId, 'weightKg');
+    	if(!empty($weightKg)) return TRUE;
+    	
+    	return FALSE;
+    }
+    
+    
+    /**
+     * Проверява количеството на теглото, допустимо ли е
+     * 
+     * @param int $productId
+     * @param int $packagingId
+     * @param double $quantity
+     * @return string|NULL
+     */
+    public static function checkWeightQuantity($productId, $packagingId, $quantity)
+    {
+    	// Ако не е тегловна не се прави нищо
+    	if(!cat_UoM::isWeightMeasure($packagingId)) return;
+    	
+    	if($kgWeight = cat_Products::convertToUom($productId, 'kg')){
+    		$mWeight = cat_UoM::convertValue(1, $packagingId, 'kg');
+    		$diff = $mWeight / $quantity;
+    		if(round($diff, 4) != round($kgWeight, 4)){
+    			return "Има разминаване спрямо очакваната стойност";
+    		}
+    	}
+    	
+    	return NULL;
     }
     
     
@@ -328,14 +380,6 @@ class cat_products_Packagings extends core_Detail
         	}
         }
         
-        if(isset($rec->packagingId)){
-        	$kgId = cat_UoM::fetchBySinonim('kg')->id;
-        	$kgDerivitives = cat_UoM::getSameTypeMeasures($kgId);
-        	if(array_key_exists($rec->packagingId, $kgDerivitives)){
-        		$form->setField('netWeight', 'input=none');
-        	}
-        }
-        
         $form->setDefault('isBase', 'no');
         
         $pInfo = cat_Products::getProductInfo($rec->productId);
@@ -348,12 +392,6 @@ class cat_products_Packagings extends core_Detail
                 $form->setReadOnly('packagingId');
                 $form->setReadOnly('quantity');
             }
-        }
-        
-        if($kgPack = self::getPack($rec->productId, $kgId)){
-        	if($kgPack != $rec->id){
-        		
-        	}
         }
     }
     
@@ -376,8 +414,9 @@ class cat_products_Packagings extends core_Detail
             $row->code = $row->eanCode;
         }
         
-        if(!empty($rec->netWeight)){
-            $row->weight = tr("|Нето|*: ") . $row->netWeight . "<br>";
+        if($netWeight = cat_Products::convertToUom($rec->productId, 'kg')){
+        	$netWeight = core_Type::getByName('cat_type_Weight')->toVerbal($netWeight * $rec->quantity);
+        	$row->weight = tr("|Нето|*: ") . $netWeight . "<br>";
         }
         
         if(!empty($rec->tareWeight)){
@@ -474,7 +513,6 @@ class cat_products_Packagings extends core_Detail
     { 
         $uomRec = cat_UoM::fetchBySinonim(mb_strtolower($pack));
         if($uomRec) {
-
             $packRec = self::getPack($productId, $uomRec->id);
             if($packRec) return $packRec->quantity;
         }
