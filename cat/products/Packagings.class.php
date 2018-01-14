@@ -145,7 +145,7 @@ class cat_products_Packagings extends core_Detail
             	}
             }
             
-            if(!$form->gotErrors()){
+            if(!$form->gotErrors() && cat_UoM::fetch($rec->packagingId)->type == 'packaging'){
             	if(!deals_Helper::checkQuantity($baseMeasureId, $rec->quantity, $warning)){
             		$form->setError('quantity', $warning);
             	}
