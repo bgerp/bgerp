@@ -83,7 +83,7 @@ class type_UserOrRole extends type_User
                 $allSysTeam = self::getAllSysTeamId();
                 
                 $roleObj = new stdClass();
-                $roleObj->title = tr("За всички потребители");
+                $roleObj->title = tr("Всички потребители");
                 $roleObj->value = $allSysTeam;
                 $roleObj->attr = array('clas' => 'all-sys-team');
                 $this->options['r_' . 'allSysTeam'] = $roleObj;
