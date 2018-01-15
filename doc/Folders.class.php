@@ -1825,6 +1825,8 @@ class doc_Folders extends core_Master
         $fRec = $dFolders->fetch();
         $maxFolderId = $fRec->max;
         
+        $fKeyArr = array();
+        
         while ($sRec = $sQuery->fetch()) {
             if (!$sRec->data) continue;
             
@@ -1835,8 +1837,12 @@ class doc_Folders extends core_Master
             // Ако id-то на папката е кеширана - когато е над 16 символа
             if (!$folderId) {
                 $fId = 1000;
-                while (TRUE) {
-                    if (core_Settings::prepareKey('doc_Folders::' . $fId) == $sRec->key) {
+                while (TRUE) {                    
+                    if (!isset($fKeyArr[$fId])) {
+                        $fKeyArr[$fId] = core_Settings::prepareKey('doc_Folders::' . $fId);
+                    }
+                    
+                    if ($fKeyArr[$fId] == $sRec->key) {
                         $folderId = $fId;
                         break;
                     }
