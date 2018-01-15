@@ -590,7 +590,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			// При редакция, ако е променена опаковката слагаме преудпреждение
 			if($rec->id){
 				$oldRec = $mvc->fetch($rec->id);
-				if($oldRec && $rec->packagingId != $oldRec->packagingId && trim($rec->packPrice) == trim($oldRec->packPrice)){
+				if($oldRec && $rec->packagingId != $oldRec->packagingId && !empty($rec->packPrice) && trim($rec->packPrice) == trim($oldRec->packPrice)){
 					$form->setWarning('packPrice,packagingId', "Опаковката е променена без да е променена цената.|*<br />| Сигурни ли сте, че зададената цена отговаря на новата опаковка?");
 				}
 			}
