@@ -396,11 +396,12 @@ class doc_Folders extends core_Master
         $attr = array();
         $attr['class'] = 'linkWithIcon';
         
-        if(mb_strlen($row->title) > self::maxLenTitle) {
+        if(mb_strlen($rec->title) > self::maxLenTitle) {
             $attr['title'] = $row->title;
+            
+            $title = str::limitLen($rec->title, self::maxLenTitle);
+            $row->title = $mvc->fields['title']->type->escape($title);
         }
-        
-        $row->title = str::limitLen($row->title, self::maxLenTitle);
         
         $haveRight = $mvc->haveRightFor('single', $rec);
         if(core_Packs::isInstalled('colab') && core_Users::haveRole('partner')){
