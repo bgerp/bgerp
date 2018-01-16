@@ -1552,7 +1552,7 @@ class sales_Quotations extends core_Master
     		}
     		
     		if(!isset($dRec->weight)){
-    			$dRec->weight = cat_Products::getTransportWeight($dRec->productId, $dRec->packagingId, $dRec->quantity);
+    			$dRec->weight = cat_Products::getTransportWeight($dRec->productId, $dRec->quantity);
     		}
     		
     		$saveRecs[] = $dRec;

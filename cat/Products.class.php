@@ -1506,12 +1506,11 @@ class cat_Products extends embed_Manager {
     /**
      * Връща транспортното тегло за подаденото количество и опаковка
      * 
-     * @param int $productId        - ид на продукт
-     * @param int|NULL $packagingId - ид на опаковка
-     * @param int $quantity         - общо количество
-     * @return double|NULL          - транспортното тегло за к-то на артикула
+     * @param int $productId - ид на продукт
+     * @param int $quantity  - общо количество
+     * @return double|NULL   - транспортното тегло за к-то на артикула
      */
-    public static function getTransportWeight($productId, $packagingId = NULL, $quantity)
+    public static function getTransportWeight($productId, $quantity)
     {
     	// За нескладируемите не се изчислява транспортно тегло
     	if(cat_Products::fetchField($productId, 'canStore') != 'yes') return NULL;
@@ -1519,7 +1518,7 @@ class cat_Products extends embed_Manager {
     	// Ако драйвера връща транспортно тегло, то е с приоритет
     	if($Driver = static::getDriver($productId)){
     		$rec = self::fetchRec($productId);
-    		$weight = $Driver->getTransportWeight($rec, $packagingId, $quantity);
+    		$weight = $Driver->getTransportWeight($rec, $quantity);
     		if(!empty($weight)) return $weight;
     	}
     	
@@ -1562,12 +1561,11 @@ class cat_Products extends embed_Manager {
 	/**
      * Връща транспортния обем за подаденото количество и опаковка
      * 
-     * @param int $productId        - ид на продукт
-     * @param int|NULL $packagingId - ид на опаковка
-     * @param int $quantity         - общо количество
-     * @return double               - теглото на единица от продукта
+     * @param int $productId - ид на продукт
+     * @param int $quantity  - общо количество
+     * @return double        - теглото на единица от продукта
      */
-    public static function getTransportVolume($productId, $packagingId = NULL, $quantity)
+    public static function getTransportVolume($productId, $quantity)
     {
     	// За нескладируемите не се изчислява транспортно тегло
     	if(cat_Products::fetchField($productId, 'canStore') != 'yes') return NULL;
@@ -1575,7 +1573,7 @@ class cat_Products extends embed_Manager {
     	// Ако драйвера връща транспортно тегло, то е с приоритет
     	if($Driver = static::getDriver($productId)){
     		$rec = self::fetchRec($productId);
-    		$volume = $Driver->getTransportVolume($rec, $packagingId, $quantity);
+    		$volume = $Driver->getTransportVolume($rec, $quantity);
     		if(!empty($volume)) return $volume;
     	}
     	
