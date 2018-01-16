@@ -409,7 +409,7 @@ class tcost_Calcs extends core_Manager
     		
     		// Намира се обемното му тегло и се съдържа
     		$singleWeight = cat_Products::getTransportWeight($p1->{$productFld}, $p1->{$packagingFld}, $p1->{$quantityFld});
-    		$singleVolume = cat_Products::getVolume($p1->{$productFld}, $p1->{$packagingFld}, $p1->{$quantityFld});
+    		$singleVolume = cat_Products::getTransportVolume($p1->{$productFld}, $p1->{$packagingFld}, $p1->{$quantityFld});
     		$totalWeight += $TransportCalc->getVolumicWeight($singleWeight, $singleVolume);
     	}
     	

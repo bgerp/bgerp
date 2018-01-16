@@ -169,7 +169,7 @@ class store_plg_TransportDataDetail extends core_Plugin
 	public function on_AfterGetVolume($mvc, &$res, $productId, $packagingId, $quantity, $volume = NULL)
 	{
 		if(!isset($volume)){
-			$volume = cat_Products::getVolume($productId, $packagingId, $quantity);
+			$volume = cat_Products::getTransportVolume($productId, $packagingId, $quantity);
 			$volume = deals_Helper::roundPrice($volume, 3);
 		}
 		

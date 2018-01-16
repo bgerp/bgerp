@@ -833,7 +833,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 			$products[$rec->productId]->transportWeight = $transportWeight;
 		}
 		
-		if($transportVolume = cat_Products::getVolume($rec->productId, NULL, 1)){
+		if($transportVolume = cat_Products::getTransportVolume($rec->productId, NULL, 1)){
 			$products[$rec->productId]->transportVolume = $transportVolume;
 		}
 		

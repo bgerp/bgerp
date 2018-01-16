@@ -1227,7 +1227,7 @@ class sales_Sales extends deals_DealMaster
     				$ship->transportWeight = $transportWeight;
     			}
     	
-    			if($transportVolume = cat_Products::getVolume($ship->productId, NULL, 1)){
+    			if($transportVolume = cat_Products::getTransportVolume($ship->productId, NULL, 1)){
     				$ship->transportVolume = $transportVolume;
     			}
     	

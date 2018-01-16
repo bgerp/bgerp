@@ -1138,7 +1138,7 @@ abstract class deals_Helper
 			if($type == 'weight'){
 				$value = cat_Products::getTransportWeight($productId, $packagingId, $quantity);
 			} else {
-				$value = cat_Products::getVolume($productId, $packagingId, $quantity);
+				$value = cat_Products::getTransportVolume($productId, $packagingId, $quantity);
 			}
 			
 			if(isset($value)){
