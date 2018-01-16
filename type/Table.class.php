@@ -98,7 +98,7 @@ class type_Table extends type_Blob {
             	if($this->params[$readOnlyFld] == 'readonly' && isset($value[$field][0]) && empty($this->errorFields[$field][0])){
             		$row1 .= "<td>" . ht::createElement('input', $attr[$field] + array('class' => 'readonlyInput', 'style' => 'float:left;text-indent:2px', 'readonly' => 'readonly', 'value' => strip_tags($value[$field][0]))) . "</td>";
             	} else {
-            		$row1 .= "<td>" . ht::createCombo($attr[$field]['name'], $value[$field][0], $attr[$field] + $this->getErrorArr($field, 0), $sgt[$field]) . "</td>";
+            		$row1 .= "<td>" . ht::createCombo($attr[$field]['name'], $value[$field][0], $attr[$field] + $this->getErrorArr($field, 0), array('' => '') + $sgt[$field]) . "</td>";
             	}
             } else {
                 $tpl  .= "<td>" . ht::createElement('input', $attr[$field]) . "</td>";
