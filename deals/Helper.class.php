@@ -1136,9 +1136,9 @@ abstract class deals_Helper
 		// Ако няма тегло взима се 'live'
 		if(!isset($value)){
 			if($type == 'weight'){
-				$value = cat_Products::getTransportWeight($productId, $packagingId, $quantity);
+				$value = cat_Products::getTransportWeight($productId, $quantity);
 			} else {
-				$value = cat_Products::getTransportVolume($productId, $packagingId, $quantity);
+				$value = cat_Products::getTransportVolume($productId, $quantity);
 			}
 			
 			if(isset($value)){

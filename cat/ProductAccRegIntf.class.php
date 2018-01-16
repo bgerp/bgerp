@@ -115,13 +115,12 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      * Връща транспортното тегло за подаденото количество и опаковка
      * 
      * @param int $productId        - ид на продукт
-     * @param int|NULL $packagingId - ид на опаковка
      * @param int $quantity         - общо количество
      * @return double|NULL          - транспортното тегло за к-то на артикула
      */
-	public function getTransportWeight($productId, $packagingId = NULL)
+	public function getTransportWeight($productId, $quantity)
     {
-    	return $this->class->getTransportWeight($productId, $packagingId);
+    	return $this->class->getTransportWeight($productId, $quantity);
     }
     
     
@@ -144,13 +143,12 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      * Връща транспортния обем за подаденото количество и опаковка
      * 
      * @param int $productId        - ид на продукт
-     * @param int|NULL $packagingId - ид на опаковка
      * @param int $quantity         - общо количество
      * @return double               - теглото на единица от продукта
      */
-	public function getTransportVolume($productId, $packagingId = NULL)
+	public function getTransportVolume($productId, $quantity)
     {
-    	return $this->class->getTransportVolume($productId, $packagingId);
+    	return $this->class->getTransportVolume($productId, $quantity);
     }
     
     
