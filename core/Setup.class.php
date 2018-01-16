@@ -779,7 +779,7 @@ class core_Setup extends core_ProtoSetup {
             }
             
             while (TRUE) {
-                if (!isset($fKeyArr[$fId])) {
+                if (!isset($fKeyArr[$kStr][$fId])) {
                     $fKeyArr[$kStr][$fId] = core_Settings::prepareKey("{$kStr}::" . $fId);
                 }
                 
