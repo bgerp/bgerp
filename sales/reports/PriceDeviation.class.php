@@ -6,14 +6,12 @@
  * @category  bgerp
  * @package   sales
  * @author    Angel Trifonov angel.trifonoff@gmail.com
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Продажби » Отклонения от цените
  */
 class sales_reports_PriceDeviation extends frame2_driver_TableData {
-	const NUMBER_OF_ITEMS_TO_ADD = 50;
-	const MAX_POST_ART = 10;
 	
 	/**
 	 * Кой може да избира драйвъра
@@ -136,7 +134,7 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData {
 			
 			$sallProductId = $saleProducts->productId;
 			
-			if ($saleProducts->valior){
+			if ($saleProducts->valior) {
 				$valior = $saleProducts->valior;
 			}
 			
@@ -144,12 +142,18 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData {
 			$selfPrice = cat_Products::getSelfValue ( $sallProductId );
 			
 			// цена на артикула за клиента
-			$contragentFuturePrice = cls::get ( 'price_ListToCustomers' )->getPriceInfo ( $saleProducts->contragentClassId, $saleProducts->contragentId, $sallProductId, NULL, 1000 );
+			$contragentFuturePrice = cls::get ( 'price_ListToCustomers' )->getPriceInfo ( $saleProducts->contragentClassId, $saleProducts->contragentId, $sallProductId, $valior, $saleProducts->quantity );
 			
-			$isPublic = cat_Products::fetch ( $sallProductId )->isPublic;
+			if ((cls::get ( 'price_ListToCustomers' )->getListForCustomer ( $saleProducts->contragentClassId, $saleProducts->contragentId, $valior )) && ! empty ( $contragentFuturePrice )) {
+				
+				$productCatPrice = ($contragentFuturePrice->price);
+			} else {
+				$productCatPrice = price_ListRules::getPrice ( price_ListRules::PRICE_LIST_CATALOG, $sallProductId, NULL, $valior );
+			}
+			
+			$isPublic = $sallProducts->isPublic;
 			
 			// цена на артикула по каталог(за стандартни артикули)взета към дата на вальора на продажбата
-			$productCatPrice = price_ListRules::getPrice ( price_ListRules::PRICE_LIST_CATALOG, $sallProductId, NULL, $valior );
 			
 			if (($saleProducts->price < $selfPrice) || (! empty ( $productCatPrice ) && ($saleProducts->price > $productCatPrice))) {
 				
@@ -170,6 +174,10 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData {
 		// По екпедиционни нареждания
 		
 		$expQuery = store_ShipmentOrderDetails::getQuery ();
+		
+		$expQuery->EXT ( 'contragentClassId', 'store_ShipmentOrders', 'externalName=contragentClassId,externalKey=shipmentId' );
+		
+		$expQuery->EXT ( 'contragentId', 'store_ShipmentOrders', 'externalName=contragentId,externalKey=shipmentId' );
 		
 		$expQuery->EXT ( 'valior', 'store_ShipmentOrders', 'externalName=valior,externalKey=shipmentId' );
 		
@@ -204,15 +212,24 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData {
 			
 			$expProductId = $expProducts->productId;
 			
-			if ($expProducts->valior){
+			if ($expProducts->valior) {
 				$valior = $expProducts->valior;
 			}
 			
 			// Себестойност: ако има по политика "себестойност", ако не: от драйвера, ако не: по рецептура
 			$expSelfPrice = cat_Products::getSelfValue ( $expProductId );
 			
-			// цена на артикула по каталог(за стандартни артикули)взета към дата на вальора на продажбата
-			$expProductCatPrice = price_ListRules::getPrice ( price_ListRules::PRICE_LIST_CATALOG, $expProductId, NULL, $valior );
+			// цена на артикула за клиента
+			$contragentFuturePrice = cls::get ( 'price_ListToCustomers' )->getPriceInfo ( $expProducts->contragentClassId, $expProducts->contragentId, $expProductId, $valior, $expProducts->quantity );
+			
+			if ((cls::get ( 'price_ListToCustomers' )->getListForCustomer ( $expProducts->contragentClassId, $expProducts->contragentId, $valior )) && ! empty ( $contragentFuturePrice )) {
+				
+				$expProductCatPrice = ($contragentFuturePrice->price);
+			} else {
+				$expProductCatPrice = price_ListRules::getPrice ( price_ListRules::PRICE_LIST_CATALOG, $expProductId, NULL, $valior );
+			}
+			
+			$isPublic = $sallProducts->isPublic;
 			
 			if (($expProducts->price < $expSelfPrice) || (! empty ( $expProductCatPrice ) && ($expProducts->price > $expProductCatPrice))) {
 				
@@ -309,8 +326,6 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData {
 	 * @return stdClass $row - вербалния запис
 	 */
 	protected function detailRecToVerbal($rec, &$dRec) {
-		
-		// bp($dRec);
 		$Int = cls::get ( 'type_Int' );
 		
 		$row = new stdClass ();
