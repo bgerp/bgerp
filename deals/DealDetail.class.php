@@ -361,8 +361,8 @@ abstract class deals_DealDetail extends doc_Detail
     		// При редакция, ако е променена опаковката слагаме преудпреждение
     		if($rec->id){
     			$oldRec = $mvc->fetch($rec->id);
-    			if($oldRec && $rec->packagingId != $oldRec->packagingId && round($rec->packPrice, 4) == round($oldRec->packPrice, 4)){
-    				$form->setWarning('packPrice,packagingId', "Опаковката е променена без да е променена цената.|*<br />| Сигурни ли сте, че зададената цена отговаря на новата опаковка?");
+    			if($oldRec && $rec->packagingId != $oldRec->packagingId  && !empty($rec->packPrice) && round($rec->packPrice, 4) == round($oldRec->packPrice, 4)){
+    				$form->setWarning('packPrice,packagingId', "Опаковката е променена без да е променена цената|*.<br />|Сигурни ли сте, че зададената цена отговаря на новата опаковка|*?");
     			}
     		}
     	}

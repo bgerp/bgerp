@@ -408,7 +408,7 @@ class unit_MinkBom extends core_Manager
         $browser->press('Артикул');
         $browser->setValue('name', 'Заготовка 1');
         $browser->setValue('code', 'Stage1');
-        $browser->setValue('measureId', 'килограм');
+        $browser->setValue('measureId', 'брой');
         $browser->press('Запис');
      
         if (strpos($browser->getText(),"Вече съществува запис със същите данни")){

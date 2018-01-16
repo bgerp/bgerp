@@ -396,11 +396,12 @@ class doc_Folders extends core_Master
         $attr = array();
         $attr['class'] = 'linkWithIcon';
         
-        if(mb_strlen($row->title) > self::maxLenTitle) {
+        if(mb_strlen($rec->title) > self::maxLenTitle) {
             $attr['title'] = $row->title;
+            
+            $title = str::limitLen($rec->title, self::maxLenTitle);
+            $row->title = $mvc->fields['title']->type->escape($title);
         }
-        
-        $row->title = str::limitLen($row->title, self::maxLenTitle);
         
         $haveRight = $mvc->haveRightFor('single', $rec);
         if(core_Packs::isInstalled('colab') && core_Users::haveRole('partner')){
@@ -1058,8 +1059,8 @@ class doc_Folders extends core_Master
             }
         }
         
-        // Проверяваме дали има права
-        if (!$rec || (!($haveRight) && $rec->access != 'private')) return FALSE;
+        // Ако няма права и е със секретен достъп
+        if (!$rec || (!($haveRight) && $rec->access == 'secret')) return FALSE;
 
         // Заглавието на файла във вербален вид
         $title = static::getVerbal($rec, 'title');
@@ -1752,6 +1753,11 @@ class doc_Folders extends core_Master
 
         $form->FNC('defaultEmail', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Адрес|* `From` за изходящите писма от тази папка->Имейл, input=input');
         
+		// Показва се само когато се настройват всички потребители
+        if ($form->rec->_userOrRole && (type_UserOrRole::getRoleIdFromSys($form->rec->_userOrRole) === 0)) {
+            $form->FNC('closeTime' , 'time(suggestions=1 ден|3 дни|7 дни)', 'caption=Автоматично затваряне на нишките след->Време, allowEmpty, input=input');
+        }
+        
         // Изходящ имейл по-подразбиране за съответната папка
         try {
             $userId = NULL;
@@ -1795,6 +1801,55 @@ class doc_Folders extends core_Master
     function checkSettingsForm(&$form)
     {
         return ;
+    }
+    
+    
+    /**
+     * Затваряне на нишки в папки
+     */
+    static function cron_AutoClose()
+    {
+        $allSysTeamId = type_UserOrRole::getAllSysTeamId();
+        
+        $sQuery = core_Settings::getQuery();
+        $sQuery->where(array("#userOrRole = '[#1#]'", $allSysTeamId));
+        $sQuery->where("#key LIKE 'doc_Folders%'");
+        
+        $sQuery->orderBy('modifiedOn', 'DESC');
+        
+        $fKeyArr = array();
+        
+        while ($sRec = $sQuery->fetch()) {
+            if (!$sRec->data) continue;
+            
+            if (!isset($sRec->data['closeTime'])) continue ;
+            
+            $folderId = $sRec->objectId;
+            
+            if (!$folderId) continue ;
+            
+            $fRec = doc_Folders::fetch($folderId);
+            
+            if ($fRec->state == 'rejected') continue ;
+            
+            // Ако няма отворение нишки в статистиката
+            if (!$fRec->statistic['_all']['opened'] || empty($fRec->statistic['_all']['opened'])) continue ;
+            
+            $closeTime = dt::subtractSecs($sRec->data['closeTime']);
+            
+            $tQuery = doc_Threads::getQuery();
+            $tQuery->where(array("#modifiedOn <= '[#1#]'", $closeTime));
+            $tQuery->where(array("#folderId = '[#1#]'", $folderId));
+            $tQuery->where("#state = 'opened'");
+            
+            while ($tRec = $tQuery->fetch()) {
+                $tRec->state = 'closed';
+                
+                doc_Threads::save($tRec, 'state');
+                doc_Threads::updateThread($tRec->id);
+                doc_Threads::logWrite('Затвори нишка', $tRec->id);
+            }
+        }
     }
     
     

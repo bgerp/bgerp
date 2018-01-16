@@ -620,7 +620,11 @@ class cal_TaskProgresses extends core_Detail
 	    
 	    $mRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
 	    
-	    $progressArr = $Driver->getProgressSuggestions($mRec);
+	    if ($Driver) {
+	        $progressArr = $Driver->getProgressSuggestions($mRec);
+	    } else {
+	        $progressArr = array();
+	    }
 	    
 	    Mode::push('text', 'plain');
 	    $pVal = $mvc->fields['progress']->type->toVerbal($rec->progress);

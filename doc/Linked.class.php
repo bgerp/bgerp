@@ -461,18 +461,18 @@ class doc_Linked extends core_Manager
         $intfName = 'doc_LinkedIntf';
         
         $intfArr = core_Classes::getOptionsByInterface($intfName);
-
+        
         // Добавяме екшъните от интерфейсите
         $actTypeIntfArr = array();
-        foreach ($intfArr as &$intfCls) {
-            $intfCls = cls::get($intfCls, $intfName);
+        foreach ($intfArr as $key => $intfCls) {
+            $intfArr[$key] = cls::get($intfCls, $intfName);
         }
         
         foreach ($intfArr as $intfCls) {
             if ($type == 'doc') {
-                $actTypeIntfArr = $intfCls->getActivitiesForDocument($originFId);
+                $actTypeIntfArr += $intfCls->getActivitiesForDocument($originFId);
             } elseif ($type == 'file') {
-                $actTypeIntfArr = $intfCls->getActivitiesForFile($originFId);
+                $actTypeIntfArr += $intfCls->getActivitiesForFile($originFId);
             }
         }
         
@@ -665,10 +665,11 @@ class doc_Linked extends core_Manager
      * @param string $type
      * @param integer $originFId
      * @param NULL|string $actType
+     * @param array $rUrl
      * 
      * @return Redirect
      */
-    public function onSubmitFormForAct($form, $act, $type, $originFId, $actType = NULL)
+    public function onSubmitFormForAct($form, $act, $type, $originFId, $actType = NULL, $rUrl = array())
     {
         if (!isset($actType)) {
             $actType = $act;
@@ -680,8 +681,6 @@ class doc_Linked extends core_Manager
         $nRec->outVal = $originFId;
         $nRec->comment = $form->rec->comment;
         $nRec->state = 'active';
-        
-        $retUrl = getRetUrl();
         
         if ($act == 'linkDoc') {
             $nRec->inType = 'doc';
@@ -695,7 +694,11 @@ class doc_Linked extends core_Manager
             
             $nRec->inType = 'doc';
             
-            $url = array(cls::get($form->rec->linkDocType), 'add', 'folderId' => $form->rec->linkFolderId);
+            if (empty($rUrl)) {
+                $url = array(cls::get($form->rec->linkDocType), 'add', 'folderId' => $form->rec->linkFolderId);
+            } else {
+                $url = $rUrl;
+            }
             
             if ($form->rec->linkThreadId) {
                 $url['threadId'] = $form->rec->linkThreadId;
@@ -709,6 +712,8 @@ class doc_Linked extends core_Manager
             
             return new Redirect($url);
         }
+        
+        $retUrl = (!empty($rUrl)) ? $rUrl : getRetUrl();
         
         // Прави необходимите проверки и добавя запис
         $fieldsArr = array();

@@ -160,14 +160,18 @@ class bank_Register extends core_Manager
             $color = '#008';
         }
 
-
         if($folderId = $rec->matches['folderId']) {
             $params = array();
             $params['folderId'] = $folderId;
+            
             $folder = doc_Folders::getVerbalLink($params);
-           
-
-            $folder = $folder->getContent();
+            
+            if ($folder === FALSE) {
+                $folder = tr('Липсващ обект');
+            } else {
+                $folder = $folder->getContent();
+            }
+            
             $row->info = $folder;
         }
 
@@ -318,7 +322,6 @@ class bank_Register extends core_Manager
                     }
                 }
             }
-      if($rec->matches['folderId'] == '37706') bp($rec);
 
             foreach($documents as $d) {
 
@@ -375,7 +378,6 @@ class bank_Register extends core_Manager
                     $rec->matches['docs'][] = $d;
                 }
             }
-      if($rec->matches['folderId'] == '37706') bp($rec);
       
             // Ако имаме документи, но нямаме папка, опитваме се да я определим от най-вероятните документи
             if(empty($rec->matches['folderId']) && is_array($rec->matches['docs'])) {
@@ -385,7 +387,6 @@ class bank_Register extends core_Manager
                 }
                 
                 list($rec->matches['folderId']) =  array_keys($foldersTmp, max($foldersTmp));
-                      if($rec->matches['folderId'] == '37706') bp($rec);
 
                 if($rec->matches['folderId']) {
                     foreach($rec->matches['docs'] as $id => $d) {
@@ -684,7 +685,7 @@ class bank_Register extends core_Manager
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-    	if(haveRole('admin,debug')){
+    	if(haveRole('admin, ceo, bank')){
     		$data->toolbar->addBtn('Разнасяне', array($mvc, 'Match', 'ret_url' => TRUE), 'ef_icon=img/16/briefcase.png, title=Намиране на съответствия');
     	}
     }

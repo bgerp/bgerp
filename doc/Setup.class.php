@@ -261,7 +261,8 @@ class doc_Setup extends core_ProtoSetup
         'migrate::addFirstDocClassAndId',
         'migrate::receiveEmailUnsortedN',
         'migrate::regenerateSearchKeywords',
-        'migrate::taskDocumentsToLinked'
+        'migrate::taskDocumentsToLinked',
+        'migrate::autoCloseToAllFolder'
     );
 	
     
@@ -285,6 +286,15 @@ class doc_Setup extends core_ProtoSetup
                     'period' => 1440,
                     'offset' => 66,
                     'timeLimit' => 120,
+            ),
+            array(
+                    'systemId' => "AutoClose",
+                    'description' => "Автоматично затваряне на папки",
+                    'controller' => "doc_Folders",
+                    'action' => "autoClose",
+                    'period' =>1440,
+                    'offset' => 111,
+                    'timeLimit' => 400
             )
     );
 	
@@ -1049,6 +1059,46 @@ class doc_Setup extends core_ProtoSetup
                     reportException($e);
                 }
             }
+        }
+    }
+    
+    
+    /**
+     * Автоматичното затваряне на нишки да не е само за несортираните, а да важи за всички папки
+     */
+    public static function autoCloseToAllFolder()
+    {
+        // Изтриваме крон процеса
+        core_Cron::delete("#systemId = 'self_closed_unsorted_folders'");
+        
+        // Мигрираме настройките от несортираните
+        
+        $Unsorted = cls::get('doc_UnsortedFolders');
+        
+        $Unsorted->db->connect();
+        
+        $closeTime = str::phpToMysqlName('closeTime');
+        
+        if (!$Unsorted->db->isFieldExists($Unsorted->dbTableName, $closeTime)) return ;
+        
+        $Unsorted->FLD('closeTime' , 'time', 'caption=Автоматично затваряне на нишките след->Време, allowEmpty');
+        
+        $query = $Unsorted->getQuery();
+        
+        $query->where("#closeTime IS NOT NULL");
+        
+        $allSysTeamId = type_UserOrRole::getAllSysTeamId();
+        
+        while ($rec = $query->fetch()) {
+            
+            if (!$rec->folderId) continue ;
+            
+            $fKey = doc_Folders::getSettingsKey($rec->folderId);
+            
+            $valArr = array();
+            $valArr['closeTime'] = $rec->closeTime;
+            
+            core_Settings::setValues($fKey, $valArr, $allSysTeamId, TRUE);
         }
     }
 }

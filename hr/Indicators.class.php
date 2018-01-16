@@ -429,6 +429,10 @@ class hr_Indicators extends core_Manager
     	
     	// Позицията от трудовия договор
     	$positionId = hr_EmployeeContracts::fetchField("#state = 'active' AND #personId = {$data->masterId}", 'positionId');
+    	$data->IData->render = FALSE;
+    	
+    	if(Request::get('Tab') != 'PersonsDetails') return;
+    	
     	if(!empty($positionId)){
     		
     		// Ако има формула за заплата
@@ -441,23 +445,19 @@ class hr_Indicators extends core_Manager
     			$indicators = array_keys($indicators);
     			if(count($indicators)){
     				$data->IData->query->in("indicatorId", $indicators);
-    			} else {
-    				
-    				// Ако няма такива няма да се рендира нищо
-    				$data->IData->render = FALSE;
-    				return;
+    				$data->IData->render = TRUE;
     			}
     		}
-    	} else {
-    		// Ако няма такива няма да се рендира нищо
-    		$data->IData->render = FALSE;
-    		return;
     	}
+    	
+    	// Ако няма такива няма да се рендира нищо
+    	if($data->IData->render == FALSE) return;
     	
     	// Подготовка на заявката
     	$data->IData->query->where("#personId = {$data->masterId}");
     	$data->IData->query->orderBy('date', 'DESC');
     	$data->IData->recs = $data->IData->rows = array();
+    	$data->IData->fullQuery = clone $data->IData->query;
     	
     	// Подготивка на формата за търсене
     	$this->prepareListFields($data->IData);
@@ -465,13 +465,50 @@ class hr_Indicators extends core_Manager
     	$this->prepareListFilter($data->IData);
     	$data->IData->listFilter->method = 'GET';
     	
-    	if ($data->IData->pager) {
+    	$date = new DateTime();
+   		$from = $date->format('Y-m-01');
+    	$to = dt::getLastDayOfMonth($from);
+    	
+    	if($data->IData->pager) {
     		$data->IData->pager->setLimit($data->IData->query);
     	}
     	
     	while($rec = $data->IData->query->fetch()){
     		$data->IData->recs[$rec->id] = $rec;
     		$data->IData->rows[$rec->id] = $this->recToVerbal($rec);
+    	}
+    	
+    	// Сумиране на индикаторите
+    	$data->IData->summaryRecs = $data->IData->summaryRows = array();
+    	while($sRec = $data->IData->fullQuery->fetch()){
+    		if(!array_key_exists($sRec->indicatorId, $data->IData->summaryRecs)){
+    			$data->IData->summaryRecs[$sRec->indicatorId] = (object)array('indicatorId' => $sRec->indicatorId, 'value' => 0);
+    		}
+    		$data->IData->summaryRecs[$sRec->indicatorId]->value += $sRec->value;
+    	}
+    	
+    	// Подготовка на контекста на заплатата
+    	$context = array();
+    	foreach ($indicators as $iId){
+    		$indicatorVerbal = $this->getFieldType('indicatorId')->toVerbal($iId);
+    		$value = array_key_exists($iId, $data->IData->summaryRecs) ? $data->IData->summaryRecs[$iId]->value : 0;
+    		$context['$' . $indicatorVerbal] = $value;
+    		$data->IData->summaryRows[$iId] = (object)array('indicatorId' => $indicatorVerbal , 'value' => core_Type::getByName('double(smartRound)')->toVerbal($value));
+    	}
+    	
+    	// Опит за изчисление на заплатата по формулата
+    	$expr = strtr($formula, $context);
+    	if(str::prepareMathExpr($expr) === FALSE) {
+    		$data->IData->salary = ht::styleIfNegative(tr('Невъзможно изчисление'), -1);
+    	} else {
+    		$data->IData->salary = str::calcMathExpr($expr, $success);
+    		$data->IData->salary = core_type::getByName('double(decimals=2)')->toVerbal($data->IData->salary);
+    		$data->IData->salary = ht::styleIfNegative($data->IData->salary, $data->IData->salary);
+    		$data->IData->salary .= " " . acc_Periods::getBaseCurrencyCode();
+    		$data->IData->salary = ht::createHint($data->IData->salary, $formula, 'notice', TRUE, 'width=12px,height=12px');
+    		if($success === FALSE) {
+    			$data->IData->salary = ht::styleIfNegative(tr('Грешка в калкулацията'), -1);
+    		}
     	}
     }
     
@@ -484,20 +521,29 @@ class hr_Indicators extends core_Manager
      */
     public function renderPersonIndicators($data)
     {
-    	if($data->IData->render === FALSE) return new core_ET();
-
-    	$tpl = new core_ET("[#ListToolbarTop#][#listFilter#][#I_TABLE#][#ListToolbarBottom#]");
+    	if($data->IData->render === FALSE) return new core_ET("");
+		$listTableMvc = clone $this;
+		$listTableMvc->setField('indicatorId', 'tdClass=leftCol');
+    	
+    	$tpl = new core_ET(tr("|*<div style='margin-bottom:20px'><div style1 ='margin-top:10px'>|Заплата|* : <b>[#salary#]</b></div>[#I_S_TABLE#]</div>[#listFilter#][#ListToolbarTop#][#I_TABLE#][#ListToolbarBottom#]"));
     	$tpl->append($this->renderListFilter($data->IData), 'listFilter');
     	
+    	// Рендиране на подробната информация на индикаторите
     	unset($data->IData->listFields['personId']);
-    	$table = cls::get('core_TableView', array('mvc' => $this));
+    	$table = cls::get('core_TableView', array('mvc' => $listTableMvc));
     	$tpl->append($table->get($data->IData->rows, $data->IData->listFields), 'I_TABLE');
     	
-    	if ($data->IData->pager) {
+    	// Добавяне на пейджера
+    	if($data->IData->pager) {
     		$toolbarHtml = $data->IData->pager->getHtml();
     		$tpl->append($toolbarHtml, 'ListToolbarTop');
     		$tpl->append($toolbarHtml, 'ListToolbarBottom');
     	}
+    	
+    	// Рендиране на сумарната информация за индикаторите
+    	$tpl->replace($data->IData->salary, 'salary');
+    	$table = cls::get('core_TableView', array('mvc' => $listTableMvc));
+    	$tpl->append($table->get($data->IData->summaryRows, 'indicatorId=Индикатор,value=Сума'), 'I_S_TABLE');
     	
     	return $tpl;
     }
@@ -525,6 +571,8 @@ class hr_Indicators extends core_Manager
     		$data->listFilter->setDefault('Tab', 'PersonsDetails');
     		$data->listFilter->setDefault('period', date('Y-m-01'));
     		$data->listFilter->input('period,document,Tab');
+    		$data->listFilter->setField('id', 'input=none');
+    		$data->listFilter->view = 'horizontal';
     	} else {
     		$data->listFilter->setFieldTypeParams("personId", array('allowEmpty' => 'allowEmpty'));
     		$data->listFilter->setFieldTypeParams("indicatorId", array('allowEmpty' => 'allowEmpty'));
@@ -556,6 +604,9 @@ class hr_Indicators extends core_Manager
     		if(isset($fRec->period)){
     			$to = dt::getLastDayOfMonth($fRec->period);
     			$data->query->where("#date >= '{$fRec->period}' AND #date <= '{$to}'");
+    			if(isset($data->fullQuery)){
+    				$data->fullQuery->where("#date >= '{$fRec->period}' AND #date <= '{$to}'");
+    			}
     		}
     		
     		if(!empty($fRec->document)){

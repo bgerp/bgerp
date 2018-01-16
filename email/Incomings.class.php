@@ -1253,10 +1253,7 @@ class email_Incomings extends core_Master
         $otherAllEmailToArr = email_Inboxes::removeOurEmails($allEmailToArr);
         
         $cRec = email_Accounts::getCorporateAcc();
-        $allCorpEmails = array();
-        if ($cRec) {
-            $allCorpEmails = email_Inboxes::getAllInboxes($cRec->id);
-        }
+        $allEmailsArr = email_Inboxes::getAllInboxes();
         
         // Отбелязваме, кои имейли са външни
         if ($otherAllEmailToArr) {
@@ -1271,7 +1268,7 @@ class email_Incomings extends core_Master
                     $trimEmail = trim($emailArr['address']);
                     
                     // Ако няма такъв корпоративен имейл
-                    if (!empty($allCorpEmails) && !$allCorpEmails[$trimEmail]) {
+                    if (!empty($allEmailsArr) && !$allEmailsArr[$trimEmail]) {
                         $emailsArr[$key]['isWrong'] = TRUE;
                     }
                 }

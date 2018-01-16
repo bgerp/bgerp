@@ -15,6 +15,12 @@
                             <td> [#sysId#]</td>
                         </tr>
                         <!--ET_END sysId-->
+                        <!--ET_BEGIN CloseTime-->
+                        <tr>
+                            <td class='dt'>|Затваряне на нишките|*:</td>
+                            <td>|Автоматично след|* [#CloseTime#]</td>
+                        </tr>
+                        <!--ET_END CloseTime-->
                     </table>
                 </div>
             </fieldset>

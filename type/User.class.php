@@ -127,6 +127,15 @@ class type_User extends type_Key
                 
                 $cuRecArr = array();
                 
+                if (haveRole($this->params['rolesForTeams']) && $this->params['additionalRoles']) {
+                    foreach(arr::make($this->params['additionalRoles']) as $rName) {
+                        $rId = core_Roles::fetchByName($rName);
+                        if (!$rId) continue;
+                        
+                        $teams[$rId] = $rId;
+                    }
+                }
+                
                 foreach($teams as $t) {
                     $group = new stdClass();
                     $tRole = core_Roles::getVerbal($t, 'role');
@@ -282,12 +291,12 @@ class type_User extends type_Key
     /**
      * Връща масив с групите със съответния потребители
      * 
-     * @param integer $userId
+     * @param integer|NULL $userId
      * 
      * @return array
      * @see type_Users::getUserFromTeams
      */
-    static function getUserFromTeams($userId=NULL)
+    static function getUserFromTeams($userId = NULL)
     {
         $arr = array();
         
@@ -302,6 +311,16 @@ class type_User extends type_Key
             // Всички екипи, в които участва
             $teams = core_Users::getUserRolesByType($userId, 'team');
             $teams = keylist::toArray($teams);
+            
+            $me = cls::get(get_called_class());
+            if ($me->params['additionalRoles'] && empty($teams)) {
+                foreach(arr::make($me->params['additionalRoles']) as $rName) {
+                    $rId = core_Roles::fetchByName($rName);
+                    if (!$rId) continue;
+                    
+                    $teams[$rId] = $rId;
+                }
+            }
             
             // Обхождаме екипите
             foreach ($teams as $team) {

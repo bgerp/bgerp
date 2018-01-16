@@ -112,15 +112,16 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     
     /**
-     * Връща теглото на единица от продукта, ако е в опаковка връща нейното тегло
+     * Връща транспортното тегло за подаденото количество и опаковка
      * 
-     * @param int $productId - ид на продукт
-     * @param int $packagingId - ид на опаковка
-     * @return double - теглото на единица от продукта
+     * @param int $productId        - ид на продукт
+     * @param int|NULL $packagingId - ид на опаковка
+     * @param int $quantity         - общо количество
+     * @return double|NULL          - транспортното тегло за к-то на артикула
      */
-	public function getWeight($productId, $packagingId = NULL)
+	public function getTransportWeight($productId, $packagingId = NULL)
     {
-    	return $this->class->getWeight($productId, $packagingId);
+    	return $this->class->getTransportWeight($productId, $packagingId);
     }
     
     
@@ -140,15 +141,16 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     
     /**
-     * Връща обема на единица от продукта, ако е в опаковка връща нейния обем
+     * Връща транспортния обем за подаденото количество и опаковка
      * 
-     * @param int $productId - ид на продукт
-     * @param int $packagingId - ид на опаковка
-     * @return double - теглото на единица от продукта
+     * @param int $productId        - ид на продукт
+     * @param int|NULL $packagingId - ид на опаковка
+     * @param int $quantity         - общо количество
+     * @return double               - теглото на единица от продукта
      */
-	public function getVolume($productId, $packagingId = NULL)
+	public function getTransportVolume($productId, $packagingId = NULL)
     {
-    	return $this->class->getVolume($productId, $packagingId);
+    	return $this->class->getTransportVolume($productId, $packagingId);
     }
     
     
@@ -258,7 +260,7 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      * които автоматично се добавят към условията на договора
      * 
      * @param stdClass $rec   - ид/запис на артикул
-     * @param string $docType - тип на документа sale/purchase
+     * @param string $docType - тип на документа sale/purchase/quotation
      * @param string|NULL $lg - език
      */
     public function getConditions($rec, $docType, $lg = NULL)

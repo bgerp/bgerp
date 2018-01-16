@@ -478,7 +478,7 @@ class csv_Lib
     public static function getCsvRowsFromFile($csvData, $params = array())
     {  
         list($handle, $params['delimiter'], $params['enclosure']) = self::analyze($csvData, $params['delimiter'], $params['enclosure']);
-
+ 
         setIfNot($params['length'], 0);
 
         setIfNot($params['escape'], '\\');
@@ -548,7 +548,7 @@ class csv_Lib
         $csv = i18n_Charset::convertToUtf8($csv, array('UTF-8', 'WIN1251'));
         
         $csv = str_replace(chr(194).chr(160), '', $csv);
-
+ 
         // Определяне на формата
         if(strlen($delimiter)) {
             $delimiter = str_replace('tab', "\t", $delimiter);
@@ -603,24 +603,26 @@ class csv_Lib
                 foreach($res as $row) {
                     $cnt = count($row);
                     if($cnt == $cellsPerRow) {
-                        $points += $cnt;
+                        $points += 1;
                     } else {
-                        $points -= $cnt;
+                        $points -= -1;
                     }
                 }
-                
+               
+
                 // Добавка за срещанията на ображдащия символ до разделител или нов ред
                 $deCntL = substr_count($csv, $d . $e) + substr_count($csv, $nl . $e);
                 $deCntR = substr_count($csv, $e . $d) +substr_count($csv, $e . $nl) ;
-                $points += 0.4 * (($deCntL > 0) && ($deCntL == $deCntR));
-                $points -= ($deCntL > 0) && ($deCntL != $deCntR);
-              
+                $points += 0.4 * (($deCntL > 0) && ($deCntL == $deCntR)) * count($res);
+                $points -= ($deCntL > 0) && ($deCntL != $deCntR) * count($res);
+         
+
                 // Среща ли се $е самостоятелно
                 preg_match_all("/[^\\{$d}\\{$e}]\\{$e}[^\\{$d}\\{$e}]/u", $d . str_replace($nl, $d, $csv) . $d, $matches);
                 $soloUse = count($matches[0]);
                 $points -= $soloUse;
                 $points += 0.6 * ($soloUse == 1);
-
+ 
                 if(!isset($best) || $best < $points) {
                     $delimiter = $d;
                     $enclosure = $e;

@@ -526,7 +526,12 @@ class cms_Content extends core_Manager
      
             return Request::forward($url);
         } else {
-
+            
+            if (!Mode::get('lg')) {
+                $lang = cms_Domains::detectLang(cms_Domains::getCmsLangs());
+                core_Lg::set($lang);
+            }
+            
             return new Redirect(array('bgerp_Portal', 'Show'));
         }
     }

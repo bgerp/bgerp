@@ -50,6 +50,9 @@ class type_UserOrRole extends type_User
         if ($this->params['rolesType']) {
             $this->params['rolesType'] = str_replace("|", ",", $this->params['rolesType']);
         }
+        
+        setIfNot($this->params['additionalRoles'], 'partner, distributor, agent');
+        $this->params['additionalRoles'] = str_replace("|", ",", $this->params['additionalRoles']);
     }
     
     
@@ -80,7 +83,7 @@ class type_UserOrRole extends type_User
                 $allSysTeam = self::getAllSysTeamId();
                 
                 $roleObj = new stdClass();
-                $roleObj->title = tr("За всички потребители");
+                $roleObj->title = tr("Всички потребители");
                 $roleObj->value = $allSysTeam;
                 $roleObj->attr = array('clas' => 'all-sys-team');
                 $this->options['r_' . 'allSysTeam'] = $roleObj;

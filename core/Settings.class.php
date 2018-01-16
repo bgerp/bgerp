@@ -69,10 +69,11 @@ class core_Settings extends core_Manager
     public function description()
     {
         $this->FLD('key', 'varchar(16)', 'caption=Ключ');
+        $this->FLD('objectId', 'int', 'caption=Обект, input=none');
         $this->FLD('userOrRole', 'userOrRole(rolesType=team)', 'caption=Потребител/и');
         $this->FLD('data', 'blob(serialize, compress)', 'caption=Потребител/и');
         
-        $this->setDbUnique('key, userOrRole');
+        $this->setDbUnique('key, objectId, userOrRole');
     }
     
     
@@ -520,6 +521,8 @@ class core_Settings extends core_Manager
     {
         $userOrRole = self::prepareUserOrRole($userOrRole);
         
+        list(, $objectId) = explode('::', $key);
+        
         // Ограничаваме дължината на ключа
         $key = self::prepareKey($key);
         
@@ -544,6 +547,7 @@ class core_Settings extends core_Manager
             $nRec = new stdClass();
             $nRec->key = $key;
             $nRec->userOrRole = $userOrRole;
+            $nRec->objectId = $objectId;
         } else {
             
             // Използваме стария запис

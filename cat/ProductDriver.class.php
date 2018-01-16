@@ -537,7 +537,7 @@ abstract class cat_ProductDriver extends core_BaseClass
      * които автоматично се добавят към условията на договора
      * 
      * @param stdClass $rec   - ид/запис на артикул
-     * @param string $docType - тип на документа sale/purchase
+     * @param string $docType - тип на документа sale/purchase/quotation
      * @param string|NULL $lg - език
      */
     public function getConditions($rec, $docType, $lg = NULL)
@@ -596,4 +596,32 @@ abstract class cat_ProductDriver extends core_BaseClass
 	{
 		return TRUE;
 	}
+	
+	
+	/**
+     * Връща транспортното тегло за подаденото количество и опаковка
+     * 
+     * @param mixed $rec            - ид или запис на продукт
+     * @param int|NULL $packagingId - ид на опаковка
+     * @param int $quantity         - общо количество
+     * @return double|NULL          - транспортното тегло за к-то на артикула
+     */
+    public static function getTransportWeight($rec, $packagingId = NULL, $quantity)
+    {
+    	return NULL;
+    }
+    
+    
+    /**
+     * Връща транспортния обем за подаденото количество и опаковка
+     *
+     * @param mixed $rec            - ид или запис на продукт
+     * @param int|NULL $packagingId - ид на опаковка
+     * @param int $quantity         - общо количество
+     * @return double               - теглото на единица от продукта
+     */
+    public static function getTransportVolume($productId, $packagingId = NULL, $quantity)
+    {
+    	return NULL;
+    }
 }

@@ -5,22 +5,16 @@
  * Драйвър за продукт на ЕП
  *
  *
- * @category  extrapack
- * @package   epbags
+ * @category  bgerp
+ * @package   transsrv
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Транспортна услуга
  */
 class transsrv_ProductDrv extends cat_ProductDriver
 {
-	
-	
-	/**
-	 * Кой може да избира драйвъра
-	 */
-	//public $canSelectDriver = 'no_one';
 	
 	
 	/**
@@ -84,7 +78,6 @@ class transsrv_ProductDrv extends cat_ProductDriver
                                         9 = Клас 9 - Други опасни вещества)', 'caption=Информация за товара->Опасност');
         $form->FLD('load', 'varchar', 'caption=Информация за товара->Описание');
 
-         
         // Обща информация
         $form->FLD('conditions', 'richtext(bucket=Notes,rows=3)', 'caption=Обща информация->Условия');
         $form->FLD('ourReff', 'varchar', 'caption=Обща информация->Наш реф.№');
@@ -101,9 +94,7 @@ class transsrv_ProductDrv extends cat_ProductDriver
      */
     public function getProductTitle($rec)
     {
- 
-
-        $myCompany = crm_Companies::fetchOurCompany();
+    	$myCompany = crm_Companies::fetchOurCompany();
     	
         if(!$rec->fromCountry) {
             $rec->fromCountry = $myCompany->country;
@@ -138,8 +129,7 @@ class transsrv_ProductDrv extends cat_ProductDriver
 	 */
 	public static function on_AfterInputEditForm(cat_ProductDriver $Driver, embed_Manager $Embedder, &$form)
 	{
-
-        $form->rec->name = $Driver->getProductTitle($form->rec);
+		$form->rec->name = $Driver->getProductTitle($form->rec);
 
         if($form->isSubmitted()) {
             $fields = $form->selectFields("#input != 'none'");
@@ -152,7 +142,6 @@ class transsrv_ProductDrv extends cat_ProductDriver
             }
         }
     }
-
 
 
 	/**
@@ -186,23 +175,8 @@ class transsrv_ProductDrv extends cat_ProductDriver
         if($data->form->getField('notes', FALSE)){
 			$data->form->setField('notes', 'input=hidden');
 		}
-
 	}
 	
-	
-	/**
-	 * След преобразуване на записа в четим за хора вид.
-	 *
-	 * @param core_Mvc $mvc
-	 * @param stdClass $row Това ще се покаже
-	 * @param stdClass $rec Това е записа в машинно представяне
-	 */
-	public static function on_AfterRecToVerbal(cat_ProductDriver $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
-	{
-	}
-	
-	
- 	
 	
 	/**
 	 * Връща стойността на параметъра с това име, или
@@ -238,25 +212,12 @@ class transsrv_ProductDrv extends cat_ProductDriver
 	}
 	
 	
- 	
-	
-	/**
-	 * Подготвя данните за показване на описанието на драйвера
-	 *
-	 * @param stdClass $data
-	 * @return void
-	 */
-	public function prepareProductDescription(&$data)
-	{
-	}
-	
-	
 	/**
      * Допълнителните условия за дадения продукт,
      * които автоматично се добавят към условията на договора
      * 
      * @param stdClass $rec   - ид/запис на артикул
-     * @param string $docType - тип на документа sale/purchase
+     * @param string $docType - тип на документа sale/purchase/quotation
      * @param string|NULL $lg - език
      */
     public function getConditions($rec, $docType, $lg = NULL)

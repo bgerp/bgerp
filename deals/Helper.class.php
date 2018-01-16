@@ -1000,6 +1000,10 @@ abstract class deals_Helper
 		$type = ($Master instanceof purchase_Purchases) ? 'purchase' : (($Master instanceof sales_Quotations) ? 'quotation' : 'sale');
 		$allProducts = $productConditions = array();
 		
+		if(!empty($lg)){
+			core_Lg::push($lg);
+		}
+		
 		while($dRec = $dQuery->fetch()){
 			
 			// Опит за намиране на условията
@@ -1045,6 +1049,10 @@ abstract class deals_Helper
 				}
 				$val .= $valSuffix; 
 			}
+		}
+		
+		if(!empty($lg)){
+			core_Lg::pop();
 		}
 		
 		return $res;
@@ -1128,9 +1136,9 @@ abstract class deals_Helper
 		// Ако няма тегло взима се 'live'
 		if(!isset($value)){
 			if($type == 'weight'){
-				$value = cat_Products::getWeight($productId, $packagingId, $quantity);
+				$value = cat_Products::getTransportWeight($productId, $packagingId, $quantity);
 			} else {
-				$value = cat_Products::getVolume($productId, $packagingId, $quantity);
+				$value = cat_Products::getTransportVolume($productId, $packagingId, $quantity);
 			}
 			
 			if(isset($value)){

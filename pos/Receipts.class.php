@@ -732,7 +732,11 @@ class pos_Receipts extends core_Master {
     	$block->append(ht::createElement('input', array('name' => 'rowId', 'type' => 'hidden', 'value' => $value)), 'INPUT_FLD');
     	$block->append(ht::createFnBtn('Код', NULL, NULL, array('class' => "{$disClass} buttonForm", 'id' => 'addProductBtn', 'data-url' => $addUrl, 'title' => 'Продуктов код или баркод')), 'FIRST_TOOLS_ROW');
     	$block->append(ht::createFnBtn('К-во', NULL, NULL, array('class' => "{$disClass} buttonForm tools-modify", 'data-url' => $modQUrl, 'title' => 'Промени количество')), 'FIRST_TOOLS_ROW');
-    	$block->append(ht::createFnBtn('|Отстъпка|* %', NULL, NULL, array('class' => "{$disClass} buttonForm tools-modify", 'data-url' => $discUrl, 'title' => 'Задай отстъпка')), 'FIRST_TOOLS_ROW');
+    	
+    	if(pos_Setup::get('SHOW_DISCOUNT_BTN') == 'yes'){
+    		$block->append(ht::createFnBtn('|Отстъпка|* %', NULL, NULL, array('class' => "{$disClass} buttonForm tools-modify", 'data-url' => $discUrl, 'title' => 'Задай отстъпка')), 'FIRST_TOOLS_ROW');
+    	}
+    	
     	$block->append(ht::createFnBtn('*', NULL, NULL, array('class' => "buttonForm tools-sign", 'title' => 'Умножение', 'value' => '*')), 'FIRST_TOOLS_ROW');
     	
     	return $block;
