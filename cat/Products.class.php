@@ -1511,7 +1511,7 @@ class cat_Products extends embed_Manager {
      * @param int $quantity    - общо количество
      * @return double|NULL     - транспортното тегло за к-то на артикула
      */
-    public static function getWeight($productId, $packagingId = NULL, $quantity)
+    public static function getTransportWeight($productId, $packagingId = NULL, $quantity)
     {
     	// За нескладируемите не се изчислява транспортно тегло
     	if(cat_Products::fetchField($productId, 'canStore') != 'yes') return NULL;

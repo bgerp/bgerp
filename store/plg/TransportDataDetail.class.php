@@ -148,7 +148,7 @@ class store_plg_TransportDataDetail extends core_Plugin
 	public function on_AfterGetWeight($mvc, &$res, $productId, $packagingId, $quantity, $weight = NULL)
 	{
 		if(!isset($weight)){
-			$weight = cat_Products::getWeight($productId, $packagingId, $quantity);
+			$weight = cat_Products::getTransportWeight($productId, $packagingId, $quantity);
 			$weight = deals_Helper::roundPrice($weight, 3);
 		}
 		

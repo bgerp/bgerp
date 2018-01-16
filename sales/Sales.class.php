@@ -1223,7 +1223,7 @@ class sales_Sales extends deals_DealMaster
     			unset($ship->price);
     			$ship->name = cat_Products::getTitleById($ship->productId, FALSE);
     	
-    			if($transportWeight = cat_Products::getWeight($ship->productId, NULL, 1)){
+    			if($transportWeight = cat_Products::getTransportWeight($ship->productId, NULL, 1)){
     				$ship->transportWeight = $transportWeight;
     			}
     	
