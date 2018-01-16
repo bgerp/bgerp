@@ -144,7 +144,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 			}
 			
 			$form->setField('productId', 'input=none');
-			$form->setField('packagingId', 'input=none');
+			
 			if(isset($cloneRec)){
 				$form->setField('proto', 'input=hidden');
 				$form->setDefault('proto', $cloneRec->productId);
@@ -157,6 +157,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 					}
 				}
 			} else {
+				$form->setField('packagingId', 'input=none');
 				foreach ($form->fields as $n => $f1){
 					$detailFields[$n] = $n;
 				}
@@ -253,6 +254,8 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 					$form->setField('term', 'input');
 				}
 				
+				
+				
 				$form->input();
 				if(empty($form->rec->packagingId)){
 					$form->rec->packagingId = $form->rec->measureId;
@@ -260,7 +263,9 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				
 				$Products->invoke('AfterInputEditForm', array($form));
 				$mvc->invoke('AfterInputEditForm', array($form));
-				
+				if(isset($cloneRec)){
+					$form->setReadOnly('packagingId', $cloneRec->packagingId);
+				}
 				$productKeys = array_keys($productFields);
 				$productKeys = implode('|', $productKeys);
 				$form->setField('proto', "removeAndRefreshForm={$productKeys}");
