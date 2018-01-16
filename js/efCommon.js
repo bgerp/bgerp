@@ -2242,7 +2242,7 @@ function replaceFormData(frm, data)
 	$.ajaxSetup ({cache: false});
 
     // Пушваме ново URL
-    history.pushState(data, "Title", data.url);
+    history.pushState(null, null, data.url);
 
 	var newParams = $('form').serializeArray();
 	var paramsArray = [];
