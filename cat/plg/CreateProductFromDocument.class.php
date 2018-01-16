@@ -264,7 +264,10 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				$productKeys = array_keys($productFields);
 				$productKeys = implode('|', $productKeys);
 				$form->setField('proto', "removeAndRefreshForm={$productKeys}");
-				$form->setField('packagingId', 'input=hidden');
+				
+				if(!isset($cloneRec)){
+					$form->setField('packagingId', 'input=hidden');
+				}
 				
 				// Намираме полетата от артикула
 				$productFields = array_diff_key($form->fields, $detailFields);
@@ -339,8 +342,11 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				
 				$dRec = (object)array_diff_key($arrRec, $productFields);
 				$dRec->productId = $productId;
-				$dRec->packagingId = $pRec->measureId;
-				$dRec->quantityInPack = 1;
+				
+				if(!isset($cloneRec)){
+					$dRec->packagingId = $pRec->measureId;
+					$dRec->quantityInPack = 1;
+				}
 				
 				if(empty($rec->packQuantity) || $rec->defQuantity === TRUE){
 					$dRec->quantity = deals_Helper::getDefaultPackQuantity($productId, $pRec->measureId);
