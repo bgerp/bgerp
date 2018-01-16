@@ -319,8 +319,7 @@ class core_Setup extends core_ProtoSetup {
         'migrate::movePersonalizationData',
         'migrate::repairUsersRolesInput',
         'migrate::removeFalseTranslate',
-        'migrate::repairSearchKeywords',
-        'migrate::addObjectIdFromKey'
+        'migrate::repairSearchKeywords'
     );
     
     
@@ -727,11 +726,25 @@ class core_Setup extends core_ProtoSetup {
     
     
     /**
+     * Зареждане на данни
+     */
+    function loadSetupData($itr = '')
+    {
+        $res = parent::loadSetupData($itr);
+        
+        $res .= $this->callMigrate('addObjectIdFromKey', 'core');
+        
+        return $res;
+    }
+    
+    
+    /**
      * Миграция за добавяне на objectId от ключа
      */
     public static function addObjectIdFromKey()
     {
         $cQuery = core_Settings::getQuery();
+        $cQuery->where("#objectId IS NULL");
         $cQuery->where("#key LIKE 'doc_Folders%'");
         $cQuery->orWhere("#key LIKE 'doc_Threads%'");
         
