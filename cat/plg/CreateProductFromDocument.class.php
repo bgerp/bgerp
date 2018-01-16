@@ -339,8 +339,10 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				}
 				
 				// Създаване на нов артикул само при нужда
+				$msg = NULL;
 				if(!isset($productId)){
 					$productId = $Products->save($pRec);
+					$msg = 'Създаден е нов артикул|*:' . cat_Products::getTitleById($productId);
 					$Products->logInAct('Създаване от документ', $pRec);
 				}
 				
@@ -411,7 +413,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				}
 				
 				// Редирект към сделката/офертата
-				return Redirect(array($mvc->Master, 'single', $dRec->{$mvc->masterKey}), FALSE, 'Успешно е създаден нов артикул');
+				return Redirect(array($mvc->Master, 'single', $dRec->{$mvc->masterKey}), FALSE, $msg);
 			}
 			
 			// Добавяме бутони на формата
