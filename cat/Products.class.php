@@ -1509,38 +1509,44 @@ class cat_Products extends embed_Manager {
      * @param int $productId   - ид на продукт
      * @param int $packagingId - ид на опаковка
      * @param int $quantity    - общо количество
-     * @return double|NULL     - теглото на единица от продукта
+     * @return double|NULL     - транспортното тегло за к-то на артикула
      */
     public static function getWeight($productId, $packagingId = NULL, $quantity)
     {
     	// За нескладируемите не се изчислява транспортно тегло
     	if(cat_Products::fetchField($productId, 'canStore') != 'yes') return NULL;
     	
-    	// Първо се гледа най-голямата опаковка за която има Бруто тегло
+    	// Колко е нетото за 1-ца от артикула в килограми
+    	$netto = self::convertToUom($productId, 'kg');
+    	if(empty($netto)) return NULL;
+    	
+    	// Колко е нетото за търсеното количество
+    	$weight = $netto * $quantity;
+    	
+    	// Обикаляне на всички опаковки със зададена тара
+    	$foundTare = FALSE;
     	$packQuery = cat_products_Packagings::getQuery();
-    	$packQuery->where("#productId = '{$productId}'");
-    	$packQuery->where("#netWeight IS NOT NULL AND #tareWeight IS NOT NULL");
-    	$packQuery->orderBy('quantity', "DESC");
-    	$packQuery->limit(1);
-    	$packQuery->show('netWeight,tareWeight,quantity');
-    	$packRec = $packQuery->fetch();
-    	
-    	if(is_object($packRec)){
+    	$packQuery->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
+    	$packQuery->where("#productId = '{$productId}' AND #type = 'packaging' AND #tareWeight IS NOT NULL");
+    	$packQuery->show('quantity,tareWeight');
+    	while($packRec = $packQuery->fetch()){
     		
-    		// Ако има такава количеството се преизчислява в нея
-    		$brutoWeight = $packRec->netWeight + $packRec->tareWeight;
-    		$quantity /= $packRec->quantity;
+    		// Какво е отношението на търсеното к-во към това в опаковката
+    		$coeficient = $quantity / $packRec->quantity;
     		
-    		// Връща се намереното тегло
-    		$weight = $brutoWeight * $quantity;
-    		return round($weight, 2);
+    		// Ако е много малко, тарата на опаковката се пропуска
+    		if(round($coeficient, 2) < 0.5) continue;
+    		
+    		// Ако е достатъчно, тарата се добавя към нетното тегло, умножена по коефицента
+    		$coeficient = ceil($coeficient);
+    		$tare = $packRec->tareWeight * $coeficient;
+    		$foundTare = TRUE;
+    		
+    		$weight += $tare;
     	}
     	
-    	// Ако няма транспортно тегло от опаковката гледа се от артикула
-    	if($weight = static::getParams($productId, 'transportWeight')){
-    		$weight *= $quantity;
-    		return round($weight, 2);
-    	}
+    	// Ако има намерена поне една тара, транспортното тегло се връща
+    	if($foundTare === TRUE) return round($weight, 2);
     	
     	return NULL;
     }

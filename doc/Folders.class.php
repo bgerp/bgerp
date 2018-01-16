@@ -396,11 +396,12 @@ class doc_Folders extends core_Master
         $attr = array();
         $attr['class'] = 'linkWithIcon';
         
-        if(mb_strlen($row->title) > self::maxLenTitle) {
+        if(mb_strlen($rec->title) > self::maxLenTitle) {
             $attr['title'] = $row->title;
+            
+            $title = str::limitLen($rec->title, self::maxLenTitle);
+            $row->title = $mvc->fields['title']->type->escape($title);
         }
-        
-        $row->title = str::limitLen($row->title, self::maxLenTitle);
         
         $haveRight = $mvc->haveRightFor('single', $rec);
         if(core_Packs::isInstalled('colab') && core_Users::haveRole('partner')){
@@ -1813,8 +1814,18 @@ class doc_Folders extends core_Master
         $sQuery = core_Settings::getQuery();
         $sQuery->where(array("#userOrRole = '[#1#]'", $allSysTeamId));
         $sQuery->where("#key LIKE 'doc_Folders::%'");
+        $sQuery->orWhere("#key LIKE 'doc_Folders_%'");
         
         $sQuery->orderBy('modifiedOn', 'DESC');
+        
+		// Максималното id в папката
+        $dFolders = doc_Folders::getQuery();
+        $dFolders->XPR('max', 'int', "MAX(#id)");
+        $dFolders->show('max');
+        $fRec = $dFolders->fetch();
+        $maxFolderId = $fRec->max;
+        
+        $fKeyArr = array();
         
         while ($sRec = $sQuery->fetch()) {
             if (!$sRec->data) continue;
@@ -1823,7 +1834,22 @@ class doc_Folders extends core_Master
             
             list(, $folderId) = explode('::', $sRec->key);
             
-            if (!$folderId) continue ;
+            // Ако id-то на папката е кеширана - когато е над 16 символа
+            if (!$folderId) {
+                $fId = 1000;
+                while (TRUE) {                    
+                    if (!isset($fKeyArr[$fId])) {
+                        $fKeyArr[$fId] = core_Settings::prepareKey('doc_Folders::' . $fId);
+                    }
+                    
+                    if ($fKeyArr[$fId] == $sRec->key) {
+                        $folderId = $fId;
+                        break;
+                    }
+                    if ($fId++ > $maxFolderId) break;
+                }
+                if (!$folderId) continue ;
+            }
             
             $fRec = doc_Folders::fetch($folderId);
             
