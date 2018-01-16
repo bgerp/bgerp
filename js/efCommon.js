@@ -2124,6 +2124,7 @@ function refreshForm(form, removeFields) {
 		dataType: 'json'
 	}).done(function(data) {
 		getEO().saveFormData(frm.attr('id'), data);
+        console.log(data);
 		replaceFormData(frm, data);
 
         // Възстановяваме запазените пароли
@@ -2239,6 +2240,9 @@ function replaceFormData(frm, data)
 
 	// Забраняваме отново кеширането при зареждане по ajax
 	$.ajaxSetup ({cache: false});
+
+    // Пушваме ново URL
+    history.pushState(data, "Title", data.url);
 
 	var newParams = $('form').serializeArray();
 	var paramsArray = [];
