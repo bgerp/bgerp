@@ -88,6 +88,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 			if($cloneId){
 				$cloneRec = $mvc->fetch($cloneId);
 			}
+			$action = (isset($cloneRec)) ? 'cloneRecInDocument' : 'createProductInDocument';
 			
 			$mvc->requireRightFor('createproduct', (object)array($mvc->masterKey => $masterId, 'cloneId' => $cloneRec->id));
 			$Products = cls::get('cat_Products');
@@ -163,7 +164,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				}
 			}
 			
-			$data1 = (object)array('form' => $form, 'masterRec' => $masterRec);
+			$data1 = (object)array('form' => $form, 'masterRec' => $masterRec, 'action' => $action);
 			$mvc->invoke('AfterPrepareEditForm', array($data1, $data1));
 			
 			if($mvc instanceof sales_QuotationsDetails){
@@ -247,14 +248,12 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 					}
 				}
 				
-				$Driver->invoke('AfterPrepareEditForm', array($Products, (object)array('form' => $form)));
+				$Driver->invoke('AfterPrepareEditForm', array($Products, (object)array('form' => $form, 'action' => $action)));
 				$defMetas = $Driver->getDefaultMetas();
 				if(isset($defMetas['canManifacture'])){
 					$form->setField('tolerance', 'input');
 					$form->setField('term', 'input');
 				}
-				
-				
 				
 				$form->input();
 				if(empty($form->rec->packagingId)){
