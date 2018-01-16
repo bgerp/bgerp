@@ -429,6 +429,7 @@ class hr_Indicators extends core_Manager
     	
     	// Позицията от трудовия договор
     	$positionId = hr_EmployeeContracts::fetchField("#state = 'active' AND #personId = {$data->masterId}", 'positionId');
+    	$data->IData->render = FALSE;
     	if(!empty($positionId)){
     		
     		// Ако има формула за заплата
@@ -441,18 +442,13 @@ class hr_Indicators extends core_Manager
     			$indicators = array_keys($indicators);
     			if(count($indicators)){
     				$data->IData->query->in("indicatorId", $indicators);
-    			} else {
-    				
-    				// Ако няма такива няма да се рендира нищо
-    				$data->IData->render = FALSE;
-    				return;
+    				$data->IData->render = TRUE;
     			}
     		}
-    	} else {
-    		// Ако няма такива няма да се рендира нищо
-    		$data->IData->render = FALSE;
-    		return;
     	}
+    	
+    	// Ако няма такива няма да се рендира нищо
+    	if($data->IData->render == FALSE) return;
     	
     	// Подготовка на заявката
     	$data->IData->query->where("#personId = {$data->masterId}");
