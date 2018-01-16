@@ -451,7 +451,7 @@ class hr_Indicators extends core_Manager
     	}
     	
     	// Ако няма такива няма да се рендира нищо
-    	if($data->IData->render == FALSE) return;
+    	if($data->IData->render === FALSE) return;
     	
     	// Подготовка на заявката
     	$data->IData->query->where("#personId = {$data->masterId}");
