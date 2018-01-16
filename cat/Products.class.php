@@ -1516,6 +1516,13 @@ class cat_Products extends embed_Manager {
     	// За нескладируемите не се изчислява транспортно тегло
     	if(cat_Products::fetchField($productId, 'canStore') != 'yes') return NULL;
     	
+    	// Ако драйвера връща транспортно тегло, то е с приоритет
+    	if($Driver = static::getDriver($productId)){
+    		$rec = self::fetchRec($productId);
+    		$weight = $Driver->getTransportWeight($rec, $packagingId, $quantity);
+    		if(!empty($weight)) return $weight;
+    	}
+    	
     	// Колко е нетото за 1-ца от артикула в килограми
     	$netto = self::convertToUom($productId, 'kg');
     	if(empty($netto)) return NULL;
@@ -1565,6 +1572,13 @@ class cat_Products extends embed_Manager {
     	// За нескладируемите не се изчислява транспортно тегло
     	if(cat_Products::fetchField($productId, 'canStore') != 'yes') return NULL;
     	 
+    	// Ако драйвера връща транспортно тегло, то е с приоритет
+    	if($Driver = static::getDriver($productId)){
+    		$rec = self::fetchRec($productId);
+    		$volume = $Driver->getTransportVolume($rec, $packagingId, $quantity);
+    		if(!empty($volume)) return $volume;
+    	}
+    	
     	// Първо се гледа най-голямата опаковка за която има габаритни размери
     	$packQuery = cat_products_Packagings::getQuery();
     	$packQuery->where("#productId = '{$productId}'");

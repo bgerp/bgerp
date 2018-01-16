@@ -373,4 +373,32 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	{
 		return $this->class->canCalcTransportFee($productId);
 	}
+	
+	
+	/**
+	 * Връща транспортното тегло за подаденото количество и опаковка
+	 *
+	 * @param mixed $rec            - ид или запис на продукт
+	 * @param int|NULL $packagingId - ид на опаковка
+	 * @param int $quantity         - общо количество
+	 * @return double|NULL          - транспортното тегло за к-то на артикула
+	 */
+	public static function getTransportWeight($rec, $packagingId = NULL, $quantity)
+	{
+		return $this->class->canCalcTransportFee($rec, $packagingId, $quantity);
+	}
+	
+	
+	/**
+	 * Връща транспортния обем за подаденото количество и опаковка
+	 *
+	 * @param mixed $rec            - ид или запис на продукт
+	 * @param int|NULL $packagingId - ид на опаковка
+	 * @param int $quantity         - общо количество
+	 * @return double               - теглото на единица от продукта
+	 */
+	public static function getTransportVolume($productId, $packagingId = NULL, $quantity)
+	{
+		return $this->class->getTransportVolume($rec, $packagingId, $quantity);
+	}
 }
