@@ -279,12 +279,33 @@ class distro_Group extends core_Master
         
         $title = $rec->title;
         
+        // Ако в заглавието има хендлър на документ, да се използва то
+        preg_match_all(doc_RichTextPlg::$identPattern, $title, $matches);
+        $abbrArr = doc_Containers::getAbbr();
+        foreach ($matches[0] as $key => $mArr) {
+            $abbr = strtoupper($matches['abbr'][$key]);
+            $mId = $matches['id'][$key];
+            
+            $clsName = $abbrArr[$abbr];
+            
+            if ($mId && $clsName::fetch((int)$mId)) {
+                
+                $haveAbbr = TRUE;
+                
+                break;
+            }
+        }
+        
         $title = STR::utf2ascii($title);
         $title = preg_replace('/[\W]+/', ' ', $title);
         
         $title = trim($title);
         
-        $subDir = self::getHandle($id) . ' - ' . $title;
+        if (!$haveAbbr) {
+            $subDir = self::getHandle($id) . ' - ' . $title;
+        } else {
+            $subDir = $title;
+        }
         
         return $subDir;
     }

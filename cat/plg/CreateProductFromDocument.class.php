@@ -88,6 +88,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 			if($cloneId){
 				$cloneRec = $mvc->fetch($cloneId);
 			}
+			$action = (isset($cloneRec)) ? 'cloneRecInDocument' : 'createProductInDocument';
 			
 			$mvc->requireRightFor('createproduct', (object)array($mvc->masterKey => $masterId, 'cloneId' => $cloneRec->id));
 			$Products = cls::get('cat_Products');
@@ -144,7 +145,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 			}
 			
 			$form->setField('productId', 'input=none');
-			$form->setField('packagingId', 'input=none');
+			
 			if(isset($cloneRec)){
 				$form->setField('proto', 'input=hidden');
 				$form->setDefault('proto', $cloneRec->productId);
@@ -157,12 +158,13 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 					}
 				}
 			} else {
+				$form->setField('packagingId', 'input=none');
 				foreach ($form->fields as $n => $f1){
 					$detailFields[$n] = $n;
 				}
 			}
 			
-			$data1 = (object)array('form' => $form, 'masterRec' => $masterRec);
+			$data1 = (object)array('form' => $form, 'masterRec' => $masterRec, 'action' => $action);
 			$mvc->invoke('AfterPrepareEditForm', array($data1, $data1));
 			
 			if($mvc instanceof sales_QuotationsDetails){
@@ -246,7 +248,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 					}
 				}
 				
-				$Driver->invoke('AfterPrepareEditForm', array($Products, (object)array('form' => $form)));
+				$Driver->invoke('AfterPrepareEditForm', array($Products, (object)array('form' => $form, 'action' => $action)));
 				$defMetas = $Driver->getDefaultMetas();
 				if(isset($defMetas['canManifacture'])){
 					$form->setField('tolerance', 'input');
@@ -260,11 +262,16 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				
 				$Products->invoke('AfterInputEditForm', array($form));
 				$mvc->invoke('AfterInputEditForm', array($form));
-				
+				if(isset($cloneRec)){
+					$form->setReadOnly('packagingId', $cloneRec->packagingId);
+				}
 				$productKeys = array_keys($productFields);
 				$productKeys = implode('|', $productKeys);
 				$form->setField('proto', "removeAndRefreshForm={$productKeys}");
-				$form->setField('packagingId', 'input=hidden');
+				
+				if(!isset($cloneRec)){
+					$form->setField('packagingId', 'input=hidden');
+				}
 				
 				// Намираме полетата от артикула
 				$productFields = array_diff_key($form->fields, $detailFields);
@@ -332,15 +339,20 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				}
 				
 				// Създаване на нов артикул само при нужда
+				$msg = NULL;
 				if(!isset($productId)){
 					$productId = $Products->save($pRec);
+					$msg = 'Създаден е нов артикул|*:' . cat_Products::getTitleById($productId);
 					$Products->logInAct('Създаване от документ', $pRec);
 				}
 				
 				$dRec = (object)array_diff_key($arrRec, $productFields);
 				$dRec->productId = $productId;
-				$dRec->packagingId = $pRec->measureId;
-				$dRec->quantityInPack = 1;
+				
+				if(!isset($cloneRec)){
+					$dRec->packagingId = $pRec->measureId;
+					$dRec->quantityInPack = 1;
+				}
 				
 				if(empty($rec->packQuantity) || $rec->defQuantity === TRUE){
 					$dRec->quantity = deals_Helper::getDefaultPackQuantity($productId, $pRec->measureId);
@@ -401,7 +413,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				}
 				
 				// Редирект към сделката/офертата
-				return Redirect(array($mvc->Master, 'single', $dRec->{$mvc->masterKey}), FALSE, 'Успешно е създаден нов артикул');
+				return Redirect(array($mvc->Master, 'single', $dRec->{$mvc->masterKey}), FALSE, $msg);
 			}
 			
 			// Добавяме бутони на формата

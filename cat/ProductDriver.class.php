@@ -599,26 +599,26 @@ abstract class cat_ProductDriver extends core_BaseClass
 	
 	
 	/**
-     * Връща транспортното тегло за подаденото количество и опаковка
+     * Връща транспортното тегло за подаденото количество
      * 
-     * @param mixed $rec            - ид или запис на продукт
-     * @param int $quantity         - общо количество
-     * @return double|NULL          - транспортното тегло за к-то на артикула
+     * @param mixed $rec    - ид или запис на продукт
+     * @param int $quantity - общо количество
+     * @return double|NULL  - транспортното тегло на общото количество
      */
-    public static function getTransportWeight($rec, $quantity)
+    public function getTransportWeight($rec, $quantity)
     {
     	return NULL;
     }
     
     
     /**
-     * Връща транспортния обем за подаденото количество и опаковка
+     * Връща транспортния обем за подаденото количество
      *
-     * @param mixed $rec            - ид или запис на продукт
-     * @param int $quantity         - общо количество
-     * @return double               - теглото на единица от продукта
+     * @param mixed $rec     - ид или запис на артикул
+     * @param int $quantity  - общо количество
+     * @return double        - транспортния обем на общото количество
      */
-    public static function getTransportVolume($productId, $quantity)
+    public function getTransportVolume($rec, $quantity)
     {
     	return NULL;
     }

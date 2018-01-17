@@ -910,6 +910,12 @@ class sales_QuotationsDetails extends doc_Detail {
     	$Double = cls::get('type_Double');
     	$Double->params['decimals'] = 2;
     	
+    	if($rec->quantityInPack != 1){
+    		$row->totalQuantity = $Double->toVerbal($rec->quantity);
+    		$shortUom = cat_Uom::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
+    		$row->totalQuantity .= " " . tr($shortUom);
+    	}
+    	
     	// Показваме подробната информация за опаковката при нужда
     	deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
     	$row->amount = $Double->toVerbal($rec->amount);
