@@ -406,7 +406,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	} elseif(!empty($rec->deliveryAdress)){
     		if($form->getFieldTypeParam('deliveryAdress', 'isReadOnly') !== TRUE){
     			if(!drdata_Address::parsePlace($rec->deliveryAdress)){
-    				$form->setError('deliveryAdress', 'Адресът трябва да съдържа държава и пощенски код');
+    				$form->setError('deliveryAdress', 'Мястото трябва да съдържа държава и пощенски код');
     			}
     		}
     	}
