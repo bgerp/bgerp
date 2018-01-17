@@ -544,13 +544,6 @@ class planning_Jobs extends core_Master
     			$form->setWarning('department', 'В Заданието липсва избран ц-р на дейност и ще бъде записано в нишката');
     		}
     		
-    		$weight = cat_Products::getTransportWeight($rec->productId, $rec->quantity);
-    		$rec->brutoWeight = ($weight) ? $weight : NULL;
-    			
-    		// Колко е еденичното тегло
-    		$weight = cat_Products::getTransportWeight($rec->productId, $rec->quantity);
-    		$rec->weight = ($weight) ? $weight : NULL;
-    		
     		if($rec->dueDate < dt::today()){
     			$form->setWarning('dueDate', 'Падежът е в миналото');
     		}
@@ -569,6 +562,15 @@ class planning_Jobs extends core_Master
     		$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
     		$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
     		$rec->isEdited = TRUE;
+    		
+    		$weight = cat_Products::getTransportWeight($rec->productId, $rec->quantity);
+    		if(!empty($weight)){
+    			$rec->brutoWeight = $weight;
+    			$rec->weight = $weight / $rec->quantity;
+    		} else {
+    			$rec->brutoWeight = NULL;
+    			$rec->weight = NULL;
+    		}
     	}
     }
     
