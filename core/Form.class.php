@@ -1197,8 +1197,9 @@ class core_Form extends core_FieldSet
             $sf[$name] = $this->rec->{$name};
         }
         $sf['ret_url'] = Request::get('ret_url');
+        $sf['Protected'] = Request::get('Protected');
         $res->url = toUrl($sf);
-
+        
         core_App::getJson($res);
     }
 
