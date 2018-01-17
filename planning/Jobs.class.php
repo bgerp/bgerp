@@ -325,6 +325,17 @@ class planning_Jobs extends core_Master
     
     
     /**
+     * След подготовката на заглавието на формата
+     */
+    protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
+    {
+    	// По-хубаво заглавие на формата
+    	$rec = $data->form->rec;
+    	$data->form->title = core_Detail::getEditTitle('cat_Products', $rec->productId, $mvc->singleTitle, $rec->id);
+    }
+    
+    
+    /**
      *  Подготовка на филтър формата
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
@@ -579,7 +590,7 @@ class planning_Jobs extends core_Master
      * @param core_Manager $mvc
      * @param stdClass $rec
      */
-    public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
+    protected static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
     {
     	if($rec->isEdited === TRUE && isset($rec->id) && $rec->_isClone !== TRUE){
     		self::addToHistory($rec->history, 'edited', $rec->modifiedOn, $rec->modifiedBy);
