@@ -147,13 +147,14 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 			$form->setField('productId', 'input=none');
 			
 			if(isset($cloneRec)){
+				$form->setField('packQuantity', 'mandatory');
 				$form->setField('proto', 'input=hidden');
 				$form->setDefault('proto', $cloneRec->productId);
 				
 				$detailFields['proto'] = 'proto';
 				foreach ($form->fields as $n => $f1){
 					$detailFields[$n] = $n;
-					if(isset($cloneRec->{$n}) && !in_array($n, array('packQuantity', 'quantity', 'price', 'packPrice', 'discount'))){
+					if(isset($cloneRec->{$n}) && !in_array($n, array('quantity', 'price', 'packPrice', 'discount'))){
 						$form->setDefault($n, $cloneRec->{$n});
 					}
 				}
@@ -393,7 +394,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 				
 				$fields = ($mvc instanceof sales_QuotationsDetails) ? array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId') : array();
 				tcost_Calcs::prepareFee($dRec, $form, $masterRec, $fields);
-			
+				//bp();
 				$mvc->save($dRec);
 				
 				if ($cloneId) {
