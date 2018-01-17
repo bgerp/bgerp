@@ -393,7 +393,16 @@ class doc_AssignPlg extends core_Plugin
         if ($rec->assign) {
             $interestedUsersArr += type_Keylist::toArray($rec->assign);
         }
-         
+        
+        // Текущия потребител да е в началото
+        if (!empty($interestedUsersArr)) {
+            $cu = core_Users::getCurrent();
+            if ($interestedUsersArr[$cu]) {
+                unset($interestedUsersArr[$cu]);
+                $interestedUsersArr = array($cu => $cu) + $interestedUsersArr;
+            }
+        }
+        
         $suggArr = $data->form->fields['assign']->type->prepareSuggestions();
         foreach ($interestedUsersArr as &$nick) {
             if ($suggArr[$nick]) {
