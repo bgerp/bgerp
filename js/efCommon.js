@@ -2124,7 +2124,6 @@ function refreshForm(form, removeFields) {
 		dataType: 'json'
 	}).done(function(data) {
 		getEO().saveFormData(frm.attr('id'), data);
-        console.log(data);
 		replaceFormData(frm, data);
 
         // Възстановяваме запазените пароли
@@ -4212,19 +4211,6 @@ function showToast(data) {
 }
 
 
-/**
- * Рендира новото изображение за превю на картина
- * 
- * @param object data - Обект с необходимите стойности
- * data.data-url
- * data.src
- * data.width
- * data.height
- * data.fh
- */
-function render_setNewFilePreview(data) {
-	console.log(data);
-}
 var oldImageSrc, oldImageWidth, oldImageHeight;
 function changeZoomImage(el) {
     if($(el).attr("data-zoomed") == "no") {
@@ -4249,6 +4235,7 @@ function changeZoomImage(el) {
         }
     }
 }
+
 
 /**
  * Experta - Клас за функции на EF
