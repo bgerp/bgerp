@@ -572,7 +572,9 @@ class cal_Tasks extends embed_Manager
                     $sState = $rec->savedState;
                     $tEnd = $rec->timeEnd;
                     if (!$tEnd && $rec->timeStart) {
-                        $tEnd = $rec->expectationTimeEnd;
+                        if ($rec->timeStart != $rec->expectationTimeEnd) {
+                            $tEnd = $rec->expectationTimeEnd;
+                        }
                     }
                     if (($tEnd) && ($tEnd < $now)) {
                         $sState = 'late';
