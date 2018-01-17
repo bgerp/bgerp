@@ -47,7 +47,7 @@ class workpreff_FormCv extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    public $interfaces = 'doc_DocumentIntf';
+    public $interfaces = 'doc_DocumentIntf,cms_SourceIntf';
 
 
 
@@ -102,13 +102,21 @@ class workpreff_FormCv extends core_Master
      */
     public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
 
-
+	
+    /**
+     * Кой има право да добавя?
+     *
+     * @var string|array
+     */
+    public $canNew = 'every_one';
+    
+    
     /**
      * Описание на модела (таблицата)
      */
     function description()
     {
-
+		$this->FLD('typeOfPosition', 'enum(,adm=Администрация,man=Производство, log=Логистика,sall=Продажби)', 'caption=Тип на позицията,mandatory,silent,refreshForm,allowEmpty');
 
         // Име на лицето
         // $this->FLD('salutation', 'enum(,mr=Г-н,mrs=Г-жа,miss=Г-ца)', 'caption=Обръщение,export=Csv');
@@ -132,7 +140,7 @@ class workpreff_FormCv extends core_Master
         $this->FLD('email', 'emails', 'caption=Лични комуникации->Имейли,class=contactData,export=Csv');
         $this->FLD('tel', 'drdata_PhoneType(type=tel)', 'caption=Лични комуникации->Телефони,class=contactData,silent,export=Csv');
         $this->FLD('mobile', 'drdata_PhoneType(type=tel)', 'caption=Лични комуникации->Мобилен,class=contactData,silent,export=Csv');
-        $this->FLD('typeOfPosition', 'enum(,adm=Администрация,man=Производство, log=Логистика,sall=Продажби)', 'caption=Тип на позицията,mandatory,silent,refreshForm,allowEmpty');
+        
 
         $period = '';$months = '';
          
@@ -157,7 +165,131 @@ class workpreff_FormCv extends core_Master
     }
 
    
+	function act_New()
+	{
+		$this->requireRightFor('new');
+		
+// 		expect($id = Request::get('id'));
+// 		expect($rec = $this->fetch($id));
+// 		$this->requireRightFor('new', $rec);
+		
+		$form = $this->getForm();
+		foreach (array('folderId', 'threadId', 'originId', 'id') as $fld){
+			$form->setField($fld, 'input=none');
+		}
+		
+		$form->input(NULL, 'silent');
+		$data = (object)array('form' => $form);
+		self::expandEditForm($mvc, $data);
+		
+		
+		$form->input();
+		$this->invoke('AfterInputEditForm', array(&$form));
+		
+		if($form->isSubmitted()){
+			$rec = $form->rec;
 
+			+$rec->state = 'active';
+			$this->save($rec);
+		
+			return followRetUrl(NULL, '|Вашето CV е прието. Благодарим за проявения интерес. ', 'success');
+		}
+		
+		
+		$form->title = 'Изпращане на CV';
+		$form->toolbar->addSbBtn('Изпрати', 'save', 'id=save, ef_icon = img/16/disk.png,title=Изпращане на CV');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close-red.png,title=Oтказ');
+    	$tpl = $form->renderHtml();
+    	
+    	// Поставяме шаблона за външен изглед
+    	Mode::set('wrapper', 'cms_page_External');
+    	
+    	return $tpl;
+	}
+	
+	
+	private static function expandEditForm($mvc, &$data)
+	{
+		$form = &$data->form;
+		
+		$rec = &$form->rec;
+		
+		$form->setDefault('country', drdata_Countries::getIdByName('bul'));
+		
+		if($rec->id) {
+			 
+			$exRec = $mvc->fetch($rec->id);
+		
+		}else{
+			 
+			$exRec=$rec;
+		}
+		
+		$exRec=$rec;
+		
+		$form->input('typeOfPosition');
+		
+		if ($exRec->typeOfPosition){
+		
+			$options = workpreff_WorkPreff::getOptionsForChoice();
+			 
+			if (is_array($options)) {
+		
+				foreach ($options as $v) {
+		
+					if(in_array($exRec->typeOfPosition,$v->typeOfPosition)){
+		
+						if ($v->type == 'enum') {
+		
+							foreach ($v->parts as $k=>$venum){
+		
+								$parts .=$k.'='.$venum.',' ;
+								 
+							}
+		
+							$parts= trim($parts,',') ;
+		
+		
+		
+							$form->FLD("workpreff_{$v->id}", "enum($parts)", "caption={$v->name},maxRadio={$v->count},columns=3,input");
+		
+							$form->setDefault("workpreff_{$v->id}",$exRec->workpreff[$v->id]->value);
+		
+							unset($parts);
+		
+						}
+						 
+						if ($v->type == 'set') {
+		
+							foreach ($v->parts as $k=>$vset){
+		
+								$parts .=$k.'='.$vset.',' ;
+		
+							}
+		
+		
+							$parts= trim($parts,',') ;
+		
+							$form->FLD("workpreff_{$v->id}", "set($parts)", "caption ={$v->name},input");
+		
+		
+		
+		
+							$form->setDefault("workpreff_{$v->id}",$exRec->workpreff[$v->id]->value);
+		
+							unset($parts);
+		
+						}
+		
+					}
+		
+				}
+		
+			}
+		
+		}
+	}
+	
     /**
      * Преди показване на форма за добавяне/промяна.
      *
@@ -167,84 +299,7 @@ class workpreff_FormCv extends core_Master
 
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        $form = &$data->form;
-        
-        $rec = &$form->rec;
-
-        $form->setDefault('country', drdata_Countries::getIdByName('bul'));
-        
-       if($rec->id) {
-       
-        	$exRec = $mvc->fetch($rec->id);
-  
-       }else{
-        	
-       	$exRec=$rec;
-       }
-
-        $exRec=$rec;
- 
-        $form->input('typeOfPosition');
-        
-        if ($exRec->typeOfPosition){
-    
-        	$options = workpreff_WorkPreff::getOptionsForChoice();
-        	
-        	if (is_array($options)) {
-        
-        		foreach ($options as $v) {
-        
-        			if(in_array($exRec->typeOfPosition,$v->typeOfPosition)){
-        		
-        				if ($v->type == 'enum') {
-        
-        					foreach ($v->parts as $k=>$venum){
-        
-        						$parts .=$k.'='.$venum.',' ;
-        							
-        					}
-        
-        					$parts= trim($parts,',') ;
-        
-        
-        
-        					$form->FLD("workpreff_{$v->id}", "enum($parts)", "caption={$v->name},maxRadio={$v->count},columns=3,input");
-        
-        					$form->setDefault("workpreff_{$v->id}",$exRec->workpreff[$v->id]->value);
-        
-        					unset($parts);
-        
-        				}
-        				 
-        				if ($v->type == 'set') {
-        
-        					foreach ($v->parts as $k=>$vset){
-        
-        						$parts .=$k.'='.$vset.',' ;
-        
-        					}
-        
-        
-        					$parts= trim($parts,',') ;
-        
-        					$form->FLD("workpreff_{$v->id}", "set($parts)", "caption ={$v->name},input");
-        
-        
-        
-        
-        					$form->setDefault("workpreff_{$v->id}",$exRec->workpreff[$v->id]->value);
-        
-        					unset($parts);
-        
-        				}
-        
-        			}
-        
-        		}
-        
-        	}
-        
-         }
+        self::expandEditForm($mvc, $data);
  
     }
     
@@ -376,6 +431,25 @@ class workpreff_FormCv extends core_Master
         $row->workpreff = "$prepare";
         
         $prepare = '';
+    }
+    
+    
+    /**
+     * Връща URL към себе си (блога)
+     */
+    function getUrlByMenuId($cMenuId)
+    {
+    	return array('workpreff_FormCv', 'new', 'ret_url' => TRUE);
+    }
+    
+    /**
+     * Връща URL към вътрешната част (работилницата), отговарящо на посочената точка в менюто
+     */
+    function getWorkshopUrl($menuId)
+    {
+    	$url = array('workpreff_FormCv', 'list');
+    
+    	return $url;
     }
 
 }
