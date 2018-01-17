@@ -984,8 +984,8 @@ class bgerp_Notifications extends core_Manager
         $modifiedBefore = dt::subtractSecs(180);
         
         // Инвалиидиране на кеша след запазване на подредбата -  да не стои запазено до следващото инвалидиране
-        $cQuery->where(array("#modifiedOn >= '[#1#]'", $modifiedBefore));
-        $cQuery->orWhere(array("#lastTime >= '[#1#]'", $modifiedBefore));
+        $cQuery->where(array("#modifiedOn > '[#1#]'", $modifiedBefore));
+        $cQuery->orWhere(array("#lastTime > '[#1#]'", $modifiedBefore));
         $cQuery->limit(1);
         $cQuery->orderBy('modifiedOn', 'DESC');
         $cQuery->orderBy('lastTime', 'DESC');

@@ -314,7 +314,7 @@ class cat_ProductDriverIntf extends embed_DriverIntf
      * които автоматично се добавят към условията на договора
      * 
      * @param stdClass $rec   - ид/запис на артикул
-     * @param string $docType - тип на документа sale/purchase
+     * @param string $docType - тип на документа sale/purchase/quotation
      * @param string|NULL $lg - език
      */
     public function getConditions($rec, $docType, $lg = NULL)
@@ -372,5 +372,31 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	public function canCalcTransportFee($productId)
 	{
 		return $this->class->canCalcTransportFee($productId);
+	}
+	
+	
+	/**
+     * Връща транспортното тегло за подаденото количество
+     * 
+     * @param mixed $rec    - ид или запис на артикул
+     * @param int $quantity - общо количество
+     * @return double|NULL  - транспортното тегло на общото количество
+     */
+	public function getTransportWeight($rec, $quantity)
+	{
+		return $this->class->canCalcTransportFee($rec, $quantity);
+	}
+	
+	
+	/**
+     * Връща транспортния обем за подаденото количество
+     *
+     * @param mixed $rec     - ид или запис на артикул
+     * @param int $quantity  - общо количество
+     * @return double        - транспортния обем на общото количество
+     */
+	public function getTransportVolume($rec, $quantity)
+	{
+		return $this->class->getTransportVolume($rec, $quantity);
 	}
 }

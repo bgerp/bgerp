@@ -93,7 +93,7 @@ class planning_TaskSerials extends core_Manager
 	/**
 	 * Връща следващия сериен номер, автоинкрементиран
 	 *
-	 * @param int $taskId - ид на операция за прозиводство
+	 * @param int $taskId - ид на операция за производство
 	 * @return string $serial - сериен номер
 	 */
 	public static function forceAutoNumber($rec)
