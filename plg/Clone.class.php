@@ -67,6 +67,7 @@ class plg_Clone extends core_Plugin
         
         // Задаваме екшъна
         $form->setAction($mvc, 'clonefields');
+        $form->_cloneForm = TRUE;
         
         // Инпутваме формата
         $form->input();

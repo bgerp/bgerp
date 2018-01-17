@@ -231,6 +231,37 @@ class distro_Repositories extends core_Master
     
     
     /**
+     * Проверява дали съществува такава директория - без значние дали има нещо в нея или не
+     *
+     * @param integer $repoId
+     * @param string|NULL $name
+     *
+     * @return FALSE|string
+     */
+    public static function checkDirExist($repoId, $name)
+    {
+        $rec = self::fetch((int) $repoId);
+        
+        $sshObj = self::connectToRepo($rec);
+        
+        if ($sshObj === FALSE) return NULL;
+        
+        $path = rtrim($rec->path, '/') . '/' . $name;
+        $path = escapeshellarg($path);
+        
+        $exec = "if [ -d {$path} ]; then echo 'exist'; fi;";
+        
+        $sshObj->exec($exec, $output);
+        
+        $output = trim($output);
+        
+        if ($output && $output == 'exist') return TRUE;
+        
+        return FALSE;
+    }
+    
+    
+    /**
      * Връща изпълнимия стринг за създаване на директрояита
      * 
      * @param integer $repoId
