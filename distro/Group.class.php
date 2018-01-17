@@ -284,11 +284,11 @@ class distro_Group extends core_Master
         $abbrArr = doc_Containers::getAbbr();
         foreach ($matches[0] as $key => $mArr) {
             $abbr = strtoupper($matches['abbr'][$key]);
-            $id = $matches['id'][$key];
+            $mId = $matches['id'][$key];
             
             $clsName = $abbrArr[$abbr];
             
-            if ($id && $clsName::fetch((int)$id)) {
+            if ($mId && $clsName::fetch((int)$mId)) {
                 
                 $haveAbbr = TRUE;
                 
