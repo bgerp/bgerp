@@ -2124,7 +2124,6 @@ function refreshForm(form, removeFields) {
 		dataType: 'json'
 	}).done(function(data) {
 		getEO().saveFormData(frm.attr('id'), data);
-        console.log(data);
 		replaceFormData(frm, data);
 
         // Възстановяваме запазените пароли
@@ -4223,8 +4222,10 @@ function showToast(data) {
  * data.fh
  */
 function render_setNewFilePreview(data) {
-	console.log(data);
+//	getEO().log(data);
 }
+
+
 var oldImageSrc, oldImageWidth, oldImageHeight;
 function changeZoomImage(el) {
     if($(el).attr("data-zoomed") == "no") {
