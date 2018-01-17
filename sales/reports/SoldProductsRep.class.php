@@ -236,7 +236,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData {
 					} else {
 						$obj = &$recs [$id];
 						$obj->quantity += $quantity;
-						$obj->primeCost += $primeCost;
+						$obj->amount += $primeCost;
 					}
 				}
 			}
