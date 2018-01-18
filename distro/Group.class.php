@@ -362,11 +362,13 @@ class distro_Group extends core_Master
             
             $clsName = $abbrArr[$abbr];
             
-            if ($mId && $clsName::fetch((int)$mId)) {
-                
-                $haveAbbr = TRUE;
-                
-                break;
+            if ($clsName && cls::load($clsName, TRUE)) {
+                if ($mId && $clsName::fetch((int)$mId)) {
+                    
+                    $haveAbbr = TRUE;
+                    
+                    break;
+                }
             }
         }
         

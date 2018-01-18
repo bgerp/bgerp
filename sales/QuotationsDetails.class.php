@@ -405,6 +405,21 @@ class sales_QuotationsDetails extends doc_Detail {
     }
     
     
+    /**
+     * Подготовка на бутоните на формата за добавяне/редактиране.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    {
+    	if(!empty($data->form->rec->id) || $data->form->cmd == 'save_new_row') {
+    		$data->form->toolbar->addSbBtn('Запис в нов ред', 'save_new_row', NULL, array('id'=>'saveInNewRec', 'order'=>'9.99955', 'ef_icon'=>'img/16/save_and_new.png', 'title'=>'Запиши в нов ред'));
+    	}
+    }
+    
+    
 	/**
      * Извиква се след въвеждането на данните от Request във формата
      */
@@ -441,6 +456,7 @@ class sales_QuotationsDetails extends doc_Detail {
     	}
     	
     	if($form->isSubmitted()){
+    		
     		if(!isset($form->rec->packQuantity)){
     			$form->rec->defQuantity = TRUE;
     			$form->setDefault('packQuantity', deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId));
@@ -466,7 +482,7 @@ class sales_QuotationsDetails extends doc_Detail {
     			    }
     			    
     				if($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}  AND #quantity='{$rec->quantity}'")){
-    					if($sameProduct->id != $rec->id){
+    					if($sameProduct->id != $rec->id || $form->cmd == 'save_new_row'){
     						$form->setError('packQuantity', 'Избраният продукт вече фигурира с това количество');
     						return;
     					}
@@ -494,6 +510,10 @@ class sales_QuotationsDetails extends doc_Detail {
     			if(isset($price)){
     				$price = deals_Helper::getPurePrice($price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
     				$rec->price  = $price;
+    			}
+    			
+    			if($form->cmd == 'save_new_row'){
+    				unset($rec->id);
     			}
     		}
     	
