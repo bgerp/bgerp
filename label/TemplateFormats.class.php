@@ -562,7 +562,7 @@ class label_TemplateFormats extends core_Detail
                 
                 $form->FNC($placeHolderField, $type, "caption={$caption}, input=input, silent");
             } elseif ($rec->type == 'barcode') {
-                $form->FNC($placeHolderField, 'text', "caption={$caption}, input=input, silent");
+                $form->FNC($placeHolderField, 'text(rows=2)', "caption={$caption}, input=input, silent");
             }
         }
     }

@@ -1196,8 +1196,17 @@ class core_Form extends core_FieldSet
         foreach($fields as $name => $field) {
             $sf[$name] = $this->rec->{$name};
         }
-        $sf['ret_url'] = Request::get('ret_url');
-        $sf['Protected'] = Request::get('Protected');
+        
+        $getArr = Request::getParams('_GET');
+        unset($getArr['virtual_url']);
+        unset($getArr['App']);
+        unset($getArr['Ctr']);
+        unset($getArr['Act']);
+        
+        if (!empty($getArr)) {
+            $sf += $getArr;
+        }
+        
         $res->url = toUrl($sf);
         
         core_App::getJson($res);
