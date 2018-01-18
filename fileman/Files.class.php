@@ -79,6 +79,12 @@ class fileman_Files extends core_Master
     
     
     /**
+     * Кой има права за регенерира на файла
+     */
+    protected $canPrintfiles = 'powerUser';
+    
+    
+    /**
      * Заглавие на модула
      */
     public $title = 'Файлове';
@@ -2126,7 +2132,59 @@ class fileman_Files extends core_Master
         $data->toolbar->addBtn('Линк', array('F', 'GetLink', 'fileHnd' => $data->rec->fileHnd, 'ret_url' => TRUE), 'id=btn-downloadLink', 'ef_icon = img/16/link.png, title=Генериране на линк за сваляне, order=9');
         
         if ($mvc->haveRightFor('regenerate', $data->rec->id)) {
-            $data->toolbar->addBtn('Регенериране', array($mvc, 'Regenerate', 'fileHnd' => $data->rec->fileHnd, 'ret_url' => TRUE), 'id=btn-regenerate', 'ef_icon = img/16/recycle.png, title=Повторна обработка на файла, order=25');
+            $data->toolbar->addBtn('Регенериране', array($mvc, 'Regenerate', 'fileHnd' => $data->rec->fileHnd, 'ret_url' => TRUE), 'id=btn-regenerate', 'ef_icon = img/16/recycle.png, title=Повторна обработка на файла, order=19.99');
+        }
+        
+        $ext = self::getExt($data->rec->name);
+        if ($mvc->haveRightFor('printfiles', $data->rec) && $ext) {
+            // Вземаме уеб-драйверите за това файлово разширение
+            $webdrvArr = fileman_Indexes::getDriver($ext, $data->rec->name);
+            
+            $canPrint = FALSE;
+            
+            foreach ($webdrvArr as $drv) {
+                if (!$drv) continue;
+                
+                if (!cls::load($drv, TRUE)) continue;
+                
+                if ($drv::$defaultTab == 'preview') {
+                    
+                    $drv->startProcessing($data->rec);
+                    
+                    $canPrint = TRUE;
+                    
+                    break;
+                }
+            }
+            
+            if ($canPrint) {
+                
+                $jpgArr = fileman_Indexes::getInfoContentByFh($data->rec->fileHnd, 'jpg');
+                
+                // Ако има грешка при конвертирането
+                $disabled = '';
+                if ((is_object($jpgArr) && $jpgArr->errorProc)) {
+                    $disabled = ',disabled';
+                }
+                
+                $warning = '';
+                if (is_array($jpgArr) && empty($jpgArr)) {
+                    $warning = 'Няма данни за отпечатване';
+                }
+                
+                if (is_array($jpgArr) && $jpgArr['otherPagesCnt']) {
+                    $all = count($jpgArr);
+                    $all--;
+                    
+                    $warning = "|Ще се отпечатат първите|* {$all} |страници|*. |Ще се пропуснат|* {$jpgArr['otherPagesCnt']} |страници|*.";
+                }
+                
+                if ($warning) {
+                    $warning = ',warning=' . $warning;
+                }
+                
+                $data->toolbar->addBtn('Печат', array($mvc, 'PrintFiles', 'fileHnd' => $data->rec->fileHnd, 'ret_url' => TRUE), 'id=btnPrint, target=_blank', "ef_icon = img/16/printer.png, title=Печат на документа{$disabled}{$warning}");
+            }
         }
         
         // Очакваме да има такъв файл
@@ -2151,6 +2209,96 @@ class fileman_Files extends core_Master
                     }
                 }
             }
+        }
+    }
+    
+    
+    /**
+     * Екшън за отпечатване
+     */
+    function act_PrintFiles()
+    {
+        // Очакваме да има права за виждане
+        $this->requireRightFor('printfiles');
+        
+        $fileHnd = Request::get('fileHnd');
+        
+        expect($fileHnd);
+        
+        // Вземаме записа за файла
+        $fRec = fileman_Files::fetchByFh($fileHnd);
+        
+        expect($fRec);
+        
+        // Очакваме да има права за разглеждане на записа
+        $this->requireRightFor('printfiles', $fRec);
+        
+        // Вземаме масива с изображенията
+        $jpgArr = fileman_Indexes::getInfoContentByFh($fileHnd, 'jpg');
+        
+        // Ако няма такъв запис
+        if ($jpgArr === FALSE) {
+            
+            // Сменяме мода на page_Waiting
+            Mode::set('wrapper', 'page_Waiting');
+            
+            return ;
+        }
+        
+        // Ако е обект и има съобщение за грешка
+        if (is_object($jpgArr) && $jpgArr->errorProc) {
+            
+            // Сменяме мода
+            Mode::set('wrapper', 'page_PreText');
+            
+            // Връщаме съобщението за грешка
+            return tr($jpgArr->errorProc);
+        }
+        
+        Mode::set('wrapper', 'page_Print');
+        Mode::set('printing');
+        
+        if (($jpgArr) && (!empty($jpgArr))) {
+            
+            $ext = self::getExt($fRec->name);
+            // Вземаме уеб-драйверите за това файлово разширение
+            $webdrvArr = fileman_Indexes::getDriver($ext, $fRec->name);
+            
+            foreach ($webdrvArr as $drv) {
+                if (!$drv) continue;
+                // Вземаме височината и широчината
+                $thumbWidthAndHeightArr = $drv->getPreviewWidthAndHeight();
+                
+                if (!empty($thumbWidthAndHeightArr)) break;
+            }
+            
+            $preview = new ET("[#THUMB_IMAGE#]");
+            
+            // Атрибути на thumbnail изображението
+            $attr = array('class' => 'webdrv-preview', 'style' => 'margin: 0 auto 0px auto; display: block;');
+            
+            unset($jpgArr['otherPagesCnt']);
+            
+            $multiplier = fileman_Setup::get('WEBDRV_PREVIEW_MULTIPLIER');
+            
+            $verbName = 'Preview';
+            
+            if ($multiplier > 1) {
+                foreach ($thumbWidthAndHeightArr as &$wh) {
+                    $wh *= $multiplier;
+                }
+                $verbName = 'Preview X ' . $multiplier;
+            }
+            
+            foreach ($jpgArr as $jpgFh) {
+                
+                $imgInst = new thumb_Img(array($jpgFh, $thumbWidthAndHeightArr['width'], $thumbWidthAndHeightArr['height'], 'fileman', 'verbalName' => $verbName));
+                
+                // Добавяме към preview' то генерираното изображение
+                $preview->append($imgInst->createImg($attr), 'THUMB_IMAGE');
+            }
+            
+            return $preview;
         }
     }
     
