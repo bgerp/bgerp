@@ -73,6 +73,12 @@ class fileman_Files extends core_Master
     
     
     /**
+     * Кой има права за регенерира на файла
+     */
+    protected $canRegenerate = 'admin';
+    
+    
+    /**
      * Заглавие на модула
      */
     public $title = 'Файлове';
@@ -2116,8 +2122,12 @@ class fileman_Files extends core_Master
     {
         // Добавяме бутон за сваляне
         $downloadUrl = toUrl(array('fileman_Download', 'Download', 'fh' => $data->rec->fileHnd, 'forceDownload' => TRUE), FALSE);
-        $data->toolbar->addBtn('Сваляне', $downloadUrl, 'id=btn-download', 'ef_icon = img/16/down16.png', array('order=8'));
-        $data->toolbar->addBtn('Линк', array('F', 'GetLink', 'fileHnd' => $data->rec->fileHnd, 'ret_url' => TRUE), 'id=btn-downloadLink', 'ef_icon = img/16/link.png, title=' . tr('Генериране на линк за сваляне'), array('order=9'));
+        $data->toolbar->addBtn('Сваляне', $downloadUrl, 'id=btn-download', 'ef_icon = img/16/down16.png, order=8');
+        $data->toolbar->addBtn('Линк', array('F', 'GetLink', 'fileHnd' => $data->rec->fileHnd, 'ret_url' => TRUE), 'id=btn-downloadLink', 'ef_icon = img/16/link.png, title=Генериране на линк за сваляне, order=9');
+        
+        if ($mvc->haveRightFor('regenerate', $data->rec->id)) {
+            $data->toolbar->addBtn('Регенериране', array($mvc, 'Regenerate', 'fileHnd' => $data->rec->fileHnd, 'ret_url' => TRUE), 'id=btn-regenerate', 'ef_icon = img/16/recycle.png, title=Повторна обработка на файла, order=25');
+        }
         
         // Очакваме да има такъв файл
         expect($fRec = $data->rec);
@@ -2142,6 +2152,35 @@ class fileman_Files extends core_Master
                 }
             }
         }
+    }
+    
+    
+    /**
+     * Регенериране на индексите за файла
+     */
+    function act_Regenerate()
+    {
+        $this->requireRightFor('regenerate');
+        
+        $fileHnd = Request::get('fileHnd');
+        
+        expect($fileHnd);
+        
+        $fRec = fileman_Files::fetchByFh($fileHnd);
+        
+        expect($fRec);
+        
+        $this->requireRightFor('regenerate', $fRec);
+        
+        fileman_Indexes::deleteIndexesForData($fRec->dataId);
+        
+        $retUrl = getRetUrl();
+        
+        if (empty($retUrl)) {
+            $retUrl = array($this, 'single', $fRec->fileHnd);
+        }
+        
+        return new Redirect($retUrl, '|Стартирано регенериране на индексите за файла');
     }
     
     
