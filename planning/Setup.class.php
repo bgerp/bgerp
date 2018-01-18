@@ -128,7 +128,8 @@ class planning_Setup extends core_ProtoSetup
     		'migrate::deleteTaskCronUpdate',
     		'migrate::deleteAssets',
     		'migrate::deleteNorms',
-    		'migrate::transferCenters',
+            'migrate::transferCenters',
+            'migrate::removeUnusedRole'
         );
 
         
@@ -141,8 +142,7 @@ class planning_Setup extends core_ProtoSetup
     		array('taskPlanning', 'taskWorker'),
     		array('planning', 'taskPlanning'),
     		array('planningMaster', 'planning'),
-    		array('job'),
-    		array('jobMaster', 'job'),
+    		array('job')
     );
 
     
@@ -534,5 +534,15 @@ class planning_Setup extends core_ProtoSetup
     	while($hRec = $hQuery->fetch()){
     		$Hr->save($hRec, 'folders');
     	}
+    }
+    
+    
+    /**
+     * Миграция за премахване на ненужна роля
+     */
+    public static function removeUnusedRole()
+    {
+        core_Roles::removeRoles(array('jobMaster'));
+        core_Roles::delete("#role = 'jobMaster'");
     }
 }

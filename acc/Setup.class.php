@@ -149,7 +149,8 @@ class acc_Setup extends core_ProtoSetup
     	'acc_ValueCorrections',
         'acc_FeatureTitles',
     	'acc_CostAllocations',
-        'migrate::removeUnusedRole'
+        'migrate::removeUnusedRole',
+        'migrate::recalcRoles'
     );
     
     
@@ -180,19 +181,19 @@ class acc_Setup extends core_ProtoSetup
         array('accLimits'),
         array('allGlobal'),
         array('invoiceAll'),
-        array('invoiceAllGlobal', 'invoiceAll, allGlobal'),
+        array('invoiceAllGlobal', 'invoiceAll'),
         array('storeAll'),
-        array('storeAllGlobal', 'storeAll, allGlobal'),
+        array('storeAllGlobal', 'storeAll'),
         array('bankAll'),
-        array('bankAllGlobal', 'bankAll, allGlobal'),
+        array('bankAllGlobal', 'bankAll'),
         array('cashAll'),
-        array('cashAllGlobal', 'cashAll, allGlobal'),
+        array('cashAllGlobal', 'cashAll'),
         array('saleAll'),
-        array('saleAllGlobal', 'saleAll, allGlobal'),
+        array('saleAllGlobal', 'saleAll'),
         array('purchaseAll'),
-        array('purchaseAllGlobal', 'purchaseAll, allGlobal'),
+        array('purchaseAllGlobal', 'purchaseAll'),
         array('planningAll'),
-        array('planningAllGlobal', 'planningAll, allGlobal'),
+        array('planningAllGlobal', 'planningAll'),
         array('acc', 'accJournal, invoicer, seePrice, invoiceAll, storeAll, bankAll, cashAll, saleAll, purchaseAll, planningAll'),
         array('accMaster', 'acc, invoiceAllGlobal, storeAllGlobal, bankAllGlobal, cashAllGlobal, saleAllGlobal, purchaseAllGlobal, planningAllGlobal'),
         array('rep_acc'),
@@ -357,7 +358,19 @@ class acc_Setup extends core_ProtoSetup
      */
     public static function removeUnusedRole()
     {
-        core_Roles::removeRoles(array('storeaAllGlobal'));
+        $rId = core_Roles::fetchByName('storeaAllGlobal');
+        if ($rId) {
+            core_Roles::removeRoles(array($rId));
+        }
         core_Roles::delete("#role = 'storeaAllGlobal'");
+    }
+    
+    
+    /**
+     * Миграция за премахване на грешно изписана роля
+     */
+    public static function recalcRoles()
+    {
+        core_Roles::haveChanges();
     }
 }

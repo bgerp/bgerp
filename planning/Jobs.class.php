@@ -172,12 +172,6 @@ class planning_Jobs extends core_Master
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'dueDate,quantityProduced,history,oldJobId';
-
-    
-    /**
-     * Роли за виждане на всички потребители при филтриране на задания
-     */
-    public $filterRolesForAll = 'jobMaster';
     
     
 	/**
