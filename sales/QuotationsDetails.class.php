@@ -456,9 +456,6 @@ class sales_QuotationsDetails extends doc_Detail {
     	}
     	
     	if($form->isSubmitted()){
-    		if($form->cmd == 'save_new_row'){
-    			unset($rec->id);
-    		}
     		
     		if(!isset($form->rec->packQuantity)){
     			$form->rec->defQuantity = TRUE;
@@ -485,7 +482,7 @@ class sales_QuotationsDetails extends doc_Detail {
     			    }
     			    
     				if($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}  AND #quantity='{$rec->quantity}'")){
-    					if($sameProduct->id != $rec->id){
+    					if($sameProduct->id != $rec->id || $form->cmd == 'save_new_row'){
     						$form->setError('packQuantity', 'Избраният продукт вече фигурира с това количество');
     						return;
     					}
@@ -513,6 +510,10 @@ class sales_QuotationsDetails extends doc_Detail {
     			if(isset($price)){
     				$price = deals_Helper::getPurePrice($price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
     				$rec->price  = $price;
+    			}
+    			
+    			if($form->cmd == 'save_new_row'){
+    				unset($rec->id);
     			}
     		}
     	
