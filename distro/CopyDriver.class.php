@@ -134,7 +134,7 @@ class distro_CopyDriver extends core_Mvc
             $copyExec .= "sshpass -p {$pass} ";
         }
         
-        $copyExec .= "scp -P{$port} {$srcFilePath} {$user}@{$host}:{$destFilePath};";
+        $copyExec .= "scp -o CheckHostIP=no -P{$port} {$srcFilePath} {$user}@{$host}:{$destFilePath};";
         
         return $copyExec;
     }
