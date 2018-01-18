@@ -542,7 +542,10 @@ class planning_Setup extends core_ProtoSetup
      */
     public static function removeUnusedRole()
     {
-        core_Roles::removeRoles(array('jobMaster'));
+        $rId = core_Roles::fetchByName('jobMaster');
+        if ($rId) {
+            core_Roles::removeRoles(array($rId));
+        }
         core_Roles::delete("#role = 'jobMaster'");
     }
 }
