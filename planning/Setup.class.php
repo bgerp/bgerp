@@ -546,6 +546,5 @@ class planning_Setup extends core_ProtoSetup
         if ($rId) {
             core_Roles::removeRoles(array($rId));
         }
-        core_Roles::delete("#role = 'jobMaster'");
     }
 }
