@@ -150,7 +150,7 @@ class acc_Setup extends core_ProtoSetup
         'acc_FeatureTitles',
     	'acc_CostAllocations',
         'migrate::removeUnusedRole',
-        'migrate::recalcRoles'
+        'migrate::recalcRoles1'
     );
     
     
@@ -368,8 +368,9 @@ class acc_Setup extends core_ProtoSetup
     /**
      * Миграция за премахване на грешно изписана роля
      */
-    public static function recalcRoles()
+    public static function recalcRoles1()
     {
-        core_Roles::haveChanges();
+        core_Roles::rebuildRoles();
+        core_Users::rebuildRoles();
     }
 }
