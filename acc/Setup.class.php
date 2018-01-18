@@ -150,7 +150,7 @@ class acc_Setup extends core_ProtoSetup
         'acc_FeatureTitles',
     	'acc_CostAllocations',
         'migrate::removeUnusedRole',
-        'migrate::recalcRoles'
+        'migrate::recalcAllGlobalRole'
     );
     
     
@@ -368,8 +368,16 @@ class acc_Setup extends core_ProtoSetup
     /**
      * Миграция за премахване на грешно изписана роля
      */
-    public static function recalcRoles()
+    public static function recalcAllGlobalRole()
     {
-        core_Roles::haveChanges();
+        $rId = core_Roles::fetchByName('allGlobal');
+        if ($rId) {
+            core_Roles::removeRoles(array($rId));
+        }
+        
+        core_Roles::rebuildRoles();
+        core_Users::rebuildRoles();
+        
+        core_Roles::addOnce('allGlobal');
     }
 }
