@@ -373,6 +373,24 @@ class unit_MinkPListProduct extends core_Manager {
             return unit_MinkPbgERP::reportErr('Грешни суми в мастера', 'warning');
         }
     
+        //Създаване на връзка
+        $browser->press('Връзка');
+        $browser->setValue('act', 'Нов документ');
+       
+        $browser->setValue('linkDocType', 'Задачи');
+        $browser->press('Refresh');
+        return $browser->getHtml();
+        //$browser->setValue('linkFolderId', 'Документите на Bgerp');
+        $browser->setValue('linkFolderId', 20);
+        $browser->press('Запис');
+        
+        $browser->setValue('assign[]', 'User1');
+        $valior=strtotime("+1 Day");
+        $browser->setValue('timeStart[d]', date('d-m-Y', $valior));
+        $valior=strtotime("+3 Days");
+        $browser->setValue('timeEnd[d]', date('d-m-Y', $valior));
+        $browser->press('Активиране');
+        
     }
     
 }
