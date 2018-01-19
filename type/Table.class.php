@@ -71,11 +71,14 @@ class type_Table extends type_Blob {
             $selOpt = $field . '_opt';
             $suggestOpt = $field . '_sgt';
             $readOnlyFld = $field . '_ro';
-            
             if($this->params[$selOpt]) {
-                $opt = explode('|', $this->params[$selOpt]);
-                foreach($opt as $o) {
-                    $opt[$field][$o] = $o;
+                if(is_string($this->params[$selOpt])) {
+                    $opt = explode('|', $this->params[$selOpt]);
+                    foreach($opt as $o) {
+                        $opt[$field][$o] = $o;
+                    }
+                } else {  
+                    $opt[$field] = $this->params[$selOpt];
                 }
                 $tpl  .= "<td>" . ht::createSelect($attr[$field]['name'], $opt[$field], NULL, $attr[$field]) . "</td>";
                 $row1 .= "<td>" . ht::createSelect($attr[$field]['name'], $opt[$field], strip_tags($value[$field][0]), $attr[$field]) . "</td>";
@@ -146,7 +149,7 @@ class type_Table extends type_Blob {
         $tpl = str_replace("\n", "", $tpl);
     
         $id = 'table_' . $name;
-        $btn = ht::createElement('input', array('type' => 'button', 'value' => '+ Нов ред', 'onclick' => "dblRow(\"{$id}\", \"{$tpl}\")"));  
+        $btn = ht::createElement('input', array('type' => 'button', 'value' => '+ ' . tr('Нов ред||Add row'), 'onclick' => "dblRow(\"{$id}\", \"{$tpl}\")"));  
         
         $attrTable = array();
         $attrTable['class'] = 'listTable typeTable ' . $attrTable['class'];
@@ -223,7 +226,8 @@ class type_Table extends type_Blob {
 
         if(is_array($value)) {
             $columns = $this->getColumns();
-            
+            $opt = $this->getOptions();
+
             foreach($columns as $field => $fObj) {
                 $row0 .= "<td class='formTypeTable'>{$fObj->caption}</td>";
             }
@@ -233,8 +237,12 @@ class type_Table extends type_Blob {
                 $isset = FALSE;
                 $empty = TRUE;
                 $row = '';
-                foreach($columns as $field => $fObj) {
-                    $row .= "<td>" . $value[$field][$i] . "</td>";
+                foreach($columns as $field => $fObj) {  
+                    if(isset($opt[$field])) {
+                        $row .= "<td>" . $opt[$field][$value[$field][$i]] . "</td>";
+                    } else {
+                        $row .= "<td>" . $value[$field][$i] . "</td>";
+                    }
                     if(isset($value[$field][$i])) {
                         $isset = TRUE;
                     }
@@ -343,5 +351,32 @@ class type_Table extends type_Blob {
         }
  
         return $res;
+    }
+
+
+    /**
+     * Подготвя опциите
+     */
+    function getOptions()
+    {
+        $opt = array();
+        $columns = $this->getColumns();
+        foreach($columns as $field => $fObj) {
+ 
+            $selOpt = $field . '_opt';
+
+            if($this->params[$selOpt]) {
+                if(is_string($this->params[$selOpt])) {
+                    $opt = explode('|', $this->params[$selOpt]);
+                    foreach($opt as $o) {
+                        $opt[$field][$o] = $o;
+                    }
+                } else {  
+                    $opt[$field] = $this->params[$selOpt];
+                }
+            }
+        }
+
+        return $opt;
     }
 }
