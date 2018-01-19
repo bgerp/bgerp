@@ -168,9 +168,27 @@ class distro_Group extends core_Master
     {
         $handleArr = doc_Containers::parseHandle($path);
         
-        if ($handleArr === FALSE) return ;
+        if ($handleArr && (strtolower($handleArr['abbr']) == 'dst') && $handleArr['id']) {
+            
+            $dRec = self::fetch((int)$handleArr['id']);
+            
+            if ($dRec) {
+                $subDirName = self::getSubDirName($dRec);
+                
+                if ($subDirName == $path) return $handleArr['id'];
+            }
+        } 
         
-        return $handleArr['id'];
+        // Ако името не е зададено с хендлър
+        $query = self::getQuery();
+        plg_Search::applySearch(plg_Search::normalizeText($path), $query);
+        while ($dRec = $query->fetch()) {
+            $subDirName = self::getSubDirName($dRec);
+            
+            if ($subDirName == $path) return $dRec->id;
+        }
+        
+        return NULL;
     }
     
     
