@@ -168,7 +168,7 @@ class distro_Group extends core_Master
     {
         $handleArr = doc_Containers::parseHandle($path);
         
-        if ((strtolower($handleArr['abbr']) == 'dst') && $handleArr['id']) {
+        if ($handleArr && (strtolower($handleArr['abbr']) == 'dst') && $handleArr['id']) {
             
             $dRec = self::fetch((int)$handleArr['id']);
             
