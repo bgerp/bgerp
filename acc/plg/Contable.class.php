@@ -20,7 +20,7 @@ class acc_plg_Contable extends core_Plugin
     /**
      * Масив с класове и съответните роли, които се изискват за private single на документа
      */
-    protected static $rolesAllMap = array(
+    public static $rolesAllMap = array(
             'purchase_Invoices' => 'invoiceAll',
             'sales_Invoices' => 'invoiceAll',
             'sales_Proformas' => 'invoiceAll',
@@ -88,17 +88,6 @@ class acc_plg_Contable extends core_Plugin
             $mvc->setDbIndex($mvc->valiorFld);
         }
         setIfNot($mvc->createView, TRUE);
-        
-        // Добавяме глобалните роли за съответния клас да може да филтрират всички
-        $rolesAll = self::$rolesAllMap[$mvc->className];
-        if ($rolesAll) {
-            if ($mvc->filterRolesForAll) {
-                $mvc->filterRolesForAll = rtrim($mvc->filterRolesForAll, '|');
-                $mvc->filterRolesForAll .= '|';
-            }
-            
-            $mvc->filterRolesForAll .= $rolesAll . 'Global';
-        }
     }
     
     

@@ -69,7 +69,15 @@ class acc_plg_DocumentSummary extends core_Plugin
         $mvc->filterRolesForTeam = implode('|', $rolesForTeamsArr);
         
         $mvc->filterRolesForAll .= ',' . acc_Setup::get('SUMMARY_ROLES_FOR_ALL');
+        
         $mvc->filterRolesForAll = trim($mvc->filterRolesForAll, ',');
+        
+        // Добавяме глобалните роли за съответния клас да може да филтрират всички
+        $rolesAll = acc_plg_Contable::$rolesAllMap[$mvc->className];
+        if ($rolesAll) {
+            $mvc->filterRolesForAll .= ',' . $rolesAll . 'Global';
+        }
+        
         $rolesForAllArr = arr::make($mvc->filterRolesForAll, TRUE);
         $mvc->filterRolesForAll = implode('|', $rolesForAllArr);
         
