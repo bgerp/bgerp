@@ -51,7 +51,7 @@ class crm_ext_ContragentInfo extends core_manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'contragentId=Контрагент,customerSince=Първо задание,createdBy';
+    public $listFields = 'contragentId=Контрагент,customerSince=Първо задание,overdueSales=Просрочени сделки,createdBy';
     
     
     /**
@@ -59,9 +59,10 @@ class crm_ext_ContragentInfo extends core_manager
      */
     public function description()
     {
-    	$this->FLD('contragentClassId', 'int', 'mandatory');
-    	$this->FLD('contragentId', 'int', 'mandatory,tdClass=leftCol');
+    	$this->FLD('contragentClassId', 'int');
+    	$this->FLD('contragentId', 'int', 'tdClass=leftCol');
     	$this->FLD('customerSince', 'date');
+    	$this->FLD('overdueSales', 'enum(yes=Да)');
     	
     	$this->setDbIndex('contragentClassId');
     	$this->setDbUnique('contragentClassId,contragentId');
@@ -204,7 +205,10 @@ class crm_ext_ContragentInfo extends core_manager
      */
     private static function prepareNewRec($contragentClassId, $contragentId, $params = array())
     {
-    	$newArr = array('contragentId'      => $contragentId, 'contragentClassId' => $contragentClassId, 'createdBy' => core_Users::SYSTEM_USER);
+    	$newArr = array('contragentId'      => $contragentId, 
+    			        'contragentClassId' => $contragentClassId, 
+    			        'createdBy'         => core_Users::SYSTEM_USER);
+    	
     	if(is_array($params)){
     		$newArr += $params;
     	}
@@ -219,7 +223,7 @@ class crm_ext_ContragentInfo extends core_manager
     
     
     /**
-     * Презичислява балансите за периодите, в които има промяна ежеминутно
+     * Събиране на информация за контрагентите
      */
     function cron_GatherInfo()
     {
@@ -229,7 +233,7 @@ class crm_ext_ContragentInfo extends core_manager
     	$uArr = array(core_Users::ANONYMOUS_USER, core_Users::SYSTEM_USER);
     	$contragentClasses = core_Classes::getOptionsByInterface('crm_ContragentAccRegIntf', 'id');
     	
-    	// За всички конрагенти
+    	// За всички контрагенти
     	foreach ($contragentClasses as $classId){
     		$saveArray = array();
     		$exRecs = $existing[$classId];
@@ -247,49 +251,29 @@ class crm_ext_ContragentInfo extends core_manager
 	    	
 	    	// От кога са клиенти
 	    	$customersSince = self::getFirstSaleDates($classId);
+	    	$overdues = self::getOverdueSales($classId);
 	    	
 	    	// За всеки
 	    	while($cRec = $cQuery->fetch()){
 	    		
-	    		// Ако има данни от кога е клиент
-	    		if(array_key_exists($cRec->id, $customersSince)){
-	    			
-	    			//..и има предишен запис, в модела
-	    			if(array_key_exists($cRec->id, $exRecs)){
-	    				$e = $exRecs[$cRec->id];
-	    				
-	    				//..и новата дата е различна от старата, записа се обновява (и е създаден от системния потребител)
-	    				if($e->customerSince != $customersSince[$cRec->id]){
-	    					if(in_array($exRecs[$cRec->id]->createdBy, $uArr)){
-	    						$s = clone $e;
-	    						$s->customerSince = $customersSince[$cRec->id];
-	    						$saveArray[$cRec->id] = $s;
-	    					}
-	    				}
-	    			} else {
-	    				// Ако няма предишен запис, и има дата записа се добавя
-	    				$saveArray[$cRec->id] = self::prepareNewRec($classId, $cRec->id, array('customerSince' => $customersSince[$cRec->id], 'createdOn' => $now));
+	    		if(array_key_exists($cRec->id, $exRecs)){
+	    			$r = $exRecs[$cRec->id];
+	    		} else {
+	    			$r = self::prepareNewRec($classId, $cRec->id, array('createdOn' => $now));
+	    		}
+	    		
+	    		$r->overdueSales = array_key_exists($cRec->id, $overdues) ? 'yes' : NULL;
+	    		
+	    		//..и е стар запис създаден от системата
+	    		if(array_key_exists($cRec->id, $exRecs)){
+	    			if(in_array($exRecs[$cRec->id]->createdBy, $uArr)){
+	    				$r->customerSince = array_key_exists($cRec->id, $customersSince) ? $customersSince[$cRec->id] : NULL;
 	    			}
 	    		}
 	    		
-	    		// Ако няма дата от кога е клиент
-	    		if(!array_key_exists($cRec->id, $customersSince)){
-	    			
-	    			//..и е стар запис създаден от системата
-	    			if(array_key_exists($cRec->id, $exRecs)){
-	    				if(in_array($exRecs[$cRec->id]->createdBy, $uArr)){
-	    					
-	    					// Датата се нулива
-	    					$exRecs[$cRec->id]->customerSince = NULL;
-	    					$saveArray[$cRec->id] = $exRecs[$cRec->id];
-	    				}
-	    			}
+	    		if(isset($r->overdueSales) || isset($r->customerSince)){
+	    			$saveArray[$cRec->id] = $r;
 	    		}
-	    		
-	    		/*
-	    		if(!array_key_exists($cRec->id, $saveArray) && !array_key_exists($cRec->id, $exRecs)){
-	    			$saveArray[$cRec->id] = self::prepareNewRec($classId, $cRec->id, array('createdOn' => $now));
-	    		}*/
 	    	}
 	    	
 	    	// Запис на новите данни
@@ -297,5 +281,23 @@ class crm_ext_ContragentInfo extends core_manager
 	    		$this->saveArray($saveArray);
 	    	}
     	}
+    }
+    
+    
+    /**
+     * Всички просрочени продажби
+     * 
+     * @param int $contragentClassId
+     * @return array $res
+     */
+    private function getOverdueSales($contragentClassId)
+    {
+    	$saleQuery = sales_Sales::getQuery();
+    	$saleQuery->where("#contragentClassId = {$contragentClassId}");
+    	$saleQuery->where("#state = 'active' AND #paymentState = 'overdue'");
+    	$saleQuery->show('id,contragentId');
+    	$res = arr::extractValuesFromArray($saleQuery->fetchAll(), 'contragentId');
+    	
+    	return $res;
     }
 }
