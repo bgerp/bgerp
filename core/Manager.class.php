@@ -1191,4 +1191,30 @@ class core_Manager extends core_Mvc
         
         return $res;
     }
+    
+    
+    /**
+     * Връща иконата на еденичния изглед
+     *
+     * @param core_Master $mvc
+     * @param int $id
+     * @param string
+     */
+    public function getSingleIcon_($id)
+    {
+    	return $this->singleIcon;
+    }
+    
+    
+    /**
+     * Връща еденичното заглавие
+     *
+     * @param core_Master $mvc
+     * @param int $id
+     * @param string
+     */
+    public function getSingleTitle_($id)
+    {
+    	return tr($this->singleTitle);
+    }
 }
