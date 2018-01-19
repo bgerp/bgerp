@@ -1529,7 +1529,7 @@ class sales_Quotations extends core_Master
     	$dQuery->where("#price IS NULL || #tolerance IS NULL || #term IS NULL || #weight IS NULL");
     	while($dRec = $dQuery->fetch()){
     		if(!isset($dRec->price)){
-    			sales_QuotationsDetails::calcLivePrice($dRec, $rec);
+    			sales_QuotationsDetails::calcLivePrice($dRec, $rec, TRUE);
     			
     			if(!isset($dRec->price)){
     				$error[] = cat_Products::getTitleById($dRec->productId);

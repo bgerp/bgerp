@@ -169,9 +169,9 @@ class sales_QuotationsDetails extends doc_Detail {
      * @param stdClass $masterRec
      * @return void;
      */
-    public static function calcLivePrice($rec, $masterRec)
+    public static function calcLivePrice($rec, $masterRec, $force = FALSE)
     {
-    	if(!haveRole('seePrice,ceo')) return;
+    	if($force !== TRUE && !haveRole('seePrice,ceo')) return;
     	$policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $rec->date, $masterRec->currencyRate, $masterRec->chargeVat, NULL, FALSE);
     	
     	if(isset($policyInfo->price)){
