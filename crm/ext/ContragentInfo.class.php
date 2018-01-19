@@ -135,6 +135,29 @@ class crm_ext_ContragentInfo extends core_manager
     
     
     /**
+     * Разширяване на вербалното показване на контрагента
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $row
+     * @param stdClass $rec
+     * @return void
+     */
+    public static function extendRow($mvc, &$row, $rec)
+    {
+    	$customerSince = crm_ext_ContragentInfo::getCustomerSince($mvc->getClassId(), $rec->id);
+        if(!empty($customerSince)){
+            $row->customerSince = core_Type::getByName('date')->toVerbal($customerSince);
+        }
+        
+        if($cInfo = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $rec->id)){
+        	if($cInfo->overdueSales == 'yes'){
+        		$row->overdueSales = tr('Има просрочени сделки');
+        	}
+       }
+    }
+    
+    
+    /**
      * Връща датата от която е клиент контрагента
      * 
      * @param int $contragentClassId - ид на класа на контрагента

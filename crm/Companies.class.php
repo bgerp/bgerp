@@ -796,16 +796,8 @@ class crm_Companies extends core_Master
                 $row->title = $row->name;
             }
             
-            $customerSince = crm_ext_ContragentInfo::getCustomerSince($mvc->getClassId(), $rec->id);
-            if(!empty($customerSince)){
-            	$row->customerSince = core_Type::getByName('date')->toVerbal($customerSince);
-            }
-            
-            if($cInfo = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $rec->id)){
-            	if($cInfo->overdueSales === 'yes'){
-            		$row->overdueSales = tr('Имат просрочени сделки');
-            	}
-            }
+            // Разширяване на $row
+            crm_ext_ContragentInfo::extendRow($mvc, $row, $rec);
         }
         
         // Дали има права single' а на тазу фирма
