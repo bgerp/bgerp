@@ -593,6 +593,12 @@ class crm_Persons extends core_Master
             if(!empty($customerSince)){
             	$row->customerSince = core_Type::getByName('date')->toVerbal($customerSince);
             }
+            
+            if($cInfo = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $rec->id)){
+            	if($cInfo->overdueSales === 'yes'){
+            		$row->overdueSales = "<span class='red'>" . tr('Имат просрочени сделки'). "</span>";
+            	}
+            }
         }
 
         static $ownCompany;

@@ -86,6 +86,9 @@
                     |Клиент от|*: <i>[#customerSince#]</i>
                     </div>
                     <!--ET_END customerSince-->
+                    <!--ET_BEGIN overdueSales-->
+                    <div class="richtext red">[#overdueSales#]</div>
+                    <!--ET_END overdueSales-->
                     <!--ET_BEGIN CloseTime-->
                     <div>|Затваряне на нишките|*: |Автоматично след|* [#CloseTime#]</div>
                     <!--ET_END CloseTime-->

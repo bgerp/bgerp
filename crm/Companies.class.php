@@ -800,6 +800,12 @@ class crm_Companies extends core_Master
             if(!empty($customerSince)){
             	$row->customerSince = core_Type::getByName('date')->toVerbal($customerSince);
             }
+            
+            if($cInfo = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $rec->id)){
+            	if($cInfo->overdueSales === 'yes'){
+            		$row->overdueSales = tr('Имат просрочени сделки');
+            	}
+            }
         }
         
         // Дали има права single' а на тазу фирма
@@ -2378,4 +2384,8 @@ class crm_Companies extends core_Master
     }
 
 
+    public static function on_AftergetSingleIcon($mvc, &$res, $id)
+    {
+    	//bp($res);
+    }
 }

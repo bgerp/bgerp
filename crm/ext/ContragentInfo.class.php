@@ -122,6 +122,19 @@ class crm_ext_ContragentInfo extends core_manager
     
     
     /**
+     * Връща екстендъра на контрагента
+     * 
+     * @param int $contragentClassId - ид на класа на контрагента
+     * @param int $contragentId      - ид на контрагента
+     * @return stdClass|FALSE        - намерения запис
+     */
+    public static function getByContragent($contragentClassId, $contragentId)
+    {
+    	return self::fetch("#contragentClassId = {$contragentClassId} AND #contragentId = {$contragentId}");
+    }
+    
+    
+    /**
      * Връща датата от която е клиент контрагента
      * 
      * @param int $contragentClassId - ид на класа на контрагента
@@ -130,7 +143,7 @@ class crm_ext_ContragentInfo extends core_manager
      */
     public static function getCustomerSince($contragentClassId, $contragentId)
     {
-    	$exRec = self::fetch("#contragentClassId = {$contragentClassId} AND #contragentId = {$contragentId}", 'id,customerSince');
+    	$exRec = self::getByContragent($contragentClassId, $contragentId);
     	
     	if(empty($exRec->customerSince)){
     		$customerSince = self::getFirstSaleDate($contragentClassId, $contragentId);
