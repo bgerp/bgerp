@@ -2376,8 +2376,19 @@ class crm_Companies extends core_Master
     }
 
 
-    public static function on_AftergetSingleIcon($mvc, &$res, $id)
+    /**
+     * След взимане на иконката за единичния изглед
+     * 
+     * @param core_Mvc $mvc
+     * @param string $res
+     * @param int $id
+     */
+    public static function on_AfterGetSingleIcon($mvc, &$res, $id)
     {
-    	//bp($res);
+    	if($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)){
+    		if($extRec->overdueSales == 'yes'){
+    			//$res = '';
+    		}
+    	}
     }
 }

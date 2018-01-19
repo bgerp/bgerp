@@ -3071,4 +3071,21 @@ class crm_Persons extends core_Master
     	
     	return FALSE;
     }
+    
+    
+    /**
+     * След взимане на иконката за единичния изглед
+     *
+     * @param core_Mvc $mvc
+     * @param string $res
+     * @param int $id
+     */
+    public static function on_AfterGetSingleIcon($mvc, &$res, $id)
+    {
+    	if($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)){
+    		if($extRec->overdueSales == 'yes'){
+    			//$res = '';
+    		}
+    	}
+    }
 }
