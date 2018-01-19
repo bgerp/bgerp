@@ -2275,7 +2275,7 @@ class fileman_Files extends core_Master
             $preview = new ET("[#THUMB_IMAGE#]");
             
             // Атрибути на thumbnail изображението
-            $attr = array('class' => 'webdrv-preview', 'style' => 'margin: 0 auto 0px auto; display: block;');
+            $attr = array('class' => 'webdrv-preview', 'style' => 'margin: 0; display: block;');
             
             unset($jpgArr['otherPagesCnt']);
             
