@@ -49,14 +49,48 @@ class acc_plg_DocumentSummary extends core_Plugin
     
     
     /**
+     * Масив с класове и съответните роли, които се изискват за private single на документа
+     */
+    public static $rolesAllMap = array(
+            'purchase_Invoices' => 'invoiceAll',
+            'sales_Invoices' => 'invoiceAll',
+            'sales_Proformas' => 'invoiceAll',
+            'store_ShipmentOrders' => 'storeAll',
+            'store_Receipts' => 'storeAll',
+            'store_Transfers' => 'storeAll',
+            'store_ConsignmentProtocols' => 'storeAll',
+            'store_InventoryNotes' => 'storeAll',
+            'purchase_Services' => 'storeAll',
+            'sales_Services' => 'storeAll',
+            'bank_IncomeDocuments' => 'bankAll',
+            'bank_SpendingDocuments' => 'bankAll',
+            'bank_ExchangeDocument' => 'bankAll',
+            'bank_InternalMoneyTransfer' => 'bankAll',
+            'cash_Pko' => 'cashAll',
+            'cash_Rko' => 'cashAll',
+            'cash_InternalMoneyTransfer' => 'cashAll',
+            'cash_ExchangeDocument' => 'cashAll',
+            'sales_Sales' => 'saleAll',
+            'purchase_Purchases' => 'purchaseAll',
+            'planning_DirectProductionNote' => 'planningAll',
+            'planning_ConsumptionNotes' => 'planningAll',
+            'planning_ReturnNotes' => 'planningAll',
+            'planning_Jobs' => 'planningAll',
+            'planning_Tasks' => 'planningAll',
+    );
+    
+    
+    /**
      * Извиква се след описанието на модела
      *
      * @param core_Mvc $mvc
      */
-    function on_AfterDescription(core_Mvc $mvc)
+    public static function on_AfterDescription(core_Mvc $mvc)
     {
         // Проверка за приложимост на плъгина към зададения $mvc
         static::checkApplicability($mvc);
+        
+        setIfNot($mvc->canViewpsingle, 'powerUser');
         
         setIfNot($mvc->filterDateField, 'valior');
         setIfNot($mvc->filterCurrencyField, 'currencyId');
@@ -69,12 +103,35 @@ class acc_plg_DocumentSummary extends core_Plugin
         $mvc->filterRolesForTeam = implode('|', $rolesForTeamsArr);
         
         $mvc->filterRolesForAll .= ',' . acc_Setup::get('SUMMARY_ROLES_FOR_ALL');
+        
         $mvc->filterRolesForAll = trim($mvc->filterRolesForAll, ',');
+        
+        // Добавяме глобалните роли за съответния клас да може да филтрират всички
+        $rolesAll = self::$rolesAllMap[$mvc->className];
+        if ($rolesAll) {
+            $mvc->filterRolesForAll .= ',' . $rolesAll . 'Global';
+        }
+        
         $rolesForAllArr = arr::make($mvc->filterRolesForAll, TRUE);
         $mvc->filterRolesForAll = implode('|', $rolesForAllArr);
         
         setIfNot($mvc->filterAutoDate, TRUE);
         $mvc->_plugins = arr::combine(array('Избор на период' => cls::get('plg_SelectPeriod')), $mvc->_plugins);
+    }
+    
+    
+    /**
+     * Извиква се след изчисляването на необходимите роли за това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        // Проверка за права за частния сингъл
+        if ($action == 'viewpsingle') {
+            $rolesAll = self::$rolesAllMap[$mvc->className];
+            if (!$rolesAll || !haveRole($rolesAll, $userId)) {
+                $requiredRoles = 'no_one';
+            }
+        }
     }
     
     

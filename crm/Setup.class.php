@@ -89,7 +89,7 @@ class crm_Setup extends core_ProtoSetup
     				'description' => "Събиране на информация за контрагентите",
     				'controller' => "crm_ext_ContragentInfo",
     				'action' => "GatherInfo",
-    				'period' => 1440,
+    				'period' => 720,
     				'offset' => 70,
     				'timeLimit' => 300
     		),
