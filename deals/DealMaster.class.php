@@ -404,8 +404,10 @@ abstract class deals_DealMaster extends deals_DealBase
     	if(!empty($rec->deliveryLocationId) && !empty($rec->deliveryAdress)){
     		$form->setError('deliveryLocationId,deliveryAdress', 'Не може двете полета да са едновременно попълнени');
     	} elseif(!empty($rec->deliveryAdress)){
-    		if(!drdata_Address::parsePlace($rec->deliveryAdress)){
-    			$form->setError('deliveryAdress', 'Адреса не може да се парсира');
+    		if($form->getFieldTypeParam('deliveryAdress', 'isReadOnly') !== TRUE){
+    			if(!drdata_Address::parsePlace($rec->deliveryAdress)){
+    				$form->setError('deliveryAdress', 'Мястото трябва да съдържа държава и пощенски код');
+    			}
     		}
     	}
     }

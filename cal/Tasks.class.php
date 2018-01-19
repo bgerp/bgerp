@@ -570,12 +570,17 @@ class cal_Tasks extends embed_Manager
                 if ($rec->savedState) {
                     
                     $sState = $rec->savedState;
-                    $tEnd = $rec->timeEnd;
-                    if (!$tEnd && $rec->timeStart) {
-                        $tEnd = $rec->expectationTimeEnd;
-                    }
-                    if (($tEnd) && ($tEnd < $now)) {
-                        $sState = 'late';
+                    
+                    if (($rec->savedState != 'closed') && ($rec->savedState != 'stopped')) {
+                        $tEnd = $rec->timeEnd;
+                        if (!$tEnd && $rec->timeStart) {
+                            if ($rec->timeStart != $rec->expectationTimeEnd) {
+                                $tEnd = $rec->expectationTimeEnd;
+                            }
+                        }
+                        if (($tEnd) && ($tEnd < $now)) {
+                            $sState = 'late';
+                        }
                     }
                     $row->title = "<div class='state-{$sState}-link'>{$row->title}</div>";
                 }

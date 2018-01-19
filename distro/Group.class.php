@@ -236,6 +236,30 @@ class distro_Group extends core_Master
     }
     
     
+    /**
+     *
+     * Функция, която се извиква след активирането на документа
+     *
+     * @param distro_Group $mvc
+     * @param stdObject $rec
+     */
+    public static function on_BeforeActivation($mvc, &$rec)
+    {
+        if ($rec->id) {
+            $rRec = $mvc->fetch($rec->id);
+            
+            if ($rRec->repos) {
+                $dRepoArr = $mvc->getDuplicateFileRepoId($rRec);
+                
+                if (!empty($dRepoArr)) {
+                    
+                    redirect(array($mvc, 'single', $rec->id), FALSE, '|Не може да се активира, защото същестува такава директория|*. |Променете заглавието');
+                }
+            }
+        }
+    }
+    
+    
 	/**
 	 * 
      * Функция, която се извиква след активирането на документа
@@ -267,24 +291,97 @@ class distro_Group extends core_Master
     
     
     /**
+     * Ако е натиснат бутона 'Активиране" добавя състоянието 'active' в $form->rec
+     * 
+     * @param distro_Group $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, $form)
+    {
+        if ($form->isSubmitted()) {
+            $dRepoArr = $mvc->getDuplicateFileRepoId($form->rec);
+            
+            if (!empty($dRepoArr)) {
+                $form->setError('title', 'Дублиращо се има за директория');
+            }
+        }
+    }
+    
+    
+    /**
+     * Връща хранилищата в които има дублиране на папки
+     * 
+     * @param stdClass $rec
+     * 
+     * @return array
+     */
+    protected function getDuplicateFileRepoId($rec)
+    {
+        $resArr = array();
+        if ($rec->repos) {
+            
+            // Масив с хранилищата
+            $reposArr = type_Keylist::toArray($rec->repos);
+            
+            // Обхождаме масива
+            foreach ((array)$reposArr as $repoId) {
+                
+                // Активираме хранилището
+                $subDirName = $this->getSubDirName($rec);
+                
+                // Създаваме директория в хранилището
+                if (distro_Repositories::checkDirExist($repoId, $subDirName)) {
+                    $resArr[$repoId] = $repoId;
+                }
+            }
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
      * 
      * 
-     * @param integer $id
+     * @param integer|stdClass $rec
      * 
      * @return string
      */
-    public static function getSubDirName($id)
+    public static function getSubDirName($rec)
     {
-        $rec = self::fetch($id);
+        $rec = self::fetchRec($rec);
         
         $title = $rec->title;
+        
+        // Ако в заглавието има хендлър на документ, да се използва то
+        preg_match_all(doc_RichTextPlg::$identPattern, $title, $matches);
+        $abbrArr = doc_Containers::getAbbr();
+        foreach ($matches[0] as $key => $mArr) {
+            $abbr = strtoupper($matches['abbr'][$key]);
+            $mId = $matches['id'][$key];
+            
+            $clsName = $abbrArr[$abbr];
+            
+            if ($clsName && cls::load($clsName, TRUE)) {
+                if ($mId && $clsName::fetch((int)$mId)) {
+                    
+                    $haveAbbr = TRUE;
+                    
+                    break;
+                }
+            }
+        }
         
         $title = STR::utf2ascii($title);
         $title = preg_replace('/[\W]+/', ' ', $title);
         
         $title = trim($title);
         
-        $subDir = self::getHandle($id) . ' - ' . $title;
+        if (!$haveAbbr && $rec->id) {
+            $subDir = self::getHandle($rec->id) . ' - ' . $title;
+        } else {
+            $subDir = $title;
+        }
         
         return $subDir;
     }

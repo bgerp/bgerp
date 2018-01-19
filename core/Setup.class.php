@@ -723,4 +723,81 @@ class core_Setup extends core_ProtoSetup {
 
         return $res;
     }
+    
+    
+    /**
+     * Зареждане на данни
+     */
+    function loadSetupData($itr = '')
+    {
+        $res = parent::loadSetupData($itr);
+        
+        $res .= $this->callMigrate('addObjectIdFromKey', 'core');
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Миграция за добавяне на objectId от ключа
+     */
+    public static function addObjectIdFromKey()
+    {
+        $cQuery = core_Settings::getQuery();
+        $cQuery->where("#objectId IS NULL");
+        $cQuery->where("#key LIKE 'doc_Folders%'");
+        $cQuery->orWhere("#key LIKE 'doc_Threads%'");
+        
+        $maxArr = array();
+        
+        $dFolders = doc_Folders::getQuery();
+        $dFolders->XPR('max', 'int', "MAX(#id)");
+        $dFolders->show('max');
+        $fRec = $dFolders->fetch();
+        $maxArr['doc_Folders'] = $fRec->max;
+        
+        $dThreads = doc_Threads::getQuery();
+        $dThreads->XPR('max', 'int', "MAX(#id)");
+        $dThreads->show('max');
+        $tRec = $dThreads->fetch();
+        $maxArr['doc_Threads'] = $tRec->max;
+        
+        $fKeyArr = array();
+        
+        while ($cRec = $cQuery->fetch()) {
+            
+            $kStr = 'doc_Threads';
+            if (stripos($cRec->key, 'doc_Folders') === 0) {
+                $kStr = 'doc_Folders';
+            }
+            
+            if (strpos($cRec->key, '::')) {
+                list(, $fId) = explode('::', $cRec->key);
+                $fKeyArr[$kStr][$fId] = $cRec->key;
+            } else {
+                $fId = 1000;
+            }
+            
+            while (TRUE) {
+                if (!isset($fKeyArr[$kStr][$fId])) {
+                    $fKeyArr[$kStr][$fId] = core_Settings::prepareKey("{$kStr}::" . $fId);
+                }
+                
+                if ($fKeyArr[$kStr][$fId] == $cRec->key) {
+                    
+                    $cRec->objectId = $fId;
+                    
+                    try {
+                        core_Settings::save($cRec, 'objectId');
+                    } catch (core_exception_Expect $e) {
+                        reportException($e);
+                        continue;
+                    }
+                    break;
+                }
+                
+                if ($fId++ > $maxArr[$kStr]) break;
+            }
+        }
+    }
 }

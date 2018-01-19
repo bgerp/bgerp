@@ -88,6 +88,17 @@ class acc_plg_Contable extends core_Plugin
             $mvc->setDbIndex($mvc->valiorFld);
         }
         setIfNot($mvc->createView, TRUE);
+        
+        // Добавяме глобалните роли за съответния клас да може да филтрират всички
+        $rolesAll = self::$rolesAllMap[$mvc->className];
+        if ($rolesAll) {
+            if ($mvc->filterRolesForAll) {
+                $mvc->filterRolesForAll = rtrim($mvc->filterRolesForAll, '|');
+                $mvc->filterRolesForAll .= '|';
+            }
+            
+            $mvc->filterRolesForAll .= $rolesAll . 'Global';
+        }
     }
     
     
@@ -447,7 +458,7 @@ class acc_plg_Contable extends core_Plugin
         // Проверка за права за частния сингъл
         if ($action == 'viewpsingle') {
             $rolesAll = self::$rolesAllMap[$mvc->className];
-            if (!haveRole($rolesAll, $userId)) {
+            if (!$rolesAll || !haveRole($rolesAll, $userId)) {
                 $requiredRoles = 'no_one';
             }
         }

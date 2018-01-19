@@ -217,8 +217,12 @@ class fileman_webdrv_Generic extends core_Manager
             $fileHnd = Request::get('fileHnd');
         }
         
+        expect($fileHnd);
+        
         // Вземаме записа за файла
         $fRec = fileman_Files::fetchByFh($fileHnd);
+        
+        expect($fRec);
         
         // Очакваме да има права за разглеждане на записа
         $this->requireRightFor('view', $fRec);
