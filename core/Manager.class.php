@@ -1196,7 +1196,6 @@ class core_Manager extends core_Mvc
     /**
      * Връща иконата на еденичния изглед
      *
-     * @param core_Master $mvc
      * @param int $id
      * @param string
      */
@@ -1209,7 +1208,6 @@ class core_Manager extends core_Mvc
     /**
      * Връща еденичното заглавие
      *
-     * @param core_Master $mvc
      * @param int $id
      * @param string
      */
